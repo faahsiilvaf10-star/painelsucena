@@ -167,10 +167,12 @@ const RelatorioPresenca = () => {
 
   // Create a map of employee attendance status
   const attendanceMap = useMemo(() => {
-    const map = new Map<string, { status: "present" | "late" | "absent" | "justified"; id?: string }>();
+    const map = new Map<string, { status: "present" | "absent"; id?: string }>();
     records?.forEach((r) => {
       if (r.employees) {
-        map.set(r.employee_id, { status: r.status, id: r.id });
+        // Map all statuses to just present or absent
+        const normalizedStatus = r.status === "present" ? "present" : "absent";
+        map.set(r.employee_id, { status: normalizedStatus, id: r.id });
       }
     });
     return map;
@@ -209,15 +211,15 @@ const RelatorioPresenca = () => {
 
   const getStatusEmoji = (employeeId: string) => {
     const attendance = attendanceMap.get(employeeId);
+    // Se não tem registro, considera presente por padrão
     if (!attendance) return "✅";
-    if (attendance.status === "present" || attendance.status === "late") return "✅";
-    return "❌";
+    return attendance.status === "present" ? "✅" : "❌";
   };
 
   const isPresent = (employeeId: string) => {
     const attendance = attendanceMap.get(employeeId);
-    if (!attendance) return true;
-    return attendance.status === "present" || attendance.status === "late";
+    if (!attendance) return true; // Presente por padrão
+    return attendance.status === "present";
   };
 
   const toggleAttendance = async (employee: Tables<"employees">) => {

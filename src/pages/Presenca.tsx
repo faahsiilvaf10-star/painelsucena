@@ -1,5 +1,5 @@
 import { useState } from "react";
-import { Calendar, Clock, CheckCircle2, XCircle, AlertCircle, FileText, Loader2 } from "lucide-react";
+import { Calendar, Clock, CheckCircle2, XCircle, Loader2 } from "lucide-react";
 import Layout from "@/components/layout/Layout";
 import { Button } from "@/components/ui/button";
 import {
@@ -27,23 +27,11 @@ const statusConfig = {
     class: "bg-success/20 text-success",
     iconClass: "text-success",
   },
-  late: {
-    label: "Atrasado",
-    icon: AlertCircle,
-    class: "bg-warning/20 text-warning",
-    iconClass: "text-warning",
-  },
   absent: {
     label: "Ausente",
     icon: XCircle,
     class: "bg-destructive/20 text-destructive",
     iconClass: "text-destructive",
-  },
-  justified: {
-    label: "Justificado",
-    icon: FileText,
-    class: "bg-info/20 text-info",
-    iconClass: "text-info",
   },
 };
 
@@ -60,9 +48,7 @@ const Presenca = () => {
 
   const stats = {
     present: attendanceRecords?.filter((r) => r.status === "present").length || 0,
-    late: attendanceRecords?.filter((r) => r.status === "late").length || 0,
     absent: attendanceRecords?.filter((r) => r.status === "absent").length || 0,
-    justified: attendanceRecords?.filter((r) => r.status === "justified").length || 0,
   };
 
   const handleStatusChange = async (recordId: string, newStatus: AttendanceStatus) => {
@@ -155,9 +141,7 @@ const Presenca = () => {
             <SelectContent>
               <SelectItem value="all">Todos</SelectItem>
               <SelectItem value="present">Presentes</SelectItem>
-              <SelectItem value="late">Atrasados</SelectItem>
               <SelectItem value="absent">Ausentes</SelectItem>
-              <SelectItem value="justified">Justificados</SelectItem>
             </SelectContent>
           </Select>
         </div>
@@ -214,22 +198,10 @@ const Presenca = () => {
                               Presente
                             </span>
                           </SelectItem>
-                          <SelectItem value="late">
-                            <span className="flex items-center gap-2">
-                              <AlertCircle className="w-3 h-3 text-warning" />
-                              Atrasado
-                            </span>
-                          </SelectItem>
                           <SelectItem value="absent">
                             <span className="flex items-center gap-2">
                               <XCircle className="w-3 h-3 text-destructive" />
                               Ausente
-                            </span>
-                          </SelectItem>
-                          <SelectItem value="justified">
-                            <span className="flex items-center gap-2">
-                              <FileText className="w-3 h-3 text-info" />
-                              Justificado
                             </span>
                           </SelectItem>
                         </SelectContent>
