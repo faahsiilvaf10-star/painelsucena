@@ -1,4 +1,4 @@
-import { Palette, Volume2, Play, Check, Loader2 } from "lucide-react";
+import { Palette, Volume2, Play, Check, Loader2, Sun, Moon, Building2 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import {
   Popover,
@@ -10,13 +10,62 @@ import { Separator } from "@/components/ui/separator";
 import { RadioGroup, RadioGroupItem } from "@/components/ui/radio-group";
 import { useUserPreferences, NOTIFICATION_SOUNDS } from "@/hooks/useUserPreferences";
 import { toast } from "sonner";
-import { useState, useEffect } from "react";
+import { useState } from "react";
+
+interface ThemePreset {
+  id: string;
+  label: string;
+  icon: React.ReactNode;
+  colors: {
+    sidebar_color: string;
+    sidebar_font_color: string;
+    active_tab_color: string;
+    page_background_color: string;
+  };
+}
+
+const THEME_PRESETS: ThemePreset[] = [
+  {
+    id: "dark",
+    label: "Escuro",
+    icon: <Moon className="h-4 w-4" />,
+    colors: {
+      sidebar_color: "#1e2235",
+      sidebar_font_color: "#f8fafc",
+      active_tab_color: "#f5a524",
+      page_background_color: "#0f1419",
+    },
+  },
+  {
+    id: "light",
+    label: "Claro",
+    icon: <Sun className="h-4 w-4" />,
+    colors: {
+      sidebar_color: "#f1f5f9",
+      sidebar_font_color: "#1e293b",
+      active_tab_color: "#3b82f6",
+      page_background_color: "#ffffff",
+    },
+  },
+  {
+    id: "corporate",
+    label: "Corporativo",
+    icon: <Building2 className="h-4 w-4" />,
+    colors: {
+      sidebar_color: "#1e3a5f",
+      sidebar_font_color: "#f8fafc",
+      active_tab_color: "#d4a017",
+      page_background_color: "#f8fafc",
+    },
+  },
+];
 
 export function PersonalizationButton() {
   const { preferences, updatePreferences, playNotificationSound } = useUserPreferences();
   const [open, setOpen] = useState(false);
   const [savingField, setSavingField] = useState<string | null>(null);
   const [savedField, setSavedField] = useState<string | null>(null);
+  const [applyingTheme, setApplyingTheme] = useState<string | null>(null);
 
   const handleColorChange = async (key: string, value: string) => {
     setSavingField(key);
@@ -29,6 +78,19 @@ export function PersonalizationButton() {
       toast.error("Erro ao salvar preferência");
     } finally {
       setSavingField(null);
+    }
+  };
+
+  const handleApplyTheme = async (theme: ThemePreset) => {
+    setApplyingTheme(theme.id);
+    try {
+      await updatePreferences.mutateAsync(theme.colors);
+      toast.success(`Tema "${theme.label}" aplicado!`);
+    } catch (error) {
+      console.error("Error applying theme:", error);
+      toast.error("Erro ao aplicar tema");
+    } finally {
+      setApplyingTheme(null);
     }
   };
 
@@ -73,9 +135,49 @@ export function PersonalizationButton() {
           
           <Separator />
           
+          {/* Theme Presets */}
+          <div className="space-y-3">
+            <Label className="text-sm font-medium">Temas Pré-definidos</Label>
+            <div className="grid grid-cols-3 gap-2">
+              {THEME_PRESETS.map((theme) => (
+                <Button
+                  key={theme.id}
+                  variant="outline"
+                  size="sm"
+                  disabled={applyingTheme !== null}
+                  onClick={() => handleApplyTheme(theme)}
+                  className="flex flex-col items-center gap-1 h-auto py-2 px-2"
+                >
+                  {applyingTheme === theme.id ? (
+                    <Loader2 className="h-4 w-4 animate-spin" />
+                  ) : (
+                    theme.icon
+                  )}
+                  <span className="text-xs">{theme.label}</span>
+                  <div className="flex gap-0.5 mt-1">
+                    <div 
+                      className="w-3 h-3 rounded-full border border-border" 
+                      style={{ backgroundColor: theme.colors.sidebar_color }}
+                    />
+                    <div 
+                      className="w-3 h-3 rounded-full border border-border" 
+                      style={{ backgroundColor: theme.colors.active_tab_color }}
+                    />
+                    <div 
+                      className="w-3 h-3 rounded-full border border-border" 
+                      style={{ backgroundColor: theme.colors.page_background_color }}
+                    />
+                  </div>
+                </Button>
+              ))}
+            </div>
+          </div>
+          
+          <Separator />
+          
           {/* Color Settings */}
           <div className="space-y-3">
-            <Label className="text-sm font-medium">Cores</Label>
+            <Label className="text-sm font-medium">Personalizar Cores</Label>
             
             <div className="grid grid-cols-2 gap-3">
               <div className="space-y-1.5">
