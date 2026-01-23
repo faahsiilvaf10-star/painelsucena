@@ -216,12 +216,26 @@ export default function DDS() {
 
     setIsSendingNotification(true);
     try {
+      // Send email notification
       const { data, error } = await supabase.functions.invoke("notify-dds-presenter");
 
       if (error) throw error;
 
-      if (data?.sent) {
-        toast.success(`Notificação enviada para ${data.message?.split(" ").slice(-2).join(" ") || "o palestrante"}!`);
+      // Also create in-app notification for the presenter
+      if (data?.sent && tomorrowDDS.presenter_user_id) {
+        const tomorrow = new Date();
+        tomorrow.setDate(tomorrow.getDate() + 1);
+        const formattedDate = format(tomorrow, "dd 'de' MMMM", { locale: ptBR });
+        
+        await createNotification.mutateAsync({
+          user_id: tomorrowDDS.presenter_user_id,
+          type: "dds_reminder",
+          title: "🔔 Lembrete: DDS de Amanhã!",
+          message: `Você foi notificado que é o palestrante do DDS de amanhã (${formattedDate}). Tema: "${tomorrowDDS.theme}"`,
+          reference_type: "dds_schedule",
+        });
+        
+        toast.success(`Notificação enviada para ${tomorrowDDS.presenter?.full_name || "o palestrante"}!`);
       } else {
         toast.info(data?.message || "Nenhuma notificação enviada");
       }
