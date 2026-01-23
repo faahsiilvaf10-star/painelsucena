@@ -189,6 +189,7 @@ export function AppSidebar() {
               <Button
                 variant="secondary"
                 size="sm"
+                onClick={() => navigate("/configuracoes")}
                 className={`flex-1 bg-sidebar-border/50 hover:bg-sidebar-border text-sidebar-foreground ${isCollapsed ? "px-2" : ""}`}
               >
                 <Settings className="h-4 w-4" />
