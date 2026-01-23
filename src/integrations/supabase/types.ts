@@ -79,6 +79,39 @@ export type Database = {
         }
         Relationships: []
       }
+      dds_schedule: {
+        Row: {
+          created_at: string
+          created_by: string
+          id: string
+          month_year: string
+          presenter_user_id: string
+          scheduled_date: string
+          theme: string
+          updated_at: string
+        }
+        Insert: {
+          created_at?: string
+          created_by: string
+          id?: string
+          month_year: string
+          presenter_user_id: string
+          scheduled_date: string
+          theme: string
+          updated_at?: string
+        }
+        Update: {
+          created_at?: string
+          created_by?: string
+          id?: string
+          month_year?: string
+          presenter_user_id?: string
+          scheduled_date?: string
+          theme?: string
+          updated_at?: string
+        }
+        Relationships: []
+      }
       employees: {
         Row: {
           avatar: string

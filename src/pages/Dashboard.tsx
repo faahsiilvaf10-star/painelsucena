@@ -2,12 +2,16 @@ import { Users, ClipboardCheck, AlertCircle, TrendingUp, ClipboardList, Grid3X3 
 import Layout from "@/components/layout/Layout";
 import StatCard from "@/components/dashboard/StatCard";
 import QuickAccessCard from "@/components/dashboard/QuickAccessCard";
+import { DDSNotificationBanner } from "@/components/dds/DDSNotificationBanner";
 import { employees, attendanceRecords } from "@/data/mockData";
 const Dashboard = () => {
   const presentToday = attendanceRecords.filter(a => a.status === "present" || a.status === "late").length;
   const absentToday = attendanceRecords.filter(a => a.status === "absent").length;
   return <Layout>
       <div className="container mx-auto px-6 py-8">
+        {/* DDS Notification Banner */}
+        <DDSNotificationBanner />
+
         {/* Hero Section */}
         <div className="mb-12 animate-fade-in">
           <h1 className="text-4xl md:text-5xl font-bold mb-4">

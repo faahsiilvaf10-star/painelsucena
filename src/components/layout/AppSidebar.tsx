@@ -1,4 +1,4 @@
-import { Users, ClipboardList, Grid3X3, LayoutDashboard, FileBarChart, LogOut, LogIn, Phone, PanelLeftClose, PanelLeft, Settings, LucideIcon } from "lucide-react";
+import { Users, ClipboardList, Grid3X3, LayoutDashboard, FileBarChart, LogOut, LogIn, Phone, PanelLeftClose, PanelLeft, Settings, Sun, LucideIcon } from "lucide-react";
 import { Link, useLocation, useNavigate } from "react-router-dom";
 import { useMemo } from "react";
 import { useAuth } from "@/hooks/useAuth";
@@ -36,6 +36,7 @@ const allNavItems: NavItem[] = [
   { id: "presenca", icon: ClipboardList, label: "Lista de Presença", path: "/presenca" },
   { id: "relatorio", icon: FileBarChart, label: "Relatório", path: "/relatorio-presenca" },
   { id: "matriz", icon: Grid3X3, label: "Matriz Responsabilidade", path: "/matriz" },
+  { id: "dds", icon: Sun, label: "DDS", path: "/dds" },
   { id: "emergencia", icon: Phone, label: "Emergência", path: "/emergencia" },
 ];
 
