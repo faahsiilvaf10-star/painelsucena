@@ -1,14 +1,32 @@
-import { useEffect, useState } from "react";
+import { useEffect, useState, useRef } from "react";
 import plantingBg from "@/assets/auth-bg-planting.png";
 import gabionBg from "@/assets/auth-bg-gabion.png";
+import constructionVideo from "@/assets/construction-timelapse.mp4";
 
 const backgrounds = [plantingBg, gabionBg];
 
 export function AuthBackground() {
   const [currentIndex, setCurrentIndex] = useState(0);
   const [isTransitioning, setIsTransitioning] = useState(false);
+  const [showImages, setShowImages] = useState(false);
+  const videoRef = useRef<HTMLVideoElement>(null);
 
+  // After video ends, show image slideshow
   useEffect(() => {
+    const video = videoRef.current;
+    if (video) {
+      const handleEnded = () => {
+        setShowImages(true);
+      };
+      video.addEventListener('ended', handleEnded);
+      return () => video.removeEventListener('ended', handleEnded);
+    }
+  }, []);
+
+  // Image slideshow effect (starts after video ends)
+  useEffect(() => {
+    if (!showImages) return;
+    
     const interval = setInterval(() => {
       setIsTransitioning(true);
       setTimeout(() => {
@@ -18,20 +36,36 @@ export function AuthBackground() {
     }, 8000);
 
     return () => clearInterval(interval);
-  }, []);
+  }, [showImages]);
 
   return (
     <div className="absolute inset-0 z-0 overflow-hidden">
-      {/* Main background image with zoom animation */}
+      {/* Video timelapse background */}
+      <video
+        ref={videoRef}
+        className={`absolute inset-0 w-full h-full object-cover transition-opacity duration-1000 ${
+          showImages ? "opacity-0" : "opacity-100"
+        }`}
+        autoPlay
+        muted
+        playsInline
+        poster={plantingBg}
+      >
+        <source src={constructionVideo} type="video/mp4" />
+      </video>
+
+      {/* Image slideshow (shown after video ends) */}
       <div
         className={`absolute inset-0 transition-all duration-[2000ms] ease-out ${
-          isTransitioning ? "opacity-0 scale-110" : "opacity-100 scale-100"
+          showImages 
+            ? isTransitioning ? "opacity-0 scale-110" : "opacity-100 scale-100"
+            : "opacity-0"
         }`}
         style={{
           backgroundImage: `url(${backgrounds[currentIndex]})`,
           backgroundSize: "cover",
           backgroundPosition: "center",
-          animation: "slowZoom 20s ease-in-out infinite alternate",
+          animation: showImages ? "slowZoom 20s ease-in-out infinite alternate" : "none",
         }}
       />
 
@@ -73,6 +107,23 @@ export function AuthBackground() {
       <div className="absolute bottom-4 left-4 w-20 h-20 border-l-2 border-b-2 border-primary/40" />
       <div className="absolute bottom-4 right-4 w-20 h-20 border-r-2 border-b-2 border-primary/40" />
 
+      {/* Progress indicator during video */}
+      {!showImages && (
+        <div className="absolute bottom-8 left-1/2 -translate-x-1/2 flex items-center gap-2 z-10">
+          <div className="text-white/70 text-sm font-medium tracking-wider uppercase">
+            Evolução da Obra
+          </div>
+          <div className="w-32 h-1 bg-white/20 rounded-full overflow-hidden">
+            <div 
+              className="h-full bg-primary rounded-full animate-pulse"
+              style={{
+                animation: "progress 10s linear forwards"
+              }}
+            />
+          </div>
+        </div>
+      )}
+
       <style>{`
         @keyframes slowZoom {
           0% {
@@ -100,6 +151,15 @@ export function AuthBackground() {
           50% {
             transform: translateY(-30px) translateX(10px);
             opacity: 0.8;
+          }
+        }
+
+        @keyframes progress {
+          0% {
+            width: 0%;
+          }
+          100% {
+            width: 100%;
           }
         }
       `}</style>
