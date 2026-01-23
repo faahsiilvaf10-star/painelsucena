@@ -7,6 +7,7 @@ import { ThemeProvider } from "@/components/ThemeProvider";
 import Index from "./pages/Index";
 import RH from "./pages/RH";
 import Presenca from "./pages/Presenca";
+import RelatorioPresenca from "./pages/RelatorioPresenca";
 import Matriz from "./pages/Matriz";
 import NotFound from "./pages/NotFound";
 
@@ -23,6 +24,7 @@ const App = () => (
             <Route path="/" element={<Index />} />
             <Route path="/rh" element={<RH />} />
             <Route path="/presenca" element={<Presenca />} />
+            <Route path="/relatorio-presenca" element={<RelatorioPresenca />} />
             <Route path="/matriz" element={<Matriz />} />
             {/* ADD ALL CUSTOM ROUTES ABOVE THE CATCH-ALL "*" ROUTE */}
             <Route path="*" element={<NotFound />} />
