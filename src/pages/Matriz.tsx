@@ -8,13 +8,14 @@ import {
   Shield,
   CheckCircle2,
   Circle,
-  ArrowLeft
+  ArrowLeft,
+  Loader2
 } from "lucide-react";
 import Layout from "@/components/layout/Layout";
 import { Progress } from "@/components/ui/progress";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
-
+import { useMatrixProgress } from "@/hooks/useMatrixProgress";
 interface CargoTarefa {
   id: string;
   nome: string;
@@ -121,17 +122,7 @@ const cargoFolders: CargoFolder[] = [
 
 const Matriz = () => {
   const [selectedFolder, setSelectedFolder] = useState<CargoFolder | null>(null);
-  const [completedTasks, setCompletedTasks] = useState<string[]>([]);
-
-  const toggleTask = (taskId: string) => {
-    setCompletedTasks((prev) =>
-      prev.includes(taskId)
-        ? prev.filter((id) => id !== taskId)
-        : [...prev, taskId]
-    );
-  };
-
-  const isCompleted = (taskId: string) => completedTasks.includes(taskId);
+  const { completedTasks, isLoading, toggleTask, isCompleted } = useMatrixProgress();
 
   const getProgress = (folder: CargoFolder) => {
     if (folder.tarefas.length === 0) return 0;
@@ -142,6 +133,16 @@ const Matriz = () => {
   const getCompletedCount = (folder: CargoFolder) => {
     return folder.tarefas.filter((t) => completedTasks.includes(t.id)).length;
   };
+
+  if (isLoading) {
+    return (
+      <Layout>
+        <div className="flex items-center justify-center min-h-[60vh]">
+          <Loader2 className="w-8 h-8 animate-spin text-muted-foreground" />
+        </div>
+      </Layout>
+    );
+  }
 
   // Detail View
   if (selectedFolder) {
