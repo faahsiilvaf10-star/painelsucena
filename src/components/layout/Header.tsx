@@ -1,4 +1,4 @@
-import { Users, ClipboardList, Grid3X3, LayoutDashboard, Menu, FileBarChart, LogOut, LogIn, ShieldCheck } from "lucide-react";
+import { Users, ClipboardList, Grid3X3, LayoutDashboard, Menu, FileBarChart, LogOut, LogIn, ShieldCheck, Phone } from "lucide-react";
 import { Link, useLocation, useNavigate } from "react-router-dom";
 import { useState, useEffect } from "react";
 import { Sheet, SheetContent, SheetHeader, SheetTitle, SheetTrigger } from "@/components/ui/sheet";
@@ -23,6 +23,7 @@ const navItems = [
   { icon: ClipboardList, label: "Presença", path: "/presenca" },
   { icon: FileBarChart, label: "Relatório de Presença", path: "/relatorio-presenca" },
   { icon: Grid3X3, label: "Matriz de Responsabilidade", path: "/matriz" },
+  { icon: Phone, label: "Emergência", path: "/emergencia" },
 ];
 
 interface Profile {
