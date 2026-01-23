@@ -1,4 +1,4 @@
-import { Bell, Check, CheckCheck, Trash2, Calendar, BellRing } from "lucide-react";
+import { Bell, Check, CheckCheck, Trash2, Calendar, BellRing, Volume2 } from "lucide-react";
 import { formatDistanceToNow } from "date-fns";
 import { ptBR } from "date-fns/locale";
 import {
@@ -14,17 +14,21 @@ import {
   useMarkAsRead,
   useMarkAllAsRead,
   useDeleteNotification,
+  useCreateNotification,
 } from "@/hooks/useNotifications";
 import { useBrowserNotifications } from "@/hooks/useBrowserNotifications";
+import { useAuth } from "@/hooks/useAuth";
 import { cn } from "@/lib/utils";
 import { useMemo } from "react";
 import { toast } from "sonner";
 
 export function NotificationBell() {
+  const { user } = useAuth();
   const { data: notifications, isLoading } = useNotifications();
   const markAsRead = useMarkAsRead();
   const markAllAsRead = useMarkAllAsRead();
   const deleteNotification = useDeleteNotification();
+  const createNotification = useCreateNotification();
   const { isSupported, isGranted, isDenied, requestPermission } = useBrowserNotifications();
 
   // Calculate unread count directly from notifications
@@ -38,6 +42,26 @@ export function NotificationBell() {
       toast.success("Notificações push ativadas!");
     } else {
       toast.error("Permissão negada. Você pode ativar nas configurações do navegador.");
+    }
+  };
+
+  const handleTestNotification = async () => {
+    if (!user?.id) {
+      toast.error("Você precisa estar logado para testar");
+      return;
+    }
+    
+    try {
+      await createNotification.mutateAsync({
+        user_id: user.id,
+        type: "test",
+        title: "🔔 Teste de Notificação!",
+        message: "Esta é uma notificação de teste. Se você ouviu o som, está funcionando!",
+      });
+      toast.success("Notificação de teste criada!");
+    } catch (error) {
+      console.error("Error creating test notification:", error);
+      toast.error("Erro ao criar notificação de teste");
     }
   };
 
@@ -99,13 +123,27 @@ export function NotificationBell() {
           </div>
         </div>
 
-        {/* Push notification status banner */}
-        {isSupported && isGranted && (
-          <div className="px-4 py-2 bg-green-50 dark:bg-green-950/30 border-b text-xs text-green-700 dark:text-green-400 flex items-center gap-2">
-            <BellRing className="h-3 w-3" />
-            Notificações push ativadas
+        {/* Push notification status banner with test button */}
+        <div className="px-4 py-2 bg-muted/50 border-b text-xs flex items-center justify-between">
+          <div className="flex items-center gap-2 text-muted-foreground">
+            {isSupported && isGranted && (
+              <>
+                <BellRing className="h-3 w-3 text-green-600" />
+                <span className="text-green-600">Push ativado</span>
+              </>
+            )}
           </div>
-        )}
+          <Button
+            variant="ghost"
+            size="sm"
+            className="text-xs h-6 px-2"
+            onClick={handleTestNotification}
+            disabled={createNotification.isPending}
+          >
+            <Volume2 className="h-3 w-3 mr-1" />
+            Testar som
+          </Button>
+        </div>
 
         <ScrollArea className="h-[300px]">
           {isLoading ? (
