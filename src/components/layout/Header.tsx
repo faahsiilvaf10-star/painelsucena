@@ -5,7 +5,6 @@ import { Sheet, SheetContent, SheetHeader, SheetTitle, SheetTrigger } from "@/co
 import { Button } from "@/components/ui/button";
 import { ThemeToggle } from "@/components/ThemeToggle";
 import { Separator } from "@/components/ui/separator";
-import { Badge } from "@/components/ui/badge";
 import { useAuth } from "@/hooks/useAuth";
 import { useIsAdmin } from "@/hooks/useUserRole";
 import { supabase } from "@/integrations/supabase/client";
@@ -174,34 +173,16 @@ const Header = () => {
           {/* Theme Toggle & User Avatar */}
           <div className="flex items-center gap-2">
             <ThemeToggle className="hidden md:flex" />
-            {isAdmin && (
-              <Badge variant="secondary" className="hidden sm:flex items-center gap-1 bg-primary/10 text-primary border-primary/20">
-                <ShieldCheck className="w-3 h-3" />
-                Admin
-              </Badge>
-            )}
             {user ? (
               <DropdownMenu>
                 <DropdownMenuTrigger asChild>
-                  <button className="relative w-10 h-10 rounded-full bg-primary flex items-center justify-center hover:bg-primary/90 transition-colors cursor-pointer">
+                  <button className="w-10 h-10 rounded-full bg-primary flex items-center justify-center hover:bg-primary/90 transition-colors cursor-pointer">
                     <span className="text-sm font-semibold text-primary-foreground">{getInitials()}</span>
-                    {isAdmin && (
-                      <span className="absolute -top-1 -right-1 w-4 h-4 bg-primary rounded-full flex items-center justify-center border-2 border-background">
-                        <ShieldCheck className="w-2.5 h-2.5 text-primary-foreground" />
-                      </span>
-                    )}
                   </button>
                 </DropdownMenuTrigger>
                 <DropdownMenuContent align="end" className="w-56">
                   <div className="px-2 py-1.5">
-                    <div className="flex items-center gap-2">
-                      <p className="text-sm font-medium">{profile?.full_name || "Usuário"}</p>
-                      {isAdmin && (
-                        <Badge variant="secondary" className="text-xs bg-primary/10 text-primary">
-                          Admin
-                        </Badge>
-                      )}
-                    </div>
+                    <p className="text-sm font-medium">{profile?.full_name || "Usuário"}</p>
                     <p className="text-xs text-muted-foreground">{user.email}</p>
                   </div>
                   <DropdownMenuSeparator />
