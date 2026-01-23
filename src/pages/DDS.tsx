@@ -1,7 +1,7 @@
 import { useState, useMemo } from "react";
 import { format, parse, isWeekend, getDay } from "date-fns";
 import { ptBR } from "date-fns/locale";
-import { Shuffle, Calendar, Save, Trash2, Edit2, Sun, Shield, ChevronLeft, ChevronRight } from "lucide-react";
+import { Shuffle, Calendar, Save, Trash2, Edit2, Sun, Shield, ChevronLeft, ChevronRight, Mail, Loader2 } from "lucide-react";
 import Layout from "@/components/layout/Layout";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from "@/components/ui/card";
@@ -25,7 +25,9 @@ import {
   useAllProfiles,
   getWeekdaysInMonth,
   DDSScheduleItem,
+  useTomorrowDDS,
 } from "@/hooks/useDDSSchedule";
+import { supabase } from "@/integrations/supabase/client";
 
 const dayNames = ["Dom", "Seg", "Ter", "Qua", "Qui", "Sex", "Sáb"];
 
@@ -41,6 +43,7 @@ export default function DDS() {
 
   // Data hooks
   const { data: scheduleData, isLoading } = useDDSSchedule(monthYear);
+  const { data: tomorrowDDS } = useTomorrowDDS();
   const createSchedule = useCreateDDSSchedule();
   const updateSchedule = useUpdateDDSSchedule();
   const deleteSchedule = useDeleteDDSSchedule();
@@ -50,6 +53,9 @@ export default function DDS() {
   const [editingItem, setEditingItem] = useState<DDSScheduleItem | null>(null);
   const [editPresenter, setEditPresenter] = useState("");
   const [editTheme, setEditTheme] = useState("");
+  
+  // Notification state
+  const [isSendingNotification, setIsSendingNotification] = useState(false);
 
   // Check if user can edit (tecnico_seguranca and weekday, OR admin)
   const today = new Date();
@@ -161,6 +167,31 @@ export default function DDS() {
     } catch (error) {
       console.error("Error deleting:", error);
       toast.error("Erro ao remover agendamento");
+    }
+  };
+
+  const handleSendNotification = async () => {
+    if (!tomorrowDDS) {
+      toast.error("Não há DDS agendado para amanhã");
+      return;
+    }
+
+    setIsSendingNotification(true);
+    try {
+      const { data, error } = await supabase.functions.invoke("notify-dds-presenter");
+
+      if (error) throw error;
+
+      if (data?.sent) {
+        toast.success(`Notificação enviada para ${data.message?.split(" ").slice(-2).join(" ") || "o palestrante"}!`);
+      } else {
+        toast.info(data?.message || "Nenhuma notificação enviada");
+      }
+    } catch (error) {
+      console.error("Error sending notification:", error);
+      toast.error("Erro ao enviar notificação");
+    } finally {
+      setIsSendingNotification(false);
     }
   };
 
@@ -277,6 +308,20 @@ export default function DDS() {
                   </AlertDialogFooter>
                 </AlertDialogContent>
               </AlertDialog>
+
+              <Button
+                variant="outline"
+                onClick={handleSendNotification}
+                disabled={isSendingNotification || !tomorrowDDS}
+                className="border-blue-500 text-blue-600 hover:bg-blue-50 dark:hover:bg-blue-950"
+              >
+                {isSendingNotification ? (
+                  <Loader2 className="h-4 w-4 mr-2 animate-spin" />
+                ) : (
+                  <Mail className="h-4 w-4 mr-2" />
+                )}
+                Notificar Palestrante de Amanhã
+              </Button>
             </CardContent>
           </Card>
         )}
