@@ -1,1 +1,4 @@
 project_id = "fcaxyvptfwnwfctxkqre"
+
+[functions.notify-dds-presenter]
+verify_jwt = false
