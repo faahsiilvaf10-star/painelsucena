@@ -9,7 +9,9 @@ import {
   CheckCircle2,
   Circle,
   ArrowLeft,
-  Loader2
+  Loader2,
+  ClipboardList,
+  ExternalLink
 } from "lucide-react";
 import Layout from "@/components/layout/Layout";
 import { Progress } from "@/components/ui/progress";
@@ -255,13 +257,30 @@ const Matriz = () => {
       <div className="container mx-auto px-6 py-8">
         {/* Header */}
         <div className="mb-8">
-          <h1 className="text-3xl font-bold mb-2">Matriz de Responsabilidades</h1>
-          <p className="text-muted-foreground">
-            Selecione uma função para visualizar e atualizar o progresso das atividades.
-          </p>
-          <p className="text-orange-500 text-sm mt-2">
-            * O progresso é zerado automaticamente no dia 01 de cada mês.
-          </p>
+          <div className="flex items-center justify-between flex-wrap gap-4">
+            <div>
+              <h1 className="text-3xl font-bold mb-2">Matriz de Responsabilidades</h1>
+              <p className="text-muted-foreground">
+                Selecione uma função para visualizar e atualizar o progresso das atividades.
+              </p>
+              <p className="text-orange-500 text-sm mt-2">
+                * O progresso é zerado automaticamente no dia 01 de cada mês.
+              </p>
+            </div>
+            
+            {/* Forms Link Button */}
+            <a
+              href="https://forms.google.com/seu-formulario"
+              target="_blank"
+              rel="noopener noreferrer"
+              title="Clica aqui para preencher no Forms"
+              className="flex items-center gap-2 bg-primary hover:bg-primary/90 text-primary-foreground px-4 py-3 rounded-xl shadow-lg transition-all duration-300 hover:scale-105 hover:shadow-xl group"
+            >
+              <ClipboardList className="w-5 h-5" />
+              <span className="font-medium">Preencher Forms</span>
+              <ExternalLink className="w-4 h-4 opacity-70 group-hover:opacity-100 transition-opacity" />
+            </a>
+          </div>
         </div>
 
         {/* Cards Grid */}
