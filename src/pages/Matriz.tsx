@@ -42,7 +42,7 @@ const Matriz = () => {
         {/* Header */}
         <div className="flex flex-col md:flex-row md:items-center justify-between gap-4 mb-8">
           <div>
-            <h1 className="text-4xl font-bold mb-2">Matriz RACI</h1>
+            <h1 className="text-4xl font-bold mb-2">Matriz de Responsabilidade</h1>
             <p className="text-muted-foreground">
               Defina responsabilidades claras para cada tarefa
             </p>
