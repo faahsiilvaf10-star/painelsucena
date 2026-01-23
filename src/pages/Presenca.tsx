@@ -1,7 +1,6 @@
 import { useState } from "react";
-import { Calendar, Clock, CheckCircle2, XCircle, AlertCircle, FileText } from "lucide-react";
+import { Calendar, Clock, CheckCircle2, XCircle, AlertCircle, FileText, Loader2 } from "lucide-react";
 import Layout from "@/components/layout/Layout";
-import { attendanceRecords, employees } from "@/data/mockData";
 import { Button } from "@/components/ui/button";
 import {
   Table,
@@ -18,6 +17,8 @@ import {
   SelectTrigger,
   SelectValue,
 } from "@/components/ui/select";
+import { useAttendanceRecords, useUpdateAttendance, type AttendanceStatus } from "@/hooks/useAttendance";
+import { toast } from "sonner";
 
 const statusConfig = {
   present: {
@@ -48,17 +49,57 @@ const statusConfig = {
 
 const Presenca = () => {
   const [filterStatus, setFilterStatus] = useState<string>("all");
+  const today = new Date().toISOString().split("T")[0];
+  
+  const { data: attendanceRecords, isLoading, error } = useAttendanceRecords(today);
+  const updateAttendance = useUpdateAttendance();
 
-  const filteredRecords = attendanceRecords.filter(
+  const filteredRecords = attendanceRecords?.filter(
     (record) => filterStatus === "all" || record.status === filterStatus
-  );
+  ) || [];
 
   const stats = {
-    present: attendanceRecords.filter((r) => r.status === "present").length,
-    late: attendanceRecords.filter((r) => r.status === "late").length,
-    absent: attendanceRecords.filter((r) => r.status === "absent").length,
-    justified: attendanceRecords.filter((r) => r.status === "justified").length,
+    present: attendanceRecords?.filter((r) => r.status === "present").length || 0,
+    late: attendanceRecords?.filter((r) => r.status === "late").length || 0,
+    absent: attendanceRecords?.filter((r) => r.status === "absent").length || 0,
+    justified: attendanceRecords?.filter((r) => r.status === "justified").length || 0,
   };
+
+  const handleStatusChange = async (recordId: string, newStatus: AttendanceStatus) => {
+    try {
+      await updateAttendance.mutateAsync({
+        id: recordId,
+        status: newStatus,
+        check_in: newStatus === "absent" || newStatus === "justified" ? null : undefined,
+        check_out: newStatus === "absent" || newStatus === "justified" ? null : undefined,
+      });
+      toast.success("Status atualizado com sucesso!");
+    } catch (err) {
+      toast.error("Erro ao atualizar status");
+    }
+  };
+
+  if (isLoading) {
+    return (
+      <Layout>
+        <div className="container mx-auto px-6 py-8 flex items-center justify-center min-h-[60vh]">
+          <Loader2 className="w-8 h-8 animate-spin text-primary" />
+        </div>
+      </Layout>
+    );
+  }
+
+  if (error) {
+    return (
+      <Layout>
+        <div className="container mx-auto px-6 py-8">
+          <div className="text-center py-12">
+            <p className="text-destructive text-lg">Erro ao carregar dados</p>
+          </div>
+        </div>
+      </Layout>
+    );
+  }
 
   return (
     <Layout>
@@ -127,7 +168,7 @@ const Presenca = () => {
             <TableHeader>
               <TableRow className="border-border/50 hover:bg-transparent">
                 <TableHead className="text-muted-foreground">Funcionário</TableHead>
-                <TableHead className="text-muted-foreground">Data</TableHead>
+                <TableHead className="text-muted-foreground">Função</TableHead>
                 <TableHead className="text-muted-foreground">Entrada</TableHead>
                 <TableHead className="text-muted-foreground">Saída</TableHead>
                 <TableHead className="text-muted-foreground">Status</TableHead>
@@ -137,14 +178,13 @@ const Presenca = () => {
             <TableBody>
               {filteredRecords.map((record, index) => {
                 const config = statusConfig[record.status];
-                const Icon = config.icon;
-                const employee = employees.find((e) => e.id === record.employeeId);
+                const employee = record.employees;
 
                 // Calculate hours worked
                 let hoursWorked = "-";
-                if (record.checkIn !== "-" && record.checkOut !== "-") {
-                  const [inH, inM] = record.checkIn.split(":").map(Number);
-                  const [outH, outM] = record.checkOut.split(":").map(Number);
+                if (record.check_in && record.check_out) {
+                  const [inH, inM] = record.check_in.split(":").map(Number);
+                  const [outH, outM] = record.check_out.split(":").map(Number);
                   const totalMinutes = (outH * 60 + outM) - (inH * 60 + inM);
                   const hours = Math.floor(totalMinutes / 60);
                   const minutes = totalMinutes % 60;
@@ -163,33 +203,61 @@ const Presenca = () => {
                           {employee?.avatar || "??"}
                         </div>
                         <div>
-                          <p className="font-medium">{record.employeeName}</p>
+                          <p className="font-medium">{employee?.name || "Desconhecido"}</p>
                           <p className="text-xs text-muted-foreground">
-                            {employee?.role}
+                            {employee?.department}
                           </p>
                         </div>
                       </div>
                     </TableCell>
                     <TableCell className="text-muted-foreground">
-                      {new Date(record.date).toLocaleDateString("pt-BR")}
+                      {employee?.role || "-"}
                     </TableCell>
                     <TableCell>
-                      <span className={record.checkIn !== "-" ? "" : "text-muted-foreground"}>
-                        {record.checkIn}
+                      <span className={record.check_in ? "" : "text-muted-foreground"}>
+                        {record.check_in || "-"}
                       </span>
                     </TableCell>
                     <TableCell>
-                      <span className={record.checkOut !== "-" ? "" : "text-muted-foreground"}>
-                        {record.checkOut}
+                      <span className={record.check_out ? "" : "text-muted-foreground"}>
+                        {record.check_out || "-"}
                       </span>
                     </TableCell>
                     <TableCell>
-                      <span
-                        className={`inline-flex items-center gap-1.5 px-2.5 py-1 rounded-full text-xs font-medium ${config.class}`}
+                      <Select
+                        value={record.status}
+                        onValueChange={(value: AttendanceStatus) => handleStatusChange(record.id, value)}
                       >
-                        <Icon className="w-3 h-3" />
-                        {config.label}
-                      </span>
+                        <SelectTrigger className={`w-[140px] h-8 ${config.class} border-0`}>
+                          <SelectValue />
+                        </SelectTrigger>
+                        <SelectContent>
+                          <SelectItem value="present">
+                            <span className="flex items-center gap-2">
+                              <CheckCircle2 className="w-3 h-3 text-success" />
+                              Presente
+                            </span>
+                          </SelectItem>
+                          <SelectItem value="late">
+                            <span className="flex items-center gap-2">
+                              <AlertCircle className="w-3 h-3 text-warning" />
+                              Atrasado
+                            </span>
+                          </SelectItem>
+                          <SelectItem value="absent">
+                            <span className="flex items-center gap-2">
+                              <XCircle className="w-3 h-3 text-destructive" />
+                              Ausente
+                            </span>
+                          </SelectItem>
+                          <SelectItem value="justified">
+                            <span className="flex items-center gap-2">
+                              <FileText className="w-3 h-3 text-info" />
+                              Justificado
+                            </span>
+                          </SelectItem>
+                        </SelectContent>
+                      </Select>
                     </TableCell>
                     <TableCell className="text-right font-medium">
                       {hoursWorked}
