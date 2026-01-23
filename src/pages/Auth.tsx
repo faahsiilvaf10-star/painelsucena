@@ -1,4 +1,4 @@
-import { useState, useEffect, Suspense } from "react";
+import { useState, useEffect } from "react";
 import { useNavigate } from "react-router-dom";
 import { supabase } from "@/integrations/supabase/client";
 import { Button } from "@/components/ui/button";
@@ -9,7 +9,7 @@ import { useToast } from "@/hooks/use-toast";
 import { Eye, EyeOff, Loader2 } from "lucide-react";
 import { z } from "zod";
 import logoSucena from "@/assets/logo-sucena.png";
-import { EngineeringBackground3D } from "@/components/auth/EngineeringBackground3D";
+import { AuthBackground } from "@/components/auth/AuthBackground";
 
 const bibleVerses = [
   "Porque Deus amou o mundo de tal maneira que deu o seu Filho unigênito. - João 3:16",
@@ -185,13 +185,8 @@ const Auth = () => {
 
   return (
     <div className="min-h-screen bg-black relative overflow-hidden">
-      {/* 3D Engineering/Landscaping Background */}
-      <Suspense fallback={null}>
-        <EngineeringBackground3D />
-      </Suspense>
-
-      {/* Background gradient overlay */}
-      <div className="absolute inset-0 bg-gradient-to-b from-black/40 via-black/60 to-black/90 z-[1]" />
+      {/* Photo-based background with animations */}
+      <AuthBackground />
 
       {/* Header */}
       <header className="relative z-10 p-6 flex flex-col items-center">
