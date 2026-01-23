@@ -137,8 +137,8 @@ const Header = () => {
             </SheetContent>
           </Sheet>
 
-          {/* Logo */}
-          <Link to="/" className="flex items-center gap-3">
+          {/* Logo - only visible on mobile */}
+          <Link to="/" className="flex items-center gap-3 md:hidden">
             <img src={logoPrincipal} alt="Logo Sucena" className="h-10 transition-all duration-300 hover:scale-105" />
           </Link>
 
