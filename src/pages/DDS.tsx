@@ -1,7 +1,7 @@
 import { useState, useMemo } from "react";
 import { format, parse, isWeekend, getDay } from "date-fns";
 import { ptBR } from "date-fns/locale";
-import { Shuffle, Calendar, Save, Trash2, Edit2, Sun, Shield, ChevronLeft, ChevronRight, Mail, Loader2 } from "lucide-react";
+import { Shuffle, Calendar, Save, Trash2, Edit2, Sun, Shield, ChevronLeft, ChevronRight, Mail, Loader2, AtSign } from "lucide-react";
 import Layout from "@/components/layout/Layout";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from "@/components/ui/card";
@@ -27,6 +27,7 @@ import {
   DDSScheduleItem,
   useTomorrowDDS,
 } from "@/hooks/useDDSSchedule";
+import { useCreateNotification } from "@/hooks/useNotifications";
 import { supabase } from "@/integrations/supabase/client";
 
 const dayNames = ["Dom", "Seg", "Ter", "Qua", "Qui", "Sex", "Sáb"];
@@ -48,6 +49,7 @@ export default function DDS() {
   const updateSchedule = useUpdateDDSSchedule();
   const deleteSchedule = useDeleteDDSSchedule();
   const clearMonth = useClearMonthDDS();
+  const createNotification = useCreateNotification();
 
   // Edit modal state
   const [editingItem, setEditingItem] = useState<DDSScheduleItem | null>(null);
@@ -56,6 +58,22 @@ export default function DDS() {
   
   // Notification state
   const [isSendingNotification, setIsSendingNotification] = useState(false);
+
+  // Helper to create DDS mention notification
+  const notifyPresenter = async (userId: string, date: string, theme: string) => {
+    const formattedDate = format(new Date(date), "dd 'de' MMMM", { locale: ptBR });
+    try {
+      await createNotification.mutateAsync({
+        user_id: userId,
+        type: "dds_mention",
+        title: "📢 Você foi mencionado como palestrante!",
+        message: `Você foi designado para apresentar o DDS do dia ${formattedDate}. Tema: "${theme}"`,
+        reference_type: "dds_schedule",
+      });
+    } catch (error) {
+      console.error("Error creating notification:", error);
+    }
+  };
 
   // Check if user can edit (tecnico_seguranca and weekday, OR admin)
   const today = new Date();
@@ -130,7 +148,17 @@ export default function DDS() {
 
     try {
       await createSchedule.mutateAsync(assignments);
-      toast.success("Escala gerada aleatoriamente com sucesso!");
+      
+      // Send notifications to all assigned presenters
+      for (const assignment of assignments) {
+        await notifyPresenter(
+          assignment.presenter_user_id,
+          assignment.scheduled_date,
+          assignment.theme
+        );
+      }
+      
+      toast.success("Escala gerada e palestrantes notificados!");
     } catch (error) {
       console.error("Error creating schedule:", error);
       toast.error("Erro ao gerar escala aleatória");
@@ -146,13 +174,23 @@ export default function DDS() {
   const handleSaveEdit = async () => {
     if (!editingItem) return;
 
+    const presenterChanged = editPresenter !== editingItem.presenter_user_id;
+
     try {
       await updateSchedule.mutateAsync({
         id: editingItem.id,
         presenter_user_id: editPresenter,
         theme: editTheme,
       });
-      toast.success("Agendamento atualizado!");
+
+      // Notify new presenter if changed
+      if (presenterChanged) {
+        await notifyPresenter(editPresenter, editingItem.scheduled_date, editTheme);
+        toast.success("Palestrante atualizado e notificado!");
+      } else {
+        toast.success("Agendamento atualizado!");
+      }
+      
       setEditingItem(null);
     } catch (error) {
       console.error("Error updating:", error);
