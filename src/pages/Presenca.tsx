@@ -169,27 +169,13 @@ const Presenca = () => {
               <TableRow className="border-border/50 hover:bg-transparent">
                 <TableHead className="text-muted-foreground">Funcionário</TableHead>
                 <TableHead className="text-muted-foreground">Função</TableHead>
-                <TableHead className="text-muted-foreground">Entrada</TableHead>
-                <TableHead className="text-muted-foreground">Saída</TableHead>
                 <TableHead className="text-muted-foreground">Status</TableHead>
-                <TableHead className="text-muted-foreground text-right">Horas</TableHead>
               </TableRow>
             </TableHeader>
             <TableBody>
               {filteredRecords.map((record, index) => {
                 const config = statusConfig[record.status];
                 const employee = record.employees;
-
-                // Calculate hours worked
-                let hoursWorked = "-";
-                if (record.check_in && record.check_out) {
-                  const [inH, inM] = record.check_in.split(":").map(Number);
-                  const [outH, outM] = record.check_out.split(":").map(Number);
-                  const totalMinutes = (outH * 60 + outM) - (inH * 60 + inM);
-                  const hours = Math.floor(totalMinutes / 60);
-                  const minutes = totalMinutes % 60;
-                  hoursWorked = `${hours}h ${minutes}m`;
-                }
 
                 return (
                   <TableRow
@@ -212,16 +198,6 @@ const Presenca = () => {
                     </TableCell>
                     <TableCell className="text-muted-foreground">
                       {employee?.role || "-"}
-                    </TableCell>
-                    <TableCell>
-                      <span className={record.check_in ? "" : "text-muted-foreground"}>
-                        {record.check_in || "-"}
-                      </span>
-                    </TableCell>
-                    <TableCell>
-                      <span className={record.check_out ? "" : "text-muted-foreground"}>
-                        {record.check_out || "-"}
-                      </span>
                     </TableCell>
                     <TableCell>
                       <Select
@@ -258,9 +234,6 @@ const Presenca = () => {
                           </SelectItem>
                         </SelectContent>
                       </Select>
-                    </TableCell>
-                    <TableCell className="text-right font-medium">
-                      {hoursWorked}
                     </TableCell>
                   </TableRow>
                 );
