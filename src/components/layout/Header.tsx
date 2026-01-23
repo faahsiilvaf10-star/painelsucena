@@ -1,11 +1,13 @@
-import { Users, ClipboardList, Grid3X3, LayoutDashboard, Menu, FileBarChart, LogOut, LogIn } from "lucide-react";
+import { Users, ClipboardList, Grid3X3, LayoutDashboard, Menu, FileBarChart, LogOut, LogIn, ShieldCheck } from "lucide-react";
 import { Link, useLocation, useNavigate } from "react-router-dom";
 import { useState, useEffect } from "react";
 import { Sheet, SheetContent, SheetHeader, SheetTitle, SheetTrigger } from "@/components/ui/sheet";
 import { Button } from "@/components/ui/button";
 import { ThemeToggle } from "@/components/ThemeToggle";
 import { Separator } from "@/components/ui/separator";
+import { Badge } from "@/components/ui/badge";
 import { useAuth } from "@/hooks/useAuth";
+import { useIsAdmin } from "@/hooks/useUserRole";
 import { supabase } from "@/integrations/supabase/client";
 import logoPrincipal from "@/assets/logo-principal.png";
 import {
@@ -16,13 +18,15 @@ import {
   DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu";
 
-const navItems = [
+const baseNavItems = [
   { icon: LayoutDashboard, label: "Destaques", path: "/" },
   { icon: Users, label: "RH", path: "/rh" },
   { icon: ClipboardList, label: "Presença", path: "/presenca" },
   { icon: FileBarChart, label: "Relatório de Presença", path: "/relatorio-presenca" },
   { icon: Grid3X3, label: "Matriz de Responsabilidade", path: "/matriz" },
 ];
+
+const adminNavItem = { icon: ShieldCheck, label: "Administração", path: "/admin" };
 
 interface Profile {
   full_name: string;
@@ -34,7 +38,11 @@ const Header = () => {
   const navigate = useNavigate();
   const [open, setOpen] = useState(false);
   const { user, signOut } = useAuth();
+  const { isAdmin } = useIsAdmin();
   const [profile, setProfile] = useState<Profile | null>(null);
+
+  // Build nav items based on admin status
+  const navItems = isAdmin ? [...baseNavItems, adminNavItem] : baseNavItems;
 
   useEffect(() => {
     const fetchProfile = async () => {
@@ -166,19 +174,48 @@ const Header = () => {
           {/* Theme Toggle & User Avatar */}
           <div className="flex items-center gap-2">
             <ThemeToggle className="hidden md:flex" />
+            {isAdmin && (
+              <Badge variant="secondary" className="hidden sm:flex items-center gap-1 bg-primary/10 text-primary border-primary/20">
+                <ShieldCheck className="w-3 h-3" />
+                Admin
+              </Badge>
+            )}
             {user ? (
               <DropdownMenu>
                 <DropdownMenuTrigger asChild>
-                  <button className="w-10 h-10 rounded-full bg-primary flex items-center justify-center hover:bg-primary/90 transition-colors cursor-pointer">
+                  <button className="relative w-10 h-10 rounded-full bg-primary flex items-center justify-center hover:bg-primary/90 transition-colors cursor-pointer">
                     <span className="text-sm font-semibold text-primary-foreground">{getInitials()}</span>
+                    {isAdmin && (
+                      <span className="absolute -top-1 -right-1 w-4 h-4 bg-primary rounded-full flex items-center justify-center border-2 border-background">
+                        <ShieldCheck className="w-2.5 h-2.5 text-primary-foreground" />
+                      </span>
+                    )}
                   </button>
                 </DropdownMenuTrigger>
                 <DropdownMenuContent align="end" className="w-56">
                   <div className="px-2 py-1.5">
-                    <p className="text-sm font-medium">{profile?.full_name || "Usuário"}</p>
+                    <div className="flex items-center gap-2">
+                      <p className="text-sm font-medium">{profile?.full_name || "Usuário"}</p>
+                      {isAdmin && (
+                        <Badge variant="secondary" className="text-xs bg-primary/10 text-primary">
+                          Admin
+                        </Badge>
+                      )}
+                    </div>
                     <p className="text-xs text-muted-foreground">{user.email}</p>
                   </div>
                   <DropdownMenuSeparator />
+                  {isAdmin && (
+                    <>
+                      <DropdownMenuItem asChild className="cursor-pointer">
+                        <Link to="/admin">
+                          <ShieldCheck className="w-4 h-4 mr-2" />
+                          Administração
+                        </Link>
+                      </DropdownMenuItem>
+                      <DropdownMenuSeparator />
+                    </>
+                  )}
                   <DropdownMenuItem onClick={handleSignOut} className="cursor-pointer">
                     <LogOut className="w-4 h-4 mr-2" />
                     Sair

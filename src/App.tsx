@@ -10,6 +10,7 @@ import RH from "./pages/RH";
 import Presenca from "./pages/Presenca";
 import RelatorioPresenca from "./pages/RelatorioPresenca";
 import Matriz from "./pages/Matriz";
+import Admin from "./pages/Admin";
 import Auth from "./pages/Auth";
 import NotFound from "./pages/NotFound";
 
@@ -29,6 +30,7 @@ const App = () => (
             <Route path="/presenca" element={<ProtectedRoute><Presenca /></ProtectedRoute>} />
             <Route path="/relatorio-presenca" element={<ProtectedRoute><RelatorioPresenca /></ProtectedRoute>} />
             <Route path="/matriz" element={<ProtectedRoute><Matriz /></ProtectedRoute>} />
+            <Route path="/admin" element={<ProtectedRoute><Admin /></ProtectedRoute>} />
             {/* ADD ALL CUSTOM ROUTES ABOVE THE CATCH-ALL "*" ROUTE */}
             <Route path="*" element={<NotFound />} />
           </Routes>
