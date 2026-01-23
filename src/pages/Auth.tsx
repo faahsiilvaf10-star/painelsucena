@@ -215,7 +215,7 @@ const Auth = () => {
         <img 
           src={logoSucena} 
           alt="Logo Sucena" 
-          className="h-16 md:h-20 mb-4 transition-all duration-500 ease-out hover:scale-110 hover:brightness-110 cursor-pointer drop-shadow-[0_4px_20px_rgba(0,0,0,0.8)] hover:drop-shadow-[0_0_30px_hsl(43,96%,56%)]" 
+          className="h-16 md:h-20 mb-4 transition-all duration-500 ease-out hover:scale-110 hover:brightness-110 cursor-pointer drop-shadow-[0_0_25px_hsl(43,96%,56%)] [filter:_drop-shadow(0_0_15px_rgba(245,165,36,0.6))_drop-shadow(0_0_30px_rgba(245,165,36,0.4))_drop-shadow(0_0_45px_rgba(245,165,36,0.2))] hover:drop-shadow-[0_0_40px_hsl(43,96%,56%)] animate-pulse" 
         />
         <h1 className="text-2xl md:text-3xl font-bold text-primary tracking-tight text-center drop-shadow-[0_4px_15px_rgba(0,0,0,0.9)] [text-shadow:_0_2px_20px_rgba(0,0,0,0.8),_0_0_40px_rgba(0,0,0,0.6)]">CONTROLE OPERACIONAL</h1>
         <p className="text-gray-300 text-sm md:text-base mt-2 text-center max-w-md drop-shadow-[0_2px_10px_rgba(0,0,0,0.8)] [text-shadow:_0_2px_15px_rgba(0,0,0,0.9)]">
