@@ -19,12 +19,14 @@ export function ThemeToggle({ showLabel = false, className = "" }: ThemeTogglePr
       variant="ghost"
       size={showLabel ? "default" : "icon"}
       onClick={toggleTheme}
-      className={className}
+      className={`${className} group overflow-hidden`}
     >
-      <Sun className="h-5 w-5 rotate-0 scale-100 transition-all dark:-rotate-90 dark:scale-0" />
-      <Moon className="absolute h-5 w-5 rotate-90 scale-0 transition-all dark:rotate-0 dark:scale-100" />
+      <div className="relative h-5 w-5">
+        <Sun className="absolute inset-0 h-5 w-5 rotate-0 scale-100 transition-all duration-500 ease-out group-hover:rotate-45 dark:-rotate-180 dark:scale-0" />
+        <Moon className="absolute inset-0 h-5 w-5 rotate-180 scale-0 transition-all duration-500 ease-out group-hover:-rotate-12 dark:rotate-0 dark:scale-100" />
+      </div>
       {showLabel && (
-        <span className="ml-2">
+        <span className="ml-2 transition-colors duration-300">
           {theme === "dark" ? "Modo Claro" : "Modo Escuro"}
         </span>
       )}
