@@ -182,22 +182,36 @@ const Matriz = () => {
           </Button>
 
           {/* Header */}
-          <div className="flex items-center gap-4 mb-8">
+          <div className="flex items-center gap-4 mb-8 flex-wrap">
             <div className={`w-16 h-16 rounded-2xl ${selectedFolder.iconBg} flex items-center justify-center`}>
               <div className={selectedFolder.iconColor}>{selectedFolder.icon}</div>
             </div>
-            <div>
+            <div className="flex-1">
               <h1 className="text-3xl font-bold">{selectedFolder.cargo}</h1>
               <p className="text-muted-foreground">
                 {completedCount}/{selectedFolder.tarefas.length} atividades concluídas
               </p>
             </div>
-            <Badge 
-              variant={progress === 100 ? "default" : "secondary"} 
-              className={`ml-auto text-lg px-4 py-2 ${progress === 100 ? "bg-green-500" : ""}`}
-            >
-              {progress}%
-            </Badge>
+            <div className="flex items-center gap-3">
+              {/* Forms Link Button */}
+              <a
+                href="https://forms.office.com/Pages/ResponsePage.aspx?id=kYkdvChKUkWrwaznrhCCdO-80STG5SxAvb9Y_fx1cCNUQjVWRVRNSlE0Q08xNFhVNlFDSEFVTUJFNy4u"
+                target="_blank"
+                rel="noopener noreferrer"
+                title="Clica aqui para preencher no Forms"
+                className="flex items-center gap-2 bg-primary hover:bg-primary/90 text-primary-foreground px-4 py-2 rounded-xl shadow-lg transition-all duration-300 hover:scale-105 hover:shadow-xl group"
+              >
+                <ClipboardList className="w-5 h-5" />
+                <span className="font-medium hidden sm:inline">Preencher Forms</span>
+                <ExternalLink className="w-4 h-4 opacity-70 group-hover:opacity-100 transition-opacity" />
+              </a>
+              <Badge 
+                variant={progress === 100 ? "default" : "secondary"} 
+                className={`text-lg px-4 py-2 ${progress === 100 ? "bg-green-500" : ""}`}
+              >
+                {progress}%
+              </Badge>
+            </div>
           </div>
 
           {/* Progress Bar */}
