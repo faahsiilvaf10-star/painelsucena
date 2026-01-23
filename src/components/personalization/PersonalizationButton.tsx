@@ -1,4 +1,4 @@
-import { Palette, Volume2, Play } from "lucide-react";
+import { Palette, Volume2, Play, Check, Loader2 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import {
   Popover,
@@ -10,19 +10,36 @@ import { Separator } from "@/components/ui/separator";
 import { RadioGroup, RadioGroupItem } from "@/components/ui/radio-group";
 import { useUserPreferences, NOTIFICATION_SOUNDS } from "@/hooks/useUserPreferences";
 import { toast } from "sonner";
-import { useState } from "react";
+import { useState, useEffect } from "react";
 
 export function PersonalizationButton() {
   const { preferences, updatePreferences, playNotificationSound } = useUserPreferences();
   const [open, setOpen] = useState(false);
+  const [savingField, setSavingField] = useState<string | null>(null);
+  const [savedField, setSavedField] = useState<string | null>(null);
 
   const handleColorChange = async (key: string, value: string) => {
+    setSavingField(key);
     try {
       await updatePreferences.mutateAsync({ [key]: value });
+      setSavedField(key);
+      setTimeout(() => setSavedField(null), 1500);
     } catch (error) {
       console.error("Error updating preference:", error);
       toast.error("Erro ao salvar preferência");
+    } finally {
+      setSavingField(null);
     }
+  };
+
+  const renderSaveIndicator = (key: string) => {
+    if (savingField === key) {
+      return <Loader2 className="h-3 w-3 animate-spin text-muted-foreground" />;
+    }
+    if (savedField === key) {
+      return <Check className="h-3 w-3 text-green-500" />;
+    }
+    return null;
   };
 
   const handleSoundChange = async (value: string) => {
@@ -62,9 +79,12 @@ export function PersonalizationButton() {
             
             <div className="grid grid-cols-2 gap-3">
               <div className="space-y-1.5">
-                <Label htmlFor="sidebar_color" className="text-xs text-muted-foreground">
-                  Barra lateral
-                </Label>
+                <div className="flex items-center justify-between">
+                  <Label htmlFor="sidebar_color" className="text-xs text-muted-foreground">
+                    Barra lateral
+                  </Label>
+                  {renderSaveIndicator("sidebar_color")}
+                </div>
                 <div className="flex items-center gap-2">
                   <input
                     id="sidebar_color"
@@ -80,9 +100,12 @@ export function PersonalizationButton() {
               </div>
               
               <div className="space-y-1.5">
-                <Label htmlFor="sidebar_font_color" className="text-xs text-muted-foreground">
-                  Fonte lateral
-                </Label>
+                <div className="flex items-center justify-between">
+                  <Label htmlFor="sidebar_font_color" className="text-xs text-muted-foreground">
+                    Fonte lateral
+                  </Label>
+                  {renderSaveIndicator("sidebar_font_color")}
+                </div>
                 <div className="flex items-center gap-2">
                   <input
                     id="sidebar_font_color"
@@ -98,9 +121,12 @@ export function PersonalizationButton() {
               </div>
               
               <div className="space-y-1.5">
-                <Label htmlFor="active_tab_color" className="text-xs text-muted-foreground">
-                  Aba selecionada
-                </Label>
+                <div className="flex items-center justify-between">
+                  <Label htmlFor="active_tab_color" className="text-xs text-muted-foreground">
+                    Aba selecionada
+                  </Label>
+                  {renderSaveIndicator("active_tab_color")}
+                </div>
                 <div className="flex items-center gap-2">
                   <input
                     id="active_tab_color"
@@ -116,9 +142,12 @@ export function PersonalizationButton() {
               </div>
               
               <div className="space-y-1.5">
-                <Label htmlFor="page_background_color" className="text-xs text-muted-foreground">
-                  Fundo da página
-                </Label>
+                <div className="flex items-center justify-between">
+                  <Label htmlFor="page_background_color" className="text-xs text-muted-foreground">
+                    Fundo da página
+                  </Label>
+                  {renderSaveIndicator("page_background_color")}
+                </div>
                 <div className="flex items-center gap-2">
                   <input
                     id="page_background_color"
