@@ -67,26 +67,7 @@ const Dashboard = () => {
         animationDelay: "0.8s"
       }}>
           <h2 className="text-2xl font-bold mb-6">Atividade Recente</h2>
-          <div className="bg-card rounded-xl border border-border/50 overflow-hidden">
-            <div className="divide-y divide-border/50">
-              {attendanceRecords.slice(0, 4).map(record => <div key={record.id} className="flex items-center justify-between p-4 hover:bg-secondary/30 transition-colors">
-                  <div className="flex items-center gap-4">
-                    <div className="w-10 h-10 rounded-full bg-secondary flex items-center justify-center font-semibold text-sm">
-                      {record.employeeName.split(" ").map(n => n[0]).join("")}
-                    </div>
-                    <div>
-                      <p className="font-medium">{record.employeeName}</p>
-                      <p className="text-sm text-muted-foreground">
-                        {record.checkIn !== "-" ? `Entrada: ${record.checkIn}` : "Sem registro"}
-                      </p>
-                    </div>
-                  </div>
-                  <span className={`px-3 py-1 rounded-full text-xs font-medium ${record.status === "present" ? "bg-success/20 text-success" : record.status === "late" ? "bg-warning/20 text-warning" : record.status === "justified" ? "bg-info/20 text-info" : "bg-destructive/20 text-destructive"}`}>
-                    {record.status === "present" ? "Presente" : record.status === "late" ? "Atrasado" : record.status === "justified" ? "Justificado" : "Ausente"}
-                  </span>
-                </div>)}
-            </div>
-          </div>
+          
         </div>
       </div>
     </Layout>;
