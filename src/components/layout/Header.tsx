@@ -17,15 +17,13 @@ import {
   DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu";
 
-const baseNavItems = [
+const navItems = [
   { icon: LayoutDashboard, label: "Destaques", path: "/" },
   { icon: Users, label: "RH", path: "/rh" },
   { icon: ClipboardList, label: "Presença", path: "/presenca" },
   { icon: FileBarChart, label: "Relatório de Presença", path: "/relatorio-presenca" },
   { icon: Grid3X3, label: "Matriz de Responsabilidade", path: "/matriz" },
 ];
-
-const adminNavItem = { icon: ShieldCheck, label: "Administração", path: "/admin" };
 
 interface Profile {
   full_name: string;
@@ -39,9 +37,6 @@ const Header = () => {
   const { user, signOut } = useAuth();
   const { isAdmin } = useIsAdmin();
   const [profile, setProfile] = useState<Profile | null>(null);
-
-  // Build nav items based on admin status
-  const navItems = isAdmin ? [...baseNavItems, adminNavItem] : baseNavItems;
 
   useEffect(() => {
     const fetchProfile = async () => {
