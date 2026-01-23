@@ -1,0 +1,163 @@
+import { Bell, Check, CheckCheck, Trash2, Calendar } from "lucide-react";
+import { formatDistanceToNow } from "date-fns";
+import { ptBR } from "date-fns/locale";
+import {
+  Popover,
+  PopoverContent,
+  PopoverTrigger,
+} from "@/components/ui/popover";
+import { Button } from "@/components/ui/button";
+import { ScrollArea } from "@/components/ui/scroll-area";
+import { Badge } from "@/components/ui/badge";
+import {
+  useNotifications,
+  useUnreadCount,
+  useMarkAsRead,
+  useMarkAllAsRead,
+  useDeleteNotification,
+} from "@/hooks/useNotifications";
+import { cn } from "@/lib/utils";
+
+export function NotificationBell() {
+  const { data: notifications, isLoading } = useNotifications();
+  const unreadCount = useUnreadCount();
+  const markAsRead = useMarkAsRead();
+  const markAllAsRead = useMarkAllAsRead();
+  const deleteNotification = useDeleteNotification();
+
+  const getTypeIcon = (type: string) => {
+    switch (type) {
+      case "dds_mention":
+        return <Calendar className="h-4 w-4 text-amber-500" />;
+      default:
+        return <Bell className="h-4 w-4 text-muted-foreground" />;
+    }
+  };
+
+  return (
+    <Popover>
+      <PopoverTrigger asChild>
+        <Button
+          variant="ghost"
+          size="icon"
+          className="relative hover:bg-amber-500/10"
+        >
+          <Bell className="h-5 w-5 text-amber-500" />
+          {unreadCount > 0 && (
+            <Badge
+              variant="destructive"
+              className="absolute -top-1 -right-1 h-5 w-5 flex items-center justify-center p-0 text-xs animate-pulse"
+            >
+              {unreadCount > 9 ? "9+" : unreadCount}
+            </Badge>
+          )}
+        </Button>
+      </PopoverTrigger>
+      <PopoverContent className="w-80 p-0" align="end">
+        <div className="flex items-center justify-between p-4 border-b">
+          <h3 className="font-semibold">Notificações</h3>
+          {unreadCount > 0 && (
+            <Button
+              variant="ghost"
+              size="sm"
+              className="text-xs h-7"
+              onClick={() => markAllAsRead.mutate()}
+              disabled={markAllAsRead.isPending}
+            >
+              <CheckCheck className="h-3 w-3 mr-1" />
+              Marcar todas
+            </Button>
+          )}
+        </div>
+
+        <ScrollArea className="h-[300px]">
+          {isLoading ? (
+            <div className="p-4 text-center text-muted-foreground">
+              Carregando...
+            </div>
+          ) : notifications?.length === 0 ? (
+            <div className="p-8 text-center text-muted-foreground">
+              <Bell className="h-12 w-12 mx-auto mb-3 opacity-20" />
+              <p>Nenhuma notificação</p>
+            </div>
+          ) : (
+            <div className="divide-y">
+              {notifications?.map((notification) => (
+                <div
+                  key={notification.id}
+                  className={cn(
+                    "p-4 hover:bg-muted/50 transition-colors cursor-pointer group",
+                    !notification.read && "bg-amber-500/5"
+                  )}
+                  onClick={() => {
+                    if (!notification.read) {
+                      markAsRead.mutate(notification.id);
+                    }
+                  }}
+                >
+                  <div className="flex gap-3">
+                    <div className="flex-shrink-0 mt-0.5">
+                      {getTypeIcon(notification.type)}
+                    </div>
+                    <div className="flex-1 min-w-0">
+                      <div className="flex items-start justify-between gap-2">
+                        <p
+                          className={cn(
+                            "text-sm font-medium",
+                            !notification.read && "text-amber-600"
+                          )}
+                        >
+                          {notification.title}
+                        </p>
+                        <div className="flex items-center gap-1 opacity-0 group-hover:opacity-100 transition-opacity">
+                          {!notification.read && (
+                            <Button
+                              variant="ghost"
+                              size="icon"
+                              className="h-6 w-6"
+                              onClick={(e) => {
+                                e.stopPropagation();
+                                markAsRead.mutate(notification.id);
+                              }}
+                            >
+                              <Check className="h-3 w-3" />
+                            </Button>
+                          )}
+                          <Button
+                            variant="ghost"
+                            size="icon"
+                            className="h-6 w-6 text-destructive hover:text-destructive"
+                            onClick={(e) => {
+                              e.stopPropagation();
+                              deleteNotification.mutate(notification.id);
+                            }}
+                          >
+                            <Trash2 className="h-3 w-3" />
+                          </Button>
+                        </div>
+                      </div>
+                      <p className="text-sm text-muted-foreground line-clamp-2">
+                        {notification.message}
+                      </p>
+                      <p className="text-xs text-muted-foreground mt-1">
+                        {formatDistanceToNow(new Date(notification.created_at), {
+                          addSuffix: true,
+                          locale: ptBR,
+                        })}
+                      </p>
+                    </div>
+                    {!notification.read && (
+                      <div className="flex-shrink-0">
+                        <div className="h-2 w-2 rounded-full bg-amber-500" />
+                      </div>
+                    )}
+                  </div>
+                </div>
+              ))}
+            </div>
+          )}
+        </ScrollArea>
+      </PopoverContent>
+    </Popover>
+  );
+}
