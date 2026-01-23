@@ -1,4 +1,4 @@
-import { Bell, Check, CheckCheck, Trash2, Calendar } from "lucide-react";
+import { Bell, Check, CheckCheck, Trash2, Calendar, BellRing } from "lucide-react";
 import { formatDistanceToNow } from "date-fns";
 import { ptBR } from "date-fns/locale";
 import {
@@ -15,19 +15,31 @@ import {
   useMarkAllAsRead,
   useDeleteNotification,
 } from "@/hooks/useNotifications";
+import { useBrowserNotifications } from "@/hooks/useBrowserNotifications";
 import { cn } from "@/lib/utils";
 import { useMemo } from "react";
+import { toast } from "sonner";
 
 export function NotificationBell() {
   const { data: notifications, isLoading } = useNotifications();
   const markAsRead = useMarkAsRead();
   const markAllAsRead = useMarkAllAsRead();
   const deleteNotification = useDeleteNotification();
+  const { isSupported, isGranted, isDenied, requestPermission } = useBrowserNotifications();
 
   // Calculate unread count directly from notifications
   const unreadCount = useMemo(() => {
     return notifications?.filter((n) => !n.read).length || 0;
   }, [notifications]);
+
+  const handleEnablePushNotifications = async () => {
+    const granted = await requestPermission();
+    if (granted) {
+      toast.success("Notificações push ativadas!");
+    } else {
+      toast.error("Permissão negada. Você pode ativar nas configurações do navegador.");
+    }
+  };
 
   const getTypeIcon = (type: string) => {
     switch (type) {
@@ -60,19 +72,40 @@ export function NotificationBell() {
       <PopoverContent className="w-80 p-0" align="end">
         <div className="flex items-center justify-between p-4 border-b">
           <h3 className="font-semibold">Notificações</h3>
-          {unreadCount > 0 && (
-            <Button
-              variant="ghost"
-              size="sm"
-              className="text-xs h-7"
-              onClick={() => markAllAsRead.mutate()}
-              disabled={markAllAsRead.isPending}
-            >
-              <CheckCheck className="h-3 w-3 mr-1" />
-              Marcar todas
-            </Button>
-          )}
+          <div className="flex items-center gap-1">
+            {isSupported && !isGranted && !isDenied && (
+              <Button
+                variant="ghost"
+                size="sm"
+                className="text-xs h-7 text-amber-600 hover:text-amber-700"
+                onClick={handleEnablePushNotifications}
+              >
+                <BellRing className="h-3 w-3 mr-1" />
+                Ativar push
+              </Button>
+            )}
+            {unreadCount > 0 && (
+              <Button
+                variant="ghost"
+                size="sm"
+                className="text-xs h-7"
+                onClick={() => markAllAsRead.mutate()}
+                disabled={markAllAsRead.isPending}
+              >
+                <CheckCheck className="h-3 w-3 mr-1" />
+                Marcar todas
+              </Button>
+            )}
+          </div>
         </div>
+
+        {/* Push notification status banner */}
+        {isSupported && isGranted && (
+          <div className="px-4 py-2 bg-green-50 dark:bg-green-950/30 border-b text-xs text-green-700 dark:text-green-400 flex items-center gap-2">
+            <BellRing className="h-3 w-3" />
+            Notificações push ativadas
+          </div>
+        )}
 
         <ScrollArea className="h-[300px]">
           {isLoading ? (
