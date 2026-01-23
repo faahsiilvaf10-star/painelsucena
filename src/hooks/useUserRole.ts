@@ -12,14 +12,17 @@ export const useUserRole = () => {
     queryFn: async () => {
       if (!user?.id) return null;
       
+      // NOTE: PostgREST may return an array even when filtering by a single user.
+      // To avoid false negatives (isAdmin=false), always take the newest role row.
       const { data, error } = await supabase
         .from("user_roles")
         .select("role")
         .eq("user_id", user.id)
-        .maybeSingle();
+        .order("created_at", { ascending: false })
+        .limit(1);
       
       if (error) throw error;
-      return data?.role as AppRole | null;
+      return (data?.[0]?.role as AppRole | undefined) ?? null;
     },
     enabled: !!user?.id,
   });
