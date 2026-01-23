@@ -2,123 +2,98 @@ import { useState } from "react";
 import { Calendar, Clock, CheckCircle2, XCircle, Loader2, Lock } from "lucide-react";
 import Layout from "@/components/layout/Layout";
 import { Button } from "@/components/ui/button";
-import {
-  Table,
-  TableBody,
-  TableCell,
-  TableHead,
-  TableHeader,
-  TableRow,
-} from "@/components/ui/table";
-import {
-  Select,
-  SelectContent,
-  SelectItem,
-  SelectTrigger,
-  SelectValue,
-} from "@/components/ui/select";
+import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { useAttendanceRecords, useUpdateAttendance, type AttendanceStatus } from "@/hooks/useAttendance";
 import { useReportLock } from "@/hooks/useReportLock";
 import { toast } from "sonner";
-
 const statusConfig = {
   present: {
     label: "Presente",
     icon: CheckCircle2,
     class: "bg-success/20 text-success",
-    iconClass: "text-success",
+    iconClass: "text-success"
   },
   absent: {
     label: "Ausente",
     icon: XCircle,
     class: "bg-destructive/20 text-destructive",
-    iconClass: "text-destructive",
-  },
+    iconClass: "text-destructive"
+  }
 };
-
 const Presenca = () => {
   const [filterStatus, setFilterStatus] = useState<string>("all");
   const today = new Date().toISOString().split("T")[0];
-  
-  const { data: attendanceRecords, isLoading, error } = useAttendanceRecords(today);
+  const {
+    data: attendanceRecords,
+    isLoading,
+    error
+  } = useAttendanceRecords(today);
   const updateAttendance = useUpdateAttendance();
-  const { isLocked, isLoading: lockLoading } = useReportLock(today);
-
-  const filteredRecords = attendanceRecords?.filter(
-    (record) => filterStatus === "all" || record.status === filterStatus
-  ) || [];
-
+  const {
+    isLocked,
+    isLoading: lockLoading
+  } = useReportLock(today);
+  const filteredRecords = attendanceRecords?.filter(record => filterStatus === "all" || record.status === filterStatus) || [];
   const stats = {
-    present: attendanceRecords?.filter((r) => r.status === "present" || r.status === "late").length || 0,
-    absent: attendanceRecords?.filter((r) => r.status === "absent" || r.status === "justified").length || 0,
+    present: attendanceRecords?.filter(r => r.status === "present" || r.status === "late").length || 0,
+    absent: attendanceRecords?.filter(r => r.status === "absent" || r.status === "justified").length || 0
   };
-
   const handleStatusChange = async (recordId: string, newStatus: AttendanceStatus) => {
     if (isLocked) {
       toast.error("Relatório salvo! Status não pode ser alterado.");
       return;
     }
-    
     try {
       await updateAttendance.mutateAsync({
         id: recordId,
         status: newStatus,
         check_in: newStatus === "absent" || newStatus === "justified" ? null : undefined,
-        check_out: newStatus === "absent" || newStatus === "justified" ? null : undefined,
+        check_out: newStatus === "absent" || newStatus === "justified" ? null : undefined
       });
       toast.success("Status atualizado com sucesso!");
     } catch (err) {
       toast.error("Erro ao atualizar status");
     }
   };
-
   if (isLoading) {
-    return (
-      <Layout>
+    return <Layout>
         <div className="container mx-auto px-6 py-8 flex items-center justify-center min-h-[60vh]">
           <Loader2 className="w-8 h-8 animate-spin text-primary" />
         </div>
-      </Layout>
-    );
+      </Layout>;
   }
-
   if (error) {
-    return (
-      <Layout>
+    return <Layout>
         <div className="container mx-auto px-6 py-8">
           <div className="text-center py-12">
             <p className="text-destructive text-lg">Erro ao carregar dados</p>
           </div>
         </div>
-      </Layout>
-    );
+      </Layout>;
   }
-
-  return (
-    <Layout>
+  return <Layout>
       <div className="container mx-auto px-6 py-8">
         {/* Header */}
         <div className="flex flex-col md:flex-row md:items-center justify-between gap-4 mb-8">
           <div>
-            <h1 className="text-4xl font-bold mb-2">Lista de Presença</h1>
+            <h1 className="text-4xl font-bold mb-2">Funcionários Trabalhando hoje !</h1>
             <p className="text-muted-foreground flex items-center gap-2">
               <Calendar className="w-4 h-4" />
               {new Date().toLocaleDateString("pt-BR", {
-                weekday: "long",
-                year: "numeric",
-                month: "long",
-                day: "numeric",
-              })}
+              weekday: "long",
+              year: "numeric",
+              month: "long",
+              day: "numeric"
+            })}
             </p>
           </div>
 
           <div className="flex items-center gap-3">
-            {isLocked && (
-              <div className="flex items-center gap-2 px-3 py-2 bg-amber-500/20 text-amber-500 rounded-lg border border-amber-500/30">
+            {isLocked && <div className="flex items-center gap-2 px-3 py-2 bg-amber-500/20 text-amber-500 rounded-lg border border-amber-500/30">
                 <Lock className="w-4 h-4" />
                 <span className="text-sm font-medium">Relatório Salvo</span>
-              </div>
-            )}
+              </div>}
             <Button className="gap-2">
               <Clock className="w-4 h-4" />
               Registrar Ponto
@@ -129,12 +104,8 @@ const Presenca = () => {
         {/* Stats */}
         <div className="grid grid-cols-2 md:grid-cols-4 gap-4 mb-8">
           {Object.entries(statusConfig).map(([key, config]) => {
-            const Icon = config.icon;
-            return (
-              <div
-                key={key}
-                className="bg-card rounded-xl p-4 border border-border/50 flex items-center gap-4"
-              >
+          const Icon = config.icon;
+          return <div key={key} className="bg-card rounded-xl p-4 border border-border/50 flex items-center gap-4">
                 <div className={`p-3 rounded-lg ${config.class}`}>
                   <Icon className="w-5 h-5" />
                 </div>
@@ -142,9 +113,8 @@ const Presenca = () => {
                   <p className="text-2xl font-bold">{stats[key as keyof typeof stats]}</p>
                   <p className="text-sm text-muted-foreground">{config.label}</p>
                 </div>
-              </div>
-            );
-          })}
+              </div>;
+        })}
         </div>
 
         {/* Filter */}
@@ -173,19 +143,13 @@ const Presenca = () => {
             </TableHeader>
             <TableBody>
               {filteredRecords.map((record, index) => {
-                // Normalize status: treat late as present, justified as absent
-                const normalizedStatus = record.status === "present" || record.status === "late" 
-                  ? "present" 
-                  : "absent";
-                const config = statusConfig[normalizedStatus];
-                const employee = record.employees;
-
-                return (
-                  <TableRow
-                    key={record.id}
-                    className="border-border/50 animate-fade-in"
-                    style={{ animationDelay: `${index * 0.05}s` }}
-                  >
+              // Normalize status: treat late as present, justified as absent
+              const normalizedStatus = record.status === "present" || record.status === "late" ? "present" : "absent";
+              const config = statusConfig[normalizedStatus];
+              const employee = record.employees;
+              return <TableRow key={record.id} className="border-border/50 animate-fade-in" style={{
+                animationDelay: `${index * 0.05}s`
+              }}>
                     <TableCell>
                       <div className="flex items-center gap-3">
                         <div className="w-10 h-10 rounded-full bg-secondary flex items-center justify-center font-semibold text-sm">
@@ -203,16 +167,10 @@ const Presenca = () => {
                       {employee?.role || "-"}
                     </TableCell>
                     <TableCell>
-                      {isLocked ? (
-                        <div className={`inline-flex items-center gap-2 px-3 py-1.5 rounded-md ${config.class}`}>
+                      {isLocked ? <div className={`inline-flex items-center gap-2 px-3 py-1.5 rounded-md ${config.class}`}>
                           <Lock className="w-3 h-3" />
                           {config.label}
-                        </div>
-                      ) : (
-                        <Select
-                          value={normalizedStatus}
-                          onValueChange={(value: AttendanceStatus) => handleStatusChange(record.id, value)}
-                        >
+                        </div> : <Select value={normalizedStatus} onValueChange={(value: AttendanceStatus) => handleStatusChange(record.id, value)}>
                           <SelectTrigger className={`w-[140px] h-8 ${config.class} border-0`}>
                             <SelectValue />
                           </SelectTrigger>
@@ -230,26 +188,20 @@ const Presenca = () => {
                               </span>
                             </SelectItem>
                           </SelectContent>
-                        </Select>
-                      )}
+                        </Select>}
                     </TableCell>
-                  </TableRow>
-                );
-              })}
+                  </TableRow>;
+            })}
             </TableBody>
           </Table>
         </div>
 
-        {filteredRecords.length === 0 && (
-          <div className="text-center py-12">
+        {filteredRecords.length === 0 && <div className="text-center py-12">
             <p className="text-muted-foreground text-lg">
               Nenhum registro encontrado
             </p>
-          </div>
-        )}
+          </div>}
       </div>
-    </Layout>
-  );
+    </Layout>;
 };
-
 export default Presenca;
