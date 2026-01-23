@@ -161,21 +161,6 @@ export function AppSidebar() {
                   );
                 })}
                 
-                {isAdmin && (
-                  <SidebarMenuItem>
-                    <SidebarMenuButton
-                      asChild
-                      isActive={location.pathname === "/admin"}
-                      tooltip="Administração"
-                      className={location.pathname === "/admin" ? "bg-primary text-primary-foreground hover:bg-primary hover:text-primary-foreground" : ""}
-                    >
-                      <Link to="/admin">
-                        <ShieldCheck className="h-5 w-5" />
-                        <span className="font-medium">Administração</span>
-                      </Link>
-                    </SidebarMenuButton>
-                  </SidebarMenuItem>
-                )}
               </SidebarMenu>
             </SidebarGroupContent>
           </SidebarGroup>
