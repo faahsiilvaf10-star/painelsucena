@@ -14,7 +14,89 @@ export type Database = {
   }
   public: {
     Tables: {
-      [_ in never]: never
+      attendance_records: {
+        Row: {
+          check_in: string | null
+          check_out: string | null
+          created_at: string
+          date: string
+          employee_id: string
+          id: string
+          status: Database["public"]["Enums"]["attendance_status"]
+          updated_at: string
+        }
+        Insert: {
+          check_in?: string | null
+          check_out?: string | null
+          created_at?: string
+          date?: string
+          employee_id: string
+          id?: string
+          status?: Database["public"]["Enums"]["attendance_status"]
+          updated_at?: string
+        }
+        Update: {
+          check_in?: string | null
+          check_out?: string | null
+          created_at?: string
+          date?: string
+          employee_id?: string
+          id?: string
+          status?: Database["public"]["Enums"]["attendance_status"]
+          updated_at?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "attendance_records_employee_id_fkey"
+            columns: ["employee_id"]
+            isOneToOne: false
+            referencedRelation: "employees"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      employees: {
+        Row: {
+          avatar: string
+          created_at: string
+          department: string
+          email: string | null
+          id: string
+          name: string
+          phone: string | null
+          role: string
+          start_date: string
+          status: Database["public"]["Enums"]["employee_status"]
+          updated_at: string
+        }
+        Insert: {
+          avatar: string
+          created_at?: string
+          department: string
+          email?: string | null
+          id?: string
+          name: string
+          phone?: string | null
+          role: string
+          start_date?: string
+          status?: Database["public"]["Enums"]["employee_status"]
+          updated_at?: string
+        }
+        Update: {
+          avatar?: string
+          created_at?: string
+          department?: string
+          email?: string | null
+          id?: string
+          name?: string
+          phone?: string | null
+          role?: string
+          start_date?: string
+          status?: Database["public"]["Enums"]["employee_status"]
+          updated_at?: string
+        }
+        Relationships: []
+      }
     }
     Views: {
       [_ in never]: never
@@ -23,7 +105,8 @@ export type Database = {
       [_ in never]: never
     }
     Enums: {
-      [_ in never]: never
+      attendance_status: "present" | "late" | "absent" | "justified"
+      employee_status: "active" | "vacation" | "leave"
     }
     CompositeTypes: {
       [_ in never]: never
@@ -150,6 +233,9 @@ export type CompositeTypes<
 
 export const Constants = {
   public: {
-    Enums: {},
+    Enums: {
+      attendance_status: ["present", "late", "absent", "justified"],
+      employee_status: ["active", "vacation", "leave"],
+    },
   },
 } as const
