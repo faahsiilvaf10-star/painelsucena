@@ -1,15 +1,8 @@
-import { useState } from "react";
-import { Calendar, FileText, Download, Filter, CheckCircle2, XCircle, AlertCircle, Loader2 } from "lucide-react";
+import { useState, useMemo } from "react";
+import { FileText, Copy, Send, Loader2, Check } from "lucide-react";
 import Layout from "@/components/layout/Layout";
 import { Button } from "@/components/ui/button";
-import {
-  Table,
-  TableBody,
-  TableCell,
-  TableHead,
-  TableHeader,
-  TableRow,
-} from "@/components/ui/table";
+import { Input } from "@/components/ui/input";
 import {
   Select,
   SelectContent,
@@ -17,94 +10,234 @@ import {
   SelectTrigger,
   SelectValue,
 } from "@/components/ui/select";
-import { Input } from "@/components/ui/input";
+import { Textarea } from "@/components/ui/textarea";
 import { useQuery } from "@tanstack/react-query";
 import { supabase } from "@/integrations/supabase/client";
 import type { Tables } from "@/integrations/supabase/types";
+import { toast } from "sonner";
 
 type AttendanceWithEmployee = Tables<"attendance_records"> & {
   employees: Tables<"employees"> | null;
 };
 
-const statusConfig = {
-  present: {
-    label: "Presente",
-    icon: CheckCircle2,
-    class: "bg-success/20 text-success",
+// Define the role groupings for the report
+const roleGroups = {
+  "ÁREA GABIÃO": {
+    header: "✳  ÁREA GABIÃO  ✳",
+    support: {
+      header: "✴EQUIPE DE SUPORTE✴",
+      members: [
+        { role: "🙋‍♀ TST", name: "ITAMAR DE SOUZA" },
+        { role: "🙋‍♂ ENC GERAL", name: "DOMINGUES FABRICIO" },
+        { role: "🙋‍♂ ENC", name: "JOSÉ MARIA CORREA" },
+      ],
+    },
+    execution: {
+      header: "✴EQUIPE DE EXECUÇÃO✴",
+      roles: ["Polivalente", "Meia Oficial", "Ajudante"],
+    },
+    roleLabels: {
+      Polivalente: "👷🏼‍♂ Polivalentes:",
+      "Meia Oficial": "👷🏼‍♂ Meia oficial:",
+      Ajudante: "👷🏼‍♂ Ajudante:",
+    },
   },
-  late: {
-    label: "Atrasado",
-    icon: AlertCircle,
-    class: "bg-warning/20 text-warning",
-  },
-  absent: {
-    label: "Ausente",
-    icon: XCircle,
-    class: "bg-destructive/20 text-destructive",
-  },
-  justified: {
-    label: "Justificado",
-    icon: FileText,
-    class: "bg-info/20 text-info",
+  "ROÇAGEM E PODAGEM": {
+    header: "-----------------------------------\n\n ROÇAGEM E PODAGEM",
+    support: {
+      header: "✴EQUIPE DE SUPORTE✴",
+      members: [
+        { role: "🙋‍♀ TST", name: "ITAMAR DE SOUZA" },
+        { role: "🙋‍♂ ENC GERAL", name: "DOMINGUES FABRICIO" },
+        { role: "🙋‍♂ ENC", name: "RUDNEY SILVA" },
+      ],
+    },
+    execution: {
+      header: "✴EQUIPE DE EXECUÇÃO✴",
+      roles: [
+        "Jardineiro",
+        "Ajudante",
+        "Motorista do Pipa",
+        "Motorista do Munck",
+        "Sinaleiro",
+        "Mecânico Montador",
+        "Auxiliar de Elétrica",
+      ],
+    },
+    roleLabels: {
+      Jardineiro: "👷🏼‍♂Jardineiro:",
+      Ajudante: "👷🏼‍♂ Ajudante:",
+      "Motorista do Pipa": "👷🏼 Motorista do Pipa",
+      "Motorista do Munck": "👷🏼 Motorista do Munck",
+      Sinaleiro: "👷🏼 Sinaleiro",
+      "Mecânico Montador": "👷🏼 Mecânico montador",
+      "Auxiliar de Elétrica": "👷🏼 Auxiliar de elétrica",
+    },
   },
 };
 
+// Map roles to areas
+const roleToArea: Record<string, string> = {
+  Polivalente: "ÁREA GABIÃO",
+  "Meia Oficial": "ÁREA GABIÃO",
+  Jardineiro: "ROÇAGEM E PODAGEM",
+  "Motorista do Pipa": "ROÇAGEM E PODAGEM",
+  "Motorista do Munck": "ROÇAGEM E PODAGEM",
+  Sinaleiro: "ROÇAGEM E PODAGEM",
+  "Mecânico Montador": "ROÇAGEM E PODAGEM",
+  "Auxiliar de Elétrica": "ROÇAGEM E PODAGEM",
+};
+
+// Ajudante belongs to their specific area based on employee
+const gabiaAjudantes = [
+  "Flávio Henrique",
+  "Vinícius Junior",
+  "Welber Santo",
+  "Filipe dos Santos",
+  "Ezedequias Silva",
+];
+
 const RelatorioPresenca = () => {
-  const [startDate, setStartDate] = useState(() => {
-    const date = new Date();
-    date.setDate(date.getDate() - 7);
-    return date.toISOString().split("T")[0];
-  });
-  const [endDate, setEndDate] = useState(() => {
+  const [selectedDate, setSelectedDate] = useState(() => {
     return new Date().toISOString().split("T")[0];
   });
-  const [filterEmployee, setFilterEmployee] = useState<string>("all");
-  const [filterStatus, setFilterStatus] = useState<string>("all");
+  const [copied, setCopied] = useState(false);
 
-  // Fetch all attendance records
+  // Fetch attendance records for the selected date with employees
   const { data: records, isLoading } = useQuery({
-    queryKey: ["attendance_report", startDate, endDate],
+    queryKey: ["attendance_report", selectedDate],
     queryFn: async () => {
       const { data, error } = await supabase
         .from("attendance_records")
         .select(`*, employees (*)`)
-        .gte("date", startDate)
-        .lte("date", endDate)
-        .order("date", { ascending: false });
+        .eq("date", selectedDate);
 
       if (error) throw error;
       return data as AttendanceWithEmployee[];
     },
   });
 
-  // Get unique employees for filter
-  const employeesMap = new Map<string, Tables<"employees">>();
-  records?.forEach((r) => {
-    if (r.employees && r.employees.id) {
-      employeesMap.set(r.employees.id, r.employees);
-    }
+  // Fetch all employees
+  const { data: allEmployees } = useQuery({
+    queryKey: ["employees_all"],
+    queryFn: async () => {
+      const { data, error } = await supabase
+        .from("employees")
+        .select("*")
+        .order("name");
+
+      if (error) throw error;
+      return data as Tables<"employees">[];
+    },
   });
-  const employees = Array.from(employeesMap.values());
 
-  // Filter records
-  const filteredRecords = records?.filter((record) => {
-    const matchesEmployee = filterEmployee === "all" || record.employee_id === filterEmployee;
-    const matchesStatus = filterStatus === "all" || record.status === filterStatus;
-    return matchesEmployee && matchesStatus;
-  }) || [];
+  // Create a map of employee attendance status
+  const attendanceMap = useMemo(() => {
+    const map = new Map<string, "present" | "late" | "absent" | "justified">();
+    records?.forEach((r) => {
+      if (r.employees) {
+        map.set(r.employees.name.toUpperCase(), r.status);
+      }
+    });
+    return map;
+  }, [records]);
 
-  // Calculate summary
-  const summary = {
-    total: filteredRecords.length,
-    present: filteredRecords.filter((r) => r.status === "present").length,
-    late: filteredRecords.filter((r) => r.status === "late").length,
-    absent: filteredRecords.filter((r) => r.status === "absent").length,
-    justified: filteredRecords.filter((r) => r.status === "justified").length,
+  // Generate the WhatsApp report text
+  const generateReport = useMemo(() => {
+    if (!allEmployees) return "";
+
+    const getStatusEmoji = (name: string) => {
+      const status = attendanceMap.get(name.toUpperCase());
+      if (status === "present" || status === "late") return "✅";
+      if (status === "absent" || status === "justified") return "❌";
+      return "✅"; // Default to present
+    };
+
+    const getArea = (employee: Tables<"employees">) => {
+      if (employee.role === "Ajudante") {
+        return gabiaAjudantes.some(
+          (n) => n.toUpperCase() === employee.name.toUpperCase()
+        )
+          ? "ÁREA GABIÃO"
+          : "ROÇAGEM E PODAGEM";
+      }
+      return roleToArea[employee.role] || "ROÇAGEM E PODAGEM";
+    };
+
+    // Group employees by area and role
+    const grouped: Record<string, Record<string, Tables<"employees">[]>> = {
+      "ÁREA GABIÃO": {},
+      "ROÇAGEM E PODAGEM": {},
+    };
+
+    allEmployees.forEach((emp) => {
+      const area = getArea(emp);
+      if (!grouped[area][emp.role]) {
+        grouped[area][emp.role] = [];
+      }
+      grouped[area][emp.role].push(emp);
+    });
+
+    let report = "";
+
+    // ÁREA GABIÃO
+    const gabiao = roleGroups["ÁREA GABIÃO"];
+    report += `${gabiao.header}\n\n`;
+    report += `${gabiao.support.header}\n\n`;
+    gabiao.support.members.forEach((m) => {
+      report += `${m.role} : ${m.name}\n\n`;
+    });
+    report += `${gabiao.execution.header}\n\n`;
+
+    gabiao.execution.roles.forEach((role) => {
+      const label = gabiao.roleLabels[role as keyof typeof gabiao.roleLabels];
+      const employees = grouped["ÁREA GABIÃO"][role] || [];
+      if (employees.length > 0) {
+        report += `${label}\n\n`;
+        employees.forEach((emp) => {
+          report += `${emp.name.toUpperCase()} ${getStatusEmoji(emp.name)}\n\n`;
+        });
+      }
+    });
+
+    // ROÇAGEM E PODAGEM
+    const rocagem = roleGroups["ROÇAGEM E PODAGEM"];
+    report += `${rocagem.header}\n\n`;
+    report += `${rocagem.support.header} \n\n`;
+    rocagem.support.members.forEach((m) => {
+      report += `${m.role} : ${m.name}\n\n`;
+    });
+    report += `${rocagem.execution.header}\n\n`;
+
+    rocagem.execution.roles.forEach((role) => {
+      const label = rocagem.roleLabels[role as keyof typeof rocagem.roleLabels];
+      const employees = grouped["ROÇAGEM E PODAGEM"][role] || [];
+      if (employees.length > 0) {
+        report += `${label}\n\n`;
+        employees.forEach((emp) => {
+          report += `${emp.name.toUpperCase()} ${getStatusEmoji(emp.name)}\n\n`;
+        });
+      }
+    });
+
+    return report.trim();
+  }, [allEmployees, attendanceMap]);
+
+  const handleCopy = async () => {
+    try {
+      await navigator.clipboard.writeText(generateReport);
+      setCopied(true);
+      toast.success("Relatório copiado!");
+      setTimeout(() => setCopied(false), 2000);
+    } catch {
+      toast.error("Erro ao copiar");
+    }
   };
 
-  const attendanceRate = summary.total > 0 
-    ? (((summary.present + summary.late) / summary.total) * 100).toFixed(1) 
-    : "0";
+  const handleWhatsApp = () => {
+    const encoded = encodeURIComponent(generateReport);
+    window.open(`https://wa.me/?text=${encoded}`, "_blank");
+  };
 
   return (
     <Layout>
@@ -115,161 +248,65 @@ const RelatorioPresenca = () => {
             <h1 className="text-4xl font-bold mb-2">Relatório de Presença</h1>
             <p className="text-muted-foreground flex items-center gap-2">
               <FileText className="w-4 h-4" />
-              Análise detalhada de frequência
+              Relatório formatado para WhatsApp
             </p>
           </div>
-
-          <Button variant="outline" className="gap-2">
-            <Download className="w-4 h-4" />
-            Exportar
-          </Button>
         </div>
 
-        {/* Filters */}
+        {/* Date Filter */}
         <div className="bg-card rounded-xl border border-border/50 p-6 mb-8">
-          <div className="flex items-center gap-2 mb-4">
-            <Filter className="w-5 h-5 text-muted-foreground" />
-            <h2 className="font-semibold">Filtros</h2>
-          </div>
-          <div className="grid grid-cols-1 md:grid-cols-4 gap-4">
-            <div>
-              <label className="text-sm text-muted-foreground mb-2 block">Data Inicial</label>
+          <div className="flex flex-col md:flex-row items-start md:items-end gap-4">
+            <div className="flex-1 max-w-xs">
+              <label className="text-sm text-muted-foreground mb-2 block">
+                Data do Relatório
+              </label>
               <Input
                 type="date"
-                value={startDate}
-                onChange={(e) => setStartDate(e.target.value)}
+                value={selectedDate}
+                onChange={(e) => setSelectedDate(e.target.value)}
               />
             </div>
-            <div>
-              <label className="text-sm text-muted-foreground mb-2 block">Data Final</label>
-              <Input
-                type="date"
-                value={endDate}
-                onChange={(e) => setEndDate(e.target.value)}
-              />
-            </div>
-            <div>
-              <label className="text-sm text-muted-foreground mb-2 block">Funcionário</label>
-              <Select value={filterEmployee} onValueChange={setFilterEmployee}>
-                <SelectTrigger>
-                  <SelectValue placeholder="Todos" />
-                </SelectTrigger>
-                <SelectContent>
-                  <SelectItem value="all">Todos</SelectItem>
-                  {employees.map((emp) => (
-                    <SelectItem key={emp?.id} value={emp?.id || ""}>
-                      {emp?.name}
-                    </SelectItem>
-                  ))}
-                </SelectContent>
-              </Select>
-            </div>
-            <div>
-              <label className="text-sm text-muted-foreground mb-2 block">Status</label>
-              <Select value={filterStatus} onValueChange={setFilterStatus}>
-                <SelectTrigger>
-                  <SelectValue placeholder="Todos" />
-                </SelectTrigger>
-                <SelectContent>
-                  <SelectItem value="all">Todos</SelectItem>
-                  <SelectItem value="present">Presente</SelectItem>
-                  <SelectItem value="late">Atrasado</SelectItem>
-                  <SelectItem value="absent">Ausente</SelectItem>
-                  <SelectItem value="justified">Justificado</SelectItem>
-                </SelectContent>
-              </Select>
+            <div className="flex gap-2">
+              <Button
+                onClick={handleCopy}
+                variant="outline"
+                className="gap-2"
+                disabled={isLoading}
+              >
+                {copied ? (
+                  <Check className="w-4 h-4" />
+                ) : (
+                  <Copy className="w-4 h-4" />
+                )}
+                {copied ? "Copiado!" : "Copiar"}
+              </Button>
+              <Button
+                onClick={handleWhatsApp}
+                className="gap-2 bg-green-600 hover:bg-green-700"
+                disabled={isLoading}
+              >
+                <Send className="w-4 h-4" />
+                Enviar WhatsApp
+              </Button>
             </div>
           </div>
         </div>
 
-        {/* Summary Cards */}
-        <div className="grid grid-cols-2 md:grid-cols-5 gap-4 mb-8">
-          <div className="bg-card rounded-xl p-4 border border-border/50">
-            <p className="text-sm text-muted-foreground">Total de Registros</p>
-            <p className="text-3xl font-bold mt-1">{summary.total}</p>
-          </div>
-          <div className="bg-card rounded-xl p-4 border border-border/50">
-            <p className="text-sm text-muted-foreground">Presentes</p>
-            <p className="text-3xl font-bold mt-1 text-success">{summary.present}</p>
-          </div>
-          <div className="bg-card rounded-xl p-4 border border-border/50">
-            <p className="text-sm text-muted-foreground">Atrasados</p>
-            <p className="text-3xl font-bold mt-1 text-warning">{summary.late}</p>
-          </div>
-          <div className="bg-card rounded-xl p-4 border border-border/50">
-            <p className="text-sm text-muted-foreground">Ausentes</p>
-            <p className="text-3xl font-bold mt-1 text-destructive">{summary.absent}</p>
-          </div>
-          <div className="bg-card rounded-xl p-4 border border-border/50">
-            <p className="text-sm text-muted-foreground">Taxa de Presença</p>
-            <p className="text-3xl font-bold mt-1 text-primary">{attendanceRate}%</p>
-          </div>
-        </div>
-
-        {/* Table */}
+        {/* Report Preview */}
         {isLoading ? (
           <div className="flex items-center justify-center py-12">
             <Loader2 className="w-8 h-8 animate-spin text-primary" />
           </div>
         ) : (
-          <div className="bg-card rounded-xl border border-border/50 overflow-hidden">
-            <Table>
-              <TableHeader>
-                <TableRow className="border-border/50 hover:bg-transparent">
-                  <TableHead className="text-muted-foreground">Data</TableHead>
-                  <TableHead className="text-muted-foreground">Funcionário</TableHead>
-                  <TableHead className="text-muted-foreground">Função</TableHead>
-                  <TableHead className="text-muted-foreground">Status</TableHead>
-                </TableRow>
-              </TableHeader>
-              <TableBody>
-                {filteredRecords.map((record, index) => {
-                  const config = statusConfig[record.status];
-                  const Icon = config.icon;
-                  const employee = record.employees;
-
-                  return (
-                    <TableRow
-                      key={record.id}
-                      className="border-border/50 animate-fade-in"
-                      style={{ animationDelay: `${index * 0.02}s` }}
-                    >
-                      <TableCell className="font-medium">
-                        <div className="flex items-center gap-2">
-                          <Calendar className="w-4 h-4 text-muted-foreground" />
-                          {new Date(record.date).toLocaleDateString("pt-BR")}
-                        </div>
-                      </TableCell>
-                      <TableCell>
-                        <div className="flex items-center gap-3">
-                          <div className="w-8 h-8 rounded-full bg-secondary flex items-center justify-center font-semibold text-xs">
-                            {employee?.avatar || "??"}
-                          </div>
-                          <span>{employee?.name || "Desconhecido"}</span>
-                        </div>
-                      </TableCell>
-                      <TableCell className="text-muted-foreground">
-                        {employee?.role || "-"}
-                      </TableCell>
-                      <TableCell>
-                        <span
-                          className={`inline-flex items-center gap-1.5 px-2.5 py-1 rounded-full text-xs font-medium ${config.class}`}
-                        >
-                          <Icon className="w-3 h-3" />
-                          {config.label}
-                        </span>
-                      </TableCell>
-                    </TableRow>
-                  );
-                })}
-              </TableBody>
-            </Table>
-
-            {filteredRecords.length === 0 && (
-              <div className="text-center py-12">
-                <p className="text-muted-foreground">Nenhum registro encontrado</p>
-              </div>
-            )}
+          <div className="bg-card rounded-xl border border-border/50 p-6">
+            <h2 className="font-semibold mb-4 text-lg">
+              Pré-visualização do Relatório
+            </h2>
+            <Textarea
+              value={generateReport}
+              readOnly
+              className="min-h-[600px] font-mono text-sm whitespace-pre-wrap bg-muted/30"
+            />
           </div>
         )}
       </div>
