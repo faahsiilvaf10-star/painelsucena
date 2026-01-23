@@ -11,19 +11,23 @@ import { ScrollArea } from "@/components/ui/scroll-area";
 import { Badge } from "@/components/ui/badge";
 import {
   useNotifications,
-  useUnreadCount,
   useMarkAsRead,
   useMarkAllAsRead,
   useDeleteNotification,
 } from "@/hooks/useNotifications";
 import { cn } from "@/lib/utils";
+import { useMemo } from "react";
 
 export function NotificationBell() {
   const { data: notifications, isLoading } = useNotifications();
-  const unreadCount = useUnreadCount();
   const markAsRead = useMarkAsRead();
   const markAllAsRead = useMarkAllAsRead();
   const deleteNotification = useDeleteNotification();
+
+  // Calculate unread count directly from notifications
+  const unreadCount = useMemo(() => {
+    return notifications?.filter((n) => !n.read).length || 0;
+  }, [notifications]);
 
   const getTypeIcon = (type: string) => {
     switch (type) {

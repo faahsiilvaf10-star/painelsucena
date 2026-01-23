@@ -1,7 +1,7 @@
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import { supabase } from "@/integrations/supabase/client";
 import { useAuth } from "./useAuth";
-import { useEffect, useRef } from "react";
+import { useEffect, useCallback } from "react";
 
 export interface Notification {
   id: string;
@@ -32,7 +32,6 @@ const playNotificationSound = () => {
 export const useNotifications = () => {
   const { user } = useAuth();
   const queryClient = useQueryClient();
-  const previousCountRef = useRef<number>(0);
 
   const query = useQuery({
     queryKey: ["notifications", user?.id],
