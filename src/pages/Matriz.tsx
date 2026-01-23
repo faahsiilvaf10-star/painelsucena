@@ -123,14 +123,6 @@ const cargoFolders: CargoFolder[] = [
       { id: "ts2-6", nome: "Observação de Tarefa" },
     ],
   },
-  {
-    id: "tecnico-meio-ambiente",
-    cargo: "Técnico Meio Ambiente",
-    color: "text-emerald-500",
-    bgGradient: "from-emerald-500 to-emerald-600",
-    icon: <Leaf className="w-6 h-6 text-white" />,
-    tarefas: [],
-  },
 ];
 
 const Matriz = () => {
