@@ -2,18 +2,18 @@ import { Users, ClipboardCheck, AlertCircle, TrendingUp, ClipboardList, Grid3X3 
 import Layout from "@/components/layout/Layout";
 import StatCard from "@/components/dashboard/StatCard";
 import QuickAccessCard from "@/components/dashboard/QuickAccessCard";
-import { DDSNotificationBanner } from "@/components/dds/DDSNotificationBanner";
+import { DDSHighlightCard } from "@/components/dds/DDSHighlightCard";
 import { employees, attendanceRecords } from "@/data/mockData";
+
 const Dashboard = () => {
   const presentToday = attendanceRecords.filter(a => a.status === "present" || a.status === "late").length;
   const absentToday = attendanceRecords.filter(a => a.status === "absent").length;
-  return <Layout>
+  
+  return (
+    <Layout>
       <div className="container mx-auto px-6 py-8">
-        {/* DDS Notification Banner */}
-        <DDSNotificationBanner />
-
         {/* Hero Section */}
-        <div className="mb-12 animate-fade-in">
+        <div className="mb-8 animate-fade-in">
           <h1 className="text-4xl md:text-5xl font-bold mb-4">
             Bem-vindo ao <span className="text-gradient">Painel Sucena</span>
           </h1>
@@ -21,6 +21,9 @@ const Dashboard = () => {
             Gerencie sua equipe, controle presença e organize responsabilidades em um só lugar.
           </p>
         </div>
+
+        {/* DDS Highlight Cards - Today and Tomorrow */}
+        <DDSHighlightCard />
 
         {/* Stats Grid */}
         <div className="grid grid-cols-1 md:grid-cols-3 gap-6 mb-12">
@@ -67,13 +70,12 @@ const Dashboard = () => {
         </div>
 
         {/* Recent Activity */}
-        <div className="animate-slide-up" style={{
-        animationDelay: "0.8s"
-      }}>
+        <div className="animate-slide-up" style={{ animationDelay: "0.8s" }}>
           <h2 className="text-2xl font-bold mb-6">Atividade Recente</h2>
-          
         </div>
       </div>
-    </Layout>;
+    </Layout>
+  );
 };
+
 export default Dashboard;

@@ -9,6 +9,7 @@ export interface DDSScheduleItem {
   scheduled_date: string;
   presenter_user_id: string;
   theme: string;
+  photo_url: string | null;
   created_by: string;
   created_at: string;
   updated_at: string;
@@ -59,9 +60,40 @@ export const useDDSSchedule = (monthYear: string) => {
   });
 };
 
+export const useTodayDDS = () => {
+  const today = format(new Date(), "yyyy-MM-dd");
+
+  return useQuery({
+    queryKey: ["dds-today", today],
+    queryFn: async () => {
+      const { data, error } = await supabase
+        .from("dds_schedule")
+        .select("*")
+        .eq("scheduled_date", today)
+        .maybeSingle();
+
+      if (error) throw error;
+
+      if (data) {
+        const { data: profile } = await supabase
+          .from("profiles")
+          .select("user_id, full_name, avatar_url, cargo")
+          .eq("user_id", data.presenter_user_id)
+          .maybeSingle();
+
+        return {
+          ...data,
+          presenter: profile || undefined,
+        } as DDSScheduleItem;
+      }
+
+      return null;
+    },
+  });
+};
+
 export const useTomorrowDDS = () => {
   const tomorrow = format(addDays(new Date(), 1), "yyyy-MM-dd");
-  const monthYear = format(addDays(new Date(), 1), "yyyy-MM");
 
   return useQuery({
     queryKey: ["dds-tomorrow", tomorrow],
@@ -88,6 +120,29 @@ export const useTomorrowDDS = () => {
       }
 
       return null;
+    },
+  });
+};
+
+export const useUpdateDDSPhoto = () => {
+  const queryClient = useQueryClient();
+
+  return useMutation({
+    mutationFn: async ({ id, photo_url }: { id: string; photo_url: string }) => {
+      const { data, error } = await supabase
+        .from("dds_schedule")
+        .update({ photo_url })
+        .eq("id", id)
+        .select()
+        .single();
+
+      if (error) throw error;
+      return data;
+    },
+    onSuccess: (data) => {
+      queryClient.invalidateQueries({ queryKey: ["dds-schedule", data.month_year] });
+      queryClient.invalidateQueries({ queryKey: ["dds-today"] });
+      queryClient.invalidateQueries({ queryKey: ["dds-tomorrow"] });
     },
   });
 };

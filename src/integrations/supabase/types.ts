@@ -85,6 +85,7 @@ export type Database = {
           created_by: string
           id: string
           month_year: string
+          photo_url: string | null
           presenter_user_id: string
           scheduled_date: string
           theme: string
@@ -95,6 +96,7 @@ export type Database = {
           created_by: string
           id?: string
           month_year: string
+          photo_url?: string | null
           presenter_user_id: string
           scheduled_date: string
           theme: string
@@ -105,6 +107,7 @@ export type Database = {
           created_by?: string
           id?: string
           month_year?: string
+          photo_url?: string | null
           presenter_user_id?: string
           scheduled_date?: string
           theme?: string
