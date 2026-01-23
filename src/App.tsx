@@ -4,6 +4,7 @@ import { TooltipProvider } from "@/components/ui/tooltip";
 import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
 import { BrowserRouter, Routes, Route } from "react-router-dom";
 import { ThemeProvider } from "@/components/ThemeProvider";
+import ProtectedRoute from "@/components/ProtectedRoute";
 import Index from "./pages/Index";
 import RH from "./pages/RH";
 import Presenca from "./pages/Presenca";
@@ -22,12 +23,12 @@ const App = () => (
         <Sonner />
         <BrowserRouter>
           <Routes>
-            <Route path="/" element={<Index />} />
             <Route path="/auth" element={<Auth />} />
-            <Route path="/rh" element={<RH />} />
-            <Route path="/presenca" element={<Presenca />} />
-            <Route path="/relatorio-presenca" element={<RelatorioPresenca />} />
-            <Route path="/matriz" element={<Matriz />} />
+            <Route path="/" element={<ProtectedRoute><Index /></ProtectedRoute>} />
+            <Route path="/rh" element={<ProtectedRoute><RH /></ProtectedRoute>} />
+            <Route path="/presenca" element={<ProtectedRoute><Presenca /></ProtectedRoute>} />
+            <Route path="/relatorio-presenca" element={<ProtectedRoute><RelatorioPresenca /></ProtectedRoute>} />
+            <Route path="/matriz" element={<ProtectedRoute><Matriz /></ProtectedRoute>} />
             {/* ADD ALL CUSTOM ROUTES ABOVE THE CATCH-ALL "*" ROUTE */}
             <Route path="*" element={<NotFound />} />
           </Routes>
