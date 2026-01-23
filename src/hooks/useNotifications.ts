@@ -1,8 +1,7 @@
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import { supabase } from "@/integrations/supabase/client";
 import { useAuth } from "./useAuth";
-import { useEffect, useCallback, useRef } from "react";
-import { NOTIFICATION_SOUNDS } from "./useUserPreferences";
+import { useEffect } from "react";
 
 export interface Notification {
   id: string;
@@ -16,26 +15,14 @@ export interface Notification {
   created_at: string;
 }
 
-// Play notification sound based on user preferences
-const playNotificationSound = async (userId: string) => {
+// Play default notification sound
+const playNotificationSound = () => {
   try {
-    // Fetch user's sound preference
-    const { data } = await supabase
-      .from("user_preferences")
-      .select("notification_sound")
-      .eq("user_id", userId)
-      .maybeSingle();
-
-    const soundId = data?.notification_sound || "default";
-    const sound = NOTIFICATION_SOUNDS.find((s) => s.id === soundId);
-
-    if (sound?.file) {
-      const audio = new Audio(sound.file);
-      audio.volume = 0.5;
-      audio.play().catch((e) => {
-        console.log("Audio play failed:", e.message);
-      });
-    }
+    const audio = new Audio("/sounds/notification.mp3");
+    audio.volume = 0.5;
+    audio.play().catch((e) => {
+      console.log("Audio play failed:", e.message);
+    });
   } catch (error) {
     console.error("Error playing notification sound:", error);
   }
@@ -109,7 +96,7 @@ export const useNotifications = () => {
         },
         (payload) => {
           // Play sound on new notification with user preferences
-          playNotificationSound(user.id);
+          playNotificationSound();
           
           // Show browser notification if page is in background
           showBrowserNotification(payload.new as Notification);
