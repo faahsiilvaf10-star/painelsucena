@@ -47,8 +47,8 @@ const Presenca = () => {
   ) || [];
 
   const stats = {
-    present: attendanceRecords?.filter((r) => r.status === "present").length || 0,
-    absent: attendanceRecords?.filter((r) => r.status === "absent").length || 0,
+    present: attendanceRecords?.filter((r) => r.status === "present" || r.status === "late").length || 0,
+    absent: attendanceRecords?.filter((r) => r.status === "absent" || r.status === "justified").length || 0,
   };
 
   const handleStatusChange = async (recordId: string, newStatus: AttendanceStatus) => {
@@ -158,7 +158,11 @@ const Presenca = () => {
             </TableHeader>
             <TableBody>
               {filteredRecords.map((record, index) => {
-                const config = statusConfig[record.status];
+                // Normalize status: treat late as present, justified as absent
+                const normalizedStatus = record.status === "present" || record.status === "late" 
+                  ? "present" 
+                  : "absent";
+                const config = statusConfig[normalizedStatus];
                 const employee = record.employees;
 
                 return (
@@ -185,7 +189,7 @@ const Presenca = () => {
                     </TableCell>
                     <TableCell>
                       <Select
-                        value={record.status}
+                        value={normalizedStatus}
                         onValueChange={(value: AttendanceStatus) => handleStatusChange(record.id, value)}
                       >
                         <SelectTrigger className={`w-[140px] h-8 ${config.class} border-0`}>
