@@ -1,6 +1,8 @@
 import { ReactNode } from "react";
-import Header from "./Header";
+import { AppSidebar } from "./AppSidebar";
+import { SidebarProvider, SidebarInset, SidebarTrigger } from "@/components/ui/sidebar";
 import ForbiddenColorIndicator from "@/components/ForbiddenColorIndicator";
+import { Menu } from "lucide-react";
 
 interface LayoutProps {
   children: ReactNode;
@@ -8,11 +10,24 @@ interface LayoutProps {
 
 const Layout = ({ children }: LayoutProps) => {
   return (
-    <div className="min-h-screen bg-background">
-      <Header />
-      <main className="pt-20">{children}</main>
-      <ForbiddenColorIndicator />
-    </div>
+    <SidebarProvider defaultOpen={true}>
+      <div className="min-h-screen flex w-full">
+        <AppSidebar />
+        <SidebarInset>
+          {/* Mobile header with trigger */}
+          <header className="flex h-14 items-center gap-4 border-b bg-background px-4 md:hidden">
+            <SidebarTrigger>
+              <Menu className="h-5 w-5" />
+            </SidebarTrigger>
+            <span className="font-semibold">Painel Sucena</span>
+          </header>
+          <main className="flex-1">
+            {children}
+          </main>
+          <ForbiddenColorIndicator />
+        </SidebarInset>
+      </div>
+    </SidebarProvider>
   );
 };
 
