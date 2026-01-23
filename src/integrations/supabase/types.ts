@@ -61,39 +61,48 @@ export type Database = {
           created_at: string
           department: string
           email: string | null
+          exam_scheduled: string | null
           id: string
           name: string
+          nrs: string[] | null
           phone: string | null
           role: string
           start_date: string
           status: Database["public"]["Enums"]["employee_status"]
           updated_at: string
+          vacation_due_date: string | null
         }
         Insert: {
           avatar: string
           created_at?: string
           department: string
           email?: string | null
+          exam_scheduled?: string | null
           id?: string
           name: string
+          nrs?: string[] | null
           phone?: string | null
           role: string
           start_date?: string
           status?: Database["public"]["Enums"]["employee_status"]
           updated_at?: string
+          vacation_due_date?: string | null
         }
         Update: {
           avatar?: string
           created_at?: string
           department?: string
           email?: string | null
+          exam_scheduled?: string | null
           id?: string
           name?: string
+          nrs?: string[] | null
           phone?: string | null
           role?: string
           start_date?: string
           status?: Database["public"]["Enums"]["employee_status"]
           updated_at?: string
+          vacation_due_date?: string | null
         }
         Relationships: []
       }
