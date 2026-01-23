@@ -596,36 +596,94 @@ const RelatorioPresenca = () => {
               </Tabs>
             </div>
 
-            {/* Report Preview */}
-            <div className="bg-card rounded-xl border border-border/50 p-6 h-fit sticky top-6">
-              <h2 className="font-semibold mb-4 text-lg">
-                📋 Pré-visualização do Relatório
-                {selectedArea !== "all" && (
-                  <span className="text-sm font-normal text-muted-foreground ml-2">
-                    ({selectedArea === "ÁREA GABIÃO" ? "Área Gabião" : "Roçagem e Podagem"})
-                  </span>
-                )}
-              </h2>
-              <Textarea
-                value={generateReport}
-                readOnly
-                className="min-h-[500px] font-mono text-sm whitespace-pre-wrap bg-muted/30"
-              />
-              <div className="flex gap-2 mt-4">
+            {/* Report Preview - Separated by Area */}
+            <div className="space-y-6">
+              {/* Área Gabião Report */}
+              <div className="bg-card rounded-xl border border-border/50 p-6">
+                <h2 className="font-semibold mb-4 text-lg">
+                  ✳ Relatório Área Gabião
+                </h2>
+                <Textarea
+                  value={generateAreaReport("ÁREA GABIÃO")}
+                  readOnly
+                  className="min-h-[300px] font-mono text-sm whitespace-pre-wrap bg-muted/30"
+                />
+                <div className="flex gap-2 mt-4">
+                  <Button
+                    onClick={async () => {
+                      await navigator.clipboard.writeText(generateAreaReport("ÁREA GABIÃO"));
+                      toast.success("Relatório Gabião copiado!");
+                    }}
+                    variant="outline"
+                    className="flex-1 gap-2"
+                  >
+                    <Copy className="w-4 h-4" />
+                    Copiar Gabião
+                  </Button>
+                  <Button
+                    onClick={() => {
+                      const encoded = encodeURIComponent(generateAreaReport("ÁREA GABIÃO"));
+                      window.open(`https://wa.me/?text=${encoded}`, "_blank");
+                    }}
+                    className="flex-1 gap-2 bg-green-600 hover:bg-green-700"
+                  >
+                    <Send className="w-4 h-4" />
+                    WhatsApp
+                  </Button>
+                </div>
+              </div>
+
+              {/* Roçagem e Podagem Report */}
+              <div className="bg-card rounded-xl border border-border/50 p-6">
+                <h2 className="font-semibold mb-4 text-lg">
+                  🌿 Relatório Roçagem e Podagem
+                </h2>
+                <Textarea
+                  value={generateAreaReport("ROÇAGEM E PODAGEM")}
+                  readOnly
+                  className="min-h-[300px] font-mono text-sm whitespace-pre-wrap bg-muted/30"
+                />
+                <div className="flex gap-2 mt-4">
+                  <Button
+                    onClick={async () => {
+                      await navigator.clipboard.writeText(generateAreaReport("ROÇAGEM E PODAGEM"));
+                      toast.success("Relatório Roçagem copiado!");
+                    }}
+                    variant="outline"
+                    className="flex-1 gap-2"
+                  >
+                    <Copy className="w-4 h-4" />
+                    Copiar Roçagem
+                  </Button>
+                  <Button
+                    onClick={() => {
+                      const encoded = encodeURIComponent(generateAreaReport("ROÇAGEM E PODAGEM"));
+                      window.open(`https://wa.me/?text=${encoded}`, "_blank");
+                    }}
+                    className="flex-1 gap-2 bg-green-600 hover:bg-green-700"
+                  >
+                    <Send className="w-4 h-4" />
+                    WhatsApp
+                  </Button>
+                </div>
+              </div>
+
+              {/* Copiar Tudo */}
+              <div className="flex gap-2">
                 <Button
                   onClick={handleCopy}
                   variant="outline"
                   className="flex-1 gap-2"
                 >
                   {copied ? <Check className="w-4 h-4" /> : <Copy className="w-4 h-4" />}
-                  {copied ? "Copiado!" : "Copiar"}
+                  {copied ? "Copiado!" : "Copiar Tudo"}
                 </Button>
                 <Button
                   onClick={handleWhatsApp}
                   className="flex-1 gap-2 bg-green-600 hover:bg-green-700"
                 >
                   <Send className="w-4 h-4" />
-                  WhatsApp
+                  Enviar Tudo WhatsApp
                 </Button>
               </div>
             </div>
