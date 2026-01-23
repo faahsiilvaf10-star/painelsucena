@@ -22,6 +22,7 @@ import { Label } from "@/components/ui/label";
 import { useEmployees, useCreateEmployee, useUpdateEmployee, useDeleteEmployee } from "@/hooks/useEmployees";
 import { useProfile } from "@/hooks/useProfile";
 import { useAuth } from "@/hooks/useAuth";
+import { useIsAdmin } from "@/hooks/useUserRole";
 import { toast } from "sonner";
 import { format, differenceInMonths, addMonths } from "date-fns";
 import { ptBR } from "date-fns/locale";
@@ -62,15 +63,16 @@ const RH = () => {
   const { data: employees = [], isLoading } = useEmployees();
   const { data: profile, isLoading: profileLoading } = useProfile();
   const { user, loading: authLoading } = useAuth();
+  const { isAdmin, isLoading: adminLoading } = useIsAdmin();
   const createEmployee = useCreateEmployee();
   const updateEmployee = useUpdateEmployee();
   const deleteEmployee = useDeleteEmployee();
 
-  // Check if user has access (preposto or aux_administrativo)
-  const hasAccess = profile?.cargo === "preposto" || profile?.cargo === "aux_administrativo";
+  // Check if user has access (preposto, aux_administrativo, or admin)
+  const hasAccess = isAdmin || profile?.cargo === "preposto" || profile?.cargo === "aux_administrativo";
 
   // If still loading, show loading state
-  if (authLoading || profileLoading) {
+  if (authLoading || profileLoading || adminLoading) {
     return (
       <Layout>
         <div className="container mx-auto px-6 py-8">
