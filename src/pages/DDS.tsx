@@ -15,6 +15,7 @@ import { AlertDialog, AlertDialogAction, AlertDialogCancel, AlertDialogContent, 
 import { toast } from "sonner";
 import { useAuth } from "@/hooks/useAuth";
 import { useProfile } from "@/hooks/useProfile";
+import { useIsAdmin } from "@/hooks/useUserRole";
 import {
   useDDSSchedule,
   useCreateDDSSchedule,
@@ -31,6 +32,7 @@ const dayNames = ["Dom", "Seg", "Ter", "Qua", "Qui", "Sex", "Sáb"];
 export default function DDS() {
   const { user } = useAuth();
   const { data: profile, isLoading: profileLoading } = useProfile();
+  const { isAdmin, isLoading: adminLoading } = useIsAdmin();
   const { data: allProfiles } = useAllProfiles();
 
   // Current month state
@@ -49,11 +51,11 @@ export default function DDS() {
   const [editPresenter, setEditPresenter] = useState("");
   const [editTheme, setEditTheme] = useState("");
 
-  // Check if user can edit (tecnico_seguranca and weekday)
+  // Check if user can edit (tecnico_seguranca and weekday, OR admin)
   const today = new Date();
   const isWeekday = !isWeekend(today);
   const isTecnicoSeguranca = profile?.cargo === "tecnico_seguranca_i" || profile?.cargo === "tecnico_seguranca_ii";
-  const canEdit = isTecnicoSeguranca && isWeekday;
+  const canEdit = isAdmin || (isTecnicoSeguranca && isWeekday);
 
   // Schedule map for quick lookup
   const scheduleMap = useMemo(() => {
@@ -162,7 +164,7 @@ export default function DDS() {
     }
   };
 
-  if (profileLoading) {
+  if (profileLoading || adminLoading) {
     return (
       <Layout>
         <div className="container mx-auto px-6 py-8">
