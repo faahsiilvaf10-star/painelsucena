@@ -1,4 +1,4 @@
-import { useState, useEffect } from "react";
+import { useState, useEffect, Suspense } from "react";
 import { useNavigate } from "react-router-dom";
 import { supabase } from "@/integrations/supabase/client";
 import { Button } from "@/components/ui/button";
@@ -9,6 +9,7 @@ import { useToast } from "@/hooks/use-toast";
 import { Eye, EyeOff, Loader2 } from "lucide-react";
 import { z } from "zod";
 import logoSucena from "@/assets/logo-sucena.png";
+import { EngineeringBackground3D } from "@/components/auth/EngineeringBackground3D";
 
 const bibleVerses = [
   "Porque Deus amou o mundo de tal maneira que deu o seu Filho unigênito. - João 3:16",
@@ -184,39 +185,30 @@ const Auth = () => {
 
   return (
     <div className="min-h-screen bg-black relative overflow-hidden">
-      {/* Animated neon lights */}
-      <div className="absolute inset-0 overflow-hidden pointer-events-none">
-        <div className="absolute w-[500px] h-[500px] bg-primary/20 rounded-full blur-[120px] animate-neon-float-1 -top-20 -left-20" />
-        <div className="absolute w-[400px] h-[400px] bg-red-600/15 rounded-full blur-[100px] animate-neon-float-2 top-1/2 -right-32" />
-        <div className="absolute w-[300px] h-[300px] bg-primary/25 rounded-full blur-[80px] animate-neon-float-3 bottom-0 left-1/3" />
-        <div className="absolute w-[200px] h-[200px] bg-red-500/20 rounded-full blur-[60px] animate-neon-pulse top-1/4 right-1/4" />
-      </div>
+      {/* 3D Engineering/Landscaping Background */}
+      <Suspense fallback={null}>
+        <EngineeringBackground3D />
+      </Suspense>
 
-      {/* Background gradient */}
-      <div className="absolute inset-0 bg-gradient-to-b from-black/60 via-black/80 to-black" />
-      
-      {/* Netflix-style background pattern */}
-      <div className="absolute inset-0 opacity-10">
-        <div className="absolute top-0 left-0 w-full h-full bg-[radial-gradient(ellipse_at_center,_var(--tw-gradient-stops))] from-primary/20 via-transparent to-transparent" />
-      </div>
+      {/* Background gradient overlay */}
+      <div className="absolute inset-0 bg-gradient-to-b from-black/40 via-black/60 to-black/90 z-[1]" />
 
       {/* Header */}
       <header className="relative z-10 p-6 flex flex-col items-center">
         <img 
           src={logoSucena} 
           alt="Logo Sucena" 
-          className="h-16 md:h-20 mb-4 transition-all duration-500 ease-out hover:scale-110 hover:drop-shadow-[0_0_25px_hsl(0,85%,50%)] hover:brightness-110 cursor-pointer" 
+          className="h-16 md:h-20 mb-4 transition-all duration-500 ease-out hover:scale-110 hover:drop-shadow-[0_0_25px_hsl(43,96%,56%)] hover:brightness-110 cursor-pointer" 
         />
-        <h1 className="text-2xl md:text-3xl font-bold text-primary tracking-tight text-center">CONTROLE OPERACIONAL</h1>
-        <p className="text-gray-400 text-sm md:text-base mt-2 text-center max-w-md">
+        <h1 className="text-2xl md:text-3xl font-bold text-primary tracking-tight text-center drop-shadow-lg">CONTROLE OPERACIONAL</h1>
+        <p className="text-gray-300 text-sm md:text-base mt-2 text-center max-w-md drop-shadow-md">
           Sistema de controle operacional para gestão eficiente de empresas
         </p>
       </header>
-
       {/* Main content */}
       <main className="relative z-10 flex items-center justify-center px-4 py-8">
         <div className="w-full max-w-md">
-          <div className="bg-black/75 backdrop-blur-sm rounded-lg p-8 md:p-12 shadow-2xl border border-white/10">
+          <div className="bg-black/80 backdrop-blur-md rounded-lg p-8 md:p-12 shadow-2xl border border-primary/20">
             <h2 className="text-3xl font-bold text-white mb-8">
               {isLogin ? "Entrar" : "Cadastrar"}
             </h2>
