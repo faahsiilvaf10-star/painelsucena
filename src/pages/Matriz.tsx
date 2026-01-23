@@ -1,7 +1,6 @@
 import { useState } from "react";
-import { Plus, HelpCircle } from "lucide-react";
+import { HelpCircle, FolderOpen, ChevronDown, ChevronRight, CheckCircle2 } from "lucide-react";
 import Layout from "@/components/layout/Layout";
-import { raciMatrix, employees } from "@/data/mockData";
 import { Button } from "@/components/ui/button";
 import {
   Tooltip,
@@ -9,32 +8,113 @@ import {
   TooltipTrigger,
 } from "@/components/ui/tooltip";
 import {
-  Dialog,
-  DialogContent,
-  DialogDescription,
-  DialogHeader,
-  DialogTitle,
-  DialogTrigger,
-} from "@/components/ui/dialog";
-import { Label } from "@/components/ui/label";
-import { Input } from "@/components/ui/input";
-import {
-  Select,
-  SelectContent,
-  SelectItem,
-  SelectTrigger,
-  SelectValue,
-} from "@/components/ui/select";
+  Collapsible,
+  CollapsibleContent,
+  CollapsibleTrigger,
+} from "@/components/ui/collapsible";
+import { Badge } from "@/components/ui/badge";
 
-const raciLabels = {
-  R: { label: "Responsible", description: "Responsável pela execução", class: "bg-primary text-primary-foreground" },
-  A: { label: "Accountable", description: "Autoridade final / Prestador de contas", class: "bg-warning text-background" },
-  C: { label: "Consulted", description: "Deve ser consultado", class: "bg-info text-background" },
-  I: { label: "Informed", description: "Deve ser informado", class: "bg-success text-background" },
-};
+interface CargoTarefa {
+  id: string;
+  nome: string;
+}
+
+interface CargoFolder {
+  id: string;
+  cargo: string;
+  tarefas: CargoTarefa[];
+  color: string;
+}
+
+const cargoFolders: CargoFolder[] = [
+  {
+    id: "preposto",
+    cargo: "Preposto",
+    color: "bg-primary",
+    tarefas: [
+      { id: "p1", nome: "DDS de Liderança" },
+      { id: "p2", nome: "WOC - Caminhar, Observar e Conversar" },
+      { id: "p3", nome: "Observação de Tarefas" },
+      { id: "p4", nome: "Inspeção em HSE" },
+      { id: "p5", nome: "Roda de Conversa" },
+    ],
+  },
+  {
+    id: "encarregado-geral",
+    cargo: "Encarregado Geral",
+    color: "bg-warning",
+    tarefas: [
+      { id: "eg1", nome: "Evento sem Lesão / Condição de Risco" },
+      { id: "eg2", nome: "Observação de Tarefa" },
+      { id: "eg3", nome: "Inspeção de HSE" },
+    ],
+  },
+  {
+    id: "encarregado-i",
+    cargo: "Encarregado I",
+    color: "bg-info",
+    tarefas: [
+      { id: "e1-1", nome: "Evento sem Lesão / Condição de Risco" },
+      { id: "e1-2", nome: "Observação de Tarefa" },
+      { id: "e1-3", nome: "Inspeção de HSE" },
+    ],
+  },
+  {
+    id: "encarregado-ii",
+    cargo: "Encarregado II",
+    color: "bg-success",
+    tarefas: [
+      { id: "e2-1", nome: "Evento sem Lesão / Condição de Risco" },
+      { id: "e2-2", nome: "Observação de Tarefa" },
+      { id: "e2-3", nome: "Inspeção de HSE" },
+    ],
+  },
+  {
+    id: "tecnico-seguranca-i",
+    cargo: "Técnico de Segurança I",
+    color: "bg-destructive",
+    tarefas: [
+      { id: "ts1-1", nome: "DDS da Liderança" },
+      { id: "ts1-2", nome: "WOC - Caminhar, Observar e Conversar" },
+      { id: "ts1-3", nome: "Inspeção de HSE" },
+      { id: "ts1-4", nome: "Evento sem Lesão / Condição de Risco (ALTO RISCO)" },
+      { id: "ts1-5", nome: "Coach em HSE" },
+      { id: "ts1-6", nome: "Observação de Tarefa" },
+    ],
+  },
+  {
+    id: "tecnico-seguranca-ii",
+    cargo: "Técnico de Segurança II",
+    color: "bg-orange-500",
+    tarefas: [
+      { id: "ts2-1", nome: "DDS da Liderança" },
+      { id: "ts2-2", nome: "WOC - Caminhar, Observar e Conversar" },
+      { id: "ts2-3", nome: "Inspeção de HSE" },
+      { id: "ts2-4", nome: "Evento sem Lesão / Condição de Risco (ALTO RISCO)" },
+      { id: "ts2-5", nome: "Coach em HSE" },
+      { id: "ts2-6", nome: "Observação de Tarefa" },
+    ],
+  },
+  {
+    id: "tecnico-meio-ambiente",
+    cargo: "Técnico Meio Ambiente",
+    color: "bg-emerald-600",
+    tarefas: [],
+  },
+];
 
 const Matriz = () => {
-  const [selectedTask, setSelectedTask] = useState<string | null>(null);
+  const [openFolders, setOpenFolders] = useState<string[]>([]);
+
+  const toggleFolder = (folderId: string) => {
+    setOpenFolders((prev) =>
+      prev.includes(folderId)
+        ? prev.filter((id) => id !== folderId)
+        : [...prev, folderId]
+    );
+  };
+
+  const isOpen = (folderId: string) => openFolders.includes(folderId);
 
   return (
     <Layout>
@@ -44,7 +124,7 @@ const Matriz = () => {
           <div>
             <h1 className="text-4xl font-bold mb-2">Matriz de Responsabilidade</h1>
             <p className="text-muted-foreground">
-              Defina responsabilidades claras para cada tarefa
+              Tarefas organizadas por cargo
             </p>
           </div>
 
@@ -56,195 +136,96 @@ const Matriz = () => {
                 </Button>
               </TooltipTrigger>
               <TooltipContent side="left" className="max-w-xs p-4">
-                <p className="font-bold mb-2">O que é RACI?</p>
-                <ul className="space-y-1 text-sm">
-                  <li><span className="font-semibold text-primary">R</span> - Responsible: Quem executa</li>
-                  <li><span className="font-semibold text-warning">A</span> - Accountable: Quem aprova</li>
-                  <li><span className="font-semibold text-info">C</span> - Consulted: Quem é consultado</li>
-                  <li><span className="font-semibold text-success">I</span> - Informed: Quem é informado</li>
-                </ul>
+                <p className="font-bold mb-2">Como funciona?</p>
+                <p className="text-sm text-muted-foreground">
+                  Clique em uma pasta para expandir e ver todas as tarefas atribuídas a cada cargo.
+                </p>
               </TooltipContent>
             </Tooltip>
-
-            <Dialog>
-              <DialogTrigger asChild>
-                <Button className="gap-2">
-                  <Plus className="w-4 h-4" />
-                  Nova Tarefa
-                </Button>
-              </DialogTrigger>
-              <DialogContent className="bg-card">
-                <DialogHeader>
-                  <DialogTitle>Adicionar Tarefa</DialogTitle>
-                  <DialogDescription>
-                    Defina uma nova tarefa e suas responsabilidades
-                  </DialogDescription>
-                </DialogHeader>
-                <div className="grid gap-4 py-4">
-                  <div className="grid gap-2">
-                    <Label htmlFor="task">Nome da Tarefa</Label>
-                    <Input id="task" placeholder="Ex: Revisão de Código" />
-                  </div>
-                  <div className="grid gap-2">
-                    <Label>Responsável (R)</Label>
-                    <Select>
-                      <SelectTrigger>
-                        <SelectValue placeholder="Selecione" />
-                      </SelectTrigger>
-                      <SelectContent>
-                        {employees.map((emp) => (
-                          <SelectItem key={emp.id} value={emp.id}>
-                            {emp.name}
-                          </SelectItem>
-                        ))}
-                      </SelectContent>
-                    </Select>
-                  </div>
-                  <div className="grid gap-2">
-                    <Label>Aprovador (A)</Label>
-                    <Select>
-                      <SelectTrigger>
-                        <SelectValue placeholder="Selecione" />
-                      </SelectTrigger>
-                      <SelectContent>
-                        {employees.map((emp) => (
-                          <SelectItem key={emp.id} value={emp.id}>
-                            {emp.name}
-                          </SelectItem>
-                        ))}
-                      </SelectContent>
-                    </Select>
-                  </div>
-                  <Button className="mt-4">Adicionar Tarefa</Button>
-                </div>
-              </DialogContent>
-            </Dialog>
           </div>
         </div>
 
-        {/* Legend */}
-        <div className="flex flex-wrap gap-4 mb-8 p-4 bg-card rounded-xl border border-border/50">
-          {Object.entries(raciLabels).map(([key, value]) => (
-            <div key={key} className="flex items-center gap-2">
-              <span className={`w-8 h-8 rounded-lg flex items-center justify-center font-bold text-sm ${value.class}`}>
-                {key}
-              </span>
-              <span className="text-sm text-muted-foreground">{value.description}</span>
+        {/* Summary Cards */}
+        <div className="grid grid-cols-2 md:grid-cols-4 lg:grid-cols-7 gap-4 mb-8">
+          {cargoFolders.map((folder) => (
+            <div
+              key={folder.id}
+              className="bg-card rounded-xl border border-border/50 p-4 text-center"
+            >
+              <div className={`w-10 h-10 rounded-lg ${folder.color} mx-auto mb-2 flex items-center justify-center`}>
+                <FolderOpen className="w-5 h-5 text-white" />
+              </div>
+              <p className="text-xs font-medium text-muted-foreground">{folder.cargo}</p>
+              <p className="text-lg font-bold">{folder.tarefas.length}</p>
+              <p className="text-xs text-muted-foreground">tarefas</p>
             </div>
           ))}
         </div>
 
-        {/* Matrix Table */}
-        <div className="bg-card rounded-xl border border-border/50 overflow-hidden">
-          <div className="overflow-x-auto">
-            <table className="w-full">
-              <thead>
-                <tr className="border-b border-border/50">
-                  <th className="text-left p-4 font-semibold text-muted-foreground min-w-[250px]">
-                    Tarefa / Atividade
-                  </th>
-                  {employees.map((emp) => (
-                    <th key={emp.id} className="p-4 text-center min-w-[100px]">
-                      <Tooltip>
-                        <TooltipTrigger>
-                          <div className="flex flex-col items-center gap-2">
-                            <div className="w-10 h-10 rounded-full bg-secondary flex items-center justify-center font-semibold text-sm">
-                              {emp.avatar}
-                            </div>
-                            <span className="text-xs text-muted-foreground font-normal">
-                              {emp.name.split(" ")[0]}
-                            </span>
-                          </div>
-                        </TooltipTrigger>
-                        <TooltipContent>
-                          <p className="font-semibold">{emp.name}</p>
-                          <p className="text-xs text-muted-foreground">{emp.role}</p>
-                        </TooltipContent>
-                      </Tooltip>
-                    </th>
-                  ))}
-                </tr>
-              </thead>
-              <tbody>
-                {raciMatrix.map((item, index) => (
-                  <tr
-                    key={item.id}
-                    className={`border-b border-border/50 hover:bg-secondary/30 transition-colors cursor-pointer animate-fade-in ${
-                      selectedTask === item.id ? "bg-secondary/50" : ""
-                    }`}
-                    style={{ animationDelay: `${index * 0.05}s` }}
-                    onClick={() => setSelectedTask(selectedTask === item.id ? null : item.id)}
-                  >
-                    <td className="p-4">
-                      <p className="font-medium">{item.task}</p>
-                    </td>
-                    {employees.map((emp) => {
-                      let role = null;
-                      if (item.responsible.includes(emp.name)) role = "R";
-                      else if (item.accountable === emp.name) role = "A";
-                      else if (item.consulted.includes(emp.name)) role = "C";
-                      else if (item.informed.includes(emp.name)) role = "I";
+        {/* Folders */}
+        <div className="space-y-4">
+          {cargoFolders.map((folder, index) => (
+            <Collapsible
+              key={folder.id}
+              open={isOpen(folder.id)}
+              onOpenChange={() => toggleFolder(folder.id)}
+            >
+              <div
+                className="bg-card rounded-xl border border-border/50 overflow-hidden animate-fade-in"
+                style={{ animationDelay: `${index * 0.05}s` }}
+              >
+                <CollapsibleTrigger asChild>
+                  <button className="w-full flex items-center justify-between p-5 hover:bg-secondary/30 transition-colors">
+                    <div className="flex items-center gap-4">
+                      <div className={`w-12 h-12 rounded-lg ${folder.color} flex items-center justify-center shadow-lg`}>
+                        <FolderOpen className="w-6 h-6 text-white" />
+                      </div>
+                      <div className="text-left">
+                        <h3 className="text-lg font-semibold">{folder.cargo}</h3>
+                        <p className="text-sm text-muted-foreground">
+                          {folder.tarefas.length} {folder.tarefas.length === 1 ? "tarefa" : "tarefas"} atribuídas
+                        </p>
+                      </div>
+                    </div>
+                    <div className="flex items-center gap-3">
+                      <Badge variant="secondary" className="text-xs">
+                        {folder.tarefas.length}
+                      </Badge>
+                      {isOpen(folder.id) ? (
+                        <ChevronDown className="w-5 h-5 text-muted-foreground transition-transform" />
+                      ) : (
+                        <ChevronRight className="w-5 h-5 text-muted-foreground transition-transform" />
+                      )}
+                    </div>
+                  </button>
+                </CollapsibleTrigger>
 
-                      return (
-                        <td key={emp.id} className="p-4 text-center">
-                          {role && (
-                            <Tooltip>
-                              <TooltipTrigger>
-                                <span
-                                  className={`inline-flex w-8 h-8 rounded-lg items-center justify-center font-bold text-sm ${
-                                    raciLabels[role as keyof typeof raciLabels].class
-                                  }`}
-                                >
-                                  {role}
-                                </span>
-                              </TooltipTrigger>
-                              <TooltipContent>
-                                {raciLabels[role as keyof typeof raciLabels].description}
-                              </TooltipContent>
-                            </Tooltip>
-                          )}
-                        </td>
-                      );
-                    })}
-                  </tr>
-                ))}
-              </tbody>
-            </table>
-          </div>
-        </div>
-
-        {/* Selected Task Details */}
-        {selectedTask && (
-          <div className="mt-6 p-6 bg-card rounded-xl border border-border/50 animate-slide-up">
-            {(() => {
-              const task = raciMatrix.find((t) => t.id === selectedTask);
-              if (!task) return null;
-              return (
-                <>
-                  <h3 className="text-xl font-bold mb-4">{task.task}</h3>
-                  <div className="grid grid-cols-1 md:grid-cols-4 gap-4">
-                    <div className="p-4 rounded-lg bg-primary/10 border border-primary/20">
-                      <p className="text-sm font-semibold text-primary mb-2">Responsável (R)</p>
-                      <p className="text-sm">{task.responsible.join(", ")}</p>
-                    </div>
-                    <div className="p-4 rounded-lg bg-warning/10 border border-warning/20">
-                      <p className="text-sm font-semibold text-warning mb-2">Aprovador (A)</p>
-                      <p className="text-sm">{task.accountable}</p>
-                    </div>
-                    <div className="p-4 rounded-lg bg-info/10 border border-info/20">
-                      <p className="text-sm font-semibold text-info mb-2">Consultados (C)</p>
-                      <p className="text-sm">{task.consulted.join(", ") || "Nenhum"}</p>
-                    </div>
-                    <div className="p-4 rounded-lg bg-success/10 border border-success/20">
-                      <p className="text-sm font-semibold text-success mb-2">Informados (I)</p>
-                      <p className="text-sm">{task.informed.join(", ") || "Nenhum"}</p>
-                    </div>
+                <CollapsibleContent>
+                  <div className="border-t border-border/50">
+                    {folder.tarefas.length > 0 ? (
+                      <ul className="divide-y divide-border/50">
+                        {folder.tarefas.map((tarefa, tarefaIndex) => (
+                          <li
+                            key={tarefa.id}
+                            className="flex items-center gap-4 p-4 hover:bg-secondary/20 transition-colors animate-fade-in"
+                            style={{ animationDelay: `${tarefaIndex * 0.03}s` }}
+                          >
+                            <CheckCircle2 className={`w-5 h-5 ${folder.color.replace('bg-', 'text-')}`} />
+                            <span className="font-medium">{tarefa.nome}</span>
+                          </li>
+                        ))}
+                      </ul>
+                    ) : (
+                      <div className="p-8 text-center text-muted-foreground">
+                        <p>Nenhuma tarefa atribuída a este cargo.</p>
+                      </div>
+                    )}
                   </div>
-                </>
-              );
-            })()}
-          </div>
-        )}
+                </CollapsibleContent>
+              </div>
+            </Collapsible>
+          ))}
+        </div>
       </div>
     </Layout>
   );
