@@ -1,10 +1,9 @@
-import { Users, ClipboardCheck, AlertCircle, TrendingUp, ClipboardList, Grid3X3, UserCheck } from "lucide-react";
+import { Users, ClipboardCheck, AlertCircle, TrendingUp, ClipboardList, Grid3X3 } from "lucide-react";
 import Layout from "@/components/layout/Layout";
 import StatCard from "@/components/dashboard/StatCard";
 import QuickAccessCard from "@/components/dashboard/QuickAccessCard";
 import { employees, attendanceRecords } from "@/data/mockData";
 const Dashboard = () => {
-  const activeEmployees = employees.filter(e => e.status === "active").length;
   const presentToday = attendanceRecords.filter(a => a.status === "present" || a.status === "late").length;
   const absentToday = attendanceRecords.filter(a => a.status === "absent").length;
   return <Layout>
@@ -20,7 +19,7 @@ const Dashboard = () => {
         </div>
 
         {/* Stats Grid */}
-        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6 mb-12">
+        <div className="grid grid-cols-1 md:grid-cols-3 gap-6 mb-12">
           <div className="animate-slide-up" style={{
           animationDelay: "0.1s"
         }}>
@@ -29,15 +28,10 @@ const Dashboard = () => {
           <div className="animate-slide-up" style={{
           animationDelay: "0.2s"
         }}>
-            <StatCard title="Ativos Hoje" value={activeEmployees} icon={UserCheck} subtitle="Funcionários em atividade" />
+            <StatCard title="Em Atividade Hoje" value={presentToday} icon={ClipboardCheck} trend="neutral" trendValue={`${Math.round(presentToday / employees.length * 100)}%`} />
           </div>
           <div className="animate-slide-up" style={{
           animationDelay: "0.3s"
-        }}>
-            <StatCard title="Presentes Hoje" value={presentToday} icon={ClipboardCheck} trend="neutral" trendValue={`${Math.round(presentToday / employees.length * 100)}%`} />
-          </div>
-          <div className="animate-slide-up" style={{
-          animationDelay: "0.4s"
         }}>
             <StatCard title="Ausências" value={absentToday} icon={AlertCircle} trend={absentToday > 0 ? "down" : "neutral"} trendValue={absentToday > 0 ? "Atenção" : "Tudo certo"} />
           </div>
