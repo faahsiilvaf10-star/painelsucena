@@ -9,6 +9,8 @@ import {
   SheetTrigger,
 } from "@/components/ui/sheet";
 import { Button } from "@/components/ui/button";
+import { ThemeToggle } from "@/components/ThemeToggle";
+import { Separator } from "@/components/ui/separator";
 
 const navItems = [
   { icon: LayoutDashboard, label: "Dashboard", path: "/" },
@@ -62,6 +64,10 @@ const Header = () => {
                   );
                 })}
               </nav>
+              <Separator className="my-4" />
+              <div className="px-4">
+                <ThemeToggle showLabel className="w-full justify-start" />
+              </div>
             </SheetContent>
           </Sheet>
 
@@ -94,8 +100,9 @@ const Header = () => {
             })}
           </nav>
 
-          {/* User Avatar */}
-          <div className="flex items-center gap-4">
+          {/* Theme Toggle & User Avatar */}
+          <div className="flex items-center gap-2">
+            <ThemeToggle className="hidden md:flex" />
             <div className="w-10 h-10 rounded-full bg-secondary flex items-center justify-center">
               <span className="text-sm font-semibold">AD</span>
             </div>
