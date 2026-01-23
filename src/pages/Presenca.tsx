@@ -1,5 +1,5 @@
 import { useState } from "react";
-import { Calendar, Clock, CheckCircle2, XCircle, Loader2 } from "lucide-react";
+import { Calendar, Clock, CheckCircle2, XCircle, Loader2, Lock } from "lucide-react";
 import Layout from "@/components/layout/Layout";
 import { Button } from "@/components/ui/button";
 import {
@@ -18,6 +18,7 @@ import {
   SelectValue,
 } from "@/components/ui/select";
 import { useAttendanceRecords, useUpdateAttendance, type AttendanceStatus } from "@/hooks/useAttendance";
+import { useReportLock } from "@/hooks/useReportLock";
 import { toast } from "sonner";
 
 const statusConfig = {
@@ -41,6 +42,7 @@ const Presenca = () => {
   
   const { data: attendanceRecords, isLoading, error } = useAttendanceRecords(today);
   const updateAttendance = useUpdateAttendance();
+  const { isLocked, isLoading: lockLoading } = useReportLock(today);
 
   const filteredRecords = attendanceRecords?.filter(
     (record) => filterStatus === "all" || record.status === filterStatus
@@ -52,6 +54,11 @@ const Presenca = () => {
   };
 
   const handleStatusChange = async (recordId: string, newStatus: AttendanceStatus) => {
+    if (isLocked) {
+      toast.error("Relatório salvo! Status não pode ser alterado.");
+      return;
+    }
+    
     try {
       await updateAttendance.mutateAsync({
         id: recordId,
@@ -105,10 +112,18 @@ const Presenca = () => {
             </p>
           </div>
 
-          <Button className="gap-2">
-            <Clock className="w-4 h-4" />
-            Registrar Ponto
-          </Button>
+          <div className="flex items-center gap-3">
+            {isLocked && (
+              <div className="flex items-center gap-2 px-3 py-2 bg-amber-500/20 text-amber-500 rounded-lg border border-amber-500/30">
+                <Lock className="w-4 h-4" />
+                <span className="text-sm font-medium">Relatório Salvo</span>
+              </div>
+            )}
+            <Button className="gap-2">
+              <Clock className="w-4 h-4" />
+              Registrar Ponto
+            </Button>
+          </div>
         </div>
 
         {/* Stats */}
@@ -188,28 +203,35 @@ const Presenca = () => {
                       {employee?.role || "-"}
                     </TableCell>
                     <TableCell>
-                      <Select
-                        value={normalizedStatus}
-                        onValueChange={(value: AttendanceStatus) => handleStatusChange(record.id, value)}
-                      >
-                        <SelectTrigger className={`w-[140px] h-8 ${config.class} border-0`}>
-                          <SelectValue />
-                        </SelectTrigger>
-                        <SelectContent>
-                          <SelectItem value="present">
-                            <span className="flex items-center gap-2">
-                              <CheckCircle2 className="w-3 h-3 text-success" />
-                              Presente
-                            </span>
-                          </SelectItem>
-                          <SelectItem value="absent">
-                            <span className="flex items-center gap-2">
-                              <XCircle className="w-3 h-3 text-destructive" />
-                              Ausente
-                            </span>
-                          </SelectItem>
-                        </SelectContent>
-                      </Select>
+                      {isLocked ? (
+                        <div className={`inline-flex items-center gap-2 px-3 py-1.5 rounded-md ${config.class}`}>
+                          <Lock className="w-3 h-3" />
+                          {config.label}
+                        </div>
+                      ) : (
+                        <Select
+                          value={normalizedStatus}
+                          onValueChange={(value: AttendanceStatus) => handleStatusChange(record.id, value)}
+                        >
+                          <SelectTrigger className={`w-[140px] h-8 ${config.class} border-0`}>
+                            <SelectValue />
+                          </SelectTrigger>
+                          <SelectContent>
+                            <SelectItem value="present">
+                              <span className="flex items-center gap-2">
+                                <CheckCircle2 className="w-3 h-3 text-success" />
+                                Presente
+                              </span>
+                            </SelectItem>
+                            <SelectItem value="absent">
+                              <span className="flex items-center gap-2">
+                                <XCircle className="w-3 h-3 text-destructive" />
+                                Ausente
+                              </span>
+                            </SelectItem>
+                          </SelectContent>
+                        </Select>
+                      )}
                     </TableCell>
                   </TableRow>
                 );

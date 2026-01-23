@@ -1,5 +1,5 @@
 import { useState, useMemo } from "react";
-import { FileText, Copy, Send, Loader2, Check, UserPlus, Pencil } from "lucide-react";
+import { FileText, Copy, Send, Loader2, Check, UserPlus, Pencil, Save, Lock, Unlock } from "lucide-react";
 import Layout from "@/components/layout/Layout";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -25,6 +25,7 @@ import { supabase } from "@/integrations/supabase/client";
 import type { Tables } from "@/integrations/supabase/types";
 import { toast } from "sonner";
 import { useUpsertAttendance } from "@/hooks/useAttendance";
+import { useReportLock } from "@/hooks/useReportLock";
 
 type AttendanceWithEmployee = Tables<"attendance_records"> & {
   employees: Tables<"employees"> | null;
@@ -134,6 +135,7 @@ const RelatorioPresenca = () => {
 
   const queryClient = useQueryClient();
   const upsertAttendance = useUpsertAttendance();
+  const { isLocked, lockReport, unlockReport, canUnlock, isLoading: lockLoading } = useReportLock(selectedDate);
 
   // Fetch attendance records for the selected date with employees
   const { data: records, isLoading: recordsLoading } = useQuery({
@@ -223,6 +225,11 @@ const RelatorioPresenca = () => {
   };
 
   const toggleAttendance = async (employee: Tables<"employees">) => {
+    if (isLocked) {
+      toast.error("Relatório salvo! Não é possível alterar.");
+      return;
+    }
+
     const currentlyPresent = isPresent(employee.id);
     const newStatus = currentlyPresent ? "absent" : "present";
 
@@ -235,6 +242,24 @@ const RelatorioPresenca = () => {
       queryClient.invalidateQueries({ queryKey: ["attendance_report", selectedDate] });
     } catch {
       toast.error("Erro ao atualizar presença");
+    }
+  };
+
+  const handleSaveReport = async () => {
+    try {
+      await lockReport.mutateAsync();
+      toast.success("Relatório salvo! Os status não podem mais ser alterados.");
+    } catch {
+      toast.error("Erro ao salvar relatório");
+    }
+  };
+
+  const handleUnlockReport = async () => {
+    try {
+      await unlockReport.mutateAsync();
+      toast.success("Relatório desbloqueado para edição.");
+    } catch {
+      toast.error("Erro ao desbloquear relatório");
     }
   };
 
@@ -342,15 +367,20 @@ const RelatorioPresenca = () => {
     return (
       <button
         onClick={() => toggleAttendance(employee)}
-        className={`w-full flex items-center justify-between px-4 py-2 rounded-lg transition-all hover:opacity-80 ${
+        className={`w-full flex items-center justify-between px-4 py-2 rounded-lg transition-all ${
+          isLocked ? "cursor-not-allowed opacity-70" : "hover:opacity-80 cursor-pointer"
+        } ${
           present
             ? "bg-green-500/20 text-green-400 border border-green-500/30"
             : "bg-red-500/20 text-red-400 border border-red-500/30"
         }`}
-        disabled={upsertAttendance.isPending}
+        disabled={upsertAttendance.isPending || isLocked}
       >
         <span className="font-medium">{employee.name.toUpperCase()}</span>
-        <span className="text-xl">{present ? "✅" : "❌"}</span>
+        <div className="flex items-center gap-2">
+          {isLocked && <Lock className="w-3 h-3" />}
+          <span className="text-xl">{present ? "✅" : "❌"}</span>
+        </div>
       </button>
     );
   };
@@ -550,7 +580,43 @@ const RelatorioPresenca = () => {
                 </SelectContent>
               </Select>
             </div>
-            <div className="flex gap-2">
+            <div className="flex gap-2 flex-wrap">
+              {!isLocked ? (
+                <Button
+                  onClick={handleSaveReport}
+                  className="gap-2 bg-primary hover:bg-primary/90"
+                  disabled={isLoading || lockReport.isPending}
+                >
+                  {lockReport.isPending ? (
+                    <Loader2 className="w-4 h-4 animate-spin" />
+                  ) : (
+                    <Save className="w-4 h-4" />
+                  )}
+                  Salvar Relatório
+                </Button>
+              ) : (
+                <div className="flex items-center gap-2">
+                  <div className="flex items-center gap-2 px-3 py-2 bg-amber-500/20 text-amber-500 rounded-lg border border-amber-500/30">
+                    <Lock className="w-4 h-4" />
+                    <span className="text-sm font-medium">Relatório Salvo</span>
+                  </div>
+                  {canUnlock && (
+                    <Button
+                      onClick={handleUnlockReport}
+                      variant="outline"
+                      className="gap-2"
+                      disabled={unlockReport.isPending}
+                    >
+                      {unlockReport.isPending ? (
+                        <Loader2 className="w-4 h-4 animate-spin" />
+                      ) : (
+                        <Unlock className="w-4 h-4" />
+                      )}
+                      Desbloquear
+                    </Button>
+                  )}
+                </div>
+              )}
               <Button
                 onClick={handleCopy}
                 variant="outline"
