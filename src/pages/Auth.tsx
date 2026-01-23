@@ -4,6 +4,7 @@ import { supabase } from "@/integrations/supabase/client";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
+import { Checkbox } from "@/components/ui/checkbox";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { useToast } from "@/hooks/use-toast";
 import { Eye, EyeOff, Loader2 } from "lucide-react";
@@ -54,9 +55,21 @@ const Auth = () => {
   const [cargo, setCargo] = useState<CargoType | "">("");
   const [showPassword, setShowPassword] = useState(false);
   const [isLoading, setIsLoading] = useState(false);
+  const [rememberMe, setRememberMe] = useState(false);
   const [errors, setErrors] = useState<Record<string, string>>({});
   const navigate = useNavigate();
   const { toast } = useToast();
+
+  // Load saved credentials on mount
+  useEffect(() => {
+    const savedEmail = localStorage.getItem("rememberedEmail");
+    const savedPassword = localStorage.getItem("rememberedPassword");
+    if (savedEmail && savedPassword) {
+      setEmail(savedEmail);
+      setPassword(savedPassword);
+      setRememberMe(true);
+    }
+  }, []);
 
   useEffect(() => {
     const { data: { subscription } } = supabase.auth.onAuthStateChange((event, session) => {
@@ -122,6 +135,15 @@ const Auth = () => {
               description: error.message,
               variant: "destructive"
             });
+          }
+        } else {
+          // Save or clear credentials based on "Remember Me" checkbox
+          if (rememberMe) {
+            localStorage.setItem("rememberedEmail", email);
+            localStorage.setItem("rememberedPassword", password);
+          } else {
+            localStorage.removeItem("rememberedEmail");
+            localStorage.removeItem("rememberedPassword");
           }
         }
       } else {
@@ -262,8 +284,25 @@ const Auth = () => {
                     {showPassword ? <EyeOff size={20} /> : <Eye size={20} />}
                   </button>
                 </div>
-                {errors.password && <p className="text-red-500 text-sm">{errors.password}</p>}
+              {errors.password && <p className="text-red-500 text-sm">{errors.password}</p>}
               </div>
+
+              {isLogin && (
+                <div className="flex items-center space-x-2">
+                  <Checkbox
+                    id="rememberMe"
+                    checked={rememberMe}
+                    onCheckedChange={(checked) => setRememberMe(checked === true)}
+                    className="border-zinc-600 data-[state=checked]:bg-primary data-[state=checked]:border-primary"
+                  />
+                  <Label 
+                    htmlFor="rememberMe" 
+                    className="text-gray-300 text-sm cursor-pointer select-none"
+                  >
+                    Lembrar meu email e senha
+                  </Label>
+                </div>
+              )}
 
               {!isLogin && (
                 <div className="space-y-2">
