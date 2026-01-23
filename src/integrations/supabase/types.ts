@@ -286,6 +286,42 @@ export type Database = {
         }
         Relationships: []
       }
+      user_preferences: {
+        Row: {
+          active_tab_color: string | null
+          created_at: string
+          id: string
+          notification_sound: string | null
+          page_background_color: string | null
+          sidebar_color: string | null
+          sidebar_font_color: string | null
+          updated_at: string
+          user_id: string
+        }
+        Insert: {
+          active_tab_color?: string | null
+          created_at?: string
+          id?: string
+          notification_sound?: string | null
+          page_background_color?: string | null
+          sidebar_color?: string | null
+          sidebar_font_color?: string | null
+          updated_at?: string
+          user_id: string
+        }
+        Update: {
+          active_tab_color?: string | null
+          created_at?: string
+          id?: string
+          notification_sound?: string | null
+          page_background_color?: string | null
+          sidebar_color?: string | null
+          sidebar_font_color?: string | null
+          updated_at?: string
+          user_id?: string
+        }
+        Relationships: []
+      }
       user_roles: {
         Row: {
           created_at: string
