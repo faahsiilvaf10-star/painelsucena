@@ -1,7 +1,7 @@
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import { supabase } from "@/integrations/supabase/client";
 import { useAuth } from "./useAuth";
-import { useEffect } from "react";
+import { useEffect, useRef } from "react";
 
 export interface Notification {
   id: string;
@@ -15,9 +15,24 @@ export interface Notification {
   created_at: string;
 }
 
+// Play notification sound (MSN style)
+const playNotificationSound = () => {
+  try {
+    const audio = new Audio("/sounds/notification.mp3");
+    audio.volume = 0.5;
+    audio.play().catch((e) => {
+      // Ignore autoplay errors (user hasn't interacted with page yet)
+      console.log("Audio play failed:", e.message);
+    });
+  } catch (error) {
+    console.error("Error playing notification sound:", error);
+  }
+};
+
 export const useNotifications = () => {
   const { user } = useAuth();
   const queryClient = useQueryClient();
+  const previousCountRef = useRef<number>(0);
 
   const query = useQuery({
     queryKey: ["notifications", user?.id],
@@ -37,7 +52,7 @@ export const useNotifications = () => {
     enabled: !!user?.id,
   });
 
-  // Realtime subscription
+  // Realtime subscription with sound
   useEffect(() => {
     if (!user?.id) return;
 
@@ -46,7 +61,33 @@ export const useNotifications = () => {
       .on(
         "postgres_changes",
         {
-          event: "*",
+          event: "INSERT",
+          schema: "public",
+          table: "notifications",
+          filter: `user_id=eq.${user.id}`,
+        },
+        () => {
+          // Play sound on new notification
+          playNotificationSound();
+          queryClient.invalidateQueries({ queryKey: ["notifications", user.id] });
+        }
+      )
+      .on(
+        "postgres_changes",
+        {
+          event: "UPDATE",
+          schema: "public",
+          table: "notifications",
+          filter: `user_id=eq.${user.id}`,
+        },
+        () => {
+          queryClient.invalidateQueries({ queryKey: ["notifications", user.id] });
+        }
+      )
+      .on(
+        "postgres_changes",
+        {
+          event: "DELETE",
           schema: "public",
           table: "notifications",
           filter: `user_id=eq.${user.id}`,
