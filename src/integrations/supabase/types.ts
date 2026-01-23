@@ -187,6 +187,33 @@ export type Database = {
         }
         Relationships: []
       }
+      site_settings: {
+        Row: {
+          id: string
+          logo_url: string | null
+          nav_order: Json | null
+          sidebar_color: string | null
+          updated_at: string
+          updated_by: string | null
+        }
+        Insert: {
+          id?: string
+          logo_url?: string | null
+          nav_order?: Json | null
+          sidebar_color?: string | null
+          updated_at?: string
+          updated_by?: string | null
+        }
+        Update: {
+          id?: string
+          logo_url?: string | null
+          nav_order?: Json | null
+          sidebar_color?: string | null
+          updated_at?: string
+          updated_by?: string | null
+        }
+        Relationships: []
+      }
       user_roles: {
         Row: {
           created_at: string

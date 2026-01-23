@@ -1,8 +1,9 @@
-import { Users, ClipboardList, Grid3X3, LayoutDashboard, FileBarChart, LogOut, LogIn, ShieldCheck, Phone, PanelLeftClose, PanelLeft, Settings } from "lucide-react";
+import { Users, ClipboardList, Grid3X3, LayoutDashboard, FileBarChart, LogOut, LogIn, ShieldCheck, Phone, PanelLeftClose, PanelLeft, Settings, LucideIcon } from "lucide-react";
 import { Link, useLocation, useNavigate } from "react-router-dom";
-import { useState, useEffect } from "react";
+import { useState, useEffect, useMemo } from "react";
 import { useAuth } from "@/hooks/useAuth";
 import { useIsAdmin } from "@/hooks/useUserRole";
+import { useSiteSettings } from "@/hooks/useSiteSettings";
 import { supabase } from "@/integrations/supabase/client";
 import logoPrincipal from "@/assets/logo-principal.png";
 import { ThemeToggle } from "@/components/ThemeToggle";
@@ -22,13 +23,20 @@ import { Button } from "@/components/ui/button";
 import { Separator } from "@/components/ui/separator";
 import { ScrollArea } from "@/components/ui/scroll-area";
 
-const navItems = [
-  { icon: LayoutDashboard, label: "Destaques", path: "/" },
-  { icon: Users, label: "RH", path: "/rh" },
-  { icon: ClipboardList, label: "Lista de Presença", path: "/presenca" },
-  { icon: FileBarChart, label: "Relatório", path: "/relatorio-presenca" },
-  { icon: Grid3X3, label: "Matriz Responsabilidade", path: "/matriz" },
-  { icon: Phone, label: "Emergência", path: "/emergencia" },
+interface NavItem {
+  id: string;
+  icon: LucideIcon;
+  label: string;
+  path: string;
+}
+
+const allNavItems: NavItem[] = [
+  { id: "destaques", icon: LayoutDashboard, label: "Destaques", path: "/" },
+  { id: "rh", icon: Users, label: "RH", path: "/rh" },
+  { id: "presenca", icon: ClipboardList, label: "Lista de Presença", path: "/presenca" },
+  { id: "relatorio", icon: FileBarChart, label: "Relatório", path: "/relatorio-presenca" },
+  { id: "matriz", icon: Grid3X3, label: "Matriz Responsabilidade", path: "/matriz" },
+  { id: "emergencia", icon: Phone, label: "Emergência", path: "/emergencia" },
 ];
 
 interface Profile {
@@ -42,8 +50,31 @@ export function AppSidebar() {
   const { user, signOut } = useAuth();
   const { isAdmin } = useIsAdmin();
   const { state, toggleSidebar } = useSidebar();
+  const { settings } = useSiteSettings();
   const [profile, setProfile] = useState<Profile | null>(null);
   const isCollapsed = state === "collapsed";
+
+  // Order nav items based on settings
+  const orderedNavItems = useMemo(() => {
+    if (!settings.nav_order || settings.nav_order.length === 0) {
+      return allNavItems;
+    }
+    
+    const ordered: NavItem[] = [];
+    settings.nav_order.forEach((id: string) => {
+      const item = allNavItems.find(nav => nav.id === id);
+      if (item) ordered.push(item);
+    });
+    
+    // Add any items not in the order (shouldn't happen but safety)
+    allNavItems.forEach(item => {
+      if (!ordered.find(o => o.id === item.id)) {
+        ordered.push(item);
+      }
+    });
+    
+    return ordered;
+  }, [settings.nav_order]);
 
   useEffect(() => {
     const fetchProfile = async () => {
@@ -81,13 +112,22 @@ export function AppSidebar() {
     return "US";
   };
 
+  // Dynamic sidebar color style
+  const sidebarStyle = settings.sidebar_color ? {
+    backgroundColor: settings.sidebar_color,
+  } : undefined;
+
   return (
-    <Sidebar collapsible="icon" className="border-r-0">
+    <Sidebar collapsible="icon" className="border-r-0" style={sidebarStyle}>
       {/* Header with Logo */}
       <SidebarHeader className="border-b border-sidebar-border p-4">
         <div className="flex items-center gap-3">
           {!isCollapsed ? (
-            <img src={logoPrincipal} alt="Logo Sucena" className="h-10" />
+            <img 
+              src={settings.logo_url || logoPrincipal} 
+              alt="Logo" 
+              className="h-10 max-w-[180px] object-contain" 
+            />
           ) : (
             <div className="w-8 h-8 rounded-lg bg-primary flex items-center justify-center">
               <span className="text-sm font-bold text-primary-foreground">S</span>
@@ -102,10 +142,10 @@ export function AppSidebar() {
           <SidebarGroup className="py-2">
             <SidebarGroupContent>
               <SidebarMenu>
-                {navItems.map((item) => {
+                {orderedNavItems.map((item) => {
                   const isActive = location.pathname === item.path;
                   return (
-                    <SidebarMenuItem key={item.path}>
+                    <SidebarMenuItem key={item.id}>
                       <SidebarMenuButton
                         asChild
                         isActive={isActive}
