@@ -1,0 +1,203 @@
+import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
+import { supabase } from "@/integrations/supabase/client";
+import { useAuth } from "./useAuth";
+import { format, startOfMonth, endOfMonth, eachDayOfInterval, isWeekend, addDays } from "date-fns";
+
+export interface DDSScheduleItem {
+  id: string;
+  month_year: string;
+  scheduled_date: string;
+  presenter_user_id: string;
+  theme: string;
+  created_by: string;
+  created_at: string;
+  updated_at: string;
+  presenter?: {
+    full_name: string;
+    avatar_url: string | null;
+    cargo: string;
+  };
+}
+
+export interface DDSScheduleInsert {
+  month_year: string;
+  scheduled_date: string;
+  presenter_user_id: string;
+  theme: string;
+}
+
+export const useDDSSchedule = (monthYear: string) => {
+  return useQuery({
+    queryKey: ["dds-schedule", monthYear],
+    queryFn: async () => {
+      const { data, error } = await supabase
+        .from("dds_schedule")
+        .select("*")
+        .eq("month_year", monthYear)
+        .order("scheduled_date", { ascending: true });
+
+      if (error) throw error;
+
+      // Fetch presenter profiles
+      if (data && data.length > 0) {
+        const userIds = [...new Set(data.map(d => d.presenter_user_id))];
+        const { data: profiles } = await supabase
+          .from("profiles")
+          .select("user_id, full_name, avatar_url, cargo")
+          .in("user_id", userIds);
+
+        const profileMap = new Map(profiles?.map(p => [p.user_id, p]) || []);
+
+        return data.map(item => ({
+          ...item,
+          presenter: profileMap.get(item.presenter_user_id) || undefined,
+        })) as DDSScheduleItem[];
+      }
+
+      return data as DDSScheduleItem[];
+    },
+  });
+};
+
+export const useTomorrowDDS = () => {
+  const tomorrow = format(addDays(new Date(), 1), "yyyy-MM-dd");
+  const monthYear = format(addDays(new Date(), 1), "yyyy-MM");
+
+  return useQuery({
+    queryKey: ["dds-tomorrow", tomorrow],
+    queryFn: async () => {
+      const { data, error } = await supabase
+        .from("dds_schedule")
+        .select("*")
+        .eq("scheduled_date", tomorrow)
+        .maybeSingle();
+
+      if (error) throw error;
+
+      if (data) {
+        const { data: profile } = await supabase
+          .from("profiles")
+          .select("user_id, full_name, avatar_url, cargo")
+          .eq("user_id", data.presenter_user_id)
+          .maybeSingle();
+
+        return {
+          ...data,
+          presenter: profile || undefined,
+        } as DDSScheduleItem;
+      }
+
+      return null;
+    },
+  });
+};
+
+export const useCreateDDSSchedule = () => {
+  const queryClient = useQueryClient();
+  const { user } = useAuth();
+
+  return useMutation({
+    mutationFn: async (items: DDSScheduleInsert[]) => {
+      if (!user?.id) throw new Error("Usuário não autenticado");
+
+      const insertData = items.map(item => ({
+        ...item,
+        created_by: user.id,
+      }));
+
+      const { data, error } = await supabase
+        .from("dds_schedule")
+        .insert(insertData)
+        .select();
+
+      if (error) throw error;
+      return data;
+    },
+    onSuccess: (_, variables) => {
+      if (variables.length > 0) {
+        queryClient.invalidateQueries({ queryKey: ["dds-schedule", variables[0].month_year] });
+      }
+    },
+  });
+};
+
+export const useUpdateDDSSchedule = () => {
+  const queryClient = useQueryClient();
+
+  return useMutation({
+    mutationFn: async ({ id, presenter_user_id, theme }: { id: string; presenter_user_id: string; theme: string }) => {
+      const { data, error } = await supabase
+        .from("dds_schedule")
+        .update({ presenter_user_id, theme })
+        .eq("id", id)
+        .select()
+        .single();
+
+      if (error) throw error;
+      return data;
+    },
+    onSuccess: (data) => {
+      queryClient.invalidateQueries({ queryKey: ["dds-schedule", data.month_year] });
+    },
+  });
+};
+
+export const useDeleteDDSSchedule = () => {
+  const queryClient = useQueryClient();
+
+  return useMutation({
+    mutationFn: async ({ id, monthYear }: { id: string; monthYear: string }) => {
+      const { error } = await supabase
+        .from("dds_schedule")
+        .delete()
+        .eq("id", id);
+
+      if (error) throw error;
+      return { id, monthYear };
+    },
+    onSuccess: (data) => {
+      queryClient.invalidateQueries({ queryKey: ["dds-schedule", data.monthYear] });
+    },
+  });
+};
+
+export const useClearMonthDDS = () => {
+  const queryClient = useQueryClient();
+
+  return useMutation({
+    mutationFn: async (monthYear: string) => {
+      const { error } = await supabase
+        .from("dds_schedule")
+        .delete()
+        .eq("month_year", monthYear);
+
+      if (error) throw error;
+      return monthYear;
+    },
+    onSuccess: (monthYear) => {
+      queryClient.invalidateQueries({ queryKey: ["dds-schedule", monthYear] });
+    },
+  });
+};
+
+export const getWeekdaysInMonth = (date: Date): Date[] => {
+  const start = startOfMonth(date);
+  const end = endOfMonth(date);
+  const allDays = eachDayOfInterval({ start, end });
+  return allDays.filter(day => !isWeekend(day));
+};
+
+export const useAllProfiles = () => {
+  return useQuery({
+    queryKey: ["all-profiles"],
+    queryFn: async () => {
+      const { data, error } = await supabase
+        .from("profiles")
+        .select("user_id, full_name, avatar_url, cargo")
+        .order("full_name", { ascending: true });
+
+      if (error) throw error;
+      return data;
+    },
+  });
+};
