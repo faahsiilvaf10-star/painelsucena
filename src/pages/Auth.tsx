@@ -9,16 +9,7 @@ import { useToast } from "@/hooks/use-toast";
 import { Eye, EyeOff, Loader2 } from "lucide-react";
 import { z } from "zod";
 import logoSucena from "@/assets/logo-sucena.png";
-
-const bibleVerses = [
-  "Porque Deus amou o mundo de tal maneira que deu o seu Filho unigênito. - João 3:16",
-  "O Senhor é o meu pastor; nada me faltará. - Salmos 23:1",
-  "Tudo posso naquele que me fortalece. - Filipenses 4:13",
-  "Confie no Senhor de todo o seu coração. - Provérbios 3:5",
-  "O Senhor é a minha luz e a minha salvação. - Salmos 27:1",
-  "Porque sou eu que conheço os planos que tenho para vocês. - Jeremias 29:11",
-  "Seja forte e corajoso! - Josué 1:9"
-];
+const bibleVerses = ["Porque Deus amou o mundo de tal maneira que deu o seu Filho unigênito. - João 3:16", "O Senhor é o meu pastor; nada me faltará. - Salmos 23:1", "Tudo posso naquele que me fortalece. - Filipenses 4:13", "Confie no Senhor de todo o seu coração. - Provérbios 3:5", "O Senhor é a minha luz e a minha salvação. - Salmos 27:1", "Porque sou eu que conheço os planos que tenho para vocês. - Jeremias 29:11", "Seja forte e corajoso! - Josué 1:9"];
 const cargoOptions = [{
   value: "preposto",
   label: "Preposto"
@@ -222,7 +213,7 @@ const Auth = () => {
       {/* Header */}
       <header className="relative z-10 p-6 flex flex-col items-center">
         <img src={logoSucena} alt="Logo Sucena" className="h-16 md:h-20 mb-4" />
-        <h1 className="text-2xl md:text-3xl font-bold text-primary tracking-tight text-center">CONTROLE OPERACIONAL SUCENA</h1>
+        <h1 className="text-2xl md:text-3xl font-bold text-primary tracking-tight text-center">CONTROLE OPERACIONAL </h1>
         <p className="text-gray-400 text-sm md:text-base mt-2 text-center max-w-md">
           Sistema de controle operacional para gestão eficiente de empresas
         </p>
