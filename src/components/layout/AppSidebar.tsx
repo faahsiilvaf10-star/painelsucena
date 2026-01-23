@@ -5,6 +5,7 @@ import { useAuth } from "@/hooks/useAuth";
 import { useIsAdmin } from "@/hooks/useUserRole";
 import { useSiteSettings } from "@/hooks/useSiteSettings";
 import { useProfile } from "@/hooks/useProfile";
+import { UserPreferences } from "@/hooks/useUserPreferences";
 import logoPrincipal from "@/assets/logo-principal.png";
 import {
   Sidebar,
@@ -40,7 +41,11 @@ const allNavItems: NavItem[] = [
   { id: "emergencia", icon: Phone, label: "Emergência", path: "/emergencia" },
 ];
 
-export function AppSidebar() {
+interface AppSidebarProps {
+  userPreferences?: UserPreferences;
+}
+
+export function AppSidebar({ userPreferences }: AppSidebarProps) {
   const location = useLocation();
   const navigate = useNavigate();
   const { user, signOut } = useAuth();
@@ -88,10 +93,17 @@ export function AppSidebar() {
     navigate("/auth");
   };
 
-  // Dynamic sidebar color style
-  const sidebarStyle = settings.sidebar_color ? {
-    backgroundColor: settings.sidebar_color,
-  } : undefined;
+  // Dynamic sidebar color style - user preferences take precedence
+  const sidebarStyle = {
+    backgroundColor: userPreferences?.sidebar_color || settings.sidebar_color || "#1e2235",
+    color: userPreferences?.sidebar_font_color || "#f8fafc",
+  };
+
+  // Active tab style from user preferences
+  const getActiveStyle = () => ({
+    backgroundColor: userPreferences?.active_tab_color || "#f5a524",
+    color: "#1f2937",
+  });
 
   return (
     <Sidebar collapsible="icon" className="border-r-0" style={sidebarStyle}>
@@ -126,7 +138,8 @@ export function AppSidebar() {
                         asChild
                         isActive={isActive}
                         tooltip={item.label}
-                        className={isActive ? "bg-primary text-primary-foreground hover:bg-primary hover:text-primary-foreground" : ""}
+                        style={isActive ? getActiveStyle() : { color: userPreferences?.sidebar_font_color || "inherit" }}
+                        className={isActive ? "hover:opacity-90" : ""}
                       >
                         <Link to={item.path}>
                           <item.icon className="h-5 w-5" />
