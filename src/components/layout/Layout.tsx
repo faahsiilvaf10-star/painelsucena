@@ -3,8 +3,7 @@ import { AppSidebar } from "./AppSidebar";
 import { SidebarProvider, SidebarInset, SidebarTrigger } from "@/components/ui/sidebar";
 import ForbiddenColorIndicator from "@/components/ForbiddenColorIndicator";
 import { NotificationBell } from "@/components/notifications/NotificationBell";
-import { PersonalizationButton } from "@/components/personalization/PersonalizationButton";
-import { useUserPreferences } from "@/hooks/useUserPreferences";
+import { ThemeToggle } from "@/components/ThemeToggle";
 import { Menu } from "lucide-react";
 
 interface LayoutProps {
@@ -12,19 +11,12 @@ interface LayoutProps {
 }
 
 const Layout = ({ children }: LayoutProps) => {
-  const { preferences } = useUserPreferences();
-
   return (
     <SidebarProvider defaultOpen={true}>
-      <div 
-        className="min-h-screen flex w-full"
-        style={{ 
-          backgroundColor: preferences.page_background_color 
-        }}
-      >
-        <AppSidebar userPreferences={preferences} />
+      <div className="min-h-screen flex w-full bg-background">
+        <AppSidebar />
         <SidebarInset>
-          {/* Header with notification bell and personalization */}
+          {/* Header with notification bell and theme toggle */}
           <header className="flex h-14 items-center justify-between gap-4 border-b bg-background px-4">
             <div className="flex items-center gap-4 md:hidden">
               <SidebarTrigger>
@@ -34,7 +26,7 @@ const Layout = ({ children }: LayoutProps) => {
             </div>
             <div className="flex-1" />
             <div className="flex items-center gap-1">
-              <PersonalizationButton />
+              <ThemeToggle />
               <NotificationBell />
             </div>
           </header>
