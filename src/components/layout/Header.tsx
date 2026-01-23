@@ -1,35 +1,78 @@
-import { Users, ClipboardList, Grid3X3, LayoutDashboard, Menu, FileBarChart } from "lucide-react";
-import { Link, useLocation } from "react-router-dom";
-import { useState } from "react";
+import { Users, ClipboardList, Grid3X3, LayoutDashboard, Menu, FileBarChart, LogOut, LogIn } from "lucide-react";
+import { Link, useLocation, useNavigate } from "react-router-dom";
+import { useState, useEffect } from "react";
 import { Sheet, SheetContent, SheetHeader, SheetTitle, SheetTrigger } from "@/components/ui/sheet";
 import { Button } from "@/components/ui/button";
 import { ThemeToggle } from "@/components/ThemeToggle";
 import { Separator } from "@/components/ui/separator";
-const navItems = [{
-  icon: LayoutDashboard,
-  label: "Dashboard",
-  path: "/"
-}, {
-  icon: Users,
-  label: "RH",
-  path: "/rh"
-}, {
-  icon: ClipboardList,
-  label: "Presença",
-  path: "/presenca"
-}, {
-  icon: FileBarChart,
-  label: "Relatório de Presença",
-  path: "/relatorio-presenca"
-}, {
-  icon: Grid3X3,
-  label: "Matriz de Responsabilidade",
-  path: "/matriz"
-}];
+import { useAuth } from "@/hooks/useAuth";
+import { supabase } from "@/integrations/supabase/client";
+import {
+  DropdownMenu,
+  DropdownMenuContent,
+  DropdownMenuItem,
+  DropdownMenuSeparator,
+  DropdownMenuTrigger,
+} from "@/components/ui/dropdown-menu";
+
+const navItems = [
+  { icon: LayoutDashboard, label: "Dashboard", path: "/" },
+  { icon: Users, label: "RH", path: "/rh" },
+  { icon: ClipboardList, label: "Presença", path: "/presenca" },
+  { icon: FileBarChart, label: "Relatório de Presença", path: "/relatorio-presenca" },
+  { icon: Grid3X3, label: "Matriz de Responsabilidade", path: "/matriz" },
+];
+
+interface Profile {
+  full_name: string;
+  cargo: string;
+}
+
 const Header = () => {
   const location = useLocation();
+  const navigate = useNavigate();
   const [open, setOpen] = useState(false);
-  return <header className="fixed top-0 left-0 right-0 z-50 bg-gradient-to-b from-background via-background/95 to-transparent">
+  const { user, signOut } = useAuth();
+  const [profile, setProfile] = useState<Profile | null>(null);
+
+  useEffect(() => {
+    const fetchProfile = async () => {
+      if (user) {
+        const { data } = await supabase
+          .from("profiles")
+          .select("full_name, cargo")
+          .eq("user_id", user.id)
+          .maybeSingle();
+        
+        if (data) {
+          setProfile(data);
+        }
+      } else {
+        setProfile(null);
+      }
+    };
+
+    fetchProfile();
+  }, [user]);
+
+  const handleSignOut = async () => {
+    await signOut();
+    navigate("/auth");
+  };
+
+  const getInitials = () => {
+    if (profile?.full_name) {
+      const names = profile.full_name.split(" ");
+      if (names.length >= 2) {
+        return `${names[0][0]}${names[names.length - 1][0]}`.toUpperCase();
+      }
+      return names[0].substring(0, 2).toUpperCase();
+    }
+    return "US";
+  };
+
+  return (
+    <header className="fixed top-0 left-0 right-0 z-50 bg-gradient-to-b from-background via-background/95 to-transparent">
       <div className="container mx-auto px-4 md:px-6 py-4">
         <div className="flex items-center justify-between">
           {/* Mobile Menu Button */}
@@ -50,17 +93,48 @@ const Header = () => {
                 </SheetTitle>
               </SheetHeader>
               <nav className="flex flex-col gap-2">
-                {navItems.map(item => {
-                const isActive = location.pathname === item.path;
-                return <Link key={item.path} to={item.path} onClick={() => setOpen(false)} className={`flex items-center gap-3 px-4 py-3 rounded-lg transition-all duration-200 ${isActive ? "bg-primary text-primary-foreground" : "text-muted-foreground hover:text-foreground hover:bg-secondary"}`}>
+                {navItems.map((item) => {
+                  const isActive = location.pathname === item.path;
+                  return (
+                    <Link
+                      key={item.path}
+                      to={item.path}
+                      onClick={() => setOpen(false)}
+                      className={`flex items-center gap-3 px-4 py-3 rounded-lg transition-all duration-200 ${
+                        isActive
+                          ? "bg-primary text-primary-foreground"
+                          : "text-muted-foreground hover:text-foreground hover:bg-secondary"
+                      }`}
+                    >
                       <item.icon className="w-5 h-5" />
                       <span className="font-medium text-base">{item.label}</span>
-                    </Link>;
-              })}
+                    </Link>
+                  );
+                })}
               </nav>
               <Separator className="my-4" />
-              <div className="px-4">
+              <div className="px-4 space-y-2">
                 <ThemeToggle showLabel className="w-full justify-start" />
+                {user ? (
+                  <Button
+                    variant="ghost"
+                    onClick={handleSignOut}
+                    className="w-full justify-start text-muted-foreground hover:text-foreground"
+                  >
+                    <LogOut className="w-5 h-5 mr-3" />
+                    Sair
+                  </Button>
+                ) : (
+                  <Link to="/auth" onClick={() => setOpen(false)}>
+                    <Button
+                      variant="ghost"
+                      className="w-full justify-start text-muted-foreground hover:text-foreground"
+                    >
+                      <LogIn className="w-5 h-5 mr-3" />
+                      Entrar
+                    </Button>
+                  </Link>
+                )}
               </div>
             </SheetContent>
           </Sheet>
@@ -70,30 +144,65 @@ const Header = () => {
             <div className="w-10 h-10 rounded-lg flex items-center justify-center bg-foreground">
               <span className="text-primary-foreground font-bold text-xl">S</span>
             </div>
-            <span className="text-2xl font-bold tracking-tight hidden sm:inline">SUCENA
-          </span>
+            <span className="text-2xl font-bold tracking-tight hidden sm:inline">SUCENA</span>
           </Link>
 
           {/* Desktop Navigation */}
           <nav className="hidden md:flex items-center gap-1">
-            {navItems.map(item => {
-            const isActive = location.pathname === item.path;
-            return <Link key={item.path} to={item.path} className={`flex items-center gap-2 px-4 py-2 rounded-lg transition-all duration-200 ${isActive ? "bg-primary text-primary-foreground" : "text-muted-foreground hover:text-foreground hover:bg-secondary"}`}>
+            {navItems.map((item) => {
+              const isActive = location.pathname === item.path;
+              return (
+                <Link
+                  key={item.path}
+                  to={item.path}
+                  className={`flex items-center gap-2 px-4 py-2 rounded-lg transition-all duration-200 ${
+                    isActive
+                      ? "bg-primary text-primary-foreground"
+                      : "text-muted-foreground hover:text-foreground hover:bg-secondary"
+                  }`}
+                >
                   <item.icon className="w-4 h-4" />
                   <span className="font-medium">{item.label}</span>
-                </Link>;
-          })}
+                </Link>
+              );
+            })}
           </nav>
 
           {/* Theme Toggle & User Avatar */}
           <div className="flex items-center gap-2">
             <ThemeToggle className="hidden md:flex" />
-            <div className="w-10 h-10 rounded-full bg-secondary flex items-center justify-center">
-              <span className="text-sm font-semibold">AD</span>
-            </div>
+            {user ? (
+              <DropdownMenu>
+                <DropdownMenuTrigger asChild>
+                  <button className="w-10 h-10 rounded-full bg-primary flex items-center justify-center hover:bg-primary/90 transition-colors cursor-pointer">
+                    <span className="text-sm font-semibold text-primary-foreground">{getInitials()}</span>
+                  </button>
+                </DropdownMenuTrigger>
+                <DropdownMenuContent align="end" className="w-56">
+                  <div className="px-2 py-1.5">
+                    <p className="text-sm font-medium">{profile?.full_name || "Usuário"}</p>
+                    <p className="text-xs text-muted-foreground">{user.email}</p>
+                  </div>
+                  <DropdownMenuSeparator />
+                  <DropdownMenuItem onClick={handleSignOut} className="cursor-pointer">
+                    <LogOut className="w-4 h-4 mr-2" />
+                    Sair
+                  </DropdownMenuItem>
+                </DropdownMenuContent>
+              </DropdownMenu>
+            ) : (
+              <Link to="/auth">
+                <Button variant="outline" size="sm" className="gap-2">
+                  <LogIn className="w-4 h-4" />
+                  <span className="hidden sm:inline">Entrar</span>
+                </Button>
+              </Link>
+            )}
           </div>
         </div>
       </div>
-    </header>;
+    </header>
+  );
 };
+
 export default Header;

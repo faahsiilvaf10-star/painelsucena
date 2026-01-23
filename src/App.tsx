@@ -9,6 +9,7 @@ import RH from "./pages/RH";
 import Presenca from "./pages/Presenca";
 import RelatorioPresenca from "./pages/RelatorioPresenca";
 import Matriz from "./pages/Matriz";
+import Auth from "./pages/Auth";
 import NotFound from "./pages/NotFound";
 
 const queryClient = new QueryClient();
@@ -22,6 +23,7 @@ const App = () => (
         <BrowserRouter>
           <Routes>
             <Route path="/" element={<Index />} />
+            <Route path="/auth" element={<Auth />} />
             <Route path="/rh" element={<RH />} />
             <Route path="/presenca" element={<Presenca />} />
             <Route path="/relatorio-presenca" element={<RelatorioPresenca />} />

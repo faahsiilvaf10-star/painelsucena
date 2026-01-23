@@ -97,6 +97,36 @@ export type Database = {
         }
         Relationships: []
       }
+      profiles: {
+        Row: {
+          avatar_url: string | null
+          cargo: Database["public"]["Enums"]["cargo_type"]
+          created_at: string
+          full_name: string
+          id: string
+          updated_at: string
+          user_id: string
+        }
+        Insert: {
+          avatar_url?: string | null
+          cargo: Database["public"]["Enums"]["cargo_type"]
+          created_at?: string
+          full_name: string
+          id?: string
+          updated_at?: string
+          user_id: string
+        }
+        Update: {
+          avatar_url?: string | null
+          cargo?: Database["public"]["Enums"]["cargo_type"]
+          created_at?: string
+          full_name?: string
+          id?: string
+          updated_at?: string
+          user_id?: string
+        }
+        Relationships: []
+      }
     }
     Views: {
       [_ in never]: never
@@ -106,6 +136,17 @@ export type Database = {
     }
     Enums: {
       attendance_status: "present" | "late" | "absent" | "justified"
+      cargo_type:
+        | "preposto"
+        | "encarregado_geral"
+        | "encarregado_i"
+        | "encarregado_ii"
+        | "tecnico_seguranca_i"
+        | "tecnico_seguranca_ii"
+        | "tecnico_meio_ambiente"
+        | "aux_administrativo"
+        | "aux_almoxarifado"
+        | "planejador"
       employee_status: "active" | "vacation" | "leave"
     }
     CompositeTypes: {
@@ -235,6 +276,18 @@ export const Constants = {
   public: {
     Enums: {
       attendance_status: ["present", "late", "absent", "justified"],
+      cargo_type: [
+        "preposto",
+        "encarregado_geral",
+        "encarregado_i",
+        "encarregado_ii",
+        "tecnico_seguranca_i",
+        "tecnico_seguranca_ii",
+        "tecnico_meio_ambiente",
+        "aux_administrativo",
+        "aux_almoxarifado",
+        "planejador",
+      ],
       employee_status: ["active", "vacation", "leave"],
     },
   },
