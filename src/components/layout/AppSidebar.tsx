@@ -1,12 +1,11 @@
-import { Users, ClipboardList, Grid3X3, LayoutDashboard, FileBarChart, LogOut, LogIn, ShieldCheck, Phone, PanelLeftClose, PanelLeft, Settings, LucideIcon } from "lucide-react";
+import { Users, ClipboardList, Grid3X3, LayoutDashboard, FileBarChart, LogOut, LogIn, Phone, PanelLeftClose, PanelLeft, Settings, LucideIcon } from "lucide-react";
 import { Link, useLocation, useNavigate } from "react-router-dom";
-import { useState, useEffect, useMemo } from "react";
+import { useMemo } from "react";
 import { useAuth } from "@/hooks/useAuth";
 import { useIsAdmin } from "@/hooks/useUserRole";
 import { useSiteSettings } from "@/hooks/useSiteSettings";
-import { supabase } from "@/integrations/supabase/client";
+import { useProfile } from "@/hooks/useProfile";
 import logoPrincipal from "@/assets/logo-principal.png";
-import { ThemeToggle } from "@/components/ThemeToggle";
 import {
   Sidebar,
   SidebarContent,
@@ -22,6 +21,7 @@ import {
 import { Button } from "@/components/ui/button";
 import { Separator } from "@/components/ui/separator";
 import { ScrollArea } from "@/components/ui/scroll-area";
+import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 
 interface NavItem {
   id: string;
@@ -39,11 +39,6 @@ const allNavItems: NavItem[] = [
   { id: "emergencia", icon: Phone, label: "Emergência", path: "/emergencia" },
 ];
 
-interface Profile {
-  full_name: string;
-  cargo: string;
-}
-
 export function AppSidebar() {
   const location = useLocation();
   const navigate = useNavigate();
@@ -51,7 +46,7 @@ export function AppSidebar() {
   const { isAdmin } = useIsAdmin();
   const { state, toggleSidebar } = useSidebar();
   const { settings } = useSiteSettings();
-  const [profile, setProfile] = useState<Profile | null>(null);
+  const { data: profile } = useProfile();
   const isCollapsed = state === "collapsed";
 
   // Order nav items based on settings
@@ -76,31 +71,6 @@ export function AppSidebar() {
     return ordered;
   }, [settings.nav_order]);
 
-  useEffect(() => {
-    const fetchProfile = async () => {
-      if (user) {
-        const { data } = await supabase
-          .from("profiles")
-          .select("full_name, cargo")
-          .eq("user_id", user.id)
-          .maybeSingle();
-        
-        if (data) {
-          setProfile(data);
-        }
-      } else {
-        setProfile(null);
-      }
-    };
-
-    fetchProfile();
-  }, [user]);
-
-  const handleSignOut = async () => {
-    await signOut();
-    navigate("/auth");
-  };
-
   const getInitials = () => {
     if (profile?.full_name) {
       const names = profile.full_name.split(" ");
@@ -110,6 +80,11 @@ export function AppSidebar() {
       return names[0].substring(0, 2).toUpperCase();
     }
     return "US";
+  };
+
+  const handleSignOut = async () => {
+    await signOut();
+    navigate("/auth");
   };
 
   // Dynamic sidebar color style
@@ -173,9 +148,12 @@ export function AppSidebar() {
           <>
             {/* User Info */}
             <div className="flex items-center gap-3 p-2 mb-2">
-              <div className="w-9 h-9 rounded-full bg-primary flex items-center justify-center flex-shrink-0">
-                <span className="text-sm font-bold text-primary-foreground">{getInitials()}</span>
-              </div>
+              <Avatar className="w-9 h-9 flex-shrink-0">
+                <AvatarImage src={profile?.avatar_url || undefined} alt={profile?.full_name || "Usuário"} />
+                <AvatarFallback className="bg-primary text-primary-foreground text-sm font-bold">
+                  {getInitials()}
+                </AvatarFallback>
+              </Avatar>
               {!isCollapsed && (
                 <div className="flex-1 min-w-0">
                   <p className="text-sm font-semibold truncate text-sidebar-foreground">{profile?.full_name || "Usuário"}</p>
