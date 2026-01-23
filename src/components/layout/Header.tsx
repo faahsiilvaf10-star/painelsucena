@@ -17,7 +17,7 @@ import {
 } from "@/components/ui/dropdown-menu";
 
 const navItems = [
-  { icon: LayoutDashboard, label: "Dashboard", path: "/" },
+  { icon: LayoutDashboard, label: "Destaques", path: "/" },
   { icon: Users, label: "RH", path: "/rh" },
   { icon: ClipboardList, label: "Presença", path: "/presenca" },
   { icon: FileBarChart, label: "Relatório de Presença", path: "/relatorio-presenca" },
