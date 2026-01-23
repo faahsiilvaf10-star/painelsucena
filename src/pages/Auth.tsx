@@ -4,42 +4,50 @@ import { supabase } from "@/integrations/supabase/client";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
-import {
-  Select,
-  SelectContent,
-  SelectItem,
-  SelectTrigger,
-  SelectValue,
-} from "@/components/ui/select";
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { useToast } from "@/hooks/use-toast";
 import { Eye, EyeOff, Loader2 } from "lucide-react";
 import { z } from "zod";
-
-const cargoOptions = [
-  { value: "preposto", label: "Preposto" },
-  { value: "encarregado_geral", label: "Encarregado Geral" },
-  { value: "encarregado_i", label: "Encarregado I" },
-  { value: "encarregado_ii", label: "Encarregado II" },
-  { value: "tecnico_seguranca_i", label: "Técnico de Segurança I" },
-  { value: "tecnico_seguranca_ii", label: "Técnico de Segurança II" },
-  { value: "tecnico_meio_ambiente", label: "Técnico Meio Ambiente" },
-  { value: "aux_administrativo", label: "Aux. Administrativo" },
-  { value: "aux_almoxarifado", label: "Aux. Almoxarifado" },
-  { value: "planejador", label: "Planejador" },
-] as const;
-
+const cargoOptions = [{
+  value: "preposto",
+  label: "Preposto"
+}, {
+  value: "encarregado_geral",
+  label: "Encarregado Geral"
+}, {
+  value: "encarregado_i",
+  label: "Encarregado I"
+}, {
+  value: "encarregado_ii",
+  label: "Encarregado II"
+}, {
+  value: "tecnico_seguranca_i",
+  label: "Técnico de Segurança I"
+}, {
+  value: "tecnico_seguranca_ii",
+  label: "Técnico de Segurança II"
+}, {
+  value: "tecnico_meio_ambiente",
+  label: "Técnico Meio Ambiente"
+}, {
+  value: "aux_administrativo",
+  label: "Aux. Administrativo"
+}, {
+  value: "aux_almoxarifado",
+  label: "Aux. Almoxarifado"
+}, {
+  value: "planejador",
+  label: "Planejador"
+}] as const;
 type CargoType = typeof cargoOptions[number]["value"];
-
 const loginSchema = z.object({
   email: z.string().email("Email inválido"),
-  password: z.string().min(6, "Senha deve ter pelo menos 6 caracteres"),
+  password: z.string().min(6, "Senha deve ter pelo menos 6 caracteres")
 });
-
 const signupSchema = loginSchema.extend({
   fullName: z.string().min(2, "Nome deve ter pelo menos 2 caracteres"),
-  cargo: z.string().min(1, "Selecione um cargo"),
+  cargo: z.string().min(1, "Selecione um cargo")
 });
-
 const Auth = () => {
   const [isLogin, setIsLogin] = useState(true);
   const [email, setEmail] = useState("");
@@ -49,42 +57,52 @@ const Auth = () => {
   const [showPassword, setShowPassword] = useState(false);
   const [isLoading, setIsLoading] = useState(false);
   const [errors, setErrors] = useState<Record<string, string>>({});
-  
   const navigate = useNavigate();
-  const { toast } = useToast();
-
+  const {
+    toast
+  } = useToast();
   useEffect(() => {
-    const { data: { subscription } } = supabase.auth.onAuthStateChange(
-      (event, session) => {
-        if (session?.user) {
-          navigate("/");
-        }
+    const {
+      data: {
+        subscription
       }
-    );
-
-    supabase.auth.getSession().then(({ data: { session } }) => {
+    } = supabase.auth.onAuthStateChange((event, session) => {
       if (session?.user) {
         navigate("/");
       }
     });
-
+    supabase.auth.getSession().then(({
+      data: {
+        session
+      }
+    }) => {
+      if (session?.user) {
+        navigate("/");
+      }
+    });
     return () => subscription.unsubscribe();
   }, [navigate]);
-
   const validateForm = () => {
     setErrors({});
-    
     try {
       if (isLogin) {
-        loginSchema.parse({ email, password });
+        loginSchema.parse({
+          email,
+          password
+        });
       } else {
-        signupSchema.parse({ email, password, fullName, cargo });
+        signupSchema.parse({
+          email,
+          password,
+          fullName,
+          cargo
+        });
       }
       return true;
     } catch (error) {
       if (error instanceof z.ZodError) {
         const newErrors: Record<string, string> = {};
-        error.errors.forEach((err) => {
+        error.errors.forEach(err => {
           if (err.path[0]) {
             newErrors[err.path[0] as string] = err.message;
           }
@@ -94,83 +112,79 @@ const Auth = () => {
       return false;
     }
   };
-
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
-    
     if (!validateForm()) return;
-    
     setIsLoading(true);
-
     try {
       if (isLogin) {
-        const { error } = await supabase.auth.signInWithPassword({
+        const {
+          error
+        } = await supabase.auth.signInWithPassword({
           email,
-          password,
+          password
         });
-        
         if (error) {
           if (error.message.includes("Invalid login credentials")) {
             toast({
               title: "Erro no login",
               description: "Email ou senha incorretos",
-              variant: "destructive",
+              variant: "destructive"
             });
           } else {
             toast({
               title: "Erro no login",
               description: error.message,
-              variant: "destructive",
+              variant: "destructive"
             });
           }
         }
       } else {
         const redirectUrl = `${window.location.origin}/`;
-        
-        const { data, error } = await supabase.auth.signUp({
+        const {
+          data,
+          error
+        } = await supabase.auth.signUp({
           email,
           password,
           options: {
-            emailRedirectTo: redirectUrl,
-          },
+            emailRedirectTo: redirectUrl
+          }
         });
-
         if (error) {
           if (error.message.includes("User already registered")) {
             toast({
               title: "Erro no cadastro",
               description: "Este email já está cadastrado. Tente fazer login.",
-              variant: "destructive",
+              variant: "destructive"
             });
           } else {
             toast({
               title: "Erro no cadastro",
               description: error.message,
-              variant: "destructive",
+              variant: "destructive"
             });
           }
           return;
         }
-
         if (data.user) {
-          const { error: profileError } = await supabase
-            .from("profiles")
-            .insert({
-              user_id: data.user.id,
-              full_name: fullName,
-              cargo: cargo as CargoType,
-            });
-
+          const {
+            error: profileError
+          } = await supabase.from("profiles").insert({
+            user_id: data.user.id,
+            full_name: fullName,
+            cargo: cargo as CargoType
+          });
           if (profileError) {
             toast({
               title: "Erro ao criar perfil",
               description: profileError.message,
-              variant: "destructive",
+              variant: "destructive"
             });
           } else {
             toast({
               title: "Conta criada com sucesso!",
-              description: "Você será redirecionado...",
+              description: "Você será redirecionado..."
             });
           }
         }
@@ -179,15 +193,13 @@ const Auth = () => {
       toast({
         title: "Erro",
         description: "Ocorreu um erro inesperado. Tente novamente.",
-        variant: "destructive",
+        variant: "destructive"
       });
     } finally {
       setIsLoading(false);
     }
   };
-
-  return (
-    <div className="min-h-screen bg-black relative overflow-hidden">
+  return <div className="min-h-screen bg-black relative overflow-hidden">
       {/* Background gradient */}
       <div className="absolute inset-0 bg-gradient-to-b from-black/60 via-black/80 to-black" />
       
@@ -198,9 +210,7 @@ const Auth = () => {
 
       {/* Header */}
       <header className="relative z-10 p-6">
-        <h1 className="text-3xl font-bold text-primary tracking-tight">
-          OpsHub
-        </h1>
+        <h1 className="text-3xl font-bold text-primary tracking-tight">CONTROLE OPERACIONAL SUCENA</h1>
       </header>
 
       {/* Main content */}
@@ -212,40 +222,20 @@ const Auth = () => {
             </h2>
 
             <form onSubmit={handleSubmit} className="space-y-6">
-              {!isLogin && (
-                <div className="space-y-2">
+              {!isLogin && <div className="space-y-2">
                   <Label htmlFor="fullName" className="text-gray-300">
                     Nome Completo
                   </Label>
-                  <Input
-                    id="fullName"
-                    type="text"
-                    value={fullName}
-                    onChange={(e) => setFullName(e.target.value)}
-                    placeholder="Seu nome completo"
-                    className="bg-zinc-800 border-zinc-700 text-white placeholder:text-zinc-500 h-12 focus:border-primary focus:ring-primary"
-                  />
-                  {errors.fullName && (
-                    <p className="text-red-500 text-sm">{errors.fullName}</p>
-                  )}
-                </div>
-              )}
+                  <Input id="fullName" type="text" value={fullName} onChange={e => setFullName(e.target.value)} placeholder="Seu nome completo" className="bg-zinc-800 border-zinc-700 text-white placeholder:text-zinc-500 h-12 focus:border-primary focus:ring-primary" />
+                  {errors.fullName && <p className="text-red-500 text-sm">{errors.fullName}</p>}
+                </div>}
 
               <div className="space-y-2">
                 <Label htmlFor="email" className="text-gray-300">
                   Email
                 </Label>
-                <Input
-                  id="email"
-                  type="email"
-                  value={email}
-                  onChange={(e) => setEmail(e.target.value)}
-                  placeholder="seu@email.com"
-                  className="bg-zinc-800 border-zinc-700 text-white placeholder:text-zinc-500 h-12 focus:border-primary focus:ring-primary"
-                />
-                {errors.email && (
-                  <p className="text-red-500 text-sm">{errors.email}</p>
-                )}
+                <Input id="email" type="email" value={email} onChange={e => setEmail(e.target.value)} placeholder="seu@email.com" className="bg-zinc-800 border-zinc-700 text-white placeholder:text-zinc-500 h-12 focus:border-primary focus:ring-primary" />
+                {errors.email && <p className="text-red-500 text-sm">{errors.email}</p>}
               </div>
 
               <div className="space-y-2">
@@ -253,80 +243,43 @@ const Auth = () => {
                   Senha
                 </Label>
                 <div className="relative">
-                  <Input
-                    id="password"
-                    type={showPassword ? "text" : "password"}
-                    value={password}
-                    onChange={(e) => setPassword(e.target.value)}
-                    placeholder="••••••••"
-                    className="bg-zinc-800 border-zinc-700 text-white placeholder:text-zinc-500 h-12 pr-12 focus:border-primary focus:ring-primary"
-                  />
-                  <button
-                    type="button"
-                    onClick={() => setShowPassword(!showPassword)}
-                    className="absolute right-3 top-1/2 -translate-y-1/2 text-zinc-500 hover:text-white transition-colors"
-                  >
+                  <Input id="password" type={showPassword ? "text" : "password"} value={password} onChange={e => setPassword(e.target.value)} placeholder="••••••••" className="bg-zinc-800 border-zinc-700 text-white placeholder:text-zinc-500 h-12 pr-12 focus:border-primary focus:ring-primary" />
+                  <button type="button" onClick={() => setShowPassword(!showPassword)} className="absolute right-3 top-1/2 -translate-y-1/2 text-zinc-500 hover:text-white transition-colors">
                     {showPassword ? <EyeOff size={20} /> : <Eye size={20} />}
                   </button>
                 </div>
-                {errors.password && (
-                  <p className="text-red-500 text-sm">{errors.password}</p>
-                )}
+                {errors.password && <p className="text-red-500 text-sm">{errors.password}</p>}
               </div>
 
-              {!isLogin && (
-                <div className="space-y-2">
+              {!isLogin && <div className="space-y-2">
                   <Label htmlFor="cargo" className="text-gray-300">
                     Cargo
                   </Label>
-                  <Select value={cargo} onValueChange={(value) => setCargo(value as CargoType)}>
+                  <Select value={cargo} onValueChange={value => setCargo(value as CargoType)}>
                     <SelectTrigger className="bg-zinc-800 border-zinc-700 text-white h-12 focus:border-primary focus:ring-primary">
                       <SelectValue placeholder="Selecione seu cargo" />
                     </SelectTrigger>
                     <SelectContent className="bg-zinc-800 border-zinc-700">
-                      {cargoOptions.map((option) => (
-                        <SelectItem
-                          key={option.value}
-                          value={option.value}
-                          className="text-white hover:bg-zinc-700 focus:bg-zinc-700"
-                        >
+                      {cargoOptions.map(option => <SelectItem key={option.value} value={option.value} className="text-white hover:bg-zinc-700 focus:bg-zinc-700">
                           {option.label}
-                        </SelectItem>
-                      ))}
+                        </SelectItem>)}
                     </SelectContent>
                   </Select>
-                  {errors.cargo && (
-                    <p className="text-red-500 text-sm">{errors.cargo}</p>
-                  )}
-                </div>
-              )}
+                  {errors.cargo && <p className="text-red-500 text-sm">{errors.cargo}</p>}
+                </div>}
 
-              <Button
-                type="submit"
-                disabled={isLoading}
-                className="w-full h-12 bg-primary hover:bg-primary/90 text-white font-semibold text-base"
-              >
-                {isLoading ? (
-                  <Loader2 className="w-5 h-5 animate-spin" />
-                ) : isLogin ? (
-                  "Entrar"
-                ) : (
-                  "Cadastrar"
-                )}
+              <Button type="submit" disabled={isLoading} className="w-full h-12 bg-primary hover:bg-primary/90 text-white font-semibold text-base">
+                {isLoading ? <Loader2 className="w-5 h-5 animate-spin" /> : isLogin ? "Entrar" : "Cadastrar"}
               </Button>
             </form>
 
             <div className="mt-8 text-center">
               <p className="text-gray-400">
                 {isLogin ? "Novo por aqui?" : "Já tem uma conta?"}{" "}
-                <button
-                  type="button"
-                  onClick={() => {
-                    setIsLogin(!isLogin);
-                    setErrors({});
-                  }}
-                  className="text-white hover:underline font-medium"
-                >
+                <button type="button" onClick={() => {
+                setIsLogin(!isLogin);
+                setErrors({});
+              }} className="text-white hover:underline font-medium">
                   {isLogin ? "Cadastre-se agora" : "Faça login"}
                 </button>
               </p>
@@ -339,8 +292,6 @@ const Auth = () => {
       <footer className="relative z-10 p-6 text-center text-gray-500 text-sm">
         <p>© 2024 OpsHub. Todos os direitos reservados.</p>
       </footer>
-    </div>
-  );
+    </div>;
 };
-
 export default Auth;
