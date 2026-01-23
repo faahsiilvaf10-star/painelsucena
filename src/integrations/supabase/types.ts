@@ -55,6 +55,30 @@ export type Database = {
           },
         ]
       }
+      attendance_report_locks: {
+        Row: {
+          created_at: string
+          date: string
+          id: string
+          locked_at: string
+          locked_by: string
+        }
+        Insert: {
+          created_at?: string
+          date: string
+          id?: string
+          locked_at?: string
+          locked_by: string
+        }
+        Update: {
+          created_at?: string
+          date?: string
+          id?: string
+          locked_at?: string
+          locked_by?: string
+        }
+        Relationships: []
+      }
       employees: {
         Row: {
           avatar: string
