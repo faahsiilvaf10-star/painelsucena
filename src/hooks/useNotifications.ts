@@ -29,6 +29,36 @@ const playNotificationSound = () => {
   }
 };
 
+// Show browser push notification when page is in background
+const showBrowserNotification = (notification: Notification) => {
+  // Check if browser supports notifications and permission is granted
+  if (!("Notification" in window) || window.Notification.permission !== "granted") {
+    return;
+  }
+
+  // Only show if page is not visible (in background)
+  if (document.visibilityState === "hidden") {
+    try {
+      const browserNotification = new window.Notification(notification.title, {
+        body: notification.message,
+        icon: "/favicon.ico",
+        tag: `notification-${notification.id}`,
+      });
+
+      // Focus window when notification is clicked
+      browserNotification.onclick = () => {
+        window.focus();
+        browserNotification.close();
+      };
+
+      // Auto close after 5 seconds
+      setTimeout(() => browserNotification.close(), 5000);
+    } catch (error) {
+      console.error("Error showing browser notification:", error);
+    }
+  }
+};
+
 export const useNotifications = () => {
   const { user } = useAuth();
   const queryClient = useQueryClient();
@@ -51,7 +81,7 @@ export const useNotifications = () => {
     enabled: !!user?.id,
   });
 
-  // Realtime subscription with sound
+  // Realtime subscription with sound and browser notification
   useEffect(() => {
     if (!user?.id) return;
 
@@ -65,9 +95,13 @@ export const useNotifications = () => {
           table: "notifications",
           filter: `user_id=eq.${user.id}`,
         },
-        () => {
+        (payload) => {
           // Play sound on new notification
           playNotificationSound();
+          
+          // Show browser notification if page is in background
+          showBrowserNotification(payload.new as Notification);
+          
           queryClient.invalidateQueries({ queryKey: ["notifications", user.id] });
         }
       )
