@@ -19,7 +19,7 @@ const navItems = [{
   path: "/presenca"
 }, {
   icon: Grid3X3,
-  label: "Matriz RACI",
+  label: "Matriz de Responsabilidade",
   path: "/matriz"
 }];
 const Header = () => {
