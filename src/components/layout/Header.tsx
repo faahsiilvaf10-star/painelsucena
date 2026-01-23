@@ -7,6 +7,7 @@ import { ThemeToggle } from "@/components/ThemeToggle";
 import { Separator } from "@/components/ui/separator";
 import { useAuth } from "@/hooks/useAuth";
 import { supabase } from "@/integrations/supabase/client";
+import logoPrincipal from "@/assets/logo-principal.png";
 import {
   DropdownMenu,
   DropdownMenuContent,
@@ -86,10 +87,7 @@ const Header = () => {
             <SheetContent side="left" className="w-72 bg-background border-r border-border">
               <SheetHeader className="mb-6">
                 <SheetTitle className="flex items-center gap-3">
-                  <div className="w-10 h-10 rounded-lg bg-primary flex items-center justify-center">
-                    <span className="text-primary-foreground font-bold text-xl">O</span>
-                  </div>
-                  <span className="text-2xl font-bold tracking-tight">OpsHub</span>
+                  <img src={logoPrincipal} alt="Logo Sucena" className="h-10" />
                 </SheetTitle>
               </SheetHeader>
               <nav className="flex flex-col gap-2">
@@ -141,10 +139,7 @@ const Header = () => {
 
           {/* Logo */}
           <Link to="/" className="flex items-center gap-3">
-            <div className="w-10 h-10 rounded-lg flex items-center justify-center bg-foreground">
-              <span className="text-primary-foreground font-bold text-xl">S</span>
-            </div>
-            <span className="text-2xl font-bold tracking-tight hidden sm:inline">SUCENA</span>
+            <img src={logoPrincipal} alt="Logo Sucena" className="h-10 transition-all duration-300 hover:scale-105" />
           </Link>
 
           {/* Desktop Navigation */}
