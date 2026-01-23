@@ -1,5 +1,5 @@
 import { useState, useMemo } from "react";
-import { FileText, Copy, Send, Loader2, Check, UserPlus } from "lucide-react";
+import { FileText, Copy, Send, Loader2, Check, UserPlus, Pencil } from "lucide-react";
 import Layout from "@/components/layout/Layout";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -30,60 +30,15 @@ type AttendanceWithEmployee = Tables<"attendance_records"> & {
   employees: Tables<"employees"> | null;
 };
 
-// Define the role groupings for the report
-const roleGroups = {
-  "ÁREA GABIÃO": {
-    header: "✳  ÁREA GABIÃO  ✳",
-    support: {
-      header: "✴EQUIPE DE SUPORTE✴",
-      members: [
-        { role: "🙋‍♀ TST", name: "ITAMAR DE SOUZA" },
-        { role: "🙋‍♂ ENC GERAL", name: "DOMINGUES FABRICIO" },
-        { role: "🙋‍♂ ENC", name: "JOSÉ MARIA CORREA" },
-      ],
-    },
-    execution: {
-      header: "✴EQUIPE DE EXECUÇÃO✴",
-      roles: ["Polivalente", "Meia Oficial", "Ajudante"],
-    },
-    roleLabels: {
-      Polivalente: "👷🏼‍♂ Polivalentes:",
-      "Meia Oficial": "👷🏼‍♂ Meia oficial:",
-      Ajudante: "👷🏼‍♂ Ajudante:",
-    },
-  },
-  "ROÇAGEM E PODAGEM": {
-    header: "-----------------------------------\n\n 🌿 ROÇAGEM E PODAGEM 🌿",
-    support: {
-      header: "✴EQUIPE DE SUPORTE✴",
-      members: [
-        { role: "🙋‍♀ TST", name: "ITAMAR DE SOUZA" },
-        { role: "🙋‍♂ ENC GERAL", name: "DOMINGUES FABRICIO" },
-        { role: "🙋‍♂ ENC", name: "RUDNEY SILVA" },
-      ],
-    },
-    execution: {
-      header: "✴EQUIPE DE EXECUÇÃO✴",
-      roles: [
-        "Jardineiro",
-        "Ajudante",
-        "Motorista do Pipa",
-        "Motorista do Munck",
-        "Sinaleiro",
-        "Mecânico Montador",
-        "Auxiliar de Elétrica",
-      ],
-    },
-    roleLabels: {
-      Jardineiro: "👷🏼‍♂Jardineiro:",
-      Ajudante: "👷🏼‍♂ Ajudante:",
-      "Motorista do Pipa": "👷🏼 Motorista do Pipa",
-      "Motorista do Munck": "👷🏼 Motorista do Munck",
-      Sinaleiro: "👷🏼 Sinaleiro",
-      "Mecânico Montador": "👷🏼 Mecânico montador",
-      "Auxiliar de Elétrica": "👷🏼 Auxiliar de elétrica",
-    },
-  },
+type SupportMember = {
+  role: string;
+  name: string;
+};
+
+type SupportTeam = {
+  tst: string;
+  encGeral: string;
+  enc: string;
 };
 
 // Map roles to areas
@@ -111,6 +66,37 @@ const allRoles = [
   "Auxiliar de Elétrica",
 ];
 
+// Role labels for display
+const roleLabels: Record<string, Record<string, string>> = {
+  "ÁREA GABIÃO": {
+    Polivalente: "👷🏼‍♂ Polivalentes:",
+    "Meia Oficial": "👷🏼‍♂ Meia oficial:",
+    Ajudante: "👷🏼‍♂ Ajudante:",
+  },
+  "ROÇAGEM E PODAGEM": {
+    Jardineiro: "👷🏼‍♂Jardineiro:",
+    Ajudante: "👷🏼‍♂ Ajudante:",
+    "Motorista do Pipa": "👷🏼 Motorista do Pipa",
+    "Motorista do Munck": "👷🏼 Motorista do Munck",
+    Sinaleiro: "👷🏼 Sinaleiro",
+    "Mecânico Montador": "👷🏼 Mecânico montador",
+    "Auxiliar de Elétrica": "👷🏼 Auxiliar de elétrica",
+  },
+};
+
+const executionRoles: Record<string, string[]> = {
+  "ÁREA GABIÃO": ["Polivalente", "Meia Oficial", "Ajudante"],
+  "ROÇAGEM E PODAGEM": [
+    "Jardineiro",
+    "Ajudante",
+    "Motorista do Pipa",
+    "Motorista do Munck",
+    "Sinaleiro",
+    "Mecânico Montador",
+    "Auxiliar de Elétrica",
+  ],
+};
+
 // Ajudante belongs to their specific area based on employee
 const gabiaAjudantes = [
   "Flávio Henrique",
@@ -130,9 +116,21 @@ const RelatorioPresenca = () => {
   const [newEmployee, setNewEmployee] = useState({
     name: "",
     role: "",
-    area: "ÁREA GABIÃO" as "ÁREA GABIÃO" | "ROÇAGEM E PODAGEM",
   });
   const [isSubmitting, setIsSubmitting] = useState(false);
+
+  // Editable support teams
+  const [supportGabiao, setSupportGabiao] = useState<SupportTeam>({
+    tst: "ITAMAR DE SOUZA",
+    encGeral: "DOMINGUES FABRICIO",
+    enc: "JOSÉ MARIA CORREA",
+  });
+
+  const [supportRocagem, setSupportRocagem] = useState<SupportTeam>({
+    tst: "ITAMAR DE SOUZA",
+    encGeral: "DOMINGUES FABRICIO",
+    enc: "RUDNEY SILVA",
+  });
 
   const queryClient = useQueryClient();
   const upsertAttendance = useUpsertAttendance();
@@ -263,7 +261,7 @@ const RelatorioPresenca = () => {
       if (error) throw error;
 
       toast.success("Funcionário adicionado!");
-      setNewEmployee({ name: "", role: "", area: "ÁREA GABIÃO" });
+      setNewEmployee({ name: "", role: "" });
       setDialogOpen(false);
       queryClient.invalidateQueries({ queryKey: ["employees_all"] });
     } catch {
@@ -277,18 +275,23 @@ const RelatorioPresenca = () => {
   const generateAreaReport = (area: "ÁREA GABIÃO" | "ROÇAGEM E PODAGEM") => {
     if (!allEmployees) return "";
 
-    const config = roleGroups[area];
+    const support = area === "ÁREA GABIÃO" ? supportGabiao : supportRocagem;
+    const header = area === "ÁREA GABIÃO" 
+      ? "✳  ÁREA GABIÃO  ✳" 
+      : "-----------------------------------\n\n 🌿 ROÇAGEM E PODAGEM 🌿";
+
     let report = "";
 
-    report += `${config.header}\n\n`;
-    report += `${config.support.header}\n\n`;
-    config.support.members.forEach((m) => {
-      report += `${m.role} : ${m.name}\n\n`;
-    });
-    report += `${config.execution.header}\n\n`;
+    report += `${header}\n\n`;
+    report += `✴EQUIPE DE SUPORTE✴\n\n`;
+    report += `🙋‍♀ TST : ${support.tst}\n\n`;
+    report += `🙋‍♂ ENC GERAL: ${support.encGeral}\n\n`;
+    report += `🙋‍♂ ENC: ${support.enc}\n\n`;
+    report += `✴EQUIPE DE EXECUÇÃO✴\n\n`;
 
-    config.execution.roles.forEach((role) => {
-      const label = config.roleLabels[role as keyof typeof config.roleLabels];
+    const roles = executionRoles[area];
+    roles.forEach((role) => {
+      const label = roleLabels[area][role];
       const employees = groupedEmployees[area][role] || [];
       if (employees.length > 0) {
         report += `${label}\n\n`;
@@ -314,7 +317,7 @@ const RelatorioPresenca = () => {
 
     // All areas
     return generateAreaReport("ÁREA GABIÃO") + "\n\n" + generateAreaReport("ROÇAGEM E PODAGEM");
-  }, [allEmployees, groupedEmployees, attendanceMap, selectedArea]);
+  }, [allEmployees, groupedEmployees, attendanceMap, selectedArea, supportGabiao, supportRocagem]);
 
   const handleCopy = async () => {
     try {
@@ -370,34 +373,70 @@ const RelatorioPresenca = () => {
     );
   };
 
+  const SupportTeamEditor = ({
+    support,
+    setSupport,
+  }: {
+    support: SupportTeam;
+    setSupport: React.Dispatch<React.SetStateAction<SupportTeam>>;
+  }) => {
+    return (
+      <div className="bg-muted/30 rounded-lg p-4 mb-4">
+        <p className="text-sm font-semibold text-center mb-3 flex items-center justify-center gap-2">
+          ✴ EQUIPE DE SUPORTE ✴
+          <Pencil className="w-3 h-3 text-muted-foreground" />
+        </p>
+        <div className="space-y-3">
+          <div className="flex items-center gap-2">
+            <span className="text-sm text-muted-foreground w-24 shrink-0">🙋‍♀ TST:</span>
+            <Input
+              value={support.tst}
+              onChange={(e) => setSupport({ ...support, tst: e.target.value })}
+              className="h-8 text-sm bg-background"
+              placeholder="Nome do TST"
+            />
+          </div>
+          <div className="flex items-center gap-2">
+            <span className="text-sm text-muted-foreground w-24 shrink-0">🙋‍♂ ENC GERAL:</span>
+            <Input
+              value={support.encGeral}
+              onChange={(e) => setSupport({ ...support, encGeral: e.target.value })}
+              className="h-8 text-sm bg-background"
+              placeholder="Nome do ENC Geral"
+            />
+          </div>
+          <div className="flex items-center gap-2">
+            <span className="text-sm text-muted-foreground w-24 shrink-0">🙋‍♂ ENC:</span>
+            <Input
+              value={support.enc}
+              onChange={(e) => setSupport({ ...support, enc: e.target.value })}
+              className="h-8 text-sm bg-background"
+              placeholder="Nome do ENC"
+            />
+          </div>
+        </div>
+      </div>
+    );
+  };
+
   const AreaCard = ({ area }: { area: "ÁREA GABIÃO" | "ROÇAGEM E PODAGEM" }) => {
-    const config = roleGroups[area];
     const emoji = area === "ÁREA GABIÃO" ? "✳" : "🌿";
+    const support = area === "ÁREA GABIÃO" ? supportGabiao : supportRocagem;
+    const setSupport = area === "ÁREA GABIÃO" ? setSupportGabiao : setSupportRocagem;
 
     return (
       <div className="bg-card rounded-xl border border-border/50 p-6">
         <h2 className="text-xl font-bold mb-2 text-center">
           {emoji} {area} {emoji}
         </h2>
-        <div className="bg-muted/30 rounded-lg p-4 mb-4">
-          <p className="text-sm font-semibold text-center mb-3">
-            ✴ EQUIPE DE SUPORTE ✴
-          </p>
-          <div className="space-y-1 text-sm text-muted-foreground">
-            {config.support.members.map((m, i) => (
-              <p key={i}>
-                {m.role}: {m.name}
-              </p>
-            ))}
-          </div>
-        </div>
+        <SupportTeamEditor support={support} setSupport={setSupport} />
         <p className="text-sm font-semibold text-center mb-4">
           ✴ EQUIPE DE EXECUÇÃO ✴
         </p>
-        {config.execution.roles.map((role) => (
+        {executionRoles[area].map((role) => (
           <RoleSection
             key={role}
-            label={config.roleLabels[role as keyof typeof config.roleLabels]}
+            label={roleLabels[area][role]}
             employees={groupedEmployees[area][role] || []}
           />
         ))}
@@ -414,7 +453,7 @@ const RelatorioPresenca = () => {
             <h1 className="text-4xl font-bold mb-2">Relatório de Presença</h1>
             <p className="text-muted-foreground flex items-center gap-2">
               <FileText className="w-4 h-4" />
-              Clique em cada funcionário para alternar ✅ / ❌
+              Clique para alternar ✅ / ❌ e edite a equipe de suporte
             </p>
           </div>
 
