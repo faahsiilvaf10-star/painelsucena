@@ -1,9 +1,25 @@
 import { useState, useMemo } from "react";
-import { FileText, Copy, Send, Loader2, Check } from "lucide-react";
+import { FileText, Copy, Send, Loader2, Check, UserPlus } from "lucide-react";
 import Layout from "@/components/layout/Layout";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Textarea } from "@/components/ui/textarea";
+import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
+import {
+  Dialog,
+  DialogContent,
+  DialogHeader,
+  DialogTitle,
+  DialogTrigger,
+} from "@/components/ui/dialog";
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from "@/components/ui/select";
+import { Label } from "@/components/ui/label";
 import { useQuery, useQueryClient } from "@tanstack/react-query";
 import { supabase } from "@/integrations/supabase/client";
 import type { Tables } from "@/integrations/supabase/types";
@@ -37,7 +53,7 @@ const roleGroups = {
     },
   },
   "ROÇAGEM E PODAGEM": {
-    header: "-----------------------------------\n\n ROÇAGEM E PODAGEM",
+    header: "-----------------------------------\n\n 🌿 ROÇAGEM E PODAGEM 🌿",
     support: {
       header: "✴EQUIPE DE SUPORTE✴",
       members: [
@@ -82,6 +98,19 @@ const roleToArea: Record<string, string> = {
   "Auxiliar de Elétrica": "ROÇAGEM E PODAGEM",
 };
 
+// All available roles
+const allRoles = [
+  "Polivalente",
+  "Meia Oficial",
+  "Ajudante",
+  "Jardineiro",
+  "Motorista do Pipa",
+  "Motorista do Munck",
+  "Sinaleiro",
+  "Mecânico Montador",
+  "Auxiliar de Elétrica",
+];
+
 // Ajudante belongs to their specific area based on employee
 const gabiaAjudantes = [
   "Flávio Henrique",
@@ -96,6 +125,15 @@ const RelatorioPresenca = () => {
     return new Date().toISOString().split("T")[0];
   });
   const [copied, setCopied] = useState(false);
+  const [selectedArea, setSelectedArea] = useState<"all" | "ÁREA GABIÃO" | "ROÇAGEM E PODAGEM">("all");
+  const [dialogOpen, setDialogOpen] = useState(false);
+  const [newEmployee, setNewEmployee] = useState({
+    name: "",
+    role: "",
+    area: "ÁREA GABIÃO" as "ÁREA GABIÃO" | "ROÇAGEM E PODAGEM",
+  });
+  const [isSubmitting, setIsSubmitting] = useState(false);
+
   const queryClient = useQueryClient();
   const upsertAttendance = useUpsertAttendance();
 
@@ -173,14 +211,14 @@ const RelatorioPresenca = () => {
 
   const getStatusEmoji = (employeeId: string) => {
     const attendance = attendanceMap.get(employeeId);
-    if (!attendance) return "✅"; // Default to present
+    if (!attendance) return "✅";
     if (attendance.status === "present" || attendance.status === "late") return "✅";
     return "❌";
   };
 
   const isPresent = (employeeId: string) => {
     const attendance = attendanceMap.get(employeeId);
-    if (!attendance) return true; // Default to present
+    if (!attendance) return true;
     return attendance.status === "present" || attendance.status === "late";
   };
 
@@ -200,58 +238,83 @@ const RelatorioPresenca = () => {
     }
   };
 
-  // Generate the WhatsApp report text
-  const generateReport = useMemo(() => {
+  const handleAddEmployee = async () => {
+    if (!newEmployee.name.trim() || !newEmployee.role) {
+      toast.error("Preencha nome e função");
+      return;
+    }
+
+    setIsSubmitting(true);
+    try {
+      const initials = newEmployee.name
+        .split(" ")
+        .map((n) => n[0])
+        .join("")
+        .toUpperCase()
+        .slice(0, 2);
+
+      const { error } = await supabase.from("employees").insert({
+        name: newEmployee.name.trim(),
+        role: newEmployee.role,
+        department: "Operações",
+        avatar: initials,
+      });
+
+      if (error) throw error;
+
+      toast.success("Funcionário adicionado!");
+      setNewEmployee({ name: "", role: "", area: "ÁREA GABIÃO" });
+      setDialogOpen(false);
+      queryClient.invalidateQueries({ queryKey: ["employees_all"] });
+    } catch {
+      toast.error("Erro ao adicionar funcionário");
+    } finally {
+      setIsSubmitting(false);
+    }
+  };
+
+  // Generate report for a specific area
+  const generateAreaReport = (area: "ÁREA GABIÃO" | "ROÇAGEM E PODAGEM") => {
     if (!allEmployees) return "";
 
-    const getStatusEmojiByName = (employeeId: string) => {
-      return getStatusEmoji(employeeId);
-    };
-
+    const config = roleGroups[area];
     let report = "";
 
-    // ÁREA GABIÃO
-    const gabiao = roleGroups["ÁREA GABIÃO"];
-    report += `${gabiao.header}\n\n`;
-    report += `${gabiao.support.header}\n\n`;
-    gabiao.support.members.forEach((m) => {
+    report += `${config.header}\n\n`;
+    report += `${config.support.header}\n\n`;
+    config.support.members.forEach((m) => {
       report += `${m.role} : ${m.name}\n\n`;
     });
-    report += `${gabiao.execution.header}\n\n`;
+    report += `${config.execution.header}\n\n`;
 
-    gabiao.execution.roles.forEach((role) => {
-      const label = gabiao.roleLabels[role as keyof typeof gabiao.roleLabels];
-      const employees = groupedEmployees["ÁREA GABIÃO"][role] || [];
+    config.execution.roles.forEach((role) => {
+      const label = config.roleLabels[role as keyof typeof config.roleLabels];
+      const employees = groupedEmployees[area][role] || [];
       if (employees.length > 0) {
         report += `${label}\n\n`;
         employees.forEach((emp) => {
-          report += `${emp.name.toUpperCase()} ${getStatusEmojiByName(emp.id)}\n\n`;
-        });
-      }
-    });
-
-    // ROÇAGEM E PODAGEM
-    const rocagem = roleGroups["ROÇAGEM E PODAGEM"];
-    report += `${rocagem.header}\n\n`;
-    report += `${rocagem.support.header} \n\n`;
-    rocagem.support.members.forEach((m) => {
-      report += `${m.role} : ${m.name}\n\n`;
-    });
-    report += `${rocagem.execution.header}\n\n`;
-
-    rocagem.execution.roles.forEach((role) => {
-      const label = rocagem.roleLabels[role as keyof typeof rocagem.roleLabels];
-      const employees = groupedEmployees["ROÇAGEM E PODAGEM"][role] || [];
-      if (employees.length > 0) {
-        report += `${label}\n\n`;
-        employees.forEach((emp) => {
-          report += `${emp.name.toUpperCase()} ${getStatusEmojiByName(emp.id)}\n\n`;
+          report += `${emp.name.toUpperCase()} ${getStatusEmoji(emp.id)}\n\n`;
         });
       }
     });
 
     return report.trim();
-  }, [allEmployees, groupedEmployees, attendanceMap]);
+  };
+
+  // Generate full report or selected area
+  const generateReport = useMemo(() => {
+    if (!allEmployees) return "";
+
+    if (selectedArea === "ÁREA GABIÃO") {
+      return generateAreaReport("ÁREA GABIÃO");
+    }
+    if (selectedArea === "ROÇAGEM E PODAGEM") {
+      return generateAreaReport("ROÇAGEM E PODAGEM");
+    }
+
+    // All areas
+    return generateAreaReport("ÁREA GABIÃO") + "\n\n" + generateAreaReport("ROÇAGEM E PODAGEM");
+  }, [allEmployees, groupedEmployees, attendanceMap, selectedArea]);
 
   const handleCopy = async () => {
     try {
@@ -307,6 +370,41 @@ const RelatorioPresenca = () => {
     );
   };
 
+  const AreaCard = ({ area }: { area: "ÁREA GABIÃO" | "ROÇAGEM E PODAGEM" }) => {
+    const config = roleGroups[area];
+    const emoji = area === "ÁREA GABIÃO" ? "✳" : "🌿";
+
+    return (
+      <div className="bg-card rounded-xl border border-border/50 p-6">
+        <h2 className="text-xl font-bold mb-2 text-center">
+          {emoji} {area} {emoji}
+        </h2>
+        <div className="bg-muted/30 rounded-lg p-4 mb-4">
+          <p className="text-sm font-semibold text-center mb-3">
+            ✴ EQUIPE DE SUPORTE ✴
+          </p>
+          <div className="space-y-1 text-sm text-muted-foreground">
+            {config.support.members.map((m, i) => (
+              <p key={i}>
+                {m.role}: {m.name}
+              </p>
+            ))}
+          </div>
+        </div>
+        <p className="text-sm font-semibold text-center mb-4">
+          ✴ EQUIPE DE EXECUÇÃO ✴
+        </p>
+        {config.execution.roles.map((role) => (
+          <RoleSection
+            key={role}
+            label={config.roleLabels[role as keyof typeof config.roleLabels]}
+            employees={groupedEmployees[area][role] || []}
+          />
+        ))}
+      </div>
+    );
+  };
+
   return (
     <Layout>
       <div className="container mx-auto px-6 py-8">
@@ -319,6 +417,65 @@ const RelatorioPresenca = () => {
               Clique em cada funcionário para alternar ✅ / ❌
             </p>
           </div>
+
+          <Dialog open={dialogOpen} onOpenChange={setDialogOpen}>
+            <DialogTrigger asChild>
+              <Button className="gap-2">
+                <UserPlus className="w-4 h-4" />
+                Novo Funcionário
+              </Button>
+            </DialogTrigger>
+            <DialogContent className="bg-card">
+              <DialogHeader>
+                <DialogTitle>Adicionar Funcionário</DialogTitle>
+              </DialogHeader>
+              <div className="space-y-4 mt-4">
+                <div>
+                  <Label htmlFor="name">Nome</Label>
+                  <Input
+                    id="name"
+                    placeholder="Nome completo"
+                    value={newEmployee.name}
+                    onChange={(e) =>
+                      setNewEmployee({ ...newEmployee, name: e.target.value })
+                    }
+                  />
+                </div>
+                <div>
+                  <Label htmlFor="role">Função</Label>
+                  <Select
+                    value={newEmployee.role}
+                    onValueChange={(value) =>
+                      setNewEmployee({ ...newEmployee, role: value })
+                    }
+                  >
+                    <SelectTrigger className="bg-background">
+                      <SelectValue placeholder="Selecione a função" />
+                    </SelectTrigger>
+                    <SelectContent className="bg-popover">
+                      {allRoles.map((role) => (
+                        <SelectItem key={role} value={role}>
+                          {role}
+                        </SelectItem>
+                      ))}
+                    </SelectContent>
+                  </Select>
+                </div>
+                <Button
+                  onClick={handleAddEmployee}
+                  className="w-full"
+                  disabled={isSubmitting}
+                >
+                  {isSubmitting ? (
+                    <Loader2 className="w-4 h-4 animate-spin mr-2" />
+                  ) : (
+                    <UserPlus className="w-4 h-4 mr-2" />
+                  )}
+                  Adicionar
+                </Button>
+              </div>
+            </DialogContent>
+          </Dialog>
         </div>
 
         {/* Date Filter and Actions */}
@@ -333,6 +490,24 @@ const RelatorioPresenca = () => {
                 value={selectedDate}
                 onChange={(e) => setSelectedDate(e.target.value)}
               />
+            </div>
+            <div className="flex-1 max-w-xs">
+              <label className="text-sm text-muted-foreground mb-2 block">
+                Área do Relatório
+              </label>
+              <Select
+                value={selectedArea}
+                onValueChange={(value) => setSelectedArea(value as typeof selectedArea)}
+              >
+                <SelectTrigger className="bg-background">
+                  <SelectValue />
+                </SelectTrigger>
+                <SelectContent className="bg-popover">
+                  <SelectItem value="all">Todas as Áreas</SelectItem>
+                  <SelectItem value="ÁREA GABIÃO">✳ Área Gabião</SelectItem>
+                  <SelectItem value="ROÇAGEM E PODAGEM">🌿 Roçagem e Podagem</SelectItem>
+                </SelectContent>
+              </Select>
             </div>
             <div className="flex gap-2">
               <Button
@@ -354,7 +529,7 @@ const RelatorioPresenca = () => {
                 disabled={isLoading}
               >
                 <Send className="w-4 h-4" />
-                Enviar WhatsApp
+                WhatsApp
               </Button>
             </div>
           </div>
@@ -366,84 +541,36 @@ const RelatorioPresenca = () => {
           </div>
         ) : (
           <div className="grid grid-cols-1 lg:grid-cols-2 gap-8">
-            {/* Editable Attendance */}
+            {/* Editable Attendance by Area */}
             <div className="space-y-6">
-              {/* ÁREA GABIÃO */}
-              <div className="bg-card rounded-xl border border-border/50 p-6">
-                <h2 className="text-xl font-bold mb-2 text-center">
-                  ✳ ÁREA GABIÃO ✳
-                </h2>
-                <div className="bg-muted/30 rounded-lg p-4 mb-4">
-                  <p className="text-sm font-semibold text-center mb-3">
-                    ✴ EQUIPE DE SUPORTE ✴
-                  </p>
-                  <div className="space-y-1 text-sm text-muted-foreground">
-                    {roleGroups["ÁREA GABIÃO"].support.members.map((m, i) => (
-                      <p key={i}>
-                        {m.role}: {m.name}
-                      </p>
-                    ))}
-                  </div>
-                </div>
-                <p className="text-sm font-semibold text-center mb-4">
-                  ✴ EQUIPE DE EXECUÇÃO ✴
-                </p>
-                {roleGroups["ÁREA GABIÃO"].execution.roles.map((role) => (
-                  <RoleSection
-                    key={role}
-                    label={
-                      roleGroups["ÁREA GABIÃO"].roleLabels[
-                        role as keyof typeof roleGroups["ÁREA GABIÃO"]["roleLabels"]
-                      ]
-                    }
-                    employees={groupedEmployees["ÁREA GABIÃO"][role] || []}
-                  />
-                ))}
-              </div>
-
-              {/* ROÇAGEM E PODAGEM */}
-              <div className="bg-card rounded-xl border border-border/50 p-6">
-                <h2 className="text-xl font-bold mb-2 text-center">
-                  🌿 ROÇAGEM E PODAGEM 🌿
-                </h2>
-                <div className="bg-muted/30 rounded-lg p-4 mb-4">
-                  <p className="text-sm font-semibold text-center mb-3">
-                    ✴ EQUIPE DE SUPORTE ✴
-                  </p>
-                  <div className="space-y-1 text-sm text-muted-foreground">
-                    {roleGroups["ROÇAGEM E PODAGEM"].support.members.map((m, i) => (
-                      <p key={i}>
-                        {m.role}: {m.name}
-                      </p>
-                    ))}
-                  </div>
-                </div>
-                <p className="text-sm font-semibold text-center mb-4">
-                  ✴ EQUIPE DE EXECUÇÃO ✴
-                </p>
-                {roleGroups["ROÇAGEM E PODAGEM"].execution.roles.map((role) => (
-                  <RoleSection
-                    key={role}
-                    label={
-                      roleGroups["ROÇAGEM E PODAGEM"].roleLabels[
-                        role as keyof typeof roleGroups["ROÇAGEM E PODAGEM"]["roleLabels"]
-                      ]
-                    }
-                    employees={groupedEmployees["ROÇAGEM E PODAGEM"][role] || []}
-                  />
-                ))}
-              </div>
+              <Tabs defaultValue="gabiao" className="w-full">
+                <TabsList className="grid w-full grid-cols-2">
+                  <TabsTrigger value="gabiao">✳ Área Gabião</TabsTrigger>
+                  <TabsTrigger value="rocagem">🌿 Roçagem e Podagem</TabsTrigger>
+                </TabsList>
+                <TabsContent value="gabiao" className="mt-4">
+                  <AreaCard area="ÁREA GABIÃO" />
+                </TabsContent>
+                <TabsContent value="rocagem" className="mt-4">
+                  <AreaCard area="ROÇAGEM E PODAGEM" />
+                </TabsContent>
+              </Tabs>
             </div>
 
             {/* Report Preview */}
             <div className="bg-card rounded-xl border border-border/50 p-6 h-fit sticky top-6">
               <h2 className="font-semibold mb-4 text-lg">
                 📋 Pré-visualização do Relatório
+                {selectedArea !== "all" && (
+                  <span className="text-sm font-normal text-muted-foreground ml-2">
+                    ({selectedArea === "ÁREA GABIÃO" ? "Área Gabião" : "Roçagem e Podagem"})
+                  </span>
+                )}
               </h2>
               <Textarea
                 value={generateReport}
                 readOnly
-                className="min-h-[600px] font-mono text-sm whitespace-pre-wrap bg-muted/30"
+                className="min-h-[500px] font-mono text-sm whitespace-pre-wrap bg-muted/30"
               />
               <div className="flex gap-2 mt-4">
                 <Button
