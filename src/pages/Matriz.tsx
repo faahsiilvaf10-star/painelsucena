@@ -1,4 +1,4 @@
-import { useState, useEffect, useRef } from "react";
+import { useState, useEffect } from "react";
 import { 
   ChevronRight, 
   Folder,
@@ -124,8 +124,6 @@ const cargoFolders: CargoFolder[] = [
 const Matriz = () => {
   const [selectedFolder, setSelectedFolder] = useState<CargoFolder | null>(null);
   const [showCelebration, setShowCelebration] = useState(false);
-  const [celebratedFolders, setCelebratedFolders] = useState<Set<string>>(new Set());
-  const previousProgressRef = useRef<Record<string, number>>({});
   const { completedTasks, isLoading, toggleTask, isCompleted } = useMatrixProgress();
 
   const getProgress = (folder: CargoFolder) => {
@@ -138,21 +136,15 @@ const Matriz = () => {
     return folder.tarefas.filter((t) => completedTasks.includes(t.id)).length;
   };
 
-  // Check for 100% completion and show celebration
+  // Show celebration when entering a folder that is 100% complete or when completing it
   useEffect(() => {
     if (selectedFolder && !isLoading) {
       const currentProgress = getProgress(selectedFolder);
-      const previousProgress = previousProgressRef.current[selectedFolder.id] || 0;
-      
-      // Only show celebration if we just reached 100% (not if we were already at 100%)
-      if (currentProgress === 100 && previousProgress < 100 && !celebratedFolders.has(selectedFolder.id)) {
+      if (currentProgress === 100) {
         setShowCelebration(true);
-        setCelebratedFolders(prev => new Set([...prev, selectedFolder.id]));
       }
-      
-      previousProgressRef.current[selectedFolder.id] = currentProgress;
     }
-  }, [completedTasks, selectedFolder, isLoading, celebratedFolders]);
+  }, [selectedFolder, completedTasks, isLoading]);
 
   if (isLoading) {
     return (
