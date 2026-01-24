@@ -10,6 +10,7 @@ import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { ScrollArea } from "@/components/ui/scroll-area";
 import { useChatMessages } from "@/hooks/useChatMessages";
+import { useTypingIndicator } from "@/hooks/useTypingIndicator";
 import { useAuth } from "@/hooks/useAuth";
 import { OnlineUser } from "@/hooks/useOnlineUsers";
 import { EmojiPicker } from "./EmojiPicker";
@@ -47,6 +48,18 @@ const getInitials = (name: string) => {
     .toUpperCase();
 };
 
+// Typing indicator animation component
+const TypingIndicator = () => (
+  <div className="flex items-center gap-1 px-3 py-2 bg-secondary rounded-2xl rounded-bl-sm w-fit">
+    <div className="flex items-center gap-1">
+      <span className="w-2 h-2 bg-muted-foreground rounded-full animate-bounce" style={{ animationDelay: "0ms" }} />
+      <span className="w-2 h-2 bg-muted-foreground rounded-full animate-bounce" style={{ animationDelay: "150ms" }} />
+      <span className="w-2 h-2 bg-muted-foreground rounded-full animate-bounce" style={{ animationDelay: "300ms" }} />
+    </div>
+    <span className="text-xs text-muted-foreground ml-1">digitando...</span>
+  </div>
+);
+
 export const ChatDialog = ({
   open,
   onOpenChange,
@@ -60,17 +73,22 @@ export const ChatDialog = ({
   const fileInputRef = useRef<HTMLInputElement>(null);
   const scrollRef = useRef<HTMLDivElement>(null);
   const inputRef = useRef<HTMLInputElement>(null);
+  const typingTimeoutRef = useRef<NodeJS.Timeout | null>(null);
 
   const { messages, isLoading, sendMessage, uploadImage } = useChatMessages(
     selectedUser?.user_id || null
   );
 
-  // Auto-scroll to bottom when new messages arrive
+  const { isOtherTyping, sendTypingEvent, sendStopTypingEvent } = useTypingIndicator(
+    selectedUser?.user_id || null
+  );
+
+  // Auto-scroll to bottom when new messages arrive or typing indicator shows
   useEffect(() => {
     if (scrollRef.current) {
       scrollRef.current.scrollTop = scrollRef.current.scrollHeight;
     }
-  }, [messages]);
+  }, [messages, isOtherTyping]);
 
   // Focus input when dialog opens
   useEffect(() => {
@@ -79,8 +97,36 @@ export const ChatDialog = ({
     }
   }, [open]);
 
+  // Handle typing events
+  const handleInputChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+    const value = e.target.value;
+    setMessage(value);
+
+    if (value.trim()) {
+      sendTypingEvent();
+      
+      // Clear existing timeout
+      if (typingTimeoutRef.current) {
+        clearTimeout(typingTimeoutRef.current);
+      }
+      
+      // Set timeout to send stop typing after 2 seconds of no typing
+      typingTimeoutRef.current = setTimeout(() => {
+        sendStopTypingEvent();
+      }, 2000);
+    } else {
+      sendStopTypingEvent();
+    }
+  };
+
   const handleSend = async () => {
     if (!message.trim() && !pendingFile) return;
+
+    // Clear typing timeout and send stop event
+    if (typingTimeoutRef.current) {
+      clearTimeout(typingTimeoutRef.current);
+    }
+    sendStopTypingEvent();
 
     try {
       let imageUrl: string | undefined;
@@ -115,6 +161,7 @@ export const ChatDialog = ({
   const handleEmojiSelect = (emoji: string) => {
     setMessage((prev) => prev + emoji);
     inputRef.current?.focus();
+    sendTypingEvent();
   };
 
   const handleFileSelect = (e: React.ChangeEvent<HTMLInputElement>) => {
@@ -147,6 +194,15 @@ export const ChatDialog = ({
     }
   };
 
+  // Cleanup typing timeout on unmount
+  useEffect(() => {
+    return () => {
+      if (typingTimeoutRef.current) {
+        clearTimeout(typingTimeoutRef.current);
+      }
+    };
+  }, []);
+
   if (!selectedUser) return null;
 
   return (
@@ -169,7 +225,11 @@ export const ChatDialog = ({
                 {selectedUser.full_name}
               </DialogTitle>
               <p className="text-xs text-muted-foreground">
-                {cargoLabels[selectedUser.cargo] || selectedUser.cargo}
+                {isOtherTyping ? (
+                  <span className="text-primary animate-pulse">digitando...</span>
+                ) : (
+                  cargoLabels[selectedUser.cargo] || selectedUser.cargo
+                )}
               </p>
             </div>
           </div>
@@ -234,6 +294,9 @@ export const ChatDialog = ({
                 );
               })
             )}
+            
+            {/* Typing indicator */}
+            {isOtherTyping && <TypingIndicator />}
           </div>
         </ScrollArea>
 
@@ -280,7 +343,7 @@ export const ChatDialog = ({
           <Input
             ref={inputRef}
             value={message}
-            onChange={(e) => setMessage(e.target.value)}
+            onChange={handleInputChange}
             onKeyDown={handleKeyDown}
             placeholder="Digite uma mensagem..."
             className="flex-1"
