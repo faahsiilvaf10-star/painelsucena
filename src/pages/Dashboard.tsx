@@ -3,6 +3,7 @@ import Layout from "@/components/layout/Layout";
 import StatCard from "@/components/dashboard/StatCard";
 import QuickAccessCard from "@/components/dashboard/QuickAccessCard";
 import { DDSHighlightCard } from "@/components/dds/DDSHighlightCard";
+import { MatrixProgressChart } from "@/components/dashboard/MatrixProgressChart";
 import { employees, attendanceRecords } from "@/data/mockData";
 
 const Dashboard = () => {
@@ -69,8 +70,13 @@ const Dashboard = () => {
           </div>
         </div>
 
+        {/* Matrix Progress Chart */}
+        <div className="mb-12 animate-slide-up" style={{ animationDelay: "0.8s" }}>
+          <MatrixProgressChart />
+        </div>
+
         {/* Recent Activity */}
-        <div className="animate-slide-up" style={{ animationDelay: "0.8s" }}>
+        <div className="animate-slide-up" style={{ animationDelay: "0.9s" }}>
           <h2 className="text-2xl font-bold mb-6">Atividade Recente</h2>
         </div>
       </div>
