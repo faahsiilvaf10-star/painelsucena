@@ -40,11 +40,27 @@ export const OnlineUsersFooter = ({ onUserClick }: OnlineUsersFooterProps) => {
   const [isMuted, setIsMuted] = useState(false);
   const audioRef = useRef<HTMLAudioElement | null>(null);
 
-  // Initialize audio element
+  // Initialize audio element and autoplay
   useEffect(() => {
     audioRef.current = new Audio(RADIO_STREAM_URL);
     audioRef.current.volume = 0.5;
-    audioRef.current.preload = "none";
+    audioRef.current.preload = "auto";
+
+    // Try to autoplay on load
+    const tryAutoplay = async () => {
+      if (audioRef.current) {
+        try {
+          await audioRef.current.play();
+          setIsPlaying(true);
+          setIsMuted(false);
+        } catch (error) {
+          // Autoplay blocked by browser - user needs to click
+          console.log("Autoplay blocked, waiting for user interaction");
+        }
+      }
+    };
+    
+    tryAutoplay();
 
     return () => {
       if (audioRef.current) {
