@@ -237,34 +237,34 @@ const Auth = () => {
   };
 
   return (
-    <div className="min-h-screen bg-black relative overflow-hidden">
+    <div className="h-screen bg-black relative overflow-hidden flex flex-col">
       {/* Photo-based background with animations */}
       <AuthBackground />
 
       {/* Header */}
-      <header className="relative z-10 p-6 flex flex-col items-center">
+      <header className="relative z-10 p-3 md:p-4 flex flex-col items-center shrink-0">
         <img 
           src={logoSucena} 
           alt="Logo Sucena" 
-          className="h-16 md:h-20 mb-4 transition-all duration-500 ease-out hover:scale-110 hover:brightness-110 cursor-pointer drop-shadow-[0_0_25px_hsl(43,96%,56%)] [filter:_drop-shadow(0_0_15px_rgba(245,165,36,0.6))_drop-shadow(0_0_30px_rgba(245,165,36,0.4))_drop-shadow(0_0_45px_rgba(245,165,36,0.2))] hover:drop-shadow-[0_0_40px_hsl(43,96%,56%)] animate-pulse" 
+          className="h-12 md:h-14 mb-2 transition-all duration-500 ease-out hover:scale-110 hover:brightness-110 cursor-pointer drop-shadow-[0_0_25px_hsl(43,96%,56%)] [filter:_drop-shadow(0_0_15px_rgba(245,165,36,0.6))_drop-shadow(0_0_30px_rgba(245,165,36,0.4))_drop-shadow(0_0_45px_rgba(245,165,36,0.2))] hover:drop-shadow-[0_0_40px_hsl(43,96%,56%)] animate-pulse" 
         />
-        <h1 className="text-2xl md:text-3xl font-bold text-primary tracking-tight text-center drop-shadow-[0_4px_15px_rgba(0,0,0,0.9)] [text-shadow:_0_2px_20px_rgba(0,0,0,0.8),_0_0_40px_rgba(0,0,0,0.6)]">CONTROLE OPERACIONAL</h1>
-        <p className="text-gray-300 text-sm md:text-base mt-2 text-center max-w-md drop-shadow-[0_2px_10px_rgba(0,0,0,0.8)] [text-shadow:_0_2px_15px_rgba(0,0,0,0.9)]">
-          Sistema de controle operacional para gestão eficiente de empresas
+        <h1 className="text-xl md:text-2xl font-bold text-primary tracking-tight text-center drop-shadow-[0_4px_15px_rgba(0,0,0,0.9)] [text-shadow:_0_2px_20px_rgba(0,0,0,0.8),_0_0_40px_rgba(0,0,0,0.6)]">CONTROLE OPERACIONAL</h1>
+        <p className="text-gray-300 text-xs md:text-sm mt-1 text-center max-w-md drop-shadow-[0_2px_10px_rgba(0,0,0,0.8)] [text-shadow:_0_2px_15px_rgba(0,0,0,0.9)]">
+          Sistema de controle operacional para gestão eficiente
         </p>
       </header>
       {/* Main content */}
-      <main className="relative z-10 flex items-center justify-center px-4 py-8">
+      <main className="relative z-10 flex-1 flex items-center justify-center px-4 py-2 overflow-hidden">
         <div className="w-full max-w-md">
-          <div className="bg-black/80 backdrop-blur-md rounded-lg p-8 md:p-12 shadow-2xl border border-primary/20">
-            <h2 className="text-3xl font-bold text-white mb-8">
+          <div className="bg-black/80 backdrop-blur-md rounded-lg p-5 md:p-6 shadow-2xl border border-primary/20">
+            <h2 className="text-2xl font-bold text-white mb-4">
               {isLogin ? "Entrar" : "Cadastrar"}
             </h2>
 
-            <form onSubmit={handleSubmit} className="space-y-6">
+            <form onSubmit={handleSubmit} className="space-y-3">
               {!isLogin && (
-                <div className="space-y-2">
-                  <Label htmlFor="fullName" className="text-gray-300">
+                <div className="space-y-1">
+                  <Label htmlFor="fullName" className="text-gray-300 text-sm">
                     Nome Completo
                   </Label>
                   <Input
@@ -273,14 +273,14 @@ const Auth = () => {
                     value={fullName}
                     onChange={e => setFullName(e.target.value)}
                     placeholder="Seu nome completo"
-                    className="bg-zinc-800 border-zinc-700 text-white placeholder:text-zinc-500 h-12 focus:border-primary focus:ring-primary"
+                    className="bg-zinc-800 border-zinc-700 text-white placeholder:text-zinc-500 h-10 focus:border-primary focus:ring-primary"
                   />
-                  {errors.fullName && <p className="text-red-500 text-sm">{errors.fullName}</p>}
+                  {errors.fullName && <p className="text-red-500 text-xs">{errors.fullName}</p>}
                 </div>
               )}
 
-              <div className="space-y-2">
-                <Label htmlFor="email" className="text-gray-300">
+              <div className="space-y-1">
+                <Label htmlFor="email" className="text-gray-300 text-sm">
                   Email
                 </Label>
                 <Input
@@ -289,13 +289,13 @@ const Auth = () => {
                   value={email}
                   onChange={e => setEmail(e.target.value)}
                   placeholder="seu@email.com"
-                  className="bg-zinc-800 border-zinc-700 text-white placeholder:text-zinc-500 h-12 focus:border-primary focus:ring-primary"
+                  className="bg-zinc-800 border-zinc-700 text-white placeholder:text-zinc-500 h-10 focus:border-primary focus:ring-primary"
                 />
-                {errors.email && <p className="text-red-500 text-sm">{errors.email}</p>}
+                {errors.email && <p className="text-red-500 text-xs">{errors.email}</p>}
               </div>
 
-              <div className="space-y-2">
-                <Label htmlFor="password" className="text-gray-300">
+              <div className="space-y-1">
+                <Label htmlFor="password" className="text-gray-300 text-sm">
                   Senha
                 </Label>
                 <div className="relative">
@@ -305,17 +305,17 @@ const Auth = () => {
                     value={password}
                     onChange={e => setPassword(e.target.value)}
                     placeholder="••••••••"
-                    className="bg-zinc-800 border-zinc-700 text-white placeholder:text-zinc-500 h-12 pr-12 focus:border-primary focus:ring-primary"
+                    className="bg-zinc-800 border-zinc-700 text-white placeholder:text-zinc-500 h-10 pr-12 focus:border-primary focus:ring-primary"
                   />
                   <button
                     type="button"
                     onClick={() => setShowPassword(!showPassword)}
                     className="absolute right-3 top-1/2 -translate-y-1/2 text-zinc-500 hover:text-white transition-colors"
                   >
-                    {showPassword ? <EyeOff size={20} /> : <Eye size={20} />}
+                    {showPassword ? <EyeOff size={18} /> : <Eye size={18} />}
                   </button>
                 </div>
-              {errors.password && <p className="text-red-500 text-sm">{errors.password}</p>}
+              {errors.password && <p className="text-red-500 text-xs">{errors.password}</p>}
               </div>
 
               {isLogin && (
@@ -324,11 +324,11 @@ const Auth = () => {
                     id="rememberMe"
                     checked={rememberMe}
                     onCheckedChange={(checked) => setRememberMe(checked === true)}
-                    className="border-zinc-600 data-[state=checked]:bg-primary data-[state=checked]:border-primary"
+                    className="border-zinc-600 data-[state=checked]:bg-primary data-[state=checked]:border-primary h-4 w-4"
                   />
                   <Label 
                     htmlFor="rememberMe" 
-                    className="text-gray-300 text-sm cursor-pointer select-none"
+                    className="text-gray-300 text-xs cursor-pointer select-none"
                   >
                     Lembrar meu email e senha
                   </Label>
@@ -336,8 +336,8 @@ const Auth = () => {
               )}
 
               {!isLogin && (
-                <div className="space-y-2">
-                  <Label htmlFor="cargo" className="text-gray-300">
+                <div className="space-y-1">
+                  <Label htmlFor="cargo" className="text-gray-300 text-sm">
                     Cargo
                   </Label>
                   <Select 
@@ -348,7 +348,7 @@ const Auth = () => {
                       }
                     }}
                   >
-                    <SelectTrigger className="bg-zinc-800 border-zinc-700 text-white h-12 focus:border-primary focus:ring-primary">
+                    <SelectTrigger className="bg-zinc-800 border-zinc-700 text-white h-10 focus:border-primary focus:ring-primary">
                       <SelectValue placeholder="Selecione seu cargo" />
                     </SelectTrigger>
                     <SelectContent className="bg-zinc-800 border-zinc-700">
@@ -370,24 +370,24 @@ const Auth = () => {
                       })}
                     </SelectContent>
                   </Select>
-                  <p className="text-xs text-zinc-500">
+                  <p className="text-[10px] text-zinc-500">
                     Cada cargo permite apenas 1 cadastro
                   </p>
-                  {errors.cargo && <p className="text-red-500 text-sm">{errors.cargo}</p>}
+                  {errors.cargo && <p className="text-red-500 text-xs">{errors.cargo}</p>}
                 </div>
               )}
 
               <Button
                 type="submit"
                 disabled={isLoading}
-                className="w-full h-12 bg-primary hover:bg-primary/90 text-white font-semibold text-base"
+                className="w-full h-10 bg-primary hover:bg-primary/90 text-white font-semibold text-sm mt-2"
               >
-                {isLoading ? <Loader2 className="w-5 h-5 animate-spin" /> : isLogin ? "Entrar" : "Cadastrar"}
+                {isLoading ? <Loader2 className="w-4 h-4 animate-spin" /> : isLogin ? "Entrar" : "Cadastrar"}
               </Button>
             </form>
 
-            <div className="mt-8 text-center">
-              <p className="text-gray-400">
+            <div className="mt-4 text-center">
+              <p className="text-gray-400 text-sm">
                 {isLogin ? "Novo por aqui?" : "Já tem uma conta?"}{" "}
                 <button
                   type="button"
@@ -406,7 +406,7 @@ const Auth = () => {
       </main>
 
       {/* Footer */}
-      <footer className="relative z-10 p-6 text-center text-gray-400 text-sm italic">
+      <footer className="relative z-10 p-2 text-center text-gray-400 text-xs italic shrink-0">
         <p>"{bibleVerses[new Date().getDate() % bibleVerses.length]}"</p>
       </footer>
     </div>
