@@ -2,3 +2,6 @@ project_id = "fcaxyvptfwnwfctxkqre"
 
 [functions.notify-dds-presenter]
 verify_jwt = false
+
+[functions.auto-stop-equipment]
+verify_jwt = false
