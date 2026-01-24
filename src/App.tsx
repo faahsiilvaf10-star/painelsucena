@@ -17,6 +17,7 @@ import Configuracoes from "./pages/Configuracoes";
 import DDS from "./pages/DDS";
 import Equipamentos from "./pages/Equipamentos";
 import Lembretes from "./pages/Lembretes";
+import RDO from "./pages/RDO";
 import NotFound from "./pages/NotFound";
 
 const queryClient = new QueryClient();
@@ -41,6 +42,7 @@ const App = () => (
             <Route path="/dds" element={<ProtectedRoute><DDS /></ProtectedRoute>} />
             <Route path="/lembretes" element={<ProtectedRoute><Lembretes /></ProtectedRoute>} />
             <Route path="/equipamentos" element={<ProtectedRoute><Equipamentos /></ProtectedRoute>} />
+            <Route path="/rdo" element={<ProtectedRoute><RDO /></ProtectedRoute>} />
             {/* ADD ALL CUSTOM ROUTES ABOVE THE CATCH-ALL "*" ROUTE */}
             <Route path="*" element={<NotFound />} />
           </Routes>
