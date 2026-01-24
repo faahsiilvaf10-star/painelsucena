@@ -222,18 +222,30 @@ export function AppSidebar() {
     <Sidebar collapsible="icon" className="border-r-0" style={sidebarStyle}>
       {/* Header with Logo */}
       <SidebarHeader className="border-b border-sidebar-border p-4">
-        <div className="flex items-center gap-3">
+        <div className="flex items-center justify-between gap-3">
           {!isCollapsed ? (
             <img 
               src={settings.logo_url || logoPrincipal} 
               alt="Logo" 
-              className="h-10 max-w-[180px] object-contain" 
+              className="h-10 max-w-[140px] object-contain" 
             />
           ) : (
             <div className="w-8 h-8 rounded-lg bg-primary flex items-center justify-center">
               <span className="text-sm font-bold text-primary-foreground">S</span>
             </div>
           )}
+          <Button
+            variant="ghost"
+            size="icon"
+            onClick={toggleSidebar}
+            className="h-8 w-8 text-sidebar-foreground/70 hover:text-sidebar-foreground hover:bg-sidebar-border/50 shrink-0"
+          >
+            {isCollapsed ? (
+              <PanelLeft className="h-4 w-4" />
+            ) : (
+              <PanelLeftClose className="h-4 w-4" />
+            )}
+          </Button>
         </div>
       </SidebarHeader>
 
@@ -326,23 +338,6 @@ export function AppSidebar() {
           </SidebarMenu>
         )}
 
-        {/* Collapse Toggle */}
-        <Separator className="my-3 bg-sidebar-border" />
-        <Button
-          variant="ghost"
-          size="sm"
-          onClick={toggleSidebar}
-          className="w-full justify-center text-sidebar-foreground/70 hover:text-sidebar-foreground hover:bg-sidebar-border/50"
-        >
-          {isCollapsed ? (
-            <PanelLeft className="h-4 w-4" />
-          ) : (
-            <>
-              <PanelLeftClose className="h-4 w-4 mr-2" />
-              <span>Minimizar</span>
-            </>
-          )}
-        </Button>
       </SidebarFooter>
     </Sidebar>
   );
