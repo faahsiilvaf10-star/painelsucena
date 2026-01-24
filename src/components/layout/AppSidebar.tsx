@@ -139,7 +139,7 @@ export function AppSidebar() {
                         tooltip={item.label}
                       >
                         <Link to={item.path}>
-                          <item.icon className={`h-5 w-5 ${item.isEmergency ? "text-red-500" : ""}`} />
+                          <item.icon className={`h-5 w-5 ${item.isEmergency ? "text-red-500 animate-pulse" : ""}`} />
                           <span className={`font-medium ${item.isEmergency ? "text-red-500" : ""}`}>{item.label}</span>
                         </Link>
                       </SidebarMenuButton>
