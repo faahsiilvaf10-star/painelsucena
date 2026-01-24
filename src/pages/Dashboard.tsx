@@ -5,13 +5,10 @@ import QuickAccessCard from "@/components/dashboard/QuickAccessCard";
 import { DDSHighlightCard } from "@/components/dds/DDSHighlightCard";
 import { MatrixProgressChart } from "@/components/dashboard/MatrixProgressChart";
 import { employees, attendanceRecords } from "@/data/mockData";
-
 const Dashboard = () => {
   const presentToday = attendanceRecords.filter(a => a.status === "present" || a.status === "late").length;
   const absentToday = attendanceRecords.filter(a => a.status === "absent").length;
-  
-  return (
-    <Layout>
+  return <Layout>
       <div className="container mx-auto px-6 py-8">
         {/* Hero Section */}
         <div className="mb-8 animate-fade-in">
@@ -47,41 +44,24 @@ const Dashboard = () => {
 
         {/* Quick Access */}
         <div className="mb-8">
-          <h2 className="text-2xl font-bold mb-6 flex items-center gap-2">
-            <TrendingUp className="w-6 h-6 text-primary" />
-            Acesso Rápido
-          </h2>
-          <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
-            <div className="animate-slide-up" style={{
-            animationDelay: "0.5s"
-          }}>
-              <QuickAccessCard title="Recursos Humanos" description="Gerencie funcionários, cargos e departamentos" icon={Users} path="/rh" color="primary" />
-            </div>
-            <div className="animate-slide-up" style={{
-            animationDelay: "0.6s"
-          }}>
-              <QuickAccessCard title="Lista de Presença" description="Controle de ponto e frequência da equipe" icon={ClipboardList} path="/presenca" color="info" />
-            </div>
-            <div className="animate-slide-up" style={{
-            animationDelay: "0.7s"
-          }}>
-              <QuickAccessCard title="Matriz RACI" description="Responsabilidades e atribuições de tarefas" icon={Grid3X3} path="/matriz" color="success" />
-            </div>
-          </div>
+          
+          
         </div>
 
         {/* Matrix Progress Chart */}
-        <div className="mb-12 animate-slide-up" style={{ animationDelay: "0.8s" }}>
+        <div className="mb-12 animate-slide-up" style={{
+        animationDelay: "0.8s"
+      }}>
           <MatrixProgressChart />
         </div>
 
         {/* Recent Activity */}
-        <div className="animate-slide-up" style={{ animationDelay: "0.9s" }}>
+        <div className="animate-slide-up" style={{
+        animationDelay: "0.9s"
+      }}>
           <h2 className="text-2xl font-bold mb-6">Atividade Recente</h2>
         </div>
       </div>
-    </Layout>
-  );
+    </Layout>;
 };
-
 export default Dashboard;
