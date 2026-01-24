@@ -263,7 +263,9 @@ export function EquipmentReport() {
 
             {/* Legend */}
             <div className="flex flex-wrap gap-3 py-3 border-y border-border">
-              {Object.entries(statusConfig).map(([key, config]) => (
+              {Object.entries(statusConfig)
+                .filter(([key]) => !["end_of_day", "end_of_shift"].includes(key))
+                .map(([key, config]) => (
                 <div key={key} className="flex items-center gap-1.5">
                   <div className={`w-2.5 h-2.5 rounded-full ${config.bg}`} />
                   <span className="text-xs text-muted-foreground">{config.label}</span>
