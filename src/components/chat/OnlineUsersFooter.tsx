@@ -42,7 +42,6 @@ const RADIO_STATIONS = [
   { id: "sertanejo", name: "Sertanejo", genre: "Sertanejo", url: "https://stream.vagalume.fm/hls/14619606471054026608/aac.m3u8" },
   { id: "pagode", name: "Pagode", genre: "Pagode", url: "https://stream.vagalume.fm/hls/147015499779090/aac.m3u8" },
   { id: "melody", name: "Melody", genre: "Romântico", url: "https://stream.vagalume.fm/hls/1499715905423293/aac.m3u8" },
-  { id: "brega", name: "Brega do Pará", genre: "Brega", url: "https://stream.zeno.fm/0r0xa792kwzuv" },
 ];
 
 export const OnlineUsersFooter = ({ onUserClick }: OnlineUsersFooterProps) => {
