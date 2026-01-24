@@ -5,6 +5,7 @@ import { NotificationBell } from "@/components/notifications/NotificationBell";
 import { ThemeToggle } from "@/components/ThemeToggle";
 import { Menu } from "lucide-react";
 import { CampaignRibbon } from "@/components/campaigns/CampaignRibbon";
+import { PageTransition } from "./PageTransition";
 
 const motivationalPhrases = [
   "O sucesso é a soma de pequenos esforços repetidos dia após dia.",
@@ -78,7 +79,9 @@ const Layout = ({ children }: LayoutProps) => {
         </div>
       </header>
       <main className="flex-1 overflow-y-auto pb-14">
-        {children}
+        <PageTransition>
+          {children}
+        </PageTransition>
       </main>
       <ForbiddenColorIndicator />
     </SidebarInset>
