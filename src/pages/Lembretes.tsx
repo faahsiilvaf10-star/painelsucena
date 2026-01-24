@@ -29,16 +29,18 @@ import {
 } from "@/components/ui/select";
 import { Checkbox } from "@/components/ui/checkbox";
 import { useToast } from "@/hooks/use-toast";
-import { useReminders, useCreateReminder, useDeleteReminder, Reminder } from "@/hooks/useReminders";
+import { useReminders, useCreateReminder, useDeleteReminder, useReminderHistory, Reminder } from "@/hooks/useReminders";
 import { useAllProfiles } from "@/hooks/useDDSSchedule";
 import { useAuth } from "@/hooks/useAuth";
 import { cn } from "@/lib/utils";
 import { getDaysUntilEventBrazilNorth } from "@/lib/timezone";
+import { Check, X as XIcon, History } from "lucide-react";
 
 const Lembretes = () => {
   const { toast } = useToast();
   const { user } = useAuth();
   const { data: reminders, isLoading } = useReminders();
+  const { data: reminderHistory, isLoading: isLoadingHistory } = useReminderHistory();
   const { data: allProfiles } = useAllProfiles();
   const createReminder = useCreateReminder();
   const deleteReminder = useDeleteReminder();
@@ -109,9 +111,9 @@ const Lembretes = () => {
     }
   };
 
-  const handleDelete = async (id: string) => {
+  const handleDelete = async (reminder: Reminder) => {
     try {
-      await deleteReminder.mutateAsync(id);
+      await deleteReminder.mutateAsync(reminder);
       toast({
         title: "Lembrete removido",
       });
@@ -431,7 +433,7 @@ const Lembretes = () => {
                               variant="ghost"
                               size="icon"
                               className="h-8 w-8 text-muted-foreground hover:text-destructive"
-                              onClick={() => handleDelete(reminder.id)}
+                              onClick={() => handleDelete(reminder)}
                             >
                               <Trash2 className="h-4 w-4" />
                             </Button>
@@ -506,7 +508,7 @@ const Lembretes = () => {
                               variant="ghost"
                               size="icon"
                               className="h-8 w-8 text-muted-foreground hover:text-destructive"
-                              onClick={() => handleDelete(reminder.id)}
+                              onClick={() => handleDelete(reminder)}
                             >
                               <Trash2 className="h-4 w-4" />
                             </Button>
@@ -528,6 +530,67 @@ const Lembretes = () => {
                         </Badge>
                       </CardContent>
                     </Card>
+                  );
+                })}
+              </div>
+            </div>
+          )}
+
+          {/* HISTORY SECTION */}
+          {reminderHistory && reminderHistory.length > 0 && (
+            <div className="mt-8">
+              <div className="flex items-center gap-2 mb-4">
+                <History className="h-5 w-5 text-muted-foreground" />
+                <h3 className="font-semibold text-muted-foreground">Histórico de Ações</h3>
+                <Badge variant="secondary">{reminderHistory.length}</Badge>
+              </div>
+              <div className="space-y-2">
+                {reminderHistory.slice(0, 20).map((item) => {
+                  const profile = allProfiles?.find(p => p.user_id === item.action_by);
+                  return (
+                    <div
+                      key={item.id}
+                      className="flex items-center justify-between p-3 rounded-lg bg-muted/30 border border-border/50"
+                    >
+                      <div className="flex items-center gap-3">
+                        <div className={cn(
+                          "p-1.5 rounded-full",
+                          item.action === "acknowledged" 
+                            ? "bg-green-500/20 text-green-500" 
+                            : "bg-destructive/20 text-destructive"
+                        )}>
+                          {item.action === "acknowledged" ? (
+                            <Check className="h-4 w-4" />
+                          ) : (
+                            <XIcon className="h-4 w-4" />
+                          )}
+                        </div>
+                        <div>
+                          <p className="font-medium text-sm">{item.reminder_title}</p>
+                          <div className="flex items-center gap-2 text-xs text-muted-foreground">
+                            <span>
+                              {item.action === "acknowledged" ? "Visto por" : "Cancelado por"}{" "}
+                              {profile?.full_name || "Usuário"}
+                            </span>
+                            <span>•</span>
+                            <span>
+                              {format(new Date(item.created_at), "dd/MM/yyyy 'às' HH:mm", { locale: ptBR })}
+                            </span>
+                          </div>
+                        </div>
+                      </div>
+                      <Badge 
+                        variant="outline" 
+                        className={cn(
+                          "text-xs",
+                          item.action === "acknowledged" 
+                            ? "border-green-500/50 text-green-500" 
+                            : "border-destructive/50 text-destructive"
+                        )}
+                      >
+                        {item.action === "acknowledged" ? "Visto" : "Cancelado"}
+                      </Badge>
+                    </div>
                   );
                 })}
               </div>

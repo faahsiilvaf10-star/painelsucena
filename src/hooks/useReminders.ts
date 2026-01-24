@@ -179,16 +179,32 @@ export const useUpdateReminder = () => {
 
 export const useDeleteReminder = () => {
   const queryClient = useQueryClient();
+  const { user } = useAuth();
 
   return useMutation({
-    mutationFn: async (id: string) => {
-      const { error } = await supabase.from("reminders").delete().eq("id", id);
+    mutationFn: async (reminder: Reminder) => {
+      if (!user?.id) throw new Error("User not authenticated");
+
+      // Save to history before deleting
+      await supabase.from("reminder_history").insert({
+        reminder_id: reminder.id,
+        reminder_title: reminder.title,
+        reminder_description: reminder.description,
+        event_date: reminder.event_date,
+        action: "cancelled",
+        action_by: user.id,
+        original_created_by: reminder.created_by,
+        mention_type: reminder.mention_type,
+      });
+
+      const { error } = await supabase.from("reminders").delete().eq("id", reminder.id);
 
       if (error) throw error;
     },
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ["reminders"] });
       queryClient.invalidateQueries({ queryKey: ["active-reminders"] });
+      queryClient.invalidateQueries({ queryKey: ["reminder-history"] });
     },
   });
 };
@@ -198,29 +214,41 @@ export const useAcknowledgeReminder = () => {
   const { user } = useAuth();
 
   return useMutation({
-    mutationFn: async (reminderId: string) => {
+    mutationFn: async (reminder: Reminder) => {
       if (!user?.id) throw new Error("User not authenticated");
 
       // First get the current acknowledged_by array
-      const { data: reminder, error: fetchError } = await supabase
+      const { data: currentReminder, error: fetchError } = await supabase
         .from("reminders")
         .select("acknowledged_by")
-        .eq("id", reminderId)
+        .eq("id", reminder.id)
         .maybeSingle();
 
       if (fetchError) throw fetchError;
-      if (!reminder) throw new Error("Reminder not found");
+      if (!currentReminder) throw new Error("Reminder not found");
 
-      const currentAcknowledged = reminder.acknowledged_by || [];
+      const currentAcknowledged = currentReminder.acknowledged_by || [];
       
       // Add user to acknowledged list if not already there
       if (!currentAcknowledged.includes(user.id)) {
+        // Save to history
+        await supabase.from("reminder_history").insert({
+          reminder_id: reminder.id,
+          reminder_title: reminder.title,
+          reminder_description: reminder.description,
+          event_date: reminder.event_date,
+          action: "acknowledged",
+          action_by: user.id,
+          original_created_by: reminder.created_by,
+          mention_type: reminder.mention_type,
+        });
+
         const { error } = await supabase
           .from("reminders")
           .update({ 
             acknowledged_by: [...currentAcknowledged, user.id] 
           })
-          .eq("id", reminderId);
+          .eq("id", reminder.id);
 
         if (error) throw error;
       }
@@ -228,6 +256,41 @@ export const useAcknowledgeReminder = () => {
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ["reminders"] });
       queryClient.invalidateQueries({ queryKey: ["active-reminders"] });
+      queryClient.invalidateQueries({ queryKey: ["reminder-history"] });
     },
+  });
+};
+
+export interface ReminderHistory {
+  id: string;
+  reminder_id: string;
+  reminder_title: string;
+  reminder_description: string | null;
+  event_date: string;
+  action: "acknowledged" | "cancelled";
+  action_by: string;
+  original_created_by: string;
+  mention_type: string;
+  created_at: string;
+}
+
+export const useReminderHistory = () => {
+  const { user } = useAuth();
+
+  return useQuery({
+    queryKey: ["reminder-history", user?.id],
+    queryFn: async () => {
+      if (!user?.id) return [];
+
+      const { data, error } = await supabase
+        .from("reminder_history")
+        .select("*")
+        .order("created_at", { ascending: false })
+        .limit(50);
+
+      if (error) throw error;
+      return data as ReminderHistory[];
+    },
+    enabled: !!user?.id,
   });
 };
