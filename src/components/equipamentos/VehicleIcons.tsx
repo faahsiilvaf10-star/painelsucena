@@ -134,8 +134,23 @@ export const equipmentTypeLabels: Record<EquipmentType, string> = {
   camionete: "Camionete",
 };
 
-export const equipmentTypeColors: Record<EquipmentType, string> = {
-  pipa: "bg-blue-500",
-  munk: "bg-orange-500",
-  camionete: "bg-gray-500",
+export const equipmentTypeColors: Record<EquipmentType, { bg: string; text: string; border: string; glow: string }> = {
+  pipa: { 
+    bg: "bg-blue-500/10", 
+    text: "text-blue-600", 
+    border: "border-blue-500/30",
+    glow: "shadow-blue-500/20"
+  },
+  munk: { 
+    bg: "bg-orange-500/10", 
+    text: "text-orange-600", 
+    border: "border-orange-500/30",
+    glow: "shadow-orange-500/20"
+  },
+  camionete: { 
+    bg: "bg-emerald-500/10", 
+    text: "text-emerald-600", 
+    border: "border-emerald-500/30",
+    glow: "shadow-emerald-500/20"
+  },
 };

@@ -32,7 +32,7 @@ import {
   AlertDialogTitle,
 } from "@/components/ui/alert-dialog";
 import { useUpdateEquipmentStatus, useUpdateEquipment, useDeleteEquipment, useEquipmentStopHistory, type StopReason, type Equipment } from "@/hooks/useEquipment";
-import { VehicleIcon } from "./VehicleIcons";
+import { VehicleIcon, equipmentTypeColors, type EquipmentType } from "./VehicleIcons";
 import { getBrazilNorthDate } from "@/lib/timezone";
 import { toast } from "sonner";
 import { supabase } from "@/integrations/supabase/client";
@@ -74,8 +74,9 @@ export function EquipmentTimeline({ equipment }: EquipmentTimelineProps) {
 
   const stopReason = (equipment.stop_reason || "none") as StopReason;
   const stopStartTime = equipment.stop_start_time ? new Date(equipment.stop_start_time) : null;
-  const equipmentType = equipment.equipment_type || "pipa";
+  const equipmentType = (equipment.equipment_type || "pipa") as EquipmentType;
   const status = statusConfig[stopReason] || statusConfig.none;
+  const typeColors = equipmentTypeColors[equipmentType] || equipmentTypeColors.pipa;
 
   useEffect(() => {
     setEditData({ plate: equipment.plate, driver: equipment.driver, helper: equipment.helper });
@@ -221,9 +222,15 @@ export function EquipmentTimeline({ equipment }: EquipmentTimelineProps) {
       {/* Header */}
       <div className="flex items-start justify-between gap-4 mb-4">
         <div className="flex items-center gap-4 min-w-0">
-          <div className={`relative p-3 rounded-xl transition-colors ${isStopped ? 'bg-muted' : 'bg-green-500/10'}`}>
-            <VehicleIcon type={equipmentType} isStopped={isStopped} size="sm" />
-            <div className={`absolute -bottom-0.5 -right-0.5 w-3 h-3 rounded-full border-2 border-card ${status.bg}`} />
+          <div className={`relative p-3 rounded-xl transition-all border ${
+            isStopped 
+              ? 'bg-muted border-border' 
+              : `${typeColors.bg} ${typeColors.border} shadow-lg ${typeColors.glow}`
+          }`}>
+            <div className={!isStopped ? 'animate-pulse' : ''}>
+              <VehicleIcon type={equipmentType} isStopped={isStopped} size="sm" />
+            </div>
+            <div className={`absolute -bottom-0.5 -right-0.5 w-3 h-3 rounded-full border-2 border-card ${status.bg} ${!isStopped ? 'animate-pulse' : ''}`} />
           </div>
           
           <div className="min-w-0 flex-1">
