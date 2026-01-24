@@ -47,6 +47,29 @@ const stopReasonColors: Record<string, string> = {
   end_of_shift: "bg-purple-500",
 };
 
+const stopReasonButtonStyles: Record<StopReason, { active: string; inactive: string }> = {
+  none: {
+    active: "bg-green-500 text-white border-transparent hover:bg-green-600",
+    inactive: "border-green-500 text-green-600 hover:bg-green-500 hover:text-white",
+  },
+  maintenance: {
+    active: "bg-orange-500 text-white border-transparent hover:bg-orange-600",
+    inactive: "border-orange-500 text-orange-600 hover:bg-orange-500 hover:text-white",
+  },
+  waiting: {
+    active: "bg-yellow-500 text-white border-transparent hover:bg-yellow-600",
+    inactive: "border-yellow-500 text-yellow-600 hover:bg-yellow-500 hover:text-white",
+  },
+  rain: {
+    active: "bg-blue-500 text-white border-transparent hover:bg-blue-600",
+    inactive: "border-blue-500 text-blue-600 hover:bg-blue-500 hover:text-white",
+  },
+  end_of_shift: {
+    active: "bg-purple-500 text-white border-transparent hover:bg-purple-600",
+    inactive: "border-purple-500 text-purple-600 hover:bg-purple-500 hover:text-white",
+  },
+};
+
 const stopReasonLabelsExtended: Record<string, string> = {
   none: "Operando",
   maintenance: "Manutenção",
@@ -301,11 +324,11 @@ export function EquipmentTimeline({ equipment }: EquipmentTimelineProps) {
           <Button
             key={reason}
             size="sm"
-            variant={stopReason === reason ? "default" : "outline"}
+            variant="outline"
             className={`h-7 px-2.5 gap-1.5 text-xs font-medium transition-all ${
               stopReason === reason 
-                ? `${stopReasonColors[reason]} text-white border-transparent hover:opacity-90` 
-                : `hover:${stopReasonColors[reason]} hover:text-white`
+                ? stopReasonButtonStyles[reason].active
+                : stopReasonButtonStyles[reason].inactive
             }`}
             onClick={() => handleStopChange(reason)}
           >
