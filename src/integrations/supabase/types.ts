@@ -344,6 +344,7 @@ export type Database = {
       }
       reminders: {
         Row: {
+          acknowledged_by: string[] | null
           alert_days_before: number | null
           created_at: string
           created_by: string
@@ -357,6 +358,7 @@ export type Database = {
           updated_at: string
         }
         Insert: {
+          acknowledged_by?: string[] | null
           alert_days_before?: number | null
           created_at?: string
           created_by: string
@@ -370,6 +372,7 @@ export type Database = {
           updated_at?: string
         }
         Update: {
+          acknowledged_by?: string[] | null
           alert_days_before?: number | null
           created_at?: string
           created_by?: string

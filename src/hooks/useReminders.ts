@@ -13,6 +13,7 @@ export interface Reminder {
   show_on_event_day: boolean;
   mention_type: "all" | "specific" | "me";
   mentioned_users: string[];
+  acknowledged_by: string[];
   created_by: string;
   created_at: string;
   updated_at: string;
@@ -98,6 +99,10 @@ export const useActiveReminders = () => {
         // Use Brazil North timezone for date calculations
         const daysUntilEvent = getDaysUntilEventBrazilNorth(reminder.event_date);
 
+        // Check if user has already acknowledged this reminder
+        const hasAcknowledged = reminder.acknowledged_by?.includes(user.id);
+        if (hasAcknowledged) return false;
+
         // Check if user should see this reminder based on mention_type
         const isRelevant =
           reminder.mention_type === "all" ||
@@ -180,6 +185,45 @@ export const useDeleteReminder = () => {
       const { error } = await supabase.from("reminders").delete().eq("id", id);
 
       if (error) throw error;
+    },
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ["reminders"] });
+      queryClient.invalidateQueries({ queryKey: ["active-reminders"] });
+    },
+  });
+};
+
+export const useAcknowledgeReminder = () => {
+  const queryClient = useQueryClient();
+  const { user } = useAuth();
+
+  return useMutation({
+    mutationFn: async (reminderId: string) => {
+      if (!user?.id) throw new Error("User not authenticated");
+
+      // First get the current acknowledged_by array
+      const { data: reminder, error: fetchError } = await supabase
+        .from("reminders")
+        .select("acknowledged_by")
+        .eq("id", reminderId)
+        .maybeSingle();
+
+      if (fetchError) throw fetchError;
+      if (!reminder) throw new Error("Reminder not found");
+
+      const currentAcknowledged = reminder.acknowledged_by || [];
+      
+      // Add user to acknowledged list if not already there
+      if (!currentAcknowledged.includes(user.id)) {
+        const { error } = await supabase
+          .from("reminders")
+          .update({ 
+            acknowledged_by: [...currentAcknowledged, user.id] 
+          })
+          .eq("id", reminderId);
+
+        if (error) throw error;
+      }
     },
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ["reminders"] });
