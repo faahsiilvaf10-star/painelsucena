@@ -1,11 +1,28 @@
-import { Users, ClipboardList, Grid3X3, LayoutDashboard, FileBarChart, LogOut, LogIn, AlertTriangle, PanelLeftClose, PanelLeft, Settings, Sun, Truck, Bell, FileText, LucideIcon, Heart, ShoppingCart, Package } from "lucide-react";
+import { Users, ClipboardList, Grid3X3, LayoutDashboard, FileBarChart, LogOut, LogIn, AlertTriangle, PanelLeftClose, PanelLeft, Settings, Sun, Truck, Bell, FileText, LucideIcon, Heart, ShoppingCart, Package, GripVertical } from "lucide-react";
 import { Link, useLocation, useNavigate } from "react-router-dom";
-import { useMemo } from "react";
+import { useMemo, useState } from "react";
 import { useAuth } from "@/hooks/useAuth";
 import { useIsAdmin } from "@/hooks/useUserRole";
 import { useSiteSettings } from "@/hooks/useSiteSettings";
 import { useProfile } from "@/hooks/useProfile";
 import logoPrincipal from "@/assets/logo-principal.png";
+import {
+  DndContext,
+  closestCenter,
+  KeyboardSensor,
+  PointerSensor,
+  useSensor,
+  useSensors,
+  DragEndEvent,
+} from "@dnd-kit/core";
+import {
+  arrayMove,
+  SortableContext,
+  sortableKeyboardCoordinates,
+  useSortable,
+  verticalListSortingStrategy,
+} from "@dnd-kit/sortable";
+import { CSS } from "@dnd-kit/utilities";
 import {
   Sidebar,
   SidebarContent,
@@ -22,6 +39,7 @@ import { Button } from "@/components/ui/button";
 import { Separator } from "@/components/ui/separator";
 import { ScrollArea } from "@/components/ui/scroll-area";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
+import { toast } from "sonner";
 
 interface NavItem {
   id: string;
@@ -47,15 +65,87 @@ const allNavItems: NavItem[] = [
   { id: "emergencia", icon: AlertTriangle, label: "Emergência", path: "/emergencia", isEmergency: true },
 ];
 
+// Sortable nav item component
+function SortableNavItem({
+  item,
+  isActive,
+  isCollapsed,
+}: {
+  item: NavItem;
+  isActive: boolean;
+  isCollapsed: boolean;
+}) {
+  const {
+    attributes,
+    listeners,
+    setNodeRef,
+    transform,
+    transition,
+    isDragging,
+  } = useSortable({ id: item.id });
+
+  const style = {
+    transform: CSS.Transform.toString(transform),
+    transition,
+    opacity: isDragging ? 0.5 : 1,
+    zIndex: isDragging ? 1000 : undefined,
+  };
+
+  return (
+    <SidebarMenuItem ref={setNodeRef} style={style}>
+      <SidebarMenuButton
+        asChild
+        isActive={isActive}
+        tooltip={item.label}
+        className="group"
+      >
+        <Link to={item.path} className="flex items-center gap-2">
+          {!isCollapsed && (
+            <span
+              {...attributes}
+              {...listeners}
+              className="cursor-grab active:cursor-grabbing p-1 -ml-1 opacity-0 group-hover:opacity-60 hover:!opacity-100 transition-opacity"
+              onClick={(e) => e.preventDefault()}
+            >
+              <GripVertical className="h-4 w-4 text-sidebar-foreground/50" />
+            </span>
+          )}
+          <item.icon
+            className={`h-5 w-5 ${
+              item.isEmergency ? "text-red-500 animate-pulse" : ""
+            }`}
+          />
+          <span
+            className={`font-medium ${item.isEmergency ? "text-red-500" : ""}`}
+          >
+            {item.label}
+          </span>
+        </Link>
+      </SidebarMenuButton>
+    </SidebarMenuItem>
+  );
+}
+
 export function AppSidebar() {
   const location = useLocation();
   const navigate = useNavigate();
   const { user, signOut } = useAuth();
   const { isAdmin } = useIsAdmin();
   const { state, toggleSidebar } = useSidebar();
-  const { settings } = useSiteSettings();
+  const { settings, updateSettings } = useSiteSettings();
   const { data: profile } = useProfile();
   const isCollapsed = state === "collapsed";
+
+  const sensors = useSensors(
+    useSensor(PointerSensor, {
+      activationConstraint: {
+        distance: 8,
+      },
+    }),
+    useSensor(KeyboardSensor, {
+      coordinateGetter: sortableKeyboardCoordinates,
+    })
+  );
 
   // Order nav items based on settings
   const orderedNavItems = useMemo(() => {
@@ -78,6 +168,30 @@ export function AppSidebar() {
     
     return ordered;
   }, [settings.nav_order]);
+
+  const handleDragEnd = (event: DragEndEvent) => {
+    const { active, over } = event;
+
+    if (over && active.id !== over.id) {
+      const oldIndex = orderedNavItems.findIndex((item) => item.id === active.id);
+      const newIndex = orderedNavItems.findIndex((item) => item.id === over.id);
+
+      const newOrder = arrayMove(orderedNavItems, oldIndex, newIndex);
+      const newNavOrder = newOrder.map((item) => item.id);
+
+      updateSettings.mutate(
+        { nav_order: newNavOrder },
+        {
+          onSuccess: () => {
+            toast.success("Ordem do menu salva!");
+          },
+          onError: () => {
+            toast.error("Erro ao salvar ordem do menu");
+          },
+        }
+      );
+    }
+  };
 
   const getInitials = () => {
     if (profile?.full_name) {
@@ -128,26 +242,30 @@ export function AppSidebar() {
         <ScrollArea className="flex-1">
           <SidebarGroup className="py-2">
             <SidebarGroupContent>
-              <SidebarMenu>
-                {orderedNavItems.map((item) => {
-                  const isActive = location.pathname === item.path;
-                  return (
-                    <SidebarMenuItem key={item.id}>
-                      <SidebarMenuButton
-                        asChild
-                        isActive={isActive}
-                        tooltip={item.label}
-                      >
-                        <Link to={item.path}>
-                          <item.icon className={`h-5 w-5 ${item.isEmergency ? "text-red-500 animate-pulse" : ""}`} />
-                          <span className={`font-medium ${item.isEmergency ? "text-red-500" : ""}`}>{item.label}</span>
-                        </Link>
-                      </SidebarMenuButton>
-                    </SidebarMenuItem>
-                  );
-                })}
-                
-              </SidebarMenu>
+              <DndContext
+                sensors={sensors}
+                collisionDetection={closestCenter}
+                onDragEnd={handleDragEnd}
+              >
+                <SortableContext
+                  items={orderedNavItems.map((item) => item.id)}
+                  strategy={verticalListSortingStrategy}
+                >
+                  <SidebarMenu>
+                    {orderedNavItems.map((item) => {
+                      const isActive = location.pathname === item.path;
+                      return (
+                        <SortableNavItem
+                          key={item.id}
+                          item={item}
+                          isActive={isActive}
+                          isCollapsed={isCollapsed}
+                        />
+                      );
+                    })}
+                  </SidebarMenu>
+                </SortableContext>
+              </DndContext>
             </SidebarGroupContent>
           </SidebarGroup>
         </ScrollArea>
