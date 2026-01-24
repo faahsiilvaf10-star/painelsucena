@@ -244,6 +244,7 @@ export type Database = {
       equipment_stop_history: {
         Row: {
           created_at: string
+          defect_description: string | null
           duration_minutes: number | null
           ended_at: string | null
           equipment_id: string
@@ -253,6 +254,7 @@ export type Database = {
         }
         Insert: {
           created_at?: string
+          defect_description?: string | null
           duration_minutes?: number | null
           ended_at?: string | null
           equipment_id: string
@@ -262,6 +264,7 @@ export type Database = {
         }
         Update: {
           created_at?: string
+          defect_description?: string | null
           duration_minutes?: number | null
           ended_at?: string | null
           equipment_id?: string
