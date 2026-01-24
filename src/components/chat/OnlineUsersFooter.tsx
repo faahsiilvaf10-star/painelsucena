@@ -38,12 +38,10 @@ const getInitials = (name: string) => {
 
 // Available radio stations
 const RADIO_STATIONS = [
-  { id: "jbfm", name: "JB FM 99.9", city: "RJ", url: "https://27343.live.streamtheworld.com/JBFM.mp3" },
-  { id: "mixfm", name: "Mix FM", city: "RJ", url: "https://26573.live.streamtheworld.com/MIXRIO.mp3" },
-  { id: "antena1", name: "Antena 1", city: "SP", url: "https://antena1.newradio.it/stream2" },
-  { id: "jovempan", name: "Jovem Pan", city: "SP", url: "https://19293.live.streamtheworld.com/JP_SP_FM_SC" },
-  { id: "liberal", name: "Liberal FM", city: "Belém", url: "https://stm2.xcast.com.br:9264/stream" },
-  { id: "clube", name: "Clube FM", city: "Belém", url: "https://stream.zeno.fm/1g6n7qy6erhvv" },
+  { id: "jbfm", name: "JB FM 99.9", genre: "Hits", url: "https://27343.live.streamtheworld.com/JBFM.mp3" },
+  { id: "sertanejo", name: "Sertanejo", genre: "Sertanejo", url: "https://stream.vagalume.fm/hls/14619606471054026608/aac.m3u8" },
+  { id: "pagode", name: "Pagode", genre: "Pagode", url: "https://stream.vagalume.fm/hls/147015499779090/aac.m3u8" },
+  { id: "melody", name: "Melody", genre: "Romântico", url: "https://stream.vagalume.fm/hls/1499715905423293/aac.m3u8" },
 ];
 
 export const OnlineUsersFooter = ({ onUserClick }: OnlineUsersFooterProps) => {
@@ -244,7 +242,7 @@ export const OnlineUsersFooter = ({ onUserClick }: OnlineUsersFooterProps) => {
                         ? "text-primary-foreground/70" 
                         : "text-muted-foreground"
                     )}>
-                      {station.city}
+                      {station.genre}
                     </span>
                   </button>
                 ))}
