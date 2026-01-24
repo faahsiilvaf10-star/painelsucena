@@ -48,6 +48,7 @@ const Auth = () => {
   const [errors, setErrors] = useState<Record<string, string>>({});
   const [occupiedCargos, setOccupiedCargos] = useState<string[]>([]);
   const [showTransition, setShowTransition] = useState(false);
+  const [loggedUserName, setLoggedUserName] = useState<string>("");
   const navigate = useNavigate();
   const { toast } = useToast();
 
@@ -126,7 +127,7 @@ const Auth = () => {
 
     try {
       if (isLogin) {
-        const { error } = await supabase.auth.signInWithPassword({
+        const { data: authData, error } = await supabase.auth.signInWithPassword({
           email,
           password
         });
@@ -153,6 +154,22 @@ const Auth = () => {
             localStorage.removeItem("rememberedEmail");
             localStorage.removeItem("rememberedPassword");
           }
+          
+          // Fetch user's profile name
+          if (authData.user) {
+            const { data: profileData } = await supabase
+              .from("profiles")
+              .select("full_name")
+              .eq("user_id", authData.user.id)
+              .single();
+            
+            if (profileData?.full_name) {
+              // Get first name only
+              const firstName = profileData.full_name.split(" ")[0];
+              setLoggedUserName(firstName);
+            }
+          }
+          
           // Trigger the transition animation
           setShowTransition(true);
         }
@@ -209,6 +226,9 @@ const Auth = () => {
             });
           } else {
             setOccupiedCargos(prev => [...prev, cargo]);
+            // Set the user's name for transition
+            const firstName = fullName.split(" ")[0];
+            setLoggedUserName(firstName);
             // Trigger the transition animation for signup too
             setShowTransition(true);
           }
@@ -234,7 +254,7 @@ const Auth = () => {
 
       {/* Login Transition Animation */}
       {showTransition && (
-        <LoginTransition onComplete={handleTransitionComplete} />
+        <LoginTransition onComplete={handleTransitionComplete} userName={loggedUserName} />
       )}
 
       {/* Login form - centered */}

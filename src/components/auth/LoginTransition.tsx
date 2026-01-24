@@ -3,6 +3,7 @@ import { User } from "lucide-react";
 
 interface LoginTransitionProps {
   onComplete: () => void;
+  userName?: string;
 }
 
 interface Particle {
@@ -17,7 +18,7 @@ interface Particle {
   type: "confetti" | "circle" | "star";
 }
 
-export function LoginTransition({ onComplete }: LoginTransitionProps) {
+export function LoginTransition({ onComplete, userName }: LoginTransitionProps) {
   const [phase, setPhase] = useState<"cursor-move" | "click" | "zoom" | "fade">("cursor-move");
   const audioRef = useRef<HTMLAudioElement | null>(null);
 
@@ -213,9 +214,14 @@ export function LoginTransition({ onComplete }: LoginTransitionProps) {
           >
             <div className="flex items-center gap-4">
               <span className="text-4xl animate-bounce-slow">✨</span>
-              <span className="text-white text-4xl font-semibold tracking-wide drop-shadow-lg">
-                Bem-vindo!
-              </span>
+              <div className="flex flex-col items-center">
+                <span className="text-white/70 text-lg font-light tracking-wide">
+                  Bem-vindo,
+                </span>
+                <span className="text-white text-4xl font-semibold tracking-wide drop-shadow-lg">
+                  {userName || "Usuário"}!
+                </span>
+              </div>
               <span className="text-4xl animate-bounce-slow" style={{ animationDelay: "0.3s" }}>✨</span>
             </div>
             <p className="text-white/70 text-base mt-3 animate-fade-in" style={{ animationDelay: "0.5s" }}>
