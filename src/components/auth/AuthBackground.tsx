@@ -43,11 +43,13 @@ interface Particle {
   duration: number;
   delay: number;
   opacity: number;
+  color: 'gold' | 'blue' | 'white';
 }
 
 export function AuthBackground() {
   // Generate random particles
   const particles = useMemo<Particle[]>(() => {
+    const colors: Array<'gold' | 'blue' | 'white'> = ['gold', 'blue', 'white'];
     return Array.from({ length: 60 }, (_, i) => ({
       id: i,
       x: Math.random() * 100,
@@ -55,9 +57,33 @@ export function AuthBackground() {
       size: 2 + Math.random() * 4,
       duration: 6 + Math.random() * 10,
       delay: Math.random() * 5,
-      opacity: 0.1 + Math.random() * 0.3,
+      opacity: 0.15 + Math.random() * 0.35,
+      color: colors[Math.floor(Math.random() * colors.length)],
     }));
   }, []);
+
+  const getParticleColors = (color: 'gold' | 'blue' | 'white') => {
+    switch (color) {
+      case 'gold':
+        return {
+          gradient: 'radial-gradient(circle, rgba(255,215,0,0.9) 0%, rgba(255,180,0,0.4) 50%, transparent 100%)',
+          shadow: 'rgba(255,200,50,0.4)',
+          shadowOuter: 'rgba(255,170,0,0.25)',
+        };
+      case 'blue':
+        return {
+          gradient: 'radial-gradient(circle, rgba(100,180,255,0.9) 0%, rgba(60,130,220,0.4) 50%, transparent 100%)',
+          shadow: 'rgba(100,180,255,0.4)',
+          shadowOuter: 'rgba(60,130,220,0.25)',
+        };
+      default:
+        return {
+          gradient: 'radial-gradient(circle, rgba(255,255,255,0.9) 0%, rgba(255,255,255,0.4) 50%, transparent 100%)',
+          shadow: 'rgba(255,255,255,0.3)',
+          shadowOuter: 'rgba(200,220,255,0.2)',
+        };
+    }
+  };
 
   // Get daily verse based on day of year
   const dailyVerse = useMemo(() => {
@@ -99,23 +125,26 @@ export function AuthBackground() {
       />
 
       {/* Floating particles */}
-      {particles.map((particle) => (
-        <div
-          key={particle.id}
-          className="absolute rounded-full animate-float-particle"
-          style={{
-            left: `${particle.x}%`,
-            top: `${particle.y}%`,
-            width: `${particle.size}px`,
-            height: `${particle.size}px`,
-            opacity: particle.opacity,
-            animationDuration: `${particle.duration}s`,
-            animationDelay: `${particle.delay}s`,
-            background: 'radial-gradient(circle, rgba(255,255,255,0.9) 0%, rgba(255,255,255,0.4) 50%, transparent 100%)',
-            boxShadow: `0 0 ${particle.size * 2}px ${particle.size}px rgba(255,255,255,0.3), 0 0 ${particle.size * 4}px ${particle.size * 2}px rgba(200,220,255,0.2)`,
-          }}
-        />
-      ))}
+      {particles.map((particle) => {
+        const colors = getParticleColors(particle.color);
+        return (
+          <div
+            key={particle.id}
+            className="absolute rounded-full animate-float-particle"
+            style={{
+              left: `${particle.x}%`,
+              top: `${particle.y}%`,
+              width: `${particle.size}px`,
+              height: `${particle.size}px`,
+              opacity: particle.opacity,
+              animationDuration: `${particle.duration}s`,
+              animationDelay: `${particle.delay}s`,
+              background: colors.gradient,
+              boxShadow: `0 0 ${particle.size * 2}px ${particle.size}px ${colors.shadow}, 0 0 ${particle.size * 4}px ${particle.size * 2}px ${colors.shadowOuter}`,
+            }}
+          />
+        );
+      })}
 
       {/* Vignette effect on edges */}
       <div 
