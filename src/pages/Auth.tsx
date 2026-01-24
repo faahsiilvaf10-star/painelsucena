@@ -57,8 +57,25 @@ const Auth = () => {
   const [isLoading, setIsLoading] = useState(false);
   const [rememberMe, setRememberMe] = useState(false);
   const [errors, setErrors] = useState<Record<string, string>>({});
+  const [occupiedCargos, setOccupiedCargos] = useState<string[]>([]);
   const navigate = useNavigate();
   const { toast } = useToast();
+
+  // Fetch occupied cargos
+  useEffect(() => {
+    const fetchOccupiedCargos = async () => {
+      const { data, error } = await supabase
+        .from("profiles")
+        .select("cargo");
+      
+      if (!error && data) {
+        const occupied = data.map(p => p.cargo).filter(Boolean);
+        setOccupiedCargos(occupied);
+      }
+    };
+
+    fetchOccupiedCargos();
+  }, []);
 
   // Load saved credentials on mount
   useEffect(() => {
@@ -147,6 +164,18 @@ const Auth = () => {
           }
         }
       } else {
+        // Check if cargo is already occupied
+        if (occupiedCargos.includes(cargo)) {
+          const cargoLabel = cargoOptions.find(c => c.value === cargo)?.label || cargo;
+          toast({
+            title: "Cargo já ocupado",
+            description: `Já existe um usuário cadastrado como ${cargoLabel}.`,
+            variant: "destructive"
+          });
+          setIsLoading(false);
+          return;
+        }
+
         const redirectUrl = `${window.location.origin}/`;
         const { data, error } = await supabase.auth.signUp({
           email,
@@ -187,6 +216,8 @@ const Auth = () => {
               variant: "destructive"
             });
           } else {
+            // Update occupied cargos list
+            setOccupiedCargos(prev => [...prev, cargo]);
             toast({
               title: "Conta criada com sucesso!",
               description: "Você será redirecionado..."
@@ -309,22 +340,39 @@ const Auth = () => {
                   <Label htmlFor="cargo" className="text-gray-300">
                     Cargo
                   </Label>
-                  <Select value={cargo} onValueChange={value => setCargo(value as CargoType)}>
+                  <Select 
+                    value={cargo} 
+                    onValueChange={value => {
+                      if (!occupiedCargos.includes(value)) {
+                        setCargo(value as CargoType);
+                      }
+                    }}
+                  >
                     <SelectTrigger className="bg-zinc-800 border-zinc-700 text-white h-12 focus:border-primary focus:ring-primary">
                       <SelectValue placeholder="Selecione seu cargo" />
                     </SelectTrigger>
                     <SelectContent className="bg-zinc-800 border-zinc-700">
-                      {cargoOptions.map(option => (
-                        <SelectItem
-                          key={option.value}
-                          value={option.value}
-                          className="text-white hover:bg-zinc-700 focus:bg-zinc-700"
-                        >
-                          {option.label}
-                        </SelectItem>
-                      ))}
+                      {cargoOptions.map(option => {
+                        const isOccupied = occupiedCargos.includes(option.value);
+                        return (
+                          <SelectItem
+                            key={option.value}
+                            value={option.value}
+                            disabled={isOccupied}
+                            className={`${isOccupied 
+                              ? "text-zinc-500 cursor-not-allowed line-through" 
+                              : "text-white hover:bg-zinc-700 focus:bg-zinc-700"
+                            }`}
+                          >
+                            {option.label} {isOccupied && "(Ocupado)"}
+                          </SelectItem>
+                        );
+                      })}
                     </SelectContent>
                   </Select>
+                  <p className="text-xs text-zinc-500">
+                    Cada cargo permite apenas 1 cadastro
+                  </p>
                   {errors.cargo && <p className="text-red-500 text-sm">{errors.cargo}</p>}
                 </div>
               )}
