@@ -3,24 +3,12 @@ import { useNavigate } from "react-router-dom";
 import { supabase } from "@/integrations/supabase/client";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
-import { Label } from "@/components/ui/label";
 import { Checkbox } from "@/components/ui/checkbox";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { useToast } from "@/hooks/use-toast";
-import { Eye, EyeOff, Loader2 } from "lucide-react";
+import { Eye, EyeOff, Loader2, User, Lock, Mail, UserCircle } from "lucide-react";
 import { z } from "zod";
-import logoSucena from "@/assets/logo-sucena.png";
 import { AuthBackground } from "@/components/auth/AuthBackground";
-
-const bibleVerses = [
-  "Porque Deus amou o mundo de tal maneira que deu o seu Filho unigênito. - João 3:16",
-  "O Senhor é o meu pastor; nada me faltará. - Salmos 23:1",
-  "Tudo posso naquele que me fortalece. - Filipenses 4:13",
-  "Confie no Senhor de todo o seu coração. - Provérbios 3:5",
-  "O Senhor é a minha luz e a minha salvação. - Salmos 27:1",
-  "Porque sou eu que conheço os planos que tenho para vocês. - Jeremias 29:11",
-  "Seja forte e corajoso! - Josué 1:9"
-];
 
 const cargoOptions = [
   { value: "preposto", label: "Preposto" },
@@ -154,7 +142,6 @@ const Auth = () => {
             });
           }
         } else {
-          // Save or clear credentials based on "Remember Me" checkbox
           if (rememberMe) {
             localStorage.setItem("rememberedEmail", email);
             localStorage.setItem("rememberedPassword", password);
@@ -164,7 +151,6 @@ const Auth = () => {
           }
         }
       } else {
-        // Check if cargo is already occupied
         if (occupiedCargos.includes(cargo)) {
           const cargoLabel = cargoOptions.find(c => c.value === cargo)?.label || cargo;
           toast({
@@ -216,7 +202,6 @@ const Auth = () => {
               variant: "destructive"
             });
           } else {
-            // Update occupied cargos list
             setOccupiedCargos(prev => [...prev, cargo]);
             toast({
               title: "Conta criada com sucesso!",
@@ -237,178 +222,164 @@ const Auth = () => {
   };
 
   return (
-    <div className="h-screen bg-black relative overflow-hidden flex flex-col">
-      {/* Photo-based background with animations */}
+    <div className="h-screen relative overflow-hidden flex items-center justify-center">
+      {/* Gradient background */}
       <AuthBackground />
 
-      {/* Header */}
-      <header className="relative z-10 p-2 md:p-3 flex flex-col items-center shrink-0">
-        <img 
-          src={logoSucena} 
-          alt="Logo Sucena" 
-          className="h-10 md:h-12 mb-1 transition-all duration-500 ease-out hover:scale-110 hover:brightness-110 cursor-pointer drop-shadow-[0_0_25px_hsl(43,96%,56%)] [filter:_drop-shadow(0_0_15px_rgba(245,165,36,0.6))_drop-shadow(0_0_30px_rgba(245,165,36,0.4))_drop-shadow(0_0_45px_rgba(245,165,36,0.2))] hover:drop-shadow-[0_0_40px_hsl(43,96%,56%)] animate-pulse" 
-        />
-        <h1 className="text-lg md:text-xl font-bold text-primary tracking-tight text-center drop-shadow-[0_4px_15px_rgba(0,0,0,0.9)] [text-shadow:_0_2px_20px_rgba(0,0,0,0.8),_0_0_40px_rgba(0,0,0,0.6)]">CONTROLE OPERACIONAL</h1>
-        <p className="text-gray-300 text-[10px] md:text-xs mt-0.5 text-center max-w-md drop-shadow-[0_2px_10px_rgba(0,0,0,0.8)] [text-shadow:_0_2px_15px_rgba(0,0,0,0.9)]">
-          Sistema de controle operacional para gestão eficiente
-        </p>
-      </header>
-      {/* Main content */}
-      <main className="relative z-10 flex-1 flex items-center justify-center px-4 py-2 overflow-hidden">
-        <div className="w-full max-w-md animate-fade-in">
-          <div className="bg-black/80 backdrop-blur-md rounded-lg p-4 md:p-5 shadow-2xl border border-primary/20">
-            <h2 className="text-xl font-bold text-white mb-3">
-              {isLogin ? "Entrar" : "Cadastrar"}
-            </h2>
-
-            <form onSubmit={handleSubmit} className="space-y-2">
-              {!isLogin && (
-                <div className="space-y-1">
-                  <Label htmlFor="fullName" className="text-gray-300 text-sm">
-                    Nome Completo
-                  </Label>
-                  <Input
-                    id="fullName"
-                    type="text"
-                    value={fullName}
-                    onChange={e => setFullName(e.target.value)}
-                    placeholder="Seu nome completo"
-                    className="bg-zinc-800 border-zinc-700 text-white placeholder:text-zinc-500 h-10 focus:border-primary focus:ring-primary"
-                  />
-                  {errors.fullName && <p className="text-red-500 text-xs">{errors.fullName}</p>}
-                </div>
-              )}
-
-              <div className="space-y-1">
-                <Label htmlFor="email" className="text-gray-300 text-sm">
-                  Email
-                </Label>
-                <Input
-                  id="email"
-                  type="email"
-                  value={email}
-                  onChange={e => setEmail(e.target.value)}
-                  placeholder="seu@email.com"
-                  className="bg-zinc-800 border-zinc-700 text-white placeholder:text-zinc-500 h-10 focus:border-primary focus:ring-primary"
-                />
-                {errors.email && <p className="text-red-500 text-xs">{errors.email}</p>}
-              </div>
-
-              <div className="space-y-1">
-                <Label htmlFor="password" className="text-gray-300 text-sm">
-                  Senha
-                </Label>
-                <div className="relative">
-                  <Input
-                    id="password"
-                    type={showPassword ? "text" : "password"}
-                    value={password}
-                    onChange={e => setPassword(e.target.value)}
-                    placeholder="••••••••"
-                    className="bg-zinc-800 border-zinc-700 text-white placeholder:text-zinc-500 h-10 pr-12 focus:border-primary focus:ring-primary"
-                  />
-                  <button
-                    type="button"
-                    onClick={() => setShowPassword(!showPassword)}
-                    className="absolute right-3 top-1/2 -translate-y-1/2 text-zinc-500 hover:text-white transition-colors"
-                  >
-                    {showPassword ? <EyeOff size={18} /> : <Eye size={18} />}
-                  </button>
-                </div>
-              {errors.password && <p className="text-red-500 text-xs">{errors.password}</p>}
-              </div>
-
-              {isLogin && (
-                <div className="flex items-center space-x-2">
-                  <Checkbox
-                    id="rememberMe"
-                    checked={rememberMe}
-                    onCheckedChange={(checked) => setRememberMe(checked === true)}
-                    className="border-zinc-600 data-[state=checked]:bg-primary data-[state=checked]:border-primary h-4 w-4"
-                  />
-                  <Label 
-                    htmlFor="rememberMe" 
-                    className="text-gray-300 text-xs cursor-pointer select-none"
-                  >
-                    Lembrar meu email e senha
-                  </Label>
-                </div>
-              )}
-
-              {!isLogin && (
-                <div className="space-y-1">
-                  <Label htmlFor="cargo" className="text-gray-300 text-sm">
-                    Cargo
-                  </Label>
-                  <Select 
-                    value={cargo} 
-                    onValueChange={value => {
-                      if (!occupiedCargos.includes(value)) {
-                        setCargo(value as CargoType);
-                      }
-                    }}
-                  >
-                    <SelectTrigger className="bg-zinc-800 border-zinc-700 text-white h-10 focus:border-primary focus:ring-primary">
-                      <SelectValue placeholder="Selecione seu cargo" />
-                    </SelectTrigger>
-                    <SelectContent className="bg-zinc-800 border-zinc-700">
-                      {cargoOptions.map(option => {
-                        const isOccupied = occupiedCargos.includes(option.value);
-                        return (
-                          <SelectItem
-                            key={option.value}
-                            value={option.value}
-                            disabled={isOccupied}
-                            className={`${isOccupied 
-                              ? "text-zinc-500 cursor-not-allowed line-through" 
-                              : "text-white hover:bg-zinc-700 focus:bg-zinc-700"
-                            }`}
-                          >
-                            {option.label} {isOccupied && "(Ocupado)"}
-                          </SelectItem>
-                        );
-                      })}
-                    </SelectContent>
-                  </Select>
-                  <p className="text-[10px] text-zinc-500">
-                    Cada cargo permite apenas 1 cadastro
-                  </p>
-                  {errors.cargo && <p className="text-red-500 text-xs">{errors.cargo}</p>}
-                </div>
-              )}
-
-              <Button
-                type="submit"
-                disabled={isLoading}
-                className="w-full h-10 bg-primary hover:bg-primary/90 text-white font-semibold text-sm mt-2"
-              >
-                {isLoading ? <Loader2 className="w-4 h-4 animate-spin" /> : isLogin ? "Entrar" : "Cadastrar"}
-              </Button>
-            </form>
-
-            <div className="mt-4 text-center">
-              <p className="text-gray-400 text-sm">
-                {isLogin ? "Novo por aqui?" : "Já tem uma conta?"}{" "}
-                <button
-                  type="button"
-                  onClick={() => {
-                    setIsLogin(!isLogin);
-                    setErrors({});
-                  }}
-                  className="text-white hover:underline font-medium"
-                >
-                  {isLogin ? "Cadastre-se agora" : "Faça login"}
-                </button>
-              </p>
-            </div>
+      {/* Login form */}
+      <div className="relative z-10 w-full max-w-sm px-6 animate-fade-in">
+        {/* Avatar icon */}
+        <div className="flex justify-center mb-6">
+          <div className="w-20 h-20 rounded-full bg-white/10 backdrop-blur-sm flex items-center justify-center border border-white/20">
+            <User className="w-10 h-10 text-white/70" />
           </div>
         </div>
-      </main>
 
-      {/* Footer */}
-      <footer className="relative z-10 p-1 text-center text-gray-400 text-[10px] italic shrink-0">
-        <p>"{bibleVerses[new Date().getDate() % bibleVerses.length]}"</p>
-      </footer>
+        <form onSubmit={handleSubmit} className="space-y-4">
+          {/* Full name field (signup only) */}
+          {!isLogin && (
+            <div className="space-y-1">
+              <div className="relative">
+                <UserCircle className="absolute left-3 top-1/2 -translate-y-1/2 w-5 h-5 text-blue-500" />
+                <Input
+                  type="text"
+                  value={fullName}
+                  onChange={e => setFullName(e.target.value)}
+                  placeholder="Nome Completo"
+                  className="pl-11 h-11 bg-white border-0 text-gray-800 placeholder:text-gray-400 rounded-md shadow-sm focus:ring-2 focus:ring-blue-400"
+                />
+              </div>
+              {errors.fullName && <p className="text-red-300 text-xs pl-2">{errors.fullName}</p>}
+            </div>
+          )}
+
+          {/* Email field */}
+          <div className="space-y-1">
+            <div className="relative">
+              <Mail className="absolute left-3 top-1/2 -translate-y-1/2 w-5 h-5 text-blue-500" />
+              <Input
+                type="email"
+                value={email}
+                onChange={e => setEmail(e.target.value)}
+                placeholder="Email"
+                className="pl-11 h-11 bg-white border-0 text-gray-800 placeholder:text-gray-400 rounded-md shadow-sm focus:ring-2 focus:ring-blue-400"
+              />
+            </div>
+            {errors.email && <p className="text-red-300 text-xs pl-2">{errors.email}</p>}
+          </div>
+
+          {/* Password field */}
+          <div className="space-y-1">
+            <div className="relative">
+              <Lock className="absolute left-3 top-1/2 -translate-y-1/2 w-5 h-5 text-amber-500" />
+              <Input
+                type={showPassword ? "text" : "password"}
+                value={password}
+                onChange={e => setPassword(e.target.value)}
+                placeholder="Senha"
+                className="pl-11 pr-11 h-11 bg-white border-0 text-gray-800 placeholder:text-gray-400 rounded-md shadow-sm focus:ring-2 focus:ring-blue-400"
+              />
+              <button
+                type="button"
+                onClick={() => setShowPassword(!showPassword)}
+                className="absolute right-3 top-1/2 -translate-y-1/2 text-gray-400 hover:text-gray-600 transition-colors"
+              >
+                {showPassword ? <EyeOff size={18} /> : <Eye size={18} />}
+              </button>
+            </div>
+            {errors.password && <p className="text-red-300 text-xs pl-2">{errors.password}</p>}
+          </div>
+
+          {/* Cargo field (signup only) */}
+          {!isLogin && (
+            <div className="space-y-1">
+              <Select 
+                value={cargo} 
+                onValueChange={value => {
+                  if (!occupiedCargos.includes(value)) {
+                    setCargo(value as CargoType);
+                  }
+                }}
+              >
+                <SelectTrigger className="h-11 bg-white border-0 text-gray-800 rounded-md shadow-sm focus:ring-2 focus:ring-blue-400">
+                  <SelectValue placeholder="Selecione seu cargo" />
+                </SelectTrigger>
+                <SelectContent className="bg-white border-gray-200">
+                  {cargoOptions.map(option => {
+                    const isOccupied = occupiedCargos.includes(option.value);
+                    return (
+                      <SelectItem
+                        key={option.value}
+                        value={option.value}
+                        disabled={isOccupied}
+                        className={`${isOccupied 
+                          ? "text-gray-400 cursor-not-allowed line-through" 
+                          : "text-gray-800 hover:bg-gray-100 focus:bg-gray-100"
+                        }`}
+                      >
+                        {option.label} {isOccupied && "(Ocupado)"}
+                      </SelectItem>
+                    );
+                  })}
+                </SelectContent>
+              </Select>
+              {errors.cargo && <p className="text-red-300 text-xs pl-2">{errors.cargo}</p>}
+            </div>
+          )}
+
+          {/* Remember me and forgot password row (login only) */}
+          {isLogin && (
+            <div className="flex items-center justify-between text-sm">
+              <div className="flex items-center space-x-2">
+                <Checkbox
+                  id="rememberMe"
+                  checked={rememberMe}
+                  onCheckedChange={(checked) => setRememberMe(checked === true)}
+                  className="border-white/50 data-[state=checked]:bg-white data-[state=checked]:border-white data-[state=checked]:text-blue-600 h-4 w-4"
+                />
+                <label 
+                  htmlFor="rememberMe" 
+                  className="text-white/80 text-xs cursor-pointer select-none"
+                >
+                  Lembrar-me
+                </label>
+              </div>
+              <button
+                type="button"
+                className="text-white/60 hover:text-white/90 text-xs transition-colors"
+              >
+                Esqueceu a senha?
+              </button>
+            </div>
+          )}
+
+          {/* Submit button */}
+          <Button
+            type="submit"
+            disabled={isLoading}
+            className="w-full h-11 bg-slate-700 hover:bg-slate-600 text-white font-medium rounded-md shadow-lg transition-all duration-200 mt-2"
+          >
+            {isLoading ? <Loader2 className="w-5 h-5 animate-spin" /> : isLogin ? "LOGIN" : "CADASTRAR"}
+          </Button>
+        </form>
+
+        {/* Toggle login/signup */}
+        <div className="mt-6 text-center">
+          <p className="text-white/70 text-sm">
+            {isLogin ? "Novo por aqui?" : "Já tem uma conta?"}{" "}
+            <button
+              type="button"
+              onClick={() => {
+                setIsLogin(!isLogin);
+                setErrors({});
+              }}
+              className="text-white font-medium hover:underline"
+            >
+              {isLogin ? "Cadastre-se" : "Faça login"}
+            </button>
+          </p>
+        </div>
+      </div>
     </div>
   );
 };
