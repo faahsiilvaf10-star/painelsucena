@@ -171,6 +171,7 @@ export type Database = {
           created_at: string
           driver: string
           end_hour: number
+          equipment_type: string
           helper: string
           id: string
           name: string
@@ -184,6 +185,7 @@ export type Database = {
           created_at?: string
           driver: string
           end_hour?: number
+          equipment_type?: string
           helper: string
           id?: string
           name: string
@@ -197,6 +199,7 @@ export type Database = {
           created_at?: string
           driver?: string
           end_hour?: number
+          equipment_type?: string
           helper?: string
           id?: string
           name?: string
