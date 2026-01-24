@@ -17,6 +17,8 @@ export interface Reminder {
   created_by: string;
   created_at: string;
   updated_at: string;
+  is_recurring: boolean;
+  recurring_days: number[]; // 0=Sunday, 1=Monday, ..., 6=Saturday
 }
 
 export interface ReminderInsert {
@@ -28,6 +30,8 @@ export interface ReminderInsert {
   mention_type: "all" | "specific" | "me";
   mentioned_users?: string[];
   created_by: string;
+  is_recurring?: boolean;
+  recurring_days?: number[];
 }
 
 export const useReminders = () => {
@@ -94,11 +98,12 @@ export const useActiveReminders = () => {
 
       const reminders = data as Reminder[];
       
+      // Get current day of week in Brazil North timezone (0=Sunday, 6=Saturday)
+      const nowBrazil = getBrazilNorthMidnight();
+      const currentDayOfWeek = nowBrazil.getDay();
+      
       // Filter reminders that should be shown based on alert_days_before or show_on_event_day
       return reminders.filter((reminder) => {
-        // Use Brazil North timezone for date calculations
-        const daysUntilEvent = getDaysUntilEventBrazilNorth(reminder.event_date);
-
         // Check if user has already acknowledged this reminder
         const hasAcknowledged = reminder.acknowledged_by?.includes(user.id);
         if (hasAcknowledged) return false;
@@ -111,6 +116,15 @@ export const useActiveReminders = () => {
             reminder.mentioned_users.includes(user.id));
 
         if (!isRelevant) return false;
+
+        // Handle recurring reminders (by day of week)
+        if (reminder.is_recurring && reminder.recurring_days?.length > 0) {
+          // Show if today is one of the recurring days
+          return reminder.recurring_days.includes(currentDayOfWeek);
+        }
+
+        // Handle regular (non-recurring) reminders
+        const daysUntilEvent = getDaysUntilEventBrazilNorth(reminder.event_date);
 
         // Show if within alert_days_before range OR if it's the event day
         if (reminder.alert_days_before > 0 && daysUntilEvent <= reminder.alert_days_before && daysUntilEvent >= 0) {
