@@ -6,6 +6,7 @@ import { ReminderHighlightBanner } from "@/components/reminders/ReminderHighligh
 import { MatrixProgressChart } from "@/components/dashboard/MatrixProgressChart";
 import { CampaignBanner } from "@/components/campaigns/CampaignBanner";
 import { OrderHighlightBanner } from "@/components/orders/OrderHighlightBanner";
+import { EquipmentStatusCard } from "@/components/dashboard/EquipmentStatusCard";
 import { useCampaignNotifications } from "@/hooks/useCampaignNotifications";
 import { useEmployees } from "@/hooks/useEmployees";
 import { useAttendanceRecords } from "@/hooks/useAttendance";
@@ -46,6 +47,9 @@ const Dashboard = () => {
 
         {/* DDS Highlight Cards - Today and Tomorrow */}
         <DDSHighlightCard />
+
+        {/* Equipment Status - Operation and Maintenance */}
+        <EquipmentStatusCard />
 
         {/* Stats Grid */}
         <div className="grid grid-cols-1 md:grid-cols-3 gap-6 mb-12">
