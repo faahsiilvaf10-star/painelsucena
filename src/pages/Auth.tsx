@@ -313,7 +313,7 @@ const Auth = () => {
       }
     }
   };
-  return <div className="h-screen relative overflow-hidden flex items-center justify-center">
+  return <div className="min-h-screen w-full relative overflow-hidden flex items-center justify-center">
       {/* Gradient background */}
       <AuthBackground />
 
