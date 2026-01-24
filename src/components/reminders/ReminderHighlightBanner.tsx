@@ -42,13 +42,23 @@ export const ReminderHighlightBanner = () => {
     return getDaysUntilEventBrazilNorth(dateStr);
   };
 
+  // Check if a reminder is active "today" (either regular reminder for today OR recurring on current day)
+  const isReminderForToday = (reminder: Reminder): boolean => {
+    // Recurring reminders that passed the filter are always "today"
+    if (!!reminder.is_recurring && (reminder.recurring_days?.length ?? 0) > 0) {
+      return true;
+    }
+    // Regular reminders check event_date
+    return getDaysUntilEvent(reminder.event_date) === 0;
+  };
+
   // Separate today's reminders from upcoming ones
   const todayReminders = useMemo(() => {
-    return visibleReminders.filter((r) => getDaysUntilEvent(r.event_date) === 0);
+    return visibleReminders.filter((r) => isReminderForToday(r));
   }, [visibleReminders]);
 
   const upcomingReminders = useMemo(() => {
-    return visibleReminders.filter((r) => getDaysUntilEvent(r.event_date) > 0);
+    return visibleReminders.filter((r) => !isReminderForToday(r) && getDaysUntilEvent(r.event_date) > 0);
   }, [visibleReminders]);
 
   // Play sound once when there are today's reminders
