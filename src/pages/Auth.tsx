@@ -318,7 +318,7 @@ const Auth = () => {
       <AuthBackground />
 
       {/* Live Radio Player */}
-      <LiveRadioPlayer radioUrl="https://radiosaovivo.net/" />
+      <LiveRadioPlayer />
 
       {/* Login Transition Animation */}
       {showTransition && <LoginTransition onComplete={handleTransitionComplete} userName={loggedUserName} userAvatar={loggedUserAvatar} userCargo={loggedUserCargo} />}
