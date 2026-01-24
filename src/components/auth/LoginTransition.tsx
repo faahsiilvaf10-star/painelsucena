@@ -4,6 +4,7 @@ import { User } from "lucide-react";
 interface LoginTransitionProps {
   onComplete: () => void;
   userName?: string;
+  userAvatar?: string;
 }
 
 interface Particle {
@@ -18,7 +19,7 @@ interface Particle {
   type: "confetti" | "circle" | "star";
 }
 
-export function LoginTransition({ onComplete, userName }: LoginTransitionProps) {
+export function LoginTransition({ onComplete, userName, userAvatar }: LoginTransitionProps) {
   const [phase, setPhase] = useState<"cursor-move" | "click" | "zoom" | "fade">("cursor-move");
   const audioRef = useRef<HTMLAudioElement | null>(null);
 
@@ -196,12 +197,22 @@ export function LoginTransition({ onComplete, userName }: LoginTransitionProps) 
           transitionTimingFunction: phase === "zoom" ? "cubic-bezier(0.25, 0.1, 0.25, 1)" : undefined
         }}
       >
-        <User 
-          className={`text-white/90 transition-all duration-700 ease-out ${
-            phase === "zoom" || phase === "fade" ? "opacity-0 scale-0" : "w-9 h-9"
-          }`} 
-          strokeWidth={1.5} 
-        />
+        {userAvatar ? (
+          <img 
+            src={userAvatar} 
+            alt="Avatar"
+            className={`rounded-full object-cover transition-all duration-700 ease-out ${
+              phase === "zoom" || phase === "fade" ? "opacity-0 scale-0" : "w-9 h-9"
+            }`}
+          />
+        ) : (
+          <User 
+            className={`text-white/90 transition-all duration-700 ease-out ${
+              phase === "zoom" || phase === "fade" ? "opacity-0 scale-0" : "w-9 h-9"
+            }`} 
+            strokeWidth={1.5} 
+          />
+        )}
       </div>
 
       {/* Welcome text with sparkle effect */}
@@ -212,6 +223,16 @@ export function LoginTransition({ onComplete, userName }: LoginTransitionProps) 
               phase === "zoom" ? "opacity-100 scale-100" : "opacity-0 scale-105"
             }`}
           >
+            {/* User avatar in welcome section */}
+            {userAvatar && (
+              <div className="mb-4 animate-scale-in">
+                <img 
+                  src={userAvatar} 
+                  alt="Avatar"
+                  className="w-20 h-20 rounded-full object-cover border-4 border-white/30 shadow-xl"
+                />
+              </div>
+            )}
             <div className="flex items-center gap-4">
               <span className="text-4xl animate-bounce-slow">✨</span>
               <div className="flex flex-col items-center">
