@@ -1,7 +1,7 @@
 import Layout from "@/components/layout/Layout";
 import { EquipmentTimeline } from "@/components/equipamentos/EquipmentTimeline";
 import { EquipmentReport } from "@/components/equipamentos/EquipmentReport";
-import { Truck, Plus, Loader2, Droplets, Container, Car, StopCircle } from "lucide-react";
+import { Truck, Plus, Loader2, Droplets, Container, Car, StopCircle, Activity } from "lucide-react";
 import { useEquipment, useCreateEquipment } from "@/hooks/useEquipment";
 import { Button } from "@/components/ui/button";
 import { useState } from "react";
@@ -15,14 +15,14 @@ import {
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { toast } from "sonner";
-import { EquipmentType, equipmentTypeLabels } from "@/components/equipamentos/VehicleIcons";
+import { EquipmentType } from "@/components/equipamentos/VehicleIcons";
 import { supabase } from "@/integrations/supabase/client";
 import { useQueryClient } from "@tanstack/react-query";
 
-const equipmentTypeOptions: { value: EquipmentType; label: string; icon: React.ReactNode; color: string }[] = [
-  { value: "pipa", label: "Pipa", icon: <Droplets className="w-4 h-4" />, color: "bg-blue-500" },
-  { value: "munk", label: "Munk", icon: <Container className="w-4 h-4" />, color: "bg-orange-500" },
-  { value: "camionete", label: "Camionete", icon: <Car className="w-4 h-4" />, color: "bg-gray-500" },
+const equipmentTypeOptions: { value: EquipmentType; label: string; icon: React.ReactNode }[] = [
+  { value: "pipa", label: "Pipa", icon: <Droplets className="w-5 h-5" /> },
+  { value: "munk", label: "Munk", icon: <Container className="w-5 h-5" /> },
+  { value: "camionete", label: "Camionete", icon: <Car className="w-5 h-5" /> },
 ];
 
 const Equipamentos = () => {
@@ -40,6 +40,9 @@ const Equipamentos = () => {
     start_hour: 8,
     end_hour: 16,
   });
+
+  const operatingCount = equipment?.filter(eq => eq.stop_reason === "none" || !eq.stop_reason).length || 0;
+  const stoppedCount = equipment?.filter(eq => eq.stop_reason && eq.stop_reason !== "none").length || 0;
 
   const handleAutoStopAll = async () => {
     setIsStoppingAll(true);
@@ -70,19 +73,26 @@ const Equipamentos = () => {
 
   return (
     <Layout>
-      <div className="space-y-4 animate-fade-in">
-        {/* Header */}
-        <div className="flex items-center justify-between">
-          <div>
-            <h1 className="text-2xl font-bold text-foreground">Equipamentos em Operação</h1>
-            <p className="text-sm text-muted-foreground">Acompanhe o status em tempo real</p>
+      <div className="space-y-6 animate-fade-in">
+        {/* Minimal Header */}
+        <div className="flex items-start justify-between">
+          <div className="space-y-1">
+            <div className="flex items-center gap-3">
+              <div className="p-2.5 rounded-xl bg-primary/10">
+                <Activity className="w-5 h-5 text-primary" />
+              </div>
+              <div>
+                <h1 className="text-xl font-semibold text-foreground tracking-tight">Equipamentos</h1>
+                <p className="text-sm text-muted-foreground">Monitoramento em tempo real</p>
+              </div>
+            </div>
           </div>
 
           <div className="flex items-center gap-2">
             <Button
               size="sm"
-              variant="outline"
-              className="gap-2"
+              variant="ghost"
+              className="text-muted-foreground hover:text-foreground"
               onClick={handleAutoStopAll}
               disabled={isStoppingAll}
             >
@@ -91,100 +101,180 @@ const Equipamentos = () => {
               ) : (
                 <StopCircle className="w-4 h-4" />
               )}
-              Parar Todos
+              <span className="ml-2 hidden sm:inline">Encerrar Todos</span>
             </Button>
             
             <Dialog open={open} onOpenChange={setOpen}>
               <DialogTrigger asChild>
-                <Button size="sm" className="gap-2">
-                  <Plus className="w-4 h-4" /> Adicionar
+                <Button size="sm" className="gap-2 shadow-sm">
+                  <Plus className="w-4 h-4" />
+                  <span className="hidden sm:inline">Novo</span>
                 </Button>
               </DialogTrigger>
-            <DialogContent className="sm:max-w-md">
-              <DialogHeader>
-                <DialogTitle>Novo Equipamento</DialogTitle>
-              </DialogHeader>
-              <form onSubmit={handleSubmit} className="space-y-4">
-                <div className="space-y-2">
-                  <Label className="text-xs">Tipo</Label>
-                  <div className="grid grid-cols-3 gap-2">
-                    {equipmentTypeOptions.map((type) => (
-                      <button
-                        key={type.value}
-                        type="button"
-                        onClick={() => setFormData({ ...formData, equipment_type: type.value })}
-                        className={`flex items-center justify-center gap-2 p-2 rounded-lg border-2 transition-all text-sm ${
-                          formData.equipment_type === type.value
-                            ? `border-primary ${type.color} text-white`
-                            : "border-border bg-muted/50 hover:border-primary/50"
-                        }`}
-                      >
-                        {type.icon}
-                        <span className="font-medium">{type.label}</span>
-                      </button>
-                    ))}
+              <DialogContent className="sm:max-w-md">
+                <DialogHeader>
+                  <DialogTitle className="text-lg font-medium">Novo Equipamento</DialogTitle>
+                </DialogHeader>
+                <form onSubmit={handleSubmit} className="space-y-5 pt-2">
+                  {/* Equipment Type Selection */}
+                  <div className="space-y-2">
+                    <Label className="text-xs font-medium text-muted-foreground uppercase tracking-wide">Tipo</Label>
+                    <div className="grid grid-cols-3 gap-3">
+                      {equipmentTypeOptions.map((type) => (
+                        <button
+                          key={type.value}
+                          type="button"
+                          onClick={() => setFormData({ ...formData, equipment_type: type.value })}
+                          className={`flex flex-col items-center justify-center gap-2 p-4 rounded-xl border-2 transition-all ${
+                            formData.equipment_type === type.value
+                              ? "border-primary bg-primary/5 text-primary"
+                              : "border-border hover:border-primary/50 text-muted-foreground hover:text-foreground"
+                          }`}
+                        >
+                          {type.icon}
+                          <span className="text-xs font-medium">{type.label}</span>
+                        </button>
+                      ))}
+                    </div>
                   </div>
-                </div>
-                <div className="grid grid-cols-2 gap-3">
-                  <div className="space-y-1">
-                    <Label htmlFor="name" className="text-xs">Nome</Label>
-                    <Input id="name" value={formData.name} onChange={(e) => setFormData({ ...formData, name: e.target.value })} placeholder="Ex: Pipa 01" required />
+
+                  {/* Name and Plate */}
+                  <div className="grid grid-cols-2 gap-4">
+                    <div className="space-y-2">
+                      <Label htmlFor="name" className="text-xs font-medium text-muted-foreground uppercase tracking-wide">Nome</Label>
+                      <Input 
+                        id="name" 
+                        value={formData.name} 
+                        onChange={(e) => setFormData({ ...formData, name: e.target.value })} 
+                        placeholder="Pipa 01" 
+                        className="h-11"
+                        required 
+                      />
+                    </div>
+                    <div className="space-y-2">
+                      <Label htmlFor="plate" className="text-xs font-medium text-muted-foreground uppercase tracking-wide">Placa</Label>
+                      <Input 
+                        id="plate" 
+                        value={formData.plate} 
+                        onChange={(e) => setFormData({ ...formData, plate: e.target.value.toUpperCase() })} 
+                        placeholder="ABC-1234" 
+                        className="h-11"
+                        required 
+                      />
+                    </div>
                   </div>
-                  <div className="space-y-1">
-                    <Label htmlFor="plate" className="text-xs">Placa</Label>
-                    <Input id="plate" value={formData.plate} onChange={(e) => setFormData({ ...formData, plate: e.target.value.toUpperCase() })} placeholder="ABC-1234" required />
+
+                  {/* Driver and Helper */}
+                  <div className="grid grid-cols-2 gap-4">
+                    <div className="space-y-2">
+                      <Label htmlFor="driver" className="text-xs font-medium text-muted-foreground uppercase tracking-wide">Motorista</Label>
+                      <Input 
+                        id="driver" 
+                        value={formData.driver} 
+                        onChange={(e) => setFormData({ ...formData, driver: e.target.value })} 
+                        className="h-11"
+                        required 
+                      />
+                    </div>
+                    <div className="space-y-2">
+                      <Label htmlFor="helper" className="text-xs font-medium text-muted-foreground uppercase tracking-wide">Ajudante</Label>
+                      <Input 
+                        id="helper" 
+                        value={formData.helper} 
+                        onChange={(e) => setFormData({ ...formData, helper: e.target.value })} 
+                        className="h-11"
+                      />
+                    </div>
                   </div>
-                </div>
-                <div className="grid grid-cols-2 gap-3">
-                  <div className="space-y-1">
-                    <Label htmlFor="driver" className="text-xs">Motorista</Label>
-                    <Input id="driver" value={formData.driver} onChange={(e) => setFormData({ ...formData, driver: e.target.value })} required />
+
+                  {/* Hours */}
+                  <div className="grid grid-cols-2 gap-4">
+                    <div className="space-y-2">
+                      <Label className="text-xs font-medium text-muted-foreground uppercase tracking-wide">Início (h)</Label>
+                      <Input 
+                        type="number" 
+                        min={0} 
+                        max={23} 
+                        value={formData.start_hour} 
+                        onChange={(e) => setFormData({ ...formData, start_hour: parseInt(e.target.value) })} 
+                        className="h-11"
+                        required 
+                      />
+                    </div>
+                    <div className="space-y-2">
+                      <Label className="text-xs font-medium text-muted-foreground uppercase tracking-wide">Fim (h)</Label>
+                      <Input 
+                        type="number" 
+                        min={0} 
+                        max={23} 
+                        value={formData.end_hour} 
+                        onChange={(e) => setFormData({ ...formData, end_hour: parseInt(e.target.value) })} 
+                        className="h-11"
+                        required 
+                      />
+                    </div>
                   </div>
-                  <div className="space-y-1">
-                    <Label htmlFor="helper" className="text-xs">Ajudante</Label>
-                    <Input id="helper" value={formData.helper} onChange={(e) => setFormData({ ...formData, helper: e.target.value })} />
-                  </div>
-                </div>
-                <div className="grid grid-cols-2 gap-3">
-                  <div className="space-y-1">
-                    <Label className="text-xs">Início</Label>
-                    <Input type="number" min={0} max={23} value={formData.start_hour} onChange={(e) => setFormData({ ...formData, start_hour: parseInt(e.target.value) })} required />
-                  </div>
-                  <div className="space-y-1">
-                    <Label className="text-xs">Fim</Label>
-                    <Input type="number" min={0} max={23} value={formData.end_hour} onChange={(e) => setFormData({ ...formData, end_hour: parseInt(e.target.value) })} required />
-                  </div>
-                </div>
-                <Button type="submit" className="w-full" disabled={createEquipment.isPending}>
-                  {createEquipment.isPending ? <Loader2 className="w-4 h-4 animate-spin" /> : "Salvar"}
-                </Button>
-              </form>
-            </DialogContent>
-          </Dialog>
+
+                  <Button type="submit" className="w-full h-11" disabled={createEquipment.isPending}>
+                    {createEquipment.isPending ? <Loader2 className="w-4 h-4 animate-spin" /> : "Adicionar Equipamento"}
+                  </Button>
+                </form>
+              </DialogContent>
+            </Dialog>
           </div>
         </div>
 
+        {/* Stats Summary */}
+        {equipment && equipment.length > 0 && (
+          <div className="flex items-center gap-6">
+            <div className="flex items-center gap-2">
+              <div className="w-2 h-2 rounded-full bg-green-500" />
+              <span className="text-sm text-muted-foreground">
+                <span className="font-semibold text-foreground">{operatingCount}</span> operando
+              </span>
+            </div>
+            <div className="flex items-center gap-2">
+              <div className="w-2 h-2 rounded-full bg-amber-500" />
+              <span className="text-sm text-muted-foreground">
+                <span className="font-semibold text-foreground">{stoppedCount}</span> parado
+              </span>
+            </div>
+            <div className="h-4 w-px bg-border" />
+            <span className="text-sm text-muted-foreground">
+              <span className="font-semibold text-foreground">{equipment.length}</span> total
+            </span>
+          </div>
+        )}
+
         {/* Equipment List */}
-        <div className="grid gap-3">
+        <div className="space-y-3">
           {isLoading ? (
-            <div className="flex items-center justify-center py-8">
-              <Loader2 className="w-6 h-6 animate-spin text-primary" />
+            <div className="flex items-center justify-center py-16">
+              <div className="flex flex-col items-center gap-3">
+                <Loader2 className="w-8 h-8 animate-spin text-primary/50" />
+                <span className="text-sm text-muted-foreground">Carregando...</span>
+              </div>
             </div>
           ) : equipment && equipment.length > 0 ? (
             equipment.map((eq) => <EquipmentTimeline key={eq.id} equipment={eq} />)
           ) : (
-            <div className="bg-muted/50 rounded-xl p-6 text-center">
-              <Truck className="w-10 h-10 text-muted-foreground mx-auto mb-3" />
-              <p className="text-sm text-muted-foreground mb-3">Nenhum equipamento cadastrado</p>
-              <Button onClick={() => setOpen(true)} size="sm" className="gap-2">
-                <Plus className="w-4 h-4" /> Adicionar
+            <div className="flex flex-col items-center justify-center py-16 px-4">
+              <div className="p-4 rounded-2xl bg-muted/50 mb-4">
+                <Truck className="w-10 h-10 text-muted-foreground/50" />
+              </div>
+              <h3 className="text-lg font-medium text-foreground mb-1">Nenhum equipamento</h3>
+              <p className="text-sm text-muted-foreground text-center mb-4">
+                Adicione seu primeiro equipamento para começar o monitoramento
+              </p>
+              <Button onClick={() => setOpen(true)} className="gap-2">
+                <Plus className="w-4 h-4" /> Adicionar Equipamento
               </Button>
             </div>
           )}
         </div>
 
         {/* Report Section */}
-        <EquipmentReport />
+        {equipment && equipment.length > 0 && <EquipmentReport />}
       </div>
     </Layout>
   );
