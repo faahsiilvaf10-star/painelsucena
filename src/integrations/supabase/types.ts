@@ -372,6 +372,57 @@ export type Database = {
         }
         Relationships: []
       }
+      rdo_reports: {
+        Row: {
+          created_at: string
+          created_by: string
+          difficulties: string | null
+          gabiao_activities: string | null
+          gabiao_location: string | null
+          id: string
+          jardinagem_activities: string | null
+          jardinagem_location: string | null
+          photo_urls: string[] | null
+          report_date: string
+          report_text: string
+          updated_at: string
+          weather_afternoon: string
+          weather_morning: string
+        }
+        Insert: {
+          created_at?: string
+          created_by: string
+          difficulties?: string | null
+          gabiao_activities?: string | null
+          gabiao_location?: string | null
+          id?: string
+          jardinagem_activities?: string | null
+          jardinagem_location?: string | null
+          photo_urls?: string[] | null
+          report_date: string
+          report_text: string
+          updated_at?: string
+          weather_afternoon?: string
+          weather_morning?: string
+        }
+        Update: {
+          created_at?: string
+          created_by?: string
+          difficulties?: string | null
+          gabiao_activities?: string | null
+          gabiao_location?: string | null
+          id?: string
+          jardinagem_activities?: string | null
+          jardinagem_location?: string | null
+          photo_urls?: string[] | null
+          report_date?: string
+          report_text?: string
+          updated_at?: string
+          weather_afternoon?: string
+          weather_morning?: string
+        }
+        Relationships: []
+      }
       reminder_history: {
         Row: {
           action: string

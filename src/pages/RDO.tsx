@@ -1,7 +1,7 @@
-import { useState, useMemo } from "react";
-import { format } from "date-fns";
+import { useState, useMemo, useRef, useEffect } from "react";
+import { format, parseISO } from "date-fns";
 import { ptBR } from "date-fns/locale";
-import { Copy, Send, FileText, Sun, Cloud, CloudRain, CloudSun } from "lucide-react";
+import { Copy, Send, FileText, Sun, Cloud, CloudRain, CloudSun, Save, History, Image, X, Loader2, Calendar, Trash2 } from "lucide-react";
 import { toast } from "sonner";
 import Layout from "@/components/layout/Layout";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
@@ -12,10 +12,17 @@ import { Label } from "@/components/ui/label";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { ScrollArea } from "@/components/ui/scroll-area";
+import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger } from "@/components/ui/dialog";
+import { Calendar as CalendarComponent } from "@/components/ui/calendar";
+import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover";
+import { Badge } from "@/components/ui/badge";
 import { useAttendanceRecords } from "@/hooks/useAttendance";
 import { useEquipment } from "@/hooks/useEquipment";
 import { useTodayDDS } from "@/hooks/useDDSSchedule";
+import { useRDOReports, useRDOReport, useSaveRDOReport, useUploadRDOPhotos, useDeleteRDOReport } from "@/hooks/useRDOReports";
+import { useAuth } from "@/hooks/useAuth";
 import { getBrazilNorthDate, getBrazilNorthTodayString } from "@/lib/timezone";
+import { cn } from "@/lib/utils";
 
 // Role mappings for areas
 const roleToArea: Record<string, "gabiao" | "jardinagem"> = {
@@ -60,13 +67,35 @@ const weatherOptions = [
   { value: "chuva", label: "Chuva", icon: CloudRain },
 ];
 
+const weatherLabels: Record<string, string> = {
+  sol: "Sol",
+  nublado: "Nublado",
+  parcialmente_nublado: "Parcialmente Nublado",
+  chuva: "Chuva",
+};
+
 export default function RDO() {
+  const { user } = useAuth();
   const todayStr = getBrazilNorthTodayString();
   const today = getBrazilNorthDate();
   
-  const { data: attendanceRecords } = useAttendanceRecords(todayStr);
+  // Date selection state
+  const [selectedDate, setSelectedDate] = useState<Date>(today);
+  const selectedDateStr = format(selectedDate, "yyyy-MM-dd");
+  
+  const { data: attendanceRecords } = useAttendanceRecords(selectedDateStr);
   const { data: equipment } = useEquipment();
   const { data: todayDDS } = useTodayDDS();
+  const { data: existingReport, isLoading: isLoadingReport } = useRDOReport(selectedDateStr);
+  const { data: allReports } = useRDOReports();
+  const saveReport = useSaveRDOReport();
+  const deleteReport = useDeleteRDOReport();
+  const uploadPhotos = useUploadRDOPhotos();
+
+  // Photo state
+  const [photos, setPhotos] = useState<string[]>([]);
+  const [isUploadingPhotos, setIsUploadingPhotos] = useState(false);
+  const fileInputRef = useRef<HTMLInputElement>(null);
 
   // Form state
   const [headerInfo, setHeaderInfo] = useState({
@@ -93,6 +122,32 @@ export default function RDO() {
   const [weatherMorning, setWeatherMorning] = useState("sol");
   const [weatherAfternoon, setWeatherAfternoon] = useState("sol");
   const [difficulties, setDifficulties] = useState("Não Houve.");
+
+  // Load existing report when date changes
+  useEffect(() => {
+    if (existingReport) {
+      setWeatherMorning(existingReport.weather_morning || "sol");
+      setWeatherAfternoon(existingReport.weather_afternoon || "sol");
+      setJardinagemActivities({
+        localServico: existingReport.jardinagem_location || "",
+        atividades: existingReport.jardinagem_activities || "",
+      });
+      setGabiaoActivities({
+        localServico: existingReport.gabiao_location || "",
+        atividades: existingReport.gabiao_activities || "",
+      });
+      setDifficulties(existingReport.difficulties || "Não Houve.");
+      setPhotos(existingReport.photo_urls || []);
+    } else {
+      // Reset form for new date
+      setWeatherMorning("sol");
+      setWeatherAfternoon("sol");
+      setJardinagemActivities({ localServico: "", atividades: "" });
+      setGabiaoActivities({ localServico: "", atividades: "" });
+      setDifficulties("Não Houve.");
+      setPhotos([]);
+    }
+  }, [existingReport, selectedDateStr]);
 
   // Calculate workforce by role and area
   const workforceByArea = useMemo(() => {
@@ -143,18 +198,11 @@ export default function RDO() {
   }, [equipment]);
 
   // Format date for report
-  const formattedDate = format(today, "dd/MM/yy (EEEE)", { locale: ptBR });
+  const formattedDate = format(selectedDate, "dd/MM/yy (EEEE)", { locale: ptBR });
   const capitalizedDate = formattedDate.charAt(0).toUpperCase() + formattedDate.slice(1);
 
   // Generate the formatted report
   const generateReport = () => {
-    const weatherLabels: Record<string, string> = {
-      sol: "Sol",
-      nublado: "Nublado",
-      parcialmente_nublado: "Parcialmente Nublado",
-      chuva: "Chuva",
-    };
-
     // Build workforce text for gabião
     const gabiaoWorkforce = Object.entries(workforceByArea.gabiao)
       .map(([role, count]) => `${String(count).padStart(2, "0")} ${roleLabels[role] || role}`)
@@ -249,11 +297,92 @@ ${difficulties}`;
     window.open(`https://wa.me/?text=${encoded}`, "_blank");
   };
 
+  const handleSave = async () => {
+    if (!user) {
+      toast.error("Você precisa estar logado para salvar o relatório.");
+      return;
+    }
+
+    try {
+      await saveReport.mutateAsync({
+        report_date: selectedDateStr,
+        weather_morning: weatherMorning,
+        weather_afternoon: weatherAfternoon,
+        jardinagem_location: jardinagemActivities.localServico,
+        jardinagem_activities: jardinagemActivities.atividades,
+        gabiao_location: gabiaoActivities.localServico,
+        gabiao_activities: gabiaoActivities.atividades,
+        difficulties,
+        photo_urls: photos,
+        report_text: generateReport(),
+      });
+      toast.success("Relatório salvo com sucesso!");
+    } catch (error: any) {
+      toast.error("Erro ao salvar: " + error.message);
+    }
+  };
+
+  const handleDelete = async () => {
+    if (!existingReport) return;
+    
+    if (!confirm("Tem certeza que deseja excluir este relatório?")) return;
+
+    try {
+      await deleteReport.mutateAsync(existingReport.id);
+      toast.success("Relatório excluído!");
+    } catch (error: any) {
+      toast.error("Erro ao excluir: " + error.message);
+    }
+  };
+
+  const handleFileSelect = async (e: React.ChangeEvent<HTMLInputElement>) => {
+    const files = Array.from(e.target.files || []);
+    if (files.length === 0) return;
+
+    // Validate files
+    const validFiles = files.filter((file) => {
+      if (!file.type.startsWith("image/")) {
+        toast.error(`${file.name} não é uma imagem válida.`);
+        return false;
+      }
+      if (file.size > 5 * 1024 * 1024) {
+        toast.error(`${file.name} excede 5MB.`);
+        return false;
+      }
+      return true;
+    });
+
+    if (validFiles.length === 0) return;
+
+    setIsUploadingPhotos(true);
+    try {
+      const urls = await uploadPhotos(validFiles);
+      setPhotos((prev) => [...prev, ...urls]);
+      toast.success(`${urls.length} foto(s) adicionada(s)!`);
+    } catch (error: any) {
+      toast.error("Erro ao fazer upload: " + error.message);
+    } finally {
+      setIsUploadingPhotos(false);
+      if (fileInputRef.current) {
+        fileInputRef.current.value = "";
+      }
+    }
+  };
+
+  const removePhoto = (index: number) => {
+    setPhotos((prev) => prev.filter((_, i) => i !== index));
+  };
+
+  // Get dates with reports for calendar highlighting
+  const datesWithReports = useMemo(() => {
+    return allReports?.map((r) => r.report_date) || [];
+  }, [allReports]);
+
   return (
     <Layout>
-      <div className="space-y-6">
+      <div className="p-6 space-y-6">
         {/* Header */}
-        <div className="flex items-center justify-between">
+        <div className="flex flex-col md:flex-row md:items-center justify-between gap-4">
           <div className="flex items-center gap-3">
             <FileText className="h-8 w-8 text-primary" />
             <div>
@@ -261,7 +390,97 @@ ${difficulties}`;
               <p className="text-muted-foreground">{capitalizedDate}</p>
             </div>
           </div>
-          <div className="flex gap-2">
+          
+          <div className="flex flex-wrap items-center gap-2">
+            {/* Date Picker */}
+            <Popover>
+              <PopoverTrigger asChild>
+                <Button variant="outline" className="gap-2">
+                  <Calendar className="h-4 w-4" />
+                  {format(selectedDate, "dd/MM/yyyy")}
+                </Button>
+              </PopoverTrigger>
+              <PopoverContent className="w-auto p-0" align="end">
+                <CalendarComponent
+                  mode="single"
+                  selected={selectedDate}
+                  onSelect={(date) => date && setSelectedDate(date)}
+                  locale={ptBR}
+                  modifiers={{
+                    hasReport: datesWithReports.map((d) => parseISO(d)),
+                  }}
+                  modifiersStyles={{
+                    hasReport: {
+                      backgroundColor: "hsl(var(--primary) / 0.2)",
+                      fontWeight: "bold",
+                    },
+                  }}
+                />
+              </PopoverContent>
+            </Popover>
+
+            {/* History Dialog */}
+            <Dialog>
+              <DialogTrigger asChild>
+                <Button variant="outline" className="gap-2">
+                  <History className="h-4 w-4" />
+                  Histórico
+                </Button>
+              </DialogTrigger>
+              <DialogContent className="max-w-2xl">
+                <DialogHeader>
+                  <DialogTitle>Histórico de RDOs</DialogTitle>
+                </DialogHeader>
+                <ScrollArea className="h-[400px] pr-4">
+                  {allReports?.length === 0 ? (
+                    <p className="text-center text-muted-foreground py-8">
+                      Nenhum relatório salvo ainda.
+                    </p>
+                  ) : (
+                    <div className="space-y-2">
+                      {allReports?.map((report) => (
+                        <button
+                          key={report.id}
+                          onClick={() => {
+                            setSelectedDate(parseISO(report.report_date));
+                          }}
+                          className={cn(
+                            "w-full text-left p-3 rounded-lg border transition-colors",
+                            report.report_date === selectedDateStr
+                              ? "bg-primary/10 border-primary"
+                              : "hover:bg-secondary"
+                          )}
+                        >
+                          <div className="flex items-center justify-between">
+                            <div>
+                              <p className="font-medium">
+                                {format(parseISO(report.report_date), "EEEE, dd 'de' MMMM 'de' yyyy", { locale: ptBR })}
+                              </p>
+                              <p className="text-sm text-muted-foreground">
+                                {weatherLabels[report.weather_morning]} / {weatherLabels[report.weather_afternoon]}
+                              </p>
+                            </div>
+                            {report.photo_urls?.length > 0 && (
+                              <Badge variant="secondary" className="gap-1">
+                                <Image className="h-3 w-3" />
+                                {report.photo_urls.length}
+                              </Badge>
+                            )}
+                          </div>
+                        </button>
+                      ))}
+                    </div>
+                  )}
+                </ScrollArea>
+              </DialogContent>
+            </Dialog>
+
+            {existingReport && (
+              <Button variant="destructive" size="icon" onClick={handleDelete}>
+                <Trash2 className="h-4 w-4" />
+              </Button>
+            )}
+
             <Button variant="outline" onClick={handleCopy}>
               <Copy className="h-4 w-4 mr-2" />
               Copiar
@@ -270,8 +489,22 @@ ${difficulties}`;
               <Send className="h-4 w-4 mr-2" />
               WhatsApp
             </Button>
+            <Button onClick={handleSave} disabled={saveReport.isPending}>
+              {saveReport.isPending ? (
+                <Loader2 className="h-4 w-4 mr-2 animate-spin" />
+              ) : (
+                <Save className="h-4 w-4 mr-2" />
+              )}
+              Salvar
+            </Button>
           </div>
         </div>
+
+        {isLoadingReport && (
+          <div className="flex items-center justify-center py-8">
+            <Loader2 className="h-6 w-6 animate-spin text-muted-foreground" />
+          </div>
+        )}
 
         <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
           {/* Left Column - Form */}
@@ -461,6 +694,70 @@ ${difficulties}`;
                 </div>
               </CardContent>
             </Card>
+
+            {/* Photos */}
+            <Card>
+              <CardHeader>
+                <CardTitle className="text-lg flex items-center gap-2">
+                  <Image className="h-5 w-5" />
+                  Fotos do Relatório
+                </CardTitle>
+              </CardHeader>
+              <CardContent className="space-y-4">
+                <input
+                  type="file"
+                  ref={fileInputRef}
+                  className="hidden"
+                  accept="image/*"
+                  multiple
+                  onChange={handleFileSelect}
+                />
+                <Button
+                  variant="outline"
+                  className="w-full"
+                  onClick={() => fileInputRef.current?.click()}
+                  disabled={isUploadingPhotos}
+                >
+                  {isUploadingPhotos ? (
+                    <>
+                      <Loader2 className="h-4 w-4 mr-2 animate-spin" />
+                      Enviando...
+                    </>
+                  ) : (
+                    <>
+                      <Image className="h-4 w-4 mr-2" />
+                      Adicionar Fotos (máx. 5MB cada)
+                    </>
+                  )}
+                </Button>
+
+                {photos.length > 0 && (
+                  <div className="grid grid-cols-3 gap-2">
+                    {photos.map((url, index) => (
+                      <div key={index} className="relative group">
+                        <img
+                          src={url}
+                          alt={`Foto ${index + 1}`}
+                          className="w-full h-24 object-cover rounded-lg"
+                        />
+                        <button
+                          onClick={() => removePhoto(index)}
+                          className="absolute top-1 right-1 h-6 w-6 rounded-full bg-destructive text-destructive-foreground flex items-center justify-center opacity-0 group-hover:opacity-100 transition-opacity"
+                        >
+                          <X className="h-4 w-4" />
+                        </button>
+                      </div>
+                    ))}
+                  </div>
+                )}
+
+                {photos.length > 0 && (
+                  <p className="text-sm text-muted-foreground">
+                    {photos.length} foto(s) adicionada(s)
+                  </p>
+                )}
+              </CardContent>
+            </Card>
           </div>
 
           {/* Right Column - Preview */}
@@ -468,6 +765,9 @@ ${difficulties}`;
             <CardHeader>
               <CardTitle className="text-lg flex items-center gap-2">
                 📋 Prévia do Relatório
+                {existingReport && (
+                  <Badge variant="secondary">Salvo</Badge>
+                )}
               </CardTitle>
             </CardHeader>
             <CardContent>
@@ -475,6 +775,22 @@ ${difficulties}`;
                 <pre className="whitespace-pre-wrap text-sm font-mono bg-muted p-4 rounded-lg">
                   {generateReport()}
                 </pre>
+                
+                {photos.length > 0 && (
+                  <div className="mt-4 space-y-2">
+                    <p className="text-sm font-medium">📷 Fotos anexadas:</p>
+                    <div className="grid grid-cols-2 gap-2">
+                      {photos.map((url, index) => (
+                        <img
+                          key={index}
+                          src={url}
+                          alt={`Foto ${index + 1}`}
+                          className="w-full h-32 object-cover rounded-lg"
+                        />
+                      ))}
+                    </div>
+                  </div>
+                )}
               </ScrollArea>
             </CardContent>
           </Card>
