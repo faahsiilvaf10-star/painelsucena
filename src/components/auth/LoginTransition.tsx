@@ -108,8 +108,77 @@ export function LoginTransition({ onComplete, userName, userAvatar, userCargo }:
     }
   };
 
+  // Background floating particles (same as login)
+  const bgParticles = useMemo(() => {
+    return Array.from({ length: 30 }, (_, i) => ({
+      id: i,
+      x: Math.random() * 100,
+      y: Math.random() * 100,
+      size: 2 + Math.random() * 4,
+      duration: 15 + Math.random() * 20,
+      delay: Math.random() * 10,
+      opacity: 0.1 + Math.random() * 0.3,
+    }));
+  }, []);
+
   return (
     <div className="fixed inset-0 z-50 pointer-events-none overflow-hidden">
+      {/* Background gradient - same as login screen */}
+      <div 
+        className="absolute inset-0"
+        style={{
+          background: `radial-gradient(
+            ellipse 80% 60% at 50% 50%,
+            hsl(220, 10%, 25%) 0%,
+            hsl(220, 12%, 18%) 25%,
+            hsl(220, 15%, 12%) 50%,
+            hsl(220, 18%, 6%) 75%,
+            hsl(0, 0%, 0%) 100%
+          )`
+        }}
+      />
+
+      {/* Subtle inner glow */}
+      <div 
+        className="absolute inset-0"
+        style={{
+          background: `radial-gradient(
+            circle at 50% 45%,
+            rgba(100, 110, 130, 0.15) 0%,
+            transparent 45%
+          )`
+        }}
+      />
+
+      {/* Floating background particles */}
+      {bgParticles.map((p) => (
+        <div
+          key={`bg-${p.id}`}
+          className="absolute rounded-full bg-white/20 animate-float-particle"
+          style={{
+            left: `${p.x}%`,
+            top: `${p.y}%`,
+            width: `${p.size}px`,
+            height: `${p.size}px`,
+            opacity: p.opacity,
+            animationDuration: `${p.duration}s`,
+            animationDelay: `${p.delay}s`,
+          }}
+        />
+      ))}
+
+      {/* Vignette effect */}
+      <div 
+        className="absolute inset-0"
+        style={{
+          background: `radial-gradient(
+            ellipse at center,
+            transparent 40%,
+            rgba(0, 0, 0, 0.5) 100%
+          )`
+        }}
+      />
+
       {/* Confetti particles */}
       {(phase === "zoom" || phase === "fade") && (
         <div className="absolute inset-0">
@@ -199,13 +268,8 @@ export function LoginTransition({ onComplete, userName, userAvatar, userCargo }:
             ? "w-16 h-16 duration-700 ease-out bg-gray-400/90 shadow-2xl"
             : phase === "click"
             ? "w-20 h-20 duration-200 ease-out bg-gray-400/90 shadow-[0_0_40px_10px_rgba(255,255,255,0.5),0_0_80px_20px_rgba(255,255,255,0.3)]"
-            : phase === "zoom"
-            ? "w-[200vmax] h-[200vmax] duration-[2500ms] ease-in-out bg-gradient-to-br from-slate-600 via-slate-700 to-slate-800 shadow-none"
-            : "w-[200vmax] h-[200vmax] duration-700 ease-out bg-background shadow-none"
+            : "opacity-0 scale-0 duration-500"
         }`}
-        style={{
-          transitionTimingFunction: phase === "zoom" ? "cubic-bezier(0.25, 0.1, 0.25, 1)" : undefined
-        }}
       >
         {/* Glow ring effect on click */}
         {phase === "click" && (
@@ -299,13 +363,42 @@ export function LoginTransition({ onComplete, userName, userAvatar, userCargo }:
 
       {/* Final fade overlay - slower */}
       <div 
-        className={`absolute inset-0 bg-background transition-opacity duration-500 ease-out ${
+        className={`absolute inset-0 transition-opacity duration-500 ease-out ${
           phase === "fade" ? "opacity-100" : "opacity-0"
         }`}
+        style={{
+          background: `radial-gradient(
+            ellipse 80% 60% at 50% 50%,
+            hsl(220, 10%, 25%) 0%,
+            hsl(220, 12%, 18%) 25%,
+            hsl(220, 15%, 12%) 50%,
+            hsl(220, 18%, 6%) 75%,
+            hsl(0, 0%, 0%) 100%
+          )`
+        }}
       />
 
       {/* Animation styles */}
       <style>{`
+        @keyframes float-particle {
+          0%, 100% {
+            transform: translateY(0) translateX(0);
+          }
+          25% {
+            transform: translateY(-20px) translateX(10px);
+          }
+          50% {
+            transform: translateY(-10px) translateX(-5px);
+          }
+          75% {
+            transform: translateY(-30px) translateX(5px);
+          }
+        }
+        
+        .animate-float-particle {
+          animation: float-particle ease-in-out infinite;
+        }
+        
         @keyframes confetti-fall {
           0% {
             transform: translateY(0) rotate(0deg) scale(0);
