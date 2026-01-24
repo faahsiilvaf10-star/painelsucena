@@ -49,6 +49,7 @@ const Auth = () => {
   const [occupiedCargos, setOccupiedCargos] = useState<string[]>([]);
   const [showTransition, setShowTransition] = useState(false);
   const [loggedUserName, setLoggedUserName] = useState<string>("");
+  const [loggedUserAvatar, setLoggedUserAvatar] = useState<string>("");
   const navigate = useNavigate();
   const { toast } = useToast();
 
@@ -161,18 +162,20 @@ const Auth = () => {
             localStorage.removeItem("rememberedPassword");
           }
           
-          // Fetch user's profile name
+          // Fetch user's profile name and avatar
           if (authData.user) {
             const { data: profileData } = await supabase
               .from("profiles")
-              .select("full_name")
+              .select("full_name, avatar_url")
               .eq("user_id", authData.user.id)
               .single();
             
             if (profileData?.full_name) {
-              // Get first name only
               const firstName = profileData.full_name.split(" ")[0];
               setLoggedUserName(firstName);
+            }
+            if (profileData?.avatar_url) {
+              setLoggedUserAvatar(profileData.avatar_url);
             }
           }
           
@@ -260,7 +263,11 @@ const Auth = () => {
 
       {/* Login Transition Animation */}
       {showTransition && (
-        <LoginTransition onComplete={handleTransitionComplete} userName={loggedUserName} />
+        <LoginTransition 
+          onComplete={handleTransitionComplete} 
+          userName={loggedUserName} 
+          userAvatar={loggedUserAvatar}
+        />
       )}
 
       {/* Login form - centered */}
