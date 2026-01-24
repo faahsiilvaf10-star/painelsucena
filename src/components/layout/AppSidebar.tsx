@@ -303,39 +303,31 @@ export function AppSidebar() {
               )}
             </div>
             
-            {/* Action Buttons */}
-            <div className={`flex gap-1 ${isCollapsed ? "flex-col" : ""}`}>
-              <Button
-                variant="ghost"
-                size="sm"
-                onClick={() => navigate("/configuracoes")}
-                className={`flex-1 hover:bg-sidebar-border/80 text-sidebar-foreground ${isCollapsed ? "px-2 justify-center" : ""}`}
-                title="Perfil e Configurações"
-              >
-                <User className="h-4 w-4" />
-                {!isCollapsed && <span className="ml-2">Perfil</span>}
-              </Button>
-              <Button
-                variant="ghost"
-                size="sm"
-                onClick={() => navigate("/configuracoes")}
-                className={`flex-1 hover:bg-sidebar-border/80 text-sidebar-foreground ${isCollapsed ? "px-2 justify-center" : ""}`}
-                title="Configurações do Sistema"
-              >
-                <Settings className="h-4 w-4" />
-                {!isCollapsed && <span className="ml-2">Config.</span>}
-              </Button>
-              <Button
-                variant="ghost"
-                size="sm"
-                onClick={handleSignOut}
-                className={`flex-1 hover:bg-red-500/20 hover:text-red-500 text-sidebar-foreground ${isCollapsed ? "px-2 justify-center" : ""}`}
-                title="Sair da conta"
-              >
-                <LogOut className="h-4 w-4" />
-                {!isCollapsed && <span className="ml-2">Sair</span>}
-              </Button>
-            </div>
+            {/* Menu Items for Config and Logout */}
+            <SidebarMenu>
+              <SidebarMenuItem>
+                <SidebarMenuButton 
+                  asChild 
+                  tooltip="Configurações"
+                  className="hover:bg-sidebar-accent"
+                >
+                  <Link to="/configuracoes" className="flex items-center gap-2">
+                    <Settings className="h-5 w-5" />
+                    <span className="font-medium">Configurações</span>
+                  </Link>
+                </SidebarMenuButton>
+              </SidebarMenuItem>
+              <SidebarMenuItem>
+                <SidebarMenuButton 
+                  tooltip="Sair"
+                  onClick={handleSignOut}
+                  className="hover:bg-red-500/20 hover:text-red-500 cursor-pointer"
+                >
+                  <LogOut className="h-5 w-5" />
+                  <span className="font-medium">Sair</span>
+                </SidebarMenuButton>
+              </SidebarMenuItem>
+            </SidebarMenu>
           </>
         ) : (
           <SidebarMenu>
