@@ -26,6 +26,7 @@ export interface EquipmentStopHistory {
   started_at: string;
   ended_at: string | null;
   duration_minutes: number | null;
+  defect_description: string | null;
   created_at: string;
 }
 
@@ -54,12 +55,14 @@ export function useUpdateEquipmentStatus() {
       stop_start_time,
       previousStopReason,
       previousStopStartTime,
+      defect_description,
     }: {
       id: string;
       stop_reason: StopReason;
       stop_start_time: string | null;
       previousStopReason?: StopReason;
       previousStopStartTime?: string | null;
+      defect_description?: string | null;
     }) => {
       const now = new Date();
 
@@ -85,6 +88,7 @@ export function useUpdateEquipmentStatus() {
           started_at: stop_start_time || now.toISOString(),
           ended_at: null,
           duration_minutes: null,
+          defect_description: stop_reason === "maintenance" ? defect_description : null,
         });
       }
 

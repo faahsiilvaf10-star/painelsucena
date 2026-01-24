@@ -2,6 +2,16 @@ import { useState, useEffect, useCallback } from "react";
 import { Pause, Play, Wrench, CloudRain, Clock, User, Edit2, Check, X, Trash2, MoreHorizontal } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
+import { Textarea } from "@/components/ui/textarea";
+import { Label } from "@/components/ui/label";
+import {
+  Dialog,
+  DialogContent,
+  DialogDescription,
+  DialogFooter,
+  DialogHeader,
+  DialogTitle,
+} from "@/components/ui/dialog";
 import {
   DropdownMenu,
   DropdownMenuContent,
@@ -43,6 +53,8 @@ export function EquipmentTimeline({ equipment }: EquipmentTimelineProps) {
   const [currentTime, setCurrentTime] = useState(getBrazilNorthDate());
   const [isEditing, setIsEditing] = useState(false);
   const [showDeleteDialog, setShowDeleteDialog] = useState(false);
+  const [showMaintenanceDialog, setShowMaintenanceDialog] = useState(false);
+  const [defectDescription, setDefectDescription] = useState("");
   const [editData, setEditData] = useState({
     plate: equipment.plate,
     driver: equipment.driver,
@@ -92,8 +104,16 @@ export function EquipmentTimeline({ equipment }: EquipmentTimelineProps) {
     return () => clearInterval(interval);
   }, [checkAutoEndOfShift]);
 
+  const handleStatusButtonClick = (reason: StopReason) => {
+    if (reason === "maintenance" && stopReason !== "maintenance") {
+      setDefectDescription("");
+      setShowMaintenanceDialog(true);
+    } else {
+      handleStopChange(reason);
+    }
+  };
 
-  const handleStopChange = async (reason: StopReason) => {
+  const handleStopChange = async (reason: StopReason, description?: string) => {
     try {
       await updateStatus.mutateAsync({
         id: equipment.id,
@@ -101,11 +121,22 @@ export function EquipmentTimeline({ equipment }: EquipmentTimelineProps) {
         stop_start_time: reason === "none" ? null : new Date().toISOString(),
         previousStopReason: stopReason,
         previousStopStartTime: equipment.stop_start_time,
+        defect_description: description,
       });
       toast.success(reason === "none" ? "Operação retomada" : statusConfig[reason].label);
     } catch {
       toast.error("Erro ao atualizar status");
     }
+  };
+
+  const handleMaintenanceSubmit = () => {
+    if (!defectDescription.trim()) {
+      toast.error("Por favor, descreva o defeito");
+      return;
+    }
+    handleStopChange("maintenance", defectDescription.trim());
+    setShowMaintenanceDialog(false);
+    setDefectDescription("");
   };
 
   const handleSaveEdit = async () => {
@@ -234,7 +265,7 @@ export function EquipmentTimeline({ equipment }: EquipmentTimelineProps) {
           return (
             <button
               key={reason}
-              onClick={() => handleStopChange(reason)}
+              onClick={() => handleStatusButtonClick(reason)}
               className={`flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-xs font-medium transition-all ${
                 isActive 
                   ? `${config.bg} text-white shadow-sm` 
@@ -265,6 +296,51 @@ export function EquipmentTimeline({ equipment }: EquipmentTimelineProps) {
           </AlertDialogFooter>
         </AlertDialogContent>
       </AlertDialog>
+
+      {/* Maintenance Dialog */}
+      <Dialog open={showMaintenanceDialog} onOpenChange={setShowMaintenanceDialog}>
+        <DialogContent className="sm:max-w-md">
+          <DialogHeader>
+            <DialogTitle className="flex items-center gap-2">
+              <Wrench className="w-5 h-5 text-orange-500" />
+              Registrar Manutenção
+            </DialogTitle>
+            <DialogDescription>
+              Descreva o defeito do equipamento <strong>{equipment.name}</strong>
+            </DialogDescription>
+          </DialogHeader>
+          <div className="space-y-4 py-4">
+            <div className="space-y-2">
+              <Label htmlFor="defect">Descrição do Defeito</Label>
+              <Textarea
+                id="defect"
+                placeholder="Ex: Problema no sistema hidráulico, vazamento de óleo..."
+                value={defectDescription}
+                onChange={(e) => setDefectDescription(e.target.value)}
+                className="min-h-[100px] resize-none"
+              />
+            </div>
+          </div>
+          <DialogFooter className="gap-2 sm:gap-0">
+            <Button
+              variant="outline"
+              onClick={() => {
+                setShowMaintenanceDialog(false);
+                setDefectDescription("");
+              }}
+            >
+              Cancelar
+            </Button>
+            <Button
+              onClick={handleMaintenanceSubmit}
+              className="bg-orange-500 hover:bg-orange-600 text-white"
+            >
+              <Wrench className="w-4 h-4 mr-2" />
+              Iniciar Manutenção
+            </Button>
+          </DialogFooter>
+        </DialogContent>
+      </Dialog>
     </div>
   );
 }
