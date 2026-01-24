@@ -10,15 +10,11 @@ interface PersistentSidebarProps {
 export const PersistentSidebar = ({ children }: PersistentSidebarProps) => {
   const { user } = useAuth();
 
-  // Don't render sidebar wrapper if not authenticated
-  if (!user) {
-    return <>{children}</>;
-  }
-
+  // Always provide SidebarProvider context, but only render sidebar when authenticated
   return (
     <SidebarProvider defaultOpen={true}>
       <div className="min-h-screen flex w-full bg-background">
-        <AppSidebar />
+        {user && <AppSidebar />}
         {children}
       </div>
     </SidebarProvider>
