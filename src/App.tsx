@@ -8,6 +8,7 @@ import { RadioProvider } from "@/contexts/RadioContext";
 import { PersistentFooter } from "@/components/layout/PersistentFooter";
 import { PersistentSidebar } from "@/components/layout/PersistentSidebar";
 import ProtectedRoute from "@/components/ProtectedRoute";
+import { LoginTransitionGate } from "@/components/auth/LoginTransitionGate";
 import Index from "./pages/Index";
 import RH from "./pages/RH";
 import Presenca from "./pages/Presenca";
@@ -36,6 +37,7 @@ const App = () => (
           <Toaster />
           <Sonner />
           <BrowserRouter>
+            <LoginTransitionGate />
             <PersistentSidebar>
               <Routes>
                 <Route path="/auth" element={<Auth />} />
