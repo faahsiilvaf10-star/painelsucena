@@ -1,5 +1,7 @@
 import { useState, useEffect, useCallback } from "react";
-import { Pause, Play, Wrench, CloudRain, Clock, User, Edit2, Check, X, Trash2, MoreHorizontal } from "lucide-react";
+import { format } from "date-fns";
+import { ptBR } from "date-fns/locale";
+import { Pause, Play, Wrench, CloudRain, Clock, User, Edit2, Check, X, Trash2, MoreHorizontal, Calendar } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Textarea } from "@/components/ui/textarea";
@@ -58,6 +60,7 @@ export function EquipmentTimeline({ equipment }: EquipmentTimelineProps) {
   const [defectDescription, setDefectDescription] = useState("");
   const [isEditingMaintenance, setIsEditingMaintenance] = useState(false);
   const [currentMaintenanceId, setCurrentMaintenanceId] = useState<string | null>(null);
+  const [maintenanceStartedAt, setMaintenanceStartedAt] = useState<string | null>(null);
   const [editData, setEditData] = useState({
     plate: equipment.plate,
     driver: equipment.driver,
@@ -118,16 +121,19 @@ export function EquipmentTimeline({ equipment }: EquipmentTimelineProps) {
         if (currentMaintenance) {
           setDefectDescription(currentMaintenance.defect_description || "");
           setCurrentMaintenanceId(currentMaintenance.id);
+          setMaintenanceStartedAt(currentMaintenance.started_at);
           setIsEditingMaintenance(true);
         } else {
           setDefectDescription("");
           setCurrentMaintenanceId(null);
+          setMaintenanceStartedAt(null);
           setIsEditingMaintenance(false);
         }
       } else {
         // Starting new maintenance
         setDefectDescription("");
         setCurrentMaintenanceId(null);
+        setMaintenanceStartedAt(null);
         setIsEditingMaintenance(false);
       }
       setShowMaintenanceDialog(true);
@@ -347,6 +353,7 @@ export function EquipmentTimeline({ equipment }: EquipmentTimelineProps) {
         if (!open) {
           setDefectDescription("");
           setCurrentMaintenanceId(null);
+          setMaintenanceStartedAt(null);
           setIsEditingMaintenance(false);
         }
       }}>
@@ -364,6 +371,17 @@ export function EquipmentTimeline({ equipment }: EquipmentTimelineProps) {
             </DialogDescription>
           </DialogHeader>
           <div className="space-y-4 py-4">
+            {isEditingMaintenance && maintenanceStartedAt && (
+              <div className="flex items-center gap-2 p-3 bg-orange-500/10 border border-orange-500/20 rounded-lg">
+                <Calendar className="w-4 h-4 text-orange-500" />
+                <div className="text-sm">
+                  <span className="text-muted-foreground">Início da manutenção: </span>
+                  <span className="font-medium text-foreground">
+                    {format(new Date(maintenanceStartedAt), "dd/MM/yyyy 'às' HH:mm", { locale: ptBR })}
+                  </span>
+                </div>
+              </div>
+            )}
             <div className="space-y-2">
               <Label htmlFor="defect">Descrição do Defeito</Label>
               <Textarea
@@ -382,6 +400,7 @@ export function EquipmentTimeline({ equipment }: EquipmentTimelineProps) {
                 setShowMaintenanceDialog(false);
                 setDefectDescription("");
                 setCurrentMaintenanceId(null);
+                setMaintenanceStartedAt(null);
                 setIsEditingMaintenance(false);
               }}
             >
