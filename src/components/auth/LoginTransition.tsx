@@ -1,5 +1,7 @@
 import { useState, useEffect, useMemo, useRef } from "react";
 import { User } from "lucide-react";
+import { useSiteSettings } from "@/hooks/useSiteSettings";
+import logoPrincipal from "@/assets/logo-principal.png";
 
 interface LoginTransitionProps {
   onComplete: () => void;
@@ -21,7 +23,9 @@ interface Particle {
 }
 
 export function LoginTransition({ onComplete, userName, userAvatar, userCargo }: LoginTransitionProps) {
-  const [phase, setPhase] = useState<"cursor-move" | "click" | "zoom" | "fade">("cursor-move");
+  const [phase, setPhase] = useState<"logo-center" | "logo-move" | "cursor-move" | "click" | "zoom" | "fade">("logo-center");
+  const { settings } = useSiteSettings();
+  const logoUrl = settings.logo_url || logoPrincipal;
   const audioRef = useRef<HTMLAudioElement | null>(null);
 
   // Play success sound on mount
@@ -66,13 +70,25 @@ export function LoginTransition({ onComplete, userName, userAvatar, userCargo }:
   }, []);
 
   useEffect(() => {
-    // Slower, smoother timings - total 11.5 seconds
-    const clickTimer = setTimeout(() => setPhase("click"), 1500);      // Cursor moves for 1.5s
-    const zoomTimer = setTimeout(() => setPhase("zoom"), 2200);        // Click effect for 0.7s
-    const fadeTimer = setTimeout(() => setPhase("fade"), 11000);       // Zoom + welcome for 8.8s (+5s)
-    const completeTimer = setTimeout(() => onComplete(), 11500);       // Fade for 0.5s
+    // Logo animation + cursor animation + welcome screen
+    // Total ~13 seconds:
+    // - logo-center: 0-1.5s (logo appears large centered)
+    // - logo-move: 1.5s-3s (logo moves to sidebar position)
+    // - cursor-move: 3s-4.5s (cursor moves to avatar)
+    // - click: 4.5s-5.2s (click effect)
+    // - zoom: 5.2s-12.5s (welcome screen with confetti)
+    // - fade: 12.5s-13s (fade out)
+    
+    const logoMoveTimer = setTimeout(() => setPhase("logo-move"), 1500);
+    const cursorMoveTimer = setTimeout(() => setPhase("cursor-move"), 3000);
+    const clickTimer = setTimeout(() => setPhase("click"), 4500);
+    const zoomTimer = setTimeout(() => setPhase("zoom"), 5200);
+    const fadeTimer = setTimeout(() => setPhase("fade"), 12500);
+    const completeTimer = setTimeout(() => onComplete(), 13000);
 
     return () => {
+      clearTimeout(logoMoveTimer);
+      clearTimeout(cursorMoveTimer);
       clearTimeout(clickTimer);
       clearTimeout(zoomTimer);
       clearTimeout(fadeTimer);
@@ -179,6 +195,43 @@ export function LoginTransition({ onComplete, userName, userAvatar, userCargo }:
         }}
       />
 
+      {/* Animated Logo - starts centered and large, moves to sidebar position */}
+      <div
+        className={`absolute transition-all ease-out ${
+          phase === "logo-center"
+            ? "top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 scale-100 opacity-100"
+            : phase === "logo-move"
+            ? "top-4 left-4 translate-x-0 translate-y-0 scale-100 opacity-100"
+            : "top-4 left-4 translate-x-0 translate-y-0 scale-100 opacity-100"
+        }`}
+        style={{
+          transition: phase === "logo-center" 
+            ? "all 0.8s cubic-bezier(0.34, 1.56, 0.64, 1)" 
+            : phase === "logo-move"
+            ? "all 1.5s cubic-bezier(0.34, 0.02, 0.21, 1)"
+            : "opacity 0.5s ease-out",
+          zIndex: 60,
+        }}
+      >
+        <img
+          src={logoUrl}
+          alt="Logo"
+          className={`object-contain transition-all ease-out ${
+            phase === "logo-center"
+              ? "h-32 max-w-[400px] drop-shadow-[0_0_40px_rgba(255,255,255,0.3)]"
+              : "h-10 max-w-[140px]"
+          }`}
+          style={{
+            transition: phase === "logo-center"
+              ? "all 0.8s cubic-bezier(0.34, 1.56, 0.64, 1)"
+              : "all 1.5s cubic-bezier(0.34, 0.02, 0.21, 1)",
+            filter: phase === "logo-center" 
+              ? "drop-shadow(0 0 40px rgba(255, 255, 255, 0.4)) drop-shadow(0 0 80px rgba(255, 255, 255, 0.2))"
+              : "none",
+          }}
+        />
+      </div>
+
       {/* Confetti particles */}
       {(phase === "zoom" || phase === "fade") && (
         <div className="absolute inset-0">
@@ -220,87 +273,91 @@ export function LoginTransition({ onComplete, userName, userAvatar, userCargo }:
         </div>
       )}
 
-      {/* Animated cursor - realistic movement */}
-      <div
-        className={`absolute ${
-          phase === "cursor-move" 
-            ? "top-[65%] left-[65%] opacity-100" 
-            : phase === "click"
-            ? "top-1/2 left-1/2 -translate-x-8 -translate-y-8 opacity-100 scale-90"
-            : "top-1/2 left-1/2 -translate-x-8 -translate-y-8 opacity-0"
-        }`}
-        style={{
-          transition: phase === "cursor-move" 
-            ? "all 1.5s cubic-bezier(0.34, 0.02, 0.21, 1)" 
-            : phase === "click"
-            ? "all 0.3s cubic-bezier(0.25, 0.46, 0.45, 0.94)"
-            : "all 0.5s ease-out"
-        }}
-      >
-        <svg
-          width="32"
-          height="32"
-          viewBox="0 0 24 24"
-          fill="none"
-          xmlns="http://www.w3.org/2000/svg"
-          className={`drop-shadow-lg ${phase === "click" ? "animate-pulse" : ""}`}
+      {/* Animated cursor - realistic movement (only shows after logo animation) */}
+      {(phase === "cursor-move" || phase === "click") && (
+        <div
+          className={`absolute ${
+            phase === "cursor-move" 
+              ? "top-[65%] left-[65%] opacity-100" 
+              : phase === "click"
+              ? "top-1/2 left-1/2 -translate-x-8 -translate-y-8 opacity-100 scale-90"
+              : "top-1/2 left-1/2 -translate-x-8 -translate-y-8 opacity-0"
+          }`}
+          style={{
+            transition: phase === "cursor-move" 
+              ? "all 1.5s cubic-bezier(0.34, 0.02, 0.21, 1)" 
+              : phase === "click"
+              ? "all 0.3s cubic-bezier(0.25, 0.46, 0.45, 0.94)"
+              : "all 0.5s ease-out"
+          }}
         >
-          <path
-            d="M5.5 3.21V20.8c0 .45.54.67.85.35l4.86-4.86a.5.5 0 0 1 .35-.15h6.87a.5.5 0 0 0 .35-.85L6.35 2.86a.5.5 0 0 0-.85.35Z"
-            fill="white"
-            stroke="black"
-            strokeWidth="1.5"
-          />
-        </svg>
-        
-        {phase === "click" && (
-          <div className="absolute top-4 left-4 w-4 h-4">
-            <div className="absolute inset-0 rounded-full bg-white/50 animate-ping" />
-            <div className="absolute inset-0 rounded-full bg-white/30 animate-pulse" />
-          </div>
-        )}
-      </div>
+          <svg
+            width="32"
+            height="32"
+            viewBox="0 0 24 24"
+            fill="none"
+            xmlns="http://www.w3.org/2000/svg"
+            className={`drop-shadow-lg ${phase === "click" ? "animate-pulse" : ""}`}
+          >
+            <path
+              d="M5.5 3.21V20.8c0 .45.54.67.85.35l4.86-4.86a.5.5 0 0 1 .35-.15h6.87a.5.5 0 0 0 .35-.85L6.35 2.86a.5.5 0 0 0-.85.35Z"
+              fill="white"
+              stroke="black"
+              strokeWidth="1.5"
+            />
+          </svg>
+          
+          {phase === "click" && (
+            <div className="absolute top-4 left-4 w-4 h-4">
+              <div className="absolute inset-0 rounded-full bg-white/50 animate-ping" />
+              <div className="absolute inset-0 rounded-full bg-white/30 animate-pulse" />
+            </div>
+          )}
+        </div>
+      )}
 
-      {/* Avatar that zooms in - with click enlargement and glow */}
-      <div
-        className={`absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 rounded-full flex items-center justify-center transition-all ${
-          phase === "cursor-move"
-            ? "w-16 h-16 duration-700 ease-out bg-gray-400/90 shadow-2xl"
-            : phase === "click"
-            ? "w-20 h-20 duration-200 ease-out bg-gray-400/90 shadow-[0_0_40px_10px_rgba(255,255,255,0.5),0_0_80px_20px_rgba(255,255,255,0.3)]"
-            : "opacity-0 scale-0 duration-500"
-        }`}
-      >
-        {/* Glow ring effect on click */}
-        {phase === "click" && (
-          <div className="absolute inset-0 rounded-full animate-glow-ring" />
-        )}
-        
-        {userAvatar ? (
-          <img 
-            src={userAvatar} 
-            alt="Avatar"
-            className={`rounded-full object-cover transition-all ease-out ${
-              phase === "cursor-move" 
-                ? "w-9 h-9 duration-300" 
-                : phase === "click"
-                ? "w-12 h-12 duration-200 brightness-110"
-                : "opacity-0 scale-0 duration-700"
-            }`}
-          />
-        ) : (
-          <User 
-            className={`text-white/90 transition-all ease-out ${
-              phase === "cursor-move" 
-                ? "w-9 h-9 duration-300" 
-                : phase === "click"
-                ? "w-12 h-12 duration-200"
-                : "opacity-0 scale-0 duration-700"
-            }`} 
-            strokeWidth={1.5} 
-          />
-        )}
-      </div>
+      {/* Avatar that zooms in - with click enlargement and glow (only shows during cursor phases) */}
+      {(phase === "cursor-move" || phase === "click") && (
+        <div
+          className={`absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 rounded-full flex items-center justify-center transition-all ${
+            phase === "cursor-move"
+              ? "w-16 h-16 duration-700 ease-out bg-gray-400/90 shadow-2xl"
+              : phase === "click"
+              ? "w-20 h-20 duration-200 ease-out bg-gray-400/90 shadow-[0_0_40px_10px_rgba(255,255,255,0.5),0_0_80px_20px_rgba(255,255,255,0.3)]"
+              : "opacity-0 scale-0 duration-500"
+          }`}
+        >
+          {/* Glow ring effect on click */}
+          {phase === "click" && (
+            <div className="absolute inset-0 rounded-full animate-glow-ring" />
+          )}
+          
+          {userAvatar ? (
+            <img 
+              src={userAvatar} 
+              alt="Avatar"
+              className={`rounded-full object-cover transition-all ease-out ${
+                phase === "cursor-move" 
+                  ? "w-9 h-9 duration-300" 
+                  : phase === "click"
+                  ? "w-12 h-12 duration-200 brightness-110"
+                  : "opacity-0 scale-0 duration-700"
+              }`}
+            />
+          ) : (
+            <User 
+              className={`text-white/90 transition-all ease-out ${
+                phase === "cursor-move" 
+                  ? "w-9 h-9 duration-300" 
+                  : phase === "click"
+                  ? "w-12 h-12 duration-200"
+                  : "opacity-0 scale-0 duration-700"
+              }`} 
+              strokeWidth={1.5} 
+            />
+          )}
+        </div>
+      )}
 
       {/* Welcome text with sparkle effect */}
       {(phase === "zoom" || phase === "fade") && (
