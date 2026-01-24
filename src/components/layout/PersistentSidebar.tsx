@@ -13,9 +13,9 @@ export const PersistentSidebar = ({ children }: PersistentSidebarProps) => {
   // Always provide SidebarProvider context, but only render sidebar when authenticated
   return (
     <SidebarProvider defaultOpen={true}>
-      <div className="h-screen flex w-full bg-background">
+      <div className="min-h-screen flex flex-row w-full bg-background">
         {user && <AppSidebar />}
-        <div className="flex-1 flex flex-col min-w-0 overflow-hidden">
+        <div className="flex-1 flex flex-col min-w-0">
           {children}
         </div>
       </div>
