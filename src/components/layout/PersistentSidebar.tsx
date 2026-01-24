@@ -1,4 +1,4 @@
-import { ReactNode, useEffect, useState } from "react";
+import { ReactNode } from "react";
 import { AppSidebar } from "./AppSidebar";
 import { SidebarProvider } from "@/components/ui/sidebar";
 import { useAuth } from "@/hooks/useAuth";
@@ -9,21 +9,9 @@ interface PersistentSidebarProps {
 
 export const PersistentSidebar = ({ children }: PersistentSidebarProps) => {
   const { user } = useAuth();
-  const [isTransitioning, setIsTransitioning] = useState(false);
 
-  // Check if login transition is in progress
-  useEffect(() => {
-    const checkTransition = () => {
-      const transitioning = sessionStorage.getItem("loginTransitionInProgress") === "true";
-      setIsTransitioning(transitioning);
-    };
-
-    checkTransition();
-
-    // Poll for transition state changes
-    const interval = setInterval(checkTransition, 50);
-    return () => clearInterval(interval);
-  }, []);
+  // Read synchronously to avoid a 1-frame flash right after SIGNED_IN.
+  const isTransitioning = sessionStorage.getItem("loginTransitionInProgress") === "true";
 
   // Hide sidebar and content during transition to prevent flash
   const showContent = user && !isTransitioning;
