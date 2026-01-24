@@ -1,22 +1,33 @@
 import { useState, useMemo } from "react";
-import { Plus, Package, ClipboardList, History, Search, X } from "lucide-react";
+import { Plus, Package, ClipboardList, History, Search, X, Filter } from "lucide-react";
 import Layout from "@/components/layout/Layout";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Skeleton } from "@/components/ui/skeleton";
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { CreateOrderDialog } from "@/components/orders/CreateOrderDialog";
 import { OrderCard } from "@/components/orders/OrderCard";
 import { OrderDetailsDialog } from "@/components/orders/OrderDetailsDialog";
 import { useOrders, useMyOrders, usePendingOrders, Order } from "@/hooks/useOrders";
 import { useProfile } from "@/hooks/useProfile";
 
+const STATUS_OPTIONS = [
+  { value: "all", label: "Todos os Status" },
+  { value: "solicitado", label: "Solicitado" },
+  { value: "aprovado", label: "Aprovado" },
+  { value: "a_caminho", label: "A Caminho" },
+  { value: "entregue", label: "Entregue" },
+  { value: "cancelado", label: "Cancelado" },
+];
+
 export default function Pedidos() {
   const [createDialogOpen, setCreateDialogOpen] = useState(false);
   const [selectedOrder, setSelectedOrder] = useState<Order | null>(null);
   const [detailsOpen, setDetailsOpen] = useState(false);
   const [searchQuery, setSearchQuery] = useState("");
+  const [statusFilter, setStatusFilter] = useState("all");
 
   const { data: profile } = useProfile();
   const { data: allOrders, isLoading: loadingAll } = useOrders();
@@ -25,23 +36,34 @@ export default function Pedidos() {
 
   const isResponsible = profile?.cargo === "aux_administrativo" || profile?.cargo === "aux_almoxarifado";
 
-  // Filter orders by search query
+  // Filter orders by search query and status
   const filterOrders = (orders: Order[] | undefined) => {
     if (!orders) return [];
-    if (!searchQuery.trim()) return orders;
     
-    const query = searchQuery.toLowerCase().trim();
-    return orders.filter(order => 
-      order.product_name.toLowerCase().includes(query) ||
-      order.order_number?.toLowerCase().includes(query) ||
-      order.requester_name.toLowerCase().includes(query) ||
-      order.description?.toLowerCase().includes(query)
-    );
+    let filtered = orders;
+    
+    // Filter by status
+    if (statusFilter !== "all") {
+      filtered = filtered.filter(order => order.status === statusFilter);
+    }
+    
+    // Filter by search query
+    if (searchQuery.trim()) {
+      const query = searchQuery.toLowerCase().trim();
+      filtered = filtered.filter(order => 
+        order.product_name.toLowerCase().includes(query) ||
+        order.order_number?.toLowerCase().includes(query) ||
+        order.requester_name.toLowerCase().includes(query) ||
+        order.description?.toLowerCase().includes(query)
+      );
+    }
+    
+    return filtered;
   };
 
-  const filteredMyOrders = useMemo(() => filterOrders(myOrders), [myOrders, searchQuery]);
-  const filteredPendingOrders = useMemo(() => filterOrders(pendingOrders), [pendingOrders, searchQuery]);
-  const filteredAllOrders = useMemo(() => filterOrders(allOrders), [allOrders, searchQuery]);
+  const filteredMyOrders = useMemo(() => filterOrders(myOrders), [myOrders, searchQuery, statusFilter]);
+  const filteredPendingOrders = useMemo(() => filterOrders(pendingOrders), [pendingOrders, searchQuery, statusFilter]);
+  const filteredAllOrders = useMemo(() => filterOrders(allOrders), [allOrders, searchQuery, statusFilter]);
 
   const handleOrderClick = (order: Order) => {
     setSelectedOrder(order);
@@ -64,7 +86,7 @@ export default function Pedidos() {
         <Card>
           <CardContent className="py-8 text-center text-muted-foreground">
             <Package className="w-12 h-12 mx-auto mb-3 opacity-50" />
-            <p>{searchQuery ? "Nenhum pedido encontrado com essa busca" : emptyMessage}</p>
+            <p>{searchQuery || statusFilter !== "all" ? "Nenhum pedido encontrado com os filtros aplicados" : emptyMessage}</p>
           </CardContent>
         </Card>
       );
@@ -98,25 +120,40 @@ export default function Pedidos() {
           </Button>
         </div>
 
-        {/* Search Bar */}
-        <div className="relative mb-4">
-          <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-muted-foreground" />
-          <Input
-            placeholder="Buscar por nome do produto, nº do pedido ou solicitante..."
-            value={searchQuery}
-            onChange={(e) => setSearchQuery(e.target.value)}
-            className="pl-10 pr-10"
-          />
-          {searchQuery && (
-            <Button
-              variant="ghost"
-              size="icon"
-              className="absolute right-1 top-1/2 -translate-y-1/2 h-7 w-7"
-              onClick={() => setSearchQuery("")}
-            >
-              <X className="w-4 h-4" />
-            </Button>
-          )}
+        {/* Search and Filter Bar */}
+        <div className="flex flex-col sm:flex-row gap-3 mb-4">
+          <div className="relative flex-1">
+            <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-muted-foreground" />
+            <Input
+              placeholder="Buscar por nome do produto, nº do pedido ou solicitante..."
+              value={searchQuery}
+              onChange={(e) => setSearchQuery(e.target.value)}
+              className="pl-10 pr-10"
+            />
+            {searchQuery && (
+              <Button
+                variant="ghost"
+                size="icon"
+                className="absolute right-1 top-1/2 -translate-y-1/2 h-7 w-7"
+                onClick={() => setSearchQuery("")}
+              >
+                <X className="w-4 h-4" />
+              </Button>
+            )}
+          </div>
+          <Select value={statusFilter} onValueChange={setStatusFilter}>
+            <SelectTrigger className="w-full sm:w-[180px]">
+              <Filter className="w-4 h-4 mr-2" />
+              <SelectValue placeholder="Filtrar status" />
+            </SelectTrigger>
+            <SelectContent>
+              {STATUS_OPTIONS.map((option) => (
+                <SelectItem key={option.value} value={option.value}>
+                  {option.label}
+                </SelectItem>
+              ))}
+            </SelectContent>
+          </Select>
         </div>
 
         <Tabs defaultValue="meus" className="space-y-4">
