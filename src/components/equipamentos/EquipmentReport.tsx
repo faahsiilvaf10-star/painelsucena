@@ -1,7 +1,7 @@
 import { useMemo, useState } from "react";
 import { format, startOfDay, startOfWeek, startOfMonth, endOfDay, endOfWeek, endOfMonth, isWithinInterval } from "date-fns";
 import { ptBR } from "date-fns/locale";
-import { Share2, Clock, Wrench, CloudRain, Play, ChevronDown, BarChart3 } from "lucide-react";
+import { Share2, Clock, Wrench, CloudRain, Play, ChevronDown, BarChart3, AlertTriangle } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import { ScrollArea } from "@/components/ui/scroll-area";
@@ -69,6 +69,10 @@ export function EquipmentReport() {
       return isWithinInterval(stopDate, { start: dateRange.start, end: dateRange.end });
     });
   }, [allHistory, dateRange]);
+
+  const maintenanceHistory = useMemo(() => {
+    return filteredHistory.filter(stop => stop.stop_reason === "maintenance");
+  }, [filteredHistory]);
 
   const equipmentStats = useMemo((): EquipmentStats[] => {
     if (!equipment) return [];
@@ -245,12 +249,97 @@ export function EquipmentReport() {
               ))}
             </div>
 
-            {/* History List */}
+            {/* Maintenance History Section */}
             <div>
-              <h3 className="text-sm font-medium text-foreground mb-3">Histórico de Paradas</h3>
-              <ScrollArea className="h-[280px] -mx-1 px-1">
+              <div className="flex items-center gap-2 mb-3">
+                <Wrench className="w-4 h-4 text-orange-500" />
+                <h3 className="text-sm font-medium text-foreground">Histórico de Manutenções</h3>
+                {maintenanceHistory.length > 0 && (
+                  <Badge variant="secondary" className="text-xs">
+                    {maintenanceHistory.length}
+                  </Badge>
+                )}
+              </div>
+              <ScrollArea className="h-[220px] -mx-1 px-1">
+                {maintenanceHistory.length === 0 ? (
+                  <div className="flex flex-col items-center justify-center py-8 text-center">
+                    <div className="p-3 rounded-xl bg-muted/50 mb-3">
+                      <Wrench className="w-6 h-6 text-muted-foreground/50" />
+                    </div>
+                    <p className="text-sm text-muted-foreground">Nenhuma manutenção registrada no período</p>
+                  </div>
+                ) : (
+                  <div className="space-y-3">
+                    {maintenanceHistory.map((stop) => {
+                      const eq = equipment?.find(e => e.id === stop.equipment_id);
+                      const isOngoing = !stop.ended_at;
+                      return (
+                        <div 
+                          key={stop.id} 
+                          className={`p-4 rounded-xl border transition-colors ${
+                            isOngoing 
+                              ? 'bg-orange-500/5 border-orange-500/30' 
+                              : 'bg-muted/30 border-border hover:bg-muted/50'
+                          }`}
+                        >
+                          <div className="flex items-start justify-between gap-3 mb-2">
+                            <div className="flex items-center gap-2">
+                              <span className="font-medium text-sm">{eq?.name || "Equipamento"}</span>
+                              <Badge variant="outline" className="text-[10px] px-1.5 py-0 font-mono">
+                                {eq?.plate}
+                              </Badge>
+                              {isOngoing && (
+                                <Badge className="bg-orange-500 text-white text-[10px] px-1.5 py-0">
+                                  Em andamento
+                                </Badge>
+                              )}
+                            </div>
+                            {stop.duration_minutes && (
+                              <span className="text-xs font-medium text-muted-foreground bg-muted px-2 py-1 rounded-lg shrink-0">
+                                {formatDuration(stop.duration_minutes)}
+                              </span>
+                            )}
+                          </div>
+                          
+                          <div className="flex items-center gap-2 text-xs text-muted-foreground mb-2">
+                            <Clock className="w-3 h-3" />
+                            <span>{format(new Date(stop.started_at), "dd/MM/yyyy 'às' HH:mm", { locale: ptBR })}</span>
+                            {stop.ended_at && (
+                              <>
+                                <span>→</span>
+                                <span>{format(new Date(stop.ended_at), "dd/MM/yyyy 'às' HH:mm", { locale: ptBR })}</span>
+                              </>
+                            )}
+                          </div>
+
+                          {stop.defect_description ? (
+                            <div className="flex items-start gap-2 p-2 bg-background/50 rounded-lg">
+                              <AlertTriangle className="w-3.5 h-3.5 text-orange-500 mt-0.5 shrink-0" />
+                              <p className="text-xs text-foreground leading-relaxed">
+                                {stop.defect_description}
+                              </p>
+                            </div>
+                          ) : (
+                            <div className="flex items-center gap-2 p-2 bg-background/50 rounded-lg">
+                              <span className="text-xs text-muted-foreground italic">
+                                Sem descrição do defeito
+                              </span>
+                            </div>
+                          )}
+                        </div>
+                      );
+                    })}
+                  </div>
+                )}
+              </ScrollArea>
+            </div>
+
+            {/* All Stops History List */}
+            <div>
+              <h3 className="text-sm font-medium text-foreground mb-3">Todas as Paradas</h3>
+              <ScrollArea className="h-[220px] -mx-1 px-1">
                 {filteredHistory.length === 0 ? (
-                  <div className="flex flex-col items-center justify-center py-12 text-center">
+                  <div className="flex flex-col items-center justify-center py-8 text-center">
                     <div className="p-3 rounded-xl bg-muted/50 mb-3">
                       <Clock className="w-6 h-6 text-muted-foreground/50" />
                     </div>
