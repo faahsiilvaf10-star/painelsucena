@@ -10,7 +10,6 @@ import { OnlineUser } from "@/hooks/useOnlineUsers";
 import { useAuth } from "@/hooks/useAuth";
 import { Menu } from "lucide-react";
 import { CampaignRibbon } from "@/components/campaigns/CampaignRibbon";
-import { LiveRadioPlayer } from "@/components/auth/LiveRadioPlayer";
 
 const motivationalPhrases = [
   "O sucesso é a soma de pequenos esforços repetidos dia após dia.",
@@ -100,10 +99,7 @@ const Layout = ({ children }: LayoutProps) => {
           </main>
           <ForbiddenColorIndicator />
           
-          {/* Live Radio Player */}
-          <LiveRadioPlayer />
-          
-          {/* Online Users Footer */}
+          {/* Online Users Footer (includes Radio Player) */}
           {user && <OnlineUsersFooter onUserClick={handleUserClick} />}
           
           {/* Chat Dialog */}
