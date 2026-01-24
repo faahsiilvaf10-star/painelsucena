@@ -59,7 +59,7 @@ const Dashboard = () => {
         <div className="animate-slide-up" style={{
         animationDelay: "0.9s"
       }}>
-          <h2 className="text-2xl font-bold mb-6">Atividade Recente</h2>
+          
         </div>
       </div>
     </Layout>;
