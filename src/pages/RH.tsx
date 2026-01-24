@@ -68,8 +68,8 @@ const RH = () => {
   const updateEmployee = useUpdateEmployee();
   const deleteEmployee = useDeleteEmployee();
 
-  // Check if user has access (preposto, aux_administrativo, or admin)
-  const hasAccess = isAdmin || profile?.cargo === "preposto" || profile?.cargo === "aux_administrativo";
+  // Check if user can edit (aux_administrativo, preposto, or admin)
+  const canEdit = isAdmin || profile?.cargo === "preposto" || profile?.cargo === "aux_administrativo";
 
   // If still loading, show loading state
   if (authLoading || profileLoading || adminLoading) {
@@ -78,23 +78,6 @@ const RH = () => {
         <div className="container mx-auto px-6 py-8">
           <div className="flex items-center justify-center h-64">
             <p className="text-muted-foreground">Carregando...</p>
-          </div>
-        </div>
-      </Layout>
-    );
-  }
-
-  // If user doesn't have access, show access denied
-  if (!hasAccess) {
-    return (
-      <Layout>
-        <div className="container mx-auto px-6 py-8">
-          <div className="flex flex-col items-center justify-center h-64 gap-4">
-            <Shield className="w-16 h-16 text-muted-foreground" />
-            <h1 className="text-2xl font-bold">Acesso Restrito</h1>
-            <p className="text-muted-foreground text-center">
-              Esta página é restrita para usuários com cargo de Preposto ou Auxiliar Administrativo.
-            </p>
           </div>
         </div>
       </Layout>
@@ -374,23 +357,25 @@ const RH = () => {
             </p>
           </div>
 
-          <Dialog open={isAddDialogOpen} onOpenChange={setIsAddDialogOpen}>
-            <DialogTrigger asChild>
-              <Button className="gap-2">
-                <Plus className="w-4 h-4" />
-                Novo Funcionário
-              </Button>
-            </DialogTrigger>
-            <DialogContent className="bg-card max-h-[90vh] overflow-y-auto">
-              <DialogHeader>
-                <DialogTitle>Adicionar Funcionário</DialogTitle>
-                <DialogDescription>
-                  Preencha os dados do novo funcionário
-                </DialogDescription>
-              </DialogHeader>
-              <EmployeeForm />
-            </DialogContent>
-          </Dialog>
+          {canEdit && (
+            <Dialog open={isAddDialogOpen} onOpenChange={setIsAddDialogOpen}>
+              <DialogTrigger asChild>
+                <Button className="gap-2">
+                  <Plus className="w-4 h-4" />
+                  Novo Funcionário
+                </Button>
+              </DialogTrigger>
+              <DialogContent className="bg-card max-h-[90vh] overflow-y-auto">
+                <DialogHeader>
+                  <DialogTitle>Adicionar Funcionário</DialogTitle>
+                  <DialogDescription>
+                    Preencha os dados do novo funcionário
+                  </DialogDescription>
+                </DialogHeader>
+                <EmployeeForm />
+              </DialogContent>
+            </Dialog>
+          )}
         </div>
 
         {/* Filters */}
@@ -447,24 +432,26 @@ const RH = () => {
                       <p className="text-muted-foreground text-sm">{employee.role}</p>
                     </div>
                   </div>
-                  <div className="flex items-center gap-1">
-                    <Button
-                      variant="ghost"
-                      size="icon"
-                      className="h-8 w-8 opacity-0 group-hover:opacity-100 transition-opacity"
-                      onClick={() => openEditDialog(employee)}
-                    >
-                      <Pencil className="h-4 w-4" />
-                    </Button>
-                    <Button
-                      variant="ghost"
-                      size="icon"
-                      className="h-8 w-8 opacity-0 group-hover:opacity-100 transition-opacity text-destructive"
-                      onClick={() => handleDeleteEmployee(employee.id)}
-                    >
-                      <Trash2 className="h-4 w-4" />
-                    </Button>
-                  </div>
+                  {canEdit && (
+                    <div className="flex items-center gap-1">
+                      <Button
+                        variant="ghost"
+                        size="icon"
+                        className="h-8 w-8 opacity-0 group-hover:opacity-100 transition-opacity"
+                        onClick={() => openEditDialog(employee)}
+                      >
+                        <Pencil className="h-4 w-4" />
+                      </Button>
+                      <Button
+                        variant="ghost"
+                        size="icon"
+                        className="h-8 w-8 opacity-0 group-hover:opacity-100 transition-opacity text-destructive"
+                        onClick={() => handleDeleteEmployee(employee.id)}
+                      >
+                        <Trash2 className="h-4 w-4" />
+                      </Button>
+                    </div>
+                  )}
                 </div>
 
                 <div className="space-y-2 text-sm">
