@@ -1,6 +1,7 @@
 import Layout from "@/components/layout/Layout";
 import { EquipmentTimeline } from "@/components/equipamentos/EquipmentTimeline";
 import { EquipmentReport } from "@/components/equipamentos/EquipmentReport";
+import { PreviousDaySummary } from "@/components/equipamentos/PreviousDaySummary";
 import { Truck, Plus, Loader2, Droplets, Container, Car, StopCircle, Activity } from "lucide-react";
 import { useEquipment, useCreateEquipment } from "@/hooks/useEquipment";
 import { Button } from "@/components/ui/button";
@@ -74,6 +75,9 @@ const Equipamentos = () => {
   return (
     <Layout>
       <div className="space-y-6 animate-fade-in">
+        {/* Previous Day Summary (Morning only) */}
+        <PreviousDaySummary />
+
         {/* Minimal Header */}
         <div className="flex items-start justify-between">
           <div className="space-y-1">
