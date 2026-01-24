@@ -30,12 +30,12 @@ import { useUpdateEquipmentStatus, useUpdateEquipment, useDeleteEquipment, useEq
 import { VehicleIcon } from "./VehicleIcons";
 import { toast } from "sonner";
 
-const stopReasonLabels: Record<StopReason, string> = {
+// Labels for quick buttons (excludes end_of_shift)
+const stopReasonButtonLabels: Record<string, string> = {
   none: "Operando",
   maintenance: "Manutenção",
   waiting: "Aguardando",
   rain: "Chuva",
-  end_of_shift: "Fim de Turno",
 };
 
 const stopReasonColors: Record<string, string> = {
@@ -47,7 +47,7 @@ const stopReasonColors: Record<string, string> = {
   end_of_shift: "bg-purple-500",
 };
 
-const stopReasonButtonStyles: Record<StopReason, { active: string; inactive: string }> = {
+const stopReasonButtonStyles: Record<string, { active: string; inactive: string }> = {
   none: {
     active: "bg-green-500 text-white border-transparent hover:bg-green-600",
     inactive: "border-green-500 text-green-600 hover:bg-green-500 hover:text-white",
@@ -64,10 +64,6 @@ const stopReasonButtonStyles: Record<StopReason, { active: string; inactive: str
     active: "bg-blue-500 text-white border-transparent hover:bg-blue-600",
     inactive: "border-blue-500 text-blue-600 hover:bg-blue-500 hover:text-white",
   },
-  end_of_shift: {
-    active: "bg-purple-500 text-white border-transparent hover:bg-purple-600",
-    inactive: "border-purple-500 text-purple-600 hover:bg-purple-500 hover:text-white",
-  },
 };
 
 const stopReasonLabelsExtended: Record<string, string> = {
@@ -79,12 +75,11 @@ const stopReasonLabelsExtended: Record<string, string> = {
   end_of_shift: "Fim de Turno",
 };
 
-const stopReasonIcons: Record<StopReason, React.ReactNode> = {
+const stopReasonIcons: Record<string, React.ReactNode> = {
   none: <Play className="w-3.5 h-3.5" />,
   maintenance: <Wrench className="w-3.5 h-3.5" />,
   waiting: <Clock className="w-3.5 h-3.5" />,
   rain: <CloudRain className="w-3.5 h-3.5" />,
-  end_of_shift: <LogOut className="w-3.5 h-3.5" />,
 };
 
 interface EquipmentTimelineProps {
@@ -213,7 +208,7 @@ export function EquipmentTimeline({ equipment }: EquipmentTimelineProps) {
         previousStopReason: stopReason,
         previousStopStartTime: equipment.stop_start_time,
       });
-      toast.success(reason === "none" ? "Operação retomada" : `${stopReasonLabels[reason]}`);
+      toast.success(reason === "none" ? "Operação retomada" : `${stopReasonLabelsExtended[reason]}`)
     } catch {
       toast.error("Erro ao atualizar status");
     }
@@ -256,7 +251,7 @@ export function EquipmentTimeline({ equipment }: EquipmentTimelineProps) {
             <div className="flex items-center gap-2">
               <h3 className="font-semibold text-foreground truncate">{equipment.name}</h3>
               <Badge variant={isStopped ? "destructive" : "default"} className={`text-[10px] px-1.5 py-0 ${!isStopped ? 'bg-green-600' : ''}`}>
-                {stopReasonLabels[stopReason]}
+                {stopReasonLabelsExtended[stopReason]}
               </Badge>
             </div>
             {isEditing ? (
@@ -304,9 +299,6 @@ export function EquipmentTimeline({ equipment }: EquipmentTimelineProps) {
             <DropdownMenuItem onClick={() => handleStopChange("rain")} className="gap-2">
               <CloudRain className="w-4 h-4 text-blue-500" /> Chuva
             </DropdownMenuItem>
-            <DropdownMenuItem onClick={() => handleStopChange("end_of_shift")} className="gap-2">
-              <LogOut className="w-4 h-4 text-purple-500" /> Fim de Turno
-            </DropdownMenuItem>
             <DropdownMenuSeparator />
             <DropdownMenuItem onClick={() => setIsEditing(true)} className="gap-2">
               <Edit2 className="w-4 h-4" /> Editar
@@ -320,7 +312,7 @@ export function EquipmentTimeline({ equipment }: EquipmentTimelineProps) {
 
       {/* Quick Status Buttons */}
       <div className="flex items-center gap-2 mb-3 flex-wrap">
-        {(Object.keys(stopReasonLabels) as StopReason[]).map((reason) => (
+        {(Object.keys(stopReasonButtonLabels) as StopReason[]).map((reason) => (
           <Button
             key={reason}
             size="sm"
@@ -333,7 +325,7 @@ export function EquipmentTimeline({ equipment }: EquipmentTimelineProps) {
             onClick={() => handleStopChange(reason)}
           >
             {stopReasonIcons[reason]}
-            {stopReasonLabels[reason]}
+            {stopReasonButtonLabels[reason]}
           </Button>
         ))}
       </div>
