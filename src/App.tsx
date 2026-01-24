@@ -6,6 +6,7 @@ import { BrowserRouter, Routes, Route } from "react-router-dom";
 import { ThemeProvider } from "@/components/ThemeProvider";
 import { RadioProvider } from "@/contexts/RadioContext";
 import { PersistentFooter } from "@/components/layout/PersistentFooter";
+import { PersistentSidebar } from "@/components/layout/PersistentSidebar";
 import ProtectedRoute from "@/components/ProtectedRoute";
 import Index from "./pages/Index";
 import RH from "./pages/RH";
@@ -35,26 +36,28 @@ const App = () => (
           <Toaster />
           <Sonner />
           <BrowserRouter>
-            <Routes>
-              <Route path="/auth" element={<Auth />} />
-              <Route path="/" element={<ProtectedRoute><Index /></ProtectedRoute>} />
-              <Route path="/rh" element={<ProtectedRoute><RH /></ProtectedRoute>} />
-              <Route path="/presenca" element={<ProtectedRoute><Presenca /></ProtectedRoute>} />
-              <Route path="/relatorio-presenca" element={<ProtectedRoute><RelatorioPresenca /></ProtectedRoute>} />
-              <Route path="/matriz" element={<ProtectedRoute><Matriz /></ProtectedRoute>} />
-              <Route path="/emergencia" element={<ProtectedRoute><Emergencia /></ProtectedRoute>} />
-              <Route path="/admin" element={<ProtectedRoute><Admin /></ProtectedRoute>} />
-              <Route path="/configuracoes" element={<ProtectedRoute><Configuracoes /></ProtectedRoute>} />
-              <Route path="/dds" element={<ProtectedRoute><DDS /></ProtectedRoute>} />
-              <Route path="/lembretes" element={<ProtectedRoute><Lembretes /></ProtectedRoute>} />
-              <Route path="/equipamentos" element={<ProtectedRoute><Equipamentos /></ProtectedRoute>} />
-              <Route path="/rdo" element={<ProtectedRoute><RDO /></ProtectedRoute>} />
-              <Route path="/campanhas" element={<ProtectedRoute><Campanhas /></ProtectedRoute>} />
-              <Route path="/pedidos" element={<ProtectedRoute><Pedidos /></ProtectedRoute>} />
-              <Route path="/estoque" element={<ProtectedRoute><Estoque /></ProtectedRoute>} />
-              {/* ADD ALL CUSTOM ROUTES ABOVE THE CATCH-ALL "*" ROUTE */}
-              <Route path="*" element={<NotFound />} />
-            </Routes>
+            <PersistentSidebar>
+              <Routes>
+                <Route path="/auth" element={<Auth />} />
+                <Route path="/" element={<ProtectedRoute><Index /></ProtectedRoute>} />
+                <Route path="/rh" element={<ProtectedRoute><RH /></ProtectedRoute>} />
+                <Route path="/presenca" element={<ProtectedRoute><Presenca /></ProtectedRoute>} />
+                <Route path="/relatorio-presenca" element={<ProtectedRoute><RelatorioPresenca /></ProtectedRoute>} />
+                <Route path="/matriz" element={<ProtectedRoute><Matriz /></ProtectedRoute>} />
+                <Route path="/emergencia" element={<ProtectedRoute><Emergencia /></ProtectedRoute>} />
+                <Route path="/admin" element={<ProtectedRoute><Admin /></ProtectedRoute>} />
+                <Route path="/configuracoes" element={<ProtectedRoute><Configuracoes /></ProtectedRoute>} />
+                <Route path="/dds" element={<ProtectedRoute><DDS /></ProtectedRoute>} />
+                <Route path="/lembretes" element={<ProtectedRoute><Lembretes /></ProtectedRoute>} />
+                <Route path="/equipamentos" element={<ProtectedRoute><Equipamentos /></ProtectedRoute>} />
+                <Route path="/rdo" element={<ProtectedRoute><RDO /></ProtectedRoute>} />
+                <Route path="/campanhas" element={<ProtectedRoute><Campanhas /></ProtectedRoute>} />
+                <Route path="/pedidos" element={<ProtectedRoute><Pedidos /></ProtectedRoute>} />
+                <Route path="/estoque" element={<ProtectedRoute><Estoque /></ProtectedRoute>} />
+                {/* ADD ALL CUSTOM ROUTES ABOVE THE CATCH-ALL "*" ROUTE */}
+                <Route path="*" element={<NotFound />} />
+              </Routes>
+            </PersistentSidebar>
             <PersistentFooter />
           </BrowserRouter>
         </TooltipProvider>
