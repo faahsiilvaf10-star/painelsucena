@@ -247,6 +247,27 @@ const RelatorioPresenca = () => {
 
   const handleSaveReport = async () => {
     try {
+      // First, create attendance records for all employees who don't have one yet
+      if (allEmployees) {
+        const employeesWithoutRecords = allEmployees.filter(
+          (emp) => !attendanceMap.has(emp.id)
+        );
+
+        // Create records for employees without attendance (default to present)
+        for (const emp of employeesWithoutRecords) {
+          await upsertAttendance.mutateAsync({
+            employee_id: emp.id,
+            date: selectedDate,
+            status: "present",
+          });
+        }
+      }
+
+      // Invalidate queries to refresh data
+      await queryClient.invalidateQueries({ queryKey: ["attendance_report", selectedDate] });
+      await queryClient.invalidateQueries({ queryKey: ["attendance_records"] });
+
+      // Then lock the report
       await lockReport.mutateAsync();
       toast.success("Relatório salvo! Os status não podem mais ser alterados.");
     } catch {
