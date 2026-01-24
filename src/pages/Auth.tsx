@@ -78,14 +78,20 @@ const Auth = () => {
   }, []);
 
   useEffect(() => {
+    // Only check for existing session on mount, not during transition
+    if (showTransition) return;
+    
     const { data: { subscription } } = supabase.auth.onAuthStateChange((event, session) => {
-      if (session?.user && !showTransition) {
-        // Don't navigate immediately, let the transition handle it
+      // Let the transition handle navigation after login
+      if (event === 'SIGNED_IN' && !showTransition) {
+        // Don't navigate here - the form submit handler will trigger the transition
       }
     });
 
+    // Only redirect if user is already logged in when visiting /auth directly
     supabase.auth.getSession().then(({ data: { session } }) => {
-      if (session?.user) {
+      if (session?.user && !showTransition) {
+        // User is already logged in, redirect directly (no transition needed)
         navigate("/");
       }
     });
