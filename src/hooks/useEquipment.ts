@@ -61,18 +61,30 @@ export function useUpdateEquipmentStatus() {
       previousStopReason?: StopReason;
       previousStopStartTime?: string | null;
     }) => {
-      // If we're ending a stop, log it to history
+      const now = new Date();
+
+      // If there was a previous stop (not "none"), end it and log to history
       if (previousStopReason && previousStopReason !== "none" && previousStopStartTime) {
-        const endedAt = new Date();
         const startedAt = new Date(previousStopStartTime);
-        const durationMinutes = Math.floor((endedAt.getTime() - startedAt.getTime()) / 60000);
+        const durationMinutes = Math.floor((now.getTime() - startedAt.getTime()) / 60000);
 
         await supabase.from("equipment_stop_history").insert({
           equipment_id: id,
           stop_reason: previousStopReason,
           started_at: previousStopStartTime,
-          ended_at: endedAt.toISOString(),
+          ended_at: now.toISOString(),
           duration_minutes: durationMinutes,
+        });
+      }
+
+      // If we're starting a new stop (not "none"), create a history entry marked as "in progress"
+      if (stop_reason !== "none") {
+        await supabase.from("equipment_stop_history").insert({
+          equipment_id: id,
+          stop_reason: stop_reason,
+          started_at: stop_start_time || now.toISOString(),
+          ended_at: null,
+          duration_minutes: null,
         });
       }
 
@@ -88,6 +100,7 @@ export function useUpdateEquipmentStatus() {
     },
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ["equipment"] });
+      queryClient.invalidateQueries({ queryKey: ["equipment-stop-history"] });
     },
   });
 }
