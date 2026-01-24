@@ -191,7 +191,7 @@ const Lembretes = () => {
   };
 
   // Group reminders by upcoming/recurring and past (recurring reminders are always "upcoming")
-  const upcomingReminders = reminders?.filter((r) => r.is_recurring || getDaysUntilEvent(r.event_date) >= 0) || [];
+  const upcomingReminders = reminders?.filter((r) => !!r.is_recurring || getDaysUntilEvent(r.event_date) >= 0) || [];
   const pastReminders = reminders?.filter((r) => !r.is_recurring && getDaysUntilEvent(r.event_date) < 0) || [];
 
   return (
@@ -208,7 +208,7 @@ const Lembretes = () => {
                 <div>
                   <p className="font-semibold">Lembrete criado!</p>
                   <p className="text-sm opacity-90">
-                    "{showCreatedToast.title}" - {showCreatedToast.is_recurring 
+                    "{showCreatedToast.title}" - {!!showCreatedToast.is_recurring 
                       ? `Toda ${(showCreatedToast.recurring_days || []).map(d => WEEKDAYS.find(w => w.value === d)?.fullLabel).join(", ")}`
                       : format(new Date(showCreatedToast.event_date), "dd/MM/yyyy", { locale: ptBR })}
                   </p>
@@ -549,11 +549,11 @@ const Lembretes = () => {
                         </div>
                       </CardHeader>
                       <CardContent className="space-y-3">
-                        {reminder.is_recurring && reminder.recurring_days?.length > 0 ? (
+                        {!!reminder.is_recurring && (reminder.recurring_days?.length ?? 0) > 0 ? (
                           <div className="flex items-center gap-2 text-sm">
                             <Repeat className="h-4 w-4 text-primary" />
                             <span>
-                              {reminder.recurring_days.map(d => WEEKDAYS.find(w => w.value === d)?.fullLabel).join(", ")}
+                              {(reminder.recurring_days || []).map(d => WEEKDAYS.find(w => w.value === d)?.fullLabel).join(", ")}
                             </span>
                           </div>
                         ) : (
@@ -568,7 +568,7 @@ const Lembretes = () => {
                         )}
 
                         <div className="flex items-center gap-2 flex-wrap">
-                          {reminder.is_recurring ? (
+                          {!!reminder.is_recurring ? (
                             <Badge variant="default" className="gap-1 bg-primary/20 text-primary">
                               <Repeat className="h-3 w-3" />
                               Recorrente
