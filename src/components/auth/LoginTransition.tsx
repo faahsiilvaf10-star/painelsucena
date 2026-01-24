@@ -151,15 +151,22 @@ export function LoginTransition({ onComplete, userName, userAvatar, userCargo }:
         </div>
       )}
 
-      {/* Animated cursor - slower movement */}
+      {/* Animated cursor - realistic movement */}
       <div
-        className={`absolute transition-all ease-in-out ${
+        className={`absolute ${
           phase === "cursor-move" 
-            ? "top-[65%] left-[65%] opacity-100 duration-[1300ms]" 
+            ? "top-[65%] left-[65%] opacity-100" 
             : phase === "click"
-            ? "top-1/2 left-1/2 -translate-x-8 -translate-y-8 opacity-100 scale-90 duration-[900ms]"
-            : "top-1/2 left-1/2 -translate-x-8 -translate-y-8 opacity-0 duration-700"
+            ? "top-1/2 left-1/2 -translate-x-8 -translate-y-8 opacity-100 scale-90"
+            : "top-1/2 left-1/2 -translate-x-8 -translate-y-8 opacity-0"
         }`}
+        style={{
+          transition: phase === "cursor-move" 
+            ? "all 1.5s cubic-bezier(0.34, 0.02, 0.21, 1)" 
+            : phase === "click"
+            ? "all 0.3s cubic-bezier(0.25, 0.46, 0.45, 0.94)"
+            : "all 0.5s ease-out"
+        }}
       >
         <svg
           width="32"
@@ -185,11 +192,13 @@ export function LoginTransition({ onComplete, userName, userAvatar, userCargo }:
         )}
       </div>
 
-      {/* Avatar that zooms in - slower, smoother */}
+      {/* Avatar that zooms in - with click enlargement */}
       <div
         className={`absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 rounded-full flex items-center justify-center shadow-2xl transition-all ${
-          phase === "cursor-move" || phase === "click"
+          phase === "cursor-move"
             ? "w-16 h-16 duration-700 ease-out bg-gray-400/90"
+            : phase === "click"
+            ? "w-20 h-20 duration-200 ease-out bg-gray-400/90"
             : phase === "zoom"
             ? "w-[200vmax] h-[200vmax] duration-[2500ms] ease-in-out bg-gradient-to-br from-slate-600 via-slate-700 to-slate-800"
             : "w-[200vmax] h-[200vmax] duration-700 ease-out bg-background"
@@ -202,14 +211,22 @@ export function LoginTransition({ onComplete, userName, userAvatar, userCargo }:
           <img 
             src={userAvatar} 
             alt="Avatar"
-            className={`rounded-full object-cover transition-all duration-700 ease-out ${
-              phase === "zoom" || phase === "fade" ? "opacity-0 scale-0" : "w-9 h-9"
+            className={`rounded-full object-cover transition-all ease-out ${
+              phase === "cursor-move" 
+                ? "w-9 h-9 duration-300" 
+                : phase === "click"
+                ? "w-12 h-12 duration-200"
+                : "opacity-0 scale-0 duration-700"
             }`}
           />
         ) : (
           <User 
-            className={`text-white/90 transition-all duration-700 ease-out ${
-              phase === "zoom" || phase === "fade" ? "opacity-0 scale-0" : "w-9 h-9"
+            className={`text-white/90 transition-all ease-out ${
+              phase === "cursor-move" 
+                ? "w-9 h-9 duration-300" 
+                : phase === "click"
+                ? "w-12 h-12 duration-200"
+                : "opacity-0 scale-0 duration-700"
             }`} 
             strokeWidth={1.5} 
           />
