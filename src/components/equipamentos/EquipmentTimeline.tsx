@@ -1,5 +1,5 @@
 import { useState, useEffect, useMemo } from "react";
-import { Pause, Play, Wrench, CloudRain, Clock, User, Edit2, Check, X, Trash2, MoreVertical } from "lucide-react";
+import { Pause, Play, Wrench, CloudRain, Clock, User, Edit2, Check, X, Trash2, MoreVertical, LogOut } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import { Input } from "@/components/ui/input";
@@ -35,6 +35,7 @@ const stopReasonLabels: Record<StopReason, string> = {
   maintenance: "Manutenção",
   waiting: "Aguardando",
   rain: "Chuva",
+  end_of_shift: "Fim de Turno",
 };
 
 const stopReasonColors: Record<string, string> = {
@@ -43,6 +44,7 @@ const stopReasonColors: Record<string, string> = {
   waiting: "bg-yellow-500",
   rain: "bg-blue-500",
   end_of_day: "bg-slate-500",
+  end_of_shift: "bg-purple-500",
 };
 
 const stopReasonLabelsExtended: Record<string, string> = {
@@ -51,6 +53,7 @@ const stopReasonLabelsExtended: Record<string, string> = {
   waiting: "Aguardando",
   rain: "Chuva",
   end_of_day: "Fim do dia",
+  end_of_shift: "Fim de Turno",
 };
 
 interface EquipmentTimelineProps {
@@ -239,6 +242,9 @@ export function EquipmentTimeline({ equipment }: EquipmentTimelineProps) {
             </DropdownMenuItem>
             <DropdownMenuItem onClick={() => handleStopChange("rain")} className="gap-2">
               <CloudRain className="w-4 h-4 text-blue-500" /> Chuva
+            </DropdownMenuItem>
+            <DropdownMenuItem onClick={() => handleStopChange("end_of_shift")} className="gap-2">
+              <LogOut className="w-4 h-4 text-purple-500" /> Fim de Turno
             </DropdownMenuItem>
             <DropdownMenuSeparator />
             <DropdownMenuItem onClick={() => setIsEditing(true)} className="gap-2">
