@@ -1,7 +1,8 @@
-import { useState, useEffect } from "react";
+import { useState, useEffect, useRef } from "react";
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import { supabase } from "@/integrations/supabase/client";
 import { useAuth } from "./useAuth";
+import { playIOSNotificationSound } from "@/lib/sounds";
 import type { Tables } from "@/integrations/supabase/types";
 
 export type ChatMessage = Tables<"chat_messages">;
@@ -9,6 +10,8 @@ export type ChatMessage = Tables<"chat_messages">;
 export const useChatMessages = (otherUserId: string | null) => {
   const { user } = useAuth();
   const queryClient = useQueryClient();
+  const lastMessageIdRef = useRef<string | null>(null);
+  const isInitialLoadRef = useRef(true);
 
   // Fetch messages between current user and selected user
   const { data: messages = [], isLoading } = useQuery({
@@ -30,6 +33,14 @@ export const useChatMessages = (otherUserId: string | null) => {
     enabled: !!user?.id && !!otherUserId,
   });
 
+  // Track initial load to prevent sound on first load
+  useEffect(() => {
+    if (messages.length > 0 && isInitialLoadRef.current) {
+      lastMessageIdRef.current = messages[messages.length - 1]?.id || null;
+      isInitialLoadRef.current = false;
+    }
+  }, [messages]);
+
   // Subscribe to realtime messages
   useEffect(() => {
     if (!user?.id || !otherUserId) return;
@@ -45,11 +56,18 @@ export const useChatMessages = (otherUserId: string | null) => {
         },
         (payload) => {
           const newMessage = payload.new as ChatMessage;
-          // Only add if it's relevant to this conversation
+          // Only process if it's relevant to this conversation
           if (
             (newMessage.sender_id === user.id && newMessage.receiver_id === otherUserId) ||
             (newMessage.sender_id === otherUserId && newMessage.receiver_id === user.id)
           ) {
+            // Play sound only for incoming messages (not sent by current user)
+            if (newMessage.sender_id === otherUserId && newMessage.id !== lastMessageIdRef.current) {
+              playIOSNotificationSound();
+            }
+            
+            lastMessageIdRef.current = newMessage.id;
+            
             queryClient.invalidateQueries({
               queryKey: ["chat-messages", user.id, otherUserId],
             });
@@ -62,6 +80,12 @@ export const useChatMessages = (otherUserId: string | null) => {
       supabase.removeChannel(channel);
     };
   }, [user?.id, otherUserId, queryClient]);
+
+  // Reset initial load flag when conversation changes
+  useEffect(() => {
+    isInitialLoadRef.current = true;
+    lastMessageIdRef.current = null;
+  }, [otherUserId]);
 
   // Send message mutation
   const sendMessage = useMutation({
