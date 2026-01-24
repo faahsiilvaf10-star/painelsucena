@@ -40,6 +40,7 @@ import { Separator } from "@/components/ui/separator";
 import { ScrollArea } from "@/components/ui/scroll-area";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { toast } from "sonner";
+import { SidebarBackground } from "./SidebarBackground";
 
 interface NavItem {
   id: string;
@@ -219,9 +220,12 @@ export function AppSidebar() {
   };
 
   return (
-    <Sidebar collapsible="icon" className="border-r-0" style={sidebarStyle}>
+    <Sidebar collapsible="icon" className="border-r-0 relative overflow-hidden" style={sidebarStyle}>
+      {/* Background with particles */}
+      <SidebarBackground />
+      
       {/* Header with Logo */}
-      <SidebarHeader className="border-b border-sidebar-border p-4">
+      <SidebarHeader className="border-b border-sidebar-border/50 p-4 relative z-10">
         <div className="flex items-center justify-between gap-3">
           {!isCollapsed ? (
             <img 
@@ -250,7 +254,7 @@ export function AppSidebar() {
       </SidebarHeader>
 
       {/* Navigation */}
-      <SidebarContent>
+      <SidebarContent className="relative z-10">
         <ScrollArea className="flex-1">
           <SidebarGroup className="py-2">
             <SidebarGroupContent>
@@ -284,7 +288,7 @@ export function AppSidebar() {
       </SidebarContent>
 
       {/* Footer */}
-      <SidebarFooter className="border-t border-sidebar-border p-2">
+      <SidebarFooter className="border-t border-sidebar-border/50 p-2 relative z-10">
         {user ? (
           <>
             {/* User Info */}
