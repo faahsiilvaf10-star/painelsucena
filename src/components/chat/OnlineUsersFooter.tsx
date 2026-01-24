@@ -1,4 +1,4 @@
-import { useState, useRef, useEffect } from "react";
+import { useState } from "react";
 import { useOnlineUsers, OnlineUser } from "@/hooks/useOnlineUsers";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { Badge } from "@/components/ui/badge";
@@ -9,6 +9,7 @@ import {
   PopoverContent,
   PopoverTrigger,
 } from "@/components/ui/popover";
+import { useRadio } from "@/contexts/RadioContext";
 
 interface OnlineUsersFooterProps {
   onUserClick: (user: OnlineUser) => void;
@@ -36,105 +37,18 @@ const getInitials = (name: string) => {
     .toUpperCase();
 };
 
-// Available radio stations
-const RADIO_STATIONS = [
-  { id: "jbfm", name: "JB FM 99.9", genre: "Hits", url: "https://27343.live.streamtheworld.com/JBFM.mp3" },
-  { id: "sertanejo", name: "Sertanejo", genre: "Sertanejo", url: "https://stream.vagalume.fm/hls/14619606471054026608/aac.m3u8" },
-  { id: "pagode", name: "Pagode", genre: "Pagode", url: "https://stream.vagalume.fm/hls/147015499779090/aac.m3u8" },
-  { id: "melody", name: "Melody", genre: "Romântico", url: "https://stream.vagalume.fm/hls/1499715905423293/aac.m3u8" },
-];
-
 export const OnlineUsersFooter = ({ onUserClick }: OnlineUsersFooterProps) => {
   const { onlineUsers } = useOnlineUsers();
-  const [isPlaying, setIsPlaying] = useState(false);
-  const [isMuted, setIsMuted] = useState(false);
-  const [selectedStation, setSelectedStation] = useState(RADIO_STATIONS[0]);
   const [selectorOpen, setSelectorOpen] = useState(false);
-  const audioRef = useRef<HTMLAudioElement | null>(null);
-
-  // Initialize audio element and autoplay
-  useEffect(() => {
-    audioRef.current = new Audio(selectedStation.url);
-    audioRef.current.volume = 0.5;
-    audioRef.current.preload = "auto";
-
-    // Try to autoplay on load
-    const tryAutoplay = async () => {
-      if (audioRef.current) {
-        try {
-          await audioRef.current.play();
-          setIsPlaying(true);
-          setIsMuted(false);
-        } catch (error) {
-          // Autoplay blocked by browser - user needs to click
-          console.log("Autoplay blocked, waiting for user interaction");
-        }
-      }
-    };
-    
-    tryAutoplay();
-
-    return () => {
-      if (audioRef.current) {
-        audioRef.current.pause();
-        audioRef.current.src = "";
-        audioRef.current = null;
-      }
-    };
-  }, []);
-
-  // Handle station change
-  const handleStationChange = (station: typeof RADIO_STATIONS[0]) => {
-    const wasPlaying = isPlaying && !isMuted;
-    
-    // Stop current audio
-    if (audioRef.current) {
-      audioRef.current.pause();
-      audioRef.current.src = "";
-    }
-    
-    // Create new audio with selected station
-    audioRef.current = new Audio(station.url);
-    audioRef.current.volume = 0.5;
-    
-    setSelectedStation(station);
-    setSelectorOpen(false);
-    
-    // Resume playing if it was playing before
-    if (wasPlaying) {
-      audioRef.current.play().catch((error) => {
-        console.log("Playback failed:", error);
-        setIsPlaying(false);
-      });
-    }
-  };
-
-  // Handle play/pause state
-  useEffect(() => {
-    if (!audioRef.current) return;
-
-    if (isPlaying && !isMuted) {
-      audioRef.current.play().catch((error) => {
-        console.log("Autoplay blocked:", error);
-        setIsPlaying(false);
-      });
-    } else {
-      audioRef.current.pause();
-    }
-  }, [isPlaying, isMuted]);
-
-  const handleRadioToggle = () => {
-    if (!isPlaying) {
-      setIsPlaying(true);
-      setIsMuted(false);
-    } else if (!isMuted) {
-      setIsMuted(true);
-    } else {
-      setIsMuted(false);
-    }
-  };
-
-  const isRadioActive = isPlaying && !isMuted;
+  const { 
+    isPlaying, 
+    isMuted, 
+    selectedStation, 
+    stations, 
+    toggleRadio, 
+    changeStation, 
+    isRadioActive 
+  } = useRadio();
 
   return (
     <div className="fixed bottom-0 left-0 right-0 bg-card border-t border-border z-40">
@@ -142,7 +56,7 @@ export const OnlineUsersFooter = ({ onUserClick }: OnlineUsersFooterProps) => {
         {/* Radio Player */}
         <div className="flex items-center gap-1 shrink-0">
           <button
-            onClick={handleRadioToggle}
+            onClick={toggleRadio}
             className={cn(
               "flex items-center gap-2 px-3 py-1.5 rounded-l-full transition-all duration-300",
               isRadioActive 
@@ -224,10 +138,10 @@ export const OnlineUsersFooter = ({ onUserClick }: OnlineUsersFooterProps) => {
                 <p className="text-xs font-medium text-muted-foreground px-2 py-1">
                   Selecione uma rádio
                 </p>
-                {RADIO_STATIONS.map((station) => (
+                {stations.map((station) => (
                   <button
                     key={station.id}
-                    onClick={() => handleStationChange(station)}
+                    onClick={() => { changeStation(station); setSelectorOpen(false); }}
                     className={cn(
                       "w-full flex items-center justify-between px-3 py-2 rounded-md text-sm transition-colors",
                       selectedStation.id === station.id 
