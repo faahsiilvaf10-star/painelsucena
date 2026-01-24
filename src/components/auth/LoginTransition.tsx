@@ -192,21 +192,26 @@ export function LoginTransition({ onComplete, userName, userAvatar, userCargo }:
         )}
       </div>
 
-      {/* Avatar that zooms in - with click enlargement */}
+      {/* Avatar that zooms in - with click enlargement and glow */}
       <div
-        className={`absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 rounded-full flex items-center justify-center shadow-2xl transition-all ${
+        className={`absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 rounded-full flex items-center justify-center transition-all ${
           phase === "cursor-move"
-            ? "w-16 h-16 duration-700 ease-out bg-gray-400/90"
+            ? "w-16 h-16 duration-700 ease-out bg-gray-400/90 shadow-2xl"
             : phase === "click"
-            ? "w-20 h-20 duration-200 ease-out bg-gray-400/90"
+            ? "w-20 h-20 duration-200 ease-out bg-gray-400/90 shadow-[0_0_40px_10px_rgba(255,255,255,0.5),0_0_80px_20px_rgba(255,255,255,0.3)]"
             : phase === "zoom"
-            ? "w-[200vmax] h-[200vmax] duration-[2500ms] ease-in-out bg-gradient-to-br from-slate-600 via-slate-700 to-slate-800"
-            : "w-[200vmax] h-[200vmax] duration-700 ease-out bg-background"
+            ? "w-[200vmax] h-[200vmax] duration-[2500ms] ease-in-out bg-gradient-to-br from-slate-600 via-slate-700 to-slate-800 shadow-none"
+            : "w-[200vmax] h-[200vmax] duration-700 ease-out bg-background shadow-none"
         }`}
         style={{
           transitionTimingFunction: phase === "zoom" ? "cubic-bezier(0.25, 0.1, 0.25, 1)" : undefined
         }}
       >
+        {/* Glow ring effect on click */}
+        {phase === "click" && (
+          <div className="absolute inset-0 rounded-full animate-glow-ring" />
+        )}
+        
         {userAvatar ? (
           <img 
             src={userAvatar} 
@@ -215,7 +220,7 @@ export function LoginTransition({ onComplete, userName, userAvatar, userCargo }:
               phase === "cursor-move" 
                 ? "w-9 h-9 duration-300" 
                 : phase === "click"
-                ? "w-12 h-12 duration-200"
+                ? "w-12 h-12 duration-200 brightness-110"
                 : "opacity-0 scale-0 duration-700"
             }`}
           />
@@ -351,6 +356,15 @@ export function LoginTransition({ onComplete, userName, userAvatar, userCargo }:
           }
         }
         
+        @keyframes glow-ring {
+          0% {
+            box-shadow: 0 0 0 0 rgba(255, 255, 255, 0.8);
+          }
+          100% {
+            box-shadow: 0 0 0 20px rgba(255, 255, 255, 0);
+          }
+        }
+        
         .animate-confetti-fall {
           animation: confetti-fall ease-out forwards;
         }
@@ -365,6 +379,10 @@ export function LoginTransition({ onComplete, userName, userAvatar, userCargo }:
         
         .animate-avatar-pulse {
           animation: avatar-pulse 2s ease-in-out infinite;
+        }
+        
+        .animate-glow-ring {
+          animation: glow-ring 0.6s ease-out forwards;
         }
       `}</style>
     </div>
