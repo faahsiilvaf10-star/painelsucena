@@ -153,7 +153,19 @@ export function EquipmentTimeline({ equipment }: EquipmentTimelineProps) {
         previousStopStartTime: equipment.stop_start_time,
         defect_description: description,
       });
-      toast.success(reason === "none" ? "Operação retomada" : statusConfig[reason].label);
+      
+      if (reason === "end_of_shift") {
+        toast.success(`${equipment.name}: Fim de Turno ativado`, {
+          description: "Equipamento parado até reinício manual",
+          icon: <Pause className="w-4 h-4 text-purple-500" />,
+        });
+      } else if (reason === "none") {
+        toast.success(`${equipment.name}: Operação retomada`, {
+          icon: <Play className="w-4 h-4 text-green-500" />,
+        });
+      } else {
+        toast.success(`${equipment.name}: ${statusConfig[reason].label}`);
+      }
     } catch {
       toast.error("Erro ao atualizar status");
     }
