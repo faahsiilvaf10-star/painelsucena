@@ -9,7 +9,8 @@ import {
   Edit, 
   Trash2,
   MapPin,
-  Shield
+  Shield,
+  History
 } from "lucide-react";
 import {
   Table,
@@ -25,6 +26,7 @@ import {
   DropdownMenu,
   DropdownMenuContent,
   DropdownMenuItem,
+  DropdownMenuSeparator,
   DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu";
 import {
@@ -39,6 +41,7 @@ import {
 } from "@/components/ui/alert-dialog";
 import { InventoryItem, useDeleteItem } from "@/hooks/useInventory";
 import { MovementDialog } from "./MovementDialog";
+import { MovementHistoryDialog } from "./MovementHistoryDialog";
 
 interface InventoryTableProps {
   items: InventoryItem[];
@@ -56,6 +59,7 @@ const CATEGORY_LABELS: Record<string, string> = {
 
 export function InventoryTable({ items, onEdit }: InventoryTableProps) {
   const [movementItem, setMovementItem] = useState<InventoryItem | null>(null);
+  const [historyItem, setHistoryItem] = useState<InventoryItem | null>(null);
   const [deleteItem, setDeleteItem] = useState<InventoryItem | null>(null);
   const deleteItemMutation = useDeleteItem();
 
@@ -179,6 +183,11 @@ export function InventoryTable({ items, onEdit }: InventoryTableProps) {
                           <ArrowRightLeft className="h-4 w-4 mr-2" />
                           Movimentar
                         </DropdownMenuItem>
+                        <DropdownMenuItem onClick={() => setHistoryItem(item)}>
+                          <History className="h-4 w-4 mr-2" />
+                          Histórico
+                        </DropdownMenuItem>
+                        <DropdownMenuSeparator />
                         {onEdit && (
                           <DropdownMenuItem onClick={() => onEdit(item)}>
                             <Edit className="h-4 w-4 mr-2" />
@@ -206,6 +215,12 @@ export function InventoryTable({ items, onEdit }: InventoryTableProps) {
         item={movementItem}
         open={!!movementItem}
         onOpenChange={(open) => !open && setMovementItem(null)}
+      />
+
+      <MovementHistoryDialog
+        item={historyItem}
+        open={!!historyItem}
+        onOpenChange={(open) => !open && setHistoryItem(null)}
       />
 
       <AlertDialog open={!!deleteItem} onOpenChange={(open) => !open && setDeleteItem(null)}>
