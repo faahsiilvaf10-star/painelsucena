@@ -11,7 +11,8 @@ import {
   ArrowLeft,
   Loader2,
   ClipboardList,
-  ExternalLink
+  ExternalLink,
+  Lock
 } from "lucide-react";
 import Layout from "@/components/layout/Layout";
 import { Progress } from "@/components/ui/progress";
@@ -19,6 +20,10 @@ import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import { useMatrixProgress } from "@/hooks/useMatrixProgress";
 import { CelebrationModal } from "@/components/matriz/CelebrationModal";
+import { useProfile } from "@/hooks/useProfile";
+import { useIsAdmin } from "@/hooks/useUserRole";
+import { toast } from "sonner";
+
 interface CargoTarefa {
   id: string;
   nome: string;
@@ -27,6 +32,7 @@ interface CargoTarefa {
 interface CargoFolder {
   id: string;
   cargo: string;
+  cargoType: string; // Maps to cargo_type enum
   tarefas: CargoTarefa[];
   borderColor: string;
   iconBg: string;
@@ -38,6 +44,7 @@ const cargoFolders: CargoFolder[] = [
   {
     id: "preposto",
     cargo: "Preposto",
+    cargoType: "preposto",
     borderColor: "border-t-blue-500",
     iconBg: "bg-blue-100",
     iconColor: "text-blue-500",
@@ -53,6 +60,7 @@ const cargoFolders: CargoFolder[] = [
   {
     id: "encarregado-geral",
     cargo: "Encarregado Geral",
+    cargoType: "encarregado_geral",
     borderColor: "border-t-purple-500",
     iconBg: "bg-purple-100",
     iconColor: "text-purple-500",
@@ -66,6 +74,7 @@ const cargoFolders: CargoFolder[] = [
   {
     id: "encarregado-i",
     cargo: "Encarregado I",
+    cargoType: "encarregado_i",
     borderColor: "border-t-orange-500",
     iconBg: "bg-orange-100",
     iconColor: "text-orange-500",
@@ -79,6 +88,7 @@ const cargoFolders: CargoFolder[] = [
   {
     id: "encarregado-ii",
     cargo: "Encarregado II",
+    cargoType: "encarregado_ii",
     borderColor: "border-t-green-500",
     iconBg: "bg-green-100",
     iconColor: "text-green-500",
@@ -92,6 +102,7 @@ const cargoFolders: CargoFolder[] = [
   {
     id: "tecnico-seguranca-i",
     cargo: "Téc. Segurança I",
+    cargoType: "tecnico_seguranca_i",
     borderColor: "border-t-red-500",
     iconBg: "bg-red-100",
     iconColor: "text-red-500",
@@ -108,6 +119,7 @@ const cargoFolders: CargoFolder[] = [
   {
     id: "tecnico-seguranca-ii",
     cargo: "Téc. Segurança II",
+    cargoType: "tecnico_seguranca_ii",
     borderColor: "border-t-rose-500",
     iconBg: "bg-rose-100",
     iconColor: "text-rose-500",
@@ -127,6 +139,23 @@ const Matriz = () => {
   const [selectedFolder, setSelectedFolder] = useState<CargoFolder | null>(null);
   const [showCelebration, setShowCelebration] = useState(false);
   const { completedTasks, isLoading, toggleTask, isCompleted } = useMatrixProgress();
+  const { data: profile, isLoading: profileLoading } = useProfile();
+  const { isAdmin } = useIsAdmin();
+
+  // Check if user can edit a specific folder
+  const canEditFolder = (folder: CargoFolder) => {
+    if (isAdmin) return true;
+    return profile?.cargo === folder.cargoType;
+  };
+
+  // Handle task toggle with permission check
+  const handleToggleTask = (taskId: string, folder: CargoFolder) => {
+    if (!canEditFolder(folder)) {
+      toast.error("Você só pode concluir tarefas do seu cargo.");
+      return;
+    }
+    toggleTask(taskId);
+  };
 
   const getProgress = (folder: CargoFolder) => {
     if (folder.tarefas.length === 0) return 0;
@@ -187,24 +216,34 @@ const Matriz = () => {
               <div className={selectedFolder.iconColor}>{selectedFolder.icon}</div>
             </div>
             <div className="flex-1">
-              <h1 className="text-3xl font-bold">{selectedFolder.cargo}</h1>
+              <div className="flex items-center gap-3">
+                <h1 className="text-3xl font-bold">{selectedFolder.cargo}</h1>
+                {!canEditFolder(selectedFolder) && (
+                  <Badge variant="outline" className="text-amber-500 border-amber-500/50 gap-1">
+                    <Lock className="w-3 h-3" />
+                    Somente leitura
+                  </Badge>
+                )}
+              </div>
               <p className="text-muted-foreground">
                 {completedCount}/{selectedFolder.tarefas.length} atividades concluídas
               </p>
             </div>
             <div className="flex items-center gap-3">
               {/* Forms Link Button */}
-              <a
-                href="https://forms.office.com/Pages/ResponsePage.aspx?id=kYkdvChKUkWrwaznrhCCdO-80STG5SxAvb9Y_fx1cCNUQjVWRVRNSlE0Q08xNFhVNlFDSEFVTUJFNy4u"
-                target="_blank"
-                rel="noopener noreferrer"
-                title="Clica aqui para preencher no Forms"
-                className="flex items-center gap-2 bg-primary hover:bg-primary/90 text-primary-foreground px-4 py-2 rounded-xl shadow-lg transition-all duration-300 hover:scale-105 hover:shadow-xl group"
-              >
-                <ClipboardList className="w-5 h-5" />
-                <span className="font-medium hidden sm:inline">Preencher Forms</span>
-                <ExternalLink className="w-4 h-4 opacity-70 group-hover:opacity-100 transition-opacity" />
-              </a>
+              {canEditFolder(selectedFolder) && (
+                <a
+                  href="https://forms.office.com/Pages/ResponsePage.aspx?id=kYkdvChKUkWrwaznrhCCdO-80STG5SxAvb9Y_fx1cCNUQjVWRVRNSlE0Q08xNFhVNlFDSEFVTUJFNy4u"
+                  target="_blank"
+                  rel="noopener noreferrer"
+                  title="Clica aqui para preencher no Forms"
+                  className="flex items-center gap-2 bg-primary hover:bg-primary/90 text-primary-foreground px-4 py-2 rounded-xl shadow-lg transition-all duration-300 hover:scale-105 hover:shadow-xl group"
+                >
+                  <ClipboardList className="w-5 h-5" />
+                  <span className="font-medium hidden sm:inline">Preencher Forms</span>
+                  <ExternalLink className="w-4 h-4 opacity-70 group-hover:opacity-100 transition-opacity" />
+                </a>
+              )}
               <Badge 
                 variant={progress === 100 ? "default" : "secondary"} 
                 className={`text-lg px-4 py-2 ${progress === 100 ? "bg-green-500" : ""}`}
@@ -227,22 +266,27 @@ const Matriz = () => {
             <ul className="divide-y divide-border/50">
               {selectedFolder.tarefas.map((tarefa, index) => {
                 const completed = isCompleted(tarefa.id);
+                const canEdit = canEditFolder(selectedFolder);
                 return (
                   <li
                     key={tarefa.id}
-                    onClick={() => toggleTask(tarefa.id)}
-                    className={`flex items-center gap-4 p-5 cursor-pointer transition-all duration-300 animate-fade-in ${
+                    onClick={() => canEdit ? handleToggleTask(tarefa.id, selectedFolder) : toast.error("Você só pode concluir tarefas do seu cargo.")}
+                    className={`flex items-center gap-4 p-5 transition-all duration-300 animate-fade-in ${
+                      canEdit ? "cursor-pointer" : "cursor-not-allowed opacity-70"
+                    } ${
                       completed 
                         ? "bg-green-500/10 hover:bg-green-500/20" 
-                        : "hover:bg-secondary/30"
+                        : canEdit ? "hover:bg-secondary/30" : ""
                     }`}
                     style={{ animationDelay: `${index * 0.05}s` }}
                   >
                     <div className={`transition-all duration-300 ${completed ? "scale-110" : "scale-100"}`}>
                       {completed ? (
                         <CheckCircle2 className={`w-6 h-6 ${selectedFolder.iconColor}`} />
-                      ) : (
+                      ) : canEdit ? (
                         <Circle className="w-6 h-6 text-muted-foreground" />
+                      ) : (
+                        <Lock className="w-5 h-5 text-muted-foreground" />
                       )}
                     </div>
                     <span className={`font-medium flex-1 transition-all duration-300 ${
@@ -301,14 +345,31 @@ const Matriz = () => {
         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
           {cargoFolders.map((folder, index) => {
             const progress = getProgress(folder);
+            const canEdit = canEditFolder(folder);
             
             return (
               <div
                 key={folder.id}
                 onClick={() => setSelectedFolder(folder)}
-                className={`bg-card rounded-2xl border border-border/50 border-t-4 ${folder.borderColor} p-6 cursor-pointer transition-all duration-300 hover:shadow-xl hover:-translate-y-1 animate-fade-in group`}
+                className={`bg-card rounded-2xl border border-border/50 border-t-4 ${folder.borderColor} p-6 cursor-pointer transition-all duration-300 hover:shadow-xl hover:-translate-y-1 animate-fade-in group relative ${
+                  canEdit ? "ring-2 ring-primary/50" : ""
+                }`}
                 style={{ animationDelay: `${index * 0.05}s` }}
               >
+                {/* Editable Badge */}
+                {canEdit && (
+                  <div className="absolute top-3 right-3">
+                    <Badge className="bg-primary text-primary-foreground text-[10px] px-2 py-0.5">
+                      Seu cargo
+                    </Badge>
+                  </div>
+                )}
+                {!canEdit && !isAdmin && (
+                  <div className="absolute top-3 right-3">
+                    <Lock className="w-4 h-4 text-muted-foreground" />
+                  </div>
+                )}
+
                 {/* Top Row */}
                 <div className="flex items-start justify-between mb-4">
                   <div className={`w-14 h-14 rounded-xl ${folder.iconBg} flex items-center justify-center transition-transform duration-300 group-hover:scale-110`}>
