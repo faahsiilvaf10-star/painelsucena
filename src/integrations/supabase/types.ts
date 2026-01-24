@@ -166,6 +166,86 @@ export type Database = {
         }
         Relationships: []
       }
+      equipment: {
+        Row: {
+          created_at: string
+          driver: string
+          end_hour: number
+          helper: string
+          id: string
+          name: string
+          plate: string
+          start_hour: number
+          stop_reason: string | null
+          stop_start_time: string | null
+          updated_at: string
+        }
+        Insert: {
+          created_at?: string
+          driver: string
+          end_hour?: number
+          helper: string
+          id?: string
+          name: string
+          plate: string
+          start_hour?: number
+          stop_reason?: string | null
+          stop_start_time?: string | null
+          updated_at?: string
+        }
+        Update: {
+          created_at?: string
+          driver?: string
+          end_hour?: number
+          helper?: string
+          id?: string
+          name?: string
+          plate?: string
+          start_hour?: number
+          stop_reason?: string | null
+          stop_start_time?: string | null
+          updated_at?: string
+        }
+        Relationships: []
+      }
+      equipment_stop_history: {
+        Row: {
+          created_at: string
+          duration_minutes: number | null
+          ended_at: string | null
+          equipment_id: string
+          id: string
+          started_at: string
+          stop_reason: string
+        }
+        Insert: {
+          created_at?: string
+          duration_minutes?: number | null
+          ended_at?: string | null
+          equipment_id: string
+          id?: string
+          started_at: string
+          stop_reason: string
+        }
+        Update: {
+          created_at?: string
+          duration_minutes?: number | null
+          ended_at?: string | null
+          equipment_id?: string
+          id?: string
+          started_at?: string
+          stop_reason?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "equipment_stop_history_equipment_id_fkey"
+            columns: ["equipment_id"]
+            isOneToOne: false
+            referencedRelation: "equipment"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       matrix_task_completions: {
         Row: {
           completed_at: string
