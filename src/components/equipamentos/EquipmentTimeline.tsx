@@ -1,4 +1,4 @@
-import { useState, useEffect, useMemo, useCallback } from "react";
+import { useState, useEffect, useCallback } from "react";
 import { Pause, Play, Wrench, CloudRain, Clock, User, Edit2, Check, X, Trash2, MoreHorizontal } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -19,15 +19,9 @@ import {
   AlertDialogHeader,
   AlertDialogTitle,
 } from "@/components/ui/alert-dialog";
-import {
-  Tooltip,
-  TooltipContent,
-  TooltipProvider,
-  TooltipTrigger,
-} from "@/components/ui/tooltip";
-import { useUpdateEquipmentStatus, useUpdateEquipment, useDeleteEquipment, useEquipmentStopHistory, type StopReason, type Equipment } from "@/hooks/useEquipment";
+import { useUpdateEquipmentStatus, useUpdateEquipment, useDeleteEquipment, type StopReason, type Equipment } from "@/hooks/useEquipment";
 import { VehicleIcon } from "./VehicleIcons";
-import { getBrazilNorthDate, getBrazilNorthMidnight } from "@/lib/timezone";
+import { getBrazilNorthDate } from "@/lib/timezone";
 import { toast } from "sonner";
 
 const statusConfig: Record<string, { label: string; color: string; bg: string; icon: React.ReactNode }> = {
@@ -58,43 +52,11 @@ export function EquipmentTimeline({ equipment }: EquipmentTimelineProps) {
   const updateStatus = useUpdateEquipmentStatus();
   const updateEquipment = useUpdateEquipment();
   const deleteEquipment = useDeleteEquipment();
-  const { data: stopHistory } = useEquipmentStopHistory(equipment.id);
 
   const stopReason = (equipment.stop_reason || "none") as StopReason;
   const stopStartTime = equipment.stop_start_time ? new Date(equipment.stop_start_time) : null;
   const equipmentType = equipment.equipment_type || "pipa";
   const status = statusConfig[stopReason] || statusConfig.none;
-
-  const todayStops = useMemo(() => {
-    if (!stopHistory) return [];
-    const today = getBrazilNorthMidnight();
-    
-    return stopHistory
-      .filter(stop => {
-        const stopDate = new Date(stop.started_at);
-        stopDate.setHours(0, 0, 0, 0);
-        return stopDate.getTime() === today.getTime() && stop.ended_at;
-      })
-      .map(stop => {
-        const startTime = new Date(stop.started_at);
-        const endTime = new Date(stop.ended_at!);
-        
-        const startHour = startTime.getHours() + startTime.getMinutes() / 60;
-        const endHour = endTime.getHours() + endTime.getMinutes() / 60;
-        
-        const totalHours = equipment.end_hour - equipment.start_hour;
-        const startPos = Math.max(0, ((startHour - equipment.start_hour) / totalHours) * 100);
-        const endPos = Math.min(100, ((endHour - equipment.start_hour) / totalHours) * 100);
-        
-        return {
-          ...stop,
-          startPos,
-          width: Math.max(1, endPos - startPos),
-          startTime: startTime.toLocaleTimeString('pt-BR', { hour: '2-digit', minute: '2-digit' }),
-          endTime: endTime.toLocaleTimeString('pt-BR', { hour: '2-digit', minute: '2-digit' }),
-        };
-      });
-  }, [stopHistory, equipment.start_hour, equipment.end_hour]);
 
   useEffect(() => {
     setEditData({ plate: equipment.plate, driver: equipment.driver, helper: equipment.helper });
@@ -130,16 +92,6 @@ export function EquipmentTimeline({ equipment }: EquipmentTimelineProps) {
     return () => clearInterval(interval);
   }, [checkAutoEndOfShift]);
 
-  const position = useMemo(() => {
-    const hours = currentTime.getHours();
-    const minutes = currentTime.getMinutes();
-    const currentDecimal = hours + minutes / 60;
-    if (currentDecimal < equipment.start_hour) return 0;
-    if (currentDecimal > equipment.end_hour) return 100;
-    return ((currentDecimal - equipment.start_hour) / (equipment.end_hour - equipment.start_hour)) * 100;
-  }, [currentTime, equipment.start_hour, equipment.end_hour]);
-
-  const formatHour = (hour: number) => `${hour.toString().padStart(2, "0")}:00`;
 
   const handleStopChange = async (reason: StopReason) => {
     try {
@@ -275,7 +227,7 @@ export function EquipmentTimeline({ equipment }: EquipmentTimelineProps) {
       </div>
 
       {/* Quick Status Buttons */}
-      <div className="flex items-center gap-2 mb-4">
+      <div className="flex items-center gap-2">
         {quickStatusOptions.map((reason) => {
           const config = statusConfig[reason];
           const isActive = stopReason === reason;
@@ -295,70 +247,6 @@ export function EquipmentTimeline({ equipment }: EquipmentTimelineProps) {
           );
         })}
       </div>
-
-      {/* Timeline */}
-      <TooltipProvider>
-        <div className="relative h-14 px-1">
-          {/* Track */}
-          <div className="absolute left-0 right-0 top-5 h-2 bg-muted rounded-full overflow-hidden">
-            {/* Progress */}
-            <div
-              className={`absolute left-0 top-0 h-full transition-all duration-500 ${isStopped ? status.bg : 'bg-green-500'}`}
-              style={{ width: `${position}%`, opacity: isStopped ? 0.6 : 0.3 }}
-            />
-            
-            {/* Past stops */}
-            {todayStops.map((stop, index) => {
-              const stopConfig = statusConfig[stop.stop_reason] || statusConfig.none;
-              return (
-                <Tooltip key={stop.id || index}>
-                  <TooltipTrigger asChild>
-                    <div
-                      className={`absolute top-0 h-full ${stopConfig.bg} cursor-pointer hover:opacity-100 transition-opacity`}
-                      style={{
-                        left: `${stop.startPos}%`,
-                        width: `${stop.width}%`,
-                        opacity: 0.8,
-                      }}
-                    />
-                  </TooltipTrigger>
-                  <TooltipContent side="top" className="text-xs">
-                    <p className="font-medium">{stopConfig.label}</p>
-                    <p className="text-muted-foreground">{stop.startTime} → {stop.endTime}</p>
-                    {stop.duration_minutes && (
-                      <p className="text-muted-foreground">
-                        {stop.duration_minutes >= 60 
-                          ? `${Math.floor(stop.duration_minutes / 60)}h ${stop.duration_minutes % 60}m`
-                          : `${stop.duration_minutes}min`
-                        }
-                      </p>
-                    )}
-                  </TooltipContent>
-                </Tooltip>
-              );
-            })}
-          </div>
-
-          {/* Vehicle Marker */}
-          <div 
-            className="absolute transition-all duration-500" 
-            style={{ left: `calc(${Math.min(Math.max(position, 3), 97)}% - 14px)`, top: '0' }}
-          >
-            <div className={`flex flex-col items-center ${!isStopped ? 'animate-bounce-slow' : ''}`}>
-              <div className="w-7 h-7 rounded-full bg-card border-2 border-primary shadow-md flex items-center justify-center">
-                <VehicleIcon type={equipmentType} isStopped={isStopped} size="xs" />
-              </div>
-            </div>
-          </div>
-
-          {/* Hour Labels */}
-          <div className="absolute left-0 right-0 top-9 flex justify-between">
-            <span className="text-[10px] text-muted-foreground">{formatHour(equipment.start_hour)}</span>
-            <span className="text-[10px] font-medium text-foreground">{Math.round(position)}%</span>
-            <span className="text-[10px] text-muted-foreground">{formatHour(equipment.end_hour)}</span>
-          </div>
-        </div>
-      </TooltipProvider>
 
       {/* Delete Dialog */}
       <AlertDialog open={showDeleteDialog} onOpenChange={setShowDeleteDialog}>
