@@ -29,10 +29,11 @@ import {
   AlertDialogHeader,
   AlertDialogTitle,
 } from "@/components/ui/alert-dialog";
-import { useUpdateEquipmentStatus, useUpdateEquipment, useDeleteEquipment, type StopReason, type Equipment } from "@/hooks/useEquipment";
+import { useUpdateEquipmentStatus, useUpdateEquipment, useDeleteEquipment, useEquipmentStopHistory, type StopReason, type Equipment } from "@/hooks/useEquipment";
 import { VehicleIcon } from "./VehicleIcons";
 import { getBrazilNorthDate } from "@/lib/timezone";
 import { toast } from "sonner";
+import { supabase } from "@/integrations/supabase/client";
 
 const statusConfig: Record<string, { label: string; color: string; bg: string; icon: React.ReactNode }> = {
   none: { label: "Operando", color: "text-green-600", bg: "bg-green-500", icon: <Play className="w-3 h-3" /> },
@@ -55,6 +56,8 @@ export function EquipmentTimeline({ equipment }: EquipmentTimelineProps) {
   const [showDeleteDialog, setShowDeleteDialog] = useState(false);
   const [showMaintenanceDialog, setShowMaintenanceDialog] = useState(false);
   const [defectDescription, setDefectDescription] = useState("");
+  const [isEditingMaintenance, setIsEditingMaintenance] = useState(false);
+  const [currentMaintenanceId, setCurrentMaintenanceId] = useState<string | null>(null);
   const [editData, setEditData] = useState({
     plate: equipment.plate,
     driver: equipment.driver,
@@ -64,6 +67,7 @@ export function EquipmentTimeline({ equipment }: EquipmentTimelineProps) {
   const updateStatus = useUpdateEquipmentStatus();
   const updateEquipment = useUpdateEquipment();
   const deleteEquipment = useDeleteEquipment();
+  const { data: stopHistory, refetch: refetchHistory } = useEquipmentStopHistory(equipment.id);
 
   const stopReason = (equipment.stop_reason || "none") as StopReason;
   const stopStartTime = equipment.stop_start_time ? new Date(equipment.stop_start_time) : null;
@@ -104,9 +108,28 @@ export function EquipmentTimeline({ equipment }: EquipmentTimelineProps) {
     return () => clearInterval(interval);
   }, [checkAutoEndOfShift]);
 
-  const handleStatusButtonClick = (reason: StopReason) => {
-    if (reason === "maintenance" && stopReason !== "maintenance") {
-      setDefectDescription("");
+  const handleStatusButtonClick = async (reason: StopReason) => {
+    if (reason === "maintenance") {
+      if (stopReason === "maintenance") {
+        // Already in maintenance - open dialog to view/edit
+        const currentMaintenance = stopHistory?.find(
+          (h) => h.stop_reason === "maintenance" && h.ended_at === null
+        );
+        if (currentMaintenance) {
+          setDefectDescription(currentMaintenance.defect_description || "");
+          setCurrentMaintenanceId(currentMaintenance.id);
+          setIsEditingMaintenance(true);
+        } else {
+          setDefectDescription("");
+          setCurrentMaintenanceId(null);
+          setIsEditingMaintenance(false);
+        }
+      } else {
+        // Starting new maintenance
+        setDefectDescription("");
+        setCurrentMaintenanceId(null);
+        setIsEditingMaintenance(false);
+      }
       setShowMaintenanceDialog(true);
     } else {
       handleStopChange(reason);
@@ -129,14 +152,35 @@ export function EquipmentTimeline({ equipment }: EquipmentTimelineProps) {
     }
   };
 
-  const handleMaintenanceSubmit = () => {
+  const handleMaintenanceSubmit = async () => {
     if (!defectDescription.trim()) {
       toast.error("Por favor, descreva o defeito");
       return;
     }
-    handleStopChange("maintenance", defectDescription.trim());
+
+    if (isEditingMaintenance && currentMaintenanceId) {
+      // Update existing maintenance description
+      try {
+        const { error } = await supabase
+          .from("equipment_stop_history")
+          .update({ defect_description: defectDescription.trim() })
+          .eq("id", currentMaintenanceId);
+
+        if (error) throw error;
+        toast.success("Descrição atualizada!");
+        refetchHistory();
+      } catch {
+        toast.error("Erro ao atualizar descrição");
+      }
+    } else {
+      // Create new maintenance
+      handleStopChange("maintenance", defectDescription.trim());
+    }
+
     setShowMaintenanceDialog(false);
     setDefectDescription("");
+    setCurrentMaintenanceId(null);
+    setIsEditingMaintenance(false);
   };
 
   const handleSaveEdit = async () => {
@@ -298,15 +342,25 @@ export function EquipmentTimeline({ equipment }: EquipmentTimelineProps) {
       </AlertDialog>
 
       {/* Maintenance Dialog */}
-      <Dialog open={showMaintenanceDialog} onOpenChange={setShowMaintenanceDialog}>
+      <Dialog open={showMaintenanceDialog} onOpenChange={(open) => {
+        setShowMaintenanceDialog(open);
+        if (!open) {
+          setDefectDescription("");
+          setCurrentMaintenanceId(null);
+          setIsEditingMaintenance(false);
+        }
+      }}>
         <DialogContent className="sm:max-w-md">
           <DialogHeader>
             <DialogTitle className="flex items-center gap-2">
               <Wrench className="w-5 h-5 text-orange-500" />
-              Registrar Manutenção
+              {isEditingMaintenance ? "Ver/Editar Manutenção" : "Registrar Manutenção"}
             </DialogTitle>
             <DialogDescription>
-              Descreva o defeito do equipamento <strong>{equipment.name}</strong>
+              {isEditingMaintenance 
+                ? <>Manutenção em andamento para <strong>{equipment.name}</strong></>
+                : <>Descreva o defeito do equipamento <strong>{equipment.name}</strong></>
+              }
             </DialogDescription>
           </DialogHeader>
           <div className="space-y-4 py-4">
@@ -327,6 +381,8 @@ export function EquipmentTimeline({ equipment }: EquipmentTimelineProps) {
               onClick={() => {
                 setShowMaintenanceDialog(false);
                 setDefectDescription("");
+                setCurrentMaintenanceId(null);
+                setIsEditingMaintenance(false);
               }}
             >
               Cancelar
@@ -336,7 +392,7 @@ export function EquipmentTimeline({ equipment }: EquipmentTimelineProps) {
               className="bg-orange-500 hover:bg-orange-600 text-white"
             >
               <Wrench className="w-4 h-4 mr-2" />
-              Iniciar Manutenção
+              {isEditingMaintenance ? "Salvar Alterações" : "Iniciar Manutenção"}
             </Button>
           </DialogFooter>
         </DialogContent>
