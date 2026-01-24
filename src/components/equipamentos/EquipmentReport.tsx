@@ -1,10 +1,12 @@
 import { useMemo, useState } from "react";
-import { format, startOfDay, startOfWeek, startOfMonth, endOfDay, endOfWeek, endOfMonth, isWithinInterval } from "date-fns";
+import { format, startOfDay, startOfWeek, startOfMonth, endOfDay, endOfWeek, endOfMonth, isWithinInterval, subDays } from "date-fns";
 import { ptBR } from "date-fns/locale";
-import { Share2, Clock, Wrench, CloudRain, Play, ChevronDown, BarChart3, AlertTriangle } from "lucide-react";
+import { Share2, Clock, Wrench, CloudRain, Play, ChevronDown, BarChart3, AlertTriangle, CalendarIcon } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import { ScrollArea } from "@/components/ui/scroll-area";
+import { Calendar } from "@/components/ui/calendar";
+import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover";
 import {
   DropdownMenu,
   DropdownMenuContent,
@@ -29,7 +31,7 @@ const statusConfig: Record<string, { label: string; color: string; bg: string; i
   end_of_shift: { label: "Fim de Turno", color: "text-purple-600", bg: "bg-purple-500", icon: <Clock className="w-3.5 h-3.5" /> },
 };
 
-type FilterPeriod = "daily" | "weekly" | "monthly";
+type FilterPeriod = "daily" | "weekly" | "monthly" | "custom";
 
 interface EquipmentStats {
   equipment: Equipment;
@@ -40,6 +42,7 @@ interface EquipmentStats {
 
 export function EquipmentReport() {
   const [period, setPeriod] = useState<FilterPeriod>("daily");
+  const [customDate, setCustomDate] = useState<Date | undefined>(undefined);
   const [isOpen, setIsOpen] = useState(false);
   const [selectedEquipmentId, setSelectedEquipmentId] = useState<string | null>(null);
   const { data: equipment } = useEquipment();
@@ -49,6 +52,7 @@ export function EquipmentReport() {
     daily: "Hoje",
     weekly: "Esta Semana",
     monthly: "Este Mês",
+    custom: customDate ? format(customDate, "dd/MM/yyyy", { locale: ptBR }) : "Selecionar data",
   };
 
   const dateRange = useMemo(() => {
@@ -60,8 +64,13 @@ export function EquipmentReport() {
         return { start: startOfWeek(now, { locale: ptBR }), end: endOfWeek(now, { locale: ptBR }) };
       case "monthly":
         return { start: startOfMonth(now), end: endOfMonth(now) };
+      case "custom":
+        if (customDate) {
+          return { start: startOfDay(customDate), end: endOfDay(customDate) };
+        }
+        return { start: startOfDay(now), end: endOfDay(now) };
     }
-  }, [period]);
+  }, [period, customDate]);
 
   const filteredHistory = useMemo(() => {
     if (!allHistory) return [];
@@ -220,20 +229,45 @@ export function EquipmentReport() {
         <CollapsibleContent>
           <div className="px-5 pb-5 space-y-5 border-t border-border pt-5">
             {/* Controls */}
-            <div className="flex items-center justify-between">
-              <DropdownMenu>
-                <DropdownMenuTrigger asChild>
-                  <Button variant="outline" size="sm" className="gap-2">
-                    {periodLabels[period]}
-                    <ChevronDown className="w-4 h-4" />
-                  </Button>
-                </DropdownMenuTrigger>
-                <DropdownMenuContent align="start">
-                  <DropdownMenuItem onClick={() => setPeriod("daily")}>Hoje</DropdownMenuItem>
-                  <DropdownMenuItem onClick={() => setPeriod("weekly")}>Esta Semana</DropdownMenuItem>
-                  <DropdownMenuItem onClick={() => setPeriod("monthly")}>Este Mês</DropdownMenuItem>
-                </DropdownMenuContent>
-              </DropdownMenu>
+            <div className="flex items-center justify-between flex-wrap gap-3">
+              <div className="flex items-center gap-2">
+                <DropdownMenu>
+                  <DropdownMenuTrigger asChild>
+                    <Button variant="outline" size="sm" className="gap-2">
+                      {periodLabels[period]}
+                      <ChevronDown className="w-4 h-4" />
+                    </Button>
+                  </DropdownMenuTrigger>
+                  <DropdownMenuContent align="start">
+                    <DropdownMenuItem onClick={() => { setPeriod("daily"); setCustomDate(undefined); }}>Hoje</DropdownMenuItem>
+                    <DropdownMenuItem onClick={() => { setPeriod("daily"); setCustomDate(subDays(getBrazilNorthDate(), 1)); setPeriod("custom"); }}>Ontem</DropdownMenuItem>
+                    <DropdownMenuItem onClick={() => { setPeriod("weekly"); setCustomDate(undefined); }}>Esta Semana</DropdownMenuItem>
+                    <DropdownMenuItem onClick={() => { setPeriod("monthly"); setCustomDate(undefined); }}>Este Mês</DropdownMenuItem>
+                  </DropdownMenuContent>
+                </DropdownMenu>
+
+                <Popover>
+                  <PopoverTrigger asChild>
+                    <Button variant="outline" size="sm" className="gap-2">
+                      <CalendarIcon className="w-4 h-4" />
+                      <span className="hidden sm:inline">Data específica</span>
+                    </Button>
+                  </PopoverTrigger>
+                  <PopoverContent className="w-auto p-0" align="start">
+                    <Calendar
+                      mode="single"
+                      selected={customDate}
+                      onSelect={(date) => {
+                        setCustomDate(date);
+                        if (date) setPeriod("custom");
+                      }}
+                      disabled={(date) => date > new Date()}
+                      initialFocus
+                      locale={ptBR}
+                    />
+                  </PopoverContent>
+                </Popover>
+              </div>
 
               <Button size="sm" variant="outline" onClick={generateWhatsAppReport} className="gap-2">
                 <Share2 className="w-4 h-4" />
