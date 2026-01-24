@@ -10,6 +10,7 @@ import {
   PopoverTrigger,
 } from "@/components/ui/popover";
 import { useRadio } from "@/contexts/RadioContext";
+import { useSidebar } from "@/components/ui/sidebar";
 
 interface OnlineUsersFooterProps {
   onUserClick: (user: OnlineUser) => void;
@@ -40,6 +41,7 @@ const getInitials = (name: string) => {
 export const OnlineUsersFooter = ({ onUserClick }: OnlineUsersFooterProps) => {
   const { onlineUsers } = useOnlineUsers();
   const [selectorOpen, setSelectorOpen] = useState(false);
+  const { state } = useSidebar();
   const { 
     isPlaying, 
     isMuted, 
@@ -50,8 +52,16 @@ export const OnlineUsersFooter = ({ onUserClick }: OnlineUsersFooterProps) => {
     isRadioActive 
   } = useRadio();
 
+  const isCollapsed = state === "collapsed";
+
   return (
-    <div className="fixed bottom-0 left-0 right-0 bg-card border-t border-border z-40">
+    <div 
+      className={cn(
+        "fixed bottom-0 right-0 bg-card border-t border-border z-40 transition-[left] duration-200 ease-linear",
+        isCollapsed ? "left-[48px]" : "left-[256px]",
+        "max-md:left-0"
+      )}
+    >
       <div className="flex items-center gap-3 px-4 py-2 overflow-x-auto">
         {/* Radio Player */}
         <div className="flex items-center gap-1 shrink-0">
