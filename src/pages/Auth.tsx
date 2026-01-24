@@ -52,6 +52,7 @@ const Auth = () => {
   const [loggedUserAvatar, setLoggedUserAvatar] = useState<string>("");
   const [loggedUserCargo, setLoggedUserCargo] = useState<string>("");
   const [previewAvatar, setPreviewAvatar] = useState<string>("");
+  const [previewName, setPreviewName] = useState<string>("");
   const navigate = useNavigate();
   const { toast } = useToast();
 
@@ -80,20 +81,24 @@ const Auth = () => {
     }
   }, []);
 
-  // Fetch avatar preview when email matches remembered email
+  // Fetch avatar and name preview when email matches remembered email
   useEffect(() => {
     if (!isLogin) {
       setPreviewAvatar("");
+      setPreviewName("");
       return;
     }
 
     const savedEmail = localStorage.getItem("rememberedEmail");
     const savedAvatar = localStorage.getItem("rememberedAvatar");
+    const savedName = localStorage.getItem("rememberedName");
 
-    if (email && savedEmail && savedAvatar && email.toLowerCase() === savedEmail.toLowerCase()) {
-      setPreviewAvatar(savedAvatar);
+    if (email && savedEmail && email.toLowerCase() === savedEmail.toLowerCase()) {
+      if (savedAvatar) setPreviewAvatar(savedAvatar);
+      if (savedName) setPreviewName(savedName);
     } else {
       setPreviewAvatar("");
+      setPreviewName("");
     }
   }, [email, isLogin]);
 
@@ -184,10 +189,14 @@ const Auth = () => {
             if (profileData?.full_name) {
               const firstName = profileData.full_name.split(" ")[0];
               setLoggedUserName(firstName);
+              // Save name for preview on next login
+              if (rememberMe) {
+                localStorage.setItem("rememberedName", firstName);
+              }
             }
             if (profileData?.avatar_url) {
               setLoggedUserAvatar(profileData.avatar_url);
-              // Save avatar with email for preview on next login
+              // Save avatar for preview on next login
               if (rememberMe) {
                 localStorage.setItem("rememberedAvatar", profileData.avatar_url);
               }
@@ -205,6 +214,7 @@ const Auth = () => {
             localStorage.removeItem("rememberedEmail");
             localStorage.removeItem("rememberedPassword");
             localStorage.removeItem("rememberedAvatar");
+            localStorage.removeItem("rememberedName");
           }
           
           // Trigger the transition animation
@@ -302,7 +312,7 @@ const Auth = () => {
       {/* Login form - centered */}
       <div className={`relative z-10 w-full max-w-xs px-4 animate-fade-in transition-opacity duration-300 ${showTransition ? 'opacity-0' : 'opacity-100'}`}>
         {/* Avatar icon - shows user's photo when email matches remembered credentials */}
-        <div className="flex justify-center mb-8">
+        <div className="flex flex-col items-center mb-6">
           <div 
             id="login-avatar" 
             className={`w-16 h-16 rounded-full flex items-center justify-center shadow-lg overflow-hidden transition-all duration-500 ${
@@ -321,6 +331,14 @@ const Auth = () => {
               <User className="w-9 h-9 text-white/90" strokeWidth={1.5} />
             )}
           </div>
+          {/* User name preview */}
+          {previewName && (
+            <div className="mt-3 animate-fade-in">
+              <span className="text-white/90 text-sm font-medium tracking-wide">
+                Olá, {previewName}!
+              </span>
+            </div>
+          )}
         </div>
 
         <form onSubmit={handleSubmit} className="space-y-3">
