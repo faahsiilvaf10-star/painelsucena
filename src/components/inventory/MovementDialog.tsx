@@ -1,8 +1,8 @@
-import { useState } from "react";
+import { useEffect } from "react";
 import { useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { z } from "zod";
-import { ArrowDownCircle, ArrowUpCircle, RefreshCw } from "lucide-react";
+import { ArrowDownCircle, ArrowUpCircle, RefreshCw, User, Truck, MapPin } from "lucide-react";
 import {
   Dialog,
   DialogContent,
@@ -28,11 +28,15 @@ import {
   SelectValue,
 } from "@/components/ui/select";
 import { useRecordMovement, InventoryItem } from "@/hooks/useInventory";
+import { useEmployees } from "@/hooks/useEmployees";
+import { useEquipment } from "@/hooks/useEquipment";
 
 const formSchema = z.object({
   movement_type: z.enum(["entrada", "saida", "ajuste"]),
   quantity: z.coerce.number().min(1, "Quantidade deve ser maior que 0"),
   reason: z.string().optional(),
+  destination_type: z.string().optional(),
+  destination_id: z.string().optional(),
 });
 
 type FormData = z.infer<typeof formSchema>;
@@ -49,8 +53,17 @@ const MOVEMENT_TYPES = [
   { value: "ajuste", label: "Ajuste de Estoque", icon: RefreshCw, color: "text-yellow-500" },
 ];
 
+const DESTINATION_TYPES = [
+  { value: "employee", label: "Funcionário", icon: User },
+  { value: "equipment", label: "Equipamento", icon: Truck },
+  { value: "gabiao", label: "Área - Gabião", icon: MapPin },
+  { value: "jardinagem", label: "Área - Jardinagem", icon: MapPin },
+];
+
 export function MovementDialog({ item, open, onOpenChange }: MovementDialogProps) {
   const recordMovement = useRecordMovement();
+  const { data: employees } = useEmployees();
+  const { data: equipment } = useEquipment();
 
   const form = useForm<FormData>({
     resolver: zodResolver(formSchema),
@@ -58,28 +71,74 @@ export function MovementDialog({ item, open, onOpenChange }: MovementDialogProps
       movement_type: "entrada",
       quantity: 1,
       reason: "",
+      destination_type: "",
+      destination_id: "",
     },
   });
 
   const movementType = form.watch("movement_type");
+  const destinationType = form.watch("destination_type");
+
+  // Reset destination fields when movement type changes
+  useEffect(() => {
+    if (movementType !== "saida") {
+      form.setValue("destination_type", "");
+      form.setValue("destination_id", "");
+    }
+  }, [movementType, form]);
+
+  // Reset destination_id when destination_type changes
+  useEffect(() => {
+    form.setValue("destination_id", "");
+  }, [destinationType, form]);
+
+  const getDestinationName = (destType: string, destId: string): string => {
+    if (destType === "employee") {
+      const emp = employees?.find((e) => e.id === destId);
+      return emp?.name || "";
+    }
+    if (destType === "equipment") {
+      const eq = equipment?.find((e) => e.id === destId);
+      return eq ? `${eq.name} (${eq.plate})` : "";
+    }
+    if (destType === "gabiao") return "Área Gabião";
+    if (destType === "jardinagem") return "Área Jardinagem";
+    return "";
+  };
 
   const onSubmit = async (data: FormData) => {
     if (!item) return;
+
+    const destinationName = data.destination_type 
+      ? getDestinationName(data.destination_type, data.destination_id || "")
+      : undefined;
 
     await recordMovement.mutateAsync({
       item_id: item.id,
       movement_type: data.movement_type,
       quantity: data.quantity,
       reason: data.reason,
+      destination_type: data.destination_type || undefined,
+      destination_id: data.destination_id || undefined,
+      destination_name: destinationName,
     });
     form.reset();
     onOpenChange(false);
   };
 
+  const handleOpenChange = (isOpen: boolean) => {
+    if (!isOpen) {
+      form.reset();
+    }
+    onOpenChange(isOpen);
+  };
+
   if (!item) return null;
 
+  const needsDestinationId = destinationType === "employee" || destinationType === "equipment";
+
   return (
-    <Dialog open={open} onOpenChange={onOpenChange}>
+    <Dialog open={open} onOpenChange={handleOpenChange}>
       <DialogContent className="max-w-md">
         <DialogHeader>
           <DialogTitle>Movimentação de Estoque</DialogTitle>
@@ -100,7 +159,7 @@ export function MovementDialog({ item, open, onOpenChange }: MovementDialogProps
               render={({ field }) => (
                 <FormItem>
                   <FormLabel>Tipo de Movimentação *</FormLabel>
-                  <Select onValueChange={field.onChange} defaultValue={field.value}>
+                  <Select onValueChange={field.onChange} value={field.value}>
                     <FormControl>
                       <SelectTrigger>
                         <SelectValue placeholder="Selecione" />
@@ -147,6 +206,92 @@ export function MovementDialog({ item, open, onOpenChange }: MovementDialogProps
               )}
             />
 
+            {movementType === "saida" && (
+              <>
+                <FormField
+                  control={form.control}
+                  name="destination_type"
+                  render={({ field }) => (
+                    <FormItem>
+                      <FormLabel>Destino da Retirada</FormLabel>
+                      <Select onValueChange={field.onChange} value={field.value}>
+                        <FormControl>
+                          <SelectTrigger>
+                            <SelectValue placeholder="Selecione o destino (opcional)" />
+                          </SelectTrigger>
+                        </FormControl>
+                        <SelectContent>
+                          {DESTINATION_TYPES.map((type) => (
+                            <SelectItem key={type.value} value={type.value}>
+                              <div className="flex items-center gap-2">
+                                <type.icon className="h-4 w-4" />
+                                {type.label}
+                              </div>
+                            </SelectItem>
+                          ))}
+                        </SelectContent>
+                      </Select>
+                      <FormMessage />
+                    </FormItem>
+                  )}
+                />
+
+                {destinationType === "employee" && (
+                  <FormField
+                    control={form.control}
+                    name="destination_id"
+                    render={({ field }) => (
+                      <FormItem>
+                        <FormLabel>Funcionário</FormLabel>
+                        <Select onValueChange={field.onChange} value={field.value}>
+                          <FormControl>
+                            <SelectTrigger>
+                              <SelectValue placeholder="Selecione o funcionário" />
+                            </SelectTrigger>
+                          </FormControl>
+                          <SelectContent>
+                            {employees?.filter(e => e.status === 'active').map((emp) => (
+                              <SelectItem key={emp.id} value={emp.id}>
+                                {emp.name}
+                              </SelectItem>
+                            ))}
+                          </SelectContent>
+                        </Select>
+                        <FormMessage />
+                      </FormItem>
+                    )}
+                  />
+                )}
+
+                {destinationType === "equipment" && (
+                  <FormField
+                    control={form.control}
+                    name="destination_id"
+                    render={({ field }) => (
+                      <FormItem>
+                        <FormLabel>Equipamento</FormLabel>
+                        <Select onValueChange={field.onChange} value={field.value}>
+                          <FormControl>
+                            <SelectTrigger>
+                              <SelectValue placeholder="Selecione o equipamento" />
+                            </SelectTrigger>
+                          </FormControl>
+                          <SelectContent>
+                            {equipment?.map((eq) => (
+                              <SelectItem key={eq.id} value={eq.id}>
+                                {eq.name} ({eq.plate})
+                              </SelectItem>
+                            ))}
+                          </SelectContent>
+                        </Select>
+                        <FormMessage />
+                      </FormItem>
+                    )}
+                  />
+                )}
+              </>
+            )}
+
             <FormField
               control={form.control}
               name="reason"
@@ -168,7 +313,7 @@ export function MovementDialog({ item, open, onOpenChange }: MovementDialogProps
               <Button
                 type="button"
                 variant="outline"
-                onClick={() => onOpenChange(false)}
+                onClick={() => handleOpenChange(false)}
               >
                 Cancelar
               </Button>

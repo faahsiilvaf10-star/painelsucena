@@ -13,6 +13,7 @@ import {
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { AddItemDialog } from "@/components/inventory/AddItemDialog";
 import { InventoryTable } from "@/components/inventory/InventoryTable";
+import { ExportInventoryButton } from "@/components/inventory/ExportInventoryButton";
 import { useInventoryItems, useStorageLocations } from "@/hooks/useInventory";
 
 const CATEGORIES = [
@@ -88,9 +89,11 @@ export default function Estoque() {
               Gerencie o inventário de materiais e EPIs
             </p>
           </div>
-          <AddItemDialog />
+          <div className="flex gap-2">
+            <ExportInventoryButton items={filteredItems} />
+            <AddItemDialog />
+          </div>
         </div>
-
         {/* Stats Cards */}
         <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">
           <Card>

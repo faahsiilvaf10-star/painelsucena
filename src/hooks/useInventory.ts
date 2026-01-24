@@ -39,6 +39,9 @@ export interface InventoryMovement {
   reason: string | null;
   moved_by: string;
   moved_by_name: string;
+  destination_type: string | null;
+  destination_id: string | null;
+  destination_name: string | null;
   created_at: string;
 }
 
@@ -63,6 +66,9 @@ export interface MovementData {
   movement_type: "entrada" | "saida" | "ajuste";
   quantity: number;
   reason?: string;
+  destination_type?: string;
+  destination_id?: string;
+  destination_name?: string;
 }
 
 export function useStorageLocations() {
@@ -271,6 +277,9 @@ export function useRecordMovement() {
           reason: data.reason,
           moved_by: user.id,
           moved_by_name: profile?.full_name || "Usuário",
+          destination_type: data.destination_type || null,
+          destination_id: data.destination_id || null,
+          destination_name: data.destination_name || null,
         })
         .select()
         .single();
