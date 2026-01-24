@@ -1,5 +1,6 @@
 import Layout from "@/components/layout/Layout";
 import { EquipmentTimeline } from "@/components/equipamentos/EquipmentTimeline";
+import { EquipmentReport } from "@/components/equipamentos/EquipmentReport";
 import { Truck, Plus, Loader2, Droplets, Container, Car, StopCircle } from "lucide-react";
 import { useEquipment, useCreateEquipment } from "@/hooks/useEquipment";
 import { Button } from "@/components/ui/button";
@@ -181,6 +182,9 @@ const Equipamentos = () => {
             </div>
           )}
         </div>
+
+        {/* Report Section */}
+        <EquipmentReport />
       </div>
     </Layout>
   );
