@@ -1,16 +1,18 @@
 import { format } from "date-fns";
 import { ptBR } from "date-fns/locale";
-import { Bell, AlertCircle, Calendar, Users, User, Globe, X, AlertTriangle } from "lucide-react";
+import { Bell, AlertCircle, Calendar, Users, User, Globe, Check, X, AlertTriangle } from "lucide-react";
 import { useState, useMemo, useEffect } from "react";
 import { Card, CardContent } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { ScrollArea, ScrollBar } from "@/components/ui/scroll-area";
 import { Alert, AlertDescription, AlertTitle } from "@/components/ui/alert";
-import { useActiveReminders, Reminder } from "@/hooks/useReminders";
+import { useActiveReminders, useAcknowledgeReminder, useDeleteReminder } from "@/hooks/useReminders";
+import { useAuth } from "@/hooks/useAuth";
 import { cn } from "@/lib/utils";
 import { Link } from "react-router-dom";
 import { getDaysUntilEventBrazilNorth } from "@/lib/timezone";
+import { toast } from "sonner";
 
 // Play alert sound for today's reminders
 const playAlertSound = () => {
@@ -24,7 +26,10 @@ const playAlertSound = () => {
 };
 
 export const ReminderHighlightBanner = () => {
+  const { user } = useAuth();
   const { data: activeReminders, isLoading } = useActiveReminders();
+  const acknowledgeReminder = useAcknowledgeReminder();
+  const deleteReminder = useDeleteReminder();
   const [dismissedIds, setDismissedIds] = useState<Set<string>>(new Set());
   const [hasPlayedSound, setHasPlayedSound] = useState(false);
 
@@ -54,8 +59,27 @@ export const ReminderHighlightBanner = () => {
     }
   }, [todayReminders.length, hasPlayedSound]);
 
-  const handleDismiss = (id: string) => {
-    setDismissedIds((prev) => new Set([...prev, id]));
+  const handleAcknowledge = async (id: string) => {
+    try {
+      await acknowledgeReminder.mutateAsync(id);
+      setDismissedIds((prev) => new Set([...prev, id]));
+      toast.success("Lembrete marcado como visto!");
+    } catch (error) {
+      toast.error("Erro ao marcar lembrete como visto");
+    }
+  };
+
+  const handleCancel = async (id: string, createdBy: string) => {
+    if (user?.id !== createdBy) {
+      toast.error("Apenas o criador pode cancelar este lembrete");
+      return;
+    }
+    try {
+      await deleteReminder.mutateAsync(id);
+      toast.success("Lembrete cancelado!");
+    } catch (error) {
+      toast.error("Erro ao cancelar lembrete");
+    }
   };
 
   if (isLoading || visibleReminders.length === 0) {
@@ -95,6 +119,7 @@ export const ReminderHighlightBanner = () => {
                   <div className="space-y-3">
                     {todayReminders.map((reminder) => {
                       const MentionIcon = getMentionIcon(reminder.mention_type);
+                      const isCreator = user?.id === reminder.created_by;
                       return (
                         <div
                           key={reminder.id}
@@ -121,14 +146,30 @@ export const ReminderHighlightBanner = () => {
                               </div>
                             </div>
                           </div>
-                          <Button
-                            variant="ghost"
-                            size="icon"
-                            className="h-8 w-8 rounded-full hover:bg-primary/20"
-                            onClick={() => handleDismiss(reminder.id)}
-                          >
-                            <X className="h-4 w-4" />
-                          </Button>
+                          <div className="flex items-center gap-2">
+                            <Button
+                              variant="outline"
+                              size="sm"
+                              className="h-8 gap-1 border-green-500/50 text-green-600 hover:bg-green-500/10 hover:text-green-600"
+                              onClick={() => handleAcknowledge(reminder.id)}
+                              disabled={acknowledgeReminder.isPending}
+                            >
+                              <Check className="h-4 w-4" />
+                              Visto
+                            </Button>
+                            {isCreator && (
+                              <Button
+                                variant="outline"
+                                size="sm"
+                                className="h-8 gap-1 border-destructive/50 text-destructive hover:bg-destructive/10 hover:text-destructive"
+                                onClick={() => handleCancel(reminder.id, reminder.created_by)}
+                                disabled={deleteReminder.isPending}
+                              >
+                                <X className="h-4 w-4" />
+                                Cancelar
+                              </Button>
+                            )}
+                          </div>
                         </div>
                       );
                     })}
@@ -172,14 +213,30 @@ export const ReminderHighlightBanner = () => {
                         : "bg-gradient-to-br from-muted/50 to-muted/20 border-border"
                     )}
                   >
-                    <Button
-                      variant="ghost"
-                      size="icon"
-                      className="absolute top-2 right-2 h-6 w-6 rounded-full opacity-60 hover:opacity-100"
-                      onClick={() => handleDismiss(reminder.id)}
-                    >
-                      <X className="h-3 w-3" />
-                    </Button>
+                    <div className="absolute top-2 right-2 flex gap-1">
+                      <Button
+                        variant="ghost"
+                        size="icon"
+                        className="h-6 w-6 rounded-full opacity-60 hover:opacity-100 hover:bg-green-500/20 text-green-600"
+                        onClick={() => handleAcknowledge(reminder.id)}
+                        disabled={acknowledgeReminder.isPending}
+                        title="Marcar como visto"
+                      >
+                        <Check className="h-3 w-3" />
+                      </Button>
+                      {user?.id === reminder.created_by && (
+                        <Button
+                          variant="ghost"
+                          size="icon"
+                          className="h-6 w-6 rounded-full opacity-60 hover:opacity-100 hover:bg-destructive/20 text-destructive"
+                          onClick={() => handleCancel(reminder.id, reminder.created_by)}
+                          disabled={deleteReminder.isPending}
+                          title="Cancelar lembrete"
+                        >
+                          <X className="h-3 w-3" />
+                        </Button>
+                      )}
+                    </div>
                     <CardContent className="p-4">
                       <div className="flex items-start gap-3">
                         <div
