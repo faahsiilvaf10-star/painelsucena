@@ -288,7 +288,7 @@ export function AppSidebar() {
         {user ? (
           <>
             {/* User Info */}
-            <div className="flex items-center gap-3 p-2 mb-2">
+            <div className="flex items-center gap-3 p-2">
               <Avatar className="w-9 h-9 flex-shrink-0">
                 <AvatarImage src={profile?.avatar_url || undefined} alt={profile?.full_name || "Usuário"} />
                 <AvatarFallback className="bg-primary text-primary-foreground text-sm font-bold">
@@ -303,31 +303,27 @@ export function AppSidebar() {
               )}
             </div>
             
-            {/* Menu Items for Config and Logout */}
-            <SidebarMenu>
-              <SidebarMenuItem>
-                <SidebarMenuButton 
-                  asChild 
-                  tooltip="Configurações"
-                  className="hover:bg-sidebar-accent"
-                >
-                  <Link to="/configuracoes" className="flex items-center gap-2">
-                    <Settings className="h-5 w-5" />
-                    <span className="font-medium">Configurações</span>
-                  </Link>
-                </SidebarMenuButton>
-              </SidebarMenuItem>
-              <SidebarMenuItem>
-                <SidebarMenuButton 
-                  tooltip="Sair"
-                  onClick={handleSignOut}
-                  className="hover:bg-red-500/20 hover:text-red-500 cursor-pointer"
-                >
-                  <LogOut className="h-5 w-5" />
-                  <span className="font-medium">Sair</span>
-                </SidebarMenuButton>
-              </SidebarMenuItem>
-            </SidebarMenu>
+            {/* Icon Buttons for Config and Logout */}
+            <div className={`flex items-center justify-center gap-2 mt-2 ${isCollapsed ? "flex-col" : ""}`}>
+              <Button
+                variant="ghost"
+                size="icon"
+                onClick={() => navigate("/configuracoes")}
+                className="h-9 w-9 text-sidebar-foreground/70 hover:text-sidebar-foreground hover:bg-sidebar-accent"
+                title="Configurações"
+              >
+                <Settings className="h-5 w-5" />
+              </Button>
+              <Button
+                variant="ghost"
+                size="icon"
+                onClick={handleSignOut}
+                className="h-9 w-9 text-sidebar-foreground/70 hover:text-red-500 hover:bg-red-500/20"
+                title="Sair"
+              >
+                <LogOut className="h-5 w-5" />
+              </Button>
+            </div>
           </>
         ) : (
           <SidebarMenu>
