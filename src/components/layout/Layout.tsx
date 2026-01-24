@@ -9,6 +9,7 @@ import { ChatDialog } from "@/components/chat/ChatDialog";
 import { OnlineUser } from "@/hooks/useOnlineUsers";
 import { useAuth } from "@/hooks/useAuth";
 import { Menu } from "lucide-react";
+import { CampaignRibbon } from "@/components/campaigns/CampaignRibbon";
 
 const motivationalPhrases = [
   "O sucesso é a soma de pequenos esforços repetidos dia após dia.",
@@ -88,6 +89,7 @@ const Layout = ({ children }: LayoutProps) => {
             </p>
             
             <div className="flex items-center gap-1">
+              <CampaignRibbon />
               <ThemeToggle />
               <NotificationBell />
             </div>
