@@ -10,6 +10,7 @@ import { Alert, AlertDescription, AlertTitle } from "@/components/ui/alert";
 import { useActiveReminders, Reminder } from "@/hooks/useReminders";
 import { cn } from "@/lib/utils";
 import { Link } from "react-router-dom";
+import { getDaysUntilEventBrazilNorth } from "@/lib/timezone";
 
 // Play alert sound for today's reminders
 const playAlertSound = () => {
@@ -31,12 +32,9 @@ export const ReminderHighlightBanner = () => {
     return activeReminders?.filter((r) => !dismissedIds.has(r.id)) || [];
   }, [activeReminders, dismissedIds]);
 
+  // Use Brazil North timezone for date calculations
   const getDaysUntilEvent = (dateStr: string) => {
-    const eventDate = new Date(dateStr);
-    const today = new Date();
-    eventDate.setHours(0, 0, 0, 0);
-    today.setHours(0, 0, 0, 0);
-    return Math.ceil((eventDate.getTime() - today.getTime()) / (1000 * 60 * 60 * 24));
+    return getDaysUntilEventBrazilNorth(dateStr);
   };
 
   // Separate today's reminders from upcoming ones
