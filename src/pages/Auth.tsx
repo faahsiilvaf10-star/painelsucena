@@ -10,6 +10,7 @@ import { Eye, EyeOff, Loader2, User, Lock, UserCircle } from "lucide-react";
 import { z } from "zod";
 import { AuthBackground } from "@/components/auth/AuthBackground";
 import { LoginTransition } from "@/components/auth/LoginTransition";
+import { LiveRadioPlayer } from "@/components/auth/LiveRadioPlayer";
 const cargoOptions = [{
   value: "preposto",
   label: "Preposto"
@@ -315,6 +316,9 @@ const Auth = () => {
   return <div className="h-screen relative overflow-hidden flex items-center justify-center">
       {/* Gradient background */}
       <AuthBackground />
+
+      {/* Live Radio Player */}
+      <LiveRadioPlayer radioUrl="https://radiosaovivo.net/" />
 
       {/* Login Transition Animation */}
       {showTransition && <LoginTransition onComplete={handleTransitionComplete} userName={loggedUserName} userAvatar={loggedUserAvatar} userCargo={loggedUserCargo} />}
