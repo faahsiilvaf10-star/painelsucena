@@ -6,49 +6,51 @@ interface VehicleIconProps {
   type: EquipmentType;
   isStopped?: boolean;
   className?: string;
+  size?: "sm" | "md" | "lg";
 }
 
-export const VehicleIcon: React.FC<VehicleIconProps> = ({ type, isStopped = false, className = "" }) => {
-  const baseClass = `drop-shadow-lg ${isStopped ? 'opacity-70' : ''} ${className}`;
+export const VehicleIcon: React.FC<VehicleIconProps> = ({ 
+  type, 
+  isStopped = false, 
+  className = "",
+  size = "md"
+}) => {
+  const sizeConfig = {
+    sm: { width: 32, height: 20 },
+    md: { width: 40, height: 24 },
+    lg: { width: 48, height: 28 },
+  };
+
+  const { width, height } = sizeConfig[size];
+  const baseClass = `${isStopped ? 'opacity-60' : ''} ${className}`;
 
   switch (type) {
     case "pipa":
       return (
         <svg
-          width="48"
-          height="32"
-          viewBox="0 0 48 32"
+          width={width}
+          height={height}
+          viewBox="0 0 40 24"
           fill="none"
           xmlns="http://www.w3.org/2000/svg"
           className={baseClass}
         >
-          {/* Truck Cabin */}
-          <rect x="28" y="8" width="16" height="14" rx="2" className="fill-primary" />
-          {/* Cabin Window */}
-          <rect x="32" y="10" width="10" height="6" rx="1" className="fill-primary-foreground/80" />
-          {/* Tank Body */}
-          <ellipse cx="16" cy="15" rx="14" ry="8" className="fill-blue-500" />
-          {/* Tank Highlight */}
-          <ellipse cx="16" cy="12" rx="10" ry="3" className="fill-blue-400/50" />
-          {/* Water Label */}
-          <text x="16" y="17" textAnchor="middle" className="fill-white text-[6px] font-bold">
-            ÁGUA
-          </text>
+          {/* Cabin */}
+          <rect x="28" y="4" width="10" height="12" rx="1.5" fill="#F59E0B" />
+          <rect x="30" y="6" width="6" height="4" rx="1" fill="#1E293B" />
+          {/* Tank */}
+          <ellipse cx="16" cy="10" rx="14" ry="6" fill="#3B82F6" />
+          <ellipse cx="16" cy="8" rx="10" ry="2.5" fill="#60A5FA" opacity="0.5" />
+          <text x="16" y="12" textAnchor="middle" fill="white" fontSize="5" fontWeight="bold">H₂O</text>
           {/* Wheels */}
-          <circle cx="10" cy="24" r="4" className="fill-gray-800" />
-          <circle cx="10" cy="24" r="2" className="fill-gray-600" />
-          <circle cx="36" cy="24" r="4" className="fill-gray-800" />
-          <circle cx="36" cy="24" r="2" className="fill-gray-600" />
+          <circle cx="8" cy="18" r="3.5" fill="#1F2937" />
+          <circle cx="8" cy="18" r="1.5" fill="#4B5563" />
+          <circle cx="32" cy="18" r="3.5" fill="#1F2937" />
+          <circle cx="32" cy="18" r="1.5" fill="#4B5563" />
           {!isStopped && (
             <>
-              <g className="origin-center animate-spin-slow" style={{ transformOrigin: '10px 24px' }}>
-                <line x1="10" y1="22" x2="10" y2="26" className="stroke-gray-400" strokeWidth="0.5" />
-                <line x1="8" y1="24" x2="12" y2="24" className="stroke-gray-400" strokeWidth="0.5" />
-              </g>
-              <g className="origin-center animate-spin-slow" style={{ transformOrigin: '36px 24px' }}>
-                <line x1="36" y1="22" x2="36" y2="26" className="stroke-gray-400" strokeWidth="0.5" />
-                <line x1="34" y1="24" x2="38" y2="24" className="stroke-gray-400" strokeWidth="0.5" />
-              </g>
+              <circle cx="8" cy="18" r="2.5" fill="none" stroke="#9CA3AF" strokeWidth="0.5" strokeDasharray="2 2" className="animate-spin-slow" style={{ transformOrigin: '8px 18px' }} />
+              <circle cx="32" cy="18" r="2.5" fill="none" stroke="#9CA3AF" strokeWidth="0.5" strokeDasharray="2 2" className="animate-spin-slow" style={{ transformOrigin: '32px 18px' }} />
             </>
           )}
         </svg>
@@ -57,40 +59,34 @@ export const VehicleIcon: React.FC<VehicleIconProps> = ({ type, isStopped = fals
     case "munk":
       return (
         <svg
-          width="56"
-          height="36"
-          viewBox="0 0 56 36"
+          width={width}
+          height={height}
+          viewBox="0 0 44 24"
           fill="none"
           xmlns="http://www.w3.org/2000/svg"
           className={baseClass}
         >
-          {/* Truck Cabin */}
-          <rect x="36" y="12" width="16" height="14" rx="2" className="fill-primary" />
-          {/* Cabin Window */}
-          <rect x="40" y="14" width="10" height="6" rx="1" className="fill-primary-foreground/80" />
-          {/* Truck Bed */}
-          <rect x="4" y="16" width="32" height="10" rx="1" className="fill-gray-600" />
+          {/* Cabin */}
+          <rect x="32" y="6" width="10" height="10" rx="1.5" fill="#F59E0B" />
+          <rect x="34" y="8" width="6" height="4" rx="1" fill="#1E293B" />
+          {/* Bed */}
+          <rect x="4" y="10" width="28" height="6" rx="1" fill="#4B5563" />
           {/* Crane Base */}
-          <rect x="26" y="8" width="8" height="8" className="fill-orange-500" />
+          <rect x="26" y="4" width="6" height="6" fill="#EA580C" rx="1" />
           {/* Crane Arm */}
-          <rect x="12" y="4" width="20" height="4" rx="1" className="fill-orange-400" />
-          {/* Crane Hook */}
-          <path d="M12 4 L12 0 L8 0 L8 6 L12 6" className="stroke-orange-600 fill-none" strokeWidth="2" />
+          <rect x="10" y="2" width="18" height="3" rx="1" fill="#F97316" />
+          {/* Hook */}
+          <path d="M10 2 L10 0 L6 0 L6 4 L8 4 L8 2" stroke="#DC2626" strokeWidth="1.5" fill="none" />
+          <circle cx="6" cy="5" r="1.5" fill="#DC2626" />
           {/* Wheels */}
-          <circle cx="12" cy="28" r="4" className="fill-gray-800" />
-          <circle cx="12" cy="28" r="2" className="fill-gray-600" />
-          <circle cx="44" cy="28" r="4" className="fill-gray-800" />
-          <circle cx="44" cy="28" r="2" className="fill-gray-600" />
+          <circle cx="10" cy="20" r="3.5" fill="#1F2937" />
+          <circle cx="10" cy="20" r="1.5" fill="#4B5563" />
+          <circle cx="36" cy="20" r="3.5" fill="#1F2937" />
+          <circle cx="36" cy="20" r="1.5" fill="#4B5563" />
           {!isStopped && (
             <>
-              <g className="origin-center animate-spin-slow" style={{ transformOrigin: '12px 28px' }}>
-                <line x1="12" y1="26" x2="12" y2="30" className="stroke-gray-400" strokeWidth="0.5" />
-                <line x1="10" y1="28" x2="14" y2="28" className="stroke-gray-400" strokeWidth="0.5" />
-              </g>
-              <g className="origin-center animate-spin-slow" style={{ transformOrigin: '44px 28px' }}>
-                <line x1="44" y1="26" x2="44" y2="30" className="stroke-gray-400" strokeWidth="0.5" />
-                <line x1="42" y1="28" x2="46" y2="28" className="stroke-gray-400" strokeWidth="0.5" />
-              </g>
+              <circle cx="10" cy="20" r="2.5" fill="none" stroke="#9CA3AF" strokeWidth="0.5" strokeDasharray="2 2" className="animate-spin-slow" style={{ transformOrigin: '10px 20px' }} />
+              <circle cx="36" cy="20" r="2.5" fill="none" stroke="#9CA3AF" strokeWidth="0.5" strokeDasharray="2 2" className="animate-spin-slow" style={{ transformOrigin: '36px 20px' }} />
             </>
           )}
         </svg>
@@ -99,42 +95,31 @@ export const VehicleIcon: React.FC<VehicleIconProps> = ({ type, isStopped = fals
     case "camionete":
       return (
         <svg
-          width="44"
-          height="28"
-          viewBox="0 0 44 28"
+          width={width}
+          height={height}
+          viewBox="0 0 36 20"
           fill="none"
           xmlns="http://www.w3.org/2000/svg"
           className={baseClass}
         >
+          {/* Body */}
+          <path d="M4 8 L4 12 L32 12 L32 6 L26 6 L22 2 L12 2 L12 8 Z" fill="#6B7280" />
           {/* Cabin */}
-          <path
-            d="M24 6 L24 16 L40 16 L40 10 L36 6 L24 6 Z"
-            className="fill-primary"
-          />
-          {/* Cabin Window */}
-          <path
-            d="M26 8 L26 14 L34 14 L34 10 L32 8 L26 8 Z"
-            className="fill-primary-foreground/80"
-          />
-          {/* Truck Bed */}
-          <rect x="4" y="10" width="20" height="6" className="fill-gray-500" />
-          {/* Bed Rail */}
-          <rect x="4" y="8" width="20" height="2" className="fill-gray-600" />
+          <path d="M22 2 L26 6 L32 6 L32 12 L12 12 L12 2 Z" fill="#F59E0B" />
+          {/* Windows */}
+          <path d="M14 4 L14 10 L20 10 L20 4 L18 2 L14 2 Z" fill="#1E293B" />
+          <rect x="22" y="4" width="8" height="6" rx="1" fill="#1E293B" />
+          {/* Bed */}
+          <rect x="4" y="6" width="8" height="6" fill="#4B5563" />
           {/* Wheels */}
-          <circle cx="10" cy="20" r="4" className="fill-gray-800" />
-          <circle cx="10" cy="20" r="2" className="fill-gray-600" />
-          <circle cx="34" cy="20" r="4" className="fill-gray-800" />
-          <circle cx="34" cy="20" r="2" className="fill-gray-600" />
+          <circle cx="8" cy="16" r="3" fill="#1F2937" />
+          <circle cx="8" cy="16" r="1.2" fill="#4B5563" />
+          <circle cx="28" cy="16" r="3" fill="#1F2937" />
+          <circle cx="28" cy="16" r="1.2" fill="#4B5563" />
           {!isStopped && (
             <>
-              <g className="origin-center animate-spin-slow" style={{ transformOrigin: '10px 20px' }}>
-                <line x1="10" y1="18" x2="10" y2="22" className="stroke-gray-400" strokeWidth="0.5" />
-                <line x1="8" y1="20" x2="12" y2="20" className="stroke-gray-400" strokeWidth="0.5" />
-              </g>
-              <g className="origin-center animate-spin-slow" style={{ transformOrigin: '34px 20px' }}>
-                <line x1="34" y1="18" x2="34" y2="22" className="stroke-gray-400" strokeWidth="0.5" />
-                <line x1="32" y1="20" x2="36" y2="20" className="stroke-gray-400" strokeWidth="0.5" />
-              </g>
+              <circle cx="8" cy="16" r="2" fill="none" stroke="#9CA3AF" strokeWidth="0.5" strokeDasharray="2 2" className="animate-spin-slow" style={{ transformOrigin: '8px 16px' }} />
+              <circle cx="28" cy="16" r="2" fill="none" stroke="#9CA3AF" strokeWidth="0.5" strokeDasharray="2 2" className="animate-spin-slow" style={{ transformOrigin: '28px 16px' }} />
             </>
           )}
         </svg>

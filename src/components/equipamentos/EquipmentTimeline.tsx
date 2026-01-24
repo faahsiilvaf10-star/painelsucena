@@ -1,5 +1,5 @@
 import { useState, useEffect, useMemo } from "react";
-import { Pause, Play, Wrench, CloudRain, Clock, User, CreditCard, Edit2, Check, X, Trash2 } from "lucide-react";
+import { Pause, Play, Wrench, CloudRain, Clock, User, CreditCard, Edit2, Check, X, Trash2, MoreVertical } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import { Input } from "@/components/ui/input";
@@ -21,14 +21,14 @@ import {
   AlertDialogTitle,
 } from "@/components/ui/alert-dialog";
 import { useUpdateEquipmentStatus, useUpdateEquipment, useDeleteEquipment, type StopReason, type Equipment } from "@/hooks/useEquipment";
-import { VehicleIcon, equipmentTypeLabels, equipmentTypeColors } from "./VehicleIcons";
+import { VehicleIcon, equipmentTypeLabels } from "./VehicleIcons";
 import { toast } from "sonner";
 
 const stopReasonLabels: Record<StopReason, string> = {
-  none: "Em operação",
-  maintenance: "Parada para Manutenção",
-  waiting: "Aguardando Frente de Serviço",
-  rain: "Parada por Chuva",
+  none: "Operando",
+  maintenance: "Manutenção",
+  waiting: "Aguardando",
+  rain: "Chuva",
 };
 
 const stopReasonColors: Record<StopReason, string> = {
@@ -36,13 +36,6 @@ const stopReasonColors: Record<StopReason, string> = {
   maintenance: "bg-orange-500",
   waiting: "bg-yellow-500",
   rain: "bg-blue-500",
-};
-
-const stopReasonIcons: Record<StopReason, React.ReactNode> = {
-  none: <Play className="w-4 h-4" />,
-  maintenance: <Wrench className="w-4 h-4" />,
-  waiting: <Clock className="w-4 h-4" />,
-  rain: <CloudRain className="w-4 h-4" />,
 };
 
 interface EquipmentTimelineProps {
@@ -67,50 +60,36 @@ export function EquipmentTimeline({ equipment }: EquipmentTimelineProps) {
   const stopStartTime = equipment.stop_start_time ? new Date(equipment.stop_start_time) : null;
   const equipmentType = equipment.equipment_type || "pipa";
 
-  // Update edit data when equipment changes
   useEffect(() => {
-    setEditData({
-      plate: equipment.plate,
-      driver: equipment.driver,
-      helper: equipment.helper,
-    });
+    setEditData({ plate: equipment.plate, driver: equipment.driver, helper: equipment.helper });
   }, [equipment]);
 
-  // Update time every minute
   useEffect(() => {
-    const interval = setInterval(() => {
-      setCurrentTime(new Date());
-    }, 60000);
+    const interval = setInterval(() => setCurrentTime(new Date()), 60000);
     return () => clearInterval(interval);
   }, []);
 
-  // Calculate position based on current time
   const position = useMemo(() => {
     const hours = currentTime.getHours();
     const minutes = currentTime.getMinutes();
     const currentDecimal = hours + minutes / 60;
-
     if (currentDecimal < equipment.start_hour) return 0;
     if (currentDecimal > equipment.end_hour) return 100;
-
-    const totalDuration = equipment.end_hour - equipment.start_hour;
-    const elapsed = currentDecimal - equipment.start_hour;
-    return (elapsed / totalDuration) * 100;
+    return ((currentDecimal - equipment.start_hour) / (equipment.end_hour - equipment.start_hour)) * 100;
   }, [currentTime, equipment.start_hour, equipment.end_hour]);
 
-  // Generate hour markers
   const hourMarkers = useMemo(() => {
     const markers = [];
-    for (let h = equipment.start_hour; h <= equipment.end_hour; h++) {
-      const pos = ((h - equipment.start_hour) / (equipment.end_hour - equipment.start_hour)) * 100;
-      markers.push({ hour: h, position: pos });
+    for (let h = equipment.start_hour; h <= equipment.end_hour; h += 2) {
+      markers.push({ hour: h, position: ((h - equipment.start_hour) / (equipment.end_hour - equipment.start_hour)) * 100 });
+    }
+    if (markers[markers.length - 1]?.hour !== equipment.end_hour) {
+      markers.push({ hour: equipment.end_hour, position: 100 });
     }
     return markers;
   }, [equipment.start_hour, equipment.end_hour]);
 
-  const formatHour = (hour: number) => {
-    return `${hour.toString().padStart(2, "0")}:00`;
-  };
+  const formatHour = (hour: number) => `${hour.toString().padStart(2, "0")}h`;
 
   const handleStopChange = async (reason: StopReason) => {
     try {
@@ -121,293 +100,161 @@ export function EquipmentTimeline({ equipment }: EquipmentTimelineProps) {
         previousStopReason: stopReason,
         previousStopStartTime: equipment.stop_start_time,
       });
-      toast.success(
-        reason === "none" 
-          ? "Operação retomada" 
-          : `Status alterado para: ${stopReasonLabels[reason]}`
-      );
-    } catch (error) {
+      toast.success(reason === "none" ? "Operação retomada" : `${stopReasonLabels[reason]}`);
+    } catch {
       toast.error("Erro ao atualizar status");
     }
   };
 
   const handleSaveEdit = async () => {
     try {
-      await updateEquipment.mutateAsync({
-        id: equipment.id,
-        ...editData,
-      });
-      toast.success("Informações atualizadas!");
+      await updateEquipment.mutateAsync({ id: equipment.id, ...editData });
+      toast.success("Atualizado!");
       setIsEditing(false);
-    } catch (error) {
-      toast.error("Erro ao atualizar informações");
+    } catch {
+      toast.error("Erro ao atualizar");
     }
-  };
-
-  const handleCancelEdit = () => {
-    setEditData({
-      plate: equipment.plate,
-      driver: equipment.driver,
-      helper: equipment.helper,
-    });
-    setIsEditing(false);
   };
 
   const handleDelete = async () => {
     try {
       await deleteEquipment.mutateAsync(equipment.id);
-      toast.success("Equipamento removido com sucesso!");
-    } catch (error) {
-      toast.error("Erro ao remover equipamento");
+      toast.success("Equipamento removido!");
+    } catch {
+      toast.error("Erro ao remover");
     }
   };
 
   const getStopDuration = () => {
     if (!stopStartTime) return null;
     const diff = Math.floor((currentTime.getTime() - stopStartTime.getTime()) / 60000);
-    const hours = Math.floor(diff / 60);
-    const mins = diff % 60;
-    return hours > 0 ? `${hours}h ${mins}min` : `${mins}min`;
+    return diff >= 60 ? `${Math.floor(diff / 60)}h${diff % 60}m` : `${diff}min`;
   };
 
   const isStopped = stopReason !== "none";
 
   return (
-    <div className="bg-card border border-border rounded-2xl p-6 shadow-lg">
-      {/* Header with Equipment Info */}
-      <div className="flex flex-col lg:flex-row lg:items-center justify-between gap-4 mb-6">
-        <div className="flex items-center gap-3">
-          <div className={`w-12 h-12 rounded-xl flex items-center justify-center transition-colors ${isStopped ? stopReasonColors[stopReason] : equipmentTypeColors[equipmentType]}`}>
-            <VehicleIcon type={equipmentType} isStopped={isStopped} className="w-8 h-6" />
-          </div>
-          <div>
+    <div className="bg-card border border-border rounded-xl p-4 shadow-sm hover:shadow-md transition-shadow">
+      {/* Compact Header */}
+      <div className="flex items-center justify-between gap-3 mb-3">
+        <div className="flex items-center gap-3 min-w-0">
+          <VehicleIcon type={equipmentType} isStopped={isStopped} size="sm" />
+          <div className="min-w-0">
             <div className="flex items-center gap-2">
-              <h3 className="text-lg font-semibold text-foreground">{equipment.name}</h3>
-              <Badge variant="secondary" className="text-xs">
-                {equipmentTypeLabels[equipmentType]}
+              <h3 className="font-semibold text-foreground truncate">{equipment.name}</h3>
+              <Badge variant={isStopped ? "destructive" : "default"} className={`text-[10px] px-1.5 py-0 ${!isStopped ? 'bg-green-600' : ''}`}>
+                {stopReasonLabels[stopReason]}
               </Badge>
             </div>
-            <p className="text-sm text-muted-foreground">
-              Operação: {formatHour(equipment.start_hour)} - {formatHour(equipment.end_hour)}
-            </p>
+            {isEditing ? (
+              <div className="flex items-center gap-2 mt-1">
+                <Input value={editData.plate} onChange={(e) => setEditData({ ...editData, plate: e.target.value.toUpperCase() })} className="h-6 w-20 text-xs" />
+                <Input value={editData.driver} onChange={(e) => setEditData({ ...editData, driver: e.target.value })} className="h-6 w-24 text-xs" placeholder="Motorista" />
+                <Input value={editData.helper} onChange={(e) => setEditData({ ...editData, helper: e.target.value })} className="h-6 w-24 text-xs" placeholder="Ajudante" />
+                <Button size="icon" variant="ghost" className="h-6 w-6" onClick={handleSaveEdit}><Check className="w-3 h-3 text-green-500" /></Button>
+                <Button size="icon" variant="ghost" className="h-6 w-6" onClick={() => setIsEditing(false)}><X className="w-3 h-3 text-red-500" /></Button>
+              </div>
+            ) : (
+              <div className="flex items-center gap-2 text-xs text-muted-foreground">
+                <span className="font-medium">{equipment.plate}</span>
+                <span>•</span>
+                <User className="w-3 h-3" />
+                <span className="truncate">{equipment.driver}</span>
+                {equipment.helper && (
+                  <>
+                    <span>•</span>
+                    <span className="truncate">{equipment.helper}</span>
+                  </>
+                )}
+              </div>
+            )}
           </div>
         </div>
 
-        {/* Equipment Details - Editable */}
-        <div className="flex flex-wrap items-center gap-3">
-          {isEditing ? (
-            <>
-              <div className="flex items-center gap-2">
-                <CreditCard className="w-4 h-4 text-muted-foreground" />
-                <Input
-                  value={editData.plate}
-                  onChange={(e) => setEditData({ ...editData, plate: e.target.value })}
-                  className="w-28 h-8 text-sm"
-                  placeholder="Placa"
-                />
-              </div>
-              <div className="flex items-center gap-2">
-                <User className="w-4 h-4 text-primary" />
-                <Input
-                  value={editData.driver}
-                  onChange={(e) => setEditData({ ...editData, driver: e.target.value })}
-                  className="w-32 h-8 text-sm"
-                  placeholder="Motorista"
-                />
-              </div>
-              <div className="flex items-center gap-2">
-                <User className="w-4 h-4 text-muted-foreground" />
-                <Input
-                  value={editData.helper}
-                  onChange={(e) => setEditData({ ...editData, helper: e.target.value })}
-                  className="w-32 h-8 text-sm"
-                  placeholder="Ajudante"
-                />
-              </div>
-              <div className="flex gap-1">
-                <Button size="icon" variant="ghost" className="h-8 w-8" onClick={handleSaveEdit} disabled={updateEquipment.isPending}>
-                  <Check className="w-4 h-4 text-green-500" />
-                </Button>
-                <Button size="icon" variant="ghost" className="h-8 w-8" onClick={handleCancelEdit}>
-                  <X className="w-4 h-4 text-red-500" />
-                </Button>
-              </div>
-            </>
-          ) : (
-            <>
-              <div className="flex items-center gap-2 bg-muted/50 px-3 py-1.5 rounded-lg">
-                <CreditCard className="w-4 h-4 text-muted-foreground" />
-                <span className="text-sm font-medium text-foreground">{equipment.plate}</span>
-              </div>
-              <div className="flex items-center gap-2 bg-muted/50 px-3 py-1.5 rounded-lg">
-                <User className="w-4 h-4 text-primary" />
-                <span className="text-sm text-foreground">{equipment.driver}</span>
-              </div>
-              <div className="flex items-center gap-2 bg-muted/50 px-3 py-1.5 rounded-lg">
-                <User className="w-4 h-4 text-muted-foreground" />
-                <span className="text-sm text-foreground">{equipment.helper}</span>
-              </div>
-              <Button size="icon" variant="ghost" className="h-8 w-8" onClick={() => setIsEditing(true)}>
-                <Edit2 className="w-4 h-4 text-muted-foreground" />
-              </Button>
-              <Button size="icon" variant="ghost" className="h-8 w-8 text-destructive hover:text-destructive" onClick={() => setShowDeleteDialog(true)}>
-                <Trash2 className="w-4 h-4" />
-              </Button>
-            </>
-          )}
-        </div>
-      </div>
-
-      {/* Stop Controls */}
-      <div className="flex flex-wrap items-center gap-3 mb-6 pb-4 border-b border-border">
-        <span className="text-sm font-medium text-muted-foreground">Status:</span>
-        
+        {/* Actions Menu */}
         <DropdownMenu>
           <DropdownMenuTrigger asChild>
-            <Button 
-              variant={isStopped ? "destructive" : "default"} 
-              size="sm"
-              className={`gap-2 ${!isStopped ? 'bg-green-600 hover:bg-green-700' : ''}`}
-              disabled={updateStatus.isPending}
-            >
-              {stopReasonIcons[stopReason]}
-              {stopReasonLabels[stopReason]}
+            <Button variant="ghost" size="icon" className="h-8 w-8 shrink-0">
+              <MoreVertical className="w-4 h-4" />
             </Button>
           </DropdownMenuTrigger>
-          <DropdownMenuContent align="start">
+          <DropdownMenuContent align="end">
             <DropdownMenuItem onClick={() => handleStopChange("none")} className="gap-2">
-              <Play className="w-4 h-4 text-green-500" />
-              Retomar Operação
+              <Play className="w-4 h-4 text-green-500" /> Operando
             </DropdownMenuItem>
             <DropdownMenuItem onClick={() => handleStopChange("maintenance")} className="gap-2">
-              <Wrench className="w-4 h-4 text-orange-500" />
-              Parada para Manutenção
+              <Wrench className="w-4 h-4 text-orange-500" /> Manutenção
             </DropdownMenuItem>
             <DropdownMenuItem onClick={() => handleStopChange("waiting")} className="gap-2">
-              <Clock className="w-4 h-4 text-yellow-500" />
-              Aguardando Frente de Serviço
+              <Clock className="w-4 h-4 text-yellow-500" /> Aguardando
             </DropdownMenuItem>
             <DropdownMenuItem onClick={() => handleStopChange("rain")} className="gap-2">
-              <CloudRain className="w-4 h-4 text-blue-500" />
-              Parada por Chuva
+              <CloudRain className="w-4 h-4 text-blue-500" /> Chuva
+            </DropdownMenuItem>
+            <DropdownMenuSeparator />
+            <DropdownMenuItem onClick={() => setIsEditing(true)} className="gap-2">
+              <Edit2 className="w-4 h-4" /> Editar
+            </DropdownMenuItem>
+            <DropdownMenuItem onClick={() => setShowDeleteDialog(true)} className="gap-2 text-destructive">
+              <Trash2 className="w-4 h-4" /> Remover
             </DropdownMenuItem>
           </DropdownMenuContent>
         </DropdownMenu>
-
-        {isStopped && stopStartTime && (
-          <Badge variant="outline" className="gap-1">
-            <Pause className="w-3 h-3" />
-            Parado há {getStopDuration()}
-          </Badge>
-        )}
       </div>
 
-      {/* Timeline Container */}
-      <div className="relative pt-24 pb-8">
-        {/* Progress Background */}
-        <div className="absolute left-0 right-0 h-3 bg-muted rounded-full overflow-hidden" style={{ top: '5.5rem' }}>
-          {/* Progress Fill */}
+      {/* Compact Timeline */}
+      <div className="relative h-12">
+        {/* Track */}
+        <div className="absolute left-0 right-0 top-5 h-1.5 bg-muted rounded-full">
           <div
-            className={`absolute left-0 top-0 h-full rounded-full transition-all duration-1000 ${
-              isStopped 
-                ? `${stopReasonColors[stopReason]}` 
-                : 'bg-gradient-to-r from-primary to-primary/70'
-            }`}
+            className={`absolute left-0 top-0 h-full rounded-full transition-all duration-500 ${isStopped ? stopReasonColors[stopReason] : 'bg-green-500'}`}
             style={{ width: `${position}%` }}
           />
         </div>
 
-        {/* Animated Vehicle with info above */}
-        <div
-          className={`absolute transition-all duration-1000 ease-linear`}
-          style={{ left: `calc(${position}% - 28px)`, top: '0' }}
-        >
-          <div className="relative flex flex-col items-center">
-            {/* Plate and Driver Info above vehicle */}
-            <div className="flex flex-col items-center gap-1 mb-2">
-              <div className={`text-[10px] font-bold px-2 py-0.5 rounded-md shadow-md ${
-                isStopped 
-                  ? `${stopReasonColors[stopReason]} text-white` 
-                  : 'bg-primary text-primary-foreground'
-              }`}>
-                {equipment.plate}
-              </div>
-              <div className="text-[9px] text-muted-foreground bg-card/90 px-2 py-0.5 rounded shadow-sm border border-border whitespace-nowrap">
-                <User className="w-2.5 h-2.5 inline mr-1" />
-                {equipment.driver}
-              </div>
+        {/* Vehicle */}
+        <div className="absolute transition-all duration-500" style={{ left: `calc(${Math.min(Math.max(position, 5), 95)}% - 20px)`, top: '-2px' }}>
+          <div className={`flex flex-col items-center ${!isStopped ? 'animate-bounce-slow' : ''}`}>
+            <div className="text-[8px] font-bold bg-card border border-border px-1 rounded shadow-sm mb-0.5">
+              {equipment.plate}
             </div>
-
-            {/* Vehicle Body */}
-            <div className={isStopped ? "" : "animate-bounce-slow"}>
-              <VehicleIcon type={equipmentType} isStopped={isStopped} />
-              
-              {/* Stop reason icon overlay */}
-              {isStopped && (
-                <div className={`absolute -top-1 left-1/2 -translate-x-1/2 w-5 h-5 rounded-full ${stopReasonColors[stopReason]} flex items-center justify-center`}>
-                  {stopReason === "maintenance" && <Wrench className="w-3 h-3 text-white" />}
-                  {stopReason === "waiting" && <Clock className="w-3 h-3 text-white" />}
-                  {stopReason === "rain" && <CloudRain className="w-3 h-3 text-white" />}
-                </div>
-              )}
-            </div>
+            <VehicleIcon type={equipmentType} isStopped={isStopped} size="sm" />
           </div>
         </div>
 
         {/* Hour Markers */}
-        <div className="absolute left-0 right-0" style={{ top: '6.5rem' }}>
-          {hourMarkers.map(({ hour, position: pos }) => (
-            <div
-              key={hour}
-              className="absolute flex flex-col items-center"
-              style={{ left: `${pos}%`, transform: "translateX(-50%)" }}
-            >
-              <div className="w-0.5 h-4 bg-border" />
-              <span className="mt-2 text-xs text-muted-foreground font-medium">
-                {formatHour(hour)}
-              </span>
-            </div>
-          ))}
-        </div>
+        {hourMarkers.map(({ hour, position: pos }) => (
+          <div key={hour} className="absolute top-8 -translate-x-1/2" style={{ left: `${pos}%` }}>
+            <span className="text-[10px] text-muted-foreground">{formatHour(hour)}</span>
+          </div>
+        ))}
       </div>
 
-      {/* Status Footer */}
-      <div className="flex items-center justify-between mt-4 pt-4 border-t border-border">
-        <div className="flex items-center gap-2">
-          <div className={`w-2 h-2 rounded-full ${
-            position === 0 ? 'bg-muted-foreground' :
-            position >= 100 ? 'bg-muted-foreground' :
-            isStopped ? stopReasonColors[stopReason] :
-            'bg-green-500 animate-pulse'
-          }`} />
-          <span className="text-sm text-muted-foreground">
-            {position === 0 && "Aguardando início"}
-            {position > 0 && position < 100 && !isStopped && "Em operação"}
-            {position > 0 && position < 100 && isStopped && stopReasonLabels[stopReason]}
-            {position >= 100 && "Operação concluída"}
-          </span>
+      {/* Footer */}
+      <div className="flex items-center justify-between mt-2 pt-2 border-t border-border/50">
+        <div className="flex items-center gap-2 text-xs text-muted-foreground">
+          {isStopped && stopStartTime && (
+            <Badge variant="outline" className="text-[10px] px-1.5 py-0 gap-1">
+              <Pause className="w-2.5 h-2.5" /> {getStopDuration()}
+            </Badge>
+          )}
+          <span>{formatHour(equipment.start_hour)} - {formatHour(equipment.end_hour)}</span>
         </div>
-        <span className="text-sm font-medium text-foreground">
-          {Math.round(position)}% concluído
-        </span>
+        <span className="text-xs font-medium">{Math.round(position)}%</span>
       </div>
 
-      {/* Delete Confirmation Dialog */}
+      {/* Delete Dialog */}
       <AlertDialog open={showDeleteDialog} onOpenChange={setShowDeleteDialog}>
         <AlertDialogContent>
           <AlertDialogHeader>
             <AlertDialogTitle>Remover Equipamento</AlertDialogTitle>
             <AlertDialogDescription>
-              Tem certeza que deseja remover <strong>{equipment.name}</strong>? 
-              Esta ação não pode ser desfeita e todo o histórico de paradas será perdido.
+              Remover <strong>{equipment.name}</strong>? Esta ação não pode ser desfeita.
             </AlertDialogDescription>
           </AlertDialogHeader>
           <AlertDialogFooter>
             <AlertDialogCancel>Cancelar</AlertDialogCancel>
-            <AlertDialogAction 
-              onClick={handleDelete}
-              className="bg-destructive text-destructive-foreground hover:bg-destructive/90"
-            >
+            <AlertDialogAction onClick={handleDelete} className="bg-destructive text-destructive-foreground hover:bg-destructive/90">
               Remover
             </AlertDialogAction>
           </AlertDialogFooter>
