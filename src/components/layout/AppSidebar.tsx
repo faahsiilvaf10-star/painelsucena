@@ -220,9 +220,11 @@ export function AppSidebar() {
   };
 
   return (
-    <Sidebar collapsible="icon" className="border-r-0 relative overflow-hidden" style={sidebarStyle}>
+    <Sidebar collapsible="icon" className="border-r-0 relative shrink-0" style={sidebarStyle}>
       {/* Background with particles */}
-      <SidebarBackground />
+      <div className="absolute inset-0 overflow-hidden">
+        <SidebarBackground />
+      </div>
       
       {/* Header with Logo */}
       <SidebarHeader className="border-b border-sidebar-border/50 p-4 relative z-10">
