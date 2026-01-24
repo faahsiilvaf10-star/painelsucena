@@ -1,6 +1,6 @@
 import Layout from "@/components/layout/Layout";
 import { EquipmentTimeline } from "@/components/equipamentos/EquipmentTimeline";
-import { Truck, Construction, Plus, Loader2 } from "lucide-react";
+import { Truck, Construction, Plus, Loader2, Droplets, Container, Car } from "lucide-react";
 import { useEquipment, useCreateEquipment } from "@/hooks/useEquipment";
 import { Button } from "@/components/ui/button";
 import { useState } from "react";
@@ -14,6 +14,13 @@ import {
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { toast } from "sonner";
+import { EquipmentType, equipmentTypeLabels } from "@/components/equipamentos/VehicleIcons";
+
+const equipmentTypeOptions: { value: EquipmentType; label: string; icon: React.ReactNode; color: string }[] = [
+  { value: "pipa", label: "Caminhão Pipa", icon: <Droplets className="w-5 h-5" />, color: "bg-blue-500" },
+  { value: "munk", label: "Caminhão Munk", icon: <Container className="w-5 h-5" />, color: "bg-orange-500" },
+  { value: "camionete", label: "Camionete", icon: <Car className="w-5 h-5" />, color: "bg-gray-500" },
+];
 
 const Equipamentos = () => {
   const { data: equipment, isLoading } = useEquipment();
@@ -24,6 +31,7 @@ const Equipamentos = () => {
     plate: "",
     driver: "",
     helper: "",
+    equipment_type: "pipa" as EquipmentType,
     start_hour: 8,
     end_hour: 16,
   });
@@ -39,6 +47,7 @@ const Equipamentos = () => {
         plate: "",
         driver: "",
         helper: "",
+        equipment_type: "pipa",
         start_hour: 8,
         end_hour: 16,
       });
@@ -73,18 +82,40 @@ const Equipamentos = () => {
                 Adicionar Equipamento
               </Button>
             </DialogTrigger>
-            <DialogContent>
+            <DialogContent className="sm:max-w-md">
               <DialogHeader>
                 <DialogTitle>Novo Equipamento</DialogTitle>
               </DialogHeader>
               <form onSubmit={handleSubmit} className="space-y-4">
+                {/* Equipment Type Selection */}
+                <div className="space-y-2">
+                  <Label>Tipo de Equipamento</Label>
+                  <div className="grid grid-cols-3 gap-2">
+                    {equipmentTypeOptions.map((type) => (
+                      <button
+                        key={type.value}
+                        type="button"
+                        onClick={() => setFormData({ ...formData, equipment_type: type.value })}
+                        className={`flex flex-col items-center gap-2 p-3 rounded-xl border-2 transition-all ${
+                          formData.equipment_type === type.value
+                            ? `border-primary ${type.color} text-white`
+                            : "border-border bg-muted/50 text-muted-foreground hover:border-primary/50"
+                        }`}
+                      >
+                        {type.icon}
+                        <span className="text-xs font-medium text-center">{type.label}</span>
+                      </button>
+                    ))}
+                  </div>
+                </div>
+
                 <div className="space-y-2">
                   <Label htmlFor="name">Nome do Equipamento</Label>
                   <Input
                     id="name"
                     value={formData.name}
                     onChange={(e) => setFormData({ ...formData, name: e.target.value })}
-                    placeholder="Ex: Caminhão Pipa 02"
+                    placeholder={`Ex: ${equipmentTypeLabels[formData.equipment_type]} 01`}
                     required
                   />
                 </div>
@@ -93,7 +124,7 @@ const Equipamentos = () => {
                   <Input
                     id="plate"
                     value={formData.plate}
-                    onChange={(e) => setFormData({ ...formData, plate: e.target.value })}
+                    onChange={(e) => setFormData({ ...formData, plate: e.target.value.toUpperCase() })}
                     placeholder="Ex: ABC-1234"
                     required
                   />
@@ -194,6 +225,7 @@ const Equipamentos = () => {
             <p>
               O equipamento se move ao longo da linha do tempo conforme o horário atual.
               A posição indica o progresso da operação diária. Clique no status para registrar paradas.
+              Use o ícone de edição para alterar placa, motorista e ajudante.
             </p>
           </div>
         </div>

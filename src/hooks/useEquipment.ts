@@ -1,5 +1,6 @@
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import { supabase } from "@/integrations/supabase/client";
+import type { EquipmentType } from "@/components/equipamentos/VehicleIcons";
 
 export type StopReason = "none" | "maintenance" | "waiting" | "rain";
 
@@ -9,6 +10,7 @@ export interface Equipment {
   plate: string;
   driver: string;
   helper: string;
+  equipment_type: EquipmentType;
   start_hour: number;
   end_hour: number;
   stop_reason: StopReason;
@@ -77,6 +79,36 @@ export function useUpdateEquipmentStatus() {
       const { data, error } = await supabase
         .from("equipment")
         .update({ stop_reason, stop_start_time })
+        .eq("id", id)
+        .select()
+        .single();
+
+      if (error) throw error;
+      return data;
+    },
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ["equipment"] });
+    },
+  });
+}
+
+export function useUpdateEquipment() {
+  const queryClient = useQueryClient();
+
+  return useMutation({
+    mutationFn: async ({
+      id,
+      ...updates
+    }: {
+      id: string;
+      plate?: string;
+      driver?: string;
+      helper?: string;
+      name?: string;
+    }) => {
+      const { data, error } = await supabase
+        .from("equipment")
+        .update(updates)
         .eq("id", id)
         .select()
         .single();
