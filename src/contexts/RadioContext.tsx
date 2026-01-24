@@ -1,4 +1,4 @@
-import { createContext, useContext, useState, useRef, useEffect, ReactNode } from "react";
+import { createContext, useContext, useState, useRef, useEffect, ReactNode, useCallback } from "react";
 
 const RADIO_STATIONS = [
   { id: "jbfm", name: "JB FM 99.9", genre: "Hits", url: "https://27343.live.streamtheworld.com/JBFM.mp3" },
@@ -21,6 +21,30 @@ interface RadioContextType {
 
 const RadioContext = createContext<RadioContextType | null>(null);
 
+// Get saved station from localStorage
+const getSavedStation = (): RadioStation => {
+  try {
+    const saved = localStorage.getItem("radio_station");
+    if (saved) {
+      const parsed = JSON.parse(saved);
+      const found = RADIO_STATIONS.find(s => s.id === parsed.id);
+      if (found) return found;
+    }
+  } catch (e) {
+    console.log("Error loading saved station");
+  }
+  return RADIO_STATIONS[0];
+};
+
+// Get saved playing state
+const getSavedPlayingState = (): boolean => {
+  try {
+    return localStorage.getItem("radio_playing") === "true";
+  } catch (e) {
+    return false;
+  }
+};
+
 export const useRadio = () => {
   const context = useContext(RadioContext);
   if (!context) {
@@ -30,11 +54,21 @@ export const useRadio = () => {
 };
 
 export const RadioProvider = ({ children }: { children: ReactNode }) => {
-  const [isPlaying, setIsPlaying] = useState(false);
+  const [isPlaying, setIsPlaying] = useState(getSavedPlayingState);
   const [isMuted, setIsMuted] = useState(false);
-  const [selectedStation, setSelectedStation] = useState(RADIO_STATIONS[0]);
+  const [selectedStation, setSelectedStation] = useState(getSavedStation);
   const audioRef = useRef<HTMLAudioElement | null>(null);
-  const hasAutoplayedRef = useRef(false);
+  const hasInitializedRef = useRef(false);
+  const userInteractedRef = useRef(false);
+
+  // Save state to localStorage
+  useEffect(() => {
+    localStorage.setItem("radio_playing", String(isPlaying && !isMuted));
+  }, [isPlaying, isMuted]);
+
+  useEffect(() => {
+    localStorage.setItem("radio_station", JSON.stringify(selectedStation));
+  }, [selectedStation]);
 
   // Initialize audio element once
   useEffect(() => {
@@ -44,21 +78,41 @@ export const RadioProvider = ({ children }: { children: ReactNode }) => {
       audioRef.current.preload = "auto";
     }
 
-    // Try to autoplay on first load only
-    if (!hasAutoplayedRef.current) {
-      hasAutoplayedRef.current = true;
-      const tryAutoplay = async () => {
-        if (audioRef.current) {
-          try {
-            await audioRef.current.play();
-            setIsPlaying(true);
-            setIsMuted(false);
-          } catch (error) {
-            console.log("Autoplay blocked, waiting for user interaction");
+    // Try autoplay if was playing before
+    if (!hasInitializedRef.current) {
+      hasInitializedRef.current = true;
+      
+      if (isPlaying) {
+        const tryAutoplay = async () => {
+          if (audioRef.current) {
+            try {
+              await audioRef.current.play();
+              userInteractedRef.current = true;
+            } catch (error) {
+              console.log("Autoplay blocked, waiting for user interaction");
+              // Set up listener for first user interaction
+              const handleFirstInteraction = async () => {
+                if (!userInteractedRef.current && audioRef.current && isPlaying && !isMuted) {
+                  userInteractedRef.current = true;
+                  try {
+                    await audioRef.current.play();
+                  } catch (e) {
+                    console.log("Playback failed after interaction");
+                  }
+                }
+                document.removeEventListener("click", handleFirstInteraction);
+                document.removeEventListener("keydown", handleFirstInteraction);
+                document.removeEventListener("touchstart", handleFirstInteraction);
+              };
+              
+              document.addEventListener("click", handleFirstInteraction, { once: true });
+              document.addEventListener("keydown", handleFirstInteraction, { once: true });
+              document.addEventListener("touchstart", handleFirstInteraction, { once: true });
+            }
           }
-        }
-      };
-      tryAutoplay();
+        };
+        tryAutoplay();
+      }
     }
 
     return () => {
@@ -66,21 +120,21 @@ export const RadioProvider = ({ children }: { children: ReactNode }) => {
     };
   }, []);
 
-  // Handle play/pause state
+  // Handle play/pause state changes
   useEffect(() => {
-    if (!audioRef.current) return;
+    if (!audioRef.current || !hasInitializedRef.current) return;
 
     if (isPlaying && !isMuted) {
       audioRef.current.play().catch((error) => {
         console.log("Playback failed:", error);
-        setIsPlaying(false);
       });
     } else {
       audioRef.current.pause();
     }
   }, [isPlaying, isMuted]);
 
-  const toggleRadio = () => {
+  const toggleRadio = useCallback(() => {
+    userInteractedRef.current = true;
     if (!isPlaying) {
       setIsPlaying(true);
       setIsMuted(false);
@@ -89,9 +143,10 @@ export const RadioProvider = ({ children }: { children: ReactNode }) => {
     } else {
       setIsMuted(false);
     }
-  };
+  }, [isPlaying, isMuted]);
 
-  const changeStation = (station: RadioStation) => {
+  const changeStation = useCallback((station: RadioStation) => {
+    userInteractedRef.current = true;
     const wasPlaying = isPlaying && !isMuted;
 
     // Stop current audio
@@ -110,10 +165,9 @@ export const RadioProvider = ({ children }: { children: ReactNode }) => {
     if (wasPlaying) {
       audioRef.current.play().catch((error) => {
         console.log("Playback failed:", error);
-        setIsPlaying(false);
       });
     }
-  };
+  }, [isPlaying, isMuted]);
 
   const isRadioActive = isPlaying && !isMuted;
 
