@@ -1,7 +1,7 @@
 import { useState } from "react";
 import { format } from "date-fns";
 import { ptBR } from "date-fns/locale";
-import { Calendar, Clock, Package, User, History, Trash2, Edit2, ImageIcon, ArrowRight } from "lucide-react";
+import { Calendar, Clock, Package, User, History, Trash2, Edit2, ImageIcon, ArrowRight, Hash, Share2 } from "lucide-react";
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/components/ui/dialog";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
@@ -24,6 +24,11 @@ import {
   AlertDialogHeader,
   AlertDialogTitle,
 } from "@/components/ui/alert-dialog";
+import {
+  Tooltip,
+  TooltipContent,
+  TooltipTrigger,
+} from "@/components/ui/tooltip";
 
 interface OrderDetailsDialogProps {
   order: Order | null;
@@ -159,19 +164,66 @@ export function OrderDetailsDialog({ order, open, onOpenChange }: OrderDetailsDi
     setPhotoViewerOpen(true);
   };
 
+  const generateWhatsAppMessage = () => {
+    const statusLabel = STATUS_CONFIG[order.status].label;
+    const unitLabel = UNIT_LABELS[order.quantity_unit] || order.quantity_unit;
+    
+    let message = `📦 *PEDIDO Nº ${order.order_number}*\n\n`;
+    message += `*Produto:* ${order.product_name}\n`;
+    if (order.description) message += `*Descrição:* ${order.description}\n`;
+    message += `*Quantidade:* ${order.quantity} ${unitLabel}\n`;
+    message += `*Status:* ${statusLabel}\n`;
+    message += `*Solicitante:* ${order.requester_name}\n`;
+    message += `*Data:* ${format(new Date(order.created_at), "dd/MM/yyyy 'às' HH:mm", { locale: ptBR })}\n`;
+    if (order.expected_date) {
+      message += `*Previsão:* ${format(new Date(order.expected_date), "dd/MM/yyyy", { locale: ptBR })}\n`;
+    }
+    if (order.mentioned_cargo) {
+      message += `*Encaminhado para:* ${CARGO_LABELS[order.mentioned_cargo]}\n`;
+    }
+    
+    return encodeURIComponent(message);
+  };
+
+  const shareToWhatsApp = () => {
+    const message = generateWhatsAppMessage();
+    window.open(`https://wa.me/?text=${message}`, "_blank");
+  };
+
   return (
     <>
       <Dialog open={open} onOpenChange={onOpenChange}>
         <DialogContent className="max-w-2xl max-h-[90vh]">
           <DialogHeader>
-            <DialogTitle className="flex items-center gap-2">
-              <Package className="w-5 h-5" />
-              Detalhes do Pedido
-            </DialogTitle>
+            <div className="flex items-center justify-between">
+              <DialogTitle className="flex items-center gap-2">
+                <Package className="w-5 h-5" />
+                Pedido #{order.order_number}
+              </DialogTitle>
+              <Tooltip>
+                <TooltipTrigger asChild>
+                  <Button variant="outline" size="icon" onClick={shareToWhatsApp}>
+                    <Share2 className="w-4 h-4" />
+                  </Button>
+                </TooltipTrigger>
+                <TooltipContent>Enviar para WhatsApp</TooltipContent>
+              </Tooltip>
+            </div>
           </DialogHeader>
 
           <ScrollArea className="max-h-[70vh] pr-4">
             <div className="space-y-6">
+              {/* Order Number Badge */}
+              <div className="flex items-center gap-2">
+                <Badge variant="outline" className="font-mono text-sm">
+                  <Hash className="w-3 h-3 mr-1" />
+                  {order.order_number}
+                </Badge>
+                <Badge variant={STATUS_CONFIG[order.status].color.replace("bg-", "") as any}>
+                  {STATUS_CONFIG[order.status].label}
+                </Badge>
+              </div>
+
               {/* Product Info */}
               <div>
                 <h3 className={`text-xl font-bold ${isCancelled ? "line-through text-muted-foreground" : ""}`}>
