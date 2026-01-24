@@ -9,6 +9,7 @@ import { PersistentFooter } from "@/components/layout/PersistentFooter";
 import { PersistentSidebar } from "@/components/layout/PersistentSidebar";
 import ProtectedRoute from "@/components/ProtectedRoute";
 import { LoginTransitionGate } from "@/components/auth/LoginTransitionGate";
+import { LogoutTransitionGate } from "@/components/auth/LogoutTransitionGate";
 import Index from "./pages/Index";
 import RH from "./pages/RH";
 import Presenca from "./pages/Presenca";
@@ -38,6 +39,7 @@ const App = () => (
           <Sonner />
           <BrowserRouter>
             <LoginTransitionGate />
+            <LogoutTransitionGate />
             <PersistentSidebar>
               <Routes>
                 <Route path="/auth" element={<Auth />} />

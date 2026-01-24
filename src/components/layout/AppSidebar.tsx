@@ -206,11 +206,23 @@ export function AppSidebar() {
   };
 
   const handleSignOut = async () => {
+    // Get user info before signing out for the transition
+    const userName = profile?.full_name || "Usuário";
+    const userAvatar = profile?.avatar_url || undefined;
+
+    // Start logout transition
+    sessionStorage.setItem("logoutTransitionInProgress", "true");
+    sessionStorage.setItem("logoutTransitionPayload", JSON.stringify({
+      userName,
+      userAvatar,
+    }));
+    window.dispatchEvent(new Event("logout-transition"));
+
+    // Sign out in background - the transition will handle the redirect
     try {
       await signOut();
-    } finally {
-      // Force a hard redirect so any in-memory auth state is fully reset.
-      window.location.replace("/auth");
+    } catch {
+      // Ignore errors, transition will redirect anyway
     }
   };
 
