@@ -1,6 +1,5 @@
 import { ReactNode, useMemo } from "react";
-import { AppSidebar } from "./AppSidebar";
-import { SidebarProvider, SidebarInset, SidebarTrigger } from "@/components/ui/sidebar";
+import { SidebarInset, SidebarTrigger } from "@/components/ui/sidebar";
 import ForbiddenColorIndicator from "@/components/ForbiddenColorIndicator";
 import { NotificationBell } from "@/components/notifications/NotificationBell";
 import { ThemeToggle } from "@/components/ThemeToggle";
@@ -56,38 +55,33 @@ const Layout = ({ children }: LayoutProps) => {
   const dailyPhrase = useMemo(() => getDailyPhrase(), []);
 
   return (
-    <SidebarProvider defaultOpen={true}>
-      <div className="min-h-screen flex w-full bg-background">
-        <AppSidebar />
-        <SidebarInset>
-          {/* Header with notification bell and theme toggle */}
-          <header className="flex h-14 items-center justify-between gap-4 border-b bg-background px-4">
-            <div className="flex items-center gap-4 md:hidden">
-              <SidebarTrigger>
-                <Menu className="h-5 w-5" />
-              </SidebarTrigger>
-              <span className="font-semibold">Painel Sucena</span>
-            </div>
-            <div className="hidden md:block w-24" />
-            
-            {/* Motivational phrase - centered */}
-            <p className="hidden md:block flex-1 text-center text-sm text-muted-foreground italic truncate px-4">
-              "{dailyPhrase}"
-            </p>
-            
-            <div className="flex items-center gap-1">
-              <CampaignRibbon />
-              <ThemeToggle />
-              <NotificationBell />
-            </div>
-          </header>
-          <main className="flex-1 pb-14">
-            {children}
-          </main>
-          <ForbiddenColorIndicator />
-        </SidebarInset>
-      </div>
-    </SidebarProvider>
+    <SidebarInset>
+      {/* Header with notification bell and theme toggle */}
+      <header className="flex h-14 items-center justify-between gap-4 border-b bg-background px-4">
+        <div className="flex items-center gap-4 md:hidden">
+          <SidebarTrigger>
+            <Menu className="h-5 w-5" />
+          </SidebarTrigger>
+          <span className="font-semibold">Painel Sucena</span>
+        </div>
+        <div className="hidden md:block w-24" />
+        
+        {/* Motivational phrase - centered */}
+        <p className="hidden md:block flex-1 text-center text-sm text-muted-foreground italic truncate px-4">
+          "{dailyPhrase}"
+        </p>
+        
+        <div className="flex items-center gap-1">
+          <CampaignRibbon />
+          <ThemeToggle />
+          <NotificationBell />
+        </div>
+      </header>
+      <main className="flex-1 pb-14">
+        {children}
+      </main>
+      <ForbiddenColorIndicator />
+    </SidebarInset>
   );
 };
 
