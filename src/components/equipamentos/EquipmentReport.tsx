@@ -41,6 +41,7 @@ interface EquipmentStats {
 export function EquipmentReport() {
   const [period, setPeriod] = useState<FilterPeriod>("daily");
   const [isOpen, setIsOpen] = useState(false);
+  const [selectedEquipmentId, setSelectedEquipmentId] = useState<string | null>(null);
   const { data: equipment } = useEquipment();
   const { data: allHistory } = useEquipmentStopHistory();
 
@@ -71,8 +72,12 @@ export function EquipmentReport() {
   }, [allHistory, dateRange]);
 
   const maintenanceHistory = useMemo(() => {
-    return filteredHistory.filter(stop => stop.stop_reason === "maintenance");
-  }, [filteredHistory]);
+    let filtered = filteredHistory.filter(stop => stop.stop_reason === "maintenance");
+    if (selectedEquipmentId) {
+      filtered = filtered.filter(stop => stop.equipment_id === selectedEquipmentId);
+    }
+    return filtered;
+  }, [filteredHistory, selectedEquipmentId]);
 
   const equipmentStats = useMemo((): EquipmentStats[] => {
     if (!equipment) return [];
@@ -268,14 +273,36 @@ export function EquipmentReport() {
 
             {/* Maintenance History Section */}
             <div>
-              <div className="flex items-center gap-2 mb-3">
-                <Wrench className="w-4 h-4 text-orange-500" />
-                <h3 className="text-sm font-medium text-foreground">Histórico de Manutenções</h3>
-                {maintenanceHistory.length > 0 && (
-                  <Badge variant="secondary" className="text-xs">
-                    {maintenanceHistory.length}
-                  </Badge>
-                )}
+              <div className="flex items-center justify-between gap-2 mb-3">
+                <div className="flex items-center gap-2">
+                  <Wrench className="w-4 h-4 text-orange-500" />
+                  <h3 className="text-sm font-medium text-foreground">Histórico de Manutenções</h3>
+                  {maintenanceHistory.length > 0 && (
+                    <Badge variant="secondary" className="text-xs">
+                      {maintenanceHistory.length}
+                    </Badge>
+                  )}
+                </div>
+                <DropdownMenu>
+                  <DropdownMenuTrigger asChild>
+                    <Button variant="outline" size="sm" className="gap-2 h-8 text-xs">
+                      {selectedEquipmentId 
+                        ? equipment?.find(e => e.id === selectedEquipmentId)?.name || "Equipamento"
+                        : "Todos"}
+                      <ChevronDown className="w-3 h-3" />
+                    </Button>
+                  </DropdownMenuTrigger>
+                  <DropdownMenuContent align="end">
+                    <DropdownMenuItem onClick={() => setSelectedEquipmentId(null)}>
+                      Todos os equipamentos
+                    </DropdownMenuItem>
+                    {equipment?.map(eq => (
+                      <DropdownMenuItem key={eq.id} onClick={() => setSelectedEquipmentId(eq.id)}>
+                        {eq.name} ({eq.plate})
+                      </DropdownMenuItem>
+                    ))}
+                  </DropdownMenuContent>
+                </DropdownMenu>
               </div>
               <ScrollArea className="h-[220px] -mx-1 px-1">
                 {maintenanceHistory.length === 0 ? (
