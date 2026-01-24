@@ -39,7 +39,11 @@ export interface InventoryMovement {
   reason: string | null;
   moved_by: string;
   moved_by_name: string;
+  destination_type: "employee" | "equipment" | "area" | null;
+  destination_id: string | null;
+  destination_name: string | null;
   created_at: string;
+  inventory_items?: { name: string } | null;
 }
 
 export interface CreateItemData {
@@ -63,6 +67,9 @@ export interface MovementData {
   movement_type: "entrada" | "saida" | "ajuste";
   quantity: number;
   reason?: string;
+  destination_type?: "employee" | "equipment" | "area";
+  destination_id?: string;
+  destination_name?: string;
 }
 
 export function useStorageLocations() {
@@ -101,19 +108,35 @@ export function useInventoryMovements(itemId?: string) {
     queryFn: async () => {
       let query = supabase
         .from("inventory_movements")
-        .select("*")
+        .select("*, inventory_items(name)")
         .order("created_at", { ascending: false });
 
       if (itemId) {
         query = query.eq("item_id", itemId);
       }
 
-      const { data, error } = await query.limit(100);
+      const { data, error } = await query.limit(200);
 
       if (error) throw error;
       return data as InventoryMovement[];
     },
     enabled: !!itemId || itemId === undefined,
+  });
+}
+
+export function useAllMovements() {
+  return useQuery({
+    queryKey: ["inventory-movements-all"],
+    queryFn: async () => {
+      const { data, error } = await supabase
+        .from("inventory_movements")
+        .select("*, inventory_items(name)")
+        .order("created_at", { ascending: false })
+        .limit(500);
+
+      if (error) throw error;
+      return data as InventoryMovement[];
+    },
   });
 }
 
@@ -271,6 +294,9 @@ export function useRecordMovement() {
           reason: data.reason,
           moved_by: user.id,
           moved_by_name: profile?.full_name || "Usuário",
+          destination_type: data.destination_type,
+          destination_id: data.destination_id,
+          destination_name: data.destination_name,
         })
         .select()
         .single();
@@ -279,6 +305,7 @@ export function useRecordMovement() {
       return movement;
     },
     onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ["inventory-movements-all"] });
       queryClient.invalidateQueries({ queryKey: ["inventory-items"] });
       queryClient.invalidateQueries({ queryKey: ["inventory-movements"] });
       toast({
