@@ -393,26 +393,46 @@ export function EquipmentTimeline({ equipment }: EquipmentTimelineProps) {
               />
             </div>
           </div>
-          <DialogFooter className="gap-2 sm:gap-0">
-            <Button
-              variant="outline"
-              onClick={() => {
-                setShowMaintenanceDialog(false);
-                setDefectDescription("");
-                setCurrentMaintenanceId(null);
-                setMaintenanceStartedAt(null);
-                setIsEditingMaintenance(false);
-              }}
-            >
-              Cancelar
-            </Button>
-            <Button
-              onClick={handleMaintenanceSubmit}
-              className="bg-orange-500 hover:bg-orange-600 text-white"
-            >
-              <Wrench className="w-4 h-4 mr-2" />
-              {isEditingMaintenance ? "Salvar Alterações" : "Iniciar Manutenção"}
-            </Button>
+          <DialogFooter className="flex-col sm:flex-row gap-2">
+            {isEditingMaintenance && (
+              <Button
+                variant="default"
+                onClick={() => {
+                  handleStopChange("none");
+                  setShowMaintenanceDialog(false);
+                  setDefectDescription("");
+                  setCurrentMaintenanceId(null);
+                  setMaintenanceStartedAt(null);
+                  setIsEditingMaintenance(false);
+                }}
+                className="w-full sm:w-auto bg-green-500 hover:bg-green-600 text-white"
+              >
+                <Play className="w-4 h-4 mr-2" />
+                Finalizar Manutenção
+              </Button>
+            )}
+            <div className="flex gap-2 w-full sm:w-auto">
+              <Button
+                variant="outline"
+                onClick={() => {
+                  setShowMaintenanceDialog(false);
+                  setDefectDescription("");
+                  setCurrentMaintenanceId(null);
+                  setMaintenanceStartedAt(null);
+                  setIsEditingMaintenance(false);
+                }}
+                className="flex-1 sm:flex-none"
+              >
+                Cancelar
+              </Button>
+              <Button
+                onClick={handleMaintenanceSubmit}
+                className="flex-1 sm:flex-none bg-orange-500 hover:bg-orange-600 text-white"
+              >
+                <Wrench className="w-4 h-4 mr-2" />
+                {isEditingMaintenance ? "Salvar" : "Iniciar Manutenção"}
+              </Button>
+            </div>
           </DialogFooter>
         </DialogContent>
       </Dialog>
