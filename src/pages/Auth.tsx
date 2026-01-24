@@ -242,26 +242,26 @@ const Auth = () => {
       <AuthBackground />
 
       {/* Header */}
-      <header className="relative z-10 p-3 md:p-4 flex flex-col items-center shrink-0">
+      <header className="relative z-10 p-2 md:p-3 flex flex-col items-center shrink-0">
         <img 
           src={logoSucena} 
           alt="Logo Sucena" 
-          className="h-12 md:h-14 mb-2 transition-all duration-500 ease-out hover:scale-110 hover:brightness-110 cursor-pointer drop-shadow-[0_0_25px_hsl(43,96%,56%)] [filter:_drop-shadow(0_0_15px_rgba(245,165,36,0.6))_drop-shadow(0_0_30px_rgba(245,165,36,0.4))_drop-shadow(0_0_45px_rgba(245,165,36,0.2))] hover:drop-shadow-[0_0_40px_hsl(43,96%,56%)] animate-pulse" 
+          className="h-10 md:h-12 mb-1 transition-all duration-500 ease-out hover:scale-110 hover:brightness-110 cursor-pointer drop-shadow-[0_0_25px_hsl(43,96%,56%)] [filter:_drop-shadow(0_0_15px_rgba(245,165,36,0.6))_drop-shadow(0_0_30px_rgba(245,165,36,0.4))_drop-shadow(0_0_45px_rgba(245,165,36,0.2))] hover:drop-shadow-[0_0_40px_hsl(43,96%,56%)] animate-pulse" 
         />
-        <h1 className="text-xl md:text-2xl font-bold text-primary tracking-tight text-center drop-shadow-[0_4px_15px_rgba(0,0,0,0.9)] [text-shadow:_0_2px_20px_rgba(0,0,0,0.8),_0_0_40px_rgba(0,0,0,0.6)]">CONTROLE OPERACIONAL</h1>
-        <p className="text-gray-300 text-xs md:text-sm mt-1 text-center max-w-md drop-shadow-[0_2px_10px_rgba(0,0,0,0.8)] [text-shadow:_0_2px_15px_rgba(0,0,0,0.9)]">
+        <h1 className="text-lg md:text-xl font-bold text-primary tracking-tight text-center drop-shadow-[0_4px_15px_rgba(0,0,0,0.9)] [text-shadow:_0_2px_20px_rgba(0,0,0,0.8),_0_0_40px_rgba(0,0,0,0.6)]">CONTROLE OPERACIONAL</h1>
+        <p className="text-gray-300 text-[10px] md:text-xs mt-0.5 text-center max-w-md drop-shadow-[0_2px_10px_rgba(0,0,0,0.8)] [text-shadow:_0_2px_15px_rgba(0,0,0,0.9)]">
           Sistema de controle operacional para gestão eficiente
         </p>
       </header>
       {/* Main content */}
       <main className="relative z-10 flex-1 flex items-center justify-center px-4 py-2 overflow-hidden">
-        <div className="w-full max-w-md">
-          <div className="bg-black/80 backdrop-blur-md rounded-lg p-5 md:p-6 shadow-2xl border border-primary/20">
-            <h2 className="text-2xl font-bold text-white mb-4">
+        <div className="w-full max-w-md animate-fade-in">
+          <div className="bg-black/80 backdrop-blur-md rounded-lg p-4 md:p-5 shadow-2xl border border-primary/20">
+            <h2 className="text-xl font-bold text-white mb-3">
               {isLogin ? "Entrar" : "Cadastrar"}
             </h2>
 
-            <form onSubmit={handleSubmit} className="space-y-3">
+            <form onSubmit={handleSubmit} className="space-y-2">
               {!isLogin && (
                 <div className="space-y-1">
                   <Label htmlFor="fullName" className="text-gray-300 text-sm">
@@ -406,7 +406,7 @@ const Auth = () => {
       </main>
 
       {/* Footer */}
-      <footer className="relative z-10 p-2 text-center text-gray-400 text-xs italic shrink-0">
+      <footer className="relative z-10 p-1 text-center text-gray-400 text-[10px] italic shrink-0">
         <p>"{bibleVerses[new Date().getDate() % bibleVerses.length]}"</p>
       </footer>
     </div>
