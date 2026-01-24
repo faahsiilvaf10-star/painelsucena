@@ -6,6 +6,7 @@ import { ThemeToggle } from "@/components/ThemeToggle";
 import { Menu } from "lucide-react";
 import { CampaignRibbon } from "@/components/campaigns/CampaignRibbon";
 import { PageTransition } from "./PageTransition";
+import { useSessionTimeout } from "@/hooks/useSessionTimeout";
 
 const motivationalPhrases = [
   "O sucesso é a soma de pequenos esforços repetidos dia após dia.",
@@ -54,6 +55,9 @@ interface LayoutProps {
 
 const Layout = ({ children }: LayoutProps) => {
   const dailyPhrase = useMemo(() => getDailyPhrase(), []);
+  
+  // Monitor session timeout - auto logout after 5 hours
+  useSessionTimeout();
 
   return (
     <SidebarInset className="flex flex-col h-full overflow-hidden">
