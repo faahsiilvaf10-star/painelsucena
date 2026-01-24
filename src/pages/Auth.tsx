@@ -49,7 +49,6 @@ const Auth = () => {
   const navigate = useNavigate();
   const { toast } = useToast();
 
-  // Fetch occupied cargos
   useEffect(() => {
     const fetchOccupiedCargos = async () => {
       const { data, error } = await supabase
@@ -65,7 +64,6 @@ const Auth = () => {
     fetchOccupiedCargos();
   }, []);
 
-  // Load saved credentials on mount
   useEffect(() => {
     const savedEmail = localStorage.getItem("rememberedEmail");
     const savedPassword = localStorage.getItem("rememberedPassword");
@@ -226,43 +224,43 @@ const Auth = () => {
       {/* Gradient background */}
       <AuthBackground />
 
-      {/* Login form */}
-      <div className="relative z-10 w-full max-w-sm px-6 animate-fade-in">
-        {/* Avatar icon */}
-        <div className="flex justify-center mb-6">
-          <div className="w-20 h-20 rounded-full bg-white/10 backdrop-blur-sm flex items-center justify-center border border-white/20">
-            <User className="w-10 h-10 text-white/70" />
+      {/* Login form - centered */}
+      <div className="relative z-10 w-full max-w-xs px-4 animate-fade-in">
+        {/* Avatar icon - matching the reference exactly */}
+        <div className="flex justify-center mb-8">
+          <div className="w-16 h-16 rounded-full bg-gray-400/80 flex items-center justify-center shadow-lg">
+            <User className="w-9 h-9 text-white/90" strokeWidth={1.5} />
           </div>
         </div>
 
-        <form onSubmit={handleSubmit} className="space-y-4">
+        <form onSubmit={handleSubmit} className="space-y-3">
           {/* Full name field (signup only) */}
           {!isLogin && (
             <div className="space-y-1">
               <div className="relative">
-                <UserCircle className="absolute left-3 top-1/2 -translate-y-1/2 w-5 h-5 text-blue-500" />
+                <UserCircle className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-blue-500" />
                 <Input
                   type="text"
                   value={fullName}
                   onChange={e => setFullName(e.target.value)}
                   placeholder="Nome Completo"
-                  className="pl-11 h-11 bg-white border-0 text-gray-800 placeholder:text-gray-400 rounded-md shadow-sm focus:ring-2 focus:ring-blue-400"
+                  className="pl-10 h-9 bg-white/95 border-0 text-gray-700 text-sm placeholder:text-gray-400 rounded shadow-sm focus:ring-2 focus:ring-blue-400"
                 />
               </div>
               {errors.fullName && <p className="text-red-300 text-xs pl-2">{errors.fullName}</p>}
             </div>
           )}
 
-          {/* Email field */}
+          {/* Username/Email field */}
           <div className="space-y-1">
             <div className="relative">
-              <Mail className="absolute left-3 top-1/2 -translate-y-1/2 w-5 h-5 text-blue-500" />
+              <User className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-blue-500" />
               <Input
                 type="email"
                 value={email}
                 onChange={e => setEmail(e.target.value)}
-                placeholder="Email"
-                className="pl-11 h-11 bg-white border-0 text-gray-800 placeholder:text-gray-400 rounded-md shadow-sm focus:ring-2 focus:ring-blue-400"
+                placeholder="Username"
+                className="pl-10 h-9 bg-white/95 border-0 text-gray-700 text-sm placeholder:text-gray-400 rounded shadow-sm focus:ring-2 focus:ring-blue-400"
               />
             </div>
             {errors.email && <p className="text-red-300 text-xs pl-2">{errors.email}</p>}
@@ -271,20 +269,20 @@ const Auth = () => {
           {/* Password field */}
           <div className="space-y-1">
             <div className="relative">
-              <Lock className="absolute left-3 top-1/2 -translate-y-1/2 w-5 h-5 text-amber-500" />
+              <Lock className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-amber-500" />
               <Input
                 type={showPassword ? "text" : "password"}
                 value={password}
                 onChange={e => setPassword(e.target.value)}
-                placeholder="Senha"
-                className="pl-11 pr-11 h-11 bg-white border-0 text-gray-800 placeholder:text-gray-400 rounded-md shadow-sm focus:ring-2 focus:ring-blue-400"
+                placeholder="Password"
+                className="pl-10 pr-10 h-9 bg-white/95 border-0 text-gray-700 text-sm placeholder:text-gray-400 rounded shadow-sm focus:ring-2 focus:ring-blue-400"
               />
               <button
                 type="button"
                 onClick={() => setShowPassword(!showPassword)}
                 className="absolute right-3 top-1/2 -translate-y-1/2 text-gray-400 hover:text-gray-600 transition-colors"
               >
-                {showPassword ? <EyeOff size={18} /> : <Eye size={18} />}
+                {showPassword ? <EyeOff size={14} /> : <Eye size={14} />}
               </button>
             </div>
             {errors.password && <p className="text-red-300 text-xs pl-2">{errors.password}</p>}
@@ -301,7 +299,7 @@ const Auth = () => {
                   }
                 }}
               >
-                <SelectTrigger className="h-11 bg-white border-0 text-gray-800 rounded-md shadow-sm focus:ring-2 focus:ring-blue-400">
+                <SelectTrigger className="h-9 bg-white/95 border-0 text-gray-700 text-sm rounded shadow-sm focus:ring-2 focus:ring-blue-400">
                   <SelectValue placeholder="Selecione seu cargo" />
                 </SelectTrigger>
                 <SelectContent className="bg-white border-gray-200">
@@ -312,9 +310,9 @@ const Auth = () => {
                         key={option.value}
                         value={option.value}
                         disabled={isOccupied}
-                        className={`${isOccupied 
+                        className={`text-sm ${isOccupied 
                           ? "text-gray-400 cursor-not-allowed line-through" 
-                          : "text-gray-800 hover:bg-gray-100 focus:bg-gray-100"
+                          : "text-gray-700 hover:bg-gray-100 focus:bg-gray-100"
                         }`}
                       >
                         {option.label} {isOccupied && "(Ocupado)"}
@@ -329,43 +327,43 @@ const Auth = () => {
 
           {/* Remember me and forgot password row (login only) */}
           {isLogin && (
-            <div className="flex items-center justify-between text-sm">
-              <div className="flex items-center space-x-2">
+            <div className="flex items-center justify-between pt-1">
+              <div className="flex items-center space-x-1.5">
                 <Checkbox
                   id="rememberMe"
                   checked={rememberMe}
                   onCheckedChange={(checked) => setRememberMe(checked === true)}
-                  className="border-white/50 data-[state=checked]:bg-white data-[state=checked]:border-white data-[state=checked]:text-blue-600 h-4 w-4"
+                  className="border-white/60 data-[state=checked]:bg-white data-[state=checked]:border-white data-[state=checked]:text-blue-600 h-3 w-3"
                 />
                 <label 
                   htmlFor="rememberMe" 
-                  className="text-white/80 text-xs cursor-pointer select-none"
+                  className="text-white/80 text-[11px] cursor-pointer select-none"
                 >
-                  Lembrar-me
+                  Remember me
                 </label>
               </div>
               <button
                 type="button"
-                className="text-white/60 hover:text-white/90 text-xs transition-colors"
+                className="text-blue-300/80 hover:text-blue-200 text-[11px] transition-colors"
               >
-                Esqueceu a senha?
+                Forgot Password?
               </button>
             </div>
           )}
 
-          {/* Submit button */}
+          {/* Submit button - dark slate matching the reference */}
           <Button
             type="submit"
             disabled={isLoading}
-            className="w-full h-11 bg-slate-700 hover:bg-slate-600 text-white font-medium rounded-md shadow-lg transition-all duration-200 mt-2"
+            className="w-full h-9 bg-slate-600 hover:bg-slate-500 text-white text-sm font-medium tracking-wide rounded shadow-lg transition-all duration-200 mt-3"
           >
-            {isLoading ? <Loader2 className="w-5 h-5 animate-spin" /> : isLogin ? "LOGIN" : "CADASTRAR"}
+            {isLoading ? <Loader2 className="w-4 h-4 animate-spin" /> : isLogin ? "LOGIN" : "CADASTRAR"}
           </Button>
         </form>
 
         {/* Toggle login/signup */}
-        <div className="mt-6 text-center">
-          <p className="text-white/70 text-sm">
+        <div className="mt-5 text-center">
+          <p className="text-white/60 text-xs">
             {isLogin ? "Novo por aqui?" : "Já tem uma conta?"}{" "}
             <button
               type="button"
@@ -373,7 +371,7 @@ const Auth = () => {
                 setIsLogin(!isLogin);
                 setErrors({});
               }}
-              className="text-white font-medium hover:underline"
+              className="text-white/90 font-medium hover:underline"
             >
               {isLogin ? "Cadastre-se" : "Faça login"}
             </button>
