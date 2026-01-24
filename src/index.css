@@ -167,6 +167,25 @@
     }
   }
 
+  /* Equipment animations */
+  .animate-bounce-slow {
+    animation: bounceSlow 1s ease-in-out infinite;
+  }
+
+  @keyframes bounceSlow {
+    0%, 100% { transform: translateY(0); }
+    50% { transform: translateY(-3px); }
+  }
+
+  .animate-spin-slow {
+    animation: spinSlow 2s linear infinite;
+  }
+
+  @keyframes spinSlow {
+    from { transform: rotate(0deg); }
+    to { transform: rotate(360deg); }
+  }
+
   /* Scrollbar styling */
   .scrollbar-none::-webkit-scrollbar {
     display: none;
