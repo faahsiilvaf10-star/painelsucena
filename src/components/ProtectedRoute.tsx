@@ -10,23 +10,11 @@ interface ProtectedRouteProps {
 const ProtectedRoute = ({ children }: ProtectedRouteProps) => {
   const [session, setSession] = useState<Session | null>(null);
   const [loading, setLoading] = useState(true);
-  const [isTransitioning, setIsTransitioning] = useState(false);
   const location = useLocation();
   const navigate = useNavigate();
 
-  // Check if login transition is in progress
-  useEffect(() => {
-    const checkTransition = () => {
-      const transitioning = sessionStorage.getItem("loginTransitionInProgress") === "true";
-      setIsTransitioning(transitioning);
-    };
-
-    checkTransition();
-
-    // Poll for transition state changes
-    const interval = setInterval(checkTransition, 50);
-    return () => clearInterval(interval);
-  }, []);
+  // Read transition flag synchronously to avoid a 1-frame flash.
+  const isTransitioning = sessionStorage.getItem("loginTransitionInProgress") === "true";
 
   useEffect(() => {
     const { data: { subscription } } = supabase.auth.onAuthStateChange(
