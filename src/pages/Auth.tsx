@@ -50,6 +50,7 @@ const Auth = () => {
   const [showTransition, setShowTransition] = useState(false);
   const [loggedUserName, setLoggedUserName] = useState<string>("");
   const [loggedUserAvatar, setLoggedUserAvatar] = useState<string>("");
+  const [loggedUserCargo, setLoggedUserCargo] = useState<string>("");
   const navigate = useNavigate();
   const { toast } = useToast();
 
@@ -162,11 +163,11 @@ const Auth = () => {
             localStorage.removeItem("rememberedPassword");
           }
           
-          // Fetch user's profile name and avatar
+          // Fetch user's profile name, avatar and cargo
           if (authData.user) {
             const { data: profileData } = await supabase
               .from("profiles")
-              .select("full_name, avatar_url")
+              .select("full_name, avatar_url, cargo")
               .eq("user_id", authData.user.id)
               .single();
             
@@ -176,6 +177,10 @@ const Auth = () => {
             }
             if (profileData?.avatar_url) {
               setLoggedUserAvatar(profileData.avatar_url);
+            }
+            if (profileData?.cargo) {
+              const cargoLabel = cargoOptions.find(c => c.value === profileData.cargo)?.label || profileData.cargo;
+              setLoggedUserCargo(cargoLabel);
             }
           }
           
@@ -267,6 +272,7 @@ const Auth = () => {
           onComplete={handleTransitionComplete} 
           userName={loggedUserName} 
           userAvatar={loggedUserAvatar}
+          userCargo={loggedUserCargo}
         />
       )}
 
