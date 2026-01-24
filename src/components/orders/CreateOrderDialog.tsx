@@ -36,13 +36,20 @@ interface CreateOrderDialogProps {
 
 const UNIT_OPTIONS: { value: QuantityUnit; label: string }[] = [
   { value: "unidade", label: "Unidade(s)" },
+  { value: "par", label: "Par(es)" },
+  { value: "pecas", label: "Peça(s)" },
   { value: "centimetros", label: "Centímetros" },
   { value: "metros", label: "Metros" },
+  { value: "metro_quadrado", label: "m² (Metro Quadrado)" },
+  { value: "metro_cubico", label: "m³ (Metro Cúbico)" },
   { value: "quilos", label: "Quilos" },
   { value: "litros", label: "Litros" },
+  { value: "galao", label: "Galão(ões)" },
+  { value: "balde", label: "Balde(s)" },
   { value: "pacotes", label: "Pacotes" },
   { value: "caixas", label: "Caixas" },
-  { value: "pecas", label: "Peças" },
+  { value: "saco", label: "Saco(s)" },
+  { value: "rolo", label: "Rolo(s)" },
 ];
 
 const CARGO_OPTIONS = [

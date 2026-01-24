@@ -3,7 +3,7 @@ import { supabase } from "@/integrations/supabase/client";
 import { useAuth } from "@/hooks/useAuth";
 
 export type OrderStatus = 'solicitado' | 'aprovado' | 'a_caminho' | 'entregue' | 'cancelado';
-export type QuantityUnit = 'unidade' | 'centimetros' | 'metros' | 'quilos' | 'litros' | 'pacotes' | 'caixas' | 'pecas';
+export type QuantityUnit = 'unidade' | 'centimetros' | 'metros' | 'quilos' | 'litros' | 'pacotes' | 'caixas' | 'pecas' | 'par' | 'rolo' | 'saco' | 'galao' | 'balde' | 'metro_quadrado' | 'metro_cubico';
 
 export interface Order {
   id: string;
@@ -229,6 +229,93 @@ export const useUpdateOrderStatus = () => {
           user_id: currentOrder.requester_id,
           title: "📦 Atualização de Pedido",
           message: `Seu pedido foi atualizado para: ${statusLabels[newStatus]}`,
+          type: "order",
+          reference_id: orderId,
+          reference_type: "order",
+        });
+      }
+
+      return data;
+    },
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ["orders"] });
+      queryClient.invalidateQueries({ queryKey: ["my-orders"] });
+      queryClient.invalidateQueries({ queryKey: ["pending-orders"] });
+      queryClient.invalidateQueries({ queryKey: ["order-history"] });
+    },
+  });
+};
+
+export const useUpdateOrderQuantity = () => {
+  const queryClient = useQueryClient();
+  const { user } = useAuth();
+
+  return useMutation({
+    mutationFn: async ({
+      orderId,
+      newQuantity,
+      newUnit,
+      notes,
+    }: {
+      orderId: string;
+      newQuantity: number;
+      newUnit?: QuantityUnit;
+      notes?: string;
+    }) => {
+      if (!user?.id) throw new Error("Usuário não autenticado");
+
+      // Get current order
+      const { data: currentOrder } = await supabase
+        .from("orders")
+        .select("quantity, quantity_unit, requester_id")
+        .eq("id", orderId)
+        .single();
+
+      if (!currentOrder) throw new Error("Pedido não encontrado");
+
+      // Get user's profile
+      const { data: profile } = await supabase
+        .from("profiles")
+        .select("full_name")
+        .eq("user_id", user.id)
+        .single();
+
+      const updateData: { quantity: number; quantity_unit?: QuantityUnit } = {
+        quantity: newQuantity,
+      };
+      if (newUnit) updateData.quantity_unit = newUnit;
+
+      // Update order quantity
+      const { data, error } = await supabase
+        .from("orders")
+        .update(updateData)
+        .eq("id", orderId)
+        .select()
+        .single();
+
+      if (error) throw error;
+
+      // Create history entry for quantity change
+      await supabase.from("order_history").insert({
+        order_id: orderId,
+        previous_status: null,
+        new_status: "solicitado", // Required field, use current status
+        changed_by: user.id,
+        changed_by_name: profile?.full_name || "Usuário",
+        notes: notes || `Quantidade alterada de ${currentOrder.quantity} para ${newQuantity}`,
+        previous_quantity: currentOrder.quantity,
+        new_quantity: newQuantity,
+        previous_unit: currentOrder.quantity_unit,
+        new_unit: newUnit || currentOrder.quantity_unit,
+        change_type: "quantity",
+      });
+
+      // Notify requester
+      if (currentOrder.requester_id !== user.id) {
+        await supabase.from("notifications").insert({
+          user_id: currentOrder.requester_id,
+          title: "📦 Quantidade Alterada",
+          message: `A quantidade do seu pedido foi alterada de ${currentOrder.quantity} para ${newQuantity}`,
           type: "order",
           reference_id: orderId,
           reference_type: "order",

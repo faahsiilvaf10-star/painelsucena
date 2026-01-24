@@ -22,21 +22,29 @@ const UNIT_LABELS: Record<string, string> = {
   unidade: "un",
   centimetros: "cm",
   metros: "m",
+  metro_quadrado: "m²",
+  metro_cubico: "m³",
   quilos: "kg",
   litros: "L",
+  galao: "gal",
+  balde: "bld",
   pacotes: "pct",
   caixas: "cx",
+  saco: "saco",
+  rolo: "rolo",
   pecas: "pç",
+  par: "par",
 };
 
 export function OrderCard({ order, onClick }: OrderCardProps) {
   const statusConfig = STATUS_CONFIG[order.status];
   const unitLabel = UNIT_LABELS[order.quantity_unit] || order.quantity_unit;
   const mainImage = order.photo_urls?.[0] || order.ai_generated_image_url;
+  const isCancelled = order.status === "cancelado";
 
   return (
     <Card 
-      className="hover:bg-accent/50 cursor-pointer transition-colors"
+      className={`hover:bg-accent/50 cursor-pointer transition-colors ${isCancelled ? "opacity-60" : ""}`}
       onClick={onClick}
     >
       <CardContent className="p-4">
@@ -54,8 +62,10 @@ export function OrderCard({ order, onClick }: OrderCardProps) {
           <div className="flex-1 min-w-0">
             <div className="flex items-start justify-between gap-2">
               <div>
-                <h3 className="font-semibold truncate">{order.product_name}</h3>
-                <p className="text-sm text-muted-foreground">
+                <h3 className={`font-semibold truncate ${isCancelled ? "line-through text-muted-foreground" : ""}`}>
+                  {order.product_name}
+                </h3>
+                <p className={`text-sm ${isCancelled ? "line-through text-muted-foreground" : "text-muted-foreground"}`}>
                   {order.quantity} {unitLabel}
                 </p>
               </div>

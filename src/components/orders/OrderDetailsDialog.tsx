@@ -1,17 +1,19 @@
 import { useState } from "react";
 import { format } from "date-fns";
 import { ptBR } from "date-fns/locale";
-import { Calendar, Clock, Package, User, History, X, Trash2 } from "lucide-react";
+import { Calendar, Clock, Package, User, History, Trash2, Edit2, ImageIcon, ArrowRight } from "lucide-react";
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/components/ui/dialog";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
+import { Input } from "@/components/ui/input";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { Separator } from "@/components/ui/separator";
 import { ScrollArea } from "@/components/ui/scroll-area";
-import { Order, OrderStatus, useOrderHistory, useUpdateOrderStatus, useDeleteOrder } from "@/hooks/useOrders";
+import { Order, OrderStatus, QuantityUnit, useOrderHistory, useUpdateOrderStatus, useUpdateOrderQuantity, useDeleteOrder } from "@/hooks/useOrders";
 import { useAuth } from "@/hooks/useAuth";
 import { useProfile } from "@/hooks/useProfile";
 import { useToast } from "@/hooks/use-toast";
+import { PhotoViewer } from "./PhotoViewer";
 import {
   AlertDialog,
   AlertDialogAction,
@@ -39,14 +41,39 @@ const STATUS_CONFIG: Record<OrderStatus, { label: string; color: string }> = {
 
 const UNIT_LABELS: Record<string, string> = {
   unidade: "Unidade(s)",
+  par: "Par(es)",
+  pecas: "Peça(s)",
   centimetros: "Centímetros",
   metros: "Metros",
+  metro_quadrado: "m² (Metro Quadrado)",
+  metro_cubico: "m³ (Metro Cúbico)",
   quilos: "Quilos",
   litros: "Litros",
+  galao: "Galão(ões)",
+  balde: "Balde(s)",
   pacotes: "Pacotes",
   caixas: "Caixas",
-  pecas: "Peças",
+  saco: "Saco(s)",
+  rolo: "Rolo(s)",
 };
+
+const UNIT_OPTIONS: { value: QuantityUnit; label: string }[] = [
+  { value: "unidade", label: "Unidade(s)" },
+  { value: "par", label: "Par(es)" },
+  { value: "pecas", label: "Peça(s)" },
+  { value: "centimetros", label: "Centímetros" },
+  { value: "metros", label: "Metros" },
+  { value: "metro_quadrado", label: "m²" },
+  { value: "metro_cubico", label: "m³" },
+  { value: "quilos", label: "Quilos" },
+  { value: "litros", label: "Litros" },
+  { value: "galao", label: "Galão(ões)" },
+  { value: "balde", label: "Balde(s)" },
+  { value: "pacotes", label: "Pacotes" },
+  { value: "caixas", label: "Caixas" },
+  { value: "saco", label: "Saco(s)" },
+  { value: "rolo", label: "Rolo(s)" },
+];
 
 const CARGO_LABELS: Record<string, string> = {
   aux_administrativo: "Aux. Administrativo",
@@ -55,10 +82,17 @@ const CARGO_LABELS: Record<string, string> = {
 
 export function OrderDetailsDialog({ order, open, onOpenChange }: OrderDetailsDialogProps) {
   const [showDeleteConfirm, setShowDeleteConfirm] = useState(false);
+  const [photoViewerOpen, setPhotoViewerOpen] = useState(false);
+  const [photoIndex, setPhotoIndex] = useState(0);
+  const [editingQuantity, setEditingQuantity] = useState(false);
+  const [newQuantity, setNewQuantity] = useState<number>(0);
+  const [newUnit, setNewUnit] = useState<QuantityUnit>("unidade");
+  
   const { user } = useAuth();
   const { data: profile } = useProfile();
   const { toast } = useToast();
   const updateStatus = useUpdateOrderStatus();
+  const updateQuantity = useUpdateOrderQuantity();
   const deleteOrder = useDeleteOrder();
   const { data: history } = useOrderHistory(order?.id || "");
 
@@ -69,7 +103,17 @@ export function OrderDetailsDialog({ order, open, onOpenChange }: OrderDetailsDi
     profile?.cargo === "aux_administrativo" ||
     profile?.cargo === "aux_almoxarifado";
 
+  const canEditQuantity = 
+    profile?.cargo === "aux_administrativo" ||
+    profile?.cargo === "aux_almoxarifado";
+
   const canDelete = user?.id === order.requester_id && order.status === "solicitado";
+  const isCancelled = order.status === "cancelado";
+
+  const allImages = [
+    ...(order.photo_urls || []),
+    ...(order.ai_generated_image_url ? [order.ai_generated_image_url] : []),
+  ];
 
   const handleStatusChange = async (newStatus: OrderStatus) => {
     try {
@@ -77,6 +121,26 @@ export function OrderDetailsDialog({ order, open, onOpenChange }: OrderDetailsDi
       toast({ title: "Status atualizado!" });
     } catch {
       toast({ title: "Erro ao atualizar status", variant: "destructive" });
+    }
+  };
+
+  const handleStartEditQuantity = () => {
+    setNewQuantity(order.quantity);
+    setNewUnit(order.quantity_unit);
+    setEditingQuantity(true);
+  };
+
+  const handleSaveQuantity = async () => {
+    try {
+      await updateQuantity.mutateAsync({
+        orderId: order.id,
+        newQuantity,
+        newUnit,
+      });
+      toast({ title: "Quantidade atualizada!" });
+      setEditingQuantity(false);
+    } catch {
+      toast({ title: "Erro ao atualizar quantidade", variant: "destructive" });
     }
   };
 
@@ -90,10 +154,10 @@ export function OrderDetailsDialog({ order, open, onOpenChange }: OrderDetailsDi
     }
   };
 
-  const allImages = [
-    ...(order.photo_urls || []),
-    ...(order.ai_generated_image_url ? [order.ai_generated_image_url] : []),
-  ];
+  const openPhotoViewer = (index: number) => {
+    setPhotoIndex(index);
+    setPhotoViewerOpen(true);
+  };
 
   return (
     <>
@@ -110,48 +174,106 @@ export function OrderDetailsDialog({ order, open, onOpenChange }: OrderDetailsDi
             <div className="space-y-6">
               {/* Product Info */}
               <div>
-                <h3 className="text-xl font-bold">{order.product_name}</h3>
+                <h3 className={`text-xl font-bold ${isCancelled ? "line-through text-muted-foreground" : ""}`}>
+                  {order.product_name}
+                </h3>
                 {order.description && (
-                  <p className="text-muted-foreground mt-1">{order.description}</p>
+                  <p className={`mt-1 ${isCancelled ? "line-through text-muted-foreground" : "text-muted-foreground"}`}>
+                    {order.description}
+                  </p>
                 )}
               </div>
 
-              {/* Images */}
+              {/* Images - Clickable */}
               {allImages.length > 0 && (
                 <div className="space-y-2">
-                  <h4 className="text-sm font-medium">Imagens</h4>
+                  <h4 className="text-sm font-medium flex items-center gap-2">
+                    <ImageIcon className="w-4 h-4" />
+                    Fotos do Produto (clique para ampliar)
+                  </h4>
                   <div className="flex flex-wrap gap-2">
                     {allImages.map((url, index) => (
-                      <div key={index} className="relative w-24 h-24">
+                      <button
+                        key={index}
+                        onClick={() => openPhotoViewer(index)}
+                        className="relative w-24 h-24 rounded-md overflow-hidden hover:ring-2 hover:ring-primary transition-all group"
+                      >
                         <img
                           src={url}
                           alt={`Imagem ${index + 1}`}
-                          className="w-full h-full object-cover rounded-md"
+                          className="w-full h-full object-cover group-hover:scale-105 transition-transform"
                         />
                         {url === order.ai_generated_image_url && (
-                          <span className="absolute bottom-0 left-0 right-0 bg-primary/80 text-primary-foreground text-[10px] text-center py-0.5 rounded-b-md">
+                          <span className="absolute bottom-0 left-0 right-0 bg-primary/80 text-primary-foreground text-[10px] text-center py-0.5">
                             IA
                           </span>
                         )}
-                      </div>
+                        <div className="absolute inset-0 bg-black/0 group-hover:bg-black/20 transition-colors flex items-center justify-center">
+                          <ImageIcon className="w-6 h-6 text-white opacity-0 group-hover:opacity-100 transition-opacity" />
+                        </div>
+                      </button>
                     ))}
                   </div>
                 </div>
               )}
 
-              {/* Details Grid */}
-              <div className="grid grid-cols-2 gap-4 text-sm">
-                <div className="space-y-1">
-                  <span className="text-muted-foreground">Quantidade</span>
-                  <p className="font-medium">
+              {/* Quantity - Editable by responsible */}
+              <div className="space-y-2">
+                <div className="flex items-center justify-between">
+                  <span className="text-sm text-muted-foreground">Quantidade</span>
+                  {canEditQuantity && !isCancelled && order.status !== "entregue" && !editingQuantity && (
+                    <Button variant="ghost" size="sm" onClick={handleStartEditQuantity}>
+                      <Edit2 className="w-3 h-3 mr-1" />
+                      Editar
+                    </Button>
+                  )}
+                </div>
+                
+                {editingQuantity ? (
+                  <div className="flex items-center gap-2">
+                    <Input
+                      type="number"
+                      step="0.01"
+                      min="0.01"
+                      value={newQuantity}
+                      onChange={(e) => setNewQuantity(parseFloat(e.target.value))}
+                      className="w-24"
+                    />
+                    <Select value={newUnit} onValueChange={(v) => setNewUnit(v as QuantityUnit)}>
+                      <SelectTrigger className="w-40">
+                        <SelectValue />
+                      </SelectTrigger>
+                      <SelectContent>
+                        {UNIT_OPTIONS.map((opt) => (
+                          <SelectItem key={opt.value} value={opt.value}>
+                            {opt.label}
+                          </SelectItem>
+                        ))}
+                      </SelectContent>
+                    </Select>
+                    <Button size="sm" onClick={handleSaveQuantity} disabled={updateQuantity.isPending}>
+                      Salvar
+                    </Button>
+                    <Button size="sm" variant="ghost" onClick={() => setEditingQuantity(false)}>
+                      Cancelar
+                    </Button>
+                  </div>
+                ) : (
+                  <p className={`font-medium ${isCancelled ? "line-through text-muted-foreground" : ""}`}>
                     {order.quantity} {UNIT_LABELS[order.quantity_unit]}
                   </p>
-                </div>
+                )}
+              </div>
+
+              {/* Details Grid */}
+              <div className="grid grid-cols-2 gap-4 text-sm">
                 <div className="space-y-1">
                   <span className="text-muted-foreground">Status</span>
                   <div className="flex items-center gap-2">
                     <div className={`w-2 h-2 rounded-full ${STATUS_CONFIG[order.status].color}`} />
-                    <span className="font-medium">{STATUS_CONFIG[order.status].label}</span>
+                    <span className={`font-medium ${isCancelled ? "line-through" : ""}`}>
+                      {STATUS_CONFIG[order.status].label}
+                    </span>
                   </div>
                 </div>
                 <div className="space-y-1">
@@ -173,7 +295,7 @@ export function OrderDetailsDialog({ order, open, onOpenChange }: OrderDetailsDi
                     <span className="text-muted-foreground flex items-center gap-1">
                       <Clock className="w-3 h-3" /> Previsão de Entrega
                     </span>
-                    <p className="font-medium">
+                    <p className={`font-medium ${isCancelled ? "line-through text-muted-foreground" : ""}`}>
                       {format(new Date(order.expected_date), "dd/MM/yyyy", { locale: ptBR })}
                     </p>
                   </div>
@@ -219,11 +341,34 @@ export function OrderDetailsDialog({ order, open, onOpenChange }: OrderDetailsDi
                     <div className="space-y-2">
                       {history.map((h) => (
                         <div key={h.id} className="text-sm border-l-2 border-muted pl-3 py-1">
-                          <div className="flex items-center gap-2">
+                          <div className="flex items-center gap-2 flex-wrap">
                             <span className="font-medium">{h.changed_by_name}</span>
-                            <span className="text-muted-foreground">alterou para</span>
-                            <Badge variant="outline">{STATUS_CONFIG[h.new_status].label}</Badge>
+                            {(h as any).change_type === "quantity" ? (
+                              <>
+                                <span className="text-muted-foreground">alterou quantidade:</span>
+                                <span className="line-through text-muted-foreground">
+                                  {(h as any).previous_quantity} {(h as any).previous_unit}
+                                </span>
+                                <ArrowRight className="w-3 h-3" />
+                                <Badge variant="outline">
+                                  {(h as any).new_quantity} {(h as any).new_unit}
+                                </Badge>
+                              </>
+                            ) : (
+                              <>
+                                <span className="text-muted-foreground">alterou status para</span>
+                                <Badge 
+                                  variant={h.new_status === "cancelado" ? "destructive" : "outline"}
+                                  className={h.new_status === "cancelado" ? "" : ""}
+                                >
+                                  {STATUS_CONFIG[h.new_status].label}
+                                </Badge>
+                              </>
+                            )}
                           </div>
+                          {h.notes && (
+                            <p className="text-xs text-muted-foreground mt-1 italic">"{h.notes}"</p>
+                          )}
                           <p className="text-xs text-muted-foreground mt-1">
                             {format(new Date(h.created_at), "dd/MM/yyyy 'às' HH:mm", { locale: ptBR })}
                           </p>
@@ -252,6 +397,15 @@ export function OrderDetailsDialog({ order, open, onOpenChange }: OrderDetailsDi
           </ScrollArea>
         </DialogContent>
       </Dialog>
+
+      {/* Photo Viewer */}
+      <PhotoViewer
+        photos={order.photo_urls || []}
+        aiImageUrl={order.ai_generated_image_url}
+        initialIndex={photoIndex}
+        open={photoViewerOpen}
+        onOpenChange={setPhotoViewerOpen}
+      />
 
       <AlertDialog open={showDeleteConfirm} onOpenChange={setShowDeleteConfirm}>
         <AlertDialogContent>
