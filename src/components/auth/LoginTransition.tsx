@@ -1,4 +1,4 @@
-import { useState, useEffect, useMemo } from "react";
+import { useState, useEffect, useMemo, useRef } from "react";
 import { User } from "lucide-react";
 
 interface LoginTransitionProps {
@@ -19,6 +19,23 @@ interface Particle {
 
 export function LoginTransition({ onComplete }: LoginTransitionProps) {
   const [phase, setPhase] = useState<"cursor-move" | "click" | "zoom" | "fade">("cursor-move");
+  const audioRef = useRef<HTMLAudioElement | null>(null);
+
+  // Play success sound on mount
+  useEffect(() => {
+    audioRef.current = new Audio("/sounds/chime.mp3");
+    audioRef.current.volume = 0.5;
+    audioRef.current.play().catch(() => {
+      // Ignore autoplay errors
+    });
+
+    return () => {
+      if (audioRef.current) {
+        audioRef.current.pause();
+        audioRef.current = null;
+      }
+    };
+  }, []);
 
   // Generate random particles
   const particles = useMemo<Particle[]>(() => {
