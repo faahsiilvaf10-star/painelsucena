@@ -49,24 +49,25 @@ export function LoginTransition({ onComplete }: LoginTransitionProps) {
       "hsl(0, 0%, 100%)", // White
     ];
     
-    return Array.from({ length: 60 }, (_, i) => ({
+    return Array.from({ length: 80 }, (_, i) => ({
       id: i,
       x: Math.random() * 100,
       y: Math.random() * 100,
       size: 6 + Math.random() * 12,
       color: colors[Math.floor(Math.random() * colors.length)],
       rotation: Math.random() * 360,
-      delay: Math.random() * 0.5,
-      duration: 1 + Math.random() * 1.5,
+      delay: Math.random() * 1.5,
+      duration: 2 + Math.random() * 2,
       type: ["confetti", "circle", "star"][Math.floor(Math.random() * 3)] as Particle["type"],
     }));
   }, []);
 
   useEffect(() => {
-    const clickTimer = setTimeout(() => setPhase("click"), 600);
-    const zoomTimer = setTimeout(() => setPhase("zoom"), 900);
-    const fadeTimer = setTimeout(() => setPhase("fade"), 2200);
-    const completeTimer = setTimeout(() => onComplete(), 2500);
+    // Slower, smoother timings - total 5 seconds
+    const clickTimer = setTimeout(() => setPhase("click"), 1200);      // Cursor moves for 1.2s
+    const zoomTimer = setTimeout(() => setPhase("zoom"), 1800);        // Click effect for 0.6s
+    const fadeTimer = setTimeout(() => setPhase("fade"), 4500);        // Zoom + welcome for 2.7s
+    const completeTimer = setTimeout(() => onComplete(), 5000);        // Fade for 0.5s
 
     return () => {
       clearTimeout(clickTimer);
@@ -147,14 +148,14 @@ export function LoginTransition({ onComplete }: LoginTransitionProps) {
         </div>
       )}
 
-      {/* Animated cursor */}
+      {/* Animated cursor - slower movement */}
       <div
-        className={`absolute transition-all duration-500 ease-out ${
+        className={`absolute transition-all ease-in-out ${
           phase === "cursor-move" 
-            ? "top-[60%] left-[60%] opacity-100" 
+            ? "top-[65%] left-[65%] opacity-100 duration-1000" 
             : phase === "click"
-            ? "top-1/2 left-1/2 -translate-x-8 -translate-y-8 opacity-100 scale-90"
-            : "top-1/2 left-1/2 -translate-x-8 -translate-y-8 opacity-0"
+            ? "top-1/2 left-1/2 -translate-x-8 -translate-y-8 opacity-100 scale-90 duration-700"
+            : "top-1/2 left-1/2 -translate-x-8 -translate-y-8 opacity-0 duration-500"
         }`}
       >
         <svg
@@ -181,21 +182,21 @@ export function LoginTransition({ onComplete }: LoginTransitionProps) {
         )}
       </div>
 
-      {/* Avatar that zooms in */}
+      {/* Avatar that zooms in - slower, smoother */}
       <div
-        className={`absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 rounded-full flex items-center justify-center shadow-2xl transition-all ease-out ${
+        className={`absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 rounded-full flex items-center justify-center shadow-2xl transition-all ${
           phase === "cursor-move" || phase === "click"
-            ? "w-16 h-16 duration-300 bg-gray-400/90"
+            ? "w-16 h-16 duration-500 ease-out bg-gray-400/90"
             : phase === "zoom"
-            ? "w-[200vmax] h-[200vmax] duration-1000 bg-gradient-to-br from-slate-600 via-slate-700 to-slate-800"
-            : "w-[200vmax] h-[200vmax] duration-300 bg-background"
+            ? "w-[200vmax] h-[200vmax] duration-[2000ms] ease-in-out bg-gradient-to-br from-slate-600 via-slate-700 to-slate-800"
+            : "w-[200vmax] h-[200vmax] duration-500 ease-out bg-background"
         }`}
         style={{
-          transitionTimingFunction: phase === "zoom" ? "cubic-bezier(0.4, 0, 0.2, 1)" : undefined
+          transitionTimingFunction: phase === "zoom" ? "cubic-bezier(0.25, 0.1, 0.25, 1)" : undefined
         }}
       >
         <User 
-          className={`text-white/90 transition-all duration-500 ${
+          className={`text-white/90 transition-all duration-700 ease-out ${
             phase === "zoom" || phase === "fade" ? "opacity-0 scale-0" : "w-9 h-9"
           }`} 
           strokeWidth={1.5} 
@@ -206,27 +207,37 @@ export function LoginTransition({ onComplete }: LoginTransitionProps) {
       {(phase === "zoom" || phase === "fade") && (
         <div className="absolute inset-0 flex items-center justify-center">
           <div 
-            className={`flex flex-col items-center transition-all duration-500 ${
-              phase === "zoom" ? "opacity-100 scale-100" : "opacity-0 scale-110"
+            className={`flex flex-col items-center transition-all duration-700 ease-out ${
+              phase === "zoom" ? "opacity-100 scale-100" : "opacity-0 scale-105"
             }`}
           >
-            <div className="flex items-center gap-3">
-              <span className="text-3xl animate-bounce-slow">✨</span>
-              <span className="text-white text-3xl font-semibold tracking-wide drop-shadow-lg">
+            <div className="flex items-center gap-4">
+              <span className="text-4xl animate-bounce-slow">✨</span>
+              <span className="text-white text-4xl font-semibold tracking-wide drop-shadow-lg">
                 Bem-vindo!
               </span>
-              <span className="text-3xl animate-bounce-slow" style={{ animationDelay: "0.2s" }}>✨</span>
+              <span className="text-4xl animate-bounce-slow" style={{ animationDelay: "0.3s" }}>✨</span>
             </div>
-            <p className="text-white/70 text-sm mt-2 animate-fade-in" style={{ animationDelay: "0.3s" }}>
+            <p className="text-white/70 text-base mt-3 animate-fade-in" style={{ animationDelay: "0.5s" }}>
               Carregando seu painel...
             </p>
+            {/* Loading dots */}
+            <div className="flex gap-2 mt-4">
+              {[0, 1, 2].map((i) => (
+                <div
+                  key={i}
+                  className="w-2 h-2 rounded-full bg-white/50 animate-pulse"
+                  style={{ animationDelay: `${i * 0.2}s` }}
+                />
+              ))}
+            </div>
           </div>
         </div>
       )}
 
-      {/* Final fade overlay */}
+      {/* Final fade overlay - slower */}
       <div 
-        className={`absolute inset-0 bg-background transition-opacity duration-300 ${
+        className={`absolute inset-0 bg-background transition-opacity duration-500 ease-out ${
           phase === "fade" ? "opacity-100" : "opacity-0"
         }`}
       />
@@ -238,12 +249,12 @@ export function LoginTransition({ onComplete }: LoginTransitionProps) {
             transform: translateY(0) rotate(0deg) scale(0);
             opacity: 0;
           }
-          10% {
+          5% {
             opacity: 1;
-            transform: translateY(10vh) rotate(45deg) scale(1);
+            transform: translateY(5vh) rotate(20deg) scale(1);
           }
           100% {
-            transform: translateY(100vh) rotate(720deg) scale(0.5);
+            transform: translateY(100vh) rotate(540deg) scale(0.3);
             opacity: 0;
           }
         }
@@ -254,7 +265,7 @@ export function LoginTransition({ onComplete }: LoginTransitionProps) {
             opacity: 1;
           }
           100% {
-            transform: rotate(var(--rotation)) translateY(-60px) scale(0);
+            transform: rotate(var(--rotation)) translateY(-80px) scale(0);
             opacity: 0;
           }
         }
@@ -264,7 +275,7 @@ export function LoginTransition({ onComplete }: LoginTransitionProps) {
         }
         
         .animate-burst {
-          animation: burst 0.4s ease-out forwards;
+          animation: burst 0.6s ease-out forwards;
         }
       `}</style>
     </div>
