@@ -6,9 +6,10 @@ import { Input } from "@/components/ui/input";
 import { Checkbox } from "@/components/ui/checkbox";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { useToast } from "@/hooks/use-toast";
-import { Eye, EyeOff, Loader2, User, Lock, Mail, UserCircle } from "lucide-react";
+import { Eye, EyeOff, Loader2, User, Lock, UserCircle } from "lucide-react";
 import { z } from "zod";
 import { AuthBackground } from "@/components/auth/AuthBackground";
+import { LoginTransition } from "@/components/auth/LoginTransition";
 
 const cargoOptions = [
   { value: "preposto", label: "Preposto" },
@@ -46,6 +47,7 @@ const Auth = () => {
   const [rememberMe, setRememberMe] = useState(false);
   const [errors, setErrors] = useState<Record<string, string>>({});
   const [occupiedCargos, setOccupiedCargos] = useState<string[]>([]);
+  const [showTransition, setShowTransition] = useState(false);
   const navigate = useNavigate();
   const { toast } = useToast();
 
@@ -76,8 +78,8 @@ const Auth = () => {
 
   useEffect(() => {
     const { data: { subscription } } = supabase.auth.onAuthStateChange((event, session) => {
-      if (session?.user) {
-        navigate("/");
+      if (session?.user && !showTransition) {
+        // Don't navigate immediately, let the transition handle it
       }
     });
 
@@ -88,7 +90,7 @@ const Auth = () => {
     });
 
     return () => subscription.unsubscribe();
-  }, [navigate]);
+  }, [navigate, showTransition]);
 
   const validateForm = () => {
     setErrors({});
@@ -111,6 +113,10 @@ const Auth = () => {
       }
       return false;
     }
+  };
+
+  const handleTransitionComplete = () => {
+    navigate("/");
   };
 
   const handleSubmit = async (e: React.FormEvent) => {
@@ -147,6 +153,8 @@ const Auth = () => {
             localStorage.removeItem("rememberedEmail");
             localStorage.removeItem("rememberedPassword");
           }
+          // Trigger the transition animation
+          setShowTransition(true);
         }
       } else {
         if (occupiedCargos.includes(cargo)) {
@@ -201,10 +209,8 @@ const Auth = () => {
             });
           } else {
             setOccupiedCargos(prev => [...prev, cargo]);
-            toast({
-              title: "Conta criada com sucesso!",
-              description: "Você será redirecionado..."
-            });
+            // Trigger the transition animation for signup too
+            setShowTransition(true);
           }
         }
       }
@@ -215,7 +221,9 @@ const Auth = () => {
         variant: "destructive"
       });
     } finally {
-      setIsLoading(false);
+      if (!showTransition) {
+        setIsLoading(false);
+      }
     }
   };
 
@@ -224,11 +232,16 @@ const Auth = () => {
       {/* Gradient background */}
       <AuthBackground />
 
+      {/* Login Transition Animation */}
+      {showTransition && (
+        <LoginTransition onComplete={handleTransitionComplete} />
+      )}
+
       {/* Login form - centered */}
-      <div className="relative z-10 w-full max-w-xs px-4 animate-fade-in">
+      <div className={`relative z-10 w-full max-w-xs px-4 animate-fade-in transition-opacity duration-300 ${showTransition ? 'opacity-0' : 'opacity-100'}`}>
         {/* Avatar icon - matching the reference exactly */}
         <div className="flex justify-center mb-8">
-          <div className="w-16 h-16 rounded-full bg-gray-400/80 flex items-center justify-center shadow-lg">
+          <div id="login-avatar" className="w-16 h-16 rounded-full bg-gray-400/80 flex items-center justify-center shadow-lg">
             <User className="w-9 h-9 text-white/90" strokeWidth={1.5} />
           </div>
         </div>
