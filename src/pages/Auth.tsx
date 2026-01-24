@@ -51,6 +51,7 @@ const Auth = () => {
   const [loggedUserName, setLoggedUserName] = useState<string>("");
   const [loggedUserAvatar, setLoggedUserAvatar] = useState<string>("");
   const [loggedUserCargo, setLoggedUserCargo] = useState<string>("");
+  const [previewAvatar, setPreviewAvatar] = useState<string>("");
   const navigate = useNavigate();
   const { toast } = useToast();
 
@@ -78,6 +79,23 @@ const Auth = () => {
       setRememberMe(true);
     }
   }, []);
+
+  // Fetch avatar preview when email matches remembered email
+  useEffect(() => {
+    if (!isLogin) {
+      setPreviewAvatar("");
+      return;
+    }
+
+    const savedEmail = localStorage.getItem("rememberedEmail");
+    const savedAvatar = localStorage.getItem("rememberedAvatar");
+
+    if (email && savedEmail && savedAvatar && email.toLowerCase() === savedEmail.toLowerCase()) {
+      setPreviewAvatar(savedAvatar);
+    } else {
+      setPreviewAvatar("");
+    }
+  }, [email, isLogin]);
 
   useEffect(() => {
     // Only check for existing session on mount, not during transition
@@ -155,14 +173,6 @@ const Auth = () => {
             });
           }
         } else {
-          if (rememberMe) {
-            localStorage.setItem("rememberedEmail", email);
-            localStorage.setItem("rememberedPassword", password);
-          } else {
-            localStorage.removeItem("rememberedEmail");
-            localStorage.removeItem("rememberedPassword");
-          }
-          
           // Fetch user's profile name, avatar and cargo
           if (authData.user) {
             const { data: profileData } = await supabase
@@ -177,11 +187,24 @@ const Auth = () => {
             }
             if (profileData?.avatar_url) {
               setLoggedUserAvatar(profileData.avatar_url);
+              // Save avatar with email for preview on next login
+              if (rememberMe) {
+                localStorage.setItem("rememberedAvatar", profileData.avatar_url);
+              }
             }
             if (profileData?.cargo) {
               const cargoLabel = cargoOptions.find(c => c.value === profileData.cargo)?.label || profileData.cargo;
               setLoggedUserCargo(cargoLabel);
             }
+          }
+
+          if (rememberMe) {
+            localStorage.setItem("rememberedEmail", email);
+            localStorage.setItem("rememberedPassword", password);
+          } else {
+            localStorage.removeItem("rememberedEmail");
+            localStorage.removeItem("rememberedPassword");
+            localStorage.removeItem("rememberedAvatar");
           }
           
           // Trigger the transition animation
@@ -278,10 +301,25 @@ const Auth = () => {
 
       {/* Login form - centered */}
       <div className={`relative z-10 w-full max-w-xs px-4 animate-fade-in transition-opacity duration-300 ${showTransition ? 'opacity-0' : 'opacity-100'}`}>
-        {/* Avatar icon - matching the reference exactly */}
+        {/* Avatar icon - shows user's photo when email matches remembered credentials */}
         <div className="flex justify-center mb-8">
-          <div id="login-avatar" className="w-16 h-16 rounded-full bg-gray-400/80 flex items-center justify-center shadow-lg">
-            <User className="w-9 h-9 text-white/90" strokeWidth={1.5} />
+          <div 
+            id="login-avatar" 
+            className={`w-16 h-16 rounded-full flex items-center justify-center shadow-lg overflow-hidden transition-all duration-500 ${
+              previewAvatar 
+                ? "ring-2 ring-white/50 ring-offset-2 ring-offset-transparent" 
+                : "bg-gray-400/80"
+            }`}
+          >
+            {previewAvatar ? (
+              <img 
+                src={previewAvatar} 
+                alt="Avatar do usuário" 
+                className="w-full h-full object-cover animate-fade-in"
+              />
+            ) : (
+              <User className="w-9 h-9 text-white/90" strokeWidth={1.5} />
+            )}
           </div>
         </div>
 
