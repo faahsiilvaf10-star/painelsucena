@@ -1,7 +1,7 @@
 import { useState, useEffect } from "react";
 import { format, formatDistanceToNow } from "date-fns";
 import { ptBR } from "date-fns/locale";
-import { Bell, Plus, Trash2, Users, User, Globe, Calendar, Clock, AlertCircle, Repeat, Filter } from "lucide-react";
+import { Bell, Plus, Trash2, Users, User, Globe, Calendar, Clock, AlertCircle, Repeat, Filter, Pencil } from "lucide-react";
 import Layout from "@/components/layout/Layout";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
@@ -36,6 +36,7 @@ import { cn } from "@/lib/utils";
 import { getDaysUntilEventBrazilNorth } from "@/lib/timezone";
 import { Check, X as XIcon, History } from "lucide-react";
 import { ToggleGroup, ToggleGroupItem } from "@/components/ui/toggle-group";
+import { EditReminderDialog } from "@/components/reminders/EditReminderDialog";
 
 const WEEKDAYS = [
   { value: 0, label: "Dom", fullLabel: "Domingo" },
@@ -613,14 +614,17 @@ const Lembretes = () => {
                             )}
                           </div>
                           {reminder.created_by === user?.id && (
-                            <Button
-                              variant="ghost"
-                              size="icon"
-                              className="h-8 w-8 text-muted-foreground hover:text-destructive"
-                              onClick={() => handleDelete(reminder)}
-                            >
-                              <Trash2 className="h-4 w-4" />
-                            </Button>
+                            <div className="flex items-center gap-1">
+                              <EditReminderDialog reminder={reminder} />
+                              <Button
+                                variant="ghost"
+                                size="icon"
+                                className="h-8 w-8 text-muted-foreground hover:text-destructive"
+                                onClick={() => handleDelete(reminder)}
+                              >
+                                <Trash2 className="h-4 w-4" />
+                              </Button>
+                            </div>
                           )}
                         </div>
                       </CardHeader>
@@ -702,14 +706,17 @@ const Lembretes = () => {
                             {reminder.title}
                           </CardTitle>
                           {reminder.created_by === user?.id && (
-                            <Button
-                              variant="ghost"
-                              size="icon"
-                              className="h-8 w-8 text-muted-foreground hover:text-destructive"
-                              onClick={() => handleDelete(reminder)}
-                            >
-                              <Trash2 className="h-4 w-4" />
-                            </Button>
+                            <div className="flex items-center gap-1">
+                              <EditReminderDialog reminder={reminder} />
+                              <Button
+                                variant="ghost"
+                                size="icon"
+                                className="h-8 w-8 text-muted-foreground hover:text-destructive"
+                                onClick={() => handleDelete(reminder)}
+                              >
+                                <Trash2 className="h-4 w-4" />
+                              </Button>
+                            </div>
                           )}
                         </div>
                       </CardHeader>
