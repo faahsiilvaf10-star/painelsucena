@@ -28,15 +28,17 @@ export const useAuth = () => {
   }, []);
 
   const signOut = async () => {
-    try {
-      await supabase.auth.signOut();
-    } catch (error) {
-      // Even if signOut fails (e.g., session not found), clear local state
-      console.log("SignOut error (session may already be invalid):", error);
-    }
-    // Always clear local state
+    // Clear local state first
     setSession(null);
     setUser(null);
+    
+    try {
+      // Use 'local' scope to avoid 403 when session doesn't exist on server
+      await supabase.auth.signOut({ scope: 'local' });
+    } catch (error) {
+      // Even if signOut fails, we've already cleared local state
+      console.log("SignOut completed (local cleanup)");
+    }
   };
 
   return { user, session, loading, signOut };
