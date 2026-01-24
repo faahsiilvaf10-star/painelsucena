@@ -166,14 +166,13 @@ export function EquipmentTimeline({ equipment }: EquipmentTimelineProps) {
   }, [equipment.id, equipment.name, equipment.stop_start_time, stopReason, updateStatus]);
 
   useEffect(() => {
-    // Update immediately on mount with correct timezone
-    setCurrentTime(getBrazilNorthDate());
-    checkAutoEndOfShift();
-    
     const interval = setInterval(() => {
-      setCurrentTime(getBrazilNorthDate());
+      setCurrentTime(new Date());
       checkAutoEndOfShift();
-    }, 1000); // Update every second for smooth animation
+    }, 60000);
+    
+    // Check immediately on mount
+    checkAutoEndOfShift();
     
     return () => clearInterval(interval);
   }, [checkAutoEndOfShift]);
@@ -370,13 +369,9 @@ export function EquipmentTimeline({ equipment }: EquipmentTimelineProps) {
             ))}
           </div>
 
-        {/* Current Time Indicator & Vehicle */}
-        <div className="absolute transition-all duration-1000 ease-linear" style={{ left: `calc(${Math.min(Math.max(position, 5), 95)}% - 20px)`, top: '-12px' }}>
+        {/* Vehicle */}
+        <div className="absolute transition-all duration-500" style={{ left: `calc(${Math.min(Math.max(position, 5), 95)}% - 20px)`, top: '-2px' }}>
           <div className={`flex flex-col items-center ${!isStopped ? 'animate-bounce-slow' : ''}`}>
-            {/* Current time highlight */}
-            <div className="text-[9px] font-bold text-primary bg-primary/10 border border-primary/30 px-1.5 py-0.5 rounded-full shadow-sm mb-0.5 animate-pulse">
-              {currentTime.toLocaleTimeString('pt-BR', { hour: '2-digit', minute: '2-digit', second: '2-digit' })}
-            </div>
             <div className="text-[8px] font-bold bg-card border border-border px-1 rounded shadow-sm mb-0.5">
               {equipment.plate}
             </div>
