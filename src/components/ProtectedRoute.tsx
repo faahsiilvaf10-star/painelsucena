@@ -11,8 +11,33 @@ interface ProtectedRouteProps {
 const ProtectedRoute = ({ children }: ProtectedRouteProps) => {
   const [session, setSession] = useState<Session | null>(null);
   const [loading, setLoading] = useState(true);
+  const [isTransitioning, setIsTransitioning] = useState(false);
   const location = useLocation();
   const navigate = useNavigate();
+
+  useEffect(() => {
+    // Check if we're coming from a login transition
+    const transitionInProgress = sessionStorage.getItem("loginTransitionInProgress");
+    if (transitionInProgress === "true") {
+      setIsTransitioning(true);
+      // Clean up after a delay to ensure transition completes
+      const cleanup = () => {
+        sessionStorage.removeItem("loginTransitionInProgress");
+        setIsTransitioning(false);
+      };
+      
+      // Listen for when transition completes
+      const checkTransition = setInterval(() => {
+        const stillTransitioning = sessionStorage.getItem("loginTransitionInProgress");
+        if (stillTransitioning !== "true") {
+          setIsTransitioning(false);
+          clearInterval(checkTransition);
+        }
+      }, 100);
+
+      return () => clearInterval(checkTransition);
+    }
+  }, []);
 
   useEffect(() => {
     const { data: { subscription } } = supabase.auth.onAuthStateChange(
@@ -35,7 +60,8 @@ const ProtectedRoute = ({ children }: ProtectedRouteProps) => {
     return () => subscription.unsubscribe();
   }, [navigate]);
 
-  if (loading) {
+  // Show loading while checking session or during transition
+  if (loading || isTransitioning) {
     return (
       <div className="min-h-screen bg-background flex items-center justify-center">
         <Loader2 className="w-8 h-8 animate-spin text-primary" />

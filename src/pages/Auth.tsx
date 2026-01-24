@@ -171,6 +171,8 @@ const Auth = () => {
     }
   };
   const handleTransitionComplete = () => {
+    // Clear the transition flag before navigating
+    sessionStorage.removeItem("loginTransitionInProgress");
     navigate("/");
   };
   const handleSubmit = async (e: React.FormEvent) => {
@@ -236,7 +238,8 @@ const Auth = () => {
             localStorage.removeItem("rememberedName");
           }
 
-          // Trigger the transition animation
+          // Set flag to prevent dashboard flash, then trigger transition
+          sessionStorage.setItem("loginTransitionInProgress", "true");
           setShowTransition(true);
         }
       } else {
@@ -296,7 +299,8 @@ const Auth = () => {
             // Set the user's name for transition
             const firstName = fullName.split(" ")[0];
             setLoggedUserName(firstName);
-            // Trigger the transition animation for signup too
+            // Set flag to prevent dashboard flash, then trigger transition
+            sessionStorage.setItem("loginTransitionInProgress", "true");
             setShowTransition(true);
           }
         }
