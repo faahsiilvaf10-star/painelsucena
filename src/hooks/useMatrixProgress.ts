@@ -1,16 +1,16 @@
 import { useState, useEffect, useCallback } from "react";
 import { supabase } from "@/integrations/supabase/client";
 import { useAuth } from "./useAuth";
-import { format } from "date-fns";
+import { getBrazilNorthMonthYear } from "@/lib/timezone";
 
 export const useMatrixProgress = () => {
   const { user } = useAuth();
   const [completedTasks, setCompletedTasks] = useState<string[]>([]);
   const [isLoading, setIsLoading] = useState(true);
 
-  // Get current month in YYYY-MM format
+  // Get current month in YYYY-MM format using Brazil North timezone
   const getCurrentMonthYear = useCallback(() => {
-    return format(new Date(), "yyyy-MM");
+    return getBrazilNorthMonthYear();
   }, []);
 
   // Fetch completed tasks for the current month

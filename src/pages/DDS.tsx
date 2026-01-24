@@ -29,6 +29,7 @@ import {
 } from "@/hooks/useDDSSchedule";
 import { useCreateNotification } from "@/hooks/useNotifications";
 import { supabase } from "@/integrations/supabase/client";
+import { getBrazilNorthTodayString } from "@/lib/timezone";
 
 const dayNames = ["Dom", "Seg", "Ter", "Qua", "Qui", "Sex", "Sáb"];
 
@@ -410,7 +411,7 @@ export default function DDS() {
                     {weekdays.map(day => {
                       const dateStr = format(day, "yyyy-MM-dd");
                       const schedule = scheduleMap.get(dateStr);
-                      const isToday = format(day, "yyyy-MM-dd") === format(new Date(), "yyyy-MM-dd");
+                      const isToday = dateStr === getBrazilNorthTodayString();
 
                       return (
                         <TableRow

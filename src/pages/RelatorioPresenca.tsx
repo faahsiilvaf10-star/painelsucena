@@ -26,6 +26,7 @@ import type { Tables } from "@/integrations/supabase/types";
 import { toast } from "sonner";
 import { useUpsertAttendance } from "@/hooks/useAttendance";
 import { useReportLock } from "@/hooks/useReportLock";
+import { getBrazilNorthTodayString } from "@/lib/timezone";
 
 type AttendanceWithEmployee = Tables<"attendance_records"> & {
   employees: Tables<"employees"> | null;
@@ -109,7 +110,7 @@ const gabiaAjudantes = [
 
 const RelatorioPresenca = () => {
   const [selectedDate, setSelectedDate] = useState(() => {
-    return new Date().toISOString().split("T")[0];
+    return getBrazilNorthTodayString();
   });
   const [copied, setCopied] = useState(false);
   const [selectedArea, setSelectedArea] = useState<"all" | "ÁREA GABIÃO" | "ROÇAGEM E PODAGEM">("all");

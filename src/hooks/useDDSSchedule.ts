@@ -2,6 +2,7 @@ import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import { supabase } from "@/integrations/supabase/client";
 import { useAuth } from "./useAuth";
 import { format, startOfMonth, endOfMonth, eachDayOfInterval, isWeekend, addDays } from "date-fns";
+import { getBrazilNorthTodayString, getBrazilNorthTomorrowString, getBrazilNorthDate } from "@/lib/timezone";
 
 export interface DDSScheduleItem {
   id: string;
@@ -61,7 +62,7 @@ export const useDDSSchedule = (monthYear: string) => {
 };
 
 export const useTodayDDS = () => {
-  const today = format(new Date(), "yyyy-MM-dd");
+  const today = getBrazilNorthTodayString();
 
   return useQuery({
     queryKey: ["dds-today", today],
@@ -93,7 +94,7 @@ export const useTodayDDS = () => {
 };
 
 export const useTomorrowDDS = () => {
-  const tomorrow = format(addDays(new Date(), 1), "yyyy-MM-dd");
+  const tomorrow = getBrazilNorthTomorrowString();
 
   return useQuery({
     queryKey: ["dds-tomorrow", tomorrow],

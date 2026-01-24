@@ -1,6 +1,7 @@
 import { useState, useEffect } from "react";
 import { AlertDialog, AlertDialogAction, AlertDialogContent, AlertDialogDescription, AlertDialogFooter, AlertDialogHeader, AlertDialogTitle } from "@/components/ui/alert-dialog";
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/components/ui/dialog";
+import { getBrazilNorthDate, getBrazilNorthMonth, getBrazilNorthDayOfMonth, getBrazilNorthYear } from "@/lib/timezone";
 
 // Cor proibida por mês (0 = Janeiro, 11 = Dezembro)
 const getMonthColor = (month: number): {
@@ -97,21 +98,24 @@ const getMonthName = (month: number): string => {
 const ForbiddenColorIndicator = () => {
   const [showAlert, setShowAlert] = useState(false);
   const [showAllColors, setShowAllColors] = useState(false);
-  const today = new Date();
-  const currentMonth = today.getMonth();
-  const currentDay = today.getDate();
+  
+  // Use Brazil North timezone
+  const currentMonth = getBrazilNorthMonth();
+  const currentDay = getBrazilNorthDayOfMonth();
+  const currentYear = getBrazilNorthYear();
   const colorInfo = getMonthColor(currentMonth);
   useEffect(() => {
-    const alertDismissed = localStorage.getItem(`forbiddenColorAlert-${currentMonth}-${today.getFullYear()}`);
+    const alertDismissed = localStorage.getItem(`forbiddenColorAlert-${currentMonth}-${currentYear}`);
 
     // Mostrar alerta no primeiro dia do mês
     if (currentDay === 1 && !alertDismissed) {
       setShowAlert(true);
     }
-  }, [currentMonth, currentDay, today]);
+  }, [currentMonth, currentDay, currentYear]);
+  
   const handleAlertDismiss = () => {
     setShowAlert(false);
-    localStorage.setItem(`forbiddenColorAlert-${currentMonth}-${today.getFullYear()}`, "true");
+    localStorage.setItem(`forbiddenColorAlert-${currentMonth}-${currentYear}`, "true");
   };
   return <>
       {/* Alerta de mudança de cor */}

@@ -6,9 +6,10 @@ import { ReminderHighlightBanner } from "@/components/reminders/ReminderHighligh
 import { MatrixProgressChart } from "@/components/dashboard/MatrixProgressChart";
 import { useEmployees } from "@/hooks/useEmployees";
 import { useAttendanceRecords } from "@/hooks/useAttendance";
+import { getBrazilNorthTodayString } from "@/lib/timezone";
 
 const Dashboard = () => {
-  const today = new Date().toISOString().split("T")[0];
+  const today = getBrazilNorthTodayString();
   const { data: employees } = useEmployees();
   const { data: attendanceRecords } = useAttendanceRecords(today);
 

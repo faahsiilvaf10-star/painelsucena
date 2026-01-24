@@ -11,6 +11,7 @@ import { useProfile } from "@/hooks/useProfile";
 import { useIsAdmin } from "@/hooks/useUserRole";
 import { supabase } from "@/integrations/supabase/client";
 import { toast } from "sonner";
+import { getBrazilNorthDate } from "@/lib/timezone";
 
 export const DDSHighlightCard = () => {
   const { data: todayDDS, isLoading: loadingToday } = useTodayDDS();
@@ -22,7 +23,8 @@ export const DDSHighlightCard = () => {
   const [isUploading, setIsUploading] = useState(false);
   const fileInputRef = useRef<HTMLInputElement>(null);
 
-  const today = new Date();
+  // Use Brazil North timezone
+  const today = getBrazilNorthDate();
   const tomorrow = addDays(today, 1);
 
   // Check if user can upload photo (tecnico_seguranca or admin)
