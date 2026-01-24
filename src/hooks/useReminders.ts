@@ -17,8 +17,8 @@ export interface Reminder {
   created_by: string;
   created_at: string;
   updated_at: string;
-  is_recurring: boolean;
-  recurring_days: number[]; // 0=Sunday, 1=Monday, ..., 6=Saturday
+  is_recurring: boolean | null;
+  recurring_days: number[] | null; // 0=Sunday, 1=Monday, ..., 6=Saturday
 }
 
 export interface ReminderInsert {
@@ -118,9 +118,9 @@ export const useActiveReminders = () => {
         if (!isRelevant) return false;
 
         // Handle recurring reminders (by day of week)
-        if (reminder.is_recurring && reminder.recurring_days?.length > 0) {
+        if (!!reminder.is_recurring && (reminder.recurring_days?.length ?? 0) > 0) {
           // Show if today is one of the recurring days
-          return reminder.recurring_days.includes(currentDayOfWeek);
+          return (reminder.recurring_days || []).includes(currentDayOfWeek);
         }
 
         // Handle regular (non-recurring) reminders
