@@ -1,5 +1,5 @@
 import { useState, useEffect, useMemo } from "react";
-import { Pause, Play, Wrench, CloudRain, Clock, User, CreditCard, Edit2, Check, X, Trash2, MoreVertical } from "lucide-react";
+import { Pause, Play, Wrench, CloudRain, Clock, User, Edit2, Check, X, Trash2, MoreVertical } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import { Input } from "@/components/ui/input";
@@ -20,8 +20,14 @@ import {
   AlertDialogHeader,
   AlertDialogTitle,
 } from "@/components/ui/alert-dialog";
-import { useUpdateEquipmentStatus, useUpdateEquipment, useDeleteEquipment, type StopReason, type Equipment } from "@/hooks/useEquipment";
-import { VehicleIcon, equipmentTypeLabels } from "./VehicleIcons";
+import {
+  Tooltip,
+  TooltipContent,
+  TooltipProvider,
+  TooltipTrigger,
+} from "@/components/ui/tooltip";
+import { useUpdateEquipmentStatus, useUpdateEquipment, useDeleteEquipment, useEquipmentStopHistory, type StopReason, type Equipment } from "@/hooks/useEquipment";
+import { VehicleIcon } from "./VehicleIcons";
 import { toast } from "sonner";
 
 const stopReasonLabels: Record<StopReason, string> = {
@@ -31,11 +37,20 @@ const stopReasonLabels: Record<StopReason, string> = {
   rain: "Chuva",
 };
 
-const stopReasonColors: Record<StopReason, string> = {
+const stopReasonColors: Record<string, string> = {
   none: "bg-green-500",
   maintenance: "bg-orange-500",
   waiting: "bg-yellow-500",
   rain: "bg-blue-500",
+  end_of_day: "bg-slate-500",
+};
+
+const stopReasonLabelsExtended: Record<string, string> = {
+  none: "Operando",
+  maintenance: "Manutenção",
+  waiting: "Aguardando",
+  rain: "Chuva",
+  end_of_day: "Fim do dia",
 };
 
 interface EquipmentTimelineProps {
@@ -55,10 +70,44 @@ export function EquipmentTimeline({ equipment }: EquipmentTimelineProps) {
   const updateStatus = useUpdateEquipmentStatus();
   const updateEquipment = useUpdateEquipment();
   const deleteEquipment = useDeleteEquipment();
+  const { data: stopHistory } = useEquipmentStopHistory(equipment.id);
 
   const stopReason = (equipment.stop_reason || "none") as StopReason;
   const stopStartTime = equipment.stop_start_time ? new Date(equipment.stop_start_time) : null;
   const equipmentType = equipment.equipment_type || "pipa";
+
+  // Filter today's stops for this equipment
+  const todayStops = useMemo(() => {
+    if (!stopHistory) return [];
+    const today = new Date();
+    today.setHours(0, 0, 0, 0);
+    
+    return stopHistory
+      .filter(stop => {
+        const stopDate = new Date(stop.started_at);
+        stopDate.setHours(0, 0, 0, 0);
+        return stopDate.getTime() === today.getTime() && stop.ended_at;
+      })
+      .map(stop => {
+        const startTime = new Date(stop.started_at);
+        const endTime = new Date(stop.ended_at!);
+        
+        const startHour = startTime.getHours() + startTime.getMinutes() / 60;
+        const endHour = endTime.getHours() + endTime.getMinutes() / 60;
+        
+        const totalHours = equipment.end_hour - equipment.start_hour;
+        const startPos = Math.max(0, ((startHour - equipment.start_hour) / totalHours) * 100);
+        const endPos = Math.min(100, ((endHour - equipment.start_hour) / totalHours) * 100);
+        
+        return {
+          ...stop,
+          startPos,
+          width: Math.max(1, endPos - startPos),
+          startTime: startTime.toLocaleTimeString('pt-BR', { hour: '2-digit', minute: '2-digit' }),
+          endTime: endTime.toLocaleTimeString('pt-BR', { hour: '2-digit', minute: '2-digit' }),
+        };
+      });
+  }, [stopHistory, equipment.start_hour, equipment.end_hour]);
 
   useEffect(() => {
     setEditData({ plate: equipment.plate, driver: equipment.driver, helper: equipment.helper });
@@ -203,14 +252,43 @@ export function EquipmentTimeline({ equipment }: EquipmentTimelineProps) {
       </div>
 
       {/* Compact Timeline */}
-      <div className="relative h-12">
-        {/* Track */}
-        <div className="absolute left-0 right-0 top-5 h-1.5 bg-muted rounded-full">
-          <div
-            className={`absolute left-0 top-0 h-full rounded-full transition-all duration-500 ${isStopped ? stopReasonColors[stopReason] : 'bg-green-500'}`}
-            style={{ width: `${position}%` }}
-          />
-        </div>
+      <TooltipProvider>
+        <div className="relative h-12">
+          {/* Track Background */}
+          <div className="absolute left-0 right-0 top-5 h-2.5 bg-muted rounded-full overflow-hidden">
+            {/* Current progress (green for operating) */}
+            <div
+              className={`absolute left-0 top-0 h-full transition-all duration-500 ${isStopped ? stopReasonColors[stopReason] : 'bg-green-500/30'}`}
+              style={{ width: `${position}%` }}
+            />
+            
+            {/* Past stop segments */}
+            {todayStops.map((stop, index) => (
+              <Tooltip key={stop.id || index}>
+                <TooltipTrigger asChild>
+                  <div
+                    className={`absolute top-0 h-full ${stopReasonColors[stop.stop_reason] || 'bg-gray-500'} opacity-90 cursor-pointer hover:opacity-100 transition-opacity border-r border-background/50`}
+                    style={{
+                      left: `${stop.startPos}%`,
+                      width: `${stop.width}%`,
+                    }}
+                  />
+                </TooltipTrigger>
+                <TooltipContent side="top" className="text-xs">
+                  <div className="font-semibold">{stopReasonLabelsExtended[stop.stop_reason] || stop.stop_reason}</div>
+                  <div className="text-muted-foreground">{stop.startTime} - {stop.endTime}</div>
+                  {stop.duration_minutes && (
+                    <div className="text-muted-foreground">
+                      {stop.duration_minutes >= 60 
+                        ? `${Math.floor(stop.duration_minutes / 60)}h${stop.duration_minutes % 60}m`
+                        : `${stop.duration_minutes}min`
+                      }
+                    </div>
+                  )}
+                </TooltipContent>
+              </Tooltip>
+            ))}
+          </div>
 
         {/* Vehicle */}
         <div className="absolute transition-all duration-500" style={{ left: `calc(${Math.min(Math.max(position, 5), 95)}% - 20px)`, top: '-2px' }}>
@@ -228,7 +306,8 @@ export function EquipmentTimeline({ equipment }: EquipmentTimelineProps) {
             <span className="text-[10px] text-muted-foreground">{formatHour(hour)}</span>
           </div>
         ))}
-      </div>
+        </div>
+      </TooltipProvider>
 
       {/* Footer */}
       <div className="flex items-center justify-between mt-2 pt-2 border-t border-border/50">
