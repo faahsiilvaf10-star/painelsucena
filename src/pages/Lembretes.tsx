@@ -1,7 +1,7 @@
 import { useState, useEffect } from "react";
 import { format, formatDistanceToNow } from "date-fns";
 import { ptBR } from "date-fns/locale";
-import { Bell, Plus, Trash2, Users, User, Globe, Calendar, Clock, AlertCircle, Repeat } from "lucide-react";
+import { Bell, Plus, Trash2, Users, User, Globe, Calendar, Clock, AlertCircle, Repeat, Filter } from "lucide-react";
 import Layout from "@/components/layout/Layout";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
@@ -67,6 +67,7 @@ const Lembretes = () => {
   const [showCreatedToast, setShowCreatedToast] = useState<Reminder | null>(null);
   const [isRecurring, setIsRecurring] = useState(false);
   const [recurringDays, setRecurringDays] = useState<number[]>([]);
+  const [filterCategory, setFilterCategory] = useState<"all" | "me" | "specific" | "everyone" | "recurring">("all");
 
   const getInitials = (name: string) => {
     const names = name.split(" ");
@@ -190,9 +191,19 @@ const Lembretes = () => {
     );
   };
 
+  // Filter reminders by selected category
+  const filteredReminders = reminders?.filter((r) => {
+    if (filterCategory === "all") return true;
+    if (filterCategory === "recurring") return !!r.is_recurring;
+    if (filterCategory === "me") return r.mention_type === "me";
+    if (filterCategory === "specific") return r.mention_type === "specific";
+    if (filterCategory === "everyone") return r.mention_type === "all";
+    return true;
+  }) || [];
+
   // Group reminders by upcoming/recurring and past (recurring reminders are always "upcoming")
-  const upcomingReminders = reminders?.filter((r) => !!r.is_recurring || getDaysUntilEvent(r.event_date) >= 0) || [];
-  const pastReminders = reminders?.filter((r) => !r.is_recurring && getDaysUntilEvent(r.event_date) < 0) || [];
+  const upcomingReminders = filteredReminders.filter((r) => !!r.is_recurring || getDaysUntilEvent(r.event_date) >= 0);
+  const pastReminders = filteredReminders.filter((r) => !r.is_recurring && getDaysUntilEvent(r.event_date) < 0);
 
   return (
     <Layout>
@@ -477,6 +488,64 @@ const Lembretes = () => {
           </Dialog>
         </div>
 
+        {/* Filter Buttons */}
+        <div className="mb-6">
+          <div className="flex items-center gap-2 mb-3">
+            <Filter className="h-4 w-4 text-muted-foreground" />
+            <span className="text-sm font-medium text-muted-foreground">Filtrar por:</span>
+          </div>
+          <div className="flex flex-wrap gap-2">
+            <Button
+              variant={filterCategory === "all" ? "default" : "outline"}
+              size="sm"
+              onClick={() => setFilterCategory("all")}
+              className="gap-1.5"
+            >
+              <Bell className="h-4 w-4" />
+              Todos
+              {reminders && (
+                <Badge variant="secondary" className="ml-1 text-xs">{reminders.length}</Badge>
+              )}
+            </Button>
+            <Button
+              variant={filterCategory === "me" ? "default" : "outline"}
+              size="sm"
+              onClick={() => setFilterCategory("me")}
+              className="gap-1.5"
+            >
+              <User className="h-4 w-4" />
+              Só eu
+            </Button>
+            <Button
+              variant={filterCategory === "everyone" ? "default" : "outline"}
+              size="sm"
+              onClick={() => setFilterCategory("everyone")}
+              className="gap-1.5"
+            >
+              <Globe className="h-4 w-4" />
+              Todos os usuários
+            </Button>
+            <Button
+              variant={filterCategory === "specific" ? "default" : "outline"}
+              size="sm"
+              onClick={() => setFilterCategory("specific")}
+              className="gap-1.5"
+            >
+              <Users className="h-4 w-4" />
+              Específicos
+            </Button>
+            <Button
+              variant={filterCategory === "recurring" ? "default" : "outline"}
+              size="sm"
+              onClick={() => setFilterCategory("recurring")}
+              className="gap-1.5"
+            >
+              <Repeat className="h-4 w-4" />
+              Recorrentes
+            </Button>
+          </div>
+        </div>
+
         {/* Reminders List */}
         <div className="space-y-8">
           {/* Upcoming */}
@@ -484,6 +553,9 @@ const Lembretes = () => {
             <h2 className="text-lg font-semibold mb-4 flex items-center gap-2">
               <Calendar className="h-5 w-5 text-primary" />
               Próximos Lembretes
+              {upcomingReminders.length > 0 && (
+                <Badge variant="secondary" className="ml-2">{upcomingReminders.length}</Badge>
+              )}
             </h2>
             {isLoading ? (
               <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-3">
@@ -500,7 +572,11 @@ const Lembretes = () => {
               <Card className="bg-muted/50">
                 <CardContent className="flex flex-col items-center justify-center py-12">
                   <Bell className="h-12 w-12 text-muted-foreground mb-4" />
-                  <p className="text-muted-foreground">Nenhum lembrete agendado</p>
+                  <p className="text-muted-foreground">
+                    {filterCategory === "all" 
+                      ? "Nenhum lembrete agendado" 
+                      : "Nenhum lembrete encontrado para este filtro"}
+                  </p>
                 </CardContent>
               </Card>
             ) : (
