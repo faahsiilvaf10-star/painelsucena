@@ -1,5 +1,5 @@
 import { useState, useEffect, useMemo } from "react";
-import { Pause, Play, Wrench, CloudRain, Clock, User, CreditCard, Edit2, Check, X } from "lucide-react";
+import { Pause, Play, Wrench, CloudRain, Clock, User, CreditCard, Edit2, Check, X, Trash2 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import { Input } from "@/components/ui/input";
@@ -8,8 +8,19 @@ import {
   DropdownMenuContent,
   DropdownMenuItem,
   DropdownMenuTrigger,
+  DropdownMenuSeparator,
 } from "@/components/ui/dropdown-menu";
-import { useUpdateEquipmentStatus, useUpdateEquipment, type StopReason, type Equipment } from "@/hooks/useEquipment";
+import {
+  AlertDialog,
+  AlertDialogAction,
+  AlertDialogCancel,
+  AlertDialogContent,
+  AlertDialogDescription,
+  AlertDialogFooter,
+  AlertDialogHeader,
+  AlertDialogTitle,
+} from "@/components/ui/alert-dialog";
+import { useUpdateEquipmentStatus, useUpdateEquipment, useDeleteEquipment, type StopReason, type Equipment } from "@/hooks/useEquipment";
 import { VehicleIcon, equipmentTypeLabels, equipmentTypeColors } from "./VehicleIcons";
 import { toast } from "sonner";
 
@@ -41,6 +52,7 @@ interface EquipmentTimelineProps {
 export function EquipmentTimeline({ equipment }: EquipmentTimelineProps) {
   const [currentTime, setCurrentTime] = useState(new Date());
   const [isEditing, setIsEditing] = useState(false);
+  const [showDeleteDialog, setShowDeleteDialog] = useState(false);
   const [editData, setEditData] = useState({
     plate: equipment.plate,
     driver: equipment.driver,
@@ -49,6 +61,7 @@ export function EquipmentTimeline({ equipment }: EquipmentTimelineProps) {
   
   const updateStatus = useUpdateEquipmentStatus();
   const updateEquipment = useUpdateEquipment();
+  const deleteEquipment = useDeleteEquipment();
 
   const stopReason = (equipment.stop_reason || "none") as StopReason;
   const stopStartTime = equipment.stop_start_time ? new Date(equipment.stop_start_time) : null;
@@ -140,6 +153,15 @@ export function EquipmentTimeline({ equipment }: EquipmentTimelineProps) {
     setIsEditing(false);
   };
 
+  const handleDelete = async () => {
+    try {
+      await deleteEquipment.mutateAsync(equipment.id);
+      toast.success("Equipamento removido com sucesso!");
+    } catch (error) {
+      toast.error("Erro ao remover equipamento");
+    }
+  };
+
   const getStopDuration = () => {
     if (!stopStartTime) return null;
     const diff = Math.floor((currentTime.getTime() - stopStartTime.getTime()) / 60000);
@@ -227,6 +249,9 @@ export function EquipmentTimeline({ equipment }: EquipmentTimelineProps) {
               </div>
               <Button size="icon" variant="ghost" className="h-8 w-8" onClick={() => setIsEditing(true)}>
                 <Edit2 className="w-4 h-4 text-muted-foreground" />
+              </Button>
+              <Button size="icon" variant="ghost" className="h-8 w-8 text-destructive hover:text-destructive" onClick={() => setShowDeleteDialog(true)}>
+                <Trash2 className="w-4 h-4" />
               </Button>
             </>
           )}
@@ -366,6 +391,28 @@ export function EquipmentTimeline({ equipment }: EquipmentTimelineProps) {
           {Math.round(position)}% concluído
         </span>
       </div>
+
+      {/* Delete Confirmation Dialog */}
+      <AlertDialog open={showDeleteDialog} onOpenChange={setShowDeleteDialog}>
+        <AlertDialogContent>
+          <AlertDialogHeader>
+            <AlertDialogTitle>Remover Equipamento</AlertDialogTitle>
+            <AlertDialogDescription>
+              Tem certeza que deseja remover <strong>{equipment.name}</strong>? 
+              Esta ação não pode ser desfeita e todo o histórico de paradas será perdido.
+            </AlertDialogDescription>
+          </AlertDialogHeader>
+          <AlertDialogFooter>
+            <AlertDialogCancel>Cancelar</AlertDialogCancel>
+            <AlertDialogAction 
+              onClick={handleDelete}
+              className="bg-destructive text-destructive-foreground hover:bg-destructive/90"
+            >
+              Remover
+            </AlertDialogAction>
+          </AlertDialogFooter>
+        </AlertDialogContent>
+      </AlertDialog>
     </div>
   );
 }
