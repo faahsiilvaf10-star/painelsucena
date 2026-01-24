@@ -16,6 +16,7 @@ const stopReasonLabels: Record<string, string> = {
   waiting: "Aguardando",
   rain: "Chuva",
   end_of_day: "Fim do dia",
+  end_of_shift: "Fim de Turno",
 };
 
 const stopReasonColors: Record<string, string> = {
@@ -24,6 +25,7 @@ const stopReasonColors: Record<string, string> = {
   waiting: "bg-yellow-500",
   rain: "bg-blue-500",
   end_of_day: "bg-slate-500",
+  end_of_shift: "bg-purple-500",
 };
 
 const stopReasonIcons: Record<string, React.ReactNode> = {
@@ -32,6 +34,7 @@ const stopReasonIcons: Record<string, React.ReactNode> = {
   waiting: <Clock className="w-3 h-3" />,
   rain: <CloudRain className="w-3 h-3" />,
   end_of_day: <Pause className="w-3 h-3" />,
+  end_of_shift: <Pause className="w-3 h-3" />,
 };
 
 type FilterPeriod = "daily" | "weekly" | "monthly";
