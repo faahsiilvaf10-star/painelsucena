@@ -1,9 +1,8 @@
 import { useState, useMemo } from "react";
-import { Package, Search, Filter, MapPin, AlertTriangle, History, Download } from "lucide-react";
+import { Package, Search, Filter, MapPin, AlertTriangle } from "lucide-react";
 import Layout from "@/components/layout/Layout";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
-import { Button } from "@/components/ui/button";
 import {
   Select,
   SelectContent,
@@ -14,8 +13,6 @@ import {
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { AddItemDialog } from "@/components/inventory/AddItemDialog";
 import { InventoryTable } from "@/components/inventory/InventoryTable";
-import { MovementHistoryDialog } from "@/components/inventory/MovementHistoryDialog";
-import { ExportInventoryDialog } from "@/components/inventory/ExportInventoryDialog";
 import { useInventoryItems, useStorageLocations } from "@/hooks/useInventory";
 
 const CATEGORIES = [
@@ -34,8 +31,6 @@ export default function Estoque() {
   const [searchQuery, setSearchQuery] = useState("");
   const [categoryFilter, setCategoryFilter] = useState("all");
   const [locationFilter, setLocationFilter] = useState("all");
-  const [showHistory, setShowHistory] = useState(false);
-  const [showExport, setShowExport] = useState(false);
 
   const filteredItems = useMemo(() => {
     if (!items) return [];
@@ -93,17 +88,7 @@ export default function Estoque() {
               Gerencie o inventário de materiais e EPIs
             </p>
           </div>
-          <div className="flex gap-2 flex-wrap">
-            <Button variant="outline" onClick={() => setShowHistory(true)}>
-              <History className="h-4 w-4 mr-2" />
-              Histórico
-            </Button>
-            <Button variant="outline" onClick={() => setShowExport(true)}>
-              <Download className="h-4 w-4 mr-2" />
-              Exportar
-            </Button>
-            <AddItemDialog />
-          </div>
+          <AddItemDialog />
         </div>
 
         {/* Stats Cards */}
@@ -247,19 +232,6 @@ export default function Estoque() {
             )}
           </TabsContent>
         </Tabs>
-
-        {/* Dialogs */}
-        <MovementHistoryDialog 
-          open={showHistory} 
-          onOpenChange={setShowHistory} 
-        />
-        
-        <ExportInventoryDialog
-          open={showExport}
-          onOpenChange={setShowExport}
-          items={items || []}
-          locations={locations || []}
-        />
       </div>
     </Layout>
   );
