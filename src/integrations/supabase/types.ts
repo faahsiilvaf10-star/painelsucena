@@ -408,6 +408,7 @@ export type Database = {
           mentioned_cargo: string | null
           mentioned_user_id: string | null
           notes: string | null
+          order_number: string | null
           photo_urls: string[] | null
           product_name: string
           quantity: number
@@ -426,6 +427,7 @@ export type Database = {
           mentioned_cargo?: string | null
           mentioned_user_id?: string | null
           notes?: string | null
+          order_number?: string | null
           photo_urls?: string[] | null
           product_name: string
           quantity: number
@@ -444,6 +446,7 @@ export type Database = {
           mentioned_cargo?: string | null
           mentioned_user_id?: string | null
           notes?: string | null
+          order_number?: string | null
           photo_urls?: string[] | null
           product_name?: string
           quantity?: number

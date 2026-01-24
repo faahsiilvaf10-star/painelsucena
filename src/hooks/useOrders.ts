@@ -7,6 +7,7 @@ export type QuantityUnit = 'unidade' | 'centimetros' | 'metros' | 'quilos' | 'li
 
 export interface Order {
   id: string;
+  order_number: string;
   requester_id: string;
   requester_name: string;
   product_name: string;

@@ -1,6 +1,6 @@
 import { format } from "date-fns";
 import { ptBR } from "date-fns/locale";
-import { Package, Calendar, User, Clock, ChevronRight } from "lucide-react";
+import { Package, Calendar, User, Clock, ChevronRight, Hash } from "lucide-react";
 import { Card, CardContent } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { Order, OrderStatus } from "@/hooks/useOrders";
@@ -62,6 +62,12 @@ export function OrderCard({ order, onClick }: OrderCardProps) {
           <div className="flex-1 min-w-0">
             <div className="flex items-start justify-between gap-2">
               <div>
+                <div className="flex items-center gap-2">
+                  <span className="text-xs font-mono text-muted-foreground flex items-center gap-0.5">
+                    <Hash className="w-3 h-3" />
+                    {order.order_number}
+                  </span>
+                </div>
                 <h3 className={`font-semibold truncate ${isCancelled ? "line-through text-muted-foreground" : ""}`}>
                   {order.product_name}
                 </h3>

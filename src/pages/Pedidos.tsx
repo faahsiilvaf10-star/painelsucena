@@ -1,7 +1,8 @@
-import { useState } from "react";
-import { Plus, Package, ClipboardList, History } from "lucide-react";
+import { useState, useMemo } from "react";
+import { Plus, Package, ClipboardList, History, Search, X } from "lucide-react";
 import Layout from "@/components/layout/Layout";
 import { Button } from "@/components/ui/button";
+import { Input } from "@/components/ui/input";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Skeleton } from "@/components/ui/skeleton";
@@ -15,6 +16,7 @@ export default function Pedidos() {
   const [createDialogOpen, setCreateDialogOpen] = useState(false);
   const [selectedOrder, setSelectedOrder] = useState<Order | null>(null);
   const [detailsOpen, setDetailsOpen] = useState(false);
+  const [searchQuery, setSearchQuery] = useState("");
 
   const { data: profile } = useProfile();
   const { data: allOrders, isLoading: loadingAll } = useOrders();
@@ -23,12 +25,30 @@ export default function Pedidos() {
 
   const isResponsible = profile?.cargo === "aux_administrativo" || profile?.cargo === "aux_almoxarifado";
 
+  // Filter orders by search query
+  const filterOrders = (orders: Order[] | undefined) => {
+    if (!orders) return [];
+    if (!searchQuery.trim()) return orders;
+    
+    const query = searchQuery.toLowerCase().trim();
+    return orders.filter(order => 
+      order.product_name.toLowerCase().includes(query) ||
+      order.order_number?.toLowerCase().includes(query) ||
+      order.requester_name.toLowerCase().includes(query) ||
+      order.description?.toLowerCase().includes(query)
+    );
+  };
+
+  const filteredMyOrders = useMemo(() => filterOrders(myOrders), [myOrders, searchQuery]);
+  const filteredPendingOrders = useMemo(() => filterOrders(pendingOrders), [pendingOrders, searchQuery]);
+  const filteredAllOrders = useMemo(() => filterOrders(allOrders), [allOrders, searchQuery]);
+
   const handleOrderClick = (order: Order) => {
     setSelectedOrder(order);
     setDetailsOpen(true);
   };
 
-  const renderOrderList = (orders: Order[] | undefined, isLoading: boolean, emptyMessage: string) => {
+  const renderOrderList = (orders: Order[], isLoading: boolean, emptyMessage: string) => {
     if (isLoading) {
       return (
         <div className="space-y-3">
@@ -44,7 +64,7 @@ export default function Pedidos() {
         <Card>
           <CardContent className="py-8 text-center text-muted-foreground">
             <Package className="w-12 h-12 mx-auto mb-3 opacity-50" />
-            <p>{emptyMessage}</p>
+            <p>{searchQuery ? "Nenhum pedido encontrado com essa busca" : emptyMessage}</p>
           </CardContent>
         </Card>
       );
@@ -78,6 +98,27 @@ export default function Pedidos() {
           </Button>
         </div>
 
+        {/* Search Bar */}
+        <div className="relative mb-4">
+          <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-muted-foreground" />
+          <Input
+            placeholder="Buscar por nome do produto, nº do pedido ou solicitante..."
+            value={searchQuery}
+            onChange={(e) => setSearchQuery(e.target.value)}
+            className="pl-10 pr-10"
+          />
+          {searchQuery && (
+            <Button
+              variant="ghost"
+              size="icon"
+              className="absolute right-1 top-1/2 -translate-y-1/2 h-7 w-7"
+              onClick={() => setSearchQuery("")}
+            >
+              <X className="w-4 h-4" />
+            </Button>
+          )}
+        </div>
+
         <Tabs defaultValue="meus" className="space-y-4">
           <TabsList className="grid w-full grid-cols-3">
             <TabsTrigger value="meus" className="flex items-center gap-2">
@@ -103,7 +144,7 @@ export default function Pedidos() {
                 <CardTitle className="text-lg">Meus Pedidos</CardTitle>
               </CardHeader>
               <CardContent>
-                {renderOrderList(myOrders, loadingMy, "Você ainda não fez nenhum pedido")}
+                {renderOrderList(filteredMyOrders, loadingMy, "Você ainda não fez nenhum pedido")}
               </CardContent>
             </Card>
           </TabsContent>
@@ -115,7 +156,7 @@ export default function Pedidos() {
               </CardHeader>
               <CardContent>
                 {renderOrderList(
-                  pendingOrders,
+                  filteredPendingOrders,
                   loadingPending,
                   isResponsible
                     ? "Nenhum pedido pendente para processar"
@@ -131,7 +172,7 @@ export default function Pedidos() {
                 <CardTitle className="text-lg">Histórico Completo</CardTitle>
               </CardHeader>
               <CardContent>
-                {renderOrderList(allOrders, loadingAll, "Nenhum pedido encontrado")}
+                {renderOrderList(filteredAllOrders, loadingAll, "Nenhum pedido encontrado")}
               </CardContent>
             </Card>
           </TabsContent>
