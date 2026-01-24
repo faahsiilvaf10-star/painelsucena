@@ -1,4 +1,4 @@
-import { Users, ClipboardList, Grid3X3, LayoutDashboard, FileBarChart, LogOut, LogIn, Phone, PanelLeftClose, PanelLeft, Settings, Sun, Truck, Bell, FileText, LucideIcon, Heart, ShoppingCart, Package } from "lucide-react";
+import { Users, ClipboardList, Grid3X3, LayoutDashboard, FileBarChart, LogOut, LogIn, AlertTriangle, PanelLeftClose, PanelLeft, Settings, Sun, Truck, Bell, FileText, LucideIcon, Heart, ShoppingCart, Package } from "lucide-react";
 import { Link, useLocation, useNavigate } from "react-router-dom";
 import { useMemo } from "react";
 import { useAuth } from "@/hooks/useAuth";
@@ -28,6 +28,7 @@ interface NavItem {
   icon: LucideIcon;
   label: string;
   path: string;
+  isEmergency?: boolean;
 }
 
 const allNavItems: NavItem[] = [
@@ -43,7 +44,7 @@ const allNavItems: NavItem[] = [
   { id: "rdo", icon: FileText, label: "RDO", path: "/rdo" },
   { id: "relatorio", icon: FileBarChart, label: "Relatório", path: "/relatorio-presenca" },
   { id: "rh", icon: Users, label: "RH", path: "/rh" },
-  { id: "emergencia", icon: Phone, label: "Emergência", path: "/emergencia" },
+  { id: "emergencia", icon: AlertTriangle, label: "Emergência", path: "/emergencia", isEmergency: true },
 ];
 
 export function AppSidebar() {
@@ -138,8 +139,8 @@ export function AppSidebar() {
                         tooltip={item.label}
                       >
                         <Link to={item.path}>
-                          <item.icon className="h-5 w-5" />
-                          <span className="font-medium">{item.label}</span>
+                          <item.icon className={`h-5 w-5 ${item.isEmergency ? "text-red-500" : ""}`} />
+                          <span className={`font-medium ${item.isEmergency ? "text-red-500" : ""}`}>{item.label}</span>
                         </Link>
                       </SidebarMenuButton>
                     </SidebarMenuItem>
