@@ -338,6 +338,9 @@ export type Database = {
       inventory_movements: {
         Row: {
           created_at: string
+          destination_id: string | null
+          destination_name: string | null
+          destination_type: string | null
           id: string
           item_id: string
           moved_by: string
@@ -350,6 +353,9 @@ export type Database = {
         }
         Insert: {
           created_at?: string
+          destination_id?: string | null
+          destination_name?: string | null
+          destination_type?: string | null
           id?: string
           item_id: string
           moved_by: string
@@ -362,6 +368,9 @@ export type Database = {
         }
         Update: {
           created_at?: string
+          destination_id?: string | null
+          destination_name?: string | null
+          destination_type?: string | null
           id?: string
           item_id?: string
           moved_by?: string
