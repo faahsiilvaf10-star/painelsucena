@@ -93,8 +93,8 @@ export function AppSidebar() {
     try {
       await signOut();
     } finally {
-      // Always navigate to auth, even if signOut had issues
-      navigate("/auth", { replace: true });
+      // Force a hard redirect so any in-memory auth state is fully reset.
+      window.location.replace("/auth");
     }
   };
 

@@ -2,6 +2,30 @@ import { useState, useEffect } from "react";
 import { supabase } from "@/integrations/supabase/client";
 import { User, Session } from "@supabase/supabase-js";
 
+const clearAuthStorage = () => {
+  // Vite exposes env vars as strings at build time
+  const projectRef = import.meta.env.VITE_SUPABASE_PROJECT_ID as string | undefined;
+  if (!projectRef) return;
+
+  const prefix = `sb-${projectRef}-`;
+
+  const safeClear = (storage: Storage) => {
+    try {
+      // Remove only auth-related keys for this project
+      for (const key of Object.keys(storage)) {
+        if (key.startsWith(prefix) && key.includes("auth")) {
+          storage.removeItem(key);
+        }
+      }
+    } catch {
+      // ignore
+    }
+  };
+
+  safeClear(localStorage);
+  safeClear(sessionStorage);
+};
+
 export const useAuth = () => {
   const [user, setUser] = useState<User | null>(null);
   const [session, setSession] = useState<Session | null>(null);
@@ -31,13 +55,16 @@ export const useAuth = () => {
     // Clear local state first
     setSession(null);
     setUser(null);
-    
+
+    // We are seeing `/logout` returning session_not_found; ensure we still fully
+    // log out locally by clearing stored tokens.
+    clearAuthStorage();
+
+    // Best-effort: attempt the SDK signOut, but never block the UX on failures.
     try {
-      // Use 'local' scope to avoid 403 when session doesn't exist on server
-      await supabase.auth.signOut({ scope: 'local' });
-    } catch (error) {
-      // Even if signOut fails, we've already cleared local state
-      console.log("SignOut completed (local cleanup)");
+      await supabase.auth.signOut({ scope: "local" });
+    } catch {
+      // ignore
     }
   };
 
