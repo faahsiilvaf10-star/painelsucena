@@ -1,4 +1,4 @@
-import { Users, ClipboardList, Grid3X3, LayoutDashboard, FileBarChart, LogOut, LogIn, Phone, PanelLeftClose, PanelLeft, Settings, Sun, Truck, Bell, FileText, LucideIcon, Heart } from "lucide-react";
+import { Users, ClipboardList, Grid3X3, LayoutDashboard, FileBarChart, LogOut, LogIn, Phone, PanelLeftClose, PanelLeft, Settings, Sun, Truck, Bell, FileText, LucideIcon, Heart, ShoppingCart } from "lucide-react";
 import { Link, useLocation, useNavigate } from "react-router-dom";
 import { useMemo } from "react";
 import { useAuth } from "@/hooks/useAuth";
@@ -41,6 +41,7 @@ const allNavItems: NavItem[] = [
   { id: "equipamentos", icon: Truck, label: "Equipamentos", path: "/equipamentos" },
   { id: "rdo", icon: FileText, label: "RDO", path: "/rdo" },
   { id: "campanhas", icon: Heart, label: "Campanhas", path: "/campanhas" },
+  { id: "pedidos", icon: ShoppingCart, label: "Pedidos", path: "/pedidos" },
   { id: "emergencia", icon: Phone, label: "Emergência", path: "/emergencia" },
 ];
 
