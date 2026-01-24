@@ -342,6 +342,45 @@ export type Database = {
         }
         Relationships: []
       }
+      reminder_history: {
+        Row: {
+          action: string
+          action_by: string
+          created_at: string
+          event_date: string
+          id: string
+          mention_type: string
+          original_created_by: string
+          reminder_description: string | null
+          reminder_id: string
+          reminder_title: string
+        }
+        Insert: {
+          action: string
+          action_by: string
+          created_at?: string
+          event_date: string
+          id?: string
+          mention_type: string
+          original_created_by: string
+          reminder_description?: string | null
+          reminder_id: string
+          reminder_title: string
+        }
+        Update: {
+          action?: string
+          action_by?: string
+          created_at?: string
+          event_date?: string
+          id?: string
+          mention_type?: string
+          original_created_by?: string
+          reminder_description?: string | null
+          reminder_id?: string
+          reminder_title?: string
+        }
+        Relationships: []
+      }
       reminders: {
         Row: {
           acknowledged_by: string[] | null

@@ -7,7 +7,7 @@ import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { ScrollArea, ScrollBar } from "@/components/ui/scroll-area";
 import { Alert, AlertDescription, AlertTitle } from "@/components/ui/alert";
-import { useActiveReminders, useAcknowledgeReminder, useDeleteReminder } from "@/hooks/useReminders";
+import { useActiveReminders, useAcknowledgeReminder, useDeleteReminder, Reminder } from "@/hooks/useReminders";
 import { useAuth } from "@/hooks/useAuth";
 import { cn } from "@/lib/utils";
 import { Link } from "react-router-dom";
@@ -59,23 +59,23 @@ export const ReminderHighlightBanner = () => {
     }
   }, [todayReminders.length, hasPlayedSound]);
 
-  const handleAcknowledge = async (id: string) => {
+  const handleAcknowledge = async (reminder: Reminder) => {
     try {
-      await acknowledgeReminder.mutateAsync(id);
-      setDismissedIds((prev) => new Set([...prev, id]));
+      await acknowledgeReminder.mutateAsync(reminder);
+      setDismissedIds((prev) => new Set([...prev, reminder.id]));
       toast.success("Lembrete marcado como visto!");
     } catch (error) {
       toast.error("Erro ao marcar lembrete como visto");
     }
   };
 
-  const handleCancel = async (id: string, createdBy: string) => {
-    if (user?.id !== createdBy) {
+  const handleCancel = async (reminder: Reminder) => {
+    if (user?.id !== reminder.created_by) {
       toast.error("Apenas o criador pode cancelar este lembrete");
       return;
     }
     try {
-      await deleteReminder.mutateAsync(id);
+      await deleteReminder.mutateAsync(reminder);
       toast.success("Lembrete cancelado!");
     } catch (error) {
       toast.error("Erro ao cancelar lembrete");
@@ -151,7 +151,7 @@ export const ReminderHighlightBanner = () => {
                               variant="outline"
                               size="sm"
                               className="h-8 gap-1 border-green-500/50 text-green-600 hover:bg-green-500/10 hover:text-green-600"
-                              onClick={() => handleAcknowledge(reminder.id)}
+                              onClick={() => handleAcknowledge(reminder)}
                               disabled={acknowledgeReminder.isPending}
                             >
                               <Check className="h-4 w-4" />
@@ -162,7 +162,7 @@ export const ReminderHighlightBanner = () => {
                                 variant="outline"
                                 size="sm"
                                 className="h-8 gap-1 border-destructive/50 text-destructive hover:bg-destructive/10 hover:text-destructive"
-                                onClick={() => handleCancel(reminder.id, reminder.created_by)}
+                                onClick={() => handleCancel(reminder)}
                                 disabled={deleteReminder.isPending}
                               >
                                 <X className="h-4 w-4" />
@@ -218,7 +218,7 @@ export const ReminderHighlightBanner = () => {
                         variant="ghost"
                         size="icon"
                         className="h-6 w-6 rounded-full opacity-60 hover:opacity-100 hover:bg-green-500/20 text-green-600"
-                        onClick={() => handleAcknowledge(reminder.id)}
+                        onClick={() => handleAcknowledge(reminder)}
                         disabled={acknowledgeReminder.isPending}
                         title="Marcar como visto"
                       >
@@ -229,7 +229,7 @@ export const ReminderHighlightBanner = () => {
                           variant="ghost"
                           size="icon"
                           className="h-6 w-6 rounded-full opacity-60 hover:opacity-100 hover:bg-destructive/20 text-destructive"
-                          onClick={() => handleCancel(reminder.id, reminder.created_by)}
+                          onClick={() => handleCancel(reminder)}
                           disabled={deleteReminder.isPending}
                           title="Cancelar lembrete"
                         >
