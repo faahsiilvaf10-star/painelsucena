@@ -166,13 +166,14 @@ export function EquipmentTimeline({ equipment }: EquipmentTimelineProps) {
   }, [equipment.id, equipment.name, equipment.stop_start_time, stopReason, updateStatus]);
 
   useEffect(() => {
-    const interval = setInterval(() => {
-      setCurrentTime(new Date());
-      checkAutoEndOfShift();
-    }, 60000);
-    
-    // Check immediately on mount
+    // Update immediately on mount with correct timezone
+    setCurrentTime(getBrazilNorthDate());
     checkAutoEndOfShift();
+    
+    const interval = setInterval(() => {
+      setCurrentTime(getBrazilNorthDate());
+      checkAutoEndOfShift();
+    }, 1000); // Update every second for smooth animation
     
     return () => clearInterval(interval);
   }, [checkAutoEndOfShift]);
