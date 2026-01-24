@@ -8,17 +8,8 @@ import {
   DropdownMenuItem,
   DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu";
-
-type StopReason = "none" | "maintenance" | "waiting" | "rain";
-
-interface EquipmentTimelineProps {
-  name: string;
-  plate?: string;
-  driver?: string;
-  helper?: string;
-  startHour?: number;
-  endHour?: number;
-}
+import { useUpdateEquipmentStatus, type StopReason, type Equipment } from "@/hooks/useEquipment";
+import { toast } from "sonner";
 
 const stopReasonLabels: Record<StopReason, string> = {
   none: "Em operação",
@@ -41,17 +32,16 @@ const stopReasonIcons: Record<StopReason, React.ReactNode> = {
   rain: <CloudRain className="w-4 h-4" />,
 };
 
-export function EquipmentTimeline({ 
-  name, 
-  plate = "ABC-1234",
-  driver = "João Silva",
-  helper = "Carlos Santos",
-  startHour = 8, 
-  endHour = 16 
-}: EquipmentTimelineProps) {
+interface EquipmentTimelineProps {
+  equipment: Equipment;
+}
+
+export function EquipmentTimeline({ equipment }: EquipmentTimelineProps) {
   const [currentTime, setCurrentTime] = useState(new Date());
-  const [stopReason, setStopReason] = useState<StopReason>("none");
-  const [stopStartTime, setStopStartTime] = useState<Date | null>(null);
+  const updateStatus = useUpdateEquipmentStatus();
+
+  const stopReason = (equipment.stop_reason || "none") as StopReason;
+  const stopStartTime = equipment.stop_start_time ? new Date(equipment.stop_start_time) : null;
 
   // Update time every minute
   useEffect(() => {
@@ -67,35 +57,45 @@ export function EquipmentTimeline({
     const minutes = currentTime.getMinutes();
     const currentDecimal = hours + minutes / 60;
 
-    if (currentDecimal < startHour) return 0;
-    if (currentDecimal > endHour) return 100;
+    if (currentDecimal < equipment.start_hour) return 0;
+    if (currentDecimal > equipment.end_hour) return 100;
 
-    const totalDuration = endHour - startHour;
-    const elapsed = currentDecimal - startHour;
+    const totalDuration = equipment.end_hour - equipment.start_hour;
+    const elapsed = currentDecimal - equipment.start_hour;
     return (elapsed / totalDuration) * 100;
-  }, [currentTime, startHour, endHour]);
+  }, [currentTime, equipment.start_hour, equipment.end_hour]);
 
   // Generate hour markers
   const hourMarkers = useMemo(() => {
     const markers = [];
-    for (let h = startHour; h <= endHour; h++) {
-      const pos = ((h - startHour) / (endHour - startHour)) * 100;
+    for (let h = equipment.start_hour; h <= equipment.end_hour; h++) {
+      const pos = ((h - equipment.start_hour) / (equipment.end_hour - equipment.start_hour)) * 100;
       markers.push({ hour: h, position: pos });
     }
     return markers;
-  }, [startHour, endHour]);
+  }, [equipment.start_hour, equipment.end_hour]);
 
   const formatHour = (hour: number) => {
     return `${hour.toString().padStart(2, "0")}:00`;
   };
 
-  const handleStopChange = (reason: StopReason) => {
-    if (reason === "none") {
-      setStopStartTime(null);
-    } else if (stopReason === "none") {
-      setStopStartTime(new Date());
+  const handleStopChange = async (reason: StopReason) => {
+    try {
+      await updateStatus.mutateAsync({
+        id: equipment.id,
+        stop_reason: reason,
+        stop_start_time: reason === "none" ? null : new Date().toISOString(),
+        previousStopReason: stopReason,
+        previousStopStartTime: equipment.stop_start_time,
+      });
+      toast.success(
+        reason === "none" 
+          ? "Operação retomada" 
+          : `Status alterado para: ${stopReasonLabels[reason]}`
+      );
+    } catch (error) {
+      toast.error("Erro ao atualizar status");
     }
-    setStopReason(reason);
   };
 
   const getStopDuration = () => {
@@ -117,9 +117,9 @@ export function EquipmentTimeline({
             <Truck className={`w-6 h-6 ${isStopped ? 'text-white' : 'text-primary'}`} />
           </div>
           <div>
-            <h3 className="text-lg font-semibold text-foreground">{name}</h3>
+            <h3 className="text-lg font-semibold text-foreground">{equipment.name}</h3>
             <p className="text-sm text-muted-foreground">
-              Operação: {formatHour(startHour)} - {formatHour(endHour)}
+              Operação: {formatHour(equipment.start_hour)} - {formatHour(equipment.end_hour)}
             </p>
           </div>
         </div>
@@ -128,15 +128,15 @@ export function EquipmentTimeline({
         <div className="flex flex-wrap items-center gap-3">
           <div className="flex items-center gap-2 bg-muted/50 px-3 py-1.5 rounded-lg">
             <CreditCard className="w-4 h-4 text-muted-foreground" />
-            <span className="text-sm font-medium text-foreground">{plate}</span>
+            <span className="text-sm font-medium text-foreground">{equipment.plate}</span>
           </div>
           <div className="flex items-center gap-2 bg-muted/50 px-3 py-1.5 rounded-lg">
             <User className="w-4 h-4 text-primary" />
-            <span className="text-sm text-foreground">{driver}</span>
+            <span className="text-sm text-foreground">{equipment.driver}</span>
           </div>
           <div className="flex items-center gap-2 bg-muted/50 px-3 py-1.5 rounded-lg">
             <User className="w-4 h-4 text-muted-foreground" />
-            <span className="text-sm text-foreground">{helper}</span>
+            <span className="text-sm text-foreground">{equipment.helper}</span>
           </div>
         </div>
       </div>
@@ -151,6 +151,7 @@ export function EquipmentTimeline({
               variant={isStopped ? "destructive" : "default"} 
               size="sm"
               className={`gap-2 ${!isStopped ? 'bg-green-600 hover:bg-green-700' : ''}`}
+              disabled={updateStatus.isPending}
             >
               {stopReasonIcons[stopReason]}
               {stopReasonLabels[stopReason]}
@@ -275,10 +276,6 @@ export function EquipmentTimeline({
                       <line x1="34" y1="24" x2="38" y2="24" className="stroke-gray-400" strokeWidth="0.5" />
                     </g>
                   </>
-                )}
-                {/* Stop indicator */}
-                {isStopped && (
-                  <circle cx="24" cy="4" r="4" className={stopReasonColors[stopReason].replace('bg-', 'fill-')} />
                 )}
               </svg>
               
