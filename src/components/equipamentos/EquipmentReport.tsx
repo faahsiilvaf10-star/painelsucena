@@ -156,6 +156,23 @@ export function EquipmentReport() {
       }
     });
 
+    // Add maintenance history with defect descriptions
+    if (maintenanceHistory.length > 0) {
+      message += `\n🔧 *HISTÓRICO DE MANUTENÇÕES*\n`;
+      maintenanceHistory.forEach(stop => {
+        const eq = equipment?.find(e => e.id === stop.equipment_id);
+        const startDate = format(new Date(stop.started_at), "dd/MM 'às' HH:mm", { locale: ptBR });
+        const duration = stop.duration_minutes ? ` (${formatDuration(stop.duration_minutes)})` : " ⚠️ Em andamento";
+        
+        message += `\n*${eq?.name || "Equipamento"}* - ${eq?.plate || ""}\n`;
+        message += `  📅 ${startDate}${duration}\n`;
+        
+        if (stop.defect_description) {
+          message += `  📝 _${stop.defect_description}_\n`;
+        }
+      });
+    }
+
     const encodedMessage = encodeURIComponent(message);
     window.open(`https://wa.me/?text=${encodedMessage}`, "_blank");
     toast.success("Relatório gerado para WhatsApp!");
