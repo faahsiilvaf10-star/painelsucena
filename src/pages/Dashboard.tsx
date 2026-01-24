@@ -5,6 +5,7 @@ import { DDSHighlightCard } from "@/components/dds/DDSHighlightCard";
 import { ReminderHighlightBanner } from "@/components/reminders/ReminderHighlightBanner";
 import { MatrixProgressChart } from "@/components/dashboard/MatrixProgressChart";
 import { CampaignBanner } from "@/components/campaigns/CampaignBanner";
+import { OrderHighlightBanner } from "@/components/orders/OrderHighlightBanner";
 import { useCampaignNotifications } from "@/hooks/useCampaignNotifications";
 import { useEmployees } from "@/hooks/useEmployees";
 import { useAttendanceRecords } from "@/hooks/useAttendance";
@@ -39,6 +40,9 @@ const Dashboard = () => {
 
         {/* Reminder Highlights - Pinned at top */}
         <ReminderHighlightBanner />
+
+        {/* Order Highlights - 7 days before delivery */}
+        <OrderHighlightBanner />
 
         {/* DDS Highlight Cards - Today and Tomorrow */}
         <DDSHighlightCard />
