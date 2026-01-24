@@ -33,6 +33,7 @@ import { useReminders, useCreateReminder, useDeleteReminder, Reminder } from "@/
 import { useAllProfiles } from "@/hooks/useDDSSchedule";
 import { useAuth } from "@/hooks/useAuth";
 import { cn } from "@/lib/utils";
+import { getDaysUntilEventBrazilNorth } from "@/lib/timezone";
 
 const Lembretes = () => {
   const { toast } = useToast();
@@ -135,12 +136,9 @@ const Lembretes = () => {
     }
   };
 
+  // Use Brazil North timezone for date calculations
   const getDaysUntilEvent = (dateStr: string) => {
-    const eventDate = new Date(dateStr);
-    const today = new Date();
-    eventDate.setHours(0, 0, 0, 0);
-    today.setHours(0, 0, 0, 0);
-    return Math.ceil((eventDate.getTime() - today.getTime()) / (1000 * 60 * 60 * 24));
+    return getDaysUntilEventBrazilNorth(dateStr);
   };
 
   const toggleUserSelection = (userId: string) => {

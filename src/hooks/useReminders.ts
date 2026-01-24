@@ -2,6 +2,7 @@ import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import { supabase } from "@/integrations/supabase/client";
 import { useAuth } from "./useAuth";
 import { useEffect } from "react";
+import { getBrazilNorthMidnight, getDaysUntilEventBrazilNorth } from "@/lib/timezone";
 
 export interface Reminder {
   id: string;
@@ -77,8 +78,6 @@ export const useReminders = () => {
 
 export const useActiveReminders = () => {
   const { user } = useAuth();
-  const today = new Date();
-  today.setHours(0, 0, 0, 0);
 
   return useQuery({
     queryKey: ["active-reminders", user?.id],
@@ -96,12 +95,8 @@ export const useActiveReminders = () => {
       
       // Filter reminders that should be shown based on alert_days_before or show_on_event_day
       return reminders.filter((reminder) => {
-        const eventDate = new Date(reminder.event_date);
-        eventDate.setHours(0, 0, 0, 0);
-        
-        const daysUntilEvent = Math.ceil(
-          (eventDate.getTime() - today.getTime()) / (1000 * 60 * 60 * 24)
-        );
+        // Use Brazil North timezone for date calculations
+        const daysUntilEvent = getDaysUntilEventBrazilNorth(reminder.event_date);
 
         // Check if user should see this reminder based on mention_type
         const isRelevant =
