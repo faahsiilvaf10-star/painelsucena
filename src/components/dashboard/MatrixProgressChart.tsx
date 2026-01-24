@@ -1,4 +1,4 @@
-import { useEffect, useState } from "react";
+import { useEffect, useState, useMemo } from "react";
 import { format, endOfMonth, differenceInDays } from "date-fns";
 import { ptBR } from "date-fns/locale";
 import { 
@@ -9,9 +9,11 @@ import {
   CartesianGrid, 
   Tooltip, 
   ResponsiveContainer,
-  Cell
+  Cell,
+  PieChart,
+  Pie
 } from "recharts";
-import { AlertTriangle, TrendingUp } from "lucide-react";
+import { AlertTriangle, TrendingUp, PieChartIcon } from "lucide-react";
 import { supabase } from "@/integrations/supabase/client";
 import { Alert, AlertDescription, AlertTitle } from "@/components/ui/alert";
 import { Skeleton } from "@/components/ui/skeleton";
@@ -157,72 +159,174 @@ export function MatrixProgressChart() {
         </Alert>
       )}
 
-      {/* Progress Chart */}
-      <div className="bg-card rounded-2xl border border-border/50 p-6 animate-fade-in">
-        <div className="flex items-center gap-2 mb-6">
-          <TrendingUp className="w-6 h-6 text-primary" />
-          <h3 className="text-xl font-bold">Progresso da Matriz - {currentMonth}</h3>
-        </div>
+      {/* Charts Container */}
+      <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
+        {/* Bar Chart - Progress by Role */}
+        <div className="lg:col-span-2 bg-card rounded-2xl border border-border/50 p-6 animate-fade-in">
+          <div className="flex items-center gap-2 mb-6">
+            <TrendingUp className="w-6 h-6 text-primary" />
+            <h3 className="text-xl font-bold">Progresso por Cargo - {currentMonth}</h3>
+          </div>
 
-        <div className="h-[300px]">
-          <ResponsiveContainer width="100%" height="100%">
-            <BarChart
-              data={progressData}
-              layout="vertical"
-              margin={{ top: 5, right: 30, left: 20, bottom: 5 }}
-            >
-              <CartesianGrid strokeDasharray="3 3" stroke="hsl(var(--border))" />
-              <XAxis 
-                type="number" 
-                domain={[0, 100]} 
-                tickFormatter={(value) => `${value}%`}
-                stroke="hsl(var(--muted-foreground))"
-              />
-              <YAxis 
-                type="category" 
-                dataKey="cargo" 
-                width={80}
-                stroke="hsl(var(--muted-foreground))"
-                tick={{ fontSize: 12 }}
-              />
-              <Tooltip
-                contentStyle={{
-                  backgroundColor: "hsl(var(--card))",
-                  border: "1px solid hsl(var(--border))",
-                  borderRadius: "8px",
-                }}
-                formatter={(value: number, name: string, props: any) => [
-                  `${value}% (${props.payload.completedTasks}/${props.payload.totalTasks} tarefas)`,
-                  "Progresso"
-                ]}
-              />
-              <Bar 
-                dataKey="progress" 
-                radius={[0, 4, 4, 0]}
-                maxBarSize={40}
+          <div className="h-[300px]">
+            <ResponsiveContainer width="100%" height="100%">
+              <BarChart
+                data={progressData}
+                layout="vertical"
+                margin={{ top: 5, right: 30, left: 20, bottom: 5 }}
               >
-                {progressData.map((entry) => (
-                  <Cell 
-                    key={entry.cargoId} 
-                    fill={entry.progress === 100 ? "#22C55E" : cargoColors[entry.cargoId] || "#6B7280"}
-                  />
-                ))}
-              </Bar>
-            </BarChart>
-          </ResponsiveContainer>
+                <CartesianGrid strokeDasharray="3 3" stroke="hsl(var(--border))" />
+                <XAxis 
+                  type="number" 
+                  domain={[0, 100]} 
+                  tickFormatter={(value) => `${value}%`}
+                  stroke="hsl(var(--muted-foreground))"
+                />
+                <YAxis 
+                  type="category" 
+                  dataKey="cargo" 
+                  width={80}
+                  stroke="hsl(var(--muted-foreground))"
+                  tick={{ fontSize: 12 }}
+                />
+                <Tooltip
+                  contentStyle={{
+                    backgroundColor: "hsl(var(--card))",
+                    border: "1px solid hsl(var(--border))",
+                    borderRadius: "8px",
+                  }}
+                  formatter={(value: number, name: string, props: any) => [
+                    `${value}% (${props.payload.completedTasks}/${props.payload.totalTasks} tarefas)`,
+                    "Progresso"
+                  ]}
+                />
+                <Bar 
+                  dataKey="progress" 
+                  radius={[0, 4, 4, 0]}
+                  maxBarSize={40}
+                >
+                  {progressData.map((entry) => (
+                    <Cell 
+                      key={entry.cargoId} 
+                      fill={entry.progress === 100 ? "#22C55E" : cargoColors[entry.cargoId] || "#6B7280"}
+                    />
+                  ))}
+                </Bar>
+              </BarChart>
+            </ResponsiveContainer>
+          </div>
+
+          {/* Legend */}
+          <div className="flex flex-wrap gap-4 mt-4 justify-center">
+            <div className="flex items-center gap-2">
+              <div className="w-3 h-3 rounded-full bg-green-500" />
+              <span className="text-sm text-muted-foreground">Concluído (100%)</span>
+            </div>
+            <div className="flex items-center gap-2">
+              <div className="w-3 h-3 rounded-full bg-orange-500" />
+              <span className="text-sm text-muted-foreground">Em progresso</span>
+            </div>
+          </div>
         </div>
 
-        {/* Legend */}
-        <div className="flex flex-wrap gap-4 mt-4 justify-center">
-          <div className="flex items-center gap-2">
-            <div className="w-3 h-3 rounded-full bg-green-500" />
-            <span className="text-sm text-muted-foreground">Concluído (100%)</span>
-          </div>
-          <div className="flex items-center gap-2">
-            <div className="w-3 h-3 rounded-full bg-orange-500" />
-            <span className="text-sm text-muted-foreground">Em progresso</span>
+        {/* Pie Chart - Overall Completion */}
+        <PieChartSection progressData={progressData} />
+      </div>
+    </div>
+  );
+}
+
+interface PieChartSectionProps {
+  progressData: CargoProgress[];
+}
+
+function PieChartSection({ progressData }: PieChartSectionProps) {
+  const pieData = useMemo(() => {
+    const totalTasks = progressData.reduce((sum, p) => sum + p.totalTasks, 0);
+    const completedTasks = progressData.reduce((sum, p) => sum + p.completedTasks, 0);
+    const pendingTasks = totalTasks - completedTasks;
+    
+    return {
+      data: [
+        { name: "Concluídas", value: completedTasks, color: "#22C55E" },
+        { name: "Pendentes", value: pendingTasks, color: "#6B7280" },
+      ],
+      totalTasks,
+      completedTasks,
+      percentage: totalTasks > 0 ? Math.round((completedTasks / totalTasks) * 100) : 0,
+    };
+  }, [progressData]);
+
+  return (
+    <div className="bg-card rounded-2xl border border-border/50 p-6 animate-fade-in">
+      <div className="flex items-center gap-2 mb-6">
+        <PieChartIcon className="w-6 h-6 text-primary" />
+        <h3 className="text-lg font-bold">Conclusão Geral</h3>
+      </div>
+
+      <div className="h-[220px] relative">
+        <ResponsiveContainer width="100%" height="100%">
+          <PieChart>
+            <Pie
+              data={pieData.data}
+              cx="50%"
+              cy="50%"
+              innerRadius={60}
+              outerRadius={85}
+              paddingAngle={2}
+              dataKey="value"
+              strokeWidth={0}
+            >
+              {pieData.data.map((entry, index) => (
+                <Cell key={`cell-${index}`} fill={entry.color} />
+              ))}
+            </Pie>
+            <Tooltip
+              contentStyle={{
+                backgroundColor: "hsl(var(--card))",
+                border: "1px solid hsl(var(--border))",
+                borderRadius: "8px",
+              }}
+              formatter={(value: number) => [`${value} tarefas`, ""]}
+            />
+          </PieChart>
+        </ResponsiveContainer>
+        
+        {/* Center percentage */}
+        <div className="absolute inset-0 flex items-center justify-center pointer-events-none">
+          <div className="text-center">
+            <span className="text-3xl font-bold text-primary">{pieData.percentage}%</span>
+            <p className="text-xs text-muted-foreground">concluído</p>
           </div>
         </div>
+      </div>
+
+      {/* Stats */}
+      <div className="grid grid-cols-2 gap-4 mt-4">
+        <div className="text-center p-3 bg-green-500/10 rounded-xl">
+          <p className="text-2xl font-bold text-green-500">{pieData.completedTasks}</p>
+          <p className="text-xs text-muted-foreground">Concluídas</p>
+        </div>
+        <div className="text-center p-3 bg-muted/50 rounded-xl">
+          <p className="text-2xl font-bold text-muted-foreground">{pieData.data[1].value}</p>
+          <p className="text-xs text-muted-foreground">Pendentes</p>
+        </div>
+      </div>
+
+      {/* Legend */}
+      <div className="flex flex-col gap-2 mt-4">
+        {pieData.data.map((entry) => (
+          <div key={entry.name} className="flex items-center justify-between">
+            <div className="flex items-center gap-2">
+              <div 
+                className="w-3 h-3 rounded-full" 
+                style={{ backgroundColor: entry.color }} 
+              />
+              <span className="text-sm text-muted-foreground">{entry.name}</span>
+            </div>
+            <span className="text-sm font-medium">{entry.value}</span>
+          </div>
+        ))}
       </div>
     </div>
   );
