@@ -10,32 +10,46 @@ import { Eye, EyeOff, Loader2, User, Lock, UserCircle } from "lucide-react";
 import { z } from "zod";
 import { AuthBackground } from "@/components/auth/AuthBackground";
 import { LoginTransition } from "@/components/auth/LoginTransition";
-
-const cargoOptions = [
-  { value: "preposto", label: "Preposto" },
-  { value: "encarregado_geral", label: "Encarregado Geral" },
-  { value: "encarregado_i", label: "Encarregado I" },
-  { value: "encarregado_ii", label: "Encarregado II" },
-  { value: "tecnico_seguranca_i", label: "Técnico de Segurança I" },
-  { value: "tecnico_seguranca_ii", label: "Técnico de Segurança II" },
-  { value: "tecnico_meio_ambiente", label: "Técnico Meio Ambiente" },
-  { value: "aux_administrativo", label: "Aux. Administrativo" },
-  { value: "aux_almoxarifado", label: "Aux. Almoxarifado" },
-  { value: "planejador", label: "Planejador" }
-] as const;
-
+const cargoOptions = [{
+  value: "preposto",
+  label: "Preposto"
+}, {
+  value: "encarregado_geral",
+  label: "Encarregado Geral"
+}, {
+  value: "encarregado_i",
+  label: "Encarregado I"
+}, {
+  value: "encarregado_ii",
+  label: "Encarregado II"
+}, {
+  value: "tecnico_seguranca_i",
+  label: "Técnico de Segurança I"
+}, {
+  value: "tecnico_seguranca_ii",
+  label: "Técnico de Segurança II"
+}, {
+  value: "tecnico_meio_ambiente",
+  label: "Técnico Meio Ambiente"
+}, {
+  value: "aux_administrativo",
+  label: "Aux. Administrativo"
+}, {
+  value: "aux_almoxarifado",
+  label: "Aux. Almoxarifado"
+}, {
+  value: "planejador",
+  label: "Planejador"
+}] as const;
 type CargoType = typeof cargoOptions[number]["value"];
-
 const loginSchema = z.object({
   email: z.string().email("Email inválido"),
   password: z.string().min(6, "Senha deve ter pelo menos 6 caracteres")
 });
-
 const signupSchema = loginSchema.extend({
   fullName: z.string().min(2, "Nome deve ter pelo menos 2 caracteres"),
   cargo: z.string().min(1, "Selecione um cargo")
 });
-
 const Auth = () => {
   const [isLogin, setIsLogin] = useState(true);
   const [email, setEmail] = useState("");
@@ -54,23 +68,22 @@ const Auth = () => {
   const [previewAvatar, setPreviewAvatar] = useState<string>("");
   const [previewName, setPreviewName] = useState<string>("");
   const navigate = useNavigate();
-  const { toast } = useToast();
-
+  const {
+    toast
+  } = useToast();
   useEffect(() => {
     const fetchOccupiedCargos = async () => {
-      const { data, error } = await supabase
-        .from("profiles")
-        .select("cargo");
-      
+      const {
+        data,
+        error
+      } = await supabase.from("profiles").select("cargo");
       if (!error && data) {
         const occupied = data.map(p => p.cargo).filter(Boolean);
         setOccupiedCargos(occupied);
       }
     };
-
     fetchOccupiedCargos();
   }, []);
-
   useEffect(() => {
     const savedEmail = localStorage.getItem("rememberedEmail");
     const savedPassword = localStorage.getItem("rememberedPassword");
@@ -88,11 +101,9 @@ const Auth = () => {
       setPreviewName("");
       return;
     }
-
     const savedEmail = localStorage.getItem("rememberedEmail");
     const savedAvatar = localStorage.getItem("rememberedAvatar");
     const savedName = localStorage.getItem("rememberedName");
-
     if (email && savedEmail && email.toLowerCase() === savedEmail.toLowerCase()) {
       if (savedAvatar) setPreviewAvatar(savedAvatar);
       if (savedName) setPreviewName(savedName);
@@ -101,12 +112,14 @@ const Auth = () => {
       setPreviewName("");
     }
   }, [email, isLogin]);
-
   useEffect(() => {
     // Only check for existing session on mount, not during transition
     if (showTransition) return;
-    
-    const { data: { subscription } } = supabase.auth.onAuthStateChange((event, session) => {
+    const {
+      data: {
+        subscription
+      }
+    } = supabase.auth.onAuthStateChange((event, session) => {
       // Let the transition handle navigation after login
       if (event === 'SIGNED_IN' && !showTransition) {
         // Don't navigate here - the form submit handler will trigger the transition
@@ -114,23 +127,33 @@ const Auth = () => {
     });
 
     // Only redirect if user is already logged in when visiting /auth directly
-    supabase.auth.getSession().then(({ data: { session } }) => {
+    supabase.auth.getSession().then(({
+      data: {
+        session
+      }
+    }) => {
       if (session?.user && !showTransition) {
         // User is already logged in, redirect directly (no transition needed)
         navigate("/");
       }
     });
-
     return () => subscription.unsubscribe();
   }, [navigate, showTransition]);
-
   const validateForm = () => {
     setErrors({});
     try {
       if (isLogin) {
-        loginSchema.parse({ email, password });
+        loginSchema.parse({
+          email,
+          password
+        });
       } else {
-        signupSchema.parse({ email, password, fullName, cargo });
+        signupSchema.parse({
+          email,
+          password,
+          fullName,
+          cargo
+        });
       }
       return true;
     } catch (error) {
@@ -146,23 +169,22 @@ const Auth = () => {
       return false;
     }
   };
-
   const handleTransitionComplete = () => {
     navigate("/");
   };
-
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     if (!validateForm()) return;
     setIsLoading(true);
-
     try {
       if (isLogin) {
-        const { data: authData, error } = await supabase.auth.signInWithPassword({
+        const {
+          data: authData,
+          error
+        } = await supabase.auth.signInWithPassword({
           email,
           password
         });
-
         if (error) {
           if (error.message.includes("Invalid login credentials")) {
             toast({
@@ -180,12 +202,9 @@ const Auth = () => {
         } else {
           // Fetch user's profile name, avatar and cargo
           if (authData.user) {
-            const { data: profileData } = await supabase
-              .from("profiles")
-              .select("full_name, avatar_url, cargo")
-              .eq("user_id", authData.user.id)
-              .single();
-            
+            const {
+              data: profileData
+            } = await supabase.from("profiles").select("full_name, avatar_url, cargo").eq("user_id", authData.user.id).single();
             if (profileData?.full_name) {
               const firstName = profileData.full_name.split(" ")[0];
               setLoggedUserName(firstName);
@@ -206,7 +225,6 @@ const Auth = () => {
               setLoggedUserCargo(cargoLabel);
             }
           }
-
           if (rememberMe) {
             localStorage.setItem("rememberedEmail", email);
             localStorage.setItem("rememberedPassword", password);
@@ -216,7 +234,7 @@ const Auth = () => {
             localStorage.removeItem("rememberedAvatar");
             localStorage.removeItem("rememberedName");
           }
-          
+
           // Trigger the transition animation
           setShowTransition(true);
         }
@@ -231,16 +249,17 @@ const Auth = () => {
           setIsLoading(false);
           return;
         }
-
         const redirectUrl = `${window.location.origin}/`;
-        const { data, error } = await supabase.auth.signUp({
+        const {
+          data,
+          error
+        } = await supabase.auth.signUp({
           email,
           password,
           options: {
             emailRedirectTo: redirectUrl
           }
         });
-
         if (error) {
           if (error.message.includes("User already registered")) {
             toast({
@@ -257,14 +276,14 @@ const Auth = () => {
           }
           return;
         }
-
         if (data.user) {
-          const { error: profileError } = await supabase.from("profiles").insert({
+          const {
+            error: profileError
+          } = await supabase.from("profiles").insert({
             user_id: data.user.id,
             full_name: fullName,
             cargo: cargo as CargoType
           });
-
           if (profileError) {
             toast({
               title: "Erro ao criar perfil",
@@ -293,83 +312,43 @@ const Auth = () => {
       }
     }
   };
-
-  return (
-    <div className="h-screen relative overflow-hidden flex items-center justify-center">
+  return <div className="h-screen relative overflow-hidden flex items-center justify-center">
       {/* Gradient background */}
       <AuthBackground />
 
       {/* Login Transition Animation */}
-      {showTransition && (
-        <LoginTransition 
-          onComplete={handleTransitionComplete} 
-          userName={loggedUserName} 
-          userAvatar={loggedUserAvatar}
-          userCargo={loggedUserCargo}
-        />
-      )}
+      {showTransition && <LoginTransition onComplete={handleTransitionComplete} userName={loggedUserName} userAvatar={loggedUserAvatar} userCargo={loggedUserCargo} />}
 
       {/* Login form - centered */}
       <div className={`relative z-10 w-full max-w-xs px-4 animate-fade-in transition-opacity duration-300 ${showTransition ? 'opacity-0' : 'opacity-100'}`}>
         {/* Avatar icon - shows user's photo when email matches remembered credentials */}
         <div className="flex flex-col items-center mb-6">
-          <div 
-            id="login-avatar" 
-            className={`w-16 h-16 rounded-full flex items-center justify-center shadow-lg overflow-hidden transition-all duration-500 ${
-              previewAvatar 
-                ? "ring-2 ring-white/50 ring-offset-2 ring-offset-transparent" 
-                : "bg-gray-400/80"
-            }`}
-          >
-            {previewAvatar ? (
-              <img 
-                src={previewAvatar} 
-                alt="Avatar do usuário" 
-                className="w-full h-full object-cover animate-fade-in"
-              />
-            ) : (
-              <User className="w-9 h-9 text-white/90" strokeWidth={1.5} />
-            )}
+          <div id="login-avatar" className={`w-16 h-16 rounded-full flex items-center justify-center shadow-lg overflow-hidden transition-all duration-500 ${previewAvatar ? "ring-2 ring-white/50 ring-offset-2 ring-offset-transparent" : "bg-gray-400/80"}`}>
+            {previewAvatar ? <img src={previewAvatar} alt="Avatar do usuário" className="w-full h-full object-cover animate-fade-in" /> : <User className="w-9 h-9 text-white/90" strokeWidth={1.5} />}
           </div>
           {/* User name preview */}
-          {previewName && (
-            <div className="mt-3 animate-fade-in">
+          {previewName && <div className="mt-3 animate-fade-in">
               <span className="text-white/90 text-sm font-medium tracking-wide">
                 Olá, {previewName}!
               </span>
-            </div>
-          )}
+            </div>}
         </div>
 
         <form onSubmit={handleSubmit} className="space-y-3">
           {/* Full name field (signup only) */}
-          {!isLogin && (
-            <div className="space-y-1">
+          {!isLogin && <div className="space-y-1">
               <div className="relative">
                 <UserCircle className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-blue-500" />
-                <Input
-                  type="text"
-                  value={fullName}
-                  onChange={e => setFullName(e.target.value)}
-                  placeholder="Nome Completo"
-                  className="pl-10 h-9 bg-white/95 border-0 text-gray-700 text-sm placeholder:text-gray-400 rounded shadow-sm focus:ring-2 focus:ring-blue-400"
-                />
+                <Input type="text" value={fullName} onChange={e => setFullName(e.target.value)} placeholder="Nome Completo" className="pl-10 h-9 bg-white/95 border-0 text-gray-700 text-sm placeholder:text-gray-400 rounded shadow-sm focus:ring-2 focus:ring-blue-400" />
               </div>
               {errors.fullName && <p className="text-red-300 text-xs pl-2">{errors.fullName}</p>}
-            </div>
-          )}
+            </div>}
 
           {/* Username/Email field */}
           <div className="space-y-1">
             <div className="relative">
               <User className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-blue-500" />
-              <Input
-                type="email"
-                value={email}
-                onChange={e => setEmail(e.target.value)}
-                placeholder="Username"
-                className="pl-10 h-9 bg-white/95 border-0 text-gray-700 text-sm placeholder:text-gray-400 rounded shadow-sm focus:ring-2 focus:ring-blue-400"
-              />
+              <Input type="email" value={email} onChange={e => setEmail(e.target.value)} placeholder="Username" className="pl-10 h-9 bg-white/95 border-0 text-gray-700 text-sm placeholder:text-gray-400 rounded shadow-sm focus:ring-2 focus:ring-blue-400" />
             </div>
             {errors.email && <p className="text-red-300 text-xs pl-2">{errors.email}</p>}
           </div>
@@ -378,18 +357,8 @@ const Auth = () => {
           <div className="space-y-1">
             <div className="relative">
               <Lock className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-amber-500" />
-              <Input
-                type={showPassword ? "text" : "password"}
-                value={password}
-                onChange={e => setPassword(e.target.value)}
-                placeholder="Password"
-                className="pl-10 pr-10 h-9 bg-white/95 border-0 text-gray-700 text-sm placeholder:text-gray-400 rounded shadow-sm focus:ring-2 focus:ring-blue-400"
-              />
-              <button
-                type="button"
-                onClick={() => setShowPassword(!showPassword)}
-                className="absolute right-3 top-1/2 -translate-y-1/2 text-gray-400 hover:text-gray-600 transition-colors"
-              >
+              <Input type={showPassword ? "text" : "password"} value={password} onChange={e => setPassword(e.target.value)} placeholder="Password" className="pl-10 pr-10 h-9 bg-white/95 border-0 text-gray-700 text-sm placeholder:text-gray-400 rounded shadow-sm focus:ring-2 focus:ring-blue-400" />
+              <button type="button" onClick={() => setShowPassword(!showPassword)} className="absolute right-3 top-1/2 -translate-y-1/2 text-gray-400 hover:text-gray-600 transition-colors">
                 {showPassword ? <EyeOff size={14} /> : <Eye size={14} />}
               </button>
             </div>
@@ -397,74 +366,40 @@ const Auth = () => {
           </div>
 
           {/* Cargo field (signup only) */}
-          {!isLogin && (
-            <div className="space-y-1">
-              <Select 
-                value={cargo} 
-                onValueChange={value => {
-                  if (!occupiedCargos.includes(value)) {
-                    setCargo(value as CargoType);
-                  }
-                }}
-              >
+          {!isLogin && <div className="space-y-1">
+              <Select value={cargo} onValueChange={value => {
+            if (!occupiedCargos.includes(value)) {
+              setCargo(value as CargoType);
+            }
+          }}>
                 <SelectTrigger className="h-9 bg-white/95 border-0 text-gray-700 text-sm rounded shadow-sm focus:ring-2 focus:ring-blue-400">
                   <SelectValue placeholder="Selecione seu cargo" />
                 </SelectTrigger>
                 <SelectContent className="bg-white border-gray-200">
                   {cargoOptions.map(option => {
-                    const isOccupied = occupiedCargos.includes(option.value);
-                    return (
-                      <SelectItem
-                        key={option.value}
-                        value={option.value}
-                        disabled={isOccupied}
-                        className={`text-sm ${isOccupied 
-                          ? "text-gray-400 cursor-not-allowed line-through" 
-                          : "text-gray-700 hover:bg-gray-100 focus:bg-gray-100"
-                        }`}
-                      >
+                const isOccupied = occupiedCargos.includes(option.value);
+                return <SelectItem key={option.value} value={option.value} disabled={isOccupied} className={`text-sm ${isOccupied ? "text-gray-400 cursor-not-allowed line-through" : "text-gray-700 hover:bg-gray-100 focus:bg-gray-100"}`}>
                         {option.label} {isOccupied && "(Ocupado)"}
-                      </SelectItem>
-                    );
-                  })}
+                      </SelectItem>;
+              })}
                 </SelectContent>
               </Select>
               {errors.cargo && <p className="text-red-300 text-xs pl-2">{errors.cargo}</p>}
-            </div>
-          )}
+            </div>}
 
           {/* Remember me and forgot password row (login only) */}
-          {isLogin && (
-            <div className="flex items-center justify-between pt-1">
+          {isLogin && <div className="flex items-center justify-between pt-1">
               <div className="flex items-center space-x-1.5">
-                <Checkbox
-                  id="rememberMe"
-                  checked={rememberMe}
-                  onCheckedChange={(checked) => setRememberMe(checked === true)}
-                  className="border-white/60 data-[state=checked]:bg-white data-[state=checked]:border-white data-[state=checked]:text-blue-600 h-3 w-3"
-                />
-                <label 
-                  htmlFor="rememberMe" 
-                  className="text-white/80 text-[11px] cursor-pointer select-none"
-                >
-                  Remember me
+                <Checkbox id="rememberMe" checked={rememberMe} onCheckedChange={checked => setRememberMe(checked === true)} className="border-white/60 data-[state=checked]:bg-white data-[state=checked]:border-white data-[state=checked]:text-blue-600 h-3 w-3" />
+                <label htmlFor="rememberMe" className="text-white/80 text-[11px] cursor-pointer select-none text-justify font-extrabold">
+                  Lembrar Email e Senha       
                 </label>
               </div>
-              <button
-                type="button"
-                className="text-blue-300/80 hover:text-blue-200 text-[11px] transition-colors"
-              >
-                Forgot Password?
-              </button>
-            </div>
-          )}
+              
+            </div>}
 
           {/* Submit button - dark slate matching the reference */}
-          <Button
-            type="submit"
-            disabled={isLoading}
-            className="w-full h-9 bg-slate-600 hover:bg-slate-500 text-white text-sm font-medium tracking-wide rounded shadow-lg transition-all duration-200 mt-3"
-          >
+          <Button type="submit" disabled={isLoading} className="w-full h-9 bg-slate-600 hover:bg-slate-500 text-white text-sm font-medium tracking-wide rounded shadow-lg transition-all duration-200 mt-3">
             {isLoading ? <Loader2 className="w-4 h-4 animate-spin" /> : isLogin ? "LOGIN" : "CADASTRAR"}
           </Button>
         </form>
@@ -473,21 +408,15 @@ const Auth = () => {
         <div className="mt-5 text-center">
           <p className="text-white/60 text-xs">
             {isLogin ? "Novo por aqui?" : "Já tem uma conta?"}{" "}
-            <button
-              type="button"
-              onClick={() => {
-                setIsLogin(!isLogin);
-                setErrors({});
-              }}
-              className="text-white/90 font-medium hover:underline"
-            >
+            <button type="button" onClick={() => {
+            setIsLogin(!isLogin);
+            setErrors({});
+          }} className="text-white/90 font-medium hover:underline">
               {isLogin ? "Cadastre-se" : "Faça login"}
             </button>
           </p>
         </div>
       </div>
-    </div>
-  );
+    </div>;
 };
-
 export default Auth;
