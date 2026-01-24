@@ -32,17 +32,17 @@ interface NavItem {
 
 const allNavItems: NavItem[] = [
   { id: "destaques", icon: LayoutDashboard, label: "Destaques", path: "/" },
-  { id: "rh", icon: Users, label: "RH", path: "/rh" },
-  { id: "presenca", icon: ClipboardList, label: "Lista de Presença", path: "/presenca" },
-  { id: "relatorio", icon: FileBarChart, label: "Relatório", path: "/relatorio-presenca" },
-  { id: "matriz", icon: Grid3X3, label: "Matriz Responsabilidade", path: "/matriz" },
-  { id: "dds", icon: Sun, label: "DDS", path: "/dds" },
-  { id: "lembretes", icon: Bell, label: "Lembretes", path: "/lembretes" },
-  { id: "equipamentos", icon: Truck, label: "Equipamentos", path: "/equipamentos" },
-  { id: "rdo", icon: FileText, label: "RDO", path: "/rdo" },
   { id: "campanhas", icon: Heart, label: "Campanhas", path: "/campanhas" },
-  { id: "pedidos", icon: ShoppingCart, label: "Pedidos", path: "/pedidos" },
+  { id: "dds", icon: Sun, label: "DDS", path: "/dds" },
+  { id: "equipamentos", icon: Truck, label: "Equipamentos", path: "/equipamentos" },
   { id: "estoque", icon: Package, label: "Estoque", path: "/estoque" },
+  { id: "lembretes", icon: Bell, label: "Lembretes", path: "/lembretes" },
+  { id: "presenca", icon: ClipboardList, label: "Lista de Presença", path: "/presenca" },
+  { id: "matriz", icon: Grid3X3, label: "Matriz Responsabilidade", path: "/matriz" },
+  { id: "pedidos", icon: ShoppingCart, label: "Pedidos", path: "/pedidos" },
+  { id: "rdo", icon: FileText, label: "RDO", path: "/rdo" },
+  { id: "relatorio", icon: FileBarChart, label: "Relatório", path: "/relatorio-presenca" },
+  { id: "rh", icon: Users, label: "RH", path: "/rh" },
   { id: "emergencia", icon: Phone, label: "Emergência", path: "/emergencia" },
 ];
 
