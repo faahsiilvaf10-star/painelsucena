@@ -5,7 +5,7 @@ const RADIO_STATIONS = [
   { id: "sertanejo", name: "Sertanejo", genre: "Sertanejo", url: "https://stream.vagalume.fm/hls/14619606471054026608/aac.m3u8" },
   { id: "pagode", name: "Pagode", genre: "Pagode", url: "https://stream.vagalume.fm/hls/147015499779090/aac.m3u8" },
   { id: "melody", name: "Melody", genre: "Romântico", url: "https://stream.vagalume.fm/hls/1499715905423293/aac.m3u8" },
-  { id: "gospel", name: "Gospel", genre: "Gospel", url: "https://stream.vagalume.fm/hls/148697006421610/aac.m3u8" },
+  { id: "gospel", name: "Gospel", genre: "Gospel", url: "https://playerservices.streamtheworld.com/api/livestream-redirect/RADIO_93FM_AAC.aac" },
 ];
 
 export type RadioStation = typeof RADIO_STATIONS[0];
