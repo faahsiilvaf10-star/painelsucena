@@ -1,7 +1,7 @@
 import { useState, useEffect } from "react";
 import { format, formatDistanceToNow } from "date-fns";
 import { ptBR } from "date-fns/locale";
-import { Bell, Plus, Trash2, Users, User, Globe, Calendar, Clock, AlertCircle } from "lucide-react";
+import { Bell, Plus, Trash2, Users, User, Globe, Calendar, Clock, AlertCircle, Repeat } from "lucide-react";
 import Layout from "@/components/layout/Layout";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
@@ -35,6 +35,17 @@ import { useAuth } from "@/hooks/useAuth";
 import { cn } from "@/lib/utils";
 import { getDaysUntilEventBrazilNorth } from "@/lib/timezone";
 import { Check, X as XIcon, History } from "lucide-react";
+import { ToggleGroup, ToggleGroupItem } from "@/components/ui/toggle-group";
+
+const WEEKDAYS = [
+  { value: 0, label: "Dom", fullLabel: "Domingo" },
+  { value: 1, label: "Seg", fullLabel: "Segunda" },
+  { value: 2, label: "Ter", fullLabel: "Terça" },
+  { value: 3, label: "Qua", fullLabel: "Quarta" },
+  { value: 4, label: "Qui", fullLabel: "Quinta" },
+  { value: 5, label: "Sex", fullLabel: "Sexta" },
+  { value: 6, label: "Sáb", fullLabel: "Sábado" },
+];
 
 const Lembretes = () => {
   const { toast } = useToast();
@@ -54,6 +65,8 @@ const Lembretes = () => {
   const [mentionType, setMentionType] = useState<"all" | "specific" | "me">("me");
   const [selectedUsers, setSelectedUsers] = useState<string[]>([]);
   const [showCreatedToast, setShowCreatedToast] = useState<Reminder | null>(null);
+  const [isRecurring, setIsRecurring] = useState(false);
+  const [recurringDays, setRecurringDays] = useState<number[]>([]);
 
   const getInitials = (name: string) => {
     const names = name.split(" ");
@@ -64,10 +77,28 @@ const Lembretes = () => {
   };
 
   const handleCreate = async () => {
-    if (!title || !eventDate) {
+    if (!title) {
       toast({
         title: "Campos obrigatórios",
-        description: "Preencha o título e a data do evento.",
+        description: "Preencha o título do lembrete.",
+        variant: "destructive",
+      });
+      return;
+    }
+
+    if (!isRecurring && !eventDate) {
+      toast({
+        title: "Campos obrigatórios",
+        description: "Preencha a data do evento ou selecione dias da semana.",
+        variant: "destructive",
+      });
+      return;
+    }
+
+    if (isRecurring && recurringDays.length === 0) {
+      toast({
+        title: "Selecione os dias",
+        description: "Escolha pelo menos um dia da semana para o lembrete recorrente.",
         variant: "destructive",
       });
       return;
@@ -77,11 +108,13 @@ const Lembretes = () => {
       const newReminder = await createReminder.mutateAsync({
         title,
         description: description || undefined,
-        event_date: eventDate,
-        alert_days_before: alertDaysBefore,
-        show_on_event_day: showOnEventDay,
+        event_date: isRecurring ? new Date().toISOString().split('T')[0] : eventDate,
+        alert_days_before: isRecurring ? 0 : alertDaysBefore,
+        show_on_event_day: isRecurring ? true : showOnEventDay,
         mention_type: mentionType,
         mentioned_users: mentionType === "specific" ? selectedUsers : [],
+        is_recurring: isRecurring,
+        recurring_days: isRecurring ? recurringDays : [],
       });
 
       // Show toast for 3 seconds with reminder info
@@ -96,11 +129,17 @@ const Lembretes = () => {
       setShowOnEventDay(true);
       setMentionType("me");
       setSelectedUsers([]);
+      setIsRecurring(false);
+      setRecurringDays([]);
       setIsOpen(false);
+
+      const displayInfo = isRecurring 
+        ? `Toda ${recurringDays.map(d => WEEKDAYS.find(w => w.value === d)?.fullLabel).join(", ")}`
+        : format(new Date(eventDate), "dd/MM/yyyy", { locale: ptBR });
 
       toast({
         title: "Lembrete criado!",
-        description: `"${title}" agendado para ${format(new Date(eventDate), "dd/MM/yyyy", { locale: ptBR })}`,
+        description: `"${title}" - ${displayInfo}`,
       });
     } catch (error) {
       toast({
@@ -151,9 +190,9 @@ const Lembretes = () => {
     );
   };
 
-  // Group reminders by upcoming and past
-  const upcomingReminders = reminders?.filter((r) => getDaysUntilEvent(r.event_date) >= 0) || [];
-  const pastReminders = reminders?.filter((r) => getDaysUntilEvent(r.event_date) < 0) || [];
+  // Group reminders by upcoming/recurring and past (recurring reminders are always "upcoming")
+  const upcomingReminders = reminders?.filter((r) => r.is_recurring || getDaysUntilEvent(r.event_date) >= 0) || [];
+  const pastReminders = reminders?.filter((r) => !r.is_recurring && getDaysUntilEvent(r.event_date) < 0) || [];
 
   return (
     <Layout>
@@ -169,7 +208,9 @@ const Lembretes = () => {
                 <div>
                   <p className="font-semibold">Lembrete criado!</p>
                   <p className="text-sm opacity-90">
-                    "{showCreatedToast.title}" - {format(new Date(showCreatedToast.event_date), "dd/MM/yyyy", { locale: ptBR })}
+                    "{showCreatedToast.title}" - {showCreatedToast.is_recurring 
+                      ? `Toda ${(showCreatedToast.recurring_days || []).map(d => WEEKDAYS.find(w => w.value === d)?.fullLabel).join(", ")}`
+                      : format(new Date(showCreatedToast.event_date), "dd/MM/yyyy", { locale: ptBR })}
                   </p>
                 </div>
               </CardContent>
@@ -220,59 +261,126 @@ const Lembretes = () => {
                   />
                 </div>
 
-                <div className="space-y-2">
-                  <Label htmlFor="eventDate">Data do Evento *</Label>
-                  <Input
-                    id="eventDate"
-                    type="date"
-                    value={eventDate}
-                    onChange={(e) => setEventDate(e.target.value)}
-                  />
-                </div>
-
                 <Separator />
 
+                {/* Recurring vs Single Event Toggle */}
                 <div className="space-y-4">
-                  <Label className="text-base font-semibold">Configuração de Alerta</Label>
-                  
-                  <div className="space-y-2">
-                    <Label htmlFor="alertDays">Mostrar alerta (dias antes)</Label>
-                    <Select
-                      value={alertDaysBefore.toString()}
-                      onValueChange={(v) => setAlertDaysBefore(parseInt(v))}
-                    >
-                      <SelectTrigger>
-                        <SelectValue />
-                      </SelectTrigger>
-                      <SelectContent>
-                        <SelectItem value="0">Não mostrar antes</SelectItem>
-                        <SelectItem value="1">1 dia antes</SelectItem>
-                        <SelectItem value="2">2 dias antes</SelectItem>
-                        <SelectItem value="3">3 dias antes</SelectItem>
-                        <SelectItem value="5">5 dias antes</SelectItem>
-                        <SelectItem value="7">7 dias antes</SelectItem>
-                        <SelectItem value="14">14 dias antes</SelectItem>
-                        <SelectItem value="30">30 dias antes</SelectItem>
-                      </SelectContent>
-                    </Select>
-                    <p className="text-xs text-muted-foreground">
-                      O lembrete será fixado no topo da tela de Destaques
-                    </p>
-                  </div>
-
                   <div className="flex items-center justify-between">
                     <div className="space-y-0.5">
-                      <Label htmlFor="showOnDay">Alerta no dia do evento</Label>
+                      <Label htmlFor="recurring" className="flex items-center gap-2">
+                        <Repeat className="h-4 w-4" />
+                        Lembrete Recorrente
+                      </Label>
                       <p className="text-xs text-muted-foreground">
-                        Mostrar alerta especial no dia
+                        Repetir em dias específicos da semana
                       </p>
                     </div>
                     <Switch
-                      id="showOnDay"
-                      checked={showOnEventDay}
-                      onCheckedChange={setShowOnEventDay}
+                      id="recurring"
+                      checked={isRecurring}
+                      onCheckedChange={(checked) => {
+                        setIsRecurring(checked);
+                        if (checked) {
+                          setEventDate("");
+                          setAlertDaysBefore(0);
+                        } else {
+                          setRecurringDays([]);
+                        }
+                      }}
                     />
                   </div>
+
+                  {isRecurring ? (
+                    <div className="space-y-3">
+                      <Label>Dias da Semana</Label>
+                      <div className="flex flex-wrap gap-2">
+                        {WEEKDAYS.map((day) => (
+                          <button
+                            key={day.value}
+                            type="button"
+                            onClick={() => {
+                              setRecurringDays(prev => 
+                                prev.includes(day.value)
+                                  ? prev.filter(d => d !== day.value)
+                                  : [...prev, day.value].sort()
+                              );
+                            }}
+                            className={cn(
+                              "w-11 h-11 rounded-full text-sm font-medium transition-all",
+                              "border-2",
+                              recurringDays.includes(day.value)
+                                ? "bg-primary text-primary-foreground border-primary"
+                                : "bg-background border-border hover:border-primary/50"
+                            )}
+                          >
+                            {day.label}
+                          </button>
+                        ))}
+                      </div>
+                      {recurringDays.length > 0 && (
+                        <p className="text-xs text-muted-foreground">
+                          Lembrete ativo: {recurringDays.map(d => WEEKDAYS.find(w => w.value === d)?.fullLabel).join(", ")}
+                        </p>
+                      )}
+                    </div>
+                  ) : (
+                    <>
+                      <div className="space-y-2">
+                        <Label htmlFor="eventDate">Data do Evento *</Label>
+                        <Input
+                          id="eventDate"
+                          type="date"
+                          value={eventDate}
+                          onChange={(e) => setEventDate(e.target.value)}
+                        />
+                      </div>
+
+                      <Separator />
+
+                      <div className="space-y-4">
+                        <Label className="text-base font-semibold">Configuração de Alerta</Label>
+                        
+                        <div className="space-y-2">
+                          <Label htmlFor="alertDays">Mostrar alerta (dias antes)</Label>
+                          <Select
+                            value={alertDaysBefore.toString()}
+                            onValueChange={(v) => setAlertDaysBefore(parseInt(v))}
+                          >
+                            <SelectTrigger>
+                              <SelectValue />
+                            </SelectTrigger>
+                            <SelectContent>
+                              <SelectItem value="0">Não mostrar antes</SelectItem>
+                              <SelectItem value="1">1 dia antes</SelectItem>
+                              <SelectItem value="2">2 dias antes</SelectItem>
+                              <SelectItem value="3">3 dias antes</SelectItem>
+                              <SelectItem value="5">5 dias antes</SelectItem>
+                              <SelectItem value="7">7 dias antes</SelectItem>
+                              <SelectItem value="14">14 dias antes</SelectItem>
+                              <SelectItem value="30">30 dias antes</SelectItem>
+                            </SelectContent>
+                          </Select>
+                          <p className="text-xs text-muted-foreground">
+                            O lembrete será fixado no topo da tela de Destaques
+                          </p>
+                        </div>
+
+                        <div className="flex items-center justify-between">
+                          <div className="space-y-0.5">
+                            <Label htmlFor="showOnDay">Alerta no dia do evento</Label>
+                            <p className="text-xs text-muted-foreground">
+                              Mostrar alerta especial no dia
+                            </p>
+                          </div>
+                          <Switch
+                            id="showOnDay"
+                            checked={showOnEventDay}
+                            onCheckedChange={setShowOnEventDay}
+                          />
+                        </div>
+                      </div>
+                    </>
+                  )}
                 </div>
 
                 <Separator />
@@ -441,17 +549,31 @@ const Lembretes = () => {
                         </div>
                       </CardHeader>
                       <CardContent className="space-y-3">
-                        <div className="flex items-center gap-2 text-sm">
-                          <Calendar className="h-4 w-4 text-muted-foreground" />
-                          <span>
-                            {format(new Date(reminder.event_date), "dd 'de' MMMM 'de' yyyy", {
-                              locale: ptBR,
-                            })}
-                          </span>
-                        </div>
+                        {reminder.is_recurring && reminder.recurring_days?.length > 0 ? (
+                          <div className="flex items-center gap-2 text-sm">
+                            <Repeat className="h-4 w-4 text-primary" />
+                            <span>
+                              {reminder.recurring_days.map(d => WEEKDAYS.find(w => w.value === d)?.fullLabel).join(", ")}
+                            </span>
+                          </div>
+                        ) : (
+                          <div className="flex items-center gap-2 text-sm">
+                            <Calendar className="h-4 w-4 text-muted-foreground" />
+                            <span>
+                              {format(new Date(reminder.event_date), "dd 'de' MMMM 'de' yyyy", {
+                                locale: ptBR,
+                              })}
+                            </span>
+                          </div>
+                        )}
 
-                        <div className="flex items-center gap-2">
-                          {isToday ? (
+                        <div className="flex items-center gap-2 flex-wrap">
+                          {reminder.is_recurring ? (
+                            <Badge variant="default" className="gap-1 bg-primary/20 text-primary">
+                              <Repeat className="h-3 w-3" />
+                              Recorrente
+                            </Badge>
+                          ) : isToday ? (
                             <Badge variant="default" className="gap-1">
                               <AlertCircle className="h-3 w-3" />
                               Hoje!
@@ -470,7 +592,7 @@ const Lembretes = () => {
                           </Badge>
                         </div>
 
-                        {reminder.alert_days_before > 0 && (
+                        {!reminder.is_recurring && reminder.alert_days_before > 0 && (
                           <div className="flex items-center gap-2 text-xs text-muted-foreground">
                             <Clock className="h-3 w-3" />
                             Alerta {reminder.alert_days_before} dia(s) antes

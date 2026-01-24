@@ -702,8 +702,10 @@ export type Database = {
           description: string | null
           event_date: string
           id: string
+          is_recurring: boolean | null
           mention_type: string
           mentioned_users: string[] | null
+          recurring_days: number[] | null
           show_on_event_day: boolean | null
           title: string
           updated_at: string
@@ -716,8 +718,10 @@ export type Database = {
           description?: string | null
           event_date: string
           id?: string
+          is_recurring?: boolean | null
           mention_type: string
           mentioned_users?: string[] | null
+          recurring_days?: number[] | null
           show_on_event_day?: boolean | null
           title: string
           updated_at?: string
@@ -730,8 +734,10 @@ export type Database = {
           description?: string | null
           event_date?: string
           id?: string
+          is_recurring?: boolean | null
           mention_type?: string
           mentioned_users?: string[] | null
+          recurring_days?: number[] | null
           show_on_event_day?: boolean | null
           title?: string
           updated_at?: string
