@@ -1,13 +1,20 @@
-import { Users, ClipboardCheck, AlertCircle, TrendingUp, ClipboardList, Grid3X3 } from "lucide-react";
+import { Users, ClipboardCheck, AlertCircle } from "lucide-react";
 import Layout from "@/components/layout/Layout";
 import StatCard from "@/components/dashboard/StatCard";
-import QuickAccessCard from "@/components/dashboard/QuickAccessCard";
 import { DDSHighlightCard } from "@/components/dds/DDSHighlightCard";
 import { MatrixProgressChart } from "@/components/dashboard/MatrixProgressChart";
-import { employees, attendanceRecords } from "@/data/mockData";
+import { useEmployees } from "@/hooks/useEmployees";
+import { useAttendanceRecords } from "@/hooks/useAttendance";
+
 const Dashboard = () => {
-  const presentToday = attendanceRecords.filter(a => a.status === "present" || a.status === "late").length;
-  const absentToday = attendanceRecords.filter(a => a.status === "absent").length;
+  const today = new Date().toISOString().split("T")[0];
+  const { data: employees } = useEmployees();
+  const { data: attendanceRecords } = useAttendanceRecords(today);
+
+  const totalEmployees = employees?.length || 0;
+  const presentToday = attendanceRecords?.filter(a => a.status === "present" || a.status === "late").length || 0;
+  const absentToday = attendanceRecords?.filter(a => a.status === "absent" || a.status === "justified").length || 0;
+
   return <Layout>
       <div className="container mx-auto px-6 py-8">
         {/* Hero Section */}
@@ -28,12 +35,12 @@ const Dashboard = () => {
           <div className="animate-slide-up" style={{
           animationDelay: "0.1s"
         }}>
-            <StatCard title="Total de Funcionários" value={employees.length} icon={Users} trend="up" trendValue="+2 este mês" />
+            <StatCard title="Total de Funcionários" value={totalEmployees} icon={Users} trend="up" trendValue="+2 este mês" />
           </div>
           <div className="animate-slide-up" style={{
           animationDelay: "0.2s"
         }}>
-            <StatCard title="Em Atividade Hoje" value={presentToday} icon={ClipboardCheck} trend="neutral" trendValue={`${Math.round(presentToday / employees.length * 100)}%`} />
+            <StatCard title="Presentes Hoje" value={presentToday} icon={ClipboardCheck} trend="neutral" trendValue={totalEmployees > 0 ? `${Math.round(presentToday / totalEmployees * 100)}%` : "0%"} />
           </div>
           <div className="animate-slide-up" style={{
           animationDelay: "0.3s"
