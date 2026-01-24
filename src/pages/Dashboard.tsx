@@ -5,6 +5,7 @@ import { DDSHighlightCard } from "@/components/dds/DDSHighlightCard";
 import { ReminderHighlightBanner } from "@/components/reminders/ReminderHighlightBanner";
 import { MatrixProgressChart } from "@/components/dashboard/MatrixProgressChart";
 import { CampaignBanner } from "@/components/campaigns/CampaignBanner";
+import { useCampaignNotifications } from "@/hooks/useCampaignNotifications";
 import { useEmployees } from "@/hooks/useEmployees";
 import { useAttendanceRecords } from "@/hooks/useAttendance";
 import { getBrazilNorthTodayString } from "@/lib/timezone";
@@ -13,6 +14,9 @@ const Dashboard = () => {
   const today = getBrazilNorthTodayString();
   const { data: employees } = useEmployees();
   const { data: attendanceRecords } = useAttendanceRecords(today);
+  
+  // Check and create campaign notifications at start of month
+  useCampaignNotifications();
 
   const totalEmployees = employees?.length || 0;
   const presentToday = attendanceRecords?.filter(a => a.status === "present" || a.status === "late").length || 0;
