@@ -25,6 +25,9 @@ const Equipamentos = () => {
         <div className="grid gap-6">
           <EquipmentTimeline 
             name="Caminhão Pipa 01" 
+            plate="ABC-1234"
+            driver="João Silva"
+            helper="Carlos Santos"
             startHour={8} 
             endHour={16} 
           />
