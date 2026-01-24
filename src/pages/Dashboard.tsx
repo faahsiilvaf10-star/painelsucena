@@ -4,6 +4,7 @@ import StatCard from "@/components/dashboard/StatCard";
 import { DDSHighlightCard } from "@/components/dds/DDSHighlightCard";
 import { ReminderHighlightBanner } from "@/components/reminders/ReminderHighlightBanner";
 import { MatrixProgressChart } from "@/components/dashboard/MatrixProgressChart";
+import { CampaignBanner } from "@/components/campaigns/CampaignBanner";
 import { useEmployees } from "@/hooks/useEmployees";
 import { useAttendanceRecords } from "@/hooks/useAttendance";
 import { getBrazilNorthTodayString } from "@/lib/timezone";
@@ -28,6 +29,9 @@ const Dashboard = () => {
             Gerencie sua equipe, controle presença e organize responsabilidades em um só lugar.
           </p>
         </div>
+
+        {/* Campaign Banner - Health awareness campaigns */}
+        <CampaignBanner />
 
         {/* Reminder Highlights - Pinned at top */}
         <ReminderHighlightBanner />
