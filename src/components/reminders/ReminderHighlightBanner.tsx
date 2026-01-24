@@ -1,22 +1,60 @@
 import { format } from "date-fns";
 import { ptBR } from "date-fns/locale";
-import { Bell, AlertCircle, Calendar, Users, User, Globe, X } from "lucide-react";
-import { useState, useMemo } from "react";
+import { Bell, AlertCircle, Calendar, Users, User, Globe, X, AlertTriangle } from "lucide-react";
+import { useState, useMemo, useEffect } from "react";
 import { Card, CardContent } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { ScrollArea, ScrollBar } from "@/components/ui/scroll-area";
+import { Alert, AlertDescription, AlertTitle } from "@/components/ui/alert";
 import { useActiveReminders, Reminder } from "@/hooks/useReminders";
 import { cn } from "@/lib/utils";
 import { Link } from "react-router-dom";
 
+// Play alert sound for today's reminders
+const playAlertSound = () => {
+  try {
+    const audio = new Audio("/sounds/notification.mp3");
+    audio.volume = 0.6;
+    audio.play().catch(() => {});
+  } catch (error) {
+    console.error("Error playing alert sound:", error);
+  }
+};
+
 export const ReminderHighlightBanner = () => {
   const { data: activeReminders, isLoading } = useActiveReminders();
   const [dismissedIds, setDismissedIds] = useState<Set<string>>(new Set());
+  const [hasPlayedSound, setHasPlayedSound] = useState(false);
 
   const visibleReminders = useMemo(() => {
     return activeReminders?.filter((r) => !dismissedIds.has(r.id)) || [];
   }, [activeReminders, dismissedIds]);
+
+  const getDaysUntilEvent = (dateStr: string) => {
+    const eventDate = new Date(dateStr);
+    const today = new Date();
+    eventDate.setHours(0, 0, 0, 0);
+    today.setHours(0, 0, 0, 0);
+    return Math.ceil((eventDate.getTime() - today.getTime()) / (1000 * 60 * 60 * 24));
+  };
+
+  // Separate today's reminders from upcoming ones
+  const todayReminders = useMemo(() => {
+    return visibleReminders.filter((r) => getDaysUntilEvent(r.event_date) === 0);
+  }, [visibleReminders]);
+
+  const upcomingReminders = useMemo(() => {
+    return visibleReminders.filter((r) => getDaysUntilEvent(r.event_date) > 0);
+  }, [visibleReminders]);
+
+  // Play sound once when there are today's reminders
+  useEffect(() => {
+    if (todayReminders.length > 0 && !hasPlayedSound) {
+      playAlertSound();
+      setHasPlayedSound(true);
+    }
+  }, [todayReminders.length, hasPlayedSound]);
 
   const handleDismiss = (id: string) => {
     setDismissedIds((prev) => new Set([...prev, id]));
@@ -37,112 +75,170 @@ export const ReminderHighlightBanner = () => {
     }
   };
 
-  const getDaysUntilEvent = (dateStr: string) => {
-    const eventDate = new Date(dateStr);
-    const today = new Date();
-    eventDate.setHours(0, 0, 0, 0);
-    today.setHours(0, 0, 0, 0);
-    return Math.ceil((eventDate.getTime() - today.getTime()) / (1000 * 60 * 60 * 24));
-  };
-
   return (
-    <div className="mb-6 animate-in fade-in slide-in-from-top-4 duration-500">
-      <div className="flex items-center gap-2 mb-3">
-        <Bell className="h-5 w-5 text-primary animate-bounce" />
-        <h3 className="font-semibold text-sm text-muted-foreground uppercase tracking-wide">
-          Lembretes Ativos
-        </h3>
-        <Link to="/lembretes">
-          <Badge variant="outline" className="ml-2 cursor-pointer hover:bg-accent">
-            Ver todos
-          </Badge>
-        </Link>
-      </div>
-      
-      <ScrollArea className="w-full whitespace-nowrap pb-2">
-        <div className="flex gap-4">
-          {visibleReminders.map((reminder) => {
-            const daysUntil = getDaysUntilEvent(reminder.event_date);
-            const isToday = daysUntil === 0;
-            const MentionIcon = getMentionIcon(reminder.mention_type);
+    <div className="space-y-4 mb-6">
+      {/* TODAY'S REMINDERS - Fixed Alert Banner */}
+      {todayReminders.length > 0 && (
+        <div className="animate-in fade-in slide-in-from-top-4 duration-500">
+          <Alert className="border-2 border-primary bg-gradient-to-r from-primary/20 via-primary/10 to-primary/5 shadow-lg shadow-primary/10">
+            <div className="flex items-start gap-4">
+              <div className="p-2 rounded-full bg-primary/20 animate-pulse">
+                <AlertTriangle className="h-6 w-6 text-primary" />
+              </div>
+              <div className="flex-1">
+                <AlertTitle className="text-lg font-bold text-primary flex items-center gap-2">
+                  <Bell className="h-5 w-5 animate-bounce" />
+                  Lembretes de Hoje!
+                  <Badge variant="destructive" className="ml-2 animate-pulse">
+                    {todayReminders.length} {todayReminders.length === 1 ? "lembrete" : "lembretes"}
+                  </Badge>
+                </AlertTitle>
+                <AlertDescription className="mt-3">
+                  <div className="space-y-3">
+                    {todayReminders.map((reminder) => {
+                      const MentionIcon = getMentionIcon(reminder.mention_type);
+                      return (
+                        <div
+                          key={reminder.id}
+                          className="flex items-center justify-between p-3 rounded-lg bg-background/80 border border-primary/20"
+                        >
+                          <div className="flex items-center gap-3">
+                            <AlertCircle className="h-5 w-5 text-primary flex-shrink-0" />
+                            <div>
+                              <p className="font-semibold">{reminder.title}</p>
+                              {reminder.description && (
+                                <p className="text-sm text-muted-foreground line-clamp-1">
+                                  {reminder.description}
+                                </p>
+                              )}
+                              <div className="flex items-center gap-2 mt-1">
+                                <MentionIcon className="h-3 w-3 text-muted-foreground" />
+                                <span className="text-xs text-muted-foreground">
+                                  {reminder.mention_type === "all"
+                                    ? "Todos"
+                                    : reminder.mention_type === "me"
+                                    ? "Pessoal"
+                                    : "Mencionado"}
+                                </span>
+                              </div>
+                            </div>
+                          </div>
+                          <Button
+                            variant="ghost"
+                            size="icon"
+                            className="h-8 w-8 rounded-full hover:bg-primary/20"
+                            onClick={() => handleDismiss(reminder.id)}
+                          >
+                            <X className="h-4 w-4" />
+                          </Button>
+                        </div>
+                      );
+                    })}
+                  </div>
+                </AlertDescription>
+              </div>
+            </div>
+          </Alert>
+        </div>
+      )}
 
-            return (
-              <Card
-                key={reminder.id}
-                className={cn(
-                  "flex-shrink-0 w-72 relative overflow-hidden transition-all",
-                  isToday
-                    ? "bg-gradient-to-br from-primary/20 to-primary/5 border-primary/30"
-                    : "bg-gradient-to-br from-orange-500/10 to-orange-500/5 border-orange-500/20"
-                )}
-              >
-                <Button
-                  variant="ghost"
-                  size="icon"
-                  className="absolute top-2 right-2 h-6 w-6 rounded-full opacity-60 hover:opacity-100"
-                  onClick={() => handleDismiss(reminder.id)}
-                >
-                  <X className="h-3 w-3" />
-                </Button>
-                <CardContent className="p-4">
-                  <div className="flex items-start gap-3">
-                    <div
-                      className={cn(
-                        "p-2 rounded-full flex-shrink-0",
-                        isToday ? "bg-primary/20" : "bg-orange-500/20"
-                      )}
+      {/* UPCOMING REMINDERS - Horizontal scroll cards */}
+      {upcomingReminders.length > 0 && (
+        <div className="animate-in fade-in slide-in-from-top-4 duration-500">
+          <div className="flex items-center gap-2 mb-3">
+            <Bell className="h-5 w-5 text-orange-500" />
+            <h3 className="font-semibold text-sm text-muted-foreground uppercase tracking-wide">
+              Próximos Lembretes
+            </h3>
+            <Link to="/lembretes">
+              <Badge variant="outline" className="ml-2 cursor-pointer hover:bg-accent">
+                Ver todos
+              </Badge>
+            </Link>
+          </div>
+
+          <ScrollArea className="w-full whitespace-nowrap pb-2">
+            <div className="flex gap-4">
+              {upcomingReminders.map((reminder) => {
+                const daysUntil = getDaysUntilEvent(reminder.event_date);
+                const MentionIcon = getMentionIcon(reminder.mention_type);
+                const isUrgent = daysUntil <= 3;
+
+                return (
+                  <Card
+                    key={reminder.id}
+                    className={cn(
+                      "flex-shrink-0 w-72 relative overflow-hidden transition-all",
+                      isUrgent
+                        ? "bg-gradient-to-br from-orange-500/15 to-orange-500/5 border-orange-500/30"
+                        : "bg-gradient-to-br from-muted/50 to-muted/20 border-border"
+                    )}
+                  >
+                    <Button
+                      variant="ghost"
+                      size="icon"
+                      className="absolute top-2 right-2 h-6 w-6 rounded-full opacity-60 hover:opacity-100"
+                      onClick={() => handleDismiss(reminder.id)}
                     >
-                      {isToday ? (
-                        <AlertCircle className="h-5 w-5 text-primary" />
-                      ) : (
-                        <Bell className="h-5 w-5 text-orange-500" />
-                      )}
-                    </div>
-                    <div className="min-w-0 flex-1">
-                      <p className="font-semibold truncate pr-6">{reminder.title}</p>
-                      <div className="flex items-center gap-2 mt-1">
-                        <Calendar className="h-3 w-3 text-muted-foreground flex-shrink-0" />
-                        <span className="text-xs text-muted-foreground">
-                          {format(new Date(reminder.event_date), "dd 'de' MMM", {
-                            locale: ptBR,
-                          })}
-                        </span>
-                        <Badge
-                          variant="secondary"
+                      <X className="h-3 w-3" />
+                    </Button>
+                    <CardContent className="p-4">
+                      <div className="flex items-start gap-3">
+                        <div
                           className={cn(
-                            "text-xs",
-                            isToday
-                              ? "bg-primary/20 text-primary"
-                              : "bg-orange-500/20 text-orange-500"
+                            "p-2 rounded-full flex-shrink-0",
+                            isUrgent ? "bg-orange-500/20" : "bg-muted"
                           )}
                         >
-                          {isToday ? "Hoje!" : `${daysUntil}d`}
-                        </Badge>
+                          <Bell className={cn("h-5 w-5", isUrgent ? "text-orange-500" : "text-muted-foreground")} />
+                        </div>
+                        <div className="min-w-0 flex-1">
+                          <p className="font-semibold truncate pr-6">{reminder.title}</p>
+                          <div className="flex items-center gap-2 mt-1">
+                            <Calendar className="h-3 w-3 text-muted-foreground flex-shrink-0" />
+                            <span className="text-xs text-muted-foreground">
+                              {format(new Date(reminder.event_date), "dd 'de' MMM", {
+                                locale: ptBR,
+                              })}
+                            </span>
+                            <Badge
+                              variant="secondary"
+                              className={cn(
+                                "text-xs",
+                                isUrgent
+                                  ? "bg-orange-500/20 text-orange-500"
+                                  : "bg-muted text-muted-foreground"
+                              )}
+                            >
+                              {daysUntil === 1 ? "Amanhã" : `${daysUntil}d`}
+                            </Badge>
+                          </div>
+                          {reminder.description && (
+                            <p className="text-xs text-muted-foreground mt-2 line-clamp-2 whitespace-normal">
+                              {reminder.description}
+                            </p>
+                          )}
+                          <div className="flex items-center gap-1 mt-2">
+                            <MentionIcon className="h-3 w-3 text-muted-foreground" />
+                            <span className="text-xs text-muted-foreground capitalize">
+                              {reminder.mention_type === "all"
+                                ? "Todos"
+                                : reminder.mention_type === "me"
+                                ? "Pessoal"
+                                : "Mencionado"}
+                            </span>
+                          </div>
+                        </div>
                       </div>
-                      {reminder.description && (
-                        <p className="text-xs text-muted-foreground mt-2 line-clamp-2 whitespace-normal">
-                          {reminder.description}
-                        </p>
-                      )}
-                      <div className="flex items-center gap-1 mt-2">
-                        <MentionIcon className="h-3 w-3 text-muted-foreground" />
-                        <span className="text-xs text-muted-foreground capitalize">
-                          {reminder.mention_type === "all"
-                            ? "Todos"
-                            : reminder.mention_type === "me"
-                            ? "Pessoal"
-                            : "Mencionado"}
-                        </span>
-                      </div>
-                    </div>
-                  </div>
-                </CardContent>
-              </Card>
-            );
-          })}
+                    </CardContent>
+                  </Card>
+                );
+              })}
+            </div>
+            <ScrollBar orientation="horizontal" />
+          </ScrollArea>
         </div>
-        <ScrollBar orientation="horizontal" />
-      </ScrollArea>
+      )}
     </div>
   );
 };
