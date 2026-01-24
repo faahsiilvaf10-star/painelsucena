@@ -46,7 +46,7 @@ const statusConfig: Record<string, { label: string; color: string; bg: string; i
   end_of_shift: { label: "Fim de Turno", color: "text-purple-600", bg: "bg-purple-500", icon: <Pause className="w-3 h-3" /> },
 };
 
-const quickStatusOptions: StopReason[] = ["none", "maintenance", "waiting", "rain"];
+const quickStatusOptions: StopReason[] = ["none", "maintenance", "waiting", "rain", "end_of_shift"];
 
 interface EquipmentTimelineProps {
   equipment: Equipment;
