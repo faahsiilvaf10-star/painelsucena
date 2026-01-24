@@ -1,4 +1,4 @@
-import { useState, useEffect, useMemo } from "react";
+import { useState, useEffect, useMemo, useCallback } from "react";
 import { Pause, Play, Wrench, CloudRain, Clock, User, Edit2, Check, X, Trash2, MoreVertical, LogOut } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
@@ -54,6 +54,14 @@ const stopReasonLabelsExtended: Record<string, string> = {
   rain: "Chuva",
   end_of_day: "Fim do dia",
   end_of_shift: "Fim de Turno",
+};
+
+const stopReasonIcons: Record<StopReason, React.ReactNode> = {
+  none: <Play className="w-3.5 h-3.5" />,
+  maintenance: <Wrench className="w-3.5 h-3.5" />,
+  waiting: <Clock className="w-3.5 h-3.5" />,
+  rain: <CloudRain className="w-3.5 h-3.5" />,
+  end_of_shift: <LogOut className="w-3.5 h-3.5" />,
 };
 
 interface EquipmentTimelineProps {
@@ -116,10 +124,40 @@ export function EquipmentTimeline({ equipment }: EquipmentTimelineProps) {
     setEditData({ plate: equipment.plate, driver: equipment.driver, helper: equipment.helper });
   }, [equipment]);
 
+  // Check for auto end-of-shift at 16:30
+  const checkAutoEndOfShift = useCallback(async () => {
+    const now = new Date();
+    const hours = now.getHours();
+    const minutes = now.getMinutes();
+    
+    // At 16:30, automatically set to end_of_shift if currently operating
+    if (hours === 16 && minutes === 30 && stopReason === "none") {
+      try {
+        await updateStatus.mutateAsync({
+          id: equipment.id,
+          stop_reason: "end_of_shift",
+          stop_start_time: now.toISOString(),
+          previousStopReason: stopReason,
+          previousStopStartTime: equipment.stop_start_time,
+        });
+        toast.info(`${equipment.name}: Fim de Turno automático`);
+      } catch {
+        console.error("Erro ao aplicar fim de turno automático");
+      }
+    }
+  }, [equipment.id, equipment.name, equipment.stop_start_time, stopReason, updateStatus]);
+
   useEffect(() => {
-    const interval = setInterval(() => setCurrentTime(new Date()), 60000);
+    const interval = setInterval(() => {
+      setCurrentTime(new Date());
+      checkAutoEndOfShift();
+    }, 60000);
+    
+    // Check immediately on mount
+    checkAutoEndOfShift();
+    
     return () => clearInterval(interval);
-  }, []);
+  }, [checkAutoEndOfShift]);
 
   const position = useMemo(() => {
     const hours = currentTime.getHours();
@@ -255,6 +293,26 @@ export function EquipmentTimeline({ equipment }: EquipmentTimelineProps) {
             </DropdownMenuItem>
           </DropdownMenuContent>
         </DropdownMenu>
+      </div>
+
+      {/* Quick Status Buttons */}
+      <div className="flex items-center gap-2 mb-3 flex-wrap">
+        {(Object.keys(stopReasonLabels) as StopReason[]).map((reason) => (
+          <Button
+            key={reason}
+            size="sm"
+            variant={stopReason === reason ? "default" : "outline"}
+            className={`h-7 px-2.5 gap-1.5 text-xs font-medium transition-all ${
+              stopReason === reason 
+                ? `${stopReasonColors[reason]} text-white border-transparent hover:opacity-90` 
+                : `hover:${stopReasonColors[reason]} hover:text-white`
+            }`}
+            onClick={() => handleStopChange(reason)}
+          >
+            {stopReasonIcons[reason]}
+            {stopReasonLabels[reason]}
+          </Button>
+        ))}
       </div>
 
       {/* Compact Timeline */}
