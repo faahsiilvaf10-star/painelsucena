@@ -55,9 +55,9 @@ const Layout = ({ children }: LayoutProps) => {
   const dailyPhrase = useMemo(() => getDailyPhrase(), []);
 
   return (
-    <SidebarInset>
+    <SidebarInset className="flex flex-col h-full overflow-hidden">
       {/* Header with notification bell and theme toggle */}
-      <header className="flex h-14 items-center justify-between gap-4 border-b bg-background px-4">
+      <header className="flex h-14 shrink-0 items-center justify-between gap-4 border-b bg-background px-4">
         <div className="flex items-center gap-4 md:hidden">
           <SidebarTrigger>
             <Menu className="h-5 w-5" />
@@ -77,7 +77,7 @@ const Layout = ({ children }: LayoutProps) => {
           <NotificationBell />
         </div>
       </header>
-      <main className="flex-1 pb-14">
+      <main className="flex-1 overflow-y-auto pb-14">
         {children}
       </main>
       <ForbiddenColorIndicator />
