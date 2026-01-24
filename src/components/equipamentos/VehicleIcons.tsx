@@ -6,7 +6,7 @@ interface VehicleIconProps {
   type: EquipmentType;
   isStopped?: boolean;
   className?: string;
-  size?: "sm" | "md" | "lg";
+  size?: "xs" | "sm" | "md" | "lg";
 }
 
 export const VehicleIcon: React.FC<VehicleIconProps> = ({ 
@@ -16,6 +16,7 @@ export const VehicleIcon: React.FC<VehicleIconProps> = ({
   size = "md"
 }) => {
   const sizeConfig = {
+    xs: { width: 20, height: 12 },
     sm: { width: 32, height: 20 },
     md: { width: 40, height: 24 },
     lg: { width: 48, height: 28 },

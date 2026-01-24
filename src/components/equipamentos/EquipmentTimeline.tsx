@@ -1,7 +1,6 @@
 import { useState, useEffect, useMemo, useCallback } from "react";
-import { Pause, Play, Wrench, CloudRain, Clock, User, Edit2, Check, X, Trash2, MoreVertical, LogOut } from "lucide-react";
+import { Pause, Play, Wrench, CloudRain, Clock, User, Edit2, Check, X, Trash2, MoreHorizontal } from "lucide-react";
 import { Button } from "@/components/ui/button";
-import { Badge } from "@/components/ui/badge";
 import { Input } from "@/components/ui/input";
 import {
   DropdownMenu,
@@ -31,57 +30,16 @@ import { VehicleIcon } from "./VehicleIcons";
 import { getBrazilNorthDate, getBrazilNorthMidnight } from "@/lib/timezone";
 import { toast } from "sonner";
 
-// Labels for quick buttons (excludes end_of_shift)
-const stopReasonButtonLabels: Record<string, string> = {
-  none: "Operando",
-  maintenance: "Manutenção",
-  waiting: "Aguardando",
-  rain: "Chuva",
+const statusConfig: Record<string, { label: string; color: string; bg: string; icon: React.ReactNode }> = {
+  none: { label: "Operando", color: "text-green-600", bg: "bg-green-500", icon: <Play className="w-3 h-3" /> },
+  maintenance: { label: "Manutenção", color: "text-orange-600", bg: "bg-orange-500", icon: <Wrench className="w-3 h-3" /> },
+  waiting: { label: "Aguardando", color: "text-amber-600", bg: "bg-amber-500", icon: <Clock className="w-3 h-3" /> },
+  rain: { label: "Chuva", color: "text-blue-600", bg: "bg-blue-500", icon: <CloudRain className="w-3 h-3" /> },
+  end_of_day: { label: "Fim do dia", color: "text-slate-600", bg: "bg-slate-500", icon: <Pause className="w-3 h-3" /> },
+  end_of_shift: { label: "Fim de Turno", color: "text-purple-600", bg: "bg-purple-500", icon: <Pause className="w-3 h-3" /> },
 };
 
-const stopReasonColors: Record<string, string> = {
-  none: "bg-green-500",
-  maintenance: "bg-orange-500",
-  waiting: "bg-yellow-500",
-  rain: "bg-blue-500",
-  end_of_day: "bg-slate-500",
-  end_of_shift: "bg-purple-500",
-};
-
-const stopReasonButtonStyles: Record<string, { active: string; inactive: string }> = {
-  none: {
-    active: "bg-green-500 text-white border-transparent hover:bg-green-600",
-    inactive: "border-green-500 text-green-600 hover:bg-green-500 hover:text-white",
-  },
-  maintenance: {
-    active: "bg-orange-500 text-white border-transparent hover:bg-orange-600",
-    inactive: "border-orange-500 text-orange-600 hover:bg-orange-500 hover:text-white",
-  },
-  waiting: {
-    active: "bg-yellow-500 text-white border-transparent hover:bg-yellow-600",
-    inactive: "border-yellow-500 text-yellow-600 hover:bg-yellow-500 hover:text-white",
-  },
-  rain: {
-    active: "bg-blue-500 text-white border-transparent hover:bg-blue-600",
-    inactive: "border-blue-500 text-blue-600 hover:bg-blue-500 hover:text-white",
-  },
-};
-
-const stopReasonLabelsExtended: Record<string, string> = {
-  none: "Operando",
-  maintenance: "Manutenção",
-  waiting: "Aguardando",
-  rain: "Chuva",
-  end_of_day: "Fim do dia",
-  end_of_shift: "Fim de Turno",
-};
-
-const stopReasonIcons: Record<string, React.ReactNode> = {
-  none: <Play className="w-3.5 h-3.5" />,
-  maintenance: <Wrench className="w-3.5 h-3.5" />,
-  waiting: <Clock className="w-3.5 h-3.5" />,
-  rain: <CloudRain className="w-3.5 h-3.5" />,
-};
+const quickStatusOptions: StopReason[] = ["none", "maintenance", "waiting", "rain"];
 
 interface EquipmentTimelineProps {
   equipment: Equipment;
@@ -105,8 +63,8 @@ export function EquipmentTimeline({ equipment }: EquipmentTimelineProps) {
   const stopReason = (equipment.stop_reason || "none") as StopReason;
   const stopStartTime = equipment.stop_start_time ? new Date(equipment.stop_start_time) : null;
   const equipmentType = equipment.equipment_type || "pipa";
+  const status = statusConfig[stopReason] || statusConfig.none;
 
-  // Filter today's stops for this equipment
   const todayStops = useMemo(() => {
     if (!stopHistory) return [];
     const today = getBrazilNorthMidnight();
@@ -142,13 +100,11 @@ export function EquipmentTimeline({ equipment }: EquipmentTimelineProps) {
     setEditData({ plate: equipment.plate, driver: equipment.driver, helper: equipment.helper });
   }, [equipment]);
 
-  // Check for auto end-of-shift at 16:30
   const checkAutoEndOfShift = useCallback(async () => {
     const now = new Date();
     const hours = now.getHours();
     const minutes = now.getMinutes();
     
-    // At 16:30, automatically set to end_of_shift if currently operating
     if (hours === 16 && minutes === 30 && stopReason === "none") {
       try {
         await updateStatus.mutateAsync({
@@ -170,10 +126,7 @@ export function EquipmentTimeline({ equipment }: EquipmentTimelineProps) {
       setCurrentTime(new Date());
       checkAutoEndOfShift();
     }, 60000);
-    
-    // Check immediately on mount
     checkAutoEndOfShift();
-    
     return () => clearInterval(interval);
   }, [checkAutoEndOfShift]);
 
@@ -186,18 +139,7 @@ export function EquipmentTimeline({ equipment }: EquipmentTimelineProps) {
     return ((currentDecimal - equipment.start_hour) / (equipment.end_hour - equipment.start_hour)) * 100;
   }, [currentTime, equipment.start_hour, equipment.end_hour]);
 
-  const hourMarkers = useMemo(() => {
-    const markers = [];
-    for (let h = equipment.start_hour; h <= equipment.end_hour; h += 2) {
-      markers.push({ hour: h, position: ((h - equipment.start_hour) / (equipment.end_hour - equipment.start_hour)) * 100 });
-    }
-    if (markers[markers.length - 1]?.hour !== equipment.end_hour) {
-      markers.push({ hour: equipment.end_hour, position: 100 });
-    }
-    return markers;
-  }, [equipment.start_hour, equipment.end_hour]);
-
-  const formatHour = (hour: number) => `${hour.toString().padStart(2, "0")}h`;
+  const formatHour = (hour: number) => `${hour.toString().padStart(2, "0")}:00`;
 
   const handleStopChange = async (reason: StopReason) => {
     try {
@@ -208,7 +150,7 @@ export function EquipmentTimeline({ equipment }: EquipmentTimelineProps) {
         previousStopReason: stopReason,
         previousStopStartTime: equipment.stop_start_time,
       });
-      toast.success(reason === "none" ? "Operação retomada" : `${stopReasonLabelsExtended[reason]}`)
+      toast.success(reason === "none" ? "Operação retomada" : statusConfig[reason].label);
     } catch {
       toast.error("Erro ao atualizar status");
     }
@@ -236,170 +178,187 @@ export function EquipmentTimeline({ equipment }: EquipmentTimelineProps) {
   const getStopDuration = () => {
     if (!stopStartTime) return null;
     const diff = Math.floor((currentTime.getTime() - stopStartTime.getTime()) / 60000);
-    return diff >= 60 ? `${Math.floor(diff / 60)}h${diff % 60}m` : `${diff}min`;
+    return diff >= 60 ? `${Math.floor(diff / 60)}h ${diff % 60}m` : `${diff}min`;
   };
 
   const isStopped = stopReason !== "none";
 
   return (
-    <div className="bg-card border border-border rounded-xl p-4 shadow-sm hover:shadow-md transition-shadow">
-      {/* Compact Header */}
-      <div className="flex items-center justify-between gap-3 mb-3">
-        <div className="flex items-center gap-3 min-w-0">
-          <VehicleIcon type={equipmentType} isStopped={isStopped} size="sm" />
-          <div className="min-w-0">
-            <div className="flex items-center gap-2">
-              <h3 className="font-semibold text-foreground truncate">{equipment.name}</h3>
-              <Badge variant={isStopped ? "destructive" : "default"} className={`text-[10px] px-1.5 py-0 ${!isStopped ? 'bg-green-600' : ''}`}>
-                {stopReasonLabelsExtended[stopReason]}
-              </Badge>
-            </div>
+    <div className="group bg-card border border-border rounded-2xl p-5 transition-all hover:shadow-lg hover:border-primary/20">
+      {/* Header */}
+      <div className="flex items-start justify-between gap-4 mb-4">
+        <div className="flex items-center gap-4 min-w-0">
+          <div className={`relative p-3 rounded-xl transition-colors ${isStopped ? 'bg-muted' : 'bg-green-500/10'}`}>
+            <VehicleIcon type={equipmentType} isStopped={isStopped} size="sm" />
+            <div className={`absolute -bottom-0.5 -right-0.5 w-3 h-3 rounded-full border-2 border-card ${status.bg}`} />
+          </div>
+          
+          <div className="min-w-0 flex-1">
             {isEditing ? (
-              <div className="flex items-center gap-2 mt-1">
-                <Input value={editData.plate} onChange={(e) => setEditData({ ...editData, plate: e.target.value.toUpperCase() })} className="h-6 w-20 text-xs" />
-                <Input value={editData.driver} onChange={(e) => setEditData({ ...editData, driver: e.target.value })} className="h-6 w-24 text-xs" placeholder="Motorista" />
-                <Input value={editData.helper} onChange={(e) => setEditData({ ...editData, helper: e.target.value })} className="h-6 w-24 text-xs" placeholder="Ajudante" />
-                <Button size="icon" variant="ghost" className="h-6 w-6" onClick={handleSaveEdit}><Check className="w-3 h-3 text-green-500" /></Button>
-                <Button size="icon" variant="ghost" className="h-6 w-6" onClick={() => setIsEditing(false)}><X className="w-3 h-3 text-red-500" /></Button>
+              <div className="flex items-center gap-2 flex-wrap">
+                <Input 
+                  value={editData.plate} 
+                  onChange={(e) => setEditData({ ...editData, plate: e.target.value.toUpperCase() })} 
+                  className="h-8 w-24 text-sm" 
+                  placeholder="Placa"
+                />
+                <Input 
+                  value={editData.driver} 
+                  onChange={(e) => setEditData({ ...editData, driver: e.target.value })} 
+                  className="h-8 w-28 text-sm" 
+                  placeholder="Motorista" 
+                />
+                <Input 
+                  value={editData.helper} 
+                  onChange={(e) => setEditData({ ...editData, helper: e.target.value })} 
+                  className="h-8 w-28 text-sm" 
+                  placeholder="Ajudante" 
+                />
+                <Button size="sm" variant="ghost" className="h-8 w-8 p-0" onClick={handleSaveEdit}>
+                  <Check className="w-4 h-4 text-green-600" />
+                </Button>
+                <Button size="sm" variant="ghost" className="h-8 w-8 p-0" onClick={() => setIsEditing(false)}>
+                  <X className="w-4 h-4 text-muted-foreground" />
+                </Button>
               </div>
             ) : (
-              <div className="flex items-center gap-2 text-xs text-muted-foreground">
-                <span className="font-medium">{equipment.plate}</span>
-                <span>•</span>
-                <User className="w-3 h-3" />
-                <span className="truncate">{equipment.driver}</span>
-                {equipment.helper && (
-                  <>
-                    <span>•</span>
-                    <span className="truncate">{equipment.helper}</span>
-                  </>
-                )}
-              </div>
+              <>
+                <div className="flex items-center gap-3">
+                  <h3 className="font-semibold text-foreground">{equipment.name}</h3>
+                  <span className="text-xs font-mono text-muted-foreground bg-muted px-2 py-0.5 rounded">
+                    {equipment.plate}
+                  </span>
+                </div>
+                <div className="flex items-center gap-2 mt-1 text-sm text-muted-foreground">
+                  <User className="w-3.5 h-3.5" />
+                  <span>{equipment.driver}</span>
+                  {equipment.helper && (
+                    <>
+                      <span className="text-border">•</span>
+                      <span>{equipment.helper}</span>
+                    </>
+                  )}
+                </div>
+              </>
             )}
           </div>
         </div>
 
-        {/* Actions Menu */}
-        <DropdownMenu>
-          <DropdownMenuTrigger asChild>
-            <Button variant="ghost" size="icon" className="h-8 w-8 shrink-0">
-              <MoreVertical className="w-4 h-4" />
-            </Button>
-          </DropdownMenuTrigger>
-          <DropdownMenuContent align="end">
-            <DropdownMenuItem onClick={() => handleStopChange("none")} className="gap-2">
-              <Play className="w-4 h-4 text-green-500" /> Operando
-            </DropdownMenuItem>
-            <DropdownMenuItem onClick={() => handleStopChange("maintenance")} className="gap-2">
-              <Wrench className="w-4 h-4 text-orange-500" /> Manutenção
-            </DropdownMenuItem>
-            <DropdownMenuItem onClick={() => handleStopChange("waiting")} className="gap-2">
-              <Clock className="w-4 h-4 text-yellow-500" /> Aguardando
-            </DropdownMenuItem>
-            <DropdownMenuItem onClick={() => handleStopChange("rain")} className="gap-2">
-              <CloudRain className="w-4 h-4 text-blue-500" /> Chuva
-            </DropdownMenuItem>
-            <DropdownMenuSeparator />
-            <DropdownMenuItem onClick={() => setIsEditing(true)} className="gap-2">
-              <Edit2 className="w-4 h-4" /> Editar
-            </DropdownMenuItem>
-            <DropdownMenuItem onClick={() => setShowDeleteDialog(true)} className="gap-2 text-destructive">
-              <Trash2 className="w-4 h-4" /> Remover
-            </DropdownMenuItem>
-          </DropdownMenuContent>
-        </DropdownMenu>
+        <div className="flex items-center gap-2">
+          {/* Status Badge */}
+          <div className={`flex items-center gap-1.5 px-3 py-1.5 rounded-full text-xs font-medium ${status.color} bg-current/10`}>
+            {status.icon}
+            <span>{status.label}</span>
+            {isStopped && stopStartTime && (
+              <span className="opacity-70">• {getStopDuration()}</span>
+            )}
+          </div>
+
+          {/* Actions Menu */}
+          <DropdownMenu>
+            <DropdownMenuTrigger asChild>
+              <Button variant="ghost" size="sm" className="h-8 w-8 p-0 opacity-0 group-hover:opacity-100 transition-opacity">
+                <MoreHorizontal className="w-4 h-4" />
+              </Button>
+            </DropdownMenuTrigger>
+            <DropdownMenuContent align="end" className="w-44">
+              <DropdownMenuItem onClick={() => setIsEditing(true)} className="gap-2">
+                <Edit2 className="w-4 h-4" /> Editar
+              </DropdownMenuItem>
+              <DropdownMenuSeparator />
+              <DropdownMenuItem onClick={() => setShowDeleteDialog(true)} className="gap-2 text-destructive focus:text-destructive">
+                <Trash2 className="w-4 h-4" /> Remover
+              </DropdownMenuItem>
+            </DropdownMenuContent>
+          </DropdownMenu>
+        </div>
       </div>
 
       {/* Quick Status Buttons */}
-      <div className="flex items-center gap-2 mb-3 flex-wrap">
-        {(Object.keys(stopReasonButtonLabels) as StopReason[]).map((reason) => (
-          <Button
-            key={reason}
-            size="sm"
-            variant="outline"
-            className={`h-7 px-2.5 gap-1.5 text-xs font-medium transition-all ${
-              stopReason === reason 
-                ? stopReasonButtonStyles[reason].active
-                : stopReasonButtonStyles[reason].inactive
-            }`}
-            onClick={() => handleStopChange(reason)}
-          >
-            {stopReasonIcons[reason]}
-            {stopReasonButtonLabels[reason]}
-          </Button>
-        ))}
+      <div className="flex items-center gap-2 mb-4">
+        {quickStatusOptions.map((reason) => {
+          const config = statusConfig[reason];
+          const isActive = stopReason === reason;
+          return (
+            <button
+              key={reason}
+              onClick={() => handleStopChange(reason)}
+              className={`flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-xs font-medium transition-all ${
+                isActive 
+                  ? `${config.bg} text-white shadow-sm` 
+                  : 'bg-muted/50 text-muted-foreground hover:bg-muted hover:text-foreground'
+              }`}
+            >
+              {config.icon}
+              {config.label}
+            </button>
+          );
+        })}
       </div>
 
-      {/* Compact Timeline */}
+      {/* Timeline */}
       <TooltipProvider>
-        <div className="relative h-12">
-          {/* Track Background */}
-          <div className="absolute left-0 right-0 top-5 h-2.5 bg-muted rounded-full overflow-hidden">
-            {/* Current progress (green for operating) */}
+        <div className="relative h-14 px-1">
+          {/* Track */}
+          <div className="absolute left-0 right-0 top-5 h-2 bg-muted rounded-full overflow-hidden">
+            {/* Progress */}
             <div
-              className={`absolute left-0 top-0 h-full transition-all duration-500 ${isStopped ? stopReasonColors[stopReason] : 'bg-green-500/30'}`}
-              style={{ width: `${position}%` }}
+              className={`absolute left-0 top-0 h-full transition-all duration-500 ${isStopped ? status.bg : 'bg-green-500'}`}
+              style={{ width: `${position}%`, opacity: isStopped ? 0.6 : 0.3 }}
             />
             
-            {/* Past stop segments */}
-            {todayStops.map((stop, index) => (
-              <Tooltip key={stop.id || index}>
-                <TooltipTrigger asChild>
-                  <div
-                    className={`absolute top-0 h-full ${stopReasonColors[stop.stop_reason] || 'bg-gray-500'} opacity-90 cursor-pointer hover:opacity-100 transition-opacity border-r border-background/50`}
-                    style={{
-                      left: `${stop.startPos}%`,
-                      width: `${stop.width}%`,
-                    }}
-                  />
-                </TooltipTrigger>
-                <TooltipContent side="top" className="text-xs">
-                  <div className="font-semibold">{stopReasonLabelsExtended[stop.stop_reason] || stop.stop_reason}</div>
-                  <div className="text-muted-foreground">{stop.startTime} - {stop.endTime}</div>
-                  {stop.duration_minutes && (
-                    <div className="text-muted-foreground">
-                      {stop.duration_minutes >= 60 
-                        ? `${Math.floor(stop.duration_minutes / 60)}h${stop.duration_minutes % 60}m`
-                        : `${stop.duration_minutes}min`
-                      }
-                    </div>
-                  )}
-                </TooltipContent>
-              </Tooltip>
-            ))}
+            {/* Past stops */}
+            {todayStops.map((stop, index) => {
+              const stopConfig = statusConfig[stop.stop_reason] || statusConfig.none;
+              return (
+                <Tooltip key={stop.id || index}>
+                  <TooltipTrigger asChild>
+                    <div
+                      className={`absolute top-0 h-full ${stopConfig.bg} cursor-pointer hover:opacity-100 transition-opacity`}
+                      style={{
+                        left: `${stop.startPos}%`,
+                        width: `${stop.width}%`,
+                        opacity: 0.8,
+                      }}
+                    />
+                  </TooltipTrigger>
+                  <TooltipContent side="top" className="text-xs">
+                    <p className="font-medium">{stopConfig.label}</p>
+                    <p className="text-muted-foreground">{stop.startTime} → {stop.endTime}</p>
+                    {stop.duration_minutes && (
+                      <p className="text-muted-foreground">
+                        {stop.duration_minutes >= 60 
+                          ? `${Math.floor(stop.duration_minutes / 60)}h ${stop.duration_minutes % 60}m`
+                          : `${stop.duration_minutes}min`
+                        }
+                      </p>
+                    )}
+                  </TooltipContent>
+                </Tooltip>
+              );
+            })}
           </div>
 
-        {/* Vehicle */}
-        <div className="absolute transition-all duration-500" style={{ left: `calc(${Math.min(Math.max(position, 5), 95)}% - 20px)`, top: '-2px' }}>
-          <div className={`flex flex-col items-center ${!isStopped ? 'animate-bounce-slow' : ''}`}>
-            <div className="text-[8px] font-bold bg-card border border-border px-1 rounded shadow-sm mb-0.5">
-              {equipment.plate}
+          {/* Vehicle Marker */}
+          <div 
+            className="absolute transition-all duration-500" 
+            style={{ left: `calc(${Math.min(Math.max(position, 3), 97)}% - 14px)`, top: '0' }}
+          >
+            <div className={`flex flex-col items-center ${!isStopped ? 'animate-bounce-slow' : ''}`}>
+              <div className="w-7 h-7 rounded-full bg-card border-2 border-primary shadow-md flex items-center justify-center">
+                <VehicleIcon type={equipmentType} isStopped={isStopped} size="xs" />
+              </div>
             </div>
-            <VehicleIcon type={equipmentType} isStopped={isStopped} size="sm" />
           </div>
-        </div>
 
-        {/* Hour Markers */}
-        {hourMarkers.map(({ hour, position: pos }) => (
-          <div key={hour} className="absolute top-8 -translate-x-1/2" style={{ left: `${pos}%` }}>
-            <span className="text-[10px] text-muted-foreground">{formatHour(hour)}</span>
+          {/* Hour Labels */}
+          <div className="absolute left-0 right-0 top-9 flex justify-between">
+            <span className="text-[10px] text-muted-foreground">{formatHour(equipment.start_hour)}</span>
+            <span className="text-[10px] font-medium text-foreground">{Math.round(position)}%</span>
+            <span className="text-[10px] text-muted-foreground">{formatHour(equipment.end_hour)}</span>
           </div>
-        ))}
         </div>
       </TooltipProvider>
-
-      {/* Footer */}
-      <div className="flex items-center justify-between mt-2 pt-2 border-t border-border/50">
-        <div className="flex items-center gap-2 text-xs text-muted-foreground">
-          {isStopped && stopStartTime && (
-            <Badge variant="outline" className="text-[10px] px-1.5 py-0 gap-1">
-              <Pause className="w-2.5 h-2.5" /> {getStopDuration()}
-            </Badge>
-          )}
-          <span>{formatHour(equipment.start_hour)} - {formatHour(equipment.end_hour)}</span>
-        </div>
-        <span className="text-xs font-medium">{Math.round(position)}%</span>
-      </div>
 
       {/* Delete Dialog */}
       <AlertDialog open={showDeleteDialog} onOpenChange={setShowDeleteDialog}>
@@ -407,7 +366,7 @@ export function EquipmentTimeline({ equipment }: EquipmentTimelineProps) {
           <AlertDialogHeader>
             <AlertDialogTitle>Remover Equipamento</AlertDialogTitle>
             <AlertDialogDescription>
-              Remover <strong>{equipment.name}</strong>? Esta ação não pode ser desfeita.
+              Tem certeza que deseja remover <strong>{equipment.name}</strong>? Esta ação não pode ser desfeita.
             </AlertDialogDescription>
           </AlertDialogHeader>
           <AlertDialogFooter>

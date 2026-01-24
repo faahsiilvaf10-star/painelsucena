@@ -1,41 +1,32 @@
 import { useMemo, useState } from "react";
 import { format, startOfDay, startOfWeek, startOfMonth, endOfDay, endOfWeek, endOfMonth, isWithinInterval } from "date-fns";
 import { ptBR } from "date-fns/locale";
-import { Share2, Calendar, Clock, Wrench, CloudRain, Play, Pause } from "lucide-react";
+import { Share2, Clock, Wrench, CloudRain, Play, ChevronDown, BarChart3 } from "lucide-react";
 import { Button } from "@/components/ui/button";
-import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
-import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Badge } from "@/components/ui/badge";
 import { ScrollArea } from "@/components/ui/scroll-area";
+import {
+  DropdownMenu,
+  DropdownMenuContent,
+  DropdownMenuItem,
+  DropdownMenuTrigger,
+} from "@/components/ui/dropdown-menu";
+import {
+  Collapsible,
+  CollapsibleContent,
+  CollapsibleTrigger,
+} from "@/components/ui/collapsible";
 import { useEquipment, useEquipmentStopHistory, type Equipment, type EquipmentStopHistory } from "@/hooks/useEquipment";
 import { toast } from "sonner";
 import { getBrazilNorthDate } from "@/lib/timezone";
 
-const stopReasonLabels: Record<string, string> = {
-  none: "Operando",
-  maintenance: "Manutenção",
-  waiting: "Aguardando",
-  rain: "Chuva",
-  end_of_day: "Fim do dia",
-  end_of_shift: "Fim de Turno",
-};
-
-const stopReasonColors: Record<string, string> = {
-  none: "bg-green-500",
-  maintenance: "bg-orange-500",
-  waiting: "bg-yellow-500",
-  rain: "bg-blue-500",
-  end_of_day: "bg-slate-500",
-  end_of_shift: "bg-purple-500",
-};
-
-const stopReasonIcons: Record<string, React.ReactNode> = {
-  none: <Play className="w-3 h-3" />,
-  maintenance: <Wrench className="w-3 h-3" />,
-  waiting: <Clock className="w-3 h-3" />,
-  rain: <CloudRain className="w-3 h-3" />,
-  end_of_day: <Pause className="w-3 h-3" />,
-  end_of_shift: <Pause className="w-3 h-3" />,
+const statusConfig: Record<string, { label: string; color: string; bg: string; icon: React.ReactNode }> = {
+  none: { label: "Operando", color: "text-green-600", bg: "bg-green-500", icon: <Play className="w-3.5 h-3.5" /> },
+  maintenance: { label: "Manutenção", color: "text-orange-600", bg: "bg-orange-500", icon: <Wrench className="w-3.5 h-3.5" /> },
+  waiting: { label: "Aguardando", color: "text-amber-600", bg: "bg-amber-500", icon: <Clock className="w-3.5 h-3.5" /> },
+  rain: { label: "Chuva", color: "text-blue-600", bg: "bg-blue-500", icon: <CloudRain className="w-3.5 h-3.5" /> },
+  end_of_day: { label: "Fim do dia", color: "text-slate-600", bg: "bg-slate-500", icon: <Clock className="w-3.5 h-3.5" /> },
+  end_of_shift: { label: "Fim de Turno", color: "text-purple-600", bg: "bg-purple-500", icon: <Clock className="w-3.5 h-3.5" /> },
 };
 
 type FilterPeriod = "daily" | "weekly" | "monthly";
@@ -49,8 +40,15 @@ interface EquipmentStats {
 
 export function EquipmentReport() {
   const [period, setPeriod] = useState<FilterPeriod>("daily");
+  const [isOpen, setIsOpen] = useState(false);
   const { data: equipment } = useEquipment();
   const { data: allHistory } = useEquipmentStopHistory();
+
+  const periodLabels: Record<FilterPeriod, string> = {
+    daily: "Hoje",
+    weekly: "Esta Semana",
+    monthly: "Este Mês",
+  };
 
   const dateRange = useMemo(() => {
     const now = getBrazilNorthDate();
@@ -116,15 +114,9 @@ export function EquipmentReport() {
     if (minutes >= 60) {
       const h = Math.floor(minutes / 60);
       const m = minutes % 60;
-      return `${h}h${m > 0 ? `${m}m` : ''}`;
+      return `${h}h${m > 0 ? ` ${m}m` : ''}`;
     }
     return `${minutes}min`;
-  };
-
-  const periodLabels: Record<FilterPeriod, string> = {
-    daily: "Hoje",
-    weekly: "Esta Semana",
-    monthly: "Este Mês",
   };
 
   const generateWhatsAppReport = () => {
@@ -142,7 +134,7 @@ export function EquipmentReport() {
       message += `📋 *PARADAS POR MOTIVO*\n`;
       Object.entries(totalStats.stopsByReason).forEach(([reason, minutes]) => {
         const emoji = reason === "maintenance" ? "🔧" : reason === "waiting" ? "⏳" : reason === "rain" ? "🌧️" : "⏹️";
-        message += `${emoji} ${stopReasonLabels[reason] || reason}: ${formatDuration(minutes)}\n`;
+        message += `${emoji} ${statusConfig[reason]?.label || reason}: ${formatDuration(minutes)}\n`;
       });
       message += `\n`;
     }
@@ -155,7 +147,7 @@ export function EquipmentReport() {
       if (stat.totalStopMinutes > 0) {
         message += `  ⏸️ Parado: ${formatDuration(stat.totalStopMinutes)}\n`;
         Object.entries(stat.stopsByReason).forEach(([reason, minutes]) => {
-          message += `    - ${stopReasonLabels[reason] || reason}: ${formatDuration(minutes)}\n`;
+          message += `    - ${statusConfig[reason]?.label || reason}: ${formatDuration(minutes)}\n`;
         });
       }
     });
@@ -166,127 +158,125 @@ export function EquipmentReport() {
   };
 
   return (
-    <div className="space-y-4">
-      {/* Legend */}
-      <Card>
-        <CardHeader className="py-3">
-          <CardTitle className="text-sm font-medium">Legenda</CardTitle>
-        </CardHeader>
-        <CardContent className="py-2">
-          <div className="flex flex-wrap gap-3">
-            {Object.entries(stopReasonLabels).map(([key, label]) => (
-              <div key={key} className="flex items-center gap-1.5">
-                <div className={`w-3 h-3 rounded-full ${stopReasonColors[key]}`} />
-                <span className="text-xs text-muted-foreground">{label}</span>
+    <Collapsible open={isOpen} onOpenChange={setIsOpen} className="mt-8">
+      <div className="border border-border rounded-2xl bg-card overflow-hidden">
+        {/* Header */}
+        <CollapsibleTrigger asChild>
+          <button className="w-full flex items-center justify-between p-5 hover:bg-muted/50 transition-colors">
+            <div className="flex items-center gap-3">
+              <div className="p-2 rounded-xl bg-primary/10">
+                <BarChart3 className="w-5 h-5 text-primary" />
               </div>
-            ))}
-          </div>
-        </CardContent>
-      </Card>
+              <div className="text-left">
+                <h2 className="font-semibold text-foreground">Relatório de Paradas</h2>
+                <p className="text-sm text-muted-foreground">
+                  {format(dateRange.start, "dd/MM", { locale: ptBR })} - {format(dateRange.end, "dd/MM/yyyy", { locale: ptBR })}
+                </p>
+              </div>
+            </div>
+            <div className="flex items-center gap-3">
+              {/* Quick Stats Preview */}
+              <div className="hidden sm:flex items-center gap-4 mr-4">
+                <div className="text-right">
+                  <p className="text-xs text-muted-foreground">Operando</p>
+                  <p className="text-sm font-semibold text-green-600">{totalStats.operatingPercent.toFixed(0)}%</p>
+                </div>
+                <div className="text-right">
+                  <p className="text-xs text-muted-foreground">Parado</p>
+                  <p className="text-sm font-semibold text-muted-foreground">{formatDuration(totalStats.totalStopMinutes)}</p>
+                </div>
+              </div>
+              <ChevronDown className={`w-5 h-5 text-muted-foreground transition-transform ${isOpen ? 'rotate-180' : ''}`} />
+            </div>
+          </button>
+        </CollapsibleTrigger>
 
-      {/* Summary Stats */}
-      <div className="grid grid-cols-2 md:grid-cols-4 gap-3">
-        <Card>
-          <CardContent className="p-3">
-            <div className="flex items-center gap-2">
-              <div className="p-2 rounded-full bg-green-500/10">
-                <Play className="w-4 h-4 text-green-500" />
-              </div>
-              <div>
-                <p className="text-xs text-muted-foreground">Operando</p>
-                <p className="text-lg font-bold text-green-600">{formatDuration(totalStats.totalOperatingMinutes)}</p>
-              </div>
-            </div>
-          </CardContent>
-        </Card>
-        <Card>
-          <CardContent className="p-3">
-            <div className="flex items-center gap-2">
-              <div className="p-2 rounded-full bg-orange-500/10">
-                <Wrench className="w-4 h-4 text-orange-500" />
-              </div>
-              <div>
-                <p className="text-xs text-muted-foreground">Manutenção</p>
-                <p className="text-lg font-bold text-orange-600">{formatDuration(totalStats.stopsByReason.maintenance || 0)}</p>
-              </div>
-            </div>
-          </CardContent>
-        </Card>
-        <Card>
-          <CardContent className="p-3">
-            <div className="flex items-center gap-2">
-              <div className="p-2 rounded-full bg-yellow-500/10">
-                <Clock className="w-4 h-4 text-yellow-500" />
-              </div>
-              <div>
-                <p className="text-xs text-muted-foreground">Aguardando</p>
-                <p className="text-lg font-bold text-yellow-600">{formatDuration(totalStats.stopsByReason.waiting || 0)}</p>
-              </div>
-            </div>
-          </CardContent>
-        </Card>
-        <Card>
-          <CardContent className="p-3">
-            <div className="flex items-center gap-2">
-              <div className="p-2 rounded-full bg-blue-500/10">
-                <CloudRain className="w-4 h-4 text-blue-500" />
-              </div>
-              <div>
-                <p className="text-xs text-muted-foreground">Chuva</p>
-                <p className="text-lg font-bold text-blue-600">{formatDuration(totalStats.stopsByReason.rain || 0)}</p>
-              </div>
-            </div>
-          </CardContent>
-        </Card>
-      </div>
+        <CollapsibleContent>
+          <div className="px-5 pb-5 space-y-5 border-t border-border pt-5">
+            {/* Controls */}
+            <div className="flex items-center justify-between">
+              <DropdownMenu>
+                <DropdownMenuTrigger asChild>
+                  <Button variant="outline" size="sm" className="gap-2">
+                    {periodLabels[period]}
+                    <ChevronDown className="w-4 h-4" />
+                  </Button>
+                </DropdownMenuTrigger>
+                <DropdownMenuContent align="start">
+                  <DropdownMenuItem onClick={() => setPeriod("daily")}>Hoje</DropdownMenuItem>
+                  <DropdownMenuItem onClick={() => setPeriod("weekly")}>Esta Semana</DropdownMenuItem>
+                  <DropdownMenuItem onClick={() => setPeriod("monthly")}>Este Mês</DropdownMenuItem>
+                </DropdownMenuContent>
+              </DropdownMenu>
 
-      {/* History Tabs */}
-      <Card>
-        <CardHeader className="py-3 flex flex-row items-center justify-between">
-          <CardTitle className="text-sm font-medium flex items-center gap-2">
-            <Calendar className="w-4 h-4" />
-            Histórico de Paradas
-          </CardTitle>
-          <Button size="sm" variant="outline" onClick={generateWhatsAppReport} className="gap-2">
-            <Share2 className="w-4 h-4" />
-            WhatsApp
-          </Button>
-        </CardHeader>
-        <CardContent className="pt-0">
-          <Tabs value={period} onValueChange={(v) => setPeriod(v as FilterPeriod)}>
-            <TabsList className="grid w-full grid-cols-3 mb-4">
-              <TabsTrigger value="daily">Diário</TabsTrigger>
-              <TabsTrigger value="weekly">Semanal</TabsTrigger>
-              <TabsTrigger value="monthly">Mensal</TabsTrigger>
-            </TabsList>
+              <Button size="sm" variant="outline" onClick={generateWhatsAppReport} className="gap-2">
+                <Share2 className="w-4 h-4" />
+                <span className="hidden sm:inline">Compartilhar</span>
+              </Button>
+            </div>
 
-            <TabsContent value={period} className="mt-0">
-              <div className="text-xs text-muted-foreground mb-3">
-                {format(dateRange.start, "dd/MM", { locale: ptBR })} - {format(dateRange.end, "dd/MM/yyyy", { locale: ptBR })}
-              </div>
-              
-              <ScrollArea className="h-[300px]">
+            {/* Stats Grid */}
+            <div className="grid grid-cols-2 sm:grid-cols-4 gap-3">
+              {[
+                { key: "operating", label: "Operando", value: formatDuration(totalStats.totalOperatingMinutes), config: statusConfig.none },
+                { key: "maintenance", label: "Manutenção", value: formatDuration(totalStats.stopsByReason.maintenance || 0), config: statusConfig.maintenance },
+                { key: "waiting", label: "Aguardando", value: formatDuration(totalStats.stopsByReason.waiting || 0), config: statusConfig.waiting },
+                { key: "rain", label: "Chuva", value: formatDuration(totalStats.stopsByReason.rain || 0), config: statusConfig.rain },
+              ].map(stat => (
+                <div key={stat.key} className="p-4 rounded-xl bg-muted/50">
+                  <div className="flex items-center gap-2 mb-2">
+                    <div className={`p-1.5 rounded-lg ${stat.config.bg}/10`}>
+                      {stat.config.icon}
+                    </div>
+                    <span className="text-xs text-muted-foreground">{stat.label}</span>
+                  </div>
+                  <p className={`text-xl font-semibold ${stat.config.color}`}>{stat.value}</p>
+                </div>
+              ))}
+            </div>
+
+            {/* Legend */}
+            <div className="flex flex-wrap gap-3 py-3 border-y border-border">
+              {Object.entries(statusConfig).map(([key, config]) => (
+                <div key={key} className="flex items-center gap-1.5">
+                  <div className={`w-2.5 h-2.5 rounded-full ${config.bg}`} />
+                  <span className="text-xs text-muted-foreground">{config.label}</span>
+                </div>
+              ))}
+            </div>
+
+            {/* History List */}
+            <div>
+              <h3 className="text-sm font-medium text-foreground mb-3">Histórico de Paradas</h3>
+              <ScrollArea className="h-[280px] -mx-1 px-1">
                 {filteredHistory.length === 0 ? (
-                  <div className="text-center py-8 text-muted-foreground text-sm">
-                    Nenhuma parada registrada neste período
+                  <div className="flex flex-col items-center justify-center py-12 text-center">
+                    <div className="p-3 rounded-xl bg-muted/50 mb-3">
+                      <Clock className="w-6 h-6 text-muted-foreground/50" />
+                    </div>
+                    <p className="text-sm text-muted-foreground">Nenhuma parada registrada</p>
                   </div>
                 ) : (
                   <div className="space-y-2">
                     {filteredHistory.map((stop) => {
                       const eq = equipment?.find(e => e.id === stop.equipment_id);
+                      const config = statusConfig[stop.stop_reason] || statusConfig.none;
                       return (
-                        <div key={stop.id} className="flex items-center gap-3 p-2 rounded-lg bg-muted/50 hover:bg-muted transition-colors">
-                          <div className={`w-2 h-8 rounded-full ${stopReasonColors[stop.stop_reason] || 'bg-gray-500'}`} />
+                        <div 
+                          key={stop.id} 
+                          className="flex items-center gap-3 p-3 rounded-xl bg-muted/30 hover:bg-muted/50 transition-colors"
+                        >
+                          <div className={`w-1 h-10 rounded-full ${config.bg}`} />
                           <div className="flex-1 min-w-0">
-                            <div className="flex items-center gap-2">
-                              <span className="font-medium text-sm truncate">{eq?.name || "Equipamento"}</span>
-                              <Badge variant="outline" className="text-[10px] px-1.5">
+                            <div className="flex items-center gap-2 mb-0.5">
+                              <span className="font-medium text-sm">{eq?.name || "Equipamento"}</span>
+                              <Badge variant="outline" className="text-[10px] px-1.5 py-0 font-mono">
                                 {eq?.plate}
                               </Badge>
                             </div>
-                            <div className="text-xs text-muted-foreground flex items-center gap-2">
-                              {stopReasonIcons[stop.stop_reason]}
-                              <span>{stopReasonLabels[stop.stop_reason] || stop.stop_reason}</span>
+                            <div className="flex items-center gap-2 text-xs text-muted-foreground">
+                              {config.icon}
+                              <span>{config.label}</span>
                               <span>•</span>
                               <span>{format(new Date(stop.started_at), "dd/MM HH:mm", { locale: ptBR })}</span>
                               {stop.ended_at && (
@@ -298,9 +288,9 @@ export function EquipmentReport() {
                             </div>
                           </div>
                           {stop.duration_minutes && (
-                            <Badge variant="secondary" className="text-xs">
+                            <span className="text-xs font-medium text-muted-foreground bg-muted px-2 py-1 rounded-lg">
                               {formatDuration(stop.duration_minutes)}
-                            </Badge>
+                            </span>
                           )}
                         </div>
                       );
@@ -308,10 +298,10 @@ export function EquipmentReport() {
                   </div>
                 )}
               </ScrollArea>
-            </TabsContent>
-          </Tabs>
-        </CardContent>
-      </Card>
-    </div>
+            </div>
+          </div>
+        </CollapsibleContent>
+      </div>
+    </Collapsible>
   );
 }
