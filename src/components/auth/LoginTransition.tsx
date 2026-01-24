@@ -245,7 +245,7 @@ export function LoginTransition({ onComplete, userName, userAvatar, userCargo }:
               <span className="text-4xl animate-bounce-slow">✨</span>
               <div className="flex flex-col items-center">
                 <span className="text-white/60 text-lg font-light tracking-wide">
-                  Bem-vindo,
+                  Bom trabalho,
                 </span>
                 <span className="text-white text-4xl font-semibold tracking-wide drop-shadow-lg">
                   {userName || "Usuário"}!
