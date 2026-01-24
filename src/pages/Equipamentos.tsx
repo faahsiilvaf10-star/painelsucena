@@ -1,6 +1,6 @@
 import Layout from "@/components/layout/Layout";
 import { EquipmentTimeline } from "@/components/equipamentos/EquipmentTimeline";
-import { Truck, Plus, Loader2, Droplets, Container, Car } from "lucide-react";
+import { Truck, Plus, Loader2, Droplets, Container, Car, StopCircle } from "lucide-react";
 import { useEquipment, useCreateEquipment } from "@/hooks/useEquipment";
 import { Button } from "@/components/ui/button";
 import { useState } from "react";
@@ -15,6 +15,8 @@ import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { toast } from "sonner";
 import { EquipmentType, equipmentTypeLabels } from "@/components/equipamentos/VehicleIcons";
+import { supabase } from "@/integrations/supabase/client";
+import { useQueryClient } from "@tanstack/react-query";
 
 const equipmentTypeOptions: { value: EquipmentType; label: string; icon: React.ReactNode; color: string }[] = [
   { value: "pipa", label: "Pipa", icon: <Droplets className="w-4 h-4" />, color: "bg-blue-500" },
@@ -25,7 +27,9 @@ const equipmentTypeOptions: { value: EquipmentType; label: string; icon: React.R
 const Equipamentos = () => {
   const { data: equipment, isLoading } = useEquipment();
   const createEquipment = useCreateEquipment();
+  const queryClient = useQueryClient();
   const [open, setOpen] = useState(false);
+  const [isStoppingAll, setIsStoppingAll] = useState(false);
   const [formData, setFormData] = useState({
     name: "",
     plate: "",
@@ -35,6 +39,21 @@ const Equipamentos = () => {
     start_hour: 8,
     end_hour: 16,
   });
+
+  const handleAutoStopAll = async () => {
+    setIsStoppingAll(true);
+    try {
+      const { data, error } = await supabase.functions.invoke("auto-stop-equipment");
+      if (error) throw error;
+      toast.success(`Parada automática executada! ${data?.processed || 0} equipamento(s) processado(s).`);
+      queryClient.invalidateQueries({ queryKey: ["equipment"] });
+    } catch (err) {
+      console.error("Erro ao executar parada automática:", err);
+      toast.error("Erro ao executar parada automática");
+    } finally {
+      setIsStoppingAll(false);
+    }
+  };
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -58,12 +77,28 @@ const Equipamentos = () => {
             <p className="text-sm text-muted-foreground">Acompanhe o status em tempo real</p>
           </div>
 
-          <Dialog open={open} onOpenChange={setOpen}>
-            <DialogTrigger asChild>
-              <Button size="sm" className="gap-2">
-                <Plus className="w-4 h-4" /> Adicionar
-              </Button>
-            </DialogTrigger>
+          <div className="flex items-center gap-2">
+            <Button
+              size="sm"
+              variant="outline"
+              className="gap-2"
+              onClick={handleAutoStopAll}
+              disabled={isStoppingAll}
+            >
+              {isStoppingAll ? (
+                <Loader2 className="w-4 h-4 animate-spin" />
+              ) : (
+                <StopCircle className="w-4 h-4" />
+              )}
+              Parar Todos
+            </Button>
+            
+            <Dialog open={open} onOpenChange={setOpen}>
+              <DialogTrigger asChild>
+                <Button size="sm" className="gap-2">
+                  <Plus className="w-4 h-4" /> Adicionar
+                </Button>
+              </DialogTrigger>
             <DialogContent className="sm:max-w-md">
               <DialogHeader>
                 <DialogTitle>Novo Equipamento</DialogTitle>
@@ -125,6 +160,7 @@ const Equipamentos = () => {
               </form>
             </DialogContent>
           </Dialog>
+          </div>
         </div>
 
         {/* Equipment List */}
