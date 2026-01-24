@@ -1,22 +1,8 @@
-import { useRef } from "react";
-import constructionVideo from "@/assets/construction-timelapse.mp4";
-
 export function AuthBackground() {
-  const videoRef = useRef<HTMLVideoElement>(null);
-
   return (
     <div className="absolute inset-0 z-0 overflow-hidden">
-      {/* Video timelapse background - loops infinitely */}
-      <video
-        ref={videoRef}
-        className="absolute inset-0 w-full h-full object-cover"
-        autoPlay
-        muted
-        loop
-        playsInline
-      >
-        <source src={constructionVideo} type="video/mp4" />
-      </video>
+      {/* Dark background base */}
+      <div className="absolute inset-0 bg-gradient-to-br from-gray-900 via-gray-800 to-gray-900" />
 
       {/* Overlay gradient for better text readability */}
       <div className="absolute inset-0 bg-gradient-to-b from-black/50 via-black/60 to-black/80" />
