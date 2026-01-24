@@ -113,9 +113,10 @@ export function EquipmentTimeline({ equipment }: EquipmentTimelineProps) {
   }, [checkAutoEndOfShift]);
 
   const handleStatusButtonClick = async (reason: StopReason) => {
-    if (reason === "maintenance") {
-      if (stopReason === "maintenance") {
-        // Already in maintenance - open dialog to view/edit
+    // Se já está no mesmo status (exceto "none"), não fazer nada
+    if (stopReason === reason && reason !== "none") {
+      if (reason === "maintenance") {
+        // Para manutenção, abrir dialog para ver/editar
         const currentMaintenance = stopHistory?.find(
           (h) => h.stop_reason === "maintenance" && h.ended_at === null
         );
@@ -124,19 +125,18 @@ export function EquipmentTimeline({ equipment }: EquipmentTimelineProps) {
           setCurrentMaintenanceId(currentMaintenance.id);
           setMaintenanceStartedAt(currentMaintenance.started_at);
           setIsEditingMaintenance(true);
-        } else {
-          setDefectDescription("");
-          setCurrentMaintenanceId(null);
-          setMaintenanceStartedAt(null);
-          setIsEditingMaintenance(false);
+          setShowMaintenanceDialog(true);
         }
-      } else {
-        // Starting new maintenance
-        setDefectDescription("");
-        setCurrentMaintenanceId(null);
-        setMaintenanceStartedAt(null);
-        setIsEditingMaintenance(false);
       }
+      return;
+    }
+
+    if (reason === "maintenance") {
+      // Starting new maintenance
+      setDefectDescription("");
+      setCurrentMaintenanceId(null);
+      setMaintenanceStartedAt(null);
+      setIsEditingMaintenance(false);
       setShowMaintenanceDialog(true);
     } else {
       handleStopChange(reason);
