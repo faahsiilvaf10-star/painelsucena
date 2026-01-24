@@ -13,9 +13,6 @@ const ProtectedRoute = ({ children }: ProtectedRouteProps) => {
   const location = useLocation();
   const navigate = useNavigate();
 
-  // Read transition flag synchronously to avoid a 1-frame flash.
-  const isTransitioning = sessionStorage.getItem("loginTransitionInProgress") === "true";
-
   useEffect(() => {
     const { data: { subscription } } = supabase.auth.onAuthStateChange(
       (event, currentSession) => {
@@ -36,11 +33,6 @@ const ProtectedRoute = ({ children }: ProtectedRouteProps) => {
 
     return () => subscription.unsubscribe();
   }, [navigate]);
-
-  // Show nothing (transparent) during transition - let the LoginTransition component handle the visuals
-  if (isTransitioning) {
-    return null;
-  }
 
   // Show nothing while loading session
   if (loading) {

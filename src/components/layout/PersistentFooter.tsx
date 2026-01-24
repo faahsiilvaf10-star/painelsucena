@@ -9,16 +9,12 @@ export const PersistentFooter = () => {
   const [selectedUser, setSelectedUser] = useState<OnlineUser | null>(null);
   const [chatOpen, setChatOpen] = useState(false);
 
-  // Read synchronously to avoid a 1-frame flash.
-  const isTransitioning = sessionStorage.getItem("loginTransitionInProgress") === "true";
-
   const handleUserClick = (onlineUser: OnlineUser) => {
     setSelectedUser(onlineUser);
     setChatOpen(true);
   };
 
-  // Hide during transition to prevent flash
-  if (!user || isTransitioning) return null;
+  if (!user) return null;
 
   return (
     <>
