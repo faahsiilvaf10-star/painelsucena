@@ -279,6 +279,109 @@ export type Database = {
           },
         ]
       }
+      inventory_items: {
+        Row: {
+          ca_expiry: string | null
+          ca_number: string | null
+          category: string
+          created_at: string
+          created_by: string
+          id: string
+          location_id: string | null
+          min_quantity: number
+          name: string
+          notes: string | null
+          quantity: number
+          unit: string
+          updated_at: string
+        }
+        Insert: {
+          ca_expiry?: string | null
+          ca_number?: string | null
+          category?: string
+          created_at?: string
+          created_by: string
+          id?: string
+          location_id?: string | null
+          min_quantity?: number
+          name: string
+          notes?: string | null
+          quantity?: number
+          unit?: string
+          updated_at?: string
+        }
+        Update: {
+          ca_expiry?: string | null
+          ca_number?: string | null
+          category?: string
+          created_at?: string
+          created_by?: string
+          id?: string
+          location_id?: string | null
+          min_quantity?: number
+          name?: string
+          notes?: string | null
+          quantity?: number
+          unit?: string
+          updated_at?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "inventory_items_location_id_fkey"
+            columns: ["location_id"]
+            isOneToOne: false
+            referencedRelation: "storage_locations"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      inventory_movements: {
+        Row: {
+          created_at: string
+          id: string
+          item_id: string
+          moved_by: string
+          moved_by_name: string
+          movement_type: string
+          new_quantity: number
+          previous_quantity: number
+          quantity: number
+          reason: string | null
+        }
+        Insert: {
+          created_at?: string
+          id?: string
+          item_id: string
+          moved_by: string
+          moved_by_name: string
+          movement_type: string
+          new_quantity: number
+          previous_quantity: number
+          quantity: number
+          reason?: string | null
+        }
+        Update: {
+          created_at?: string
+          id?: string
+          item_id?: string
+          moved_by?: string
+          moved_by_name?: string
+          movement_type?: string
+          new_quantity?: number
+          previous_quantity?: number
+          quantity?: number
+          reason?: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "inventory_movements_item_id_fkey"
+            columns: ["item_id"]
+            isOneToOne: false
+            referencedRelation: "inventory_items"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       matrix_task_completions: {
         Row: {
           completed_at: string
@@ -647,6 +750,30 @@ export type Database = {
           sidebar_color?: string | null
           updated_at?: string
           updated_by?: string | null
+        }
+        Relationships: []
+      }
+      storage_locations: {
+        Row: {
+          created_at: string
+          description: string | null
+          id: string
+          name: string
+          updated_at: string
+        }
+        Insert: {
+          created_at?: string
+          description?: string | null
+          id?: string
+          name: string
+          updated_at?: string
+        }
+        Update: {
+          created_at?: string
+          description?: string | null
+          id?: string
+          name?: string
+          updated_at?: string
         }
         Relationships: []
       }
