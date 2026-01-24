@@ -102,7 +102,7 @@ export function AuthBackground() {
       {particles.map((particle) => (
         <div
           key={particle.id}
-          className="absolute rounded-full bg-white/20 animate-float-particle"
+          className="absolute rounded-full animate-float-particle"
           style={{
             left: `${particle.x}%`,
             top: `${particle.y}%`,
@@ -111,6 +111,8 @@ export function AuthBackground() {
             opacity: particle.opacity,
             animationDuration: `${particle.duration}s`,
             animationDelay: `${particle.delay}s`,
+            background: 'radial-gradient(circle, rgba(255,255,255,0.9) 0%, rgba(255,255,255,0.4) 50%, transparent 100%)',
+            boxShadow: `0 0 ${particle.size * 2}px ${particle.size}px rgba(255,255,255,0.3), 0 0 ${particle.size * 4}px ${particle.size * 2}px rgba(200,220,255,0.2)`,
           }}
         />
       ))}
