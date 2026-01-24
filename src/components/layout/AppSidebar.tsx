@@ -90,8 +90,12 @@ export function AppSidebar() {
   };
 
   const handleSignOut = async () => {
-    await signOut();
-    navigate("/auth");
+    try {
+      await signOut();
+    } finally {
+      // Always navigate to auth, even if signOut had issues
+      navigate("/auth", { replace: true });
+    }
   };
 
   // Dynamic sidebar color style from site settings
