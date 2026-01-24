@@ -370,9 +370,13 @@ export function EquipmentTimeline({ equipment }: EquipmentTimelineProps) {
             ))}
           </div>
 
-        {/* Vehicle */}
-        <div className="absolute transition-all duration-500" style={{ left: `calc(${Math.min(Math.max(position, 5), 95)}% - 20px)`, top: '-2px' }}>
+        {/* Current Time Indicator & Vehicle */}
+        <div className="absolute transition-all duration-1000 ease-linear" style={{ left: `calc(${Math.min(Math.max(position, 5), 95)}% - 20px)`, top: '-12px' }}>
           <div className={`flex flex-col items-center ${!isStopped ? 'animate-bounce-slow' : ''}`}>
+            {/* Current time highlight */}
+            <div className="text-[9px] font-bold text-primary bg-primary/10 border border-primary/30 px-1.5 py-0.5 rounded-full shadow-sm mb-0.5 animate-pulse">
+              {currentTime.toLocaleTimeString('pt-BR', { hour: '2-digit', minute: '2-digit', second: '2-digit' })}
+            </div>
             <div className="text-[8px] font-bold bg-card border border-border px-1 rounded shadow-sm mb-0.5">
               {equipment.plate}
             </div>
