@@ -66,11 +66,11 @@ export function LoginTransition({ onComplete, userName, userAvatar, userCargo }:
   }, []);
 
   useEffect(() => {
-    // Slower, smoother timings - total 6.5 seconds
+    // Slower, smoother timings - total 11.5 seconds
     const clickTimer = setTimeout(() => setPhase("click"), 1500);      // Cursor moves for 1.5s
     const zoomTimer = setTimeout(() => setPhase("zoom"), 2200);        // Click effect for 0.7s
-    const fadeTimer = setTimeout(() => setPhase("fade"), 6000);        // Zoom + welcome for 3.8s
-    const completeTimer = setTimeout(() => onComplete(), 6500);        // Fade for 0.5s
+    const fadeTimer = setTimeout(() => setPhase("fade"), 11000);       // Zoom + welcome for 8.8s (+5s)
+    const completeTimer = setTimeout(() => onComplete(), 11500);       // Fade for 0.5s
 
     return () => {
       clearTimeout(clickTimer);
