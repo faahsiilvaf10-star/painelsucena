@@ -5,6 +5,7 @@ import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
 import { BrowserRouter, Routes, Route } from "react-router-dom";
 import { ThemeProvider } from "@/components/ThemeProvider";
 import { RadioProvider } from "@/contexts/RadioContext";
+import { PersistentFooter } from "@/components/layout/PersistentFooter";
 import ProtectedRoute from "@/components/ProtectedRoute";
 import Index from "./pages/Index";
 import RH from "./pages/RH";
@@ -54,6 +55,7 @@ const App = () => (
               {/* ADD ALL CUSTOM ROUTES ABOVE THE CATCH-ALL "*" ROUTE */}
               <Route path="*" element={<NotFound />} />
             </Routes>
+            <PersistentFooter />
           </BrowserRouter>
         </TooltipProvider>
       </RadioProvider>

@@ -1,13 +1,9 @@
-import { ReactNode, useState, useMemo } from "react";
+import { ReactNode, useMemo } from "react";
 import { AppSidebar } from "./AppSidebar";
 import { SidebarProvider, SidebarInset, SidebarTrigger } from "@/components/ui/sidebar";
 import ForbiddenColorIndicator from "@/components/ForbiddenColorIndicator";
 import { NotificationBell } from "@/components/notifications/NotificationBell";
 import { ThemeToggle } from "@/components/ThemeToggle";
-import { OnlineUsersFooter } from "@/components/chat/OnlineUsersFooter";
-import { ChatDialog } from "@/components/chat/ChatDialog";
-import { OnlineUser } from "@/hooks/useOnlineUsers";
-import { useAuth } from "@/hooks/useAuth";
 import { Menu } from "lucide-react";
 import { CampaignRibbon } from "@/components/campaigns/CampaignRibbon";
 
@@ -57,16 +53,7 @@ interface LayoutProps {
 }
 
 const Layout = ({ children }: LayoutProps) => {
-  const { user } = useAuth();
-  const [selectedUser, setSelectedUser] = useState<OnlineUser | null>(null);
-  const [chatOpen, setChatOpen] = useState(false);
-  
   const dailyPhrase = useMemo(() => getDailyPhrase(), []);
-
-  const handleUserClick = (onlineUser: OnlineUser) => {
-    setSelectedUser(onlineUser);
-    setChatOpen(true);
-  };
 
   return (
     <SidebarProvider defaultOpen={true}>
@@ -98,16 +85,6 @@ const Layout = ({ children }: LayoutProps) => {
             {children}
           </main>
           <ForbiddenColorIndicator />
-          
-          {/* Online Users Footer (includes Radio Player) */}
-          {user && <OnlineUsersFooter onUserClick={handleUserClick} />}
-          
-          {/* Chat Dialog */}
-          <ChatDialog
-            open={chatOpen}
-            onOpenChange={setChatOpen}
-            selectedUser={selectedUser}
-          />
         </SidebarInset>
       </div>
     </SidebarProvider>
