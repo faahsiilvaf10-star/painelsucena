@@ -344,34 +344,49 @@ export type Database = {
       }
       order_history: {
         Row: {
+          change_type: string | null
           changed_by: string
           changed_by_name: string
           created_at: string
           id: string
+          new_quantity: number | null
           new_status: Database["public"]["Enums"]["order_status"]
+          new_unit: string | null
           notes: string | null
           order_id: string
+          previous_quantity: number | null
           previous_status: Database["public"]["Enums"]["order_status"] | null
+          previous_unit: string | null
         }
         Insert: {
+          change_type?: string | null
           changed_by: string
           changed_by_name: string
           created_at?: string
           id?: string
+          new_quantity?: number | null
           new_status: Database["public"]["Enums"]["order_status"]
+          new_unit?: string | null
           notes?: string | null
           order_id: string
+          previous_quantity?: number | null
           previous_status?: Database["public"]["Enums"]["order_status"] | null
+          previous_unit?: string | null
         }
         Update: {
+          change_type?: string | null
           changed_by?: string
           changed_by_name?: string
           created_at?: string
           id?: string
+          new_quantity?: number | null
           new_status?: Database["public"]["Enums"]["order_status"]
+          new_unit?: string | null
           notes?: string | null
           order_id?: string
+          previous_quantity?: number | null
           previous_status?: Database["public"]["Enums"]["order_status"] | null
+          previous_unit?: string | null
         }
         Relationships: [
           {
@@ -733,6 +748,13 @@ export type Database = {
         | "pacotes"
         | "caixas"
         | "pecas"
+        | "par"
+        | "rolo"
+        | "saco"
+        | "galao"
+        | "balde"
+        | "metro_quadrado"
+        | "metro_cubico"
     }
     CompositeTypes: {
       [_ in never]: never
@@ -891,6 +913,13 @@ export const Constants = {
         "pacotes",
         "caixas",
         "pecas",
+        "par",
+        "rolo",
+        "saco",
+        "galao",
+        "balde",
+        "metro_quadrado",
+        "metro_cubico",
       ],
     },
   },
