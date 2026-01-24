@@ -2,8 +2,13 @@ import { useState, useRef, useEffect } from "react";
 import { useOnlineUsers, OnlineUser } from "@/hooks/useOnlineUsers";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { Badge } from "@/components/ui/badge";
-import { Users, Radio, VolumeX, Volume2, Play } from "lucide-react";
+import { Users, Radio, VolumeX, Volume2, Play, ChevronDown } from "lucide-react";
 import { cn } from "@/lib/utils";
+import {
+  Popover,
+  PopoverContent,
+  PopoverTrigger,
+} from "@/components/ui/popover";
 
 interface OnlineUsersFooterProps {
   onUserClick: (user: OnlineUser) => void;
@@ -31,18 +36,27 @@ const getInitials = (name: string) => {
     .toUpperCase();
 };
 
-// Radio stream URL
-const RADIO_STREAM_URL = "https://27343.live.streamtheworld.com/JBFM.mp3";
+// Available radio stations
+const RADIO_STATIONS = [
+  { id: "jbfm", name: "JB FM 99.9", city: "RJ", url: "https://27343.live.streamtheworld.com/JBFM.mp3" },
+  { id: "mixfm", name: "Mix FM", city: "RJ", url: "https://26573.live.streamtheworld.com/MIXRIO.mp3" },
+  { id: "antena1", name: "Antena 1", city: "SP", url: "https://antena1.newradio.it/stream2" },
+  { id: "jovempan", name: "Jovem Pan", city: "SP", url: "https://19293.live.streamtheworld.com/JP_SP_FM_SC" },
+  { id: "liberal", name: "Liberal FM", city: "Belém", url: "https://stm2.xcast.com.br:9264/stream" },
+  { id: "clube", name: "Clube FM", city: "Belém", url: "https://stream.zeno.fm/1g6n7qy6erhvv" },
+];
 
 export const OnlineUsersFooter = ({ onUserClick }: OnlineUsersFooterProps) => {
   const { onlineUsers } = useOnlineUsers();
   const [isPlaying, setIsPlaying] = useState(false);
   const [isMuted, setIsMuted] = useState(false);
+  const [selectedStation, setSelectedStation] = useState(RADIO_STATIONS[0]);
+  const [selectorOpen, setSelectorOpen] = useState(false);
   const audioRef = useRef<HTMLAudioElement | null>(null);
 
   // Initialize audio element and autoplay
   useEffect(() => {
-    audioRef.current = new Audio(RADIO_STREAM_URL);
+    audioRef.current = new Audio(selectedStation.url);
     audioRef.current.volume = 0.5;
     audioRef.current.preload = "auto";
 
@@ -70,6 +84,32 @@ export const OnlineUsersFooter = ({ onUserClick }: OnlineUsersFooterProps) => {
       }
     };
   }, []);
+
+  // Handle station change
+  const handleStationChange = (station: typeof RADIO_STATIONS[0]) => {
+    const wasPlaying = isPlaying && !isMuted;
+    
+    // Stop current audio
+    if (audioRef.current) {
+      audioRef.current.pause();
+      audioRef.current.src = "";
+    }
+    
+    // Create new audio with selected station
+    audioRef.current = new Audio(station.url);
+    audioRef.current.volume = 0.5;
+    
+    setSelectedStation(station);
+    setSelectorOpen(false);
+    
+    // Resume playing if it was playing before
+    if (wasPlaying) {
+      audioRef.current.play().catch((error) => {
+        console.log("Playback failed:", error);
+        setIsPlaying(false);
+      });
+    }
+  };
 
   // Handle play/pause state
   useEffect(() => {
@@ -102,59 +142,116 @@ export const OnlineUsersFooter = ({ onUserClick }: OnlineUsersFooterProps) => {
     <div className="fixed bottom-0 left-0 right-0 bg-card border-t border-border z-40">
       <div className="flex items-center gap-3 px-4 py-2 overflow-x-auto">
         {/* Radio Player */}
-        <button
-          onClick={handleRadioToggle}
-          className={cn(
-            "flex items-center gap-2 px-3 py-1.5 rounded-full shrink-0 transition-all duration-300",
-            isRadioActive 
-              ? "bg-green-500/20 hover:bg-green-500/30 border border-green-400/40" 
-              : "bg-secondary/50 hover:bg-secondary border border-transparent"
-          )}
-          aria-label={!isPlaying ? "Iniciar rádio" : (isMuted ? "Ativar som" : "Silenciar")}
-        >
-          <div className="relative">
-            <Radio 
-              className={cn(
-                "h-4 w-4 transition-colors",
-                isRadioActive ? "text-green-500" : "text-muted-foreground"
-              )} 
-            />
-            {isRadioActive && (
-              <span className="absolute -top-0.5 -right-0.5 w-1.5 h-1.5 bg-green-500 rounded-full animate-ping" />
+        <div className="flex items-center gap-1 shrink-0">
+          <button
+            onClick={handleRadioToggle}
+            className={cn(
+              "flex items-center gap-2 px-3 py-1.5 rounded-l-full transition-all duration-300",
+              isRadioActive 
+                ? "bg-green-500/20 hover:bg-green-500/30 border border-r-0 border-green-400/40" 
+                : "bg-secondary/50 hover:bg-secondary border border-r-0 border-transparent"
             )}
-          </div>
-          
-          {!isPlaying ? (
-            <Play className="h-3 w-3 text-muted-foreground" />
-          ) : isRadioActive ? (
-            <Volume2 className="h-3 w-3 text-green-500" />
-          ) : (
-            <VolumeX className="h-3 w-3 text-muted-foreground" />
-          )}
-          
-          <span className={cn(
-            "text-xs font-medium transition-colors",
-            isRadioActive ? "text-green-500" : "text-muted-foreground"
-          )}>
-            {!isPlaying ? "JB FM" : (isRadioActive ? "Ao Vivo" : "Mudo")}
-          </span>
-
-          {/* Sound wave animation */}
-          {isRadioActive && (
-            <div className="flex items-end gap-0.5 h-3">
-              {[1, 2, 3].map((i) => (
-                <div
-                  key={i}
-                  className="w-0.5 bg-green-500 rounded-full animate-sound-wave"
-                  style={{
-                    animationDelay: `${i * 0.15}s`,
-                    height: "100%",
-                  }}
-                />
-              ))}
+            aria-label={!isPlaying ? "Iniciar rádio" : (isMuted ? "Ativar som" : "Silenciar")}
+          >
+            <div className="relative">
+              <Radio 
+                className={cn(
+                  "h-4 w-4 transition-colors",
+                  isRadioActive ? "text-green-500" : "text-muted-foreground"
+                )} 
+              />
+              {isRadioActive && (
+                <span className="absolute -top-0.5 -right-0.5 w-1.5 h-1.5 bg-green-500 rounded-full animate-ping" />
+              )}
             </div>
-          )}
-        </button>
+            
+            {!isPlaying ? (
+              <Play className="h-3 w-3 text-muted-foreground" />
+            ) : isRadioActive ? (
+              <Volume2 className="h-3 w-3 text-green-500" />
+            ) : (
+              <VolumeX className="h-3 w-3 text-muted-foreground" />
+            )}
+            
+            <span className={cn(
+              "text-xs font-medium transition-colors",
+              isRadioActive ? "text-green-500" : "text-muted-foreground"
+            )}>
+              {isRadioActive ? "Ao Vivo" : (isPlaying ? "Mudo" : selectedStation.name)}
+            </span>
+
+            {/* Sound wave animation */}
+            {isRadioActive && (
+              <div className="flex items-end gap-0.5 h-3">
+                {[1, 2, 3].map((i) => (
+                  <div
+                    key={i}
+                    className="w-0.5 bg-green-500 rounded-full animate-sound-wave"
+                    style={{
+                      animationDelay: `${i * 0.15}s`,
+                      height: "100%",
+                    }}
+                  />
+                ))}
+              </div>
+            )}
+          </button>
+
+          {/* Station Selector */}
+          <Popover open={selectorOpen} onOpenChange={setSelectorOpen}>
+            <PopoverTrigger asChild>
+              <button
+                className={cn(
+                  "flex items-center gap-1 px-2 py-1.5 rounded-r-full transition-all duration-300",
+                  isRadioActive 
+                    ? "bg-green-500/20 hover:bg-green-500/30 border border-l-0 border-green-400/40" 
+                    : "bg-secondary/50 hover:bg-secondary border border-l-0 border-transparent"
+                )}
+                aria-label="Selecionar rádio"
+              >
+                <ChevronDown className={cn(
+                  "h-3 w-3 transition-transform",
+                  selectorOpen && "rotate-180",
+                  isRadioActive ? "text-green-500" : "text-muted-foreground"
+                )} />
+              </button>
+            </PopoverTrigger>
+            <PopoverContent 
+              className="w-56 p-2" 
+              align="start"
+              side="top"
+              sideOffset={8}
+            >
+              <div className="space-y-1">
+                <p className="text-xs font-medium text-muted-foreground px-2 py-1">
+                  Selecione uma rádio
+                </p>
+                {RADIO_STATIONS.map((station) => (
+                  <button
+                    key={station.id}
+                    onClick={() => handleStationChange(station)}
+                    className={cn(
+                      "w-full flex items-center justify-between px-3 py-2 rounded-md text-sm transition-colors",
+                      selectedStation.id === station.id 
+                        ? "bg-primary text-primary-foreground" 
+                        : "hover:bg-secondary"
+                    )}
+                  >
+                    <span className="font-medium">{station.name}</span>
+                    <span className={cn(
+                      "text-xs",
+                      selectedStation.id === station.id 
+                        ? "text-primary-foreground/70" 
+                        : "text-muted-foreground"
+                    )}>
+                      {station.city}
+                    </span>
+                  </button>
+                ))}
+              </div>
+            </PopoverContent>
+          </Popover>
+        </div>
 
         <div className="h-6 w-px bg-border shrink-0" />
 
