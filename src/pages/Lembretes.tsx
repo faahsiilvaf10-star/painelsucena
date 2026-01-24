@@ -1,0 +1,544 @@
+import { useState, useEffect } from "react";
+import { format, formatDistanceToNow } from "date-fns";
+import { ptBR } from "date-fns/locale";
+import { Bell, Plus, Trash2, Users, User, Globe, Calendar, Clock, AlertCircle } from "lucide-react";
+import Layout from "@/components/layout/Layout";
+import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
+import { Button } from "@/components/ui/button";
+import { Input } from "@/components/ui/input";
+import { Textarea } from "@/components/ui/textarea";
+import { Label } from "@/components/ui/label";
+import { Switch } from "@/components/ui/switch";
+import { Badge } from "@/components/ui/badge";
+import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
+import { ScrollArea } from "@/components/ui/scroll-area";
+import { Separator } from "@/components/ui/separator";
+import {
+  Dialog,
+  DialogContent,
+  DialogHeader,
+  DialogTitle,
+  DialogTrigger,
+} from "@/components/ui/dialog";
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from "@/components/ui/select";
+import { Checkbox } from "@/components/ui/checkbox";
+import { useToast } from "@/hooks/use-toast";
+import { useReminders, useCreateReminder, useDeleteReminder, Reminder } from "@/hooks/useReminders";
+import { useAllProfiles } from "@/hooks/useDDSSchedule";
+import { useAuth } from "@/hooks/useAuth";
+import { cn } from "@/lib/utils";
+
+const Lembretes = () => {
+  const { toast } = useToast();
+  const { user } = useAuth();
+  const { data: reminders, isLoading } = useReminders();
+  const { data: allProfiles } = useAllProfiles();
+  const createReminder = useCreateReminder();
+  const deleteReminder = useDeleteReminder();
+
+  const [isOpen, setIsOpen] = useState(false);
+  const [title, setTitle] = useState("");
+  const [description, setDescription] = useState("");
+  const [eventDate, setEventDate] = useState("");
+  const [alertDaysBefore, setAlertDaysBefore] = useState(0);
+  const [showOnEventDay, setShowOnEventDay] = useState(true);
+  const [mentionType, setMentionType] = useState<"all" | "specific" | "me">("me");
+  const [selectedUsers, setSelectedUsers] = useState<string[]>([]);
+  const [showCreatedToast, setShowCreatedToast] = useState<Reminder | null>(null);
+
+  const getInitials = (name: string) => {
+    const names = name.split(" ");
+    if (names.length >= 2) {
+      return `${names[0][0]}${names[names.length - 1][0]}`.toUpperCase();
+    }
+    return names[0].substring(0, 2).toUpperCase();
+  };
+
+  const handleCreate = async () => {
+    if (!title || !eventDate) {
+      toast({
+        title: "Campos obrigatórios",
+        description: "Preencha o título e a data do evento.",
+        variant: "destructive",
+      });
+      return;
+    }
+
+    try {
+      const newReminder = await createReminder.mutateAsync({
+        title,
+        description: description || undefined,
+        event_date: eventDate,
+        alert_days_before: alertDaysBefore,
+        show_on_event_day: showOnEventDay,
+        mention_type: mentionType,
+        mentioned_users: mentionType === "specific" ? selectedUsers : [],
+      });
+
+      // Show toast for 3 seconds with reminder info
+      setShowCreatedToast(newReminder);
+      setTimeout(() => setShowCreatedToast(null), 3000);
+
+      // Reset form
+      setTitle("");
+      setDescription("");
+      setEventDate("");
+      setAlertDaysBefore(0);
+      setShowOnEventDay(true);
+      setMentionType("me");
+      setSelectedUsers([]);
+      setIsOpen(false);
+
+      toast({
+        title: "Lembrete criado!",
+        description: `"${title}" agendado para ${format(new Date(eventDate), "dd/MM/yyyy", { locale: ptBR })}`,
+      });
+    } catch (error) {
+      toast({
+        title: "Erro ao criar lembrete",
+        description: "Tente novamente.",
+        variant: "destructive",
+      });
+    }
+  };
+
+  const handleDelete = async (id: string) => {
+    try {
+      await deleteReminder.mutateAsync(id);
+      toast({
+        title: "Lembrete removido",
+      });
+    } catch (error) {
+      toast({
+        title: "Erro ao remover",
+        variant: "destructive",
+      });
+    }
+  };
+
+  const getMentionLabel = (type: string) => {
+    switch (type) {
+      case "all":
+        return { label: "Todos", icon: Globe, color: "bg-blue-500/20 text-blue-400" };
+      case "specific":
+        return { label: "Específicos", icon: Users, color: "bg-purple-500/20 text-purple-400" };
+      case "me":
+        return { label: "Somente eu", icon: User, color: "bg-green-500/20 text-green-400" };
+      default:
+        return { label: type, icon: User, color: "bg-muted" };
+    }
+  };
+
+  const getDaysUntilEvent = (dateStr: string) => {
+    const eventDate = new Date(dateStr);
+    const today = new Date();
+    eventDate.setHours(0, 0, 0, 0);
+    today.setHours(0, 0, 0, 0);
+    return Math.ceil((eventDate.getTime() - today.getTime()) / (1000 * 60 * 60 * 24));
+  };
+
+  const toggleUserSelection = (userId: string) => {
+    setSelectedUsers((prev) =>
+      prev.includes(userId)
+        ? prev.filter((id) => id !== userId)
+        : [...prev, userId]
+    );
+  };
+
+  // Group reminders by upcoming and past
+  const upcomingReminders = reminders?.filter((r) => getDaysUntilEvent(r.event_date) >= 0) || [];
+  const pastReminders = reminders?.filter((r) => getDaysUntilEvent(r.event_date) < 0) || [];
+
+  return (
+    <Layout>
+      <div className="container mx-auto px-6 py-8">
+        {/* Created Toast Banner */}
+        {showCreatedToast && (
+          <div className="fixed top-20 left-1/2 -translate-x-1/2 z-50 animate-in fade-in slide-in-from-top-4 duration-300">
+            <Card className="bg-primary/90 text-primary-foreground shadow-2xl border-0">
+              <CardContent className="flex items-center gap-4 p-4">
+                <div className="p-2 rounded-full bg-white/20">
+                  <Bell className="h-5 w-5" />
+                </div>
+                <div>
+                  <p className="font-semibold">Lembrete criado!</p>
+                  <p className="text-sm opacity-90">
+                    "{showCreatedToast.title}" - {format(new Date(showCreatedToast.event_date), "dd/MM/yyyy", { locale: ptBR })}
+                  </p>
+                </div>
+              </CardContent>
+            </Card>
+          </div>
+        )}
+
+        {/* Header */}
+        <div className="flex items-center justify-between mb-8">
+          <div>
+            <h1 className="text-3xl font-bold mb-2">
+              <span className="text-gradient">Lembretes</span>
+            </h1>
+            <p className="text-muted-foreground">
+              Crie lembretes e mencione usuários para alertas
+            </p>
+          </div>
+          <Dialog open={isOpen} onOpenChange={setIsOpen}>
+            <DialogTrigger asChild>
+              <Button className="gap-2">
+                <Plus className="h-4 w-4" />
+                Novo Lembrete
+              </Button>
+            </DialogTrigger>
+            <DialogContent className="max-w-md max-h-[90vh] overflow-y-auto">
+              <DialogHeader>
+                <DialogTitle>Criar Lembrete</DialogTitle>
+              </DialogHeader>
+              <div className="space-y-4 mt-4">
+                <div className="space-y-2">
+                  <Label htmlFor="title">Título *</Label>
+                  <Input
+                    id="title"
+                    value={title}
+                    onChange={(e) => setTitle(e.target.value)}
+                    placeholder="Ex: Reunião de equipe"
+                  />
+                </div>
+
+                <div className="space-y-2">
+                  <Label htmlFor="description">Descrição</Label>
+                  <Textarea
+                    id="description"
+                    value={description}
+                    onChange={(e) => setDescription(e.target.value)}
+                    placeholder="Detalhes do lembrete..."
+                    rows={3}
+                  />
+                </div>
+
+                <div className="space-y-2">
+                  <Label htmlFor="eventDate">Data do Evento *</Label>
+                  <Input
+                    id="eventDate"
+                    type="date"
+                    value={eventDate}
+                    onChange={(e) => setEventDate(e.target.value)}
+                  />
+                </div>
+
+                <Separator />
+
+                <div className="space-y-4">
+                  <Label className="text-base font-semibold">Configuração de Alerta</Label>
+                  
+                  <div className="space-y-2">
+                    <Label htmlFor="alertDays">Mostrar alerta (dias antes)</Label>
+                    <Select
+                      value={alertDaysBefore.toString()}
+                      onValueChange={(v) => setAlertDaysBefore(parseInt(v))}
+                    >
+                      <SelectTrigger>
+                        <SelectValue />
+                      </SelectTrigger>
+                      <SelectContent>
+                        <SelectItem value="0">Não mostrar antes</SelectItem>
+                        <SelectItem value="1">1 dia antes</SelectItem>
+                        <SelectItem value="2">2 dias antes</SelectItem>
+                        <SelectItem value="3">3 dias antes</SelectItem>
+                        <SelectItem value="5">5 dias antes</SelectItem>
+                        <SelectItem value="7">7 dias antes</SelectItem>
+                        <SelectItem value="14">14 dias antes</SelectItem>
+                        <SelectItem value="30">30 dias antes</SelectItem>
+                      </SelectContent>
+                    </Select>
+                    <p className="text-xs text-muted-foreground">
+                      O lembrete será fixado no topo da tela de Destaques
+                    </p>
+                  </div>
+
+                  <div className="flex items-center justify-between">
+                    <div className="space-y-0.5">
+                      <Label htmlFor="showOnDay">Alerta no dia do evento</Label>
+                      <p className="text-xs text-muted-foreground">
+                        Mostrar alerta especial no dia
+                      </p>
+                    </div>
+                    <Switch
+                      id="showOnDay"
+                      checked={showOnEventDay}
+                      onCheckedChange={setShowOnEventDay}
+                    />
+                  </div>
+                </div>
+
+                <Separator />
+
+                <div className="space-y-4">
+                  <Label className="text-base font-semibold">Quem será notificado?</Label>
+                  
+                  <div className="grid grid-cols-3 gap-2">
+                    <Button
+                      type="button"
+                      variant={mentionType === "me" ? "default" : "outline"}
+                      className="flex flex-col items-center gap-1 h-auto py-3"
+                      onClick={() => setMentionType("me")}
+                    >
+                      <User className="h-5 w-5" />
+                      <span className="text-xs">Só eu</span>
+                    </Button>
+                    <Button
+                      type="button"
+                      variant={mentionType === "all" ? "default" : "outline"}
+                      className="flex flex-col items-center gap-1 h-auto py-3"
+                      onClick={() => setMentionType("all")}
+                    >
+                      <Globe className="h-5 w-5" />
+                      <span className="text-xs">Todos</span>
+                    </Button>
+                    <Button
+                      type="button"
+                      variant={mentionType === "specific" ? "default" : "outline"}
+                      className="flex flex-col items-center gap-1 h-auto py-3"
+                      onClick={() => setMentionType("specific")}
+                    >
+                      <Users className="h-5 w-5" />
+                      <span className="text-xs">Específicos</span>
+                    </Button>
+                  </div>
+
+                  {mentionType === "specific" && (
+                    <div className="space-y-2">
+                      <Label>Selecione os usuários</Label>
+                      <ScrollArea className="h-48 rounded-md border p-2">
+                        <div className="space-y-2">
+                          {allProfiles?.filter(p => p.user_id !== user?.id).map((profile) => (
+                            <div
+                              key={profile.user_id}
+                              className={cn(
+                                "flex items-center gap-3 p-2 rounded-lg cursor-pointer transition-colors",
+                                selectedUsers.includes(profile.user_id)
+                                  ? "bg-primary/20"
+                                  : "hover:bg-muted"
+                              )}
+                              onClick={() => toggleUserSelection(profile.user_id)}
+                            >
+                              <Checkbox
+                                checked={selectedUsers.includes(profile.user_id)}
+                                onCheckedChange={() => toggleUserSelection(profile.user_id)}
+                              />
+                              <Avatar className="h-8 w-8">
+                                <AvatarImage src={profile.avatar_url || undefined} />
+                                <AvatarFallback className="text-xs">
+                                  {getInitials(profile.full_name)}
+                                </AvatarFallback>
+                              </Avatar>
+                              <div className="flex-1 min-w-0">
+                                <p className="text-sm font-medium truncate">
+                                  {profile.full_name}
+                                </p>
+                                <p className="text-xs text-muted-foreground truncate">
+                                  {profile.cargo}
+                                </p>
+                              </div>
+                            </div>
+                          ))}
+                        </div>
+                      </ScrollArea>
+                      {selectedUsers.length > 0 && (
+                        <p className="text-xs text-muted-foreground">
+                          {selectedUsers.length} usuário(s) selecionado(s)
+                        </p>
+                      )}
+                    </div>
+                  )}
+                </div>
+
+                <Button
+                  className="w-full"
+                  onClick={handleCreate}
+                  disabled={createReminder.isPending}
+                >
+                  {createReminder.isPending ? "Criando..." : "Criar Lembrete"}
+                </Button>
+              </div>
+            </DialogContent>
+          </Dialog>
+        </div>
+
+        {/* Reminders List */}
+        <div className="space-y-8">
+          {/* Upcoming */}
+          <div>
+            <h2 className="text-lg font-semibold mb-4 flex items-center gap-2">
+              <Calendar className="h-5 w-5 text-primary" />
+              Próximos Lembretes
+            </h2>
+            {isLoading ? (
+              <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-3">
+                {[1, 2, 3].map((i) => (
+                  <Card key={i} className="animate-pulse">
+                    <CardContent className="p-6">
+                      <div className="h-4 bg-muted rounded w-3/4 mb-2" />
+                      <div className="h-3 bg-muted rounded w-1/2" />
+                    </CardContent>
+                  </Card>
+                ))}
+              </div>
+            ) : upcomingReminders.length === 0 ? (
+              <Card className="bg-muted/50">
+                <CardContent className="flex flex-col items-center justify-center py-12">
+                  <Bell className="h-12 w-12 text-muted-foreground mb-4" />
+                  <p className="text-muted-foreground">Nenhum lembrete agendado</p>
+                </CardContent>
+              </Card>
+            ) : (
+              <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-3">
+                {upcomingReminders.map((reminder) => {
+                  const daysUntil = getDaysUntilEvent(reminder.event_date);
+                  const mentionInfo = getMentionLabel(reminder.mention_type);
+                  const MentionIcon = mentionInfo.icon;
+                  const isToday = daysUntil === 0;
+                  const isUrgent = daysUntil <= 3;
+
+                  return (
+                    <Card
+                      key={reminder.id}
+                      className={cn(
+                        "relative overflow-hidden transition-all",
+                        isToday && "ring-2 ring-primary",
+                        isUrgent && !isToday && "ring-1 ring-orange-500/50"
+                      )}
+                    >
+                      {isToday && (
+                        <div className="absolute top-0 left-0 right-0 h-1 bg-gradient-to-r from-primary to-primary/50" />
+                      )}
+                      <CardHeader className="pb-2">
+                        <div className="flex items-start justify-between">
+                          <div className="flex-1 min-w-0">
+                            <CardTitle className="text-lg truncate">
+                              {reminder.title}
+                            </CardTitle>
+                            {reminder.description && (
+                              <p className="text-sm text-muted-foreground mt-1 line-clamp-2">
+                                {reminder.description}
+                              </p>
+                            )}
+                          </div>
+                          {reminder.created_by === user?.id && (
+                            <Button
+                              variant="ghost"
+                              size="icon"
+                              className="h-8 w-8 text-muted-foreground hover:text-destructive"
+                              onClick={() => handleDelete(reminder.id)}
+                            >
+                              <Trash2 className="h-4 w-4" />
+                            </Button>
+                          )}
+                        </div>
+                      </CardHeader>
+                      <CardContent className="space-y-3">
+                        <div className="flex items-center gap-2 text-sm">
+                          <Calendar className="h-4 w-4 text-muted-foreground" />
+                          <span>
+                            {format(new Date(reminder.event_date), "dd 'de' MMMM 'de' yyyy", {
+                              locale: ptBR,
+                            })}
+                          </span>
+                        </div>
+
+                        <div className="flex items-center gap-2">
+                          {isToday ? (
+                            <Badge variant="default" className="gap-1">
+                              <AlertCircle className="h-3 w-3" />
+                              Hoje!
+                            </Badge>
+                          ) : (
+                            <Badge
+                              variant="secondary"
+                              className={cn(isUrgent && "bg-orange-500/20 text-orange-400")}
+                            >
+                              {daysUntil === 1 ? "Amanhã" : `Em ${daysUntil} dias`}
+                            </Badge>
+                          )}
+                          <Badge className={cn("gap-1", mentionInfo.color)}>
+                            <MentionIcon className="h-3 w-3" />
+                            {mentionInfo.label}
+                          </Badge>
+                        </div>
+
+                        {reminder.alert_days_before > 0 && (
+                          <div className="flex items-center gap-2 text-xs text-muted-foreground">
+                            <Clock className="h-3 w-3" />
+                            Alerta {reminder.alert_days_before} dia(s) antes
+                          </div>
+                        )}
+                      </CardContent>
+                    </Card>
+                  );
+                })}
+              </div>
+            )}
+          </div>
+
+          {/* Past */}
+          {pastReminders.length > 0 && (
+            <div>
+              <h2 className="text-lg font-semibold mb-4 flex items-center gap-2 text-muted-foreground">
+                <Clock className="h-5 w-5" />
+                Lembretes Passados
+              </h2>
+              <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-3 opacity-60">
+                {pastReminders.slice(0, 6).map((reminder) => {
+                  const mentionInfo = getMentionLabel(reminder.mention_type);
+                  const MentionIcon = mentionInfo.icon;
+
+                  return (
+                    <Card key={reminder.id} className="bg-muted/30">
+                      <CardHeader className="pb-2">
+                        <div className="flex items-start justify-between">
+                          <CardTitle className="text-base truncate line-through decoration-muted-foreground/50">
+                            {reminder.title}
+                          </CardTitle>
+                          {reminder.created_by === user?.id && (
+                            <Button
+                              variant="ghost"
+                              size="icon"
+                              className="h-8 w-8 text-muted-foreground hover:text-destructive"
+                              onClick={() => handleDelete(reminder.id)}
+                            >
+                              <Trash2 className="h-4 w-4" />
+                            </Button>
+                          )}
+                        </div>
+                      </CardHeader>
+                      <CardContent className="space-y-2">
+                        <div className="flex items-center gap-2 text-sm text-muted-foreground">
+                          <Calendar className="h-4 w-4" />
+                          <span>
+                            {format(new Date(reminder.event_date), "dd/MM/yyyy", {
+                              locale: ptBR,
+                            })}
+                          </span>
+                        </div>
+                        <Badge className={cn("gap-1", mentionInfo.color)} variant="outline">
+                          <MentionIcon className="h-3 w-3" />
+                          {mentionInfo.label}
+                        </Badge>
+                      </CardContent>
+                    </Card>
+                  );
+                })}
+              </div>
+            </div>
+          )}
+        </div>
+      </div>
+    </Layout>
+  );
+};
+
+export default Lembretes;

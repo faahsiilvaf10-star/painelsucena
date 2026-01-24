@@ -342,6 +342,48 @@ export type Database = {
         }
         Relationships: []
       }
+      reminders: {
+        Row: {
+          alert_days_before: number | null
+          created_at: string
+          created_by: string
+          description: string | null
+          event_date: string
+          id: string
+          mention_type: string
+          mentioned_users: string[] | null
+          show_on_event_day: boolean | null
+          title: string
+          updated_at: string
+        }
+        Insert: {
+          alert_days_before?: number | null
+          created_at?: string
+          created_by: string
+          description?: string | null
+          event_date: string
+          id?: string
+          mention_type: string
+          mentioned_users?: string[] | null
+          show_on_event_day?: boolean | null
+          title: string
+          updated_at?: string
+        }
+        Update: {
+          alert_days_before?: number | null
+          created_at?: string
+          created_by?: string
+          description?: string | null
+          event_date?: string
+          id?: string
+          mention_type?: string
+          mentioned_users?: string[] | null
+          show_on_event_day?: boolean | null
+          title?: string
+          updated_at?: string
+        }
+        Relationships: []
+      }
       site_settings: {
         Row: {
           id: string

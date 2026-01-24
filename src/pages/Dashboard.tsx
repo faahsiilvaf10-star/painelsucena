@@ -2,6 +2,7 @@ import { Users, ClipboardCheck, AlertCircle } from "lucide-react";
 import Layout from "@/components/layout/Layout";
 import StatCard from "@/components/dashboard/StatCard";
 import { DDSHighlightCard } from "@/components/dds/DDSHighlightCard";
+import { ReminderHighlightBanner } from "@/components/reminders/ReminderHighlightBanner";
 import { MatrixProgressChart } from "@/components/dashboard/MatrixProgressChart";
 import { useEmployees } from "@/hooks/useEmployees";
 import { useAttendanceRecords } from "@/hooks/useAttendance";
@@ -26,6 +27,9 @@ const Dashboard = () => {
             Gerencie sua equipe, controle presença e organize responsabilidades em um só lugar.
           </p>
         </div>
+
+        {/* Reminder Highlights - Pinned at top */}
+        <ReminderHighlightBanner />
 
         {/* DDS Highlight Cards - Today and Tomorrow */}
         <DDSHighlightCard />
