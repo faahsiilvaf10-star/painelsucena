@@ -7,12 +7,15 @@ interface LogoutTransitionProps {
   onComplete: () => void;
   userName?: string;
   userAvatar?: string;
+  reason?: "manual" | "timeout";
 }
 
-export function LogoutTransition({ onComplete, userName, userAvatar }: LogoutTransitionProps) {
+export function LogoutTransition({ onComplete, userName, userAvatar, reason = "manual" }: LogoutTransitionProps) {
   const [phase, setPhase] = useState<"enter" | "display" | "fade">("enter");
   const { settings } = useSiteSettings();
   const logoUrl = settings.logo_url || logoPrincipal;
+  
+  const isTimeout = reason === "timeout";
 
   // Background floating particles
   const bgParticles = useMemo(() => {
@@ -143,7 +146,7 @@ export function LogoutTransition({ onComplete, userName, userAvatar }: LogoutTra
           {/* Goodbye message */}
           <div className="flex flex-col items-center gap-2">
             <span className="text-white/60 text-lg font-light tracking-wide">
-              Até logo,
+              {isTimeout ? "Sessão expirada," : "Até logo,"}
             </span>
             <span className="text-white text-4xl font-semibold tracking-wide drop-shadow-lg">
               {userName || "Usuário"}!
@@ -151,9 +154,11 @@ export function LogoutTransition({ onComplete, userName, userAvatar }: LogoutTra
           </div>
 
           {/* Subtitle */}
-          <p className="text-white/50 text-base mt-2 flex items-center gap-2">
-            <LogOut className="w-4 h-4" />
-            Saindo do sistema...
+          <p className="text-white/50 text-base mt-2 flex items-center gap-2 text-center max-w-xs">
+            <LogOut className="w-4 h-4 shrink-0" />
+            {isTimeout 
+              ? "Por segurança, você foi desconectado após 5 horas de sessão." 
+              : "Saindo do sistema..."}
           </p>
 
           {/* Progress bar */}

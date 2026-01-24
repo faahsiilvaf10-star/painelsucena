@@ -4,6 +4,7 @@ import { LogoutTransition } from "@/components/auth/LogoutTransition";
 type LogoutPayload = {
   userName?: string;
   userAvatar?: string;
+  reason?: "manual" | "timeout";
 };
 
 const EVENT_NAME = "logout-transition";
@@ -63,6 +64,7 @@ export function LogoutTransitionGate() {
       <LogoutTransition
         userName={snapshot.payload.userName}
         userAvatar={snapshot.payload.userAvatar}
+        reason={snapshot.payload.reason || "manual"}
         onComplete={() => {
           clearTransitionStorage();
           window.dispatchEvent(new Event(EVENT_NAME));
