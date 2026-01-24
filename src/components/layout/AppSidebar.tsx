@@ -1,4 +1,4 @@
-import { Users, ClipboardList, Grid3X3, LayoutDashboard, FileBarChart, LogOut, LogIn, AlertTriangle, PanelLeftClose, PanelLeft, Settings, Sun, Truck, Bell, FileText, LucideIcon, Heart, ShoppingCart, Package, GripVertical } from "lucide-react";
+import { Users, ClipboardList, Grid3X3, LayoutDashboard, FileBarChart, LogOut, LogIn, AlertTriangle, PanelLeftClose, PanelLeft, Settings, Sun, Truck, Bell, FileText, LucideIcon, Heart, ShoppingCart, Package, GripVertical, User } from "lucide-react";
 import { Link, useLocation, useNavigate } from "react-router-dom";
 import { useMemo, useState } from "react";
 import { useAuth } from "@/hooks/useAuth";
@@ -304,21 +304,33 @@ export function AppSidebar() {
             </div>
             
             {/* Action Buttons */}
-            <div className={`flex gap-2 ${isCollapsed ? "flex-col" : ""}`}>
+            <div className={`flex gap-1 ${isCollapsed ? "flex-col" : ""}`}>
               <Button
-                variant="secondary"
+                variant="ghost"
                 size="sm"
                 onClick={() => navigate("/configuracoes")}
-                className={`flex-1 bg-sidebar-border/50 hover:bg-sidebar-border text-sidebar-foreground ${isCollapsed ? "px-2" : ""}`}
+                className={`flex-1 hover:bg-sidebar-border/80 text-sidebar-foreground ${isCollapsed ? "px-2 justify-center" : ""}`}
+                title="Perfil e Configurações"
+              >
+                <User className="h-4 w-4" />
+                {!isCollapsed && <span className="ml-2">Perfil</span>}
+              </Button>
+              <Button
+                variant="ghost"
+                size="sm"
+                onClick={() => navigate("/configuracoes")}
+                className={`flex-1 hover:bg-sidebar-border/80 text-sidebar-foreground ${isCollapsed ? "px-2 justify-center" : ""}`}
+                title="Configurações do Sistema"
               >
                 <Settings className="h-4 w-4" />
                 {!isCollapsed && <span className="ml-2">Config.</span>}
               </Button>
               <Button
-                variant="secondary"
+                variant="ghost"
                 size="sm"
                 onClick={handleSignOut}
-                className={`flex-1 bg-sidebar-border/50 hover:bg-sidebar-border text-sidebar-foreground ${isCollapsed ? "px-2" : ""}`}
+                className={`flex-1 hover:bg-red-500/20 hover:text-red-500 text-sidebar-foreground ${isCollapsed ? "px-2 justify-center" : ""}`}
+                title="Sair da conta"
               >
                 <LogOut className="h-4 w-4" />
                 {!isCollapsed && <span className="ml-2">Sair</span>}
