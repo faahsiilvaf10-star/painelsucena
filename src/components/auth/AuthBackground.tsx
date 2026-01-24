@@ -48,13 +48,13 @@ interface Particle {
 export function AuthBackground() {
   // Generate random particles
   const particles = useMemo<Particle[]>(() => {
-    return Array.from({ length: 30 }, (_, i) => ({
+    return Array.from({ length: 60 }, (_, i) => ({
       id: i,
       x: Math.random() * 100,
       y: Math.random() * 100,
       size: 2 + Math.random() * 4,
-      duration: 15 + Math.random() * 20,
-      delay: Math.random() * 10,
+      duration: 6 + Math.random() * 10,
+      delay: Math.random() * 5,
       opacity: 0.1 + Math.random() * 0.3,
     }));
   }, []);
