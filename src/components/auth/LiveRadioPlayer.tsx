@@ -3,22 +3,27 @@ import { Radio, VolumeX, Volume2 } from "lucide-react";
 
 interface LiveRadioPlayerProps {
   radioUrl?: string;
+  autoPlay?: boolean;
 }
 
-export function LiveRadioPlayer({ radioUrl = "https://radiosaovivo.net/" }: LiveRadioPlayerProps) {
-  const [isMuted, setIsMuted] = useState(true);
-  const [isPlaying, setIsPlaying] = useState(false);
+export function LiveRadioPlayer({ 
+  radioUrl = "https://radiosaovivo.net/", 
+  autoPlay = true 
+}: LiveRadioPlayerProps) {
+  const [isMuted, setIsMuted] = useState(false);
+  const [isVisible, setIsVisible] = useState(true);
   const iframeRef = useRef<HTMLIFrameElement>(null);
 
   const toggleMute = () => {
-    if (!isPlaying) {
-      // First click starts the radio
-      setIsPlaying(true);
-      setIsMuted(false);
-    } else {
-      setIsMuted(!isMuted);
-    }
+    setIsMuted(!isMuted);
   };
+
+  // Auto-start on mount if autoPlay is true
+  useEffect(() => {
+    if (autoPlay) {
+      setIsVisible(true);
+    }
+  }, [autoPlay]);
 
   return (
     <div className="fixed bottom-6 right-6 z-40">
@@ -28,7 +33,7 @@ export function LiveRadioPlayer({ radioUrl = "https://radiosaovivo.net/" }: Live
           group relative flex items-center gap-2 px-4 py-2.5 rounded-full
           backdrop-blur-md border border-white/20 shadow-lg
           transition-all duration-300 ease-out
-          ${isPlaying && !isMuted 
+          ${!isMuted 
             ? "bg-green-500/20 hover:bg-green-500/30 border-green-400/40" 
             : "bg-white/10 hover:bg-white/20"
           }
@@ -39,10 +44,10 @@ export function LiveRadioPlayer({ radioUrl = "https://radiosaovivo.net/" }: Live
         <div className="relative">
           <Radio 
             className={`w-5 h-5 transition-colors duration-300 ${
-              isPlaying && !isMuted ? "text-green-400" : "text-white/70"
+              !isMuted ? "text-green-400" : "text-white/70"
             }`} 
           />
-          {isPlaying && !isMuted && (
+          {!isMuted && (
             <>
               <span className="absolute -top-0.5 -right-0.5 w-2 h-2 bg-green-400 rounded-full animate-ping" />
               <span className="absolute -top-0.5 -right-0.5 w-2 h-2 bg-green-400 rounded-full" />
@@ -51,7 +56,7 @@ export function LiveRadioPlayer({ radioUrl = "https://radiosaovivo.net/" }: Live
         </div>
 
         {/* Volume icon */}
-        {isPlaying && !isMuted ? (
+        {!isMuted ? (
           <Volume2 className="w-4 h-4 text-green-400" />
         ) : (
           <VolumeX className="w-4 h-4 text-white/50" />
@@ -59,13 +64,13 @@ export function LiveRadioPlayer({ radioUrl = "https://radiosaovivo.net/" }: Live
 
         {/* Label */}
         <span className={`text-xs font-medium transition-colors duration-300 ${
-          isPlaying && !isMuted ? "text-green-300" : "text-white/60"
+          !isMuted ? "text-green-300" : "text-white/60"
         }`}>
-          {isPlaying && !isMuted ? "Ao Vivo" : "Rádio"}
+          {!isMuted ? "Ao Vivo" : "Mudo"}
         </span>
 
         {/* Sound wave animation when playing */}
-        {isPlaying && !isMuted && (
+        {!isMuted && (
           <div className="flex items-end gap-0.5 h-4">
             {[1, 2, 3].map((i) => (
               <div
@@ -81,13 +86,13 @@ export function LiveRadioPlayer({ radioUrl = "https://radiosaovivo.net/" }: Live
         )}
       </button>
 
-      {/* Hidden iframe for audio playback */}
-      {isPlaying && (
+      {/* Iframe for radio - hidden when muted */}
+      {isVisible && !isMuted && (
         <iframe
           ref={iframeRef}
-          src={isMuted ? "about:blank" : radioUrl}
-          className="hidden"
-          allow="autoplay"
+          src={radioUrl}
+          className="fixed bottom-0 left-0 w-0 h-0 opacity-0 pointer-events-none"
+          allow="autoplay; encrypted-media"
           title="Rádio ao vivo"
         />
       )}
