@@ -28,6 +28,7 @@ import {
 } from "@/components/ui/tooltip";
 import { useUpdateEquipmentStatus, useUpdateEquipment, useDeleteEquipment, useEquipmentStopHistory, type StopReason, type Equipment } from "@/hooks/useEquipment";
 import { VehicleIcon } from "./VehicleIcons";
+import { getBrazilNorthDate, getBrazilNorthMidnight } from "@/lib/timezone";
 import { toast } from "sonner";
 
 // Labels for quick buttons (excludes end_of_shift)
@@ -87,7 +88,7 @@ interface EquipmentTimelineProps {
 }
 
 export function EquipmentTimeline({ equipment }: EquipmentTimelineProps) {
-  const [currentTime, setCurrentTime] = useState(new Date());
+  const [currentTime, setCurrentTime] = useState(getBrazilNorthDate());
   const [isEditing, setIsEditing] = useState(false);
   const [showDeleteDialog, setShowDeleteDialog] = useState(false);
   const [editData, setEditData] = useState({
@@ -108,8 +109,7 @@ export function EquipmentTimeline({ equipment }: EquipmentTimelineProps) {
   // Filter today's stops for this equipment
   const todayStops = useMemo(() => {
     if (!stopHistory) return [];
-    const today = new Date();
-    today.setHours(0, 0, 0, 0);
+    const today = getBrazilNorthMidnight();
     
     return stopHistory
       .filter(stop => {

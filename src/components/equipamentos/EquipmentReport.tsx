@@ -9,6 +9,7 @@ import { Badge } from "@/components/ui/badge";
 import { ScrollArea } from "@/components/ui/scroll-area";
 import { useEquipment, useEquipmentStopHistory, type Equipment, type EquipmentStopHistory } from "@/hooks/useEquipment";
 import { toast } from "sonner";
+import { getBrazilNorthDate } from "@/lib/timezone";
 
 const stopReasonLabels: Record<string, string> = {
   none: "Operando",
@@ -52,7 +53,7 @@ export function EquipmentReport() {
   const { data: allHistory } = useEquipmentStopHistory();
 
   const dateRange = useMemo(() => {
-    const now = new Date();
+    const now = getBrazilNorthDate();
     switch (period) {
       case "daily":
         return { start: startOfDay(now), end: endOfDay(now) };

@@ -15,7 +15,53 @@ export const getBrazilNorthDate = (): Date => {
  */
 export const getBrazilNorthTodayString = (): string => {
   const date = getBrazilNorthDate();
-  return date.toISOString().split("T")[0];
+  const year = date.getFullYear();
+  const month = String(date.getMonth() + 1).padStart(2, "0");
+  const day = String(date.getDate()).padStart(2, "0");
+  return `${year}-${month}-${day}`;
+};
+
+/**
+ * Get tomorrow's date string (YYYY-MM-DD) in Brazil Northern Region timezone
+ */
+export const getBrazilNorthTomorrowString = (): string => {
+  const date = getBrazilNorthDate();
+  date.setDate(date.getDate() + 1);
+  const year = date.getFullYear();
+  const month = String(date.getMonth() + 1).padStart(2, "0");
+  const day = String(date.getDate()).padStart(2, "0");
+  return `${year}-${month}-${day}`;
+};
+
+/**
+ * Get current month-year string (YYYY-MM) in Brazil Northern Region timezone
+ */
+export const getBrazilNorthMonthYear = (): string => {
+  const date = getBrazilNorthDate();
+  const year = date.getFullYear();
+  const month = String(date.getMonth() + 1).padStart(2, "0");
+  return `${year}-${month}`;
+};
+
+/**
+ * Get the current month (0-indexed) in Brazil Northern Region timezone
+ */
+export const getBrazilNorthMonth = (): number => {
+  return getBrazilNorthDate().getMonth();
+};
+
+/**
+ * Get the current day of month in Brazil Northern Region timezone
+ */
+export const getBrazilNorthDayOfMonth = (): number => {
+  return getBrazilNorthDate().getDate();
+};
+
+/**
+ * Get the current year in Brazil Northern Region timezone
+ */
+export const getBrazilNorthYear = (): number => {
+  return getBrazilNorthDate().getFullYear();
 };
 
 /**
@@ -46,4 +92,17 @@ export const getDaysUntilEventBrazilNorth = (eventDateStr: string): number => {
   
   const diffTime = eventDate.getTime() - today.getTime();
   return Math.ceil(diffTime / (1000 * 60 * 60 * 24));
+};
+
+/**
+ * Format the current Brazil North date for display (localized)
+ */
+export const formatBrazilNorthDateDisplay = (): string => {
+  const date = getBrazilNorthDate();
+  return date.toLocaleDateString("pt-BR", {
+    weekday: "long",
+    day: "numeric",
+    month: "long",
+    year: "numeric",
+  });
 };

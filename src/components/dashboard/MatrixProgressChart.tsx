@@ -17,6 +17,7 @@ import { AlertTriangle, TrendingUp, PieChartIcon } from "lucide-react";
 import { supabase } from "@/integrations/supabase/client";
 import { Alert, AlertDescription, AlertTitle } from "@/components/ui/alert";
 import { Skeleton } from "@/components/ui/skeleton";
+import { getBrazilNorthDate, getBrazilNorthMonthYear } from "@/lib/timezone";
 
 interface CargoProgress {
   cargo: string;
@@ -78,7 +79,7 @@ export function MatrixProgressChart() {
   useEffect(() => {
     const fetchAllProgress = async () => {
       try {
-        const monthYear = format(new Date(), "yyyy-MM");
+        const monthYear = getBrazilNorthMonthYear();
         
         // Fetch all completions for this month
         const { data, error } = await supabase
@@ -140,7 +141,7 @@ export function MatrixProgressChart() {
     );
   }
 
-  const currentMonth = format(new Date(), "MMMM 'de' yyyy", { locale: ptBR });
+  const currentMonth = format(getBrazilNorthDate(), "MMMM 'de' yyyy", { locale: ptBR });
 
   return (
     <div className="space-y-6">

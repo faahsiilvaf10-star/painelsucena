@@ -6,13 +6,16 @@ import { SunBorderAvatar } from "./SunBorderAvatar";
 import { useTomorrowDDS } from "@/hooks/useDDSSchedule";
 import { format, addDays } from "date-fns";
 import { ptBR } from "date-fns/locale";
+import { getBrazilNorthDate, getBrazilNorthTomorrowString } from "@/lib/timezone";
 
 export const DDSNotificationBanner = () => {
   const [isDismissed, setIsDismissed] = useState(false);
   const { data: tomorrowDDS, isLoading } = useTomorrowDDS();
 
-  const tomorrow = addDays(new Date(), 1);
-  const storageKey = `dds-notification-${format(tomorrow, "yyyy-MM-dd")}`;
+  // Use Brazil North timezone
+  const tomorrowDate = addDays(getBrazilNorthDate(), 1);
+  const tomorrowStr = getBrazilNorthTomorrowString();
+  const storageKey = `dds-notification-${tomorrowStr}`;
 
   useEffect(() => {
     const dismissed = localStorage.getItem(storageKey);
@@ -71,7 +74,7 @@ export const DDSNotificationBanner = () => {
                 DDS de Amanhã
               </span>
               <span className="text-sm text-muted-foreground">
-                {format(tomorrow, "EEEE, d 'de' MMMM", { locale: ptBR })}
+                {format(tomorrowDate, "EEEE, d 'de' MMMM", { locale: ptBR })}
               </span>
             </div>
 

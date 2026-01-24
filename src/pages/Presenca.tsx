@@ -7,6 +7,8 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@
 import { useAttendanceRecords, useUpdateAttendance, type AttendanceStatus } from "@/hooks/useAttendance";
 import { useReportLock } from "@/hooks/useReportLock";
 import { toast } from "sonner";
+import { getBrazilNorthTodayString } from "@/lib/timezone";
+
 const statusConfig = {
   present: {
     label: "Presente",
@@ -23,7 +25,7 @@ const statusConfig = {
 };
 const Presenca = () => {
   const [filterStatus, setFilterStatus] = useState<string>("all");
-  const today = new Date().toISOString().split("T")[0];
+  const today = getBrazilNorthTodayString();
   const {
     data: attendanceRecords,
     isLoading,

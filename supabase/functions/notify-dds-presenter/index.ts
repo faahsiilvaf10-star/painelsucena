@@ -43,10 +43,15 @@ serve(async (req: Request) => {
     const supabaseServiceKey = Deno.env.get("SUPABASE_SERVICE_ROLE_KEY")!;
     const supabase = createClient(supabaseUrl, supabaseServiceKey);
 
-    // Get tomorrow's date
-    const tomorrow = new Date();
-    tomorrow.setDate(tomorrow.getDate() + 1);
-    const tomorrowStr = tomorrow.toISOString().split("T")[0];
+    // Get tomorrow's date in Brazil North timezone (UTC-4)
+    const now = new Date();
+    const utc = now.getTime() + now.getTimezoneOffset() * 60000;
+    const brazilNorth = new Date(utc + (-4) * 3600000);
+    brazilNorth.setDate(brazilNorth.getDate() + 1);
+    const year = brazilNorth.getFullYear();
+    const month = String(brazilNorth.getMonth() + 1).padStart(2, "0");
+    const day = String(brazilNorth.getDate()).padStart(2, "0");
+    const tomorrowStr = `${year}-${month}-${day}`;
 
     console.log(`Looking for DDS scheduled for: ${tomorrowStr}`);
 
