@@ -342,6 +342,104 @@ export type Database = {
         }
         Relationships: []
       }
+      order_history: {
+        Row: {
+          changed_by: string
+          changed_by_name: string
+          created_at: string
+          id: string
+          new_status: Database["public"]["Enums"]["order_status"]
+          notes: string | null
+          order_id: string
+          previous_status: Database["public"]["Enums"]["order_status"] | null
+        }
+        Insert: {
+          changed_by: string
+          changed_by_name: string
+          created_at?: string
+          id?: string
+          new_status: Database["public"]["Enums"]["order_status"]
+          notes?: string | null
+          order_id: string
+          previous_status?: Database["public"]["Enums"]["order_status"] | null
+        }
+        Update: {
+          changed_by?: string
+          changed_by_name?: string
+          created_at?: string
+          id?: string
+          new_status?: Database["public"]["Enums"]["order_status"]
+          notes?: string | null
+          order_id?: string
+          previous_status?: Database["public"]["Enums"]["order_status"] | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "order_history_order_id_fkey"
+            columns: ["order_id"]
+            isOneToOne: false
+            referencedRelation: "orders"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      orders: {
+        Row: {
+          ai_generated_image_url: string | null
+          created_at: string
+          description: string | null
+          expected_date: string | null
+          id: string
+          mentioned_cargo: string | null
+          mentioned_user_id: string | null
+          notes: string | null
+          photo_urls: string[] | null
+          product_name: string
+          quantity: number
+          quantity_unit: Database["public"]["Enums"]["quantity_unit"]
+          requester_id: string
+          requester_name: string
+          status: Database["public"]["Enums"]["order_status"]
+          updated_at: string
+        }
+        Insert: {
+          ai_generated_image_url?: string | null
+          created_at?: string
+          description?: string | null
+          expected_date?: string | null
+          id?: string
+          mentioned_cargo?: string | null
+          mentioned_user_id?: string | null
+          notes?: string | null
+          photo_urls?: string[] | null
+          product_name: string
+          quantity: number
+          quantity_unit?: Database["public"]["Enums"]["quantity_unit"]
+          requester_id: string
+          requester_name: string
+          status?: Database["public"]["Enums"]["order_status"]
+          updated_at?: string
+        }
+        Update: {
+          ai_generated_image_url?: string | null
+          created_at?: string
+          description?: string | null
+          expected_date?: string | null
+          id?: string
+          mentioned_cargo?: string | null
+          mentioned_user_id?: string | null
+          notes?: string | null
+          photo_urls?: string[] | null
+          product_name?: string
+          quantity?: number
+          quantity_unit?: Database["public"]["Enums"]["quantity_unit"]
+          requester_id?: string
+          requester_name?: string
+          status?: Database["public"]["Enums"]["order_status"]
+          updated_at?: string
+        }
+        Relationships: []
+      }
       profiles: {
         Row: {
           avatar_url: string | null
@@ -620,6 +718,21 @@ export type Database = {
         | "aux_almoxarifado"
         | "planejador"
       employee_status: "active" | "vacation" | "leave"
+      order_status:
+        | "solicitado"
+        | "aprovado"
+        | "a_caminho"
+        | "entregue"
+        | "cancelado"
+      quantity_unit:
+        | "unidade"
+        | "centimetros"
+        | "metros"
+        | "quilos"
+        | "litros"
+        | "pacotes"
+        | "caixas"
+        | "pecas"
     }
     CompositeTypes: {
       [_ in never]: never
@@ -762,6 +875,23 @@ export const Constants = {
         "planejador",
       ],
       employee_status: ["active", "vacation", "leave"],
+      order_status: [
+        "solicitado",
+        "aprovado",
+        "a_caminho",
+        "entregue",
+        "cancelado",
+      ],
+      quantity_unit: [
+        "unidade",
+        "centimetros",
+        "metros",
+        "quilos",
+        "litros",
+        "pacotes",
+        "caixas",
+        "pecas",
+      ],
     },
   },
 } as const
