@@ -1,0 +1,356 @@
+import { useState } from "react";
+import Layout from "@/components/layout/Layout";
+import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
+import { Button } from "@/components/ui/button";
+import { Badge } from "@/components/ui/badge";
+import { Input } from "@/components/ui/input";
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from "@/components/ui/select";
+import {
+  Table,
+  TableBody,
+  TableCell,
+  TableHead,
+  TableHeader,
+  TableRow,
+} from "@/components/ui/table";
+import {
+  AlertDialog,
+  AlertDialogAction,
+  AlertDialogCancel,
+  AlertDialogContent,
+  AlertDialogDescription,
+  AlertDialogFooter,
+  AlertDialogHeader,
+  AlertDialogTitle,
+  AlertDialogTrigger,
+} from "@/components/ui/alert-dialog";
+import {
+  FileText,
+  Search,
+  Trash2,
+  RefreshCw,
+  X,
+  Check,
+  AlertTriangle,
+  Clock,
+} from "lucide-react";
+import { format } from "date-fns";
+import { ptBR } from "date-fns/locale";
+import { toast } from "sonner";
+import { AddDocumentDialog } from "@/components/documents/AddDocumentDialog";
+import { EditDocumentDialog } from "@/components/documents/EditDocumentDialog";
+import {
+  useDocuments,
+  useUpdateDocument,
+  useDeleteDocument,
+  Document,
+  DocumentType,
+  DocumentStatus,
+  DOCUMENT_TYPE_LABELS,
+  DOCUMENT_STATUS_LABELS,
+} from "@/hooks/useDocuments";
+import { getDaysUntilEventBrazilNorth } from "@/lib/timezone";
+import { useAuth } from "@/hooks/useAuth";
+
+const Documentos = () => {
+  const { user } = useAuth();
+  const { data: documents, isLoading } = useDocuments();
+  const updateDocument = useUpdateDocument();
+  const deleteDocument = useDeleteDocument();
+
+  const [searchTerm, setSearchTerm] = useState("");
+  const [filterType, setFilterType] = useState<DocumentType | "all">("all");
+  const [filterStatus, setFilterStatus] = useState<DocumentStatus | "all">("all");
+
+  const filteredDocuments = documents?.filter((doc) => {
+    const matchesSearch =
+      doc.title.toLowerCase().includes(searchTerm.toLowerCase()) ||
+      doc.description?.toLowerCase().includes(searchTerm.toLowerCase());
+    const matchesType = filterType === "all" || doc.document_type === filterType;
+    const matchesStatus = filterStatus === "all" || doc.status === filterStatus;
+    return matchesSearch && matchesType && matchesStatus;
+  });
+
+  const handleUpdateStatus = async (doc: Document, status: DocumentStatus) => {
+    try {
+      await updateDocument.mutateAsync({ id: doc.id, status });
+      toast.success(`Status atualizado para: ${DOCUMENT_STATUS_LABELS[status]}`);
+    } catch (error) {
+      toast.error("Erro ao atualizar status");
+    }
+  };
+
+  const handleDelete = async (doc: Document) => {
+    try {
+      await deleteDocument.mutateAsync(doc.id);
+      toast.success("Documento excluído com sucesso");
+    } catch (error) {
+      toast.error("Erro ao excluir documento");
+    }
+  };
+
+  const getStatusBadge = (status: DocumentStatus) => {
+    switch (status) {
+      case "pending":
+        return <Badge variant="secondary"><Clock className="h-3 w-3 mr-1" />{DOCUMENT_STATUS_LABELS.pending}</Badge>;
+      case "updated":
+        return <Badge variant="default" className="bg-green-600"><Check className="h-3 w-3 mr-1" />{DOCUMENT_STATUS_LABELS.updated}</Badge>;
+      case "cancelled":
+        return <Badge variant="destructive"><X className="h-3 w-3 mr-1" />{DOCUMENT_STATUS_LABELS.cancelled}</Badge>;
+    }
+  };
+
+  const getExpiryBadge = (expiryDate: string, status: DocumentStatus) => {
+    if (status !== "pending") return null;
+
+    const daysUntil = getDaysUntilEventBrazilNorth(expiryDate);
+
+    if (daysUntil < 0) {
+      return <Badge variant="destructive"><AlertTriangle className="h-3 w-3 mr-1" />Vencido</Badge>;
+    } else if (daysUntil === 0) {
+      return <Badge variant="destructive"><AlertTriangle className="h-3 w-3 mr-1" />Vence hoje</Badge>;
+    } else if (daysUntil <= 5) {
+      return <Badge variant="outline" className="border-orange-500 text-orange-500"><AlertTriangle className="h-3 w-3 mr-1" />{daysUntil} dias</Badge>;
+    }
+    return null;
+  };
+
+  // Stats
+  const pendingCount = documents?.filter((d) => d.status === "pending").length || 0;
+  const expiringCount = documents?.filter((d) => {
+    if (d.status !== "pending") return false;
+    const days = getDaysUntilEventBrazilNorth(d.expiry_date);
+    return days >= 0 && days <= 5;
+  }).length || 0;
+  const expiredCount = documents?.filter((d) => {
+    if (d.status !== "pending") return false;
+    return getDaysUntilEventBrazilNorth(d.expiry_date) < 0;
+  }).length || 0;
+
+  return (
+    <Layout>
+      <div className="container mx-auto px-6 py-8">
+        {/* Header */}
+        <div className="flex flex-col md:flex-row md:items-center justify-between gap-4 mb-8">
+          <div>
+            <h1 className="text-3xl font-bold flex items-center gap-2">
+              <FileText className="h-8 w-8 text-primary" />
+              Documentos
+            </h1>
+            <p className="text-muted-foreground mt-1">
+              Gerencie documentos e controle vencimentos
+            </p>
+          </div>
+          <AddDocumentDialog />
+        </div>
+
+        {/* Stats Cards */}
+        <div className="grid grid-cols-1 md:grid-cols-3 gap-4 mb-6">
+          <Card>
+            <CardContent className="p-4 flex items-center gap-4">
+              <div className="p-3 rounded-full bg-blue-100 dark:bg-blue-900/30">
+                <FileText className="h-6 w-6 text-blue-600" />
+              </div>
+              <div>
+                <p className="text-2xl font-bold">{pendingCount}</p>
+                <p className="text-sm text-muted-foreground">Pendentes</p>
+              </div>
+            </CardContent>
+          </Card>
+          <Card>
+            <CardContent className="p-4 flex items-center gap-4">
+              <div className="p-3 rounded-full bg-orange-100 dark:bg-orange-900/30">
+                <Clock className="h-6 w-6 text-orange-600" />
+              </div>
+              <div>
+                <p className="text-2xl font-bold">{expiringCount}</p>
+                <p className="text-sm text-muted-foreground">A vencer (5 dias)</p>
+              </div>
+            </CardContent>
+          </Card>
+          <Card>
+            <CardContent className="p-4 flex items-center gap-4">
+              <div className="p-3 rounded-full bg-red-100 dark:bg-red-900/30">
+                <AlertTriangle className="h-6 w-6 text-red-600" />
+              </div>
+              <div>
+                <p className="text-2xl font-bold">{expiredCount}</p>
+                <p className="text-sm text-muted-foreground">Vencidos</p>
+              </div>
+            </CardContent>
+          </Card>
+        </div>
+
+        {/* Filters */}
+        <Card className="mb-6">
+          <CardContent className="p-4">
+            <div className="flex flex-col md:flex-row gap-4">
+              <div className="flex-1 relative">
+                <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 h-4 w-4 text-muted-foreground" />
+                <Input
+                  placeholder="Buscar por título ou descrição..."
+                  value={searchTerm}
+                  onChange={(e) => setSearchTerm(e.target.value)}
+                  className="pl-10"
+                />
+              </div>
+              <Select value={filterType} onValueChange={(v) => setFilterType(v as DocumentType | "all")}>
+                <SelectTrigger className="w-full md:w-[200px]">
+                  <SelectValue placeholder="Tipo" />
+                </SelectTrigger>
+                <SelectContent>
+                  <SelectItem value="all">Todos os tipos</SelectItem>
+                  {Object.entries(DOCUMENT_TYPE_LABELS).map(([key, label]) => (
+                    <SelectItem key={key} value={key}>{label}</SelectItem>
+                  ))}
+                </SelectContent>
+              </Select>
+              <Select value={filterStatus} onValueChange={(v) => setFilterStatus(v as DocumentStatus | "all")}>
+                <SelectTrigger className="w-full md:w-[160px]">
+                  <SelectValue placeholder="Status" />
+                </SelectTrigger>
+                <SelectContent>
+                  <SelectItem value="all">Todos</SelectItem>
+                  {Object.entries(DOCUMENT_STATUS_LABELS).map(([key, label]) => (
+                    <SelectItem key={key} value={key}>{label}</SelectItem>
+                  ))}
+                </SelectContent>
+              </Select>
+            </div>
+          </CardContent>
+        </Card>
+
+        {/* Table */}
+        <Card>
+          <CardHeader>
+            <CardTitle>Lista de Documentos</CardTitle>
+          </CardHeader>
+          <CardContent>
+            {isLoading ? (
+              <div className="text-center py-8 text-muted-foreground">
+                Carregando documentos...
+              </div>
+            ) : filteredDocuments?.length === 0 ? (
+              <div className="text-center py-8 text-muted-foreground">
+                Nenhum documento encontrado
+              </div>
+            ) : (
+              <div className="overflow-x-auto">
+                <Table>
+                  <TableHeader>
+                    <TableRow>
+                      <TableHead>Título</TableHead>
+                      <TableHead>Tipo</TableHead>
+                      <TableHead>Vencimento</TableHead>
+                      <TableHead>Status</TableHead>
+                      <TableHead className="text-right">Ações</TableHead>
+                    </TableRow>
+                  </TableHeader>
+                  <TableBody>
+                    {filteredDocuments?.map((doc) => (
+                      <TableRow key={doc.id}>
+                        <TableCell>
+                          <div>
+                            <p className="font-medium">{doc.title}</p>
+                            {doc.description && (
+                              <p className="text-sm text-muted-foreground truncate max-w-[200px]">
+                                {doc.description}
+                              </p>
+                            )}
+                          </div>
+                        </TableCell>
+                        <TableCell>
+                          <Badge variant="outline">
+                            {DOCUMENT_TYPE_LABELS[doc.document_type]}
+                          </Badge>
+                        </TableCell>
+                        <TableCell>
+                          <div className="flex flex-col gap-1">
+                            <span>
+                              {format(new Date(doc.expiry_date + "T12:00:00"), "dd/MM/yyyy", {
+                                locale: ptBR,
+                              })}
+                            </span>
+                            {getExpiryBadge(doc.expiry_date, doc.status)}
+                          </div>
+                        </TableCell>
+                        <TableCell>{getStatusBadge(doc.status)}</TableCell>
+                        <TableCell>
+                          <div className="flex items-center justify-end gap-1">
+                            {doc.status === "pending" && (
+                              <>
+                                <Button
+                                  size="sm"
+                                  variant="ghost"
+                                  className="text-green-600 hover:text-green-700"
+                                  onClick={() => handleUpdateStatus(doc, "updated")}
+                                  title="Marcar como atualizado"
+                                >
+                                  <RefreshCw className="h-4 w-4" />
+                                </Button>
+                                <Button
+                                  size="sm"
+                                  variant="ghost"
+                                  className="text-orange-600 hover:text-orange-700"
+                                  onClick={() => handleUpdateStatus(doc, "cancelled")}
+                                  title="Cancelar documento"
+                                >
+                                  <X className="h-4 w-4" />
+                                </Button>
+                              </>
+                            )}
+                            <EditDocumentDialog document={doc} />
+                            {doc.created_by === user?.id && (
+                              <AlertDialog>
+                                <AlertDialogTrigger asChild>
+                                  <Button
+                                    size="sm"
+                                    variant="ghost"
+                                    className="text-red-600 hover:text-red-700"
+                                    title="Excluir"
+                                  >
+                                    <Trash2 className="h-4 w-4" />
+                                  </Button>
+                                </AlertDialogTrigger>
+                                <AlertDialogContent>
+                                  <AlertDialogHeader>
+                                    <AlertDialogTitle>Excluir documento?</AlertDialogTitle>
+                                    <AlertDialogDescription>
+                                      Esta ação não pode ser desfeita. O documento "{doc.title}" será
+                                      permanentemente excluído.
+                                    </AlertDialogDescription>
+                                  </AlertDialogHeader>
+                                  <AlertDialogFooter>
+                                    <AlertDialogCancel>Cancelar</AlertDialogCancel>
+                                    <AlertDialogAction
+                                      onClick={() => handleDelete(doc)}
+                                      className="bg-red-600 hover:bg-red-700"
+                                    >
+                                      Excluir
+                                    </AlertDialogAction>
+                                  </AlertDialogFooter>
+                                </AlertDialogContent>
+                              </AlertDialog>
+                            )}
+                          </div>
+                        </TableCell>
+                      </TableRow>
+                    ))}
+                  </TableBody>
+                </Table>
+              </div>
+            )}
+          </CardContent>
+        </Card>
+      </div>
+    </Layout>
+  );
+};
+
+export default Documentos;
