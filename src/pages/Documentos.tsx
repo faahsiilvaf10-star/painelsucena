@@ -39,6 +39,7 @@ import {
   Check,
   AlertTriangle,
   Clock,
+  ExternalLink,
 } from "lucide-react";
 import { format } from "date-fns";
 import { ptBR } from "date-fns/locale";
@@ -256,12 +257,25 @@ const Documentos = () => {
                     {filteredDocuments?.map((doc) => (
                       <TableRow key={doc.id}>
                         <TableCell>
-                          <div>
-                            <p className="font-medium">{doc.title}</p>
-                            {doc.description && (
-                              <p className="text-sm text-muted-foreground truncate max-w-[200px]">
-                                {doc.description}
-                              </p>
+                          <div className="flex items-center gap-2">
+                            <div className="flex-1">
+                              <p className="font-medium">{doc.title}</p>
+                              {doc.description && (
+                                <p className="text-sm text-muted-foreground truncate max-w-[200px]">
+                                  {doc.description}
+                                </p>
+                              )}
+                            </div>
+                            {doc.file_url && (
+                              <Button
+                                size="sm"
+                                variant="ghost"
+                                className="text-primary hover:text-primary/80"
+                                onClick={() => window.open(doc.file_url!, "_blank")}
+                                title="Abrir arquivo PDF"
+                              >
+                                <ExternalLink className="h-4 w-4" />
+                              </Button>
                             )}
                           </div>
                         </TableCell>
