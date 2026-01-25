@@ -1,5 +1,5 @@
-import { useState, memo } from "react";
-import { Search, Plus, Calendar, Clock, Stethoscope, Pencil, Trash2 } from "lucide-react";
+import { useState, useMemo, useCallback } from "react";
+import { Search, Plus } from "lucide-react";
 import Layout from "@/components/layout/Layout";
 import { Input } from "@/components/ui/input";
 import { Button } from "@/components/ui/button";
@@ -18,38 +18,23 @@ import {
   DialogTitle,
   DialogTrigger,
 } from "@/components/ui/dialog";
-import { Label } from "@/components/ui/label";
-import { useEmployees, useCreateEmployee, useUpdateEmployee, useDeleteEmployee } from "@/hooks/useEmployees";
+import { useEmployees, useCreateEmployee, useUpdateEmployee, useDeleteEmployee, type Employee } from "@/hooks/useEmployees";
 import { useProfile } from "@/hooks/useProfile";
 import { useIsAdmin } from "@/hooks/useUserRole";
 import { toast } from "sonner";
-import { format, differenceInMonths, addMonths } from "date-fns";
-import { ptBR } from "date-fns/locale";
-import { Calendar as CalendarComponent } from "@/components/ui/calendar";
-import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover";
-import { cn } from "@/lib/utils";
-import { Badge } from "@/components/ui/badge";
-import { Skeleton } from "@/components/ui/skeleton";
-
-const statusLabels = {
-  active: { label: "Ativo", class: "bg-success/20 text-success" },
-  vacation: { label: "Férias", class: "bg-info/20 text-info" },
-  leave: { label: "Licença", class: "bg-warning/20 text-warning" },
-};
+import { format } from "date-fns";
+import EmployeeCard from "@/components/rh/EmployeeCard";
+import EmployeeForm from "@/components/rh/EmployeeForm";
+import EmployeeCardSkeleton from "@/components/rh/EmployeeCardSkeleton";
 
 const departments = ["Operações", "Transporte", "Manutenção"];
-
-const nrOptions = [
-  "NR-05", "NR-06", "NR-10", "NR-11", "NR-12", "NR-18", 
-  "NR-33", "NR-35", "NR-36"
-];
 
 const RH = () => {
   const [searchTerm, setSearchTerm] = useState("");
   const [filterDepartment, setFilterDepartment] = useState<string>("all");
   const [isAddDialogOpen, setIsAddDialogOpen] = useState(false);
   const [isEditDialogOpen, setIsEditDialogOpen] = useState(false);
-  const [editingEmployee, setEditingEmployee] = useState<any>(null);
+  const [editingEmployee, setEditingEmployee] = useState<Employee | null>(null);
   
   // Form states
   const [name, setName] = useState("");
@@ -68,38 +53,22 @@ const RH = () => {
   const deleteEmployee = useDeleteEmployee();
 
   // Check if user can edit (aux_administrativo, preposto, or admin)
-  // Default to false while loading to show UI immediately
   const canEdit = isAdmin || profile?.cargo === "preposto" || profile?.cargo === "aux_administrativo";
 
-  const filteredEmployees = employees.filter((employee) => {
-    const matchesSearch =
-      employee.name.toLowerCase().includes(searchTerm.toLowerCase()) ||
-      employee.role.toLowerCase().includes(searchTerm.toLowerCase());
-    const matchesDepartment =
-      filterDepartment === "all" || employee.department === filterDepartment;
-    return matchesSearch && matchesDepartment;
-  });
+  // Memoize filtered employees to avoid recalculating on every render
+  const filteredEmployees = useMemo(() => {
+    const searchLower = searchTerm.toLowerCase();
+    return employees.filter((employee) => {
+      const matchesSearch =
+        employee.name.toLowerCase().includes(searchLower) ||
+        employee.role.toLowerCase().includes(searchLower);
+      const matchesDepartment =
+        filterDepartment === "all" || employee.department === filterDepartment;
+      return matchesSearch && matchesDepartment;
+    });
+  }, [employees, searchTerm, filterDepartment]);
 
-  const calculateVacationStatus = (startDate: string, vacationDueDate?: string | null) => {
-    const start = new Date(startDate);
-    const now = new Date();
-    const monthsWorked = differenceInMonths(now, start);
-    
-    if (vacationDueDate) {
-      const dueDate = new Date(vacationDueDate);
-      const monthsUntilVacation = differenceInMonths(dueDate, now);
-      if (monthsUntilVacation <= 0) return "Férias vencidas!";
-      return `${monthsUntilVacation} meses para férias`;
-    }
-    
-    // Default: 12 months from start date
-    const defaultDue = addMonths(start, 12);
-    const monthsUntil = differenceInMonths(defaultDue, now);
-    if (monthsUntil <= 0) return "Férias vencidas!";
-    return `${monthsUntil} meses para férias`;
-  };
-
-  const resetForm = () => {
+  const resetForm = useCallback(() => {
     setName("");
     setRole("");
     setDepartment("");
@@ -107,9 +76,9 @@ const RH = () => {
     setVacationDueDate(undefined);
     setExamScheduled(undefined);
     setSelectedNrs([]);
-  };
+  }, []);
 
-  const handleAddEmployee = async () => {
+  const handleAddEmployee = useCallback(async () => {
     if (!name || !role || !department) {
       toast.error("Preencha todos os campos obrigatórios");
       return;
@@ -132,9 +101,9 @@ const RH = () => {
     } catch (error) {
       toast.error("Erro ao adicionar funcionário");
     }
-  };
+  }, [name, role, department, startDate, vacationDueDate, examScheduled, selectedNrs, createEmployee, resetForm]);
 
-  const handleEditEmployee = async () => {
+  const handleEditEmployee = useCallback(async () => {
     if (!editingEmployee || !name || !role || !department) {
       toast.error("Preencha todos os campos obrigatórios");
       return;
@@ -159,9 +128,9 @@ const RH = () => {
     } catch (error) {
       toast.error("Erro ao atualizar funcionário");
     }
-  };
+  }, [editingEmployee, name, role, department, startDate, vacationDueDate, examScheduled, selectedNrs, updateEmployee, resetForm]);
 
-  const handleDeleteEmployee = async (id: string) => {
+  const handleDeleteEmployee = useCallback(async (id: string) => {
     if (!confirm("Tem certeza que deseja excluir este funcionário?")) return;
     
     try {
@@ -170,9 +139,9 @@ const RH = () => {
     } catch (error) {
       toast.error("Erro ao excluir funcionário");
     }
-  };
+  }, [deleteEmployee]);
 
-  const openEditDialog = (employee: any) => {
+  const openEditDialog = useCallback((employee: Employee) => {
     setEditingEmployee(employee);
     setName(employee.name);
     setRole(employee.role);
@@ -182,155 +151,26 @@ const RH = () => {
     setExamScheduled(employee.exam_scheduled ? new Date(employee.exam_scheduled) : undefined);
     setSelectedNrs(employee.nrs || []);
     setIsEditDialogOpen(true);
-  };
+  }, []);
 
-  const toggleNr = (nr: string) => {
+  const toggleNr = useCallback((nr: string) => {
     setSelectedNrs(prev => 
       prev.includes(nr) 
         ? prev.filter(n => n !== nr)
         : [...prev, nr]
     );
-  };
+  }, []);
 
-  const EmployeeForm = ({ isEdit = false }: { isEdit?: boolean }) => (
-    <div className="grid gap-4 py-4">
-      <div className="grid gap-2">
-        <Label htmlFor="name">Nome completo *</Label>
-        <Input 
-          id="name" 
-          placeholder="Nome do funcionário" 
-          value={name}
-          onChange={(e) => setName(e.target.value)}
-        />
-      </div>
-      <div className="grid gap-2">
-        <Label htmlFor="role">Cargo *</Label>
-        <Input 
-          id="role" 
-          placeholder="Ex: Polivalente" 
-          value={role}
-          onChange={(e) => setRole(e.target.value)}
-        />
-      </div>
-      <div className="grid gap-2">
-        <Label htmlFor="department">Departamento *</Label>
-        <Select value={department} onValueChange={setDepartment}>
-          <SelectTrigger>
-            <SelectValue placeholder="Selecione o departamento" />
-          </SelectTrigger>
-          <SelectContent>
-            {departments.map((dept) => (
-              <SelectItem key={dept} value={dept}>
-                {dept}
-              </SelectItem>
-            ))}
-          </SelectContent>
-        </Select>
-      </div>
-      
-      <div className="grid gap-2">
-        <Label>Data de Admissão</Label>
-        <Popover>
-          <PopoverTrigger asChild>
-            <Button
-              variant="outline"
-              className={cn(
-                "justify-start text-left font-normal",
-                !startDate && "text-muted-foreground"
-              )}
-            >
-              <Calendar className="mr-2 h-4 w-4" />
-              {startDate ? format(startDate, "dd/MM/yyyy", { locale: ptBR }) : "Selecione a data"}
-            </Button>
-          </PopoverTrigger>
-          <PopoverContent className="w-auto p-0">
-            <CalendarComponent
-              mode="single"
-              selected={startDate}
-              onSelect={setStartDate}
-              initialFocus
-            />
-          </PopoverContent>
-        </Popover>
-      </div>
+  const handleEditDialogChange = useCallback((open: boolean) => {
+    setIsEditDialogOpen(open);
+    if (!open) {
+      setEditingEmployee(null);
+      resetForm();
+    }
+  }, [resetForm]);
 
-      <div className="grid gap-2">
-        <Label>Data Limite para Férias</Label>
-        <Popover>
-          <PopoverTrigger asChild>
-            <Button
-              variant="outline"
-              className={cn(
-                "justify-start text-left font-normal",
-                !vacationDueDate && "text-muted-foreground"
-              )}
-            >
-              <Clock className="mr-2 h-4 w-4" />
-              {vacationDueDate ? format(vacationDueDate, "dd/MM/yyyy", { locale: ptBR }) : "Selecione a data"}
-            </Button>
-          </PopoverTrigger>
-          <PopoverContent className="w-auto p-0">
-            <CalendarComponent
-              mode="single"
-              selected={vacationDueDate}
-              onSelect={setVacationDueDate}
-              initialFocus
-            />
-          </PopoverContent>
-        </Popover>
-      </div>
-
-      <div className="grid gap-2">
-        <Label>Exame Marcado</Label>
-        <Popover>
-          <PopoverTrigger asChild>
-            <Button
-              variant="outline"
-              className={cn(
-                "justify-start text-left font-normal",
-                !examScheduled && "text-muted-foreground"
-              )}
-            >
-              <Stethoscope className="mr-2 h-4 w-4" />
-              {examScheduled ? format(examScheduled, "dd/MM/yyyy", { locale: ptBR }) : "Selecione a data"}
-            </Button>
-          </PopoverTrigger>
-          <PopoverContent className="w-auto p-0">
-            <CalendarComponent
-              mode="single"
-              selected={examScheduled}
-              onSelect={setExamScheduled}
-              initialFocus
-            />
-          </PopoverContent>
-        </Popover>
-      </div>
-
-      <div className="grid gap-2">
-        <Label>NRs</Label>
-        <div className="flex flex-wrap gap-2">
-          {nrOptions.map((nr) => (
-            <Badge
-              key={nr}
-              variant={selectedNrs.includes(nr) ? "default" : "outline"}
-              className="cursor-pointer"
-              onClick={() => toggleNr(nr)}
-            >
-              {nr}
-            </Badge>
-          ))}
-        </div>
-      </div>
-
-      <Button 
-        className="mt-4" 
-        onClick={isEdit ? handleEditEmployee : handleAddEmployee}
-        disabled={createEmployee.isPending || updateEmployee.isPending}
-      >
-        {isEdit ? "Salvar Alterações" : "Adicionar"}
-      </Button>
-    </div>
-  );
+  // Memoize skeleton array to avoid recreating on each render
+  const skeletons = useMemo(() => Array.from({ length: 6 }), []);
 
   return (
     <Layout>
@@ -359,7 +199,24 @@ const RH = () => {
                     Preencha os dados do novo funcionário
                   </DialogDescription>
                 </DialogHeader>
-                <EmployeeForm />
+                <EmployeeForm
+                  name={name}
+                  setName={setName}
+                  role={role}
+                  setRole={setRole}
+                  department={department}
+                  setDepartment={setDepartment}
+                  startDate={startDate}
+                  setStartDate={setStartDate}
+                  vacationDueDate={vacationDueDate}
+                  setVacationDueDate={setVacationDueDate}
+                  examScheduled={examScheduled}
+                  setExamScheduled={setExamScheduled}
+                  selectedNrs={selectedNrs}
+                  toggleNr={toggleNr}
+                  onSubmit={handleAddEmployee}
+                  isPending={createEmployee.isPending}
+                />
               </DialogContent>
             </Dialog>
           )}
@@ -394,20 +251,8 @@ const RH = () => {
         {/* Loading state with skeletons */}
         {isLoading && (
           <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-            {Array.from({ length: 6 }).map((_, i) => (
-              <div key={i} className="bg-card rounded-xl p-6 border border-border/50">
-                <div className="flex items-start gap-4 mb-4">
-                  <Skeleton className="w-14 h-14 rounded-full" />
-                  <div className="flex-1">
-                    <Skeleton className="h-5 w-32 mb-2" />
-                    <Skeleton className="h-4 w-24" />
-                  </div>
-                </div>
-                <div className="space-y-2">
-                  <Skeleton className="h-4 w-40" />
-                  <Skeleton className="h-4 w-36" />
-                </div>
-              </div>
+            {skeletons.map((_, i) => (
+              <EmployeeCardSkeleton key={i} />
             ))}
           </div>
         )}
@@ -416,84 +261,13 @@ const RH = () => {
         {!isLoading && (
           <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
             {filteredEmployees.map((employee) => (
-              <div
+              <EmployeeCard
                 key={employee.id}
-                className="group bg-card rounded-xl p-6 border border-border/50 hover:shadow-lg transition-shadow"
-              >
-                <div className="flex items-start justify-between mb-4">
-                  <div className="flex items-center gap-4">
-                    <div className="w-14 h-14 rounded-full bg-gradient-to-br from-primary to-primary/60 flex items-center justify-center text-primary-foreground font-bold text-lg">
-                      {employee.avatar}
-                    </div>
-                    <div>
-                      <h3 className="font-bold text-lg group-hover:text-primary transition-colors">
-                        {employee.name}
-                      </h3>
-                      <p className="text-muted-foreground text-sm">{employee.role}</p>
-                    </div>
-                  </div>
-                  {canEdit && (
-                    <div className="flex items-center gap-1">
-                      <Button
-                        variant="ghost"
-                        size="icon"
-                        className="h-8 w-8 opacity-0 group-hover:opacity-100 transition-opacity"
-                        onClick={() => openEditDialog(employee)}
-                      >
-                        <Pencil className="h-4 w-4" />
-                      </Button>
-                      <Button
-                        variant="ghost"
-                        size="icon"
-                        className="h-8 w-8 opacity-0 group-hover:opacity-100 transition-opacity text-destructive"
-                        onClick={() => handleDeleteEmployee(employee.id)}
-                      >
-                        <Trash2 className="h-4 w-4" />
-                      </Button>
-                    </div>
-                  )}
-                </div>
-
-                <div className="space-y-2 text-sm">
-                  <div className="flex items-center gap-2 text-muted-foreground">
-                    <Calendar className="w-4 h-4" />
-                    <span>Admissão: {format(new Date(employee.start_date), "dd/MM/yyyy", { locale: ptBR })}</span>
-                  </div>
-                  <div className="flex items-center gap-2 text-muted-foreground">
-                    <Clock className="w-4 h-4" />
-                    <span>{calculateVacationStatus(employee.start_date, employee.vacation_due_date)}</span>
-                  </div>
-                  {employee.exam_scheduled && (
-                    <div className="flex items-center gap-2 text-muted-foreground">
-                      <Stethoscope className="w-4 h-4" />
-                      <span>Exame: {format(new Date(employee.exam_scheduled), "dd/MM/yyyy", { locale: ptBR })}</span>
-                    </div>
-                  )}
-                </div>
-
-                {employee.nrs && employee.nrs.length > 0 && (
-                  <div className="mt-3 flex flex-wrap gap-1">
-                    {employee.nrs.map((nr: string) => (
-                      <Badge key={nr} variant="secondary" className="text-xs">
-                        {nr}
-                      </Badge>
-                    ))}
-                  </div>
-                )}
-
-                <div className="mt-4 pt-4 border-t border-border/50 flex items-center justify-between">
-                  <span className="inline-block px-3 py-1 rounded-full bg-secondary text-secondary-foreground text-xs font-medium">
-                    {employee.department}
-                  </span>
-                  <span
-                    className={`px-2 py-1 rounded-full text-xs font-medium ${
-                      statusLabels[employee.status as keyof typeof statusLabels]?.class || ""
-                    }`}
-                  >
-                    {statusLabels[employee.status as keyof typeof statusLabels]?.label || employee.status}
-                  </span>
-                </div>
-              </div>
+                employee={employee}
+                canEdit={canEdit}
+                onEdit={openEditDialog}
+                onDelete={handleDeleteEmployee}
+              />
             ))}
           </div>
         )}
@@ -507,13 +281,7 @@ const RH = () => {
         )}
 
         {/* Edit Dialog */}
-        <Dialog open={isEditDialogOpen} onOpenChange={(open) => {
-          setIsEditDialogOpen(open);
-          if (!open) {
-            setEditingEmployee(null);
-            resetForm();
-          }
-        }}>
+        <Dialog open={isEditDialogOpen} onOpenChange={handleEditDialogChange}>
           <DialogContent className="bg-card max-h-[90vh] overflow-y-auto">
             <DialogHeader>
               <DialogTitle>Editar Funcionário</DialogTitle>
@@ -521,7 +289,25 @@ const RH = () => {
                 Atualize os dados do funcionário
               </DialogDescription>
             </DialogHeader>
-            <EmployeeForm isEdit />
+            <EmployeeForm
+              isEdit
+              name={name}
+              setName={setName}
+              role={role}
+              setRole={setRole}
+              department={department}
+              setDepartment={setDepartment}
+              startDate={startDate}
+              setStartDate={setStartDate}
+              vacationDueDate={vacationDueDate}
+              setVacationDueDate={setVacationDueDate}
+              examScheduled={examScheduled}
+              setExamScheduled={setExamScheduled}
+              selectedNrs={selectedNrs}
+              toggleNr={toggleNr}
+              onSubmit={handleEditEmployee}
+              isPending={updateEmployee.isPending}
+            />
           </DialogContent>
         </Dialog>
       </div>
