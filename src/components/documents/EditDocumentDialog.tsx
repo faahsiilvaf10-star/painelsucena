@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { useState, useRef } from "react";
 import { Button } from "@/components/ui/button";
 import {
   Dialog,
@@ -19,7 +19,7 @@ import {
 } from "@/components/ui/select";
 import { Calendar } from "@/components/ui/calendar";
 import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover";
-import { CalendarIcon, Pencil } from "lucide-react";
+import { CalendarIcon, Pencil, Upload, FileText, X, ExternalLink } from "lucide-react";
 import { format, parseISO } from "date-fns";
 import { ptBR } from "date-fns/locale";
 import { cn } from "@/lib/utils";
@@ -30,6 +30,7 @@ import {
   DocumentType,
   DOCUMENT_TYPE_LABELS,
 } from "@/hooks/useDocuments";
+import { supabase } from "@/integrations/supabase/client";
 
 interface EditDocumentDialogProps {
   document: Document;
@@ -44,8 +45,47 @@ export function EditDocumentDialog({ document }: EditDocumentDialogProps) {
     parseISO(document.expiry_date + "T12:00:00")
   );
   const [notes, setNotes] = useState(document.notes || "");
+  const [file, setFile] = useState<File | null>(null);
+  const [currentFileUrl, setCurrentFileUrl] = useState(document.file_url);
+  const [uploading, setUploading] = useState(false);
+  const fileInputRef = useRef<HTMLInputElement>(null);
 
   const updateDocument = useUpdateDocument();
+
+  const handleFileChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+    const selectedFile = e.target.files?.[0];
+    if (selectedFile) {
+      if (selectedFile.type !== "application/pdf") {
+        toast.error("Apenas arquivos PDF são permitidos");
+        return;
+      }
+      if (selectedFile.size > 10 * 1024 * 1024) {
+        toast.error("Arquivo muito grande. Máximo 10MB");
+        return;
+      }
+      setFile(selectedFile);
+    }
+  };
+
+  const uploadFile = async (): Promise<string | null> => {
+    if (!file) return null;
+
+    const fileExt = file.name.split(".").pop();
+    const fileName = `${crypto.randomUUID()}.${fileExt}`;
+    const filePath = `documents/${fileName}`;
+
+    const { error } = await supabase.storage
+      .from("document-files")
+      .upload(filePath, file);
+
+    if (error) throw error;
+
+    const { data } = supabase.storage
+      .from("document-files")
+      .getPublicUrl(filePath);
+
+    return data.publicUrl;
+  };
 
   const handleSubmit = async () => {
     if (!title.trim()) {
@@ -54,6 +94,13 @@ export function EditDocumentDialog({ document }: EditDocumentDialogProps) {
     }
 
     try {
+      setUploading(true);
+      let fileUrl: string | null | undefined = currentFileUrl;
+
+      if (file) {
+        fileUrl = await uploadFile();
+      }
+
       await updateDocument.mutateAsync({
         id: document.id,
         title: title.trim(),
@@ -61,13 +108,22 @@ export function EditDocumentDialog({ document }: EditDocumentDialogProps) {
         description: description.trim() || null,
         expiry_date: format(expiryDate, "yyyy-MM-dd"),
         notes: notes.trim() || null,
+        file_url: fileUrl,
       });
 
       toast.success("Documento atualizado com sucesso!");
       setOpen(false);
     } catch (error) {
       toast.error("Erro ao atualizar documento");
+    } finally {
+      setUploading(false);
     }
+  };
+
+  const handleRemoveFile = () => {
+    setFile(null);
+    setCurrentFileUrl(null);
+    if (fileInputRef.current) fileInputRef.current.value = "";
   };
 
   return (
@@ -77,7 +133,7 @@ export function EditDocumentDialog({ document }: EditDocumentDialogProps) {
           <Pencil className="h-4 w-4" />
         </Button>
       </DialogTrigger>
-      <DialogContent className="max-w-md">
+      <DialogContent className="max-w-md max-h-[90vh] overflow-y-auto">
         <DialogHeader>
           <DialogTitle>Editar Documento</DialogTitle>
         </DialogHeader>
@@ -142,6 +198,68 @@ export function EditDocumentDialog({ document }: EditDocumentDialogProps) {
           </div>
 
           <div className="space-y-2">
+            <Label>Arquivo PDF</Label>
+            <input
+              ref={fileInputRef}
+              type="file"
+              accept="application/pdf"
+              onChange={handleFileChange}
+              className="hidden"
+            />
+            {file ? (
+              <div className="flex items-center gap-2 p-3 border rounded-lg bg-muted/50">
+                <FileText className="h-5 w-5 text-primary" />
+                <span className="flex-1 text-sm truncate">{file.name}</span>
+                <Button
+                  type="button"
+                  variant="ghost"
+                  size="icon"
+                  className="h-6 w-6"
+                  onClick={handleRemoveFile}
+                >
+                  <X className="h-4 w-4" />
+                </Button>
+              </div>
+            ) : currentFileUrl ? (
+              <div className="flex items-center gap-2 p-3 border rounded-lg bg-muted/50">
+                <FileText className="h-5 w-5 text-primary" />
+                <span className="flex-1 text-sm">Arquivo anexado</span>
+                <Button
+                  type="button"
+                  variant="ghost"
+                  size="icon"
+                  className="h-6 w-6"
+                  onClick={() => window.open(currentFileUrl, "_blank")}
+                  title="Abrir arquivo"
+                >
+                  <ExternalLink className="h-4 w-4" />
+                </Button>
+                <Button
+                  type="button"
+                  variant="ghost"
+                  size="icon"
+                  className="h-6 w-6"
+                  onClick={handleRemoveFile}
+                  title="Remover arquivo"
+                >
+                  <X className="h-4 w-4" />
+                </Button>
+              </div>
+            ) : (
+              <Button
+                type="button"
+                variant="outline"
+                className="w-full"
+                onClick={() => fileInputRef.current?.click()}
+              >
+                <Upload className="h-4 w-4 mr-2" />
+                Selecionar arquivo PDF
+              </Button>
+            )}
+            <p className="text-xs text-muted-foreground">Máximo 10MB</p>
+          </div>
+
+          <div className="space-y-2">
             <Label htmlFor="edit-notes">Observações</Label>
             <Textarea
               id="edit-notes"
@@ -156,8 +274,8 @@ export function EditDocumentDialog({ document }: EditDocumentDialogProps) {
           <Button variant="outline" onClick={() => setOpen(false)}>
             Cancelar
           </Button>
-          <Button onClick={handleSubmit} disabled={updateDocument.isPending}>
-            {updateDocument.isPending ? "Salvando..." : "Salvar"}
+          <Button onClick={handleSubmit} disabled={updateDocument.isPending || uploading}>
+            {uploading ? "Enviando..." : updateDocument.isPending ? "Salvando..." : "Salvar"}
           </Button>
         </div>
       </DialogContent>
