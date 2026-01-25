@@ -137,7 +137,7 @@ export function AddDocumentDialog() {
           Novo Documento
         </Button>
       </DialogTrigger>
-      <DialogContent className="max-w-md">
+      <DialogContent className="max-w-md max-h-[85vh] overflow-y-auto">
         <DialogHeader>
           <DialogTitle>Cadastrar Documento</DialogTitle>
         </DialogHeader>
