@@ -1,5 +1,5 @@
-import { useState } from "react";
-import { Search, Plus, Calendar, Clock, Stethoscope, Shield, Pencil, Trash2 } from "lucide-react";
+import { useState, memo } from "react";
+import { Search, Plus, Calendar, Clock, Stethoscope, Pencil, Trash2 } from "lucide-react";
 import Layout from "@/components/layout/Layout";
 import { Input } from "@/components/ui/input";
 import { Button } from "@/components/ui/button";
@@ -21,7 +21,6 @@ import {
 import { Label } from "@/components/ui/label";
 import { useEmployees, useCreateEmployee, useUpdateEmployee, useDeleteEmployee } from "@/hooks/useEmployees";
 import { useProfile } from "@/hooks/useProfile";
-import { useAuth } from "@/hooks/useAuth";
 import { useIsAdmin } from "@/hooks/useUserRole";
 import { toast } from "sonner";
 import { format, differenceInMonths, addMonths } from "date-fns";
@@ -30,6 +29,7 @@ import { Calendar as CalendarComponent } from "@/components/ui/calendar";
 import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover";
 import { cn } from "@/lib/utils";
 import { Badge } from "@/components/ui/badge";
+import { Skeleton } from "@/components/ui/skeleton";
 
 const statusLabels = {
   active: { label: "Ativo", class: "bg-success/20 text-success" },
@@ -61,28 +61,15 @@ const RH = () => {
   const [selectedNrs, setSelectedNrs] = useState<string[]>([]);
 
   const { data: employees = [], isLoading } = useEmployees();
-  const { data: profile, isLoading: profileLoading } = useProfile();
-  const { user, loading: authLoading } = useAuth();
-  const { isAdmin, isLoading: adminLoading } = useIsAdmin();
+  const { data: profile } = useProfile();
+  const { isAdmin } = useIsAdmin();
   const createEmployee = useCreateEmployee();
   const updateEmployee = useUpdateEmployee();
   const deleteEmployee = useDeleteEmployee();
 
   // Check if user can edit (aux_administrativo, preposto, or admin)
+  // Default to false while loading to show UI immediately
   const canEdit = isAdmin || profile?.cargo === "preposto" || profile?.cargo === "aux_administrativo";
-
-  // If still loading, show loading state
-  if (authLoading || profileLoading || adminLoading) {
-    return (
-      <Layout>
-        <div className="container mx-auto px-6 py-8">
-          <div className="flex items-center justify-center h-64">
-            <p className="text-muted-foreground">Carregando...</p>
-          </div>
-        </div>
-      </Layout>
-    );
-  }
 
   const filteredEmployees = employees.filter((employee) => {
     const matchesSearch =
@@ -404,21 +391,34 @@ const RH = () => {
           </Select>
         </div>
 
-        {/* Loading state */}
+        {/* Loading state with skeletons */}
         {isLoading && (
-          <div className="text-center py-12">
-            <p className="text-muted-foreground">Carregando funcionários...</p>
+          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+            {Array.from({ length: 6 }).map((_, i) => (
+              <div key={i} className="bg-card rounded-xl p-6 border border-border/50">
+                <div className="flex items-start gap-4 mb-4">
+                  <Skeleton className="w-14 h-14 rounded-full" />
+                  <div className="flex-1">
+                    <Skeleton className="h-5 w-32 mb-2" />
+                    <Skeleton className="h-4 w-24" />
+                  </div>
+                </div>
+                <div className="space-y-2">
+                  <Skeleton className="h-4 w-40" />
+                  <Skeleton className="h-4 w-36" />
+                </div>
+              </div>
+            ))}
           </div>
         )}
 
         {/* Employee Grid */}
         {!isLoading && (
           <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-            {filteredEmployees.map((employee, index) => (
+            {filteredEmployees.map((employee) => (
               <div
                 key={employee.id}
-                className="group bg-card rounded-xl p-6 border border-border/50 hover-lift animate-slide-up"
-                style={{ animationDelay: `${index * 0.1}s` }}
+                className="group bg-card rounded-xl p-6 border border-border/50 hover:shadow-lg transition-shadow"
               >
                 <div className="flex items-start justify-between mb-4">
                   <div className="flex items-center gap-4">
