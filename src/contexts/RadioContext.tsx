@@ -6,7 +6,6 @@ const RADIO_STATIONS = [
   { id: "pagode", name: "Pagode", genre: "Pagode", url: "https://stream.vagalume.fm/hls/147015499779090/aac.m3u8" },
   { id: "melody", name: "Melody", genre: "Romântico", url: "https://stream.vagalume.fm/hls/1499715905423293/aac.m3u8" },
   { id: "gospel", name: "Gospel", genre: "Gospel", url: "https://stream.zeno.fm/yn65fsaurfhvv" },
-  { id: "hiphop", name: "Hip Hop Antigos", genre: "Hip Hop", url: "https://listen.181fm.com/181-oldschool_128k.mp3" },
 ];
 
 export type RadioStation = typeof RADIO_STATIONS[0];
