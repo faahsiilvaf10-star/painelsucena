@@ -46,6 +46,7 @@ import { ptBR } from "date-fns/locale";
 import { toast } from "sonner";
 import { AddDocumentDialog } from "@/components/documents/AddDocumentDialog";
 import { EditDocumentDialog } from "@/components/documents/EditDocumentDialog";
+import { DocumentHistoryDialog } from "@/components/documents/DocumentHistoryDialog";
 import {
   useDocuments,
   useUpdateDocument,
@@ -56,6 +57,7 @@ import {
   DOCUMENT_TYPE_LABELS,
   DOCUMENT_STATUS_LABELS,
 } from "@/hooks/useDocuments";
+import { useCreateDocumentHistory } from "@/hooks/useDocumentHistory";
 import { getDaysUntilEventBrazilNorth } from "@/lib/timezone";
 import { useAuth } from "@/hooks/useAuth";
 
@@ -64,6 +66,7 @@ const Documentos = () => {
   const { data: documents, isLoading } = useDocuments();
   const updateDocument = useUpdateDocument();
   const deleteDocument = useDeleteDocument();
+  const createHistory = useCreateDocumentHistory();
 
   const [searchTerm, setSearchTerm] = useState("");
   const [filterType, setFilterType] = useState<DocumentType | "all">("all");
@@ -81,6 +84,15 @@ const Documentos = () => {
   const handleUpdateStatus = async (doc: Document, status: DocumentStatus) => {
     try {
       await updateDocument.mutateAsync({ id: doc.id, status });
+      
+      // Record history
+      await createHistory.mutateAsync({
+        document_id: doc.id,
+        change_type: "status_change",
+        previous_status: doc.status,
+        new_status: status,
+      });
+      
       toast.success(`Status atualizado para: ${DOCUMENT_STATUS_LABELS[status]}`);
     } catch (error) {
       toast.error("Erro ao atualizar status");
@@ -319,6 +331,7 @@ const Documentos = () => {
                                 </Button>
                               </>
                             )}
+                            <DocumentHistoryDialog documentId={doc.id} documentTitle={doc.title} />
                             <EditDocumentDialog document={doc} />
                             {doc.created_by === user?.id && (
                               <AlertDialog>

@@ -145,6 +145,54 @@ export type Database = {
         }
         Relationships: []
       }
+      document_history: {
+        Row: {
+          change_type: string
+          changed_by: string
+          changed_by_name: string
+          created_at: string
+          document_id: string
+          id: string
+          new_status: Database["public"]["Enums"]["document_status"] | null
+          notes: string | null
+          previous_status: Database["public"]["Enums"]["document_status"] | null
+        }
+        Insert: {
+          change_type?: string
+          changed_by: string
+          changed_by_name: string
+          created_at?: string
+          document_id: string
+          id?: string
+          new_status?: Database["public"]["Enums"]["document_status"] | null
+          notes?: string | null
+          previous_status?:
+            | Database["public"]["Enums"]["document_status"]
+            | null
+        }
+        Update: {
+          change_type?: string
+          changed_by?: string
+          changed_by_name?: string
+          created_at?: string
+          document_id?: string
+          id?: string
+          new_status?: Database["public"]["Enums"]["document_status"] | null
+          notes?: string | null
+          previous_status?:
+            | Database["public"]["Enums"]["document_status"]
+            | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "document_history_document_id_fkey"
+            columns: ["document_id"]
+            isOneToOne: false
+            referencedRelation: "documents"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       documents: {
         Row: {
           created_at: string

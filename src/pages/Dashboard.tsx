@@ -12,6 +12,7 @@ import { useCampaignNotifications } from "@/hooks/useCampaignNotifications";
 import { useEmployees } from "@/hooks/useEmployees";
 import { useAttendanceRecords } from "@/hooks/useAttendance";
 import { getBrazilNorthTodayString } from "@/lib/timezone";
+import { useDocumentExpiryNotifications } from "@/hooks/useDocumentExpiryNotifications";
 
 const Dashboard = () => {
   const today = getBrazilNorthTodayString();
@@ -20,6 +21,9 @@ const Dashboard = () => {
   
   // Check and create campaign notifications at start of month
   useCampaignNotifications();
+  
+  // Show browser notifications for expiring documents
+  useDocumentExpiryNotifications();
 
   const totalEmployees = employees?.length || 0;
   const presentToday = attendanceRecords?.filter(a => a.status === "present" || a.status === "late").length || 0;
