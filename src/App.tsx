@@ -26,6 +26,7 @@ import RDO from "./pages/RDO";
 import Campanhas from "./pages/Campanhas";
 import Pedidos from "./pages/Pedidos";
 import Estoque from "./pages/Estoque";
+import Documentos from "./pages/Documentos";
 import NotFound from "./pages/NotFound";
 
 const queryClient = new QueryClient();
@@ -58,6 +59,7 @@ const App = () => (
                 <Route path="/campanhas" element={<ProtectedRoute><Campanhas /></ProtectedRoute>} />
                 <Route path="/pedidos" element={<ProtectedRoute><Pedidos /></ProtectedRoute>} />
                 <Route path="/estoque" element={<ProtectedRoute><Estoque /></ProtectedRoute>} />
+                <Route path="/documentos" element={<ProtectedRoute><Documentos /></ProtectedRoute>} />
                 {/* ADD ALL CUSTOM ROUTES ABOVE THE CATCH-ALL "*" ROUTE */}
                 <Route path="*" element={<NotFound />} />
               </Routes>

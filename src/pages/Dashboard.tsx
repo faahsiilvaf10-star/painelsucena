@@ -7,6 +7,7 @@ import { MatrixProgressChart } from "@/components/dashboard/MatrixProgressChart"
 import { CampaignBanner } from "@/components/campaigns/CampaignBanner";
 import { OrderHighlightBanner } from "@/components/orders/OrderHighlightBanner";
 import { EquipmentStatusCard } from "@/components/dashboard/EquipmentStatusCard";
+import { DocumentExpiryBanner } from "@/components/documents/DocumentExpiryBanner";
 import { useCampaignNotifications } from "@/hooks/useCampaignNotifications";
 import { useEmployees } from "@/hooks/useEmployees";
 import { useAttendanceRecords } from "@/hooks/useAttendance";
@@ -44,6 +45,9 @@ const Dashboard = () => {
 
         {/* Order Highlights - 7 days before delivery */}
         <OrderHighlightBanner />
+
+        {/* Document Expiry Alerts - 5 days before */}
+        <DocumentExpiryBanner />
 
         {/* DDS Highlight Cards - Today and Tomorrow */}
         <DDSHighlightCard />

@@ -145,6 +145,51 @@ export type Database = {
         }
         Relationships: []
       }
+      documents: {
+        Row: {
+          created_at: string
+          created_by: string
+          description: string | null
+          document_type: Database["public"]["Enums"]["document_type"]
+          expiry_date: string
+          file_url: string | null
+          id: string
+          notes: string | null
+          status: Database["public"]["Enums"]["document_status"]
+          title: string
+          updated_at: string
+          updated_by: string | null
+        }
+        Insert: {
+          created_at?: string
+          created_by: string
+          description?: string | null
+          document_type?: Database["public"]["Enums"]["document_type"]
+          expiry_date: string
+          file_url?: string | null
+          id?: string
+          notes?: string | null
+          status?: Database["public"]["Enums"]["document_status"]
+          title: string
+          updated_at?: string
+          updated_by?: string | null
+        }
+        Update: {
+          created_at?: string
+          created_by?: string
+          description?: string | null
+          document_type?: Database["public"]["Enums"]["document_type"]
+          expiry_date?: string
+          file_url?: string | null
+          id?: string
+          notes?: string | null
+          status?: Database["public"]["Enums"]["document_status"]
+          title?: string
+          updated_at?: string
+          updated_by?: string | null
+        }
+        Relationships: []
+      }
       employees: {
         Row: {
           avatar: string
@@ -880,6 +925,15 @@ export type Database = {
         | "aux_administrativo"
         | "aux_almoxarifado"
         | "planejador"
+      document_status: "pending" | "updated" | "cancelled"
+      document_type:
+        | "pt"
+        | "analise_risco"
+        | "aso"
+        | "treinamento"
+        | "certificado"
+        | "licenca"
+        | "outro"
       employee_status: "active" | "vacation" | "leave"
       order_status:
         | "solicitado"
@@ -1043,6 +1097,16 @@ export const Constants = {
         "aux_administrativo",
         "aux_almoxarifado",
         "planejador",
+      ],
+      document_status: ["pending", "updated", "cancelled"],
+      document_type: [
+        "pt",
+        "analise_risco",
+        "aso",
+        "treinamento",
+        "certificado",
+        "licenca",
+        "outro",
       ],
       employee_status: ["active", "vacation", "leave"],
       order_status: [
