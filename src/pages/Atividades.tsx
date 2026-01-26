@@ -28,6 +28,7 @@ import {
 import { getBrazilNorthDate, getBrazilNorthTodayString } from "@/lib/timezone";
 import { cn } from "@/lib/utils";
 import MonthlyReportDialog from "@/components/atividades/MonthlyReportDialog";
+import { GoalProgressCard } from "@/components/goals/GoalProgressCard";
 
 interface InvasoraEntry {
   nome: string;
@@ -443,6 +444,9 @@ export default function Atividades() {
             <Loader2 className="h-6 w-6 animate-spin text-muted-foreground" />
           </div>
         )}
+
+        {/* Goal Progress Card */}
+        <GoalProgressCard />
 
         <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
           {/* Form */}

@@ -584,6 +584,48 @@ export type Database = {
           },
         ]
       }
+      goals: {
+        Row: {
+          controle_invasoras_unidade: number
+          coroamento_unidade: number
+          created_at: string
+          created_by: string
+          id: string
+          month_year: string
+          plantio_unidade: number
+          podagem_unidade: number
+          retirada_mudas_unidade: number
+          rocagem_m2: number
+          updated_at: string
+        }
+        Insert: {
+          controle_invasoras_unidade?: number
+          coroamento_unidade?: number
+          created_at?: string
+          created_by: string
+          id?: string
+          month_year: string
+          plantio_unidade?: number
+          podagem_unidade?: number
+          retirada_mudas_unidade?: number
+          rocagem_m2?: number
+          updated_at?: string
+        }
+        Update: {
+          controle_invasoras_unidade?: number
+          coroamento_unidade?: number
+          created_at?: string
+          created_by?: string
+          id?: string
+          month_year?: string
+          plantio_unidade?: number
+          podagem_unidade?: number
+          retirada_mudas_unidade?: number
+          rocagem_m2?: number
+          updated_at?: string
+        }
+        Relationships: []
+      }
       inventory_items: {
         Row: {
           ca_expiry: string | null

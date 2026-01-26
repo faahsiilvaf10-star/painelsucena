@@ -29,6 +29,7 @@ import Estoque from "./pages/Estoque";
 import Documentos from "./pages/Documentos";
 import Atividades from "./pages/Atividades";
 import AtividadesII from "./pages/AtividadesII";
+import Metas from "./pages/Metas";
 import NotFound from "./pages/NotFound";
 
 const queryClient = new QueryClient();
@@ -64,6 +65,7 @@ const App = () => (
                 <Route path="/documentos" element={<ProtectedRoute><Documentos /></ProtectedRoute>} />
                 <Route path="/atividades" element={<ProtectedRoute><Atividades /></ProtectedRoute>} />
                 <Route path="/atividades-ii" element={<ProtectedRoute><AtividadesII /></ProtectedRoute>} />
+                <Route path="/metas" element={<ProtectedRoute><Metas /></ProtectedRoute>} />
                 {/* ADD ALL CUSTOM ROUTES ABOVE THE CATCH-ALL "*" ROUTE */}
                 <Route path="*" element={<NotFound />} />
               </Routes>
