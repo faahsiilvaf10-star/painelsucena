@@ -49,8 +49,10 @@ const Admin = () => {
   const fileInputRef = useRef<HTMLInputElement>(null);
 
   // Fetch all users with their profiles and roles
-  const { data: users = [], isLoading: usersLoading } = useQuery({
-    queryKey: ["admin-users"],
+  const { data: usersData, isLoading: usersLoading } = useQuery({
+    // NOTE: keep this key unique. Other hooks may also fetch admin-related data
+    // with different shapes (e.g. a Set of IDs), which would break this page.
+    queryKey: ["admin-users-with-roles"],
     queryFn: async () => {
       const { data: profiles, error: profilesError } = await supabase
         .from("profiles")
@@ -97,6 +99,9 @@ const Admin = () => {
     enabled: isAdmin,
   });
 
+  // Safety: protect against cache pollution / unexpected shapes
+  const users: UserWithRole[] = Array.isArray(usersData) ? usersData : [];
+
   // Role mutations
   const addRoleMutation = useMutation({
     mutationFn: async ({ userId, role }: { userId: string; role: AppRole }) => {
@@ -106,7 +111,7 @@ const Admin = () => {
       if (error) throw error;
     },
     onSuccess: () => {
-      queryClient.invalidateQueries({ queryKey: ["admin-users"] });
+      queryClient.invalidateQueries({ queryKey: ["admin-users-with-roles"] });
       toast.success("Role adicionada com sucesso!");
       setSelectedUser(undefined);
       setSelectedRole("user");
@@ -125,7 +130,7 @@ const Admin = () => {
       if (error) throw error;
     },
     onSuccess: () => {
-      queryClient.invalidateQueries({ queryKey: ["admin-users"] });
+      queryClient.invalidateQueries({ queryKey: ["admin-users-with-roles"] });
       toast.success("Role atualizada com sucesso!");
     },
     onError: (error: Error) => {
@@ -142,7 +147,7 @@ const Admin = () => {
       if (error) throw error;
     },
     onSuccess: () => {
-      queryClient.invalidateQueries({ queryKey: ["admin-users"] });
+      queryClient.invalidateQueries({ queryKey: ["admin-users-with-roles"] });
       toast.success("Role removida com sucesso!");
     },
     onError: (error: Error) => {
