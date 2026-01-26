@@ -12,6 +12,7 @@ import { toast } from "sonner";
 import { User, Mail, Lock, Camera, Upload, Eye, EyeOff, ArrowLeft, Check } from "lucide-react";
 import { z } from "zod";
 import { AnnouncementHistory } from "@/components/settings/AnnouncementHistory";
+import { SessionDurationSetting } from "@/components/settings/SessionDurationSetting";
 
 const nameSchema = z.string().trim().min(2, "Nome deve ter pelo menos 2 caracteres").max(100, "Nome deve ter no máximo 100 caracteres");
 const emailSchema = z.string().trim().email("Email inválido").max(255, "Email deve ter no máximo 255 caracteres");
@@ -360,6 +361,9 @@ const Configuracoes = () => {
               </Button>
             </CardContent>
           </Card>
+
+          {/* Session Duration */}
+          <SessionDurationSetting />
 
           {/* Password */}
           <Card>
