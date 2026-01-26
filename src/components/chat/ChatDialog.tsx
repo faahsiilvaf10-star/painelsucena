@@ -4,6 +4,7 @@ import {
   DialogContent,
   DialogHeader,
   DialogTitle,
+  DialogDescription,
 } from "@/components/ui/dialog";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { Button } from "@/components/ui/button";
@@ -14,7 +15,7 @@ import { useTypingIndicator } from "@/hooks/useTypingIndicator";
 import { useAuth } from "@/hooks/useAuth";
 import { UserWithStatus } from "@/hooks/useAllUsers";
 import { EmojiPicker } from "./EmojiPicker";
-import { Send, Image, X, Loader2 } from "lucide-react";
+import { Send, Image, X, Loader2, ArrowLeft, Phone, Video, MoreVertical, Mic, Paperclip, Camera, Check, CheckCheck } from "lucide-react";
 import { format } from "date-fns";
 import { ptBR } from "date-fns/locale";
 import { cn } from "@/lib/utils";
@@ -49,15 +50,16 @@ const getInitials = (name: string) => {
     .toUpperCase();
 };
 
-// Typing indicator animation component
+// WhatsApp-style typing indicator
 const TypingIndicator = () => (
-  <div className="flex items-center gap-1 px-3 py-2 bg-secondary rounded-2xl rounded-bl-sm w-fit">
-    <div className="flex items-center gap-1">
-      <span className="w-2 h-2 bg-muted-foreground rounded-full animate-bounce" style={{ animationDelay: "0ms" }} />
-      <span className="w-2 h-2 bg-muted-foreground rounded-full animate-bounce" style={{ animationDelay: "150ms" }} />
-      <span className="w-2 h-2 bg-muted-foreground rounded-full animate-bounce" style={{ animationDelay: "300ms" }} />
+  <div className="flex justify-start mb-2">
+    <div className="bg-white dark:bg-[#202c33] rounded-lg rounded-bl-none px-3 py-2 shadow-sm max-w-[80%]">
+      <div className="flex items-center gap-1">
+        <span className="w-2 h-2 bg-gray-400 rounded-full animate-bounce" style={{ animationDelay: "0ms" }} />
+        <span className="w-2 h-2 bg-gray-400 rounded-full animate-bounce" style={{ animationDelay: "150ms" }} />
+        <span className="w-2 h-2 bg-gray-400 rounded-full animate-bounce" style={{ animationDelay: "300ms" }} />
+      </div>
     </div>
-    <span className="text-xs text-muted-foreground ml-1">digitando...</span>
   </div>
 );
 
@@ -208,132 +210,201 @@ export const ChatDialog = ({
 
   return (
     <Dialog open={open} onOpenChange={onOpenChange}>
-      <DialogContent className="sm:max-w-md h-[80vh] flex flex-col p-0">
-        {/* Header */}
-        <DialogHeader className="px-4 py-3 border-b flex-shrink-0">
-          <div className="flex items-center gap-3">
+      <DialogContent 
+        className="sm:max-w-md h-[85vh] flex flex-col p-0 gap-0 overflow-hidden border-0 rounded-xl"
+        aria-describedby="chat-description"
+      >
+        <DialogDescription id="chat-description" className="sr-only">
+          Chat com {selectedUser.full_name}
+        </DialogDescription>
+        
+        {/* WhatsApp-style Header */}
+        <DialogHeader className="flex-shrink-0 bg-[#008069] dark:bg-[#1f2c34] px-2 py-2">
+          <div className="flex items-center gap-2">
+            <Button
+              variant="ghost"
+              size="icon"
+              className="h-10 w-10 text-white hover:bg-white/10 rounded-full"
+              onClick={() => onOpenChange(false)}
+            >
+              <ArrowLeft className="h-5 w-5" />
+            </Button>
+            
             <div className="relative">
-              <Avatar className="h-10 w-10">
+              <Avatar className="h-10 w-10 border-2 border-white/20">
                 <AvatarImage src={selectedUser.avatar_url || undefined} />
-                <AvatarFallback className="bg-primary text-primary-foreground">
+                <AvatarFallback className="bg-[#00a884] text-white text-sm">
                   {getInitials(selectedUser.full_name)}
                 </AvatarFallback>
               </Avatar>
-              <div className={cn(
-                "absolute -bottom-0.5 -right-0.5 h-3 w-3 rounded-full border-2 border-background",
-                selectedUser.isOnline ? "bg-green-500" : "bg-red-500"
-              )} />
               {selectedUser.isAdmin && (
-                <div className="absolute -top-1 -left-1">
+                <div className="absolute -top-1 -right-1">
                   <VerifiedBadge size="xs" />
                 </div>
               )}
             </div>
-            <div>
-              <DialogTitle className="text-base font-semibold flex items-center gap-1">
+            
+            <div className="flex-1 min-w-0">
+              <DialogTitle className="text-white text-base font-medium flex items-center gap-1 truncate">
                 {selectedUser.full_name}
                 {selectedUser.isAdmin && <VerifiedBadge size="xs" />}
               </DialogTitle>
-              <p className="text-xs text-muted-foreground flex items-center gap-1">
+              <p className="text-white/70 text-xs truncate">
                 {isOtherTyping ? (
-                  <span className="text-primary animate-pulse">digitando...</span>
+                  <span className="text-[#25d366]">digitando...</span>
+                ) : selectedUser.isOnline ? (
+                  "online"
                 ) : (
-                  <>
-                    {cargoLabels[selectedUser.cargo] || selectedUser.cargo}
-                    {selectedUser.isAdmin && <VerifiedBadge size="xs" />}
-                  </>
+                  cargoLabels[selectedUser.cargo] || selectedUser.cargo
                 )}
               </p>
+            </div>
+
+            <div className="flex items-center gap-1">
+              <Button
+                variant="ghost"
+                size="icon"
+                className="h-10 w-10 text-white hover:bg-white/10 rounded-full"
+              >
+                <Video className="h-5 w-5" />
+              </Button>
+              <Button
+                variant="ghost"
+                size="icon"
+                className="h-10 w-10 text-white hover:bg-white/10 rounded-full"
+              >
+                <Phone className="h-5 w-5" />
+              </Button>
+              <Button
+                variant="ghost"
+                size="icon"
+                className="h-10 w-10 text-white hover:bg-white/10 rounded-full"
+              >
+                <MoreVertical className="h-5 w-5" />
+              </Button>
             </div>
           </div>
         </DialogHeader>
 
-        {/* Messages */}
-        <ScrollArea className="flex-1 px-4" ref={scrollRef}>
-          <div className="py-4 space-y-3">
-            {isLoading ? (
-              <div className="flex justify-center py-8">
-                <Loader2 className="h-6 w-6 animate-spin text-muted-foreground" />
-              </div>
-            ) : messages.length === 0 ? (
-              <div className="text-center py-8 text-muted-foreground">
-                <p className="text-sm">Nenhuma mensagem ainda</p>
-                <p className="text-xs mt-1">
-                  Envie uma mensagem para iniciar a conversa
-                </p>
-              </div>
-            ) : (
-              messages.map((msg) => {
-                const isOwn = msg.sender_id === user?.id;
-                return (
-                  <div
-                    key={msg.id}
-                    className={cn("flex", isOwn ? "justify-end" : "justify-start")}
-                  >
+        {/* WhatsApp-style Chat Background */}
+        <div 
+          className="flex-1 overflow-hidden relative"
+          style={{
+            backgroundImage: `url("data:image/svg+xml,%3Csvg width='60' height='60' viewBox='0 0 60 60' xmlns='http://www.w3.org/2000/svg'%3E%3Cg fill='none' fill-rule='evenodd'%3E%3Cg fill='%239C92AC' fill-opacity='0.08'%3E%3Cpath d='M36 34v-4h-2v4h-4v2h4v4h2v-4h4v-2h-4zm0-30V0h-2v4h-4v2h4v4h2V6h4V4h-4zM6 34v-4H4v4H0v2h4v4h2v-4h4v-2H6zM6 4V0H4v4H0v2h4v4h2V6h4V4H6z'/%3E%3C/g%3E%3C/g%3E%3C/svg%3E")`,
+            backgroundColor: '#e5ddd5',
+          }}
+        >
+          <div className="absolute inset-0 bg-[#efeae2] dark:bg-[#0b141a] opacity-95" />
+          
+          <ScrollArea className="h-full relative z-10" ref={scrollRef}>
+            <div className="px-4 py-3 space-y-1">
+              {isLoading ? (
+                <div className="flex justify-center py-8">
+                  <Loader2 className="h-6 w-6 animate-spin text-[#008069]" />
+                </div>
+              ) : messages.length === 0 ? (
+                <div className="flex items-center justify-center h-full min-h-[200px]">
+                  <div className="bg-[#fffffff2] dark:bg-[#1f2c34] rounded-lg px-4 py-2 shadow-sm text-center">
+                    <p className="text-sm text-gray-600 dark:text-gray-300">
+                      📱 Inicie uma conversa
+                    </p>
+                    <p className="text-xs text-gray-500 dark:text-gray-400 mt-1">
+                      As mensagens são criptografadas
+                    </p>
+                  </div>
+                </div>
+              ) : (
+                messages.map((msg, index) => {
+                  const isOwn = msg.sender_id === user?.id;
+                  const showTail = index === 0 || messages[index - 1]?.sender_id !== msg.sender_id;
+                  
+                  return (
                     <div
-                      className={cn(
-                        "max-w-[80%] rounded-2xl px-3 py-2",
-                        isOwn
-                          ? "bg-primary text-primary-foreground rounded-br-sm"
-                          : "bg-secondary rounded-bl-sm"
-                      )}
+                      key={msg.id}
+                      className={cn("flex mb-0.5", isOwn ? "justify-end" : "justify-start")}
                     >
-                      {msg.image_url && (
-                        <img
-                          src={msg.image_url}
-                          alt="Imagem"
-                          className="max-w-full rounded-lg mb-1"
-                        />
-                      )}
-                      {msg.content && (
-                        <p className="text-sm whitespace-pre-wrap break-words">
-                          {msg.content}
-                        </p>
-                      )}
-                      <p
+                      <div
                         className={cn(
-                          "text-[10px] mt-1",
+                          "max-w-[75%] px-2.5 py-1.5 shadow-sm relative",
                           isOwn
-                            ? "text-primary-foreground/70"
-                            : "text-muted-foreground"
+                            ? "bg-[#d9fdd3] dark:bg-[#005c4b] rounded-lg"
+                            : "bg-white dark:bg-[#202c33] rounded-lg",
+                          showTail && isOwn && "rounded-tr-none",
+                          showTail && !isOwn && "rounded-tl-none"
                         )}
                       >
-                        {format(new Date(msg.created_at), "HH:mm", {
-                          locale: ptBR,
-                        })}
-                      </p>
+                        {/* Message tail */}
+                        {showTail && (
+                          <div
+                            className={cn(
+                              "absolute top-0 w-3 h-3",
+                              isOwn 
+                                ? "-right-1.5 border-l-8 border-l-[#d9fdd3] dark:border-l-[#005c4b] border-y-8 border-y-transparent border-r-0"
+                                : "-left-1.5 border-r-8 border-r-white dark:border-r-[#202c33] border-y-8 border-y-transparent border-l-0"
+                            )}
+                          />
+                        )}
+                        
+                        {msg.image_url && (
+                          <img
+                            src={msg.image_url}
+                            alt="Imagem"
+                            className="max-w-full rounded-md mb-1"
+                          />
+                        )}
+                        
+                        <div className="flex items-end gap-1">
+                          {msg.content && (
+                            <p className="text-sm text-gray-800 dark:text-gray-100 whitespace-pre-wrap break-words">
+                              {msg.content}
+                            </p>
+                          )}
+                          <span className={cn(
+                            "text-[10px] flex items-center gap-0.5 shrink-0 ml-1",
+                            isOwn ? "text-gray-500 dark:text-gray-400" : "text-gray-500 dark:text-gray-400"
+                          )}>
+                            {format(new Date(msg.created_at), "HH:mm", { locale: ptBR })}
+                            {isOwn && (
+                              <CheckCheck className={cn(
+                                "h-3.5 w-3.5",
+                                msg.read_at ? "text-[#53bdeb]" : "text-gray-400"
+                              )} />
+                            )}
+                          </span>
+                        </div>
+                      </div>
                     </div>
-                  </div>
-                );
-              })
-            )}
-            
-            {/* Typing indicator */}
-            {isOtherTyping && <TypingIndicator />}
-          </div>
-        </ScrollArea>
+                  );
+                })
+              )}
+              
+              {/* Typing indicator */}
+              {isOtherTyping && <TypingIndicator />}
+            </div>
+          </ScrollArea>
+        </div>
 
         {/* Image Preview */}
         {previewImage && (
-          <div className="px-4 py-2 border-t">
+          <div className="px-3 py-2 bg-[#f0f2f5] dark:bg-[#1f2c34] border-t border-gray-200 dark:border-gray-700">
             <div className="relative inline-block">
               <img
                 src={previewImage}
                 alt="Preview"
-                className="h-20 rounded-lg"
+                className="h-20 rounded-lg shadow-md"
               />
               <button
                 onClick={clearPreview}
-                className="absolute -top-2 -right-2 h-5 w-5 rounded-full bg-destructive text-destructive-foreground flex items-center justify-center"
+                className="absolute -top-2 -right-2 h-6 w-6 rounded-full bg-gray-700 text-white flex items-center justify-center shadow-md hover:bg-gray-600 transition-colors"
               >
-                <X className="h-3 w-3" />
+                <X className="h-4 w-4" />
               </button>
             </div>
           </div>
         )}
 
-        {/* Input Area */}
-        <div className="p-3 border-t flex items-center gap-2 flex-shrink-0">
+        {/* WhatsApp-style Input Area */}
+        <div className="flex items-center gap-1.5 px-2 py-2 bg-[#f0f2f5] dark:bg-[#1f2c34] flex-shrink-0">
           <EmojiPicker onEmojiSelect={handleEmojiSelect} />
 
           <input
@@ -343,29 +414,47 @@ export const ChatDialog = ({
             accept="image/*"
             onChange={handleFileSelect}
           />
+          
           <Button
             variant="ghost"
             size="icon"
-            className="h-8 w-8 shrink-0"
+            className="h-10 w-10 text-gray-500 hover:text-gray-700 dark:text-gray-400 dark:hover:text-gray-200 hover:bg-gray-200 dark:hover:bg-gray-700 rounded-full shrink-0"
             onClick={() => fileInputRef.current?.click()}
             type="button"
           >
-            <Image className="h-5 w-5" />
+            <Paperclip className="h-5 w-5" />
+          </Button>
+          
+          <Button
+            variant="ghost"
+            size="icon"
+            className="h-10 w-10 text-gray-500 hover:text-gray-700 dark:text-gray-400 dark:hover:text-gray-200 hover:bg-gray-200 dark:hover:bg-gray-700 rounded-full shrink-0"
+            onClick={() => fileInputRef.current?.click()}
+            type="button"
+          >
+            <Camera className="h-5 w-5" />
           </Button>
 
-          <Input
-            ref={inputRef}
-            value={message}
-            onChange={handleInputChange}
-            onKeyDown={handleKeyDown}
-            placeholder="Digite uma mensagem..."
-            className="flex-1"
-            disabled={isUploading || sendMessage.isPending}
-          />
+          <div className="flex-1 relative">
+            <Input
+              ref={inputRef}
+              value={message}
+              onChange={handleInputChange}
+              onKeyDown={handleKeyDown}
+              placeholder="Mensagem"
+              className="rounded-full bg-white dark:bg-[#2a3942] border-0 pl-4 pr-10 h-10 text-sm focus-visible:ring-0 focus-visible:ring-offset-0"
+              disabled={isUploading || sendMessage.isPending}
+            />
+          </div>
 
           <Button
             size="icon"
-            className="h-8 w-8 shrink-0"
+            className={cn(
+              "h-10 w-10 rounded-full shrink-0 transition-colors",
+              message.trim() || pendingFile
+                ? "bg-[#008069] hover:bg-[#017561] text-white"
+                : "bg-[#008069] hover:bg-[#017561] text-white"
+            )}
             onClick={handleSend}
             disabled={
               (!message.trim() && !pendingFile) ||
@@ -374,9 +463,11 @@ export const ChatDialog = ({
             }
           >
             {isUploading || sendMessage.isPending ? (
-              <Loader2 className="h-4 w-4 animate-spin" />
+              <Loader2 className="h-5 w-5 animate-spin" />
+            ) : message.trim() || pendingFile ? (
+              <Send className="h-5 w-5" />
             ) : (
-              <Send className="h-4 w-4" />
+              <Mic className="h-5 w-5" />
             )}
           </Button>
         </div>
