@@ -1,7 +1,7 @@
 import { useState, useEffect } from "react";
 import { format, parseISO } from "date-fns";
 import { ptBR } from "date-fns/locale";
-import { Leaf, Save, Loader2, Calendar, Trash2, History, ArrowRight, Plus, X } from "lucide-react";
+import { Leaf, Save, Loader2, Calendar, Trash2, History, ArrowRight, Plus, X, Send } from "lucide-react";
 import { toast } from "sonner";
 import { useNavigate } from "react-router-dom";
 import Layout from "@/components/layout/Layout";
@@ -180,7 +180,7 @@ export default function Atividades() {
   const formattedDate = format(selectedDate, "dd/MM/yy (EEEE)", { locale: ptBR });
   const capitalizedDate = formattedDate.charAt(0).toUpperCase() + formattedDate.slice(1);
 
-  const handleSave = async () => {
+  const handleSave = async (redirectToRdo: boolean = false) => {
     if (!user) {
       toast.error("Você precisa estar logado para salvar.");
       return;
@@ -207,7 +207,13 @@ export default function Atividades() {
         controle_invasoras_nome: invasorasData.nome,
         retirada_mudas_unidade: retiradaMudasUnidade ? parseInt(retiradaMudasUnidade) : undefined,
       });
-      toast.success("Atividades salvas com sucesso!");
+      
+      if (redirectToRdo) {
+        toast.success("Atividades salvas! Redirecionando para RDO...");
+        navigate("/rdo");
+      } else {
+        toast.success("Atividades salvas com sucesso!");
+      }
     } catch (error: any) {
       toast.error("Erro ao salvar: " + error.message);
     }
@@ -335,7 +341,7 @@ export default function Atividades() {
               </Button>
             )}
 
-            <Button onClick={handleSave} disabled={saveReport.isPending}>
+            <Button onClick={() => handleSave(false)} disabled={saveReport.isPending} variant="outline">
               {saveReport.isPending ? (
                 <Loader2 className="h-4 w-4 mr-2 animate-spin" />
               ) : (
@@ -344,9 +350,17 @@ export default function Atividades() {
               Salvar
             </Button>
 
-            <Button variant="outline" onClick={() => navigate("/rdo")} className="gap-2">
-              <ArrowRight className="h-4 w-4" />
-              Ir para RDO
+            <Button 
+              onClick={() => handleSave(true)} 
+              disabled={saveReport.isPending}
+              className="gap-2 bg-green-600 hover:bg-green-700"
+            >
+              {saveReport.isPending ? (
+                <Loader2 className="h-4 w-4 animate-spin" />
+              ) : (
+                <Send className="h-4 w-4" />
+              )}
+              Salvar e Enviar WhatsApp
             </Button>
           </div>
         </div>
