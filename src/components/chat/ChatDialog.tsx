@@ -218,7 +218,10 @@ export const ChatDialog = ({
                   {getInitials(selectedUser.full_name)}
                 </AvatarFallback>
               </Avatar>
-              <div className="absolute -bottom-0.5 -right-0.5 h-3 w-3 rounded-full bg-green-500 border-2 border-background" />
+              <div className={cn(
+                "absolute -bottom-0.5 -right-0.5 h-3 w-3 rounded-full border-2 border-background",
+                selectedUser.isOnline ? "bg-green-500" : "bg-red-500"
+              )} />
             </div>
             <div>
               <DialogTitle className="text-base font-semibold">
