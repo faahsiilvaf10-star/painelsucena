@@ -73,8 +73,6 @@ const cargoColors: Record<string, string> = {
 export function MatrixProgressChart() {
   const [progressData, setProgressData] = useState<CargoProgress[]>([]);
   const [isLoading, setIsLoading] = useState(true);
-  const [incompleteRoles, setIncompleteRoles] = useState<string[]>([]);
-  const [showAlert, setShowAlert] = useState(false);
 
   useEffect(() => {
     const fetchAllProgress = async () => {
@@ -107,21 +105,6 @@ export function MatrixProgressChart() {
         });
 
         setProgressData(progress);
-
-        // Check for incomplete roles
-        const incomplete = progress
-          .filter((p) => p.progress < 100)
-          .map((p) => p.cargo);
-        setIncompleteRoles(incomplete);
-
-        // Check if we should show the alert (5 days before end of month)
-        const today = new Date();
-        const endOfCurrentMonth = endOfMonth(today);
-        const daysUntilEndOfMonth = differenceInDays(endOfCurrentMonth, today);
-        
-        if (daysUntilEndOfMonth <= 5 && incomplete.length > 0) {
-          setShowAlert(true);
-        }
       } catch (error) {
         console.error("Error fetching matrix progress:", error);
       } finally {
@@ -145,20 +128,6 @@ export function MatrixProgressChart() {
 
   return (
     <div className="space-y-6">
-      {/* Alert for incomplete roles */}
-      {showAlert && (
-        <Alert className="animate-fade-in border-orange-500 bg-orange-500/10">
-          <AlertTriangle className="h-5 w-5 text-orange-500" />
-          <AlertTitle className="text-orange-500 font-bold">
-            Atenção! Faltam poucos dias para o fim do mês
-          </AlertTitle>
-          <AlertDescription className="text-orange-400">
-            Os seguintes cargos ainda não concluíram a matriz: {" "}
-            <strong>{incompleteRoles.join(", ")}</strong>. 
-            Complete as tarefas pendentes antes do dia 01!
-          </AlertDescription>
-        </Alert>
-      )}
 
       {/* Charts Container */}
       <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">

@@ -4,6 +4,7 @@ import StatCard from "@/components/dashboard/StatCard";
 import { DDSHighlightCard } from "@/components/dds/DDSHighlightCard";
 import { ReminderHighlightBanner } from "@/components/reminders/ReminderHighlightBanner";
 import { MatrixProgressChart } from "@/components/dashboard/MatrixProgressChart";
+import { MatrixAlertBanner } from "@/components/dashboard/MatrixAlertBanner";
 import { CampaignBanner } from "@/components/campaigns/CampaignBanner";
 import { OrderHighlightBanner } from "@/components/orders/OrderHighlightBanner";
 import { EquipmentStatusCard } from "@/components/dashboard/EquipmentStatusCard";
@@ -41,10 +42,8 @@ const Dashboard = () => {
           </p>
         </div>
 
-        {/* Matrix Progress Chart - Always at the top */}
-        <div className="mb-8 animate-slide-up">
-          <MatrixProgressChart />
-        </div>
+        {/* Matrix Alert - Always at the top when active (5 days before end of month) */}
+        <MatrixAlertBanner />
 
         {/* Campaign Banner - Health awareness campaigns */}
         <CampaignBanner />
@@ -65,7 +64,7 @@ const Dashboard = () => {
         <EquipmentStatusCard />
 
         {/* Stats Grid */}
-        <div className="grid grid-cols-1 md:grid-cols-3 gap-6 mb-12">
+        <div className="grid grid-cols-1 md:grid-cols-3 gap-6 mb-8">
           <div className="animate-slide-up" style={{
           animationDelay: "0.1s"
         }}>
@@ -81,6 +80,11 @@ const Dashboard = () => {
         }}>
             <StatCard title="Ausências" value={absentToday} icon={AlertCircle} trend={absentToday > 0 ? "down" : "neutral"} trendValue={absentToday > 0 ? "Atenção" : "Tudo certo"} />
           </div>
+        </div>
+
+        {/* Matrix Progress Chart - Below Stats Grid */}
+        <div className="mb-8 animate-slide-up" style={{ animationDelay: "0.4s" }}>
+          <MatrixProgressChart />
         </div>
       </div>
     </Layout>;
