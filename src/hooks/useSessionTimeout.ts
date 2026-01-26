@@ -3,7 +3,7 @@ import { supabase } from "@/integrations/supabase/client";
 import { useAuth } from "./useAuth";
 
 const SESSION_TIMEOUT_MS = 5 * 60 * 60 * 1000; // 5 hours in milliseconds
-const SESSION_START_KEY = "session_start_time";
+const SESSION_START_KEY = "session_start_time_persistent"; // Using localStorage for persistence
 
 export const useSessionTimeout = () => {
   const { session, signOut } = useAuth();
@@ -12,7 +12,7 @@ export const useSessionTimeout = () => {
   useEffect(() => {
     if (!session) {
       // Clear session start time when logged out
-      sessionStorage.removeItem(SESSION_START_KEY);
+      localStorage.removeItem(SESSION_START_KEY);
       if (timeoutRef.current) {
         clearTimeout(timeoutRef.current);
         timeoutRef.current = null;
@@ -20,12 +20,12 @@ export const useSessionTimeout = () => {
       return;
     }
 
-    // Get or set session start time
-    let sessionStartTime = sessionStorage.getItem(SESSION_START_KEY);
+    // Get or set session start time (persists across browser closes)
+    let sessionStartTime = localStorage.getItem(SESSION_START_KEY);
     
     if (!sessionStartTime) {
       sessionStartTime = Date.now().toString();
-      sessionStorage.setItem(SESSION_START_KEY, sessionStartTime);
+      localStorage.setItem(SESSION_START_KEY, sessionStartTime);
     }
 
     const startTime = parseInt(sessionStartTime, 10);
@@ -77,7 +77,7 @@ export const useSessionTimeout = () => {
     window.dispatchEvent(new Event("logout-transition"));
 
     // Clear session start time
-    sessionStorage.removeItem(SESSION_START_KEY);
+    localStorage.removeItem(SESSION_START_KEY);
 
     // Sign out
     await signOut();
@@ -87,7 +87,7 @@ export const useSessionTimeout = () => {
   const getRemainingTime = (): number | null => {
     if (!session) return null;
     
-    const sessionStartTime = sessionStorage.getItem(SESSION_START_KEY);
+    const sessionStartTime = localStorage.getItem(SESSION_START_KEY);
     if (!sessionStartTime) return null;
 
     const startTime = parseInt(sessionStartTime, 10);
