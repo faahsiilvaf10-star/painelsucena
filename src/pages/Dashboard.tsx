@@ -9,6 +9,7 @@ import { CampaignBanner } from "@/components/campaigns/CampaignBanner";
 import { OrderHighlightBanner } from "@/components/orders/OrderHighlightBanner";
 import { EquipmentStatusCard } from "@/components/dashboard/EquipmentStatusCard";
 import { DocumentExpiryBanner } from "@/components/documents/DocumentExpiryBanner";
+import { GoalAlertBanner } from "@/components/dashboard/GoalAlertBanner";
 import { useCampaignNotifications } from "@/hooks/useCampaignNotifications";
 import { useEmployees } from "@/hooks/useEmployees";
 import { useAttendanceRecords } from "@/hooks/useAttendance";
@@ -44,6 +45,9 @@ const Dashboard = () => {
 
         {/* Matrix Alert - Always at the top when active (5 days before end of month) */}
         <MatrixAlertBanner />
+
+        {/* Goal Alert - 5 days before measurement close (16th) */}
+        <GoalAlertBanner />
 
         {/* Campaign Banner - Health awareness campaigns */}
         <CampaignBanner />

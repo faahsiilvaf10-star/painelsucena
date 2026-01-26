@@ -29,6 +29,7 @@ import {
 import { getBrazilNorthDate } from "@/lib/timezone";
 import { cn } from "@/lib/utils";
 import MonthlyReportDialog from "@/components/atividades/MonthlyReportDialog";
+import { GoalProgressCard } from "@/components/goals/GoalProgressCard";
 
 const FAIXA_OPTIONS = [
   { value: "FAIXA 2", label: "FAIXA 2" },
@@ -403,6 +404,9 @@ export default function AtividadesII() {
             </Button>
           </div>
         </div>
+
+        {/* Goal Progress Card */}
+        <GoalProgressCard />
 
         {/* Main Content */}
         <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">

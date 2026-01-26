@@ -1,4 +1,4 @@
-import { Users, ClipboardList, Grid3X3, LayoutDashboard, FileBarChart, LogOut, LogIn, AlertTriangle, PanelLeftClose, PanelLeft, Settings, Sun, Truck, Bell, FileText, LucideIcon, Heart, ShoppingCart, Package, GripVertical, User, FolderOpen, ShieldCheck, Leaf, Hammer } from "lucide-react";
+import { Users, ClipboardList, Grid3X3, LayoutDashboard, FileBarChart, LogOut, LogIn, AlertTriangle, PanelLeftClose, PanelLeft, Settings, Sun, Truck, Bell, FileText, LucideIcon, Heart, ShoppingCart, Package, GripVertical, User, FolderOpen, ShieldCheck, Leaf, Hammer, Target } from "lucide-react";
 import { Link, useLocation, useNavigate } from "react-router-dom";
 import { useMemo, useState } from "react";
 import { useAuth } from "@/hooks/useAuth";
@@ -48,11 +48,13 @@ interface NavItem {
   label: string;
   path: string;
   isEmergency?: boolean;
+  restrictedTo?: string[]; // cargo types that can see this item (admin always sees all)
 }
 
 const allNavItems: NavItem[] = [
   { id: "atividades", icon: Leaf, label: "Atividades I", path: "/atividades" },
   { id: "atividades-ii", icon: Hammer, label: "Atividades II", path: "/atividades-ii" },
+  { id: "metas", icon: Target, label: "Metas", path: "/metas", restrictedTo: ["planejador"] },
   { id: "destaques", icon: LayoutDashboard, label: "Destaques", path: "/" },
   { id: "campanhas", icon: Heart, label: "Campanhas", path: "/campanhas" },
   { id: "dds", icon: Sun, label: "DDS", path: "/dds" },
@@ -151,27 +153,45 @@ export function AppSidebar() {
     })
   );
 
+  // Filter nav items based on permissions
+  const visibleNavItems = useMemo(() => {
+    return allNavItems.filter(item => {
+      // If no restrictions, show to everyone
+      if (!item.restrictedTo) return true;
+      
+      // If admin, show everything
+      if (isAdmin) return true;
+      
+      // Check if user's cargo is in the allowed list
+      if (profile?.cargo && item.restrictedTo.includes(profile.cargo)) {
+        return true;
+      }
+      
+      return false;
+    });
+  }, [isAdmin, profile?.cargo]);
+
   // Order nav items based on settings
   const orderedNavItems = useMemo(() => {
     if (!settings.nav_order || settings.nav_order.length === 0) {
-      return allNavItems;
+      return visibleNavItems;
     }
     
     const ordered: NavItem[] = [];
     settings.nav_order.forEach((id: string) => {
-      const item = allNavItems.find(nav => nav.id === id);
+      const item = visibleNavItems.find(nav => nav.id === id);
       if (item) ordered.push(item);
     });
     
     // Add any items not in the order (shouldn't happen but safety)
-    allNavItems.forEach(item => {
+    visibleNavItems.forEach(item => {
       if (!ordered.find(o => o.id === item.id)) {
         ordered.push(item);
       }
     });
     
     return ordered;
-  }, [settings.nav_order]);
+  }, [settings.nav_order, visibleNavItems]);
 
   const handleDragEnd = (event: DragEndEvent) => {
     const { active, over } = event;
