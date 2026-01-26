@@ -1,9 +1,8 @@
-import { ReactNode, useMemo } from "react";
+import { ReactNode, useMemo, forwardRef } from "react";
 import { SidebarInset, SidebarTrigger } from "@/components/ui/sidebar";
 import ForbiddenColorIndicator from "@/components/ForbiddenColorIndicator";
 import { NotificationBell } from "@/components/notifications/NotificationBell";
 import { ThemeToggle } from "@/components/ThemeToggle";
-import { Menu } from "lucide-react";
 import { CampaignRibbon } from "@/components/campaigns/CampaignRibbon";
 import { PageTransition } from "./PageTransition";
 import { useSessionTimeout } from "@/hooks/useSessionTimeout";
@@ -53,20 +52,18 @@ interface LayoutProps {
   children: ReactNode;
 }
 
-const Layout = ({ children }: LayoutProps) => {
+const Layout = forwardRef<React.ElementRef<typeof SidebarInset>, LayoutProps>(({ children }, ref) => {
   const dailyPhrase = useMemo(() => getDailyPhrase(), []);
   
   // Monitor session timeout - auto logout after 5 hours
   useSessionTimeout();
 
   return (
-    <SidebarInset className="flex flex-col h-full overflow-hidden">
+    <SidebarInset ref={ref} className="flex flex-col h-full overflow-hidden">
       {/* Header with notification bell and theme toggle */}
       <header className="flex h-14 shrink-0 items-center justify-between gap-4 border-b bg-background px-4">
         <div className="flex items-center gap-4 md:hidden">
-          <SidebarTrigger>
-            <Menu className="h-5 w-5" />
-          </SidebarTrigger>
+          <SidebarTrigger />
           <span className="font-semibold">Painel Sucena</span>
         </div>
         <div className="hidden md:block w-24" />
@@ -90,6 +87,8 @@ const Layout = ({ children }: LayoutProps) => {
       <ForbiddenColorIndicator />
     </SidebarInset>
   );
-};
+});
+
+Layout.displayName = "Layout";
 
 export default Layout;
