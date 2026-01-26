@@ -6,7 +6,7 @@ import { ThemeToggle } from "@/components/ThemeToggle";
 import { CampaignRibbon } from "@/components/campaigns/CampaignRibbon";
 import { PageTransition } from "./PageTransition";
 import { useSessionTimeout } from "@/hooks/useSessionTimeout";
-
+import { AnnouncementModal } from "@/components/announcements/AnnouncementModal";
 const motivationalPhrases = [
   "O sucesso é a soma de pequenos esforços repetidos dia após dia.",
   "Acredite em você mesmo e tudo será possível.",
@@ -85,6 +85,7 @@ const Layout = ({ children }: LayoutProps) => {
         </PageTransition>
       </main>
       <ForbiddenColorIndicator />
+      <AnnouncementModal />
     </SidebarInset>
   );
 };
