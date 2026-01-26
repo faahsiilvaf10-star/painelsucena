@@ -191,10 +191,29 @@ export const formatJardinagemForRDO = (report: JardinagemReport | null): string 
   if (report.limpeza_assoprador_m2 && report.limpeza_assoprador_m2 > 0) {
     lines.push(`* Limpeza com Assoprador - ${report.limpeza_assoprador_m2} m²`);
   }
-  if (report.controle_invasoras_unidade && report.controle_invasoras_unidade > 0) {
+  
+  // Handle invasoras - can be JSON array or single value
+  if (report.controle_invasoras_nome && report.controle_invasoras_nome.startsWith("[")) {
+    try {
+      const invasoras = JSON.parse(report.controle_invasoras_nome) as { nome: string; unidade: string }[];
+      invasoras.forEach(inv => {
+        if (inv.unidade && parseInt(inv.unidade) > 0) {
+          const nomeInvasora = inv.nome ? ` (${inv.nome})` : "";
+          lines.push(`* Controle de Invasoras${nomeInvasora} - ${inv.unidade} unidade(s)`);
+        }
+      });
+    } catch {
+      // Fallback to single value
+      if (report.controle_invasoras_unidade && report.controle_invasoras_unidade > 0) {
+        const nomeInvasora = report.controle_invasoras_nome ? ` (${report.controle_invasoras_nome})` : "";
+        lines.push(`* Controle de Invasoras${nomeInvasora} - ${report.controle_invasoras_unidade} unidade(s)`);
+      }
+    }
+  } else if (report.controle_invasoras_unidade && report.controle_invasoras_unidade > 0) {
     const nomeInvasora = report.controle_invasoras_nome ? ` (${report.controle_invasoras_nome})` : "";
     lines.push(`* Controle de Invasoras${nomeInvasora} - ${report.controle_invasoras_unidade} unidade(s)`);
   }
+  
   if (report.retirada_mudas_unidade && report.retirada_mudas_unidade > 0) {
     lines.push(`* Retirada de Mudas (Árvores) - ${report.retirada_mudas_unidade} unidade(s)`);
   }

@@ -1,7 +1,7 @@
 import { useState, useEffect } from "react";
 import { format, parseISO } from "date-fns";
 import { ptBR } from "date-fns/locale";
-import { Leaf, Save, Loader2, Calendar, Trash2, History, ArrowRight } from "lucide-react";
+import { Leaf, Save, Loader2, Calendar, Trash2, History, ArrowRight, Plus, X } from "lucide-react";
 import { toast } from "sonner";
 import { useNavigate } from "react-router-dom";
 import Layout from "@/components/layout/Layout";
@@ -27,6 +27,11 @@ import {
 } from "@/hooks/useJardinagemReports";
 import { getBrazilNorthDate, getBrazilNorthTodayString } from "@/lib/timezone";
 import { cn } from "@/lib/utils";
+
+interface InvasoraEntry {
+  nome: string;
+  unidade: string;
+}
 
 const FAIXA_OPTIONS = [
   { value: "faixa_2", label: "FAIXA 2" },
@@ -58,9 +63,61 @@ export default function Atividades() {
   const [limpezaManual, setLimpezaManual] = useState("");
   const [limpezaAssoprador, setLimpezaAssoprador] = useState("");
   const [manutencaoCanteiro, setManutencaoCanteiro] = useState("");
-  const [controleInvasorasUnidade, setControleInvasorasUnidade] = useState("");
-  const [controleInvasorasNome, setControleInvasorasNome] = useState("");
+  const [invasoras, setInvasoras] = useState<InvasoraEntry[]>([{ nome: "", unidade: "" }]);
   const [retiradaMudasUnidade, setRetiradaMudasUnidade] = useState("");
+
+  // Helper functions for invasoras
+  const addInvasora = () => {
+    setInvasoras([...invasoras, { nome: "", unidade: "" }]);
+  };
+
+  const removeInvasora = (index: number) => {
+    if (invasoras.length > 1) {
+      setInvasoras(invasoras.filter((_, i) => i !== index));
+    }
+  };
+
+  const updateInvasora = (index: number, field: keyof InvasoraEntry, value: string) => {
+    const updated = [...invasoras];
+    updated[index][field] = value;
+    setInvasoras(updated);
+  };
+
+  // Parse invasoras from stored data
+  const parseInvasorasFromStorage = (nome: string | null, unidade: number | null): InvasoraEntry[] => {
+    if (!nome && !unidade) return [{ nome: "", unidade: "" }];
+    
+    // Check if it's a JSON array
+    if (nome && nome.startsWith("[")) {
+      try {
+        return JSON.parse(nome);
+      } catch {
+        return [{ nome: nome || "", unidade: unidade?.toString() || "" }];
+      }
+    }
+    
+    return [{ nome: nome || "", unidade: unidade?.toString() || "" }];
+  };
+
+  // Format invasoras for storage
+  const formatInvasorasForStorage = (): { nome: string | undefined; unidade: number | undefined } => {
+    const filtered = invasoras.filter(i => i.nome || i.unidade);
+    if (filtered.length === 0) return { nome: undefined, unidade: undefined };
+    
+    if (filtered.length === 1) {
+      return {
+        nome: filtered[0].nome || undefined,
+        unidade: filtered[0].unidade ? parseInt(filtered[0].unidade) : undefined
+      };
+    }
+    
+    // Multiple entries: store as JSON and sum units
+    const totalUnidade = filtered.reduce((sum, i) => sum + (parseInt(i.unidade) || 0), 0);
+    return {
+      nome: JSON.stringify(filtered),
+      unidade: totalUnidade > 0 ? totalUnidade : undefined
+    };
+  };
 
   // Check access permission
   const hasAccess = authReady && (isAdmin || profile?.cargo === "encarregado_i");
@@ -76,8 +133,7 @@ export default function Atividades() {
       setLimpezaManual(existingReport.limpeza_manual_m2?.toString() || "");
       setLimpezaAssoprador(existingReport.limpeza_assoprador_m2?.toString() || "");
       setManutencaoCanteiro(existingReport.manutencao_canteiro || "");
-      setControleInvasorasUnidade(existingReport.controle_invasoras_unidade?.toString() || "");
-      setControleInvasorasNome(existingReport.controle_invasoras_nome || "");
+      setInvasoras(parseInvasorasFromStorage(existingReport.controle_invasoras_nome, existingReport.controle_invasoras_unidade));
       setRetiradaMudasUnidade(existingReport.retirada_mudas_unidade?.toString() || "");
     } else {
       // Reset form for new date
@@ -89,8 +145,7 @@ export default function Atividades() {
       setLimpezaManual("");
       setLimpezaAssoprador("");
       setManutencaoCanteiro("");
-      setControleInvasorasUnidade("");
-      setControleInvasorasNome("");
+      setInvasoras([{ nome: "", unidade: "" }]);
       setRetiradaMudasUnidade("");
     }
   }, [existingReport, selectedDateStr]);
@@ -137,6 +192,7 @@ export default function Atividades() {
     }
 
     try {
+      const invasorasData = formatInvasorasForStorage();
       await saveReport.mutateAsync({
         report_date: selectedDateStr,
         local_faixa: localFaixa,
@@ -147,8 +203,8 @@ export default function Atividades() {
         limpeza_manual_m2: limpezaManual ? parseFloat(limpezaManual) : undefined,
         limpeza_assoprador_m2: limpezaAssoprador ? parseFloat(limpezaAssoprador) : undefined,
         manutencao_canteiro: manutencaoCanteiro || undefined,
-        controle_invasoras_unidade: controleInvasorasUnidade ? parseInt(controleInvasorasUnidade) : undefined,
-        controle_invasoras_nome: controleInvasorasNome || undefined,
+        controle_invasoras_unidade: invasorasData.unidade,
+        controle_invasoras_nome: invasorasData.nome,
         retirada_mudas_unidade: retiradaMudasUnidade ? parseInt(retiradaMudasUnidade) : undefined,
       });
       toast.success("Atividades salvas com sucesso!");
@@ -404,28 +460,59 @@ export default function Atividades() {
                 </div>
               </div>
 
-              {/* New Fields */}
-              <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                <div className="space-y-2">
-                  <Label>CONTROLE DE INVASORAS (Unidade)</Label>
-                  <Input
-                    type="number"
-                    min="0"
-                    value={controleInvasorasUnidade}
-                    onChange={(e) => setControleInvasorasUnidade(e.target.value)}
-                    placeholder="0"
-                  />
+              {/* Invasoras Fields */}
+              <div className="space-y-3">
+                <div className="flex items-center justify-between">
+                  <Label className="text-base font-semibold">🌿 CONTROLE DE INVASORAS</Label>
+                  <Button
+                    type="button"
+                    variant="outline"
+                    size="sm"
+                    onClick={addInvasora}
+                    className="gap-1"
+                  >
+                    <Plus className="h-4 w-4" />
+                    Adicionar mais
+                  </Button>
                 </div>
-
-                <div className="space-y-2">
-                  <Label>NOME DA INVASORA</Label>
-                  <Input
-                    type="text"
-                    value={controleInvasorasNome}
-                    onChange={(e) => setControleInvasorasNome(e.target.value)}
-                    placeholder="Ex: Capim-colonião, Braquiária..."
-                  />
-                </div>
+                
+                {invasoras.map((invasora, index) => (
+                  <div key={index} className="grid grid-cols-1 md:grid-cols-[1fr_120px_auto] gap-2 items-end p-3 rounded-lg bg-muted/50">
+                    <div className="space-y-1">
+                      <Label className="text-xs text-muted-foreground">Nome da Invasora</Label>
+                      <Input
+                        type="text"
+                        value={invasora.nome}
+                        onChange={(e) => updateInvasora(index, "nome", e.target.value)}
+                        placeholder="Ex: Capim-colonião, Braquiária..."
+                      />
+                    </div>
+                    <div className="space-y-1">
+                      <Label className="text-xs text-muted-foreground">Unidade</Label>
+                      <Input
+                        type="number"
+                        min="0"
+                        value={invasora.unidade}
+                        onChange={(e) => updateInvasora(index, "unidade", e.target.value)}
+                        placeholder="0"
+                      />
+                    </div>
+                    {invasoras.length > 1 && (
+                      <Button
+                        type="button"
+                        variant="ghost"
+                        size="icon"
+                        onClick={() => removeInvasora(index)}
+                        className="text-destructive hover:text-destructive hover:bg-destructive/10"
+                      >
+                        <X className="h-4 w-4" />
+                      </Button>
+                    )}
+                    {invasoras.length === 1 && (
+                      <div className="w-10" /> 
+                    )}
+                  </div>
+                ))}
               </div>
 
               <div className="space-y-2">
@@ -486,8 +573,10 @@ export default function Atividades() {
                   {limpezaAssoprador && parseFloat(limpezaAssoprador) > 0 && (
                     <p>* Limpeza com Assoprador - {limpezaAssoprador} m²</p>
                   )}
-                  {controleInvasorasUnidade && parseInt(controleInvasorasUnidade) > 0 && (
-                    <p>* Controle de Invasoras{controleInvasorasNome ? ` (${controleInvasorasNome})` : ""} - {controleInvasorasUnidade} unidade(s)</p>
+                  {invasoras.some(i => i.unidade && parseInt(i.unidade) > 0) && (
+                    invasoras.filter(i => i.unidade && parseInt(i.unidade) > 0).map((inv, idx) => (
+                      <p key={idx}>* Controle de Invasoras{inv.nome ? ` (${inv.nome})` : ""} - {inv.unidade} unidade(s)</p>
+                    ))
                   )}
                   {retiradaMudasUnidade && parseInt(retiradaMudasUnidade) > 0 && (
                     <p>* Retirada de Mudas (Árvores) - {retiradaMudasUnidade} unidade(s)</p>
@@ -495,7 +584,7 @@ export default function Atividades() {
                   {manutencaoCanteiro && (
                     <p>* Manutenção de Canteiro: {manutencaoCanteiro}</p>
                   )}
-                  {!rocagem && !podagem && !coroamento && !plantio && !limpezaManual && !limpezaAssoprador && !controleInvasorasUnidade && !retiradaMudasUnidade && !manutencaoCanteiro && (
+                  {!rocagem && !podagem && !coroamento && !plantio && !limpezaManual && !limpezaAssoprador && !invasoras.some(i => i.unidade && parseInt(i.unidade) > 0) && !retiradaMudasUnidade && !manutencaoCanteiro && (
                     <p className="text-muted-foreground italic">Nenhuma atividade preenchida</p>
                   )}
                 </div>
