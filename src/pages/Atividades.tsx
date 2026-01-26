@@ -729,26 +729,26 @@ export default function Atividades() {
                 <p className="font-bold">📍 Local: {getFaixaLabel(localFaixa)}</p>
                 <div className="border-t pt-2 mt-2 space-y-1">
                   {rocagem && parseFloat(rocagem) > 0 && (
-                    <p>* Roçagem - {rocagem} m²</p>
+                    <p>* Roçagem - {rocagem} m²{rocagemBerma && ` (Berma ${rocagemBerma})`}</p>
                   )}
                   {podagem && parseInt(podagem) > 0 && (
-                    <p>* Podagem - {podagem} unidade(s)</p>
+                    <p>* Podagem - {podagem} unidade(s){podagemBerma && ` (Berma ${podagemBerma})`}</p>
                   )}
                   {coroamento && parseInt(coroamento) > 0 && (
-                    <p>* Coroamento - {coroamento} unidade(s)</p>
+                    <p>* Coroamento - {coroamento} unidade(s){coroamentoBerma && ` (Berma ${coroamentoBerma})`}</p>
                   )}
                   {plantio && parseInt(plantio) > 0 && (
-                    <p>* Plantio - {plantio} unidade(s)</p>
+                    <p>* Plantio - {plantio} unidade(s){plantioBerma && ` (Berma ${plantioBerma})`}</p>
                   )}
                   {limpezaManual && parseFloat(limpezaManual) > 0 && (
-                    <p>* Limpeza Manual - {limpezaManual} m²</p>
+                    <p>* Limpeza Manual - {limpezaManual} m²{limpezaManualBerma && ` (Berma ${limpezaManualBerma})`}</p>
                   )}
                   {limpezaAssoprador && parseFloat(limpezaAssoprador) > 0 && (
-                    <p>* Limpeza com Assoprador - {limpezaAssoprador} m²</p>
+                    <p>* Limpeza com Assoprador - {limpezaAssoprador} m²{limpezaAssopradorBerma && ` (Berma ${limpezaAssopradorBerma})`}</p>
                   )}
                   {invasoras.some(i => i.unidade && parseInt(i.unidade) > 0) && (
                     invasoras.filter(i => i.unidade && parseInt(i.unidade) > 0).map((inv, idx) => (
-                      <p key={idx}>* Controle de Invasoras{inv.nome ? ` (${inv.nome})` : ""} - {inv.unidade} unidade(s)</p>
+                      <p key={idx}>* Controle de Invasoras{inv.nome ? ` (${inv.nome})` : ""} - {inv.unidade} unidade(s){invasorasBerma && ` (Berma ${invasorasBerma})`}</p>
                     ))
                   )}
                   {retiradaMudasUnidade && parseInt(retiradaMudasUnidade) > 0 && (
