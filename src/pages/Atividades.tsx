@@ -58,6 +58,9 @@ export default function Atividades() {
   const [limpezaManual, setLimpezaManual] = useState("");
   const [limpezaAssoprador, setLimpezaAssoprador] = useState("");
   const [manutencaoCanteiro, setManutencaoCanteiro] = useState("");
+  const [controleInvasorasUnidade, setControleInvasorasUnidade] = useState("");
+  const [controleInvasorasNome, setControleInvasorasNome] = useState("");
+  const [retiradaMudasUnidade, setRetiradaMudasUnidade] = useState("");
 
   // Check access permission
   const hasAccess = authReady && (isAdmin || profile?.cargo === "encarregado_i");
@@ -73,6 +76,9 @@ export default function Atividades() {
       setLimpezaManual(existingReport.limpeza_manual_m2?.toString() || "");
       setLimpezaAssoprador(existingReport.limpeza_assoprador_m2?.toString() || "");
       setManutencaoCanteiro(existingReport.manutencao_canteiro || "");
+      setControleInvasorasUnidade(existingReport.controle_invasoras_unidade?.toString() || "");
+      setControleInvasorasNome(existingReport.controle_invasoras_nome || "");
+      setRetiradaMudasUnidade(existingReport.retirada_mudas_unidade?.toString() || "");
     } else {
       // Reset form for new date
       setLocalFaixa("faixa_2");
@@ -83,6 +89,9 @@ export default function Atividades() {
       setLimpezaManual("");
       setLimpezaAssoprador("");
       setManutencaoCanteiro("");
+      setControleInvasorasUnidade("");
+      setControleInvasorasNome("");
+      setRetiradaMudasUnidade("");
     }
   }, [existingReport, selectedDateStr]);
 
@@ -138,6 +147,9 @@ export default function Atividades() {
         limpeza_manual_m2: limpezaManual ? parseFloat(limpezaManual) : undefined,
         limpeza_assoprador_m2: limpezaAssoprador ? parseFloat(limpezaAssoprador) : undefined,
         manutencao_canteiro: manutencaoCanteiro || undefined,
+        controle_invasoras_unidade: controleInvasorasUnidade ? parseInt(controleInvasorasUnidade) : undefined,
+        controle_invasoras_nome: controleInvasorasNome || undefined,
+        retirada_mudas_unidade: retiradaMudasUnidade ? parseInt(retiradaMudasUnidade) : undefined,
       });
       toast.success("Atividades salvas com sucesso!");
     } catch (error: any) {
@@ -392,6 +404,41 @@ export default function Atividades() {
                 </div>
               </div>
 
+              {/* New Fields */}
+              <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                <div className="space-y-2">
+                  <Label>CONTROLE DE INVASORAS (Unidade)</Label>
+                  <Input
+                    type="number"
+                    min="0"
+                    value={controleInvasorasUnidade}
+                    onChange={(e) => setControleInvasorasUnidade(e.target.value)}
+                    placeholder="0"
+                  />
+                </div>
+
+                <div className="space-y-2">
+                  <Label>NOME DA INVASORA</Label>
+                  <Input
+                    type="text"
+                    value={controleInvasorasNome}
+                    onChange={(e) => setControleInvasorasNome(e.target.value)}
+                    placeholder="Ex: Capim-colonião, Braquiária..."
+                  />
+                </div>
+              </div>
+
+              <div className="space-y-2">
+                <Label>RETIRADA DE MUDAS - ÁRVORES (Unidade)</Label>
+                <Input
+                  type="number"
+                  min="0"
+                  value={retiradaMudasUnidade}
+                  onChange={(e) => setRetiradaMudasUnidade(e.target.value)}
+                  placeholder="0"
+                />
+              </div>
+
               <div className="space-y-2">
                 <Label>MANUTENÇÃO DE CANTEIRO</Label>
                 <Textarea
@@ -439,10 +486,16 @@ export default function Atividades() {
                   {limpezaAssoprador && parseFloat(limpezaAssoprador) > 0 && (
                     <p>* Limpeza com Assoprador - {limpezaAssoprador} m²</p>
                   )}
+                  {controleInvasorasUnidade && parseInt(controleInvasorasUnidade) > 0 && (
+                    <p>* Controle de Invasoras{controleInvasorasNome ? ` (${controleInvasorasNome})` : ""} - {controleInvasorasUnidade} unidade(s)</p>
+                  )}
+                  {retiradaMudasUnidade && parseInt(retiradaMudasUnidade) > 0 && (
+                    <p>* Retirada de Mudas (Árvores) - {retiradaMudasUnidade} unidade(s)</p>
+                  )}
                   {manutencaoCanteiro && (
                     <p>* Manutenção de Canteiro: {manutencaoCanteiro}</p>
                   )}
-                  {!rocagem && !podagem && !coroamento && !plantio && !limpezaManual && !limpezaAssoprador && !manutencaoCanteiro && (
+                  {!rocagem && !podagem && !coroamento && !plantio && !limpezaManual && !limpezaAssoprador && !controleInvasorasUnidade && !retiradaMudasUnidade && !manutencaoCanteiro && (
                     <p className="text-muted-foreground italic">Nenhuma atividade preenchida</p>
                   )}
                 </div>

@@ -15,6 +15,9 @@ export interface JardinagemReport {
   limpeza_manual_m2: number | null;
   limpeza_assoprador_m2: number | null;
   manutencao_canteiro: string | null;
+  controle_invasoras_unidade: number | null;
+  controle_invasoras_nome: string | null;
+  retirada_mudas_unidade: number | null;
   created_at: string;
   updated_at: string;
 }
@@ -29,6 +32,9 @@ export interface JardinagemReportInsert {
   limpeza_manual_m2?: number;
   limpeza_assoprador_m2?: number;
   manutencao_canteiro?: string;
+  controle_invasoras_unidade?: number;
+  controle_invasoras_nome?: string;
+  retirada_mudas_unidade?: number;
 }
 
 export const useJardinagemReports = (filterDate?: string) => {
@@ -184,6 +190,13 @@ export const formatJardinagemForRDO = (report: JardinagemReport | null): string 
   }
   if (report.limpeza_assoprador_m2 && report.limpeza_assoprador_m2 > 0) {
     lines.push(`* Limpeza com Assoprador - ${report.limpeza_assoprador_m2} m²`);
+  }
+  if (report.controle_invasoras_unidade && report.controle_invasoras_unidade > 0) {
+    const nomeInvasora = report.controle_invasoras_nome ? ` (${report.controle_invasoras_nome})` : "";
+    lines.push(`* Controle de Invasoras${nomeInvasora} - ${report.controle_invasoras_unidade} unidade(s)`);
+  }
+  if (report.retirada_mudas_unidade && report.retirada_mudas_unidade > 0) {
+    lines.push(`* Retirada de Mudas (Árvores) - ${report.retirada_mudas_unidade} unidade(s)`);
   }
   if (report.manutencao_canteiro) {
     lines.push(`* Manutenção de Canteiro: ${report.manutencao_canteiro}`);

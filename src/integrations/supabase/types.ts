@@ -182,6 +182,8 @@ export type Database = {
       }
       daily_jardinagem_reports: {
         Row: {
+          controle_invasoras_nome: string | null
+          controle_invasoras_unidade: number | null
           coroamento_unidade: number | null
           created_at: string
           created_by: string
@@ -193,10 +195,13 @@ export type Database = {
           plantio_unidade: number | null
           podagem_unidade: number | null
           report_date: string
+          retirada_mudas_unidade: number | null
           rocagem_m2: number | null
           updated_at: string
         }
         Insert: {
+          controle_invasoras_nome?: string | null
+          controle_invasoras_unidade?: number | null
           coroamento_unidade?: number | null
           created_at?: string
           created_by: string
@@ -208,10 +213,13 @@ export type Database = {
           plantio_unidade?: number | null
           podagem_unidade?: number | null
           report_date?: string
+          retirada_mudas_unidade?: number | null
           rocagem_m2?: number | null
           updated_at?: string
         }
         Update: {
+          controle_invasoras_nome?: string | null
+          controle_invasoras_unidade?: number | null
           coroamento_unidade?: number | null
           created_at?: string
           created_by?: string
@@ -223,6 +231,7 @@ export type Database = {
           plantio_unidade?: number | null
           podagem_unidade?: number | null
           report_date?: string
+          retirada_mudas_unidade?: number | null
           rocagem_m2?: number | null
           updated_at?: string
         }
