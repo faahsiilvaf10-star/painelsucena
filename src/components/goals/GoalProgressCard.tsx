@@ -84,8 +84,9 @@ export function GoalProgressCard({ type = "all" }: GoalProgressCardProps) {
     progress.limpeza_canaleta_m,
     progress.recomposicao_gabiao_m,
     progress.manutencao_drenagem_m,
-    progress.limpeza_bueiro_unidade,
-    progress.reparo_cerca_m,
+    progress.escavacao_manual_unidade,
+    progress.reposicao_manta_unidade,
+    progress.reposicao_silte_unidade,
   ].filter(g => g.target > 0);
 
   const allGoals = [...jardGoals, ...gabiaoGoals];
@@ -194,24 +195,34 @@ export function GoalProgressCard({ type = "all" }: GoalProgressCardProps) {
           percentage={progress.manutencao_drenagem_m.percentage}
         />
       )}
-      {progress.limpeza_bueiro_unidade.target > 0 && (
+      {progress.escavacao_manual_unidade.target > 0 && (
         <GoalItem
-          label="Limpeza de Bueiro"
-          emoji="🕳️"
+          label="Escavação Manual"
+          emoji="⛏️"
           unit="un"
-          current={progress.limpeza_bueiro_unidade.current}
-          target={progress.limpeza_bueiro_unidade.target}
-          percentage={progress.limpeza_bueiro_unidade.percentage}
+          current={progress.escavacao_manual_unidade.current}
+          target={progress.escavacao_manual_unidade.target}
+          percentage={progress.escavacao_manual_unidade.percentage}
         />
       )}
-      {progress.reparo_cerca_m.target > 0 && (
+      {progress.reposicao_manta_unidade.target > 0 && (
         <GoalItem
-          label="Reparo de Cerca"
-          emoji="🪵"
-          unit="m"
-          current={progress.reparo_cerca_m.current}
-          target={progress.reparo_cerca_m.target}
-          percentage={progress.reparo_cerca_m.percentage}
+          label="Reposição de Manta Asfáltica"
+          emoji="🛤️"
+          unit="un"
+          current={progress.reposicao_manta_unidade.current}
+          target={progress.reposicao_manta_unidade.target}
+          percentage={progress.reposicao_manta_unidade.percentage}
+        />
+      )}
+      {progress.reposicao_silte_unidade.target > 0 && (
+        <GoalItem
+          label="Reposição de Silte"
+          emoji="🪨"
+          unit="un"
+          current={progress.reposicao_silte_unidade.current}
+          target={progress.reposicao_silte_unidade.target}
+          percentage={progress.reposicao_silte_unidade.percentage}
         />
       )}
     </div>
