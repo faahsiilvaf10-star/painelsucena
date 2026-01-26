@@ -48,7 +48,7 @@ const Admin = () => {
   const { isAdmin, isLoading: adminLoading } = useIsAdmin();
   const { settings, updateSettings, uploadLogo, isLoading: settingsLoading } = useSiteSettings();
   const queryClient = useQueryClient();
-  const [selectedUser, setSelectedUser] = useState<string>("");
+  const [selectedUser, setSelectedUser] = useState<string | undefined>(undefined);
   const [selectedRole, setSelectedRole] = useState<AppRole>("user");
   
   // Site settings state
@@ -127,7 +127,7 @@ const Admin = () => {
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ["admin-users"] });
       toast.success("Role adicionada com sucesso!");
-      setSelectedUser("");
+      setSelectedUser(undefined);
       setSelectedRole("user");
     },
     onError: (error: Error) => {
