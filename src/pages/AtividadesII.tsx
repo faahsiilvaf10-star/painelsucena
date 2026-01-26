@@ -28,6 +28,7 @@ import {
 } from "@/hooks/useGabiaoReports";
 import { getBrazilNorthDate } from "@/lib/timezone";
 import { cn } from "@/lib/utils";
+import MonthlyReportDialog from "@/components/atividades/MonthlyReportDialog";
 
 const FAIXA_OPTIONS = [
   { value: "FAIXA 2", label: "FAIXA 2" },
@@ -362,6 +363,16 @@ export default function AtividadesII() {
                 </ScrollArea>
               </DialogContent>
             </Dialog>
+
+            {/* Monthly Report Dialog */}
+            <MonthlyReportDialog
+              reports={allReports || []}
+              type="gabiao"
+              getLocationLabel={(report) => report.local_servico || "Sem local"}
+              formatReportPreview={(report) => {
+                return report.observacoes || "Nenhuma atividade registrada";
+              }}
+            />
 
             {existingReport && (
               <Button variant="destructive" size="icon" onClick={handleDelete}>

@@ -27,6 +27,7 @@ import {
 } from "@/hooks/useJardinagemReports";
 import { getBrazilNorthDate, getBrazilNorthTodayString } from "@/lib/timezone";
 import { cn } from "@/lib/utils";
+import MonthlyReportDialog from "@/components/atividades/MonthlyReportDialog";
 
 interface InvasoraEntry {
   nome: string;
@@ -368,6 +369,44 @@ export default function Atividades() {
                 </ScrollArea>
               </DialogContent>
             </Dialog>
+
+            {/* Monthly Report Dialog */}
+            <MonthlyReportDialog
+              reports={allReports || []}
+              type="jardinagem"
+              getLocationLabel={(report) => report.local_faixa || "Sem local"}
+              formatReportPreview={(report) => {
+                const lines = [];
+                if (report.rocagem_m2 && parseFloat(report.rocagem_m2) > 0) {
+                  lines.push(`* Roçagem - ${report.rocagem_m2} m²${report.rocagem_berma ? ` (Berma ${report.rocagem_berma})` : ""}`);
+                }
+                if (report.podagem_unidade && parseInt(report.podagem_unidade) > 0) {
+                  lines.push(`* Podagem - ${report.podagem_unidade} unidade(s)${report.podagem_berma ? ` (Berma ${report.podagem_berma})` : ""}`);
+                }
+                if (report.coroamento_unidade && parseInt(report.coroamento_unidade) > 0) {
+                  lines.push(`* Coroamento - ${report.coroamento_unidade} unidade(s)${report.coroamento_berma ? ` (Berma ${report.coroamento_berma})` : ""}`);
+                }
+                if (report.plantio_unidade && parseInt(report.plantio_unidade) > 0) {
+                  lines.push(`* Plantio - ${report.plantio_unidade} unidade(s)${report.plantio_berma ? ` (Berma ${report.plantio_berma})` : ""}`);
+                }
+                if (report.limpeza_manual_m2 && parseFloat(report.limpeza_manual_m2) > 0) {
+                  lines.push(`* Limpeza Manual - ${report.limpeza_manual_m2} m²${report.limpeza_manual_berma ? ` (Berma ${report.limpeza_manual_berma})` : ""}`);
+                }
+                if (report.limpeza_assoprador_m2 && parseFloat(report.limpeza_assoprador_m2) > 0) {
+                  lines.push(`* Limpeza com Assoprador - ${report.limpeza_assoprador_m2} m²${report.limpeza_assoprador_berma ? ` (Berma ${report.limpeza_assoprador_berma})` : ""}`);
+                }
+                if (report.controle_invasoras_unidade && parseInt(report.controle_invasoras_unidade) > 0) {
+                  lines.push(`* Controle de Invasoras${report.controle_invasoras_nome ? ` (${report.controle_invasoras_nome})` : ""} - ${report.controle_invasoras_unidade} unidade(s)`);
+                }
+                if (report.retirada_mudas_unidade && parseInt(report.retirada_mudas_unidade) > 0) {
+                  lines.push(`* Retirada de Mudas - ${report.retirada_mudas_unidade} unidade(s)`);
+                }
+                if (report.manutencao_canteiro) {
+                  lines.push(`* Manutenção de Canteiro: ${report.manutencao_canteiro}`);
+                }
+                return lines.length > 0 ? lines.join("\n") : "Nenhuma atividade registrada";
+              }}
+            />
 
             {existingReport && (
               <Button variant="destructive" size="icon" onClick={handleDelete}>
