@@ -1,4 +1,4 @@
-import { useState, useEffect, useRef } from "react";
+import { useState, useEffect, useRef, forwardRef } from "react";
 import Layout from "@/components/layout/Layout";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
@@ -43,7 +43,7 @@ const navItemsConfig: NavItemConfig[] = [
   { id: "emergencia", label: "Emergência" },
 ];
 
-const Admin = () => {
+const Admin = forwardRef<HTMLDivElement>(function Admin(_props, _ref) {
   const { user, loading: authLoading } = useAuth();
   const { isAdmin, isLoading: adminLoading } = useIsAdmin();
   const { settings, updateSettings, uploadLogo, isLoading: settingsLoading } = useSiteSettings();
@@ -630,6 +630,6 @@ const Admin = () => {
       </div>
     </Layout>
   );
-};
+});
 
 export default Admin;
