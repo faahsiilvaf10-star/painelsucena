@@ -62,6 +62,7 @@ export function EquipmentTimeline({ equipment }: EquipmentTimelineProps) {
   const [currentMaintenanceId, setCurrentMaintenanceId] = useState<string | null>(null);
   const [maintenanceStartedAt, setMaintenanceStartedAt] = useState<string | null>(null);
   const [editData, setEditData] = useState({
+    name: equipment.name,
     plate: equipment.plate,
     driver: equipment.driver,
     helper: equipment.helper,
@@ -79,7 +80,7 @@ export function EquipmentTimeline({ equipment }: EquipmentTimelineProps) {
   const typeColors = equipmentTypeColors[equipmentType] || equipmentTypeColors.pipa;
 
   useEffect(() => {
-    setEditData({ plate: equipment.plate, driver: equipment.driver, helper: equipment.helper });
+    setEditData({ name: equipment.name, plate: equipment.plate, driver: equipment.driver, helper: equipment.helper });
   }, [equipment]);
 
   const checkAutoEndOfShift = useCallback(async () => {
@@ -248,6 +249,12 @@ export function EquipmentTimeline({ equipment }: EquipmentTimelineProps) {
           <div className="min-w-0 flex-1">
             {isEditing ? (
               <div className="flex items-center gap-2 flex-wrap">
+                <Input 
+                  value={editData.name} 
+                  onChange={(e) => setEditData({ ...editData, name: e.target.value })} 
+                  className="h-8 w-28 text-sm" 
+                  placeholder="Nome"
+                />
                 <Input 
                   value={editData.plate} 
                   onChange={(e) => setEditData({ ...editData, plate: e.target.value.toUpperCase() })} 
