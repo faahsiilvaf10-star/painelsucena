@@ -182,56 +182,77 @@ export type Database = {
       }
       daily_jardinagem_reports: {
         Row: {
+          controle_invasoras_berma: number | null
           controle_invasoras_nome: string | null
           controle_invasoras_unidade: number | null
+          coroamento_berma: number | null
           coroamento_unidade: number | null
           created_at: string
           created_by: string
           id: string
+          limpeza_assoprador_berma: number | null
           limpeza_assoprador_m2: number | null
+          limpeza_manual_berma: number | null
           limpeza_manual_m2: number | null
           local_faixa: string
           manutencao_canteiro: string | null
+          plantio_berma: number | null
           plantio_unidade: number | null
+          podagem_berma: number | null
           podagem_unidade: number | null
           report_date: string
           retirada_mudas_unidade: number | null
+          rocagem_berma: number | null
           rocagem_m2: number | null
           updated_at: string
         }
         Insert: {
+          controle_invasoras_berma?: number | null
           controle_invasoras_nome?: string | null
           controle_invasoras_unidade?: number | null
+          coroamento_berma?: number | null
           coroamento_unidade?: number | null
           created_at?: string
           created_by: string
           id?: string
+          limpeza_assoprador_berma?: number | null
           limpeza_assoprador_m2?: number | null
+          limpeza_manual_berma?: number | null
           limpeza_manual_m2?: number | null
           local_faixa: string
           manutencao_canteiro?: string | null
+          plantio_berma?: number | null
           plantio_unidade?: number | null
+          podagem_berma?: number | null
           podagem_unidade?: number | null
           report_date?: string
           retirada_mudas_unidade?: number | null
+          rocagem_berma?: number | null
           rocagem_m2?: number | null
           updated_at?: string
         }
         Update: {
+          controle_invasoras_berma?: number | null
           controle_invasoras_nome?: string | null
           controle_invasoras_unidade?: number | null
+          coroamento_berma?: number | null
           coroamento_unidade?: number | null
           created_at?: string
           created_by?: string
           id?: string
+          limpeza_assoprador_berma?: number | null
           limpeza_assoprador_m2?: number | null
+          limpeza_manual_berma?: number | null
           limpeza_manual_m2?: number | null
           local_faixa?: string
           manutencao_canteiro?: string | null
+          plantio_berma?: number | null
           plantio_unidade?: number | null
+          podagem_berma?: number | null
           podagem_unidade?: number | null
           report_date?: string
           retirada_mudas_unidade?: number | null
+          rocagem_berma?: number | null
           rocagem_m2?: number | null
           updated_at?: string
         }

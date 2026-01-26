@@ -9,14 +9,21 @@ export interface JardinagemReport {
   report_date: string;
   local_faixa: string;
   rocagem_m2: number | null;
+  rocagem_berma: number | null;
   podagem_unidade: number | null;
+  podagem_berma: number | null;
   coroamento_unidade: number | null;
+  coroamento_berma: number | null;
   plantio_unidade: number | null;
+  plantio_berma: number | null;
   limpeza_manual_m2: number | null;
+  limpeza_manual_berma: number | null;
   limpeza_assoprador_m2: number | null;
+  limpeza_assoprador_berma: number | null;
   manutencao_canteiro: string | null;
   controle_invasoras_unidade: number | null;
   controle_invasoras_nome: string | null;
+  controle_invasoras_berma: number | null;
   retirada_mudas_unidade: number | null;
   created_at: string;
   updated_at: string;
@@ -26,14 +33,21 @@ export interface JardinagemReportInsert {
   report_date?: string;
   local_faixa: string;
   rocagem_m2?: number;
+  rocagem_berma?: number;
   podagem_unidade?: number;
+  podagem_berma?: number;
   coroamento_unidade?: number;
+  coroamento_berma?: number;
   plantio_unidade?: number;
+  plantio_berma?: number;
   limpeza_manual_m2?: number;
+  limpeza_manual_berma?: number;
   limpeza_assoprador_m2?: number;
+  limpeza_assoprador_berma?: number;
   manutencao_canteiro?: string;
   controle_invasoras_unidade?: number;
   controle_invasoras_nome?: string;
+  controle_invasoras_berma?: number;
   retirada_mudas_unidade?: number;
 }
 
