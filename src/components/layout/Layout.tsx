@@ -5,8 +5,10 @@ import { NotificationBell } from "@/components/notifications/NotificationBell";
 import { ThemeToggle } from "@/components/ThemeToggle";
 import { CampaignRibbon } from "@/components/campaigns/CampaignRibbon";
 import { PageTransition } from "./PageTransition";
-import { useSessionTimeout } from "@/hooks/useSessionTimeout";
 import { AnnouncementModal } from "@/components/announcements/AnnouncementModal";
+import { SessionExpiryWarning } from "@/components/session/SessionExpiryWarning";
+import { SessionTimeIndicator } from "@/components/session/SessionTimeIndicator";
+
 const motivationalPhrases = [
   "O sucesso é a soma de pequenos esforços repetidos dia após dia.",
   "Acredite em você mesmo e tudo será possível.",
@@ -54,9 +56,6 @@ interface LayoutProps {
 
 const Layout = ({ children }: LayoutProps) => {
   const dailyPhrase = useMemo(() => getDailyPhrase(), []);
-  
-  // Monitor session timeout - auto logout after 5 hours
-  useSessionTimeout();
 
   return (
     <SidebarInset className="flex flex-col h-full overflow-hidden">
@@ -74,6 +73,7 @@ const Layout = ({ children }: LayoutProps) => {
         </p>
         
         <div className="flex items-center gap-1">
+          <SessionTimeIndicator />
           <CampaignRibbon />
           <ThemeToggle />
           <NotificationBell />
@@ -86,6 +86,7 @@ const Layout = ({ children }: LayoutProps) => {
       </main>
       <ForbiddenColorIndicator />
       <AnnouncementModal />
+      <SessionExpiryWarning />
     </SidebarInset>
   );
 };
