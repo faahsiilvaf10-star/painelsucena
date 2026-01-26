@@ -1,9 +1,9 @@
-import { useState, useEffect } from "react";
+import { useState, useEffect, useRef } from "react";
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import { supabase } from "@/integrations/supabase/client";
 import { useAuth } from "@/hooks/useAuth";
 import { toast } from "sonner";
-
+import { playIOSNotificationSound } from "@/lib/sounds";
 export interface Announcement {
   id: string;
   title: string;
@@ -124,7 +124,7 @@ export function useAnnouncements() {
 export function useUnreadAnnouncements() {
   const { user } = useAuth();
   const queryClient = useQueryClient();
-
+  const previousCountRef = useRef<number>(0);
   // Fetch unread announcements for current user
   const { data: unreadAnnouncements = [], isLoading } = useQuery({
     queryKey: ["unread-announcements", user?.id],
@@ -164,6 +164,16 @@ export function useUnreadAnnouncements() {
     refetchInterval: 30000, // Check every 30 seconds
   });
 
+  // Play sound when new announcements arrive
+  useEffect(() => {
+    if (unreadAnnouncements.length > previousCountRef.current && previousCountRef.current > 0) {
+      playIOSNotificationSound();
+      toast.info("Novo comunicado recebido!", {
+        description: unreadAnnouncements[0]?.title,
+      });
+    }
+    previousCountRef.current = unreadAnnouncements.length;
+  }, [unreadAnnouncements]);
   // Mark announcement as read
   const markAsRead = useMutation({
     mutationFn: async (announcementId: string) => {
@@ -194,7 +204,18 @@ export function useUnreadAnnouncements() {
           schema: "public",
           table: "announcements",
         },
-        () => {
+        (payload) => {
+          // Check if this announcement is targeted to the current user
+          const announcement = payload.new as Announcement;
+          const isTargeted = announcement.target_type === "all" || 
+            announcement.target_users?.includes(user.id);
+          
+          if (isTargeted) {
+            playIOSNotificationSound();
+            toast.info("Novo comunicado!", {
+              description: announcement.title,
+            });
+          }
           queryClient.invalidateQueries({ queryKey: ["unread-announcements"] });
         }
       )
