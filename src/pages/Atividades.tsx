@@ -39,6 +39,12 @@ const FAIXA_OPTIONS = [
   { value: "FAIXA 4", label: "FAIXA 4" },
 ];
 
+// Generate berma options from 28 to 56
+const BERMA_OPTIONS = Array.from({ length: 29 }, (_, i) => ({
+  value: (28 + i).toString(),
+  label: `Berma ${28 + i}`,
+}));
+
 export default function Atividades() {
   const navigate = useNavigate();
   const { user } = useAuth();
@@ -57,13 +63,20 @@ export default function Atividades() {
   // Form state
   const [localFaixa, setLocalFaixa] = useState("FAIXA 2");
   const [rocagem, setRocagem] = useState("");
+  const [rocagemBerma, setRocagemBerma] = useState("");
   const [podagem, setPodagem] = useState("");
+  const [podagemBerma, setPodagemBerma] = useState("");
   const [coroamento, setCoroamento] = useState("");
+  const [coroamentoBerma, setCoroamentoBerma] = useState("");
   const [plantio, setPlantio] = useState("");
+  const [plantioBerma, setPlantioBerma] = useState("");
   const [limpezaManual, setLimpezaManual] = useState("");
+  const [limpezaManualBerma, setLimpezaManualBerma] = useState("");
   const [limpezaAssoprador, setLimpezaAssoprador] = useState("");
+  const [limpezaAssopradorBerma, setLimpezaAssopradorBerma] = useState("");
   const [manutencaoCanteiro, setManutencaoCanteiro] = useState("");
   const [invasoras, setInvasoras] = useState<InvasoraEntry[]>([{ nome: "", unidade: "" }]);
+  const [invasorasBerma, setInvasorasBerma] = useState("");
   const [retiradaMudasUnidade, setRetiradaMudasUnidade] = useState("");
 
   // Helper functions for invasoras
@@ -125,27 +138,41 @@ export default function Atividades() {
   // Load existing report when date changes
   useEffect(() => {
     if (existingReport) {
-      setLocalFaixa(existingReport.local_faixa || "faixa_2");
+      setLocalFaixa(existingReport.local_faixa || "FAIXA 2");
       setRocagem(existingReport.rocagem_m2?.toString() || "");
+      setRocagemBerma(existingReport.rocagem_berma?.toString() || "");
       setPodagem(existingReport.podagem_unidade?.toString() || "");
+      setPodagemBerma(existingReport.podagem_berma?.toString() || "");
       setCoroamento(existingReport.coroamento_unidade?.toString() || "");
+      setCoroamentoBerma(existingReport.coroamento_berma?.toString() || "");
       setPlantio(existingReport.plantio_unidade?.toString() || "");
+      setPlantioBerma(existingReport.plantio_berma?.toString() || "");
       setLimpezaManual(existingReport.limpeza_manual_m2?.toString() || "");
+      setLimpezaManualBerma(existingReport.limpeza_manual_berma?.toString() || "");
       setLimpezaAssoprador(existingReport.limpeza_assoprador_m2?.toString() || "");
+      setLimpezaAssopradorBerma(existingReport.limpeza_assoprador_berma?.toString() || "");
       setManutencaoCanteiro(existingReport.manutencao_canteiro || "");
       setInvasoras(parseInvasorasFromStorage(existingReport.controle_invasoras_nome, existingReport.controle_invasoras_unidade));
+      setInvasorasBerma(existingReport.controle_invasoras_berma?.toString() || "");
       setRetiradaMudasUnidade(existingReport.retirada_mudas_unidade?.toString() || "");
     } else {
       // Reset form for new date
-      setLocalFaixa("faixa_2");
+      setLocalFaixa("FAIXA 2");
       setRocagem("");
+      setRocagemBerma("");
       setPodagem("");
+      setPodagemBerma("");
       setCoroamento("");
+      setCoroamentoBerma("");
       setPlantio("");
+      setPlantioBerma("");
       setLimpezaManual("");
+      setLimpezaManualBerma("");
       setLimpezaAssoprador("");
+      setLimpezaAssopradorBerma("");
       setManutencaoCanteiro("");
       setInvasoras([{ nome: "", unidade: "" }]);
+      setInvasorasBerma("");
       setRetiradaMudasUnidade("");
     }
   }, [existingReport, selectedDateStr]);
@@ -197,14 +224,21 @@ export default function Atividades() {
         report_date: selectedDateStr,
         local_faixa: localFaixa,
         rocagem_m2: rocagem ? parseFloat(rocagem) : undefined,
+        rocagem_berma: rocagemBerma ? parseInt(rocagemBerma) : undefined,
         podagem_unidade: podagem ? parseInt(podagem) : undefined,
+        podagem_berma: podagemBerma ? parseInt(podagemBerma) : undefined,
         coroamento_unidade: coroamento ? parseInt(coroamento) : undefined,
+        coroamento_berma: coroamentoBerma ? parseInt(coroamentoBerma) : undefined,
         plantio_unidade: plantio ? parseInt(plantio) : undefined,
+        plantio_berma: plantioBerma ? parseInt(plantioBerma) : undefined,
         limpeza_manual_m2: limpezaManual ? parseFloat(limpezaManual) : undefined,
+        limpeza_manual_berma: limpezaManualBerma ? parseInt(limpezaManualBerma) : undefined,
         limpeza_assoprador_m2: limpezaAssoprador ? parseFloat(limpezaAssoprador) : undefined,
+        limpeza_assoprador_berma: limpezaAssopradorBerma ? parseInt(limpezaAssopradorBerma) : undefined,
         manutencao_canteiro: manutencaoCanteiro || undefined,
         controle_invasoras_unidade: invasorasData.unidade,
         controle_invasoras_nome: invasorasData.nome,
+        controle_invasoras_berma: invasorasBerma ? parseInt(invasorasBerma) : undefined,
         retirada_mudas_unidade: retiradaMudasUnidade ? parseInt(retiradaMudasUnidade) : undefined,
       });
       
@@ -403,95 +437,220 @@ export default function Atividades() {
               </div>
 
               {/* Activity Fields */}
-              <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                <div className="space-y-2">
-                  <Label>ROÇAGEM (m²)</Label>
-                  <Input
-                    type="number"
-                    min="0"
-                    step="0.01"
-                    value={rocagem}
-                    onChange={(e) => setRocagem(e.target.value)}
-                    placeholder="0.00"
-                  />
+              <div className="space-y-4">
+                {/* Roçagem */}
+                <div className="grid grid-cols-1 md:grid-cols-[1fr_180px] gap-3 p-3 rounded-lg bg-muted/30">
+                  <div className="space-y-2">
+                    <Label>ROÇAGEM (m²)</Label>
+                    <Input
+                      type="number"
+                      min="0"
+                      step="0.01"
+                      value={rocagem}
+                      onChange={(e) => setRocagem(e.target.value)}
+                      placeholder="0.00"
+                    />
+                  </div>
+                  <div className="space-y-2">
+                    <Label>Berma</Label>
+                    <Select value={rocagemBerma} onValueChange={setRocagemBerma}>
+                      <SelectTrigger>
+                        <SelectValue placeholder="Selecione" />
+                      </SelectTrigger>
+                      <SelectContent>
+                        {BERMA_OPTIONS.map((opt) => (
+                          <SelectItem key={opt.value} value={opt.value}>
+                            {opt.label}
+                          </SelectItem>
+                        ))}
+                      </SelectContent>
+                    </Select>
+                  </div>
                 </div>
 
-                <div className="space-y-2">
-                  <Label>PODAGEM (Unidade)</Label>
-                  <Input
-                    type="number"
-                    min="0"
-                    value={podagem}
-                    onChange={(e) => setPodagem(e.target.value)}
-                    placeholder="0"
-                  />
+                {/* Podagem */}
+                <div className="grid grid-cols-1 md:grid-cols-[1fr_180px] gap-3 p-3 rounded-lg bg-muted/30">
+                  <div className="space-y-2">
+                    <Label>PODAGEM (Unidade)</Label>
+                    <Input
+                      type="number"
+                      min="0"
+                      value={podagem}
+                      onChange={(e) => setPodagem(e.target.value)}
+                      placeholder="0"
+                    />
+                  </div>
+                  <div className="space-y-2">
+                    <Label>Berma</Label>
+                    <Select value={podagemBerma} onValueChange={setPodagemBerma}>
+                      <SelectTrigger>
+                        <SelectValue placeholder="Selecione" />
+                      </SelectTrigger>
+                      <SelectContent>
+                        {BERMA_OPTIONS.map((opt) => (
+                          <SelectItem key={opt.value} value={opt.value}>
+                            {opt.label}
+                          </SelectItem>
+                        ))}
+                      </SelectContent>
+                    </Select>
+                  </div>
                 </div>
 
-                <div className="space-y-2">
-                  <Label>COROAMENTO (Unidade)</Label>
-                  <Input
-                    type="number"
-                    min="0"
-                    value={coroamento}
-                    onChange={(e) => setCoroamento(e.target.value)}
-                    placeholder="0"
-                  />
+                {/* Coroamento */}
+                <div className="grid grid-cols-1 md:grid-cols-[1fr_180px] gap-3 p-3 rounded-lg bg-muted/30">
+                  <div className="space-y-2">
+                    <Label>COROAMENTO (Unidade)</Label>
+                    <Input
+                      type="number"
+                      min="0"
+                      value={coroamento}
+                      onChange={(e) => setCoroamento(e.target.value)}
+                      placeholder="0"
+                    />
+                  </div>
+                  <div className="space-y-2">
+                    <Label>Berma</Label>
+                    <Select value={coroamentoBerma} onValueChange={setCoroamentoBerma}>
+                      <SelectTrigger>
+                        <SelectValue placeholder="Selecione" />
+                      </SelectTrigger>
+                      <SelectContent>
+                        {BERMA_OPTIONS.map((opt) => (
+                          <SelectItem key={opt.value} value={opt.value}>
+                            {opt.label}
+                          </SelectItem>
+                        ))}
+                      </SelectContent>
+                    </Select>
+                  </div>
                 </div>
 
-                <div className="space-y-2">
-                  <Label>PLANTIO (Unidade)</Label>
-                  <Input
-                    type="number"
-                    min="0"
-                    value={plantio}
-                    onChange={(e) => setPlantio(e.target.value)}
-                    placeholder="0"
-                  />
+                {/* Plantio */}
+                <div className="grid grid-cols-1 md:grid-cols-[1fr_180px] gap-3 p-3 rounded-lg bg-muted/30">
+                  <div className="space-y-2">
+                    <Label>PLANTIO (Unidade)</Label>
+                    <Input
+                      type="number"
+                      min="0"
+                      value={plantio}
+                      onChange={(e) => setPlantio(e.target.value)}
+                      placeholder="0"
+                    />
+                  </div>
+                  <div className="space-y-2">
+                    <Label>Berma</Label>
+                    <Select value={plantioBerma} onValueChange={setPlantioBerma}>
+                      <SelectTrigger>
+                        <SelectValue placeholder="Selecione" />
+                      </SelectTrigger>
+                      <SelectContent>
+                        {BERMA_OPTIONS.map((opt) => (
+                          <SelectItem key={opt.value} value={opt.value}>
+                            {opt.label}
+                          </SelectItem>
+                        ))}
+                      </SelectContent>
+                    </Select>
+                  </div>
                 </div>
 
-                <div className="space-y-2">
-                  <Label>LIMPEZA MANUAL (m²)</Label>
-                  <Input
-                    type="number"
-                    min="0"
-                    step="0.01"
-                    value={limpezaManual}
-                    onChange={(e) => setLimpezaManual(e.target.value)}
-                    placeholder="0.00"
-                  />
+                {/* Limpeza Manual */}
+                <div className="grid grid-cols-1 md:grid-cols-[1fr_180px] gap-3 p-3 rounded-lg bg-muted/30">
+                  <div className="space-y-2">
+                    <Label>LIMPEZA MANUAL (m²)</Label>
+                    <Input
+                      type="number"
+                      min="0"
+                      step="0.01"
+                      value={limpezaManual}
+                      onChange={(e) => setLimpezaManual(e.target.value)}
+                      placeholder="0.00"
+                    />
+                  </div>
+                  <div className="space-y-2">
+                    <Label>Berma</Label>
+                    <Select value={limpezaManualBerma} onValueChange={setLimpezaManualBerma}>
+                      <SelectTrigger>
+                        <SelectValue placeholder="Selecione" />
+                      </SelectTrigger>
+                      <SelectContent>
+                        {BERMA_OPTIONS.map((opt) => (
+                          <SelectItem key={opt.value} value={opt.value}>
+                            {opt.label}
+                          </SelectItem>
+                        ))}
+                      </SelectContent>
+                    </Select>
+                  </div>
                 </div>
 
-                <div className="space-y-2">
-                  <Label>LIMPEZA COM ASSOPRADOR (m²)</Label>
-                  <Input
-                    type="number"
-                    min="0"
-                    step="0.01"
-                    value={limpezaAssoprador}
-                    onChange={(e) => setLimpezaAssoprador(e.target.value)}
-                    placeholder="0.00"
-                  />
+                {/* Limpeza com Assoprador */}
+                <div className="grid grid-cols-1 md:grid-cols-[1fr_180px] gap-3 p-3 rounded-lg bg-muted/30">
+                  <div className="space-y-2">
+                    <Label>LIMPEZA COM ASSOPRADOR (m²)</Label>
+                    <Input
+                      type="number"
+                      min="0"
+                      step="0.01"
+                      value={limpezaAssoprador}
+                      onChange={(e) => setLimpezaAssoprador(e.target.value)}
+                      placeholder="0.00"
+                    />
+                  </div>
+                  <div className="space-y-2">
+                    <Label>Berma</Label>
+                    <Select value={limpezaAssopradorBerma} onValueChange={setLimpezaAssopradorBerma}>
+                      <SelectTrigger>
+                        <SelectValue placeholder="Selecione" />
+                      </SelectTrigger>
+                      <SelectContent>
+                        {BERMA_OPTIONS.map((opt) => (
+                          <SelectItem key={opt.value} value={opt.value}>
+                            {opt.label}
+                          </SelectItem>
+                        ))}
+                      </SelectContent>
+                    </Select>
+                  </div>
                 </div>
               </div>
 
               {/* Invasoras Fields */}
-              <div className="space-y-3">
-                <div className="flex items-center justify-between">
+              <div className="space-y-3 p-3 rounded-lg bg-muted/30">
+                <div className="flex flex-col md:flex-row md:items-center justify-between gap-3">
                   <Label className="text-base font-semibold">🌿 CONTROLE DE INVASORAS</Label>
-                  <Button
-                    type="button"
-                    variant="outline"
-                    size="sm"
-                    onClick={addInvasora}
-                    className="gap-1"
-                  >
-                    <Plus className="h-4 w-4" />
-                    Adicionar mais
-                  </Button>
+                  <div className="flex items-center gap-3">
+                    <div className="flex items-center gap-2">
+                      <Label className="text-sm text-muted-foreground">Berma:</Label>
+                      <Select value={invasorasBerma} onValueChange={setInvasorasBerma}>
+                        <SelectTrigger className="w-[140px]">
+                          <SelectValue placeholder="Selecione" />
+                        </SelectTrigger>
+                        <SelectContent>
+                          {BERMA_OPTIONS.map((opt) => (
+                            <SelectItem key={opt.value} value={opt.value}>
+                              {opt.label}
+                            </SelectItem>
+                          ))}
+                        </SelectContent>
+                      </Select>
+                    </div>
+                    <Button
+                      type="button"
+                      variant="outline"
+                      size="sm"
+                      onClick={addInvasora}
+                      className="gap-1"
+                    >
+                      <Plus className="h-4 w-4" />
+                      Adicionar mais
+                    </Button>
+                  </div>
                 </div>
                 
                 {invasoras.map((invasora, index) => (
-                  <div key={index} className="grid grid-cols-1 md:grid-cols-[1fr_120px_auto] gap-2 items-end p-3 rounded-lg bg-muted/50">
+                  <div key={index} className="grid grid-cols-1 md:grid-cols-[1fr_120px_auto] gap-2 items-end p-3 rounded-lg bg-background/50">
                     <div className="space-y-1">
                       <Label className="text-xs text-muted-foreground">Nome da Invasora</Label>
                       <Input
