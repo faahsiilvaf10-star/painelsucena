@@ -26,10 +26,22 @@ const ProtectedRoute = ({ children }: ProtectedRouteProps) => {
       }
     );
 
-    supabase.auth.getSession().then(({ data: { session } }) => {
-      setSession(session);
-      setLoading(false);
-    });
+    // Try to get existing session, with refresh attempt if needed
+    const initSession = async () => {
+      const { data: { session: existingSession } } = await supabase.auth.getSession();
+      
+      if (existingSession) {
+        setSession(existingSession);
+        setLoading(false);
+      } else {
+        // Try to refresh the session if no active session found
+        const { data: { session: refreshedSession } } = await supabase.auth.refreshSession();
+        setSession(refreshedSession);
+        setLoading(false);
+      }
+    };
+
+    initSession();
 
     return () => subscription.unsubscribe();
   }, [navigate]);
