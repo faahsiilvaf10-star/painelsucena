@@ -10,12 +10,12 @@ import { OrderHighlightBanner } from "@/components/orders/OrderHighlightBanner";
 import { EquipmentStatusCard } from "@/components/dashboard/EquipmentStatusCard";
 import { DocumentExpiryBanner } from "@/components/documents/DocumentExpiryBanner";
 import { GoalAlertBanner } from "@/components/dashboard/GoalAlertBanner";
+import { VehicleExpiryBanner } from "@/components/vistorias/VehicleExpiryBanner";
 import { useCampaignNotifications } from "@/hooks/useCampaignNotifications";
 import { useEmployees } from "@/hooks/useEmployees";
 import { useAttendanceRecords } from "@/hooks/useAttendance";
 import { getBrazilNorthTodayString } from "@/lib/timezone";
 import { useDocumentExpiryNotifications } from "@/hooks/useDocumentExpiryNotifications";
-
 const Dashboard = () => {
   const today = getBrazilNorthTodayString();
   const { data: employees } = useEmployees();
@@ -57,6 +57,9 @@ const Dashboard = () => {
 
         {/* Order Highlights - 7 days before delivery */}
         <OrderHighlightBanner />
+
+        {/* Vehicle Inspection Expiry - 15 days before */}
+        <VehicleExpiryBanner />
 
         {/* Document Expiry Alerts - 5 days before */}
         <DocumentExpiryBanner />
