@@ -18,7 +18,11 @@ export const VerifiedBadge = ({ size = "sm", className }: VerifiedBadgeProps) =>
     <img 
       src={verifiedBadge} 
       alt="Verificado" 
-      className={cn(sizeClasses[size], className)}
+      className={cn(
+        sizeClasses[size], 
+        "animate-pulse-soft",
+        className
+      )}
       title="Administrador verificado"
     />
   );

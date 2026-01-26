@@ -186,6 +186,24 @@
     to { transform: rotate(360deg); }
   }
 
+  /* Verified badge pulse animation */
+  .animate-pulse-soft {
+    animation: pulseSoft 2s ease-in-out infinite;
+  }
+
+  @keyframes pulseSoft {
+    0%, 100% { 
+      opacity: 1;
+      transform: scale(1);
+      filter: drop-shadow(0 0 0 transparent);
+    }
+    50% { 
+      opacity: 0.9;
+      transform: scale(1.1);
+      filter: drop-shadow(0 0 4px hsl(199 89% 48% / 0.6));
+    }
+  }
+
   /* Scrollbar styling */
   .scrollbar-none::-webkit-scrollbar {
     display: none;
