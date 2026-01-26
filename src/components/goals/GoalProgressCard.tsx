@@ -1,7 +1,8 @@
-import { Target, TrendingUp, CheckCircle2, AlertCircle } from "lucide-react";
+import { Target, TrendingUp, CheckCircle2 } from "lucide-react";
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from "@/components/ui/card";
 import { Progress } from "@/components/ui/progress";
 import { Badge } from "@/components/ui/badge";
+import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { useGoalProgress, getCurrentMeasurementPeriod, useCurrentPeriodGoal } from "@/hooks/useGoals";
 import { format } from "date-fns";
 import { ptBR } from "date-fns/locale";
@@ -48,7 +49,11 @@ function GoalItem({ label, emoji, unit, current, target, percentage }: GoalItemP
   );
 }
 
-export function GoalProgressCard() {
+interface GoalProgressCardProps {
+  type?: "jardinagem" | "gabiao" | "all";
+}
+
+export function GoalProgressCard({ type = "all" }: GoalProgressCardProps) {
   const { data: goal } = useCurrentPeriodGoal();
   const { data: progress, isLoading } = useGoalProgress();
   const { startDate, endDate, daysUntilClose } = getCurrentMeasurementPeriod();
@@ -65,8 +70,8 @@ export function GoalProgressCard() {
 
   const periodLabel = `${format(startDate, "dd/MM", { locale: ptBR })} a ${format(endDate, "dd/MM", { locale: ptBR })}`;
 
-  // Calculate overall progress
-  const goals = [
+  // Filter goals based on type
+  const jardGoals = [
     progress.rocagem_m2,
     progress.podagem_unidade,
     progress.coroamento_unidade,
@@ -75,9 +80,199 @@ export function GoalProgressCard() {
     progress.retirada_mudas_unidade,
   ].filter(g => g.target > 0);
 
-  const completedGoals = goals.filter(g => g.percentage >= 100).length;
-  const totalGoals = goals.length;
+  const gabiaoGoals = [
+    progress.limpeza_canaleta_m,
+    progress.recomposicao_gabiao_m,
+    progress.manutencao_drenagem_m,
+    progress.limpeza_bueiro_unidade,
+    progress.reparo_cerca_m,
+  ].filter(g => g.target > 0);
 
+  const allGoals = [...jardGoals, ...gabiaoGoals];
+  const completedGoals = allGoals.filter(g => g.percentage >= 100).length;
+  const totalGoals = allGoals.length;
+
+  // If showing specific type and there are no goals for it, don't render
+  if (type === "jardinagem" && jardGoals.length === 0) return null;
+  if (type === "gabiao" && gabiaoGoals.length === 0) return null;
+  if (type === "all" && totalGoals === 0) return null;
+
+  const renderJardGoals = () => (
+    <div className="space-y-4">
+      {progress.rocagem_m2.target > 0 && (
+        <GoalItem
+          label="Roçagem"
+          emoji="🌿"
+          unit="m²"
+          current={progress.rocagem_m2.current}
+          target={progress.rocagem_m2.target}
+          percentage={progress.rocagem_m2.percentage}
+        />
+      )}
+      {progress.podagem_unidade.target > 0 && (
+        <GoalItem
+          label="Podagem"
+          emoji="✂️"
+          unit="un"
+          current={progress.podagem_unidade.current}
+          target={progress.podagem_unidade.target}
+          percentage={progress.podagem_unidade.percentage}
+        />
+      )}
+      {progress.coroamento_unidade.target > 0 && (
+        <GoalItem
+          label="Coroamento"
+          emoji="🌱"
+          unit="un"
+          current={progress.coroamento_unidade.current}
+          target={progress.coroamento_unidade.target}
+          percentage={progress.coroamento_unidade.percentage}
+        />
+      )}
+      {progress.plantio_unidade.target > 0 && (
+        <GoalItem
+          label="Plantio"
+          emoji="🌳"
+          unit="un"
+          current={progress.plantio_unidade.current}
+          target={progress.plantio_unidade.target}
+          percentage={progress.plantio_unidade.percentage}
+        />
+      )}
+      {progress.controle_invasoras_unidade.target > 0 && (
+        <GoalItem
+          label="Controle de Invasoras"
+          emoji="🚫"
+          unit="un"
+          current={progress.controle_invasoras_unidade.current}
+          target={progress.controle_invasoras_unidade.target}
+          percentage={progress.controle_invasoras_unidade.percentage}
+        />
+      )}
+      {progress.retirada_mudas_unidade.target > 0 && (
+        <GoalItem
+          label="Retirada de Mudas"
+          emoji="🌲"
+          unit="un"
+          current={progress.retirada_mudas_unidade.current}
+          target={progress.retirada_mudas_unidade.target}
+          percentage={progress.retirada_mudas_unidade.percentage}
+        />
+      )}
+    </div>
+  );
+
+  const renderGabiaoGoals = () => (
+    <div className="space-y-4">
+      {progress.limpeza_canaleta_m.target > 0 && (
+        <GoalItem
+          label="Limpeza de Canaleta"
+          emoji="🚰"
+          unit="m"
+          current={progress.limpeza_canaleta_m.current}
+          target={progress.limpeza_canaleta_m.target}
+          percentage={progress.limpeza_canaleta_m.percentage}
+        />
+      )}
+      {progress.recomposicao_gabiao_m.target > 0 && (
+        <GoalItem
+          label="Recomposição de Gabião"
+          emoji="🧱"
+          unit="m"
+          current={progress.recomposicao_gabiao_m.current}
+          target={progress.recomposicao_gabiao_m.target}
+          percentage={progress.recomposicao_gabiao_m.percentage}
+        />
+      )}
+      {progress.manutencao_drenagem_m.target > 0 && (
+        <GoalItem
+          label="Manutenção de Drenagem"
+          emoji="🔧"
+          unit="m"
+          current={progress.manutencao_drenagem_m.current}
+          target={progress.manutencao_drenagem_m.target}
+          percentage={progress.manutencao_drenagem_m.percentage}
+        />
+      )}
+      {progress.limpeza_bueiro_unidade.target > 0 && (
+        <GoalItem
+          label="Limpeza de Bueiro"
+          emoji="🕳️"
+          unit="un"
+          current={progress.limpeza_bueiro_unidade.current}
+          target={progress.limpeza_bueiro_unidade.target}
+          percentage={progress.limpeza_bueiro_unidade.percentage}
+        />
+      )}
+      {progress.reparo_cerca_m.target > 0 && (
+        <GoalItem
+          label="Reparo de Cerca"
+          emoji="🪵"
+          unit="m"
+          current={progress.reparo_cerca_m.current}
+          target={progress.reparo_cerca_m.target}
+          percentage={progress.reparo_cerca_m.percentage}
+        />
+      )}
+    </div>
+  );
+
+  // Specific type rendering
+  if (type === "jardinagem") {
+    const jardCompleted = jardGoals.filter(g => g.percentage >= 100).length;
+    return (
+      <Card className="mb-6">
+        <CardHeader className="pb-3">
+          <div className="flex items-center justify-between">
+            <div className="flex items-center gap-3">
+              <div className="h-10 w-10 rounded-full bg-green-600/20 flex items-center justify-center">
+                <span className="text-xl">🌿</span>
+              </div>
+              <div>
+                <CardTitle className="text-lg">Metas de Jardinagem</CardTitle>
+                <CardDescription>
+                  Período: {periodLabel} • {daysUntilClose} dias restantes
+                </CardDescription>
+              </div>
+            </div>
+            <Badge variant={jardCompleted === jardGoals.length ? "default" : "secondary"}>
+              {jardCompleted}/{jardGoals.length} metas
+            </Badge>
+          </div>
+        </CardHeader>
+        <CardContent>{renderJardGoals()}</CardContent>
+      </Card>
+    );
+  }
+
+  if (type === "gabiao") {
+    const gabiaoCompleted = gabiaoGoals.filter(g => g.percentage >= 100).length;
+    return (
+      <Card className="mb-6">
+        <CardHeader className="pb-3">
+          <div className="flex items-center justify-between">
+            <div className="flex items-center gap-3">
+              <div className="h-10 w-10 rounded-full bg-orange-600/20 flex items-center justify-center">
+                <span className="text-xl">🧱</span>
+              </div>
+              <div>
+                <CardTitle className="text-lg">Metas de Gabião</CardTitle>
+                <CardDescription>
+                  Período: {periodLabel} • {daysUntilClose} dias restantes
+                </CardDescription>
+              </div>
+            </div>
+            <Badge variant={gabiaoCompleted === gabiaoGoals.length ? "default" : "secondary"}>
+              {gabiaoCompleted}/{gabiaoGoals.length} metas
+            </Badge>
+          </div>
+        </CardHeader>
+        <CardContent>{renderGabiaoGoals()}</CardContent>
+      </Card>
+    );
+  }
+
+  // Full view with tabs
   return (
     <Card className="mb-6">
       <CardHeader className="pb-3">
@@ -98,67 +293,27 @@ export function GoalProgressCard() {
           </Badge>
         </div>
       </CardHeader>
-      <CardContent className="space-y-4">
-        {progress.rocagem_m2.target > 0 && (
-          <GoalItem
-            label="Roçagem"
-            emoji="🌿"
-            unit="m²"
-            current={progress.rocagem_m2.current}
-            target={progress.rocagem_m2.target}
-            percentage={progress.rocagem_m2.percentage}
-          />
-        )}
-        {progress.podagem_unidade.target > 0 && (
-          <GoalItem
-            label="Podagem"
-            emoji="✂️"
-            unit="un"
-            current={progress.podagem_unidade.current}
-            target={progress.podagem_unidade.target}
-            percentage={progress.podagem_unidade.percentage}
-          />
-        )}
-        {progress.coroamento_unidade.target > 0 && (
-          <GoalItem
-            label="Coroamento"
-            emoji="🌱"
-            unit="un"
-            current={progress.coroamento_unidade.current}
-            target={progress.coroamento_unidade.target}
-            percentage={progress.coroamento_unidade.percentage}
-          />
-        )}
-        {progress.plantio_unidade.target > 0 && (
-          <GoalItem
-            label="Plantio"
-            emoji="🌳"
-            unit="un"
-            current={progress.plantio_unidade.current}
-            target={progress.plantio_unidade.target}
-            percentage={progress.plantio_unidade.percentage}
-          />
-        )}
-        {progress.controle_invasoras_unidade.target > 0 && (
-          <GoalItem
-            label="Controle de Invasoras"
-            emoji="🚫"
-            unit="un"
-            current={progress.controle_invasoras_unidade.current}
-            target={progress.controle_invasoras_unidade.target}
-            percentage={progress.controle_invasoras_unidade.percentage}
-          />
-        )}
-        {progress.retirada_mudas_unidade.target > 0 && (
-          <GoalItem
-            label="Retirada de Mudas"
-            emoji="🌲"
-            unit="un"
-            current={progress.retirada_mudas_unidade.current}
-            target={progress.retirada_mudas_unidade.target}
-            percentage={progress.retirada_mudas_unidade.percentage}
-          />
-        )}
+      <CardContent>
+        <Tabs defaultValue="jardinagem" className="w-full">
+          <TabsList className="grid w-full grid-cols-2 mb-4">
+            <TabsTrigger value="jardinagem" className="gap-2">
+              <span>🌿</span> Jardinagem
+            </TabsTrigger>
+            <TabsTrigger value="gabiao" className="gap-2">
+              <span>🧱</span> Gabião
+            </TabsTrigger>
+          </TabsList>
+          <TabsContent value="jardinagem">
+            {jardGoals.length > 0 ? renderJardGoals() : (
+              <p className="text-muted-foreground text-center py-4">Nenhuma meta de jardinagem definida</p>
+            )}
+          </TabsContent>
+          <TabsContent value="gabiao">
+            {gabiaoGoals.length > 0 ? renderGabiaoGoals() : (
+              <p className="text-muted-foreground text-center py-4">Nenhuma meta de gabião definida</p>
+            )}
+          </TabsContent>
+        </Tabs>
       </CardContent>
     </Card>
   );

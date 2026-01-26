@@ -591,9 +591,14 @@ export type Database = {
           created_at: string
           created_by: string
           id: string
+          limpeza_bueiro_unidade: number
+          limpeza_canaleta_m: number
+          manutencao_drenagem_m: number
           month_year: string
           plantio_unidade: number
           podagem_unidade: number
+          recomposicao_gabiao_m: number
+          reparo_cerca_m: number
           retirada_mudas_unidade: number
           rocagem_m2: number
           updated_at: string
@@ -604,9 +609,14 @@ export type Database = {
           created_at?: string
           created_by: string
           id?: string
+          limpeza_bueiro_unidade?: number
+          limpeza_canaleta_m?: number
+          manutencao_drenagem_m?: number
           month_year: string
           plantio_unidade?: number
           podagem_unidade?: number
+          recomposicao_gabiao_m?: number
+          reparo_cerca_m?: number
           retirada_mudas_unidade?: number
           rocagem_m2?: number
           updated_at?: string
@@ -617,9 +627,14 @@ export type Database = {
           created_at?: string
           created_by?: string
           id?: string
+          limpeza_bueiro_unidade?: number
+          limpeza_canaleta_m?: number
+          manutencao_drenagem_m?: number
           month_year?: string
           plantio_unidade?: number
           podagem_unidade?: number
+          recomposicao_gabiao_m?: number
+          reparo_cerca_m?: number
           retirada_mudas_unidade?: number
           rocagem_m2?: number
           updated_at?: string

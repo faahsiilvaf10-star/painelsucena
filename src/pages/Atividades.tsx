@@ -445,8 +445,8 @@ export default function Atividades() {
           </div>
         )}
 
-        {/* Goal Progress Card */}
-        <GoalProgressCard />
+        {/* Goal Progress Card - Only Jardinagem */}
+        <GoalProgressCard type="jardinagem" />
 
         <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
           {/* Form */}

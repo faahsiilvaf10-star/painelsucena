@@ -7,12 +7,19 @@ import { getBrazilNorthDate } from "@/lib/timezone";
 export interface Goal {
   id: string;
   month_year: string;
+  // Jardinagem goals
   rocagem_m2: number;
   podagem_unidade: number;
   coroamento_unidade: number;
   plantio_unidade: number;
   controle_invasoras_unidade: number;
   retirada_mudas_unidade: number;
+  // Gabião goals
+  limpeza_canaleta_m: number;
+  recomposicao_gabiao_m: number;
+  manutencao_drenagem_m: number;
+  limpeza_bueiro_unidade: number;
+  reparo_cerca_m: number;
   created_at: string;
   updated_at: string;
   created_by: string;
@@ -20,12 +27,19 @@ export interface Goal {
 
 export interface GoalInput {
   month_year: string;
+  // Jardinagem
   rocagem_m2?: number;
   podagem_unidade?: number;
   coroamento_unidade?: number;
   plantio_unidade?: number;
   controle_invasoras_unidade?: number;
   retirada_mudas_unidade?: number;
+  // Gabião
+  limpeza_canaleta_m?: number;
+  recomposicao_gabiao_m?: number;
+  manutencao_drenagem_m?: number;
+  limpeza_bueiro_unidade?: number;
+  reparo_cerca_m?: number;
 }
 
 // Get the current measurement period (16th to 16th)
@@ -123,6 +137,11 @@ export const useSaveGoal = () => {
             plantio_unidade: input.plantio_unidade ?? 0,
             controle_invasoras_unidade: input.controle_invasoras_unidade ?? 0,
             retirada_mudas_unidade: input.retirada_mudas_unidade ?? 0,
+            limpeza_canaleta_m: input.limpeza_canaleta_m ?? 0,
+            recomposicao_gabiao_m: input.recomposicao_gabiao_m ?? 0,
+            manutencao_drenagem_m: input.manutencao_drenagem_m ?? 0,
+            limpeza_bueiro_unidade: input.limpeza_bueiro_unidade ?? 0,
+            reparo_cerca_m: input.reparo_cerca_m ?? 0,
           })
           .eq("id", existing.id)
           .select()
@@ -142,6 +161,11 @@ export const useSaveGoal = () => {
             plantio_unidade: input.plantio_unidade ?? 0,
             controle_invasoras_unidade: input.controle_invasoras_unidade ?? 0,
             retirada_mudas_unidade: input.retirada_mudas_unidade ?? 0,
+            limpeza_canaleta_m: input.limpeza_canaleta_m ?? 0,
+            recomposicao_gabiao_m: input.recomposicao_gabiao_m ?? 0,
+            manutencao_drenagem_m: input.manutencao_drenagem_m ?? 0,
+            limpeza_bueiro_unidade: input.limpeza_bueiro_unidade ?? 0,
+            reparo_cerca_m: input.reparo_cerca_m ?? 0,
             created_by: user.id,
           })
           .select()
@@ -173,12 +197,19 @@ export const useDeleteGoal = () => {
 
 // Calculate progress for current measurement period
 export interface GoalProgress {
+  // Jardinagem
   rocagem_m2: { current: number; target: number; percentage: number };
   podagem_unidade: { current: number; target: number; percentage: number };
   coroamento_unidade: { current: number; target: number; percentage: number };
   plantio_unidade: { current: number; target: number; percentage: number };
   controle_invasoras_unidade: { current: number; target: number; percentage: number };
   retirada_mudas_unidade: { current: number; target: number; percentage: number };
+  // Gabião
+  limpeza_canaleta_m: { current: number; target: number; percentage: number };
+  recomposicao_gabiao_m: { current: number; target: number; percentage: number };
+  manutencao_drenagem_m: { current: number; target: number; percentage: number };
+  limpeza_bueiro_unidade: { current: number; target: number; percentage: number };
+  reparo_cerca_m: { current: number; target: number; percentage: number };
 }
 
 export const useGoalProgress = () => {
@@ -190,20 +221,29 @@ export const useGoalProgress = () => {
     queryFn: async (): Promise<GoalProgress | null> => {
       if (!goal) return null;
 
-      // Get jardinagem reports within the period
+      // Get date range for reports
       const startStr = format(startDate, "yyyy-MM-dd");
       const endStr = format(endDate, "yyyy-MM-dd");
 
-      const { data: reports, error } = await supabase
-        .from("daily_jardinagem_reports")
-        .select("*")
-        .gte("report_date", startStr)
-        .lte("report_date", endStr);
+      // Fetch jardinagem and gabião reports in parallel
+      const [jardResponse, gabiaoResponse] = await Promise.all([
+        supabase
+          .from("daily_jardinagem_reports")
+          .select("*")
+          .gte("report_date", startStr)
+          .lte("report_date", endStr),
+        supabase
+          .from("daily_gabiao_reports")
+          .select("*")
+          .gte("report_date", startStr)
+          .lte("report_date", endStr),
+      ]);
 
-      if (error) throw error;
+      if (jardResponse.error) throw jardResponse.error;
+      if (gabiaoResponse.error) throw gabiaoResponse.error;
 
-      // Sum up all values
-      const totals = {
+      // Sum up jardinagem values
+      const jardTotals = {
         rocagem_m2: 0,
         podagem_unidade: 0,
         coroamento_unidade: 0,
@@ -212,13 +252,30 @@ export const useGoalProgress = () => {
         retirada_mudas_unidade: 0,
       };
 
-      reports?.forEach((report) => {
-        totals.rocagem_m2 += Number(report.rocagem_m2) || 0;
-        totals.podagem_unidade += Number(report.podagem_unidade) || 0;
-        totals.coroamento_unidade += Number(report.coroamento_unidade) || 0;
-        totals.plantio_unidade += Number(report.plantio_unidade) || 0;
-        totals.controle_invasoras_unidade += Number(report.controle_invasoras_unidade) || 0;
-        totals.retirada_mudas_unidade += Number(report.retirada_mudas_unidade) || 0;
+      jardResponse.data?.forEach((report) => {
+        jardTotals.rocagem_m2 += Number(report.rocagem_m2) || 0;
+        jardTotals.podagem_unidade += Number(report.podagem_unidade) || 0;
+        jardTotals.coroamento_unidade += Number(report.coroamento_unidade) || 0;
+        jardTotals.plantio_unidade += Number(report.plantio_unidade) || 0;
+        jardTotals.controle_invasoras_unidade += Number(report.controle_invasoras_unidade) || 0;
+        jardTotals.retirada_mudas_unidade += Number(report.retirada_mudas_unidade) || 0;
+      });
+
+      // Sum up gabião values
+      const gabiaoTotals = {
+        limpeza_canaleta_m: 0,
+        recomposicao_gabiao_m: 0,
+        manutencao_drenagem_m: 0,
+        limpeza_bueiro_unidade: 0,
+        reparo_cerca_m: 0,
+      };
+
+      gabiaoResponse.data?.forEach((report) => {
+        gabiaoTotals.limpeza_canaleta_m += Number(report.limpeza_canaleta_m) || 0;
+        gabiaoTotals.recomposicao_gabiao_m += Number(report.recomposicao_gabiao_m) || 0;
+        gabiaoTotals.manutencao_drenagem_m += Number(report.manutencao_drenagem_m) || 0;
+        gabiaoTotals.limpeza_bueiro_unidade += Number(report.limpeza_bueiro_unidade) || 0;
+        gabiaoTotals.reparo_cerca_m += Number(report.reparo_cerca_m) || 0;
       });
 
       const calcProgress = (current: number, target: number) => ({
@@ -228,12 +285,19 @@ export const useGoalProgress = () => {
       });
 
       return {
-        rocagem_m2: calcProgress(totals.rocagem_m2, goal.rocagem_m2),
-        podagem_unidade: calcProgress(totals.podagem_unidade, goal.podagem_unidade),
-        coroamento_unidade: calcProgress(totals.coroamento_unidade, goal.coroamento_unidade),
-        plantio_unidade: calcProgress(totals.plantio_unidade, goal.plantio_unidade),
-        controle_invasoras_unidade: calcProgress(totals.controle_invasoras_unidade, goal.controle_invasoras_unidade),
-        retirada_mudas_unidade: calcProgress(totals.retirada_mudas_unidade, goal.retirada_mudas_unidade),
+        // Jardinagem
+        rocagem_m2: calcProgress(jardTotals.rocagem_m2, goal.rocagem_m2),
+        podagem_unidade: calcProgress(jardTotals.podagem_unidade, goal.podagem_unidade),
+        coroamento_unidade: calcProgress(jardTotals.coroamento_unidade, goal.coroamento_unidade),
+        plantio_unidade: calcProgress(jardTotals.plantio_unidade, goal.plantio_unidade),
+        controle_invasoras_unidade: calcProgress(jardTotals.controle_invasoras_unidade, goal.controle_invasoras_unidade),
+        retirada_mudas_unidade: calcProgress(jardTotals.retirada_mudas_unidade, goal.retirada_mudas_unidade),
+        // Gabião
+        limpeza_canaleta_m: calcProgress(gabiaoTotals.limpeza_canaleta_m, goal.limpeza_canaleta_m),
+        recomposicao_gabiao_m: calcProgress(gabiaoTotals.recomposicao_gabiao_m, goal.recomposicao_gabiao_m),
+        manutencao_drenagem_m: calcProgress(gabiaoTotals.manutencao_drenagem_m, goal.manutencao_drenagem_m),
+        limpeza_bueiro_unidade: calcProgress(gabiaoTotals.limpeza_bueiro_unidade, goal.limpeza_bueiro_unidade),
+        reparo_cerca_m: calcProgress(gabiaoTotals.reparo_cerca_m, goal.reparo_cerca_m),
       };
     },
     enabled: !!goal,

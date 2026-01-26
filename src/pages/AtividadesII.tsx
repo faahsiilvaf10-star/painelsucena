@@ -405,8 +405,8 @@ export default function AtividadesII() {
           </div>
         </div>
 
-        {/* Goal Progress Card */}
-        <GoalProgressCard />
+        {/* Goal Progress Card - Only Gabião */}
+        <GoalProgressCard type="gabiao" />
 
         {/* Main Content */}
         <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
