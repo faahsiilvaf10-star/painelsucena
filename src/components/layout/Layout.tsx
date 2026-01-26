@@ -1,4 +1,4 @@
-import { ReactNode, useMemo, forwardRef } from "react";
+import { ReactNode, useMemo } from "react";
 import { SidebarInset, SidebarTrigger } from "@/components/ui/sidebar";
 import ForbiddenColorIndicator from "@/components/ForbiddenColorIndicator";
 import { NotificationBell } from "@/components/notifications/NotificationBell";
@@ -52,14 +52,14 @@ interface LayoutProps {
   children: ReactNode;
 }
 
-const Layout = forwardRef<React.ElementRef<typeof SidebarInset>, LayoutProps>(({ children }, ref) => {
+const Layout = ({ children }: LayoutProps) => {
   const dailyPhrase = useMemo(() => getDailyPhrase(), []);
   
   // Monitor session timeout - auto logout after 5 hours
   useSessionTimeout();
 
   return (
-    <SidebarInset ref={ref} className="flex flex-col h-full overflow-hidden">
+    <SidebarInset className="flex flex-col h-full overflow-hidden">
       {/* Header with notification bell and theme toggle */}
       <header className="flex h-14 shrink-0 items-center justify-between gap-4 border-b bg-background px-4">
         <div className="flex items-center gap-4 md:hidden">
@@ -87,8 +87,6 @@ const Layout = forwardRef<React.ElementRef<typeof SidebarInset>, LayoutProps>(({
       <ForbiddenColorIndicator />
     </SidebarInset>
   );
-});
-
-Layout.displayName = "Layout";
+};
 
 export default Layout;
