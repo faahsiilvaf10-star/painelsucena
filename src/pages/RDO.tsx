@@ -10,7 +10,7 @@ import { Textarea } from "@/components/ui/textarea";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
-import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
+
 import { ScrollArea } from "@/components/ui/scroll-area";
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger } from "@/components/ui/dialog";
 import { Calendar as CalendarComponent } from "@/components/ui/calendar";
@@ -112,17 +112,6 @@ export default function RDO() {
     horario: "07:00 as 17:00",
   });
 
-  const [gabiaoActivities, setGabiaoActivities] = useState({
-    localServico: "",
-    atividades: "",
-  });
-
-  const [jardinagemActivities, setJardinagemActivities] = useState({
-    localServico: "",
-    atividades: "",
-  });
-
-  const [ajudantesPipa, setAjudantesPipa] = useState("");
   const [weatherMorning, setWeatherMorning] = useState("sol");
   const [weatherAfternoon, setWeatherAfternoon] = useState("sol");
   const [difficulties, setDifficulties] = useState("Não Houve.");
@@ -132,22 +121,12 @@ export default function RDO() {
     if (existingReport) {
       setWeatherMorning(existingReport.weather_morning || "sol");
       setWeatherAfternoon(existingReport.weather_afternoon || "sol");
-      setJardinagemActivities({
-        localServico: existingReport.jardinagem_location || "",
-        atividades: existingReport.jardinagem_activities || "",
-      });
-      setGabiaoActivities({
-        localServico: existingReport.gabiao_location || "",
-        atividades: existingReport.gabiao_activities || "",
-      });
       setDifficulties(existingReport.difficulties || "Não Houve.");
       setPhotos(existingReport.photo_urls || []);
     } else {
       // Reset form for new date
       setWeatherMorning("sol");
       setWeatherAfternoon("sol");
-      setJardinagemActivities({ localServico: "", atividades: "" });
-      setGabiaoActivities({ localServico: "", atividades: "" });
       setDifficulties("Não Houve.");
       setPhotos([]);
     }
@@ -232,27 +211,9 @@ export default function RDO() {
 
     // Get jardinagem activities from daily report if available
     const jardinagemFromReport = formatJardinagemForRDO(jardinagemReport);
-    const jardinagemFaixa = jardinagemReport?.local_faixa 
-      ? jardinagemReport.local_faixa.replace("faixa_", "FAIXA ").toUpperCase()
-      : "";
     
-    // Combine manual activities with report data
-    const fullJardinagemActivities = [
-      jardinagemActivities.atividades,
-      jardinagemFromReport
-    ].filter(Boolean).join("\n");
-
-    const jardinagemLocation = jardinagemFaixa || jardinagemActivities.localServico;
-
     // Get gabião activities from daily report if available
     const gabiaoFromReport = formatGabiaoForRDO(gabiaoReport);
-    const gabiaoLocation = gabiaoReport?.local_servico || gabiaoActivities.localServico;
-    
-    // Combine manual activities with report data for gabião
-    const fullGabiaoActivities = [
-      gabiaoActivities.atividades,
-      gabiaoFromReport
-    ].filter(Boolean).join("\n");
 
     const report = `🏗 EMPRESA: ${headerInfo.empresa}
 
@@ -276,24 +237,15 @@ export default function RDO() {
 
 *Jardinagem e Gabiões*
 
-📍 Local do serviço
-    ${jardinagemLocation}
-
      *Jardinagem*
-${fullJardinagemActivities}
+${jardinagemFromReport}
 
 👷🏻Efetivo👷🏾‍♂
 ${jardinagemWorkforce}
 
-* Ajudantes Pipas:
-${ajudantesPipa.split("\n").map((name) => `      ${name.trim()}`).join("\n")}
-
     *Manutenção De Gabião*
 
-📍 Local do serviço
-    ${gabiaoLocation}
-
-${fullGabiaoActivities}
+${gabiaoFromReport}
 
 👷🏻Efetivo👷🏾‍♂
 ${gabiaoWorkforce}
@@ -336,10 +288,6 @@ ${difficulties}`;
         report_date: selectedDateStr,
         weather_morning: weatherMorning,
         weather_afternoon: weatherAfternoon,
-        jardinagem_location: jardinagemActivities.localServico,
-        jardinagem_activities: jardinagemActivities.atividades,
-        gabiao_location: gabiaoActivities.localServico,
-        gabiao_activities: gabiaoActivities.atividades,
         difficulties,
         photo_urls: photos,
         report_text: generateReport(),
@@ -597,75 +545,6 @@ ${difficulties}`;
               </CardContent>
             </Card>
 
-            {/* Activities */}
-            <Card>
-              <CardHeader>
-                <CardTitle className="text-lg">🛠 Atividades</CardTitle>
-              </CardHeader>
-              <CardContent>
-                <Tabs defaultValue="jardinagem">
-                  <TabsList className="grid w-full grid-cols-2">
-                    <TabsTrigger value="jardinagem">Jardinagem</TabsTrigger>
-                    <TabsTrigger value="gabiao">Gabião</TabsTrigger>
-                  </TabsList>
-                  <TabsContent value="jardinagem" className="space-y-4 mt-4">
-                    <div className="space-y-2">
-                      <Label>📍 Local do Serviço</Label>
-                      <Input
-                        value={jardinagemActivities.localServico}
-                        onChange={(e) =>
-                          setJardinagemActivities({ ...jardinagemActivities, localServico: e.target.value })
-                        }
-                        placeholder="Ex: DRS1"
-                      />
-                    </div>
-                    <div className="space-y-2">
-                      <Label>Atividades Realizadas</Label>
-                      <Textarea
-                        value={jardinagemActivities.atividades}
-                        onChange={(e) =>
-                          setJardinagemActivities({ ...jardinagemActivities, atividades: e.target.value })
-                        }
-                        placeholder="* Coroamento na Berma 30 -132 unidades&#10;* Irrigação das Bermas Faixa 3 e 4 com pipa"
-                        rows={6}
-                      />
-                    </div>
-                    <div className="space-y-2">
-                      <Label>Ajudantes Pipas (um por linha)</Label>
-                      <Textarea
-                        value={ajudantesPipa}
-                        onChange={(e) => setAjudantesPipa(e.target.value)}
-                        placeholder="Anderson&#10;Josiel"
-                        rows={3}
-                      />
-                    </div>
-                  </TabsContent>
-                  <TabsContent value="gabiao" className="space-y-4 mt-4">
-                    <div className="space-y-2">
-                      <Label>📍 Local do Serviço</Label>
-                      <Input
-                        value={gabiaoActivities.localServico}
-                        onChange={(e) =>
-                          setGabiaoActivities({ ...gabiaoActivities, localServico: e.target.value })
-                        }
-                        placeholder="Ex: Faixa 2 Fase 1 elevação"
-                      />
-                    </div>
-                    <div className="space-y-2">
-                      <Label>Atividades Realizadas</Label>
-                      <Textarea
-                        value={gabiaoActivities.atividades}
-                        onChange={(e) =>
-                          setGabiaoActivities({ ...gabiaoActivities, atividades: e.target.value })
-                        }
-                        placeholder="* Retirada de tela 6 x 2.50cm&#10;* Retirada de cascalho 1 m²&#10;* Reposição de geomembrana 8 x 3"
-                        rows={6}
-                      />
-                    </div>
-                  </TabsContent>
-                </Tabs>
-              </CardContent>
-            </Card>
 
             {/* Weather & Difficulties */}
             <Card>
