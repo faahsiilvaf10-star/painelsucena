@@ -180,6 +180,66 @@ export type Database = {
         }
         Relationships: []
       }
+      daily_gabiao_reports: {
+        Row: {
+          created_at: string
+          created_by: string
+          id: string
+          limpeza_bueiro_berma: number | null
+          limpeza_bueiro_unidade: number | null
+          limpeza_canaleta_berma: number | null
+          limpeza_canaleta_m: number | null
+          local_servico: string
+          manutencao_drenagem_berma: number | null
+          manutencao_drenagem_m: number | null
+          observacoes: string | null
+          recomposicao_gabiao_berma: number | null
+          recomposicao_gabiao_m: number | null
+          reparo_cerca_berma: number | null
+          reparo_cerca_m: number | null
+          report_date: string
+          updated_at: string
+        }
+        Insert: {
+          created_at?: string
+          created_by: string
+          id?: string
+          limpeza_bueiro_berma?: number | null
+          limpeza_bueiro_unidade?: number | null
+          limpeza_canaleta_berma?: number | null
+          limpeza_canaleta_m?: number | null
+          local_servico: string
+          manutencao_drenagem_berma?: number | null
+          manutencao_drenagem_m?: number | null
+          observacoes?: string | null
+          recomposicao_gabiao_berma?: number | null
+          recomposicao_gabiao_m?: number | null
+          reparo_cerca_berma?: number | null
+          reparo_cerca_m?: number | null
+          report_date?: string
+          updated_at?: string
+        }
+        Update: {
+          created_at?: string
+          created_by?: string
+          id?: string
+          limpeza_bueiro_berma?: number | null
+          limpeza_bueiro_unidade?: number | null
+          limpeza_canaleta_berma?: number | null
+          limpeza_canaleta_m?: number | null
+          local_servico?: string
+          manutencao_drenagem_berma?: number | null
+          manutencao_drenagem_m?: number | null
+          observacoes?: string | null
+          recomposicao_gabiao_berma?: number | null
+          recomposicao_gabiao_m?: number | null
+          reparo_cerca_berma?: number | null
+          reparo_cerca_m?: number | null
+          report_date?: string
+          updated_at?: string
+        }
+        Relationships: []
+      }
       daily_jardinagem_reports: {
         Row: {
           controle_invasoras_berma: number | null
