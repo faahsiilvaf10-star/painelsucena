@@ -9,6 +9,12 @@ import {
   PopoverContent,
   PopoverTrigger,
 } from "@/components/ui/popover";
+import {
+  Tooltip,
+  TooltipContent,
+  TooltipProvider,
+  TooltipTrigger,
+} from "@/components/ui/tooltip";
 import { useRadio } from "@/contexts/RadioContext";
 import { useSidebar } from "@/components/ui/sidebar";
 import { ScrollArea } from "@/components/ui/scroll-area";
@@ -54,16 +60,15 @@ export const OnlineUsersFooter = ({ onUserClick }: OnlineUsersFooterProps) => {
     isRadioActive 
   } = useRadio();
 
-  const isCollapsed = state === "collapsed";
+  
 
-  // Get visible users for the footer bar (first 6 online users)
-  const visibleOnlineUsers = allUsers.filter((u) => u.isOnline).slice(0, 6);
+  const isCollapsedSidebar = state === "collapsed";
 
   return (
     <div 
       className={cn(
         "fixed bottom-0 right-0 bg-card border-t border-border z-40 transition-[left] duration-200 ease-linear",
-        isCollapsed ? "left-[48px]" : "left-[256px]",
+        isCollapsedSidebar ? "left-[48px]" : "left-[256px]",
         "max-md:left-0"
       )}
     >
@@ -278,44 +283,79 @@ export const OnlineUsersFooter = ({ onUserClick }: OnlineUsersFooterProps) => {
 
         <div className="h-6 w-px bg-border shrink-0" />
 
-        {/* Quick access to online users */}
-        <div className="flex items-center gap-2 overflow-x-auto pb-1">
-          {visibleOnlineUsers.length === 0 ? (
-            <span className="text-xs text-muted-foreground">
-              Nenhum usuário online
-            </span>
-          ) : (
-            visibleOnlineUsers.map((user) => (
-              <button
-                key={user.user_id}
-                onClick={() => onUserClick(user)}
-                className={cn(
-                  "flex items-center gap-2 px-3 py-1.5 rounded-full",
-                  "bg-secondary/50 hover:bg-secondary transition-colors",
-                  "shrink-0 group"
-                )}
-              >
-                <div className="relative">
-                  <Avatar className="h-6 w-6">
-                    <AvatarImage src={user.avatar_url || undefined} />
-                    <AvatarFallback className="text-[10px] bg-primary text-primary-foreground">
-                      {getInitials(user.full_name)}
-                    </AvatarFallback>
-                  </Avatar>
-                  <div className="absolute -bottom-0.5 -right-0.5 h-2.5 w-2.5 rounded-full bg-green-500 border-2 border-card" />
-                </div>
-                <div className="flex flex-col items-start">
-                  <span className="text-xs font-medium group-hover:text-primary transition-colors">
-                    {user.full_name.split(" ")[0]}
-                  </span>
-                  <span className="text-[10px] text-muted-foreground">
-                    {cargoLabels[user.cargo] || user.cargo}
-                  </span>
-                </div>
-              </button>
-            ))
-          )}
-        </div>
+        {/* Online Users Group */}
+        <TooltipProvider delayDuration={200}>
+          <div className="flex items-center gap-1 shrink-0">
+            <span className="text-[10px] text-green-500 font-medium mr-1">Online</span>
+            <div className="flex items-center -space-x-2">
+              {allUsers.filter(u => u.isOnline).length === 0 ? (
+                <span className="text-xs text-muted-foreground ml-2">—</span>
+              ) : (
+                allUsers.filter(u => u.isOnline).slice(0, 8).map((user) => (
+                  <Tooltip key={user.user_id}>
+                    <TooltipTrigger asChild>
+                      <button
+                        onClick={() => onUserClick(user)}
+                        className="relative hover:z-10 transition-transform hover:scale-110"
+                      >
+                        <Avatar className="h-7 w-7 border-2 border-green-500/50 ring-2 ring-card">
+                          <AvatarImage src={user.avatar_url || undefined} />
+                          <AvatarFallback className="text-[10px] bg-green-500/20 text-green-600 dark:text-green-400">
+                            {getInitials(user.full_name)}
+                          </AvatarFallback>
+                        </Avatar>
+                      </button>
+                    </TooltipTrigger>
+                    <TooltipContent side="top" className="bg-card border">
+                      <p className="font-medium">{user.full_name}</p>
+                      <p className="text-xs text-muted-foreground">{cargoLabels[user.cargo] || user.cargo}</p>
+                    </TooltipContent>
+                  </Tooltip>
+                ))
+              )}
+              {allUsers.filter(u => u.isOnline).length > 8 && (
+                <span className="text-[10px] text-green-500 ml-2">+{allUsers.filter(u => u.isOnline).length - 8}</span>
+              )}
+            </div>
+          </div>
+
+          <div className="h-6 w-px bg-border shrink-0" />
+
+          {/* Offline Users Group */}
+          <div className="flex items-center gap-1 shrink-0">
+            <span className="text-[10px] text-muted-foreground font-medium mr-1">Offline</span>
+            <div className="flex items-center -space-x-2">
+              {allUsers.filter(u => !u.isOnline).length === 0 ? (
+                <span className="text-xs text-muted-foreground ml-2">—</span>
+              ) : (
+                allUsers.filter(u => !u.isOnline).slice(0, 6).map((user) => (
+                  <Tooltip key={user.user_id}>
+                    <TooltipTrigger asChild>
+                      <button
+                        onClick={() => onUserClick(user)}
+                        className="relative hover:z-10 transition-transform hover:scale-110"
+                      >
+                        <Avatar className="h-7 w-7 border-2 border-muted/50 ring-2 ring-card opacity-60 grayscale">
+                          <AvatarImage src={user.avatar_url || undefined} />
+                          <AvatarFallback className="text-[10px] bg-muted text-muted-foreground">
+                            {getInitials(user.full_name)}
+                          </AvatarFallback>
+                        </Avatar>
+                      </button>
+                    </TooltipTrigger>
+                    <TooltipContent side="top" className="bg-card border">
+                      <p className="font-medium">{user.full_name}</p>
+                      <p className="text-xs text-muted-foreground">{cargoLabels[user.cargo] || user.cargo}</p>
+                    </TooltipContent>
+                  </Tooltip>
+                ))
+              )}
+              {allUsers.filter(u => !u.isOnline).length > 6 && (
+                <span className="text-[10px] text-muted-foreground ml-2">+{allUsers.filter(u => !u.isOnline).length - 6}</span>
+              )}
+            </div>
+          </div>
+        </TooltipProvider>
       </div>
 
       {/* Animation styles */}
