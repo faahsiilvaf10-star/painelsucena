@@ -107,7 +107,7 @@ export default function RDO() {
     contrato: "460001269",
     gerencia: "Hydro",
     lideranca: "Eng. Luís Araújo",
-    tst: "",
+    tst: "Alexia chaves",
     local: "Alunorte Barcarena",
     horario: "07:00 as 17:00",
   });
