@@ -409,12 +409,12 @@ export default function AtividadesII() {
                   </div>
                   <div className="space-y-1">
                     <Label className="text-xs text-muted-foreground">Elevado</Label>
-                    <Select value={elevado} onValueChange={setElevado}>
+                    <Select value={elevado || "none"} onValueChange={(val) => setElevado(val === "none" ? "" : val)}>
                       <SelectTrigger className="w-[150px]">
                         <SelectValue placeholder="Selecione" />
                       </SelectTrigger>
                       <SelectContent>
-                        <SelectItem value="">Nenhum</SelectItem>
+                        <SelectItem value="none">Nenhum</SelectItem>
                         {ELEVADO_OPTIONS.map((opt) => (
                           <SelectItem key={opt.value} value={opt.value}>
                             Elevado {opt.label}
