@@ -1,4 +1,4 @@
-import { useState, useEffect, useRef } from "react";
+import { useState, useRef } from "react";
 import Layout from "@/components/layout/Layout";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
@@ -14,7 +14,7 @@ import { useSiteSettings } from "@/hooks/useSiteSettings";
 import { supabase } from "@/integrations/supabase/client";
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import { toast } from "sonner";
-import { Shield, ShieldCheck, Trash2, UserPlus, Users, Palette, Image, GripVertical, Upload, Check, UserCog } from "lucide-react";
+import { Shield, ShieldCheck, Trash2, UserPlus, Users, Image, Upload, UserCog } from "lucide-react";
 import { BulkEmployeeEditor } from "@/components/admin/BulkEmployeeEditor";
 import { Navigate } from "react-router-dom";
 import type { Database } from "@/integrations/supabase/types";
@@ -29,19 +29,6 @@ interface UserWithRole {
   role_id: string | null;
 }
 
-interface NavItemConfig {
-  id: string;
-  label: string;
-}
-
-const navItemsConfig: NavItemConfig[] = [
-  { id: "destaques", label: "Destaques" },
-  { id: "rh", label: "RH" },
-  { id: "presenca", label: "Lista de Presença" },
-  { id: "relatorio", label: "Relatório" },
-  { id: "matriz", label: "Matriz Responsabilidade" },
-  { id: "emergencia", label: "Emergência" },
-];
 
 const Admin = () => {
   const { user, loading: authLoading } = useAuth();
@@ -52,20 +39,8 @@ const Admin = () => {
   const [selectedRole, setSelectedRole] = useState<AppRole>("user");
   
   // Site settings state
-  const [sidebarColor, setSidebarColor] = useState("#1e2235");
-  const [navOrder, setNavOrder] = useState<string[]>([]);
   const [isUploadingLogo, setIsUploadingLogo] = useState(false);
-  const [isSavingSettings, setIsSavingSettings] = useState(false);
   const fileInputRef = useRef<HTMLInputElement>(null);
-  const [draggedItem, setDraggedItem] = useState<string | null>(null);
-
-  // Initialize settings from database
-  useEffect(() => {
-    if (settings) {
-      setSidebarColor(settings.sidebar_color || "#1e2235");
-      setNavOrder(settings.nav_order || navItemsConfig.map(n => n.id));
-    }
-  }, [settings]);
 
   // Fetch all users with their profiles and roles
   const { data: users = [], isLoading: usersLoading } = useQuery({
@@ -192,46 +167,6 @@ const Admin = () => {
     }
   };
 
-  // Handle save settings
-  const handleSaveSettings = async () => {
-    setIsSavingSettings(true);
-    try {
-      await updateSettings.mutateAsync({
-        sidebar_color: sidebarColor,
-        nav_order: navOrder,
-      });
-      toast.success("Configurações salvas com sucesso!");
-    } catch (error) {
-      console.error("Error saving settings:", error);
-      toast.error("Erro ao salvar configurações.");
-    } finally {
-      setIsSavingSettings(false);
-    }
-  };
-
-  // Drag and drop handlers
-  const handleDragStart = (itemId: string) => {
-    setDraggedItem(itemId);
-  };
-
-  const handleDragOver = (e: React.DragEvent, targetId: string) => {
-    e.preventDefault();
-    if (!draggedItem || draggedItem === targetId) return;
-
-    const newOrder = [...navOrder];
-    const draggedIndex = newOrder.indexOf(draggedItem);
-    const targetIndex = newOrder.indexOf(targetId);
-
-    newOrder.splice(draggedIndex, 1);
-    newOrder.splice(targetIndex, 0, draggedItem);
-
-    setNavOrder(newOrder);
-  };
-
-  const handleDragEnd = () => {
-    setDraggedItem(null);
-  };
-
   // Loading state
   if (authLoading || adminLoading || settingsLoading) {
     return (
@@ -334,113 +269,6 @@ const Admin = () => {
               </CardContent>
             </Card>
 
-            {/* Sidebar Color */}
-            <Card>
-              <CardHeader>
-                <CardTitle className="flex items-center gap-2">
-                  <Palette className="w-5 h-5" />
-                  Cor da Barra Lateral
-                </CardTitle>
-                <CardDescription>
-                  Personalize a cor de fundo da barra lateral de navegação.
-                </CardDescription>
-              </CardHeader>
-              <CardContent className="space-y-4">
-                <div className="flex items-center gap-4">
-                  <div className="space-y-2">
-                    <Label htmlFor="sidebar-color">Cor</Label>
-                    <div className="flex items-center gap-3">
-                      <div 
-                        className="w-12 h-12 rounded-lg border-2 border-border cursor-pointer"
-                        style={{ backgroundColor: sidebarColor }}
-                        onClick={() => document.getElementById("color-picker")?.click()}
-                      />
-                      <Input
-                        id="color-picker"
-                        type="color"
-                        value={sidebarColor}
-                        onChange={(e) => setSidebarColor(e.target.value)}
-                        className="w-20 h-10 p-1 cursor-pointer"
-                      />
-                      <Input
-                        type="text"
-                        value={sidebarColor}
-                        onChange={(e) => setSidebarColor(e.target.value)}
-                        className="w-28 font-mono"
-                        placeholder="#1e2235"
-                      />
-                    </div>
-                  </div>
-                </div>
-                <div className="flex gap-2">
-                  {["#1e2235", "#1a1a2e", "#16213e", "#0f3460", "#2d132c", "#1b4332"].map((color) => (
-                    <button
-                      key={color}
-                      className={`w-8 h-8 rounded-lg border-2 transition-all ${
-                        sidebarColor === color ? "border-primary scale-110" : "border-transparent"
-                      }`}
-                      style={{ backgroundColor: color }}
-                      onClick={() => setSidebarColor(color)}
-                      title={color}
-                    />
-                  ))}
-                </div>
-              </CardContent>
-            </Card>
-
-            {/* Navigation Order */}
-            <Card>
-              <CardHeader>
-                <CardTitle className="flex items-center gap-2">
-                  <GripVertical className="w-5 h-5" />
-                  Ordem da Navegação
-                </CardTitle>
-                <CardDescription>
-                  Arraste os itens para reorganizar a ordem do menu lateral.
-                </CardDescription>
-              </CardHeader>
-              <CardContent>
-                <div className="space-y-2">
-                  {navOrder.map((itemId) => {
-                    const item = navItemsConfig.find(n => n.id === itemId);
-                    if (!item) return null;
-                    
-                    return (
-                      <div
-                        key={item.id}
-                        draggable
-                        onDragStart={() => handleDragStart(item.id)}
-                        onDragOver={(e) => handleDragOver(e, item.id)}
-                        onDragEnd={handleDragEnd}
-                        className={`flex items-center gap-3 p-3 bg-secondary/50 rounded-lg cursor-move hover:bg-secondary transition-colors ${
-                          draggedItem === item.id ? "opacity-50" : ""
-                        }`}
-                      >
-                        <GripVertical className="w-4 h-4 text-muted-foreground" />
-                        <span className="font-medium">{item.label}</span>
-                      </div>
-                    );
-                  })}
-                </div>
-              </CardContent>
-            </Card>
-
-            {/* Save Button */}
-            <div className="flex justify-end">
-              <Button onClick={handleSaveSettings} disabled={isSavingSettings} size="lg">
-                {isSavingSettings ? (
-                  <>
-                    <div className="animate-spin rounded-full h-4 w-4 border-b-2 border-current mr-2" />
-                    Salvando...
-                  </>
-                ) : (
-                  <>
-                    <Check className="w-4 h-4 mr-2" />
-                    Salvar Configurações
-                  </>
-                )}
-              </Button>
-            </div>
           </TabsContent>
 
           {/* Users Tab */}
