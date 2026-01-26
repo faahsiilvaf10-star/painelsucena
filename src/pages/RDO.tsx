@@ -20,6 +20,7 @@ import { useAttendanceRecords } from "@/hooks/useAttendance";
 import { useEquipment } from "@/hooks/useEquipment";
 import { useTodayDDS } from "@/hooks/useDDSSchedule";
 import { useRDOReports, useRDOReport, useSaveRDOReport, useUploadRDOPhotos, useDeleteRDOReport } from "@/hooks/useRDOReports";
+import { useJardinagemReportByDate, formatJardinagemForRDO } from "@/hooks/useJardinagemReports";
 import { useAuth } from "@/hooks/useAuth";
 import { getBrazilNorthDate, getBrazilNorthTodayString } from "@/lib/timezone";
 import { cn } from "@/lib/utils";
@@ -88,6 +89,7 @@ export default function RDO() {
   const { data: todayDDS } = useTodayDDS();
   const { data: existingReport, isLoading: isLoadingReport } = useRDOReport(selectedDateStr);
   const { data: allReports } = useRDOReports();
+  const { data: jardinagemReport } = useJardinagemReportByDate(selectedDateStr);
   const saveReport = useSaveRDOReport();
   const deleteReport = useDeleteRDOReport();
   const uploadPhotos = useUploadRDOPhotos();
@@ -226,6 +228,20 @@ export default function RDO() {
       ? `${todayDDS.presenter?.full_name || "A definir"} - ${todayDDS.theme || "Tema a definir"}`
       : "A definir";
 
+    // Get jardinagem activities from daily report if available
+    const jardinagemFromReport = formatJardinagemForRDO(jardinagemReport);
+    const jardinagemFaixa = jardinagemReport?.local_faixa 
+      ? jardinagemReport.local_faixa.replace("faixa_", "FAIXA ").toUpperCase()
+      : "";
+    
+    // Combine manual activities with report data
+    const fullJardinagemActivities = [
+      jardinagemActivities.atividades,
+      jardinagemFromReport
+    ].filter(Boolean).join("\n");
+
+    const jardinagemLocation = jardinagemFaixa || jardinagemActivities.localServico;
+
     const report = `🏗 EMPRESA: ${headerInfo.empresa}
 
 📄 CONTRATO - ${headerInfo.contrato}
@@ -249,10 +265,10 @@ export default function RDO() {
 *Jardinagem e Gabiões*
 
 📍 Local do serviço
-    ${jardinagemActivities.localServico}
+    ${jardinagemLocation}
 
      *Jardinagem*
-${jardinagemActivities.atividades}
+${fullJardinagemActivities}
 
 👷🏻Efetivo👷🏾‍♂
 ${jardinagemWorkforce}

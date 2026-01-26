@@ -180,6 +180,54 @@ export type Database = {
         }
         Relationships: []
       }
+      daily_jardinagem_reports: {
+        Row: {
+          coroamento_unidade: number | null
+          created_at: string
+          created_by: string
+          id: string
+          limpeza_assoprador_m2: number | null
+          limpeza_manual_m2: number | null
+          local_faixa: string
+          manutencao_canteiro: string | null
+          plantio_unidade: number | null
+          podagem_unidade: number | null
+          report_date: string
+          rocagem_m2: number | null
+          updated_at: string
+        }
+        Insert: {
+          coroamento_unidade?: number | null
+          created_at?: string
+          created_by: string
+          id?: string
+          limpeza_assoprador_m2?: number | null
+          limpeza_manual_m2?: number | null
+          local_faixa: string
+          manutencao_canteiro?: string | null
+          plantio_unidade?: number | null
+          podagem_unidade?: number | null
+          report_date?: string
+          rocagem_m2?: number | null
+          updated_at?: string
+        }
+        Update: {
+          coroamento_unidade?: number | null
+          created_at?: string
+          created_by?: string
+          id?: string
+          limpeza_assoprador_m2?: number | null
+          limpeza_manual_m2?: number | null
+          local_faixa?: string
+          manutencao_canteiro?: string | null
+          plantio_unidade?: number | null
+          podagem_unidade?: number | null
+          report_date?: string
+          rocagem_m2?: number | null
+          updated_at?: string
+        }
+        Relationships: []
+      }
       dds_schedule: {
         Row: {
           created_at: string

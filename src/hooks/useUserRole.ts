@@ -66,5 +66,6 @@ export const useIsAdmin = () => {
     isAdmin: role === "admin",
     // Avoid "false negatives" while auth/role is still being resolved.
     isLoading: !authReady || isLoading || isFetching,
+    authReady,
   };
 };
