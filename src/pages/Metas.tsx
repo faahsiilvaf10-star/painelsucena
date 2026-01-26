@@ -19,6 +19,7 @@ import { getBrazilNorthDate } from "@/lib/timezone";
 import { JardHistoryChart } from "@/components/goals/JardHistoryChart";
 import { GabiaoHistoryChart } from "@/components/goals/GabiaoHistoryChart";
 import { GoalsDashboard } from "@/components/goals/GoalsDashboard";
+import { DailyTrendChart } from "@/components/goals/DailyTrendChart";
 
 // Generate measurement period options (last 12 periods)
 const generatePeriodOptions = () => {
@@ -227,6 +228,9 @@ export default function Metas() {
 
         {/* Consolidated Dashboard */}
         <GoalsDashboard />
+
+        {/* Daily Trend Chart */}
+        <DailyTrendChart />
 
         {/* Historical Charts - Separate for Jardinagem and Gabião */}
         <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
