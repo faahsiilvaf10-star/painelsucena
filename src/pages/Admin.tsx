@@ -233,7 +233,7 @@ const Admin = () => {
   };
 
   // Loading state
-  if (authLoading || adminLoading) {
+  if (authLoading || adminLoading || settingsLoading) {
     return (
       <Layout>
         <div className="container mx-auto px-6 py-8">
