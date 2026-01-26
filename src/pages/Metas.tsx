@@ -16,7 +16,8 @@ import { useProfile } from "@/hooks/useProfile";
 import { useIsAdmin } from "@/hooks/useUserRole";
 import { useGoalByMonthYear, useSaveGoal, useDeleteGoal, getCurrentMeasurementPeriod } from "@/hooks/useGoals";
 import { getBrazilNorthDate } from "@/lib/timezone";
-import { GoalHistoryChart } from "@/components/goals/GoalHistoryChart";
+import { JardHistoryChart } from "@/components/goals/JardHistoryChart";
+import { GabiaoHistoryChart } from "@/components/goals/GabiaoHistoryChart";
 
 // Generate measurement period options (last 12 periods)
 const generatePeriodOptions = () => {
@@ -223,8 +224,11 @@ export default function Metas() {
           </div>
         </div>
 
-        {/* Historical Chart */}
-        <GoalHistoryChart />
+        {/* Historical Charts - Separate for Jardinagem and Gabião */}
+        <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
+          <JardHistoryChart />
+          <GabiaoHistoryChart />
+        </div>
 
         {/* Form */}
         {/* Jardinagem Goals */}
