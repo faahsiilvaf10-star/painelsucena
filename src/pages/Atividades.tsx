@@ -34,9 +34,9 @@ interface InvasoraEntry {
 }
 
 const FAIXA_OPTIONS = [
-  { value: "faixa_2", label: "FAIXA 2" },
-  { value: "faixa_3", label: "FAIXA 3" },
-  { value: "faixa_4", label: "FAIXA 4" },
+  { value: "FAIXA 2", label: "FAIXA 2" },
+  { value: "FAIXA 3", label: "FAIXA 3" },
+  { value: "FAIXA 4", label: "FAIXA 4" },
 ];
 
 export default function Atividades() {
@@ -55,7 +55,7 @@ export default function Atividades() {
   const deleteReport = useDeleteJardinagemReport();
 
   // Form state
-  const [localFaixa, setLocalFaixa] = useState("faixa_2");
+  const [localFaixa, setLocalFaixa] = useState("FAIXA 2");
   const [rocagem, setRocagem] = useState("");
   const [podagem, setPodagem] = useState("");
   const [coroamento, setCoroamento] = useState("");
