@@ -16,6 +16,7 @@ import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger } from 
 import { Calendar as CalendarComponent } from "@/components/ui/calendar";
 import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover";
 import { Badge } from "@/components/ui/badge";
+import { Checkbox } from "@/components/ui/checkbox";
 import { useAuth } from "@/hooks/useAuth";
 import { useProfile } from "@/hooks/useProfile";
 import { useIsAdmin } from "@/hooks/useUserRole";
@@ -34,12 +35,6 @@ const FAIXA_OPTIONS = [
   { value: "FAIXA 4", label: "FAIXA 4" },
 ];
 
-// Generate berma options from 28 to 56
-const BERMA_OPTIONS = Array.from({ length: 29 }, (_, i) => ({
-  value: (28 + i).toString(),
-  label: `Berma ${28 + i}`,
-}));
-
 export default function AtividadesII() {
   const navigate = useNavigate();
   const { user } = useAuth();
@@ -57,46 +52,38 @@ export default function AtividadesII() {
 
   // Form state
   const [localServico, setLocalServico] = useState("FAIXA 2");
-  const [limpezaCanaleta, setLimpezaCanaleta] = useState("");
-  const [limpezaCaneletaBerma, setLimpezaCaneletaBerma] = useState("");
-  const [recomposicaoGabiao, setRecomposicaoGabiao] = useState("");
-  const [recomposicaoGabiaoBerma, setRecomposicaoGabiaoBerma] = useState("");
-  const [manutencaoDrenagem, setManutencaoDrenagem] = useState("");
-  const [manutencaoDrenagemBerma, setManutencaoDrenagemBerma] = useState("");
-  const [limpezaBueiro, setLimpezaBueiro] = useState("");
-  const [limpezaBueiroBerma, setLimpezaBueiroBerma] = useState("");
-  const [reparoCerca, setReparoCerca] = useState("");
-  const [reparoCercaBerma, setReparoCercaBerma] = useState("");
+  
+  // Activity checkboxes
+  const [escavacaoManual, setEscavacaoManual] = useState(false);
+  const [reposicaoManta, setReposicaoManta] = useState(false);
+  const [mantaDimensao, setMantaDimensao] = useState("");
+  const [reposicaoSilte, setReposicaoSilte] = useState(false);
+  const [silteQuantidade, setSilteQuantidade] = useState("");
+  const [limpezaOrganizacao, setLimpezaOrganizacao] = useState(false);
+  
+  // Manual activities text
+  const [atividadesManuais, setAtividadesManuais] = useState("");
   const [observacoes, setObservacoes] = useState("");
 
   // Load existing data when report changes
   useEffect(() => {
     if (existingReport) {
       setLocalServico(existingReport.local_servico || "FAIXA 2");
-      setLimpezaCanaleta(existingReport.limpeza_canaleta_m?.toString() || "");
-      setLimpezaCaneletaBerma(existingReport.limpeza_canaleta_berma?.toString() || "");
-      setRecomposicaoGabiao(existingReport.recomposicao_gabiao_m?.toString() || "");
-      setRecomposicaoGabiaoBerma(existingReport.recomposicao_gabiao_berma?.toString() || "");
-      setManutencaoDrenagem(existingReport.manutencao_drenagem_m?.toString() || "");
-      setManutencaoDrenagemBerma(existingReport.manutencao_drenagem_berma?.toString() || "");
-      setLimpezaBueiro(existingReport.limpeza_bueiro_unidade?.toString() || "");
-      setLimpezaBueiroBerma(existingReport.limpeza_bueiro_berma?.toString() || "");
-      setReparoCerca(existingReport.reparo_cerca_m?.toString() || "");
-      setReparoCercaBerma(existingReport.reparo_cerca_berma?.toString() || "");
       setObservacoes(existingReport.observacoes || "");
+      
+      // Parse saved activities from observacoes field (we'll store structured data there)
+      // For now, we'll just load the text
+      // The structured activities will be parsed from a JSON-like format or markers
     } else {
       // Reset form for new date
       setLocalServico("FAIXA 2");
-      setLimpezaCanaleta("");
-      setLimpezaCaneletaBerma("");
-      setRecomposicaoGabiao("");
-      setRecomposicaoGabiaoBerma("");
-      setManutencaoDrenagem("");
-      setManutencaoDrenagemBerma("");
-      setLimpezaBueiro("");
-      setLimpezaBueiroBerma("");
-      setReparoCerca("");
-      setReparoCercaBerma("");
+      setEscavacaoManual(false);
+      setReposicaoManta(false);
+      setMantaDimensao("");
+      setReposicaoSilte(false);
+      setSilteQuantidade("");
+      setLimpezaOrganizacao(false);
+      setAtividadesManuais("");
       setObservacoes("");
     }
   }, [existingReport, selectedDateStr]);
@@ -132,6 +119,36 @@ export default function AtividadesII() {
   const formattedDate = format(selectedDate, "dd/MM/yy (EEEE)", { locale: ptBR });
   const capitalizedDate = formattedDate.charAt(0).toUpperCase() + formattedDate.slice(1);
 
+  // Build the combined observacoes to save
+  const buildObservacoes = () => {
+    const lines: string[] = [];
+    
+    if (escavacaoManual) {
+      lines.push("* Escavação manual");
+    }
+    if (reposicaoManta) {
+      lines.push(`* Reposição de manta asfáltica${mantaDimensao ? ` - ${mantaDimensao}` : ""}`);
+    }
+    if (reposicaoSilte) {
+      lines.push(`* Reposição de silte${silteQuantidade ? ` - ${silteQuantidade} m²` : ""}`);
+    }
+    if (limpezaOrganizacao) {
+      lines.push("* Limpeza e organização");
+    }
+    
+    if (atividadesManuais.trim()) {
+      lines.push("");
+      lines.push(atividadesManuais.trim());
+    }
+    
+    if (observacoes.trim()) {
+      lines.push("");
+      lines.push(`Obs: ${observacoes.trim()}`);
+    }
+    
+    return lines.join("\n");
+  };
+
   const handleSave = async (redirectToRdo: boolean = false) => {
     if (!user) {
       toast.error("Você precisa estar logado para salvar.");
@@ -143,21 +160,13 @@ export default function AtividadesII() {
       return;
     }
 
+    const combinedObservacoes = buildObservacoes();
+
     try {
       await saveReport.mutateAsync({
         report_date: selectedDateStr,
         local_servico: localServico,
-        limpeza_canaleta_m: limpezaCanaleta ? parseFloat(limpezaCanaleta) : undefined,
-        limpeza_canaleta_berma: limpezaCaneletaBerma ? parseInt(limpezaCaneletaBerma) : undefined,
-        recomposicao_gabiao_m: recomposicaoGabiao ? parseFloat(recomposicaoGabiao) : undefined,
-        recomposicao_gabiao_berma: recomposicaoGabiaoBerma ? parseInt(recomposicaoGabiaoBerma) : undefined,
-        manutencao_drenagem_m: manutencaoDrenagem ? parseFloat(manutencaoDrenagem) : undefined,
-        manutencao_drenagem_berma: manutencaoDrenagemBerma ? parseInt(manutencaoDrenagemBerma) : undefined,
-        limpeza_bueiro_unidade: limpezaBueiro ? parseInt(limpezaBueiro) : undefined,
-        limpeza_bueiro_berma: limpezaBueiroBerma ? parseInt(limpezaBueiroBerma) : undefined,
-        reparo_cerca_m: reparoCerca ? parseFloat(reparoCerca) : undefined,
-        reparo_cerca_berma: reparoCercaBerma ? parseInt(reparoCercaBerma) : undefined,
-        observacoes: observacoes || undefined,
+        observacoes: combinedObservacoes || undefined,
       });
       
       if (redirectToRdo) {
@@ -189,6 +198,34 @@ export default function AtividadesII() {
 
   const getFaixaLabel = (value: string) => {
     return FAIXA_OPTIONS.find((f) => f.value === value)?.label || value;
+  };
+
+  // Generate preview
+  const getPreviewText = () => {
+    const lines: string[] = [];
+    
+    if (escavacaoManual) {
+      lines.push("* Escavação manual");
+    }
+    if (reposicaoManta) {
+      lines.push(`* Reposição de manta asfáltica${mantaDimensao ? ` - ${mantaDimensao}` : ""}`);
+    }
+    if (reposicaoSilte) {
+      lines.push(`* Reposição de silte${silteQuantidade ? ` - ${silteQuantidade} m²` : ""}`);
+    }
+    if (limpezaOrganizacao) {
+      lines.push("* Limpeza e organização");
+    }
+    
+    if (atividadesManuais.trim()) {
+      atividadesManuais.trim().split("\n").forEach(line => {
+        if (line.trim()) {
+          lines.push(`* ${line.trim()}`);
+        }
+      });
+    }
+    
+    return lines;
   };
 
   return (
@@ -327,7 +364,7 @@ export default function AtividadesII() {
                 Registro de Atividades - Gabião
               </CardTitle>
               <CardDescription>
-                Preencha as atividades de manutenção de gabião realizadas no dia
+                Selecione as atividades realizadas e/ou escreva manualmente
               </CardDescription>
             </CardHeader>
             <CardContent className="space-y-6">
@@ -348,160 +385,115 @@ export default function AtividadesII() {
                 </Select>
               </div>
 
-              {/* Activity Fields */}
+              {/* Activity Checkboxes */}
               <div className="space-y-4">
-                {/* Limpeza de Canaleta */}
-                <div className="grid grid-cols-1 md:grid-cols-[1fr_180px] gap-3 p-3 rounded-lg bg-muted/30">
-                  <div className="space-y-2">
-                    <Label>LIMPEZA DE CANALETA (m)</Label>
-                    <Input
-                      type="number"
-                      min="0"
-                      step="0.01"
-                      value={limpezaCanaleta}
-                      onChange={(e) => setLimpezaCanaleta(e.target.value)}
-                      placeholder="0.00"
-                    />
-                  </div>
-                  <div className="space-y-2">
-                    <Label>Berma</Label>
-                    <Select value={limpezaCaneletaBerma} onValueChange={setLimpezaCaneletaBerma}>
-                      <SelectTrigger>
-                        <SelectValue placeholder="Selecione" />
-                      </SelectTrigger>
-                      <SelectContent>
-                        {BERMA_OPTIONS.map((opt) => (
-                          <SelectItem key={opt.value} value={opt.value}>
-                            {opt.label}
-                          </SelectItem>
-                        ))}
-                      </SelectContent>
-                    </Select>
-                  </div>
+                <Label className="text-base font-semibold">📋 ATIVIDADES</Label>
+                
+                {/* Escavação manual */}
+                <div className="flex items-center space-x-3 p-3 rounded-lg bg-muted/30">
+                  <Checkbox 
+                    id="escavacao" 
+                    checked={escavacaoManual}
+                    onCheckedChange={(checked) => setEscavacaoManual(checked === true)}
+                  />
+                  <Label htmlFor="escavacao" className="cursor-pointer font-medium">
+                    Escavação manual
+                  </Label>
                 </div>
 
-                {/* Recomposição de Gabião */}
-                <div className="grid grid-cols-1 md:grid-cols-[1fr_180px] gap-3 p-3 rounded-lg bg-muted/30">
-                  <div className="space-y-2">
-                    <Label>RECOMPOSIÇÃO DE GABIÃO (m)</Label>
-                    <Input
-                      type="number"
-                      min="0"
-                      step="0.01"
-                      value={recomposicaoGabiao}
-                      onChange={(e) => setRecomposicaoGabiao(e.target.value)}
-                      placeholder="0.00"
+                {/* Reposição de manta asfáltica */}
+                <div className="p-3 rounded-lg bg-muted/30 space-y-3">
+                  <div className="flex items-center space-x-3">
+                    <Checkbox 
+                      id="manta" 
+                      checked={reposicaoManta}
+                      onCheckedChange={(checked) => setReposicaoManta(checked === true)}
                     />
+                    <Label htmlFor="manta" className="cursor-pointer font-medium">
+                      Reposição de manta asfáltica
+                    </Label>
                   </div>
-                  <div className="space-y-2">
-                    <Label>Berma</Label>
-                    <Select value={recomposicaoGabiaoBerma} onValueChange={setRecomposicaoGabiaoBerma}>
-                      <SelectTrigger>
-                        <SelectValue placeholder="Selecione" />
-                      </SelectTrigger>
-                      <SelectContent>
-                        {BERMA_OPTIONS.map((opt) => (
-                          <SelectItem key={opt.value} value={opt.value}>
-                            {opt.label}
-                          </SelectItem>
-                        ))}
-                      </SelectContent>
-                    </Select>
-                  </div>
+                  {reposicaoManta && (
+                    <div className="flex items-center gap-2 ml-7">
+                      <Button
+                        type="button"
+                        variant={mantaDimensao === "10 x 3" ? "default" : "outline"}
+                        size="sm"
+                        onClick={() => setMantaDimensao(mantaDimensao === "10 x 3" ? "" : "10 x 3")}
+                      >
+                        10 x 3
+                      </Button>
+                      <span className="text-sm text-muted-foreground">ou</span>
+                      <Input
+                        type="text"
+                        placeholder="Dimensão personalizada"
+                        value={mantaDimensao !== "10 x 3" ? mantaDimensao : ""}
+                        onChange={(e) => setMantaDimensao(e.target.value)}
+                        className="w-[180px]"
+                      />
+                    </div>
+                  )}
                 </div>
 
-                {/* Manutenção de Drenagem */}
-                <div className="grid grid-cols-1 md:grid-cols-[1fr_180px] gap-3 p-3 rounded-lg bg-muted/30">
-                  <div className="space-y-2">
-                    <Label>MANUTENÇÃO DE DRENAGEM (m)</Label>
-                    <Input
-                      type="number"
-                      min="0"
-                      step="0.01"
-                      value={manutencaoDrenagem}
-                      onChange={(e) => setManutencaoDrenagem(e.target.value)}
-                      placeholder="0.00"
+                {/* Reposição de silte */}
+                <div className="p-3 rounded-lg bg-muted/30 space-y-3">
+                  <div className="flex items-center space-x-3">
+                    <Checkbox 
+                      id="silte" 
+                      checked={reposicaoSilte}
+                      onCheckedChange={(checked) => setReposicaoSilte(checked === true)}
                     />
+                    <Label htmlFor="silte" className="cursor-pointer font-medium">
+                      Reposição de silte
+                    </Label>
                   </div>
-                  <div className="space-y-2">
-                    <Label>Berma</Label>
-                    <Select value={manutencaoDrenagemBerma} onValueChange={setManutencaoDrenagemBerma}>
-                      <SelectTrigger>
-                        <SelectValue placeholder="Selecione" />
-                      </SelectTrigger>
-                      <SelectContent>
-                        {BERMA_OPTIONS.map((opt) => (
-                          <SelectItem key={opt.value} value={opt.value}>
-                            {opt.label}
-                          </SelectItem>
-                        ))}
-                      </SelectContent>
-                    </Select>
-                  </div>
+                  {reposicaoSilte && (
+                    <div className="flex items-center gap-2 ml-7">
+                      <Input
+                        type="number"
+                        min="0"
+                        step="0.01"
+                        placeholder="Quantidade"
+                        value={silteQuantidade}
+                        onChange={(e) => setSilteQuantidade(e.target.value)}
+                        className="w-[120px]"
+                      />
+                      <span className="text-sm font-medium">m²</span>
+                    </div>
+                  )}
                 </div>
 
-                {/* Limpeza de Bueiro */}
-                <div className="grid grid-cols-1 md:grid-cols-[1fr_180px] gap-3 p-3 rounded-lg bg-muted/30">
-                  <div className="space-y-2">
-                    <Label>LIMPEZA DE BUEIRO (Unidade)</Label>
-                    <Input
-                      type="number"
-                      min="0"
-                      value={limpezaBueiro}
-                      onChange={(e) => setLimpezaBueiro(e.target.value)}
-                      placeholder="0"
-                    />
-                  </div>
-                  <div className="space-y-2">
-                    <Label>Berma</Label>
-                    <Select value={limpezaBueiroBerma} onValueChange={setLimpezaBueiroBerma}>
-                      <SelectTrigger>
-                        <SelectValue placeholder="Selecione" />
-                      </SelectTrigger>
-                      <SelectContent>
-                        {BERMA_OPTIONS.map((opt) => (
-                          <SelectItem key={opt.value} value={opt.value}>
-                            {opt.label}
-                          </SelectItem>
-                        ))}
-                      </SelectContent>
-                    </Select>
-                  </div>
-                </div>
-
-                {/* Reparo de Cerca */}
-                <div className="grid grid-cols-1 md:grid-cols-[1fr_180px] gap-3 p-3 rounded-lg bg-muted/30">
-                  <div className="space-y-2">
-                    <Label>REPARO DE CERCA (m)</Label>
-                    <Input
-                      type="number"
-                      min="0"
-                      step="0.01"
-                      value={reparoCerca}
-                      onChange={(e) => setReparoCerca(e.target.value)}
-                      placeholder="0.00"
-                    />
-                  </div>
-                  <div className="space-y-2">
-                    <Label>Berma</Label>
-                    <Select value={reparoCercaBerma} onValueChange={setReparoCercaBerma}>
-                      <SelectTrigger>
-                        <SelectValue placeholder="Selecione" />
-                      </SelectTrigger>
-                      <SelectContent>
-                        {BERMA_OPTIONS.map((opt) => (
-                          <SelectItem key={opt.value} value={opt.value}>
-                            {opt.label}
-                          </SelectItem>
-                        ))}
-                      </SelectContent>
-                    </Select>
-                  </div>
+                {/* Limpeza e organização */}
+                <div className="flex items-center space-x-3 p-3 rounded-lg bg-muted/30">
+                  <Checkbox 
+                    id="limpeza" 
+                    checked={limpezaOrganizacao}
+                    onCheckedChange={(checked) => setLimpezaOrganizacao(checked === true)}
+                  />
+                  <Label htmlFor="limpeza" className="cursor-pointer font-medium">
+                    Limpeza e organização
+                  </Label>
                 </div>
               </div>
 
+              {/* Manual Activities Text */}
               <div className="space-y-2">
-                <Label>OBSERVAÇÕES</Label>
+                <Label className="text-base font-semibold">✏️ ATIVIDADES MANUAIS</Label>
+                <Textarea
+                  value={atividadesManuais}
+                  onChange={(e) => setAtividadesManuais(e.target.value)}
+                  placeholder="Escreva outras atividades realizadas (uma por linha)..."
+                  rows={5}
+                  className="resize-none"
+                />
+                <p className="text-xs text-muted-foreground">
+                  Cada linha será formatada como um item de atividade no relatório.
+                </p>
+              </div>
+
+              {/* Observações */}
+              <div className="space-y-2">
+                <Label>📝 OBSERVAÇÕES</Label>
                 <Textarea
                   value={observacoes}
                   onChange={(e) => setObservacoes(e.target.value)}
@@ -529,26 +521,15 @@ export default function AtividadesII() {
               <div className="bg-muted p-4 rounded-lg space-y-2 font-mono text-sm">
                 <p className="font-bold">📍 Local: {getFaixaLabel(localServico)}</p>
                 <div className="border-t pt-2 mt-2 space-y-1">
-                  {limpezaCanaleta && parseFloat(limpezaCanaleta) > 0 && (
-                    <p>* Limpeza de Canaleta - {limpezaCanaleta} m{limpezaCaneletaBerma && ` (Berma ${limpezaCaneletaBerma})`}</p>
-                  )}
-                  {recomposicaoGabiao && parseFloat(recomposicaoGabiao) > 0 && (
-                    <p>* Recomposição de Gabião - {recomposicaoGabiao} m{recomposicaoGabiaoBerma && ` (Berma ${recomposicaoGabiaoBerma})`}</p>
-                  )}
-                  {manutencaoDrenagem && parseFloat(manutencaoDrenagem) > 0 && (
-                    <p>* Manutenção de Drenagem - {manutencaoDrenagem} m{manutencaoDrenagemBerma && ` (Berma ${manutencaoDrenagemBerma})`}</p>
-                  )}
-                  {limpezaBueiro && parseInt(limpezaBueiro) > 0 && (
-                    <p>* Limpeza de Bueiro - {limpezaBueiro} unidade(s){limpezaBueiroBerma && ` (Berma ${limpezaBueiroBerma})`}</p>
-                  )}
-                  {reparoCerca && parseFloat(reparoCerca) > 0 && (
-                    <p>* Reparo de Cerca - {reparoCerca} m{reparoCercaBerma && ` (Berma ${reparoCercaBerma})`}</p>
+                  {getPreviewText().length > 0 ? (
+                    getPreviewText().map((line, idx) => (
+                      <p key={idx}>{line}</p>
+                    ))
+                  ) : (
+                    <p className="text-muted-foreground italic">Nenhuma atividade selecionada</p>
                   )}
                   {observacoes && (
-                    <p>* Observações: {observacoes}</p>
-                  )}
-                  {!limpezaCanaleta && !recomposicaoGabiao && !manutencaoDrenagem && !limpezaBueiro && !reparoCerca && !observacoes && (
-                    <p className="text-muted-foreground italic">Nenhuma atividade preenchida</p>
+                    <p className="mt-2">Obs: {observacoes}</p>
                   )}
                 </div>
               </div>
