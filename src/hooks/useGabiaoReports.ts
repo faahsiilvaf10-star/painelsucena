@@ -141,6 +141,13 @@ export function useDeleteGabiaoReport() {
 export const formatGabiaoForRDO = (report: GabiaoReport | null): string => {
   if (!report) return "";
 
+  // For the new format, observacoes contains the activities already formatted
+  // Just return it directly if it exists
+  if (report.observacoes) {
+    return report.observacoes;
+  }
+
+  // Legacy support for old format with structured fields
   const lines: string[] = [];
   
   const formatBerma = (berma: number | null | undefined): string => {
@@ -161,9 +168,6 @@ export const formatGabiaoForRDO = (report: GabiaoReport | null): string => {
   }
   if (report.reparo_cerca_m && report.reparo_cerca_m > 0) {
     lines.push(`* Reparo de Cerca - ${report.reparo_cerca_m} m${formatBerma(report.reparo_cerca_berma)}`);
-  }
-  if (report.observacoes) {
-    lines.push(`* Observações: ${report.observacoes}`);
   }
 
   return lines.join("\n");
