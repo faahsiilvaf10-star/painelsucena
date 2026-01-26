@@ -20,6 +20,7 @@ import { JardHistoryChart } from "@/components/goals/JardHistoryChart";
 import { GabiaoHistoryChart } from "@/components/goals/GabiaoHistoryChart";
 import { GoalsDashboard } from "@/components/goals/GoalsDashboard";
 import { DailyTrendChart } from "@/components/goals/DailyTrendChart";
+import { PeriodComparison } from "@/components/goals/PeriodComparison";
 
 // Generate measurement period options (last 12 periods)
 const generatePeriodOptions = () => {
@@ -228,6 +229,9 @@ export default function Metas() {
 
         {/* Consolidated Dashboard */}
         <GoalsDashboard />
+
+        {/* Period Comparison */}
+        <PeriodComparison />
 
         {/* Daily Trend Chart */}
         <DailyTrendChart />
