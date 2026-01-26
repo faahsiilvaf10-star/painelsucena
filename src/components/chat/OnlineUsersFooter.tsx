@@ -109,17 +109,7 @@ export const OnlineUsersFooter = ({
         <Popover open={usersPopoverOpen} onOpenChange={setUsersPopoverOpen}>
           <PopoverTrigger asChild>
             <button className="flex items-center gap-2 text-muted-foreground shrink-0 hover:text-foreground transition-colors">
-              
-              
-              <div className="flex items-center gap-1">
-                <Badge variant="default" className="text-xs bg-green-500/20 text-green-500 border-green-500/30">
-                  {onlineCount}
-                </Badge>
-                <Badge variant="secondary" className="text-xs">
-                  {offlineCount}
-                </Badge>
-              </div>
-              
+              <span className="text-xs font-medium">Usuários</span>
             </button>
           </PopoverTrigger>
           <PopoverContent className="w-80 p-0" align="start" side="top" sideOffset={8}>
