@@ -8,3 +8,6 @@ verify_jwt = false
 
 [functions.notify-goal-achieved]
 verify_jwt = false
+
+[functions.auto-resume-equipment]
+verify_jwt = false
