@@ -54,6 +54,7 @@ Deno.serve(async (req) => {
 
     const resumeTime = now.toISOString();
     const results = [];
+    const resumedEquipmentNames: string[] = [];
 
     for (const equipment of endOfShiftEquipment || []) {
       // Close the end_of_shift history entry
@@ -87,18 +88,83 @@ Deno.serve(async (req) => {
         console.error(`Error updating ${equipment.name}:`, updateError);
       }
 
+      const success = !historyUpdateError && !updateError;
       results.push({
         equipment: equipment.name,
-        success: !historyUpdateError && !updateError,
+        success,
       });
 
-      console.log(`Resumed ${equipment.name}: ${!historyUpdateError && !updateError ? 'success' : 'failed'}`);
+      if (success) {
+        resumedEquipmentNames.push(equipment.name);
+      }
+
+      console.log(`Resumed ${equipment.name}: ${success ? 'success' : 'failed'}`);
+    }
+
+    // Create notifications for users if any equipment was resumed
+    if (resumedEquipmentNames.length > 0) {
+      console.log("Creating notifications for resumed equipment...");
+
+      // Get all users who should be notified (admins and relevant cargo types)
+      const { data: usersToNotify, error: usersError } = await supabase
+        .from("profiles")
+        .select("user_id, cargo")
+        .in("cargo", [
+          "preposto",
+          "encarregado_geral", 
+          "encarregado_i", 
+          "encarregado_ii",
+          "tecnico_seguranca_i",
+          "tecnico_seguranca_ii"
+        ]);
+
+      if (usersError) {
+        console.error("Error fetching users to notify:", usersError);
+      } else if (usersToNotify && usersToNotify.length > 0) {
+        // Also get admin users
+        const { data: adminRoles, error: adminError } = await supabase
+          .from("user_roles")
+          .select("user_id")
+          .eq("role", "admin");
+
+        if (adminError) {
+          console.error("Error fetching admin users:", adminError);
+        }
+
+        // Combine user IDs (avoid duplicates)
+        const userIds = new Set<string>();
+        usersToNotify.forEach(u => userIds.add(u.user_id));
+        adminRoles?.forEach(a => userIds.add(a.user_id));
+
+        const equipmentList = resumedEquipmentNames.length <= 3 
+          ? resumedEquipmentNames.join(", ")
+          : `${resumedEquipmentNames.slice(0, 3).join(", ")} e mais ${resumedEquipmentNames.length - 3}`;
+
+        const notifications = Array.from(userIds).map(userId => ({
+          user_id: userId,
+          type: "equipment_auto_resume",
+          title: "⚙️ Equipamentos Retomados Automaticamente",
+          message: `${resumedEquipmentNames.length} equipamento(s) retomado(s) às 08:00: ${equipmentList}`,
+          reference_type: "equipment",
+        }));
+
+        const { error: notifyError } = await supabase
+          .from("notifications")
+          .insert(notifications);
+
+        if (notifyError) {
+          console.error("Error creating notifications:", notifyError);
+        } else {
+          console.log(`Created ${notifications.length} notifications for ${resumedEquipmentNames.length} resumed equipment`);
+        }
+      }
     }
 
     return new Response(
       JSON.stringify({
         message: "Auto-resume completed",
         processed: results.length,
+        resumed: resumedEquipmentNames.length,
         results,
         timestamp: resumeTime,
       }),
