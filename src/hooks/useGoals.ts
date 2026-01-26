@@ -1,7 +1,8 @@
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import { supabase } from "@/integrations/supabase/client";
 import { useAuth } from "./useAuth";
-import { format, setDate, addMonths, subMonths, isAfter, isBefore, parseISO } from "date-fns";
+import { format, setDate, addMonths, subMonths } from "date-fns";
+import { ptBR } from "date-fns/locale";
 import { getBrazilNorthDate } from "@/lib/timezone";
 
 export interface Goal {
@@ -18,8 +19,9 @@ export interface Goal {
   limpeza_canaleta_m: number;
   recomposicao_gabiao_m: number;
   manutencao_drenagem_m: number;
-  limpeza_bueiro_unidade: number;
-  reparo_cerca_m: number;
+  escavacao_manual_unidade: number;
+  reposicao_manta_unidade: number;
+  reposicao_silte_unidade: number;
   created_at: string;
   updated_at: string;
   created_by: string;
@@ -38,8 +40,9 @@ export interface GoalInput {
   limpeza_canaleta_m?: number;
   recomposicao_gabiao_m?: number;
   manutencao_drenagem_m?: number;
-  limpeza_bueiro_unidade?: number;
-  reparo_cerca_m?: number;
+  escavacao_manual_unidade?: number;
+  reposicao_manta_unidade?: number;
+  reposicao_silte_unidade?: number;
 }
 
 // Get the current measurement period (16th to 16th)
@@ -140,8 +143,9 @@ export const useSaveGoal = () => {
             limpeza_canaleta_m: input.limpeza_canaleta_m ?? 0,
             recomposicao_gabiao_m: input.recomposicao_gabiao_m ?? 0,
             manutencao_drenagem_m: input.manutencao_drenagem_m ?? 0,
-            limpeza_bueiro_unidade: input.limpeza_bueiro_unidade ?? 0,
-            reparo_cerca_m: input.reparo_cerca_m ?? 0,
+            escavacao_manual_unidade: input.escavacao_manual_unidade ?? 0,
+            reposicao_manta_unidade: input.reposicao_manta_unidade ?? 0,
+            reposicao_silte_unidade: input.reposicao_silte_unidade ?? 0,
           })
           .eq("id", existing.id)
           .select()
@@ -164,8 +168,9 @@ export const useSaveGoal = () => {
             limpeza_canaleta_m: input.limpeza_canaleta_m ?? 0,
             recomposicao_gabiao_m: input.recomposicao_gabiao_m ?? 0,
             manutencao_drenagem_m: input.manutencao_drenagem_m ?? 0,
-            limpeza_bueiro_unidade: input.limpeza_bueiro_unidade ?? 0,
-            reparo_cerca_m: input.reparo_cerca_m ?? 0,
+            escavacao_manual_unidade: input.escavacao_manual_unidade ?? 0,
+            reposicao_manta_unidade: input.reposicao_manta_unidade ?? 0,
+            reposicao_silte_unidade: input.reposicao_silte_unidade ?? 0,
             created_by: user.id,
           })
           .select()
@@ -208,8 +213,9 @@ export interface GoalProgress {
   limpeza_canaleta_m: { current: number; target: number; percentage: number };
   recomposicao_gabiao_m: { current: number; target: number; percentage: number };
   manutencao_drenagem_m: { current: number; target: number; percentage: number };
-  limpeza_bueiro_unidade: { current: number; target: number; percentage: number };
-  reparo_cerca_m: { current: number; target: number; percentage: number };
+  escavacao_manual_unidade: { current: number; target: number; percentage: number };
+  reposicao_manta_unidade: { current: number; target: number; percentage: number };
+  reposicao_silte_unidade: { current: number; target: number; percentage: number };
 }
 
 export const useGoalProgress = () => {
@@ -261,21 +267,32 @@ export const useGoalProgress = () => {
         jardTotals.retirada_mudas_unidade += Number(report.retirada_mudas_unidade) || 0;
       });
 
-      // Sum up gabião values
+      // Sum up gabião values - parse from observacoes field for checkbox activities
       const gabiaoTotals = {
         limpeza_canaleta_m: 0,
         recomposicao_gabiao_m: 0,
         manutencao_drenagem_m: 0,
-        limpeza_bueiro_unidade: 0,
-        reparo_cerca_m: 0,
+        escavacao_manual_unidade: 0,
+        reposicao_manta_unidade: 0,
+        reposicao_silte_unidade: 0,
       };
 
       gabiaoResponse.data?.forEach((report) => {
         gabiaoTotals.limpeza_canaleta_m += Number(report.limpeza_canaleta_m) || 0;
         gabiaoTotals.recomposicao_gabiao_m += Number(report.recomposicao_gabiao_m) || 0;
         gabiaoTotals.manutencao_drenagem_m += Number(report.manutencao_drenagem_m) || 0;
-        gabiaoTotals.limpeza_bueiro_unidade += Number(report.limpeza_bueiro_unidade) || 0;
-        gabiaoTotals.reparo_cerca_m += Number(report.reparo_cerca_m) || 0;
+        
+        // Parse checkbox activities from observacoes field
+        const obs = report.observacoes || "";
+        if (obs.includes("Escavação manual")) {
+          gabiaoTotals.escavacao_manual_unidade += 1;
+        }
+        if (obs.includes("Reposição de manta asfáltica")) {
+          gabiaoTotals.reposicao_manta_unidade += 1;
+        }
+        if (obs.includes("Reposição de silte")) {
+          gabiaoTotals.reposicao_silte_unidade += 1;
+        }
       });
 
       const calcProgress = (current: number, target: number) => ({
@@ -296,10 +313,151 @@ export const useGoalProgress = () => {
         limpeza_canaleta_m: calcProgress(gabiaoTotals.limpeza_canaleta_m, goal.limpeza_canaleta_m),
         recomposicao_gabiao_m: calcProgress(gabiaoTotals.recomposicao_gabiao_m, goal.recomposicao_gabiao_m),
         manutencao_drenagem_m: calcProgress(gabiaoTotals.manutencao_drenagem_m, goal.manutencao_drenagem_m),
-        limpeza_bueiro_unidade: calcProgress(gabiaoTotals.limpeza_bueiro_unidade, goal.limpeza_bueiro_unidade),
-        reparo_cerca_m: calcProgress(gabiaoTotals.reparo_cerca_m, goal.reparo_cerca_m),
+        escavacao_manual_unidade: calcProgress(gabiaoTotals.escavacao_manual_unidade, goal.escavacao_manual_unidade),
+        reposicao_manta_unidade: calcProgress(gabiaoTotals.reposicao_manta_unidade, goal.reposicao_manta_unidade),
+        reposicao_silte_unidade: calcProgress(gabiaoTotals.reposicao_silte_unidade, goal.reposicao_silte_unidade),
       };
     },
     enabled: !!goal,
+  });
+};
+
+// Historical progress for charts (last 6 periods)
+export interface HistoricalGoalData {
+  monthYear: string;
+  periodLabel: string;
+  jardinagem: {
+    achieved: number;
+    total: number;
+    percentage: number;
+  };
+  gabiao: {
+    achieved: number;
+    total: number;
+    percentage: number;
+  };
+}
+
+export const useHistoricalGoals = () => {
+  return useQuery({
+    queryKey: ["historical-goals"],
+    queryFn: async (): Promise<HistoricalGoalData[]> => {
+      const today = getBrazilNorthDate();
+      const periods: HistoricalGoalData[] = [];
+
+      // Get all goals
+      const { data: allGoals, error: goalsError } = await supabase
+        .from("goals")
+        .select("*")
+        .order("month_year", { ascending: false })
+        .limit(6);
+
+      if (goalsError) throw goalsError;
+      if (!allGoals || allGoals.length === 0) return [];
+
+      for (const goal of allGoals) {
+        // Parse month_year to get the period dates
+        const [year, month] = goal.month_year.split("-").map(Number);
+        const startDate = new Date(year, month - 1, 16);
+        const endDate = new Date(year, month, 16);
+
+        const startStr = format(startDate, "yyyy-MM-dd");
+        const endStr = format(endDate, "yyyy-MM-dd");
+        const periodLabel = format(startDate, "MMM/yy", { locale: ptBR });
+
+        // Fetch reports for this period
+        const [jardResponse, gabiaoResponse] = await Promise.all([
+          supabase
+            .from("daily_jardinagem_reports")
+            .select("*")
+            .gte("report_date", startStr)
+            .lte("report_date", endStr),
+          supabase
+            .from("daily_gabiao_reports")
+            .select("*")
+            .gte("report_date", startStr)
+            .lte("report_date", endStr),
+        ]);
+
+        // Calculate jardinagem totals
+        const jardTotals = {
+          rocagem_m2: 0,
+          podagem_unidade: 0,
+          coroamento_unidade: 0,
+          plantio_unidade: 0,
+          controle_invasoras_unidade: 0,
+          retirada_mudas_unidade: 0,
+        };
+
+        jardResponse.data?.forEach((report) => {
+          jardTotals.rocagem_m2 += Number(report.rocagem_m2) || 0;
+          jardTotals.podagem_unidade += Number(report.podagem_unidade) || 0;
+          jardTotals.coroamento_unidade += Number(report.coroamento_unidade) || 0;
+          jardTotals.plantio_unidade += Number(report.plantio_unidade) || 0;
+          jardTotals.controle_invasoras_unidade += Number(report.controle_invasoras_unidade) || 0;
+          jardTotals.retirada_mudas_unidade += Number(report.retirada_mudas_unidade) || 0;
+        });
+
+        // Calculate gabião totals
+        const gabiaoTotals = {
+          limpeza_canaleta_m: 0,
+          recomposicao_gabiao_m: 0,
+          manutencao_drenagem_m: 0,
+          escavacao_manual_unidade: 0,
+          reposicao_manta_unidade: 0,
+          reposicao_silte_unidade: 0,
+        };
+
+        gabiaoResponse.data?.forEach((report) => {
+          gabiaoTotals.limpeza_canaleta_m += Number(report.limpeza_canaleta_m) || 0;
+          gabiaoTotals.recomposicao_gabiao_m += Number(report.recomposicao_gabiao_m) || 0;
+          gabiaoTotals.manutencao_drenagem_m += Number(report.manutencao_drenagem_m) || 0;
+          
+          const obs = report.observacoes || "";
+          if (obs.includes("Escavação manual")) gabiaoTotals.escavacao_manual_unidade += 1;
+          if (obs.includes("Reposição de manta asfáltica")) gabiaoTotals.reposicao_manta_unidade += 1;
+          if (obs.includes("Reposição de silte")) gabiaoTotals.reposicao_silte_unidade += 1;
+        });
+
+        // Count achieved goals
+        const jardGoals = [
+          { current: jardTotals.rocagem_m2, target: goal.rocagem_m2 },
+          { current: jardTotals.podagem_unidade, target: goal.podagem_unidade },
+          { current: jardTotals.coroamento_unidade, target: goal.coroamento_unidade },
+          { current: jardTotals.plantio_unidade, target: goal.plantio_unidade },
+          { current: jardTotals.controle_invasoras_unidade, target: goal.controle_invasoras_unidade },
+          { current: jardTotals.retirada_mudas_unidade, target: goal.retirada_mudas_unidade },
+        ].filter(g => g.target > 0);
+
+        const gabiaoGoals = [
+          { current: gabiaoTotals.limpeza_canaleta_m, target: goal.limpeza_canaleta_m },
+          { current: gabiaoTotals.recomposicao_gabiao_m, target: goal.recomposicao_gabiao_m },
+          { current: gabiaoTotals.manutencao_drenagem_m, target: goal.manutencao_drenagem_m },
+          { current: gabiaoTotals.escavacao_manual_unidade, target: goal.escavacao_manual_unidade },
+          { current: gabiaoTotals.reposicao_manta_unidade, target: goal.reposicao_manta_unidade },
+          { current: gabiaoTotals.reposicao_silte_unidade, target: goal.reposicao_silte_unidade },
+        ].filter(g => g.target > 0);
+
+        const jardAchieved = jardGoals.filter(g => g.current >= g.target).length;
+        const gabiaoAchieved = gabiaoGoals.filter(g => g.current >= g.target).length;
+
+        periods.push({
+          monthYear: goal.month_year,
+          periodLabel,
+          jardinagem: {
+            achieved: jardAchieved,
+            total: jardGoals.length,
+            percentage: jardGoals.length > 0 ? (jardAchieved / jardGoals.length) * 100 : 0,
+          },
+          gabiao: {
+            achieved: gabiaoAchieved,
+            total: gabiaoGoals.length,
+            percentage: gabiaoGoals.length > 0 ? (gabiaoAchieved / gabiaoGoals.length) * 100 : 0,
+          },
+        });
+      }
+
+      return periods.reverse(); // Oldest first for chart display
+    },
   });
 };

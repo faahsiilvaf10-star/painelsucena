@@ -590,15 +590,16 @@ export type Database = {
           coroamento_unidade: number
           created_at: string
           created_by: string
+          escavacao_manual_unidade: number
           id: string
-          limpeza_bueiro_unidade: number
           limpeza_canaleta_m: number
           manutencao_drenagem_m: number
           month_year: string
           plantio_unidade: number
           podagem_unidade: number
           recomposicao_gabiao_m: number
-          reparo_cerca_m: number
+          reposicao_manta_unidade: number
+          reposicao_silte_unidade: number
           retirada_mudas_unidade: number
           rocagem_m2: number
           updated_at: string
@@ -608,15 +609,16 @@ export type Database = {
           coroamento_unidade?: number
           created_at?: string
           created_by: string
+          escavacao_manual_unidade?: number
           id?: string
-          limpeza_bueiro_unidade?: number
           limpeza_canaleta_m?: number
           manutencao_drenagem_m?: number
           month_year: string
           plantio_unidade?: number
           podagem_unidade?: number
           recomposicao_gabiao_m?: number
-          reparo_cerca_m?: number
+          reposicao_manta_unidade?: number
+          reposicao_silte_unidade?: number
           retirada_mudas_unidade?: number
           rocagem_m2?: number
           updated_at?: string
@@ -626,15 +628,16 @@ export type Database = {
           coroamento_unidade?: number
           created_at?: string
           created_by?: string
+          escavacao_manual_unidade?: number
           id?: string
-          limpeza_bueiro_unidade?: number
           limpeza_canaleta_m?: number
           manutencao_drenagem_m?: number
           month_year?: string
           plantio_unidade?: number
           podagem_unidade?: number
           recomposicao_gabiao_m?: number
-          reparo_cerca_m?: number
+          reposicao_manta_unidade?: number
+          reposicao_silte_unidade?: number
           retirada_mudas_unidade?: number
           rocagem_m2?: number
           updated_at?: string

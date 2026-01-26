@@ -16,6 +16,7 @@ import { useProfile } from "@/hooks/useProfile";
 import { useIsAdmin } from "@/hooks/useUserRole";
 import { useGoalByMonthYear, useSaveGoal, useDeleteGoal, getCurrentMeasurementPeriod } from "@/hooks/useGoals";
 import { getBrazilNorthDate } from "@/lib/timezone";
+import { GoalHistoryChart } from "@/components/goals/GoalHistoryChart";
 
 // Generate measurement period options (last 12 periods)
 const generatePeriodOptions = () => {
@@ -61,8 +62,9 @@ export default function Metas() {
   const [limpezaCanaleta, setLimpezaCanaleta] = useState("");
   const [recomposicaoGabiao, setRecomposicaoGabiao] = useState("");
   const [manutencaoDrenagem, setManutencaoDrenagem] = useState("");
-  const [limpezaBueiro, setLimpezaBueiro] = useState("");
-  const [reparoCerca, setReparoCerca] = useState("");
+  const [escavacaoManual, setEscavacaoManual] = useState("");
+  const [reposicaoManta, setReposicaoManta] = useState("");
+  const [reposicaoSilte, setReposicaoSilte] = useState("");
 
   // Check access permission - Admin or Planejador
   const hasAccess = authReady && (isAdmin || profile?.cargo === "planejador");
@@ -81,8 +83,9 @@ export default function Metas() {
       setLimpezaCanaleta(goal.limpeza_canaleta_m?.toString() || "");
       setRecomposicaoGabiao(goal.recomposicao_gabiao_m?.toString() || "");
       setManutencaoDrenagem(goal.manutencao_drenagem_m?.toString() || "");
-      setLimpezaBueiro(goal.limpeza_bueiro_unidade?.toString() || "");
-      setReparoCerca(goal.reparo_cerca_m?.toString() || "");
+      setEscavacaoManual(goal.escavacao_manual_unidade?.toString() || "");
+      setReposicaoManta(goal.reposicao_manta_unidade?.toString() || "");
+      setReposicaoSilte(goal.reposicao_silte_unidade?.toString() || "");
     } else {
       // Reset form for new period
       setRocagem("");
@@ -94,8 +97,9 @@ export default function Metas() {
       setLimpezaCanaleta("");
       setRecomposicaoGabiao("");
       setManutencaoDrenagem("");
-      setLimpezaBueiro("");
-      setReparoCerca("");
+      setEscavacaoManual("");
+      setReposicaoManta("");
+      setReposicaoSilte("");
     }
   }, [goal, selectedPeriod]);
 
@@ -148,8 +152,9 @@ export default function Metas() {
         limpeza_canaleta_m: limpezaCanaleta ? parseFloat(limpezaCanaleta) : 0,
         recomposicao_gabiao_m: recomposicaoGabiao ? parseFloat(recomposicaoGabiao) : 0,
         manutencao_drenagem_m: manutencaoDrenagem ? parseFloat(manutencaoDrenagem) : 0,
-        limpeza_bueiro_unidade: limpezaBueiro ? parseInt(limpezaBueiro) : 0,
-        reparo_cerca_m: reparoCerca ? parseFloat(reparoCerca) : 0,
+        escavacao_manual_unidade: escavacaoManual ? parseInt(escavacaoManual) : 0,
+        reposicao_manta_unidade: reposicaoManta ? parseInt(reposicaoManta) : 0,
+        reposicao_silte_unidade: reposicaoSilte ? parseInt(reposicaoSilte) : 0,
       });
       
       toast.success("Metas salvas com sucesso!");
@@ -217,6 +222,9 @@ export default function Metas() {
             )}
           </div>
         </div>
+
+        {/* Historical Chart */}
+        <GoalHistoryChart />
 
         {/* Form */}
         {/* Jardinagem Goals */}
@@ -419,37 +427,53 @@ export default function Metas() {
                   />
                 </div>
 
-                {/* Limpeza de Bueiro */}
+                {/* Escavação Manual */}
                 <div className="space-y-2">
-                  <Label htmlFor="limpezaBueiro" className="flex items-center gap-2">
-                    <span className="text-lg">🕳️</span>
-                    LIMPEZA DE BUEIRO (unidade)
+                  <Label htmlFor="escavacaoManual" className="flex items-center gap-2">
+                    <span className="text-lg">⛏️</span>
+                    ESCAVAÇÃO MANUAL (unidade)
                   </Label>
                   <Input
-                    id="limpezaBueiro"
+                    id="escavacaoManual"
                     type="number"
                     min="0"
                     placeholder="0"
-                    value={limpezaBueiro}
-                    onChange={(e) => setLimpezaBueiro(e.target.value)}
+                    value={escavacaoManual}
+                    onChange={(e) => setEscavacaoManual(e.target.value)}
                     className="text-lg"
                   />
                 </div>
 
-                {/* Reparo de Cerca */}
+                {/* Reposição de Manta Asfáltica */}
                 <div className="space-y-2">
-                  <Label htmlFor="reparoCerca" className="flex items-center gap-2">
-                    <span className="text-lg">🪵</span>
-                    REPARO DE CERCA (m)
+                  <Label htmlFor="reposicaoManta" className="flex items-center gap-2">
+                    <span className="text-lg">🛤️</span>
+                    REPOSIÇÃO DE MANTA ASFÁLTICA (unidade)
                   </Label>
                   <Input
-                    id="reparoCerca"
+                    id="reposicaoManta"
                     type="number"
                     min="0"
-                    step="0.01"
                     placeholder="0"
-                    value={reparoCerca}
-                    onChange={(e) => setReparoCerca(e.target.value)}
+                    value={reposicaoManta}
+                    onChange={(e) => setReposicaoManta(e.target.value)}
+                    className="text-lg"
+                  />
+                </div>
+
+                {/* Reposição de Silte */}
+                <div className="space-y-2">
+                  <Label htmlFor="reposicaoSilte" className="flex items-center gap-2">
+                    <span className="text-lg">🪨</span>
+                    REPOSIÇÃO DE SILTE (unidade)
+                  </Label>
+                  <Input
+                    id="reposicaoSilte"
+                    type="number"
+                    min="0"
+                    placeholder="0"
+                    value={reposicaoSilte}
+                    onChange={(e) => setReposicaoSilte(e.target.value)}
                     className="text-lg"
                   />
                 </div>
