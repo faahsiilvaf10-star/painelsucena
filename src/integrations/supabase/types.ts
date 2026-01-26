@@ -1217,6 +1217,39 @@ export type Database = {
         }
         Relationships: []
       }
+      vehicle_inspections: {
+        Row: {
+          created_at: string
+          created_by: string
+          id: string
+          modelo_veiculo: string
+          numero_cracha: string
+          placa: string
+          updated_at: string
+          validade_cracha: string
+        }
+        Insert: {
+          created_at?: string
+          created_by: string
+          id?: string
+          modelo_veiculo: string
+          numero_cracha: string
+          placa: string
+          updated_at?: string
+          validade_cracha: string
+        }
+        Update: {
+          created_at?: string
+          created_by?: string
+          id?: string
+          modelo_veiculo?: string
+          numero_cracha?: string
+          placa?: string
+          updated_at?: string
+          validade_cracha?: string
+        }
+        Relationships: []
+      }
     }
     Views: {
       [_ in never]: never
