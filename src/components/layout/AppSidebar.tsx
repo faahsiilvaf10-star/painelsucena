@@ -233,7 +233,7 @@ export function AppSidebar() {
   };
 
   return (
-    <Sidebar collapsible="icon" className="border-r-0 relative shrink-0 h-screen sticky top-0" style={sidebarStyle}>
+    <Sidebar collapsible="icon" className="border-r-0 relative shrink-0 h-screen sticky top-0 rounded-r-2xl overflow-hidden" style={sidebarStyle}>
       {/* Background with particles */}
       <div className="absolute inset-0 overflow-hidden">
         <SidebarBackground />
