@@ -394,7 +394,7 @@ export default function Atividades() {
               ) : (
                 <Send className="h-4 w-4" />
               )}
-              Salvar e Enviar WhatsApp
+              Enviar WhatsApp
             </Button>
           </div>
         </div>
