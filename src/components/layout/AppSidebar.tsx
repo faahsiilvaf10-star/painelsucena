@@ -1,4 +1,4 @@
-import { Users, ClipboardList, Grid3X3, LayoutDashboard, FileBarChart, LogOut, LogIn, AlertTriangle, PanelLeftClose, PanelLeft, Settings, Sun, Truck, Bell, FileText, LucideIcon, Heart, ShoppingCart, Package, GripVertical, User, FolderOpen, ShieldCheck, Leaf } from "lucide-react";
+import { Users, ClipboardList, Grid3X3, LayoutDashboard, FileBarChart, LogOut, LogIn, AlertTriangle, PanelLeftClose, PanelLeft, Settings, Sun, Truck, Bell, FileText, LucideIcon, Heart, ShoppingCart, Package, GripVertical, User, FolderOpen, ShieldCheck, Leaf, Hammer } from "lucide-react";
 import { Link, useLocation, useNavigate } from "react-router-dom";
 import { useMemo, useState } from "react";
 import { useAuth } from "@/hooks/useAuth";
@@ -52,6 +52,7 @@ interface NavItem {
 
 const allNavItems: NavItem[] = [
   { id: "atividades", icon: Leaf, label: "Atividades I", path: "/atividades" },
+  { id: "atividades-ii", icon: Hammer, label: "Atividades II", path: "/atividades-ii" },
   { id: "destaques", icon: LayoutDashboard, label: "Destaques", path: "/" },
   { id: "campanhas", icon: Heart, label: "Campanhas", path: "/campanhas" },
   { id: "dds", icon: Sun, label: "DDS", path: "/dds" },
