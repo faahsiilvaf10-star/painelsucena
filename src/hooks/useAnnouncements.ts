@@ -1,0 +1,213 @@
+import { useState, useEffect } from "react";
+import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
+import { supabase } from "@/integrations/supabase/client";
+import { useAuth } from "@/hooks/useAuth";
+import { toast } from "sonner";
+
+export interface Announcement {
+  id: string;
+  title: string;
+  content: string;
+  image_url: string | null;
+  target_type: string;
+  target_users: string[];
+  scheduled_at: string | null;
+  published_at: string;
+  created_by: string;
+  created_at: string;
+  updated_at: string;
+}
+
+export interface AnnouncementRead {
+  id: string;
+  announcement_id: string;
+  user_id: string;
+  read_at: string;
+}
+
+export function useAnnouncements() {
+  const { user } = useAuth();
+  const queryClient = useQueryClient();
+
+  // Fetch all announcements (admin view)
+  const { data: announcements = [], isLoading } = useQuery({
+    queryKey: ["announcements"],
+    queryFn: async () => {
+      const { data, error } = await supabase
+        .from("announcements")
+        .select("*")
+        .order("created_at", { ascending: false });
+
+      if (error) throw error;
+      return data as Announcement[];
+    },
+    enabled: !!user,
+  });
+
+  // Fetch reads for all announcements (admin view)
+  const { data: allReads = [] } = useQuery({
+    queryKey: ["announcement-reads-all"],
+    queryFn: async () => {
+      const { data, error } = await supabase
+        .from("announcement_reads")
+        .select("*");
+
+      if (error) throw error;
+      return data as AnnouncementRead[];
+    },
+    enabled: !!user,
+  });
+
+  // Create announcement mutation
+  const createAnnouncement = useMutation({
+    mutationFn: async (announcement: {
+      title: string;
+      content: string;
+      image_url?: string | null;
+      target_type: string;
+      target_users?: string[];
+      scheduled_at?: string | null;
+    }) => {
+      const now = new Date().toISOString();
+      const isScheduled = announcement.scheduled_at && new Date(announcement.scheduled_at) > new Date();
+      
+      const { data, error } = await supabase
+        .from("announcements")
+        .insert({
+          ...announcement,
+          created_by: user!.id,
+          published_at: isScheduled ? announcement.scheduled_at : now,
+        })
+        .select()
+        .single();
+
+      if (error) throw error;
+      return data;
+    },
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ["announcements"] });
+      toast.success("Comunicado criado com sucesso!");
+    },
+    onError: (error: Error) => {
+      toast.error(`Erro ao criar comunicado: ${error.message}`);
+    },
+  });
+
+  // Delete announcement mutation
+  const deleteAnnouncement = useMutation({
+    mutationFn: async (id: string) => {
+      const { error } = await supabase
+        .from("announcements")
+        .delete()
+        .eq("id", id);
+
+      if (error) throw error;
+    },
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ["announcements"] });
+      toast.success("Comunicado excluído com sucesso!");
+    },
+    onError: (error: Error) => {
+      toast.error(`Erro ao excluir comunicado: ${error.message}`);
+    },
+  });
+
+  return {
+    announcements,
+    allReads,
+    isLoading,
+    createAnnouncement,
+    deleteAnnouncement,
+  };
+}
+
+export function useUnreadAnnouncements() {
+  const { user } = useAuth();
+  const queryClient = useQueryClient();
+
+  // Fetch unread announcements for current user
+  const { data: unreadAnnouncements = [], isLoading } = useQuery({
+    queryKey: ["unread-announcements", user?.id],
+    queryFn: async () => {
+      if (!user) return [];
+
+      const now = new Date().toISOString();
+
+      // Get all announcements targeted to this user that are published
+      const { data: announcements, error: annError } = await supabase
+        .from("announcements")
+        .select("*")
+        .lte("published_at", now);
+
+      if (annError) throw annError;
+
+      // Get user's reads
+      const { data: reads, error: readsError } = await supabase
+        .from("announcement_reads")
+        .select("announcement_id")
+        .eq("user_id", user.id);
+
+      if (readsError) throw readsError;
+
+      const readIds = new Set(reads?.map((r) => r.announcement_id) || []);
+
+      // Filter to unread announcements
+      const unread = (announcements || []).filter((a) => {
+        const isTargeted = a.target_type === "all" || a.target_users?.includes(user.id);
+        const isUnread = !readIds.has(a.id);
+        return isTargeted && isUnread;
+      });
+
+      return unread as Announcement[];
+    },
+    enabled: !!user,
+    refetchInterval: 30000, // Check every 30 seconds
+  });
+
+  // Mark announcement as read
+  const markAsRead = useMutation({
+    mutationFn: async (announcementId: string) => {
+      const { error } = await supabase
+        .from("announcement_reads")
+        .insert({
+          announcement_id: announcementId,
+          user_id: user!.id,
+        });
+
+      if (error && !error.message.includes("duplicate")) throw error;
+    },
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ["unread-announcements"] });
+    },
+  });
+
+  // Subscribe to realtime updates
+  useEffect(() => {
+    if (!user) return;
+
+    const channel = supabase
+      .channel("announcements-realtime")
+      .on(
+        "postgres_changes",
+        {
+          event: "INSERT",
+          schema: "public",
+          table: "announcements",
+        },
+        () => {
+          queryClient.invalidateQueries({ queryKey: ["unread-announcements"] });
+        }
+      )
+      .subscribe();
+
+    return () => {
+      supabase.removeChannel(channel);
+    };
+  }, [user, queryClient]);
+
+  return {
+    unreadAnnouncements,
+    isLoading,
+    markAsRead,
+  };
+}

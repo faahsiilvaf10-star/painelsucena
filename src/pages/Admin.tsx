@@ -14,8 +14,9 @@ import { useSiteSettings } from "@/hooks/useSiteSettings";
 import { supabase } from "@/integrations/supabase/client";
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import { toast } from "sonner";
-import { Shield, ShieldCheck, Trash2, UserPlus, Users, Image, Upload, UserCog } from "lucide-react";
+import { Shield, ShieldCheck, Trash2, UserPlus, Users, Image, Upload, UserCog, Megaphone } from "lucide-react";
 import { BulkEmployeeEditor } from "@/components/admin/BulkEmployeeEditor";
+import { AnnouncementManager } from "@/components/admin/AnnouncementManager";
 import { Navigate } from "react-router-dom";
 import type { Database } from "@/integrations/supabase/types";
 
@@ -201,12 +202,16 @@ const Admin = () => {
         </div>
 
         <Tabs defaultValue="settings" className="space-y-6">
-          <TabsList className="grid w-full grid-cols-3 max-w-lg">
+          <TabsList className="grid w-full grid-cols-4 max-w-2xl">
             <TabsTrigger value="settings">Configurações</TabsTrigger>
             <TabsTrigger value="users">Usuários</TabsTrigger>
             <TabsTrigger value="employees" className="flex items-center gap-1">
               <UserCog className="w-4 h-4" />
               Funcionários
+            </TabsTrigger>
+            <TabsTrigger value="announcements" className="flex items-center gap-1">
+              <Megaphone className="w-4 h-4" />
+              Comunicados
             </TabsTrigger>
           </TabsList>
 
@@ -453,6 +458,11 @@ const Admin = () => {
           {/* Employees Tab */}
           <TabsContent value="employees">
             <BulkEmployeeEditor />
+          </TabsContent>
+
+          {/* Announcements Tab */}
+          <TabsContent value="announcements">
+            <AnnouncementManager />
           </TabsContent>
         </Tabs>
       </div>
