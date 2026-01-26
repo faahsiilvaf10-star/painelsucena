@@ -12,7 +12,7 @@ import { ScrollArea } from "@/components/ui/scroll-area";
 import { useChatMessages } from "@/hooks/useChatMessages";
 import { useTypingIndicator } from "@/hooks/useTypingIndicator";
 import { useAuth } from "@/hooks/useAuth";
-import { OnlineUser } from "@/hooks/useOnlineUsers";
+import { UserWithStatus } from "@/hooks/useAllUsers";
 import { EmojiPicker } from "./EmojiPicker";
 import { Send, Image, X, Loader2 } from "lucide-react";
 import { format } from "date-fns";
@@ -23,7 +23,7 @@ import { toast } from "sonner";
 interface ChatDialogProps {
   open: boolean;
   onOpenChange: (open: boolean) => void;
-  selectedUser: OnlineUser | null;
+  selectedUser: UserWithStatus | null;
 }
 
 const cargoLabels: Record<string, string> = {

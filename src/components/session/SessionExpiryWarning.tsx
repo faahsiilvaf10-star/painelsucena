@@ -11,11 +11,21 @@ import {
 } from "@/components/ui/alert-dialog";
 import { Clock, LogOut, RefreshCw } from "lucide-react";
 import { useSessionTimeout } from "@/hooks/useSessionTimeout";
+import { useBrowserNotifications } from "@/hooks/useBrowserNotifications";
 
 export const SessionExpiryWarning = () => {
-  const { getRemainingTime, renewSession, isInWarningPeriod } = useSessionTimeout();
+  const { getRemainingTime, renewSession, isInWarningPeriod, sessionDurationHours } = useSessionTimeout();
+  const { showNotification, requestPermission, isGranted } = useBrowserNotifications();
   const [isOpen, setIsOpen] = useState(false);
   const [remainingMinutes, setRemainingMinutes] = useState<number | null>(null);
+  const [notificationSent, setNotificationSent] = useState(false);
+
+  // Request notification permission on mount
+  useEffect(() => {
+    if (!isGranted) {
+      requestPermission();
+    }
+  }, [isGranted, requestPermission]);
 
   useEffect(() => {
     // Check every 30 seconds for warning period
@@ -25,6 +35,16 @@ export const SessionExpiryWarning = () => {
       
       if (isInWarningPeriod() && !isOpen) {
         setIsOpen(true);
+        
+        // Send push notification only once per warning period
+        if (!notificationSent) {
+          showNotification("⏰ Sessão Expirando", {
+            body: `Sua sessão expirará em ${remaining} minutos. Clique para renovar.`,
+            tag: "session-expiry",
+            requireInteraction: true,
+          });
+          setNotificationSent(true);
+        }
       }
     };
 
@@ -32,11 +52,13 @@ export const SessionExpiryWarning = () => {
     const interval = setInterval(checkWarning, 30000);
 
     return () => clearInterval(interval);
-  }, [getRemainingTime, isInWarningPeriod, isOpen]);
+  }, [getRemainingTime, isInWarningPeriod, isOpen, showNotification, notificationSent]);
 
+  // Reset notification sent flag when session is renewed
   const handleRenew = () => {
     renewSession();
     setIsOpen(false);
+    setNotificationSent(false);
   };
 
   const handleLogout = () => {
@@ -63,7 +85,7 @@ export const SessionExpiryWarning = () => {
               .
             </p>
             <p className="text-sm text-muted-foreground">
-              Por segurança, sessões são limitadas a 5 horas. Deseja renovar sua sessão?
+              Por segurança, sessões são limitadas a {sessionDurationHours} horas. Deseja renovar sua sessão?
             </p>
           </AlertDialogDescription>
         </AlertDialogHeader>

@@ -8,6 +8,7 @@ import { PageTransition } from "./PageTransition";
 import { AnnouncementModal } from "@/components/announcements/AnnouncementModal";
 import { SessionExpiryWarning } from "@/components/session/SessionExpiryWarning";
 import { SessionTimeIndicator } from "@/components/session/SessionTimeIndicator";
+import { useChatNotifications } from "@/hooks/useChatNotifications";
 
 const motivationalPhrases = [
   "O sucesso é a soma de pequenos esforços repetidos dia após dia.",
@@ -56,6 +57,9 @@ interface LayoutProps {
 
 const Layout = ({ children }: LayoutProps) => {
   const dailyPhrase = useMemo(() => getDailyPhrase(), []);
+  
+  // Enable global chat push notifications
+  useChatNotifications();
 
   return (
     <SidebarInset className="flex flex-col h-full overflow-hidden">
