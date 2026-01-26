@@ -11,6 +11,7 @@ export type UserWithStatus = {
   avatar_url: string | null;
   cargo: string;
   isOnline: boolean;
+  isCurrentUser: boolean;
   online_at?: string;
 };
 
@@ -38,6 +39,7 @@ export const useAllUsers = () => {
         data.map((profile) => ({
           ...profile,
           isOnline: false,
+          isCurrentUser: false,
         }))
       );
       setIsLoading(false);
@@ -97,15 +99,17 @@ export const useAllUsers = () => {
     };
   }, [user]);
 
-  // Combine users with online status
+  // Combine users with online status (include current user)
   const usersWithStatus: UserWithStatus[] = allUsers
-    .filter((u) => u.user_id !== user?.id) // Exclude current user
     .map((u) => ({
       ...u,
       isOnline: onlineUserIds.has(u.user_id),
+      isCurrentUser: u.user_id === user?.id,
     }))
     .sort((a, b) => {
-      // Online users first, then alphabetically
+      // Current user first, then online users, then alphabetically
+      if (a.isCurrentUser) return -1;
+      if (b.isCurrentUser) return 1;
       if (a.isOnline && !b.isOnline) return -1;
       if (!a.isOnline && b.isOnline) return 1;
       return a.full_name.localeCompare(b.full_name);

@@ -234,17 +234,24 @@ export const OnlineUsersFooter = ({ onUserClick }: OnlineUsersFooterProps) => {
                     <button
                       key={user.user_id}
                       onClick={() => {
-                        onUserClick(user);
-                        setUsersPopoverOpen(false);
+                        if (!user.isCurrentUser) {
+                          onUserClick(user);
+                          setUsersPopoverOpen(false);
+                        }
                       }}
                       className={cn(
                         "w-full flex items-center gap-3 px-3 py-2 rounded-lg transition-colors",
-                        "hover:bg-secondary/80",
-                        user.isOnline && "bg-green-500/5"
+                        user.isCurrentUser 
+                          ? "bg-primary/10 cursor-default" 
+                          : "hover:bg-secondary/80",
+                        user.isOnline && !user.isCurrentUser && "bg-green-500/5"
                       )}
                     >
                       <div className="relative">
-                        <Avatar className="h-8 w-8">
+                        <Avatar className={cn(
+                          "h-8 w-8",
+                          user.isCurrentUser && "ring-2 ring-primary"
+                        )}>
                           <AvatarImage src={user.avatar_url || undefined} />
                           <AvatarFallback className="text-xs bg-primary text-primary-foreground">
                             {getInitials(user.full_name)}
@@ -262,9 +269,11 @@ export const OnlineUsersFooter = ({ onUserClick }: OnlineUsersFooterProps) => {
                       <div className="flex-1 text-left">
                         <p className={cn(
                           "text-sm font-medium",
-                          user.isOnline && "text-green-600 dark:text-green-400"
+                          user.isCurrentUser && "text-primary",
+                          user.isOnline && !user.isCurrentUser && "text-green-600 dark:text-green-400"
                         )}>
                           {user.full_name}
+                          {user.isCurrentUser && <span className="text-xs ml-1">(você)</span>}
                         </p>
                         <p className="text-xs text-muted-foreground">
                           {cargoLabels[user.cargo] || user.cargo}
@@ -295,19 +304,38 @@ export const OnlineUsersFooter = ({ onUserClick }: OnlineUsersFooterProps) => {
                   <Tooltip key={user.user_id}>
                     <TooltipTrigger asChild>
                       <button
-                        onClick={() => onUserClick(user)}
-                        className="relative hover:z-10 transition-transform hover:scale-110"
+                        onClick={() => !user.isCurrentUser && onUserClick(user)}
+                        className={cn(
+                          "relative hover:z-10 transition-transform hover:scale-110",
+                          user.isCurrentUser && "cursor-default"
+                        )}
                       >
-                        <Avatar className="h-7 w-7 border-2 border-green-500/50 ring-2 ring-card">
+                        <Avatar className={cn(
+                          "h-7 w-7 ring-2 ring-card",
+                          user.isCurrentUser 
+                            ? "border-2 border-primary ring-primary/30" 
+                            : "border-2 border-green-500/50"
+                        )}>
                           <AvatarImage src={user.avatar_url || undefined} />
-                          <AvatarFallback className="text-[10px] bg-green-500/20 text-green-600 dark:text-green-400">
+                          <AvatarFallback className={cn(
+                            "text-[10px]",
+                            user.isCurrentUser 
+                              ? "bg-primary text-primary-foreground" 
+                              : "bg-green-500/20 text-green-600 dark:text-green-400"
+                          )}>
                             {getInitials(user.full_name)}
                           </AvatarFallback>
                         </Avatar>
+                        {user.isCurrentUser && (
+                          <span className="absolute -bottom-0.5 -right-0.5 w-2 h-2 bg-primary rounded-full border border-card" />
+                        )}
                       </button>
                     </TooltipTrigger>
                     <TooltipContent side="top" className="bg-card border">
-                      <p className="font-medium">{user.full_name}</p>
+                      <p className="font-medium">
+                        {user.full_name}
+                        {user.isCurrentUser && <span className="text-primary ml-1">(você)</span>}
+                      </p>
                       <p className="text-xs text-muted-foreground">{cargoLabels[user.cargo] || user.cargo}</p>
                     </TooltipContent>
                   </Tooltip>
