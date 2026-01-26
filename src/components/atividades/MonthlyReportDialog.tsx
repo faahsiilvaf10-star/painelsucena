@@ -1,7 +1,7 @@
-import { useState, useMemo } from "react";
-import { format, startOfMonth, endOfMonth, parseISO, isWithinInterval } from "date-fns";
+import { useState, useMemo, useEffect } from "react";
+import { format, startOfMonth, endOfMonth, parseISO, isWithinInterval, addMonths, setDate } from "date-fns";
 import { ptBR } from "date-fns/locale";
-import { FileText, Calendar, Filter, Calculator } from "lucide-react";
+import { FileText, Calendar, Filter, Calculator, Ruler } from "lucide-react";
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger } from "@/components/ui/dialog";
 import { Button } from "@/components/ui/button";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
@@ -12,6 +12,7 @@ import { Calendar as CalendarComponent } from "@/components/ui/calendar";
 import { Label } from "@/components/ui/label";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { cn } from "@/lib/utils";
+import { getBrazilNorthDate } from "@/lib/timezone";
 
 interface MonthlyReportDialogProps {
   reports: any[];
@@ -56,7 +57,33 @@ export default function MonthlyReportDialog({
     from: undefined,
     to: undefined,
   });
-  const [filterType, setFilterType] = useState<"month" | "range">("month");
+  const [filterType, setFilterType] = useState<"month" | "range" | "medicao">("month");
+  const [medicaoMonth, setMedicaoMonth] = useState<Date>(new Date());
+
+  // Generate measurement period options (last 12 months)
+  const medicaoOptions = useMemo(() => {
+    const options = [];
+    const now = getBrazilNorthDate();
+    for (let i = 0; i < 12; i++) {
+      const baseDate = new Date(now.getFullYear(), now.getMonth() - i, 16);
+      const startDate = setDate(baseDate, 16);
+      const endDate = setDate(addMonths(baseDate, 1), 16);
+      options.push({
+        value: format(baseDate, "yyyy-MM"),
+        label: `${format(startDate, "dd/MM/yyyy")} a ${format(endDate, "dd/MM/yyyy")}`,
+        startDate,
+        endDate,
+      });
+    }
+    return options;
+  }, []);
+
+  // Get current measurement period dates
+  const medicaoDates = useMemo(() => {
+    const startDate = setDate(medicaoMonth, 16);
+    const endDate = setDate(addMonths(medicaoMonth, 1), 16);
+    return { from: startDate, to: endDate };
+  }, [medicaoMonth]);
 
   // Generate month options (last 12 months)
   const monthOptions = useMemo(() => {
@@ -88,10 +115,15 @@ export default function MonthlyReportDialog({
         const reportDate = parseISO(report.report_date);
         return isWithinInterval(reportDate, { start: dateRange.from!, end: dateRange.to! });
       });
+    } else if (filterType === "medicao") {
+      return reports.filter((report) => {
+        const reportDate = parseISO(report.report_date);
+        return isWithinInterval(reportDate, { start: medicaoDates.from, end: medicaoDates.to });
+      });
     }
 
     return reports;
-  }, [reports, filterType, filterMonth, dateRange]);
+  }, [reports, filterType, filterMonth, dateRange, medicaoDates]);
 
   // Sort by date descending
   const sortedReports = useMemo(() => {
@@ -202,6 +234,11 @@ export default function MonthlyReportDialog({
     setFilterMonth(new Date(parseInt(year), parseInt(month) - 1, 1));
   };
 
+  const handleMedicaoChange = (value: string) => {
+    const [year, month] = value.split("-");
+    setMedicaoMonth(new Date(parseInt(year), parseInt(month) - 1, 16));
+  };
+
   const colorClass = type === "jardinagem" ? "text-green-500" : "text-orange-500";
   const bgClass = type === "jardinagem" ? "bg-green-600/20" : "bg-orange-600/20";
   const title = type === "jardinagem" ? "Relatório Mensal - Jardinagem" : "Relatório Mensal - Gabião";
@@ -231,18 +268,19 @@ export default function MonthlyReportDialog({
         <div className="flex flex-wrap gap-3 items-end pb-4 border-b">
           <div className="space-y-1">
             <Label className="text-xs text-muted-foreground">Tipo de Filtro</Label>
-            <Select value={filterType} onValueChange={(v: "month" | "range") => setFilterType(v)}>
+            <Select value={filterType} onValueChange={(v: "month" | "range" | "medicao") => setFilterType(v)}>
               <SelectTrigger className="w-[150px]">
                 <SelectValue />
               </SelectTrigger>
               <SelectContent>
                 <SelectItem value="month">Por Mês</SelectItem>
+                <SelectItem value="medicao">Por Medição</SelectItem>
                 <SelectItem value="range">Por Período</SelectItem>
               </SelectContent>
             </Select>
           </div>
 
-          {filterType === "month" ? (
+          {filterType === "month" && (
             <div className="space-y-1">
               <Label className="text-xs text-muted-foreground">Mês</Label>
               <Select 
@@ -261,7 +299,33 @@ export default function MonthlyReportDialog({
                 </SelectContent>
               </Select>
             </div>
-          ) : (
+          )}
+
+          {filterType === "medicao" && (
+            <div className="space-y-1">
+              <Label className="text-xs text-muted-foreground flex items-center gap-1">
+                <Ruler className="h-3 w-3" />
+                Período de Medição (16 a 16)
+              </Label>
+              <Select 
+                value={format(medicaoMonth, "yyyy-MM")} 
+                onValueChange={handleMedicaoChange}
+              >
+                <SelectTrigger className="w-[220px]">
+                  <SelectValue />
+                </SelectTrigger>
+                <SelectContent>
+                  {medicaoOptions.map((opt) => (
+                    <SelectItem key={opt.value} value={opt.value}>
+                      {opt.label}
+                    </SelectItem>
+                  ))}
+                </SelectContent>
+              </Select>
+            </div>
+          )}
+
+          {filterType === "range" && (
             <>
               <div className="space-y-1">
                 <Label className="text-xs text-muted-foreground">Data Inicial</Label>
@@ -345,9 +409,11 @@ export default function MonthlyReportDialog({
                     <p className="text-sm text-muted-foreground mb-4">
                       {filterType === "month" 
                         ? format(filterMonth, "MMMM 'de' yyyy", { locale: ptBR })
-                        : dateRange.from && dateRange.to 
-                          ? `${format(dateRange.from, "dd/MM/yyyy")} até ${format(dateRange.to, "dd/MM/yyyy")}`
-                          : "Período não selecionado"
+                        : filterType === "medicao"
+                          ? `Medição: ${format(medicaoDates.from, "dd/MM/yyyy")} até ${format(medicaoDates.to, "dd/MM/yyyy")}`
+                          : dateRange.from && dateRange.to 
+                            ? `${format(dateRange.from, "dd/MM/yyyy")} até ${format(dateRange.to, "dd/MM/yyyy")}`
+                            : "Período não selecionado"
                       }
                       {" • "}{sortedReports.length} dia{sortedReports.length !== 1 ? "s" : ""} com registro
                     </p>
