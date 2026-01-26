@@ -20,7 +20,9 @@ const Badge = React.forwardRef<HTMLDivElement, BadgeProps>(({
   variant,
   ...props
 }, ref) => {
-  return;
+  return (
+    <div className={cn(badgeVariants({ variant }), className)} ref={ref} {...props} />
+  );
 });
 Badge.displayName = "Badge";
 export { Badge, badgeVariants };
