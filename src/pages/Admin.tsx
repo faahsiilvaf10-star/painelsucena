@@ -14,7 +14,8 @@ import { useSiteSettings } from "@/hooks/useSiteSettings";
 import { supabase } from "@/integrations/supabase/client";
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import { toast } from "sonner";
-import { Shield, ShieldCheck, Trash2, UserPlus, Users, Palette, Image, GripVertical, Upload, Check } from "lucide-react";
+import { Shield, ShieldCheck, Trash2, UserPlus, Users, Palette, Image, GripVertical, Upload, Check, UserCog } from "lucide-react";
+import { BulkEmployeeEditor } from "@/components/admin/BulkEmployeeEditor";
 import { Navigate } from "react-router-dom";
 import type { Database } from "@/integrations/supabase/types";
 
@@ -265,9 +266,13 @@ const Admin = () => {
         </div>
 
         <Tabs defaultValue="settings" className="space-y-6">
-          <TabsList className="grid w-full grid-cols-2 max-w-md">
+          <TabsList className="grid w-full grid-cols-3 max-w-lg">
             <TabsTrigger value="settings">Configurações</TabsTrigger>
             <TabsTrigger value="users">Usuários</TabsTrigger>
+            <TabsTrigger value="employees" className="flex items-center gap-1">
+              <UserCog className="w-4 h-4" />
+              Funcionários
+            </TabsTrigger>
           </TabsList>
 
           {/* Settings Tab */}
@@ -616,6 +621,10 @@ const Admin = () => {
                 )}
               </CardContent>
             </Card>
+          </TabsContent>
+          {/* Employees Tab */}
+          <TabsContent value="employees">
+            <BulkEmployeeEditor />
           </TabsContent>
         </Tabs>
       </div>
