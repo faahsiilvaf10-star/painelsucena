@@ -35,6 +35,12 @@ const FAIXA_OPTIONS = [
   { value: "FAIXA 4", label: "FAIXA 4" },
 ];
 
+// Generate fase options from 1 to 5
+const FASE_OPTIONS = Array.from({ length: 5 }, (_, i) => ({
+  value: (1 + i).toString(),
+  label: `Fase ${1 + i}`,
+}));
+
 // Generate elevado options from 28 to 56
 const ELEVADO_OPTIONS = Array.from({ length: 29 }, (_, i) => ({
   value: (28 + i).toString(),
@@ -58,6 +64,7 @@ export default function AtividadesII() {
 
   // Form state
   const [localServico, setLocalServico] = useState("FAIXA 2");
+  const [fase, setFase] = useState("");
   const [elevado, setElevado] = useState("");
   
   // Activity checkboxes
@@ -76,6 +83,13 @@ export default function AtividadesII() {
   useEffect(() => {
     if (existingReport) {
       setLocalServico(existingReport.local_servico || "FAIXA 2");
+      // Parse fase from local_servico if it contains "Fase"
+      const faseMatch = existingReport.local_servico?.match(/Fase (\d+)/);
+      if (faseMatch) {
+        setFase(faseMatch[1]);
+      } else {
+        setFase("");
+      }
       // Parse elevado from local_servico if it contains "Elevado"
       const elevadoMatch = existingReport.local_servico?.match(/Elevado (\d+)/);
       if (elevadoMatch) {
@@ -91,6 +105,7 @@ export default function AtividadesII() {
     } else {
       // Reset form for new date
       setLocalServico("FAIXA 2");
+      setFase("");
       setElevado("");
       setEscavacaoManual(false);
       setReposicaoManta(false);
@@ -177,10 +192,14 @@ export default function AtividadesII() {
 
     const combinedObservacoes = buildObservacoes();
     
-    // Build local servico with elevado if selected
-    const fullLocalServico = elevado 
-      ? `${localServico} - Elevado ${elevado}`
-      : localServico;
+    // Build local servico with fase and elevado if selected
+    let fullLocalServico = localServico;
+    if (fase) {
+      fullLocalServico += ` - Fase ${fase}`;
+    }
+    if (elevado) {
+      fullLocalServico += ` - Elevado ${elevado}`;
+    }
 
     try {
       await saveReport.mutateAsync({
@@ -400,6 +419,22 @@ export default function AtividadesII() {
                       </SelectTrigger>
                       <SelectContent>
                         {FAIXA_OPTIONS.map((opt) => (
+                          <SelectItem key={opt.value} value={opt.value}>
+                            {opt.label}
+                          </SelectItem>
+                        ))}
+                      </SelectContent>
+                    </Select>
+                  </div>
+                  <div className="space-y-1">
+                    <Label className="text-xs text-muted-foreground">Fase</Label>
+                    <Select value={fase || "none"} onValueChange={(val) => setFase(val === "none" ? "" : val)}>
+                      <SelectTrigger className="w-[120px]">
+                        <SelectValue placeholder="Selecione" />
+                      </SelectTrigger>
+                      <SelectContent>
+                        <SelectItem value="none">Nenhuma</SelectItem>
+                        {FASE_OPTIONS.map((opt) => (
                           <SelectItem key={opt.value} value={opt.value}>
                             {opt.label}
                           </SelectItem>
