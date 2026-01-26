@@ -3,6 +3,7 @@ import { supabase } from "@/integrations/supabase/client";
 import { useAuth } from "./useAuth";
 import type { Tables } from "@/integrations/supabase/types";
 import { RealtimeChannel } from "@supabase/supabase-js";
+import { useAdminUsers } from "./useAdminUsers";
 
 export type UserWithStatus = {
   id: string;
@@ -12,6 +13,7 @@ export type UserWithStatus = {
   cargo: string;
   isOnline: boolean;
   isCurrentUser: boolean;
+  isAdmin: boolean;
   online_at?: string;
 };
 
@@ -20,6 +22,7 @@ export const useAllUsers = () => {
   const [allUsers, setAllUsers] = useState<UserWithStatus[]>([]);
   const [onlineUserIds, setOnlineUserIds] = useState<Set<string>>(new Set());
   const [isLoading, setIsLoading] = useState(true);
+  const { data: adminUserIds } = useAdminUsers();
 
   // Fetch all profiles
   useEffect(() => {
@@ -40,6 +43,7 @@ export const useAllUsers = () => {
           ...profile,
           isOnline: false,
           isCurrentUser: false,
+          isAdmin: false,
         }))
       );
       setIsLoading(false);
@@ -105,6 +109,7 @@ export const useAllUsers = () => {
       ...u,
       isOnline: onlineUserIds.has(u.user_id),
       isCurrentUser: u.user_id === user?.id,
+      isAdmin: adminUserIds?.has(u.user_id) ?? false,
     }))
     .sort((a, b) => {
       // Current user first, then online users, then alphabetically
