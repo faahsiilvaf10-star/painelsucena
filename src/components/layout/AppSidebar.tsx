@@ -1,4 +1,4 @@
-import { Users, ClipboardList, Grid3X3, LayoutDashboard, FileBarChart, LogOut, LogIn, AlertTriangle, PanelLeftClose, PanelLeft, Settings, Sun, Truck, Bell, FileText, LucideIcon, Heart, ShoppingCart, Package, GripVertical, User, FolderOpen } from "lucide-react";
+import { Users, ClipboardList, Grid3X3, LayoutDashboard, FileBarChart, LogOut, LogIn, AlertTriangle, PanelLeftClose, PanelLeft, Settings, Sun, Truck, Bell, FileText, LucideIcon, Heart, ShoppingCart, Package, GripVertical, User, FolderOpen, ShieldCheck } from "lucide-react";
 import { Link, useLocation, useNavigate } from "react-router-dom";
 import { useMemo, useState } from "react";
 import { useAuth } from "@/hooks/useAuth";
@@ -322,27 +322,38 @@ export function AppSidebar() {
               )}
             </div>
             
-            {/* Icon Buttons for Config and Logout */}
-            <div className={`flex items-center justify-center gap-2 mt-2 ${isCollapsed ? "flex-col" : ""}`}>
-              <Button
-                variant="ghost"
-                size="icon"
-                onClick={() => navigate("/configuracoes")}
-                className="h-9 w-9 text-sidebar-foreground/70 hover:text-sidebar-foreground hover:bg-sidebar-accent"
-                title="Configurações"
-              >
-                <Settings className="h-5 w-5" />
-              </Button>
-              <Button
-                variant="ghost"
-                size="icon"
-                onClick={handleSignOut}
-                className="h-9 w-9 text-sidebar-foreground/70 hover:text-red-500 hover:bg-red-500/20"
-                title="Sair"
-              >
-                <LogOut className="h-5 w-5" />
-              </Button>
-            </div>
+              {/* Icon Buttons for Admin, Config and Logout */}
+              <div className={`flex items-center justify-center gap-2 mt-2 ${isCollapsed ? "flex-col" : ""}`}>
+                {isAdmin && (
+                  <Button
+                    variant="ghost"
+                    size="icon"
+                    onClick={() => navigate("/admin")}
+                    className="h-9 w-9 text-amber-500 hover:text-amber-400 hover:bg-amber-500/20"
+                    title="Administração"
+                  >
+                    <ShieldCheck className="h-5 w-5" />
+                  </Button>
+                )}
+                <Button
+                  variant="ghost"
+                  size="icon"
+                  onClick={() => navigate("/configuracoes")}
+                  className="h-9 w-9 text-sidebar-foreground/70 hover:text-sidebar-foreground hover:bg-sidebar-accent"
+                  title="Configurações"
+                >
+                  <Settings className="h-5 w-5" />
+                </Button>
+                <Button
+                  variant="ghost"
+                  size="icon"
+                  onClick={handleSignOut}
+                  className="h-9 w-9 text-sidebar-foreground/70 hover:text-red-500 hover:bg-red-500/20"
+                  title="Sair"
+                >
+                  <LogOut className="h-5 w-5" />
+                </Button>
+              </div>
           </>
         ) : (
           <SidebarMenu>
