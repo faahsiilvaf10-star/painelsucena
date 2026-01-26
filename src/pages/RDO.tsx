@@ -102,6 +102,10 @@ export default function RDO() {
   const fileInputRef = useRef<HTMLInputElement>(null);
 
   // Form state
+  // Check if selected date is Friday (5 = Friday in getDay())
+  const isFriday = selectedDate.getDay() === 5;
+  const defaultHorario = isFriday ? "07:00 as 16:00" : "07:00 as 17:00";
+
   const [headerInfo, setHeaderInfo] = useState({
     empresa: "Sucena Empreendimentos",
     contrato: "460001269",
@@ -109,12 +113,18 @@ export default function RDO() {
     lideranca: "Eng. Luís Araújo",
     tst: "Alexia chaves",
     local: "Alunorte Barcarena",
-    horario: "07:00 as 17:00",
+    horario: defaultHorario,
   });
 
   const [weatherMorning, setWeatherMorning] = useState("sol");
   const [weatherAfternoon, setWeatherAfternoon] = useState("sol");
   const [difficulties, setDifficulties] = useState("Não Houve.");
+
+  // Update horario when date changes (Friday = 16:00, other days = 17:00)
+  useEffect(() => {
+    const newHorario = selectedDate.getDay() === 5 ? "07:00 as 16:00" : "07:00 as 17:00";
+    setHeaderInfo(prev => ({ ...prev, horario: newHorario }));
+  }, [selectedDate]);
 
   // Load existing report when date changes
   useEffect(() => {
