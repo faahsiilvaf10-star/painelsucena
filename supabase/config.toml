@@ -5,3 +5,6 @@ verify_jwt = false
 
 [functions.auto-stop-equipment]
 verify_jwt = false
+
+[functions.notify-goal-achieved]
+verify_jwt = false

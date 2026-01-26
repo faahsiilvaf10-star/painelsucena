@@ -9,6 +9,7 @@ import { AnnouncementModal } from "@/components/announcements/AnnouncementModal"
 import { SessionExpiryWarning } from "@/components/session/SessionExpiryWarning";
 import { SessionTimeIndicator } from "@/components/session/SessionTimeIndicator";
 import { useChatNotifications } from "@/hooks/useChatNotifications";
+import { GoalAchievementMonitor } from "@/components/goals/GoalAchievementMonitor";
 
 const motivationalPhrases = [
   "O sucesso é a soma de pequenos esforços repetidos dia após dia.",
@@ -91,6 +92,7 @@ const Layout = ({ children }: LayoutProps) => {
       <ForbiddenColorIndicator />
       <AnnouncementModal />
       <SessionExpiryWarning />
+      <GoalAchievementMonitor />
     </SidebarInset>
   );
 };
