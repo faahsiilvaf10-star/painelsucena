@@ -1,7 +1,7 @@
 import { useState, useMemo, useRef, useEffect } from "react";
 import { format, parseISO } from "date-fns";
 import { ptBR } from "date-fns/locale";
-import { Copy, Send, FileText, Sun, Cloud, CloudRain, CloudSun, Save, History, Image, X, Loader2, Calendar, Trash2 } from "lucide-react";
+import { Copy, Send, FileText, Sun, Cloud, CloudRain, CloudSun, Save, History, Image, X, Loader2, Calendar, Trash2, Clock } from "lucide-react";
 import { toast } from "sonner";
 import Layout from "@/components/layout/Layout";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
@@ -373,7 +373,15 @@ ${difficulties}`;
             <FileText className="h-8 w-8 text-primary" />
             <div>
               <h1 className="text-2xl font-bold">RDO - Relatório Diário de Obra</h1>
-              <p className="text-muted-foreground">{capitalizedDate}</p>
+              <div className="flex items-center gap-2">
+                <p className="text-muted-foreground">{capitalizedDate}</p>
+                {isFriday && (
+                  <Badge variant="secondary" className="bg-amber-500/20 text-amber-600 dark:text-amber-400 border-amber-500/30 gap-1">
+                    <Clock className="h-3 w-3" />
+                    Horário Reduzido (16h)
+                  </Badge>
+                )}
+              </div>
             </div>
           </div>
           
