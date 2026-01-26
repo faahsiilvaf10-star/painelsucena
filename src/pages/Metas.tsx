@@ -49,7 +49,7 @@ export default function Metas() {
   const saveGoal = useSaveGoal();
   const deleteGoal = useDeleteGoal();
 
-  // Form state
+  // Jardinagem form state
   const [rocagem, setRocagem] = useState("");
   const [podagem, setPodagem] = useState("");
   const [coroamento, setCoroamento] = useState("");
@@ -57,18 +57,32 @@ export default function Metas() {
   const [controleInvasoras, setControleInvasoras] = useState("");
   const [retiradaMudas, setRetiradaMudas] = useState("");
 
+  // Gabião form state
+  const [limpezaCanaleta, setLimpezaCanaleta] = useState("");
+  const [recomposicaoGabiao, setRecomposicaoGabiao] = useState("");
+  const [manutencaoDrenagem, setManutencaoDrenagem] = useState("");
+  const [limpezaBueiro, setLimpezaBueiro] = useState("");
+  const [reparoCerca, setReparoCerca] = useState("");
+
   // Check access permission - Admin or Planejador
   const hasAccess = authReady && (isAdmin || profile?.cargo === "planejador");
 
   // Load existing goal when period changes
   useEffect(() => {
     if (goal) {
+      // Jardinagem
       setRocagem(goal.rocagem_m2?.toString() || "");
       setPodagem(goal.podagem_unidade?.toString() || "");
       setCoroamento(goal.coroamento_unidade?.toString() || "");
       setPlantio(goal.plantio_unidade?.toString() || "");
       setControleInvasoras(goal.controle_invasoras_unidade?.toString() || "");
       setRetiradaMudas(goal.retirada_mudas_unidade?.toString() || "");
+      // Gabião
+      setLimpezaCanaleta(goal.limpeza_canaleta_m?.toString() || "");
+      setRecomposicaoGabiao(goal.recomposicao_gabiao_m?.toString() || "");
+      setManutencaoDrenagem(goal.manutencao_drenagem_m?.toString() || "");
+      setLimpezaBueiro(goal.limpeza_bueiro_unidade?.toString() || "");
+      setReparoCerca(goal.reparo_cerca_m?.toString() || "");
     } else {
       // Reset form for new period
       setRocagem("");
@@ -77,6 +91,11 @@ export default function Metas() {
       setPlantio("");
       setControleInvasoras("");
       setRetiradaMudas("");
+      setLimpezaCanaleta("");
+      setRecomposicaoGabiao("");
+      setManutencaoDrenagem("");
+      setLimpezaBueiro("");
+      setReparoCerca("");
     }
   }, [goal, selectedPeriod]);
 
@@ -118,12 +137,19 @@ export default function Metas() {
     try {
       await saveGoal.mutateAsync({
         month_year: selectedPeriod,
+        // Jardinagem
         rocagem_m2: rocagem ? parseFloat(rocagem) : 0,
         podagem_unidade: podagem ? parseInt(podagem) : 0,
         coroamento_unidade: coroamento ? parseInt(coroamento) : 0,
         plantio_unidade: plantio ? parseInt(plantio) : 0,
         controle_invasoras_unidade: controleInvasoras ? parseInt(controleInvasoras) : 0,
         retirada_mudas_unidade: retiradaMudas ? parseInt(retiradaMudas) : 0,
+        // Gabião
+        limpeza_canaleta_m: limpezaCanaleta ? parseFloat(limpezaCanaleta) : 0,
+        recomposicao_gabiao_m: recomposicaoGabiao ? parseFloat(recomposicaoGabiao) : 0,
+        manutencao_drenagem_m: manutencaoDrenagem ? parseFloat(manutencaoDrenagem) : 0,
+        limpeza_bueiro_unidade: limpezaBueiro ? parseInt(limpezaBueiro) : 0,
+        reparo_cerca_m: reparoCerca ? parseFloat(reparoCerca) : 0,
       });
       
       toast.success("Metas salvas com sucesso!");
@@ -193,11 +219,12 @@ export default function Metas() {
         </div>
 
         {/* Form */}
+        {/* Jardinagem Goals */}
         <Card>
           <CardHeader>
             <CardTitle className="flex items-center gap-2">
-              <Target className="h-5 w-5 text-amber-500" />
-              Metas do Período
+              <span className="text-xl">🌿</span>
+              Metas de Jardinagem
             </CardTitle>
             <CardDescription>
               Período: {selectedPeriodLabel}
@@ -317,25 +344,136 @@ export default function Metas() {
                 </div>
               </div>
             )}
-
-            {/* Save Button */}
-            <div className="flex justify-end mt-6">
-              <Button
-                onClick={handleSave}
-                disabled={saveGoal.isPending}
-                className="gap-2"
-                size="lg"
-              >
-                {saveGoal.isPending ? (
-                  <Loader2 className="h-4 w-4 animate-spin" />
-                ) : (
-                  <Save className="h-4 w-4" />
-                )}
-                Salvar Metas
-              </Button>
-            </div>
           </CardContent>
         </Card>
+
+        {/* Gabião Goals */}
+        <Card>
+          <CardHeader>
+            <CardTitle className="flex items-center gap-2">
+              <span className="text-xl">🧱</span>
+              Metas de Gabião / Conservação
+            </CardTitle>
+            <CardDescription>
+              Período: {selectedPeriodLabel}
+            </CardDescription>
+          </CardHeader>
+          <CardContent>
+            {isLoadingGoal ? (
+              <div className="flex items-center justify-center py-8">
+                <Loader2 className="h-8 w-8 animate-spin text-muted-foreground" />
+              </div>
+            ) : (
+              <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+                {/* Limpeza de Canaleta */}
+                <div className="space-y-2">
+                  <Label htmlFor="limpezaCanaleta" className="flex items-center gap-2">
+                    <span className="text-lg">🚰</span>
+                    LIMPEZA DE CANALETA (m)
+                  </Label>
+                  <Input
+                    id="limpezaCanaleta"
+                    type="number"
+                    min="0"
+                    step="0.01"
+                    placeholder="0"
+                    value={limpezaCanaleta}
+                    onChange={(e) => setLimpezaCanaleta(e.target.value)}
+                    className="text-lg"
+                  />
+                </div>
+
+                {/* Recomposição de Gabião */}
+                <div className="space-y-2">
+                  <Label htmlFor="recomposicaoGabiao" className="flex items-center gap-2">
+                    <span className="text-lg">🧱</span>
+                    RECOMPOSIÇÃO DE GABIÃO (m)
+                  </Label>
+                  <Input
+                    id="recomposicaoGabiao"
+                    type="number"
+                    min="0"
+                    step="0.01"
+                    placeholder="0"
+                    value={recomposicaoGabiao}
+                    onChange={(e) => setRecomposicaoGabiao(e.target.value)}
+                    className="text-lg"
+                  />
+                </div>
+
+                {/* Manutenção de Drenagem */}
+                <div className="space-y-2">
+                  <Label htmlFor="manutencaoDrenagem" className="flex items-center gap-2">
+                    <span className="text-lg">🔧</span>
+                    MANUTENÇÃO DE DRENAGEM (m)
+                  </Label>
+                  <Input
+                    id="manutencaoDrenagem"
+                    type="number"
+                    min="0"
+                    step="0.01"
+                    placeholder="0"
+                    value={manutencaoDrenagem}
+                    onChange={(e) => setManutencaoDrenagem(e.target.value)}
+                    className="text-lg"
+                  />
+                </div>
+
+                {/* Limpeza de Bueiro */}
+                <div className="space-y-2">
+                  <Label htmlFor="limpezaBueiro" className="flex items-center gap-2">
+                    <span className="text-lg">🕳️</span>
+                    LIMPEZA DE BUEIRO (unidade)
+                  </Label>
+                  <Input
+                    id="limpezaBueiro"
+                    type="number"
+                    min="0"
+                    placeholder="0"
+                    value={limpezaBueiro}
+                    onChange={(e) => setLimpezaBueiro(e.target.value)}
+                    className="text-lg"
+                  />
+                </div>
+
+                {/* Reparo de Cerca */}
+                <div className="space-y-2">
+                  <Label htmlFor="reparoCerca" className="flex items-center gap-2">
+                    <span className="text-lg">🪵</span>
+                    REPARO DE CERCA (m)
+                  </Label>
+                  <Input
+                    id="reparoCerca"
+                    type="number"
+                    min="0"
+                    step="0.01"
+                    placeholder="0"
+                    value={reparoCerca}
+                    onChange={(e) => setReparoCerca(e.target.value)}
+                    className="text-lg"
+                  />
+                </div>
+              </div>
+            )}
+          </CardContent>
+        </Card>
+
+        {/* Save Button */}
+        <div className="flex justify-end">
+          <Button
+            onClick={handleSave}
+            disabled={saveGoal.isPending}
+            className="gap-2"
+            size="lg"
+          >
+            {saveGoal.isPending ? (
+              <Loader2 className="h-4 w-4 animate-spin" />
+            ) : (
+              <Save className="h-4 w-4" />
+            )}
+            Salvar Todas as Metas
+          </Button>
+        </div>
       </div>
     </Layout>
   );
