@@ -1,12 +1,12 @@
-import { ReactNode, useEffect, useState } from "react";
+import { useEffect, useState } from "react";
 import { OnlineUsersFooter } from "@/components/chat/OnlineUsersFooter";
 import { ChatDialog } from "@/components/chat/ChatDialog";
-import { OnlineUser } from "@/hooks/useOnlineUsers";
+import { UserWithStatus } from "@/hooks/useAllUsers";
 import { useAuth } from "@/hooks/useAuth";
 
 export const PersistentFooter = () => {
   const { user } = useAuth();
-  const [selectedUser, setSelectedUser] = useState<OnlineUser | null>(null);
+  const [selectedUser, setSelectedUser] = useState<UserWithStatus | null>(null);
   const [chatOpen, setChatOpen] = useState(false);
   const [justCompletedTransition, setJustCompletedTransition] = useState(false);
 
@@ -25,8 +25,8 @@ export const PersistentFooter = () => {
     return () => window.removeEventListener("login-transition", handler);
   }, [user]);
 
-  const handleUserClick = (onlineUser: OnlineUser) => {
-    setSelectedUser(onlineUser);
+  const handleUserClick = (userClicked: UserWithStatus) => {
+    setSelectedUser(userClicked);
     setChatOpen(true);
   };
 
