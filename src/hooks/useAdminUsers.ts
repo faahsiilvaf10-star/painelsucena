@@ -3,7 +3,7 @@ import { supabase } from "@/integrations/supabase/client";
 
 export const useAdminUsers = () => {
   return useQuery({
-    queryKey: ["admin-users"],
+    queryKey: ["admin-user-ids"],
     queryFn: async () => {
       const { data, error } = await supabase
         .from("user_roles")
