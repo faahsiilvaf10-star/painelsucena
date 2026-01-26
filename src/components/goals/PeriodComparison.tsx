@@ -6,7 +6,8 @@ import { getCurrentMeasurementPeriod, useGoalByMonthYear } from "@/hooks/useGoal
 import { format, setDate, subMonths } from "date-fns";
 import { ptBR } from "date-fns/locale";
 import { getBrazilNorthDate } from "@/lib/timezone";
-import { ArrowUp, ArrowDown, Minus, TrendingUp, Leaf, Mountain } from "lucide-react";
+import { ArrowUp, ArrowDown, Minus, TrendingUp, Leaf, Mountain, AlertTriangle } from "lucide-react";
+import { Alert, AlertDescription } from "@/components/ui/alert";
 import { cn } from "@/lib/utils";
 
 interface MetricComparison {
@@ -217,9 +218,42 @@ export const PeriodComparison = () => {
     enabled: true,
   });
 
+  const calculatePercentChange = (current: number, previous: number): number => {
+    if (previous === 0) return current > 0 ? 100 : 0;
+    return ((current - previous) / previous) * 100;
+  };
+
+  const isUnderperforming = (current: number, previous: number): boolean => {
+    const percentChange = calculatePercentChange(current, previous);
+    return percentChange < -20;
+  };
+
+  const getUnderperformingMetrics = () => {
+    if (!comparisonData) return [];
+    
+    const underperforming: { name: string; percentChange: number; team: string }[] = [];
+    
+    comparisonData.jardinagem.forEach((metric) => {
+      const pct = calculatePercentChange(metric.currentValue, metric.previousValue);
+      if (pct < -20) {
+        underperforming.push({ name: metric.name, percentChange: pct, team: "Jardinagem" });
+      }
+    });
+    
+    comparisonData.gabiao.forEach((metric) => {
+      const pct = calculatePercentChange(metric.currentValue, metric.previousValue);
+      if (pct < -20) {
+        underperforming.push({ name: metric.name, percentChange: pct, team: "Gabião" });
+      }
+    });
+    
+    return underperforming;
+  };
+
   const renderDiff = (current: number, previous: number) => {
     const diff = current - previous;
     const percentChange = previous > 0 ? ((diff / previous) * 100).toFixed(0) : current > 0 ? "+100" : "0";
+    const isUnder = isUnderperforming(current, previous);
     
     if (diff > 0) {
       return (
@@ -230,7 +264,11 @@ export const PeriodComparison = () => {
       );
     } else if (diff < 0) {
       return (
-        <div className="flex items-center gap-1 text-red-500">
+        <div className={cn(
+          "flex items-center gap-1",
+          isUnder ? "text-orange-500" : "text-red-500"
+        )}>
+          {isUnder && <AlertTriangle className="h-3 w-3" />}
           <ArrowDown className="h-3 w-3" />
           <span className="text-xs font-medium">{percentChange}%</span>
         </div>
@@ -251,11 +289,17 @@ export const PeriodComparison = () => {
     const previousPercent = metric.previousTarget > 0 
       ? Math.min((metric.previousValue / metric.previousTarget) * 100, 100) 
       : 0;
+    const isUnder = isUnderperforming(metric.currentValue, metric.previousValue);
 
     return (
       <div
         key={metric.name}
-        className="p-3 rounded-lg bg-muted/30 border border-border/30 space-y-2"
+        className={cn(
+          "p-3 rounded-lg bg-muted/30 border space-y-2 transition-all",
+          isUnder 
+            ? "border-orange-500/50 bg-orange-500/5 ring-1 ring-orange-500/20" 
+            : "border-border/30"
+        )}
       >
         <div className="flex items-center justify-between">
           <span className="text-sm font-medium flex items-center gap-1.5">
@@ -326,6 +370,8 @@ export const PeriodComparison = () => {
     return null;
   }
 
+  const underperformingMetrics = getUnderperformingMetrics();
+
   return (
     <Card className="border-border/50 bg-card/50 backdrop-blur-sm">
       <CardHeader>
@@ -345,6 +391,22 @@ export const PeriodComparison = () => {
         </CardTitle>
       </CardHeader>
       <CardContent className="space-y-6">
+        {/* Underperformance Alert */}
+        {underperformingMetrics.length > 0 && (
+          <Alert variant="destructive" className="border-orange-500/50 bg-orange-500/10 text-orange-700 dark:text-orange-400">
+            <AlertTriangle className="h-4 w-4" />
+            <AlertDescription className="ml-2">
+              <span className="font-semibold">Atenção!</span> {underperformingMetrics.length} métrica(s) com desempenho abaixo de 20% do período anterior:
+              <ul className="mt-1 list-disc list-inside text-sm">
+                {underperformingMetrics.map((m, idx) => (
+                  <li key={idx}>
+                    <span className="font-medium">{m.name}</span> ({m.team}): {m.percentChange.toFixed(0)}%
+                  </li>
+                ))}
+              </ul>
+            </AlertDescription>
+          </Alert>
+        )}
         {/* Jardinagem Section */}
         <div className="space-y-3">
           <h3 className="text-sm font-semibold flex items-center gap-2 text-emerald-600">
