@@ -175,7 +175,7 @@ export const OnlineUsersFooter = ({
               {allUsers.filter(u => u.isOnline).length === 0 ? <span className="text-xs text-muted-foreground ml-2">—</span> : allUsers.filter(u => u.isOnline).slice(0, 8).map(user => <Tooltip key={user.user_id}>
                     <TooltipTrigger asChild>
                       <button onClick={() => !user.isCurrentUser && onUserClick(user)} className={cn("relative hover:z-10 transition-transform hover:scale-110", user.isCurrentUser && "cursor-default")}>
-                        <Avatar className={cn("h-7 w-7 ring-2 ring-card", user.isCurrentUser ? "border-2 border-primary ring-primary/30" : "border-2 border-green-500/50")}>
+                        <Avatar className={cn("h-7 w-7 ring-2 ring-card", user.isCurrentUser ? "border-2 border-primary ring-primary/30" : "border-2 border-green-500 ring-green-500/40 shadow-[0_0_8px_2px_rgba(34,197,94,0.4)]")}>
                           <AvatarImage src={user.avatar_url || undefined} />
                           <AvatarFallback className={cn("text-[10px]", user.isCurrentUser ? "bg-primary text-primary-foreground" : "bg-green-500/20 text-green-600 dark:text-green-400")}>
                             {getInitials(user.full_name)}
