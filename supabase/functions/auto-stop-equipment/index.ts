@@ -35,33 +35,27 @@ Deno.serve(async (req) => {
     const results = [];
 
     for (const equipment of operatingEquipment || []) {
-      // Calculate duration if there was a start time (shouldn't be for "none" but just in case)
-      const startTime = equipment.stop_start_time || equipment.updated_at;
-      const startedAt = new Date(startTime);
-      const endedAt = new Date(endTime);
-      const durationMinutes = Math.floor((endedAt.getTime() - startedAt.getTime()) / 60000);
-
-      // Create history entry for end of day
+      // Create history entry for end of shift
       const { error: historyError } = await supabase
         .from("equipment_stop_history")
         .insert({
           equipment_id: equipment.id,
-          stop_reason: "end_of_day",
+          stop_reason: "end_of_shift",
           started_at: endTime,
-          ended_at: endTime,
-          duration_minutes: 0,
+          ended_at: null,
+          duration_minutes: null,
         });
 
       if (historyError) {
         console.error(`Error creating history for ${equipment.name}:`, historyError);
       }
 
-      // Update equipment to stopped state
+      // Update equipment to end_of_shift state
       const { error: updateError } = await supabase
         .from("equipment")
         .update({
-          stop_reason: "none",
-          stop_start_time: null,
+          stop_reason: "end_of_shift",
+          stop_start_time: endTime,
           updated_at: endTime,
         })
         .eq("id", equipment.id);
