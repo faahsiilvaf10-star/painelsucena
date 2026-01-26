@@ -5,8 +5,6 @@ import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
-import { Input } from "@/components/ui/input";
-import { Label } from "@/components/ui/label";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { useIsAdmin } from "@/hooks/useUserRole";
 import { useAuth } from "@/hooks/useAuth";
@@ -14,9 +12,11 @@ import { useSiteSettings } from "@/hooks/useSiteSettings";
 import { supabase } from "@/integrations/supabase/client";
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import { toast } from "sonner";
-import { Shield, ShieldCheck, Trash2, UserPlus, Users, Image, Upload, UserCog, Megaphone } from "lucide-react";
+import { Shield, ShieldCheck, Trash2, UserPlus, Users, Image, Upload, UserCog, Megaphone, Pencil } from "lucide-react";
 import { BulkEmployeeEditor } from "@/components/admin/BulkEmployeeEditor";
 import { AnnouncementManager } from "@/components/admin/AnnouncementManager";
+import { EditUserDialog } from "@/components/admin/EditUserDialog";
+import { DeleteUserDialog } from "@/components/admin/DeleteUserDialog";
 import { Navigate } from "react-router-dom";
 import type { Database } from "@/integrations/supabase/types";
 
@@ -38,6 +38,11 @@ const Admin = () => {
   const queryClient = useQueryClient();
   const [selectedUser, setSelectedUser] = useState<string | undefined>(undefined);
   const [selectedRole, setSelectedRole] = useState<AppRole>("user");
+  
+  // Edit/Delete user dialogs
+  const [editDialogOpen, setEditDialogOpen] = useState(false);
+  const [deleteDialogOpen, setDeleteDialogOpen] = useState(false);
+  const [selectedUserForAction, setSelectedUserForAction] = useState<UserWithRole | null>(null);
   
   // Site settings state
   const [isUploadingLogo, setIsUploadingLogo] = useState(false);
@@ -435,17 +440,35 @@ const Admin = () => {
                             )}
                           </TableCell>
                           <TableCell className="text-right">
-                            {u.role && u.role_id && u.user_id !== user?.id && (
-                              <Button
-                                variant="ghost"
-                                size="icon"
-                                className="text-destructive hover:text-destructive"
-                                onClick={() => deleteRoleMutation.mutate(u.role_id!)}
-                                disabled={deleteRoleMutation.isPending}
-                              >
-                                <Trash2 className="w-4 h-4" />
-                              </Button>
-                            )}
+                            <div className="flex items-center justify-end gap-1">
+                              {u.user_id !== user?.id && (
+                                <>
+                                  <Button
+                                    variant="ghost"
+                                    size="icon"
+                                    onClick={() => {
+                                      setSelectedUserForAction(u);
+                                      setEditDialogOpen(true);
+                                    }}
+                                    title="Editar usuário"
+                                  >
+                                    <Pencil className="w-4 h-4" />
+                                  </Button>
+                                  <Button
+                                    variant="ghost"
+                                    size="icon"
+                                    className="text-destructive hover:text-destructive"
+                                    onClick={() => {
+                                      setSelectedUserForAction(u);
+                                      setDeleteDialogOpen(true);
+                                    }}
+                                    title="Excluir usuário"
+                                  >
+                                    <Trash2 className="w-4 h-4" />
+                                  </Button>
+                                </>
+                              )}
+                            </div>
                           </TableCell>
                         </TableRow>
                       ))}
@@ -465,6 +488,26 @@ const Admin = () => {
             <AnnouncementManager />
           </TabsContent>
         </Tabs>
+
+        {/* Edit User Dialog */}
+        <EditUserDialog
+          open={editDialogOpen}
+          onOpenChange={setEditDialogOpen}
+          user={selectedUserForAction}
+          onSuccess={() => {
+            queryClient.invalidateQueries({ queryKey: ["admin-users"] });
+          }}
+        />
+
+        {/* Delete User Dialog */}
+        <DeleteUserDialog
+          open={deleteDialogOpen}
+          onOpenChange={setDeleteDialogOpen}
+          user={selectedUserForAction}
+          onSuccess={() => {
+            queryClient.invalidateQueries({ queryKey: ["admin-users"] });
+          }}
+        />
       </div>
     </Layout>
   );
