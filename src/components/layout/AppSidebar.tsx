@@ -51,7 +51,7 @@ interface NavItem {
 }
 
 const allNavItems: NavItem[] = [
-  { id: "atividades", icon: Leaf, label: "Atividades", path: "/atividades" },
+  { id: "atividades", icon: Leaf, label: "Atividades I", path: "/atividades" },
   { id: "destaques", icon: LayoutDashboard, label: "Destaques", path: "/" },
   { id: "campanhas", icon: Heart, label: "Campanhas", path: "/campanhas" },
   { id: "dds", icon: Sun, label: "DDS", path: "/dds" },
