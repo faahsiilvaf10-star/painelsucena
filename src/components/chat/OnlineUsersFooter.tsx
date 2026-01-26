@@ -9,6 +9,7 @@ import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from "@/comp
 import { useRadio } from "@/contexts/RadioContext";
 import { useSidebar } from "@/components/ui/sidebar";
 import { ScrollArea } from "@/components/ui/scroll-area";
+import { VerifiedBadge } from "@/components/VerifiedBadge";
 interface OnlineUsersFooterProps {
   onUserClick: (user: UserWithStatus) => void;
 }
@@ -148,12 +149,20 @@ export const OnlineUsersFooter = ({
                           </AvatarFallback>
                         </Avatar>
                         <Circle className={cn("absolute -bottom-0.5 -right-0.5 h-3 w-3 fill-current", user.isOnline ? "text-green-500" : "text-muted-foreground/50")} />
+                        {user.isAdmin && (
+                          <div className="absolute -top-1 -right-1">
+                            <VerifiedBadge size="xs" />
+                          </div>
+                        )}
                       </div>
                       <div className="flex-1 text-left">
-                        <p className={cn("text-sm font-medium", user.isCurrentUser && "text-primary", user.isOnline && !user.isCurrentUser && "text-green-600 dark:text-green-400")}>
-                          {user.full_name}
-                          {user.isCurrentUser && <span className="text-xs ml-1">(você)</span>}
-                        </p>
+                        <div className={cn("flex items-center gap-1", user.isCurrentUser && "text-primary", user.isOnline && !user.isCurrentUser && "text-green-600 dark:text-green-400")}>
+                          <p className="text-sm font-medium">
+                            {user.full_name}
+                            {user.isCurrentUser && <span className="text-xs ml-1">(você)</span>}
+                          </p>
+                          {user.isAdmin && <VerifiedBadge size="xs" />}
+                        </div>
                         <p className="text-xs text-muted-foreground">
                           {cargoLabels[user.cargo] || user.cargo}
                           {user.isOnline && <span className="ml-2 text-green-500">• Online</span>}
@@ -182,6 +191,11 @@ export const OnlineUsersFooter = ({
                           </AvatarFallback>
                         </Avatar>
                         {user.isCurrentUser && <span className="absolute -bottom-0.5 -right-0.5 w-2 h-2 bg-primary rounded-full border border-card" />}
+                        {user.isAdmin && (
+                          <div className="absolute -top-1 -right-1">
+                            <VerifiedBadge size="xs" />
+                          </div>
+                        )}
                       </button>
                     </TooltipTrigger>
                     <TooltipContent side="top" className="bg-card border">
@@ -211,6 +225,11 @@ export const OnlineUsersFooter = ({
                             {getInitials(user.full_name)}
                           </AvatarFallback>
                         </Avatar>
+                        {user.isAdmin && (
+                          <div className="absolute -top-1 -right-1 opacity-60">
+                            <VerifiedBadge size="xs" />
+                          </div>
+                        )}
                       </button>
                     </TooltipTrigger>
                     <TooltipContent side="top" className="bg-card border">

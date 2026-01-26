@@ -19,6 +19,7 @@ import { format } from "date-fns";
 import { ptBR } from "date-fns/locale";
 import { cn } from "@/lib/utils";
 import { toast } from "sonner";
+import { VerifiedBadge } from "@/components/VerifiedBadge";
 
 interface ChatDialogProps {
   open: boolean;
@@ -222,16 +223,25 @@ export const ChatDialog = ({
                 "absolute -bottom-0.5 -right-0.5 h-3 w-3 rounded-full border-2 border-background",
                 selectedUser.isOnline ? "bg-green-500" : "bg-red-500"
               )} />
+              {selectedUser.isAdmin && (
+                <div className="absolute -top-1 -left-1">
+                  <VerifiedBadge size="xs" />
+                </div>
+              )}
             </div>
             <div>
-              <DialogTitle className="text-base font-semibold">
+              <DialogTitle className="text-base font-semibold flex items-center gap-1">
                 {selectedUser.full_name}
+                {selectedUser.isAdmin && <VerifiedBadge size="xs" />}
               </DialogTitle>
-              <p className="text-xs text-muted-foreground">
+              <p className="text-xs text-muted-foreground flex items-center gap-1">
                 {isOtherTyping ? (
                   <span className="text-primary animate-pulse">digitando...</span>
                 ) : (
-                  cargoLabels[selectedUser.cargo] || selectedUser.cargo
+                  <>
+                    {cargoLabels[selectedUser.cargo] || selectedUser.cargo}
+                    {selectedUser.isAdmin && <VerifiedBadge size="xs" />}
+                  </>
                 )}
               </p>
             </div>
