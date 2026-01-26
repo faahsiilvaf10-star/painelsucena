@@ -35,6 +35,12 @@ const FAIXA_OPTIONS = [
   { value: "FAIXA 4", label: "FAIXA 4" },
 ];
 
+// Generate elevado options from 28 to 56
+const ELEVADO_OPTIONS = Array.from({ length: 29 }, (_, i) => ({
+  value: (28 + i).toString(),
+  label: `${28 + i}`,
+}));
+
 export default function AtividadesII() {
   const navigate = useNavigate();
   const { user } = useAuth();
@@ -52,6 +58,7 @@ export default function AtividadesII() {
 
   // Form state
   const [localServico, setLocalServico] = useState("FAIXA 2");
+  const [elevado, setElevado] = useState("");
   
   // Activity checkboxes
   const [escavacaoManual, setEscavacaoManual] = useState(false);
@@ -69,6 +76,13 @@ export default function AtividadesII() {
   useEffect(() => {
     if (existingReport) {
       setLocalServico(existingReport.local_servico || "FAIXA 2");
+      // Parse elevado from local_servico if it contains "Elevado"
+      const elevadoMatch = existingReport.local_servico?.match(/Elevado (\d+)/);
+      if (elevadoMatch) {
+        setElevado(elevadoMatch[1]);
+      } else {
+        setElevado("");
+      }
       setObservacoes(existingReport.observacoes || "");
       
       // Parse saved activities from observacoes field (we'll store structured data there)
@@ -77,6 +91,7 @@ export default function AtividadesII() {
     } else {
       // Reset form for new date
       setLocalServico("FAIXA 2");
+      setElevado("");
       setEscavacaoManual(false);
       setReposicaoManta(false);
       setMantaDimensao("");
@@ -161,11 +176,16 @@ export default function AtividadesII() {
     }
 
     const combinedObservacoes = buildObservacoes();
+    
+    // Build local servico with elevado if selected
+    const fullLocalServico = elevado 
+      ? `${localServico} - Elevado ${elevado}`
+      : localServico;
 
     try {
       await saveReport.mutateAsync({
         report_date: selectedDateStr,
-        local_servico: localServico,
+        local_servico: fullLocalServico,
         observacoes: combinedObservacoes || undefined,
       });
       
@@ -369,20 +389,41 @@ export default function AtividadesII() {
             </CardHeader>
             <CardContent className="space-y-6">
               {/* Local Selection */}
-              <div className="space-y-2">
+              <div className="space-y-4">
                 <Label>📍 LOCAL DO SERVIÇO</Label>
-                <Select value={localServico} onValueChange={setLocalServico}>
-                  <SelectTrigger className="w-full md:w-[300px]">
-                    <SelectValue placeholder="Selecione a faixa" />
-                  </SelectTrigger>
-                  <SelectContent>
-                    {FAIXA_OPTIONS.map((opt) => (
-                      <SelectItem key={opt.value} value={opt.value}>
-                        {opt.label}
-                      </SelectItem>
-                    ))}
-                  </SelectContent>
-                </Select>
+                <div className="flex flex-wrap gap-3">
+                  <div className="space-y-1">
+                    <Label className="text-xs text-muted-foreground">Faixa</Label>
+                    <Select value={localServico} onValueChange={setLocalServico}>
+                      <SelectTrigger className="w-[150px]">
+                        <SelectValue placeholder="Selecione" />
+                      </SelectTrigger>
+                      <SelectContent>
+                        {FAIXA_OPTIONS.map((opt) => (
+                          <SelectItem key={opt.value} value={opt.value}>
+                            {opt.label}
+                          </SelectItem>
+                        ))}
+                      </SelectContent>
+                    </Select>
+                  </div>
+                  <div className="space-y-1">
+                    <Label className="text-xs text-muted-foreground">Elevado</Label>
+                    <Select value={elevado} onValueChange={setElevado}>
+                      <SelectTrigger className="w-[150px]">
+                        <SelectValue placeholder="Selecione" />
+                      </SelectTrigger>
+                      <SelectContent>
+                        <SelectItem value="">Nenhum</SelectItem>
+                        {ELEVADO_OPTIONS.map((opt) => (
+                          <SelectItem key={opt.value} value={opt.value}>
+                            Elevado {opt.label}
+                          </SelectItem>
+                        ))}
+                      </SelectContent>
+                    </Select>
+                  </div>
+                </div>
               </div>
 
               {/* Activity Checkboxes */}
@@ -519,7 +560,7 @@ export default function AtividadesII() {
             </CardHeader>
             <CardContent>
               <div className="bg-muted p-4 rounded-lg space-y-2 font-mono text-sm">
-                <p className="font-bold">📍 Local: {getFaixaLabel(localServico)}</p>
+                <p className="font-bold">📍 Local: {getFaixaLabel(localServico)}{elevado ? ` - Elevado ${elevado}` : ""}</p>
                 <div className="border-t pt-2 mt-2 space-y-1">
                   {getPreviewText().length > 0 ? (
                     getPreviewText().map((line, idx) => (

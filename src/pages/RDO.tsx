@@ -21,6 +21,7 @@ import { useEquipment } from "@/hooks/useEquipment";
 import { useTodayDDS } from "@/hooks/useDDSSchedule";
 import { useRDOReports, useRDOReport, useSaveRDOReport, useUploadRDOPhotos, useDeleteRDOReport } from "@/hooks/useRDOReports";
 import { useJardinagemReportByDate, formatJardinagemForRDO } from "@/hooks/useJardinagemReports";
+import { useGabiaoReportByDate, formatGabiaoForRDO } from "@/hooks/useGabiaoReports";
 import { useAuth } from "@/hooks/useAuth";
 import { getBrazilNorthDate, getBrazilNorthTodayString } from "@/lib/timezone";
 import { cn } from "@/lib/utils";
@@ -90,6 +91,7 @@ export default function RDO() {
   const { data: existingReport, isLoading: isLoadingReport } = useRDOReport(selectedDateStr);
   const { data: allReports } = useRDOReports();
   const { data: jardinagemReport } = useJardinagemReportByDate(selectedDateStr);
+  const { data: gabiaoReport } = useGabiaoReportByDate(selectedDateStr);
   const saveReport = useSaveRDOReport();
   const deleteReport = useDeleteRDOReport();
   const uploadPhotos = useUploadRDOPhotos();
@@ -242,6 +244,16 @@ export default function RDO() {
 
     const jardinagemLocation = jardinagemFaixa || jardinagemActivities.localServico;
 
+    // Get gabião activities from daily report if available
+    const gabiaoFromReport = formatGabiaoForRDO(gabiaoReport);
+    const gabiaoLocation = gabiaoReport?.local_servico || gabiaoActivities.localServico;
+    
+    // Combine manual activities with report data for gabião
+    const fullGabiaoActivities = [
+      gabiaoActivities.atividades,
+      gabiaoFromReport
+    ].filter(Boolean).join("\n");
+
     const report = `🏗 EMPRESA: ${headerInfo.empresa}
 
 📄 CONTRATO - ${headerInfo.contrato}
@@ -279,9 +291,9 @@ ${ajudantesPipa.split("\n").map((name) => `      ${name.trim()}`).join("\n")}
     *Manutenção De Gabião*
 
 📍 Local do serviço
-    ${gabiaoActivities.localServico}
+    ${gabiaoLocation}
 
-${gabiaoActivities.atividades}
+${fullGabiaoActivities}
 
 👷🏻Efetivo👷🏾‍♂
 ${gabiaoWorkforce}
