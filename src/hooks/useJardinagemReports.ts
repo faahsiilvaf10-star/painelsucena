@@ -187,23 +187,28 @@ export const formatJardinagemForRDO = (report: JardinagemReport | null): string 
 
   const lines: string[] = [];
   
+  // Helper function to format berma text
+  const formatBerma = (berma: number | null | undefined): string => {
+    return berma ? ` (Berma ${berma})` : "";
+  };
+  
   if (report.rocagem_m2 && report.rocagem_m2 > 0) {
-    lines.push(`* Roçagem - ${report.rocagem_m2} m²`);
+    lines.push(`* Roçagem - ${report.rocagem_m2} m²${formatBerma(report.rocagem_berma)}`);
   }
   if (report.podagem_unidade && report.podagem_unidade > 0) {
-    lines.push(`* Podagem - ${report.podagem_unidade} unidade(s)`);
+    lines.push(`* Podagem - ${report.podagem_unidade} unidade(s)${formatBerma(report.podagem_berma)}`);
   }
   if (report.coroamento_unidade && report.coroamento_unidade > 0) {
-    lines.push(`* Coroamento - ${report.coroamento_unidade} unidade(s)`);
+    lines.push(`* Coroamento - ${report.coroamento_unidade} unidade(s)${formatBerma(report.coroamento_berma)}`);
   }
   if (report.plantio_unidade && report.plantio_unidade > 0) {
-    lines.push(`* Plantio - ${report.plantio_unidade} unidade(s)`);
+    lines.push(`* Plantio - ${report.plantio_unidade} unidade(s)${formatBerma(report.plantio_berma)}`);
   }
   if (report.limpeza_manual_m2 && report.limpeza_manual_m2 > 0) {
-    lines.push(`* Limpeza Manual - ${report.limpeza_manual_m2} m²`);
+    lines.push(`* Limpeza Manual - ${report.limpeza_manual_m2} m²${formatBerma(report.limpeza_manual_berma)}`);
   }
   if (report.limpeza_assoprador_m2 && report.limpeza_assoprador_m2 > 0) {
-    lines.push(`* Limpeza com Assoprador - ${report.limpeza_assoprador_m2} m²`);
+    lines.push(`* Limpeza com Assoprador - ${report.limpeza_assoprador_m2} m²${formatBerma(report.limpeza_assoprador_berma)}`);
   }
   
   // Handle invasoras - can be JSON array or single value
@@ -213,19 +218,19 @@ export const formatJardinagemForRDO = (report: JardinagemReport | null): string 
       invasoras.forEach(inv => {
         if (inv.unidade && parseInt(inv.unidade) > 0) {
           const nomeInvasora = inv.nome ? ` (${inv.nome})` : "";
-          lines.push(`* Controle de Invasoras${nomeInvasora} - ${inv.unidade} unidade(s)`);
+          lines.push(`* Controle de Invasoras${nomeInvasora} - ${inv.unidade} unidade(s)${formatBerma(report.controle_invasoras_berma)}`);
         }
       });
     } catch {
       // Fallback to single value
       if (report.controle_invasoras_unidade && report.controle_invasoras_unidade > 0) {
         const nomeInvasora = report.controle_invasoras_nome ? ` (${report.controle_invasoras_nome})` : "";
-        lines.push(`* Controle de Invasoras${nomeInvasora} - ${report.controle_invasoras_unidade} unidade(s)`);
+        lines.push(`* Controle de Invasoras${nomeInvasora} - ${report.controle_invasoras_unidade} unidade(s)${formatBerma(report.controle_invasoras_berma)}`);
       }
     }
   } else if (report.controle_invasoras_unidade && report.controle_invasoras_unidade > 0) {
     const nomeInvasora = report.controle_invasoras_nome ? ` (${report.controle_invasoras_nome})` : "";
-    lines.push(`* Controle de Invasoras${nomeInvasora} - ${report.controle_invasoras_unidade} unidade(s)`);
+    lines.push(`* Controle de Invasoras${nomeInvasora} - ${report.controle_invasoras_unidade} unidade(s)${formatBerma(report.controle_invasoras_berma)}`);
   }
   
   if (report.retirada_mudas_unidade && report.retirada_mudas_unidade > 0) {
