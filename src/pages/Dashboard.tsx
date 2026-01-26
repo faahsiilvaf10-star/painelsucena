@@ -41,6 +41,11 @@ const Dashboard = () => {
           </p>
         </div>
 
+        {/* Matrix Progress Chart - Always at the top */}
+        <div className="mb-8 animate-slide-up">
+          <MatrixProgressChart />
+        </div>
+
         {/* Campaign Banner - Health awareness campaigns */}
         <CampaignBanner />
 
@@ -76,26 +81,6 @@ const Dashboard = () => {
         }}>
             <StatCard title="Ausências" value={absentToday} icon={AlertCircle} trend={absentToday > 0 ? "down" : "neutral"} trendValue={absentToday > 0 ? "Atenção" : "Tudo certo"} />
           </div>
-        </div>
-
-        {/* Quick Access */}
-        <div className="mb-8">
-          
-          
-        </div>
-
-        {/* Matrix Progress Chart */}
-        <div className="mb-12 animate-slide-up" style={{
-        animationDelay: "0.8s"
-      }}>
-          <MatrixProgressChart />
-        </div>
-
-        {/* Recent Activity */}
-        <div className="animate-slide-up" style={{
-        animationDelay: "0.9s"
-      }}>
-          
         </div>
       </div>
     </Layout>;
