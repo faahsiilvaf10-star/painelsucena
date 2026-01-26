@@ -62,7 +62,7 @@ const allNavItems: NavItem[] = [
   { id: "matriz", icon: Grid3X3, label: "Matriz Responsabilidade", path: "/matriz" },
   { id: "pedidos", icon: ShoppingCart, label: "Pedidos", path: "/pedidos" },
   { id: "rdo", icon: FileText, label: "RDO", path: "/rdo" },
-  { id: "relatorio", icon: FileBarChart, label: "Relatório", path: "/relatorio-presenca" },
+  { id: "relatorio", icon: FileBarChart, label: "Relatório de Presença", path: "/relatorio-presenca" },
   { id: "rh", icon: Users, label: "RH", path: "/rh" },
   { id: "emergencia", icon: AlertTriangle, label: "Emergência", path: "/emergencia", isEmergency: true },
 ];
