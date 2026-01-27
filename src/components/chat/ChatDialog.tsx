@@ -188,7 +188,7 @@ export const ChatDialog = ({
   }, []);
   if (!selectedUser) return null;
   return <Dialog open={open} onOpenChange={onOpenChange}>
-      <DialogContent className="sm:max-w-md h-[85vh] flex flex-col p-0 gap-0 overflow-hidden border-0 rounded-xl" aria-describedby="chat-description">
+      <DialogContent className="w-[95vw] max-w-md h-[80vh] sm:h-[85vh] flex flex-col p-0 gap-0 overflow-hidden border-0 rounded-xl" aria-describedby="chat-description">
         <DialogDescription id="chat-description" className="sr-only">
           Chat com {selectedUser.full_name}
         </DialogDescription>

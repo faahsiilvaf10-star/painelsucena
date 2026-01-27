@@ -77,19 +77,19 @@ export default function Estoque() {
 
   return (
     <Layout>
-      <div className="space-y-6">
+      <div className="space-y-4 sm:space-y-6 px-4 sm:px-6 py-4 sm:py-6">
         {/* Header */}
-        <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4">
+        <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-3 sm:gap-4">
           <div>
-            <h1 className="text-2xl font-bold flex items-center gap-2">
-              <Package className="h-6 w-6" />
+            <h1 className="text-xl sm:text-2xl font-bold flex items-center gap-2">
+              <Package className="h-5 w-5 sm:h-6 sm:w-6" />
               Estoque de Materiais
             </h1>
-            <p className="text-muted-foreground">
+            <p className="text-sm text-muted-foreground">
               Gerencie o inventário de materiais e EPIs
             </p>
           </div>
-          <div className="flex gap-2">
+          <div className="flex gap-2 w-full sm:w-auto">
             <ExportInventoryButton items={filteredItems} />
             <AddItemDialog />
           </div>

@@ -208,18 +208,18 @@ const Lembretes = () => {
 
   return (
     <Layout>
-      <div className="container mx-auto px-6 py-8">
+      <div className="container mx-auto px-4 sm:px-6 py-4 sm:py-8">
         {/* Created Toast Banner */}
         {showCreatedToast && (
-          <div className="fixed top-20 left-1/2 -translate-x-1/2 z-50 animate-in fade-in slide-in-from-top-4 duration-300">
+          <div className="fixed top-20 left-1/2 -translate-x-1/2 z-50 animate-in fade-in slide-in-from-top-4 duration-300 w-[90vw] max-w-md">
             <Card className="bg-primary/90 text-primary-foreground shadow-2xl border-0">
-              <CardContent className="flex items-center gap-4 p-4">
-                <div className="p-2 rounded-full bg-white/20">
-                  <Bell className="h-5 w-5" />
+              <CardContent className="flex items-center gap-3 sm:gap-4 p-3 sm:p-4">
+                <div className="p-2 rounded-full bg-white/20 shrink-0">
+                  <Bell className="h-4 w-4 sm:h-5 sm:w-5" />
                 </div>
-                <div>
-                  <p className="font-semibold">Lembrete criado!</p>
-                  <p className="text-sm opacity-90">
+                <div className="min-w-0">
+                  <p className="font-semibold text-sm sm:text-base">Lembrete criado!</p>
+                  <p className="text-xs sm:text-sm opacity-90 truncate">
                     "{showCreatedToast.title}" - {!!showCreatedToast.is_recurring 
                       ? `Toda ${(showCreatedToast.recurring_days || []).map(d => WEEKDAYS.find(w => w.value === d)?.fullLabel).join(", ")}`
                       : format(new Date(showCreatedToast.event_date), "dd/MM/yyyy", { locale: ptBR })}
@@ -231,18 +231,18 @@ const Lembretes = () => {
         )}
 
         {/* Header */}
-        <div className="flex items-center justify-between mb-8">
+        <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3 sm:gap-0 mb-6 sm:mb-8">
           <div>
-            <h1 className="text-3xl font-bold mb-2">
+            <h1 className="text-2xl sm:text-3xl font-bold mb-1 sm:mb-2">
               <span className="text-gradient">Lembretes</span>
             </h1>
-            <p className="text-muted-foreground">
-              Crie lembretes e mencione usuários para alertas
+            <p className="text-sm text-muted-foreground">
+              Crie lembretes e mencione usuários
             </p>
           </div>
           <Dialog open={isOpen} onOpenChange={setIsOpen}>
             <DialogTrigger asChild>
-              <Button className="gap-2">
+              <Button className="gap-2 w-full sm:w-auto">
                 <Plus className="h-4 w-4" />
                 Novo Lembrete
               </Button>

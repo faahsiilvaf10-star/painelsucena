@@ -103,18 +103,18 @@ export default function Pedidos() {
 
   return (
     <Layout>
-      <div className="container mx-auto py-6 px-4 max-w-4xl">
-        <div className="flex items-center justify-between mb-6">
+      <div className="container mx-auto py-4 sm:py-6 px-4 max-w-4xl">
+        <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3 sm:gap-0 mb-4 sm:mb-6">
           <div>
-            <h1 className="text-2xl font-bold flex items-center gap-2">
-              <Package className="w-7 h-7 text-primary" />
+            <h1 className="text-xl sm:text-2xl font-bold flex items-center gap-2">
+              <Package className="w-6 h-6 sm:w-7 sm:h-7 text-primary" />
               Pedidos
             </h1>
-            <p className="text-muted-foreground mt-1">
+            <p className="text-sm text-muted-foreground mt-1">
               Gerencie suas solicitações de materiais
             </p>
           </div>
-          <Button onClick={() => setCreateDialogOpen(true)}>
+          <Button onClick={() => setCreateDialogOpen(true)} className="w-full sm:w-auto">
             <Plus className="w-4 h-4 mr-2" />
             Novo Pedido
           </Button>

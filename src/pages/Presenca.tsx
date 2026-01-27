@@ -75,11 +75,11 @@ const Presenca = () => {
       </Layout>;
   }
   return <Layout>
-      <div className="container mx-auto px-6 py-8">
+      <div className="container mx-auto px-4 sm:px-6 py-4 sm:py-8">
         {/* Header */}
-        <div className="flex flex-col md:flex-row md:items-center justify-between gap-4 mb-8">
+        <div className="flex flex-col md:flex-row md:items-center justify-between gap-4 mb-6 sm:mb-8">
           <div>
-            <h1 className="text-4xl font-bold mb-2">Funcionários Trabalhando hoje !</h1>
+            <h1 className="text-2xl sm:text-4xl font-bold mb-2">Funcionários Trabalhando hoje!</h1>
             <p className="text-muted-foreground flex items-center gap-2">
               <Calendar className="w-4 h-4" />
               {new Date().toLocaleDateString("pt-BR", {
@@ -104,7 +104,7 @@ const Presenca = () => {
         </div>
 
         {/* Stats */}
-        <div className="grid grid-cols-2 md:grid-cols-4 gap-4 mb-8">
+        <div className="grid grid-cols-2 gap-3 sm:gap-4 mb-6 sm:mb-8">
           {Object.entries(statusConfig).map(([key, config]) => {
           const Icon = config.icon;
           return <div key={key} className="bg-card rounded-xl p-4 border border-border/50 flex items-center gap-4">
@@ -134,13 +134,13 @@ const Presenca = () => {
         </div>
 
         {/* Table */}
-        <div className="bg-card rounded-xl border border-border/50 overflow-hidden">
+        <div className="bg-card rounded-xl border border-border/50 overflow-x-auto">
           <Table>
             <TableHeader>
               <TableRow className="border-border/50 hover:bg-transparent">
-                <TableHead className="text-muted-foreground">Funcionário</TableHead>
-                <TableHead className="text-muted-foreground">Função</TableHead>
-                <TableHead className="text-muted-foreground">Status</TableHead>
+                <TableHead className="text-muted-foreground min-w-[150px]">Funcionário</TableHead>
+                <TableHead className="text-muted-foreground hidden sm:table-cell">Função</TableHead>
+                <TableHead className="text-muted-foreground min-w-[120px]">Status</TableHead>
               </TableRow>
             </TableHeader>
             <TableBody>
@@ -153,19 +153,20 @@ const Presenca = () => {
                 animationDelay: `${index * 0.05}s`
               }}>
                     <TableCell>
-                      <div className="flex items-center gap-3">
-                        <div className="w-10 h-10 rounded-full bg-secondary flex items-center justify-center font-semibold text-sm">
+                      <div className="flex items-center gap-2 sm:gap-3">
+                        <div className="w-8 h-8 sm:w-10 sm:h-10 rounded-full bg-secondary flex items-center justify-center font-semibold text-xs sm:text-sm shrink-0">
                           {employee?.avatar || "??"}
                         </div>
-                        <div>
-                          <p className="font-medium">{employee?.name || "Desconhecido"}</p>
-                          <p className="text-xs text-muted-foreground">
-                            {employee?.department}
+                        <div className="min-w-0">
+                          <p className="font-medium text-sm sm:text-base truncate">{employee?.name || "Desconhecido"}</p>
+                          <p className="text-xs text-muted-foreground truncate">
+                            <span className="sm:hidden">{employee?.role || "-"}</span>
+                            <span className="hidden sm:inline">{employee?.department}</span>
                           </p>
                         </div>
                       </div>
                     </TableCell>
-                    <TableCell className="text-muted-foreground">
+                    <TableCell className="text-muted-foreground hidden sm:table-cell">
                       {employee?.role || "-"}
                     </TableCell>
                     <TableCell>

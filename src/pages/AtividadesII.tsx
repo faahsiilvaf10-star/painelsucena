@@ -534,16 +534,16 @@ export default function AtividadesII() {
 
   return (
     <Layout>
-      <div className="p-6 space-y-6">
+      <div className="p-4 sm:p-6 space-y-4 sm:space-y-6">
         {/* Header */}
-        <div className="flex flex-col md:flex-row md:items-center justify-between gap-4">
+        <div className="flex flex-col gap-4">
           <div className="flex items-center gap-3">
-            <div className="h-12 w-12 rounded-full bg-orange-600/20 flex items-center justify-center">
-              <Hammer className="h-6 w-6 text-orange-500" />
+            <div className="h-10 w-10 sm:h-12 sm:w-12 rounded-full bg-orange-600/20 flex items-center justify-center shrink-0">
+              <Hammer className="h-5 w-5 sm:h-6 sm:w-6 text-orange-500" />
             </div>
-            <div>
-              <h1 className="text-2xl font-bold">Atividades II - Gabião</h1>
-              <p className="text-muted-foreground">{capitalizedDate}</p>
+            <div className="min-w-0">
+              <h1 className="text-lg sm:text-2xl font-bold">Atividades II - Gabião</h1>
+              <p className="text-sm text-muted-foreground truncate">{capitalizedDate}</p>
             </div>
           </div>
 

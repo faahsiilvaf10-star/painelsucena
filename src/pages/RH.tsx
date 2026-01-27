@@ -174,11 +174,11 @@ const RH = () => {
 
   return (
     <Layout>
-      <div className="container mx-auto px-6 py-8">
+      <div className="container mx-auto px-4 sm:px-6 py-4 sm:py-8">
         {/* Header */}
-        <div className="flex flex-col md:flex-row md:items-center justify-between gap-4 mb-8">
+        <div className="flex flex-col md:flex-row md:items-center justify-between gap-4 mb-6 sm:mb-8">
           <div>
-            <h1 className="text-4xl font-bold mb-2">Recursos Humanos</h1>
+            <h1 className="text-2xl sm:text-4xl font-bold mb-2">Recursos Humanos</h1>
             <p className="text-muted-foreground">
               Gerencie sua equipe de {employees.length} funcionários
             </p>
@@ -223,7 +223,7 @@ const RH = () => {
         </div>
 
         {/* Filters */}
-        <div className="flex flex-col md:flex-row gap-4 mb-8">
+        <div className="flex flex-col sm:flex-row gap-3 sm:gap-4 mb-6 sm:mb-8">
           <div className="relative flex-1">
             <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-muted-foreground" />
             <Input

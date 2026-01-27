@@ -53,7 +53,7 @@ export const OnlineUsersFooter = ({
   } = useRadio();
   const isCollapsedSidebar = state === "collapsed";
   return <div className={cn("fixed bottom-0 right-0 bg-card border-t border-border z-40 transition-[left] duration-200 ease-linear", isCollapsedSidebar ? "left-[48px]" : "left-[256px]", "max-md:left-0")}>
-      <div className="flex items-center gap-3 px-4 py-2 overflow-x-auto">
+      <div className="flex items-center gap-2 md:gap-3 px-2 md:px-4 py-2 overflow-x-auto scrollbar-none">
         {/* Radio Player */}
         <div className="flex items-center gap-1 shrink-0">
           <button onClick={toggleRadio} className={cn("flex items-center gap-2 px-3 py-1.5 rounded-l-full transition-all duration-300", isRadioActive ? "bg-green-500/20 hover:bg-green-500/30 border border-r-0 border-green-400/40" : "bg-secondary/50 hover:bg-secondary border border-r-0 border-transparent")} aria-label={!isPlaying ? "Iniciar rádio" : isMuted ? "Ativar som" : "Silenciar"}>
@@ -169,12 +169,12 @@ export const OnlineUsersFooter = ({
         {/* Online Users Group */}
         <TooltipProvider delayDuration={200}>
           <div className="flex items-center gap-1 shrink-0">
-            <span className="text-[10px] text-green-500 font-medium mr-1">Online</span>
+            <span className="text-[10px] text-green-500 font-medium mr-1 hidden sm:inline">Online</span>
             <div className="flex items-center -space-x-2">
-              {allUsers.filter(u => u.isOnline).length === 0 ? <span className="text-xs text-muted-foreground ml-2">—</span> : allUsers.filter(u => u.isOnline).slice(0, 8).map(user => <Tooltip key={user.user_id}>
+              {allUsers.filter(u => u.isOnline).length === 0 ? <span className="text-xs text-muted-foreground ml-2">—</span> : allUsers.filter(u => u.isOnline).slice(0, typeof window !== 'undefined' && window.innerWidth < 640 ? 4 : 8).map(user => <Tooltip key={user.user_id}>
                     <TooltipTrigger asChild>
                       <button onClick={() => !user.isCurrentUser && onUserClick(user)} className={cn("relative hover:z-10 transition-transform hover:scale-110", user.isCurrentUser && "cursor-default")}>
-                        <Avatar className={cn("h-7 w-7 ring-2 ring-card", user.isCurrentUser ? "border-2 border-primary ring-primary/30" : "border-2 border-green-500 ring-green-500/40 shadow-[0_0_8px_2px_rgba(34,197,94,0.4)]")}>
+                        <Avatar className={cn("h-6 w-6 sm:h-7 sm:w-7 ring-2 ring-card", user.isCurrentUser ? "border-2 border-primary ring-primary/30" : "border-2 border-green-500 ring-green-500/40 shadow-[0_0_8px_2px_rgba(34,197,94,0.4)]")}>
                           <AvatarImage src={user.avatar_url || undefined} />
                           <AvatarFallback className={cn("text-[10px]", user.isCurrentUser ? "bg-primary text-primary-foreground" : "bg-green-500/20 text-green-600 dark:text-green-400")}>
                             {getInitials(user.full_name)}
@@ -182,13 +182,13 @@ export const OnlineUsersFooter = ({
                         </Avatar>
                         {user.isCurrentUser && <span className="absolute -bottom-0.5 -right-0.5 w-2 h-2 bg-primary rounded-full border border-card" />}
                         {user.isAdmin && (
-                          <div className="absolute -top-1 -right-1">
+                          <div className="absolute -top-1 -right-1 hidden sm:block">
                             <VerifiedBadge size="xs" />
                           </div>
                         )}
                       </button>
                     </TooltipTrigger>
-                    <TooltipContent side="top" className="bg-card border">
+                    <TooltipContent side="top" className="bg-card border hidden sm:block">
                       <p className="font-medium">
                         {user.full_name}
                         {user.isCurrentUser && <span className="text-primary ml-1">(você)</span>}
@@ -196,38 +196,40 @@ export const OnlineUsersFooter = ({
                       <p className="text-xs text-muted-foreground">{cargoLabels[user.cargo] || user.cargo}</p>
                     </TooltipContent>
                   </Tooltip>)}
-              {allUsers.filter(u => u.isOnline).length > 8 && <span className="text-[10px] text-green-500 ml-2">+{allUsers.filter(u => u.isOnline).length - 8}</span>}
+              {allUsers.filter(u => u.isOnline).length > 4 && <span className="text-[10px] text-green-500 ml-2 sm:hidden">+{allUsers.filter(u => u.isOnline).length - 4}</span>}
+              {allUsers.filter(u => u.isOnline).length > 8 && <span className="text-[10px] text-green-500 ml-2 hidden sm:inline">+{allUsers.filter(u => u.isOnline).length - 8}</span>}
             </div>
           </div>
 
           <div className="h-6 w-px bg-border shrink-0" />
 
-          {/* Offline Users Group */}
-          <div className="flex items-center gap-1 shrink-0">
-            <span className="text-[10px] text-muted-foreground font-medium mr-1">Offline</span>
+          {/* Offline Users Group - Hidden on very small screens */}
+          <div className="hidden xs:flex items-center gap-1 shrink-0">
+            <span className="text-[10px] text-muted-foreground font-medium mr-1 hidden sm:inline">Offline</span>
             <div className="flex items-center -space-x-2">
-              {allUsers.filter(u => !u.isOnline).length === 0 ? <span className="text-xs text-muted-foreground ml-2">—</span> : allUsers.filter(u => !u.isOnline).slice(0, 6).map(user => <Tooltip key={user.user_id}>
+              {allUsers.filter(u => !u.isOnline).length === 0 ? <span className="text-xs text-muted-foreground ml-2 hidden sm:inline">—</span> : allUsers.filter(u => !u.isOnline).slice(0, typeof window !== 'undefined' && window.innerWidth < 640 ? 3 : 6).map(user => <Tooltip key={user.user_id}>
                     <TooltipTrigger asChild>
                       <button onClick={() => onUserClick(user)} className="relative hover:z-10 transition-transform hover:scale-110">
-                        <Avatar className="h-7 w-7 border-2 border-muted/50 ring-2 ring-card opacity-60 grayscale">
+                        <Avatar className="h-6 w-6 sm:h-7 sm:w-7 border-2 border-muted/50 ring-2 ring-card opacity-60 grayscale">
                           <AvatarImage src={user.avatar_url || undefined} />
                           <AvatarFallback className="text-[10px] bg-muted text-muted-foreground">
                             {getInitials(user.full_name)}
                           </AvatarFallback>
                         </Avatar>
                         {user.isAdmin && (
-                          <div className="absolute -top-1 -right-1 opacity-60">
+                          <div className="absolute -top-1 -right-1 opacity-60 hidden sm:block">
                             <VerifiedBadge size="xs" />
                           </div>
                         )}
                       </button>
                     </TooltipTrigger>
-                    <TooltipContent side="top" className="bg-card border">
+                    <TooltipContent side="top" className="bg-card border hidden sm:block">
                       <p className="font-medium">{user.full_name}</p>
                       <p className="text-xs text-muted-foreground">{cargoLabels[user.cargo] || user.cargo}</p>
                     </TooltipContent>
                   </Tooltip>)}
-              {allUsers.filter(u => !u.isOnline).length > 6 && <span className="text-[10px] text-muted-foreground ml-2">+{allUsers.filter(u => !u.isOnline).length - 6}</span>}
+              {allUsers.filter(u => !u.isOnline).length > 3 && <span className="text-[10px] text-muted-foreground ml-2 sm:hidden">+{allUsers.filter(u => !u.isOnline).length - 3}</span>}
+              {allUsers.filter(u => !u.isOnline).length > 6 && <span className="text-[10px] text-muted-foreground ml-2 hidden sm:inline">+{allUsers.filter(u => !u.isOnline).length - 6}</span>}
             </div>
           </div>
         </TooltipProvider>
