@@ -1,4 +1,4 @@
-import { useState, useEffect } from "react";
+import { useState, useEffect, useMemo } from "react";
 import { format, parseISO } from "date-fns";
 import { ptBR } from "date-fns/locale";
 import { Leaf, Save, Loader2, Calendar, Trash2, History, ArrowRight, Plus, X, Send } from "lucide-react";
@@ -61,6 +61,50 @@ export default function Atividades() {
   const { data: allReports } = useJardinagemReports();
   const saveReport = useSaveJardinagemReport();
   const deleteReport = useDeleteJardinagemReport();
+
+  // Calculate measurement period (day 16 to day 16)
+  const getMeasurementPeriod = () => {
+    const currentDay = selectedDate.getDate();
+    const currentMonth = selectedDate.getMonth();
+    const currentYear = selectedDate.getFullYear();
+    
+    let startDate: Date;
+    let endDate: Date;
+    
+    if (currentDay >= 16) {
+      // From day 16 of current month to day 15 of next month
+      startDate = new Date(currentYear, currentMonth, 16);
+      endDate = new Date(currentYear, currentMonth + 1, 15);
+    } else {
+      // From day 16 of previous month to day 15 of current month
+      startDate = new Date(currentYear, currentMonth - 1, 16);
+      endDate = new Date(currentYear, currentMonth, 15);
+    }
+    
+    return { startDate, endDate };
+  };
+
+  // Calculate totals for the measurement period
+  const measurementPeriodTotals = useMemo(() => {
+    if (!allReports) return { coroamento: 0, adubagem: 0 };
+    
+    const { startDate, endDate } = getMeasurementPeriod();
+    const startStr = format(startDate, "yyyy-MM-dd");
+    const endStr = format(endDate, "yyyy-MM-dd");
+    
+    const periodReports = allReports.filter(report => {
+      return report.report_date >= startStr && report.report_date <= endStr;
+    });
+    
+    const totals = periodReports.reduce((acc, report) => {
+      return {
+        coroamento: acc.coroamento + (report.coroamento_unidade || 0),
+        adubagem: acc.adubagem + (report.adubagem_unidade || 0),
+      };
+    }, { coroamento: 0, adubagem: 0 });
+    
+    return totals;
+  }, [allReports, selectedDate]);
 
   // Form state
   const [localFaixa, setLocalFaixa] = useState("FAIXA 2");
@@ -583,14 +627,16 @@ export default function Atividades() {
                 {/* Adubagem */}
                 <div className="grid grid-cols-1 md:grid-cols-[1fr_180px] gap-3 p-3 rounded-lg bg-muted/30">
                   <div className="space-y-2">
-                    <div className="flex items-center justify-between">
-                      <Label>ADUBAGEM (Unidade)</Label>
-                      {coroamento && parseInt(coroamento) > 0 && (
+                    <div className="flex flex-col gap-1">
+                      <div className="flex items-center justify-between">
+                        <Label>ADUBAGEM (Unidade)</Label>
+                      </div>
+                      {measurementPeriodTotals.coroamento > 0 && (
                         <Badge 
-                          variant={adubagem && parseInt(adubagem) >= parseInt(coroamento) ? "default" : "secondary"}
-                          className="text-xs"
+                          variant={measurementPeriodTotals.adubagem >= measurementPeriodTotals.coroamento ? "default" : "secondary"}
+                          className="text-xs w-fit"
                         >
-                          Coroamento: {coroamento} | Faltam: {Math.max(0, parseInt(coroamento) - (parseInt(adubagem) || 0))}
+                          Coroamento (Medição): {measurementPeriodTotals.coroamento} | Adubagem: {measurementPeriodTotals.adubagem} | Faltam: {Math.max(0, measurementPeriodTotals.coroamento - measurementPeriodTotals.adubagem)}
                         </Badge>
                       )}
                     </div>
