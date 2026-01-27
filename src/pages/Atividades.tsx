@@ -327,9 +327,31 @@ export default function Atividades() {
     return FAIXA_OPTIONS.find((f) => f.value === value)?.label || value;
   };
 
+  const { startDate, endDate } = getMeasurementPeriod();
+  const measurementPeriodLabel = `${format(startDate, "dd/MM/yyyy")} a ${format(endDate, "dd/MM/yyyy")}`;
+
   return (
     <Layout>
       <div className="p-6 space-y-6">
+        {/* Measurement Period Summary */}
+        <Card className="border-green-500/30 bg-green-500/5">
+          <CardContent className="py-3 px-4">
+            <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-2">
+              <div className="flex items-center gap-2">
+                <Calendar className="h-4 w-4 text-green-500" />
+                <span className="text-sm font-medium">Período de Medição Atual:</span>
+                <Badge variant="outline" className="border-green-500/50 text-green-500 font-semibold">
+                  {measurementPeriodLabel}
+                </Badge>
+              </div>
+              <div className="flex items-center gap-3 text-xs text-muted-foreground">
+                <span>🌱 Coroamento: <strong className="text-foreground">{measurementPeriodTotals.coroamento}</strong></span>
+                <span>💧 Adubagem: <strong className="text-foreground">{measurementPeriodTotals.adubagem}</strong></span>
+              </div>
+            </div>
+          </CardContent>
+        </Card>
+
         {/* Header */}
         <div className="flex flex-col md:flex-row md:items-center justify-between gap-4">
           <div className="flex items-center gap-3">
