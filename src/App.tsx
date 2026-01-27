@@ -10,6 +10,7 @@ import { PersistentSidebar } from "@/components/layout/PersistentSidebar";
 import ProtectedRoute from "@/components/ProtectedRoute";
 import { LoginTransitionGate } from "@/components/auth/LoginTransitionGate";
 import { LogoutTransitionGate } from "@/components/auth/LogoutTransitionGate";
+import { InstallPrompt } from "@/components/pwa/InstallPrompt";
 
 import Index from "./pages/Index";
 import RH from "./pages/RH";
@@ -45,6 +46,7 @@ const App = () => (
         <TooltipProvider>
           <Toaster />
           <Sonner />
+          <InstallPrompt />
           
           <BrowserRouter>
             <LoginTransitionGate />
