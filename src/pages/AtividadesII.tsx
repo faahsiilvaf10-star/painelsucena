@@ -368,6 +368,76 @@ export default function AtividadesII() {
     }
   };
 
+  // Generate RDO summary for WhatsApp
+  const generateRDOSummary = () => {
+    const formattedDate = format(selectedDate, "dd/MM/yyyy");
+    
+    let fullLocalServico = localServico;
+    if (fase) {
+      fullLocalServico += ` - Fase ${fase}`;
+    }
+    if (elevado) {
+      fullLocalServico += ` - Elevado ${elevado}`;
+    }
+    
+    let summary = `📅 *RDO GABIÃO - ${formattedDate}*\n\n`;
+    summary += `📍 *Local:* ${fullLocalServico}\n\n`;
+    summary += `🔧 *Atividades Realizadas:*\n`;
+    
+    const activities = getPreviewText();
+    if (activities.length > 0) {
+      activities.forEach(activity => {
+        summary += `${activity}\n`;
+      });
+    } else {
+      summary += "Nenhuma atividade registrada\n";
+    }
+    
+    if (observacoes.trim()) {
+      summary += `\n📝 *Observações:*\n${observacoes.trim()}`;
+    }
+    
+    return summary;
+  };
+
+  const handleWhatsApp = async () => {
+    // Save first, then send to WhatsApp
+    if (!user) {
+      toast.error("Você precisa estar logado para salvar.");
+      return;
+    }
+
+    if (!localServico) {
+      toast.error("Selecione o Local do Serviço.");
+      return;
+    }
+
+    const combinedObservacoes = buildObservacoes();
+    
+    let fullLocalServico = localServico;
+    if (fase) {
+      fullLocalServico += ` - Fase ${fase}`;
+    }
+    if (elevado) {
+      fullLocalServico += ` - Elevado ${elevado}`;
+    }
+
+    try {
+      await saveReport.mutateAsync({
+        report_date: selectedDateStr,
+        local_servico: fullLocalServico,
+        observacoes: combinedObservacoes || undefined,
+      });
+      
+      const summary = generateRDOSummary();
+      const encoded = encodeURIComponent(summary);
+      window.open(`https://wa.me/?text=${encoded}`, "_blank");
+      toast.success("Atividades salvas e enviadas para WhatsApp!");
+    } catch (error: any) {
+      toast.error("Erro ao salvar: " + error.message);
+    }
+  };
+
   const handleDelete = async () => {
     if (!existingReport) return;
     
@@ -553,7 +623,7 @@ export default function AtividadesII() {
             </Button>
 
             <Button 
-              onClick={() => handleSave(true)} 
+              onClick={handleWhatsApp} 
               disabled={saveReport.isPending}
               className="gap-2 bg-orange-600 hover:bg-orange-700"
             >
