@@ -14,6 +14,8 @@ export interface JardinagemReport {
   podagem_berma: number | null;
   coroamento_unidade: number | null;
   coroamento_berma: number | null;
+  adubagem_unidade: number | null;
+  adubagem_berma: number | null;
   plantio_unidade: number | null;
   plantio_berma: number | null;
   limpeza_manual_m2: number | null;
@@ -38,6 +40,8 @@ export interface JardinagemReportInsert {
   podagem_berma?: number;
   coroamento_unidade?: number;
   coroamento_berma?: number;
+  adubagem_unidade?: number;
+  adubagem_berma?: number;
   plantio_unidade?: number;
   plantio_berma?: number;
   limpeza_manual_m2?: number;
@@ -200,6 +204,9 @@ export const formatJardinagemForRDO = (report: JardinagemReport | null): string 
   }
   if (report.coroamento_unidade && report.coroamento_unidade > 0) {
     lines.push(`* Coroamento - ${report.coroamento_unidade} unidade(s)${formatBerma(report.coroamento_berma)}`);
+  }
+  if (report.adubagem_unidade && report.adubagem_unidade > 0) {
+    lines.push(`* Adubagem - ${report.adubagem_unidade} unidade(s)${formatBerma(report.adubagem_berma)}`);
   }
   if (report.plantio_unidade && report.plantio_unidade > 0) {
     lines.push(`* Plantio - ${report.plantio_unidade} unidade(s)${formatBerma(report.plantio_berma)}`);
