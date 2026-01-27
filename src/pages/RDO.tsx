@@ -1,7 +1,7 @@
 import { useState, useMemo, useRef, useEffect } from "react";
 import { format, parseISO } from "date-fns";
 import { ptBR } from "date-fns/locale";
-import { Copy, Send, FileText, Sun, Cloud, CloudRain, CloudSun, Save, History, Image, X, Loader2, Calendar, Trash2, Clock } from "lucide-react";
+import { Copy, Send, FileText, Sun, Cloud, CloudRain, CloudSun, Save, History, Image, X, Loader2, Calendar, Trash2, Clock, Lock, Unlock } from "lucide-react";
 import { toast } from "sonner";
 import Layout from "@/components/layout/Layout";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
@@ -23,8 +23,11 @@ import { useRDOReports, useRDOReport, useSaveRDOReport, useUploadRDOPhotos, useD
 import { useJardinagemReportByDate, formatJardinagemForRDO } from "@/hooks/useJardinagemReports";
 import { useGabiaoReportByDate, formatGabiaoForRDO } from "@/hooks/useGabiaoReports";
 import { useAuth } from "@/hooks/useAuth";
+import { useRDOLock } from "@/hooks/useRDOLock";
+import { useIsAdmin } from "@/hooks/useUserRole";
 import { getBrazilNorthDate, getBrazilNorthTodayString } from "@/lib/timezone";
 import { cn } from "@/lib/utils";
+import { AlertDialog, AlertDialogAction, AlertDialogCancel, AlertDialogContent, AlertDialogDescription, AlertDialogFooter, AlertDialogHeader, AlertDialogTitle, AlertDialogTrigger } from "@/components/ui/alert-dialog";
 
 // Role mappings for areas
 const roleToArea: Record<string, "gabiao" | "jardinagem"> = {
@@ -301,9 +304,18 @@ ${difficulties}`;
     window.open(`https://wa.me/?text=${encoded}`, "_blank");
   };
 
+  // RDO Lock hook
+  const { isLocked, lockData, lockRDO, unlockRDO, canUnlock } = useRDOLock(selectedDateStr);
+  const { isAdmin } = useIsAdmin();
+
   const handleSave = async () => {
     if (!user) {
       toast.error("Você precisa estar logado para salvar o relatório.");
+      return;
+    }
+
+    if (isLocked) {
+      toast.error("Este relatório está bloqueado. Desbloqueie para editar.");
       return;
     }
 
@@ -316,18 +328,40 @@ ${difficulties}`;
         photo_urls: photos,
         report_text: generateReport(),
       });
-      toast.success("Relatório salvo com sucesso!");
+      
+      // Lock the report after saving
+      await lockRDO.mutateAsync();
+      
+      toast.success("Relatório salvo e bloqueado!");
     } catch (error: any) {
       toast.error("Erro ao salvar: " + error.message);
+    }
+  };
+
+  const handleUnlock = async () => {
+    try {
+      await unlockRDO.mutateAsync();
+      toast.success("Relatório desbloqueado!");
+    } catch (error: any) {
+      toast.error("Erro ao desbloquear: " + error.message);
     }
   };
 
   const handleDelete = async () => {
     if (!existingReport) return;
     
+    if (isLocked && !canUnlock && !isAdmin) {
+      toast.error("Este relatório está bloqueado. Desbloqueie para excluir.");
+      return;
+    }
+
     if (!confirm("Tem certeza que deseja excluir este relatório?")) return;
 
     try {
+      // Unlock first if locked
+      if (isLocked) {
+        await unlockRDO.mutateAsync();
+      }
       await deleteReport.mutateAsync(existingReport.id);
       toast.success("Relatório excluído!");
     } catch (error: any) {
@@ -483,7 +517,41 @@ ${difficulties}`;
               </DialogContent>
             </Dialog>
 
-            {existingReport && (
+            {/* Lock Status Badge */}
+            {isLocked && (
+              <Badge variant="destructive" className="gap-1">
+                <Lock className="h-3 w-3" />
+                Bloqueado
+              </Badge>
+            )}
+
+            {/* Unlock Button - only show if locked and user can unlock */}
+            {isLocked && (canUnlock || isAdmin) && (
+              <AlertDialog>
+                <AlertDialogTrigger asChild>
+                  <Button variant="outline" className="gap-2 border-amber-500 text-amber-600 hover:bg-amber-500/10">
+                    <Unlock className="h-4 w-4" />
+                    Desbloquear
+                  </Button>
+                </AlertDialogTrigger>
+                <AlertDialogContent>
+                  <AlertDialogHeader>
+                    <AlertDialogTitle>Desbloquear Relatório?</AlertDialogTitle>
+                    <AlertDialogDescription>
+                      Ao desbloquear, o relatório poderá ser editado novamente. Deseja continuar?
+                    </AlertDialogDescription>
+                  </AlertDialogHeader>
+                  <AlertDialogFooter>
+                    <AlertDialogCancel>Cancelar</AlertDialogCancel>
+                    <AlertDialogAction onClick={handleUnlock}>
+                      Desbloquear
+                    </AlertDialogAction>
+                  </AlertDialogFooter>
+                </AlertDialogContent>
+              </AlertDialog>
+            )}
+
+            {existingReport && !isLocked && (
               <Button variant="destructive" size="icon" onClick={handleDelete}>
                 <Trash2 className="h-4 w-4" />
               </Button>
@@ -497,13 +565,19 @@ ${difficulties}`;
               <Send className="h-4 w-4 mr-2" />
               WhatsApp
             </Button>
-            <Button onClick={handleSave} disabled={saveReport.isPending}>
-              {saveReport.isPending ? (
+            <Button 
+              onClick={handleSave} 
+              disabled={saveReport.isPending || lockRDO.isPending || isLocked}
+              className={isLocked ? "opacity-50" : ""}
+            >
+              {saveReport.isPending || lockRDO.isPending ? (
                 <Loader2 className="h-4 w-4 mr-2 animate-spin" />
+              ) : isLocked ? (
+                <Lock className="h-4 w-4 mr-2" />
               ) : (
                 <Save className="h-4 w-4 mr-2" />
               )}
-              Salvar
+              {isLocked ? "Bloqueado" : "Salvar"}
             </Button>
           </div>
         </div>
