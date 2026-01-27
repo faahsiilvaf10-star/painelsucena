@@ -1,5 +1,5 @@
 import { useState, useEffect } from "react";
-import { Download, X, Smartphone } from "lucide-react";
+import { Download, X } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import {
   Dialog,
@@ -95,9 +95,11 @@ export function InstallPrompt() {
           </button>
           
           <div className="flex items-start gap-3">
-            <div className="w-12 h-12 bg-primary/20 rounded-xl flex items-center justify-center shrink-0">
-              <Smartphone className="w-6 h-6 text-primary" />
-            </div>
+            <img 
+              src="/pwa-192x192.png" 
+              alt="App Logo" 
+              className="w-12 h-12 rounded-xl shrink-0"
+            />
             <div className="flex-1 min-w-0">
               <h3 className="font-semibold text-sm">Instalar App</h3>
               <p className="text-xs text-muted-foreground mt-0.5">
@@ -122,7 +124,7 @@ export function InstallPrompt() {
         <DialogContent className="sm:max-w-md">
           <DialogHeader>
             <DialogTitle className="flex items-center gap-2">
-              <Smartphone className="w-5 h-5" />
+              <img src="/pwa-192x192.png" alt="App Logo" className="w-6 h-6 rounded" />
               Instalar no iPhone/iPad
             </DialogTitle>
             <DialogDescription>
