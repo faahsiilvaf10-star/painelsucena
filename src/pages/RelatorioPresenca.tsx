@@ -26,6 +26,7 @@ import type { Tables } from "@/integrations/supabase/types";
 import { toast } from "sonner";
 import { useUpsertAttendance } from "@/hooks/useAttendance";
 import { useReportLock } from "@/hooks/useReportLock";
+import { useSaveEfetivoToRDO } from "@/hooks/useRDOReports";
 import { getBrazilNorthTodayString } from "@/lib/timezone";
 
 type AttendanceWithEmployee = Tables<"attendance_records"> & {
@@ -136,6 +137,7 @@ const RelatorioPresenca = () => {
 
   const queryClient = useQueryClient();
   const upsertAttendance = useUpsertAttendance();
+  const saveEfetivoToRDO = useSaveEfetivoToRDO();
   const { isLocked, lockReport, unlockReport, canUnlock, isLoading: lockLoading } = useReportLock(selectedDate);
 
   // Fetch attendance records for the selected date with employees
@@ -268,9 +270,19 @@ const RelatorioPresenca = () => {
       await queryClient.invalidateQueries({ queryKey: ["attendance_report", selectedDate] });
       await queryClient.invalidateQueries({ queryKey: ["attendance_records"] });
 
+      // Generate efetivo text for both areas and save to RDO
+      const efetivoGabiaoText = generateAreaReport("ÁREA GABIÃO");
+      const efetivoJardinagemText = generateAreaReport("ROÇAGEM E PODAGEM");
+
+      await saveEfetivoToRDO.mutateAsync({
+        report_date: selectedDate,
+        efetivo_gabiao_text: efetivoGabiaoText,
+        efetivo_jardinagem_text: efetivoJardinagemText,
+      });
+
       // Then lock the report
       await lockReport.mutateAsync();
-      toast.success("Relatório salvo! Os status não podem mais ser alterados.");
+      toast.success("Relatório salvo e efetivo enviado ao RDO!");
     } catch {
       toast.error("Erro ao salvar relatório");
     }

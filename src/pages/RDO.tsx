@@ -196,15 +196,28 @@ export default function RDO() {
 
   // Generate the formatted report
   const generateReport = () => {
-    // Build workforce text for gabião
-    const gabiaoWorkforce = Object.entries(workforceByArea.gabiao)
-      .map(([role, count]) => `${String(count).padStart(2, "0")} ${roleLabels[role] || role}`)
-      .join("\n");
+    // Use saved efetivo from Relatório de Presença if available
+    // Otherwise fallback to automatic calculation
+    let gabiaoWorkforce = "";
+    let jardinagemWorkforce = "";
 
-    // Build workforce text for jardinagem
-    const jardinagemWorkforce = Object.entries(workforceByArea.jardinagem)
-      .map(([role, count]) => `${String(count).padStart(2, "0")} ${roleLabels[role] || role}`)
-      .join("\n");
+    if (existingReport?.efetivo_gabiao_text) {
+      gabiaoWorkforce = existingReport.efetivo_gabiao_text;
+    } else {
+      // Fallback to automatic calculation
+      gabiaoWorkforce = Object.entries(workforceByArea.gabiao)
+        .map(([role, count]) => `${String(count).padStart(2, "0")} ${roleLabels[role] || role}`)
+        .join("\n");
+    }
+
+    if (existingReport?.efetivo_jardinagem_text) {
+      jardinagemWorkforce = existingReport.efetivo_jardinagem_text;
+    } else {
+      // Fallback to automatic calculation
+      jardinagemWorkforce = Object.entries(workforceByArea.jardinagem)
+        .map(([role, count]) => `${String(count).padStart(2, "0")} ${roleLabels[role] || role}`)
+        .join("\n");
+    }
 
     // Build equipment text
     const equipmentText = equipmentSummary.items
