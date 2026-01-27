@@ -1103,7 +1103,7 @@ export default function AtividadesII() {
             </CardHeader>
             <CardContent>
               <div className="bg-muted p-4 rounded-lg space-y-2 font-mono text-sm">
-                <p className="font-bold">📍 Local: {getFaixaLabel(localServico)}{elevado ? ` - Elevado ${elevado}` : ""}</p>
+                <p className="font-bold">📍 Local: {getFaixaLabel(localServico)}{fase ? ` - Fase ${fase}` : ""}{elevado ? ` - Elevado ${elevado}` : ""}</p>
                 <div className="border-t pt-2 mt-2 space-y-1">
                   {getPreviewText().length > 0 ? (
                     getPreviewText().map((line, idx) => (
