@@ -88,7 +88,7 @@ export default function AtividadesII() {
 
   // Calculate totals for the measurement period by parsing observacoes
   const measurementPeriodTotals = useMemo(() => {
-    if (!allReports) return { escavacaoManual: 0, reposicaoManta: 0, reposicaoSilte: 0 };
+    if (!allReports) return { escavacaoManual: 0, reposicaoManta: 0, reposicaoSilte: 0, recomposicaoTela: 0, recomposicaoCascalho: 0, recomposicaoSilte: 0 };
     
     const { startDate, endDate } = getMeasurementPeriod();
     const startStr = format(startDate, "yyyy-MM-dd");
@@ -104,13 +104,19 @@ export default function AtividadesII() {
       const hasEscavacao = obs.includes("Escavação manual") ? 1 : 0;
       const hasManta = obs.includes("Reposição de manta") ? 1 : 0;
       const hasSilte = obs.includes("Reposição de silte") ? 1 : 0;
+      const hasRecompTela = obs.includes("Recomposição de tela") ? 1 : 0;
+      const hasRecompCascalho = obs.includes("Recomposição de cascalho") ? 1 : 0;
+      const hasRecompSilte = obs.includes("Recomposição de silte") ? 1 : 0;
       
       return {
         escavacaoManual: acc.escavacaoManual + hasEscavacao,
         reposicaoManta: acc.reposicaoManta + hasManta,
         reposicaoSilte: acc.reposicaoSilte + hasSilte,
+        recomposicaoTela: acc.recomposicaoTela + hasRecompTela,
+        recomposicaoCascalho: acc.recomposicaoCascalho + hasRecompCascalho,
+        recomposicaoSilte: acc.recomposicaoSilte + hasRecompSilte,
       };
-    }, { escavacaoManual: 0, reposicaoManta: 0, reposicaoSilte: 0 });
+    }, { escavacaoManual: 0, reposicaoManta: 0, reposicaoSilte: 0, recomposicaoTela: 0, recomposicaoCascalho: 0, recomposicaoSilte: 0 });
     
     return totals;
   }, [allReports, selectedDate]);
@@ -683,10 +689,13 @@ export default function AtividadesII() {
                       {measurementPeriodLabel}
                     </Badge>
                   </div>
-                  <div className="flex items-center gap-3 text-xs text-muted-foreground">
+                  <div className="flex flex-wrap items-center gap-x-3 gap-y-1 text-xs text-muted-foreground">
                     <span>⛏️ Escavação: <strong className="text-foreground">{measurementPeriodTotals.escavacaoManual}</strong></span>
                     <span>🧱 Manta: <strong className="text-foreground">{measurementPeriodTotals.reposicaoManta}</strong></span>
-                    <span>🏗️ Silte: <strong className="text-foreground">{measurementPeriodTotals.reposicaoSilte}</strong></span>
+                    <span>🏗️ Rep. Silte: <strong className="text-foreground">{measurementPeriodTotals.reposicaoSilte}</strong></span>
+                    <span>🔗 Tela: <strong className="text-foreground">{measurementPeriodTotals.recomposicaoTela}</strong></span>
+                    <span>🪨 Cascalho: <strong className="text-foreground">{measurementPeriodTotals.recomposicaoCascalho}</strong></span>
+                    <span>🏔️ Rec. Silte: <strong className="text-foreground">{measurementPeriodTotals.recomposicaoSilte}</strong></span>
                   </div>
                 </div>
               </CardContent>
