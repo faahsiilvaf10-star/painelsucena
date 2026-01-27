@@ -101,21 +101,21 @@ export function LoginTransition({ onComplete, userName, userAvatar, userCargo }:
   }, [phase, fullName]);
 
   useEffect(() => {
-    // Logo animation + cursor animation + welcome screen
-    // Total ~13 seconds:
-    // - logo-center: 0-1.5s (logo appears large centered)
-    // - logo-move: 1.5s-3s (logo moves to sidebar position)
-    // - cursor-move: 3s-4.5s (cursor moves to avatar)
-    // - click: 4.5s-5.2s (click effect)
-    // - zoom: 5.2s-12.5s (welcome screen with confetti)
-    // - fade: 12.5s-13s (fade out)
+    // Smoother login animation with better pacing
+    // Total ~10 seconds with more fluid transitions:
+    // - logo-center: 0-2s (logo appears large centered with breathing effect)
+    // - logo-move: 2s-4s (logo moves smoothly to sidebar position)
+    // - cursor-move: 4s-5.5s (cursor glides to avatar)
+    // - click: 5.5s-6s (gentle click effect)
+    // - zoom: 6s-9s (welcome screen with confetti)
+    // - fade: 9s-10s (smooth fade out)
     
-    const logoMoveTimer = setTimeout(() => setPhase("logo-move"), 1500);
-    const cursorMoveTimer = setTimeout(() => setPhase("cursor-move"), 3000);
-    const clickTimer = setTimeout(() => setPhase("click"), 4500);
-    const zoomTimer = setTimeout(() => setPhase("zoom"), 5200);
-    const fadeTimer = setTimeout(() => setPhase("fade"), 12500);
-    const completeTimer = setTimeout(() => onComplete(), 13000);
+    const logoMoveTimer = setTimeout(() => setPhase("logo-move"), 2000);
+    const cursorMoveTimer = setTimeout(() => setPhase("cursor-move"), 4000);
+    const clickTimer = setTimeout(() => setPhase("click"), 5500);
+    const zoomTimer = setTimeout(() => setPhase("zoom"), 6000);
+    const fadeTimer = setTimeout(() => setPhase("fade"), 9000);
+    const completeTimer = setTimeout(() => onComplete(), 10000);
 
     return () => {
       clearTimeout(logoMoveTimer);
@@ -226,9 +226,9 @@ export function LoginTransition({ onComplete, userName, userAvatar, userCargo }:
         }}
       />
 
-      {/* Animated Logo - starts centered and large, moves to sidebar position */}
+      {/* Animated Logo - starts centered and large, moves to sidebar position with smooth easing */}
       <div
-        className={`absolute transition-all ease-out ${
+        className={`absolute ${
           phase === "logo-center"
             ? "top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 scale-100 opacity-100"
             : phase === "logo-move"
@@ -237,25 +237,25 @@ export function LoginTransition({ onComplete, userName, userAvatar, userCargo }:
         }`}
         style={{
           transition: phase === "logo-center" 
-            ? "all 0.8s cubic-bezier(0.34, 1.56, 0.64, 1)" 
+            ? "all 1s cubic-bezier(0.22, 1, 0.36, 1)" 
             : phase === "logo-move"
-            ? "all 1.5s cubic-bezier(0.34, 0.02, 0.21, 1)"
-            : "opacity 0.5s ease-out",
+            ? "all 2s cubic-bezier(0.16, 1, 0.3, 1)"
+            : "opacity 0.8s cubic-bezier(0.4, 0, 0.2, 1)",
           zIndex: 60,
         }}
       >
         <img
           src={logoUrl}
           alt="Logo"
-          className={`object-contain transition-all ease-out ${
+          className={`object-contain ${
             phase === "logo-center"
               ? "h-32 max-w-[400px] drop-shadow-[0_0_40px_rgba(255,255,255,0.3)]"
               : "h-10 max-w-[140px]"
           }`}
           style={{
             transition: phase === "logo-center"
-              ? "all 0.8s cubic-bezier(0.34, 1.56, 0.64, 1)"
-              : "all 1.5s cubic-bezier(0.34, 0.02, 0.21, 1)",
+              ? "all 1s cubic-bezier(0.22, 1, 0.36, 1)"
+              : "all 2s cubic-bezier(0.16, 1, 0.3, 1)",
             filter: phase === "logo-center" 
               ? "drop-shadow(0 0 40px rgba(255, 255, 255, 0.4)) drop-shadow(0 0 80px rgba(255, 255, 255, 0.2))"
               : "none",
@@ -304,7 +304,7 @@ export function LoginTransition({ onComplete, userName, userAvatar, userCargo }:
         </div>
       )}
 
-      {/* Animated cursor - realistic movement (only shows after logo animation) */}
+      {/* Animated cursor - smooth gliding movement */}
       {(phase === "cursor-move" || phase === "click") && (
         <div
           className={`absolute ${
@@ -316,10 +316,10 @@ export function LoginTransition({ onComplete, userName, userAvatar, userCargo }:
           }`}
           style={{
             transition: phase === "cursor-move" 
-              ? "all 1.5s cubic-bezier(0.34, 0.02, 0.21, 1)" 
+              ? "all 1.5s cubic-bezier(0.16, 1, 0.3, 1)" 
               : phase === "click"
-              ? "all 0.3s cubic-bezier(0.25, 0.46, 0.45, 0.94)"
-              : "all 0.5s ease-out"
+              ? "all 0.25s cubic-bezier(0.34, 1.56, 0.64, 1)"
+              : "all 0.6s cubic-bezier(0.4, 0, 0.2, 1)"
           }}
         >
           <svg
@@ -329,6 +329,9 @@ export function LoginTransition({ onComplete, userName, userAvatar, userCargo }:
             fill="none"
             xmlns="http://www.w3.org/2000/svg"
             className={`drop-shadow-lg ${phase === "click" ? "animate-pulse" : ""}`}
+            style={{
+              filter: "drop-shadow(0 4px 12px rgba(0,0,0,0.3))",
+            }}
           >
             <path
               d="M5.5 3.21V20.8c0 .45.54.67.85.35l4.86-4.86a.5.5 0 0 1 .35-.15h6.87a.5.5 0 0 0 .35-.85L6.35 2.86a.5.5 0 0 0-.85.35Z"
@@ -347,16 +350,23 @@ export function LoginTransition({ onComplete, userName, userAvatar, userCargo }:
         </div>
       )}
 
-      {/* Avatar that zooms in - with click enlargement and glow (only shows during cursor phases) */}
+      {/* Avatar that zooms in - with smooth transitions and glow */}
       {(phase === "cursor-move" || phase === "click") && (
         <div
-          className={`absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 rounded-full flex items-center justify-center transition-all ${
+          className={`absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 rounded-full flex items-center justify-center ${
             phase === "cursor-move"
-              ? "w-16 h-16 duration-700 ease-out bg-gray-400/90 shadow-2xl"
+              ? "w-16 h-16 bg-gray-400/90 shadow-2xl"
               : phase === "click"
-              ? "w-20 h-20 duration-200 ease-out bg-gray-400/90 shadow-[0_0_40px_10px_rgba(255,255,255,0.5),0_0_80px_20px_rgba(255,255,255,0.3)]"
-              : "opacity-0 scale-0 duration-500"
+              ? "w-20 h-20 bg-gray-400/90 shadow-[0_0_40px_10px_rgba(255,255,255,0.5),0_0_80px_20px_rgba(255,255,255,0.3)]"
+              : "opacity-0 scale-0"
           }`}
+          style={{
+            transition: phase === "cursor-move"
+              ? "all 0.8s cubic-bezier(0.16, 1, 0.3, 1)"
+              : phase === "click"
+              ? "all 0.3s cubic-bezier(0.34, 1.56, 0.64, 1)"
+              : "all 0.6s cubic-bezier(0.4, 0, 0.2, 1)"
+          }}
         >
           {/* Glow ring effect on click */}
           {phase === "click" && (
@@ -367,36 +377,45 @@ export function LoginTransition({ onComplete, userName, userAvatar, userCargo }:
             <img 
               src={userAvatar} 
               alt="Avatar"
-              className={`rounded-full object-cover transition-all ease-out ${
+              className={`rounded-full object-cover ${
                 phase === "cursor-move" 
-                  ? "w-9 h-9 duration-300" 
+                  ? "w-9 h-9" 
                   : phase === "click"
-                  ? "w-12 h-12 duration-200 brightness-110"
-                  : "opacity-0 scale-0 duration-700"
+                  ? "w-12 h-12 brightness-110"
+                  : "opacity-0 scale-0"
               }`}
+              style={{
+                transition: "all 0.4s cubic-bezier(0.16, 1, 0.3, 1)"
+              }}
             />
           ) : (
             <User 
-              className={`text-white/90 transition-all ease-out ${
+              className={`text-white/90 ${
                 phase === "cursor-move" 
-                  ? "w-9 h-9 duration-300" 
+                  ? "w-9 h-9" 
                   : phase === "click"
-                  ? "w-12 h-12 duration-200"
-                  : "opacity-0 scale-0 duration-700"
-              }`} 
+                  ? "w-12 h-12"
+                  : "opacity-0 scale-0"
+              }`}
+              style={{
+                transition: "all 0.4s cubic-bezier(0.16, 1, 0.3, 1)"
+              }}
               strokeWidth={1.5} 
             />
           )}
         </div>
       )}
 
-      {/* Welcome text with modern gaming style */}
+      {/* Welcome text with smooth entrance */}
       {(phase === "zoom" || phase === "fade") && (
         <div className="absolute inset-0 flex items-center justify-center">
           <div 
-            className={`flex flex-col items-center transition-all duration-700 ease-out ${
+            className={`flex flex-col items-center ${
               phase === "zoom" ? "opacity-100 scale-100" : "opacity-0 scale-105"
             }`}
+            style={{
+              transition: "all 0.8s cubic-bezier(0.16, 1, 0.3, 1)"
+            }}
           >
             {/* User avatar in welcome section with animation */}
             {userAvatar && (
@@ -491,12 +510,13 @@ export function LoginTransition({ onComplete, userName, userAvatar, userCargo }:
         </div>
       )}
 
-      {/* Final fade overlay - slower */}
+      {/* Final fade overlay - smoother transition */}
       <div 
-        className={`absolute inset-0 transition-opacity duration-500 ease-out ${
+        className={`absolute inset-0 ${
           phase === "fade" ? "opacity-100" : "opacity-0"
         }`}
         style={{
+          transition: "opacity 1s cubic-bezier(0.4, 0, 0.2, 1)",
           background: `radial-gradient(
             ellipse 80% 60% at 50% 50%,
             hsl(220, 10%, 25%) 0%,
@@ -557,11 +577,11 @@ export function LoginTransition({ onComplete, userName, userAvatar, userCargo }:
         
         @keyframes avatar-entrance {
           0% {
-            transform: scale(0) rotate(-180deg);
+            transform: scale(0) rotate(-90deg);
             opacity: 0;
           }
-          50% {
-            transform: scale(1.1) rotate(10deg);
+          60% {
+            transform: scale(1.05) rotate(5deg);
             opacity: 1;
           }
           100% {
@@ -597,7 +617,7 @@ export function LoginTransition({ onComplete, userName, userAvatar, userCargo }:
         }
         
         .animate-avatar-entrance {
-          animation: avatar-entrance 0.8s cubic-bezier(0.34, 1.56, 0.64, 1) forwards;
+          animation: avatar-entrance 0.9s cubic-bezier(0.16, 1, 0.3, 1) forwards;
         }
         
         .animate-avatar-pulse {
