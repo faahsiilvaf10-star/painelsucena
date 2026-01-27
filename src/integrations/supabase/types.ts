@@ -252,6 +252,9 @@ export type Database = {
           created_at: string
           created_by: string
           id: string
+          irrigacao_carretel: boolean | null
+          irrigacao_carretel_bermas: number[] | null
+          irrigacao_pipas: boolean | null
           limpeza_assoprador_berma: number | null
           limpeza_assoprador_m2: number | null
           limpeza_manual_berma: number | null
@@ -279,6 +282,9 @@ export type Database = {
           created_at?: string
           created_by: string
           id?: string
+          irrigacao_carretel?: boolean | null
+          irrigacao_carretel_bermas?: number[] | null
+          irrigacao_pipas?: boolean | null
           limpeza_assoprador_berma?: number | null
           limpeza_assoprador_m2?: number | null
           limpeza_manual_berma?: number | null
@@ -306,6 +312,9 @@ export type Database = {
           created_at?: string
           created_by?: string
           id?: string
+          irrigacao_carretel?: boolean | null
+          irrigacao_carretel_bermas?: number[] | null
+          irrigacao_pipas?: boolean | null
           limpeza_assoprador_berma?: number | null
           limpeza_assoprador_m2?: number | null
           limpeza_manual_berma?: number | null

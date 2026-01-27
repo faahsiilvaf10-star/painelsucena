@@ -1,7 +1,7 @@
 import { useState, useEffect, useMemo } from "react";
 import { format, parseISO } from "date-fns";
 import { ptBR } from "date-fns/locale";
-import { Leaf, Save, Loader2, Calendar, Trash2, History, ArrowRight, Plus, X, Send } from "lucide-react";
+import { Leaf, Save, Loader2, Calendar, Trash2, History, ArrowRight, Plus, X, Send, Droplets } from "lucide-react";
 import { toast } from "sonner";
 import { useNavigate } from "react-router-dom";
 import Layout from "@/components/layout/Layout";
@@ -16,6 +16,7 @@ import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger } from 
 import { Calendar as CalendarComponent } from "@/components/ui/calendar";
 import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover";
 import { Badge } from "@/components/ui/badge";
+import { Checkbox } from "@/components/ui/checkbox";
 import { useAuth } from "@/hooks/useAuth";
 import { useProfile } from "@/hooks/useProfile";
 import { useIsAdmin } from "@/hooks/useUserRole";
@@ -45,6 +46,12 @@ const FAIXA_OPTIONS = [
 const BERMA_OPTIONS = Array.from({ length: 29 }, (_, i) => ({
   value: (28 + i).toString(),
   label: `Berma ${28 + i}`,
+}));
+
+// Generate even berma options from 28 to 56 (only even numbers)
+const BERMA_OPTIONS_EVEN = Array.from({ length: 15 }, (_, i) => ({
+  value: (28 + i * 2).toString(),
+  label: `Berma ${28 + i * 2}`,
 }));
 
 export default function Atividades() {
@@ -126,6 +133,11 @@ export default function Atividades() {
   const [invasoras, setInvasoras] = useState<InvasoraEntry[]>([{ nome: "", unidade: "" }]);
   const [invasorasBerma, setInvasorasBerma] = useState("");
   const [retiradaMudasUnidade, setRetiradaMudasUnidade] = useState("");
+  
+  // Irrigation state
+  const [irrigacaoPipas, setIrrigacaoPipas] = useState(false);
+  const [irrigacaoCarretel, setIrrigacaoCarretel] = useState(false);
+  const [irrigacaoCarretelBermas, setIrrigacaoCarretelBermas] = useState<number[]>([]);
 
   // Helper functions for invasoras
   const addInvasora = () => {
@@ -205,6 +217,10 @@ export default function Atividades() {
       setInvasoras(parseInvasorasFromStorage(existingReport.controle_invasoras_nome, existingReport.controle_invasoras_unidade));
       setInvasorasBerma(existingReport.controle_invasoras_berma?.toString() || "");
       setRetiradaMudasUnidade(existingReport.retirada_mudas_unidade?.toString() || "");
+      // Irrigation fields
+      setIrrigacaoPipas(existingReport.irrigacao_pipas || false);
+      setIrrigacaoCarretel(existingReport.irrigacao_carretel || false);
+      setIrrigacaoCarretelBermas(existingReport.irrigacao_carretel_bermas || []);
     } else {
       // Reset form for new date
       setLocalFaixa("FAIXA 2");
@@ -226,6 +242,10 @@ export default function Atividades() {
       setInvasoras([{ nome: "", unidade: "" }]);
       setInvasorasBerma("");
       setRetiradaMudasUnidade("");
+      // Reset irrigation fields
+      setIrrigacaoPipas(false);
+      setIrrigacaoCarretel(false);
+      setIrrigacaoCarretelBermas([]);
     }
   }, [existingReport, selectedDateStr]);
 
@@ -294,6 +314,9 @@ export default function Atividades() {
         controle_invasoras_nome: invasorasData.nome,
         controle_invasoras_berma: invasorasBerma ? parseInt(invasorasBerma) : undefined,
         retirada_mudas_unidade: retiradaMudasUnidade ? parseInt(retiradaMudasUnidade) : undefined,
+        irrigacao_pipas: irrigacaoPipas,
+        irrigacao_carretel: irrigacaoCarretel,
+        irrigacao_carretel_bermas: irrigacaoCarretel && irrigacaoCarretelBermas.length > 0 ? irrigacaoCarretelBermas : undefined,
       });
       
       if (redirectToRdo) {
@@ -869,6 +892,83 @@ export default function Atividades() {
                   rows={3}
                 />
               </div>
+
+              {/* Irrigation Section */}
+              <div className="space-y-4 p-4 rounded-lg bg-blue-500/10 border border-blue-500/20">
+                <div className="flex items-center gap-2">
+                  <Droplets className="h-5 w-5 text-blue-500" />
+                  <Label className="text-base font-semibold text-blue-500">IRRIGAÇÃO</Label>
+                </div>
+                
+                {/* Irrigação com Pipas */}
+                <div className="flex items-center space-x-3 p-3 rounded-lg bg-background/50">
+                  <Checkbox
+                    id="irrigacao-pipas"
+                    checked={irrigacaoPipas}
+                    onCheckedChange={(checked) => setIrrigacaoPipas(checked === true)}
+                  />
+                  <Label htmlFor="irrigacao-pipas" className="cursor-pointer">
+                    Irrigação com Pipas nas Faixas 3 e 4 e Mirante
+                  </Label>
+                </div>
+
+                {/* Irrigação com Carretel */}
+                <div className="space-y-3 p-3 rounded-lg bg-background/50">
+                  <div className="flex items-center space-x-3">
+                    <Checkbox
+                      id="irrigacao-carretel"
+                      checked={irrigacaoCarretel}
+                      onCheckedChange={(checked) => {
+                        setIrrigacaoCarretel(checked === true);
+                        if (!checked) {
+                          setIrrigacaoCarretelBermas([]);
+                        }
+                      }}
+                    />
+                    <Label htmlFor="irrigacao-carretel" className="cursor-pointer">
+                      Irrigação com Carretel
+                    </Label>
+                  </div>
+
+                  {irrigacaoCarretel && (
+                    <div className="ml-7 space-y-2">
+                      <Label className="text-sm text-muted-foreground">Selecione as Bermas (somente pares):</Label>
+                      <div className="grid grid-cols-5 sm:grid-cols-8 gap-2">
+                        {BERMA_OPTIONS_EVEN.map((opt) => {
+                          const bermaNum = parseInt(opt.value);
+                          const isSelected = irrigacaoCarretelBermas.includes(bermaNum);
+                          return (
+                            <button
+                              key={opt.value}
+                              type="button"
+                              onClick={() => {
+                                if (isSelected) {
+                                  setIrrigacaoCarretelBermas(irrigacaoCarretelBermas.filter(b => b !== bermaNum));
+                                } else {
+                                  setIrrigacaoCarretelBermas([...irrigacaoCarretelBermas, bermaNum].sort((a, b) => a - b));
+                                }
+                              }}
+                              className={cn(
+                                "px-3 py-2 text-sm rounded-md border transition-colors",
+                                isSelected
+                                  ? "bg-blue-500 text-white border-blue-500"
+                                  : "bg-background border-input hover:bg-muted"
+                              )}
+                            >
+                              {bermaNum}
+                            </button>
+                          );
+                        })}
+                      </div>
+                      {irrigacaoCarretelBermas.length > 0 && (
+                        <p className="text-xs text-muted-foreground">
+                          Selecionadas: {irrigacaoCarretelBermas.join(", ")}
+                        </p>
+                      )}
+                    </div>
+                  )}
+                </div>
+              </div>
             </CardContent>
           </Card>
 
@@ -921,7 +1021,13 @@ export default function Atividades() {
                   {manutencaoCanteiro && (
                     <p>* Manutenção de Canteiro: {manutencaoCanteiro}</p>
                   )}
-                  {!rocagem && !podagem && !coroamento && !adubagem && !plantio && !limpezaManual && !limpezaAssoprador && !invasoras.some(i => i.unidade && parseInt(i.unidade) > 0) && !retiradaMudasUnidade && !manutencaoCanteiro && (
+                  {irrigacaoPipas && (
+                    <p>* Irrigação com Pipas nas Faixas 3 e 4 e Mirante</p>
+                  )}
+                  {irrigacaoCarretel && (
+                    <p>* Irrigação com Carretel{irrigacaoCarretelBermas.length > 0 && ` (Bermas: ${irrigacaoCarretelBermas.join(", ")})`}</p>
+                  )}
+                  {!rocagem && !podagem && !coroamento && !adubagem && !plantio && !limpezaManual && !limpezaAssoprador && !invasoras.some(i => i.unidade && parseInt(i.unidade) > 0) && !retiradaMudasUnidade && !manutencaoCanteiro && !irrigacaoPipas && !irrigacaoCarretel && (
                     <p className="text-muted-foreground italic">Nenhuma atividade preenchida</p>
                   )}
                 </div>
