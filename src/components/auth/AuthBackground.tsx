@@ -44,6 +44,7 @@ interface Particle {
   delay: number;
   opacity: number;
   type: "small" | "medium" | "large";
+  speed: "slow" | "normal" | "fast";
 }
 
 export function AuthBackground() {
@@ -54,33 +55,42 @@ export function AuthBackground() {
       let type: Particle["type"];
       let size: number;
       let opacity: number;
+      let speed: Particle["speed"];
 
       if (rand < 0.5) {
-        // 50% small particles
+        // 50% small particles - move slowly (appear far away)
         type = "small";
         size = 1 + Math.random() * 2;
         opacity = 0.15 + Math.random() * 0.25;
+        speed = "slow";
       } else if (rand < 0.8) {
-        // 30% medium particles
+        // 30% medium particles - normal speed
         type = "medium";
         size = 3 + Math.random() * 3;
         opacity = 0.2 + Math.random() * 0.3;
+        speed = "normal";
       } else {
-        // 20% large particles
+        // 20% large particles - move fast (appear close)
         type = "large";
         size = 5 + Math.random() * 4;
         opacity = 0.25 + Math.random() * 0.35;
+        speed = "fast";
       }
+
+      // Duration based on speed for depth effect
+      const baseDuration = speed === "fast" ? 4 : speed === "normal" ? 8 : 14;
+      const durationVariation = speed === "fast" ? 4 : speed === "normal" ? 6 : 8;
 
       return {
         id: i,
         x: Math.random() * 100,
         y: Math.random() * 100,
         size,
-        duration: 8 + Math.random() * 12,
+        duration: baseDuration + Math.random() * durationVariation,
         delay: Math.random() * 8,
         opacity,
         type,
+        speed,
       };
     });
   }, []);
@@ -124,11 +134,17 @@ export function AuthBackground() {
         }}
       />
 
-      {/* Floating particles with varied sizes */}
+      {/* Floating particles with varied sizes and speeds */}
       {particles.map((particle) => (
         <div
           key={particle.id}
-          className={`absolute rounded-full animate-float-particle ${
+          className={`absolute rounded-full ${
+            particle.speed === "slow" 
+              ? "animate-float-slow" 
+              : particle.speed === "normal" 
+                ? "animate-float-normal" 
+                : "animate-float-fast"
+          } ${
             particle.type === "large"
               ? "bg-white/30"
               : "bg-white/20"
@@ -172,23 +188,58 @@ export function AuthBackground() {
 
       {/* Animation styles */}
       <style>{`
-        @keyframes float-particle {
+        @keyframes float-particle-slow {
+          0%, 100% {
+            transform: translateY(0) translateX(0);
+          }
+          50% {
+            transform: translateY(-8px) translateX(3px);
+          }
+        }
+        
+        @keyframes float-particle-normal {
           0%, 100% {
             transform: translateY(0) translateX(0);
           }
           25% {
-            transform: translateY(-20px) translateX(10px);
+            transform: translateY(-15px) translateX(8px);
           }
           50% {
-            transform: translateY(-10px) translateX(-5px);
+            transform: translateY(-8px) translateX(-4px);
           }
           75% {
-            transform: translateY(-30px) translateX(5px);
+            transform: translateY(-20px) translateX(4px);
           }
         }
         
-        .animate-float-particle {
-          animation: float-particle ease-in-out infinite;
+        @keyframes float-particle-fast {
+          0%, 100% {
+            transform: translateY(0) translateX(0);
+          }
+          20% {
+            transform: translateY(-35px) translateX(15px);
+          }
+          40% {
+            transform: translateY(-20px) translateX(-10px);
+          }
+          60% {
+            transform: translateY(-45px) translateX(8px);
+          }
+          80% {
+            transform: translateY(-25px) translateX(-5px);
+          }
+        }
+        
+        .animate-float-slow {
+          animation: float-particle-slow ease-in-out infinite;
+        }
+        
+        .animate-float-normal {
+          animation: float-particle-normal ease-in-out infinite;
+        }
+        
+        .animate-float-fast {
+          animation: float-particle-fast ease-in-out infinite;
         }
       `}</style>
     </div>
