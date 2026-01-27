@@ -244,12 +244,27 @@ export function LoginTransition({ onComplete, userName, userAvatar, userCargo }:
           zIndex: 60,
         }}
       >
+        {/* Pulsing glow ring behind logo */}
+        {phase === "logo-center" && (
+          <div className="absolute inset-0 flex items-center justify-center pointer-events-none">
+            <div className="absolute w-48 h-48 rounded-full animate-logo-pulse-glow" 
+              style={{
+                background: "radial-gradient(circle, rgba(255,255,255,0.15) 0%, transparent 70%)",
+              }}
+            />
+            <div className="absolute w-64 h-64 rounded-full animate-logo-pulse-glow-delayed" 
+              style={{
+                background: "radial-gradient(circle, rgba(255,255,255,0.08) 0%, transparent 70%)",
+              }}
+            />
+          </div>
+        )}
         <img
           src={logoUrl}
           alt="Logo"
-          className={`object-contain ${
+          className={`object-contain relative z-10 ${
             phase === "logo-center"
-              ? "h-32 max-w-[400px] drop-shadow-[0_0_40px_rgba(255,255,255,0.3)]"
+              ? "h-32 max-w-[400px] animate-logo-breathe"
               : "h-10 max-w-[140px]"
           }`}
           style={{
@@ -257,7 +272,7 @@ export function LoginTransition({ onComplete, userName, userAvatar, userCargo }:
               ? "all 1s cubic-bezier(0.22, 1, 0.36, 1)"
               : "all 2s cubic-bezier(0.16, 1, 0.3, 1)",
             filter: phase === "logo-center" 
-              ? "drop-shadow(0 0 40px rgba(255, 255, 255, 0.4)) drop-shadow(0 0 80px rgba(255, 255, 255, 0.2))"
+              ? "drop-shadow(0 0 30px rgba(255, 255, 255, 0.5)) drop-shadow(0 0 60px rgba(255, 255, 255, 0.3))"
               : "none",
           }}
         />
@@ -608,6 +623,28 @@ export function LoginTransition({ onComplete, userName, userAvatar, userCargo }:
           }
         }
         
+        @keyframes logo-pulse-glow {
+          0%, 100% {
+            transform: scale(1);
+            opacity: 0.6;
+          }
+          50% {
+            transform: scale(1.15);
+            opacity: 1;
+          }
+        }
+        
+        @keyframes logo-breathe {
+          0%, 100% {
+            transform: scale(1);
+            filter: drop-shadow(0 0 30px rgba(255, 255, 255, 0.5)) drop-shadow(0 0 60px rgba(255, 255, 255, 0.3));
+          }
+          50% {
+            transform: scale(1.03);
+            filter: drop-shadow(0 0 40px rgba(255, 255, 255, 0.7)) drop-shadow(0 0 80px rgba(255, 255, 255, 0.4));
+          }
+        }
+        
         .animate-confetti-fall {
           animation: confetti-fall ease-out forwards;
         }
@@ -626,6 +663,19 @@ export function LoginTransition({ onComplete, userName, userAvatar, userCargo }:
         
         .animate-glow-ring {
           animation: glow-ring 0.6s ease-out forwards;
+        }
+        
+        .animate-logo-pulse-glow {
+          animation: logo-pulse-glow 1.8s cubic-bezier(0.4, 0, 0.2, 1) infinite;
+        }
+        
+        .animate-logo-pulse-glow-delayed {
+          animation: logo-pulse-glow 2.2s cubic-bezier(0.4, 0, 0.2, 1) infinite;
+          animation-delay: 0.4s;
+        }
+        
+        .animate-logo-breathe {
+          animation: logo-breathe 2s cubic-bezier(0.4, 0, 0.2, 1) infinite;
         }
       `}</style>
     </div>
