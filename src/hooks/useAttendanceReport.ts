@@ -162,12 +162,12 @@ export const useAttendanceReportData = (date: string) => {
   };
 };
 
-// Generate formatted efetivo text for an area
+// Generate formatted efetivo text for an area (quantity only, no names)
 export const generateEfetivoText = (
   area: "ÁREA GABIÃO" | "ROÇAGEM E PODAGEM",
   groupedEmployees: Record<string, Record<string, Tables<"employees">[]>>,
-  getStatusEmoji: (employeeId: string) => string,
-  support: SupportTeam
+  isPresent: (employeeId: string) => boolean,
+  _support: SupportTeam // Not used for RDO, kept for backwards compatibility
 ): string => {
   const header = area === "ÁREA GABIÃO" 
     ? "✳  ÁREA GABIÃO  ✳" 
@@ -176,21 +176,18 @@ export const generateEfetivoText = (
   let report = "";
 
   report += `${header}\n\n`;
-  report += `✴EQUIPE DE SUPORTE✴\n\n`;
-  report += `🙋‍♀ TST : ${support.tst}\n\n`;
-  report += `🙋‍♂ ENC GERAL: ${support.encGeral}\n\n`;
-  report += `🙋‍♂ ENC: ${support.enc}\n\n`;
   report += `✴EQUIPE DE EXECUÇÃO✴\n\n`;
 
   const roles = executionRoles[area];
   roles.forEach((role) => {
     const label = roleLabels[area][role];
     const employees = groupedEmployees[area]?.[role] || [];
-    if (employees.length > 0) {
-      report += `${label}\n\n`;
-      employees.forEach((emp) => {
-        report += `${emp.name.toUpperCase()} ${getStatusEmoji(emp.id)}\n\n`;
-      });
+    const presentCount = employees.filter((emp) => isPresent(emp.id)).length;
+    
+    if (employees.length > 0 && presentCount > 0) {
+      // Remove emoji and colon from label for cleaner display
+      const cleanLabel = label.replace(/^👷🏼‍♂\s*|👷🏼\s*/g, '').replace(/:$/, '');
+      report += `👷🏼‍♂ ${cleanLabel}: ${presentCount}\n\n`;
     }
   });
 

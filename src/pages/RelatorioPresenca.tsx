@@ -270,9 +270,9 @@ const RelatorioPresenca = () => {
       await queryClient.invalidateQueries({ queryKey: ["attendance_report", selectedDate] });
       await queryClient.invalidateQueries({ queryKey: ["attendance_records"] });
 
-      // Generate efetivo text for both areas and save to RDO
-      const efetivoGabiaoText = generateAreaReport("ÁREA GABIÃO");
-      const efetivoJardinagemText = generateAreaReport("ROÇAGEM E PODAGEM");
+      // Generate efetivo text for both areas and save to RDO (quantity only, no names)
+      const efetivoGabiaoText = generateAreaReportForRDO("ÁREA GABIÃO");
+      const efetivoJardinagemText = generateAreaReportForRDO("ROÇAGEM E PODAGEM");
 
       await saveEfetivoToRDO.mutateAsync({
         report_date: selectedDate,
@@ -359,6 +359,35 @@ const RelatorioPresenca = () => {
         employees.forEach((emp) => {
           report += `${emp.name.toUpperCase()} ${getStatusEmoji(emp.id)}\n\n`;
         });
+      }
+    });
+
+    return report.trim();
+  };
+
+  // Generate report for RDO (quantity only, no names, no support team)
+  const generateAreaReportForRDO = (area: "ÁREA GABIÃO" | "ROÇAGEM E PODAGEM") => {
+    if (!allEmployees) return "";
+
+    const header = area === "ÁREA GABIÃO" 
+      ? "✳  ÁREA GABIÃO  ✳" 
+      : "🌿 ROÇAGEM E PODAGEM 🌿";
+
+    let report = "";
+
+    report += `${header}\n\n`;
+    report += `✴EQUIPE DE EXECUÇÃO✴\n\n`;
+
+    const roles = executionRoles[area];
+    roles.forEach((role) => {
+      const label = roleLabels[area][role];
+      const employees = groupedEmployees[area][role] || [];
+      const presentCount = employees.filter((emp) => isPresent(emp.id)).length;
+      
+      if (employees.length > 0 && presentCount > 0) {
+        // Remove emoji and colon from label for cleaner display
+        const cleanLabel = label.replace(/^👷🏼‍♂\s*|👷🏼\s*/g, '').replace(/:$/, '');
+        report += `👷🏼‍♂ ${cleanLabel}: ${presentCount}\n\n`;
       }
     });
 
