@@ -43,20 +43,51 @@ interface Particle {
   duration: number;
   delay: number;
   opacity: number;
+  type: "small" | "medium" | "large" | "glow";
 }
 
 export function AuthBackground() {
-  // Generate random particles
+  // Generate random particles with varied sizes
   const particles = useMemo<Particle[]>(() => {
-    return Array.from({ length: 60 }, (_, i) => ({
-      id: i,
-      x: Math.random() * 100,
-      y: Math.random() * 100,
-      size: 2 + Math.random() * 4,
-      duration: 6 + Math.random() * 10,
-      delay: Math.random() * 5,
-      opacity: 0.1 + Math.random() * 0.3,
-    }));
+    return Array.from({ length: 120 }, (_, i) => {
+      const rand = Math.random();
+      let type: Particle["type"];
+      let size: number;
+      let opacity: number;
+
+      if (rand < 0.5) {
+        // 50% small particles
+        type = "small";
+        size = 1 + Math.random() * 2;
+        opacity = 0.15 + Math.random() * 0.25;
+      } else if (rand < 0.75) {
+        // 25% medium particles
+        type = "medium";
+        size = 3 + Math.random() * 3;
+        opacity = 0.2 + Math.random() * 0.3;
+      } else if (rand < 0.92) {
+        // 17% large particles
+        type = "large";
+        size = 5 + Math.random() * 4;
+        opacity = 0.25 + Math.random() * 0.35;
+      } else {
+        // 8% glowing particles
+        type = "glow";
+        size = 6 + Math.random() * 6;
+        opacity = 0.4 + Math.random() * 0.4;
+      }
+
+      return {
+        id: i,
+        x: Math.random() * 100,
+        y: Math.random() * 100,
+        size,
+        duration: 8 + Math.random() * 12,
+        delay: Math.random() * 8,
+        opacity,
+        type,
+      };
+    });
   }, []);
 
   // Get daily verse based on day of year
@@ -98,11 +129,17 @@ export function AuthBackground() {
         }}
       />
 
-      {/* Floating particles */}
+      {/* Floating particles with varied sizes */}
       {particles.map((particle) => (
         <div
           key={particle.id}
-          className="absolute rounded-full bg-white/20 animate-float-particle"
+          className={`absolute rounded-full animate-float-particle ${
+            particle.type === "glow" 
+              ? "bg-amber-300/60" 
+              : particle.type === "large"
+              ? "bg-white/30"
+              : "bg-white/20"
+          }`}
           style={{
             left: `${particle.x}%`,
             top: `${particle.y}%`,
@@ -111,6 +148,11 @@ export function AuthBackground() {
             opacity: particle.opacity,
             animationDuration: `${particle.duration}s`,
             animationDelay: `${particle.delay}s`,
+            boxShadow: particle.type === "glow" 
+              ? `0 0 ${particle.size * 2}px ${particle.size}px rgba(251, 191, 36, 0.4), 0 0 ${particle.size * 4}px ${particle.size * 2}px rgba(251, 191, 36, 0.2)`
+              : particle.type === "large"
+              ? `0 0 ${particle.size}px ${particle.size / 2}px rgba(255, 255, 255, 0.15)`
+              : "none",
           }}
         />
       ))}
