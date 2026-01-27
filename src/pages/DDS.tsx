@@ -1,7 +1,7 @@
 import { useState, useMemo } from "react";
 import { format, parse, isWeekend, getDay } from "date-fns";
 import { ptBR } from "date-fns/locale";
-import { Shuffle, Calendar, Save, Trash2, Edit2, Sun, Shield, ChevronLeft, ChevronRight, Mail, Loader2, AtSign } from "lucide-react";
+import { Shuffle, Calendar, Save, Trash2, Edit2, Sun, Shield, ChevronLeft, ChevronRight, Mail, Loader2, AtSign, Plus } from "lucide-react";
 import Layout from "@/components/layout/Layout";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from "@/components/ui/card";
@@ -56,6 +56,11 @@ export default function DDS() {
   const [editingItem, setEditingItem] = useState<DDSScheduleItem | null>(null);
   const [editPresenter, setEditPresenter] = useState("");
   const [editTheme, setEditTheme] = useState("");
+  
+  // Add new DDS modal state
+  const [addingDate, setAddingDate] = useState<string | null>(null);
+  const [newPresenter, setNewPresenter] = useState("");
+  const [newTheme, setNewTheme] = useState("");
   
   // Notification state
   const [isSendingNotification, setIsSendingNotification] = useState(false);
@@ -196,6 +201,34 @@ export default function DDS() {
     } catch (error) {
       console.error("Error updating:", error);
       toast.error("Erro ao atualizar agendamento");
+    }
+  };
+
+  const handleAddDDS = (dateStr: string) => {
+    setAddingDate(dateStr);
+    setNewPresenter("");
+    setNewTheme("");
+  };
+
+  const handleSaveNewDDS = async () => {
+    if (!addingDate || !newPresenter || !newTheme) return;
+
+    try {
+      await createSchedule.mutateAsync([{
+        month_year: monthYear,
+        scheduled_date: addingDate,
+        presenter_user_id: newPresenter,
+        theme: newTheme,
+      }]);
+
+      // Notify the presenter
+      await notifyPresenter(newPresenter, addingDate, newTheme);
+      
+      toast.success("DDS adicionado e palestrante notificado!");
+      setAddingDate(null);
+    } catch (error) {
+      console.error("Error creating DDS:", error);
+      toast.error("Erro ao adicionar DDS");
     }
   };
 
@@ -464,7 +497,7 @@ export default function DDS() {
                           </TableCell>
                           {canEdit && (
                             <TableCell className="text-right">
-                              {schedule && (
+                              {schedule ? (
                                 <div className="flex justify-end gap-1">
                                   <Button
                                     variant="ghost"
@@ -483,6 +516,16 @@ export default function DDS() {
                                     <Trash2 className="h-4 w-4" />
                                   </Button>
                                 </div>
+                              ) : (
+                                <Button
+                                  variant="ghost"
+                                  size="sm"
+                                  className="h-8 text-primary hover:text-primary"
+                                  onClick={() => handleAddDDS(dateStr)}
+                                >
+                                  <Plus className="h-4 w-4 mr-1" />
+                                  Adicionar
+                                </Button>
                               )}
                             </TableCell>
                           )}
@@ -553,6 +596,80 @@ export default function DDS() {
               <Button onClick={handleSaveEdit} disabled={!editPresenter || !editTheme}>
                 <Save className="h-4 w-4 mr-2" />
                 Salvar
+              </Button>
+            </DialogFooter>
+          </DialogContent>
+        </Dialog>
+
+        {/* Add New DDS Dialog */}
+        <Dialog open={!!addingDate} onOpenChange={() => setAddingDate(null)}>
+          <DialogContent>
+            <DialogHeader>
+              <DialogTitle className="flex items-center gap-2">
+                <Plus className="h-5 w-5 text-primary" />
+                Adicionar DDS
+              </DialogTitle>
+            </DialogHeader>
+            <div className="space-y-4 py-4">
+              <div className="space-y-2">
+                <label className="text-sm font-medium">Data</label>
+                <Input
+                  value={
+                    addingDate
+                      ? format(parse(addingDate, "yyyy-MM-dd", new Date()), "dd/MM/yyyy (EEEE)", { locale: ptBR })
+                      : ""
+                  }
+                  disabled
+                  className="bg-muted"
+                />
+              </div>
+              <div className="space-y-2">
+                <label className="text-sm font-medium">Palestrante</label>
+                <Select value={newPresenter} onValueChange={setNewPresenter}>
+                  <SelectTrigger>
+                    <SelectValue placeholder="Selecione um palestrante" />
+                  </SelectTrigger>
+                  <SelectContent>
+                    {allProfiles?.map(p => (
+                      <SelectItem key={p.user_id} value={p.user_id}>
+                        <div className="flex items-center gap-2">
+                          <Avatar className="h-6 w-6">
+                            <AvatarImage src={p.avatar_url || undefined} />
+                            <AvatarFallback className="text-xs">
+                              {getInitials(p.full_name)}
+                            </AvatarFallback>
+                          </Avatar>
+                          {p.full_name}
+                        </div>
+                      </SelectItem>
+                    ))}
+                  </SelectContent>
+                </Select>
+              </div>
+              <div className="space-y-2">
+                <label className="text-sm font-medium">Tema</label>
+                <Input
+                  value={newTheme}
+                  onChange={e => setNewTheme(e.target.value)}
+                  placeholder="Digite o tema do DDS"
+                />
+              </div>
+            </div>
+            <DialogFooter>
+              <Button variant="outline" onClick={() => setAddingDate(null)}>
+                Cancelar
+              </Button>
+              <Button 
+                onClick={handleSaveNewDDS} 
+                disabled={!newPresenter || !newTheme || createSchedule.isPending}
+                className="bg-gradient-to-r from-amber-500 to-orange-500 hover:from-amber-600 hover:to-orange-600"
+              >
+                {createSchedule.isPending ? (
+                  <Loader2 className="h-4 w-4 mr-2 animate-spin" />
+                ) : (
+                  <Plus className="h-4 w-4 mr-2" />
+                )}
+                Adicionar
               </Button>
             </DialogFooter>
           </DialogContent>
