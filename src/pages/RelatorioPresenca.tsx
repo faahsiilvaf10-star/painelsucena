@@ -377,7 +377,7 @@ const RelatorioPresenca = () => {
 
     report += `${header}\n\n`;
     report += `✴EQUIPE DE SUPORTE✴\n\n`;
-    report += `🙋‍♀ TST : ${support.tst}\n\n`;
+    report += `🙋🏻‍♂️ TST : ${support.tst}\n\n`;
     report += `🙋‍♂ ENC GERAL: ${support.encGeral}\n\n`;
     report += `🙋‍♂ ENC: ${support.enc}\n\n`;
     report += `✴EQUIPE DE EXECUÇÃO✴\n\n`;
