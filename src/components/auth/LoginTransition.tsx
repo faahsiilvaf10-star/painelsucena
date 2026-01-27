@@ -399,7 +399,7 @@ export function LoginTransition({ onComplete, userName, userAvatar, userCargo }:
                   Bom trabalho,
                 </span>
                 <span 
-                  className="text-6xl mt-1"
+                  className="text-7xl md:text-8xl mt-2 pb-4"
                   style={{
                     fontFamily: "'Pinyon Script', cursive",
                     background: "linear-gradient(180deg, #ffffff 0%, #e2e8f0 50%, #cbd5e1 100%)",
@@ -407,6 +407,7 @@ export function LoginTransition({ onComplete, userName, userAvatar, userCargo }:
                     WebkitTextFillColor: "transparent",
                     textShadow: "0 4px 20px rgba(255,255,255,0.3)",
                     filter: "drop-shadow(0 2px 8px rgba(0,0,0,0.4))",
+                    lineHeight: "1.3",
                   }}
                 >
                   {userName || "Usuário"}!
