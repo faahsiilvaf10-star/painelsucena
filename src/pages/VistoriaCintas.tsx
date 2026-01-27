@@ -1,6 +1,6 @@
 import Layout from "@/components/layout/Layout";
 import { useState } from "react";
-import { Loader2, Link2, Plus, Check, X, Filter } from "lucide-react";
+import { Loader2, Link2, Plus, Filter, FileText } from "lucide-react";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
@@ -28,6 +28,12 @@ import {
   TableHeader,
   TableRow,
 } from "@/components/ui/table";
+import {
+  Tooltip,
+  TooltipContent,
+  TooltipProvider,
+  TooltipTrigger,
+} from "@/components/ui/tooltip";
 import { toast } from "sonner";
 import {
   useSlingWithInspections,
@@ -36,11 +42,11 @@ import {
   useCreateSlingEquipment,
   colorLabels,
   colorClasses,
-  getCurrentMonthColor,
   type SlingColor,
   type SlingWithInspection,
 } from "@/hooks/useSlingEquipment";
 import { useAuth } from "@/hooks/useAuth";
+import { SlingInspectionDialog } from "@/components/vistorias/SlingInspectionDialog";
 
 const VistoriaCintas = () => {
   const { user } = useAuth();
@@ -52,6 +58,8 @@ const VistoriaCintas = () => {
   const [filterColor, setFilterColor] = useState<SlingColor | "all">("all");
   const [addDialogOpen, setAddDialogOpen] = useState(false);
   const [newSling, setNewSling] = useState({ tag: "", description: "", color: "red" as SlingColor });
+  const [inspectionDialogOpen, setInspectionDialogOpen] = useState(false);
+  const [selectedSling, setSelectedSling] = useState<SlingWithInspection | null>(null);
 
   const now = new Date();
   const currentMonthYear = `${now.getFullYear()}-${String(now.getMonth() + 1).padStart(2, "0")}`;
@@ -59,28 +67,37 @@ const VistoriaCintas = () => {
 
   const filteredSlings = slings.filter((s) => filterColor === "all" || s.color === filterColor);
 
-  const handleInspect = async (sling: SlingWithInspection, status: "inspected" | "cancelled") => {
-    if (!user) {
+  const handleOpenInspection = (sling: SlingWithInspection) => {
+    setSelectedSling(sling);
+    setInspectionDialogOpen(true);
+  };
+
+  const handleConfirmInspection = async (status: "inspected" | "cancelled", notes: string) => {
+    if (!user || !selectedSling) {
       toast.error("Você precisa estar logado");
       return;
     }
 
     try {
-      if (sling.currentInspection) {
+      if (selectedSling.currentInspection) {
         await updateInspection.mutateAsync({
-          id: sling.currentInspection.id,
+          id: selectedSling.currentInspection.id,
           status,
           inspected_by: user.id,
+          notes: notes || undefined,
         });
       } else {
         await createInspection.mutateAsync({
-          sling_id: sling.id,
+          sling_id: selectedSling.id,
           inspection_date: inspectionDate,
           status,
           inspected_by: user.id,
+          notes: notes || undefined,
         });
       }
-      toast.success(`Cinta ${sling.tag} marcada como ${status === "inspected" ? "inspecionada" : "cancelada"}`);
+      toast.success(`Cinta ${selectedSling.tag} marcada como ${status === "inspected" ? "inspecionada" : "cancelada"}`);
+      setInspectionDialogOpen(false);
+      setSelectedSling(null);
     } catch (error) {
       toast.error("Erro ao atualizar inspeção");
     }
@@ -279,6 +296,7 @@ const VistoriaCintas = () => {
                   {filteredSlings.map((sling) => {
                     const isCurrentMonthColor = sling.color === currentMonthColor;
                     const canInspect = isCurrentMonthColor && (!sling.currentInspection || sling.currentInspection.status === "pending");
+                    const hasNotes = sling.currentInspection?.notes;
 
                     return (
                       <TableRow key={sling.id} className={isCurrentMonthColor ? "bg-accent/30" : ""}>
@@ -287,29 +305,33 @@ const VistoriaCintas = () => {
                         </TableCell>
                         <TableCell className="font-mono font-medium">{sling.tag}</TableCell>
                         <TableCell>{sling.description}</TableCell>
-                        <TableCell>{getStatusBadge(sling)}</TableCell>
+                        <TableCell>
+                          <div className="flex items-center gap-2">
+                            {getStatusBadge(sling)}
+                            {hasNotes && (
+                              <TooltipProvider>
+                                <Tooltip>
+                                  <TooltipTrigger asChild>
+                                    <FileText className="w-4 h-4 text-muted-foreground cursor-help" />
+                                  </TooltipTrigger>
+                                  <TooltipContent className="max-w-xs">
+                                    <p className="text-sm">{sling.currentInspection?.notes}</p>
+                                  </TooltipContent>
+                                </Tooltip>
+                              </TooltipProvider>
+                            )}
+                          </div>
+                        </TableCell>
                         <TableCell className="text-right">
                           {canInspect && (
-                            <div className="flex items-center justify-end gap-2">
-                              <Button
-                                size="sm"
-                                variant="outline"
-                                className="gap-1 text-green-600 hover:bg-green-50"
-                                onClick={() => handleInspect(sling, "inspected")}
-                              >
-                                <Check className="w-4 h-4" />
-                                Inspecionada
-                              </Button>
-                              <Button
-                                size="sm"
-                                variant="outline"
-                                className="gap-1 text-destructive hover:bg-destructive/10"
-                                onClick={() => handleInspect(sling, "cancelled")}
-                              >
-                                <X className="w-4 h-4" />
-                                Cancelar
-                              </Button>
-                            </div>
+                            <Button
+                              size="sm"
+                              variant="outline"
+                              className="gap-1"
+                              onClick={() => handleOpenInspection(sling)}
+                            >
+                              Registrar Inspeção
+                            </Button>
                           )}
                         </TableCell>
                       </TableRow>
@@ -357,6 +379,15 @@ const VistoriaCintas = () => {
             </div>
           </CardContent>
         </Card>
+
+        {/* Inspection Dialog */}
+        <SlingInspectionDialog
+          open={inspectionDialogOpen}
+          onOpenChange={setInspectionDialogOpen}
+          sling={selectedSling}
+          onConfirm={handleConfirmInspection}
+          isLoading={createInspection.isPending || updateInspection.isPending}
+        />
       </div>
     </Layout>
   );
