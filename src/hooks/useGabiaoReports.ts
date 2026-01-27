@@ -141,14 +141,22 @@ export function useDeleteGabiaoReport() {
 export const formatGabiaoForRDO = (report: GabiaoReport | null): string => {
   if (!report) return "";
 
+  const lines: string[] = [];
+
+  // Include the local_servico (location) at the beginning
+  if (report.local_servico && report.local_servico.trim()) {
+    lines.push(`📍 Local: ${report.local_servico}`);
+    lines.push(""); // Empty line for separation
+  }
+
   // For the new format, observacoes contains the activities already formatted
-  // Just return it directly if it exists
+  // Just return it directly if it exists (append to location)
   if (report.observacoes) {
-    return report.observacoes;
+    lines.push(report.observacoes);
+    return lines.join("\n");
   }
 
   // Legacy support for old format with structured fields
-  const lines: string[] = [];
   
   const formatBerma = (berma: number | null | undefined): string => {
     return berma ? ` (Berma ${berma})` : "";
