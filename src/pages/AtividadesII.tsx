@@ -128,6 +128,16 @@ export default function AtividadesII() {
   const [silteQuantidade, setSilteQuantidade] = useState("");
   const [limpezaOrganizacao, setLimpezaOrganizacao] = useState(false);
   
+  // New activities
+  const [retiradaTela, setRetiradaTela] = useState(false);
+  const [retiradaTelaDimensao, setRetiradaTelaDimensao] = useState("");
+  const [retiradaCascalho, setRetiradaCascalho] = useState(false);
+  const [retiradaCascalhoQuantidade, setRetiradaCascalhoQuantidade] = useState("");
+  const [lavagemVertedouro, setLavagemVertedouro] = useState(false);
+  const [lavagemBaciasVertedouro, setLavagemBaciasVertedouro] = useState(false);
+  const [reposicaoGeotextil, setReposicaoGeotextil] = useState(false);
+  const [reposicaoGeotextilDimensao, setReposicaoGeotextilDimensao] = useState("");
+  
   // Manual activities text
   const [atividadesManuais, setAtividadesManuais] = useState("");
   const [observacoes, setObservacoes] = useState("");
@@ -166,6 +176,14 @@ export default function AtividadesII() {
       setReposicaoSilte(false);
       setSilteQuantidade("");
       setLimpezaOrganizacao(false);
+      setRetiradaTela(false);
+      setRetiradaTelaDimensao("");
+      setRetiradaCascalho(false);
+      setRetiradaCascalhoQuantidade("");
+      setLavagemVertedouro(false);
+      setLavagemBaciasVertedouro(false);
+      setReposicaoGeotextil(false);
+      setReposicaoGeotextilDimensao("");
       setAtividadesManuais("");
       setObservacoes("");
     }
@@ -217,6 +235,21 @@ export default function AtividadesII() {
     }
     if (limpezaOrganizacao) {
       lines.push("* Limpeza e organização");
+    }
+    if (retiradaTela) {
+      lines.push(`* Retirada de tela${retiradaTelaDimensao ? ` - ${retiradaTelaDimensao}` : ""}`);
+    }
+    if (retiradaCascalho) {
+      lines.push(`* Retirada de cascalho${retiradaCascalhoQuantidade ? ` - ${retiradaCascalhoQuantidade} m²` : ""}`);
+    }
+    if (lavagemVertedouro) {
+      lines.push("* Lavagem de vertedouro");
+    }
+    if (lavagemBaciasVertedouro) {
+      lines.push("* Lavagem de bacias do vertedouro");
+    }
+    if (reposicaoGeotextil) {
+      lines.push(`* Reposição de Geotêxtil${reposicaoGeotextilDimensao ? ` - ${reposicaoGeotextilDimensao}` : ""}`);
     }
     
     if (atividadesManuais.trim()) {
@@ -307,6 +340,21 @@ export default function AtividadesII() {
     }
     if (limpezaOrganizacao) {
       lines.push("* Limpeza e organização");
+    }
+    if (retiradaTela) {
+      lines.push(`* Retirada de tela${retiradaTelaDimensao ? ` - ${retiradaTelaDimensao}` : ""}`);
+    }
+    if (retiradaCascalho) {
+      lines.push(`* Retirada de cascalho${retiradaCascalhoQuantidade ? ` - ${retiradaCascalhoQuantidade} m²` : ""}`);
+    }
+    if (lavagemVertedouro) {
+      lines.push("* Lavagem de vertedouro");
+    }
+    if (lavagemBaciasVertedouro) {
+      lines.push("* Lavagem de bacias do vertedouro");
+    }
+    if (reposicaoGeotextil) {
+      lines.push(`* Reposição de Geotêxtil${reposicaoGeotextilDimensao ? ` - ${reposicaoGeotextilDimensao}` : ""}`);
     }
     
     if (atividadesManuais.trim()) {
@@ -641,6 +689,108 @@ export default function AtividadesII() {
                   <Label htmlFor="limpeza" className="cursor-pointer font-medium">
                     Limpeza e organização
                   </Label>
+                </div>
+
+                {/* Retirada de tela */}
+                <div className="p-3 rounded-lg bg-muted/30 space-y-3">
+                  <div className="flex items-center space-x-3">
+                    <Checkbox 
+                      id="retiradaTela" 
+                      checked={retiradaTela}
+                      onCheckedChange={(checked) => setRetiradaTela(checked === true)}
+                    />
+                    <Label htmlFor="retiradaTela" className="cursor-pointer font-medium">
+                      Retirada de tela
+                    </Label>
+                  </div>
+                  {retiradaTela && (
+                    <div className="flex items-center gap-2 ml-7">
+                      <Input
+                        type="text"
+                        placeholder="Ex: 8 x 8"
+                        value={retiradaTelaDimensao}
+                        onChange={(e) => setRetiradaTelaDimensao(e.target.value)}
+                        className="w-[150px]"
+                      />
+                    </div>
+                  )}
+                </div>
+
+                {/* Retirada de cascalho */}
+                <div className="p-3 rounded-lg bg-muted/30 space-y-3">
+                  <div className="flex items-center space-x-3">
+                    <Checkbox 
+                      id="retiradaCascalho" 
+                      checked={retiradaCascalho}
+                      onCheckedChange={(checked) => setRetiradaCascalho(checked === true)}
+                    />
+                    <Label htmlFor="retiradaCascalho" className="cursor-pointer font-medium">
+                      Retirada de cascalho
+                    </Label>
+                  </div>
+                  {retiradaCascalho && (
+                    <div className="flex items-center gap-2 ml-7">
+                      <Input
+                        type="number"
+                        min="0"
+                        step="0.01"
+                        placeholder="Quantidade"
+                        value={retiradaCascalhoQuantidade}
+                        onChange={(e) => setRetiradaCascalhoQuantidade(e.target.value)}
+                        className="w-[120px]"
+                      />
+                      <span className="text-sm font-medium">m²</span>
+                    </div>
+                  )}
+                </div>
+
+                {/* Lavagem de vertedouro */}
+                <div className="flex items-center space-x-3 p-3 rounded-lg bg-muted/30">
+                  <Checkbox 
+                    id="lavagemVertedouro" 
+                    checked={lavagemVertedouro}
+                    onCheckedChange={(checked) => setLavagemVertedouro(checked === true)}
+                  />
+                  <Label htmlFor="lavagemVertedouro" className="cursor-pointer font-medium">
+                    Lavagem de vertedouro
+                  </Label>
+                </div>
+
+                {/* Lavagem de bacias do vertedouro */}
+                <div className="flex items-center space-x-3 p-3 rounded-lg bg-muted/30">
+                  <Checkbox 
+                    id="lavagemBacias" 
+                    checked={lavagemBaciasVertedouro}
+                    onCheckedChange={(checked) => setLavagemBaciasVertedouro(checked === true)}
+                  />
+                  <Label htmlFor="lavagemBacias" className="cursor-pointer font-medium">
+                    Lavagem de bacias do vertedouro
+                  </Label>
+                </div>
+
+                {/* Reposição de Geotêxtil */}
+                <div className="p-3 rounded-lg bg-muted/30 space-y-3">
+                  <div className="flex items-center space-x-3">
+                    <Checkbox 
+                      id="reposicaoGeotextil" 
+                      checked={reposicaoGeotextil}
+                      onCheckedChange={(checked) => setReposicaoGeotextil(checked === true)}
+                    />
+                    <Label htmlFor="reposicaoGeotextil" className="cursor-pointer font-medium">
+                      Reposição de Geotêxtil
+                    </Label>
+                  </div>
+                  {reposicaoGeotextil && (
+                    <div className="flex items-center gap-2 ml-7">
+                      <Input
+                        type="text"
+                        placeholder="Ex: 8 x 8"
+                        value={reposicaoGeotextilDimensao}
+                        onChange={(e) => setReposicaoGeotextilDimensao(e.target.value)}
+                        className="w-[150px]"
+                      />
+                    </div>
+                  )}
                 </div>
               </div>
 
