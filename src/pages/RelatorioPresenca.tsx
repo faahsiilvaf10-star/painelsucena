@@ -369,14 +369,15 @@ const RelatorioPresenca = () => {
   const generateAreaReportForRDO = (area: "ÁREA GABIÃO" | "ROÇAGEM E PODAGEM") => {
     if (!allEmployees) return "";
 
+    // Using simple, universally compatible emojis
     const header = area === "ÁREA GABIÃO" 
-      ? "✳️ ÁREA GABIÃO ✳️" 
-      : "🌿 ROÇAGEM E PODAGEM 🌿";
+      ? "\u2733\uFE0F ÁREA GABIÃO \u2733\uFE0F" 
+      : "\uD83C\uDF3F ROÇAGEM E PODAGEM \uD83C\uDF3F";
 
     let report = "";
 
     report += `${header}\n\n`;
-    report += `✴️ EQUIPE DE EXECUÇÃO ✴️\n\n`;
+    report += "\u2734\uFE0F EQUIPE DE EXECUÇÃO \u2734\uFE0F\n\n";
 
     const roles = executionRoles[area];
     roles.forEach((role) => {
@@ -387,7 +388,7 @@ const RelatorioPresenca = () => {
       if (employees.length > 0 && presentCount > 0) {
         // Remove emoji and colon from label for cleaner display
         const cleanLabel = label.replace(/^👷🏼‍♂\s*|👷🏼\s*/g, '').replace(/:$/, '');
-        report += `👷 ${cleanLabel}: ${presentCount}\n\n`;
+        report += `\uD83D\uDC77 ${cleanLabel}: ${presentCount}\n\n`;
       }
     });
 
