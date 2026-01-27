@@ -526,6 +526,19 @@ export default function AtividadesII() {
     if (reposicaoGeotextil) {
       lines.push(`* Reposição de Geotêxtil${reposicaoGeotextilDimensao ? ` - ${reposicaoGeotextilDimensao}` : ""}`);
     }
+
+    // Recomposição activities
+    if (recomposicaoTela) {
+      lines.push(`* Recomposição de tela${recomposicaoTelaDimensao ? ` - ${recomposicaoTelaDimensao}` : ""}`);
+    }
+    if (recomposicaoCascalho) {
+      lines.push(
+        `* Recomposição de cascalho${recomposicaoCascalhoQuantidade ? ` - ${recomposicaoCascalhoQuantidade} m²` : ""}`,
+      );
+    }
+    if (recomposicaoSilte) {
+      lines.push(`* Recomposição de silte${recomposicaoSilteQuantidade ? ` - ${recomposicaoSilteQuantidade} m²` : ""}`);
+    }
     
     if (atividadesManuais.trim()) {
       atividadesManuais.trim().split("\n").forEach(line => {
