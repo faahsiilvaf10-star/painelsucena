@@ -203,8 +203,8 @@ export const OnlineUsersFooter = ({
 
           <div className="h-6 w-px bg-border shrink-0" />
 
-          {/* Offline Users Group - Hidden on very small screens */}
-          <div className="hidden xs:flex items-center gap-1 shrink-0">
+          {/* Offline Users Group */}
+          <div className="flex items-center gap-1 shrink-0">
             <span className="text-[10px] text-muted-foreground font-medium mr-1 hidden sm:inline">Offline</span>
             <div className="flex items-center -space-x-2">
               {allUsers.filter(u => !u.isOnline).length === 0 ? <span className="text-xs text-muted-foreground ml-2 hidden sm:inline">—</span> : allUsers.filter(u => !u.isOnline).slice(0, typeof window !== 'undefined' && window.innerWidth < 640 ? 3 : 6).map(user => <Tooltip key={user.user_id}>
