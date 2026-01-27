@@ -160,11 +160,64 @@ export default function AtividadesII() {
       } else {
         setElevado("");
       }
-      setObservacoes(existingReport.observacoes || "");
       
-      // Parse saved activities from observacoes field (we'll store structured data there)
-      // For now, we'll just load the text
-      // The structured activities will be parsed from a JSON-like format or markers
+      // Parse saved activities from observacoes field
+      const obs = existingReport.observacoes || "";
+      
+      // Parse checkbox activities
+      setEscavacaoManual(obs.includes("Escavação manual"));
+      setReposicaoManta(obs.includes("Reposição de manta"));
+      setReposicaoSilte(obs.includes("Reposição de silte"));
+      setLimpezaOrganizacao(obs.includes("Limpeza e organização"));
+      setRetiradaTela(obs.includes("Retirada de tela"));
+      setRetiradaCascalho(obs.includes("Retirada de cascalho"));
+      setLavagemVertedouro(obs.includes("Lavagem de vertedouro") && !obs.includes("Lavagem de bacias"));
+      setLavagemBaciasVertedouro(obs.includes("Lavagem de bacias"));
+      setReposicaoGeotextil(obs.includes("Reposição de Geotêxtil"));
+      
+      // Parse dimensions/quantities from activities
+      const mantaMatch = obs.match(/Reposição de manta asfáltica - ([^\n]+)/);
+      setMantaDimensao(mantaMatch ? mantaMatch[1] : "");
+      
+      const silteMatch = obs.match(/Reposição de silte - ([\d.]+) m²/);
+      setSilteQuantidade(silteMatch ? silteMatch[1] : "");
+      
+      const telaMatch = obs.match(/Retirada de tela - ([^\n]+)/);
+      setRetiradaTelaDimensao(telaMatch ? telaMatch[1] : "");
+      
+      const cascalhoMatch = obs.match(/Retirada de cascalho - ([\d.]+) m²/);
+      setRetiradaCascalhoQuantidade(cascalhoMatch ? cascalhoMatch[1] : "");
+      
+      const geotextilMatch = obs.match(/Reposição de Geotêxtil - ([^\n]+)/);
+      setReposicaoGeotextilDimensao(geotextilMatch ? geotextilMatch[1] : "");
+      
+      // Extract manual activities (lines without * prefix that aren't observations)
+      // and observations (text that's not part of structured activities)
+      const lines = obs.split("\n");
+      const manualLines: string[] = [];
+      const obsLines: string[] = [];
+      let isAfterActivities = false;
+      
+      for (const line of lines) {
+        const trimmed = line.trim();
+        if (!trimmed) {
+          isAfterActivities = true;
+          continue;
+        }
+        
+        // Skip structured activity lines (those starting with *)
+        if (trimmed.startsWith("*")) {
+          continue;
+        }
+        
+        // After the activities section, remaining text is observacoes
+        if (isAfterActivities) {
+          obsLines.push(trimmed);
+        }
+      }
+      
+      setAtividadesManuais("");
+      setObservacoes(obsLines.join("\n"));
     } else {
       // Reset form for new date
       setLocalServico("FAIXA 2");
