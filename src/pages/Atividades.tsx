@@ -70,6 +70,8 @@ export default function Atividades() {
   const [podagemBerma, setPodagemBerma] = useState("");
   const [coroamento, setCoroamento] = useState("");
   const [coroamentoBerma, setCoroamentoBerma] = useState("");
+  const [adubagem, setAdubagem] = useState("");
+  const [adubagemBerma, setAdubagemBerma] = useState("");
   const [plantio, setPlantio] = useState("");
   const [plantioBerma, setPlantioBerma] = useState("");
   const [limpezaManual, setLimpezaManual] = useState("");
@@ -147,6 +149,8 @@ export default function Atividades() {
       setPodagemBerma(existingReport.podagem_berma?.toString() || "");
       setCoroamento(existingReport.coroamento_unidade?.toString() || "");
       setCoroamentoBerma(existingReport.coroamento_berma?.toString() || "");
+      setAdubagem(existingReport.adubagem_unidade?.toString() || "");
+      setAdubagemBerma(existingReport.adubagem_berma?.toString() || "");
       setPlantio(existingReport.plantio_unidade?.toString() || "");
       setPlantioBerma(existingReport.plantio_berma?.toString() || "");
       setLimpezaManual(existingReport.limpeza_manual_m2?.toString() || "");
@@ -166,6 +170,8 @@ export default function Atividades() {
       setPodagemBerma("");
       setCoroamento("");
       setCoroamentoBerma("");
+      setAdubagem("");
+      setAdubagemBerma("");
       setPlantio("");
       setPlantioBerma("");
       setLimpezaManual("");
@@ -231,6 +237,8 @@ export default function Atividades() {
         podagem_berma: podagemBerma ? parseInt(podagemBerma) : undefined,
         coroamento_unidade: coroamento ? parseInt(coroamento) : undefined,
         coroamento_berma: coroamentoBerma ? parseInt(coroamentoBerma) : undefined,
+        adubagem_unidade: adubagem ? parseInt(adubagem) : undefined,
+        adubagem_berma: adubagemBerma ? parseInt(adubagemBerma) : undefined,
         plantio_unidade: plantio ? parseInt(plantio) : undefined,
         plantio_berma: plantioBerma ? parseInt(plantioBerma) : undefined,
         limpeza_manual_m2: limpezaManual ? parseFloat(limpezaManual) : undefined,
@@ -386,6 +394,9 @@ export default function Atividades() {
                 }
                 if (report.coroamento_unidade && parseInt(report.coroamento_unidade) > 0) {
                   lines.push(`* Coroamento - ${report.coroamento_unidade} unidade(s)${report.coroamento_berma ? ` (Berma ${report.coroamento_berma})` : ""}`);
+                }
+                if (report.adubagem_unidade && parseInt(report.adubagem_unidade) > 0) {
+                  lines.push(`* Adubagem - ${report.adubagem_unidade} unidade(s)${report.adubagem_berma ? ` (Berma ${report.adubagem_berma})` : ""}`);
                 }
                 if (report.plantio_unidade && parseInt(report.plantio_unidade) > 0) {
                   lines.push(`* Plantio - ${report.plantio_unidade} unidade(s)${report.plantio_berma ? ` (Berma ${report.plantio_berma})` : ""}`);
@@ -555,6 +566,45 @@ export default function Atividades() {
                   <div className="space-y-2">
                     <Label>Berma</Label>
                     <Select value={coroamentoBerma} onValueChange={setCoroamentoBerma}>
+                      <SelectTrigger>
+                        <SelectValue placeholder="Selecione" />
+                      </SelectTrigger>
+                      <SelectContent>
+                        {BERMA_OPTIONS.map((opt) => (
+                          <SelectItem key={opt.value} value={opt.value}>
+                            {opt.label}
+                          </SelectItem>
+                        ))}
+                      </SelectContent>
+                    </Select>
+                  </div>
+                </div>
+
+                {/* Adubagem */}
+                <div className="grid grid-cols-1 md:grid-cols-[1fr_180px] gap-3 p-3 rounded-lg bg-muted/30">
+                  <div className="space-y-2">
+                    <div className="flex items-center justify-between">
+                      <Label>ADUBAGEM (Unidade)</Label>
+                      {coroamento && parseInt(coroamento) > 0 && (
+                        <Badge 
+                          variant={adubagem && parseInt(adubagem) >= parseInt(coroamento) ? "default" : "secondary"}
+                          className="text-xs"
+                        >
+                          Coroamento: {coroamento} | Faltam: {Math.max(0, parseInt(coroamento) - (parseInt(adubagem) || 0))}
+                        </Badge>
+                      )}
+                    </div>
+                    <Input
+                      type="number"
+                      min="0"
+                      value={adubagem}
+                      onChange={(e) => setAdubagem(e.target.value)}
+                      placeholder="0"
+                    />
+                  </div>
+                  <div className="space-y-2">
+                    <Label>Berma</Label>
+                    <Select value={adubagemBerma} onValueChange={setAdubagemBerma}>
                       <SelectTrigger>
                         <SelectValue placeholder="Selecione" />
                       </SelectTrigger>
@@ -780,6 +830,9 @@ export default function Atividades() {
                   {coroamento && parseInt(coroamento) > 0 && (
                     <p>* Coroamento - {coroamento} unidade(s){coroamentoBerma && ` (Berma ${coroamentoBerma})`}</p>
                   )}
+                  {adubagem && parseInt(adubagem) > 0 && (
+                    <p>* Adubagem - {adubagem} unidade(s){adubagemBerma && ` (Berma ${adubagemBerma})`}</p>
+                  )}
                   {plantio && parseInt(plantio) > 0 && (
                     <p>* Plantio - {plantio} unidade(s){plantioBerma && ` (Berma ${plantioBerma})`}</p>
                   )}
@@ -800,7 +853,7 @@ export default function Atividades() {
                   {manutencaoCanteiro && (
                     <p>* Manutenção de Canteiro: {manutencaoCanteiro}</p>
                   )}
-                  {!rocagem && !podagem && !coroamento && !plantio && !limpezaManual && !limpezaAssoprador && !invasoras.some(i => i.unidade && parseInt(i.unidade) > 0) && !retiradaMudasUnidade && !manutencaoCanteiro && (
+                  {!rocagem && !podagem && !coroamento && !adubagem && !plantio && !limpezaManual && !limpezaAssoprador && !invasoras.some(i => i.unidade && parseInt(i.unidade) > 0) && !retiradaMudasUnidade && !manutencaoCanteiro && (
                     <p className="text-muted-foreground italic">Nenhuma atividade preenchida</p>
                   )}
                 </div>

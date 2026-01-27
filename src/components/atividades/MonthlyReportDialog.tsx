@@ -26,6 +26,7 @@ interface JardinagemTotals {
   rocagem_m2: number;
   podagem_unidade: number;
   coroamento_unidade: number;
+  adubagem_unidade: number;
   plantio_unidade: number;
   limpeza_manual_m2: number;
   limpeza_assoprador_m2: number;
@@ -138,6 +139,7 @@ export default function MonthlyReportDialog({
       rocagem_m2: 0,
       podagem_unidade: 0,
       coroamento_unidade: 0,
+      adubagem_unidade: 0,
       plantio_unidade: 0,
       limpeza_manual_m2: 0,
       limpeza_assoprador_m2: 0,
@@ -163,6 +165,7 @@ export default function MonthlyReportDialog({
         rocagem_m2: acc.rocagem_m2 + (parseFloat(report.rocagem_m2) || 0),
         podagem_unidade: acc.podagem_unidade + (parseInt(report.podagem_unidade) || 0),
         coroamento_unidade: acc.coroamento_unidade + (parseInt(report.coroamento_unidade) || 0),
+        adubagem_unidade: acc.adubagem_unidade + (parseInt(report.adubagem_unidade) || 0),
         plantio_unidade: acc.plantio_unidade + (parseInt(report.plantio_unidade) || 0),
         limpeza_manual_m2: acc.limpeza_manual_m2 + (parseFloat(report.limpeza_manual_m2) || 0),
         limpeza_assoprador_m2: acc.limpeza_assoprador_m2 + (parseFloat(report.limpeza_assoprador_m2) || 0),
@@ -173,6 +176,7 @@ export default function MonthlyReportDialog({
       rocagem_m2: 0,
       podagem_unidade: 0,
       coroamento_unidade: 0,
+      adubagem_unidade: 0,
       plantio_unidade: 0,
       limpeza_manual_m2: 0,
       limpeza_assoprador_m2: 0,
@@ -439,6 +443,12 @@ export default function MonthlyReportDialog({
                               <div className="flex justify-between p-3 bg-card rounded-lg border">
                                 <span className="font-medium">🌳 Coroamento</span>
                                 <Badge variant="secondary">{jardinagemTotals.coroamento_unidade} unid.</Badge>
+                              </div>
+                            )}
+                            {jardinagemTotals.adubagem_unidade > 0 && (
+                              <div className="flex justify-between p-3 bg-card rounded-lg border">
+                                <span className="font-medium">💧 Adubagem</span>
+                                <Badge variant="secondary">{jardinagemTotals.adubagem_unidade} unid.</Badge>
                               </div>
                             )}
                             {jardinagemTotals.plantio_unidade > 0 && (

@@ -242,6 +242,8 @@ export type Database = {
       }
       daily_jardinagem_reports: {
         Row: {
+          adubagem_berma: number | null
+          adubagem_unidade: number | null
           controle_invasoras_berma: number | null
           controle_invasoras_nome: string | null
           controle_invasoras_unidade: number | null
@@ -267,6 +269,8 @@ export type Database = {
           updated_at: string
         }
         Insert: {
+          adubagem_berma?: number | null
+          adubagem_unidade?: number | null
           controle_invasoras_berma?: number | null
           controle_invasoras_nome?: string | null
           controle_invasoras_unidade?: number | null
@@ -292,6 +296,8 @@ export type Database = {
           updated_at?: string
         }
         Update: {
+          adubagem_berma?: number | null
+          adubagem_unidade?: number | null
           controle_invasoras_berma?: number | null
           controle_invasoras_nome?: string | null
           controle_invasoras_unidade?: number | null
