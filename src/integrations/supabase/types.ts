@@ -128,6 +128,7 @@ export type Database = {
       }
       attendance_report_locks: {
         Row: {
+          area: string
           created_at: string
           date: string
           id: string
@@ -135,6 +136,7 @@ export type Database = {
           locked_by: string
         }
         Insert: {
+          area?: string
           created_at?: string
           date: string
           id?: string
@@ -142,6 +144,7 @@ export type Database = {
           locked_by: string
         }
         Update: {
+          area?: string
           created_at?: string
           date?: string
           id?: string

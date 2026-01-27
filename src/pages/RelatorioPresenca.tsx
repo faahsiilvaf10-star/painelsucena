@@ -25,7 +25,7 @@ import { supabase } from "@/integrations/supabase/client";
 import type { Tables } from "@/integrations/supabase/types";
 import { toast } from "sonner";
 import { useUpsertAttendance } from "@/hooks/useAttendance";
-import { useReportLock } from "@/hooks/useReportLock";
+import { useReportLock, AreaType } from "@/hooks/useReportLock";
 import { useSaveEfetivoToRDO } from "@/hooks/useRDOReports";
 import { getBrazilNorthTodayString } from "@/lib/timezone";
 
@@ -109,6 +109,12 @@ const gabiaAjudantes = [
   "Ezedequias Silva",
 ];
 
+// Map display area names to AreaType
+const areaToLockType: Record<string, AreaType> = {
+  "ÁREA GABIÃO": "gabiao",
+  "ROÇAGEM E PODAGEM": "jardinagem",
+};
+
 const RelatorioPresenca = () => {
   const [selectedDate, setSelectedDate] = useState(() => {
     return getBrazilNorthTodayString();
@@ -138,7 +144,7 @@ const RelatorioPresenca = () => {
   const queryClient = useQueryClient();
   const upsertAttendance = useUpsertAttendance();
   const saveEfetivoToRDO = useSaveEfetivoToRDO();
-  const { isLocked, lockReport, unlockReport, canUnlock, isLoading: lockLoading } = useReportLock(selectedDate);
+  const { isAreaLocked, canUnlockArea, lockArea, unlockArea, isLoading: lockLoading } = useReportLock(selectedDate);
 
   // Fetch attendance records for the selected date with employees
   const { data: records, isLoading: recordsLoading } = useQuery({
@@ -228,8 +234,11 @@ const RelatorioPresenca = () => {
   };
 
   const toggleAttendance = async (employee: Tables<"employees">) => {
-    if (isLocked) {
-      toast.error("Relatório salvo! Não é possível alterar.");
+    const employeeArea = getArea(employee);
+    const lockType = areaToLockType[employeeArea];
+    
+    if (isAreaLocked(lockType)) {
+      toast.error(`Área ${employeeArea} está bloqueada! Não é possível alterar.`);
       return;
     }
 
@@ -248,11 +257,14 @@ const RelatorioPresenca = () => {
     }
   };
 
-  const handleSaveReport = async () => {
+  const handleSaveAreaReport = async (area: "ÁREA GABIÃO" | "ROÇAGEM E PODAGEM") => {
+    const lockType = areaToLockType[area];
+    
     try {
-      // First, create attendance records for all employees who don't have one yet
+      // First, create attendance records for employees in this area who don't have one yet
       if (allEmployees) {
-        const employeesWithoutRecords = allEmployees.filter(
+        const areaEmployees = allEmployees.filter(emp => getArea(emp) === area);
+        const employeesWithoutRecords = areaEmployees.filter(
           (emp) => !attendanceMap.has(emp.id)
         );
 
@@ -270,32 +282,41 @@ const RelatorioPresenca = () => {
       await queryClient.invalidateQueries({ queryKey: ["attendance_report", selectedDate] });
       await queryClient.invalidateQueries({ queryKey: ["attendance_records"] });
 
-      // Generate efetivo text for both areas and save to RDO (quantity only, no names)
-      const efetivoGabiaoText = generateAreaReportForRDO("ÁREA GABIÃO");
-      const efetivoJardinagemText = generateAreaReportForRDO("ROÇAGEM E PODAGEM");
+      // Generate efetivo text for this area and save to RDO
+      if (area === "ÁREA GABIÃO") {
+        const efetivoGabiaoText = generateAreaReportForRDO("ÁREA GABIÃO");
+        await saveEfetivoToRDO.mutateAsync({
+          report_date: selectedDate,
+          efetivo_gabiao_text: efetivoGabiaoText,
+          efetivo_jardinagem_text: "",
+        });
+      } else {
+        const efetivoJardinagemText = generateAreaReportForRDO("ROÇAGEM E PODAGEM");
+        await saveEfetivoToRDO.mutateAsync({
+          report_date: selectedDate,
+          efetivo_gabiao_text: "",
+          efetivo_jardinagem_text: efetivoJardinagemText,
+        });
+      }
 
-      await saveEfetivoToRDO.mutateAsync({
-        report_date: selectedDate,
-        efetivo_gabiao_text: efetivoGabiaoText,
-        efetivo_jardinagem_text: efetivoJardinagemText,
-      });
-
-      // Then lock the report
-      await lockReport.mutateAsync();
-      toast.success("Relatório salvo e efetivo enviado ao RDO!");
+      // Lock the specific area
+      await lockArea.mutateAsync(lockType);
+      toast.success(`Relatório ${area === "ÁREA GABIÃO" ? "Gabião" : "Jardinagem"} salvo!`);
     } catch {
       toast.error("Erro ao salvar relatório");
     }
   };
 
-  const handleUnlockReport = async () => {
+  const handleUnlockAreaReport = async (area: "ÁREA GABIÃO" | "ROÇAGEM E PODAGEM") => {
+    const lockType = areaToLockType[area];
     try {
-      await unlockReport.mutateAsync();
-      toast.success("Relatório desbloqueado para edição.");
+      await unlockArea.mutateAsync(lockType);
+      toast.success(`Área ${area === "ÁREA GABIÃO" ? "Gabião" : "Jardinagem"} desbloqueada.`);
     } catch {
       toast.error("Erro ao desbloquear relatório");
     }
   };
+
 
   const handleAddEmployee = async () => {
     if (!newEmployee.name.trim() || !newEmployee.role) {
@@ -439,23 +460,26 @@ const RelatorioPresenca = () => {
     window.open(`https://wa.me/?text=${encoded}`, "_blank");
   };
 
-  const EmployeeRow = ({ employee }: { employee: Tables<"employees"> }) => {
+  const EmployeeRow = ({ employee, area }: { employee: Tables<"employees">; area: "ÁREA GABIÃO" | "ROÇAGEM E PODAGEM" }) => {
     const present = isPresent(employee.id);
+    const lockType = areaToLockType[area];
+    const locked = isAreaLocked(lockType);
+    
     return (
       <button
         onClick={() => toggleAttendance(employee)}
         className={`w-full flex items-center justify-between px-4 py-2 rounded-lg transition-all ${
-          isLocked ? "cursor-not-allowed opacity-70" : "hover:opacity-80 cursor-pointer"
+          locked ? "cursor-not-allowed opacity-70" : "hover:opacity-80 cursor-pointer"
         } ${
           present
             ? "bg-green-500/20 text-green-400 border border-green-500/30"
             : "bg-red-500/20 text-red-400 border border-red-500/30"
         }`}
-        disabled={upsertAttendance.isPending || isLocked}
+        disabled={upsertAttendance.isPending || locked}
       >
         <span className="font-medium">{employee.name.toUpperCase()}</span>
         <div className="flex items-center gap-2">
-          {isLocked && <Lock className="w-3 h-3" />}
+          {locked && <Lock className="w-3 h-3" />}
           <span className="text-xl">{present ? "✅" : "❌"}</span>
         </div>
       </button>
@@ -465,9 +489,11 @@ const RelatorioPresenca = () => {
   const RoleSection = ({
     label,
     employees,
+    area,
   }: {
     label: string;
     employees: Tables<"employees">[];
+    area: "ÁREA GABIÃO" | "ROÇAGEM E PODAGEM";
   }) => {
     if (employees.length === 0) return null;
     return (
@@ -475,7 +501,7 @@ const RelatorioPresenca = () => {
         <p className="text-sm font-semibold text-muted-foreground mb-2">{label}</p>
         <div className="space-y-2">
           {employees.map((emp) => (
-            <EmployeeRow key={emp.id} employee={emp} />
+            <EmployeeRow key={emp.id} employee={emp} area={area} />
           ))}
         </div>
       </div>
@@ -532,12 +558,23 @@ const RelatorioPresenca = () => {
     const emoji = area === "ÁREA GABIÃO" ? "✳" : "🌿";
     const support = area === "ÁREA GABIÃO" ? supportGabiao : supportRocagem;
     const setSupport = area === "ÁREA GABIÃO" ? setSupportGabiao : setSupportRocagem;
+    const lockType = areaToLockType[area];
+    const locked = isAreaLocked(lockType);
+    const canUnlock = canUnlockArea(lockType);
 
     return (
       <div className="bg-card rounded-xl border border-border/50 p-6">
-        <h2 className="text-xl font-bold mb-2 text-center">
-          {emoji} {area} {emoji}
-        </h2>
+        <div className="flex items-center justify-between mb-2">
+          <h2 className="text-xl font-bold text-center flex-1">
+            {emoji} {area} {emoji}
+          </h2>
+          {locked && (
+            <div className="flex items-center gap-1 px-2 py-1 bg-amber-500/20 text-amber-500 rounded-md text-xs">
+              <Lock className="w-3 h-3" />
+              Salvo
+            </div>
+          )}
+        </div>
         <SupportTeamEditor support={support} setSupport={setSupport} />
         <p className="text-sm font-semibold text-center mb-4">
           ✴ EQUIPE DE EXECUÇÃO ✴
@@ -547,8 +584,49 @@ const RelatorioPresenca = () => {
             key={role}
             label={roleLabels[area][role]}
             employees={groupedEmployees[area][role] || []}
+            area={area}
           />
         ))}
+        
+        {/* Area-specific save/unlock buttons */}
+        <div className="mt-6 pt-4 border-t border-border/50">
+          {!locked ? (
+            <Button
+              onClick={() => handleSaveAreaReport(area)}
+              className="w-full gap-2 bg-primary hover:bg-primary/90"
+              disabled={isLoading || lockArea.isPending}
+            >
+              {lockArea.isPending ? (
+                <Loader2 className="w-4 h-4 animate-spin" />
+              ) : (
+                <Save className="w-4 h-4" />
+              )}
+              Salvar {area === "ÁREA GABIÃO" ? "Gabião" : "Jardinagem"}
+            </Button>
+          ) : (
+            <div className="flex flex-col gap-2">
+              <div className="flex items-center justify-center gap-2 px-3 py-2 bg-amber-500/20 text-amber-500 rounded-lg border border-amber-500/30">
+                <Lock className="w-4 h-4" />
+                <span className="text-sm font-medium">Área Salva e Bloqueada</span>
+              </div>
+              {canUnlock && (
+                <Button
+                  onClick={() => handleUnlockAreaReport(area)}
+                  variant="outline"
+                  className="w-full gap-2"
+                  disabled={unlockArea.isPending}
+                >
+                  {unlockArea.isPending ? (
+                    <Loader2 className="w-4 h-4 animate-spin" />
+                  ) : (
+                    <Unlock className="w-4 h-4" />
+                  )}
+                  Desbloquear {area === "ÁREA GABIÃO" ? "Gabião" : "Jardinagem"}
+                </Button>
+              )}
+            </div>
+          )}
+        </div>
       </div>
     );
   };
@@ -658,42 +736,6 @@ const RelatorioPresenca = () => {
               </Select>
             </div>
             <div className="flex gap-2 flex-wrap">
-              {!isLocked ? (
-                <Button
-                  onClick={handleSaveReport}
-                  className="gap-2 bg-primary hover:bg-primary/90"
-                  disabled={isLoading || lockReport.isPending}
-                >
-                  {lockReport.isPending ? (
-                    <Loader2 className="w-4 h-4 animate-spin" />
-                  ) : (
-                    <Save className="w-4 h-4" />
-                  )}
-                  Salvar Relatório
-                </Button>
-              ) : (
-                <div className="flex items-center gap-2">
-                  <div className="flex items-center gap-2 px-3 py-2 bg-amber-500/20 text-amber-500 rounded-lg border border-amber-500/30">
-                    <Lock className="w-4 h-4" />
-                    <span className="text-sm font-medium">Relatório Salvo</span>
-                  </div>
-                  {canUnlock && (
-                    <Button
-                      onClick={handleUnlockReport}
-                      variant="outline"
-                      className="gap-2"
-                      disabled={unlockReport.isPending}
-                    >
-                      {unlockReport.isPending ? (
-                        <Loader2 className="w-4 h-4 animate-spin" />
-                      ) : (
-                        <Unlock className="w-4 h-4" />
-                      )}
-                      Desbloquear
-                    </Button>
-                  )}
-                </div>
-              )}
               <Button
                 onClick={handleCopy}
                 variant="outline"
