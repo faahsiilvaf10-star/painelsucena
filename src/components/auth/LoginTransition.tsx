@@ -359,7 +359,7 @@ export function LoginTransition({ onComplete, userName, userAvatar, userCargo }:
         </div>
       )}
 
-      {/* Welcome text with sparkle effect */}
+      {/* Welcome text with modern gaming style */}
       {(phase === "zoom" || phase === "fade") && (
         <div className="absolute inset-0 flex items-center justify-center">
           <div 
@@ -373,43 +373,76 @@ export function LoginTransition({ onComplete, userName, userAvatar, userCargo }:
                 <img 
                   src={userAvatar} 
                   alt="Avatar"
-                  className="w-24 h-24 rounded-full object-cover border-4 border-white/40 shadow-2xl animate-avatar-pulse"
+                  className="w-24 h-24 rounded-full object-cover border-4 border-cyan-400/60 shadow-[0_0_30px_rgba(34,211,238,0.4)] animate-avatar-pulse"
                 />
               </div>
             )}
             {!userAvatar && (
               <div className="mb-6 animate-avatar-entrance">
-                <div className="w-24 h-24 rounded-full bg-white/20 border-4 border-white/40 shadow-2xl flex items-center justify-center animate-avatar-pulse">
-                  <User className="w-12 h-12 text-white/80" strokeWidth={1.5} />
+                <div className="w-24 h-24 rounded-full bg-gradient-to-br from-cyan-500/30 to-blue-600/30 border-4 border-cyan-400/60 shadow-[0_0_30px_rgba(34,211,238,0.4)] flex items-center justify-center animate-avatar-pulse">
+                  <User className="w-12 h-12 text-cyan-300" strokeWidth={1.5} />
                 </div>
               </div>
             )}
-            <div className="flex items-center gap-4">
-              <span className="text-4xl animate-bounce-slow">✨</span>
+            <div className="flex items-center gap-5">
+              <span className="text-5xl animate-bounce-slow drop-shadow-[0_0_10px_rgba(255,215,0,0.6)]">🌟</span>
               <div className="flex flex-col items-center">
-                <span className="text-white/60 text-lg font-light tracking-wide">
+                <span 
+                  className="text-xl font-bold tracking-widest uppercase animate-fade-in"
+                  style={{
+                    background: "linear-gradient(180deg, #ffffff 0%, #94a3b8 100%)",
+                    WebkitBackgroundClip: "text",
+                    WebkitTextFillColor: "transparent",
+                    textShadow: "0 2px 10px rgba(255,255,255,0.2)",
+                  }}
+                >
                   Bom trabalho,
                 </span>
-                <span className="text-white text-4xl font-semibold tracking-wide drop-shadow-lg">
+                <span 
+                  className="text-5xl font-black tracking-wide uppercase mt-1"
+                  style={{
+                    background: "linear-gradient(180deg, #22d3ee 0%, #0ea5e9 50%, #0369a1 100%)",
+                    WebkitBackgroundClip: "text",
+                    WebkitTextFillColor: "transparent",
+                    textShadow: "0 4px 20px rgba(34,211,238,0.5)",
+                    filter: "drop-shadow(0 2px 4px rgba(0,0,0,0.3))",
+                  }}
+                >
                   {userName || "Usuário"}!
                 </span>
                 {userCargo && (
-                  <span className="text-white/50 text-sm font-light tracking-wider mt-1 animate-fade-in" style={{ animationDelay: "0.3s" }}>
+                  <span 
+                    className="text-sm font-semibold tracking-[0.2em] uppercase mt-2 animate-fade-in"
+                    style={{ 
+                      animationDelay: "0.3s",
+                      background: "linear-gradient(90deg, #67e8f9 0%, #a5f3fc 50%, #67e8f9 100%)",
+                      WebkitBackgroundClip: "text",
+                      WebkitTextFillColor: "transparent",
+                    }}
+                  >
                     {userCargo}
                   </span>
                 )}
               </div>
-              <span className="text-4xl animate-bounce-slow" style={{ animationDelay: "0.3s" }}>✨</span>
+              <span className="text-5xl animate-bounce-slow drop-shadow-[0_0_10px_rgba(255,215,0,0.6)]" style={{ animationDelay: "0.3s" }}>🌟</span>
             </div>
-            <p className="text-white/60 text-base mt-4 animate-fade-in" style={{ animationDelay: "0.6s" }}>
+            <p 
+              className="text-base mt-6 font-medium tracking-wider animate-fade-in"
+              style={{ 
+                animationDelay: "0.6s",
+                background: "linear-gradient(90deg, #94a3b8 0%, #cbd5e1 50%, #94a3b8 100%)",
+                WebkitBackgroundClip: "text",
+                WebkitTextFillColor: "transparent",
+              }}
+            >
               Carregando seu painel...
             </p>
-            {/* Loading dots */}
-            <div className="flex gap-2 mt-5">
+            {/* Loading dots with glow */}
+            <div className="flex gap-3 mt-5">
               {[0, 1, 2].map((i) => (
                 <div
                   key={i}
-                  className="w-2.5 h-2.5 rounded-full bg-white/40 animate-pulse"
+                  className="w-3 h-3 rounded-full bg-gradient-to-r from-cyan-400 to-blue-500 animate-pulse shadow-[0_0_10px_rgba(34,211,238,0.6)]"
                   style={{ animationDelay: `${i * 0.25}s` }}
                 />
               ))}
