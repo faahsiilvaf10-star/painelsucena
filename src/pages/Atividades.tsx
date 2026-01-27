@@ -279,7 +279,7 @@ export default function Atividades() {
   const formattedDate = format(selectedDate, "dd/MM/yy (EEEE)", { locale: ptBR });
   const capitalizedDate = formattedDate.charAt(0).toUpperCase() + formattedDate.slice(1);
 
-  const handleSave = async (redirectToRdo: boolean = false) => {
+  const handleSave = async () => {
     if (!user) {
       toast.error("Você precisa estar logado para salvar.");
       return;
@@ -319,12 +319,104 @@ export default function Atividades() {
         irrigacao_carretel_bermas: irrigacaoCarretel && irrigacaoCarretelBermas.length > 0 ? irrigacaoCarretelBermas : undefined,
       });
       
-      if (redirectToRdo) {
-        toast.success("Atividades salvas! Redirecionando para RDO...");
-        navigate("/rdo");
-      } else {
-        toast.success("Atividades salvas com sucesso!");
+      toast.success("Atividades salvas com sucesso!");
+    } catch (error: any) {
+      toast.error("Erro ao salvar: " + error.message);
+    }
+  };
+
+  // Generate RDO summary for WhatsApp
+  const generateRDOSummary = () => {
+    const formattedDateStr = format(selectedDate, "dd/MM/yyyy");
+    
+    let summary = `📅 *RDO JARDINAGEM - ${formattedDateStr}*\n\n`;
+    summary += `📍 *Local:* ${localFaixa}\n\n`;
+    summary += `🌱 *Atividades Realizadas:*\n`;
+    
+    const lines: string[] = [];
+    const formatBerma = (berma: string): string => berma ? ` (Berma ${berma})` : "";
+    
+    if (rocagem) lines.push(`* Roçagem - ${rocagem} m²${formatBerma(rocagemBerma)}`);
+    if (podagem) lines.push(`* Podagem - ${podagem} unidade(s)${formatBerma(podagemBerma)}`);
+    if (coroamento) lines.push(`* Coroamento - ${coroamento} unidade(s)${formatBerma(coroamentoBerma)}`);
+    if (adubagem) lines.push(`* Adubagem - ${adubagem} unidade(s)${formatBerma(adubagemBerma)}`);
+    if (plantio) lines.push(`* Plantio - ${plantio} unidade(s)${formatBerma(plantioBerma)}`);
+    if (limpezaManual) lines.push(`* Limpeza Manual - ${limpezaManual} m²${formatBerma(limpezaManualBerma)}`);
+    if (limpezaAssoprador) lines.push(`* Limpeza com Assoprador - ${limpezaAssoprador} m²${formatBerma(limpezaAssopradorBerma)}`);
+    
+    const filteredInvasoras = invasoras.filter(i => i.nome || i.unidade);
+    filteredInvasoras.forEach(inv => {
+      if (inv.unidade) {
+        const nomeText = inv.nome ? ` (${inv.nome})` : "";
+        lines.push(`* Controle de Invasoras${nomeText} - ${inv.unidade} unidade(s)${formatBerma(invasorasBerma)}`);
       }
+    });
+    
+    if (retiradaMudasUnidade) lines.push(`* Retirada de Mudas (Árvores) - ${retiradaMudasUnidade} unidade(s)`);
+    if (manutencaoCanteiro) lines.push(`* Manutenção de Canteiro: ${manutencaoCanteiro}`);
+    if (irrigacaoPipas) lines.push(`* Irrigação com Pipas nas Faixas 3 e 4 e Mirante`);
+    if (irrigacaoCarretel && irrigacaoCarretelBermas.length > 0) {
+      const bermasText = irrigacaoCarretelBermas.sort((a, b) => a - b).join(", ");
+      lines.push(`* Irrigação com Carretel (Bermas: ${bermasText})`);
+    } else if (irrigacaoCarretel) {
+      lines.push(`* Irrigação com Carretel`);
+    }
+    
+    if (lines.length > 0) {
+      lines.forEach(line => {
+        summary += `${line}\n`;
+      });
+    } else {
+      summary += "Nenhuma atividade registrada\n";
+    }
+    
+    return summary;
+  };
+
+  const handleWhatsApp = async () => {
+    if (!user) {
+      toast.error("Você precisa estar logado para salvar.");
+      return;
+    }
+
+    if (!localFaixa) {
+      toast.error("Selecione a Faixa.");
+      return;
+    }
+
+    try {
+      const invasorasData = formatInvasorasForStorage();
+      await saveReport.mutateAsync({
+        report_date: selectedDateStr,
+        local_faixa: localFaixa,
+        rocagem_m2: rocagem ? parseFloat(rocagem) : undefined,
+        rocagem_berma: rocagemBerma ? parseInt(rocagemBerma) : undefined,
+        podagem_unidade: podagem ? parseInt(podagem) : undefined,
+        podagem_berma: podagemBerma ? parseInt(podagemBerma) : undefined,
+        coroamento_unidade: coroamento ? parseInt(coroamento) : undefined,
+        coroamento_berma: coroamentoBerma ? parseInt(coroamentoBerma) : undefined,
+        adubagem_unidade: adubagem ? parseInt(adubagem) : undefined,
+        adubagem_berma: adubagemBerma ? parseInt(adubagemBerma) : undefined,
+        plantio_unidade: plantio ? parseInt(plantio) : undefined,
+        plantio_berma: plantioBerma ? parseInt(plantioBerma) : undefined,
+        limpeza_manual_m2: limpezaManual ? parseFloat(limpezaManual) : undefined,
+        limpeza_manual_berma: limpezaManualBerma ? parseInt(limpezaManualBerma) : undefined,
+        limpeza_assoprador_m2: limpezaAssoprador ? parseFloat(limpezaAssoprador) : undefined,
+        limpeza_assoprador_berma: limpezaAssopradorBerma ? parseInt(limpezaAssopradorBerma) : undefined,
+        manutencao_canteiro: manutencaoCanteiro || undefined,
+        controle_invasoras_unidade: invasorasData.unidade,
+        controle_invasoras_nome: invasorasData.nome,
+        controle_invasoras_berma: invasorasBerma ? parseInt(invasorasBerma) : undefined,
+        retirada_mudas_unidade: retiradaMudasUnidade ? parseInt(retiradaMudasUnidade) : undefined,
+        irrigacao_pipas: irrigacaoPipas,
+        irrigacao_carretel: irrigacaoCarretel,
+        irrigacao_carretel_bermas: irrigacaoCarretel && irrigacaoCarretelBermas.length > 0 ? irrigacaoCarretelBermas : undefined,
+      });
+      
+      const summary = generateRDOSummary();
+      const encoded = encodeURIComponent(summary);
+      window.open(`https://wa.me/?text=${encoded}`, "_blank");
+      toast.success("Atividades salvas e enviadas para WhatsApp!");
     } catch (error: any) {
       toast.error("Erro ao salvar: " + error.message);
     }
@@ -515,7 +607,7 @@ export default function Atividades() {
               </Button>
             )}
 
-            <Button onClick={() => handleSave(false)} disabled={saveReport.isPending} variant="outline">
+            <Button onClick={() => handleSave()} disabled={saveReport.isPending} variant="outline">
               {saveReport.isPending ? (
                 <Loader2 className="h-4 w-4 mr-2 animate-spin" />
               ) : (
@@ -525,7 +617,7 @@ export default function Atividades() {
             </Button>
 
             <Button 
-              onClick={() => handleSave(true)} 
+              onClick={handleWhatsApp} 
               disabled={saveReport.isPending}
               className="gap-2 bg-green-600 hover:bg-green-700"
             >

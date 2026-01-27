@@ -369,7 +369,7 @@ export default function AtividadesII() {
     return lines.join("\n");
   };
 
-  const handleSave = async (redirectToRdo: boolean = false) => {
+  const handleSave = async () => {
     if (!user) {
       toast.error("Você precisa estar logado para salvar.");
       return;
@@ -398,8 +398,7 @@ export default function AtividadesII() {
         observacoes: combinedObservacoes || undefined,
       });
       
-      toast.success("Atividades salvas! Redirecionando para RDO...");
-      navigate("/rdo");
+      toast.success("Atividades salvas com sucesso!");
     } catch (error: any) {
       toast.error("Erro ao salvar: " + error.message);
     }
@@ -663,7 +662,7 @@ export default function AtividadesII() {
               </Button>
             )}
 
-            <Button onClick={() => handleSave(false)} disabled={saveReport.isPending} variant="outline">
+            <Button onClick={() => handleSave()} disabled={saveReport.isPending} variant="outline">
               {saveReport.isPending ? (
                 <Loader2 className="h-4 w-4 mr-2 animate-spin" />
               ) : (
