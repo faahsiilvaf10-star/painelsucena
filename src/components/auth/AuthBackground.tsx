@@ -43,13 +43,13 @@ interface Particle {
   duration: number;
   delay: number;
   opacity: number;
-  type: "small" | "medium" | "large" | "glow";
+  type: "small" | "medium" | "large";
 }
 
 export function AuthBackground() {
   // Generate random particles with varied sizes
   const particles = useMemo<Particle[]>(() => {
-    return Array.from({ length: 120 }, (_, i) => {
+    return Array.from({ length: 100 }, (_, i) => {
       const rand = Math.random();
       let type: Particle["type"];
       let size: number;
@@ -60,21 +60,16 @@ export function AuthBackground() {
         type = "small";
         size = 1 + Math.random() * 2;
         opacity = 0.15 + Math.random() * 0.25;
-      } else if (rand < 0.75) {
-        // 25% medium particles
+      } else if (rand < 0.8) {
+        // 30% medium particles
         type = "medium";
         size = 3 + Math.random() * 3;
         opacity = 0.2 + Math.random() * 0.3;
-      } else if (rand < 0.92) {
-        // 17% large particles
+      } else {
+        // 20% large particles
         type = "large";
         size = 5 + Math.random() * 4;
         opacity = 0.25 + Math.random() * 0.35;
-      } else {
-        // 8% glowing particles
-        type = "glow";
-        size = 6 + Math.random() * 6;
-        opacity = 0.4 + Math.random() * 0.4;
       }
 
       return {
@@ -134,9 +129,7 @@ export function AuthBackground() {
         <div
           key={particle.id}
           className={`absolute rounded-full animate-float-particle ${
-            particle.type === "glow" 
-              ? "bg-amber-300/60" 
-              : particle.type === "large"
+            particle.type === "large"
               ? "bg-white/30"
               : "bg-white/20"
           }`}
@@ -148,9 +141,7 @@ export function AuthBackground() {
             opacity: particle.opacity,
             animationDuration: `${particle.duration}s`,
             animationDelay: `${particle.delay}s`,
-            boxShadow: particle.type === "glow" 
-              ? `0 0 ${particle.size * 2}px ${particle.size}px rgba(251, 191, 36, 0.4), 0 0 ${particle.size * 4}px ${particle.size * 2}px rgba(251, 191, 36, 0.2)`
-              : particle.type === "large"
+            boxShadow: particle.type === "large"
               ? `0 0 ${particle.size}px ${particle.size / 2}px rgba(255, 255, 255, 0.15)`
               : "none",
           }}
