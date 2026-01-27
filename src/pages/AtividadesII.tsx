@@ -138,6 +138,14 @@ export default function AtividadesII() {
   const [reposicaoGeotextil, setReposicaoGeotextil] = useState(false);
   const [reposicaoGeotextilDimensao, setReposicaoGeotextilDimensao] = useState("");
   
+  // Recomposição activities
+  const [recomposicaoTela, setRecomposicaoTela] = useState(false);
+  const [recomposicaoTelaDimensao, setRecomposicaoTelaDimensao] = useState("");
+  const [recomposicaoCascalho, setRecomposicaoCascalho] = useState(false);
+  const [recomposicaoCascalhoQuantidade, setRecomposicaoCascalhoQuantidade] = useState("");
+  const [recomposicaoSilte, setRecomposicaoSilte] = useState(false);
+  const [recomposicaoSilteQuantidade, setRecomposicaoSilteQuantidade] = useState("");
+  
   // Manual activities text
   const [atividadesManuais, setAtividadesManuais] = useState("");
   const [observacoes, setObservacoes] = useState("");
@@ -183,6 +191,9 @@ export default function AtividadesII() {
       setLavagemVertedouro(obs.includes("Lavagem de vertedouro") && !obs.includes("Lavagem de bacias"));
       setLavagemBaciasVertedouro(obs.includes("Lavagem de bacias"));
       setReposicaoGeotextil(obs.includes("Reposição de Geotêxtil"));
+      setRecomposicaoTela(obs.includes("Recomposição de tela"));
+      setRecomposicaoCascalho(obs.includes("Recomposição de cascalho"));
+      setRecomposicaoSilte(obs.includes("Recomposição de silte"));
       
       // Parse dimensions/quantities from activities
       const mantaMatch = obs.match(/Reposição de manta asfáltica - ([^\n]+)/);
@@ -199,6 +210,15 @@ export default function AtividadesII() {
       
       const geotextilMatch = obs.match(/Reposição de Geotêxtil - ([^\n]+)/);
       setReposicaoGeotextilDimensao(geotextilMatch ? geotextilMatch[1] : "");
+      
+      const recompTelaMatch = obs.match(/Recomposição de tela - ([^\n]+)/);
+      setRecomposicaoTelaDimensao(recompTelaMatch ? recompTelaMatch[1] : "");
+      
+      const recompCascalhoMatch = obs.match(/Recomposição de cascalho - ([\d.]+) m²/);
+      setRecomposicaoCascalhoQuantidade(recompCascalhoMatch ? recompCascalhoMatch[1] : "");
+      
+      const recompSilteMatch = obs.match(/Recomposição de silte - ([\d.]+) m²/);
+      setRecomposicaoSilteQuantidade(recompSilteMatch ? recompSilteMatch[1] : "");
       
       // Extract manual activities (lines without * prefix that aren't observations)
       // and observations (text that's not part of structured activities)
@@ -246,6 +266,12 @@ export default function AtividadesII() {
       setLavagemBaciasVertedouro(false);
       setReposicaoGeotextil(false);
       setReposicaoGeotextilDimensao("");
+      setRecomposicaoTela(false);
+      setRecomposicaoTelaDimensao("");
+      setRecomposicaoCascalho(false);
+      setRecomposicaoCascalhoQuantidade("");
+      setRecomposicaoSilte(false);
+      setRecomposicaoSilteQuantidade("");
       setAtividadesManuais("");
       setObservacoes("");
     }
@@ -312,6 +338,15 @@ export default function AtividadesII() {
     }
     if (reposicaoGeotextil) {
       lines.push(`* Reposição de Geotêxtil${reposicaoGeotextilDimensao ? ` - ${reposicaoGeotextilDimensao}` : ""}`);
+    }
+    if (recomposicaoTela) {
+      lines.push(`* Recomposição de tela${recomposicaoTelaDimensao ? ` - ${recomposicaoTelaDimensao}` : ""}`);
+    }
+    if (recomposicaoCascalho) {
+      lines.push(`* Recomposição de cascalho${recomposicaoCascalhoQuantidade ? ` - ${recomposicaoCascalhoQuantidade} m²` : ""}`);
+    }
+    if (recomposicaoSilte) {
+      lines.push(`* Recomposição de silte${recomposicaoSilteQuantidade ? ` - ${recomposicaoSilteQuantidade} m²` : ""}`);
     }
     
     if (atividadesManuais.trim()) {
@@ -918,6 +953,87 @@ export default function AtividadesII() {
                         onChange={(e) => setReposicaoGeotextilDimensao(e.target.value)}
                         className="w-[150px]"
                       />
+                    </div>
+                  )}
+                </div>
+
+                {/* Recomposição de tela */}
+                <div className="p-3 rounded-lg bg-muted/30 space-y-3">
+                  <div className="flex items-center space-x-3">
+                    <Checkbox 
+                      id="recomposicaoTela" 
+                      checked={recomposicaoTela}
+                      onCheckedChange={(checked) => setRecomposicaoTela(checked === true)}
+                    />
+                    <Label htmlFor="recomposicaoTela" className="cursor-pointer font-medium">
+                      Recomposição de tela
+                    </Label>
+                  </div>
+                  {recomposicaoTela && (
+                    <div className="flex items-center gap-2 ml-7">
+                      <Input
+                        type="text"
+                        placeholder="Ex: 8 x 8"
+                        value={recomposicaoTelaDimensao}
+                        onChange={(e) => setRecomposicaoTelaDimensao(e.target.value)}
+                        className="w-[150px]"
+                      />
+                    </div>
+                  )}
+                </div>
+
+                {/* Recomposição de cascalho */}
+                <div className="p-3 rounded-lg bg-muted/30 space-y-3">
+                  <div className="flex items-center space-x-3">
+                    <Checkbox 
+                      id="recomposicaoCascalho" 
+                      checked={recomposicaoCascalho}
+                      onCheckedChange={(checked) => setRecomposicaoCascalho(checked === true)}
+                    />
+                    <Label htmlFor="recomposicaoCascalho" className="cursor-pointer font-medium">
+                      Recomposição de cascalho
+                    </Label>
+                  </div>
+                  {recomposicaoCascalho && (
+                    <div className="flex items-center gap-2 ml-7">
+                      <Input
+                        type="number"
+                        min="0"
+                        step="0.01"
+                        placeholder="Quantidade"
+                        value={recomposicaoCascalhoQuantidade}
+                        onChange={(e) => setRecomposicaoCascalhoQuantidade(e.target.value)}
+                        className="w-[120px]"
+                      />
+                      <span className="text-sm font-medium">m²</span>
+                    </div>
+                  )}
+                </div>
+
+                {/* Recomposição de silte */}
+                <div className="p-3 rounded-lg bg-muted/30 space-y-3">
+                  <div className="flex items-center space-x-3">
+                    <Checkbox 
+                      id="recomposicaoSilte" 
+                      checked={recomposicaoSilte}
+                      onCheckedChange={(checked) => setRecomposicaoSilte(checked === true)}
+                    />
+                    <Label htmlFor="recomposicaoSilte" className="cursor-pointer font-medium">
+                      Recomposição de silte
+                    </Label>
+                  </div>
+                  {recomposicaoSilte && (
+                    <div className="flex items-center gap-2 ml-7">
+                      <Input
+                        type="number"
+                        min="0"
+                        step="0.01"
+                        placeholder="Quantidade"
+                        value={recomposicaoSilteQuantidade}
+                        onChange={(e) => setRecomposicaoSilteQuantidade(e.target.value)}
+                        className="w-[120px]"
+                      />
+                      <span className="text-sm font-medium">m²</span>
                     </div>
                   )}
                 </div>
