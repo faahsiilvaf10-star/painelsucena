@@ -357,12 +357,8 @@ export default function AtividadesII() {
         observacoes: combinedObservacoes || undefined,
       });
       
-      if (redirectToRdo) {
-        toast.success("Atividades salvas! Redirecionando para RDO...");
-        navigate("/rdo");
-      } else {
-        toast.success("Atividades salvas com sucesso!");
-      }
+      toast.success("Atividades salvas! Redirecionando para RDO...");
+      navigate("/rdo");
     } catch (error: any) {
       toast.error("Erro ao salvar: " + error.message);
     }
