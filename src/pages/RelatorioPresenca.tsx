@@ -370,13 +370,13 @@ const RelatorioPresenca = () => {
     if (!allEmployees) return "";
 
     const header = area === "ÁREA GABIÃO" 
-      ? "✳  ÁREA GABIÃO  ✳" 
+      ? "✳️ ÁREA GABIÃO ✳️" 
       : "🌿 ROÇAGEM E PODAGEM 🌿";
 
     let report = "";
 
     report += `${header}\n\n`;
-    report += `✴EQUIPE DE EXECUÇÃO✴\n\n`;
+    report += `✴️ EQUIPE DE EXECUÇÃO ✴️\n\n`;
 
     const roles = executionRoles[area];
     roles.forEach((role) => {
@@ -387,7 +387,7 @@ const RelatorioPresenca = () => {
       if (employees.length > 0 && presentCount > 0) {
         // Remove emoji and colon from label for cleaner display
         const cleanLabel = label.replace(/^👷🏼‍♂\s*|👷🏼\s*/g, '').replace(/:$/, '');
-        report += `👷🏼‍♂ ${cleanLabel}: ${presentCount}\n\n`;
+        report += `👷 ${cleanLabel}: ${presentCount}\n\n`;
       }
     });
 
