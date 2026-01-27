@@ -257,9 +257,10 @@ export default function AtividadesII() {
       lines.push(atividadesManuais.trim());
     }
     
+    // Add observacoes only if filled (manual input, no prefix)
     if (observacoes.trim()) {
       lines.push("");
-      lines.push(`Obs: ${observacoes.trim()}`);
+      lines.push(observacoes.trim());
     }
     
     return lines.join("\n");
