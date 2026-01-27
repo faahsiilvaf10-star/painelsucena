@@ -71,6 +71,11 @@ export default function Metas() {
   const [reposicaoManta, setReposicaoManta] = useState("");
   const [reposicaoSilte, setReposicaoSilte] = useState("");
 
+  // Recomposição form state
+  const [recomposicaoTela, setRecomposicaoTela] = useState("");
+  const [recomposicaoCascalho, setRecomposicaoCascalho] = useState("");
+  const [recomposicaoSilteRecomp, setRecomposicaoSilteRecomp] = useState("");
+
   // Check access permission - Admin or Planejador
   const hasAccess = authReady && (isAdmin || profile?.cargo === "planejador");
 
@@ -92,6 +97,10 @@ export default function Metas() {
       setEscavacaoManual(goal.escavacao_manual_unidade?.toString() || "");
       setReposicaoManta(goal.reposicao_manta_unidade?.toString() || "");
       setReposicaoSilte(goal.reposicao_silte_unidade?.toString() || "");
+      // Recomposição
+      setRecomposicaoTela(goal.recomposicao_tela_unidade?.toString() || "");
+      setRecomposicaoCascalho(goal.recomposicao_cascalho_unidade?.toString() || "");
+      setRecomposicaoSilteRecomp(goal.recomposicao_silte_unidade?.toString() || "");
     } else {
       // Reset form for new period
       setRocagem("");
@@ -107,6 +116,9 @@ export default function Metas() {
       setEscavacaoManual("");
       setReposicaoManta("");
       setReposicaoSilte("");
+      setRecomposicaoTela("");
+      setRecomposicaoCascalho("");
+      setRecomposicaoSilteRecomp("");
     }
   }, [goal, selectedPeriod]);
 
@@ -163,6 +175,10 @@ export default function Metas() {
         escavacao_manual_unidade: escavacaoManual ? parseInt(escavacaoManual) : 0,
         reposicao_manta_unidade: reposicaoManta ? parseInt(reposicaoManta) : 0,
         reposicao_silte_unidade: reposicaoSilte ? parseInt(reposicaoSilte) : 0,
+        // Recomposição
+        recomposicao_tela_unidade: recomposicaoTela ? parseInt(recomposicaoTela) : 0,
+        recomposicao_cascalho_unidade: recomposicaoCascalho ? parseInt(recomposicaoCascalho) : 0,
+        recomposicao_silte_unidade: recomposicaoSilteRecomp ? parseInt(recomposicaoSilteRecomp) : 0,
       });
       
       toast.success("Metas salvas com sucesso!");
@@ -511,6 +527,57 @@ export default function Metas() {
                     placeholder="0"
                     value={reposicaoSilte}
                     onChange={(e) => setReposicaoSilte(e.target.value)}
+                    className="text-lg"
+                  />
+                </div>
+
+                {/* Recomposição de Tela */}
+                <div className="space-y-2">
+                  <Label htmlFor="recomposicaoTela" className="flex items-center gap-2">
+                    <span className="text-lg">🔗</span>
+                    RECOMPOSIÇÃO DE TELA (unidade)
+                  </Label>
+                  <Input
+                    id="recomposicaoTela"
+                    type="number"
+                    min="0"
+                    placeholder="0"
+                    value={recomposicaoTela}
+                    onChange={(e) => setRecomposicaoTela(e.target.value)}
+                    className="text-lg"
+                  />
+                </div>
+
+                {/* Recomposição de Cascalho */}
+                <div className="space-y-2">
+                  <Label htmlFor="recomposicaoCascalho" className="flex items-center gap-2">
+                    <span className="text-lg">🪨</span>
+                    RECOMPOSIÇÃO DE CASCALHO (unidade)
+                  </Label>
+                  <Input
+                    id="recomposicaoCascalho"
+                    type="number"
+                    min="0"
+                    placeholder="0"
+                    value={recomposicaoCascalho}
+                    onChange={(e) => setRecomposicaoCascalho(e.target.value)}
+                    className="text-lg"
+                  />
+                </div>
+
+                {/* Recomposição de Silte */}
+                <div className="space-y-2">
+                  <Label htmlFor="recomposicaoSilteRecomp" className="flex items-center gap-2">
+                    <span className="text-lg">🏔️</span>
+                    RECOMPOSIÇÃO DE SILTE (unidade)
+                  </Label>
+                  <Input
+                    id="recomposicaoSilteRecomp"
+                    type="number"
+                    min="0"
+                    placeholder="0"
+                    value={recomposicaoSilteRecomp}
+                    onChange={(e) => setRecomposicaoSilteRecomp(e.target.value)}
                     className="text-lg"
                   />
                 </div>
