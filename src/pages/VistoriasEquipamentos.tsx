@@ -1,5 +1,6 @@
 import Layout from "@/components/layout/Layout";
 import { VehicleInspectionTable } from "@/components/vistorias/VehicleInspectionTable";
+import { ExportVehiclesButton } from "@/components/vistorias/ExportVehiclesButton";
 import { ClipboardCheck, Plus, Loader2 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { useState } from "react";
@@ -31,10 +32,15 @@ const VistoriasEquipamentos = () => {
             </div>
           </div>
 
-          <Button size="sm" className="gap-2 shadow-sm" onClick={() => setAddDialogOpen(true)}>
-            <Plus className="w-4 h-4" />
-            <span className="hidden sm:inline">Novo Veículo</span>
-          </Button>
+          <div className="flex items-center gap-2">
+            {vehicles && vehicles.length > 0 && (
+              <ExportVehiclesButton vehicles={vehicles} />
+            )}
+            <Button size="sm" className="gap-2 shadow-sm" onClick={() => setAddDialogOpen(true)}>
+              <Plus className="w-4 h-4" />
+              <span className="hidden sm:inline">Novo Veículo</span>
+            </Button>
+          </div>
         </div>
 
         {/* Stats */}
