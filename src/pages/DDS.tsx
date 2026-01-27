@@ -1,7 +1,7 @@
 import { useState, useMemo } from "react";
 import { format, parse, isWeekend, getDay } from "date-fns";
 import { ptBR } from "date-fns/locale";
-import { Shuffle, Calendar, Save, Trash2, Edit2, Sun, Shield, ChevronLeft, ChevronRight, Mail, Loader2, AtSign, Plus, User, UserPlus } from "lucide-react";
+import { Shuffle, Calendar, Save, Trash2, Edit2, Sun, Shield, ChevronLeft, ChevronRight, Mail, Loader2, AtSign, Plus, User, UserPlus, BookOpen } from "lucide-react";
 import Layout from "@/components/layout/Layout";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from "@/components/ui/card";
@@ -10,7 +10,7 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { Badge } from "@/components/ui/badge";
-import { Tabs, TabsList, TabsTrigger } from "@/components/ui/tabs";
+import { Tabs, TabsList, TabsTrigger, TabsContent } from "@/components/ui/tabs";
 import { Label } from "@/components/ui/label";
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogFooter } from "@/components/ui/dialog";
 import { AlertDialog, AlertDialogAction, AlertDialogCancel, AlertDialogContent, AlertDialogDescription, AlertDialogFooter, AlertDialogHeader, AlertDialogTitle, AlertDialogTrigger } from "@/components/ui/alert-dialog";
@@ -32,6 +32,7 @@ import {
 import { useCreateNotification } from "@/hooks/useNotifications";
 import { supabase } from "@/integrations/supabase/client";
 import { getBrazilNorthTodayString } from "@/lib/timezone";
+import { DDSThemesCard } from "@/components/dds/DDSThemesCard";
 
 const dayNames = ["Dom", "Seg", "Ter", "Qua", "Qui", "Sex", "Sáb"];
 
@@ -44,6 +45,9 @@ export default function DDS() {
   // Current month state
   const [currentDate, setCurrentDate] = useState(new Date());
   const monthYear = format(currentDate, "yyyy-MM");
+  
+  // Tab state for main navigation
+  const [activeTab, setActiveTab] = useState<"escala" | "temas">("escala");
 
   // Data hooks
   const { data: scheduleData, isLoading } = useDDSSchedule(monthYear);
@@ -335,23 +339,45 @@ export default function DDS() {
               <span className="leading-tight">DDS - Diálogo de Segurança</span>
             </h1>
             <p className="text-sm text-muted-foreground mt-1">
-              Escala de {format(currentDate, "MMMM 'de' yyyy", { locale: ptBR })}
+              Gerencie escalas e consulte os temas programados
             </p>
           </div>
 
-          {/* Month Navigation */}
-          <div className="flex items-center gap-2 w-full sm:w-auto">
-            <Button variant="outline" size="icon" onClick={handlePreviousMonth} className="shrink-0">
-              <ChevronLeft className="h-4 w-4" />
-            </Button>
-            <div className="flex-1 sm:flex-none px-3 py-2 bg-muted rounded-lg font-medium min-w-[140px] sm:min-w-[160px] text-center text-sm sm:text-base">
-              {format(currentDate, "MMMM yyyy", { locale: ptBR })}
-            </div>
-            <Button variant="outline" size="icon" onClick={handleNextMonth} className="shrink-0">
-              <ChevronRight className="h-4 w-4" />
-            </Button>
-          </div>
+          {/* Main Tabs */}
+          <Tabs value={activeTab} onValueChange={(v) => setActiveTab(v as "escala" | "temas")} className="w-full">
+            <TabsList className="grid w-full max-w-md grid-cols-2">
+              <TabsTrigger value="escala" className="flex items-center gap-2">
+                <Calendar className="h-4 w-4" />
+                Escala do Mês
+              </TabsTrigger>
+              <TabsTrigger value="temas" className="flex items-center gap-2">
+                <BookOpen className="h-4 w-4" />
+                Temas 2026
+              </TabsTrigger>
+            </TabsList>
+          </Tabs>
         </div>
+
+        {/* Themes Tab Content */}
+        {activeTab === "temas" && (
+          <DDSThemesCard />
+        )}
+
+        {/* Schedule Tab Content */}
+        {activeTab === "escala" && (
+          <>
+            {/* Month Navigation */}
+            <div className="flex items-center gap-2 w-full sm:w-auto">
+              <Button variant="outline" size="icon" onClick={handlePreviousMonth} className="shrink-0">
+                <ChevronLeft className="h-4 w-4" />
+              </Button>
+              <div className="flex-1 sm:flex-none px-3 py-2 bg-muted rounded-lg font-medium min-w-[140px] sm:min-w-[160px] text-center text-sm sm:text-base">
+                {format(currentDate, "MMMM yyyy", { locale: ptBR })}
+              </div>
+              <Button variant="outline" size="icon" onClick={handleNextMonth} className="shrink-0">
+                <ChevronRight className="h-4 w-4" />
+              </Button>
+            </div>
 
         {/* Permission Notice */}
         {!canEdit && (
@@ -584,6 +610,8 @@ export default function DDS() {
             )}
           </CardContent>
         </Card>
+          </>
+        )}
 
         {/* Edit Dialog */}
         <Dialog open={!!editingItem} onOpenChange={() => setEditingItem(null)}>
