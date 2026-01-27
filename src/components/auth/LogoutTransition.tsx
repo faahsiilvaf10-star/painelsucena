@@ -159,7 +159,7 @@ export function LogoutTransition({ onComplete, userName, userAvatar, reason = "m
                 {isTimeout ? "Sessão expirada," : "Até logo,"}
               </span>
               <span 
-                className="text-6xl"
+                className="text-7xl md:text-8xl pb-4"
                 style={{
                   fontFamily: "'Pinyon Script', cursive",
                   background: "linear-gradient(180deg, #ffffff 0%, #e2e8f0 50%, #cbd5e1 100%)",
@@ -167,6 +167,7 @@ export function LogoutTransition({ onComplete, userName, userAvatar, reason = "m
                   WebkitTextFillColor: "transparent",
                   textShadow: "0 4px 20px rgba(255,255,255,0.3)",
                   filter: "drop-shadow(0 2px 8px rgba(0,0,0,0.4))",
+                  lineHeight: "1.3",
                 }}
               >
                 {userName || "Usuário"}!
