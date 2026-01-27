@@ -986,6 +986,30 @@ export type Database = {
         }
         Relationships: []
       }
+      rdo_report_locks: {
+        Row: {
+          created_at: string
+          id: string
+          locked_at: string
+          locked_by: string
+          report_date: string
+        }
+        Insert: {
+          created_at?: string
+          id?: string
+          locked_at?: string
+          locked_by: string
+          report_date: string
+        }
+        Update: {
+          created_at?: string
+          id?: string
+          locked_at?: string
+          locked_by?: string
+          report_date?: string
+        }
+        Relationships: []
+      }
       rdo_reports: {
         Row: {
           created_at: string
