@@ -129,42 +129,70 @@ export function LogoutTransition({ onComplete, userName, userAvatar, reason = "m
               <img 
                 src={userAvatar} 
                 alt="Avatar"
-                className="w-24 h-24 rounded-full object-cover border-4 border-white/30 shadow-2xl"
+                className="w-24 h-24 rounded-full object-cover border-4 border-cyan-400/60 shadow-[0_0_30px_rgba(34,211,238,0.4)]"
               />
             ) : (
-              <div className="w-24 h-24 rounded-full bg-white/20 border-4 border-white/30 shadow-2xl flex items-center justify-center">
-                <User className="w-12 h-12 text-white/80" strokeWidth={1.5} />
+              <div className="w-24 h-24 rounded-full bg-gradient-to-br from-cyan-500/30 to-blue-600/30 border-4 border-cyan-400/60 shadow-[0_0_30px_rgba(34,211,238,0.4)] flex items-center justify-center">
+                <User className="w-12 h-12 text-cyan-300" strokeWidth={1.5} />
               </div>
             )}
             
-            {/* Waving hand emoji */}
-            <div className="absolute -right-2 -bottom-2 text-3xl animate-wave">
+            {/* Waving hand emoji with glow */}
+            <div className="absolute -right-2 -bottom-2 text-4xl animate-wave drop-shadow-[0_0_10px_rgba(255,200,100,0.6)]">
               👋
             </div>
           </div>
 
-          {/* Goodbye message */}
-          <div className="flex flex-col items-center gap-2">
-            <span className="text-white/60 text-lg font-light tracking-wide">
-              {isTimeout ? "Sessão expirada," : "Até logo,"}
-            </span>
-            <span className="text-white text-4xl font-semibold tracking-wide drop-shadow-lg">
-              {userName || "Usuário"}!
-            </span>
+          {/* Goodbye message with modern gaming style */}
+          <div className="flex items-center gap-5">
+            <span className="text-5xl animate-bounce-slow drop-shadow-[0_0_10px_rgba(255,215,0,0.6)]">🌙</span>
+            <div className="flex flex-col items-center gap-1">
+              <span 
+                className="text-xl font-bold tracking-widest uppercase"
+                style={{
+                  background: "linear-gradient(180deg, #ffffff 0%, #94a3b8 100%)",
+                  WebkitBackgroundClip: "text",
+                  WebkitTextFillColor: "transparent",
+                  textShadow: "0 2px 10px rgba(255,255,255,0.2)",
+                }}
+              >
+                {isTimeout ? "Sessão expirada," : "Até logo,"}
+              </span>
+              <span 
+                className="text-5xl font-black tracking-wide uppercase"
+                style={{
+                  background: "linear-gradient(180deg, #22d3ee 0%, #0ea5e9 50%, #0369a1 100%)",
+                  WebkitBackgroundClip: "text",
+                  WebkitTextFillColor: "transparent",
+                  textShadow: "0 4px 20px rgba(34,211,238,0.5)",
+                  filter: "drop-shadow(0 2px 4px rgba(0,0,0,0.3))",
+                }}
+              >
+                {userName || "Usuário"}!
+              </span>
+            </div>
+            <span className="text-5xl animate-bounce-slow drop-shadow-[0_0_10px_rgba(255,215,0,0.6)]" style={{ animationDelay: "0.3s" }}>🌙</span>
           </div>
 
           {/* Subtitle */}
-          <p className="text-white/50 text-base mt-2 flex items-center gap-2 text-center max-w-xs">
-            <LogOut className="w-4 h-4 shrink-0" />
+          <p 
+            className="text-base mt-2 flex items-center gap-2 text-center max-w-xs font-medium tracking-wider"
+            style={{
+              background: "linear-gradient(90deg, #94a3b8 0%, #cbd5e1 50%, #94a3b8 100%)",
+              WebkitBackgroundClip: "text",
+              WebkitTextFillColor: "transparent",
+            }}
+          >
+            <LogOut className="w-4 h-4 shrink-0 text-cyan-400" />
             {isTimeout 
               ? "Por segurança, você foi desconectado após 5 horas de sessão." 
               : "Saindo do sistema..."}
           </p>
 
-          {/* Progress bar */}
-          <div className="w-48 h-1 bg-white/10 rounded-full overflow-hidden mt-4">
+          {/* Progress bar with gradient glow */}
+          <div className="w-48 h-1.5 bg-white/10 rounded-full overflow-hidden mt-4 shadow-inner">
             <div 
-              className="h-full bg-white/40 rounded-full animate-logout-progress"
+              className="h-full bg-gradient-to-r from-cyan-400 to-blue-500 rounded-full animate-logout-progress shadow-[0_0_10px_rgba(34,211,238,0.6)]"
               style={{ animationDuration: "4.5s" }}
             />
           </div>
