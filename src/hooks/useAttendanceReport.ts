@@ -162,22 +162,14 @@ export const useAttendanceReportData = (date: string) => {
   };
 };
 
-// Generate formatted efetivo text for an area (quantity only, no names)
+// Generate formatted efetivo text for an area (quantity only, no names, no headers)
 export const generateEfetivoText = (
   area: "ÁREA GABIÃO" | "ROÇAGEM E PODAGEM",
   groupedEmployees: Record<string, Record<string, Tables<"employees">[]>>,
   isPresent: (employeeId: string) => boolean,
   _support: SupportTeam // Not used for RDO, kept for backwards compatibility
 ): string => {
-  // Using Unicode escape sequences for WhatsApp compatibility
-  const header = area === "ÁREA GABIÃO" 
-    ? "\u2733\uFE0F ÁREA GABIÃO \u2733\uFE0F" 
-    : "\uD83C\uDF3F ROÇAGEM E PODAGEM \uD83C\uDF3F";
-
   let report = "";
-
-  report += `${header}\n\n`;
-  report += "\u2734\uFE0F EQUIPE DE EXECUÇÃO \u2734\uFE0F\n\n";
 
   const roles = executionRoles[area];
   roles.forEach((role) => {
@@ -188,7 +180,7 @@ export const generateEfetivoText = (
     if (employees.length > 0 && presentCount > 0) {
       // Remove emoji and colon from label for cleaner display
       const cleanLabel = label.replace(/^👷🏼‍♂\s*|👷🏼\s*/g, '').replace(/:$/, '');
-      report += `\uD83D\uDC77 ${cleanLabel}: ${presentCount}\n\n`;
+      report += `\uD83D\uDC77 ${cleanLabel}: ${presentCount}\n`;
     }
   });
 
