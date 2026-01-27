@@ -16,6 +16,7 @@ import { useEmployees } from "@/hooks/useEmployees";
 import { useAttendanceRecords } from "@/hooks/useAttendance";
 import { getBrazilNorthTodayString } from "@/lib/timezone";
 import { useDocumentExpiryNotifications } from "@/hooks/useDocumentExpiryNotifications";
+import { useVehicleExpiryNotifications } from "@/hooks/useVehicleExpiryNotifications";
 const Dashboard = () => {
   const today = getBrazilNorthTodayString();
   const { data: employees } = useEmployees();
@@ -26,6 +27,9 @@ const Dashboard = () => {
   
   // Show browser notifications for expiring documents
   useDocumentExpiryNotifications();
+  
+  // Show browser notifications for expiring vehicle badges
+  useVehicleExpiryNotifications();
 
   const totalEmployees = employees?.length || 0;
   const presentToday = attendanceRecords?.filter(a => a.status === "present" || a.status === "late").length || 0;
