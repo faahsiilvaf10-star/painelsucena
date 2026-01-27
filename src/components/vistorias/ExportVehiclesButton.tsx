@@ -1,0 +1,245 @@
+import { useState } from "react";
+import { Download, FileSpreadsheet, FileText, Loader2 } from "lucide-react";
+import { format, parseISO, isValid } from "date-fns";
+import { ptBR } from "date-fns/locale";
+import { Button } from "@/components/ui/button";
+import {
+  DropdownMenu,
+  DropdownMenuContent,
+  DropdownMenuItem,
+  DropdownMenuTrigger,
+} from "@/components/ui/dropdown-menu";
+import { toast } from "sonner";
+import { VehicleInspection } from "@/hooks/useVehicleInspections";
+
+interface ExportVehiclesButtonProps {
+  vehicles: VehicleInspection[];
+}
+
+export function ExportVehiclesButton({ vehicles }: ExportVehiclesButtonProps) {
+  const [isExporting, setIsExporting] = useState(false);
+
+  const formatDate = (dateStr: string) => {
+    if (!dateStr) return "-";
+    try {
+      const date = parseISO(dateStr);
+      if (!isValid(date)) return dateStr;
+      return format(date, "dd/MM/yyyy", { locale: ptBR });
+    } catch {
+      return dateStr;
+    }
+  };
+
+  const exportToCSV = () => {
+    setIsExporting(true);
+    try {
+      // CSV header
+      const headers = ["Placa", "Modelo do Veículo", "Nº Crachá", "Validade Crachá"];
+      
+      // CSV rows
+      const rows = vehicles.map((v) => [
+        v.placa,
+        v.modelo_veiculo,
+        v.numero_cracha,
+        formatDate(v.validade_cracha),
+      ]);
+
+      // Combine headers and rows
+      const csvContent = [
+        headers.join(";"),
+        ...rows.map((row) => row.join(";")),
+      ].join("\n");
+
+      // Add BOM for Excel UTF-8 compatibility
+      const BOM = "\uFEFF";
+      const blob = new Blob([BOM + csvContent], { type: "text/csv;charset=utf-8;" });
+      
+      // Create download link
+      const link = document.createElement("a");
+      const url = URL.createObjectURL(blob);
+      link.setAttribute("href", url);
+      link.setAttribute("download", `veiculos_terceiros_${format(new Date(), "yyyy-MM-dd")}.csv`);
+      document.body.appendChild(link);
+      link.click();
+      document.body.removeChild(link);
+      URL.revokeObjectURL(url);
+
+      toast.success("Exportado para Excel com sucesso!");
+    } catch (error) {
+      console.error("Error exporting to CSV:", error);
+      toast.error("Erro ao exportar para Excel");
+    } finally {
+      setIsExporting(false);
+    }
+  };
+
+  const exportToPDF = () => {
+    setIsExporting(true);
+    try {
+      // Create a printable HTML document
+      const printWindow = window.open("", "_blank");
+      if (!printWindow) {
+        toast.error("Permita pop-ups para exportar PDF");
+        setIsExporting(false);
+        return;
+      }
+
+      const tableRows = vehicles
+        .map(
+          (v) => `
+          <tr>
+            <td>${v.placa}</td>
+            <td>${v.modelo_veiculo}</td>
+            <td>${v.numero_cracha}</td>
+            <td>${formatDate(v.validade_cracha)}</td>
+          </tr>
+        `
+        )
+        .join("");
+
+      const htmlContent = `
+        <!DOCTYPE html>
+        <html lang="pt-BR">
+        <head>
+          <meta charset="UTF-8">
+          <title>Relatório de Veículos Terceiros</title>
+          <style>
+            * {
+              margin: 0;
+              padding: 0;
+              box-sizing: border-box;
+            }
+            body {
+              font-family: Arial, sans-serif;
+              padding: 20px;
+              color: #333;
+            }
+            .header {
+              text-align: center;
+              margin-bottom: 30px;
+              padding-bottom: 15px;
+              border-bottom: 2px solid #333;
+            }
+            .header h1 {
+              font-size: 24px;
+              margin-bottom: 5px;
+            }
+            .header p {
+              font-size: 12px;
+              color: #666;
+            }
+            .info {
+              margin-bottom: 20px;
+              font-size: 12px;
+            }
+            table {
+              width: 100%;
+              border-collapse: collapse;
+              margin-top: 10px;
+            }
+            th, td {
+              border: 1px solid #ddd;
+              padding: 10px 8px;
+              text-align: left;
+              font-size: 12px;
+            }
+            th {
+              background-color: #f5f5f5;
+              font-weight: bold;
+              text-transform: uppercase;
+              font-size: 11px;
+            }
+            tr:nth-child(even) {
+              background-color: #fafafa;
+            }
+            .footer {
+              margin-top: 30px;
+              text-align: center;
+              font-size: 10px;
+              color: #666;
+              padding-top: 15px;
+              border-top: 1px solid #ddd;
+            }
+            @media print {
+              body { print-color-adjust: exact; -webkit-print-color-adjust: exact; }
+            }
+          </style>
+        </head>
+        <body>
+          <div class="header">
+            <h1>Relatório de Veículos Terceiros</h1>
+            <p>Controle de Vistorias e Crachás</p>
+          </div>
+          
+          <div class="info">
+            <strong>Data de Geração:</strong> ${format(new Date(), "dd/MM/yyyy 'às' HH:mm", { locale: ptBR })}<br>
+            <strong>Total de Veículos:</strong> ${vehicles.length}
+          </div>
+          
+          <table>
+            <thead>
+              <tr>
+                <th>Placa</th>
+                <th>Modelo do Veículo</th>
+                <th>Nº Crachá</th>
+                <th>Validade Crachá</th>
+              </tr>
+            </thead>
+            <tbody>
+              ${tableRows}
+            </tbody>
+          </table>
+          
+          <div class="footer">
+            Painel Sucena - Sistema de Gestão
+          </div>
+          
+          <script>
+            window.onload = function() {
+              window.print();
+              window.onafterprint = function() {
+                window.close();
+              };
+            };
+          </script>
+        </body>
+        </html>
+      `;
+
+      printWindow.document.write(htmlContent);
+      printWindow.document.close();
+
+      toast.success("PDF gerado com sucesso!");
+    } catch (error) {
+      console.error("Error exporting to PDF:", error);
+      toast.error("Erro ao exportar para PDF");
+    } finally {
+      setIsExporting(false);
+    }
+  };
+
+  return (
+    <DropdownMenu>
+      <DropdownMenuTrigger asChild>
+        <Button variant="outline" size="sm" className="gap-2" disabled={isExporting || vehicles.length === 0}>
+          {isExporting ? (
+            <Loader2 className="w-4 h-4 animate-spin" />
+          ) : (
+            <Download className="w-4 h-4" />
+          )}
+          <span className="hidden sm:inline">Exportar</span>
+        </Button>
+      </DropdownMenuTrigger>
+      <DropdownMenuContent align="end">
+        <DropdownMenuItem onClick={exportToCSV} className="gap-2 cursor-pointer">
+          <FileSpreadsheet className="w-4 h-4 text-green-500" />
+          Exportar para Excel (.csv)
+        </DropdownMenuItem>
+        <DropdownMenuItem onClick={exportToPDF} className="gap-2 cursor-pointer">
+          <FileText className="w-4 h-4 text-red-500" />
+          Exportar para PDF
+        </DropdownMenuItem>
+      </DropdownMenuContent>
+    </DropdownMenu>
+  );
+}
