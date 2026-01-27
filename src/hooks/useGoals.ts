@@ -23,6 +23,10 @@ export interface Goal {
   escavacao_manual_unidade: number;
   reposicao_manta_unidade: number;
   reposicao_silte_unidade: number;
+  // Recomposição goals
+  recomposicao_tela_unidade: number;
+  recomposicao_cascalho_unidade: number;
+  recomposicao_silte_unidade: number;
   created_at: string;
   updated_at: string;
   created_by: string;
@@ -45,6 +49,10 @@ export interface GoalInput {
   escavacao_manual_unidade?: number;
   reposicao_manta_unidade?: number;
   reposicao_silte_unidade?: number;
+  // Recomposição
+  recomposicao_tela_unidade?: number;
+  recomposicao_cascalho_unidade?: number;
+  recomposicao_silte_unidade?: number;
 }
 
 // Get the current measurement period (16th to 16th)
@@ -149,6 +157,9 @@ export const useSaveGoal = () => {
             escavacao_manual_unidade: input.escavacao_manual_unidade ?? 0,
             reposicao_manta_unidade: input.reposicao_manta_unidade ?? 0,
             reposicao_silte_unidade: input.reposicao_silte_unidade ?? 0,
+            recomposicao_tela_unidade: input.recomposicao_tela_unidade ?? 0,
+            recomposicao_cascalho_unidade: input.recomposicao_cascalho_unidade ?? 0,
+            recomposicao_silte_unidade: input.recomposicao_silte_unidade ?? 0,
           })
           .eq("id", existing.id)
           .select()
@@ -175,6 +186,9 @@ export const useSaveGoal = () => {
             escavacao_manual_unidade: input.escavacao_manual_unidade ?? 0,
             reposicao_manta_unidade: input.reposicao_manta_unidade ?? 0,
             reposicao_silte_unidade: input.reposicao_silte_unidade ?? 0,
+            recomposicao_tela_unidade: input.recomposicao_tela_unidade ?? 0,
+            recomposicao_cascalho_unidade: input.recomposicao_cascalho_unidade ?? 0,
+            recomposicao_silte_unidade: input.recomposicao_silte_unidade ?? 0,
             created_by: user.id,
           })
           .select()
@@ -221,6 +235,10 @@ export interface GoalProgress {
   escavacao_manual_unidade: { current: number; target: number; percentage: number };
   reposicao_manta_unidade: { current: number; target: number; percentage: number };
   reposicao_silte_unidade: { current: number; target: number; percentage: number };
+  // Recomposição
+  recomposicao_tela_unidade: { current: number; target: number; percentage: number };
+  recomposicao_cascalho_unidade: { current: number; target: number; percentage: number };
+  recomposicao_silte_unidade: { current: number; target: number; percentage: number };
 }
 
 export const useGoalProgress = () => {
@@ -282,6 +300,9 @@ export const useGoalProgress = () => {
         escavacao_manual_unidade: 0,
         reposicao_manta_unidade: 0,
         reposicao_silte_unidade: 0,
+        recomposicao_tela_unidade: 0,
+        recomposicao_cascalho_unidade: 0,
+        recomposicao_silte_unidade: 0,
       };
 
       gabiaoResponse.data?.forEach((report) => {
@@ -299,6 +320,15 @@ export const useGoalProgress = () => {
         }
         if (obs.includes("Reposição de silte")) {
           gabiaoTotals.reposicao_silte_unidade += 1;
+        }
+        if (obs.includes("Recomposição de tela")) {
+          gabiaoTotals.recomposicao_tela_unidade += 1;
+        }
+        if (obs.includes("Recomposição de cascalho")) {
+          gabiaoTotals.recomposicao_cascalho_unidade += 1;
+        }
+        if (obs.includes("Recomposição de silte")) {
+          gabiaoTotals.recomposicao_silte_unidade += 1;
         }
       });
 
@@ -324,6 +354,10 @@ export const useGoalProgress = () => {
         escavacao_manual_unidade: calcProgress(gabiaoTotals.escavacao_manual_unidade, goal.escavacao_manual_unidade),
         reposicao_manta_unidade: calcProgress(gabiaoTotals.reposicao_manta_unidade, goal.reposicao_manta_unidade),
         reposicao_silte_unidade: calcProgress(gabiaoTotals.reposicao_silte_unidade, goal.reposicao_silte_unidade),
+        // Recomposição
+        recomposicao_tela_unidade: calcProgress(gabiaoTotals.recomposicao_tela_unidade, goal.recomposicao_tela_unidade),
+        recomposicao_cascalho_unidade: calcProgress(gabiaoTotals.recomposicao_cascalho_unidade, goal.recomposicao_cascalho_unidade),
+        recomposicao_silte_unidade: calcProgress(gabiaoTotals.recomposicao_silte_unidade, goal.recomposicao_silte_unidade),
       };
     },
     enabled: !!goal,
@@ -416,6 +450,9 @@ export const useHistoricalGoals = () => {
           escavacao_manual_unidade: 0,
           reposicao_manta_unidade: 0,
           reposicao_silte_unidade: 0,
+          recomposicao_tela_unidade: 0,
+          recomposicao_cascalho_unidade: 0,
+          recomposicao_silte_unidade: 0,
         };
 
         gabiaoResponse.data?.forEach((report) => {
@@ -427,6 +464,9 @@ export const useHistoricalGoals = () => {
           if (obs.includes("Escavação manual")) gabiaoTotals.escavacao_manual_unidade += 1;
           if (obs.includes("Reposição de manta asfáltica")) gabiaoTotals.reposicao_manta_unidade += 1;
           if (obs.includes("Reposição de silte")) gabiaoTotals.reposicao_silte_unidade += 1;
+          if (obs.includes("Recomposição de tela")) gabiaoTotals.recomposicao_tela_unidade += 1;
+          if (obs.includes("Recomposição de cascalho")) gabiaoTotals.recomposicao_cascalho_unidade += 1;
+          if (obs.includes("Recomposição de silte")) gabiaoTotals.recomposicao_silte_unidade += 1;
         });
 
         // Count achieved goals
@@ -447,6 +487,9 @@ export const useHistoricalGoals = () => {
           { current: gabiaoTotals.escavacao_manual_unidade, target: goal.escavacao_manual_unidade },
           { current: gabiaoTotals.reposicao_manta_unidade, target: goal.reposicao_manta_unidade },
           { current: gabiaoTotals.reposicao_silte_unidade, target: goal.reposicao_silte_unidade },
+          { current: gabiaoTotals.recomposicao_tela_unidade, target: goal.recomposicao_tela_unidade },
+          { current: gabiaoTotals.recomposicao_cascalho_unidade, target: goal.recomposicao_cascalho_unidade },
+          { current: gabiaoTotals.recomposicao_silte_unidade, target: goal.recomposicao_silte_unidade },
         ].filter(g => g.target > 0);
 
         const jardAchieved = jardGoals.filter(g => g.current >= g.target).length;

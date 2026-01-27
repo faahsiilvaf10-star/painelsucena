@@ -616,7 +616,10 @@ export type Database = {
           month_year: string
           plantio_unidade: number
           podagem_unidade: number
+          recomposicao_cascalho_unidade: number
           recomposicao_gabiao_m: number
+          recomposicao_silte_unidade: number
+          recomposicao_tela_unidade: number
           reposicao_manta_unidade: number
           reposicao_silte_unidade: number
           retirada_mudas_unidade: number
@@ -636,7 +639,10 @@ export type Database = {
           month_year: string
           plantio_unidade?: number
           podagem_unidade?: number
+          recomposicao_cascalho_unidade?: number
           recomposicao_gabiao_m?: number
+          recomposicao_silte_unidade?: number
+          recomposicao_tela_unidade?: number
           reposicao_manta_unidade?: number
           reposicao_silte_unidade?: number
           retirada_mudas_unidade?: number
@@ -656,7 +662,10 @@ export type Database = {
           month_year?: string
           plantio_unidade?: number
           podagem_unidade?: number
+          recomposicao_cascalho_unidade?: number
           recomposicao_gabiao_m?: number
+          recomposicao_silte_unidade?: number
+          recomposicao_tela_unidade?: number
           reposicao_manta_unidade?: number
           reposicao_silte_unidade?: number
           retirada_mudas_unidade?: number
