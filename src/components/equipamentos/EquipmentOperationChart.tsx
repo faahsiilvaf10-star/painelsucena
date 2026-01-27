@@ -6,8 +6,8 @@ import { Loader2, BarChart3 } from "lucide-react";
 import { startOfWeek, endOfWeek, differenceInMinutes, parseISO, isWithinInterval } from "date-fns";
 
 const COLORS = {
-  operating: "hsl(var(--chart-2))",
-  stopped: "hsl(var(--chart-5))",
+  operating: "hsl(var(--success))",
+  stopped: "hsl(var(--destructive))",
 };
 
 interface ChartDataItem {
