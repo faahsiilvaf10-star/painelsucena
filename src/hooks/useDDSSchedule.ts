@@ -8,7 +8,8 @@ export interface DDSScheduleItem {
   id: string;
   month_year: string;
   scheduled_date: string;
-  presenter_user_id: string;
+  presenter_user_id: string | null;
+  external_presenter_name: string | null;
   theme: string;
   photo_url: string | null;
   created_by: string;
@@ -24,7 +25,8 @@ export interface DDSScheduleItem {
 export interface DDSScheduleInsert {
   month_year: string;
   scheduled_date: string;
-  presenter_user_id: string;
+  presenter_user_id?: string | null;
+  external_presenter_name?: string | null;
   theme: string;
 }
 
@@ -40,23 +42,27 @@ export const useDDSSchedule = (monthYear: string) => {
 
       if (error) throw error;
 
-      // Fetch presenter profiles
+      // Fetch presenter profiles for items with presenter_user_id
       if (data && data.length > 0) {
-        const userIds = [...new Set(data.map(d => d.presenter_user_id))];
-        const { data: profiles } = await supabase
-          .from("profiles")
-          .select("user_id, full_name, avatar_url, cargo")
-          .in("user_id", userIds);
+        const userIds = [...new Set(data.filter(d => d.presenter_user_id).map(d => d.presenter_user_id!))];
+        const profileMap = new Map();
+        
+        if (userIds.length > 0) {
+          const { data: profiles } = await supabase
+            .from("profiles")
+            .select("user_id, full_name, avatar_url, cargo")
+            .in("user_id", userIds);
 
-        const profileMap = new Map(profiles?.map(p => [p.user_id, p]) || []);
+          profiles?.forEach(p => profileMap.set(p.user_id, p));
+        }
 
         return data.map(item => ({
           ...item,
-          presenter: profileMap.get(item.presenter_user_id) || undefined,
+          presenter: item.presenter_user_id ? profileMap.get(item.presenter_user_id) : undefined,
         })) as DDSScheduleItem[];
       }
 
-      return data as DDSScheduleItem[];
+      return (data || []) as DDSScheduleItem[];
     },
   });
 };
@@ -76,15 +82,19 @@ export const useTodayDDS = () => {
       if (error) throw error;
 
       if (data) {
-        const { data: profile } = await supabase
-          .from("profiles")
-          .select("user_id, full_name, avatar_url, cargo")
-          .eq("user_id", data.presenter_user_id)
-          .maybeSingle();
+        let profile = undefined;
+        if (data.presenter_user_id) {
+          const { data: profileData } = await supabase
+            .from("profiles")
+            .select("user_id, full_name, avatar_url, cargo")
+            .eq("user_id", data.presenter_user_id)
+            .maybeSingle();
+          profile = profileData || undefined;
+        }
 
         return {
           ...data,
-          presenter: profile || undefined,
+          presenter: profile,
         } as DDSScheduleItem;
       }
 
@@ -108,15 +118,19 @@ export const useTomorrowDDS = () => {
       if (error) throw error;
 
       if (data) {
-        const { data: profile } = await supabase
-          .from("profiles")
-          .select("user_id, full_name, avatar_url, cargo")
-          .eq("user_id", data.presenter_user_id)
-          .maybeSingle();
+        let profile = undefined;
+        if (data.presenter_user_id) {
+          const { data: profileData } = await supabase
+            .from("profiles")
+            .select("user_id, full_name, avatar_url, cargo")
+            .eq("user_id", data.presenter_user_id)
+            .maybeSingle();
+          profile = profileData || undefined;
+        }
 
         return {
           ...data,
-          presenter: profile || undefined,
+          presenter: profile,
         } as DDSScheduleItem;
       }
 
@@ -181,10 +195,24 @@ export const useUpdateDDSSchedule = () => {
   const queryClient = useQueryClient();
 
   return useMutation({
-    mutationFn: async ({ id, presenter_user_id, theme }: { id: string; presenter_user_id: string; theme: string }) => {
+    mutationFn: async ({ 
+      id, 
+      presenter_user_id, 
+      external_presenter_name,
+      theme 
+    }: { 
+      id: string; 
+      presenter_user_id?: string | null; 
+      external_presenter_name?: string | null;
+      theme: string;
+    }) => {
       const { data, error } = await supabase
         .from("dds_schedule")
-        .update({ presenter_user_id, theme })
+        .update({ 
+          presenter_user_id: presenter_user_id || null, 
+          external_presenter_name: external_presenter_name || null,
+          theme 
+        })
         .eq("id", id)
         .select()
         .single();
@@ -194,6 +222,8 @@ export const useUpdateDDSSchedule = () => {
     },
     onSuccess: (data) => {
       queryClient.invalidateQueries({ queryKey: ["dds-schedule", data.month_year] });
+      queryClient.invalidateQueries({ queryKey: ["dds-today"] });
+      queryClient.invalidateQueries({ queryKey: ["dds-tomorrow"] });
     },
   });
 };

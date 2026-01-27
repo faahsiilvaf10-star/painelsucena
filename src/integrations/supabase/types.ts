@@ -322,10 +322,11 @@ export type Database = {
         Row: {
           created_at: string
           created_by: string
+          external_presenter_name: string | null
           id: string
           month_year: string
           photo_url: string | null
-          presenter_user_id: string
+          presenter_user_id: string | null
           scheduled_date: string
           theme: string
           updated_at: string
@@ -333,10 +334,11 @@ export type Database = {
         Insert: {
           created_at?: string
           created_by: string
+          external_presenter_name?: string | null
           id?: string
           month_year: string
           photo_url?: string | null
-          presenter_user_id: string
+          presenter_user_id?: string | null
           scheduled_date: string
           theme: string
           updated_at?: string
@@ -344,10 +346,11 @@ export type Database = {
         Update: {
           created_at?: string
           created_by?: string
+          external_presenter_name?: string | null
           id?: string
           month_year?: string
           photo_url?: string | null
-          presenter_user_id?: string
+          presenter_user_id?: string | null
           scheduled_date?: string
           theme?: string
           updated_at?: string

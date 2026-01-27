@@ -1,7 +1,7 @@
 import { useState, useMemo } from "react";
 import { format, parse, isWeekend, getDay } from "date-fns";
 import { ptBR } from "date-fns/locale";
-import { Shuffle, Calendar, Save, Trash2, Edit2, Sun, Shield, ChevronLeft, ChevronRight, Mail, Loader2, AtSign, Plus } from "lucide-react";
+import { Shuffle, Calendar, Save, Trash2, Edit2, Sun, Shield, ChevronLeft, ChevronRight, Mail, Loader2, AtSign, Plus, User, UserPlus } from "lucide-react";
 import Layout from "@/components/layout/Layout";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from "@/components/ui/card";
@@ -10,6 +10,8 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { Badge } from "@/components/ui/badge";
+import { Tabs, TabsList, TabsTrigger } from "@/components/ui/tabs";
+import { Label } from "@/components/ui/label";
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogFooter } from "@/components/ui/dialog";
 import { AlertDialog, AlertDialogAction, AlertDialogCancel, AlertDialogContent, AlertDialogDescription, AlertDialogFooter, AlertDialogHeader, AlertDialogTitle, AlertDialogTrigger } from "@/components/ui/alert-dialog";
 import { toast } from "sonner";
@@ -55,11 +57,15 @@ export default function DDS() {
   // Edit modal state
   const [editingItem, setEditingItem] = useState<DDSScheduleItem | null>(null);
   const [editPresenter, setEditPresenter] = useState("");
+  const [editExternalName, setEditExternalName] = useState("");
+  const [editIsExternal, setEditIsExternal] = useState(false);
   const [editTheme, setEditTheme] = useState("");
   
   // Add new DDS modal state
   const [addingDate, setAddingDate] = useState<string | null>(null);
   const [newPresenter, setNewPresenter] = useState("");
+  const [newExternalName, setNewExternalName] = useState("");
+  const [newIsExternal, setNewIsExternal] = useState(false);
   const [newTheme, setNewTheme] = useState("");
   
   // Notification state
@@ -173,24 +179,36 @@ export default function DDS() {
 
   const handleEdit = (item: DDSScheduleItem) => {
     setEditingItem(item);
-    setEditPresenter(item.presenter_user_id);
+    const isExternal = !item.presenter_user_id && !!item.external_presenter_name;
+    setEditIsExternal(isExternal);
+    setEditPresenter(item.presenter_user_id || "");
+    setEditExternalName(item.external_presenter_name || "");
     setEditTheme(item.theme);
   };
 
   const handleSaveEdit = async () => {
     if (!editingItem) return;
 
-    const presenterChanged = editPresenter !== editingItem.presenter_user_id;
+    const hasValidPresenter = editIsExternal 
+      ? editExternalName.trim() !== ""
+      : editPresenter !== "";
+
+    if (!hasValidPresenter || !editTheme) return;
+
+    const presenterChanged = editIsExternal
+      ? editExternalName !== editingItem.external_presenter_name
+      : editPresenter !== editingItem.presenter_user_id;
 
     try {
       await updateSchedule.mutateAsync({
         id: editingItem.id,
-        presenter_user_id: editPresenter,
+        presenter_user_id: editIsExternal ? null : editPresenter,
+        external_presenter_name: editIsExternal ? editExternalName.trim() : null,
         theme: editTheme,
       });
 
-      // Notify new presenter if changed
-      if (presenterChanged) {
+      // Notify new presenter if changed and is a system user
+      if (presenterChanged && !editIsExternal && editPresenter) {
         await notifyPresenter(editPresenter, editingItem.scheduled_date, editTheme);
         toast.success("Palestrante atualizado e notificado!");
       } else {
@@ -207,24 +225,37 @@ export default function DDS() {
   const handleAddDDS = (dateStr: string) => {
     setAddingDate(dateStr);
     setNewPresenter("");
+    setNewExternalName("");
+    setNewIsExternal(false);
     setNewTheme("");
   };
 
   const handleSaveNewDDS = async () => {
-    if (!addingDate || !newPresenter || !newTheme) return;
+    if (!addingDate || !newTheme) return;
+
+    const hasValidPresenter = newIsExternal 
+      ? newExternalName.trim() !== ""
+      : newPresenter !== "";
+
+    if (!hasValidPresenter) return;
 
     try {
       await createSchedule.mutateAsync([{
         month_year: monthYear,
         scheduled_date: addingDate,
-        presenter_user_id: newPresenter,
+        presenter_user_id: newIsExternal ? undefined : newPresenter,
+        external_presenter_name: newIsExternal ? newExternalName.trim() : undefined,
         theme: newTheme,
       }]);
 
-      // Notify the presenter
-      await notifyPresenter(newPresenter, addingDate, newTheme);
+      // Notify the presenter only if it's a system user
+      if (!newIsExternal && newPresenter) {
+        await notifyPresenter(newPresenter, addingDate, newTheme);
+        toast.success("DDS adicionado e palestrante notificado!");
+      } else {
+        toast.success("DDS adicionado com sucesso!");
+      }
       
-      toast.success("DDS adicionado e palestrante notificado!");
       setAddingDate(null);
     } catch (error) {
       console.error("Error creating DDS:", error);
@@ -482,6 +513,21 @@ export default function DDS() {
                                   </p>
                                 </div>
                               </div>
+                            ) : schedule?.external_presenter_name ? (
+                              <div className="flex items-center gap-3">
+                                <Avatar className="h-8 w-8">
+                                  <AvatarFallback className="text-xs bg-secondary text-secondary-foreground">
+                                    {getInitials(schedule.external_presenter_name)}
+                                  </AvatarFallback>
+                                </Avatar>
+                                <div>
+                                  <p className="font-medium text-sm">{schedule.external_presenter_name}</p>
+                                  <p className="text-xs text-muted-foreground flex items-center gap-1">
+                                    <UserPlus className="h-3 w-3" />
+                                    Palestrante externo
+                                  </p>
+                                </div>
+                              </div>
                             ) : (
                               <span className="text-muted-foreground text-sm italic">
                                 Não definido
@@ -557,31 +603,61 @@ export default function DDS() {
                   disabled
                 />
               </div>
+              
+              {/* Toggle for external/internal presenter */}
+              <div className="space-y-3">
+                <Label className="text-sm font-medium">Tipo de Palestrante</Label>
+                <Tabs 
+                  value={editIsExternal ? "external" : "internal"} 
+                  onValueChange={(v) => setEditIsExternal(v === "external")}
+                  className="w-full"
+                >
+                  <TabsList className="grid w-full grid-cols-2">
+                    <TabsTrigger value="internal" className="flex items-center gap-2">
+                      <User className="h-4 w-4" />
+                      Usuário do sistema
+                    </TabsTrigger>
+                    <TabsTrigger value="external" className="flex items-center gap-2">
+                      <UserPlus className="h-4 w-4" />
+                      Externo
+                    </TabsTrigger>
+                  </TabsList>
+                </Tabs>
+              </div>
+
               <div className="space-y-2">
-                <label className="text-sm font-medium">Palestrante</label>
-                <Select value={editPresenter} onValueChange={setEditPresenter}>
-                  <SelectTrigger>
-                    <SelectValue placeholder="Selecione um palestrante" />
-                  </SelectTrigger>
-                  <SelectContent>
-                    {allProfiles?.map(p => (
-                      <SelectItem key={p.user_id} value={p.user_id}>
-                        <div className="flex items-center gap-2">
-                          <Avatar className="h-6 w-6">
-                            <AvatarImage src={p.avatar_url || undefined} />
-                            <AvatarFallback className="text-xs">
-                              {getInitials(p.full_name)}
-                            </AvatarFallback>
-                          </Avatar>
-                          {p.full_name}
-                        </div>
-                      </SelectItem>
-                    ))}
-                  </SelectContent>
-                </Select>
+                <Label className="text-sm font-medium">Palestrante</Label>
+                {editIsExternal ? (
+                  <Input
+                    value={editExternalName}
+                    onChange={e => setEditExternalName(e.target.value)}
+                    placeholder="Digite o nome do palestrante externo"
+                  />
+                ) : (
+                  <Select value={editPresenter} onValueChange={setEditPresenter}>
+                    <SelectTrigger>
+                      <SelectValue placeholder="Selecione um palestrante" />
+                    </SelectTrigger>
+                    <SelectContent>
+                      {allProfiles?.map(p => (
+                        <SelectItem key={p.user_id} value={p.user_id}>
+                          <div className="flex items-center gap-2">
+                            <Avatar className="h-6 w-6">
+                              <AvatarImage src={p.avatar_url || undefined} />
+                              <AvatarFallback className="text-xs">
+                                {getInitials(p.full_name)}
+                              </AvatarFallback>
+                            </Avatar>
+                            {p.full_name}
+                          </div>
+                        </SelectItem>
+                      ))}
+                    </SelectContent>
+                  </Select>
+                )}
               </div>
               <div className="space-y-2">
-                <label className="text-sm font-medium">Tema</label>
+                <Label className="text-sm font-medium">Tema</Label>
                 <Input
                   value={editTheme}
                   onChange={e => setEditTheme(e.target.value)}
@@ -593,7 +669,13 @@ export default function DDS() {
               <Button variant="outline" onClick={() => setEditingItem(null)}>
                 Cancelar
               </Button>
-              <Button onClick={handleSaveEdit} disabled={!editPresenter || !editTheme}>
+              <Button 
+                onClick={handleSaveEdit} 
+                disabled={
+                  !editTheme || 
+                  (editIsExternal ? !editExternalName.trim() : !editPresenter)
+                }
+              >
                 <Save className="h-4 w-4 mr-2" />
                 Salvar
               </Button>
@@ -612,7 +694,7 @@ export default function DDS() {
             </DialogHeader>
             <div className="space-y-4 py-4">
               <div className="space-y-2">
-                <label className="text-sm font-medium">Data</label>
+                <Label className="text-sm font-medium">Data</Label>
                 <Input
                   value={
                     addingDate
@@ -623,31 +705,61 @@ export default function DDS() {
                   className="bg-muted"
                 />
               </div>
+              
+              {/* Toggle for external/internal presenter */}
+              <div className="space-y-3">
+                <Label className="text-sm font-medium">Tipo de Palestrante</Label>
+                <Tabs 
+                  value={newIsExternal ? "external" : "internal"} 
+                  onValueChange={(v) => setNewIsExternal(v === "external")}
+                  className="w-full"
+                >
+                  <TabsList className="grid w-full grid-cols-2">
+                    <TabsTrigger value="internal" className="flex items-center gap-2">
+                      <User className="h-4 w-4" />
+                      Usuário do sistema
+                    </TabsTrigger>
+                    <TabsTrigger value="external" className="flex items-center gap-2">
+                      <UserPlus className="h-4 w-4" />
+                      Externo
+                    </TabsTrigger>
+                  </TabsList>
+                </Tabs>
+              </div>
+
               <div className="space-y-2">
-                <label className="text-sm font-medium">Palestrante</label>
-                <Select value={newPresenter} onValueChange={setNewPresenter}>
-                  <SelectTrigger>
-                    <SelectValue placeholder="Selecione um palestrante" />
-                  </SelectTrigger>
-                  <SelectContent>
-                    {allProfiles?.map(p => (
-                      <SelectItem key={p.user_id} value={p.user_id}>
-                        <div className="flex items-center gap-2">
-                          <Avatar className="h-6 w-6">
-                            <AvatarImage src={p.avatar_url || undefined} />
-                            <AvatarFallback className="text-xs">
-                              {getInitials(p.full_name)}
-                            </AvatarFallback>
-                          </Avatar>
-                          {p.full_name}
-                        </div>
-                      </SelectItem>
-                    ))}
-                  </SelectContent>
-                </Select>
+                <Label className="text-sm font-medium">Palestrante</Label>
+                {newIsExternal ? (
+                  <Input
+                    value={newExternalName}
+                    onChange={e => setNewExternalName(e.target.value)}
+                    placeholder="Digite o nome do palestrante externo"
+                  />
+                ) : (
+                  <Select value={newPresenter} onValueChange={setNewPresenter}>
+                    <SelectTrigger>
+                      <SelectValue placeholder="Selecione um palestrante" />
+                    </SelectTrigger>
+                    <SelectContent>
+                      {allProfiles?.map(p => (
+                        <SelectItem key={p.user_id} value={p.user_id}>
+                          <div className="flex items-center gap-2">
+                            <Avatar className="h-6 w-6">
+                              <AvatarImage src={p.avatar_url || undefined} />
+                              <AvatarFallback className="text-xs">
+                                {getInitials(p.full_name)}
+                              </AvatarFallback>
+                            </Avatar>
+                            {p.full_name}
+                          </div>
+                        </SelectItem>
+                      ))}
+                    </SelectContent>
+                  </Select>
+                )}
               </div>
               <div className="space-y-2">
-                <label className="text-sm font-medium">Tema</label>
+                <Label className="text-sm font-medium">Tema</Label>
                 <Input
                   value={newTheme}
                   onChange={e => setNewTheme(e.target.value)}
@@ -661,7 +773,11 @@ export default function DDS() {
               </Button>
               <Button 
                 onClick={handleSaveNewDDS} 
-                disabled={!newPresenter || !newTheme || createSchedule.isPending}
+                disabled={
+                  !newTheme || 
+                  (newIsExternal ? !newExternalName.trim() : !newPresenter) ||
+                  createSchedule.isPending
+                }
                 className="bg-gradient-to-r from-amber-500 to-orange-500 hover:from-amber-600 hover:to-orange-600"
               >
                 {createSchedule.isPending ? (

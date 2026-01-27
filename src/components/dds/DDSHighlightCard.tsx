@@ -1,7 +1,7 @@
 import { useState, useRef } from "react";
 import { format, addDays } from "date-fns";
 import { ptBR } from "date-fns/locale";
-import { Sun, Calendar, Camera, Upload, Loader2, ArrowRight } from "lucide-react";
+import { Sun, Calendar, Camera, Upload, Loader2, ArrowRight, UserPlus } from "lucide-react";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
@@ -121,19 +121,46 @@ export const DDSHighlightCard = () => {
             <div className="space-y-4">
               {/* Presenter Info */}
               <div className="flex items-center gap-4">
-                <SunBorderAvatar
-                  src={todayDDS.presenter?.avatar_url}
-                  name={todayDDS.presenter?.full_name || "Palestrante"}
-                  size="md"
-                />
-                <div className="flex-1 min-w-0">
-                  <h3 className="font-bold text-lg truncate">
-                    {todayDDS.presenter?.full_name || "Palestrante"}
-                  </h3>
-                  <p className="text-sm text-muted-foreground capitalize">
-                    {todayDDS.presenter?.cargo?.replace(/_/g, " ")}
-                  </p>
-                </div>
+                {todayDDS.presenter ? (
+                  <>
+                    <SunBorderAvatar
+                      src={todayDDS.presenter.avatar_url}
+                      name={todayDDS.presenter.full_name || "Palestrante"}
+                      size="md"
+                    />
+                    <div className="flex-1 min-w-0">
+                      <h3 className="font-bold text-lg truncate">
+                        {todayDDS.presenter.full_name || "Palestrante"}
+                      </h3>
+                      <p className="text-sm text-muted-foreground capitalize">
+                        {todayDDS.presenter.cargo?.replace(/_/g, " ")}
+                      </p>
+                    </div>
+                  </>
+                ) : todayDDS.external_presenter_name ? (
+                  <>
+                    <Avatar className="h-16 w-16 border-4 border-amber-200 dark:border-amber-700">
+                      <AvatarFallback className="bg-gradient-to-br from-amber-400 to-orange-500 text-white text-lg font-bold">
+                        {getInitials(todayDDS.external_presenter_name)}
+                      </AvatarFallback>
+                    </Avatar>
+                    <div className="flex-1 min-w-0">
+                      <h3 className="font-bold text-lg truncate">
+                        {todayDDS.external_presenter_name}
+                      </h3>
+                      <p className="text-sm text-muted-foreground flex items-center gap-1">
+                        <UserPlus className="h-3 w-3" />
+                        Palestrante externo
+                      </p>
+                    </div>
+                  </>
+                ) : (
+                  <div className="flex-1 min-w-0">
+                    <h3 className="font-bold text-lg truncate text-muted-foreground">
+                      Palestrante não definido
+                    </h3>
+                  </div>
+                )}
               </div>
 
               {/* Theme */}
@@ -205,24 +232,51 @@ export const DDSHighlightCard = () => {
           </CardTitle>
         </CardHeader>
         <CardContent>
-          {tomorrowDDS ? (
+            {tomorrowDDS ? (
             <div className="space-y-4">
               {/* Presenter Info */}
               <div className="flex items-center gap-4">
-                <Avatar className="h-16 w-16 border-4 border-blue-200 dark:border-blue-700">
-                  <AvatarImage src={tomorrowDDS.presenter?.avatar_url || undefined} />
-                  <AvatarFallback className="bg-gradient-to-br from-blue-400 to-indigo-500 text-white text-lg font-bold">
-                    {getInitials(tomorrowDDS.presenter?.full_name || "P")}
-                  </AvatarFallback>
-                </Avatar>
-                <div className="flex-1 min-w-0">
-                  <h3 className="font-bold text-lg truncate">
-                    {tomorrowDDS.presenter?.full_name || "Palestrante"}
-                  </h3>
-                  <p className="text-sm text-muted-foreground capitalize">
-                    {tomorrowDDS.presenter?.cargo?.replace(/_/g, " ")}
-                  </p>
-                </div>
+                {tomorrowDDS.presenter ? (
+                  <>
+                    <Avatar className="h-16 w-16 border-4 border-blue-200 dark:border-blue-700">
+                      <AvatarImage src={tomorrowDDS.presenter.avatar_url || undefined} />
+                      <AvatarFallback className="bg-gradient-to-br from-blue-400 to-indigo-500 text-white text-lg font-bold">
+                        {getInitials(tomorrowDDS.presenter.full_name || "P")}
+                      </AvatarFallback>
+                    </Avatar>
+                    <div className="flex-1 min-w-0">
+                      <h3 className="font-bold text-lg truncate">
+                        {tomorrowDDS.presenter.full_name || "Palestrante"}
+                      </h3>
+                      <p className="text-sm text-muted-foreground capitalize">
+                        {tomorrowDDS.presenter.cargo?.replace(/_/g, " ")}
+                      </p>
+                    </div>
+                  </>
+                ) : tomorrowDDS.external_presenter_name ? (
+                  <>
+                    <Avatar className="h-16 w-16 border-4 border-blue-200 dark:border-blue-700">
+                      <AvatarFallback className="bg-gradient-to-br from-blue-400 to-indigo-500 text-white text-lg font-bold">
+                        {getInitials(tomorrowDDS.external_presenter_name)}
+                      </AvatarFallback>
+                    </Avatar>
+                    <div className="flex-1 min-w-0">
+                      <h3 className="font-bold text-lg truncate">
+                        {tomorrowDDS.external_presenter_name}
+                      </h3>
+                      <p className="text-sm text-muted-foreground flex items-center gap-1">
+                        <UserPlus className="h-3 w-3" />
+                        Palestrante externo
+                      </p>
+                    </div>
+                  </>
+                ) : (
+                  <div className="flex-1 min-w-0">
+                    <h3 className="font-bold text-lg truncate text-muted-foreground">
+                      Palestrante não definido
+                    </h3>
+                  </div>
+                )}
               </div>
 
               {/* Theme */}
