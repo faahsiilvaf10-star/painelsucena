@@ -332,8 +332,14 @@ const RelatorioPresenca = () => {
     }
   };
 
+  // Format date for display (DD/MM/YYYY)
+  const formatDateForReport = (dateStr: string) => {
+    const [year, month, day] = dateStr.split("-");
+    return `${day}/${month}/${year}`;
+  };
+
   // Generate report for a specific area
-  const generateAreaReport = (area: "ÁREA GABIÃO" | "ROÇAGEM E PODAGEM") => {
+  const generateAreaReport = (area: "ÁREA GABIÃO" | "ROÇAGEM E PODAGEM", includeDate: boolean = true) => {
     if (!allEmployees) return "";
 
     const support = area === "ÁREA GABIÃO" ? supportGabiao : supportRocagem;
@@ -342,6 +348,11 @@ const RelatorioPresenca = () => {
       : "-----------------------------------\n\n 🌿 ROÇAGEM E PODAGEM 🌿";
 
     let report = "";
+
+    // Add date only for the first area (GABIÃO)
+    if (includeDate && area === "ÁREA GABIÃO") {
+      report += `📅 Data: ${formatDateForReport(selectedDate)}\n\n`;
+    }
 
     report += `${header}\n\n`;
     report += `✴EQUIPE DE SUPORTE✴\n\n`;
@@ -399,16 +410,18 @@ const RelatorioPresenca = () => {
   const generateReport = useMemo(() => {
     if (!allEmployees) return "";
 
+    const dateHeader = `📅 Data: ${formatDateForReport(selectedDate)}\n\n`;
+
     if (selectedArea === "ÁREA GABIÃO") {
-      return generateAreaReport("ÁREA GABIÃO");
+      return dateHeader + generateAreaReport("ÁREA GABIÃO", false);
     }
     if (selectedArea === "ROÇAGEM E PODAGEM") {
-      return generateAreaReport("ROÇAGEM E PODAGEM");
+      return dateHeader + generateAreaReport("ROÇAGEM E PODAGEM", false);
     }
 
-    // All areas
-    return generateAreaReport("ÁREA GABIÃO") + "\n\n" + generateAreaReport("ROÇAGEM E PODAGEM");
-  }, [allEmployees, groupedEmployees, attendanceMap, selectedArea, supportGabiao, supportRocagem]);
+    // All areas - date is included in the first area
+    return generateAreaReport("ÁREA GABIÃO", true) + "\n\n" + generateAreaReport("ROÇAGEM E PODAGEM", false);
+  }, [allEmployees, groupedEmployees, attendanceMap, selectedArea, supportGabiao, supportRocagem, selectedDate]);
 
   const handleCopy = async () => {
     try {
