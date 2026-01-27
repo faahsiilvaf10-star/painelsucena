@@ -10,6 +10,9 @@ import { useRadio } from "@/contexts/RadioContext";
 import { useSidebar } from "@/components/ui/sidebar";
 import { ScrollArea } from "@/components/ui/scroll-area";
 import { VerifiedBadge } from "@/components/VerifiedBadge";
+import { formatDistanceToNow } from "date-fns";
+import { ptBR } from "date-fns/locale";
+
 interface OnlineUsersFooterProps {
   onUserClick: (user: UserWithStatus) => void;
 }
@@ -27,6 +30,15 @@ const cargoLabels: Record<string, string> = {
 };
 const getInitials = (name: string) => {
   return name.split(" ").map(n => n[0]).join("").substring(0, 2).toUpperCase();
+};
+
+const formatLastSeen = (lastSeen?: string) => {
+  if (!lastSeen) return null;
+  try {
+    return formatDistanceToNow(new Date(lastSeen), { addSuffix: true, locale: ptBR });
+  } catch {
+    return null;
+  }
 };
 export const OnlineUsersFooter = ({
   onUserClick
@@ -174,13 +186,22 @@ export const OnlineUsersFooter = ({
               {allUsers.filter(u => u.isOnline).length === 0 ? <span className="text-xs text-muted-foreground ml-2">—</span> : allUsers.filter(u => u.isOnline).slice(0, typeof window !== 'undefined' && window.innerWidth < 640 ? 4 : 8).map(user => <Tooltip key={user.user_id}>
                     <TooltipTrigger asChild>
                       <button onClick={() => !user.isCurrentUser && onUserClick(user)} className={cn("relative hover:z-10 transition-transform hover:scale-110", user.isCurrentUser && "cursor-default")}>
-                        <Avatar className={cn("h-6 w-6 sm:h-7 sm:w-7 ring-2 ring-card", user.isCurrentUser ? "border-2 border-primary ring-primary/30" : "border-2 border-green-500 ring-green-500/40 shadow-[0_0_8px_2px_rgba(34,197,94,0.4)]")}>
+                        <Avatar className={cn(
+                          "h-6 w-6 sm:h-7 sm:w-7 ring-2 ring-card transition-all duration-300",
+                          user.isCurrentUser 
+                            ? "border-2 border-primary ring-primary/30" 
+                            : "border-2 border-green-500 ring-green-500/40 shadow-[0_0_8px_2px_rgba(34,197,94,0.4)]",
+                          user.justCameOnline && "animate-online-pulse"
+                        )}>
                           <AvatarImage src={user.avatar_url || undefined} />
                           <AvatarFallback className={cn("text-[10px]", user.isCurrentUser ? "bg-primary text-primary-foreground" : "bg-green-500/20 text-green-600 dark:text-green-400")}>
                             {getInitials(user.full_name)}
                           </AvatarFallback>
                         </Avatar>
                         {user.isCurrentUser && <span className="absolute -bottom-0.5 -right-0.5 w-2 h-2 bg-primary rounded-full border border-card" />}
+                        {user.justCameOnline && !user.isCurrentUser && (
+                          <span className="absolute -bottom-0.5 -right-0.5 w-2 h-2 bg-green-400 rounded-full animate-ping" />
+                        )}
                         {user.isAdmin && (
                           <div className="absolute -top-1 -right-1 hidden sm:block">
                             <VerifiedBadge size="xs" />
@@ -194,6 +215,9 @@ export const OnlineUsersFooter = ({
                         {user.isCurrentUser && <span className="text-primary ml-1">(você)</span>}
                       </p>
                       <p className="text-xs text-muted-foreground">{cargoLabels[user.cargo] || user.cargo}</p>
+                      {user.justCameOnline && (
+                        <p className="text-xs text-green-500 mt-0.5">🟢 Acabou de entrar!</p>
+                      )}
                     </TooltipContent>
                   </Tooltip>)}
               {allUsers.filter(u => u.isOnline).length > 4 && <span className="text-[10px] text-green-500 ml-2 sm:hidden">+{allUsers.filter(u => u.isOnline).length - 4}</span>}
@@ -207,7 +231,10 @@ export const OnlineUsersFooter = ({
           <div className="flex items-center gap-1 shrink-0">
             <span className="text-[10px] text-muted-foreground font-medium mr-1 hidden sm:inline">Offline</span>
             <div className="flex items-center -space-x-2">
-              {allUsers.filter(u => !u.isOnline).length === 0 ? <span className="text-xs text-muted-foreground ml-2 hidden sm:inline">—</span> : allUsers.filter(u => !u.isOnline).slice(0, typeof window !== 'undefined' && window.innerWidth < 640 ? 3 : 6).map(user => <Tooltip key={user.user_id}>
+              {allUsers.filter(u => !u.isOnline).length === 0 ? <span className="text-xs text-muted-foreground ml-2 hidden sm:inline">—</span> : allUsers.filter(u => !u.isOnline).slice(0, typeof window !== 'undefined' && window.innerWidth < 640 ? 3 : 6).map(user => {
+                const lastSeenText = formatLastSeen(user.lastSeen);
+                return (
+                  <Tooltip key={user.user_id}>
                     <TooltipTrigger asChild>
                       <button onClick={() => onUserClick(user)} className="relative hover:z-10 transition-transform hover:scale-110">
                         <Avatar className="h-6 w-6 sm:h-7 sm:w-7 border-2 border-muted/50 ring-2 ring-card opacity-60 grayscale">
@@ -226,8 +253,15 @@ export const OnlineUsersFooter = ({
                     <TooltipContent side="top" className="bg-card border hidden sm:block">
                       <p className="font-medium">{user.full_name}</p>
                       <p className="text-xs text-muted-foreground">{cargoLabels[user.cargo] || user.cargo}</p>
+                      {lastSeenText && (
+                        <p className="text-xs text-muted-foreground/70 mt-0.5">
+                          Visto {lastSeenText}
+                        </p>
+                      )}
                     </TooltipContent>
-                  </Tooltip>)}
+                  </Tooltip>
+                );
+              })}
               {allUsers.filter(u => !u.isOnline).length > 3 && <span className="text-[10px] text-muted-foreground ml-2 sm:hidden">+{allUsers.filter(u => !u.isOnline).length - 3}</span>}
               {allUsers.filter(u => !u.isOnline).length > 6 && <span className="text-[10px] text-muted-foreground ml-2 hidden sm:inline">+{allUsers.filter(u => !u.isOnline).length - 6}</span>}
             </div>
@@ -248,6 +282,22 @@ export const OnlineUsersFooter = ({
         
         .animate-sound-wave {
           animation: sound-wave 0.8s ease-in-out infinite;
+        }
+        
+        @keyframes online-pulse {
+          0% {
+            box-shadow: 0 0 0 0 rgba(34, 197, 94, 0.7);
+          }
+          70% {
+            box-shadow: 0 0 0 10px rgba(34, 197, 94, 0);
+          }
+          100% {
+            box-shadow: 0 0 0 0 rgba(34, 197, 94, 0);
+          }
+        }
+        
+        .animate-online-pulse {
+          animation: online-pulse 1s ease-out 3;
         }
       `}</style>
     </div>;
