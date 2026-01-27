@@ -991,6 +991,8 @@ export type Database = {
           created_at: string
           created_by: string
           difficulties: string | null
+          efetivo_gabiao_text: string | null
+          efetivo_jardinagem_text: string | null
           gabiao_activities: string | null
           gabiao_location: string | null
           id: string
@@ -1007,6 +1009,8 @@ export type Database = {
           created_at?: string
           created_by: string
           difficulties?: string | null
+          efetivo_gabiao_text?: string | null
+          efetivo_jardinagem_text?: string | null
           gabiao_activities?: string | null
           gabiao_location?: string | null
           id?: string
@@ -1023,6 +1027,8 @@ export type Database = {
           created_at?: string
           created_by?: string
           difficulties?: string | null
+          efetivo_gabiao_text?: string | null
+          efetivo_jardinagem_text?: string | null
           gabiao_activities?: string | null
           gabiao_location?: string | null
           id?: string

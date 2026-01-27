@@ -15,6 +15,8 @@ export interface RDOReport {
   difficulties: string | null;
   photo_urls: string[];
   report_text: string;
+  efetivo_gabiao_text: string | null;
+  efetivo_jardinagem_text: string | null;
   created_at: string;
   updated_at: string;
 }
@@ -30,6 +32,8 @@ export interface RDOReportInsert {
   difficulties?: string;
   photo_urls?: string[];
   report_text: string;
+  efetivo_gabiao_text?: string;
+  efetivo_jardinagem_text?: string;
 }
 
 export const useRDOReports = (filterDate?: string) => {
@@ -131,6 +135,67 @@ export const useDeleteRDOReport = () => {
         .eq("id", id);
 
       if (error) throw error;
+    },
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ["rdo-reports"] });
+      queryClient.invalidateQueries({ queryKey: ["rdo-report"] });
+    },
+  });
+};
+
+export const useSaveEfetivoToRDO = () => {
+  const { user } = useAuth();
+  const queryClient = useQueryClient();
+
+  return useMutation({
+    mutationFn: async (data: {
+      report_date: string;
+      efetivo_gabiao_text: string;
+      efetivo_jardinagem_text: string;
+    }) => {
+      if (!user?.id) throw new Error("User not authenticated");
+
+      // Check if report for this date already exists
+      const { data: existing } = await supabase
+        .from("rdo_reports")
+        .select("id")
+        .eq("report_date", data.report_date)
+        .maybeSingle();
+
+      if (existing) {
+        // Update existing report with efetivo data
+        const { data: updated, error } = await supabase
+          .from("rdo_reports")
+          .update({
+            efetivo_gabiao_text: data.efetivo_gabiao_text,
+            efetivo_jardinagem_text: data.efetivo_jardinagem_text,
+            updated_at: new Date().toISOString(),
+          })
+          .eq("id", existing.id)
+          .select()
+          .single();
+
+        if (error) throw error;
+        return updated;
+      } else {
+        // Create new report with just efetivo data
+        const { data: created, error } = await supabase
+          .from("rdo_reports")
+          .insert({
+            report_date: data.report_date,
+            created_by: user.id,
+            weather_morning: "sol",
+            weather_afternoon: "sol",
+            report_text: "",
+            efetivo_gabiao_text: data.efetivo_gabiao_text,
+            efetivo_jardinagem_text: data.efetivo_jardinagem_text,
+          })
+          .select()
+          .single();
+
+        if (error) throw error;
+        return created;
+      }
     },
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ["rdo-reports"] });
