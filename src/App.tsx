@@ -10,7 +10,7 @@ import { PersistentSidebar } from "@/components/layout/PersistentSidebar";
 import ProtectedRoute from "@/components/ProtectedRoute";
 import { LoginTransitionGate } from "@/components/auth/LoginTransitionGate";
 import { LogoutTransitionGate } from "@/components/auth/LogoutTransitionGate";
-import { CursorFollower } from "@/components/ui/CursorFollower";
+
 import Index from "./pages/Index";
 import RH from "./pages/RH";
 import Presenca from "./pages/Presenca";
@@ -43,7 +43,7 @@ const App = () => (
         <TooltipProvider>
           <Toaster />
           <Sonner />
-          <CursorFollower />
+          
           <BrowserRouter>
             <LoginTransitionGate />
             <LogoutTransitionGate />
