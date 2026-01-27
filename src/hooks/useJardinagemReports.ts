@@ -197,6 +197,12 @@ export const formatJardinagemForRDO = (report: JardinagemReport | null): string 
 
   const lines: string[] = [];
   
+  // Include the faixa (location) at the beginning
+  if (report.local_faixa && report.local_faixa.trim()) {
+    lines.push(`📍 Local: ${report.local_faixa}`);
+    lines.push(""); // Empty line for separation
+  }
+  
   // Helper function to format berma text
   const formatBerma = (berma: number | null | undefined): string => {
     return berma ? ` (Berma ${berma})` : "";
