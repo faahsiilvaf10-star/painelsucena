@@ -145,7 +145,7 @@ export function LogoutTransition({ onComplete, userName, userAvatar, reason = "m
 
           {/* Goodbye message with modern gaming style */}
           <div className="flex items-center gap-5">
-            <span className="text-5xl animate-bounce-slow drop-shadow-[0_0_10px_rgba(255,215,0,0.6)]">🌙</span>
+            <span className="text-5xl animate-bounce-slow drop-shadow-[0_0_10px_rgba(255,215,0,0.6)]">💫</span>
             <div className="flex flex-col items-center gap-1">
               <span 
                 className="text-xl font-bold tracking-widest uppercase"
@@ -171,7 +171,7 @@ export function LogoutTransition({ onComplete, userName, userAvatar, reason = "m
                 {userName || "Usuário"}!
               </span>
             </div>
-            <span className="text-5xl animate-bounce-slow drop-shadow-[0_0_10px_rgba(255,215,0,0.6)]" style={{ animationDelay: "0.3s" }}>🌙</span>
+            <span className="text-5xl animate-bounce-slow drop-shadow-[0_0_10px_rgba(255,215,0,0.6)]" style={{ animationDelay: "0.3s" }}>💫</span>
           </div>
 
           {/* Subtitle */}
