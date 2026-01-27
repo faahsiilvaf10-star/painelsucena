@@ -145,16 +145,25 @@ export default function AtividadesII() {
   // Load existing data when report changes
   useEffect(() => {
     if (existingReport) {
-      setLocalServico(existingReport.local_servico || "FAIXA 2");
+      const localServicoStr = existingReport.local_servico || "";
+      
+      // Parse faixa from local_servico (e.g., "FAIXA 2 - Fase 1 - Elevado 28")
+      const faixaMatch = localServicoStr.match(/^(FAIXA \d+)/);
+      if (faixaMatch) {
+        setLocalServico(faixaMatch[1]);
+      } else {
+        setLocalServico("FAIXA 2");
+      }
+      
       // Parse fase from local_servico if it contains "Fase"
-      const faseMatch = existingReport.local_servico?.match(/Fase (\d+)/);
+      const faseMatch = localServicoStr.match(/Fase (\d+)/);
       if (faseMatch) {
         setFase(faseMatch[1]);
       } else {
         setFase("");
       }
       // Parse elevado from local_servico if it contains "Elevado"
-      const elevadoMatch = existingReport.local_servico?.match(/Elevado (\d+)/);
+      const elevadoMatch = localServicoStr.match(/Elevado (\d+)/);
       if (elevadoMatch) {
         setElevado(elevadoMatch[1]);
       } else {
