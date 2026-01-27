@@ -336,24 +336,24 @@ export default function Atividades() {
     const lines: string[] = [];
     const formatBerma = (berma: string): string => berma ? ` (Berma ${berma})` : "";
     
-    if (rocagem) lines.push(`* Roçagem - ${rocagem} m²${formatBerma(rocagemBerma)}`);
-    if (podagem) lines.push(`* Podagem - ${podagem} unidade(s)${formatBerma(podagemBerma)}`);
-    if (coroamento) lines.push(`* Coroamento - ${coroamento} unidade(s)${formatBerma(coroamentoBerma)}`);
-    if (adubagem) lines.push(`* Adubagem - ${adubagem} unidade(s)${formatBerma(adubagemBerma)}`);
-    if (plantio) lines.push(`* Plantio - ${plantio} unidade(s)${formatBerma(plantioBerma)}`);
-    if (limpezaManual) lines.push(`* Limpeza Manual - ${limpezaManual} m²${formatBerma(limpezaManualBerma)}`);
-    if (limpezaAssoprador) lines.push(`* Limpeza com Assoprador - ${limpezaAssoprador} m²${formatBerma(limpezaAssopradorBerma)}`);
+    // Only include activities with values > 0
+    if (rocagem && parseFloat(rocagem) > 0) lines.push(`* Roçagem - ${rocagem} m²${formatBerma(rocagemBerma)}`);
+    if (podagem && parseInt(podagem) > 0) lines.push(`* Podagem - ${podagem} unidade(s)${formatBerma(podagemBerma)}`);
+    if (coroamento && parseInt(coroamento) > 0) lines.push(`* Coroamento - ${coroamento} unidade(s)${formatBerma(coroamentoBerma)}`);
+    if (adubagem && parseInt(adubagem) > 0) lines.push(`* Adubagem - ${adubagem} unidade(s)${formatBerma(adubagemBerma)}`);
+    if (plantio && parseInt(plantio) > 0) lines.push(`* Plantio - ${plantio} unidade(s)${formatBerma(plantioBerma)}`);
+    if (limpezaManual && parseFloat(limpezaManual) > 0) lines.push(`* Limpeza Manual - ${limpezaManual} m²${formatBerma(limpezaManualBerma)}`);
+    if (limpezaAssoprador && parseFloat(limpezaAssoprador) > 0) lines.push(`* Limpeza com Assoprador - ${limpezaAssoprador} m²${formatBerma(limpezaAssopradorBerma)}`);
     
-    const filteredInvasoras = invasoras.filter(i => i.nome || i.unidade);
+    // Only include invasoras with unidade > 0
+    const filteredInvasoras = invasoras.filter(i => i.unidade && parseInt(i.unidade) > 0);
     filteredInvasoras.forEach(inv => {
-      if (inv.unidade) {
-        const nomeText = inv.nome ? ` (${inv.nome})` : "";
-        lines.push(`* Controle de Invasoras${nomeText} - ${inv.unidade} unidade(s)${formatBerma(invasorasBerma)}`);
-      }
+      const nomeText = inv.nome ? ` (${inv.nome})` : "";
+      lines.push(`* Controle de Invasoras${nomeText} - ${inv.unidade} unidade(s)${formatBerma(invasorasBerma)}`);
     });
     
-    if (retiradaMudasUnidade) lines.push(`* Retirada de Mudas (Árvores) - ${retiradaMudasUnidade} unidade(s)`);
-    if (manutencaoCanteiro) lines.push(`* Manutenção de Canteiro: ${manutencaoCanteiro}`);
+    if (retiradaMudasUnidade && parseInt(retiradaMudasUnidade) > 0) lines.push(`* Retirada de Mudas (Árvores) - ${retiradaMudasUnidade} unidade(s)`);
+    if (manutencaoCanteiro && manutencaoCanteiro.trim()) lines.push(`* Manutenção de Canteiro: ${manutencaoCanteiro}`);
     if (irrigacaoPipas) lines.push(`* Irrigação com Pipas nas Faixas 3 e 4 e Mirante`);
     if (irrigacaoCarretel && irrigacaoCarretelBermas.length > 0) {
       const bermasText = irrigacaoCarretelBermas.sort((a, b) => a - b).join(", ");
