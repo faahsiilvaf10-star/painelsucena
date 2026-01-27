@@ -2,6 +2,7 @@ import Layout from "@/components/layout/Layout";
 import { EquipmentTimeline } from "@/components/equipamentos/EquipmentTimeline";
 import { EquipmentReport } from "@/components/equipamentos/EquipmentReport";
 import { PreviousDaySummary } from "@/components/equipamentos/PreviousDaySummary";
+import { ExportWeeklyHistoryButton } from "@/components/equipamentos/ExportWeeklyHistoryButton";
 import { Truck, Plus, Loader2, Droplets, Container, Car, StopCircle, Activity } from "lucide-react";
 import { useEquipment, useCreateEquipment } from "@/hooks/useEquipment";
 import { Button } from "@/components/ui/button";
@@ -93,6 +94,10 @@ const Equipamentos = () => {
           </div>
 
           <div className="flex items-center gap-2">
+            {equipment && equipment.length > 0 && (
+              <ExportWeeklyHistoryButton equipment={equipment} />
+            )}
+            
             <Button
               size="sm"
               variant="ghost"
