@@ -24,9 +24,12 @@ interface Particle {
 
 export function LoginTransition({ onComplete, userName, userAvatar, userCargo }: LoginTransitionProps) {
   const [phase, setPhase] = useState<"logo-center" | "logo-move" | "cursor-move" | "click" | "zoom" | "fade">("logo-center");
+  const [displayedName, setDisplayedName] = useState("");
+  const [showCursor, setShowCursor] = useState(true);
   const { settings } = useSiteSettings();
   const logoUrl = settings.logo_url || logoPrincipal;
   const audioRef = useRef<HTMLAudioElement | null>(null);
+  const fullName = (userName || "Usuário") + "!";
 
   // Play success sound on mount
   useEffect(() => {
@@ -68,6 +71,34 @@ export function LoginTransition({ onComplete, userName, userAvatar, userCargo }:
       type: ["confetti", "circle", "star"][Math.floor(Math.random() * 3)] as Particle["type"],
     }));
   }, []);
+
+  // Typewriter effect for the name
+  useEffect(() => {
+    if (phase !== "zoom" && phase !== "fade") {
+      setDisplayedName("");
+      return;
+    }
+
+    let currentIndex = 0;
+    const typingInterval = setInterval(() => {
+      if (currentIndex < fullName.length) {
+        setDisplayedName(fullName.slice(0, currentIndex + 1));
+        currentIndex++;
+      } else {
+        clearInterval(typingInterval);
+      }
+    }, 80);
+
+    // Cursor blinking
+    const cursorInterval = setInterval(() => {
+      setShowCursor(prev => !prev);
+    }, 530);
+
+    return () => {
+      clearInterval(typingInterval);
+      clearInterval(cursorInterval);
+    };
+  }, [phase, fullName]);
 
   useEffect(() => {
     // Logo animation + cursor animation + welcome screen
@@ -399,7 +430,7 @@ export function LoginTransition({ onComplete, userName, userAvatar, userCargo }:
                   Bom trabalho,
                 </span>
                 <span 
-                  className="text-7xl md:text-8xl mt-2 pb-4"
+                  className="text-7xl md:text-8xl mt-2 pb-4 inline-flex items-baseline"
                   style={{
                     fontFamily: "'Pinyon Script', cursive",
                     background: "linear-gradient(180deg, #ffffff 0%, #e2e8f0 50%, #cbd5e1 100%)",
@@ -410,7 +441,14 @@ export function LoginTransition({ onComplete, userName, userAvatar, userCargo }:
                     lineHeight: "1.3",
                   }}
                 >
-                  {userName || "Usuário"}!
+                  {displayedName}
+                  <span 
+                    className="inline-block w-1 h-[0.8em] ml-1 bg-white/80 rounded-sm"
+                    style={{
+                      opacity: showCursor && displayedName.length < fullName.length ? 1 : 0,
+                      transition: "opacity 0.1s",
+                    }}
+                  />
                 </span>
                 {userCargo && (
                   <span 
