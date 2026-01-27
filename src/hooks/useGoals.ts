@@ -12,6 +12,7 @@ export interface Goal {
   rocagem_m2: number;
   podagem_unidade: number;
   coroamento_unidade: number;
+  adubagem_unidade: number;
   plantio_unidade: number;
   controle_invasoras_unidade: number;
   retirada_mudas_unidade: number;
@@ -33,6 +34,7 @@ export interface GoalInput {
   rocagem_m2?: number;
   podagem_unidade?: number;
   coroamento_unidade?: number;
+  adubagem_unidade?: number;
   plantio_unidade?: number;
   controle_invasoras_unidade?: number;
   retirada_mudas_unidade?: number;
@@ -137,6 +139,7 @@ export const useSaveGoal = () => {
             rocagem_m2: input.rocagem_m2 ?? 0,
             podagem_unidade: input.podagem_unidade ?? 0,
             coroamento_unidade: input.coroamento_unidade ?? 0,
+            adubagem_unidade: input.adubagem_unidade ?? 0,
             plantio_unidade: input.plantio_unidade ?? 0,
             controle_invasoras_unidade: input.controle_invasoras_unidade ?? 0,
             retirada_mudas_unidade: input.retirada_mudas_unidade ?? 0,
@@ -162,6 +165,7 @@ export const useSaveGoal = () => {
             rocagem_m2: input.rocagem_m2 ?? 0,
             podagem_unidade: input.podagem_unidade ?? 0,
             coroamento_unidade: input.coroamento_unidade ?? 0,
+            adubagem_unidade: input.adubagem_unidade ?? 0,
             plantio_unidade: input.plantio_unidade ?? 0,
             controle_invasoras_unidade: input.controle_invasoras_unidade ?? 0,
             retirada_mudas_unidade: input.retirada_mudas_unidade ?? 0,
@@ -206,6 +210,7 @@ export interface GoalProgress {
   rocagem_m2: { current: number; target: number; percentage: number };
   podagem_unidade: { current: number; target: number; percentage: number };
   coroamento_unidade: { current: number; target: number; percentage: number };
+  adubagem_unidade: { current: number; target: number; percentage: number };
   plantio_unidade: { current: number; target: number; percentage: number };
   controle_invasoras_unidade: { current: number; target: number; percentage: number };
   retirada_mudas_unidade: { current: number; target: number; percentage: number };
@@ -253,6 +258,7 @@ export const useGoalProgress = () => {
         rocagem_m2: 0,
         podagem_unidade: 0,
         coroamento_unidade: 0,
+        adubagem_unidade: 0,
         plantio_unidade: 0,
         controle_invasoras_unidade: 0,
         retirada_mudas_unidade: 0,
@@ -262,6 +268,7 @@ export const useGoalProgress = () => {
         jardTotals.rocagem_m2 += Number(report.rocagem_m2) || 0;
         jardTotals.podagem_unidade += Number(report.podagem_unidade) || 0;
         jardTotals.coroamento_unidade += Number(report.coroamento_unidade) || 0;
+        jardTotals.adubagem_unidade += Number(report.adubagem_unidade) || 0;
         jardTotals.plantio_unidade += Number(report.plantio_unidade) || 0;
         jardTotals.controle_invasoras_unidade += Number(report.controle_invasoras_unidade) || 0;
         jardTotals.retirada_mudas_unidade += Number(report.retirada_mudas_unidade) || 0;
@@ -306,6 +313,7 @@ export const useGoalProgress = () => {
         rocagem_m2: calcProgress(jardTotals.rocagem_m2, goal.rocagem_m2),
         podagem_unidade: calcProgress(jardTotals.podagem_unidade, goal.podagem_unidade),
         coroamento_unidade: calcProgress(jardTotals.coroamento_unidade, goal.coroamento_unidade),
+        adubagem_unidade: calcProgress(jardTotals.adubagem_unidade, goal.adubagem_unidade),
         plantio_unidade: calcProgress(jardTotals.plantio_unidade, goal.plantio_unidade),
         controle_invasoras_unidade: calcProgress(jardTotals.controle_invasoras_unidade, goal.controle_invasoras_unidade),
         retirada_mudas_unidade: calcProgress(jardTotals.retirada_mudas_unidade, goal.retirada_mudas_unidade),
@@ -384,6 +392,7 @@ export const useHistoricalGoals = () => {
           rocagem_m2: 0,
           podagem_unidade: 0,
           coroamento_unidade: 0,
+          adubagem_unidade: 0,
           plantio_unidade: 0,
           controle_invasoras_unidade: 0,
           retirada_mudas_unidade: 0,
@@ -393,6 +402,7 @@ export const useHistoricalGoals = () => {
           jardTotals.rocagem_m2 += Number(report.rocagem_m2) || 0;
           jardTotals.podagem_unidade += Number(report.podagem_unidade) || 0;
           jardTotals.coroamento_unidade += Number(report.coroamento_unidade) || 0;
+          jardTotals.adubagem_unidade += Number(report.adubagem_unidade) || 0;
           jardTotals.plantio_unidade += Number(report.plantio_unidade) || 0;
           jardTotals.controle_invasoras_unidade += Number(report.controle_invasoras_unidade) || 0;
           jardTotals.retirada_mudas_unidade += Number(report.retirada_mudas_unidade) || 0;
@@ -424,6 +434,7 @@ export const useHistoricalGoals = () => {
           { current: jardTotals.rocagem_m2, target: goal.rocagem_m2 },
           { current: jardTotals.podagem_unidade, target: goal.podagem_unidade },
           { current: jardTotals.coroamento_unidade, target: goal.coroamento_unidade },
+          { current: jardTotals.adubagem_unidade, target: goal.adubagem_unidade },
           { current: jardTotals.plantio_unidade, target: goal.plantio_unidade },
           { current: jardTotals.controle_invasoras_unidade, target: goal.controle_invasoras_unidade },
           { current: jardTotals.retirada_mudas_unidade, target: goal.retirada_mudas_unidade },

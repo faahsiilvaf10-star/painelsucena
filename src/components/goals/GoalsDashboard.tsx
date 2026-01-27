@@ -101,6 +101,7 @@ export function GoalsDashboard() {
       progress.rocagem_m2,
       progress.podagem_unidade,
       progress.coroamento_unidade,
+      progress.adubagem_unidade,
       progress.plantio_unidade,
       progress.controle_invasoras_unidade,
       progress.retirada_mudas_unidade,
@@ -419,6 +420,16 @@ export function GoalsDashboard() {
                   percentage={progress.coroamento_unidade.percentage}
                   unit="un"
                   icon="🌱"
+                />
+              )}
+              {progress.adubagem_unidade.target > 0 && (
+                <MetricCard
+                  label="Adubagem"
+                  current={progress.adubagem_unidade.current}
+                  target={progress.adubagem_unidade.target}
+                  percentage={progress.adubagem_unidade.percentage}
+                  unit="un"
+                  icon="💧"
                 />
               )}
               {progress.plantio_unidade.target > 0 && (

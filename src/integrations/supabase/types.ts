@@ -595,6 +595,7 @@ export type Database = {
       }
       goals: {
         Row: {
+          adubagem_unidade: number
           controle_invasoras_unidade: number
           coroamento_unidade: number
           created_at: string
@@ -614,6 +615,7 @@ export type Database = {
           updated_at: string
         }
         Insert: {
+          adubagem_unidade?: number
           controle_invasoras_unidade?: number
           coroamento_unidade?: number
           created_at?: string
@@ -633,6 +635,7 @@ export type Database = {
           updated_at?: string
         }
         Update: {
+          adubagem_unidade?: number
           controle_invasoras_unidade?: number
           coroamento_unidade?: number
           created_at?: string

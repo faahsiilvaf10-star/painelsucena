@@ -75,6 +75,7 @@ export function GoalProgressCard({ type = "all" }: GoalProgressCardProps) {
     progress.rocagem_m2,
     progress.podagem_unidade,
     progress.coroamento_unidade,
+    progress.adubagem_unidade,
     progress.plantio_unidade,
     progress.controle_invasoras_unidade,
     progress.retirada_mudas_unidade,
@@ -128,6 +129,16 @@ export function GoalProgressCard({ type = "all" }: GoalProgressCardProps) {
           current={progress.coroamento_unidade.current}
           target={progress.coroamento_unidade.target}
           percentage={progress.coroamento_unidade.percentage}
+        />
+      )}
+      {progress.adubagem_unidade.target > 0 && (
+        <GoalItem
+          label="Adubagem"
+          emoji="💧"
+          unit="un"
+          current={progress.adubagem_unidade.current}
+          target={progress.adubagem_unidade.target}
+          percentage={progress.adubagem_unidade.percentage}
         />
       )}
       {progress.plantio_unidade.target > 0 && (
