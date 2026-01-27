@@ -33,6 +33,7 @@ import AtividadesII from "./pages/AtividadesII";
 import Metas from "./pages/Metas";
 import VistoriasEquipamentos from "./pages/VistoriasEquipamentos";
 import Homologados from "./pages/Homologados";
+import VistoriaCintas from "./pages/VistoriaCintas";
 import NotFound from "./pages/NotFound";
 
 const queryClient = new QueryClient();
@@ -72,6 +73,7 @@ const App = () => (
                 <Route path="/metas" element={<ProtectedRoute><Metas /></ProtectedRoute>} />
                 <Route path="/vistorias-equipamentos" element={<ProtectedRoute><VistoriasEquipamentos /></ProtectedRoute>} />
                 <Route path="/homologados" element={<ProtectedRoute><Homologados /></ProtectedRoute>} />
+                <Route path="/vistoria-cintas" element={<ProtectedRoute><VistoriaCintas /></ProtectedRoute>} />
                 {/* ADD ALL CUSTOM ROUTES ABOVE THE CATCH-ALL "*" ROUTE */}
                 <Route path="*" element={<NotFound />} />
               </Routes>

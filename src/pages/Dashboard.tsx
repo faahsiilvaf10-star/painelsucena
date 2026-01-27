@@ -11,6 +11,7 @@ import { EquipmentStatusCard } from "@/components/dashboard/EquipmentStatusCard"
 import { DocumentExpiryBanner } from "@/components/documents/DocumentExpiryBanner";
 import { GoalAlertBanner } from "@/components/dashboard/GoalAlertBanner";
 import { VehicleExpiryBanner } from "@/components/vistorias/VehicleExpiryBanner";
+import { SlingInspectionBanner } from "@/components/dashboard/SlingInspectionBanner";
 import { useCampaignNotifications } from "@/hooks/useCampaignNotifications";
 import { useEmployees } from "@/hooks/useEmployees";
 import { useAttendanceRecords } from "@/hooks/useAttendance";
@@ -67,6 +68,9 @@ const Dashboard = () => {
 
         {/* Document Expiry Alerts - 5 days before */}
         <DocumentExpiryBanner />
+
+        {/* Sling Inspection Alerts - Based on color of month */}
+        <SlingInspectionBanner />
 
         {/* DDS Highlight Cards - Today and Tomorrow */}
         <DDSHighlightCard />

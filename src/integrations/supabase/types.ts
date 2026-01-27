@@ -1196,6 +1196,80 @@ export type Database = {
         }
         Relationships: []
       }
+      sling_equipment: {
+        Row: {
+          color: string
+          created_at: string
+          created_by: string
+          description: string
+          id: string
+          tag: string
+          updated_at: string
+        }
+        Insert: {
+          color: string
+          created_at?: string
+          created_by: string
+          description: string
+          id?: string
+          tag: string
+          updated_at?: string
+        }
+        Update: {
+          color?: string
+          created_at?: string
+          created_by?: string
+          description?: string
+          id?: string
+          tag?: string
+          updated_at?: string
+        }
+        Relationships: []
+      }
+      sling_inspections: {
+        Row: {
+          created_at: string
+          id: string
+          inspected_at: string | null
+          inspected_by: string | null
+          inspection_date: string
+          notes: string | null
+          sling_id: string
+          status: string
+          updated_at: string
+        }
+        Insert: {
+          created_at?: string
+          id?: string
+          inspected_at?: string | null
+          inspected_by?: string | null
+          inspection_date: string
+          notes?: string | null
+          sling_id: string
+          status?: string
+          updated_at?: string
+        }
+        Update: {
+          created_at?: string
+          id?: string
+          inspected_at?: string | null
+          inspected_by?: string | null
+          inspection_date?: string
+          notes?: string | null
+          sling_id?: string
+          status?: string
+          updated_at?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "sling_inspections_sling_id_fkey"
+            columns: ["sling_id"]
+            isOneToOne: false
+            referencedRelation: "sling_equipment"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       storage_locations: {
         Row: {
           created_at: string

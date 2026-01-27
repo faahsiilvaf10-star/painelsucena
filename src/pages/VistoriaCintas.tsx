@@ -1,0 +1,365 @@
+import Layout from "@/components/layout/Layout";
+import { useState } from "react";
+import { Loader2, Link2, Plus, Check, X, Filter } from "lucide-react";
+import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
+import { Badge } from "@/components/ui/badge";
+import { Button } from "@/components/ui/button";
+import { Input } from "@/components/ui/input";
+import { Label } from "@/components/ui/label";
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from "@/components/ui/select";
+import {
+  Dialog,
+  DialogContent,
+  DialogHeader,
+  DialogTitle,
+  DialogTrigger,
+} from "@/components/ui/dialog";
+import {
+  Table,
+  TableBody,
+  TableCell,
+  TableHead,
+  TableHeader,
+  TableRow,
+} from "@/components/ui/table";
+import { toast } from "sonner";
+import {
+  useSlingWithInspections,
+  useCreateSlingInspection,
+  useUpdateSlingInspection,
+  useCreateSlingEquipment,
+  colorLabels,
+  colorClasses,
+  getCurrentMonthColor,
+  type SlingColor,
+  type SlingWithInspection,
+} from "@/hooks/useSlingEquipment";
+import { useAuth } from "@/hooks/useAuth";
+
+const VistoriaCintas = () => {
+  const { user } = useAuth();
+  const { slings, pendingInspections, currentMonthColor, isLoading } = useSlingWithInspections();
+  const createInspection = useCreateSlingInspection();
+  const updateInspection = useUpdateSlingInspection();
+  const createSling = useCreateSlingEquipment();
+
+  const [filterColor, setFilterColor] = useState<SlingColor | "all">("all");
+  const [addDialogOpen, setAddDialogOpen] = useState(false);
+  const [newSling, setNewSling] = useState({ tag: "", description: "", color: "red" as SlingColor });
+
+  const now = new Date();
+  const currentMonthYear = `${now.getFullYear()}-${String(now.getMonth() + 1).padStart(2, "0")}`;
+  const inspectionDate = `${currentMonthYear}-01`;
+
+  const filteredSlings = slings.filter((s) => filterColor === "all" || s.color === filterColor);
+
+  const handleInspect = async (sling: SlingWithInspection, status: "inspected" | "cancelled") => {
+    if (!user) {
+      toast.error("Você precisa estar logado");
+      return;
+    }
+
+    try {
+      if (sling.currentInspection) {
+        await updateInspection.mutateAsync({
+          id: sling.currentInspection.id,
+          status,
+          inspected_by: user.id,
+        });
+      } else {
+        await createInspection.mutateAsync({
+          sling_id: sling.id,
+          inspection_date: inspectionDate,
+          status,
+          inspected_by: user.id,
+        });
+      }
+      toast.success(`Cinta ${sling.tag} marcada como ${status === "inspected" ? "inspecionada" : "cancelada"}`);
+    } catch (error) {
+      toast.error("Erro ao atualizar inspeção");
+    }
+  };
+
+  const handleAddSling = async () => {
+    if (!user || !newSling.tag || !newSling.description) {
+      toast.error("Preencha todos os campos");
+      return;
+    }
+
+    try {
+      await createSling.mutateAsync({
+        ...newSling,
+        created_by: user.id,
+      });
+      toast.success("Cinta cadastrada com sucesso");
+      setAddDialogOpen(false);
+      setNewSling({ tag: "", description: "", color: "red" });
+    } catch (error) {
+      toast.error("Erro ao cadastrar cinta");
+    }
+  };
+
+  const getStatusBadge = (sling: SlingWithInspection) => {
+    const isCurrentMonthColor = sling.color === currentMonthColor;
+    
+    if (!isCurrentMonthColor) {
+      return <Badge variant="outline" className="text-muted-foreground">Não é mês de inspeção</Badge>;
+    }
+
+    if (!sling.currentInspection || sling.currentInspection.status === "pending") {
+      return <Badge variant="destructive" className="animate-pulse">Pendente</Badge>;
+    }
+
+    if (sling.currentInspection.status === "inspected") {
+      return <Badge className="bg-green-500 hover:bg-green-600">Inspecionada</Badge>;
+    }
+
+    return <Badge variant="secondary">Cancelada</Badge>;
+  };
+
+  const monthNames = [
+    "Janeiro", "Fevereiro", "Março", "Abril", "Maio", "Junho",
+    "Julho", "Agosto", "Setembro", "Outubro", "Novembro", "Dezembro"
+  ];
+
+  return (
+    <Layout>
+      <div className="space-y-6 animate-fade-in">
+        {/* Header */}
+        <div className="flex items-start justify-between">
+          <div className="space-y-1">
+            <div className="flex items-center gap-3">
+              <div className="p-2.5 rounded-xl bg-primary/10">
+                <Link2 className="w-5 h-5 text-primary" />
+              </div>
+              <div>
+                <h1 className="text-xl font-semibold text-foreground tracking-tight">
+                  Vistoria de Cintas
+                </h1>
+                <p className="text-sm text-muted-foreground">
+                  Controle de inspeção mensal por cor
+                </p>
+              </div>
+            </div>
+          </div>
+
+          <Dialog open={addDialogOpen} onOpenChange={setAddDialogOpen}>
+            <DialogTrigger asChild>
+              <Button size="sm" className="gap-2 shadow-sm">
+                <Plus className="w-4 h-4" />
+                <span className="hidden sm:inline">Nova Cinta</span>
+              </Button>
+            </DialogTrigger>
+            <DialogContent>
+              <DialogHeader>
+                <DialogTitle>Cadastrar Nova Cinta</DialogTitle>
+              </DialogHeader>
+              <div className="space-y-4 pt-4">
+                <div className="space-y-2">
+                  <Label>Tag</Label>
+                  <Input
+                    placeholder="E-SUC-018"
+                    value={newSling.tag}
+                    onChange={(e) => setNewSling({ ...newSling, tag: e.target.value })}
+                  />
+                </div>
+                <div className="space-y-2">
+                  <Label>Descrição</Label>
+                  <Input
+                    placeholder="CINTA 4T - 4M"
+                    value={newSling.description}
+                    onChange={(e) => setNewSling({ ...newSling, description: e.target.value })}
+                  />
+                </div>
+                <div className="space-y-2">
+                  <Label>Cor</Label>
+                  <Select
+                    value={newSling.color}
+                    onValueChange={(v) => setNewSling({ ...newSling, color: v as SlingColor })}
+                  >
+                    <SelectTrigger>
+                      <SelectValue />
+                    </SelectTrigger>
+                    <SelectContent>
+                      {Object.entries(colorLabels).map(([color, label]) => (
+                        <SelectItem key={color} value={color}>
+                          <div className="flex items-center gap-2">
+                            <div className={`w-3 h-3 rounded-full ${colorClasses[color as SlingColor]}`} />
+                            {label}
+                          </div>
+                        </SelectItem>
+                      ))}
+                    </SelectContent>
+                  </Select>
+                </div>
+                <Button onClick={handleAddSling} className="w-full">
+                  Cadastrar
+                </Button>
+              </div>
+            </DialogContent>
+          </Dialog>
+        </div>
+
+        {/* Current Month Info */}
+        <Card className={`border-2 ${colorClasses[currentMonthColor].replace("bg-", "border-")}/50`}>
+          <CardContent className="py-4">
+            <div className="flex items-center justify-between">
+              <div className="flex items-center gap-3">
+                <div className={`w-6 h-6 rounded-full ${colorClasses[currentMonthColor]}`} />
+                <div>
+                  <p className="font-medium">Mês de Inspeção: {monthNames[now.getMonth()]}</p>
+                  <p className="text-sm text-muted-foreground">
+                    Cor do mês: <strong>{colorLabels[currentMonthColor]}</strong> - Inspeção no dia 01
+                  </p>
+                </div>
+              </div>
+              <Badge variant={pendingInspections.length > 0 ? "destructive" : "secondary"}>
+                {pendingInspections.length} pendente(s)
+              </Badge>
+            </div>
+          </CardContent>
+        </Card>
+
+        {/* Filter */}
+        <div className="flex items-center gap-4">
+          <div className="flex items-center gap-2">
+            <Filter className="w-4 h-4 text-muted-foreground" />
+            <span className="text-sm text-muted-foreground">Filtrar por cor:</span>
+          </div>
+          <Select value={filterColor} onValueChange={(v) => setFilterColor(v as SlingColor | "all")}>
+            <SelectTrigger className="w-40">
+              <SelectValue />
+            </SelectTrigger>
+            <SelectContent>
+              <SelectItem value="all">Todas</SelectItem>
+              {Object.entries(colorLabels).map(([color, label]) => (
+                <SelectItem key={color} value={color}>
+                  <div className="flex items-center gap-2">
+                    <div className={`w-3 h-3 rounded-full ${colorClasses[color as SlingColor]}`} />
+                    {label}
+                  </div>
+                </SelectItem>
+              ))}
+            </SelectContent>
+          </Select>
+        </div>
+
+        {/* Table */}
+        <Card>
+          <CardHeader className="pb-3">
+            <CardTitle className="text-lg">Equipamentos Cadastrados</CardTitle>
+          </CardHeader>
+          <CardContent>
+            {isLoading ? (
+              <div className="flex items-center justify-center py-16">
+                <Loader2 className="w-8 h-8 animate-spin text-primary/50" />
+              </div>
+            ) : filteredSlings.length === 0 ? (
+              <div className="text-center py-8 text-muted-foreground">
+                Nenhuma cinta encontrada
+              </div>
+            ) : (
+              <Table>
+                <TableHeader>
+                  <TableRow>
+                    <TableHead>Cor</TableHead>
+                    <TableHead>Tag</TableHead>
+                    <TableHead>Descrição</TableHead>
+                    <TableHead>Status</TableHead>
+                    <TableHead className="text-right">Ações</TableHead>
+                  </TableRow>
+                </TableHeader>
+                <TableBody>
+                  {filteredSlings.map((sling) => {
+                    const isCurrentMonthColor = sling.color === currentMonthColor;
+                    const canInspect = isCurrentMonthColor && (!sling.currentInspection || sling.currentInspection.status === "pending");
+
+                    return (
+                      <TableRow key={sling.id} className={isCurrentMonthColor ? "bg-accent/30" : ""}>
+                        <TableCell>
+                          <div className={`w-6 h-6 rounded-full ${colorClasses[sling.color]}`} />
+                        </TableCell>
+                        <TableCell className="font-mono font-medium">{sling.tag}</TableCell>
+                        <TableCell>{sling.description}</TableCell>
+                        <TableCell>{getStatusBadge(sling)}</TableCell>
+                        <TableCell className="text-right">
+                          {canInspect && (
+                            <div className="flex items-center justify-end gap-2">
+                              <Button
+                                size="sm"
+                                variant="outline"
+                                className="gap-1 text-green-600 hover:bg-green-50"
+                                onClick={() => handleInspect(sling, "inspected")}
+                              >
+                                <Check className="w-4 h-4" />
+                                Inspecionada
+                              </Button>
+                              <Button
+                                size="sm"
+                                variant="outline"
+                                className="gap-1 text-destructive hover:bg-destructive/10"
+                                onClick={() => handleInspect(sling, "cancelled")}
+                              >
+                                <X className="w-4 h-4" />
+                                Cancelar
+                              </Button>
+                            </div>
+                          )}
+                        </TableCell>
+                      </TableRow>
+                    );
+                  })}
+                </TableBody>
+              </Table>
+            )}
+          </CardContent>
+        </Card>
+
+        {/* Color Legend */}
+        <Card>
+          <CardHeader className="pb-3">
+            <CardTitle className="text-lg">Calendário de Inspeções por Cor</CardTitle>
+          </CardHeader>
+          <CardContent>
+            <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
+              {Object.entries(colorLabels).map(([color, label]) => {
+                const months = Object.entries({
+                  1: "Jan", 2: "Fev", 3: "Mar", 4: "Abr",
+                  5: "Mai", 6: "Jun", 7: "Jul", 8: "Ago",
+                  9: "Set", 10: "Out", 11: "Nov", 12: "Dez"
+                })
+                  .filter(([month]) => {
+                    const monthColors: Record<number, string> = {
+                      1: "red", 2: "blue", 3: "yellow", 4: "green",
+                      5: "red", 6: "blue", 7: "yellow", 8: "green",
+                      9: "red", 10: "blue", 11: "yellow", 12: "green"
+                    };
+                    return monthColors[parseInt(month)] === color;
+                  })
+                  .map(([, name]) => name);
+
+                return (
+                  <div key={color} className="flex items-center gap-3 p-3 rounded-lg bg-muted/50">
+                    <div className={`w-5 h-5 rounded-full ${colorClasses[color as SlingColor]}`} />
+                    <div>
+                      <p className="font-medium">{label}</p>
+                      <p className="text-xs text-muted-foreground">{months.join(", ")}</p>
+                    </div>
+                  </div>
+                );
+              })}
+            </div>
+          </CardContent>
+        </Card>
+      </div>
+    </Layout>
+  );
+};
+
+export default VistoriaCintas;
