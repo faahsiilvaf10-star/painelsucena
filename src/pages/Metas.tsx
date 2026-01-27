@@ -58,6 +58,7 @@ export default function Metas() {
   const [rocagem, setRocagem] = useState("");
   const [podagem, setPodagem] = useState("");
   const [coroamento, setCoroamento] = useState("");
+  const [adubagem, setAdubagem] = useState("");
   const [plantio, setPlantio] = useState("");
   const [controleInvasoras, setControleInvasoras] = useState("");
   const [retiradaMudas, setRetiradaMudas] = useState("");
@@ -80,6 +81,7 @@ export default function Metas() {
       setRocagem(goal.rocagem_m2?.toString() || "");
       setPodagem(goal.podagem_unidade?.toString() || "");
       setCoroamento(goal.coroamento_unidade?.toString() || "");
+      setAdubagem(goal.adubagem_unidade?.toString() || "");
       setPlantio(goal.plantio_unidade?.toString() || "");
       setControleInvasoras(goal.controle_invasoras_unidade?.toString() || "");
       setRetiradaMudas(goal.retirada_mudas_unidade?.toString() || "");
@@ -95,6 +97,7 @@ export default function Metas() {
       setRocagem("");
       setPodagem("");
       setCoroamento("");
+      setAdubagem("");
       setPlantio("");
       setControleInvasoras("");
       setRetiradaMudas("");
@@ -149,6 +152,7 @@ export default function Metas() {
         rocagem_m2: rocagem ? parseFloat(rocagem) : 0,
         podagem_unidade: podagem ? parseInt(podagem) : 0,
         coroamento_unidade: coroamento ? parseInt(coroamento) : 0,
+        adubagem_unidade: adubagem ? parseInt(adubagem) : 0,
         plantio_unidade: plantio ? parseInt(plantio) : 0,
         controle_invasoras_unidade: controleInvasoras ? parseInt(controleInvasoras) : 0,
         retirada_mudas_unidade: retiradaMudas ? parseInt(retiradaMudas) : 0,
@@ -312,6 +316,23 @@ export default function Metas() {
                     placeholder="0"
                     value={coroamento}
                     onChange={(e) => setCoroamento(e.target.value)}
+                    className="text-lg"
+                  />
+                </div>
+
+                {/* Adubagem */}
+                <div className="space-y-2">
+                  <Label htmlFor="adubagem" className="flex items-center gap-2">
+                    <span className="text-lg">💧</span>
+                    ADUBAGEM (unidade)
+                  </Label>
+                  <Input
+                    id="adubagem"
+                    type="number"
+                    min="0"
+                    placeholder="0"
+                    value={adubagem}
+                    onChange={(e) => setAdubagem(e.target.value)}
                     className="text-lg"
                   />
                 </div>
