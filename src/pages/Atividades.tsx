@@ -355,15 +355,15 @@ export default function Atividades() {
 
   return (
     <Layout>
-      <div className="p-6 space-y-6">
+      <div className="p-4 sm:p-6 space-y-4 sm:space-y-6">
         {/* Measurement Period Summary */}
         <Card className="border-green-500/30 bg-green-500/5">
-          <CardContent className="py-3 px-4">
-            <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-2">
-              <div className="flex items-center gap-2">
-                <Calendar className="h-4 w-4 text-green-500" />
-                <span className="text-sm font-medium">Período de Medição Atual:</span>
-                <Badge variant="outline" className="border-green-500/50 text-green-500 font-semibold">
+          <CardContent className="py-2 sm:py-3 px-3 sm:px-4">
+            <div className="flex flex-col gap-2">
+              <div className="flex flex-wrap items-center gap-2">
+                <Calendar className="h-4 w-4 text-green-500 shrink-0" />
+                <span className="text-xs sm:text-sm font-medium">Período de Medição:</span>
+                <Badge variant="outline" className="border-green-500/50 text-green-500 font-semibold text-xs">
                   {measurementPeriodLabel}
                 </Badge>
               </div>
@@ -376,14 +376,14 @@ export default function Atividades() {
         </Card>
 
         {/* Header */}
-        <div className="flex flex-col md:flex-row md:items-center justify-between gap-4">
+        <div className="flex flex-col gap-4">
           <div className="flex items-center gap-3">
-            <div className="h-12 w-12 rounded-full bg-green-600/20 flex items-center justify-center">
-              <Leaf className="h-6 w-6 text-green-500" />
+            <div className="h-10 w-10 sm:h-12 sm:w-12 rounded-full bg-green-600/20 flex items-center justify-center shrink-0">
+              <Leaf className="h-5 w-5 sm:h-6 sm:w-6 text-green-500" />
             </div>
-            <div>
-              <h1 className="text-2xl font-bold">Atividades - Jardinagem</h1>
-              <p className="text-muted-foreground">{capitalizedDate}</p>
+            <div className="min-w-0">
+              <h1 className="text-lg sm:text-2xl font-bold">Atividades - Jardinagem</h1>
+              <p className="text-sm text-muted-foreground truncate">{capitalizedDate}</p>
             </div>
           </div>
 

@@ -315,7 +315,7 @@ export default function DDS() {
   if (profileLoading || adminLoading) {
     return (
       <Layout>
-        <div className="container mx-auto px-6 py-8">
+        <div className="container mx-auto px-4 sm:px-6 py-4 sm:py-8">
           <div className="flex items-center justify-center h-64">
             <p className="text-muted-foreground">Carregando...</p>
           </div>
@@ -326,28 +326,28 @@ export default function DDS() {
 
   return (
     <Layout>
-      <div className="container mx-auto px-6 py-8 space-y-6">
+      <div className="container mx-auto px-4 sm:px-6 py-4 sm:py-8 space-y-4 sm:space-y-6">
         {/* Header */}
-        <div className="flex flex-col md:flex-row md:items-center md:justify-between gap-4">
+        <div className="flex flex-col gap-4">
           <div>
-            <h1 className="text-3xl font-bold flex items-center gap-3">
-              <Sun className="h-8 w-8 text-amber-500" />
-              DDS - Diálogo Diário de Segurança
+            <h1 className="text-xl sm:text-3xl font-bold flex items-center gap-2 sm:gap-3">
+              <Sun className="h-6 w-6 sm:h-8 sm:w-8 text-amber-500 shrink-0" />
+              <span className="leading-tight">DDS - Diálogo de Segurança</span>
             </h1>
-            <p className="text-muted-foreground mt-1">
-              Escala de palestrantes para o mês de {format(currentDate, "MMMM 'de' yyyy", { locale: ptBR })}
+            <p className="text-sm text-muted-foreground mt-1">
+              Escala de {format(currentDate, "MMMM 'de' yyyy", { locale: ptBR })}
             </p>
           </div>
 
           {/* Month Navigation */}
-          <div className="flex items-center gap-2">
-            <Button variant="outline" size="icon" onClick={handlePreviousMonth}>
+          <div className="flex items-center gap-2 w-full sm:w-auto">
+            <Button variant="outline" size="icon" onClick={handlePreviousMonth} className="shrink-0">
               <ChevronLeft className="h-4 w-4" />
             </Button>
-            <div className="px-4 py-2 bg-muted rounded-lg font-medium min-w-[160px] text-center">
+            <div className="flex-1 sm:flex-none px-3 py-2 bg-muted rounded-lg font-medium min-w-[140px] sm:min-w-[160px] text-center text-sm sm:text-base">
               {format(currentDate, "MMMM yyyy", { locale: ptBR })}
             </div>
-            <Button variant="outline" size="icon" onClick={handleNextMonth}>
+            <Button variant="outline" size="icon" onClick={handleNextMonth} className="shrink-0">
               <ChevronRight className="h-4 w-4" />
             </Button>
           </div>

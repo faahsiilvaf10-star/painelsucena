@@ -148,15 +148,15 @@ const Documentos = () => {
 
   return (
     <Layout>
-      <div className="container mx-auto px-6 py-8">
+      <div className="container mx-auto px-4 sm:px-6 py-4 sm:py-8">
         {/* Header */}
-        <div className="flex flex-col md:flex-row md:items-center justify-between gap-4 mb-8">
+        <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3 sm:gap-4 mb-6 sm:mb-8">
           <div>
-            <h1 className="text-3xl font-bold flex items-center gap-2">
-              <FileText className="h-8 w-8 text-primary" />
+            <h1 className="text-xl sm:text-3xl font-bold flex items-center gap-2">
+              <FileText className="h-6 w-6 sm:h-8 sm:w-8 text-primary" />
               Documentos
             </h1>
-            <p className="text-muted-foreground mt-1">
+            <p className="text-sm text-muted-foreground mt-1">
               Gerencie documentos e controle vencimentos
             </p>
           </div>
@@ -164,37 +164,37 @@ const Documentos = () => {
         </div>
 
         {/* Stats Cards */}
-        <div className="grid grid-cols-1 md:grid-cols-3 gap-4 mb-6">
+        <div className="grid grid-cols-3 gap-2 sm:gap-4 mb-4 sm:mb-6">
           <Card>
-            <CardContent className="p-4 flex items-center gap-4">
-              <div className="p-3 rounded-full bg-blue-100 dark:bg-blue-900/30">
-                <FileText className="h-6 w-6 text-blue-600" />
+            <CardContent className="p-2 sm:p-4 flex items-center gap-2 sm:gap-4">
+              <div className="p-2 sm:p-3 rounded-full bg-blue-100 dark:bg-blue-900/30 shrink-0">
+                <FileText className="h-4 w-4 sm:h-6 sm:w-6 text-blue-600" />
               </div>
-              <div>
-                <p className="text-2xl font-bold">{pendingCount}</p>
-                <p className="text-sm text-muted-foreground">Pendentes</p>
+              <div className="min-w-0">
+                <p className="text-xl sm:text-2xl font-bold">{pendingCount}</p>
+                <p className="text-xs sm:text-sm text-muted-foreground truncate">Pendentes</p>
               </div>
             </CardContent>
           </Card>
           <Card>
-            <CardContent className="p-4 flex items-center gap-4">
-              <div className="p-3 rounded-full bg-orange-100 dark:bg-orange-900/30">
-                <Clock className="h-6 w-6 text-orange-600" />
+            <CardContent className="p-2 sm:p-4 flex items-center gap-2 sm:gap-4">
+              <div className="p-2 sm:p-3 rounded-full bg-orange-100 dark:bg-orange-900/30 shrink-0">
+                <Clock className="h-4 w-4 sm:h-6 sm:w-6 text-orange-600" />
               </div>
-              <div>
-                <p className="text-2xl font-bold">{expiringCount}</p>
-                <p className="text-sm text-muted-foreground">A vencer (5 dias)</p>
+              <div className="min-w-0">
+                <p className="text-xl sm:text-2xl font-bold">{expiringCount}</p>
+                <p className="text-xs sm:text-sm text-muted-foreground truncate">A vencer</p>
               </div>
             </CardContent>
           </Card>
           <Card>
-            <CardContent className="p-4 flex items-center gap-4">
-              <div className="p-3 rounded-full bg-red-100 dark:bg-red-900/30">
-                <AlertTriangle className="h-6 w-6 text-red-600" />
+            <CardContent className="p-2 sm:p-4 flex items-center gap-2 sm:gap-4">
+              <div className="p-2 sm:p-3 rounded-full bg-red-100 dark:bg-red-900/30 shrink-0">
+                <AlertTriangle className="h-4 w-4 sm:h-6 sm:w-6 text-red-600" />
               </div>
-              <div>
-                <p className="text-2xl font-bold">{expiredCount}</p>
-                <p className="text-sm text-muted-foreground">Vencidos</p>
+              <div className="min-w-0">
+                <p className="text-xl sm:text-2xl font-bold">{expiredCount}</p>
+                <p className="text-xs sm:text-sm text-muted-foreground truncate">Vencidos</p>
               </div>
             </CardContent>
           </Card>

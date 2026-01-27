@@ -199,11 +199,11 @@ const Matriz = () => {
           onClose={() => setShowCelebration(false)}
           cargoName={selectedFolder.cargo}
         />
-        <div className="container mx-auto px-6 py-8">
+        <div className="container mx-auto px-4 sm:px-6 py-4 sm:py-8">
           {/* Back Button */}
           <Button
             variant="ghost"
-            className="mb-6 gap-2"
+            className="mb-4 sm:mb-6 gap-2"
             onClick={() => setSelectedFolder(null)}
           >
             <ArrowLeft className="w-4 h-4" />
@@ -211,22 +211,22 @@ const Matriz = () => {
           </Button>
 
           {/* Header */}
-          <div className="flex items-center gap-4 mb-8 flex-wrap">
-            <div className={`w-16 h-16 rounded-2xl ${selectedFolder.iconBg} flex items-center justify-center`}>
+          <div className="flex flex-col sm:flex-row sm:items-center gap-4 mb-6 sm:mb-8">
+            <div className={`w-12 h-12 sm:w-16 sm:h-16 rounded-xl sm:rounded-2xl ${selectedFolder.iconBg} flex items-center justify-center shrink-0`}>
               <div className={selectedFolder.iconColor}>{selectedFolder.icon}</div>
             </div>
-            <div className="flex-1">
-              <div className="flex items-center gap-3">
-                <h1 className="text-3xl font-bold">{selectedFolder.cargo}</h1>
+            <div className="flex-1 min-w-0">
+              <div className="flex flex-wrap items-center gap-2 sm:gap-3">
+                <h1 className="text-xl sm:text-3xl font-bold">{selectedFolder.cargo}</h1>
                 {!canEditFolder(selectedFolder) && (
-                  <Badge variant="outline" className="text-amber-500 border-amber-500/50 gap-1">
+                  <Badge variant="outline" className="text-amber-500 border-amber-500/50 gap-1 text-xs">
                     <Lock className="w-3 h-3" />
                     Somente leitura
                   </Badge>
                 )}
               </div>
-              <p className="text-muted-foreground">
-                {completedCount}/{selectedFolder.tarefas.length} atividades concluídas
+              <p className="text-sm text-muted-foreground">
+                {completedCount}/{selectedFolder.tarefas.length} atividades
               </p>
             </div>
             <div className="flex items-center gap-3">
@@ -312,17 +312,17 @@ const Matriz = () => {
   // Grid View
   return (
     <Layout>
-      <div className="container mx-auto px-6 py-8">
+      <div className="container mx-auto px-4 sm:px-6 py-4 sm:py-8">
         {/* Header */}
-        <div className="mb-8">
-          <div className="flex items-center justify-between flex-wrap gap-4">
+        <div className="mb-6 sm:mb-8">
+          <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
             <div>
-              <h1 className="text-3xl font-bold mb-2">Matriz de Responsabilidades</h1>
-              <p className="text-muted-foreground">
-                Selecione uma função para visualizar e atualizar o progresso das atividades.
+              <h1 className="text-xl sm:text-3xl font-bold mb-1 sm:mb-2">Matriz de Responsabilidades</h1>
+              <p className="text-sm text-muted-foreground">
+                Selecione uma função para visualizar o progresso.
               </p>
-              <p className="text-orange-500 text-sm mt-2">
-                * O progresso é zerado automaticamente no dia 01 de cada mês.
+              <p className="text-orange-500 text-xs sm:text-sm mt-2">
+                * Progresso zerado no dia 01 de cada mês.
               </p>
             </div>
             
@@ -331,18 +331,17 @@ const Matriz = () => {
               href="https://forms.office.com/Pages/ResponsePage.aspx?id=kYkdvChKUkWrwaznrhCCdO-80STG5SxAvb9Y_fx1cCNUQjVWRVRNSlE0Q08xNFhVNlFDSEFVTUJFNy4u"
               target="_blank"
               rel="noopener noreferrer"
-              title="Clica aqui para preencher no Forms"
-              className="flex items-center gap-2 bg-primary hover:bg-primary/90 text-primary-foreground px-4 py-3 rounded-xl shadow-lg transition-all duration-300 hover:scale-105 hover:shadow-xl group"
+              className="flex items-center justify-center gap-2 bg-primary hover:bg-primary/90 text-primary-foreground px-4 py-2 sm:py-3 rounded-xl shadow-lg transition-all w-full sm:w-auto"
             >
               <ClipboardList className="w-5 h-5" />
               <span className="font-medium">Preencher Forms</span>
-              <ExternalLink className="w-4 h-4 opacity-70 group-hover:opacity-100 transition-opacity" />
+              <ExternalLink className="w-4 h-4 opacity-70" />
             </a>
           </div>
         </div>
 
         {/* Cards Grid */}
-        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4 sm:gap-6">
           {cargoFolders.map((folder, index) => {
             const progress = getProgress(folder);
             const canEdit = canEditFolder(folder);

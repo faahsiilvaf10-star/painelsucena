@@ -76,20 +76,20 @@ const Equipamentos = () => {
 
   return (
     <Layout>
-      <div className="space-y-6 animate-fade-in">
+      <div className="space-y-4 sm:space-y-6 px-4 sm:px-6 py-4 sm:py-6 animate-fade-in">
         {/* Previous Day Summary (Morning only) */}
         <PreviousDaySummary />
 
         {/* Minimal Header */}
-        <div className="flex items-start justify-between">
+        <div className="flex flex-col sm:flex-row sm:items-start justify-between gap-3">
           <div className="space-y-1">
             <div className="flex items-center gap-3">
-              <div className="p-2.5 rounded-xl bg-primary/10">
-                <Activity className="w-5 h-5 text-primary" />
+              <div className="p-2 sm:p-2.5 rounded-xl bg-primary/10 shrink-0">
+                <Activity className="w-4 h-4 sm:w-5 sm:h-5 text-primary" />
               </div>
-              <div>
-                <h1 className="text-xl font-semibold text-foreground tracking-tight">Equipamentos</h1>
-                <p className="text-sm text-muted-foreground">Monitoramento em tempo real</p>
+              <div className="min-w-0">
+                <h1 className="text-lg sm:text-xl font-semibold text-foreground tracking-tight">Equipamentos</h1>
+                <p className="text-xs sm:text-sm text-muted-foreground">Monitoramento em tempo real</p>
               </div>
             </div>
           </div>

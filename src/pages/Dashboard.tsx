@@ -36,13 +36,13 @@ const Dashboard = () => {
   const absentToday = attendanceRecords?.filter(a => a.status === "absent" || a.status === "justified").length || 0;
 
   return <Layout>
-      <div className="container mx-auto px-6 py-8">
+      <div className="container mx-auto px-4 sm:px-6 py-4 sm:py-8">
         {/* Hero Section */}
-        <div className="mb-8 animate-fade-in">
-          <h1 className="text-4xl md:text-5xl font-bold mb-4">
+        <div className="mb-6 sm:mb-8 animate-fade-in">
+          <h1 className="text-2xl sm:text-4xl md:text-5xl font-bold mb-2 sm:mb-4">
             Bem-vindo ao <span className="text-gradient">Painel Sucena</span>
           </h1>
-          <p className="text-xl text-muted-foreground max-w-2xl">
+          <p className="text-base sm:text-xl text-muted-foreground max-w-2xl">
             Gerencie sua equipe, controle presença e organize responsabilidades em um só lugar.
           </p>
         </div>
@@ -75,7 +75,7 @@ const Dashboard = () => {
         <EquipmentStatusCard />
 
         {/* Stats Grid */}
-        <div className="grid grid-cols-1 md:grid-cols-3 gap-6 mb-8">
+        <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 gap-4 sm:gap-6 mb-6 sm:mb-8">
           <div className="animate-slide-up" style={{
           animationDelay: "0.1s"
         }}>
@@ -94,7 +94,7 @@ const Dashboard = () => {
         </div>
 
         {/* Matrix Progress Chart - Below Stats Grid */}
-        <div className="mb-8 animate-slide-up" style={{ animationDelay: "0.4s" }}>
+        <div className="mb-6 sm:mb-8 animate-slide-up" style={{ animationDelay: "0.4s" }}>
           <MatrixProgressChart />
         </div>
       </div>

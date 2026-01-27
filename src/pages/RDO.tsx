@@ -414,19 +414,19 @@ ${difficulties}`;
 
   return (
     <Layout>
-      <div className="p-6 space-y-6">
+      <div className="p-4 sm:p-6 space-y-4 sm:space-y-6">
         {/* Header */}
-        <div className="flex flex-col md:flex-row md:items-center justify-between gap-4">
+        <div className="flex flex-col gap-4">
           <div className="flex items-center gap-3">
-            <FileText className="h-8 w-8 text-primary" />
-            <div>
-              <h1 className="text-2xl font-bold">RDO - Relatório Diário de Obra</h1>
-              <div className="flex items-center gap-2">
-                <p className="text-muted-foreground">{capitalizedDate}</p>
+            <FileText className="h-6 w-6 sm:h-8 sm:w-8 text-primary shrink-0" />
+            <div className="min-w-0">
+              <h1 className="text-lg sm:text-2xl font-bold">RDO - Relatório Diário de Obra</h1>
+              <div className="flex flex-wrap items-center gap-2">
+                <p className="text-sm text-muted-foreground">{capitalizedDate}</p>
                 {isFriday && (
-                  <Badge variant="secondary" className="bg-amber-500/20 text-amber-600 dark:text-amber-400 border-amber-500/30 gap-1">
+                  <Badge variant="secondary" className="bg-amber-500/20 text-amber-600 dark:text-amber-400 border-amber-500/30 gap-1 text-xs">
                     <Clock className="h-3 w-3" />
-                    Horário Reduzido (16h)
+                    Horário Reduzido
                   </Badge>
                 )}
               </div>
