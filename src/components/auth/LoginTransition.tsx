@@ -399,13 +399,14 @@ export function LoginTransition({ onComplete, userName, userAvatar, userCargo }:
                   Bom trabalho,
                 </span>
                 <span 
-                  className="text-5xl font-black tracking-wide uppercase mt-1"
+                  className="text-6xl mt-1"
                   style={{
-                    background: "linear-gradient(180deg, #22d3ee 0%, #0ea5e9 50%, #0369a1 100%)",
+                    fontFamily: "'Pinyon Script', cursive",
+                    background: "linear-gradient(180deg, #ffffff 0%, #e2e8f0 50%, #cbd5e1 100%)",
                     WebkitBackgroundClip: "text",
                     WebkitTextFillColor: "transparent",
-                    textShadow: "0 4px 20px rgba(34,211,238,0.5)",
-                    filter: "drop-shadow(0 2px 4px rgba(0,0,0,0.3))",
+                    textShadow: "0 4px 20px rgba(255,255,255,0.3)",
+                    filter: "drop-shadow(0 2px 8px rgba(0,0,0,0.4))",
                   }}
                 >
                   {userName || "Usuário"}!
