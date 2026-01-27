@@ -27,6 +27,9 @@ export interface JardinagemReport {
   controle_invasoras_nome: string | null;
   controle_invasoras_berma: number | null;
   retirada_mudas_unidade: number | null;
+  irrigacao_pipas: boolean | null;
+  irrigacao_carretel: boolean | null;
+  irrigacao_carretel_bermas: number[] | null;
   created_at: string;
   updated_at: string;
 }
@@ -53,6 +56,9 @@ export interface JardinagemReportInsert {
   controle_invasoras_nome?: string;
   controle_invasoras_berma?: number;
   retirada_mudas_unidade?: number;
+  irrigacao_pipas?: boolean;
+  irrigacao_carretel?: boolean;
+  irrigacao_carretel_bermas?: number[];
 }
 
 export const useJardinagemReports = (filterDate?: string) => {
@@ -245,6 +251,17 @@ export const formatJardinagemForRDO = (report: JardinagemReport | null): string 
   }
   if (report.manutencao_canteiro) {
     lines.push(`* Manutenção de Canteiro: ${report.manutencao_canteiro}`);
+  }
+  
+  // Irrigation activities
+  if (report.irrigacao_pipas) {
+    lines.push(`* Irrigação com Pipas nas Faixas 3 e 4 e Mirante`);
+  }
+  if (report.irrigacao_carretel && report.irrigacao_carretel_bermas && report.irrigacao_carretel_bermas.length > 0) {
+    const bermasText = report.irrigacao_carretel_bermas.sort((a, b) => a - b).join(", ");
+    lines.push(`* Irrigação com Carretel (Bermas: ${bermasText})`);
+  } else if (report.irrigacao_carretel) {
+    lines.push(`* Irrigação com Carretel`);
   }
 
   return lines.join("\n");
