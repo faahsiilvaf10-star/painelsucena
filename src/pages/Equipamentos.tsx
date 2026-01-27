@@ -3,6 +3,7 @@ import { EquipmentTimeline } from "@/components/equipamentos/EquipmentTimeline";
 import { EquipmentReport } from "@/components/equipamentos/EquipmentReport";
 import { PreviousDaySummary } from "@/components/equipamentos/PreviousDaySummary";
 import { ExportWeeklyHistoryButton } from "@/components/equipamentos/ExportWeeklyHistoryButton";
+import { EquipmentOperationChart } from "@/components/equipamentos/EquipmentOperationChart";
 import { Truck, Plus, Loader2, Droplets, Container, Car, StopCircle, Activity } from "lucide-react";
 import { useEquipment, useCreateEquipment } from "@/hooks/useEquipment";
 import { Button } from "@/components/ui/button";
@@ -281,6 +282,9 @@ const Equipamentos = () => {
             </div>
           )}
         </div>
+
+        {/* Operation Chart */}
+        {equipment && equipment.length > 0 && <EquipmentOperationChart />}
 
         {/* Report Section */}
         {equipment && equipment.length > 0 && <EquipmentReport />}
