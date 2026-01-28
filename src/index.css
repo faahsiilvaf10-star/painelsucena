@@ -281,6 +281,27 @@
     }
   }
 
+  /* Reminder card hover effect */
+  .reminder-card-hover {
+    transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+  }
+
+  .reminder-card-hover:hover {
+    transform: translateY(-4px) scale(1.02);
+    box-shadow: 
+      0 0 15px hsl(120 100% 50% / 0.6),
+      0 0 30px hsl(120 100% 50% / 0.4),
+      0 0 45px hsl(120 100% 50% / 0.2),
+      0 20px 40px -10px hsl(0 0% 0% / 0.5);
+    border-color: hsl(120 100% 50% / 0.8) !important;
+  }
+
+  .reminder-card-hover:hover::before,
+  .reminder-card-hover:hover::after {
+    animation-duration: 4s;
+    opacity: 0.8;
+  }
+
   /* Scrollbar styling */
   .scrollbar-none::-webkit-scrollbar {
     display: none;
