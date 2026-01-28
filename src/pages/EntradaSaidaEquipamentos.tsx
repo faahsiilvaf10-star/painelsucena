@@ -1,7 +1,10 @@
 import { useState, useMemo } from "react";
 import { format, startOfWeek, endOfWeek, subWeeks, parseISO } from "date-fns";
 import { ptBR } from "date-fns/locale";
-import { ArrowDownToLine, ArrowUpFromLine, Truck, Calendar, Clock, Search, Plus, Wrench, Shield, ClipboardCheck, Trash2, AlertCircle, History, ChevronLeft, ChevronRight } from "lucide-react";
+import { ArrowDownToLine, ArrowUpFromLine, Truck, Calendar, Clock, Search, Plus, Wrench, Shield, ClipboardCheck, Trash2, AlertCircle, History, ChevronLeft, ChevronRight, CalendarIcon } from "lucide-react";
+import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover";
+import { Calendar as CalendarComponent } from "@/components/ui/calendar";
+import { cn } from "@/lib/utils";
 import Layout from "@/components/layout/Layout";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
@@ -46,6 +49,8 @@ const EntradaSaidaEquipamentos = () => {
   const [exitReason, setExitReason] = useState<ExitReason | "">("");
   const [problemDescription, setProblemDescription] = useState("");
   const [weekOffset, setWeekOffset] = useState(0);
+  const [movementDate, setMovementDate] = useState<Date>(new Date());
+  const [movementTime, setMovementTime] = useState<string>(format(new Date(), "HH:mm"));
 
   const today = getBrazilNorthTodayString();
   const { data: movements, isLoading } = useEquipmentMovements(today);
@@ -117,6 +122,8 @@ const EntradaSaidaEquipamentos = () => {
       equipment_name: equipmentName.trim(),
       plate: plate.trim().toUpperCase(),
       movement_type: movementType,
+      movement_date: format(movementDate, "yyyy-MM-dd"),
+      movement_time: movementTime,
       observation: observation.trim() || null,
       exit_reason: movementType === "saida" && exitReason ? exitReason : null,
       problem_description: movementType === "saida" && exitReason === "manutencao_corretiva" ? problemDescription.trim() || null : null,
@@ -129,6 +136,8 @@ const EntradaSaidaEquipamentos = () => {
     setObservation("");
     setExitReason("");
     setProblemDescription("");
+    setMovementDate(new Date());
+    setMovementTime(format(new Date(), "HH:mm"));
     setIsDialogOpen(false);
   };
 
@@ -258,6 +267,46 @@ const EntradaSaidaEquipamentos = () => {
                         </Label>
                       </div>
                     </RadioGroup>
+                  </div>
+
+                  {/* Date and Time Selection */}
+                  <div className="grid grid-cols-2 gap-4">
+                    <div className="space-y-2">
+                      <Label>Data do Movimento</Label>
+                      <Popover>
+                        <PopoverTrigger asChild>
+                          <Button
+                            variant="outline"
+                            className={cn(
+                              "w-full justify-start text-left font-normal",
+                              !movementDate && "text-muted-foreground"
+                            )}
+                          >
+                            <CalendarIcon className="mr-2 h-4 w-4" />
+                            {movementDate ? format(movementDate, "dd/MM/yyyy", { locale: ptBR }) : "Selecionar data"}
+                          </Button>
+                        </PopoverTrigger>
+                        <PopoverContent className="w-auto p-0" align="start">
+                          <CalendarComponent
+                            mode="single"
+                            selected={movementDate}
+                            onSelect={(date) => date && setMovementDate(date)}
+                            initialFocus
+                            className={cn("p-3 pointer-events-auto")}
+                            locale={ptBR}
+                          />
+                        </PopoverContent>
+                      </Popover>
+                    </div>
+                    <div className="space-y-2">
+                      <Label htmlFor="movementTime">Hora</Label>
+                      <Input
+                        id="movementTime"
+                        type="time"
+                        value={movementTime}
+                        onChange={(e) => setMovementTime(e.target.value)}
+                      />
+                    </div>
                   </div>
 
                   {/* Equipment Selection */}
