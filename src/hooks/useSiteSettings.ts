@@ -22,11 +22,15 @@ export function useSiteSettings() {
         .from("site_settings")
         .select("*")
         .limit(1)
-        .single();
+        .maybeSingle();
 
       if (error) {
         console.error("Error fetching site settings:", error);
-        // Return defaults if no settings found
+        throw error;
+      }
+
+      // If no settings exist, return defaults but without ID (will need to be created)
+      if (!data) {
         return {
           id: "",
           logo_url: null,
@@ -47,11 +51,16 @@ export function useSiteSettings() {
       };
     },
     staleTime: 1000 * 60 * 5, // Cache for 5 minutes
+    retry: 2,
   });
 
   const updateSettings = useMutation({
     mutationFn: async (updates: Partial<Pick<SiteSettings, "logo_url" | "sidebar_color" | "nav_order">>) => {
       const { data: { user } } = await supabase.auth.getUser();
+      
+      if (!settings?.id) {
+        throw new Error("Settings not loaded yet");
+      }
       
       const { error } = await supabase
         .from("site_settings")
@@ -60,12 +69,13 @@ export function useSiteSettings() {
           updated_at: new Date().toISOString(),
           updated_by: user?.id,
         })
-        .eq("id", settings?.id);
+        .eq("id", settings.id);
 
       if (error) throw error;
     },
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ["site-settings"] });
+      queryClient.invalidateQueries({ queryKey: ["global-nav-order"] });
     },
   });
 
