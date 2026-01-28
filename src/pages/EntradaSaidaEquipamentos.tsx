@@ -854,7 +854,7 @@ const EntradaSaidaEquipamentos = () => {
                       <p>Nenhuma entrada registrada</p>
                     </div>
                   ) : (
-                    <ScrollArea className="max-h-[400px]">
+                    <ScrollArea className="max-h-[400px]" scrollbarAlwaysVisible>
                       <div className="space-y-2">
                         {allEntries.map((movement) => {
                           // Check if this equipment is still in (hasn't exited since entry)
@@ -994,7 +994,7 @@ const EntradaSaidaEquipamentos = () => {
                       <p>Todos os equipamentos estão no canteiro</p>
                     </div>
                   ) : (
-                    <ScrollArea className="max-h-[400px]">
+                    <ScrollArea className="max-h-[400px]" scrollbarAlwaysVisible>
                       <div className="space-y-2">
                         {currentlyOut.map((movement) => {
                           const exitInfo = movement.exit_reason ? EXIT_REASON_LABELS[movement.exit_reason] : null;
