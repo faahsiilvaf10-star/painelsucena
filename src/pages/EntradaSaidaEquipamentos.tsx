@@ -1,7 +1,7 @@
 import { useState } from "react";
 import { format } from "date-fns";
 import { ptBR } from "date-fns/locale";
-import { ArrowDownToLine, ArrowUpFromLine, Truck, Calendar, Clock, Search, Plus, Wrench, Shield, ClipboardCheck, Trash2, AlertCircle } from "lucide-react";
+import { ArrowDownToLine, ArrowUpFromLine, Truck, Calendar, Clock, Search, Plus, Wrench, Shield, ClipboardCheck, Trash2, AlertCircle, ChevronDown } from "lucide-react";
 import Layout from "@/components/layout/Layout";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
@@ -13,6 +13,7 @@ import { Label } from "@/components/ui/label";
 import { Textarea } from "@/components/ui/textarea";
 import { RadioGroup, RadioGroupItem } from "@/components/ui/radio-group";
 import { ScrollArea } from "@/components/ui/scroll-area";
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { 
   useEquipmentMovements, 
   useCreateEquipmentMovement, 
@@ -22,6 +23,7 @@ import {
   ExitReason,
   EquipmentMovement
 } from "@/hooks/useEquipmentMovements";
+import { useEquipment } from "@/hooks/useEquipment";
 import { useIsAdmin } from "@/hooks/useUserRole";
 import { getBrazilNorthTodayString } from "@/lib/timezone";
 
@@ -35,6 +37,7 @@ const EntradaSaidaEquipamentos = () => {
   const [searchTerm, setSearchTerm] = useState("");
   const [isDialogOpen, setIsDialogOpen] = useState(false);
   const [movementType, setMovementType] = useState<MovementType>("entrada");
+  const [selectedEquipmentId, setSelectedEquipmentId] = useState<string>("");
   const [equipmentName, setEquipmentName] = useState("");
   const [plate, setPlate] = useState("");
   const [observation, setObservation] = useState("");
@@ -44,9 +47,25 @@ const EntradaSaidaEquipamentos = () => {
   const today = getBrazilNorthTodayString();
   const { data: movements, isLoading } = useEquipmentMovements(today);
   const { data: summary } = useTodayMovementsSummary();
+  const { data: equipmentList } = useEquipment();
   const createMovement = useCreateEquipmentMovement();
   const deleteMovement = useDeleteEquipmentMovement();
   const { isAdmin } = useIsAdmin();
+
+  // Handle equipment selection
+  const handleEquipmentSelect = (equipmentId: string) => {
+    setSelectedEquipmentId(equipmentId);
+    if (equipmentId === "manual") {
+      setEquipmentName("");
+      setPlate("");
+    } else {
+      const equipment = equipmentList?.find(e => e.id === equipmentId);
+      if (equipment) {
+        setEquipmentName(equipment.name);
+        setPlate(equipment.plate);
+      }
+    }
+  };
 
   const filteredMovements = movements?.filter(
     (m) =>
@@ -70,6 +89,7 @@ const EntradaSaidaEquipamentos = () => {
     });
 
     // Reset form
+    setSelectedEquipmentId("");
     setEquipmentName("");
     setPlate("");
     setObservation("");
@@ -206,28 +226,54 @@ const EntradaSaidaEquipamentos = () => {
                     </RadioGroup>
                   </div>
 
-                  {/* Equipment Name */}
+                  {/* Equipment Selection */}
                   <div className="space-y-2">
-                    <Label htmlFor="equipment">Nome do Equipamento *</Label>
-                    <Input
-                      id="equipment"
-                      placeholder="Ex: Retroescavadeira, Caminhão Pipa..."
-                      value={equipmentName}
-                      onChange={(e) => setEquipmentName(e.target.value)}
-                    />
+                    <Label>Selecionar Equipamento *</Label>
+                    <Select value={selectedEquipmentId} onValueChange={handleEquipmentSelect}>
+                      <SelectTrigger>
+                        <SelectValue placeholder="Escolha um equipamento cadastrado..." />
+                      </SelectTrigger>
+                      <SelectContent>
+                        <SelectItem value="manual">
+                          <span className="text-muted-foreground">✏️ Inserir manualmente</span>
+                        </SelectItem>
+                        {equipmentList?.map((equipment) => (
+                          <SelectItem key={equipment.id} value={equipment.id}>
+                            <span className="flex items-center gap-2">
+                              <Truck className="h-4 w-4" />
+                              {equipment.name} - {equipment.plate}
+                            </span>
+                          </SelectItem>
+                        ))}
+                      </SelectContent>
+                    </Select>
                   </div>
 
-                  {/* Plate */}
-                  <div className="space-y-2">
-                    <Label htmlFor="plate">Placa *</Label>
-                    <Input
-                      id="plate"
-                      placeholder="ABC-1234"
-                      value={plate}
-                      onChange={(e) => setPlate(e.target.value.toUpperCase())}
-                      maxLength={8}
-                    />
-                  </div>
+                  {/* Manual Equipment Name (only shown when manual is selected) */}
+                  {selectedEquipmentId === "manual" && (
+                    <>
+                      <div className="space-y-2">
+                        <Label htmlFor="equipment">Nome do Equipamento *</Label>
+                        <Input
+                          id="equipment"
+                          placeholder="Ex: Retroescavadeira, Caminhão Pipa..."
+                          value={equipmentName}
+                          onChange={(e) => setEquipmentName(e.target.value)}
+                        />
+                      </div>
+
+                      <div className="space-y-2">
+                        <Label htmlFor="plate">Placa *</Label>
+                        <Input
+                          id="plate"
+                          placeholder="ABC-1234"
+                          value={plate}
+                          onChange={(e) => setPlate(e.target.value.toUpperCase())}
+                          maxLength={8}
+                        />
+                      </div>
+                    </>
+                  )}
 
                   {/* Observation */}
                   <div className="space-y-2">
