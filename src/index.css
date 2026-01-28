@@ -204,6 +204,26 @@
     }
   }
 
+  /* Neon glow border animation */
+  .neon-glow-border {
+    animation: neonGlow 3s ease-in-out infinite;
+  }
+
+  @keyframes neonGlow {
+    0%, 100% {
+      box-shadow: 0 0 5px hsl(120 100% 50% / 0.3),
+                  0 0 10px hsl(120 100% 50% / 0.2),
+                  0 0 20px hsl(120 100% 50% / 0.1),
+                  inset 0 0 5px hsl(120 100% 50% / 0.05);
+    }
+    50% {
+      box-shadow: 0 0 10px hsl(120 100% 50% / 0.5),
+                  0 0 20px hsl(120 100% 50% / 0.3),
+                  0 0 30px hsl(120 100% 50% / 0.2),
+                  inset 0 0 10px hsl(120 100% 50% / 0.1);
+    }
+  }
+
   /* Scrollbar styling */
   .scrollbar-none::-webkit-scrollbar {
     display: none;

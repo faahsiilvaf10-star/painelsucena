@@ -109,19 +109,19 @@ export const ReminderHighlightBanner = () => {
 
   return (
     <div className="space-y-4 mb-6">
-      {/* TODAY'S REMINDERS - Fixed Alert Banner */}
+      {/* TODAY'S REMINDERS - Fixed Alert Banner with Neon Effect */}
       {todayReminders.length > 0 && (
         <div className="animate-in fade-in slide-in-from-top-4 duration-500">
-          <Alert className="border-2 border-primary bg-gradient-to-r from-primary/20 via-primary/10 to-primary/5 shadow-lg shadow-primary/10">
+          <Alert className="border-2 border-green-500/60 bg-black/95 shadow-lg neon-glow-border rounded-xl">
             <div className="flex items-start gap-4">
-              <div className="p-2 rounded-full bg-primary/20 animate-pulse">
-                <AlertTriangle className="h-6 w-6 text-primary" />
+              <div className="p-2 rounded-full bg-green-500/20 animate-pulse">
+                <AlertTriangle className="h-6 w-6 text-green-400" />
               </div>
               <div className="flex-1">
-                <AlertTitle className="text-lg font-bold text-primary flex items-center gap-2">
-                  <Bell className="h-5 w-5 animate-bounce" />
-                  Lembretes de Hoje!
-                  <Badge variant="destructive" className="ml-2 animate-pulse">
+                <AlertTitle className="text-lg font-bold text-green-400 flex items-center gap-2">
+                  <Bell className="h-5 w-5 animate-bounce text-green-400" />
+                  <span className="text-white">Lembretes de Hoje!</span>
+                  <Badge className="ml-2 animate-pulse bg-green-500 text-black font-bold border-0">
                     {todayReminders.length} {todayReminders.length === 1 ? "lembrete" : "lembretes"}
                   </Badge>
                 </AlertTitle>
@@ -133,37 +133,37 @@ export const ReminderHighlightBanner = () => {
                       return (
                         <div
                           key={reminder.id}
-                          className="flex items-center justify-between p-3 rounded-lg bg-background/80 border border-primary/20"
+                          className="flex items-center justify-between p-3 rounded-lg bg-black/60 border border-green-500/30"
                         >
                           <div className="flex items-center gap-3">
-                            <AlertCircle className="h-5 w-5 text-primary flex-shrink-0" />
+                            <AlertCircle className="h-5 w-5 text-green-400 flex-shrink-0" />
                             <div>
-                              <p className="font-semibold">{reminder.title}</p>
+                              <p className="font-semibold text-white">{reminder.title}</p>
                               {reminder.description && (
-                                <p className="text-sm text-muted-foreground line-clamp-1">
+                                <p className="text-sm text-gray-300 line-clamp-1">
                                   {reminder.description}
                                 </p>
                               )}
                               <div className="flex items-center gap-3 mt-1 flex-wrap">
                                 {reminder.event_time && (
                                   <div className="flex items-center gap-1">
-                                    <Calendar className="h-3 w-3 text-muted-foreground" />
-                                    <span className="text-xs text-muted-foreground">
-                                      às <span className="font-medium text-foreground/80">{reminder.event_time.slice(0, 5)}</span>
+                                    <Calendar className="h-3 w-3 text-green-400/70" />
+                                    <span className="text-xs text-gray-400">
+                                      às <span className="font-medium text-green-300">{reminder.event_time.slice(0, 5)}</span>
                                     </span>
                                   </div>
                                 )}
                                 {(reminder.mention_type === "all" || reminder.mention_type === "specific") && (
                                   <div className="flex items-center gap-1">
-                                    <UserCircle className="h-3 w-3 text-muted-foreground" />
-                                    <span className="text-xs text-muted-foreground">
-                                      Criado por: <span className="font-medium text-foreground/80">{reminder.creator_name}</span>
+                                    <UserCircle className="h-3 w-3 text-green-400/70" />
+                                    <span className="text-xs text-gray-400">
+                                      Criado por: <span className="font-medium text-green-300">{reminder.creator_name}</span>
                                     </span>
                                   </div>
                                 )}
                                 <div className="flex items-center gap-1">
-                                  <MentionIcon className="h-3 w-3 text-muted-foreground" />
-                                  <span className="text-xs text-muted-foreground">
+                                  <MentionIcon className="h-3 w-3 text-green-400/70" />
+                                  <span className="text-xs text-gray-400">
                                     {reminder.mention_type === "all"
                                       ? "Todos"
                                       : reminder.mention_type === "me"
@@ -178,7 +178,7 @@ export const ReminderHighlightBanner = () => {
                             <Button
                               variant="outline"
                               size="sm"
-                              className="h-8 gap-1 border-green-500/50 text-green-600 hover:bg-green-500/10 hover:text-green-600"
+                              className="h-8 gap-1 border-green-500/50 text-green-400 bg-green-500/10 hover:bg-green-500/20 hover:text-green-300"
                               onClick={() => handleAcknowledge(reminder)}
                               disabled={acknowledgeReminder.isPending}
                             >
@@ -189,7 +189,7 @@ export const ReminderHighlightBanner = () => {
                               <Button
                                 variant="outline"
                                 size="sm"
-                                className="h-8 gap-1 border-destructive/50 text-destructive hover:bg-destructive/10 hover:text-destructive"
+                                className="h-8 gap-1 border-red-500/50 text-red-400 bg-red-500/10 hover:bg-red-500/20 hover:text-red-300"
                                 onClick={() => handleCancel(reminder)}
                                 disabled={deleteReminder.isPending}
                               >
