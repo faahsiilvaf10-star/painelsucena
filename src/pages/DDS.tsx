@@ -33,6 +33,7 @@ import { useCreateNotification } from "@/hooks/useNotifications";
 import { supabase } from "@/integrations/supabase/client";
 import { getBrazilNorthTodayString } from "@/lib/timezone";
 import { DDSThemesCard } from "@/components/dds/DDSThemesCard";
+import { formatCargoLabel } from "@/lib/cargoUtils";
 
 const dayNames = ["Dom", "Seg", "Ter", "Qua", "Qui", "Sex", "Sáb"];
 
@@ -534,8 +535,8 @@ export default function DDS() {
                                 </Avatar>
                                 <div>
                                   <p className="font-medium text-sm">{schedule.presenter.full_name}</p>
-                                  <p className="text-xs text-muted-foreground capitalize">
-                                    {schedule.presenter.cargo?.replace(/_/g, " ")}
+                                  <p className="text-xs text-muted-foreground">
+                                    {formatCargoLabel(schedule.presenter.cargo)}
                                   </p>
                                 </div>
                               </div>

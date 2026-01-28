@@ -12,6 +12,7 @@ import { useIsAdmin } from "@/hooks/useUserRole";
 import { supabase } from "@/integrations/supabase/client";
 import { toast } from "sonner";
 import { getBrazilNorthDate } from "@/lib/timezone";
+import { formatCargoLabel } from "@/lib/cargoUtils";
 
 export const DDSHighlightCard = () => {
   const { data: todayDDS, isLoading: loadingToday } = useTodayDDS();
@@ -132,8 +133,8 @@ export const DDSHighlightCard = () => {
                       <h3 className="font-bold text-lg truncate">
                         {todayDDS.presenter.full_name || "Palestrante"}
                       </h3>
-                      <p className="text-sm text-muted-foreground capitalize">
-                        {todayDDS.presenter.cargo?.replace(/_/g, " ")}
+                      <p className="text-sm text-muted-foreground">
+                        {formatCargoLabel(todayDDS.presenter.cargo)}
                       </p>
                     </div>
                   </>
@@ -248,8 +249,8 @@ export const DDSHighlightCard = () => {
                       <h3 className="font-bold text-lg truncate">
                         {tomorrowDDS.presenter.full_name || "Palestrante"}
                       </h3>
-                      <p className="text-sm text-muted-foreground capitalize">
-                        {tomorrowDDS.presenter.cargo?.replace(/_/g, " ")}
+                      <p className="text-sm text-muted-foreground">
+                        {formatCargoLabel(tomorrowDDS.presenter.cargo)}
                       </p>
                     </div>
                   </>
