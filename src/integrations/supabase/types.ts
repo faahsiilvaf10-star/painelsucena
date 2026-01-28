@@ -1324,6 +1324,7 @@ export type Database = {
           created_at: string
           dashboard_order: Json | null
           id: string
+          nav_order: Json | null
           notification_sound: string | null
           page_background_color: string | null
           session_duration_hours: number
@@ -1337,6 +1338,7 @@ export type Database = {
           created_at?: string
           dashboard_order?: Json | null
           id?: string
+          nav_order?: Json | null
           notification_sound?: string | null
           page_background_color?: string | null
           session_duration_hours?: number
@@ -1350,6 +1352,7 @@ export type Database = {
           created_at?: string
           dashboard_order?: Json | null
           id?: string
+          nav_order?: Json | null
           notification_sound?: string | null
           page_background_color?: string | null
           session_duration_hours?: number
