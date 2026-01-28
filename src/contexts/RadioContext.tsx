@@ -5,6 +5,7 @@ const RADIO_STATIONS = [
   { id: "mixfm", name: "PopTron", genre: "Pop/Dance", url: "https://ice5.somafm.com/poptron-128-mp3" },
   { id: "fmodia", name: "Illinois Street Lounge", genre: "Lounge", url: "https://ice5.somafm.com/illstreet-128-mp3" },
   { id: "antena1", name: "Groove Salad", genre: "Chill", url: "https://ice5.somafm.com/groovesalad-128-mp3" },
+  { id: "sertanejo", name: "Sertaneja Hits", genre: "Sertanejo", url: "http://strm112.1.fm/sertanejo_mobile_mp3" },
   { id: "gospel", name: "Gospel", genre: "Gospel", url: "https://stream.zeno.fm/yn65fsaurfhvv" },
 ];
 
