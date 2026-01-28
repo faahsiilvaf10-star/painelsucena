@@ -128,6 +128,7 @@ const RelatorioPresenca = () => {
   const [newEmployee, setNewEmployee] = useState({
     name: "",
     role: "",
+    area: "jardinagem" as "gabiao" | "jardinagem",
   });
   const [isSubmitting, setIsSubmitting] = useState(false);
 
@@ -205,6 +206,12 @@ const RelatorioPresenca = () => {
   }, [records]);
 
   const getArea = (employee: Tables<"employees">) => {
+    // First check if employee has area field set (new employees)
+    const employeeArea = (employee as Tables<"employees"> & { area?: string }).area;
+    if (employeeArea === "gabiao") return "ÁREA GABIÃO";
+    if (employeeArea === "jardinagem") return "ROÇAGEM E PODAGEM";
+    
+    // Fallback to role-based logic for existing employees without area set
     if (employee.role === "Ajudante") {
       return gabiaAjudantes.some(
         (n) => n.toUpperCase() === employee.name.toUpperCase()
@@ -353,12 +360,13 @@ const RelatorioPresenca = () => {
         role: newEmployee.role,
         department: "Operações",
         avatar: initials,
+        area: newEmployee.area,
       });
 
       if (error) throw error;
 
       toast.success("Funcionário adicionado!");
-      setNewEmployee({ name: "", role: "" });
+      setNewEmployee({ name: "", role: "", area: "jardinagem" });
       setDialogOpen(false);
       queryClient.invalidateQueries({ queryKey: ["employees_all"] });
     } catch {
@@ -748,6 +756,23 @@ const RelatorioPresenca = () => {
                           {role}
                         </SelectItem>
                       ))}
+                    </SelectContent>
+                  </Select>
+                </div>
+                <div>
+                  <Label htmlFor="area">Área</Label>
+                  <Select
+                    value={newEmployee.area}
+                    onValueChange={(value: "gabiao" | "jardinagem") =>
+                      setNewEmployee({ ...newEmployee, area: value })
+                    }
+                  >
+                    <SelectTrigger className="bg-background">
+                      <SelectValue placeholder="Selecione a área" />
+                    </SelectTrigger>
+                    <SelectContent className="bg-popover">
+                      <SelectItem value="gabiao">Área Gabião</SelectItem>
+                      <SelectItem value="jardinagem">Roçagem e Podagem</SelectItem>
                     </SelectContent>
                   </Select>
                 </div>

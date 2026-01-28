@@ -503,6 +503,7 @@ export type Database = {
       }
       employees: {
         Row: {
+          area: string | null
           avatar: string
           created_at: string
           department: string
@@ -519,6 +520,7 @@ export type Database = {
           vacation_due_date: string | null
         }
         Insert: {
+          area?: string | null
           avatar: string
           created_at?: string
           department: string
@@ -535,6 +537,7 @@ export type Database = {
           vacation_due_date?: string | null
         }
         Update: {
+          area?: string | null
           avatar?: string
           created_at?: string
           department?: string
