@@ -135,6 +135,12 @@ export function useEquipmentCurrentlyOut() {
   });
 }
 
+const EXIT_REASON_LABELS: Record<ExitReason, string> = {
+  manutencao_corretiva: "Manutenção Corretiva",
+  manutencao_preventiva: "Manutenção Preventiva",
+  vistoria: "Vistoria",
+};
+
 export function useCreateEquipmentMovement() {
   const queryClient = useQueryClient();
   const { user } = useAuth();
@@ -142,6 +148,9 @@ export function useCreateEquipmentMovement() {
   return useMutation({
     mutationFn: async (movement: EquipmentMovementInsert) => {
       if (!user?.id) throw new Error("User not authenticated");
+
+      const today = getBrazilNorthTodayString();
+      const movementDate = movement.movement_date || today;
 
       const { data, error } = await supabase
         .from("equipment_movements")
@@ -153,6 +162,41 @@ export function useCreateEquipmentMovement() {
         .single();
 
       if (error) throw error;
+
+      // If the movement is for today, create an announcement for all users
+      if (movementDate === today) {
+        const isEntrada = movement.movement_type === "entrada";
+        const movementTypeLabel = isEntrada ? "ENTRADA" : "SAÍDA";
+        const emoji = isEntrada ? "🟢" : "🔴";
+        
+        let title = `${emoji} ${movementTypeLabel} de Equipamento`;
+        let content = `**${movement.equipment_name}** (${movement.plate}) registrou ${isEntrada ? "entrada" : "saída"} hoje.`;
+        
+        if (!isEntrada && movement.exit_reason) {
+          const reasonLabel = EXIT_REASON_LABELS[movement.exit_reason];
+          content += `\n\n**Motivo:** ${reasonLabel}`;
+          
+          if (movement.problem_description) {
+            content += `\n**Descrição:** ${movement.problem_description}`;
+          }
+        }
+        
+        if (movement.observation) {
+          content += `\n\n**Observação:** ${movement.observation}`;
+        }
+
+        // Create announcement for all users
+        await supabase
+          .from("announcements")
+          .insert({
+            title,
+            content,
+            created_by: user.id,
+            target_type: "all",
+            published_at: new Date().toISOString(),
+          });
+      }
+
       return data;
     },
     onSuccess: () => {
@@ -163,6 +207,7 @@ export function useCreateEquipmentMovement() {
       queryClient.invalidateQueries({ queryKey: ["equipment-movements-currently-in"] });
       queryClient.invalidateQueries({ queryKey: ["equipment-movements-weekly"] });
       queryClient.invalidateQueries({ queryKey: ["equipment-movements-summary"] });
+      queryClient.invalidateQueries({ queryKey: ["announcements"] });
       toast.success("Movimento registrado com sucesso!");
     },
     onError: (error) => {
