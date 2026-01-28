@@ -13,10 +13,36 @@ export function useUserNavOrder() {
   const { user } = useAuth();
   const queryClient = useQueryClient();
 
+  // Fetch global nav order from site_settings
+  const { data: globalNavOrder } = useQuery({
+    queryKey: ["global-nav-order"],
+    queryFn: async (): Promise<string[]> => {
+      const { data, error } = await supabase
+        .from("site_settings")
+        .select("nav_order")
+        .limit(1)
+        .single();
+
+      if (error) {
+        console.error("Error fetching global nav order:", error);
+        return DEFAULT_NAV_ORDER;
+      }
+
+      if (data?.nav_order && Array.isArray(data.nav_order)) {
+        return data.nav_order as string[];
+      }
+
+      return DEFAULT_NAV_ORDER;
+    },
+    staleTime: 1000 * 60 * 5,
+  });
+
+  const effectiveDefaultOrder = globalNavOrder ?? DEFAULT_NAV_ORDER;
+
   const { data: navOrder, isLoading } = useQuery({
     queryKey: ["user-nav-order", user?.id],
     queryFn: async (): Promise<string[]> => {
-      if (!user?.id) return DEFAULT_NAV_ORDER;
+      if (!user?.id) return effectiveDefaultOrder;
 
       const { data, error } = await supabase
         .from("user_preferences")
@@ -26,14 +52,14 @@ export function useUserNavOrder() {
 
       if (error) {
         console.error("Error fetching user nav order:", error);
-        return DEFAULT_NAV_ORDER;
+        return effectiveDefaultOrder;
       }
 
       if (data?.nav_order && Array.isArray(data.nav_order)) {
         return data.nav_order as string[];
       }
 
-      return DEFAULT_NAV_ORDER;
+      return effectiveDefaultOrder;
     },
     enabled: !!user?.id,
     staleTime: 1000 * 60 * 5,
@@ -106,7 +132,7 @@ export function useUserNavOrder() {
   });
 
   return {
-    navOrder: navOrder ?? DEFAULT_NAV_ORDER,
+    navOrder: navOrder ?? effectiveDefaultOrder,
     isLoading,
     updateNavOrder,
     resetNavOrder,
