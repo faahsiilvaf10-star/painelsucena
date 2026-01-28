@@ -1,6 +1,6 @@
 import { format } from "date-fns";
 import { ptBR } from "date-fns/locale";
-import { Bell, AlertCircle, Calendar, Users, User, Globe, Check, X, AlertTriangle } from "lucide-react";
+import { Bell, AlertCircle, Calendar, Users, User, Globe, Check, X, AlertTriangle, UserCircle } from "lucide-react";
 import { useState, useMemo, useEffect } from "react";
 import { Card, CardContent } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
@@ -144,15 +144,23 @@ export const ReminderHighlightBanner = () => {
                                   {reminder.description}
                                 </p>
                               )}
-                              <div className="flex items-center gap-2 mt-1">
-                                <MentionIcon className="h-3 w-3 text-muted-foreground" />
-                                <span className="text-xs text-muted-foreground">
-                                  {reminder.mention_type === "all"
-                                    ? "Todos"
-                                    : reminder.mention_type === "me"
-                                    ? "Pessoal"
-                                    : "Mencionado"}
-                                </span>
+                              <div className="flex items-center gap-3 mt-1 flex-wrap">
+                                <div className="flex items-center gap-1">
+                                  <UserCircle className="h-3 w-3 text-muted-foreground" />
+                                  <span className="text-xs text-muted-foreground">
+                                    Criado por: <span className="font-medium text-foreground/80">{reminder.creator_name}</span>
+                                  </span>
+                                </div>
+                                <div className="flex items-center gap-1">
+                                  <MentionIcon className="h-3 w-3 text-muted-foreground" />
+                                  <span className="text-xs text-muted-foreground">
+                                    {reminder.mention_type === "all"
+                                      ? "Todos"
+                                      : reminder.mention_type === "me"
+                                      ? "Pessoal"
+                                      : "Mencionado"}
+                                  </span>
+                                </div>
                               </div>
                             </div>
                           </div>
@@ -283,15 +291,23 @@ export const ReminderHighlightBanner = () => {
                               {reminder.description}
                             </p>
                           )}
-                          <div className="flex items-center gap-1 mt-2">
-                            <MentionIcon className="h-3 w-3 text-muted-foreground" />
-                            <span className="text-xs text-muted-foreground capitalize">
-                              {reminder.mention_type === "all"
-                                ? "Todos"
-                                : reminder.mention_type === "me"
-                                ? "Pessoal"
-                                : "Mencionado"}
-                            </span>
+                          <div className="flex flex-col gap-1 mt-2">
+                            <div className="flex items-center gap-1">
+                              <UserCircle className="h-3 w-3 text-muted-foreground" />
+                              <span className="text-xs text-muted-foreground truncate">
+                                {reminder.creator_name}
+                              </span>
+                            </div>
+                            <div className="flex items-center gap-1">
+                              <MentionIcon className="h-3 w-3 text-muted-foreground" />
+                              <span className="text-xs text-muted-foreground capitalize">
+                                {reminder.mention_type === "all"
+                                  ? "Todos"
+                                  : reminder.mention_type === "me"
+                                  ? "Pessoal"
+                                  : "Mencionado"}
+                              </span>
+                            </div>
                           </div>
                         </div>
                       </div>

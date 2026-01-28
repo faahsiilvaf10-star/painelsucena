@@ -19,6 +19,7 @@ export interface Reminder {
   updated_at: string;
   is_recurring: boolean | null;
   recurring_days: number[] | null; // 0=Sunday, 1=Monday, ..., 6=Saturday
+  creator_name?: string; // Nome do criador (joined from profiles)
 }
 
 export interface ReminderInsert {
@@ -89,56 +90,92 @@ export const useActiveReminders = () => {
     queryFn: async () => {
       if (!user?.id) return [];
 
+      // Fetch reminders with creator profile
       const { data, error } = await supabase
         .from("reminders")
-        .select("*")
+        .select(`
+          *,
+          profiles!reminders_created_by_fkey(full_name)
+        `)
         .order("event_date", { ascending: true });
 
-      if (error) throw error;
+      if (error) {
+        // Fallback if foreign key doesn't exist
+        const { data: fallbackData, error: fallbackError } = await supabase
+          .from("reminders")
+          .select("*")
+          .order("event_date", { ascending: true });
 
-      const reminders = data as Reminder[];
+        if (fallbackError) throw fallbackError;
+
+        // Fetch profiles separately
+        const creatorIds = [...new Set((fallbackData || []).map(r => r.created_by))];
+        const { data: profiles } = await supabase
+          .from("profiles")
+          .select("user_id, full_name")
+          .in("user_id", creatorIds);
+
+        const profileMap = new Map(profiles?.map(p => [p.user_id, p.full_name]) || []);
+
+        const reminders = (fallbackData || []).map(r => ({
+          ...r,
+          creator_name: profileMap.get(r.created_by) || "Desconhecido",
+        })) as Reminder[];
+
+        return filterActiveReminders(reminders, user.id);
+      }
+
+      const reminders = (data || []).map(r => ({
+        ...r,
+        creator_name: (r.profiles as any)?.full_name || "Desconhecido",
+      })) as Reminder[];
       
-      // Get current day of week in Brazil North timezone (0=Sunday, 6=Saturday)
-      const nowBrazil = getBrazilNorthMidnight();
-      const currentDayOfWeek = nowBrazil.getDay();
-      
-      // Filter reminders that should be shown based on alert_days_before or show_on_event_day
-      return reminders.filter((reminder) => {
-        // Check if user has already acknowledged this reminder
-        const hasAcknowledged = reminder.acknowledged_by?.includes(user.id);
-        if (hasAcknowledged) return false;
-
-        // Check if user should see this reminder based on mention_type
-        const isRelevant =
-          reminder.mention_type === "all" ||
-          (reminder.mention_type === "me" && reminder.created_by === user.id) ||
-          (reminder.mention_type === "specific" &&
-            reminder.mentioned_users.includes(user.id));
-
-        if (!isRelevant) return false;
-
-        // Handle recurring reminders (by day of week)
-        if (!!reminder.is_recurring && (reminder.recurring_days?.length ?? 0) > 0) {
-          // Show if today is one of the recurring days
-          return (reminder.recurring_days || []).includes(currentDayOfWeek);
-        }
-
-        // Handle regular (non-recurring) reminders
-        const daysUntilEvent = getDaysUntilEventBrazilNorth(reminder.event_date);
-
-        // Show if within alert_days_before range OR if it's the event day
-        if (reminder.alert_days_before > 0 && daysUntilEvent <= reminder.alert_days_before && daysUntilEvent >= 0) {
-          return true;
-        }
-
-        if (reminder.show_on_event_day && daysUntilEvent === 0) {
-          return true;
-        }
-
-        return false;
-      });
+      return filterActiveReminders(reminders, user.id);
     },
     enabled: !!user?.id,
+  });
+};
+
+// Helper function to filter active reminders
+const filterActiveReminders = (reminders: Reminder[], userId: string): Reminder[] => {
+  // Get current day of week in Brazil North timezone (0=Sunday, 6=Saturday)
+  const nowBrazil = getBrazilNorthMidnight();
+  const currentDayOfWeek = nowBrazil.getDay();
+  
+  // Filter reminders that should be shown based on alert_days_before or show_on_event_day
+  return reminders.filter((reminder) => {
+    // Check if user has already acknowledged this reminder
+    const hasAcknowledged = reminder.acknowledged_by?.includes(userId);
+    if (hasAcknowledged) return false;
+
+    // Check if user should see this reminder based on mention_type
+    const isRelevant =
+      reminder.mention_type === "all" ||
+      (reminder.mention_type === "me" && reminder.created_by === userId) ||
+      (reminder.mention_type === "specific" &&
+        reminder.mentioned_users.includes(userId));
+
+    if (!isRelevant) return false;
+
+    // Handle recurring reminders (by day of week)
+    if (!!reminder.is_recurring && (reminder.recurring_days?.length ?? 0) > 0) {
+      // Show if today is one of the recurring days
+      return (reminder.recurring_days || []).includes(currentDayOfWeek);
+    }
+
+    // Handle regular (non-recurring) reminders
+    const daysUntilEvent = getDaysUntilEventBrazilNorth(reminder.event_date);
+
+    // Show if within alert_days_before range OR if it's the event day
+    if (reminder.alert_days_before > 0 && daysUntilEvent <= reminder.alert_days_before && daysUntilEvent >= 0) {
+      return true;
+    }
+
+    if (reminder.show_on_event_day && daysUntilEvent === 0) {
+      return true;
+    }
+
+    return false;
   });
 };
 
