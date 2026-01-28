@@ -331,12 +331,12 @@ const EntradaSaidaEquipamentos = () => {
                   Novo Registro
                 </Button>
               </DialogTrigger>
-              <DialogContent className="sm:max-w-md max-h-[90vh] flex flex-col">
-                <DialogHeader>
+              <DialogContent className="sm:max-w-md max-h-[90vh] overflow-hidden flex flex-col">
+                <DialogHeader className="flex-shrink-0">
                   <DialogTitle>Registrar Movimento</DialogTitle>
                 </DialogHeader>
-                <ScrollArea className="flex-1 max-h-[60vh] pr-4">
-                <div className="space-y-4 py-4">
+                <ScrollArea className="flex-1 overflow-auto pr-4">
+                  <div className="space-y-4 py-4">
                   {/* Movement Type */}
                   <div className="space-y-2">
                     <Label>Tipo de Movimento</Label>
@@ -526,7 +526,7 @@ const EntradaSaidaEquipamentos = () => {
                   )}
                 </div>
                 </ScrollArea>
-                <DialogFooter className="pt-4 border-t">
+                <div className="flex-shrink-0 pt-4 border-t flex flex-col-reverse sm:flex-row sm:justify-end sm:space-x-2">
                   <DialogClose asChild>
                     <Button variant="outline">Cancelar</Button>
                   </DialogClose>
@@ -543,7 +543,7 @@ const EntradaSaidaEquipamentos = () => {
                   >
                     {createMovement.isPending ? "Registrando..." : "Registrar"}
                   </Button>
-                </DialogFooter>
+                </div>
               </DialogContent>
             </Dialog>
           </div>
