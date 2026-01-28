@@ -818,74 +818,82 @@ const RelatorioPresenca = () => {
               {/* Área Gabião Report - Hidden for Encarregado I */}
               {showGabiaoTab && (
                 <div className="bg-card rounded-xl border border-border/50 p-6">
-                  <h2 className="font-semibold mb-4 text-lg">
-                    ✳ Relatório Área Gabião
-                  </h2>
+                  <div className="flex items-center justify-between mb-4">
+                    <h2 className="font-semibold text-lg">
+                      ✳ Relatório Área Gabião
+                    </h2>
+                    <div className="flex gap-2">
+                      <Button
+                        onClick={async () => {
+                          await navigator.clipboard.writeText(generateAreaReport("ÁREA GABIÃO"));
+                          toast.success("Relatório Gabião copiado!");
+                        }}
+                        variant="outline"
+                        size="sm"
+                        className="gap-2"
+                      >
+                        <Copy className="w-4 h-4" />
+                        Copiar
+                      </Button>
+                      <Button
+                        onClick={() => {
+                          const encoded = encodeURIComponent(generateAreaReport("ÁREA GABIÃO"));
+                          window.open(`https://wa.me/?text=${encoded}`, "_blank");
+                        }}
+                        size="sm"
+                        className="gap-2 bg-green-600 hover:bg-green-700"
+                      >
+                        <Send className="w-4 h-4" />
+                        WhatsApp
+                      </Button>
+                    </div>
+                  </div>
                   <Textarea
                     value={generateAreaReport("ÁREA GABIÃO")}
                     readOnly
                     className="min-h-[300px] font-mono text-sm whitespace-pre-wrap bg-muted/30"
                   />
-                  <div className="flex gap-2 mt-4">
-                    <Button
-                      onClick={async () => {
-                        await navigator.clipboard.writeText(generateAreaReport("ÁREA GABIÃO"));
-                        toast.success("Relatório Gabião copiado!");
-                      }}
-                      variant="outline"
-                      className="flex-1 gap-2"
-                    >
-                      <Copy className="w-4 h-4" />
-                      Copiar Gabião
-                    </Button>
-                    <Button
-                      onClick={() => {
-                        const encoded = encodeURIComponent(generateAreaReport("ÁREA GABIÃO"));
-                        window.open(`https://wa.me/?text=${encoded}`, "_blank");
-                      }}
-                      className="flex-1 gap-2 bg-green-600 hover:bg-green-700"
-                    >
-                      <Send className="w-4 h-4" />
-                      WhatsApp
-                    </Button>
-                  </div>
                 </div>
               )}
 
               {/* Roçagem e Podagem Report - Hidden for Encarregado II */}
               {showRocagemTab && (
                 <div className="bg-card rounded-xl border border-border/50 p-6">
-                  <h2 className="font-semibold mb-4 text-lg">
-                    🌿 Relatório Roçagem e Podagem
-                  </h2>
+                  <div className="flex items-center justify-between mb-4">
+                    <h2 className="font-semibold text-lg">
+                      🌿 Relatório Roçagem e Podagem
+                    </h2>
+                    <div className="flex gap-2">
+                      <Button
+                        onClick={async () => {
+                          await navigator.clipboard.writeText(generateAreaReport("ROÇAGEM E PODAGEM"));
+                          toast.success("Relatório Roçagem copiado!");
+                        }}
+                        variant="outline"
+                        size="sm"
+                        className="gap-2"
+                      >
+                        <Copy className="w-4 h-4" />
+                        Copiar
+                      </Button>
+                      <Button
+                        onClick={() => {
+                          const encoded = encodeURIComponent(generateAreaReport("ROÇAGEM E PODAGEM"));
+                          window.open(`https://wa.me/?text=${encoded}`, "_blank");
+                        }}
+                        size="sm"
+                        className="gap-2 bg-green-600 hover:bg-green-700"
+                      >
+                        <Send className="w-4 h-4" />
+                        WhatsApp
+                      </Button>
+                    </div>
+                  </div>
                   <Textarea
                     value={generateAreaReport("ROÇAGEM E PODAGEM")}
                     readOnly
                     className="min-h-[300px] font-mono text-sm whitespace-pre-wrap bg-muted/30"
                   />
-                  <div className="flex gap-2 mt-4">
-                    <Button
-                      onClick={async () => {
-                        await navigator.clipboard.writeText(generateAreaReport("ROÇAGEM E PODAGEM"));
-                        toast.success("Relatório Roçagem copiado!");
-                      }}
-                      variant="outline"
-                      className="flex-1 gap-2"
-                    >
-                      <Copy className="w-4 h-4" />
-                      Copiar Roçagem
-                    </Button>
-                    <Button
-                      onClick={() => {
-                        const encoded = encodeURIComponent(generateAreaReport("ROÇAGEM E PODAGEM"));
-                        window.open(`https://wa.me/?text=${encoded}`, "_blank");
-                      }}
-                      className="flex-1 gap-2 bg-green-600 hover:bg-green-700"
-                    >
-                      <Send className="w-4 h-4" />
-                      WhatsApp
-                    </Button>
-                  </div>
                 </div>
               )}
             </div>
