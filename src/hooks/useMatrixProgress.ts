@@ -13,7 +13,7 @@ export const useMatrixProgress = () => {
     return getBrazilNorthMonthYear();
   }, []);
 
-  // Fetch completed tasks for the current month
+  // Fetch completed tasks for the current month (all users - global visibility)
   const fetchCompletedTasks = useCallback(async () => {
     if (!user) {
       setCompletedTasks([]);
@@ -24,15 +24,17 @@ export const useMatrixProgress = () => {
     try {
       const monthYear = getCurrentMonthYear();
       
+      // Fetch ALL task completions for this month (from all users)
       const { data, error } = await supabase
         .from("matrix_task_completions")
         .select("task_id")
-        .eq("user_id", user.id)
         .eq("month_year", monthYear);
 
       if (error) throw error;
 
-      setCompletedTasks(data?.map((item) => item.task_id) || []);
+      // Get unique task_ids (a task is considered complete if ANY user completed it)
+      const uniqueTaskIds = [...new Set(data?.map((item) => item.task_id) || [])];
+      setCompletedTasks(uniqueTaskIds);
     } catch (error) {
       console.error("Error fetching matrix progress:", error);
       setCompletedTasks([]);
