@@ -1,7 +1,7 @@
 import { useState, useMemo } from "react";
 import { format, startOfWeek, endOfWeek, subWeeks, parseISO, startOfMonth, endOfMonth, subMonths } from "date-fns";
 import { ptBR } from "date-fns/locale";
-import { ArrowDownToLine, ArrowUpFromLine, Truck, Calendar, Clock, Search, Plus, Wrench, Shield, ClipboardCheck, Trash2, AlertCircle, History, ChevronLeft, ChevronRight, CalendarIcon, ListChecks, Filter } from "lucide-react";
+import { ArrowDownToLine, ArrowUpFromLine, Truck, Calendar, Clock, Search, Plus, Wrench, Shield, ClipboardCheck, Trash2, AlertCircle, History, ChevronLeft, ChevronRight, CalendarIcon, ListChecks, Filter, ChevronDown, ChevronUp } from "lucide-react";
 import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover";
 import { Calendar as CalendarComponent } from "@/components/ui/calendar";
 import { cn } from "@/lib/utils";
@@ -16,6 +16,7 @@ import { Label } from "@/components/ui/label";
 import { Textarea } from "@/components/ui/textarea";
 import { RadioGroup, RadioGroupItem } from "@/components/ui/radio-group";
 import { ScrollArea } from "@/components/ui/scroll-area";
+import { Collapsible, CollapsibleContent, CollapsibleTrigger } from "@/components/ui/collapsible";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { 
   useEquipmentMovements, 
@@ -61,6 +62,7 @@ const EntradaSaidaEquipamentos = () => {
   const [historyFilter, setHistoryFilter] = useState<HistoryFilterType>("semana");
   const [customStartDate, setCustomStartDate] = useState<Date | undefined>(undefined);
   const [customEndDate, setCustomEndDate] = useState<Date | undefined>(undefined);
+  const [isNoCateiroExpanded, setIsNoCateiroExpanded] = useState(false);
 
   const today = getBrazilNorthTodayString();
   const { data: movements, isLoading } = useEquipmentMovements(today);
@@ -581,19 +583,69 @@ const EntradaSaidaEquipamentos = () => {
             </CardContent>
           </Card>
 
-          <Card className="bg-gradient-to-br from-primary/10 to-primary/5 border-primary/20">
-            <CardContent className="p-4">
-              <div className="flex items-center gap-3">
-                <div className="p-2 rounded-full bg-primary/20">
-                  <Truck className="h-5 w-5 text-primary" />
+          <Collapsible open={isNoCateiroExpanded} onOpenChange={setIsNoCateiroExpanded}>
+            <Card className="bg-gradient-to-br from-primary/10 to-primary/5 border-primary/20">
+              <CollapsibleTrigger asChild>
+                <CardContent className="p-4 cursor-pointer hover:bg-primary/5 transition-colors">
+                  <div className="flex items-center justify-between">
+                    <div className="flex items-center gap-3">
+                      <div className="p-2 rounded-full bg-primary/20">
+                        <Truck className="h-5 w-5 text-primary" />
+                      </div>
+                      <div>
+                        <p className="text-sm text-muted-foreground">No Canteiro</p>
+                        <p className="text-2xl font-bold">{currentlyIn?.length || 0}</p>
+                      </div>
+                    </div>
+                    <div className="flex items-center gap-2 text-muted-foreground">
+                      <span className="text-xs hidden sm:inline">Ver lista</span>
+                      {isNoCateiroExpanded ? (
+                        <ChevronUp className="h-4 w-4" />
+                      ) : (
+                        <ChevronDown className="h-4 w-4" />
+                      )}
+                    </div>
+                  </div>
+                </CardContent>
+              </CollapsibleTrigger>
+              <CollapsibleContent>
+                <div className="border-t border-primary/20 px-4 pb-4">
+                  {!currentlyIn || currentlyIn.length === 0 ? (
+                    <p className="text-sm text-muted-foreground text-center py-4">
+                      Nenhum equipamento no canteiro
+                    </p>
+                  ) : (
+                    <ScrollArea className="max-h-[200px]">
+                      <div className="space-y-2 pt-3">
+                        {currentlyIn.map((equipment) => (
+                          <div 
+                            key={equipment.id} 
+                            className="flex items-center justify-between p-2 rounded-lg bg-background/50 border border-border/50"
+                          >
+                            <div className="flex items-center gap-2">
+                              <Truck className="h-4 w-4 text-primary" />
+                              <div>
+                                <p className="text-sm font-medium">{equipment.equipment_name}</p>
+                                <p className="text-xs text-muted-foreground">{equipment.plate}</p>
+                              </div>
+                            </div>
+                            <div className="text-right">
+                              <p className="text-xs text-muted-foreground">
+                                Entrada: {format(parseISO(equipment.movement_date), "dd/MM", { locale: ptBR })}
+                              </p>
+                              <p className="text-xs text-muted-foreground">
+                                {equipment.movement_time.slice(0, 5)}
+                              </p>
+                            </div>
+                          </div>
+                        ))}
+                      </div>
+                    </ScrollArea>
+                  )}
                 </div>
-                <div>
-                  <p className="text-sm text-muted-foreground">No Canteiro</p>
-                  <p className="text-2xl font-bold">{currentlyIn?.length || 0}</p>
-                </div>
-              </div>
-            </CardContent>
-          </Card>
+              </CollapsibleContent>
+            </Card>
+          </Collapsible>
         </div>
 
         {/* Search */}
