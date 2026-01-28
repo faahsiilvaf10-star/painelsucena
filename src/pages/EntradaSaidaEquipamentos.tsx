@@ -63,6 +63,14 @@ const EntradaSaidaEquipamentos = () => {
   const [customStartDate, setCustomStartDate] = useState<Date | undefined>(undefined);
   const [customEndDate, setCustomEndDate] = useState<Date | undefined>(undefined);
   const [isNoCateiroExpanded, setIsNoCateiroExpanded] = useState(false);
+  
+  // Quick action dialog state
+  const [quickActionDialogOpen, setQuickActionDialogOpen] = useState(false);
+  const [quickActionType, setQuickActionType] = useState<MovementType>("saida");
+  const [quickActionEquipment, setQuickActionEquipment] = useState<{ name: string; plate: string } | null>(null);
+  const [quickActionExitReason, setQuickActionExitReason] = useState<ExitReason | "">("");
+  const [quickActionProblemDescription, setQuickActionProblemDescription] = useState("");
+  const [quickActionObservation, setQuickActionObservation] = useState("");
 
   const today = getBrazilNorthTodayString();
   const { data: movements, isLoading } = useEquipmentMovements(today);
@@ -235,6 +243,37 @@ const EntradaSaidaEquipamentos = () => {
     setMovementDate(new Date());
     setMovementTime(format(new Date(), "HH:mm"));
     setIsDialogOpen(false);
+  };
+
+  // Quick action handlers
+  const handleQuickActionOpen = (type: MovementType, equipment: { name: string; plate: string }) => {
+    setQuickActionType(type);
+    setQuickActionEquipment(equipment);
+    setQuickActionExitReason("");
+    setQuickActionProblemDescription("");
+    setQuickActionObservation("");
+    setQuickActionDialogOpen(true);
+  };
+
+  const handleQuickActionSubmit = async () => {
+    if (!quickActionEquipment) return;
+
+    await createMovement.mutateAsync({
+      equipment_name: quickActionEquipment.name,
+      plate: quickActionEquipment.plate,
+      movement_type: quickActionType,
+      movement_date: format(new Date(), "yyyy-MM-dd"),
+      movement_time: format(new Date(), "HH:mm"),
+      observation: quickActionObservation.trim() || null,
+      exit_reason: quickActionType === "saida" && quickActionExitReason ? quickActionExitReason : null,
+      problem_description: quickActionType === "saida" && quickActionExitReason === "manutencao_corretiva" ? quickActionProblemDescription.trim() || null : null,
+    });
+
+    setQuickActionDialogOpen(false);
+    setQuickActionEquipment(null);
+    setQuickActionExitReason("");
+    setQuickActionProblemDescription("");
+    setQuickActionObservation("");
   };
 
   const renderMovementCard = (movement: EquipmentMovement) => {
@@ -620,22 +659,36 @@ const EntradaSaidaEquipamentos = () => {
                         {currentlyIn.map((equipment) => (
                           <div 
                             key={equipment.id} 
-                            className="flex items-center justify-between p-2 rounded-lg bg-background/50 border border-border/50"
+                            className="flex items-center justify-between p-2 rounded-lg bg-background/50 border border-border/50 gap-2"
                           >
-                            <div className="flex items-center gap-2">
-                              <Truck className="h-4 w-4 text-primary" />
-                              <div>
-                                <p className="text-sm font-medium">{equipment.equipment_name}</p>
+                            <div className="flex items-center gap-2 min-w-0 flex-1">
+                              <Truck className="h-4 w-4 text-primary flex-shrink-0" />
+                              <div className="min-w-0">
+                                <p className="text-sm font-medium truncate">{equipment.equipment_name}</p>
                                 <p className="text-xs text-muted-foreground">{equipment.plate}</p>
                               </div>
                             </div>
-                            <div className="text-right">
-                              <p className="text-xs text-muted-foreground">
-                                Entrada: {format(parseISO(equipment.movement_date), "dd/MM", { locale: ptBR })}
-                              </p>
-                              <p className="text-xs text-muted-foreground">
-                                {equipment.movement_time.slice(0, 5)}
-                              </p>
+                            <div className="flex items-center gap-2 flex-shrink-0">
+                              <div className="text-right hidden sm:block">
+                                <p className="text-xs text-muted-foreground">
+                                  {format(parseISO(equipment.movement_date), "dd/MM", { locale: ptBR })}
+                                </p>
+                                <p className="text-xs text-muted-foreground">
+                                  {equipment.movement_time.slice(0, 5)}
+                                </p>
+                              </div>
+                              <Button
+                                size="sm"
+                                variant="outline"
+                                className="h-7 px-2 text-xs gap-1 border-orange-500/50 text-orange-600 hover:bg-orange-500/10 hover:text-orange-700"
+                                onClick={() => handleQuickActionOpen("saida", { 
+                                  name: equipment.equipment_name, 
+                                  plate: equipment.plate 
+                                })}
+                              >
+                                <ArrowUpFromLine className="h-3 w-3" />
+                                <span className="hidden sm:inline">Saída</span>
+                              </Button>
                             </div>
                           </div>
                         ))}
@@ -912,6 +965,18 @@ const EntradaSaidaEquipamentos = () => {
                                       às {movement.movement_time.slice(0, 5)}
                                     </p>
                                   </div>
+                                  <Button
+                                    size="sm"
+                                    variant="outline"
+                                    className="h-7 px-2 text-xs gap-1 border-green-500/50 text-green-600 hover:bg-green-500/10 hover:text-green-700"
+                                    onClick={() => handleQuickActionOpen("entrada", { 
+                                      name: movement.equipment_name, 
+                                      plate: movement.plate 
+                                    })}
+                                  >
+                                    <ArrowDownToLine className="h-3 w-3" />
+                                    <span className="hidden sm:inline">Entrada</span>
+                                  </Button>
                                   {isAdmin && (
                                     <Button
                                       variant="ghost"
@@ -1155,6 +1220,107 @@ const EntradaSaidaEquipamentos = () => {
             </Card>
           </TabsContent>
         </Tabs>
+
+        {/* Quick Action Dialog */}
+        <Dialog open={quickActionDialogOpen} onOpenChange={setQuickActionDialogOpen}>
+          <DialogContent className="sm:max-w-md">
+            <DialogHeader>
+              <DialogTitle className="flex items-center gap-2">
+                {quickActionType === "saida" ? (
+                  <>
+                    <ArrowUpFromLine className="h-5 w-5 text-orange-500" />
+                    Registrar Saída
+                  </>
+                ) : (
+                  <>
+                    <ArrowDownToLine className="h-5 w-5 text-green-500" />
+                    Registrar Entrada
+                  </>
+                )}
+              </DialogTitle>
+            </DialogHeader>
+            
+            {quickActionEquipment && (
+              <div className="space-y-4 py-4">
+                {/* Equipment Info */}
+                <div className="p-3 rounded-lg bg-muted/50 border">
+                  <div className="flex items-center gap-2">
+                    <Truck className="h-5 w-5 text-primary" />
+                    <div>
+                      <p className="font-medium">{quickActionEquipment.name}</p>
+                      <p className="text-sm text-muted-foreground">{quickActionEquipment.plate}</p>
+                    </div>
+                  </div>
+                </div>
+
+                {/* Exit Reason - Only for Saída */}
+                {quickActionType === "saida" && (
+                  <div className="space-y-2">
+                    <Label>Motivo da Saída</Label>
+                    <RadioGroup
+                      value={quickActionExitReason}
+                      onValueChange={(v) => setQuickActionExitReason(v as ExitReason)}
+                      className="space-y-2"
+                    >
+                      {Object.entries(EXIT_REASON_LABELS).map(([key, { label, icon: Icon, color }]) => (
+                        <div key={key} className="flex items-center space-x-2">
+                          <RadioGroupItem value={key} id={`quick-${key}`} />
+                          <Label htmlFor={`quick-${key}`} className="flex items-center gap-2 cursor-pointer">
+                            <Icon className={`h-4 w-4 ${color}`} />
+                            {label}
+                          </Label>
+                        </div>
+                      ))}
+                    </RadioGroup>
+                  </div>
+                )}
+
+                {/* Problem Description - Only for Manutenção Corretiva */}
+                {quickActionType === "saida" && quickActionExitReason === "manutencao_corretiva" && (
+                  <div className="space-y-2">
+                    <Label htmlFor="quickProblem">Descrição do Defeito *</Label>
+                    <Textarea
+                      id="quickProblem"
+                      value={quickActionProblemDescription}
+                      onChange={(e) => setQuickActionProblemDescription(e.target.value)}
+                      placeholder="Descreva o problema encontrado..."
+                      className="min-h-[80px]"
+                    />
+                  </div>
+                )}
+
+                {/* Observation */}
+                <div className="space-y-2">
+                  <Label htmlFor="quickObservation">Observação (opcional)</Label>
+                  <Textarea
+                    id="quickObservation"
+                    value={quickActionObservation}
+                    onChange={(e) => setQuickActionObservation(e.target.value)}
+                    placeholder="Adicione uma observação..."
+                    className="min-h-[60px]"
+                  />
+                </div>
+              </div>
+            )}
+
+            <DialogFooter>
+              <DialogClose asChild>
+                <Button variant="outline">Cancelar</Button>
+              </DialogClose>
+              <Button 
+                onClick={handleQuickActionSubmit}
+                disabled={
+                  createMovement.isPending || 
+                  (quickActionType === "saida" && !quickActionExitReason) ||
+                  (quickActionType === "saida" && quickActionExitReason === "manutencao_corretiva" && !quickActionProblemDescription.trim())
+                }
+                className={quickActionType === "saida" ? "bg-orange-600 hover:bg-orange-700" : "bg-green-600 hover:bg-green-700"}
+              >
+                {createMovement.isPending ? "Registrando..." : quickActionType === "saida" ? "Registrar Saída" : "Registrar Entrada"}
+              </Button>
+            </DialogFooter>
+          </DialogContent>
+        </Dialog>
       </div>
     </Layout>
   );
