@@ -224,6 +224,63 @@
     }
   }
 
+  /* Snow particles container */
+  .snow-bg {
+    background: radial-gradient(ellipse at center, hsl(0 0% 30% / 0.9) 0%, hsl(0 0% 12% / 0.98) 70%);
+    position: relative;
+    overflow: hidden;
+  }
+
+  .snow-bg::before {
+    content: '';
+    position: absolute;
+    inset: 0;
+    background-image: 
+      radial-gradient(2px 2px at 20px 30px, white, transparent),
+      radial-gradient(2px 2px at 40px 70px, rgba(255,255,255,0.8), transparent),
+      radial-gradient(1px 1px at 90px 40px, white, transparent),
+      radial-gradient(2px 2px at 130px 80px, rgba(255,255,255,0.6), transparent),
+      radial-gradient(1px 1px at 160px 30px, white, transparent),
+      radial-gradient(2px 2px at 200px 60px, rgba(255,255,255,0.7), transparent),
+      radial-gradient(1px 1px at 50px 100px, white, transparent),
+      radial-gradient(2px 2px at 100px 120px, rgba(255,255,255,0.5), transparent),
+      radial-gradient(1px 1px at 150px 90px, white, transparent),
+      radial-gradient(2px 2px at 180px 110px, rgba(255,255,255,0.8), transparent);
+    background-size: 220px 140px;
+    animation: snowfall 8s linear infinite;
+    opacity: 0.6;
+    pointer-events: none;
+  }
+
+  .snow-bg::after {
+    content: '';
+    position: absolute;
+    inset: 0;
+    background-image: 
+      radial-gradient(1px 1px at 30px 20px, white, transparent),
+      radial-gradient(2px 2px at 70px 50px, rgba(255,255,255,0.7), transparent),
+      radial-gradient(1px 1px at 110px 35px, white, transparent),
+      radial-gradient(2px 2px at 150px 75px, rgba(255,255,255,0.5), transparent),
+      radial-gradient(1px 1px at 190px 25px, white, transparent),
+      radial-gradient(2px 2px at 60px 85px, rgba(255,255,255,0.6), transparent),
+      radial-gradient(1px 1px at 120px 100px, white, transparent),
+      radial-gradient(2px 2px at 80px 115px, rgba(255,255,255,0.8), transparent);
+    background-size: 200px 130px;
+    animation: snowfall 12s linear infinite;
+    animation-delay: -4s;
+    opacity: 0.4;
+    pointer-events: none;
+  }
+
+  @keyframes snowfall {
+    0% {
+      transform: translateY(-20px);
+    }
+    100% {
+      transform: translateY(140px);
+    }
+  }
+
   /* Scrollbar styling */
   .scrollbar-none::-webkit-scrollbar {
     display: none;

@@ -112,7 +112,7 @@ export const ReminderHighlightBanner = () => {
       {/* TODAY'S REMINDERS - Fixed Alert Banner with Neon Effect */}
       {todayReminders.length > 0 && (
         <div className="animate-in fade-in slide-in-from-top-4 duration-500">
-          <Alert className="border-2 border-green-500/60 bg-black/95 shadow-lg neon-glow-border rounded-xl">
+          <Alert className="border-2 border-green-500/60 snow-bg shadow-lg neon-glow-border rounded-xl">
             <div className="flex items-start gap-4">
               <div className="p-2 rounded-full bg-green-500/20 animate-pulse">
                 <AlertTriangle className="h-6 w-6 text-green-400" />
@@ -235,7 +235,7 @@ export const ReminderHighlightBanner = () => {
                   <Card
                     key={reminder.id}
                     className={cn(
-                      "flex-shrink-0 w-72 relative overflow-hidden transition-all bg-black/95 border-green-500/40 neon-glow-border rounded-xl",
+                      "flex-shrink-0 w-72 relative overflow-hidden transition-all snow-bg border-green-500/40 neon-glow-border rounded-xl",
                       isUrgent && "border-green-400/60"
                     )}
                   >
