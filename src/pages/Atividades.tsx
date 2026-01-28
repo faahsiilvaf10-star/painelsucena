@@ -29,6 +29,7 @@ import {
 import { getBrazilNorthDate, getBrazilNorthTodayString } from "@/lib/timezone";
 import { cn } from "@/lib/utils";
 import MonthlyReportDialog from "@/components/atividades/MonthlyReportDialog";
+import { PhotoUploader } from "@/components/atividades/PhotoUploader";
 import { ReadOnlyBanner } from "@/components/ReadOnlyBanner";
 import { GoalProgressCard } from "@/components/goals/GoalProgressCard";
 
@@ -140,6 +141,9 @@ export default function Atividades() {
   const [irrigacaoPipas, setIrrigacaoPipas] = useState(false);
   const [irrigacaoCarretel, setIrrigacaoCarretel] = useState(false);
   const [irrigacaoCarretelBermas, setIrrigacaoCarretelBermas] = useState<number[]>([]);
+  
+  // Photo state
+  const [photos, setPhotos] = useState<string[]>([]);
 
   // Helper functions for invasoras
   const addInvasora = () => {
@@ -235,6 +239,7 @@ export default function Atividades() {
       setIrrigacaoPipas(existingReport.irrigacao_pipas || false);
       setIrrigacaoCarretel(existingReport.irrigacao_carretel || false);
       setIrrigacaoCarretelBermas(existingReport.irrigacao_carretel_bermas || []);
+      setPhotos(existingReport.photo_urls || []);
     } else {
       // Reset form for new date
       setLocalFaixa("FAIXA 2");
@@ -261,6 +266,7 @@ export default function Atividades() {
       setIrrigacaoPipas(false);
       setIrrigacaoCarretel(false);
       setIrrigacaoCarretelBermas([]);
+      setPhotos([]);
     }
   }, [existingReport, selectedDateStr]);
 
@@ -333,6 +339,7 @@ export default function Atividades() {
         irrigacao_pipas: irrigacaoPipas,
         irrigacao_carretel: irrigacaoCarretel,
         irrigacao_carretel_bermas: irrigacaoCarretel && irrigacaoCarretelBermas.length > 0 ? irrigacaoCarretelBermas : undefined,
+        photo_urls: photos.length > 0 ? photos : undefined,
       });
       
       toast.success("Atividades salvas com sucesso!");
@@ -431,9 +438,19 @@ export default function Atividades() {
         irrigacao_pipas: irrigacaoPipas,
         irrigacao_carretel: irrigacaoCarretel,
         irrigacao_carretel_bermas: irrigacaoCarretel && irrigacaoCarretelBermas.length > 0 ? irrigacaoCarretelBermas : undefined,
+        photo_urls: photos.length > 0 ? photos : undefined,
       });
       
-      const summary = generateRDOSummary();
+      let summary = generateRDOSummary();
+      
+      // Add photo links if available
+      if (photos.length > 0) {
+        summary += `\n📷 *Fotos (${photos.length}):*\n`;
+        photos.forEach((url, index) => {
+          summary += `${index + 1}. ${url}\n`;
+        });
+      }
+      
       const encoded = encodeURIComponent(summary);
       window.open(`https://wa.me/?text=${encoded}`, "_blank");
       toast.success("Atividades salvas e enviadas para WhatsApp!");
@@ -1098,6 +1115,16 @@ export default function Atividades() {
                     </div>
                   )}
                 </div>
+              </div>
+
+              {/* Photo Upload Section */}
+              <div className="pt-4 border-t">
+                <PhotoUploader
+                  photos={photos}
+                  onPhotosChange={setPhotos}
+                  disabled={!canEdit}
+                  folder="jardinagem"
+                />
               </div>
             </CardContent>
           </Card>

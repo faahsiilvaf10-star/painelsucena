@@ -29,6 +29,7 @@ import {
 import { getBrazilNorthDate } from "@/lib/timezone";
 import { cn } from "@/lib/utils";
 import MonthlyReportDialog from "@/components/atividades/MonthlyReportDialog";
+import { PhotoUploader } from "@/components/atividades/PhotoUploader";
 import { ReadOnlyBanner } from "@/components/ReadOnlyBanner";
 import { GoalProgressCard } from "@/components/goals/GoalProgressCard";
 
@@ -156,6 +157,9 @@ export default function AtividadesII() {
   // Manual activities text
   const [atividadesManuais, setAtividadesManuais] = useState("");
   const [observacoes, setObservacoes] = useState("");
+  
+  // Photo state
+  const [photos, setPhotos] = useState<string[]>([]);
 
   // Load existing data when report changes
   useEffect(() => {
@@ -254,6 +258,7 @@ export default function AtividadesII() {
       
       setAtividadesManuais("");
       setObservacoes(obsLines.join("\n"));
+      setPhotos((existingReport as any).photo_urls || []);
     } else {
       // Reset form for new date
       setLocalServico("FAIXA 2");
@@ -281,6 +286,7 @@ export default function AtividadesII() {
       setRecomposicaoSilteQuantidade("");
       setAtividadesManuais("");
       setObservacoes("");
+      setPhotos([]);
     }
   }, [existingReport, selectedDateStr]);
 
@@ -408,6 +414,7 @@ export default function AtividadesII() {
         report_date: selectedDateStr,
         local_servico: fullLocalServico,
         observacoes: combinedObservacoes || undefined,
+        photo_urls: photos.length > 0 ? photos : undefined,
       });
       
       toast.success("Atividades salvas com sucesso!");
@@ -475,9 +482,19 @@ export default function AtividadesII() {
         report_date: selectedDateStr,
         local_servico: fullLocalServico,
         observacoes: combinedObservacoes || undefined,
+        photo_urls: photos.length > 0 ? photos : undefined,
       });
       
-      const summary = generateRDOSummary();
+      let summary = generateRDOSummary();
+      
+      // Add photo links if available
+      if (photos.length > 0) {
+        summary += `\n\n📷 *Fotos (${photos.length}):*\n`;
+        photos.forEach((url, index) => {
+          summary += `${index + 1}. ${url}\n`;
+        });
+      }
+      
       const encoded = encodeURIComponent(summary);
       window.open(`https://wa.me/?text=${encoded}`, "_blank");
       toast.success("Atividades salvas e enviadas para WhatsApp!");
@@ -1097,6 +1114,16 @@ export default function AtividadesII() {
                   onChange={(e) => setObservacoes(e.target.value)}
                   placeholder="Observações adicionais sobre as atividades..."
                   rows={3}
+                />
+              </div>
+
+              {/* Photo Upload Section */}
+              <div className="pt-4 border-t">
+                <PhotoUploader
+                  photos={photos}
+                  onPhotosChange={setPhotos}
+                  disabled={!canEdit}
+                  folder="gabiao"
                 />
               </div>
             </CardContent>

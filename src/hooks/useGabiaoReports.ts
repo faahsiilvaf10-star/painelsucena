@@ -18,6 +18,7 @@ export interface GabiaoReport {
   reparo_cerca_m: number | null;
   reparo_cerca_berma: number | null;
   observacoes: string | null;
+  photo_urls: string[] | null;
   created_at: string;
   updated_at: string;
 }
@@ -36,6 +37,7 @@ export interface GabiaoReportInsert {
   reparo_cerca_m?: number;
   reparo_cerca_berma?: number;
   observacoes?: string;
+  photo_urls?: string[];
 }
 
 export function useGabiaoReports() {
