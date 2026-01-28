@@ -160,7 +160,9 @@ export function useCreateEquipmentMovement() {
       queryClient.invalidateQueries({ queryKey: ["equipment-movements-all"] });
       queryClient.invalidateQueries({ queryKey: ["equipment-movements-all-entries"] });
       queryClient.invalidateQueries({ queryKey: ["equipment-movements-currently-out"] });
+      queryClient.invalidateQueries({ queryKey: ["equipment-movements-currently-in"] });
       queryClient.invalidateQueries({ queryKey: ["equipment-movements-weekly"] });
+      queryClient.invalidateQueries({ queryKey: ["equipment-movements-summary"] });
       toast.success("Movimento registrado com sucesso!");
     },
     onError: (error) => {
@@ -187,7 +189,9 @@ export function useDeleteEquipmentMovement() {
       queryClient.invalidateQueries({ queryKey: ["equipment-movements-all"] });
       queryClient.invalidateQueries({ queryKey: ["equipment-movements-all-entries"] });
       queryClient.invalidateQueries({ queryKey: ["equipment-movements-currently-out"] });
+      queryClient.invalidateQueries({ queryKey: ["equipment-movements-currently-in"] });
       queryClient.invalidateQueries({ queryKey: ["equipment-movements-weekly"] });
+      queryClient.invalidateQueries({ queryKey: ["equipment-movements-summary"] });
       toast.success("Movimento excluído!");
     },
     onError: (error) => {
@@ -220,6 +224,49 @@ export function useTodayMovementsSummary() {
         noCanteiro: entradas - saidas,
       };
     },
+    staleTime: 0,
+    refetchOnMount: "always",
+  });
+}
+
+// Get equipment currently in the yard (entrada without subsequent saida)
+export function useEquipmentCurrentlyIn() {
+  return useQuery({
+    queryKey: ["equipment-movements-currently-in"],
+    queryFn: async () => {
+      // Get all movements ordered by date and time
+      const { data, error } = await supabase
+        .from("equipment_movements")
+        .select("*")
+        .order("movement_date", { ascending: true })
+        .order("movement_time", { ascending: true });
+
+      if (error) throw error;
+
+      const movements = (data || []) as EquipmentMovement[];
+      
+      // Track last movement per equipment (by plate)
+      const lastMovementByPlate: Record<string, EquipmentMovement> = {};
+      
+      movements.forEach((m) => {
+        lastMovementByPlate[m.plate] = m;
+      });
+      
+      // Filter only those whose last movement was "entrada"
+      const currentlyIn = Object.values(lastMovementByPlate).filter(
+        (m) => m.movement_type === "entrada"
+      );
+      
+      // Sort by entry date (most recent first)
+      return currentlyIn.sort((a, b) => {
+        const dateCompare = b.movement_date.localeCompare(a.movement_date);
+        if (dateCompare !== 0) return dateCompare;
+        return b.movement_time.localeCompare(a.movement_time);
+      });
+    },
+    staleTime: 0,
+    refetchOnMount: "always",
+    gcTime: 0,
   });
 }
 

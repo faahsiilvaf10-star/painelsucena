@@ -25,6 +25,7 @@ import {
   useWeeklyEquipmentMovements,
   useAllEntries,
   useEquipmentCurrentlyOut,
+  useEquipmentCurrentlyIn,
   MovementType,
   ExitReason,
   EquipmentMovement
@@ -123,9 +124,10 @@ const EntradaSaidaEquipamentos = () => {
     historyDates?.endDate || ""
   );
 
-  // Get all entries and currently out equipment
+  // Get all entries and currently out/in equipment
   const { data: allEntries, isLoading: isLoadingEntries } = useAllEntries();
   const { data: currentlyOut, isLoading: isLoadingOut } = useEquipmentCurrentlyOut();
+  const { data: currentlyIn } = useEquipmentCurrentlyIn();
 
   // Group history movements by date
   const groupedHistoryMovements = useMemo(() => {
@@ -587,7 +589,7 @@ const EntradaSaidaEquipamentos = () => {
                 </div>
                 <div>
                   <p className="text-sm text-muted-foreground">No Canteiro</p>
-                  <p className="text-2xl font-bold">{Math.max(0, summary?.noCanteiro || 0)}</p>
+                  <p className="text-2xl font-bold">{currentlyIn?.length || 0}</p>
                 </div>
               </div>
             </CardContent>
