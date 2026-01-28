@@ -17,7 +17,9 @@ const ScrollArea = React.forwardRef<
     type={scrollbarAlwaysVisible ? "always" : "hover"}
     {...props}
   >
-    <ScrollAreaPrimitive.Viewport className="h-full w-full rounded-[inherit]">{children}</ScrollAreaPrimitive.Viewport>
+    <ScrollAreaPrimitive.Viewport className="h-full w-full rounded-[inherit] [&>div]:!block">
+      {children}
+    </ScrollAreaPrimitive.Viewport>
     <ScrollBar className={scrollbarAlwaysVisible ? "opacity-100" : ""} />
     <ScrollAreaPrimitive.Corner />
   </ScrollAreaPrimitive.Root>
