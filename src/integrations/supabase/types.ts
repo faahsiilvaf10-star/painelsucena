@@ -864,6 +864,33 @@ export type Database = {
         }
         Relationships: []
       }
+      nav_visibility_rules: {
+        Row: {
+          cargo: string
+          created_at: string
+          id: string
+          is_hidden: boolean
+          nav_item_id: string
+          updated_at: string
+        }
+        Insert: {
+          cargo: string
+          created_at?: string
+          id?: string
+          is_hidden?: boolean
+          nav_item_id: string
+          updated_at?: string
+        }
+        Update: {
+          cargo?: string
+          created_at?: string
+          id?: string
+          is_hidden?: boolean
+          nav_item_id?: string
+          updated_at?: string
+        }
+        Relationships: []
+      }
       notifications: {
         Row: {
           created_at: string
