@@ -1,9 +1,17 @@
 import { AlertTriangle, Car, Calendar } from "lucide-react";
 import { format, parseISO, isValid, isBefore, addDays, differenceInDays } from "date-fns";
 import { ptBR } from "date-fns/locale";
-import { useVehicleInspections } from "@/hooks/useVehicleInspections";
+import { useVehicleInspections, DATE_FIELDS } from "@/hooks/useVehicleInspections";
 import { Link } from "react-router-dom";
 import { Button } from "@/components/ui/button";
+
+interface ExpiryItem {
+  vehicleId: string;
+  placa: string;
+  modelo: string;
+  fieldLabel: string;
+  date: string;
+}
 
 export function VehicleExpiryBanner() {
   const { data: vehicles, isLoading } = useVehicleInspections();
@@ -14,29 +22,39 @@ export function VehicleExpiryBanner() {
   today.setHours(0, 0, 0, 0);
   const warningDate = addDays(today, 15);
 
-  const expiredVehicles = vehicles.filter((v) => {
-    if (!v.validade_cracha) return false;
-    try {
-      const date = parseISO(v.validade_cracha);
-      if (!isValid(date)) return false;
-      return isBefore(date, today);
-    } catch {
-      return false;
-    }
+  // Collect all expired and expiring items across all date fields
+  const expiredItems: ExpiryItem[] = [];
+  const expiringItems: ExpiryItem[] = [];
+
+  vehicles.forEach((vehicle) => {
+    DATE_FIELDS.forEach((field) => {
+      const dateStr = vehicle[field.key];
+      if (!dateStr) return;
+
+      try {
+        const date = parseISO(dateStr);
+        if (!isValid(date)) return;
+
+        const item: ExpiryItem = {
+          vehicleId: vehicle.id,
+          placa: vehicle.placa,
+          modelo: vehicle.modelo_veiculo,
+          fieldLabel: field.label,
+          date: dateStr,
+        };
+
+        if (isBefore(date, today)) {
+          expiredItems.push(item);
+        } else if (isBefore(date, warningDate)) {
+          expiringItems.push(item);
+        }
+      } catch {
+        // Skip invalid dates
+      }
+    });
   });
 
-  const expiringVehicles = vehicles.filter((v) => {
-    if (!v.validade_cracha) return false;
-    try {
-      const date = parseISO(v.validade_cracha);
-      if (!isValid(date)) return false;
-      return !isBefore(date, today) && isBefore(date, warningDate);
-    } catch {
-      return false;
-    }
-  });
-
-  if (expiredVehicles.length === 0 && expiringVehicles.length === 0) return null;
+  if (expiredItems.length === 0 && expiringItems.length === 0) return null;
 
   const formatDate = (dateStr: string) => {
     try {
@@ -63,8 +81,8 @@ export function VehicleExpiryBanner() {
 
   return (
     <div className="space-y-3 mb-6 animate-fade-in">
-      {/* Expired Vehicles */}
-      {expiredVehicles.length > 0 && (
+      {/* Expired Items */}
+      {expiredItems.length > 0 && (
         <div className="rounded-xl border border-red-500/30 bg-red-500/10 p-4">
           <div className="flex items-start gap-3">
             <div className="p-2 rounded-lg bg-red-500/20">
@@ -74,7 +92,7 @@ export function VehicleExpiryBanner() {
               <div className="flex items-center justify-between gap-2 mb-2">
                 <h3 className="font-semibold text-red-500 flex items-center gap-2">
                   <Car className="w-4 h-4" />
-                  Crachás Vencidos ({expiredVehicles.length})
+                  Documentos Vencidos ({expiredItems.length})
                 </h3>
                 <Link to="/vistorias-equipamentos">
                   <Button variant="ghost" size="sm" className="text-red-500 hover:text-red-400 hover:bg-red-500/10">
@@ -83,24 +101,24 @@ export function VehicleExpiryBanner() {
                 </Link>
               </div>
               <div className="space-y-1.5">
-                {expiredVehicles.slice(0, 5).map((vehicle) => (
+                {expiredItems.slice(0, 5).map((item, idx) => (
                   <div
-                    key={vehicle.id}
+                    key={`${item.vehicleId}-${item.fieldLabel}-${idx}`}
                     className="flex items-center gap-2 text-sm text-red-400/90"
                   >
                     <Calendar className="w-3.5 h-3.5 flex-shrink-0" />
-                    <span className="font-mono font-medium">{vehicle.placa}</span>
-                    <span className="text-muted-foreground">-</span>
-                    <span className="truncate">{vehicle.modelo_veiculo}</span>
+                    <span className="font-mono font-medium">{item.placa}</span>
+                    <span className="text-muted-foreground">•</span>
+                    <span className="truncate text-xs bg-red-500/20 px-1.5 py-0.5 rounded">{item.fieldLabel}</span>
                     <span className="text-muted-foreground">•</span>
                     <span className="whitespace-nowrap">
-                      {formatDate(vehicle.validade_cracha)} {getDaysText(vehicle.validade_cracha)}
+                      {formatDate(item.date)} {getDaysText(item.date)}
                     </span>
                   </div>
                 ))}
-                {expiredVehicles.length > 5 && (
+                {expiredItems.length > 5 && (
                   <p className="text-xs text-red-400/70 mt-2">
-                    +{expiredVehicles.length - 5} veículo(s) com crachá vencido
+                    +{expiredItems.length - 5} documento(s) vencido(s)
                   </p>
                 )}
               </div>
@@ -109,8 +127,8 @@ export function VehicleExpiryBanner() {
         </div>
       )}
 
-      {/* Expiring Soon Vehicles */}
-      {expiringVehicles.length > 0 && (
+      {/* Expiring Soon Items */}
+      {expiringItems.length > 0 && (
         <div className="rounded-xl border border-amber-500/30 bg-amber-500/10 p-4">
           <div className="flex items-start gap-3">
             <div className="p-2 rounded-lg bg-amber-500/20">
@@ -120,7 +138,7 @@ export function VehicleExpiryBanner() {
               <div className="flex items-center justify-between gap-2 mb-2">
                 <h3 className="font-semibold text-amber-500 flex items-center gap-2">
                   <Car className="w-4 h-4" />
-                  Crachás Vencendo em 15 dias ({expiringVehicles.length})
+                  Vencendo em 15 dias ({expiringItems.length})
                 </h3>
                 <Link to="/vistorias-equipamentos">
                   <Button variant="ghost" size="sm" className="text-amber-500 hover:text-amber-400 hover:bg-amber-500/10">
@@ -129,24 +147,24 @@ export function VehicleExpiryBanner() {
                 </Link>
               </div>
               <div className="space-y-1.5">
-                {expiringVehicles.slice(0, 5).map((vehicle) => (
+                {expiringItems.slice(0, 5).map((item, idx) => (
                   <div
-                    key={vehicle.id}
+                    key={`${item.vehicleId}-${item.fieldLabel}-${idx}`}
                     className="flex items-center gap-2 text-sm text-amber-400/90"
                   >
                     <Calendar className="w-3.5 h-3.5 flex-shrink-0" />
-                    <span className="font-mono font-medium">{vehicle.placa}</span>
-                    <span className="text-muted-foreground">-</span>
-                    <span className="truncate">{vehicle.modelo_veiculo}</span>
+                    <span className="font-mono font-medium">{item.placa}</span>
+                    <span className="text-muted-foreground">•</span>
+                    <span className="truncate text-xs bg-amber-500/20 px-1.5 py-0.5 rounded">{item.fieldLabel}</span>
                     <span className="text-muted-foreground">•</span>
                     <span className="whitespace-nowrap">
-                      {formatDate(vehicle.validade_cracha)} {getDaysText(vehicle.validade_cracha)}
+                      {formatDate(item.date)} {getDaysText(item.date)}
                     </span>
                   </div>
                 ))}
-                {expiringVehicles.length > 5 && (
+                {expiringItems.length > 5 && (
                   <p className="text-xs text-amber-400/70 mt-2">
-                    +{expiringVehicles.length - 5} veículo(s) com crachá vencendo
+                    +{expiringItems.length - 5} documento(s) vencendo
                   </p>
                 )}
               </div>

@@ -1359,31 +1359,40 @@ export type Database = {
           created_at: string
           created_by: string
           id: string
+          laudo_mecanico: string | null
+          laudo_opacidade: string | null
           modelo_veiculo: string
           numero_cracha: string
           placa: string
+          plano_manutencao: string | null
           updated_at: string
-          validade_cracha: string
+          vistoria: string
         }
         Insert: {
           created_at?: string
           created_by: string
           id?: string
+          laudo_mecanico?: string | null
+          laudo_opacidade?: string | null
           modelo_veiculo: string
           numero_cracha: string
           placa: string
+          plano_manutencao?: string | null
           updated_at?: string
-          validade_cracha: string
+          vistoria: string
         }
         Update: {
           created_at?: string
           created_by?: string
           id?: string
+          laudo_mecanico?: string | null
+          laudo_opacidade?: string | null
           modelo_veiculo?: string
           numero_cracha?: string
           placa?: string
+          plano_manutencao?: string | null
           updated_at?: string
-          validade_cracha?: string
+          vistoria?: string
         }
         Relationships: []
       }
