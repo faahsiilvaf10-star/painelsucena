@@ -210,11 +210,45 @@ export function AppSidebar() {
       const oldIndex = orderedNavItems.findIndex((item) => item.id === active.id);
       const newIndex = orderedNavItems.findIndex((item) => item.id === over.id);
 
-      const newOrder = arrayMove(orderedNavItems, oldIndex, newIndex);
-      const newNavOrder = newOrder.map((item) => item.id);
+      const newVisibleOrder = arrayMove(orderedNavItems, oldIndex, newIndex);
+      const newVisibleIds = newVisibleOrder.map((item) => item.id);
+      
+      // Preserve hidden items' positions from the original nav_order
+      const currentNavOrder = settings.nav_order || allNavItems.map(item => item.id);
+      const hiddenIds = currentNavOrder.filter((id: string) => !visibleNavItems.find(item => item.id === id));
+      
+      // Build final order: start with all items from allNavItems in their relative positions
+      const allItemIds = allNavItems.map(item => item.id);
+      const finalOrder: string[] = [];
+      
+      // For each position, check if it should be a visible item (from new order) or hidden item
+      let visibleIndex = 0;
+      let hiddenIndex = 0;
+      
+      for (const itemId of allItemIds) {
+        if (newVisibleIds.includes(itemId)) {
+          // This is a visible item - use the new order
+          if (visibleIndex < newVisibleIds.length) {
+            finalOrder.push(newVisibleIds[visibleIndex]);
+            visibleIndex++;
+          }
+        } else if (hiddenIds.includes(itemId)) {
+          // This is a hidden item - preserve its position
+          finalOrder.push(itemId);
+          hiddenIndex++;
+        }
+      }
+      
+      // Add any remaining visible items
+      while (visibleIndex < newVisibleIds.length) {
+        if (!finalOrder.includes(newVisibleIds[visibleIndex])) {
+          finalOrder.push(newVisibleIds[visibleIndex]);
+        }
+        visibleIndex++;
+      }
 
       updateSettings.mutate(
-        { nav_order: newNavOrder },
+        { nav_order: finalOrder },
         {
           onSuccess: () => {
             toast.success("Ordem do menu salva!");
