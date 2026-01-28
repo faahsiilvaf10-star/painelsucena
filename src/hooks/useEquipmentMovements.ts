@@ -149,3 +149,22 @@ export function useTodayMovementsSummary() {
     },
   });
 }
+
+export function useWeeklyEquipmentMovements(startDate: string, endDate: string) {
+  return useQuery({
+    queryKey: ["equipment-movements-weekly", startDate, endDate],
+    queryFn: async (): Promise<EquipmentMovement[]> => {
+      const { data, error } = await supabase
+        .from("equipment_movements")
+        .select("*")
+        .gte("movement_date", startDate)
+        .lte("movement_date", endDate)
+        .order("movement_date", { ascending: false })
+        .order("movement_time", { ascending: false });
+
+      if (error) throw error;
+      return (data || []) as EquipmentMovement[];
+    },
+    enabled: !!startDate && !!endDate,
+  });
+}

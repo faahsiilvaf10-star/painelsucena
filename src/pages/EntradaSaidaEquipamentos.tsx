@@ -1,7 +1,7 @@
-import { useState } from "react";
-import { format } from "date-fns";
+import { useState, useMemo } from "react";
+import { format, startOfWeek, endOfWeek, subWeeks, parseISO } from "date-fns";
 import { ptBR } from "date-fns/locale";
-import { ArrowDownToLine, ArrowUpFromLine, Truck, Calendar, Clock, Search, Plus, Wrench, Shield, ClipboardCheck, Trash2, AlertCircle, ChevronDown } from "lucide-react";
+import { ArrowDownToLine, ArrowUpFromLine, Truck, Calendar, Clock, Search, Plus, Wrench, Shield, ClipboardCheck, Trash2, AlertCircle, History, ChevronLeft, ChevronRight } from "lucide-react";
 import Layout from "@/components/layout/Layout";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
@@ -19,6 +19,7 @@ import {
   useCreateEquipmentMovement, 
   useTodayMovementsSummary,
   useDeleteEquipmentMovement,
+  useWeeklyEquipmentMovements,
   MovementType,
   ExitReason,
   EquipmentMovement
@@ -26,6 +27,7 @@ import {
 import { useEquipment } from "@/hooks/useEquipment";
 import { useIsAdmin } from "@/hooks/useUserRole";
 import { getBrazilNorthTodayString } from "@/lib/timezone";
+import { ExportMovementsPdfButton } from "@/components/equipamentos/ExportMovementsPdfButton";
 
 const EXIT_REASON_LABELS: Record<ExitReason, { label: string; icon: typeof Wrench; color: string }> = {
   manutencao_corretiva: { label: "Manutenção Corretiva", icon: Wrench, color: "text-red-500" },
@@ -43,6 +45,7 @@ const EntradaSaidaEquipamentos = () => {
   const [observation, setObservation] = useState("");
   const [exitReason, setExitReason] = useState<ExitReason | "">("");
   const [problemDescription, setProblemDescription] = useState("");
+  const [weekOffset, setWeekOffset] = useState(0);
 
   const today = getBrazilNorthTodayString();
   const { data: movements, isLoading } = useEquipmentMovements(today);
@@ -51,6 +54,37 @@ const EntradaSaidaEquipamentos = () => {
   const createMovement = useCreateEquipmentMovement();
   const deleteMovement = useDeleteEquipmentMovement();
   const { isAdmin } = useIsAdmin();
+
+  // Calculate week dates for history
+  const weekDates = useMemo(() => {
+    const baseDate = subWeeks(new Date(), weekOffset);
+    const start = startOfWeek(baseDate, { weekStartsOn: 1 }); // Monday
+    const end = endOfWeek(baseDate, { weekStartsOn: 1 }); // Sunday
+    return {
+      startDate: format(start, "yyyy-MM-dd"),
+      endDate: format(end, "yyyy-MM-dd"),
+      startFormatted: format(start, "dd/MM", { locale: ptBR }),
+      endFormatted: format(end, "dd/MM/yyyy", { locale: ptBR }),
+    };
+  }, [weekOffset]);
+
+  const { data: weeklyMovements, isLoading: isLoadingWeekly } = useWeeklyEquipmentMovements(
+    weekDates.startDate,
+    weekDates.endDate
+  );
+
+  // Group weekly movements by date
+  const groupedWeeklyMovements = useMemo(() => {
+    if (!weeklyMovements) return {};
+    return weeklyMovements.reduce((acc, movement) => {
+      const date = movement.movement_date;
+      if (!acc[date]) {
+        acc[date] = [];
+      }
+      acc[date].push(movement);
+      return acc;
+    }, {} as Record<string, EquipmentMovement[]>);
+  }, [weeklyMovements]);
 
   // Handle equipment selection
   const handleEquipmentSelect = (equipmentId: string) => {
@@ -420,7 +454,7 @@ const EntradaSaidaEquipamentos = () => {
 
         {/* Tabs */}
         <Tabs defaultValue="todos" className="space-y-6">
-          <TabsList>
+          <TabsList className="flex-wrap">
             <TabsTrigger value="todos">
               Todos ({filteredMovements.length})
             </TabsTrigger>
@@ -431,6 +465,10 @@ const EntradaSaidaEquipamentos = () => {
             <TabsTrigger value="saidas" className="gap-2">
               <ArrowUpFromLine className="h-4 w-4" />
               Saídas ({saidas.length})
+            </TabsTrigger>
+            <TabsTrigger value="historico" className="gap-2">
+              <History className="h-4 w-4" />
+              Histórico
             </TabsTrigger>
           </TabsList>
 
@@ -507,6 +545,79 @@ const EntradaSaidaEquipamentos = () => {
                   <ScrollArea className="max-h-[500px]">
                     <div className="space-y-3">
                       {saidas.map(renderMovementCard)}
+                    </div>
+                  </ScrollArea>
+                )}
+              </CardContent>
+            </Card>
+          </TabsContent>
+
+          <TabsContent value="historico" className="space-y-4">
+            <Card>
+              <CardHeader>
+                <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">
+                  <CardTitle className="text-lg flex items-center gap-2">
+                    <History className="h-5 w-5 text-primary" />
+                    Histórico Semanal
+                  </CardTitle>
+                  <div className="flex items-center gap-2">
+                    <Button
+                      variant="outline"
+                      size="icon"
+                      onClick={() => setWeekOffset(prev => prev + 1)}
+                    >
+                      <ChevronLeft className="h-4 w-4" />
+                    </Button>
+                    <span className="text-sm font-medium min-w-[160px] text-center">
+                      {weekDates.startFormatted} - {weekDates.endFormatted}
+                    </span>
+                    <Button
+                      variant="outline"
+                      size="icon"
+                      onClick={() => setWeekOffset(prev => Math.max(0, prev - 1))}
+                      disabled={weekOffset === 0}
+                    >
+                      <ChevronRight className="h-4 w-4" />
+                    </Button>
+                    <ExportMovementsPdfButton
+                      movements={weeklyMovements || []}
+                      startDate={weekDates.startDate}
+                      endDate={weekDates.endDate}
+                    />
+                  </div>
+                </div>
+              </CardHeader>
+              <CardContent>
+                {isLoadingWeekly ? (
+                  <div className="text-center py-8 text-muted-foreground">
+                    Carregando histórico...
+                  </div>
+                ) : !weeklyMovements || weeklyMovements.length === 0 ? (
+                  <div className="text-center py-12 text-muted-foreground">
+                    <History className="h-12 w-12 mx-auto mb-4 opacity-50" />
+                    <p>Nenhum registro nesta semana</p>
+                  </div>
+                ) : (
+                  <ScrollArea className="max-h-[600px]">
+                    <div className="space-y-6">
+                      {Object.entries(groupedWeeklyMovements)
+                        .sort(([a], [b]) => b.localeCompare(a))
+                        .map(([date, dayMovements]) => (
+                          <div key={date} className="space-y-3">
+                            <div className="flex items-center gap-2 sticky top-0 bg-background py-2 z-10">
+                              <Calendar className="h-4 w-4 text-primary" />
+                              <span className="font-semibold text-primary">
+                                {format(parseISO(date), "EEEE, dd 'de' MMMM", { locale: ptBR })}
+                              </span>
+                              <Badge variant="secondary" className="ml-2">
+                                {dayMovements.length} registro{dayMovements.length !== 1 ? 's' : ''}
+                              </Badge>
+                            </div>
+                            <div className="space-y-2 pl-6 border-l-2 border-muted">
+                              {dayMovements.map(renderMovementCard)}
+                            </div>
+                          </div>
+                        ))}
                     </div>
                   </ScrollArea>
                 )}
