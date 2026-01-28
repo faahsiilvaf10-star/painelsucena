@@ -15,23 +15,13 @@ import { ptBR } from "date-fns/locale";
 import { cn } from "@/lib/utils";
 import { toast } from "sonner";
 import { VerifiedBadge } from "@/components/VerifiedBadge";
+import { formatCargoLabel } from "@/lib/cargoUtils";
+
 interface ChatDialogProps {
   open: boolean;
   onOpenChange: (open: boolean) => void;
   selectedUser: UserWithStatus | null;
 }
-const cargoLabels: Record<string, string> = {
-  preposto: "Preposto",
-  encarregado_geral: "Encarregado Geral",
-  encarregado_i: "Encarregado I",
-  encarregado_ii: "Encarregado II",
-  tecnico_seguranca_i: "Técnico Segurança I",
-  tecnico_seguranca_ii: "Técnico Segurança II",
-  tecnico_meio_ambiente: "Técnico Meio Ambiente",
-  aux_administrativo: "Aux. Administrativo",
-  aux_almoxarifado: "Aux. Almoxarifado",
-  planejador: "Planejador"
-};
 const getInitials = (name: string) => {
   return name.split(" ").map(n => n[0]).join("").substring(0, 2).toUpperCase();
 };
@@ -218,7 +208,7 @@ export const ChatDialog = ({
                 {selectedUser.isAdmin && <VerifiedBadge size="xs" />}
               </DialogTitle>
               <p className="text-white/70 text-xs truncate">
-                {isOtherTyping ? <span className="text-[#25d366]">digitando...</span> : selectedUser.isOnline ? "online" : cargoLabels[selectedUser.cargo] || selectedUser.cargo}
+                {isOtherTyping ? <span className="text-[#25d366]">digitando...</span> : selectedUser.isOnline ? "online" : formatCargoLabel(selectedUser.cargo)}
               </p>
             </div>
 

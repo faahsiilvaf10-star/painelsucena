@@ -41,23 +41,7 @@ import { ScrollArea } from "@/components/ui/scroll-area";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { toast } from "sonner";
 import { SidebarBackground } from "./SidebarBackground";
-
-const formatCargoLabel = (cargo?: string): string => {
-  if (!cargo) return "Membro";
-  const cargoLabels: Record<string, string> = {
-    preposto: "Preposto",
-    encarregado_geral: "Encarregado Geral",
-    encarregado_i: "Encarregado I",
-    encarregado_ii: "Encarregado II",
-    tecnico_seguranca_i: "Técnico Segurança I",
-    tecnico_seguranca_ii: "Técnico Segurança II",
-    tecnico_meio_ambiente: "Técnico Meio Ambiente",
-    aux_administrativo: "Aux. Administrativo",
-    aux_almoxarifado: "Aux. Almoxarifado",
-    planejador: "Planejador",
-  };
-  return cargoLabels[cargo] || cargo;
-};
+import { formatCargoLabel } from "@/lib/cargoUtils";
 
 interface NavItem {
   id: string;

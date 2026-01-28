@@ -80,10 +80,7 @@ const UNIT_OPTIONS: { value: QuantityUnit; label: string }[] = [
   { value: "rolo", label: "Rolo(s)" },
 ];
 
-const CARGO_LABELS: Record<string, string> = {
-  aux_administrativo: "Aux. Administrativo",
-  aux_almoxarifado: "Aux. Almoxarifado",
-};
+import { formatCargoLabel } from "@/lib/cargoUtils";
 
 export function OrderDetailsDialog({ order, open, onOpenChange }: OrderDetailsDialogProps) {
   const [showDeleteConfirm, setShowDeleteConfirm] = useState(false);
@@ -179,7 +176,7 @@ export function OrderDetailsDialog({ order, open, onOpenChange }: OrderDetailsDi
       message += `*Previsão:* ${format(new Date(order.expected_date), "dd/MM/yyyy", { locale: ptBR })}\n`;
     }
     if (order.mentioned_cargo) {
-      message += `*Encaminhado para:* ${CARGO_LABELS[order.mentioned_cargo]}\n`;
+      message += `*Encaminhado para:* ${formatCargoLabel(order.mentioned_cargo)}\n`;
     }
     
     return encodeURIComponent(message);
@@ -355,7 +352,7 @@ export function OrderDetailsDialog({ order, open, onOpenChange }: OrderDetailsDi
                 {order.mentioned_cargo && (
                   <div className="space-y-1">
                     <span className="text-muted-foreground">Encaminhado para</span>
-                    <p className="font-medium">{CARGO_LABELS[order.mentioned_cargo]}</p>
+                    <p className="font-medium">{formatCargoLabel(order.mentioned_cargo)}</p>
                   </div>
                 )}
               </div>

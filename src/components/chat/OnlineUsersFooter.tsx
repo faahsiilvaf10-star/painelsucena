@@ -12,22 +12,11 @@ import { ScrollArea } from "@/components/ui/scroll-area";
 import { VerifiedBadge } from "@/components/VerifiedBadge";
 import { formatDistanceToNow } from "date-fns";
 import { ptBR } from "date-fns/locale";
+import { formatCargoLabel } from "@/lib/cargoUtils";
 
 interface OnlineUsersFooterProps {
   onUserClick: (user: UserWithStatus) => void;
 }
-const cargoLabels: Record<string, string> = {
-  preposto: "Preposto",
-  encarregado_geral: "Enc. Geral",
-  encarregado_i: "Enc. I",
-  encarregado_ii: "Enc. II",
-  tecnico_seguranca_i: "TST I",
-  tecnico_seguranca_ii: "TST II",
-  tecnico_meio_ambiente: "TMA",
-  aux_administrativo: "Aux. Adm.",
-  aux_almoxarifado: "Aux. Almox.",
-  planejador: "Planejador"
-};
 const getInitials = (name: string) => {
   return name.split(" ").map(n => n[0]).join("").substring(0, 2).toUpperCase();
 };
@@ -166,7 +155,7 @@ export const OnlineUsersFooter = ({
                           {user.isAdmin && <VerifiedBadge size="xs" />}
                         </div>
                         <p className="text-xs text-muted-foreground">
-                          {cargoLabels[user.cargo] || user.cargo}
+                          {formatCargoLabel(user.cargo, true)}
                           {user.isOnline && <span className="ml-2 text-green-500">• Online</span>}
                         </p>
                       </div>
@@ -214,7 +203,7 @@ export const OnlineUsersFooter = ({
                         {user.full_name}
                         {user.isCurrentUser && <span className="text-primary ml-1">(você)</span>}
                       </p>
-                      <p className="text-xs text-muted-foreground">{cargoLabels[user.cargo] || user.cargo}</p>
+                      <p className="text-xs text-muted-foreground">{formatCargoLabel(user.cargo, true)}</p>
                       {user.justCameOnline && (
                         <p className="text-xs text-green-500 mt-0.5">🟢 Acabou de entrar!</p>
                       )}
@@ -252,7 +241,7 @@ export const OnlineUsersFooter = ({
                     </TooltipTrigger>
                     <TooltipContent side="top" className="bg-card border hidden sm:block">
                       <p className="font-medium">{user.full_name}</p>
-                      <p className="text-xs text-muted-foreground">{cargoLabels[user.cargo] || user.cargo}</p>
+                      <p className="text-xs text-muted-foreground">{formatCargoLabel(user.cargo, true)}</p>
                       {lastSeenText && (
                         <p className="text-xs text-muted-foreground/70 mt-0.5">
                           Visto {lastSeenText}
