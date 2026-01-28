@@ -61,6 +61,7 @@ const Lembretes = () => {
   const [title, setTitle] = useState("");
   const [description, setDescription] = useState("");
   const [eventDate, setEventDate] = useState("");
+  const [eventTime, setEventTime] = useState("");
   const [alertDaysBefore, setAlertDaysBefore] = useState(0);
   const [showOnEventDay, setShowOnEventDay] = useState(true);
   const [mentionType, setMentionType] = useState<"all" | "specific" | "me">("me");
@@ -111,6 +112,7 @@ const Lembretes = () => {
         title,
         description: description || undefined,
         event_date: isRecurring ? new Date().toISOString().split('T')[0] : eventDate,
+        event_time: eventTime || null,
         alert_days_before: isRecurring ? 0 : alertDaysBefore,
         show_on_event_day: isRecurring ? true : showOnEventDay,
         mention_type: mentionType,
@@ -127,6 +129,7 @@ const Lembretes = () => {
       setTitle("");
       setDescription("");
       setEventDate("");
+      setEventTime("");
       setAlertDaysBefore(0);
       setShowOnEventDay(true);
       setMentionType("me");
@@ -345,6 +348,20 @@ const Lembretes = () => {
                           value={eventDate}
                           onChange={(e) => setEventDate(e.target.value)}
                         />
+                      </div>
+
+                      <div className="space-y-2">
+                        <Label htmlFor="eventTime">Hora do Evento (opcional)</Label>
+                        <Input
+                          id="eventTime"
+                          type="time"
+                          value={eventTime}
+                          onChange={(e) => setEventTime(e.target.value)}
+                          placeholder="HH:mm"
+                        />
+                        <p className="text-xs text-muted-foreground">
+                          Deixe em branco se não houver horário específico
+                        </p>
                       </div>
 
                       <Separator />
@@ -643,7 +660,16 @@ const Lembretes = () => {
                               {format(new Date(reminder.event_date), "dd 'de' MMMM 'de' yyyy", {
                                 locale: ptBR,
                               })}
+                              {reminder.event_time && ` às ${reminder.event_time.slice(0, 5)}`}
                             </span>
+                          </div>
+                        )}
+
+                        {/* Show creator for "all" or "specific" reminders */}
+                        {(reminder.mention_type === "all" || reminder.mention_type === "specific") && reminder.creator_name && (
+                          <div className="flex items-center gap-2 text-xs text-muted-foreground">
+                            <User className="h-3 w-3" />
+                            <span>Criado por: <span className="font-medium text-foreground/80">{reminder.creator_name}</span></span>
                           </div>
                         )}
 

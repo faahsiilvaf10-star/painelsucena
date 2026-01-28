@@ -145,12 +145,22 @@ export const ReminderHighlightBanner = () => {
                                 </p>
                               )}
                               <div className="flex items-center gap-3 mt-1 flex-wrap">
-                                <div className="flex items-center gap-1">
-                                  <UserCircle className="h-3 w-3 text-muted-foreground" />
-                                  <span className="text-xs text-muted-foreground">
-                                    Criado por: <span className="font-medium text-foreground/80">{reminder.creator_name}</span>
-                                  </span>
-                                </div>
+                                {reminder.event_time && (
+                                  <div className="flex items-center gap-1">
+                                    <Calendar className="h-3 w-3 text-muted-foreground" />
+                                    <span className="text-xs text-muted-foreground">
+                                      às <span className="font-medium text-foreground/80">{reminder.event_time.slice(0, 5)}</span>
+                                    </span>
+                                  </div>
+                                )}
+                                {(reminder.mention_type === "all" || reminder.mention_type === "specific") && (
+                                  <div className="flex items-center gap-1">
+                                    <UserCircle className="h-3 w-3 text-muted-foreground" />
+                                    <span className="text-xs text-muted-foreground">
+                                      Criado por: <span className="font-medium text-foreground/80">{reminder.creator_name}</span>
+                                    </span>
+                                  </div>
+                                )}
                                 <div className="flex items-center gap-1">
                                   <MentionIcon className="h-3 w-3 text-muted-foreground" />
                                   <span className="text-xs text-muted-foreground">
@@ -273,6 +283,7 @@ export const ReminderHighlightBanner = () => {
                               {format(new Date(reminder.event_date), "dd 'de' MMM", {
                                 locale: ptBR,
                               })}
+                              {reminder.event_time && ` às ${reminder.event_time.slice(0, 5)}`}
                             </span>
                             <Badge
                               variant="secondary"
@@ -292,12 +303,14 @@ export const ReminderHighlightBanner = () => {
                             </p>
                           )}
                           <div className="flex flex-col gap-1 mt-2">
-                            <div className="flex items-center gap-1">
-                              <UserCircle className="h-3 w-3 text-muted-foreground" />
-                              <span className="text-xs text-muted-foreground truncate">
-                                {reminder.creator_name}
-                              </span>
-                            </div>
+                            {(reminder.mention_type === "all" || reminder.mention_type === "specific") && reminder.creator_name && (
+                              <div className="flex items-center gap-1">
+                                <UserCircle className="h-3 w-3 text-muted-foreground" />
+                                <span className="text-xs text-muted-foreground truncate">
+                                  {reminder.creator_name}
+                                </span>
+                              </div>
+                            )}
                             <div className="flex items-center gap-1">
                               <MentionIcon className="h-3 w-3 text-muted-foreground" />
                               <span className="text-xs text-muted-foreground capitalize">

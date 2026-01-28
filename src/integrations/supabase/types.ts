@@ -1201,6 +1201,7 @@ export type Database = {
           created_by: string
           description: string | null
           event_date: string
+          event_time: string | null
           id: string
           is_recurring: boolean | null
           mention_type: string
@@ -1217,6 +1218,7 @@ export type Database = {
           created_by: string
           description?: string | null
           event_date: string
+          event_time?: string | null
           id?: string
           is_recurring?: boolean | null
           mention_type: string
@@ -1233,6 +1235,7 @@ export type Database = {
           created_by?: string
           description?: string | null
           event_date?: string
+          event_time?: string | null
           id?: string
           is_recurring?: boolean | null
           mention_type?: string

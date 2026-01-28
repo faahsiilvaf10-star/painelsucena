@@ -54,6 +54,7 @@ export const EditReminderDialog = ({ reminder, trigger }: EditReminderDialogProp
   const [title, setTitle] = useState(reminder.title);
   const [description, setDescription] = useState(reminder.description || "");
   const [eventDate, setEventDate] = useState(reminder.event_date);
+  const [eventTime, setEventTime] = useState(reminder.event_time || "");
   const [alertDaysBefore, setAlertDaysBefore] = useState(reminder.alert_days_before);
   const [showOnEventDay, setShowOnEventDay] = useState(reminder.show_on_event_day);
   const [mentionType, setMentionType] = useState<"all" | "specific" | "me">(reminder.mention_type);
@@ -67,6 +68,7 @@ export const EditReminderDialog = ({ reminder, trigger }: EditReminderDialogProp
       setTitle(reminder.title);
       setDescription(reminder.description || "");
       setEventDate(reminder.event_date);
+      setEventTime(reminder.event_time || "");
       setAlertDaysBefore(reminder.alert_days_before);
       setShowOnEventDay(reminder.show_on_event_day);
       setMentionType(reminder.mention_type);
@@ -126,6 +128,7 @@ export const EditReminderDialog = ({ reminder, trigger }: EditReminderDialogProp
         title,
         description: description || null,
         event_date: isRecurring ? new Date().toISOString().split('T')[0] : eventDate,
+        event_time: eventTime || null,
         alert_days_before: isRecurring ? 0 : alertDaysBefore,
         show_on_event_day: isRecurring ? true : showOnEventDay,
         mention_type: mentionType,
@@ -260,6 +263,20 @@ export const EditReminderDialog = ({ reminder, trigger }: EditReminderDialogProp
                     value={eventDate}
                     onChange={(e) => setEventDate(e.target.value)}
                   />
+                </div>
+
+                <div className="space-y-2">
+                  <Label htmlFor="edit-eventTime">Hora do Evento (opcional)</Label>
+                  <Input
+                    id="edit-eventTime"
+                    type="time"
+                    value={eventTime}
+                    onChange={(e) => setEventTime(e.target.value)}
+                    placeholder="HH:mm"
+                  />
+                  <p className="text-xs text-muted-foreground">
+                    Deixe em branco se não houver horário específico
+                  </p>
                 </div>
 
                 <Separator />
