@@ -235,7 +235,7 @@ export const ReminderHighlightBanner = () => {
                   <Card
                     key={reminder.id}
                     className={cn(
-                      "flex-shrink-0 w-72 relative overflow-hidden transition-all snow-bg border-green-500/40 neon-glow-border rounded-xl",
+                      "flex-shrink-0 w-72 relative overflow-hidden transition-all snow-bg border-green-500/40 neon-glow-border reminder-card-hover rounded-xl cursor-pointer",
                       isUrgent && "border-green-400/60"
                     )}
                   >
