@@ -49,6 +49,8 @@ export function useEquipmentMovements(date?: string) {
       if (error) throw error;
       return (data || []) as EquipmentMovement[];
     },
+    staleTime: 0,
+    refetchOnMount: "always",
   });
 }
 
@@ -66,6 +68,8 @@ export function useAllEquipmentMovements() {
       if (error) throw error;
       return (data || []) as EquipmentMovement[];
     },
+    staleTime: 0,
+    refetchOnMount: "always",
   });
 }
 
@@ -84,8 +88,9 @@ export function useAllEntries() {
       if (error) throw error;
       return (data || []) as EquipmentMovement[];
     },
-    staleTime: 0, // Always fetch fresh data
-    refetchOnMount: true,
+    staleTime: 0,
+    refetchOnMount: "always",
+    gcTime: 0, // Don't cache
   });
 }
 
@@ -124,8 +129,9 @@ export function useEquipmentCurrentlyOut() {
         return b.movement_time.localeCompare(a.movement_time);
       });
     },
-    staleTime: 0, // Always fetch fresh data
-    refetchOnMount: true,
+    staleTime: 0,
+    refetchOnMount: "always",
+    gcTime: 0, // Don't cache
   });
 }
 
