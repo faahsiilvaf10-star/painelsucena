@@ -57,11 +57,11 @@ export const useAllUsers = () => {
     fetchProfiles();
   }, []);
 
-  // Track presence
+  // Track presence - use same channel name as useOnlineUsers for consistency
   useEffect(() => {
     if (!user) return;
 
-    const presenceChannel = supabase.channel("all-users-presence", {
+    const presenceChannel = supabase.channel("online-users", {
       config: {
         presence: {
           key: user.id,
