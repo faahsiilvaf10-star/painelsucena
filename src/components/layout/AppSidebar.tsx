@@ -1,4 +1,4 @@
-import { Users, ClipboardList, Grid3X3, LayoutDashboard, FileBarChart, LogOut, LogIn, AlertTriangle, PanelLeftClose, PanelLeft, Settings, Sun, Truck, Bell, FileText, LucideIcon, Heart, ShoppingCart, Package, GripVertical, User, FolderOpen, ShieldCheck, Leaf, Hammer, Target, ClipboardCheck, BadgeCheck, Link2 } from "lucide-react";
+import { Users, ClipboardList, Grid3X3, LayoutDashboard, FileBarChart, LogOut, LogIn, AlertTriangle, PanelLeftClose, PanelLeft, Settings, Sun, Truck, Bell, FileText, LucideIcon, Heart, ShoppingCart, Package, GripVertical, User, FolderOpen, ShieldCheck, Leaf, Hammer, Target, ClipboardCheck, BadgeCheck, Link2, ArrowLeftRight } from "lucide-react";
 import { Link, useLocation, useNavigate } from "react-router-dom";
 import { useMemo } from "react";
 import { useAuth } from "@/hooks/useAuth";
@@ -63,6 +63,7 @@ const allNavItems: NavItem[] = [
   { id: "campanhas", icon: Heart, label: "Campanhas", path: "/campanhas" },
   { id: "dds", icon: Sun, label: "DDS", path: "/dds" },
   { id: "documentos", icon: FolderOpen, label: "Documentos", path: "/documentos" },
+  { id: "entrada-saida", icon: ArrowLeftRight, label: "Entrada e Saída", path: "/entrada-saida-equipamentos" },
   { id: "equipamentos", icon: Truck, label: "Equipamentos", path: "/equipamentos" },
   { id: "estoque", icon: Package, label: "Estoque", path: "/estoque" },
   { id: "lembretes", icon: Bell, label: "Lembretes", path: "/lembretes" },
