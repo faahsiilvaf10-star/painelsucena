@@ -1,4 +1,4 @@
-import { useState, useEffect } from "react";
+import { useState, useEffect, useRef } from "react";
 import {
   Dialog,
   DialogContent,
@@ -12,6 +12,7 @@ import { format } from "date-fns";
 import { ptBR } from "date-fns/locale";
 import { Megaphone, ChevronLeft, ChevronRight, X } from "lucide-react";
 import { cn } from "@/lib/utils";
+import { playSoundFile } from "@/lib/sounds";
 
 // Particle component matching sidebar style
 function SidebarStyleParticle({ x, y, size, duration, delay, opacity }: {
@@ -62,8 +63,22 @@ function ParticleField() {
 export function AnnouncementModal() {
   const { unreadAnnouncements, markAsRead } = useUnreadAnnouncements();
   const [currentIndex, setCurrentIndex] = useState(0);
+  const hasPlayedSound = useRef(false);
 
   const currentAnnouncement = unreadAnnouncements[currentIndex];
+
+  // Play sound when announcement modal appears
+  useEffect(() => {
+    if (currentAnnouncement && !hasPlayedSound.current) {
+      playSoundFile("/sounds/chime.mp3");
+      hasPlayedSound.current = true;
+    }
+    
+    // Reset when all announcements are read
+    if (!currentAnnouncement) {
+      hasPlayedSound.current = false;
+    }
+  }, [currentAnnouncement]);
 
   if (!currentAnnouncement) return null;
 
