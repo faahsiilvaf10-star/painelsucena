@@ -29,6 +29,7 @@ import {
 import { getBrazilNorthDate } from "@/lib/timezone";
 import { cn } from "@/lib/utils";
 import MonthlyReportDialog from "@/components/atividades/MonthlyReportDialog";
+import { ReadOnlyBanner } from "@/components/ReadOnlyBanner";
 import { GoalProgressCard } from "@/components/goals/GoalProgressCard";
 
 const FAIXA_OPTIONS = [
@@ -283,8 +284,19 @@ export default function AtividadesII() {
     }
   }, [existingReport, selectedDateStr]);
 
-  // Check access permissions
-  const hasAccess = authReady && (isAdmin || profile?.cargo === "encarregado_ii");
+  // Check access permissions - can view if encarregado_geral, encarregado_ii, or admin
+  const canView = authReady && (
+    isAdmin || 
+    profile?.cargo === "encarregado_geral" || 
+    profile?.cargo === "encarregado_ii"
+  );
+  
+  // Check edit permission - only encarregado_geral, encarregado_ii, or admin can edit
+  const canEdit = authReady && (
+    isAdmin || 
+    profile?.cargo === "encarregado_geral" || 
+    profile?.cargo === "encarregado_ii"
+  );
 
   if (!authReady || isLoadingProfile) {
     return (
@@ -296,14 +308,14 @@ export default function AtividadesII() {
     );
   }
 
-  if (!hasAccess) {
+  if (!canView) {
     return (
       <Layout>
         <div className="flex flex-col items-center justify-center min-h-[60vh] text-center px-4">
           <Hammer className="h-16 w-16 text-muted-foreground mb-4" />
           <h1 className="text-2xl font-bold mb-2">Acesso Restrito</h1>
           <p className="text-muted-foreground mb-4">
-            Apenas Administradores e Encarregados II podem acessar esta página.
+            Apenas Administradores, Encarregado Geral e Encarregados II podem acessar esta página.
           </p>
           <Button onClick={() => navigate("/")}>Voltar ao Início</Button>
         </div>
@@ -553,6 +565,8 @@ export default function AtividadesII() {
   return (
     <Layout>
       <div className="p-4 sm:p-6 space-y-4 sm:space-y-6">
+        {/* Read-only banner */}
+        {!canEdit && <ReadOnlyBanner message="Você está visualizando esta página em modo somente leitura. Apenas Administradores, Encarregado Geral e Encarregado II podem editar." />}
         {/* Header */}
         <div className="flex flex-col gap-4">
           <div className="flex items-center gap-3">
@@ -656,13 +670,13 @@ export default function AtividadesII() {
               }}
             />
 
-            {existingReport && (
+            {existingReport && canEdit && (
               <Button variant="destructive" size="icon" onClick={handleDelete}>
                 <Trash2 className="h-4 w-4" />
               </Button>
             )}
 
-            <Button onClick={() => handleSave()} disabled={saveReport.isPending} variant="outline">
+            <Button onClick={() => handleSave()} disabled={saveReport.isPending || !canEdit} variant="outline">
               {saveReport.isPending ? (
                 <Loader2 className="h-4 w-4 mr-2 animate-spin" />
               ) : (
@@ -673,7 +687,7 @@ export default function AtividadesII() {
 
             <Button 
               onClick={handleWhatsApp} 
-              disabled={saveReport.isPending}
+              disabled={saveReport.isPending || !canEdit}
               className="gap-2 bg-orange-600 hover:bg-orange-700"
             >
               {saveReport.isPending ? (
