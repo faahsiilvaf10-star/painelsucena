@@ -151,6 +151,17 @@ export function AppSidebar() {
   const { navOrder } = useUserNavOrder();
   const isCollapsed = state === "collapsed";
 
+  // Admin sempre edita/visualiza a ordem GLOBAL do menu.
+  // Usuários comuns seguem a hierarquia definida no hook (ordem pessoal -> global -> default).
+  const effectiveNavOrder = useMemo(() => {
+    if (isAdmin) {
+      return Array.isArray(settings?.nav_order) && settings.nav_order.length > 0
+        ? settings.nav_order
+        : navOrder;
+    }
+    return navOrder;
+  }, [isAdmin, navOrder, settings?.nav_order]);
+
   const sensors = useSensors(
     useSensor(PointerSensor, {
       activationConstraint: {
@@ -187,12 +198,12 @@ export function AppSidebar() {
 
   // Order nav items based on user's personal nav order
   const orderedNavItems = useMemo(() => {
-    if (!navOrder || navOrder.length === 0) {
+    if (!effectiveNavOrder || effectiveNavOrder.length === 0) {
       return visibleNavItems;
     }
     
     const ordered: NavItem[] = [];
-    navOrder.forEach((id: string) => {
+    effectiveNavOrder.forEach((id: string) => {
       const item = visibleNavItems.find(nav => nav.id === id);
       if (item) ordered.push(item);
     });
@@ -205,7 +216,7 @@ export function AppSidebar() {
     });
     
     return ordered;
-  }, [navOrder, visibleNavItems]);
+  }, [effectiveNavOrder, visibleNavItems]);
 
   const handleDragEnd = (event: DragEndEvent) => {
     // Only admins can reorder the global sidebar
@@ -221,7 +232,11 @@ export function AppSidebar() {
       const newVisibleIds = newVisibleOrder.map((item) => item.id);
       
       // Preserve hidden items' positions from the original nav_order
-      const currentNavOrder = navOrder || allNavItems.map(item => item.id);
+      // (para admin, a referência deve ser a ordem global)
+      const currentNavOrder =
+        (Array.isArray(settings?.nav_order) && settings.nav_order.length > 0
+          ? settings.nav_order
+          : allNavItems.map((item) => item.id));
       const hiddenIds = currentNavOrder.filter((id: string) => !visibleNavItems.find(item => item.id === id));
       
       // Build final order: start with all items from allNavItems in their relative positions
