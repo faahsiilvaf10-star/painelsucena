@@ -1,7 +1,7 @@
-import { useState, useMemo } from "react";
+import { useState, useMemo, useRef } from "react";
 import { format, parse, isWithinInterval, startOfDay } from "date-fns";
 import { ptBR } from "date-fns/locale";
-import { FileText, Calendar, Search, ChevronDown, ChevronUp, ExternalLink, BookOpen, AlertTriangle, Sparkles } from "lucide-react";
+import { FileText, Calendar, Search, ChevronDown, ChevronUp, ExternalLink, BookOpen, AlertTriangle, Sparkles, Upload, Trash2, Loader2 } from "lucide-react";
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
 import { Badge } from "@/components/ui/badge";
@@ -10,6 +10,8 @@ import { Collapsible, CollapsibleContent, CollapsibleTrigger } from "@/component
 import { ScrollArea } from "@/components/ui/scroll-area";
 import { ddsThemes2026, DDSWeekTheme } from "@/data/ddsThemes2026";
 import { getBrazilNorthDate } from "@/lib/timezone";
+import { useDDSPlanningDocument } from "@/hooks/useDDSPlanningDocument";
+import { AlertDialog, AlertDialogAction, AlertDialogCancel, AlertDialogContent, AlertDialogDescription, AlertDialogFooter, AlertDialogHeader, AlertDialogTitle, AlertDialogTrigger } from "@/components/ui/alert-dialog";
 
 interface DDSThemesCardProps {
   selectedDate?: Date;
@@ -19,6 +21,9 @@ export const DDSThemesCard = ({ selectedDate }: DDSThemesCardProps) => {
   const [searchTerm, setSearchTerm] = useState("");
   const [expandedWeeks, setExpandedWeeks] = useState<number[]>([]);
   const [showPdfViewer, setShowPdfViewer] = useState(false);
+  const fileInputRef = useRef<HTMLInputElement>(null);
+  
+  const { document, isLoading, isUploading, uploadDocument, deleteDocument } = useDDSPlanningDocument();
 
   const today = getBrazilNorthDate();
 
@@ -66,8 +71,36 @@ export const DDSThemesCard = ({ selectedDate }: DDSThemesCardProps) => {
     return `${format(startDate, "dd/MM")} - ${format(endDate, "dd/MM")}`;
   };
 
+  const handleFileChange = async (event: React.ChangeEvent<HTMLInputElement>) => {
+    const file = event.target.files?.[0];
+    if (file) {
+      const success = await uploadDocument(file);
+      if (success) {
+        setShowPdfViewer(true);
+      }
+    }
+    // Reset input
+    if (fileInputRef.current) {
+      fileInputRef.current.value = "";
+    }
+  };
+
+  const handleDeleteDocument = async () => {
+    await deleteDocument();
+    setShowPdfViewer(false);
+  };
+
   return (
     <div className="space-y-4">
+      {/* Hidden file input */}
+      <input
+        type="file"
+        ref={fileInputRef}
+        onChange={handleFileChange}
+        accept=".pdf"
+        className="hidden"
+      />
+      
       {/* PDF Viewer Card */}
       <Card className="border-blue-200 dark:border-blue-800 bg-gradient-to-br from-blue-50 to-indigo-50 dark:from-blue-950/30 dark:to-indigo-950/30">
         <CardHeader className="pb-3">
@@ -76,42 +109,101 @@ export const DDSThemesCard = ({ selectedDate }: DDSThemesCardProps) => {
               <BookOpen className="h-5 w-5 text-blue-600" />
               Planejamento de DDS 2026
             </div>
-            <Button
-              variant="outline"
-              size="sm"
-              onClick={() => setShowPdfViewer(!showPdfViewer)}
-              className="border-blue-300 hover:bg-blue-100 dark:hover:bg-blue-900/50"
-            >
-              {showPdfViewer ? (
-                <>
-                  <ChevronUp className="h-4 w-4 mr-1" />
-                  Ocultar PDF
-                </>
-              ) : (
-                <>
-                  <FileText className="h-4 w-4 mr-1" />
-                  Ver PDF Completo
-                </>
+            <div className="flex items-center gap-2">
+              {document && (
+                <Button
+                  variant="outline"
+                  size="sm"
+                  onClick={() => setShowPdfViewer(!showPdfViewer)}
+                  className="border-blue-300 hover:bg-blue-100 dark:hover:bg-blue-900/50"
+                >
+                  {showPdfViewer ? (
+                    <>
+                      <ChevronUp className="h-4 w-4 mr-1" />
+                      Ocultar PDF
+                    </>
+                  ) : (
+                    <>
+                      <FileText className="h-4 w-4 mr-1" />
+                      Ver PDF Completo
+                    </>
+                  )}
+                </Button>
               )}
-            </Button>
+              <Button
+                variant="outline"
+                size="sm"
+                onClick={() => fileInputRef.current?.click()}
+                disabled={isUploading}
+                className="border-green-300 hover:bg-green-100 dark:hover:bg-green-900/50"
+              >
+                {isUploading ? (
+                  <>
+                    <Loader2 className="h-4 w-4 mr-1 animate-spin" />
+                    Enviando...
+                  </>
+                ) : (
+                  <>
+                    <Upload className="h-4 w-4 mr-1" />
+                    {document ? "Trocar PDF" : "Upload PDF"}
+                  </>
+                )}
+              </Button>
+              {document && (
+                <AlertDialog>
+                  <AlertDialogTrigger asChild>
+                    <Button
+                      variant="outline"
+                      size="sm"
+                      className="border-red-300 hover:bg-red-100 dark:hover:bg-red-900/50 text-red-600"
+                    >
+                      <Trash2 className="h-4 w-4" />
+                    </Button>
+                  </AlertDialogTrigger>
+                  <AlertDialogContent>
+                    <AlertDialogHeader>
+                      <AlertDialogTitle>Remover documento?</AlertDialogTitle>
+                      <AlertDialogDescription>
+                        Esta ação irá remover permanentemente o documento de planejamento DDS. Esta ação não pode ser desfeita.
+                      </AlertDialogDescription>
+                    </AlertDialogHeader>
+                    <AlertDialogFooter>
+                      <AlertDialogCancel>Cancelar</AlertDialogCancel>
+                      <AlertDialogAction onClick={handleDeleteDocument} className="bg-red-600 hover:bg-red-700">
+                        Remover
+                      </AlertDialogAction>
+                    </AlertDialogFooter>
+                  </AlertDialogContent>
+                </AlertDialog>
+              )}
+            </div>
           </CardTitle>
           <CardDescription>
-            Documento oficial com todos os temas de DDS para 2026
+            {document ? (
+              <span className="flex items-center gap-2">
+                📄 {document.file_name}
+                <span className="text-xs text-muted-foreground">
+                  (enviado em {format(new Date(document.uploaded_at), "dd/MM/yyyy 'às' HH:mm", { locale: ptBR })})
+                </span>
+              </span>
+            ) : (
+              "Faça upload do documento PDF com os temas de DDS para 2026"
+            )}
           </CardDescription>
         </CardHeader>
         
-        {showPdfViewer && (
+        {showPdfViewer && document && (
           <CardContent>
             <div className="rounded-lg overflow-hidden border border-blue-200 dark:border-blue-800">
               <iframe
-                src="/docs/planejamento-dds-2026.pdf"
+                src={document.file_url}
                 className="w-full h-[500px]"
                 title="Planejamento DDS 2026"
               />
             </div>
             <div className="mt-2 flex justify-end">
               <a
-                href="/docs/planejamento-dds-2026.pdf"
+                href={document.file_url}
                 target="_blank"
                 rel="noopener noreferrer"
                 className="text-sm text-blue-600 hover:text-blue-700 flex items-center gap-1"
@@ -119,6 +211,23 @@ export const DDSThemesCard = ({ selectedDate }: DDSThemesCardProps) => {
                 <ExternalLink className="h-3 w-3" />
                 Abrir em nova aba
               </a>
+            </div>
+          </CardContent>
+        )}
+        
+        {!document && !isLoading && (
+          <CardContent>
+            <div 
+              className="border-2 border-dashed border-blue-300 dark:border-blue-700 rounded-lg p-8 text-center cursor-pointer hover:border-blue-400 dark:hover:border-blue-600 transition-colors"
+              onClick={() => fileInputRef.current?.click()}
+            >
+              <Upload className="h-12 w-12 mx-auto mb-4 text-blue-400" />
+              <p className="text-muted-foreground mb-2">
+                Clique para fazer upload do PDF de planejamento DDS
+              </p>
+              <p className="text-xs text-muted-foreground">
+                Apenas arquivos PDF (máx. 10MB)
+              </p>
             </div>
           </CardContent>
         )}
