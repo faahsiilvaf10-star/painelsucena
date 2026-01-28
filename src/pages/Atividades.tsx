@@ -118,6 +118,7 @@ export default function Atividades() {
   const [localFaixa, setLocalFaixa] = useState("FAIXA 2");
   const [rocagem, setRocagem] = useState("");
   const [rocagemBerma, setRocagemBerma] = useState("");
+  const [rocagemFaixa, setRocagemFaixa] = useState("");
   const [podagem, setPodagem] = useState("");
   const [podagemBerma, setPodagemBerma] = useState("");
   const [coroamento, setCoroamento] = useState("");
@@ -213,6 +214,7 @@ export default function Atividades() {
       setLocalFaixa(existingReport.local_faixa || "FAIXA 2");
       setRocagem(existingReport.rocagem_m2?.toString() || "");
       setRocagemBerma(existingReport.rocagem_berma?.toString() || "");
+      setRocagemFaixa(existingReport.rocagem_faixa?.toString() || "");
       setPodagem(existingReport.podagem_unidade?.toString() || "");
       setPodagemBerma(existingReport.podagem_berma?.toString() || "");
       setCoroamento(existingReport.coroamento_unidade?.toString() || "");
@@ -238,6 +240,7 @@ export default function Atividades() {
       setLocalFaixa("FAIXA 2");
       setRocagem("");
       setRocagemBerma("");
+      setRocagemFaixa("");
       setPodagem("");
       setPodagemBerma("");
       setCoroamento("");
@@ -309,6 +312,7 @@ export default function Atividades() {
         local_faixa: localFaixa,
         rocagem_m2: rocagem ? parseFloat(rocagem) : undefined,
         rocagem_berma: rocagemBerma ? parseInt(rocagemBerma) : undefined,
+        rocagem_faixa: rocagemFaixa || undefined,
         podagem_unidade: podagem ? parseInt(podagem) : undefined,
         podagem_berma: podagemBerma ? parseInt(podagemBerma) : undefined,
         coroamento_unidade: coroamento ? parseInt(coroamento) : undefined,
@@ -349,7 +353,10 @@ export default function Atividades() {
     const formatBerma = (berma: string): string => berma ? ` (Berma ${berma})` : "";
     
     // Only include activities with values > 0
-    if (rocagem && parseFloat(rocagem) > 0) lines.push(`* Roçagem - ${rocagem} m²${formatBerma(rocagemBerma)}`);
+    if (rocagem && parseFloat(rocagem) > 0) {
+      const faixaText = rocagemFaixa ? ` - ${rocagemFaixa}` : "";
+      lines.push(`* Roçagem - ${rocagem} m²${formatBerma(rocagemBerma)}${faixaText}`);
+    }
     if (podagem && parseInt(podagem) > 0) lines.push(`* Podagem - ${podagem} unidade(s)${formatBerma(podagemBerma)}`);
     if (coroamento && parseInt(coroamento) > 0) lines.push(`* Coroamento - ${coroamento} unidade(s)${formatBerma(coroamentoBerma)}`);
     if (adubagem && parseInt(adubagem) > 0) lines.push(`* Adubagem - ${adubagem} unidade(s)${formatBerma(adubagemBerma)}`);
@@ -403,6 +410,7 @@ export default function Atividades() {
         local_faixa: localFaixa,
         rocagem_m2: rocagem ? parseFloat(rocagem) : undefined,
         rocagem_berma: rocagemBerma ? parseInt(rocagemBerma) : undefined,
+        rocagem_faixa: rocagemFaixa || undefined,
         podagem_unidade: podagem ? parseInt(podagem) : undefined,
         podagem_berma: podagemBerma ? parseInt(podagemBerma) : undefined,
         coroamento_unidade: coroamento ? parseInt(coroamento) : undefined,
@@ -582,7 +590,8 @@ export default function Atividades() {
               formatReportPreview={(report) => {
                 const lines = [];
                 if (report.rocagem_m2 && parseFloat(report.rocagem_m2) > 0) {
-                  lines.push(`* Roçagem - ${report.rocagem_m2} m²${report.rocagem_berma ? ` (Berma ${report.rocagem_berma})` : ""}`);
+                  const faixaText = (report as any).rocagem_faixa ? ` - ${(report as any).rocagem_faixa}` : "";
+                  lines.push(`* Roçagem - ${report.rocagem_m2} m²${report.rocagem_berma ? ` (Berma ${report.rocagem_berma})` : ""}${faixaText}`);
                 }
                 if (report.podagem_unidade && parseInt(report.podagem_unidade) > 0) {
                   lines.push(`* Podagem - ${report.podagem_unidade} unidade(s)${report.podagem_berma ? ` (Berma ${report.podagem_berma})` : ""}`);
@@ -688,7 +697,7 @@ export default function Atividades() {
               {/* Activity Fields */}
               <div className="space-y-4">
                 {/* Roçagem */}
-                <div className="grid grid-cols-1 md:grid-cols-[1fr_180px] gap-3 p-3 rounded-lg bg-muted/30">
+                <div className="grid grid-cols-1 md:grid-cols-[1fr_140px_140px] gap-3 p-3 rounded-lg bg-muted/30">
                   <div className="space-y-2">
                     <Label>ROÇAGEM (m²)</Label>
                     <Input
@@ -699,6 +708,21 @@ export default function Atividades() {
                       onChange={(e) => setRocagem(e.target.value)}
                       placeholder="0.00"
                     />
+                  </div>
+                  <div className="space-y-2">
+                    <Label>Faixa</Label>
+                    <Select value={rocagemFaixa} onValueChange={setRocagemFaixa}>
+                      <SelectTrigger>
+                        <SelectValue placeholder="Selecione" />
+                      </SelectTrigger>
+                      <SelectContent>
+                        {FAIXA_OPTIONS.map((opt) => (
+                          <SelectItem key={opt.value} value={opt.value}>
+                            {opt.label}
+                          </SelectItem>
+                        ))}
+                      </SelectContent>
+                    </Select>
                   </div>
                   <div className="space-y-2">
                     <Label>Berma</Label>

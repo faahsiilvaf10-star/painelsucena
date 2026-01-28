@@ -10,6 +10,7 @@ export interface JardinagemReport {
   local_faixa: string;
   rocagem_m2: number | null;
   rocagem_berma: number | null;
+  rocagem_faixa: string | null;
   podagem_unidade: number | null;
   podagem_berma: number | null;
   coroamento_unidade: number | null;
@@ -39,6 +40,7 @@ export interface JardinagemReportInsert {
   local_faixa: string;
   rocagem_m2?: number;
   rocagem_berma?: number;
+  rocagem_faixa?: string;
   podagem_unidade?: number;
   podagem_berma?: number;
   coroamento_unidade?: number;
@@ -209,7 +211,8 @@ export const formatJardinagemForRDO = (report: JardinagemReport | null): string 
   };
   
   if (report.rocagem_m2 && report.rocagem_m2 > 0) {
-    lines.push(`* Roçagem - ${report.rocagem_m2} m²${formatBerma(report.rocagem_berma)}`);
+    const faixaText = report.rocagem_faixa ? ` - ${report.rocagem_faixa}` : "";
+    lines.push(`* Roçagem - ${report.rocagem_m2} m²${formatBerma(report.rocagem_berma)}${faixaText}`);
   }
   if (report.podagem_unidade && report.podagem_unidade > 0) {
     lines.push(`* Podagem - ${report.podagem_unidade} unidade(s)${formatBerma(report.podagem_berma)}`);
