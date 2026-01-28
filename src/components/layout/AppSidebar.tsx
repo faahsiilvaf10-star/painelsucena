@@ -42,6 +42,23 @@ import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { toast } from "sonner";
 import { SidebarBackground } from "./SidebarBackground";
 
+const formatCargoLabel = (cargo?: string): string => {
+  if (!cargo) return "Membro";
+  const cargoLabels: Record<string, string> = {
+    preposto: "Preposto",
+    encarregado_geral: "Encarregado Geral",
+    encarregado_i: "Encarregado I",
+    encarregado_ii: "Encarregado II",
+    tecnico_seguranca_i: "Técnico Segurança I",
+    tecnico_seguranca_ii: "Técnico Segurança II",
+    tecnico_meio_ambiente: "Técnico Meio Ambiente",
+    aux_administrativo: "Aux. Administrativo",
+    aux_almoxarifado: "Aux. Almoxarifado",
+    planejador: "Planejador",
+  };
+  return cargoLabels[cargo] || cargo;
+};
+
 interface NavItem {
   id: string;
   icon: LucideIcon;
@@ -342,7 +359,7 @@ export function AppSidebar() {
               {!isCollapsed && (
                 <div className="flex-1 min-w-0">
                   <p className="text-sm font-semibold truncate text-sidebar-foreground">{profile?.full_name || "Usuário"}</p>
-                  <p className="text-xs text-sidebar-foreground/60 truncate">{profile?.cargo || "Membro"}</p>
+                  <p className="text-xs text-sidebar-foreground/60 truncate">{formatCargoLabel(profile?.cargo) || "Membro"}</p>
                 </div>
               )}
             </div>
