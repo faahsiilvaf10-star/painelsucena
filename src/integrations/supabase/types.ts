@@ -647,7 +647,10 @@ export type Database = {
           created_by: string
           escavacao_manual_unidade: number
           id: string
+          limpeza_assoprador_m2: number
+          limpeza_bueiro_unidade: number
           limpeza_canaleta_m: number
+          limpeza_manual_m2: number
           manutencao_drenagem_m: number
           month_year: string
           plantio_unidade: number
@@ -656,6 +659,7 @@ export type Database = {
           recomposicao_gabiao_m: number
           recomposicao_silte_unidade: number
           recomposicao_tela_unidade: number
+          reparo_cerca_m: number
           reposicao_manta_unidade: number
           reposicao_silte_unidade: number
           retirada_mudas_unidade: number
@@ -670,7 +674,10 @@ export type Database = {
           created_by: string
           escavacao_manual_unidade?: number
           id?: string
+          limpeza_assoprador_m2?: number
+          limpeza_bueiro_unidade?: number
           limpeza_canaleta_m?: number
+          limpeza_manual_m2?: number
           manutencao_drenagem_m?: number
           month_year: string
           plantio_unidade?: number
@@ -679,6 +686,7 @@ export type Database = {
           recomposicao_gabiao_m?: number
           recomposicao_silte_unidade?: number
           recomposicao_tela_unidade?: number
+          reparo_cerca_m?: number
           reposicao_manta_unidade?: number
           reposicao_silte_unidade?: number
           retirada_mudas_unidade?: number
@@ -693,7 +701,10 @@ export type Database = {
           created_by?: string
           escavacao_manual_unidade?: number
           id?: string
+          limpeza_assoprador_m2?: number
+          limpeza_bueiro_unidade?: number
           limpeza_canaleta_m?: number
+          limpeza_manual_m2?: number
           manutencao_drenagem_m?: number
           month_year?: string
           plantio_unidade?: number
@@ -702,6 +713,7 @@ export type Database = {
           recomposicao_gabiao_m?: number
           recomposicao_silte_unidade?: number
           recomposicao_tela_unidade?: number
+          reparo_cerca_m?: number
           reposicao_manta_unidade?: number
           reposicao_silte_unidade?: number
           retirada_mudas_unidade?: number

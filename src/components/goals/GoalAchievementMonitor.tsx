@@ -35,6 +35,8 @@ export function GoalAchievementMonitor() {
       { key: "plantio_unidade", name: "Plantio", type: "jardinagem", ...progress.plantio_unidade },
       { key: "controle_invasoras_unidade", name: "Controle de Invasoras", type: "jardinagem", ...progress.controle_invasoras_unidade },
       { key: "retirada_mudas_unidade", name: "Retirada de Mudas", type: "jardinagem", ...progress.retirada_mudas_unidade },
+      { key: "limpeza_manual_m2", name: "Limpeza Manual", type: "jardinagem", ...progress.limpeza_manual_m2 },
+      { key: "limpeza_assoprador_m2", name: "Limpeza Assoprador", type: "jardinagem", ...progress.limpeza_assoprador_m2 },
       // Gabião
       { key: "limpeza_canaleta_m", name: "Limpeza de Canaleta", type: "gabiao", ...progress.limpeza_canaleta_m },
       { key: "recomposicao_gabiao_m", name: "Recomposição de Gabião", type: "gabiao", ...progress.recomposicao_gabiao_m },
@@ -42,6 +44,8 @@ export function GoalAchievementMonitor() {
       { key: "escavacao_manual_unidade", name: "Escavação Manual", type: "gabiao", ...progress.escavacao_manual_unidade },
       { key: "reposicao_manta_unidade", name: "Reposição de Manta Asfáltica", type: "gabiao", ...progress.reposicao_manta_unidade },
       { key: "reposicao_silte_unidade", name: "Reposição de Silte", type: "gabiao", ...progress.reposicao_silte_unidade },
+      { key: "limpeza_bueiro_unidade", name: "Limpeza de Bueiro", type: "gabiao", ...progress.limpeza_bueiro_unidade },
+      { key: "reparo_cerca_m", name: "Reparo de Cerca", type: "gabiao", ...progress.reparo_cerca_m },
     ];
 
     // Check which goals just reached 100%

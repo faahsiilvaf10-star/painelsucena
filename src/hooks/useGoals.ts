@@ -16,6 +16,8 @@ export interface Goal {
   plantio_unidade: number;
   controle_invasoras_unidade: number;
   retirada_mudas_unidade: number;
+  limpeza_manual_m2: number;
+  limpeza_assoprador_m2: number;
   // Gabião goals
   limpeza_canaleta_m: number;
   recomposicao_gabiao_m: number;
@@ -23,6 +25,8 @@ export interface Goal {
   escavacao_manual_unidade: number;
   reposicao_manta_unidade: number;
   reposicao_silte_unidade: number;
+  limpeza_bueiro_unidade: number;
+  reparo_cerca_m: number;
   // Recomposição goals
   recomposicao_tela_unidade: number;
   recomposicao_cascalho_unidade: number;
@@ -42,6 +46,8 @@ export interface GoalInput {
   plantio_unidade?: number;
   controle_invasoras_unidade?: number;
   retirada_mudas_unidade?: number;
+  limpeza_manual_m2?: number;
+  limpeza_assoprador_m2?: number;
   // Gabião
   limpeza_canaleta_m?: number;
   recomposicao_gabiao_m?: number;
@@ -49,6 +55,8 @@ export interface GoalInput {
   escavacao_manual_unidade?: number;
   reposicao_manta_unidade?: number;
   reposicao_silte_unidade?: number;
+  limpeza_bueiro_unidade?: number;
+  reparo_cerca_m?: number;
   // Recomposição
   recomposicao_tela_unidade?: number;
   recomposicao_cascalho_unidade?: number;
@@ -151,12 +159,16 @@ export const useSaveGoal = () => {
             plantio_unidade: input.plantio_unidade ?? 0,
             controle_invasoras_unidade: input.controle_invasoras_unidade ?? 0,
             retirada_mudas_unidade: input.retirada_mudas_unidade ?? 0,
+            limpeza_manual_m2: input.limpeza_manual_m2 ?? 0,
+            limpeza_assoprador_m2: input.limpeza_assoprador_m2 ?? 0,
             limpeza_canaleta_m: input.limpeza_canaleta_m ?? 0,
             recomposicao_gabiao_m: input.recomposicao_gabiao_m ?? 0,
             manutencao_drenagem_m: input.manutencao_drenagem_m ?? 0,
             escavacao_manual_unidade: input.escavacao_manual_unidade ?? 0,
             reposicao_manta_unidade: input.reposicao_manta_unidade ?? 0,
             reposicao_silte_unidade: input.reposicao_silte_unidade ?? 0,
+            limpeza_bueiro_unidade: input.limpeza_bueiro_unidade ?? 0,
+            reparo_cerca_m: input.reparo_cerca_m ?? 0,
             recomposicao_tela_unidade: input.recomposicao_tela_unidade ?? 0,
             recomposicao_cascalho_unidade: input.recomposicao_cascalho_unidade ?? 0,
             recomposicao_silte_unidade: input.recomposicao_silte_unidade ?? 0,
@@ -180,12 +192,16 @@ export const useSaveGoal = () => {
             plantio_unidade: input.plantio_unidade ?? 0,
             controle_invasoras_unidade: input.controle_invasoras_unidade ?? 0,
             retirada_mudas_unidade: input.retirada_mudas_unidade ?? 0,
+            limpeza_manual_m2: input.limpeza_manual_m2 ?? 0,
+            limpeza_assoprador_m2: input.limpeza_assoprador_m2 ?? 0,
             limpeza_canaleta_m: input.limpeza_canaleta_m ?? 0,
             recomposicao_gabiao_m: input.recomposicao_gabiao_m ?? 0,
             manutencao_drenagem_m: input.manutencao_drenagem_m ?? 0,
             escavacao_manual_unidade: input.escavacao_manual_unidade ?? 0,
             reposicao_manta_unidade: input.reposicao_manta_unidade ?? 0,
             reposicao_silte_unidade: input.reposicao_silte_unidade ?? 0,
+            limpeza_bueiro_unidade: input.limpeza_bueiro_unidade ?? 0,
+            reparo_cerca_m: input.reparo_cerca_m ?? 0,
             recomposicao_tela_unidade: input.recomposicao_tela_unidade ?? 0,
             recomposicao_cascalho_unidade: input.recomposicao_cascalho_unidade ?? 0,
             recomposicao_silte_unidade: input.recomposicao_silte_unidade ?? 0,
@@ -228,6 +244,8 @@ export interface GoalProgress {
   plantio_unidade: { current: number; target: number; percentage: number };
   controle_invasoras_unidade: { current: number; target: number; percentage: number };
   retirada_mudas_unidade: { current: number; target: number; percentage: number };
+  limpeza_manual_m2: { current: number; target: number; percentage: number };
+  limpeza_assoprador_m2: { current: number; target: number; percentage: number };
   // Gabião
   limpeza_canaleta_m: { current: number; target: number; percentage: number };
   recomposicao_gabiao_m: { current: number; target: number; percentage: number };
@@ -235,6 +253,8 @@ export interface GoalProgress {
   escavacao_manual_unidade: { current: number; target: number; percentage: number };
   reposicao_manta_unidade: { current: number; target: number; percentage: number };
   reposicao_silte_unidade: { current: number; target: number; percentage: number };
+  limpeza_bueiro_unidade: { current: number; target: number; percentage: number };
+  reparo_cerca_m: { current: number; target: number; percentage: number };
   // Recomposição
   recomposicao_tela_unidade: { current: number; target: number; percentage: number };
   recomposicao_cascalho_unidade: { current: number; target: number; percentage: number };
@@ -280,6 +300,8 @@ export const useGoalProgress = () => {
         plantio_unidade: 0,
         controle_invasoras_unidade: 0,
         retirada_mudas_unidade: 0,
+        limpeza_manual_m2: 0,
+        limpeza_assoprador_m2: 0,
       };
 
       jardResponse.data?.forEach((report) => {
@@ -290,6 +312,8 @@ export const useGoalProgress = () => {
         jardTotals.plantio_unidade += Number(report.plantio_unidade) || 0;
         jardTotals.controle_invasoras_unidade += Number(report.controle_invasoras_unidade) || 0;
         jardTotals.retirada_mudas_unidade += Number(report.retirada_mudas_unidade) || 0;
+        jardTotals.limpeza_manual_m2 += Number(report.limpeza_manual_m2) || 0;
+        jardTotals.limpeza_assoprador_m2 += Number(report.limpeza_assoprador_m2) || 0;
       });
 
       // Sum up gabião values - parse from observacoes field for checkbox activities
@@ -300,6 +324,8 @@ export const useGoalProgress = () => {
         escavacao_manual_unidade: 0,
         reposicao_manta_unidade: 0,
         reposicao_silte_unidade: 0,
+        limpeza_bueiro_unidade: 0,
+        reparo_cerca_m: 0,
         recomposicao_tela_unidade: 0,
         recomposicao_cascalho_unidade: 0,
         recomposicao_silte_unidade: 0,
@@ -309,6 +335,8 @@ export const useGoalProgress = () => {
         gabiaoTotals.limpeza_canaleta_m += Number(report.limpeza_canaleta_m) || 0;
         gabiaoTotals.recomposicao_gabiao_m += Number(report.recomposicao_gabiao_m) || 0;
         gabiaoTotals.manutencao_drenagem_m += Number(report.manutencao_drenagem_m) || 0;
+        gabiaoTotals.limpeza_bueiro_unidade += Number(report.limpeza_bueiro_unidade) || 0;
+        gabiaoTotals.reparo_cerca_m += Number(report.reparo_cerca_m) || 0;
         
         // Parse checkbox activities from observacoes field
         const obs = report.observacoes || "";
@@ -347,6 +375,8 @@ export const useGoalProgress = () => {
         plantio_unidade: calcProgress(jardTotals.plantio_unidade, goal.plantio_unidade),
         controle_invasoras_unidade: calcProgress(jardTotals.controle_invasoras_unidade, goal.controle_invasoras_unidade),
         retirada_mudas_unidade: calcProgress(jardTotals.retirada_mudas_unidade, goal.retirada_mudas_unidade),
+        limpeza_manual_m2: calcProgress(jardTotals.limpeza_manual_m2, goal.limpeza_manual_m2),
+        limpeza_assoprador_m2: calcProgress(jardTotals.limpeza_assoprador_m2, goal.limpeza_assoprador_m2),
         // Gabião
         limpeza_canaleta_m: calcProgress(gabiaoTotals.limpeza_canaleta_m, goal.limpeza_canaleta_m),
         recomposicao_gabiao_m: calcProgress(gabiaoTotals.recomposicao_gabiao_m, goal.recomposicao_gabiao_m),
@@ -354,6 +384,8 @@ export const useGoalProgress = () => {
         escavacao_manual_unidade: calcProgress(gabiaoTotals.escavacao_manual_unidade, goal.escavacao_manual_unidade),
         reposicao_manta_unidade: calcProgress(gabiaoTotals.reposicao_manta_unidade, goal.reposicao_manta_unidade),
         reposicao_silte_unidade: calcProgress(gabiaoTotals.reposicao_silte_unidade, goal.reposicao_silte_unidade),
+        limpeza_bueiro_unidade: calcProgress(gabiaoTotals.limpeza_bueiro_unidade, goal.limpeza_bueiro_unidade),
+        reparo_cerca_m: calcProgress(gabiaoTotals.reparo_cerca_m, goal.reparo_cerca_m),
         // Recomposição
         recomposicao_tela_unidade: calcProgress(gabiaoTotals.recomposicao_tela_unidade, goal.recomposicao_tela_unidade),
         recomposicao_cascalho_unidade: calcProgress(gabiaoTotals.recomposicao_cascalho_unidade, goal.recomposicao_cascalho_unidade),
