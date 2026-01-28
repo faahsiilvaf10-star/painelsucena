@@ -1,4 +1,20 @@
+import { useState } from "react";
 import { Users, ClipboardCheck, AlertCircle } from "lucide-react";
+import {
+  DndContext,
+  closestCenter,
+  KeyboardSensor,
+  PointerSensor,
+  useSensor,
+  useSensors,
+  DragEndEvent,
+} from "@dnd-kit/core";
+import {
+  arrayMove,
+  SortableContext,
+  sortableKeyboardCoordinates,
+  verticalListSortingStrategy,
+} from "@dnd-kit/sortable";
 import Layout from "@/components/layout/Layout";
 import StatCard from "@/components/dashboard/StatCard";
 import { DDSHighlightCard } from "@/components/dds/DDSHighlightCard";
@@ -12,20 +28,33 @@ import { DocumentExpiryBanner } from "@/components/documents/DocumentExpiryBanne
 import { GoalAlertBanner } from "@/components/dashboard/GoalAlertBanner";
 import { VehicleExpiryBanner } from "@/components/vistorias/VehicleExpiryBanner";
 import { SlingInspectionBanner } from "@/components/dashboard/SlingInspectionBanner";
-import { DashboardOrderEditor } from "@/components/dashboard/DashboardOrderEditor";
+import { DraggableDashboardItem } from "@/components/dashboard/DraggableDashboardItem";
+import { DashboardEditControls } from "@/components/dashboard/DashboardEditControls";
 import { useCampaignNotifications } from "@/hooks/useCampaignNotifications";
 import { useEmployees } from "@/hooks/useEmployees";
 import { useAttendanceRecords } from "@/hooks/useAttendance";
 import { getBrazilNorthTodayString } from "@/lib/timezone";
 import { useDocumentExpiryNotifications } from "@/hooks/useDocumentExpiryNotifications";
 import { useVehicleExpiryNotifications } from "@/hooks/useVehicleExpiryNotifications";
-import { useDashboardOrder, DashboardItemId } from "@/hooks/useDashboardOrder";
+import { useDashboardOrder, DashboardItemId, DEFAULT_DASHBOARD_ORDER } from "@/hooks/useDashboardOrder";
+import { toast } from "sonner";
 
 const Dashboard = () => {
   const today = getBrazilNorthTodayString();
   const { data: employees } = useEmployees();
   const { data: attendanceRecords } = useAttendanceRecords(today);
-  const { dashboardOrder, isLoading: isLoadingOrder } = useDashboardOrder();
+  const { dashboardOrder, updateOrder, isLoading: isLoadingOrder } = useDashboardOrder();
+  
+  const [isEditMode, setIsEditMode] = useState(false);
+  const [localOrder, setLocalOrder] = useState<DashboardItemId[]>(dashboardOrder);
+  const [isSaving, setIsSaving] = useState(false);
+
+  const sensors = useSensors(
+    useSensor(PointerSensor),
+    useSensor(KeyboardSensor, {
+      coordinateGetter: sortableKeyboardCoordinates,
+    })
+  );
   
   // Check and create campaign notifications at start of month
   useCampaignNotifications();
@@ -40,34 +69,78 @@ const Dashboard = () => {
   const presentToday = attendanceRecords?.filter(a => a.status === "present" || a.status === "late").length || 0;
   const absentToday = attendanceRecords?.filter(a => a.status === "absent" || a.status === "justified").length || 0;
 
+  const handleToggleEditMode = () => {
+    if (!isEditMode) {
+      setLocalOrder(dashboardOrder);
+    }
+    setIsEditMode(!isEditMode);
+  };
+
+  const handleDragEnd = (event: DragEndEvent) => {
+    const { active, over } = event;
+
+    if (over && active.id !== over.id) {
+      setLocalOrder((items) => {
+        const oldIndex = items.indexOf(active.id as DashboardItemId);
+        const newIndex = items.indexOf(over.id as DashboardItemId);
+        return arrayMove(items, oldIndex, newIndex);
+      });
+    }
+  };
+
+  const handleSave = async () => {
+    setIsSaving(true);
+    const success = await updateOrder(localOrder);
+    setIsSaving(false);
+    
+    if (success) {
+      toast.success("Ordem dos destaques salva!");
+      setIsEditMode(false);
+    } else {
+      toast.error("Erro ao salvar ordem");
+    }
+  };
+
+  const handleCancel = () => {
+    setLocalOrder(dashboardOrder);
+    setIsEditMode(false);
+  };
+
+  const handleReset = () => {
+    setLocalOrder(DEFAULT_DASHBOARD_ORDER);
+  };
+
+  const hasChanges = JSON.stringify(localOrder) !== JSON.stringify(dashboardOrder);
+  const currentOrder = isEditMode ? localOrder : dashboardOrder;
+
   // Map dashboard item IDs to their components
   const renderDashboardItem = (id: DashboardItemId, index: number) => {
     const animationDelay = `${0.1 + index * 0.05}s`;
     
     switch (id) {
       case "matrix_alert":
-        return <MatrixAlertBanner key={id} />;
+        return <MatrixAlertBanner />;
       case "goal_alert":
-        return <GoalAlertBanner key={id} />;
+        return <GoalAlertBanner />;
       case "campaign":
-        return <CampaignBanner key={id} />;
+        return <CampaignBanner />;
       case "reminder":
-        return <ReminderHighlightBanner key={id} />;
+        return <ReminderHighlightBanner />;
       case "order":
-        return <OrderHighlightBanner key={id} />;
+        return <OrderHighlightBanner />;
       case "vehicle_expiry":
-        return <VehicleExpiryBanner key={id} />;
+        return <VehicleExpiryBanner />;
       case "document_expiry":
-        return <DocumentExpiryBanner key={id} />;
+        return <DocumentExpiryBanner />;
       case "sling_inspection":
-        return <SlingInspectionBanner key={id} />;
+        return <SlingInspectionBanner />;
       case "dds":
-        return <DDSHighlightCard key={id} />;
+        return <DDSHighlightCard />;
       case "equipment":
-        return <EquipmentStatusCard key={id} />;
+        return <EquipmentStatusCard />;
       case "stats":
         return (
-          <div key={id} className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 gap-4 sm:gap-6 mb-6 sm:mb-8">
+          <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 gap-4 sm:gap-6 mb-6 sm:mb-8">
             <div className="animate-slide-up" style={{ animationDelay: "0.1s" }}>
               <StatCard 
                 title="Total de Funcionários" 
@@ -99,7 +172,7 @@ const Dashboard = () => {
         );
       case "matrix_chart":
         return (
-          <div key={id} className="mb-6 sm:mb-8 animate-slide-up" style={{ animationDelay }}>
+          <div className="mb-6 sm:mb-8 animate-slide-up" style={{ animationDelay }}>
             <MatrixProgressChart />
           </div>
         );
@@ -111,7 +184,7 @@ const Dashboard = () => {
   return (
     <Layout>
       <div className="container mx-auto px-4 sm:px-6 py-4 sm:py-8">
-        {/* Hero Section with Order Editor */}
+        {/* Hero Section with Edit Controls */}
         <div className="mb-6 sm:mb-8 animate-fade-in">
           <div className="flex flex-col sm:flex-row sm:items-start sm:justify-between gap-4">
             <div>
@@ -123,13 +196,40 @@ const Dashboard = () => {
               </p>
             </div>
             <div className="flex-shrink-0">
-              <DashboardOrderEditor />
+              <DashboardEditControls
+                isEditMode={isEditMode}
+                hasChanges={hasChanges}
+                isSaving={isSaving}
+                onToggleEditMode={handleToggleEditMode}
+                onSave={handleSave}
+                onCancel={handleCancel}
+                onReset={handleReset}
+              />
             </div>
           </div>
         </div>
 
         {/* Render dashboard items in user's preferred order */}
-        {!isLoadingOrder && dashboardOrder.map((id, index) => renderDashboardItem(id, index))}
+        {!isLoadingOrder && (
+          <DndContext
+            sensors={sensors}
+            collisionDetection={closestCenter}
+            onDragEnd={handleDragEnd}
+          >
+            <SortableContext
+              items={currentOrder}
+              strategy={verticalListSortingStrategy}
+            >
+              <div className="space-y-4">
+                {currentOrder.map((id, index) => (
+                  <DraggableDashboardItem key={id} id={id} isEditMode={isEditMode}>
+                    {renderDashboardItem(id, index)}
+                  </DraggableDashboardItem>
+                ))}
+              </div>
+            </SortableContext>
+          </DndContext>
+        )}
       </div>
     </Layout>
   );
