@@ -767,7 +767,7 @@ const RelatorioPresenca = () => {
           </Dialog>
         </div>
 
-        {/* Date Filter and Actions */}
+        {/* Date Filter */}
         <div className="bg-card rounded-xl border border-border/50 p-6 mb-8">
           <div className="flex flex-col md:flex-row items-start md:items-end gap-4">
             <div className="flex-1 max-w-xs">
@@ -779,47 +779,6 @@ const RelatorioPresenca = () => {
                 value={selectedDate}
                 onChange={(e) => setSelectedDate(e.target.value)}
               />
-            </div>
-            <div className="flex-1 max-w-xs">
-              <label className="text-sm text-muted-foreground mb-2 block">
-                Área do Relatório
-              </label>
-              <Select
-                value={selectedArea}
-                onValueChange={(value) => setSelectedArea(value as typeof selectedArea)}
-              >
-                <SelectTrigger className="bg-background">
-                  <SelectValue />
-                </SelectTrigger>
-                <SelectContent className="bg-popover">
-                  <SelectItem value="all">Todas as Áreas</SelectItem>
-                  <SelectItem value="ÁREA GABIÃO">✳ Área Gabião</SelectItem>
-                  <SelectItem value="ROÇAGEM E PODAGEM">🌿 Roçagem e Podagem</SelectItem>
-                </SelectContent>
-              </Select>
-            </div>
-            <div className="flex gap-2 flex-wrap">
-              <Button
-                onClick={handleCopy}
-                variant="outline"
-                className="gap-2"
-                disabled={isLoading}
-              >
-                {copied ? (
-                  <Check className="w-4 h-4" />
-                ) : (
-                  <Copy className="w-4 h-4" />
-                )}
-                {copied ? "Copiado!" : "Copiar"}
-              </Button>
-              <Button
-                onClick={handleWhatsApp}
-                className="gap-2 bg-green-600 hover:bg-green-700"
-                disabled={isLoading}
-              >
-                <Send className="w-4 h-4" />
-                WhatsApp
-              </Button>
             </div>
           </div>
         </div>
@@ -929,25 +888,6 @@ const RelatorioPresenca = () => {
                   </div>
                 </div>
               )}
-
-              {/* Copiar Tudo */}
-              <div className="flex gap-2">
-                <Button
-                  onClick={handleCopy}
-                  variant="outline"
-                  className="flex-1 gap-2"
-                >
-                  {copied ? <Check className="w-4 h-4" /> : <Copy className="w-4 h-4" />}
-                  {copied ? "Copiado!" : "Copiar Tudo"}
-                </Button>
-                <Button
-                  onClick={handleWhatsApp}
-                  className="flex-1 gap-2 bg-green-600 hover:bg-green-700"
-                >
-                  <Send className="w-4 h-4" />
-                  Enviar Tudo WhatsApp
-                </Button>
-              </div>
             </div>
           </div>
         )}
