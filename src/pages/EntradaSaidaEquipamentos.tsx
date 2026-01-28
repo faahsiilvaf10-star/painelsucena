@@ -880,6 +880,18 @@ const EntradaSaidaEquipamentos = () => {
                                     {movement.movement_time.slice(0, 5)}
                                   </p>
                                 </div>
+                                <Button
+                                  size="sm"
+                                  variant="outline"
+                                  className="h-7 px-2 text-xs gap-1 border-orange-500/50 text-orange-600 hover:bg-orange-500/10 hover:text-orange-700"
+                                  onClick={() => handleQuickActionOpen("saida", { 
+                                    name: movement.equipment_name, 
+                                    plate: movement.plate 
+                                  })}
+                                >
+                                  <ArrowUpFromLine className="h-3 w-3" />
+                                  <span className="hidden sm:inline">Saída</span>
+                                </Button>
                                 {isAdmin && (
                                   <Button
                                     variant="ghost"
