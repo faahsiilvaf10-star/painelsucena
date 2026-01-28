@@ -95,7 +95,7 @@ export default function Atividades() {
 
   // Calculate totals for the measurement period
   const measurementPeriodTotals = useMemo(() => {
-    if (!allReports) return { coroamento: 0, adubagem: 0 };
+    if (!allReports) return { coroamento: 0, adubagem: 0, rocagem: 0, podagem: 0, plantio: 0, retiradaMudas: 0 };
     
     const { startDate, endDate } = getMeasurementPeriod();
     const startStr = format(startDate, "yyyy-MM-dd");
@@ -109,8 +109,12 @@ export default function Atividades() {
       return {
         coroamento: acc.coroamento + (report.coroamento_unidade || 0),
         adubagem: acc.adubagem + (report.adubagem_unidade || 0),
+        rocagem: acc.rocagem + (parseFloat(report.rocagem_m2?.toString() || "0") || 0),
+        podagem: acc.podagem + (report.podagem_unidade || 0),
+        plantio: acc.plantio + (report.plantio_unidade || 0),
+        retiradaMudas: acc.retiradaMudas + (report.retirada_mudas_unidade || 0),
       };
-    }, { coroamento: 0, adubagem: 0 });
+    }, { coroamento: 0, adubagem: 0, rocagem: 0, podagem: 0, plantio: 0, retiradaMudas: 0 });
     
     return totals;
   }, [allReports, selectedDate]);
@@ -490,9 +494,13 @@ export default function Atividades() {
                   {measurementPeriodLabel}
                 </Badge>
               </div>
-              <div className="flex items-center gap-3 text-xs text-muted-foreground">
+              <div className="flex flex-wrap items-center gap-x-3 gap-y-1 text-xs text-muted-foreground">
+                <span>🌿 Roçagem: <strong className="text-foreground">{measurementPeriodTotals.rocagem.toLocaleString('pt-BR')} m²</strong></span>
+                <span>✂️ Podagem: <strong className="text-foreground">{measurementPeriodTotals.podagem}</strong></span>
                 <span>🌱 Coroamento: <strong className="text-foreground">{measurementPeriodTotals.coroamento}</strong></span>
                 <span>💧 Adubagem: <strong className="text-foreground">{measurementPeriodTotals.adubagem}</strong></span>
+                <span>🌳 Plantio: <strong className="text-foreground">{measurementPeriodTotals.plantio}</strong></span>
+                <span>🌲 Retirada: <strong className="text-foreground">{measurementPeriodTotals.retiradaMudas}</strong></span>
               </div>
             </div>
           </CardContent>
