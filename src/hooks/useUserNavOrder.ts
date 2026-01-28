@@ -78,9 +78,37 @@ export function useUserNavOrder() {
     },
   });
 
+  const resetNavOrder = useMutation({
+    mutationFn: async () => {
+      if (!user?.id) throw new Error("User not authenticated");
+
+      const { data: existing } = await supabase
+        .from("user_preferences")
+        .select("id")
+        .eq("user_id", user.id)
+        .maybeSingle();
+
+      if (existing) {
+        const { error } = await supabase
+          .from("user_preferences")
+          .update({ 
+            nav_order: null,
+            updated_at: new Date().toISOString() 
+          })
+          .eq("user_id", user.id);
+
+        if (error) throw error;
+      }
+    },
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ["user-nav-order", user?.id] });
+    },
+  });
+
   return {
     navOrder: navOrder ?? DEFAULT_NAV_ORDER,
     isLoading,
     updateNavOrder,
+    resetNavOrder,
   };
 }
