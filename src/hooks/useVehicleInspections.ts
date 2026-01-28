@@ -17,7 +17,6 @@ export interface VehicleInspection {
 }
 
 export const DATE_FIELDS = [
-  { key: "vistoria", label: "Vistoria" },
   { key: "laudo_opacidade", label: "Laudo Opacidade" },
   { key: "laudo_mecanico", label: "Laudo Mecânico" },
   { key: "plano_manutencao", label: "Plano Manutenção" },
