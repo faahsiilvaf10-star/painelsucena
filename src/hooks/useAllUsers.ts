@@ -1,4 +1,4 @@
-import { useState, useEffect, useRef } from "react";
+import { useState, useEffect, useRef, useCallback } from "react";
 import { supabase } from "@/integrations/supabase/client";
 import { useAuth } from "./useAuth";
 import type { Tables } from "@/integrations/supabase/types";
@@ -28,6 +28,8 @@ export const useAllUsers = () => {
   const [lastSeenMap, setLastSeenMap] = useState<Map<string, string>>(new Map());
   const [justOnlineIds, setJustOnlineIds] = useState<Set<string>>(new Set());
   const previousOnlineIds = useRef<Set<string>>(new Set());
+  const channelRef = useRef<RealtimeChannel | null>(null);
+  const heartbeatRef = useRef<number | null>(null);
 
   // Fetch all profiles
   useEffect(() => {
@@ -57,9 +59,55 @@ export const useAllUsers = () => {
     fetchProfiles();
   }, []);
 
+  const trackCurrentUser = useCallback(
+    async (presenceChannel: RealtimeChannel) => {
+      if (!user) return;
+
+      const { data: profile, error } = await supabase
+        .from("profiles")
+        .select("*")
+        .eq("user_id", user.id)
+        .maybeSingle();
+
+      if (error) {
+        console.warn("Presence: erro ao buscar profile para track:", error);
+      }
+
+      const payload = profile
+        ? {
+            id: profile.id,
+            user_id: user.id,
+            full_name: profile.full_name,
+            avatar_url: profile.avatar_url,
+            cargo: profile.cargo,
+            online_at: new Date().toISOString(),
+          }
+        : {
+            user_id: user.id,
+            online_at: new Date().toISOString(),
+          };
+
+      const trackRes = await presenceChannel.track(payload as any);
+      if (trackRes === "error") {
+        console.warn("Presence: track retornou erro");
+      }
+    },
+    [user]
+  );
+
   // Track presence - use same channel name as useOnlineUsers for consistency
   useEffect(() => {
     if (!user) return;
+
+    // Cleanup any previous channel/heartbeat (defensive)
+    if (heartbeatRef.current) {
+      window.clearInterval(heartbeatRef.current);
+      heartbeatRef.current = null;
+    }
+    if (channelRef.current) {
+      channelRef.current.unsubscribe();
+      channelRef.current = null;
+    }
 
     const presenceChannel = supabase.channel("online-users", {
       config: {
@@ -69,18 +117,19 @@ export const useAllUsers = () => {
       },
     });
 
+    channelRef.current = presenceChannel;
+
     presenceChannel
       .on("presence", { event: "sync" }, () => {
         const state = presenceChannel.presenceState();
         const onlineIds = new Set<string>();
-        const newLastSeenMap = new Map(lastSeenMap);
-        
+
         Object.values(state).forEach((presences: any[]) => {
           presences.forEach((presence) => {
-            onlineIds.add(presence.user_id);
+            if (presence?.user_id) onlineIds.add(presence.user_id);
           });
         });
-        
+
         // Track users who just came online (weren't online before, now are)
         const newlyOnline = new Set<string>();
         onlineIds.forEach((id) => {
@@ -88,14 +137,7 @@ export const useAllUsers = () => {
             newlyOnline.add(id);
           }
         });
-        
-        // Track users who just went offline - save their lastSeen
-        previousOnlineIds.current.forEach((id) => {
-          if (!onlineIds.has(id)) {
-            newLastSeenMap.set(id, new Date().toISOString());
-          }
-        });
-        
+
         if (newlyOnline.size > 0) {
           setJustOnlineIds(newlyOnline);
           // Clear the animation after 3 seconds
@@ -103,36 +145,41 @@ export const useAllUsers = () => {
             setJustOnlineIds(new Set());
           }, 3000);
         }
-        
-        setLastSeenMap(newLastSeenMap);
+
+        // Persist lastSeen using functional update to avoid stale state
+        setLastSeenMap((prev) => {
+          const next = new Map(prev);
+          previousOnlineIds.current.forEach((id) => {
+            if (!onlineIds.has(id)) {
+              next.set(id, new Date().toISOString());
+            }
+          });
+          return next;
+        });
+
         previousOnlineIds.current = onlineIds;
         setOnlineUserIds(onlineIds);
       })
       .subscribe(async (status) => {
         if (status === "SUBSCRIBED") {
-          const { data: profile } = await supabase
-            .from("profiles")
-            .select("*")
-            .eq("user_id", user.id)
-            .single();
+          await trackCurrentUser(presenceChannel);
 
-          if (profile) {
-            await presenceChannel.track({
-              id: profile.id,
-              user_id: user.id,
-              full_name: profile.full_name,
-              avatar_url: profile.avatar_url,
-              cargo: profile.cargo,
-              online_at: new Date().toISOString(),
-            });
-          }
+          // Heartbeat: re-track periodically to recover from transient disconnects
+          heartbeatRef.current = window.setInterval(() => {
+            void trackCurrentUser(presenceChannel);
+          }, 25000);
         }
       });
 
     return () => {
+      if (heartbeatRef.current) {
+        window.clearInterval(heartbeatRef.current);
+        heartbeatRef.current = null;
+      }
       presenceChannel.unsubscribe();
+      channelRef.current = null;
     };
-  }, [user]);
+  }, [user, trackCurrentUser]);
 
   // Combine users with online status (include current user)
   const usersWithStatus: UserWithStatus[] = allUsers
