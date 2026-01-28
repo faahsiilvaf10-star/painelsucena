@@ -22,6 +22,10 @@ const cargoOptions = [
   { value: "aux_administrativo", label: "Aux. Administrativo" },
   { value: "aux_almoxarifado", label: "Aux. Almoxarifado" },
   { value: "planejador", label: "Planejador" },
+  { value: "engenheiro_civil", label: "Engenheiro Civil" },
+  { value: "engenheiro_planejamento", label: "Engenheiro de Planejamento" },
+  { value: "tecnico_planejamento", label: "Técnico de Planejamento" },
+  { value: "engenheiro_seguranca", label: "Engenheiro de Segurança" },
 ] as const;
 
 type CargoType = typeof cargoOptions[number]["value"];

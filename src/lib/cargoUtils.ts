@@ -11,6 +11,10 @@ export const CARGO_LABELS: Record<string, string> = {
   aux_administrativo: "Aux. Administrativo",
   aux_almoxarifado: "Aux. Almoxarifado",
   planejador: "Planejador",
+  engenheiro_civil: "Engenheiro Civil",
+  engenheiro_planejamento: "Engenheiro de Planejamento",
+  tecnico_planejamento: "Técnico de Planejamento",
+  engenheiro_seguranca: "Engenheiro de Segurança",
 };
 
 // Short labels for compact displays
@@ -25,6 +29,10 @@ export const CARGO_LABELS_SHORT: Record<string, string> = {
   aux_administrativo: "Aux. Adm.",
   aux_almoxarifado: "Aux. Almox.",
   planejador: "Planejador",
+  engenheiro_civil: "Eng. Civil",
+  engenheiro_planejamento: "Eng. Planej.",
+  tecnico_planejamento: "Téc. Planej.",
+  engenheiro_seguranca: "Eng. Seg.",
 };
 
 /**

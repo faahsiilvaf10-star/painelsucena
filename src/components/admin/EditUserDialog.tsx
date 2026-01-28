@@ -35,6 +35,10 @@ const cargoLabels: Record<CargoType, string> = {
   aux_administrativo: "Auxiliar Administrativo",
   aux_almoxarifado: "Auxiliar de Almoxarifado",
   planejador: "Planejador",
+  engenheiro_civil: "Engenheiro Civil",
+  engenheiro_planejamento: "Engenheiro de Planejamento",
+  tecnico_planejamento: "Técnico de Planejamento",
+  engenheiro_seguranca: "Engenheiro de Segurança",
 };
 
 interface UserData {
