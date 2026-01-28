@@ -1,5 +1,24 @@
 import { useState } from "react";
-import { GripVertical, RotateCcw, Settings2, X, Check } from "lucide-react";
+import { 
+  GripVertical, 
+  RotateCcw, 
+  Settings2, 
+  X, 
+  Check,
+  AlertTriangle,
+  Target,
+  Heart,
+  Bell,
+  ShoppingCart,
+  Car,
+  FileText,
+  Link,
+  Sun,
+  Truck,
+  Users,
+  BarChart3,
+  LucideIcon,
+} from "lucide-react";
 import {
   DndContext,
   closestCenter,
@@ -34,6 +53,22 @@ import {
   DEFAULT_DASHBOARD_ORDER,
 } from "@/hooks/useDashboardOrder";
 
+// Map dashboard items to their icons
+const DASHBOARD_ITEM_ICONS: Record<DashboardItemId, LucideIcon> = {
+  matrix_alert: AlertTriangle,
+  goal_alert: Target,
+  campaign: Heart,
+  reminder: Bell,
+  order: ShoppingCart,
+  vehicle_expiry: Car,
+  document_expiry: FileText,
+  sling_inspection: Link,
+  dds: Sun,
+  equipment: Truck,
+  stats: Users,
+  matrix_chart: BarChart3,
+};
+
 interface SortableItemProps {
   id: DashboardItemId;
 }
@@ -53,6 +88,8 @@ const SortableItem = ({ id }: SortableItemProps) => {
     transition,
   };
 
+  const Icon = DASHBOARD_ITEM_ICONS[id];
+
   return (
     <div
       ref={setNodeRef}
@@ -68,6 +105,9 @@ const SortableItem = ({ id }: SortableItemProps) => {
       >
         <GripVertical className="h-5 w-5" />
       </button>
+      <div className="flex items-center justify-center w-8 h-8 rounded-md bg-primary/10 text-primary">
+        <Icon className="h-4 w-4" />
+      </div>
       <span className="flex-1 font-medium">{DASHBOARD_ITEM_LABELS[id]}</span>
     </div>
   );
