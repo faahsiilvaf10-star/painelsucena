@@ -63,6 +63,8 @@ export default function Metas() {
   const [plantio, setPlantio] = useState("");
   const [controleInvasoras, setControleInvasoras] = useState("");
   const [retiradaMudas, setRetiradaMudas] = useState("");
+  const [limpezaManual, setLimpezaManual] = useState("");
+  const [limpezaAssoprador, setLimpezaAssoprador] = useState("");
 
   // Gabião form state
   const [limpezaCanaleta, setLimpezaCanaleta] = useState("");
@@ -71,6 +73,8 @@ export default function Metas() {
   const [escavacaoManual, setEscavacaoManual] = useState("");
   const [reposicaoManta, setReposicaoManta] = useState("");
   const [reposicaoSilte, setReposicaoSilte] = useState("");
+  const [limpezaBueiro, setLimpezaBueiro] = useState("");
+  const [reparoCerca, setReparoCerca] = useState("");
 
   // Recomposição form state
   const [recomposicaoTela, setRecomposicaoTela] = useState("");
@@ -106,6 +110,8 @@ export default function Metas() {
       setPlantio(goal.plantio_unidade?.toString() || "");
       setControleInvasoras(goal.controle_invasoras_unidade?.toString() || "");
       setRetiradaMudas(goal.retirada_mudas_unidade?.toString() || "");
+      setLimpezaManual(goal.limpeza_manual_m2?.toString() || "");
+      setLimpezaAssoprador(goal.limpeza_assoprador_m2?.toString() || "");
       // Gabião
       setLimpezaCanaleta(goal.limpeza_canaleta_m?.toString() || "");
       setRecomposicaoGabiao(goal.recomposicao_gabiao_m?.toString() || "");
@@ -113,6 +119,8 @@ export default function Metas() {
       setEscavacaoManual(goal.escavacao_manual_unidade?.toString() || "");
       setReposicaoManta(goal.reposicao_manta_unidade?.toString() || "");
       setReposicaoSilte(goal.reposicao_silte_unidade?.toString() || "");
+      setLimpezaBueiro(goal.limpeza_bueiro_unidade?.toString() || "");
+      setReparoCerca(goal.reparo_cerca_m?.toString() || "");
       // Recomposição
       setRecomposicaoTela(goal.recomposicao_tela_unidade?.toString() || "");
       setRecomposicaoCascalho(goal.recomposicao_cascalho_unidade?.toString() || "");
@@ -126,12 +134,16 @@ export default function Metas() {
       setPlantio("");
       setControleInvasoras("");
       setRetiradaMudas("");
+      setLimpezaManual("");
+      setLimpezaAssoprador("");
       setLimpezaCanaleta("");
       setRecomposicaoGabiao("");
       setManutencaoDrenagem("");
       setEscavacaoManual("");
       setReposicaoManta("");
       setReposicaoSilte("");
+      setLimpezaBueiro("");
+      setReparoCerca("");
       setRecomposicaoTela("");
       setRecomposicaoCascalho("");
       setRecomposicaoSilteRecomp("");
@@ -184,6 +196,8 @@ export default function Metas() {
         plantio_unidade: plantio ? parseInt(plantio) : 0,
         controle_invasoras_unidade: controleInvasoras ? parseInt(controleInvasoras) : 0,
         retirada_mudas_unidade: retiradaMudas ? parseInt(retiradaMudas) : 0,
+        limpeza_manual_m2: limpezaManual ? parseFloat(limpezaManual) : 0,
+        limpeza_assoprador_m2: limpezaAssoprador ? parseFloat(limpezaAssoprador) : 0,
         // Gabião
         limpeza_canaleta_m: limpezaCanaleta ? parseFloat(limpezaCanaleta) : 0,
         recomposicao_gabiao_m: recomposicaoGabiao ? parseFloat(recomposicaoGabiao) : 0,
@@ -191,6 +205,8 @@ export default function Metas() {
         escavacao_manual_unidade: escavacaoManual ? parseInt(escavacaoManual) : 0,
         reposicao_manta_unidade: reposicaoManta ? parseInt(reposicaoManta) : 0,
         reposicao_silte_unidade: reposicaoSilte ? parseInt(reposicaoSilte) : 0,
+        limpeza_bueiro_unidade: limpezaBueiro ? parseInt(limpezaBueiro) : 0,
+        reparo_cerca_m: reparoCerca ? parseFloat(reparoCerca) : 0,
         // Recomposição
         recomposicao_tela_unidade: recomposicaoTela ? parseInt(recomposicaoTela) : 0,
         recomposicao_cascalho_unidade: recomposicaoCascalho ? parseInt(recomposicaoCascalho) : 0,
@@ -421,6 +437,42 @@ export default function Metas() {
                     className="text-lg"
                   />
                 </div>
+
+                {/* Limpeza Manual */}
+                <div className="space-y-2">
+                  <Label htmlFor="limpezaManual" className="flex items-center gap-2">
+                    <span className="text-lg">🧹</span>
+                    LIMPEZA MANUAL (m²)
+                  </Label>
+                  <Input
+                    id="limpezaManual"
+                    type="number"
+                    min="0"
+                    step="0.01"
+                    placeholder="0"
+                    value={limpezaManual}
+                    onChange={(e) => setLimpezaManual(e.target.value)}
+                    className="text-lg"
+                  />
+                </div>
+
+                {/* Limpeza Assoprador */}
+                <div className="space-y-2">
+                  <Label htmlFor="limpezaAssoprador" className="flex items-center gap-2">
+                    <span className="text-lg">💨</span>
+                    LIMPEZA ASSOPRADOR (m²)
+                  </Label>
+                  <Input
+                    id="limpezaAssoprador"
+                    type="number"
+                    min="0"
+                    step="0.01"
+                    placeholder="0"
+                    value={limpezaAssoprador}
+                    onChange={(e) => setLimpezaAssoprador(e.target.value)}
+                    className="text-lg"
+                  />
+                </div>
               </div>
             )}
           </CardContent>
@@ -545,6 +597,41 @@ export default function Metas() {
                     placeholder="0"
                     value={reposicaoSilte}
                     onChange={(e) => setReposicaoSilte(e.target.value)}
+                    className="text-lg"
+                  />
+                </div>
+
+                {/* Limpeza de Bueiro */}
+                <div className="space-y-2">
+                  <Label htmlFor="limpezaBueiro" className="flex items-center gap-2">
+                    <span className="text-lg">🕳️</span>
+                    LIMPEZA DE BUEIRO (unidade)
+                  </Label>
+                  <Input
+                    id="limpezaBueiro"
+                    type="number"
+                    min="0"
+                    placeholder="0"
+                    value={limpezaBueiro}
+                    onChange={(e) => setLimpezaBueiro(e.target.value)}
+                    className="text-lg"
+                  />
+                </div>
+
+                {/* Reparo de Cerca */}
+                <div className="space-y-2">
+                  <Label htmlFor="reparoCerca" className="flex items-center gap-2">
+                    <span className="text-lg">🚧</span>
+                    REPARO DE CERCA (m)
+                  </Label>
+                  <Input
+                    id="reparoCerca"
+                    type="number"
+                    min="0"
+                    step="0.01"
+                    placeholder="0"
+                    value={reparoCerca}
+                    onChange={(e) => setReparoCerca(e.target.value)}
                     className="text-lg"
                   />
                 </div>
