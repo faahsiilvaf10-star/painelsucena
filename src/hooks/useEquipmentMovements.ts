@@ -84,6 +84,8 @@ export function useAllEntries() {
       if (error) throw error;
       return (data || []) as EquipmentMovement[];
     },
+    staleTime: 0, // Always fetch fresh data
+    refetchOnMount: true,
   });
 }
 
@@ -122,6 +124,8 @@ export function useEquipmentCurrentlyOut() {
         return b.movement_time.localeCompare(a.movement_time);
       });
     },
+    staleTime: 0, // Always fetch fresh data
+    refetchOnMount: true,
   });
 }
 
