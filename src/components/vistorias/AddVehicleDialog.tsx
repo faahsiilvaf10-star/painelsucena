@@ -27,7 +27,6 @@ interface AddVehicleDialogProps {
 }
 
 type DateFieldState = {
-  vistoria: Date | undefined;
   laudo_opacidade: Date | undefined;
   laudo_mecanico: Date | undefined;
   plano_manutencao: Date | undefined;
@@ -46,7 +45,6 @@ export function AddVehicleDialog({ open, onOpenChange }: AddVehicleDialogProps) 
   });
 
   const [dates, setDates] = useState<DateFieldState>({
-    vistoria: undefined,
     laudo_opacidade: undefined,
     laudo_mecanico: undefined,
     plano_manutencao: undefined,
@@ -60,7 +58,6 @@ export function AddVehicleDialog({ open, onOpenChange }: AddVehicleDialogProps) 
       numero_cracha: "",
     });
     setDates({
-      vistoria: undefined,
       laudo_opacidade: undefined,
       laudo_mecanico: undefined,
       plano_manutencao: undefined,
@@ -81,7 +78,7 @@ export function AddVehicleDialog({ open, onOpenChange }: AddVehicleDialogProps) 
         placa: formData.placa.toUpperCase(),
         modelo_veiculo: formData.modelo_veiculo.toUpperCase(),
         numero_cracha: formData.numero_cracha,
-        vistoria: dates.vistoria ? format(dates.vistoria, "yyyy-MM-dd") : null,
+        vistoria: null,
         laudo_opacidade: dates.laudo_opacidade ? format(dates.laudo_opacidade, "yyyy-MM-dd") : null,
         laudo_mecanico: dates.laudo_mecanico ? format(dates.laudo_mecanico, "yyyy-MM-dd") : null,
         plano_manutencao: dates.plano_manutencao ? format(dates.plano_manutencao, "yyyy-MM-dd") : null,
