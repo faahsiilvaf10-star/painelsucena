@@ -6,6 +6,7 @@ import { useIsAdmin } from "@/hooks/useUserRole";
 import { useSiteSettings } from "@/hooks/useSiteSettings";
 import { useProfile } from "@/hooks/useProfile";
 import { useUserNavOrder } from "@/hooks/useUserNavOrder";
+import { useNavVisibilityRules } from "@/hooks/useNavVisibilityRules";
 import logoPrincipal from "@/assets/logo-principal.png";
 import {
   DndContext,
@@ -149,6 +150,7 @@ export function AppSidebar() {
   const { settings, updateSettings } = useSiteSettings();
   const { data: profile } = useProfile();
   const { navOrder } = useUserNavOrder();
+  const { getHiddenItemsForCargo } = useNavVisibilityRules();
   const isCollapsed = state === "collapsed";
 
   // Admin sempre edita/visualiza a ordem GLOBAL do menu.
@@ -175,11 +177,19 @@ export function AppSidebar() {
 
   // Filter nav items based on permissions
   const visibleNavItems = useMemo(() => {
+    // Get dynamically hidden items from the database for this user's cargo
+    const dynamicHiddenItems = profile?.cargo ? getHiddenItemsForCargo(profile.cargo) : [];
+    
     return allNavItems.filter(item => {
       // If admin, show everything
       if (isAdmin) return true;
       
-      // Check if user's cargo is in the hidden list
+      // Check if item is dynamically hidden for this cargo
+      if (dynamicHiddenItems.includes(item.id)) {
+        return false;
+      }
+      
+      // Check if user's cargo is in the hardcoded hidden list (legacy)
       if (item.hiddenFrom && profile?.cargo && item.hiddenFrom.includes(profile.cargo)) {
         return false;
       }
@@ -194,7 +204,7 @@ export function AppSidebar() {
       
       return false;
     });
-  }, [isAdmin, profile?.cargo]);
+  }, [isAdmin, profile?.cargo, getHiddenItemsForCargo]);
 
   // Order nav items based on user's personal nav order
   const orderedNavItems = useMemo(() => {
