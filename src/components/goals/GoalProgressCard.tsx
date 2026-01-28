@@ -79,6 +79,8 @@ export function GoalProgressCard({ type = "all" }: GoalProgressCardProps) {
     progress.plantio_unidade,
     progress.controle_invasoras_unidade,
     progress.retirada_mudas_unidade,
+    progress.limpeza_manual_m2,
+    progress.limpeza_assoprador_m2,
   ].filter(g => g.target > 0);
 
   const gabiaoGoals = [
@@ -88,6 +90,8 @@ export function GoalProgressCard({ type = "all" }: GoalProgressCardProps) {
     progress.escavacao_manual_unidade,
     progress.reposicao_manta_unidade,
     progress.reposicao_silte_unidade,
+    progress.limpeza_bueiro_unidade,
+    progress.reparo_cerca_m,
   ].filter(g => g.target > 0);
 
   const allGoals = [...jardGoals, ...gabiaoGoals];
@@ -171,6 +175,26 @@ export function GoalProgressCard({ type = "all" }: GoalProgressCardProps) {
           percentage={progress.retirada_mudas_unidade.percentage}
         />
       )}
+      {progress.limpeza_manual_m2.target > 0 && (
+        <GoalItem
+          label="Limpeza Manual"
+          emoji="🧹"
+          unit="m²"
+          current={progress.limpeza_manual_m2.current}
+          target={progress.limpeza_manual_m2.target}
+          percentage={progress.limpeza_manual_m2.percentage}
+        />
+      )}
+      {progress.limpeza_assoprador_m2.target > 0 && (
+        <GoalItem
+          label="Limpeza Assoprador"
+          emoji="💨"
+          unit="m²"
+          current={progress.limpeza_assoprador_m2.current}
+          target={progress.limpeza_assoprador_m2.target}
+          percentage={progress.limpeza_assoprador_m2.percentage}
+        />
+      )}
     </div>
   );
 
@@ -234,6 +258,26 @@ export function GoalProgressCard({ type = "all" }: GoalProgressCardProps) {
           current={progress.reposicao_silte_unidade.current}
           target={progress.reposicao_silte_unidade.target}
           percentage={progress.reposicao_silte_unidade.percentage}
+        />
+      )}
+      {progress.limpeza_bueiro_unidade.target > 0 && (
+        <GoalItem
+          label="Limpeza de Bueiro"
+          emoji="🕳️"
+          unit="un"
+          current={progress.limpeza_bueiro_unidade.current}
+          target={progress.limpeza_bueiro_unidade.target}
+          percentage={progress.limpeza_bueiro_unidade.percentage}
+        />
+      )}
+      {progress.reparo_cerca_m.target > 0 && (
+        <GoalItem
+          label="Reparo de Cerca"
+          emoji="🚧"
+          unit="m"
+          current={progress.reparo_cerca_m.current}
+          target={progress.reparo_cerca_m.target}
+          percentage={progress.reparo_cerca_m.percentage}
         />
       )}
     </div>
