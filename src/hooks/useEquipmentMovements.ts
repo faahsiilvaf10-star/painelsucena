@@ -3,6 +3,7 @@ import { supabase } from "@/integrations/supabase/client";
 import { useAuth } from "@/hooks/useAuth";
 import { toast } from "sonner";
 import { getBrazilNorthTodayString } from "@/lib/timezone";
+import { startOfMonth, endOfMonth, format } from "date-fns";
 
 export type MovementType = "entrada" | "saida";
 export type ExitReason = "manutencao_corretiva" | "manutencao_preventiva" | "vistoria";
