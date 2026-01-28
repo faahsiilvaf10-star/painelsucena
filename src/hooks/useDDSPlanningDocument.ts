@@ -55,10 +55,10 @@ export const useDDSPlanningDocument = () => {
       return false;
     }
 
-    if (file.size > 10 * 1024 * 1024) {
+    if (file.size > 18 * 1024 * 1024) {
       toast({
         title: "Erro",
-        description: "O arquivo deve ter no máximo 10MB.",
+        description: "O arquivo deve ter no máximo 18MB.",
         variant: "destructive",
       });
       return false;
