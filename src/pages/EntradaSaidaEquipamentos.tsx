@@ -1,7 +1,7 @@
 import { useState, useMemo } from "react";
 import { format, startOfWeek, endOfWeek, subWeeks, parseISO } from "date-fns";
 import { ptBR } from "date-fns/locale";
-import { ArrowDownToLine, ArrowUpFromLine, Truck, Calendar, Clock, Search, Plus, Wrench, Shield, ClipboardCheck, Trash2, AlertCircle, History, ChevronLeft, ChevronRight, CalendarIcon } from "lucide-react";
+import { ArrowDownToLine, ArrowUpFromLine, Truck, Calendar, Clock, Search, Plus, Wrench, Shield, ClipboardCheck, Trash2, AlertCircle, History, ChevronLeft, ChevronRight, CalendarIcon, ListChecks } from "lucide-react";
 import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover";
 import { Calendar as CalendarComponent } from "@/components/ui/calendar";
 import { cn } from "@/lib/utils";
@@ -23,6 +23,8 @@ import {
   useTodayMovementsSummary,
   useDeleteEquipmentMovement,
   useWeeklyEquipmentMovements,
+  useAllEntries,
+  useEquipmentCurrentlyOut,
   MovementType,
   ExitReason,
   EquipmentMovement
@@ -77,6 +79,10 @@ const EntradaSaidaEquipamentos = () => {
     weekDates.startDate,
     weekDates.endDate
   );
+
+  // Get all entries and currently out equipment
+  const { data: allEntries, isLoading: isLoadingEntries } = useAllEntries();
+  const { data: currentlyOut, isLoading: isLoadingOut } = useEquipmentCurrentlyOut();
 
   // Group weekly movements by date
   const groupedWeeklyMovements = useMemo(() => {
@@ -515,6 +521,10 @@ const EntradaSaidaEquipamentos = () => {
               <ArrowUpFromLine className="h-4 w-4" />
               Saídas ({saidas.length})
             </TabsTrigger>
+            <TabsTrigger value="situacao" className="gap-2">
+              <ListChecks className="h-4 w-4" />
+              Situação
+            </TabsTrigger>
             <TabsTrigger value="historico" className="gap-2">
               <History className="h-4 w-4" />
               Histórico
@@ -599,6 +609,153 @@ const EntradaSaidaEquipamentos = () => {
                 )}
               </CardContent>
             </Card>
+          </TabsContent>
+
+          <TabsContent value="situacao" className="space-y-4">
+            <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
+              {/* All Entries - Historic */}
+              <Card>
+                <CardHeader>
+                  <CardTitle className="text-lg flex items-center gap-2">
+                    <ArrowDownToLine className="h-5 w-5 text-green-500" />
+                    Todos os Equipamentos que Entraram
+                    {allEntries && (
+                      <Badge variant="secondary">{allEntries.length}</Badge>
+                    )}
+                  </CardTitle>
+                </CardHeader>
+                <CardContent>
+                  {isLoadingEntries ? (
+                    <div className="text-center py-8 text-muted-foreground">
+                      Carregando...
+                    </div>
+                  ) : !allEntries || allEntries.length === 0 ? (
+                    <div className="text-center py-12 text-muted-foreground">
+                      <ArrowDownToLine className="h-12 w-12 mx-auto mb-4 opacity-50 text-green-500" />
+                      <p>Nenhuma entrada registrada</p>
+                    </div>
+                  ) : (
+                    <ScrollArea className="max-h-[400px]">
+                      <div className="space-y-2">
+                        {allEntries.map((movement) => (
+                          <div
+                            key={movement.id}
+                            className="p-3 rounded-lg border bg-green-500/5 border-green-500/20"
+                          >
+                            <div className="flex items-start justify-between gap-3">
+                              <div className="flex items-start gap-2">
+                                <div className="p-1.5 rounded-full bg-green-500/20">
+                                  <ArrowDownToLine className="h-4 w-4 text-green-500" />
+                                </div>
+                                <div>
+                                  <p className="font-medium text-sm">{movement.equipment_name}</p>
+                                  <p className="text-xs text-muted-foreground">{movement.plate}</p>
+                                </div>
+                              </div>
+                              <div className="text-right">
+                                <p className="text-xs font-medium">
+                                  {format(parseISO(movement.movement_date), "dd/MM/yyyy", { locale: ptBR })}
+                                </p>
+                                <p className="text-xs text-muted-foreground">
+                                  {movement.movement_time.slice(0, 5)}
+                                </p>
+                              </div>
+                            </div>
+                            {movement.observation && (
+                              <p className="text-xs text-muted-foreground mt-2 italic pl-8">
+                                "{movement.observation}"
+                              </p>
+                            )}
+                          </div>
+                        ))}
+                      </div>
+                    </ScrollArea>
+                  )}
+                </CardContent>
+              </Card>
+
+              {/* Currently Out */}
+              <Card>
+                <CardHeader>
+                  <CardTitle className="text-lg flex items-center gap-2">
+                    <ArrowUpFromLine className="h-5 w-5 text-orange-500" />
+                    Equipamentos Fora do Canteiro
+                    {currentlyOut && (
+                      <Badge variant="destructive">{currentlyOut.length}</Badge>
+                    )}
+                  </CardTitle>
+                </CardHeader>
+                <CardContent>
+                  {isLoadingOut ? (
+                    <div className="text-center py-8 text-muted-foreground">
+                      Carregando...
+                    </div>
+                  ) : !currentlyOut || currentlyOut.length === 0 ? (
+                    <div className="text-center py-12 text-muted-foreground">
+                      <Truck className="h-12 w-12 mx-auto mb-4 opacity-50" />
+                      <p>Todos os equipamentos estão no canteiro</p>
+                    </div>
+                  ) : (
+                    <ScrollArea className="max-h-[400px]">
+                      <div className="space-y-2">
+                        {currentlyOut.map((movement) => {
+                          const exitInfo = movement.exit_reason ? EXIT_REASON_LABELS[movement.exit_reason] : null;
+                          const ExitIcon = exitInfo?.icon;
+
+                          return (
+                            <div
+                              key={movement.id}
+                              className="p-3 rounded-lg border bg-orange-500/5 border-orange-500/20"
+                            >
+                              <div className="flex items-start justify-between gap-3">
+                                <div className="flex items-start gap-2">
+                                  <div className="p-1.5 rounded-full bg-orange-500/20">
+                                    <ArrowUpFromLine className="h-4 w-4 text-orange-500" />
+                                  </div>
+                                  <div>
+                                    <p className="font-medium text-sm">{movement.equipment_name}</p>
+                                    <p className="text-xs text-muted-foreground">{movement.plate}</p>
+                                    {exitInfo && ExitIcon && (
+                                      <div className="flex items-center gap-1 mt-1">
+                                        <ExitIcon className={`h-3 w-3 ${exitInfo.color}`} />
+                                        <span className={`text-xs ${exitInfo.color}`}>
+                                          {exitInfo.label}
+                                        </span>
+                                      </div>
+                                    )}
+                                  </div>
+                                </div>
+                                <div className="text-right">
+                                  <p className="text-xs font-medium">
+                                    Saiu em {format(parseISO(movement.movement_date), "dd/MM/yyyy", { locale: ptBR })}
+                                  </p>
+                                  <p className="text-xs text-muted-foreground">
+                                    às {movement.movement_time.slice(0, 5)}
+                                  </p>
+                                </div>
+                              </div>
+                              {movement.problem_description && (
+                                <div className="mt-2 p-2 rounded bg-red-500/10 border border-red-500/20 ml-8">
+                                  <div className="flex items-start gap-1">
+                                    <AlertCircle className="h-3 w-3 text-red-500 mt-0.5 flex-shrink-0" />
+                                    <p className="text-xs text-red-500">{movement.problem_description}</p>
+                                  </div>
+                                </div>
+                              )}
+                              {movement.observation && (
+                                <p className="text-xs text-muted-foreground mt-2 italic pl-8">
+                                  "{movement.observation}"
+                                </p>
+                              )}
+                            </div>
+                          );
+                        })}
+                      </div>
+                    </ScrollArea>
+                  )}
+                </CardContent>
+              </Card>
+            </div>
           </TabsContent>
 
           <TabsContent value="historico" className="space-y-4">
