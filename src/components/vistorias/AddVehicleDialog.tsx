@@ -31,6 +31,7 @@ type DateFieldState = {
   laudo_opacidade: Date | undefined;
   laudo_mecanico: Date | undefined;
   plano_manutencao: Date | undefined;
+  cronografo: Date | undefined;
 };
 
 export function AddVehicleDialog({ open, onOpenChange }: AddVehicleDialogProps) {
@@ -49,6 +50,7 @@ export function AddVehicleDialog({ open, onOpenChange }: AddVehicleDialogProps) 
     laudo_opacidade: undefined,
     laudo_mecanico: undefined,
     plano_manutencao: undefined,
+    cronografo: undefined,
   });
 
   const resetForm = () => {
@@ -62,6 +64,7 @@ export function AddVehicleDialog({ open, onOpenChange }: AddVehicleDialogProps) 
       laudo_opacidade: undefined,
       laudo_mecanico: undefined,
       plano_manutencao: undefined,
+      cronografo: undefined,
     });
   };
 
@@ -82,6 +85,7 @@ export function AddVehicleDialog({ open, onOpenChange }: AddVehicleDialogProps) 
         laudo_opacidade: dates.laudo_opacidade ? format(dates.laudo_opacidade, "yyyy-MM-dd") : null,
         laudo_mecanico: dates.laudo_mecanico ? format(dates.laudo_mecanico, "yyyy-MM-dd") : null,
         plano_manutencao: dates.plano_manutencao ? format(dates.plano_manutencao, "yyyy-MM-dd") : null,
+        cronografo: dates.cronografo ? format(dates.cronografo, "yyyy-MM-dd") : null,
         created_by: user.id,
       });
       

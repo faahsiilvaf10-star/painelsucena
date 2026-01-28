@@ -1358,6 +1358,7 @@ export type Database = {
         Row: {
           created_at: string
           created_by: string
+          cronografo: string | null
           id: string
           laudo_mecanico: string | null
           laudo_opacidade: string | null
@@ -1371,6 +1372,7 @@ export type Database = {
         Insert: {
           created_at?: string
           created_by: string
+          cronografo?: string | null
           id?: string
           laudo_mecanico?: string | null
           laudo_opacidade?: string | null
@@ -1384,6 +1386,7 @@ export type Database = {
         Update: {
           created_at?: string
           created_by?: string
+          cronografo?: string | null
           id?: string
           laudo_mecanico?: string | null
           laudo_opacidade?: string | null

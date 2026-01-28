@@ -10,6 +10,7 @@ export interface VehicleInspection {
   laudo_opacidade: string | null;
   laudo_mecanico: string | null;
   plano_manutencao: string | null;
+  cronografo: string | null;
   created_at: string;
   updated_at: string;
   created_by: string;
@@ -20,6 +21,7 @@ export const DATE_FIELDS = [
   { key: "laudo_opacidade", label: "Laudo Opacidade" },
   { key: "laudo_mecanico", label: "Laudo Mecânico" },
   { key: "plano_manutencao", label: "Plano Manutenção" },
+  { key: "cronografo", label: "Cronógrafo" },
 ] as const;
 
 export type DateFieldKey = typeof DATE_FIELDS[number]["key"];
@@ -77,6 +79,7 @@ export function useUpdateVehicleInspection() {
       laudo_opacidade?: string | null;
       laudo_mecanico?: string | null;
       plano_manutencao?: string | null;
+      cronografo?: string | null;
     }) => {
       const { data, error } = await supabase
         .from("vehicle_inspections")
