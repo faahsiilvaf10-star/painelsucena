@@ -1,10 +1,17 @@
 import { useEffect, useRef } from "react";
-import { useVehicleInspections } from "./useVehicleInspections";
+import { useVehicleInspections, DATE_FIELDS } from "./useVehicleInspections";
 import { useBrowserNotifications } from "./useBrowserNotifications";
 import { useAuth } from "./useAuth";
 import { parseISO, isValid, isBefore, addDays, differenceInDays } from "date-fns";
 
 const NOTIFICATION_KEY = "vehicle_expiry_notifications_shown";
+
+interface ExpiryInfo {
+  placa: string;
+  fieldLabel: string;
+  date: Date;
+  daysUntilExpiry: number;
+}
 
 export const useVehicleExpiryNotifications = () => {
   const { user } = useAuth();
@@ -36,65 +43,67 @@ export const useVehicleExpiryNotifications = () => {
     now.setHours(0, 0, 0, 0);
     const warningDate = addDays(now, 15);
 
-    // Find expired vehicles
-    const expiredVehicles = vehicles.filter((v) => {
-      if (!v.validade_cracha) return false;
-      try {
-        const date = parseISO(v.validade_cracha);
-        if (!isValid(date)) return false;
-        return isBefore(date, now);
-      } catch {
-        return false;
-      }
+    // Collect all expiring/expired items
+    const expiredItems: ExpiryInfo[] = [];
+    const expiringItems: ExpiryInfo[] = [];
+
+    vehicles.forEach((vehicle) => {
+      DATE_FIELDS.forEach((field) => {
+        const dateStr = vehicle[field.key];
+        if (!dateStr) return;
+
+        try {
+          const date = parseISO(dateStr);
+          if (!isValid(date)) return;
+
+          const daysUntilExpiry = differenceInDays(date, now);
+          const info: ExpiryInfo = {
+            placa: vehicle.placa,
+            fieldLabel: field.label,
+            date,
+            daysUntilExpiry,
+          };
+
+          if (isBefore(date, now)) {
+            expiredItems.push(info);
+          } else if (isBefore(date, warningDate)) {
+            expiringItems.push(info);
+          }
+        } catch {
+          // Skip invalid dates
+        }
+      });
     });
 
-    // Find vehicles expiring within 15 days
-    const expiringVehicles = vehicles.filter((v) => {
-      if (!v.validade_cracha) return false;
-      try {
-        const date = parseISO(v.validade_cracha);
-        if (!isValid(date)) return false;
-        return !isBefore(date, now) && isBefore(date, warningDate);
-      } catch {
-        return false;
-      }
-    });
-
-    const totalAlerts = expiredVehicles.length + expiringVehicles.length;
+    const totalAlerts = expiredItems.length + expiringItems.length;
 
     if (totalAlerts === 0) return;
 
     let message = "";
     
-    if (expiredVehicles.length > 0 && expiringVehicles.length > 0) {
-      message = `${expiredVehicles.length} crachá(s) vencido(s) e ${expiringVehicles.length} vencendo em até 15 dias.`;
-    } else if (expiredVehicles.length > 0) {
-      if (expiredVehicles.length === 1) {
-        message = `O crachá do veículo ${expiredVehicles[0].placa} está vencido!`;
+    if (expiredItems.length > 0 && expiringItems.length > 0) {
+      message = `${expiredItems.length} documento(s) vencido(s) e ${expiringItems.length} vencendo em até 15 dias.`;
+    } else if (expiredItems.length > 0) {
+      if (expiredItems.length === 1) {
+        message = `${expiredItems[0].fieldLabel} do veículo ${expiredItems[0].placa} está vencido!`;
       } else {
-        message = `${expiredVehicles.length} veículos com crachá vencido!`;
+        message = `${expiredItems.length} documentos vencidos!`;
       }
-    } else if (expiringVehicles.length > 0) {
+    } else if (expiringItems.length > 0) {
       // Sort by closest expiry
-      const sorted = [...expiringVehicles].sort((a, b) => {
-        const dateA = parseISO(a.validade_cracha);
-        const dateB = parseISO(b.validade_cracha);
-        return dateA.getTime() - dateB.getTime();
-      });
-      
+      const sorted = [...expiringItems].sort((a, b) => a.daysUntilExpiry - b.daysUntilExpiry);
       const mostUrgent = sorted[0];
-      const days = differenceInDays(parseISO(mostUrgent.validade_cracha), now);
       
-      if (expiringVehicles.length === 1) {
-        if (days === 0) {
-          message = `O crachá do veículo ${mostUrgent.placa} vence hoje!`;
-        } else if (days === 1) {
-          message = `O crachá do veículo ${mostUrgent.placa} vence amanhã!`;
+      if (expiringItems.length === 1) {
+        if (mostUrgent.daysUntilExpiry === 0) {
+          message = `${mostUrgent.fieldLabel} do veículo ${mostUrgent.placa} vence hoje!`;
+        } else if (mostUrgent.daysUntilExpiry === 1) {
+          message = `${mostUrgent.fieldLabel} do veículo ${mostUrgent.placa} vence amanhã!`;
         } else {
-          message = `O crachá do veículo ${mostUrgent.placa} vence em ${days} dias.`;
+          message = `${mostUrgent.fieldLabel} do veículo ${mostUrgent.placa} vence em ${mostUrgent.daysUntilExpiry} dias.`;
         }
       } else {
-        message = `${expiringVehicles.length} veículos com crachá vencendo. O mais urgente é ${mostUrgent.placa}.`;
+        message = `${expiringItems.length} documentos vencendo. O mais urgente: ${mostUrgent.fieldLabel} - ${mostUrgent.placa}.`;
       }
     }
 

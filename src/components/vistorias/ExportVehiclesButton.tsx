@@ -10,7 +10,7 @@ import {
   DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu";
 import { toast } from "sonner";
-import { VehicleInspection } from "@/hooks/useVehicleInspections";
+import { VehicleInspection, DATE_FIELDS } from "@/hooks/useVehicleInspections";
 
 interface ExportVehiclesButtonProps {
   vehicles: VehicleInspection[];
@@ -19,14 +19,14 @@ interface ExportVehiclesButtonProps {
 export function ExportVehiclesButton({ vehicles }: ExportVehiclesButtonProps) {
   const [isExporting, setIsExporting] = useState(false);
 
-  const formatDate = (dateStr: string) => {
+  const formatDate = (dateStr: string | null) => {
     if (!dateStr) return "-";
     try {
       const date = parseISO(dateStr);
       if (!isValid(date)) return dateStr;
       return format(date, "dd/MM/yyyy", { locale: ptBR });
     } catch {
-      return dateStr;
+      return dateStr || "-";
     }
   };
 
@@ -34,14 +34,22 @@ export function ExportVehiclesButton({ vehicles }: ExportVehiclesButtonProps) {
     setIsExporting(true);
     try {
       // CSV header
-      const headers = ["Placa", "Modelo do Veículo", "Nº Crachá", "Validade Crachá"];
+      const headers = [
+        "Placa", 
+        "Modelo do Veículo", 
+        "Nº Crachá", 
+        ...DATE_FIELDS.map((f) => f.label)
+      ];
       
       // CSV rows
       const rows = vehicles.map((v) => [
         v.placa,
         v.modelo_veiculo,
         v.numero_cracha,
-        formatDate(v.validade_cracha),
+        formatDate(v.vistoria),
+        formatDate(v.laudo_opacidade),
+        formatDate(v.laudo_mecanico),
+        formatDate(v.plano_manutencao),
       ]);
 
       // Combine headers and rows
@@ -91,7 +99,10 @@ export function ExportVehiclesButton({ vehicles }: ExportVehiclesButtonProps) {
             <td>${v.placa}</td>
             <td>${v.modelo_veiculo}</td>
             <td>${v.numero_cracha}</td>
-            <td>${formatDate(v.validade_cracha)}</td>
+            <td>${formatDate(v.vistoria)}</td>
+            <td>${formatDate(v.laudo_opacidade)}</td>
+            <td>${formatDate(v.laudo_mecanico)}</td>
+            <td>${formatDate(v.plano_manutencao)}</td>
           </tr>
         `
         )
@@ -139,15 +150,15 @@ export function ExportVehiclesButton({ vehicles }: ExportVehiclesButtonProps) {
             }
             th, td {
               border: 1px solid #ddd;
-              padding: 10px 8px;
+              padding: 8px 6px;
               text-align: left;
-              font-size: 12px;
+              font-size: 10px;
             }
             th {
               background-color: #f5f5f5;
               font-weight: bold;
               text-transform: uppercase;
-              font-size: 11px;
+              font-size: 9px;
             }
             tr:nth-child(even) {
               background-color: #fafafa;
@@ -168,7 +179,7 @@ export function ExportVehiclesButton({ vehicles }: ExportVehiclesButtonProps) {
         <body>
           <div class="header">
             <h1>Relatório de Veículos Terceiros</h1>
-            <p>Controle de Vistorias e Crachás</p>
+            <p>Controle de Vistorias e Laudos</p>
           </div>
           
           <div class="info">
@@ -180,9 +191,12 @@ export function ExportVehiclesButton({ vehicles }: ExportVehiclesButtonProps) {
             <thead>
               <tr>
                 <th>Placa</th>
-                <th>Modelo do Veículo</th>
+                <th>Modelo</th>
                 <th>Nº Crachá</th>
-                <th>Validade Crachá</th>
+                <th>Vistoria</th>
+                <th>Laudo Opacidade</th>
+                <th>Laudo Mecânico</th>
+                <th>Plano Manutenção</th>
               </tr>
             </thead>
             <tbody>
