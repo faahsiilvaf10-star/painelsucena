@@ -172,7 +172,7 @@ export const OnlineUsersFooter = ({
           <div className="flex items-center gap-1 shrink-0">
             <span className="text-[10px] text-green-500 font-medium mr-1 hidden sm:inline">Online</span>
             <div className="flex items-center -space-x-2">
-              {allUsers.filter(u => u.isOnline).length === 0 ? <span className="text-xs text-muted-foreground ml-2">—</span> : allUsers.filter(u => u.isOnline).slice(0, typeof window !== 'undefined' && window.innerWidth < 640 ? 4 : 8).map(user => <Tooltip key={user.user_id}>
+              {allUsers.filter(u => u.isOnline).length === 0 ? <span className="text-xs text-muted-foreground ml-2">—</span> : allUsers.filter(u => u.isOnline).map(user => <Tooltip key={user.user_id}>
                     <TooltipTrigger asChild>
                       <button onClick={() => !user.isCurrentUser && onUserClick(user)} className={cn("relative hover:z-10 transition-transform hover:scale-110", user.isCurrentUser && "cursor-default")}>
                         <Avatar className={cn(
@@ -209,8 +209,6 @@ export const OnlineUsersFooter = ({
                       )}
                     </TooltipContent>
                   </Tooltip>)}
-              {allUsers.filter(u => u.isOnline).length > 4 && <span className="text-[10px] text-green-500 ml-2 sm:hidden">+{allUsers.filter(u => u.isOnline).length - 4}</span>}
-              {allUsers.filter(u => u.isOnline).length > 8 && <span className="text-[10px] text-green-500 ml-2 hidden sm:inline">+{allUsers.filter(u => u.isOnline).length - 8}</span>}
             </div>
           </div>
 
@@ -220,7 +218,7 @@ export const OnlineUsersFooter = ({
           <div className="flex items-center gap-1 shrink-0">
             <span className="text-[10px] text-muted-foreground font-medium mr-1 hidden sm:inline">Offline</span>
             <div className="flex items-center -space-x-2">
-              {allUsers.filter(u => !u.isOnline).length === 0 ? <span className="text-xs text-muted-foreground ml-2 hidden sm:inline">—</span> : allUsers.filter(u => !u.isOnline).slice(0, typeof window !== 'undefined' && window.innerWidth < 640 ? 3 : 6).map(user => {
+              {allUsers.filter(u => !u.isOnline).length === 0 ? <span className="text-xs text-muted-foreground ml-2 hidden sm:inline">—</span> : allUsers.filter(u => !u.isOnline).map(user => {
                 const lastSeenText = formatLastSeen(user.lastSeen);
                 return (
                   <Tooltip key={user.user_id}>
@@ -251,8 +249,6 @@ export const OnlineUsersFooter = ({
                   </Tooltip>
                 );
               })}
-              {allUsers.filter(u => !u.isOnline).length > 3 && <span className="text-[10px] text-muted-foreground ml-2 sm:hidden">+{allUsers.filter(u => !u.isOnline).length - 3}</span>}
-              {allUsers.filter(u => !u.isOnline).length > 6 && <span className="text-[10px] text-muted-foreground ml-2 hidden sm:inline">+{allUsers.filter(u => !u.isOnline).length - 6}</span>}
             </div>
           </div>
         </TooltipProvider>
