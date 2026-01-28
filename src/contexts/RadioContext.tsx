@@ -3,6 +3,7 @@ import { createContext, useContext, useState, useRef, useEffect, ReactNode, useC
 const RADIO_STATIONS = [
   { id: "jbfm", name: "JB FM 99.9", genre: "Hits", url: "https://27343.live.streamtheworld.com/JBFM.mp3" },
   { id: "tiktok", name: "TikTok Hits", genre: "Viral", url: "http://strm112.1.fm/top40_mobile_mp3" },
+  { id: "melody", name: "Tecno Melody", genre: "Melody", url: "https://stream.zeno.fm/0r0xa792kwzuv" },
   { id: "sertanejo", name: "Sertaneja Hits", genre: "Sertanejo", url: "http://strm112.1.fm/sertanejo_mobile_mp3" },
   { id: "pagode", name: "Pagode Hits", genre: "Pagode", url: "http://strm112.1.fm/bossanova_mobile_mp3" },
   { id: "gospel", name: "Gospel", genre: "Gospel", url: "https://stream.zeno.fm/yn65fsaurfhvv" },
