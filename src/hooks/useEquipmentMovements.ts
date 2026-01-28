@@ -68,6 +68,62 @@ export function useAllEquipmentMovements() {
   });
 }
 
+// Get all entries ever recorded
+export function useAllEntries() {
+  return useQuery({
+    queryKey: ["equipment-movements-all-entries"],
+    queryFn: async (): Promise<EquipmentMovement[]> => {
+      const { data, error } = await supabase
+        .from("equipment_movements")
+        .select("*")
+        .eq("movement_type", "entrada")
+        .order("movement_date", { ascending: false })
+        .order("movement_time", { ascending: false });
+
+      if (error) throw error;
+      return (data || []) as EquipmentMovement[];
+    },
+  });
+}
+
+// Get equipment currently out (saida without a subsequent entrada)
+export function useEquipmentCurrentlyOut() {
+  return useQuery({
+    queryKey: ["equipment-movements-currently-out"],
+    queryFn: async () => {
+      // Get all movements ordered by date and time
+      const { data, error } = await supabase
+        .from("equipment_movements")
+        .select("*")
+        .order("movement_date", { ascending: true })
+        .order("movement_time", { ascending: true });
+
+      if (error) throw error;
+
+      const movements = (data || []) as EquipmentMovement[];
+      
+      // Track last movement per equipment (by plate)
+      const lastMovementByPlate: Record<string, EquipmentMovement> = {};
+      
+      movements.forEach((m) => {
+        lastMovementByPlate[m.plate] = m;
+      });
+      
+      // Filter only those whose last movement was "saida"
+      const currentlyOut = Object.values(lastMovementByPlate).filter(
+        (m) => m.movement_type === "saida"
+      );
+      
+      // Sort by exit date (most recent first)
+      return currentlyOut.sort((a, b) => {
+        const dateCompare = b.movement_date.localeCompare(a.movement_date);
+        if (dateCompare !== 0) return dateCompare;
+        return b.movement_time.localeCompare(a.movement_time);
+      });
+    },
+  });
+}
+
 export function useCreateEquipmentMovement() {
   const queryClient = useQueryClient();
   const { user } = useAuth();
