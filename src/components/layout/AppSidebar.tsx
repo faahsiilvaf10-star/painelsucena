@@ -82,10 +82,12 @@ function SortableNavItem({
   item,
   isActive,
   isCollapsed,
+  showGrip,
 }: {
   item: NavItem;
   isActive: boolean;
   isCollapsed: boolean;
+  showGrip: boolean;
 }) {
   const {
     attributes,
@@ -112,7 +114,7 @@ function SortableNavItem({
         className="group"
       >
         <Link to={item.path} className="flex items-center gap-2">
-          {!isCollapsed && (
+          {!isCollapsed && showGrip && (
             <span
               {...attributes}
               {...listeners}
@@ -144,9 +146,9 @@ export function AppSidebar() {
   const { user, signOut } = useAuth();
   const { isAdmin } = useIsAdmin();
   const { state, toggleSidebar } = useSidebar();
-  const { settings } = useSiteSettings();
+  const { settings, updateSettings } = useSiteSettings();
   const { data: profile } = useProfile();
-  const { navOrder, updateNavOrder } = useUserNavOrder();
+  const { navOrder } = useUserNavOrder();
   const isCollapsed = state === "collapsed";
 
   const sensors = useSensors(
@@ -206,6 +208,9 @@ export function AppSidebar() {
   }, [navOrder, visibleNavItems]);
 
   const handleDragEnd = (event: DragEndEvent) => {
+    // Only admins can reorder the global sidebar
+    if (!isAdmin) return;
+    
     const { active, over } = event;
 
     if (over && active.id !== over.id) {
@@ -247,9 +252,10 @@ export function AppSidebar() {
         visibleIndex++;
       }
 
-      updateNavOrder.mutate(finalOrder, {
+      // Admin saves to global site_settings
+      updateSettings.mutate({ nav_order: finalOrder }, {
         onSuccess: () => {
-          toast.success("Ordem do menu salva!");
+          toast.success("Ordem global do menu salva!");
         },
         onError: () => {
           toast.error("Erro ao salvar ordem do menu");
@@ -354,6 +360,7 @@ export function AppSidebar() {
                           item={item}
                           isActive={isActive}
                           isCollapsed={isCollapsed}
+                          showGrip={isAdmin}
                         />
                       );
                     })}
