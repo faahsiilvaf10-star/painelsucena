@@ -12,11 +12,12 @@ import { useSiteSettings } from "@/hooks/useSiteSettings";
 import { supabase } from "@/integrations/supabase/client";
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import { toast } from "sonner";
-import { Shield, ShieldCheck, Trash2, UserPlus, Users, Image, Upload, UserCog, Megaphone, Pencil } from "lucide-react";
+import { Shield, ShieldCheck, Trash2, UserPlus, Users, Image, Upload, UserCog, Megaphone, Pencil, LayoutList } from "lucide-react";
 import { BulkEmployeeEditor } from "@/components/admin/BulkEmployeeEditor";
 import { AnnouncementManager } from "@/components/admin/AnnouncementManager";
 import { EditUserDialog } from "@/components/admin/EditUserDialog";
 import { DeleteUserDialog } from "@/components/admin/DeleteUserDialog";
+import { GlobalNavOrderManager } from "@/components/admin/GlobalNavOrderManager";
 import { Navigate } from "react-router-dom";
 import type { Database } from "@/integrations/supabase/types";
 
@@ -212,8 +213,12 @@ const Admin = () => {
         </div>
 
         <Tabs defaultValue="settings" className="space-y-6">
-          <TabsList className="grid w-full grid-cols-4 max-w-2xl">
+          <TabsList className="grid w-full grid-cols-5 max-w-3xl">
             <TabsTrigger value="settings">Configurações</TabsTrigger>
+            <TabsTrigger value="sidebar" className="flex items-center gap-1">
+              <LayoutList className="w-4 h-4" />
+              Menu
+            </TabsTrigger>
             <TabsTrigger value="users">Usuários</TabsTrigger>
             <TabsTrigger value="employees" className="flex items-center gap-1">
               <UserCog className="w-4 h-4" />
@@ -284,6 +289,11 @@ const Admin = () => {
               </CardContent>
             </Card>
 
+          </TabsContent>
+
+          {/* Sidebar Tab */}
+          <TabsContent value="sidebar" className="space-y-6">
+            <GlobalNavOrderManager />
           </TabsContent>
 
           {/* Users Tab */}
