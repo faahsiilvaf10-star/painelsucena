@@ -331,10 +331,11 @@ const EntradaSaidaEquipamentos = () => {
                   Novo Registro
                 </Button>
               </DialogTrigger>
-              <DialogContent className="sm:max-w-md">
+              <DialogContent className="sm:max-w-md max-h-[90vh] flex flex-col">
                 <DialogHeader>
                   <DialogTitle>Registrar Movimento</DialogTitle>
                 </DialogHeader>
+                <ScrollArea className="flex-1 max-h-[60vh] pr-4">
                 <div className="space-y-4 py-4">
                   {/* Movement Type */}
                   <div className="space-y-2">
@@ -524,7 +525,8 @@ const EntradaSaidaEquipamentos = () => {
                     </div>
                   )}
                 </div>
-                <DialogFooter>
+                </ScrollArea>
+                <DialogFooter className="pt-4 border-t">
                   <DialogClose asChild>
                     <Button variant="outline">Cancelar</Button>
                   </DialogClose>
