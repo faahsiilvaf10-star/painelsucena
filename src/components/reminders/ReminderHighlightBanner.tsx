@@ -209,16 +209,16 @@ export const ReminderHighlightBanner = () => {
         </div>
       )}
 
-      {/* UPCOMING REMINDERS - Horizontal scroll cards */}
+      {/* UPCOMING REMINDERS - Horizontal scroll cards with Neon Effect */}
       {upcomingReminders.length > 0 && (
         <div className="animate-in fade-in slide-in-from-top-4 duration-500">
           <div className="flex items-center gap-2 mb-3">
-            <Bell className="h-5 w-5 text-orange-500" />
-            <h3 className="font-semibold text-sm text-muted-foreground uppercase tracking-wide">
+            <Bell className="h-5 w-5 text-green-400" />
+            <h3 className="font-semibold text-sm text-green-400 uppercase tracking-wide">
               Próximos Lembretes
             </h3>
             <Link to="/lembretes">
-              <Badge variant="outline" className="ml-2 cursor-pointer hover:bg-accent">
+              <Badge variant="outline" className="ml-2 cursor-pointer hover:bg-green-500/20 border-green-500/50 text-green-400">
                 Ver todos
               </Badge>
             </Link>
@@ -235,17 +235,15 @@ export const ReminderHighlightBanner = () => {
                   <Card
                     key={reminder.id}
                     className={cn(
-                      "flex-shrink-0 w-72 relative overflow-hidden transition-all",
-                      isUrgent
-                        ? "bg-gradient-to-br from-orange-500/15 to-orange-500/5 border-orange-500/30"
-                        : "bg-gradient-to-br from-muted/50 to-muted/20 border-border"
+                      "flex-shrink-0 w-72 relative overflow-hidden transition-all bg-black/95 border-green-500/40 neon-glow-border rounded-xl",
+                      isUrgent && "border-green-400/60"
                     )}
                   >
                     <div className="absolute top-2 right-2 flex gap-1">
                       <Button
                         variant="ghost"
                         size="icon"
-                        className="h-6 w-6 rounded-full opacity-60 hover:opacity-100 hover:bg-green-500/20 text-green-600"
+                        className="h-6 w-6 rounded-full opacity-60 hover:opacity-100 hover:bg-green-500/20 text-green-400"
                         onClick={() => handleAcknowledge(reminder)}
                         disabled={acknowledgeReminder.isPending}
                         title="Marcar como visto"
@@ -256,7 +254,7 @@ export const ReminderHighlightBanner = () => {
                         <Button
                           variant="ghost"
                           size="icon"
-                          className="h-6 w-6 rounded-full opacity-60 hover:opacity-100 hover:bg-destructive/20 text-destructive"
+                          className="h-6 w-6 rounded-full opacity-60 hover:opacity-100 hover:bg-red-500/20 text-red-400"
                           onClick={() => handleCancel(reminder)}
                           disabled={deleteReminder.isPending}
                           title="Cancelar lembrete"
@@ -269,51 +267,50 @@ export const ReminderHighlightBanner = () => {
                       <div className="flex items-start gap-3">
                         <div
                           className={cn(
-                            "p-2 rounded-full flex-shrink-0",
-                            isUrgent ? "bg-orange-500/20" : "bg-muted"
+                            "p-2 rounded-full flex-shrink-0 bg-green-500/20",
+                            isUrgent && "animate-pulse"
                           )}
                         >
-                          <Bell className={cn("h-5 w-5", isUrgent ? "text-orange-500" : "text-muted-foreground")} />
+                          <Bell className="h-5 w-5 text-green-400" />
                         </div>
                         <div className="min-w-0 flex-1">
-                          <p className="font-semibold truncate pr-6">{reminder.title}</p>
+                          <p className="font-semibold truncate pr-6 text-white">{reminder.title}</p>
                           <div className="flex items-center gap-2 mt-1">
-                            <Calendar className="h-3 w-3 text-muted-foreground flex-shrink-0" />
-                            <span className="text-xs text-muted-foreground">
+                            <Calendar className="h-3 w-3 text-green-400/70 flex-shrink-0" />
+                            <span className="text-xs text-gray-400">
                               {format(new Date(reminder.event_date), "dd 'de' MMM", {
                                 locale: ptBR,
                               })}
-                              {reminder.event_time && ` às ${reminder.event_time.slice(0, 5)}`}
+                              {reminder.event_time && <span className="text-green-300"> às {reminder.event_time.slice(0, 5)}</span>}
                             </span>
                             <Badge
-                              variant="secondary"
                               className={cn(
-                                "text-xs",
+                                "text-xs border-0",
                                 isUrgent
-                                  ? "bg-orange-500/20 text-orange-500"
-                                  : "bg-muted text-muted-foreground"
+                                  ? "bg-green-500 text-black font-bold animate-pulse"
+                                  : "bg-green-500/20 text-green-400"
                               )}
                             >
                               {daysUntil === 1 ? "Amanhã" : `${daysUntil}d`}
                             </Badge>
                           </div>
                           {reminder.description && (
-                            <p className="text-xs text-muted-foreground mt-2 line-clamp-2 whitespace-normal">
+                            <p className="text-xs text-gray-400 mt-2 line-clamp-2 whitespace-normal">
                               {reminder.description}
                             </p>
                           )}
                           <div className="flex flex-col gap-1 mt-2">
                             {(reminder.mention_type === "all" || reminder.mention_type === "specific") && reminder.creator_name && (
                               <div className="flex items-center gap-1">
-                                <UserCircle className="h-3 w-3 text-muted-foreground" />
-                                <span className="text-xs text-muted-foreground truncate">
+                                <UserCircle className="h-3 w-3 text-green-400/70" />
+                                <span className="text-xs text-gray-400 truncate">
                                   {reminder.creator_name}
                                 </span>
                               </div>
                             )}
                             <div className="flex items-center gap-1">
-                              <MentionIcon className="h-3 w-3 text-muted-foreground" />
-                              <span className="text-xs text-muted-foreground capitalize">
+                              <MentionIcon className="h-3 w-3 text-green-400/70" />
+                              <span className="text-xs text-gray-400 capitalize">
                                 {reminder.mention_type === "all"
                                   ? "Todos"
                                   : reminder.mention_type === "me"
