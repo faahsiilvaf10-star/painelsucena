@@ -1,5 +1,5 @@
 import { useState, useMemo } from "react";
-import { FileText, Copy, Send, Loader2, Check, UserPlus, Pencil, Save, Lock, Unlock } from "lucide-react";
+import { FileText, Copy, Send, Loader2, Check, UserPlus, Pencil, Save, Lock, Unlock, Trash2 } from "lucide-react";
 import Layout from "@/components/layout/Layout";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -11,6 +11,8 @@ import {
   DialogHeader,
   DialogTitle,
   DialogTrigger,
+  DialogDescription,
+  DialogFooter,
 } from "@/components/ui/dialog";
 import {
   Select,
@@ -473,29 +475,77 @@ const RelatorioPresenca = () => {
     window.open(`https://wa.me/?text=${encoded}`, "_blank");
   };
 
+  const [deleteDialogOpen, setDeleteDialogOpen] = useState(false);
+  const [employeeToDelete, setEmployeeToDelete] = useState<Tables<"employees"> | null>(null);
+  const [isDeleting, setIsDeleting] = useState(false);
+
+  const handleDeleteEmployee = async () => {
+    if (!employeeToDelete) return;
+    
+    setIsDeleting(true);
+    try {
+      // First delete attendance records for this employee
+      await supabase
+        .from("attendance_records")
+        .delete()
+        .eq("employee_id", employeeToDelete.id);
+      
+      // Then delete the employee
+      const { error } = await supabase
+        .from("employees")
+        .delete()
+        .eq("id", employeeToDelete.id);
+      
+      if (error) throw error;
+      
+      toast.success(`${employeeToDelete.name} removido da lista!`);
+      setDeleteDialogOpen(false);
+      setEmployeeToDelete(null);
+      queryClient.invalidateQueries({ queryKey: ["employees_all"] });
+      queryClient.invalidateQueries({ queryKey: ["attendance_report", selectedDate] });
+    } catch {
+      toast.error("Erro ao remover funcionário");
+    } finally {
+      setIsDeleting(false);
+    }
+  };
+
   const EmployeeRow = ({ employee, area }: { employee: Tables<"employees">; area: "ÁREA GABIÃO" | "ROÇAGEM E PODAGEM" }) => {
     const present = isPresent(employee.id);
     const lockType = areaToLockType[area];
     const locked = isAreaLocked(lockType);
     
     return (
-      <button
-        onClick={() => toggleAttendance(employee)}
-        className={`w-full flex items-center justify-between px-4 py-2 rounded-lg transition-all ${
-          locked ? "cursor-not-allowed opacity-70" : "hover:opacity-80 cursor-pointer"
-        } ${
-          present
-            ? "bg-green-500/20 text-green-400 border border-green-500/30"
-            : "bg-red-500/20 text-red-400 border border-red-500/30"
-        }`}
-        disabled={upsertAttendance.isPending || locked}
-      >
-        <span className="font-medium">{employee.name.toUpperCase()}</span>
-        <div className="flex items-center gap-2">
-          {locked && <Lock className="w-3 h-3" />}
-          <span className="text-xl">{present ? "✅" : "❌"}</span>
-        </div>
-      </button>
+      <div className="flex items-center gap-2">
+        <button
+          onClick={() => toggleAttendance(employee)}
+          className={`flex-1 flex items-center justify-between px-4 py-2 rounded-lg transition-all ${
+            locked ? "cursor-not-allowed opacity-70" : "hover:opacity-80 cursor-pointer"
+          } ${
+            present
+              ? "bg-green-500/20 text-green-400 border border-green-500/30"
+              : "bg-red-500/20 text-red-400 border border-red-500/30"
+          }`}
+          disabled={upsertAttendance.isPending || locked}
+        >
+          <span className="font-medium">{employee.name.toUpperCase()}</span>
+          <div className="flex items-center gap-2">
+            {locked && <Lock className="w-3 h-3" />}
+            <span className="text-xl">{present ? "✅" : "❌"}</span>
+          </div>
+        </button>
+        <Button
+          variant="ghost"
+          size="icon"
+          className="h-9 w-9 text-destructive hover:text-destructive hover:bg-destructive/10"
+          onClick={() => {
+            setEmployeeToDelete(employee);
+            setDeleteDialogOpen(true);
+          }}
+        >
+          <Trash2 className="w-4 h-4" />
+        </Button>
+      </div>
     );
   };
 
@@ -901,6 +951,40 @@ const RelatorioPresenca = () => {
             </div>
           </div>
         )}
+
+        {/* Delete Employee Confirmation Dialog */}
+        <Dialog open={deleteDialogOpen} onOpenChange={setDeleteDialogOpen}>
+          <DialogContent>
+            <DialogHeader>
+              <DialogTitle>Remover Funcionário</DialogTitle>
+              <DialogDescription>
+                Tem certeza que deseja remover <strong>{employeeToDelete?.name}</strong> da lista de presença?
+                Esta ação não pode ser desfeita.
+              </DialogDescription>
+            </DialogHeader>
+            <DialogFooter className="gap-2 sm:gap-0">
+              <Button
+                variant="outline"
+                onClick={() => setDeleteDialogOpen(false)}
+                disabled={isDeleting}
+              >
+                Cancelar
+              </Button>
+              <Button
+                variant="destructive"
+                onClick={handleDeleteEmployee}
+                disabled={isDeleting}
+              >
+                {isDeleting ? (
+                  <Loader2 className="w-4 h-4 animate-spin mr-2" />
+                ) : (
+                  <Trash2 className="w-4 h-4 mr-2" />
+                )}
+                Remover
+              </Button>
+            </DialogFooter>
+          </DialogContent>
+        </Dialog>
       </div>
     </Layout>
   );
