@@ -33,6 +33,7 @@ import { useEquipment } from "@/hooks/useEquipment";
 import { useIsAdmin } from "@/hooks/useUserRole";
 import { getBrazilNorthTodayString } from "@/lib/timezone";
 import { ExportMovementsPdfButton } from "@/components/equipamentos/ExportMovementsPdfButton";
+import { ExportStatusPdfButton } from "@/components/equipamentos/ExportStatusPdfButton";
 
 const EXIT_REASON_LABELS: Record<ExitReason, { label: string; icon: typeof Wrench; color: string }> = {
   manutencao_corretiva: { label: "Manutenção Corretiva", icon: Wrench, color: "text-red-500" },
@@ -654,6 +655,18 @@ const EntradaSaidaEquipamentos = () => {
           </TabsContent>
 
           <TabsContent value="situacao" className="space-y-4">
+            {/* Header with export button */}
+            <div className="flex items-center justify-between">
+              <div className="flex items-center gap-2">
+                <ListChecks className="h-5 w-5 text-primary" />
+                <h3 className="text-lg font-semibold">Situação Atual dos Equipamentos</h3>
+              </div>
+              <ExportStatusPdfButton
+                allEntries={allEntries || []}
+                currentlyOut={currentlyOut || []}
+              />
+            </div>
+
             <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
               {/* All Entries - Historic */}
               <Card>
