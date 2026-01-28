@@ -1,6 +1,7 @@
 import { useEffect, useState } from "react";
 import { OnlineUsersFooter } from "@/components/chat/OnlineUsersFooter";
 import { ChatDialog } from "@/components/chat/ChatDialog";
+import { ChatPopupManager } from "@/components/chat/ChatPopupManager";
 import { UserWithStatus } from "@/hooks/useAllUsers";
 import { useAuth } from "@/hooks/useAuth";
 
@@ -30,6 +31,11 @@ export const PersistentFooter = () => {
     setChatOpen(true);
   };
 
+  const handleExpandFromPopup = (popupUser: UserWithStatus) => {
+    setSelectedUser(popupUser);
+    setChatOpen(true);
+  };
+
   if (!user) return null;
 
   return (
@@ -40,6 +46,7 @@ export const PersistentFooter = () => {
         onOpenChange={setChatOpen}
         selectedUser={selectedUser}
       />
+      <ChatPopupManager onExpandChat={handleExpandFromPopup} />
     </div>
   );
 };
