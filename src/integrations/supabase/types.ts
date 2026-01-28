@@ -1457,6 +1457,10 @@ export type Database = {
         | "aux_administrativo"
         | "aux_almoxarifado"
         | "planejador"
+        | "engenheiro_civil"
+        | "engenheiro_planejamento"
+        | "tecnico_planejamento"
+        | "engenheiro_seguranca"
       document_status: "pending" | "updated" | "cancelled"
       document_type:
         | "pt"
@@ -1629,6 +1633,10 @@ export const Constants = {
         "aux_administrativo",
         "aux_almoxarifado",
         "planejador",
+        "engenheiro_civil",
+        "engenheiro_planejamento",
+        "tecnico_planejamento",
+        "engenheiro_seguranca",
       ],
       document_status: ["pending", "updated", "cancelled"],
       document_type: [
