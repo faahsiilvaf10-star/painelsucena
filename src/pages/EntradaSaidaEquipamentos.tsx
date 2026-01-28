@@ -762,13 +762,25 @@ const EntradaSaidaEquipamentos = () => {
                                   <p className="text-xs text-muted-foreground">{movement.plate}</p>
                                 </div>
                               </div>
-                              <div className="text-right">
-                                <p className="text-xs font-medium">
-                                  {format(parseISO(movement.movement_date), "dd/MM/yyyy", { locale: ptBR })}
-                                </p>
-                                <p className="text-xs text-muted-foreground">
-                                  {movement.movement_time.slice(0, 5)}
-                                </p>
+                              <div className="flex items-start gap-2">
+                                <div className="text-right">
+                                  <p className="text-xs font-medium">
+                                    {format(parseISO(movement.movement_date), "dd/MM/yyyy", { locale: ptBR })}
+                                  </p>
+                                  <p className="text-xs text-muted-foreground">
+                                    {movement.movement_time.slice(0, 5)}
+                                  </p>
+                                </div>
+                                {isAdmin && (
+                                  <Button
+                                    variant="ghost"
+                                    size="icon"
+                                    className="h-7 w-7 text-muted-foreground hover:text-destructive"
+                                    onClick={() => deleteMovement.mutate(movement.id)}
+                                  >
+                                    <Trash2 className="h-3.5 w-3.5" />
+                                  </Button>
+                                )}
                               </div>
                             </div>
                             {movement.observation && (
@@ -835,13 +847,25 @@ const EntradaSaidaEquipamentos = () => {
                                     )}
                                   </div>
                                 </div>
-                                <div className="text-right">
-                                  <p className="text-xs font-medium">
-                                    Saiu em {format(parseISO(movement.movement_date), "dd/MM/yyyy", { locale: ptBR })}
-                                  </p>
-                                  <p className="text-xs text-muted-foreground">
-                                    às {movement.movement_time.slice(0, 5)}
-                                  </p>
+                                <div className="flex items-start gap-2">
+                                  <div className="text-right">
+                                    <p className="text-xs font-medium">
+                                      Saiu em {format(parseISO(movement.movement_date), "dd/MM/yyyy", { locale: ptBR })}
+                                    </p>
+                                    <p className="text-xs text-muted-foreground">
+                                      às {movement.movement_time.slice(0, 5)}
+                                    </p>
+                                  </div>
+                                  {isAdmin && (
+                                    <Button
+                                      variant="ghost"
+                                      size="icon"
+                                      className="h-7 w-7 text-muted-foreground hover:text-destructive"
+                                      onClick={() => deleteMovement.mutate(movement.id)}
+                                    >
+                                      <Trash2 className="h-3.5 w-3.5" />
+                                    </Button>
+                                  )}
                                 </div>
                               </div>
                               {movement.problem_description && (
