@@ -17,10 +17,10 @@ export type DashboardItemId =
   | "matrix_chart";
 
 export const DEFAULT_DASHBOARD_ORDER: DashboardItemId[] = [
+  "reminder",
   "matrix_alert",
   "goal_alert",
   "campaign",
-  "reminder",
   "order",
   "vehicle_expiry",
   "document_expiry",
