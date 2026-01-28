@@ -2,9 +2,9 @@ import { createContext, useContext, useState, useRef, useEffect, ReactNode, useC
 
 const RADIO_STATIONS = [
   { id: "jbfm", name: "JB FM 99.9", genre: "Hits", url: "https://27343.live.streamtheworld.com/JBFM.mp3" },
-  { id: "mixfm", name: "Mix FM", genre: "Pop/Dance", url: "https://stream.zeno.fm/4d6rh7s8da0uv" },
-  { id: "fmodia", name: "FM O Dia", genre: "Pagode/Funk", url: "https://stream.zeno.fm/semc9u6hyk0uv" },
-  { id: "antena1", name: "Antena 1", genre: "Romântico", url: "https://stream.zeno.fm/70a0hh5a9k0uv" },
+  { id: "mixfm", name: "PopTron", genre: "Pop/Dance", url: "https://ice5.somafm.com/poptron-128-mp3" },
+  { id: "fmodia", name: "Illinois Street Lounge", genre: "Lounge", url: "https://ice5.somafm.com/illstreet-128-mp3" },
+  { id: "antena1", name: "Groove Salad", genre: "Chill", url: "https://ice5.somafm.com/groovesalad-128-mp3" },
   { id: "gospel", name: "Gospel", genre: "Gospel", url: "https://stream.zeno.fm/yn65fsaurfhvv" },
 ];
 
