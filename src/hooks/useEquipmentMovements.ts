@@ -148,6 +148,9 @@ export function useCreateEquipmentMovement() {
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ["equipment-movements"] });
       queryClient.invalidateQueries({ queryKey: ["equipment-movements-all"] });
+      queryClient.invalidateQueries({ queryKey: ["equipment-movements-all-entries"] });
+      queryClient.invalidateQueries({ queryKey: ["equipment-movements-currently-out"] });
+      queryClient.invalidateQueries({ queryKey: ["equipment-movements-weekly"] });
       toast.success("Movimento registrado com sucesso!");
     },
     onError: (error) => {
@@ -172,6 +175,9 @@ export function useDeleteEquipmentMovement() {
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ["equipment-movements"] });
       queryClient.invalidateQueries({ queryKey: ["equipment-movements-all"] });
+      queryClient.invalidateQueries({ queryKey: ["equipment-movements-all-entries"] });
+      queryClient.invalidateQueries({ queryKey: ["equipment-movements-currently-out"] });
+      queryClient.invalidateQueries({ queryKey: ["equipment-movements-weekly"] });
       toast.success("Movimento excluído!");
     },
     onError: (error) => {
