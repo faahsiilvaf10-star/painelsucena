@@ -31,34 +31,7 @@ export const useAllUsers = () => {
   const channelRef = useRef<RealtimeChannel | null>(null);
   const heartbeatRef = useRef<number | null>(null);
 
-  // Fetch all profiles
-  useEffect(() => {
-    const fetchProfiles = async () => {
-      const { data, error } = await supabase
-        .from("profiles")
-        .select("id, user_id, full_name, avatar_url, cargo")
-        .order("full_name");
-
-      if (error) {
-        console.error("Error fetching profiles:", error);
-        setIsLoading(false);
-        return;
-      }
-
-      setAllUsers(
-        data.map((profile) => ({
-          ...profile,
-          isOnline: false,
-          isCurrentUser: false,
-          isAdmin: false,
-        }))
-      );
-      setIsLoading(false);
-    };
-
-    fetchProfiles();
-  }, []);
-
+  // Define trackCurrentUser before any useEffect that uses it
   const trackCurrentUser = useCallback(
     async (presenceChannel: RealtimeChannel) => {
       if (!user) return;
@@ -94,6 +67,34 @@ export const useAllUsers = () => {
     },
     [user]
   );
+
+  // Fetch all profiles
+  useEffect(() => {
+    const fetchProfiles = async () => {
+      const { data, error } = await supabase
+        .from("profiles")
+        .select("id, user_id, full_name, avatar_url, cargo")
+        .order("full_name");
+
+      if (error) {
+        console.error("Error fetching profiles:", error);
+        setIsLoading(false);
+        return;
+      }
+
+      setAllUsers(
+        data.map((profile) => ({
+          ...profile,
+          isOnline: false,
+          isCurrentUser: false,
+          isAdmin: false,
+        }))
+      );
+      setIsLoading(false);
+    };
+
+    fetchProfiles();
+  }, []);
 
   // Track presence - use same channel name as useOnlineUsers for consistency
   useEffect(() => {
