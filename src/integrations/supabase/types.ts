@@ -336,6 +336,30 @@ export type Database = {
         }
         Relationships: []
       }
+      dds_planning_document: {
+        Row: {
+          file_name: string
+          file_url: string
+          id: string
+          uploaded_at: string
+          uploaded_by: string
+        }
+        Insert: {
+          file_name: string
+          file_url: string
+          id?: string
+          uploaded_at?: string
+          uploaded_by: string
+        }
+        Update: {
+          file_name?: string
+          file_url?: string
+          id?: string
+          uploaded_at?: string
+          uploaded_by?: string
+        }
+        Relationships: []
+      }
       dds_schedule: {
         Row: {
           created_at: string
