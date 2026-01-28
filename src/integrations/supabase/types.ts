@@ -1322,6 +1322,7 @@ export type Database = {
         Row: {
           active_tab_color: string | null
           created_at: string
+          dashboard_order: Json | null
           id: string
           notification_sound: string | null
           page_background_color: string | null
@@ -1334,6 +1335,7 @@ export type Database = {
         Insert: {
           active_tab_color?: string | null
           created_at?: string
+          dashboard_order?: Json | null
           id?: string
           notification_sound?: string | null
           page_background_color?: string | null
@@ -1346,6 +1348,7 @@ export type Database = {
         Update: {
           active_tab_color?: string | null
           created_at?: string
+          dashboard_order?: Json | null
           id?: string
           notification_sound?: string | null
           page_background_color?: string | null
