@@ -229,21 +229,51 @@ export const ReminderHighlightBanner = () => {
               {upcomingReminders.map((reminder) => {
                 const daysUntil = getDaysUntilEvent(reminder.event_date);
                 const MentionIcon = getMentionIcon(reminder.mention_type);
-                const isUrgent = daysUntil <= 3;
+                const isUrgent = daysUntil <= 1; // Amanhã ou hoje
+                const isWarning = daysUntil <= 3 && daysUntil > 1; // 2-3 dias
+
+                // Determine colors based on urgency
+                const borderColor = isUrgent 
+                  ? "border-red-500/60" 
+                  : isWarning 
+                    ? "border-orange-500/50" 
+                    : "border-green-500/40";
+                const glowClass = isUrgent 
+                  ? "neon-glow-border-urgent" 
+                  : isWarning 
+                    ? "neon-glow-border-warning" 
+                    : "neon-glow-border";
+                const hoverClass = isUrgent 
+                  ? "reminder-card-hover-urgent" 
+                  : isWarning 
+                    ? "reminder-card-hover-warning" 
+                    : "reminder-card-hover";
+                const accentColor = isUrgent 
+                  ? "text-red-400" 
+                  : isWarning 
+                    ? "text-orange-400" 
+                    : "text-green-400";
+                const bgAccent = isUrgent 
+                  ? "bg-red-500/20" 
+                  : isWarning 
+                    ? "bg-orange-500/20" 
+                    : "bg-green-500/20";
 
                 return (
                   <Card
                     key={reminder.id}
                     className={cn(
-                      "flex-shrink-0 w-72 relative overflow-hidden transition-all snow-bg border-green-500/40 neon-glow-border reminder-card-hover rounded-xl cursor-pointer",
-                      isUrgent && "border-green-400/60"
+                      "flex-shrink-0 w-72 relative overflow-hidden transition-all snow-bg rounded-xl cursor-pointer",
+                      borderColor,
+                      glowClass,
+                      hoverClass
                     )}
                   >
                     <div className="absolute top-2 right-2 flex gap-1">
                       <Button
                         variant="ghost"
                         size="icon"
-                        className="h-6 w-6 rounded-full opacity-60 hover:opacity-100 hover:bg-green-500/20 text-green-400"
+                        className={cn("h-6 w-6 rounded-full opacity-60 hover:opacity-100", bgAccent, accentColor)}
                         onClick={() => handleAcknowledge(reminder)}
                         disabled={acknowledgeReminder.isPending}
                         title="Marcar como visto"
@@ -267,28 +297,31 @@ export const ReminderHighlightBanner = () => {
                       <div className="flex items-start gap-3">
                         <div
                           className={cn(
-                            "p-2 rounded-full flex-shrink-0 bg-green-500/20",
-                            isUrgent && "animate-pulse"
+                            "p-2 rounded-full flex-shrink-0",
+                            bgAccent,
+                            (isUrgent || isWarning) && "animate-pulse"
                           )}
                         >
-                          <Bell className="h-5 w-5 text-green-400" />
+                          <Bell className={cn("h-5 w-5", accentColor)} />
                         </div>
                         <div className="min-w-0 flex-1">
                           <p className="font-semibold truncate pr-6 text-white">{reminder.title}</p>
                           <div className="flex items-center gap-2 mt-1">
-                            <Calendar className="h-3 w-3 text-green-400/70 flex-shrink-0" />
+                            <Calendar className={cn("h-3 w-3 flex-shrink-0", accentColor, "opacity-70")} />
                             <span className="text-xs text-gray-400">
                               {format(new Date(reminder.event_date), "dd 'de' MMM", {
                                 locale: ptBR,
                               })}
-                              {reminder.event_time && <span className="text-green-300"> às {reminder.event_time.slice(0, 5)}</span>}
+                              {reminder.event_time && <span className={cn("ml-1", accentColor.replace("text-", "text-").replace("-400", "-300"))}>às {reminder.event_time.slice(0, 5)}</span>}
                             </span>
                             <Badge
                               className={cn(
                                 "text-xs border-0",
                                 isUrgent
-                                  ? "bg-green-500 text-black font-bold animate-pulse"
-                                  : "bg-green-500/20 text-green-400"
+                                  ? "bg-red-500 text-white font-bold animate-pulse"
+                                  : isWarning
+                                    ? "bg-orange-500 text-black font-bold animate-pulse"
+                                    : "bg-green-500/20 text-green-400"
                               )}
                             >
                               {daysUntil === 1 ? "Amanhã" : `${daysUntil}d`}
@@ -302,14 +335,14 @@ export const ReminderHighlightBanner = () => {
                           <div className="flex flex-col gap-1 mt-2">
                             {(reminder.mention_type === "all" || reminder.mention_type === "specific") && reminder.creator_name && (
                               <div className="flex items-center gap-1">
-                                <UserCircle className="h-3 w-3 text-green-400/70" />
+                                <UserCircle className={cn("h-3 w-3 opacity-70", accentColor)} />
                                 <span className="text-xs text-gray-400 truncate">
                                   {reminder.creator_name}
                                 </span>
                               </div>
                             )}
                             <div className="flex items-center gap-1">
-                              <MentionIcon className="h-3 w-3 text-green-400/70" />
+                              <MentionIcon className={cn("h-3 w-3 opacity-70", accentColor)} />
                               <span className="text-xs text-gray-400 capitalize">
                                 {reminder.mention_type === "all"
                                   ? "Todos"

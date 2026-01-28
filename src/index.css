@@ -204,7 +204,7 @@
     }
   }
 
-  /* Neon glow border animation */
+  /* Neon glow border animation - Green (normal) */
   .neon-glow-border {
     animation: neonGlow 3s ease-in-out infinite;
   }
@@ -221,6 +221,46 @@
                   0 0 20px hsl(120 100% 50% / 0.3),
                   0 0 30px hsl(120 100% 50% / 0.2),
                   inset 0 0 10px hsl(120 100% 50% / 0.1);
+    }
+  }
+
+  /* Neon glow border animation - Red (urgent) */
+  .neon-glow-border-urgent {
+    animation: neonGlowUrgent 2s ease-in-out infinite;
+  }
+
+  @keyframes neonGlowUrgent {
+    0%, 100% {
+      box-shadow: 0 0 5px hsl(0 100% 50% / 0.4),
+                  0 0 10px hsl(0 100% 50% / 0.3),
+                  0 0 20px hsl(0 100% 50% / 0.2),
+                  inset 0 0 5px hsl(0 100% 50% / 0.1);
+    }
+    50% {
+      box-shadow: 0 0 15px hsl(0 100% 50% / 0.6),
+                  0 0 25px hsl(0 100% 50% / 0.4),
+                  0 0 40px hsl(0 100% 50% / 0.3),
+                  inset 0 0 15px hsl(0 100% 50% / 0.15);
+    }
+  }
+
+  /* Neon glow border animation - Orange (warning) */
+  .neon-glow-border-warning {
+    animation: neonGlowWarning 2.5s ease-in-out infinite;
+  }
+
+  @keyframes neonGlowWarning {
+    0%, 100% {
+      box-shadow: 0 0 5px hsl(38 100% 50% / 0.4),
+                  0 0 10px hsl(38 100% 50% / 0.3),
+                  0 0 20px hsl(38 100% 50% / 0.2),
+                  inset 0 0 5px hsl(38 100% 50% / 0.1);
+    }
+    50% {
+      box-shadow: 0 0 12px hsl(38 100% 50% / 0.5),
+                  0 0 22px hsl(38 100% 50% / 0.35),
+                  0 0 35px hsl(38 100% 50% / 0.25),
+                  inset 0 0 12px hsl(38 100% 50% / 0.12);
     }
   }
 
@@ -281,7 +321,7 @@
     }
   }
 
-  /* Reminder card hover effect */
+  /* Reminder card hover effect - Green */
   .reminder-card-hover {
     transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
   }
@@ -300,6 +340,48 @@
   .reminder-card-hover:hover::after {
     animation-duration: 4s;
     opacity: 0.8;
+  }
+
+  /* Reminder card hover effect - Red (urgent) */
+  .reminder-card-hover-urgent {
+    transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+  }
+
+  .reminder-card-hover-urgent:hover {
+    transform: translateY(-4px) scale(1.02);
+    box-shadow: 
+      0 0 15px hsl(0 100% 50% / 0.6),
+      0 0 30px hsl(0 100% 50% / 0.4),
+      0 0 45px hsl(0 100% 50% / 0.2),
+      0 20px 40px -10px hsl(0 0% 0% / 0.5);
+    border-color: hsl(0 100% 50% / 0.8) !important;
+  }
+
+  .reminder-card-hover-urgent:hover::before,
+  .reminder-card-hover-urgent:hover::after {
+    animation-duration: 3s;
+    opacity: 0.9;
+  }
+
+  /* Reminder card hover effect - Orange (warning) */
+  .reminder-card-hover-warning {
+    transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+  }
+
+  .reminder-card-hover-warning:hover {
+    transform: translateY(-4px) scale(1.02);
+    box-shadow: 
+      0 0 15px hsl(38 100% 50% / 0.6),
+      0 0 30px hsl(38 100% 50% / 0.4),
+      0 0 45px hsl(38 100% 50% / 0.2),
+      0 20px 40px -10px hsl(0 0% 0% / 0.5);
+    border-color: hsl(38 100% 50% / 0.8) !important;
+  }
+
+  .reminder-card-hover-warning:hover::before,
+  .reminder-card-hover-warning:hover::after {
+    animation-duration: 3.5s;
+    opacity: 0.85;
   }
 
   /* Scrollbar styling */
