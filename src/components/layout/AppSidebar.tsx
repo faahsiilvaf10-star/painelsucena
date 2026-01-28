@@ -50,11 +50,12 @@ interface NavItem {
   path: string;
   isEmergency?: boolean;
   restrictedTo?: string[]; // cargo types that can see this item (admin always sees all)
+  hiddenFrom?: string[]; // cargo types that CANNOT see this item (admin still sees all)
 }
 
 const allNavItems: NavItem[] = [
-  { id: "atividades", icon: Leaf, label: "Atividades I", path: "/atividades" },
-  { id: "atividades-ii", icon: Hammer, label: "Atividades II", path: "/atividades-ii" },
+  { id: "atividades", icon: Leaf, label: "Atividades I", path: "/atividades", hiddenFrom: ["encarregado_ii"] },
+  { id: "atividades-ii", icon: Hammer, label: "Atividades II", path: "/atividades-ii", hiddenFrom: ["encarregado_i"] },
   { id: "metas", icon: Target, label: "Metas", path: "/metas", restrictedTo: ["planejador"] },
   { id: "destaques", icon: LayoutDashboard, label: "Destaques", path: "/" },
   { id: "campanhas", icon: Heart, label: "Campanhas", path: "/campanhas" },
@@ -160,11 +161,16 @@ export function AppSidebar() {
   // Filter nav items based on permissions
   const visibleNavItems = useMemo(() => {
     return allNavItems.filter(item => {
-      // If no restrictions, show to everyone
-      if (!item.restrictedTo) return true;
-      
       // If admin, show everything
       if (isAdmin) return true;
+      
+      // Check if user's cargo is in the hidden list
+      if (item.hiddenFrom && profile?.cargo && item.hiddenFrom.includes(profile.cargo)) {
+        return false;
+      }
+      
+      // If no restrictions, show to everyone
+      if (!item.restrictedTo) return true;
       
       // Check if user's cargo is in the allowed list
       if (profile?.cargo && item.restrictedTo.includes(profile.cargo)) {
