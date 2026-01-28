@@ -11,6 +11,7 @@ import ProtectedRoute from "@/components/ProtectedRoute";
 import { LoginTransitionGate } from "@/components/auth/LoginTransitionGate";
 import { LogoutTransitionGate } from "@/components/auth/LogoutTransitionGate";
 import { InstallPrompt } from "@/components/pwa/InstallPrompt";
+import ErrorBoundary from "@/components/ErrorBoundary";
 
 import Index from "./pages/Index";
 import RH from "./pages/RH";
@@ -37,55 +38,87 @@ import Homologados from "./pages/Homologados";
 import VistoriaCintas from "./pages/VistoriaCintas";
 import NotFound from "./pages/NotFound";
 
-const queryClient = new QueryClient();
+// Configure QueryClient with robust error handling and caching
+const queryClient = new QueryClient({
+  defaultOptions: {
+    queries: {
+      // Retry failed requests up to 3 times with exponential backoff
+      retry: (failureCount, error) => {
+        // Don't retry on 4xx errors (client errors)
+        if (error && typeof error === 'object' && 'status' in error) {
+          const status = (error as { status: number }).status;
+          if (status >= 400 && status < 500) return false;
+        }
+        return failureCount < 3;
+      },
+      retryDelay: (attemptIndex) => Math.min(1000 * 2 ** attemptIndex, 30000),
+      // Keep data fresh but don't refetch too aggressively
+      staleTime: 1000 * 60 * 2, // 2 minutes
+      gcTime: 1000 * 60 * 10, // 10 minutes (formerly cacheTime)
+      // Don't refetch on window focus to prevent unnecessary requests
+      refetchOnWindowFocus: false,
+      // Refetch on reconnect to ensure fresh data after network issues
+      refetchOnReconnect: true,
+    },
+    mutations: {
+      // Retry mutations once on network errors
+      retry: 1,
+      retryDelay: 1000,
+    },
+  },
+});
 
 const App = () => (
-  <ThemeProvider attribute="class" defaultTheme="dark" enableSystem>
-    <QueryClientProvider client={queryClient}>
-      <RadioProvider>
-        <TooltipProvider>
-          <Toaster />
-          <Sonner />
-          <InstallPrompt />
-          
-          <BrowserRouter>
-            <LoginTransitionGate />
-            <LogoutTransitionGate />
-            <PersistentSidebar>
-              <Routes>
-                <Route path="/auth" element={<Auth />} />
-                <Route path="/" element={<ProtectedRoute><Index /></ProtectedRoute>} />
-                <Route path="/rh" element={<ProtectedRoute><RH /></ProtectedRoute>} />
-                <Route path="/presenca" element={<ProtectedRoute><Presenca /></ProtectedRoute>} />
-                <Route path="/relatorio-presenca" element={<ProtectedRoute><RelatorioPresenca /></ProtectedRoute>} />
-                <Route path="/matriz" element={<ProtectedRoute><Matriz /></ProtectedRoute>} />
-                <Route path="/emergencia" element={<ProtectedRoute><Emergencia /></ProtectedRoute>} />
-                <Route path="/admin" element={<ProtectedRoute><Admin /></ProtectedRoute>} />
-                <Route path="/configuracoes" element={<ProtectedRoute><Configuracoes /></ProtectedRoute>} />
-                <Route path="/dds" element={<ProtectedRoute><DDS /></ProtectedRoute>} />
-                <Route path="/lembretes" element={<ProtectedRoute><Lembretes /></ProtectedRoute>} />
-                <Route path="/equipamentos" element={<ProtectedRoute><Equipamentos /></ProtectedRoute>} />
-                <Route path="/rdo" element={<ProtectedRoute><RDO /></ProtectedRoute>} />
-                <Route path="/campanhas" element={<ProtectedRoute><Campanhas /></ProtectedRoute>} />
-                <Route path="/pedidos" element={<ProtectedRoute><Pedidos /></ProtectedRoute>} />
-                <Route path="/estoque" element={<ProtectedRoute><Estoque /></ProtectedRoute>} />
-                <Route path="/documentos" element={<ProtectedRoute><Documentos /></ProtectedRoute>} />
-                <Route path="/atividades" element={<ProtectedRoute><Atividades /></ProtectedRoute>} />
-                <Route path="/atividades-ii" element={<ProtectedRoute><AtividadesII /></ProtectedRoute>} />
-                <Route path="/metas" element={<ProtectedRoute><Metas /></ProtectedRoute>} />
-                <Route path="/vistorias-equipamentos" element={<ProtectedRoute><VistoriasEquipamentos /></ProtectedRoute>} />
-                <Route path="/homologados" element={<ProtectedRoute><Homologados /></ProtectedRoute>} />
-                <Route path="/vistoria-cintas" element={<ProtectedRoute><VistoriaCintas /></ProtectedRoute>} />
-                {/* ADD ALL CUSTOM ROUTES ABOVE THE CATCH-ALL "*" ROUTE */}
-                <Route path="*" element={<NotFound />} />
-              </Routes>
-              <PersistentFooter />
-            </PersistentSidebar>
-          </BrowserRouter>
-        </TooltipProvider>
-      </RadioProvider>
-    </QueryClientProvider>
-  </ThemeProvider>
+  <ErrorBoundary>
+    <ThemeProvider attribute="class" defaultTheme="dark" enableSystem>
+      <QueryClientProvider client={queryClient}>
+        <RadioProvider>
+          <TooltipProvider>
+            <Toaster />
+            <Sonner />
+            <InstallPrompt />
+            
+            <BrowserRouter>
+              <LoginTransitionGate />
+              <LogoutTransitionGate />
+              <PersistentSidebar>
+                <ErrorBoundary>
+                  <Routes>
+                    <Route path="/auth" element={<Auth />} />
+                    <Route path="/" element={<ProtectedRoute><Index /></ProtectedRoute>} />
+                    <Route path="/rh" element={<ProtectedRoute><RH /></ProtectedRoute>} />
+                    <Route path="/presenca" element={<ProtectedRoute><Presenca /></ProtectedRoute>} />
+                    <Route path="/relatorio-presenca" element={<ProtectedRoute><RelatorioPresenca /></ProtectedRoute>} />
+                    <Route path="/matriz" element={<ProtectedRoute><Matriz /></ProtectedRoute>} />
+                    <Route path="/emergencia" element={<ProtectedRoute><Emergencia /></ProtectedRoute>} />
+                    <Route path="/admin" element={<ProtectedRoute><Admin /></ProtectedRoute>} />
+                    <Route path="/configuracoes" element={<ProtectedRoute><Configuracoes /></ProtectedRoute>} />
+                    <Route path="/dds" element={<ProtectedRoute><DDS /></ProtectedRoute>} />
+                    <Route path="/lembretes" element={<ProtectedRoute><Lembretes /></ProtectedRoute>} />
+                    <Route path="/equipamentos" element={<ProtectedRoute><Equipamentos /></ProtectedRoute>} />
+                    <Route path="/rdo" element={<ProtectedRoute><RDO /></ProtectedRoute>} />
+                    <Route path="/campanhas" element={<ProtectedRoute><Campanhas /></ProtectedRoute>} />
+                    <Route path="/pedidos" element={<ProtectedRoute><Pedidos /></ProtectedRoute>} />
+                    <Route path="/estoque" element={<ProtectedRoute><Estoque /></ProtectedRoute>} />
+                    <Route path="/documentos" element={<ProtectedRoute><Documentos /></ProtectedRoute>} />
+                    <Route path="/atividades" element={<ProtectedRoute><Atividades /></ProtectedRoute>} />
+                    <Route path="/atividades-ii" element={<ProtectedRoute><AtividadesII /></ProtectedRoute>} />
+                    <Route path="/metas" element={<ProtectedRoute><Metas /></ProtectedRoute>} />
+                    <Route path="/vistorias-equipamentos" element={<ProtectedRoute><VistoriasEquipamentos /></ProtectedRoute>} />
+                    <Route path="/homologados" element={<ProtectedRoute><Homologados /></ProtectedRoute>} />
+                    <Route path="/vistoria-cintas" element={<ProtectedRoute><VistoriaCintas /></ProtectedRoute>} />
+                    {/* ADD ALL CUSTOM ROUTES ABOVE THE CATCH-ALL "*" ROUTE */}
+                    <Route path="*" element={<NotFound />} />
+                  </Routes>
+                </ErrorBoundary>
+                <PersistentFooter />
+              </PersistentSidebar>
+            </BrowserRouter>
+          </TooltipProvider>
+        </RadioProvider>
+      </QueryClientProvider>
+    </ThemeProvider>
+  </ErrorBoundary>
 );
 
 export default App;
