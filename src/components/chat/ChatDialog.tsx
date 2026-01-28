@@ -202,6 +202,7 @@ export const ChatDialog = ({
             <div className="flex-1 min-w-0">
               <DialogTitle className="text-white text-base font-medium flex items-center gap-1 truncate">
                 {selectedUser.full_name}
+                {selectedUser.isAdmin && <VerifiedBadge size="xs" />}
               </DialogTitle>
               <p className="text-white/70 text-xs truncate">
                 {isOtherTyping ? <span className="text-[#25d366]">digitando...</span> : selectedUser.isOnline ? "online" : formatCargoLabel(selectedUser.cargo)}
