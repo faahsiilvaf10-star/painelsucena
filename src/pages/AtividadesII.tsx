@@ -485,15 +485,7 @@ export default function AtividadesII() {
         photo_urls: photos.length > 0 ? photos : undefined,
       });
       
-      let summary = generateRDOSummary();
-      
-      // Add photo links if available
-      if (photos.length > 0) {
-        summary += `\n\n📷 *Fotos (${photos.length}):*\n`;
-        photos.forEach((url, index) => {
-          summary += `${index + 1}. ${url}\n`;
-        });
-      }
+      const summary = generateRDOSummary();
       
       const encoded = encodeURIComponent(summary);
       window.open(`https://wa.me/?text=${encoded}`, "_blank");
