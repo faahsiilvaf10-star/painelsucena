@@ -9,6 +9,7 @@ export interface Reminder {
   title: string;
   description: string | null;
   event_date: string;
+  event_time: string | null; // HH:mm format
   alert_days_before: number;
   show_on_event_day: boolean;
   mention_type: "all" | "specific" | "me";
@@ -26,6 +27,7 @@ export interface ReminderInsert {
   title: string;
   description?: string;
   event_date: string;
+  event_time?: string | null;
   alert_days_before?: number;
   show_on_event_day?: boolean;
   mention_type: "all" | "specific" | "me";
@@ -50,7 +52,20 @@ export const useReminders = () => {
         .order("event_date", { ascending: true });
 
       if (error) throw error;
-      return data as Reminder[];
+      
+      // Fetch creator names
+      const creatorIds = [...new Set((data || []).map(r => r.created_by))];
+      const { data: profiles } = await supabase
+        .from("profiles")
+        .select("user_id, full_name")
+        .in("user_id", creatorIds);
+
+      const profileMap = new Map(profiles?.map(p => [p.user_id, p.full_name]) || []);
+
+      return (data || []).map(r => ({
+        ...r,
+        creator_name: profileMap.get(r.created_by) || "Desconhecido",
+      })) as Reminder[];
     },
     enabled: !!user?.id,
   });
