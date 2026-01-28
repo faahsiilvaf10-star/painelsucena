@@ -856,61 +856,116 @@ const EntradaSaidaEquipamentos = () => {
                   ) : (
                     <ScrollArea className="max-h-[400px]">
                       <div className="space-y-2">
-                        {allEntries.map((movement) => (
-                          <div
-                            key={movement.id}
-                            className="p-3 rounded-lg border bg-green-500/5 border-green-500/20"
-                          >
-                            <div className="flex items-start justify-between gap-3">
-                              <div className="flex items-start gap-2">
-                                <div className="p-1.5 rounded-full bg-green-500/20">
-                                  <ArrowDownToLine className="h-4 w-4 text-green-500" />
+                        {allEntries.map((movement) => {
+                          // Check if this equipment is still in (hasn't exited since entry)
+                          const isStillInCanteiro = currentlyIn?.some(
+                            (item) => item.plate.toUpperCase() === movement.plate.toUpperCase()
+                          );
+                          const hasExited = currentlyOut?.some(
+                            (item) => item.plate.toUpperCase() === movement.plate.toUpperCase()
+                          );
+
+                          return (
+                            <div
+                              key={movement.id}
+                              className={`p-3 rounded-lg border ${
+                                isStillInCanteiro 
+                                  ? "bg-green-500/5 border-green-500/20" 
+                                  : hasExited 
+                                    ? "bg-orange-500/5 border-orange-500/20"
+                                    : "bg-muted/20 border-border"
+                              }`}
+                            >
+                              <div className="flex items-start justify-between gap-3">
+                                <div className="flex items-start gap-2">
+                                  <div className={`p-1.5 rounded-full ${
+                                    isStillInCanteiro 
+                                      ? "bg-green-500/20" 
+                                      : hasExited 
+                                        ? "bg-orange-500/20" 
+                                        : "bg-muted"
+                                  }`}>
+                                    {isStillInCanteiro ? (
+                                      <Truck className="h-4 w-4 text-green-500" />
+                                    ) : hasExited ? (
+                                      <ArrowUpFromLine className="h-4 w-4 text-orange-500" />
+                                    ) : (
+                                      <ArrowDownToLine className="h-4 w-4 text-muted-foreground" />
+                                    )}
+                                  </div>
+                                  <div>
+                                    <div className="flex items-center gap-2">
+                                      <p className="font-medium text-sm">{movement.equipment_name}</p>
+                                      {isStillInCanteiro ? (
+                                        <Badge variant="outline" className="text-[10px] px-1.5 py-0 h-4 border-green-500/50 text-green-600 bg-green-500/10">
+                                          No Canteiro
+                                        </Badge>
+                                      ) : hasExited ? (
+                                        <Badge variant="outline" className="text-[10px] px-1.5 py-0 h-4 border-orange-500/50 text-orange-600 bg-orange-500/10">
+                                          Fora
+                                        </Badge>
+                                      ) : null}
+                                    </div>
+                                    <p className="text-xs text-muted-foreground">{movement.plate}</p>
+                                  </div>
                                 </div>
-                                <div>
-                                  <p className="font-medium text-sm">{movement.equipment_name}</p>
-                                  <p className="text-xs text-muted-foreground">{movement.plate}</p>
+                                <div className="flex items-start gap-2">
+                                  <div className="text-right">
+                                    <p className="text-xs font-medium">
+                                      {format(parseISO(movement.movement_date), "dd/MM/yyyy", { locale: ptBR })}
+                                    </p>
+                                    <p className="text-xs text-muted-foreground">
+                                      {movement.movement_time.slice(0, 5)}
+                                    </p>
+                                  </div>
+                                  {isStillInCanteiro && (
+                                    <Button
+                                      size="sm"
+                                      variant="outline"
+                                      className="h-7 px-2 text-xs gap-1 border-orange-500/50 text-orange-600 hover:bg-orange-500/10 hover:text-orange-700"
+                                      onClick={() => handleQuickActionOpen("saida", { 
+                                        name: movement.equipment_name, 
+                                        plate: movement.plate 
+                                      })}
+                                    >
+                                      <ArrowUpFromLine className="h-3 w-3" />
+                                      <span className="hidden sm:inline">Saída</span>
+                                    </Button>
+                                  )}
+                                  {hasExited && (
+                                    <Button
+                                      size="sm"
+                                      variant="outline"
+                                      className="h-7 px-2 text-xs gap-1 border-green-500/50 text-green-600 hover:bg-green-500/10 hover:text-green-700"
+                                      onClick={() => handleQuickActionOpen("entrada", { 
+                                        name: movement.equipment_name, 
+                                        plate: movement.plate 
+                                      })}
+                                    >
+                                      <ArrowDownToLine className="h-3 w-3" />
+                                      <span className="hidden sm:inline">Entrada</span>
+                                    </Button>
+                                  )}
+                                  {isAdmin && (
+                                    <Button
+                                      variant="ghost"
+                                      size="icon"
+                                      className="h-7 w-7 text-muted-foreground hover:text-destructive"
+                                      onClick={() => deleteMovement.mutate(movement.id)}
+                                    >
+                                      <Trash2 className="h-3.5 w-3.5" />
+                                    </Button>
+                                  )}
                                 </div>
                               </div>
-                              <div className="flex items-start gap-2">
-                                <div className="text-right">
-                                  <p className="text-xs font-medium">
-                                    {format(parseISO(movement.movement_date), "dd/MM/yyyy", { locale: ptBR })}
-                                  </p>
-                                  <p className="text-xs text-muted-foreground">
-                                    {movement.movement_time.slice(0, 5)}
-                                  </p>
-                                </div>
-                                <Button
-                                  size="sm"
-                                  variant="outline"
-                                  className="h-7 px-2 text-xs gap-1 border-orange-500/50 text-orange-600 hover:bg-orange-500/10 hover:text-orange-700"
-                                  onClick={() => handleQuickActionOpen("saida", { 
-                                    name: movement.equipment_name, 
-                                    plate: movement.plate 
-                                  })}
-                                >
-                                  <ArrowUpFromLine className="h-3 w-3" />
-                                  <span className="hidden sm:inline">Saída</span>
-                                </Button>
-                                {isAdmin && (
-                                  <Button
-                                    variant="ghost"
-                                    size="icon"
-                                    className="h-7 w-7 text-muted-foreground hover:text-destructive"
-                                    onClick={() => deleteMovement.mutate(movement.id)}
-                                  >
-                                    <Trash2 className="h-3.5 w-3.5" />
-                                  </Button>
-                                )}
-                              </div>
+                              {movement.observation && (
+                                <p className="text-xs text-muted-foreground mt-2 italic pl-8">
+                                  "{movement.observation}"
+                                </p>
+                              )}
                             </div>
-                            {movement.observation && (
-                              <p className="text-xs text-muted-foreground mt-2 italic pl-8">
-                                "{movement.observation}"
-                              </p>
-                            )}
-                          </div>
-                        ))}
+                          );
+                        })}
                       </div>
                     </ScrollArea>
                   )}
