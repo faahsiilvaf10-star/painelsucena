@@ -67,7 +67,7 @@ const allNavItems: NavItem[] = [
   { id: "matriz", icon: Grid3X3, label: "Matriz Responsabilidade", path: "/matriz" },
   { id: "pedidos", icon: ShoppingCart, label: "Pedidos", path: "/pedidos" },
   { id: "rdo", icon: FileText, label: "RDO", path: "/rdo" },
-  { id: "relatorio", icon: FileBarChart, label: "Lista de Presença", path: "/relatorio-presenca" },
+  { id: "relatorio", icon: FileBarChart, label: "Lista de Presença", path: "/relatorio-presenca", restrictedTo: ["encarregado_geral", "encarregado_i", "encarregado_ii"] },
   { id: "rh", icon: Users, label: "RH", path: "/rh" },
   { id: "vistorias", icon: ClipboardCheck, label: "Vistorias Equipamentos", path: "/vistorias-equipamentos" },
   { id: "homologados", icon: BadgeCheck, label: "Homologados", path: "/homologados" },
