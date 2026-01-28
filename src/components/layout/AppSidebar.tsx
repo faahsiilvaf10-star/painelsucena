@@ -1,10 +1,11 @@
 import { Users, ClipboardList, Grid3X3, LayoutDashboard, FileBarChart, LogOut, LogIn, AlertTriangle, PanelLeftClose, PanelLeft, Settings, Sun, Truck, Bell, FileText, LucideIcon, Heart, ShoppingCart, Package, GripVertical, User, FolderOpen, ShieldCheck, Leaf, Hammer, Target, ClipboardCheck, BadgeCheck, Link2 } from "lucide-react";
 import { Link, useLocation, useNavigate } from "react-router-dom";
-import { useMemo, useState } from "react";
+import { useMemo } from "react";
 import { useAuth } from "@/hooks/useAuth";
 import { useIsAdmin } from "@/hooks/useUserRole";
 import { useSiteSettings } from "@/hooks/useSiteSettings";
 import { useProfile } from "@/hooks/useProfile";
+import { useUserNavOrder } from "@/hooks/useUserNavOrder";
 import logoPrincipal from "@/assets/logo-principal.png";
 import {
   DndContext,
@@ -143,8 +144,9 @@ export function AppSidebar() {
   const { user, signOut } = useAuth();
   const { isAdmin } = useIsAdmin();
   const { state, toggleSidebar } = useSidebar();
-  const { settings, updateSettings } = useSiteSettings();
+  const { settings } = useSiteSettings();
   const { data: profile } = useProfile();
+  const { navOrder, updateNavOrder } = useUserNavOrder();
   const isCollapsed = state === "collapsed";
 
   const sensors = useSensors(
@@ -181,14 +183,14 @@ export function AppSidebar() {
     });
   }, [isAdmin, profile?.cargo]);
 
-  // Order nav items based on settings
+  // Order nav items based on user's personal nav order
   const orderedNavItems = useMemo(() => {
-    if (!settings.nav_order || settings.nav_order.length === 0) {
+    if (!navOrder || navOrder.length === 0) {
       return visibleNavItems;
     }
     
     const ordered: NavItem[] = [];
-    settings.nav_order.forEach((id: string) => {
+    navOrder.forEach((id: string) => {
       const item = visibleNavItems.find(nav => nav.id === id);
       if (item) ordered.push(item);
     });
@@ -201,7 +203,7 @@ export function AppSidebar() {
     });
     
     return ordered;
-  }, [settings.nav_order, visibleNavItems]);
+  }, [navOrder, visibleNavItems]);
 
   const handleDragEnd = (event: DragEndEvent) => {
     const { active, over } = event;
@@ -214,7 +216,7 @@ export function AppSidebar() {
       const newVisibleIds = newVisibleOrder.map((item) => item.id);
       
       // Preserve hidden items' positions from the original nav_order
-      const currentNavOrder = settings.nav_order || allNavItems.map(item => item.id);
+      const currentNavOrder = navOrder || allNavItems.map(item => item.id);
       const hiddenIds = currentNavOrder.filter((id: string) => !visibleNavItems.find(item => item.id === id));
       
       // Build final order: start with all items from allNavItems in their relative positions
@@ -223,7 +225,6 @@ export function AppSidebar() {
       
       // For each position, check if it should be a visible item (from new order) or hidden item
       let visibleIndex = 0;
-      let hiddenIndex = 0;
       
       for (const itemId of allItemIds) {
         if (newVisibleIds.includes(itemId)) {
@@ -235,7 +236,6 @@ export function AppSidebar() {
         } else if (hiddenIds.includes(itemId)) {
           // This is a hidden item - preserve its position
           finalOrder.push(itemId);
-          hiddenIndex++;
         }
       }
       
@@ -247,17 +247,14 @@ export function AppSidebar() {
         visibleIndex++;
       }
 
-      updateSettings.mutate(
-        { nav_order: finalOrder },
-        {
-          onSuccess: () => {
-            toast.success("Ordem do menu salva!");
-          },
-          onError: () => {
-            toast.error("Erro ao salvar ordem do menu");
-          },
-        }
-      );
+      updateNavOrder.mutate(finalOrder, {
+        onSuccess: () => {
+          toast.success("Ordem do menu salva!");
+        },
+        onError: () => {
+          toast.error("Erro ao salvar ordem do menu");
+        },
+      });
     }
   };
 
