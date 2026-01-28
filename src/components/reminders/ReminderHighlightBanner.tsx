@@ -13,6 +13,8 @@ import { cn } from "@/lib/utils";
 import { Link } from "react-router-dom";
 import { getDaysUntilEventBrazilNorth } from "@/lib/timezone";
 import { toast } from "sonner";
+import { ReminderDetailDialog } from "./ReminderDetailDialog";
+import { playSoundFile } from "@/lib/sounds";
 
 // Play alert sound for today's reminders
 const playAlertSound = () => {
@@ -32,6 +34,8 @@ export const ReminderHighlightBanner = () => {
   const deleteReminder = useDeleteReminder();
   const [dismissedIds, setDismissedIds] = useState<Set<string>>(new Set());
   const [hasPlayedSound, setHasPlayedSound] = useState(false);
+  const [selectedReminder, setSelectedReminder] = useState<Reminder | null>(null);
+  const [detailDialogOpen, setDetailDialogOpen] = useState(false);
 
   const visibleReminders = useMemo(() => {
     return activeReminders?.filter((r) => !dismissedIds.has(r.id)) || [];
@@ -73,6 +77,8 @@ export const ReminderHighlightBanner = () => {
     try {
       await acknowledgeReminder.mutateAsync(reminder);
       setDismissedIds((prev) => new Set([...prev, reminder.id]));
+      setDetailDialogOpen(false);
+      setSelectedReminder(null);
       toast.success("Lembrete marcado como visto!");
     } catch (error) {
       toast.error("Erro ao marcar lembrete como visto");
@@ -86,10 +92,18 @@ export const ReminderHighlightBanner = () => {
     }
     try {
       await deleteReminder.mutateAsync(reminder);
+      setDetailDialogOpen(false);
+      setSelectedReminder(null);
       toast.success("Lembrete cancelado!");
     } catch (error) {
       toast.error("Erro ao cancelar lembrete");
     }
+  };
+
+  const handleOpenDetail = (reminder: Reminder) => {
+    setSelectedReminder(reminder);
+    setDetailDialogOpen(true);
+    playSoundFile("/sounds/pop.mp3");
   };
 
   if (isLoading || visibleReminders.length === 0) {
@@ -133,7 +147,8 @@ export const ReminderHighlightBanner = () => {
                       return (
                         <div
                           key={reminder.id}
-                          className="flex items-center justify-between p-3 rounded-lg bg-black/60 border border-green-500/30"
+                          className="flex items-center justify-between p-3 rounded-lg bg-black/60 border border-green-500/30 cursor-pointer hover:bg-black/80 hover:border-green-400/50 transition-all"
+                          onClick={() => handleOpenDetail(reminder)}
                         >
                           <div className="flex items-center gap-3">
                             <AlertCircle className="h-5 w-5 text-green-400 flex-shrink-0" />
@@ -179,7 +194,7 @@ export const ReminderHighlightBanner = () => {
                               variant="outline"
                               size="sm"
                               className="h-8 gap-1 border-green-500/50 text-green-400 bg-green-500/10 hover:bg-green-500/20 hover:text-green-300"
-                              onClick={() => handleAcknowledge(reminder)}
+                              onClick={(e) => { e.stopPropagation(); handleAcknowledge(reminder); }}
                               disabled={acknowledgeReminder.isPending}
                             >
                               <Check className="h-4 w-4" />
@@ -190,7 +205,7 @@ export const ReminderHighlightBanner = () => {
                                 variant="outline"
                                 size="sm"
                                 className="h-8 gap-1 border-red-500/50 text-red-400 bg-red-500/10 hover:bg-red-500/20 hover:text-red-300"
-                                onClick={() => handleCancel(reminder)}
+                                onClick={(e) => { e.stopPropagation(); handleCancel(reminder); }}
                                 disabled={deleteReminder.isPending}
                               >
                                 <X className="h-4 w-4" />
@@ -268,13 +283,14 @@ export const ReminderHighlightBanner = () => {
                       glowClass,
                       hoverClass
                     )}
+                    onClick={() => handleOpenDetail(reminder)}
                   >
-                    <div className="absolute top-2 right-2 flex gap-1">
+                    <div className="absolute top-2 right-2 flex gap-1 z-10">
                       <Button
                         variant="ghost"
                         size="icon"
                         className={cn("h-6 w-6 rounded-full opacity-60 hover:opacity-100", bgAccent, accentColor)}
-                        onClick={() => handleAcknowledge(reminder)}
+                        onClick={(e) => { e.stopPropagation(); handleAcknowledge(reminder); }}
                         disabled={acknowledgeReminder.isPending}
                         title="Marcar como visto"
                       >
@@ -285,7 +301,7 @@ export const ReminderHighlightBanner = () => {
                           variant="ghost"
                           size="icon"
                           className="h-6 w-6 rounded-full opacity-60 hover:opacity-100 hover:bg-red-500/20 text-red-400"
-                          onClick={() => handleCancel(reminder)}
+                          onClick={(e) => { e.stopPropagation(); handleCancel(reminder); }}
                           disabled={deleteReminder.isPending}
                           title="Cancelar lembrete"
                         >
@@ -363,6 +379,18 @@ export const ReminderHighlightBanner = () => {
           </ScrollArea>
         </div>
       )}
+
+      {/* Reminder Detail Dialog */}
+      <ReminderDetailDialog
+        reminder={selectedReminder}
+        open={detailDialogOpen}
+        onOpenChange={setDetailDialogOpen}
+        onAcknowledge={handleAcknowledge}
+        onCancel={handleCancel}
+        isAcknowledging={acknowledgeReminder.isPending}
+        isCanceling={deleteReminder.isPending}
+        isCreator={selectedReminder ? user?.id === selectedReminder.created_by : false}
+      />
     </div>
   );
 };
