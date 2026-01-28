@@ -457,6 +457,7 @@ const RelatorioPresenca = () => {
 
     // All areas - date is included in the first area
     return generateAreaReport("ÁREA GABIÃO", true) + "\n\n" + generateAreaReport("ROÇAGEM E PODAGEM", false);
+  // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [allEmployees, groupedEmployees, attendanceMap, selectedArea, supportGabiao, supportRocagem, selectedDate]);
 
   const handleCopy = async () => {
