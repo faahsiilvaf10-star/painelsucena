@@ -1,0 +1,151 @@
+import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
+import { supabase } from "@/integrations/supabase/client";
+import { useAuth } from "@/hooks/useAuth";
+import { toast } from "sonner";
+import { getBrazilNorthTodayString } from "@/lib/timezone";
+
+export type MovementType = "entrada" | "saida";
+export type ExitReason = "manutencao_corretiva" | "manutencao_preventiva" | "vistoria";
+
+export interface EquipmentMovement {
+  id: string;
+  equipment_name: string;
+  plate: string;
+  movement_type: MovementType;
+  movement_date: string;
+  movement_time: string;
+  exit_reason: ExitReason | null;
+  problem_description: string | null;
+  observation: string | null;
+  created_by: string;
+  created_at: string;
+  updated_at: string;
+}
+
+export interface EquipmentMovementInsert {
+  equipment_name: string;
+  plate: string;
+  movement_type: MovementType;
+  movement_date?: string;
+  movement_time?: string;
+  exit_reason?: ExitReason | null;
+  problem_description?: string | null;
+  observation?: string | null;
+}
+
+export function useEquipmentMovements(date?: string) {
+  const targetDate = date || getBrazilNorthTodayString();
+
+  return useQuery({
+    queryKey: ["equipment-movements", targetDate],
+    queryFn: async (): Promise<EquipmentMovement[]> => {
+      const { data, error } = await supabase
+        .from("equipment_movements")
+        .select("*")
+        .eq("movement_date", targetDate)
+        .order("movement_time", { ascending: false });
+
+      if (error) throw error;
+      return (data || []) as EquipmentMovement[];
+    },
+  });
+}
+
+export function useAllEquipmentMovements() {
+  return useQuery({
+    queryKey: ["equipment-movements-all"],
+    queryFn: async (): Promise<EquipmentMovement[]> => {
+      const { data, error } = await supabase
+        .from("equipment_movements")
+        .select("*")
+        .order("movement_date", { ascending: false })
+        .order("movement_time", { ascending: false })
+        .limit(100);
+
+      if (error) throw error;
+      return (data || []) as EquipmentMovement[];
+    },
+  });
+}
+
+export function useCreateEquipmentMovement() {
+  const queryClient = useQueryClient();
+  const { user } = useAuth();
+
+  return useMutation({
+    mutationFn: async (movement: EquipmentMovementInsert) => {
+      if (!user?.id) throw new Error("User not authenticated");
+
+      const { data, error } = await supabase
+        .from("equipment_movements")
+        .insert({
+          ...movement,
+          created_by: user.id,
+        })
+        .select()
+        .single();
+
+      if (error) throw error;
+      return data;
+    },
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ["equipment-movements"] });
+      queryClient.invalidateQueries({ queryKey: ["equipment-movements-all"] });
+      toast.success("Movimento registrado com sucesso!");
+    },
+    onError: (error) => {
+      console.error("Error creating movement:", error);
+      toast.error("Erro ao registrar movimento");
+    },
+  });
+}
+
+export function useDeleteEquipmentMovement() {
+  const queryClient = useQueryClient();
+
+  return useMutation({
+    mutationFn: async (id: string) => {
+      const { error } = await supabase
+        .from("equipment_movements")
+        .delete()
+        .eq("id", id);
+
+      if (error) throw error;
+    },
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ["equipment-movements"] });
+      queryClient.invalidateQueries({ queryKey: ["equipment-movements-all"] });
+      toast.success("Movimento excluído!");
+    },
+    onError: (error) => {
+      console.error("Error deleting movement:", error);
+      toast.error("Erro ao excluir movimento");
+    },
+  });
+}
+
+export function useTodayMovementsSummary() {
+  const today = getBrazilNorthTodayString();
+
+  return useQuery({
+    queryKey: ["equipment-movements-summary", today],
+    queryFn: async () => {
+      const { data, error } = await supabase
+        .from("equipment_movements")
+        .select("movement_type")
+        .eq("movement_date", today);
+
+      if (error) throw error;
+
+      const movements = data || [];
+      const entradas = movements.filter((m) => m.movement_type === "entrada").length;
+      const saidas = movements.filter((m) => m.movement_type === "saida").length;
+
+      return {
+        entradas,
+        saidas,
+        noCanteiro: entradas - saidas,
+      };
+    },
+  });
+}

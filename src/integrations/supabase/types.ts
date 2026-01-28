@@ -600,6 +600,57 @@ export type Database = {
         }
         Relationships: []
       }
+      equipment_movements: {
+        Row: {
+          created_at: string
+          created_by: string
+          equipment_name: string
+          exit_reason:
+            | Database["public"]["Enums"]["equipment_exit_reason"]
+            | null
+          id: string
+          movement_date: string
+          movement_time: string
+          movement_type: Database["public"]["Enums"]["equipment_movement_type"]
+          observation: string | null
+          plate: string
+          problem_description: string | null
+          updated_at: string
+        }
+        Insert: {
+          created_at?: string
+          created_by: string
+          equipment_name: string
+          exit_reason?:
+            | Database["public"]["Enums"]["equipment_exit_reason"]
+            | null
+          id?: string
+          movement_date?: string
+          movement_time?: string
+          movement_type: Database["public"]["Enums"]["equipment_movement_type"]
+          observation?: string | null
+          plate: string
+          problem_description?: string | null
+          updated_at?: string
+        }
+        Update: {
+          created_at?: string
+          created_by?: string
+          equipment_name?: string
+          exit_reason?:
+            | Database["public"]["Enums"]["equipment_exit_reason"]
+            | null
+          id?: string
+          movement_date?: string
+          movement_time?: string
+          movement_type?: Database["public"]["Enums"]["equipment_movement_type"]
+          observation?: string | null
+          plate?: string
+          problem_description?: string | null
+          updated_at?: string
+        }
+        Relationships: []
+      }
       equipment_stop_history: {
         Row: {
           created_at: string
@@ -1525,6 +1576,11 @@ export type Database = {
         | "licenca"
         | "outro"
       employee_status: "active" | "vacation" | "leave"
+      equipment_exit_reason:
+        | "manutencao_corretiva"
+        | "manutencao_preventiva"
+        | "vistoria"
+      equipment_movement_type: "entrada" | "saida"
       order_status:
         | "solicitado"
         | "aprovado"
@@ -1703,6 +1759,12 @@ export const Constants = {
         "outro",
       ],
       employee_status: ["active", "vacation", "leave"],
+      equipment_exit_reason: [
+        "manutencao_corretiva",
+        "manutencao_preventiva",
+        "vistoria",
+      ],
+      equipment_movement_type: ["entrada", "saida"],
       order_status: [
         "solicitado",
         "aprovado",
