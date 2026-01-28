@@ -271,6 +271,7 @@ export type Database = {
           report_date: string
           retirada_mudas_unidade: number | null
           rocagem_berma: number | null
+          rocagem_faixa: string | null
           rocagem_m2: number | null
           updated_at: string
         }
@@ -301,6 +302,7 @@ export type Database = {
           report_date?: string
           retirada_mudas_unidade?: number | null
           rocagem_berma?: number | null
+          rocagem_faixa?: string | null
           rocagem_m2?: number | null
           updated_at?: string
         }
@@ -331,6 +333,7 @@ export type Database = {
           report_date?: string
           retirada_mudas_unidade?: number | null
           rocagem_berma?: number | null
+          rocagem_faixa?: string | null
           rocagem_m2?: number | null
           updated_at?: string
         }
