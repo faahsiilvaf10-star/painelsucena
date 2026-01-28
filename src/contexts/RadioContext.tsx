@@ -46,10 +46,20 @@ const getSavedPlayingState = (): boolean => {
   }
 };
 
+// Safe hook that doesn't throw during HMR reloads
 export const useRadio = () => {
   const context = useContext(RadioContext);
   if (!context) {
-    throw new Error("useRadio must be used within a RadioProvider");
+    // Return a fallback during HMR reloads to prevent crashes
+    return {
+      isPlaying: false,
+      isMuted: false,
+      selectedStation: RADIO_STATIONS[0],
+      stations: RADIO_STATIONS,
+      toggleRadio: () => {},
+      changeStation: () => {},
+      isRadioActive: false,
+    };
   }
   return context;
 };
