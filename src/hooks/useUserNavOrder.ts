@@ -5,7 +5,7 @@ import { Json } from "@/integrations/supabase/types";
 
 const DEFAULT_NAV_ORDER = [
   "atividades", "atividades-ii", "metas", "destaques", "campanhas", "dds", 
-  "documentos", "equipamentos", "estoque", "lembretes", "presenca", "matriz", 
+  "documentos", "entrada-saida", "equipamentos", "estoque", "lembretes", "presenca", "matriz", 
   "pedidos", "rdo", "relatorio", "rh", "vistorias", "homologados", "vistoria-cintas", "emergencia"
 ];
 
