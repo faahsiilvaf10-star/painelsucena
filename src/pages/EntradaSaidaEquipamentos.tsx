@@ -164,8 +164,51 @@ const EntradaSaidaEquipamentos = () => {
   const entradas = filteredMovements.filter((m) => m.movement_type === "entrada");
   const saidas = filteredMovements.filter((m) => m.movement_type === "saida");
 
+  // Get last movement status for a plate
+  const getLastMovementForPlate = (plateToCheck: string): EquipmentMovement | null => {
+    if (!currentlyOut) return null;
+    const found = currentlyOut.find(m => m.plate.toUpperCase() === plateToCheck.toUpperCase());
+    if (found) return found; // Last movement was "saida"
+    
+    // Check if there's any entry for this plate (meaning last was "entrada")
+    if (allEntries) {
+      const lastEntry = allEntries.find(m => m.plate.toUpperCase() === plateToCheck.toUpperCase());
+      if (lastEntry) return lastEntry;
+    }
+    return null;
+  };
+
+  // Check if movement is valid (no duplicate consecutive movements)
+  const canCreateMovement = (plateToCheck: string, type: MovementType): { valid: boolean; message: string } => {
+    if (!plateToCheck.trim()) return { valid: true, message: "" };
+    
+    const lastMovement = getLastMovementForPlate(plateToCheck);
+    if (!lastMovement) return { valid: true, message: "" }; // No previous movement, allow any
+    
+    if (lastMovement.movement_type === type) {
+      const typeLabel = type === "entrada" ? "entrada" : "saída";
+      const oppositeLabel = type === "entrada" ? "saída" : "entrada";
+      return { 
+        valid: false, 
+        message: `Este veículo já possui uma ${typeLabel} registrada. Registre uma ${oppositeLabel} primeiro.` 
+      };
+    }
+    
+    return { valid: true, message: "" };
+  };
+
+  const movementValidation = useMemo(() => {
+    return canCreateMovement(plate, movementType);
+  }, [plate, movementType, currentlyOut, allEntries]);
+
   const handleSubmit = async () => {
     if (!equipmentName.trim() || !plate.trim()) return;
+    
+    // Validate movement
+    const validation = canCreateMovement(plate, movementType);
+    if (!validation.valid) {
+      return;
+    }
 
     await createMovement.mutateAsync({
       equipment_name: equipmentName.trim(),
@@ -469,6 +512,17 @@ const EntradaSaidaEquipamentos = () => {
                       )}
                     </>
                   )}
+                  {/* Validation Warning */}
+                  {plate.trim() && !movementValidation.valid && (
+                    <div className="p-3 rounded-lg bg-destructive/10 border border-destructive/30">
+                      <div className="flex items-start gap-2">
+                        <AlertCircle className="h-5 w-5 text-destructive mt-0.5 flex-shrink-0" />
+                        <p className="text-sm text-destructive font-medium">
+                          {movementValidation.message}
+                        </p>
+                      </div>
+                    </div>
+                  )}
                 </div>
                 <DialogFooter>
                   <DialogClose asChild>
@@ -479,6 +533,7 @@ const EntradaSaidaEquipamentos = () => {
                     disabled={
                       !equipmentName.trim() ||
                       !plate.trim() ||
+                      !movementValidation.valid ||
                       (movementType === "saida" && !exitReason) ||
                       (exitReason === "manutencao_corretiva" && !problemDescription.trim()) ||
                       createMovement.isPending
