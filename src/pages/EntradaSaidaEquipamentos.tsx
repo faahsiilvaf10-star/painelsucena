@@ -855,7 +855,7 @@ const EntradaSaidaEquipamentos = () => {
                     </div>
                   ) : (
                     <ScrollArea className="max-h-[400px]" scrollbarAlwaysVisible>
-                      <div className="space-y-2">
+                      <div className="space-y-2 pr-3">
                         {allEntries.map((movement) => {
                           // Check if this equipment is still in (hasn't exited since entry)
                           const isStillInCanteiro = currentlyIn?.some(
@@ -995,7 +995,7 @@ const EntradaSaidaEquipamentos = () => {
                     </div>
                   ) : (
                     <ScrollArea className="max-h-[400px]" scrollbarAlwaysVisible>
-                      <div className="space-y-2">
+                      <div className="space-y-2 pr-3">
                         {currentlyOut.map((movement) => {
                           const exitInfo = movement.exit_reason ? EXIT_REASON_LABELS[movement.exit_reason] : null;
                           const ExitIcon = exitInfo?.icon;
