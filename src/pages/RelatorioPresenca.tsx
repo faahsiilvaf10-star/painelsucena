@@ -28,6 +28,7 @@ import { useUpsertAttendance } from "@/hooks/useAttendance";
 import { useReportLock, AreaType } from "@/hooks/useReportLock";
 import { useSaveEfetivoToRDO } from "@/hooks/useRDOReports";
 import { getBrazilNorthTodayString } from "@/lib/timezone";
+import { useProfile } from "@/hooks/useProfile";
 
 type AttendanceWithEmployee = Tables<"attendance_records"> & {
   employees: Tables<"employees"> | null;
@@ -145,6 +146,18 @@ const RelatorioPresenca = () => {
   const upsertAttendance = useUpsertAttendance();
   const saveEfetivoToRDO = useSaveEfetivoToRDO();
   const { isAreaLocked, canUnlockArea, lockArea, unlockArea, isLoading: lockLoading } = useReportLock(selectedDate);
+  const { data: profile } = useProfile();
+
+  // Determine which tabs to show based on user cargo
+  const userCargo = profile?.cargo;
+  const showGabiaoTab = userCargo !== "encarregado_i"; // Hide for Encarregado I
+  const showRocagemTab = userCargo !== "encarregado_ii"; // Hide for Encarregado II
+  
+  // Determine default tab based on visibility
+  const defaultTab = useMemo(() => {
+    if (!showGabiaoTab && showRocagemTab) return "rocagem";
+    return "gabiao";
+  }, [showGabiaoTab, showRocagemTab]);
 
   // Fetch attendance records for the selected date with employees
   const { data: records, isLoading: recordsLoading } = useQuery({
@@ -769,17 +782,25 @@ const RelatorioPresenca = () => {
           <div className="grid grid-cols-1 lg:grid-cols-2 gap-8">
             {/* Editable Attendance by Area */}
             <div className="space-y-6">
-              <Tabs defaultValue="gabiao" className="w-full">
-                <TabsList className="grid w-full grid-cols-2">
-                  <TabsTrigger value="gabiao">✳ Área Gabião</TabsTrigger>
-                  <TabsTrigger value="rocagem">🌿 Roçagem e Podagem</TabsTrigger>
+              <Tabs defaultValue={defaultTab} className="w-full">
+                <TabsList className={`grid w-full ${showGabiaoTab && showRocagemTab ? 'grid-cols-2' : 'grid-cols-1'}`}>
+                  {showGabiaoTab && (
+                    <TabsTrigger value="gabiao">✳ Área Gabião</TabsTrigger>
+                  )}
+                  {showRocagemTab && (
+                    <TabsTrigger value="rocagem">🌿 Roçagem e Podagem</TabsTrigger>
+                  )}
                 </TabsList>
-                <TabsContent value="gabiao" className="mt-4">
-                  <AreaCard area="ÁREA GABIÃO" />
-                </TabsContent>
-                <TabsContent value="rocagem" className="mt-4">
-                  <AreaCard area="ROÇAGEM E PODAGEM" />
-                </TabsContent>
+                {showGabiaoTab && (
+                  <TabsContent value="gabiao" className="mt-4">
+                    <AreaCard area="ÁREA GABIÃO" />
+                  </TabsContent>
+                )}
+                {showRocagemTab && (
+                  <TabsContent value="rocagem" className="mt-4">
+                    <AreaCard area="ROÇAGEM E PODAGEM" />
+                  </TabsContent>
+                )}
               </Tabs>
             </div>
 
