@@ -196,6 +196,7 @@ export type Database = {
           manutencao_drenagem_berma: number | null
           manutencao_drenagem_m: number | null
           observacoes: string | null
+          photo_urls: string[] | null
           recomposicao_gabiao_berma: number | null
           recomposicao_gabiao_m: number | null
           reparo_cerca_berma: number | null
@@ -215,6 +216,7 @@ export type Database = {
           manutencao_drenagem_berma?: number | null
           manutencao_drenagem_m?: number | null
           observacoes?: string | null
+          photo_urls?: string[] | null
           recomposicao_gabiao_berma?: number | null
           recomposicao_gabiao_m?: number | null
           reparo_cerca_berma?: number | null
@@ -234,6 +236,7 @@ export type Database = {
           manutencao_drenagem_berma?: number | null
           manutencao_drenagem_m?: number | null
           observacoes?: string | null
+          photo_urls?: string[] | null
           recomposicao_gabiao_berma?: number | null
           recomposicao_gabiao_m?: number | null
           reparo_cerca_berma?: number | null
@@ -264,6 +267,7 @@ export type Database = {
           limpeza_manual_m2: number | null
           local_faixa: string
           manutencao_canteiro: string | null
+          photo_urls: string[] | null
           plantio_berma: number | null
           plantio_unidade: number | null
           podagem_berma: number | null
@@ -295,6 +299,7 @@ export type Database = {
           limpeza_manual_m2?: number | null
           local_faixa: string
           manutencao_canteiro?: string | null
+          photo_urls?: string[] | null
           plantio_berma?: number | null
           plantio_unidade?: number | null
           podagem_berma?: number | null
@@ -326,6 +331,7 @@ export type Database = {
           limpeza_manual_m2?: number | null
           local_faixa?: string
           manutencao_canteiro?: string | null
+          photo_urls?: string[] | null
           plantio_berma?: number | null
           plantio_unidade?: number | null
           podagem_berma?: number | null

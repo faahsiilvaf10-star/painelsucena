@@ -31,6 +31,7 @@ export interface JardinagemReport {
   irrigacao_pipas: boolean | null;
   irrigacao_carretel: boolean | null;
   irrigacao_carretel_bermas: number[] | null;
+  photo_urls: string[] | null;
   created_at: string;
   updated_at: string;
 }
@@ -61,6 +62,7 @@ export interface JardinagemReportInsert {
   irrigacao_pipas?: boolean;
   irrigacao_carretel?: boolean;
   irrigacao_carretel_bermas?: number[];
+  photo_urls?: string[];
 }
 
 export const useJardinagemReports = (filterDate?: string) => {
