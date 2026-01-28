@@ -1,7 +1,7 @@
 import { useState, useMemo } from "react";
-import { format, startOfWeek, endOfWeek, subWeeks, parseISO } from "date-fns";
+import { format, startOfWeek, endOfWeek, subWeeks, parseISO, startOfMonth, endOfMonth, subMonths } from "date-fns";
 import { ptBR } from "date-fns/locale";
-import { ArrowDownToLine, ArrowUpFromLine, Truck, Calendar, Clock, Search, Plus, Wrench, Shield, ClipboardCheck, Trash2, AlertCircle, History, ChevronLeft, ChevronRight, CalendarIcon, ListChecks } from "lucide-react";
+import { ArrowDownToLine, ArrowUpFromLine, Truck, Calendar, Clock, Search, Plus, Wrench, Shield, ClipboardCheck, Trash2, AlertCircle, History, ChevronLeft, ChevronRight, CalendarIcon, ListChecks, Filter } from "lucide-react";
 import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover";
 import { Calendar as CalendarComponent } from "@/components/ui/calendar";
 import { cn } from "@/lib/utils";
@@ -40,6 +40,8 @@ const EXIT_REASON_LABELS: Record<ExitReason, { label: string; icon: typeof Wrenc
   vistoria: { label: "Vistoria", icon: ClipboardCheck, color: "text-blue-500" },
 };
 
+type HistoryFilterType = "semana" | "mes" | "periodo";
+
 const EntradaSaidaEquipamentos = () => {
   const [searchTerm, setSearchTerm] = useState("");
   const [isDialogOpen, setIsDialogOpen] = useState(false);
@@ -51,8 +53,12 @@ const EntradaSaidaEquipamentos = () => {
   const [exitReason, setExitReason] = useState<ExitReason | "">("");
   const [problemDescription, setProblemDescription] = useState("");
   const [weekOffset, setWeekOffset] = useState(0);
+  const [monthOffset, setMonthOffset] = useState(0);
   const [movementDate, setMovementDate] = useState<Date>(new Date());
   const [movementTime, setMovementTime] = useState<string>(format(new Date(), "HH:mm"));
+  const [historyFilter, setHistoryFilter] = useState<HistoryFilterType>("semana");
+  const [customStartDate, setCustomStartDate] = useState<Date | undefined>(undefined);
+  const [customEndDate, setCustomEndDate] = useState<Date | undefined>(undefined);
 
   const today = getBrazilNorthTodayString();
   const { data: movements, isLoading } = useEquipmentMovements(today);
@@ -75,19 +81,55 @@ const EntradaSaidaEquipamentos = () => {
     };
   }, [weekOffset]);
 
-  const { data: weeklyMovements, isLoading: isLoadingWeekly } = useWeeklyEquipmentMovements(
-    weekDates.startDate,
-    weekDates.endDate
+  // Calculate month dates for history
+  const monthDates = useMemo(() => {
+    const baseDate = subMonths(new Date(), monthOffset);
+    const start = startOfMonth(baseDate);
+    const end = endOfMonth(baseDate);
+    return {
+      startDate: format(start, "yyyy-MM-dd"),
+      endDate: format(end, "yyyy-MM-dd"),
+      monthFormatted: format(baseDate, "MMMM 'de' yyyy", { locale: ptBR }),
+    };
+  }, [monthOffset]);
+
+  // Calculate custom period dates
+  const customDates = useMemo(() => {
+    if (!customStartDate || !customEndDate) return null;
+    return {
+      startDate: format(customStartDate, "yyyy-MM-dd"),
+      endDate: format(customEndDate, "yyyy-MM-dd"),
+      startFormatted: format(customStartDate, "dd/MM/yyyy", { locale: ptBR }),
+      endFormatted: format(customEndDate, "dd/MM/yyyy", { locale: ptBR }),
+    };
+  }, [customStartDate, customEndDate]);
+
+  // Determine which dates to use based on filter
+  const historyDates = useMemo(() => {
+    switch (historyFilter) {
+      case "mes":
+        return { startDate: monthDates.startDate, endDate: monthDates.endDate };
+      case "periodo":
+        return customDates ? { startDate: customDates.startDate, endDate: customDates.endDate } : null;
+      case "semana":
+      default:
+        return { startDate: weekDates.startDate, endDate: weekDates.endDate };
+    }
+  }, [historyFilter, weekDates, monthDates, customDates]);
+
+  const { data: historyMovements, isLoading: isLoadingHistory } = useWeeklyEquipmentMovements(
+    historyDates?.startDate || "",
+    historyDates?.endDate || ""
   );
 
   // Get all entries and currently out equipment
   const { data: allEntries, isLoading: isLoadingEntries } = useAllEntries();
   const { data: currentlyOut, isLoading: isLoadingOut } = useEquipmentCurrentlyOut();
 
-  // Group weekly movements by date
-  const groupedWeeklyMovements = useMemo(() => {
-    if (!weeklyMovements) return {};
-    return weeklyMovements.reduce((acc, movement) => {
+  // Group history movements by date
+  const groupedHistoryMovements = useMemo(() => {
+    if (!historyMovements) return {};
+    return historyMovements.reduce((acc, movement) => {
       const date = movement.movement_date;
       if (!acc[date]) {
         acc[date] = [];
@@ -95,7 +137,7 @@ const EntradaSaidaEquipamentos = () => {
       acc[date].push(movement);
       return acc;
     }, {} as Record<string, EquipmentMovement[]>);
-  }, [weeklyMovements]);
+  }, [historyMovements]);
 
   // Handle equipment selection
   const handleEquipmentSelect = (equipmentId: string) => {
@@ -761,52 +803,186 @@ const EntradaSaidaEquipamentos = () => {
           <TabsContent value="historico" className="space-y-4">
             <Card>
               <CardHeader>
-                <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">
-                  <CardTitle className="text-lg flex items-center gap-2">
-                    <History className="h-5 w-5 text-primary" />
-                    Histórico Semanal
-                  </CardTitle>
-                  <div className="flex items-center gap-2">
-                    <Button
-                      variant="outline"
-                      size="icon"
-                      onClick={() => setWeekOffset(prev => prev + 1)}
-                    >
-                      <ChevronLeft className="h-4 w-4" />
-                    </Button>
-                    <span className="text-sm font-medium min-w-[160px] text-center">
-                      {weekDates.startFormatted} - {weekDates.endFormatted}
-                    </span>
-                    <Button
-                      variant="outline"
-                      size="icon"
-                      onClick={() => setWeekOffset(prev => Math.max(0, prev - 1))}
-                      disabled={weekOffset === 0}
-                    >
-                      <ChevronRight className="h-4 w-4" />
-                    </Button>
+                <div className="flex flex-col gap-4">
+                  <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">
+                    <CardTitle className="text-lg flex items-center gap-2">
+                      <History className="h-5 w-5 text-primary" />
+                      Histórico de Movimentos
+                    </CardTitle>
                     <ExportMovementsPdfButton
-                      movements={weeklyMovements || []}
-                      startDate={weekDates.startDate}
-                      endDate={weekDates.endDate}
+                      movements={historyMovements || []}
+                      startDate={historyDates?.startDate || ""}
+                      endDate={historyDates?.endDate || ""}
                     />
                   </div>
+
+                  {/* Filter Options */}
+                  <div className="flex flex-wrap items-center gap-3">
+                    <div className="flex items-center gap-2">
+                      <Filter className="h-4 w-4 text-muted-foreground" />
+                      <span className="text-sm font-medium">Filtrar por:</span>
+                    </div>
+                    <div className="flex flex-wrap gap-2">
+                      <Button
+                        variant={historyFilter === "semana" ? "default" : "outline"}
+                        size="sm"
+                        onClick={() => setHistoryFilter("semana")}
+                      >
+                        Semana
+                      </Button>
+                      <Button
+                        variant={historyFilter === "mes" ? "default" : "outline"}
+                        size="sm"
+                        onClick={() => setHistoryFilter("mes")}
+                      >
+                        Mês
+                      </Button>
+                      <Button
+                        variant={historyFilter === "periodo" ? "default" : "outline"}
+                        size="sm"
+                        onClick={() => setHistoryFilter("periodo")}
+                      >
+                        Período
+                      </Button>
+                    </div>
+                  </div>
+
+                  {/* Week Navigation */}
+                  {historyFilter === "semana" && (
+                    <div className="flex items-center gap-2">
+                      <Button
+                        variant="outline"
+                        size="icon"
+                        onClick={() => setWeekOffset(prev => prev + 1)}
+                      >
+                        <ChevronLeft className="h-4 w-4" />
+                      </Button>
+                      <span className="text-sm font-medium min-w-[160px] text-center">
+                        {weekDates.startFormatted} - {weekDates.endFormatted}
+                      </span>
+                      <Button
+                        variant="outline"
+                        size="icon"
+                        onClick={() => setWeekOffset(prev => Math.max(0, prev - 1))}
+                        disabled={weekOffset === 0}
+                      >
+                        <ChevronRight className="h-4 w-4" />
+                      </Button>
+                    </div>
+                  )}
+
+                  {/* Month Navigation */}
+                  {historyFilter === "mes" && (
+                    <div className="flex items-center gap-2">
+                      <Button
+                        variant="outline"
+                        size="icon"
+                        onClick={() => setMonthOffset(prev => prev + 1)}
+                      >
+                        <ChevronLeft className="h-4 w-4" />
+                      </Button>
+                      <span className="text-sm font-medium min-w-[180px] text-center capitalize">
+                        {monthDates.monthFormatted}
+                      </span>
+                      <Button
+                        variant="outline"
+                        size="icon"
+                        onClick={() => setMonthOffset(prev => Math.max(0, prev - 1))}
+                        disabled={monthOffset === 0}
+                      >
+                        <ChevronRight className="h-4 w-4" />
+                      </Button>
+                    </div>
+                  )}
+
+                  {/* Custom Period Selection */}
+                  {historyFilter === "periodo" && (
+                    <div className="flex flex-wrap items-center gap-3">
+                      <div className="space-y-1">
+                        <Label className="text-xs">Data Inicial</Label>
+                        <Popover>
+                          <PopoverTrigger asChild>
+                            <Button
+                              variant="outline"
+                              className={cn(
+                                "w-[140px] justify-start text-left font-normal",
+                                !customStartDate && "text-muted-foreground"
+                              )}
+                              size="sm"
+                            >
+                              <CalendarIcon className="mr-2 h-3 w-3" />
+                              {customStartDate ? format(customStartDate, "dd/MM/yyyy", { locale: ptBR }) : "Selecionar"}
+                            </Button>
+                          </PopoverTrigger>
+                          <PopoverContent className="w-auto p-0 z-50 bg-background" align="start">
+                            <CalendarComponent
+                              mode="single"
+                              selected={customStartDate}
+                              onSelect={setCustomStartDate}
+                              initialFocus
+                              className={cn("p-3 pointer-events-auto")}
+                              locale={ptBR}
+                            />
+                          </PopoverContent>
+                        </Popover>
+                      </div>
+                      <div className="space-y-1">
+                        <Label className="text-xs">Data Final</Label>
+                        <Popover>
+                          <PopoverTrigger asChild>
+                            <Button
+                              variant="outline"
+                              className={cn(
+                                "w-[140px] justify-start text-left font-normal",
+                                !customEndDate && "text-muted-foreground"
+                              )}
+                              size="sm"
+                            >
+                              <CalendarIcon className="mr-2 h-3 w-3" />
+                              {customEndDate ? format(customEndDate, "dd/MM/yyyy", { locale: ptBR }) : "Selecionar"}
+                            </Button>
+                          </PopoverTrigger>
+                          <PopoverContent className="w-auto p-0 z-50 bg-background" align="start">
+                            <CalendarComponent
+                              mode="single"
+                              selected={customEndDate}
+                              onSelect={setCustomEndDate}
+                              initialFocus
+                              className={cn("p-3 pointer-events-auto")}
+                              locale={ptBR}
+                              disabled={(date) => customStartDate ? date < customStartDate : false}
+                            />
+                          </PopoverContent>
+                        </Popover>
+                      </div>
+                      {customDates && (
+                        <Badge variant="secondary" className="self-end mb-1">
+                          {customDates.startFormatted} - {customDates.endFormatted}
+                        </Badge>
+                      )}
+                    </div>
+                  )}
                 </div>
               </CardHeader>
               <CardContent>
-                {isLoadingWeekly ? (
+                {isLoadingHistory ? (
                   <div className="text-center py-8 text-muted-foreground">
                     Carregando histórico...
                   </div>
-                ) : !weeklyMovements || weeklyMovements.length === 0 ? (
+                ) : historyFilter === "periodo" && !customDates ? (
+                  <div className="text-center py-12 text-muted-foreground">
+                    <Calendar className="h-12 w-12 mx-auto mb-4 opacity-50" />
+                    <p>Selecione as datas para visualizar o histórico</p>
+                  </div>
+                ) : !historyMovements || historyMovements.length === 0 ? (
                   <div className="text-center py-12 text-muted-foreground">
                     <History className="h-12 w-12 mx-auto mb-4 opacity-50" />
-                    <p>Nenhum registro nesta semana</p>
+                    <p>Nenhum registro encontrado no período</p>
                   </div>
                 ) : (
                   <ScrollArea className="max-h-[600px]">
                     <div className="space-y-6">
-                      {Object.entries(groupedWeeklyMovements)
+                      {Object.entries(groupedHistoryMovements)
                         .sort(([a], [b]) => b.localeCompare(a))
                         .map(([date, dayMovements]) => (
                           <div key={date} className="space-y-3">
@@ -816,11 +992,11 @@ const EntradaSaidaEquipamentos = () => {
                                 {format(parseISO(date), "EEEE, dd 'de' MMMM", { locale: ptBR })}
                               </span>
                               <Badge variant="secondary" className="ml-2">
-                                {dayMovements.length} registro{dayMovements.length !== 1 ? 's' : ''}
+                                {(dayMovements as EquipmentMovement[]).length} registro{(dayMovements as EquipmentMovement[]).length !== 1 ? 's' : ''}
                               </Badge>
                             </div>
                             <div className="space-y-2 pl-6 border-l-2 border-muted">
-                              {dayMovements.map(renderMovementCard)}
+                              {(dayMovements as EquipmentMovement[]).map(renderMovementCard)}
                             </div>
                           </div>
                         ))}
