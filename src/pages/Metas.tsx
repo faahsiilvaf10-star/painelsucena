@@ -21,6 +21,7 @@ import { GabiaoHistoryChart } from "@/components/goals/GabiaoHistoryChart";
 import { GoalsDashboard } from "@/components/goals/GoalsDashboard";
 import { DailyTrendChart } from "@/components/goals/DailyTrendChart";
 import { PeriodComparison } from "@/components/goals/PeriodComparison";
+import { ReadOnlyBanner } from "@/components/ReadOnlyBanner";
 
 // Generate measurement period options (last 12 periods)
 const generatePeriodOptions = () => {
@@ -76,8 +77,23 @@ export default function Metas() {
   const [recomposicaoCascalho, setRecomposicaoCascalho] = useState("");
   const [recomposicaoSilteRecomp, setRecomposicaoSilteRecomp] = useState("");
 
-  // Check access permission - Admin or Planejador
-  const hasAccess = authReady && (isAdmin || profile?.cargo === "planejador");
+  // Check view permission - Admin, Planejador, Encarregado Geral, Encarregado I, Encarregado II
+  const canView = authReady && (
+    isAdmin || 
+    profile?.cargo === "planejador" || 
+    profile?.cargo === "encarregado_geral" || 
+    profile?.cargo === "encarregado_i" || 
+    profile?.cargo === "encarregado_ii"
+  );
+  
+  // Check edit permission - only Admin, Planejador, Encarregado Geral, Encarregado I, Encarregado II
+  const canEdit = authReady && (
+    isAdmin || 
+    profile?.cargo === "planejador" || 
+    profile?.cargo === "encarregado_geral" || 
+    profile?.cargo === "encarregado_i" || 
+    profile?.cargo === "encarregado_ii"
+  );
 
   // Load existing goal when period changes
   useEffect(() => {
@@ -133,15 +149,15 @@ export default function Metas() {
     );
   }
 
-  // Redirect if no access
-  if (!hasAccess) {
+  // Redirect if no view access
+  if (!canView) {
     return (
       <Layout>
         <div className="flex flex-col items-center justify-center h-[50vh] gap-4">
           <Target className="h-16 w-16 text-muted-foreground" />
           <h1 className="text-2xl font-bold text-muted-foreground">Acesso Restrito</h1>
-          <p className="text-muted-foreground">
-            Esta página é visível apenas para Administradores e Planejadores.
+          <p className="text-muted-foreground text-center max-w-md">
+            Esta página é visível apenas para Administradores, Planejadores, Encarregado Geral, Encarregado I e Encarregado II.
           </p>
           <Button onClick={() => navigate("/")}>Voltar ao Início</Button>
         </div>
@@ -203,6 +219,8 @@ export default function Metas() {
   return (
     <Layout>
       <div className="p-4 sm:p-6 space-y-4 sm:space-y-6">
+        {/* Read-only banner */}
+        {!canEdit && <ReadOnlyBanner message="Você está visualizando esta página em modo somente leitura. Apenas Administradores, Planejadores e Encarregados podem editar." />}
         {/* Header */}
         <div className="flex flex-col gap-4">
           <div className="flex items-center gap-3">
@@ -234,7 +252,7 @@ export default function Metas() {
               </SelectContent>
             </Select>
 
-            {goal && (
+            {goal && canEdit && (
               <Button
                 variant="destructive"
                 size="icon"
@@ -590,7 +608,7 @@ export default function Metas() {
         <div className="flex justify-end">
           <Button
             onClick={handleSave}
-            disabled={saveGoal.isPending}
+            disabled={saveGoal.isPending || !canEdit}
             className="gap-2"
             size="lg"
           >

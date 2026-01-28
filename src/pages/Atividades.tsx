@@ -29,6 +29,7 @@ import {
 import { getBrazilNorthDate, getBrazilNorthTodayString } from "@/lib/timezone";
 import { cn } from "@/lib/utils";
 import MonthlyReportDialog from "@/components/atividades/MonthlyReportDialog";
+import { ReadOnlyBanner } from "@/components/ReadOnlyBanner";
 import { GoalProgressCard } from "@/components/goals/GoalProgressCard";
 
 interface InvasoraEntry {
@@ -192,8 +193,19 @@ export default function Atividades() {
     };
   };
 
-  // Check access permission
-  const hasAccess = authReady && (isAdmin || profile?.cargo === "encarregado_i");
+  // Check access permission - can view if encarregado_geral, encarregado_i, or admin
+  const canView = authReady && (
+    isAdmin || 
+    profile?.cargo === "encarregado_geral" || 
+    profile?.cargo === "encarregado_i"
+  );
+  
+  // Check edit permission - only encarregado_geral, encarregado_i, or admin can edit
+  const canEdit = authReady && (
+    isAdmin || 
+    profile?.cargo === "encarregado_geral" || 
+    profile?.cargo === "encarregado_i"
+  );
 
   // Load existing report when date changes
   useEffect(() => {
@@ -260,15 +272,15 @@ export default function Atividades() {
     );
   }
 
-  // Redirect if no access
-  if (!hasAccess) {
+  // Redirect if no view access
+  if (!canView) {
     return (
       <Layout>
         <div className="flex flex-col items-center justify-center h-[50vh] gap-4">
           <Leaf className="h-16 w-16 text-muted-foreground" />
           <h1 className="text-2xl font-bold text-muted-foreground">Acesso Restrito</h1>
           <p className="text-muted-foreground">
-            Esta página é visível apenas para Administradores e Encarregado I.
+            Esta página é visível apenas para Administradores, Encarregado Geral e Encarregado I.
           </p>
           <Button onClick={() => navigate("/")}>Voltar ao Início</Button>
         </div>
@@ -448,6 +460,8 @@ export default function Atividades() {
   return (
     <Layout>
       <div className="p-4 sm:p-6 space-y-4 sm:space-y-6">
+        {/* Read-only banner */}
+        {!canEdit && <ReadOnlyBanner message="Você está visualizando esta página em modo somente leitura. Apenas Administradores, Encarregado Geral e Encarregado I podem editar." />}
         {/* Measurement Period Summary */}
         <Card className="border-green-500/30 bg-green-500/5">
           <CardContent className="py-2 sm:py-3 px-3 sm:px-4">
@@ -601,13 +615,13 @@ export default function Atividades() {
               }}
             />
 
-            {existingReport && (
+            {existingReport && canEdit && (
               <Button variant="destructive" size="icon" onClick={handleDelete}>
                 <Trash2 className="h-4 w-4" />
               </Button>
             )}
 
-            <Button onClick={() => handleSave()} disabled={saveReport.isPending} variant="outline">
+            <Button onClick={() => handleSave()} disabled={saveReport.isPending || !canEdit} variant="outline">
               {saveReport.isPending ? (
                 <Loader2 className="h-4 w-4 mr-2 animate-spin" />
               ) : (
@@ -618,7 +632,7 @@ export default function Atividades() {
 
             <Button 
               onClick={handleWhatsApp} 
-              disabled={saveReport.isPending}
+              disabled={saveReport.isPending || !canEdit}
               className="gap-2 bg-green-600 hover:bg-green-700"
             >
               {saveReport.isPending ? (

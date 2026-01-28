@@ -23,11 +23,13 @@ import { useRDOReports, useRDOReport, useSaveRDOReport, useUploadRDOPhotos, useD
 import { useJardinagemReportByDate, formatJardinagemForRDO } from "@/hooks/useJardinagemReports";
 import { useGabiaoReportByDate, formatGabiaoForRDO } from "@/hooks/useGabiaoReports";
 import { useAuth } from "@/hooks/useAuth";
+import { useProfile } from "@/hooks/useProfile";
 import { useRDOLock } from "@/hooks/useRDOLock";
 import { useIsAdmin } from "@/hooks/useUserRole";
 import { getBrazilNorthDate, getBrazilNorthTodayString } from "@/lib/timezone";
 import { cn } from "@/lib/utils";
 import { AlertDialog, AlertDialogAction, AlertDialogCancel, AlertDialogContent, AlertDialogDescription, AlertDialogFooter, AlertDialogHeader, AlertDialogTitle, AlertDialogTrigger } from "@/components/ui/alert-dialog";
+import { ReadOnlyBanner } from "@/components/ReadOnlyBanner";
 
 // Role mappings for areas
 const roleToArea: Record<string, "gabiao" | "jardinagem"> = {
@@ -81,8 +83,13 @@ const weatherLabels: Record<string, string> = {
 
 export default function RDO() {
   const { user } = useAuth();
+  const { data: profile } = useProfile();
+  const { isAdmin } = useIsAdmin();
   const todayStr = getBrazilNorthTodayString();
   const today = getBrazilNorthDate();
+  
+  // Check edit permission - only admin and encarregado_geral can edit RDO
+  const canEdit = isAdmin || profile?.cargo === "encarregado_geral";
   
   // Date selection state
   const [selectedDate, setSelectedDate] = useState<Date>(today);
@@ -306,7 +313,6 @@ ${difficulties}`;
 
   // RDO Lock hook
   const { isLocked, lockData, lockRDO, unlockRDO, canUnlock } = useRDOLock(selectedDateStr);
-  const { isAdmin } = useIsAdmin();
 
   const handleSave = async () => {
     if (!user) {
@@ -415,6 +421,8 @@ ${difficulties}`;
   return (
     <Layout>
       <div className="p-4 sm:p-6 space-y-4 sm:space-y-6">
+        {/* Read-only banner */}
+        {!canEdit && <ReadOnlyBanner message="Você está visualizando esta página em modo somente leitura. Apenas Administradores e Encarregado Geral podem editar." />}
         {/* Header */}
         <div className="flex flex-col gap-4">
           <div className="flex items-center gap-3">
@@ -551,7 +559,7 @@ ${difficulties}`;
               </AlertDialog>
             )}
 
-            {existingReport && !isLocked && (
+            {existingReport && !isLocked && canEdit && (
               <Button variant="destructive" size="icon" onClick={handleDelete}>
                 <Trash2 className="h-4 w-4" />
               </Button>
@@ -567,8 +575,8 @@ ${difficulties}`;
             </Button>
             <Button 
               onClick={handleSave} 
-              disabled={saveReport.isPending || lockRDO.isPending || isLocked}
-              className={isLocked ? "opacity-50" : ""}
+              disabled={saveReport.isPending || lockRDO.isPending || isLocked || !canEdit}
+              className={isLocked || !canEdit ? "opacity-50" : ""}
             >
               {saveReport.isPending || lockRDO.isPending ? (
                 <Loader2 className="h-4 w-4 mr-2 animate-spin" />
@@ -577,7 +585,7 @@ ${difficulties}`;
               ) : (
                 <Save className="h-4 w-4 mr-2" />
               )}
-              {isLocked ? "Bloqueado" : "Salvar"}
+              {isLocked ? "Bloqueado" : !canEdit ? "Somente Leitura" : "Salvar"}
             </Button>
           </div>
         </div>
