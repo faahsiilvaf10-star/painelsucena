@@ -10,12 +10,48 @@ import { useAuth } from "@/hooks/useAuth";
 import { UserWithStatus } from "@/hooks/useAllUsers";
 import { EmojiPicker } from "./EmojiPicker";
 import { Send, Image, X, Loader2, ArrowLeft, Mic, Paperclip, Camera, Check, CheckCheck } from "lucide-react";
-import { format } from "date-fns";
+import { format, formatDistanceToNow } from "date-fns";
 import { ptBR } from "date-fns/locale";
 import { cn } from "@/lib/utils";
 import { toast } from "sonner";
 import { VerifiedBadge } from "@/components/VerifiedBadge";
 import { formatCargoLabel } from "@/lib/cargoUtils";
+
+// Format last seen time in a user-friendly way
+const formatLastSeen = (lastSeen?: string): string => {
+  if (!lastSeen) return "";
+  
+  const lastSeenDate = new Date(lastSeen);
+  const now = new Date();
+  const diffMs = now.getTime() - lastSeenDate.getTime();
+  const diffMinutes = Math.floor(diffMs / (1000 * 60));
+  const diffHours = Math.floor(diffMs / (1000 * 60 * 60));
+  
+  // If less than 1 minute ago
+  if (diffMinutes < 1) {
+    return "visto agora";
+  }
+  
+  // If less than 1 hour ago
+  if (diffMinutes < 60) {
+    return `visto há ${diffMinutes} min`;
+  }
+  
+  // If less than 24 hours ago
+  if (diffHours < 24) {
+    return `visto hoje às ${format(lastSeenDate, "HH:mm", { locale: ptBR })}`;
+  }
+  
+  // If yesterday
+  const yesterday = new Date(now);
+  yesterday.setDate(yesterday.getDate() - 1);
+  if (lastSeenDate.toDateString() === yesterday.toDateString()) {
+    return `visto ontem às ${format(lastSeenDate, "HH:mm", { locale: ptBR })}`;
+  }
+  
+  // Otherwise show full date
+  return `visto em ${format(lastSeenDate, "dd/MM 'às' HH:mm", { locale: ptBR })}`;
+};
 
 interface ChatDialogProps {
   open: boolean;
@@ -205,7 +241,15 @@ export const ChatDialog = ({
                 {selectedUser.isAdmin && <VerifiedBadge size="xs" />}
               </DialogTitle>
               <p className="text-white/70 text-xs truncate">
-                {isOtherTyping ? <span className="text-[#25d366]">digitando...</span> : selectedUser.isOnline ? "online" : formatCargoLabel(selectedUser.cargo)}
+                {isOtherTyping ? (
+                  <span className="text-[#25d366]">digitando...</span>
+                ) : selectedUser.isOnline ? (
+                  "online"
+                ) : selectedUser.lastSeen ? (
+                  formatLastSeen(selectedUser.lastSeen)
+                ) : (
+                  formatCargoLabel(selectedUser.cargo)
+                )}
               </p>
             </div>
 
