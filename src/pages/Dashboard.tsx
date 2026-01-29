@@ -30,6 +30,7 @@ import { VehicleExpiryBanner } from "@/components/vistorias/VehicleExpiryBanner"
 import { SlingInspectionBanner } from "@/components/dashboard/SlingInspectionBanner";
 import { DraggableDashboardItem } from "@/components/dashboard/DraggableDashboardItem";
 import { DashboardEditControls } from "@/components/dashboard/DashboardEditControls";
+import BirthdayBanner from "@/components/dashboard/BirthdayBanner";
 import { useCampaignNotifications } from "@/hooks/useCampaignNotifications";
 import { useEmployees } from "@/hooks/useEmployees";
 import { useAttendanceRecords } from "@/hooks/useAttendance";
@@ -118,6 +119,8 @@ const Dashboard = () => {
     const animationDelay = `${0.1 + index * 0.05}s`;
     
     switch (id) {
+      case "birthday":
+        return <BirthdayBanner />;
       case "matrix_alert":
         return <MatrixAlertBanner />;
       case "goal_alert":
