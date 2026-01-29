@@ -11,3 +11,9 @@ verify_jwt = false
 
 [functions.auto-resume-equipment]
 verify_jwt = false
+
+[functions.generate-order-image]
+verify_jwt = false
+
+[functions.generate-product-images]
+verify_jwt = false

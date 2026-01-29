@@ -6,8 +6,11 @@ import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
-import { Search, Filter, X, AlertTriangle, CheckCircle, Package, Factory, Hash, ShieldCheck, ShieldAlert } from "lucide-react";
+import { Search, Filter, X, AlertTriangle, CheckCircle, Package, Factory, Hash, ShieldCheck, ShieldAlert, Image, Loader2, Sparkles } from "lucide-react";
 import { produtosHomologados, fabricantesUnicos, type ProdutoHomologado } from "@/data/produtosHomologados";
+import { useProductImages } from "@/hooks/useProductImages";
+import { Progress } from "@/components/ui/progress";
+import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 
 const Homologados = () => {
   const [searchTerm, setSearchTerm] = useState("");
@@ -15,9 +18,17 @@ const Homologados = () => {
   const [perigosoFilter, setPerigosoFilter] = useState<string>("todos");
   const [controladoFilter, setControladoFilter] = useState<string>("todos");
 
+  const { 
+    productImages, 
+    isLoading: isLoadingImages, 
+    isGenerating, 
+    generationProgress,
+    getImageByNI,
+    generateImages 
+  } = useProductImages();
+
   const filteredProducts = useMemo(() => {
     return produtosHomologados.filter((produto) => {
-      // Search by name or NI
       const searchLower = searchTerm.toLowerCase();
       const matchesSearch = 
         searchTerm === "" ||
@@ -25,18 +36,15 @@ const Homologados = () => {
         produto.ni.includes(searchTerm) ||
         produto.fabricante.toLowerCase().includes(searchLower);
 
-      // Filter by manufacturer
       const matchesFabricante = 
         fabricanteFilter === "todos" || 
         produto.fabricante === fabricanteFilter;
 
-      // Filter by dangerous status
       const matchesPerigoso = 
         perigosoFilter === "todos" ||
         (perigosoFilter === "sim" && produto.perigoso) ||
         (perigosoFilter === "nao" && !produto.perigoso);
 
-      // Filter by controlled status
       const matchesControlado = 
         controladoFilter === "todos" ||
         (controladoFilter === "sim" && produto.controlado) ||
@@ -61,21 +69,69 @@ const Homologados = () => {
     perigosos: produtosHomologados.filter(p => p.perigoso).length,
     controlados: produtosHomologados.filter(p => p.controlado).length,
     fabricantes: fabricantesUnicos.length,
-  }), []);
+    withImages: productImages.filter(img => img.image_url).length,
+  }), [productImages]);
+
+  // Get products without images
+  const productsWithoutImages = useMemo(() => {
+    const existingNIs = new Set(productImages.map(img => img.product_ni));
+    return produtosHomologados.filter(p => !existingNIs.has(p.ni));
+  }, [productImages]);
+
+  const handleGenerateAllImages = () => {
+    const productsToGenerate = productsWithoutImages.map(p => ({
+      ni: p.ni,
+      nome: p.nome
+    }));
+    generateImages(productsToGenerate);
+  };
+
+  const getProductInitials = (nome: string) => {
+    return nome.substring(0, 2).toUpperCase();
+  };
 
   return (
     <Layout>
       <div className="container mx-auto px-4 py-6 space-y-6">
         {/* Header */}
-        <div className="flex flex-col gap-2">
-          <h1 className="text-2xl font-bold text-foreground">Produtos Homologados</h1>
-          <p className="text-muted-foreground">
-            Consulte a lista de produtos homologados para uso na operação
-          </p>
+        <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">
+          <div>
+            <h1 className="text-2xl font-bold text-foreground">Produtos Homologados</h1>
+            <p className="text-muted-foreground">
+              Consulte a lista de produtos homologados para uso na operação
+            </p>
+          </div>
+          
+          {/* Generate Images Button */}
+          <div className="flex flex-col gap-2">
+            <Button 
+              onClick={handleGenerateAllImages}
+              disabled={isGenerating || productsWithoutImages.length === 0}
+              className="gap-2"
+            >
+              {isGenerating ? (
+                <>
+                  <Loader2 className="h-4 w-4 animate-spin" />
+                  Gerando {generationProgress.current}/{generationProgress.total}
+                </>
+              ) : (
+                <>
+                  <Sparkles className="h-4 w-4" />
+                  Gerar Imagens ({productsWithoutImages.length} faltando)
+                </>
+              )}
+            </Button>
+            {isGenerating && (
+              <Progress 
+                value={(generationProgress.current / generationProgress.total) * 100} 
+                className="h-2"
+              />
+            )}
+          </div>
         </div>
 
         {/* Stats Cards */}
-        <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
+        <div className="grid grid-cols-2 md:grid-cols-5 gap-4">
           <Card className="bg-primary/5 border-primary/20">
             <CardContent className="p-4 flex items-center gap-3">
               <div className="p-2 rounded-full bg-primary/10">
@@ -120,6 +176,18 @@ const Homologados = () => {
               <div>
                 <p className="text-2xl font-bold text-blue-500">{stats.fabricantes}</p>
                 <p className="text-xs text-muted-foreground">Fabricantes</p>
+              </div>
+            </CardContent>
+          </Card>
+
+          <Card className="bg-purple-500/5 border-purple-500/20">
+            <CardContent className="p-4 flex items-center gap-3">
+              <div className="p-2 rounded-full bg-purple-500/10">
+                <Image className="h-5 w-5 text-purple-500" />
+              </div>
+              <div>
+                <p className="text-2xl font-bold text-purple-500">{stats.withImages}</p>
+                <p className="text-xs text-muted-foreground">Com Imagem</p>
               </div>
             </CardContent>
           </Card>
@@ -223,6 +291,11 @@ const Homologados = () => {
               <Table>
                 <TableHeader>
                   <TableRow className="bg-muted/50">
+                    <TableHead className="font-semibold w-[60px]">
+                      <div className="flex items-center gap-2">
+                        <Image className="h-4 w-4" />
+                      </div>
+                    </TableHead>
                     <TableHead className="font-semibold">
                       <div className="flex items-center gap-2">
                         <Package className="h-4 w-4" />
@@ -259,7 +332,7 @@ const Homologados = () => {
                 <TableBody>
                   {filteredProducts.length === 0 ? (
                     <TableRow>
-                      <TableCell colSpan={6} className="text-center py-12">
+                      <TableCell colSpan={7} className="text-center py-12">
                         <div className="flex flex-col items-center gap-3 text-muted-foreground">
                           <Search className="h-12 w-12 opacity-30" />
                           <p className="text-lg font-medium">Nenhum produto encontrado</p>
@@ -268,60 +341,77 @@ const Homologados = () => {
                       </TableCell>
                     </TableRow>
                   ) : (
-                    filteredProducts.map((produto) => (
-                      <TableRow key={produto.id} className="hover:bg-muted/30">
-                        <TableCell className="font-medium max-w-[300px]">
-                          <span className="line-clamp-2">{produto.nome}</span>
-                        </TableCell>
-                        <TableCell className="text-muted-foreground max-w-[200px]">
-                          <span className="line-clamp-1">{produto.fabricante || "-"}</span>
-                        </TableCell>
-                        <TableCell className="text-center">
-                          {produto.ni && produto.ni !== "0" ? (
-                            <Badge variant="outline" className="font-mono">
-                              {produto.ni}
-                            </Badge>
-                          ) : (
-                            <span className="text-muted-foreground">-</span>
-                          )}
-                        </TableCell>
-                        <TableCell className="text-center">
-                          {produto.perigoso ? (
-                            <Badge variant="destructive" className="gap-1">
-                              <AlertTriangle className="h-3 w-3" />
-                              Sim
-                            </Badge>
-                          ) : (
-                            <Badge variant="secondary" className="gap-1 bg-green-500/10 text-green-600 border-green-500/20">
-                              <CheckCircle className="h-3 w-3" />
-                              Não
-                            </Badge>
-                          )}
-                        </TableCell>
-                        <TableCell className="text-center">
-                          {produto.controlado ? (
-                            <Badge className="gap-1 bg-blue-500/10 text-blue-600 border-blue-500/20">
-                              <ShieldCheck className="h-3 w-3" />
-                              Sim
-                            </Badge>
-                          ) : (
-                            <Badge variant="outline" className="gap-1">
-                              <ShieldAlert className="h-3 w-3" />
-                              Não
-                            </Badge>
-                          )}
-                        </TableCell>
-                        <TableCell className="max-w-[200px]">
-                          {produto.classeRisco ? (
-                            <Badge variant="outline" className="text-xs">
-                              {produto.classeRisco}
-                            </Badge>
-                          ) : (
-                            <span className="text-muted-foreground">-</span>
-                          )}
-                        </TableCell>
-                      </TableRow>
-                    ))
+                    filteredProducts.map((produto) => {
+                      const imageUrl = getImageByNI(produto.ni);
+                      return (
+                        <TableRow key={produto.id} className="hover:bg-muted/30">
+                          <TableCell className="w-[60px]">
+                            <Avatar className="h-10 w-10 rounded-md">
+                              {imageUrl ? (
+                                <AvatarImage 
+                                  src={imageUrl} 
+                                  alt={produto.nome}
+                                  className="object-cover"
+                                />
+                              ) : null}
+                              <AvatarFallback className="rounded-md bg-muted text-xs font-medium">
+                                {getProductInitials(produto.nome)}
+                              </AvatarFallback>
+                            </Avatar>
+                          </TableCell>
+                          <TableCell className="font-medium max-w-[300px]">
+                            <span className="line-clamp-2">{produto.nome}</span>
+                          </TableCell>
+                          <TableCell className="text-muted-foreground max-w-[200px]">
+                            <span className="line-clamp-1">{produto.fabricante || "-"}</span>
+                          </TableCell>
+                          <TableCell className="text-center">
+                            {produto.ni && produto.ni !== "0" ? (
+                              <Badge variant="outline" className="font-mono">
+                                {produto.ni}
+                              </Badge>
+                            ) : (
+                              <span className="text-muted-foreground">-</span>
+                            )}
+                          </TableCell>
+                          <TableCell className="text-center">
+                            {produto.perigoso ? (
+                              <Badge variant="destructive" className="gap-1">
+                                <AlertTriangle className="h-3 w-3" />
+                                Sim
+                              </Badge>
+                            ) : (
+                              <Badge variant="secondary" className="gap-1 bg-green-500/10 text-green-600 border-green-500/20">
+                                <CheckCircle className="h-3 w-3" />
+                                Não
+                              </Badge>
+                            )}
+                          </TableCell>
+                          <TableCell className="text-center">
+                            {produto.controlado ? (
+                              <Badge className="gap-1 bg-blue-500/10 text-blue-600 border-blue-500/20">
+                                <ShieldCheck className="h-3 w-3" />
+                                Sim
+                              </Badge>
+                            ) : (
+                              <Badge variant="outline" className="gap-1">
+                                <ShieldAlert className="h-3 w-3" />
+                                Não
+                              </Badge>
+                            )}
+                          </TableCell>
+                          <TableCell className="max-w-[200px]">
+                            {produto.classeRisco ? (
+                              <Badge variant="outline" className="text-xs">
+                                {produto.classeRisco}
+                              </Badge>
+                            ) : (
+                              <span className="text-muted-foreground">-</span>
+                            )}
+                          </TableCell>
+                        </TableRow>
+                      );
+                    })
                   )}
                 </TableBody>
               </Table>
