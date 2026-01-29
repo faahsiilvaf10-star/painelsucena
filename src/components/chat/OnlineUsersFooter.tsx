@@ -172,7 +172,10 @@ export const OnlineUsersFooter = ({
           <div className="flex items-center gap-1 shrink-0">
             <span className="text-[10px] text-green-500 font-medium mr-1 hidden sm:inline">Online</span>
             <div className="flex items-center -space-x-2">
-              {allUsers.filter(u => u.isOnline).length === 0 ? <span className="text-xs text-muted-foreground ml-2">—</span> : allUsers.filter(u => u.isOnline).map(user => <Tooltip key={user.user_id}>
+              {allUsers.filter(u => u.isOnline).length === 0 ? <span className="text-xs text-muted-foreground ml-2">—</span> : allUsers.filter(u => u.isOnline).map(user => {
+                const lastSeenText = formatLastSeen(user.lastSeen);
+                return (
+                  <Tooltip key={user.user_id}>
                     <TooltipTrigger asChild>
                       <button onClick={() => !user.isCurrentUser && onUserClick(user)} className={cn("relative hover:z-10 transition-transform hover:scale-110", user.isCurrentUser && "cursor-default")}>
                         <Avatar className={cn(
@@ -204,11 +207,17 @@ export const OnlineUsersFooter = ({
                         {user.isCurrentUser && <span className="text-primary ml-1">(você)</span>}
                       </p>
                       <p className="text-xs text-muted-foreground">{formatCargoLabel(user.cargo, true)}</p>
-                      {user.justCameOnline && (
+                      {user.justCameOnline ? (
                         <p className="text-xs text-green-500 mt-0.5">🟢 Acabou de entrar!</p>
+                      ) : lastSeenText && (
+                        <p className="text-xs text-green-500/80 mt-0.5">
+                          Ativo {lastSeenText}
+                        </p>
                       )}
                     </TooltipContent>
-                  </Tooltip>)}
+                  </Tooltip>
+                );
+              })}
             </div>
           </div>
 
