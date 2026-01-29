@@ -142,7 +142,7 @@ const RelatorioPresenca = () => {
   const [supportRocagem, setSupportRocagem] = useState<SupportTeam>({
     tst: "ITAMAR DE SOUZA",
     encGeral: "DOMINGUES FABRICIO",
-    enc: "RUDNEY SILVA",
+    enc: "JOSÉ MARIA CORREA",
   });
 
   const queryClient = useQueryClient();
