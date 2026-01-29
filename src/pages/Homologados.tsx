@@ -11,12 +11,14 @@ import { produtosHomologados, fabricantesUnicos, type ProdutoHomologado } from "
 import { useProductImages } from "@/hooks/useProductImages";
 import { Progress } from "@/components/ui/progress";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
+import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/components/ui/dialog";
 
 const Homologados = () => {
   const [searchTerm, setSearchTerm] = useState("");
   const [fabricanteFilter, setFabricanteFilter] = useState<string>("todos");
   const [perigosoFilter, setPerigosoFilter] = useState<string>("todos");
   const [controladoFilter, setControladoFilter] = useState<string>("todos");
+  const [selectedProduct, setSelectedProduct] = useState<{ nome: string; imageUrl: string } | null>(null);
 
   const { 
     productImages, 
@@ -346,7 +348,10 @@ const Homologados = () => {
                       return (
                         <TableRow key={produto.id} className="hover:bg-muted/30">
                           <TableCell className="w-[60px]">
-                            <Avatar className="h-10 w-10 rounded-md">
+                            <Avatar 
+                              className={`h-10 w-10 rounded-md ${imageUrl ? 'cursor-pointer hover:ring-2 hover:ring-primary transition-all' : ''}`}
+                              onClick={() => imageUrl && setSelectedProduct({ nome: produto.nome, imageUrl })}
+                            >
                               {imageUrl ? (
                                 <AvatarImage 
                                   src={imageUrl} 
@@ -418,6 +423,26 @@ const Homologados = () => {
             </div>
           </CardContent>
         </Card>
+
+        {/* Image Preview Dialog */}
+        <Dialog open={!!selectedProduct} onOpenChange={() => setSelectedProduct(null)}>
+          <DialogContent className="max-w-2xl">
+            <DialogHeader>
+              <DialogTitle className="text-lg font-semibold line-clamp-2">
+                {selectedProduct?.nome}
+              </DialogTitle>
+            </DialogHeader>
+            <div className="flex items-center justify-center p-4">
+              {selectedProduct?.imageUrl && (
+                <img 
+                  src={selectedProduct.imageUrl} 
+                  alt={selectedProduct.nome}
+                  className="max-h-[60vh] w-auto rounded-lg object-contain shadow-lg"
+                />
+              )}
+            </div>
+          </DialogContent>
+        </Dialog>
       </div>
     </Layout>
   );
