@@ -6,12 +6,8 @@ import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
-import { Search, Filter, X, AlertTriangle, CheckCircle, Package, Factory, Hash, ShieldCheck, ShieldAlert, Image, ChevronLeft, ChevronRight
-} from "lucide-react";
-import { produtosHomologados, fabricantesUnicos, type ProdutoHomologado } from "@/data/produtosHomologados";
-import { useProductImages } from "@/hooks/useProductImages";
-import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
-import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/components/ui/dialog";
+import { Search, Filter, X, AlertTriangle, CheckCircle, Package, Factory, Hash, ShieldCheck, ShieldAlert, ChevronLeft, ChevronRight } from "lucide-react";
+import { produtosHomologados, fabricantesUnicos } from "@/data/produtosHomologados";
 
 const ITEMS_PER_PAGE_OPTIONS = [25, 50, 100];
 
@@ -20,14 +16,8 @@ const Homologados = () => {
   const [fabricanteFilter, setFabricanteFilter] = useState<string>("todos");
   const [perigosoFilter, setPerigosoFilter] = useState<string>("todos");
   const [controladoFilter, setControladoFilter] = useState<string>("todos");
-  const [selectedProduct, setSelectedProduct] = useState<{ nome: string; imageUrl: string } | null>(null);
   const [currentPage, setCurrentPage] = useState(1);
   const [itemsPerPage, setItemsPerPage] = useState(25);
-
-  const { 
-    productImages, 
-    getImageByNI 
-  } = useProductImages();
 
   const filteredProducts = useMemo(() => {
     return produtosHomologados.filter((produto) => {
@@ -90,10 +80,6 @@ const Homologados = () => {
     controlados: produtosHomologados.filter(p => p.controlado).length,
     fabricantes: fabricantesUnicos.length,
   }), []);
-
-  const getProductInitials = (nome: string) => {
-    return nome.substring(0, 2).toUpperCase();
-  };
 
   return (
     <Layout>
@@ -273,11 +259,6 @@ const Homologados = () => {
               <Table>
                 <TableHeader>
                   <TableRow className="bg-muted/50">
-                    <TableHead className="font-semibold w-[60px]">
-                      <div className="flex items-center gap-2">
-                        <Image className="h-4 w-4" />
-                      </div>
-                    </TableHead>
                     <TableHead className="font-semibold">
                       <div className="flex items-center gap-2">
                         <Package className="h-4 w-4" />
@@ -314,7 +295,7 @@ const Homologados = () => {
                 <TableBody>
                   {filteredProducts.length === 0 ? (
                     <TableRow>
-                      <TableCell colSpan={7} className="text-center py-12">
+                      <TableCell colSpan={6} className="text-center py-12">
                         <div className="flex flex-col items-center gap-3 text-muted-foreground">
                           <Search className="h-12 w-12 opacity-30" />
                           <p className="text-lg font-medium">Nenhum produto encontrado</p>
@@ -323,80 +304,60 @@ const Homologados = () => {
                       </TableCell>
                     </TableRow>
                   ) : (
-                    paginatedProducts.map((produto) => {
-                      const imageUrl = getImageByNI(produto.ni);
-                      return (
-                        <TableRow key={produto.id} className="hover:bg-muted/30">
-                          <TableCell className="w-[60px]">
-                            <Avatar 
-                              className={`h-10 w-10 rounded-md ${imageUrl ? 'cursor-pointer hover:ring-2 hover:ring-primary transition-all' : ''}`}
-                              onClick={() => imageUrl && setSelectedProduct({ nome: produto.nome, imageUrl })}
-                            >
-                              {imageUrl ? (
-                                <AvatarImage 
-                                  src={imageUrl} 
-                                  alt={produto.nome}
-                                  className="object-cover"
-                                />
-                              ) : null}
-                              <AvatarFallback className="rounded-md bg-muted text-xs font-medium">
-                                {getProductInitials(produto.nome)}
-                              </AvatarFallback>
-                            </Avatar>
-                          </TableCell>
-                          <TableCell className="font-medium max-w-[300px]">
-                            <span className="line-clamp-2">{produto.nome}</span>
-                          </TableCell>
-                          <TableCell className="text-muted-foreground max-w-[200px]">
-                            <span className="line-clamp-1">{produto.fabricante || "-"}</span>
-                          </TableCell>
-                          <TableCell className="text-center">
-                            {produto.ni && produto.ni !== "0" ? (
-                              <Badge variant="outline" className="font-mono">
-                                {produto.ni}
-                              </Badge>
-                            ) : (
-                              <span className="text-muted-foreground">-</span>
-                            )}
-                          </TableCell>
-                          <TableCell className="text-center">
-                            {produto.perigoso ? (
-                              <Badge variant="destructive" className="gap-1">
-                                <AlertTriangle className="h-3 w-3" />
-                                Sim
-                              </Badge>
-                            ) : (
-                              <Badge variant="secondary" className="gap-1 bg-green-500/10 text-green-600 border-green-500/20">
-                                <CheckCircle className="h-3 w-3" />
-                                Não
-                              </Badge>
-                            )}
-                          </TableCell>
-                          <TableCell className="text-center">
-                            {produto.controlado ? (
-                              <Badge className="gap-1 bg-blue-500/10 text-blue-600 border-blue-500/20">
-                                <ShieldCheck className="h-3 w-3" />
-                                Sim
-                              </Badge>
-                            ) : (
-                              <Badge variant="outline" className="gap-1">
-                                <ShieldAlert className="h-3 w-3" />
-                                Não
-                              </Badge>
-                            )}
-                          </TableCell>
-                          <TableCell className="max-w-[200px]">
-                            {produto.classeRisco ? (
-                              <Badge variant="outline" className="text-xs">
-                                {produto.classeRisco}
-                              </Badge>
-                            ) : (
-                              <span className="text-muted-foreground">-</span>
-                            )}
-                          </TableCell>
-                        </TableRow>
-                      );
-                    })
+                    paginatedProducts.map((produto) => (
+                      <TableRow key={produto.id} className="hover:bg-muted/30">
+                        <TableCell className="font-medium max-w-[300px]">
+                          <span className="line-clamp-2">{produto.nome}</span>
+                        </TableCell>
+                        <TableCell className="text-muted-foreground max-w-[200px]">
+                          <span className="line-clamp-1">{produto.fabricante || "-"}</span>
+                        </TableCell>
+                        <TableCell className="text-center">
+                          {produto.ni && produto.ni !== "0" ? (
+                            <Badge variant="outline" className="font-mono">
+                              {produto.ni}
+                            </Badge>
+                          ) : (
+                            <span className="text-muted-foreground">-</span>
+                          )}
+                        </TableCell>
+                        <TableCell className="text-center">
+                          {produto.perigoso ? (
+                            <Badge variant="destructive" className="gap-1">
+                              <AlertTriangle className="h-3 w-3" />
+                              Sim
+                            </Badge>
+                          ) : (
+                            <Badge variant="secondary" className="gap-1 bg-green-500/10 text-green-600 border-green-500/20">
+                              <CheckCircle className="h-3 w-3" />
+                              Não
+                            </Badge>
+                          )}
+                        </TableCell>
+                        <TableCell className="text-center">
+                          {produto.controlado ? (
+                            <Badge className="gap-1 bg-blue-500/10 text-blue-600 border-blue-500/20">
+                              <ShieldCheck className="h-3 w-3" />
+                              Sim
+                            </Badge>
+                          ) : (
+                            <Badge variant="outline" className="gap-1">
+                              <ShieldAlert className="h-3 w-3" />
+                              Não
+                            </Badge>
+                          )}
+                        </TableCell>
+                        <TableCell className="max-w-[200px]">
+                          {produto.classeRisco ? (
+                            <Badge variant="outline" className="text-xs">
+                              {produto.classeRisco}
+                            </Badge>
+                          ) : (
+                            <span className="text-muted-foreground">-</span>
+                          )}
+                        </TableCell>
+                      </TableRow>
+                    ))
                   )}
                 </TableBody>
               </Table>
@@ -477,25 +438,6 @@ const Homologados = () => {
           </CardContent>
         </Card>
 
-        {/* Image Preview Dialog */}
-        <Dialog open={!!selectedProduct} onOpenChange={() => setSelectedProduct(null)}>
-          <DialogContent className="max-w-2xl">
-            <DialogHeader>
-              <DialogTitle className="text-lg font-semibold line-clamp-2">
-                {selectedProduct?.nome}
-              </DialogTitle>
-            </DialogHeader>
-            <div className="flex items-center justify-center p-4">
-              {selectedProduct?.imageUrl && (
-                <img 
-                  src={selectedProduct.imageUrl} 
-                  alt={selectedProduct.nome}
-                  className="max-h-[60vh] w-auto rounded-lg object-contain shadow-lg"
-                />
-              )}
-            </div>
-          </DialogContent>
-        </Dialog>
       </div>
     </Layout>
   );
