@@ -17,6 +17,7 @@ const roleToArea: Record<string, string> = {
   Sinaleiro: "ROÇAGEM E PODAGEM",
   "Mecânico Montador": "ROÇAGEM E PODAGEM",
   "Auxiliar de Elétrica": "ROÇAGEM E PODAGEM",
+  Eletricista: "ROÇAGEM E PODAGEM",
 };
 
 // Ajudante belongs to their specific area based on employee
@@ -43,6 +44,7 @@ const roleLabels: Record<string, Record<string, string>> = {
     Sinaleiro: "👷🏼 Sinaleiro",
     "Mecânico Montador": "👷🏼 Mecânico montador",
     "Auxiliar de Elétrica": "👷🏼 Auxiliar de elétrica",
+    Eletricista: "👷🏼 Eletricista",
   },
 };
 
@@ -56,6 +58,7 @@ const executionRoles: Record<string, string[]> = {
     "Sinaleiro",
     "Mecânico Montador",
     "Auxiliar de Elétrica",
+    "Eletricista",
   ],
 };
 
