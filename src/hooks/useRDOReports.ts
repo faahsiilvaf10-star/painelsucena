@@ -150,27 +150,42 @@ export const useSaveEfetivoToRDO = () => {
   return useMutation({
     mutationFn: async (data: {
       report_date: string;
-      efetivo_gabiao_text: string;
-      efetivo_jardinagem_text: string;
+      efetivo_gabiao_text?: string;
+      efetivo_jardinagem_text?: string;
     }) => {
       if (!user?.id) throw new Error("User not authenticated");
 
       // Check if report for this date already exists
       const { data: existing } = await supabase
         .from("rdo_reports")
-        .select("id")
+        .select("id, efetivo_gabiao_text, efetivo_jardinagem_text")
         .eq("report_date", data.report_date)
         .maybeSingle();
 
       if (existing) {
-        // Update existing report with efetivo data
+        // Build update object only with non-empty fields to avoid overwriting existing data
+        const updateFields: {
+          updated_at: string;
+          efetivo_gabiao_text?: string;
+          efetivo_jardinagem_text?: string;
+        } = {
+          updated_at: new Date().toISOString(),
+        };
+        
+        // Only update gabiao text if provided and not empty
+        if (data.efetivo_gabiao_text && data.efetivo_gabiao_text.trim() !== "") {
+          updateFields.efetivo_gabiao_text = data.efetivo_gabiao_text;
+        }
+        
+        // Only update jardinagem text if provided and not empty
+        if (data.efetivo_jardinagem_text && data.efetivo_jardinagem_text.trim() !== "") {
+          updateFields.efetivo_jardinagem_text = data.efetivo_jardinagem_text;
+        }
+
+        // Update existing report with efetivo data (only non-empty fields)
         const { data: updated, error } = await supabase
           .from("rdo_reports")
-          .update({
-            efetivo_gabiao_text: data.efetivo_gabiao_text,
-            efetivo_jardinagem_text: data.efetivo_jardinagem_text,
-            updated_at: new Date().toISOString(),
-          })
+          .update(updateFields)
           .eq("id", existing.id)
           .select()
           .single();
@@ -187,8 +202,12 @@ export const useSaveEfetivoToRDO = () => {
             weather_morning: "sol",
             weather_afternoon: "sol",
             report_text: "",
-            efetivo_gabiao_text: data.efetivo_gabiao_text,
-            efetivo_jardinagem_text: data.efetivo_jardinagem_text,
+            efetivo_gabiao_text: data.efetivo_gabiao_text && data.efetivo_gabiao_text.trim() !== "" 
+              ? data.efetivo_gabiao_text 
+              : null,
+            efetivo_jardinagem_text: data.efetivo_jardinagem_text && data.efetivo_jardinagem_text.trim() !== "" 
+              ? data.efetivo_jardinagem_text 
+              : null,
           })
           .select()
           .single();
