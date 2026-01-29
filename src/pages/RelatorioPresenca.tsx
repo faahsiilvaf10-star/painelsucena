@@ -57,6 +57,7 @@ const roleToArea: Record<string, string> = {
   Sinaleiro: "ROÇAGEM E PODAGEM",
   "Mecânico Montador": "ROÇAGEM E PODAGEM",
   "Auxiliar de Elétrica": "ROÇAGEM E PODAGEM",
+  Eletricista: "ROÇAGEM E PODAGEM",
 };
 
 // All available roles
@@ -70,6 +71,7 @@ const allRoles = [
   "Sinaleiro",
   "Mecânico Montador",
   "Auxiliar de Elétrica",
+  "Eletricista",
 ];
 
 // Role labels for display
@@ -87,6 +89,7 @@ const roleLabels: Record<string, Record<string, string>> = {
     Sinaleiro: "👷🏼 Sinaleiro",
     "Mecânico Montador": "👷🏼 Mecânico montador",
     "Auxiliar de Elétrica": "👷🏼 Auxiliar de elétrica",
+    Eletricista: "👷🏼 Eletricista",
   },
 };
 
@@ -100,6 +103,7 @@ const executionRoles: Record<string, string[]> = {
     "Sinaleiro",
     "Mecânico Montador",
     "Auxiliar de Elétrica",
+    "Eletricista",
   ],
 };
 
@@ -393,8 +397,8 @@ const RelatorioPresenca = () => {
 
     let report = "";
 
-    // Add date only for the first area (GABIÃO)
-    if (includeDate && area === "ÁREA GABIÃO") {
+    // Add date for both areas
+    if (includeDate) {
       report += `📅 Data: ${formatDateForReport(selectedDate)}\n\n`;
     }
 
