@@ -393,7 +393,7 @@ const RelatorioPresenca = () => {
     const support = area === "ÁREA GABIÃO" ? supportGabiao : supportRocagem;
     const header = area === "ÁREA GABIÃO" 
       ? "✳  ÁREA GABIÃO  ✳" 
-      : "-----------------------------------\n\n 🌿 ROÇAGEM E PODAGEM 🌿";
+      : "🌿 ROÇAGEM E PODAGEM 🌿";
 
     let report = "";
 
