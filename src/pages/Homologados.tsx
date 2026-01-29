@@ -6,11 +6,14 @@ import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
-import { Search, Filter, X, AlertTriangle, CheckCircle, Package, Factory, Hash, ShieldCheck, ShieldAlert, Image } from "lucide-react";
+import { Search, Filter, X, AlertTriangle, CheckCircle, Package, Factory, Hash, ShieldCheck, ShieldAlert, Image, ChevronLeft, ChevronRight
+} from "lucide-react";
 import { produtosHomologados, fabricantesUnicos, type ProdutoHomologado } from "@/data/produtosHomologados";
 import { useProductImages } from "@/hooks/useProductImages";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/components/ui/dialog";
+
+const ITEMS_PER_PAGE_OPTIONS = [25, 50, 100];
 
 const Homologados = () => {
   const [searchTerm, setSearchTerm] = useState("");
@@ -18,6 +21,8 @@ const Homologados = () => {
   const [perigosoFilter, setPerigosoFilter] = useState<string>("todos");
   const [controladoFilter, setControladoFilter] = useState<string>("todos");
   const [selectedProduct, setSelectedProduct] = useState<{ nome: string; imageUrl: string } | null>(null);
+  const [currentPage, setCurrentPage] = useState(1);
+  const [itemsPerPage, setItemsPerPage] = useState(25);
 
   const { 
     productImages, 
@@ -56,6 +61,24 @@ const Homologados = () => {
     setFabricanteFilter("todos");
     setPerigosoFilter("todos");
     setControladoFilter("todos");
+    setCurrentPage(1);
+  };
+
+  // Pagination calculations
+  const totalPages = Math.ceil(filteredProducts.length / itemsPerPage);
+  const startIndex = (currentPage - 1) * itemsPerPage;
+  const endIndex = startIndex + itemsPerPage;
+  const paginatedProducts = filteredProducts.slice(startIndex, endIndex);
+
+  // Reset to page 1 when filters change
+  const handleFilterChange = (setter: (value: string) => void) => (value: string) => {
+    setter(value);
+    setCurrentPage(1);
+  };
+
+  const handleItemsPerPageChange = (value: string) => {
+    setItemsPerPage(Number(value));
+    setCurrentPage(1);
   };
 
   const hasActiveFilters = searchTerm !== "" || fabricanteFilter !== "todos" || perigosoFilter !== "todos" || controladoFilter !== "todos";
@@ -149,7 +172,10 @@ const Homologados = () => {
               <Input
                 placeholder="Buscar por nome do produto, NI ou fabricante..."
                 value={searchTerm}
-                onChange={(e) => setSearchTerm(e.target.value)}
+                onChange={(e) => {
+                  setSearchTerm(e.target.value);
+                  setCurrentPage(1);
+                }}
                 className="pl-10"
               />
             </div>
@@ -158,7 +184,7 @@ const Homologados = () => {
             <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
               <div className="space-y-2">
                 <label className="text-sm font-medium text-muted-foreground">Fabricante</label>
-                <Select value={fabricanteFilter} onValueChange={setFabricanteFilter}>
+                <Select value={fabricanteFilter} onValueChange={handleFilterChange(setFabricanteFilter)}>
                   <SelectTrigger className="bg-background">
                     <SelectValue placeholder="Todos os fabricantes" />
                   </SelectTrigger>
@@ -175,7 +201,7 @@ const Homologados = () => {
 
               <div className="space-y-2">
                 <label className="text-sm font-medium text-muted-foreground">Perigoso</label>
-                <Select value={perigosoFilter} onValueChange={setPerigosoFilter}>
+                <Select value={perigosoFilter} onValueChange={handleFilterChange(setPerigosoFilter)}>
                   <SelectTrigger className="bg-background">
                     <SelectValue placeholder="Todos" />
                   </SelectTrigger>
@@ -189,7 +215,7 @@ const Homologados = () => {
 
               <div className="space-y-2">
                 <label className="text-sm font-medium text-muted-foreground">Controlado</label>
-                <Select value={controladoFilter} onValueChange={setControladoFilter}>
+                <Select value={controladoFilter} onValueChange={handleFilterChange(setControladoFilter)}>
                   <SelectTrigger className="bg-background">
                     <SelectValue placeholder="Todos" />
                   </SelectTrigger>
@@ -215,12 +241,27 @@ const Homologados = () => {
               </div>
             </div>
 
-            {/* Results Count */}
-            <div className="flex items-center justify-between pt-2 border-t">
+            {/* Results Count and Items Per Page */}
+            <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3 pt-2 border-t">
               <p className="text-sm text-muted-foreground">
-                Mostrando <span className="font-semibold text-foreground">{filteredProducts.length}</span> de{" "}
-                <span className="font-semibold text-foreground">{produtosHomologados.length}</span> produtos
+                Mostrando <span className="font-semibold text-foreground">{Math.min(startIndex + 1, filteredProducts.length)}-{Math.min(endIndex, filteredProducts.length)}</span> de{" "}
+                <span className="font-semibold text-foreground">{filteredProducts.length}</span> produtos
               </p>
+              <div className="flex items-center gap-2">
+                <span className="text-sm text-muted-foreground">Itens por página:</span>
+                <Select value={itemsPerPage.toString()} onValueChange={handleItemsPerPageChange}>
+                  <SelectTrigger className="w-[80px] h-8 bg-background">
+                    <SelectValue />
+                  </SelectTrigger>
+                  <SelectContent className="bg-popover border">
+                    {ITEMS_PER_PAGE_OPTIONS.map((option) => (
+                      <SelectItem key={option} value={option.toString()}>
+                        {option}
+                      </SelectItem>
+                    ))}
+                  </SelectContent>
+                </Select>
+              </div>
             </div>
           </CardContent>
         </Card>
@@ -282,7 +323,7 @@ const Homologados = () => {
                       </TableCell>
                     </TableRow>
                   ) : (
-                    filteredProducts.map((produto) => {
+                    paginatedProducts.map((produto) => {
                       const imageUrl = getImageByNI(produto.ni);
                       return (
                         <TableRow key={produto.id} className="hover:bg-muted/30">
@@ -360,6 +401,79 @@ const Homologados = () => {
                 </TableBody>
               </Table>
             </div>
+
+            {/* Pagination Controls */}
+            {totalPages > 1 && (
+              <div className="flex flex-col sm:flex-row items-center justify-between gap-4 p-4 border-t">
+                <p className="text-sm text-muted-foreground">
+                  Página {currentPage} de {totalPages}
+                </p>
+                <div className="flex items-center gap-2">
+                  <Button
+                    variant="outline"
+                    size="sm"
+                    onClick={() => setCurrentPage(1)}
+                    disabled={currentPage === 1}
+                  >
+                    Primeira
+                  </Button>
+                  <Button
+                    variant="outline"
+                    size="icon"
+                    className="h-8 w-8"
+                    onClick={() => setCurrentPage(prev => Math.max(1, prev - 1))}
+                    disabled={currentPage === 1}
+                  >
+                    <ChevronLeft className="h-4 w-4" />
+                  </Button>
+                  
+                  {/* Page numbers */}
+                  <div className="flex items-center gap-1">
+                    {Array.from({ length: Math.min(5, totalPages) }, (_, i) => {
+                      let pageNum: number;
+                      if (totalPages <= 5) {
+                        pageNum = i + 1;
+                      } else if (currentPage <= 3) {
+                        pageNum = i + 1;
+                      } else if (currentPage >= totalPages - 2) {
+                        pageNum = totalPages - 4 + i;
+                      } else {
+                        pageNum = currentPage - 2 + i;
+                      }
+                      return (
+                        <Button
+                          key={pageNum}
+                          variant={currentPage === pageNum ? "default" : "outline"}
+                          size="sm"
+                          className="h-8 w-8 p-0"
+                          onClick={() => setCurrentPage(pageNum)}
+                        >
+                          {pageNum}
+                        </Button>
+                      );
+                    })}
+                  </div>
+
+                  <Button
+                    variant="outline"
+                    size="icon"
+                    className="h-8 w-8"
+                    onClick={() => setCurrentPage(prev => Math.min(totalPages, prev + 1))}
+                    disabled={currentPage === totalPages}
+                  >
+                    <ChevronRight className="h-4 w-4" />
+                  </Button>
+                  <Button
+                    variant="outline"
+                    size="sm"
+                    onClick={() => setCurrentPage(totalPages)}
+                    disabled={currentPage === totalPages}
+                  >
+                    Última
+                  </Button>
+                </div>
+              </div>
+            )}
           </CardContent>
         </Card>
 
