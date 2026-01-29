@@ -21,15 +21,11 @@ const roleToArea: Record<string, string> = {
 
 // Ajudante belongs to their specific area based on employee
 const gabiaAjudantes = [
-  "Anderson de Araujo",
-  "Ezedequias Silva",
-  "Filipe dos Santos",
   "Flávio Henrique",
-  "Jeferson",
-  "Josiel Souza",
-  "Robert Willian Rodrigues",
   "Vinícius Junior",
-  "Welber Santos",
+  "Welber Santo",
+  "Filipe dos Santos",
+  "Ezedequias Silva",
 ];
 
 // Role labels for display
