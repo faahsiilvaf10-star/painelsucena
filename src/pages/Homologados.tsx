@@ -8,6 +8,7 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
 import { Search, Filter, X, AlertTriangle, CheckCircle, Package, Factory, Hash, ShieldCheck, ShieldAlert, ChevronLeft, ChevronRight } from "lucide-react";
 import { produtosHomologados, fabricantesUnicos } from "@/data/produtosHomologados";
+import { ExportHomologadosButton } from "@/components/homologados/ExportHomologadosButton";
 
 const ITEMS_PER_PAGE_OPTIONS = [25, 50, 100];
 
@@ -85,11 +86,14 @@ const Homologados = () => {
     <Layout>
       <div className="container mx-auto px-4 py-6 space-y-6">
         {/* Header */}
-        <div>
-          <h1 className="text-2xl font-bold text-foreground">Produtos Homologados</h1>
-          <p className="text-muted-foreground">
-            Consulte a lista de produtos homologados para uso na operação
-          </p>
+        <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">
+          <div>
+            <h1 className="text-2xl font-bold text-foreground">Produtos Homologados</h1>
+            <p className="text-muted-foreground">
+              Consulte a lista de produtos homologados para uso na operação
+            </p>
+          </div>
+          <ExportHomologadosButton produtos={filteredProducts} />
         </div>
 
         {/* Stats Cards */}
