@@ -6,10 +6,9 @@ import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
-import { Search, Filter, X, AlertTriangle, CheckCircle, Package, Factory, Hash, ShieldCheck, ShieldAlert, Image, Loader2, Sparkles } from "lucide-react";
+import { Search, Filter, X, AlertTriangle, CheckCircle, Package, Factory, Hash, ShieldCheck, ShieldAlert, Image } from "lucide-react";
 import { produtosHomologados, fabricantesUnicos, type ProdutoHomologado } from "@/data/produtosHomologados";
 import { useProductImages } from "@/hooks/useProductImages";
-import { Progress } from "@/components/ui/progress";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/components/ui/dialog";
 
@@ -22,11 +21,7 @@ const Homologados = () => {
 
   const { 
     productImages, 
-    isLoading: isLoadingImages, 
-    isGenerating, 
-    generationProgress,
-    getImageByNI,
-    generateImages 
+    getImageByNI 
   } = useProductImages();
 
   const filteredProducts = useMemo(() => {
@@ -71,22 +66,7 @@ const Homologados = () => {
     perigosos: produtosHomologados.filter(p => p.perigoso).length,
     controlados: produtosHomologados.filter(p => p.controlado).length,
     fabricantes: fabricantesUnicos.length,
-    withImages: productImages.filter(img => img.image_url).length,
-  }), [productImages]);
-
-  // Get products without images
-  const productsWithoutImages = useMemo(() => {
-    const existingNIs = new Set(productImages.map(img => img.product_ni));
-    return produtosHomologados.filter(p => !existingNIs.has(p.ni));
-  }, [productImages]);
-
-  const handleGenerateAllImages = () => {
-    const productsToGenerate = productsWithoutImages.map(p => ({
-      ni: p.ni,
-      nome: p.nome
-    }));
-    generateImages(productsToGenerate);
-  };
+  }), []);
 
   const getProductInitials = (nome: string) => {
     return nome.substring(0, 2).toUpperCase();
@@ -96,44 +76,15 @@ const Homologados = () => {
     <Layout>
       <div className="container mx-auto px-4 py-6 space-y-6">
         {/* Header */}
-        <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">
-          <div>
-            <h1 className="text-2xl font-bold text-foreground">Produtos Homologados</h1>
-            <p className="text-muted-foreground">
-              Consulte a lista de produtos homologados para uso na operação
-            </p>
-          </div>
-          
-          {/* Generate Images Button */}
-          <div className="flex flex-col gap-2">
-            <Button 
-              onClick={handleGenerateAllImages}
-              disabled={isGenerating || productsWithoutImages.length === 0}
-              className="gap-2"
-            >
-              {isGenerating ? (
-                <>
-                  <Loader2 className="h-4 w-4 animate-spin" />
-                  Gerando {generationProgress.current}/{generationProgress.total}
-                </>
-              ) : (
-                <>
-                  <Sparkles className="h-4 w-4" />
-                  Gerar Imagens ({productsWithoutImages.length} faltando)
-                </>
-              )}
-            </Button>
-            {isGenerating && (
-              <Progress 
-                value={(generationProgress.current / generationProgress.total) * 100} 
-                className="h-2"
-              />
-            )}
-          </div>
+        <div>
+          <h1 className="text-2xl font-bold text-foreground">Produtos Homologados</h1>
+          <p className="text-muted-foreground">
+            Consulte a lista de produtos homologados para uso na operação
+          </p>
         </div>
 
         {/* Stats Cards */}
-        <div className="grid grid-cols-2 md:grid-cols-5 gap-4">
+        <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
           <Card className="bg-primary/5 border-primary/20">
             <CardContent className="p-4 flex items-center gap-3">
               <div className="p-2 rounded-full bg-primary/10">
@@ -178,18 +129,6 @@ const Homologados = () => {
               <div>
                 <p className="text-2xl font-bold text-blue-500">{stats.fabricantes}</p>
                 <p className="text-xs text-muted-foreground">Fabricantes</p>
-              </div>
-            </CardContent>
-          </Card>
-
-          <Card className="bg-purple-500/5 border-purple-500/20">
-            <CardContent className="p-4 flex items-center gap-3">
-              <div className="p-2 rounded-full bg-purple-500/10">
-                <Image className="h-5 w-5 text-purple-500" />
-              </div>
-              <div>
-                <p className="text-2xl font-bold text-purple-500">{stats.withImages}</p>
-                <p className="text-xs text-muted-foreground">Com Imagem</p>
               </div>
             </CardContent>
           </Card>
