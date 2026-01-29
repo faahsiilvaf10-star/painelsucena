@@ -237,9 +237,10 @@ export default function RDO() {
       })
       .join("\n");
 
-    // DDS info
+    // DDS info - use presenter name from user profile or external presenter name
+    const presenterName = todayDDS?.presenter?.full_name || todayDDS?.external_presenter_name || "A definir";
     const ddsText = todayDDS
-      ? `${todayDDS.presenter?.full_name || "A definir"} - ${todayDDS.theme || "Tema a definir"}`
+      ? `${presenterName} - ${todayDDS.theme || "Tema a definir"}`
       : "A definir";
 
     // Get jardinagem activities from daily report if available
