@@ -44,11 +44,14 @@ const FAIXA_OPTIONS = [
   { value: "FAIXA 4", label: "FAIXA 4" },
 ];
 
-// Generate berma options from 28 to 56
-const BERMA_OPTIONS = Array.from({ length: 29 }, (_, i) => ({
-  value: (28 + i).toString(),
-  label: `Berma ${28 + i}`,
-}));
+// Generate berma options from 28 to 56 + Mirante
+const BERMA_OPTIONS = [
+  ...Array.from({ length: 29 }, (_, i) => ({
+    value: (28 + i).toString(),
+    label: `Berma ${28 + i}`,
+  })),
+  { value: "mirante", label: "Mirante" },
+];
 
 // Generate even berma options from 28 to 56 (only even numbers)
 const BERMA_OPTIONS_EVEN = Array.from({ length: 15 }, (_, i) => ({
@@ -140,6 +143,14 @@ export default function Atividades() {
   const [invasoras, setInvasoras] = useState<InvasoraEntry[]>([{ nome: "", unidade: "" }]);
   const [invasorasBerma, setInvasorasBerma] = useState("");
   const [retiradaMudasUnidade, setRetiradaMudasUnidade] = useState("");
+  
+  // Plantio de Grama state
+  const [plantioGrama, setPlantioGrama] = useState("");
+  const [plantioGramaFaixa, setPlantioGramaFaixa] = useState("");
+  const [plantioGramaBerma, setPlantioGramaBerma] = useState("");
+  
+  // Atividades manuais state
+  const [atividadesManuais, setAtividadesManuais] = useState("");
   
   // Irrigation state
   const [irrigacaoPipas, setIrrigacaoPipas] = useState(false);
@@ -243,6 +254,11 @@ export default function Atividades() {
       setIrrigacaoPipas(existingReport.irrigacao_pipas || false);
       setIrrigacaoCarretel(existingReport.irrigacao_carretel || false);
       setIrrigacaoCarretelBermas(existingReport.irrigacao_carretel_bermas || []);
+      // New fields
+      setPlantioGrama(existingReport.plantio_grama_m2?.toString() || "");
+      setPlantioGramaFaixa(existingReport.plantio_grama_faixa || "");
+      setPlantioGramaBerma(existingReport.plantio_grama_berma?.toString() || "");
+      setAtividadesManuais(existingReport.atividades_manuais || "");
       setPhotos(existingReport.photo_urls || []);
     } else {
       // Reset form for new date
@@ -270,6 +286,11 @@ export default function Atividades() {
       setIrrigacaoPipas(false);
       setIrrigacaoCarretel(false);
       setIrrigacaoCarretelBermas([]);
+      // Reset new fields
+      setPlantioGrama("");
+      setPlantioGramaFaixa("");
+      setPlantioGramaBerma("");
+      setAtividadesManuais("");
       setPhotos([]);
     }
   }, [existingReport, selectedDateStr]);
@@ -343,6 +364,10 @@ export default function Atividades() {
         irrigacao_pipas: irrigacaoPipas,
         irrigacao_carretel: irrigacaoCarretel,
         irrigacao_carretel_bermas: irrigacaoCarretel && irrigacaoCarretelBermas.length > 0 ? irrigacaoCarretelBermas : undefined,
+        plantio_grama_m2: plantioGrama ? parseFloat(plantioGrama) : undefined,
+        plantio_grama_faixa: plantioGramaFaixa || undefined,
+        plantio_grama_berma: plantioGramaBerma ? parseInt(plantioGramaBerma) : undefined,
+        atividades_manuais: atividadesManuais || undefined,
         photo_urls: photos.length > 0 ? photos : undefined,
       });
       
@@ -384,6 +409,14 @@ export default function Atividades() {
     
     if (retiradaMudasUnidade && parseInt(retiradaMudasUnidade) > 0) lines.push(`* Retirada de Mudas (Árvores) - ${retiradaMudasUnidade} unidade(s)`);
     if (manutencaoCanteiro && manutencaoCanteiro.trim()) lines.push(`* Manutenção de Canteiro: ${manutencaoCanteiro}`);
+    // Plantio de Grama
+    if (plantioGrama && parseFloat(plantioGrama) > 0) {
+      const faixaText = plantioGramaFaixa ? ` - ${plantioGramaFaixa}` : "";
+      const bermaText = plantioGramaBerma ? ` (Berma ${plantioGramaBerma})` : "";
+      lines.push(`* Plantio de Grama - ${plantioGrama} m²${bermaText}${faixaText}`);
+    }
+    // Atividades Manuais
+    if (atividadesManuais && atividadesManuais.trim()) lines.push(`* ${atividadesManuais}`);
     if (irrigacaoPipas) lines.push(`* Irrigação com Pipas nas Faixas 3 e 4 e Mirante`);
     if (irrigacaoCarretel && irrigacaoCarretelBermas.length > 0) {
       const bermasText = irrigacaoCarretelBermas.sort((a, b) => a - b).join(", ");
@@ -442,6 +475,10 @@ export default function Atividades() {
         irrigacao_pipas: irrigacaoPipas,
         irrigacao_carretel: irrigacaoCarretel,
         irrigacao_carretel_bermas: irrigacaoCarretel && irrigacaoCarretelBermas.length > 0 ? irrigacaoCarretelBermas : undefined,
+        plantio_grama_m2: plantioGrama ? parseFloat(plantioGrama) : undefined,
+        plantio_grama_faixa: plantioGramaFaixa || undefined,
+        plantio_grama_berma: plantioGramaBerma ? parseInt(plantioGramaBerma) : undefined,
+        atividades_manuais: atividadesManuais || undefined,
         photo_urls: photos.length > 0 ? photos : undefined,
       });
       
@@ -1030,6 +1067,65 @@ export default function Atividades() {
                 />
               </div>
 
+              {/* Plantio de Grama */}
+              <div className="grid grid-cols-1 md:grid-cols-[1fr_140px_140px] gap-3 p-3 rounded-lg bg-green-500/10 border border-green-500/20">
+                <div className="space-y-2">
+                  <Label className="text-green-600 dark:text-green-400">🌿 PLANTIO DE GRAMA (m²)</Label>
+                  <Input
+                    type="number"
+                    min="0"
+                    step="0.01"
+                    value={plantioGrama}
+                    onChange={(e) => setPlantioGrama(e.target.value)}
+                    placeholder="0.00"
+                  />
+                </div>
+                <div className="space-y-2">
+                  <Label>Faixa</Label>
+                  <Select value={plantioGramaFaixa} onValueChange={setPlantioGramaFaixa}>
+                    <SelectTrigger>
+                      <SelectValue placeholder="Selecione" />
+                    </SelectTrigger>
+                    <SelectContent>
+                      {FAIXA_OPTIONS.map((opt) => (
+                        <SelectItem key={opt.value} value={opt.value}>
+                          {opt.label}
+                        </SelectItem>
+                      ))}
+                    </SelectContent>
+                  </Select>
+                </div>
+                <div className="space-y-2">
+                  <Label>Berma</Label>
+                  <Select value={plantioGramaBerma} onValueChange={setPlantioGramaBerma}>
+                    <SelectTrigger>
+                      <SelectValue placeholder="Selecione" />
+                    </SelectTrigger>
+                    <SelectContent>
+                      {BERMA_OPTIONS.map((opt) => (
+                        <SelectItem key={opt.value} value={opt.value}>
+                          {opt.label}
+                        </SelectItem>
+                      ))}
+                    </SelectContent>
+                  </Select>
+                </div>
+              </div>
+
+              {/* Atividades Manuais */}
+              <div className="space-y-2 p-3 rounded-lg bg-amber-500/10 border border-amber-500/20">
+                <Label className="text-amber-600 dark:text-amber-400">✏️ OUTRAS ATIVIDADES (Preenchimento Manual)</Label>
+                <Textarea
+                  value={atividadesManuais}
+                  onChange={(e) => setAtividadesManuais(e.target.value)}
+                  placeholder="Descreva outras atividades realizadas que não estão listadas acima..."
+                  rows={3}
+                />
+                <p className="text-xs text-muted-foreground">
+                  Este campo será incluído no resumo do RDO exatamente como preenchido.
+                </p>
+              </div>
+
               <div className="space-y-2">
                 <Label>MANUTENÇÃO DE CANTEIRO</Label>
                 <Textarea
@@ -1175,6 +1271,12 @@ export default function Atividades() {
                   {retiradaMudasUnidade && parseInt(retiradaMudasUnidade) > 0 && (
                     <p>* Retirada de Mudas (Árvores) - {retiradaMudasUnidade} unidade(s)</p>
                   )}
+                  {plantioGrama && parseFloat(plantioGrama) > 0 && (
+                    <p>* Plantio de Grama - {plantioGrama} m²{plantioGramaBerma && ` (Berma ${plantioGramaBerma})`}{plantioGramaFaixa && ` - ${plantioGramaFaixa}`}</p>
+                  )}
+                  {atividadesManuais && (
+                    <p>* {atividadesManuais}</p>
+                  )}
                   {manutencaoCanteiro && (
                     <p>* Manutenção de Canteiro: {manutencaoCanteiro}</p>
                   )}
@@ -1184,7 +1286,7 @@ export default function Atividades() {
                   {irrigacaoCarretel && (
                     <p>* Irrigação com Carretel{irrigacaoCarretelBermas.length > 0 && ` (Bermas: ${irrigacaoCarretelBermas.join(", ")})`}</p>
                   )}
-                  {!rocagem && !podagem && !coroamento && !adubagem && !plantio && !limpezaManual && !limpezaAssoprador && !invasoras.some(i => i.unidade && parseInt(i.unidade) > 0) && !retiradaMudasUnidade && !manutencaoCanteiro && !irrigacaoPipas && !irrigacaoCarretel && (
+                  {!rocagem && !podagem && !coroamento && !adubagem && !plantio && !limpezaManual && !limpezaAssoprador && !invasoras.some(i => i.unidade && parseInt(i.unidade) > 0) && !retiradaMudasUnidade && !manutencaoCanteiro && !irrigacaoPipas && !irrigacaoCarretel && !plantioGrama && !atividadesManuais && (
                     <p className="text-muted-foreground italic">Nenhuma atividade preenchida</p>
                   )}
                 </div>

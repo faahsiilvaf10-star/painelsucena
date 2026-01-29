@@ -250,6 +250,7 @@ export type Database = {
         Row: {
           adubagem_berma: number | null
           adubagem_unidade: number | null
+          atividades_manuais: string | null
           controle_invasoras_berma: number | null
           controle_invasoras_nome: string | null
           controle_invasoras_unidade: number | null
@@ -269,6 +270,9 @@ export type Database = {
           manutencao_canteiro: string | null
           photo_urls: string[] | null
           plantio_berma: number | null
+          plantio_grama_berma: number | null
+          plantio_grama_faixa: string | null
+          plantio_grama_m2: number | null
           plantio_unidade: number | null
           podagem_berma: number | null
           podagem_unidade: number | null
@@ -282,6 +286,7 @@ export type Database = {
         Insert: {
           adubagem_berma?: number | null
           adubagem_unidade?: number | null
+          atividades_manuais?: string | null
           controle_invasoras_berma?: number | null
           controle_invasoras_nome?: string | null
           controle_invasoras_unidade?: number | null
@@ -301,6 +306,9 @@ export type Database = {
           manutencao_canteiro?: string | null
           photo_urls?: string[] | null
           plantio_berma?: number | null
+          plantio_grama_berma?: number | null
+          plantio_grama_faixa?: string | null
+          plantio_grama_m2?: number | null
           plantio_unidade?: number | null
           podagem_berma?: number | null
           podagem_unidade?: number | null
@@ -314,6 +322,7 @@ export type Database = {
         Update: {
           adubagem_berma?: number | null
           adubagem_unidade?: number | null
+          atividades_manuais?: string | null
           controle_invasoras_berma?: number | null
           controle_invasoras_nome?: string | null
           controle_invasoras_unidade?: number | null
@@ -333,6 +342,9 @@ export type Database = {
           manutencao_canteiro?: string | null
           photo_urls?: string[] | null
           plantio_berma?: number | null
+          plantio_grama_berma?: number | null
+          plantio_grama_faixa?: string | null
+          plantio_grama_m2?: number | null
           plantio_unidade?: number | null
           podagem_berma?: number | null
           podagem_unidade?: number | null

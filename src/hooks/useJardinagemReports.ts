@@ -31,6 +31,10 @@ export interface JardinagemReport {
   irrigacao_pipas: boolean | null;
   irrigacao_carretel: boolean | null;
   irrigacao_carretel_bermas: number[] | null;
+  plantio_grama_m2: number | null;
+  plantio_grama_faixa: string | null;
+  plantio_grama_berma: number | null;
+  atividades_manuais: string | null;
   photo_urls: string[] | null;
   created_at: string;
   updated_at: string;
@@ -62,6 +66,10 @@ export interface JardinagemReportInsert {
   irrigacao_pipas?: boolean;
   irrigacao_carretel?: boolean;
   irrigacao_carretel_bermas?: number[];
+  plantio_grama_m2?: number;
+  plantio_grama_faixa?: string;
+  plantio_grama_berma?: number;
+  atividades_manuais?: string;
   photo_urls?: string[];
 }
 
@@ -261,6 +269,19 @@ export const formatJardinagemForRDO = (report: JardinagemReport | null): string 
   if (report.retirada_mudas_unidade && report.retirada_mudas_unidade > 0) {
     lines.push(`* Retirada de Mudas (Árvores) - ${report.retirada_mudas_unidade} unidade(s)`);
   }
+  
+  // Plantio de Grama
+  if (report.plantio_grama_m2 && report.plantio_grama_m2 > 0) {
+    const faixaText = report.plantio_grama_faixa ? ` - ${report.plantio_grama_faixa}` : "";
+    const bermaText = report.plantio_grama_berma ? ` (Berma ${report.plantio_grama_berma})` : "";
+    lines.push(`* Plantio de Grama - ${report.plantio_grama_m2} m²${bermaText}${faixaText}`);
+  }
+  
+  // Atividades manuais
+  if (report.atividades_manuais) {
+    lines.push(`* ${report.atividades_manuais}`);
+  }
+  
   if (report.manutencao_canteiro) {
     lines.push(`* Manutenção de Canteiro: ${report.manutencao_canteiro}`);
   }
