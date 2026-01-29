@@ -1,8 +1,9 @@
-import { useState, useMemo, useCallback } from "react";
-import { Search, Plus } from "lucide-react";
+import { useState, useMemo } from "react";
+import { Search, Users, Phone, Calendar, Hash, MapPin, Filter, X, ChevronDown, ChevronUp } from "lucide-react";
 import Layout from "@/components/layout/Layout";
 import { Input } from "@/components/ui/input";
 import { Button } from "@/components/ui/button";
+import { Badge } from "@/components/ui/badge";
 import {
   Select,
   SelectContent,
@@ -11,305 +12,350 @@ import {
   SelectValue,
 } from "@/components/ui/select";
 import {
-  Dialog,
-  DialogContent,
-  DialogDescription,
-  DialogHeader,
-  DialogTitle,
-  DialogTrigger,
-} from "@/components/ui/dialog";
-import { useEmployees, useCreateEmployee, useUpdateEmployee, useDeleteEmployee, type Employee } from "@/hooks/useEmployees";
-import { useProfile } from "@/hooks/useProfile";
-import { useIsAdmin } from "@/hooks/useUserRole";
-import { toast } from "sonner";
-import { format } from "date-fns";
-import EmployeeCard from "@/components/rh/EmployeeCard";
-import EmployeeForm from "@/components/rh/EmployeeForm";
-import EmployeeCardSkeleton from "@/components/rh/EmployeeCardSkeleton";
+  Table,
+  TableBody,
+  TableCell,
+  TableHead,
+  TableHeader,
+  TableRow,
+} from "@/components/ui/table";
+import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
+import { colaboradoresAtivos, funcoes, type Colaborador } from "@/data/efetivoData";
 
-const departments = ["Operações", "Transporte", "Manutenção"];
+type SortField = "id" | "nome" | "funcao" | "admissao" | "matricula";
+type SortDirection = "asc" | "desc";
 
 const RH = () => {
   const [searchTerm, setSearchTerm] = useState("");
-  const [filterDepartment, setFilterDepartment] = useState<string>("all");
-  const [isAddDialogOpen, setIsAddDialogOpen] = useState(false);
-  const [isEditDialogOpen, setIsEditDialogOpen] = useState(false);
-  const [editingEmployee, setEditingEmployee] = useState<Employee | null>(null);
-  
-  // Form states
-  const [name, setName] = useState("");
-  const [role, setRole] = useState("");
-  const [department, setDepartment] = useState("");
-  const [startDate, setStartDate] = useState<Date>();
-  const [vacationDueDate, setVacationDueDate] = useState<Date>();
-  const [examScheduled, setExamScheduled] = useState<Date>();
-  const [selectedNrs, setSelectedNrs] = useState<string[]>([]);
+  const [filterFuncao, setFilterFuncao] = useState<string>("all");
+  const [sortField, setSortField] = useState<SortField>("id");
+  const [sortDirection, setSortDirection] = useState<SortDirection>("asc");
+  const [expandedRow, setExpandedRow] = useState<number | null>(null);
 
-  const { data: employees = [], isLoading } = useEmployees();
-  const { data: profile } = useProfile();
-  const { isAdmin } = useIsAdmin();
-  const createEmployee = useCreateEmployee();
-  const updateEmployee = useUpdateEmployee();
-  const deleteEmployee = useDeleteEmployee();
-
-  // Check if user can edit (aux_administrativo, preposto, or admin)
-  const canEdit = isAdmin || profile?.cargo === "preposto" || profile?.cargo === "aux_administrativo";
-
-  // Memoize filtered employees to avoid recalculating on every render
-  const filteredEmployees = useMemo(() => {
+  // Filter and sort employees
+  const filteredColaboradores = useMemo(() => {
     const searchLower = searchTerm.toLowerCase();
-    return employees.filter((employee) => {
-      const matchesSearch =
-        employee.name.toLowerCase().includes(searchLower) ||
-        employee.role.toLowerCase().includes(searchLower);
-      const matchesDepartment =
-        filterDepartment === "all" || employee.department === filterDepartment;
-      return matchesSearch && matchesDepartment;
-    });
-  }, [employees, searchTerm, filterDepartment]);
-
-  const resetForm = useCallback(() => {
-    setName("");
-    setRole("");
-    setDepartment("");
-    setStartDate(undefined);
-    setVacationDueDate(undefined);
-    setExamScheduled(undefined);
-    setSelectedNrs([]);
-  }, []);
-
-  const handleAddEmployee = useCallback(async () => {
-    if (!name || !role || !department) {
-      toast.error("Preencha todos os campos obrigatórios");
-      return;
-    }
-
-    try {
-      await createEmployee.mutateAsync({
-        name,
-        role,
-        department,
-        avatar: name.split(" ").map(n => n[0]).join("").slice(0, 2).toUpperCase(),
-        start_date: startDate ? format(startDate, "yyyy-MM-dd") : undefined,
-        vacation_due_date: vacationDueDate ? format(vacationDueDate, "yyyy-MM-dd") : undefined,
-        exam_scheduled: examScheduled ? format(examScheduled, "yyyy-MM-dd") : undefined,
-        nrs: selectedNrs.length > 0 ? selectedNrs : undefined,
-      });
-      toast.success("Funcionário adicionado com sucesso!");
-      setIsAddDialogOpen(false);
-      resetForm();
-    } catch (error) {
-      toast.error("Erro ao adicionar funcionário");
-    }
-  }, [name, role, department, startDate, vacationDueDate, examScheduled, selectedNrs, createEmployee, resetForm]);
-
-  const handleEditEmployee = useCallback(async () => {
-    if (!editingEmployee || !name || !role || !department) {
-      toast.error("Preencha todos os campos obrigatórios");
-      return;
-    }
-
-    try {
-      await updateEmployee.mutateAsync({
-        id: editingEmployee.id,
-        name,
-        role,
-        department,
-        avatar: name.split(" ").map(n => n[0]).join("").slice(0, 2).toUpperCase(),
-        start_date: startDate ? format(startDate, "yyyy-MM-dd") : undefined,
-        vacation_due_date: vacationDueDate ? format(vacationDueDate, "yyyy-MM-dd") : null,
-        exam_scheduled: examScheduled ? format(examScheduled, "yyyy-MM-dd") : null,
-        nrs: selectedNrs.length > 0 ? selectedNrs : null,
-      });
-      toast.success("Funcionário atualizado com sucesso!");
-      setIsEditDialogOpen(false);
-      setEditingEmployee(null);
-      resetForm();
-    } catch (error) {
-      toast.error("Erro ao atualizar funcionário");
-    }
-  }, [editingEmployee, name, role, department, startDate, vacationDueDate, examScheduled, selectedNrs, updateEmployee, resetForm]);
-
-  const handleDeleteEmployee = useCallback(async (id: string) => {
-    if (!confirm("Tem certeza que deseja excluir este funcionário?")) return;
     
-    try {
-      await deleteEmployee.mutateAsync(id);
-      toast.success("Funcionário excluído com sucesso!");
-    } catch (error) {
-      toast.error("Erro ao excluir funcionário");
+    let result = colaboradoresAtivos.filter((colaborador) => {
+      const matchesSearch =
+        colaborador.nome.toLowerCase().includes(searchLower) ||
+        colaborador.funcao.toLowerCase().includes(searchLower) ||
+        colaborador.matricula.includes(searchTerm) ||
+        colaborador.cpf.includes(searchTerm);
+      const matchesFuncao =
+        filterFuncao === "all" || colaborador.funcao === filterFuncao;
+      return matchesSearch && matchesFuncao;
+    });
+
+    // Sort
+    result.sort((a, b) => {
+      let comparison = 0;
+      
+      switch (sortField) {
+        case "id":
+          comparison = a.id - b.id;
+          break;
+        case "nome":
+          comparison = a.nome.localeCompare(b.nome);
+          break;
+        case "funcao":
+          comparison = a.funcao.localeCompare(b.funcao);
+          break;
+        case "admissao":
+          // Parse date in DD/MM/YYYY format
+          const parseDate = (dateStr: string) => {
+            const [day, month, year] = dateStr.split('/').map(Number);
+            return new Date(year, month - 1, day).getTime();
+          };
+          comparison = parseDate(a.admissao) - parseDate(b.admissao);
+          break;
+        case "matricula":
+          comparison = parseInt(a.matricula) - parseInt(b.matricula);
+          break;
+      }
+      
+      return sortDirection === "asc" ? comparison : -comparison;
+    });
+
+    return result;
+  }, [searchTerm, filterFuncao, sortField, sortDirection]);
+
+  const handleSort = (field: SortField) => {
+    if (sortField === field) {
+      setSortDirection(prev => prev === "asc" ? "desc" : "asc");
+    } else {
+      setSortField(field);
+      setSortDirection("asc");
     }
-  }, [deleteEmployee]);
+  };
 
-  const openEditDialog = useCallback((employee: Employee) => {
-    setEditingEmployee(employee);
-    setName(employee.name);
-    setRole(employee.role);
-    setDepartment(employee.department);
-    setStartDate(employee.start_date ? new Date(employee.start_date) : undefined);
-    setVacationDueDate(employee.vacation_due_date ? new Date(employee.vacation_due_date) : undefined);
-    setExamScheduled(employee.exam_scheduled ? new Date(employee.exam_scheduled) : undefined);
-    setSelectedNrs(employee.nrs || []);
-    setIsEditDialogOpen(true);
-  }, []);
+  const clearFilters = () => {
+    setSearchTerm("");
+    setFilterFuncao("all");
+    setSortField("id");
+    setSortDirection("asc");
+  };
 
-  const toggleNr = useCallback((nr: string) => {
-    setSelectedNrs(prev => 
-      prev.includes(nr) 
-        ? prev.filter(n => n !== nr)
-        : [...prev, nr]
+  const hasActiveFilters = searchTerm || filterFuncao !== "all";
+
+  const SortIcon = ({ field }: { field: SortField }) => {
+    if (sortField !== field) return null;
+    return sortDirection === "asc" ? (
+      <ChevronUp className="w-4 h-4 inline ml-1" />
+    ) : (
+      <ChevronDown className="w-4 h-4 inline ml-1" />
     );
+  };
+
+  // Count by function for stats
+  const funcaoStats = useMemo(() => {
+    const stats: Record<string, number> = {};
+    colaboradoresAtivos.forEach(c => {
+      stats[c.funcao] = (stats[c.funcao] || 0) + 1;
+    });
+    return Object.entries(stats).sort((a, b) => b[1] - a[1]).slice(0, 5);
   }, []);
-
-  const handleEditDialogChange = useCallback((open: boolean) => {
-    setIsEditDialogOpen(open);
-    if (!open) {
-      setEditingEmployee(null);
-      resetForm();
-    }
-  }, [resetForm]);
-
-  // Memoize skeleton array to avoid recreating on each render
-  const skeletons = useMemo(() => Array.from({ length: 6 }), []);
 
   return (
     <Layout>
       <div className="container mx-auto px-4 sm:px-6 py-4 sm:py-8">
         {/* Header */}
-        <div className="flex flex-col md:flex-row md:items-center justify-between gap-4 mb-6 sm:mb-8">
+        <div className="flex flex-col md:flex-row md:items-center justify-between gap-4 mb-6">
           <div>
-            <h1 className="text-2xl sm:text-4xl font-bold mb-2">Recursos Humanos</h1>
+            <h1 className="text-2xl sm:text-4xl font-bold mb-2">Efetivo</h1>
             <p className="text-muted-foreground">
-              Gerencie sua equipe de {employees.length} funcionários
+              Quadro de colaboradores ativos: <span className="font-semibold text-primary">{colaboradoresAtivos.length}</span> funcionários
             </p>
           </div>
+          
+          <Card className="bg-primary/10 border-primary/20">
+            <CardContent className="p-4 flex items-center gap-3">
+              <Users className="w-8 h-8 text-primary" />
+              <div>
+                <p className="text-sm text-muted-foreground">Total Efetivo</p>
+                <p className="text-2xl font-bold">{colaboradoresAtivos.length}</p>
+              </div>
+            </CardContent>
+          </Card>
+        </div>
 
-          {canEdit && (
-            <Dialog open={isAddDialogOpen} onOpenChange={setIsAddDialogOpen}>
-              <DialogTrigger asChild>
-                <Button className="gap-2">
-                  <Plus className="w-4 h-4" />
-                  Novo Funcionário
-                </Button>
-              </DialogTrigger>
-              <DialogContent className="bg-card max-h-[90vh] overflow-y-auto">
-                <DialogHeader>
-                  <DialogTitle>Adicionar Funcionário</DialogTitle>
-                  <DialogDescription>
-                    Preencha os dados do novo funcionário
-                  </DialogDescription>
-                </DialogHeader>
-                <EmployeeForm
-                  name={name}
-                  setName={setName}
-                  role={role}
-                  setRole={setRole}
-                  department={department}
-                  setDepartment={setDepartment}
-                  startDate={startDate}
-                  setStartDate={setStartDate}
-                  vacationDueDate={vacationDueDate}
-                  setVacationDueDate={setVacationDueDate}
-                  examScheduled={examScheduled}
-                  setExamScheduled={setExamScheduled}
-                  selectedNrs={selectedNrs}
-                  toggleNr={toggleNr}
-                  onSubmit={handleAddEmployee}
-                  isPending={createEmployee.isPending}
-                />
-              </DialogContent>
-            </Dialog>
-          )}
+        {/* Stats Cards */}
+        <div className="grid grid-cols-2 md:grid-cols-5 gap-3 mb-6">
+          {funcaoStats.map(([funcao, count]) => (
+            <Card 
+              key={funcao} 
+              className="cursor-pointer hover:bg-accent/50 transition-colors"
+              onClick={() => setFilterFuncao(funcao)}
+            >
+              <CardContent className="p-3">
+                <p className="text-xs text-muted-foreground truncate" title={funcao}>
+                  {funcao}
+                </p>
+                <p className="text-xl font-bold">{count}</p>
+              </CardContent>
+            </Card>
+          ))}
         </div>
 
         {/* Filters */}
-        <div className="flex flex-col sm:flex-row gap-3 sm:gap-4 mb-6 sm:mb-8">
-          <div className="relative flex-1">
-            <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-muted-foreground" />
-            <Input
-              placeholder="Buscar por nome ou cargo..."
-              className="pl-10"
-              value={searchTerm}
-              onChange={(e) => setSearchTerm(e.target.value)}
-            />
-          </div>
-          <Select value={filterDepartment} onValueChange={setFilterDepartment}>
-            <SelectTrigger className="w-full md:w-[200px]">
-              <SelectValue placeholder="Departamento" />
-            </SelectTrigger>
-            <SelectContent>
-              <SelectItem value="all">Todos</SelectItem>
-              {departments.map((dept) => (
-                <SelectItem key={dept} value={dept}>
-                  {dept}
-                </SelectItem>
-              ))}
-            </SelectContent>
-          </Select>
-        </div>
+        <Card className="mb-6">
+          <CardHeader className="pb-3">
+            <CardTitle className="text-lg flex items-center gap-2">
+              <Filter className="w-5 h-5" />
+              Filtros
+            </CardTitle>
+          </CardHeader>
+          <CardContent>
+            <div className="flex flex-col sm:flex-row gap-3">
+              <div className="relative flex-1">
+                <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-muted-foreground" />
+                <Input
+                  placeholder="Buscar por nome, função, matrícula ou CPF..."
+                  className="pl-10"
+                  value={searchTerm}
+                  onChange={(e) => setSearchTerm(e.target.value)}
+                />
+              </div>
+              <Select value={filterFuncao} onValueChange={setFilterFuncao}>
+                <SelectTrigger className="w-full sm:w-[280px]">
+                  <SelectValue placeholder="Filtrar por função" />
+                </SelectTrigger>
+                <SelectContent>
+                  <SelectItem value="all">Todas as funções</SelectItem>
+                  {funcoes.map((funcao) => (
+                    <SelectItem key={funcao} value={funcao}>
+                      {funcao}
+                    </SelectItem>
+                  ))}
+                </SelectContent>
+              </Select>
+              {hasActiveFilters && (
+                <Button variant="outline" onClick={clearFilters} className="gap-2">
+                  <X className="w-4 h-4" />
+                  Limpar
+                </Button>
+              )}
+            </div>
+            
+            {hasActiveFilters && (
+              <div className="mt-3 flex items-center gap-2 flex-wrap">
+                <span className="text-sm text-muted-foreground">Filtros ativos:</span>
+                {searchTerm && (
+                  <Badge variant="secondary" className="gap-1">
+                    Busca: "{searchTerm}"
+                    <X className="w-3 h-3 cursor-pointer" onClick={() => setSearchTerm("")} />
+                  </Badge>
+                )}
+                {filterFuncao !== "all" && (
+                  <Badge variant="secondary" className="gap-1">
+                    {filterFuncao}
+                    <X className="w-3 h-3 cursor-pointer" onClick={() => setFilterFuncao("all")} />
+                  </Badge>
+                )}
+                <span className="text-sm text-muted-foreground ml-2">
+                  ({filteredColaboradores.length} resultado{filteredColaboradores.length !== 1 ? "s" : ""})
+                </span>
+              </div>
+            )}
+          </CardContent>
+        </Card>
 
-        {/* Loading state with skeletons */}
-        {isLoading && (
-          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-            {skeletons.map((_, i) => (
-              <EmployeeCardSkeleton key={i} />
-            ))}
-          </div>
-        )}
+        {/* Table */}
+        <Card>
+          <CardContent className="p-0">
+            <div className="overflow-x-auto">
+              <Table>
+                <TableHeader>
+                  <TableRow className="bg-muted/50">
+                    <TableHead 
+                      className="cursor-pointer hover:bg-muted w-16"
+                      onClick={() => handleSort("id")}
+                    >
+                      # <SortIcon field="id" />
+                    </TableHead>
+                    <TableHead 
+                      className="cursor-pointer hover:bg-muted min-w-[250px]"
+                      onClick={() => handleSort("nome")}
+                    >
+                      Colaborador <SortIcon field="nome" />
+                    </TableHead>
+                    <TableHead 
+                      className="cursor-pointer hover:bg-muted min-w-[200px]"
+                      onClick={() => handleSort("funcao")}
+                    >
+                      Função <SortIcon field="funcao" />
+                    </TableHead>
+                    <TableHead 
+                      className="cursor-pointer hover:bg-muted w-32"
+                      onClick={() => handleSort("matricula")}
+                    >
+                      Matrícula <SortIcon field="matricula" />
+                    </TableHead>
+                    <TableHead 
+                      className="cursor-pointer hover:bg-muted w-32"
+                      onClick={() => handleSort("admissao")}
+                    >
+                      Admissão <SortIcon field="admissao" />
+                    </TableHead>
+                    <TableHead className="w-40 hidden lg:table-cell">Contato</TableHead>
+                  </TableRow>
+                </TableHeader>
+                <TableBody>
+                  {filteredColaboradores.map((colaborador) => (
+                    <>
+                      <TableRow 
+                        key={colaborador.id}
+                        className="cursor-pointer hover:bg-accent/50"
+                        onClick={() => setExpandedRow(expandedRow === colaborador.id ? null : colaborador.id)}
+                      >
+                        <TableCell className="font-medium text-muted-foreground">
+                          {colaborador.id}
+                        </TableCell>
+                        <TableCell>
+                          <div className="flex items-center gap-3">
+                            <div className="w-10 h-10 rounded-full bg-gradient-to-br from-primary to-primary/60 flex items-center justify-center text-primary-foreground font-bold text-sm shrink-0">
+                              {colaborador.nome.split(" ").map(n => n[0]).slice(0, 2).join("")}
+                            </div>
+                            <span className="font-medium">{colaborador.nome}</span>
+                          </div>
+                        </TableCell>
+                        <TableCell>
+                          <Badge variant="outline" className="font-normal whitespace-nowrap">
+                            {colaborador.funcao}
+                          </Badge>
+                        </TableCell>
+                        <TableCell>
+                          <div className="flex items-center gap-1 text-muted-foreground">
+                            <Hash className="w-3 h-3" />
+                            {colaborador.matricula}
+                          </div>
+                        </TableCell>
+                        <TableCell>
+                          <div className="flex items-center gap-1 text-muted-foreground">
+                            <Calendar className="w-3 h-3" />
+                            {colaborador.admissao}
+                          </div>
+                        </TableCell>
+                        <TableCell className="hidden lg:table-cell">
+                          {colaborador.contato && (
+                            <div className="flex items-center gap-1 text-muted-foreground">
+                              <Phone className="w-3 h-3" />
+                              {colaborador.contato}
+                            </div>
+                          )}
+                        </TableCell>
+                      </TableRow>
+                      
+                      {/* Expanded Row Details */}
+                      {expandedRow === colaborador.id && (
+                        <TableRow className="bg-muted/30">
+                          <TableCell colSpan={6}>
+                            <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4 py-2">
+                              <div>
+                                <p className="text-xs text-muted-foreground mb-1">CPF</p>
+                                <p className="font-medium">{colaborador.cpf}</p>
+                              </div>
+                              <div>
+                                <p className="text-xs text-muted-foreground mb-1">Data de Nascimento</p>
+                                <p className="font-medium">{colaborador.dataNascimento}</p>
+                              </div>
+                              <div className="lg:hidden">
+                                <p className="text-xs text-muted-foreground mb-1">Contato</p>
+                                <p className="font-medium flex items-center gap-1">
+                                  <Phone className="w-3 h-3" />
+                                  {colaborador.contato || "Não informado"}
+                                </p>
+                              </div>
+                              <div>
+                                <p className="text-xs text-muted-foreground mb-1">Localidade</p>
+                                <p className="font-medium flex items-center gap-1">
+                                  <MapPin className="w-3 h-3" />
+                                  {colaborador.localidade}
+                                </p>
+                              </div>
+                            </div>
+                          </TableCell>
+                        </TableRow>
+                      )}
+                    </>
+                  ))}
+                </TableBody>
+              </Table>
+            </div>
 
-        {/* Employee Grid */}
-        {!isLoading && (
-          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-            {filteredEmployees.map((employee) => (
-              <EmployeeCard
-                key={employee.id}
-                employee={employee}
-                canEdit={canEdit}
-                onEdit={openEditDialog}
-                onDelete={handleDeleteEmployee}
-              />
-            ))}
-          </div>
-        )}
-
-        {!isLoading && filteredEmployees.length === 0 && (
-          <div className="text-center py-12">
-            <p className="text-muted-foreground text-lg">
-              Nenhum funcionário encontrado
-            </p>
-          </div>
-        )}
-
-        {/* Edit Dialog */}
-        <Dialog open={isEditDialogOpen} onOpenChange={handleEditDialogChange}>
-          <DialogContent className="bg-card max-h-[90vh] overflow-y-auto">
-            <DialogHeader>
-              <DialogTitle>Editar Funcionário</DialogTitle>
-              <DialogDescription>
-                Atualize os dados do funcionário
-              </DialogDescription>
-            </DialogHeader>
-            <EmployeeForm
-              isEdit
-              name={name}
-              setName={setName}
-              role={role}
-              setRole={setRole}
-              department={department}
-              setDepartment={setDepartment}
-              startDate={startDate}
-              setStartDate={setStartDate}
-              vacationDueDate={vacationDueDate}
-              setVacationDueDate={setVacationDueDate}
-              examScheduled={examScheduled}
-              setExamScheduled={setExamScheduled}
-              selectedNrs={selectedNrs}
-              toggleNr={toggleNr}
-              onSubmit={handleEditEmployee}
-              isPending={updateEmployee.isPending}
-            />
-          </DialogContent>
-        </Dialog>
+            {filteredColaboradores.length === 0 && (
+              <div className="text-center py-12">
+                <Users className="w-12 h-12 mx-auto text-muted-foreground/50 mb-4" />
+                <p className="text-muted-foreground text-lg">
+                  Nenhum colaborador encontrado
+                </p>
+                <p className="text-sm text-muted-foreground">
+                  Tente ajustar os filtros de busca
+                </p>
+              </div>
+            )}
+          </CardContent>
+        </Card>
       </div>
     </Layout>
   );
