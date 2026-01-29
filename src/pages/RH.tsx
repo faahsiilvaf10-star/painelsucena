@@ -1,4 +1,4 @@
-import { useState, useMemo } from "react";
+import { useState, useMemo, useEffect } from "react";
 import { Search, Users, Phone, Calendar, Hash, MapPin, Filter, X, ChevronDown, ChevronUp } from "lucide-react";
 import Layout from "@/components/layout/Layout";
 import { Input } from "@/components/ui/input";
@@ -20,7 +20,11 @@ import {
   TableRow,
 } from "@/components/ui/table";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
-import { colaboradoresAtivos, funcoes, type Colaborador } from "@/data/efetivoData";
+import { colaboradoresAtivos as initialColaboradores, funcoes, type Colaborador } from "@/data/efetivoData";
+import { AddEmployeeDialog } from "@/components/rh/AddEmployeeDialog";
+import { DeleteEmployeeDialog } from "@/components/rh/DeleteEmployeeDialog";
+import { useRHPermissions } from "@/hooks/useRHPermissions";
+import { toast } from "sonner";
 
 type SortField = "id" | "nome" | "funcao" | "admissao" | "matricula";
 type SortDirection = "asc" | "desc";
@@ -31,12 +35,46 @@ const RH = () => {
   const [sortField, setSortField] = useState<SortField>("id");
   const [sortDirection, setSortDirection] = useState<SortDirection>("asc");
   const [expandedRow, setExpandedRow] = useState<number | null>(null);
+  const [colaboradores, setColaboradores] = useState<Colaborador[]>(initialColaboradores);
+
+  const { canEditRH, isLoading: permissionsLoading } = useRHPermissions();
+
+  // Load from localStorage on mount
+  useEffect(() => {
+    const stored = localStorage.getItem("rh_colaboradores");
+    if (stored) {
+      try {
+        setColaboradores(JSON.parse(stored));
+      } catch {
+        // Use initial data if parse fails
+      }
+    }
+  }, []);
+
+  // Save to localStorage when changed
+  useEffect(() => {
+    localStorage.setItem("rh_colaboradores", JSON.stringify(colaboradores));
+  }, [colaboradores]);
+
+  const handleAddEmployee = (newEmployee: Omit<Colaborador, "id">) => {
+    const maxId = Math.max(...colaboradores.map(c => c.id), 0);
+    const employee: Colaborador = {
+      ...newEmployee,
+      id: maxId + 1,
+    };
+    setColaboradores(prev => [...prev, employee]);
+  };
+
+  const handleDeleteEmployee = (id: number) => {
+    setColaboradores(prev => prev.filter(c => c.id !== id));
+    toast.success("Colaborador removido com sucesso!");
+  };
 
   // Filter and sort employees
   const filteredColaboradores = useMemo(() => {
     const searchLower = searchTerm.toLowerCase();
     
-    let result = colaboradoresAtivos.filter((colaborador) => {
+    let result = colaboradores.filter((colaborador) => {
       const matchesSearch =
         colaborador.nome.toLowerCase().includes(searchLower) ||
         colaborador.funcao.toLowerCase().includes(searchLower) ||
@@ -78,7 +116,7 @@ const RH = () => {
     });
 
     return result;
-  }, [searchTerm, filterFuncao, sortField, sortDirection]);
+  }, [searchTerm, filterFuncao, sortField, sortDirection, colaboradores]);
 
   const handleSort = (field: SortField) => {
     if (sortField === field) {
@@ -110,11 +148,11 @@ const RH = () => {
   // Count by function for stats
   const funcaoStats = useMemo(() => {
     const stats: Record<string, number> = {};
-    colaboradoresAtivos.forEach(c => {
+    colaboradores.forEach(c => {
       stats[c.funcao] = (stats[c.funcao] || 0) + 1;
     });
     return Object.entries(stats).sort((a, b) => b[1] - a[1]).slice(0, 5);
-  }, []);
+  }, [colaboradores]);
 
   return (
     <Layout>
@@ -124,19 +162,24 @@ const RH = () => {
           <div>
             <h1 className="text-2xl sm:text-4xl font-bold mb-2">Efetivo</h1>
             <p className="text-muted-foreground">
-              Quadro de colaboradores ativos: <span className="font-semibold text-primary">{colaboradoresAtivos.length}</span> funcionários
+              Quadro de colaboradores ativos: <span className="font-semibold text-primary">{colaboradores.length}</span> funcionários
             </p>
           </div>
           
-          <Card className="bg-primary/10 border-primary/20">
-            <CardContent className="p-4 flex items-center gap-3">
-              <Users className="w-8 h-8 text-primary" />
-              <div>
-                <p className="text-sm text-muted-foreground">Total Efetivo</p>
-                <p className="text-2xl font-bold">{colaboradoresAtivos.length}</p>
-              </div>
-            </CardContent>
-          </Card>
+          <div className="flex items-center gap-3">
+            {!permissionsLoading && canEditRH && (
+              <AddEmployeeDialog onAdd={handleAddEmployee} />
+            )}
+            <Card className="bg-primary/10 border-primary/20">
+              <CardContent className="p-4 flex items-center gap-3">
+                <Users className="w-8 h-8 text-primary" />
+                <div>
+                  <p className="text-sm text-muted-foreground">Total Efetivo</p>
+                  <p className="text-2xl font-bold">{colaboradores.length}</p>
+                </div>
+              </CardContent>
+            </Card>
+          </div>
         </div>
 
         {/* Stats Cards */}
@@ -258,6 +301,9 @@ const RH = () => {
                       Admissão <SortIcon field="admissao" />
                     </TableHead>
                     <TableHead className="w-40 hidden lg:table-cell">Contato</TableHead>
+                    {!permissionsLoading && canEditRH && (
+                      <TableHead className="w-16">Ações</TableHead>
+                    )}
                   </TableRow>
                 </TableHeader>
                 <TableBody>
@@ -304,12 +350,20 @@ const RH = () => {
                             </div>
                           )}
                         </TableCell>
+                        {!permissionsLoading && canEditRH && (
+                          <TableCell>
+                            <DeleteEmployeeDialog
+                              employee={colaborador}
+                              onDelete={handleDeleteEmployee}
+                            />
+                          </TableCell>
+                        )}
                       </TableRow>
                       
                       {/* Expanded Row Details */}
                       {expandedRow === colaborador.id && (
                         <TableRow className="bg-muted/30">
-                          <TableCell colSpan={6}>
+                          <TableCell colSpan={canEditRH ? 7 : 6}>
                             <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4 py-2">
                               <div>
                                 <p className="text-xs text-muted-foreground mb-1">CPF</p>

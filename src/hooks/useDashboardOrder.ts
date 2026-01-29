@@ -3,6 +3,7 @@ import { supabase } from "@/integrations/supabase/client";
 import { useAuth } from "./useAuth";
 
 export type DashboardItemId = 
+  | "birthday"
   | "matrix_alert"
   | "goal_alert"
   | "campaign"
@@ -17,6 +18,7 @@ export type DashboardItemId =
   | "matrix_chart";
 
 export const DEFAULT_DASHBOARD_ORDER: DashboardItemId[] = [
+  "birthday",
   "reminder",
   "matrix_alert",
   "goal_alert",
@@ -32,6 +34,7 @@ export const DEFAULT_DASHBOARD_ORDER: DashboardItemId[] = [
 ];
 
 export const DASHBOARD_ITEM_LABELS: Record<DashboardItemId, string> = {
+  birthday: "Aniversariantes",
   matrix_alert: "Alerta da Matriz",
   goal_alert: "Alerta de Metas",
   campaign: "Campanha de Saúde",

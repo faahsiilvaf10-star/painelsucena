@@ -1,0 +1,200 @@
+import { useState } from "react";
+import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger } from "@/components/ui/dialog";
+import { Button } from "@/components/ui/button";
+import { Input } from "@/components/ui/input";
+import { Label } from "@/components/ui/label";
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
+import { UserPlus } from "lucide-react";
+import { Colaborador, funcoes } from "@/data/efetivoData";
+import { toast } from "sonner";
+
+interface AddEmployeeDialogProps {
+  onAdd: (employee: Omit<Colaborador, "id">) => void;
+}
+
+export const AddEmployeeDialog = ({ onAdd }: AddEmployeeDialogProps) => {
+  const [open, setOpen] = useState(false);
+  const [formData, setFormData] = useState({
+    nome: "",
+    funcao: "",
+    cpf: "",
+    dataNascimento: "",
+    admissao: "",
+    matricula: "",
+    contato: "",
+    localidade: "BARCARENA - PA",
+  });
+
+  const handleSubmit = (e: React.FormEvent) => {
+    e.preventDefault();
+    
+    if (!formData.nome || !formData.funcao || !formData.cpf || !formData.matricula) {
+      toast.error("Preencha os campos obrigatórios");
+      return;
+    }
+
+    onAdd(formData);
+    setFormData({
+      nome: "",
+      funcao: "",
+      cpf: "",
+      dataNascimento: "",
+      admissao: "",
+      matricula: "",
+      contato: "",
+      localidade: "BARCARENA - PA",
+    });
+    setOpen(false);
+    toast.success("Colaborador adicionado com sucesso!");
+  };
+
+  const formatCPF = (value: string) => {
+    const numbers = value.replace(/\D/g, "");
+    return numbers
+      .replace(/(\d{3})(\d)/, "$1.$2")
+      .replace(/(\d{3})(\d)/, "$1.$2")
+      .replace(/(\d{3})(\d{1,2})$/, "$1-$2")
+      .slice(0, 14);
+  };
+
+  const formatDate = (value: string) => {
+    const numbers = value.replace(/\D/g, "");
+    return numbers
+      .replace(/(\d{2})(\d)/, "$1/$2")
+      .replace(/(\d{2})(\d)/, "$1/$2")
+      .slice(0, 10);
+  };
+
+  const formatPhone = (value: string) => {
+    const numbers = value.replace(/\D/g, "");
+    if (numbers.length <= 10) {
+      return numbers
+        .replace(/(\d{2})(\d)/, "($1) $2")
+        .replace(/(\d{4})(\d)/, "$1-$2");
+    }
+    return numbers
+      .replace(/(\d{2})(\d)/, "($1) $2")
+      .replace(/(\d{5})(\d)/, "$1-$2")
+      .slice(0, 15);
+  };
+
+  return (
+    <Dialog open={open} onOpenChange={setOpen}>
+      <DialogTrigger asChild>
+        <Button className="gap-2">
+          <UserPlus className="w-4 h-4" />
+          Adicionar Colaborador
+        </Button>
+      </DialogTrigger>
+      <DialogContent className="max-w-lg max-h-[90vh] overflow-y-auto">
+        <DialogHeader>
+          <DialogTitle>Adicionar Novo Colaborador</DialogTitle>
+        </DialogHeader>
+        <form onSubmit={handleSubmit} className="space-y-4">
+          <div className="space-y-2">
+            <Label htmlFor="nome">Nome Completo *</Label>
+            <Input
+              id="nome"
+              value={formData.nome}
+              onChange={(e) => setFormData({ ...formData, nome: e.target.value.toUpperCase() })}
+              placeholder="Nome do colaborador"
+              required
+            />
+          </div>
+
+          <div className="space-y-2">
+            <Label htmlFor="funcao">Função *</Label>
+            <Select
+              value={formData.funcao}
+              onValueChange={(value) => setFormData({ ...formData, funcao: value })}
+            >
+              <SelectTrigger>
+                <SelectValue placeholder="Selecione a função" />
+              </SelectTrigger>
+              <SelectContent>
+                {funcoes.map((funcao) => (
+                  <SelectItem key={funcao} value={funcao}>
+                    {funcao}
+                  </SelectItem>
+                ))}
+              </SelectContent>
+            </Select>
+          </div>
+
+          <div className="grid grid-cols-2 gap-4">
+            <div className="space-y-2">
+              <Label htmlFor="cpf">CPF *</Label>
+              <Input
+                id="cpf"
+                value={formData.cpf}
+                onChange={(e) => setFormData({ ...formData, cpf: formatCPF(e.target.value) })}
+                placeholder="000.000.000-00"
+                required
+              />
+            </div>
+
+            <div className="space-y-2">
+              <Label htmlFor="matricula">Matrícula *</Label>
+              <Input
+                id="matricula"
+                value={formData.matricula}
+                onChange={(e) => setFormData({ ...formData, matricula: e.target.value.replace(/\D/g, "") })}
+                placeholder="0000"
+                required
+              />
+            </div>
+          </div>
+
+          <div className="grid grid-cols-2 gap-4">
+            <div className="space-y-2">
+              <Label htmlFor="dataNascimento">Data de Nascimento</Label>
+              <Input
+                id="dataNascimento"
+                value={formData.dataNascimento}
+                onChange={(e) => setFormData({ ...formData, dataNascimento: formatDate(e.target.value) })}
+                placeholder="DD/MM/AAAA"
+              />
+            </div>
+
+            <div className="space-y-2">
+              <Label htmlFor="admissao">Data de Admissão</Label>
+              <Input
+                id="admissao"
+                value={formData.admissao}
+                onChange={(e) => setFormData({ ...formData, admissao: formatDate(e.target.value) })}
+                placeholder="DD/MM/AAAA"
+              />
+            </div>
+          </div>
+
+          <div className="space-y-2">
+            <Label htmlFor="contato">Contato</Label>
+            <Input
+              id="contato"
+              value={formData.contato}
+              onChange={(e) => setFormData({ ...formData, contato: formatPhone(e.target.value) })}
+              placeholder="(00) 00000-0000"
+            />
+          </div>
+
+          <div className="space-y-2">
+            <Label htmlFor="localidade">Localidade</Label>
+            <Input
+              id="localidade"
+              value={formData.localidade}
+              onChange={(e) => setFormData({ ...formData, localidade: e.target.value.toUpperCase() })}
+              placeholder="Cidade - UF"
+            />
+          </div>
+
+          <div className="flex justify-end gap-2 pt-4">
+            <Button type="button" variant="outline" onClick={() => setOpen(false)}>
+              Cancelar
+            </Button>
+            <Button type="submit">Adicionar</Button>
+          </div>
+        </form>
+      </DialogContent>
+    </Dialog>
+  );
+};
