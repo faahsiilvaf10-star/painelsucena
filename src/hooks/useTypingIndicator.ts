@@ -9,6 +9,7 @@ export const useTypingIndicator = (otherUserId: string | null) => {
   const typingTimeoutRef = useRef<NodeJS.Timeout | null>(null);
   const lastTypingRef = useRef<number>(0);
   const channelRef = useRef<RealtimeChannel | null>(null);
+  const globalChannelRef = useRef<RealtimeChannel | null>(null);
 
   // Subscribe to typing events from the other user
   useEffect(() => {
@@ -44,12 +45,20 @@ export const useTypingIndicator = (otherUserId: string | null) => {
 
     channelRef.current = channel;
 
+    // Also subscribe to global typing channel for sending global events
+    const globalChannel = supabase.channel("global-typing").subscribe();
+    globalChannelRef.current = globalChannel;
+
     return () => {
       if (typingTimeoutRef.current) {
         clearTimeout(typingTimeoutRef.current);
       }
       supabase.removeChannel(channel);
+      if (globalChannelRef.current) {
+        supabase.removeChannel(globalChannelRef.current);
+      }
       channelRef.current = null;
+      globalChannelRef.current = null;
     };
   }, [user?.id, otherUserId]);
 
@@ -62,22 +71,42 @@ export const useTypingIndicator = (otherUserId: string | null) => {
     if (now - lastTypingRef.current < 2000) return;
     lastTypingRef.current = now;
 
+    // Send to direct channel
     channelRef.current.send({
       type: "broadcast",
       event: "typing",
       payload: { userId: user.id },
     });
+
+    // Also send to global channel for footer indicator
+    if (globalChannelRef.current) {
+      globalChannelRef.current.send({
+        type: "broadcast",
+        event: "user_typing",
+        payload: { userId: user.id },
+      });
+    }
   }, [user?.id, otherUserId]);
 
   // Broadcast stop typing event
   const sendStopTypingEvent = useCallback(() => {
     if (!user?.id || !otherUserId || !channelRef.current) return;
 
+    // Send to direct channel
     channelRef.current.send({
       type: "broadcast",
       event: "stop_typing",
       payload: { userId: user.id },
     });
+
+    // Also send to global channel
+    if (globalChannelRef.current) {
+      globalChannelRef.current.send({
+        type: "broadcast",
+        event: "user_stop_typing",
+        payload: { userId: user.id },
+      });
+    }
   }, [user?.id, otherUserId]);
 
   return {

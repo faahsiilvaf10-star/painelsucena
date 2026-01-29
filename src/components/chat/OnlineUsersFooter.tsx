@@ -13,6 +13,7 @@ import { VerifiedBadge } from "@/components/VerifiedBadge";
 import { formatDistanceToNow } from "date-fns";
 import { ptBR } from "date-fns/locale";
 import { formatCargoLabel } from "@/lib/cargoUtils";
+import { useGlobalTypingIndicator } from "@/hooks/useGlobalTypingIndicator";
 
 interface OnlineUsersFooterProps {
   onUserClick: (user: UserWithStatus) => void;
@@ -38,6 +39,7 @@ export const OnlineUsersFooter = ({
     offlineCount,
     isLoading
   } = useAllUsers();
+  const { isUserTyping } = useGlobalTypingIndicator();
   const [selectorOpen, setSelectorOpen] = useState(false);
   const [usersPopoverOpen, setUsersPopoverOpen] = useState(false);
   const {
@@ -174,6 +176,7 @@ export const OnlineUsersFooter = ({
             <div className="flex items-center -space-x-2">
               {allUsers.filter(u => u.isOnline).length === 0 ? <span className="text-xs text-muted-foreground ml-2">—</span> : allUsers.filter(u => u.isOnline).map(user => {
                 const lastSeenText = formatLastSeen(user.lastSeen);
+                const userIsTyping = isUserTyping(user.user_id);
                 return (
                   <Tooltip key={user.user_id}>
                     <TooltipTrigger asChild>
@@ -182,7 +185,9 @@ export const OnlineUsersFooter = ({
                           "h-6 w-6 sm:h-7 sm:w-7 ring-2 ring-card transition-all duration-300",
                           user.isCurrentUser 
                             ? "border-2 border-primary ring-primary/30" 
-                            : "border-2 border-green-500 ring-green-500/40 shadow-[0_0_8px_2px_rgba(34,197,94,0.4)]",
+                            : userIsTyping
+                              ? "border-2 border-blue-500 ring-blue-500/40 shadow-[0_0_8px_2px_rgba(59,130,246,0.4)]"
+                              : "border-2 border-green-500 ring-green-500/40 shadow-[0_0_8px_2px_rgba(34,197,94,0.4)]",
                           user.justCameOnline && "animate-online-pulse"
                         )}>
                           <AvatarImage src={user.avatar_url || undefined} />
@@ -191,7 +196,12 @@ export const OnlineUsersFooter = ({
                           </AvatarFallback>
                         </Avatar>
                         {user.isCurrentUser && <span className="absolute -bottom-0.5 -right-0.5 w-2 h-2 bg-primary rounded-full border border-card" />}
-                        {user.justCameOnline && !user.isCurrentUser && (
+                        {userIsTyping && !user.isCurrentUser && (
+                          <span className="absolute -bottom-0.5 -right-0.5 flex items-center justify-center">
+                            <span className="w-2 h-2 bg-blue-500 rounded-full animate-pulse" />
+                          </span>
+                        )}
+                        {user.justCameOnline && !user.isCurrentUser && !userIsTyping && (
                           <span className="absolute -bottom-0.5 -right-0.5 w-2 h-2 bg-green-400 rounded-full animate-ping" />
                         )}
                         {user.isAdmin && (
@@ -207,7 +217,16 @@ export const OnlineUsersFooter = ({
                         {user.isCurrentUser && <span className="text-primary ml-1">(você)</span>}
                       </p>
                       <p className="text-xs text-muted-foreground">{formatCargoLabel(user.cargo, true)}</p>
-                      {user.justCameOnline ? (
+                      {userIsTyping ? (
+                        <p className="text-xs text-blue-500 mt-0.5 flex items-center gap-1">
+                          <span className="flex items-center gap-0.5">
+                            <span className="w-1 h-1 bg-blue-500 rounded-full animate-bounce" style={{ animationDelay: "0ms" }} />
+                            <span className="w-1 h-1 bg-blue-500 rounded-full animate-bounce" style={{ animationDelay: "150ms" }} />
+                            <span className="w-1 h-1 bg-blue-500 rounded-full animate-bounce" style={{ animationDelay: "300ms" }} />
+                          </span>
+                          Digitando...
+                        </p>
+                      ) : user.justCameOnline ? (
                         <p className="text-xs text-green-500 mt-0.5">🟢 Acabou de entrar!</p>
                       ) : lastSeenText && (
                         <p className="text-xs text-green-500/80 mt-0.5">
