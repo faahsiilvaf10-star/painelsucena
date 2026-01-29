@@ -124,10 +124,17 @@ export const useAllUsers = () => {
       .on("presence", { event: "sync" }, () => {
         const state = presenceChannel.presenceState();
         const onlineIds = new Set<string>();
+        const onlineAtTimes = new Map<string, string>();
 
         Object.values(state).forEach((presences: any[]) => {
           presences.forEach((presence) => {
-            if (presence?.user_id) onlineIds.add(presence.user_id);
+            if (presence?.user_id) {
+              onlineIds.add(presence.user_id);
+              // Store the online_at time for each user
+              if (presence.online_at) {
+                onlineAtTimes.set(presence.user_id, presence.online_at);
+              }
+            }
           });
         });
 
@@ -148,13 +155,26 @@ export const useAllUsers = () => {
         }
 
         // Persist lastSeen using functional update to avoid stale state
+        // When a user goes offline, use their last online_at time as lastSeen
+        // Also update lastSeen for users who are currently online (for when they go offline)
         setLastSeenMap((prev) => {
           const next = new Map(prev);
+          
+          // For users who just went offline, set their lastSeen to now
           previousOnlineIds.current.forEach((id) => {
             if (!onlineIds.has(id)) {
               next.set(id, new Date().toISOString());
             }
           });
+          
+          // For users who are online, update their lastSeen to their online_at time
+          // This ensures we have a lastSeen even for users who were online before we joined
+          onlineAtTimes.forEach((onlineAt, id) => {
+            if (!next.has(id) || onlineIds.has(id)) {
+              next.set(id, onlineAt);
+            }
+          });
+          
           return next;
         });
 
