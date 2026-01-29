@@ -146,8 +146,9 @@ export const formatGabiaoForRDO = (report: GabiaoReport | null): string => {
   const lines: string[] = [];
 
   // Include the local_servico (location) at the beginning
+  // Using Unicode escape sequence for WhatsApp compatibility (📍 = \uD83D\uDCCD)
   if (report.local_servico && report.local_servico.trim()) {
-    lines.push(`📍 Local: ${report.local_servico}`);
+    lines.push(`\uD83D\uDCCD Local: ${report.local_servico}`);
     lines.push(""); // Empty line for separation
   }
 
