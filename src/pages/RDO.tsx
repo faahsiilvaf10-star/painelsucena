@@ -175,13 +175,16 @@ export default function RDO() {
     return { gabiao, jardinagem };
   }, [attendanceRecords]);
 
-  // Calculate equipment summary
+  // Calculate equipment summary (excluding maintenance)
   const equipmentSummary = useMemo(() => {
     if (!equipment) return { items: [], total: 0 };
     
+    // Filter out equipment in maintenance
+    const availableEquipment = equipment.filter((eq) => eq.stop_reason !== "maintenance");
+    
     const typeCount: Record<string, { count: number; plates: string[] }> = {};
     
-    equipment.forEach((eq) => {
+    availableEquipment.forEach((eq) => {
       const type = eq.equipment_type || "pipa";
       if (!typeCount[type]) {
         typeCount[type] = { count: 0, plates: [] };
@@ -197,7 +200,7 @@ export default function RDO() {
       plates: data.plates,
     }));
 
-    return { items, total: equipment.length };
+    return { items, total: availableEquipment.length };
   }, [equipment]);
 
   // Format date for report
