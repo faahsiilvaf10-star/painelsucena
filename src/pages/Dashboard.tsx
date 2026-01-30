@@ -113,6 +113,9 @@ const Dashboard = () => {
 
   const hasChanges = JSON.stringify(localOrder) !== JSON.stringify(dashboardOrder);
   const currentOrder = isEditMode ? localOrder : dashboardOrder;
+  
+  // Filter out birthday from sortable items - it's always at the top
+  const sortableOrder = currentOrder.filter(id => id !== "birthday");
 
   // Map dashboard item IDs to their components
   const renderDashboardItem = (id: DashboardItemId, index: number) => {
@@ -213,6 +216,10 @@ const Dashboard = () => {
         </div>
 
         {/* Render dashboard items in user's preferred order */}
+        {/* Birthday Banner - always at the top, not draggable */}
+        <BirthdayBanner />
+
+        {/* Render other dashboard items in user's preferred order */}
         {!isLoadingOrder && (
           <DndContext
             sensors={sensors}
@@ -220,11 +227,11 @@ const Dashboard = () => {
             onDragEnd={handleDragEnd}
           >
             <SortableContext
-              items={currentOrder}
+              items={sortableOrder}
               strategy={verticalListSortingStrategy}
             >
               <div className="space-y-4">
-                {currentOrder.map((id, index) => (
+                {sortableOrder.map((id, index) => (
                   <DraggableDashboardItem key={id} id={id} isEditMode={isEditMode}>
                     {renderDashboardItem(id, index)}
                   </DraggableDashboardItem>
