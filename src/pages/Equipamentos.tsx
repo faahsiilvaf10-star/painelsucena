@@ -4,7 +4,7 @@ import { EquipmentReport } from "@/components/equipamentos/EquipmentReport";
 import { PreviousDaySummary } from "@/components/equipamentos/PreviousDaySummary";
 import { ExportWeeklyHistoryButton } from "@/components/equipamentos/ExportWeeklyHistoryButton";
 import { EquipmentOperationChart } from "@/components/equipamentos/EquipmentOperationChart";
-import { Truck, Plus, Loader2, Droplets, Container, Car, StopCircle, Activity } from "lucide-react";
+import { Truck, Plus, Loader2, Droplets, Container, Car, Bus, StopCircle, Activity } from "lucide-react";
 import { useEquipment, useCreateEquipment } from "@/hooks/useEquipment";
 import { Button } from "@/components/ui/button";
 import { useState } from "react";
@@ -26,6 +26,7 @@ const equipmentTypeOptions: { value: EquipmentType; label: string; icon: React.R
   { value: "pipa", label: "Pipa", icon: <Droplets className="w-5 h-5" /> },
   { value: "munk", label: "Munk", icon: <Container className="w-5 h-5" /> },
   { value: "camionete", label: "Camionete", icon: <Car className="w-5 h-5" /> },
+  { value: "onibus", label: "Ônibus", icon: <Bus className="w-5 h-5" /> },
 ];
 
 const Equipamentos = () => {
@@ -129,7 +130,7 @@ const Equipamentos = () => {
                   {/* Equipment Type Selection */}
                   <div className="space-y-2">
                     <Label className="text-xs font-medium text-muted-foreground uppercase tracking-wide">Tipo</Label>
-                    <div className="grid grid-cols-3 gap-3">
+                    <div className="grid grid-cols-4 gap-3">
                       {equipmentTypeOptions.map((type) => (
                         <button
                           key={type.value}
