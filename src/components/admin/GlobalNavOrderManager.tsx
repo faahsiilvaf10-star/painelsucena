@@ -25,30 +25,31 @@ import { CSS } from "@dnd-kit/utilities";
 const NAV_ITEMS_MAP: Record<string, string> = {
   "atividades": "Atividades I",
   "atividades-ii": "Atividades II",
-  "metas": "Metas",
-  "destaques": "Destaques",
   "campanhas": "Campanhas",
   "dds": "DDS",
+  "destaques": "Destaques",
   "documentos": "Documentos",
+  "emergencia": "Emergência",
+  "entrada-saida": "Entrada/Saída Equipamentos",
   "equipamentos": "Equipamentos",
   "estoque": "Estoque",
+  "homologados": "Homologados",
   "lembretes": "Lembretes",
-  "presenca": "Relatório de Presença",
   "matriz": "Matriz Responsabilidade",
+  "metas": "Metas",
   "pedidos": "Pedidos",
+  "presenca": "Relatório de Presença",
   "rdo": "RDO",
   "relatorio": "Lista de Presença",
   "rh": "RH",
-  "vistorias": "Vistorias Equipamentos",
-  "homologados": "Homologados",
   "vistoria-cintas": "Vistoria Cintas",
-  "emergencia": "Emergência",
+  "vistorias": "Vistorias Equipamentos",
 };
 
 const DEFAULT_NAV_ORDER = [
-  "atividades", "atividades-ii", "metas", "destaques", "campanhas", "dds", 
-  "documentos", "equipamentos", "estoque", "lembretes", "presenca", "matriz", 
-  "pedidos", "rdo", "relatorio", "rh", "vistorias", "homologados", "vistoria-cintas", "emergencia"
+  "destaques", "atividades", "atividades-ii", "campanhas", "dds", "documentos", 
+  "entrada-saida", "equipamentos", "estoque", "homologados", "lembretes", "relatorio", 
+  "matriz", "metas", "pedidos", "rdo", "presenca", "rh", "vistoria-cintas", "vistorias", "emergencia"
 ];
 
 function SortableNavItem({ id, label }: { id: string; label: string }) {
