@@ -1,7 +1,7 @@
 import { useState } from "react";
 import { format } from "date-fns";
 import { ptBR } from "date-fns/locale";
-import { Calendar, Clock, Package, User, History, Trash2, Edit2, ImageIcon, ArrowRight, Hash, Share2 } from "lucide-react";
+import { Calendar, Clock, Package, User, History, Trash2, Edit2, ImageIcon, ArrowRight, Hash, Share2, List } from "lucide-react";
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/components/ui/dialog";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
@@ -9,7 +9,8 @@ import { Input } from "@/components/ui/input";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { Separator } from "@/components/ui/separator";
 import { ScrollArea } from "@/components/ui/scroll-area";
-import { Order, OrderStatus, QuantityUnit, useOrderHistory, useUpdateOrderStatus, useUpdateOrderQuantity, useDeleteOrder } from "@/hooks/useOrders";
+import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
+import { Order, OrderStatus, QuantityUnit, useOrderHistory, useUpdateOrderStatus, useUpdateOrderQuantity, useDeleteOrder, useOrderItems } from "@/hooks/useOrders";
 import { useAuth } from "@/hooks/useAuth";
 import { useProfile } from "@/hooks/useProfile";
 import { useToast } from "@/hooks/use-toast";
@@ -98,6 +99,7 @@ export function OrderDetailsDialog({ order, open, onOpenChange }: OrderDetailsDi
   const updateQuantity = useUpdateOrderQuantity();
   const deleteOrder = useDeleteOrder();
   const { data: history } = useOrderHistory(order?.id || "");
+  const { data: orderItems } = useOrderItems(order?.id || "");
 
   if (!order) return null;
 
@@ -225,17 +227,62 @@ export function OrderDetailsDialog({ order, open, onOpenChange }: OrderDetailsDi
                 </Badge>
               </div>
 
-              {/* Product Info */}
-              <div>
-                <h3 className={`text-xl font-bold ${isCancelled ? "line-through text-muted-foreground" : ""}`}>
-                  {order.product_name}
-                </h3>
-                {order.description && (
-                  <p className={`mt-1 ${isCancelled ? "line-through text-muted-foreground" : "text-muted-foreground"}`}>
-                    {order.description}
-                  </p>
-                )}
-              </div>
+              {/* Order Items Table */}
+              {orderItems && orderItems.length > 0 ? (
+                <div className="space-y-2">
+                  <h4 className="text-sm font-medium flex items-center gap-2">
+                    <List className="w-4 h-4" />
+                    Itens do Pedido ({orderItems.length})
+                  </h4>
+                  <div className="border rounded-lg overflow-hidden">
+                    <Table>
+                      <TableHeader>
+                        <TableRow>
+                          <TableHead className="w-[50px]">#</TableHead>
+                          <TableHead>Produto</TableHead>
+                          <TableHead className="text-right w-[100px]">Qtd</TableHead>
+                          <TableHead className="w-[120px]">Unidade</TableHead>
+                        </TableRow>
+                      </TableHeader>
+                      <TableBody>
+                        {orderItems.map((item, index) => (
+                          <TableRow key={item.id}>
+                            <TableCell className={`font-medium ${isCancelled ? "line-through text-muted-foreground" : ""}`}>
+                              {index + 1}
+                            </TableCell>
+                            <TableCell className={isCancelled ? "line-through text-muted-foreground" : ""}>
+                              <div>
+                                <span className="font-medium">{item.product_name}</span>
+                                {item.description && (
+                                  <p className="text-xs text-muted-foreground">{item.description}</p>
+                                )}
+                              </div>
+                            </TableCell>
+                            <TableCell className={`text-right font-medium ${isCancelled ? "line-through text-muted-foreground" : ""}`}>
+                              {item.quantity}
+                            </TableCell>
+                            <TableCell className={isCancelled ? "line-through text-muted-foreground" : ""}>
+                              {UNIT_LABELS[item.quantity_unit] || item.quantity_unit}
+                            </TableCell>
+                          </TableRow>
+                        ))}
+                      </TableBody>
+                    </Table>
+                  </div>
+                </div>
+              ) : (
+                /* Fallback: Show main product info for legacy orders */
+                <div>
+                  <h3 className={`text-xl font-bold ${isCancelled ? "line-through text-muted-foreground" : ""}`}>
+                    {order.product_name}
+                  </h3>
+                  {order.description && (
+                    <p className={`mt-1 ${isCancelled ? "line-through text-muted-foreground" : "text-muted-foreground"}`}>
+                      {order.description}
+                    </p>
+                  )}
+                </div>
+              )}
 
               {/* Images - Clickable */}
               {allImages.length > 0 && (
@@ -270,53 +317,55 @@ export function OrderDetailsDialog({ order, open, onOpenChange }: OrderDetailsDi
                 </div>
               )}
 
-              {/* Quantity - Editable by responsible */}
-              <div className="space-y-2">
-                <div className="flex items-center justify-between">
-                  <span className="text-sm text-muted-foreground">Quantidade</span>
-                  {canEditQuantity && !isCancelled && order.status !== "entregue" && !editingQuantity && (
-                    <Button variant="ghost" size="sm" onClick={handleStartEditQuantity}>
-                      <Edit2 className="w-3 h-3 mr-1" />
-                      Editar
-                    </Button>
+              {/* Quantity - Only show for legacy orders without items */}
+              {(!orderItems || orderItems.length === 0) && (
+                <div className="space-y-2">
+                  <div className="flex items-center justify-between">
+                    <span className="text-sm text-muted-foreground">Quantidade</span>
+                    {canEditQuantity && !isCancelled && order.status !== "entregue" && !editingQuantity && (
+                      <Button variant="ghost" size="sm" onClick={handleStartEditQuantity}>
+                        <Edit2 className="w-3 h-3 mr-1" />
+                        Editar
+                      </Button>
+                    )}
+                  </div>
+                  
+                  {editingQuantity ? (
+                    <div className="flex items-center gap-2">
+                      <Input
+                        type="number"
+                        step="0.01"
+                        min="0.01"
+                        value={newQuantity}
+                        onChange={(e) => setNewQuantity(parseFloat(e.target.value))}
+                        className="w-24"
+                      />
+                      <Select value={newUnit} onValueChange={(v) => setNewUnit(v as QuantityUnit)}>
+                        <SelectTrigger className="w-40">
+                          <SelectValue />
+                        </SelectTrigger>
+                        <SelectContent>
+                          {UNIT_OPTIONS.map((opt) => (
+                            <SelectItem key={opt.value} value={opt.value}>
+                              {opt.label}
+                            </SelectItem>
+                          ))}
+                        </SelectContent>
+                      </Select>
+                      <Button size="sm" onClick={handleSaveQuantity} disabled={updateQuantity.isPending}>
+                        Salvar
+                      </Button>
+                      <Button size="sm" variant="ghost" onClick={() => setEditingQuantity(false)}>
+                        Cancelar
+                      </Button>
+                    </div>
+                  ) : (
+                    <p className={`font-medium ${isCancelled ? "line-through text-muted-foreground" : ""}`}>
+                      {order.quantity} {UNIT_LABELS[order.quantity_unit]}
+                    </p>
                   )}
                 </div>
-                
-                {editingQuantity ? (
-                  <div className="flex items-center gap-2">
-                    <Input
-                      type="number"
-                      step="0.01"
-                      min="0.01"
-                      value={newQuantity}
-                      onChange={(e) => setNewQuantity(parseFloat(e.target.value))}
-                      className="w-24"
-                    />
-                    <Select value={newUnit} onValueChange={(v) => setNewUnit(v as QuantityUnit)}>
-                      <SelectTrigger className="w-40">
-                        <SelectValue />
-                      </SelectTrigger>
-                      <SelectContent>
-                        {UNIT_OPTIONS.map((opt) => (
-                          <SelectItem key={opt.value} value={opt.value}>
-                            {opt.label}
-                          </SelectItem>
-                        ))}
-                      </SelectContent>
-                    </Select>
-                    <Button size="sm" onClick={handleSaveQuantity} disabled={updateQuantity.isPending}>
-                      Salvar
-                    </Button>
-                    <Button size="sm" variant="ghost" onClick={() => setEditingQuantity(false)}>
-                      Cancelar
-                    </Button>
-                  </div>
-                ) : (
-                  <p className={`font-medium ${isCancelled ? "line-through text-muted-foreground" : ""}`}>
-                    {order.quantity} {UNIT_LABELS[order.quantity_unit]}
-                  </p>
-                )}
-              </div>
+              )}
 
               {/* Details Grid */}
               <div className="grid grid-cols-2 gap-4 text-sm">

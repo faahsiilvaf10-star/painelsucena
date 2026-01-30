@@ -1046,6 +1046,44 @@ export type Database = {
           },
         ]
       }
+      order_items: {
+        Row: {
+          created_at: string
+          description: string | null
+          id: string
+          order_id: string
+          product_name: string
+          quantity: number
+          quantity_unit: Database["public"]["Enums"]["quantity_unit"]
+        }
+        Insert: {
+          created_at?: string
+          description?: string | null
+          id?: string
+          order_id: string
+          product_name: string
+          quantity: number
+          quantity_unit?: Database["public"]["Enums"]["quantity_unit"]
+        }
+        Update: {
+          created_at?: string
+          description?: string | null
+          id?: string
+          order_id?: string
+          product_name?: string
+          quantity?: number
+          quantity_unit?: Database["public"]["Enums"]["quantity_unit"]
+        }
+        Relationships: [
+          {
+            foreignKeyName: "order_items_order_id_fkey"
+            columns: ["order_id"]
+            isOneToOne: false
+            referencedRelation: "orders"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       orders: {
         Row: {
           ai_generated_image_url: string | null
