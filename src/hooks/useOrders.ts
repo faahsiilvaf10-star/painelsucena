@@ -149,6 +149,32 @@ export const useOrderItems = (orderId: string) => {
   });
 };
 
+export const useProductSuggestions = () => {
+  return useQuery({
+    queryKey: ["product-suggestions"],
+    queryFn: async () => {
+      const { data, error } = await supabase
+        .from("order_items")
+        .select("product_name")
+        .order("created_at", { ascending: false });
+
+      if (error) throw error;
+
+      // Get unique product names (case-insensitive)
+      const uniqueProducts = new Map<string, string>();
+      data.forEach((item) => {
+        const key = item.product_name.toLowerCase();
+        if (!uniqueProducts.has(key)) {
+          uniqueProducts.set(key, item.product_name);
+        }
+      });
+
+      return Array.from(uniqueProducts.values());
+    },
+    staleTime: 5 * 60 * 1000, // Cache for 5 minutes
+  });
+};
+
 export const useCreateOrder = () => {
   const queryClient = useQueryClient();
   const { user } = useAuth();

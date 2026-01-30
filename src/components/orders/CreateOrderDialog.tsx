@@ -3,9 +3,9 @@ import { format } from "date-fns";
 import { ptBR } from "date-fns/locale";
 import { CalendarIcon, ImagePlus, Loader2, Sparkles, Upload, X, Plus, Trash2 } from "lucide-react";
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/components/ui/dialog";
-import { Input } from "@/components/ui/input";
 import { Textarea } from "@/components/ui/textarea";
 import { Button } from "@/components/ui/button";
+import { Input } from "@/components/ui/input";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { Calendar } from "@/components/ui/calendar";
 import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover";
@@ -13,10 +13,11 @@ import { Label } from "@/components/ui/label";
 import { Card, CardContent } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { Separator } from "@/components/ui/separator";
-import { useCreateOrder, uploadOrderPhoto, QuantityUnit, OrderItemInput } from "@/hooks/useOrders";
+import { useCreateOrder, uploadOrderPhoto, QuantityUnit, OrderItemInput, useProductSuggestions } from "@/hooks/useOrders";
 import { useToast } from "@/hooks/use-toast";
 import { supabase } from "@/integrations/supabase/client";
 import { cn } from "@/lib/utils";
+import { ProductAutocomplete } from "./ProductAutocomplete";
 
 interface CreateOrderDialogProps {
   open: boolean;
@@ -71,6 +72,7 @@ export function CreateOrderDialog({ open, onOpenChange }: CreateOrderDialogProps
   const [isGeneratingAI, setIsGeneratingAI] = useState(false);
   const { toast } = useToast();
   const createOrder = useCreateOrder();
+  const { data: productSuggestions = [] } = useProductSuggestions();
 
   const handlePhotoUpload = async (e: React.ChangeEvent<HTMLInputElement>) => {
     const files = e.target.files;
@@ -276,10 +278,11 @@ export function CreateOrderDialog({ open, onOpenChange }: CreateOrderDialogProps
             <div className="space-y-3">
               <div>
                 <Label className="text-sm">Nome do Produto *</Label>
-                <Input
-                  placeholder="Ex: Parafusos Phillips 6mm"
+                <ProductAutocomplete
                   value={currentItem.product_name}
-                  onChange={(e) => setCurrentItem({ ...currentItem, product_name: e.target.value })}
+                  onChange={(value) => setCurrentItem({ ...currentItem, product_name: value })}
+                  suggestions={productSuggestions}
+                  placeholder="Ex: Parafusos Phillips 6mm"
                 />
               </div>
 
