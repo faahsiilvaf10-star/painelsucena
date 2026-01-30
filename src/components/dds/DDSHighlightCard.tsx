@@ -13,6 +13,7 @@ import { supabase } from "@/integrations/supabase/client";
 import { toast } from "sonner";
 import { getBrazilNorthDate } from "@/lib/timezone";
 import { formatCargoLabel } from "@/lib/cargoUtils";
+import { useDDSMidnightRefresh } from "@/hooks/useMidnightRefresh";
 
 export const DDSHighlightCard = () => {
   const { data: todayDDS, isLoading: loadingToday } = useTodayDDS();
@@ -20,6 +21,9 @@ export const DDSHighlightCard = () => {
   const { data: profile } = useProfile();
   const { isAdmin } = useIsAdmin();
   const updatePhoto = useUpdateDDSPhoto();
+
+  // Hook to refresh DDS data at midnight (00:00 Pará time)
+  useDDSMidnightRefresh();
 
   const [isUploading, setIsUploading] = useState(false);
   const fileInputRef = useRef<HTMLInputElement>(null);
