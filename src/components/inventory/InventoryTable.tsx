@@ -1,6 +1,5 @@
 import { useState } from "react";
 import { format } from "date-fns";
-import { ptBR } from "date-fns/locale";
 import { 
   Package, 
   AlertTriangle, 
@@ -42,6 +41,7 @@ import {
 import { InventoryItem, useDeleteItem } from "@/hooks/useInventory";
 import { MovementDialog } from "./MovementDialog";
 import { MovementHistoryDialog } from "./MovementHistoryDialog";
+import { useInventoryPermissions } from "@/hooks/useInventoryPermissions";
 
 interface InventoryTableProps {
   items: InventoryItem[];
@@ -62,7 +62,7 @@ export function InventoryTable({ items, onEdit }: InventoryTableProps) {
   const [historyItem, setHistoryItem] = useState<InventoryItem | null>(null);
   const [deleteItem, setDeleteItem] = useState<InventoryItem | null>(null);
   const deleteItemMutation = useDeleteItem();
-
+  const { canEditInventory } = useInventoryPermissions();
   const handleDelete = async () => {
     if (deleteItem) {
       await deleteItemMutation.mutateAsync(deleteItem.id);
@@ -179,28 +179,34 @@ export function InventoryTable({ items, onEdit }: InventoryTableProps) {
                         </Button>
                       </DropdownMenuTrigger>
                       <DropdownMenuContent align="end">
-                        <DropdownMenuItem onClick={() => setMovementItem(item)}>
-                          <ArrowRightLeft className="h-4 w-4 mr-2" />
-                          Movimentar
-                        </DropdownMenuItem>
+                        {canEditInventory && (
+                          <DropdownMenuItem onClick={() => setMovementItem(item)}>
+                            <ArrowRightLeft className="h-4 w-4 mr-2" />
+                            Movimentar
+                          </DropdownMenuItem>
+                        )}
                         <DropdownMenuItem onClick={() => setHistoryItem(item)}>
                           <History className="h-4 w-4 mr-2" />
                           Histórico
                         </DropdownMenuItem>
-                        <DropdownMenuSeparator />
-                        {onEdit && (
-                          <DropdownMenuItem onClick={() => onEdit(item)}>
-                            <Edit className="h-4 w-4 mr-2" />
-                            Editar
-                          </DropdownMenuItem>
+                        {canEditInventory && (
+                          <>
+                            <DropdownMenuSeparator />
+                            {onEdit && (
+                              <DropdownMenuItem onClick={() => onEdit(item)}>
+                                <Edit className="h-4 w-4 mr-2" />
+                                Editar
+                              </DropdownMenuItem>
+                            )}
+                            <DropdownMenuItem
+                              onClick={() => setDeleteItem(item)}
+                              className="text-destructive"
+                            >
+                              <Trash2 className="h-4 w-4 mr-2" />
+                              Excluir
+                            </DropdownMenuItem>
+                          </>
                         )}
-                        <DropdownMenuItem
-                          onClick={() => setDeleteItem(item)}
-                          className="text-destructive"
-                        >
-                          <Trash2 className="h-4 w-4 mr-2" />
-                          Excluir
-                        </DropdownMenuItem>
                       </DropdownMenuContent>
                     </DropdownMenu>
                   </TableCell>

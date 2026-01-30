@@ -29,6 +29,7 @@ import {
   SelectValue,
 } from "@/components/ui/select";
 import { useCreateItem, useStorageLocations } from "@/hooks/useInventory";
+import { useInventoryPermissions } from "@/hooks/useInventoryPermissions";
 
 const formSchema = z.object({
   name: z.string().min(1, "Nome é obrigatório"),
@@ -67,6 +68,11 @@ export function AddItemDialog() {
   const [open, setOpen] = useState(false);
   const { data: locations } = useStorageLocations();
   const createItem = useCreateItem();
+  const { canEditInventory } = useInventoryPermissions();
+
+  if (!canEditInventory) {
+    return null;
+  }
 
   const form = useForm<FormData>({
     resolver: zodResolver(formSchema),
