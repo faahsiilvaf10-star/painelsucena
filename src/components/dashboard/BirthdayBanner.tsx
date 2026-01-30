@@ -55,13 +55,113 @@ const BirthdayBanner = () => {
     return null;
   }
 
+  // Firework particles for animation
+  const fireworkColors = [
+    "bg-yellow-400", "bg-orange-400", "bg-pink-400", "bg-red-400", 
+    "bg-purple-400", "bg-blue-400", "bg-green-400", "bg-amber-400"
+  ];
+
   return (
     <div className="space-y-4">
       {/* Today's birthdays */}
       {todayBirthdays.length > 0 && (
-        <Card className="border-2 border-yellow-400/50 bg-gradient-to-r from-yellow-50/50 to-orange-50/50 dark:from-yellow-950/20 dark:to-orange-950/20 overflow-hidden">
+        <Card className="relative border-2 border-yellow-400/50 bg-gradient-to-r from-yellow-50/50 to-orange-50/50 dark:from-yellow-950/20 dark:to-orange-950/20 overflow-hidden">
+          {/* Fireworks animation container */}
+          <div className="absolute inset-0 overflow-hidden pointer-events-none">
+            {/* Multiple firework bursts */}
+            {[...Array(8)].map((_, i) => (
+              <div 
+                key={i}
+                className="absolute"
+                style={{
+                  left: `${10 + (i * 12)}%`,
+                  bottom: '0%',
+                  animationDelay: `${i * 0.4}s`
+                }}
+              >
+                {/* Rising trail */}
+                <div 
+                  className={`w-1 h-1 rounded-full ${fireworkColors[i % fireworkColors.length]} opacity-80`}
+                  style={{
+                    animation: `firework-rise 2s ease-out infinite`,
+                    animationDelay: `${i * 0.4}s`
+                  }}
+                />
+                {/* Explosion particles */}
+                {[...Array(8)].map((_, j) => (
+                  <div
+                    key={j}
+                    className={`absolute w-1.5 h-1.5 rounded-full ${fireworkColors[(i + j) % fireworkColors.length]}`}
+                    style={{
+                      animation: `firework-burst 2s ease-out infinite`,
+                      animationDelay: `${i * 0.4 + 0.8}s`,
+                      transform: `rotate(${j * 45}deg) translateY(-20px)`
+                    }}
+                  />
+                ))}
+              </div>
+            ))}
+            
+            {/* Sparkle effects */}
+            {[...Array(15)].map((_, i) => (
+              <div
+                key={`sparkle-${i}`}
+                className={`absolute w-1 h-1 rounded-full ${fireworkColors[i % fireworkColors.length]}`}
+                style={{
+                  left: `${Math.random() * 100}%`,
+                  top: `${Math.random() * 100}%`,
+                  animation: `sparkle 1.5s ease-in-out infinite`,
+                  animationDelay: `${Math.random() * 2}s`
+                }}
+              />
+            ))}
+          </div>
+
+          <style>{`
+            @keyframes firework-rise {
+              0% {
+                transform: translateY(0);
+                opacity: 1;
+              }
+              40% {
+                transform: translateY(-60px);
+                opacity: 1;
+              }
+              50%, 100% {
+                transform: translateY(-60px);
+                opacity: 0;
+              }
+            }
+            
+            @keyframes firework-burst {
+              0%, 40% {
+                transform: scale(0);
+                opacity: 0;
+              }
+              50% {
+                transform: scale(1);
+                opacity: 1;
+              }
+              100% {
+                transform: scale(2) translateY(-30px);
+                opacity: 0;
+              }
+            }
+            
+            @keyframes sparkle {
+              0%, 100% {
+                transform: scale(0);
+                opacity: 0;
+              }
+              50% {
+                transform: scale(1);
+                opacity: 1;
+              }
+            }
+          `}</style>
+
           <div className="absolute top-0 left-0 w-full h-1 bg-gradient-to-r from-yellow-400 via-orange-400 to-pink-400" />
-          <CardHeader className="pb-2">
+          <CardHeader className="pb-2 relative z-10">
             <CardTitle className="flex items-center gap-2 text-lg">
               <div className="p-2 bg-yellow-400/20 rounded-full">
                 <Cake className="w-5 h-5 text-yellow-600 dark:text-yellow-400" />
@@ -70,7 +170,7 @@ const BirthdayBanner = () => {
               <PartyPopper className="w-5 h-5 text-pink-500 animate-bounce" />
             </CardTitle>
           </CardHeader>
-          <CardContent>
+          <CardContent className="relative z-10">
             <div className="flex flex-wrap gap-3">
               {todayBirthdays.map((person) => (
                 <div
