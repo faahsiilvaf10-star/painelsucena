@@ -18,6 +18,7 @@ import OvertimeHistoryDialog from "@/components/hora-extra/OvertimeHistoryDialog
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
 import { Badge } from "@/components/ui/badge";
 import { Skeleton } from "@/components/ui/skeleton";
+import { useIsAdmin } from "@/hooks/useUserRole";
 
 interface OvertimeRecord {
   id: string;
@@ -29,12 +30,18 @@ interface OvertimeRecord {
 const HoraExtra = () => {
   const { data: profile } = useProfile();
   const { user } = useAuth();
+  const { isAdmin } = useIsAdmin();
   const createRecords = useCreateOvertimeRecords();
   const deleteRecord = useDeleteOvertimeRecord();
   const { data: savedRecords, isLoading: isLoadingRecords } = useOvertimeRecords();
   const [records, setRecords] = useState<OvertimeRecord[]>([
     { id: crypto.randomUUID(), date: undefined, entryTime: "", exitTime: "" }
   ]);
+
+  // Check if user can delete a specific record (only own records or admin)
+  const canDeleteRecord = (recordUserId: string) => {
+    return user?.id === recordUserId || isAdmin;
+  };
 
   const addRecord = () => {
     setRecords([
@@ -367,15 +374,17 @@ const HoraExtra = () => {
                           )}
                         </TableCell>
                         <TableCell>
-                          <Button
-                            variant="ghost"
-                            size="icon"
-                            onClick={() => deleteRecord.mutate(record.id)}
-                            disabled={deleteRecord.isPending}
-                            className="h-8 w-8 text-destructive hover:text-destructive"
-                          >
-                            <Trash2 className="h-4 w-4" />
-                          </Button>
+                          {canDeleteRecord(record.user_id) && (
+                            <Button
+                              variant="ghost"
+                              size="icon"
+                              onClick={() => deleteRecord.mutate(record.id)}
+                              disabled={deleteRecord.isPending}
+                              className="h-8 w-8 text-destructive hover:text-destructive"
+                            >
+                              <Trash2 className="h-4 w-4" />
+                            </Button>
+                          )}
                         </TableCell>
                       </TableRow>
                     ))}
