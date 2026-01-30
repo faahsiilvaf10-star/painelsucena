@@ -1,9 +1,10 @@
 import { format } from "date-fns";
 import { ptBR } from "date-fns/locale";
-import { Package, Calendar, User, Clock, ChevronRight, Hash } from "lucide-react";
+import { Package, Calendar, User, Clock, ChevronRight, Hash, Forward } from "lucide-react";
 import { Card, CardContent } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { Order, OrderStatus } from "@/hooks/useOrders";
+import { formatCargoLabel } from "@/lib/cargoUtils";
 
 interface OrderCardProps {
   order: Order;
@@ -78,7 +79,7 @@ export function OrderCard({ order, onClick }: OrderCardProps) {
               <Badge variant={statusConfig.variant}>{statusConfig.label}</Badge>
             </div>
 
-            <div className="flex items-center gap-4 mt-2 text-xs text-muted-foreground">
+            <div className="flex flex-wrap items-center gap-x-4 gap-y-1 mt-2 text-xs text-muted-foreground">
               <span className="flex items-center gap-1">
                 <User className="w-3 h-3" />
                 {order.requester_name}
@@ -91,6 +92,16 @@ export function OrderCard({ order, onClick }: OrderCardProps) {
                 <span className="flex items-center gap-1">
                   <Clock className="w-3 h-3" />
                   Prev: {format(new Date(order.expected_date), "dd/MM", { locale: ptBR })}
+                </span>
+              )}
+              {(order.mentioned_user_name || order.mentioned_cargo) && (
+                <span className="flex items-center gap-1 text-primary">
+                  <Forward className="w-3 h-3" />
+                  {order.mentioned_user_name 
+                    ? order.mentioned_user_name 
+                    : order.mentioned_cargo 
+                      ? formatCargoLabel(order.mentioned_cargo) 
+                      : null}
                 </span>
               )}
             </div>
