@@ -17,3 +17,6 @@ verify_jwt = false
 
 [functions.generate-product-images]
 verify_jwt = false
+
+[functions.calculate-overtime-summary]
+verify_jwt = false
