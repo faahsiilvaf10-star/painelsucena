@@ -7,10 +7,14 @@ import { useTomorrowDDS } from "@/hooks/useDDSSchedule";
 import { format, addDays } from "date-fns";
 import { ptBR } from "date-fns/locale";
 import { getBrazilNorthDate, getBrazilNorthTomorrowString } from "@/lib/timezone";
+import { useDDSMidnightRefresh } from "@/hooks/useMidnightRefresh";
 
 export const DDSNotificationBanner = () => {
   const [isDismissed, setIsDismissed] = useState(false);
   const { data: tomorrowDDS, isLoading } = useTomorrowDDS();
+
+  // Hook to refresh DDS data at midnight (00:00 Pará time)
+  useDDSMidnightRefresh();
 
   // Use Brazil North timezone
   const tomorrowDate = addDays(getBrazilNorthDate(), 1);

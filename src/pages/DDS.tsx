@@ -34,6 +34,7 @@ import { supabase } from "@/integrations/supabase/client";
 import { getBrazilNorthTodayString } from "@/lib/timezone";
 import { DDSThemesCard } from "@/components/dds/DDSThemesCard";
 import { formatCargoLabel } from "@/lib/cargoUtils";
+import { useDDSMidnightRefresh } from "@/hooks/useMidnightRefresh";
 
 const dayNames = ["Dom", "Seg", "Ter", "Qua", "Qui", "Sex", "Sáb"];
 
@@ -58,6 +59,9 @@ export default function DDS() {
   const deleteSchedule = useDeleteDDSSchedule();
   const clearMonth = useClearMonthDDS();
   const createNotification = useCreateNotification();
+
+  // Hook to refresh DDS data at midnight (00:00 Pará time)
+  useDDSMidnightRefresh();
 
   // Edit modal state
   const [editingItem, setEditingItem] = useState<DDSScheduleItem | null>(null);
