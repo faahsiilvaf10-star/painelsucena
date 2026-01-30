@@ -44,6 +44,14 @@ const FAIXA_OPTIONS = [
   { value: "FAIXA 4", label: "FAIXA 4" },
 ];
 
+// Invasoras options
+const INVASORAS_OPTIONS = [
+  { value: "Acácia", label: "Acácia" },
+  { value: "Erva-de-passarinho", label: "Erva-de-passarinho" },
+  { value: "Juqueri", label: "Juqueri" },
+  { value: "Leucena", label: "Leucena" },
+];
+
 // Generate berma options from 28 to 56 + Mirante
 const BERMA_OPTIONS = [
   ...Array.from({ length: 29 }, (_, i) => ({
@@ -1021,12 +1029,21 @@ export default function Atividades() {
                   <div key={index} className="grid grid-cols-1 md:grid-cols-[1fr_120px_auto] gap-2 items-end p-3 rounded-lg bg-background/50">
                     <div className="space-y-1">
                       <Label className="text-xs text-muted-foreground">Nome da Invasora</Label>
-                      <Input
-                        type="text"
-                        value={invasora.nome}
-                        onChange={(e) => updateInvasora(index, "nome", e.target.value)}
-                        placeholder="Ex: Capim-colonião, Braquiária..."
-                      />
+                      <Select 
+                        value={invasora.nome} 
+                        onValueChange={(value) => updateInvasora(index, "nome", value)}
+                      >
+                        <SelectTrigger>
+                          <SelectValue placeholder="Selecione a invasora" />
+                        </SelectTrigger>
+                        <SelectContent>
+                          {INVASORAS_OPTIONS.map((opt) => (
+                            <SelectItem key={opt.value} value={opt.value}>
+                              {opt.label}
+                            </SelectItem>
+                          ))}
+                        </SelectContent>
+                      </Select>
                     </div>
                     <div className="space-y-1">
                       <Label className="text-xs text-muted-foreground">Unidade</Label>
