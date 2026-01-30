@@ -68,11 +68,7 @@ export function AddItemDialog() {
   const [open, setOpen] = useState(false);
   const { data: locations } = useStorageLocations();
   const createItem = useCreateItem();
-  const { canEditInventory } = useInventoryPermissions();
-
-  if (!canEditInventory) {
-    return null;
-  }
+  const { canEditInventory, isLoading } = useInventoryPermissions();
 
   const form = useForm<FormData>({
     resolver: zodResolver(formSchema),
@@ -88,6 +84,11 @@ export function AddItemDialog() {
       notes: "",
     },
   });
+
+  // Return null AFTER all hooks are called
+  if (isLoading || !canEditInventory) {
+    return null;
+  }
 
   const onSubmit = async (data: FormData) => {
     await createItem.mutateAsync({
