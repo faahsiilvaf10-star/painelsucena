@@ -1144,6 +1144,45 @@ export type Database = {
         }
         Relationships: []
       }
+      overtime_records: {
+        Row: {
+          cargo: string
+          created_at: string
+          entry_time: string
+          exit_time: string
+          id: string
+          is_overtime: boolean
+          record_date: string
+          updated_at: string
+          user_id: string
+          user_name: string
+        }
+        Insert: {
+          cargo: string
+          created_at?: string
+          entry_time: string
+          exit_time: string
+          id?: string
+          is_overtime?: boolean
+          record_date: string
+          updated_at?: string
+          user_id: string
+          user_name: string
+        }
+        Update: {
+          cargo?: string
+          created_at?: string
+          entry_time?: string
+          exit_time?: string
+          id?: string
+          is_overtime?: boolean
+          record_date?: string
+          updated_at?: string
+          user_id?: string
+          user_name?: string
+        }
+        Relationships: []
+      }
       product_images: {
         Row: {
           created_at: string

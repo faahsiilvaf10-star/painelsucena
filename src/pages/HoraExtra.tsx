@@ -1,5 +1,5 @@
 import { useState } from "react";
-import { format, getDay, parseISO } from "date-fns";
+import { format, getDay } from "date-fns";
 import { ptBR } from "date-fns/locale";
 import { Calendar, Clock, Save, Send, Plus, Trash2 } from "lucide-react";
 import Layout from "@/components/layout/Layout";
@@ -12,6 +12,9 @@ import { Calendar as CalendarComponent } from "@/components/ui/calendar";
 import { toast } from "sonner";
 import { cn } from "@/lib/utils";
 import { useProfile } from "@/hooks/useProfile";
+import { useAuth } from "@/hooks/useAuth";
+import { useCreateOvertimeRecords } from "@/hooks/useOvertimeRecords";
+import OvertimeHistoryDialog from "@/components/hora-extra/OvertimeHistoryDialog";
 
 interface OvertimeRecord {
   id: string;
@@ -22,6 +25,8 @@ interface OvertimeRecord {
 
 const HoraExtra = () => {
   const { data: profile } = useProfile();
+  const { user } = useAuth();
+  const createRecords = useCreateOvertimeRecords();
   const [records, setRecords] = useState<OvertimeRecord[]>([
     { id: crypto.randomUUID(), date: undefined, entryTime: "", exitTime: "" }
   ]);
@@ -95,7 +100,7 @@ const HoraExtra = () => {
     return message;
   };
 
-  const handleSave = () => {
+  const handleSave = async () => {
     const validRecords = records.filter(r => r.date && r.entryTime && r.exitTime);
     
     if (validRecords.length === 0) {
@@ -103,8 +108,27 @@ const HoraExtra = () => {
       return;
     }
 
-    // Here you would typically save to database
-    toast.success(`${validRecords.length} registro(s) salvo(s) com sucesso!`);
+    if (!user || !profile) {
+      toast.error("Você precisa estar logado para salvar registros");
+      return;
+    }
+
+    const recordsToSave = validRecords.map(record => ({
+      user_id: user.id,
+      user_name: profile.full_name,
+      cargo: profile.cargo,
+      record_date: format(record.date!, "yyyy-MM-dd"),
+      entry_time: record.entryTime,
+      exit_time: record.exitTime,
+      is_overtime: isOvertimeTime(record.date, record.exitTime),
+    }));
+
+    createRecords.mutate(recordsToSave, {
+      onSuccess: () => {
+        // Reset form after save
+        setRecords([{ id: crypto.randomUUID(), date: undefined, entryTime: "", exitTime: "" }]);
+      },
+    });
   };
 
   const handleSendWhatsApp = () => {
@@ -123,11 +147,14 @@ const HoraExtra = () => {
   return (
     <Layout>
       <div className="space-y-6">
-        <div>
-          <h1 className="text-2xl font-bold text-foreground">Hora Extra</h1>
-          <p className="text-muted-foreground">
-            Registre suas horas extras trabalhadas
-          </p>
+        <div className="flex items-center justify-between">
+          <div>
+            <h1 className="text-2xl font-bold text-foreground">Hora Extra</h1>
+            <p className="text-muted-foreground">
+              Registre suas horas extras trabalhadas
+            </p>
+          </div>
+          <OvertimeHistoryDialog />
         </div>
 
         <Card>
@@ -259,9 +286,13 @@ const HoraExtra = () => {
 
             {/* Action Buttons */}
             <div className="flex flex-col sm:flex-row gap-3 pt-4 border-t">
-              <Button onClick={handleSave} className="flex-1">
+              <Button 
+                onClick={handleSave} 
+                className="flex-1"
+                disabled={createRecords.isPending}
+              >
                 <Save className="h-4 w-4 mr-2" />
-                Salvar Registros
+                {createRecords.isPending ? "Salvando..." : "Salvar Registros"}
               </Button>
               <Button 
                 onClick={handleSendWhatsApp} 
