@@ -1,6 +1,7 @@
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import { supabase } from "@/integrations/supabase/client";
 import { useAuth } from "./useAuth";
+import { useIsAdmin } from "./useUserRole";
 
 export type AreaType = "gabiao" | "jardinagem";
 
@@ -14,6 +15,7 @@ export interface AreaLockData {
 
 export const useReportLock = (date: string) => {
   const { user } = useAuth();
+  const { isAdmin } = useIsAdmin();
   const queryClient = useQueryClient();
 
   // Check if reports are locked for this date (both areas)
@@ -36,9 +38,11 @@ export const useReportLock = (date: string) => {
     return lockData.some(lock => lock.area === area);
   };
 
-  // Check if user can unlock specific area
+  // Check if user can unlock specific area (owner or admin)
   const canUnlockArea = (area: AreaType) => {
     if (!lockData || !user) return false;
+    // Admins can unlock any area
+    if (isAdmin) return true;
     const areaLock = lockData.find(lock => lock.area === area);
     return areaLock?.locked_by === user.id;
   };
@@ -73,19 +77,31 @@ export const useReportLock = (date: string) => {
     },
   });
 
-  // Unlock specific area (only by the person who locked it or admin)
+  // Unlock specific area (by the person who locked it OR admin)
   const unlockArea = useMutation({
     mutationFn: async (area: AreaType) => {
       if (!user) throw new Error("User not authenticated");
 
-      const { error } = await supabase
-        .from("attendance_report_locks")
-        .delete()
-        .eq("date", date)
-        .eq("area", area)
-        .eq("locked_by", user.id);
+      // If admin, delete regardless of who locked it
+      if (isAdmin) {
+        const { error } = await supabase
+          .from("attendance_report_locks")
+          .delete()
+          .eq("date", date)
+          .eq("area", area);
 
-      if (error) throw error;
+        if (error) throw error;
+      } else {
+        // Regular user can only unlock their own locks
+        const { error } = await supabase
+          .from("attendance_report_locks")
+          .delete()
+          .eq("date", date)
+          .eq("area", area)
+          .eq("locked_by", user.id);
+
+        if (error) throw error;
+      }
     },
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ["report_lock", date] });
@@ -107,5 +123,6 @@ export const useReportLock = (date: string) => {
     getAreaLockData,
     lockArea,
     unlockArea,
+    isAdmin,
   };
 };
