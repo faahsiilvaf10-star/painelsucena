@@ -45,16 +45,28 @@ const HoraExtra = () => {
     ));
   };
 
-  // Check if time is after 17:00 on Monday-Thursday (isOvertime)
+  // Check if time is overtime:
+  // - Monday to Thursday: after 17:00
+  // - Friday: after 16:00
+  // - Saturday and Sunday: any time
   const isOvertimeTime = (date: Date | undefined, time: string): boolean => {
     if (!date || !time) return false;
     
     const dayOfWeek = getDay(date); // 0 = Sunday, 1 = Monday, ..., 6 = Saturday
-    const isWeekday = dayOfWeek >= 1 && dayOfWeek <= 4; // Monday to Thursday
     
-    if (!isWeekday) return false;
+    // Saturday (6) or Sunday (0) - any time is overtime
+    if (dayOfWeek === 0 || dayOfWeek === 6) {
+      return true;
+    }
     
     const [hours] = time.split(":").map(Number);
+    
+    // Friday (5) - after 16:00
+    if (dayOfWeek === 5) {
+      return hours >= 16;
+    }
+    
+    // Monday to Thursday (1-4) - after 17:00
     return hours >= 17;
   };
 
@@ -125,7 +137,7 @@ const HoraExtra = () => {
               Registros de Hora Extra
             </CardTitle>
             <CardDescription>
-              Horários após 17:00 de segunda a quinta-feira são destacados como hora extra
+              Segunda a quinta após 17h, sexta após 16h, e finais de semana são destacados como hora extra
             </CardDescription>
           </CardHeader>
           <CardContent className="space-y-6">
