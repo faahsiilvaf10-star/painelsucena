@@ -248,7 +248,6 @@ const SavedRecordsCard = ({
             variant="outline"
             size="sm"
             onClick={handleExportPdf}
-            disabled={!periodRecords.length}
             className="flex items-center gap-2"
           >
             <FileText className="h-4 w-4" />
