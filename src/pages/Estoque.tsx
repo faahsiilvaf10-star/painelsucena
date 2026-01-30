@@ -13,8 +13,9 @@ import {
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { AddItemDialog } from "@/components/inventory/AddItemDialog";
 import { InventoryTable } from "@/components/inventory/InventoryTable";
+import { EditItemDialog } from "@/components/inventory/EditItemDialog";
 import { ExportInventoryButton } from "@/components/inventory/ExportInventoryButton";
-import { useInventoryItems, useStorageLocations } from "@/hooks/useInventory";
+import { useInventoryItems, useStorageLocations, InventoryItem } from "@/hooks/useInventory";
 
 const CATEGORIES = [
   { value: "all", label: "Todas Categorias" },
@@ -32,6 +33,7 @@ export default function Estoque() {
   const [searchQuery, setSearchQuery] = useState("");
   const [categoryFilter, setCategoryFilter] = useState("all");
   const [locationFilter, setLocationFilter] = useState("all");
+  const [editItem, setEditItem] = useState<InventoryItem | null>(null);
 
   const filteredItems = useMemo(() => {
     if (!items) return [];
@@ -192,7 +194,7 @@ export default function Estoque() {
                 </CardContent>
               </Card>
             ) : (
-              <InventoryTable items={filteredItems} />
+              <InventoryTable items={filteredItems} onEdit={setEditItem} />
             )}
           </TabsContent>
 
@@ -212,7 +214,7 @@ export default function Estoque() {
                   )}
                 </CardHeader>
                 <CardContent>
-                  <InventoryTable items={itemsByLocation[location.id] || []} />
+                  <InventoryTable items={itemsByLocation[location.id] || []} onEdit={setEditItem} />
                 </CardContent>
               </Card>
             ))}
@@ -229,12 +231,18 @@ export default function Estoque() {
                   </CardTitle>
                 </CardHeader>
                 <CardContent>
-                  <InventoryTable items={itemsByLocation["sem-local"]} />
+                  <InventoryTable items={itemsByLocation["sem-local"]} onEdit={setEditItem} />
                 </CardContent>
               </Card>
             )}
           </TabsContent>
         </Tabs>
+
+        <EditItemDialog
+          item={editItem}
+          open={!!editItem}
+          onOpenChange={(open) => !open && setEditItem(null)}
+        />
       </div>
     </Layout>
   );
