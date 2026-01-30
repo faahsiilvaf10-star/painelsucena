@@ -1,7 +1,7 @@
-import { useState } from "react";
+import { useState, useMemo } from "react";
 import { format, getDay } from "date-fns";
 import { ptBR } from "date-fns/locale";
-import { Calendar, Clock, Save, Send, Plus, Trash2, Calculator, RefreshCw } from "lucide-react";
+import { Calendar, Clock, Save, Send, Plus, Trash2, Calculator, RefreshCw, FileText } from "lucide-react";
 import Layout from "@/components/layout/Layout";
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
@@ -15,12 +15,15 @@ import { useProfile } from "@/hooks/useProfile";
 import { useAuth } from "@/hooks/useAuth";
 import { useCreateOvertimeRecords, useOvertimeRecords, useDeleteOvertimeRecord } from "@/hooks/useOvertimeRecords";
 import OvertimeHistoryDialog from "@/components/hora-extra/OvertimeHistoryDialog";
+import SavedRecordsCard from "@/components/hora-extra/SavedRecordsCard";
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
 import { Badge } from "@/components/ui/badge";
 import { Skeleton } from "@/components/ui/skeleton";
 import { useIsAdmin } from "@/hooks/useUserRole";
 import { useCurrentPeriodSummaries, useCalculateOvertimeSummary } from "@/hooks/useOvertimeSummaries";
 import { useQueryClient } from "@tanstack/react-query";
+import { getLogoBase64 } from "@/lib/pdfLogo";
+import { formatCargoLabel } from "@/lib/cargoUtils";
 
 interface OvertimeRecord {
   id: string;
@@ -340,85 +343,14 @@ const HoraExtra = () => {
         </Card>
 
         {/* Saved Records Table */}
-        <Card>
-          <CardHeader>
-            <CardTitle className="flex items-center gap-2">
-              <Calendar className="h-5 w-5" />
-              Registros Salvos
-            </CardTitle>
-            <CardDescription>
-              Histórico de registros de hora extra por data
-            </CardDescription>
-          </CardHeader>
-          <CardContent>
-            {isLoadingRecords ? (
-              <div className="space-y-2">
-                {[...Array(3)].map((_, i) => (
-                  <Skeleton key={i} className="h-12 w-full" />
-                ))}
-              </div>
-            ) : savedRecords && savedRecords.length > 0 ? (
-              <div className="overflow-x-auto">
-                <Table>
-                  <TableHeader>
-                    <TableRow>
-                      <TableHead>Data</TableHead>
-                      <TableHead>Funcionário</TableHead>
-                      <TableHead>Cargo</TableHead>
-                      <TableHead>Entrada</TableHead>
-                      <TableHead>Saída</TableHead>
-                      <TableHead>Status</TableHead>
-                      <TableHead className="w-[50px]"></TableHead>
-                    </TableRow>
-                  </TableHeader>
-                  <TableBody>
-                    {savedRecords.map((record) => (
-                      <TableRow key={record.id}>
-                        <TableCell className="font-medium">
-                          {format(new Date(record.record_date + 'T00:00:00'), "dd/MM/yyyy (EEE)", { locale: ptBR })}
-                        </TableCell>
-                        <TableCell>{record.user_name}</TableCell>
-                        <TableCell className="capitalize">
-                          {record.cargo.replace(/_/g, ' ')}
-                        </TableCell>
-                        <TableCell>{record.entry_time.slice(0, 5)}</TableCell>
-                        <TableCell>{record.exit_time.slice(0, 5)}</TableCell>
-                        <TableCell>
-                          {record.is_overtime ? (
-                            <Badge className="bg-amber-500 hover:bg-amber-600">
-                              ⏰ Hora Extra
-                            </Badge>
-                          ) : (
-                            <Badge variant="secondary">
-                              Normal
-                            </Badge>
-                          )}
-                        </TableCell>
-                        <TableCell>
-                          {canDeleteRecord(record.user_id) && (
-                            <Button
-                              variant="ghost"
-                              size="icon"
-                              onClick={() => deleteRecord.mutate(record.id)}
-                              disabled={deleteRecord.isPending}
-                              className="h-8 w-8 text-destructive hover:text-destructive"
-                            >
-                              <Trash2 className="h-4 w-4" />
-                            </Button>
-                          )}
-                        </TableCell>
-                      </TableRow>
-                    ))}
-                  </TableBody>
-                </Table>
-              </div>
-            ) : (
-              <p className="text-center text-muted-foreground py-8">
-                Nenhum registro encontrado. Adicione seus registros acima.
-              </p>
-            )}
-          </CardContent>
-        </Card>
+        <SavedRecordsCard
+          savedRecords={savedRecords}
+          isLoadingRecords={isLoadingRecords}
+          canDeleteRecord={canDeleteRecord}
+          deleteRecord={deleteRecord}
+          periodStart={summaryData?.period?.start}
+          periodEnd={summaryData?.period?.end}
+        />
 
         {/* Monthly Summary Card */}
         <Card>
