@@ -268,11 +268,9 @@ export const OnlineUsersFooter = ({
                     <TooltipContent side="top" className="bg-card border hidden sm:block">
                       <p className="font-medium">{user.full_name}</p>
                       <p className="text-xs text-muted-foreground">{formatCargoLabel(user.cargo, true)}</p>
-                      {lastSeenText && (
-                        <p className="text-xs text-muted-foreground/70 mt-0.5">
-                          Visto {lastSeenText}
-                        </p>
-                      )}
+                      <p className="text-xs text-muted-foreground/70 mt-0.5">
+                        {lastSeenText ? `Visto ${lastSeenText}` : "Offline"}
+                      </p>
                     </TooltipContent>
                   </Tooltip>
                 );

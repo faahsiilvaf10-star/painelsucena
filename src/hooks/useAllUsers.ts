@@ -18,33 +18,37 @@ export type UserWithStatus = {
   justCameOnline?: boolean;
 };
 
+type ProfileData = {
+  id: string;
+  user_id: string;
+  full_name: string;
+  avatar_url: string | null;
+  cargo: string;
+};
+
 export const useAllUsers = () => {
   const { user } = useAuth();
-  const [allUsers, setAllUsers] = useState<UserWithStatus[]>([]);
+  const [profiles, setProfiles] = useState<ProfileData[]>([]);
   const [onlineUserIds, setOnlineUserIds] = useState<Set<string>>(new Set());
   const [isLoading, setIsLoading] = useState(true);
   const { data: adminUserIds } = useAdminUsers();
   const [lastSeenMap, setLastSeenMap] = useState<Map<string, string>>(new Map());
   const [justOnlineIds, setJustOnlineIds] = useState<Set<string>>(new Set());
-  const previousOnlineIds = useRef<Set<string>>(new Set());
+  const previousOnlineIdsRef = useRef<Set<string>>(new Set());
   const channelRef = useRef<RealtimeChannel | null>(null);
   const heartbeatRef = useRef<number | null>(null);
   const justOnlineTimeoutRef = useRef<number | null>(null);
 
-  // Define trackCurrentUser before any useEffect that uses it
+  // Track current user in presence channel
   const trackCurrentUser = useCallback(
     async (presenceChannel: RealtimeChannel) => {
       if (!user) return;
 
-      const { data: profile, error } = await supabase
+      const { data: profile } = await supabase
         .from("profiles")
         .select("*")
         .eq("user_id", user.id)
         .maybeSingle();
-
-      if (error) {
-        console.warn("Presence: erro ao buscar profile para track:", error);
-      }
 
       const now = new Date().toISOString();
       const payload = profile
@@ -61,15 +65,12 @@ export const useAllUsers = () => {
             online_at: now,
           };
 
-      const trackRes = await presenceChannel.track(payload as any);
-      if (trackRes === "error") {
-        console.warn("Presence: track retornou erro");
-      }
+      await presenceChannel.track(payload as any);
     },
     [user]
   );
 
-  // Fetch all profiles
+  // Fetch all profiles once
   useEffect(() => {
     const fetchProfiles = async () => {
       const { data, error } = await supabase
@@ -83,25 +84,18 @@ export const useAllUsers = () => {
         return;
       }
 
-      setAllUsers(
-        data.map((profile) => ({
-          ...profile,
-          isOnline: false,
-          isCurrentUser: false,
-          isAdmin: false,
-        }))
-      );
+      setProfiles(data || []);
       setIsLoading(false);
     };
 
     fetchProfiles();
   }, []);
 
-  // Track presence - use same channel name as useOnlineUsers for consistency
+  // Presence tracking
   useEffect(() => {
     if (!user) return;
 
-    // Cleanup any previous channel/heartbeat (defensive)
+    // Cleanup previous resources
     if (heartbeatRef.current) {
       window.clearInterval(heartbeatRef.current);
       heartbeatRef.current = null;
@@ -125,114 +119,73 @@ export const useAllUsers = () => {
 
     channelRef.current = presenceChannel;
 
+    const handlePresenceSync = () => {
+      const state = presenceChannel.presenceState();
+      const currentOnlineIds = new Set<string>();
+      const onlineAtTimes = new Map<string, string>();
+
+      // Extract online user IDs and their online_at times
+      Object.values(state).forEach((presences: any[]) => {
+        presences.forEach((presence) => {
+          if (presence?.user_id) {
+            currentOnlineIds.add(presence.user_id);
+            if (presence.online_at) {
+              onlineAtTimes.set(presence.user_id, presence.online_at);
+            }
+          }
+        });
+      });
+
+      // Detect users who just came online
+      const newlyOnline = new Set<string>();
+      currentOnlineIds.forEach((id) => {
+        if (!previousOnlineIdsRef.current.has(id) && id !== user.id) {
+          newlyOnline.add(id);
+        }
+      });
+
+      // Trigger animation for newly online users
+      if (newlyOnline.size > 0) {
+        setJustOnlineIds(newlyOnline);
+        if (justOnlineTimeoutRef.current) {
+          window.clearTimeout(justOnlineTimeoutRef.current);
+        }
+        justOnlineTimeoutRef.current = window.setTimeout(() => {
+          setJustOnlineIds(new Set());
+        }, 3000);
+      }
+
+      // Update lastSeen map
+      setLastSeenMap((prev) => {
+        const next = new Map(prev);
+        
+        // Set lastSeen to now for users who just went offline
+        previousOnlineIdsRef.current.forEach((id) => {
+          if (!currentOnlineIds.has(id)) {
+            next.set(id, new Date().toISOString());
+          }
+        });
+        
+        // Update lastSeen for currently online users (used when they go offline)
+        onlineAtTimes.forEach((onlineAt, id) => {
+          next.set(id, onlineAt);
+        });
+        
+        return next;
+      });
+
+      // Update refs and state
+      previousOnlineIdsRef.current = currentOnlineIds;
+      setOnlineUserIds(new Set(currentOnlineIds));
+    };
+
     presenceChannel
-      .on("presence", { event: "sync" }, () => {
-        const state = presenceChannel.presenceState();
-        const onlineIds = new Set<string>();
-        const onlineAtTimes = new Map<string, string>();
-
-        Object.values(state).forEach((presences: any[]) => {
-          presences.forEach((presence) => {
-            if (presence?.user_id) {
-              onlineIds.add(presence.user_id);
-              // Store the online_at time for each user
-              if (presence.online_at) {
-                onlineAtTimes.set(presence.user_id, presence.online_at);
-              }
-            }
-          });
-        });
-
-        // Track users who just came online (weren't online before, now are)
-        const newlyOnline = new Set<string>();
-        onlineIds.forEach((id) => {
-          if (!previousOnlineIds.current.has(id) && id !== user.id) {
-            newlyOnline.add(id);
-          }
-        });
-
-        if (newlyOnline.size > 0) {
-          setJustOnlineIds(newlyOnline);
-          // Clear the animation after 3 seconds
-          if (justOnlineTimeoutRef.current) {
-            window.clearTimeout(justOnlineTimeoutRef.current);
-          }
-          justOnlineTimeoutRef.current = window.setTimeout(() => {
-            setJustOnlineIds(new Set());
-          }, 3000);
-        }
-
-        // Update lastSeen map
-        setLastSeenMap((prev) => {
-          const next = new Map(prev);
-          
-          // For users who just went offline, set their lastSeen to now
-          previousOnlineIds.current.forEach((id) => {
-            if (!onlineIds.has(id)) {
-              next.set(id, new Date().toISOString());
-            }
-          });
-          
-          // For users who are online, continuously update their lastSeen
-          onlineAtTimes.forEach((onlineAt, id) => {
-            next.set(id, onlineAt);
-          });
-          
-          return next;
-        });
-
-        previousOnlineIds.current = onlineIds;
-        setOnlineUserIds(new Set(onlineIds));
-      })
-      .on("presence", { event: "join" }, ({ key, newPresences }) => {
-        console.log("User joined:", key, newPresences);
-        // Immediately update online status when someone joins
-        if (key && key !== user.id) {
-          setOnlineUserIds((prev) => {
-            const next = new Set(prev);
-            next.add(key);
-            return next;
-          });
-          
-          // Mark as just came online
-          setJustOnlineIds((prev) => {
-            const next = new Set(prev);
-            next.add(key);
-            return next;
-          });
-          
-          // Clear animation after 3s
-          if (justOnlineTimeoutRef.current) {
-            window.clearTimeout(justOnlineTimeoutRef.current);
-          }
-          justOnlineTimeoutRef.current = window.setTimeout(() => {
-            setJustOnlineIds(new Set());
-          }, 3000);
-        }
-      })
-      .on("presence", { event: "leave" }, ({ key, leftPresences }) => {
-        console.log("User left:", key, leftPresences);
-        // Immediately update when someone leaves
-        if (key) {
-          setOnlineUserIds((prev) => {
-            const next = new Set(prev);
-            next.delete(key);
-            return next;
-          });
-          
-          // Update lastSeen for the user who left
-          setLastSeenMap((prev) => {
-            const next = new Map(prev);
-            next.set(key, new Date().toISOString());
-            return next;
-          });
-        }
-      })
+      .on("presence", { event: "sync" }, handlePresenceSync)
       .subscribe(async (status) => {
         if (status === "SUBSCRIBED") {
           await trackCurrentUser(presenceChannel);
 
-          // Heartbeat: re-track periodically to recover from transient disconnects
+          // Heartbeat to maintain presence
           heartbeatRef.current = window.setInterval(() => {
             void trackCurrentUser(presenceChannel);
           }, 25000);
@@ -253,18 +206,22 @@ export const useAllUsers = () => {
     };
   }, [user, trackCurrentUser]);
 
-  // Combine users with online status (include current user)
-  const usersWithStatus: UserWithStatus[] = allUsers
-    .map((u) => ({
-      ...u,
-      isOnline: onlineUserIds.has(u.user_id),
-      isCurrentUser: u.user_id === user?.id,
-      isAdmin: adminUserIds?.has(u.user_id) ?? false,
-      lastSeen: lastSeenMap.get(u.user_id),
-      justCameOnline: justOnlineIds.has(u.user_id),
-    }))
+  // Build the final users list with status
+  const allUsers: UserWithStatus[] = profiles
+    .map((profile) => {
+      const isOnline = onlineUserIds.has(profile.user_id);
+      const lastSeen = lastSeenMap.get(profile.user_id);
+      
+      return {
+        ...profile,
+        isOnline,
+        isCurrentUser: profile.user_id === user?.id,
+        isAdmin: adminUserIds?.has(profile.user_id) ?? false,
+        lastSeen: isOnline ? undefined : lastSeen, // Only show lastSeen for offline users
+        justCameOnline: justOnlineIds.has(profile.user_id),
+      };
+    })
     .sort((a, b) => {
-      // Current user first, then online users, then alphabetically
       if (a.isCurrentUser) return -1;
       if (b.isCurrentUser) return 1;
       if (a.isOnline && !b.isOnline) return -1;
@@ -272,11 +229,11 @@ export const useAllUsers = () => {
       return a.full_name.localeCompare(b.full_name);
     });
 
-  const onlineCount = usersWithStatus.filter((u) => u.isOnline).length;
-  const offlineCount = usersWithStatus.filter((u) => !u.isOnline).length;
+  const onlineCount = allUsers.filter((u) => u.isOnline).length;
+  const offlineCount = allUsers.filter((u) => !u.isOnline).length;
 
   return { 
-    allUsers: usersWithStatus, 
+    allUsers, 
     onlineCount, 
     offlineCount, 
     isLoading 
