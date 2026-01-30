@@ -148,8 +148,8 @@ export const useCreateOrder = () => {
       if (orderData.mentioned_user_id) {
         await supabase.from("notifications").insert({
           user_id: orderData.mentioned_user_id,
-          title: "📦 Novo Pedido",
-          message: `${profile?.full_name || "Alguém"} solicitou: ${orderData.product_name}`,
+          title: "📦 Novo Pedido - Aguardando Solicitação",
+          message: `${profile?.full_name || "Alguém"} fez um pedido de ${orderData.quantity} ${orderData.quantity_unit === "unidade" ? "unidade(s)" : orderData.quantity_unit} de "${orderData.product_name}" e está aguardando sua análise.`,
           type: "order",
           reference_id: data.id,
           reference_type: "order",
