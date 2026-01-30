@@ -68,11 +68,13 @@ export const useDDSSchedule = (monthYear: string) => {
 };
 
 export const useTodayDDS = () => {
-  const today = getBrazilNorthTodayString();
-
   return useQuery({
-    queryKey: ["dds-today", today],
+    queryKey: ["dds-today"],
     queryFn: async () => {
+      // Calculate date at fetch time to always get current date
+      const today = getBrazilNorthTodayString();
+      console.log("[DDS] Buscando DDS de hoje:", today);
+      
       const { data, error } = await supabase
         .from("dds_schedule")
         .select("*")
@@ -100,15 +102,18 @@ export const useTodayDDS = () => {
 
       return null;
     },
+    staleTime: 0, // Always refetch when invalidated
   });
 };
 
 export const useTomorrowDDS = () => {
-  const tomorrow = getBrazilNorthTomorrowString();
-
   return useQuery({
-    queryKey: ["dds-tomorrow", tomorrow],
+    queryKey: ["dds-tomorrow"],
     queryFn: async () => {
+      // Calculate date at fetch time to always get current date
+      const tomorrow = getBrazilNorthTomorrowString();
+      console.log("[DDS] Buscando DDS de amanhã:", tomorrow);
+      
       const { data, error } = await supabase
         .from("dds_schedule")
         .select("*")
@@ -136,6 +141,7 @@ export const useTomorrowDDS = () => {
 
       return null;
     },
+    staleTime: 0, // Always refetch when invalidated
   });
 };
 

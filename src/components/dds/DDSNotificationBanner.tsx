@@ -1,4 +1,4 @@
-import { useState, useEffect } from "react";
+import { useState, useEffect, useMemo } from "react";
 import { X, Sun, Megaphone } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent } from "@/components/ui/card";
@@ -14,11 +14,12 @@ export const DDSNotificationBanner = () => {
   const { data: tomorrowDDS, isLoading } = useTomorrowDDS();
 
   // Hook to refresh DDS data at midnight (00:00 Pará time)
-  useDDSMidnightRefresh();
+  // Returns a key that changes when midnight occurs, forcing re-render
+  const dateKey = useDDSMidnightRefresh();
 
-  // Use Brazil North timezone
-  const tomorrowDate = addDays(getBrazilNorthDate(), 1);
-  const tomorrowStr = getBrazilNorthTomorrowString();
+  // Use Brazil North timezone - recalculate when dateKey changes
+  const tomorrowDate = useMemo(() => addDays(getBrazilNorthDate(), 1), [dateKey]);
+  const tomorrowStr = useMemo(() => getBrazilNorthTomorrowString(), [dateKey]);
   const storageKey = `dds-notification-${tomorrowStr}`;
 
   useEffect(() => {
