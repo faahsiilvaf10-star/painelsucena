@@ -37,6 +37,7 @@ import VistoriasEquipamentos from "./pages/VistoriasEquipamentos";
 import Homologados from "./pages/Homologados";
 import VistoriaCintas from "./pages/VistoriaCintas";
 import EntradaSaidaEquipamentos from "./pages/EntradaSaidaEquipamentos";
+import HoraExtra from "./pages/HoraExtra";
 import NotFound from "./pages/NotFound";
 
 // Configure QueryClient with robust error handling and caching
@@ -109,6 +110,7 @@ const App = () => (
                     <Route path="/homologados" element={<ProtectedRoute><Homologados /></ProtectedRoute>} />
                     <Route path="/vistoria-cintas" element={<ProtectedRoute><VistoriaCintas /></ProtectedRoute>} />
                     <Route path="/entrada-saida-equipamentos" element={<ProtectedRoute><EntradaSaidaEquipamentos /></ProtectedRoute>} />
+                    <Route path="/hora-extra" element={<ProtectedRoute><HoraExtra /></ProtectedRoute>} />
                     {/* ADD ALL CUSTOM ROUTES ABOVE THE CATCH-ALL "*" ROUTE */}
                     <Route path="*" element={<NotFound />} />
                   </Routes>
