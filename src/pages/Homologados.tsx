@@ -7,10 +7,11 @@ import { Button } from "@/components/ui/button";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
-import { Search, Filter, X, AlertTriangle, CheckCircle, Package, Factory, Hash, ShieldCheck, ShieldAlert, ChevronLeft, ChevronRight, Wrench, FlaskConical } from "lucide-react";
+import { Search, Filter, X, AlertTriangle, CheckCircle, Package, Factory, Hash, ShieldCheck, ShieldAlert, ChevronLeft, ChevronRight, Wrench, FlaskConical, HardHat } from "lucide-react";
 import { produtosHomologados, fabricantesUnicos } from "@/data/produtosHomologados";
 import { ExportHomologadosButton } from "@/components/homologados/ExportHomologadosButton";
 import { FerramentasTable } from "@/components/homologados/FerramentasTable";
+import { EPIsTable } from "@/components/homologados/EPIsTable";
 
 const ITEMS_PER_PAGE_OPTIONS = [25, 50, 100];
 
@@ -100,14 +101,19 @@ const Homologados = () => {
 
         {/* Tabs */}
         <Tabs value={activeTab} onValueChange={setActiveTab} className="space-y-6">
-          <TabsList className="grid w-full grid-cols-2 max-w-md">
+          <TabsList className="grid w-full grid-cols-3 max-w-xl">
             <TabsTrigger value="produtos" className="gap-2">
               <FlaskConical className="h-4 w-4" />
-              Produtos Químicos
+              <span className="hidden sm:inline">Produtos Químicos</span>
+              <span className="sm:hidden">Químicos</span>
             </TabsTrigger>
             <TabsTrigger value="ferramentas" className="gap-2">
               <Wrench className="h-4 w-4" />
               Ferramentas
+            </TabsTrigger>
+            <TabsTrigger value="epis" className="gap-2">
+              <HardHat className="h-4 w-4" />
+              EPIs
             </TabsTrigger>
           </TabsList>
 
@@ -468,6 +474,11 @@ const Homologados = () => {
           {/* Ferramentas Tab */}
           <TabsContent value="ferramentas">
             <FerramentasTable />
+          </TabsContent>
+
+          {/* EPIs Tab */}
+          <TabsContent value="epis">
+            <EPIsTable />
           </TabsContent>
         </Tabs>
       </div>
