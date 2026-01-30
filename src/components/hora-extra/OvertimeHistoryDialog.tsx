@@ -42,7 +42,7 @@ import {
 import { toast } from "sonner";
 import { getLogoBase64 } from "@/lib/pdfLogo";
 
-type FilterType = "all" | "month" | "week";
+type FilterType = "all" | "month" | "week" | "folha";
 
 const OvertimeHistoryDialog = () => {
   const [open, setOpen] = useState(false);
@@ -52,6 +52,7 @@ const OvertimeHistoryDialog = () => {
     format(new Date(), "yyyy-MM")
   );
   const [selectedWeek, setSelectedWeek] = useState<number>(0); // 0 = current week, 1 = last week, etc.
+  const [selectedFolha, setSelectedFolha] = useState<number>(0); // 0 = current folha period
 
   const { data: distinctCargos, isLoading: cargosLoading } = useDistinctCargos();
   const deleteRecord = useDeleteOvertimeRecord();
@@ -67,6 +68,90 @@ const OvertimeHistoryDialog = () => {
       label: `${format(weekStart, "dd/MM")} - ${format(weekEnd, "dd/MM/yyyy")}`,
     };
   }, [selectedWeek]);
+
+  // Calculate folha period dates (day 20 to day 20)
+  const folhaDates = useMemo(() => {
+    const now = new Date();
+    const currentDay = now.getDate();
+    const currentMonth = now.getMonth();
+    const currentYear = now.getFullYear();
+
+    // Calculate how many periods back we need to go
+    let targetMonth = currentMonth;
+    let targetYear = currentYear;
+    
+    // If we're before day 20, the current period started last month
+    if (currentDay < 20) {
+      targetMonth -= 1;
+      if (targetMonth < 0) {
+        targetMonth = 11;
+        targetYear -= 1;
+      }
+    }
+
+    // Apply the selectedFolha offset (going back in periods)
+    for (let i = 0; i < selectedFolha; i++) {
+      targetMonth -= 1;
+      if (targetMonth < 0) {
+        targetMonth = 11;
+        targetYear -= 1;
+      }
+    }
+
+    const startDate = new Date(targetYear, targetMonth, 20);
+    const endMonth = targetMonth + 1;
+    const endYear = endMonth > 11 ? targetYear + 1 : targetYear;
+    const endDate = new Date(endYear, endMonth > 11 ? 0 : endMonth, 20);
+
+    return {
+      start: format(startDate, "yyyy-MM-dd"),
+      end: format(endDate, "yyyy-MM-dd"),
+      label: `${format(startDate, "dd/MM/yyyy")} - ${format(endDate, "dd/MM/yyyy")}`,
+      startFormatted: format(startDate, "dd/MM/yyyy"),
+      endFormatted: format(endDate, "dd/MM/yyyy"),
+    };
+  }, [selectedFolha]);
+
+  // Generate folha options (last 12 periods)
+  const folhaOptions = useMemo(() => {
+    const options = [];
+    const now = new Date();
+    const currentDay = now.getDate();
+    
+    for (let i = 0; i < 12; i++) {
+      let targetMonth = now.getMonth();
+      let targetYear = now.getFullYear();
+      
+      if (currentDay < 20) {
+        targetMonth -= 1;
+        if (targetMonth < 0) {
+          targetMonth = 11;
+          targetYear -= 1;
+        }
+      }
+      
+      for (let j = 0; j < i; j++) {
+        targetMonth -= 1;
+        if (targetMonth < 0) {
+          targetMonth = 11;
+          targetYear -= 1;
+        }
+      }
+
+      const startDate = new Date(targetYear, targetMonth, 20);
+      const endMonth = targetMonth + 1;
+      const endYear = endMonth > 11 ? targetYear + 1 : targetYear;
+      const endDate = new Date(endYear, endMonth > 11 ? 0 : endMonth, 20);
+
+      options.push({
+        value: i,
+        label: i === 0 
+          ? `Folha atual (${format(startDate, "dd/MM")} - ${format(endDate, "dd/MM/yyyy")})`
+          : `${format(startDate, "dd/MM/yyyy")} - ${format(endDate, "dd/MM/yyyy")}`,
+      });
+    }
+    return options;
+  }, []);
 
   // Build filters
   const filters = useMemo(() => {
@@ -86,10 +171,13 @@ const OvertimeHistoryDialog = () => {
     } else if (filterType === "week") {
       f.weekStart = weekDates.start;
       f.weekEnd = weekDates.end;
+    } else if (filterType === "folha") {
+      f.weekStart = folhaDates.start;
+      f.weekEnd = folhaDates.end;
     }
 
     return f;
-  }, [selectedCargo, filterType, selectedMonth, weekDates]);
+  }, [selectedCargo, filterType, selectedMonth, weekDates, folhaDates]);
 
   const { data: records, isLoading } = useOvertimeRecords(filters);
 
@@ -194,6 +282,7 @@ const OvertimeHistoryDialog = () => {
                 </SelectTrigger>
                 <SelectContent>
                   <SelectItem value="all">Todos</SelectItem>
+                  <SelectItem value="folha">Por Folha (dia 20)</SelectItem>
                   <SelectItem value="month">Por Mês</SelectItem>
                   <SelectItem value="week">Por Semana</SelectItem>
                 </SelectContent>
@@ -231,6 +320,27 @@ const OvertimeHistoryDialog = () => {
                   </SelectTrigger>
                   <SelectContent>
                     {weekOptions.map((option) => (
+                      <SelectItem key={option.value} value={option.value.toString()}>
+                        {option.label}
+                      </SelectItem>
+                    ))}
+                  </SelectContent>
+                </Select>
+              </div>
+            )}
+
+            {filterType === "folha" && (
+              <div className="space-y-2">
+                <Label>Período da Folha</Label>
+                <Select
+                  value={selectedFolha.toString()}
+                  onValueChange={(v) => setSelectedFolha(parseInt(v))}
+                >
+                  <SelectTrigger>
+                    <SelectValue />
+                  </SelectTrigger>
+                  <SelectContent>
+                    {folhaOptions.map((option) => (
                       <SelectItem key={option.value} value={option.value.toString()}>
                         {option.label}
                       </SelectItem>
@@ -379,6 +489,8 @@ const OvertimeHistoryDialog = () => {
       filterDescription = `Mês: ${format(parseISO(`${selectedMonth}-01`), "MMMM yyyy", { locale: ptBR })}`;
     } else if (filterType === "week") {
       filterDescription = `Semana: ${weekDates.label}`;
+    } else if (filterType === "folha") {
+      filterDescription = `Folha: ${folhaDates.label}`;
     }
     if (selectedCargo !== "all") {
       filterDescription += ` | Cargo: ${formatCargoLabel(selectedCargo)}`;
