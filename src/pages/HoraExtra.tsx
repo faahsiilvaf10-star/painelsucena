@@ -1,7 +1,7 @@
 import { useState } from "react";
 import { format, getDay } from "date-fns";
 import { ptBR } from "date-fns/locale";
-import { Calendar, Clock, Save, Send, Plus, Trash2 } from "lucide-react";
+import { Calendar, Clock, Save, Send, Plus, Trash2, Calculator, RefreshCw } from "lucide-react";
 import Layout from "@/components/layout/Layout";
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
@@ -19,6 +19,8 @@ import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@
 import { Badge } from "@/components/ui/badge";
 import { Skeleton } from "@/components/ui/skeleton";
 import { useIsAdmin } from "@/hooks/useUserRole";
+import { useCurrentPeriodSummaries, useCalculateOvertimeSummary } from "@/hooks/useOvertimeSummaries";
+import { useQueryClient } from "@tanstack/react-query";
 
 interface OvertimeRecord {
   id: string;
@@ -31,16 +33,35 @@ const HoraExtra = () => {
   const { data: profile } = useProfile();
   const { user } = useAuth();
   const { isAdmin } = useIsAdmin();
+  const queryClient = useQueryClient();
   const createRecords = useCreateOvertimeRecords();
   const deleteRecord = useDeleteOvertimeRecord();
   const { data: savedRecords, isLoading: isLoadingRecords } = useOvertimeRecords();
+  const { data: summaryData, isLoading: isLoadingSummaries } = useCurrentPeriodSummaries();
+  const { calculateSummary } = useCalculateOvertimeSummary();
   const [records, setRecords] = useState<OvertimeRecord[]>([
     { id: crypto.randomUUID(), date: undefined, entryTime: "", exitTime: "" }
   ]);
+  const [isCalculating, setIsCalculating] = useState(false);
 
   // Check if user can delete a specific record (only own records or admin)
   const canDeleteRecord = (recordUserId: string) => {
     return user?.id === recordUserId || isAdmin;
+  };
+
+  // Handle manual calculation of summaries
+  const handleCalculateSummary = async () => {
+    setIsCalculating(true);
+    try {
+      await calculateSummary();
+      queryClient.invalidateQueries({ queryKey: ["overtime-summaries-current"] });
+      toast.success("Resumo calculado com sucesso!");
+    } catch (error) {
+      console.error("Error calculating summary:", error);
+      toast.error("Erro ao calcular resumo");
+    } finally {
+      setIsCalculating(false);
+    }
   };
 
   const addRecord = () => {
@@ -394,6 +415,94 @@ const HoraExtra = () => {
             ) : (
               <p className="text-center text-muted-foreground py-8">
                 Nenhum registro encontrado. Adicione seus registros acima.
+              </p>
+            )}
+          </CardContent>
+        </Card>
+
+        {/* Monthly Summary Card */}
+        <Card>
+          <CardHeader>
+            <div className="flex items-center justify-between">
+              <div>
+                <CardTitle className="flex items-center gap-2">
+                  <Calculator className="h-5 w-5" />
+                  Resumo do Período (Folha)
+                </CardTitle>
+                <CardDescription>
+                  {summaryData?.period ? (
+                    <>
+                      Período: {format(new Date(summaryData.period.start + 'T00:00:00'), "dd/MM/yyyy")} a{" "}
+                      {format(new Date(summaryData.period.end + 'T00:00:00'), "dd/MM/yyyy")}
+                    </>
+                  ) : (
+                    "Calculado automaticamente todo dia 20"
+                  )}
+                </CardDescription>
+              </div>
+              {isAdmin && (
+                <Button
+                  variant="outline"
+                  size="sm"
+                  onClick={handleCalculateSummary}
+                  disabled={isCalculating}
+                >
+                  <RefreshCw className={cn("h-4 w-4 mr-2", isCalculating && "animate-spin")} />
+                  {isCalculating ? "Calculando..." : "Recalcular"}
+                </Button>
+              )}
+            </div>
+          </CardHeader>
+          <CardContent>
+            {isLoadingSummaries ? (
+              <div className="space-y-2">
+                {[...Array(3)].map((_, i) => (
+                  <Skeleton key={i} className="h-12 w-full" />
+                ))}
+              </div>
+            ) : summaryData?.summaries && summaryData.summaries.length > 0 ? (
+              <div className="overflow-x-auto">
+                <Table>
+                  <TableHeader>
+                    <TableRow>
+                      <TableHead>Funcionário</TableHead>
+                      <TableHead>Cargo</TableHead>
+                      <TableHead className="text-center">Total Registros</TableHead>
+                      <TableHead className="text-center">Registros HE</TableHead>
+                      <TableHead className="text-center">Horas Trabalhadas</TableHead>
+                      <TableHead className="text-center">Horas Extras</TableHead>
+                    </TableRow>
+                  </TableHeader>
+                  <TableBody>
+                    {summaryData.summaries.map((summary) => (
+                      <TableRow key={summary.id}>
+                        <TableCell className="font-medium">{summary.user_name}</TableCell>
+                        <TableCell className="capitalize">
+                          {summary.cargo.replace(/_/g, ' ')}
+                        </TableCell>
+                        <TableCell className="text-center">{summary.total_records}</TableCell>
+                        <TableCell className="text-center">
+                          <Badge variant={summary.total_overtime_records > 0 ? "default" : "secondary"}>
+                            {summary.total_overtime_records}
+                          </Badge>
+                        </TableCell>
+                        <TableCell className="text-center">
+                          {summary.total_hours_worked.toFixed(1)}h
+                        </TableCell>
+                        <TableCell className="text-center">
+                          <Badge className={summary.total_overtime_hours > 0 ? "bg-amber-500 hover:bg-amber-600" : ""}>
+                            {summary.total_overtime_hours.toFixed(1)}h
+                          </Badge>
+                        </TableCell>
+                      </TableRow>
+                    ))}
+                  </TableBody>
+                </Table>
+              </div>
+            ) : (
+              <p className="text-center text-muted-foreground py-8">
+                Nenhum resumo disponível para este período.
+                {isAdmin && " Clique em 'Recalcular' para gerar o resumo."}
               </p>
             )}
           </CardContent>
