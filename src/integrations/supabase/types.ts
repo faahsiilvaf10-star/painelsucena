@@ -1183,6 +1183,48 @@ export type Database = {
         }
         Relationships: []
       }
+      overtime_summaries: {
+        Row: {
+          cargo: string
+          created_at: string
+          id: string
+          period_end: string
+          period_start: string
+          total_hours_worked: number
+          total_overtime_hours: number
+          total_overtime_records: number
+          total_records: number
+          user_id: string
+          user_name: string
+        }
+        Insert: {
+          cargo: string
+          created_at?: string
+          id?: string
+          period_end: string
+          period_start: string
+          total_hours_worked?: number
+          total_overtime_hours?: number
+          total_overtime_records?: number
+          total_records?: number
+          user_id: string
+          user_name: string
+        }
+        Update: {
+          cargo?: string
+          created_at?: string
+          id?: string
+          period_end?: string
+          period_start?: string
+          total_hours_worked?: number
+          total_overtime_hours?: number
+          total_overtime_records?: number
+          total_records?: number
+          user_id?: string
+          user_name?: string
+        }
+        Relationships: []
+      }
       product_images: {
         Row: {
           created_at: string
