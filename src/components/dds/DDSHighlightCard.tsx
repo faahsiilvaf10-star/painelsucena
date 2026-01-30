@@ -1,4 +1,4 @@
-import { useState, useRef } from "react";
+import { useState, useRef, useMemo } from "react";
 import { format, addDays } from "date-fns";
 import { ptBR } from "date-fns/locale";
 import { Sun, Calendar, Camera, Upload, Loader2, ArrowRight, UserPlus } from "lucide-react";
@@ -23,14 +23,15 @@ export const DDSHighlightCard = () => {
   const updatePhoto = useUpdateDDSPhoto();
 
   // Hook to refresh DDS data at midnight (00:00 Pará time)
-  useDDSMidnightRefresh();
+  // Returns a key that changes when midnight occurs, forcing re-render
+  const dateKey = useDDSMidnightRefresh();
 
   const [isUploading, setIsUploading] = useState(false);
   const fileInputRef = useRef<HTMLInputElement>(null);
 
-  // Use Brazil North timezone
-  const today = getBrazilNorthDate();
-  const tomorrow = addDays(today, 1);
+  // Use Brazil North timezone - recalculate when dateKey changes
+  const today = useMemo(() => getBrazilNorthDate(), [dateKey]);
+  const tomorrow = useMemo(() => addDays(getBrazilNorthDate(), 1), [dateKey]);
 
   // Check if user can upload photo (tecnico_seguranca or admin)
   const isTecnicoSeguranca = profile?.cargo === "tecnico_seguranca_i" || profile?.cargo === "tecnico_seguranca_ii";
