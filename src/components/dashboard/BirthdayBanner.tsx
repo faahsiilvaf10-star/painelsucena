@@ -9,6 +9,10 @@ const BirthdayBanner = () => {
   const today = getBrazilNorthDate();
   const currentDay = today.getDate();
   const currentMonth = today.getMonth() + 1; // 1-indexed
+  const currentHour = today.getHours();
+  
+  // Only show today's birthdays until 16:00 (4 PM) Pará time
+  const showTodayBirthdays = currentHour < 16;
 
   // Parse DD/MM/YYYY to { day, month }
   const parseBirthDate = (dateStr: string) => {
@@ -18,11 +22,12 @@ const BirthdayBanner = () => {
 
   // Get today's birthdays
   const todayBirthdays = useMemo(() => {
+    if (!showTodayBirthdays) return [];
     return colaboradoresAtivos.filter((c) => {
       const { day, month } = parseBirthDate(c.dataNascimento);
       return day === currentDay && month === currentMonth;
     });
-  }, [currentDay, currentMonth]);
+  }, [currentDay, currentMonth, showTodayBirthdays]);
 
   // Get all birthdays in the current month (only show on day 1)
   const monthBirthdays = useMemo(() => {
