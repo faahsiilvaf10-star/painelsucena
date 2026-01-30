@@ -101,6 +101,54 @@ const SavedRecordsCard = ({
     const now = new Date();
     const reportDate = format(now, "dd/MM/yyyy 'às' HH:mm", { locale: ptBR });
 
+    // Separate records into normal hours and overtime based on schedule rules
+    const normalRecords: typeof periodRecords = [];
+    const overtimeRecords: typeof periodRecords = [];
+
+    periodRecords.forEach((record) => {
+      const recordDate = new Date(record.record_date + "T00:00:00");
+      const dayOfWeek = recordDate.getDay(); // 0 = Sunday, 6 = Saturday
+      const exitTime = record.exit_time.slice(0, 5);
+
+      // Saturday (6) and Sunday (0) = all overtime
+      if (dayOfWeek === 0 || dayOfWeek === 6) {
+        overtimeRecords.push(record);
+      } else if (dayOfWeek === 5) {
+        // Friday: normal until 16:00, overtime after
+        if (exitTime > "16:00") {
+          overtimeRecords.push(record);
+        } else {
+          normalRecords.push(record);
+        }
+      } else {
+        // Monday to Thursday: normal until 17:00, overtime after
+        if (exitTime > "17:00") {
+          overtimeRecords.push(record);
+        } else {
+          normalRecords.push(record);
+        }
+      }
+    });
+
+    const totalNormal = normalRecords.length;
+    const totalOvertime = overtimeRecords.length;
+
+    const renderTableRows = (recordList: typeof periodRecords, isOvertime: boolean) => {
+      return recordList
+        .map(
+          (record) => `
+            <tr class="${isOvertime ? "overtime-row" : ""}">
+              <td>${format(new Date(record.record_date + "T00:00:00"), "dd/MM/yyyy (EEEE)", { locale: ptBR })}</td>
+              <td>${record.user_name}</td>
+              <td>${formatCargoLabel(record.cargo)}</td>
+              <td>${record.entry_time.slice(0, 5)}</td>
+              <td>${record.exit_time.slice(0, 5)}</td>
+            </tr>
+          `
+        )
+        .join("");
+    };
+
     const printContent = `
       <!DOCTYPE html>
       <html>
@@ -122,17 +170,20 @@ const SavedRecordsCard = ({
           .summary-item strong { font-size: 32px; display: block; margin-bottom: 5px; }
           .summary-item.overtime strong { color: #d97706; }
           .summary-item span { font-size: 12px; color: #666; }
-          table { width: 100%; border-collapse: collapse; margin-top: 15px; font-size: 11px; }
+          .section-title { margin-top: 25px; margin-bottom: 10px; padding: 10px 15px; border-radius: 6px; font-size: 14px; font-weight: bold; }
+          .section-normal { background: #e0f2fe; color: #0369a1; }
+          .section-overtime { background: #fef3c7; color: #92400e; }
+          .schedule-info { font-size: 11px; font-weight: normal; margin-left: 10px; }
+          table { width: 100%; border-collapse: collapse; margin-bottom: 15px; font-size: 11px; }
           th, td { border: 1px solid #ddd; padding: 10px 8px; text-align: left; }
-          th { background-color: #f59e0b; color: white; font-weight: bold; }
+          th.normal { background-color: #0369a1; color: white; font-weight: bold; }
+          th.overtime { background-color: #f59e0b; color: white; font-weight: bold; }
           tr:nth-child(even) { background-color: #f9f9f9; }
           .overtime-row { background-color: #fef3c7 !important; }
-          .badge { display: inline-block; padding: 4px 10px; border-radius: 4px; font-size: 10px; font-weight: bold; }
-          .badge-overtime { background: #f59e0b; color: white; }
-          .badge-normal { background: #e5e7eb; color: #374151; }
+          .empty-section { text-align: center; padding: 20px; color: #666; font-style: italic; }
           .footer { margin-top: 30px; padding-top: 15px; border-top: 1px solid #ddd; text-align: center; font-size: 10px; color: #666; }
           .totals-section { margin-top: 25px; padding: 15px; background: linear-gradient(135deg, #fef3c7 0%, #fde68a 100%); border-radius: 8px; border: 2px solid #f59e0b; }
-          .totals-section h3 { font-size: 16px; margin-bottom: 10px; color: #92400e; }
+          .totals-section h3 { font-size: 16px; margin-bottom: 10px; color: #92400e; text-align: center; }
           .totals-grid { display: flex; gap: 20px; justify-content: center; }
           .total-item { text-align: center; }
           .total-item .number { font-size: 28px; font-weight: bold; color: #92400e; }
@@ -161,45 +212,61 @@ const SavedRecordsCard = ({
             <strong>${totals.total}</strong>
             <span>Total de Registros</span>
           </div>
-          <div class="summary-item overtime">
-            <strong>${totals.overtime}</strong>
-            <span>⏰ Horas Extras</span>
-          </div>
           <div class="summary-item">
-            <strong>${totals.normal}</strong>
-            <span>Registros Normais</span>
+            <strong>${totalNormal}</strong>
+            <span>Horário Normal</span>
+          </div>
+          <div class="summary-item overtime">
+            <strong>${totalOvertime}</strong>
+            <span>⏰ Horas Extras</span>
           </div>
         </div>
 
-        <table>
-          <thead>
-            <tr>
-              <th>Data</th>
-              <th>Funcionário</th>
-              <th>Cargo</th>
-              <th>Entrada</th>
-              <th>Saída</th>
-              <th>Status</th>
-            </tr>
-          </thead>
-          <tbody>
-            ${periodRecords
-              .map(
-                (record) => `
-              <tr class="${record.is_overtime ? "overtime-row" : ""}">
-                <td>${format(new Date(record.record_date + "T00:00:00"), "dd/MM/yyyy (EEEE)", { locale: ptBR })}</td>
-                <td>${record.user_name}</td>
-                <td>${formatCargoLabel(record.cargo)}</td>
-                <td>${record.entry_time.slice(0, 5)}</td>
-                <td>${record.exit_time.slice(0, 5)}</td>
-                <td>${record.is_overtime ? '<span class="badge badge-overtime">⏰ Hora Extra</span>' : '<span class="badge badge-normal">Normal</span>'}</td>
+        <!-- Normal Hours Section -->
+        <div class="section-title section-normal">
+          📋 Horário Normal
+          <span class="schedule-info">(Seg-Qui: 07:00-17:00 | Sex: 07:00-16:00)</span>
+        </div>
+        ${normalRecords.length > 0 ? `
+          <table>
+            <thead>
+              <tr>
+                <th class="normal">Data</th>
+                <th class="normal">Funcionário</th>
+                <th class="normal">Cargo</th>
+                <th class="normal">Entrada</th>
+                <th class="normal">Saída</th>
               </tr>
-            `
-              )
-              .join("")}
-          </tbody>
-        </table>
+            </thead>
+            <tbody>
+              ${renderTableRows(normalRecords, false)}
+            </tbody>
+          </table>
+        ` : `<div class="empty-section">Nenhum registro de horário normal no período</div>`}
 
+        <!-- Overtime Section -->
+        <div class="section-title section-overtime">
+          ⏰ Hora Extra
+          <span class="schedule-info">(Seg-Qui: após 17:00 | Sex: após 16:00 | Sáb/Dom: integral)</span>
+        </div>
+        ${overtimeRecords.length > 0 ? `
+          <table>
+            <thead>
+              <tr>
+                <th class="overtime">Data</th>
+                <th class="overtime">Funcionário</th>
+                <th class="overtime">Cargo</th>
+                <th class="overtime">Entrada</th>
+                <th class="overtime">Saída</th>
+              </tr>
+            </thead>
+            <tbody>
+              ${renderTableRows(overtimeRecords, true)}
+            </tbody>
+          </table>
+        ` : `<div class="empty-section">Nenhum registro de hora extra no período</div>`}
+
+        <!-- Totals -->
         <div class="totals-section">
           <h3>📊 Resumo Total do Período</h3>
           <div class="totals-grid">
@@ -208,7 +275,11 @@ const SavedRecordsCard = ({
               <div class="label">Registros</div>
             </div>
             <div class="total-item">
-              <div class="number">${totals.overtime}</div>
+              <div class="number">${totalNormal}</div>
+              <div class="label">Normal</div>
+            </div>
+            <div class="total-item">
+              <div class="number">${totalOvertime}</div>
               <div class="label">Horas Extras</div>
             </div>
           </div>
