@@ -11,6 +11,7 @@ import {
 } from "@/components/ui/dropdown-menu";
 import { toast } from "sonner";
 import { VehicleInspection, DATE_FIELDS } from "@/hooks/useVehicleInspections";
+import { getLogoBase64 } from "@/lib/pdfLogo";
 
 interface ExportVehiclesButtonProps {
   vehicles: VehicleInspection[];
@@ -81,9 +82,11 @@ export function ExportVehiclesButton({ vehicles }: ExportVehiclesButtonProps) {
     }
   };
 
-  const exportToPDF = () => {
+  const exportToPDF = async () => {
     setIsExporting(true);
     try {
+      const logoBase64 = await getLogoBase64();
+
       // Create a printable HTML document
       const printWindow = window.open("", "_blank");
       if (!printWindow) {
@@ -130,12 +133,21 @@ export function ExportVehiclesButton({ vehicles }: ExportVehiclesButtonProps) {
               margin-bottom: 30px;
               padding-bottom: 15px;
               border-bottom: 2px solid #333;
+              display: flex;
+              justify-content: space-between;
+              align-items: center;
             }
-            .header h1 {
+            .header .logo {
+              max-height: 50px;
+              max-width: 140px;
+              object-fit: contain;
+            }
+            .header-info { text-align: right; }
+            .header-info h1 {
               font-size: 24px;
               margin-bottom: 5px;
             }
-            .header p {
+            .header-info p {
               font-size: 12px;
               color: #666;
             }
@@ -178,8 +190,11 @@ export function ExportVehiclesButton({ vehicles }: ExportVehiclesButtonProps) {
         </head>
         <body>
           <div class="header">
-            <h1>Relatório de Veículos Terceiros</h1>
-            <p>Controle de Vistorias e Laudos</p>
+            ${logoBase64 ? `<img src="${logoBase64}" alt="Logo" class="logo" />` : '<div></div>'}
+            <div class="header-info">
+              <h1>Relatório de Veículos Terceiros</h1>
+              <p>Controle de Vistorias e Laudos</p>
+            </div>
           </div>
           
           <div class="info">

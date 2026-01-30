@@ -5,6 +5,7 @@ import { FileDown, Loader2 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { toast } from "sonner";
 import { EquipmentMovement, ExitReason } from "@/hooks/useEquipmentMovements";
+import { getLogoBase64, PDF_HEADER_STYLES } from "@/lib/pdfLogo";
 
 const EXIT_REASON_LABELS: Record<ExitReason, string> = {
   manutencao_corretiva: "Manutenção Corretiva",
@@ -32,6 +33,8 @@ export function ExportStatusPdfButton({
     setIsExporting(true);
 
     try {
+      const logoBase64 = await getLogoBase64();
+
       // Group entries by equipment (unique by plate)
       const uniqueEntries = allEntries.reduce((acc, entry) => {
         const existingIndex = acc.findIndex(e => e.plate === entry.plate);
@@ -58,18 +61,27 @@ export function ExportStatusPdfButton({
               padding: 20px;
               color: #333;
             }
+            ${PDF_HEADER_STYLES}
             .header { 
               text-align: center; 
               margin-bottom: 20px;
               padding-bottom: 15px;
               border-bottom: 2px solid #2563eb;
+              display: flex;
+              justify-content: space-between;
+              align-items: center;
             }
-            .header h1 { 
+            .header .logo {
+              max-height: 50px;
+              max-width: 140px;
+              object-fit: contain;
+            }
+            .header-info h1 { 
               font-size: 18px; 
               color: #1e40af;
               margin-bottom: 5px;
             }
-            .header p { 
+            .header-info p { 
               font-size: 12px; 
               color: #666;
             }
@@ -182,8 +194,11 @@ export function ExportStatusPdfButton({
         </head>
         <body>
           <div class="header">
-            <h1>📊 Relatório de Situação de Equipamentos</h1>
-            <p>Gerado em ${format(new Date(), "dd 'de' MMMM 'de' yyyy 'às' HH:mm", { locale: ptBR })}</p>
+            ${logoBase64 ? `<img src="${logoBase64}" alt="Logo" class="logo" />` : '<div></div>'}
+            <div class="header-info">
+              <h1>📊 Relatório de Situação de Equipamentos</h1>
+              <p>Gerado em ${format(new Date(), "dd 'de' MMMM 'de' yyyy 'às' HH:mm", { locale: ptBR })}</p>
+            </div>
           </div>
 
           <div class="summary">

@@ -6,6 +6,7 @@ import { Button } from "@/components/ui/button";
 import { toast } from "sonner";
 import { supabase } from "@/integrations/supabase/client";
 import { Equipment } from "@/hooks/useEquipment";
+import { getLogoBase64 } from "@/lib/pdfLogo";
 
 interface ExportWeeklyHistoryButtonProps {
   equipment: Equipment[];
@@ -36,6 +37,8 @@ export function ExportWeeklyHistoryButton({ equipment }: ExportWeeklyHistoryButt
   const exportToPDF = async () => {
     setIsExporting(true);
     try {
+      const logoBase64 = await getLogoBase64();
+
       // Get week boundaries
       const now = new Date();
       const weekStart = startOfWeek(now, { weekStartsOn: 1 }); // Monday
@@ -155,9 +158,18 @@ export function ExportWeeklyHistoryButton({ equipment }: ExportWeeklyHistoryButt
               margin-bottom: 25px;
               padding-bottom: 15px;
               border-bottom: 2px solid #333;
+              display: flex;
+              justify-content: space-between;
+              align-items: center;
             }
-            .header h1 { font-size: 22px; margin-bottom: 5px; }
-            .header p { font-size: 12px; color: #666; }
+            .header .logo {
+              max-height: 50px;
+              max-width: 140px;
+              object-fit: contain;
+            }
+            .header-info { text-align: right; }
+            .header-info h1 { font-size: 22px; margin-bottom: 5px; }
+            .header-info p { font-size: 12px; color: #666; }
             .week-info {
               background: #f5f5f5;
               padding: 10px 15px;
@@ -232,8 +244,11 @@ export function ExportWeeklyHistoryButton({ equipment }: ExportWeeklyHistoryButt
         </head>
         <body>
           <div class="header">
-            <h1>Histórico Semanal de Equipamentos</h1>
-            <p>Relatório de Paradas e Status</p>
+            ${logoBase64 ? `<img src="${logoBase64}" alt="Logo" class="logo" />` : '<div></div>'}
+            <div class="header-info">
+              <h1>Histórico Semanal de Equipamentos</h1>
+              <p>Relatório de Paradas e Status</p>
+            </div>
           </div>
           
           <div class="week-info">
