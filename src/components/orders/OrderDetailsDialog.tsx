@@ -14,6 +14,7 @@ import { useAuth } from "@/hooks/useAuth";
 import { useProfile } from "@/hooks/useProfile";
 import { useToast } from "@/hooks/use-toast";
 import { PhotoViewer } from "./PhotoViewer";
+import { ExportOrderPdfButton } from "./ExportOrderPdfButton";
 import {
   AlertDialog,
   AlertDialogAction,
@@ -197,14 +198,17 @@ export function OrderDetailsDialog({ order, open, onOpenChange }: OrderDetailsDi
                 <Package className="w-5 h-5" />
                 Pedido #{order.order_number}
               </DialogTitle>
-              <Tooltip>
-                <TooltipTrigger asChild>
-                  <Button variant="outline" size="icon" onClick={shareToWhatsApp}>
-                    <Share2 className="w-4 h-4" />
-                  </Button>
-                </TooltipTrigger>
-                <TooltipContent>Enviar para WhatsApp</TooltipContent>
-              </Tooltip>
+              <div className="flex items-center gap-2">
+                <ExportOrderPdfButton order={order} />
+                <Tooltip>
+                  <TooltipTrigger asChild>
+                    <Button variant="outline" size="icon" onClick={shareToWhatsApp}>
+                      <Share2 className="w-4 h-4" />
+                    </Button>
+                  </TooltipTrigger>
+                  <TooltipContent>Enviar para WhatsApp</TooltipContent>
+                </Tooltip>
+              </div>
             </div>
           </DialogHeader>
 
