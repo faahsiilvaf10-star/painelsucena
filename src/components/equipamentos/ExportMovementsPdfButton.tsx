@@ -5,6 +5,7 @@ import { FileDown, Loader2 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { toast } from "sonner";
 import { EquipmentMovement, ExitReason } from "@/hooks/useEquipmentMovements";
+import { getLogoBase64, PDF_HEADER_STYLES } from "@/lib/pdfLogo";
 
 const EXIT_REASON_LABELS: Record<ExitReason, string> = {
   manutencao_corretiva: "Manutenção Corretiva",
@@ -34,6 +35,8 @@ export function ExportMovementsPdfButton({
     setIsExporting(true);
 
     try {
+      const logoBase64 = await getLogoBase64();
+
       // Group movements by date
       const groupedByDate = movements.reduce((acc, movement) => {
         const date = movement.movement_date;
@@ -63,18 +66,27 @@ export function ExportMovementsPdfButton({
               padding: 20px;
               color: #333;
             }
+            ${PDF_HEADER_STYLES}
             .header { 
               text-align: center; 
               margin-bottom: 20px;
               padding-bottom: 15px;
               border-bottom: 2px solid #2563eb;
+              display: flex;
+              justify-content: space-between;
+              align-items: center;
             }
-            .header h1 { 
+            .header .logo {
+              max-height: 50px;
+              max-width: 140px;
+              object-fit: contain;
+            }
+            .header-info h1 { 
               font-size: 18px; 
               color: #1e40af;
               margin-bottom: 5px;
             }
-            .header p { 
+            .header-info p { 
               font-size: 12px; 
               color: #666;
             }
@@ -172,8 +184,11 @@ export function ExportMovementsPdfButton({
         </head>
         <body>
           <div class="header">
-            <h1>📋 Relatório de Entrada e Saída de Equipamentos</h1>
-            <p>Período: ${formattedStartDate} a ${formattedEndDate}</p>
+            ${logoBase64 ? `<img src="${logoBase64}" alt="Logo" class="logo" />` : '<div></div>'}
+            <div class="header-info">
+              <h1>📋 Relatório de Entrada e Saída de Equipamentos</h1>
+              <p>Período: ${formattedStartDate} a ${formattedEndDate}</p>
+            </div>
           </div>
 
           <div class="summary">

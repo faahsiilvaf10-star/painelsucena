@@ -11,6 +11,7 @@ import {
 } from "@/components/ui/dropdown-menu";
 import { useToast } from "@/hooks/use-toast";
 import { InventoryItem } from "@/hooks/useInventory";
+import { getLogoBase64 } from "@/lib/pdfLogo";
 
 interface ExportInventoryButtonProps {
   items: InventoryItem[];
@@ -96,9 +97,10 @@ export function ExportInventoryButton({ items }: ExportInventoryButtonProps) {
     }
   };
 
-  const exportToHTML = () => {
+  const exportToHTML = async () => {
     setIsExporting(true);
     try {
+      const logoBase64 = await getLogoBase64();
       const lowStockItems = items.filter((item) => item.quantity <= item.min_quantity);
       const totalItems = items.reduce((sum, item) => sum + item.quantity, 0);
 
@@ -110,7 +112,11 @@ export function ExportInventoryButton({ items }: ExportInventoryButtonProps) {
   <title>Relatório de Estoque - ${format(new Date(), "dd/MM/yyyy", { locale: ptBR })}</title>
   <style>
     body { font-family: Arial, sans-serif; margin: 20px; color: #333; }
-    h1 { color: #1a1a1a; border-bottom: 2px solid #f59e0b; padding-bottom: 10px; }
+    .header { display: flex; justify-content: space-between; align-items: center; padding-bottom: 15px; border-bottom: 2px solid #f59e0b; margin-bottom: 20px; }
+    .header .logo { max-height: 50px; max-width: 140px; object-fit: contain; }
+    .header-info { text-align: right; }
+    .header-info h1 { color: #1a1a1a; margin: 0 0 5px 0; }
+    .header-info p { margin: 0; font-size: 12px; color: #666; }
     .summary { display: flex; gap: 20px; margin-bottom: 30px; }
     .summary-card { background: #f8f9fa; padding: 15px 20px; border-radius: 8px; }
     .summary-card h3 { margin: 0 0 5px 0; font-size: 14px; color: #666; }
@@ -128,8 +134,13 @@ export function ExportInventoryButton({ items }: ExportInventoryButtonProps) {
   </style>
 </head>
 <body>
-  <h1>📦 Relatório de Estoque</h1>
-  <p>Gerado em: ${format(new Date(), "dd/MM/yyyy 'às' HH:mm", { locale: ptBR })}</p>
+  <div class="header">
+    ${logoBase64 ? `<img src="${logoBase64}" alt="Logo" class="logo" />` : '<div></div>'}
+    <div class="header-info">
+      <h1>📦 Relatório de Estoque</h1>
+      <p>Gerado em: ${format(new Date(), "dd/MM/yyyy 'às' HH:mm", { locale: ptBR })}</p>
+    </div>
+  </div>
   
   <div class="summary">
     <div class="summary-card">

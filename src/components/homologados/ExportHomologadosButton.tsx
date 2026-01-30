@@ -4,6 +4,7 @@ import { format } from "date-fns";
 import { ptBR } from "date-fns/locale";
 import { Button } from "@/components/ui/button";
 import { toast } from "sonner";
+import { getLogoBase64 } from "@/lib/pdfLogo";
 
 interface Produto {
   id: number;
@@ -22,9 +23,11 @@ interface ExportHomologadosButtonProps {
 export function ExportHomologadosButton({ produtos }: ExportHomologadosButtonProps) {
   const [isExporting, setIsExporting] = useState(false);
 
-  const exportToPDF = () => {
+  const exportToPDF = async () => {
     setIsExporting(true);
     try {
+      const logoBase64 = await getLogoBase64();
+
       const printWindow = window.open("", "_blank");
       if (!printWindow) {
         toast.error("Permita pop-ups para exportar PDF");
@@ -69,12 +72,21 @@ export function ExportHomologadosButton({ produtos }: ExportHomologadosButtonPro
               margin-bottom: 30px;
               padding-bottom: 15px;
               border-bottom: 2px solid #333;
+              display: flex;
+              justify-content: space-between;
+              align-items: center;
             }
-            .header h1 {
+            .header .logo {
+              max-height: 50px;
+              max-width: 140px;
+              object-fit: contain;
+            }
+            .header-info { text-align: right; }
+            .header-info h1 {
               font-size: 24px;
               margin-bottom: 5px;
             }
-            .header p {
+            .header-info p {
               font-size: 12px;
               color: #666;
             }
@@ -144,8 +156,11 @@ export function ExportHomologadosButton({ produtos }: ExportHomologadosButtonPro
         </head>
         <body>
           <div class="header">
-            <h1>Produtos Homologados</h1>
-            <p>Lista de produtos aprovados para uso na operação</p>
+            ${logoBase64 ? `<img src="${logoBase64}" alt="Logo" class="logo" />` : '<div></div>'}
+            <div class="header-info">
+              <h1>Produtos Homologados</h1>
+              <p>Lista de produtos aprovados para uso na operação</p>
+            </div>
           </div>
           
           <div class="info">

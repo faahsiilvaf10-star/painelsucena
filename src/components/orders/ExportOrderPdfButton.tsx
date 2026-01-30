@@ -3,11 +3,10 @@ import { FileText, Loader2 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Tooltip, TooltipContent, TooltipTrigger } from "@/components/ui/tooltip";
 import { Order, OrderStatus, OrderItem, useOrderItems } from "@/hooks/useOrders";
-import { useSiteSettings } from "@/hooks/useSiteSettings";
 import { format } from "date-fns";
 import { ptBR } from "date-fns/locale";
 import { formatCargoLabel } from "@/lib/cargoUtils";
-import logoPrincipal from "@/assets/logo-principal.png";
+import { getLogoBase64 } from "@/lib/pdfLogo";
 
 interface ExportOrderPdfButtonProps {
   order: Order;
@@ -41,30 +40,13 @@ const UNIT_LABELS: Record<string, string> = {
 
 export function ExportOrderPdfButton({ order }: ExportOrderPdfButtonProps) {
   const [isGenerating, setIsGenerating] = useState(false);
-  const { settings } = useSiteSettings();
   const { data: orderItems } = useOrderItems(order.id);
 
   const generatePdf = async () => {
     setIsGenerating(true);
 
     try {
-      // Get logo URL - prefer site settings logo, fallback to default
-      const logoUrl = settings.logo_url || logoPrincipal;
-      
-      // Convert logo to base64 for embedding in PDF
-      let logoBase64 = "";
-      try {
-        const response = await fetch(logoUrl);
-        const blob = await response.blob();
-        logoBase64 = await new Promise<string>((resolve) => {
-          const reader = new FileReader();
-          reader.onloadend = () => resolve(reader.result as string);
-          reader.readAsDataURL(blob);
-        });
-      } catch {
-        // If logo fails to load, continue without it
-        console.warn("Failed to load logo for PDF");
-      }
+      const logoBase64 = await getLogoBase64();
 
       const statusConfig = STATUS_CONFIG[order.status];
       const isCancelled = order.status === "cancelado";
