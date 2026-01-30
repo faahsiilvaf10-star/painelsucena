@@ -12,6 +12,8 @@ const getEquipmentTypeColor = (type: string) => {
       return "bg-orange-500/20 text-orange-400 border-orange-500/30";
     case "camionete":
       return "bg-green-500/20 text-green-400 border-green-500/30";
+    case "onibus":
+      return "bg-indigo-500/20 text-indigo-400 border-indigo-500/30";
     default:
       return "bg-gray-500/20 text-gray-400 border-gray-500/30";
   }
@@ -25,6 +27,8 @@ const getEquipmentTypeLabel = (type: string) => {
       return "Munk";
     case "camionete":
       return "Camionete";
+    case "onibus":
+      return "Ônibus";
     default:
       return type;
   }
