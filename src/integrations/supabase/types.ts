@@ -1459,6 +1459,42 @@ export type Database = {
         }
         Relationships: []
       }
+      security_files: {
+        Row: {
+          created_at: string
+          file_name: string
+          file_size: number | null
+          file_type: string | null
+          file_url: string
+          id: string
+          updated_at: string
+          uploaded_by: string
+          uploaded_by_name: string
+        }
+        Insert: {
+          created_at?: string
+          file_name: string
+          file_size?: number | null
+          file_type?: string | null
+          file_url: string
+          id?: string
+          updated_at?: string
+          uploaded_by: string
+          uploaded_by_name: string
+        }
+        Update: {
+          created_at?: string
+          file_name?: string
+          file_size?: number | null
+          file_type?: string | null
+          file_url?: string
+          id?: string
+          updated_at?: string
+          uploaded_by?: string
+          uploaded_by_name?: string
+        }
+        Relationships: []
+      }
       site_settings: {
         Row: {
           id: string
