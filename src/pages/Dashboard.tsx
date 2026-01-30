@@ -31,6 +31,7 @@ import { SlingInspectionBanner } from "@/components/dashboard/SlingInspectionBan
 import { DraggableDashboardItem } from "@/components/dashboard/DraggableDashboardItem";
 import { DashboardEditControls } from "@/components/dashboard/DashboardEditControls";
 import BirthdayBanner from "@/components/dashboard/BirthdayBanner";
+import DDSPresenterAlert from "@/components/dds/DDSPresenterAlert";
 import { useCampaignNotifications } from "@/hooks/useCampaignNotifications";
 import { useEmployees } from "@/hooks/useEmployees";
 import { useAttendanceRecords } from "@/hooks/useAttendance";
@@ -218,6 +219,9 @@ const Dashboard = () => {
         {/* Render dashboard items in user's preferred order */}
         {/* Birthday Banner - always at the top, not draggable */}
         <BirthdayBanner />
+        
+        {/* DDS Presenter Alert - shows 1 day before user presents */}
+        <DDSPresenterAlert />
 
         {/* Render other dashboard items in user's preferred order */}
         {!isLoadingOrder && (
