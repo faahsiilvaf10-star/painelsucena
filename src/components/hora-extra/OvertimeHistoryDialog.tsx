@@ -1,7 +1,7 @@
-import { useState, useMemo } from "react";
+import { useState, useMemo, useRef } from "react";
 import { format, startOfWeek, endOfWeek, subWeeks, parseISO } from "date-fns";
 import { ptBR } from "date-fns/locale";
-import { History, Filter, Trash2, Calendar, Clock, User } from "lucide-react";
+import { History, Filter, Trash2, Calendar, Clock, User, FileText } from "lucide-react";
 import {
   Dialog,
   DialogContent,
@@ -39,6 +39,8 @@ import {
   AlertDialogTitle,
   AlertDialogTrigger,
 } from "@/components/ui/alert-dialog";
+import { toast } from "sonner";
+import { getLogoBase64 } from "@/lib/pdfLogo";
 
 type FilterType = "all" | "month" | "week";
 
@@ -338,18 +340,156 @@ const OvertimeHistoryDialog = () => {
 
         {/* Summary */}
         {records && records.length > 0 && (
-          <div className="border-t pt-4 flex items-center justify-between text-sm">
-            <span className="text-muted-foreground">
-              Total: {records.length} registro(s)
-            </span>
-            <span className="text-amber-500 font-medium">
-              {records.filter((r) => r.is_overtime).length} hora(s) extra(s)
-            </span>
+          <div className="border-t pt-4 flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4 text-sm">
+            <div className="flex items-center gap-4">
+              <span className="text-muted-foreground">
+                Total: {records.length} registro(s)
+              </span>
+              <span className="text-amber-500 font-medium">
+                {records.filter((r) => r.is_overtime).length} hora(s) extra(s)
+              </span>
+            </div>
+            <Button
+              variant="outline"
+              size="sm"
+              onClick={() => handleExportPdf()}
+              className="flex items-center gap-2"
+            >
+              <FileText className="h-4 w-4" />
+              Exportar PDF
+            </Button>
           </div>
         )}
       </DialogContent>
     </Dialog>
   );
+
+  function handleExportPdf() {
+    if (!records || records.length === 0) {
+      toast.error("Nenhum registro para exportar");
+      return;
+    }
+
+    const logoBase64 = getLogoBase64();
+    const now = new Date();
+    const reportDate = format(now, "dd/MM/yyyy 'às' HH:mm", { locale: ptBR });
+
+    let filterDescription = "Todos os registros";
+    if (filterType === "month") {
+      filterDescription = `Mês: ${format(parseISO(`${selectedMonth}-01`), "MMMM yyyy", { locale: ptBR })}`;
+    } else if (filterType === "week") {
+      filterDescription = `Semana: ${weekDates.label}`;
+    }
+    if (selectedCargo !== "all") {
+      filterDescription += ` | Cargo: ${formatCargoLabel(selectedCargo)}`;
+    }
+
+    const totalRecords = records.length;
+    const overtimeRecords = records.filter((r) => r.is_overtime).length;
+
+    const printContent = `
+      <!DOCTYPE html>
+      <html>
+      <head>
+        <title>Relatório de Hora Extra</title>
+        <meta charset="UTF-8">
+        <style>
+          * { margin: 0; padding: 0; box-sizing: border-box; }
+          body { font-family: Arial, sans-serif; padding: 20px; color: #333; }
+          .header { display: flex; justify-content: space-between; align-items: center; margin-bottom: 20px; padding-bottom: 15px; border-bottom: 2px solid #f59e0b; }
+          .header img { height: 50px; }
+          .header-text { text-align: right; }
+          .header-text h1 { font-size: 20px; color: #333; }
+          .header-text p { font-size: 12px; color: #666; }
+          .filter-info { background: #fef3c7; padding: 10px 15px; border-radius: 6px; margin-bottom: 20px; font-size: 12px; }
+          .summary { display: flex; gap: 20px; margin-bottom: 20px; }
+          .summary-item { background: #f3f4f6; padding: 10px 15px; border-radius: 6px; flex: 1; text-align: center; }
+          .summary-item.overtime { background: #fef3c7; }
+          .summary-item strong { font-size: 24px; display: block; }
+          .summary-item span { font-size: 12px; color: #666; }
+          table { width: 100%; border-collapse: collapse; margin-top: 15px; font-size: 11px; }
+          th, td { border: 1px solid #ddd; padding: 8px; text-align: left; }
+          th { background-color: #f59e0b; color: white; font-weight: bold; }
+          tr:nth-child(even) { background-color: #f9f9f9; }
+          .overtime-row { background-color: #fef3c7 !important; }
+          .badge { display: inline-block; padding: 2px 8px; border-radius: 4px; font-size: 10px; }
+          .badge-overtime { background: #f59e0b; color: white; }
+          .footer { margin-top: 30px; padding-top: 15px; border-top: 1px solid #ddd; text-align: center; font-size: 10px; color: #666; }
+          @media print {
+            body { padding: 10px; }
+            .header { page-break-after: avoid; }
+          }
+        </style>
+      </head>
+      <body>
+        <div class="header">
+          <img src="${logoBase64}" alt="Logo" />
+          <div class="header-text">
+            <h1>Relatório de Hora Extra</h1>
+            <p>Gerado em: ${reportDate}</p>
+          </div>
+        </div>
+
+        <div class="filter-info">
+          <strong>Filtros aplicados:</strong> ${filterDescription}
+        </div>
+
+        <div class="summary">
+          <div class="summary-item">
+            <strong>${totalRecords}</strong>
+            <span>Total de Registros</span>
+          </div>
+          <div class="summary-item overtime">
+            <strong>${overtimeRecords}</strong>
+            <span>Horas Extras</span>
+          </div>
+        </div>
+
+        <table>
+          <thead>
+            <tr>
+              <th>Data</th>
+              <th>Funcionário</th>
+              <th>Cargo</th>
+              <th>Entrada</th>
+              <th>Saída</th>
+              <th>Status</th>
+            </tr>
+          </thead>
+          <tbody>
+            ${records
+              .map(
+                (record) => `
+              <tr class="${record.is_overtime ? "overtime-row" : ""}">
+                <td>${format(parseISO(record.record_date), "dd/MM/yyyy (EEEE)", { locale: ptBR })}</td>
+                <td>${record.user_name}</td>
+                <td>${formatCargoLabel(record.cargo)}</td>
+                <td>${record.entry_time.slice(0, 5)}</td>
+                <td>${record.exit_time.slice(0, 5)}</td>
+                <td>${record.is_overtime ? '<span class="badge badge-overtime">Hora Extra</span>' : "Regular"}</td>
+              </tr>
+            `
+              )
+              .join("")}
+          </tbody>
+        </table>
+
+        <div class="footer">
+          <p>Sistema de Gestão - Relatório gerado automaticamente</p>
+        </div>
+      </body>
+      </html>
+    `;
+
+    const printWindow = window.open("", "_blank");
+    if (printWindow) {
+      printWindow.document.write(printContent);
+      printWindow.document.close();
+      printWindow.onload = () => {
+        printWindow.print();
+      };
+    }
+  }
 };
 
 export default OvertimeHistoryDialog;
