@@ -1,5 +1,6 @@
-// Timezone utility for Brazil Northern Region (Pará/Amazônia - UTC-4)
-const BRAZIL_NORTH_OFFSET = -4; // UTC-4 for Pará/Amazon timezone
+// Timezone utility for Pará (Belém) - UTC-3 (America/Belem)
+// Pará uses Brasília Time (UTC-3) year-round (no DST).
+const BRAZIL_NORTH_OFFSET = -3;
 
 /**
  * Get the current date/time in Brazil Northern Region timezone (Pará/Amazônia - UTC-4)
