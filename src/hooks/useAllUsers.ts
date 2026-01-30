@@ -1,7 +1,6 @@
 import { useState, useEffect, useRef, useCallback } from "react";
 import { supabase } from "@/integrations/supabase/client";
 import { useAuth } from "./useAuth";
-import type { Tables } from "@/integrations/supabase/types";
 import { RealtimeChannel } from "@supabase/supabase-js";
 import { useAdminUsers } from "./useAdminUsers";
 
@@ -30,6 +29,7 @@ export const useAllUsers = () => {
   const previousOnlineIds = useRef<Set<string>>(new Set());
   const channelRef = useRef<RealtimeChannel | null>(null);
   const heartbeatRef = useRef<number | null>(null);
+  const justOnlineTimeoutRef = useRef<number | null>(null);
 
   // Define trackCurrentUser before any useEffect that uses it
   const trackCurrentUser = useCallback(
@@ -46,6 +46,7 @@ export const useAllUsers = () => {
         console.warn("Presence: erro ao buscar profile para track:", error);
       }
 
+      const now = new Date().toISOString();
       const payload = profile
         ? {
             id: profile.id,
@@ -53,11 +54,11 @@ export const useAllUsers = () => {
             full_name: profile.full_name,
             avatar_url: profile.avatar_url,
             cargo: profile.cargo,
-            online_at: new Date().toISOString(),
+            online_at: now,
           }
         : {
             user_id: user.id,
-            online_at: new Date().toISOString(),
+            online_at: now,
           };
 
       const trackRes = await presenceChannel.track(payload as any);
@@ -109,6 +110,10 @@ export const useAllUsers = () => {
       channelRef.current.unsubscribe();
       channelRef.current = null;
     }
+    if (justOnlineTimeoutRef.current) {
+      window.clearTimeout(justOnlineTimeoutRef.current);
+      justOnlineTimeoutRef.current = null;
+    }
 
     const presenceChannel = supabase.channel("online-users", {
       config: {
@@ -149,14 +154,15 @@ export const useAllUsers = () => {
         if (newlyOnline.size > 0) {
           setJustOnlineIds(newlyOnline);
           // Clear the animation after 3 seconds
-          setTimeout(() => {
+          if (justOnlineTimeoutRef.current) {
+            window.clearTimeout(justOnlineTimeoutRef.current);
+          }
+          justOnlineTimeoutRef.current = window.setTimeout(() => {
             setJustOnlineIds(new Set());
           }, 3000);
         }
 
-        // Persist lastSeen using functional update to avoid stale state
-        // When a user goes offline, use their last online_at time as lastSeen
-        // Also update lastSeen for users who are currently online (for when they go offline)
+        // Update lastSeen map
         setLastSeenMap((prev) => {
           const next = new Map(prev);
           
@@ -167,19 +173,60 @@ export const useAllUsers = () => {
             }
           });
           
-          // For users who are online, update their lastSeen to their online_at time
-          // This ensures we have a lastSeen even for users who were online before we joined
+          // For users who are online, continuously update their lastSeen
           onlineAtTimes.forEach((onlineAt, id) => {
-            if (!next.has(id) || onlineIds.has(id)) {
-              next.set(id, onlineAt);
-            }
+            next.set(id, onlineAt);
           });
           
           return next;
         });
 
         previousOnlineIds.current = onlineIds;
-        setOnlineUserIds(onlineIds);
+        setOnlineUserIds(new Set(onlineIds));
+      })
+      .on("presence", { event: "join" }, ({ key, newPresences }) => {
+        console.log("User joined:", key, newPresences);
+        // Immediately update online status when someone joins
+        if (key && key !== user.id) {
+          setOnlineUserIds((prev) => {
+            const next = new Set(prev);
+            next.add(key);
+            return next;
+          });
+          
+          // Mark as just came online
+          setJustOnlineIds((prev) => {
+            const next = new Set(prev);
+            next.add(key);
+            return next;
+          });
+          
+          // Clear animation after 3s
+          if (justOnlineTimeoutRef.current) {
+            window.clearTimeout(justOnlineTimeoutRef.current);
+          }
+          justOnlineTimeoutRef.current = window.setTimeout(() => {
+            setJustOnlineIds(new Set());
+          }, 3000);
+        }
+      })
+      .on("presence", { event: "leave" }, ({ key, leftPresences }) => {
+        console.log("User left:", key, leftPresences);
+        // Immediately update when someone leaves
+        if (key) {
+          setOnlineUserIds((prev) => {
+            const next = new Set(prev);
+            next.delete(key);
+            return next;
+          });
+          
+          // Update lastSeen for the user who left
+          setLastSeenMap((prev) => {
+            const next = new Map(prev);
+            next.set(key, new Date().toISOString());
+            return next;
+          });
+        }
       })
       .subscribe(async (status) => {
         if (status === "SUBSCRIBED") {
@@ -196,6 +243,10 @@ export const useAllUsers = () => {
       if (heartbeatRef.current) {
         window.clearInterval(heartbeatRef.current);
         heartbeatRef.current = null;
+      }
+      if (justOnlineTimeoutRef.current) {
+        window.clearTimeout(justOnlineTimeoutRef.current);
+        justOnlineTimeoutRef.current = null;
       }
       presenceChannel.unsubscribe();
       channelRef.current = null;
