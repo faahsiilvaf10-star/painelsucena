@@ -16,6 +16,7 @@ import { useProfile } from "@/hooks/useProfile";
 import { useToast } from "@/hooks/use-toast";
 import { PhotoViewer } from "./PhotoViewer";
 import { ExportOrderPdfButton } from "./ExportOrderPdfButton";
+import { DeliveryConfirmationDialog } from "./DeliveryConfirmationDialog";
 import {
   AlertDialog,
   AlertDialogAction,
@@ -86,6 +87,7 @@ import { formatCargoLabel } from "@/lib/cargoUtils";
 
 export function OrderDetailsDialog({ order, open, onOpenChange }: OrderDetailsDialogProps) {
   const [showDeleteConfirm, setShowDeleteConfirm] = useState(false);
+  const [showDeliveryDialog, setShowDeliveryDialog] = useState(false);
   const [photoViewerOpen, setPhotoViewerOpen] = useState(false);
   const [photoIndex, setPhotoIndex] = useState(0);
   const [editingQuantity, setEditingQuantity] = useState(false);
@@ -121,9 +123,24 @@ export function OrderDetailsDialog({ order, open, onOpenChange }: OrderDetailsDi
   ];
 
   const handleStatusChange = async (newStatus: OrderStatus) => {
+    // If changing to "entregue", show delivery confirmation dialog
+    if (newStatus === "entregue") {
+      setShowDeliveryDialog(true);
+      return;
+    }
+    
     try {
       await updateStatus.mutateAsync({ orderId: order.id, newStatus });
       toast({ title: "Status atualizado!" });
+    } catch {
+      toast({ title: "Erro ao atualizar status", variant: "destructive" });
+    }
+  };
+
+  const handleDeliveryConfirmed = async () => {
+    try {
+      await updateStatus.mutateAsync({ orderId: order.id, newStatus: "entregue" });
+      toast({ title: "Pedido marcado como entregue!" });
     } catch {
       toast({ title: "Erro ao atualizar status", variant: "destructive" });
     }
@@ -523,6 +540,15 @@ export function OrderDetailsDialog({ order, open, onOpenChange }: OrderDetailsDi
           </AlertDialogFooter>
         </AlertDialogContent>
       </AlertDialog>
+
+      {/* Delivery Confirmation Dialog */}
+      <DeliveryConfirmationDialog
+        order={order}
+        orderItems={orderItems}
+        open={showDeliveryDialog}
+        onOpenChange={setShowDeliveryDialog}
+        onConfirm={handleDeliveryConfirmed}
+      />
     </>
   );
 }
