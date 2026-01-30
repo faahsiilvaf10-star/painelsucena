@@ -3,7 +3,7 @@ import { useQueryClient } from "@tanstack/react-query";
 import { getBrazilNorthDate } from "@/lib/timezone";
 
 /**
- * Hook that detects when midnight occurs in Brazil North timezone (Pará - UTC-4)
+ * Hook that detects when midnight occurs in Pará timezone (UTC-3)
  * and invalidates specified query keys to refresh the data.
  * Also returns the current date to force component re-renders.
  */
