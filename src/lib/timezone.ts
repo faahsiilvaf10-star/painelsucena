@@ -1,8 +1,8 @@
-// Timezone utility for Brazil Northern Region (Manaus - UTC-4)
-const BRAZIL_NORTH_OFFSET = -4; // UTC-4 for Manaus timezone
+// Timezone utility for Brazil Northern Region (Pará/Amazônia - UTC-4)
+const BRAZIL_NORTH_OFFSET = -4; // UTC-4 for Pará/Amazon timezone
 
 /**
- * Get the current date/time in Brazil Northern Region timezone (Manaus - UTC-4)
+ * Get the current date/time in Brazil Northern Region timezone (Pará/Amazônia - UTC-4)
  */
 export const getBrazilNorthDate = (): Date => {
   const now = new Date();
