@@ -5,6 +5,16 @@ import { useAuth } from "@/hooks/useAuth";
 export type OrderStatus = 'solicitado' | 'aprovado' | 'a_caminho' | 'entregue' | 'cancelado';
 export type QuantityUnit = 'unidade' | 'centimetros' | 'metros' | 'quilos' | 'litros' | 'pacotes' | 'caixas' | 'pecas' | 'par' | 'rolo' | 'saco' | 'galao' | 'balde' | 'metro_quadrado' | 'metro_cubico';
 
+export interface OrderItem {
+  id: string;
+  order_id: string;
+  product_name: string;
+  quantity: number;
+  quantity_unit: QuantityUnit;
+  description: string | null;
+  created_at: string;
+}
+
 export interface Order {
   id: string;
   order_number: string;
@@ -23,6 +33,7 @@ export interface Order {
   notes: string | null;
   created_at: string;
   updated_at: string;
+  items?: OrderItem[];
 }
 
 export interface OrderHistory {
@@ -36,11 +47,15 @@ export interface OrderHistory {
   created_at: string;
 }
 
-export interface CreateOrderData {
+export interface OrderItemInput {
   product_name: string;
-  description?: string;
   quantity: number;
   quantity_unit: QuantityUnit;
+  description?: string;
+}
+
+export interface CreateOrderData {
+  items: OrderItemInput[];
   expected_date?: string;
   photo_urls?: string[];
   ai_generated_image_url?: string;
@@ -117,6 +132,23 @@ export const useOrderHistory = (orderId: string) => {
   });
 };
 
+export const useOrderItems = (orderId: string) => {
+  return useQuery({
+    queryKey: ["order-items", orderId],
+    queryFn: async () => {
+      const { data, error } = await supabase
+        .from("order_items")
+        .select("*")
+        .eq("order_id", orderId)
+        .order("created_at", { ascending: true });
+
+      if (error) throw error;
+      return data as OrderItem[];
+    },
+    enabled: !!orderId,
+  });
+};
+
 export const useCreateOrder = () => {
   const queryClient = useQueryClient();
   const { user } = useAuth();
@@ -124,6 +156,9 @@ export const useCreateOrder = () => {
   return useMutation({
     mutationFn: async (orderData: CreateOrderData) => {
       if (!user?.id) throw new Error("Usuário não autenticado");
+      if (!orderData.items || orderData.items.length === 0) {
+        throw new Error("Adicione pelo menos um item ao pedido");
+      }
 
       // Get user's profile for name
       const { data: profile } = await supabase
@@ -132,10 +167,25 @@ export const useCreateOrder = () => {
         .eq("user_id", user.id)
         .single();
 
+      // Use first item as the main product (for backwards compatibility)
+      const firstItem = orderData.items[0];
+      const totalItems = orderData.items.length;
+      const productSummary = totalItems === 1 
+        ? firstItem.product_name 
+        : `${firstItem.product_name} (+${totalItems - 1} itens)`;
+
       const { data, error } = await supabase
         .from("orders")
         .insert({
-          ...orderData,
+          product_name: productSummary,
+          description: totalItems > 1 ? `Pedido com ${totalItems} itens` : firstItem.description,
+          quantity: firstItem.quantity,
+          quantity_unit: firstItem.quantity_unit,
+          expected_date: orderData.expected_date,
+          photo_urls: orderData.photo_urls,
+          ai_generated_image_url: orderData.ai_generated_image_url,
+          mentioned_user_id: orderData.mentioned_user_id,
+          mentioned_cargo: orderData.mentioned_cargo,
           requester_id: user.id,
           requester_name: profile?.full_name || "Usuário",
         })
@@ -144,12 +194,28 @@ export const useCreateOrder = () => {
 
       if (error) throw error;
 
+      // Insert all items
+      const itemsToInsert = orderData.items.map(item => ({
+        order_id: data.id,
+        product_name: item.product_name,
+        quantity: item.quantity,
+        quantity_unit: item.quantity_unit,
+        description: item.description || null,
+      }));
+
+      const { error: itemsError } = await supabase
+        .from("order_items")
+        .insert(itemsToInsert);
+
+      if (itemsError) throw itemsError;
+
       // Create notification for mentioned user
       if (orderData.mentioned_user_id) {
+        const itemsList = orderData.items.map(i => `• ${i.quantity} ${i.quantity_unit} de ${i.product_name}`).join('\n');
         await supabase.from("notifications").insert({
           user_id: orderData.mentioned_user_id,
           title: "📦 Novo Pedido - Aguardando Solicitação",
-          message: `${profile?.full_name || "Alguém"} fez um pedido de ${orderData.quantity} ${orderData.quantity_unit === "unidade" ? "unidade(s)" : orderData.quantity_unit} de "${orderData.product_name}" e está aguardando sua análise.`,
+          message: `${profile?.full_name || "Alguém"} fez um pedido com ${totalItems} item(ns) e está aguardando sua análise.`,
           type: "order",
           reference_id: data.id,
           reference_type: "order",

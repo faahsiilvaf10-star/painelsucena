@@ -1,33 +1,22 @@
 import { useState } from "react";
-import { useForm } from "react-hook-form";
-import { zodResolver } from "@hookform/resolvers/zod";
-import { z } from "zod";
 import { format } from "date-fns";
 import { ptBR } from "date-fns/locale";
-import { CalendarIcon, ImagePlus, Loader2, Sparkles, Upload, X } from "lucide-react";
+import { CalendarIcon, ImagePlus, Loader2, Sparkles, Upload, X, Plus, Trash2 } from "lucide-react";
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/components/ui/dialog";
-import { Form, FormControl, FormField, FormItem, FormLabel, FormMessage } from "@/components/ui/form";
 import { Input } from "@/components/ui/input";
 import { Textarea } from "@/components/ui/textarea";
 import { Button } from "@/components/ui/button";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { Calendar } from "@/components/ui/calendar";
 import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover";
-import { useCreateOrder, uploadOrderPhoto, QuantityUnit } from "@/hooks/useOrders";
+import { Label } from "@/components/ui/label";
+import { Card, CardContent } from "@/components/ui/card";
+import { Badge } from "@/components/ui/badge";
+import { Separator } from "@/components/ui/separator";
+import { useCreateOrder, uploadOrderPhoto, QuantityUnit, OrderItemInput } from "@/hooks/useOrders";
 import { useToast } from "@/hooks/use-toast";
 import { supabase } from "@/integrations/supabase/client";
 import { cn } from "@/lib/utils";
-
-const formSchema = z.object({
-  product_name: z.string().min(2, "Nome do produto é obrigatório"),
-  description: z.string().optional(),
-  quantity: z.coerce.number().min(0.01, "Quantidade deve ser maior que 0"),
-  quantity_unit: z.enum(["unidade", "centimetros", "metros", "quilos", "litros", "pacotes", "caixas", "pecas"]),
-  expected_date: z.date().optional(),
-  mentioned_cargo: z.enum(["aux_administrativo", "aux_almoxarifado"]).optional(),
-});
-
-type FormData = z.infer<typeof formSchema>;
 
 interface CreateOrderDialogProps {
   open: boolean;
@@ -57,23 +46,31 @@ const CARGO_OPTIONS = [
   { value: "aux_almoxarifado", label: "Aux. Almoxarifado" },
 ];
 
+interface ItemForm {
+  product_name: string;
+  quantity: string;
+  quantity_unit: QuantityUnit;
+  description: string;
+}
+
+const emptyItem: ItemForm = {
+  product_name: "",
+  quantity: "1",
+  quantity_unit: "unidade",
+  description: "",
+};
+
 export function CreateOrderDialog({ open, onOpenChange }: CreateOrderDialogProps) {
+  const [items, setItems] = useState<ItemForm[]>([{ ...emptyItem }]);
+  const [currentItem, setCurrentItem] = useState<ItemForm>({ ...emptyItem });
+  const [expectedDate, setExpectedDate] = useState<Date | undefined>();
+  const [mentionedCargo, setMentionedCargo] = useState<string | undefined>();
   const [photos, setPhotos] = useState<string[]>([]);
   const [aiImage, setAiImage] = useState<string | null>(null);
   const [isUploading, setIsUploading] = useState(false);
   const [isGeneratingAI, setIsGeneratingAI] = useState(false);
   const { toast } = useToast();
   const createOrder = useCreateOrder();
-
-  const form = useForm<FormData>({
-    resolver: zodResolver(formSchema),
-    defaultValues: {
-      product_name: "",
-      description: "",
-      quantity: 1,
-      quantity_unit: "unidade",
-    },
-  });
 
   const handlePhotoUpload = async (e: React.ChangeEvent<HTMLInputElement>) => {
     const files = e.target.files;
@@ -97,8 +94,7 @@ export function CreateOrderDialog({ open, onOpenChange }: CreateOrderDialogProps
   };
 
   const generateAIImage = async () => {
-    const productName = form.getValues("product_name");
-    const description = form.getValues("description");
+    const productName = currentItem.product_name || (items.length > 0 ? items[0].product_name : "");
 
     if (!productName) {
       toast({ title: "Digite o nome do produto primeiro", variant: "destructive" });
@@ -108,7 +104,7 @@ export function CreateOrderDialog({ open, onOpenChange }: CreateOrderDialogProps
     setIsGeneratingAI(true);
     try {
       const { data, error } = await supabase.functions.invoke("generate-order-image", {
-        body: { prompt: `${productName}. ${description || ""}` },
+        body: { prompt: productName },
       });
 
       if (error) throw error;
@@ -137,36 +133,92 @@ export function CreateOrderDialog({ open, onOpenChange }: CreateOrderDialogProps
     return data?.user_id || null;
   };
 
-  const onSubmit = async (data: FormData) => {
+  const addItem = () => {
+    if (!currentItem.product_name.trim()) {
+      toast({ title: "Digite o nome do produto", variant: "destructive" });
+      return;
+    }
+    const qty = parseFloat(currentItem.quantity);
+    if (isNaN(qty) || qty <= 0) {
+      toast({ title: "Quantidade inválida", variant: "destructive" });
+      return;
+    }
+
+    setItems([...items, { ...currentItem }]);
+    setCurrentItem({ ...emptyItem });
+    toast({ title: "Item adicionado à lista!" });
+  };
+
+  const removeItem = (index: number) => {
+    setItems(items.filter((_, i) => i !== index));
+  };
+
+  const updateItem = (index: number, field: keyof ItemForm, value: string) => {
+    const updated = [...items];
+    updated[index] = { ...updated[index], [field]: value };
+    setItems(updated);
+  };
+
+  const onSubmit = async () => {
+    // Combine current item if it has data
+    let allItems = [...items];
+    if (currentItem.product_name.trim()) {
+      const qty = parseFloat(currentItem.quantity);
+      if (!isNaN(qty) && qty > 0) {
+        allItems.push({ ...currentItem });
+      }
+    }
+
+    // Filter out empty items
+    allItems = allItems.filter(item => item.product_name.trim() && parseFloat(item.quantity) > 0);
+
+    if (allItems.length === 0) {
+      toast({ title: "Adicione pelo menos um item ao pedido", variant: "destructive" });
+      return;
+    }
+
     try {
       let mentionedUserId: string | undefined;
       
-      if (data.mentioned_cargo) {
-        const userId = await getMentionedUserId(data.mentioned_cargo);
+      if (mentionedCargo) {
+        const userId = await getMentionedUserId(mentionedCargo as "aux_administrativo" | "aux_almoxarifado");
         if (userId) mentionedUserId = userId;
       }
 
+      const itemsData: OrderItemInput[] = allItems.map(item => ({
+        product_name: item.product_name,
+        quantity: parseFloat(item.quantity),
+        quantity_unit: item.quantity_unit,
+        description: item.description || undefined,
+      }));
+
       await createOrder.mutateAsync({
-        product_name: data.product_name,
-        description: data.description,
-        quantity: data.quantity,
-        quantity_unit: data.quantity_unit,
-        expected_date: data.expected_date ? format(data.expected_date, "yyyy-MM-dd") : undefined,
+        items: itemsData,
+        expected_date: expectedDate ? format(expectedDate, "yyyy-MM-dd") : undefined,
         photo_urls: photos,
         ai_generated_image_url: aiImage || undefined,
         mentioned_user_id: mentionedUserId,
-        mentioned_cargo: data.mentioned_cargo,
+        mentioned_cargo: mentionedCargo,
       });
 
       toast({ title: "Pedido criado com sucesso!" });
-      form.reset();
-      setPhotos([]);
-      setAiImage(null);
+      resetForm();
       onOpenChange(false);
     } catch (error) {
       toast({ title: "Erro ao criar pedido", variant: "destructive" });
     }
   };
+
+  const resetForm = () => {
+    setItems([]);
+    setCurrentItem({ ...emptyItem });
+    setExpectedDate(undefined);
+    setMentionedCargo(undefined);
+    setPhotos([]);
+    setAiImage(null);
+  };
+
+  const totalItems = items.length + (currentItem.product_name.trim() ? 1 : 0);
 
   return (
     <Dialog open={open} onOpenChange={onOpenChange}>
@@ -175,235 +227,257 @@ export function CreateOrderDialog({ open, onOpenChange }: CreateOrderDialogProps
           <DialogTitle className="text-xl font-bold">Novo Pedido</DialogTitle>
         </DialogHeader>
 
-        <Form {...form}>
-          <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-4">
-            <FormField
-              control={form.control}
-              name="product_name"
-              render={({ field }) => (
-                <FormItem>
-                  <FormLabel>Nome do Produto *</FormLabel>
-                  <FormControl>
-                    <Input placeholder="Ex: Parafusos Phillips 6mm" {...field} />
-                  </FormControl>
-                  <FormMessage />
-                </FormItem>
-              )}
-            />
-
-            <FormField
-              control={form.control}
-              name="description"
-              render={({ field }) => (
-                <FormItem>
-                  <FormLabel>Descrição</FormLabel>
-                  <FormControl>
-                    <Textarea placeholder="Detalhes adicionais do produto..." {...field} />
-                  </FormControl>
-                  <FormMessage />
-                </FormItem>
-              )}
-            />
-
-            <div className="grid grid-cols-2 gap-4">
-              <FormField
-                control={form.control}
-                name="quantity"
-                render={({ field }) => (
-                  <FormItem>
-                    <FormLabel>Quantidade *</FormLabel>
-                    <FormControl>
-                      <Input type="number" step="0.01" min="0.01" {...field} />
-                    </FormControl>
-                    <FormMessage />
-                  </FormItem>
-                )}
-              />
-
-              <FormField
-                control={form.control}
-                name="quantity_unit"
-                render={({ field }) => (
-                  <FormItem>
-                    <FormLabel>Unidade *</FormLabel>
-                    <Select onValueChange={field.onChange} defaultValue={field.value}>
-                      <FormControl>
-                        <SelectTrigger>
-                          <SelectValue />
-                        </SelectTrigger>
-                      </FormControl>
-                      <SelectContent>
-                        {UNIT_OPTIONS.map((option) => (
-                          <SelectItem key={option.value} value={option.value}>
-                            {option.label}
-                          </SelectItem>
-                        ))}
-                      </SelectContent>
-                    </Select>
-                    <FormMessage />
-                  </FormItem>
-                )}
-              />
-            </div>
-
-            <div className="grid grid-cols-2 gap-4">
-              <FormField
-                control={form.control}
-                name="expected_date"
-                render={({ field }) => (
-                  <FormItem className="flex flex-col">
-                    <FormLabel>Previsão de Entrega</FormLabel>
-                    <Popover>
-                      <PopoverTrigger asChild>
-                        <FormControl>
-                          <Button
-                            variant="outline"
-                            className={cn(
-                              "pl-3 text-left font-normal",
-                              !field.value && "text-muted-foreground"
-                            )}
-                          >
-                            {field.value ? (
-                              format(field.value, "dd/MM/yyyy", { locale: ptBR })
-                            ) : (
-                              <span>Selecione uma data</span>
-                            )}
-                            <CalendarIcon className="ml-auto h-4 w-4 opacity-50" />
-                          </Button>
-                        </FormControl>
-                      </PopoverTrigger>
-                      <PopoverContent className="w-auto p-0" align="start">
-                        <Calendar
-                          mode="single"
-                          selected={field.value}
-                          onSelect={field.onChange}
-                          disabled={(date) => date < new Date()}
-                          initialFocus
-                        />
-                      </PopoverContent>
-                    </Popover>
-                    <FormMessage />
-                  </FormItem>
-                )}
-              />
-
-              <FormField
-                control={form.control}
-                name="mentioned_cargo"
-                render={({ field }) => (
-                  <FormItem>
-                    <FormLabel>Encaminhar para</FormLabel>
-                    <Select onValueChange={field.onChange} value={field.value}>
-                      <FormControl>
-                        <SelectTrigger>
-                          <SelectValue placeholder="Selecione o responsável" />
-                        </SelectTrigger>
-                      </FormControl>
-                      <SelectContent>
-                        {CARGO_OPTIONS.map((option) => (
-                          <SelectItem key={option.value} value={option.value}>
-                            {option.label}
-                          </SelectItem>
-                        ))}
-                      </SelectContent>
-                    </Select>
-                    <FormMessage />
-                  </FormItem>
-                )}
-              />
-            </div>
-
-            {/* Photos Section */}
+        <div className="space-y-4">
+          {/* Added Items List */}
+          {items.length > 0 && (
             <div className="space-y-2">
-              <FormLabel>Fotos do Produto</FormLabel>
-              <div className="flex flex-wrap gap-2">
-                {photos.map((url, index) => (
-                  <div key={index} className="relative w-20 h-20">
-                    <img
-                      src={url}
-                      alt={`Foto ${index + 1}`}
-                      className="w-full h-full object-cover rounded-md"
-                    />
-                    <button
-                      type="button"
-                      onClick={() => removePhoto(index)}
-                      className="absolute -top-2 -right-2 bg-destructive text-destructive-foreground rounded-full p-1"
-                    >
-                      <X className="w-3 h-3" />
-                    </button>
-                  </div>
+              <Label className="flex items-center gap-2">
+                Itens do Pedido
+                <Badge variant="secondary">{items.length}</Badge>
+              </Label>
+              <div className="space-y-2 max-h-40 overflow-y-auto">
+                {items.map((item, index) => (
+                  <Card key={index} className="bg-muted/50">
+                    <CardContent className="p-3">
+                      <div className="flex items-start justify-between gap-2">
+                        <div className="flex-1 min-w-0">
+                          <div className="font-medium truncate">{item.product_name}</div>
+                          <div className="text-sm text-muted-foreground">
+                            {item.quantity} {UNIT_OPTIONS.find(u => u.value === item.quantity_unit)?.label}
+                          </div>
+                          {item.description && (
+                            <div className="text-xs text-muted-foreground truncate">{item.description}</div>
+                          )}
+                        </div>
+                        <Button
+                          type="button"
+                          variant="ghost"
+                          size="icon"
+                          className="h-8 w-8 text-destructive hover:text-destructive"
+                          onClick={() => removeItem(index)}
+                        >
+                          <Trash2 className="h-4 w-4" />
+                        </Button>
+                      </div>
+                    </CardContent>
+                  </Card>
                 ))}
-                {aiImage && (
-                  <div className="relative w-20 h-20">
-                    <img
-                      src={aiImage}
-                      alt="Imagem gerada por IA"
-                      className="w-full h-full object-cover rounded-md ring-2 ring-primary"
-                    />
-                    <button
-                      type="button"
-                      onClick={() => setAiImage(null)}
-                      className="absolute -top-2 -right-2 bg-destructive text-destructive-foreground rounded-full p-1"
-                    >
-                      <X className="w-3 h-3" />
-                    </button>
-                    <span className="absolute bottom-0 left-0 right-0 bg-primary/80 text-primary-foreground text-[10px] text-center py-0.5 rounded-b-md">
-                      IA
-                    </span>
-                  </div>
-                )}
               </div>
-              <div className="flex gap-2">
-                <Button
-                  type="button"
-                  variant="outline"
-                  size="sm"
-                  disabled={isUploading}
-                  onClick={() => document.getElementById("photo-upload")?.click()}
-                >
-                  {isUploading ? (
-                    <Loader2 className="w-4 h-4 mr-2 animate-spin" />
-                  ) : (
-                    <Upload className="w-4 h-4 mr-2" />
-                  )}
-                  Enviar Fotos
-                </Button>
-                <Button
-                  type="button"
-                  variant="outline"
-                  size="sm"
-                  disabled={isGeneratingAI}
-                  onClick={generateAIImage}
-                >
-                  {isGeneratingAI ? (
-                    <Loader2 className="w-4 h-4 mr-2 animate-spin" />
-                  ) : (
-                    <Sparkles className="w-4 h-4 mr-2" />
-                  )}
-                  Gerar com IA
-                </Button>
-                <input
-                  id="photo-upload"
-                  type="file"
-                  accept="image/*"
-                  multiple
-                  className="hidden"
-                  onChange={handlePhotoUpload}
+              <Separator />
+            </div>
+          )}
+
+          {/* Add New Item Form */}
+          <div className="space-y-3 p-4 border rounded-lg bg-card">
+            <Label className="font-medium">
+              {items.length > 0 ? "Adicionar outro item" : "Adicionar Item"}
+            </Label>
+            
+            <div className="space-y-3">
+              <div>
+                <Label className="text-sm">Nome do Produto *</Label>
+                <Input
+                  placeholder="Ex: Parafusos Phillips 6mm"
+                  value={currentItem.product_name}
+                  onChange={(e) => setCurrentItem({ ...currentItem, product_name: e.target.value })}
                 />
               </div>
+
+              <div className="grid grid-cols-2 gap-3">
+                <div>
+                  <Label className="text-sm">Quantidade *</Label>
+                  <Input
+                    type="number"
+                    step="0.01"
+                    min="0.01"
+                    value={currentItem.quantity}
+                    onChange={(e) => setCurrentItem({ ...currentItem, quantity: e.target.value })}
+                  />
+                </div>
+                <div>
+                  <Label className="text-sm">Unidade *</Label>
+                  <Select
+                    value={currentItem.quantity_unit}
+                    onValueChange={(v) => setCurrentItem({ ...currentItem, quantity_unit: v as QuantityUnit })}
+                  >
+                    <SelectTrigger>
+                      <SelectValue />
+                    </SelectTrigger>
+                    <SelectContent>
+                      {UNIT_OPTIONS.map((option) => (
+                        <SelectItem key={option.value} value={option.value}>
+                          {option.label}
+                        </SelectItem>
+                      ))}
+                    </SelectContent>
+                  </Select>
+                </div>
+              </div>
+
+              <div>
+                <Label className="text-sm">Descrição (opcional)</Label>
+                <Textarea
+                  placeholder="Detalhes adicionais..."
+                  value={currentItem.description}
+                  onChange={(e) => setCurrentItem({ ...currentItem, description: e.target.value })}
+                  rows={2}
+                />
+              </div>
+
+              <Button
+                type="button"
+                variant="outline"
+                onClick={addItem}
+                className="w-full"
+              >
+                <Plus className="w-4 h-4 mr-2" />
+                Adicionar Item à Lista
+              </Button>
+            </div>
+          </div>
+
+          <Separator />
+
+          {/* Order Details */}
+          <div className="grid grid-cols-2 gap-4">
+            <div className="space-y-2">
+              <Label>Previsão de Entrega</Label>
+              <Popover>
+                <PopoverTrigger asChild>
+                  <Button
+                    variant="outline"
+                    className={cn(
+                      "w-full pl-3 text-left font-normal",
+                      !expectedDate && "text-muted-foreground"
+                    )}
+                  >
+                    {expectedDate ? (
+                      format(expectedDate, "dd/MM/yyyy", { locale: ptBR })
+                    ) : (
+                      <span>Selecione uma data</span>
+                    )}
+                    <CalendarIcon className="ml-auto h-4 w-4 opacity-50" />
+                  </Button>
+                </PopoverTrigger>
+                <PopoverContent className="w-auto p-0" align="start">
+                  <Calendar
+                    mode="single"
+                    selected={expectedDate}
+                    onSelect={setExpectedDate}
+                    disabled={(date) => date < new Date()}
+                    initialFocus
+                  />
+                </PopoverContent>
+              </Popover>
             </div>
 
-            <div className="flex justify-end gap-2 pt-4">
-              <Button type="button" variant="outline" onClick={() => onOpenChange(false)}>
-                Cancelar
-              </Button>
-              <Button type="submit" disabled={createOrder.isPending}>
-                {createOrder.isPending && <Loader2 className="w-4 h-4 mr-2 animate-spin" />}
-                Criar Pedido
-              </Button>
+            <div className="space-y-2">
+              <Label>Encaminhar para</Label>
+              <Select value={mentionedCargo} onValueChange={setMentionedCargo}>
+                <SelectTrigger>
+                  <SelectValue placeholder="Selecione o responsável" />
+                </SelectTrigger>
+                <SelectContent>
+                  {CARGO_OPTIONS.map((option) => (
+                    <SelectItem key={option.value} value={option.value}>
+                      {option.label}
+                    </SelectItem>
+                  ))}
+                </SelectContent>
+              </Select>
             </div>
-          </form>
-        </Form>
+          </div>
+
+          {/* Photos Section */}
+          <div className="space-y-2">
+            <Label>Fotos do Pedido</Label>
+            <div className="flex flex-wrap gap-2">
+              {photos.map((url, index) => (
+                <div key={index} className="relative w-20 h-20">
+                  <img
+                    src={url}
+                    alt={`Foto ${index + 1}`}
+                    className="w-full h-full object-cover rounded-md"
+                  />
+                  <button
+                    type="button"
+                    onClick={() => removePhoto(index)}
+                    className="absolute -top-2 -right-2 bg-destructive text-destructive-foreground rounded-full p-1"
+                  >
+                    <X className="w-3 h-3" />
+                  </button>
+                </div>
+              ))}
+              {aiImage && (
+                <div className="relative w-20 h-20">
+                  <img
+                    src={aiImage}
+                    alt="Imagem gerada por IA"
+                    className="w-full h-full object-cover rounded-md ring-2 ring-primary"
+                  />
+                  <button
+                    type="button"
+                    onClick={() => setAiImage(null)}
+                    className="absolute -top-2 -right-2 bg-destructive text-destructive-foreground rounded-full p-1"
+                  >
+                    <X className="w-3 h-3" />
+                  </button>
+                  <span className="absolute bottom-0 left-0 right-0 bg-primary/80 text-primary-foreground text-[10px] text-center py-0.5 rounded-b-md">
+                    IA
+                  </span>
+                </div>
+              )}
+            </div>
+            <div className="flex gap-2">
+              <Button
+                type="button"
+                variant="outline"
+                size="sm"
+                disabled={isUploading}
+                onClick={() => document.getElementById("photo-upload")?.click()}
+              >
+                {isUploading ? (
+                  <Loader2 className="w-4 h-4 mr-2 animate-spin" />
+                ) : (
+                  <Upload className="w-4 h-4 mr-2" />
+                )}
+                Enviar Fotos
+              </Button>
+              <Button
+                type="button"
+                variant="outline"
+                size="sm"
+                disabled={isGeneratingAI}
+                onClick={generateAIImage}
+              >
+                {isGeneratingAI ? (
+                  <Loader2 className="w-4 h-4 mr-2 animate-spin" />
+                ) : (
+                  <Sparkles className="w-4 h-4 mr-2" />
+                )}
+                Gerar com IA
+              </Button>
+              <input
+                id="photo-upload"
+                type="file"
+                accept="image/*"
+                multiple
+                className="hidden"
+                onChange={handlePhotoUpload}
+              />
+            </div>
+          </div>
+
+          <div className="flex justify-end gap-2 pt-4">
+            <Button type="button" variant="outline" onClick={() => onOpenChange(false)}>
+              Cancelar
+            </Button>
+            <Button onClick={onSubmit} disabled={createOrder.isPending || totalItems === 0}>
+              {createOrder.isPending && <Loader2 className="w-4 h-4 mr-2 animate-spin" />}
+              Criar Pedido {totalItems > 0 && `(${totalItems} ${totalItems === 1 ? 'item' : 'itens'})`}
+            </Button>
+          </div>
+        </div>
       </DialogContent>
     </Dialog>
   );

@@ -2,7 +2,7 @@ import { useState } from "react";
 import { FileText, Loader2 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Tooltip, TooltipContent, TooltipTrigger } from "@/components/ui/tooltip";
-import { Order, OrderStatus, QuantityUnit } from "@/hooks/useOrders";
+import { Order, OrderStatus, OrderItem, useOrderItems } from "@/hooks/useOrders";
 import { useSiteSettings } from "@/hooks/useSiteSettings";
 import { format } from "date-fns";
 import { ptBR } from "date-fns/locale";
@@ -27,8 +27,8 @@ const UNIT_LABELS: Record<string, string> = {
   pecas: "Peça(s)",
   centimetros: "Centímetros",
   metros: "Metros",
-  metro_quadrado: "m² (Metro Quadrado)",
-  metro_cubico: "m³ (Metro Cúbico)",
+  metro_quadrado: "m²",
+  metro_cubico: "m³",
   quilos: "Quilos",
   litros: "Litros",
   galao: "Galão(ões)",
@@ -42,6 +42,7 @@ const UNIT_LABELS: Record<string, string> = {
 export function ExportOrderPdfButton({ order }: ExportOrderPdfButtonProps) {
   const [isGenerating, setIsGenerating] = useState(false);
   const { settings } = useSiteSettings();
+  const { data: orderItems } = useOrderItems(order.id);
 
   const generatePdf = async () => {
     setIsGenerating(true);
@@ -66,8 +67,48 @@ export function ExportOrderPdfButton({ order }: ExportOrderPdfButtonProps) {
       }
 
       const statusConfig = STATUS_CONFIG[order.status];
-      const unitLabel = UNIT_LABELS[order.quantity_unit] || order.quantity_unit;
       const isCancelled = order.status === "cancelado";
+      const hasItems = orderItems && orderItems.length > 0;
+
+      // Generate items table rows
+      const generateItemsTable = () => {
+        if (!hasItems) {
+          // Legacy order - single item
+          const unitLabel = UNIT_LABELS[order.quantity_unit] || order.quantity_unit;
+          return `
+            <tr>
+              <td style="padding: 12px; border-bottom: 1px solid #e5e7eb; ${isCancelled ? 'text-decoration: line-through; color: #9ca3af;' : ''}">1</td>
+              <td style="padding: 12px; border-bottom: 1px solid #e5e7eb; ${isCancelled ? 'text-decoration: line-through; color: #9ca3af;' : ''}">
+                <strong>${order.product_name}</strong>
+                ${order.description ? `<br><span style="font-size: 11px; color: #6b7280;">${order.description}</span>` : ''}
+              </td>
+              <td style="padding: 12px; border-bottom: 1px solid #e5e7eb; text-align: right; ${isCancelled ? 'text-decoration: line-through; color: #9ca3af;' : ''}">
+                <strong>${order.quantity}</strong>
+              </td>
+              <td style="padding: 12px; border-bottom: 1px solid #e5e7eb; ${isCancelled ? 'text-decoration: line-through; color: #9ca3af;' : ''}">${unitLabel}</td>
+            </tr>
+          `;
+        }
+
+        return orderItems.map((item, index) => {
+          const unitLabel = UNIT_LABELS[item.quantity_unit] || item.quantity_unit;
+          return `
+            <tr>
+              <td style="padding: 12px; border-bottom: 1px solid #e5e7eb; ${isCancelled ? 'text-decoration: line-through; color: #9ca3af;' : ''}">${index + 1}</td>
+              <td style="padding: 12px; border-bottom: 1px solid #e5e7eb; ${isCancelled ? 'text-decoration: line-through; color: #9ca3af;' : ''}">
+                <strong>${item.product_name}</strong>
+                ${item.description ? `<br><span style="font-size: 11px; color: #6b7280;">${item.description}</span>` : ''}
+              </td>
+              <td style="padding: 12px; border-bottom: 1px solid #e5e7eb; text-align: right; ${isCancelled ? 'text-decoration: line-through; color: #9ca3af;' : ''}">
+                <strong>${item.quantity}</strong>
+              </td>
+              <td style="padding: 12px; border-bottom: 1px solid #e5e7eb; ${isCancelled ? 'text-decoration: line-through; color: #9ca3af;' : ''}">${unitLabel}</td>
+            </tr>
+          `;
+        }).join('');
+      };
+
+      const totalItems = hasItems ? orderItems.length : 1;
 
       const htmlContent = `
         <!DOCTYPE html>
@@ -132,29 +173,30 @@ export function ExportOrderPdfButton({ order }: ExportOrderPdfButtonProps) {
               margin-bottom: 25px;
             }
             .section-title {
-              font-size: 11pt;
+              font-size: 12pt;
               text-transform: uppercase;
               color: #6b7280;
               letter-spacing: 0.5px;
-              margin-bottom: 8px;
+              margin-bottom: 10px;
               font-weight: 600;
             }
-            .section-content {
-              font-size: 14pt;
-              color: #1f2937;
-              ${isCancelled ? 'text-decoration: line-through; color: #9ca3af;' : ''}
+            .items-table {
+              width: 100%;
+              border-collapse: collapse;
+              margin-top: 10px;
+              border: 1px solid #e5e7eb;
+              border-radius: 8px;
             }
-            .product-name {
-              font-size: 18pt;
-              font-weight: bold;
-              color: #1f2937;
-              ${isCancelled ? 'text-decoration: line-through; color: #9ca3af;' : ''}
+            .items-table th {
+              background: #f9fafb;
+              padding: 12px;
+              text-align: left;
+              font-weight: 600;
+              color: #374151;
+              border-bottom: 2px solid #e5e7eb;
             }
-            .description {
-              font-size: 12pt;
-              color: #6b7280;
-              margin-top: 8px;
-              ${isCancelled ? 'text-decoration: line-through;' : ''}
+            .items-table th:nth-child(3) {
+              text-align: right;
             }
             .info-grid {
               display: grid;
@@ -179,25 +221,6 @@ export function ExportOrderPdfButton({ order }: ExportOrderPdfButtonProps) {
               color: #1f2937;
               font-weight: 500;
             }
-            .quantity-box {
-              background: #eff6ff;
-              border: 2px solid #3b82f6;
-              border-radius: 8px;
-              padding: 20px;
-              text-align: center;
-              margin: 20px 0;
-            }
-            .quantity-value {
-              font-size: 28pt;
-              font-weight: bold;
-              color: #1e40af;
-              ${isCancelled ? 'text-decoration: line-through; color: #9ca3af;' : ''}
-            }
-            .quantity-unit {
-              font-size: 12pt;
-              color: #6b7280;
-              margin-top: 5px;
-            }
             .footer {
               margin-top: 40px;
               padding-top: 20px;
@@ -221,6 +244,19 @@ export function ExportOrderPdfButton({ order }: ExportOrderPdfButtonProps) {
             .notes-content {
               color: #713f12;
             }
+            .total-items {
+              text-align: right;
+              padding: 15px;
+              background: #eff6ff;
+              border: 1px solid #3b82f6;
+              border-radius: 8px;
+              margin-top: 15px;
+            }
+            .total-items span {
+              font-size: 14pt;
+              font-weight: bold;
+              color: #1e40af;
+            }
             @media print {
               body {
                 print-color-adjust: exact;
@@ -240,14 +276,23 @@ export function ExportOrderPdfButton({ order }: ExportOrderPdfButtonProps) {
           </div>
 
           <div class="section">
-            <div class="section-title">Produto</div>
-            <div class="product-name">${order.product_name}</div>
-            ${order.description ? `<div class="description">${order.description}</div>` : ''}
-          </div>
-
-          <div class="quantity-box">
-            <div class="quantity-value">${order.quantity}</div>
-            <div class="quantity-unit">${unitLabel}</div>
+            <div class="section-title">Itens do Pedido</div>
+            <table class="items-table">
+              <thead>
+                <tr>
+                  <th style="width: 50px;">#</th>
+                  <th>Produto</th>
+                  <th style="width: 100px;">Quantidade</th>
+                  <th style="width: 120px;">Unidade</th>
+                </tr>
+              </thead>
+              <tbody>
+                ${generateItemsTable()}
+              </tbody>
+            </table>
+            <div class="total-items">
+              <span>Total: ${totalItems} ${totalItems === 1 ? 'item' : 'itens'}</span>
+            </div>
           </div>
 
           <div class="info-grid">
