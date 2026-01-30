@@ -1,7 +1,13 @@
 import { useState } from "react";
-import { FileText, Loader2 } from "lucide-react";
+import { FileText, Loader2, Download, Printer, ChevronDown } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Tooltip, TooltipContent, TooltipTrigger } from "@/components/ui/tooltip";
+import {
+  DropdownMenu,
+  DropdownMenuContent,
+  DropdownMenuItem,
+  DropdownMenuTrigger,
+} from "@/components/ui/dropdown-menu";
 import { Order, OrderStatus, OrderItem, useOrderItems } from "@/hooks/useOrders";
 import { format } from "date-fns";
 import { ptBR } from "date-fns/locale";
@@ -42,15 +48,12 @@ export function ExportOrderPdfButton({ order }: ExportOrderPdfButtonProps) {
   const [isGenerating, setIsGenerating] = useState(false);
   const { data: orderItems } = useOrderItems(order.id);
 
-  const generatePdf = async () => {
-    setIsGenerating(true);
+  const generateHtmlContent = async () => {
+    const logoBase64 = await getLogoBase64();
 
-    try {
-      const logoBase64 = await getLogoBase64();
-
-      const statusConfig = STATUS_CONFIG[order.status];
-      const isCancelled = order.status === "cancelado";
-      const hasItems = orderItems && orderItems.length > 0;
+    const statusConfig = STATUS_CONFIG[order.status];
+    const isCancelled = order.status === "cancelado";
+    const hasItems = orderItems && orderItems.length > 0;
 
       // Generate items table rows
       const generateItemsTable = () => {
@@ -90,11 +93,11 @@ export function ExportOrderPdfButton({ order }: ExportOrderPdfButtonProps) {
         }).join('');
       };
 
-      const totalItems = hasItems ? orderItems.length : 1;
+    const totalItems = hasItems ? orderItems.length : 1;
 
-      const htmlContent = `
-        <!DOCTYPE html>
-        <html>
+    return `
+      <!DOCTYPE html>
+      <html>
         <head>
           <meta charset="UTF-8">
           <title>Pedido ${order.order_number}</title>
@@ -307,20 +310,22 @@ export function ExportOrderPdfButton({ order }: ExportOrderPdfButtonProps) {
             </div>
           ` : ''}
 
-          <div class="footer">
-            Documento gerado em ${format(new Date(), "dd/MM/yyyy 'às' HH:mm", { locale: ptBR })}
-          </div>
-        </body>
-        </html>
-      `;
+        <div class="footer">
+          Documento gerado em ${format(new Date(), "dd/MM/yyyy 'às' HH:mm", { locale: ptBR })}
+        </div>
+      </body>
+      </html>
+    `;
+  };
 
-      // Open print dialog with the generated HTML
+  const handlePrint = async () => {
+    setIsGenerating(true);
+    try {
+      const htmlContent = await generateHtmlContent();
       const printWindow = window.open('', '_blank');
       if (printWindow) {
         printWindow.document.write(htmlContent);
         printWindow.document.close();
-        
-        // Wait for images to load then trigger print
         setTimeout(() => {
           printWindow.print();
         }, 500);
@@ -332,23 +337,78 @@ export function ExportOrderPdfButton({ order }: ExportOrderPdfButtonProps) {
     }
   };
 
+  const handleDownload = async () => {
+    setIsGenerating(true);
+    try {
+      const htmlContent = await generateHtmlContent();
+      
+      // Create a hidden iframe for printing to PDF
+      const iframe = document.createElement('iframe');
+      iframe.style.position = 'absolute';
+      iframe.style.top = '-10000px';
+      iframe.style.left = '-10000px';
+      document.body.appendChild(iframe);
+      
+      const iframeDoc = iframe.contentDocument || iframe.contentWindow?.document;
+      if (iframeDoc) {
+        iframeDoc.write(htmlContent);
+        iframeDoc.close();
+        
+        // Wait for content to load then create blob
+        setTimeout(() => {
+          const blob = new Blob([htmlContent], { type: 'text/html' });
+          const url = URL.createObjectURL(blob);
+          const a = document.createElement('a');
+          a.href = url;
+          a.download = `Pedido_${order.order_number}.html`;
+          document.body.appendChild(a);
+          a.click();
+          document.body.removeChild(a);
+          URL.revokeObjectURL(url);
+          document.body.removeChild(iframe);
+        }, 300);
+      }
+    } catch (error) {
+      console.error("Error downloading PDF:", error);
+    } finally {
+      setIsGenerating(false);
+    }
+  };
+
   return (
-    <Tooltip>
-      <TooltipTrigger asChild>
-        <Button 
-          variant="outline" 
-          size="icon" 
-          onClick={generatePdf}
-          disabled={isGenerating}
-        >
-          {isGenerating ? (
-            <Loader2 className="w-4 h-4 animate-spin" />
-          ) : (
-            <FileText className="w-4 h-4" />
-          )}
-        </Button>
-      </TooltipTrigger>
-      <TooltipContent>Gerar PDF para Impressão</TooltipContent>
-    </Tooltip>
+    <DropdownMenu>
+      <Tooltip>
+        <TooltipTrigger asChild>
+          <DropdownMenuTrigger asChild>
+            <Button 
+              variant="outline" 
+              size="sm" 
+              disabled={isGenerating}
+              className="gap-1"
+            >
+              {isGenerating ? (
+                <Loader2 className="w-4 h-4 animate-spin" />
+              ) : (
+                <>
+                  <FileText className="w-4 h-4" />
+                  <ChevronDown className="w-3 h-3" />
+                </>
+              )}
+            </Button>
+          </DropdownMenuTrigger>
+        </TooltipTrigger>
+        <TooltipContent>Exportar PDF</TooltipContent>
+      </Tooltip>
+      <DropdownMenuContent align="end">
+        <DropdownMenuItem onClick={handleDownload} className="gap-2">
+          <Download className="w-4 h-4" />
+          Baixar PDF
+        </DropdownMenuItem>
+        <DropdownMenuItem onClick={handlePrint} className="gap-2">
+          <Printer className="w-4 h-4" />
+          Imprimir PDF
+        </DropdownMenuItem>
+      </DropdownMenuContent>
+    </DropdownMenu>
   );
 }
