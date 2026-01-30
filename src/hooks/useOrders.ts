@@ -30,6 +30,7 @@ export interface Order {
   ai_generated_image_url: string | null;
   mentioned_user_id: string | null;
   mentioned_cargo: string | null;
+  mentioned_user_name?: string | null;
   notes: string | null;
   created_at: string;
   updated_at: string;
@@ -63,6 +64,33 @@ export interface CreateOrderData {
   mentioned_cargo?: string;
 }
 
+const fetchOrdersWithMentionedNames = async (orders: any[]): Promise<Order[]> => {
+  if (!orders || orders.length === 0) return [];
+  
+  // Get unique mentioned user IDs
+  const mentionedUserIds = [...new Set(orders
+    .filter(o => o.mentioned_user_id)
+    .map(o => o.mentioned_user_id)
+  )];
+  
+  if (mentionedUserIds.length === 0) {
+    return orders as Order[];
+  }
+  
+  // Fetch profiles for mentioned users
+  const { data: profiles } = await supabase
+    .from("profiles")
+    .select("user_id, full_name")
+    .in("user_id", mentionedUserIds);
+  
+  const profileMap = new Map(profiles?.map(p => [p.user_id, p.full_name]) || []);
+  
+  return orders.map(order => ({
+    ...order,
+    mentioned_user_name: order.mentioned_user_id ? profileMap.get(order.mentioned_user_id) || null : null,
+  })) as Order[];
+};
+
 export const useOrders = () => {
   return useQuery({
     queryKey: ["orders"],
@@ -73,7 +101,7 @@ export const useOrders = () => {
         .order("created_at", { ascending: false });
 
       if (error) throw error;
-      return data as Order[];
+      return fetchOrdersWithMentionedNames(data || []);
     },
   });
 };
@@ -93,7 +121,7 @@ export const useMyOrders = () => {
         .order("created_at", { ascending: false });
 
       if (error) throw error;
-      return data as Order[];
+      return fetchOrdersWithMentionedNames(data || []);
     },
     enabled: !!user?.id,
   });
@@ -110,7 +138,7 @@ export const usePendingOrders = () => {
         .order("created_at", { ascending: false });
 
       if (error) throw error;
-      return data as Order[];
+      return fetchOrdersWithMentionedNames(data || []);
     },
   });
 };
