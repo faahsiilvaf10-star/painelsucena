@@ -292,10 +292,10 @@ export function ExportOrderPdfButton({ order }: ExportOrderPdfButtonProps) {
                 <div class="info-value">${format(new Date(order.expected_date), "dd/MM/yyyy", { locale: ptBR })}</div>
               </div>
             ` : ''}
-            ${order.mentioned_cargo ? `
+            ${(order.mentioned_user_name || order.mentioned_cargo) ? `
               <div class="info-item">
                 <div class="info-label">Encaminhado para</div>
-                <div class="info-value">${formatCargoLabel(order.mentioned_cargo)}</div>
+                <div class="info-value">${order.mentioned_user_name || formatCargoLabel(order.mentioned_cargo)}</div>
               </div>
             ` : ''}
           </div>
