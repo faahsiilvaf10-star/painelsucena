@@ -65,26 +65,26 @@ const Layout = ({ children }: LayoutProps) => {
   return (
     <SidebarInset className="flex flex-col h-full overflow-hidden">
       {/* Header with notification bell and theme toggle */}
-      <header className="flex h-14 shrink-0 items-center justify-between gap-4 border-b bg-background px-4">
-        <div className="flex items-center gap-4 md:hidden">
-          <SidebarTrigger />
-          <span className="font-semibold">Painel Sucena</span>
+      <header className="flex h-12 md:h-14 shrink-0 items-center justify-between gap-2 md:gap-4 border-b bg-background px-3 md:px-4">
+        <div className="flex items-center gap-2 md:gap-4 md:hidden">
+          <SidebarTrigger className="h-8 w-8" />
+          <span className="font-semibold text-sm">Painel Sucena</span>
         </div>
         <div className="hidden md:block w-24" />
         
         {/* Motivational phrase - centered */}
-        <p className="hidden md:block flex-1 text-center text-sm text-muted-foreground italic truncate px-4">
+        <p className="hidden lg:block flex-1 text-center text-sm text-muted-foreground italic truncate px-4">
           "{dailyPhrase}"
         </p>
         
-        <div className="flex items-center gap-1">
+        <div className="flex items-center gap-0.5 md:gap-1">
           <SessionTimeIndicator />
           <CampaignRibbon />
           <ThemeToggle />
           <NotificationBell />
         </div>
       </header>
-      <main className="flex-1 overflow-y-auto pb-14">
+      <main className="flex-1 overflow-y-auto pb-16 md:pb-14">
         <PageTransition>
           {children}
         </PageTransition>

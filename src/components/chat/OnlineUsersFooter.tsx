@@ -56,10 +56,10 @@ export const OnlineUsersFooter = ({
   } = useRadio();
   const isCollapsedSidebar = state === "collapsed";
   return <div className={cn("fixed bottom-0 right-0 bg-card border-t border-border z-40 transition-[left] duration-200 ease-linear", isCollapsedSidebar ? "left-[48px]" : "left-[256px]", "max-md:left-0")}>
-      <div className="flex items-center gap-2 md:gap-3 px-2 md:px-4 py-2 overflow-x-auto scrollbar-none">
+      <div className="flex items-center gap-1 md:gap-3 px-2 md:px-4 py-1.5 md:py-2 overflow-x-auto scrollbar-none">
         {/* Radio Player */}
-        <div className="flex items-center gap-1 shrink-0">
-          <button onClick={toggleRadio} className={cn("flex items-center gap-2 px-3 py-1.5 rounded-l-full transition-all duration-300", isRadioActive ? "bg-green-500/20 hover:bg-green-500/30 border border-r-0 border-green-400/40" : "bg-secondary/50 hover:bg-secondary border border-r-0 border-transparent")} aria-label={!isPlaying ? "Iniciar rádio" : isMuted ? "Ativar som" : "Silenciar"}>
+        <div className="flex items-center gap-0.5 md:gap-1 shrink-0">
+          <button onClick={toggleRadio} className={cn("flex items-center gap-1 md:gap-2 px-2 md:px-3 py-1 md:py-1.5 rounded-l-full transition-all duration-300", isRadioActive ? "bg-green-500/20 hover:bg-green-500/30 border border-r-0 border-green-400/40" : "bg-secondary/50 hover:bg-secondary border border-r-0 border-transparent")} aria-label={!isPlaying ? "Iniciar rádio" : isMuted ? "Ativar som" : "Silenciar"}>
             <div className="relative">
               <Radio className={cn("h-4 w-4 transition-colors", isRadioActive ? "text-green-500" : "text-muted-foreground")} />
               {isRadioActive && <span className="absolute -top-0.5 -right-0.5 w-1.5 h-1.5 bg-green-500 rounded-full animate-ping" />}
@@ -83,7 +83,7 @@ export const OnlineUsersFooter = ({
           {/* Station Selector */}
           <Popover open={selectorOpen} onOpenChange={setSelectorOpen}>
             <PopoverTrigger asChild>
-              <button className={cn("flex items-center gap-1 px-2 py-1.5 rounded-r-full transition-all duration-300", isRadioActive ? "bg-green-500/20 hover:bg-green-500/30 border border-l-0 border-green-400/40" : "bg-secondary/50 hover:bg-secondary border border-l-0 border-transparent")} aria-label="Selecionar rádio">
+              <button className={cn("flex items-center gap-0.5 md:gap-1 px-1.5 md:px-2 py-1 md:py-1.5 rounded-r-full transition-all duration-300", isRadioActive ? "bg-green-500/20 hover:bg-green-500/30 border border-l-0 border-green-400/40" : "bg-secondary/50 hover:bg-secondary border border-l-0 border-transparent")} aria-label="Selecionar rádio">
                 <ChevronDown className={cn("h-3 w-3 transition-transform", selectorOpen && "rotate-180", isRadioActive ? "text-green-500" : "text-muted-foreground")} />
               </button>
             </PopoverTrigger>
@@ -111,8 +111,8 @@ export const OnlineUsersFooter = ({
         {/* Users Section with Popover */}
         <Popover open={usersPopoverOpen} onOpenChange={setUsersPopoverOpen}>
           <PopoverTrigger asChild>
-            <button className="flex items-center gap-2 text-muted-foreground shrink-0 hover:text-foreground transition-colors">
-              <span className="text-xs font-medium">Usuários</span>
+            <button className="flex items-center gap-1 md:gap-2 text-muted-foreground shrink-0 hover:text-foreground transition-colors min-h-[36px] md:min-h-[auto]">
+              <span className="text-[10px] md:text-xs font-medium">Usuários</span>
             </button>
           </PopoverTrigger>
           <PopoverContent className="w-80 p-0" align="start" side="top" sideOffset={8}>
@@ -180,9 +180,9 @@ export const OnlineUsersFooter = ({
                 return (
                   <Tooltip key={user.user_id}>
                     <TooltipTrigger asChild>
-                      <button onClick={() => !user.isCurrentUser && onUserClick(user)} className={cn("relative hover:z-10 transition-transform hover:scale-110", user.isCurrentUser && "cursor-default")}>
+                      <button onClick={() => !user.isCurrentUser && onUserClick(user)} className={cn("relative hover:z-10 transition-transform hover:scale-110 min-w-[24px] min-h-[24px] md:min-w-[28px] md:min-h-[28px]", user.isCurrentUser && "cursor-default")}>
                         <Avatar className={cn(
-                          "h-6 w-6 sm:h-7 sm:w-7 ring-2 ring-card transition-all duration-300",
+                          "h-6 w-6 md:h-7 md:w-7 ring-2 ring-card transition-all duration-300",
                           user.isCurrentUser 
                             ? "border-2 border-primary ring-primary/30" 
                             : userIsTyping
@@ -251,8 +251,8 @@ export const OnlineUsersFooter = ({
                 return (
                   <Tooltip key={user.user_id}>
                     <TooltipTrigger asChild>
-                      <button onClick={() => onUserClick(user)} className="relative hover:z-10 transition-transform hover:scale-110">
-                        <Avatar className="h-6 w-6 sm:h-7 sm:w-7 border-2 border-muted/50 ring-2 ring-card opacity-60 grayscale">
+                      <button onClick={() => onUserClick(user)} className="relative hover:z-10 transition-transform hover:scale-110 min-w-[24px] min-h-[24px] md:min-w-[28px] md:min-h-[28px]">
+                        <Avatar className="h-6 w-6 md:h-7 md:w-7 border-2 border-muted/50 ring-2 ring-card opacity-60 grayscale">
                           <AvatarImage src={user.avatar_url || undefined} />
                           <AvatarFallback className="text-[10px] bg-muted text-muted-foreground">
                             {getInitials(user.full_name)}

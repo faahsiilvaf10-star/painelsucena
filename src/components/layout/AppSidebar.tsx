@@ -115,9 +115,9 @@ function SortableNavItem({
         asChild
         isActive={isActive}
         tooltip={item.label}
-        className="group"
+        className="group min-h-[44px] md:min-h-[40px]"
       >
-        <Link to={item.path} className="flex items-center gap-2">
+        <Link to={item.path} className="flex items-center gap-3 md:gap-2 py-2">
           {!isCollapsed && showGrip && (
             <span
               {...attributes}
@@ -129,12 +129,12 @@ function SortableNavItem({
             </span>
           )}
           <item.icon
-            className={`h-5 w-5 ${
+            className={`h-5 w-5 flex-shrink-0 ${
               item.isEmergency ? "text-red-500 animate-pulse" : ""
             }`}
           />
           <span
-            className={`font-medium ${item.isEmergency ? "text-red-500" : ""}`}
+            className={`font-medium text-sm md:text-base truncate ${item.isEmergency ? "text-red-500" : ""}`}
           >
             {item.label}
           </span>
@@ -330,20 +330,20 @@ export function AppSidebar() {
   };
 
   return (
-    <Sidebar collapsible="icon" className="border-r-0 relative shrink-0 h-screen sticky top-0 rounded-r-2xl overflow-hidden" style={sidebarStyle}>
+    <Sidebar collapsible="icon" className="border-r-0 relative shrink-0 h-screen sticky top-0 rounded-r-2xl md:rounded-r-2xl overflow-hidden" style={sidebarStyle}>
       {/* Background with particles */}
       <div className="absolute inset-0 overflow-hidden">
         <SidebarBackground />
       </div>
       
       {/* Header with Logo */}
-      <SidebarHeader className="border-b border-sidebar-border/50 p-4 relative z-10">
-        <div className="flex items-center justify-between gap-3">
+      <SidebarHeader className="border-b border-sidebar-border/50 p-3 md:p-4 relative z-10">
+        <div className="flex items-center justify-between gap-2 md:gap-3">
           {!isCollapsed ? (
             <img 
               src={settings.logo_url || logoPrincipal} 
               alt="Logo" 
-              className="h-10 max-w-[140px] object-contain" 
+              className="h-8 md:h-10 max-w-[120px] md:max-w-[140px] object-contain" 
             />
           ) : (
             <div className="w-8 h-8 rounded-lg bg-primary flex items-center justify-center">
@@ -354,12 +354,12 @@ export function AppSidebar() {
             variant="ghost"
             size="icon"
             onClick={toggleSidebar}
-            className="h-8 w-8 text-sidebar-foreground/70 hover:text-sidebar-foreground hover:bg-sidebar-border/50 shrink-0"
+            className="h-9 w-9 md:h-8 md:w-8 text-sidebar-foreground/70 hover:text-sidebar-foreground hover:bg-sidebar-border/50 shrink-0"
           >
             {isCollapsed ? (
-              <PanelLeft className="h-4 w-4" />
+              <PanelLeft className="h-5 w-5 md:h-4 md:w-4" />
             ) : (
-              <PanelLeftClose className="h-4 w-4" />
+              <PanelLeftClose className="h-5 w-5 md:h-4 md:w-4" />
             )}
           </Button>
         </div>
@@ -401,12 +401,12 @@ export function AppSidebar() {
       </SidebarContent>
 
       {/* Footer */}
-      <SidebarFooter className="border-t border-sidebar-border/50 p-2 relative z-10">
+      <SidebarFooter className="border-t border-sidebar-border/50 p-2 md:p-2 relative z-10">
         {user ? (
           <>
             {/* User Info */}
-            <div className="flex items-center gap-3 p-2">
-              <Avatar className="w-9 h-9 flex-shrink-0">
+            <div className="flex items-center gap-2 md:gap-3 p-2">
+              <Avatar className="w-10 h-10 md:w-9 md:h-9 flex-shrink-0">
                 <AvatarImage src={profile?.avatar_url || undefined} alt={profile?.full_name || "Usuário"} />
                 <AvatarFallback className="bg-primary text-primary-foreground text-sm font-bold">
                   {getInitials()}
@@ -421,13 +421,13 @@ export function AppSidebar() {
             </div>
             
               {/* Icon Buttons for Admin, Config and Logout */}
-              <div className={`flex items-center justify-center gap-2 mt-2 ${isCollapsed ? "flex-col" : ""}`}>
+              <div className={`flex items-center justify-center gap-1 md:gap-2 mt-2 ${isCollapsed ? "flex-col" : ""}`}>
                 {isAdmin && (
                   <Button
                     variant="ghost"
                     size="icon"
                     onClick={() => navigate("/admin")}
-                    className="h-9 w-9 text-amber-500 hover:text-amber-400 hover:bg-amber-500/20"
+                    className="h-10 w-10 md:h-9 md:w-9 text-amber-500 hover:text-amber-400 hover:bg-amber-500/20"
                     title="Administração"
                   >
                     <ShieldCheck className="h-5 w-5" />
@@ -437,7 +437,7 @@ export function AppSidebar() {
                   variant="ghost"
                   size="icon"
                   onClick={() => navigate("/configuracoes")}
-                  className="h-9 w-9 text-sidebar-foreground/70 hover:text-sidebar-foreground hover:bg-sidebar-accent"
+                  className="h-10 w-10 md:h-9 md:w-9 text-sidebar-foreground/70 hover:text-sidebar-foreground hover:bg-sidebar-accent"
                   title="Configurações"
                 >
                   <Settings className="h-5 w-5" />
@@ -446,7 +446,7 @@ export function AppSidebar() {
                   variant="ghost"
                   size="icon"
                   onClick={handleSignOut}
-                  className="h-9 w-9 text-sidebar-foreground/70 hover:text-red-500 hover:bg-red-500/20"
+                  className="h-10 w-10 md:h-9 md:w-9 text-sidebar-foreground/70 hover:text-red-500 hover:bg-red-500/20"
                   title="Sair"
                 >
                   <LogOut className="h-5 w-5" />
