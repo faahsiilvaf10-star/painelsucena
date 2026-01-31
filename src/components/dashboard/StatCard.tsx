@@ -11,17 +11,17 @@ interface StatCardProps {
 
 const StatCard = ({ title, value, subtitle, icon: Icon, trend, trendValue }: StatCardProps) => {
   return (
-    <div className="group relative bg-card rounded-xl p-6 hover-lift border border-border/50 overflow-hidden">
+    <div className="group relative bg-card rounded-xl p-4 md:p-6 hover-lift border border-border/50 overflow-hidden">
       <div className="absolute inset-0 bg-gradient-to-br from-primary/5 to-transparent opacity-0 group-hover:opacity-100 transition-opacity duration-300" />
       
       <div className="relative z-10">
-        <div className="flex items-start justify-between mb-4">
-          <div className="p-3 rounded-lg bg-primary/10">
-            <Icon className="w-6 h-6 text-primary" />
+        <div className="flex items-start justify-between mb-3 md:mb-4">
+          <div className="p-2 md:p-3 rounded-lg bg-primary/10">
+            <Icon className="w-5 h-5 md:w-6 md:h-6 text-primary" />
           </div>
           {trend && trendValue && (
             <span
-              className={`text-sm font-medium ${
+              className={`text-xs md:text-sm font-medium ${
                 trend === "up"
                   ? "text-success"
                   : trend === "down"
@@ -34,10 +34,10 @@ const StatCard = ({ title, value, subtitle, icon: Icon, trend, trendValue }: Sta
           )}
         </div>
         
-        <h3 className="text-3xl font-bold mb-1">{value}</h3>
-        <p className="text-muted-foreground font-medium">{title}</p>
+        <h3 className="text-2xl md:text-3xl font-bold mb-0.5 md:mb-1">{value}</h3>
+        <p className="text-sm md:text-base text-muted-foreground font-medium">{title}</p>
         {subtitle && (
-          <p className="text-sm text-muted-foreground/70 mt-1">{subtitle}</p>
+          <p className="text-xs md:text-sm text-muted-foreground/70 mt-1">{subtitle}</p>
         )}
       </div>
     </div>

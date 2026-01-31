@@ -147,7 +147,7 @@ const Dashboard = () => {
         return <EquipmentStatusCard />;
       case "stats":
         return (
-          <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 gap-4 sm:gap-6 mb-6 sm:mb-8">
+          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-3 sm:gap-6 mb-4 sm:mb-8">
             <div className="animate-slide-up" style={{ animationDelay: "0.1s" }}>
               <StatCard 
                 title="Total de Funcionários" 
@@ -179,7 +179,7 @@ const Dashboard = () => {
         );
       case "matrix_chart":
         return (
-          <div className="mb-6 sm:mb-8 animate-slide-up" style={{ animationDelay }}>
+          <div className="mb-4 sm:mb-8 animate-slide-up" style={{ animationDelay }}>
             <MatrixProgressChart />
           </div>
         );
@@ -190,15 +190,15 @@ const Dashboard = () => {
 
   return (
     <Layout>
-      <div className="container mx-auto px-4 sm:px-6 py-4 sm:py-8">
+      <div className="container mx-auto px-3 sm:px-6 py-3 sm:py-8">
         {/* Hero Section with Edit Controls */}
-        <div className="mb-6 sm:mb-8 animate-fade-in">
-          <div className="flex flex-col sm:flex-row sm:items-start sm:justify-between gap-4">
+        <div className="mb-4 sm:mb-8 animate-fade-in">
+          <div className="flex flex-col gap-3 sm:gap-4">
             <div>
-              <h1 className="text-2xl sm:text-4xl md:text-5xl font-bold mb-2 sm:mb-4">
+              <h1 className="text-xl sm:text-4xl md:text-5xl font-bold mb-1 sm:mb-4">
                 Bem-vindo ao <span className="text-gradient">Painel Sucena</span>
               </h1>
-              <p className="text-base sm:text-xl text-muted-foreground max-w-2xl">
+              <p className="text-sm sm:text-xl text-muted-foreground max-w-2xl">
                 Gerencie sua equipe, controle presença e organize responsabilidades em um só lugar.
               </p>
             </div>
