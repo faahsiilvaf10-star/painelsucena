@@ -175,12 +175,12 @@ export default function ArquivosSeguranca() {
                     className="group relative overflow-hidden transition-shadow hover:shadow-lg"
                   >
                     <div
-                      className="flex h-32 cursor-pointer items-center justify-center bg-muted/50 transition-colors hover:bg-muted"
+                      className="relative flex h-32 cursor-pointer items-center justify-center bg-muted/50 transition-colors hover:bg-muted"
                       onClick={() => handleView(file)}
                     >
                       <FileIcon className="h-16 w-16 text-muted-foreground/70" />
                       <div className="absolute inset-0 flex items-center justify-center bg-black/50 opacity-0 transition-opacity group-hover:opacity-100">
-                        <Eye className="h-8 w-8 text-white" />
+                        <Eye className="h-5 w-5 text-white" />
                       </div>
                     </div>
                     <CardContent className="p-3">
