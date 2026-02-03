@@ -30,9 +30,11 @@ export default function SelecaoVeiculo() {
     }
   }, [navigate]);
 
-  // Show both Pipa and Munk vehicles for all drivers
+  // Show only Pipa and Munk vehicles that don't have a driver assigned
   const availableVehicles = equipment.filter((eq) => {
-    return eq.equipment_type === "pipa" || eq.equipment_type === "munk";
+    const isPipaOrMunk = eq.equipment_type === "pipa" || eq.equipment_type === "munk";
+    const hasNoDriver = !eq.driver || eq.driver.trim() === "";
+    return isPipaOrMunk && hasNoDriver;
   });
 
   const handleSelectVehicle = (vehicleId: string) => {
