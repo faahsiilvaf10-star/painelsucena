@@ -8,7 +8,8 @@ import {
   MapPin,
   Clock,
   LogOut,
-  User
+  User,
+  Droplets
 } from "lucide-react";
 import { useProfile } from "@/hooks/useProfile";
 import { formatCargoLabel } from "@/lib/cargoUtils";
@@ -83,6 +84,13 @@ const PainelMotorista = () => {
       href: "/equipamentos-motorista",
       color: "bg-amber-400 hover:bg-amber-500 active:bg-amber-600",
       iconColor: "text-amber-900",
+    },
+    {
+      title: "Pontos de Água",
+      icon: <Droplets className="w-8 h-8 sm:w-10 sm:h-10" />,
+      href: "/pontos-abastecimento",
+      color: "bg-blue-500 hover:bg-blue-600 active:bg-blue-700",
+      iconColor: "text-white",
     },
     {
       title: "Entrada/Saída",
