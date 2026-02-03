@@ -2,7 +2,7 @@ import { useNavigate } from "react-router-dom";
 import { Card, CardContent } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { 
-  ClipboardList,
+  ClipboardList, 
   FileText, 
   Truck, 
   MapPin,
@@ -16,7 +16,6 @@ import { formatCargoLabel } from "@/lib/cargoUtils";
 import { supabase } from "@/integrations/supabase/client";
 import { toast } from "sonner";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
-import { DriverStatusControls } from "@/components/driver/DriverStatusControls";
 
 interface QuickAccessItem {
   title: string;
@@ -172,9 +171,6 @@ const PainelMotorista = () => {
             </div>
           </CardContent>
         </Card>
-
-        {/* Driver Status Controls */}
-        <DriverStatusControls />
 
         {/* Quick Access Grid - 2 columns, touch-friendly */}
         <div className="grid grid-cols-2 gap-3 sm:gap-4">
