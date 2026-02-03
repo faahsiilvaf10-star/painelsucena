@@ -36,15 +36,14 @@ export function EquipmentOperationChart() {
         return isWithinInterval(stopStart, { start: weekStart, end: weekEnd });
       });
 
-      // Calculate total stopped time in minutes
-      // Count maintenance AND end_of_shift/end_of_day as stopped time
+      // Calculate total stopped time in minutes (only maintenance counts as stopped)
       let totalStoppedMinutes = 0;
       equipmentStops.forEach((stop) => {
         const startTime = parseISO(stop.started_at);
         const endTime = stop.ended_at ? parseISO(stop.ended_at) : now;
         
-        // Count maintenance and end_of_shift/end_of_day as stopped time
-        if (stop.stop_reason === "maintenance" || stop.stop_reason === "end_of_shift" || stop.stop_reason === "end_of_day") {
+        // Only count maintenance as stopped time
+        if (stop.stop_reason === "maintenance") {
           totalStoppedMinutes += differenceInMinutes(endTime, startTime);
         }
       });
