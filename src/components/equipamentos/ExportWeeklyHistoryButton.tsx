@@ -88,18 +88,35 @@ export function ExportWeeklyHistoryButton({ equipment }: ExportWeeklyHistoryButt
           const historyRows = history.length > 0
             ? history
                 .map(
-                  (record) => `
-                  <tr>
-                    <td>${format(parseISO(record.started_at), "dd/MM (EEE)", { locale: ptBR })}</td>
-                    <td>${format(parseISO(record.started_at), "HH:mm")}</td>
-                    <td>${record.ended_at ? format(parseISO(record.ended_at), "HH:mm") : "Em andamento"}</td>
-                    <td class="${record.stop_reason === "maintenance" ? "status-maintenance" : record.stop_reason === "rain" ? "status-rain" : ""}">
-                      ${stopReasonLabels[record.stop_reason] || record.stop_reason}
-                    </td>
-                    <td>${formatDuration(record.duration_minutes)}</td>
-                    <td class="defect">${record.defect_description || "-"}</td>
-                  </tr>
-                `
+                  (record) => {
+                    const startedAt = parseISO(record.started_at);
+                    const endedAt = record.ended_at ? parseISO(record.ended_at) : null;
+                    
+                    // For display: show the earlier time as "Início" and later time as "Fim"
+                    const startTime = format(startedAt, "HH:mm");
+                    const endTime = endedAt ? format(endedAt, "HH:mm") : "Em andamento";
+                    
+                    // Compare times to ensure Início < Fim
+                    const startMinutes = startedAt.getHours() * 60 + startedAt.getMinutes();
+                    const endMinutes = endedAt ? endedAt.getHours() * 60 + endedAt.getMinutes() : null;
+                    
+                    // If start time is later than end time, swap them for display
+                    const displayStart = endMinutes !== null && startMinutes > endMinutes ? endTime : startTime;
+                    const displayEnd = endMinutes !== null && startMinutes > endMinutes ? startTime : (endedAt ? endTime : "Em andamento");
+                    
+                    return `
+                    <tr>
+                      <td>${format(startedAt, "dd/MM (EEE)", { locale: ptBR })}</td>
+                      <td>${displayStart}</td>
+                      <td>${displayEnd}</td>
+                      <td class="${record.stop_reason === "maintenance" ? "status-maintenance" : record.stop_reason === "rain" ? "status-rain" : ""}">
+                        ${stopReasonLabels[record.stop_reason] || record.stop_reason}
+                      </td>
+                      <td>${formatDuration(record.duration_minutes)}</td>
+                      <td class="defect">${record.defect_description || "-"}</td>
+                    </tr>
+                  `;
+                  }
                 )
                 .join("")
             : `<tr><td colspan="6" class="no-data">Sem registros nesta semana</td></tr>`;
