@@ -5,7 +5,6 @@ import {
   FileText, 
   Truck, 
   MapPin,
-  Clock,
   LogOut,
   User,
   Droplets
@@ -89,13 +88,6 @@ const PainelMotorista = () => {
       title: "Entrada/Saída",
       icon: <MapPin className="w-6 h-6 sm:w-10 sm:h-10" />,
       href: "/registro-movimento-motorista",
-      color: "bg-zinc-600 hover:bg-zinc-700 active:bg-zinc-800",
-      iconColor: "text-white",
-    },
-    {
-      title: "Fim de Turno",
-      icon: <Clock className="w-6 h-6 sm:w-10 sm:h-10" />,
-      href: "/hora-extra",
       color: "bg-zinc-600 hover:bg-zinc-700 active:bg-zinc-800",
       iconColor: "text-white",
     },
