@@ -136,6 +136,11 @@ export function ExportWeeklyHistoryButton({ equipment }: ExportWeeklyHistoryButt
             .map(([reason, mins]) => `<span class="total-item">${stopReasonLabels[reason]}: ${formatDuration(mins)}</span>`)
             .join("");
 
+          // Get current status label and color
+          const currentStatusLabel = stopReasonLabels[eq.stop_reason] || "Operação";
+          const isOperating = eq.stop_reason === "none";
+          const isMaintenance = eq.stop_reason === "maintenance";
+
           return `
             <div class="equipment-section">
               <div class="equipment-header">
@@ -144,6 +149,8 @@ export function ExportWeeklyHistoryButton({ equipment }: ExportWeeklyHistoryButt
                   <span>Placa: ${eq.plate}</span>
                   <span>•</span>
                   <span>Motorista: ${eq.driver}</span>
+                  <span>•</span>
+                  <span class="status-badge ${isOperating ? 'status-operating' : isMaintenance ? 'status-maintenance-badge' : 'status-stopped'}">${currentStatusLabel}</span>
                 </div>
               </div>
               ${totalSummary ? `<div class="totals-row">${totalSummary}</div>` : ""}
@@ -215,8 +222,18 @@ export function ExportWeeklyHistoryButton({ equipment }: ExportWeeklyHistoryButt
               border-radius: 8px 8px 0 0;
             }
             .equipment-name { font-size: 14px; font-weight: bold; }
-            .equipment-details { font-size: 11px; opacity: 0.8; margin-top: 3px; }
+            .equipment-details { font-size: 11px; opacity: 0.8; margin-top: 3px; display: flex; align-items: center; flex-wrap: wrap; }
             .equipment-details span { margin-right: 8px; }
+            .status-badge {
+              padding: 2px 8px;
+              border-radius: 4px;
+              font-weight: bold;
+              font-size: 10px;
+              opacity: 1;
+            }
+            .status-operating { background: #22c55e; color: white; }
+            .status-maintenance-badge { background: #ef4444; color: white; }
+            .status-stopped { background: #f97316; color: white; }
             .totals-row {
               background: #f0f7ff;
               padding: 8px 15px;
