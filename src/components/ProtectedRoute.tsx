@@ -108,8 +108,8 @@ const ProtectedRoute = ({ children }: ProtectedRouteProps) => {
 
   const isDriver = userCargo && DRIVER_ROLES.includes(userCargo);
 
-  // If user is a driver and trying to access "/" (home), redirect to driver panel
-  if (isDriver && location.pathname === '/') {
+  // If user is a driver and trying to access any page other than driver panel, redirect to driver panel
+  if (isDriver && location.pathname !== '/painel-motorista') {
     return <Navigate to="/painel-motorista" replace />;
   }
 
