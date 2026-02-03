@@ -161,25 +161,25 @@ export function DriverStatusButtons() {
 
   return (
     <Card>
-      <CardHeader className="pb-3">
-        <div className="flex items-center justify-between">
-          <CardTitle className="text-base">Controle de Turno</CardTitle>
-          <Badge className={`${statusInfo.color} text-white`}>
+      <CardHeader className="pb-2 px-3 pt-3 sm:px-6 sm:pt-6">
+        <div className="flex items-center justify-between gap-2">
+          <CardTitle className="text-sm sm:text-base">Controle de Turno</CardTitle>
+          <Badge className={`${statusInfo.color} text-white text-[10px] sm:text-xs`}>
             {statusInfo.label}
           </Badge>
         </div>
-        <div className="flex items-center gap-2 text-sm text-muted-foreground">
-          <span className="font-medium">{selectedVehicle.name}</span>
+        <div className="flex items-center gap-2 text-xs sm:text-sm text-muted-foreground">
+          <span className="font-medium truncate">{selectedVehicle.name}</span>
           <span>•</span>
-          <span className="font-mono text-xs">{selectedVehicle.plate}</span>
+          <span className="font-mono text-[10px] sm:text-xs">{selectedVehicle.plate}</span>
         </div>
         {activeStop && (
-          <p className="text-xs text-muted-foreground mt-1">
+          <p className="text-[10px] sm:text-xs text-muted-foreground mt-1">
             Desde: {format(new Date(activeStop.started_at), "HH:mm", { locale: ptBR })}
           </p>
         )}
       </CardHeader>
-      <CardContent className="space-y-2">
+      <CardContent className="space-y-2 px-3 pb-3 sm:px-6 sm:pb-6">
         <div className="grid grid-cols-2 gap-2">
           {statusButtons.map((btn) => {
             const isCurrentStatus = 
@@ -197,18 +197,18 @@ export function DriverStatusButtons() {
               <Button
                 key={btn.id}
                 variant="outline"
-                className={`h-auto py-3 flex flex-col items-center gap-1 ${
+                className={`h-auto py-2 sm:py-3 flex flex-col items-center gap-0.5 sm:gap-1 ${
                   isCurrentStatus ? "ring-2 ring-primary" : ""
                 } ${btn.color}`}
                 onClick={() => handleStatusChange(btn.action)}
                 disabled={isUpdating || isCurrentStatus}
               >
                 {isUpdating ? (
-                  <Loader2 className="h-5 w-5 animate-spin" />
+                  <Loader2 className="h-4 w-4 sm:h-5 sm:w-5 animate-spin" />
                 ) : (
-                  btn.icon
+                  <span className="[&>svg]:h-4 [&>svg]:w-4 sm:[&>svg]:h-5 sm:[&>svg]:w-5">{btn.icon}</span>
                 )}
-                <span className="text-xs font-medium">{btn.label}</span>
+                <span className="text-[10px] sm:text-xs font-medium">{btn.label}</span>
               </Button>
             );
           })}
