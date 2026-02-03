@@ -109,7 +109,7 @@ const ProtectedRoute = ({ children }: ProtectedRouteProps) => {
   const isDriver = userCargo && DRIVER_ROLES.includes(userCargo);
   
   // Pages that drivers are allowed to access
-  const DRIVER_ALLOWED_PATHS = ['/selecao-veiculo', '/painel-motorista', '/registro-movimento-motorista', '/hora-extra', '/equipamentos-motorista'];
+  const DRIVER_ALLOWED_PATHS = ['/selecao-veiculo', '/painel-motorista', '/registro-movimento-motorista', '/hora-extra', '/equipamentos-motorista', '/relatorios-motorista'];
 
   // Check if driver has selected a vehicle
   const hasSelectedVehicle = localStorage.getItem("selectedVehicleId");
