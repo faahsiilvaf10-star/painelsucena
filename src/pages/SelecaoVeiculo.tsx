@@ -5,15 +5,20 @@ import { Button } from "@/components/ui/button";
 import { Card, CardContent } from "@/components/ui/card";
 import { useAuth } from "@/hooks/useAuth";
 import { useProfile } from "@/hooks/useProfile";
-import { useEquipment } from "@/hooks/useEquipment";
+import { useEquipment, useUpdateEquipment } from "@/hooks/useEquipment";
+import { useCreateEquipmentMovement } from "@/hooks/useEquipmentMovements";
 import { VehicleIcon } from "@/components/equipamentos/VehicleIcons";
+import { toast } from "sonner";
 
 export default function SelecaoVeiculo() {
   const navigate = useNavigate();
   const { signOut } = useAuth();
   const { data: profile } = useProfile();
   const { data: equipment = [], isLoading } = useEquipment();
+  const updateEquipment = useUpdateEquipment();
+  const createMovement = useCreateEquipmentMovement();
   const [selectedVehicle, setSelectedVehicle] = useState<string | null>(null);
+  const [isConfirming, setIsConfirming] = useState(false);
 
   // Check if user already has a vehicle selected
   useEffect(() => {
@@ -38,11 +43,41 @@ export default function SelecaoVeiculo() {
     setSelectedVehicle(vehicleId);
   };
 
-  const handleConfirm = () => {
-    if (selectedVehicle) {
+  const handleConfirm = async () => {
+    if (!selectedVehicle || !profile) return;
+
+    setIsConfirming(true);
+    
+    try {
+      const selectedEquipmentData = equipment.find(eq => eq.id === selectedVehicle);
+      if (!selectedEquipmentData) return;
+
+      // Update the equipment with the driver's name
+      await updateEquipment.mutateAsync({
+        id: selectedVehicle,
+        driver: profile.full_name,
+      });
+
+      // Register entry movement (equipment is now operating)
+      await createMovement.mutateAsync({
+        equipment_name: selectedEquipmentData.name,
+        plate: selectedEquipmentData.plate,
+        movement_type: "entrada",
+        exit_reason: null,
+        problem_description: null,
+        observation: `Motorista ${profile.full_name} iniciou operação`,
+      });
+
       // Store selected vehicle in localStorage
       localStorage.setItem("selectedVehicleId", selectedVehicle);
+      
+      toast.success("Veículo selecionado e operação iniciada!");
       navigate("/painel-motorista");
+    } catch (error) {
+      console.error("Error confirming vehicle:", error);
+      toast.error("Erro ao confirmar veículo");
+    } finally {
+      setIsConfirming(false);
     }
   };
 
@@ -167,11 +202,15 @@ export default function SelecaoVeiculo() {
             <div className="mt-6 pb-6">
               <Button
                 className="w-full h-14 text-lg font-bold"
-                disabled={!selectedVehicle}
+                disabled={!selectedVehicle || isConfirming}
                 onClick={handleConfirm}
               >
-                <Truck className="h-5 w-5 mr-2" />
-                Confirmar Veículo
+                {isConfirming ? (
+                  <Loader2 className="h-5 w-5 mr-2 animate-spin" />
+                ) : (
+                  <Truck className="h-5 w-5 mr-2" />
+                )}
+                {isConfirming ? "Confirmando..." : "Confirmar Veículo"}
               </Button>
             </div>
           </>
