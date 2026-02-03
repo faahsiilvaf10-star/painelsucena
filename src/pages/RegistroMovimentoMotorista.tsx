@@ -45,14 +45,14 @@ export default function RegistroMovimentoMotorista() {
   const [problemDescription, setProblemDescription] = useState("");
   const [observation, setObservation] = useState("");
   
-  const exitReasonRef = useRef<HTMLDivElement>(null);
+  const observationRef = useRef<HTMLDivElement>(null);
 
-  // Auto-scroll when exit reason section appears
+  // Auto-scroll when movement type is selected to show full form
   useEffect(() => {
-    if (movementType === "saida" && exitReasonRef.current) {
+    if (movementType && observationRef.current) {
       setTimeout(() => {
-        exitReasonRef.current?.scrollIntoView({ behavior: "smooth", block: "start" });
-      }, 100);
+        observationRef.current?.scrollIntoView({ behavior: "smooth", block: "end" });
+      }, 150);
     }
   }, [movementType]);
 
@@ -194,7 +194,7 @@ export default function RegistroMovimentoMotorista() {
 
         {/* Exit Reason Selection (only for saida) */}
         {movementType === "saida" && (
-          <Card ref={exitReasonRef}>
+          <Card>
             <CardHeader className="pb-3">
               <CardTitle className="text-base">Motivo da Saída</CardTitle>
             </CardHeader>
@@ -253,7 +253,7 @@ export default function RegistroMovimentoMotorista() {
 
         {/* Observation Field */}
         {movementType && (
-          <Card>
+          <Card ref={observationRef}>
             <CardHeader className="pb-3">
               <CardTitle className="text-base">Observação (opcional)</CardTitle>
             </CardHeader>
