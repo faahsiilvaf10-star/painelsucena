@@ -49,17 +49,18 @@ export default function RegistroMovimentoMotorista() {
   
   const observationRef = useRef<HTMLDivElement>(null);
 
+  // Get the vehicle ID the driver selected at login
+  const savedVehicleId = localStorage.getItem("selectedVehicleId");
+  
+  // Filter equipment to only show the linked vehicle
+  const linkedVehicle = equipment.filter(eq => eq.id === savedVehicleId);
+
   // Pre-select the vehicle the driver chose at login
   useEffect(() => {
-    const savedVehicleId = localStorage.getItem("selectedVehicleId");
-    if (savedVehicleId && equipment.length > 0) {
-      // Check if the saved vehicle exists in the equipment list
-      const vehicleExists = equipment.some(eq => eq.id === savedVehicleId);
-      if (vehicleExists) {
-        setSelectedEquipment(savedVehicleId);
-      }
+    if (savedVehicleId && linkedVehicle.length > 0) {
+      setSelectedEquipment(savedVehicleId);
     }
-  }, [equipment]);
+  }, [savedVehicleId, linkedVehicle.length]);
 
   // Auto-scroll when movement type is selected to show full form
   useEffect(() => {
@@ -225,8 +226,12 @@ export default function RegistroMovimentoMotorista() {
                   <div className="p-4 text-center text-muted-foreground">
                     Carregando...
                   </div>
+                ) : linkedVehicle.length === 0 ? (
+                  <div className="p-4 text-center text-muted-foreground">
+                    Nenhum veículo vinculado
+                  </div>
                 ) : (
-                  equipment.map((eq) => (
+                  linkedVehicle.map((eq) => (
                     <SelectItem key={eq.id} value={eq.id} className="py-3">
                       <span className="font-medium">{eq.name}</span>
                       <span className="text-muted-foreground ml-2">({eq.plate})</span>
