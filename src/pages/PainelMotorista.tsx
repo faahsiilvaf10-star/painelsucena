@@ -162,20 +162,21 @@ const PainelMotorista = () => {
         {/* Quick Access Grid - 2 columns, touch-friendly */}
         <div className="grid grid-cols-2 gap-3 sm:gap-4">
           {quickAccessItems.map((item) => (
-            <Card
+            <button
               key={item.title}
-              className={`${item.color} cursor-pointer transition-all duration-150 hover:scale-[1.02] active:scale-[0.97] border-none shadow-md touch-manipulation`}
+              type="button"
+              className={`${item.color} cursor-pointer transition-all duration-150 hover:scale-[1.02] active:scale-[0.97] border-none shadow-md touch-manipulation rounded-lg w-full`}
               onClick={() => navigate(item.href)}
             >
-              <CardContent className="p-4 sm:p-5 flex flex-col items-center justify-center text-center min-h-[100px] sm:min-h-[120px]">
-                <div className={`${item.iconColor} mb-2 sm:mb-3`}>
+              <div className="p-4 sm:p-5 flex flex-col items-center justify-center text-center min-h-[100px] sm:min-h-[120px] pointer-events-none">
+                <div className={`${item.iconColor} mb-2 sm:mb-3 pointer-events-none`}>
                   {item.icon}
                 </div>
-                <h3 className={`font-bold ${item.iconColor} text-xs sm:text-sm uppercase tracking-wide`}>
+                <h3 className={`font-bold ${item.iconColor} text-xs sm:text-sm uppercase tracking-wide pointer-events-none`}>
                   {item.title}
                 </h3>
-              </CardContent>
-            </Card>
+              </div>
+            </button>
           ))}
         </div>
       </main>

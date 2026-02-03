@@ -107,9 +107,12 @@ const ProtectedRoute = ({ children }: ProtectedRouteProps) => {
   }
 
   const isDriver = userCargo && DRIVER_ROLES.includes(userCargo);
+  
+  // Pages that drivers are allowed to access
+  const DRIVER_ALLOWED_PATHS = ['/painel-motorista', '/registro-movimento-motorista', '/hora-extra'];
 
-  // If user is a driver and trying to access any page other than driver panel, redirect to driver panel
-  if (isDriver && location.pathname !== '/painel-motorista') {
+  // If user is a driver and trying to access a page not in allowed list, redirect to driver panel
+  if (isDriver && !DRIVER_ALLOWED_PATHS.includes(location.pathname)) {
     return <Navigate to="/painel-motorista" replace />;
   }
 
