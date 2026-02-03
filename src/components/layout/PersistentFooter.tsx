@@ -13,8 +13,8 @@ export const PersistentFooter = () => {
   const [chatOpen, setChatOpen] = useState(false);
   const [justCompletedTransition, setJustCompletedTransition] = useState(false);
 
-  // Hide footer on driver panel
-  const isDriverPanel = location.pathname === "/painel-motorista";
+  // Hide footer on driver pages
+  const isDriverPage = ["/painel-motorista", "/registro-movimento-motorista"].includes(location.pathname);
 
   // Listen for transition completion to trigger fade-in
   useEffect(() => {
@@ -41,8 +41,8 @@ export const PersistentFooter = () => {
     setChatOpen(true);
   };
 
-  // Hide footer if no user or on driver panel
-  if (!user || isDriverPanel) return null;
+  // Hide footer if no user or on driver pages
+  if (!user || isDriverPage) return null;
 
   return (
     <div className={justCompletedTransition ? "animate-fade-in" : ""}>
