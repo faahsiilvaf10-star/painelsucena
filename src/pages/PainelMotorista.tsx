@@ -30,6 +30,8 @@ const PainelMotorista = () => {
 
   const handleLogout = async () => {
     try {
+      // Clear selected vehicle on logout
+      localStorage.removeItem("selectedVehicleId");
       await supabase.auth.signOut();
       toast.success("Logout realizado com sucesso");
       navigate("/auth", { replace: true });
