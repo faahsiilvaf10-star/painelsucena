@@ -1763,6 +1763,8 @@ export type Database = {
         | "engenheiro_planejamento"
         | "tecnico_planejamento"
         | "engenheiro_seguranca"
+        | "motorista_pipa"
+        | "motorista_munk"
       document_status: "pending" | "updated" | "cancelled"
       document_type:
         | "pt"
@@ -1944,6 +1946,8 @@ export const Constants = {
         "engenheiro_planejamento",
         "tecnico_planejamento",
         "engenheiro_seguranca",
+        "motorista_pipa",
+        "motorista_munk",
       ],
       document_status: ["pending", "updated", "cancelled"],
       document_type: [
