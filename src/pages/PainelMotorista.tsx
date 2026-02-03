@@ -15,6 +15,7 @@ import { formatCargoLabel } from "@/lib/cargoUtils";
 import { supabase } from "@/integrations/supabase/client";
 import { toast } from "sonner";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
+import { EquipmentStatusList } from "@/components/driver/EquipmentStatusList";
 
 interface QuickAccessItem {
   title: string;
@@ -30,6 +31,17 @@ const PainelMotorista = () => {
 
   const handleLogout = async () => {
     try {
+      // Get the selected vehicle ID before clearing
+      const selectedVehicleId = localStorage.getItem("selectedVehicleId");
+      
+      // If there was a selected vehicle, clear the driver field
+      if (selectedVehicleId) {
+        await supabase
+          .from("equipment")
+          .update({ driver: "" })
+          .eq("id", selectedVehicleId);
+      }
+      
       // Clear selected vehicle on logout
       localStorage.removeItem("selectedVehicleId");
       await supabase.auth.signOut();
@@ -173,6 +185,9 @@ const PainelMotorista = () => {
             </button>
           ))}
         </div>
+
+        {/* Equipment Status Section */}
+        <EquipmentStatusList />
       </main>
     </div>
   );
