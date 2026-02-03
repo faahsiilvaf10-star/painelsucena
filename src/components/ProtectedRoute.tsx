@@ -7,9 +7,14 @@ interface ProtectedRouteProps {
   children: React.ReactNode;
 }
 
+// Driver roles that should be redirected to the driver panel
+const DRIVER_ROLES = ['motorista_pipa', 'motorista_munk'];
+
 const ProtectedRoute = ({ children }: ProtectedRouteProps) => {
   const [session, setSession] = useState<Session | null>(null);
   const [loading, setLoading] = useState(true);
+  const [userCargo, setUserCargo] = useState<string | null>(null);
+  const [cargoChecked, setCargoChecked] = useState(false);
   const location = useLocation();
   const navigate = useNavigate();
 
@@ -21,7 +26,16 @@ const ProtectedRoute = ({ children }: ProtectedRouteProps) => {
         
         // Redirect to auth on sign out
         if (event === 'SIGNED_OUT') {
+          setUserCargo(null);
+          setCargoChecked(false);
           navigate('/auth', { replace: true });
+        }
+        
+        // Fetch cargo when signed in
+        if (event === 'SIGNED_IN' && currentSession?.user) {
+          setTimeout(() => {
+            fetchUserCargo(currentSession.user.id);
+          }, 0);
         }
       }
     );
@@ -33,11 +47,17 @@ const ProtectedRoute = ({ children }: ProtectedRouteProps) => {
       if (existingSession) {
         setSession(existingSession);
         setLoading(false);
+        fetchUserCargo(existingSession.user.id);
       } else {
         // Try to refresh the session if no active session found
         const { data: { session: refreshedSession } } = await supabase.auth.refreshSession();
         setSession(refreshedSession);
         setLoading(false);
+        if (refreshedSession?.user) {
+          fetchUserCargo(refreshedSession.user.id);
+        } else {
+          setCargoChecked(true);
+        }
       }
     };
 
@@ -46,13 +66,39 @@ const ProtectedRoute = ({ children }: ProtectedRouteProps) => {
     return () => subscription.unsubscribe();
   }, [navigate]);
 
-  // Show nothing while loading session
-  if (loading) {
+  const fetchUserCargo = async (userId: string) => {
+    try {
+      const { data, error } = await supabase
+        .from("profiles")
+        .select("cargo")
+        .eq("user_id", userId)
+        .maybeSingle();
+
+      if (!error && data) {
+        setUserCargo(data.cargo);
+      }
+    } catch (err) {
+      console.error("Error fetching user cargo:", err);
+    } finally {
+      setCargoChecked(true);
+    }
+  };
+
+  // Show nothing while loading session or checking cargo
+  if (loading || !cargoChecked) {
     return null;
   }
 
   if (!session) {
     return <Navigate to="/auth" state={{ from: location }} replace />;
+  }
+
+  // If user is a driver and trying to access "/" (home), redirect to driver panel
+  if (userCargo && DRIVER_ROLES.includes(userCargo)) {
+    // Only redirect from the home page, allow access to other pages they navigate to
+    if (location.pathname === '/') {
+      return <Navigate to="/painel-motorista" replace />;
+    }
   }
 
   return <>{children}</>;
