@@ -11,6 +11,9 @@ const EXIT_REASON_LABELS: Record<ExitReason, string> = {
   manutencao_corretiva: "Manutenção Corretiva",
   manutencao_preventiva: "Manutenção Preventiva",
   vistoria: "Vistoria",
+  operando: "Operando",
+  aguardando_frente_servico: "Aguardando Frente de Serviço",
+  fim_turno: "Fim de Turno",
 };
 
 interface ExportMovementsPdfButtonProps {
