@@ -15,7 +15,6 @@ import { formatCargoLabel } from "@/lib/cargoUtils";
 import { supabase } from "@/integrations/supabase/client";
 import { toast } from "sonner";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
-import { EquipmentStatusList } from "@/components/driver/EquipmentStatusList";
 
 interface QuickAccessItem {
   title: string;
@@ -81,7 +80,7 @@ const PainelMotorista = () => {
     {
       title: "Equipamentos",
       icon: <Truck className="w-8 h-8 sm:w-10 sm:h-10" />,
-      href: "/equipamentos",
+      href: "/equipamentos-motorista",
       color: "bg-amber-400 hover:bg-amber-500 active:bg-amber-600",
       iconColor: "text-amber-900",
     },
@@ -185,9 +184,6 @@ const PainelMotorista = () => {
             </button>
           ))}
         </div>
-
-        {/* Equipment Status Section */}
-        <EquipmentStatusList />
       </main>
     </div>
   );
