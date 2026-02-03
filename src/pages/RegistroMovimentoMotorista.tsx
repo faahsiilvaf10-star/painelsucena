@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { useState, useRef, useEffect } from "react";
 import { useNavigate } from "react-router-dom";
 import { ArrowLeft, LogIn, LogOut, Wrench, Settings, Eye, Loader2 } from "lucide-react";
 import { Button } from "@/components/ui/button";
@@ -44,6 +44,17 @@ export default function RegistroMovimentoMotorista() {
   const [exitReason, setExitReason] = useState<ExitReason | null>(null);
   const [problemDescription, setProblemDescription] = useState("");
   const [observation, setObservation] = useState("");
+  
+  const exitReasonRef = useRef<HTMLDivElement>(null);
+
+  // Auto-scroll when exit reason section appears
+  useEffect(() => {
+    if (movementType === "saida" && exitReasonRef.current) {
+      setTimeout(() => {
+        exitReasonRef.current?.scrollIntoView({ behavior: "smooth", block: "start" });
+      }, 100);
+    }
+  }, [movementType]);
 
   const selectedEquipmentData = equipment.find(e => e.id === selectedEquipment);
 
@@ -183,7 +194,7 @@ export default function RegistroMovimentoMotorista() {
 
         {/* Exit Reason Selection (only for saida) */}
         {movementType === "saida" && (
-          <Card>
+          <Card ref={exitReasonRef}>
             <CardHeader className="pb-3">
               <CardTitle className="text-base">Motivo da Saída</CardTitle>
             </CardHeader>
