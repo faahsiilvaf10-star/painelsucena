@@ -7,12 +7,14 @@ import { Loader2, Truck, Activity, Wrench, Clock, PauseCircle } from "lucide-rea
 const getStatusInfo = (stopReason: string | null) => {
   switch (stopReason) {
     case "none":
+    case "operando":
     case null:
       return {
         label: "Operando",
         color: "bg-green-500/10 text-green-600 border-green-500/30",
         icon: <Activity className="h-3 w-3" />,
       };
+    case "maintenance":
     case "manutencao_corretiva":
       return {
         label: "Manutenção Corretiva",
