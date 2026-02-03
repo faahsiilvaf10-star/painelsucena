@@ -86,14 +86,32 @@ const handler = async (req: Request): Promise<Response> => {
       throw authError;
     }
 
-    const targetEmails = authData.users
+    const allEmails = authData.users
       .filter(u => userIds.includes(u.id) && u.email)
       .map(u => u.email!);
 
-    if (targetEmails.length === 0) {
+    if (allEmails.length === 0) {
       console.log("No email addresses found for target users");
       return new Response(
         JSON.stringify({ success: true, message: "No email addresses found" }),
+        { status: 200, headers: { "Content-Type": "application/json", ...corsHeaders } }
+      );
+    }
+
+    // Resend sandbox mode only allows sending to the verified account email
+    // Filter to only include the verified email to avoid 403 errors
+    const verifiedEmail = "ffaahsiilva@gmail.com";
+    const targetEmails = allEmails.filter(email => email === verifiedEmail);
+
+    if (targetEmails.length === 0) {
+      console.log("No verified emails found among recipients. Sandbox mode restricts sending to:", verifiedEmail);
+      console.log("Intended recipients were:", allEmails);
+      return new Response(
+        JSON.stringify({ 
+          success: true, 
+          message: "Email skipped - Resend sandbox mode. Configure domain at resend.com/domains to send to all recipients.",
+          intendedRecipients: allEmails 
+        }),
         { status: 200, headers: { "Content-Type": "application/json", ...corsHeaders } }
       );
     }
