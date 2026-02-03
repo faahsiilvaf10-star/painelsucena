@@ -169,19 +169,6 @@ const PainelMotorista = () => {
           ))}
         </div>
 
-        {/* Quick Info */}
-        <Card className="bg-muted/50">
-          <CardContent className="p-4">
-            <div className="flex items-center justify-between text-sm">
-              <span className="text-muted-foreground">
-                Data: {new Date().toLocaleDateString('pt-BR')}
-              </span>
-              <span className="text-muted-foreground">
-                {new Date().toLocaleTimeString('pt-BR', { hour: '2-digit', minute: '2-digit' })}
-              </span>
-            </div>
-          </CardContent>
-        </Card>
       </div>
     </div>
   );
