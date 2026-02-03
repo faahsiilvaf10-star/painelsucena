@@ -26,6 +26,8 @@ const cargoOptions = [
   { value: "engenheiro_planejamento", label: "Engenheiro de Planejamento" },
   { value: "tecnico_planejamento", label: "Técnico de Planejamento" },
   { value: "engenheiro_seguranca", label: "Engenheiro de Segurança" },
+  { value: "motorista_pipa", label: "Motorista de Pipa" },
+  { value: "motorista_munk", label: "Motorista Operador de Munk" },
 ] as const;
 
 type CargoType = typeof cargoOptions[number]["value"];
