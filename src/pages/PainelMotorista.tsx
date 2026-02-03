@@ -82,7 +82,7 @@ const PainelMotorista = () => {
     {
       title: "Entrada/Saída",
       icon: <MapPin className="w-8 h-8 sm:w-10 sm:h-10" />,
-      href: "/entrada-saida-equipamentos",
+      href: "/registro-movimento-motorista",
       color: "bg-zinc-600 hover:bg-zinc-700 active:bg-zinc-800",
       iconColor: "text-white",
     },
