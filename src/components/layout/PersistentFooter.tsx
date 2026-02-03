@@ -14,7 +14,7 @@ export const PersistentFooter = () => {
   const [justCompletedTransition, setJustCompletedTransition] = useState(false);
 
   // Hide footer on driver pages
-  const isDriverPage = ["/painel-motorista", "/registro-movimento-motorista"].includes(location.pathname);
+  const isDriverPage = ["/painel-motorista", "/registro-movimento-motorista", "/selecao-veiculo"].includes(location.pathname);
 
   // Listen for transition completion to trigger fade-in
   useEffect(() => {
