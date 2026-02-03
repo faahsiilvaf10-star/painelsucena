@@ -15,6 +15,7 @@ const ProtectedRoute = ({ children }: ProtectedRouteProps) => {
   const [loading, setLoading] = useState(true);
   const [userCargo, setUserCargo] = useState<string | null>(null);
   const [cargoChecked, setCargoChecked] = useState(false);
+  const [isAdmin, setIsAdmin] = useState(false);
   const location = useLocation();
   const navigate = useNavigate();
 
@@ -68,15 +69,27 @@ const ProtectedRoute = ({ children }: ProtectedRouteProps) => {
 
   const fetchUserCargo = async (userId: string) => {
     try {
-      const { data, error } = await supabase
-        .from("profiles")
-        .select("cargo")
-        .eq("user_id", userId)
-        .maybeSingle();
+      // Fetch cargo and admin status in parallel
+      const [profileResult, roleResult] = await Promise.all([
+        supabase
+          .from("profiles")
+          .select("cargo")
+          .eq("user_id", userId)
+          .maybeSingle(),
+        supabase
+          .from("user_roles")
+          .select("role")
+          .eq("user_id", userId)
+          .eq("role", "admin")
+          .maybeSingle()
+      ]);
 
-      if (!error && data) {
-        setUserCargo(data.cargo);
+      if (!profileResult.error && profileResult.data) {
+        setUserCargo(profileResult.data.cargo);
       }
+
+      // Check if user is admin
+      setIsAdmin(!!roleResult.data);
     } catch (err) {
       console.error("Error fetching user cargo:", err);
     } finally {
@@ -100,8 +113,8 @@ const ProtectedRoute = ({ children }: ProtectedRouteProps) => {
     return <Navigate to="/painel-motorista" replace />;
   }
 
-  // If user is NOT a driver and trying to access driver panel, redirect to home
-  if (!isDriver && location.pathname === '/painel-motorista') {
+  // If user is NOT a driver and NOT an admin, trying to access driver panel, redirect to home
+  if (!isDriver && !isAdmin && location.pathname === '/painel-motorista') {
     return <Navigate to="/" replace />;
   }
 
