@@ -79,10 +79,22 @@ const formatDuration = (minutes: number | null) => {
 };
 
 type FilterPeriod = "today" | "7days" | "30days" | "all";
+type FilterStatus = "all" | "operando" | "manutencao_corretiva" | "manutencao_preventiva" | "aguardando_frente_servico" | "fim_turno" | "vistoria";
+
+const statusOptions = [
+  { value: "all", label: "Todos os Status" },
+  { value: "operando", label: "Operando" },
+  { value: "manutencao_corretiva", label: "Manutenção Corretiva" },
+  { value: "manutencao_preventiva", label: "Manutenção Preventiva" },
+  { value: "aguardando_frente_servico", label: "Aguardando Frente" },
+  { value: "fim_turno", label: "Fim de Turno" },
+  { value: "vistoria", label: "Vistoria" },
+];
 
 export default function RelatoriosMotorista() {
   const navigate = useNavigate();
   const [filterPeriod, setFilterPeriod] = useState<FilterPeriod>("7days");
+  const [filterStatus, setFilterStatus] = useState<FilterStatus>("all");
   const [searchTerm, setSearchTerm] = useState("");
 
   // Get selected vehicle from localStorage
@@ -134,6 +146,33 @@ export default function RelatoriosMotorista() {
         break;
     }
 
+    // Filter by status
+    if (filterStatus !== "all") {
+      filtered = filtered.filter(item => {
+        // Match the status with possible variations
+        const reason = item.stop_reason;
+        if (filterStatus === "operando") {
+          return reason === "operando" || reason === "operating" || reason === "none";
+        }
+        if (filterStatus === "manutencao_corretiva") {
+          return reason === "manutencao_corretiva" || reason === "maintenance" || reason === "corrective_maintenance";
+        }
+        if (filterStatus === "manutencao_preventiva") {
+          return reason === "manutencao_preventiva" || reason === "preventive_maintenance";
+        }
+        if (filterStatus === "aguardando_frente_servico") {
+          return reason === "aguardando_frente_servico" || reason === "waiting_front" || reason === "waiting_service_front";
+        }
+        if (filterStatus === "fim_turno") {
+          return reason === "fim_turno" || reason === "end_of_shift" || reason === "end_shift";
+        }
+        if (filterStatus === "vistoria") {
+          return reason === "vistoria" || reason === "inspection";
+        }
+        return true;
+      });
+    }
+
     // Filter by search term (in description or status)
     if (searchTerm.trim()) {
       const term = searchTerm.toLowerCase();
@@ -147,7 +186,7 @@ export default function RelatoriosMotorista() {
     }
 
     return filtered;
-  }, [history, filterPeriod, searchTerm]);
+  }, [history, filterPeriod, filterStatus, searchTerm]);
 
   return (
     <div className="min-h-screen bg-background overflow-x-hidden">
@@ -197,11 +236,26 @@ export default function RelatoriosMotorista() {
               </SelectContent>
             </Select>
 
+            {/* Status Filter */}
+            <Select value={filterStatus} onValueChange={(value) => setFilterStatus(value as FilterStatus)}>
+              <SelectTrigger className="h-9 text-xs sm:text-sm">
+                <Activity className="h-3.5 w-3.5 mr-2 text-muted-foreground shrink-0" />
+                <SelectValue placeholder="Status" />
+              </SelectTrigger>
+              <SelectContent>
+                {statusOptions.map(option => (
+                  <SelectItem key={option.value} value={option.value}>
+                    {option.label}
+                  </SelectItem>
+                ))}
+              </SelectContent>
+            </Select>
+
             {/* Search Filter */}
             <div className="relative">
               <Search className="absolute left-2.5 top-1/2 -translate-y-1/2 h-3.5 w-3.5 text-muted-foreground" />
               <Input
-                placeholder="Buscar..."
+                placeholder="Buscar descrição..."
                 value={searchTerm}
                 onChange={(e) => setSearchTerm(e.target.value)}
                 className="pl-8 h-9 text-xs sm:text-sm"
