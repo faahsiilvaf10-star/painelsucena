@@ -1,80 +1,176 @@
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { useNavigate } from "react-router-dom";
-import { ArrowLeft, Droplets, MapPin, Phone, Navigation, Search } from "lucide-react";
+import { ArrowLeft, Droplets, Loader2 } from "lucide-react";
 import { Button } from "@/components/ui/button";
-import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
-import { Input } from "@/components/ui/input";
-import { Badge } from "@/components/ui/badge";
+import { Card, CardContent } from "@/components/ui/card";
+import { useEquipment } from "@/hooks/useEquipment";
+import { supabase } from "@/integrations/supabase/client";
+import { toast } from "sonner";
+import { format } from "date-fns";
+import { ptBR } from "date-fns/locale";
 
-interface PontoAbastecimento {
-  id: string;
-  nome: string;
-  endereco: string;
-  telefone?: string;
-  coordenadas?: { lat: number; lng: number };
-  tipo: "agua" | "combustivel";
-  observacao?: string;
-}
-
-// Lista de pontos de abastecimento de água para Pipas
-const pontosAbastecimento: PontoAbastecimento[] = [
-  {
-    id: "1",
-    nome: "Ponto Central - Base",
-    endereco: "Rua Principal, 100 - Base Operacional",
-    telefone: "(11) 99999-0001",
-    tipo: "agua",
-    observacao: "Ponto principal - disponível 24h",
-  },
-  {
-    id: "2",
-    nome: "Reservatório Norte",
-    endereco: "Av. Norte, 500 - Setor Norte",
-    telefone: "(11) 99999-0002",
-    tipo: "agua",
-    observacao: "Horário: 6h às 18h",
-  },
-  {
-    id: "3",
-    nome: "Estação Sul",
-    endereco: "Rua Sul, 250 - Setor Sul",
-    telefone: "(11) 99999-0003",
-    tipo: "agua",
-    observacao: "Verificar disponibilidade",
-  },
-  {
-    id: "4",
-    nome: "Ponto Leste",
-    endereco: "Av. Leste, 800 - Setor Leste",
-    tipo: "agua",
-    observacao: "Horário: 7h às 17h",
-  },
-  {
-    id: "5",
-    nome: "Base Oeste",
-    endereco: "Rua Oeste, 350 - Setor Oeste",
-    telefone: "(11) 99999-0005",
-    tipo: "agua",
-  },
-];
+const PONTOS_ABASTECIMENTO = ["46", "3C", "3D"];
 
 export default function PontosAbastecimento() {
   const navigate = useNavigate();
-  const [searchTerm, setSearchTerm] = useState("");
+  const [loading, setLoading] = useState<string | null>(null);
+  const [currentPoint, setCurrentPoint] = useState<string | null>(null);
+  const [refuelingStartTime, setRefuelingStartTime] = useState<string | null>(null);
+  
+  const selectedVehicleId = localStorage.getItem("selectedVehicleId");
+  const { data: equipment = [], refetch } = useEquipment();
+  
+  const selectedVehicle = equipment.find(eq => eq.id === selectedVehicleId);
 
-  const filteredPontos = pontosAbastecimento.filter(
-    (ponto) =>
-      ponto.nome.toLowerCase().includes(searchTerm.toLowerCase()) ||
-      ponto.endereco.toLowerCase().includes(searchTerm.toLowerCase())
-  );
+  // Check if currently refueling
+  useEffect(() => {
+    if (selectedVehicle) {
+      // Cast to string for comparison since "abastecimento" may not be in the type enum
+      const stopReason = selectedVehicle.stop_reason as string;
+      if (stopReason === "abastecimento") {
+        // Extract point from stop_start_time or check history
+        checkCurrentRefueling();
+      } else {
+        setCurrentPoint(null);
+        setRefuelingStartTime(null);
+      }
+    }
+  }, [selectedVehicle?.stop_reason]);
 
-  const handleCall = (telefone: string) => {
-    window.location.href = `tel:${telefone.replace(/\D/g, "")}`;
+  const checkCurrentRefueling = async () => {
+    if (!selectedVehicleId) return;
+    
+    // Get the most recent open refueling record
+    const { data } = await supabase
+      .from("equipment_stop_history")
+      .select("*")
+      .eq("equipment_id", selectedVehicleId)
+      .eq("stop_reason", "abastecimento")
+      .is("ended_at", null)
+      .order("started_at", { ascending: false })
+      .limit(1)
+      .maybeSingle();
+    
+    if (data) {
+      // Extract point from defect_description (format: "Ponto: XX")
+      const pointMatch = data.defect_description?.match(/Ponto: (.+)/);
+      if (pointMatch) {
+        setCurrentPoint(pointMatch[1]);
+        setRefuelingStartTime(data.started_at);
+      }
+    }
   };
 
-  const handleOpenMaps = (endereco: string) => {
-    const encoded = encodeURIComponent(endereco);
-    window.open(`https://www.google.com/maps/search/?api=1&query=${encoded}`, "_blank");
+  const handlePointClick = async (point: string) => {
+    if (!selectedVehicleId) {
+      toast.error("Nenhum veículo selecionado");
+      return;
+    }
+
+    setLoading(point);
+
+    try {
+      if (currentPoint === point) {
+        // End refueling
+        await endRefueling(point);
+      } else if (currentPoint) {
+        // Already refueling at another point
+        toast.error(`Finalize o abastecimento no ponto ${currentPoint} primeiro`);
+      } else {
+        // Start refueling
+        await startRefueling(point);
+      }
+    } catch (error) {
+      console.error("Error handling refueling:", error);
+      toast.error("Erro ao processar abastecimento");
+    } finally {
+      setLoading(null);
+    }
+  };
+
+  const startRefueling = async (point: string) => {
+    const now = new Date().toISOString();
+
+    // Update equipment status to abastecimento
+    const { error: equipError } = await supabase
+      .from("equipment")
+      .update({
+        stop_reason: "abastecimento",
+        stop_start_time: now,
+      })
+      .eq("id", selectedVehicleId);
+
+    if (equipError) throw equipError;
+
+    // Create history record
+    const { error: historyError } = await supabase
+      .from("equipment_stop_history")
+      .insert({
+        equipment_id: selectedVehicleId,
+        stop_reason: "abastecimento",
+        started_at: now,
+        defect_description: `Ponto: ${point}`,
+      });
+
+    if (historyError) throw historyError;
+
+    setCurrentPoint(point);
+    setRefuelingStartTime(now);
+    await refetch();
+    
+    toast.success(`Abastecimento iniciado no ponto ${point}`);
+  };
+
+  const endRefueling = async (point: string) => {
+    const now = new Date();
+    const nowIso = now.toISOString();
+
+    // Calculate duration
+    let durationMinutes = 0;
+    if (refuelingStartTime) {
+      const start = new Date(refuelingStartTime);
+      durationMinutes = Math.round((now.getTime() - start.getTime()) / 60000);
+    }
+
+    // Update equipment status back to operando
+    const { error: equipError } = await supabase
+      .from("equipment")
+      .update({
+        stop_reason: "operando",
+        stop_start_time: nowIso,
+      })
+      .eq("id", selectedVehicleId);
+
+    if (equipError) throw equipError;
+
+    // Close the history record
+    const { error: historyError } = await supabase
+      .from("equipment_stop_history")
+      .update({
+        ended_at: nowIso,
+        duration_minutes: durationMinutes,
+      })
+      .eq("equipment_id", selectedVehicleId)
+      .eq("stop_reason", "abastecimento")
+      .is("ended_at", null);
+
+    if (historyError) throw historyError;
+
+    // Also create an "operando" record to show status change
+    await supabase
+      .from("equipment_stop_history")
+      .insert({
+        equipment_id: selectedVehicleId,
+        stop_reason: "operando",
+        started_at: nowIso,
+        defect_description: `Retorno após abastecimento - Ponto: ${point}`,
+      });
+
+    setCurrentPoint(null);
+    setRefuelingStartTime(null);
+    await refetch();
+    
+    toast.success(`Abastecimento finalizado (${durationMinutes} min)`);
   };
 
   return (
@@ -95,94 +191,85 @@ export default function PontosAbastecimento() {
               <Droplets className="h-5 w-5 text-blue-500" />
               Pontos de Abastecimento
             </h1>
-            <p className="text-[10px] sm:text-xs text-muted-foreground">
-              Locais para abastecimento de água
-            </p>
+            {selectedVehicle && (
+              <p className="text-[10px] sm:text-xs text-muted-foreground">
+                {selectedVehicle.name} • {selectedVehicle.plate}
+              </p>
+            )}
           </div>
         </div>
       </header>
 
-      <main className="p-3 sm:p-4 max-w-lg mx-auto space-y-3 pb-6">
-        {/* Search */}
-        <div className="relative">
-          <Search className="absolute left-2.5 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground" />
-          <Input
-            placeholder="Buscar ponto..."
-            value={searchTerm}
-            onChange={(e) => setSearchTerm(e.target.value)}
-            className="pl-9 h-10"
-          />
-        </div>
+      <main className="p-4 sm:p-6 max-w-lg mx-auto">
+        {/* Info Card */}
+        <Card className="mb-6 bg-blue-500/10 border-blue-500/30">
+          <CardContent className="p-4">
+            <p className="text-sm text-center text-blue-700 dark:text-blue-300">
+              Selecione o ponto de abastecimento para registrar a parada
+            </p>
+          </CardContent>
+        </Card>
 
-        {/* Results count */}
-        <div className="flex items-center justify-between">
-          <Badge variant="secondary" className="text-xs">
-            {filteredPontos.length} ponto{filteredPontos.length !== 1 ? "s" : ""}
-          </Badge>
-        </div>
+        {/* Current Status */}
+        {currentPoint && refuelingStartTime && (
+          <Card className="mb-6 bg-amber-500/10 border-amber-500/30">
+            <CardContent className="p-4 text-center">
+              <p className="text-sm font-medium text-amber-700 dark:text-amber-300">
+                Abastecendo desde {format(new Date(refuelingStartTime), "HH:mm", { locale: ptBR })}
+              </p>
+              <p className="text-xs text-amber-600 dark:text-amber-400 mt-1">
+                Clique novamente no ponto para finalizar
+              </p>
+            </CardContent>
+          </Card>
+        )}
 
-        {/* Points List */}
-        <div className="space-y-3">
-          {filteredPontos.length === 0 ? (
-            <Card>
-              <CardContent className="py-8 text-center text-muted-foreground">
-                <Droplets className="h-10 w-10 mx-auto mb-2 opacity-50" />
-                <p className="text-sm">Nenhum ponto encontrado</p>
-              </CardContent>
-            </Card>
-          ) : (
-            filteredPontos.map((ponto) => (
-              <Card key={ponto.id} className="overflow-hidden">
-                <CardHeader className="pb-2 pt-3 px-3 sm:px-4">
-                  <CardTitle className="text-sm sm:text-base flex items-center gap-2">
-                    <div className="p-1.5 rounded-full bg-blue-500/10">
-                      <Droplets className="h-4 w-4 text-blue-500" />
-                    </div>
-                    <span className="truncate">{ponto.nome}</span>
-                  </CardTitle>
-                </CardHeader>
-                <CardContent className="px-3 sm:px-4 pb-3 space-y-2">
-                  {/* Address */}
-                  <div className="flex items-start gap-2 text-xs sm:text-sm text-muted-foreground">
-                    <MapPin className="h-3.5 w-3.5 mt-0.5 shrink-0" />
-                    <span className="break-words">{ponto.endereco}</span>
+        {/* Points Grid */}
+        <div className="grid grid-cols-1 gap-4">
+          {PONTOS_ABASTECIMENTO.map((point) => {
+            const isActive = currentPoint === point;
+            const isLoading = loading === point;
+            const isDisabled = loading !== null || (currentPoint !== null && currentPoint !== point);
+
+            return (
+              <button
+                key={point}
+                onClick={() => handlePointClick(point)}
+                disabled={isDisabled}
+                className={`
+                  relative p-6 sm:p-8 rounded-xl text-center font-bold text-xl sm:text-2xl
+                  transition-all duration-200 transform
+                  ${isActive 
+                    ? "bg-amber-500 text-white shadow-lg scale-[1.02] animate-pulse" 
+                    : "bg-blue-500 hover:bg-blue-600 text-white shadow-md hover:scale-[1.02] active:scale-[0.98]"
+                  }
+                  ${isDisabled && !isActive ? "opacity-50 cursor-not-allowed" : "cursor-pointer"}
+                  touch-manipulation
+                `}
+              >
+                {isLoading ? (
+                  <Loader2 className="h-8 w-8 animate-spin mx-auto" />
+                ) : isActive ? (
+                  <div className="flex flex-col items-center gap-1">
+                    <Droplets className="h-8 w-8 mb-1" />
+                    <span>Abastecendo</span>
+                    <span className="text-sm font-normal opacity-80">Ponto {point}</span>
                   </div>
-
-                  {/* Observation */}
-                  {ponto.observacao && (
-                    <p className="text-xs text-muted-foreground bg-muted/50 px-2 py-1.5 rounded">
-                      {ponto.observacao}
-                    </p>
-                  )}
-
-                  {/* Action Buttons */}
-                  <div className="flex gap-2 pt-1">
-                    <Button
-                      variant="outline"
-                      size="sm"
-                      className="flex-1 h-9 text-xs"
-                      onClick={() => handleOpenMaps(ponto.endereco)}
-                    >
-                      <Navigation className="h-3.5 w-3.5 mr-1.5" />
-                      Como Chegar
-                    </Button>
-                    {ponto.telefone && (
-                      <Button
-                        variant="outline"
-                        size="sm"
-                        className="h-9 text-xs"
-                        onClick={() => handleCall(ponto.telefone!)}
-                      >
-                        <Phone className="h-3.5 w-3.5 mr-1.5" />
-                        Ligar
-                      </Button>
-                    )}
+                ) : (
+                  <div className="flex flex-col items-center gap-1">
+                    <Droplets className="h-8 w-8 mb-1 opacity-80" />
+                    <span>Ponto {point}</span>
                   </div>
-                </CardContent>
-              </Card>
-            ))
-          )}
+                )}
+              </button>
+            );
+          })}
         </div>
+
+        {/* Instructions */}
+        <p className="text-xs text-muted-foreground text-center mt-6">
+          O tempo de abastecimento será registrado automaticamente
+        </p>
       </main>
     </div>
   );
