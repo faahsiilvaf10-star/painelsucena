@@ -12,13 +12,13 @@ import { useSiteSettings } from "@/hooks/useSiteSettings";
 import { supabase } from "@/integrations/supabase/client";
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import { toast } from "sonner";
-import { Shield, ShieldCheck, Trash2, UserPlus, Users, Image, Upload, UserCog, Megaphone, Pencil, LayoutList } from "lucide-react";
+import { Shield, ShieldCheck, Trash2, UserPlus, Users, Image, Upload, UserCog, Megaphone, Pencil, LayoutList, Truck } from "lucide-react";
 import { BulkEmployeeEditor } from "@/components/admin/BulkEmployeeEditor";
 import { AnnouncementManager } from "@/components/admin/AnnouncementManager";
 import { EditUserDialog } from "@/components/admin/EditUserDialog";
 import { DeleteUserDialog } from "@/components/admin/DeleteUserDialog";
 import { NavVisibilityManager } from "@/components/admin/NavVisibilityManager";
-import { Navigate } from "react-router-dom";
+import { Navigate, useNavigate } from "react-router-dom";
 import type { Database } from "@/integrations/supabase/types";
 
 type AppRole = Database["public"]["Enums"]["app_role"];
@@ -36,6 +36,7 @@ const Admin = () => {
   const { user, loading: authLoading } = useAuth();
   const { isAdmin, isLoading: adminLoading } = useIsAdmin();
   const { settings, updateSettings, uploadLogo, isLoading: settingsLoading } = useSiteSettings();
+  const navigate = useNavigate();
   const queryClient = useQueryClient();
   const [selectedUser, setSelectedUser] = useState<string | undefined>(undefined);
   const [selectedRole, setSelectedRole] = useState<AppRole>("user");
@@ -286,6 +287,29 @@ const Admin = () => {
                     </p>
                   </div>
                 </div>
+              </CardContent>
+            </Card>
+
+            {/* Quick Access - Driver Panel */}
+            <Card>
+              <CardHeader>
+                <CardTitle className="flex items-center gap-2">
+                  <Truck className="w-5 h-5" />
+                  Acesso Rápido
+                </CardTitle>
+                <CardDescription>
+                  Acesse rapidamente outros painéis do sistema.
+                </CardDescription>
+              </CardHeader>
+              <CardContent>
+                <Button
+                  onClick={() => navigate("/painel-motorista")}
+                  variant="outline"
+                  className="gap-2"
+                >
+                  <Truck className="w-4 h-4" />
+                  Painel do Motorista
+                </Button>
               </CardContent>
             </Card>
 
