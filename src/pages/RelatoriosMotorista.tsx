@@ -11,8 +11,9 @@ import { format, subDays, isWithinInterval, parseISO, startOfDay, endOfDay } fro
 import { ptBR } from "date-fns/locale";
 import { Loader2 } from "lucide-react";
 
-const getStatusInfo = (stopReason: string) => {
+const getStatusInfo = (stopReason: string | null) => {
   switch (stopReason) {
+    case null:
     case "none":
     case "operando":
     case "operating":
@@ -40,7 +41,7 @@ const getStatusInfo = (stopReason: string) => {
     case "waiting_front":
     case "waiting_service_front":
       return {
-        label: "Aguardando Frente",
+        label: "Aguardando Frente de Serviço",
         color: "bg-yellow-500/10 text-yellow-600 border-yellow-500/30",
         icon: <PauseCircle className="h-3 w-3" />,
       };
@@ -61,7 +62,7 @@ const getStatusInfo = (stopReason: string) => {
       };
     default:
       return {
-        label: "Desconhecido",
+        label: stopReason || "Desconhecido",
         color: "bg-gray-500/10 text-gray-600 border-gray-500/30",
         icon: <Activity className="h-3 w-3" />,
       };
