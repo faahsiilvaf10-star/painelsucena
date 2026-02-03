@@ -38,9 +38,12 @@ import { ExportMovementsPdfButton } from "@/components/equipamentos/ExportMoveme
 import { ExportStatusPdfButton } from "@/components/equipamentos/ExportStatusPdfButton";
 
 const EXIT_REASON_LABELS: Record<ExitReason, { label: string; icon: typeof Wrench; color: string }> = {
+  operando: { label: "Operando", icon: Truck, color: "text-green-500" },
   manutencao_corretiva: { label: "Manutenção Corretiva", icon: Wrench, color: "text-red-500" },
   manutencao_preventiva: { label: "Manutenção Preventiva", icon: Shield, color: "text-orange-500" },
-  vistoria: { label: "Vistoria", icon: ClipboardCheck, color: "text-blue-500" },
+  aguardando_frente_servico: { label: "Aguardando Frente de Serviço", icon: Clock, color: "text-yellow-500" },
+  fim_turno: { label: "Fim de Turno", icon: Calendar, color: "text-blue-500" },
+  vistoria: { label: "Vistoria", icon: ClipboardCheck, color: "text-purple-500" },
 };
 
 type HistoryFilterType = "semana" | "mes" | "periodo";
@@ -506,51 +509,72 @@ const EntradaSaidaEquipamentos = () => {
                     />
                   </div>
 
-                  {/* Exit Reason (only for saida) */}
+                  {/* Exit Reason / Status (only for saida) */}
                   {movementType === "saida" && (
                     <>
                       <div className="space-y-2">
-                        <Label>Motivo da Saída *</Label>
+                        <Label>Status / Motivo da Saída *</Label>
                         <RadioGroup
                           value={exitReason}
                           onValueChange={(v) => setExitReason(v as ExitReason)}
-                          className="space-y-2"
+                          className="grid grid-cols-1 sm:grid-cols-2 gap-2"
                         >
-                          <div className="flex items-center space-x-2">
-                            <RadioGroupItem value="manutencao_corretiva" id="corretiva" />
-                            <Label htmlFor="corretiva" className="flex items-center gap-2 cursor-pointer">
-                              <Wrench className="h-4 w-4 text-red-500" />
-                              Manutenção Corretiva
+                          <div className="flex items-center space-x-2 p-2 rounded-md border hover:bg-muted/50 transition-colors">
+                            <RadioGroupItem value="operando" id="operando" />
+                            <Label htmlFor="operando" className="flex items-center gap-2 cursor-pointer flex-1">
+                              <Truck className="h-4 w-4 text-green-500" />
+                              Operando
                             </Label>
                           </div>
-                          <div className="flex items-center space-x-2">
+                          <div className="flex items-center space-x-2 p-2 rounded-md border hover:bg-muted/50 transition-colors">
+                            <RadioGroupItem value="manutencao_corretiva" id="corretiva" />
+                            <Label htmlFor="corretiva" className="flex items-center gap-2 cursor-pointer flex-1">
+                              <Wrench className="h-4 w-4 text-red-500" />
+                              Manutenção
+                            </Label>
+                          </div>
+                          <div className="flex items-center space-x-2 p-2 rounded-md border hover:bg-muted/50 transition-colors">
+                            <RadioGroupItem value="aguardando_frente_servico" id="aguardando" />
+                            <Label htmlFor="aguardando" className="flex items-center gap-2 cursor-pointer flex-1">
+                              <Clock className="h-4 w-4 text-yellow-500" />
+                              Aguardando Frente
+                            </Label>
+                          </div>
+                          <div className="flex items-center space-x-2 p-2 rounded-md border hover:bg-muted/50 transition-colors">
+                            <RadioGroupItem value="fim_turno" id="fim_turno" />
+                            <Label htmlFor="fim_turno" className="flex items-center gap-2 cursor-pointer flex-1">
+                              <Calendar className="h-4 w-4 text-blue-500" />
+                              Fim de Turno
+                            </Label>
+                          </div>
+                          <div className="flex items-center space-x-2 p-2 rounded-md border hover:bg-muted/50 transition-colors">
                             <RadioGroupItem value="manutencao_preventiva" id="preventiva" />
-                            <Label htmlFor="preventiva" className="flex items-center gap-2 cursor-pointer">
+                            <Label htmlFor="preventiva" className="flex items-center gap-2 cursor-pointer flex-1">
                               <Shield className="h-4 w-4 text-orange-500" />
                               Manutenção Preventiva
                             </Label>
                           </div>
-                          <div className="flex items-center space-x-2">
+                          <div className="flex items-center space-x-2 p-2 rounded-md border hover:bg-muted/50 transition-colors">
                             <RadioGroupItem value="vistoria" id="vistoria" />
-                            <Label htmlFor="vistoria" className="flex items-center gap-2 cursor-pointer">
-                              <ClipboardCheck className="h-4 w-4 text-blue-500" />
+                            <Label htmlFor="vistoria" className="flex items-center gap-2 cursor-pointer flex-1">
+                              <ClipboardCheck className="h-4 w-4 text-purple-500" />
                               Vistoria
                             </Label>
                           </div>
                         </RadioGroup>
                       </div>
 
-                      {/* Problem Description (only for corretiva) */}
-                      {exitReason === "manutencao_corretiva" && (
+                      {/* Problem Description (only for manutencao) */}
+                      {(exitReason === "manutencao_corretiva" || exitReason === "manutencao_preventiva") && (
                         <div className="space-y-2">
-                          <Label htmlFor="problem">Descrição do Problema *</Label>
+                          <Label htmlFor="problem">Descrição do Problema {exitReason === "manutencao_corretiva" ? "*" : "(Opcional)"}</Label>
                           <Textarea
                             id="problem"
                             placeholder="Descreva o defeito ou problema apresentado..."
                             value={problemDescription}
                             onChange={(e) => setProblemDescription(e.target.value)}
                             rows={3}
-                            className="border-red-500/30 focus:border-red-500"
+                            className="border-orange-500/30 focus:border-orange-500"
                           />
                         </div>
                       )}
@@ -1319,18 +1343,18 @@ const EntradaSaidaEquipamentos = () => {
                 {/* Exit Reason - Only for Saída */}
                 {quickActionType === "saida" && (
                   <div className="space-y-2">
-                    <Label>Motivo da Saída</Label>
+                    <Label>Status / Motivo da Saída</Label>
                     <RadioGroup
                       value={quickActionExitReason}
                       onValueChange={(v) => setQuickActionExitReason(v as ExitReason)}
-                      className="space-y-2"
+                      className="grid grid-cols-2 gap-2"
                     >
                       {Object.entries(EXIT_REASON_LABELS).map(([key, { label, icon: Icon, color }]) => (
-                        <div key={key} className="flex items-center space-x-2">
+                        <div key={key} className="flex items-center space-x-2 p-2 rounded-md border hover:bg-muted/50 transition-colors">
                           <RadioGroupItem value={key} id={`quick-${key}`} />
-                          <Label htmlFor={`quick-${key}`} className="flex items-center gap-2 cursor-pointer">
-                            <Icon className={`h-4 w-4 ${color}`} />
-                            {label}
+                          <Label htmlFor={`quick-${key}`} className="flex items-center gap-2 cursor-pointer flex-1 text-xs sm:text-sm">
+                            <Icon className={`h-4 w-4 flex-shrink-0 ${color}`} />
+                            <span className="truncate">{label}</span>
                           </Label>
                         </div>
                       ))}
@@ -1338,10 +1362,12 @@ const EntradaSaidaEquipamentos = () => {
                   </div>
                 )}
 
-                {/* Problem Description - Only for Manutenção Corretiva */}
-                {quickActionType === "saida" && quickActionExitReason === "manutencao_corretiva" && (
+                {/* Problem Description - Only for Manutenção */}
+                {quickActionType === "saida" && (quickActionExitReason === "manutencao_corretiva" || quickActionExitReason === "manutencao_preventiva") && (
                   <div className="space-y-2">
-                    <Label htmlFor="quickProblem">Descrição do Defeito *</Label>
+                    <Label htmlFor="quickProblem">
+                      Descrição do Problema {quickActionExitReason === "manutencao_corretiva" ? "*" : "(Opcional)"}
+                    </Label>
                     <Textarea
                       id="quickProblem"
                       value={quickActionProblemDescription}

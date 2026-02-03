@@ -1779,6 +1779,9 @@ export type Database = {
         | "manutencao_corretiva"
         | "manutencao_preventiva"
         | "vistoria"
+        | "operando"
+        | "aguardando_frente_servico"
+        | "fim_turno"
       equipment_movement_type: "entrada" | "saida"
       order_status:
         | "solicitado"
@@ -1964,6 +1967,9 @@ export const Constants = {
         "manutencao_corretiva",
         "manutencao_preventiva",
         "vistoria",
+        "operando",
+        "aguardando_frente_servico",
+        "fim_turno",
       ],
       equipment_movement_type: ["entrada", "saida"],
       order_status: [
