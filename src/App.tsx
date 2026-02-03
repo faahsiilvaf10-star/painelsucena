@@ -45,6 +45,7 @@ import SelecaoVeiculo from "./pages/SelecaoVeiculo";
 import EquipamentosMotorista from "./pages/EquipamentosMotorista";
 import RelatoriosMotorista from "./pages/RelatoriosMotorista";
 import PontosAbastecimento from "./pages/PontosAbastecimento";
+import ParteDiaria from "./pages/ParteDiaria";
 import NotFound from "./pages/NotFound";
 
 // Configure QueryClient with robust error handling and caching
@@ -119,6 +120,7 @@ const App = () => (
                     <Route path="/entrada-saida-equipamentos" element={<ProtectedRoute><EntradaSaidaEquipamentos /></ProtectedRoute>} />
                     <Route path="/hora-extra" element={<ProtectedRoute><HoraExtra /></ProtectedRoute>} />
                     <Route path="/arquivos-seguranca" element={<ProtectedRoute><ArquivosSeguranca /></ProtectedRoute>} />
+                    <Route path="/parte-diaria" element={<ProtectedRoute><ParteDiaria /></ProtectedRoute>} />
                     <Route path="/selecao-veiculo" element={<ProtectedRoute><SelecaoVeiculo /></ProtectedRoute>} />
                     <Route path="/painel-motorista" element={<ProtectedRoute><PainelMotorista /></ProtectedRoute>} />
                     <Route path="/registro-movimento-motorista" element={<ProtectedRoute><RegistroMovimentoMotorista /></ProtectedRoute>} />

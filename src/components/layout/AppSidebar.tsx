@@ -67,6 +67,7 @@ const allNavItems: NavItem[] = [
   
   { id: "estoque", icon: Package, label: "Estoque", path: "/estoque" },
   { id: "lembretes", icon: Bell, label: "Lembretes", path: "/lembretes" },
+  { id: "parte-diaria", icon: Truck, label: "Parte Diária", path: "/parte-diaria" },
   { id: "presenca", icon: ClipboardList, label: "Relatório de Presença", path: "/presenca" },
   { id: "matriz", icon: Grid3X3, label: "Matriz Responsabilidade", path: "/matriz" },
   { id: "pedidos", icon: ShoppingCart, label: "Pedidos", path: "/pedidos" },
