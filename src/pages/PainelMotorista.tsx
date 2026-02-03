@@ -66,35 +66,35 @@ const PainelMotorista = () => {
   const quickAccessItems: QuickAccessItem[] = [
     {
       title: "Relatórios",
-      icon: <FileText className="w-8 h-8 sm:w-10 sm:h-10" />,
+      icon: <FileText className="w-6 h-6 sm:w-10 sm:h-10" />,
       href: "/relatorios-motorista",
       color: "bg-amber-400 hover:bg-amber-500 active:bg-amber-600",
       iconColor: "text-amber-900",
     },
     {
       title: "Equipamentos",
-      icon: <Truck className="w-8 h-8 sm:w-10 sm:h-10" />,
+      icon: <Truck className="w-6 h-6 sm:w-10 sm:h-10" />,
       href: "/equipamentos-motorista",
       color: "bg-amber-400 hover:bg-amber-500 active:bg-amber-600",
       iconColor: "text-amber-900",
     },
     {
       title: "Pontos de Água",
-      icon: <Droplets className="w-8 h-8 sm:w-10 sm:h-10" />,
+      icon: <Droplets className="w-6 h-6 sm:w-10 sm:h-10" />,
       href: "/pontos-abastecimento",
       color: "bg-blue-500 hover:bg-blue-600 active:bg-blue-700",
       iconColor: "text-white",
     },
     {
       title: "Entrada/Saída",
-      icon: <MapPin className="w-8 h-8 sm:w-10 sm:h-10" />,
+      icon: <MapPin className="w-6 h-6 sm:w-10 sm:h-10" />,
       href: "/registro-movimento-motorista",
       color: "bg-zinc-600 hover:bg-zinc-700 active:bg-zinc-800",
       iconColor: "text-white",
     },
     {
       title: "Fim de Turno",
-      icon: <Clock className="w-8 h-8 sm:w-10 sm:h-10" />,
+      icon: <Clock className="w-6 h-6 sm:w-10 sm:h-10" />,
       href: "/hora-extra",
       color: "bg-zinc-600 hover:bg-zinc-700 active:bg-zinc-800",
       iconColor: "text-white",
@@ -105,27 +105,27 @@ const PainelMotorista = () => {
     <div className="min-h-screen bg-gradient-to-b from-background to-muted/30">
       {/* Compact Header for Mobile */}
       <header className="sticky top-0 z-10 bg-card/95 backdrop-blur-sm border-b shadow-sm">
-        <div className="flex items-center justify-between px-3 py-2 sm:px-4 sm:py-3">
+        <div className="flex items-center justify-between px-3 py-2">
           {/* Logo */}
           <img 
             src="/logo-sucena-pdf.png" 
             alt="Sucena" 
-            className="h-7 sm:h-8 w-auto"
+            className="h-6 sm:h-8 w-auto"
           />
           
           {/* User Info - Center */}
-          <div className="flex items-center gap-2">
-            <Avatar className="w-8 h-8 sm:w-9 sm:h-9 border-2 border-primary/20">
+          <div className="flex items-center gap-2 flex-1 justify-center min-w-0">
+            <Avatar className="w-7 h-7 sm:w-9 sm:h-9 border-2 border-primary/20 shrink-0">
               <AvatarImage src={profile?.avatar_url || undefined} alt={profile?.full_name || "Motorista"} />
-              <AvatarFallback className="bg-primary text-primary-foreground text-xs font-bold">
+              <AvatarFallback className="bg-primary text-primary-foreground text-[10px] sm:text-xs font-bold">
                 {getInitials()}
               </AvatarFallback>
             </Avatar>
-            <div className="hidden xs:block">
-              <p className="text-sm font-medium text-foreground leading-tight truncate max-w-[120px] sm:max-w-[180px]">
+            <div className="min-w-0">
+              <p className="text-xs sm:text-sm font-medium text-foreground leading-tight truncate max-w-[100px] sm:max-w-[180px]">
                 {profile?.full_name?.split(' ')[0] || "Motorista"}
               </p>
-              <p className="text-xs text-muted-foreground leading-tight">
+              <p className="text-[10px] sm:text-xs text-muted-foreground leading-tight truncate">
                 {formatCargoLabel(profile?.cargo)}
               </p>
             </div>
@@ -136,28 +136,28 @@ const PainelMotorista = () => {
             variant="ghost"
             size="icon"
             onClick={handleLogout}
-            className="h-10 w-10 text-destructive hover:text-destructive hover:bg-destructive/10 rounded-full"
+            className="h-9 w-9 sm:h-10 sm:w-10 text-destructive hover:text-destructive hover:bg-destructive/10 rounded-full shrink-0"
             title="Sair"
           >
-            <LogOut className="w-5 h-5" />
+            <LogOut className="w-4 h-4 sm:w-5 sm:h-5" />
           </Button>
         </div>
       </header>
 
       {/* Content */}
-      <main className="p-3 sm:p-4 max-w-lg mx-auto space-y-4">
+      <main className="p-2 sm:p-4 max-w-lg mx-auto space-y-3 sm:space-y-4 pb-6">
         {/* Welcome Card */}
         <Card className="bg-gradient-to-r from-primary to-primary/80 text-primary-foreground border-none shadow-lg">
-          <CardContent className="p-4 sm:p-5">
-            <div className="flex items-center gap-3">
-              <div className="p-2 bg-white/20 rounded-full">
-                <User className="w-5 h-5 sm:w-6 sm:h-6" />
+          <CardContent className="p-3 sm:p-5">
+            <div className="flex items-center gap-2 sm:gap-3">
+              <div className="p-1.5 sm:p-2 bg-white/20 rounded-full">
+                <User className="w-4 h-4 sm:w-6 sm:h-6" />
               </div>
-              <div>
-                <h2 className="text-base sm:text-lg font-semibold">
+              <div className="min-w-0">
+                <h2 className="text-sm sm:text-lg font-semibold truncate">
                   Olá, {profile?.full_name?.split(' ')[0] || "Motorista"}!
                 </h2>
-                <p className="text-xs sm:text-sm opacity-90">
+                <p className="text-[10px] sm:text-sm opacity-90">
                   Acesse as funções do seu dia a dia
                 </p>
               </div>
@@ -169,7 +169,7 @@ const PainelMotorista = () => {
         <DriverStatusButtons />
 
         {/* Quick Access Grid - 2 columns, touch-friendly */}
-        <div className="grid grid-cols-2 gap-3 sm:gap-4">
+        <div className="grid grid-cols-2 gap-2 sm:gap-4">
           {quickAccessItems.map((item) => (
             <button
               key={item.title}
@@ -177,11 +177,11 @@ const PainelMotorista = () => {
               className={`${item.color} cursor-pointer transition-all duration-150 hover:scale-[1.02] active:scale-[0.97] border-none shadow-md touch-manipulation rounded-lg w-full`}
               onClick={() => navigate(item.href)}
             >
-              <div className="p-4 sm:p-5 flex flex-col items-center justify-center text-center min-h-[100px] sm:min-h-[120px] pointer-events-none">
-                <div className={`${item.iconColor} mb-2 sm:mb-3 pointer-events-none`}>
+              <div className="p-3 sm:p-5 flex flex-col items-center justify-center text-center min-h-[80px] sm:min-h-[120px] pointer-events-none">
+                <div className={`${item.iconColor} mb-1.5 sm:mb-3 pointer-events-none`}>
                   {item.icon}
                 </div>
-                <h3 className={`font-bold ${item.iconColor} text-xs sm:text-sm uppercase tracking-wide pointer-events-none`}>
+                <h3 className={`font-bold ${item.iconColor} text-[10px] sm:text-sm uppercase tracking-wide pointer-events-none`}>
                   {item.title}
                 </h3>
               </div>
