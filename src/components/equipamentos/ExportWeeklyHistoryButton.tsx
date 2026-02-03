@@ -90,27 +90,35 @@ export function ExportWeeklyHistoryButton({ equipment }: ExportWeeklyHistoryButt
                 .map(
                   (record) => {
                     const startedAt = parseISO(record.started_at);
-                    const endedAt = record.ended_at ? parseISO(record.ended_at) : null;
                     
-                    // For display: show the earlier time as "Início" and later time as "Fim"
-                    const startTime = format(startedAt, "HH:mm");
-                    const endTime = endedAt ? format(endedAt, "HH:mm") : "-";
+                    // For end_of_shift/end_of_day records:
+                    // - "Início" should be the equipment's start_hour (when operation began)
+                    // - "Fim" should be when the stop started (startedAt time)
+                    const isEndOfShift = record.stop_reason === "end_of_shift" || record.stop_reason === "end_of_day";
                     
-                    // Compare times to ensure Início < Fim
-                    const startMinutes = startedAt.getHours() * 60 + startedAt.getMinutes();
-                    const endMinutes = endedAt ? endedAt.getHours() * 60 + endedAt.getMinutes() : null;
+                    // Get the stop start time in local format (UTC-3 for Brazil)
+                    const stopStartHour = startedAt.getUTCHours() - 3;
+                    const adjustedStopHour = stopStartHour < 0 ? stopStartHour + 24 : stopStartHour;
+                    const stopStartMinutes = startedAt.getUTCMinutes();
+                    const stopTimeFormatted = `${String(adjustedStopHour).padStart(2, '0')}:${String(stopStartMinutes).padStart(2, '0')}`;
                     
-                    // If start time is later than end time, swap them for display
-                    const displayStart = endMinutes !== null && startMinutes > endMinutes ? endTime : startTime;
-                    const displayEnd = endMinutes !== null && startMinutes > endMinutes ? startTime : (endedAt ? endTime : "-");
+                    // Display start as equipment's start_hour, display end as when stop began
+                    const displayStart = isEndOfShift 
+                      ? `${String(eq.start_hour).padStart(2, '0')}:00`
+                      : stopTimeFormatted;
+                    const displayEnd = isEndOfShift 
+                      ? stopTimeFormatted 
+                      : "-";
                     
-                    // Calculate duration from display times
+                    // Calculate duration from start_hour to stop time for end_of_shift
                     let calculatedDuration = "-";
-                    if (endedAt) {
-                      const earlierMinutes = Math.min(startMinutes, endMinutes!);
-                      const laterMinutes = Math.max(startMinutes, endMinutes!);
-                      const diffMinutes = laterMinutes - earlierMinutes;
-                      calculatedDuration = formatDuration(diffMinutes);
+                    if (isEndOfShift) {
+                      const startMinutes = eq.start_hour * 60;
+                      const endMinutes = adjustedStopHour * 60 + stopStartMinutes;
+                      const diffMinutes = endMinutes - startMinutes;
+                      if (diffMinutes > 0) {
+                        calculatedDuration = formatDuration(diffMinutes);
+                      }
                     }
                     
                     // Observation: show "Em manutenção" if maintenance, otherwise show defect description
