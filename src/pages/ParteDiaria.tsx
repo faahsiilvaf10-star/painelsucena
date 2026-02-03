@@ -28,8 +28,8 @@ import {
   TableHeader,
   TableRow,
 } from "@/components/ui/table";
-import { Truck, Plus, Loader2, Trash2, User, Clock, AlertCircle } from "lucide-react";
-import { useEquipment, useCreateEquipment, useDeleteEquipment } from "@/hooks/useEquipment";
+import { Truck, Plus, Loader2, Trash2, User, Clock, AlertCircle, Droplets } from "lucide-react";
+import { useEquipment, useCreateEquipment, useDeleteEquipment, useEquipmentStopHistory } from "@/hooks/useEquipment";
 import { useEquipmentMovements } from "@/hooks/useEquipmentMovements";
 import { useIsAdmin } from "@/hooks/useUserRole";
 import { useProfile } from "@/hooks/useProfile";
@@ -52,6 +52,7 @@ import {
 export default function ParteDiaria() {
   const { data: equipment = [], isLoading: isLoadingEquipment } = useEquipment();
   const { data: movements = [], isLoading: isLoadingMovements } = useEquipmentMovements();
+  const { data: stopHistory = [] } = useEquipmentStopHistory();
   const createEquipment = useCreateEquipment();
   const deleteEquipment = useDeleteEquipment();
   const { isAdmin } = useIsAdmin();
@@ -108,17 +109,48 @@ export default function ParteDiaria() {
     }
   };
 
-  const getStatusBadge = (stopReason: string | null) => {
-    if (!stopReason || stopReason === "none") {
+  const getStatusBadge = (stopReason: string | null, vehicleId?: string) => {
+    if (!stopReason || stopReason === "none" || stopReason === "operando") {
       return <Badge className="bg-green-500 text-white">Operando</Badge>;
     }
     switch (stopReason) {
       case "maintenance":
         return <Badge className="bg-orange-500 text-white">Manutenção</Badge>;
+      case "waiting":
       case "waiting_front":
         return <Badge className="bg-yellow-500 text-black">Aguardando Frente</Badge>;
       case "end_of_shift":
         return <Badge className="bg-blue-500 text-white">Fim de Turno</Badge>;
+      case "end_of_day":
+        return <Badge className="bg-orange-500 text-white">Combustível</Badge>;
+      case "rain":
+        return <Badge className="bg-sky-500 text-white">Chuva</Badge>;
+      case "abastecimento":
+        // Find the current refueling point from stop history
+        if (vehicleId) {
+          const currentRefueling = stopHistory.find(
+            (h) => h.equipment_id === vehicleId && 
+                   h.stop_reason === "abastecimento" && 
+                   !h.ended_at
+          );
+          if (currentRefueling?.defect_description) {
+            const pointMatch = currentRefueling.defect_description.match(/Ponto: (.+)/);
+            if (pointMatch) {
+              return (
+                <Badge className="bg-cyan-500 text-white flex items-center gap-1">
+                  <Droplets className="h-3 w-3" />
+                  Abastecimento - Ponto {pointMatch[1]}
+                </Badge>
+              );
+            }
+          }
+        }
+        return (
+          <Badge className="bg-cyan-500 text-white flex items-center gap-1">
+            <Droplets className="h-3 w-3" />
+            Abastecimento
+          </Badge>
+        );
       default:
         return <Badge variant="secondary">{stopReason}</Badge>;
     }
@@ -215,7 +247,7 @@ export default function ParteDiaria() {
                               </p>
                             </div>
                           </div>
-                          {getStatusBadge(timeline.currentStatus)}
+                          {getStatusBadge(timeline.currentStatus, vehicle.id)}
                         </div>
                       </CardHeader>
                       <CardContent className="space-y-4">
@@ -418,7 +450,7 @@ export default function ParteDiaria() {
                               <span className="text-muted-foreground">-</span>
                             )}
                           </TableCell>
-                          <TableCell>{getStatusBadge(vehicle.stop_reason)}</TableCell>
+                          <TableCell>{getStatusBadge(vehicle.stop_reason, vehicle.id)}</TableCell>
                           <TableCell className="text-right">
                             <AlertDialog>
                               <AlertDialogTrigger asChild>
