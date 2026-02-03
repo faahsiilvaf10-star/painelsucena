@@ -186,10 +186,12 @@ export function DriverStatusButtons() {
               (btn.action === "none" && currentStatus === "none") ||
               (btn.action !== "none" && currentStatus === btn.action);
             
-            // Hide "Iniciar Turno" if already operating, hide "Operar" if not stopped
-            if (btn.id === "iniciar_turno" && currentStatus === "none") return null;
-            if (btn.id === "operar" && currentStatus === "none") return null;
-            if (btn.id === "iniciar_turno" && currentStatus !== "none") return null;
+            // "Iniciar Turno" only shows when equipment is NOT operating (e.g., fim_turno or first start)
+            // "Operar" shows when equipment is stopped (not "none")
+            const isOperating = currentStatus === "none";
+            
+            if (btn.id === "iniciar_turno" && isOperating) return null;
+            if (btn.id === "operar" && isOperating) return null;
 
             return (
               <Button
