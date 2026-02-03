@@ -1,4 +1,5 @@
 import { ReactNode, useEffect, useState } from "react";
+import { useLocation } from "react-router-dom";
 import { AppSidebar } from "./AppSidebar";
 import { SidebarProvider } from "@/components/ui/sidebar";
 import { useAuth } from "@/hooks/useAuth";
@@ -7,9 +8,16 @@ interface PersistentSidebarProps {
   children: ReactNode;
 }
 
+// Routes where sidebar should be hidden
+const SIDEBAR_HIDDEN_ROUTES = ['/painel-motorista'];
+
 export const PersistentSidebar = ({ children }: PersistentSidebarProps) => {
   const { user } = useAuth();
+  const location = useLocation();
   const [justCompletedTransition, setJustCompletedTransition] = useState(false);
+
+  // Check if sidebar should be hidden on current route
+  const shouldHideSidebar = SIDEBAR_HIDDEN_ROUTES.includes(location.pathname);
 
   // Listen for transition completion to trigger fade-in
   useEffect(() => {
@@ -28,11 +36,11 @@ export const PersistentSidebar = ({ children }: PersistentSidebarProps) => {
     return () => window.removeEventListener("login-transition", handler);
   }, [user]);
 
-  // Always provide SidebarProvider context, but only render sidebar when authenticated
+  // Always provide SidebarProvider context, but only render sidebar when authenticated and not hidden
   return (
     <SidebarProvider defaultOpen={true}>
       <div className="h-screen flex flex-row w-full bg-background overflow-hidden">
-        {user && (
+        {user && !shouldHideSidebar && (
           <div className={justCompletedTransition ? "animate-fade-in" : ""}>
             <AppSidebar />
           </div>

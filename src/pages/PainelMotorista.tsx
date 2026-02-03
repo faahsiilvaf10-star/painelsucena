@@ -1,15 +1,19 @@
 import { useNavigate } from "react-router-dom";
 import { Card, CardContent } from "@/components/ui/card";
+import { Button } from "@/components/ui/button";
 import { 
   ClipboardList, 
   FileText, 
   Truck, 
   Calendar,
   MapPin,
-  Clock
+  Clock,
+  LogOut
 } from "lucide-react";
 import { useProfile } from "@/hooks/useProfile";
 import { formatCargoLabel } from "@/lib/cargoUtils";
+import { supabase } from "@/integrations/supabase/client";
+import { toast } from "sonner";
 
 interface QuickAccessItem {
   title: string;
@@ -21,6 +25,16 @@ interface QuickAccessItem {
 const PainelMotorista = () => {
   const navigate = useNavigate();
   const { data: profile } = useProfile();
+
+  const handleLogout = async () => {
+    try {
+      await supabase.auth.signOut();
+      toast.success("Logout realizado com sucesso");
+      navigate("/auth", { replace: true });
+    } catch (error) {
+      toast.error("Erro ao fazer logout");
+    }
+  };
 
   const quickAccessItems: QuickAccessItem[] = [
     {
@@ -76,7 +90,7 @@ const PainelMotorista = () => {
               className="h-8 w-auto"
             />
           </div>
-          <div className="text-center">
+          <div className="text-center flex-1">
             <h1 className="text-lg font-semibold text-foreground">
               Painel do Motorista
             </h1>
@@ -84,10 +98,19 @@ const PainelMotorista = () => {
               {profile?.full_name || "Carregando..."}
             </p>
           </div>
-          <div className="text-right">
-            <span className="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-primary/10 text-primary">
+          <div className="flex items-center gap-3">
+            <span className="hidden sm:inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-primary/10 text-primary">
               {formatCargoLabel(profile?.cargo)}
             </span>
+            <Button
+              variant="ghost"
+              size="icon"
+              onClick={handleLogout}
+              className="text-destructive hover:text-destructive hover:bg-destructive/10"
+              title="Sair"
+            >
+              <LogOut className="w-5 h-5" />
+            </Button>
           </div>
         </div>
       </div>
