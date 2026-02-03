@@ -50,13 +50,11 @@ export default function SelecaoVeiculo() {
       const selectedEquipmentData = equipment.find(eq => eq.id === selectedVehicle);
       if (!selectedEquipmentData) return;
 
-      // Update the equipment with the driver's name and set as operating
+      // Update the equipment with the driver's name (keep the current status)
       const { error: updateError } = await supabase
         .from("equipment")
         .update({
           driver: profile.full_name,
-          stop_reason: "none",
-          stop_start_time: null,
         })
         .eq("id", selectedVehicle);
 
