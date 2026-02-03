@@ -64,7 +64,7 @@ const allNavItems: NavItem[] = [
   { id: "dds", icon: Sun, label: "DDS", path: "/dds" },
   { id: "documentos", icon: FolderOpen, label: "Documentos", path: "/documentos" },
   { id: "entrada-saida", icon: ArrowLeftRight, label: "Entrada e Saída", path: "/entrada-saida-equipamentos" },
-  { id: "equipamentos", icon: Truck, label: "Equipamentos", path: "/equipamentos" },
+  
   { id: "estoque", icon: Package, label: "Estoque", path: "/estoque" },
   { id: "lembretes", icon: Bell, label: "Lembretes", path: "/lembretes" },
   { id: "presenca", icon: ClipboardList, label: "Relatório de Presença", path: "/presenca" },
