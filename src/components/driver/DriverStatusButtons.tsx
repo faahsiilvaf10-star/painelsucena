@@ -1,4 +1,5 @@
 import { useState, useEffect } from "react";
+import { useNavigate } from "react-router-dom";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
@@ -93,6 +94,7 @@ const getStatusLabel = (stopReason: string | null) => {
 };
 
 export function DriverStatusButtons() {
+  const navigate = useNavigate();
   const [selectedVehicleId, setSelectedVehicleId] = useState<string | null>(null);
   const [isUpdating, setIsUpdating] = useState(false);
   const { data: equipment = [], isLoading } = useEquipment();
@@ -111,9 +113,55 @@ export function DriverStatusButtons() {
   // Get the current active stop from history (ended_at is null)
   const activeStop = stopHistory.find((h) => h.ended_at === null);
 
+  const handleEndOfShift = async () => {
+    if (!selectedVehicleId || !selectedVehicle) {
+      toast.error("Nenhum veículo selecionado");
+      return;
+    }
+
+    setIsUpdating(true);
+    try {
+      const now = new Date().toISOString();
+
+      // Update the equipment status to end_of_shift
+      await updateStatus.mutateAsync({
+        id: selectedVehicleId,
+        stop_reason: "end_of_shift" as any,
+        stop_start_time: now,
+        previousStopReason: currentStatus as any,
+        previousStopStartTime: selectedVehicle.stop_start_time,
+      });
+
+      // Clear the driver field from the equipment
+      await supabase
+        .from("equipment")
+        .update({ driver: "" })
+        .eq("id", selectedVehicleId);
+
+      // Clear the selected vehicle from localStorage
+      localStorage.removeItem("selectedVehicleId");
+
+      toast.success("Fim de turno registrado. Veículo liberado.");
+      
+      // Navigate to vehicle selection page
+      navigate("/selecao-veiculo", { replace: true });
+    } catch (error) {
+      console.error("Error ending shift:", error);
+      toast.error("Erro ao registrar fim de turno");
+    } finally {
+      setIsUpdating(false);
+    }
+  };
+
   const handleStatusChange = async (newStatus: DriverStopReason) => {
     if (!selectedVehicleId || !selectedVehicle) {
       toast.error("Nenhum veículo selecionado");
+      return;
+    }
+
+    // Handle end_of_shift separately
+    if (newStatus === "end_of_shift") {
+      await handleEndOfShift();
       return;
     }
 
