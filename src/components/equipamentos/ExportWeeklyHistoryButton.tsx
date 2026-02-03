@@ -94,7 +94,7 @@ export function ExportWeeklyHistoryButton({ equipment }: ExportWeeklyHistoryButt
                     
                     // For display: show the earlier time as "Início" and later time as "Fim"
                     const startTime = format(startedAt, "HH:mm");
-                    const endTime = endedAt ? format(endedAt, "HH:mm") : "Em andamento";
+                    const endTime = endedAt ? format(endedAt, "HH:mm") : "-";
                     
                     // Compare times to ensure Início < Fim
                     const startMinutes = startedAt.getHours() * 60 + startedAt.getMinutes();
@@ -102,24 +102,35 @@ export function ExportWeeklyHistoryButton({ equipment }: ExportWeeklyHistoryButt
                     
                     // If start time is later than end time, swap them for display
                     const displayStart = endMinutes !== null && startMinutes > endMinutes ? endTime : startTime;
-                    const displayEnd = endMinutes !== null && startMinutes > endMinutes ? startTime : (endedAt ? endTime : "Em andamento");
+                    const displayEnd = endMinutes !== null && startMinutes > endMinutes ? startTime : (endedAt ? endTime : "-");
+                    
+                    // Calculate duration from display times
+                    let calculatedDuration = "-";
+                    if (endedAt) {
+                      const earlierMinutes = Math.min(startMinutes, endMinutes!);
+                      const laterMinutes = Math.max(startMinutes, endMinutes!);
+                      const diffMinutes = laterMinutes - earlierMinutes;
+                      calculatedDuration = formatDuration(diffMinutes);
+                    }
+                    
+                    // Observation: show "Em manutenção" if maintenance, otherwise show defect description
+                    const observation = record.stop_reason === "maintenance" 
+                      ? (record.defect_description ? `Em manutenção - ${record.defect_description}` : "Em manutenção")
+                      : (record.defect_description || "-");
                     
                     return `
                     <tr>
                       <td>${format(startedAt, "dd/MM (EEE)", { locale: ptBR })}</td>
                       <td>${displayStart}</td>
                       <td>${displayEnd}</td>
-                      <td class="${record.stop_reason === "maintenance" ? "status-maintenance" : record.stop_reason === "rain" ? "status-rain" : ""}">
-                        ${stopReasonLabels[record.stop_reason] || record.stop_reason}
-                      </td>
-                      <td>${formatDuration(record.duration_minutes)}</td>
-                      <td class="defect">${record.defect_description || "-"}</td>
+                      <td>${calculatedDuration}</td>
+                      <td class="defect">${observation}</td>
                     </tr>
                   `;
                   }
                 )
                 .join("")
-            : `<tr><td colspan="6" class="no-data">Sem registros nesta semana</td></tr>`;
+            : `<tr><td colspan="5" class="no-data">Sem registros nesta semana</td></tr>`;
 
           const totalSummary = Object.entries(totals)
             .map(([reason, mins]) => `<span class="total-item">${stopReasonLabels[reason]}: ${formatDuration(mins)}</span>`)
@@ -142,7 +153,6 @@ export function ExportWeeklyHistoryButton({ equipment }: ExportWeeklyHistoryButt
                     <th>Data</th>
                     <th>Início</th>
                     <th>Fim</th>
-                    <th>Status</th>
                     <th>Duração</th>
                     <th>Observação</th>
                   </tr>
