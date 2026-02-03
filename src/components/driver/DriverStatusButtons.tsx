@@ -8,18 +8,19 @@ import {
   CloudRain, 
   Fuel, 
   Activity,
-  Loader2
+  Loader2,
+  Power
 } from "lucide-react";
-import { useEquipment, useUpdateEquipmentStatus, useEquipmentStopHistory } from "@/hooks/useEquipment";
+import { useEquipment, useUpdateEquipmentStatus, useEquipmentStopHistory, type StopReason } from "@/hooks/useEquipment";
 import { supabase } from "@/integrations/supabase/client";
 import { toast } from "sonner";
 import { format } from "date-fns";
 import { ptBR } from "date-fns/locale";
 
-type DriverStopReason = "none" | "aguardando_frente_servico" | "rain" | "combustivel";
+type DriverStopReason = StopReason;
 
 interface StatusButton {
-  id: DriverStopReason | "iniciar_turno" | "operar";
+  id: string;
   label: string;
   icon: React.ReactNode;
   color: string;
@@ -35,11 +36,11 @@ const statusButtons: StatusButton[] = [
     action: "none",
   },
   {
-    id: "aguardando_frente_servico",
+    id: "waiting",
     label: "Aguardando Frente",
     icon: <Clock className="h-5 w-5" />,
     color: "bg-yellow-500 hover:bg-yellow-600 text-white",
-    action: "aguardando_frente_servico",
+    action: "waiting",
   },
   {
     id: "rain",
@@ -49,11 +50,11 @@ const statusButtons: StatusButton[] = [
     action: "rain",
   },
   {
-    id: "combustivel",
+    id: "end_of_day",
     label: "Combustível",
     icon: <Fuel className="h-5 w-5" />,
     color: "bg-orange-500 hover:bg-orange-600 text-white",
-    action: "combustivel",
+    action: "end_of_day",
   },
   {
     id: "operar",
@@ -62,6 +63,13 @@ const statusButtons: StatusButton[] = [
     color: "bg-emerald-500 hover:bg-emerald-600 text-white",
     action: "none",
   },
+  {
+    id: "end_of_shift",
+    label: "Fim de Turno",
+    icon: <Power className="h-5 w-5" />,
+    color: "bg-gray-500 hover:bg-gray-600 text-white",
+    action: "end_of_shift",
+  },
 ];
 
 const getStatusLabel = (stopReason: string | null) => {
@@ -69,16 +77,15 @@ const getStatusLabel = (stopReason: string | null) => {
     case "none":
     case null:
       return { label: "Operando", color: "bg-green-500" };
-    case "aguardando_frente_servico":
+    case "waiting":
       return { label: "Aguardando Frente", color: "bg-yellow-500" };
     case "rain":
       return { label: "Parado (Chuva)", color: "bg-blue-500" };
-    case "combustivel":
+    case "end_of_day":
       return { label: "Abastecendo", color: "bg-orange-500" };
     case "maintenance":
-    case "manutencao_corretiva":
       return { label: "Manutenção", color: "bg-red-500" };
-    case "fim_turno":
+    case "end_of_shift":
       return { label: "Fim de Turno", color: "bg-gray-500" };
     default:
       return { label: "Parado", color: "bg-gray-500" };
@@ -124,9 +131,10 @@ export function DriverStatusButtons() {
 
       const statusLabels: Record<string, string> = {
         none: "Operando",
-        aguardando_frente_servico: "Aguardando Frente",
+        waiting: "Aguardando Frente",
         rain: "Parado por Chuva",
-        combustivel: "Abastecendo",
+        end_of_day: "Abastecendo",
+        end_of_shift: "Fim de Turno",
       };
 
       toast.success(`Status alterado para: ${statusLabels[newStatus] || newStatus}`);
@@ -190,8 +198,10 @@ export function DriverStatusButtons() {
             // "Operar" shows when equipment is stopped (not "none")
             const isOperating = currentStatus === "none";
             
+            // Hide "Iniciar Turno" when already operating, show "Operar" and "Fim de Turno" only when stopped
             if (btn.id === "iniciar_turno" && isOperating) return null;
             if (btn.id === "operar" && isOperating) return null;
+            if (btn.id === "end_of_shift" && currentStatus === "end_of_shift") return null;
 
             return (
               <Button
