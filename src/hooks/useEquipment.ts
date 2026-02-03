@@ -2,7 +2,7 @@ import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import { supabase } from "@/integrations/supabase/client";
 import type { EquipmentType } from "@/components/equipamentos/VehicleIcons";
 
-export type StopReason = "none" | "maintenance" | "waiting" | "rain" | "end_of_shift" | "end_of_day";
+export type StopReason = "none" | "maintenance" | "waiting" | "rain" | "end_of_shift" | "end_of_day" | "fuel";
 
 export interface Equipment {
   id: string;
