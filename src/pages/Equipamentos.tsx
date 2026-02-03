@@ -46,7 +46,8 @@ const Equipamentos = () => {
   });
 
   const operatingCount = equipment?.filter(eq => eq.stop_reason === "none" || !eq.stop_reason).length || 0;
-  const stoppedCount = equipment?.filter(eq => eq.stop_reason && eq.stop_reason !== "none").length || 0;
+  const maintenanceCount = equipment?.filter(eq => eq.stop_reason === "maintenance").length || 0;
+  const stoppedCount = equipment?.filter(eq => eq.stop_reason && eq.stop_reason !== "none" && eq.stop_reason !== "maintenance").length || 0;
 
   const handleAutoStopAll = async () => {
     setIsStoppingAll(true);
@@ -237,11 +238,17 @@ const Equipamentos = () => {
 
         {/* Stats Summary */}
         {equipment && equipment.length > 0 && (
-          <div className="flex items-center gap-6">
+          <div className="flex flex-wrap items-center gap-4 sm:gap-6">
             <div className="flex items-center gap-2">
               <div className="w-2 h-2 rounded-full bg-green-500" />
               <span className="text-sm text-muted-foreground">
                 <span className="font-semibold text-foreground">{operatingCount}</span> operando
+              </span>
+            </div>
+            <div className="flex items-center gap-2">
+              <div className="w-2 h-2 rounded-full bg-orange-500" />
+              <span className="text-sm text-muted-foreground">
+                <span className="font-semibold text-foreground">{maintenanceCount}</span> manutenção
               </span>
             </div>
             <div className="flex items-center gap-2">
