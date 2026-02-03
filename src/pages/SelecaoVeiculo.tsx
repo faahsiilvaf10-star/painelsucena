@@ -28,14 +28,8 @@ export default function SelecaoVeiculo() {
     }
   }, [navigate]);
 
-  // Filter equipment by type based on driver role
-  const isPipaDriver = profile?.cargo === "motorista_pipa";
-  const isMunkDriver = profile?.cargo === "motorista_munk";
-
-  // Get vehicles matching driver type
+  // Show both Pipa and Munk vehicles for all drivers
   const availableVehicles = equipment.filter((eq) => {
-    if (isPipaDriver) return eq.equipment_type === "pipa";
-    if (isMunkDriver) return eq.equipment_type === "munk";
     return eq.equipment_type === "pipa" || eq.equipment_type === "munk";
   });
 
