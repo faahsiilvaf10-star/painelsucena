@@ -31,6 +31,8 @@ import {
 import { Truck, Plus, Loader2, Trash2, User, Clock, AlertCircle } from "lucide-react";
 import { useEquipment, useCreateEquipment, useDeleteEquipment } from "@/hooks/useEquipment";
 import { useEquipmentMovements } from "@/hooks/useEquipmentMovements";
+import { useIsAdmin } from "@/hooks/useUserRole";
+import { useProfile } from "@/hooks/useProfile";
 import { VehicleIcon } from "@/components/equipamentos/VehicleIcons";
 import { format } from "date-fns";
 import { ptBR } from "date-fns/locale";
@@ -52,6 +54,11 @@ export default function ParteDiaria() {
   const { data: movements = [], isLoading: isLoadingMovements } = useEquipmentMovements();
   const createEquipment = useCreateEquipment();
   const deleteEquipment = useDeleteEquipment();
+  const { isAdmin } = useIsAdmin();
+  const { data: profile } = useProfile();
+
+  // Check if user can edit (admin or aux_administrativo)
+  const canEdit = isAdmin || profile?.cargo === "aux_administrativo";
 
   const [isDialogOpen, setIsDialogOpen] = useState(false);
   const [newEquipment, setNewEquipment] = useState({
@@ -165,7 +172,9 @@ export default function ParteDiaria() {
         <Tabs defaultValue="status" className="space-y-4">
           <TabsList>
             <TabsTrigger value="status">Status dos Veículos</TabsTrigger>
-            <TabsTrigger value="equipamentos">Cadastro de Equipamentos</TabsTrigger>
+            {canEdit && (
+              <TabsTrigger value="equipamentos">Cadastro de Equipamentos</TabsTrigger>
+            )}
           </TabsList>
 
           {/* Status Tab */}
@@ -285,6 +294,7 @@ export default function ParteDiaria() {
           </TabsContent>
 
           {/* Equipment Registration Tab */}
+          {canEdit && (
           <TabsContent value="equipamentos" className="space-y-4">
             <Card>
               <CardHeader className="flex flex-row items-center justify-between">
@@ -450,6 +460,7 @@ export default function ParteDiaria() {
               </CardContent>
             </Card>
           </TabsContent>
+          )}
         </Tabs>
       </div>
     </Layout>
