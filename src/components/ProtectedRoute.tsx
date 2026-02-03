@@ -93,12 +93,16 @@ const ProtectedRoute = ({ children }: ProtectedRouteProps) => {
     return <Navigate to="/auth" state={{ from: location }} replace />;
   }
 
+  const isDriver = userCargo && DRIVER_ROLES.includes(userCargo);
+
   // If user is a driver and trying to access "/" (home), redirect to driver panel
-  if (userCargo && DRIVER_ROLES.includes(userCargo)) {
-    // Only redirect from the home page, allow access to other pages they navigate to
-    if (location.pathname === '/') {
-      return <Navigate to="/painel-motorista" replace />;
-    }
+  if (isDriver && location.pathname === '/') {
+    return <Navigate to="/painel-motorista" replace />;
+  }
+
+  // If user is NOT a driver and trying to access driver panel, redirect to home
+  if (!isDriver && location.pathname === '/painel-motorista') {
+    return <Navigate to="/" replace />;
   }
 
   return <>{children}</>;
