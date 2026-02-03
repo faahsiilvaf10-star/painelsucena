@@ -23,7 +23,7 @@ import Admin from "./pages/Admin";
 import Auth from "./pages/Auth";
 import Configuracoes from "./pages/Configuracoes";
 import DDS from "./pages/DDS";
-import Equipamentos from "./pages/Equipamentos";
+
 import Lembretes from "./pages/Lembretes";
 import RDO from "./pages/RDO";
 import Campanhas from "./pages/Campanhas";
@@ -104,7 +104,7 @@ const App = () => (
                     <Route path="/configuracoes" element={<ProtectedRoute><Configuracoes /></ProtectedRoute>} />
                     <Route path="/dds" element={<ProtectedRoute><DDS /></ProtectedRoute>} />
                     <Route path="/lembretes" element={<ProtectedRoute><Lembretes /></ProtectedRoute>} />
-                    <Route path="/equipamentos" element={<ProtectedRoute><Equipamentos /></ProtectedRoute>} />
+                    
                     <Route path="/rdo" element={<ProtectedRoute><RDO /></ProtectedRoute>} />
                     <Route path="/campanhas" element={<ProtectedRoute><Campanhas /></ProtectedRoute>} />
                     <Route path="/pedidos" element={<ProtectedRoute><Pedidos /></ProtectedRoute>} />
