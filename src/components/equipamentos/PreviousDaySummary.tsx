@@ -40,6 +40,12 @@ export function PreviousDaySummary() {
     });
   }, [allHistory, yesterdayRange]);
 
+  // Equipment currently in maintenance
+  const currentlyInMaintenance = useMemo(() => {
+    if (!equipment) return [];
+    return equipment.filter(eq => eq.stop_reason === "maintenance");
+  }, [equipment]);
+
   const summary = useMemo(() => {
     if (!equipment || !yesterdayHistory.length) return null;
 
@@ -85,8 +91,9 @@ export function PreviousDaySummary() {
     return `${minutes}min`;
   };
 
-  // Don't show if dismissed, not morning, or no data
-  if (isDismissed || !isMorning || !summary || summary.stopsCount === 0) {
+  // Don't show if dismissed, not morning, or no data (unless there are current maintenance items)
+  const hasCurrentMaintenance = currentlyInMaintenance.length > 0;
+  if (isDismissed || (!isMorning && !hasCurrentMaintenance) || (!summary && !hasCurrentMaintenance) || (summary?.stopsCount === 0 && !hasCurrentMaintenance)) {
     return null;
   }
 
@@ -158,12 +165,12 @@ export function PreviousDaySummary() {
           })}
       </div>
 
-      {/* Maintenance Issues */}
-      {summary.maintenanceIssues.length > 0 && (
+      {/* Maintenance Issues from Yesterday */}
+      {summary && summary.maintenanceIssues.length > 0 && (
         <div className="space-y-2 p-3 rounded-xl bg-orange-500/10 border border-orange-500/20">
           <div className="flex items-center gap-2 text-sm font-medium text-orange-600">
             <Wrench className="w-4 h-4" />
-            <span>Manutenções registradas</span>
+            <span>Manutenções ontem</span>
           </div>
           <div className="space-y-1.5">
             {summary.maintenanceIssues.slice(0, 3).map((issue, idx) => (
@@ -180,6 +187,27 @@ export function PreviousDaySummary() {
                 + {summary.maintenanceIssues.length - 3} outras manutenções
               </p>
             )}
+          </div>
+        </div>
+      )}
+
+      {/* Currently in Maintenance */}
+      {currentlyInMaintenance.length > 0 && (
+        <div className="space-y-2 p-3 rounded-xl bg-orange-500/10 border border-orange-500/20">
+          <div className="flex items-center gap-2 text-sm font-medium text-orange-600">
+            <Wrench className="w-4 h-4" />
+            <span>Em manutenção agora ({currentlyInMaintenance.length})</span>
+          </div>
+          <div className="space-y-1.5">
+            {currentlyInMaintenance.map((eq) => (
+              <div key={eq.id} className="flex items-start gap-2 text-xs">
+                <ChevronRight className="w-3 h-3 text-orange-500 mt-0.5 shrink-0" />
+                <span>
+                  <span className="font-medium text-foreground">{eq.name}</span>
+                  <span className="text-muted-foreground ml-1">({eq.plate})</span>
+                </span>
+              </div>
+            ))}
           </div>
         </div>
       )}
