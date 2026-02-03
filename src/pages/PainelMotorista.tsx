@@ -73,7 +73,7 @@ const PainelMotorista = () => {
     {
       title: "Relatórios",
       icon: <FileText className="w-8 h-8 sm:w-10 sm:h-10" />,
-      href: "/rdo",
+      href: "/relatorios-motorista",
       color: "bg-amber-400 hover:bg-amber-500 active:bg-amber-600",
       iconColor: "text-amber-900",
     },
