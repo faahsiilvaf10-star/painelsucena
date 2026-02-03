@@ -1,6 +1,6 @@
 import { useState, useRef, useEffect } from "react";
 import { useNavigate } from "react-router-dom";
-import { ArrowLeft, LogIn, LogOut, Wrench, Settings, Eye, Loader2 } from "lucide-react";
+import { ArrowLeft, LogIn, LogOut, Wrench, Settings, Eye, Loader2, CheckCircle2 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Label } from "@/components/ui/label";
@@ -44,6 +44,8 @@ export default function RegistroMovimentoMotorista() {
   const [exitReason, setExitReason] = useState<ExitReason | null>(null);
   const [problemDescription, setProblemDescription] = useState("");
   const [observation, setObservation] = useState("");
+  const [showSuccess, setShowSuccess] = useState(false);
+  const [successType, setSuccessType] = useState<MovementType | null>(null);
   
   const observationRef = useRef<HTMLDivElement>(null);
 
@@ -84,12 +86,14 @@ export default function RegistroMovimentoMotorista() {
         observation: observation.trim() || null,
       });
 
-      toast.success(
-        movementType === "entrada" 
-          ? "Entrada registrada com sucesso!" 
-          : "Saída registrada com sucesso!"
-      );
-      navigate("/painel-motorista");
+      // Show success animation
+      setSuccessType(movementType);
+      setShowSuccess(true);
+
+      // Navigate after animation
+      setTimeout(() => {
+        navigate("/painel-motorista");
+      }, 1800);
     } catch (error) {
       console.error("Error creating movement:", error);
     }
@@ -101,6 +105,80 @@ export default function RegistroMovimentoMotorista() {
     setProblemDescription("");
     setObservation("");
   };
+
+  // Success overlay component
+  if (showSuccess) {
+    return (
+      <div className="fixed inset-0 z-50 flex items-center justify-center bg-background">
+        <div className="flex flex-col items-center gap-6 animate-scale-in">
+          {/* Success Icon with pulse animation */}
+          <div 
+            className={`relative w-32 h-32 rounded-full flex items-center justify-center ${
+              successType === "entrada" 
+                ? "bg-green-500/20" 
+                : "bg-red-500/20"
+            }`}
+          >
+            {/* Pulse rings */}
+            <div 
+              className={`absolute inset-0 rounded-full animate-ping opacity-30 ${
+                successType === "entrada" ? "bg-green-500" : "bg-red-500"
+              }`}
+              style={{ animationDuration: "1.5s" }}
+            />
+            <div 
+              className={`absolute inset-2 rounded-full animate-ping opacity-20 ${
+                successType === "entrada" ? "bg-green-500" : "bg-red-500"
+              }`}
+              style={{ animationDuration: "1.5s", animationDelay: "0.2s" }}
+            />
+            
+            {/* Icon */}
+            <div 
+              className={`relative z-10 w-20 h-20 rounded-full flex items-center justify-center ${
+                successType === "entrada" 
+                  ? "bg-green-500 text-white" 
+                  : "bg-red-500 text-white"
+              }`}
+            >
+              <CheckCircle2 className="h-12 w-12 animate-[bounce_0.6s_ease-in-out]" />
+            </div>
+          </div>
+
+          {/* Success text */}
+          <div className="text-center space-y-2 animate-fade-in" style={{ animationDelay: "0.3s" }}>
+            <h2 className={`text-2xl font-bold ${
+              successType === "entrada" ? "text-green-500" : "text-red-500"
+            }`}>
+              {successType === "entrada" ? "Entrada" : "Saída"} Registrada!
+            </h2>
+            <p className="text-muted-foreground">
+              Movimento salvo com sucesso
+            </p>
+          </div>
+
+          {/* Vehicle info */}
+          {selectedEquipmentData && (
+            <div 
+              className="bg-card border rounded-lg p-4 animate-fade-in" 
+              style={{ animationDelay: "0.5s" }}
+            >
+              <div className="text-center">
+                <p className="font-semibold text-lg">{selectedEquipmentData.name}</p>
+                <p className="text-muted-foreground font-mono">{selectedEquipmentData.plate}</p>
+              </div>
+            </div>
+          )}
+
+          {/* Loading indicator for redirect */}
+          <div className="flex items-center gap-2 text-muted-foreground animate-fade-in" style={{ animationDelay: "0.7s" }}>
+            <Loader2 className="h-4 w-4 animate-spin" />
+            <span className="text-sm">Retornando ao painel...</span>
+          </div>
+        </div>
+      </div>
+    );
+  }
 
   return (
     <div className="min-h-screen bg-background">
