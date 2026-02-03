@@ -15,6 +15,7 @@ const getStatusInfo = (stopReason: string) => {
   switch (stopReason) {
     case "none":
     case "operando":
+    case "operating":
       return {
         label: "Operando",
         color: "bg-green-500/10 text-green-600 border-green-500/30",
@@ -22,30 +23,37 @@ const getStatusInfo = (stopReason: string) => {
       };
     case "maintenance":
     case "manutencao_corretiva":
+    case "corrective_maintenance":
       return {
         label: "Manutenção Corretiva",
         color: "bg-red-500/10 text-red-600 border-red-500/30",
         icon: <Wrench className="h-3 w-3" />,
       };
     case "manutencao_preventiva":
+    case "preventive_maintenance":
       return {
         label: "Manutenção Preventiva",
         color: "bg-orange-500/10 text-orange-600 border-orange-500/30",
         icon: <Wrench className="h-3 w-3" />,
       };
     case "aguardando_frente_servico":
+    case "waiting_front":
+    case "waiting_service_front":
       return {
         label: "Aguardando Frente",
         color: "bg-yellow-500/10 text-yellow-600 border-yellow-500/30",
         icon: <PauseCircle className="h-3 w-3" />,
       };
     case "fim_turno":
+    case "end_of_shift":
+    case "end_shift":
       return {
         label: "Fim de Turno",
         color: "bg-blue-500/10 text-blue-600 border-blue-500/30",
         icon: <Clock className="h-3 w-3" />,
       };
     case "vistoria":
+    case "inspection":
       return {
         label: "Vistoria",
         color: "bg-purple-500/10 text-purple-600 border-purple-500/30",
@@ -53,7 +61,7 @@ const getStatusInfo = (stopReason: string) => {
       };
     default:
       return {
-        label: stopReason || "Desconhecido",
+        label: "Desconhecido",
         color: "bg-gray-500/10 text-gray-600 border-gray-500/30",
         icon: <Activity className="h-3 w-3" />,
       };
