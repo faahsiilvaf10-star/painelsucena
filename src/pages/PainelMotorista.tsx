@@ -15,6 +15,7 @@ import { supabase } from "@/integrations/supabase/client";
 import { toast } from "sonner";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { DriverStatusButtons } from "@/components/driver/DriverStatusButtons";
+import { useEquipment } from "@/hooks/useEquipment";
 
 interface QuickAccessItem {
   title: string;
@@ -22,11 +23,18 @@ interface QuickAccessItem {
   href: string;
   color: string;
   iconColor: string;
+  hideForMunk?: boolean;
 }
 
 const PainelMotorista = () => {
   const navigate = useNavigate();
   const { data: profile } = useProfile();
+  const { data: equipment = [] } = useEquipment();
+  
+  // Get selected vehicle type
+  const selectedVehicleId = localStorage.getItem("selectedVehicleId");
+  const selectedVehicle = equipment.find(eq => eq.id === selectedVehicleId);
+  const isMunk = selectedVehicle?.equipment_type === "munk";
 
   const handleLogout = async () => {
     try {
@@ -83,6 +91,7 @@ const PainelMotorista = () => {
       href: "/pontos-abastecimento",
       color: "bg-blue-500 hover:bg-blue-600 active:bg-blue-700",
       iconColor: "text-white",
+      hideForMunk: true,
     },
     {
       title: "Entrada/Saída",
@@ -162,7 +171,9 @@ const PainelMotorista = () => {
 
         {/* Quick Access Grid - 2 columns, touch-friendly */}
         <div className="grid grid-cols-2 gap-2 sm:gap-4">
-          {quickAccessItems.map((item) => (
+          {quickAccessItems
+            .filter((item) => !(item.hideForMunk && isMunk))
+            .map((item) => (
             <button
               key={item.title}
               type="button"
