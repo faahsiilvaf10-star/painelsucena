@@ -108,61 +108,105 @@ export function EquipmentStatusCard() {
   const inOperation = equipment?.filter((eq) => eq.stop_reason === "none") || [];
   const inMaintenance = equipment?.filter((eq) => eq.stop_reason === "maintenance") || [];
 
-  return (
-    <div className="grid grid-cols-1 md:grid-cols-2 gap-6 mb-8 animate-fade-in">
-      {/* Equipment in Operation */}
-      <Card className="border-green-500/30 bg-gradient-to-br from-green-500/5 to-transparent">
-        <CardHeader className="pb-3">
-          <CardTitle className="flex items-center gap-2 text-lg">
-            <div className="p-2 rounded-lg bg-green-500/20">
-              <Activity className="h-5 w-5 text-green-500" />
-            </div>
-            <span>Em Operação</span>
-            <Badge variant="secondary" className="ml-auto bg-green-500/20 text-green-400">
-              {inOperation.length}
-            </Badge>
-          </CardTitle>
-        </CardHeader>
-        <CardContent>
-          <EquipmentList
-            equipment={inOperation}
-            emptyMessage="Nenhum equipamento em operação"
-          />
-          <Link
-            to="/equipamentos"
-            className="block mt-4 text-xs text-center text-muted-foreground hover:text-foreground transition-colors"
-          >
-            Ver todos os equipamentos →
-          </Link>
-        </CardContent>
-      </Card>
+  const stopped = equipment?.filter((eq) => eq.stop_reason !== "none" && eq.stop_reason !== "maintenance") || [];
 
-      {/* Equipment in Maintenance */}
-      <Card className="border-orange-500/30 bg-gradient-to-br from-orange-500/5 to-transparent">
-        <CardHeader className="pb-3">
-          <CardTitle className="flex items-center gap-2 text-lg">
-            <div className="p-2 rounded-lg bg-orange-500/20">
-              <Wrench className="h-5 w-5 text-orange-500" />
+  return (
+    <div className="space-y-4 mb-8 animate-fade-in">
+      {/* Summary Stats Row */}
+      <div className="grid grid-cols-3 gap-2 sm:gap-4">
+        <Card className="border-green-500/30 bg-gradient-to-br from-green-500/5 to-transparent p-3 sm:p-4">
+          <div className="flex items-center gap-2 sm:gap-3">
+            <div className="p-1.5 sm:p-2 rounded-lg bg-green-500/20">
+              <Activity className="h-4 w-4 sm:h-5 sm:w-5 text-green-500" />
             </div>
-            <span>Em Manutenção</span>
-            <Badge variant="secondary" className="ml-auto bg-orange-500/20 text-orange-400">
-              {inMaintenance.length}
-            </Badge>
-          </CardTitle>
-        </CardHeader>
-        <CardContent>
-          <EquipmentList
-            equipment={inMaintenance}
-            emptyMessage="Nenhum equipamento em manutenção"
-          />
-          <Link
-            to="/equipamentos"
-            className="block mt-4 text-xs text-center text-muted-foreground hover:text-foreground transition-colors"
-          >
-            Ver todos os equipamentos →
-          </Link>
-        </CardContent>
-      </Card>
+            <div>
+              <p className="text-xs text-muted-foreground">Em Operação</p>
+              <p className="text-lg sm:text-2xl font-bold text-green-500">{inOperation.length}</p>
+            </div>
+          </div>
+        </Card>
+        
+        <Card className="border-orange-500/30 bg-gradient-to-br from-orange-500/5 to-transparent p-3 sm:p-4">
+          <div className="flex items-center gap-2 sm:gap-3">
+            <div className="p-1.5 sm:p-2 rounded-lg bg-orange-500/20">
+              <Wrench className="h-4 w-4 sm:h-5 sm:w-5 text-orange-500" />
+            </div>
+            <div>
+              <p className="text-xs text-muted-foreground">Manutenção</p>
+              <p className="text-lg sm:text-2xl font-bold text-orange-500">{inMaintenance.length}</p>
+            </div>
+          </div>
+        </Card>
+        
+        <Card className="border-yellow-500/30 bg-gradient-to-br from-yellow-500/5 to-transparent p-3 sm:p-4">
+          <div className="flex items-center gap-2 sm:gap-3">
+            <div className="p-1.5 sm:p-2 rounded-lg bg-yellow-500/20">
+              <Truck className="h-4 w-4 sm:h-5 sm:w-5 text-yellow-500" />
+            </div>
+            <div>
+              <p className="text-xs text-muted-foreground">Parados</p>
+              <p className="text-lg sm:text-2xl font-bold text-yellow-500">{stopped.length}</p>
+            </div>
+          </div>
+        </Card>
+      </div>
+
+      {/* Detailed Lists */}
+      <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+        {/* Equipment in Operation */}
+        <Card className="border-green-500/30 bg-gradient-to-br from-green-500/5 to-transparent">
+          <CardHeader className="pb-3">
+            <CardTitle className="flex items-center gap-2 text-base sm:text-lg">
+              <div className="p-1.5 sm:p-2 rounded-lg bg-green-500/20">
+                <Activity className="h-4 w-4 sm:h-5 sm:w-5 text-green-500" />
+              </div>
+              <span>Em Operação</span>
+              <Badge variant="secondary" className="ml-auto bg-green-500/20 text-green-400 text-xs">
+                {inOperation.length}
+              </Badge>
+            </CardTitle>
+          </CardHeader>
+          <CardContent>
+            <EquipmentList
+              equipment={inOperation}
+              emptyMessage="Nenhum equipamento em operação"
+            />
+            <Link
+              to="/equipamentos"
+              className="block mt-4 text-xs text-center text-muted-foreground hover:text-foreground transition-colors"
+            >
+              Ver todos os equipamentos →
+            </Link>
+          </CardContent>
+        </Card>
+
+        {/* Equipment in Maintenance */}
+        <Card className="border-orange-500/30 bg-gradient-to-br from-orange-500/5 to-transparent">
+          <CardHeader className="pb-3">
+            <CardTitle className="flex items-center gap-2 text-base sm:text-lg">
+              <div className="p-1.5 sm:p-2 rounded-lg bg-orange-500/20">
+                <Wrench className="h-4 w-4 sm:h-5 sm:w-5 text-orange-500" />
+              </div>
+              <span>Em Manutenção</span>
+              <Badge variant="secondary" className="ml-auto bg-orange-500/20 text-orange-400 text-xs">
+                {inMaintenance.length}
+              </Badge>
+            </CardTitle>
+          </CardHeader>
+          <CardContent>
+            <EquipmentList
+              equipment={inMaintenance}
+              emptyMessage="Nenhum equipamento em manutenção"
+            />
+            <Link
+              to="/equipamentos"
+              className="block mt-4 text-xs text-center text-muted-foreground hover:text-foreground transition-colors"
+            >
+              Ver todos os equipamentos →
+            </Link>
+          </CardContent>
+        </Card>
+      </div>
     </div>
   );
 }
