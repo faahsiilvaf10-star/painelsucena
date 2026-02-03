@@ -142,22 +142,22 @@ export default function RelatoriosMotorista() {
   }, [history, filterPeriod, searchTerm]);
 
   return (
-    <div className="min-h-screen bg-background">
+    <div className="min-h-screen bg-background overflow-x-hidden">
       {/* Header */}
       <header className="sticky top-0 z-10 bg-card/95 backdrop-blur-sm border-b shadow-sm">
-        <div className="flex items-center gap-3 p-3">
+        <div className="flex items-center gap-2 p-2 sm:p-3">
           <Button 
             variant="ghost" 
             size="icon" 
             onClick={() => navigate("/painel-motorista")}
-            className="shrink-0"
+            className="shrink-0 h-9 w-9"
           >
             <ArrowLeft className="h-5 w-5" />
           </Button>
           <div className="flex-1 min-w-0">
-            <h1 className="text-lg font-bold truncate">Relatórios</h1>
+            <h1 className="text-base sm:text-lg font-bold truncate">Relatórios</h1>
             {selectedVehicle && (
-              <p className="text-xs text-muted-foreground truncate">
+              <p className="text-[10px] sm:text-xs text-muted-foreground truncate">
                 {selectedVehicle.name} • {selectedVehicle.plate}
               </p>
             )}
@@ -165,76 +165,72 @@ export default function RelatoriosMotorista() {
         </div>
       </header>
 
-      <main className="p-4 max-w-lg mx-auto space-y-4">
-        {/* Filters */}
-        <Card>
-          <CardHeader className="pb-2">
-            <CardTitle className="text-sm flex items-center gap-2">
-              <Filter className="h-4 w-4" />
+      <main className="p-3 sm:p-4 max-w-lg mx-auto space-y-3 pb-6">
+        {/* Filters - More compact */}
+        <Card className="overflow-hidden">
+          <CardHeader className="py-2 px-3">
+            <CardTitle className="text-xs sm:text-sm flex items-center gap-2">
+              <Filter className="h-3.5 w-3.5" />
               Filtros
             </CardTitle>
           </CardHeader>
-          <CardContent className="space-y-3">
+          <CardContent className="p-3 pt-0 space-y-2">
             {/* Period Filter */}
-            <div className="flex items-center gap-2">
-              <Calendar className="h-4 w-4 text-muted-foreground shrink-0" />
-              <Select value={filterPeriod} onValueChange={(value) => setFilterPeriod(value as FilterPeriod)}>
-                <SelectTrigger className="flex-1">
-                  <SelectValue placeholder="Selecione o período" />
-                </SelectTrigger>
-                <SelectContent>
-                  <SelectItem value="today">Hoje</SelectItem>
-                  <SelectItem value="7days">Últimos 7 dias</SelectItem>
-                  <SelectItem value="30days">Últimos 30 dias</SelectItem>
-                  <SelectItem value="all">Todo o histórico</SelectItem>
-                </SelectContent>
-              </Select>
-            </div>
+            <Select value={filterPeriod} onValueChange={(value) => setFilterPeriod(value as FilterPeriod)}>
+              <SelectTrigger className="h-9 text-xs sm:text-sm">
+                <Calendar className="h-3.5 w-3.5 mr-2 text-muted-foreground shrink-0" />
+                <SelectValue placeholder="Período" />
+              </SelectTrigger>
+              <SelectContent>
+                <SelectItem value="today">Hoje</SelectItem>
+                <SelectItem value="7days">Últimos 7 dias</SelectItem>
+                <SelectItem value="30days">Últimos 30 dias</SelectItem>
+                <SelectItem value="all">Todo o histórico</SelectItem>
+              </SelectContent>
+            </Select>
 
             {/* Search Filter */}
             <div className="relative">
-              <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground" />
+              <Search className="absolute left-2.5 top-1/2 -translate-y-1/2 h-3.5 w-3.5 text-muted-foreground" />
               <Input
-                placeholder="Buscar por status ou descrição..."
+                placeholder="Buscar..."
                 value={searchTerm}
                 onChange={(e) => setSearchTerm(e.target.value)}
-                className="pl-9"
+                className="pl-8 h-9 text-xs sm:text-sm"
               />
             </div>
           </CardContent>
         </Card>
 
         {/* History List */}
-        <Card>
-          <CardHeader className="pb-2">
-            <CardTitle className="text-base flex items-center justify-between">
-              <span className="flex items-center gap-2">
-                <Clock className="h-4 w-4" />
-                Histórico de Paradas
+        <Card className="overflow-hidden">
+          <CardHeader className="py-2 px-3">
+            <CardTitle className="text-xs sm:text-sm flex items-center justify-between gap-2">
+              <span className="flex items-center gap-1.5 min-w-0">
+                <Clock className="h-3.5 w-3.5 shrink-0" />
+                <span className="truncate">Histórico</span>
               </span>
-              <Badge variant="secondary" className="text-xs">
-                {filteredHistory.length} registro{filteredHistory.length !== 1 ? "s" : ""}
+              <Badge variant="secondary" className="text-[10px] shrink-0">
+                {filteredHistory.length}
               </Badge>
             </CardTitle>
           </CardHeader>
-          <CardContent>
+          <CardContent className="p-3 pt-0">
             {isLoading ? (
-              <div className="py-8 flex justify-center">
-                <Loader2 className="h-6 w-6 animate-spin text-muted-foreground" />
+              <div className="py-6 flex justify-center">
+                <Loader2 className="h-5 w-5 animate-spin text-muted-foreground" />
               </div>
             ) : !selectedVehicleId ? (
-              <div className="py-6 text-center text-muted-foreground">
-                <p className="text-sm">Nenhum veículo selecionado.</p>
-                <p className="text-xs mt-1">Volte e selecione um veículo para ver o histórico.</p>
+              <div className="py-4 text-center text-muted-foreground">
+                <p className="text-xs">Nenhum veículo selecionado.</p>
               </div>
             ) : filteredHistory.length === 0 ? (
-              <div className="py-6 text-center text-muted-foreground">
-                <Clock className="h-8 w-8 mx-auto mb-2 opacity-50" />
-                <p className="text-sm">Nenhum registro encontrado</p>
-                <p className="text-xs mt-1">Ajuste os filtros ou aguarde novos registros.</p>
+              <div className="py-4 text-center text-muted-foreground">
+                <Clock className="h-6 w-6 mx-auto mb-1.5 opacity-50" />
+                <p className="text-xs">Nenhum registro encontrado</p>
               </div>
             ) : (
-              <div className="space-y-3">
+              <div className="space-y-2">
                 {filteredHistory.map((item) => {
                   const statusInfo = getStatusInfo(item.stop_reason);
                   const startDate = parseISO(item.started_at);
@@ -243,43 +239,42 @@ export default function RelatoriosMotorista() {
                   return (
                     <div
                       key={item.id}
-                      className="p-3 rounded-lg bg-muted/50 border space-y-2"
+                      className="p-2.5 rounded-lg bg-muted/50 border space-y-1.5"
                     >
-                      <div className="flex items-start justify-between gap-2">
-                        <Badge variant="outline" className={`${statusInfo.color} shrink-0`}>
+                      {/* Status and Duration Row */}
+                      <div className="flex items-center justify-between gap-2 flex-wrap">
+                        <Badge variant="outline" className={`${statusInfo.color} text-[10px] px-1.5 py-0.5`}>
                           <span className="mr-1">{statusInfo.icon}</span>
                           {statusInfo.label}
                         </Badge>
-                        <span className="text-xs text-muted-foreground whitespace-nowrap">
+                        <span className="text-[10px] text-muted-foreground font-medium">
                           {formatDuration(item.duration_minutes)}
                         </span>
                       </div>
 
-                      <div className="text-xs text-muted-foreground space-y-1">
-                        <div className="flex items-center gap-2">
-                          <span className="font-medium">Início:</span>
-                          <span>
-                            {format(startDate, "dd/MM/yyyy 'às' HH:mm", { locale: ptBR })}
-                          </span>
+                      {/* Dates - Compact layout */}
+                      <div className="text-[10px] sm:text-xs text-muted-foreground grid grid-cols-2 gap-1">
+                        <div className="truncate">
+                          <span className="font-medium">Início: </span>
+                          {format(startDate, "dd/MM HH:mm", { locale: ptBR })}
                         </div>
                         {endDate ? (
-                          <div className="flex items-center gap-2">
-                            <span className="font-medium">Fim:</span>
-                            <span>
-                              {format(endDate, "dd/MM/yyyy 'às' HH:mm", { locale: ptBR })}
-                            </span>
+                          <div className="truncate">
+                            <span className="font-medium">Fim: </span>
+                            {format(endDate, "dd/MM HH:mm", { locale: ptBR })}
                           </div>
                         ) : (
-                          <div className="flex items-center gap-2">
-                            <span className="font-medium text-amber-600">Em andamento</span>
+                          <div className="text-amber-600 font-medium">
+                            Em andamento
                           </div>
                         )}
                       </div>
 
+                      {/* Problem Description */}
                       {item.defect_description && (
-                        <div className="text-xs bg-background/50 p-2 rounded border-l-2 border-red-500/50">
+                        <div className="text-[10px] sm:text-xs bg-background/50 p-1.5 rounded border-l-2 border-red-500/50">
                           <span className="font-medium text-red-600">Problema: </span>
-                          <span className="text-foreground">{item.defect_description}</span>
+                          <span className="text-foreground break-words">{item.defect_description}</span>
                         </div>
                       )}
                     </div>
