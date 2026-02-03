@@ -100,7 +100,7 @@ const PainelMotorista = () => {
       iconColor: "text-white",
     },
     {
-      title: "Hora Extra",
+      title: "Fim de Turno",
       icon: <Clock className="w-8 h-8 sm:w-10 sm:h-10" />,
       href: "/hora-extra",
       color: "bg-zinc-600 hover:bg-zinc-700 active:bg-zinc-800",
