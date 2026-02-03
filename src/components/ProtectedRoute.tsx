@@ -109,10 +109,19 @@ const ProtectedRoute = ({ children }: ProtectedRouteProps) => {
   const isDriver = userCargo && DRIVER_ROLES.includes(userCargo);
   
   // Pages that drivers are allowed to access
-  const DRIVER_ALLOWED_PATHS = ['/painel-motorista', '/registro-movimento-motorista', '/hora-extra'];
+  const DRIVER_ALLOWED_PATHS = ['/selecao-veiculo', '/painel-motorista', '/registro-movimento-motorista', '/hora-extra'];
 
-  // If user is a driver and trying to access a page not in allowed list, redirect to driver panel
+  // If user is a driver and trying to access a page not in allowed list
   if (isDriver && !DRIVER_ALLOWED_PATHS.includes(location.pathname)) {
+    // Check if driver has selected a vehicle
+    const hasSelectedVehicle = localStorage.getItem("selectedVehicleId");
+    
+    // If no vehicle selected, redirect to vehicle selection
+    if (!hasSelectedVehicle) {
+      return <Navigate to="/selecao-veiculo" replace />;
+    }
+    
+    // Otherwise redirect to driver panel
     return <Navigate to="/painel-motorista" replace />;
   }
 
