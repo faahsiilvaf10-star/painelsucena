@@ -5,9 +5,11 @@ import { Button } from "@/components/ui/button";
 import { Card, CardContent } from "@/components/ui/card";
 import { useAuth } from "@/hooks/useAuth";
 import { useProfile } from "@/hooks/useProfile";
-import { useEquipment, useUpdateEquipment } from "@/hooks/useEquipment";
+import { useEquipment } from "@/hooks/useEquipment";
 import { useCreateEquipmentMovement } from "@/hooks/useEquipmentMovements";
 import { VehicleIcon } from "@/components/equipamentos/VehicleIcons";
+import { supabase } from "@/integrations/supabase/client";
+import { useQueryClient } from "@tanstack/react-query";
 import { toast } from "sonner";
 
 export default function SelecaoVeiculo() {
@@ -15,8 +17,8 @@ export default function SelecaoVeiculo() {
   const { signOut } = useAuth();
   const { data: profile } = useProfile();
   const { data: equipment = [], isLoading } = useEquipment();
-  const updateEquipment = useUpdateEquipment();
   const createMovement = useCreateEquipmentMovement();
+  const queryClient = useQueryClient();
   const [selectedVehicle, setSelectedVehicle] = useState<string | null>(null);
   const [isConfirming, setIsConfirming] = useState(false);
 
@@ -46,11 +48,20 @@ export default function SelecaoVeiculo() {
       const selectedEquipmentData = equipment.find(eq => eq.id === selectedVehicle);
       if (!selectedEquipmentData) return;
 
-      // Update the equipment with the driver's name
-      await updateEquipment.mutateAsync({
-        id: selectedVehicle,
-        driver: profile.full_name,
-      });
+      // Update the equipment with the driver's name and set as operating
+      const { error: updateError } = await supabase
+        .from("equipment")
+        .update({
+          driver: profile.full_name,
+          stop_reason: "none",
+          stop_start_time: null,
+        })
+        .eq("id", selectedVehicle);
+
+      if (updateError) throw updateError;
+
+      // Invalidate equipment query to reflect changes
+      queryClient.invalidateQueries({ queryKey: ["equipment"] });
 
       // Register entry movement (equipment is now operating)
       await createMovement.mutateAsync({
