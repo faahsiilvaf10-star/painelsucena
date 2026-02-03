@@ -49,6 +49,18 @@ export default function RegistroMovimentoMotorista() {
   
   const observationRef = useRef<HTMLDivElement>(null);
 
+  // Pre-select the vehicle the driver chose at login
+  useEffect(() => {
+    const savedVehicleId = localStorage.getItem("selectedVehicleId");
+    if (savedVehicleId && equipment.length > 0) {
+      // Check if the saved vehicle exists in the equipment list
+      const vehicleExists = equipment.some(eq => eq.id === savedVehicleId);
+      if (vehicleExists) {
+        setSelectedEquipment(savedVehicleId);
+      }
+    }
+  }, [equipment]);
+
   // Auto-scroll when movement type is selected to show full form
   useEffect(() => {
     if (movementType && observationRef.current) {
