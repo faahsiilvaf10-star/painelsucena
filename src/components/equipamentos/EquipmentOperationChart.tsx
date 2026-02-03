@@ -29,22 +29,31 @@ export function EquipmentOperationChart() {
     const weekEnd = endOfWeek(now, { weekStartsOn: 1 });
 
     return equipment.map((eq) => {
-      // Get stop history for this equipment within this week
+      // Get stop history for this equipment that overlaps with this week
       const equipmentStops = stopHistory.filter((stop) => {
         if (stop.equipment_id !== eq.id) return false;
         const stopStart = parseISO(stop.started_at);
-        return isWithinInterval(stopStart, { start: weekStart, end: weekEnd });
+        const stopEnd = stop.ended_at ? parseISO(stop.ended_at) : now;
+        
+        // Include if the stop overlaps with the current week (started before week end AND ended after week start)
+        return stopStart <= weekEnd && stopEnd >= weekStart;
       });
 
       // Calculate total stopped time in minutes (only maintenance counts as stopped)
       let totalStoppedMinutes = 0;
       equipmentStops.forEach((stop) => {
-        const startTime = parseISO(stop.started_at);
-        const endTime = stop.ended_at ? parseISO(stop.ended_at) : now;
-        
         // Only count maintenance as stopped time
-        if (stop.stop_reason === "maintenance") {
-          totalStoppedMinutes += differenceInMinutes(endTime, startTime);
+        if (stop.stop_reason !== "maintenance") return;
+        
+        const stopStart = parseISO(stop.started_at);
+        const stopEnd = stop.ended_at ? parseISO(stop.ended_at) : now;
+        
+        // Clamp the stop period to the current week boundaries
+        const effectiveStart = stopStart < weekStart ? weekStart : stopStart;
+        const effectiveEnd = stopEnd > weekEnd ? weekEnd : stopEnd;
+        
+        if (effectiveEnd > effectiveStart) {
+          totalStoppedMinutes += differenceInMinutes(effectiveEnd, effectiveStart);
         }
       });
 
