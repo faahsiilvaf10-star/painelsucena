@@ -122,48 +122,52 @@ export function PreviousDaySummary() {
         </div>
       </div>
 
-      {/* Stats */}
-      <div className="flex flex-wrap gap-4 mb-4">
-        <div className="flex items-center gap-2">
-          <div className="w-2 h-2 rounded-full bg-green-500" />
-          <span className="text-sm">
-            <span className="font-semibold text-green-600">{summary.operatingPercent.toFixed(0)}%</span>
-            <span className="text-muted-foreground ml-1">operando</span>
-          </span>
+      {/* Stats - only show if summary exists */}
+      {summary && (
+        <div className="flex flex-wrap gap-4 mb-4">
+          <div className="flex items-center gap-2">
+            <div className="w-2 h-2 rounded-full bg-green-500" />
+            <span className="text-sm">
+              <span className="font-semibold text-green-600">{summary.operatingPercent.toFixed(0)}%</span>
+              <span className="text-muted-foreground ml-1">operando</span>
+            </span>
+          </div>
+          <div className="flex items-center gap-2">
+            <div className="w-2 h-2 rounded-full bg-amber-500" />
+            <span className="text-sm">
+              <span className="font-semibold text-foreground">{formatDuration(summary.totalStopMinutes)}</span>
+              <span className="text-muted-foreground ml-1">parado</span>
+            </span>
+          </div>
+          <div className="flex items-center gap-2">
+            <span className="text-sm text-muted-foreground">
+              <span className="font-semibold text-foreground">{summary.stopsCount}</span> paradas
+            </span>
+          </div>
         </div>
-        <div className="flex items-center gap-2">
-          <div className="w-2 h-2 rounded-full bg-amber-500" />
-          <span className="text-sm">
-            <span className="font-semibold text-foreground">{formatDuration(summary.totalStopMinutes)}</span>
-            <span className="text-muted-foreground ml-1">parado</span>
-          </span>
-        </div>
-        <div className="flex items-center gap-2">
-          <span className="text-sm text-muted-foreground">
-            <span className="font-semibold text-foreground">{summary.stopsCount}</span> paradas
-          </span>
-        </div>
-      </div>
+      )}
 
-      {/* Stops by Reason */}
-      <div className="flex flex-wrap gap-2 mb-4">
-        {Object.entries(summary.stopsByReason)
-          .filter(([reason]) => !["end_of_day", "end_of_shift", "none"].includes(reason))
-          .map(([reason, minutes]) => {
-            const config = statusConfig[reason] || statusConfig.waiting;
-            return (
-              <Badge
-                key={reason}
-                variant="secondary"
-                className="gap-1.5 py-1 px-2.5"
-              >
-                {config.icon}
-                <span>{config.label}:</span>
-                <span className="font-semibold">{formatDuration(minutes)}</span>
-              </Badge>
-            );
-          })}
-      </div>
+      {/* Stops by Reason - only show if summary exists */}
+      {summary && Object.keys(summary.stopsByReason).length > 0 && (
+        <div className="flex flex-wrap gap-2 mb-4">
+          {Object.entries(summary.stopsByReason)
+            .filter(([reason]) => !["end_of_day", "end_of_shift", "none"].includes(reason))
+            .map(([reason, minutes]) => {
+              const config = statusConfig[reason] || statusConfig.waiting;
+              return (
+                <Badge
+                  key={reason}
+                  variant="secondary"
+                  className="gap-1.5 py-1 px-2.5"
+                >
+                  {config.icon}
+                  <span>{config.label}:</span>
+                  <span className="font-semibold">{formatDuration(minutes)}</span>
+                </Badge>
+              );
+            })}
+        </div>
+      )}
 
       {/* Maintenance Issues from Yesterday */}
       {summary && summary.maintenanceIssues.length > 0 && (
