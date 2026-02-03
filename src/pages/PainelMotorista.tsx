@@ -8,18 +8,21 @@ import {
   Calendar,
   MapPin,
   Clock,
-  LogOut
+  LogOut,
+  User
 } from "lucide-react";
 import { useProfile } from "@/hooks/useProfile";
 import { formatCargoLabel } from "@/lib/cargoUtils";
 import { supabase } from "@/integrations/supabase/client";
 import { toast } from "sonner";
+import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 
 interface QuickAccessItem {
   title: string;
   icon: React.ReactNode;
   href: string;
-  description: string;
+  color: string;
+  iconColor: string;
 }
 
 const PainelMotorista = () => {
@@ -36,140 +39,146 @@ const PainelMotorista = () => {
     }
   };
 
+  const getInitials = () => {
+    if (profile?.full_name) {
+      const names = profile.full_name.split(" ");
+      if (names.length >= 2) {
+        return `${names[0][0]}${names[names.length - 1][0]}`.toUpperCase();
+      }
+      return names[0].substring(0, 2).toUpperCase();
+    }
+    return "MT";
+  };
+
   const quickAccessItems: QuickAccessItem[] = [
     {
       title: "Tarefas",
-      icon: <ClipboardList className="w-10 h-10" />,
+      icon: <ClipboardList className="w-8 h-8 sm:w-10 sm:h-10" />,
       href: "/lembretes",
-      description: "Visualizar tarefas pendentes",
+      color: "bg-amber-400 hover:bg-amber-500 active:bg-amber-600",
+      iconColor: "text-amber-900",
     },
     {
       title: "Relatórios",
-      icon: <FileText className="w-10 h-10" />,
+      icon: <FileText className="w-8 h-8 sm:w-10 sm:h-10" />,
       href: "/rdo",
-      description: "Acessar relatórios diários",
+      color: "bg-amber-400 hover:bg-amber-500 active:bg-amber-600",
+      iconColor: "text-amber-900",
     },
     {
-      title: "Status dos Equipamentos",
-      icon: <Truck className="w-10 h-10" />,
+      title: "Equipamentos",
+      icon: <Truck className="w-8 h-8 sm:w-10 sm:h-10" />,
       href: "/equipamentos",
-      description: "Ver status das máquinas",
+      color: "bg-amber-400 hover:bg-amber-500 active:bg-amber-600",
+      iconColor: "text-amber-900",
     },
     {
-      title: "Programações de Atividades",
-      icon: <Calendar className="w-10 h-10" />,
+      title: "Atividades",
+      icon: <Calendar className="w-8 h-8 sm:w-10 sm:h-10" />,
       href: "/dds",
-      description: "Calendário de atividades",
+      color: "bg-amber-400 hover:bg-amber-500 active:bg-amber-600",
+      iconColor: "text-amber-900",
     },
-  ];
-
-  const bottomItems: QuickAccessItem[] = [
     {
       title: "Entrada/Saída",
-      icon: <MapPin className="w-10 h-10" />,
+      icon: <MapPin className="w-8 h-8 sm:w-10 sm:h-10" />,
       href: "/entrada-saida-equipamentos",
-      description: "Registrar movimentação",
+      color: "bg-zinc-600 hover:bg-zinc-700 active:bg-zinc-800",
+      iconColor: "text-white",
     },
     {
       title: "Hora Extra",
-      icon: <Clock className="w-10 h-10" />,
+      icon: <Clock className="w-8 h-8 sm:w-10 sm:h-10" />,
       href: "/hora-extra",
-      description: "Registrar horas extras",
+      color: "bg-zinc-600 hover:bg-zinc-700 active:bg-zinc-800",
+      iconColor: "text-white",
     },
   ];
 
   return (
-    <div className="min-h-screen bg-background">
-      {/* Header */}
-      <div className="bg-card border-b px-4 py-4">
-        <div className="flex items-center justify-between max-w-4xl mx-auto">
-          <div className="flex items-center gap-3">
-            <img 
-              src="/logo-sucena-pdf.png" 
-              alt="Sucena" 
-              className="h-8 w-auto"
-            />
+    <div className="min-h-screen bg-gradient-to-b from-background to-muted/30">
+      {/* Compact Header for Mobile */}
+      <header className="sticky top-0 z-10 bg-card/95 backdrop-blur-sm border-b shadow-sm">
+        <div className="flex items-center justify-between px-3 py-2 sm:px-4 sm:py-3">
+          {/* Logo */}
+          <img 
+            src="/logo-sucena-pdf.png" 
+            alt="Sucena" 
+            className="h-7 sm:h-8 w-auto"
+          />
+          
+          {/* User Info - Center */}
+          <div className="flex items-center gap-2">
+            <Avatar className="w-8 h-8 sm:w-9 sm:h-9 border-2 border-primary/20">
+              <AvatarImage src={profile?.avatar_url || undefined} alt={profile?.full_name || "Motorista"} />
+              <AvatarFallback className="bg-primary text-primary-foreground text-xs font-bold">
+                {getInitials()}
+              </AvatarFallback>
+            </Avatar>
+            <div className="hidden xs:block">
+              <p className="text-sm font-medium text-foreground leading-tight truncate max-w-[120px] sm:max-w-[180px]">
+                {profile?.full_name?.split(' ')[0] || "Motorista"}
+              </p>
+              <p className="text-xs text-muted-foreground leading-tight">
+                {formatCargoLabel(profile?.cargo)}
+              </p>
+            </div>
           </div>
-          <div className="text-center flex-1">
-            <h1 className="text-lg font-semibold text-foreground">
-              Painel do Motorista
-            </h1>
-            <p className="text-sm text-muted-foreground">
-              {profile?.full_name || "Carregando..."}
-            </p>
-          </div>
-          <div className="flex items-center gap-3">
-            <span className="hidden sm:inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-primary/10 text-primary">
-              {formatCargoLabel(profile?.cargo)}
-            </span>
-            <Button
-              variant="ghost"
-              size="icon"
-              onClick={handleLogout}
-              className="text-destructive hover:text-destructive hover:bg-destructive/10"
-              title="Sair"
-            >
-              <LogOut className="w-5 h-5" />
-            </Button>
-          </div>
+          
+          {/* Logout Button */}
+          <Button
+            variant="ghost"
+            size="icon"
+            onClick={handleLogout}
+            className="h-10 w-10 text-destructive hover:text-destructive hover:bg-destructive/10 rounded-full"
+            title="Sair"
+          >
+            <LogOut className="w-5 h-5" />
+          </Button>
         </div>
-      </div>
+      </header>
 
       {/* Content */}
-      <div className="p-4 max-w-4xl mx-auto space-y-4">
-        {/* Welcome Message */}
-        <Card className="bg-primary text-primary-foreground">
-          <CardContent className="p-4">
-            <h2 className="text-lg font-semibold">
-              Bem-vindo, {profile?.full_name?.split(' ')[0] || "Motorista"}!
-            </h2>
-            <p className="text-sm opacity-90">
-              Acesse rapidamente as funções do seu dia a dia
-            </p>
+      <main className="p-3 sm:p-4 max-w-lg mx-auto space-y-4">
+        {/* Welcome Card */}
+        <Card className="bg-gradient-to-r from-primary to-primary/80 text-primary-foreground border-none shadow-lg">
+          <CardContent className="p-4 sm:p-5">
+            <div className="flex items-center gap-3">
+              <div className="p-2 bg-white/20 rounded-full">
+                <User className="w-5 h-5 sm:w-6 sm:h-6" />
+              </div>
+              <div>
+                <h2 className="text-base sm:text-lg font-semibold">
+                  Olá, {profile?.full_name?.split(' ')[0] || "Motorista"}!
+                </h2>
+                <p className="text-xs sm:text-sm opacity-90">
+                  Acesse as funções do seu dia a dia
+                </p>
+              </div>
+            </div>
           </CardContent>
         </Card>
 
-        {/* Main Grid - 2x2 */}
-        <div className="grid grid-cols-2 gap-4">
+        {/* Quick Access Grid - 2 columns, touch-friendly */}
+        <div className="grid grid-cols-2 gap-3 sm:gap-4">
           {quickAccessItems.map((item) => (
             <Card
               key={item.title}
-              className="bg-amber-400 hover:bg-amber-500 cursor-pointer transition-all duration-200 hover:scale-[1.02] active:scale-[0.98] border-none shadow-md"
+              className={`${item.color} cursor-pointer transition-all duration-150 hover:scale-[1.02] active:scale-[0.97] border-none shadow-md touch-manipulation`}
               onClick={() => navigate(item.href)}
             >
-              <CardContent className="p-6 flex flex-col items-center justify-center text-center min-h-[140px]">
-                <div className="text-amber-900 mb-3">
+              <CardContent className="p-4 sm:p-5 flex flex-col items-center justify-center text-center min-h-[100px] sm:min-h-[120px]">
+                <div className={`${item.iconColor} mb-2 sm:mb-3`}>
                   {item.icon}
                 </div>
-                <h3 className="font-bold text-amber-900 text-sm uppercase tracking-wide">
+                <h3 className={`font-bold ${item.iconColor} text-xs sm:text-sm uppercase tracking-wide`}>
                   {item.title}
                 </h3>
               </CardContent>
             </Card>
           ))}
         </div>
-
-        {/* Bottom Grid - 2 columns */}
-        <div className="grid grid-cols-2 gap-4">
-          {bottomItems.map((item) => (
-            <Card
-              key={item.title}
-              className="bg-zinc-500 hover:bg-zinc-600 cursor-pointer transition-all duration-200 hover:scale-[1.02] active:scale-[0.98] border-none shadow-md"
-              onClick={() => navigate(item.href)}
-            >
-              <CardContent className="p-6 flex flex-col items-center justify-center text-center min-h-[120px]">
-                <div className="text-white mb-3">
-                  {item.icon}
-                </div>
-                <h3 className="font-bold text-white text-sm uppercase tracking-wide">
-                  {item.title}
-                </h3>
-              </CardContent>
-            </Card>
-          ))}
-        </div>
-
-      </div>
+      </main>
     </div>
   );
 };
