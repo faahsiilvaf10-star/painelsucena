@@ -12,12 +12,13 @@ import { useSiteSettings } from "@/hooks/useSiteSettings";
 import { supabase } from "@/integrations/supabase/client";
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import { toast } from "sonner";
-import { Shield, ShieldCheck, Trash2, UserPlus, Users, Image, Upload, UserCog, Megaphone, Pencil, LayoutList, Truck, RotateCcw } from "lucide-react";
+import { Shield, ShieldCheck, Trash2, UserPlus, Users, Image, Upload, UserCog, Megaphone, Pencil, LayoutList, Truck, RotateCcw, Key } from "lucide-react";
 import { ClearEquipmentDialog } from "@/components/driver/ClearEquipmentDialog";
 import { BulkEmployeeEditor } from "@/components/admin/BulkEmployeeEditor";
 import { AnnouncementManager } from "@/components/admin/AnnouncementManager";
 import { EditUserDialog } from "@/components/admin/EditUserDialog";
 import { DeleteUserDialog } from "@/components/admin/DeleteUserDialog";
+import { ResetPasswordDialog } from "@/components/admin/ResetPasswordDialog";
 import { NavVisibilityManager } from "@/components/admin/NavVisibilityManager";
 import { Navigate, useNavigate } from "react-router-dom";
 import type { Database } from "@/integrations/supabase/types";
@@ -42,9 +43,10 @@ const Admin = () => {
   const [selectedUser, setSelectedUser] = useState<string | undefined>(undefined);
   const [selectedRole, setSelectedRole] = useState<AppRole>("user");
   
-  // Edit/Delete user dialogs
+  // Edit/Delete/Password dialogs
   const [editDialogOpen, setEditDialogOpen] = useState(false);
   const [deleteDialogOpen, setDeleteDialogOpen] = useState(false);
+  const [passwordDialogOpen, setPasswordDialogOpen] = useState(false);
   const [selectedUserForAction, setSelectedUserForAction] = useState<UserWithRole | null>(null);
   
   // Site settings state
@@ -486,6 +488,17 @@ const Admin = () => {
                                     size="icon"
                                     onClick={() => {
                                       setSelectedUserForAction(u);
+                                      setPasswordDialogOpen(true);
+                                    }}
+                                    title="Alterar senha"
+                                  >
+                                    <Key className="w-4 h-4" />
+                                  </Button>
+                                  <Button
+                                    variant="ghost"
+                                    size="icon"
+                                    onClick={() => {
+                                      setSelectedUserForAction(u);
                                       setEditDialogOpen(true);
                                     }}
                                     title="Editar usuário"
@@ -550,6 +563,13 @@ const Admin = () => {
           onSuccess={() => {
             queryClient.invalidateQueries({ queryKey: ["admin-users"] });
           }}
+        />
+
+        {/* Reset Password Dialog */}
+        <ResetPasswordDialog
+          open={passwordDialogOpen}
+          onOpenChange={setPasswordDialogOpen}
+          user={selectedUserForAction}
         />
       </div>
     </Layout>
