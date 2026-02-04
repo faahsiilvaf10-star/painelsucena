@@ -3,12 +3,19 @@ import { useNavigate } from "react-router-dom";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
+import {
+  Dialog,
+  DialogContent,
+  DialogDescription,
+  DialogFooter,
+  DialogHeader,
+  DialogTitle,
+} from "@/components/ui/dialog";
 import { 
   Play, 
   Clock, 
   CloudRain, 
   Fuel, 
-  Activity,
   Loader2,
   Power
 } from "lucide-react";
@@ -86,6 +93,8 @@ export function DriverStatusButtons() {
   const [selectedVehicleId, setSelectedVehicleId] = useState<string | null>(null);
   const [isUpdating, setIsUpdating] = useState(false);
   const [fuelLevel, setFuelLevel] = useState<FuelLevel>("half");
+  const [showEndShiftDialog, setShowEndShiftDialog] = useState(false);
+  const [endShiftFuelLevel, setEndShiftFuelLevel] = useState<FuelLevel>("half");
   const { data: equipment = [], isLoading } = useEquipment();
   const { data: profile } = useProfile();
   const updateStatus = useUpdateEquipmentStatus();
@@ -132,7 +141,8 @@ export function DriverStatusButtons() {
       // Clear the selected vehicle from localStorage
       localStorage.removeItem("selectedVehicleId");
 
-      toast.success("Fim de turno registrado. Veículo liberado.");
+      setShowEndShiftDialog(false);
+      toast.success(`Fim de turno registrado. Combustível: ${getFuelLevelLabel(endShiftFuelLevel)}`);
       
       // Navigate to vehicle selection page
       navigate("/selecao-veiculo", { replace: true });
@@ -144,15 +154,27 @@ export function DriverStatusButtons() {
     }
   };
 
+  const getFuelLevelLabel = (level: FuelLevel): string => {
+    const labels: Record<FuelLevel, string> = {
+      empty: "Vazio",
+      quarter: "1/4",
+      half: "1/2",
+      three_quarters: "3/4",
+      full: "Cheio",
+    };
+    return labels[level];
+  };
+
   const handleStatusChange = async (newStatus: DriverStopReason) => {
     if (!selectedVehicleId || !selectedVehicle) {
       toast.error("Nenhum veículo selecionado");
       return;
     }
 
-    // Handle end_of_shift separately
+    // Handle end_of_shift - show dialog instead of immediate action
     if (newStatus === "end_of_shift") {
-      await handleEndOfShift();
+      setEndShiftFuelLevel("half"); // Reset to default
+      setShowEndShiftDialog(true);
       return;
     }
 
@@ -208,74 +230,122 @@ export function DriverStatusButtons() {
   }
 
   return (
-    <Card>
-      <CardHeader className="pb-2 px-3 pt-3 sm:px-6 sm:pt-6">
-        <div className="flex items-center justify-between gap-2">
-          <CardTitle className="text-sm sm:text-base">Controle de Turno</CardTitle>
-          <Badge className={`${statusInfo.color} text-white text-[10px] sm:text-xs`}>
-            {statusInfo.label}
-          </Badge>
-        </div>
-        <div className="flex items-center gap-2 text-xs sm:text-sm text-muted-foreground">
-          <span className="font-medium truncate">{selectedVehicle.name}</span>
-          <span>•</span>
-          <span className="font-mono text-[10px] sm:text-xs">{selectedVehicle.plate}</span>
-        </div>
-        {activeStop && (
-          <p className="text-[10px] sm:text-xs text-muted-foreground mt-1">
-            Desde: {format(new Date(activeStop.started_at), "HH:mm", { locale: ptBR })}
-          </p>
-        )}
-      </CardHeader>
-      <CardContent className="space-y-3 px-3 pb-3 sm:px-6 sm:pb-6">
-        {/* Fuel Level Gauge */}
-        <div className="flex flex-col items-center gap-3 py-2">
-          <FuelLevelGauge
-            selectedLevel={fuelLevel}
-            onLevelChange={setFuelLevel}
-            disabled={isUpdating}
-          />
-        </div>
+    <>
+      <Card>
+        <CardHeader className="pb-2 px-3 pt-3 sm:px-6 sm:pt-6">
+          <div className="flex items-center justify-between gap-2">
+            <CardTitle className="text-sm sm:text-base">Controle de Turno</CardTitle>
+            <Badge className={`${statusInfo.color} text-white text-[10px] sm:text-xs`}>
+              {statusInfo.label}
+            </Badge>
+          </div>
+          <div className="flex items-center gap-2 text-xs sm:text-sm text-muted-foreground">
+            <span className="font-medium truncate">{selectedVehicle.name}</span>
+            <span>•</span>
+            <span className="font-mono text-[10px] sm:text-xs">{selectedVehicle.plate}</span>
+          </div>
+          {activeStop && (
+            <p className="text-[10px] sm:text-xs text-muted-foreground mt-1">
+              Desde: {format(new Date(activeStop.started_at), "HH:mm", { locale: ptBR })}
+            </p>
+          )}
+        </CardHeader>
+        <CardContent className="space-y-3 px-3 pb-3 sm:px-6 sm:pb-6">
+          {/* Fuel Level Gauge */}
+          <div className="flex flex-col items-center gap-3 py-2">
+            <FuelLevelGauge
+              selectedLevel={fuelLevel}
+              onLevelChange={setFuelLevel}
+              disabled={isUpdating}
+            />
+          </div>
 
-        {/* Status Control Buttons */}
-        <div className="grid grid-cols-2 gap-2 pt-2 border-t border-border">
-          {statusButtons.map((button) => (
+          {/* Status Control Buttons */}
+          <div className="grid grid-cols-2 gap-2 pt-2 border-t border-border">
+            {statusButtons.map((button) => (
+              <Button
+                key={button.id}
+                variant="outline"
+                className={`h-auto py-2 sm:py-3 flex flex-col items-center gap-0.5 sm:gap-1 ${
+                  currentStatus === button.action ? "ring-2 ring-primary" : ""
+                } ${button.color}`}
+                onClick={() => handleStatusChange(button.action)}
+                disabled={isUpdating || currentStatus === button.action}
+              >
+                {isUpdating ? (
+                  <Loader2 className="h-4 w-4 sm:h-5 sm:w-5 animate-spin" />
+                ) : (
+                  button.icon
+                )}
+                <span className="text-[10px] sm:text-xs font-medium">{button.label}</span>
+              </Button>
+            ))}
+          </div>
+
+          {/* End of Shift Button */}
+          <Button
+            variant="outline"
+            className={`w-full h-auto py-2 sm:py-3 flex items-center justify-center gap-2 ${
+              currentStatus === "end_of_shift" ? "ring-2 ring-primary" : ""
+            } bg-gray-500 hover:bg-gray-600 text-white`}
+            onClick={() => handleStatusChange("end_of_shift" as StopReason)}
+            disabled={isUpdating || currentStatus === "end_of_shift"}
+          >
+            {isUpdating ? (
+              <Loader2 className="h-4 w-4 sm:h-5 sm:w-5 animate-spin" />
+            ) : (
+              <Power className="h-4 w-4 sm:h-5 sm:w-5" />
+            )}
+            <span className="text-xs sm:text-sm font-medium">Fim de Turno</span>
+          </Button>
+        </CardContent>
+      </Card>
+
+      {/* End of Shift Dialog with Fuel Level */}
+      <Dialog open={showEndShiftDialog} onOpenChange={setShowEndShiftDialog}>
+        <DialogContent className="sm:max-w-md">
+          <DialogHeader>
+            <DialogTitle className="flex items-center gap-2">
+              <Power className="h-5 w-5" />
+              Finalizar Turno
+            </DialogTitle>
+            <DialogDescription>
+              Selecione o nível de combustível ao finalizar o turno
+            </DialogDescription>
+          </DialogHeader>
+
+          <div className="flex justify-center py-4">
+            <FuelLevelGauge
+              selectedLevel={endShiftFuelLevel}
+              onLevelChange={setEndShiftFuelLevel}
+              disabled={isUpdating}
+            />
+          </div>
+
+          <DialogFooter className="flex-col sm:flex-row gap-2">
             <Button
-              key={button.id}
               variant="outline"
-              className={`h-auto py-2 sm:py-3 flex flex-col items-center gap-0.5 sm:gap-1 ${
-                currentStatus === button.action ? "ring-2 ring-primary" : ""
-              } ${button.color}`}
-              onClick={() => handleStatusChange(button.action)}
-              disabled={isUpdating || currentStatus === button.action}
+              onClick={() => setShowEndShiftDialog(false)}
+              disabled={isUpdating}
+              className="w-full sm:w-auto"
+            >
+              Cancelar
+            </Button>
+            <Button
+              onClick={handleEndOfShift}
+              disabled={isUpdating}
+              className="w-full sm:w-auto bg-gray-600 hover:bg-gray-700"
             >
               {isUpdating ? (
-                <Loader2 className="h-4 w-4 sm:h-5 sm:w-5 animate-spin" />
+                <Loader2 className="h-4 w-4 mr-2 animate-spin" />
               ) : (
-                button.icon
+                <Power className="h-4 w-4 mr-2" />
               )}
-              <span className="text-[10px] sm:text-xs font-medium">{button.label}</span>
+              Confirmar Fim de Turno
             </Button>
-          ))}
-        </div>
-
-        {/* End of Shift Button */}
-        <Button
-          variant="outline"
-          className={`w-full h-auto py-2 sm:py-3 flex items-center justify-center gap-2 ${
-            currentStatus === "end_of_shift" ? "ring-2 ring-primary" : ""
-          } bg-gray-500 hover:bg-gray-600 text-white`}
-          onClick={() => handleStatusChange("end_of_shift" as StopReason)}
-          disabled={isUpdating || currentStatus === "end_of_shift"}
-        >
-          {isUpdating ? (
-            <Loader2 className="h-4 w-4 sm:h-5 sm:w-5 animate-spin" />
-          ) : (
-            <Power className="h-4 w-4 sm:h-5 sm:w-5" />
-          )}
-          <span className="text-xs sm:text-sm font-medium">Fim de Turno</span>
-        </Button>
-      </CardContent>
-    </Card>
+          </DialogFooter>
+        </DialogContent>
+      </Dialog>
+    </>
   );
 }
