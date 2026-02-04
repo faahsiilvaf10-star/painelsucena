@@ -47,12 +47,16 @@ export function ExportDailyShiftPdfButton({ record, isLoading }: ExportDailyShif
         return;
       }
 
-      // Filter out consecutive duplicate statuses from history (same status AND same description)
-      const filteredHistory = record.status_history.filter(
+      // Sort history by time first (important to fill the "FINAL" column correctly)
+      const sortedHistory = [...record.status_history].sort(
+        (a, b) => new Date(a.timestamp).getTime() - new Date(b.timestamp).getTime()
+      );
+
+      // Filter out consecutive duplicate statuses (same status AND same description)
+      const filteredHistory = sortedHistory.filter(
         (entry: StatusHistoryEntry, index: number, arr: StatusHistoryEntry[]) => {
           if (index === 0) return true;
           const prevEntry = arr[index - 1];
-          // Keep if status is different OR description is different
           return entry.status !== prevEntry.status || entry.description !== prevEntry.description;
         }
       );
