@@ -4,6 +4,7 @@ import { ArrowLeft, Droplets, Loader2 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent } from "@/components/ui/card";
 import { useEquipment } from "@/hooks/useEquipment";
+import { useAddStatusToHistory } from "@/hooks/useDailyShiftRecords";
 import { supabase } from "@/integrations/supabase/client";
 import { toast } from "sonner";
 import { format } from "date-fns";
@@ -19,6 +20,7 @@ export default function PontosAbastecimento() {
   
   const selectedVehicleId = localStorage.getItem("selectedVehicleId");
   const { data: equipment = [], refetch } = useEquipment();
+  const addStatusToHistory = useAddStatusToHistory();
   
   const selectedVehicle = equipment.find(eq => eq.id === selectedVehicleId);
 
@@ -114,6 +116,16 @@ export default function PontosAbastecimento() {
 
     if (historyError) throw historyError;
 
+    // Also add to daily shift record status history
+    if (selectedVehicleId) {
+      await addStatusToHistory.mutateAsync({
+        equipmentId: selectedVehicleId,
+        status: "abastecimento",
+        changedBy: selectedVehicle?.driver || null,
+        description: `Abastecendo - Ponto: ${point}`,
+      });
+    }
+
     setCurrentPoint(point);
     setRefuelingStartTime(now);
     await refetch();
@@ -165,6 +177,16 @@ export default function PontosAbastecimento() {
         started_at: nowIso,
         defect_description: `Retorno após abastecimento - Ponto: ${point}`,
       });
+
+    // Also add to daily shift record status history with description
+    if (selectedVehicleId) {
+      await addStatusToHistory.mutateAsync({
+        equipmentId: selectedVehicleId,
+        status: "operando",
+        changedBy: selectedVehicle?.driver || null,
+        description: `Retorno após abastecimento - Ponto: ${point}`,
+      });
+    }
 
     setCurrentPoint(null);
     setRefuelingStartTime(null);

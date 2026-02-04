@@ -63,7 +63,14 @@ export function ExportDailyShiftPdfButton({ record, isLoading }: ExportDailyShif
         const endTime = nextEntry 
           ? format(new Date(nextEntry.timestamp), "HH:mm", { locale: ptBR })
           : "";
-        const description = getStatusLabel(entry.status);
+        
+        // Build description - use entry.description if available, otherwise use status label
+        let description = getStatusLabel(entry.status);
+        
+        // If we have a custom description (like refueling point info), use it
+        if (entry.description) {
+          description = entry.description;
+        }
         
         activityRows.push(`
           <tr>
