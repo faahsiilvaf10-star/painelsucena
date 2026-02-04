@@ -263,11 +263,13 @@ export function ExportEquipmentPdfButton({
           .sig-name {
             font-weight: bold;
             font-size: 10px;
-            min-height: 14px;
+            margin: 0;
+            padding: 0;
+            line-height: 1;
           }
           .sig .line {
             border-top: 1px solid #000;
-            margin-top: 20px;
+            margin-top: 2px;
             margin-bottom: 5px;
           }
           .sig .lbl { font-size: 9px; }
