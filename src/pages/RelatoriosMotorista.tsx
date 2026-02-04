@@ -60,6 +60,13 @@ const getStatusInfo = (stopReason: string | null) => {
         color: "bg-purple-500/10 text-purple-600 border-purple-500/30",
         icon: <Wrench className="h-3 w-3" />,
       };
+    case "abastecimento":
+    case "refueling":
+      return {
+        label: "Abastecimento",
+        color: "bg-cyan-500/10 text-cyan-600 border-cyan-500/30",
+        icon: <Activity className="h-3 w-3" />,
+      };
     default:
       return {
         label: stopReason || "Desconhecido",
@@ -340,11 +347,25 @@ export default function RelatoriosMotorista() {
                         )}
                       </div>
 
-                      {/* Problem Description */}
+                      {/* Problem Description or Refueling Location */}
                       {item.defect_description && (
-                        <div className="text-[10px] sm:text-xs bg-background/50 p-1.5 rounded border-l-2 border-red-500/50">
-                          <span className="font-medium text-red-600">Problema: </span>
-                          <span className="text-foreground break-words">{item.defect_description}</span>
+                        <div className={`text-[10px] sm:text-xs bg-background/50 p-1.5 rounded border-l-2 ${
+                          item.stop_reason === "abastecimento" 
+                            ? "border-cyan-500/50" 
+                            : "border-red-500/50"
+                        }`}>
+                          <span className={`font-medium ${
+                            item.stop_reason === "abastecimento" 
+                              ? "text-cyan-600" 
+                              : "text-red-600"
+                          }`}>
+                            {item.stop_reason === "abastecimento" ? "Local: " : "Problema: "}
+                          </span>
+                          <span className="text-foreground break-words">
+                            {item.stop_reason === "abastecimento" 
+                              ? item.defect_description.replace("Abastecimento - ", "")
+                              : item.defect_description}
+                          </span>
                         </div>
                       )}
 
