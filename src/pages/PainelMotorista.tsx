@@ -44,11 +44,11 @@ const PainelMotorista = () => {
       // Get the selected vehicle ID before clearing
       const selectedVehicleId = localStorage.getItem("selectedVehicleId");
       
-      // If there was a selected vehicle, clear the driver field
+      // If there was a selected vehicle, clear the driver and helper fields
       if (selectedVehicleId) {
         await supabase
           .from("equipment")
-          .update({ driver: "" })
+          .update({ driver: "", helper: "" })
           .eq("id", selectedVehicleId);
       }
       

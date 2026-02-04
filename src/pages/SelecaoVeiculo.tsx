@@ -1,8 +1,10 @@
 import { useState, useEffect } from "react";
 import { useNavigate } from "react-router-dom";
-import { Truck, LogOut, Loader2 } from "lucide-react";
+import { Truck, LogOut, Loader2, UserPlus } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent } from "@/components/ui/card";
+import { Input } from "@/components/ui/input";
+import { Label } from "@/components/ui/label";
 import { useAuth } from "@/hooks/useAuth";
 import { useProfile } from "@/hooks/useProfile";
 import { useEquipment } from "@/hooks/useEquipment";
@@ -20,6 +22,7 @@ export default function SelecaoVeiculo() {
   const createMovement = useCreateEquipmentMovement();
   const queryClient = useQueryClient();
   const [selectedVehicle, setSelectedVehicle] = useState<string | null>(null);
+  const [helperName, setHelperName] = useState("");
   const [isConfirming, setIsConfirming] = useState(false);
 
   // Check if user already has a vehicle selected
@@ -50,11 +53,12 @@ export default function SelecaoVeiculo() {
       const selectedEquipmentData = equipment.find(eq => eq.id === selectedVehicle);
       if (!selectedEquipmentData) return;
 
-      // Update the equipment with the driver's name (keep the current status)
+      // Update the equipment with the driver's name and helper (keep the current status)
       const { error: updateError } = await supabase
         .from("equipment")
         .update({
           driver: profile.full_name,
+          helper: helperName.trim(),
         })
         .eq("id", selectedVehicle);
 
@@ -64,13 +68,14 @@ export default function SelecaoVeiculo() {
       queryClient.invalidateQueries({ queryKey: ["equipment"] });
 
       // Register entry movement (equipment is now operating)
+      const helperInfo = helperName.trim() ? ` | Ajudante: ${helperName.trim()}` : "";
       await createMovement.mutateAsync({
         equipment_name: selectedEquipmentData.name,
         plate: selectedEquipmentData.plate,
         movement_type: "entrada",
         exit_reason: null,
         problem_description: null,
-        observation: `Motorista ${profile.full_name} iniciou operação`,
+        observation: `Motorista ${profile.full_name} iniciou operação${helperInfo}`,
       });
 
       // Store selected vehicle in localStorage
@@ -93,7 +98,7 @@ export default function SelecaoVeiculo() {
       if (savedVehicle) {
         await supabase
           .from("equipment")
-          .update({ driver: "" })
+          .update({ driver: "", helper: "" })
           .eq("id", savedVehicle);
       }
       
@@ -219,6 +224,30 @@ export default function SelecaoVeiculo() {
                 </Card>
               ))}
             </div>
+
+            {/* Helper Name Input - Show only when vehicle is selected */}
+            {selectedVehicle && (
+              <Card className="mt-4 border-primary/30 bg-primary/5">
+                <CardContent className="p-4">
+                  <div className="flex items-center gap-2 mb-3">
+                    <UserPlus className="h-5 w-5 text-primary" />
+                    <Label htmlFor="helper-name" className="text-base font-semibold">
+                      Nome do Ajudante
+                    </Label>
+                  </div>
+                  <Input
+                    id="helper-name"
+                    placeholder="Digite o nome do ajudante (opcional)"
+                    value={helperName}
+                    onChange={(e) => setHelperName(e.target.value)}
+                    className="h-12 text-base"
+                  />
+                  <p className="text-xs text-muted-foreground mt-2">
+                    Informe o nome do ajudante que está no apoio do veículo
+                  </p>
+                </CardContent>
+              </Card>
+            )}
 
             {/* Confirm Button */}
             <div className="mt-6 pb-6">
