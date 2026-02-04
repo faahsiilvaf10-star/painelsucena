@@ -31,6 +31,7 @@ import {
 import { Truck, Plus, Loader2, Trash2, User, Clock, AlertCircle, Droplets } from "lucide-react";
 import { AdminStatusEditor } from "@/components/partediaria/AdminStatusEditor";
 import { ExportEquipmentPdfButton } from "@/components/equipamentos/ExportEquipmentPdfButton";
+import { ExportMovementsByDateButton } from "@/components/equipamentos/ExportMovementsByDateButton";
 import { useEquipment, useCreateEquipment, useDeleteEquipment, useEquipmentStopHistory } from "@/hooks/useEquipment";
 import { useEquipmentMovements } from "@/hooks/useEquipmentMovements";
 import { useDailyShiftRecords } from "@/hooks/useDailyShiftRecords";
@@ -302,7 +303,8 @@ export default function ParteDiaria() {
                               </p>
                             </div>
                           </div>
-                          <div className="flex items-center gap-2">
+                          <div className="flex items-center gap-1">
+                            <ExportMovementsByDateButton equipment={vehicle} />
                             <ExportEquipmentPdfButton
                               equipment={vehicle}
                               movements={movements.filter((m) => m.plate === vehicle.plate)}
