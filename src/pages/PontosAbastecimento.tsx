@@ -155,7 +155,7 @@ export default function PontosAbastecimento() {
 
     if (equipError) throw equipError;
 
-    // Close the history record
+    // Close the abastecimento history record (set end time)
     const { error: historyError } = await supabase
       .from("equipment_stop_history")
       .update({
@@ -168,25 +168,8 @@ export default function PontosAbastecimento() {
 
     if (historyError) throw historyError;
 
-    // Also create an "operando" record to show status change
-    await supabase
-      .from("equipment_stop_history")
-      .insert({
-        equipment_id: selectedVehicleId,
-        stop_reason: "operando",
-        started_at: nowIso,
-        defect_description: `Retorno após abastecimento - Ponto: ${point}`,
-      });
-
-    // Also add to daily shift record status history with description
-    if (selectedVehicleId) {
-      await addStatusToHistory.mutateAsync({
-        equipmentId: selectedVehicleId,
-        status: "operando",
-        changedBy: selectedVehicle?.driver || null,
-        description: `Retorno após abastecimento - Ponto: ${point}`,
-      });
-    }
+    // NO separate "Operando - Retorno" entry - just go back to operando
+    // The next status change will be recorded when driver changes status
 
     setCurrentPoint(null);
     setRefuelingStartTime(null);
