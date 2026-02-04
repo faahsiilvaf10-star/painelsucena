@@ -38,6 +38,17 @@ const getFuelLevelLabel = (level: string | null): string => {
   return labels[level] || level;
 };
 
+const getFuelPercentage = (level: string | null): number => {
+  const percentages: Record<string, number> = {
+    empty: 0,
+    quarter: 25,
+    half: 50,
+    three_quarters: 75,
+    full: 100,
+  };
+  return percentages[level || "empty"] || 0;
+};
+
 export function ExportDailyShiftPdfButton({ record, isLoading }: ExportDailyShiftPdfButtonProps) {
   const [isExporting, setIsExporting] = useState(false);
 
@@ -55,193 +66,176 @@ export function ExportDailyShiftPdfButton({ record, isLoading }: ExportDailyShif
       }
 
       // Generate activity rows from status history
-      const activityRows = record.status_history.length > 0
-        ? record.status_history.map((entry: StatusHistoryEntry, index: number) => {
-            const nextEntry = record.status_history[index + 1];
-            const startTime = format(new Date(entry.timestamp), "HH:mm", { locale: ptBR });
-            const endTime = nextEntry 
-              ? format(new Date(nextEntry.timestamp), "HH:mm", { locale: ptBR })
-              : "";
-            const description = getStatusLabel(entry.status);
-            
-            return `
-              <tr>
-                <td class="cell time-cell">${startTime}</td>
-                <td class="cell time-cell">ÀS</td>
-                <td class="cell time-cell">${endTime}</td>
-                <td class="cell description-cell">${description}</td>
-              </tr>
-            `;
-          }).join("")
-        : "";
+      const activityRows: string[] = [];
+      record.status_history.forEach((entry: StatusHistoryEntry, index: number) => {
+        const nextEntry = record.status_history[index + 1];
+        const startTime = format(new Date(entry.timestamp), "HH:mm", { locale: ptBR });
+        const endTime = nextEntry 
+          ? format(new Date(nextEntry.timestamp), "HH:mm", { locale: ptBR })
+          : "";
+        const description = getStatusLabel(entry.status);
+        
+        activityRows.push(`
+          <tr>
+            <td class="cell horario-cell">${startTime}</td>
+            <td class="cell as-cell">ÀS</td>
+            <td class="cell horario-cell">${endTime}</td>
+            <td class="cell desc-cell">${description}</td>
+          </tr>
+        `);
+      });
 
-      // Add empty rows to complete 12 rows total
-      const emptyRowsCount = Math.max(0, 12 - record.status_history.length);
-      const emptyRows = Array(emptyRowsCount).fill(`
-        <tr>
-          <td class="cell time-cell"></td>
-          <td class="cell time-cell">ÀS</td>
-          <td class="cell time-cell"></td>
-          <td class="cell description-cell"></td>
-        </tr>
-      `).join("");
+      // Fill with empty rows to have 12 total
+      const totalRows = 12;
+      const emptyRowsCount = Math.max(0, totalRows - activityRows.length);
+      for (let i = 0; i < emptyRowsCount; i++) {
+        activityRows.push(`
+          <tr>
+            <td class="cell horario-cell"></td>
+            <td class="cell as-cell">ÀS</td>
+            <td class="cell horario-cell"></td>
+            <td class="cell desc-cell"></td>
+          </tr>
+        `);
+      }
+
+      const initialFuelPct = getFuelPercentage(record.initial_fuel_level);
+      const finalFuelPct = getFuelPercentage(record.final_fuel_level || record.initial_fuel_level);
 
       const htmlContent = `
         <!DOCTYPE html>
         <html lang="pt-BR">
         <head>
           <meta charset="UTF-8">
-          <meta name="viewport" content="width=device-width, initial-scale=1.0">
           <title>Parte Diária - ${record.equipment_name} - ${formattedDate}</title>
           <style>
-            @page {
-              size: A4;
-              margin: 8mm;
-            }
-            * {
-              box-sizing: border-box;
-            }
+            @page { size: A4; margin: 10mm; }
+            * { box-sizing: border-box; margin: 0; padding: 0; }
             body {
-              font-family: Arial, Helvetica, sans-serif;
-              margin: 0;
-              padding: 8px;
-              background: white;
+              font-family: Arial, sans-serif;
+              font-size: 11px;
               color: #000;
-              font-size: 10px;
-              line-height: 1.2;
+              background: #fff;
+              padding: 5mm;
             }
-            .container {
+            .form-container {
               border: 2px solid #000;
-              padding: 0;
+              width: 100%;
             }
-            .header-row {
+            .row {
               display: flex;
               border-bottom: 1px solid #000;
+            }
+            .row:last-child { border-bottom: none; }
+            .cell-label {
+              background: #e8e8e8;
+              font-weight: bold;
+              padding: 5px 8px;
+              border-right: 1px solid #000;
+              font-size: 10px;
+            }
+            .cell-value {
+              padding: 5px 8px;
+              border-right: 1px solid #000;
+              flex: 1;
+            }
+            .cell-value:last-child { border-right: none; }
+            .header-row {
+              background: #d0d0d0;
+              font-weight: bold;
+              font-size: 12px;
+              text-align: center;
             }
             .header-title {
               flex: 1;
-              background: #f0f0f0;
-              font-weight: bold;
-              font-size: 12px;
-              padding: 6px 10px;
-              text-align: center;
+              padding: 8px;
               border-right: 1px solid #000;
             }
             .header-obra {
-              width: 200px;
+              width: 180px;
               display: flex;
             }
-            .header-obra-label {
-              background: #f0f0f0;
-              font-weight: bold;
-              padding: 6px 8px;
+            .header-obra .cell-label {
+              background: #d0d0d0;
+            }
+            .main-section {
+              display: flex;
+            }
+            .left-col {
+              width: 160px;
               border-right: 1px solid #000;
             }
-            .header-obra-value {
+            .right-col {
               flex: 1;
-              padding: 6px 8px;
             }
-            .info-row {
-              display: flex;
-              border-bottom: 1px solid #000;
-            }
-            .info-cell {
-              display: flex;
-              border-right: 1px solid #000;
-            }
-            .info-cell:last-child {
-              border-right: none;
-            }
-            .info-label {
-              background: #f0f0f0;
+            .section-title {
+              background: #e8e8e8;
               font-weight: bold;
-              padding: 4px 6px;
-              font-size: 9px;
-              white-space: nowrap;
-            }
-            .info-value {
               padding: 4px 8px;
-              min-width: 80px;
-              font-weight: 500;
+              border-bottom: 1px solid #000;
+              font-size: 10px;
+              text-align: center;
             }
-            .main-content {
+            .km-row {
               display: flex;
-            }
-            .left-section {
-              width: 200px;
-              border-right: 1px solid #000;
-            }
-            .right-section {
-              flex: 1;
-            }
-            .km-section, .horimeter-section {
               border-bottom: 1px solid #000;
             }
-            .section-header {
-              background: #f0f0f0;
-              font-weight: bold;
-              padding: 4px 6px;
-              font-size: 9px;
-              border-bottom: 1px solid #000;
-            }
-            .km-values {
-              display: flex;
-            }
-            .km-box {
+            .km-cell {
               flex: 1;
               text-align: center;
-              padding: 6px 4px;
+              padding: 4px;
               border-right: 1px solid #000;
             }
-            .km-box:last-child {
-              border-right: none;
-            }
-            .km-label {
-              font-size: 8px;
-              color: #666;
-              margin-bottom: 2px;
-            }
-            .km-value {
-              font-weight: bold;
-              font-size: 11px;
-              font-family: monospace;
-            }
+            .km-cell:last-child { border-right: none; }
+            .km-label { font-size: 8px; color: #666; }
+            .km-value { font-weight: bold; font-size: 12px; }
             .fuel-section {
+              padding: 8px;
               border-bottom: 1px solid #000;
-              padding: 6px;
             }
             .fuel-row {
               display: flex;
               justify-content: space-around;
-              margin-top: 4px;
             }
-            .fuel-item {
-              text-align: center;
-            }
-            .fuel-label {
-              font-size: 8px;
-              color: #666;
-              margin-bottom: 2px;
-            }
+            .fuel-item { text-align: center; }
+            .fuel-label { font-size: 8px; color: #666; margin-bottom: 3px; }
             .fuel-gauge {
-              width: 50px;
-              height: 30px;
+              width: 40px;
+              height: 55px;
               border: 2px solid #333;
               border-radius: 3px;
+              margin: 0 auto 3px;
               position: relative;
-              background: linear-gradient(to top, #f59e0b var(--fill), #f5f5f5 var(--fill));
-              margin: 0 auto 2px;
+              background: #f5f5f5;
+              overflow: hidden;
             }
-            .fuel-text {
-              font-weight: bold;
-              font-size: 9px;
+            .fuel-fill {
+              position: absolute;
+              bottom: 0;
+              left: 0;
+              right: 0;
+              background: #f59e0b;
             }
-            .description-header {
-              background: #f0f0f0;
+            .fuel-markers {
+              position: absolute;
+              left: -18px;
+              top: 0;
+              bottom: 0;
+              width: 15px;
+              font-size: 7px;
+              color: #333;
+            }
+            .fuel-marker {
+              position: absolute;
+              right: 0;
+            }
+            .fuel-text { font-weight: bold; font-size: 9px; }
+            .activities-header {
+              background: #e8e8e8;
               font-weight: bold;
               padding: 4px 8px;
-              font-size: 9px;
               border-bottom: 1px solid #000;
+              font-size: 9px;
               text-align: center;
             }
             .activities-table {
@@ -250,202 +244,176 @@ export function ExportDailyShiftPdfButton({ record, isLoading }: ExportDailyShif
             }
             .activities-table .cell {
               border: 1px solid #000;
-              padding: 4px 6px;
-              height: 22px;
-            }
-            .time-cell {
-              width: 50px;
-              text-align: center;
-              font-family: monospace;
+              padding: 3px 5px;
+              height: 20px;
               font-size: 10px;
             }
-            .description-cell {
-              font-size: 10px;
-            }
-            .signatures-section {
-              border-top: 1px solid #000;
-              padding: 15px 10px 10px;
+            .horario-cell { width: 45px; text-align: center; }
+            .as-cell { width: 25px; text-align: center; font-size: 9px; }
+            .desc-cell { }
+            .signatures {
               display: flex;
               justify-content: space-between;
-            }
-            .signature-box {
-              text-align: center;
-              width: 30%;
-            }
-            .signature-line {
+              padding: 25px 15px 10px;
               border-top: 1px solid #000;
-              margin-bottom: 4px;
-              margin-top: 30px;
             }
-            .signature-label {
-              font-size: 8px;
-              color: #333;
-            }
+            .sig-box { text-align: center; width: 30%; }
+            .sig-line { border-top: 1px solid #000; margin-top: 35px; }
+            .sig-label { font-size: 8px; margin-top: 3px; }
             .instructions {
-              background: #f9f9f9;
-              border-top: 1px solid #000;
+              background: #f5f5f5;
               padding: 6px 8px;
               font-size: 7px;
               line-height: 1.4;
-              color: #333;
+              border-top: 1px solid #000;
             }
-            .instructions strong {
-              display: block;
-              margin-bottom: 2px;
-            }
-            .logo-container {
+            .logo-row {
               text-align: center;
-              padding: 4px;
+              padding: 5px;
               border-bottom: 1px solid #000;
             }
-            .logo {
-              height: 30px;
-            }
+            .logo { height: 35px; }
             @media print {
-              body { padding: 0; margin: 0; }
-              .container { border-width: 1px; }
+              body { padding: 0; }
             }
           </style>
         </head>
         <body>
-          <div class="container">
+          <div class="form-container">
             <!-- Logo -->
-            ${logoBase64 ? `
-              <div class="logo-container">
-                <img src="${logoBase64}" alt="Sucena" class="logo" />
-              </div>
-            ` : ""}
+            ${logoBase64 ? `<div class="logo-row"><img src="${logoBase64}" class="logo" alt="Logo" /></div>` : ""}
             
-            <!-- Header -->
-            <div class="header-row">
+            <!-- Title Row -->
+            <div class="row header-row">
               <div class="header-title">PARTE DIÁRIA DE EQUIPAMENTO</div>
               <div class="header-obra">
-                <div class="header-obra-label">OBRA:</div>
-                <div class="header-obra-value">SUCENA</div>
+                <div class="cell-label" style="background:#d0d0d0;">OBRA:</div>
+                <div class="cell-value">SUCENA</div>
               </div>
             </div>
 
-            <!-- Info Row 1 -->
-            <div class="info-row">
-              <div class="info-cell" style="flex: 2;">
-                <div class="info-label">MOTORISTA/OPERADOR</div>
-                <div class="info-value">${record.driver_name}</div>
-              </div>
-              <div class="info-cell" style="flex: 1;">
-                <div class="info-label">DATA</div>
-                <div class="info-value">${formattedDate}</div>
-              </div>
+            <!-- Motorista/Data -->
+            <div class="row">
+              <div class="cell-label" style="width:140px;">MOTORISTA/OPERADOR</div>
+              <div class="cell-value" style="flex:2;">${record.driver_name}</div>
+              <div class="cell-label">DATA</div>
+              <div class="cell-value" style="width:100px;">${formattedDate}</div>
             </div>
 
-            <!-- Info Row 2 -->
-            <div class="info-row">
-              <div class="info-cell" style="flex: 2;">
-                <div class="info-label">EQUIPAMENTO</div>
-                <div class="info-value">${record.equipment_name}</div>
-              </div>
-              <div class="info-cell" style="flex: 1;">
-                <div class="info-label">PLACA</div>
-                <div class="info-value" style="font-family: monospace;">${record.plate}</div>
-              </div>
+            <!-- Equipamento/Placa -->
+            <div class="row">
+              <div class="cell-label" style="width:140px;">EQUIPAMENTO</div>
+              <div class="cell-value" style="flex:2;">${record.equipment_name}</div>
+              <div class="cell-label">PLACA</div>
+              <div class="cell-value" style="width:100px;font-family:monospace;">${record.plate}</div>
             </div>
 
-            <!-- Info Row 3 -->
-            <div class="info-row">
-              <div class="info-cell" style="flex: 2;">
-                <div class="info-label">AJUDANTE</div>
-                <div class="info-value">${record.helper_name || "-"}</div>
-              </div>
-              <div class="info-cell" style="flex: 1;">
-                <div class="info-label">TAG</div>
-                <div class="info-value">-</div>
-              </div>
+            <!-- Ajudante/Tag -->
+            <div class="row">
+              <div class="cell-label" style="width:140px;">AJUDANTE</div>
+              <div class="cell-value" style="flex:2;">${record.helper_name || "-"}</div>
+              <div class="cell-label">TAG</div>
+              <div class="cell-value" style="width:100px;">-</div>
             </div>
 
-            <!-- Main Content -->
-            <div class="main-content">
-              <!-- Left Section: KM, Horimeter, Fuel -->
-              <div class="left-section">
-                <!-- KM Section -->
-                <div class="km-section">
-                  <div class="section-header">KM</div>
-                  <div class="km-values">
-                    <div class="km-box">
-                      <div class="km-label">INICIAL</div>
-                      <div class="km-value">${record.initial_km ?? "-"}</div>
-                    </div>
-                    <div class="km-box">
-                      <div class="km-label">FINAL</div>
-                      <div class="km-value">${record.final_km ?? "-"}</div>
-                    </div>
+            <!-- Main Section: KM/Horimetro/Fuel + Activities -->
+            <div class="main-section">
+              <!-- Left Column -->
+              <div class="left-col">
+                <!-- KM -->
+                <div class="section-title">KM</div>
+                <div class="km-row">
+                  <div class="km-cell">
+                    <div class="km-label">INICIAL</div>
+                    <div class="km-value">${record.initial_km ?? "-"}</div>
+                  </div>
+                  <div class="km-cell" style="border-right:none;">
+                    <div class="km-label">FINAL</div>
+                    <div class="km-value">${record.final_km ?? "-"}</div>
                   </div>
                 </div>
 
-                <!-- Horimeter Section -->
-                <div class="horimeter-section">
-                  <div class="section-header">HORÍMETRO</div>
-                  <div class="km-values">
-                    <div class="km-box">
-                      <div class="km-label">INICIAL</div>
-                      <div class="km-value">${record.initial_horimeter ?? "-"}</div>
-                    </div>
-                    <div class="km-box">
-                      <div class="km-label">FINAL</div>
-                      <div class="km-value">${record.final_horimeter ?? "-"}</div>
-                    </div>
+                <!-- Horímetro -->
+                <div class="section-title">HORÍMETRO</div>
+                <div class="km-row">
+                  <div class="km-cell">
+                    <div class="km-label">INICIAL</div>
+                    <div class="km-value">${record.initial_horimeter ?? "-"}</div>
+                  </div>
+                  <div class="km-cell" style="border-right:none;">
+                    <div class="km-label">FINAL</div>
+                    <div class="km-value">${record.final_horimeter ?? "-"}</div>
                   </div>
                 </div>
 
-                <!-- Fuel Section -->
+                <!-- Abastecimento/Fuel -->
+                <div class="section-title">ABASTECIMENTO</div>
                 <div class="fuel-section">
-                  <div class="section-header" style="margin: -6px -6px 6px; padding: 4px 6px; border-bottom: 1px solid #000;">ABASTECIMENTO</div>
                   <div class="fuel-row">
                     <div class="fuel-item">
                       <div class="fuel-label">INICIAL</div>
-                      <div class="fuel-gauge" style="--fill: ${record.initial_fuel_level === 'full' ? '100%' : record.initial_fuel_level === 'three_quarters' ? '75%' : record.initial_fuel_level === 'half' ? '50%' : record.initial_fuel_level === 'quarter' ? '25%' : '0%'};"></div>
+                      <div style="position:relative;display:inline-block;">
+                        <div class="fuel-markers">
+                          <div class="fuel-marker" style="top:2px;">F</div>
+                          <div class="fuel-marker" style="top:50%;transform:translateY(-50%);">½</div>
+                          <div class="fuel-marker" style="bottom:2px;">E</div>
+                        </div>
+                        <div class="fuel-gauge">
+                          <div class="fuel-fill" style="height:${initialFuelPct}%;"></div>
+                        </div>
+                      </div>
                       <div class="fuel-text">${getFuelLevelLabel(record.initial_fuel_level)}</div>
                     </div>
                     <div class="fuel-item">
                       <div class="fuel-label">FINAL</div>
-                      <div class="fuel-gauge" style="--fill: ${(record.final_fuel_level || record.initial_fuel_level) === 'full' ? '100%' : (record.final_fuel_level || record.initial_fuel_level) === 'three_quarters' ? '75%' : (record.final_fuel_level || record.initial_fuel_level) === 'half' ? '50%' : (record.final_fuel_level || record.initial_fuel_level) === 'quarter' ? '25%' : '0%'};"></div>
+                      <div style="position:relative;display:inline-block;">
+                        <div class="fuel-markers">
+                          <div class="fuel-marker" style="top:2px;">F</div>
+                          <div class="fuel-marker" style="top:50%;transform:translateY(-50%);">½</div>
+                          <div class="fuel-marker" style="bottom:2px;">E</div>
+                        </div>
+                        <div class="fuel-gauge">
+                          <div class="fuel-fill" style="height:${finalFuelPct}%;"></div>
+                        </div>
+                      </div>
                       <div class="fuel-text">${getFuelLevelLabel(record.final_fuel_level || record.initial_fuel_level)}</div>
                     </div>
                   </div>
                 </div>
               </div>
 
-              <!-- Right Section: Activities -->
-              <div class="right-section">
-                <div class="description-header">DESCRIMINAÇÃO: SERVIÇOS, PARADAS E OBS.</div>
+              <!-- Right Column: Activities -->
+              <div class="right-col">
+                <div class="activities-header">DESCRIMINAÇÃO: SERVIÇOS, PARADAS E OBS.</div>
                 <table class="activities-table">
                   <thead>
                     <tr>
-                      <th class="cell time-cell" style="background: #f0f0f0;">HORÁRIO</th>
-                      <th class="cell time-cell" style="background: #f0f0f0;"></th>
-                      <th class="cell time-cell" style="background: #f0f0f0;">FINAL</th>
-                      <th class="cell description-cell" style="background: #f0f0f0;">ATIVIDADE</th>
+                      <th class="cell horario-cell" style="background:#e8e8e8;">HORÁRIO</th>
+                      <th class="cell as-cell" style="background:#e8e8e8;"></th>
+                      <th class="cell horario-cell" style="background:#e8e8e8;">FINAL</th>
+                      <th class="cell desc-cell" style="background:#e8e8e8;"></th>
                     </tr>
                   </thead>
                   <tbody>
-                    ${activityRows}
-                    ${emptyRows}
+                    ${activityRows.join("")}
                   </tbody>
                 </table>
               </div>
             </div>
 
             <!-- Signatures -->
-            <div class="signatures-section">
-              <div class="signature-box">
-                <div class="signature-line"></div>
-                <div class="signature-label">Ass. Motorista/Op</div>
+            <div class="signatures">
+              <div class="sig-box">
+                <div class="sig-line"></div>
+                <div class="sig-label">Ass. Motorista/Op</div>
               </div>
-              <div class="signature-box">
-                <div class="signature-line"></div>
-                <div class="signature-label">Ass. Encarreg./Apontador</div>
+              <div class="sig-box">
+                <div class="sig-line"></div>
+                <div class="sig-label">Ass. Encarreg./Apontador</div>
               </div>
-              <div class="signature-box">
-                <div class="signature-line"></div>
-                <div class="signature-label">Ass. Gerência</div>
+              <div class="sig-box">
+                <div class="sig-line"></div>
+                <div class="sig-label">Ass. Gerência</div>
               </div>
             </div>
 
@@ -458,7 +426,7 @@ export function ExportDailyShiftPdfButton({ record, isLoading }: ExportDailyShif
               04 - COLOCAR HORÁRIO DE INICIO E FINAL QUANDO HOUVER DEFEITO MECÂNICO E DESCREVER O DEFEITO.
               05 - AO FINAL DA JORNADA DE TRABALHO ASSINAR E ENTREGAR PARA APONTADOR OU ENCARREGADO RESPONSÁVEL.
               06 - A PARTE DIÁRIA DEVERÁ SER PREENCHIDA TODOS OS DIAS INCLUSIVE DOMINGOS E FERIADOS.
-              07 - O MOTORISTA/OPERADOR TEM ATÉ O DIA 02 DE CADA MÊS PARA ENTREGAR TODAS AS PARTES DIÁRIAS, E O APONTADOR TEM ATÉ O DIA 04 PARA ENVIAR PARA O SETOR DE CONFERÊNCIA, O DESCUMPRIMENTO DESSE ITEM IRÁ GERAR ADVERTÊNCIA POR ESCRITO.
+              07 - O MOTORISTA/OPERADOR TEM ATÉ O DIA 02 DE CADA MÊS PARA ENTREGAR TODAS AS PARTES DIÁRIAS, E O APONTADOR TEM ATÉ O DIA 04 PARA ENVIAR PARA O SETOR DE CONFERÊNCIA.
             </div>
           </div>
         </body>
@@ -470,8 +438,7 @@ export function ExportDailyShiftPdfButton({ record, isLoading }: ExportDailyShif
       
       printWindow.onload = () => {
         const images = Array.from(printWindow.document.images || []);
-
-        const waitForImages = Promise.all(
+        Promise.all(
           images.map((img) =>
             img.complete
               ? Promise.resolve()
@@ -480,12 +447,8 @@ export function ExportDailyShiftPdfButton({ record, isLoading }: ExportDailyShif
                   img.onerror = () => resolve();
                 })
           )
-        );
-
-        waitForImages.finally(() => {
-          setTimeout(() => {
-            printWindow.print();
-          }, 150);
+        ).finally(() => {
+          setTimeout(() => printWindow.print(), 200);
         });
       };
 
