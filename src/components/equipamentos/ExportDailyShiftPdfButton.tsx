@@ -22,11 +22,17 @@ const getStatusLabel = (status: string): string => {
     none: "Operando",
     operando: "Operando",
     waiting: "Aguardando Frente",
+    waiting_front: "Aguardando Frente",
+    aguardando_frente_servico: "Aguardando Frente",
     rain: "Parado (Chuva)",
     end_of_day: "Abastecendo",
     abastecimento: "Abastecendo",
     maintenance: "Manutenção",
+    manutencao_corretiva: "Manutenção Corretiva",
+    manutencao_preventiva: "Manutenção Preventiva",
+    vistoria: "Vistoria",
     end_of_shift: "Fim de Turno",
+    fim_turno: "Fim de Turno",
   };
   return labels[status] || status;
 };
