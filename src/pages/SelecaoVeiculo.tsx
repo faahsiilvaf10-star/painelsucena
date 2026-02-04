@@ -18,6 +18,7 @@ import { toast } from "sonner";
 const FIXED_VEHICLE_ASSIGNMENTS: Record<string, string> = {
   "efd87157-7281-4542-bcb9-afe230a76708": "b24426c7-40ad-4033-9823-652e487a9534", // Anderson da Cruz -> Pipa 01
   "b40c05a7-ab8e-4491-9774-b469ca6bb89c": "a59c51cf-7304-4207-858c-cd9782d14be7", // Paulo Felix -> Pipa 02
+  "975a7ee9-0d2d-40e6-bef3-9c805c0836aa": "6daf33a8-ec29-4151-be69-9e37c8438838", // Jeová Marcelino -> Munk
 };
 
 export default function SelecaoVeiculo() {
