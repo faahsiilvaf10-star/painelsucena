@@ -165,6 +165,15 @@ export const useAttendanceReportData = (date: string) => {
   };
 };
 
+// Convert name to Title Case (only first letter of each word capitalized)
+const toTitleCase = (name: string): string => {
+  return name
+    .toLowerCase()
+    .split(' ')
+    .map(word => word.charAt(0).toUpperCase() + word.slice(1))
+    .join(' ');
+};
+
 // Generate formatted efetivo text for an area (with employee names)
 export const generateEfetivoText = (
   area: "ÁREA GABIÃO" | "ROÇAGEM E PODAGEM",
@@ -184,9 +193,9 @@ export const generateEfetivoText = (
       // Remove emoji and colon from label for cleaner display
       const cleanLabel = label.replace(/^👷🏼‍♂\s*|👷🏼\s*/g, '').replace(/:$/, '');
       report += `\uD83D\uDC77 ${cleanLabel}: ${presentEmployees.length}\n`;
-      // Add employee names
+      // Add employee names with Title Case formatting
       presentEmployees.forEach((emp) => {
-        report += `   • ${emp.name}\n`;
+        report += `   • ${toTitleCase(emp.name)}\n`;
       });
       report += "\n";
     }
