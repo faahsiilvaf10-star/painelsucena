@@ -23,3 +23,6 @@ verify_jwt = false
 
 [functions.auto-end-shift]
 verify_jwt = false
+
+[functions.auto-start-waiting]
+verify_jwt = false
