@@ -48,29 +48,29 @@ const statusButtons: StatusButton[] = [
   {
     id: "none",
     label: "Operar",
-    icon: <Play className="h-5 w-5" />,
-    color: "bg-emerald-500 hover:bg-emerald-600 text-white",
+    icon: <Play className="h-6 w-6" />,
+    color: "bg-emerald-500 hover:bg-emerald-600 active:bg-emerald-700 text-white",
     action: "none",
   },
   {
     id: "waiting",
     label: "Aguardando",
-    icon: <Clock className="h-5 w-5" />,
-    color: "bg-yellow-500 hover:bg-yellow-600 text-white",
+    icon: <Clock className="h-6 w-6" />,
+    color: "bg-yellow-500 hover:bg-yellow-600 active:bg-yellow-700 text-white",
     action: "waiting",
   },
   {
     id: "rain",
     label: "Chuva",
-    icon: <CloudRain className="h-5 w-5" />,
-    color: "bg-blue-500 hover:bg-blue-600 text-white",
+    icon: <CloudRain className="h-6 w-6" />,
+    color: "bg-blue-500 hover:bg-blue-600 active:bg-blue-700 text-white",
     action: "rain",
   },
   {
     id: "end_of_day",
     label: "Combustível",
-    icon: <Fuel className="h-5 w-5" />,
-    color: "bg-orange-500 hover:bg-orange-600 text-white",
+    icon: <Fuel className="h-6 w-6" />,
+    color: "bg-orange-500 hover:bg-orange-600 active:bg-orange-700 text-white",
     action: "end_of_day",
   },
 ];
@@ -345,26 +345,26 @@ export function DriverStatusButtons() {
 
   return (
     <>
-      <Card>
-        <CardHeader className="pb-2 px-3 pt-3 sm:px-6 sm:pt-6">
+      <Card className="shadow-md">
+        <CardHeader className="pb-3 px-4 pt-4">
           <div className="flex items-center justify-between gap-2">
-            <CardTitle className="text-sm sm:text-base">Controle de Turno</CardTitle>
-            <Badge className={`${statusInfo.color} text-white text-[10px] sm:text-xs`}>
+            <CardTitle className="text-base font-semibold">Controle de Turno</CardTitle>
+            <Badge className={`${statusInfo.color} text-white text-xs px-2.5 py-0.5`}>
               {statusInfo.label}
             </Badge>
           </div>
-          <div className="flex items-center gap-2 text-xs sm:text-sm text-muted-foreground">
+          <div className="flex items-center gap-2 text-sm text-muted-foreground mt-1">
             <span className="font-medium truncate">{selectedVehicle.name}</span>
             <span>•</span>
-            <span className="font-mono text-[10px] sm:text-xs">{selectedVehicle.plate}</span>
+            <span className="font-mono text-xs bg-muted px-1.5 py-0.5 rounded">{selectedVehicle.plate}</span>
           </div>
           {activeStop && (
-            <p className="text-[10px] sm:text-xs text-muted-foreground mt-1">
+            <p className="text-xs text-muted-foreground mt-1.5">
               Desde: {format(new Date(activeStop.started_at), "HH:mm", { locale: ptBR })}
             </p>
           )}
         </CardHeader>
-        <CardContent className="space-y-3 px-3 pb-3 sm:px-6 sm:pb-6">
+        <CardContent className="space-y-4 px-4 pb-4">
           {/* Fuel Level Gauge */}
           <div className="flex flex-col items-center gap-3 py-2">
             <FuelLevelGauge
@@ -374,43 +374,43 @@ export function DriverStatusButtons() {
             />
           </div>
 
-          {/* Status Control Buttons */}
-          <div className="grid grid-cols-2 gap-2 pt-2 border-t border-border">
+          {/* Status Control Buttons - Larger touch targets */}
+          <div className="grid grid-cols-2 gap-3 pt-3 border-t border-border">
             {statusButtons.map((button) => (
               <Button
                 key={button.id}
                 variant="outline"
-                className={`h-auto py-2 sm:py-3 flex flex-col items-center gap-0.5 sm:gap-1 ${
-                  currentStatus === button.action ? "ring-2 ring-primary" : ""
+                className={`h-auto min-h-[60px] py-3 flex flex-col items-center gap-1.5 touch-manipulation transition-transform active:scale-95 ${
+                  currentStatus === button.action ? "ring-2 ring-primary ring-offset-2" : ""
                 } ${button.color}`}
                 onClick={() => handleStatusChange(button.action)}
                 disabled={isUpdating || currentStatus === button.action}
               >
                 {isUpdating ? (
-                  <Loader2 className="h-4 w-4 sm:h-5 sm:w-5 animate-spin" />
+                  <Loader2 className="h-6 w-6 animate-spin" />
                 ) : (
                   button.icon
                 )}
-                <span className="text-[10px] sm:text-xs font-medium">{button.label}</span>
+                <span className="text-xs font-semibold">{button.label}</span>
               </Button>
             ))}
           </div>
 
-          {/* End of Shift Button */}
+          {/* End of Shift Button - Prominent and easy to tap */}
           <Button
             variant="outline"
-            className={`w-full h-auto py-2 sm:py-3 flex items-center justify-center gap-2 ${
-              currentStatus === "end_of_shift" ? "ring-2 ring-primary" : ""
-            } bg-gray-500 hover:bg-gray-600 text-white`}
+            className={`w-full h-auto min-h-[52px] py-3 flex items-center justify-center gap-2.5 touch-manipulation transition-transform active:scale-95 ${
+              currentStatus === "end_of_shift" ? "ring-2 ring-primary ring-offset-2" : ""
+            } bg-gray-600 hover:bg-gray-700 active:bg-gray-800 text-white border-gray-600`}
             onClick={() => handleStatusChange("end_of_shift" as StopReason)}
             disabled={isUpdating || currentStatus === "end_of_shift"}
           >
             {isUpdating ? (
-              <Loader2 className="h-4 w-4 sm:h-5 sm:w-5 animate-spin" />
+              <Loader2 className="h-5 w-5 animate-spin" />
             ) : (
-              <Power className="h-4 w-4 sm:h-5 sm:w-5" />
+              <Power className="h-5 w-5" />
             )}
-            <span className="text-xs sm:text-sm font-medium">Fim de Turno</span>
+            <span className="text-sm font-semibold">Fim de Turno</span>
           </Button>
         </CardContent>
       </Card>
