@@ -24,7 +24,8 @@ import {
   Gauge,
   Car,
   Info,
-  AlertCircle
+  AlertCircle,
+  WifiOff
 } from "lucide-react";
 import { useEquipment, useUpdateEquipmentStatus, useEquipmentStopHistory, type StopReason } from "@/hooks/useEquipment";
 import { useProfile } from "@/hooks/useProfile";
@@ -33,6 +34,7 @@ import { toast } from "sonner";
 import { format } from "date-fns";
 import { ptBR } from "date-fns/locale";
 import { FuelLevelGauge, type FuelLevel } from "./FuelLevelGauge";
+import { useOfflineSync } from "@/hooks/useOfflineSync";
 
 type DriverStopReason = StopReason;
 
@@ -114,6 +116,7 @@ export function DriverStatusButtons() {
   const { data: profile } = useProfile();
   const updateStatus = useUpdateEquipmentStatus();
   const { data: stopHistory = [] } = useEquipmentStopHistory(selectedVehicleId || undefined);
+  const { isOnline, addPendingAction } = useOfflineSync();
 
   useEffect(() => {
     const vehicleId = localStorage.getItem("selectedVehicleId");
@@ -293,9 +296,44 @@ export function DriverStatusButtons() {
     }
 
     setIsUpdating(true);
-    try {
-      const now = new Date().toISOString();
+    const now = new Date().toISOString();
+    const statusLabels: Record<string, string> = {
+      none: "Operando",
+      waiting: "Aguardando Frente",
+      rain: "Parado por Chuva",
+      end_of_day: "Abastecendo",
+      end_of_shift: "Fim de Turno",
+    };
 
+    // If offline, save action locally
+    if (!isOnline) {
+      addPendingAction("equipment_status", {
+        id: selectedVehicleId,
+        stop_reason: newStatus,
+        stop_start_time: newStatus !== "none" ? now : null,
+      });
+      
+      // Also save stop history action
+      if (newStatus !== "none") {
+        addPendingAction("stop_history", {
+          equipment_id: selectedVehicleId,
+          stop_reason: newStatus,
+          started_at: now,
+          changed_by_driver: profile?.full_name || null,
+        });
+      }
+      
+      toast.success(
+        <div className="flex items-center gap-2">
+          <WifiOff className="h-4 w-4" />
+          <span>Salvo offline: {statusLabels[newStatus] || newStatus}</span>
+        </div>
+      );
+      setIsUpdating(false);
+      return;
+    }
+
+    try {
       await updateStatus.mutateAsync({
         id: selectedVehicleId,
         stop_reason: newStatus as any,
@@ -305,18 +343,18 @@ export function DriverStatusButtons() {
         changed_by_driver: profile?.full_name || null,
       });
 
-      const statusLabels: Record<string, string> = {
-        none: "Operando",
-        waiting: "Aguardando Frente",
-        rain: "Parado por Chuva",
-        end_of_day: "Abastecendo",
-        end_of_shift: "Fim de Turno",
-      };
-
       toast.success(`Status alterado para: ${statusLabels[newStatus] || newStatus}`);
     } catch (error) {
       console.error("Error updating status:", error);
-      toast.error("Erro ao atualizar status");
+      
+      // If online request fails, save offline
+      addPendingAction("equipment_status", {
+        id: selectedVehicleId,
+        stop_reason: newStatus,
+        stop_start_time: newStatus !== "none" ? now : null,
+      });
+      
+      toast.warning("Erro de conexão. Alteração salva para sincronizar depois.");
     } finally {
       setIsUpdating(false);
     }
@@ -365,6 +403,16 @@ export function DriverStatusButtons() {
           )}
         </CardHeader>
         <CardContent className="space-y-4 px-4 pb-4">
+          {/* Offline Banner */}
+          {!isOnline && (
+            <Alert className="bg-orange-50 dark:bg-orange-950/30 border-orange-200 dark:border-orange-800 py-2">
+              <WifiOff className="h-4 w-4 text-orange-500" />
+              <AlertDescription className="text-xs text-orange-700 dark:text-orange-300 ml-2">
+                Modo offline - alterações serão sincronizadas quando conectar
+              </AlertDescription>
+            </Alert>
+          )}
+
           {/* Fuel Level Gauge */}
           <div className="flex flex-col items-center gap-3 py-2">
             <FuelLevelGauge

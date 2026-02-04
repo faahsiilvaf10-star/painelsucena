@@ -15,7 +15,9 @@ import { supabase } from "@/integrations/supabase/client";
 import { toast } from "sonner";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { DriverStatusButtons } from "@/components/driver/DriverStatusButtons";
+import { SyncIndicator } from "@/components/driver/SyncIndicator";
 import { useEquipment } from "@/hooks/useEquipment";
+import { useOfflineSync } from "@/hooks/useOfflineSync";
 
 interface QuickAccessItem {
   title: string;
@@ -30,6 +32,7 @@ const PainelMotorista = () => {
   const navigate = useNavigate();
   const { data: profile } = useProfile();
   const { data: equipment = [] } = useEquipment();
+  const { isOnline, isSyncing, pendingCount, lastSyncTime, triggerSync } = useOfflineSync();
   
   // Get selected vehicle type
   const selectedVehicleId = localStorage.getItem("selectedVehicleId");
@@ -106,41 +109,50 @@ const PainelMotorista = () => {
     <div className="min-h-screen bg-gradient-to-b from-background to-muted/30">
       {/* Compact Header for Mobile */}
       <header className="sticky top-0 z-10 bg-card/95 backdrop-blur-sm border-b shadow-sm safe-area-inset-top">
-        <div className="flex items-center justify-between px-4 py-3">
+        <div className="flex items-center justify-between px-3 py-2.5">
           {/* Logo */}
           <img 
             src="/logo-sucena-pdf.png" 
             alt="Sucena" 
-            className="h-7 w-auto"
+            className="h-6 w-auto"
           />
           
           {/* User Info - Center */}
-          <div className="flex items-center gap-2 flex-1 justify-center min-w-0 px-2">
-            <Avatar className="w-9 h-9 border-2 border-primary/20 shrink-0">
+          <div className="flex items-center gap-2 flex-1 justify-center min-w-0 px-1">
+            <Avatar className="w-8 h-8 border-2 border-primary/20 shrink-0">
               <AvatarImage src={profile?.avatar_url || undefined} alt={profile?.full_name || "Motorista"} />
-              <AvatarFallback className="bg-primary text-primary-foreground text-xs font-bold">
+              <AvatarFallback className="bg-primary text-primary-foreground text-[10px] font-bold">
                 {getInitials()}
               </AvatarFallback>
             </Avatar>
             <div className="min-w-0">
-              <p className="text-sm font-semibold text-foreground leading-tight truncate max-w-[120px]">
+              <p className="text-xs font-semibold text-foreground leading-tight truncate max-w-[90px]">
                 {profile?.full_name?.split(' ')[0] || "Motorista"}
               </p>
-              <p className="text-xs text-muted-foreground leading-tight truncate">
+              <p className="text-[10px] text-muted-foreground leading-tight truncate">
                 {formatCargoLabel(profile?.cargo)}
               </p>
             </div>
           </div>
           
-          {/* Logout Button - Larger touch target */}
+          {/* Sync Indicator */}
+          <SyncIndicator
+            isOnline={isOnline}
+            isSyncing={isSyncing}
+            pendingCount={pendingCount}
+            lastSyncTime={lastSyncTime}
+            onSync={triggerSync}
+          />
+          
+          {/* Logout Button */}
           <Button
             variant="ghost"
             size="icon"
             onClick={handleLogout}
-            className="h-11 w-11 text-destructive hover:text-destructive hover:bg-destructive/10 rounded-full shrink-0 touch-manipulation"
+            className="h-10 w-10 text-destructive hover:text-destructive hover:bg-destructive/10 rounded-full shrink-0 touch-manipulation ml-1"
             title="Sair"
           >
-            <LogOut className="w-5 h-5" />
+            <LogOut className="w-4 h-4" />
           </Button>
         </div>
       </header>
