@@ -104,23 +104,43 @@ export function DriverStatusButtons() {
     setSelectedVehicleId(vehicleId);
   }, []);
 
-  // Check if shift has been started today
-  useEffect(() => {
-    if (stopHistory.length > 0) {
-      const today = new Date().toDateString();
-      const hasActivityToday = stopHistory.some(h => 
-        new Date(h.started_at).toDateString() === today
-      );
-      setHasStartedShift(hasActivityToday);
-    }
-  }, [stopHistory]);
-
   const selectedVehicle = equipment.find((eq) => eq.id === selectedVehicleId);
   const currentStatus = (selectedVehicle?.stop_reason || "none") as string;
   const statusInfo = getStatusLabel(currentStatus);
 
   // Get the current active stop from history (ended_at is null)
   const activeStop = stopHistory.find((h) => h.ended_at === null);
+
+  // Sync gauge status with current equipment status
+  useEffect(() => {
+    if (selectedVehicle) {
+      const validGaugeStatuses: StopReason[] = ["none", "waiting", "rain", "end_of_day"];
+      const stopReason = selectedVehicle.stop_reason as StopReason;
+      if (validGaugeStatuses.includes(stopReason)) {
+        setGaugeStatus(stopReason);
+      }
+    }
+  }, [selectedVehicle?.stop_reason]);
+
+  // Check if shift is currently active (not ended)
+  useEffect(() => {
+    // Show gauge only when status is end_of_shift or when there's no active stop today
+    if (selectedVehicle) {
+      const isShiftEnded = selectedVehicle.stop_reason === "end_of_shift";
+      
+      // If there's activity today and not in end_of_shift state, shift is started
+      if (stopHistory.length > 0) {
+        const today = new Date().toDateString();
+        const hasActivityToday = stopHistory.some(h => 
+          new Date(h.started_at).toDateString() === today
+        );
+        // Shift is started if there's activity today AND we're not in end_of_shift state
+        setHasStartedShift(hasActivityToday && !isShiftEnded);
+      } else {
+        setHasStartedShift(false);
+      }
+    }
+  }, [stopHistory, selectedVehicle]);
 
   const handleEndOfShift = async () => {
     if (!selectedVehicleId || !selectedVehicle) {
@@ -284,64 +304,38 @@ export function DriverStatusButtons() {
         )}
       </CardHeader>
       <CardContent className="space-y-3 px-3 pb-3 sm:px-6 sm:pb-6">
-        {/* Show Gauge when shift not started or status is end_of_shift */}
-        {(!hasStartedShift || currentStatus === "end_of_shift") && (
-          <div className="flex flex-col items-center gap-3 py-2 border-b border-border pb-4">
-            <ShiftStartGauge
-              selectedStatus={gaugeStatus}
-              onStatusChange={setGaugeStatus}
-              disabled={isUpdating}
-            />
-            <Button
-              onClick={handleStartShift}
-              disabled={isUpdating}
-              className="w-full bg-green-500 hover:bg-green-600 text-white"
-            >
-              {isUpdating ? (
-                <Loader2 className="h-4 w-4 animate-spin mr-2" />
-              ) : (
-                <Play className="h-4 w-4 mr-2" />
-              )}
-              Iniciar Turno
-            </Button>
-          </div>
-        )}
+        {/* Always show Gauge for selecting initial status */}
+        <div className="flex flex-col items-center gap-3 py-2">
+          <ShiftStartGauge
+            selectedStatus={gaugeStatus}
+            onStatusChange={(status) => {
+              setGaugeStatus(status);
+              // Auto-apply the status change
+              handleStatusChange(status);
+            }}
+            disabled={isUpdating}
+          />
+        </div>
 
-        {/* Regular status buttons when shift is active */}
-        {hasStartedShift && currentStatus !== "end_of_shift" && (
-          <div className="grid grid-cols-2 gap-2">
-            {statusButtons.map((btn) => {
-              const isCurrentStatus = 
-                (btn.action === "none" && currentStatus === "none") ||
-                (btn.action !== "none" && currentStatus === btn.action);
-              
-              const isOperating = currentStatus === "none";
-              
-              // Hide "Operar" when already operating
-              if (btn.id === "operar" && isOperating) return null;
-              if (btn.id === "end_of_shift" && currentStatus === "end_of_shift") return null;
-
-              return (
-                <Button
-                  key={btn.id}
-                  variant="outline"
-                  className={`h-auto py-2 sm:py-3 flex flex-col items-center gap-0.5 sm:gap-1 ${
-                    isCurrentStatus ? "ring-2 ring-primary" : ""
-                  } ${btn.color}`}
-                  onClick={() => handleStatusChange(btn.action)}
-                  disabled={isUpdating || isCurrentStatus}
-                >
-                  {isUpdating ? (
-                    <Loader2 className="h-4 w-4 sm:h-5 sm:w-5 animate-spin" />
-                  ) : (
-                    <span className="[&>svg]:h-4 [&>svg]:w-4 sm:[&>svg]:h-5 sm:[&>svg]:w-5">{btn.icon}</span>
-                  )}
-                  <span className="text-[10px] sm:text-xs font-medium">{btn.label}</span>
-                </Button>
-              );
-            })}
-          </div>
-        )}
+        {/* Additional action buttons */}
+        <div className="grid grid-cols-2 gap-2 pt-2 border-t border-border">
+          {/* End of Shift Button */}
+          <Button
+            variant="outline"
+            className={`h-auto py-2 sm:py-3 flex flex-col items-center gap-0.5 sm:gap-1 col-span-2 ${
+              currentStatus === "end_of_shift" ? "ring-2 ring-primary" : ""
+            } bg-gray-500 hover:bg-gray-600 text-white`}
+            onClick={() => handleStatusChange("end_of_shift" as StopReason)}
+            disabled={isUpdating || currentStatus === "end_of_shift"}
+          >
+            {isUpdating ? (
+              <Loader2 className="h-4 w-4 sm:h-5 sm:w-5 animate-spin" />
+            ) : (
+              <Power className="h-4 w-4 sm:h-5 sm:w-5" />
+            )}
+            <span className="text-[10px] sm:text-xs font-medium">Fim de Turno</span>
+          </Button>
+        </div>
       </CardContent>
     </Card>
   );
