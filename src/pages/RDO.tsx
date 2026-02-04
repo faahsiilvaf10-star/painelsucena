@@ -245,8 +245,12 @@ export default function RDO() {
       })
       .join("\n");
 
+    // Fixed equipment that always appears in all RDOs
+    const fixedEquipmentText = `   • 01 Veículo Leve - SNJ9G70
+   • 01 Ônibus - SMY7A93`;
+
     // Build operating equipment text with driver, helper and plate
-    const operatingEquipmentText = equipmentSummary.operatingEquipment.length > 0
+    const dynamicEquipmentText = equipmentSummary.operatingEquipment.length > 0
       ? equipmentSummary.operatingEquipment
           .map((eq) => {
             const typeLabel = equipmentTypeLabels[eq.equipment_type] || eq.equipment_type;
@@ -254,7 +258,12 @@ export default function RDO() {
             return `   • ${typeLabel} (${eq.plate})\n      Motorista: ${eq.driver}${helperText}`;
           })
           .join("\n")
-      : "   Nenhum equipamento em operação";
+      : "";
+
+    // Combine fixed + dynamic equipment
+    const operatingEquipmentText = dynamicEquipmentText 
+      ? `${fixedEquipmentText}\n${dynamicEquipmentText}`
+      : fixedEquipmentText;
 
     // DDS info - use presenter name from user profile or external presenter name
     const presenterName = todayDDS?.presenter?.full_name || todayDDS?.external_presenter_name || "A definir";
