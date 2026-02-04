@@ -212,7 +212,7 @@ export function ExportDailyShiftPdfButton({ record, isLoading }: ExportDailyShif
               border-top: 1px solid #000;
             }
             .sig-box { text-align: center; width: 30%; }
-            .sig-name { font-weight: bold; font-size: 10px; margin-bottom: 4px; }
+            .sig-name { font-weight: bold; font-size: 10px; margin-bottom: 2px; }
             .sig-line { border-top: 1px solid #000; }
             .sig-label { font-size: 8px; margin-top: 2px; }
             .instructions {
