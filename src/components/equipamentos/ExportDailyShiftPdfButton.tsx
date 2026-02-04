@@ -38,7 +38,7 @@ const getFuelLevelLabel = (level: string | null): string => {
   return labels[level] || level;
 };
 
-const getFuelGaugeSvg = (level: string | null): string => {
+const getFuelGaugeDataUrl = (level: string | null): string => {
   const levelPercentages: Record<string, number> = {
     empty: 0,
     quarter: 25,
@@ -50,25 +50,23 @@ const getFuelGaugeSvg = (level: string | null): string => {
   const percentage = levelPercentages[level || "half"] || 50;
   const fillHeight = Math.round((percentage / 100) * 40);
   const yPosition = 50 - fillHeight;
+  const levelLabel = getFuelLevelLabel(level);
   
-  return `
-    <svg width="50" height="65" viewBox="0 0 50 65" xmlns="http://www.w3.org/2000/svg">
-      <!-- Fuel tank outline -->
-      <rect x="8" y="8" width="34" height="45" rx="3" fill="none" stroke="#333" stroke-width="1.5"/>
-      <!-- Fuel level fill -->
-      <rect x="10" y="${yPosition + 3}" width="30" height="${fillHeight}" rx="2" fill="#f59e0b"/>
-      <!-- Level markers -->
-      <line x1="4" y1="12" x2="8" y2="12" stroke="#666" stroke-width="1"/>
-      <text x="3" y="14" font-size="6" fill="#666" text-anchor="end">F</text>
-      <line x1="4" y1="30" x2="8" y2="30" stroke="#666" stroke-width="1"/>
-      <line x1="4" y1="48" x2="8" y2="48" stroke="#666" stroke-width="1"/>
-      <text x="3" y="50" font-size="6" fill="#666" text-anchor="end">E</text>
-      <!-- Fuel cap -->
-      <rect x="18" y="4" width="14" height="5" rx="1" fill="#555"/>
-      <!-- Level text -->
-      <text x="25" y="62" font-size="8" fill="#333" text-anchor="middle" font-weight="bold">${getFuelLevelLabel(level)}</text>
-    </svg>
-  `;
+  const svg = `<svg width="80" height="100" viewBox="0 0 80 100" xmlns="http://www.w3.org/2000/svg">
+    <rect x="15" y="10" width="50" height="65" rx="5" fill="#f9fafb" stroke="#374151" stroke-width="2"/>
+    <rect x="18" y="${73 - fillHeight}" width="44" height="${fillHeight}" rx="3" fill="#f59e0b"/>
+    <line x1="8" y1="15" x2="15" y2="15" stroke="#666" stroke-width="1.5"/>
+    <text x="6" y="18" font-size="10" fill="#374151" text-anchor="end" font-family="Arial, sans-serif">F</text>
+    <line x1="8" y1="42" x2="15" y2="42" stroke="#666" stroke-width="1.5"/>
+    <text x="6" y="45" font-size="10" fill="#374151" text-anchor="end" font-family="Arial, sans-serif">½</text>
+    <line x1="8" y1="70" x2="15" y2="70" stroke="#666" stroke-width="1.5"/>
+    <text x="6" y="73" font-size="10" fill="#374151" text-anchor="end" font-family="Arial, sans-serif">E</text>
+    <rect x="30" y="5" width="20" height="8" rx="2" fill="#4b5563"/>
+    <text x="40" y="92" font-size="12" fill="#1f2937" text-anchor="middle" font-weight="bold" font-family="Arial, sans-serif">${levelLabel}</text>
+  </svg>`;
+  
+  const base64 = btoa(unescape(encodeURIComponent(svg)));
+  return `data:image/svg+xml;base64,${base64}`;
 };
 
 export function ExportDailyShiftPdfButton({ record, isLoading }: ExportDailyShiftPdfButtonProps) {
@@ -342,11 +340,11 @@ export function ExportDailyShiftPdfButton({ record, isLoading }: ExportDailyShif
             <div class="telemetry-grid">
               <div class="gauge-container">
                 <div class="gauge-label">Comb. Inicial</div>
-                ${getFuelGaugeSvg(record.initial_fuel_level)}
+                <img src="${getFuelGaugeDataUrl(record.initial_fuel_level)}" alt="Combustível Inicial" style="width: 80px; height: 100px;" />
               </div>
               <div class="gauge-container">
                 <div class="gauge-label">Comb. Final</div>
-                ${getFuelGaugeSvg(record.final_fuel_level || record.initial_fuel_level)}
+                <img src="${getFuelGaugeDataUrl(record.final_fuel_level || record.initial_fuel_level)}" alt="Combustível Final" style="width: 80px; height: 100px;" />
               </div>
               <div class="telemetry-table">
                 <h4>Horímetro</h4>
