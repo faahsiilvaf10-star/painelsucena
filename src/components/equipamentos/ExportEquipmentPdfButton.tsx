@@ -27,6 +27,24 @@ export function ExportEquipmentPdfButton({
 }: ExportEquipmentPdfButtonProps) {
   const [isExporting, setIsExporting] = useState(false);
 
+  const normalizeText = (value: string) =>
+    value
+      .normalize("NFD")
+      .replace(/[\u0300-\u036f]/g, "")
+      .toLowerCase();
+
+  const isReturnAfterRefuelingStop = (stop: EquipmentStopHistory) => {
+    const desc = stop.defect_description ?? "";
+    const reason = (stop.stop_reason as string | null) ?? "";
+    const nDesc = normalizeText(desc);
+    const nReason = normalizeText(reason);
+    return (
+      nDesc.includes("retorno apos abastecimento") ||
+      nReason.includes("retorno_abastecimento") ||
+      nReason.includes("retorno abastecimento")
+    );
+  };
+
   const buildParteDiariaFormHtml = (params: {
     logoBase64: string;
     dateLabel: string;
@@ -503,24 +521,40 @@ export function ExportEquipmentPdfButton({
       // Build activities with proper end times:
       // - Use start time of next status as end time
       // - Leave blank for last status UNLESS it's "Fim de Turno"
-      const activities = filteredStops.map((stop, index) => {
-        const nextStop = filteredStops[index + 1];
-        const isLastEntry = index === filteredStops.length - 1;
-        const isEndOfShift = stop.stop_reason === "end_of_shift" || stop.stop_reason === "fim_turno";
-        
-        let endTime = "";
-        if (nextStop) {
-          endTime = format(new Date(nextStop.started_at), "HH:mm", { locale: ptBR });
-        } else if (isLastEntry && isEndOfShift && stop.ended_at) {
-          endTime = format(new Date(stop.ended_at), "HH:mm", { locale: ptBR });
+      // - Special rule: legacy "Operando - Retorno após abastecimento" must NOT be printed;
+      //   it only closes the previous "Abastecimento" time range.
+      const activities: Array<{ start: string; end: string; description: string }> = [];
+      for (let i = 0; i < filteredStops.length; i++) {
+        const stop = filteredStops[i];
+        if (isReturnAfterRefuelingStop(stop)) {
+          continue;
         }
-        
-        return {
+
+        const nextStop = filteredStops[i + 1];
+        const isLastEntry = i === filteredStops.length - 1;
+        const isEndOfShift = stop.stop_reason === "end_of_shift" || stop.stop_reason === "fim_turno";
+
+        let endTime = "";
+
+        // Prefer explicit end time when available (ex: abastecimento is closed with ended_at).
+        if (stop.ended_at) {
+          endTime = format(new Date(stop.ended_at), "HH:mm", { locale: ptBR });
+        } else if (nextStop) {
+          endTime = format(new Date(nextStop.started_at), "HH:mm", { locale: ptBR });
+          if (isReturnAfterRefuelingStop(nextStop)) {
+            i++; // consume marker without printing
+          }
+        } else if (isLastEntry && isEndOfShift) {
+          // Only "Fim de Turno" shows an end time when it's the last status.
+          endTime = format(new Date(stop.started_at), "HH:mm", { locale: ptBR });
+        }
+
+        activities.push({
           start: format(new Date(stop.started_at), "HH:mm", { locale: ptBR }),
           end: endTime,
           description: `${getStatusLabel(stop.stop_reason)}${stop.defect_description ? ` - ${stop.defect_description}` : ""}`,
-        };
-      });
+        });
+      }
 
       const htmlContent = buildParteDiariaFormHtml({
         logoBase64,

@@ -31,6 +31,24 @@ const getStatusLabel = (status: string): string => {
   return labels[status] || status;
 };
 
+const normalizeText = (value: string) =>
+  value
+    .normalize("NFD")
+    .replace(/[\u0300-\u036f]/g, "")
+    .toLowerCase();
+
+const isReturnAfterRefuelingEntry = (entry: StatusHistoryEntry) => {
+  const desc = entry.description ?? "";
+  const status = entry.status ?? "";
+  const nDesc = normalizeText(desc);
+  const nStatus = normalizeText(status);
+  return (
+    nDesc.includes("retorno apos abastecimento") ||
+    nStatus.includes("retorno_abastecimento") ||
+    nStatus.includes("retorno abastecimento")
+  );
+};
+
 export function ExportDailyShiftPdfButton({ record, isLoading }: ExportDailyShiftPdfButtonProps) {
   const [isExporting, setIsExporting] = useState(false);
 
@@ -61,35 +79,44 @@ export function ExportDailyShiftPdfButton({ record, isLoading }: ExportDailyShif
         }
       );
 
-      // Generate activity rows from filtered status history
+      // Generate activity rows from filtered status history.
+      // Special rule: a legacy entry like "Operando - Retorno após abastecimento" is a *marker*
+      // to close the previous "Abastecendo" period and must NOT be printed as its own row.
       const activityRows: string[] = [];
-      filteredHistory.forEach((entry: StatusHistoryEntry, index: number) => {
-        const nextEntry = filteredHistory[index + 1];
+      for (let i = 0; i < filteredHistory.length; i++) {
+        const entry = filteredHistory[i];
+        if (isReturnAfterRefuelingEntry(entry)) {
+          continue;
+        }
+
+        const nextEntry = filteredHistory[i + 1];
         const startTime = format(new Date(entry.timestamp), "HH:mm", { locale: ptBR });
-        
+
         // Determine end time:
         // - If there's a next entry, use its start time
+        // - If next entry is a legacy "retorno após abastecimento" marker, still use its time,
+        //   but skip printing it.
         // - If this is the last entry AND it's "end_of_shift" or "fim_turno", show the timestamp
         // - Otherwise leave blank
-        const isLastEntry = index === filteredHistory.length - 1;
+        const isLastEntry = i === filteredHistory.length - 1;
         const isEndOfShift = entry.status === "end_of_shift" || entry.status === "fim_turno";
-        
+
         let endTime = "";
         if (nextEntry) {
           endTime = format(new Date(nextEntry.timestamp), "HH:mm", { locale: ptBR });
+          if (isReturnAfterRefuelingEntry(nextEntry)) {
+            i++; // consume the marker
+          }
         } else if (isLastEntry && isEndOfShift) {
-          // For "Fim de Turno" as last status, show its own timestamp as end
           endTime = startTime;
         }
-        
+
         // Build description - use entry.description if available, otherwise use status label
         let description = getStatusLabel(entry.status);
-        
-        // If we have a custom description (like refueling point info), use it
         if (entry.description) {
           description = entry.description;
         }
-        
+
         activityRows.push(`
           <tr>
             <td class="cell horario-cell">${startTime}</td>
@@ -98,7 +125,7 @@ export function ExportDailyShiftPdfButton({ record, isLoading }: ExportDailyShif
             <td class="cell desc-cell">${description}</td>
           </tr>
         `);
-      });
+      }
 
       // Fill with empty rows to have 12 total
       const totalRows = 12;
