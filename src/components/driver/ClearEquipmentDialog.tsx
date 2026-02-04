@@ -55,12 +55,11 @@ export const ClearEquipmentDialog = () => {
     <AlertDialog open={open} onOpenChange={setOpen}>
       <AlertDialogTrigger asChild>
         <Button
-          variant="ghost"
-          size="icon"
-          className="h-10 w-10 text-orange-500 hover:text-orange-600 hover:bg-orange-500/10 rounded-full shrink-0 touch-manipulation"
-          title="Limpar Equipamentos"
+          variant="destructive"
+          className="gap-2"
         >
           <RotateCcw className="w-4 h-4" />
+          Limpar Equipamentos
         </Button>
       </AlertDialogTrigger>
       <AlertDialogContent className="max-w-[90vw] sm:max-w-md">

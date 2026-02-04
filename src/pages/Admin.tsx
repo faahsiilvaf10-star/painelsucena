@@ -12,7 +12,8 @@ import { useSiteSettings } from "@/hooks/useSiteSettings";
 import { supabase } from "@/integrations/supabase/client";
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import { toast } from "sonner";
-import { Shield, ShieldCheck, Trash2, UserPlus, Users, Image, Upload, UserCog, Megaphone, Pencil, LayoutList, Truck } from "lucide-react";
+import { Shield, ShieldCheck, Trash2, UserPlus, Users, Image, Upload, UserCog, Megaphone, Pencil, LayoutList, Truck, RotateCcw } from "lucide-react";
+import { ClearEquipmentDialog } from "@/components/driver/ClearEquipmentDialog";
 import { BulkEmployeeEditor } from "@/components/admin/BulkEmployeeEditor";
 import { AnnouncementManager } from "@/components/admin/AnnouncementManager";
 import { EditUserDialog } from "@/components/admin/EditUserDialog";
@@ -295,21 +296,24 @@ const Admin = () => {
               <CardHeader>
                 <CardTitle className="flex items-center gap-2">
                   <Truck className="w-5 h-5" />
-                  Acesso Rápido
+                  Painel do Motorista
                 </CardTitle>
                 <CardDescription>
-                  Acesse rapidamente outros painéis do sistema.
+                  Acesse o painel do motorista ou gerencie os equipamentos.
                 </CardDescription>
               </CardHeader>
-              <CardContent>
-                <Button
-                  onClick={() => navigate("/painel-motorista")}
-                  variant="outline"
-                  className="gap-2"
-                >
-                  <Truck className="w-4 h-4" />
-                  Painel do Motorista
-                </Button>
+              <CardContent className="space-y-4">
+                <div className="flex flex-wrap gap-3">
+                  <Button
+                    onClick={() => navigate("/painel-motorista")}
+                    variant="outline"
+                    className="gap-2"
+                  >
+                    <Truck className="w-4 h-4" />
+                    Acessar Painel
+                  </Button>
+                  <ClearEquipmentDialog />
+                </div>
               </CardContent>
             </Card>
 
