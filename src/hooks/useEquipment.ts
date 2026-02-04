@@ -27,6 +27,7 @@ export interface EquipmentStopHistory {
   ended_at: string | null;
   duration_minutes: number | null;
   defect_description: string | null;
+  changed_by_driver: string | null;
   created_at: string;
 }
 
@@ -56,6 +57,7 @@ export function useUpdateEquipmentStatus() {
       previousStopReason,
       previousStopStartTime,
       defect_description,
+      changed_by_driver,
     }: {
       id: string;
       stop_reason: StopReason;
@@ -63,6 +65,7 @@ export function useUpdateEquipmentStatus() {
       previousStopReason?: StopReason;
       previousStopStartTime?: string | null;
       defect_description?: string | null;
+      changed_by_driver?: string | null;
     }) => {
       const now = new Date();
 
@@ -77,6 +80,7 @@ export function useUpdateEquipmentStatus() {
           started_at: previousStopStartTime,
           ended_at: now.toISOString(),
           duration_minutes: durationMinutes,
+          changed_by_driver: changed_by_driver || null,
         });
       }
 
@@ -89,6 +93,7 @@ export function useUpdateEquipmentStatus() {
           ended_at: null,
           duration_minutes: null,
           defect_description: stop_reason === "maintenance" ? defect_description : null,
+          changed_by_driver: changed_by_driver || null,
         });
       }
 

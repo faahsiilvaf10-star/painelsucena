@@ -13,6 +13,7 @@ import {
   Power
 } from "lucide-react";
 import { useEquipment, useUpdateEquipmentStatus, useEquipmentStopHistory, type StopReason } from "@/hooks/useEquipment";
+import { useProfile } from "@/hooks/useProfile";
 import { supabase } from "@/integrations/supabase/client";
 import { toast } from "sonner";
 import { format } from "date-fns";
@@ -98,6 +99,7 @@ export function DriverStatusButtons() {
   const [selectedVehicleId, setSelectedVehicleId] = useState<string | null>(null);
   const [isUpdating, setIsUpdating] = useState(false);
   const { data: equipment = [], isLoading } = useEquipment();
+  const { data: profile } = useProfile();
   const updateStatus = useUpdateEquipmentStatus();
   const { data: stopHistory = [] } = useEquipmentStopHistory(selectedVehicleId || undefined);
 
@@ -130,6 +132,7 @@ export function DriverStatusButtons() {
         stop_start_time: now,
         previousStopReason: currentStatus as any,
         previousStopStartTime: selectedVehicle.stop_start_time,
+        changed_by_driver: profile?.full_name || null,
       });
 
       // Clear the driver field from the equipment
@@ -175,6 +178,7 @@ export function DriverStatusButtons() {
         stop_start_time: newStatus !== "none" ? now : null,
         previousStopReason: currentStatus as any,
         previousStopStartTime: selectedVehicle.stop_start_time,
+        changed_by_driver: profile?.full_name || null,
       });
 
       const statusLabels: Record<string, string> = {

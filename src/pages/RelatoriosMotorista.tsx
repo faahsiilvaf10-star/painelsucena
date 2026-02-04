@@ -1,6 +1,6 @@
 import { useState, useMemo } from "react";
 import { useNavigate } from "react-router-dom";
-import { ArrowLeft, Calendar, Filter, Clock, Wrench, Activity, PauseCircle, Search } from "lucide-react";
+import { ArrowLeft, Calendar, Filter, Clock, Wrench, Activity, PauseCircle, Search, User } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
@@ -277,6 +277,13 @@ export default function RelatoriosMotorista() {
                 {filteredHistory.length}
               </Badge>
             </CardTitle>
+            {/* Last driver info */}
+            {selectedVehicle && selectedVehicle.driver && (
+              <div className="flex items-center gap-1.5 text-[10px] sm:text-xs text-muted-foreground mt-1">
+                <User className="h-3 w-3 shrink-0" />
+                <span>Último motorista: <span className="font-medium text-foreground">{selectedVehicle.driver}</span></span>
+              </div>
+            )}
           </CardHeader>
           <CardContent className="p-3 pt-0">
             {isLoading ? (
@@ -338,6 +345,14 @@ export default function RelatoriosMotorista() {
                         <div className="text-[10px] sm:text-xs bg-background/50 p-1.5 rounded border-l-2 border-red-500/50">
                           <span className="font-medium text-red-600">Problema: </span>
                           <span className="text-foreground break-words">{item.defect_description}</span>
+                        </div>
+                      )}
+
+                      {/* Driver who made the change */}
+                      {item.changed_by_driver && (
+                        <div className="flex items-center gap-1 text-[10px] text-muted-foreground pt-1 border-t border-border/50">
+                          <User className="h-2.5 w-2.5 shrink-0" />
+                          <span>Alterado por: <span className="font-medium text-foreground">{item.changed_by_driver}</span></span>
                         </div>
                       )}
                     </div>
