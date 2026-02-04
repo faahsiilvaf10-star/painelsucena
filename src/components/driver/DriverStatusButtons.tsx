@@ -404,9 +404,12 @@ export function DriverStatusButtons() {
         changed_by_driver: profile?.full_name || null,
       });
 
-      // Note: Equipment movements (entrada/saída) are only created for shift start/end
-      // Status changes (Operando, Aguardando, etc.) are tracked via stop_history only
-      // This keeps the "Entrada e Saída" page for physical entry/exit tracking
+      // Sync status change with daily_shift_records for Parte Diária
+      await addStatusToHistory.mutateAsync({
+        equipmentId: selectedVehicleId,
+        status: newStatus === "none" ? "operando" : newStatus,
+        changedBy: profile?.full_name || null,
+      });
 
       toast.success(`Status alterado para: ${statusLabels[newStatus] || newStatus}`);
     } catch (error) {
