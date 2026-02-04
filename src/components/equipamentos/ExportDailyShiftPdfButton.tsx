@@ -11,6 +11,16 @@ import {
   fuelLevelToLabel,
   fuelLevelToPercentage,
 } from "@/lib/pdf/fuelGauge";
+import { supabase } from "@/integrations/supabase/client";
+
+interface EquipmentMovement {
+  id: string;
+  movement_type: "entrada" | "saida";
+  movement_time: string;
+  exit_reason: string | null;
+  problem_description: string | null;
+  observation: string | null;
+}
 
 interface ExportDailyShiftPdfButtonProps {
   record: DailyShiftRecord;
@@ -35,6 +45,19 @@ const getStatusLabel = (status: string): string => {
     fim_turno: "Fim de Turno",
   };
   return labels[status] || status;
+};
+
+const getExitReasonLabel = (reason: string | null): string => {
+  if (!reason) return "-";
+  const labels: Record<string, string> = {
+    manutencao_corretiva: "Manutenção Corretiva",
+    manutencao_preventiva: "Manutenção Preventiva",
+    vistoria: "Vistoria",
+    operando: "Operando",
+    aguardando_frente_servico: "Aguardando Frente",
+    fim_turno: "Fim de Turno",
+  };
+  return labels[reason] || reason;
 };
 
 const normalizeText = (value: string) =>
@@ -63,6 +86,18 @@ export function ExportDailyShiftPdfButton({ record, isLoading }: ExportDailyShif
     try {
       const logoBase64 = await getLogoBase64();
       const formattedDate = format(new Date(record.shift_date), "dd/MM/yyyy", { locale: ptBR });
+      
+      // Fetch exit movement for this equipment on this date
+      const { data: exitMovements } = await supabase
+        .from("equipment_movements")
+        .select("movement_time, exit_reason, problem_description, observation")
+        .eq("plate", record.plate)
+        .eq("movement_date", record.shift_date)
+        .eq("movement_type", "saida")
+        .order("movement_time", { ascending: false })
+        .limit(1);
+      
+      const exitMovement = exitMovements?.[0] || null;
       
       const printWindow = window.open("", "_blank");
       if (!printWindow) {
@@ -337,6 +372,16 @@ export function ExportDailyShiftPdfButton({ record, isLoading }: ExportDailyShif
               <div class="cell-label" style="width:140px;">AJUDANTE</div>
               <div class="cell-value">${record.helper_name || "-"}</div>
             </div>
+
+            <!-- Saída do Equipamento (if exists) -->
+            ${exitMovement ? `
+            <div class="row" style="background:#fff3cd;">
+              <div class="cell-label" style="width:140px;">SAÍDA</div>
+              <div class="cell-value" style="width:80px;">${exitMovement.movement_time?.substring(0, 5) || "-"}</div>
+              <div class="cell-label">MOTIVO</div>
+              <div class="cell-value" style="flex:2;">${getExitReasonLabel(exitMovement.exit_reason)}${exitMovement.problem_description ? ` - ${exitMovement.problem_description}` : ""}${exitMovement.observation ? ` (${exitMovement.observation})` : ""}</div>
+            </div>
+            ` : ""}
 
             <!-- Main Section: KM/Horimetro/Fuel + Activities -->
             <div class="main-section">
