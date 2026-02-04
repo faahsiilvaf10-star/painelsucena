@@ -355,24 +355,30 @@ export default function RelatoriosMotorista() {
 
                       {/* Problem Description or Refueling Location */}
                       {item.defect_description && (
-                        <div className={`text-[10px] sm:text-xs bg-background/50 p-1.5 rounded border-l-2 ${
-                          item.stop_reason === "abastecimento" || item.stop_reason === "retorno_abastecimento"
-                            ? "border-cyan-500/50" 
-                            : "border-red-500/50"
-                        }`}>
-                          <span className={`font-medium ${
-                            item.stop_reason === "abastecimento" || item.stop_reason === "retorno_abastecimento"
-                              ? "text-cyan-600" 
-                              : "text-red-600"
-                          }`}>
-                            {item.stop_reason === "abastecimento" || item.stop_reason === "retorno_abastecimento" ? "Local: " : "Problema: "}
-                          </span>
-                          <span className="text-foreground break-words">
-                            {item.stop_reason === "abastecimento" || item.stop_reason === "retorno_abastecimento"
-                              ? item.defect_description.replace("Abastecimento - ", "").replace("Retorno - ", "")
-                              : item.defect_description}
-                          </span>
-                        </div>
+                        (() => {
+                          const isRefueling = item.stop_reason === "abastecimento" || 
+                            item.defect_description.toLowerCase().includes("abastecimento") ||
+                            (item.defect_description.toLowerCase().includes("ponto:") && !item.defect_description.toLowerCase().includes("problema"));
+                          
+                          return (
+                            <div className={`text-[10px] sm:text-xs bg-background/50 p-1.5 rounded border-l-2 ${
+                              isRefueling ? "border-cyan-500/50" : "border-red-500/50"
+                            }`}>
+                              <span className={`font-medium ${
+                                isRefueling ? "text-cyan-600" : "text-red-600"
+                              }`}>
+                                {isRefueling ? "Local: " : "Problema: "}
+                              </span>
+                              <span className="text-foreground break-words">
+                                {isRefueling 
+                                  ? item.defect_description
+                                      .replace("Retorno após abastecimento - ", "")
+                                      .replace("Abastecimento - ", "")
+                                  : item.defect_description}
+                              </span>
+                            </div>
+                          );
+                        })()
                       )}
 
                       {/* Driver who made the change */}
