@@ -212,7 +212,8 @@ export function ExportDailyShiftPdfButton({ record, isLoading }: ExportDailyShif
               border-top: 1px solid #000;
             }
             .sig-box { text-align: center; width: 30%; }
-            .sig-line { border-top: 1px solid #000; margin-top: 35px; }
+            .sig-name { font-weight: bold; font-size: 10px; min-height: 14px; }
+            .sig-line { border-top: 1px solid #000; margin-top: 20px; }
             .sig-label { font-size: 8px; margin-top: 3px; }
             .instructions {
               background: #f5f5f5;
@@ -242,7 +243,7 @@ export function ExportDailyShiftPdfButton({ record, isLoading }: ExportDailyShif
               <div class="header-title">PARTE DIÁRIA DE EQUIPAMENTO</div>
               <div class="header-obra">
                 <div class="cell-label" style="background:#d0d0d0;">OBRA:</div>
-                <div class="cell-value">SUCENA</div>
+                <div class="cell-value">460001269</div>
               </div>
             </div>
 
@@ -262,12 +263,10 @@ export function ExportDailyShiftPdfButton({ record, isLoading }: ExportDailyShif
               <div class="cell-value" style="width:100px;font-family:monospace;">${record.plate}</div>
             </div>
 
-            <!-- Ajudante/Tag -->
+            <!-- Ajudante -->
             <div class="row">
               <div class="cell-label" style="width:140px;">AJUDANTE</div>
-              <div class="cell-value" style="flex:2;">${record.helper_name || "-"}</div>
-              <div class="cell-label">TAG</div>
-              <div class="cell-value" style="width:100px;">-</div>
+              <div class="cell-value">${record.helper_name || "-"}</div>
             </div>
 
             <!-- Main Section: KM/Horimetro/Fuel + Activities -->
@@ -340,14 +339,17 @@ export function ExportDailyShiftPdfButton({ record, isLoading }: ExportDailyShif
             <!-- Signatures -->
             <div class="signatures">
               <div class="sig-box">
+                <div class="sig-name">${record.driver_name}</div>
                 <div class="sig-line"></div>
                 <div class="sig-label">Ass. Motorista/Op</div>
               </div>
               <div class="sig-box">
+                <div class="sig-name">Creriane Navegantes</div>
                 <div class="sig-line"></div>
                 <div class="sig-label">Ass. Encarreg./Apontador</div>
               </div>
               <div class="sig-box">
+                <div class="sig-name">Luís Carlos</div>
                 <div class="sig-line"></div>
                 <div class="sig-label">Ass. Gerência</div>
               </div>
