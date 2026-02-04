@@ -357,6 +357,80 @@ export type Database = {
         }
         Relationships: []
       }
+      daily_shift_records: {
+        Row: {
+          created_at: string
+          driver_name: string
+          equipment_id: string
+          equipment_name: string
+          final_fuel_level: string | null
+          final_horimeter: number | null
+          final_km: number | null
+          helper_name: string | null
+          id: string
+          initial_fuel_level: string | null
+          initial_horimeter: number | null
+          initial_km: number | null
+          plate: string
+          refueling_points: Json | null
+          shift_date: string
+          shift_end_time: string | null
+          shift_start_time: string | null
+          status_history: Json | null
+          updated_at: string
+        }
+        Insert: {
+          created_at?: string
+          driver_name: string
+          equipment_id: string
+          equipment_name: string
+          final_fuel_level?: string | null
+          final_horimeter?: number | null
+          final_km?: number | null
+          helper_name?: string | null
+          id?: string
+          initial_fuel_level?: string | null
+          initial_horimeter?: number | null
+          initial_km?: number | null
+          plate: string
+          refueling_points?: Json | null
+          shift_date?: string
+          shift_end_time?: string | null
+          shift_start_time?: string | null
+          status_history?: Json | null
+          updated_at?: string
+        }
+        Update: {
+          created_at?: string
+          driver_name?: string
+          equipment_id?: string
+          equipment_name?: string
+          final_fuel_level?: string | null
+          final_horimeter?: number | null
+          final_km?: number | null
+          helper_name?: string | null
+          id?: string
+          initial_fuel_level?: string | null
+          initial_horimeter?: number | null
+          initial_km?: number | null
+          plate?: string
+          refueling_points?: Json | null
+          shift_date?: string
+          shift_end_time?: string | null
+          shift_start_time?: string | null
+          status_history?: Json | null
+          updated_at?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "daily_shift_records_equipment_id_fkey"
+            columns: ["equipment_id"]
+            isOneToOne: false
+            referencedRelation: "equipment"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       dds_planning_document: {
         Row: {
           file_name: string

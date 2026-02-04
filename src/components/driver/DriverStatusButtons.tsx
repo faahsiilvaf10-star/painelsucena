@@ -35,6 +35,7 @@ import { format } from "date-fns";
 import { ptBR } from "date-fns/locale";
 import { FuelLevelGauge, type FuelLevel } from "./FuelLevelGauge";
 import { useOfflineSync } from "@/hooks/useOfflineSync";
+import { useCreateShiftRecord, useUpdateShiftRecord, useAddStatusToHistory } from "@/hooks/useDailyShiftRecords";
 
 type DriverStopReason = StopReason;
 
@@ -117,6 +118,9 @@ export function DriverStatusButtons() {
   const updateStatus = useUpdateEquipmentStatus();
   const { data: stopHistory = [] } = useEquipmentStopHistory(selectedVehicleId || undefined);
   const { isOnline, addPendingAction } = useOfflineSync();
+  const createShiftRecord = useCreateShiftRecord();
+  const updateShiftRecord = useUpdateShiftRecord();
+  const addStatusToHistory = useAddStatusToHistory();
 
   useEffect(() => {
     const vehicleId = localStorage.getItem("selectedVehicleId");
@@ -178,6 +182,7 @@ export function DriverStatusButtons() {
     setIsUpdating(true);
     try {
       const now = new Date().toISOString();
+      const today = now.split("T")[0];
 
       // Update the equipment status to end_of_shift
       await updateStatus.mutateAsync({
@@ -187,6 +192,16 @@ export function DriverStatusButtons() {
         previousStopReason: currentStatus as any,
         previousStopStartTime: selectedVehicle.stop_start_time,
         changed_by_driver: profile?.full_name || null,
+      });
+
+      // Update the daily shift record with final values
+      await updateShiftRecord.mutateAsync({
+        equipment_id: selectedVehicleId,
+        shift_date: today,
+        final_horimeter: endShiftHorimeter ? parseFloat(endShiftHorimeter) : undefined,
+        final_km: endShiftKm ? parseFloat(endShiftKm) : undefined,
+        final_fuel_level: endShiftFuelLevel,
+        shift_end_time: now,
       });
 
       // Clear the driver field from the equipment
@@ -240,6 +255,18 @@ export function DriverStatusButtons() {
       localStorage.setItem(`shift_km_${selectedVehicleId}`, startShiftKm);
       setInitialHorimeter(startShiftHorimeter);
       setInitialKm(startShiftKm);
+
+      // Create daily shift record in the database
+      await createShiftRecord.mutateAsync({
+        equipment_id: selectedVehicleId,
+        equipment_name: selectedVehicle.name,
+        plate: selectedVehicle.plate,
+        driver_name: profile?.full_name || "Motorista",
+        helper_name: selectedVehicle.helper || undefined,
+        initial_horimeter: parseFloat(startShiftHorimeter),
+        initial_km: parseFloat(startShiftKm),
+        initial_fuel_level: fuelLevel,
+      });
 
       await updateStatus.mutateAsync({
         id: selectedVehicleId,
