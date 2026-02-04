@@ -7,12 +7,17 @@ import { Loader2, Truck, Activity, Wrench, Clock, PauseCircle } from "lucide-rea
 const getStatusInfo = (stopReason: string | null) => {
   switch (stopReason) {
     case "none":
-    case "operando":
-    case null:
       return {
         label: "Operando",
         color: "bg-green-500/10 text-green-600 border-green-500/30",
         icon: <Activity className="h-3 w-3" />,
+      };
+    case null:
+    case "waiting":
+      return {
+        label: "Aguardando",
+        color: "bg-yellow-500/10 text-yellow-600 border-yellow-500/30",
+        icon: <PauseCircle className="h-3 w-3" />,
       };
     case "maintenance":
     case "manutencao_corretiva":
@@ -34,9 +39,22 @@ const getStatusInfo = (stopReason: string | null) => {
         icon: <PauseCircle className="h-3 w-3" />,
       };
     case "fim_turno":
+    case "end_of_shift":
       return {
         label: "Fim de Turno",
         color: "bg-blue-500/10 text-blue-600 border-blue-500/30",
+        icon: <Clock className="h-3 w-3" />,
+      };
+    case "rain":
+      return {
+        label: "Parado (Chuva)",
+        color: "bg-blue-500/10 text-blue-600 border-blue-500/30",
+        icon: <Clock className="h-3 w-3" />,
+      };
+    case "end_of_day":
+      return {
+        label: "Abastecendo",
+        color: "bg-orange-500/10 text-orange-600 border-orange-500/30",
         icon: <Clock className="h-3 w-3" />,
       };
     case "vistoria":
