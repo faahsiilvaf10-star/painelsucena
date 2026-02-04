@@ -177,10 +177,15 @@ export default function RDO() {
 
   // Calculate equipment summary (excluding maintenance)
   const equipmentSummary = useMemo(() => {
-    if (!equipment) return { items: [], total: 0 };
+    if (!equipment) return { items: [], total: 0, operatingEquipment: [] };
     
     // Filter out equipment in maintenance
     const availableEquipment = equipment.filter((eq) => eq.stop_reason !== "maintenance");
+    
+    // Equipment in operation (stop_reason === "none" and has driver)
+    const operatingEquipment = equipment.filter((eq) => 
+      eq.stop_reason === "none" && eq.driver && eq.driver.trim() !== ""
+    );
     
     const typeCount: Record<string, { count: number; plates: string[] }> = {};
     
@@ -200,7 +205,7 @@ export default function RDO() {
       plates: data.plates,
     }));
 
-    return { items, total: availableEquipment.length };
+    return { items, total: availableEquipment.length, operatingEquipment };
   }, [equipment]);
 
   // Format date for report
@@ -239,6 +244,17 @@ export default function RDO() {
         return `•       ${String(item.count).padStart(2, "0")} ${item.label}${platesStr}`;
       })
       .join("\n");
+
+    // Build operating equipment text with driver, helper and plate
+    const operatingEquipmentText = equipmentSummary.operatingEquipment.length > 0
+      ? equipmentSummary.operatingEquipment
+          .map((eq) => {
+            const typeLabel = equipmentTypeLabels[eq.equipment_type] || eq.equipment_type;
+            const helperText = eq.helper && eq.helper.trim() !== "" ? ` | Ajudante: ${eq.helper}` : "";
+            return `   • ${typeLabel} (${eq.plate})\n      Motorista: ${eq.driver}${helperText}`;
+          })
+          .join("\n")
+      : "   Nenhum equipamento em operação";
 
     // DDS info - use presenter name from user profile or external presenter name
     const presenterName = todayDDS?.presenter?.full_name || todayDDS?.external_presenter_name || "A definir";
@@ -292,6 +308,9 @@ ${gabiaoWorkforce}
 ${equipmentText}
 
 Total: ${String(equipmentSummary.total).padStart(2, "0")} Equipamentos
+
+\u2705 EQUIPAMENTOS EM OPERAÇÃO (${equipmentSummary.operatingEquipment.length})
+${operatingEquipmentText}
 
 Condições climáticas:
 \u2022 MANHÃ = ${weatherLabels[weatherMorning]}
