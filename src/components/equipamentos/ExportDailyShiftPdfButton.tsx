@@ -346,6 +346,7 @@ export function ExportDailyShiftPdfButton({ record, isLoading }: ExportDailyShif
                 <div class="gauge-label">Comb. Final</div>
                 <img src="${getFuelGaugeDataUrl(record.final_fuel_level || record.initial_fuel_level)}" alt="Combustível Final" style="width: 80px; height: 100px;" />
               </div>
+              </div>
               <div class="telemetry-table">
                 <h4>Horímetro</h4>
                 <div class="telemetry-row">
@@ -431,9 +432,24 @@ export function ExportDailyShiftPdfButton({ record, isLoading }: ExportDailyShif
       printWindow.document.close();
       
       printWindow.onload = () => {
-        setTimeout(() => {
-          printWindow.print();
-        }, 500);
+        const images = Array.from(printWindow.document.images || []);
+
+        const waitForImages = Promise.all(
+          images.map((img) =>
+            img.complete
+              ? Promise.resolve()
+              : new Promise<void>((resolve) => {
+                  img.onload = () => resolve();
+                  img.onerror = () => resolve();
+                })
+          )
+        );
+
+        waitForImages.finally(() => {
+          setTimeout(() => {
+            printWindow.print();
+          }, 150);
+        });
       };
 
       toast.success("Relatório gerado com sucesso!");
