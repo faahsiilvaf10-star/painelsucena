@@ -37,6 +37,10 @@ export function ExportEquipmentPdfButton({
     activities: Array<{ start: string; end: string; description: string }>;
     initialFuelLevel?: string | null;
     finalFuelLevel?: string | null;
+    initialKm?: number | null;
+    finalKm?: number | null;
+    initialHorimeter?: number | null;
+    finalHorimeter?: number | null;
   }) => {
     const maxRows = 12;
     const rows = [...params.activities]
@@ -330,14 +334,14 @@ export function ExportEquipmentPdfButton({
             <div class="left">
               <div class="block-title">KM</div>
               <div class="pair">
-                <div class="box"><div class="mini">INICIAL</div><div class="val"></div></div>
-                <div class="box"><div class="mini">FINAL</div><div class="val"></div></div>
+                <div class="box"><div class="mini">INICIAL</div><div class="val">${params.initialKm != null ? params.initialKm.toLocaleString("pt-BR") : ""}</div></div>
+                <div class="box"><div class="mini">FINAL</div><div class="val">${params.finalKm != null ? params.finalKm.toLocaleString("pt-BR") : ""}</div></div>
               </div>
 
               <div class="block-title">HORÍMETRO</div>
               <div class="pair">
-                <div class="box"><div class="mini">INICIAL</div><div class="val"></div></div>
-                <div class="box"><div class="mini">FINAL</div><div class="val"></div></div>
+                <div class="box"><div class="mini">INICIAL</div><div class="val">${params.initialHorimeter != null ? params.initialHorimeter.toLocaleString("pt-BR") : ""}</div></div>
+                <div class="box"><div class="mini">FINAL</div><div class="val">${params.finalHorimeter != null ? params.finalHorimeter.toLocaleString("pt-BR") : ""}</div></div>
               </div>
 
               <div class="fuel">
@@ -448,10 +452,10 @@ export function ExportEquipmentPdfButton({
       const today = format(new Date(), "yyyy-MM-dd");
       const dateLabel = format(new Date(), "dd/MM/yyyy", { locale: ptBR });
 
-      // Try to load fuel levels from today's shift record (when available)
-      const { data: fuelRecord } = await supabase
+      // Try to load telemetry data from today's shift record (when available)
+      const { data: shiftRecord } = await supabase
         .from("daily_shift_records")
-        .select("initial_fuel_level, final_fuel_level")
+        .select("initial_fuel_level, final_fuel_level, initial_km, final_km, initial_horimeter, final_horimeter")
         .eq("equipment_id", equipment.id)
         .eq("shift_date", today)
         .order("created_at", { ascending: false })
@@ -494,8 +498,12 @@ export function ExportEquipmentPdfButton({
         driverName: equipment.driver || "",
         helperName: equipment.helper || "",
         activities,
-        initialFuelLevel: fuelRecord?.initial_fuel_level ?? null,
-        finalFuelLevel: fuelRecord?.final_fuel_level ?? null,
+        initialFuelLevel: shiftRecord?.initial_fuel_level ?? null,
+        finalFuelLevel: shiftRecord?.final_fuel_level ?? null,
+        initialKm: shiftRecord?.initial_km ?? null,
+        finalKm: shiftRecord?.final_km ?? null,
+        initialHorimeter: shiftRecord?.initial_horimeter ?? null,
+        finalHorimeter: shiftRecord?.final_horimeter ?? null,
       });
 
       printWindow.document.write(htmlContent);
