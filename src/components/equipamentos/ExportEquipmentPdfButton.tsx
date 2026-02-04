@@ -266,6 +266,10 @@ export function ExportEquipmentPdfButton({
             margin: 0;
             padding: 0;
             line-height: 1;
+            min-height: 12px;
+            white-space: nowrap;
+            overflow: hidden;
+            text-overflow: ellipsis;
           }
           .sig .line {
             border-top: 1px solid #000;
