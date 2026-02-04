@@ -144,8 +144,20 @@ export default function SelecaoVeiculo() {
     }
   };
 
+  // Determine helper label based on vehicle type
+  const getHelperLabel = (vehicleType: string) => {
+    return vehicleType === "munk" ? "Nome do Sinaleiro" : "Nome do Ajudante";
+  };
+
+  const getHelperPlaceholder = (vehicleType: string) => {
+    return vehicleType === "munk" ? "Digite o nome do sinaleiro" : "Digite o nome do ajudante";
+  };
+
   // Render fixed vehicle UI for drivers with assigned vehicles
   if (hasFixedVehicle && fixedVehicle) {
+    const helperLabel = getHelperLabel(fixedVehicle.equipment_type);
+    const helperPlaceholder = getHelperPlaceholder(fixedVehicle.equipment_type);
+
     return (
       <div className="min-h-screen bg-background flex flex-col">
         {/* Header */}
@@ -204,18 +216,18 @@ export default function SelecaoVeiculo() {
             </CardContent>
           </Card>
 
-          {/* Helper Name Input */}
+          {/* Helper/Sinaleiro Name Input */}
           <Card className="mt-4 border-primary/30 bg-primary/5">
             <CardContent className="p-3">
               <div className="flex items-center gap-2 mb-2">
                 <UserPlus className="h-4 w-4 text-primary" />
                 <Label htmlFor="helper-name" className="text-sm font-semibold">
-                  Nome do Ajudante (opcional)
+                  {helperLabel} (opcional)
                 </Label>
               </div>
               <Input
                 id="helper-name"
-                placeholder="Digite o nome do ajudante"
+                placeholder={helperPlaceholder}
                 value={helperName}
                 onChange={(e) => setHelperName(e.target.value)}
                 className="h-10 text-sm"
@@ -344,26 +356,32 @@ export default function SelecaoVeiculo() {
               ))}
             </div>
 
-            {/* Helper Name Input - Show only when vehicle is selected */}
-            {selectedVehicle && (
-              <Card className="mt-4 border-primary/30 bg-primary/5">
-                <CardContent className="p-3">
-                  <div className="flex items-center gap-2 mb-2">
-                    <UserPlus className="h-4 w-4 text-primary" />
-                    <Label htmlFor="helper-name" className="text-sm font-semibold">
-                      Nome do Ajudante (opcional)
-                    </Label>
-                  </div>
-                  <Input
-                    id="helper-name"
-                    placeholder="Digite o nome do ajudante"
-                    value={helperName}
-                    onChange={(e) => setHelperName(e.target.value)}
-                    className="h-10 text-sm"
-                  />
-                </CardContent>
-              </Card>
-            )}
+            {/* Helper/Sinaleiro Name Input - Show only when vehicle is selected */}
+            {selectedVehicle && (() => {
+              const selectedVehicleData = availableVehicles.find(v => v.id === selectedVehicle);
+              const helperLabel = selectedVehicleData ? getHelperLabel(selectedVehicleData.equipment_type) : "Nome do Ajudante";
+              const helperPlaceholder = selectedVehicleData ? getHelperPlaceholder(selectedVehicleData.equipment_type) : "Digite o nome do ajudante";
+              
+              return (
+                <Card className="mt-4 border-primary/30 bg-primary/5">
+                  <CardContent className="p-3">
+                    <div className="flex items-center gap-2 mb-2">
+                      <UserPlus className="h-4 w-4 text-primary" />
+                      <Label htmlFor="helper-name" className="text-sm font-semibold">
+                        {helperLabel} (opcional)
+                      </Label>
+                    </div>
+                    <Input
+                      id="helper-name"
+                      placeholder={helperPlaceholder}
+                      value={helperName}
+                      onChange={(e) => setHelperName(e.target.value)}
+                      className="h-10 text-sm"
+                    />
+                  </CardContent>
+                </Card>
+              );
+            })()}
 
             {/* Confirm Button */}
             <div className="mt-4 pb-6">
