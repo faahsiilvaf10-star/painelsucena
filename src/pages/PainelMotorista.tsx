@@ -123,9 +123,9 @@ const PainelMotorista = () => {
   ];
 
   return (
-    <div className="min-h-screen bg-gradient-to-b from-background to-muted/30">
+    <div className="min-h-screen h-screen flex flex-col bg-gradient-to-b from-background to-muted/30 overflow-hidden">
       {/* Compact Header for Mobile */}
-      <header className="sticky top-0 z-10 bg-card/95 backdrop-blur-sm border-b shadow-sm safe-area-inset-top">
+      <header className="sticky top-0 z-10 bg-card/95 backdrop-blur-sm border-b shadow-sm safe-area-inset-top shrink-0">
         <div className="flex items-center justify-between px-3 py-2.5">
           {/* Logo */}
           <img 
@@ -174,8 +174,9 @@ const PainelMotorista = () => {
         </div>
       </header>
 
-      {/* Content - Optimized for mobile */}
-      <main className="p-4 max-w-lg mx-auto space-y-4 pb-8 safe-area-inset-bottom">
+      {/* Content - Scrollable container */}
+      <main className="flex-1 overflow-y-auto overscroll-contain">
+        <div className="p-4 max-w-lg mx-auto space-y-4 pb-8 safe-area-inset-bottom">
         {/* Welcome Card */}
         <Card className="bg-gradient-to-r from-primary to-primary/80 text-primary-foreground border-none shadow-lg">
           <CardContent className="p-4">
@@ -229,6 +230,7 @@ const PainelMotorista = () => {
               </div>
             </button>
           ))}
+        </div>
         </div>
       </main>
     </div>
