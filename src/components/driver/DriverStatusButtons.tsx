@@ -3,6 +3,8 @@ import { useNavigate } from "react-router-dom";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
+import { Input } from "@/components/ui/input";
+import { Label } from "@/components/ui/label";
 import {
   Dialog,
   DialogContent,
@@ -17,7 +19,9 @@ import {
   CloudRain, 
   Fuel, 
   Loader2,
-  Power
+  Power,
+  Gauge,
+  Car
 } from "lucide-react";
 import { useEquipment, useUpdateEquipmentStatus, useEquipmentStopHistory, type StopReason } from "@/hooks/useEquipment";
 import { useProfile } from "@/hooks/useProfile";
@@ -95,6 +99,8 @@ export function DriverStatusButtons() {
   const [fuelLevel, setFuelLevel] = useState<FuelLevel>("half");
   const [showEndShiftDialog, setShowEndShiftDialog] = useState(false);
   const [endShiftFuelLevel, setEndShiftFuelLevel] = useState<FuelLevel>("half");
+  const [endShiftHorimeter, setEndShiftHorimeter] = useState("");
+  const [endShiftKm, setEndShiftKm] = useState("");
   const { data: equipment = [], isLoading } = useEquipment();
   const { data: profile } = useProfile();
   const updateStatus = useUpdateEquipmentStatus();
@@ -142,7 +148,14 @@ export function DriverStatusButtons() {
       localStorage.removeItem("selectedVehicleId");
 
       setShowEndShiftDialog(false);
-      toast.success(`Fim de turno registrado. Combustível: ${getFuelLevelLabel(endShiftFuelLevel)}`);
+      
+      const details = [
+        `Combustível: ${getFuelLevelLabel(endShiftFuelLevel)}`,
+        endShiftHorimeter && `Horímetro: ${endShiftHorimeter}`,
+        endShiftKm && `KM: ${endShiftKm}`,
+      ].filter(Boolean).join(" | ");
+      
+      toast.success(`Fim de turno registrado. ${details}`);
       
       // Navigate to vehicle selection page
       navigate("/selecao-veiculo", { replace: true });
@@ -174,6 +187,8 @@ export function DriverStatusButtons() {
     // Handle end_of_shift - show dialog instead of immediate action
     if (newStatus === "end_of_shift") {
       setEndShiftFuelLevel("half"); // Reset to default
+      setEndShiftHorimeter(""); // Reset
+      setEndShiftKm(""); // Reset
       setShowEndShiftDialog(true);
       return;
     }
@@ -301,25 +316,62 @@ export function DriverStatusButtons() {
         </CardContent>
       </Card>
 
-      {/* End of Shift Dialog with Fuel Level */}
+      {/* End of Shift Dialog with Fuel Level, Horimeter and KM */}
       <Dialog open={showEndShiftDialog} onOpenChange={setShowEndShiftDialog}>
-        <DialogContent className="sm:max-w-md">
+        <DialogContent className="sm:max-w-md max-h-[90vh] overflow-y-auto">
           <DialogHeader>
             <DialogTitle className="flex items-center gap-2">
               <Power className="h-5 w-5" />
               Finalizar Turno
             </DialogTitle>
             <DialogDescription>
-              Selecione o nível de combustível ao finalizar o turno
+              Informe os dados finais do equipamento
             </DialogDescription>
           </DialogHeader>
 
-          <div className="flex justify-center py-4">
-            <FuelLevelGauge
-              selectedLevel={endShiftFuelLevel}
-              onLevelChange={setEndShiftFuelLevel}
-              disabled={isUpdating}
-            />
+          <div className="space-y-4 py-2">
+            {/* Fuel Level Gauge */}
+            <div className="flex justify-center">
+              <FuelLevelGauge
+                selectedLevel={endShiftFuelLevel}
+                onLevelChange={setEndShiftFuelLevel}
+                disabled={isUpdating}
+              />
+            </div>
+
+            {/* Horimeter and KM inputs */}
+            <div className="grid grid-cols-2 gap-3 pt-2 border-t border-border">
+              <div className="space-y-1.5">
+                <Label htmlFor="horimeter" className="text-xs flex items-center gap-1.5">
+                  <Gauge className="h-3.5 w-3.5" />
+                  Horímetro Final
+                </Label>
+                <Input
+                  id="horimeter"
+                  type="number"
+                  placeholder="Ex: 1234"
+                  value={endShiftHorimeter}
+                  onChange={(e) => setEndShiftHorimeter(e.target.value)}
+                  disabled={isUpdating}
+                  className="h-9"
+                />
+              </div>
+              <div className="space-y-1.5">
+                <Label htmlFor="km" className="text-xs flex items-center gap-1.5">
+                  <Car className="h-3.5 w-3.5" />
+                  KM Final
+                </Label>
+                <Input
+                  id="km"
+                  type="number"
+                  placeholder="Ex: 45678"
+                  value={endShiftKm}
+                  onChange={(e) => setEndShiftKm(e.target.value)}
+                  disabled={isUpdating}
+                  className="h-9"
+                />
+              </div>
+            </div>
           </div>
 
           <DialogFooter className="flex-col sm:flex-row gap-2">
