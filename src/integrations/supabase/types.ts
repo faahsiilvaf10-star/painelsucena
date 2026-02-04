@@ -665,6 +665,7 @@ export type Database = {
       }
       equipment_stop_history: {
         Row: {
+          changed_by_driver: string | null
           created_at: string
           defect_description: string | null
           duration_minutes: number | null
@@ -675,6 +676,7 @@ export type Database = {
           stop_reason: string
         }
         Insert: {
+          changed_by_driver?: string | null
           created_at?: string
           defect_description?: string | null
           duration_minutes?: number | null
@@ -685,6 +687,7 @@ export type Database = {
           stop_reason: string
         }
         Update: {
+          changed_by_driver?: string | null
           created_at?: string
           defect_description?: string | null
           duration_minutes?: number | null
