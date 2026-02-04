@@ -36,6 +36,7 @@ import { ptBR } from "date-fns/locale";
 import { FuelLevelGauge, type FuelLevel } from "./FuelLevelGauge";
 import { useOfflineSync } from "@/hooks/useOfflineSync";
 import { useCreateShiftRecord, useUpdateShiftRecord, useAddStatusToHistory } from "@/hooks/useDailyShiftRecords";
+import { useCreateEquipmentMovement } from "@/hooks/useEquipmentMovements";
 
 type DriverStopReason = StopReason;
 
@@ -121,6 +122,7 @@ export function DriverStatusButtons() {
   const createShiftRecord = useCreateShiftRecord();
   const updateShiftRecord = useUpdateShiftRecord();
   const addStatusToHistory = useAddStatusToHistory();
+  const createEquipmentMovement = useCreateEquipmentMovement();
 
   useEffect(() => {
     const vehicleId = localStorage.getItem("selectedVehicleId");
@@ -207,6 +209,21 @@ export function DriverStatusButtons() {
         shift_end_time: now,
       });
 
+      // Automatically register equipment exit (saída) in equipment_movements
+      // This will trigger the announcement for all users and update "Entrada e Saída" page
+      try {
+        await createEquipmentMovement.mutateAsync({
+          equipment_name: selectedVehicle.name,
+          plate: selectedVehicle.plate,
+          movement_type: "saida",
+          exit_reason: "fim_turno",
+          observation: `Fim de turno - Combustível: ${getFuelLevelLabel(endShiftFuelLevel)}${endShiftHorimeter ? `, Horímetro: ${endShiftHorimeter}` : ""}${endShiftKm ? `, KM: ${endShiftKm}` : ""}`,
+        });
+      } catch (movementError) {
+        console.error("Error creating equipment movement:", movementError);
+        // Don't block the end of shift if movement creation fails
+      }
+
       // Clear the driver field from the equipment
       await supabase
         .from("equipment")
@@ -270,6 +287,20 @@ export function DriverStatusButtons() {
         initial_km: parseFloat(startShiftKm),
         initial_fuel_level: fuelLevel,
       });
+
+      // Automatically register equipment entry (entrada) in equipment_movements
+      // This will trigger the announcement for all users and update "Entrada e Saída" page
+      try {
+        await createEquipmentMovement.mutateAsync({
+          equipment_name: selectedVehicle.name,
+          plate: selectedVehicle.plate,
+          movement_type: "entrada",
+          observation: `Início de turno - Horímetro: ${startShiftHorimeter}, KM: ${startShiftKm}, Combustível: ${getFuelLevelLabel(fuelLevel)}`,
+        });
+      } catch (movementError) {
+        console.error("Error creating equipment movement:", movementError);
+        // Don't block the start of shift if movement creation fails
+      }
 
       await updateStatus.mutateAsync({
         id: selectedVehicleId,
