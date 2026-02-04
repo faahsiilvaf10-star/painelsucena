@@ -411,26 +411,25 @@ export function ExportEquipmentPdfButton({
   };
 
   const getStatusLabel = (stopReason: string | null) => {
-    if (!stopReason || stopReason === "none" || stopReason === "operando") {
+    if (!stopReason || stopReason === "none") {
       return "Operando";
     }
-    switch (stopReason) {
-      case "maintenance":
-        return "Manutenção";
-      case "waiting":
-      case "waiting_front":
-        return "Aguardando Frente";
-      case "end_of_shift":
-        return "Fim de Turno";
-      case "end_of_day":
-        return "Combustível";
-      case "rain":
-        return "Chuva";
-      case "abastecimento":
-        return "Abastecimento";
-      default:
-        return stopReason;
-    }
+    const labels: Record<string, string> = {
+      operando: "Operando",
+      maintenance: "Manutenção",
+      waiting: "Aguardando Frente",
+      waiting_front: "Aguardando Frente",
+      end_of_shift: "Fim de Turno",
+      fim_turno: "Fim de Turno",
+      end_of_day: "Abastecendo",
+      abastecimento: "Abastecendo",
+      rain: "Parado (Chuva)",
+      manutencao_corretiva: "Manutenção Corretiva",
+      manutencao_preventiva: "Manutenção Preventiva",
+      vistoria: "Vistoria",
+      aguardando_frente_servico: "Aguardando Frente",
+    };
+    return labels[stopReason] || stopReason;
   };
 
   const getExitReasonLabel = (reason: string | null) => {
