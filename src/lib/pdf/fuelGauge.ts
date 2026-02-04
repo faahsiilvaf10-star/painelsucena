@@ -63,56 +63,135 @@ export const fuelLevelToPercentage = (level: FuelLevelInput): number => {
   return map[norm] ?? 0;
 };
 
+/**
+ * Returns the needle rotation angle (-60 to 60) based on fuel level.
+ */
+const levelToAngle = (level: string | null | undefined): number => {
+  if (!level) return -60;
+  const norm = String(level).trim().toLowerCase();
+
+  const map: Record<string, number> = {
+    empty: -60,
+    quarter: -30,
+    "1/4": -30,
+    half: 0,
+    "1/2": 0,
+    three_quarters: 30,
+    "3/4": 30,
+    full: 60,
+    cheio: 60,
+    vazio: -60,
+    e: -60,
+    f: 60,
+  };
+
+  return map[norm] ?? -60;
+};
+
+/**
+ * Returns the highlight color for the arc segment based on fuel level.
+ */
+const levelToColor = (level: string | null | undefined): string => {
+  if (!level) return "#ef4444";
+  const norm = String(level).trim().toLowerCase();
+
+  const map: Record<string, string> = {
+    empty: "#ef4444",
+    quarter: "#f97316",
+    "1/4": "#f97316",
+    half: "#eab308",
+    "1/2": "#eab308",
+    three_quarters: "#84cc16",
+    "3/4": "#84cc16",
+    full: "#22c55e",
+    cheio: "#22c55e",
+    vazio: "#ef4444",
+    e: "#ef4444",
+    f: "#22c55e",
+  };
+
+  return map[norm] ?? "#ef4444";
+};
+
+/**
+ * Builds an arc-style fuel gauge SVG identical to the driver panel.
+ */
 export const buildFuelGaugeSvg = (params: {
-  percent: number;
+  percent?: number;
+  level?: string | null;
   width?: number;
   height?: number;
-  fillColor?: string;
 }) => {
-  const width = params.width ?? 58;
-  const height = params.height ?? 72;
+  const width = params.width ?? 100;
+  const height = params.height ?? 60;
 
-  // Layout values inside viewBox
-  const vbW = 58;
-  const vbH = 72;
-  const tankX = 22;
-  const tankY = 6;
-  const tankW = 28;
-  const tankH = 60;
-  const innerPad = 2;
-  const innerX = tankX + innerPad;
-  const innerY = tankY + innerPad;
-  const innerW = tankW - innerPad * 2;
-  const innerH = tankH - innerPad * 2;
+  // Calculate angle from level or percent
+  let angle: number;
+  let highlightColor: string;
 
-  const pct = clamp(params.percent, 0, 100);
-  const fillH = (innerH * pct) / 100;
-  const fillY = innerY + (innerH - fillH);
-  const fillColor = params.fillColor ?? "#f59e0b";
+  if (params.level) {
+    angle = levelToAngle(params.level);
+    highlightColor = levelToColor(params.level);
+  } else {
+    // Convert percent (0-100) to angle (-60 to 60)
+    const pct = clamp(params.percent ?? 0, 0, 100);
+    angle = -60 + (pct / 100) * 120;
+    // Color based on percent
+    if (pct <= 20) highlightColor = "#ef4444";
+    else if (pct <= 40) highlightColor = "#f97316";
+    else if (pct <= 60) highlightColor = "#eab308";
+    else if (pct <= 80) highlightColor = "#84cc16";
+    else highlightColor = "#22c55e";
+  }
 
   return `
     <svg
       width="${width}"
       height="${height}"
-      viewBox="0 0 ${vbW} ${vbH}"
+      viewBox="0 0 120 70"
       xmlns="http://www.w3.org/2000/svg"
       aria-label="Gauge de combustível"
       role="img"
       style="display:block"
     >
-      <!-- Markers -->
-      <text x="4" y="14" font-size="8" font-family="Arial" fill="#111">F</text>
-      <text x="4" y="38" font-size="8" font-family="Arial" fill="#111">½</text>
-      <text x="4" y="66" font-size="8" font-family="Arial" fill="#111">E</text>
+      <!-- Background arc -->
+      <path
+        d="M 10 60 A 50 50 0 0 1 110 60"
+        fill="none"
+        stroke="#e5e5e5"
+        stroke-width="8"
+        stroke-linecap="round"
+      />
+      
+      <!-- Colored segments -->
+      <path d="M 12 55 A 48 48 0 0 1 28 25" fill="none" stroke="#ef4444" stroke-width="6" stroke-linecap="round" opacity="0.3" />
+      <path d="M 32 20 A 48 48 0 0 1 50 12" fill="none" stroke="#f97316" stroke-width="6" stroke-linecap="round" opacity="0.3" />
+      <path d="M 54 10 A 48 48 0 0 1 66 10" fill="none" stroke="#eab308" stroke-width="6" stroke-linecap="round" opacity="0.3" />
+      <path d="M 70 12 A 48 48 0 0 1 88 20" fill="none" stroke="#84cc16" stroke-width="6" stroke-linecap="round" opacity="0.3" />
+      <path d="M 92 25 A 48 48 0 0 1 108 55" fill="none" stroke="#22c55e" stroke-width="6" stroke-linecap="round" opacity="0.3" />
 
-      <!-- Tank background -->
-      <rect x="${tankX}" y="${tankY}" width="${tankW}" height="${tankH}" rx="2" fill="#f5f5f5" stroke="#111" stroke-width="2" />
+      <!-- Highlighted segment based on level -->
+      ${angle <= -45 ? `<path d="M 12 55 A 48 48 0 0 1 28 25" fill="none" stroke="${highlightColor}" stroke-width="6" stroke-linecap="round" />` : ""}
+      ${angle > -45 && angle <= -15 ? `<path d="M 32 20 A 48 48 0 0 1 50 12" fill="none" stroke="${highlightColor}" stroke-width="6" stroke-linecap="round" />` : ""}
+      ${angle > -15 && angle <= 15 ? `<path d="M 54 10 A 48 48 0 0 1 66 10" fill="none" stroke="${highlightColor}" stroke-width="6" stroke-linecap="round" />` : ""}
+      ${angle > 15 && angle <= 45 ? `<path d="M 70 12 A 48 48 0 0 1 88 20" fill="none" stroke="${highlightColor}" stroke-width="6" stroke-linecap="round" />` : ""}
+      ${angle > 45 ? `<path d="M 92 25 A 48 48 0 0 1 108 55" fill="none" stroke="${highlightColor}" stroke-width="6" stroke-linecap="round" />` : ""}
 
-      <!-- Fill -->
-      <rect x="${innerX}" y="${fillY}" width="${innerW}" height="${fillH}" fill="${fillColor}" />
+      <!-- E and F labels -->
+      <text x="8" y="48" font-size="9" font-family="Arial" fill="#666" font-weight="bold">E</text>
+      <text x="106" y="48" font-size="9" font-family="Arial" fill="#666" font-weight="bold">F</text>
 
-      <!-- Tank border on top (keeps fill inside visually) -->
-      <rect x="${tankX}" y="${tankY}" width="${tankW}" height="${tankH}" rx="2" fill="none" stroke="#111" stroke-width="2" />
+      <!-- Center pivot -->
+      <circle cx="60" cy="60" r="6" fill="#fff" stroke="#ccc" stroke-width="2" />
+
+      <!-- Needle pointer -->
+      <g transform="rotate(${angle}, 60, 60)">
+        <line x1="60" y1="60" x2="60" y2="20" stroke="#ef4444" stroke-width="3" stroke-linecap="round" />
+        <polygon points="60,12 55,22 65,22" fill="#ef4444" />
+      </g>
+
+      <!-- Center circle overlay -->
+      <circle cx="60" cy="60" r="4" fill="#ef4444" />
     </svg>
   `;
 };

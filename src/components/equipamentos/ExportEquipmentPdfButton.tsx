@@ -339,12 +339,12 @@ export function ExportEquipmentPdfButton({
                 <div class="fuel-grid">
                   <div class="fuel-item">
                     <div class="mini">INICIAL</div>
-                    <div class="fuel-svg">${buildFuelGaugeSvg({ percent: initialFuelPct, width: 52, height: 70 })}</div>
+                    <div class="fuel-svg">${buildFuelGaugeSvg({ level: params.initialFuelLevel, width: 80, height: 48 })}</div>
                     <div class="mini" style="margin-top: 3px; font-weight: 700; color: #111;">${fuelLevelToLabel(params.initialFuelLevel)}</div>
                   </div>
                   <div class="fuel-item">
                     <div class="mini">FINAL</div>
-                    <div class="fuel-svg">${buildFuelGaugeSvg({ percent: finalFuelPct, width: 52, height: 70 })}</div>
+                    <div class="fuel-svg">${buildFuelGaugeSvg({ level: params.finalFuelLevel ?? params.initialFuelLevel, width: 80, height: 48 })}</div>
                     <div class="mini" style="margin-top: 3px; font-weight: 700; color: #111;">${fuelLevelToLabel(params.finalFuelLevel ?? params.initialFuelLevel)}</div>
                   </div>
                 </div>
