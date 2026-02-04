@@ -71,131 +71,152 @@ export function ExportEquipmentPdfButton({
         <meta name="viewport" content="width=device-width, initial-scale=1.0" />
         <title>Parte Diária de Equipamento - ${params.equipmentName}</title>
         <style>
-          @page { size: A4; margin: 8mm; }
-          * { box-sizing: border-box; }
+          @page { 
+            size: A4 portrait; 
+            margin: 12mm 10mm; 
+          }
+          * { box-sizing: border-box; margin: 0; padding: 0; }
+          html, body {
+            width: 100%;
+            height: 100%;
+          }
           body {
-            margin: 0;
-            padding: 0;
             font-family: Arial, Helvetica, sans-serif;
             color: #000;
-            font-size: 10px;
-            line-height: 1.2;
+            font-size: 11px;
+            line-height: 1.3;
             print-color-adjust: exact;
             -webkit-print-color-adjust: exact;
+            padding: 0;
           }
           .sheet {
             border: 2px solid #000;
+            width: 100%;
+            max-width: 190mm;
+            margin: 0 auto;
           }
           .logo-row {
             display: flex;
             align-items: center;
             justify-content: center;
-            padding: 6px 8px;
+            padding: 8px;
             border-bottom: 1px solid #000;
           }
-          .logo-row img { height: 30px; }
+          .logo-row img { height: 40px; }
 
           .top {
-            display: grid;
-            grid-template-columns: 1fr 210px;
+            display: flex;
             border-bottom: 1px solid #000;
           }
           .top-title {
+            flex: 1;
             background: #e6e6e6;
             font-weight: 700;
             text-align: center;
-            padding: 6px 8px;
+            padding: 8px 10px;
             border-right: 1px solid #000;
-            font-size: 12px;
-            letter-spacing: .3px;
+            font-size: 14px;
+            letter-spacing: .5px;
           }
           .obra {
-            display: grid;
-            grid-template-columns: 60px 1fr;
+            width: 180px;
+            display: flex;
           }
           .obra .label {
             background: #e6e6e6;
             font-weight: 700;
-            padding: 6px 8px;
+            padding: 8px 10px;
             border-right: 1px solid #000;
+            font-size: 11px;
           }
-          .obra .value { padding: 6px 8px; }
+          .obra .value { 
+            flex: 1;
+            padding: 8px 10px; 
+            font-size: 11px;
+          }
 
           .info-row {
-            display: grid;
-            grid-template-columns: 170px 1fr 70px 120px;
+            display: flex;
             border-bottom: 1px solid #000;
           }
           .cell-label {
             background: #f0f0f0;
             font-weight: 700;
-            padding: 5px 8px;
+            padding: 6px 10px;
             border-right: 1px solid #000;
-            font-size: 9px;
+            font-size: 10px;
             text-transform: uppercase;
+            white-space: nowrap;
           }
           .cell-value {
-            padding: 5px 8px;
+            flex: 1;
+            padding: 6px 10px;
             border-right: 1px solid #000;
+            font-size: 11px;
           }
-          .info-row > div:nth-child(4) { border-right: none; }
+          .info-row .cell-value:last-child { border-right: none; }
+          .info-row .cell-label:first-child { width: 150px; }
 
           .main {
-            display: grid;
-            grid-template-columns: 190px 1fr;
-            min-height: 420px;
+            display: flex;
           }
-          .left { border-right: 1px solid #000; }
+          .left { 
+            width: 180px;
+            border-right: 1px solid #000; 
+            flex-shrink: 0;
+          }
+          .right {
+            flex: 1;
+          }
 
           .block-title {
             background: #f0f0f0;
             font-weight: 700;
             text-align: center;
-            padding: 4px 8px;
+            padding: 6px 10px;
             border-bottom: 1px solid #000;
-            font-size: 9px;
+            font-size: 10px;
             text-transform: uppercase;
           }
 
           .pair {
-            display: grid;
-            grid-template-columns: 1fr 1fr;
+            display: flex;
             border-bottom: 1px solid #000;
           }
           .pair .box {
-            padding: 6px 6px;
+            flex: 1;
+            padding: 8px 6px;
             text-align: center;
             border-right: 1px solid #000;
           }
           .pair .box:last-child { border-right: none; }
           .mini {
-            font-size: 8px;
+            font-size: 9px;
             color: #555;
-            margin-bottom: 2px;
+            margin-bottom: 3px;
           }
           .val {
             font-family: monospace;
             font-weight: 700;
-            font-size: 11px;
-            min-height: 14px;
+            font-size: 12px;
+            min-height: 16px;
           }
 
           .fuel {
             border-bottom: 1px solid #000;
-            padding: 6px;
+            padding: 8px;
           }
           .fuel-grid {
-            display: grid;
-            grid-template-columns: 1fr 1fr;
-            gap: 10px;
+            display: flex;
+            justify-content: space-around;
           }
           .fuel-item { text-align: center; }
-          .fuel-item .mini { margin-bottom: 4px; }
+          .fuel-item .mini { margin-bottom: 5px; }
           .fuel-line {
-            height: 18px;
-            border: 1px solid #000;
+            height: 22px;
+            border: 2px solid #000;
             margin: 0 auto;
-            width: 120px;
+            width: 60px;
             background: #fff;
           }
 
@@ -203,9 +224,9 @@ export function ExportEquipmentPdfButton({
             background: #f0f0f0;
             font-weight: 700;
             text-align: center;
-            padding: 4px 8px;
+            padding: 6px 10px;
             border-bottom: 1px solid #000;
-            font-size: 9px;
+            font-size: 10px;
             text-transform: uppercase;
           }
           table {
@@ -214,41 +235,47 @@ export function ExportEquipmentPdfButton({
           }
           .cell {
             border: 1px solid #000;
-            padding: 3px 5px;
-            height: 22px;
-            font-size: 10px;
+            padding: 5px 6px;
+            height: 26px;
+            font-size: 11px;
           }
-          .horario { width: 55px; text-align: center; font-family: monospace; }
-          .as { width: 30px; text-align: center; font-size: 9px; }
+          .horario { width: 60px; text-align: center; font-family: monospace; }
+          .as { width: 35px; text-align: center; font-size: 10px; }
           .desc { width: auto; }
 
           .signatures {
-            display: grid;
-            grid-template-columns: 1fr 1fr 1fr;
-            gap: 10px;
-            padding: 18px 10px 8px;
+            display: flex;
+            justify-content: space-between;
+            padding: 25px 20px 15px;
             border-top: 1px solid #000;
           }
           .sig {
             text-align: center;
+            width: 30%;
           }
           .sig .line {
             border-top: 1px solid #000;
-            margin-top: 28px;
-            margin-bottom: 4px;
+            margin-top: 35px;
+            margin-bottom: 5px;
           }
-          .sig .lbl { font-size: 8px; }
+          .sig .lbl { font-size: 9px; }
 
           .instructions {
             border-top: 1px solid #000;
-            padding: 6px 8px;
-            font-size: 7px;
-            line-height: 1.35;
+            padding: 8px 10px;
+            font-size: 8px;
+            line-height: 1.4;
           }
           .instructions strong { font-weight: 700; }
 
           @media print {
-            body { margin: 0; }
+            html, body { 
+              width: 210mm; 
+              height: 297mm; 
+            }
+            .sheet {
+              page-break-inside: avoid;
+            }
           }
         </style>
       </head>
@@ -276,7 +303,7 @@ export function ExportEquipmentPdfButton({
             <div class="cell-label">PLACA</div>
             <div class="cell-value" style="font-family: monospace;">${params.plate}</div>
           </div>
-          <div class="info-row" style="grid-template-columns: 170px 1fr 70px 120px;">
+          <div class="info-row">
             <div class="cell-label">ABASTECIMENTO</div>
             <div class="cell-value"></div>
             <div class="cell-label">TAG</div>
@@ -312,7 +339,7 @@ export function ExportEquipmentPdfButton({
               </div>
             </div>
 
-            <div>
+            <div class="right">
               <div class="desc-title">DESCRIMINAÇÃO: SERVIÇOS, PARADAS E OBS.</div>
               <table>
                 <thead>
