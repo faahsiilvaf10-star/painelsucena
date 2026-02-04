@@ -114,14 +114,21 @@ export default function ParteDiaria() {
     }
   };
 
-  const getStatusBadge = (stopReason: string | null, vehicleId?: string) => {
+  const getStatusBadge = (stopReason: string | null, vehicleId?: string, hasDriver?: boolean) => {
+    // Only show "Operando" if there's a driver AND the status is none/operando
     if (!stopReason || stopReason === "none" || stopReason === "operando") {
-      return <Badge className="bg-green-500 text-white">Operando</Badge>;
+      if (hasDriver) {
+        return <Badge className="bg-green-500 text-white">Operando</Badge>;
+      } else {
+        return <Badge className="bg-gray-500 text-white">Sem Motorista</Badge>;
+      }
     }
     switch (stopReason) {
       case "maintenance":
         return <Badge className="bg-orange-500 text-white">Manutenção</Badge>;
       case "waiting":
+        // Vehicle selected but driver hasn't clicked "Operar" yet
+        return <Badge className="bg-yellow-500 text-black">Aguardando Início</Badge>;
       case "waiting_front":
         return <Badge className="bg-yellow-500 text-black">Aguardando Frente</Badge>;
       case "end_of_shift":
@@ -259,7 +266,7 @@ export default function ParteDiaria() {
                               movements={movements.filter((m) => m.plate === vehicle.plate)}
                               stopHistory={stopHistory.filter((h) => h.equipment_id === vehicle.id)}
                             />
-                            {getStatusBadge(timeline.currentStatus, vehicle.id)}
+                            {getStatusBadge(timeline.currentStatus, vehicle.id, !!timeline.driver)}
                           </div>
                         </div>
                       </CardHeader>
