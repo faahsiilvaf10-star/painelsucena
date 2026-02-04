@@ -18,6 +18,7 @@ import { supabase } from "@/integrations/supabase/client";
 import { toast } from "sonner";
 import { format } from "date-fns";
 import { ptBR } from "date-fns/locale";
+import { ShiftStartGauge } from "./ShiftStartGauge";
 
 type DriverStopReason = StopReason;
 
@@ -30,13 +31,6 @@ interface StatusButton {
 }
 
 const statusButtons: StatusButton[] = [
-  {
-    id: "iniciar_turno",
-    label: "Iniciar Turno",
-    icon: <Play className="h-5 w-5" />,
-    color: "bg-green-500 hover:bg-green-600 text-white",
-    action: "none",
-  },
   {
     id: "waiting",
     label: "Aguardando Frente",
@@ -98,6 +92,8 @@ export function DriverStatusButtons() {
   const navigate = useNavigate();
   const [selectedVehicleId, setSelectedVehicleId] = useState<string | null>(null);
   const [isUpdating, setIsUpdating] = useState(false);
+  const [gaugeStatus, setGaugeStatus] = useState<StopReason>("none");
+  const [hasStartedShift, setHasStartedShift] = useState(false);
   const { data: equipment = [], isLoading } = useEquipment();
   const { data: profile } = useProfile();
   const updateStatus = useUpdateEquipmentStatus();
@@ -108,8 +104,19 @@ export function DriverStatusButtons() {
     setSelectedVehicleId(vehicleId);
   }, []);
 
+  // Check if shift has been started today
+  useEffect(() => {
+    if (stopHistory.length > 0) {
+      const today = new Date().toDateString();
+      const hasActivityToday = stopHistory.some(h => 
+        new Date(h.started_at).toDateString() === today
+      );
+      setHasStartedShift(hasActivityToday);
+    }
+  }, [stopHistory]);
+
   const selectedVehicle = equipment.find((eq) => eq.id === selectedVehicleId);
-  const currentStatus = selectedVehicle?.stop_reason || "none";
+  const currentStatus = (selectedVehicle?.stop_reason || "none") as string;
   const statusInfo = getStatusLabel(currentStatus);
 
   // Get the current active stop from history (ended_at is null)
@@ -219,6 +226,43 @@ export function DriverStatusButtons() {
     );
   }
 
+  // Function to start shift with selected gauge status
+  const handleStartShift = async () => {
+    if (!selectedVehicleId || !selectedVehicle) {
+      toast.error("Nenhum veículo selecionado");
+      return;
+    }
+
+    setIsUpdating(true);
+    try {
+      const now = new Date().toISOString();
+
+      await updateStatus.mutateAsync({
+        id: selectedVehicleId,
+        stop_reason: gaugeStatus as any,
+        stop_start_time: gaugeStatus !== "none" ? now : null,
+        previousStopReason: currentStatus as any,
+        previousStopStartTime: selectedVehicle.stop_start_time,
+        changed_by_driver: profile?.full_name || null,
+      });
+
+      const statusLabels: Record<string, string> = {
+        none: "Operando",
+        waiting: "Aguardando Frente",
+        rain: "Parado por Chuva",
+        end_of_day: "Abastecendo",
+      };
+
+      setHasStartedShift(true);
+      toast.success(`Turno iniciado: ${statusLabels[gaugeStatus] || gaugeStatus}`);
+    } catch (error) {
+      console.error("Error starting shift:", error);
+      toast.error("Erro ao iniciar turno");
+    } finally {
+      setIsUpdating(false);
+    }
+  };
+
   return (
     <Card>
       <CardHeader className="pb-2 px-3 pt-3 sm:px-6 sm:pt-6">
@@ -239,42 +283,65 @@ export function DriverStatusButtons() {
           </p>
         )}
       </CardHeader>
-      <CardContent className="space-y-2 px-3 pb-3 sm:px-6 sm:pb-6">
-        <div className="grid grid-cols-2 gap-2">
-          {statusButtons.map((btn) => {
-            const isCurrentStatus = 
-              (btn.action === "none" && currentStatus === "none") ||
-              (btn.action !== "none" && currentStatus === btn.action);
-            
-            // "Iniciar Turno" only shows when equipment is NOT operating (e.g., fim_turno or first start)
-            // "Operar" shows when equipment is stopped (not "none")
-            const isOperating = currentStatus === "none";
-            
-            // Hide "Iniciar Turno" when already operating, show "Operar" and "Fim de Turno" only when stopped
-            if (btn.id === "iniciar_turno" && isOperating) return null;
-            if (btn.id === "operar" && isOperating) return null;
-            if (btn.id === "end_of_shift" && currentStatus === "end_of_shift") return null;
+      <CardContent className="space-y-3 px-3 pb-3 sm:px-6 sm:pb-6">
+        {/* Show Gauge when shift not started or status is end_of_shift */}
+        {(!hasStartedShift || currentStatus === "end_of_shift") && (
+          <div className="flex flex-col items-center gap-3 py-2 border-b border-border pb-4">
+            <ShiftStartGauge
+              selectedStatus={gaugeStatus}
+              onStatusChange={setGaugeStatus}
+              disabled={isUpdating}
+            />
+            <Button
+              onClick={handleStartShift}
+              disabled={isUpdating}
+              className="w-full bg-green-500 hover:bg-green-600 text-white"
+            >
+              {isUpdating ? (
+                <Loader2 className="h-4 w-4 animate-spin mr-2" />
+              ) : (
+                <Play className="h-4 w-4 mr-2" />
+              )}
+              Iniciar Turno
+            </Button>
+          </div>
+        )}
 
-            return (
-              <Button
-                key={btn.id}
-                variant="outline"
-                className={`h-auto py-2 sm:py-3 flex flex-col items-center gap-0.5 sm:gap-1 ${
-                  isCurrentStatus ? "ring-2 ring-primary" : ""
-                } ${btn.color}`}
-                onClick={() => handleStatusChange(btn.action)}
-                disabled={isUpdating || isCurrentStatus}
-              >
-                {isUpdating ? (
-                  <Loader2 className="h-4 w-4 sm:h-5 sm:w-5 animate-spin" />
-                ) : (
-                  <span className="[&>svg]:h-4 [&>svg]:w-4 sm:[&>svg]:h-5 sm:[&>svg]:w-5">{btn.icon}</span>
-                )}
-                <span className="text-[10px] sm:text-xs font-medium">{btn.label}</span>
-              </Button>
-            );
-          })}
-        </div>
+        {/* Regular status buttons when shift is active */}
+        {hasStartedShift && currentStatus !== "end_of_shift" && (
+          <div className="grid grid-cols-2 gap-2">
+            {statusButtons.map((btn) => {
+              const isCurrentStatus = 
+                (btn.action === "none" && currentStatus === "none") ||
+                (btn.action !== "none" && currentStatus === btn.action);
+              
+              const isOperating = currentStatus === "none";
+              
+              // Hide "Operar" when already operating
+              if (btn.id === "operar" && isOperating) return null;
+              if (btn.id === "end_of_shift" && currentStatus === "end_of_shift") return null;
+
+              return (
+                <Button
+                  key={btn.id}
+                  variant="outline"
+                  className={`h-auto py-2 sm:py-3 flex flex-col items-center gap-0.5 sm:gap-1 ${
+                    isCurrentStatus ? "ring-2 ring-primary" : ""
+                  } ${btn.color}`}
+                  onClick={() => handleStatusChange(btn.action)}
+                  disabled={isUpdating || isCurrentStatus}
+                >
+                  {isUpdating ? (
+                    <Loader2 className="h-4 w-4 sm:h-5 sm:w-5 animate-spin" />
+                  ) : (
+                    <span className="[&>svg]:h-4 [&>svg]:w-4 sm:[&>svg]:h-5 sm:[&>svg]:w-5">{btn.icon}</span>
+                  )}
+                  <span className="text-[10px] sm:text-xs font-medium">{btn.label}</span>
+                </Button>
+              );
+            })}
+          </div>
+        )}
       </CardContent>
     </Card>
   );
