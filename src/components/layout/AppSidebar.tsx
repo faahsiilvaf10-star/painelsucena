@@ -339,7 +339,7 @@ export function AppSidebar() {
       
       {/* Header with Logo */}
       <SidebarHeader className="border-b border-sidebar-border/50 p-3 md:p-4 relative z-10">
-        <div className="flex items-center justify-between gap-2 md:gap-3">
+        <div className="flex items-center justify-center">
           {!isCollapsed ? (
             <img 
               src={settings.logo_url || logoPrincipal} 
@@ -351,20 +351,24 @@ export function AppSidebar() {
               <span className="text-sm font-bold text-primary-foreground">S</span>
             </div>
           )}
-          <Button
-            variant="ghost"
-            size="icon"
-            onClick={toggleSidebar}
-            className="h-9 w-9 md:h-8 md:w-8 text-sidebar-foreground/70 hover:text-sidebar-foreground hover:bg-sidebar-border/50 shrink-0"
-          >
-            {isCollapsed ? (
-              <PanelLeft className="h-5 w-5 md:h-4 md:w-4" />
-            ) : (
-              <PanelLeftClose className="h-5 w-5 md:h-4 md:w-4" />
-            )}
-          </Button>
         </div>
       </SidebarHeader>
+
+      {/* Floating collapse button - positioned in the middle of sidebar edge */}
+      <Button
+        variant="ghost"
+        size="icon"
+        onClick={toggleSidebar}
+        className={`absolute top-1/2 -translate-y-1/2 z-20 h-8 w-8 rounded-full bg-sidebar-accent/80 backdrop-blur-sm border border-sidebar-border/50 text-sidebar-foreground/70 hover:text-sidebar-foreground hover:bg-sidebar-accent shadow-md transition-all ${
+          isCollapsed ? "right-1/2 translate-x-1/2" : "-right-4"
+        }`}
+      >
+        {isCollapsed ? (
+          <PanelLeft className="h-4 w-4" />
+        ) : (
+          <PanelLeftClose className="h-4 w-4" />
+        )}
+      </Button>
 
       {/* Navigation */}
       <SidebarContent className="relative z-10">
