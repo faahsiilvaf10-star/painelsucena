@@ -253,16 +253,21 @@ export function ExportEquipmentPdfButton({
           .signatures {
             display: flex;
             justify-content: space-between;
-            padding: 25px 20px 15px;
+            padding: 20px 20px 15px;
             border-top: 1px solid #000;
           }
           .sig {
             text-align: center;
             width: 30%;
           }
+          .sig-name {
+            font-weight: bold;
+            font-size: 10px;
+            min-height: 14px;
+          }
           .sig .line {
             border-top: 1px solid #000;
-            margin-top: 35px;
+            margin-top: 20px;
             margin-bottom: 5px;
           }
           .sig .lbl { font-size: 9px; }
@@ -294,7 +299,7 @@ export function ExportEquipmentPdfButton({
             <div class="top-title">PARTE DIÁRIA DE EQUIPAMENTO</div>
             <div class="obra">
               <div class="label">OBRA:</div>
-              <div class="value"></div>
+              <div class="value">460001269</div>
             </div>
           </div>
 
@@ -311,10 +316,8 @@ export function ExportEquipmentPdfButton({
             <div class="cell-value" style="font-family: monospace;">${params.plate}</div>
           </div>
           <div class="info-row">
-            <div class="cell-label">ABASTECIMENTO</div>
-            <div class="cell-value"></div>
-            <div class="cell-label">TAG</div>
-            <div class="cell-value"></div>
+            <div class="cell-label">AJUDANTE</div>
+            <div class="cell-value">${params.helperName || "-"}</div>
           </div>
 
           <div class="main">
@@ -367,9 +370,9 @@ export function ExportEquipmentPdfButton({
           </div>
 
           <div class="signatures">
-            <div class="sig"><div class="line"></div><div class="lbl">Ass. Motorista/Op</div></div>
-            <div class="sig"><div class="line"></div><div class="lbl">Ass. Encarreg./Apontador</div></div>
-            <div class="sig"><div class="line"></div><div class="lbl">Ass. Gerência</div></div>
+            <div class="sig"><div class="sig-name">${params.driverName || ""}</div><div class="line"></div><div class="lbl">Ass. Motorista/Op</div></div>
+            <div class="sig"><div class="sig-name">Creriane Navegantes</div><div class="line"></div><div class="lbl">Ass. Encarreg./Apontador</div></div>
+            <div class="sig"><div class="sig-name">Luís Carlos</div><div class="line"></div><div class="lbl">Ass. Gerência</div></div>
           </div>
 
           <div class="instructions"><strong>INSTRUÇÃO:</strong> ${instructionText}</div>
