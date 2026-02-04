@@ -187,9 +187,40 @@ export default function ParteDiaria() {
       .sort((a, b) => a.movement_time.localeCompare(b.movement_time));
   };
 
+  // Get status label for stop history entries
+  const getStatusLabel = (status: string): string => {
+    const labels: Record<string, string> = {
+      none: "Operando",
+      operando: "Operando",
+      waiting: "Aguardando Frente",
+      waiting_front: "Aguardando Frente",
+      rain: "Parado (Chuva)",
+      end_of_day: "Abastecendo",
+      abastecimento: "Abastecendo",
+      maintenance: "Manutenção",
+      end_of_shift: "Fim de Turno",
+      fim_turno: "Fim de Turno",
+    };
+    return labels[status] || status;
+  };
+
+  // Get today's status history for each vehicle
+  const getTodayStatusHistory = (vehicleId: string) => {
+    const todayStart = new Date();
+    todayStart.setHours(0, 0, 0, 0);
+    
+    return stopHistory
+      .filter((h) => {
+        const startedAt = new Date(h.started_at);
+        return h.equipment_id === vehicleId && startedAt >= todayStart;
+      })
+      .sort((a, b) => new Date(a.started_at).getTime() - new Date(b.started_at).getTime());
+  };
+
   // Get status timeline for each vehicle
   const getVehicleTimeline = (vehicleId: string, plate: string) => {
     const todayMovements = getTodayMovements(plate);
+    const todayStatusHistory = getTodayStatusHistory(vehicleId);
     const vehicle = driverVehicles.find((v) => v.id === vehicleId);
 
     return {
@@ -197,6 +228,7 @@ export default function ParteDiaria() {
       currentStatus: vehicle?.stop_reason || "none",
       stopStartTime: vehicle?.stop_start_time,
       movements: todayMovements,
+      statusHistory: todayStatusHistory,
     };
   };
 
@@ -293,45 +325,56 @@ export default function ParteDiaria() {
                           </div>
                         )}
 
-                        {/* Today's Movements Timeline */}
-                        {timeline.movements.length > 0 && (
+                        {/* Today's Status History Timeline */}
+                        {timeline.statusHistory.length > 0 && (
                           <div className="border-t pt-3">
                             <p className="text-xs font-medium text-muted-foreground mb-2">
                               Movimentações de Hoje
                             </p>
                             <div className="space-y-2 max-h-40 overflow-y-auto">
-                              {timeline.movements.map((movement, idx) => (
-                                <div
-                                  key={idx}
-                                  className="flex items-center gap-2 text-xs"
-                                >
-                                  <span className="font-mono text-muted-foreground w-12">
-                                    {movement.movement_time.slice(0, 5)}
-                                  </span>
-                                  <Badge
-                                    variant={
-                                      movement.movement_type === "entrada"
-                                        ? "default"
-                                        : "secondary"
-                                    }
-                                    className="text-xs"
+                              {timeline.statusHistory.map((status, idx) => {
+                                const statusLabel = getStatusLabel(status.stop_reason);
+                                const isOperando = status.stop_reason === "operando" || status.stop_reason === "none";
+                                const isAbastecimento = status.stop_reason === "abastecimento" || status.stop_reason === "end_of_day";
+                                const isMaintenance = status.stop_reason === "maintenance";
+                                const isEndOfShift = status.stop_reason === "end_of_shift" || status.stop_reason === "fim_turno";
+                                const isWaiting = status.stop_reason === "waiting" || status.stop_reason === "waiting_front";
+                                const isRain = status.stop_reason === "rain";
+                                
+                                return (
+                                  <div
+                                    key={status.id || idx}
+                                    className="flex items-center gap-2 text-xs"
                                   >
-                                    {movement.movement_type === "entrada"
-                                      ? "Entrada"
-                                      : "Saída"}
-                                  </Badge>
-                                  {movement.exit_reason && (
-                                    <span className="text-muted-foreground truncate">
-                                      {movement.exit_reason}
+                                    <span className="font-mono text-muted-foreground w-12">
+                                      {format(new Date(status.started_at), "HH:mm", { locale: ptBR })}
                                     </span>
-                                  )}
-                                </div>
-                              ))}
+                                    <Badge
+                                      className={`text-xs ${
+                                        isOperando ? "bg-green-500 text-white" :
+                                        isAbastecimento ? "bg-cyan-500 text-white" :
+                                        isMaintenance ? "bg-orange-500 text-white" :
+                                        isEndOfShift ? "bg-blue-500 text-white" :
+                                        isWaiting ? "bg-yellow-500 text-black" :
+                                        isRain ? "bg-sky-500 text-white" :
+                                        ""
+                                      }`}
+                                    >
+                                      {statusLabel}
+                                    </Badge>
+                                    {status.defect_description && (
+                                      <span className="text-muted-foreground truncate max-w-[120px]" title={status.defect_description}>
+                                        {status.defect_description}
+                                      </span>
+                                    )}
+                                  </div>
+                                );
+                              })}
                             </div>
                           </div>
                         )}
 
-                        {timeline.movements.length === 0 && !timeline.driver && (
+                        {timeline.statusHistory.length === 0 && !timeline.driver && (
                           <div className="flex items-center gap-2 text-sm text-amber-600">
                             <AlertCircle className="h-4 w-4" />
                             <span>Aguardando seleção do motorista</span>
