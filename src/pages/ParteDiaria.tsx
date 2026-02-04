@@ -28,10 +28,9 @@ import {
   TableHeader,
   TableRow,
 } from "@/components/ui/table";
-import { Truck, Plus, Loader2, Trash2, User, Clock, AlertCircle, Droplets, FileText, Calendar, Fuel, Gauge, Route, Edit } from "lucide-react";
+import { Truck, Plus, Loader2, Trash2, User, Clock, AlertCircle, Droplets } from "lucide-react";
 import { AdminStatusEditor } from "@/components/partediaria/AdminStatusEditor";
 import { ExportEquipmentPdfButton } from "@/components/equipamentos/ExportEquipmentPdfButton";
-import { ExportDailyShiftPdfButton } from "@/components/equipamentos/ExportDailyShiftPdfButton";
 import { useEquipment, useCreateEquipment, useDeleteEquipment, useEquipmentStopHistory } from "@/hooks/useEquipment";
 import { useEquipmentMovements } from "@/hooks/useEquipmentMovements";
 import { useDailyShiftRecords } from "@/hooks/useDailyShiftRecords";
@@ -62,7 +61,7 @@ export default function ParteDiaria() {
   const deleteEquipment = useDeleteEquipment();
   const { isAdmin } = useIsAdmin();
   const { data: profile } = useProfile();
-  const [selectedReportDate, setSelectedReportDate] = useState(format(new Date(), "yyyy-MM-dd"));
+  
 
   // Check if user can edit (admin or aux_administrativo)
   const canEdit = isAdmin || profile?.cargo === "aux_administrativo";
@@ -260,7 +259,6 @@ export default function ParteDiaria() {
         <Tabs defaultValue="status" className="space-y-4">
           <TabsList>
             <TabsTrigger value="status">Status dos Veículos</TabsTrigger>
-            <TabsTrigger value="relatorios">Relatórios do Dia</TabsTrigger>
             {canEdit && (
               <TabsTrigger value="equipamentos">Cadastro de Equipamentos</TabsTrigger>
             )}
@@ -428,151 +426,6 @@ export default function ParteDiaria() {
             )}
           </TabsContent>
 
-          {/* Reports Tab */}
-          <TabsContent value="relatorios" className="space-y-4">
-            <Card>
-              <CardHeader>
-                <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
-                  <CardTitle className="flex items-center gap-2">
-                    <FileText className="h-5 w-5" />
-                    Relatórios Diários de Turno
-                  </CardTitle>
-                  <div className="flex items-center gap-2">
-                    <Label htmlFor="report-date" className="text-sm text-muted-foreground whitespace-nowrap">
-                      Filtrar por data:
-                    </Label>
-                    <Input
-                      id="report-date"
-                      type="date"
-                      value={selectedReportDate}
-                      onChange={(e) => setSelectedReportDate(e.target.value)}
-                      className="w-auto"
-                    />
-                  </div>
-                </div>
-              </CardHeader>
-              <CardContent>
-                {isLoadingRecords ? (
-                  <div className="flex justify-center py-12">
-                    <Loader2 className="h-8 w-8 animate-spin text-primary" />
-                  </div>
-                ) : (
-                  (() => {
-                    const filteredRecords = shiftRecords.filter(
-                      (record) => record.shift_date === selectedReportDate
-                    );
-
-                    if (filteredRecords.length === 0) {
-                      return (
-                        <div className="text-center py-12">
-                          <FileText className="h-12 w-12 mx-auto mb-4 text-muted-foreground" />
-                          <p className="text-muted-foreground">
-                            Nenhum registro encontrado para {format(new Date(selectedReportDate + "T12:00:00"), "dd/MM/yyyy", { locale: ptBR })}.
-                          </p>
-                          <p className="text-sm text-muted-foreground mt-2">
-                            Os relatórios são gerados automaticamente quando os motoristas iniciam seus turnos.
-                          </p>
-                        </div>
-                      );
-                    }
-
-                    return (
-                      <div className="grid gap-4 md:grid-cols-2 xl:grid-cols-3">
-                        {filteredRecords.map((record) => {
-                          const hoursWorked = record.initial_horimeter && record.final_horimeter
-                            ? (record.final_horimeter - record.initial_horimeter).toFixed(1)
-                            : null;
-                          const kmTraveled = record.initial_km && record.final_km
-                            ? (record.final_km - record.initial_km).toFixed(1)
-                            : null;
-
-                          return (
-                            <Card key={record.id} className="overflow-hidden border-2">
-                              <CardHeader className="pb-3 bg-muted/30">
-                                <div className="flex items-center justify-between">
-                                  <div className="flex items-center gap-3">
-                                    <div className="p-2 rounded-lg bg-primary/10 text-primary">
-                                      <Truck className="h-5 w-5" />
-                                    </div>
-                                    <div>
-                                      <CardTitle className="text-lg">{record.equipment_name}</CardTitle>
-                                      <p className="text-sm text-muted-foreground font-mono">
-                                        {record.plate}
-                                      </p>
-                                    </div>
-                                  </div>
-                                  <div className="flex items-center gap-2">
-                                    {isAdmin && (
-                                      <AdminStatusEditor
-                                        equipmentId={record.equipment_id}
-                                        equipmentName={record.equipment_name}
-                                        shiftDate={record.shift_date}
-                                      />
-                                    )}
-                                    <ExportDailyShiftPdfButton record={record} />
-                                  </div>
-                                </div>
-                              </CardHeader>
-                              <CardContent className="pt-4 space-y-4">
-                                {/* Team */}
-                                <div className="grid grid-cols-2 gap-4">
-                                  <div className="space-y-1">
-                                    <p className="text-xs text-muted-foreground uppercase">Motorista</p>
-                                    <p className="font-medium text-sm">{record.driver_name}</p>
-                                  </div>
-                                  <div className="space-y-1">
-                                    <p className="text-xs text-muted-foreground uppercase">Ajudante</p>
-                                    <p className="font-medium text-sm">{record.helper_name || "-"}</p>
-                                  </div>
-                                </div>
-
-                                {/* Telemetry */}
-                                <div className="grid grid-cols-3 gap-3">
-                                  <div className="p-3 rounded-lg bg-muted/50 text-center">
-                                    <Gauge className="h-4 w-4 mx-auto mb-1 text-muted-foreground" />
-                                    <p className="text-xs text-muted-foreground">Horímetro</p>
-                                    <p className="font-bold text-sm">
-                                      {hoursWorked ? `${hoursWorked}h` : "-"}
-                                    </p>
-                                  </div>
-                                  <div className="p-3 rounded-lg bg-muted/50 text-center">
-                                    <Route className="h-4 w-4 mx-auto mb-1 text-muted-foreground" />
-                                    <p className="text-xs text-muted-foreground">KM</p>
-                                    <p className="font-bold text-sm">
-                                      {kmTraveled ? `${kmTraveled} km` : "-"}
-                                    </p>
-                                  </div>
-                                  <div className="p-3 rounded-lg bg-muted/50 text-center">
-                                    <Fuel className="h-4 w-4 mx-auto mb-1 text-muted-foreground" />
-                                    <p className="text-xs text-muted-foreground">Combustível</p>
-                                    <p className="font-bold text-sm capitalize">
-                                      {record.final_fuel_level || record.initial_fuel_level || "-"}
-                                    </p>
-                                  </div>
-                                </div>
-
-                                {/* Stats Summary */}
-                                <div className="flex items-center justify-between text-xs text-muted-foreground border-t pt-3">
-                                  <span className="flex items-center gap-1">
-                                    <Clock className="h-3 w-3" />
-                                    {record.status_history.length} alterações de status
-                                  </span>
-                                  <span className="flex items-center gap-1">
-                                    <Droplets className="h-3 w-3" />
-                                    {record.refueling_points.length} abastecimentos
-                                  </span>
-                                </div>
-                              </CardContent>
-                            </Card>
-                          );
-                        })}
-                      </div>
-                    );
-                  })()
-                )}
-              </CardContent>
-            </Card>
-          </TabsContent>
 
           {/* Equipment Registration Tab */}
           {canEdit && (
