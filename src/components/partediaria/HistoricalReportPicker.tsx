@@ -7,13 +7,13 @@ import {
   PopoverTrigger,
 } from "@/components/ui/popover";
 import { CalendarDays, FileText, Loader2 } from "lucide-react";
-import { format, subDays } from "date-fns";
+import { format } from "date-fns";
 import { ptBR } from "date-fns/locale";
 import { cn } from "@/lib/utils";
 import { toast } from "sonner";
 import { supabase } from "@/integrations/supabase/client";
 import { getLogoBase64 } from "@/lib/pdfLogo";
-import { buildFuelGaugeSvg, fuelLevelToLabel, fuelLevelToPercentage } from "@/lib/pdf/fuelGauge";
+import { buildFuelGaugeSvg, fuelLevelToLabel } from "@/lib/pdf/fuelGauge";
 import type { StatusHistoryEntry } from "@/hooks/useDailyShiftRecords";
 
 interface HistoricalReportPickerProps {
@@ -78,17 +78,22 @@ export function HistoricalReportPicker({ equipmentId, equipmentName, plate }: Hi
   const [selectedDate, setSelectedDate] = useState<Date | undefined>(undefined);
   const [isExporting, setIsExporting] = useState(false);
 
-  const handleDateSelect = async (date: Date | undefined) => {
-    if (!date) return;
-    
+  const handleDateSelect = (date: Date | undefined) => {
     setSelectedDate(date);
-    setIsExporting(true);
     setIsOpen(false);
+  };
+
+  const handleExportPdf = async () => {
+    if (!selectedDate) {
+      toast.error("Selecione uma data primeiro");
+      return;
+    }
+
+    setIsExporting(true);
 
     try {
-      const formattedDateForQuery = format(date, "yyyy-MM-dd");
+      const formattedDateForQuery = format(selectedDate, "yyyy-MM-dd");
       
-      // Fetch the shift record for this equipment on this date
       const { data: records, error } = await supabase
         .from("daily_shift_records")
         .select("*")
@@ -101,13 +106,12 @@ export function HistoricalReportPicker({ equipmentId, equipmentName, plate }: Hi
       }
 
       if (!records) {
-        toast.error(`Nenhum registro encontrado para ${format(date, "dd/MM/yyyy", { locale: ptBR })}`);
+        toast.error(`Nenhum registro encontrado para ${format(selectedDate, "dd/MM/yyyy", { locale: ptBR })}`);
         setIsExporting(false);
         return;
       }
 
-      // Generate PDF
-      await generatePDF(records, date);
+      await generatePDF(records, selectedDate);
       
     } catch (error) {
       console.error("Error fetching record:", error);
@@ -122,7 +126,6 @@ export function HistoricalReportPicker({ equipmentId, equipmentName, plate }: Hi
       const logoBase64 = await getLogoBase64();
       const formattedDate = format(date, "dd/MM/yyyy", { locale: ptBR });
       
-      // Fetch exit movement for this equipment on this date
       const { data: exitMovements } = await supabase
         .from("equipment_movements")
         .select("movement_time, exit_reason, problem_description, observation")
@@ -142,13 +145,11 @@ export function HistoricalReportPicker({ equipmentId, equipmentName, plate }: Hi
 
       const statusHistory = Array.isArray(record.status_history) ? record.status_history : [];
       
-      // Sort history by time
       const sortedHistory = [...statusHistory].sort(
         (a: StatusHistoryEntry, b: StatusHistoryEntry) => 
           new Date(a.timestamp).getTime() - new Date(b.timestamp).getTime()
       );
 
-      // Filter out consecutive duplicate statuses
       const filteredHistory = sortedHistory.filter(
         (entry: StatusHistoryEntry, index: number, arr: StatusHistoryEntry[]) => {
           if (index === 0) return true;
@@ -157,7 +158,6 @@ export function HistoricalReportPicker({ equipmentId, equipmentName, plate }: Hi
         }
       );
 
-      // Generate activity rows
       const activityRows: string[] = [];
       for (let i = 0; i < filteredHistory.length; i++) {
         const entry = filteredHistory[i];
@@ -190,7 +190,6 @@ export function HistoricalReportPicker({ equipmentId, equipmentName, plate }: Hi
         `);
       }
 
-      // Fill with empty rows
       const totalRows = 12;
       const emptyRowsCount = Math.max(0, totalRows - activityRows.length);
       for (let i = 0; i < emptyRowsCount; i++) {
@@ -406,39 +405,65 @@ export function HistoricalReportPicker({ equipmentId, equipmentName, plate }: Hi
   };
 
   return (
-    <Popover open={isOpen} onOpenChange={setIsOpen}>
-      <PopoverTrigger asChild>
-        <Button
-          variant="ghost"
-          size="icon"
-          className="h-8 w-8"
-          disabled={isExporting}
-          title="Ver relatórios anteriores"
-        >
-          {isExporting ? (
-            <Loader2 className="h-4 w-4 animate-spin" />
-          ) : (
+    <div className="flex items-center gap-0.5">
+      {/* Date Picker */}
+      <Popover open={isOpen} onOpenChange={setIsOpen}>
+        <PopoverTrigger asChild>
+          <Button
+            variant="ghost"
+            size="icon"
+            className={cn(
+              "h-8 w-8",
+              selectedDate && "text-primary"
+            )}
+            title={selectedDate 
+              ? `Data selecionada: ${format(selectedDate, "dd/MM/yyyy", { locale: ptBR })}` 
+              : "Selecionar data"
+            }
+          >
             <CalendarDays className="h-4 w-4" />
-          )}
-        </Button>
-      </PopoverTrigger>
-      <PopoverContent className="w-auto p-0" align="end">
-        <div className="p-3 border-b">
-          <p className="text-sm font-medium">Selecione uma data</p>
-          <p className="text-xs text-muted-foreground">
-            Gerar PDF do relatório do dia
-          </p>
-        </div>
-        <Calendar
-          mode="single"
-          selected={selectedDate}
-          onSelect={handleDateSelect}
-          disabled={(date) => date > new Date()}
-          initialFocus
-          className={cn("p-3 pointer-events-auto")}
-          locale={ptBR}
-        />
-      </PopoverContent>
-    </Popover>
+          </Button>
+        </PopoverTrigger>
+        <PopoverContent className="w-auto p-0" align="end">
+          <div className="p-3 border-b">
+            <p className="text-sm font-medium">Selecione uma data</p>
+            <p className="text-xs text-muted-foreground">
+              Para gerar PDF do relatório histórico
+            </p>
+          </div>
+          <Calendar
+            mode="single"
+            selected={selectedDate}
+            onSelect={handleDateSelect}
+            disabled={(date) => date > new Date()}
+            initialFocus
+            className={cn("p-3 pointer-events-auto")}
+            locale={ptBR}
+          />
+        </PopoverContent>
+      </Popover>
+
+      {/* PDF Export Button */}
+      <Button
+        variant="ghost"
+        size="icon"
+        className={cn(
+          "h-8 w-8",
+          selectedDate ? "text-amber-600 hover:text-amber-700" : "text-muted-foreground"
+        )}
+        disabled={!selectedDate || isExporting}
+        onClick={handleExportPdf}
+        title={selectedDate 
+          ? `Gerar PDF de ${format(selectedDate, "dd/MM/yyyy", { locale: ptBR })}` 
+          : "Selecione uma data primeiro"
+        }
+      >
+        {isExporting ? (
+          <Loader2 className="h-4 w-4 animate-spin" />
+        ) : (
+          <FileText className="h-4 w-4" />
+        )}
+      </Button>
+    </div>
   );
 }
