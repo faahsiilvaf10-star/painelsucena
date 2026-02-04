@@ -217,13 +217,13 @@ export default function SelecaoVeiculo() {
             </CardContent>
           </Card>
 
-          {/* Helper/Sinaleiro Name Input */}
-          <Card className="mt-4 border-primary/30 bg-primary/5">
+          {/* Helper/Sinaleiro Name Input - REQUIRED */}
+          <Card className={`mt-4 ${helperName.trim() ? 'border-primary/30 bg-primary/5' : 'border-destructive/50 bg-destructive/5'}`}>
             <CardContent className="p-3">
               <div className="flex items-center gap-2 mb-2">
-                <UserPlus className="h-4 w-4 text-primary" />
+                <UserPlus className={`h-4 w-4 ${helperName.trim() ? 'text-primary' : 'text-destructive'}`} />
                 <Label htmlFor="helper-name" className="text-sm font-semibold">
-                  {helperLabel} (opcional)
+                  {helperLabel} <span className="text-destructive">*</span>
                 </Label>
               </div>
               <Input
@@ -231,8 +231,14 @@ export default function SelecaoVeiculo() {
                 placeholder={helperPlaceholder}
                 value={helperName}
                 onChange={(e) => setHelperName(e.target.value)}
-                className="h-10 text-sm"
+                className={`h-10 text-sm ${!helperName.trim() ? 'border-destructive/50 focus-visible:ring-destructive' : ''}`}
+                required
               />
+              {!helperName.trim() && (
+                <p className="text-xs text-destructive mt-1">
+                  Campo obrigatório para iniciar o turno
+                </p>
+              )}
             </CardContent>
           </Card>
 
@@ -240,7 +246,7 @@ export default function SelecaoVeiculo() {
           <div className="mt-4 pb-6">
             <Button
               className="w-full h-12 text-base font-bold"
-              disabled={isConfirming}
+              disabled={isConfirming || !helperName.trim()}
               onClick={handleConfirm}
             >
               {isConfirming ? (
@@ -357,19 +363,19 @@ export default function SelecaoVeiculo() {
               ))}
             </div>
 
-            {/* Helper/Sinaleiro Name Input - Show only when vehicle is selected */}
+            {/* Helper/Sinaleiro Name Input - Show only when vehicle is selected - REQUIRED */}
             {selectedVehicle && (() => {
               const selectedVehicleData = availableVehicles.find(v => v.id === selectedVehicle);
               const helperLabel = selectedVehicleData ? getHelperLabel(selectedVehicleData.equipment_type) : "Nome do Ajudante";
               const helperPlaceholder = selectedVehicleData ? getHelperPlaceholder(selectedVehicleData.equipment_type) : "Digite o nome do ajudante";
               
               return (
-                <Card className="mt-4 border-primary/30 bg-primary/5">
+                <Card className={`mt-4 ${helperName.trim() ? 'border-primary/30 bg-primary/5' : 'border-destructive/50 bg-destructive/5'}`}>
                   <CardContent className="p-3">
                     <div className="flex items-center gap-2 mb-2">
-                      <UserPlus className="h-4 w-4 text-primary" />
+                      <UserPlus className={`h-4 w-4 ${helperName.trim() ? 'text-primary' : 'text-destructive'}`} />
                       <Label htmlFor="helper-name" className="text-sm font-semibold">
-                        {helperLabel} (opcional)
+                        {helperLabel} <span className="text-destructive">*</span>
                       </Label>
                     </div>
                     <Input
@@ -377,8 +383,14 @@ export default function SelecaoVeiculo() {
                       placeholder={helperPlaceholder}
                       value={helperName}
                       onChange={(e) => setHelperName(e.target.value)}
-                      className="h-10 text-sm"
+                      className={`h-10 text-sm ${!helperName.trim() ? 'border-destructive/50 focus-visible:ring-destructive' : ''}`}
+                      required
                     />
+                    {!helperName.trim() && (
+                      <p className="text-xs text-destructive mt-1">
+                        Campo obrigatório para iniciar o turno
+                      </p>
+                    )}
                   </CardContent>
                 </Card>
               );
@@ -388,7 +400,7 @@ export default function SelecaoVeiculo() {
             <div className="mt-4 pb-6">
               <Button
                 className="w-full h-12 text-base font-bold"
-                disabled={!selectedVehicle || isConfirming}
+                disabled={!selectedVehicle || isConfirming || !helperName.trim()}
                 onClick={handleConfirm}
               >
                 {isConfirming ? (
