@@ -246,8 +246,8 @@ export default function RDO() {
       .join("\n");
 
     // Fixed equipment that always appears in all RDOs
-    const fixedEquipmentText = `   • 01 Veículo Leve - SNJ9G70
-   • 01 Ônibus - SMY7A93`;
+    const fixedEquipmentText = `   • Veículo Leve - SNJ9G70
+   • Ônibus - SMY7A93`;
 
     // Build operating equipment text with driver, helper and plate
     const dynamicEquipmentText = equipmentSummary.operatingEquipment.length > 0
