@@ -84,18 +84,17 @@ export function useUpdateEquipmentStatus() {
         });
       }
 
-      // If we're starting a new stop (not "none"), create a history entry marked as "in progress"
-      if (stop_reason !== "none") {
-        await supabase.from("equipment_stop_history").insert({
-          equipment_id: id,
-          stop_reason: stop_reason,
-          started_at: stop_start_time || now.toISOString(),
-          ended_at: null,
-          duration_minutes: null,
-          defect_description: stop_reason === "maintenance" ? defect_description : null,
-          changed_by_driver: changed_by_driver || null,
-        });
-      }
+      // Always create a history entry for status changes, including "none" (Operando)
+      // This ensures "Movimentações de Hoje" shows all status transitions including return to operation
+      await supabase.from("equipment_stop_history").insert({
+        equipment_id: id,
+        stop_reason: stop_reason === "none" ? "operando" : stop_reason,
+        started_at: stop_start_time || now.toISOString(),
+        ended_at: stop_reason === "none" ? now.toISOString() : null, // Operando entries are instant
+        duration_minutes: stop_reason === "none" ? 0 : null,
+        defect_description: stop_reason === "maintenance" ? defect_description : null,
+        changed_by_driver: changed_by_driver || null,
+      });
 
       const { data, error } = await supabase
         .from("equipment")
