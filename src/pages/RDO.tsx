@@ -313,11 +313,6 @@ ${gabiaoFromReport}
 \uD83D\uDC77 Efetivo \uD83D\uDC77
 ${gabiaoWorkforce}
 
-\uD83D\uDE9C EQUIPAMENTOS
-${equipmentText}
-
-Total: ${String(equipmentSummary.total).padStart(2, "0")} Equipamentos
-
 \u2705 EQUIPAMENTOS EM OPERAÇÃO (${equipmentSummary.operatingEquipment.length + 2})
 ${operatingEquipmentText}
 
