@@ -16,6 +16,7 @@ import { toast } from "sonner";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { DriverStatusButtons } from "@/components/driver/DriverStatusButtons";
 import { SyncIndicator } from "@/components/driver/SyncIndicator";
+import { ClearEquipmentDialog } from "@/components/driver/ClearEquipmentDialog";
 import { useEquipment } from "@/hooks/useEquipment";
 import { useOfflineSync } from "@/hooks/useOfflineSync";
 
@@ -143,6 +144,9 @@ const PainelMotorista = () => {
             lastSyncTime={lastSyncTime}
             onSync={triggerSync}
           />
+          
+          {/* Clear Equipment Button */}
+          <ClearEquipmentDialog />
           
           {/* Logout Button */}
           <Button
