@@ -1,4 +1,6 @@
+import { useEffect } from "react";
 import { useNavigate } from "react-router-dom";
+import { useTheme } from "next-themes";
 import { Card, CardContent } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { 
@@ -29,6 +31,20 @@ interface QuickAccessItem {
 }
 
 const PainelMotorista = () => {
+  const { setTheme, theme } = useTheme();
+  
+  // Force light theme on this page
+  useEffect(() => {
+    const previousTheme = theme;
+    setTheme("light");
+    
+    return () => {
+      // Restore previous theme when leaving the page
+      if (previousTheme) {
+        setTheme(previousTheme);
+      }
+    };
+  }, []);
   const navigate = useNavigate();
   const { data: profile } = useProfile();
   const { data: equipment = [] } = useEquipment();
