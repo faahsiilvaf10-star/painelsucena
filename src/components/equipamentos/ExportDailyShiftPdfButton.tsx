@@ -229,11 +229,17 @@ export function ExportDailyShiftPdfButton({ record, isLoading }: ExportDailyShif
             }
             .telemetry-grid {
               display: grid;
-              grid-template-columns: 1fr 1fr 1fr 1fr;
+              grid-template-columns: repeat(2, 1fr);
               gap: 15px;
               align-items: start;
             }
+            .gauges-row {
+              display: flex;
+              gap: 15px;
+              grid-column: span 2;
+            }
             .gauge-container {
+              flex: 1;
               display: flex;
               flex-direction: column;
               align-items: center;
@@ -336,13 +342,15 @@ export function ExportDailyShiftPdfButton({ record, isLoading }: ExportDailyShif
           <div class="section">
             <div class="section-title">📊 Telemetria</div>
             <div class="telemetry-grid">
-              <div class="gauge-container">
-                <div class="gauge-label">Combustível Inicial</div>
-                ${getFuelGaugeSvg(record.initial_fuel_level)}
-              </div>
-              <div class="gauge-container">
-                <div class="gauge-label">Combustível Final</div>
-                ${getFuelGaugeSvg(record.final_fuel_level || record.initial_fuel_level)}
+              <div class="gauges-row">
+                <div class="gauge-container">
+                  <div class="gauge-label">Combustível Inicial</div>
+                  ${getFuelGaugeSvg(record.initial_fuel_level)}
+                </div>
+                <div class="gauge-container">
+                  <div class="gauge-label">Combustível Final</div>
+                  ${getFuelGaugeSvg(record.final_fuel_level || record.initial_fuel_level)}
+                </div>
               </div>
               <div class="telemetry-table">
                 <h4>Horímetro</h4>
