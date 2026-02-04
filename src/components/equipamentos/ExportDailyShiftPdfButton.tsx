@@ -47,10 +47,18 @@ export function ExportDailyShiftPdfButton({ record, isLoading }: ExportDailyShif
         return;
       }
 
-      // Generate activity rows from status history
+      // Filter out consecutive duplicate statuses from history
+      const filteredHistory = record.status_history.filter(
+        (entry: StatusHistoryEntry, index: number, arr: StatusHistoryEntry[]) => {
+          if (index === 0) return true;
+          return entry.status !== arr[index - 1].status;
+        }
+      );
+
+      // Generate activity rows from filtered status history
       const activityRows: string[] = [];
-      record.status_history.forEach((entry: StatusHistoryEntry, index: number) => {
-        const nextEntry = record.status_history[index + 1];
+      filteredHistory.forEach((entry: StatusHistoryEntry, index: number) => {
+        const nextEntry = filteredHistory[index + 1];
         const startTime = format(new Date(entry.timestamp), "HH:mm", { locale: ptBR });
         const endTime = nextEntry 
           ? format(new Date(nextEntry.timestamp), "HH:mm", { locale: ptBR })

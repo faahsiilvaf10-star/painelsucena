@@ -248,6 +248,13 @@ export function useAddStatusToHistory() {
         ? (current.status_history as unknown as StatusHistoryEntry[])
         : [];
       
+      // Check if the last status is the same - if so, don't add duplicate
+      const lastEntry = currentHistory[currentHistory.length - 1];
+      if (lastEntry && lastEntry.status === status) {
+        // Same status, don't add duplicate - return current record
+        return null;
+      }
+      
       const newEntry = {
         status,
         timestamp: now,
