@@ -20,3 +20,6 @@ verify_jwt = false
 
 [functions.calculate-overtime-summary]
 verify_jwt = false
+
+[functions.auto-end-shift]
+verify_jwt = false
