@@ -48,26 +48,25 @@ const getFuelGaugeSvg = (level: string | null): string => {
   };
   
   const percentage = levelPercentages[level || "half"] || 50;
-  const fillHeight = Math.round((percentage / 100) * 60);
-  const yPosition = 70 - fillHeight;
+  const fillHeight = Math.round((percentage / 100) * 40);
+  const yPosition = 50 - fillHeight;
   
   return `
-    <svg width="80" height="100" viewBox="0 0 80 100" xmlns="http://www.w3.org/2000/svg">
+    <svg width="50" height="65" viewBox="0 0 50 65" xmlns="http://www.w3.org/2000/svg">
       <!-- Fuel tank outline -->
-      <rect x="10" y="10" width="60" height="70" rx="5" fill="none" stroke="#333" stroke-width="2"/>
+      <rect x="8" y="8" width="34" height="45" rx="3" fill="none" stroke="#333" stroke-width="1.5"/>
       <!-- Fuel level fill -->
-      <rect x="12" y="${yPosition}" width="56" height="${fillHeight}" rx="3" fill="#f59e0b"/>
+      <rect x="10" y="${yPosition + 3}" width="30" height="${fillHeight}" rx="2" fill="#f59e0b"/>
       <!-- Level markers -->
-      <line x1="5" y1="17" x2="10" y2="17" stroke="#666" stroke-width="1"/>
-      <text x="3" y="20" font-size="8" fill="#666" text-anchor="end">F</text>
-      <line x1="5" y1="42" x2="10" y2="42" stroke="#666" stroke-width="1"/>
-      <text x="3" y="45" font-size="8" fill="#666" text-anchor="end">1/2</text>
-      <line x1="5" y1="67" x2="10" y2="67" stroke="#666" stroke-width="1"/>
-      <text x="3" y="70" font-size="8" fill="#666" text-anchor="end">E</text>
+      <line x1="4" y1="12" x2="8" y2="12" stroke="#666" stroke-width="1"/>
+      <text x="3" y="14" font-size="6" fill="#666" text-anchor="end">F</text>
+      <line x1="4" y1="30" x2="8" y2="30" stroke="#666" stroke-width="1"/>
+      <line x1="4" y1="48" x2="8" y2="48" stroke="#666" stroke-width="1"/>
+      <text x="3" y="50" font-size="6" fill="#666" text-anchor="end">E</text>
       <!-- Fuel cap -->
-      <rect x="30" y="5" width="20" height="8" rx="2" fill="#555"/>
+      <rect x="18" y="4" width="14" height="5" rx="1" fill="#555"/>
       <!-- Level text -->
-      <text x="40" y="92" font-size="10" fill="#333" text-anchor="middle" font-weight="bold">${getFuelLevelLabel(level)}</text>
+      <text x="25" y="62" font-size="8" fill="#333" text-anchor="middle" font-weight="bold">${getFuelLevelLabel(level)}</text>
     </svg>
   `;
 };
@@ -136,91 +135,91 @@ export function ExportDailyShiftPdfButton({ record, isLoading }: ExportDailyShif
           <style>
             @page {
               size: A4;
-              margin: 15mm;
+              margin: 10mm;
             }
             body {
               font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
               margin: 0;
-              padding: 20px;
+              padding: 10px;
               background: white;
               color: #1f2937;
-              font-size: 12px;
-              line-height: 1.5;
+              font-size: 9px;
+              line-height: 1.3;
             }
             .header {
               display: flex;
               align-items: center;
               justify-content: space-between;
-              border-bottom: 3px solid #f59e0b;
-              padding-bottom: 15px;
-              margin-bottom: 20px;
+              border-bottom: 2px solid #f59e0b;
+              padding-bottom: 8px;
+              margin-bottom: 10px;
             }
             .header-left {
               display: flex;
               align-items: center;
-              gap: 15px;
+              gap: 10px;
             }
             .logo {
-              height: 50px;
+              height: 35px;
             }
             .header-title h1 {
               margin: 0;
-              font-size: 20px;
+              font-size: 14px;
               color: #1f2937;
             }
             .header-title p {
-              margin: 4px 0 0 0;
+              margin: 2px 0 0 0;
               color: #6b7280;
-              font-size: 12px;
+              font-size: 9px;
             }
             .vehicle-badge {
               background: linear-gradient(135deg, #f59e0b, #d97706);
               color: white;
-              padding: 10px 20px;
-              border-radius: 8px;
+              padding: 6px 12px;
+              border-radius: 6px;
               text-align: center;
             }
             .vehicle-badge h2 {
               margin: 0;
-              font-size: 16px;
+              font-size: 11px;
             }
             .vehicle-badge p {
-              margin: 4px 0 0 0;
-              font-size: 14px;
+              margin: 2px 0 0 0;
+              font-size: 10px;
               font-family: monospace;
             }
             .section {
-              margin-bottom: 20px;
+              margin-bottom: 8px;
               break-inside: avoid;
             }
             .section-title {
-              font-size: 14px;
+              font-size: 10px;
               font-weight: 600;
               color: #374151;
-              margin-bottom: 10px;
-              padding-bottom: 5px;
-              border-bottom: 2px solid #f3f4f6;
+              margin-bottom: 4px;
+              padding-bottom: 2px;
+              border-bottom: 1px solid #e5e7eb;
             }
             .info-grid {
               display: grid;
               grid-template-columns: repeat(2, 1fr);
-              gap: 15px;
+              gap: 8px;
             }
             .info-box {
               background: #f9fafb;
               border: 1px solid #e5e7eb;
-              border-radius: 8px;
-              padding: 12px;
+              border-radius: 4px;
+              padding: 6px;
             }
             .info-box label {
               display: block;
-              font-size: 10px;
+              font-size: 7px;
               color: #6b7280;
               text-transform: uppercase;
-              margin-bottom: 4px;
+              margin-bottom: 2px;
             }
             .info-box .value {
-              font-size: 16px;
+              font-size: 10px;
               font-weight: 600;
               color: #1f2937;
             }
@@ -229,47 +228,41 @@ export function ExportDailyShiftPdfButton({ record, isLoading }: ExportDailyShif
             }
             .telemetry-grid {
               display: grid;
-              grid-template-columns: repeat(2, 1fr);
-              gap: 15px;
+              grid-template-columns: repeat(4, 1fr);
+              gap: 8px;
               align-items: start;
             }
-            .gauges-row {
-              display: flex;
-              gap: 15px;
-              grid-column: span 2;
-            }
             .gauge-container {
-              flex: 1;
               display: flex;
               flex-direction: column;
               align-items: center;
-              padding: 10px;
+              padding: 6px;
               background: #f9fafb;
-              border-radius: 8px;
+              border-radius: 4px;
               border: 1px solid #e5e7eb;
             }
             .gauge-label {
-              font-size: 10px;
+              font-size: 7px;
               color: #6b7280;
               text-transform: uppercase;
-              margin-bottom: 8px;
+              margin-bottom: 4px;
             }
             .telemetry-table {
               background: #f9fafb;
-              border-radius: 8px;
+              border-radius: 4px;
               border: 1px solid #e5e7eb;
-              padding: 12px;
+              padding: 6px;
             }
             .telemetry-table h4 {
-              margin: 0 0 10px 0;
-              font-size: 11px;
+              margin: 0 0 4px 0;
+              font-size: 8px;
               color: #6b7280;
               text-transform: uppercase;
             }
             .telemetry-row {
               display: flex;
               justify-content: space-between;
-              padding: 6px 0;
+              padding: 3px 0;
               border-bottom: 1px solid #e5e7eb;
             }
             .telemetry-row:last-child {
@@ -277,32 +270,37 @@ export function ExportDailyShiftPdfButton({ record, isLoading }: ExportDailyShif
             }
             .telemetry-row .label {
               color: #6b7280;
-              font-size: 11px;
+              font-size: 8px;
             }
             .telemetry-row .value {
               font-weight: 600;
               font-family: monospace;
+              font-size: 8px;
             }
             table {
               width: 100%;
               border-collapse: collapse;
-              font-size: 11px;
+              font-size: 8px;
             }
             th {
               background: #f3f4f6;
-              padding: 10px 8px;
+              padding: 4px 6px;
               text-align: left;
               font-weight: 600;
               color: #374151;
-              border-bottom: 2px solid #e5e7eb;
+              border-bottom: 1px solid #e5e7eb;
+              font-size: 8px;
+            }
+            td {
+              padding: 3px 6px;
             }
             .footer {
-              margin-top: 30px;
-              padding-top: 15px;
+              margin-top: 10px;
+              padding-top: 6px;
               border-top: 1px solid #e5e7eb;
               text-align: center;
               color: #9ca3af;
-              font-size: 10px;
+              font-size: 7px;
             }
             @media print {
               body { padding: 0; }
@@ -342,15 +340,13 @@ export function ExportDailyShiftPdfButton({ record, isLoading }: ExportDailyShif
           <div class="section">
             <div class="section-title">📊 Telemetria</div>
             <div class="telemetry-grid">
-              <div class="gauges-row">
-                <div class="gauge-container">
-                  <div class="gauge-label">Combustível Inicial</div>
-                  ${getFuelGaugeSvg(record.initial_fuel_level)}
-                </div>
-                <div class="gauge-container">
-                  <div class="gauge-label">Combustível Final</div>
-                  ${getFuelGaugeSvg(record.final_fuel_level || record.initial_fuel_level)}
-                </div>
+              <div class="gauge-container">
+                <div class="gauge-label">Comb. Inicial</div>
+                ${getFuelGaugeSvg(record.initial_fuel_level)}
+              </div>
+              <div class="gauge-container">
+                <div class="gauge-label">Comb. Final</div>
+                ${getFuelGaugeSvg(record.final_fuel_level || record.initial_fuel_level)}
               </div>
               <div class="telemetry-table">
                 <h4>Horímetro</h4>
@@ -362,8 +358,8 @@ export function ExportDailyShiftPdfButton({ record, isLoading }: ExportDailyShif
                   <span class="label">Final</span>
                   <span class="value">${record.final_horimeter ?? "-"}</span>
                 </div>
-                <div class="telemetry-row" style="background: #fef3c7; margin: 5px -12px -12px; padding: 8px 12px; border-radius: 0 0 8px 8px;">
-                  <span class="label" style="font-weight: 600;">Trabalhado</span>
+                <div class="telemetry-row" style="background: #fef3c7; margin: 3px -6px -6px; padding: 4px 6px; border-radius: 0 0 4px 4px;">
+                  <span class="label" style="font-weight: 600;">Trab.</span>
                   <span class="value" style="color: #d97706;">
                     ${record.initial_horimeter && record.final_horimeter 
                       ? (record.final_horimeter - record.initial_horimeter).toFixed(1) + "h"
@@ -375,14 +371,14 @@ export function ExportDailyShiftPdfButton({ record, isLoading }: ExportDailyShif
                 <h4>Quilometragem</h4>
                 <div class="telemetry-row">
                   <span class="label">Inicial</span>
-                  <span class="value">${record.initial_km ?? "-"} km</span>
+                  <span class="value">${record.initial_km ?? "-"}</span>
                 </div>
                 <div class="telemetry-row">
                   <span class="label">Final</span>
-                  <span class="value">${record.final_km ?? "-"} km</span>
+                  <span class="value">${record.final_km ?? "-"}</span>
                 </div>
-                <div class="telemetry-row" style="background: #fef3c7; margin: 5px -12px -12px; padding: 8px 12px; border-radius: 0 0 8px 8px;">
-                  <span class="label" style="font-weight: 600;">Percorrido</span>
+                <div class="telemetry-row" style="background: #fef3c7; margin: 3px -6px -6px; padding: 4px 6px; border-radius: 0 0 4px 4px;">
+                  <span class="label" style="font-weight: 600;">Perc.</span>
                   <span class="value" style="color: #d97706;">
                     ${record.initial_km && record.final_km 
                       ? (record.final_km - record.initial_km).toFixed(1) + " km"
@@ -398,7 +394,7 @@ export function ExportDailyShiftPdfButton({ record, isLoading }: ExportDailyShif
             <table>
               <thead>
                 <tr>
-                  <th style="width: 80px;">Horário</th>
+                  <th style="width: 60px;">Horário</th>
                   <th>Status</th>
                   <th>Alterado por</th>
                 </tr>
@@ -415,9 +411,9 @@ export function ExportDailyShiftPdfButton({ record, isLoading }: ExportDailyShif
               <thead>
                 <tr>
                   <th>Ponto</th>
-                  <th style="width: 80px;">Início</th>
-                  <th style="width: 80px;">Fim</th>
-                  <th style="width: 80px;">Duração</th>
+                  <th style="width: 60px;">Início</th>
+                  <th style="width: 60px;">Fim</th>
+                  <th style="width: 60px;">Duração</th>
                 </tr>
               </thead>
               <tbody>
