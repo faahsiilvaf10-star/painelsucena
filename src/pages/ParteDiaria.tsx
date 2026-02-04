@@ -28,7 +28,8 @@ import {
   TableHeader,
   TableRow,
 } from "@/components/ui/table";
-import { Truck, Plus, Loader2, Trash2, User, Clock, AlertCircle, Droplets } from "lucide-react";
+import { Truck, Plus, Loader2, Trash2, User, Clock, AlertCircle, Droplets, FileText } from "lucide-react";
+import { ExportEquipmentPdfButton } from "@/components/equipamentos/ExportEquipmentPdfButton";
 import { useEquipment, useCreateEquipment, useDeleteEquipment, useEquipmentStopHistory } from "@/hooks/useEquipment";
 import { useEquipmentMovements } from "@/hooks/useEquipmentMovements";
 import { useIsAdmin } from "@/hooks/useUserRole";
@@ -247,7 +248,14 @@ export default function ParteDiaria() {
                               </p>
                             </div>
                           </div>
-                          {getStatusBadge(timeline.currentStatus, vehicle.id)}
+                          <div className="flex items-center gap-2">
+                            <ExportEquipmentPdfButton
+                              equipment={vehicle}
+                              movements={movements.filter((m) => m.plate === vehicle.plate)}
+                              stopHistory={stopHistory.filter((h) => h.equipment_id === vehicle.id)}
+                            />
+                            {getStatusBadge(timeline.currentStatus, vehicle.id)}
+                          </div>
                         </div>
                       </CardHeader>
                       <CardContent className="space-y-4">
