@@ -197,10 +197,10 @@ const PainelMotorista = () => {
 
         {/* Helper Name Display */}
         {selectedVehicle?.helper && selectedVehicle.helper.trim() !== "" && (
-          <div className="flex items-center gap-2 px-3 py-2 bg-primary/10 border border-primary/20 rounded-lg">
-            <UserCheck className="w-4 h-4 text-primary shrink-0" />
+          <div className="flex items-center gap-2 px-3 py-2 bg-blue-500/10 border border-blue-500/20 rounded-lg">
+            <UserCheck className="w-4 h-4 text-blue-600 shrink-0" />
             <p className="text-sm font-medium text-foreground">
-              Seu Ajudante é <span className="font-bold text-primary">{selectedVehicle.helper}</span>
+              Seu Ajudante é <span className="font-bold text-blue-600">{selectedVehicle.helper}</span>
             </p>
           </div>
         )}
