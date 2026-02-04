@@ -485,13 +485,21 @@ export function ExportEquipmentPdfButton({
         return;
       }
 
-      const activities = todayStops
-        .sort((a, b) => new Date(a.started_at).getTime() - new Date(b.started_at).getTime())
-        .map((stop) => ({
-          start: format(new Date(stop.started_at), "HH:mm", { locale: ptBR }),
-          end: stop.ended_at ? format(new Date(stop.ended_at), "HH:mm", { locale: ptBR }) : "",
-          description: `${getStatusLabel(stop.stop_reason)}${stop.defect_description ? ` - ${stop.defect_description}` : ""}`,
-        }));
+      // Sort stops and filter out consecutive duplicates with same status
+      const sortedStops = todayStops.sort(
+        (a, b) => new Date(a.started_at).getTime() - new Date(b.started_at).getTime()
+      );
+      
+      const filteredStops = sortedStops.filter((stop, index, arr) => {
+        if (index === 0) return true;
+        return stop.stop_reason !== arr[index - 1].stop_reason;
+      });
+
+      const activities = filteredStops.map((stop) => ({
+        start: format(new Date(stop.started_at), "HH:mm", { locale: ptBR }),
+        end: stop.ended_at ? format(new Date(stop.ended_at), "HH:mm", { locale: ptBR }) : "",
+        description: `${getStatusLabel(stop.stop_reason)}${stop.defect_description ? ` - ${stop.defect_description}` : ""}`,
+      }));
 
       const htmlContent = buildParteDiariaFormHtml({
         logoBase64,
