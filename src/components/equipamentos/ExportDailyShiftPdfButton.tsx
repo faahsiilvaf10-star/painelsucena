@@ -305,12 +305,12 @@ export function ExportDailyShiftPdfButton({ record, isLoading }: ExportDailyShif
                   <div class="fuel-row">
                     <div class="fuel-item">
                       <div class="fuel-label">INICIAL</div>
-                      ${buildFuelGaugeSvg({ percent: initialFuelPct, width: 52, height: 70 })}
+                      ${buildFuelGaugeSvg({ level: record.initial_fuel_level, width: 80, height: 48 })}
                       <div class="fuel-text">${fuelLevelToLabel(record.initial_fuel_level)}</div>
                     </div>
                     <div class="fuel-item">
                       <div class="fuel-label">FINAL</div>
-                      ${buildFuelGaugeSvg({ percent: finalFuelPct, width: 52, height: 70 })}
+                      ${buildFuelGaugeSvg({ level: record.final_fuel_level || record.initial_fuel_level, width: 80, height: 48 })}
                       <div class="fuel-text">${fuelLevelToLabel(record.final_fuel_level || record.initial_fuel_level)}</div>
                     </div>
                   </div>
