@@ -73,12 +73,15 @@ export default function SelecaoVeiculo() {
       const selectedEquipmentData = equipment.find(eq => eq.id === vehicleId);
       if (!selectedEquipmentData) return;
 
-      // Update the equipment with the driver's name and helper (keep the current status)
+      // Update the equipment with the driver's name and helper
+      // Set status to "waiting" until driver starts shift with Operar button
       const { error: updateError } = await supabase
         .from("equipment")
         .update({
           driver: profile.full_name,
           helper: helperName.trim(),
+          stop_reason: "waiting", // Not operating yet - waiting for driver to click "Operar"
+          stop_start_time: new Date().toISOString(),
         })
         .eq("id", vehicleId);
 
@@ -87,7 +90,7 @@ export default function SelecaoVeiculo() {
       // Invalidate equipment query to reflect changes
       queryClient.invalidateQueries({ queryKey: ["equipment"] });
 
-      // Register entry movement (equipment is now operating)
+      // Register entry movement (driver selected vehicle, waiting to start operation)
       const helperInfo = helperName.trim() ? ` | Ajudante: ${helperName.trim()}` : "";
       await createMovement.mutateAsync({
         equipment_name: selectedEquipmentData.name,
@@ -95,13 +98,13 @@ export default function SelecaoVeiculo() {
         movement_type: "entrada",
         exit_reason: null,
         problem_description: null,
-        observation: `Motorista ${profile.full_name} iniciou operação${helperInfo}`,
+        observation: `Motorista ${profile.full_name} selecionou veículo (aguardando início de turno)${helperInfo}`,
       });
 
       // Store selected vehicle in localStorage
       localStorage.setItem("selectedVehicleId", vehicleId);
       
-      toast.success("Veículo selecionado e operação iniciada!");
+      toast.success("Veículo selecionado! Clique em 'Operar' para iniciar o turno.");
       navigate("/painel-motorista");
     } catch (error) {
       console.error("Error confirming vehicle:", error);
