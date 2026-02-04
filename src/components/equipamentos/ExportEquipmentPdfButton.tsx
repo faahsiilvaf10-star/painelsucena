@@ -455,12 +455,15 @@ export function ExportEquipmentPdfButton({
       // Try to load telemetry data from today's shift record (when available)
       const { data: shiftRecord } = await supabase
         .from("daily_shift_records")
-        .select("initial_fuel_level, final_fuel_level, initial_km, final_km, initial_horimeter, final_horimeter")
+        .select("initial_fuel_level, final_fuel_level, initial_km, final_km, initial_horimeter, final_horimeter, shift_end_time")
         .eq("equipment_id", equipment.id)
         .eq("shift_date", today)
         .order("created_at", { ascending: false })
         .limit(1)
         .maybeSingle();
+
+      // Only show final values if shift has ended
+      const shiftEnded = !!shiftRecord?.shift_end_time;
 
       // Filter today's data
       const todayMovements = movements.filter((m) => m.movement_date === today);
@@ -499,11 +502,11 @@ export function ExportEquipmentPdfButton({
         helperName: equipment.helper || "",
         activities,
         initialFuelLevel: shiftRecord?.initial_fuel_level ?? null,
-        finalFuelLevel: shiftRecord?.final_fuel_level ?? null,
+        finalFuelLevel: shiftEnded ? (shiftRecord?.final_fuel_level ?? null) : null,
         initialKm: shiftRecord?.initial_km ?? null,
-        finalKm: shiftRecord?.final_km ?? null,
+        finalKm: shiftEnded ? (shiftRecord?.final_km ?? null) : null,
         initialHorimeter: shiftRecord?.initial_horimeter ?? null,
-        finalHorimeter: shiftRecord?.final_horimeter ?? null,
+        finalHorimeter: shiftEnded ? (shiftRecord?.final_horimeter ?? null) : null,
       });
 
       printWindow.document.write(htmlContent);
