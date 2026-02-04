@@ -102,14 +102,17 @@ export function ExportDailyShiftPdfButton({ record, isLoading }: ExportDailyShif
         const isEndOfShift = entry.status === "end_of_shift" || entry.status === "fim_turno";
 
         let endTime = "";
+        // Rule: last status is always blank UNLESS it's "Fim de Turno".
         if (nextEntry) {
           endTime = format(new Date(nextEntry.timestamp), "HH:mm", { locale: ptBR });
           if (isReturnAfterRefuelingEntry(nextEntry)) {
             i++; // consume the marker
           }
         } else if (isLastEntry && isEndOfShift) {
+          // Only "Fim de Turno" shows an end time when it's the last status.
           endTime = startTime;
         }
+        // Otherwise (last entry, not end of shift) → endTime stays blank
 
         // Build description - use entry.description if available, otherwise use status label
         let description = getStatusLabel(entry.status);

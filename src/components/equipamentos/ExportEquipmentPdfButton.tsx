@@ -536,18 +536,23 @@ export function ExportEquipmentPdfButton({
 
         let endTime = "";
 
-        // Prefer explicit end time when available (ex: abastecimento is closed with ended_at).
-        if (stop.ended_at) {
-          endTime = format(new Date(stop.ended_at), "HH:mm", { locale: ptBR });
-        } else if (nextStop) {
-          endTime = format(new Date(nextStop.started_at), "HH:mm", { locale: ptBR });
+        // Rule: last status is always blank UNLESS it's "Fim de Turno".
+        // For non-last entries, use next status start time (or ended_at if available).
+        if (nextStop) {
+          // Use ended_at if available (e.g., closed abastecimento), else next start time
+          endTime = stop.ended_at
+            ? format(new Date(stop.ended_at), "HH:mm", { locale: ptBR })
+            : format(new Date(nextStop.started_at), "HH:mm", { locale: ptBR });
           if (isReturnAfterRefuelingStop(nextStop)) {
             i++; // consume marker without printing
           }
         } else if (isLastEntry && isEndOfShift) {
           // Only "Fim de Turno" shows an end time when it's the last status.
-          endTime = format(new Date(stop.started_at), "HH:mm", { locale: ptBR });
+          endTime = stop.ended_at
+            ? format(new Date(stop.ended_at), "HH:mm", { locale: ptBR })
+            : format(new Date(stop.started_at), "HH:mm", { locale: ptBR });
         }
+        // Otherwise (last entry, not end of shift) → endTime stays blank
 
         activities.push({
           start: format(new Date(stop.started_at), "HH:mm", { locale: ptBR }),
