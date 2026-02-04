@@ -28,7 +28,8 @@ import {
   TableHeader,
   TableRow,
 } from "@/components/ui/table";
-import { Truck, Plus, Loader2, Trash2, User, Clock, AlertCircle, Droplets, FileText, Calendar, Fuel, Gauge, Route } from "lucide-react";
+import { Truck, Plus, Loader2, Trash2, User, Clock, AlertCircle, Droplets, FileText, Calendar, Fuel, Gauge, Route, Edit } from "lucide-react";
+import { AdminStatusEditor } from "@/components/partediaria/AdminStatusEditor";
 import { ExportEquipmentPdfButton } from "@/components/equipamentos/ExportEquipmentPdfButton";
 import { ExportDailyShiftPdfButton } from "@/components/equipamentos/ExportDailyShiftPdfButton";
 import { useEquipment, useCreateEquipment, useDeleteEquipment, useEquipmentStopHistory } from "@/hooks/useEquipment";
@@ -339,9 +340,17 @@ export default function ParteDiaria() {
                         {/* Today's Status History Timeline */}
                         {timeline.statusHistory.length > 0 && (
                           <div className="border-t pt-3">
-                            <p className="text-xs font-medium text-muted-foreground mb-2">
-                              Movimentações de Hoje
-                            </p>
+                            <div className="flex items-center justify-between mb-2">
+                              <p className="text-xs font-medium text-muted-foreground">
+                                Movimentações de Hoje
+                              </p>
+                              {isAdmin && (
+                                <AdminStatusEditor
+                                  equipmentId={vehicle.id}
+                                  equipmentName={vehicle.name}
+                                />
+                              )}
+                            </div>
                             <div className="space-y-2 max-h-40 overflow-y-auto">
                               {timeline.statusHistory.map((status, idx) => {
                                 const statusLabel = getStatusLabel(status.stop_reason);
@@ -386,9 +395,29 @@ export default function ParteDiaria() {
                         )}
 
                         {timeline.statusHistory.length === 0 && !timeline.driver && (
-                          <div className="flex items-center gap-2 text-sm text-amber-600">
-                            <AlertCircle className="h-4 w-4" />
-                            <span>Aguardando seleção do motorista</span>
+                          <div className="border-t pt-3">
+                            <div className="flex items-center justify-between">
+                              <div className="flex items-center gap-2 text-sm text-amber-600">
+                                <AlertCircle className="h-4 w-4" />
+                                <span>Aguardando seleção do motorista</span>
+                              </div>
+                              {isAdmin && (
+                                <AdminStatusEditor
+                                  equipmentId={vehicle.id}
+                                  equipmentName={vehicle.name}
+                                />
+                              )}
+                            </div>
+                          </div>
+                        )}
+                        {timeline.statusHistory.length === 0 && timeline.driver && isAdmin && (
+                          <div className="border-t pt-3">
+                            <div className="flex items-center justify-end">
+                              <AdminStatusEditor
+                                equipmentId={vehicle.id}
+                                equipmentName={vehicle.name}
+                              />
+                            </div>
                           </div>
                         )}
                       </CardContent>
@@ -472,7 +501,16 @@ export default function ParteDiaria() {
                                       </p>
                                     </div>
                                   </div>
-                                  <ExportDailyShiftPdfButton record={record} />
+                                  <div className="flex items-center gap-2">
+                                    {isAdmin && (
+                                      <AdminStatusEditor
+                                        equipmentId={record.equipment_id}
+                                        equipmentName={record.equipment_name}
+                                        shiftDate={record.shift_date}
+                                      />
+                                    )}
+                                    <ExportDailyShiftPdfButton record={record} />
+                                  </div>
                                 </div>
                               </CardHeader>
                               <CardContent className="pt-4 space-y-4">

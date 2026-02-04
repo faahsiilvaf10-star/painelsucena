@@ -227,51 +227,60 @@ export function useAddStatusToHistory() {
       status,
       changedBy,
       description,
+      customTimestamp,
+      shiftDate,
     }: {
       equipmentId: string;
       status: string;
       changedBy: string | null;
       description?: string;
+      customTimestamp?: string;
+      shiftDate?: string;
     }) => {
-      const today = new Date().toISOString().split("T")[0];
-      const now = new Date().toISOString();
+      const targetDate = shiftDate || new Date().toISOString().split("T")[0];
+      const timestamp = customTimestamp || new Date().toISOString();
 
       // First get the current record
       const { data: current, error: fetchError } = await supabase
         .from("daily_shift_records")
         .select("status_history")
         .eq("equipment_id", equipmentId)
-        .eq("shift_date", today)
+        .eq("shift_date", targetDate)
         .maybeSingle();
 
       if (fetchError) throw fetchError;
-      if (!current) return null; // No record for today
+      if (!current) return null; // No record for this date
 
       const currentHistory = Array.isArray(current.status_history) 
         ? (current.status_history as unknown as StatusHistoryEntry[])
         : [];
       
-      // Check if the last status is the same - if so, don't add duplicate
-      const lastEntry = currentHistory[currentHistory.length - 1];
-      if (lastEntry && lastEntry.status === status && !description) {
-        // Same status without description, don't add duplicate - return current record
-        return null;
+      // For admin edits with custom timestamp, don't check for duplicates
+      if (!customTimestamp) {
+        // Check if the last status is the same - if so, don't add duplicate
+        const lastEntry = currentHistory[currentHistory.length - 1];
+        if (lastEntry && lastEntry.status === status && !description) {
+          // Same status without description, don't add duplicate - return current record
+          return null;
+        }
       }
       
       const newEntry: StatusHistoryEntry = {
         status,
-        timestamp: now,
+        timestamp,
         changed_by: changedBy,
         description,
       };
       
-      const newHistory = [...currentHistory, newEntry] as unknown as Json;
+      // Add new entry and sort by timestamp
+      const newHistory = [...currentHistory, newEntry]
+        .sort((a, b) => new Date(a.timestamp).getTime() - new Date(b.timestamp).getTime()) as unknown as Json;
 
       const { data: result, error } = await supabase
         .from("daily_shift_records")
         .update({ status_history: newHistory })
         .eq("equipment_id", equipmentId)
-        .eq("shift_date", today)
+        .eq("shift_date", targetDate)
         .select()
         .single();
 
