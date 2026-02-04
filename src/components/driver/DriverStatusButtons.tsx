@@ -532,12 +532,12 @@ export function DriverStatusButtons() {
               </AlertDescription>
             </Alert>
 
-            {/* Horimeter and KM inputs */}
+            {/* Horimeter and KM inputs - REQUIRED */}
             <div className="grid grid-cols-2 gap-3">
               <div className="space-y-1.5">
                 <Label htmlFor="start-horimeter" className="text-xs flex items-center gap-1.5">
                   <Gauge className="h-3.5 w-3.5" />
-                  Horímetro Inicial
+                  Horímetro Inicial <span className="text-destructive">*</span>
                 </Label>
                 <Input
                   id="start-horimeter"
@@ -546,13 +546,17 @@ export function DriverStatusButtons() {
                   value={startShiftHorimeter}
                   onChange={(e) => setStartShiftHorimeter(e.target.value)}
                   disabled={isUpdating}
-                  className="h-9"
+                  className={`h-9 ${!startShiftHorimeter ? 'border-destructive/50 focus-visible:ring-destructive' : ''}`}
+                  required
                 />
+                {!startShiftHorimeter && (
+                  <p className="text-[10px] text-destructive">Campo obrigatório</p>
+                )}
               </div>
               <div className="space-y-1.5">
                 <Label htmlFor="start-km" className="text-xs flex items-center gap-1.5">
                   <Car className="h-3.5 w-3.5" />
-                  KM Inicial
+                  KM Inicial <span className="text-destructive">*</span>
                 </Label>
                 <Input
                   id="start-km"
@@ -561,8 +565,12 @@ export function DriverStatusButtons() {
                   value={startShiftKm}
                   onChange={(e) => setStartShiftKm(e.target.value)}
                   disabled={isUpdating}
-                  className="h-9"
+                  className={`h-9 ${!startShiftKm ? 'border-destructive/50 focus-visible:ring-destructive' : ''}`}
+                  required
                 />
+                {!startShiftKm && (
+                  <p className="text-[10px] text-destructive">Campo obrigatório</p>
+                )}
               </div>
             </div>
           </div>
@@ -639,12 +647,12 @@ export function DriverStatusButtons() {
               </Alert>
             )}
 
-            {/* Horimeter and KM inputs */}
+            {/* Horimeter and KM inputs - REQUIRED */}
             <div className="grid grid-cols-2 gap-3 pt-2 border-t border-border">
               <div className="space-y-1.5">
                 <Label htmlFor="horimeter" className="text-xs flex items-center gap-1.5">
                   <Gauge className="h-3.5 w-3.5" />
-                  Horímetro Final
+                  Horímetro Final <span className="text-destructive">*</span>
                 </Label>
                 <Input
                   id="horimeter"
@@ -656,13 +664,17 @@ export function DriverStatusButtons() {
                     setEndShiftError(null);
                   }}
                   disabled={isUpdating}
-                  className="h-9"
+                  className={`h-9 ${!endShiftHorimeter ? 'border-destructive/50 focus-visible:ring-destructive' : ''}`}
+                  required
                 />
+                {!endShiftHorimeter && (
+                  <p className="text-[10px] text-destructive">Campo obrigatório</p>
+                )}
               </div>
               <div className="space-y-1.5">
                 <Label htmlFor="km" className="text-xs flex items-center gap-1.5">
                   <Car className="h-3.5 w-3.5" />
-                  KM Final
+                  KM Final <span className="text-destructive">*</span>
                 </Label>
                 <Input
                   id="km"
@@ -674,8 +686,12 @@ export function DriverStatusButtons() {
                     setEndShiftError(null);
                   }}
                   disabled={isUpdating}
-                  className="h-9"
+                  className={`h-9 ${!endShiftKm ? 'border-destructive/50 focus-visible:ring-destructive' : ''}`}
+                  required
                 />
+                {!endShiftKm && (
+                  <p className="text-[10px] text-destructive">Campo obrigatório</p>
+                )}
               </div>
             </div>
           </div>
@@ -691,7 +707,7 @@ export function DriverStatusButtons() {
             </Button>
             <Button
               onClick={handleEndOfShift}
-              disabled={isUpdating}
+              disabled={isUpdating || !endShiftHorimeter || !endShiftKm}
               className="w-full sm:w-auto bg-gray-600 hover:bg-gray-700"
             >
               {isUpdating ? (
