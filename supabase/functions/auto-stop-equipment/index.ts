@@ -39,17 +39,19 @@ Deno.serve(async (req) => {
     console.log("Starting auto-stop equipment job at", now.toISOString());
 
     // Get all equipment that is currently operating, waiting, or rain (not maintenance or already end_of_shift)
+    // Munk equipment is excluded - drivers must manually end their shifts
     const { data: activeEquipment, error: fetchError } = await supabase
       .from("equipment")
       .select("*")
-      .in("stop_reason", ["none", "waiting", "rain"]);
+      .in("stop_reason", ["none", "waiting", "rain"])
+      .neq("equipment_type", "munk");
 
     if (fetchError) {
       console.error("Error fetching equipment:", fetchError);
       throw fetchError;
     }
 
-    console.log(`Found ${activeEquipment?.length || 0} equipment to stop (operating, waiting, or rain)`);
+    console.log(`Found ${activeEquipment?.length || 0} equipment to stop (operating, waiting, or rain - excluding munk)`);
 
     const endTime = now.toISOString();
     const results = [];
