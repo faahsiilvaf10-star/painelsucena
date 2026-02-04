@@ -66,9 +66,21 @@ export function ExportDailyShiftPdfButton({ record, isLoading }: ExportDailyShif
       filteredHistory.forEach((entry: StatusHistoryEntry, index: number) => {
         const nextEntry = filteredHistory[index + 1];
         const startTime = format(new Date(entry.timestamp), "HH:mm", { locale: ptBR });
-        const endTime = nextEntry 
-          ? format(new Date(nextEntry.timestamp), "HH:mm", { locale: ptBR })
-          : "";
+        
+        // Determine end time:
+        // - If there's a next entry, use its start time
+        // - If this is the last entry AND it's "end_of_shift" or "fim_turno", show the timestamp
+        // - Otherwise leave blank
+        const isLastEntry = index === filteredHistory.length - 1;
+        const isEndOfShift = entry.status === "end_of_shift" || entry.status === "fim_turno";
+        
+        let endTime = "";
+        if (nextEntry) {
+          endTime = format(new Date(nextEntry.timestamp), "HH:mm", { locale: ptBR });
+        } else if (isLastEntry && isEndOfShift) {
+          // For "Fim de Turno" as last status, show its own timestamp as end
+          endTime = startTime;
+        }
         
         // Build description - use entry.description if available, otherwise use status label
         let description = getStatusLabel(entry.status);

@@ -500,14 +500,24 @@ export function ExportEquipmentPdfButton({
         );
       });
 
-      // IMPORTANT: Fill the "FINAL" column with the start time of the next status
-      // (many stop records don't have ended_at populated).
+      // Build activities with proper end times:
+      // - Use start time of next status as end time
+      // - Leave blank for last status UNLESS it's "Fim de Turno"
       const activities = filteredStops.map((stop, index) => {
         const nextStop = filteredStops[index + 1];
-        const endSource = nextStop?.started_at ?? stop.ended_at;
+        const isLastEntry = index === filteredStops.length - 1;
+        const isEndOfShift = stop.stop_reason === "end_of_shift" || stop.stop_reason === "fim_turno";
+        
+        let endTime = "";
+        if (nextStop) {
+          endTime = format(new Date(nextStop.started_at), "HH:mm", { locale: ptBR });
+        } else if (isLastEntry && isEndOfShift && stop.ended_at) {
+          endTime = format(new Date(stop.ended_at), "HH:mm", { locale: ptBR });
+        }
+        
         return {
           start: format(new Date(stop.started_at), "HH:mm", { locale: ptBR }),
-          end: endSource ? format(new Date(endSource), "HH:mm", { locale: ptBR }) : "",
+          end: endTime,
           description: `${getStatusLabel(stop.stop_reason)}${stop.defect_description ? ` - ${stop.defect_description}` : ""}`,
         };
       });
