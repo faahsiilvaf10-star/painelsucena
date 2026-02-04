@@ -513,8 +513,9 @@ export function ExportMovementsByDateButton({ equipment }: ExportMovementsByDate
         });
       });
 
-      // Get driver and helper from shift record or equipment
-      const driverName = shiftRecord?.driver_name || equipment.driver || "";
+      // Get driver name from shift record, equipment, or stop history (changed_by_driver)
+      const driverFromHistory = dateStops.find(s => s.changed_by_driver)?.changed_by_driver || "";
+      const driverName = shiftRecord?.driver_name || equipment.driver || driverFromHistory || "";
       const helperName = shiftRecord?.helper_name || equipment.helper || "";
 
       const htmlContent = buildParteDiariaFormHtml({
