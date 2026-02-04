@@ -139,6 +139,9 @@ export function DriverStatusButtons() {
   const currentStatus = (selectedVehicle?.stop_reason || "none") as string;
   const statusInfo = getStatusLabel(currentStatus);
   
+  // Check if equipment is in maintenance mode (blocks all other buttons except "Operar")
+  const isInMaintenance = currentStatus === "maintenance";
+  
   // Check if shift has been started (has initial values)
   const shiftStarted = initialHorimeter !== null && initialKm !== null;
 
@@ -449,26 +452,42 @@ export function DriverStatusButtons() {
             />
           </div>
 
+          {/* Maintenance Mode Alert */}
+          {isInMaintenance && (
+            <Alert className="bg-red-50 dark:bg-red-950/30 border-red-200 dark:border-red-800 py-2">
+              <AlertCircle className="h-4 w-4 text-red-500" />
+              <AlertDescription className="text-xs text-red-700 dark:text-red-300 ml-2">
+                Equipamento em manutenção - apenas "Operar" disponível para retomar
+              </AlertDescription>
+            </Alert>
+          )}
+
           {/* Status Control Buttons - Larger touch targets */}
           <div className="grid grid-cols-2 gap-3 pt-3 border-t border-border">
-            {statusButtons.map((button) => (
-              <Button
-                key={button.id}
-                variant="outline"
-                className={`h-auto min-h-[60px] py-3 flex flex-col items-center gap-1.5 touch-manipulation transition-transform active:scale-95 ${
-                  currentStatus === button.action ? "ring-2 ring-primary ring-offset-2" : ""
-                } ${button.color}`}
-                onClick={() => handleStatusChange(button.action)}
-                disabled={isUpdating || currentStatus === button.action}
-              >
-                {isUpdating ? (
-                  <Loader2 className="h-6 w-6 animate-spin" />
-                ) : (
-                  button.icon
-                )}
-                <span className="text-xs font-semibold">{button.label}</span>
-              </Button>
-            ))}
+            {statusButtons.map((button) => {
+              // If in maintenance, only "Operar" (none) button is enabled
+              const isDisabledByMaintenance = isInMaintenance && button.action !== "none";
+              const isCurrentStatus = currentStatus === button.action;
+              
+              return (
+                <Button
+                  key={button.id}
+                  variant="outline"
+                  className={`h-auto min-h-[60px] py-3 flex flex-col items-center gap-1.5 touch-manipulation transition-transform active:scale-95 ${
+                    isCurrentStatus ? "ring-2 ring-primary ring-offset-2" : ""
+                  } ${isDisabledByMaintenance ? "opacity-50 cursor-not-allowed bg-muted" : button.color}`}
+                  onClick={() => handleStatusChange(button.action)}
+                  disabled={isUpdating || isCurrentStatus || isDisabledByMaintenance}
+                >
+                  {isUpdating ? (
+                    <Loader2 className="h-6 w-6 animate-spin" />
+                  ) : (
+                    button.icon
+                  )}
+                  <span className="text-xs font-semibold">{button.label}</span>
+                </Button>
+              );
+            })}
           </div>
 
           {/* End of Shift Button - Prominent and easy to tap */}
@@ -476,9 +495,9 @@ export function DriverStatusButtons() {
             variant="outline"
             className={`w-full h-auto min-h-[52px] py-3 flex items-center justify-center gap-2.5 touch-manipulation transition-transform active:scale-95 ${
               currentStatus === "end_of_shift" ? "ring-2 ring-primary ring-offset-2" : ""
-            } bg-gray-600 hover:bg-gray-700 active:bg-gray-800 text-white border-gray-600`}
+            } ${isInMaintenance ? "opacity-50 cursor-not-allowed bg-muted" : "bg-gray-600 hover:bg-gray-700 active:bg-gray-800 text-white border-gray-600"}`}
             onClick={() => handleStatusChange("end_of_shift" as StopReason)}
-            disabled={isUpdating || currentStatus === "end_of_shift"}
+            disabled={isUpdating || currentStatus === "end_of_shift" || isInMaintenance}
           >
             {isUpdating ? (
               <Loader2 className="h-5 w-5 animate-spin" />

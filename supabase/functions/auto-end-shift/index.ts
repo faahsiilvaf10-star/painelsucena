@@ -20,24 +20,26 @@ Deno.serve(async (req) => {
 
     const supabase = createClient(supabaseUrl, supabaseServiceKey);
 
-    // Get all equipment that is NOT already in "end_of_shift" status
+    // Get all equipment that is NOT already in "end_of_shift" status AND NOT in "maintenance" status
+    // Equipment in maintenance should NOT be affected by auto end-of-shift
     const { data: activeEquipment, error: fetchError } = await supabase
       .from("equipment")
       .select("id, name, plate, stop_reason, driver")
-      .neq("stop_reason", "end_of_shift");
+      .neq("stop_reason", "end_of_shift")
+      .neq("stop_reason", "maintenance");
 
     if (fetchError) {
       console.error("Error fetching equipment:", fetchError);
       throw fetchError;
     }
 
-    console.log(`Found ${activeEquipment?.length || 0} equipment not in end_of_shift status`);
+    console.log(`Found ${activeEquipment?.length || 0} equipment not in end_of_shift or maintenance status`);
 
     if (!activeEquipment || activeEquipment.length === 0) {
       return new Response(
         JSON.stringify({
           success: true,
-          message: "No equipment to update - all already in end_of_shift",
+          message: "No equipment to update - all already in end_of_shift or maintenance",
           updated: 0,
         }),
         {
@@ -49,7 +51,7 @@ Deno.serve(async (req) => {
 
     const now = new Date().toISOString();
 
-    // Update all active equipment to end_of_shift
+    // Update all active equipment to end_of_shift (except maintenance)
     const { data: updatedEquipment, error: updateError } = await supabase
       .from("equipment")
       .update({
@@ -59,6 +61,7 @@ Deno.serve(async (req) => {
         helper: "",
       })
       .neq("stop_reason", "end_of_shift")
+      .neq("stop_reason", "maintenance")
       .select();
 
     if (updateError) {
