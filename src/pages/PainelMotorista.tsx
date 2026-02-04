@@ -9,7 +9,8 @@ import {
   MapPin,
   LogOut,
   User,
-  Droplets
+  Droplets,
+  UserCheck
 } from "lucide-react";
 import { useProfile } from "@/hooks/useProfile";
 import { formatCargoLabel } from "@/lib/cargoUtils";
@@ -193,6 +194,16 @@ const PainelMotorista = () => {
             </div>
           </CardContent>
         </Card>
+
+        {/* Helper Name Display */}
+        {selectedVehicle?.helper && selectedVehicle.helper.trim() !== "" && (
+          <div className="flex items-center gap-2 px-3 py-2 bg-primary/10 border border-primary/20 rounded-lg">
+            <UserCheck className="w-4 h-4 text-primary shrink-0" />
+            <p className="text-sm font-medium text-foreground">
+              Seu Ajudante é <span className="font-bold text-primary">{selectedVehicle.helper}</span>
+            </p>
+          </div>
+        )}
 
         {/* Driver Status Buttons - Controle de Turno */}
         <DriverStatusButtons />
