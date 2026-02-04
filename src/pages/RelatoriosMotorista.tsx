@@ -67,6 +67,12 @@ const getStatusInfo = (stopReason: string | null) => {
         color: "bg-cyan-500/10 text-cyan-600 border-cyan-500/30",
         icon: <Activity className="h-3 w-3" />,
       };
+    case "retorno_abastecimento":
+      return {
+        label: "Retorno Abastecimento",
+        color: "bg-cyan-500/10 text-cyan-600 border-cyan-500/30",
+        icon: <Activity className="h-3 w-3" />,
+      };
     default:
       return {
         label: stopReason || "Desconhecido",
@@ -350,20 +356,20 @@ export default function RelatoriosMotorista() {
                       {/* Problem Description or Refueling Location */}
                       {item.defect_description && (
                         <div className={`text-[10px] sm:text-xs bg-background/50 p-1.5 rounded border-l-2 ${
-                          item.stop_reason === "abastecimento" 
+                          item.stop_reason === "abastecimento" || item.stop_reason === "retorno_abastecimento"
                             ? "border-cyan-500/50" 
                             : "border-red-500/50"
                         }`}>
                           <span className={`font-medium ${
-                            item.stop_reason === "abastecimento" 
+                            item.stop_reason === "abastecimento" || item.stop_reason === "retorno_abastecimento"
                               ? "text-cyan-600" 
                               : "text-red-600"
                           }`}>
-                            {item.stop_reason === "abastecimento" ? "Local: " : "Problema: "}
+                            {item.stop_reason === "abastecimento" || item.stop_reason === "retorno_abastecimento" ? "Local: " : "Problema: "}
                           </span>
                           <span className="text-foreground break-words">
-                            {item.stop_reason === "abastecimento" 
-                              ? item.defect_description.replace("Abastecimento - ", "")
+                            {item.stop_reason === "abastecimento" || item.stop_reason === "retorno_abastecimento"
+                              ? item.defect_description.replace("Abastecimento - ", "").replace("Retorno - ", "")
                               : item.defect_description}
                           </span>
                         </div>
