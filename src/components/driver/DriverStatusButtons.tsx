@@ -5,6 +5,7 @@ import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
+import { Alert, AlertDescription } from "@/components/ui/alert";
 import {
   Dialog,
   DialogContent,
@@ -21,7 +22,9 @@ import {
   Loader2,
   Power,
   Gauge,
-  Car
+  Car,
+  Info,
+  AlertCircle
 } from "lucide-react";
 import { useEquipment, useUpdateEquipmentStatus, useEquipmentStopHistory, type StopReason } from "@/hooks/useEquipment";
 import { useProfile } from "@/hooks/useProfile";
@@ -98,9 +101,15 @@ export function DriverStatusButtons() {
   const [isUpdating, setIsUpdating] = useState(false);
   const [fuelLevel, setFuelLevel] = useState<FuelLevel>("half");
   const [showEndShiftDialog, setShowEndShiftDialog] = useState(false);
+  const [showStartShiftDialog, setShowStartShiftDialog] = useState(false);
   const [endShiftFuelLevel, setEndShiftFuelLevel] = useState<FuelLevel>("half");
   const [endShiftHorimeter, setEndShiftHorimeter] = useState("");
   const [endShiftKm, setEndShiftKm] = useState("");
+  const [startShiftHorimeter, setStartShiftHorimeter] = useState("");
+  const [startShiftKm, setStartShiftKm] = useState("");
+  const [initialHorimeter, setInitialHorimeter] = useState<string | null>(null);
+  const [initialKm, setInitialKm] = useState<string | null>(null);
+  const [endShiftError, setEndShiftError] = useState<string | null>(null);
   const { data: equipment = [], isLoading } = useEquipment();
   const { data: profile } = useProfile();
   const updateStatus = useUpdateEquipmentStatus();
@@ -109,18 +118,57 @@ export function DriverStatusButtons() {
   useEffect(() => {
     const vehicleId = localStorage.getItem("selectedVehicleId");
     setSelectedVehicleId(vehicleId);
+    
+    // Load initial values from localStorage if they exist
+    if (vehicleId) {
+      const storedHorimeter = localStorage.getItem(`shift_horimeter_${vehicleId}`);
+      const storedKm = localStorage.getItem(`shift_km_${vehicleId}`);
+      setInitialHorimeter(storedHorimeter);
+      setInitialKm(storedKm);
+    }
   }, []);
 
   const selectedVehicle = equipment.find((eq) => eq.id === selectedVehicleId);
   const currentStatus = (selectedVehicle?.stop_reason || "none") as string;
   const statusInfo = getStatusLabel(currentStatus);
+  
+  // Check if shift has been started (has initial values)
+  const shiftStarted = initialHorimeter !== null && initialKm !== null;
 
   // Get the current active stop from history (ended_at is null)
   const activeStop = stopHistory.find((h) => h.ended_at === null);
 
+  const validateEndShiftValues = (): boolean => {
+    setEndShiftError(null);
+    
+    if (initialHorimeter && endShiftHorimeter) {
+      const initialH = parseFloat(initialHorimeter);
+      const finalH = parseFloat(endShiftHorimeter);
+      if (finalH < initialH) {
+        setEndShiftError(`Horímetro final (${finalH}) deve ser maior ou igual ao inicial (${initialH})`);
+        return false;
+      }
+    }
+    
+    if (initialKm && endShiftKm) {
+      const initialK = parseFloat(initialKm);
+      const finalK = parseFloat(endShiftKm);
+      if (finalK < initialK) {
+        setEndShiftError(`KM final (${finalK}) deve ser maior ou igual ao inicial (${initialK})`);
+        return false;
+      }
+    }
+    
+    return true;
+  };
+
   const handleEndOfShift = async () => {
     if (!selectedVehicleId || !selectedVehicle) {
       toast.error("Nenhum veículo selecionado");
+      return;
+    }
+
+    if (!validateEndShiftValues()) {
       return;
     }
 
@@ -144,8 +192,10 @@ export function DriverStatusButtons() {
         .update({ driver: "" })
         .eq("id", selectedVehicleId);
 
-      // Clear the selected vehicle from localStorage
+      // Clear the selected vehicle and shift data from localStorage
       localStorage.removeItem("selectedVehicleId");
+      localStorage.removeItem(`shift_horimeter_${selectedVehicleId}`);
+      localStorage.removeItem(`shift_km_${selectedVehicleId}`);
 
       setShowEndShiftDialog(false);
       
@@ -162,6 +212,46 @@ export function DriverStatusButtons() {
     } catch (error) {
       console.error("Error ending shift:", error);
       toast.error("Erro ao registrar fim de turno");
+    } finally {
+      setIsUpdating(false);
+    }
+  };
+
+  const handleStartShift = async () => {
+    if (!selectedVehicleId || !selectedVehicle) {
+      toast.error("Nenhum veículo selecionado");
+      return;
+    }
+
+    if (!startShiftHorimeter || !startShiftKm) {
+      toast.error("Preencha o Horímetro e KM inicial");
+      return;
+    }
+
+    setIsUpdating(true);
+    try {
+      const now = new Date().toISOString();
+
+      // Save initial values to localStorage
+      localStorage.setItem(`shift_horimeter_${selectedVehicleId}`, startShiftHorimeter);
+      localStorage.setItem(`shift_km_${selectedVehicleId}`, startShiftKm);
+      setInitialHorimeter(startShiftHorimeter);
+      setInitialKm(startShiftKm);
+
+      await updateStatus.mutateAsync({
+        id: selectedVehicleId,
+        stop_reason: "none" as any,
+        stop_start_time: null,
+        previousStopReason: currentStatus as any,
+        previousStopStartTime: selectedVehicle.stop_start_time,
+        changed_by_driver: profile?.full_name || null,
+      });
+
+      setShowStartShiftDialog(false);
+      toast.success(`Turno iniciado! Horímetro: ${startShiftHorimeter} | KM: ${startShiftKm}`);
+    } catch (error) {
+      console.error("Error starting shift:", error);
+      toast.error("Erro ao iniciar turno");
     } finally {
       setIsUpdating(false);
     }
@@ -187,9 +277,18 @@ export function DriverStatusButtons() {
     // Handle end_of_shift - show dialog instead of immediate action
     if (newStatus === "end_of_shift") {
       setEndShiftFuelLevel("half"); // Reset to default
-      setEndShiftHorimeter(""); // Reset
-      setEndShiftKm(""); // Reset
+      setEndShiftHorimeter(initialHorimeter || ""); // Pre-fill with initial value
+      setEndShiftKm(initialKm || ""); // Pre-fill with initial value
+      setEndShiftError(null);
       setShowEndShiftDialog(true);
+      return;
+    }
+
+    // Handle starting shift (going to "none" status) - show dialog if shift not started
+    if (newStatus === "none" && !shiftStarted) {
+      setStartShiftHorimeter("");
+      setStartShiftKm("");
+      setShowStartShiftDialog(true);
       return;
     }
 
@@ -316,6 +415,89 @@ export function DriverStatusButtons() {
         </CardContent>
       </Card>
 
+      {/* Start Shift Dialog with Horimeter and KM */}
+      <Dialog open={showStartShiftDialog} onOpenChange={setShowStartShiftDialog}>
+        <DialogContent className="sm:max-w-md">
+          <DialogHeader>
+            <DialogTitle className="flex items-center gap-2">
+              <Play className="h-5 w-5 text-emerald-500" />
+              Iniciar Turno
+            </DialogTitle>
+            <DialogDescription>
+              Informe os dados iniciais do equipamento
+            </DialogDescription>
+          </DialogHeader>
+
+          <div className="space-y-4 py-2">
+            {/* Legend */}
+            <Alert className="bg-blue-50 dark:bg-blue-950/30 border-blue-200 dark:border-blue-800">
+              <Info className="h-4 w-4 text-blue-500" />
+              <AlertDescription className="text-xs text-blue-700 dark:text-blue-300">
+                Registre o horímetro e quilometragem antes de iniciar o turno. 
+                Estes valores serão usados para validação no fim do turno.
+              </AlertDescription>
+            </Alert>
+
+            {/* Horimeter and KM inputs */}
+            <div className="grid grid-cols-2 gap-3">
+              <div className="space-y-1.5">
+                <Label htmlFor="start-horimeter" className="text-xs flex items-center gap-1.5">
+                  <Gauge className="h-3.5 w-3.5" />
+                  Horímetro Inicial
+                </Label>
+                <Input
+                  id="start-horimeter"
+                  type="number"
+                  placeholder="Ex: 1234"
+                  value={startShiftHorimeter}
+                  onChange={(e) => setStartShiftHorimeter(e.target.value)}
+                  disabled={isUpdating}
+                  className="h-9"
+                />
+              </div>
+              <div className="space-y-1.5">
+                <Label htmlFor="start-km" className="text-xs flex items-center gap-1.5">
+                  <Car className="h-3.5 w-3.5" />
+                  KM Inicial
+                </Label>
+                <Input
+                  id="start-km"
+                  type="number"
+                  placeholder="Ex: 45678"
+                  value={startShiftKm}
+                  onChange={(e) => setStartShiftKm(e.target.value)}
+                  disabled={isUpdating}
+                  className="h-9"
+                />
+              </div>
+            </div>
+          </div>
+
+          <DialogFooter className="flex-col sm:flex-row gap-2">
+            <Button
+              variant="outline"
+              onClick={() => setShowStartShiftDialog(false)}
+              disabled={isUpdating}
+              className="w-full sm:w-auto"
+            >
+              Cancelar
+            </Button>
+            <Button
+              onClick={handleStartShift}
+              disabled={isUpdating || !startShiftHorimeter || !startShiftKm}
+              className="w-full sm:w-auto bg-emerald-600 hover:bg-emerald-700"
+            >
+              {isUpdating ? (
+                <Loader2 className="h-4 w-4 mr-2 animate-spin" />
+              ) : (
+                <Play className="h-4 w-4 mr-2" />
+              )}
+              Iniciar Turno
+            </Button>
+          </DialogFooter>
+        </DialogContent>
+      </Dialog>
+
       {/* End of Shift Dialog with Fuel Level, Horimeter and KM */}
       <Dialog open={showEndShiftDialog} onOpenChange={setShowEndShiftDialog}>
         <DialogContent className="sm:max-w-md max-h-[90vh] overflow-y-auto">
@@ -339,6 +521,30 @@ export function DriverStatusButtons() {
               />
             </div>
 
+            {/* Legend showing initial values */}
+            {(initialHorimeter || initialKm) && (
+              <Alert className="bg-amber-50 dark:bg-amber-950/30 border-amber-200 dark:border-amber-800">
+                <Info className="h-4 w-4 text-amber-500" />
+                <AlertDescription className="text-xs text-amber-700 dark:text-amber-300">
+                  <strong>Valores iniciais do turno:</strong>
+                  <br />
+                  Horímetro: {initialHorimeter || "N/A"} | KM: {initialKm || "N/A"}
+                  <br />
+                  <span className="text-[10px]">Os valores finais devem ser iguais ou maiores que os iniciais.</span>
+                </AlertDescription>
+              </Alert>
+            )}
+
+            {/* Error message */}
+            {endShiftError && (
+              <Alert variant="destructive" className="py-2">
+                <AlertCircle className="h-4 w-4" />
+                <AlertDescription className="text-xs">
+                  {endShiftError}
+                </AlertDescription>
+              </Alert>
+            )}
+
             {/* Horimeter and KM inputs */}
             <div className="grid grid-cols-2 gap-3 pt-2 border-t border-border">
               <div className="space-y-1.5">
@@ -349,9 +555,12 @@ export function DriverStatusButtons() {
                 <Input
                   id="horimeter"
                   type="number"
-                  placeholder="Ex: 1234"
+                  placeholder={initialHorimeter ? `Mín: ${initialHorimeter}` : "Ex: 1234"}
                   value={endShiftHorimeter}
-                  onChange={(e) => setEndShiftHorimeter(e.target.value)}
+                  onChange={(e) => {
+                    setEndShiftHorimeter(e.target.value);
+                    setEndShiftError(null);
+                  }}
                   disabled={isUpdating}
                   className="h-9"
                 />
@@ -364,9 +573,12 @@ export function DriverStatusButtons() {
                 <Input
                   id="km"
                   type="number"
-                  placeholder="Ex: 45678"
+                  placeholder={initialKm ? `Mín: ${initialKm}` : "Ex: 45678"}
                   value={endShiftKm}
-                  onChange={(e) => setEndShiftKm(e.target.value)}
+                  onChange={(e) => {
+                    setEndShiftKm(e.target.value);
+                    setEndShiftError(null);
+                  }}
                   disabled={isUpdating}
                   className="h-9"
                 />
