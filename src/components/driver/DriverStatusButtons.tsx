@@ -366,15 +366,6 @@ export function DriverStatusButtons() {
       end_of_shift: "Fim de Turno",
     };
 
-    // Map status to exit reason for equipment movements
-    const statusToExitReason: Record<string, string | null> = {
-      none: "operando",
-      waiting: "aguardando_frente_servico",
-      rain: null, // No movement for rain
-      end_of_day: null, // Refueling - handled separately
-      end_of_shift: "fim_turno",
-    };
-
     // If offline, save action locally
     if (!isOnline) {
       addPendingAction("equipment_status", {
@@ -413,27 +404,9 @@ export function DriverStatusButtons() {
         changed_by_driver: profile?.full_name || null,
       });
 
-      // Synchronize with equipment movements for key status changes
-      // This updates the "Situação" in "Entrada e Saída" page and triggers announcements
-      const exitReason = statusToExitReason[newStatus];
-      if (exitReason) {
-        try {
-          // When going to "operando" (none), create an entrada if coming from a paused state
-          // When going to waiting/other states, create a saida with the reason
-          const isReturningToOperation = newStatus === "none";
-          
-          await createEquipmentMovement.mutateAsync({
-            equipment_name: selectedVehicle.name,
-            plate: selectedVehicle.plate,
-            movement_type: isReturningToOperation ? "entrada" : "saida",
-            exit_reason: isReturningToOperation ? undefined : exitReason as any,
-            observation: `${statusLabels[newStatus]} - Alterado pelo motorista`,
-          });
-        } catch (movementError) {
-          console.error("Error syncing equipment movement:", movementError);
-          // Don't block the status change if movement sync fails
-        }
-      }
+      // Note: Equipment movements (entrada/saída) are only created for shift start/end
+      // Status changes (Operando, Aguardando, etc.) are tracked via stop_history only
+      // This keeps the "Entrada e Saída" page for physical entry/exit tracking
 
       toast.success(`Status alterado para: ${statusLabels[newStatus] || newStatus}`);
     } catch (error) {
