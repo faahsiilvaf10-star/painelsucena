@@ -229,7 +229,7 @@ export function ExportDailyShiftPdfButton({ record, isLoading }: ExportDailyShif
             }
             .telemetry-grid {
               display: grid;
-              grid-template-columns: 1fr 2fr 2fr;
+              grid-template-columns: 1fr 1fr 1fr 1fr;
               gap: 15px;
               align-items: start;
             }
@@ -336,6 +336,10 @@ export function ExportDailyShiftPdfButton({ record, isLoading }: ExportDailyShif
           <div class="section">
             <div class="section-title">📊 Telemetria</div>
             <div class="telemetry-grid">
+              <div class="gauge-container">
+                <div class="gauge-label">Combustível Inicial</div>
+                ${getFuelGaugeSvg(record.initial_fuel_level)}
+              </div>
               <div class="gauge-container">
                 <div class="gauge-label">Combustível Final</div>
                 ${getFuelGaugeSvg(record.final_fuel_level || record.initial_fuel_level)}
