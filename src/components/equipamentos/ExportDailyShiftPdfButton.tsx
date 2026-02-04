@@ -212,8 +212,8 @@ export function ExportDailyShiftPdfButton({ record, isLoading }: ExportDailyShif
               border-top: 1px solid #000;
             }
             .sig-box { text-align: center; width: 30%; }
-            .sig-name { font-weight: bold; font-size: 10px; margin-bottom: 2px; }
-            .sig-line { border-top: 1px solid #000; }
+            .sig-name { font-weight: bold; font-size: 10px; margin: 0; padding: 0; line-height: 1; }
+            .sig-line { border-top: 1px solid #000; margin-top: 1px; }
             .sig-label { font-size: 8px; margin-top: 2px; }
             .instructions {
               background: #f5f5f5;
