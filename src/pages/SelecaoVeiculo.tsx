@@ -126,7 +126,7 @@ export default function SelecaoVeiculo() {
   };
 
   return (
-    <div className="min-h-screen bg-background">
+    <div className="min-h-screen bg-background flex flex-col">
       {/* Header */}
       <header className="sticky top-0 z-10 bg-card/95 backdrop-blur-sm border-b shadow-sm">
         <div className="flex items-center justify-between p-3">
@@ -145,7 +145,7 @@ export default function SelecaoVeiculo() {
         </div>
       </header>
 
-      <main className="p-4 max-w-lg mx-auto">
+      <main className="flex-1 overflow-y-auto p-4 max-w-lg mx-auto w-full">
         {/* Welcome Message */}
         <div className="text-center mb-6">
           <h2 className="text-xl font-semibold mb-2">
@@ -228,31 +228,28 @@ export default function SelecaoVeiculo() {
             {/* Helper Name Input - Show only when vehicle is selected */}
             {selectedVehicle && (
               <Card className="mt-4 border-primary/30 bg-primary/5">
-                <CardContent className="p-4">
-                  <div className="flex items-center gap-2 mb-3">
-                    <UserPlus className="h-5 w-5 text-primary" />
-                    <Label htmlFor="helper-name" className="text-base font-semibold">
-                      Nome do Ajudante
+                <CardContent className="p-3">
+                  <div className="flex items-center gap-2 mb-2">
+                    <UserPlus className="h-4 w-4 text-primary" />
+                    <Label htmlFor="helper-name" className="text-sm font-semibold">
+                      Nome do Ajudante (opcional)
                     </Label>
                   </div>
                   <Input
                     id="helper-name"
-                    placeholder="Digite o nome do ajudante (opcional)"
+                    placeholder="Digite o nome do ajudante"
                     value={helperName}
                     onChange={(e) => setHelperName(e.target.value)}
-                    className="h-12 text-base"
+                    className="h-10 text-sm"
                   />
-                  <p className="text-xs text-muted-foreground mt-2">
-                    Informe o nome do ajudante que está no apoio do veículo
-                  </p>
                 </CardContent>
               </Card>
             )}
 
             {/* Confirm Button */}
-            <div className="mt-6 pb-6">
+            <div className="mt-4 pb-6">
               <Button
-                className="w-full h-14 text-lg font-bold"
+                className="w-full h-12 text-base font-bold"
                 disabled={!selectedVehicle || isConfirming}
                 onClick={handleConfirm}
               >
