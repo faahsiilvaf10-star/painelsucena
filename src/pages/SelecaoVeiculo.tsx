@@ -14,9 +14,14 @@ import { supabase } from "@/integrations/supabase/client";
 import { useQueryClient } from "@tanstack/react-query";
 import { toast } from "sonner";
 
+// Fixed driver-vehicle assignments (userId -> equipmentId)
+const FIXED_VEHICLE_ASSIGNMENTS: Record<string, string> = {
+  "efd87157-7281-4542-bcb9-afe230a76708": "b24426c7-40ad-4033-9823-652e487a9534", // Anderson da Cruz -> Pipa 01
+};
+
 export default function SelecaoVeiculo() {
   const navigate = useNavigate();
-  const { signOut } = useAuth();
+  const { signOut, user } = useAuth();
   const { data: profile } = useProfile();
   const { data: equipment = [], isLoading } = useEquipment();
   const createMovement = useCreateEquipmentMovement();
@@ -25,6 +30,11 @@ export default function SelecaoVeiculo() {
   const [helperName, setHelperName] = useState("");
   const [isConfirming, setIsConfirming] = useState(false);
 
+  // Check if user has a fixed vehicle assignment
+  const fixedVehicleId = user?.id ? FIXED_VEHICLE_ASSIGNMENTS[user.id] : null;
+  const hasFixedVehicle = !!fixedVehicleId;
+  const fixedVehicle = hasFixedVehicle ? equipment.find(eq => eq.id === fixedVehicleId) : null;
+
   // Check if user already has a vehicle selected
   useEffect(() => {
     const savedVehicle = localStorage.getItem("selectedVehicleId");
@@ -32,6 +42,13 @@ export default function SelecaoVeiculo() {
       navigate("/painel-motorista", { replace: true });
     }
   }, [navigate]);
+
+  // Auto-select fixed vehicle when data is loaded
+  useEffect(() => {
+    if (hasFixedVehicle && fixedVehicleId && !selectedVehicle) {
+      setSelectedVehicle(fixedVehicleId);
+    }
+  }, [hasFixedVehicle, fixedVehicleId, selectedVehicle]);
 
   // Show only Pipa and Munk vehicles that don't have a driver assigned
   const availableVehicles = equipment.filter((eq) => {
@@ -45,12 +62,13 @@ export default function SelecaoVeiculo() {
   };
 
   const handleConfirm = async () => {
-    if (!selectedVehicle || !profile) return;
+    const vehicleId = hasFixedVehicle ? fixedVehicleId : selectedVehicle;
+    if (!vehicleId || !profile) return;
 
     setIsConfirming(true);
     
     try {
-      const selectedEquipmentData = equipment.find(eq => eq.id === selectedVehicle);
+      const selectedEquipmentData = equipment.find(eq => eq.id === vehicleId);
       if (!selectedEquipmentData) return;
 
       // Update the equipment with the driver's name and helper (keep the current status)
@@ -60,7 +78,7 @@ export default function SelecaoVeiculo() {
           driver: profile.full_name,
           helper: helperName.trim(),
         })
-        .eq("id", selectedVehicle);
+        .eq("id", vehicleId);
 
       if (updateError) throw updateError;
 
@@ -79,7 +97,7 @@ export default function SelecaoVeiculo() {
       });
 
       // Store selected vehicle in localStorage
-      localStorage.setItem("selectedVehicleId", selectedVehicle);
+      localStorage.setItem("selectedVehicleId", vehicleId);
       
       toast.success("Veículo selecionado e operação iniciada!");
       navigate("/painel-motorista");
@@ -125,6 +143,106 @@ export default function SelecaoVeiculo() {
     }
   };
 
+  // Render fixed vehicle UI for drivers with assigned vehicles
+  if (hasFixedVehicle && fixedVehicle) {
+    return (
+      <div className="min-h-screen bg-background flex flex-col">
+        {/* Header */}
+        <header className="sticky top-0 z-10 bg-card/95 backdrop-blur-sm border-b shadow-sm">
+          <div className="flex items-center justify-between p-3">
+            <div className="flex items-center gap-3">
+              <Truck className="h-6 w-6 text-primary" />
+              <h1 className="text-lg font-bold">Iniciar Turno</h1>
+            </div>
+            <Button
+              variant="ghost"
+              size="icon"
+              onClick={handleLogout}
+              className="text-muted-foreground hover:text-destructive"
+            >
+              <LogOut className="h-5 w-5" />
+            </Button>
+          </div>
+        </header>
+
+        <main className="flex-1 overflow-y-auto p-4 max-w-lg mx-auto w-full">
+          {/* Welcome Message */}
+          <div className="text-center mb-6">
+            <h2 className="text-xl font-semibold mb-2">
+              Olá, {profile?.full_name?.split(" ")[0] || "Motorista"}!
+            </h2>
+            <p className="text-muted-foreground">
+              Seu veículo está pronto para iniciar o turno
+            </p>
+          </div>
+
+          {/* Fixed Vehicle Card */}
+          <Card className="ring-2 ring-primary bg-primary/5 border-primary">
+            <CardContent className="p-4">
+              <div className="flex items-center gap-4">
+                <div className="p-3 rounded-lg bg-primary/10 text-primary">
+                  <VehicleIcon 
+                    type={fixedVehicle.equipment_type as "pipa" | "munk" | "camionete" | "onibus"} 
+                    size="lg" 
+                  />
+                </div>
+                <div className="flex-1">
+                  <h3 className="font-semibold text-lg">{fixedVehicle.name}</h3>
+                  <div className="flex items-center gap-2 text-sm text-muted-foreground">
+                    <span className="font-mono bg-muted px-2 py-0.5 rounded">
+                      {fixedVehicle.plate}
+                    </span>
+                    <span>•</span>
+                    <span>{getVehicleTypeLabel(fixedVehicle.equipment_type)}</span>
+                  </div>
+                </div>
+                <div className="w-5 h-5 rounded-full border-2 border-primary bg-primary flex items-center justify-center">
+                  <div className="w-2 h-2 rounded-full bg-white" />
+                </div>
+              </div>
+            </CardContent>
+          </Card>
+
+          {/* Helper Name Input */}
+          <Card className="mt-4 border-primary/30 bg-primary/5">
+            <CardContent className="p-3">
+              <div className="flex items-center gap-2 mb-2">
+                <UserPlus className="h-4 w-4 text-primary" />
+                <Label htmlFor="helper-name" className="text-sm font-semibold">
+                  Nome do Ajudante (opcional)
+                </Label>
+              </div>
+              <Input
+                id="helper-name"
+                placeholder="Digite o nome do ajudante"
+                value={helperName}
+                onChange={(e) => setHelperName(e.target.value)}
+                className="h-10 text-sm"
+              />
+            </CardContent>
+          </Card>
+
+          {/* Confirm Button */}
+          <div className="mt-4 pb-6">
+            <Button
+              className="w-full h-12 text-base font-bold"
+              disabled={isConfirming}
+              onClick={handleConfirm}
+            >
+              {isConfirming ? (
+                <Loader2 className="h-5 w-5 mr-2 animate-spin" />
+              ) : (
+                <Truck className="h-5 w-5 mr-2" />
+              )}
+              {isConfirming ? "Iniciando..." : "Iniciar Turno"}
+            </Button>
+          </div>
+        </main>
+      </div>
+    );
+  }
+
+  // Default UI for drivers without fixed vehicle
   return (
     <div className="min-h-screen bg-background flex flex-col">
       {/* Header */}
