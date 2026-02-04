@@ -68,37 +68,75 @@ export function useUpdateEquipmentStatus() {
       changed_by_driver?: string | null;
     }) => {
       const now = new Date();
+      const nowIso = now.toISOString();
 
-      // If there was a previous stop (not "none"), end it and log to history
-      if (previousStopReason && previousStopReason !== "none" && previousStopStartTime) {
-        const startedAt = new Date(previousStopStartTime);
-        const durationMinutes = Math.floor((now.getTime() - startedAt.getTime()) / 60000);
+      // Ensure we always persist a valid stop_start_time for non-operating statuses.
+      // Some callers were sending null, which breaks proper closing of the last open history row.
+      const effectiveStopStartTime =
+        stop_reason === "none" ? null : stop_start_time ?? nowIso;
 
-        await supabase.from("equipment_stop_history").insert({
-          equipment_id: id,
-          stop_reason: previousStopReason,
-          started_at: previousStopStartTime,
-          ended_at: now.toISOString(),
-          duration_minutes: durationMinutes,
-          changed_by_driver: changed_by_driver || null,
-        });
+      // Close the latest open stop (ended_at IS NULL) before writing the new status.
+      // Previously we were inserting a "closing" row and leaving the original row open,
+      // which caused "Movimentações de Hoje"/PDF to keep showing the old status as current.
+      {
+        const { data: openStop, error: openStopError } = await supabase
+          .from("equipment_stop_history")
+          .select("id, started_at")
+          .eq("equipment_id", id)
+          .is("ended_at", null)
+          .order("started_at", { ascending: false })
+          .limit(1)
+          .maybeSingle();
+
+        if (openStopError) throw openStopError;
+
+        if (openStop) {
+          const startedAt = new Date(openStop.started_at);
+          const durationMinutes = Math.max(
+            0,
+            Math.floor((now.getTime() - startedAt.getTime()) / 60000)
+          );
+
+          const { error: closeError } = await supabase
+            .from("equipment_stop_history")
+            .update({ ended_at: nowIso, duration_minutes: durationMinutes })
+            .eq("id", openStop.id);
+
+          if (closeError) throw closeError;
+
+          // Safety net: close any other dangling open rows (shouldn't exist, but may due to older bugs)
+          const { error: closeOthersError } = await supabase
+            .from("equipment_stop_history")
+            .update({ ended_at: nowIso })
+            .eq("equipment_id", id)
+            .is("ended_at", null);
+
+          if (closeOthersError) throw closeOthersError;
+        }
       }
+
+      // NOTE: previousStopReason/previousStopStartTime are intentionally not relied upon anymore.
+      // We close the latest open row directly to avoid leaving dangling "in progress" history.
 
       // Always create a history entry for status changes, including "none" (Operando)
       // This ensures "Movimentações de Hoje" shows all status transitions including return to operation
-      await supabase.from("equipment_stop_history").insert({
+      const { error: insertHistoryError } = await supabase
+        .from("equipment_stop_history")
+        .insert({
         equipment_id: id,
         stop_reason: stop_reason === "none" ? "operando" : stop_reason,
-        started_at: stop_start_time || now.toISOString(),
-        ended_at: stop_reason === "none" ? now.toISOString() : null, // Operando entries are instant
+        started_at: stop_reason === "none" ? nowIso : (effectiveStopStartTime as string),
+        ended_at: stop_reason === "none" ? nowIso : null, // Operando entries are instant
         duration_minutes: stop_reason === "none" ? 0 : null,
         defect_description: stop_reason === "maintenance" ? defect_description : null,
         changed_by_driver: changed_by_driver || null,
       });
 
+      if (insertHistoryError) throw insertHistoryError;
+
       const { data, error } = await supabase
         .from("equipment")
-        .update({ stop_reason, stop_start_time })
+        .update({ stop_reason, stop_start_time: effectiveStopStartTime })
         .eq("id", id)
         .select()
         .single();
