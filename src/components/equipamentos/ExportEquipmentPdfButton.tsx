@@ -7,6 +7,12 @@ import { toast } from "sonner";
 import { getLogoBase64 } from "@/lib/pdfLogo";
 import type { Equipment, EquipmentStopHistory } from "@/hooks/useEquipment";
 import type { EquipmentMovement } from "@/hooks/useEquipmentMovements";
+import { supabase } from "@/integrations/supabase/client";
+import {
+  buildFuelGaugeSvg,
+  fuelLevelToLabel,
+  fuelLevelToPercentage,
+} from "@/lib/pdf/fuelGauge";
 
 interface ExportEquipmentPdfButtonProps {
   equipment: Equipment;
@@ -29,6 +35,8 @@ export function ExportEquipmentPdfButton({
     driverName: string;
     helperName: string;
     activities: Array<{ start: string; end: string; description: string }>;
+    initialFuelLevel?: string | null;
+    finalFuelLevel?: string | null;
   }) => {
     const maxRows = 12;
     const rows = [...params.activities]
@@ -62,6 +70,11 @@ export function ExportEquipmentPdfButton({
       "05 - AO FINAL DA JORNADA DE TRABALHO ASSINAR E ENTREGAR PARA APONTADOR OU ENCARREGADO RESPONSÁVEL. " +
       "06 - A PARTE DIÁRIA DEVERÁ SER PREENCHIDA TODOS OS DIAS INCLUSIVE DOMINGOS E FÉRIADOS. " +
       "07 - O MOTORISTA/OPERADOR TEM ATÉ O DIA 02 DE CADA MÊS PARA ENTREGAR TODAS AS PARTES DIÁRIAS, E O APONTADOR TEM ATÉ O DIA 04 PARA ENVIAR PARA O SETOR DE CONFERÊNCIA, O DESCUMPRIMENTO DESSE ITEM IRÁ GERAR ADVERTÊNCIA POR ESCRITO.";
+
+    const initialFuelPct = fuelLevelToPercentage(params.initialFuelLevel);
+    const finalFuelPct = fuelLevelToPercentage(
+      params.finalFuelLevel ?? params.initialFuelLevel
+    );
 
     return `
       <!DOCTYPE html>
@@ -212,13 +225,7 @@ export function ExportEquipmentPdfButton({
           }
           .fuel-item { text-align: center; }
           .fuel-item .mini { margin-bottom: 5px; }
-          .fuel-line {
-            height: 22px;
-            border: 2px solid #000;
-            margin: 0 auto;
-            width: 60px;
-            background: #fff;
-          }
+          .fuel-svg { display: block; margin: 0 auto; }
 
           .desc-title {
             background: #f0f0f0;
@@ -329,11 +336,13 @@ export function ExportEquipmentPdfButton({
                 <div class="fuel-grid">
                   <div class="fuel-item">
                     <div class="mini">INICIAL</div>
-                    <div class="fuel-line"></div>
+                    <div class="fuel-svg">${buildFuelGaugeSvg({ percent: initialFuelPct, width: 52, height: 70 })}</div>
+                    <div class="mini" style="margin-top: 3px; font-weight: 700; color: #111;">${fuelLevelToLabel(params.initialFuelLevel)}</div>
                   </div>
                   <div class="fuel-item">
                     <div class="mini">FINAL</div>
-                    <div class="fuel-line"></div>
+                    <div class="fuel-svg">${buildFuelGaugeSvg({ percent: finalFuelPct, width: 52, height: 70 })}</div>
+                    <div class="mini" style="margin-top: 3px; font-weight: 700; color: #111;">${fuelLevelToLabel(params.finalFuelLevel ?? params.initialFuelLevel)}</div>
                   </div>
                 </div>
               </div>
@@ -430,6 +439,16 @@ export function ExportEquipmentPdfButton({
       const today = format(new Date(), "yyyy-MM-dd");
       const dateLabel = format(new Date(), "dd/MM/yyyy", { locale: ptBR });
 
+      // Try to load fuel levels from today's shift record (when available)
+      const { data: fuelRecord } = await supabase
+        .from("daily_shift_records")
+        .select("initial_fuel_level, final_fuel_level")
+        .eq("equipment_id", equipment.id)
+        .eq("shift_date", today)
+        .order("created_at", { ascending: false })
+        .limit(1)
+        .maybeSingle();
+
       // Filter today's data
       const todayMovements = movements.filter((m) => m.movement_date === today);
       const todayStops = stopHistory.filter((h) => {
@@ -466,6 +485,8 @@ export function ExportEquipmentPdfButton({
         driverName: equipment.driver || "",
         helperName: equipment.helper || "",
         activities,
+        initialFuelLevel: fuelRecord?.initial_fuel_level ?? null,
+        finalFuelLevel: fuelRecord?.final_fuel_level ?? null,
       });
 
       printWindow.document.write(htmlContent);

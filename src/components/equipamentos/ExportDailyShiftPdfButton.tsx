@@ -6,6 +6,11 @@ import { ptBR } from "date-fns/locale";
 import { toast } from "sonner";
 import { getLogoBase64 } from "@/lib/pdfLogo";
 import type { DailyShiftRecord, StatusHistoryEntry } from "@/hooks/useDailyShiftRecords";
+import {
+  buildFuelGaugeSvg,
+  fuelLevelToLabel,
+  fuelLevelToPercentage,
+} from "@/lib/pdf/fuelGauge";
 
 interface ExportDailyShiftPdfButtonProps {
   record: DailyShiftRecord;
@@ -24,29 +29,6 @@ const getStatusLabel = (status: string): string => {
     end_of_shift: "Fim de Turno",
   };
   return labels[status] || status;
-};
-
-const getFuelLevelLabel = (level: string | null): string => {
-  if (!level) return "";
-  const labels: Record<string, string> = {
-    empty: "VAZIO",
-    quarter: "1/4",
-    half: "1/2",
-    three_quarters: "3/4",
-    full: "CHEIO",
-  };
-  return labels[level] || level;
-};
-
-const getFuelPercentage = (level: string | null): number => {
-  const percentages: Record<string, number> = {
-    empty: 0,
-    quarter: 25,
-    half: 50,
-    three_quarters: 75,
-    full: 100,
-  };
-  return percentages[level || "empty"] || 0;
 };
 
 export function ExportDailyShiftPdfButton({ record, isLoading }: ExportDailyShiftPdfButtonProps) {
@@ -99,8 +81,8 @@ export function ExportDailyShiftPdfButton({ record, isLoading }: ExportDailyShif
         `);
       }
 
-      const initialFuelPct = getFuelPercentage(record.initial_fuel_level);
-      const finalFuelPct = getFuelPercentage(record.final_fuel_level || record.initial_fuel_level);
+      const initialFuelPct = fuelLevelToPercentage(record.initial_fuel_level);
+      const finalFuelPct = fuelLevelToPercentage(record.final_fuel_level || record.initial_fuel_level);
 
       const htmlContent = `
         <!DOCTYPE html>
@@ -117,6 +99,8 @@ export function ExportDailyShiftPdfButton({ record, isLoading }: ExportDailyShif
               color: #000;
               background: #fff;
               padding: 5mm;
+              print-color-adjust: exact;
+              -webkit-print-color-adjust: exact;
             }
             .form-container {
               border: 2px solid #000;
@@ -199,36 +183,6 @@ export function ExportDailyShiftPdfButton({ record, isLoading }: ExportDailyShif
             }
             .fuel-item { text-align: center; }
             .fuel-label { font-size: 8px; color: #666; margin-bottom: 3px; }
-            .fuel-gauge {
-              width: 40px;
-              height: 55px;
-              border: 2px solid #333;
-              border-radius: 3px;
-              margin: 0 auto 3px;
-              position: relative;
-              background: #f5f5f5;
-              overflow: hidden;
-            }
-            .fuel-fill {
-              position: absolute;
-              bottom: 0;
-              left: 0;
-              right: 0;
-              background: #f59e0b;
-            }
-            .fuel-markers {
-              position: absolute;
-              left: -18px;
-              top: 0;
-              bottom: 0;
-              width: 15px;
-              font-size: 7px;
-              color: #333;
-            }
-            .fuel-marker {
-              position: absolute;
-              right: 0;
-            }
             .fuel-text { font-weight: bold; font-size: 9px; }
             .activities-header {
               background: #e8e8e8;
@@ -352,31 +306,13 @@ export function ExportDailyShiftPdfButton({ record, isLoading }: ExportDailyShif
                   <div class="fuel-row">
                     <div class="fuel-item">
                       <div class="fuel-label">INICIAL</div>
-                      <div style="position:relative;display:inline-block;">
-                        <div class="fuel-markers">
-                          <div class="fuel-marker" style="top:2px;">F</div>
-                          <div class="fuel-marker" style="top:50%;transform:translateY(-50%);">½</div>
-                          <div class="fuel-marker" style="bottom:2px;">E</div>
-                        </div>
-                        <div class="fuel-gauge">
-                          <div class="fuel-fill" style="height:${initialFuelPct}%;"></div>
-                        </div>
-                      </div>
-                      <div class="fuel-text">${getFuelLevelLabel(record.initial_fuel_level)}</div>
+                      ${buildFuelGaugeSvg({ percent: initialFuelPct, width: 52, height: 70 })}
+                      <div class="fuel-text">${fuelLevelToLabel(record.initial_fuel_level)}</div>
                     </div>
                     <div class="fuel-item">
                       <div class="fuel-label">FINAL</div>
-                      <div style="position:relative;display:inline-block;">
-                        <div class="fuel-markers">
-                          <div class="fuel-marker" style="top:2px;">F</div>
-                          <div class="fuel-marker" style="top:50%;transform:translateY(-50%);">½</div>
-                          <div class="fuel-marker" style="bottom:2px;">E</div>
-                        </div>
-                        <div class="fuel-gauge">
-                          <div class="fuel-fill" style="height:${finalFuelPct}%;"></div>
-                        </div>
-                      </div>
-                      <div class="fuel-text">${getFuelLevelLabel(record.final_fuel_level || record.initial_fuel_level)}</div>
+                      ${buildFuelGaugeSvg({ percent: finalFuelPct, width: 52, height: 70 })}
+                      <div class="fuel-text">${fuelLevelToLabel(record.final_fuel_level || record.initial_fuel_level)}</div>
                     </div>
                   </div>
                 </div>
