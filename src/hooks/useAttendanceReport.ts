@@ -165,7 +165,7 @@ export const useAttendanceReportData = (date: string) => {
   };
 };
 
-// Generate formatted efetivo text for an area (quantity only, no names, no headers)
+// Generate formatted efetivo text for an area (with employee names)
 export const generateEfetivoText = (
   area: "ÁREA GABIÃO" | "ROÇAGEM E PODAGEM",
   groupedEmployees: Record<string, Record<string, Tables<"employees">[]>>,
@@ -178,12 +178,17 @@ export const generateEfetivoText = (
   roles.forEach((role) => {
     const label = roleLabels[area][role];
     const employees = groupedEmployees[area]?.[role] || [];
-    const presentCount = employees.filter((emp) => isPresent(emp.id)).length;
+    const presentEmployees = employees.filter((emp) => isPresent(emp.id));
     
-    if (employees.length > 0 && presentCount > 0) {
+    if (employees.length > 0 && presentEmployees.length > 0) {
       // Remove emoji and colon from label for cleaner display
       const cleanLabel = label.replace(/^👷🏼‍♂\s*|👷🏼\s*/g, '').replace(/:$/, '');
-      report += `\uD83D\uDC77 ${cleanLabel}: ${presentCount}\n`;
+      report += `\uD83D\uDC77 ${cleanLabel}: ${presentEmployees.length}\n`;
+      // Add employee names
+      presentEmployees.forEach((emp) => {
+        report += `   • ${emp.name}\n`;
+      });
+      report += "\n";
     }
   });
 
