@@ -14,6 +14,7 @@ export interface StatusHistoryEntry {
   status: string;
   timestamp: string;
   changed_by: string | null;
+  description?: string;
 }
 
 export interface DailyShiftRecord {
@@ -225,10 +226,12 @@ export function useAddStatusToHistory() {
       equipmentId,
       status,
       changedBy,
+      description,
     }: {
       equipmentId: string;
       status: string;
       changedBy: string | null;
+      description?: string;
     }) => {
       const today = new Date().toISOString().split("T")[0];
       const now = new Date().toISOString();
@@ -250,15 +253,16 @@ export function useAddStatusToHistory() {
       
       // Check if the last status is the same - if so, don't add duplicate
       const lastEntry = currentHistory[currentHistory.length - 1];
-      if (lastEntry && lastEntry.status === status) {
-        // Same status, don't add duplicate - return current record
+      if (lastEntry && lastEntry.status === status && !description) {
+        // Same status without description, don't add duplicate - return current record
         return null;
       }
       
-      const newEntry = {
+      const newEntry: StatusHistoryEntry = {
         status,
         timestamp: now,
         changed_by: changedBy,
+        description,
       };
       
       const newHistory = [...currentHistory, newEntry] as unknown as Json;
