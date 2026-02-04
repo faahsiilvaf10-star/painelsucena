@@ -168,8 +168,26 @@ export default function PontosAbastecimento() {
 
     if (historyError) throw historyError;
 
-    // NO separate "Operando - Retorno" entry - just go back to operando
-    // The next status change will be recorded when driver changes status
+    // Create "Operando" history entry so it shows in Parte Diária
+    await supabase
+      .from("equipment_stop_history")
+      .insert({
+        equipment_id: selectedVehicleId,
+        stop_reason: "operando",
+        started_at: nowIso,
+        defect_description: `Retorno do Ponto ${point}`,
+        changed_by_driver: selectedVehicle?.driver || null,
+      });
+
+    // Also add to daily shift record status history
+    if (selectedVehicleId) {
+      await addStatusToHistory.mutateAsync({
+        equipmentId: selectedVehicleId,
+        status: "operando",
+        changedBy: selectedVehicle?.driver || null,
+        description: `Operando - Retorno do Ponto ${point}`,
+      });
+    }
 
     setCurrentPoint(null);
     setRefuelingStartTime(null);
