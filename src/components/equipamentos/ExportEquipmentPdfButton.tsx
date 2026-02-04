@@ -485,21 +485,32 @@ export function ExportEquipmentPdfButton({
         return;
       }
 
-      // Sort stops and filter out consecutive duplicates with same status
-      const sortedStops = todayStops.sort(
+      // Sort stops and filter out consecutive duplicates
+      const sortedStops = [...todayStops].sort(
         (a, b) => new Date(a.started_at).getTime() - new Date(b.started_at).getTime()
       );
-      
+
+      // Only remove if same reason AND same description consecutively
       const filteredStops = sortedStops.filter((stop, index, arr) => {
         if (index === 0) return true;
-        return stop.stop_reason !== arr[index - 1].stop_reason;
+        const prev = arr[index - 1];
+        return (
+          stop.stop_reason !== prev.stop_reason ||
+          stop.defect_description !== prev.defect_description
+        );
       });
 
-      const activities = filteredStops.map((stop) => ({
-        start: format(new Date(stop.started_at), "HH:mm", { locale: ptBR }),
-        end: stop.ended_at ? format(new Date(stop.ended_at), "HH:mm", { locale: ptBR }) : "",
-        description: `${getStatusLabel(stop.stop_reason)}${stop.defect_description ? ` - ${stop.defect_description}` : ""}`,
-      }));
+      // IMPORTANT: Fill the "FINAL" column with the start time of the next status
+      // (many stop records don't have ended_at populated).
+      const activities = filteredStops.map((stop, index) => {
+        const nextStop = filteredStops[index + 1];
+        const endSource = nextStop?.started_at ?? stop.ended_at;
+        return {
+          start: format(new Date(stop.started_at), "HH:mm", { locale: ptBR }),
+          end: endSource ? format(new Date(endSource), "HH:mm", { locale: ptBR }) : "",
+          description: `${getStatusLabel(stop.stop_reason)}${stop.defect_description ? ` - ${stop.defect_description}` : ""}`,
+        };
+      });
 
       const htmlContent = buildParteDiariaFormHtml({
         logoBase64,
