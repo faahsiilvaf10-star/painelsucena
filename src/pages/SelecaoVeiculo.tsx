@@ -87,9 +87,26 @@ export default function SelecaoVeiculo() {
   };
 
   const handleLogout = async () => {
-    localStorage.removeItem("selectedVehicleId");
-    await signOut();
-    navigate("/auth");
+    try {
+      // If there was a selected vehicle, clear the driver field
+      const savedVehicle = localStorage.getItem("selectedVehicleId");
+      if (savedVehicle) {
+        await supabase
+          .from("equipment")
+          .update({ driver: "" })
+          .eq("id", savedVehicle);
+      }
+      
+      localStorage.removeItem("selectedVehicleId");
+      await signOut();
+      navigate("/auth");
+    } catch (error) {
+      console.error("Error during logout:", error);
+      // Still try to sign out even if clearing driver failed
+      localStorage.removeItem("selectedVehicleId");
+      await signOut();
+      navigate("/auth");
+    }
   };
 
   const getVehicleTypeLabel = (type: string) => {
