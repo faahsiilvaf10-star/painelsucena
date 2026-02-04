@@ -318,7 +318,7 @@ ${equipmentText}
 
 Total: ${String(equipmentSummary.total).padStart(2, "0")} Equipamentos
 
-\u2705 EQUIPAMENTOS EM OPERAÇÃO (${equipmentSummary.operatingEquipment.length})
+\u2705 EQUIPAMENTOS EM OPERAÇÃO (${equipmentSummary.operatingEquipment.length + 2})
 ${operatingEquipmentText}
 
 Condições climáticas:
