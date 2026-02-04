@@ -30,6 +30,7 @@ import {
 } from "@/components/ui/table";
 import { Truck, Plus, Loader2, Trash2, User, Clock, AlertCircle, Droplets } from "lucide-react";
 import { AdminStatusEditor } from "@/components/partediaria/AdminStatusEditor";
+import { HistoricalReportPicker } from "@/components/partediaria/HistoricalReportPicker";
 
 import { useEquipment, useCreateEquipment, useDeleteEquipment, useEquipmentStopHistory } from "@/hooks/useEquipment";
 import { useEquipmentMovements } from "@/hooks/useEquipmentMovements";
@@ -302,7 +303,14 @@ export default function ParteDiaria() {
                               </p>
                             </div>
                           </div>
-                          {getStatusBadge(timeline.currentStatus, vehicle.id, !!timeline.driver)}
+                          <div className="flex items-center gap-2">
+                            <HistoricalReportPicker
+                              equipmentId={vehicle.id}
+                              equipmentName={vehicle.name}
+                              plate={vehicle.plate}
+                            />
+                            {getStatusBadge(timeline.currentStatus, vehicle.id, !!timeline.driver)}
+                          </div>
                         </div>
                       </CardHeader>
                       <CardContent className="space-y-4">
