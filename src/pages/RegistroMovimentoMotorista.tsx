@@ -194,9 +194,9 @@ export default function RegistroMovimentoMotorista() {
   }
 
   return (
-    <div className="min-h-screen bg-background">
+    <div className="min-h-screen h-screen flex flex-col bg-background overflow-hidden">
       {/* Header */}
-      <header className="sticky top-0 z-10 bg-card/95 backdrop-blur-sm border-b shadow-sm">
+      <header className="sticky top-0 z-10 bg-card/95 backdrop-blur-sm border-b shadow-sm shrink-0">
         <div className="flex items-center gap-3 p-3">
           <Button 
             variant="ghost" 
@@ -210,7 +210,8 @@ export default function RegistroMovimentoMotorista() {
         </div>
       </header>
 
-      <main className="p-4 max-w-lg mx-auto space-y-4">
+      <main className="flex-1 overflow-y-auto overscroll-contain">
+        <div className="p-4 max-w-lg mx-auto space-y-4 pb-safe">
         {/* Equipment Selection */}
         <Card>
           <CardHeader className="pb-3">
@@ -397,6 +398,7 @@ export default function RegistroMovimentoMotorista() {
             </Button>
           </div>
         )}
+        </div>
       </main>
     </div>
   );
