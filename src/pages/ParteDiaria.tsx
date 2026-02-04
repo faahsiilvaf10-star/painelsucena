@@ -204,17 +204,24 @@ export default function ParteDiaria() {
     return labels[status] || status;
   };
 
-  // Get today's status history for each vehicle
+  // Get today's status history for each vehicle (filter consecutive duplicates)
   const getTodayStatusHistory = (vehicleId: string) => {
     const todayStart = new Date();
     todayStart.setHours(0, 0, 0, 0);
     
-    return stopHistory
+    const sorted = stopHistory
       .filter((h) => {
         const startedAt = new Date(h.started_at);
         return h.equipment_id === vehicleId && startedAt >= todayStart;
       })
       .sort((a, b) => new Date(a.started_at).getTime() - new Date(b.started_at).getTime());
+    
+    // Filter out consecutive duplicates (same status AND same description)
+    return sorted.filter((entry, index, arr) => {
+      if (index === 0) return true;
+      const prev = arr[index - 1];
+      return entry.stop_reason !== prev.stop_reason || entry.defect_description !== prev.defect_description;
+    });
   };
 
   // Get status timeline for each vehicle
