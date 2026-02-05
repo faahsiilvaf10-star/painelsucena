@@ -1,3 +1,4 @@
+import { forwardRef } from "react";
 import verifiedBadge from "@/assets/verified-badge.png";
 import { cn } from "@/lib/utils";
 
@@ -13,17 +14,22 @@ const sizeClasses = {
   lg: "w-6 h-6",
 };
 
-export const VerifiedBadge = ({ size = "sm", className }: VerifiedBadgeProps) => {
-  return (
-    <img 
-      src={verifiedBadge} 
-      alt="Verificado" 
-      className={cn(
-        sizeClasses[size], 
-        "animate-pulse-soft",
-        className
-      )}
-      title="Administrador verificado"
-    />
-  );
-};
+export const VerifiedBadge = forwardRef<HTMLImageElement, VerifiedBadgeProps>(
+  ({ size = "sm", className }, ref) => {
+    return (
+      <img 
+        ref={ref}
+        src={verifiedBadge} 
+        alt="Verificado" 
+        className={cn(
+          sizeClasses[size], 
+          "animate-pulse-soft",
+          className
+        )}
+        title="Administrador verificado"
+      />
+    );
+  }
+);
+
+VerifiedBadge.displayName = "VerifiedBadge";
