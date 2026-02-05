@@ -3,6 +3,9 @@ import { supabase } from "@/integrations/supabase/client";
 import { toast } from "sonner";
 import type { Json } from "@/integrations/supabase/types";
 
+// Generate unique ID for status entries
+const generateStatusId = () => `${Date.now()}-${Math.random().toString(36).substr(2, 9)}`;
+
 export interface RefuelingPoint {
   point: string;
   started_at: string;
@@ -11,6 +14,7 @@ export interface RefuelingPoint {
 }
 
 export interface StatusHistoryEntry {
+  id?: string;
   status: string;
   timestamp: string;
   changed_by: string | null;
@@ -266,6 +270,7 @@ export function useAddStatusToHistory() {
       }
       
       const newEntry: StatusHistoryEntry = {
+        id: generateStatusId(),
         status,
         timestamp,
         changed_by: changedBy,
@@ -274,6 +279,131 @@ export function useAddStatusToHistory() {
       
       // Add new entry and sort by timestamp
       const newHistory = [...currentHistory, newEntry]
+        .sort((a, b) => new Date(a.timestamp).getTime() - new Date(b.timestamp).getTime()) as unknown as Json;
+
+      const { data: result, error } = await supabase
+        .from("daily_shift_records")
+        .update({ status_history: newHistory })
+        .eq("equipment_id", equipmentId)
+        .eq("shift_date", targetDate)
+        .select()
+        .single();
+
+      if (error) throw error;
+      return parseShiftRecord(result);
+    },
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ["daily-shift-records"] });
+      queryClient.invalidateQueries({ queryKey: ["daily-shift-record"] });
+    },
+  });
+}
+
+// Remove status from history (Admin only)
+export function useRemoveStatusFromHistory() {
+  const queryClient = useQueryClient();
+
+  return useMutation({
+    mutationFn: async ({
+      equipmentId,
+      statusIndex,
+      shiftDate,
+    }: {
+      equipmentId: string;
+      statusIndex: number;
+      shiftDate?: string;
+    }) => {
+      const targetDate = shiftDate || new Date().toISOString().split("T")[0];
+
+      // First get the current record
+      const { data: current, error: fetchError } = await supabase
+        .from("daily_shift_records")
+        .select("status_history")
+        .eq("equipment_id", equipmentId)
+        .eq("shift_date", targetDate)
+        .maybeSingle();
+
+      if (fetchError) throw fetchError;
+      if (!current) return null;
+
+      const currentHistory = Array.isArray(current.status_history) 
+        ? (current.status_history as unknown as StatusHistoryEntry[])
+        : [];
+      
+      // Remove the entry at the specified index
+      const newHistory = currentHistory.filter((_, index) => index !== statusIndex) as unknown as Json;
+
+      const { data: result, error } = await supabase
+        .from("daily_shift_records")
+        .update({ status_history: newHistory })
+        .eq("equipment_id", equipmentId)
+        .eq("shift_date", targetDate)
+        .select()
+        .single();
+
+      if (error) throw error;
+      return parseShiftRecord(result);
+    },
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ["daily-shift-records"] });
+      queryClient.invalidateQueries({ queryKey: ["daily-shift-record"] });
+    },
+  });
+}
+
+// Update status entry in history (Admin only - change time, status, or description)
+export function useUpdateStatusInHistory() {
+  const queryClient = useQueryClient();
+
+  return useMutation({
+    mutationFn: async ({
+      equipmentId,
+      statusIndex,
+      newStatus,
+      newTimestamp,
+      newDescription,
+      shiftDate,
+    }: {
+      equipmentId: string;
+      statusIndex: number;
+      newStatus?: string;
+      newTimestamp?: string;
+      newDescription?: string;
+      shiftDate?: string;
+    }) => {
+      const targetDate = shiftDate || new Date().toISOString().split("T")[0];
+
+      // First get the current record
+      const { data: current, error: fetchError } = await supabase
+        .from("daily_shift_records")
+        .select("status_history")
+        .eq("equipment_id", equipmentId)
+        .eq("shift_date", targetDate)
+        .maybeSingle();
+
+      if (fetchError) throw fetchError;
+      if (!current) return null;
+
+      const currentHistory = Array.isArray(current.status_history) 
+        ? (current.status_history as unknown as StatusHistoryEntry[])
+        : [];
+      
+      if (statusIndex < 0 || statusIndex >= currentHistory.length) {
+        throw new Error("Invalid status index");
+      }
+
+      // Update the entry at the specified index
+      const updatedHistory = [...currentHistory];
+      updatedHistory[statusIndex] = {
+        ...updatedHistory[statusIndex],
+        ...(newStatus !== undefined && { status: newStatus }),
+        ...(newTimestamp !== undefined && { timestamp: newTimestamp }),
+        ...(newDescription !== undefined && { description: newDescription }),
+        changed_by: `${updatedHistory[statusIndex].changed_by || ""} (Editado)`.trim(),
+      };
+
+      // Re-sort by timestamp after update
+      const newHistory = updatedHistory
         .sort((a, b) => new Date(a.timestamp).getTime() - new Date(b.timestamp).getTime()) as unknown as Json;
 
       const { data: result, error } = await supabase
