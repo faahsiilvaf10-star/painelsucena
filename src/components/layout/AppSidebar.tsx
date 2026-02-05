@@ -359,14 +359,15 @@ export function AppSidebar() {
         variant="ghost"
         size="icon"
         onClick={toggleSidebar}
-        className={`absolute top-1/2 -translate-y-1/2 z-20 h-8 w-8 rounded-full bg-sidebar-accent/80 backdrop-blur-sm border border-sidebar-border/50 text-sidebar-foreground/70 hover:text-sidebar-foreground hover:bg-sidebar-accent shadow-md transition-all ${
-          isCollapsed ? "right-1/2 translate-x-1/2" : "-right-4"
+        className={`absolute top-1/2 -translate-y-1/2 z-50 h-10 w-10 md:h-8 md:w-8 rounded-full bg-sidebar-accent/90 backdrop-blur-sm border border-sidebar-border/50 text-sidebar-foreground/80 hover:text-sidebar-foreground hover:bg-sidebar-accent shadow-lg transition-all touch-manipulation ${
+          isCollapsed ? "-right-5" : "-right-5"
         }`}
+        style={{ touchAction: 'manipulation' }}
       >
         {isCollapsed ? (
-          <PanelLeft className="h-4 w-4" />
+          <PanelLeft className="h-5 w-5 md:h-4 md:w-4" />
         ) : (
-          <PanelLeftClose className="h-4 w-4" />
+          <PanelLeftClose className="h-5 w-5 md:h-4 md:w-4" />
         )}
       </Button>
 
