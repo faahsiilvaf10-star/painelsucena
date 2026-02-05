@@ -456,11 +456,11 @@ export default function Metas() {
                   />
                 </div>
 
-                {/* Limpeza Assoprador */}
+                {/* Limpeza Soprador */}
                 <div className="space-y-2">
                   <Label htmlFor="limpezaAssoprador" className="flex items-center gap-2">
                     <span className="text-lg">💨</span>
-                    LIMPEZA ASSOPRADOR (m²)
+                    LIMPEZA SOPRADOR (m²)
                   </Label>
                   <Input
                     id="limpezaAssoprador"

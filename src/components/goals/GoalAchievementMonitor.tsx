@@ -36,7 +36,7 @@ export function GoalAchievementMonitor() {
       { key: "controle_invasoras_unidade", name: "Controle de Invasoras", type: "jardinagem", ...progress.controle_invasoras_unidade },
       { key: "retirada_mudas_unidade", name: "Retirada de Mudas", type: "jardinagem", ...progress.retirada_mudas_unidade },
       { key: "limpeza_manual_m2", name: "Limpeza Manual", type: "jardinagem", ...progress.limpeza_manual_m2 },
-      { key: "limpeza_assoprador_m2", name: "Limpeza Assoprador", type: "jardinagem", ...progress.limpeza_assoprador_m2 },
+      { key: "limpeza_assoprador_m2", name: "Limpeza Soprador", type: "jardinagem", ...progress.limpeza_assoprador_m2 },
       // Gabião
       { key: "limpeza_canaleta_m", name: "Limpeza de Canaleta", type: "gabiao", ...progress.limpeza_canaleta_m },
       { key: "recomposicao_gabiao_m", name: "Recomposição de Gabião", type: "gabiao", ...progress.recomposicao_gabiao_m },
