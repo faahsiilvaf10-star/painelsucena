@@ -28,6 +28,7 @@ import { useAuth } from "@/hooks/useAuth";
 import { useProfile } from "@/hooks/useProfile";
 import { useRDOLock } from "@/hooks/useRDOLock";
 import { useIsAdmin } from "@/hooks/useUserRole";
+import { useJardinagemEquipment } from "@/hooks/useJardinagemEquipment";
 import { getBrazilNorthDate, getBrazilNorthTodayString } from "@/lib/timezone";
 import { cn } from "@/lib/utils";
 import { AlertDialog, AlertDialogAction, AlertDialogCancel, AlertDialogContent, AlertDialogDescription, AlertDialogFooter, AlertDialogHeader, AlertDialogTitle, AlertDialogTrigger } from "@/components/ui/alert-dialog";
@@ -106,6 +107,7 @@ export default function RDO() {
   const { data: allReports } = useRDOReports();
   const { data: jardinagemReport } = useJardinagemReportByDate(selectedDateStr);
   const { data: gabiaoReport } = useGabiaoReportByDate(selectedDateStr);
+  const { data: jardinagemEquipmentList = [] } = useJardinagemEquipment();
   const saveReport = useSaveRDOReport();
   const deleteReport = useDeleteRDOReport();
   const uploadPhotos = useUploadRDOPhotos();
@@ -236,6 +238,37 @@ export default function RDO() {
     return { items, total: equipmentNoCanteiro.length, equipmentNoCanteiro };
   }, [equipment, equipmentOut, shiftRecords]);
 
+  // Calculate jardinagem equipment summary (only those with status "entrou")
+  const jardinagemEquipmentSummary = useMemo(() => {
+    const equipmentInObra = jardinagemEquipmentList.filter(eq => eq.status === "entrou");
+    
+    // Group by equipment type (extract base name without number)
+    const typeCount: Record<string, number> = {};
+    
+    equipmentInObra.forEach((eq) => {
+      // Extract base name (e.g., "Roçadeira" from "Roçadeira 70")
+      const baseName = eq.name.replace(/\s*\d+$/, "").trim();
+      // Pluralize common names
+      let pluralName = baseName;
+      if (baseName === "Roçadeira") pluralName = "Roçadeiras";
+      else if (baseName === "Motopoda") pluralName = "Motopodas";
+      else if (baseName === "Assoprador") pluralName = "Assopradores";
+      else if (baseName === "Perfurador") pluralName = "Perfuradores";
+      
+      if (!typeCount[pluralName]) {
+        typeCount[pluralName] = 0;
+      }
+      typeCount[pluralName]++;
+    });
+    
+    const items = Object.entries(typeCount).map(([name, count]) => ({
+      name,
+      count,
+    }));
+    
+    return { items, total: equipmentInObra.length };
+  }, [jardinagemEquipmentList]);
+
   // Format date for report
   const formattedDate = format(selectedDate, "dd/MM/yy (EEEE)", { locale: ptBR });
   const capitalizedDate = formattedDate.charAt(0).toUpperCase() + formattedDate.slice(1);
@@ -304,6 +337,13 @@ export default function RDO() {
       ? `${fixedEquipmentText}\n${dynamicEquipmentText}`
       : fixedEquipmentText;
 
+    // Build jardinagem equipment text
+    const jardinagemEquipmentText = jardinagemEquipmentSummary.items.length > 0
+      ? jardinagemEquipmentSummary.items
+          .map((item) => `   • ${item.count} ${item.name}`)
+          .join("\n")
+      : "   Nenhum equipamento no canteiro";
+
     // DDS info - use presenter name from user profile or external presenter name
     const presenterName = todayDDS?.presenter?.full_name || todayDDS?.external_presenter_name || "A definir";
     const ddsText = todayDDS
@@ -354,6 +394,9 @@ ${gabiaoWorkforce}
 
 \u2705 EQUIPAMENTOS EM OPERAÇÃO (${dynamicEquipment.length + 2})
 ${operatingEquipmentText}
+
+✅ Equipamentos Jardinagem em Obra (${jardinagemEquipmentSummary.total})
+${jardinagemEquipmentText}
 
 Condições climáticas:
 \u2022 MANHÃ = ${weatherLabels[weatherMorning]}
