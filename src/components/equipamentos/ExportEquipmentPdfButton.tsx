@@ -52,6 +52,7 @@ export function ExportEquipmentPdfButton({
     plate: string;
     driverName: string;
     helperName: string;
+    helperLabel: string;
     activities: Array<{ start: string; end: string; description: string }>;
     initialFuelLevel?: string | null;
     finalFuelLevel?: string | null;
@@ -344,7 +345,7 @@ export function ExportEquipmentPdfButton({
             <div class="cell-value" style="font-family: monospace;">${params.plate}</div>
           </div>
           <div class="info-row">
-            <div class="cell-label">AJUDANTE</div>
+            <div class="cell-label">${params.helperLabel}</div>
             <div class="cell-value">${params.helperName || "-"}</div>
           </div>
 
@@ -472,7 +473,7 @@ export function ExportEquipmentPdfButton({
       // Try to load telemetry data from today's shift record (when available)
       const { data: shiftRecord } = await supabase
         .from("daily_shift_records")
-        .select("initial_fuel_level, final_fuel_level, initial_km, final_km, initial_horimeter, final_horimeter, shift_end_time")
+        .select("initial_fuel_level, final_fuel_level, initial_km, final_km, initial_horimeter, final_horimeter, shift_end_time, driver_name, helper_name, status_history")
         .eq("equipment_id", equipment.id)
         .eq("shift_date", today)
         .order("created_at", { ascending: false })
@@ -481,6 +482,32 @@ export function ExportEquipmentPdfButton({
 
       // Only show final values if shift has ended
       const shiftEnded = !!shiftRecord?.shift_end_time;
+
+      // Determine driver name with fallback logic:
+      // 1. Use equipment.driver if available
+      // 2. Else use shiftRecord.driver_name if available
+      // 3. Else search for changed_by in status_history
+      let driverName = equipment.driver || "";
+      if (!driverName && shiftRecord?.driver_name) {
+        driverName = shiftRecord.driver_name;
+      }
+      if (!driverName && shiftRecord?.status_history) {
+        const history = Array.isArray(shiftRecord.status_history) 
+          ? shiftRecord.status_history as Array<{ changed_by?: string | null }>
+          : [];
+        for (const entry of history) {
+          if (entry.changed_by && !entry.changed_by.includes("(Editado)")) {
+            driverName = entry.changed_by;
+            break;
+          }
+        }
+      }
+
+      // Determine helper name with fallback
+      let helperName = equipment.helper || "";
+      if (!helperName && shiftRecord?.helper_name) {
+        helperName = shiftRecord.helper_name;
+      }
 
       // Filter today's data
       const todayMovements = movements.filter((m) => m.movement_date === today);
@@ -565,8 +592,9 @@ export function ExportEquipmentPdfButton({
         dateLabel,
         equipmentName: equipment.name,
         plate: equipment.plate,
-        driverName: equipment.driver || "",
-        helperName: equipment.helper || "",
+        driverName,
+        helperName,
+        helperLabel: equipment.equipment_type === "munk" ? "SINALEIRO" : "AJUDANTE",
         activities,
         initialFuelLevel: shiftRecord?.initial_fuel_level ?? null,
         finalFuelLevel: shiftEnded ? (shiftRecord?.final_fuel_level ?? null) : null,
