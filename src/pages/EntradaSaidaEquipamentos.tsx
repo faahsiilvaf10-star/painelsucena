@@ -174,7 +174,7 @@ const EXIT_REASON_LABELS: Record<string, string> = {
                   <td>${eq.plate}</td>
                   <td>${eq.driver || "-"}</td>
                   <td>${eq.helper || "-"}</td>
-                  <td><span class="badge ${eq.stop_reason === "none" ? "badge-green" : eq.stop_reason === "maintenance" ? "badge-red" : "badge-yellow"}">${eq.stop_reason === "none" ? "Operando" : eq.stop_reason === "maintenance" ? "Manutenção" : eq.stop_reason === "waiting" ? "Aguardando" : eq.stop_reason === "end_of_shift" ? "Fim de Turno" : eq.stop_reason || "Aguardando"}</span></td>
+                  <td><span class="badge ${eq.stop_reason === "none" ? "badge-green" : eq.stop_reason === "maintenance" ? "badge-red" : "badge-yellow"}">${eq.stop_reason === "none" ? "Operando" : eq.stop_reason === "maintenance" ? "Manutenção" : eq.stop_reason === "waiting" ? "Aguardando" : eq.stop_reason === "end_of_shift" ? "Fim de Turno" : eq.stop_reason === "rain" ? "Chuva" : eq.stop_reason || "Aguardando"}</span></td>
                 </tr>
               `).join("")}
             </tbody>
@@ -332,15 +332,17 @@ const EXIT_REASON_LABELS: Record<string, string> = {
                                      : "bg-yellow-500/10 text-yellow-600 border-yellow-500/30"
                                  }
                                >
-                                 {eq.stop_reason === "none"
-                                   ? "Operando"
-                                   : eq.stop_reason === "maintenance"
-                                   ? "Manutenção"
-                                   : eq.stop_reason === "waiting"
-                                   ? "Aguardando"
-                                   : eq.stop_reason === "end_of_shift"
-                                   ? "Fim de Turno"
-                                   : eq.stop_reason || "Aguardando"}
+                                  {eq.stop_reason === "none"
+                                    ? "Operando"
+                                    : eq.stop_reason === "maintenance"
+                                    ? "Manutenção"
+                                    : eq.stop_reason === "waiting"
+                                    ? "Aguardando"
+                                    : eq.stop_reason === "end_of_shift"
+                                    ? "Fim de Turno"
+                                    : eq.stop_reason === "rain"
+                                    ? "Chuva"
+                                    : eq.stop_reason || "Aguardando"}
                                </Badge>
                              </TableCell>
                            </TableRow>
