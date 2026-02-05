@@ -25,6 +25,7 @@ import { AddEmployeeDialog } from "@/components/rh/AddEmployeeDialog";
 import { DeleteEmployeeDialog } from "@/components/rh/DeleteEmployeeDialog";
 import { useRHPermissions } from "@/hooks/useRHPermissions";
 import { ExportEfetivoPdfButton } from "@/components/rh/ExportEfetivoPdfButton";
+import { ExportEfetivoExcelButton } from "@/components/rh/ExportEfetivoExcelButton";
 import { toast } from "sonner";
 
 type SortField = "id" | "nome" | "funcao" | "admissao" | "matricula";
@@ -167,8 +168,12 @@ const RH = () => {
             </p>
           </div>
           
-          <div className="flex items-center gap-3">
+          <div className="flex items-center gap-2 flex-wrap">
             <ExportEfetivoPdfButton 
+              colaboradores={filteredColaboradores} 
+              filterFuncao={filterFuncao} 
+            />
+            <ExportEfetivoExcelButton 
               colaboradores={filteredColaboradores} 
               filterFuncao={filterFuncao} 
             />
