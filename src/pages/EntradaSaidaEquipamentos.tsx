@@ -36,6 +36,7 @@ import { useIsAdmin } from "@/hooks/useUserRole";
 import { getBrazilNorthTodayString } from "@/lib/timezone";
 import { ExportMovementsPdfButton } from "@/components/equipamentos/ExportMovementsPdfButton";
 import { ExportStatusPdfButton } from "@/components/equipamentos/ExportStatusPdfButton";
+import { VehicleIcon } from "@/components/equipamentos/VehicleIcons";
 
 const EXIT_REASON_LABELS: Record<ExitReason, { label: string; icon: typeof Wrench; color: string }> = {
   operando: { label: "Operando", icon: Truck, color: "text-green-500" },
@@ -854,6 +855,110 @@ const EntradaSaidaEquipamentos = () => {
                 currentlyOut={currentlyOut || []}
               />
             </div>
+
+            {/* Status from Equipment Table - Synchronized */}
+            <Card className="mb-6">
+              <CardHeader>
+                <CardTitle className="text-lg flex items-center gap-2">
+                  <Truck className="h-5 w-5 text-primary" />
+                  Equipamentos Cadastrados - Status Atual
+                  {equipmentList && (
+                    <Badge variant="secondary">{equipmentList.length}</Badge>
+                  )}
+                </CardTitle>
+              </CardHeader>
+              <CardContent>
+                {!equipmentList || equipmentList.length === 0 ? (
+                  <div className="text-center py-12 text-muted-foreground">
+                    <Truck className="h-12 w-12 mx-auto mb-4 opacity-50" />
+                    <p>Nenhum equipamento cadastrado</p>
+                  </div>
+                ) : (
+                  <div className="grid gap-3 sm:grid-cols-2 lg:grid-cols-3">
+                    {equipmentList.map((eq) => {
+                      // Determine status and colors based on stop_reason
+                      const getStatusInfo = (stopReason: string | null, hasDriver: boolean) => {
+                        if (!stopReason || stopReason === "none" || stopReason === "operando") {
+                          if (hasDriver) {
+                            return { label: "Operando", color: "bg-green-500", bgColor: "bg-green-500/10", borderColor: "border-green-500/30", textColor: "text-green-600" };
+                          }
+                          return { label: "Sem Motorista", color: "bg-gray-500", bgColor: "bg-gray-500/10", borderColor: "border-gray-500/30", textColor: "text-gray-600" };
+                        }
+                        switch (stopReason) {
+                          case "maintenance":
+                            return { label: "Manutenção", color: "bg-orange-500", bgColor: "bg-orange-500/10", borderColor: "border-orange-500/30", textColor: "text-orange-600" };
+                          case "waiting":
+                            return { label: "Aguardando Início", color: "bg-yellow-500", bgColor: "bg-yellow-500/10", borderColor: "border-yellow-500/30", textColor: "text-yellow-600" };
+                          case "waiting_front":
+                            return { label: "Aguardando Frente", color: "bg-yellow-500", bgColor: "bg-yellow-500/10", borderColor: "border-yellow-500/30", textColor: "text-yellow-600" };
+                          case "end_of_shift":
+                            return { label: "Fim de Turno", color: "bg-blue-500", bgColor: "bg-blue-500/10", borderColor: "border-blue-500/30", textColor: "text-blue-600" };
+                          case "end_of_day":
+                          case "abastecimento":
+                            return { label: "Abastecimento", color: "bg-cyan-500", bgColor: "bg-cyan-500/10", borderColor: "border-cyan-500/30", textColor: "text-cyan-600" };
+                          case "rain":
+                            return { label: "Chuva", color: "bg-sky-500", bgColor: "bg-sky-500/10", borderColor: "border-sky-500/30", textColor: "text-sky-600" };
+                          default:
+                            return { label: stopReason, color: "bg-gray-500", bgColor: "bg-gray-500/10", borderColor: "border-gray-500/30", textColor: "text-gray-600" };
+                        }
+                      };
+                      
+                      const statusInfo = getStatusInfo(eq.stop_reason, !!eq.driver);
+                      
+                      // Check movement status
+                      const lastMovement = currentlyOut?.find(m => m.plate.toUpperCase() === eq.plate.toUpperCase());
+                      const isInCanteiro = currentlyIn?.some(m => m.plate.toUpperCase() === eq.plate.toUpperCase());
+                      const isOut = !!lastMovement;
+                      
+                      return (
+                        <div
+                          key={eq.id}
+                          className={`p-3 rounded-lg border ${statusInfo.bgColor} ${statusInfo.borderColor}`}
+                        >
+                          <div className="flex items-start gap-3">
+                            <div className="p-2 rounded-lg bg-background/50">
+                              <VehicleIcon type={eq.equipment_type as "pipa" | "munk" | "camionete" | "onibus"} size="sm" />
+                            </div>
+                            <div className="flex-1 min-w-0">
+                              <div className="flex items-center justify-between gap-2">
+                                <p className="font-semibold truncate">{eq.name}</p>
+                                <Badge className={`${statusInfo.color} text-white text-[10px] px-1.5 py-0 h-4 shrink-0`}>
+                                  {statusInfo.label}
+                                </Badge>
+                              </div>
+                              <p className="text-xs text-muted-foreground font-mono">{eq.plate}</p>
+                              {eq.driver && (
+                                <p className="text-xs text-muted-foreground mt-1 truncate">
+                                  Motorista: {eq.driver}
+                                </p>
+                              )}
+                              {/* Movement location indicator */}
+                              <div className="flex items-center gap-2 mt-2">
+                                {isInCanteiro && (
+                                  <Badge variant="outline" className="text-[10px] px-1.5 py-0 h-4 border-green-500/50 text-green-600 bg-green-500/10">
+                                    No Canteiro
+                                  </Badge>
+                                )}
+                                {isOut && (
+                                  <Badge variant="outline" className="text-[10px] px-1.5 py-0 h-4 border-orange-500/50 text-orange-600 bg-orange-500/10">
+                                    Fora
+                                  </Badge>
+                                )}
+                                {!isInCanteiro && !isOut && (
+                                  <Badge variant="outline" className="text-[10px] px-1.5 py-0 h-4 border-gray-500/50 text-gray-600 bg-gray-500/10">
+                                    Sem Registro
+                                  </Badge>
+                                )}
+                              </div>
+                            </div>
+                          </div>
+                        </div>
+                      );
+                    })}
+                  </div>
+                )}
+              </CardContent>
+            </Card>
 
             <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
               {/* All Entries - Historic */}
