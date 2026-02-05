@@ -77,7 +77,7 @@ export function ExportEfetivoPdfButton({ colaboradores, filterFuncao }: ExportEf
             }
             body {
               font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
-              background: #c4c9cf;
+              background: #ffffff;
               padding: 10px;
               color: #1a1a2e;
               font-size: 10px;
@@ -85,7 +85,7 @@ export function ExportEfetivoPdfButton({ colaboradores, filterFuncao }: ExportEf
             .container {
               max-width: 100%;
               margin: 0 auto;
-              background: #c4c9cf;
+              background: #ffffff;
             }
             .header {
               display: flex;
@@ -231,12 +231,12 @@ export function ExportEfetivoPdfButton({ colaboradores, filterFuncao }: ExportEf
             }
             @media print {
               body {
-                background: white;
+                background: #ffffff;
                 -webkit-print-color-adjust: exact !important;
                 print-color-adjust: exact !important;
               }
               .container {
-                background: #c4c9cf;
+                background: #ffffff;
               }
             }
           </style>
