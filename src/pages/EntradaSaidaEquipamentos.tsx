@@ -25,14 +25,23 @@ const EXIT_REASON_LABELS: Record<string, string> = {
    const { data: equipment = [], isLoading } = useEquipment();
   const { data: equipmentOut = [], isLoading: loadingOut } = useEquipmentCurrentlyOut();
  
-  // Get plates of equipment currently out
-  const platesOut = new Set(equipmentOut.map(m => m.plate));
+  // Only consider equipment "out" if exit reason is NOT "fim_turno" or "operando"
+  // Those statuses mean the equipment is still on site
+  const reallyOut = equipmentOut.filter(m => 
+    m.exit_reason && 
+    m.exit_reason !== "fim_turno" && 
+    m.exit_reason !== "operando" &&
+    m.exit_reason !== "aguardando_frente_servico"
+  );
+  
+  // Get plates of equipment actually out (manutenção, vistoria, etc.)
+  const platesOut = new Set(reallyOut.map(m => m.plate));
   
   // Equipment in the yard = all equipment minus those with active exit
   const equipmentNoCanteiro = equipment.filter(eq => !platesOut.has(eq.plate));
   
-  // Equipment out = movement records with exit details
-  const equipmentForaObra = equipmentOut;
+  // Equipment out = only those with real exit reasons (maintenance, inspection)
+  const equipmentForaObra = reallyOut;
 
   const handleExportPDF = async () => {
     const logoBase64 = await getLogoBase64();
