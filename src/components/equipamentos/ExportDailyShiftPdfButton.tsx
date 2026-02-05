@@ -230,11 +230,13 @@ export function ExportDailyShiftPdfButton({ record, isLoading }: ExportDailyShif
       // First table goes in the main layout, additional tables go below
       const mainActivityTableHtml = buildActivityTableHtml(activityTables[0], 0);
       const additionalTablesHtml = activityTables.slice(1).map((rows, idx) => `
-        <div class="additional-table-container" style="page-break-before: auto; margin-top: 15px; border: 1px solid #000;">
-          <div style="background: #e8e8e8; padding: 4px 8px; font-weight: bold; font-size: 10px; border-bottom: 1px solid #000;">
-            ${record.equipment_name} - ${formattedDate} (Página ${idx + 2})
+        <div class="additional-table-container" style="page-break-before: always; margin-top: 20px; border: 2px solid #000; background: #fff;">
+          <div style="background: #d0d0d0; padding: 8px 12px; font-weight: bold; font-size: 11px; border-bottom: 1px solid #000; text-align: center;">
+            ${record.equipment_name} - ${record.plate} - ${formattedDate} (Página ${idx + 2} de ${activityTables.length})
           </div>
-          ${buildActivityTableHtml(rows, idx + 1)}
+          <div style="padding: 8px;">
+            ${buildActivityTableHtml(rows, idx + 1)}
+          </div>
         </div>
       `).join("");
 
@@ -489,9 +491,6 @@ export function ExportDailyShiftPdfButton({ record, isLoading }: ExportDailyShif
                 ${mainActivityTableHtml}
               </div>
             </div>
-            
-            <!-- Additional Activity Tables (if more than 12 activities) -->
-            ${additionalTablesHtml}
 
             <!-- Signatures -->
             <div class="signatures">
@@ -517,13 +516,16 @@ export function ExportDailyShiftPdfButton({ record, isLoading }: ExportDailyShif
               <strong>INSTRUÇÃO:</strong>
               01 - PREENCHER O CABEÇALHO COM NOME, DATA, TIPO DE EQUIPAMENTO E PLACA/TAG.
               02 - COLOCAR KM OU HORÍMETRO INICIAL E FINAL.
-              03 - COLOCAR O HORÁRIO QUE INICIA CADA ATIVIDADE.
+              03 - COLOCAR HORÁRIO QUE INICIA CADA ATIVIDADE.
               04 - COLOCAR HORÁRIO DE INICIO E FINAL QUANDO HOUVER DEFEITO MECÂNICO E DESCREVER O DEFEITO.
               05 - AO FINAL DA JORNADA DE TRABALHO ASSINAR E ENTREGAR PARA APONTADOR OU ENCARREGADO RESPONSÁVEL.
               06 - A PARTE DIÁRIA DEVERÁ SER PREENCHIDA TODOS OS DIAS INCLUSIVE DOMINGOS E FERIADOS.
               07 - O MOTORISTA/OPERADOR TEM ATÉ O DIA 02 DE CADA MÊS PARA ENTREGAR TODAS AS PARTES DIÁRIAS, E O APONTADOR TEM ATÉ O DIA 04 PARA ENVIAR PARA O SETOR DE CONFERÊNCIA.
             </div>
           </div>
+          
+          <!-- Additional Activity Tables (if more than 12 activities) - Outside main container for proper page breaks -->
+          ${additionalTablesHtml}
         </body>
         </html>
       `;
