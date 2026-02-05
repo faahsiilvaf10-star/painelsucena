@@ -18,9 +18,10 @@ import { supabase } from "@/integrations/supabase/client";
 import { toast } from "sonner";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { DriverStatusButtons } from "@/components/driver/DriverStatusButtons";
-import { SyncIndicator } from "@/components/driver/SyncIndicator";
+import { SyncIndicatorV2 } from "@/components/driver/SyncIndicatorV2";
+import { OfflineBanner } from "@/components/driver/OfflineFeedback";
 import { useEquipment } from "@/hooks/useEquipment";
-import { useOfflineSync } from "@/hooks/useOfflineSync";
+import { useOfflineSyncV2 } from "@/hooks/useOfflineSyncV2";
 
 interface QuickAccessItem {
   title: string;
@@ -49,7 +50,7 @@ const PainelMotorista = () => {
   const navigate = useNavigate();
   const { data: profile } = useProfile();
   const { data: equipment = [] } = useEquipment();
-  const { isOnline, isSyncing, pendingCount, lastSyncTime, triggerSync } = useOfflineSync();
+  const { isOnline, isSyncing, pendingCount, lastSyncTime, syncError, isInitialized, triggerSync } = useOfflineSyncV2();
   
   // Get selected vehicle type
   const selectedVehicleId = localStorage.getItem("selectedVehicleId");
@@ -124,6 +125,9 @@ const PainelMotorista = () => {
 
   return (
     <div className="min-h-screen h-screen flex flex-col bg-gradient-to-b from-background to-muted/30 overflow-hidden">
+      {/* Offline Banner */}
+      <OfflineBanner isOnline={isOnline} pendingCount={pendingCount} />
+      
       {/* Compact Header for Mobile */}
       <header className="sticky top-0 z-10 bg-card/95 backdrop-blur-sm border-b shadow-sm safe-area-inset-top shrink-0">
         <div className="flex items-center justify-between px-3 py-2.5">
@@ -153,11 +157,13 @@ const PainelMotorista = () => {
           </div>
           
           {/* Sync Indicator */}
-          <SyncIndicator
+          <SyncIndicatorV2
             isOnline={isOnline}
             isSyncing={isSyncing}
             pendingCount={pendingCount}
             lastSyncTime={lastSyncTime}
+            syncError={syncError}
+            isInitialized={isInitialized}
             onSync={triggerSync}
           />
           
