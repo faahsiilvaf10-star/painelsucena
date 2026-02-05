@@ -209,13 +209,6 @@ export function DriverStatusButtons() {
         shift_end_time: now,
       });
 
-      // Register "Fim de Turno" in status history for Parte Diária PDF
-      await addStatusToHistory.mutateAsync({
-        equipmentId: selectedVehicleId,
-        status: "fim_turno",
-        changedBy: profile?.full_name || null,
-      });
-
       // Automatically register equipment exit (saída) in equipment_movements
       // This will trigger the announcement for all users and update "Entrada e Saída" page
       try {
