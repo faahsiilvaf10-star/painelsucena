@@ -48,6 +48,7 @@ export function ExportMovementsByDateButton({ equipment }: ExportMovementsByDate
     const nReason = normalizeText(reason);
     return (
       nDesc.includes("retorno apos abastecimento") ||
+      nDesc.includes("retorno do ponto") ||
       nReason.includes("retorno_abastecimento") ||
       nReason.includes("retorno abastecimento")
     );
