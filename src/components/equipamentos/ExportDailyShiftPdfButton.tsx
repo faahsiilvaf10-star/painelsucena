@@ -124,7 +124,7 @@ export function ExportDailyShiftPdfButton({ record, isLoading }: ExportDailyShif
       // Generate activity rows from filtered status history.
       // Special rule: a legacy entry like "Operando - Retorno após abastecimento" is a *marker*
       // to close the previous "Abastecendo" period and must NOT be printed as its own row.
-      const activityRows: string[] = [];
+      const allActivityRows: string[] = [];
       for (let i = 0; i < filteredHistory.length; i++) {
         const entry = filteredHistory[i];
         if (isReturnAfterRefuelingEntry(entry)) {
@@ -162,7 +162,7 @@ export function ExportDailyShiftPdfButton({ record, isLoading }: ExportDailyShif
           description = entry.description;
         }
 
-        activityRows.push(`
+        allActivityRows.push(`
           <tr>
             <td class="cell horario-cell">${startTime}</td>
             <td class="cell as-cell">ÀS</td>
@@ -172,19 +172,71 @@ export function ExportDailyShiftPdfButton({ record, isLoading }: ExportDailyShif
         `);
       }
 
-      // Fill with empty rows to have 12 total
-      const totalRows = 12;
-      const emptyRowsCount = Math.max(0, totalRows - activityRows.length);
-      for (let i = 0; i < emptyRowsCount; i++) {
-        activityRows.push(`
-          <tr>
-            <td class="cell horario-cell"></td>
-            <td class="cell as-cell">ÀS</td>
-            <td class="cell horario-cell"></td>
-            <td class="cell desc-cell"></td>
-          </tr>
-        `);
+      // Split rows into tables of 12 rows each
+      const ROWS_PER_TABLE = 12;
+      const activityTables: string[][] = [];
+      
+      for (let i = 0; i < allActivityRows.length; i += ROWS_PER_TABLE) {
+        const tableRows = allActivityRows.slice(i, i + ROWS_PER_TABLE);
+        // Fill with empty rows to complete the table
+        const emptyRowsNeeded = ROWS_PER_TABLE - tableRows.length;
+        for (let j = 0; j < emptyRowsNeeded; j++) {
+          tableRows.push(`
+            <tr>
+              <td class="cell horario-cell"></td>
+              <td class="cell as-cell">ÀS</td>
+              <td class="cell horario-cell"></td>
+              <td class="cell desc-cell"></td>
+            </tr>
+          `);
+        }
+        activityTables.push(tableRows);
       }
+      
+      // If no activities, create one empty table
+      if (activityTables.length === 0) {
+        const emptyRows: string[] = [];
+        for (let i = 0; i < ROWS_PER_TABLE; i++) {
+          emptyRows.push(`
+            <tr>
+              <td class="cell horario-cell"></td>
+              <td class="cell as-cell">ÀS</td>
+              <td class="cell horario-cell"></td>
+              <td class="cell desc-cell"></td>
+            </tr>
+          `);
+        }
+        activityTables.push(emptyRows);
+      }
+      
+      // Generate HTML for all activity tables
+      const buildActivityTableHtml = (rows: string[], tableIndex: number) => `
+        <div class="activities-header">${tableIndex === 0 ? 'DESCRIMINAÇÃO: SERVIÇOS, PARADAS E OBS.' : 'CONTINUAÇÃO - ATIVIDADES'}</div>
+        <table class="activities-table">
+          <thead>
+            <tr>
+              <th class="cell horario-cell" style="background:#e8e8e8;">HORÁRIO</th>
+              <th class="cell as-cell" style="background:#e8e8e8;"></th>
+              <th class="cell horario-cell" style="background:#e8e8e8;">FINAL</th>
+              <th class="cell desc-cell" style="background:#e8e8e8;"></th>
+            </tr>
+          </thead>
+          <tbody>
+            ${rows.join("")}
+          </tbody>
+        </table>
+      `;
+      
+      // First table goes in the main layout, additional tables go below
+      const mainActivityTableHtml = buildActivityTableHtml(activityTables[0], 0);
+      const additionalTablesHtml = activityTables.slice(1).map((rows, idx) => `
+        <div class="additional-table-container" style="page-break-before: auto; margin-top: 15px; border: 1px solid #000;">
+          <div style="background: #e8e8e8; padding: 4px 8px; font-weight: bold; font-size: 10px; border-bottom: 1px solid #000;">
+            ${record.equipment_name} - ${formattedDate} (Página ${idx + 2})
+          </div>
+          ${buildActivityTableHtml(rows, idx + 1)}
+        </div>
+      `).join("");
 
       const initialFuelPct = fuelLevelToPercentage(record.initial_fuel_level);
       const finalFuelPct = fuelLevelToPercentage(record.final_fuel_level || record.initial_fuel_level);
@@ -434,22 +486,12 @@ export function ExportDailyShiftPdfButton({ record, isLoading }: ExportDailyShif
 
               <!-- Right Column: Activities -->
               <div class="right-col">
-                <div class="activities-header">DESCRIMINAÇÃO: SERVIÇOS, PARADAS E OBS.</div>
-                <table class="activities-table">
-                  <thead>
-                    <tr>
-                      <th class="cell horario-cell" style="background:#e8e8e8;">HORÁRIO</th>
-                      <th class="cell as-cell" style="background:#e8e8e8;"></th>
-                      <th class="cell horario-cell" style="background:#e8e8e8;">FINAL</th>
-                      <th class="cell desc-cell" style="background:#e8e8e8;"></th>
-                    </tr>
-                  </thead>
-                  <tbody>
-                    ${activityRows.join("")}
-                  </tbody>
-                </table>
+                ${mainActivityTableHtml}
               </div>
             </div>
+            
+            <!-- Additional Activity Tables (if more than 12 activities) -->
+            ${additionalTablesHtml}
 
             <!-- Signatures -->
             <div class="signatures">
