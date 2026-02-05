@@ -58,18 +58,14 @@ export function useMaintenancePlan() {
     },
   });
 
-  // Fetch daily shift records for horimeter data (last 30 days for average calculation)
+  // Fetch ALL daily shift records for horimeter data (to get first record as base)
   const { data: shiftRecords } = useQuery({
     queryKey: ["shift-records-for-maintenance"],
     queryFn: async () => {
-      const thirtyDaysAgo = new Date();
-      thirtyDaysAgo.setDate(thirtyDaysAgo.getDate() - 30);
-      
       const { data, error } = await supabase
         .from("daily_shift_records")
         .select("equipment_id, shift_date, initial_horimeter, final_horimeter")
-        .gte("shift_date", thirtyDaysAgo.toISOString().split("T")[0])
-        .order("shift_date", { ascending: false });
+        .order("shift_date", { ascending: true }); // Ascending to get first record easily
       if (error) throw error;
       return data as DailyShiftRecord[];
     },
@@ -114,31 +110,43 @@ export function useMaintenancePlan() {
     const plan = maintenancePlans?.find((p) => p.equipment_id === eq.id);
     const equipmentShifts = (shiftRecords || []).filter((s) => s.equipment_id === eq.id);
     
-    // Get latest horimeter reading
-    const latestShift = equipmentShifts.find((s) => s.final_horimeter != null || s.initial_horimeter != null);
-    const currentHorimeter = latestShift?.final_horimeter ?? latestShift?.initial_horimeter ?? null;
+    // Get FIRST horimeter reading (base) - shifts are ordered ascending
+    const firstShiftWithHorimeter = equipmentShifts.find(
+      (s) => s.initial_horimeter != null || s.final_horimeter != null
+    );
+    const firstRecordedHorimeter = firstShiftWithHorimeter?.initial_horimeter 
+      ?? firstShiftWithHorimeter?.final_horimeter 
+      ?? null;
     
-    // Calculate base horimeter (from plan or first record)
-    const baseHorimeter = plan?.base_horimeter ?? 0;
+    // Get LATEST horimeter reading (current) - last in the array since ordered ascending
+    const shiftsReversed = [...equipmentShifts].reverse();
+    const latestShiftWithHorimeter = shiftsReversed.find(
+      (s) => s.final_horimeter != null || s.initial_horimeter != null
+    );
+    const currentHorimeter = latestShiftWithHorimeter?.final_horimeter 
+      ?? latestShiftWithHorimeter?.initial_horimeter 
+      ?? null;
+    
+    // Base horimeter: use plan's base_horimeter if set (after maintenance reset), 
+    // otherwise use first recorded horimeter from drivers
+    const baseHorimeter = plan?.base_horimeter ?? firstRecordedHorimeter ?? 0;
     const targetHours = plan?.target_hours ?? 700;
     
-    // Hours used since base
+    // Hours used = current horimeter - base horimeter
     const hoursUsed = currentHorimeter != null ? Math.max(0, currentHorimeter - baseHorimeter) : 0;
     const hoursRemaining = Math.max(0, targetHours - hoursUsed);
     
-    // Calculate average hours per day from shift records
+    // Calculate average hours per day from last 14 shift records with horimeter data
     let avgHoursPerDay = 0;
-    if (equipmentShifts.length >= 2) {
-      const shiftsWithHorimeter = equipmentShifts
-        .filter((s) => s.initial_horimeter != null && s.final_horimeter != null)
-        .slice(0, 14); // Last 14 days with data
-      
-      if (shiftsWithHorimeter.length >= 2) {
-        const totalHours = shiftsWithHorimeter.reduce((sum, s) => {
-          return sum + ((s.final_horimeter ?? 0) - (s.initial_horimeter ?? 0));
-        }, 0);
-        avgHoursPerDay = totalHours / shiftsWithHorimeter.length;
-      }
+    const shiftsWithHorimeter = shiftsReversed
+      .filter((s) => s.initial_horimeter != null && s.final_horimeter != null)
+      .slice(0, 14); // Last 14 days with data
+    
+    if (shiftsWithHorimeter.length >= 2) {
+      const totalHours = shiftsWithHorimeter.reduce((sum, s) => {
+        return sum + ((s.final_horimeter ?? 0) - (s.initial_horimeter ?? 0));
+      }, 0);
+      avgHoursPerDay = totalHours / shiftsWithHorimeter.length;
     }
     
     // Estimate maintenance date
