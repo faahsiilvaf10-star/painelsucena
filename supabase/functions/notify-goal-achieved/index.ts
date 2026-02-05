@@ -188,6 +188,20 @@ const handler = async (req: Request): Promise<Response> => {
 
     if (emailError) {
       console.error("Error sending email:", emailError);
+      
+      // Handle rate limit / quota exceeded gracefully (don't return 500)
+      if (emailError.statusCode === 429 || emailError.name === "daily_quota_exceeded") {
+        console.log("Daily email quota exceeded - notification skipped");
+        return new Response(
+          JSON.stringify({ 
+            success: false, 
+            message: "Cota diária de emails atingida. Tente novamente amanhã.",
+            quotaExceeded: true 
+          }),
+          { status: 200, headers: { "Content-Type": "application/json", ...corsHeaders } }
+        );
+      }
+      
       throw emailError;
     }
 
@@ -199,6 +213,19 @@ const handler = async (req: Request): Promise<Response> => {
     );
   } catch (error: any) {
     console.error("Error in notify-goal-achieved:", error);
+    
+    // Check for quota errors in catch block as well
+    if (error.statusCode === 429 || error.message?.includes("daily") || error.message?.includes("quota")) {
+      return new Response(
+        JSON.stringify({ 
+          success: false, 
+          message: "Cota diária de emails atingida. Tente novamente amanhã.",
+          quotaExceeded: true 
+        }),
+        { status: 200, headers: { "Content-Type": "application/json", ...corsHeaders } }
+      );
+    }
+    
     return new Response(
       JSON.stringify({ error: error.message }),
       { status: 500, headers: { "Content-Type": "application/json", ...corsHeaders } }
