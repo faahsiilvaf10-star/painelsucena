@@ -704,6 +704,53 @@ export type Database = {
         }
         Relationships: []
       }
+      equipment_maintenance_plan: {
+        Row: {
+          base_horimeter: number
+          created_at: string
+          equipment_id: string
+          equipment_name: string
+          id: string
+          last_maintenance_date: string | null
+          last_maintenance_horimeter: number | null
+          plate: string
+          target_hours: number
+          updated_at: string
+        }
+        Insert: {
+          base_horimeter?: number
+          created_at?: string
+          equipment_id: string
+          equipment_name: string
+          id?: string
+          last_maintenance_date?: string | null
+          last_maintenance_horimeter?: number | null
+          plate: string
+          target_hours?: number
+          updated_at?: string
+        }
+        Update: {
+          base_horimeter?: number
+          created_at?: string
+          equipment_id?: string
+          equipment_name?: string
+          id?: string
+          last_maintenance_date?: string | null
+          last_maintenance_horimeter?: number | null
+          plate?: string
+          target_hours?: number
+          updated_at?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "equipment_maintenance_plan_equipment_id_fkey"
+            columns: ["equipment_id"]
+            isOneToOne: true
+            referencedRelation: "equipment"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       equipment_movements: {
         Row: {
           created_at: string

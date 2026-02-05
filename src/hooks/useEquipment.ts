@@ -76,12 +76,12 @@ export function useUpdateEquipmentStatus() {
         stop_reason === "none" ? null : stop_start_time ?? nowIso;
 
       // Close the latest open stop (ended_at IS NULL) before writing the new status.
-      // Previously we were inserting a "closing" row and leaving the original row open,
-      // which caused "Movimentações de Hoje"/PDF to keep showing the old status as current.
+      // Track if we're returning from preventive maintenance to reset the maintenance plan
+      let wasPreventiveMaintenance = false;
       {
         const { data: openStop, error: openStopError } = await supabase
           .from("equipment_stop_history")
-          .select("id, started_at")
+          .select("id, started_at, stop_reason")
           .eq("equipment_id", id)
           .is("ended_at", null)
           .order("started_at", { ascending: false })
@@ -96,6 +96,11 @@ export function useUpdateEquipmentStatus() {
             0,
             Math.floor((now.getTime() - startedAt.getTime()) / 60000)
           );
+
+          // Check if we're returning from preventive maintenance
+          if (openStop.stop_reason === "manutencao_preventiva" && stop_reason === "none") {
+            wasPreventiveMaintenance = true;
+          }
 
           const { error: closeError } = await supabase
             .from("equipment_stop_history")
@@ -134,6 +139,32 @@ export function useUpdateEquipmentStatus() {
 
       if (insertHistoryError) throw insertHistoryError;
 
+      // If returning from preventive maintenance, reset the maintenance plan
+      if (wasPreventiveMaintenance) {
+        // Get latest horimeter reading
+        const { data: latestShift } = await supabase
+          .from("daily_shift_records")
+          .select("final_horimeter, initial_horimeter")
+          .eq("equipment_id", id)
+          .order("shift_date", { ascending: false })
+          .limit(1)
+          .maybeSingle();
+
+        const currentHorimeter = latestShift?.final_horimeter ?? latestShift?.initial_horimeter;
+
+        if (currentHorimeter != null) {
+          // Update the maintenance plan to reset the counter
+          await supabase
+            .from("equipment_maintenance_plan")
+            .update({
+              base_horimeter: currentHorimeter,
+              last_maintenance_date: nowIso,
+              last_maintenance_horimeter: currentHorimeter,
+            })
+            .eq("equipment_id", id);
+        }
+      }
+
       const { data, error } = await supabase
         .from("equipment")
         .update({ stop_reason, stop_start_time: effectiveStopStartTime })
@@ -147,6 +178,7 @@ export function useUpdateEquipmentStatus() {
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ["equipment"] });
       queryClient.invalidateQueries({ queryKey: ["equipment-stop-history"] });
+      queryClient.invalidateQueries({ queryKey: ["maintenance-plans"] });
     },
   });
 }
