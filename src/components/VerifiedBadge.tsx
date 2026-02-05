@@ -15,7 +15,7 @@ const sizeClasses = {
 };
 
 export const VerifiedBadge = forwardRef<HTMLImageElement, VerifiedBadgeProps>(
-  ({ size = "sm", className }, ref) => {
+  function VerifiedBadge({ size = "sm", className }, ref) {
     return (
       <img 
         ref={ref}
@@ -31,5 +31,3 @@ export const VerifiedBadge = forwardRef<HTMLImageElement, VerifiedBadgeProps>(
     );
   }
 );
-
-VerifiedBadge.displayName = "VerifiedBadge";
