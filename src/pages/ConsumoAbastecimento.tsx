@@ -4,6 +4,7 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
 import { Loader2 } from "lucide-react";
 import { useRefuelingData } from "@/hooks/useRefuelingData";
+import hydroLogo from "@/assets/logo-hydro.png";
 import {
   BarChart,
   Bar,
@@ -76,13 +77,12 @@ export default function ConsumoAbastecimento() {
           </div>
 
           {/* Logo Hydro */}
-          <div className="flex flex-col items-center">
-            <div className="flex gap-0.5">
-              <div className="w-1.5 h-6 bg-[#1a1a2e] rounded-full" />
-              <div className="w-1.5 h-8 bg-[#1a1a2e] rounded-full" />
-              <div className="w-1.5 h-10 bg-[#1a1a2e] rounded-full" />
-            </div>
-            <span className="text-[#1a1a2e] font-bold text-lg">Hydro</span>
+          <div className="flex items-center">
+            <img 
+              src={hydroLogo} 
+              alt="Hydro" 
+              className="h-12 md:h-16 object-contain"
+            />
           </div>
         </div>
 
