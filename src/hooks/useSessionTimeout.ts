@@ -7,6 +7,9 @@ const WARNING_THRESHOLD_MS = 15 * 60 * 1000; // 15 minutes before expiry
 const SESSION_START_KEY = "session_start_time_persistent";
 const SESSION_DURATION_KEY = "session_duration_hours";
 
+// Driver roles that should have persistent sessions (no timeout)
+const DRIVER_ROLES = ['motorista_pipa', 'motorista_munk'];
+
 const getSessionTimeoutMs = (): number => {
   const storedHours = localStorage.getItem(SESSION_DURATION_KEY);
   const hours = storedHours ? parseInt(storedHours, 10) : DEFAULT_SESSION_HOURS;
@@ -17,11 +20,47 @@ export const useSessionTimeout = () => {
   const { user, session, signOut } = useAuth();
   const timeoutRef = useRef<NodeJS.Timeout | null>(null);
   const [sessionDurationHours, setSessionDurationHours] = useState<number>(DEFAULT_SESSION_HOURS);
+  const [isDriverUser, setIsDriverUser] = useState<boolean>(false);
 
-  // Fetch user's session duration preference
+  // Check if user is a driver (should have persistent session)
+  useEffect(() => {
+    const checkIfDriver = async () => {
+      if (!user) {
+        setIsDriverUser(false);
+        return;
+      }
+
+      try {
+        const { data } = await supabase
+          .from("profiles")
+          .select("cargo")
+          .eq("user_id", user.id)
+          .maybeSingle();
+
+        if (data?.cargo && DRIVER_ROLES.includes(data.cargo)) {
+          setIsDriverUser(true);
+          // Clear any existing timeout for drivers
+          if (timeoutRef.current) {
+            clearTimeout(timeoutRef.current);
+            timeoutRef.current = null;
+          }
+          console.log("[SessionTimeout] Driver detected - persistent session enabled");
+        } else {
+          setIsDriverUser(false);
+        }
+      } catch (error) {
+        console.error("Error checking driver status:", error);
+        setIsDriverUser(false);
+      }
+    };
+
+    checkIfDriver();
+  }, [user]);
+
+  // Fetch user's session duration preference (only for non-drivers)
   useEffect(() => {
     const fetchSessionDuration = async () => {
-      if (!user) return;
+      if (!user || isDriverUser) return;
 
       try {
         const { data } = await supabase
@@ -40,10 +79,12 @@ export const useSessionTimeout = () => {
     };
 
     fetchSessionDuration();
-  }, [user]);
+  }, [user, isDriverUser]);
 
-  // Listen for session duration changes
+  // Listen for session duration changes (only for non-drivers)
   useEffect(() => {
+    if (isDriverUser) return; // Skip for drivers
+    
     const handleDurationChange = () => {
       const newHours = parseInt(localStorage.getItem(SESSION_DURATION_KEY) || DEFAULT_SESSION_HOURS.toString(), 10);
       setSessionDurationHours(newHours);
@@ -74,7 +115,7 @@ export const useSessionTimeout = () => {
 
     window.addEventListener("session-duration-changed", handleDurationChange);
     return () => window.removeEventListener("session-duration-changed", handleDurationChange);
-  }, [session]);
+  }, [session, isDriverUser]);
 
   const renewSession = useCallback(() => {
     // Reset the session start time to now
@@ -139,6 +180,16 @@ export const useSessionTimeout = () => {
   };
 
   useEffect(() => {
+    // Skip timeout logic for drivers - they have persistent sessions
+    if (isDriverUser) {
+      console.log("[SessionTimeout] Skipping timeout for driver user");
+      if (timeoutRef.current) {
+        clearTimeout(timeoutRef.current);
+        timeoutRef.current = null;
+      }
+      return;
+    }
+
     if (!session) {
       // Clear session start time when logged out
       localStorage.removeItem(SESSION_START_KEY);
@@ -178,10 +229,13 @@ export const useSessionTimeout = () => {
         clearTimeout(timeoutRef.current);
       }
     };
-  }, [session]);
+  }, [session, isDriverUser]);
 
-  // Get remaining session time in minutes
+  // Get remaining session time in minutes (null for drivers = infinite)
   const getRemainingTime = useCallback((): number | null => {
+    // Drivers have infinite session
+    if (isDriverUser) return null;
+    
     if (!session) return null;
     
     const sessionStartTime = localStorage.getItem(SESSION_START_KEY);
@@ -193,7 +247,7 @@ export const useSessionTimeout = () => {
     const remaining = timeoutMs - elapsed;
 
     return Math.max(0, Math.floor(remaining / 60000)); // Convert to minutes
-  }, [session]);
+  }, [session, isDriverUser]);
 
-  return { getRemainingTime, renewSession, isInWarningPeriod, sessionDurationHours };
+  return { getRemainingTime, renewSession, isInWarningPeriod, sessionDurationHours, isDriverUser };
 };
