@@ -379,15 +379,15 @@ const HoraExtra = () => {
                     size="sm"
                     onClick={() => {
                       const period = summaryData.period;
-                      let msg = `\u{1F4CA} *Resumo do Per\u{00ED}odo (Folha)*\n`;
+                      let msg = "\u{1F4CA} *Resumo do Per\u00EDodo (Folha)*\n";
                       if (period) {
-                        msg += `\u{1F4C5} ${format(new Date(period.start + 'T00:00:00'), "dd/MM/yyyy")} a ${format(new Date(period.end + 'T00:00:00'), "dd/MM/yyyy")}\n`;
+                        msg += "\u{1F4C5} " + format(new Date(period.start + 'T00:00:00'), "dd/MM/yyyy") + " a " + format(new Date(period.end + 'T00:00:00'), "dd/MM/yyyy") + "\n";
                       }
-                      msg += `\n`;
+                      msg += "\n";
                       summaryData.summaries.forEach((s) => {
-                        msg += `\u{1F464} *${s.user_name}* (${s.cargo.replace(/_/g, ' ')})\n`;
-                        msg += `   \u{1F4DD} Registros: ${s.total_records} | HE: ${s.total_overtime_records}\n`;
-                        msg += `   \u{23F0} Horas Trab.: ${s.total_hours_worked.toFixed(1)}h | HE: ${s.total_overtime_hours.toFixed(1)}h\n\n`;
+                        msg += "\u{1F468}\u{200D}\u{1F4BC} *" + s.user_name + "* (" + s.cargo.replace(/_/g, ' ') + ")\n";
+                        msg += "   \u{1F4DD} Registros: " + s.total_records + " | HE: " + s.total_overtime_records + "\n";
+                        msg += "   \u{23F1}\u{FE0F} Horas Trab.: " + s.total_hours_worked.toFixed(1) + "h | HE: " + s.total_overtime_hours.toFixed(1) + "h\n\n";
                       });
                       const url = `https://wa.me/?text=${encodeURIComponent(msg)}`;
                       window.open(url, "_blank");
