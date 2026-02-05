@@ -379,15 +379,16 @@ const HoraExtra = () => {
                     size="sm"
                     onClick={() => {
                       const period = summaryData.period;
-                      let msg = "📊 *Resumo do Período (Folha)*\n";
+                      const E = { chart: String.fromCodePoint(0x1F4CA), cal: String.fromCodePoint(0x1F4C5), person: String.fromCodePoint(0x1F464), memo: String.fromCodePoint(0x1F4DD), clock: String.fromCodePoint(0x23F0) };
+                      let msg = E.chart + " *Resumo do Per\u00EDodo (Folha)*\n";
                       if (period) {
-                        msg += "📅 " + format(new Date(period.start + 'T00:00:00'), "dd/MM/yyyy") + " a " + format(new Date(period.end + 'T00:00:00'), "dd/MM/yyyy") + "\n";
+                        msg += E.cal + " " + format(new Date(period.start + 'T00:00:00'), "dd/MM/yyyy") + " a " + format(new Date(period.end + 'T00:00:00'), "dd/MM/yyyy") + "\n";
                       }
                       msg += "\n";
                       summaryData.summaries.forEach((s) => {
-                        msg += "👤 *" + s.user_name + "* (" + s.cargo.replace(/_/g, ' ') + ")\n";
-                        msg += "   📝 Registros: " + s.total_records + " | HE: " + s.total_overtime_records + "\n";
-                        msg += "   ⏰ Horas Trab.: " + s.total_hours_worked.toFixed(1) + "h | HE: " + s.total_overtime_hours.toFixed(1) + "h\n\n";
+                        msg += E.person + " *" + s.user_name + "* (" + s.cargo.replace(/_/g, ' ') + ")\n";
+                        msg += "   " + E.memo + " Registros: " + s.total_records + " | HE: " + s.total_overtime_records + "\n";
+                        msg += "   " + E.clock + " Horas Trab.: " + s.total_hours_worked.toFixed(1) + "h | HE: " + s.total_overtime_hours.toFixed(1) + "h\n\n";
                       });
                       const url = `https://wa.me/?text=${encodeURIComponent(msg)}`;
                       window.open(url, "_blank");
