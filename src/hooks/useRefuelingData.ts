@@ -49,6 +49,18 @@ export interface DailyRefuelingByVehicle {
   liters: number;
 }
 
+export interface RefuelingByVehicleWithPoints {
+  vehicleName: string;
+  plate: string;
+  count: number;
+  liters: number;
+  byPoint: {
+    "46": number;
+    "3C": number;
+    "3D": number;
+  };
+}
+
 export function useRefuelingData(year?: number, month?: number) {
   const currentDate = new Date();
   const targetYear = year ?? currentDate.getFullYear();
@@ -108,15 +120,39 @@ export function useRefuelingData(year?: number, month?: number) {
         })
       );
 
-      // Calculate by vehicle
-      const byVehicle: Record<string, { name: string; plate: string; count: number }> = {};
+      // Calculate by vehicle with point breakdown
+      const byVehicle: Record<string, { 
+        name: string; 
+        plate: string; 
+        count: number;
+        byPoint: { "46": number; "3C": number; "3D": number };
+      }> = {};
+      
       records.forEach((record) => {
         const eq = equipmentMap.get(record.equipment_id);
         if (eq) {
           if (!byVehicle[eq.id]) {
-            byVehicle[eq.id] = { name: eq.name, plate: eq.plate, count: 0 };
+            byVehicle[eq.id] = { 
+              name: eq.name, 
+              plate: eq.plate, 
+              count: 0,
+              byPoint: { "46": 0, "3C": 0, "3D": 0 }
+            };
           }
           byVehicle[eq.id].count++;
+          
+          // Extract point from defect_description
+          const pointMatch = record.defect_description?.match(/Ponto:\s*(.+)/i);
+          if (pointMatch) {
+            const point = pointMatch[1].trim().toUpperCase();
+            if (point === "46") {
+              byVehicle[eq.id].byPoint["46"]++;
+            } else if (point === "3C") {
+              byVehicle[eq.id].byPoint["3C"]++;
+            } else if (point === "3D") {
+              byVehicle[eq.id].byPoint["3D"]++;
+            }
+          }
         }
       });
 
@@ -126,6 +162,16 @@ export function useRefuelingData(year?: number, month?: number) {
           plate: v.plate,
           count: v.count,
           liters: v.count * LITERS_PER_REFUEL,
+        })
+      );
+      
+      const refuelingByVehicleWithPoints: RefuelingByVehicleWithPoints[] = Object.values(byVehicle).map(
+        (v) => ({
+          vehicleName: v.name,
+          plate: v.plate,
+          count: v.count,
+          liters: v.count * LITERS_PER_REFUEL,
+          byPoint: v.byPoint,
         })
       );
 
@@ -200,6 +246,7 @@ export function useRefuelingData(year?: number, month?: number) {
       return {
         refuelingByPoint,
         refuelingByVehicle,
+        refuelingByVehicleWithPoints,
         monthlyRefueling,
         dailyByVehicle: Object.values(dailyByVehicle),
         totalRefuelings,
