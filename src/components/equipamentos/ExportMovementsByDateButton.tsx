@@ -82,6 +82,7 @@ export function ExportMovementsByDateButton({ equipment }: ExportMovementsByDate
     plate: string;
     driverName: string;
     helperName: string;
+    helperLabel: string;
     activities: Array<{ start: string; end: string; description: string }>;
     initialFuelLevel?: string | null;
     finalFuelLevel?: string | null;
@@ -369,7 +370,7 @@ export function ExportMovementsByDateButton({ equipment }: ExportMovementsByDate
             <div class="cell-value" style="font-family: monospace;">${params.plate}</div>
           </div>
           <div class="info-row">
-            <div class="cell-label">AJUDANTE</div>
+            <div class="cell-label">${params.helperLabel}</div>
             <div class="cell-value">${params.helperName || "-"}</div>
           </div>
 
@@ -517,6 +518,9 @@ export function ExportMovementsByDateButton({ equipment }: ExportMovementsByDate
       const driverFromHistory = dateStops.find(s => s.changed_by_driver)?.changed_by_driver || "";
       const driverName = shiftRecord?.driver_name || equipment.driver || driverFromHistory || "";
       const helperName = shiftRecord?.helper_name || equipment.helper || "";
+      
+      // Use "SINALEIRO" for Munk equipment, "AJUDANTE" for others
+      const helperLabel = equipment.equipment_type === "munk" ? "SINALEIRO" : "AJUDANTE";
 
       const htmlContent = buildParteDiariaFormHtml({
         logoBase64,
@@ -525,6 +529,7 @@ export function ExportMovementsByDateButton({ equipment }: ExportMovementsByDate
         plate: equipment.plate,
         driverName,
         helperName,
+        helperLabel,
         activities,
         initialFuelLevel: shiftRecord?.initial_fuel_level,
         finalFuelLevel: shiftEnded ? shiftRecord?.final_fuel_level : null,
