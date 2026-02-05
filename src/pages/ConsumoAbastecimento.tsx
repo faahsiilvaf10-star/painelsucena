@@ -1,6 +1,7 @@
-import { useState } from "react";
+import { useState, useMemo } from "react";
 import Layout from "@/components/layout/Layout";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
+import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
 import { Loader2 } from "lucide-react";
 import { useRefuelingData } from "@/hooks/useRefuelingData";
 import {
@@ -27,8 +28,16 @@ export default function ConsumoAbastecimento() {
   const currentDate = new Date();
   const [selectedYear, setSelectedYear] = useState(currentDate.getFullYear());
   const [selectedMonth, setSelectedMonth] = useState(currentDate.getMonth());
+  const [selectedVehicle, setSelectedVehicle] = useState<string>("all");
 
   const { data, isLoading } = useRefuelingData(selectedYear, selectedMonth);
+
+  // Filter daily records by selected vehicle
+  const filteredDailyRecords = useMemo(() => {
+    if (!data?.dailyRecords) return [];
+    if (selectedVehicle === "all") return data.dailyRecords;
+    return data.dailyRecords.filter((r) => r.equipmentId === selectedVehicle);
+  }, [data?.dailyRecords, selectedVehicle]);
 
   const years = Array.from(
     { length: 5 },
@@ -270,6 +279,78 @@ export default function ConsumoAbastecimento() {
               </div>
             )}
           </div>
+        </div>
+
+        {/* Tabela de Abastecimentos por Dia */}
+        <div className="mt-4 bg-[#2d2d44] rounded-lg p-4 border border-[#3d3d5c]">
+          <div className="flex flex-col md:flex-row items-center justify-between gap-4 mb-4">
+            <h2 className="text-white font-semibold">
+              Abastecimentos por Dia
+            </h2>
+            <Select
+              value={selectedVehicle}
+              onValueChange={setSelectedVehicle}
+            >
+              <SelectTrigger className="w-[200px] bg-[#1a1a2e] border-[#3d3d5c] text-white">
+                <SelectValue placeholder="Filtrar por veículo" />
+              </SelectTrigger>
+              <SelectContent className="bg-[#2d2d44] border-[#3d3d5c]">
+                <SelectItem value="all" className="text-white hover:bg-[#3d3d5c]">
+                  Todos os Veículos
+                </SelectItem>
+                {data?.uniqueVehicles?.map((vehicle) => (
+                  <SelectItem key={vehicle.id} value={vehicle.id} className="text-white hover:bg-[#3d3d5c]">
+                    {vehicle.name} ({vehicle.plate})
+                  </SelectItem>
+                ))}
+              </SelectContent>
+            </Select>
+          </div>
+          
+          {filteredDailyRecords.length > 0 ? (
+            <div className="overflow-x-auto">
+              <Table>
+                <TableHeader>
+                  <TableRow className="border-[#3d3d5c] hover:bg-transparent">
+                    <TableHead className="text-gray-300">Data</TableHead>
+                    <TableHead className="text-gray-300">Veículo</TableHead>
+                    <TableHead className="text-gray-300">Placa</TableHead>
+                    <TableHead className="text-gray-300">Ponto</TableHead>
+                    <TableHead className="text-gray-300 text-right">Litros</TableHead>
+                  </TableRow>
+                </TableHeader>
+                <TableBody>
+                  {filteredDailyRecords.map((record, index) => (
+                    <TableRow key={index} className="border-[#3d3d5c] hover:bg-[#3d3d5c]/50">
+                      <TableCell className="text-white">{record.formattedDate}</TableCell>
+                      <TableCell className="text-white">{record.vehicleName}</TableCell>
+                      <TableCell className="text-gray-400">{record.plate}</TableCell>
+                      <TableCell className="text-cyan-400">{record.point}</TableCell>
+                      <TableCell className="text-white text-right">
+                        {record.liters.toLocaleString("pt-BR")} L
+                      </TableCell>
+                    </TableRow>
+                  ))}
+                </TableBody>
+              </Table>
+            </div>
+          ) : (
+            <div className="h-[100px] flex items-center justify-center text-gray-400">
+              <p className="text-sm">Nenhum abastecimento registrado</p>
+            </div>
+          )}
+          
+          {/* Totais */}
+          {filteredDailyRecords.length > 0 && (
+            <div className="mt-4 pt-4 border-t border-[#3d3d5c] flex justify-end">
+              <div className="text-white">
+                <span className="text-gray-400 mr-2">Total:</span>
+                <span className="font-semibold text-cyan-400">
+                  {filteredDailyRecords.length} abastecimento(s) - {filteredDailyRecords.reduce((acc, r) => acc + r.liters, 0).toLocaleString("pt-BR")} L
+                </span>
+              </div>
+            </div>
+          )}
         </div>
 
         {/* Footer */}

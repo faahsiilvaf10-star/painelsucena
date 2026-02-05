@@ -49,6 +49,17 @@ export interface DailyRefuelingByVehicle {
   liters: number;
 }
 
+export interface DailyRefuelingRecord {
+  date: string;
+  formattedDate: string;
+  vehicleName: string;
+  plate: string;
+  equipmentId: string;
+  count: number;
+  liters: number;
+  point: string;
+}
+
 export interface RefuelingByVehicleWithPoints {
   vehicleName: string;
   plate: string;
@@ -241,6 +252,35 @@ export function useRefuelingData(year?: number, month?: number) {
         }
       });
 
+      // Detailed daily records for table
+      const dailyRecords: DailyRefuelingRecord[] = records.map((record) => {
+        const eq = equipmentMap.get(record.equipment_id);
+        const date = new Date(record.started_at);
+        const pointMatch = record.defect_description?.match(/Ponto:\s*(.+)/i);
+        const point = pointMatch ? pointMatch[1].trim().toUpperCase() : "N/A";
+        
+        return {
+          date: format(date, "yyyy-MM-dd"),
+          formattedDate: format(date, "dd/MM/yyyy"),
+          vehicleName: eq?.name || "Desconhecido",
+          plate: eq?.plate || "",
+          equipmentId: record.equipment_id,
+          count: 1,
+          liters: LITERS_PER_REFUEL,
+          point,
+        };
+      }).sort((a, b) => b.date.localeCompare(a.date));
+
+      // Get unique vehicles for filter
+      const uniqueVehicles = Array.from(
+        new Map(
+          records
+            .map((r) => equipmentMap.get(r.equipment_id))
+            .filter((eq): eq is EquipmentInfo => !!eq)
+            .map((eq) => [eq.id, { id: eq.id, name: eq.name, plate: eq.plate }])
+        ).values()
+      );
+
       // Summary stats for selected month only
       const totalRefuelings = records.length;
       const totalLiters = totalRefuelings * LITERS_PER_REFUEL;
@@ -251,6 +291,8 @@ export function useRefuelingData(year?: number, month?: number) {
         refuelingByVehicleWithPoints,
         monthlyRefueling,
         dailyByVehicle: Object.values(dailyByVehicle),
+        dailyRecords,
+        uniqueVehicles,
         totalRefuelings,
         totalLiters,
         currentMonthRefuelings: totalRefuelings,
