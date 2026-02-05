@@ -259,10 +259,17 @@ export default function RDO() {
     const fixedEquipmentText = `   • Veículo Leve - SNJ9G70
    • Ônibus - SMY7A93`;
 
+    // Fixed equipment plates to exclude from dynamic list
+    const fixedPlates = ["SNJ9G70", "SMY7A93"];
+
     // Build equipment text with driver, helper/sinaleiro and plate
     // Use equipment in the yard (no canteiro) from the same logic as Entrada/Saída page
-    const dynamicEquipmentText = equipmentSummary.equipmentNoCanteiro.length > 0
-      ? equipmentSummary.equipmentNoCanteiro
+    const dynamicEquipment = equipmentSummary.equipmentNoCanteiro.filter(
+      eq => !fixedPlates.includes(eq.plate)
+    );
+    
+    const dynamicEquipmentText = dynamicEquipment.length > 0
+      ? dynamicEquipment
           .map((eq) => {
             const typeLabel = equipmentTypeLabels[eq.equipment_type] || eq.equipment_type;
             // Use "Sinaleiro" for munk type, "Ajudante" for others
@@ -327,7 +334,7 @@ ${gabiaoFromReport}
 \uD83D\uDC77 Efetivo \uD83D\uDC77
 ${gabiaoWorkforce}
 
-\u2705 EQUIPAMENTOS EM OPERAÇÃO (${equipmentSummary.equipmentNoCanteiro.length + 2})
+\u2705 EQUIPAMENTOS EM OPERAÇÃO (${dynamicEquipment.length + 2})
 ${operatingEquipmentText}
 
 Condições climáticas:
