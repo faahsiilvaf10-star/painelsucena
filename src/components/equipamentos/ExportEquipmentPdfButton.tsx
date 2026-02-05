@@ -62,7 +62,7 @@ export function ExportEquipmentPdfButton({
     initialHorimeter?: number | null;
     finalHorimeter?: number | null;
   }) => {
-    const maxRows = 12;
+    const maxRows = 20;
     const rows = [...params.activities]
       .slice(0, maxRows)
       .concat(
