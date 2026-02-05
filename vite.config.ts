@@ -49,9 +49,13 @@ export default defineConfig(({ mode }) => ({
         ],
       },
       workbox: {
-        globPatterns: ["**/*.{js,css,html,ico,png,svg,woff2}"],
+        globPatterns: ["**/*.{js,css,html,ico,png,svg,woff2,jpg,jpeg,webp}"],
         maximumFileSizeToCacheInBytes: 5 * 1024 * 1024, // 5 MB limit
+        // Skip cache for API requests - let IndexedDB handle them
+        navigateFallback: "/index.html",
+        navigateFallbackDenylist: [/^\/api/, /^\/rest/],
         runtimeCaching: [
+          // Google Fonts - Cache First (rarely changes)
           {
             urlPattern: /^https:\/\/fonts\.googleapis\.com\/.*/i,
             handler: "CacheFirst",
@@ -59,8 +63,45 @@ export default defineConfig(({ mode }) => ({
               cacheName: "google-fonts-cache",
               expiration: {
                 maxEntries: 10,
-                maxAgeSeconds: 60 * 60 * 24 * 365,
+                maxAgeSeconds: 60 * 60 * 24 * 365, // 1 year
               },
+            },
+          },
+          // Google Fonts Static - Cache First
+          {
+            urlPattern: /^https:\/\/fonts\.gstatic\.com\/.*/i,
+            handler: "CacheFirst",
+            options: {
+              cacheName: "google-fonts-static",
+              expiration: {
+                maxEntries: 30,
+                maxAgeSeconds: 60 * 60 * 24 * 365, // 1 year
+              },
+            },
+          },
+          // Image Assets - Stale While Revalidate
+          {
+            urlPattern: /\.(?:png|jpg|jpeg|svg|gif|webp|ico)$/i,
+            handler: "StaleWhileRevalidate",
+            options: {
+              cacheName: "image-cache",
+              expiration: {
+                maxEntries: 100,
+                maxAgeSeconds: 60 * 60 * 24 * 30, // 30 days
+              },
+            },
+          },
+          // Supabase Storage - Network First with Fallback
+          {
+            urlPattern: /^https:\/\/.*\.supabase\.co\/storage\/.*/i,
+            handler: "NetworkFirst",
+            options: {
+              cacheName: "supabase-storage",
+              expiration: {
+                maxEntries: 50,
+                maxAgeSeconds: 60 * 60 * 24 * 7, // 7 days
+              },
+              networkTimeoutSeconds: 5,
             },
           },
         ],

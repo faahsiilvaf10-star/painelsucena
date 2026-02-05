@@ -34,7 +34,7 @@ import { toast } from "sonner";
 import { format } from "date-fns";
 import { ptBR } from "date-fns/locale";
 import { FuelLevelGauge, type FuelLevel } from "./FuelLevelGauge";
-import { useOfflineSync } from "@/hooks/useOfflineSync";
+import { useOfflineSyncV2 } from "@/hooks/useOfflineSyncV2";
 import { useCreateShiftRecord, useUpdateShiftRecord, useAddStatusToHistory } from "@/hooks/useDailyShiftRecords";
 import { useCreateEquipmentMovement } from "@/hooks/useEquipmentMovements";
 
@@ -118,7 +118,7 @@ export function DriverStatusButtons() {
   const { data: profile } = useProfile();
   const updateStatus = useUpdateEquipmentStatus();
   const { data: stopHistory = [] } = useEquipmentStopHistory(selectedVehicleId || undefined);
-  const { isOnline, addPendingAction } = useOfflineSync();
+  const { isOnline, addPendingAction } = useOfflineSyncV2();
   const createShiftRecord = useCreateShiftRecord();
   const updateShiftRecord = useUpdateShiftRecord();
   const addStatusToHistory = useAddStatusToHistory();
