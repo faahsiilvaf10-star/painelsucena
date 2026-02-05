@@ -92,29 +92,69 @@ export function ExportMovementsByDateButton({ equipment }: ExportMovementsByDate
     initialHorimeter?: number | null;
     finalHorimeter?: number | null;
   }) => {
-    const maxRows = 12;
-    const rows = [...params.activities]
-      .slice(0, maxRows)
-      .concat(
-        Array.from({ length: Math.max(0, maxRows - params.activities.length) }).map(() => ({
-          start: "",
-          end: "",
-          description: "",
-        }))
+    const ROWS_PER_TABLE = 12;
+    
+    // Split activities into tables of 12 rows each
+    const activityTables: Array<Array<{ start: string; end: string; description: string }>> = [];
+    
+    for (let i = 0; i < params.activities.length; i += ROWS_PER_TABLE) {
+      const tableRows = params.activities.slice(i, i + ROWS_PER_TABLE);
+      // Fill with empty rows to complete the table
+      const emptyRowsNeeded = ROWS_PER_TABLE - tableRows.length;
+      for (let j = 0; j < emptyRowsNeeded; j++) {
+        tableRows.push({ start: "", end: "", description: "" });
+      }
+      activityTables.push(tableRows);
+    }
+    
+    // If no activities, create one empty table
+    if (activityTables.length === 0) {
+      activityTables.push(
+        Array.from({ length: ROWS_PER_TABLE }).map(() => ({ start: "", end: "", description: "" }))
       );
-
-    const activityRowsHtml = rows
-      .map(
-        (r) => `
-          <tr>
-            <td class="cell horario">${r.start}</td>
-            <td class="cell as">ÀS</td>
-            <td class="cell horario">${r.end}</td>
-            <td class="cell desc">${r.description}</td>
-          </tr>
-        `
-      )
-      .join("");
+    }
+    
+    // Generate HTML for a single activity table
+    const buildActivityTableHtml = (rows: Array<{ start: string; end: string; description: string }>, tableIndex: number) => {
+      const rowsHtml = rows.map(r => `
+        <tr>
+          <td class="cell horario">${r.start}</td>
+          <td class="cell as">ÀS</td>
+          <td class="cell horario">${r.end}</td>
+          <td class="cell desc">${r.description}</td>
+        </tr>
+      `).join("");
+      
+      return `
+        <div class="desc-title">${tableIndex === 0 ? 'DESCRIMINAÇÃO: SERVIÇOS, PARADAS E OBS.' : 'CONTINUAÇÃO - ATIVIDADES'}</div>
+        <table>
+          <thead>
+            <tr>
+              <th class="cell horario" style="background:#f0f0f0;">HORÁRIO</th>
+              <th class="cell as" style="background:#f0f0f0;"></th>
+              <th class="cell horario" style="background:#f0f0f0;">FINAL</th>
+              <th class="cell desc" style="background:#f0f0f0;"></th>
+            </tr>
+          </thead>
+          <tbody>
+            ${rowsHtml}
+          </tbody>
+        </table>
+      `;
+    };
+    
+    // First table goes in the main layout
+    const mainActivityTableHtml = buildActivityTableHtml(activityTables[0], 0);
+    
+    // Additional tables go below the main form
+    const additionalTablesHtml = activityTables.slice(1).map((rows, idx) => `
+      <div class="additional-table" style="page-break-before: auto; margin-top: 15px; border: 1px solid #000;">
+        <div style="background: #f0f0f0; padding: 4px 8px; font-weight: bold; font-size: 10px; border-bottom: 1px solid #000;">
+          ${params.equipmentName} - ${params.dateLabel} (Página ${idx + 2})
+        </div>
+        ${buildActivityTableHtml(rows, idx + 1)}
+      </div>
+    `).join("");
 
     const instructionText =
       "01 - PREENCHER O CABEÇALHO COM NOME, DATA, TIPO DE EQUIPAMENTO E PLACA/TAG - " +
@@ -407,22 +447,12 @@ export function ExportMovementsByDateButton({ equipment }: ExportMovementsByDate
             </div>
 
             <div class="right">
-              <div class="desc-title">DESCRIMINAÇÃO: SERVIÇOS, PARADAS E OBS.</div>
-              <table>
-                <thead>
-                  <tr>
-                    <th class="cell horario" style="background:#f0f0f0;">HORÁRIO</th>
-                    <th class="cell as" style="background:#f0f0f0;"></th>
-                    <th class="cell horario" style="background:#f0f0f0;">FINAL</th>
-                    <th class="cell desc" style="background:#f0f0f0;"></th>
-                  </tr>
-                </thead>
-                <tbody>
-                  ${activityRowsHtml}
-                </tbody>
-              </table>
+              ${mainActivityTableHtml}
             </div>
           </div>
+          
+          <!-- Additional Activity Tables (if more than 12 activities) -->
+          ${additionalTablesHtml}
 
           <div class="signatures">
             <div class="sig"><div class="sig-name">${params.driverName || ""}</div><div class="line"></div><div class="lbl">Ass. Motorista/Op</div></div>
