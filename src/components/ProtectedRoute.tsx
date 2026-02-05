@@ -2,6 +2,7 @@ import { useEffect, useState } from "react";
 import { Navigate, useLocation, useNavigate } from "react-router-dom";
 import { supabase } from "@/integrations/supabase/client";
 import { Session } from "@supabase/supabase-js";
+import { useOfflineDriverRedirect } from "@/hooks/useOfflineDriverRedirect";
 
 interface ProtectedRouteProps {
   children: React.ReactNode;
@@ -18,6 +19,9 @@ const ProtectedRoute = ({ children }: ProtectedRouteProps) => {
   const [isAdmin, setIsAdmin] = useState(false);
   const location = useLocation();
   const navigate = useNavigate();
+  
+  // Hook for automatic offline redirect for drivers on mobile
+  useOfflineDriverRedirect();
 
   useEffect(() => {
     const { data: { subscription } } = supabase.auth.onAuthStateChange(
