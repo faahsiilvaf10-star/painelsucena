@@ -19,6 +19,7 @@ const STATUS_OPTIONS = [
   { value: "aprovado", label: "Aprovado" },
   { value: "a_caminho", label: "A Caminho" },
   { value: "entregue", label: "Entregue" },
+  { value: "pedido_realizado", label: "Pedido Realizado" },
   { value: "cancelado", label: "Cancelado" },
 ];
 
