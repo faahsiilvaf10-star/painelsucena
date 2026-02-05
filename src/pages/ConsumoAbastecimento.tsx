@@ -5,6 +5,7 @@ import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@
 import { Loader2 } from "lucide-react";
 import { useRefuelingData } from "@/hooks/useRefuelingData";
 import { ExportConsumoAbastecimentoPdfButton } from "@/components/equipamentos/ExportConsumoAbastecimentoPdfButton";
+import { ShareConsumoWhatsappButton } from "@/components/equipamentos/ShareConsumoWhatsappButton";
 import hydroLogo from "@/assets/logo-hydro.png";
 import {
   BarChart,
@@ -212,6 +213,16 @@ export default function ConsumoAbastecimento() {
           </Select>
 
           <ExportConsumoAbastecimentoPdfButton
+            selectedMonth={selectedMonth}
+            selectedYear={selectedYear}
+            selectedDay={selectedDay}
+            selectedVehicleName={selectedVehicleName}
+            dailyRecords={filteredDailyRecords}
+            refuelingByPoint={filteredRefuelingByPoint}
+            refuelingByVehicle={filteredRefuelingByVehicle}
+          />
+
+          <ShareConsumoWhatsappButton
             selectedMonth={selectedMonth}
             selectedYear={selectedYear}
             selectedDay={selectedDay}
