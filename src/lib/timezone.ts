@@ -107,3 +107,14 @@ export const formatBrazilNorthDateDisplay = (): string => {
     year: "numeric",
   });
 };
+
+/**
+ * Get current time string (HH:MM:SS) in Brazil Northern Region timezone (Brasília - UTC-3)
+ */
+export const getBrazilNorthTimeString = (): string => {
+  const date = getBrazilNorthDate();
+  const hours = String(date.getHours()).padStart(2, "0");
+  const minutes = String(date.getMinutes()).padStart(2, "0");
+  const seconds = String(date.getSeconds()).padStart(2, "0");
+  return `${hours}:${minutes}:${seconds}`;
+};
