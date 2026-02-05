@@ -4,6 +4,7 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
 import { Loader2 } from "lucide-react";
 import { useRefuelingData } from "@/hooks/useRefuelingData";
+import { ExportConsumoAbastecimentoPdfButton } from "@/components/equipamentos/ExportConsumoAbastecimentoPdfButton";
 import hydroLogo from "@/assets/logo-hydro.png";
 import {
   BarChart,
@@ -29,16 +30,42 @@ export default function ConsumoAbastecimento() {
   const currentDate = new Date();
   const [selectedYear, setSelectedYear] = useState(currentDate.getFullYear());
   const [selectedMonth, setSelectedMonth] = useState(currentDate.getMonth());
+  const [selectedDay, setSelectedDay] = useState<number | null>(null);
   const [selectedVehicle, setSelectedVehicle] = useState<string>("all");
 
   const { data, isLoading } = useRefuelingData(selectedYear, selectedMonth);
 
-  // Filter daily records by selected vehicle
+  // Filter daily records by selected vehicle and day
   const filteredDailyRecords = useMemo(() => {
     if (!data?.dailyRecords) return [];
-    if (selectedVehicle === "all") return data.dailyRecords;
-    return data.dailyRecords.filter((r) => r.equipmentId === selectedVehicle);
-  }, [data?.dailyRecords, selectedVehicle]);
+    let filtered = data.dailyRecords;
+    
+    if (selectedVehicle !== "all") {
+      filtered = filtered.filter((r) => r.equipmentId === selectedVehicle);
+    }
+    
+    if (selectedDay !== null) {
+      filtered = filtered.filter((r) => {
+        const recordDay = parseInt(r.formattedDate.split('/')[0]);
+        return recordDay === selectedDay;
+      });
+    }
+    
+    return filtered;
+  }, [data?.dailyRecords, selectedVehicle, selectedDay]);
+
+  // Get days in month for filter
+  const daysInMonth = useMemo(() => {
+    const days = new Date(selectedYear, selectedMonth + 1, 0).getDate();
+    return Array.from({ length: days }, (_, i) => i + 1);
+  }, [selectedYear, selectedMonth]);
+
+  // Get selected vehicle name for PDF
+  const selectedVehicleName = useMemo(() => {
+    if (selectedVehicle === "all") return "Todos os Veículos";
+    const vehicle = data?.uniqueVehicles?.find(v => v.id === selectedVehicle);
+    return vehicle ? `${vehicle.name} (${vehicle.plate})` : "Todos os Veículos";
+  }, [selectedVehicle, data?.uniqueVehicles]);
 
   const years = Array.from(
     { length: 5 },
@@ -87,10 +114,32 @@ export default function ConsumoAbastecimento() {
         </div>
 
         {/* Filtros */}
-        <div className="flex justify-end gap-2 mb-4">
+        <div className="flex flex-wrap justify-end gap-2 mb-4">
+          <Select
+            value={selectedDay?.toString() ?? "all"}
+            onValueChange={(v) => setSelectedDay(v === "all" ? null : parseInt(v))}
+          >
+            <SelectTrigger className="w-[100px] bg-[#2d2d44] border-[#3d3d5c] text-white">
+              <SelectValue placeholder="Dia" />
+            </SelectTrigger>
+            <SelectContent className="bg-[#2d2d44] border-[#3d3d5c] max-h-[300px]">
+              <SelectItem value="all" className="text-white hover:bg-[#3d3d5c]">
+                Todos
+              </SelectItem>
+              {daysInMonth.map((day) => (
+                <SelectItem key={day} value={day.toString()} className="text-white hover:bg-[#3d3d5c]">
+                  Dia {day}
+                </SelectItem>
+              ))}
+            </SelectContent>
+          </Select>
+
           <Select
             value={selectedMonth.toString()}
-            onValueChange={(v) => setSelectedMonth(parseInt(v))}
+            onValueChange={(v) => {
+              setSelectedMonth(parseInt(v));
+              setSelectedDay(null);
+            }}
           >
             <SelectTrigger className="w-[140px] bg-[#2d2d44] border-[#3d3d5c] text-white">
               <SelectValue />
@@ -106,7 +155,10 @@ export default function ConsumoAbastecimento() {
 
           <Select
             value={selectedYear.toString()}
-            onValueChange={(v) => setSelectedYear(parseInt(v))}
+            onValueChange={(v) => {
+              setSelectedYear(parseInt(v));
+              setSelectedDay(null);
+            }}
           >
             <SelectTrigger className="w-[100px] bg-[#2d2d44] border-[#3d3d5c] text-white">
               <SelectValue />
@@ -119,6 +171,16 @@ export default function ConsumoAbastecimento() {
               ))}
             </SelectContent>
           </Select>
+
+          <ExportConsumoAbastecimentoPdfButton
+            selectedMonth={selectedMonth}
+            selectedYear={selectedYear}
+            selectedDay={selectedDay}
+            selectedVehicleName={selectedVehicleName}
+            dailyRecords={filteredDailyRecords}
+            refuelingByPoint={data?.refuelingByPoint ?? []}
+            refuelingByVehicle={data?.refuelingByVehicle ?? []}
+          />
         </div>
 
         {/* Charts Grid */}
