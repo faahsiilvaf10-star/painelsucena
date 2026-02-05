@@ -1,5 +1,5 @@
 import { Truck, MapPin, ExternalLink, FileText, Clock } from "lucide-react";
- import { Leaf } from "lucide-react";
+ import { Leaf, ArrowUpCircle, ArrowDownCircle, Loader2 as Loader2Icon } from "lucide-react";
  import Layout from "@/components/layout/Layout";
  import { useEquipment } from "@/hooks/useEquipment";
 import { useEquipmentCurrentlyOut } from "@/hooks/useEquipmentMovements";
@@ -12,19 +12,9 @@ import { Button } from "@/components/ui/button";
 import { format } from "date-fns";
 import { ptBR } from "date-fns/locale";
 import { getLogoBase64 } from "@/lib/pdfLogo";
-
-const JARDINAGEM_EQUIPMENT = [
-  { id: 1, name: "Roçadeira 70" },
-  { id: 2, name: "Roçadeira 71" },
-  { id: 3, name: "Roçadeira 72" },
-  { id: 4, name: "Roçadeira 73" },
-  { id: 5, name: "Roçadeira 75" },
-  { id: 6, name: "Motopoda 01" },
-  { id: 7, name: "Assoprador 01" },
-  { id: 8, name: "Assoprador 02" },
-  { id: 9, name: "Perfurador 01" },
-  { id: 10, name: "Perfurador 02" },
-];
+import { useJardinagemEquipment, useUpdateJardinagemEquipmentStatus } from "@/hooks/useJardinagemEquipment";
+import { useProfile } from "@/hooks/useProfile";
+import { useIsAdmin } from "@/hooks/useUserRole";
 
 const EXIT_REASON_LABELS: Record<string, string> = {
   manutencao_corretiva: "Manutenção Corretiva",
@@ -38,6 +28,21 @@ const EXIT_REASON_LABELS: Record<string, string> = {
  const EntradaSaidaEquipamentos = () => {
    const { data: equipment = [], isLoading } = useEquipment();
   const { data: equipmentOut = [], isLoading: loadingOut } = useEquipmentCurrentlyOut();
+  const { data: jardinagemEquipment = [], isLoading: loadingJardinagem } = useJardinagemEquipment();
+  const { data: profile } = useProfile();
+  const { isAdmin } = useIsAdmin();
+  const updateJardinagemStatus = useUpdateJardinagemEquipmentStatus();
+
+  // Check if user can edit jardinagem equipment
+  const canEditJardinagem = isAdmin || 
+    profile?.cargo === "preposto" || 
+    profile?.cargo === "encarregado_geral" || 
+    profile?.cargo === "encarregado_i";
+
+  const handleToggleJardinagemStatus = (id: string, name: string, currentStatus: "entrou" | "saiu") => {
+    const newStatus = currentStatus === "entrou" ? "saiu" : "entrou";
+    updateJardinagemStatus.mutate({ id, name, newStatus });
+  };
  
   // Only consider equipment "out" if exit reason is NOT "fim_turno" or "operando"
   // Those statuses mean the equipment is still on site
@@ -165,23 +170,29 @@ const EXIT_REASON_LABELS: Record<string, string> = {
         </div>
 
         <div class="section">
-          <div class="section-title" style="border-left-color: #22c55e;">🌿 Equipamentos para Jardinagem (${JARDINAGEM_EQUIPMENT.length})</div>
+          <div class="section-title" style="border-left-color: #22c55e;">🌿 Equipamentos para Jardinagem (${jardinagemEquipment.length})</div>
+          ${jardinagemEquipment.length === 0 ? '<p style="padding: 10px; color: #666;">Nenhum equipamento cadastrado</p>' : `
           <table>
             <thead>
               <tr>
                 <th>#</th>
                 <th>Equipamento</th>
+                <th>Status</th>
+                <th>Última Atualização</th>
               </tr>
             </thead>
             <tbody>
-              ${JARDINAGEM_EQUIPMENT.map((eq, idx) => `
+              ${jardinagemEquipment.map((eq, idx) => `
                 <tr>
                   <td>${idx + 1}</td>
                   <td><strong>${eq.name}</strong></td>
+                  <td><span class="badge ${eq.status === 'entrou' ? 'badge-green' : 'badge-orange'}">${eq.status === 'entrou' ? 'Entrou' : 'Saiu'}</span></td>
+                  <td>${format(new Date(eq.status_changed_at), "dd/MM/yyyy HH:mm")}</td>
                 </tr>
               `).join("")}
             </tbody>
           </table>
+          `}
         </div>
 
         <div class="footer">
@@ -218,7 +229,7 @@ const EXIT_REASON_LABELS: Record<string, string> = {
           </Button>
          </div>
  
-        {isLoading || loadingOut ? (
+        {isLoading || loadingOut || loadingJardinagem ? (
            <div className="flex justify-center py-12">
              <Loader2 className="h-8 w-8 animate-spin text-muted-foreground" />
            </div>
@@ -374,29 +385,76 @@ const EXIT_REASON_LABELS: Record<string, string> = {
                   <Leaf className="h-5 w-5 text-green-500" />
                   Equipamentos para Jardinagem
                   <Badge variant="secondary" className="ml-2">
-                    {JARDINAGEM_EQUIPMENT.length}
+                    {jardinagemEquipment.length}
                   </Badge>
                 </CardTitle>
               </CardHeader>
               <CardContent>
-                <div className="overflow-x-auto">
+                {jardinagemEquipment.length === 0 ? (
+                  <p className="text-muted-foreground text-center py-4">
+                    Nenhum equipamento cadastrado
+                  </p>
+                ) : (
+                  <div className="overflow-x-auto">
                   <Table>
                     <TableHeader>
                       <TableRow>
                         <TableHead className="w-12">#</TableHead>
                         <TableHead>Equipamento</TableHead>
+                        <TableHead>Status</TableHead>
+                        <TableHead>Última Atualização</TableHead>
+                        {canEditJardinagem && <TableHead className="w-24">Ação</TableHead>}
                       </TableRow>
                     </TableHeader>
                     <TableBody>
-                      {JARDINAGEM_EQUIPMENT.map((eq, idx) => (
+                      {jardinagemEquipment.map((eq, idx) => (
                         <TableRow key={eq.id}>
                           <TableCell className="text-muted-foreground">{idx + 1}</TableCell>
                           <TableCell className="font-medium">{eq.name}</TableCell>
+                          <TableCell>
+                            <Badge
+                              variant="outline"
+                              className={
+                                eq.status === "entrou"
+                                  ? "bg-green-500/10 text-green-600 border-green-500/30"
+                                  : "bg-orange-500/10 text-orange-600 border-orange-500/30"
+                              }
+                            >
+                              {eq.status === "entrou" ? (
+                                <><ArrowDownCircle className="h-3 w-3 mr-1" /> Entrou</>
+                              ) : (
+                                <><ArrowUpCircle className="h-3 w-3 mr-1" /> Saiu</>
+                              )}
+                            </Badge>
+                          </TableCell>
+                          <TableCell className="text-sm text-muted-foreground">
+                            {format(new Date(eq.status_changed_at), "dd/MM/yyyy HH:mm")}
+                          </TableCell>
+                          {canEditJardinagem && (
+                            <TableCell>
+                              <Button
+                                size="sm"
+                                variant={eq.status === "entrou" ? "destructive" : "default"}
+                                onClick={() => handleToggleJardinagemStatus(eq.id, eq.name, eq.status)}
+                                disabled={updateJardinagemStatus.isPending}
+                                className="gap-1"
+                              >
+                                {updateJardinagemStatus.isPending ? (
+                                  <Loader2Icon className="h-3 w-3 animate-spin" />
+                                ) : eq.status === "entrou" ? (
+                                  <><ArrowUpCircle className="h-3 w-3" /> Saiu</>
+                                ) : (
+                                  <><ArrowDownCircle className="h-3 w-3" /> Entrou</>
+                                )}
+                              </Button>
+                            </TableCell>
+                          )}
                         </TableRow>
                       ))}
                     </TableBody>
                   </Table>
                 </div>
+                )}
               </CardContent>
             </Card>
            </div>

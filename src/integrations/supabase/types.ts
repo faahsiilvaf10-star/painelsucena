@@ -977,6 +977,36 @@ export type Database = {
           },
         ]
       }
+      jardinagem_equipment: {
+        Row: {
+          created_at: string
+          id: string
+          name: string
+          status: string
+          status_changed_at: string
+          status_changed_by: string | null
+          updated_at: string
+        }
+        Insert: {
+          created_at?: string
+          id?: string
+          name: string
+          status?: string
+          status_changed_at?: string
+          status_changed_by?: string | null
+          updated_at?: string
+        }
+        Update: {
+          created_at?: string
+          id?: string
+          name?: string
+          status?: string
+          status_changed_at?: string
+          status_changed_by?: string | null
+          updated_at?: string
+        }
+        Relationships: []
+      }
       matrix_task_completions: {
         Row: {
           completed_at: string
