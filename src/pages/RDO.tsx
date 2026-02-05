@@ -18,6 +18,7 @@ import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover
 import { Badge } from "@/components/ui/badge";
 import { useAttendanceRecords } from "@/hooks/useAttendance";
 import { useEquipment } from "@/hooks/useEquipment";
+import { useEquipmentCurrentlyOut } from "@/hooks/useEquipmentMovements";
 import { useTodayDDS } from "@/hooks/useDDSSchedule";
 import { useRDOReports, useRDOReport, useSaveRDOReport, useUploadRDOPhotos, useDeleteRDOReport } from "@/hooks/useRDOReports";
 import { useJardinagemReportByDate, formatJardinagemForRDO } from "@/hooks/useJardinagemReports";
@@ -97,6 +98,7 @@ export default function RDO() {
   
   const { data: attendanceRecords } = useAttendanceRecords(selectedDateStr);
   const { data: equipment } = useEquipment();
+  const { data: equipmentOut = [] } = useEquipmentCurrentlyOut();
   const { data: todayDDS } = useTodayDDS();
   const { data: existingReport, isLoading: isLoadingReport } = useRDOReport(selectedDateStr);
   const { data: allReports } = useRDOReports();
@@ -177,19 +179,27 @@ export default function RDO() {
 
   // Calculate equipment summary (excluding maintenance)
   const equipmentSummary = useMemo(() => {
-    if (!equipment) return { items: [], total: 0, operatingEquipment: [] };
+    if (!equipment) return { items: [], total: 0, equipmentNoCanteiro: [] };
     
-    // Filter out equipment in maintenance
-    const availableEquipment = equipment.filter((eq) => eq.stop_reason !== "maintenance");
-    
-    // Equipment in operation (stop_reason === "none" and has driver)
-    const operatingEquipment = equipment.filter((eq) => 
-      eq.stop_reason === "none" && eq.driver && eq.driver.trim() !== ""
+    // Apply the same logic as "Entrada e Saída de Equipamentos" page:
+    // Equipment is only "out" if exit_reason is maintenance or vistoria
+    // (fim_turno, operando, aguardando_frente_servico means still on site)
+    const reallyOut = equipmentOut.filter(m => 
+      m.exit_reason && 
+      m.exit_reason !== "fim_turno" && 
+      m.exit_reason !== "operando" &&
+      m.exit_reason !== "aguardando_frente_servico"
     );
+    
+    // Get plates of equipment actually out (maintenance, vistoria)
+    const platesOut = new Set(reallyOut.map(m => m.plate));
+    
+    // Equipment in the yard = all equipment minus those with active exit
+    const equipmentNoCanteiro = equipment.filter(eq => !platesOut.has(eq.plate));
     
     const typeCount: Record<string, { count: number; plates: string[] }> = {};
     
-    availableEquipment.forEach((eq) => {
+    equipmentNoCanteiro.forEach((eq) => {
       const type = eq.equipment_type || "pipa";
       if (!typeCount[type]) {
         typeCount[type] = { count: 0, plates: [] };
@@ -205,8 +215,8 @@ export default function RDO() {
       plates: data.plates,
     }));
 
-    return { items, total: availableEquipment.length, operatingEquipment };
-  }, [equipment]);
+    return { items, total: equipmentNoCanteiro.length, equipmentNoCanteiro };
+  }, [equipment, equipmentOut]);
 
   // Format date for report
   const formattedDate = format(selectedDate, "dd/MM/yy (EEEE)", { locale: ptBR });
@@ -249,13 +259,17 @@ export default function RDO() {
     const fixedEquipmentText = `   • Veículo Leve - SNJ9G70
    • Ônibus - SMY7A93`;
 
-    // Build operating equipment text with driver, helper and plate
-    const dynamicEquipmentText = equipmentSummary.operatingEquipment.length > 0
-      ? equipmentSummary.operatingEquipment
+    // Build equipment text with driver, helper/sinaleiro and plate
+    // Use equipment in the yard (no canteiro) from the same logic as Entrada/Saída page
+    const dynamicEquipmentText = equipmentSummary.equipmentNoCanteiro.length > 0
+      ? equipmentSummary.equipmentNoCanteiro
           .map((eq) => {
             const typeLabel = equipmentTypeLabels[eq.equipment_type] || eq.equipment_type;
-            const helperText = eq.helper && eq.helper.trim() !== "" ? ` | Ajudante: ${eq.helper}` : "";
-            return `   • ${typeLabel} (${eq.plate})\n      Motorista: ${eq.driver}${helperText}`;
+            // Use "Sinaleiro" for munk type, "Ajudante" for others
+            const helperLabel = eq.equipment_type === "munk" ? "Sinaleiro" : "Ajudante";
+            const helperText = eq.helper && eq.helper.trim() !== "" ? ` | ${helperLabel}: ${eq.helper}` : "";
+            const driverText = eq.driver && eq.driver.trim() !== "" ? `\n      Motorista: ${eq.driver}` : "";
+            return `   • ${typeLabel} (${eq.plate})${driverText}${helperText}`;
           })
           .join("\n")
       : "";
@@ -313,7 +327,7 @@ ${gabiaoFromReport}
 \uD83D\uDC77 Efetivo \uD83D\uDC77
 ${gabiaoWorkforce}
 
-\u2705 EQUIPAMENTOS EM OPERAÇÃO (${equipmentSummary.operatingEquipment.length + 2})
+\u2705 EQUIPAMENTOS EM OPERAÇÃO (${equipmentSummary.equipmentNoCanteiro.length + 2})
 ${operatingEquipmentText}
 
 Condições climáticas:
