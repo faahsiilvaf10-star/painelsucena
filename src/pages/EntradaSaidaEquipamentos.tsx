@@ -1,4 +1,5 @@
 import { Truck, MapPin, ExternalLink, FileText, Clock } from "lucide-react";
+ import { Leaf } from "lucide-react";
  import Layout from "@/components/layout/Layout";
  import { useEquipment } from "@/hooks/useEquipment";
 import { useEquipmentCurrentlyOut } from "@/hooks/useEquipmentMovements";
@@ -11,6 +12,19 @@ import { Button } from "@/components/ui/button";
 import { format } from "date-fns";
 import { ptBR } from "date-fns/locale";
 import { getLogoBase64 } from "@/lib/pdfLogo";
+
+const JARDINAGEM_EQUIPMENT = [
+  { id: 1, name: "Roçadeira 70" },
+  { id: 2, name: "Roçadeira 71" },
+  { id: 3, name: "Roçadeira 72" },
+  { id: 4, name: "Roçadeira 73" },
+  { id: 5, name: "Roçadeira 75" },
+  { id: 6, name: "Motopoda 01" },
+  { id: 7, name: "Assoprador 01" },
+  { id: 8, name: "Assoprador 02" },
+  { id: 9, name: "Perfurador 01" },
+  { id: 10, name: "Perfurador 02" },
+];
 
 const EXIT_REASON_LABELS: Record<string, string> = {
   manutencao_corretiva: "Manutenção Corretiva",
@@ -148,6 +162,26 @@ const EXIT_REASON_LABELS: Record<string, string> = {
             </tbody>
           </table>
           `}
+        </div>
+
+        <div class="section">
+          <div class="section-title" style="border-left-color: #22c55e;">🌿 Equipamentos para Jardinagem (${JARDINAGEM_EQUIPMENT.length})</div>
+          <table>
+            <thead>
+              <tr>
+                <th>#</th>
+                <th>Equipamento</th>
+              </tr>
+            </thead>
+            <tbody>
+              ${JARDINAGEM_EQUIPMENT.map((eq, idx) => `
+                <tr>
+                  <td>${idx + 1}</td>
+                  <td><strong>${eq.name}</strong></td>
+                </tr>
+              `).join("")}
+            </tbody>
+          </table>
         </div>
 
         <div class="footer">
@@ -332,6 +366,39 @@ const EXIT_REASON_LABELS: Record<string, string> = {
                  )}
                </CardContent>
              </Card>
+
+            {/* Equipamentos para Jardinagem */}
+            <Card>
+              <CardHeader className="pb-3">
+                <CardTitle className="flex items-center gap-2 text-lg">
+                  <Leaf className="h-5 w-5 text-green-500" />
+                  Equipamentos para Jardinagem
+                  <Badge variant="secondary" className="ml-2">
+                    {JARDINAGEM_EQUIPMENT.length}
+                  </Badge>
+                </CardTitle>
+              </CardHeader>
+              <CardContent>
+                <div className="overflow-x-auto">
+                  <Table>
+                    <TableHeader>
+                      <TableRow>
+                        <TableHead className="w-12">#</TableHead>
+                        <TableHead>Equipamento</TableHead>
+                      </TableRow>
+                    </TableHeader>
+                    <TableBody>
+                      {JARDINAGEM_EQUIPMENT.map((eq, idx) => (
+                        <TableRow key={eq.id}>
+                          <TableCell className="text-muted-foreground">{idx + 1}</TableCell>
+                          <TableCell className="font-medium">{eq.name}</TableCell>
+                        </TableRow>
+                      ))}
+                    </TableBody>
+                  </Table>
+                </div>
+              </CardContent>
+            </Card>
            </div>
          )}
        </div>
