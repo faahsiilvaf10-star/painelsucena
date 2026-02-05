@@ -24,6 +24,7 @@ import { colaboradoresAtivos as initialColaboradores, funcoes, type Colaborador 
 import { AddEmployeeDialog } from "@/components/rh/AddEmployeeDialog";
 import { DeleteEmployeeDialog } from "@/components/rh/DeleteEmployeeDialog";
 import { useRHPermissions } from "@/hooks/useRHPermissions";
+import { ExportEfetivoPdfButton } from "@/components/rh/ExportEfetivoPdfButton";
 import { toast } from "sonner";
 
 type SortField = "id" | "nome" | "funcao" | "admissao" | "matricula";
@@ -167,6 +168,10 @@ const RH = () => {
           </div>
           
           <div className="flex items-center gap-3">
+            <ExportEfetivoPdfButton 
+              colaboradores={filteredColaboradores} 
+              filterFuncao={filterFuncao} 
+            />
             {!permissionsLoading && canEditRH && (
               <AddEmployeeDialog onAdd={handleAddEmployee} />
             )}
