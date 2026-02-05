@@ -1,5 +1,6 @@
-import { Truck, MapPin, ExternalLink, FileText, Clock } from "lucide-react";
- import { Leaf, ArrowUpCircle, ArrowDownCircle, Loader2 as Loader2Icon } from "lucide-react";
+import { Truck, MapPin, ExternalLink, FileText, Clock, Plus, Trash2 } from "lucide-react";
+import { Leaf, ArrowUpCircle, ArrowDownCircle, Loader2 as Loader2Icon } from "lucide-react";
+import { useState } from "react";
  import Layout from "@/components/layout/Layout";
  import { useEquipment } from "@/hooks/useEquipment";
 import { useEquipmentCurrentlyOut } from "@/hooks/useEquipmentMovements";
@@ -7,14 +8,35 @@ import { useEquipmentCurrentlyOut } from "@/hooks/useEquipmentMovements";
  import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
  import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
- import { VehicleIcon } from "@/components/equipamentos/VehicleIcons";
- import { Loader2 } from "lucide-react";
+import { Input } from "@/components/ui/input";
+import { VehicleIcon } from "@/components/equipamentos/VehicleIcons";
+import { Loader2 } from "lucide-react";
 import { format } from "date-fns";
 import { ptBR } from "date-fns/locale";
 import { getLogoBase64 } from "@/lib/pdfLogo";
-import { useJardinagemEquipment, useUpdateJardinagemEquipmentStatus } from "@/hooks/useJardinagemEquipment";
+import { useJardinagemEquipment, useUpdateJardinagemEquipmentStatus, useCreateJardinagemEquipment, useDeleteJardinagemEquipment } from "@/hooks/useJardinagemEquipment";
 import { useProfile } from "@/hooks/useProfile";
 import { useIsAdmin } from "@/hooks/useUserRole";
+import {
+  Dialog,
+  DialogContent,
+  DialogDescription,
+  DialogFooter,
+  DialogHeader,
+  DialogTitle,
+  DialogTrigger,
+} from "@/components/ui/dialog";
+import {
+  AlertDialog,
+  AlertDialogAction,
+  AlertDialogCancel,
+  AlertDialogContent,
+  AlertDialogDescription,
+  AlertDialogFooter,
+  AlertDialogHeader,
+  AlertDialogTitle,
+  AlertDialogTrigger,
+} from "@/components/ui/alert-dialog";
 
 const EXIT_REASON_LABELS: Record<string, string> = {
   manutencao_corretiva: "Manutenção Corretiva",
@@ -32,6 +54,11 @@ const EXIT_REASON_LABELS: Record<string, string> = {
   const { data: profile } = useProfile();
   const { isAdmin } = useIsAdmin();
   const updateJardinagemStatus = useUpdateJardinagemEquipmentStatus();
+  const createJardinagemEquipment = useCreateJardinagemEquipment();
+  const deleteJardinagemEquipment = useDeleteJardinagemEquipment();
+
+  const [addDialogOpen, setAddDialogOpen] = useState(false);
+  const [newEquipmentName, setNewEquipmentName] = useState("");
 
   // Check if user can edit jardinagem equipment
   const canEditJardinagem = isAdmin || 
@@ -42,6 +69,23 @@ const EXIT_REASON_LABELS: Record<string, string> = {
   const handleToggleJardinagemStatus = (id: string, name: string, currentStatus: "entrou" | "saiu") => {
     const newStatus = currentStatus === "entrou" ? "saiu" : "entrou";
     updateJardinagemStatus.mutate({ id, name, newStatus });
+  };
+
+  const handleAddEquipment = () => {
+    if (!newEquipmentName.trim()) return;
+    createJardinagemEquipment.mutate(
+      { name: newEquipmentName.trim() },
+      {
+        onSuccess: () => {
+          setNewEquipmentName("");
+          setAddDialogOpen(false);
+        },
+      }
+    );
+  };
+
+  const handleDeleteEquipment = (id: string) => {
+    deleteJardinagemEquipment.mutate(id);
   };
  
   // Only consider equipment "out" if exit reason is NOT "fim_turno" or "operando"
@@ -387,6 +431,45 @@ const EXIT_REASON_LABELS: Record<string, string> = {
                   <Badge variant="secondary" className="ml-2">
                     {jardinagemEquipment.length}
                   </Badge>
+                  {isAdmin && (
+                    <Dialog open={addDialogOpen} onOpenChange={setAddDialogOpen}>
+                      <DialogTrigger asChild>
+                        <Button size="sm" variant="outline" className="ml-auto gap-1">
+                          <Plus className="h-4 w-4" />
+                          Adicionar
+                        </Button>
+                      </DialogTrigger>
+                      <DialogContent>
+                        <DialogHeader>
+                          <DialogTitle>Adicionar Equipamento</DialogTitle>
+                          <DialogDescription>
+                            Insira o nome do novo equipamento de jardinagem.
+                          </DialogDescription>
+                        </DialogHeader>
+                        <div className="py-4">
+                          <Input
+                            placeholder="Ex: Motopoda 02, Roçadeira 76..."
+                            value={newEquipmentName}
+                            onChange={(e) => setNewEquipmentName(e.target.value)}
+                            onKeyDown={(e) => {
+                              if (e.key === "Enter") handleAddEquipment();
+                            }}
+                          />
+                        </div>
+                        <DialogFooter>
+                          <Button
+                            onClick={handleAddEquipment}
+                            disabled={!newEquipmentName.trim() || createJardinagemEquipment.isPending}
+                          >
+                            {createJardinagemEquipment.isPending ? (
+                              <Loader2Icon className="h-4 w-4 animate-spin mr-2" />
+                            ) : null}
+                            Adicionar
+                          </Button>
+                        </DialogFooter>
+                      </DialogContent>
+                    </Dialog>
+                  )}
                 </CardTitle>
               </CardHeader>
               <CardContent>
@@ -404,6 +487,7 @@ const EXIT_REASON_LABELS: Record<string, string> = {
                         <TableHead>Status</TableHead>
                         <TableHead>Última Atualização</TableHead>
                         {canEditJardinagem && <TableHead className="w-24">Ação</TableHead>}
+                        {isAdmin && <TableHead className="w-12"></TableHead>}
                       </TableRow>
                     </TableHeader>
                     <TableBody>
@@ -447,6 +531,38 @@ const EXIT_REASON_LABELS: Record<string, string> = {
                                   <><ArrowDownCircle className="h-3 w-3" /> Entrou</>
                                 )}
                               </Button>
+                            </TableCell>
+                          )}
+                          {isAdmin && (
+                            <TableCell>
+                              <AlertDialog>
+                                <AlertDialogTrigger asChild>
+                                  <Button
+                                    size="icon"
+                                    variant="ghost"
+                                    className="h-8 w-8 text-destructive hover:text-destructive"
+                                  >
+                                    <Trash2 className="h-4 w-4" />
+                                  </Button>
+                                </AlertDialogTrigger>
+                                <AlertDialogContent>
+                                  <AlertDialogHeader>
+                                    <AlertDialogTitle>Remover equipamento?</AlertDialogTitle>
+                                    <AlertDialogDescription>
+                                      Tem certeza que deseja remover "{eq.name}"? Esta ação não pode ser desfeita.
+                                    </AlertDialogDescription>
+                                  </AlertDialogHeader>
+                                  <AlertDialogFooter>
+                                    <AlertDialogCancel>Cancelar</AlertDialogCancel>
+                                    <AlertDialogAction
+                                      onClick={() => handleDeleteEquipment(eq.id)}
+                                      className="bg-destructive text-destructive-foreground hover:bg-destructive/90"
+                                    >
+                                      Remover
+                                    </AlertDialogAction>
+                                  </AlertDialogFooter>
+                                </AlertDialogContent>
+                              </AlertDialog>
                             </TableCell>
                           )}
                         </TableRow>

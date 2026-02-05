@@ -3,6 +3,10 @@
  import { toast } from "sonner";
  import { format } from "date-fns";
  import { ptBR } from "date-fns/locale";
+
+export interface CreateJardinagemEquipmentInput {
+  name: string;
+}
  
  export interface JardinagemEquipment {
    id: string;
@@ -28,6 +32,56 @@
      },
    });
  };
+
+export const useCreateJardinagemEquipment = () => {
+  const queryClient = useQueryClient();
+
+  return useMutation({
+    mutationFn: async ({ name }: CreateJardinagemEquipmentInput) => {
+      const { error } = await supabase
+        .from("jardinagem_equipment")
+        .insert({
+          name,
+          status: "saiu",
+        });
+
+      if (error) throw error;
+      return { name };
+    },
+    onSuccess: (data) => {
+      queryClient.invalidateQueries({ queryKey: ["jardinagem-equipment"] });
+      toast.success(`${data.name} adicionado com sucesso`);
+    },
+    onError: (error) => {
+      console.error("Erro ao adicionar equipamento:", error);
+      toast.error("Erro ao adicionar equipamento");
+    },
+  });
+};
+
+export const useDeleteJardinagemEquipment = () => {
+  const queryClient = useQueryClient();
+
+  return useMutation({
+    mutationFn: async (id: string) => {
+      const { error } = await supabase
+        .from("jardinagem_equipment")
+        .delete()
+        .eq("id", id);
+
+      if (error) throw error;
+      return { id };
+    },
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ["jardinagem-equipment"] });
+      toast.success("Equipamento removido com sucesso");
+    },
+    onError: (error) => {
+      console.error("Erro ao remover equipamento:", error);
+      toast.error("Erro ao remover equipamento");
+    },
+  });
+};
  
  export const useUpdateJardinagemEquipmentStatus = () => {
    const queryClient = useQueryClient();
