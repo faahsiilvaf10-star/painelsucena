@@ -38,8 +38,8 @@ export default function ConsumoAbastecimento() {
   if (isLoading) {
     return (
       <Layout>
-        <div className="flex items-center justify-center min-h-[400px] bg-[#1a1a2e]">
-          <Loader2 className="h-8 w-8 animate-spin text-cyan-400" />
+        <div className="flex items-center justify-center min-h-[400px] bg-[#c4c9cf]">
+          <Loader2 className="h-8 w-8 animate-spin text-[#1a1a2e]" />
         </div>
       </Layout>
     );
@@ -47,7 +47,7 @@ export default function ConsumoAbastecimento() {
 
   return (
     <Layout>
-      <div className="min-h-screen bg-[#1a1a2e] -m-4 md:-m-6 p-4 md:p-6">
+      <div className="min-h-screen bg-[#c4c9cf] -m-4 md:-m-6 p-4 md:p-6">
         {/* Header */}
         <div className="flex flex-col md:flex-row items-center justify-between gap-4 mb-6">
           {/* Logo Sucena */}
