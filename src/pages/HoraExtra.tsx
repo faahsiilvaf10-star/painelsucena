@@ -1,7 +1,7 @@
 import { useState, useMemo } from "react";
 import { format, getDay } from "date-fns";
 import { ptBR } from "date-fns/locale";
-import { Calendar, Clock, Save, Send, Plus, Trash2, Calculator, RefreshCw, FileText } from "lucide-react";
+import { Calendar, Clock, Save, Send, Plus, Trash2, Calculator, RefreshCw, FileText, MessageCircle } from "lucide-react";
 import Layout from "@/components/layout/Layout";
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
@@ -372,17 +372,44 @@ const HoraExtra = () => {
                   )}
                 </CardDescription>
               </div>
-              {isAdmin && (
-                <Button
-                  variant="outline"
-                  size="sm"
-                  onClick={handleCalculateSummary}
-                  disabled={isCalculating}
-                >
-                  <RefreshCw className={cn("h-4 w-4 mr-2", isCalculating && "animate-spin")} />
-                  {isCalculating ? "Calculando..." : "Recalcular"}
-                </Button>
-              )}
+              <div className="flex items-center gap-2">
+                {summaryData?.summaries && summaryData.summaries.length > 0 && (
+                  <Button
+                    variant="outline"
+                    size="sm"
+                    onClick={() => {
+                      const period = summaryData.period;
+                      let msg = `\u{1F4CA} *Resumo do Per\u{00ED}odo (Folha)*\n`;
+                      if (period) {
+                        msg += `\u{1F4C5} ${format(new Date(period.start + 'T00:00:00'), "dd/MM/yyyy")} a ${format(new Date(period.end + 'T00:00:00'), "dd/MM/yyyy")}\n`;
+                      }
+                      msg += `\n`;
+                      summaryData.summaries.forEach((s) => {
+                        msg += `\u{1F464} *${s.user_name}* (${s.cargo.replace(/_/g, ' ')})\n`;
+                        msg += `   Registros: ${s.total_records} | HE: ${s.total_overtime_records}\n`;
+                        msg += `   Horas Trab.: ${s.total_hours_worked.toFixed(1)}h | HE: ${s.total_overtime_hours.toFixed(1)}h\n\n`;
+                      });
+                      const url = `https://wa.me/?text=${encodeURIComponent(msg)}`;
+                      window.open(url, "_blank");
+                    }}
+                    className="gap-1.5"
+                  >
+                    <MessageCircle className="h-4 w-4" />
+                    <span className="hidden sm:inline">WhatsApp</span>
+                  </Button>
+                )}
+                {isAdmin && (
+                  <Button
+                    variant="outline"
+                    size="sm"
+                    onClick={handleCalculateSummary}
+                    disabled={isCalculating}
+                  >
+                    <RefreshCw className={cn("h-4 w-4 mr-2", isCalculating && "animate-spin")} />
+                    {isCalculating ? "Calculando..." : "Recalcular"}
+                  </Button>
+                )}
+              </div>
             </div>
           </CardHeader>
           <CardContent>
