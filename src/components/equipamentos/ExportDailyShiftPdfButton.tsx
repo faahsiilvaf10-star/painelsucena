@@ -122,31 +122,44 @@ export function ExportDailyShiftPdfButton({ record, isLoading }: ExportDailyShif
       );
 
       // Generate activity rows from filtered status history.
-      // "Retorno após abastecimento" entries are rendered as "Operando" rows.
+      // Special rule: a legacy entry like "Operando - Retorno após abastecimento" is a *marker*
+      // to close the previous "Abastecendo" period and must NOT be printed as its own row.
       const allActivityRows: string[] = [];
       for (let i = 0; i < filteredHistory.length; i++) {
         const entry = filteredHistory[i];
+        if (isReturnAfterRefuelingEntry(entry)) {
+          continue;
+        }
+
         const nextEntry = filteredHistory[i + 1];
         const startTime = format(new Date(entry.timestamp), "HH:mm", { locale: ptBR });
 
+        // Determine end time:
+        // - If there's a next entry, use its start time
+        // - If next entry is a legacy "retorno após abastecimento" marker, still use its time,
+        //   but skip printing it.
+        // - If this is the last entry AND it's "end_of_shift" or "fim_turno", show the timestamp
+        // - Otherwise leave blank
         const isLastEntry = i === filteredHistory.length - 1;
         const isEndOfShift = entry.status === "end_of_shift" || entry.status === "fim_turno";
 
         let endTime = "";
+        // Rule: last status is always blank UNLESS it's "Fim de Turno".
         if (nextEntry) {
           endTime = format(new Date(nextEntry.timestamp), "HH:mm", { locale: ptBR });
+          if (isReturnAfterRefuelingEntry(nextEntry)) {
+            i++; // consume the marker
+          }
         } else if (isLastEntry && isEndOfShift) {
+          // Only "Fim de Turno" shows an end time when it's the last status.
           endTime = startTime;
         }
+        // Otherwise (last entry, not end of shift) → endTime stays blank
 
-        // Build description - rename "retorno" entries to "Operando"
-        let description: string;
-        if (isReturnAfterRefuelingEntry(entry)) {
-          description = "Operando";
-        } else if (entry.description) {
+        // Build description - use entry.description if available, otherwise use status label
+        let description = getStatusLabel(entry.status);
+        if (entry.description) {
           description = entry.description;
-        } else {
-          description = getStatusLabel(entry.status);
         }
 
         allActivityRows.push(`
