@@ -181,25 +181,52 @@ export const DDSHighlightCard = () => {
 
               {/* Photo Section */}
               {todayDDS.photo_url ? (
-                <div 
-                  className="relative rounded-lg overflow-hidden cursor-pointer group"
-                  onClick={() => setPhotoModalOpen(true)}
-                >
-                  <img
-                    src={todayDDS.photo_url}
-                    alt="Foto do DDS de hoje"
-                    className="w-full h-48 object-cover transition-transform group-hover:scale-105"
-                  />
-                  <div className="absolute inset-0 bg-black/0 group-hover:bg-black/20 transition-colors flex items-center justify-center">
-                    <span className="opacity-0 group-hover:opacity-100 transition-opacity text-white text-sm font-medium bg-black/50 px-3 py-1.5 rounded-full">
-                      Clique para ampliar
-                    </span>
+                <div className="relative rounded-lg overflow-hidden group">
+                  <div 
+                    className="cursor-pointer"
+                    onClick={() => setPhotoModalOpen(true)}
+                  >
+                    <img
+                      src={todayDDS.photo_url}
+                      alt="Foto do DDS de hoje"
+                      className="w-full h-48 object-cover transition-transform group-hover:scale-105"
+                    />
+                    <div className="absolute inset-0 bg-black/0 group-hover:bg-black/20 transition-colors flex items-center justify-center pointer-events-none">
+                      <span className="opacity-0 group-hover:opacity-100 transition-opacity text-white text-sm font-medium bg-black/50 px-3 py-1.5 rounded-full">
+                        Clique para ampliar
+                      </span>
+                    </div>
                   </div>
-                  <div className="absolute bottom-2 right-2">
+                  <div className="absolute bottom-2 right-2 flex items-center gap-2">
                     <span className="px-2 py-1 bg-black/50 text-white text-xs rounded-full">
                       📸 Foto do dia
                     </span>
                   </div>
+                  {canUploadPhoto && (
+                    <Button
+                      variant="destructive"
+                      size="icon"
+                      className="absolute top-2 right-2 h-8 w-8 opacity-0 group-hover:opacity-100 transition-opacity"
+                      onClick={async (e) => {
+                        e.stopPropagation();
+                        if (confirm("Tem certeza que deseja remover a foto do DDS?")) {
+                          try {
+                            await updatePhoto.mutateAsync({
+                              id: todayDDS.id,
+                              photo_url: null,
+                            });
+                            toast.success("Foto removida com sucesso!");
+                          } catch (error) {
+                            console.error("Error removing photo:", error);
+                            toast.error("Erro ao remover a foto");
+                          }
+                        }
+                      }}
+                      title="Remover foto"
+                    >
+                      <X className="h-4 w-4" />
+                    </Button>
+                  )}
                 </div>
               ) : canUploadPhoto ? (
                 <div className="border-2 border-dashed border-amber-300 dark:border-amber-700 rounded-lg p-4">
