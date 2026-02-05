@@ -465,7 +465,7 @@ export default function MonthlyReportDialog({
                             )}
                             {jardinagemTotals.limpeza_assoprador_m2 > 0 && (
                               <div className="flex justify-between p-3 bg-card rounded-lg border">
-                                <span className="font-medium">💨 Limpeza Assoprador</span>
+                                <span className="font-medium">💨 Limpeza Soprador</span>
                                 <Badge variant="secondary">{jardinagemTotals.limpeza_assoprador_m2.toLocaleString('pt-BR')} m²</Badge>
                               </div>
                             )}

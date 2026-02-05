@@ -259,7 +259,7 @@ export const formatJardinagemForRDO = (report: JardinagemReport | null): string 
   }
   if (report.limpeza_assoprador_m2 && report.limpeza_assoprador_m2 > 0) {
     const faixaText = report.limpeza_assoprador_faixa ? ` - ${report.limpeza_assoprador_faixa}` : "";
-    lines.push(`* Limpeza com Assoprador - ${report.limpeza_assoprador_m2} m²${formatBerma(report.limpeza_assoprador_berma)}${faixaText}`);
+    lines.push(`* Limpeza com Soprador - ${report.limpeza_assoprador_m2} m²${formatBerma(report.limpeza_assoprador_berma)}${faixaText}`);
   }
   
   // Handle invasoras - can be JSON array or single value

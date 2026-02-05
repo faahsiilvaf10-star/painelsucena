@@ -441,7 +441,7 @@ export default function Atividades() {
       lines.push(`* Limpeza Manual - ${limpezaManual} m²${formatBerma(limpezaManualBerma)}${formatFaixa(limpezaManualFaixa)}`);
     }
     if (limpezaAssoprador && parseFloat(limpezaAssoprador) > 0) {
-      lines.push(`* Limpeza com Assoprador - ${limpezaAssoprador} m²${formatBerma(limpezaAssopradorBerma)}${formatFaixa(limpezaAssopradorFaixa)}`);
+      lines.push(`* Limpeza com Soprador - ${limpezaAssoprador} m²${formatBerma(limpezaAssopradorBerma)}${formatFaixa(limpezaAssopradorFaixa)}`);
     }
     // Only include invasoras with unidade > 0
     const filteredInvasoras = invasoras.filter(i => i.unidade && parseInt(i.unidade) > 0);
@@ -708,7 +708,7 @@ export default function Atividades() {
                   lines.push(`* Limpeza Manual - ${report.limpeza_manual_m2} m²${formatBerma(report.limpeza_manual_berma)}${formatFaixa(report.limpeza_manual_faixa)}`);
                 }
                 if (report.limpeza_assoprador_m2 && parseFloat(report.limpeza_assoprador_m2) > 0) {
-                  lines.push(`* Limpeza com Assoprador - ${report.limpeza_assoprador_m2} m²${formatBerma(report.limpeza_assoprador_berma)}${formatFaixa(report.limpeza_assoprador_faixa)}`);
+                  lines.push(`* Limpeza com Soprador - ${report.limpeza_assoprador_m2} m²${formatBerma(report.limpeza_assoprador_berma)}${formatFaixa(report.limpeza_assoprador_faixa)}`);
                 }
                 if (report.controle_invasoras_unidade && parseInt(report.controle_invasoras_unidade) > 0) {
                   lines.push(`* Controle de Invasoras${report.controle_invasoras_nome ? ` (${report.controle_invasoras_nome})` : ""} - ${report.controle_invasoras_unidade} unidade(s)`);
@@ -1073,10 +1073,10 @@ export default function Atividades() {
                   </div>
                 </div>
 
-                {/* Limpeza com Assoprador */}
+                {/* Limpeza com Soprador */}
                 <div className="grid grid-cols-1 md:grid-cols-[1fr_140px_140px] gap-3 p-3 rounded-lg bg-muted/30">
                   <div className="space-y-2">
-                    <Label>LIMPEZA COM ASSOPRADOR (m²)</Label>
+                    <Label>LIMPEZA COM SOPRADOR (m²)</Label>
                     <Input
                       type="number"
                       min="0"
@@ -1405,7 +1405,7 @@ export default function Atividades() {
                     <p>* Limpeza Manual - {limpezaManual} m²{limpezaManualBerma && ` (Berma ${limpezaManualBerma})`}</p>
                   )}
                   {limpezaAssoprador && parseFloat(limpezaAssoprador) > 0 && (
-                    <p>* Limpeza com Assoprador - {limpezaAssoprador} m²{limpezaAssopradorBerma && ` (Berma ${limpezaAssopradorBerma})`}</p>
+                    <p>* Limpeza com Soprador - {limpezaAssoprador} m²{limpezaAssopradorBerma && ` (Berma ${limpezaAssopradorBerma})`}</p>
                   )}
                   {invasoras.some(i => i.unidade && parseInt(i.unidade) > 0) && (
                     invasoras.filter(i => i.unidade && parseInt(i.unidade) > 0).map((inv, idx) => (

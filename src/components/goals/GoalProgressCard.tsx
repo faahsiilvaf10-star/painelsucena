@@ -187,7 +187,7 @@ export function GoalProgressCard({ type = "all" }: GoalProgressCardProps) {
       )}
       {progress.limpeza_assoprador_m2.target > 0 && (
         <GoalItem
-          label="Limpeza Assoprador"
+          label="Limpeza Soprador"
           emoji="💨"
           unit="m²"
           current={progress.limpeza_assoprador_m2.current}

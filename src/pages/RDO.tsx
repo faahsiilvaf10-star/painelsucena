@@ -252,7 +252,7 @@ export default function RDO() {
       let pluralName = baseName;
       if (baseName === "Roçadeira") pluralName = "Roçadeiras";
       else if (baseName === "Motopoda") pluralName = "Motopodas";
-      else if (baseName === "Assoprador") pluralName = "Assopradores";
+      else if (baseName === "Soprador") pluralName = "Sopradores";
       else if (baseName === "Perfurador") pluralName = "Perfuradores";
       
       if (!typeCount[pluralName]) {
