@@ -114,7 +114,7 @@ export function ExportConsumoAbastecimentoPdfButton({
             body {
               font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
               background: #c4c9cf;
-              padding: 20px;
+              padding: 10px;
               color: #1a1a2e;
             }
             .container {
@@ -226,16 +226,16 @@ export function ExportConsumoAbastecimentoPdfButton({
             }
             .footer {
               background: #f5a623;
-              padding: 15px;
+              padding: 10px 15px;
               border-radius: 8px 8px 0 0;
-              margin-top: 20px;
+              margin-top: 15px;
               display: flex;
               justify-content: space-between;
               align-items: center;
             }
             .footer-left {
               color: #1a1a2e;
-              font-size: 11px;
+              font-size: 10px;
             }
             .footer-left div {
               margin-bottom: 3px;
