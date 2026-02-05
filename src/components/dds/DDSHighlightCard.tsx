@@ -1,10 +1,11 @@
 import { useState, useRef, useMemo } from "react";
 import { format, addDays } from "date-fns";
 import { ptBR } from "date-fns/locale";
-import { Sun, Calendar, Camera, Upload, Loader2, ArrowRight, UserPlus } from "lucide-react";
+import { Sun, Calendar, Camera, Upload, Loader2, ArrowRight, UserPlus, X } from "lucide-react";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
+import { Dialog, DialogContent, DialogTitle } from "@/components/ui/dialog";
 import { SunBorderAvatar } from "./SunBorderAvatar";
 import { useTodayDDS, useTomorrowDDS, useUpdateDDSPhoto } from "@/hooks/useDDSSchedule";
 import { useProfile } from "@/hooks/useProfile";
@@ -27,6 +28,7 @@ export const DDSHighlightCard = () => {
   const dateKey = useDDSMidnightRefresh();
 
   const [isUploading, setIsUploading] = useState(false);
+  const [photoModalOpen, setPhotoModalOpen] = useState(false);
   const fileInputRef = useRef<HTMLInputElement>(null);
 
   // Use Brazil North timezone - recalculate when dateKey changes
@@ -179,12 +181,20 @@ export const DDSHighlightCard = () => {
 
               {/* Photo Section */}
               {todayDDS.photo_url ? (
-                <div className="relative rounded-lg overflow-hidden">
+                <div 
+                  className="relative rounded-lg overflow-hidden cursor-pointer group"
+                  onClick={() => setPhotoModalOpen(true)}
+                >
                   <img
                     src={todayDDS.photo_url}
                     alt="Foto do DDS de hoje"
-                    className="w-full h-48 object-cover"
+                    className="w-full h-48 object-cover transition-transform group-hover:scale-105"
                   />
+                  <div className="absolute inset-0 bg-black/0 group-hover:bg-black/20 transition-colors flex items-center justify-center">
+                    <span className="opacity-0 group-hover:opacity-100 transition-opacity text-white text-sm font-medium bg-black/50 px-3 py-1.5 rounded-full">
+                      Clique para ampliar
+                    </span>
+                  </div>
                   <div className="absolute bottom-2 right-2">
                     <span className="px-2 py-1 bg-black/50 text-white text-xs rounded-full">
                       📸 Foto do dia
@@ -309,6 +319,38 @@ export const DDSHighlightCard = () => {
           )}
         </CardContent>
       </Card>
+
+      {/* Photo Modal */}
+      <Dialog open={photoModalOpen} onOpenChange={setPhotoModalOpen}>
+        <DialogContent className="max-w-4xl w-full p-0 bg-black/95 border-none">
+          <DialogTitle className="sr-only">Foto do DDS de Hoje</DialogTitle>
+          <div className="relative">
+            <Button
+              variant="ghost"
+              size="icon"
+              className="absolute top-2 right-2 z-10 text-white hover:bg-white/20"
+              onClick={() => setPhotoModalOpen(false)}
+            >
+              <X className="h-6 w-6" />
+            </Button>
+            {todayDDS?.photo_url && (
+              <img
+                src={todayDDS.photo_url}
+                alt="Foto do DDS de hoje"
+                className="w-full max-h-[80vh] object-contain"
+              />
+            )}
+            <div className="absolute bottom-0 left-0 right-0 bg-gradient-to-t from-black/80 to-transparent p-4">
+              <p className="text-white text-center">
+                <span className="font-semibold">{format(today, "d 'de' MMMM 'de' yyyy", { locale: ptBR })}</span>
+                {todayDDS?.theme && (
+                  <span className="block text-sm text-white/80 mt-1">📋 {todayDDS.theme}</span>
+                )}
+              </p>
+            </div>
+          </div>
+        </DialogContent>
+      </Dialog>
     </div>
   );
 };
