@@ -20,14 +20,12 @@ Deno.serve(async (req) => {
 
     const supabase = createClient(supabaseUrl, supabaseServiceKey);
 
-    // Get all Pipa and Munk equipment that is in "end_of_shift" status and has no driver
+    // Get all equipment that is in "end_of_shift" status and has no driver
     // These should be set to "waiting" status at 07:00
     const { data: equipmentToUpdate, error: fetchError } = await supabase
       .from("equipment")
       .select("id, name, plate, stop_reason, driver, equipment_type")
-      .in("equipment_type", ["pipa", "munk"])
-      .or("stop_reason.eq.end_of_shift,stop_reason.is.null,stop_reason.eq.none")
-      .or("driver.eq.,driver.is.null");
+      .or("stop_reason.eq.end_of_shift,stop_reason.is.null,stop_reason.eq.none");
 
     if (fetchError) {
       console.error("Error fetching equipment:", fetchError);
@@ -61,9 +59,7 @@ Deno.serve(async (req) => {
         driver: "",
         helper: "",
       })
-      .in("equipment_type", ["pipa", "munk"])
       .or("stop_reason.eq.end_of_shift,stop_reason.is.null,stop_reason.eq.none")
-      .or("driver.eq.,driver.is.null")
       .select();
 
     if (updateError) {
