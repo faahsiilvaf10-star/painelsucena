@@ -1,7 +1,7 @@
 import { useMemo } from "react";
 import { format } from "date-fns";
 import { ptBR } from "date-fns/locale";
-import { Calendar, FileText, Trash2 } from "lucide-react";
+import { Calendar, FileText, Trash2, MessageCircle } from "lucide-react";
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
@@ -315,15 +315,40 @@ const SavedRecordsCard = ({
               Histórico de registros de hora extra por data
             </CardDescription>
           </div>
-          <Button
-            variant="outline"
-            size="sm"
-            onClick={handleExportPdf}
-            className="flex items-center gap-2"
-          >
-            <FileText className="h-4 w-4" />
-            PDF Período Atual
-          </Button>
+          <div className="flex items-center gap-2">
+            <Button
+              variant="outline"
+              size="sm"
+              onClick={() => {
+                if (periodRecords.length === 0) {
+                  toast.error("Nenhum registro no per\u00edodo para compartilhar");
+                  return;
+                }
+                let msg = `\u{1F4CB} *Registros - Per\u00edodo Atual*\n`;
+                msg += `\u{1F4C5} ${periodInfo.startFormatted} a ${periodInfo.endFormatted}\n`;
+                msg += `\u{1F4CA} Total: ${totals.total} | \u{23F0} HE: ${totals.overtime}\n\n`;
+                periodRecords.forEach((r) => {
+                  const dateStr = format(new Date(r.record_date + "T00:00:00"), "dd/MM (EEE)", { locale: ptBR });
+                  const he = r.is_overtime ? " \u{23F0}" : "";
+                  msg += `\u{1F464} ${r.user_name} - ${dateStr}\n   ${r.entry_time.slice(0, 5)} \u{27A1}\u{FE0F} ${r.exit_time.slice(0, 5)}${he}\n`;
+                });
+                window.open(`https://wa.me/?text=${encodeURIComponent(msg)}`, "_blank");
+              }}
+              className="flex items-center gap-2"
+            >
+              <MessageCircle className="h-4 w-4" />
+              <span className="hidden sm:inline">WhatsApp</span>
+            </Button>
+            <Button
+              variant="outline"
+              size="sm"
+              onClick={handleExportPdf}
+              className="flex items-center gap-2"
+            >
+              <FileText className="h-4 w-4" />
+              PDF Per\u00edodo Atual
+            </Button>
+          </div>
         </div>
       </CardHeader>
       <CardContent>

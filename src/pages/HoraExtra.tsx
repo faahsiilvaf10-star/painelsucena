@@ -386,8 +386,8 @@ const HoraExtra = () => {
                       msg += `\n`;
                       summaryData.summaries.forEach((s) => {
                         msg += `\u{1F464} *${s.user_name}* (${s.cargo.replace(/_/g, ' ')})\n`;
-                        msg += `   Registros: ${s.total_records} | HE: ${s.total_overtime_records}\n`;
-                        msg += `   Horas Trab.: ${s.total_hours_worked.toFixed(1)}h | HE: ${s.total_overtime_hours.toFixed(1)}h\n\n`;
+                        msg += `   \u{1F4DD} Registros: ${s.total_records} | HE: ${s.total_overtime_records}\n`;
+                        msg += `   \u{23F0} Horas Trab.: ${s.total_hours_worked.toFixed(1)}h | HE: ${s.total_overtime_hours.toFixed(1)}h\n\n`;
                       });
                       const url = `https://wa.me/?text=${encodeURIComponent(msg)}`;
                       window.open(url, "_blank");
