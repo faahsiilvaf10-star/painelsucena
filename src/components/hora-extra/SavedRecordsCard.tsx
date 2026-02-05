@@ -324,13 +324,14 @@ const SavedRecordsCard = ({
                   toast.error("Nenhum registro no per\u00edodo para compartilhar");
                   return;
                 }
-                let msg = "📋 *Registros - Período Atual*\n";
-                msg += "📅 " + periodInfo.startFormatted + " a " + periodInfo.endFormatted + "\n";
-                msg += "📊 Total: " + totals.total + " | ⏰ HE: " + totals.overtime + "\n\n";
+                const E = { clip: String.fromCodePoint(0x1F4CB), cal: String.fromCodePoint(0x1F4C5), chart: String.fromCodePoint(0x1F4CA), clock: String.fromCodePoint(0x23F0), person: String.fromCodePoint(0x1F464), arrow: String.fromCodePoint(0x27A1) };
+                let msg = E.clip + " *Registros - Per\u00EDodo Atual*\n";
+                msg += E.cal + " " + periodInfo.startFormatted + " a " + periodInfo.endFormatted + "\n";
+                msg += E.chart + " Total: " + totals.total + " | " + E.clock + " HE: " + totals.overtime + "\n\n";
                 periodRecords.forEach((r) => {
                   const dateStr = format(new Date(r.record_date + "T00:00:00"), "dd/MM (EEE)", { locale: ptBR });
-                  const he = r.is_overtime ? " ⏰" : "";
-                  msg += "👤 " + r.user_name + " - " + dateStr + "\n   " + r.entry_time.slice(0, 5) + " ➡ " + r.exit_time.slice(0, 5) + he + "\n";
+                  const he = r.is_overtime ? " " + E.clock : "";
+                  msg += E.person + " " + r.user_name + " - " + dateStr + "\n   " + r.entry_time.slice(0, 5) + " " + E.arrow + " " + r.exit_time.slice(0, 5) + he + "\n";
                 });
                 window.open(`https://wa.me/?text=${encodeURIComponent(msg)}`, "_blank");
               }}
