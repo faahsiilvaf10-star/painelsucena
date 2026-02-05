@@ -13,16 +13,22 @@ export interface JardinagemReport {
   rocagem_faixa: string | null;
   podagem_unidade: number | null;
   podagem_berma: number | null;
+  podagem_faixa: string | null;
   coroamento_unidade: number | null;
   coroamento_berma: number | null;
+  coroamento_faixa: string | null;
   adubagem_unidade: number | null;
   adubagem_berma: number | null;
+  adubagem_faixa: string | null;
   plantio_unidade: number | null;
   plantio_berma: number | null;
+  plantio_faixa: string | null;
   limpeza_manual_m2: number | null;
   limpeza_manual_berma: number | null;
+  limpeza_manual_faixa: string | null;
   limpeza_assoprador_m2: number | null;
   limpeza_assoprador_berma: number | null;
+  limpeza_assoprador_faixa: string | null;
   manutencao_canteiro: string | null;
   controle_invasoras_unidade: number | null;
   controle_invasoras_nome: string | null;
@@ -48,16 +54,22 @@ export interface JardinagemReportInsert {
   rocagem_faixa?: string;
   podagem_unidade?: number;
   podagem_berma?: number;
+  podagem_faixa?: string;
   coroamento_unidade?: number;
   coroamento_berma?: number;
+  coroamento_faixa?: string;
   adubagem_unidade?: number;
   adubagem_berma?: number;
+  adubagem_faixa?: string;
   plantio_unidade?: number;
   plantio_berma?: number;
+  plantio_faixa?: string;
   limpeza_manual_m2?: number;
   limpeza_manual_berma?: number;
+  limpeza_manual_faixa?: string;
   limpeza_assoprador_m2?: number;
   limpeza_assoprador_berma?: number;
+  limpeza_assoprador_faixa?: string;
   manutencao_canteiro?: string;
   controle_invasoras_unidade?: number;
   controle_invasoras_nome?: string;
@@ -226,22 +238,28 @@ export const formatJardinagemForRDO = (report: JardinagemReport | null): string 
     lines.push(`* Roçagem - ${report.rocagem_m2} m²${formatBerma(report.rocagem_berma)}${faixaText}`);
   }
   if (report.podagem_unidade && report.podagem_unidade > 0) {
-    lines.push(`* Podagem - ${report.podagem_unidade} unidade(s)${formatBerma(report.podagem_berma)}`);
+    const faixaText = report.podagem_faixa ? ` - ${report.podagem_faixa}` : "";
+    lines.push(`* Podagem - ${report.podagem_unidade} unidade(s)${formatBerma(report.podagem_berma)}${faixaText}`);
   }
   if (report.coroamento_unidade && report.coroamento_unidade > 0) {
-    lines.push(`* Coroamento - ${report.coroamento_unidade} unidade(s)${formatBerma(report.coroamento_berma)}`);
+    const faixaText = report.coroamento_faixa ? ` - ${report.coroamento_faixa}` : "";
+    lines.push(`* Coroamento - ${report.coroamento_unidade} unidade(s)${formatBerma(report.coroamento_berma)}${faixaText}`);
   }
   if (report.adubagem_unidade && report.adubagem_unidade > 0) {
-    lines.push(`* Adubagem - ${report.adubagem_unidade} unidade(s)${formatBerma(report.adubagem_berma)}`);
+    const faixaText = report.adubagem_faixa ? ` - ${report.adubagem_faixa}` : "";
+    lines.push(`* Adubagem - ${report.adubagem_unidade} unidade(s)${formatBerma(report.adubagem_berma)}${faixaText}`);
   }
   if (report.plantio_unidade && report.plantio_unidade > 0) {
-    lines.push(`* Plantio - ${report.plantio_unidade} unidade(s)${formatBerma(report.plantio_berma)}`);
+    const faixaText = report.plantio_faixa ? ` - ${report.plantio_faixa}` : "";
+    lines.push(`* Plantio - ${report.plantio_unidade} unidade(s)${formatBerma(report.plantio_berma)}${faixaText}`);
   }
   if (report.limpeza_manual_m2 && report.limpeza_manual_m2 > 0) {
-    lines.push(`* Limpeza Manual - ${report.limpeza_manual_m2} m²${formatBerma(report.limpeza_manual_berma)}`);
+    const faixaText = report.limpeza_manual_faixa ? ` - ${report.limpeza_manual_faixa}` : "";
+    lines.push(`* Limpeza Manual - ${report.limpeza_manual_m2} m²${formatBerma(report.limpeza_manual_berma)}${faixaText}`);
   }
   if (report.limpeza_assoprador_m2 && report.limpeza_assoprador_m2 > 0) {
-    lines.push(`* Limpeza com Assoprador - ${report.limpeza_assoprador_m2} m²${formatBerma(report.limpeza_assoprador_berma)}`);
+    const faixaText = report.limpeza_assoprador_faixa ? ` - ${report.limpeza_assoprador_faixa}` : "";
+    lines.push(`* Limpeza com Assoprador - ${report.limpeza_assoprador_m2} m²${formatBerma(report.limpeza_assoprador_berma)}${faixaText}`);
   }
   
   // Handle invasoras - can be JSON array or single value

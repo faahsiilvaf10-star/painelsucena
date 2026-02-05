@@ -249,12 +249,14 @@ export type Database = {
       daily_jardinagem_reports: {
         Row: {
           adubagem_berma: number | null
+          adubagem_faixa: string | null
           adubagem_unidade: number | null
           atividades_manuais: string | null
           controle_invasoras_berma: number | null
           controle_invasoras_nome: string | null
           controle_invasoras_unidade: number | null
           coroamento_berma: number | null
+          coroamento_faixa: string | null
           coroamento_unidade: number | null
           created_at: string
           created_by: string
@@ -263,18 +265,22 @@ export type Database = {
           irrigacao_carretel_bermas: number[] | null
           irrigacao_pipas: boolean | null
           limpeza_assoprador_berma: number | null
+          limpeza_assoprador_faixa: string | null
           limpeza_assoprador_m2: number | null
           limpeza_manual_berma: number | null
+          limpeza_manual_faixa: string | null
           limpeza_manual_m2: number | null
           local_faixa: string
           manutencao_canteiro: string | null
           photo_urls: string[] | null
           plantio_berma: number | null
+          plantio_faixa: string | null
           plantio_grama_berma: number | null
           plantio_grama_faixa: string | null
           plantio_grama_m2: number | null
           plantio_unidade: number | null
           podagem_berma: number | null
+          podagem_faixa: string | null
           podagem_unidade: number | null
           report_date: string
           retirada_mudas_unidade: number | null
@@ -285,12 +291,14 @@ export type Database = {
         }
         Insert: {
           adubagem_berma?: number | null
+          adubagem_faixa?: string | null
           adubagem_unidade?: number | null
           atividades_manuais?: string | null
           controle_invasoras_berma?: number | null
           controle_invasoras_nome?: string | null
           controle_invasoras_unidade?: number | null
           coroamento_berma?: number | null
+          coroamento_faixa?: string | null
           coroamento_unidade?: number | null
           created_at?: string
           created_by: string
@@ -299,18 +307,22 @@ export type Database = {
           irrigacao_carretel_bermas?: number[] | null
           irrigacao_pipas?: boolean | null
           limpeza_assoprador_berma?: number | null
+          limpeza_assoprador_faixa?: string | null
           limpeza_assoprador_m2?: number | null
           limpeza_manual_berma?: number | null
+          limpeza_manual_faixa?: string | null
           limpeza_manual_m2?: number | null
           local_faixa: string
           manutencao_canteiro?: string | null
           photo_urls?: string[] | null
           plantio_berma?: number | null
+          plantio_faixa?: string | null
           plantio_grama_berma?: number | null
           plantio_grama_faixa?: string | null
           plantio_grama_m2?: number | null
           plantio_unidade?: number | null
           podagem_berma?: number | null
+          podagem_faixa?: string | null
           podagem_unidade?: number | null
           report_date?: string
           retirada_mudas_unidade?: number | null
@@ -321,12 +333,14 @@ export type Database = {
         }
         Update: {
           adubagem_berma?: number | null
+          adubagem_faixa?: string | null
           adubagem_unidade?: number | null
           atividades_manuais?: string | null
           controle_invasoras_berma?: number | null
           controle_invasoras_nome?: string | null
           controle_invasoras_unidade?: number | null
           coroamento_berma?: number | null
+          coroamento_faixa?: string | null
           coroamento_unidade?: number | null
           created_at?: string
           created_by?: string
@@ -335,18 +349,22 @@ export type Database = {
           irrigacao_carretel_bermas?: number[] | null
           irrigacao_pipas?: boolean | null
           limpeza_assoprador_berma?: number | null
+          limpeza_assoprador_faixa?: string | null
           limpeza_assoprador_m2?: number | null
           limpeza_manual_berma?: number | null
+          limpeza_manual_faixa?: string | null
           limpeza_manual_m2?: number | null
           local_faixa?: string
           manutencao_canteiro?: string | null
           photo_urls?: string[] | null
           plantio_berma?: number | null
+          plantio_faixa?: string | null
           plantio_grama_berma?: number | null
           plantio_grama_faixa?: string | null
           plantio_grama_m2?: number | null
           plantio_unidade?: number | null
           podagem_berma?: number | null
+          podagem_faixa?: string | null
           podagem_unidade?: number | null
           report_date?: string
           retirada_mudas_unidade?: number | null

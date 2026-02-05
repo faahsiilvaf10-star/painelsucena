@@ -137,16 +137,22 @@ export default function Atividades() {
   const [rocagemFaixa, setRocagemFaixa] = useState("");
   const [podagem, setPodagem] = useState("");
   const [podagemBerma, setPodagemBerma] = useState("");
+  const [podagemFaixa, setPodagemFaixa] = useState("");
   const [coroamento, setCoroamento] = useState("");
   const [coroamentoBerma, setCoroamentoBerma] = useState("");
+  const [coroamentoFaixa, setCoroamentoFaixa] = useState("");
   const [adubagem, setAdubagem] = useState("");
   const [adubagemBerma, setAdubagemBerma] = useState("");
+  const [adubagemFaixa, setAdubagemFaixa] = useState("");
   const [plantio, setPlantio] = useState("");
   const [plantioBerma, setPlantioBerma] = useState("");
+  const [plantioFaixa, setPlantioFaixa] = useState("");
   const [limpezaManual, setLimpezaManual] = useState("");
   const [limpezaManualBerma, setLimpezaManualBerma] = useState("");
+  const [limpezaManualFaixa, setLimpezaManualFaixa] = useState("");
   const [limpezaAssoprador, setLimpezaAssoprador] = useState("");
   const [limpezaAssopradorBerma, setLimpezaAssopradorBerma] = useState("");
+  const [limpezaAssopradorFaixa, setLimpezaAssopradorFaixa] = useState("");
   const [manutencaoCanteiro, setManutencaoCanteiro] = useState("");
   const [invasoras, setInvasoras] = useState<InvasoraEntry[]>([{ nome: "", unidade: "" }]);
   const [invasorasBerma, setInvasorasBerma] = useState("");
@@ -244,16 +250,22 @@ export default function Atividades() {
       setRocagemFaixa(existingReport.rocagem_faixa?.toString() || "");
       setPodagem(existingReport.podagem_unidade?.toString() || "");
       setPodagemBerma(existingReport.podagem_berma?.toString() || "");
+      setPodagemFaixa(existingReport.podagem_faixa || "");
       setCoroamento(existingReport.coroamento_unidade?.toString() || "");
       setCoroamentoBerma(existingReport.coroamento_berma?.toString() || "");
+      setCoroamentoFaixa(existingReport.coroamento_faixa || "");
       setAdubagem(existingReport.adubagem_unidade?.toString() || "");
       setAdubagemBerma(existingReport.adubagem_berma?.toString() || "");
+      setAdubagemFaixa(existingReport.adubagem_faixa || "");
       setPlantio(existingReport.plantio_unidade?.toString() || "");
       setPlantioBerma(existingReport.plantio_berma?.toString() || "");
+      setPlantioFaixa(existingReport.plantio_faixa || "");
       setLimpezaManual(existingReport.limpeza_manual_m2?.toString() || "");
       setLimpezaManualBerma(existingReport.limpeza_manual_berma?.toString() || "");
+      setLimpezaManualFaixa(existingReport.limpeza_manual_faixa || "");
       setLimpezaAssoprador(existingReport.limpeza_assoprador_m2?.toString() || "");
       setLimpezaAssopradorBerma(existingReport.limpeza_assoprador_berma?.toString() || "");
+      setLimpezaAssopradorFaixa(existingReport.limpeza_assoprador_faixa || "");
       setManutencaoCanteiro(existingReport.manutencao_canteiro || "");
       setInvasoras(parseInvasorasFromStorage(existingReport.controle_invasoras_nome, existingReport.controle_invasoras_unidade));
       setInvasorasBerma(existingReport.controle_invasoras_berma?.toString() || "");
@@ -276,16 +288,22 @@ export default function Atividades() {
       setRocagemFaixa("");
       setPodagem("");
       setPodagemBerma("");
+      setPodagemFaixa("");
       setCoroamento("");
       setCoroamentoBerma("");
+      setCoroamentoFaixa("");
       setAdubagem("");
       setAdubagemBerma("");
+      setAdubagemFaixa("");
       setPlantio("");
       setPlantioBerma("");
+      setPlantioFaixa("");
       setLimpezaManual("");
       setLimpezaManualBerma("");
+      setLimpezaManualFaixa("");
       setLimpezaAssoprador("");
       setLimpezaAssopradorBerma("");
+      setLimpezaAssopradorFaixa("");
       setManutencaoCanteiro("");
       setInvasoras([{ nome: "", unidade: "" }]);
       setInvasorasBerma("");
@@ -354,16 +372,22 @@ export default function Atividades() {
         rocagem_faixa: rocagemFaixa || undefined,
         podagem_unidade: podagem ? parseInt(podagem) : undefined,
         podagem_berma: podagemBerma ? parseInt(podagemBerma) : undefined,
+        podagem_faixa: podagemFaixa || undefined,
         coroamento_unidade: coroamento ? parseInt(coroamento) : undefined,
         coroamento_berma: coroamentoBerma ? parseInt(coroamentoBerma) : undefined,
+        coroamento_faixa: coroamentoFaixa || undefined,
         adubagem_unidade: adubagem ? parseInt(adubagem) : undefined,
         adubagem_berma: adubagemBerma ? parseInt(adubagemBerma) : undefined,
+        adubagem_faixa: adubagemFaixa || undefined,
         plantio_unidade: plantio ? parseInt(plantio) : undefined,
         plantio_berma: plantioBerma ? parseInt(plantioBerma) : undefined,
+        plantio_faixa: plantioFaixa || undefined,
         limpeza_manual_m2: limpezaManual ? parseFloat(limpezaManual) : undefined,
         limpeza_manual_berma: limpezaManualBerma ? parseInt(limpezaManualBerma) : undefined,
+        limpeza_manual_faixa: limpezaManualFaixa || undefined,
         limpeza_assoprador_m2: limpezaAssoprador ? parseFloat(limpezaAssoprador) : undefined,
         limpeza_assoprador_berma: limpezaAssopradorBerma ? parseInt(limpezaAssopradorBerma) : undefined,
+        limpeza_assoprador_faixa: limpezaAssopradorFaixa || undefined,
         manutencao_canteiro: manutencaoCanteiro || undefined,
         controle_invasoras_unidade: invasorasData.unidade,
         controle_invasoras_nome: invasorasData.nome,
@@ -395,19 +419,30 @@ export default function Atividades() {
     
     const lines: string[] = [];
     const formatBerma = (berma: string): string => berma ? ` (Berma ${berma})` : "";
+    const formatFaixa = (faixa: string): string => faixa ? ` - ${faixa}` : "";
     
     // Only include activities with values > 0
     if (rocagem && parseFloat(rocagem) > 0) {
-      const faixaText = rocagemFaixa ? ` - ${rocagemFaixa}` : "";
-      lines.push(`* Roçagem - ${rocagem} m²${formatBerma(rocagemBerma)}${faixaText}`);
+      lines.push(`* Roçagem - ${rocagem} m²${formatBerma(rocagemBerma)}${formatFaixa(rocagemFaixa)}`);
     }
-    if (podagem && parseInt(podagem) > 0) lines.push(`* Podagem - ${podagem} unidade(s)${formatBerma(podagemBerma)}`);
-    if (coroamento && parseInt(coroamento) > 0) lines.push(`* Coroamento - ${coroamento} unidade(s)${formatBerma(coroamentoBerma)}`);
-    if (adubagem && parseInt(adubagem) > 0) lines.push(`* Adubagem - ${adubagem} unidade(s)${formatBerma(adubagemBerma)}`);
-    if (plantio && parseInt(plantio) > 0) lines.push(`* Plantio - ${plantio} unidade(s)${formatBerma(plantioBerma)}`);
-    if (limpezaManual && parseFloat(limpezaManual) > 0) lines.push(`* Limpeza Manual - ${limpezaManual} m²${formatBerma(limpezaManualBerma)}`);
-    if (limpezaAssoprador && parseFloat(limpezaAssoprador) > 0) lines.push(`* Limpeza com Assoprador - ${limpezaAssoprador} m²${formatBerma(limpezaAssopradorBerma)}`);
-    
+    if (podagem && parseInt(podagem) > 0) {
+      lines.push(`* Podagem - ${podagem} unidade(s)${formatBerma(podagemBerma)}${formatFaixa(podagemFaixa)}`);
+    }
+    if (coroamento && parseInt(coroamento) > 0) {
+      lines.push(`* Coroamento - ${coroamento} unidade(s)${formatBerma(coroamentoBerma)}${formatFaixa(coroamentoFaixa)}`);
+    }
+    if (adubagem && parseInt(adubagem) > 0) {
+      lines.push(`* Adubagem - ${adubagem} unidade(s)${formatBerma(adubagemBerma)}${formatFaixa(adubagemFaixa)}`);
+    }
+    if (plantio && parseInt(plantio) > 0) {
+      lines.push(`* Plantio - ${plantio} unidade(s)${formatBerma(plantioBerma)}${formatFaixa(plantioFaixa)}`);
+    }
+    if (limpezaManual && parseFloat(limpezaManual) > 0) {
+      lines.push(`* Limpeza Manual - ${limpezaManual} m²${formatBerma(limpezaManualBerma)}${formatFaixa(limpezaManualFaixa)}`);
+    }
+    if (limpezaAssoprador && parseFloat(limpezaAssoprador) > 0) {
+      lines.push(`* Limpeza com Assoprador - ${limpezaAssoprador} m²${formatBerma(limpezaAssopradorBerma)}${formatFaixa(limpezaAssopradorFaixa)}`);
+    }
     // Only include invasoras with unidade > 0
     const filteredInvasoras = invasoras.filter(i => i.unidade && parseInt(i.unidade) > 0);
     filteredInvasoras.forEach(inv => {
@@ -651,27 +686,29 @@ export default function Atividades() {
               getLocationLabel={(report) => report.local_faixa || "Sem local"}
               formatReportPreview={(report) => {
                 const lines = [];
+                const formatBerma = (berma: any) => berma ? ` (Berma ${berma})` : "";
+                const formatFaixa = (faixa: any) => faixa ? ` - ${faixa}` : "";
+                
                 if (report.rocagem_m2 && parseFloat(report.rocagem_m2) > 0) {
-                  const faixaText = (report as any).rocagem_faixa ? ` - ${(report as any).rocagem_faixa}` : "";
-                  lines.push(`* Roçagem - ${report.rocagem_m2} m²${report.rocagem_berma ? ` (Berma ${report.rocagem_berma})` : ""}${faixaText}`);
+                  lines.push(`* Roçagem - ${report.rocagem_m2} m²${formatBerma(report.rocagem_berma)}${formatFaixa(report.rocagem_faixa)}`);
                 }
                 if (report.podagem_unidade && parseInt(report.podagem_unidade) > 0) {
-                  lines.push(`* Podagem - ${report.podagem_unidade} unidade(s)${report.podagem_berma ? ` (Berma ${report.podagem_berma})` : ""}`);
+                  lines.push(`* Podagem - ${report.podagem_unidade} unidade(s)${formatBerma(report.podagem_berma)}${formatFaixa(report.podagem_faixa)}`);
                 }
                 if (report.coroamento_unidade && parseInt(report.coroamento_unidade) > 0) {
-                  lines.push(`* Coroamento - ${report.coroamento_unidade} unidade(s)${report.coroamento_berma ? ` (Berma ${report.coroamento_berma})` : ""}`);
+                  lines.push(`* Coroamento - ${report.coroamento_unidade} unidade(s)${formatBerma(report.coroamento_berma)}${formatFaixa(report.coroamento_faixa)}`);
                 }
                 if (report.adubagem_unidade && parseInt(report.adubagem_unidade) > 0) {
-                  lines.push(`* Adubagem - ${report.adubagem_unidade} unidade(s)${report.adubagem_berma ? ` (Berma ${report.adubagem_berma})` : ""}`);
+                  lines.push(`* Adubagem - ${report.adubagem_unidade} unidade(s)${formatBerma(report.adubagem_berma)}${formatFaixa(report.adubagem_faixa)}`);
                 }
                 if (report.plantio_unidade && parseInt(report.plantio_unidade) > 0) {
-                  lines.push(`* Plantio - ${report.plantio_unidade} unidade(s)${report.plantio_berma ? ` (Berma ${report.plantio_berma})` : ""}`);
+                  lines.push(`* Plantio - ${report.plantio_unidade} unidade(s)${formatBerma(report.plantio_berma)}${formatFaixa(report.plantio_faixa)}`);
                 }
                 if (report.limpeza_manual_m2 && parseFloat(report.limpeza_manual_m2) > 0) {
-                  lines.push(`* Limpeza Manual - ${report.limpeza_manual_m2} m²${report.limpeza_manual_berma ? ` (Berma ${report.limpeza_manual_berma})` : ""}`);
+                  lines.push(`* Limpeza Manual - ${report.limpeza_manual_m2} m²${formatBerma(report.limpeza_manual_berma)}${formatFaixa(report.limpeza_manual_faixa)}`);
                 }
                 if (report.limpeza_assoprador_m2 && parseFloat(report.limpeza_assoprador_m2) > 0) {
-                  lines.push(`* Limpeza com Assoprador - ${report.limpeza_assoprador_m2} m²${report.limpeza_assoprador_berma ? ` (Berma ${report.limpeza_assoprador_berma})` : ""}`);
+                  lines.push(`* Limpeza com Assoprador - ${report.limpeza_assoprador_m2} m²${formatBerma(report.limpeza_assoprador_berma)}${formatFaixa(report.limpeza_assoprador_faixa)}`);
                 }
                 if (report.controle_invasoras_unidade && parseInt(report.controle_invasoras_unidade) > 0) {
                   lines.push(`* Controle de Invasoras${report.controle_invasoras_nome ? ` (${report.controle_invasoras_nome})` : ""} - ${report.controle_invasoras_unidade} unidade(s)`);
@@ -804,7 +841,7 @@ export default function Atividades() {
                 </div>
 
                 {/* Podagem */}
-                <div className="grid grid-cols-1 md:grid-cols-[1fr_180px] gap-3 p-3 rounded-lg bg-muted/30">
+                <div className="grid grid-cols-1 md:grid-cols-[1fr_140px_140px] gap-3 p-3 rounded-lg bg-muted/30">
                   <div className="space-y-2">
                     <Label>PODAGEM (Unidade)</Label>
                     <Input
@@ -814,6 +851,21 @@ export default function Atividades() {
                       onChange={(e) => setPodagem(e.target.value)}
                       placeholder="0"
                     />
+                  </div>
+                  <div className="space-y-2">
+                    <Label>Faixa</Label>
+                    <Select value={podagemFaixa} onValueChange={setPodagemFaixa}>
+                      <SelectTrigger>
+                        <SelectValue placeholder="Selecione" />
+                      </SelectTrigger>
+                      <SelectContent>
+                        {FAIXA_OPTIONS.map((opt) => (
+                          <SelectItem key={opt.value} value={opt.value}>
+                            {opt.label}
+                          </SelectItem>
+                        ))}
+                      </SelectContent>
+                    </Select>
                   </div>
                   <div className="space-y-2">
                     <Label>Berma</Label>
@@ -833,7 +885,7 @@ export default function Atividades() {
                 </div>
 
                 {/* Coroamento */}
-                <div className="grid grid-cols-1 md:grid-cols-[1fr_180px] gap-3 p-3 rounded-lg bg-muted/30">
+                <div className="grid grid-cols-1 md:grid-cols-[1fr_140px_140px] gap-3 p-3 rounded-lg bg-muted/30">
                   <div className="space-y-2">
                     <Label>COROAMENTO (Unidade)</Label>
                     <Input
@@ -843,6 +895,21 @@ export default function Atividades() {
                       onChange={(e) => setCoroamento(e.target.value)}
                       placeholder="0"
                     />
+                  </div>
+                  <div className="space-y-2">
+                    <Label>Faixa</Label>
+                    <Select value={coroamentoFaixa} onValueChange={setCoroamentoFaixa}>
+                      <SelectTrigger>
+                        <SelectValue placeholder="Selecione" />
+                      </SelectTrigger>
+                      <SelectContent>
+                        {FAIXA_OPTIONS.map((opt) => (
+                          <SelectItem key={opt.value} value={opt.value}>
+                            {opt.label}
+                          </SelectItem>
+                        ))}
+                      </SelectContent>
+                    </Select>
                   </div>
                   <div className="space-y-2">
                     <Label>Berma</Label>
@@ -862,7 +929,7 @@ export default function Atividades() {
                 </div>
 
                 {/* Adubagem */}
-                <div className="grid grid-cols-1 md:grid-cols-[1fr_180px] gap-3 p-3 rounded-lg bg-muted/30">
+                <div className="grid grid-cols-1 md:grid-cols-[1fr_140px_140px] gap-3 p-3 rounded-lg bg-muted/30">
                   <div className="space-y-2">
                     <div className="flex flex-col gap-1">
                       <div className="flex items-center justify-between">
@@ -886,6 +953,21 @@ export default function Atividades() {
                     />
                   </div>
                   <div className="space-y-2">
+                    <Label>Faixa</Label>
+                    <Select value={adubagemFaixa} onValueChange={setAdubagemFaixa}>
+                      <SelectTrigger>
+                        <SelectValue placeholder="Selecione" />
+                      </SelectTrigger>
+                      <SelectContent>
+                        {FAIXA_OPTIONS.map((opt) => (
+                          <SelectItem key={opt.value} value={opt.value}>
+                            {opt.label}
+                          </SelectItem>
+                        ))}
+                      </SelectContent>
+                    </Select>
+                  </div>
+                  <div className="space-y-2">
                     <Label>Berma</Label>
                     <Select value={adubagemBerma} onValueChange={setAdubagemBerma}>
                       <SelectTrigger>
@@ -903,7 +985,7 @@ export default function Atividades() {
                 </div>
 
                 {/* Plantio */}
-                <div className="grid grid-cols-1 md:grid-cols-[1fr_180px] gap-3 p-3 rounded-lg bg-muted/30">
+                <div className="grid grid-cols-1 md:grid-cols-[1fr_140px_140px] gap-3 p-3 rounded-lg bg-muted/30">
                   <div className="space-y-2">
                     <Label>PLANTIO (Unidade)</Label>
                     <Input
@@ -913,6 +995,21 @@ export default function Atividades() {
                       onChange={(e) => setPlantio(e.target.value)}
                       placeholder="0"
                     />
+                  </div>
+                  <div className="space-y-2">
+                    <Label>Faixa</Label>
+                    <Select value={plantioFaixa} onValueChange={setPlantioFaixa}>
+                      <SelectTrigger>
+                        <SelectValue placeholder="Selecione" />
+                      </SelectTrigger>
+                      <SelectContent>
+                        {FAIXA_OPTIONS.map((opt) => (
+                          <SelectItem key={opt.value} value={opt.value}>
+                            {opt.label}
+                          </SelectItem>
+                        ))}
+                      </SelectContent>
+                    </Select>
                   </div>
                   <div className="space-y-2">
                     <Label>Berma</Label>
@@ -932,7 +1029,7 @@ export default function Atividades() {
                 </div>
 
                 {/* Limpeza Manual */}
-                <div className="grid grid-cols-1 md:grid-cols-[1fr_180px] gap-3 p-3 rounded-lg bg-muted/30">
+                <div className="grid grid-cols-1 md:grid-cols-[1fr_140px_140px] gap-3 p-3 rounded-lg bg-muted/30">
                   <div className="space-y-2">
                     <Label>LIMPEZA MANUAL (m²)</Label>
                     <Input
@@ -943,6 +1040,21 @@ export default function Atividades() {
                       onChange={(e) => setLimpezaManual(e.target.value)}
                       placeholder="0.00"
                     />
+                  </div>
+                  <div className="space-y-2">
+                    <Label>Faixa</Label>
+                    <Select value={limpezaManualFaixa} onValueChange={setLimpezaManualFaixa}>
+                      <SelectTrigger>
+                        <SelectValue placeholder="Selecione" />
+                      </SelectTrigger>
+                      <SelectContent>
+                        {FAIXA_OPTIONS.map((opt) => (
+                          <SelectItem key={opt.value} value={opt.value}>
+                            {opt.label}
+                          </SelectItem>
+                        ))}
+                      </SelectContent>
+                    </Select>
                   </div>
                   <div className="space-y-2">
                     <Label>Berma</Label>
@@ -962,7 +1074,7 @@ export default function Atividades() {
                 </div>
 
                 {/* Limpeza com Assoprador */}
-                <div className="grid grid-cols-1 md:grid-cols-[1fr_180px] gap-3 p-3 rounded-lg bg-muted/30">
+                <div className="grid grid-cols-1 md:grid-cols-[1fr_140px_140px] gap-3 p-3 rounded-lg bg-muted/30">
                   <div className="space-y-2">
                     <Label>LIMPEZA COM ASSOPRADOR (m²)</Label>
                     <Input
@@ -973,6 +1085,21 @@ export default function Atividades() {
                       onChange={(e) => setLimpezaAssoprador(e.target.value)}
                       placeholder="0.00"
                     />
+                  </div>
+                  <div className="space-y-2">
+                    <Label>Faixa</Label>
+                    <Select value={limpezaAssopradorFaixa} onValueChange={setLimpezaAssopradorFaixa}>
+                      <SelectTrigger>
+                        <SelectValue placeholder="Selecione" />
+                      </SelectTrigger>
+                      <SelectContent>
+                        {FAIXA_OPTIONS.map((opt) => (
+                          <SelectItem key={opt.value} value={opt.value}>
+                            {opt.label}
+                          </SelectItem>
+                        ))}
+                      </SelectContent>
+                    </Select>
                   </div>
                   <div className="space-y-2">
                     <Label>Berma</Label>
