@@ -19,6 +19,7 @@ import { Badge } from "@/components/ui/badge";
 import { useAttendanceRecords } from "@/hooks/useAttendance";
 import { useEquipment } from "@/hooks/useEquipment";
 import { useEquipmentCurrentlyOut } from "@/hooks/useEquipmentMovements";
+import { useDailyShiftRecords } from "@/hooks/useDailyShiftRecords";
 import { useTodayDDS } from "@/hooks/useDDSSchedule";
 import { useRDOReports, useRDOReport, useSaveRDOReport, useUploadRDOPhotos, useDeleteRDOReport } from "@/hooks/useRDOReports";
 import { useJardinagemReportByDate, formatJardinagemForRDO } from "@/hooks/useJardinagemReports";
@@ -99,6 +100,7 @@ export default function RDO() {
   const { data: attendanceRecords } = useAttendanceRecords(selectedDateStr);
   const { data: equipment } = useEquipment();
   const { data: equipmentOut = [] } = useEquipmentCurrentlyOut();
+  const { data: shiftRecords = [] } = useDailyShiftRecords(selectedDateStr);
   const { data: todayDDS } = useTodayDDS();
   const { data: existingReport, isLoading: isLoadingReport } = useRDOReport(selectedDateStr);
   const { data: allReports } = useRDOReports();
@@ -181,6 +183,11 @@ export default function RDO() {
   const equipmentSummary = useMemo(() => {
     if (!equipment) return { items: [], total: 0, equipmentNoCanteiro: [] };
     
+    // Create a map of shift records by plate for quick lookup
+    const shiftRecordsByPlate = new Map(
+      shiftRecords.map(sr => [sr.plate, sr])
+    );
+    
     // Apply the same logic as "Entrada e Saída de Equipamentos" page:
     // Equipment is only "out" if exit_reason is maintenance or vistoria
     // (fim_turno, operando, aguardando_frente_servico means still on site)
@@ -195,7 +202,18 @@ export default function RDO() {
     const platesOut = new Set(reallyOut.map(m => m.plate));
     
     // Equipment in the yard = all equipment minus those with active exit
-    const equipmentNoCanteiro = equipment.filter(eq => !platesOut.has(eq.plate));
+    // Enrich with driver/helper from shift records
+    const equipmentNoCanteiro = equipment
+      .filter(eq => !platesOut.has(eq.plate))
+      .map(eq => {
+        const shiftRecord = shiftRecordsByPlate.get(eq.plate);
+        return {
+          ...eq,
+          // Use shift record driver/helper if available, fallback to equipment table
+          driver: shiftRecord?.driver_name || eq.driver || "",
+          helper: shiftRecord?.helper_name || eq.helper || "",
+        };
+      });
     
     const typeCount: Record<string, { count: number; plates: string[] }> = {};
     
@@ -216,7 +234,7 @@ export default function RDO() {
     }));
 
     return { items, total: equipmentNoCanteiro.length, equipmentNoCanteiro };
-  }, [equipment, equipmentOut]);
+  }, [equipment, equipmentOut, shiftRecords]);
 
   // Format date for report
   const formattedDate = format(selectedDate, "dd/MM/yy (EEEE)", { locale: ptBR });
