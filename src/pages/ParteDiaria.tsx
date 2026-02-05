@@ -115,7 +115,10 @@ export default function ParteDiaria() {
     }
   };
 
-  const getStatusBadge = (stopReason: string | null, vehicleId?: string, hasDriver?: boolean) => {
+  const getStatusBadge = (stopReason: string | null, vehicleId?: string, driverName?: string) => {
+    // Check if there's actually a driver (non-empty string after trimming)
+    const hasDriver = driverName && driverName.trim().length > 0;
+    
     // Only show "Operando" if there's a driver AND the status is none/operando
     if (!stopReason || stopReason === "none" || stopReason === "operando") {
       if (hasDriver) {
@@ -310,7 +313,7 @@ export default function ParteDiaria() {
                               movements={movements.filter((m) => m.plate === vehicle.plate)}
                               stopHistory={stopHistory.filter((h) => h.equipment_id === vehicle.id)}
                             />
-                            {getStatusBadge(timeline.currentStatus, vehicle.id, !!timeline.driver)}
+                            {getStatusBadge(timeline.currentStatus, vehicle.id, timeline.driver || "")}
                           </div>
                         </div>
                       </CardHeader>
