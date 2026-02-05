@@ -324,13 +324,13 @@ const SavedRecordsCard = ({
                   toast.error("Nenhum registro no per\u00edodo para compartilhar");
                   return;
                 }
-                let msg = "\u{1F4CB} *Registros - Per\u00EDodo Atual*\n";
-                msg += "\u{1F4C5} " + periodInfo.startFormatted + " a " + periodInfo.endFormatted + "\n";
-                msg += "\u{1F4CA} Total: " + totals.total + " | \u{23F1}\u{FE0F} HE: " + totals.overtime + "\n\n";
+                let msg = "📋 *Registros - Período Atual*\n";
+                msg += "📅 " + periodInfo.startFormatted + " a " + periodInfo.endFormatted + "\n";
+                msg += "📊 Total: " + totals.total + " | ⏰ HE: " + totals.overtime + "\n\n";
                 periodRecords.forEach((r) => {
                   const dateStr = format(new Date(r.record_date + "T00:00:00"), "dd/MM (EEE)", { locale: ptBR });
-                  const he = r.is_overtime ? " \u{23F1}\u{FE0F}" : "";
-                  msg += "\u{1F468}\u{200D}\u{1F4BC} " + r.user_name + " - " + dateStr + "\n   " + r.entry_time.slice(0, 5) + " \u{27A1}\u{FE0F} " + r.exit_time.slice(0, 5) + he + "\n";
+                  const he = r.is_overtime ? " ⏰" : "";
+                  msg += "👤 " + r.user_name + " - " + dateStr + "\n   " + r.entry_time.slice(0, 5) + " ➡ " + r.exit_time.slice(0, 5) + he + "\n";
                 });
                 window.open(`https://wa.me/?text=${encodeURIComponent(msg)}`, "_blank");
               }}
