@@ -2,7 +2,7 @@ import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import { supabase } from "@/integrations/supabase/client";
 import { useAuth } from "@/hooks/useAuth";
 import { toast } from "sonner";
-import { getBrazilNorthTodayString } from "@/lib/timezone";
+import { getBrazilNorthTodayString, getBrazilNorthTimeString } from "@/lib/timezone";
 import { startOfMonth, endOfMonth, format } from "date-fns";
 
 export type MovementType = "entrada" | "saida";
@@ -154,11 +154,14 @@ export function useCreateEquipmentMovement() {
 
       const today = getBrazilNorthTodayString();
       const movementDate = movement.movement_date || today;
+      const movementTime = movement.movement_time || getBrazilNorthTimeString();
 
       const { data, error } = await supabase
         .from("equipment_movements")
         .insert({
           ...movement,
+          movement_date: movementDate,
+          movement_time: movementTime,
           created_by: user.id,
         })
         .select()
