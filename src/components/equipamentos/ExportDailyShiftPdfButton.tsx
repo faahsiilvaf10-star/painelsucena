@@ -73,6 +73,7 @@ const isReturnAfterRefuelingEntry = (entry: StatusHistoryEntry) => {
   const nStatus = normalizeText(status);
   return (
     nDesc.includes("retorno apos abastecimento") ||
+    nDesc.includes("retorno do ponto") ||
     nStatus.includes("retorno_abastecimento") ||
     nStatus.includes("retorno abastecimento")
   );
