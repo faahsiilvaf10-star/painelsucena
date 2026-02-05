@@ -126,11 +126,11 @@ export function ExportConsumoAbastecimentoPdfButton({
               display: flex;
               justify-content: space-between;
               align-items: center;
-              margin-bottom: 20px;
-              padding-bottom: 15px;
+              margin-bottom: 15px;
+              padding-bottom: 10px;
             }
             .logo {
-              height: 60px;
+              height: 45px;
               object-fit: contain;
             }
             .title-box {
