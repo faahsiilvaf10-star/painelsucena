@@ -1961,6 +1961,7 @@ export type Database = {
         | "a_caminho"
         | "entregue"
         | "cancelado"
+        | "pedido_realizado"
       quantity_unit:
         | "unidade"
         | "centimetros"
@@ -2150,6 +2151,7 @@ export const Constants = {
         "a_caminho",
         "entregue",
         "cancelado",
+        "pedido_realizado",
       ],
       quantity_unit: [
         "unidade",

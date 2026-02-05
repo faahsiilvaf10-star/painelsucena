@@ -16,6 +16,7 @@ const STATUS_CONFIG: Record<OrderStatus, { label: string; variant: "default" | "
   aprovado: { label: "Aprovado", variant: "secondary" },
   a_caminho: { label: "A Caminho", variant: "default" },
   entregue: { label: "Entregue", variant: "secondary" },
+  pedido_realizado: { label: "Pedido Realizado", variant: "default" },
   cancelado: { label: "Cancelado", variant: "destructive" },
 };
 

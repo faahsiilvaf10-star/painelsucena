@@ -44,6 +44,7 @@ const STATUS_CONFIG: Record<OrderStatus, { label: string; color: string }> = {
   aprovado: { label: "Aprovado", color: "bg-blue-500" },
   a_caminho: { label: "A Caminho", color: "bg-purple-500" },
   entregue: { label: "Entregue", color: "bg-green-500" },
+  pedido_realizado: { label: "Pedido Realizado", color: "bg-cyan-500" },
   cancelado: { label: "Cancelado", color: "bg-red-500" },
 };
 
@@ -446,6 +447,7 @@ export function OrderDetailsDialog({ order, open, onOpenChange }: OrderDetailsDi
                         <SelectItem value="aprovado">Aprovado</SelectItem>
                         <SelectItem value="a_caminho">A Caminho</SelectItem>
                         <SelectItem value="entregue">Entregue</SelectItem>
+                        <SelectItem value="pedido_realizado">Pedido Realizado</SelectItem>
                         <SelectItem value="cancelado">Cancelado</SelectItem>
                       </SelectContent>
                     </Select>

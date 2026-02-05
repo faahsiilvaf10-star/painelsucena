@@ -23,6 +23,7 @@ const STATUS_CONFIG: Record<OrderStatus, { label: string; color: string }> = {
   aprovado: { label: "Aprovado", color: "#3B82F6" },
   a_caminho: { label: "A Caminho", color: "#8B5CF6" },
   entregue: { label: "Entregue", color: "#22C55E" },
+  pedido_realizado: { label: "Pedido Realizado", color: "#06B6D4" },
   cancelado: { label: "Cancelado", color: "#EF4444" },
 };
 

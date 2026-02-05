@@ -2,7 +2,7 @@ import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import { supabase } from "@/integrations/supabase/client";
 import { useAuth } from "@/hooks/useAuth";
 
-export type OrderStatus = 'solicitado' | 'aprovado' | 'a_caminho' | 'entregue' | 'cancelado';
+export type OrderStatus = 'solicitado' | 'aprovado' | 'a_caminho' | 'entregue' | 'pedido_realizado' | 'cancelado';
 export type QuantityUnit = 'unidade' | 'centimetros' | 'metros' | 'quilos' | 'litros' | 'pacotes' | 'caixas' | 'pecas' | 'par' | 'rolo' | 'saco' | 'galao' | 'balde' | 'metro_quadrado' | 'metro_cubico';
 
 export interface OrderItem {
@@ -343,6 +343,7 @@ export const useUpdateOrderStatus = () => {
           aprovado: "Aprovado ✅",
           a_caminho: "A Caminho 🚚",
           entregue: "Entregue 📬",
+          pedido_realizado: "Pedido Realizado 📦",
           cancelado: "Cancelado ❌",
         };
 
