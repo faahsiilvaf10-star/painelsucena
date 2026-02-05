@@ -172,12 +172,17 @@ export function ExportDailyShiftPdfButton({ record, isLoading }: ExportDailyShif
         `);
       }
 
+      // DEBUG: Log the number of activity rows generated
+      console.log(`[PDF Debug] Total de entradas no histórico: ${record.status_history.length}`);
+      console.log(`[PDF Debug] Histórico filtrado: ${filteredHistory.length}`);
+      console.log(`[PDF Debug] Linhas de atividade geradas: ${allActivityRows.length}`);
+
       // Split rows into tables of 12 rows each
       const ROWS_PER_TABLE = 12;
       const activityTables: string[][] = [];
       
       for (let i = 0; i < allActivityRows.length; i += ROWS_PER_TABLE) {
-        const tableRows = allActivityRows.slice(i, i + ROWS_PER_TABLE);
+        const tableRows = [...allActivityRows.slice(i, i + ROWS_PER_TABLE)]; // Create a copy to avoid mutation
         // Fill with empty rows to complete the table
         const emptyRowsNeeded = ROWS_PER_TABLE - tableRows.length;
         for (let j = 0; j < emptyRowsNeeded; j++) {
@@ -192,6 +197,9 @@ export function ExportDailyShiftPdfButton({ record, isLoading }: ExportDailyShif
         }
         activityTables.push(tableRows);
       }
+      
+      // DEBUG: Log the number of tables generated
+      console.log(`[PDF Debug] Tabelas geradas: ${activityTables.length}`);
       
       // If no activities, create one empty table
       if (activityTables.length === 0) {
