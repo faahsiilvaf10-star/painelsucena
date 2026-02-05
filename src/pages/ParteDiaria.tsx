@@ -557,7 +557,7 @@ export default function ParteDiaria() {
                               <span className="text-muted-foreground">-</span>
                             )}
                           </TableCell>
-                          <TableCell>{getStatusBadge(vehicle.stop_reason, vehicle.id)}</TableCell>
+                          <TableCell>{getStatusBadge(vehicle.stop_reason, vehicle.id, vehicle.driver || "")}</TableCell>
                           <TableCell className="text-right">
                             <AlertDialog>
                               <AlertDialogTrigger asChild>
