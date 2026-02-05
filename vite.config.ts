@@ -51,9 +51,16 @@ export default defineConfig(({ mode }) => ({
       workbox: {
         globPatterns: ["**/*.{js,css,html,ico,png,svg,woff2,jpg,jpeg,webp}"],
         maximumFileSizeToCacheInBytes: 5 * 1024 * 1024, // 5 MB limit
-        // Skip cache for API requests - let IndexedDB handle them
         navigateFallback: "/index.html",
-        navigateFallbackDenylist: [/^\/api/, /^\/rest/],
+        // Only allow offline navigation for driver panel routes
+        navigateFallbackAllowlist: [
+          /^\/painel-motorista/,
+          /^\/selecao-veiculo/,
+          /^\/registro-movimento-motorista/,
+          /^\/equipamentos-motorista/,
+          /^\/relatorios-motorista/,
+          /^\/pontos-abastecimento/,
+        ],
         runtimeCaching: [
           // Google Fonts - Cache First (rarely changes)
           {
