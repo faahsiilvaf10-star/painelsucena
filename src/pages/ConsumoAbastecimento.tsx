@@ -118,13 +118,13 @@ export default function ConsumoAbastecimento() {
             <CardContent className="p-4">
               <div className="flex items-center gap-2 text-cyan-600 dark:text-cyan-400">
                 <Droplets className="h-4 w-4" />
-                <span className="text-xs font-medium">Este Mês</span>
+                <span className="text-xs font-medium">Abastecimentos</span>
               </div>
               <p className="text-2xl font-bold mt-2">
-                {data?.currentMonthRefuelings || 0}
+                {data?.totalRefuelings || 0}
               </p>
               <p className="text-xs text-muted-foreground">
-                abastecimentos
+                em {MONTH_NAMES[selectedMonth]}
               </p>
             </CardContent>
           </Card>
@@ -133,12 +133,12 @@ export default function ConsumoAbastecimento() {
             <CardContent className="p-4">
               <div className="flex items-center gap-2 text-blue-600 dark:text-blue-400">
                 <TrendingUp className="h-4 w-4" />
-                <span className="text-xs font-medium">Litros/Mês</span>
+                <span className="text-xs font-medium">Litros</span>
               </div>
               <p className="text-2xl font-bold mt-2">
-                {formatLiters(data?.currentMonthLiters || 0)}
+                {formatLiters(data?.totalLiters || 0)}
               </p>
-              <p className="text-xs text-muted-foreground">litros</p>
+              <p className="text-xs text-muted-foreground">em {MONTH_NAMES[selectedMonth]}</p>
             </CardContent>
           </Card>
 
@@ -146,10 +146,10 @@ export default function ConsumoAbastecimento() {
             <CardContent className="p-4">
               <div className="flex items-center gap-2 text-purple-600 dark:text-purple-400">
                 <Calendar className="h-4 w-4" />
-                <span className="text-xs font-medium">Total Geral</span>
+                <span className="text-xs font-medium">Ponto 46</span>
               </div>
               <p className="text-2xl font-bold mt-2">
-                {data?.totalRefuelings || 0}
+                {data?.refuelingByPoint?.find(p => p.point === "Ponto 46")?.count || 0}
               </p>
               <p className="text-xs text-muted-foreground">
                 abastecimentos
@@ -161,12 +161,13 @@ export default function ConsumoAbastecimento() {
             <CardContent className="p-4">
               <div className="flex items-center gap-2 text-emerald-600 dark:text-emerald-400">
                 <Truck className="h-4 w-4" />
-                <span className="text-xs font-medium">Total Litros</span>
+                <span className="text-xs font-medium">Pontos 3C/3D</span>
               </div>
               <p className="text-2xl font-bold mt-2">
-                {formatLiters(data?.totalLiters || 0)}
+                {(data?.refuelingByPoint?.find(p => p.point === "Ponto 3C")?.count || 0) + 
+                 (data?.refuelingByPoint?.find(p => p.point === "Ponto 3D")?.count || 0)}
               </p>
-              <p className="text-xs text-muted-foreground">litros</p>
+              <p className="text-xs text-muted-foreground">abastecimentos</p>
             </CardContent>
           </Card>
         </div>

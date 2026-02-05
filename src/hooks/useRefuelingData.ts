@@ -66,15 +66,21 @@ export function useRefuelingData(year?: number, month?: number) {
   const targetYear = year ?? currentDate.getFullYear();
   const targetMonth = month ?? currentDate.getMonth();
 
+  // Calculate month boundaries
+  const monthStart = startOfMonth(new Date(targetYear, targetMonth));
+  const monthEnd = endOfMonth(new Date(targetYear, targetMonth));
+
   return useQuery({
     queryKey: ["refueling-data", targetYear, targetMonth],
     queryFn: async () => {
-      // Get all refueling records
+      // Get refueling records ONLY for the selected month
       const { data: refuelingRecords, error: refError } = await supabase
         .from("equipment_stop_history")
         .select("*")
         .eq("stop_reason", "abastecimento")
         .not("ended_at", "is", null)
+        .gte("started_at", monthStart.toISOString())
+        .lte("started_at", monthEnd.toISOString())
         .order("started_at", { ascending: false });
 
       if (refError) throw refError;
@@ -94,7 +100,7 @@ export function useRefuelingData(year?: number, month?: number) {
 
       const records = (refuelingRecords || []) as RefuelingRecord[];
 
-      // Calculate by point
+      // Calculate by point (for selected month only)
       const byPoint: Record<string, number> = { "46": 0, "3C": 0, "3D": 0 };
       records.forEach((record) => {
         const pointMatch = record.defect_description?.match(/Ponto:\s*(.+)/i);
@@ -120,7 +126,7 @@ export function useRefuelingData(year?: number, month?: number) {
         })
       );
 
-      // Calculate by vehicle with point breakdown
+      // Calculate by vehicle with point breakdown (for selected month only)
       const byVehicle: Record<string, { 
         name: string; 
         plate: string; 
@@ -175,24 +181,31 @@ export function useRefuelingData(year?: number, month?: number) {
         })
       );
 
-      // Calculate monthly totals for the year
+      // Calculate monthly totals for the year (for the chart)
       const monthlyData: Record<string, number> = {};
       const monthNames = [
         "Janeiro", "Fevereiro", "Março", "Abril", "Maio", "Junho",
         "Julho", "Agosto", "Setembro", "Outubro", "Novembro", "Dezembro"
       ];
 
-      // Initialize all months
+      // Initialize all months with 0
       for (let m = 0; m < 12; m++) {
         monthlyData[`${targetYear}-${String(m + 1).padStart(2, "0")}`] = 0;
       }
 
-      records.forEach((record) => {
+      // Fetch all records for the year to populate monthly chart
+      const { data: yearRecords } = await supabase
+        .from("equipment_stop_history")
+        .select("started_at")
+        .eq("stop_reason", "abastecimento")
+        .not("ended_at", "is", null)
+        .gte("started_at", new Date(targetYear, 0, 1).toISOString())
+        .lte("started_at", new Date(targetYear, 11, 31, 23, 59, 59).toISOString());
+
+      (yearRecords || []).forEach((record) => {
         const date = new Date(record.started_at);
-        if (date.getFullYear() === targetYear) {
-          const key = `${targetYear}-${String(date.getMonth() + 1).padStart(2, "0")}`;
-          monthlyData[key]++;
-        }
+        const key = `${targetYear}-${String(date.getMonth() + 1).padStart(2, "0")}`;
+        monthlyData[key]++;
       });
 
       const monthlyRefueling: MonthlyRefueling[] = Object.entries(monthlyData)
@@ -207,18 +220,9 @@ export function useRefuelingData(year?: number, month?: number) {
           };
         });
 
-      // Filter records for the selected month
-      const monthStart = startOfMonth(new Date(targetYear, targetMonth));
-      const monthEnd = endOfMonth(new Date(targetYear, targetMonth));
-      
-      const currentMonthRecords = records.filter((record) => {
-        const date = new Date(record.started_at);
-        return date >= monthStart && date <= monthEnd;
-      });
-
       // Daily refueling by vehicle for the selected month
       const dailyByVehicle: Record<string, DailyRefuelingByVehicle> = {};
-      currentMonthRecords.forEach((record) => {
+      records.forEach((record) => {
         const eq = equipmentMap.get(record.equipment_id);
         if (eq) {
           const date = format(new Date(record.started_at), "yyyy-MM-dd");
@@ -237,11 +241,9 @@ export function useRefuelingData(year?: number, month?: number) {
         }
       });
 
-      // Summary stats
+      // Summary stats for selected month only
       const totalRefuelings = records.length;
       const totalLiters = totalRefuelings * LITERS_PER_REFUEL;
-      const currentMonthRefuelings = currentMonthRecords.length;
-      const currentMonthLiters = currentMonthRefuelings * LITERS_PER_REFUEL;
 
       return {
         refuelingByPoint,
@@ -251,8 +253,8 @@ export function useRefuelingData(year?: number, month?: number) {
         dailyByVehicle: Object.values(dailyByVehicle),
         totalRefuelings,
         totalLiters,
-        currentMonthRefuelings,
-        currentMonthLiters,
+        currentMonthRefuelings: totalRefuelings,
+        currentMonthLiters: totalLiters,
         litersPerRefuel: LITERS_PER_REFUEL,
       };
     },
