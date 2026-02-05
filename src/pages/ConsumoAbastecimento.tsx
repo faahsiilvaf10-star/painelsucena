@@ -54,6 +54,45 @@ export default function ConsumoAbastecimento() {
     return filtered;
   }, [data?.dailyRecords, selectedVehicle, selectedDay]);
 
+  // Filter refueling by point based on day filter
+  const filteredRefuelingByPoint = useMemo(() => {
+    if (!data?.dailyRecords || selectedDay === null) return data?.refuelingByPoint ?? [];
+    
+    // Recalculate from filtered records
+    const pointMap = new Map<string, { count: number; liters: number }>();
+    filteredDailyRecords.forEach((record) => {
+      const existing = pointMap.get(record.point) || { count: 0, liters: 0 };
+      pointMap.set(record.point, {
+        count: existing.count + 1,
+        liters: existing.liters + record.liters,
+      });
+    });
+    
+    return Array.from(pointMap.entries()).map(([point, stats]) => ({
+      point,
+      count: stats.count,
+      liters: stats.liters,
+    }));
+  }, [data?.dailyRecords, data?.refuelingByPoint, selectedDay, filteredDailyRecords]);
+
+  // Filter refueling by vehicle based on day filter
+  const filteredRefuelingByVehicle = useMemo(() => {
+    if (!data?.dailyRecords || selectedDay === null) return data?.refuelingByVehicle ?? [];
+    
+    // Recalculate from filtered records
+    const vehicleMap = new Map<string, { vehicleName: string; count: number; liters: number }>();
+    filteredDailyRecords.forEach((record) => {
+      const existing = vehicleMap.get(record.vehicleName) || { vehicleName: record.vehicleName, count: 0, liters: 0 };
+      vehicleMap.set(record.vehicleName, {
+        vehicleName: record.vehicleName,
+        count: existing.count + 1,
+        liters: existing.liters + record.liters,
+      });
+    });
+    
+    return Array.from(vehicleMap.values());
+  }, [data?.dailyRecords, data?.refuelingByVehicle, selectedDay, filteredDailyRecords]);
+
   // Get days in month for filter
   const daysInMonth = useMemo(() => {
     const days = new Date(selectedYear, selectedMonth + 1, 0).getDate();
@@ -178,8 +217,8 @@ export default function ConsumoAbastecimento() {
             selectedDay={selectedDay}
             selectedVehicleName={selectedVehicleName}
             dailyRecords={filteredDailyRecords}
-            refuelingByPoint={data?.refuelingByPoint ?? []}
-            refuelingByVehicle={data?.refuelingByVehicle ?? []}
+            refuelingByPoint={filteredRefuelingByPoint}
+            refuelingByVehicle={filteredRefuelingByVehicle}
           />
         </div>
 
@@ -188,11 +227,11 @@ export default function ConsumoAbastecimento() {
           {/* Quantidade de Abastecimentos */}
           <div className="bg-[#2d2d44] rounded-lg p-4 border border-[#3d3d5c]">
             <h2 className="text-white text-center font-semibold mb-4">
-              Quantidade de abastecimentos
+              Quantidade de abastecimentos {selectedDay !== null && `(Dia ${selectedDay})`}
             </h2>
-            {data?.refuelingByPoint && data.refuelingByPoint.some(p => p.count > 0) ? (
+            {filteredRefuelingByPoint && filteredRefuelingByPoint.some(p => p.count > 0) ? (
               <ResponsiveContainer width="100%" height={200}>
-                <BarChart data={data.refuelingByPoint}>
+                <BarChart data={filteredRefuelingByPoint}>
                   <CartesianGrid strokeDasharray="3 3" stroke="#3d3d5c" />
                   <XAxis 
                     dataKey="point" 
@@ -217,7 +256,7 @@ export default function ConsumoAbastecimento() {
                     labelStyle={{ color: '#fff' }}
                   />
                   <Bar dataKey="count" radius={[0, 0, 0, 0]} stroke="#22d3ee" strokeWidth={2} fill="transparent">
-                    {data.refuelingByPoint.map((_, index) => (
+                    {filteredRefuelingByPoint.map((_, index) => (
                       <Cell key={`cell-${index}`} fill="transparent" stroke="#22d3ee" strokeWidth={2} />
                     ))}
                   </Bar>
@@ -288,11 +327,11 @@ export default function ConsumoAbastecimento() {
           {/* Consumo por Veículo */}
           <div className="bg-[#2d2d44] rounded-lg p-4 border border-[#3d3d5c] lg:col-span-2">
             <h2 className="text-white text-center font-semibold mb-4">
-              Consumo por Veículo
+              Consumo por Veículo {selectedDay !== null && `(Dia ${selectedDay})`}
             </h2>
-            {data?.refuelingByVehicle && data.refuelingByVehicle.length > 0 ? (
+            {filteredRefuelingByVehicle && filteredRefuelingByVehicle.length > 0 ? (
               <ResponsiveContainer width="100%" height={250}>
-                <BarChart data={data.refuelingByVehicle}>
+                <BarChart data={filteredRefuelingByVehicle}>
                   <CartesianGrid strokeDasharray="3 3" stroke="#3d3d5c" />
                   <XAxis 
                     dataKey="vehicleName" 
@@ -329,7 +368,7 @@ export default function ConsumoAbastecimento() {
                     labelStyle={{ color: '#fff' }}
                   />
                   <Bar dataKey="liters" stroke="#22d3ee" strokeWidth={2} fill="transparent">
-                    {data.refuelingByVehicle.map((_, index) => (
+                    {filteredRefuelingByVehicle.map((_, index) => (
                       <Cell key={`cell-${index}`} fill="transparent" stroke="#22d3ee" strokeWidth={2} />
                     ))}
                   </Bar>
