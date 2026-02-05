@@ -1,35 +1,181 @@
- import { Truck, MapPin, ExternalLink } from "lucide-react";
+import { Truck, MapPin, ExternalLink, FileText, Clock } from "lucide-react";
  import Layout from "@/components/layout/Layout";
  import { useEquipment } from "@/hooks/useEquipment";
+import { useEquipmentCurrentlyOut } from "@/hooks/useEquipmentMovements";
  import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
  import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
  import { Badge } from "@/components/ui/badge";
+import { Button } from "@/components/ui/button";
  import { VehicleIcon } from "@/components/equipamentos/VehicleIcons";
  import { Loader2 } from "lucide-react";
+import { format } from "date-fns";
+import { ptBR } from "date-fns/locale";
+import { getLogoBase64 } from "@/lib/pdfLogo";
+
+const EXIT_REASON_LABELS: Record<string, string> = {
+  manutencao_corretiva: "Manutenção Corretiva",
+  manutencao_preventiva: "Manutenção Preventiva",
+  vistoria: "Vistoria",
+  operando: "Operando",
+  aguardando_frente_servico: "Aguardando Frente de Serviço",
+  fim_turno: "Fim de Turno",
+};
  
  const EntradaSaidaEquipamentos = () => {
    const { data: equipment = [], isLoading } = useEquipment();
+  const { data: equipmentOut = [], isLoading: loadingOut } = useEquipmentCurrentlyOut();
  
-   // For now, all equipment is "no canteiro" (on site)
-   const equipmentNoCanteiro = equipment;
-   const equipmentForaObra: typeof equipment = [];
+  // Get plates of equipment currently out
+  const platesOut = new Set(equipmentOut.map(m => m.plate));
+  
+  // Equipment in the yard = all equipment minus those with active exit
+  const equipmentNoCanteiro = equipment.filter(eq => !platesOut.has(eq.plate));
+  
+  // Equipment out = movement records with exit details
+  const equipmentForaObra = equipmentOut;
+
+  const handleExportPDF = async () => {
+    const logoBase64 = await getLogoBase64();
+    const now = new Date();
+    const dateStr = format(now, "dd/MM/yyyy 'às' HH:mm", { locale: ptBR });
+
+    const printWindow = window.open("", "_blank");
+    if (!printWindow) return;
+
+    printWindow.document.write(`
+      <!DOCTYPE html>
+      <html>
+      <head>
+        <title>Relatório de Equipamentos - ${format(now, "dd-MM-yyyy")}</title>
+        <style>
+          * { margin: 0; padding: 0; box-sizing: border-box; }
+          body { font-family: Arial, sans-serif; padding: 20px; font-size: 12px; }
+          .header { display: flex; align-items: center; gap: 20px; margin-bottom: 20px; border-bottom: 2px solid #333; padding-bottom: 15px; }
+          .logo { height: 50px; }
+          .title { flex: 1; }
+          .title h1 { font-size: 18px; margin-bottom: 4px; }
+          .title p { color: #666; font-size: 11px; }
+          .section { margin-bottom: 25px; }
+          .section-title { font-size: 14px; font-weight: bold; margin-bottom: 10px; padding: 8px; background: #f5f5f5; border-left: 4px solid #333; }
+          .section-title.in { border-left-color: #16a34a; }
+          .section-title.out { border-left-color: #ea580c; }
+          table { width: 100%; border-collapse: collapse; margin-bottom: 10px; }
+          th, td { border: 1px solid #ddd; padding: 8px; text-align: left; }
+          th { background: #f9f9f9; font-weight: bold; font-size: 11px; }
+          td { font-size: 11px; }
+          .badge { display: inline-block; padding: 2px 8px; border-radius: 4px; font-size: 10px; font-weight: bold; }
+          .badge-green { background: #dcfce7; color: #166534; }
+          .badge-orange { background: #ffedd5; color: #c2410c; }
+          .badge-red { background: #fee2e2; color: #dc2626; }
+          .badge-yellow { background: #fef9c3; color: #a16207; }
+          .footer { margin-top: 30px; text-align: center; font-size: 10px; color: #666; border-top: 1px solid #ddd; padding-top: 15px; }
+          .observation { font-size: 10px; color: #666; margin-top: 4px; }
+          @media print { body { padding: 10px; } }
+        </style>
+      </head>
+      <body>
+        <div class="header">
+          <img src="${logoBase64}" alt="Logo" class="logo" />
+          <div class="title">
+            <h1>Relatório de Entrada e Saída de Equipamentos</h1>
+            <p>Gerado em: ${dateStr}</p>
+          </div>
+        </div>
+
+        <div class="section">
+          <div class="section-title in">🟢 Equipamentos no Canteiro (${equipmentNoCanteiro.length})</div>
+          ${equipmentNoCanteiro.length === 0 ? '<p style="padding: 10px; color: #666;">Nenhum equipamento no canteiro</p>' : `
+          <table>
+            <thead>
+              <tr>
+                <th>Equipamento</th>
+                <th>Placa</th>
+                <th>Motorista</th>
+                <th>Ajudante</th>
+                <th>Status</th>
+              </tr>
+            </thead>
+            <tbody>
+              ${equipmentNoCanteiro.map(eq => `
+                <tr>
+                  <td><strong>${eq.name}</strong></td>
+                  <td>${eq.plate}</td>
+                  <td>${eq.driver || "-"}</td>
+                  <td>${eq.helper || "-"}</td>
+                  <td><span class="badge ${eq.stop_reason === "none" ? "badge-green" : eq.stop_reason === "maintenance" ? "badge-red" : "badge-yellow"}">${eq.stop_reason === "none" ? "Operando" : eq.stop_reason === "maintenance" ? "Manutenção" : eq.stop_reason === "waiting" ? "Aguardando" : eq.stop_reason === "end_of_shift" ? "Fim de Turno" : eq.stop_reason || "Aguardando"}</span></td>
+                </tr>
+              `).join("")}
+            </tbody>
+          </table>
+          `}
+        </div>
+
+        <div class="section">
+          <div class="section-title out">🔴 Equipamentos Fora da Obra (${equipmentForaObra.length})</div>
+          ${equipmentForaObra.length === 0 ? '<p style="padding: 10px; color: #666;">Nenhum equipamento fora da obra</p>' : `
+          <table>
+            <thead>
+              <tr>
+                <th>Equipamento</th>
+                <th>Placa</th>
+                <th>Data/Hora Saída</th>
+                <th>Motivo</th>
+                <th>Observações</th>
+              </tr>
+            </thead>
+            <tbody>
+              ${equipmentForaObra.map(m => `
+                <tr>
+                  <td><strong>${m.equipment_name}</strong></td>
+                  <td>${m.plate}</td>
+                  <td>${format(new Date(m.movement_date + "T" + m.movement_time), "dd/MM/yyyy HH:mm")}</td>
+                  <td><span class="badge badge-orange">${EXIT_REASON_LABELS[m.exit_reason || ""] || m.exit_reason || "-"}</span></td>
+                  <td>
+                    ${m.problem_description ? `<strong>Problema:</strong> ${m.problem_description}<br/>` : ""}
+                    ${m.observation || "-"}
+                  </td>
+                </tr>
+              `).join("")}
+            </tbody>
+          </table>
+          `}
+        </div>
+
+        <div class="footer">
+          <p>OBRA: 460001269 | Sucena Engenharia</p>
+        </div>
+      </body>
+      </html>
+    `);
+
+    printWindow.document.close();
+    setTimeout(() => {
+      printWindow.print();
+    }, 500);
+  };
  
    return (
      <Layout>
        <div className="container mx-auto px-4 sm:px-6 py-4 sm:py-8">
-         <div className="mb-6 sm:mb-8 animate-fade-in">
-           <h1 className="text-2xl sm:text-3xl font-bold flex items-center gap-3">
-             <div className="p-2 rounded-lg bg-primary/10">
-               <Truck className="h-6 w-6 text-primary" />
-             </div>
-             Entrada e Saída de Equipamentos
-           </h1>
-           <p className="text-muted-foreground mt-2">
-             Controle de equipamentos no canteiro e fora da obra
-           </p>
+        <div className="mb-6 sm:mb-8 animate-fade-in flex flex-col sm:flex-row sm:items-start sm:justify-between gap-4">
+          <div>
+            <h1 className="text-2xl sm:text-3xl font-bold flex items-center gap-3">
+              <div className="p-2 rounded-lg bg-primary/10">
+                <Truck className="h-6 w-6 text-primary" />
+              </div>
+              Entrada e Saída de Equipamentos
+            </h1>
+            <p className="text-muted-foreground mt-2">
+              Controle de equipamentos no canteiro e fora da obra
+            </p>
+          </div>
+          <Button onClick={handleExportPDF} className="gap-2">
+            <FileText className="h-4 w-4" />
+            Exportar PDF
+          </Button>
          </div>
  
-         {isLoading ? (
+        {isLoading || loadingOut ? (
            <div className="flex justify-center py-12">
              <Loader2 className="h-8 w-8 animate-spin text-muted-foreground" />
            </div>
@@ -132,29 +278,43 @@
                            <TableHead className="w-12"></TableHead>
                            <TableHead>Equipamento</TableHead>
                            <TableHead>Placa</TableHead>
-                           <TableHead>Motorista</TableHead>
-                           <TableHead>Motivo Saída</TableHead>
-                           <TableHead>Status</TableHead>
+                    <TableHead>Data/Hora Saída</TableHead>
+                    <TableHead>Motivo</TableHead>
+                    <TableHead>Observações</TableHead>
                          </TableRow>
                        </TableHeader>
                        <TableBody>
-                         {equipmentForaObra.map((eq) => (
-                           <TableRow key={eq.id}>
+                  {equipmentForaObra.map((m) => (
+                    <TableRow key={m.id}>
                              <TableCell>
-                               <VehicleIcon
-                                 type={eq.equipment_type as "pipa" | "munk" | "camionete" | "onibus"}
-                                 size="sm"
-                               />
+                        <ExternalLink className="h-4 w-4 text-orange-500" />
+                      </TableCell>
+                      <TableCell className="font-medium">{m.equipment_name}</TableCell>
+                      <TableCell className="font-mono text-sm">{m.plate}</TableCell>
+                      <TableCell>
+                        <div className="flex items-center gap-1 text-sm">
+                          <Clock className="h-3 w-3 text-muted-foreground" />
+                          {format(new Date(m.movement_date + "T" + m.movement_time), "dd/MM HH:mm")}
+                        </div>
                              </TableCell>
-                             <TableCell className="font-medium">{eq.name}</TableCell>
-                             <TableCell className="font-mono text-sm">{eq.plate}</TableCell>
-                             <TableCell>{eq.driver || "-"}</TableCell>
-                             <TableCell>-</TableCell>
                              <TableCell>
                                <Badge variant="outline" className="bg-orange-500/10 text-orange-600 border-orange-500/30">
-                                 Fora
+                          {EXIT_REASON_LABELS[m.exit_reason || ""] || m.exit_reason || "-"}
                                </Badge>
                              </TableCell>
+                      <TableCell className="max-w-xs">
+                        {m.problem_description && (
+                          <p className="text-sm text-red-600 dark:text-red-400 font-medium">
+                            {m.problem_description}
+                          </p>
+                        )}
+                        {m.observation && (
+                          <p className="text-sm text-muted-foreground">
+                            {m.observation}
+                          </p>
+                        )}
+                        {!m.problem_description && !m.observation && "-"}
+                      </TableCell>
                            </TableRow>
                          ))}
                        </TableBody>
