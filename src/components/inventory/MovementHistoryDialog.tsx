@@ -1,6 +1,6 @@
 import { format } from "date-fns";
 import { ptBR } from "date-fns/locale";
-import { ArrowDownCircle, ArrowUpCircle, RefreshCw, User, Truck, MapPin, X } from "lucide-react";
+import { ArrowDownCircle, ArrowUpCircle, RefreshCw, User, Truck, MapPin, X, Trash2 } from "lucide-react";
 import {
   Dialog,
   DialogContent,
@@ -52,6 +52,8 @@ const getDestinationIcon = (type: string | null) => {
     case "gabiao":
     case "jardinagem":
       return <MapPin className="h-3 w-3" />;
+    case "descarte":
+      return <Trash2 className="h-3 w-3" />;
     default:
       return null;
   }
@@ -67,6 +69,8 @@ const getDestinationLabel = (type: string | null) => {
       return "Gabião";
     case "jardinagem":
       return "Jardinagem";
+    case "descarte":
+      return "Descarte";
     default:
       return null;
   }

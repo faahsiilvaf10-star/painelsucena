@@ -2,7 +2,7 @@ import { useEffect } from "react";
 import { useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { z } from "zod";
-import { ArrowDownCircle, ArrowUpCircle, RefreshCw, User, Truck, MapPin } from "lucide-react";
+import { ArrowDownCircle, ArrowUpCircle, RefreshCw, User, Truck, MapPin, Trash2 } from "lucide-react";
 import {
   Dialog,
   DialogContent,
@@ -58,6 +58,7 @@ const DESTINATION_TYPES = [
   { value: "equipment", label: "Equipamento", icon: Truck },
   { value: "gabiao", label: "Área - Gabião", icon: MapPin },
   { value: "jardinagem", label: "Área - Jardinagem", icon: MapPin },
+  { value: "descarte", label: "Descarte", icon: Trash2 },
 ];
 
 export function MovementDialog({ item, open, onOpenChange }: MovementDialogProps) {
@@ -103,6 +104,7 @@ export function MovementDialog({ item, open, onOpenChange }: MovementDialogProps
     }
     if (destType === "gabiao") return "Área Gabião";
     if (destType === "jardinagem") return "Área Jardinagem";
+    if (destType === "descarte") return "Descarte";
     return "";
   };
 
