@@ -2,7 +2,7 @@ import { createContext, useContext, useState, useRef, useEffect, ReactNode, useC
 
 const RADIO_STATIONS = [
   { id: "liberal", name: "Liberal FM", genre: "Hits", url: "https://stream.zeno.fm/a02t530hqzzuv" },
-  { id: "tiktok", name: "TikTok Hits", genre: "Viral", url: "https://ice5.somafm.com/poptron-128-mp3" },
+  { id: "reggaeton", name: "Reggaeton", genre: "Reggaeton", url: "https://stream.zeno.fm/100reggaeton" },
   { id: "sertanejo", name: "Sertaneja Hits", genre: "Sertanejo", url: "https://live.hunter.fm/sertanejo_high" },
   { id: "pagode", name: "Pagode Hits", genre: "Pagode", url: "https://live.hunter.fm/pagode_high" },
   { id: "gospel", name: "Gospel", genre: "Gospel", url: "https://stream.zeno.fm/yn65fsaurfhvv" },
