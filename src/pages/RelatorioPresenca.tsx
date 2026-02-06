@@ -77,19 +77,19 @@ const allRoles = [
 // Role labels for display
 const roleLabels: Record<string, Record<string, string>> = {
   "ÁREA GABIÃO": {
-    Polivalente: "👷🏼‍♂️ Polivalentes:",
-    "Meia Oficial": "👷🏼‍♂️ Meia oficial:",
-    Ajudante: "👷🏼‍♂️ Ajudante:",
+    Polivalente: "👷 Polivalentes:",
+    "Meia Oficial": "👷 Meia oficial:",
+    Ajudante: "👷 Ajudante:",
   },
   "ROÇAGEM E PODAGEM": {
-    Jardineiro: "👷🏼‍♂️Jardineiro:",
-    Ajudante: "👷🏼‍♂️ Ajudante:",
-    "Motorista do Pipa": "👷🏼 Motorista do Pipa",
-    "Motorista do Munck": "👷🏼 Motorista do Munck",
-    Sinaleiro: "👷🏼 Sinaleiro",
-    "Mecânico Montador": "👷🏼 Mecânico montador",
-    "Auxiliar de Elétrica": "👷🏼 Auxiliar de elétrica",
-    Eletricista: "👷🏼 Eletricista",
+    Jardineiro: "👷 Jardineiro:",
+    Ajudante: "👷 Ajudante:",
+    "Motorista do Pipa": "👷 Motorista do Pipa",
+    "Motorista do Munck": "👷 Motorista do Munck",
+    Sinaleiro: "👷 Sinaleiro",
+    "Mecânico Montador": "👷 Mecânico montador",
+    "Auxiliar de Elétrica": "👷 Auxiliar de elétrica",
+    Eletricista: "👷 Eletricista",
   },
 };
 
@@ -404,9 +404,9 @@ const RelatorioPresenca = () => {
 
     report += `${header}\n\n`;
     report += `✴️EQUIPE DE SUPORTE✴️\n\n`;
-    report += `🙋🏻‍♂️ TST : ${support.tst}\n\n`;
-    report += `🙋‍♂️ ENC GERAL: ${support.encGeral}\n\n`;
-    report += `🙋‍♂️ ENC: ${support.enc}\n\n`;
+    report += `🙋 TST : ${support.tst}\n\n`;
+    report += `🙋 ENC GERAL: ${support.encGeral}\n\n`;
+    report += `🙋 ENC: ${support.enc}\n\n`;
     report += `✴️EQUIPE DE EXECUÇÃO✴️\n\n`;
 
     const roles = executionRoles[area];
@@ -455,7 +455,7 @@ const RelatorioPresenca = () => {
       
       if (employees.length > 0 && presentEmployees.length > 0) {
         // Remove emoji and colon from label for cleaner display
-        const cleanLabel = label.replace(/^👷🏼‍♂️\s*|👷🏼\s*/g, '').replace(/:$/, '');
+        const cleanLabel = label.replace(/^👷\s*/g, '').replace(/:$/, '');
         report += `👷 ${cleanLabel}: ${presentEmployees.length}\n`;
         // Add employee names with Title Case formatting
         presentEmployees.forEach((emp) => {
@@ -472,7 +472,7 @@ const RelatorioPresenca = () => {
   const generateReport = useMemo(() => {
     if (!allEmployees) return "";
 
-    const dateHeader = `\uD83D\uDCC5 Data: ${formatDateForReport(selectedDate)}\n\n`;
+    const dateHeader = `📅 Data: ${formatDateForReport(selectedDate)}\n\n`;
 
     if (selectedArea === "ÁREA GABIÃO") {
       return dateHeader + generateAreaReport("ÁREA GABIÃO", false);
@@ -613,7 +613,7 @@ const RelatorioPresenca = () => {
         </p>
         <div className="space-y-3">
           <div className="flex items-center gap-2">
-            <span className="text-sm text-muted-foreground w-24 shrink-0">🙋‍♀ TST:</span>
+            <span className="text-sm text-muted-foreground w-24 shrink-0">🙋 TST:</span>
             <Input
               value={support.tst}
               onChange={(e) => setSupport({ ...support, tst: e.target.value })}
@@ -622,7 +622,7 @@ const RelatorioPresenca = () => {
             />
           </div>
           <div className="flex items-center gap-2">
-            <span className="text-sm text-muted-foreground w-24 shrink-0">🙋‍♂ ENC GERAL:</span>
+            <span className="text-sm text-muted-foreground w-24 shrink-0">🙋 ENC GERAL:</span>
             <Input
               value={support.encGeral}
               onChange={(e) => setSupport({ ...support, encGeral: e.target.value })}
@@ -631,7 +631,7 @@ const RelatorioPresenca = () => {
             />
           </div>
           <div className="flex items-center gap-2">
-            <span className="text-sm text-muted-foreground w-24 shrink-0">🙋‍♂ ENC:</span>
+            <span className="text-sm text-muted-foreground w-24 shrink-0">🙋 ENC:</span>
             <Input
               value={support.enc}
               onChange={(e) => setSupport({ ...support, enc: e.target.value })}

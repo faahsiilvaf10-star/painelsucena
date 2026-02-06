@@ -32,19 +32,19 @@ const gabiaAjudantes = [
 // Role labels for display
 const roleLabels: Record<string, Record<string, string>> = {
   "ÁREA GABIÃO": {
-    Polivalente: "👷🏼‍♂️ Polivalentes:",
-    "Meia Oficial": "👷🏼‍♂️ Meia oficial:",
-    Ajudante: "👷🏼‍♂️ Ajudante:",
+    Polivalente: "👷 Polivalentes:",
+    "Meia Oficial": "👷 Meia oficial:",
+    Ajudante: "👷 Ajudante:",
   },
   "ROÇAGEM E PODAGEM": {
-    Jardineiro: "👷🏼‍♂️ Jardineiro:",
-    Ajudante: "👷🏼‍♂️ Ajudante:",
-    "Motorista do Pipa": "👷🏼 Motorista do Pipa",
-    "Motorista do Munck": "👷🏼 Motorista do Munck",
-    Sinaleiro: "👷🏼 Sinaleiro",
-    "Mecânico Montador": "👷🏼 Mecânico montador",
-    "Auxiliar de Elétrica": "👷🏼 Auxiliar de elétrica",
-    Eletricista: "👷🏼 Eletricista",
+    Jardineiro: "👷 Jardineiro:",
+    Ajudante: "👷 Ajudante:",
+    "Motorista do Pipa": "👷 Motorista do Pipa",
+    "Motorista do Munck": "👷 Motorista do Munck",
+    Sinaleiro: "👷 Sinaleiro",
+    "Mecânico Montador": "👷 Mecânico montador",
+    "Auxiliar de Elétrica": "👷 Auxiliar de elétrica",
+    Eletricista: "👷 Eletricista",
   },
 };
 
@@ -191,7 +191,7 @@ export const generateEfetivoText = (
     
     if (employees.length > 0 && presentEmployees.length > 0) {
       // Remove emoji and colon from label for cleaner display
-      const cleanLabel = label.replace(/^👷🏼‍♂️\s*|👷🏼\s*/g, '').replace(/:$/, '');
+      const cleanLabel = label.replace(/^👷\s*/g, '').replace(/:$/, '');
       report += `👷 ${cleanLabel}: ${presentEmployees.length}\n`;
       // Add employee names with Title Case formatting
       presentEmployees.forEach((emp) => {
