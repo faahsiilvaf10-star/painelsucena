@@ -350,8 +350,32 @@ export function DriverStatusButtons() {
 
     // Handle starting shift (going to "none" status) - show dialog if shift not started
     if (newStatus === "none" && !shiftStarted) {
+      // Fetch previous day's final horimeter/km to pre-fill
       setStartShiftHorimeter("");
       setStartShiftKm("");
+      
+      if (selectedVehicleId) {
+        try {
+          const { data: prevShift } = await supabase
+            .from("daily_shift_records")
+            .select("final_horimeter, final_km")
+            .eq("equipment_id", selectedVehicleId)
+            .not("final_horimeter", "is", null)
+            .order("shift_date", { ascending: false })
+            .limit(1)
+            .maybeSingle();
+          
+          if (prevShift?.final_horimeter) {
+            setStartShiftHorimeter(String(prevShift.final_horimeter));
+          }
+          if (prevShift?.final_km) {
+            setStartShiftKm(String(prevShift.final_km));
+          }
+        } catch (err) {
+          console.error("Error fetching previous shift data:", err);
+        }
+      }
+      
       setShowStartShiftDialog(true);
       return;
     }
