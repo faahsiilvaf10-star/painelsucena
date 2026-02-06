@@ -5,7 +5,7 @@ import { Button } from "@/components/ui/button";
 import { Label } from "@/components/ui/label";
 import { supabase } from "@/integrations/supabase/client";
 import { toast } from "sonner";
-import { PanelLeft, Check, RotateCcw, Sparkles, Type } from "lucide-react";
+import { PanelLeft, Check, RotateCcw, Sparkles, Type, Palette, MousePointerClick } from "lucide-react";
 import { cn } from "@/lib/utils";
 
 interface SidebarCustomizerProps {
@@ -13,6 +13,8 @@ interface SidebarCustomizerProps {
   currentSidebarColor?: string | null;
   currentSidebarAnimation?: string | null;
   currentSidebarFont?: string | null;
+  currentSidebarFontColor?: string | null;
+  currentSidebarActiveColor?: string | null;
 }
 
 const SIDEBAR_COLORS = [
@@ -78,11 +80,15 @@ export const SidebarCustomizer = ({
   currentSidebarColor,
   currentSidebarAnimation,
   currentSidebarFont,
+  currentSidebarFontColor,
+  currentSidebarActiveColor,
 }: SidebarCustomizerProps) => {
   const queryClient = useQueryClient();
   const [selectedColor, setSelectedColor] = useState<string | null>(currentSidebarColor || null);
   const [selectedAnimation, setSelectedAnimation] = useState<string | null>(currentSidebarAnimation || "particles");
   const [selectedFont, setSelectedFont] = useState<string | null>(currentSidebarFont || null);
+  const [selectedFontColor, setSelectedFontColor] = useState<string | null>(currentSidebarFontColor || null);
+  const [selectedActiveColor, setSelectedActiveColor] = useState<string | null>(currentSidebarActiveColor || null);
   const [isSaving, setIsSaving] = useState(false);
 
   const handleSave = async () => {
@@ -94,12 +100,13 @@ export const SidebarCustomizer = ({
           sidebar_color: selectedColor,
           sidebar_animation: selectedAnimation,
           sidebar_font: selectedFont,
+          sidebar_font_color: selectedFontColor,
+          sidebar_active_color: selectedActiveColor,
         })
         .eq("user_id", userId);
 
       if (error) throw error;
       
-      // Invalidate profile query so sidebar updates immediately
       queryClient.invalidateQueries({ queryKey: ["profile", userId] });
       toast.success("Personalização da sidebar salva!");
     } catch (error: any) {
@@ -113,6 +120,8 @@ export const SidebarCustomizer = ({
     setSelectedColor(null);
     setSelectedAnimation("particles");
     setSelectedFont(null);
+    setSelectedFontColor(null);
+    setSelectedActiveColor(null);
     setIsSaving(true);
     try {
       const { error } = await supabase
@@ -121,6 +130,8 @@ export const SidebarCustomizer = ({
           sidebar_color: null,
           sidebar_animation: "particles",
           sidebar_font: null,
+          sidebar_font_color: null,
+          sidebar_active_color: null,
         })
         .eq("user_id", userId);
 
@@ -253,27 +264,147 @@ export const SidebarCustomizer = ({
           </div>
         </div>
 
+        {/* Font Color Selection */}
+        <div className="space-y-3">
+          <Label className="text-sm font-medium flex items-center gap-1.5">
+            <Palette className="w-4 h-4" />
+            Cor da Fonte
+          </Label>
+          <div className="grid grid-cols-4 sm:grid-cols-6 gap-2">
+            {[
+              { id: "default", label: "Padrão", color: null },
+              { id: "white", label: "Branco", color: "hsl(0, 0%, 100%)" },
+              { id: "light-gray", label: "Cinza Claro", color: "hsl(0, 0%, 85%)" },
+              { id: "dark", label: "Escuro", color: "hsl(0, 0%, 15%)" },
+              { id: "gold", label: "Dourado", color: "hsl(43, 96%, 56%)" },
+              { id: "amber", label: "Âmbar", color: "hsl(38, 92%, 50%)" },
+              { id: "cyan", label: "Ciano", color: "hsl(190, 90%, 60%)" },
+              { id: "green", label: "Verde", color: "hsl(142, 70%, 60%)" },
+              { id: "rose", label: "Rosa", color: "hsl(340, 80%, 70%)" },
+              { id: "purple", label: "Roxo", color: "hsl(270, 70%, 70%)" },
+              { id: "orange", label: "Laranja", color: "hsl(25, 95%, 55%)" },
+              { id: "sky", label: "Céu", color: "hsl(200, 80%, 65%)" },
+            ].map((preset) => {
+              const isSelected = preset.color === selectedFontColor;
+              return (
+                <button
+                  key={preset.id}
+                  onClick={() => setSelectedFontColor(preset.color)}
+                  className={cn(
+                    "relative w-full aspect-square rounded-lg border-2 transition-all duration-200 hover:scale-105 flex items-center justify-center",
+                    isSelected
+                      ? "border-primary ring-2 ring-primary/30 scale-105"
+                      : "border-border hover:border-primary/50"
+                  )}
+                  style={{
+                    background: preset.color || "linear-gradient(135deg, hsl(0,0%,90%), hsl(0,0%,30%))",
+                  }}
+                  title={preset.label}
+                >
+                  {isSelected && (
+                    <Check className={cn("w-4 h-4 drop-shadow-md", 
+                      preset.color && isLightColor(preset.color) ? "text-gray-800" : "text-white"
+                    )} />
+                  )}
+                  <span className={cn(
+                    "absolute bottom-0.5 left-0 right-0 text-[9px] text-center truncate px-0.5",
+                    preset.color && isLightColor(preset.color) ? "text-gray-700" : "text-white/80"
+                  )}>
+                    {preset.label}
+                  </span>
+                </button>
+              );
+            })}
+          </div>
+        </div>
+
+        {/* Active Item Color Selection */}
+        <div className="space-y-3">
+          <Label className="text-sm font-medium flex items-center gap-1.5">
+            <MousePointerClick className="w-4 h-4" />
+            Cor do Item Selecionado
+          </Label>
+          <div className="grid grid-cols-4 sm:grid-cols-6 gap-2">
+            {[
+              { id: "default", label: "Padrão", color: null },
+              { id: "gold", label: "Dourado", color: "hsl(43, 96%, 56%)" },
+              { id: "amber", label: "Âmbar", color: "hsl(38, 92%, 50%)" },
+              { id: "cyan", label: "Ciano", color: "hsl(190, 90%, 50%)" },
+              { id: "green", label: "Verde", color: "hsl(142, 70%, 45%)" },
+              { id: "blue", label: "Azul", color: "hsl(220, 80%, 55%)" },
+              { id: "purple", label: "Roxo", color: "hsl(270, 70%, 55%)" },
+              { id: "rose", label: "Rosa", color: "hsl(340, 80%, 55%)" },
+              { id: "orange", label: "Laranja", color: "hsl(25, 95%, 50%)" },
+              { id: "teal", label: "Teal", color: "hsl(175, 70%, 40%)" },
+              { id: "red", label: "Vermelho", color: "hsl(0, 80%, 50%)" },
+              { id: "white", label: "Branco", color: "hsl(0, 0%, 95%)" },
+            ].map((preset) => {
+              const isSelected = preset.color === selectedActiveColor;
+              return (
+                <button
+                  key={preset.id}
+                  onClick={() => setSelectedActiveColor(preset.color)}
+                  className={cn(
+                    "relative w-full aspect-square rounded-lg border-2 transition-all duration-200 hover:scale-105 flex items-center justify-center",
+                    isSelected
+                      ? "border-primary ring-2 ring-primary/30 scale-105"
+                      : "border-border hover:border-primary/50"
+                  )}
+                  style={{
+                    background: preset.color || "linear-gradient(135deg, hsl(43,96%,56%), hsl(38,92%,50%))",
+                  }}
+                  title={preset.label}
+                >
+                  {isSelected && (
+                    <Check className={cn("w-4 h-4 drop-shadow-md", 
+                      preset.color && isLightColor(preset.color) ? "text-gray-800" : "text-white"
+                    )} />
+                  )}
+                  <span className={cn(
+                    "absolute bottom-0.5 left-0 right-0 text-[9px] text-center truncate px-0.5",
+                    preset.color && isLightColor(preset.color) ? "text-gray-700" : "text-white/80"
+                  )}>
+                    {preset.label}
+                  </span>
+                </button>
+              );
+            })}
+          </div>
+        </div>
+
         {/* Preview */}
         <div className="space-y-2">
           <Label className="text-sm font-medium">Preview</Label>
           <div
-            className="relative w-full h-24 rounded-lg overflow-hidden border border-border"
+            className="relative w-full h-28 rounded-lg overflow-hidden border border-border"
             style={{
               background: selectedColor || "radial-gradient(ellipse 80% 60% at 50% 50%, hsl(220, 10%, 25%) 0%, hsl(220, 12%, 18%) 25%, hsl(220, 15%, 12%) 50%, hsl(220, 18%, 6%) 75%, hsl(0, 0%, 0%) 100%)",
               fontFamily: selectedFont || "inherit",
             }}
           >
-            <div className="absolute inset-0 flex flex-col items-center justify-center gap-1">
-              <span className={cn(
-                "text-sm font-semibold",
-                isLightColor(selectedColor) ? "text-gray-700" : "text-white/90"
-              )} style={{ fontFamily: selectedFont || "inherit" }}>
+            <div className="absolute inset-0 flex flex-col items-center justify-center gap-1.5">
+              <span
+                className="text-sm font-semibold"
+                style={{
+                  color: selectedFontColor || (isLightColor(selectedColor) ? "hsl(0,0%,20%)" : "hsl(0,0%,95%)"),
+                  fontFamily: selectedFont || "inherit",
+                }}
+              >
                 Sucena Operações
               </span>
-              <span className={cn(
-                "text-xs",
-                isLightColor(selectedColor) ? "text-gray-600/60" : "text-white/40"
-              )}>
+              <span
+                className="text-xs px-3 py-0.5 rounded-md"
+                style={{
+                  backgroundColor: selectedActiveColor ? `${selectedActiveColor}` : undefined,
+                  color: selectedFontColor || (isLightColor(selectedColor) ? "hsl(0,0%,20%)" : "hsl(0,0%,95%)"),
+                  opacity: selectedActiveColor ? 1 : 0.6,
+                }}
+              >
+                ● Item Ativo
+              </span>
+              <span className="text-[10px]" style={{
+                color: selectedFontColor || (isLightColor(selectedColor) ? "hsl(0,0%,40%)" : "hsl(0,0%,70%)"),
+              }}>
                 {SIDEBAR_ANIMATIONS.find(a => a.id === selectedAnimation)?.emoji}{" "}
                 {SIDEBAR_ANIMATIONS.find(a => a.id === selectedAnimation)?.label}
               </span>

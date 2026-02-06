@@ -1437,9 +1437,11 @@ export type Database = {
           full_name: string
           id: string
           neon_color: string | null
+          sidebar_active_color: string | null
           sidebar_animation: string | null
           sidebar_color: string | null
           sidebar_font: string | null
+          sidebar_font_color: string | null
           updated_at: string
           user_id: string
         }
@@ -1452,9 +1454,11 @@ export type Database = {
           full_name: string
           id?: string
           neon_color?: string | null
+          sidebar_active_color?: string | null
           sidebar_animation?: string | null
           sidebar_color?: string | null
           sidebar_font?: string | null
+          sidebar_font_color?: string | null
           updated_at?: string
           user_id: string
         }
@@ -1467,9 +1471,11 @@ export type Database = {
           full_name?: string
           id?: string
           neon_color?: string | null
+          sidebar_active_color?: string | null
           sidebar_animation?: string | null
           sidebar_color?: string | null
           sidebar_font?: string | null
+          sidebar_font_color?: string | null
           updated_at?: string
           user_id?: string
         }
