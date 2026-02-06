@@ -79,45 +79,49 @@ export function AdminCountersEditor({ equipmentId, equipmentName, date, inline, 
           Nenhum registro de turno encontrado{inline ? " para esta data" : " para hoje"}.
         </p>
       ) : (
-        <div className="space-y-4 pt-2">
-          <div className="grid grid-cols-2 gap-3">
-            <div className="space-y-1.5">
-              <Label className="text-xs">Horímetro Inicial</Label>
+        <div className="space-y-3 pt-2 overflow-hidden">
+          <div className="grid grid-cols-2 gap-2">
+            <div className="space-y-1 min-w-0">
+              <Label className="text-xs">Horímetro Ini.</Label>
               <Input
                 type="number"
                 value={initialHorimeter}
                 onChange={(e) => setInitialHorimeter(e.target.value)}
                 placeholder="0"
+                className="text-sm h-8 px-2"
               />
             </div>
-            <div className="space-y-1.5">
-              <Label className="text-xs">Horímetro Final</Label>
+            <div className="space-y-1 min-w-0">
+              <Label className="text-xs">Horímetro Fin.</Label>
               <Input
                 type="number"
                 value={finalHorimeter}
                 onChange={(e) => setFinalHorimeter(e.target.value)}
                 placeholder="0"
+                className="text-sm h-8 px-2"
               />
             </div>
           </div>
 
-          <div className="grid grid-cols-2 gap-3">
-            <div className="space-y-1.5">
+          <div className="grid grid-cols-2 gap-2">
+            <div className="space-y-1 min-w-0">
               <Label className="text-xs">KM Inicial</Label>
               <Input
                 type="number"
                 value={initialKm}
                 onChange={(e) => setInitialKm(e.target.value)}
                 placeholder="0"
+                className="text-sm h-8 px-2"
               />
             </div>
-            <div className="space-y-1.5">
+            <div className="space-y-1 min-w-0">
               <Label className="text-xs">KM Final</Label>
               <Input
                 type="number"
                 value={finalKm}
                 onChange={(e) => setFinalKm(e.target.value)}
                 placeholder="0"
+                className="text-sm h-8 px-2"
               />
             </div>
           </div>
