@@ -58,6 +58,8 @@ export interface UpdateShiftRecordData {
   id?: string;
   equipment_id?: string;
   shift_date?: string;
+  initial_horimeter?: number;
+  initial_km?: number;
   final_horimeter?: number;
   final_km?: number;
   final_fuel_level?: string;

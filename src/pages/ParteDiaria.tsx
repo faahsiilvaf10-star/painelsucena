@@ -30,6 +30,7 @@ import {
 } from "@/components/ui/table";
 import { Truck, Plus, Loader2, Trash2, User, Clock, AlertCircle, Droplets } from "lucide-react";
 import { AdminStatusEditor } from "@/components/partediaria/AdminStatusEditor";
+import { AdminCountersEditor } from "@/components/partediaria/AdminCountersEditor";
 import { ExportEquipmentPdfButton } from "@/components/equipamentos/ExportEquipmentPdfButton";
 import { ExportMovementsByDateButton } from "@/components/equipamentos/ExportMovementsByDateButton";
 import { useEquipment, useCreateEquipment, useDeleteEquipment, useEquipmentStopHistory } from "@/hooks/useEquipment";
@@ -348,10 +349,16 @@ export default function ParteDiaria() {
                                 Movimentações de Hoje
                               </p>
                               {isAdmin && (
-                                <AdminStatusEditor
-                                  equipmentId={vehicle.id}
-                                  equipmentName={vehicle.name}
-                                />
+                                <div className="flex items-center gap-1">
+                                  <AdminCountersEditor
+                                    equipmentId={vehicle.id}
+                                    equipmentName={vehicle.name}
+                                  />
+                                  <AdminStatusEditor
+                                    equipmentId={vehicle.id}
+                                    equipmentName={vehicle.name}
+                                  />
+                                </div>
                               )}
                             </div>
                             <div className="space-y-2 max-h-40 overflow-y-auto">
