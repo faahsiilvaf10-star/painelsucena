@@ -153,8 +153,8 @@ const Configuracoes = () => {
       return;
     }
 
-    if (file.size > 2 * 1024 * 1024) {
-      toast.error("A imagem deve ter no máximo 2MB.");
+    if (file.size > 10 * 1024 * 1024) {
+      toast.error("A imagem deve ter no máximo 10MB.");
       return;
     }
 
@@ -280,7 +280,7 @@ const Configuracoes = () => {
                     {isUploadingAvatar ? "Enviando..." : "Enviar Nova Foto"}
                   </Button>
                   <p className="text-xs text-muted-foreground">
-                    JPG, PNG ou GIF. Máximo 2MB.
+                    JPG, PNG ou GIF. Máximo 10MB.
                   </p>
                 </div>
               </div>
