@@ -17,6 +17,7 @@ import { formatCargoLabel } from "@/lib/cargoUtils";
 import { supabase } from "@/integrations/supabase/client";
 import { toast } from "sonner";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
+import { NeonAvatar } from "@/components/ui/NeonAvatar";
 import { DriverStatusButtons } from "@/components/driver/DriverStatusButtons";
 import { SyncIndicatorV2 } from "@/components/driver/SyncIndicatorV2";
 import { OfflineBanner } from "@/components/driver/OfflineFeedback";
@@ -140,12 +141,14 @@ const PainelMotorista = () => {
           
           {/* User Info - Center */}
           <div className="flex items-center gap-2 flex-1 justify-center min-w-0 px-1">
-            <Avatar className="w-8 h-8 border-2 border-primary/20 shrink-0">
-              <AvatarImage src={profile?.avatar_url || undefined} alt={profile?.full_name || "Motorista"} />
-              <AvatarFallback className="bg-primary text-primary-foreground text-[10px] font-bold">
-                {getInitials()}
-              </AvatarFallback>
-            </Avatar>
+            <NeonAvatar
+              src={profile?.avatar_url}
+              name={profile?.full_name || "Motorista"}
+              frameColor={profile?.frame_color}
+              neonColor={profile?.neon_color}
+              frameAnimation={profile?.frame_animation}
+              size="sm"
+            />
             <div className="min-w-0">
               <p className="text-xs font-semibold text-foreground leading-tight truncate max-w-[90px]">
                 {profile?.full_name?.split(' ')[0] || "Motorista"}

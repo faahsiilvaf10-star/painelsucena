@@ -19,6 +19,9 @@ export interface DDSScheduleItem {
     full_name: string;
     avatar_url: string | null;
     cargo: string;
+    frame_color?: string | null;
+    neon_color?: string | null;
+    frame_animation?: string | null;
   };
 }
 
@@ -50,7 +53,7 @@ export const useDDSSchedule = (monthYear: string) => {
         if (userIds.length > 0) {
           const { data: profiles } = await supabase
             .from("profiles")
-            .select("user_id, full_name, avatar_url, cargo")
+            .select("user_id, full_name, avatar_url, cargo, frame_color, neon_color, frame_animation")
             .in("user_id", userIds);
 
           profiles?.forEach(p => profileMap.set(p.user_id, p));
@@ -88,7 +91,7 @@ export const useTodayDDS = () => {
         if (data.presenter_user_id) {
           const { data: profileData } = await supabase
             .from("profiles")
-            .select("user_id, full_name, avatar_url, cargo")
+            .select("user_id, full_name, avatar_url, cargo, frame_color, neon_color, frame_animation")
             .eq("user_id", data.presenter_user_id)
             .maybeSingle();
           profile = profileData || undefined;
@@ -127,7 +130,7 @@ export const useTomorrowDDS = () => {
         if (data.presenter_user_id) {
           const { data: profileData } = await supabase
             .from("profiles")
-            .select("user_id, full_name, avatar_url, cargo")
+            .select("user_id, full_name, avatar_url, cargo, frame_color, neon_color, frame_animation")
             .eq("user_id", data.presenter_user_id)
             .maybeSingle();
           profile = profileData || undefined;
@@ -285,7 +288,7 @@ export const useAllProfiles = () => {
     queryFn: async () => {
       const { data, error } = await supabase
         .from("profiles")
-        .select("user_id, full_name, avatar_url, cargo")
+        .select("user_id, full_name, avatar_url, cargo, frame_color, neon_color, frame_animation")
         .order("full_name", { ascending: true });
 
       if (error) throw error;

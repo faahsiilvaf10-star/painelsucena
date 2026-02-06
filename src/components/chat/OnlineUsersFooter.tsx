@@ -1,6 +1,7 @@
 import { useState } from "react";
 import { useAllUsers, UserWithStatus } from "@/hooks/useAllUsers";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
+import { NeonAvatar } from "@/components/ui/NeonAvatar";
 import { Badge } from "@/components/ui/badge";
 import { Radio, VolumeX, Volume2, Play, ChevronDown, Circle } from "lucide-react";
 import { cn } from "@/lib/utils";
@@ -135,12 +136,15 @@ export const OnlineUsersFooter = ({
                 }
               }} className={cn("w-full flex items-center gap-3 px-3 py-2 rounded-lg transition-colors", user.isCurrentUser ? "bg-primary/10 cursor-default" : "hover:bg-secondary/80", user.isOnline && !user.isCurrentUser && "bg-green-500/5")}>
                       <div className="relative">
-                        <Avatar className={cn("h-8 w-8", user.isCurrentUser && "ring-2 ring-primary")}>
-                          <AvatarImage src={user.avatar_url || undefined} />
-                          <AvatarFallback className="text-xs bg-primary text-primary-foreground">
-                            {getInitials(user.full_name)}
-                          </AvatarFallback>
-                        </Avatar>
+                        <NeonAvatar
+                          src={user.avatar_url}
+                          name={user.full_name}
+                          frameColor={user.frame_color}
+                          neonColor={user.neon_color}
+                          frameAnimation={user.frame_animation}
+                          size="sm"
+                          className={cn(user.isCurrentUser && "ring-2 ring-primary")}
+                        />
                         <Circle className={cn("absolute -bottom-0.5 -right-0.5 h-3 w-3 fill-current", user.isOnline ? "text-green-500" : "text-muted-foreground/50")} />
                         {user.isAdmin && (
                           <div className="absolute -top-1 -right-1">

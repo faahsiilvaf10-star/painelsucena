@@ -10,6 +10,9 @@ export type UserWithStatus = {
   full_name: string;
   avatar_url: string | null;
   cargo: string;
+  frame_color?: string | null;
+  neon_color?: string | null;
+  frame_animation?: string | null;
   isOnline: boolean;
   isCurrentUser: boolean;
   isAdmin: boolean;
@@ -24,6 +27,9 @@ type ProfileData = {
   full_name: string;
   avatar_url: string | null;
   cargo: string;
+  frame_color?: string | null;
+  neon_color?: string | null;
+  frame_animation?: string | null;
 };
 
 export const useAllUsers = () => {
@@ -50,7 +56,7 @@ export const useAllUsers = () => {
       if (!cachedProfileRef.current) {
         const { data: profile } = await supabase
           .from("profiles")
-          .select("id, user_id, full_name, avatar_url, cargo")
+          .select("id, user_id, full_name, avatar_url, cargo, frame_color, neon_color, frame_animation")
           .eq("user_id", user.id)
           .maybeSingle();
         if (profile) {
@@ -67,6 +73,9 @@ export const useAllUsers = () => {
             full_name: cached.full_name,
             avatar_url: cached.avatar_url,
             cargo: cached.cargo,
+            frame_color: cached.frame_color,
+            neon_color: cached.neon_color,
+            frame_animation: cached.frame_animation,
             online_at: now,
           }
         : {
@@ -88,7 +97,7 @@ export const useAllUsers = () => {
     const fetchProfiles = async () => {
       const { data, error } = await supabase
         .from("profiles")
-        .select("id, user_id, full_name, avatar_url, cargo")
+        .select("id, user_id, full_name, avatar_url, cargo, frame_color, neon_color, frame_animation")
         .order("full_name");
 
       if (error) {

@@ -5,6 +5,7 @@ import { Sun, Calendar, Camera, Upload, Loader2, ArrowRight, UserPlus, X } from 
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
+import { NeonAvatar } from "@/components/ui/NeonAvatar";
 import { Dialog, DialogContent, DialogTitle } from "@/components/ui/dialog";
 import { SunBorderAvatar } from "./SunBorderAvatar";
 import { useTodayDDS, useTomorrowDDS, useUpdateDDSPhoto } from "@/hooks/useDDSSchedule";
@@ -131,9 +132,12 @@ export const DDSHighlightCard = () => {
               <div className="flex items-center gap-4">
                 {todayDDS.presenter ? (
                   <>
-                    <SunBorderAvatar
+                    <NeonAvatar
                       src={todayDDS.presenter.avatar_url}
                       name={todayDDS.presenter.full_name || "Palestrante"}
+                      frameColor={todayDDS.presenter.frame_color}
+                      neonColor={todayDDS.presenter.neon_color}
+                      frameAnimation={todayDDS.presenter.frame_animation}
                       size="md"
                     />
                     <div className="flex-1 min-w-0">
@@ -281,12 +285,14 @@ export const DDSHighlightCard = () => {
               <div className="flex items-center gap-4">
                 {tomorrowDDS.presenter ? (
                   <>
-                    <Avatar className="h-16 w-16 border-4 border-blue-200 dark:border-blue-700">
-                      <AvatarImage src={tomorrowDDS.presenter.avatar_url || undefined} />
-                      <AvatarFallback className="bg-gradient-to-br from-blue-400 to-indigo-500 text-white text-lg font-bold">
-                        {getInitials(tomorrowDDS.presenter.full_name || "P")}
-                      </AvatarFallback>
-                    </Avatar>
+                    <NeonAvatar
+                      src={tomorrowDDS.presenter.avatar_url}
+                      name={tomorrowDDS.presenter.full_name || "Palestrante"}
+                      frameColor={tomorrowDDS.presenter.frame_color}
+                      neonColor={tomorrowDDS.presenter.neon_color}
+                      frameAnimation={tomorrowDDS.presenter.frame_animation}
+                      size="md"
+                    />
                     <div className="flex-1 min-w-0">
                       <h3 className="font-bold text-lg truncate">
                         {tomorrowDDS.presenter.full_name || "Palestrante"}

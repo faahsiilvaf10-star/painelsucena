@@ -1,6 +1,7 @@
 import { useState, useRef, useEffect } from "react";
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogDescription } from "@/components/ui/dialog";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
+import { NeonAvatar } from "@/components/ui/NeonAvatar";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { ScrollArea } from "@/components/ui/scroll-area";
@@ -227,12 +228,14 @@ export const ChatDialog = ({
             </Button>
             
             <div className="relative">
-              <Avatar className="h-10 w-10 border-2 border-white/20">
-                <AvatarImage src={selectedUser.avatar_url || undefined} />
-                <AvatarFallback className="bg-[#00a884] text-white text-sm">
-                  {getInitials(selectedUser.full_name)}
-                </AvatarFallback>
-              </Avatar>
+              <NeonAvatar
+                src={selectedUser.avatar_url}
+                name={selectedUser.full_name}
+                frameColor={selectedUser.frame_color}
+                neonColor={selectedUser.neon_color}
+                frameAnimation={selectedUser.frame_animation}
+                size="sm"
+              />
             </div>
             
             <div className="flex-1 min-w-0">
