@@ -568,11 +568,11 @@ export function ExportMovementsByDateButton({ equipment }: ExportMovementsByDate
         helperLabel,
         activities,
         initialFuelLevel: shiftRecord?.initial_fuel_level,
-        finalFuelLevel: shiftEnded ? shiftRecord?.final_fuel_level : null,
+        finalFuelLevel: shiftRecord?.final_fuel_level ?? null,
         initialKm: shiftRecord?.initial_km ? Number(shiftRecord.initial_km) : null,
-        finalKm: shiftEnded && shiftRecord?.final_km ? Number(shiftRecord.final_km) : null,
+        finalKm: shiftRecord?.final_km ? Number(shiftRecord.final_km) : null,
         initialHorimeter: shiftRecord?.initial_horimeter ? Number(shiftRecord.initial_horimeter) : null,
-        finalHorimeter: shiftEnded && shiftRecord?.final_horimeter ? Number(shiftRecord.final_horimeter) : null,
+        finalHorimeter: shiftRecord?.final_horimeter ? Number(shiftRecord.final_horimeter) : null,
       });
 
       const printWindow = window.open("", "_blank");

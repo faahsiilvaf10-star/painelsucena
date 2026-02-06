@@ -598,11 +598,11 @@ export function ExportEquipmentPdfButton({
         helperLabel: equipment.equipment_type === "munk" ? "SINALEIRO" : "AJUDANTE",
         activities,
         initialFuelLevel: shiftRecord?.initial_fuel_level ?? null,
-        finalFuelLevel: shiftEnded ? (shiftRecord?.final_fuel_level ?? null) : null,
+        finalFuelLevel: shiftRecord?.final_fuel_level ?? null,
         initialKm: shiftRecord?.initial_km ?? null,
-        finalKm: shiftEnded ? (shiftRecord?.final_km ?? null) : null,
+        finalKm: shiftRecord?.final_km ?? null,
         initialHorimeter: shiftRecord?.initial_horimeter ?? null,
-        finalHorimeter: shiftEnded ? (shiftRecord?.final_horimeter ?? null) : null,
+        finalHorimeter: shiftRecord?.final_horimeter ?? null,
       });
 
       printWindow.document.write(htmlContent);
