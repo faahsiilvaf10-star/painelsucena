@@ -263,16 +263,30 @@ export const useCreateOrder = () => {
 
       if (itemsError) throw itemsError;
 
-      // Create notification for mentioned user
+      // Create notification and on-screen announcement for mentioned user
       if (orderData.mentioned_user_id) {
-        const itemsList = orderData.items.map(i => `• ${i.quantity} ${i.quantity_unit} de ${i.product_name}`).join('\n');
+        const itemsList = orderData.items.map(i => `\u2022 ${i.quantity} ${i.quantity_unit} de ${i.product_name}`).join('\n');
+        const requesterName = profile?.full_name || "Algu\u00E9m";
+
         await supabase.from("notifications").insert({
           user_id: orderData.mentioned_user_id,
           title: "\uD83D\uDCE6 Novo Pedido - Aguardando Solicita\u00E7\u00E3o",
-          message: `${profile?.full_name || "Alguém"} fez um pedido com ${totalItems} item(ns) e está aguardando sua análise.`,
+          message: `${requesterName} fez um pedido com ${totalItems} item(ns) e est\u00E1 aguardando sua an\u00E1lise.`,
           type: "order",
           reference_id: data.id,
           reference_type: "order",
+        });
+
+        // On-screen announcement (modal) for the mentioned user
+        const announcementContent = `**${requesterName}** encaminhou um novo pedido para voc\u00EA:\n\n${itemsList}\n\nVerifique os detalhes no painel de pedidos.`;
+
+        await supabase.from("announcements").insert({
+          title: "\uD83D\uDCE6 Novo Pedido Recebido",
+          content: announcementContent,
+          created_by: user.id,
+          target_type: "specific",
+          target_users: [orderData.mentioned_user_id],
+          published_at: new Date().toISOString(),
         });
       }
 
