@@ -39,6 +39,7 @@ const Configuracoes = () => {
   const [frameAnimation, setFrameAnimation] = useState<string | null>(null);
   const [sidebarColor, setSidebarColor] = useState<string | null>(null);
   const [sidebarAnimation, setSidebarAnimation] = useState<string | null>(null);
+  const [sidebarFont, setSidebarFont] = useState<string | null>(null);
 
   // UI states
   const [showCurrentPassword, setShowCurrentPassword] = useState(false);
@@ -58,7 +59,7 @@ const Configuracoes = () => {
 
       const { data: profile } = await supabase
         .from("profiles")
-        .select("full_name, avatar_url, frame_color, neon_color, frame_animation, sidebar_color, sidebar_animation")
+        .select("full_name, avatar_url, frame_color, neon_color, frame_animation, sidebar_color, sidebar_animation, sidebar_font")
         .eq("user_id", user.id)
         .maybeSingle();
 
@@ -70,6 +71,7 @@ const Configuracoes = () => {
         setFrameAnimation(profile.frame_animation || null);
         setSidebarColor(profile.sidebar_color || null);
         setSidebarAnimation(profile.sidebar_animation || null);
+        setSidebarFont(profile.sidebar_font || null);
       }
     };
 
@@ -466,6 +468,7 @@ const Configuracoes = () => {
               userId={user.id}
               currentSidebarColor={sidebarColor}
               currentSidebarAnimation={sidebarAnimation}
+              currentSidebarFont={sidebarFont}
             />
           )}
 

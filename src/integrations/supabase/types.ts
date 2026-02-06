@@ -1439,6 +1439,7 @@ export type Database = {
           neon_color: string | null
           sidebar_animation: string | null
           sidebar_color: string | null
+          sidebar_font: string | null
           updated_at: string
           user_id: string
         }
@@ -1453,6 +1454,7 @@ export type Database = {
           neon_color?: string | null
           sidebar_animation?: string | null
           sidebar_color?: string | null
+          sidebar_font?: string | null
           updated_at?: string
           user_id: string
         }
@@ -1467,6 +1469,7 @@ export type Database = {
           neon_color?: string | null
           sidebar_animation?: string | null
           sidebar_color?: string | null
+          sidebar_font?: string | null
           updated_at?: string
           user_id?: string
         }
