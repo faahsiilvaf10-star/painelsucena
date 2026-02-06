@@ -395,7 +395,7 @@ ${gabiaoWorkforce}
 \u2705 EQUIPAMENTOS EM OPERAÇÃO (${dynamicEquipment.length + 2})
 ${operatingEquipmentText}
 
-✅ Equipamentos Jardinagem na Obra (${jardinagemEquipmentSummary.total})
+\u2705 Equipamentos Jardinagem na Obra (${jardinagemEquipmentSummary.total})
 ${jardinagemEquipmentText}
 
 Condições climáticas:
