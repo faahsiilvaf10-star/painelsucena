@@ -184,21 +184,24 @@ export const OnlineUsersFooter = ({
                 return (
                   <Tooltip key={user.user_id}>
                     <TooltipTrigger asChild>
-                      <button onClick={() => !user.isCurrentUser && onUserClick(user)} className={cn("relative hover:z-10 transition-transform hover:scale-110 min-w-[24px] min-h-[24px] md:min-w-[28px] md:min-h-[28px]", user.isCurrentUser && "cursor-default")}>
-                        <Avatar className={cn(
-                          "h-6 w-6 md:h-7 md:w-7 ring-2 ring-card transition-all duration-300",
-                          user.isCurrentUser 
-                            ? "border-2 border-primary ring-primary/30" 
-                            : userIsTyping
-                              ? "border-2 border-blue-500 ring-blue-500/40 shadow-[0_0_8px_2px_rgba(59,130,246,0.4)]"
-                              : "border-2 border-green-500 ring-green-500/40 shadow-[0_0_8px_2px_rgba(34,197,94,0.4)]",
-                          user.justCameOnline && "animate-online-pulse"
-                        )}>
-                          <AvatarImage src={user.avatar_url || undefined} />
-                          <AvatarFallback className={cn("text-[10px]", user.isCurrentUser ? "bg-primary text-primary-foreground" : "bg-green-500/20 text-green-600 dark:text-green-400")}>
-                            {getInitials(user.full_name)}
-                          </AvatarFallback>
-                        </Avatar>
+                      <button onClick={() => !user.isCurrentUser && onUserClick(user)} className={cn("relative hover:z-10 transition-transform hover:scale-110 min-w-[28px] min-h-[28px] md:min-w-[32px] md:min-h-[32px]", user.isCurrentUser && "cursor-default")}>
+                        <NeonAvatar
+                          src={user.avatar_url}
+                          name={user.full_name}
+                          frameColor={user.frame_color}
+                          neonColor={user.neon_color}
+                          frameAnimation={user.frame_animation}
+                          size="xs"
+                          className={cn(
+                            "transition-all duration-300",
+                            user.isCurrentUser 
+                              ? "ring-2 ring-primary/30" 
+                              : userIsTyping
+                                ? "ring-2 ring-blue-500/40 shadow-[0_0_8px_2px_rgba(59,130,246,0.4)]"
+                                : "ring-2 ring-green-500/40 shadow-[0_0_8px_2px_rgba(34,197,94,0.4)]",
+                            user.justCameOnline && "animate-online-pulse"
+                          )}
+                        />
                         {user.isCurrentUser && <span className="absolute -bottom-0.5 -right-0.5 w-2 h-2 bg-primary rounded-full border border-card" />}
                         {userIsTyping && !user.isCurrentUser && (
                           <span className="absolute -bottom-0.5 -right-0.5 flex items-center justify-center">
@@ -256,12 +259,16 @@ export const OnlineUsersFooter = ({
                   <Tooltip key={user.user_id}>
                     <TooltipTrigger asChild>
                       <button onClick={() => onUserClick(user)} className="relative hover:z-10 transition-transform hover:scale-110 min-w-[24px] min-h-[24px] md:min-w-[28px] md:min-h-[28px]">
-                        <Avatar className="h-6 w-6 md:h-7 md:w-7 border-2 border-muted/50 ring-2 ring-card opacity-60 grayscale">
-                          <AvatarImage src={user.avatar_url || undefined} />
-                          <AvatarFallback className="text-[10px] bg-muted text-muted-foreground">
-                            {getInitials(user.full_name)}
-                          </AvatarFallback>
-                        </Avatar>
+                        <div className="opacity-60 grayscale">
+                          <NeonAvatar
+                            src={user.avatar_url}
+                            name={user.full_name}
+                            frameColor={user.frame_color}
+                            neonColor={user.neon_color}
+                            frameAnimation={user.frame_animation}
+                            size="xs"
+                          />
+                        </div>
                         {user.isAdmin && (
                           <div className="absolute -top-1 -right-1 opacity-60 hidden sm:block">
                             <VerifiedBadge size="xs" />
