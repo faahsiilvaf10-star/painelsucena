@@ -268,7 +268,7 @@ export const useCreateOrder = () => {
         const itemsList = orderData.items.map(i => `• ${i.quantity} ${i.quantity_unit} de ${i.product_name}`).join('\n');
         await supabase.from("notifications").insert({
           user_id: orderData.mentioned_user_id,
-          title: "📦 Novo Pedido - Aguardando Solicitação",
+          title: "\uD83D\uDCE6 Novo Pedido - Aguardando Solicita\u00E7\u00E3o",
           message: `${profile?.full_name || "Alguém"} fez um pedido com ${totalItems} item(ns) e está aguardando sua análise.`,
           type: "order",
           reference_id: data.id,
@@ -340,16 +340,16 @@ export const useUpdateOrderStatus = () => {
       if (currentOrder?.requester_id && currentOrder.requester_id !== user.id) {
         const statusLabels: Record<OrderStatus, string> = {
           solicitado: "Solicitado",
-          aprovado: "Aprovado ✅",
-          a_caminho: "A Caminho 🚚",
-          entregue: "Entregue 📬",
-          pedido_realizado: "Pedido Realizado 📦",
-          cancelado: "Cancelado ❌",
+          aprovado: "Aprovado \u2705",
+          a_caminho: "A Caminho \uD83D\uDE9A",
+          entregue: "Entregue \uD83D\uDCEC",
+          pedido_realizado: "Pedido Realizado \uD83D\uDCE6",
+          cancelado: "Cancelado \u274C",
         };
 
         await supabase.from("notifications").insert({
           user_id: currentOrder.requester_id,
-          title: "📦 Atualização de Pedido",
+          title: "\uD83D\uDCE6 Atualiza\u00E7\u00E3o de Pedido",
           message: `Seu pedido foi atualizado para: ${statusLabels[newStatus]}`,
           type: "order",
           reference_id: orderId,
@@ -363,7 +363,7 @@ export const useUpdateOrderStatus = () => {
         const announcementContent = `Seu pedido "${productName}"${orderNum ? ` (Nº ${orderNum})` : ""} teve o status alterado para **${statusLabels[newStatus]}** por **${changerName}**.`;
 
         await supabase.from("announcements").insert({
-          title: "📦 Atualização de Pedido",
+          title: "\uD83D\uDCE6 Atualiza\u00E7\u00E3o de Pedido",
           content: announcementContent,
           created_by: user.id,
           target_type: "specific",
@@ -451,7 +451,7 @@ export const useUpdateOrderQuantity = () => {
       if (currentOrder.requester_id !== user.id) {
         await supabase.from("notifications").insert({
           user_id: currentOrder.requester_id,
-          title: "📦 Quantidade Alterada",
+          title: "\uD83D\uDCE6 Quantidade Alterada",
           message: `A quantidade do seu pedido foi alterada de ${currentOrder.quantity} para ${newQuantity}`,
           type: "order",
           reference_id: orderId,

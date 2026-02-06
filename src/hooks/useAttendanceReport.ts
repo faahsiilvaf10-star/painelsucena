@@ -32,19 +32,19 @@ const gabiaAjudantes = [
 // Role labels for display
 const roleLabels: Record<string, Record<string, string>> = {
   "ÁREA GABIÃO": {
-    Polivalente: "👷🏼‍♂ Polivalentes:",
-    "Meia Oficial": "👷🏼‍♂ Meia oficial:",
-    Ajudante: "👷🏼‍♂ Ajudante:",
+    Polivalente: "\uD83D\uDC77\uD83C\uDFFC\u200D\u2642\uFE0F Polivalentes:",
+    "Meia Oficial": "\uD83D\uDC77\uD83C\uDFFC\u200D\u2642\uFE0F Meia oficial:",
+    Ajudante: "\uD83D\uDC77\uD83C\uDFFC\u200D\u2642\uFE0F Ajudante:",
   },
   "ROÇAGEM E PODAGEM": {
-    Jardineiro: "👷🏼‍♂ Jardineiro:",
-    Ajudante: "👷🏼‍♂ Ajudante:",
-    "Motorista do Pipa": "👷🏼 Motorista do Pipa",
-    "Motorista do Munck": "👷🏼 Motorista do Munck",
-    Sinaleiro: "👷🏼 Sinaleiro",
-    "Mecânico Montador": "👷🏼 Mecânico montador",
-    "Auxiliar de Elétrica": "👷🏼 Auxiliar de elétrica",
-    Eletricista: "👷🏼 Eletricista",
+    Jardineiro: "\uD83D\uDC77\uD83C\uDFFC\u200D\u2642\uFE0F Jardineiro:",
+    Ajudante: "\uD83D\uDC77\uD83C\uDFFC\u200D\u2642\uFE0F Ajudante:",
+    "Motorista do Pipa": "\uD83D\uDC77\uD83C\uDFFC Motorista do Pipa",
+    "Motorista do Munck": "\uD83D\uDC77\uD83C\uDFFC Motorista do Munck",
+    Sinaleiro: "\uD83D\uDC77\uD83C\uDFFC Sinaleiro",
+    "Mecânico Montador": "\uD83D\uDC77\uD83C\uDFFC Mec\u00E2nico montador",
+    "Auxiliar de Elétrica": "\uD83D\uDC77\uD83C\uDFFC Auxiliar de el\u00E9trica",
+    Eletricista: "\uD83D\uDC77\uD83C\uDFFC Eletricista",
   },
 };
 
@@ -144,8 +144,8 @@ export const useAttendanceReportData = (date: string) => {
   const getStatusEmoji = (employeeId: string) => {
     const attendance = attendanceMap.get(employeeId);
     // Se não tem registro, considera presente por padrão
-    if (!attendance) return "✅";
-    return attendance.status === "present" ? "✅" : "❌";
+    if (!attendance) return "\u2705";
+    return attendance.status === "present" ? "\u2705" : "\u274C";
   };
 
   const isPresent = (employeeId: string) => {
@@ -191,7 +191,7 @@ export const generateEfetivoText = (
     
     if (employees.length > 0 && presentEmployees.length > 0) {
       // Remove emoji and colon from label for cleaner display
-      const cleanLabel = label.replace(/^👷🏼‍♂\s*|👷🏼\s*/g, '').replace(/:$/, '');
+      const cleanLabel = label.replace(/^\uD83D\uDC77[\uD83C\uDFFC\u200D\u2642\uFE0F]*\s*/g, '').replace(/:$/, '');
       report += `\uD83D\uDC77 ${cleanLabel}: ${presentEmployees.length}\n`;
       // Add employee names with Title Case formatting
       presentEmployees.forEach((emp) => {
