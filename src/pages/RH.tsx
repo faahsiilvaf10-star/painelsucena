@@ -26,6 +26,7 @@ import { DeleteEmployeeDialog } from "@/components/rh/DeleteEmployeeDialog";
 import { useRHPermissions } from "@/hooks/useRHPermissions";
 import { ExportEfetivoPdfButton } from "@/components/rh/ExportEfetivoPdfButton";
 import { ExportEfetivoExcelButton } from "@/components/rh/ExportEfetivoExcelButton";
+import { ImportEfetivoExcelButton } from "@/components/rh/ImportEfetivoExcelButton";
 import { toast } from "sonner";
 
 type SortField = "id" | "nome" | "funcao" | "admissao" | "matricula";
@@ -65,6 +66,10 @@ const RH = () => {
       id: maxId + 1,
     };
     setColaboradores(prev => [...prev, employee]);
+  };
+
+  const handleImportEmployees = (updated: Colaborador[]) => {
+    setColaboradores(updated);
   };
 
   const handleDeleteEmployee = (id: number) => {
@@ -178,7 +183,13 @@ const RH = () => {
               filterFuncao={filterFuncao} 
             />
             {!permissionsLoading && canEditRH && (
-              <AddEmployeeDialog onAdd={handleAddEmployee} />
+              <>
+                <ImportEfetivoExcelButton
+                  colaboradores={colaboradores}
+                  onImport={handleImportEmployees}
+                />
+                <AddEmployeeDialog onAdd={handleAddEmployee} />
+              </>
             )}
             <Card className="bg-primary/10 border-primary/20">
               <CardContent className="p-4 flex items-center gap-3">
