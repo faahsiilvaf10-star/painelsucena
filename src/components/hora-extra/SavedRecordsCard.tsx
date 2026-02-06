@@ -321,7 +321,7 @@ const SavedRecordsCard = ({
               size="sm"
               onClick={() => {
                 if (periodRecords.length === 0) {
-                  toast.error("Nenhum registro no per\u00edodo para compartilhar");
+                  toast.error("Nenhum registro no período para compartilhar");
                   return;
                 }
                  let msg = `📋 *Registros - Período Atual*\n`;
@@ -346,7 +346,7 @@ const SavedRecordsCard = ({
               className="flex items-center gap-2"
             >
               <FileText className="h-4 w-4" />
-              PDF Per\u00edodo Atual
+              PDF Período Atual
             </Button>
           </div>
         </div>

@@ -449,7 +449,7 @@ export default function AtividadesII() {
     }
     
     if (observacoes.trim()) {
-      summary += `\n\uD83D\uDCDD *Observa\u00E7\u00F5es:*\n${observacoes.trim()}`;
+      summary += `\n📝 *Observações:*\n${observacoes.trim()}`;
     }
     
     return summary;
