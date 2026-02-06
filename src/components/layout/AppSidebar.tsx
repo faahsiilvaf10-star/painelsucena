@@ -333,10 +333,18 @@ export function AppSidebar() {
   const userSidebarAnimation = profile?.sidebar_animation ?? "particles";
   const userSidebarFont = profile?.sidebar_font || undefined;
 
+  // Extract raw HSL values from "hsl(H, S%, L%)" for CSS variable override
+  const extractHslValues = (color: string): string => {
+    const match = color.match(/hsl\(\s*([\d.]+)\s*,?\s*([\d.]+)%?\s*,?\s*([\d.]+)%?\s*\)/);
+    if (match) return `${match[1]} ${match[2]}% ${match[3]}%`;
+    return color;
+  };
+
   const sidebarStyle: React.CSSProperties = {
+    '--sidebar-background': extractHslValues(userSidebarColor),
     backgroundColor: userSidebarColor,
     ...(userSidebarFont ? { fontFamily: userSidebarFont } : {}),
-  };
+  } as React.CSSProperties;
 
   return (
     <Sidebar collapsible="icon" className="border-r-0 relative shrink-0 h-screen sticky top-0 rounded-r-2xl md:rounded-r-2xl overflow-visible" style={sidebarStyle}>
