@@ -8,16 +8,32 @@ import { supabase } from "@/integrations/supabase/client";
 import { toast } from "sonner";
 import { useQueryClient } from "@tanstack/react-query";
 
-const FRAME_COLORS = [
-  "#ffffff", "#ef4444", "#f97316", "#eab308", "#22c55e",
-  "#06b6d4", "#3b82f6", "#8b5cf6", "#ec4899", "#f43f5e",
-  "#a855f7", "#14b8a6", "#64748b", "#d4af37",
+// Solid colors
+const SOLID_COLORS = [
+  "#000000", "#ffffff", "#ef4444", "#dc2626", "#f97316", "#f59e0b",
+  "#eab308", "#84cc16", "#22c55e", "#10b981", "#14b8a6", "#06b6d4",
+  "#0ea5e9", "#3b82f6", "#6366f1", "#8b5cf6", "#a855f7", "#d946ef",
+  "#ec4899", "#f43f5e", "#64748b", "#d4af37", "#b45309", "#7c3aed",
 ];
 
-const NEON_COLORS = [
-  "#ff0000", "#ff4500", "#ff8c00", "#ffd700", "#00ff00",
-  "#00ffff", "#0080ff", "#0000ff", "#8000ff", "#ff00ff",
-  "#ff1493", "#00ff80", "#ffffff", "#ff6ec7",
+// Gradient/special colors (stored as CSS gradient strings)
+const GRADIENT_COLORS = [
+  { label: "Arco-íris", value: "conic-gradient(from 0deg, #ff0000, #ff8800, #ffff00, #00ff00, #0088ff, #8800ff, #ff0000)" },
+  { label: "RGB", value: "conic-gradient(from 0deg, #ff0000, #00ff00, #0000ff, #ff0000)" },
+  { label: "Sunset", value: "linear-gradient(135deg, #ff512f, #f09819)" },
+  { label: "Oceano", value: "linear-gradient(135deg, #2193b0, #6dd5ed)" },
+  { label: "Aurora", value: "linear-gradient(135deg, #00c6ff, #0072ff)" },
+  { label: "Rosa Neon", value: "linear-gradient(135deg, #fc466b, #3f5efb)" },
+  { label: "Floresta", value: "linear-gradient(135deg, #11998e, #38ef7d)" },
+  { label: "Fogo", value: "linear-gradient(135deg, #f12711, #f5af19)" },
+  { label: "Roxo Mágico", value: "linear-gradient(135deg, #7b2ff7, #c471ed, #f64f59)" },
+  { label: "Ouro", value: "linear-gradient(135deg, #d4af37, #f5d442, #d4af37)" },
+  { label: "Prata", value: "linear-gradient(135deg, #c0c0c0, #e8e8e8, #a0a0a0)" },
+  { label: "Cyber", value: "linear-gradient(135deg, #00ffff, #ff00ff)" },
+  { label: "Lava", value: "linear-gradient(135deg, #ff0000, #ff6600, #ffcc00)" },
+  { label: "Gelo", value: "linear-gradient(135deg, #e0f7fa, #80deea, #4dd0e1)" },
+  { label: "Matrix", value: "linear-gradient(135deg, #003300, #00ff00, #003300)" },
+  { label: "Galaxy", value: "linear-gradient(135deg, #0f0c29, #302b63, #24243e)" },
 ];
 
 interface NeonFramePickerProps {
@@ -66,6 +82,30 @@ export function NeonFramePicker({
     }
   };
 
+  const renderColorButton = (
+    color: string,
+    isSelected: boolean,
+    onClick: () => void,
+    label?: string,
+  ) => {
+    const isGradient = color.includes("gradient");
+    return (
+      <button
+        key={color}
+        className={`w-8 h-8 rounded-full border-2 transition-all hover:scale-110 ${
+          isSelected
+            ? "border-foreground scale-110 ring-2 ring-foreground/30"
+            : "border-border"
+        }`}
+        style={{
+          background: isGradient ? color : color,
+        }}
+        onClick={onClick}
+        title={label || color}
+      />
+    );
+  };
+
   return (
     <Card>
       <CardHeader>
@@ -79,7 +119,7 @@ export function NeonFramePicker({
       </CardHeader>
       <CardContent className="space-y-5">
         {/* Preview */}
-        <div className="flex justify-center py-4 bg-muted/30 rounded-xl">
+        <div className="flex justify-center py-6 bg-muted/30 rounded-xl">
           <NeonAvatar
             src={avatarUrl}
             name={fullName || "U"}
@@ -105,20 +145,17 @@ export function NeonFramePicker({
               </Button>
             )}
           </div>
+          <p className="text-xs text-muted-foreground mb-1">Cores sólidas</p>
           <div className="flex flex-wrap gap-2">
-            {FRAME_COLORS.map((color) => (
-              <button
-                key={`frame-${color}`}
-                className={`w-8 h-8 rounded-full border-2 transition-all hover:scale-110 ${
-                  frameColor === color
-                    ? "border-foreground scale-110 ring-2 ring-foreground/20"
-                    : "border-border"
-                }`}
-                style={{ backgroundColor: color }}
-                onClick={() => setFrameColor(color)}
-                title={color}
-              />
-            ))}
+            {SOLID_COLORS.map((color) =>
+              renderColorButton(color, frameColor === color, () => setFrameColor(color))
+            )}
+          </div>
+          <p className="text-xs text-muted-foreground mb-1 mt-3">Gradientes e degradê</p>
+          <div className="flex flex-wrap gap-2">
+            {GRADIENT_COLORS.map((g) =>
+              renderColorButton(g.value, frameColor === g.value, () => setFrameColor(g.value), g.label)
+            )}
           </div>
         </div>
 
@@ -138,23 +175,21 @@ export function NeonFramePicker({
               </Button>
             )}
           </div>
+          <p className="text-xs text-muted-foreground mb-1">Cores sólidas</p>
           <div className="flex flex-wrap gap-2">
-            {NEON_COLORS.map((color) => (
-              <button
-                key={`neon-${color}`}
-                className={`w-8 h-8 rounded-full border-2 transition-all hover:scale-110 ${
-                  neonColor === color
-                    ? "border-foreground scale-110 ring-2 ring-foreground/20"
-                    : "border-border"
-                }`}
-                style={{
-                  backgroundColor: color,
-                  boxShadow: `0 0 8px ${color}`,
-                }}
-                onClick={() => setNeonColor(color)}
-                title={color}
-              />
-            ))}
+            {SOLID_COLORS.map((color) =>
+              renderColorButton(
+                color,
+                neonColor === color,
+                () => setNeonColor(color),
+              )
+            )}
+          </div>
+          <p className="text-xs text-muted-foreground mb-1 mt-3">Gradientes e degradê</p>
+          <div className="flex flex-wrap gap-2">
+            {GRADIENT_COLORS.map((g) =>
+              renderColorButton(g.value, neonColor === g.value, () => setNeonColor(g.value), g.label)
+            )}
           </div>
         </div>
 
