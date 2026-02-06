@@ -332,6 +332,8 @@ export function AppSidebar() {
   const userSidebarColor = profile?.sidebar_color || settings.sidebar_color || "hsl(220, 18%, 6%)";
   const userSidebarAnimation = profile?.sidebar_animation ?? "particles";
   const userSidebarFont = profile?.sidebar_font || undefined;
+  const userSidebarFontColor = profile?.sidebar_font_color || undefined;
+  const userSidebarActiveColor = profile?.sidebar_active_color || undefined;
 
   // Extract raw HSL values from "hsl(H, S%, L%)" for CSS variable override
   const extractHslValues = (color: string): string => {
@@ -342,8 +344,12 @@ export function AppSidebar() {
 
   const sidebarStyle: React.CSSProperties = {
     '--sidebar-background': extractHslValues(userSidebarColor),
+    '--sidebar-foreground': userSidebarFontColor ? extractHslValues(userSidebarFontColor) : undefined,
+    '--sidebar-accent': userSidebarActiveColor ? extractHslValues(userSidebarActiveColor) : undefined,
+    '--sidebar-primary': userSidebarActiveColor ? extractHslValues(userSidebarActiveColor) : undefined,
     backgroundColor: userSidebarColor,
     ...(userSidebarFont ? { fontFamily: userSidebarFont } : {}),
+    ...(userSidebarFontColor ? { color: userSidebarFontColor } : {}),
   } as React.CSSProperties;
 
   return (
