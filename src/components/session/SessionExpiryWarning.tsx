@@ -38,7 +38,7 @@ export const SessionExpiryWarning = () => {
         
         // Send push notification only once per warning period
         if (!notificationSent) {
-          showNotification("⏰ Sessão Expirando", {
+          showNotification("\u23F0 Sess\u00E3o Expirando", {
             body: `Sua sessão expirará em ${remaining} minutos. Clique para renovar.`,
             tag: "session-expiry",
             requireInteraction: true,
