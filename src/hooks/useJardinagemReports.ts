@@ -222,7 +222,7 @@ export const formatJardinagemForRDO = (report: JardinagemReport | null): string 
   const lines: string[] = [];
   
   // Include the faixa (location) at the beginning
-  // Using Unicode escape sequence for WhatsApp compatibility (📍 = \uD83D\uDCCD)
+  // Emoji literal UTF-8 para compatibilidade total com WhatsApp
   if (report.local_faixa && report.local_faixa.trim()) {
     lines.push(`📍 Local: ${report.local_faixa}`);
     lines.push(""); // Empty line for separation

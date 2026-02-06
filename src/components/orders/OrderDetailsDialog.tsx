@@ -189,7 +189,7 @@ export function OrderDetailsDialog({ order, open, onOpenChange }: OrderDetailsDi
     const statusLabel = STATUS_CONFIG[order.status].label;
     const unitLabel = UNIT_LABELS[order.quantity_unit] || order.quantity_unit;
     
-    // Use Unicode escape sequence for package emoji (📦 = \uD83D\uDCE6)
+    // Emoji literal UTF-8 para compatibilidade total com WhatsApp
     let message = `📦 *PEDIDO Nº ${order.order_number}*\n\n`;
     message += `*Produto:* ${order.product_name}\n`;
     if (order.description) message += `*Descrição:* ${order.description}\n`;
