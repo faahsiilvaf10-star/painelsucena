@@ -420,6 +420,7 @@ export function AppSidebar() {
                 name={profile?.full_name || "Usuário"}
                 frameColor={profile?.frame_color}
                 neonColor={profile?.neon_color}
+                frameAnimation={profile?.frame_animation}
                 size="sm"
               />
               {!isCollapsed && (
