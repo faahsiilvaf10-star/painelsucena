@@ -16,12 +16,19 @@ import { toast } from "sonner";
 interface AdminCountersEditorProps {
   equipmentId: string;
   equipmentName: string;
+  /** Optional date override (yyyy-MM-dd). Defaults to today. */
+  date?: string;
+  /** If true, renders inline fields without Dialog wrapper */
+  inline?: boolean;
+  /** Callback after successful save */
+  onSaved?: () => void;
 }
 
-export function AdminCountersEditor({ equipmentId, equipmentName }: AdminCountersEditorProps) {
+export function AdminCountersEditor({ equipmentId, equipmentName, date, inline, onSaved }: AdminCountersEditorProps) {
   const [open, setOpen] = useState(false);
-  const today = new Date().toISOString().split("T")[0];
-  const { data: shiftRecord } = useShiftRecordByEquipment(open ? equipmentId : null, today);
+  const targetDate = date || new Date().toISOString().split("T")[0];
+  const shouldFetch = inline || open;
+  const { data: shiftRecord } = useShiftRecordByEquipment(shouldFetch ? equipmentId : null, targetDate);
   const updateShift = useUpdateShiftRecord();
 
   const [initialHorimeter, setInitialHorimeter] = useState("");
@@ -56,6 +63,7 @@ export function AdminCountersEditor({ equipmentId, equipmentName }: AdminCounter
         onSuccess: () => {
           toast.success("Horímetro e KM atualizados!");
           setOpen(false);
+          onSaved?.();
         },
         onError: () => {
           toast.error("Erro ao atualizar valores");
@@ -63,6 +71,73 @@ export function AdminCountersEditor({ equipmentId, equipmentName }: AdminCounter
       }
     );
   };
+
+  const fieldsContent = (
+    <>
+      {!shiftRecord ? (
+        <p className="text-sm text-muted-foreground py-4 text-center">
+          Nenhum registro de turno encontrado{inline ? " para esta data" : " para hoje"}.
+        </p>
+      ) : (
+        <div className="space-y-4 pt-2">
+          <div className="grid grid-cols-2 gap-3">
+            <div className="space-y-1.5">
+              <Label className="text-xs">Horímetro Inicial</Label>
+              <Input
+                type="number"
+                value={initialHorimeter}
+                onChange={(e) => setInitialHorimeter(e.target.value)}
+                placeholder="0"
+              />
+            </div>
+            <div className="space-y-1.5">
+              <Label className="text-xs">Horímetro Final</Label>
+              <Input
+                type="number"
+                value={finalHorimeter}
+                onChange={(e) => setFinalHorimeter(e.target.value)}
+                placeholder="0"
+              />
+            </div>
+          </div>
+
+          <div className="grid grid-cols-2 gap-3">
+            <div className="space-y-1.5">
+              <Label className="text-xs">KM Inicial</Label>
+              <Input
+                type="number"
+                value={initialKm}
+                onChange={(e) => setInitialKm(e.target.value)}
+                placeholder="0"
+              />
+            </div>
+            <div className="space-y-1.5">
+              <Label className="text-xs">KM Final</Label>
+              <Input
+                type="number"
+                value={finalKm}
+                onChange={(e) => setFinalKm(e.target.value)}
+                placeholder="0"
+              />
+            </div>
+          </div>
+
+          <Button onClick={handleSave} disabled={updateShift.isPending} className="w-full" size="sm">
+            {updateShift.isPending ? (
+              <Loader2 className="h-4 w-4 animate-spin mr-2" />
+            ) : (
+              <Gauge className="h-4 w-4 mr-2" />
+            )}
+            Salvar Correção
+          </Button>
+        </div>
+      )}
+    </>
+  );
+
+  if (inline) {
+    return fieldsContent;
+  }
 
   return (
     <Dialog open={open} onOpenChange={setOpen}>
@@ -75,63 +150,7 @@ export function AdminCountersEditor({ equipmentId, equipmentName }: AdminCounter
         <DialogHeader>
           <DialogTitle className="text-base">Corrigir Horímetro / KM — {equipmentName}</DialogTitle>
         </DialogHeader>
-
-        {!shiftRecord ? (
-          <p className="text-sm text-muted-foreground py-4 text-center">
-            Nenhum registro de turno encontrado para hoje.
-          </p>
-        ) : (
-          <div className="space-y-4 pt-2">
-            <div className="grid grid-cols-2 gap-3">
-              <div className="space-y-1.5">
-                <Label className="text-xs">Horímetro Inicial</Label>
-                <Input
-                  type="number"
-                  value={initialHorimeter}
-                  onChange={(e) => setInitialHorimeter(e.target.value)}
-                  placeholder="0"
-                />
-              </div>
-              <div className="space-y-1.5">
-                <Label className="text-xs">Horímetro Final</Label>
-                <Input
-                  type="number"
-                  value={finalHorimeter}
-                  onChange={(e) => setFinalHorimeter(e.target.value)}
-                  placeholder="0"
-                />
-              </div>
-            </div>
-
-            <div className="grid grid-cols-2 gap-3">
-              <div className="space-y-1.5">
-                <Label className="text-xs">KM Inicial</Label>
-                <Input
-                  type="number"
-                  value={initialKm}
-                  onChange={(e) => setInitialKm(e.target.value)}
-                  placeholder="0"
-                />
-              </div>
-              <div className="space-y-1.5">
-                <Label className="text-xs">KM Final</Label>
-                <Input
-                  type="number"
-                  value={finalKm}
-                  onChange={(e) => setFinalKm(e.target.value)}
-                  placeholder="0"
-                />
-              </div>
-            </div>
-
-            <Button onClick={handleSave} disabled={updateShift.isPending} className="w-full">
-              {updateShift.isPending ? (
-                <Loader2 className="h-4 w-4 animate-spin mr-2" />
-              ) : null}
-              Salvar
-            </Button>
-          </div>
-        )}
+        {fieldsContent}
       </DialogContent>
     </Dialog>
   );

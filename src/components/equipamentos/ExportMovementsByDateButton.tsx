@@ -1,5 +1,5 @@
 import { useState } from "react";
-import { CalendarSearch, FileText, Loader2 } from "lucide-react";
+import { CalendarSearch, FileText, Loader2, Gauge } from "lucide-react";
 import { format } from "date-fns";
 import { ptBR } from "date-fns/locale";
 import { Button } from "@/components/ui/button";
@@ -9,6 +9,11 @@ import {
   PopoverContent,
   PopoverTrigger,
 } from "@/components/ui/popover";
+import {
+  Collapsible,
+  CollapsibleContent,
+  CollapsibleTrigger,
+} from "@/components/ui/collapsible";
 import { toast } from "sonner";
 import { getLogoBase64 } from "@/lib/pdfLogo";
 import { supabase } from "@/integrations/supabase/client";
@@ -16,6 +21,8 @@ import {
   buildFuelGaugeSvg,
   fuelLevelToLabel,
 } from "@/lib/pdf/fuelGauge";
+import { AdminCountersEditor } from "@/components/partediaria/AdminCountersEditor";
+import { useIsAdmin } from "@/hooks/useUserRole";
 
 interface Equipment {
   id: string;
@@ -34,6 +41,8 @@ export function ExportMovementsByDateButton({ equipment }: ExportMovementsByDate
   const [isOpen, setIsOpen] = useState(false);
   const [isExporting, setIsExporting] = useState(false);
   const [selectedDate, setSelectedDate] = useState<Date | undefined>(new Date());
+  const [showCounterEditor, setShowCounterEditor] = useState(false);
+  const isAdmin = useIsAdmin();
 
   const normalizeText = (value: string) =>
     value
@@ -637,11 +646,37 @@ export function ExportMovementsByDateButton({ equipment }: ExportMovementsByDate
           <Calendar
             mode="single"
             selected={selectedDate}
-            onSelect={setSelectedDate}
+            onSelect={(date) => {
+              setSelectedDate(date);
+              setShowCounterEditor(false);
+            }}
             locale={ptBR}
             disabled={(date) => date > new Date()}
             initialFocus
+            className="pointer-events-auto"
           />
+
+          {/* Admin counter editor */}
+          {isAdmin && selectedDate && (
+            <Collapsible open={showCounterEditor} onOpenChange={setShowCounterEditor}>
+              <CollapsibleTrigger asChild>
+                <Button variant="outline" size="sm" className="w-full gap-2 text-xs">
+                  <Gauge className="h-3.5 w-3.5" />
+                  Corrigir Horímetro / KM
+                </Button>
+              </CollapsibleTrigger>
+              <CollapsibleContent className="pt-2">
+                <AdminCountersEditor
+                  equipmentId={equipment.id}
+                  equipmentName={equipment.name}
+                  date={format(selectedDate, "yyyy-MM-dd")}
+                  inline
+                  onSaved={() => setShowCounterEditor(false)}
+                />
+              </CollapsibleContent>
+            </Collapsible>
+          )}
+
           <Button
             onClick={exportToPDF}
             disabled={isExporting || !selectedDate}
