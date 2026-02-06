@@ -96,13 +96,40 @@ export function GifAvatarCreator({ userId, onAvatarCreated }: GifAvatarCreatorPr
       canvas.height = CANVAS_SIZE;
       const ctx = canvas.getContext("2d")!;
 
-      // Build frames
+      // Build frames with cross-fade transitions
       const frames: { data: ImageData; delay: number }[] = [];
+      const TRANSITION_STEPS = 6;
+      const TRANSITION_FRAME_DELAY = 50; // ms per transition frame
 
+      // Pre-render all photos to ImageData
+      const photoFrames: ImageData[] = [];
       for (const photo of photos) {
         await loadImageOnCanvas(ctx, photo.preview);
-        const imageData = ctx.getImageData(0, 0, CANVAS_SIZE, CANVAS_SIZE);
-        frames.push({ data: imageData, delay: speed });
+        photoFrames.push(ctx.getImageData(0, 0, CANVAS_SIZE, CANVAS_SIZE));
+      }
+
+      for (let i = 0; i < photoFrames.length; i++) {
+        // Add the main frame (full photo displayed)
+        frames.push({ data: photoFrames[i], delay: speed });
+
+        // Add cross-fade transition to the next photo
+        const nextIndex = (i + 1) % photoFrames.length;
+        const currentData = photoFrames[i];
+        const nextData = photoFrames[nextIndex];
+
+        for (let step = 1; step <= TRANSITION_STEPS; step++) {
+          const alpha = step / (TRANSITION_STEPS + 1);
+          const blended = ctx.createImageData(CANVAS_SIZE, CANVAS_SIZE);
+
+          for (let p = 0; p < blended.data.length; p += 4) {
+            blended.data[p]     = Math.round(currentData.data[p]     * (1 - alpha) + nextData.data[p]     * alpha);
+            blended.data[p + 1] = Math.round(currentData.data[p + 1] * (1 - alpha) + nextData.data[p + 1] * alpha);
+            blended.data[p + 2] = Math.round(currentData.data[p + 2] * (1 - alpha) + nextData.data[p + 2] * alpha);
+            blended.data[p + 3] = Math.round(currentData.data[p + 3] * (1 - alpha) + nextData.data[p + 3] * alpha);
+          }
+
+          frames.push({ data: blended, delay: TRANSITION_FRAME_DELAY });
+        }
       }
 
       // Encode GIF
