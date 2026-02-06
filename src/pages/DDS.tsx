@@ -1,7 +1,7 @@
 import { useState, useMemo } from "react";
 import { format, parse, isWeekend, getDay } from "date-fns";
 import { ptBR } from "date-fns/locale";
-import { Shuffle, Calendar, Save, Trash2, Edit2, Sun, Shield, ChevronLeft, ChevronRight, Mail, Loader2, AtSign, Plus, User, UserPlus, BookOpen } from "lucide-react";
+import { Shuffle, Calendar, Save, Trash2, Edit2, Sun, Shield, ChevronLeft, ChevronRight, Loader2, AtSign, Plus, User, UserPlus, BookOpen } from "lucide-react";
 import Layout from "@/components/layout/Layout";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from "@/components/ui/card";
@@ -30,7 +30,7 @@ import {
   useTomorrowDDS,
 } from "@/hooks/useDDSSchedule";
 import { useCreateNotification } from "@/hooks/useNotifications";
-import { supabase } from "@/integrations/supabase/client";
+
 import { getBrazilNorthTodayString } from "@/lib/timezone";
 import { DDSThemesCard } from "@/components/dds/DDSThemesCard";
 import { formatCargoLabel } from "@/lib/cargoUtils";
@@ -77,8 +77,6 @@ export default function DDS() {
   const [newIsExternal, setNewIsExternal] = useState(false);
   const [newTheme, setNewTheme] = useState("");
   
-  // Notification state
-  const [isSendingNotification, setIsSendingNotification] = useState(false);
 
   // Helper to create DDS mention notification
   const notifyPresenter = async (userId: string, date: string, theme: string) => {
@@ -282,44 +280,6 @@ export default function DDS() {
     }
   };
 
-  const handleSendNotification = async () => {
-    if (!tomorrowDDS) {
-      toast.error("Não há DDS agendado para amanhã");
-      return;
-    }
-
-    setIsSendingNotification(true);
-    try {
-      // Send email notification
-      const { data, error } = await supabase.functions.invoke("notify-dds-presenter");
-
-      if (error) throw error;
-
-      // Also create in-app notification for the presenter
-      if (data?.sent && tomorrowDDS.presenter_user_id) {
-        const tomorrow = new Date();
-        tomorrow.setDate(tomorrow.getDate() + 1);
-        const formattedDate = format(tomorrow, "dd 'de' MMMM", { locale: ptBR });
-        
-        await createNotification.mutateAsync({
-          user_id: tomorrowDDS.presenter_user_id,
-          type: "dds_reminder",
-          title: "🔔 Lembrete: DDS de Amanhã!",
-          message: `Você foi notificado que é o palestrante do DDS de amanhã (${formattedDate}). Tema: "${tomorrowDDS.theme}"`,
-          reference_type: "dds_schedule",
-        });
-        
-        toast.success(`Notificação enviada para ${tomorrowDDS.presenter?.full_name || "o palestrante"}!`);
-      } else {
-        toast.info(data?.message || "Nenhuma notificação enviada");
-      }
-    } catch (error) {
-      console.error("Error sending notification:", error);
-      toast.error("Erro ao enviar notificação");
-    } finally {
-      setIsSendingNotification(false);
-    }
-  };
 
   if (profileLoading || adminLoading) {
     return (
@@ -457,19 +417,6 @@ export default function DDS() {
                 </AlertDialogContent>
               </AlertDialog>
 
-              <Button
-                variant="outline"
-                onClick={handleSendNotification}
-                disabled={isSendingNotification || !tomorrowDDS}
-                className="border-blue-500 text-blue-600 hover:bg-blue-50 dark:hover:bg-blue-950"
-              >
-                {isSendingNotification ? (
-                  <Loader2 className="h-4 w-4 mr-2 animate-spin" />
-                ) : (
-                  <Mail className="h-4 w-4 mr-2" />
-                )}
-                Notificar Palestrante de Amanhã
-              </Button>
             </CardContent>
           </Card>
         )}
