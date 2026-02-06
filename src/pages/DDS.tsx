@@ -9,6 +9,7 @@ import { Input } from "@/components/ui/input";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
+import { NeonAvatar } from "@/components/ui/NeonAvatar";
 import { Badge } from "@/components/ui/badge";
 import { Tabs, TabsList, TabsTrigger, TabsContent } from "@/components/ui/tabs";
 import { Label } from "@/components/ui/label";
@@ -478,12 +479,14 @@ export default function DDS() {
                           <TableCell>
                             {schedule?.presenter ? (
                               <div className="flex items-center gap-3">
-                                <Avatar className="h-8 w-8">
-                                  <AvatarImage src={schedule.presenter.avatar_url || undefined} />
-                                  <AvatarFallback className="text-xs bg-primary text-primary-foreground">
-                                    {getInitials(schedule.presenter.full_name)}
-                                  </AvatarFallback>
-                                </Avatar>
+                                <NeonAvatar
+                                  src={schedule.presenter.avatar_url}
+                                  name={schedule.presenter.full_name}
+                                  frameColor={schedule.presenter.frame_color}
+                                  neonColor={schedule.presenter.neon_color}
+                                  frameAnimation={schedule.presenter.frame_animation}
+                                  size="sm"
+                                />
                                 <div>
                                   <p className="font-medium text-sm">{schedule.presenter.full_name}</p>
                                   <p className="text-xs text-muted-foreground">
@@ -622,12 +625,14 @@ export default function DDS() {
                       {allProfiles?.map(p => (
                         <SelectItem key={p.user_id} value={p.user_id}>
                           <div className="flex items-center gap-2">
-                            <Avatar className="h-6 w-6">
-                              <AvatarImage src={p.avatar_url || undefined} />
-                              <AvatarFallback className="text-xs">
-                                {getInitials(p.full_name)}
-                              </AvatarFallback>
-                            </Avatar>
+                            <NeonAvatar
+                              src={p.avatar_url}
+                              name={p.full_name}
+                              frameColor={p.frame_color}
+                              neonColor={p.neon_color}
+                              frameAnimation={p.frame_animation}
+                              size="sm"
+                            />
                             {p.full_name}
                           </div>
                         </SelectItem>
@@ -724,12 +729,14 @@ export default function DDS() {
                       {allProfiles?.map(p => (
                         <SelectItem key={p.user_id} value={p.user_id}>
                           <div className="flex items-center gap-2">
-                            <Avatar className="h-6 w-6">
-                              <AvatarImage src={p.avatar_url || undefined} />
-                              <AvatarFallback className="text-xs">
-                                {getInitials(p.full_name)}
-                              </AvatarFallback>
-                            </Avatar>
+                            <NeonAvatar
+                              src={p.avatar_url}
+                              name={p.full_name}
+                              frameColor={p.frame_color}
+                              neonColor={p.neon_color}
+                              frameAnimation={p.frame_animation}
+                              size="sm"
+                            />
                             {p.full_name}
                           </div>
                         </SelectItem>

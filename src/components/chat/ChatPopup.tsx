@@ -1,5 +1,6 @@
 import { useState, useRef, useEffect } from "react";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
+import { NeonAvatar } from "@/components/ui/NeonAvatar";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { ScrollArea } from "@/components/ui/scroll-area";
@@ -147,12 +148,14 @@ export const ChatPopup = ({ user: selectedUser, onClose, onExpand }: ChatPopupPr
         onClick={() => setIsMinimized(!isMinimized)}
       >
         <div className="relative">
-          <Avatar className="h-8 w-8 border border-white/20">
-            <AvatarImage src={selectedUser.avatar_url || undefined} />
-            <AvatarFallback className="bg-[#00a884] text-white text-xs">
-              {getInitials(selectedUser.full_name)}
-            </AvatarFallback>
-          </Avatar>
+          <NeonAvatar
+            src={selectedUser.avatar_url}
+            name={selectedUser.full_name}
+            frameColor={selectedUser.frame_color}
+            neonColor={selectedUser.neon_color}
+            frameAnimation={selectedUser.frame_animation}
+            size="sm"
+          />
           {selectedUser.isOnline && (
             <span className="absolute -bottom-0.5 -right-0.5 w-2.5 h-2.5 bg-green-400 rounded-full border-2 border-[#008069] dark:border-[#1f2c34]" />
           )}
