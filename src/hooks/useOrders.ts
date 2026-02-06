@@ -305,7 +305,7 @@ export const useUpdateOrderStatus = () => {
       // Get current order
       const { data: currentOrder } = await supabase
         .from("orders")
-        .select("status, requester_id")
+        .select("status, requester_id, product_name, order_number")
         .eq("id", orderId)
         .single();
 
@@ -354,6 +354,21 @@ export const useUpdateOrderStatus = () => {
           type: "order",
           reference_id: orderId,
           reference_type: "order",
+        });
+
+        // Create on-screen announcement for the requester
+        const changerName = profile?.full_name || "Usuário";
+        const productName = currentOrder.product_name || "Pedido";
+        const orderNum = currentOrder.order_number || "";
+        const announcementContent = `Seu pedido "${productName}"${orderNum ? ` (Nº ${orderNum})` : ""} teve o status alterado para **${statusLabels[newStatus]}** por **${changerName}**.`;
+
+        await supabase.from("announcements").insert({
+          title: "📦 Atualização de Pedido",
+          content: announcementContent,
+          created_by: user.id,
+          target_type: "specific",
+          target_users: [currentOrder.requester_id],
+          published_at: new Date().toISOString(),
         });
       }
 
