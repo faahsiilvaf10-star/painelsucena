@@ -68,6 +68,9 @@ const SIDEBAR_FONTS = [
   { id: "clash", label: "Clash Display", family: "'Clash Display', sans-serif", preview: "Aa" },
   { id: "cabinet", label: "Cabinet Grotesk", family: "'Cabinet Grotesk', sans-serif", preview: "Aa" },
   { id: "satoshi", label: "Satoshi", family: "'Satoshi', sans-serif", preview: "Aa" },
+  { id: "great-vibes", label: "Great Vibes", family: "'Great Vibes', cursive", preview: "Aa" },
+  { id: "cormorant", label: "Cormorant Garamond", family: "'Cormorant Garamond', serif", preview: "Aa" },
+  { id: "josefin", label: "Josefin Sans", family: "'Josefin Sans', sans-serif", preview: "Aa" },
 ];
 
 export const SidebarCustomizer = ({
