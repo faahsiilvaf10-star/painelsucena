@@ -41,6 +41,7 @@ import { Button } from "@/components/ui/button";
 import { Separator } from "@/components/ui/separator";
 import { ScrollArea } from "@/components/ui/scroll-area";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
+import { NeonAvatar } from "@/components/ui/NeonAvatar";
 import { toast } from "sonner";
 import { SidebarBackground } from "./SidebarBackground";
 import { formatCargoLabel } from "@/lib/cargoUtils";
@@ -414,12 +415,13 @@ export function AppSidebar() {
           <>
             {/* User Info */}
             <div className="flex items-center gap-2 md:gap-3 p-2">
-              <Avatar className="w-10 h-10 md:w-9 md:h-9 flex-shrink-0">
-                <AvatarImage src={profile?.avatar_url || undefined} alt={profile?.full_name || "Usuário"} />
-                <AvatarFallback className="bg-primary text-primary-foreground text-sm font-bold">
-                  {getInitials()}
-                </AvatarFallback>
-              </Avatar>
+              <NeonAvatar
+                src={profile?.avatar_url}
+                name={profile?.full_name || "Usuário"}
+                frameColor={profile?.frame_color}
+                neonColor={profile?.neon_color}
+                size="sm"
+              />
               {!isCollapsed && (
                 <div className="flex-1 min-w-0">
                   <p className="text-sm font-semibold truncate text-sidebar-foreground">{profile?.full_name || "Usuário"}</p>
