@@ -4,7 +4,7 @@ const RADIO_STATIONS = [
   { id: "jbfm", name: "JB FM 99.9", genre: "Hits", url: "https://27343.live.streamtheworld.com/JBFM.mp3" },
   { id: "tiktok", name: "TikTok Hits", genre: "Viral", url: "https://ice5.somafm.com/poptron-128-mp3" },
   { id: "sertanejo", name: "Sertaneja Hits", genre: "Sertanejo", url: "https://live.hunter.fm/sertanejo_high" },
-  { id: "pagode", name: "Pagode Hits", genre: "Pagode", url: "https://stream.zeno.fm/49npbecg0qhvv" },
+  { id: "pagode", name: "Pagode Hits", genre: "Pagode", url: "https://live.hunter.fm/pagode_high" },
   { id: "gospel", name: "Gospel", genre: "Gospel", url: "https://stream.zeno.fm/yn65fsaurfhvv" },
 ];
 
