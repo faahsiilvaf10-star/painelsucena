@@ -34,6 +34,55 @@ function isLightColor(color?: string): boolean {
   return false;
 }
 
+// Shape configs per animation type
+function getShapeStyle(animation: string, size: number): React.CSSProperties {
+  switch (animation) {
+    case "stars":
+      return {
+        width: `${size * 2.5}px`,
+        height: `${size * 2.5}px`,
+        clipPath: "polygon(50% 0%, 61% 35%, 98% 35%, 68% 57%, 79% 91%, 50% 70%, 21% 91%, 32% 57%, 2% 35%, 39% 35%)",
+        borderRadius: "0",
+      };
+    case "rain":
+      return {
+        width: `${size * 0.6}px`,
+        height: `${size * 2.5}px`,
+        borderRadius: "50% 50% 50% 50% / 60% 60% 40% 40%",
+        clipPath: "none",
+      };
+    case "snow":
+      return {
+        width: `${size * 2}px`,
+        height: `${size * 2}px`,
+        borderRadius: "50%",
+        clipPath: "none",
+        boxShadow: "inset 0 0 2px rgba(255,255,255,0.3)",
+      };
+    case "fireflies":
+      return {
+        width: `${size * 1.5}px`,
+        height: `${size * 1.5}px`,
+        borderRadius: "50%",
+        clipPath: "none",
+        filter: "blur(0.5px)",
+      };
+    case "matrix":
+      return {
+        width: `${size * 0.8}px`,
+        height: `${size * 2}px`,
+        borderRadius: "1px",
+        clipPath: "none",
+      };
+    default: // particles
+      return {
+        width: `${size}px`,
+        height: `${size}px`,
+        borderRadius: "50%",
+      };
+  }
+}
+
 export function SidebarBackground({ animation = "particles", bgColor }: SidebarBackgroundProps) {
   const particles = useMemo(() => generateParticles(40), []);
   const light = isLightColor(bgColor);
@@ -63,22 +112,23 @@ export function SidebarBackground({ animation = "particles", bgColor }: SidebarB
 
   return (
     <div className="absolute inset-0 z-0 overflow-hidden pointer-events-none">
-      {/* Animated particles */}
-      {particles.map((particle) => (
-        <div
-          key={particle.id}
-          className={`absolute rounded-full ${particleColorClass} ${animationClass}`}
-          style={{
-            left: `${particle.x}%`,
-            top: `${particle.y}%`,
-            width: `${particle.size}px`,
-            height: `${particle.size}px`,
-            opacity: particle.opacity,
-            animationDuration: `${particle.duration}s`,
-            animationDelay: `${particle.delay}s`,
-          }}
-        />
-      ))}
+      {particles.map((particle) => {
+        const shapeStyle = getShapeStyle(animation, particle.size);
+        return (
+          <div
+            key={particle.id}
+            className={`absolute ${particleColorClass} ${animationClass}`}
+            style={{
+              left: `${particle.x}%`,
+              top: `${particle.y}%`,
+              opacity: particle.opacity,
+              animationDuration: `${particle.duration}s`,
+              animationDelay: `${particle.delay}s`,
+              ...shapeStyle,
+            }}
+          />
+        );
+      })}
 
       {/* Animation keyframes */}
       <style>{`
@@ -91,8 +141,8 @@ export function SidebarBackground({ animation = "particles", bgColor }: SidebarB
         .animate-sidebar-particles { animation: sidebar-particles ease-in-out infinite; }
 
         @keyframes sidebar-stars {
-          0%, 100% { transform: scale(1); opacity: 0.1; }
-          50% { transform: scale(1.8); opacity: 0.6; }
+          0%, 100% { transform: scale(1) rotate(0deg); opacity: 0.1; }
+          50% { transform: scale(1.8) rotate(36deg); opacity: 0.6; }
         }
         .animate-sidebar-stars { animation: sidebar-stars ease-in-out infinite; }
 
@@ -104,17 +154,17 @@ export function SidebarBackground({ animation = "particles", bgColor }: SidebarB
         .animate-sidebar-rain { animation: sidebar-rain linear infinite; }
 
         @keyframes sidebar-fireflies {
-          0%, 100% { transform: translate(0, 0) scale(1); opacity: 0.2; }
-          25% { transform: translate(10px, -15px) scale(1.5); opacity: 0.7; }
-          50% { transform: translate(-5px, -25px) scale(0.8); opacity: 0.4; }
-          75% { transform: translate(8px, -10px) scale(1.3); opacity: 0.8; }
+          0%, 100% { transform: translate(0, 0) scale(1); opacity: 0.2; box-shadow: 0 0 2px 1px rgba(255,180,0,0.3); }
+          25% { transform: translate(10px, -15px) scale(1.5); opacity: 0.7; box-shadow: 0 0 6px 3px rgba(255,180,0,0.5); }
+          50% { transform: translate(-5px, -25px) scale(0.8); opacity: 0.4; box-shadow: 0 0 3px 1px rgba(255,180,0,0.2); }
+          75% { transform: translate(8px, -10px) scale(1.3); opacity: 0.8; box-shadow: 0 0 8px 4px rgba(255,180,0,0.6); }
         }
         .animate-sidebar-fireflies { animation: sidebar-fireflies ease-in-out infinite; }
 
         @keyframes sidebar-snow {
-          0% { transform: translateY(-5px) translateX(0); opacity: 0; }
+          0% { transform: translateY(-5px) translateX(0) rotate(0deg); opacity: 0; }
           10% { opacity: 0.6; }
-          100% { transform: translateY(100vh) translateX(20px); opacity: 0; }
+          100% { transform: translateY(100vh) translateX(20px) rotate(360deg); opacity: 0; }
         }
         .animate-sidebar-snow { animation: sidebar-snow linear infinite; }
 
