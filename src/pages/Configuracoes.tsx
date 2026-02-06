@@ -12,6 +12,8 @@ import { toast } from "sonner";
 import { User, Mail, Lock, Camera, Upload, Eye, EyeOff, ArrowLeft, Check } from "lucide-react";
 import { z } from "zod";
 import { AnnouncementHistory } from "@/components/settings/AnnouncementHistory";
+import { NeonFramePicker } from "@/components/settings/NeonFramePicker";
+import { NeonAvatar } from "@/components/ui/NeonAvatar";
 import { SessionDurationSetting } from "@/components/settings/SessionDurationSetting";
 
 const nameSchema = z.string().trim().min(2, "Nome deve ter pelo menos 2 caracteres").max(100, "Nome deve ter no máximo 100 caracteres");
@@ -30,6 +32,8 @@ const Configuracoes = () => {
   const [newPassword, setNewPassword] = useState("");
   const [confirmPassword, setConfirmPassword] = useState("");
   const [avatarUrl, setAvatarUrl] = useState<string | null>(null);
+  const [frameColor, setFrameColor] = useState<string | null>(null);
+  const [neonColor, setNeonColor] = useState<string | null>(null);
 
   // UI states
   const [showCurrentPassword, setShowCurrentPassword] = useState(false);
@@ -49,13 +53,15 @@ const Configuracoes = () => {
 
       const { data: profile } = await supabase
         .from("profiles")
-        .select("full_name, avatar_url")
+        .select("full_name, avatar_url, frame_color, neon_color")
         .eq("user_id", user.id)
         .maybeSingle();
 
       if (profile) {
         setFullName(profile.full_name || "");
         setAvatarUrl(profile.avatar_url);
+        setFrameColor(profile.frame_color || null);
+        setNeonColor(profile.neon_color || null);
       }
     };
 
@@ -238,23 +244,17 @@ const Configuracoes = () => {
             <CardContent>
               <div className="flex items-center gap-6">
                 <div className="relative">
-                  <div className="w-24 h-24 rounded-full bg-primary flex items-center justify-center overflow-hidden border-4 border-border">
-                    {avatarUrl ? (
-                      <img
-                        src={avatarUrl}
-                        alt="Avatar"
-                        className="w-full h-full object-cover"
-                      />
-                    ) : (
-                      <span className="text-2xl font-bold text-primary-foreground">
-                        {getInitials()}
-                      </span>
-                    )}
-                  </div>
+                  <NeonAvatar
+                    src={avatarUrl}
+                    name={fullName || "U"}
+                    frameColor={frameColor}
+                    neonColor={neonColor}
+                    size="lg"
+                  />
                   <button
                     onClick={() => fileInputRef.current?.click()}
                     disabled={isUploadingAvatar}
-                    className="absolute bottom-0 right-0 w-8 h-8 bg-primary text-primary-foreground rounded-full flex items-center justify-center hover:bg-primary/90 transition-colors"
+                    className="absolute bottom-0 right-0 w-8 h-8 bg-primary text-primary-foreground rounded-full flex items-center justify-center hover:bg-primary/90 transition-colors z-20"
                   >
                     {isUploadingAvatar ? (
                       <div className="w-4 h-4 border-2 border-current border-t-transparent rounded-full animate-spin" />
@@ -286,6 +286,17 @@ const Configuracoes = () => {
               </div>
             </CardContent>
           </Card>
+
+          {/* Neon Frame Picker */}
+          {user && (
+            <NeonFramePicker
+              userId={user.id}
+              avatarUrl={avatarUrl}
+              fullName={fullName}
+              currentFrameColor={frameColor}
+              currentNeonColor={neonColor}
+            />
+          )}
 
           {/* Name */}
           <Card>
