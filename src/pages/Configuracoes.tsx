@@ -34,6 +34,7 @@ const Configuracoes = () => {
   const [avatarUrl, setAvatarUrl] = useState<string | null>(null);
   const [frameColor, setFrameColor] = useState<string | null>(null);
   const [neonColor, setNeonColor] = useState<string | null>(null);
+  const [frameAnimation, setFrameAnimation] = useState<string | null>(null);
 
   // UI states
   const [showCurrentPassword, setShowCurrentPassword] = useState(false);
@@ -53,7 +54,7 @@ const Configuracoes = () => {
 
       const { data: profile } = await supabase
         .from("profiles")
-        .select("full_name, avatar_url, frame_color, neon_color")
+        .select("full_name, avatar_url, frame_color, neon_color, frame_animation")
         .eq("user_id", user.id)
         .maybeSingle();
 
@@ -62,6 +63,7 @@ const Configuracoes = () => {
         setAvatarUrl(profile.avatar_url);
         setFrameColor(profile.frame_color || null);
         setNeonColor(profile.neon_color || null);
+        setFrameAnimation(profile.frame_animation || null);
       }
     };
 
@@ -249,6 +251,7 @@ const Configuracoes = () => {
                     name={fullName || "U"}
                     frameColor={frameColor}
                     neonColor={neonColor}
+                    frameAnimation={frameAnimation}
                     size="lg"
                   />
                   <button
@@ -295,6 +298,7 @@ const Configuracoes = () => {
               fullName={fullName}
               currentFrameColor={frameColor}
               currentNeonColor={neonColor}
+              currentFrameAnimation={frameAnimation}
             />
           )}
 
