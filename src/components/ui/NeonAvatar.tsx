@@ -12,21 +12,21 @@ interface NeonAvatarProps {
 const sizeConfig = {
   sm: {
     outer: 40,
-    inner: 32,
+    inner: 34,
     border: 3,
     glow: 8,
     text: "text-xs",
   },
   md: {
     outer: 56,
-    inner: 46,
+    inner: 48,
     border: 4,
     glow: 12,
     text: "text-sm",
   },
   lg: {
     outer: 112,
-    inner: 96,
+    inner: 100,
     border: 6,
     glow: 20,
     text: "text-xl",
@@ -113,17 +113,7 @@ export const NeonAvatar = ({
         />
       )}
 
-      {/* Inner bg to create border effect */}
-      {hasFrame && (
-        <div
-          className="absolute rounded-full bg-background"
-          style={{
-            inset: config.border,
-          }}
-        />
-      )}
-
-      {/* Avatar — exactly inside frame */}
+      {/* Avatar — flush against frame, no gap */}
       <Avatar
         className="relative z-10"
         style={{
