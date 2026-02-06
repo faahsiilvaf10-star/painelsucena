@@ -6,7 +6,7 @@ const RADIO_STATIONS = [
   { id: "sertanejo", name: "Sertaneja Hits", genre: "Sertanejo", url: "https://live.hunter.fm/sertanejo_high" },
   { id: "pagode", name: "Pagode Hits", genre: "Pagode", url: "https://live.hunter.fm/pagode_high" },
   { id: "gospel", name: "Gospel", genre: "Gospel", url: "https://stream.zeno.fm/yn65fsaurfhvv" },
-  { id: "piseiro", name: "Piseiro", genre: "Piseiro", url: "https://stream.zeno.fm/paredaopiseiro" },
+  { id: "piseiro", name: "Piseiro", genre: "Piseiro", url: "https://stream.zeno.fm/paredao-piseiro" },
 ];
 
 export type RadioStation = typeof RADIO_STATIONS[0];
