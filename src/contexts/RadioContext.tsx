@@ -1,7 +1,7 @@
 import { createContext, useContext, useState, useRef, useEffect, ReactNode, useCallback } from "react";
 
 const RADIO_STATIONS = [
-  { id: "jbfm", name: "JB FM 99.9", genre: "Hits", url: "https://27343.live.streamtheworld.com/JBFM.mp3" },
+  { id: "liberal", name: "Liberal FM", genre: "Hits", url: "https://stream.zeno.fm/a02t530hqzzuv" },
   { id: "tiktok", name: "TikTok Hits", genre: "Viral", url: "https://ice5.somafm.com/poptron-128-mp3" },
   { id: "sertanejo", name: "Sertaneja Hits", genre: "Sertanejo", url: "https://live.hunter.fm/sertanejo_high" },
   { id: "pagode", name: "Pagode Hits", genre: "Pagode", url: "https://live.hunter.fm/pagode_high" },
