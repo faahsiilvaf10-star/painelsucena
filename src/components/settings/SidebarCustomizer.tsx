@@ -107,7 +107,8 @@ export const SidebarCustomizer = ({
 
       if (error) throw error;
       
-      queryClient.invalidateQueries({ queryKey: ["profile", userId] });
+      await queryClient.invalidateQueries({ queryKey: ["profile"] });
+      await queryClient.refetchQueries({ queryKey: ["profile", userId] });
       toast.success("Personalização da sidebar salva!");
     } catch (error: any) {
       toast.error("Erro ao salvar: " + error.message);
@@ -137,7 +138,8 @@ export const SidebarCustomizer = ({
 
       if (error) throw error;
       
-      queryClient.invalidateQueries({ queryKey: ["profile", userId] });
+      await queryClient.invalidateQueries({ queryKey: ["profile"] });
+      await queryClient.refetchQueries({ queryKey: ["profile", userId] });
       toast.success("Sidebar restaurada ao padrão!");
     } catch (error: any) {
       toast.error("Erro ao restaurar: " + error.message);
