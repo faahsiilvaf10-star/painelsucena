@@ -14,6 +14,7 @@ import { z } from "zod";
 import { AnnouncementHistory } from "@/components/settings/AnnouncementHistory";
 import { NeonFramePicker } from "@/components/settings/NeonFramePicker";
 import { GifAvatarCreator } from "@/components/settings/GifAvatarCreator";
+import { SidebarCustomizer } from "@/components/settings/SidebarCustomizer";
 import { NeonAvatar } from "@/components/ui/NeonAvatar";
 import { SessionDurationSetting } from "@/components/settings/SessionDurationSetting";
 
@@ -36,6 +37,8 @@ const Configuracoes = () => {
   const [frameColor, setFrameColor] = useState<string | null>(null);
   const [neonColor, setNeonColor] = useState<string | null>(null);
   const [frameAnimation, setFrameAnimation] = useState<string | null>(null);
+  const [sidebarColor, setSidebarColor] = useState<string | null>(null);
+  const [sidebarAnimation, setSidebarAnimation] = useState<string | null>(null);
 
   // UI states
   const [showCurrentPassword, setShowCurrentPassword] = useState(false);
@@ -55,7 +58,7 @@ const Configuracoes = () => {
 
       const { data: profile } = await supabase
         .from("profiles")
-        .select("full_name, avatar_url, frame_color, neon_color, frame_animation")
+        .select("full_name, avatar_url, frame_color, neon_color, frame_animation, sidebar_color, sidebar_animation")
         .eq("user_id", user.id)
         .maybeSingle();
 
@@ -65,6 +68,8 @@ const Configuracoes = () => {
         setFrameColor(profile.frame_color || null);
         setNeonColor(profile.neon_color || null);
         setFrameAnimation(profile.frame_animation || null);
+        setSidebarColor(profile.sidebar_color || null);
+        setSidebarAnimation(profile.sidebar_animation || null);
       }
     };
 
@@ -454,6 +459,15 @@ const Configuracoes = () => {
               </Button>
             </CardContent>
           </Card>
+
+          {/* Sidebar Customizer */}
+          {user && (
+            <SidebarCustomizer
+              userId={user.id}
+              currentSidebarColor={sidebarColor}
+              currentSidebarAnimation={sidebarAnimation}
+            />
+          )}
 
           {/* Announcement History */}
           <AnnouncementHistory />
