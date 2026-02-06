@@ -505,22 +505,6 @@ const Auth = () => {
           </Button>
         </form>
 
-        {/* Toggle login/signup */}
-        <div className="mt-5 text-center">
-          <p className="text-white/60 text-xs">
-            {isLogin ? "Novo por aqui?" : "Já tem uma conta?"}{" "}
-            <button
-              type="button"
-              onClick={() => {
-                setIsLogin(!isLogin);
-                setErrors({});
-              }}
-              className="text-white/90 font-medium hover:underline"
-            >
-              {isLogin ? "Cadastre-se" : "Faça login"}
-            </button>
-          </p>
-        </div>
       </div>
     </div>
   );
