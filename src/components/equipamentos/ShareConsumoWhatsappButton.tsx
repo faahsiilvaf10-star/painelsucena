@@ -67,28 +67,28 @@ export function ShareConsumoWhatsappButton({
     const mediaLitros = totalAbastecimentos > 0 ? Math.round(totalLitros / totalAbastecimentos) : 0;
 
     // Build message with WhatsApp compatible UTF-16 surrogate pairs
-    let message = `\uD83D\uDCCA *RELAT\u00D3RIO DE ABASTECIMENTOS DE \u00C1GUA*\n`;
-    message += `\uD83D\uDCC5 Per\u00EDodo: ${filterDescription}\n\n`;
+    let message = `📊 *RELATÓRIO DE ABASTECIMENTOS DE ÁGUA*\n`;
+    message += `📅 Período: ${filterDescription}\n\n`;
     
-    message += `\uD83D\uDCC8 *RESUMO GERAL*\n`;
-    message += `\u2022 Total de Abastecimentos: ${totalAbastecimentos}\n`;
-    message += `\u2022 Volume Total: ${totalLitros.toLocaleString("pt-BR")} L\n`;
-    message += `\u2022 M\u00E9dia por Abastecimento: ${mediaLitros.toLocaleString("pt-BR")} L\n\n`;
+    message += `📈 *RESUMO GERAL*\n`;
+    message += `• Total de Abastecimentos: ${totalAbastecimentos}\n`;
+    message += `• Volume Total: ${totalLitros.toLocaleString("pt-BR")} L\n`;
+    message += `• Média por Abastecimento: ${mediaLitros.toLocaleString("pt-BR")} L\n\n`;
 
     // Points summary
     if (refuelingByPoint.length > 0) {
-      message += `\uD83D\uDEB0 *ABASTECIMENTOS POR PONTO*\n`;
+      message += `🚰 *ABASTECIMENTOS POR PONTO*\n`;
       refuelingByPoint.forEach(p => {
-        message += `\u2022 ${p.point}: ${p.count} abast. (${p.liters.toLocaleString("pt-BR")} L)\n`;
+        message += `• ${p.point}: ${p.count} abast. (${p.liters.toLocaleString("pt-BR")} L)\n`;
       });
       message += `\n`;
     }
 
     // Vehicle summary
     if (refuelingByVehicle.length > 0) {
-      message += `\uD83D\uDE9B *CONSUMO POR VE\u00CDCULO*\n`;
+      message += `🚛 *CONSUMO POR VEÍCULO*\n`;
       refuelingByVehicle.forEach(v => {
-        message += `\u2022 ${v.vehicleName}: ${v.count} abast. (${v.liters.toLocaleString("pt-BR")} L)\n`;
+        message += `• ${v.vehicleName}: ${v.count} abast. (${v.liters.toLocaleString("pt-BR")} L)\n`;
       });
       message += `\n`;
     }
@@ -96,9 +96,9 @@ export function ShareConsumoWhatsappButton({
     // Daily details (limit to last 10 records to avoid too long message)
     const recentRecords = dailyRecords.slice(-10);
     if (recentRecords.length > 0) {
-      message += `\uD83D\uDCCB *\u00DALTIMOS REGISTROS*\n`;
+      message += `📋 *ÚLTIMOS REGISTROS*\n`;
       recentRecords.forEach(r => {
-        message += `\u2022 ${r.formattedDate} - ${r.vehicleName} @ ${r.point}: ${r.liters.toLocaleString("pt-BR")} L\n`;
+        message += `• ${r.formattedDate} - ${r.vehicleName} @ ${r.point}: ${r.liters.toLocaleString("pt-BR")} L\n`;
       });
       if (dailyRecords.length > 10) {
         message += `... e mais ${dailyRecords.length - 10} registros\n`;

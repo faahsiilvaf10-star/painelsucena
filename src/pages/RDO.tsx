@@ -357,52 +357,52 @@ export default function RDO() {
     const gabiaoFromReport = formatGabiaoForRDO(gabiaoReport);
 
     // Using Unicode escape sequences for WhatsApp compatibility
-    const report = `\uD83C\uDFD7\uFE0F EMPRESA: ${headerInfo.empresa}
+    const report = `🏗️ EMPRESA: ${headerInfo.empresa}
 
-\uD83D\uDCC4 CONTRATO - ${headerInfo.contrato}
+📄 CONTRATO - ${headerInfo.contrato}
 
-\u27A1\uFE0F GERÊNCIA: ${headerInfo.gerencia}
+➡️ GERÊNCIA: ${headerInfo.gerencia}
 
-\u27A1\uFE0F LIDERANÇA: ${headerInfo.lideranca}
+➡️ LIDERANÇA: ${headerInfo.lideranca}
 
-\u27A1\uFE0F TST: ${headerInfo.tst}
+➡️ TST: ${headerInfo.tst}
 
-\u27A1\uFE0F LOCAL: ${headerInfo.local}
+➡️ LOCAL: ${headerInfo.local}
 
-\u27A1\uFE0F DATA: ${capitalizedDate}
+➡️ DATA: ${capitalizedDate}
 
-\u27A1\uFE0F HORÁRIO: ${headerInfo.horario}
+➡️ HORÁRIO: ${headerInfo.horario}
 
-\u27A1\uFE0F DDS: ${ddsText}
+➡️ DDS: ${ddsText}
 
-\uD83D\uDEE0\uFE0F ATIVIDADES:
+🛠️ ATIVIDADES:
 
 *Jardinagem e Gabiões*
 
      *Jardinagem*
 ${jardinagemFromReport}
 
-\uD83D\uDC77 Efetivo \uD83D\uDC77
+👷 Efetivo 👷
 ${jardinagemWorkforce}
 
     *Manutenção De Gabião*
 
 ${gabiaoFromReport}
 
-\uD83D\uDC77 Efetivo \uD83D\uDC77
+👷 Efetivo 👷
 ${gabiaoWorkforce}
 
-\u2705 EQUIPAMENTOS EM OPERAÇÃO (${dynamicEquipment.length + 2})
+✅ EQUIPAMENTOS EM OPERAÇÃO (${dynamicEquipment.length + 2})
 ${operatingEquipmentText}
 
-\u2705 Equipamentos Jardinagem na Obra (${jardinagemEquipmentSummary.total})
+✅ Equipamentos Jardinagem na Obra (${jardinagemEquipmentSummary.total})
 ${jardinagemEquipmentText}
 
 Condições climáticas:
-\u2022 MANHÃ = ${weatherLabels[weatherMorning]}
-\u2022 TARDE = ${weatherLabels[weatherAfternoon]}
+• MANHÃ = ${weatherLabels[weatherMorning]}
+• TARDE = ${weatherLabels[weatherAfternoon]}
 
-\u26A0\uFE0F DIFICULDADES/DESVIOS
+⚠️ DIFICULDADES/DESVIOS
 ${difficulties}`;
 
     return report;

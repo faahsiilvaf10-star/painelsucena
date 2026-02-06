@@ -34,7 +34,7 @@ export const useCampaignNotifications = () => {
       // Create notification in database
       const { error } = await supabase.from("notifications").insert({
         user_id: user.id,
-        title: `\uD83C\uDF97\uFE0F Campanhas de ${monthData.monthName}`,
+        title: `🎗️ Campanhas de ${monthData.monthName}`,
         message: `Este mês celebramos: ${campaignNames}. As cores são ${campaignColors}. Clique para saber mais sobre cada campanha.`,
         type: "campaign",
         reference_type: "campaign",

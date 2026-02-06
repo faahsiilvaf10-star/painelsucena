@@ -85,7 +85,7 @@ export default function DDS() {
       await createNotification.mutateAsync({
         user_id: userId,
         type: "dds_mention",
-        title: "\uD83D\uDCE2 Voc\u00EA foi mencionado como palestrante!",
+        title: "📢 Você foi mencionado como palestrante!",
         message: `Você foi designado para apresentar o DDS do dia ${formattedDate}. Tema: "${theme}"`,
         reference_type: "dds_schedule",
       });

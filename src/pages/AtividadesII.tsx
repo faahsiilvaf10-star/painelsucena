@@ -435,9 +435,9 @@ export default function AtividadesII() {
       fullLocalServico += ` - Elevado ${elevado}`;
     }
     
-    let summary = `\uD83D\uDCC5 *RDO GABI\u00C3O - ${formattedDate}*\n\n`;
-    summary += `\uD83D\uDCCD *Local:* ${fullLocalServico}\n\n`;
-    summary += `\uD83D\uDD27 *Atividades Realizadas:*\n`;
+    let summary = `📅 *RDO GABIÃO - ${formattedDate}*\n\n`;
+    summary += `📍 *Local:* ${fullLocalServico}\n\n`;
+    summary += `🔧 *Atividades Realizadas:*\n`;
     
     const activities = getPreviewText();
     if (activities.length > 0) {
