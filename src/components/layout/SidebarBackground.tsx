@@ -10,10 +10,6 @@ interface Particle {
   opacity: number;
 }
 
-interface SidebarBackgroundProps {
-  animation?: string;
-}
-
 function generateParticles(count: number): Particle[] {
   return Array.from({ length: count }, (_, i) => ({
     id: i,
@@ -26,22 +22,44 @@ function generateParticles(count: number): Particle[] {
   }));
 }
 
-export function SidebarBackground({ animation = "particles" }: SidebarBackgroundProps) {
+interface SidebarBackgroundProps {
+  animation?: string;
+  bgColor?: string;
+}
+
+function isLightColor(color?: string): boolean {
+  if (!color) return false;
+  const match = color.match(/hsl\(\s*[\d.]+\s*,\s*[\d.]+%?\s*,\s*([\d.]+)%?\s*\)/);
+  if (match) return parseFloat(match[1]) > 50;
+  return false;
+}
+
+export function SidebarBackground({ animation = "particles", bgColor }: SidebarBackgroundProps) {
   const particles = useMemo(() => generateParticles(40), []);
+  const light = isLightColor(bgColor);
 
   if (animation === "none") {
     return null;
   }
 
   const animationClass = `animate-sidebar-${animation}`;
-  const particleColorClass = {
-    particles: "bg-white/20",
-    stars: "bg-yellow-200/40",
-    rain: "bg-blue-300/30",
-    fireflies: "bg-amber-300/50",
-    snow: "bg-white/40",
-    matrix: "bg-green-400/40",
-  }[animation] || "bg-white/20";
+  const particleColorClass = light
+    ? {
+        particles: "bg-black/15",
+        stars: "bg-amber-600/30",
+        rain: "bg-blue-600/25",
+        fireflies: "bg-orange-500/40",
+        snow: "bg-gray-500/25",
+        matrix: "bg-green-700/35",
+      }[animation] || "bg-black/15"
+    : {
+        particles: "bg-white/20",
+        stars: "bg-yellow-200/40",
+        rain: "bg-blue-300/30",
+        fireflies: "bg-amber-300/50",
+        snow: "bg-white/40",
+        matrix: "bg-green-400/40",
+      }[animation] || "bg-white/20";
 
   return (
     <div className="absolute inset-0 z-0 overflow-hidden pointer-events-none">
