@@ -481,8 +481,26 @@ export function ExportEquipmentPdfButton({
         .limit(1)
         .maybeSingle();
 
-      // Only show final values if shift has ended
-      const shiftEnded = !!shiftRecord?.shift_end_time;
+      // Fallback: if no initial values for today, use previous day's final values
+      let fallbackInitialHorimeter: number | null = null;
+      let fallbackInitialKm: number | null = null;
+      let fallbackInitialFuel: string | null = null;
+      if (!shiftRecord?.initial_horimeter && !shiftRecord?.initial_km) {
+        const { data: prevShift } = await supabase
+          .from("daily_shift_records")
+          .select("final_horimeter, final_km, final_fuel_level")
+          .eq("equipment_id", equipment.id)
+          .lt("shift_date", today)
+          .not("final_horimeter", "is", null)
+          .order("shift_date", { ascending: false })
+          .limit(1)
+          .maybeSingle();
+        if (prevShift) {
+          fallbackInitialHorimeter = prevShift.final_horimeter ? Number(prevShift.final_horimeter) : null;
+          fallbackInitialKm = prevShift.final_km ? Number(prevShift.final_km) : null;
+          fallbackInitialFuel = prevShift.final_fuel_level ?? null;
+        }
+      }
 
       // Determine driver name with fallback logic:
       // 1. Use equipment.driver if available
@@ -597,11 +615,11 @@ export function ExportEquipmentPdfButton({
         helperName,
         helperLabel: equipment.equipment_type === "munk" ? "SINALEIRO" : "AJUDANTE",
         activities,
-        initialFuelLevel: shiftRecord?.initial_fuel_level ?? null,
+        initialFuelLevel: shiftRecord?.initial_fuel_level ?? fallbackInitialFuel,
         finalFuelLevel: shiftRecord?.final_fuel_level ?? null,
-        initialKm: shiftRecord?.initial_km ?? null,
+        initialKm: shiftRecord?.initial_km ?? fallbackInitialKm,
         finalKm: shiftRecord?.final_km ?? null,
-        initialHorimeter: shiftRecord?.initial_horimeter ?? null,
+        initialHorimeter: shiftRecord?.initial_horimeter ?? fallbackInitialHorimeter,
         finalHorimeter: shiftRecord?.final_horimeter ?? null,
       });
 
