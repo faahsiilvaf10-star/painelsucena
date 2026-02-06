@@ -1,12 +1,12 @@
 import { createContext, useContext, useState, useRef, useEffect, ReactNode, useCallback } from "react";
 
 const RADIO_STATIONS = [
-  { id: "liberal", name: "Liberal FM", genre: "Hits", url: "https://stream.zeno.fm/br.liberalfm975" },
+  { id: "liberal", name: "Liberal FM", genre: "Hits", url: "https://stream.zeno.fm/4d6hhyp8cv8uv" },
   { id: "reggaeton", name: "Reggaeton", genre: "Reggaeton", url: "https://stream.zeno.fm/8wup8yd9dm0uv" },
   { id: "sertanejo", name: "Sertaneja Hits", genre: "Sertanejo", url: "https://live.hunter.fm/sertanejo_high" },
   { id: "pagode", name: "Pagode Hits", genre: "Pagode", url: "https://live.hunter.fm/pagode_high" },
   { id: "gospel", name: "Gospel", genre: "Gospel", url: "https://stream.zeno.fm/yn65fsaurfhvv" },
-  { id: "piseiro", name: "Piseiro", genre: "Piseiro", url: "https://stream.zeno.fm/paredaopiseiro" },
+  { id: "piseiro", name: "Piseiro", genre: "Piseiro", url: "https://stream.zeno.fm/f3wvnrg2e98uv" },
 ];
 
 export type RadioStation = typeof RADIO_STATIONS[0];
