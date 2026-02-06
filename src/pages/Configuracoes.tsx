@@ -13,6 +13,7 @@ import { User, Mail, Lock, Camera, Upload, Eye, EyeOff, ArrowLeft, Check } from 
 import { z } from "zod";
 import { AnnouncementHistory } from "@/components/settings/AnnouncementHistory";
 import { NeonFramePicker } from "@/components/settings/NeonFramePicker";
+import { GifAvatarCreator } from "@/components/settings/GifAvatarCreator";
 import { NeonAvatar } from "@/components/ui/NeonAvatar";
 import { SessionDurationSetting } from "@/components/settings/SessionDurationSetting";
 
@@ -299,6 +300,14 @@ const Configuracoes = () => {
               currentFrameColor={frameColor}
               currentNeonColor={neonColor}
               currentFrameAnimation={frameAnimation}
+            />
+          )}
+
+          {/* GIF Avatar Creator */}
+          {user && (
+            <GifAvatarCreator
+              userId={user.id}
+              onAvatarCreated={(url) => setAvatarUrl(url)}
             />
           )}
 
