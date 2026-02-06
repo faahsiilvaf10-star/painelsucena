@@ -3,7 +3,7 @@ import { useAllUsers, UserWithStatus } from "@/hooks/useAllUsers";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { NeonAvatar } from "@/components/ui/NeonAvatar";
 import { Badge } from "@/components/ui/badge";
-import { Radio, VolumeX, Volume2, Play, ChevronDown, Circle } from "lucide-react";
+import { Radio, VolumeX, Volume2, Play, ChevronDown, Circle, RefreshCw } from "lucide-react";
 import { cn } from "@/lib/utils";
 import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover";
 import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from "@/components/ui/tooltip";
@@ -107,7 +107,39 @@ export const OnlineUsersFooter = ({
           </Popover>
         </div>
 
-        
+        {/* Reload & Clear Visual Cache */}
+        <div className="h-6 w-px bg-border shrink-0" />
+        <Tooltip>
+          <TooltipTrigger asChild>
+            <button
+              onClick={() => {
+                if ('caches' in window) {
+                  caches.keys().then(names => {
+                    names.forEach(name => caches.delete(name));
+                  });
+                }
+                const keysToRemove: string[] = [];
+                for (let i = 0; i < localStorage.length; i++) {
+                  const key = localStorage.key(i);
+                  if (key && (key.startsWith('theme') || key.startsWith('sidebar') || key.startsWith('vite-'))) {
+                    keysToRemove.push(key);
+                  }
+                }
+                keysToRemove.forEach(k => localStorage.removeItem(k));
+                window.location.reload();
+              }}
+              className="flex items-center gap-1 px-2 py-1 rounded-full text-muted-foreground hover:text-foreground hover:bg-secondary transition-colors shrink-0 min-h-[36px] md:min-h-[auto]"
+              aria-label="Recarregar e limpar cache visual"
+            >
+              <RefreshCw className="h-3.5 w-3.5" />
+              <span className="text-[10px] font-medium hidden sm:inline">Recarregar</span>
+            </button>
+          </TooltipTrigger>
+          <TooltipContent side="top" className="bg-card border hidden sm:block">
+            <p className="text-xs">Recarregar e limpar cache visual</p>
+          </TooltipContent>
+        </Tooltip>
+
 
         {/* Users Section with Popover */}
         <Popover open={usersPopoverOpen} onOpenChange={setUsersPopoverOpen}>
