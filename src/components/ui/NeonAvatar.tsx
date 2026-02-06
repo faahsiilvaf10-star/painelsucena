@@ -11,25 +11,25 @@ interface NeonAvatarProps {
 
 const sizeConfig = {
   sm: {
-    container: "w-10 h-10",
-    avatar: "w-8 h-8",
+    outer: 40,
+    inner: 32,
+    border: 3,
+    glow: 8,
     text: "text-xs",
-    border: 2,
-    glow: 6,
   },
   md: {
-    container: "w-14 h-14",
-    avatar: "w-11 h-11",
+    outer: 56,
+    inner: 46,
+    border: 4,
+    glow: 12,
     text: "text-sm",
-    border: 3,
-    glow: 10,
   },
   lg: {
-    container: "w-28 h-28",
-    avatar: "w-24 h-24",
+    outer: 112,
+    inner: 96,
+    border: 6,
+    glow: 20,
     text: "text-xl",
-    border: 4,
-    glow: 16,
   },
 };
 
@@ -40,6 +40,8 @@ const getInitials = (name: string) => {
   }
   return name.substring(0, 2).toUpperCase();
 };
+
+const isGradient = (color: string) => color.startsWith("linear-gradient") || color.startsWith("conic-gradient");
 
 export const NeonAvatar = ({
   src,
@@ -54,52 +56,81 @@ export const NeonAvatar = ({
   const hasNeon = !!neonColor;
 
   if (!hasFrame && !hasNeon) {
-    // No customization — render plain avatar
     return (
-      <Avatar className={`${config.container} ${className}`}>
+      <Avatar
+        className={className}
+        style={{ width: config.outer, height: config.outer }}
+      >
         <AvatarImage src={src || undefined} alt={name} className="object-cover" />
-        <AvatarFallback className="bg-primary text-primary-foreground font-bold">
+        <AvatarFallback className={`bg-primary text-primary-foreground font-bold ${config.text}`}>
           {getInitials(name)}
         </AvatarFallback>
       </Avatar>
     );
   }
 
+  const neonIsGradient = hasNeon && isGradient(neonColor!);
+  // For neon glow, extract a representative color for box-shadow when it's a gradient
+  const neonShadowColor = hasNeon
+    ? neonIsGradient
+      ? "rgba(255,255,255,0.5)"
+      : neonColor!
+    : "transparent";
+
   return (
     <div
-      className={`relative ${config.container} flex items-center justify-center flex-shrink-0 ${className}`}
+      className={`relative flex items-center justify-center flex-shrink-0 ${className}`}
       style={{
-        ...(hasNeon && {
-          filter: `drop-shadow(0 0 ${config.glow}px ${neonColor})`,
-        }),
+        width: config.outer,
+        height: config.outer,
       }}
     >
-      {/* Neon pulse glow */}
+      {/* Neon glow aura */}
       {hasNeon && (
         <div
-          className="absolute inset-0 rounded-full animate-pulse"
+          className="absolute rounded-full animate-pulse"
           style={{
-            boxShadow: `0 0 ${config.glow}px ${config.glow / 2}px ${neonColor}, inset 0 0 ${config.glow / 2}px ${neonColor}`,
+            inset: -config.glow / 2,
+            background: isGradient(neonColor!) ? neonColor! : undefined,
+            backgroundColor: !isGradient(neonColor!) ? neonColor! : undefined,
+            opacity: 0.45,
+            filter: `blur(${config.glow}px)`,
             animationDuration: "2s",
           }}
         />
       )}
 
-      {/* Frame ring */}
+      {/* Frame border — flush against the avatar */}
       {hasFrame && (
         <div
           className="absolute inset-0 rounded-full"
           style={{
-            border: `${config.border}px solid ${frameColor}`,
-            ...(hasNeon && {
-              boxShadow: `0 0 ${config.glow / 2}px ${neonColor}`,
-            }),
+            background: isGradient(frameColor!) ? frameColor! : frameColor!,
+            boxShadow: hasNeon
+              ? `0 0 ${config.glow / 2}px ${neonShadowColor}`
+              : undefined,
           }}
         />
       )}
 
-      {/* Avatar */}
-      <Avatar className={`${config.avatar} relative z-10`}>
+      {/* Inner bg to create border effect */}
+      {hasFrame && (
+        <div
+          className="absolute rounded-full bg-background"
+          style={{
+            inset: config.border,
+          }}
+        />
+      )}
+
+      {/* Avatar — exactly inside frame */}
+      <Avatar
+        className="relative z-10"
+        style={{
+          width: config.inner,
+          height: config.inner,
+        }}
+      >
         <AvatarImage src={src || undefined} alt={name} className="object-cover" />
         <AvatarFallback className={`bg-primary text-primary-foreground font-bold ${config.text}`}>
           {getInitials(name)}
