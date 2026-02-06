@@ -340,7 +340,7 @@ export function AppSidebar() {
     <Sidebar collapsible="icon" className="border-r-0 relative shrink-0 h-screen sticky top-0 rounded-r-2xl md:rounded-r-2xl overflow-visible" style={sidebarStyle}>
       {/* Background with animation */}
       <div className="absolute inset-0 overflow-hidden rounded-r-2xl">
-        <SidebarBackground animation={userSidebarAnimation} />
+        <SidebarBackground animation={userSidebarAnimation} bgColor={userSidebarColor} />
       </div>
       
       {/* Header with Logo */}
