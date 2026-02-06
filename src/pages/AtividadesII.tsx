@@ -154,6 +154,9 @@ export default function AtividadesII() {
   const [recomposicaoSilte, setRecomposicaoSilte] = useState(false);
   const [recomposicaoSilteQuantidade, setRecomposicaoSilteQuantidade] = useState("");
   
+  // Transporte de Materiais
+  const [transporteMateriais, setTransporteMateriais] = useState(false);
+  const [transporteMateriaisQuantidade, setTransporteMateriaisQuantidade] = useState("");
   // Manual activities text
   const [atividadesManuais, setAtividadesManuais] = useState("");
   const [observacoes, setObservacoes] = useState("");
@@ -205,6 +208,7 @@ export default function AtividadesII() {
       setRecomposicaoTela(obs.includes("Recomposição de tela"));
       setRecomposicaoCascalho(obs.includes("Recomposição de cascalho"));
       setRecomposicaoSilte(obs.includes("Recomposição de silte"));
+      setTransporteMateriais(obs.includes("Transporte de Materiais"));
       
       // Parse dimensions/quantities from activities
       const mantaMatch = obs.match(/Reposição de manta asfáltica - ([^\n]+)/);
@@ -230,6 +234,9 @@ export default function AtividadesII() {
       
       const recompSilteMatch = obs.match(/Recomposição de silte - ([\d.]+) m²/);
       setRecomposicaoSilteQuantidade(recompSilteMatch ? recompSilteMatch[1] : "");
+
+      const transporteMatch = obs.match(/Transporte de Materiais - ([\d.]+) m³/);
+      setTransporteMateriaisQuantidade(transporteMatch ? transporteMatch[1] : "");
       
       // Extract manual activities (lines without * prefix that aren't observations)
       // and observations (text that's not part of structured activities)
@@ -284,7 +291,10 @@ export default function AtividadesII() {
       setRecomposicaoCascalhoQuantidade("");
       setRecomposicaoSilte(false);
       setRecomposicaoSilteQuantidade("");
+      setTransporteMateriais(false);
+      setTransporteMateriaisQuantidade("");
       setAtividadesManuais("");
+      setObservacoes("");
       setObservacoes("");
       setPhotos([]);
     }
@@ -371,6 +381,9 @@ export default function AtividadesII() {
     }
     if (recomposicaoSilte) {
       lines.push(`* Recomposição de silte${recomposicaoSilteQuantidade ? ` - ${recomposicaoSilteQuantidade} m²` : ""}`);
+    }
+    if (transporteMateriais) {
+      lines.push(`* Transporte de Materiais${transporteMateriaisQuantidade ? ` - ${transporteMateriaisQuantidade} m³` : ""}`);
     }
     
     if (atividadesManuais.trim()) {
@@ -558,6 +571,9 @@ export default function AtividadesII() {
     }
     if (recomposicaoSilte) {
       lines.push(`* Recomposição de silte${recomposicaoSilteQuantidade ? ` - ${recomposicaoSilteQuantidade} m²` : ""}`);
+    }
+    if (transporteMateriais) {
+      lines.push(`* Transporte de Materiais${transporteMateriaisQuantidade ? ` - ${transporteMateriaisQuantidade} m³` : ""}`);
     }
     
     if (atividadesManuais.trim()) {
@@ -1078,6 +1094,34 @@ export default function AtividadesII() {
                         className="w-[120px]"
                       />
                       <span className="text-sm font-medium">m²</span>
+                    </div>
+                  )}
+                </div>
+
+                {/* Transporte de Materiais */}
+                <div className="p-3 rounded-lg bg-muted/30 space-y-3">
+                  <div className="flex items-center space-x-3">
+                    <Checkbox 
+                      id="transporteMateriais" 
+                      checked={transporteMateriais}
+                      onCheckedChange={(checked) => setTransporteMateriais(checked === true)}
+                    />
+                    <Label htmlFor="transporteMateriais" className="cursor-pointer font-medium">
+                      Transporte de Materiais
+                    </Label>
+                  </div>
+                  {transporteMateriais && (
+                    <div className="flex items-center gap-2 ml-7">
+                      <Input
+                        type="number"
+                        min="0"
+                        step="0.01"
+                        placeholder="Quantidade"
+                        value={transporteMateriaisQuantidade}
+                        onChange={(e) => setTransporteMateriaisQuantidade(e.target.value)}
+                        className="w-[120px]"
+                      />
+                      <span className="text-sm font-medium">m³</span>
                     </div>
                   )}
                 </div>
