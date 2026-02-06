@@ -1,4 +1,5 @@
 import { useState } from "react";
+import { useQueryClient } from "@tanstack/react-query";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Label } from "@/components/ui/label";
@@ -15,6 +16,7 @@ interface SidebarCustomizerProps {
 
 const SIDEBAR_COLORS = [
   { id: "default", label: "Padrão", color: null },
+  // Dark colors
   { id: "dark-blue", label: "Azul Escuro", color: "hsl(220, 40%, 13%)" },
   { id: "navy", label: "Marinho", color: "hsl(225, 50%, 10%)" },
   { id: "dark-green", label: "Verde Escuro", color: "hsl(150, 40%, 10%)" },
@@ -26,6 +28,19 @@ const SIDEBAR_COLORS = [
   { id: "ocean", label: "Oceano", color: "hsl(200, 60%, 10%)" },
   { id: "coffee", label: "Café", color: "hsl(30, 40%, 12%)" },
   { id: "slate", label: "Ardósia", color: "hsl(210, 20%, 18%)" },
+  // Light colors
+  { id: "light-blue", label: "Azul Claro", color: "hsl(210, 40%, 75%)" },
+  { id: "light-green", label: "Verde Claro", color: "hsl(150, 35%, 70%)" },
+  { id: "light-purple", label: "Roxo Claro", color: "hsl(270, 35%, 75%)" },
+  { id: "light-pink", label: "Rosa Claro", color: "hsl(340, 40%, 80%)" },
+  { id: "cream", label: "Creme", color: "hsl(40, 50%, 85%)" },
+  { id: "light-gray", label: "Cinza Claro", color: "hsl(220, 15%, 80%)" },
+  { id: "lavender", label: "Lavanda", color: "hsl(250, 40%, 82%)" },
+  { id: "peach", label: "Pêssego", color: "hsl(20, 50%, 82%)" },
+  { id: "mint", label: "Menta", color: "hsl(160, 40%, 78%)" },
+  { id: "sky", label: "Céu", color: "hsl(195, 50%, 80%)" },
+  { id: "sand", label: "Areia", color: "hsl(35, 35%, 78%)" },
+  { id: "ice", label: "Gelo", color: "hsl(200, 30%, 88%)" },
 ];
 
 const SIDEBAR_ANIMATIONS = [
@@ -43,6 +58,7 @@ export const SidebarCustomizer = ({
   currentSidebarColor,
   currentSidebarAnimation,
 }: SidebarCustomizerProps) => {
+  const queryClient = useQueryClient();
   const [selectedColor, setSelectedColor] = useState<string | null>(currentSidebarColor || null);
   const [selectedAnimation, setSelectedAnimation] = useState<string | null>(currentSidebarAnimation || "particles");
   const [isSaving, setIsSaving] = useState(false);
@@ -59,6 +75,9 @@ export const SidebarCustomizer = ({
         .eq("user_id", userId);
 
       if (error) throw error;
+      
+      // Invalidate profile query so sidebar updates immediately
+      queryClient.invalidateQueries({ queryKey: ["profile", userId] });
       toast.success("Personalização da sidebar salva!");
     } catch (error: any) {
       toast.error("Erro ao salvar: " + error.message);
@@ -81,12 +100,21 @@ export const SidebarCustomizer = ({
         .eq("user_id", userId);
 
       if (error) throw error;
+      
+      queryClient.invalidateQueries({ queryKey: ["profile", userId] });
       toast.success("Sidebar restaurada ao padrão!");
     } catch (error: any) {
       toast.error("Erro ao restaurar: " + error.message);
     } finally {
       setIsSaving(false);
     }
+  };
+
+  // Determine if color is light for text contrast
+  const isLightColor = (color: string | null) => {
+    if (!color) return false;
+    const match = color.match(/hsl\(\s*\d+\s*,\s*\d+%?\s*,\s*(\d+)%?\s*\)/);
+    return match ? parseInt(match[1]) > 50 : false;
   };
 
   return (
@@ -107,6 +135,7 @@ export const SidebarCustomizer = ({
           <div className="grid grid-cols-4 sm:grid-cols-6 gap-2">
             {SIDEBAR_COLORS.map((preset) => {
               const isSelected = preset.color === selectedColor;
+              const isLight = isLightColor(preset.color);
               return (
                 <button
                   key={preset.id}
@@ -124,10 +153,13 @@ export const SidebarCustomizer = ({
                 >
                   {isSelected && (
                     <div className="absolute inset-0 flex items-center justify-center">
-                      <Check className="w-4 h-4 text-white drop-shadow-md" />
+                      <Check className={cn("w-4 h-4 drop-shadow-md", isLight ? "text-gray-800" : "text-white")} />
                     </div>
                   )}
-                  <span className="absolute bottom-0.5 left-0 right-0 text-[9px] text-white/80 text-center truncate px-0.5">
+                  <span className={cn(
+                    "absolute bottom-0.5 left-0 right-0 text-[9px] text-center truncate px-0.5",
+                    isLight ? "text-gray-700" : "text-white/80"
+                  )}>
                     {preset.label}
                   </span>
                 </button>
@@ -175,7 +207,10 @@ export const SidebarCustomizer = ({
           >
             {selectedAnimation && selectedAnimation !== "none" && (
               <div className="absolute inset-0 flex items-center justify-center">
-                <span className="text-white/40 text-xs">
+                <span className={cn(
+                  "text-xs",
+                  isLightColor(selectedColor) ? "text-gray-600/60" : "text-white/40"
+                )}>
                   {SIDEBAR_ANIMATIONS.find(a => a.id === selectedAnimation)?.emoji}{" "}
                   {SIDEBAR_ANIMATIONS.find(a => a.id === selectedAnimation)?.label}
                 </span>

@@ -6,11 +6,18 @@ interface NeonAvatarProps {
   frameColor?: string | null;
   neonColor?: string | null;
   frameAnimation?: string | null;
-  size?: "sm" | "md" | "lg";
+  size?: "xs" | "sm" | "md" | "lg";
   className?: string;
 }
 
 const sizeConfig = {
+  xs: {
+    outer: 28,
+    inner: 24,
+    border: 2,
+    glow: 5,
+    text: "text-[10px]",
+  },
   sm: {
     outer: 40,
     inner: 36,

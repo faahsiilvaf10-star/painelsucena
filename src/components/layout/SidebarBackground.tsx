@@ -14,15 +14,15 @@ interface SidebarBackgroundProps {
   animation?: string;
 }
 
-function generateParticles(count: number, maxSize = 3, maxOpacity = 0.25): Particle[] {
+function generateParticles(count: number): Particle[] {
   return Array.from({ length: count }, (_, i) => ({
     id: i,
     x: Math.random() * 100,
     y: Math.random() * 100,
-    size: 1.5 + Math.random() * maxSize,
+    size: 1.5 + Math.random() * 3,
     duration: 6 + Math.random() * 10,
     delay: Math.random() * 5,
-    opacity: 0.1 + Math.random() * maxOpacity,
+    opacity: 0.1 + Math.random() * 0.25,
   }));
 }
 
@@ -30,13 +30,7 @@ export function SidebarBackground({ animation = "particles" }: SidebarBackground
   const particles = useMemo(() => generateParticles(40), []);
 
   if (animation === "none") {
-    return (
-      <div className="absolute inset-0 z-0 overflow-hidden pointer-events-none">
-        <div className="absolute inset-0" style={{
-          background: `radial-gradient(ellipse 80% 60% at 50% 50%, hsl(220, 10%, 25%) 0%, hsl(220, 12%, 18%) 25%, hsl(220, 15%, 12%) 50%, hsl(220, 18%, 6%) 75%, hsl(0, 0%, 0%) 100%)`
-        }} />
-      </div>
-    );
+    return null;
   }
 
   const animationClass = `animate-sidebar-${animation}`;
@@ -51,21 +45,6 @@ export function SidebarBackground({ animation = "particles" }: SidebarBackground
 
   return (
     <div className="absolute inset-0 z-0 overflow-hidden pointer-events-none">
-      {/* Main background */}
-      <div className="absolute inset-0" style={{
-        background: `radial-gradient(ellipse 80% 60% at 50% 50%, hsl(220, 10%, 25%) 0%, hsl(220, 12%, 18%) 25%, hsl(220, 15%, 12%) 50%, hsl(220, 18%, 6%) 75%, hsl(0, 0%, 0%) 100%)`
-      }} />
-
-      {/* Subtle inner glow */}
-      <div className="absolute inset-0" style={{
-        background: `radial-gradient(circle at 50% 45%, rgba(100, 110, 130, 0.15) 0%, transparent 45%)`
-      }} />
-
-      {/* Vignette */}
-      <div className="absolute inset-0" style={{
-        background: `radial-gradient(ellipse at center, transparent 40%, rgba(0, 0, 0, 0.5) 100%)`
-      }} />
-
       {/* Animated particles */}
       {particles.map((particle) => (
         <div
