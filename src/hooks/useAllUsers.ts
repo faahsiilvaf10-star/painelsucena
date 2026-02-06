@@ -39,25 +39,34 @@ export const useAllUsers = () => {
   const heartbeatRef = useRef<number | null>(null);
   const justOnlineTimeoutRef = useRef<number | null>(null);
 
+  const cachedProfileRef = useRef<ProfileData | null>(null);
+
   // Track current user in presence channel
   const trackCurrentUser = useCallback(
     async (presenceChannel: RealtimeChannel) => {
       if (!user) return;
 
-      const { data: profile } = await supabase
-        .from("profiles")
-        .select("*")
-        .eq("user_id", user.id)
-        .maybeSingle();
+      // Cache profile to avoid re-fetching on every heartbeat
+      if (!cachedProfileRef.current) {
+        const { data: profile } = await supabase
+          .from("profiles")
+          .select("id, user_id, full_name, avatar_url, cargo")
+          .eq("user_id", user.id)
+          .maybeSingle();
+        if (profile) {
+          cachedProfileRef.current = profile;
+        }
+      }
 
       const now = new Date().toISOString();
-      const payload = profile
+      const cached = cachedProfileRef.current;
+      const payload = cached
         ? {
-            id: profile.id,
+            id: cached.id,
             user_id: user.id,
-            full_name: profile.full_name,
-            avatar_url: profile.avatar_url,
-            cargo: profile.cargo,
+            full_name: cached.full_name,
+            avatar_url: cached.avatar_url,
+            cargo: cached.cargo,
             online_at: now,
           }
         : {
@@ -65,7 +74,11 @@ export const useAllUsers = () => {
             online_at: now,
           };
 
-      await presenceChannel.track(payload as any);
+      try {
+        await presenceChannel.track(payload as any);
+      } catch (err) {
+        console.warn("Presence track failed, will retry on next heartbeat:", err);
+      }
     },
     [user]
   );
@@ -109,6 +122,9 @@ export const useAllUsers = () => {
       justOnlineTimeoutRef.current = null;
     }
 
+    // Reset cached profile when user changes
+    cachedProfileRef.current = null;
+
     const presenceChannel = supabase.channel("online-users", {
       config: {
         presence: {
@@ -135,6 +151,9 @@ export const useAllUsers = () => {
           }
         });
       });
+
+      // Always include current user as online
+      currentOnlineIds.add(user.id);
 
       // Detect users who just came online
       const newlyOnline = new Set<string>();
@@ -166,7 +185,7 @@ export const useAllUsers = () => {
           }
         });
         
-        // Update lastSeen for currently online users (used when they go offline)
+        // Update lastSeen for currently online users
         onlineAtTimes.forEach((onlineAt, id) => {
           next.set(id, onlineAt);
         });
@@ -179,20 +198,36 @@ export const useAllUsers = () => {
       setOnlineUserIds(new Set(currentOnlineIds));
     };
 
+    // Immediately mark current user as online before channel connects
+    setOnlineUserIds((prev) => {
+      const next = new Set(prev);
+      next.add(user.id);
+      return next;
+    });
+
     presenceChannel
       .on("presence", { event: "sync" }, handlePresenceSync)
       .subscribe(async (status) => {
         if (status === "SUBSCRIBED") {
           await trackCurrentUser(presenceChannel);
 
-          // Heartbeat to maintain presence
+          // Heartbeat every 15s (more frequent for reliability)
           heartbeatRef.current = window.setInterval(() => {
             void trackCurrentUser(presenceChannel);
-          }, 25000);
+          }, 15000);
         }
       });
 
+    // Handle visibility change - re-track when tab becomes visible
+    const handleVisibilityChange = () => {
+      if (document.visibilityState === "visible" && channelRef.current) {
+        void trackCurrentUser(channelRef.current);
+      }
+    };
+    document.addEventListener("visibilitychange", handleVisibilityChange);
+
     return () => {
+      document.removeEventListener("visibilitychange", handleVisibilityChange);
       if (heartbeatRef.current) {
         window.clearInterval(heartbeatRef.current);
         heartbeatRef.current = null;
@@ -209,15 +244,17 @@ export const useAllUsers = () => {
   // Build the final users list with status
   const allUsers: UserWithStatus[] = profiles
     .map((profile) => {
-      const isOnline = onlineUserIds.has(profile.user_id);
+      const isCurrentUser = profile.user_id === user?.id;
+      // Current logged-in user is ALWAYS online
+      const isOnline = isCurrentUser || onlineUserIds.has(profile.user_id);
       const lastSeen = lastSeenMap.get(profile.user_id);
       
       return {
         ...profile,
         isOnline,
-        isCurrentUser: profile.user_id === user?.id,
+        isCurrentUser,
         isAdmin: adminUserIds?.has(profile.user_id) ?? false,
-        lastSeen: isOnline ? undefined : lastSeen, // Only show lastSeen for offline users
+        lastSeen: isOnline ? undefined : lastSeen,
         justCameOnline: justOnlineIds.has(profile.user_id),
       };
     })
