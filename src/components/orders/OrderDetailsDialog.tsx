@@ -190,15 +190,15 @@ export function OrderDetailsDialog({ order, open, onOpenChange }: OrderDetailsDi
     const unitLabel = UNIT_LABELS[order.quantity_unit] || order.quantity_unit;
     
     // Use Unicode escape sequence for package emoji (📦 = \uD83D\uDCE6)
-    let message = `\uD83D\uDCE6 *PEDIDO N\u00BA ${order.order_number}*\n\n`;
+    let message = `📦 *PEDIDO Nº ${order.order_number}*\n\n`;
     message += `*Produto:* ${order.product_name}\n`;
-    if (order.description) message += `*Descri\u00E7\u00E3o:* ${order.description}\n`;
+    if (order.description) message += `*Descrição:* ${order.description}\n`;
     message += `*Quantidade:* ${order.quantity} ${unitLabel}\n`;
     message += `*Status:* ${statusLabel}\n`;
     message += `*Solicitante:* ${order.requester_name}\n`;
-    message += `*Data:* ${format(new Date(order.created_at), "dd/MM/yyyy '\u00E0s' HH:mm", { locale: ptBR })}\n`;
+    message += `*Data:* ${format(new Date(order.created_at), "dd/MM/yyyy 'às' HH:mm", { locale: ptBR })}\n`;
     if (order.expected_date) {
-      message += `*Previs\u00E3o:* ${format(new Date(order.expected_date), "dd/MM/yyyy", { locale: ptBR })}\n`;
+      message += `*Previsão:* ${format(new Date(order.expected_date), "dd/MM/yyyy", { locale: ptBR })}\n`;
     }
     // Show user name if available, otherwise show cargo
     if (order.mentioned_user_name) {

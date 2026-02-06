@@ -141,29 +141,29 @@ export function EquipmentReport() {
     const periodLabel = periodLabels[period];
     const dateStr = format(new Date(), "dd/MM/yyyy", { locale: ptBR });
     
-    let message = `\uD83D\uDCCA *RELAT\u00D3RIO DE EQUIPAMENTOS*\n`;
-    message += `\uD83D\uDCC5 ${periodLabel} - ${dateStr}\n\n`;
+    let message = `📊 *RELATÓRIO DE EQUIPAMENTOS*\n`;
+    message += `📅 ${periodLabel} - ${dateStr}\n\n`;
     
-    message += `\u23F1\uFE0F *RESUMO GERAL*\n`;
-    message += `\u2705 Operando: ${formatDuration(totalStats.totalOperatingMinutes)} (${totalStats.operatingPercent.toFixed(0)}%)\n`;
-    message += `\u23F8\uFE0F Parado: ${formatDuration(totalStats.totalStopMinutes)}\n\n`;
+    message += `⏱️ *RESUMO GERAL*\n`;
+    message += `✅ Operando: ${formatDuration(totalStats.totalOperatingMinutes)} (${totalStats.operatingPercent.toFixed(0)}%)\n`;
+    message += `⏸️ Parado: ${formatDuration(totalStats.totalStopMinutes)}\n\n`;
 
     if (Object.keys(totalStats.stopsByReason).length > 0) {
-      message += `\uD83D\uDCCB *PARADAS POR MOTIVO*\n`;
+      message += `📋 *PARADAS POR MOTIVO*\n`;
       Object.entries(totalStats.stopsByReason).forEach(([reason, minutes]) => {
-        const emoji = reason === "maintenance" ? "\uD83D\uDD27" : reason === "waiting" ? "\u23F3" : reason === "rain" ? "\uD83C\uDF27\uFE0F" : "\u23F9\uFE0F";
+        const emoji = reason === "maintenance" ? "🔧" : reason === "waiting" ? "⏳" : reason === "rain" ? "🌧️" : "⏹️";
         message += `${emoji} ${statusConfig[reason]?.label || reason}: ${formatDuration(minutes)}\n`;
       });
       message += `\n`;
     }
 
-    message += `\uD83D\uDE9B *POR EQUIPAMENTO*\n`;
+    message += `🚛 *POR EQUIPAMENTO*\n`;
     equipmentStats.forEach(stat => {
       const operatingMinutes = 8 * 60 * (period === "daily" ? 1 : period === "weekly" ? 5 : 22) - stat.totalStopMinutes;
       message += `\n*${stat.equipment.name}* (${stat.equipment.plate})\n`;
-      message += `  \u2705 Operando: ${formatDuration(Math.max(0, operatingMinutes))}\n`;
+      message += `  ✅ Operando: ${formatDuration(Math.max(0, operatingMinutes))}\n`;
       if (stat.totalStopMinutes > 0) {
-        message += `  \u23F8\uFE0F Parado: ${formatDuration(stat.totalStopMinutes)}\n`;
+        message += `  ⏸️ Parado: ${formatDuration(stat.totalStopMinutes)}\n`;
         Object.entries(stat.stopsByReason).forEach(([reason, minutes]) => {
           message += `    - ${statusConfig[reason]?.label || reason}: ${formatDuration(minutes)}\n`;
         });
@@ -172,17 +172,17 @@ export function EquipmentReport() {
 
     // Add maintenance history with defect descriptions
     if (maintenanceHistory.length > 0) {
-      message += `\n\uD83D\uDD27 *HIST\u00D3RICO DE MANUTEN\u00C7\u00D5ES*\n`;
+      message += `\n🔧 *HISTÓRICO DE MANUTENÇÕES*\n`;
       maintenanceHistory.forEach(stop => {
         const eq = equipment?.find(e => e.id === stop.equipment_id);
-        const startDate = format(new Date(stop.started_at), "dd/MM '\u00E0s' HH:mm", { locale: ptBR });
-        const duration = stop.duration_minutes ? ` (${formatDuration(stop.duration_minutes)})` : " \u26A0\uFE0F Em andamento";
+        const startDate = format(new Date(stop.started_at), "dd/MM 'às' HH:mm", { locale: ptBR });
+        const duration = stop.duration_minutes ? ` (${formatDuration(stop.duration_minutes)})` : " ⚠️ Em andamento";
         
         message += `\n*${eq?.name || "Equipamento"}* - ${eq?.plate || ""}\n`;
-        message += `  \uD83D\uDCC5 ${startDate}${duration}\n`;
+        message += `  📅 ${startDate}${duration}\n`;
         
         if (stop.defect_description) {
-          message += `  \uD83D\uDCDD _${stop.defect_description}_\n`;
+          message += `  📝 _${stop.defect_description}_\n`;
         }
       });
     }

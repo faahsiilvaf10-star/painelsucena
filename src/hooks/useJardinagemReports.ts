@@ -224,7 +224,7 @@ export const formatJardinagemForRDO = (report: JardinagemReport | null): string 
   // Include the faixa (location) at the beginning
   // Using Unicode escape sequence for WhatsApp compatibility (📍 = \uD83D\uDCCD)
   if (report.local_faixa && report.local_faixa.trim()) {
-    lines.push(`\uD83D\uDCCD Local: ${report.local_faixa}`);
+    lines.push(`📍 Local: ${report.local_faixa}`);
     lines.push(""); // Empty line for separation
   }
   
