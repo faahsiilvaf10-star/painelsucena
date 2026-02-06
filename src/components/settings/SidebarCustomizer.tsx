@@ -5,13 +5,14 @@ import { Button } from "@/components/ui/button";
 import { Label } from "@/components/ui/label";
 import { supabase } from "@/integrations/supabase/client";
 import { toast } from "sonner";
-import { PanelLeft, Check, RotateCcw, Sparkles } from "lucide-react";
+import { PanelLeft, Check, RotateCcw, Sparkles, Type } from "lucide-react";
 import { cn } from "@/lib/utils";
 
 interface SidebarCustomizerProps {
   userId: string;
   currentSidebarColor?: string | null;
   currentSidebarAnimation?: string | null;
+  currentSidebarFont?: string | null;
 }
 
 const SIDEBAR_COLORS = [
@@ -53,14 +54,32 @@ const SIDEBAR_ANIMATIONS = [
   { id: "matrix", label: "Matrix", emoji: "💚" },
 ];
 
+const SIDEBAR_FONTS = [
+  { id: "default", label: "Padrão", family: null, preview: "Aa" },
+  { id: "inter", label: "Inter", family: "'Inter', sans-serif", preview: "Aa" },
+  { id: "poppins", label: "Poppins", family: "'Poppins', sans-serif", preview: "Aa" },
+  { id: "raleway", label: "Raleway", family: "'Raleway', sans-serif", preview: "Aa" },
+  { id: "playfair", label: "Playfair", family: "'Playfair Display', serif", preview: "Aa" },
+  { id: "montserrat", label: "Montserrat", family: "'Montserrat', sans-serif", preview: "Aa" },
+  { id: "dm-sans", label: "DM Sans", family: "'DM Sans', sans-serif", preview: "Aa" },
+  { id: "space-grotesk", label: "Space Grotesk", family: "'Space Grotesk', sans-serif", preview: "Aa" },
+  { id: "outfit", label: "Outfit", family: "'Outfit', sans-serif", preview: "Aa" },
+  { id: "sora", label: "Sora", family: "'Sora', sans-serif", preview: "Aa" },
+  { id: "clash", label: "Clash Display", family: "'Clash Display', sans-serif", preview: "Aa" },
+  { id: "cabinet", label: "Cabinet Grotesk", family: "'Cabinet Grotesk', sans-serif", preview: "Aa" },
+  { id: "satoshi", label: "Satoshi", family: "'Satoshi', sans-serif", preview: "Aa" },
+];
+
 export const SidebarCustomizer = ({
   userId,
   currentSidebarColor,
   currentSidebarAnimation,
+  currentSidebarFont,
 }: SidebarCustomizerProps) => {
   const queryClient = useQueryClient();
   const [selectedColor, setSelectedColor] = useState<string | null>(currentSidebarColor || null);
   const [selectedAnimation, setSelectedAnimation] = useState<string | null>(currentSidebarAnimation || "particles");
+  const [selectedFont, setSelectedFont] = useState<string | null>(currentSidebarFont || null);
   const [isSaving, setIsSaving] = useState(false);
 
   const handleSave = async () => {
@@ -71,6 +90,7 @@ export const SidebarCustomizer = ({
         .update({
           sidebar_color: selectedColor,
           sidebar_animation: selectedAnimation,
+          sidebar_font: selectedFont,
         })
         .eq("user_id", userId);
 
@@ -89,6 +109,7 @@ export const SidebarCustomizer = ({
   const handleReset = async () => {
     setSelectedColor(null);
     setSelectedAnimation("particles");
+    setSelectedFont(null);
     setIsSaving(true);
     try {
       const { error } = await supabase
@@ -96,6 +117,7 @@ export const SidebarCustomizer = ({
         .update({
           sidebar_color: null,
           sidebar_animation: "particles",
+          sidebar_font: null,
         })
         .eq("user_id", userId);
 
@@ -196,6 +218,38 @@ export const SidebarCustomizer = ({
           </div>
         </div>
 
+        {/* Font Selection */}
+        <div className="space-y-3">
+          <Label className="text-sm font-medium flex items-center gap-1.5">
+            <Type className="w-4 h-4" />
+            Fonte
+          </Label>
+          <div className="grid grid-cols-2 sm:grid-cols-3 gap-2">
+            {SIDEBAR_FONTS.map((font) => {
+              const isSelected = (font.family === null && selectedFont === null) || selectedFont === font.family;
+              return (
+                <button
+                  key={font.id}
+                  onClick={() => setSelectedFont(font.family)}
+                  className={cn(
+                    "flex items-center gap-2 px-3 py-2.5 rounded-lg border-2 transition-all text-sm",
+                    isSelected
+                      ? "border-primary bg-primary/10 text-foreground"
+                      : "border-border hover:border-primary/50 text-muted-foreground hover:text-foreground"
+                  )}
+                >
+                  <span className="text-lg font-bold" style={{ fontFamily: font.family || "inherit" }}>
+                    {font.preview}
+                  </span>
+                  <span className="font-medium truncate" style={{ fontFamily: font.family || "inherit" }}>
+                    {font.label}
+                  </span>
+                </button>
+              );
+            })}
+          </div>
+        </div>
+
         {/* Preview */}
         <div className="space-y-2">
           <Label className="text-sm font-medium">Preview</Label>
@@ -203,19 +257,24 @@ export const SidebarCustomizer = ({
             className="relative w-full h-24 rounded-lg overflow-hidden border border-border"
             style={{
               background: selectedColor || "radial-gradient(ellipse 80% 60% at 50% 50%, hsl(220, 10%, 25%) 0%, hsl(220, 12%, 18%) 25%, hsl(220, 15%, 12%) 50%, hsl(220, 18%, 6%) 75%, hsl(0, 0%, 0%) 100%)",
+              fontFamily: selectedFont || "inherit",
             }}
           >
-            {selectedAnimation && selectedAnimation !== "none" && (
-              <div className="absolute inset-0 flex items-center justify-center">
-                <span className={cn(
-                  "text-xs",
-                  isLightColor(selectedColor) ? "text-gray-600/60" : "text-white/40"
-                )}>
-                  {SIDEBAR_ANIMATIONS.find(a => a.id === selectedAnimation)?.emoji}{" "}
-                  {SIDEBAR_ANIMATIONS.find(a => a.id === selectedAnimation)?.label}
-                </span>
-              </div>
-            )}
+            <div className="absolute inset-0 flex flex-col items-center justify-center gap-1">
+              <span className={cn(
+                "text-sm font-semibold",
+                isLightColor(selectedColor) ? "text-gray-700" : "text-white/90"
+              )} style={{ fontFamily: selectedFont || "inherit" }}>
+                Sucena Operações
+              </span>
+              <span className={cn(
+                "text-xs",
+                isLightColor(selectedColor) ? "text-gray-600/60" : "text-white/40"
+              )}>
+                {SIDEBAR_ANIMATIONS.find(a => a.id === selectedAnimation)?.emoji}{" "}
+                {SIDEBAR_ANIMATIONS.find(a => a.id === selectedAnimation)?.label}
+              </span>
+            </div>
           </div>
         </div>
 

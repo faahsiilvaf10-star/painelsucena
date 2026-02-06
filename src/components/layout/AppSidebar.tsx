@@ -331,9 +331,11 @@ export function AppSidebar() {
   // Per-user sidebar color (falls back to global site setting, then default dark)
   const userSidebarColor = profile?.sidebar_color || settings.sidebar_color || "hsl(220, 18%, 6%)";
   const userSidebarAnimation = profile?.sidebar_animation ?? "particles";
+  const userSidebarFont = profile?.sidebar_font || undefined;
 
-  const sidebarStyle = {
+  const sidebarStyle: React.CSSProperties = {
     backgroundColor: userSidebarColor,
+    ...(userSidebarFont ? { fontFamily: userSidebarFont } : {}),
   };
 
   return (
