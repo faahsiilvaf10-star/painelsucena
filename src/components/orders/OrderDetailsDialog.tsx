@@ -12,6 +12,7 @@ import { ScrollArea } from "@/components/ui/scroll-area";
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
 import { Order, OrderStatus, QuantityUnit, useOrderHistory, useUpdateOrderStatus, useUpdateOrderQuantity, useDeleteOrder, useOrderItems } from "@/hooks/useOrders";
 import { useAuth } from "@/hooks/useAuth";
+import { useIsAdmin } from "@/hooks/useUserRole";
 import { useProfile } from "@/hooks/useProfile";
 import { useToast } from "@/hooks/use-toast";
 import { PhotoViewer } from "./PhotoViewer";
@@ -97,6 +98,7 @@ export function OrderDetailsDialog({ order, open, onOpenChange }: OrderDetailsDi
   
   const { user } = useAuth();
   const { data: profile } = useProfile();
+  const { isAdmin } = useIsAdmin();
   const { toast } = useToast();
   const updateStatus = useUpdateOrderStatus();
   const updateQuantity = useUpdateOrderQuantity();
@@ -109,7 +111,8 @@ export function OrderDetailsDialog({ order, open, onOpenChange }: OrderDetailsDi
   const canChangeStatus = 
     user?.id === order.mentioned_user_id ||
     profile?.cargo === "aux_administrativo" ||
-    profile?.cargo === "aux_almoxarifado";
+    profile?.cargo === "aux_almoxarifado" ||
+    isAdmin;
 
   const canEditQuantity = 
     profile?.cargo === "aux_administrativo" ||
