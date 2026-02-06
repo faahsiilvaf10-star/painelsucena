@@ -328,16 +328,19 @@ export function AppSidebar() {
     }
   };
 
-  // Dynamic sidebar color style from site settings
+  // Per-user sidebar color (falls back to global site setting)
+  const userSidebarColor = profile?.sidebar_color || settings.sidebar_color || undefined;
+  const userSidebarAnimation = profile?.sidebar_animation ?? "particles";
+
   const sidebarStyle = {
-    backgroundColor: settings.sidebar_color || undefined,
+    backgroundColor: userSidebarColor,
   };
 
   return (
     <Sidebar collapsible="icon" className="border-r-0 relative shrink-0 h-screen sticky top-0 rounded-r-2xl md:rounded-r-2xl overflow-visible" style={sidebarStyle}>
-      {/* Background with particles */}
+      {/* Background with animation */}
       <div className="absolute inset-0 overflow-hidden rounded-r-2xl">
-        <SidebarBackground />
+        <SidebarBackground animation={userSidebarAnimation} />
       </div>
       
       {/* Header with Logo */}
