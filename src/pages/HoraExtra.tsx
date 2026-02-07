@@ -1,4 +1,5 @@
 import { useState, useMemo } from "react";
+import * as E from "@/lib/whatsappEmojis";
 import { format, getDay } from "date-fns";
 import { ptBR } from "date-fns/locale";
 import { Calendar, Clock, Save, Send, Plus, Trash2, Calculator, RefreshCw, FileText, MessageCircle } from "lucide-react";
@@ -127,10 +128,10 @@ const HoraExtra = () => {
         : "";
       const hasOvertime = isOvertimeTime(record.date, record.exitTime);
       
-      message += `📅 *Registro ${index + 1}*\n`;
+      message += `${E.EMOJI_CALENDAR} *Registro ${index + 1}*\n`;
       message += `Data: ${formattedDate}\n`;
       message += `Entrada: ${record.entryTime}\n`;
-      message += `Saída: ${record.exitTime}${hasOvertime ? " ⏰ (Hora Extra)" : ""}\n\n`;
+      message += `Saída: ${record.exitTime}${hasOvertime ? ` ${E.EMOJI_ALARM} (Hora Extra)` : ""}\n\n`;
     });
 
     return message;

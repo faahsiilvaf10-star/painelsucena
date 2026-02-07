@@ -1,4 +1,5 @@
 import { useState, useEffect, useMemo } from "react";
+import * as E from "@/lib/whatsappEmojis";
 import { format, parseISO } from "date-fns";
 import { ptBR } from "date-fns/locale";
 import { Leaf, Save, Loader2, Calendar, Trash2, History, ArrowRight, Plus, X, Send, Droplets } from "lucide-react";
@@ -413,9 +414,9 @@ export default function Atividades() {
   const generateRDOSummary = () => {
     const formattedDateStr = format(selectedDate, "dd/MM/yyyy");
     
-    let summary = `📅 *RDO JARDINAGEM - ${formattedDateStr}*\n\n`;
-    summary += `📍 *Local:* ${localFaixa}\n\n`;
-    summary += `🌱 *Atividades Realizadas:*\n`;
+    let summary = `${E.EMOJI_CALENDAR} *RDO JARDINAGEM - ${formattedDateStr}*\n\n`;
+    summary += `${E.EMOJI_PIN} *Local:* ${localFaixa}\n\n`;
+    summary += `${E.EMOJI_SEEDLING} *Atividades Realizadas:*\n`;
     
     const lines: string[] = [];
     const formatBerma = (berma: string): string => berma ? ` (Berma ${berma})` : "";
