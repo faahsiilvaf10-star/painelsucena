@@ -1,4 +1,5 @@
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
+import { EMOJI_PIN } from "@/lib/whatsappEmojis";
 import { supabase } from "@/integrations/supabase/client";
 import { useAuth } from "./useAuth";
 
@@ -146,9 +147,9 @@ export const formatGabiaoForRDO = (report: GabiaoReport | null): string => {
   const lines: string[] = [];
 
   // Include the local_servico (location) at the beginning
-  // Emoji literal UTF-8 para compatibilidade total com WhatsApp
+  // Unicode escape sequences para compatibilidade total com WhatsApp
   if (report.local_servico && report.local_servico.trim()) {
-    lines.push(`📍 Local: ${report.local_servico}`);
+    lines.push(`${EMOJI_PIN} Local: ${report.local_servico}`);
     lines.push(""); // Empty line for separation
   }
 

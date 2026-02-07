@@ -1,4 +1,5 @@
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
+import { EMOJI_PIN } from "@/lib/whatsappEmojis";
 import { supabase } from "@/integrations/supabase/client";
 import { useAuth } from "./useAuth";
 import { getBrazilNorthTodayString } from "@/lib/timezone";
@@ -222,9 +223,9 @@ export const formatJardinagemForRDO = (report: JardinagemReport | null): string 
   const lines: string[] = [];
   
   // Include the faixa (location) at the beginning
-  // Emoji literal UTF-8 para compatibilidade total com WhatsApp
+  // Unicode escape sequences para compatibilidade total com WhatsApp
   if (report.local_faixa && report.local_faixa.trim()) {
-    lines.push(`📍 Local: ${report.local_faixa}`);
+    lines.push(`${EMOJI_PIN} Local: ${report.local_faixa}`);
     lines.push(""); // Empty line for separation
   }
   

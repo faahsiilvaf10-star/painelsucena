@@ -448,9 +448,9 @@ export default function AtividadesII() {
       fullLocalServico += ` - Elevado ${elevado}`;
     }
     
-    let summary = `📅 *RDO GABIÃO - ${formattedDate}*\n\n`;
-    summary += `📍 *Local:* ${fullLocalServico}\n\n`;
-    summary += `🔧 *Atividades Realizadas:*\n`;
+    let summary = `\uD83D\uDCC5 *RDO GABIÃO - ${formattedDate}*\n\n`;
+    summary += `\uD83D\uDCCD *Local:* ${fullLocalServico}\n\n`;
+    summary += `\uD83D\uDD27 *Atividades Realizadas:*\n`;
     
     const activities = getPreviewText();
     if (activities.length > 0) {
@@ -462,7 +462,7 @@ export default function AtividadesII() {
     }
     
     if (observacoes.trim()) {
-      summary += `\n📝 *Observações:*\n${observacoes.trim()}`;
+      summary += `\n\uD83D\uDCDD *Observações:*\n${observacoes.trim()}`;
     }
     
     return summary;

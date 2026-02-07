@@ -75,21 +75,23 @@ const allRoles = [
 ];
 
 // Role labels for display
+import { EMOJI_WORKER, EMOJI_CALENDAR, EMOJI_ASTERISK_8, EMOJI_HERB, EMOJI_STAR_8, EMOJI_PERSON_RAISING_HAND, EMOJI_CHECK, EMOJI_CROSS } from "@/lib/whatsappEmojis";
+
 const roleLabels: Record<string, Record<string, string>> = {
   "ÁREA GABIÃO": {
-    Polivalente: "👷 Polivalentes:",
-    "Meia Oficial": "👷 Meia oficial:",
-    Ajudante: "👷 Ajudante:",
+    Polivalente: `${EMOJI_WORKER} Polivalentes:`,
+    "Meia Oficial": `${EMOJI_WORKER} Meia oficial:`,
+    Ajudante: `${EMOJI_WORKER} Ajudante:`,
   },
   "ROÇAGEM E PODAGEM": {
-    Jardineiro: "👷 Jardineiro:",
-    Ajudante: "👷 Ajudante:",
-    "Motorista do Pipa": "👷 Motorista do Pipa",
-    "Motorista do Munck": "👷 Motorista do Munck",
-    Sinaleiro: "👷 Sinaleiro",
-    "Mecânico Montador": "👷 Mecânico montador",
-    "Auxiliar de Elétrica": "👷 Auxiliar de elétrica",
-    Eletricista: "👷 Eletricista",
+    Jardineiro: `${EMOJI_WORKER} Jardineiro:`,
+    Ajudante: `${EMOJI_WORKER} Ajudante:`,
+    "Motorista do Pipa": `${EMOJI_WORKER} Motorista do Pipa`,
+    "Motorista do Munck": `${EMOJI_WORKER} Motorista do Munck`,
+    Sinaleiro: `${EMOJI_WORKER} Sinaleiro`,
+    "Mecânico Montador": `${EMOJI_WORKER} Mecânico montador`,
+    "Auxiliar de Elétrica": `${EMOJI_WORKER} Auxiliar de elétrica`,
+    Eletricista: `${EMOJI_WORKER} Eletricista`,
   },
 };
 
@@ -392,22 +394,22 @@ const RelatorioPresenca = () => {
 
     const support = area === "ÁREA GABIÃO" ? supportGabiao : supportRocagem;
     const header = area === "ÁREA GABIÃO" 
-      ? "✳️  ÁREA GABIÃO  ✳️" 
-      : "🌿 ROÇAGEM E PODAGEM 🌿";
+      ? `${EMOJI_ASTERISK_8}  ÁREA GABIÃO  ${EMOJI_ASTERISK_8}` 
+      : `${EMOJI_HERB} ROÇAGEM E PODAGEM ${EMOJI_HERB}`;
 
     let report = "";
 
     // Add date for both areas
     if (includeDate) {
-      report += `📅 Data: ${formatDateForReport(selectedDate)}\n\n`;
+      report += `${EMOJI_CALENDAR} Data: ${formatDateForReport(selectedDate)}\n\n`;
     }
 
     report += `${header}\n\n`;
-    report += `✴️EQUIPE DE SUPORTE✴️\n\n`;
-    report += `🙋 TST : ${support.tst}\n\n`;
-    report += `🙋 ENC GERAL: ${support.encGeral}\n\n`;
-    report += `🙋 ENC: ${support.enc}\n\n`;
-    report += `✴️EQUIPE DE EXECUÇÃO✴️\n\n`;
+    report += `${EMOJI_STAR_8}EQUIPE DE SUPORTE${EMOJI_STAR_8}\n\n`;
+    report += `${EMOJI_PERSON_RAISING_HAND} TST : ${support.tst}\n\n`;
+    report += `${EMOJI_PERSON_RAISING_HAND} ENC GERAL: ${support.encGeral}\n\n`;
+    report += `${EMOJI_PERSON_RAISING_HAND} ENC: ${support.enc}\n\n`;
+    report += `${EMOJI_STAR_8}EQUIPE DE EXECUÇÃO${EMOJI_STAR_8}\n\n`;
 
     const roles = executionRoles[area];
     roles.forEach((role) => {
@@ -437,15 +439,15 @@ const RelatorioPresenca = () => {
   const generateAreaReportForRDO = (area: "ÁREA GABIÃO" | "ROÇAGEM E PODAGEM") => {
     if (!allEmployees) return "";
 
-    // Using simple, universally compatible emojis
+    // Using Unicode escape sequences for WhatsApp compatibility
     const header = area === "ÁREA GABIÃO" 
-      ? "✳️ ÁREA GABIÃO ✳️" 
-      : "🌿 ROÇAGEM E PODAGEM 🌿";
+      ? `${EMOJI_ASTERISK_8} ÁREA GABIÃO ${EMOJI_ASTERISK_8}` 
+      : `${EMOJI_HERB} ROÇAGEM E PODAGEM ${EMOJI_HERB}`;
 
     let report = "";
 
     report += `${header}\n\n`;
-    report += "✴️ EQUIPE DE EXECUÇÃO ✴️\n\n";
+    report += `${EMOJI_STAR_8} EQUIPE DE EXECUÇÃO ${EMOJI_STAR_8}\n\n`;
 
     const roles = executionRoles[area];
     roles.forEach((role) => {
@@ -455,8 +457,8 @@ const RelatorioPresenca = () => {
       
       if (employees.length > 0 && presentEmployees.length > 0) {
         // Remove emoji and colon from label for cleaner display
-        const cleanLabel = label.replace(/^👷\s*/g, '').replace(/:$/, '');
-        report += `👷 ${cleanLabel}: ${presentEmployees.length}\n`;
+        const cleanLabel = label.replace(/^.{1,2}\s*/g, '').replace(/:$/, '');
+        report += `${EMOJI_WORKER} ${cleanLabel}: ${presentEmployees.length}\n`;
         // Add employee names with Title Case formatting
         presentEmployees.forEach((emp) => {
           report += `   • ${toTitleCase(emp.name)}\n`;
