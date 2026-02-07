@@ -413,9 +413,9 @@ export default function Atividades() {
   const generateRDOSummary = () => {
     const formattedDateStr = format(selectedDate, "dd/MM/yyyy");
     
-    let summary = `\uD83D\uDCC5 *RDO JARDINAGEM - ${formattedDateStr}*\n\n`;
-    summary += `\uD83D\uDCCD *Local:* ${localFaixa}\n\n`;
-    summary += `\uD83C\uDF31 *Atividades Realizadas:*\n`;
+    let summary = `📅 *RDO JARDINAGEM - ${formattedDateStr}*\n\n`;
+    summary += `📍 *Local:* ${localFaixa}\n\n`;
+    summary += `🌱 *Atividades Realizadas:*\n`;
     
     const lines: string[] = [];
     const formatBerma = (berma: string): string => berma ? ` (Berma ${berma})` : "";
