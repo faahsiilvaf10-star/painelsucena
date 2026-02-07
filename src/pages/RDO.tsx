@@ -1,4 +1,5 @@
 import { useState, useMemo, useRef, useEffect } from "react";
+import * as E from "@/lib/whatsappEmojis";
 import { format, parseISO } from "date-fns";
 import { ptBR } from "date-fns/locale";
 import { Copy, Send, FileText, Sun, Cloud, CloudRain, CloudSun, Save, History, Image, X, Loader2, Calendar, Trash2, Clock, Lock, Unlock } from "lucide-react";
@@ -357,52 +358,52 @@ export default function RDO() {
     const gabiaoFromReport = formatGabiaoForRDO(gabiaoReport);
 
     // Using Unicode escape sequences for WhatsApp compatibility
-    const report = `🏗️ EMPRESA: ${headerInfo.empresa}
+    const report = `${E.EMOJI_CONSTRUCTION} EMPRESA: ${headerInfo.empresa}
 
-📄 CONTRATO - ${headerInfo.contrato}
+${E.EMOJI_DOCUMENT} CONTRATO - ${headerInfo.contrato}
 
-➡️ GERÊNCIA: ${headerInfo.gerencia}
+${E.EMOJI_ARROW_RIGHT} GERÊNCIA: ${headerInfo.gerencia}
 
-➡️ LIDERANÇA: ${headerInfo.lideranca}
+${E.EMOJI_ARROW_RIGHT} LIDERANÇA: ${headerInfo.lideranca}
 
-➡️ TST: ${headerInfo.tst}
+${E.EMOJI_ARROW_RIGHT} TST: ${headerInfo.tst}
 
-➡️ LOCAL: ${headerInfo.local}
+${E.EMOJI_ARROW_RIGHT} LOCAL: ${headerInfo.local}
 
-➡️ DATA: ${capitalizedDate}
+${E.EMOJI_ARROW_RIGHT} DATA: ${capitalizedDate}
 
-➡️ HORÁRIO: ${headerInfo.horario}
+${E.EMOJI_ARROW_RIGHT} HORÁRIO: ${headerInfo.horario}
 
-➡️ DDS: ${ddsText}
+${E.EMOJI_ARROW_RIGHT} DDS: ${ddsText}
 
-🛠️ ATIVIDADES:
+${E.EMOJI_TOOLS} ATIVIDADES:
 
 *Jardinagem e Gabiões*
 
      *Jardinagem*
 ${jardinagemFromReport}
 
-👷 Efetivo 👷
+${E.EMOJI_WORKER} Efetivo ${E.EMOJI_WORKER}
 ${jardinagemWorkforce}
 
     *Manutenção De Gabião*
 
 ${gabiaoFromReport}
 
-👷 Efetivo 👷
+${E.EMOJI_WORKER} Efetivo ${E.EMOJI_WORKER}
 ${gabiaoWorkforce}
 
-✅ EQUIPAMENTOS EM OPERAÇÃO (${dynamicEquipment.length + 2})
+${E.EMOJI_CHECK} EQUIPAMENTOS EM OPERAÇÃO (${dynamicEquipment.length + 2})
 ${operatingEquipmentText}
 
-✅ Equipamentos Jardinagem na Obra (${jardinagemEquipmentSummary.total})
+${E.EMOJI_CHECK} Equipamentos Jardinagem na Obra (${jardinagemEquipmentSummary.total})
 ${jardinagemEquipmentText}
 
 Condições climáticas:
 • MANHÃ = ${weatherLabels[weatherMorning]}
 • TARDE = ${weatherLabels[weatherAfternoon]}
 
-⚠️ DIFICULDADES/DESVIOS
+${E.EMOJI_WARNING} DIFICULDADES/DESVIOS
 ${difficulties}`;
 
     return report;

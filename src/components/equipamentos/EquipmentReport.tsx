@@ -1,4 +1,5 @@
 import { useMemo, useState } from "react";
+import * as E from "@/lib/whatsappEmojis";
 import { format, startOfDay, startOfWeek, startOfMonth, endOfDay, endOfWeek, endOfMonth, isWithinInterval, subDays } from "date-fns";
 import { ptBR } from "date-fns/locale";
 import { Share2, Clock, Wrench, CloudRain, Play, ChevronDown, BarChart3, AlertTriangle, CalendarIcon } from "lucide-react";
@@ -141,29 +142,29 @@ export function EquipmentReport() {
     const periodLabel = periodLabels[period];
     const dateStr = format(new Date(), "dd/MM/yyyy", { locale: ptBR });
     
-    let message = `📊 *RELATÓRIO DE EQUIPAMENTOS*\n`;
-    message += `📅 ${periodLabel} - ${dateStr}\n\n`;
+    let message = `${E.EMOJI_CHART} *RELATÓRIO DE EQUIPAMENTOS*\n`;
+    message += `${E.EMOJI_CALENDAR} ${periodLabel} - ${dateStr}\n\n`;
     
-    message += `⏱️ *RESUMO GERAL*\n`;
-    message += `✅ Operando: ${formatDuration(totalStats.totalOperatingMinutes)} (${totalStats.operatingPercent.toFixed(0)}%)\n`;
-    message += `⏸️ Parado: ${formatDuration(totalStats.totalStopMinutes)}\n\n`;
+    message += `${E.EMOJI_STOPWATCH} *RESUMO GERAL*\n`;
+    message += `${E.EMOJI_CHECK} Operando: ${formatDuration(totalStats.totalOperatingMinutes)} (${totalStats.operatingPercent.toFixed(0)}%)\n`;
+    message += `${E.EMOJI_PAUSE} Parado: ${formatDuration(totalStats.totalStopMinutes)}\n\n`;
 
     if (Object.keys(totalStats.stopsByReason).length > 0) {
-      message += `📋 *PARADAS POR MOTIVO*\n`;
+      message += `${E.EMOJI_CLIPBOARD} *PARADAS POR MOTIVO*\n`;
       Object.entries(totalStats.stopsByReason).forEach(([reason, minutes]) => {
-        const emoji = reason === "maintenance" ? "🔧" : reason === "waiting" ? "⏳" : reason === "rain" ? "🌧️" : "⏹️";
+        const emoji = reason === "maintenance" ? E.EMOJI_WRENCH : reason === "waiting" ? E.EMOJI_HOURGLASS : reason === "rain" ? E.EMOJI_RAIN : E.EMOJI_STOP;
         message += `${emoji} ${statusConfig[reason]?.label || reason}: ${formatDuration(minutes)}\n`;
       });
       message += `\n`;
     }
 
-    message += `🚛 *POR EQUIPAMENTO*\n`;
+    message += `${E.EMOJI_TRUCK} *POR EQUIPAMENTO*\n`;
     equipmentStats.forEach(stat => {
       const operatingMinutes = 8 * 60 * (period === "daily" ? 1 : period === "weekly" ? 5 : 22) - stat.totalStopMinutes;
       message += `\n*${stat.equipment.name}* (${stat.equipment.plate})\n`;
-      message += `  ✅ Operando: ${formatDuration(Math.max(0, operatingMinutes))}\n`;
+      message += `  ${E.EMOJI_CHECK} Operando: ${formatDuration(Math.max(0, operatingMinutes))}\n`;
       if (stat.totalStopMinutes > 0) {
-        message += `  ⏸️ Parado: ${formatDuration(stat.totalStopMinutes)}\n`;
+        message += `  ${E.EMOJI_PAUSE} Parado: ${formatDuration(stat.totalStopMinutes)}\n`;
         Object.entries(stat.stopsByReason).forEach(([reason, minutes]) => {
           message += `    - ${statusConfig[reason]?.label || reason}: ${formatDuration(minutes)}\n`;
         });
@@ -172,17 +173,17 @@ export function EquipmentReport() {
 
     // Add maintenance history with defect descriptions
     if (maintenanceHistory.length > 0) {
-      message += `\n🔧 *HISTÓRICO DE MANUTENÇÕES*\n`;
+      message += `\n${E.EMOJI_WRENCH} *HISTÓRICO DE MANUTENÇÕES*\n`;
       maintenanceHistory.forEach(stop => {
         const eq = equipment?.find(e => e.id === stop.equipment_id);
         const startDate = format(new Date(stop.started_at), "dd/MM 'às' HH:mm", { locale: ptBR });
-        const duration = stop.duration_minutes ? ` (${formatDuration(stop.duration_minutes)})` : " ⚠️ Em andamento";
+        const duration = stop.duration_minutes ? ` (${formatDuration(stop.duration_minutes)})` : ` ${E.EMOJI_WARNING} Em andamento`;
         
         message += `\n*${eq?.name || "Equipamento"}* - ${eq?.plate || ""}\n`;
-        message += `  📅 ${startDate}${duration}\n`;
+        message += `  ${E.EMOJI_CALENDAR} ${startDate}${duration}\n`;
         
         if (stop.defect_description) {
-          message += `  📝 _${stop.defect_description}_\n`;
+          message += `  ${E.EMOJI_MEMO} _${stop.defect_description}_\n`;
         }
       });
     }

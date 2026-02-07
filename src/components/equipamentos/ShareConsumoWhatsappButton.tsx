@@ -1,6 +1,7 @@
 import { MessageCircle } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { toast } from "sonner";
+import { EMOJI_CHART, EMOJI_CALENDAR, EMOJI_CHART_UP, EMOJI_POTABLE_WATER, EMOJI_TRUCK, EMOJI_CLIPBOARD } from "@/lib/whatsappEmojis";
 
 interface DailyRecord {
   formattedDate: string;
@@ -66,18 +67,18 @@ export function ShareConsumoWhatsappButton({
     const totalLitros = dailyRecords.reduce((acc, r) => acc + r.liters, 0);
     const mediaLitros = totalAbastecimentos > 0 ? Math.round(totalLitros / totalAbastecimentos) : 0;
 
-    // Build message with WhatsApp compatible UTF-16 surrogate pairs
-    let message = `📊 *RELATÓRIO DE ABASTECIMENTOS DE ÁGUA*\n`;
-    message += `📅 Período: ${filterDescription}\n\n`;
+    // Build message with WhatsApp compatible Unicode escape sequences
+    let message = `${EMOJI_CHART} *RELATÓRIO DE ABASTECIMENTOS DE ÁGUA*\n`;
+    message += `${EMOJI_CALENDAR} Período: ${filterDescription}\n\n`;
     
-    message += `📈 *RESUMO GERAL*\n`;
+    message += `${EMOJI_CHART_UP} *RESUMO GERAL*\n`;
     message += `• Total de Abastecimentos: ${totalAbastecimentos}\n`;
     message += `• Volume Total: ${totalLitros.toLocaleString("pt-BR")} L\n`;
     message += `• Média por Abastecimento: ${mediaLitros.toLocaleString("pt-BR")} L\n\n`;
 
     // Points summary
     if (refuelingByPoint.length > 0) {
-      message += `🚰 *ABASTECIMENTOS POR PONTO*\n`;
+      message += `${EMOJI_POTABLE_WATER} *ABASTECIMENTOS POR PONTO*\n`;
       refuelingByPoint.forEach(p => {
         message += `• ${p.point}: ${p.count} abast. (${p.liters.toLocaleString("pt-BR")} L)\n`;
       });
@@ -86,7 +87,7 @@ export function ShareConsumoWhatsappButton({
 
     // Vehicle summary
     if (refuelingByVehicle.length > 0) {
-      message += `🚛 *CONSUMO POR VEÍCULO*\n`;
+      message += `${EMOJI_TRUCK} *CONSUMO POR VEÍCULO*\n`;
       refuelingByVehicle.forEach(v => {
         message += `• ${v.vehicleName}: ${v.count} abast. (${v.liters.toLocaleString("pt-BR")} L)\n`;
       });
@@ -96,7 +97,7 @@ export function ShareConsumoWhatsappButton({
     // Daily details (limit to last 10 records to avoid too long message)
     const recentRecords = dailyRecords.slice(-10);
     if (recentRecords.length > 0) {
-      message += `📋 *ÚLTIMOS REGISTROS*\n`;
+      message += `${EMOJI_CLIPBOARD} *ÚLTIMOS REGISTROS*\n`;
       recentRecords.forEach(r => {
         message += `• ${r.formattedDate} - ${r.vehicleName} @ ${r.point}: ${r.liters.toLocaleString("pt-BR")} L\n`;
       });
