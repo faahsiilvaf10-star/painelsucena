@@ -127,10 +127,10 @@ const HoraExtra = () => {
         : "";
       const hasOvertime = isOvertimeTime(record.date, record.exitTime);
       
-      message += `\uD83D\uDCC5 *Registro ${index + 1}*\n`;
+      message += `📅 *Registro ${index + 1}*\n`;
       message += `Data: ${formattedDate}\n`;
       message += `Entrada: ${record.entryTime}\n`;
-      message += `Saída: ${record.exitTime}${hasOvertime ? " \u23F0 (Hora Extra)" : ""}\n\n`;
+      message += `Saída: ${record.exitTime}${hasOvertime ? " ⏰ (Hora Extra)" : ""}\n\n`;
     });
 
     return message;
