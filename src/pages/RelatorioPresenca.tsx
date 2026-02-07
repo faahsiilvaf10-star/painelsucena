@@ -251,8 +251,8 @@ const RelatorioPresenca = () => {
   const getStatusEmoji = (employeeId: string) => {
     const attendance = attendanceMap.get(employeeId);
     // Se não tem registro, considera presente por padrão
-    if (!attendance) return "✅";
-    return attendance.status === "present" ? "✅" : "❌";
+    if (!attendance) return EMOJI_CHECK;
+    return attendance.status === "present" ? EMOJI_CHECK : EMOJI_CROSS;
   };
 
   const isPresent = (employeeId: string) => {
@@ -474,7 +474,7 @@ const RelatorioPresenca = () => {
   const generateReport = useMemo(() => {
     if (!allEmployees) return "";
 
-    const dateHeader = `📅 Data: ${formatDateForReport(selectedDate)}\n\n`;
+    const dateHeader = `${EMOJI_CALENDAR} Data: ${formatDateForReport(selectedDate)}\n\n`;
 
     if (selectedArea === "ÁREA GABIÃO") {
       return dateHeader + generateAreaReport("ÁREA GABIÃO", false);
@@ -560,7 +560,7 @@ const RelatorioPresenca = () => {
           <span className="font-medium">{employee.name.toUpperCase()}</span>
           <div className="flex items-center gap-2">
             {locked && <Lock className="w-3 h-3" />}
-            <span className="text-xl">{present ? "✅" : "❌"}</span>
+            <span className="text-xl">{present ? EMOJI_CHECK : EMOJI_CROSS}</span>
           </div>
         </button>
         <Button
@@ -610,12 +610,12 @@ const RelatorioPresenca = () => {
     return (
       <div className="bg-muted/30 rounded-lg p-4 mb-4">
         <p className="text-sm font-semibold text-center mb-3 flex items-center justify-center gap-2">
-          ✴ EQUIPE DE SUPORTE ✴
+          {EMOJI_STAR_8} EQUIPE DE SUPORTE {EMOJI_STAR_8}
           <Pencil className="w-3 h-3 text-muted-foreground" />
         </p>
         <div className="space-y-3">
           <div className="flex items-center gap-2">
-            <span className="text-sm text-muted-foreground w-24 shrink-0">🙋 TST:</span>
+            <span className="text-sm text-muted-foreground w-24 shrink-0">{EMOJI_PERSON_RAISING_HAND} TST:</span>
             <Input
               value={support.tst}
               onChange={(e) => setSupport({ ...support, tst: e.target.value })}
@@ -624,7 +624,7 @@ const RelatorioPresenca = () => {
             />
           </div>
           <div className="flex items-center gap-2">
-            <span className="text-sm text-muted-foreground w-24 shrink-0">🙋 ENC GERAL:</span>
+            <span className="text-sm text-muted-foreground w-24 shrink-0">{EMOJI_PERSON_RAISING_HAND} ENC GERAL:</span>
             <Input
               value={support.encGeral}
               onChange={(e) => setSupport({ ...support, encGeral: e.target.value })}
@@ -633,7 +633,7 @@ const RelatorioPresenca = () => {
             />
           </div>
           <div className="flex items-center gap-2">
-            <span className="text-sm text-muted-foreground w-24 shrink-0">🙋 ENC:</span>
+            <span className="text-sm text-muted-foreground w-24 shrink-0">{EMOJI_PERSON_RAISING_HAND} ENC:</span>
             <Input
               value={support.enc}
               onChange={(e) => setSupport({ ...support, enc: e.target.value })}
@@ -647,7 +647,7 @@ const RelatorioPresenca = () => {
   };
 
   const AreaCard = ({ area }: { area: "ÁREA GABIÃO" | "ROÇAGEM E PODAGEM" }) => {
-    const emoji = area === "ÁREA GABIÃO" ? "✳" : "🌿";
+    const emoji = area === "ÁREA GABIÃO" ? EMOJI_ASTERISK_8 : EMOJI_HERB;
     const support = area === "ÁREA GABIÃO" ? supportGabiao : supportRocagem;
     const setSupport = area === "ÁREA GABIÃO" ? setSupportGabiao : setSupportRocagem;
     const lockType = areaToLockType[area];
@@ -669,7 +669,7 @@ const RelatorioPresenca = () => {
         </div>
         <SupportTeamEditor support={support} setSupport={setSupport} />
         <p className="text-sm font-semibold text-center mb-4">
-          ✴ EQUIPE DE EXECUÇÃO ✴
+          {EMOJI_STAR_8} EQUIPE DE EXECUÇÃO {EMOJI_STAR_8}
         </p>
         {executionRoles[area].map((role) => (
           <RoleSection
@@ -732,7 +732,7 @@ const RelatorioPresenca = () => {
             <h1 className="text-4xl font-bold mb-2">Relatório de Presença</h1>
             <p className="text-muted-foreground flex items-center gap-2">
               <FileText className="w-4 h-4" />
-              Clique para alternar ✅ / ❌ e edite a equipe de suporte
+              Clique para alternar {EMOJI_CHECK} / {EMOJI_CROSS} e edite a equipe de suporte
             </p>
           </div>
 
@@ -898,10 +898,10 @@ const RelatorioPresenca = () => {
               <Tabs defaultValue={defaultTab} className="w-full">
                 <TabsList className={`grid w-full ${showGabiaoTab && showRocagemTab ? 'grid-cols-2' : 'grid-cols-1'}`}>
                   {showGabiaoTab && (
-                    <TabsTrigger value="gabiao">✳ Área Gabião</TabsTrigger>
+                    <TabsTrigger value="gabiao">{EMOJI_ASTERISK_8} Área Gabião</TabsTrigger>
                   )}
                   {showRocagemTab && (
-                    <TabsTrigger value="rocagem">🌿 Roçagem e Podagem</TabsTrigger>
+                    <TabsTrigger value="rocagem">{EMOJI_HERB} Roçagem e Podagem</TabsTrigger>
                   )}
                 </TabsList>
                 {showGabiaoTab && (
@@ -923,7 +923,7 @@ const RelatorioPresenca = () => {
               {showGabiaoTab && (
                 <div className="bg-card rounded-xl border border-border/50 p-6">
                   <h2 className="font-semibold mb-4 text-lg">
-                    ✳ Relatório Área Gabião
+                    {EMOJI_ASTERISK_8} Relatório Área Gabião
                   </h2>
                   <Textarea
                     value={generateAreaReport("ÁREA GABIÃO")}
@@ -937,7 +937,7 @@ const RelatorioPresenca = () => {
               {showRocagemTab && (
                 <div className="bg-card rounded-xl border border-border/50 p-6">
                   <h2 className="font-semibold mb-4 text-lg">
-                    🌿 Relatório Roçagem e Podagem
+                    {EMOJI_HERB} Relatório Roçagem e Podagem
                   </h2>
                   <Textarea
                     value={generateAreaReport("ROÇAGEM E PODAGEM")}

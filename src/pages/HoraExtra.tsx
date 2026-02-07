@@ -223,7 +223,7 @@ const HoraExtra = () => {
                       Registro {index + 1}
                       {exitIsOvertime && (
                         <span className="ml-2 text-amber-500 font-semibold">
-                          ⏰ Hora Extra
+                          {E.EMOJI_ALARM} Hora Extra
                         </span>
                       )}
                     </span>
@@ -380,15 +380,15 @@ const HoraExtra = () => {
                     size="sm"
                     onClick={() => {
                       const period = summaryData.period;
-                       let msg = `📊 *Resumo do Período (Folha)*\n`;
+                       let msg = `${E.EMOJI_CHART} *Resumo do Período (Folha)*\n`;
                       if (period) {
-                        msg += `📅 ${format(new Date(period.start + 'T00:00:00'), "dd/MM/yyyy")} a ${format(new Date(period.end + 'T00:00:00'), "dd/MM/yyyy")}\n`;
+                        msg += `${E.EMOJI_CALENDAR} ${format(new Date(period.start + 'T00:00:00'), "dd/MM/yyyy")} a ${format(new Date(period.end + 'T00:00:00'), "dd/MM/yyyy")}\n`;
                       }
                       msg += `\n`;
                       summaryData.summaries.forEach((s) => {
-                        msg += `👤 *${s.user_name}* (${s.cargo.replace(/_/g, ' ')})\n`;
-                        msg += `   📝 Registros: ${s.total_records} | HE: ${s.total_overtime_records}\n`;
-                        msg += `   ⏰ Horas Trab.: ${s.total_hours_worked.toFixed(1)}h | HE: ${s.total_overtime_hours.toFixed(1)}h\n\n`;
+                        msg += `${E.EMOJI_PERSON_SILHOUETTE} *${s.user_name}* (${s.cargo.replace(/_/g, ' ')})\n`;
+                        msg += `   ${E.EMOJI_MEMO} Registros: ${s.total_records} | HE: ${s.total_overtime_records}\n`;
+                        msg += `   ${E.EMOJI_ALARM} Horas Trab.: ${s.total_hours_worked.toFixed(1)}h | HE: ${s.total_overtime_hours.toFixed(1)}h\n\n`;
                       });
                       const url = `https://wa.me/?text=${encodeURIComponent(msg)}`;
                       window.open(url, "_blank");
