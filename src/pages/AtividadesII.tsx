@@ -1,4 +1,5 @@
 import { useState, useEffect, useMemo } from "react";
+import * as E from "@/lib/whatsappEmojis";
 import { format, parseISO } from "date-fns";
 import { ptBR } from "date-fns/locale";
 import { Hammer, Save, Loader2, Calendar, Trash2, History, Send } from "lucide-react";
@@ -448,9 +449,9 @@ export default function AtividadesII() {
       fullLocalServico += ` - Elevado ${elevado}`;
     }
     
-    let summary = `📅 *RDO GABIÃO - ${formattedDate}*\n\n`;
-    summary += `📍 *Local:* ${fullLocalServico}\n\n`;
-    summary += `🔧 *Atividades Realizadas:*\n`;
+    let summary = `${E.EMOJI_CALENDAR} *RDO GABIÃO - ${formattedDate}*\n\n`;
+    summary += `${E.EMOJI_PIN} *Local:* ${fullLocalServico}\n\n`;
+    summary += `${E.EMOJI_WRENCH} *Atividades Realizadas:*\n`;
     
     const activities = getPreviewText();
     if (activities.length > 0) {
