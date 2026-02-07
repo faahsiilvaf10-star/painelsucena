@@ -1,7 +1,7 @@
 import { useMemo } from "react";
 import { format } from "date-fns";
 import { ptBR } from "date-fns/locale";
-import { Calendar, FileText, Trash2, MessageCircle } from "lucide-react";
+import { Calendar, FileText, Trash2, Copy } from "lucide-react";
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
@@ -319,9 +319,9 @@ const SavedRecordsCard = ({
             <Button
               variant="outline"
               size="sm"
-              onClick={() => {
+              onClick={async () => {
                 if (periodRecords.length === 0) {
-                  toast.error("Nenhum registro no período para enviar");
+                  toast.error("Nenhum registro no período para copiar");
                   return;
                 }
                  let msg = `📋 *Registros - Período Atual*\n`;
@@ -332,12 +332,17 @@ const SavedRecordsCard = ({
                   const he = r.is_overtime ? ` ⏰` : "";
                   msg += `👤 ${r.user_name} - ${dateStr}\n   ${r.entry_time.slice(0, 5)} ➡️ ${r.exit_time.slice(0, 5)}${he}\n`;
                 });
-                window.open(`https://wa.me/?text=${encodeURIComponent(msg)}`, "_blank");
+                try {
+                  await navigator.clipboard.writeText(msg);
+                  toast.success("Registros copiados!");
+                } catch {
+                  toast.error("Erro ao copiar");
+                }
               }}
-              className="flex items-center gap-2 text-green-600 border-green-600 hover:bg-green-600/10"
+              className="flex items-center gap-2"
             >
-              <MessageCircle className="h-4 w-4" />
-              <span className="hidden sm:inline">WhatsApp</span>
+              <Copy className="h-4 w-4" />
+              <span className="hidden sm:inline">Copiar</span>
             </Button>
             <Button
               variant="outline"

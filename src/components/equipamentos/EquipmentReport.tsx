@@ -2,7 +2,7 @@ import { useMemo, useState } from "react";
 import * as E from "@/lib/whatsappEmojis";
 import { format, startOfDay, startOfWeek, startOfMonth, endOfDay, endOfWeek, endOfMonth, isWithinInterval, subDays } from "date-fns";
 import { ptBR } from "date-fns/locale";
-import { MessageCircle, Clock, Wrench, CloudRain, Play, ChevronDown, BarChart3, AlertTriangle, CalendarIcon } from "lucide-react";
+import { Copy, Clock, Wrench, CloudRain, Play, ChevronDown, BarChart3, AlertTriangle, CalendarIcon } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import { ScrollArea } from "@/components/ui/scroll-area";
@@ -138,7 +138,7 @@ export function EquipmentReport() {
     return `${minutes}min`;
   };
 
-  const handleShareWhatsApp = () => {
+  const handleCopyReport = async () => {
     const periodLabel = periodLabels[period];
     const dateStr = format(new Date(), "dd/MM/yyyy", { locale: ptBR });
     
@@ -187,8 +187,12 @@ export function EquipmentReport() {
       });
     }
 
-    const encoded = encodeURIComponent(message);
-    window.open(`https://wa.me/?text=${encoded}`, "_blank");
+    try {
+      await navigator.clipboard.writeText(message);
+      toast.success("Relatório copiado!");
+    } catch {
+      toast.error("Erro ao copiar");
+    }
   };
 
   return (
@@ -268,9 +272,9 @@ export function EquipmentReport() {
                 </Popover>
               </div>
 
-              <Button size="sm" variant="outline" onClick={handleShareWhatsApp} className="gap-2 text-green-600 border-green-600 hover:bg-green-600/10">
-                <MessageCircle className="w-4 h-4" />
-                <span className="hidden sm:inline">WhatsApp</span>
+              <Button size="sm" variant="outline" onClick={handleCopyReport} className="gap-2">
+                <Copy className="w-4 h-4" />
+                <span className="hidden sm:inline">Copiar</span>
               </Button>
             </div>
 

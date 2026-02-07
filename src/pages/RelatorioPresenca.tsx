@@ -1,5 +1,5 @@
 import { useState, useMemo } from "react";
-import { FileText, MessageCircle, Loader2, Check, UserPlus, Pencil, Save, Lock, Unlock, Trash2 } from "lucide-react";
+import { FileText, Copy, Loader2, Check, UserPlus, Pencil, Save, Lock, Unlock, Trash2 } from "lucide-react";
 import Layout from "@/components/layout/Layout";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -830,16 +830,16 @@ const RelatorioPresenca = () => {
               {showGabiaoTab && (
                 <>
                   <Button
-                    onClick={() => {
-                      const encoded = encodeURIComponent(generateAreaReport("ÁREA GABIÃO"));
-                      window.open(`https://wa.me/?text=${encoded}`, "_blank");
+                    onClick={async () => {
+                      await navigator.clipboard.writeText(generateAreaReport("ÁREA GABIÃO"));
+                      toast.success("Relatório Gabião copiado!");
                     }}
                     variant="outline"
                     size="sm"
-                    className="gap-2 text-green-600 border-green-600 hover:bg-green-600/10"
+                    className="gap-2"
                   >
-                    <MessageCircle className="w-4 h-4" />
-                    Gabião
+                    <Copy className="w-4 h-4" />
+                    Copiar Gabião
                   </Button>
 
 
@@ -848,16 +848,16 @@ const RelatorioPresenca = () => {
               {showRocagemTab && (
                 <>
                   <Button
-                    onClick={() => {
-                      const encoded = encodeURIComponent(generateAreaReport("ROÇAGEM E PODAGEM"));
-                      window.open(`https://wa.me/?text=${encoded}`, "_blank");
+                    onClick={async () => {
+                      await navigator.clipboard.writeText(generateAreaReport("ROÇAGEM E PODAGEM"));
+                      toast.success("Relatório Roçagem copiado!");
                     }}
                     variant="outline"
                     size="sm"
-                    className="gap-2 text-green-600 border-green-600 hover:bg-green-600/10"
+                    className="gap-2"
                   >
-                    <MessageCircle className="w-4 h-4" />
-                    Roçagem
+                    <Copy className="w-4 h-4" />
+                    Copiar Roçagem
                   </Button>
 
 

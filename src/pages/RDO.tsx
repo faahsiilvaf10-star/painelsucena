@@ -2,7 +2,7 @@ import { useState, useMemo, useRef, useEffect } from "react";
 import * as E from "@/lib/whatsappEmojis";
 import { format, parseISO } from "date-fns";
 import { ptBR } from "date-fns/locale";
-import { Copy, FileText, Sun, Cloud, CloudRain, CloudSun, Save, History, Image, X, Loader2, Calendar, Trash2, Clock, Lock, Unlock, MessageCircle } from "lucide-react";
+import { Copy, FileText, Sun, Cloud, CloudRain, CloudSun, Save, History, Image, X, Loader2, Calendar, Trash2, Clock, Lock, Unlock } from "lucide-react";
 import { toast } from "sonner";
 import Layout from "@/components/layout/Layout";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
@@ -415,12 +415,6 @@ ${difficulties}`;
     toast.success("Relatório copiado!");
   };
 
-  const handleWhatsApp = () => {
-    const report = generateReport();
-    const encoded = encodeURIComponent(report);
-    window.open(`https://wa.me/?text=${encoded}`, "_blank");
-  };
-
 
 
   // RDO Lock hook
@@ -677,9 +671,9 @@ ${difficulties}`;
               </Button>
             )}
 
-            <Button variant="outline" onClick={handleWhatsApp} className="gap-2 text-green-600 border-green-600 hover:bg-green-600/10">
-              <MessageCircle className="h-4 w-4" />
-              WhatsApp
+            <Button variant="outline" onClick={handleCopy}>
+              <Copy className="h-4 w-4 mr-2" />
+              Copiar
             </Button>
 
 
