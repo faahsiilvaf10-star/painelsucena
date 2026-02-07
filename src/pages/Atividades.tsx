@@ -2,7 +2,7 @@ import { useState, useEffect, useMemo } from "react";
 import * as E from "@/lib/whatsappEmojis";
 import { format, parseISO } from "date-fns";
 import { ptBR } from "date-fns/locale";
-import { Leaf, Save, Loader2, Calendar, Trash2, History, ArrowRight, Plus, X, Send, Droplets } from "lucide-react";
+import { Leaf, Save, Loader2, Calendar, Trash2, History, ArrowRight, Plus, X, Copy, Droplets } from "lucide-react";
 import { toast } from "sonner";
 import { useNavigate } from "react-router-dom";
 import Layout from "@/components/layout/Layout";
@@ -480,59 +480,13 @@ export default function Atividades() {
     return summary;
   };
 
-  const handleWhatsApp = async () => {
-    if (!user) {
-      toast.error("Você precisa estar logado para salvar.");
-      return;
-    }
-
-    if (!localFaixa) {
-      toast.error("Selecione a Faixa.");
-      return;
-    }
-
+  const handleCopyReport = async () => {
+    const summary = generateRDOSummary();
     try {
-      const invasorasData = formatInvasorasForStorage();
-      await saveReport.mutateAsync({
-        report_date: selectedDateStr,
-        local_faixa: localFaixa,
-        rocagem_m2: rocagem ? parseFloat(rocagem) : undefined,
-        rocagem_berma: rocagemBerma ? parseInt(rocagemBerma) : undefined,
-        rocagem_faixa: rocagemFaixa || undefined,
-        podagem_unidade: podagem ? parseInt(podagem) : undefined,
-        podagem_berma: podagemBerma ? parseInt(podagemBerma) : undefined,
-        coroamento_unidade: coroamento ? parseInt(coroamento) : undefined,
-        coroamento_berma: coroamentoBerma ? parseInt(coroamentoBerma) : undefined,
-        adubagem_unidade: adubagem ? parseInt(adubagem) : undefined,
-        adubagem_berma: adubagemBerma ? parseInt(adubagemBerma) : undefined,
-        plantio_unidade: plantio ? parseInt(plantio) : undefined,
-        plantio_berma: plantioBerma ? parseInt(plantioBerma) : undefined,
-        limpeza_manual_m2: limpezaManual ? parseFloat(limpezaManual) : undefined,
-        limpeza_manual_berma: limpezaManualBerma ? parseInt(limpezaManualBerma) : undefined,
-        limpeza_assoprador_m2: limpezaAssoprador ? parseFloat(limpezaAssoprador) : undefined,
-        limpeza_assoprador_berma: limpezaAssopradorBerma ? parseInt(limpezaAssopradorBerma) : undefined,
-        manutencao_canteiro: manutencaoCanteiro || undefined,
-        controle_invasoras_unidade: invasorasData.unidade,
-        controle_invasoras_nome: invasorasData.nome,
-        controle_invasoras_berma: invasorasBerma ? parseInt(invasorasBerma) : undefined,
-        retirada_mudas_unidade: retiradaMudasUnidade ? parseInt(retiradaMudasUnidade) : undefined,
-        irrigacao_pipas: irrigacaoPipas,
-        irrigacao_carretel: irrigacaoCarretel,
-        irrigacao_carretel_bermas: irrigacaoCarretel && irrigacaoCarretelBermas.length > 0 ? irrigacaoCarretelBermas : undefined,
-        plantio_grama_m2: plantioGrama ? parseFloat(plantioGrama) : undefined,
-        plantio_grama_faixa: plantioGramaFaixa || undefined,
-        plantio_grama_berma: plantioGramaBerma ? parseInt(plantioGramaBerma) : undefined,
-        atividades_manuais: atividadesManuais || undefined,
-        photo_urls: photos.length > 0 ? photos : undefined,
-      });
-      
-      const summary = generateRDOSummary();
-      
-      const encoded = encodeURIComponent(summary);
-      window.open(`https://wa.me/?text=${encoded}`, "_blank");
-      toast.success("Atividades salvas e enviadas para WhatsApp!");
-    } catch (error: any) {
-      toast.error("Erro ao salvar: " + error.message);
+      await navigator.clipboard.writeText(summary);
+      toast.success("Relatório copiado!");
+    } catch {
+      toast.error("Erro ao copiar relatório");
     }
   };
 
@@ -740,16 +694,12 @@ export default function Atividades() {
             </Button>
 
             <Button 
-              onClick={handleWhatsApp} 
-              disabled={saveReport.isPending || !canEdit}
-              className="gap-2 bg-green-600 hover:bg-green-700"
+              onClick={handleCopyReport} 
+              variant="outline"
+              className="gap-2"
             >
-              {saveReport.isPending ? (
-                <Loader2 className="h-4 w-4 animate-spin" />
-              ) : (
-                <Send className="h-4 w-4" />
-              )}
-              Enviar WhatsApp
+              <Copy className="h-4 w-4" />
+              Copiar Relatório
             </Button>
           </div>
         </div>
