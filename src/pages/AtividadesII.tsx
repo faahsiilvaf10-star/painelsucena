@@ -463,7 +463,7 @@ export default function AtividadesII() {
     }
     
     if (observacoes.trim()) {
-      summary += `\n\uD83D\uDCDD *Observações:*\n${observacoes.trim()}`;
+      summary += `\n${E.EMOJI_MEMO} *Observações:*\n${observacoes.trim()}`;
     }
     
     return summary;
