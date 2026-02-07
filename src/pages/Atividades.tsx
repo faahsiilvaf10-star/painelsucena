@@ -2,7 +2,7 @@ import { useState, useEffect, useMemo } from "react";
 import * as E from "@/lib/whatsappEmojis";
 import { format, parseISO } from "date-fns";
 import { ptBR } from "date-fns/locale";
-import { Leaf, Save, Loader2, Calendar, Trash2, History, ArrowRight, Plus, X, Copy, Droplets } from "lucide-react";
+import { Leaf, Save, Loader2, Calendar, Trash2, History, ArrowRight, Plus, X, MessageCircle, Droplets } from "lucide-react";
 import { toast } from "sonner";
 import { useNavigate } from "react-router-dom";
 import Layout from "@/components/layout/Layout";
@@ -480,14 +480,10 @@ export default function Atividades() {
     return summary;
   };
 
-  const handleCopyReport = async () => {
+  const handleWhatsApp = () => {
     const summary = generateRDOSummary();
-    try {
-      await navigator.clipboard.writeText(summary);
-      toast.success("Relatório copiado!");
-    } catch {
-      toast.error("Erro ao copiar relatório");
-    }
+    const encoded = encodeURIComponent(summary);
+    window.open(`https://wa.me/?text=${encoded}`, "_blank");
   };
 
   const handleDelete = async () => {
@@ -694,12 +690,12 @@ export default function Atividades() {
             </Button>
 
             <Button 
-              onClick={handleCopyReport} 
+              onClick={handleWhatsApp} 
               variant="outline"
-              className="gap-2"
+              className="gap-2 text-green-600 border-green-600 hover:bg-green-600/10"
             >
-              <Copy className="h-4 w-4" />
-              Copiar Relatório
+              <MessageCircle className="h-4 w-4" />
+              WhatsApp
             </Button>
           </div>
         </div>

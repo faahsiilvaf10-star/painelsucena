@@ -1,4 +1,4 @@
-import { Copy } from "lucide-react";
+import { MessageCircle } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { toast } from "sonner";
 import { EMOJI_CHART, EMOJI_CALENDAR, EMOJI_CHART_UP, EMOJI_POTABLE_WATER, EMOJI_TRUCK, EMOJI_CLIPBOARD } from "@/lib/whatsappEmojis";
@@ -23,7 +23,7 @@ interface RefuelingByVehicle {
   liters: number;
 }
 
-interface CopyConsumoButtonProps {
+interface ShareConsumoWhatsappButtonProps {
   selectedMonth: number;
   selectedYear: number;
   selectedDay: number | null;
@@ -46,10 +46,10 @@ export function ShareConsumoWhatsappButton({
   dailyRecords,
   refuelingByPoint,
   refuelingByVehicle,
-}: CopyConsumoButtonProps) {
-  const handleCopy = async () => {
+}: ShareConsumoWhatsappButtonProps) {
+  const handleShare = () => {
     if (dailyRecords.length === 0) {
-      toast.error("Nenhum dado para copiar");
+      toast.error("Nenhum dado para compartilhar");
       return;
     }
 
@@ -102,22 +102,19 @@ export function ShareConsumoWhatsappButton({
 
     message += `\n_Sucena Empreendimentos_`;
 
-    try {
-      await navigator.clipboard.writeText(message);
-      toast.success("Relatório copiado!");
-    } catch {
-      toast.error("Erro ao copiar");
-    }
+    const encoded = encodeURIComponent(message);
+    window.open(`https://wa.me/?text=${encoded}`, "_blank");
   };
 
   return (
     <Button
-      onClick={handleCopy}
+      onClick={handleShare}
       variant="outline"
       size="icon"
-      title="Copiar relatório"
+      className="text-green-600 border-green-600 hover:bg-green-600/10"
+      title="Enviar via WhatsApp"
     >
-      <Copy className="h-4 w-4" />
+      <MessageCircle className="h-4 w-4" />
     </Button>
   );
 }

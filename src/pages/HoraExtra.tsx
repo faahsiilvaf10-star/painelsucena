@@ -2,7 +2,7 @@ import { useState, useMemo } from "react";
 import * as E from "@/lib/whatsappEmojis";
 import { format, getDay } from "date-fns";
 import { ptBR } from "date-fns/locale";
-import { Calendar, Clock, Save, Copy, Plus, Trash2, Calculator, RefreshCw, FileText } from "lucide-react";
+import { Calendar, Clock, Save, MessageCircle, Plus, Trash2, Calculator, RefreshCw, FileText } from "lucide-react";
 import Layout from "@/components/layout/Layout";
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
@@ -168,7 +168,7 @@ const HoraExtra = () => {
     });
   };
 
-  const handleCopyRecords = async () => {
+  const handleSendWhatsApp = () => {
     const message = formatRecordsForMessage();
     
     if (!message) {
@@ -176,12 +176,8 @@ const HoraExtra = () => {
       return;
     }
 
-    try {
-      await navigator.clipboard.writeText(message);
-      toast.success("Texto copiado!");
-    } catch {
-      toast.error("Erro ao copiar");
-    }
+    const encoded = encodeURIComponent(message);
+    window.open(`https://wa.me/?text=${encoded}`, "_blank");
   };
 
   return (
@@ -335,12 +331,12 @@ const HoraExtra = () => {
                 {createRecords.isPending ? "Salvando..." : "Salvar Registros"}
               </Button>
               <Button 
-                onClick={handleCopyRecords} 
+                onClick={handleSendWhatsApp} 
                 variant="outline"
-                className="flex-1"
+                className="flex-1 text-green-600 border-green-600 hover:bg-green-600/10"
               >
-                <Copy className="h-4 w-4 mr-2" />
-                Copiar Texto
+                <MessageCircle className="h-4 w-4 mr-2" />
+                WhatsApp
               </Button>
             </div>
           </CardContent>
@@ -381,7 +377,7 @@ const HoraExtra = () => {
                   <Button
                     variant="outline"
                     size="sm"
-                    onClick={async () => {
+                    onClick={() => {
                       const period = summaryData.period;
                        let msg = `${E.EMOJI_CHART} *Resumo do Período (Folha)*\n`;
                       if (period) {
@@ -393,17 +389,12 @@ const HoraExtra = () => {
                         msg += `   ${E.EMOJI_MEMO} Registros: ${s.total_records} | HE: ${s.total_overtime_records}\n`;
                         msg += `   ${E.EMOJI_ALARM} Horas Trab.: ${s.total_hours_worked.toFixed(1)}h | HE: ${s.total_overtime_hours.toFixed(1)}h\n\n`;
                       });
-                      try {
-                        await navigator.clipboard.writeText(msg);
-                        toast.success("Resumo copiado!");
-                      } catch {
-                        toast.error("Erro ao copiar");
-                      }
+                      window.open(`https://wa.me/?text=${encodeURIComponent(msg)}`, "_blank");
                     }}
-                    className="gap-1.5"
+                    className="gap-1.5 text-green-600 border-green-600 hover:bg-green-600/10"
                   >
-                    <Copy className="h-4 w-4" />
-                    <span className="hidden sm:inline">Copiar</span>
+                    <MessageCircle className="h-4 w-4" />
+                    <span className="hidden sm:inline">WhatsApp</span>
                   </Button>
                 )}
                 {isAdmin && (

@@ -1,7 +1,7 @@
 import { useState } from "react";
 import { format } from "date-fns";
 import { ptBR } from "date-fns/locale";
-import { Calendar, Clock, Package, User, History, Trash2, Edit2, ImageIcon, ArrowRight, Hash, Copy, List } from "lucide-react";
+import { Calendar, Clock, Package, User, History, Trash2, Edit2, ImageIcon, ArrowRight, Hash, MessageCircle, List } from "lucide-react";
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/components/ui/dialog";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
@@ -210,14 +210,9 @@ export function OrderDetailsDialog({ order, open, onOpenChange }: OrderDetailsDi
     return encodeURIComponent(message);
   };
 
-  const handleCopyOrder = async () => {
+  const shareToWhatsApp = () => {
     const message = generateWhatsAppMessage();
-    try {
-      await navigator.clipboard.writeText(decodeURIComponent(message));
-      toast({ title: "Pedido copiado!" });
-    } catch {
-      toast({ title: "Erro ao copiar", variant: "destructive" });
-    }
+    window.open(`https://wa.me/?text=${message}`, "_blank");
   };
 
   return (
@@ -234,11 +229,11 @@ export function OrderDetailsDialog({ order, open, onOpenChange }: OrderDetailsDi
                 <ExportOrderPdfButton order={order} />
                 <Tooltip>
                   <TooltipTrigger asChild>
-                    <Button variant="outline" size="icon" onClick={handleCopyOrder}>
-                      <Copy className="w-4 h-4" />
+                    <Button variant="outline" size="icon" onClick={shareToWhatsApp} className="text-green-600 border-green-600 hover:bg-green-600/10">
+                      <MessageCircle className="w-4 h-4" />
                     </Button>
                   </TooltipTrigger>
-                  <TooltipContent>Copiar pedido</TooltipContent>
+                  <TooltipContent>Enviar para WhatsApp</TooltipContent>
                 </Tooltip>
               </div>
             </div>
