@@ -1,5 +1,5 @@
 import { useState, useMemo } from "react";
-import { FileText, Copy, Send, Loader2, Check, UserPlus, Pencil, Save, Lock, Unlock, Trash2 } from "lucide-react";
+import { FileText, Copy, Loader2, Check, UserPlus, Pencil, Save, Lock, Unlock, Trash2 } from "lucide-react";
 import Layout from "@/components/layout/Layout";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -499,10 +499,8 @@ const RelatorioPresenca = () => {
     }
   };
 
-  const handleWhatsApp = () => {
-    const encoded = encodeURIComponent(generateReport);
-    window.open(`https://wa.me/?text=${encoded}`, "_blank");
-  };
+
+
 
   const [deleteDialogOpen, setDeleteDialogOpen] = useState(false);
   const [employeeToDelete, setEmployeeToDelete] = useState<Tables<"employees"> | null>(null);
@@ -843,17 +841,8 @@ const RelatorioPresenca = () => {
                     <Copy className="w-4 h-4" />
                     Copiar Gabião
                   </Button>
-                  <Button
-                    onClick={() => {
-                      const encoded = encodeURIComponent(generateAreaReport("ÁREA GABIÃO"));
-                      window.open(`https://wa.me/?text=${encoded}`, "_blank");
-                    }}
-                    size="sm"
-                    className="gap-2 bg-green-600 hover:bg-green-700"
-                  >
-                    <Send className="w-4 h-4" />
-                    Gabião
-                  </Button>
+
+
                 </>
               )}
               {showRocagemTab && (
@@ -870,17 +859,8 @@ const RelatorioPresenca = () => {
                     <Copy className="w-4 h-4" />
                     Copiar Roçagem
                   </Button>
-                  <Button
-                    onClick={() => {
-                      const encoded = encodeURIComponent(generateAreaReport("ROÇAGEM E PODAGEM"));
-                      window.open(`https://wa.me/?text=${encoded}`, "_blank");
-                    }}
-                    size="sm"
-                    className="gap-2 bg-green-600 hover:bg-green-700"
-                  >
-                    <Send className="w-4 h-4" />
-                    Roçagem
-                  </Button>
+
+
                 </>
               )}
             </div>

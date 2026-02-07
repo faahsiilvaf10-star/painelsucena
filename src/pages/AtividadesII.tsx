@@ -2,7 +2,7 @@ import { useState, useEffect, useMemo } from "react";
 import * as E from "@/lib/whatsappEmojis";
 import { format, parseISO } from "date-fns";
 import { ptBR } from "date-fns/locale";
-import { Hammer, Save, Loader2, Calendar, Trash2, History, Send } from "lucide-react";
+import { Hammer, Save, Loader2, Calendar, Trash2, History, Copy } from "lucide-react";
 import { toast } from "sonner";
 import { useNavigate } from "react-router-dom";
 import Layout from "@/components/layout/Layout";
@@ -469,43 +469,13 @@ export default function AtividadesII() {
     return summary;
   };
 
-  const handleWhatsApp = async () => {
-    // Save first, then send to WhatsApp
-    if (!user) {
-      toast.error("Você precisa estar logado para salvar.");
-      return;
-    }
-
-    if (!localServico) {
-      toast.error("Selecione o Local do Serviço.");
-      return;
-    }
-
-    const combinedObservacoes = buildObservacoes();
-    
-    let fullLocalServico = localServico;
-    if (fase) {
-      fullLocalServico += ` - Fase ${fase}`;
-    }
-    if (elevado) {
-      fullLocalServico += ` - Elevado ${elevado}`;
-    }
-
+  const handleCopyReport = async () => {
+    const summary = generateRDOSummary();
     try {
-      await saveReport.mutateAsync({
-        report_date: selectedDateStr,
-        local_servico: fullLocalServico,
-        observacoes: combinedObservacoes || undefined,
-        photo_urls: photos.length > 0 ? photos : undefined,
-      });
-      
-      const summary = generateRDOSummary();
-      
-      const encoded = encodeURIComponent(summary);
-      window.open(`https://wa.me/?text=${encoded}`, "_blank");
-      toast.success("Atividades salvas e enviadas para WhatsApp!");
-    } catch (error: any) {
-      toast.error("Erro ao salvar: " + error.message);
+      await navigator.clipboard.writeText(summary);
+      toast.success("Relatório copiado!");
+    } catch {
+      toast.error("Erro ao copiar relatório");
     }
   };
 
@@ -712,16 +682,12 @@ export default function AtividadesII() {
             </Button>
 
             <Button 
-              onClick={handleWhatsApp} 
-              disabled={saveReport.isPending || !canEdit}
-              className="gap-2 bg-orange-600 hover:bg-orange-700"
+              onClick={handleCopyReport} 
+              variant="outline"
+              className="gap-2"
             >
-              {saveReport.isPending ? (
-                <Loader2 className="h-4 w-4 animate-spin" />
-              ) : (
-                <Send className="h-4 w-4" />
-              )}
-              Enviar WhatsApp
+              <Copy className="h-4 w-4" />
+              Copiar Relatório
             </Button>
           </div>
         </div>

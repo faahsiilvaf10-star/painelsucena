@@ -1,4 +1,4 @@
-import { MessageCircle } from "lucide-react";
+import { Copy } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { toast } from "sonner";
 import { EMOJI_CHART, EMOJI_CALENDAR, EMOJI_CHART_UP, EMOJI_POTABLE_WATER, EMOJI_TRUCK, EMOJI_CLIPBOARD } from "@/lib/whatsappEmojis";
@@ -23,7 +23,7 @@ interface RefuelingByVehicle {
   liters: number;
 }
 
-interface ShareConsumoWhatsappButtonProps {
+interface CopyConsumoButtonProps {
   selectedMonth: number;
   selectedYear: number;
   selectedDay: number | null;
@@ -46,14 +46,13 @@ export function ShareConsumoWhatsappButton({
   dailyRecords,
   refuelingByPoint,
   refuelingByVehicle,
-}: ShareConsumoWhatsappButtonProps) {
-  const handleShare = () => {
+}: CopyConsumoButtonProps) {
+  const handleCopy = async () => {
     if (dailyRecords.length === 0) {
-      toast.error("Nenhum dado para compartilhar");
+      toast.error("Nenhum dado para copiar");
       return;
     }
 
-    // Build filter description
     let filterDescription = `${MONTH_NAMES[selectedMonth]} de ${selectedYear}`;
     if (selectedDay) {
       filterDescription = `${selectedDay} de ${MONTH_NAMES[selectedMonth]} de ${selectedYear}`;
@@ -62,12 +61,10 @@ export function ShareConsumoWhatsappButton({
       filterDescription += ` - ${selectedVehicleName}`;
     }
 
-    // Calculate totals
     const totalAbastecimentos = dailyRecords.length;
     const totalLitros = dailyRecords.reduce((acc, r) => acc + r.liters, 0);
     const mediaLitros = totalAbastecimentos > 0 ? Math.round(totalLitros / totalAbastecimentos) : 0;
 
-    // Build message with WhatsApp compatible Unicode escape sequences
     let message = `${EMOJI_CHART} *RELATÓRIO DE ABASTECIMENTOS DE ÁGUA*\n`;
     message += `${EMOJI_CALENDAR} Período: ${filterDescription}\n\n`;
     
@@ -76,7 +73,6 @@ export function ShareConsumoWhatsappButton({
     message += `• Volume Total: ${totalLitros.toLocaleString("pt-BR")} L\n`;
     message += `• Média por Abastecimento: ${mediaLitros.toLocaleString("pt-BR")} L\n\n`;
 
-    // Points summary
     if (refuelingByPoint.length > 0) {
       message += `${EMOJI_POTABLE_WATER} *ABASTECIMENTOS POR PONTO*\n`;
       refuelingByPoint.forEach(p => {
@@ -85,7 +81,6 @@ export function ShareConsumoWhatsappButton({
       message += `\n`;
     }
 
-    // Vehicle summary
     if (refuelingByVehicle.length > 0) {
       message += `${EMOJI_TRUCK} *CONSUMO POR VEÍCULO*\n`;
       refuelingByVehicle.forEach(v => {
@@ -94,7 +89,6 @@ export function ShareConsumoWhatsappButton({
       message += `\n`;
     }
 
-    // Daily details (limit to last 10 records to avoid too long message)
     const recentRecords = dailyRecords.slice(-10);
     if (recentRecords.length > 0) {
       message += `${EMOJI_CLIPBOARD} *ÚLTIMOS REGISTROS*\n`;
@@ -108,23 +102,22 @@ export function ShareConsumoWhatsappButton({
 
     message += `\n_Sucena Empreendimentos_`;
 
-    // Encode and open WhatsApp
-    const encodedMessage = encodeURIComponent(message);
-    const whatsappUrl = `https://wa.me/?text=${encodedMessage}`;
-    
-    window.open(whatsappUrl, "_blank");
-    toast.success("Abrindo WhatsApp...");
+    try {
+      await navigator.clipboard.writeText(message);
+      toast.success("Relatório copiado!");
+    } catch {
+      toast.error("Erro ao copiar");
+    }
   };
 
   return (
     <Button
-      onClick={handleShare}
+      onClick={handleCopy}
       variant="outline"
       size="icon"
-      className="bg-[#25D366] border-[#25D366] text-white hover:bg-[#128C7E] hover:border-[#128C7E]"
-      title="Compartilhar via WhatsApp"
+      title="Copiar relatório"
     >
-      <MessageCircle className="h-4 w-4" />
+      <Copy className="h-4 w-4" />
     </Button>
   );
 }
