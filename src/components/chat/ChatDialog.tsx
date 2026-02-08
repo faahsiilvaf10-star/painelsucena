@@ -10,7 +10,7 @@ import { useTypingIndicator } from "@/hooks/useTypingIndicator";
 import { useAuth } from "@/hooks/useAuth";
 import { UserWithStatus } from "@/hooks/useAllUsers";
 import { EmojiPicker } from "./EmojiPicker";
-import { Send, Image, X, Loader2, ArrowLeft, Mic, Paperclip, Camera, Check, CheckCheck, Trash2 } from "lucide-react";
+import { Send, X, Loader2, ArrowLeft, Mic, Paperclip, Check, CheckCheck, Trash2 } from "lucide-react";
 import {
   AlertDialog,
   AlertDialogAction,
@@ -255,7 +255,7 @@ export const ChatDialog = ({
       </AlertDialogContent>
     </AlertDialog>
     <Dialog open={open} onOpenChange={onOpenChange}>
-      <DialogContent className="w-[95vw] max-w-md h-[80vh] sm:h-[85vh] flex flex-col p-0 gap-0 overflow-hidden border-0 rounded-xl" aria-describedby="chat-description">
+      <DialogContent className="w-[95vw] max-w-md h-[80vh] sm:h-[85vh] flex flex-col p-0 gap-0 overflow-hidden border-0 rounded-xl [&>button]:hidden" aria-describedby="chat-description">
         <DialogDescription id="chat-description" className="sr-only">
           Chat com {selectedUser.full_name}
         </DialogDescription>
@@ -264,7 +264,7 @@ export const ChatDialog = ({
         <DialogHeader className="flex-shrink-0 bg-[#008069] dark:bg-[#1f2c34] px-2 py-2">
           <div className="flex items-center gap-2">
             <Button variant="ghost" size="icon" className="h-10 w-10 text-white hover:bg-white/10 rounded-full" onClick={() => onOpenChange(false)}>
-              <ArrowLeft className="h-5 w-5" />
+              <ArrowLeft className="h-6 w-6" />
             </Button>
             
             <div className="relative">
@@ -296,17 +296,15 @@ export const ChatDialog = ({
               </p>
             </div>
 
-            <div className="flex items-center gap-1">
-              <Button
-                variant="ghost"
-                size="icon"
-                className="h-10 w-10 text-white hover:bg-white/10 rounded-full"
-                onClick={() => setClearDialogOpen(true)}
-                title="Limpar conversa"
-              >
-                <Trash2 className="h-5 w-5" />
-              </Button>
-            </div>
+            <Button
+              variant="ghost"
+              size="icon"
+              className="h-10 w-10 text-white hover:bg-white/10 rounded-full"
+              onClick={() => onOpenChange(false)}
+              title="Fechar chat"
+            >
+              <X className="h-6 w-6" />
+            </Button>
           </div>
         </DialogHeader>
 
@@ -381,8 +379,8 @@ export const ChatDialog = ({
             <Paperclip className="h-5 w-5" />
           </Button>
           
-          <Button variant="ghost" size="icon" className="h-10 w-10 text-gray-500 hover:text-gray-700 dark:text-gray-400 dark:hover:text-gray-200 hover:bg-gray-200 dark:hover:bg-gray-700 rounded-full shrink-0" onClick={() => fileInputRef.current?.click()} type="button">
-            <Camera className="h-5 w-5" />
+          <Button variant="ghost" size="icon" className="h-10 w-10 text-red-500 hover:text-red-600 dark:text-red-400 dark:hover:text-red-300 hover:bg-red-50 dark:hover:bg-red-900/20 rounded-full shrink-0" onClick={() => setClearDialogOpen(true)} type="button" title="Limpar conversa">
+            <Trash2 className="h-5 w-5" />
           </Button>
 
           <div className="flex-1 relative">
