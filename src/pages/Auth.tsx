@@ -197,7 +197,7 @@ const Auth = () => {
             .single();
 
           if (profileData?.full_name) {
-            nextUserName = profileData.full_name.split(" ")[0];
+            nextUserName = profileData.full_name;
             if (rememberMe) {
               localStorage.setItem("rememberedName", nextUserName);
             }
@@ -300,7 +300,7 @@ const Auth = () => {
           }
 
           setOccupiedCargos((prev) => [...prev, cargo]);
-          const firstName = fullName.split(" ")[0];
+          const firstName = fullName;
           const cargoLabel =
             cargoOptions.find((c) => c.value === cargo)?.label || cargo;
 
