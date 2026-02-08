@@ -1,4 +1,4 @@
-import { useState, useEffect } from "react";
+import { useState } from "react";
 import { useQueryClient } from "@tanstack/react-query";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
@@ -94,16 +94,6 @@ export const SidebarCustomizer = ({
   const [selectedActiveFontColor, setSelectedActiveFontColor] = useState<string | null>(currentSidebarActiveFontColor || null);
   const [isSaving, setIsSaving] = useState(false);
 
-  // Sync state when props change (e.g. after save + refetch)
-  useEffect(() => {
-    setSelectedColor(currentSidebarColor || null);
-    setSelectedAnimation(currentSidebarAnimation || "particles");
-    setSelectedFont(currentSidebarFont || null);
-    setSelectedFontColor(currentSidebarFontColor || null);
-    setSelectedActiveColor(currentSidebarActiveColor || null);
-    setSelectedActiveFontColor(currentSidebarActiveFontColor || null);
-  }, [currentSidebarColor, currentSidebarAnimation, currentSidebarFont, currentSidebarFontColor, currentSidebarActiveColor, currentSidebarActiveFontColor]);
-
   const handleSave = async () => {
     setIsSaving(true);
     try {
@@ -116,7 +106,7 @@ export const SidebarCustomizer = ({
           sidebar_font_color: selectedFontColor,
           sidebar_active_color: selectedActiveColor,
           sidebar_active_font_color: selectedActiveFontColor,
-        } as any)
+        })
         .eq("user_id", userId);
 
       if (error) throw error;
@@ -149,7 +139,7 @@ export const SidebarCustomizer = ({
           sidebar_font_color: null,
           sidebar_active_color: null,
           sidebar_active_font_color: null,
-        } as any)
+        })
         .eq("user_id", userId);
 
       if (error) throw error;

@@ -77,7 +77,7 @@ const Configuracoes = () => {
         setSidebarFont(profile.sidebar_font || null);
         setSidebarFontColor(profile.sidebar_font_color || null);
         setSidebarActiveColor(profile.sidebar_active_color || null);
-        setSidebarActiveFontColor((profile as any).sidebar_active_font_color || null);
+        setSidebarActiveFontColor(profile.sidebar_active_font_color || null);
       }
     };
 
