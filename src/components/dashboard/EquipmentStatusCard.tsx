@@ -138,14 +138,14 @@ export function EquipmentStatusCard() {
           </div>
         </Card>
         
-        <Card className="border-yellow-500/30 bg-gradient-to-br from-yellow-500/5 to-transparent p-3 sm:p-4">
+        <Card className="border-emerald-500/30 bg-gradient-to-br from-emerald-500/5 to-transparent p-3 sm:p-4">
           <div className="flex items-center gap-2 sm:gap-3">
-            <div className="p-1.5 sm:p-2 rounded-lg bg-yellow-500/20">
-              <Truck className="h-4 w-4 sm:h-5 sm:w-5 text-yellow-500" />
+            <div className="p-1.5 sm:p-2 rounded-lg bg-emerald-500/20">
+              <Truck className="h-4 w-4 sm:h-5 sm:w-5 text-emerald-500" />
             </div>
             <div>
               <p className="text-xs text-muted-foreground">Parados</p>
-              <p className="text-lg sm:text-2xl font-bold text-yellow-500">{stopped.length}</p>
+              <p className="text-lg sm:text-2xl font-bold text-emerald-500">{stopped.length}</p>
             </div>
           </div>
         </Card>
