@@ -13,6 +13,7 @@ export interface InstaCenaPost {
   image_urls: string[];
   created_at: string;
   updated_at: string;
+  user_cargo?: string | null;
 }
 
 export interface InstaCenaComment {
@@ -45,7 +46,19 @@ export const useInstaCenaPosts = () => {
         .select("*")
         .order("created_at", { ascending: false });
       if (error) throw error;
-      return data as InstaCenaPost[];
+
+      // Fetch cargos for post authors
+      const userIds = [...new Set((data || []).map((p) => p.user_id))];
+      const { data: profiles } = await supabase
+        .from("profiles")
+        .select("user_id, cargo")
+        .in("user_id", userIds);
+      const cargoMap = new Map(profiles?.map((p) => [p.user_id, p.cargo]) || []);
+
+      return (data || []).map((post) => ({
+        ...post,
+        user_cargo: cargoMap.get(post.user_id) || null,
+      })) as InstaCenaPost[];
     },
   });
 
