@@ -1,5 +1,5 @@
 import { useState } from "react";
-import { Users, ClipboardCheck, AlertCircle } from "lucide-react";
+import { Users, ClipboardCheck, AlertCircle, Activity } from "lucide-react";
 import {
   DndContext,
   closestCenter,
@@ -16,10 +16,11 @@ import {
   verticalListSortingStrategy,
 } from "@dnd-kit/sortable";
 import Layout from "@/components/layout/Layout";
-import StatCard from "@/components/dashboard/StatCard";
+import ModernStatCard from "@/components/dashboard/ModernStatCard";
+import { AttendanceTrendChart } from "@/components/dashboard/AttendanceTrendChart";
+import { MatrixSideChart } from "@/components/dashboard/MatrixSideChart";
 import { DDSHighlightCard } from "@/components/dds/DDSHighlightCard";
 import { ReminderHighlightBanner } from "@/components/reminders/ReminderHighlightBanner";
-import { MatrixProgressChart } from "@/components/dashboard/MatrixProgressChart";
 import { MatrixAlertBanner } from "@/components/dashboard/MatrixAlertBanner";
 import { CampaignBanner } from "@/components/campaigns/CampaignBanner";
 import { OrderHighlightBanner } from "@/components/orders/OrderHighlightBanner";
@@ -35,6 +36,7 @@ import DDSPresenterAlert from "@/components/dds/DDSPresenterAlert";
 import { useCampaignNotifications } from "@/hooks/useCampaignNotifications";
 import { useEmployees } from "@/hooks/useEmployees";
 import { useAttendanceRecords } from "@/hooks/useAttendance";
+import { useEquipment } from "@/hooks/useEquipment";
 import { getBrazilNorthTodayString } from "@/lib/timezone";
 import { useDocumentExpiryNotifications } from "@/hooks/useDocumentExpiryNotifications";
 import { useVehicleExpiryNotifications } from "@/hooks/useVehicleExpiryNotifications";
@@ -45,6 +47,7 @@ const Dashboard = () => {
   const today = getBrazilNorthTodayString();
   const { data: employees } = useEmployees();
   const { data: attendanceRecords } = useAttendanceRecords(today);
+  const { data: equipment } = useEquipment();
   const { dashboardOrder, updateOrder, isLoading: isLoadingOrder } = useDashboardOrder();
   
   const [isEditMode, setIsEditMode] = useState(false);
@@ -58,18 +61,18 @@ const Dashboard = () => {
     })
   );
   
-  // Check and create campaign notifications at start of month
   useCampaignNotifications();
-  
-  // Show browser notifications for expiring documents
   useDocumentExpiryNotifications();
-  
-  // Show browser notifications for expiring vehicle badges
   useVehicleExpiryNotifications();
 
   const totalEmployees = employees?.length || 0;
   const presentToday = attendanceRecords?.filter(a => a.status === "present" || a.status === "late").length || 0;
   const absentToday = attendanceRecords?.filter(a => a.status === "absent" || a.status === "justified").length || 0;
+  const presencePercent = totalEmployees > 0 ? Math.round(presentToday / totalEmployees * 100) : 0;
+  
+  const inOperation = equipment?.filter((eq) => eq.stop_reason === "none")?.length || 0;
+  const totalEquip = equipment?.length || 0;
+  const equipPercent = totalEquip > 0 ? Math.round(inOperation / totalEquip * 100) : 0;
 
   const handleToggleEditMode = () => {
     if (!isEditMode) {
@@ -80,7 +83,6 @@ const Dashboard = () => {
 
   const handleDragEnd = (event: DragEndEvent) => {
     const { active, over } = event;
-
     if (over && active.id !== over.id) {
       setLocalOrder((items) => {
         const oldIndex = items.indexOf(active.id as DashboardItemId);
@@ -94,7 +96,6 @@ const Dashboard = () => {
     setIsSaving(true);
     const success = await updateOrder(localOrder);
     setIsSaving(false);
-    
     if (success) {
       toast.success("Ordem dos destaques salva!");
       setIsEditMode(false);
@@ -114,116 +115,105 @@ const Dashboard = () => {
 
   const hasChanges = JSON.stringify(localOrder) !== JSON.stringify(dashboardOrder);
   const currentOrder = isEditMode ? localOrder : dashboardOrder;
-  
-  // Filter out birthday from sortable items - it's always at the top
   const sortableOrder = currentOrder.filter(id => id !== "birthday");
 
-  // Map dashboard item IDs to their components
-  const renderDashboardItem = (id: DashboardItemId, index: number) => {
-    const animationDelay = `${0.1 + index * 0.05}s`;
-    
+  const renderDashboardItem = (id: DashboardItemId) => {
     switch (id) {
-      case "birthday":
-        return <BirthdayBanner />;
-      case "matrix_alert":
-        return <MatrixAlertBanner />;
-      case "goal_alert":
-        return <GoalAlertBanner />;
-      case "campaign":
-        return <CampaignBanner />;
-      case "reminder":
-        return <ReminderHighlightBanner />;
-      case "order":
-        return <OrderHighlightBanner />;
-      case "vehicle_expiry":
-        return <VehicleExpiryBanner />;
-      case "document_expiry":
-        return <DocumentExpiryBanner />;
-      case "sling_inspection":
-        return <SlingInspectionBanner />;
-      case "dds":
-        return <DDSHighlightCard />;
-      case "equipment":
-        return <EquipmentStatusCard />;
-      case "stats":
-        return (
-          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-3 sm:gap-6 mb-4 sm:mb-8">
-            <div className="animate-slide-up" style={{ animationDelay: "0.1s" }}>
-              <StatCard 
-                title="Total de Funcionários" 
-                value={totalEmployees} 
-                icon={Users} 
-                trend="up" 
-                trendValue="+2 este mês" 
-              />
-            </div>
-            <div className="animate-slide-up" style={{ animationDelay: "0.2s" }}>
-              <StatCard 
-                title="Presentes Hoje" 
-                value={presentToday} 
-                icon={ClipboardCheck} 
-                trend="neutral" 
-                trendValue={totalEmployees > 0 ? `${Math.round(presentToday / totalEmployees * 100)}%` : "0%"} 
-              />
-            </div>
-            <div className="animate-slide-up" style={{ animationDelay: "0.3s" }}>
-              <StatCard 
-                title="Ausências" 
-                value={absentToday} 
-                icon={AlertCircle} 
-                trend={absentToday > 0 ? "down" : "neutral"} 
-                trendValue={absentToday > 0 ? "Atenção" : "Tudo certo"} 
-              />
-            </div>
-          </div>
-        );
-      case "matrix_chart":
-        return (
-          <div className="mb-4 sm:mb-8 animate-slide-up" style={{ animationDelay }}>
-            <MatrixProgressChart />
-          </div>
-        );
-      default:
-        return null;
+      case "birthday": return <BirthdayBanner />;
+      case "matrix_alert": return <MatrixAlertBanner />;
+      case "goal_alert": return <GoalAlertBanner />;
+      case "campaign": return <CampaignBanner />;
+      case "reminder": return <ReminderHighlightBanner />;
+      case "order": return <OrderHighlightBanner />;
+      case "vehicle_expiry": return <VehicleExpiryBanner />;
+      case "document_expiry": return <DocumentExpiryBanner />;
+      case "sling_inspection": return <SlingInspectionBanner />;
+      case "dds": return <DDSHighlightCard />;
+      case "equipment": return <EquipmentStatusCard />;
+      case "stats": return null; // Handled by the modern stat cards above
+      case "matrix_chart": return null; // Handled by the new charts section
+      default: return null;
     }
   };
 
   return (
     <Layout>
-      <div className="container mx-auto px-3 sm:px-6 py-3 sm:py-8">
-        {/* Hero Section with Edit Controls */}
-        <div className="mb-4 sm:mb-8 animate-fade-in">
-          <div className="flex flex-col gap-3 sm:gap-4">
-            <div>
-              <h1 className="text-xl sm:text-4xl md:text-5xl font-bold mb-1 sm:mb-4">
-                Bem-vindo ao <span className="text-gradient">Painel Sucena</span>
-              </h1>
-              <p className="text-sm sm:text-xl text-muted-foreground max-w-2xl">
-                Gerencie sua equipe, controle presença e organize responsabilidades em um só lugar.
-              </p>
-            </div>
-            <div className="flex-shrink-0">
-              <DashboardEditControls
-                isEditMode={isEditMode}
-                hasChanges={hasChanges}
-                isSaving={isSaving}
-                onToggleEditMode={handleToggleEditMode}
-                onSave={handleSave}
-                onCancel={handleCancel}
-                onReset={handleReset}
-              />
-            </div>
+      <div className="container mx-auto px-3 sm:px-6 py-3 sm:py-6">
+        {/* Header */}
+        <div className="flex items-center justify-between mb-5 animate-fade-in">
+          <div>
+            <h1 className="text-xl sm:text-3xl font-bold">
+              <span className="text-gradient">Dashboard</span>
+            </h1>
+            <p className="text-sm text-muted-foreground mt-0.5">
+              Visão geral da operação
+            </p>
+          </div>
+          <DashboardEditControls
+            isEditMode={isEditMode}
+            hasChanges={hasChanges}
+            isSaving={isSaving}
+            onToggleEditMode={handleToggleEditMode}
+            onSave={handleSave}
+            onCancel={handleCancel}
+            onReset={handleReset}
+          />
+        </div>
+
+        {/* Modern Stat Cards Row */}
+        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4 mb-6 animate-slide-up">
+          <ModernStatCard
+            title="Total de Funcionários"
+            value={totalEmployees}
+            percentage={presencePercent}
+            icon={Users}
+            variant="gauge"
+            color="hsl(174, 62%, 47%)"
+          />
+          <ModernStatCard
+            title="Presentes Hoje"
+            value={presentToday}
+            percentage={presencePercent}
+            icon={ClipboardCheck}
+            variant="sparkline"
+            color="hsl(174, 62%, 47%)"
+            sparklineData={[5, 8, 6, 9, 7, 10, presentToday || 8]}
+          />
+          <ModernStatCard
+            title="Ausências"
+            value={absentToday}
+            percentage={totalEmployees > 0 ? Math.round(absentToday / totalEmployees * 100) : 0}
+            icon={AlertCircle}
+            variant="bars"
+            color="hsl(0, 84%, 60%)"
+            accentColor="hsl(43, 96%, 56%)"
+            barData={[2, 4, 1, 3, 2, 5, absentToday || 1]}
+          />
+          <ModernStatCard
+            title="Equipamentos Ativos"
+            value={`${inOperation}/${totalEquip}`}
+            percentage={equipPercent}
+            icon={Activity}
+            variant="circular"
+            color="hsl(174, 62%, 47%)"
+          />
+        </div>
+
+        {/* Charts Row - Main line chart + Side area chart */}
+        <div className="grid grid-cols-1 lg:grid-cols-3 gap-4 mb-6">
+          <div className="lg:col-span-2 animate-slide-up" style={{ animationDelay: "0.1s" }}>
+            <AttendanceTrendChart />
+          </div>
+          <div className="animate-slide-up" style={{ animationDelay: "0.15s" }}>
+            <MatrixSideChart />
           </div>
         </div>
 
-        {/* Render dashboard items in user's preferred order */}
-        {/* Birthday Banner - always at the top, not draggable */}
+        {/* Fixed banners */}
         <BirthdayBanner />
-        
-        {/* DDS Presenter Alert - shows 1 day before user presents */}
         <DDSPresenterAlert />
 
-        {/* Render other dashboard items in user's preferred order */}
+        {/* Draggable items */}
         {!isLoadingOrder && (
           <DndContext
             sensors={sensors}
@@ -235,9 +225,9 @@ const Dashboard = () => {
               strategy={verticalListSortingStrategy}
             >
               <div className="space-y-4">
-                {sortableOrder.map((id, index) => (
+                {sortableOrder.map((id) => (
                   <DraggableDashboardItem key={id} id={id} isEditMode={isEditMode}>
-                    {renderDashboardItem(id, index)}
+                    {renderDashboardItem(id)}
                   </DraggableDashboardItem>
                 ))}
               </div>
