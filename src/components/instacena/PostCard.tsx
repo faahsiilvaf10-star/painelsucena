@@ -2,7 +2,7 @@ import { useState } from "react";
 import { formatDistanceToNow } from "date-fns";
 import { ptBR } from "date-fns/locale";
 import { formatCargoLabel } from "@/lib/cargoUtils";
-import { MessageCircle, ThumbsUp, Heart, Laugh, Frown, Angry, AlertCircle, Trash2, MoreHorizontal } from "lucide-react";
+import { MessageCircle, ThumbsUp, Trash2, MoreHorizontal } from "lucide-react";
 import { Card, CardContent } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
@@ -11,9 +11,10 @@ import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuTrigge
 import { useAuth } from "@/hooks/useAuth";
 import { VerifiedBadge } from "@/components/VerifiedBadge";
 import { useIsAdmin } from "@/hooks/useUserRole";
-import { useInstaCenaComments, useInstaCenaReactions, useToggleReaction, useDeletePost, useCreateComment, type InstaCenaPost } from "@/hooks/useInstaCena";
+import { useInstaCenaComments, useInstaCenaReactions, useToggleReaction, useDeletePost, type InstaCenaPost } from "@/hooks/useInstaCena";
 import { toast } from "sonner";
 import { MentionText } from "./MentionText";
+import { CommentSection } from "./CommentSection";
 
 const REACTIONS = [
   { type: "like", emoji: "👍", label: "Curtir", icon: ThumbsUp },
@@ -37,10 +38,8 @@ export function PostCard({ post }: { post: InstaCenaPost }) {
   const { data: reactions = [] } = useInstaCenaReactions(post.id);
   const toggleReaction = useToggleReaction();
   const deletePost = useDeletePost();
-  const createComment = useCreateComment();
 
   const [showComments, setShowComments] = useState(false);
-  const [commentText, setCommentText] = useState("");
   const [reactionsOpen, setReactionsOpen] = useState(false);
 
   const myReaction = reactions.find((r) => r.user_id === user?.id);
@@ -57,12 +56,8 @@ export function PostCard({ post }: { post: InstaCenaPost }) {
     setReactionsOpen(false);
   };
 
-  const handleComment = () => {
-    if (!commentText.trim()) return;
-    createComment.mutate({ postId: post.id, content: commentText.trim() }, {
-      onSuccess: () => setCommentText(""),
-    });
-  };
+
+
 
   const handleDelete = () => {
     deletePost.mutate(post.id, {
@@ -190,41 +185,7 @@ export function PostCard({ post }: { post: InstaCenaPost }) {
         </div>
 
         {/* Comments section */}
-        {showComments && (
-          <div className="mt-3 space-y-3">
-            {comments.map((c) => (
-              <div key={c.id} className="flex gap-2">
-                <Avatar className="h-7 w-7">
-                  <AvatarImage src={c.user_avatar_url || undefined} />
-                  <AvatarFallback className="text-[10px] bg-muted">
-                    {getInitials(c.user_name)}
-                  </AvatarFallback>
-                </Avatar>
-                <div className="bg-muted/50 rounded-xl px-3 py-1.5 flex-1">
-                  <p className="text-xs font-semibold">{c.user_name}</p>
-                  <p className="text-xs">{c.content}</p>
-                  <p className="text-[10px] text-muted-foreground mt-0.5">
-                    {formatDistanceToNow(new Date(c.created_at), { addSuffix: true, locale: ptBR })}
-                  </p>
-                </div>
-              </div>
-            ))}
-
-            {/* Comment input */}
-            <div className="flex gap-2 items-end">
-              <input
-                value={commentText}
-                onChange={(e) => setCommentText(e.target.value)}
-                onKeyDown={(e) => e.key === "Enter" && !e.shiftKey && handleComment()}
-                placeholder="Escreva um comentário..."
-                className="flex-1 rounded-full bg-muted/50 border border-border/50 px-3 py-1.5 text-xs outline-none focus:ring-1 focus:ring-primary/30"
-              />
-              <Button size="sm" variant="ghost" onClick={handleComment} disabled={!commentText.trim()}>
-                Enviar
-              </Button>
-            </div>
-          </div>
-        )}
+        {showComments && <CommentSection postId={post.id} />}
       </CardContent>
     </Card>
   );
