@@ -115,10 +115,10 @@ export const DDSHighlightCard = () => {
   return (
     <div className="grid grid-cols-1 lg:grid-cols-2 gap-6 mb-6">
       {/* Today's DDS */}
-      <Card className="overflow-hidden backdrop-blur-xl bg-gradient-to-br from-amber-100/40 to-orange-100/30 dark:from-amber-900/15 dark:to-orange-900/10 border border-amber-200/40 dark:border-amber-700/30 shadow-[0_4px_30px_-6px_hsl(38_90%_50%/0.15)] dark:shadow-[0_4px_30px_-6px_hsl(38_90%_50%/0.1)]">
+      <Card className="overflow-hidden backdrop-blur-xl bg-gradient-to-br from-slate-100/40 to-blue-100/30 dark:from-slate-900/15 dark:to-blue-900/10 border border-slate-200/40 dark:border-slate-700/30 shadow-[0_4px_30px_-6px_hsl(220_40%_40%/0.15)] dark:shadow-[0_4px_30px_-6px_hsl(220_40%_40%/0.1)]">
         <CardHeader className="pb-3">
           <CardTitle className="flex items-center gap-2 text-lg">
-            <Sun className="h-5 w-5 text-amber-500" />
+            <Sun className="h-5 w-5 text-slate-500" />
             DDS de Hoje
             <span className="ml-auto text-sm font-normal text-muted-foreground">
               {format(today, "EEEE, d 'de' MMMM", { locale: ptBR })}
@@ -151,8 +151,8 @@ export const DDSHighlightCard = () => {
                   </>
                 ) : todayDDS.external_presenter_name ? (
                   <>
-                    <Avatar className="h-16 w-16 border-4 border-amber-200 dark:border-amber-700">
-                      <AvatarFallback className="bg-gradient-to-br from-amber-400 to-orange-500 text-white text-lg font-bold">
+                    <Avatar className="h-16 w-16 border-4 border-slate-200 dark:border-slate-700">
+                      <AvatarFallback className="bg-gradient-to-br from-slate-400 to-blue-500 text-white text-lg font-bold">
                         {getInitials(todayDDS.external_presenter_name)}
                       </AvatarFallback>
                     </Avatar>
@@ -176,9 +176,9 @@ export const DDSHighlightCard = () => {
               </div>
 
               {/* Theme */}
-              <div className="p-3 bg-white/40 dark:bg-white/5 backdrop-blur-sm rounded-xl border border-amber-200/30 dark:border-amber-700/20">
+              <div className="p-3 bg-white/40 dark:bg-white/5 backdrop-blur-sm rounded-xl border border-slate-200/30 dark:border-slate-700/20">
                 <p className="text-sm text-muted-foreground mb-1">Tema do dia</p>
-                <p className="font-semibold text-amber-800 dark:text-amber-200">
+                <p className="font-semibold text-slate-800 dark:text-slate-200">
                   📋 {todayDDS.theme}
                 </p>
               </div>
@@ -233,7 +233,7 @@ export const DDSHighlightCard = () => {
                   )}
                 </div>
               ) : canUploadPhoto ? (
-                <div className="border-2 border-dashed border-amber-300 dark:border-amber-700 rounded-lg p-4">
+                <div className="border-2 border-dashed border-slate-300 dark:border-slate-700 rounded-lg p-4">
                   <input
                     ref={fileInputRef}
                     type="file"
@@ -247,9 +247,9 @@ export const DDSHighlightCard = () => {
                     className="flex flex-col items-center gap-2 cursor-pointer"
                   >
                     {isUploading ? (
-                      <Loader2 className="h-8 w-8 animate-spin text-amber-500" />
+                      <Loader2 className="h-8 w-8 animate-spin text-slate-500" />
                     ) : (
-                      <Camera className="h-8 w-8 text-amber-500" />
+                      <Camera className="h-8 w-8 text-slate-500" />
                     )}
                     <span className="text-sm text-muted-foreground">
                       {isUploading ? "Enviando..." : "Adicionar foto do DDS"}
