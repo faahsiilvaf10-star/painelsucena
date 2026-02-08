@@ -199,16 +199,6 @@ const Dashboard = () => {
           />
         </div>
 
-        {/* Charts Row - Main line chart + Side area chart */}
-        <div className="grid grid-cols-1 lg:grid-cols-3 gap-4 mb-6">
-          <div className="lg:col-span-2 animate-slide-up" style={{ animationDelay: "0.1s" }}>
-            <AttendanceTrendChart />
-          </div>
-          <div className="animate-slide-up" style={{ animationDelay: "0.15s" }}>
-            <MatrixSideChart />
-          </div>
-        </div>
-
         {/* Fixed banners */}
         <BirthdayBanner />
         <DDSPresenterAlert />
@@ -234,6 +224,16 @@ const Dashboard = () => {
             </SortableContext>
           </DndContext>
         )}
+
+        {/* Charts Row - Main line chart + Side area chart */}
+        <div className="grid grid-cols-1 lg:grid-cols-3 gap-4 mt-6">
+          <div className="lg:col-span-2 animate-slide-up" style={{ animationDelay: "0.1s" }}>
+            <AttendanceTrendChart />
+          </div>
+          <div className="animate-slide-up" style={{ animationDelay: "0.15s" }}>
+            <MatrixSideChart />
+          </div>
+        </div>
       </div>
     </Layout>
   );
