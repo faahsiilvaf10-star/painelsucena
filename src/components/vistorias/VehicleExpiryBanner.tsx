@@ -129,19 +129,19 @@ export function VehicleExpiryBanner() {
 
       {/* Expiring Soon Items */}
       {expiringItems.length > 0 && (
-        <div className="rounded-xl border border-amber-500/30 bg-amber-500/10 p-4">
+        <div className="rounded-xl border border-emerald-500/30 bg-emerald-500/10 p-4">
           <div className="flex items-start gap-3">
-            <div className="p-2 rounded-lg bg-amber-500/20">
-              <AlertTriangle className="w-5 h-5 text-amber-500" />
+            <div className="p-2 rounded-lg bg-emerald-500/20">
+              <AlertTriangle className="w-5 h-5 text-emerald-500" />
             </div>
             <div className="flex-1 min-w-0">
               <div className="flex items-center justify-between gap-2 mb-2">
-                <h3 className="font-semibold text-amber-500 flex items-center gap-2">
+                <h3 className="font-semibold text-emerald-500 flex items-center gap-2">
                   <Car className="w-4 h-4" />
                   Vencendo em 15 dias ({expiringItems.length})
                 </h3>
                 <Link to="/vistorias-equipamentos">
-                  <Button variant="ghost" size="sm" className="text-amber-500 hover:text-amber-400 hover:bg-amber-500/10">
+                  <Button variant="ghost" size="sm" className="text-emerald-500 hover:text-emerald-400 hover:bg-emerald-500/10">
                     Ver todos
                   </Button>
                 </Link>
@@ -150,12 +150,12 @@ export function VehicleExpiryBanner() {
                 {expiringItems.slice(0, 5).map((item, idx) => (
                   <div
                     key={`${item.vehicleId}-${item.fieldLabel}-${idx}`}
-                    className="flex items-center gap-2 text-sm text-amber-400/90"
+                    className="flex items-center gap-2 text-sm text-emerald-400/90"
                   >
                     <Calendar className="w-3.5 h-3.5 flex-shrink-0" />
                     <span className="font-mono font-medium">{item.placa}</span>
                     <span className="text-muted-foreground">•</span>
-                    <span className="truncate text-xs bg-amber-500/20 px-1.5 py-0.5 rounded">{item.fieldLabel}</span>
+                    <span className="truncate text-xs bg-emerald-500/20 px-1.5 py-0.5 rounded">{item.fieldLabel}</span>
                     <span className="text-muted-foreground">•</span>
                     <span className="whitespace-nowrap">
                       {formatDate(item.date)} {getDaysText(item.date)}
@@ -163,7 +163,7 @@ export function VehicleExpiryBanner() {
                   </div>
                 ))}
                 {expiringItems.length > 5 && (
-                  <p className="text-xs text-amber-400/70 mt-2">
+                  <p className="text-xs text-emerald-400/70 mt-2">
                     +{expiringItems.length - 5} documento(s) vencendo
                   </p>
                 )}

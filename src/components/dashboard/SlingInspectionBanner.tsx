@@ -52,16 +52,16 @@ export function SlingInspectionBanner() {
   }
 
   return (
-    <Card className="border border-amber-300/30 dark:border-amber-600/20 backdrop-blur-xl bg-gradient-to-r from-amber-100/30 to-amber-50/10 dark:from-amber-900/10 dark:to-transparent shadow-[0_4px_30px_-6px_hsl(38_90%_50%/0.12)] animate-fade-in">
+    <Card className="border border-emerald-300/30 dark:border-emerald-600/20 backdrop-blur-xl bg-gradient-to-r from-emerald-100/30 to-emerald-50/10 dark:from-emerald-900/10 dark:to-transparent shadow-[0_4px_30px_-6px_hsl(152_60%_40%/0.12)] animate-fade-in">
       <CardContent className="py-4">
         <div className="flex items-start gap-4">
-          <div className="p-2.5 rounded-xl bg-amber-400/15 dark:bg-amber-500/10 backdrop-blur-sm border border-amber-300/20 dark:border-amber-600/15">
-            <Link2 className="h-5 w-5 text-amber-500" />
+          <div className="p-2.5 rounded-xl bg-emerald-400/15 dark:bg-emerald-500/10 backdrop-blur-sm border border-emerald-300/20 dark:border-emerald-600/15">
+            <Link2 className="h-5 w-5 text-emerald-500" />
           </div>
           
           <div className="flex-1 space-y-3">
             <div className="flex items-center gap-2">
-              <AlertTriangle className="h-4 w-4 text-amber-500" />
+              <AlertTriangle className="h-4 w-4 text-emerald-500" />
               <h3 className="font-semibold text-foreground">Vistorias de Cintas Pendentes</h3>
               <Badge variant="destructive" className="animate-pulse">
                 {pendingInspections.length}

@@ -342,7 +342,7 @@ export function VehicleInspectionTable({ vehicles }: VehicleInspectionTableProps
                                       className={cn(
                                         "inline-flex items-center gap-1.5 px-2 py-1 rounded-md text-sm font-medium w-full",
                                         status === "expired" && "bg-red-500/10 text-red-500",
-                                        status === "warning" && "bg-amber-500/10 text-amber-500",
+                                        status === "warning" && "bg-emerald-500/10 text-emerald-500",
                                         status === "valid" && "bg-green-500/10 text-green-500",
                                         status === "unknown" && "bg-muted text-muted-foreground"
                                       )}
