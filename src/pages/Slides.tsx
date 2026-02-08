@@ -6,10 +6,11 @@ import { Input } from "@/components/ui/input";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { SlideGenerator } from "@/components/slides/SlideGenerator";
 import { PptxImporter } from "@/components/slides/PptxImporter";
+import { SlideFromPages } from "@/components/slides/SlideFromPages";
 import { SlideViewer } from "@/components/slides/SlideViewer";
 import { ExportPptxButton } from "@/components/slides/ExportPptxButton";
 import { usePresentations, SlideData } from "@/hooks/usePresentations";
-import { Plus, Trash2, Save, Eye, Clock, Presentation, FileUp } from "lucide-react";
+import { Plus, Trash2, Save, Eye, Clock, Presentation, FileUp, BarChart3 } from "lucide-react";
 import { format } from "date-fns";
 import { ptBR } from "date-fns/locale";
 
@@ -64,6 +65,9 @@ const SlidesPage = () => {
             <TabsTrigger value="generate">
               <Plus className="w-4 h-4 mr-1" /> Gerar
             </TabsTrigger>
+            <TabsTrigger value="pages">
+              <BarChart3 className="w-4 h-4 mr-1" /> Dados
+            </TabsTrigger>
             <TabsTrigger value="import">
               <FileUp className="w-4 h-4 mr-1" /> Importar
             </TabsTrigger>
@@ -78,6 +82,11 @@ const SlidesPage = () => {
           {/* Generate Tab */}
           <TabsContent value="generate">
             <SlideGenerator onGenerated={handleGenerated} />
+          </TabsContent>
+
+          {/* Pages Data Tab */}
+          <TabsContent value="pages">
+            <SlideFromPages onGenerated={handleGenerated} />
           </TabsContent>
 
           {/* Import Tab */}
