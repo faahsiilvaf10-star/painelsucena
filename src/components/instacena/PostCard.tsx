@@ -12,6 +12,7 @@ import { VerifiedBadge } from "@/components/VerifiedBadge";
 import { useIsAdmin } from "@/hooks/useUserRole";
 import { useInstaCenaComments, useInstaCenaReactions, useToggleReaction, useDeletePost, useCreateComment, type InstaCenaPost } from "@/hooks/useInstaCena";
 import { toast } from "sonner";
+import { MentionText } from "./MentionText";
 
 const REACTIONS = [
   { type: "like", emoji: "👍", label: "Curtir", icon: ThumbsUp },
@@ -112,7 +113,9 @@ export function PostCard({ post }: { post: InstaCenaPost }) {
 
         {/* Content */}
         {post.content && (
-          <p className="text-sm whitespace-pre-wrap mb-3">{post.content}</p>
+          <p className="text-sm whitespace-pre-wrap mb-3">
+            <MentionText content={post.content} />
+          </p>
         )}
 
         {/* Images & Videos */}
