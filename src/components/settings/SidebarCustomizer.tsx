@@ -15,6 +15,7 @@ interface SidebarCustomizerProps {
   currentSidebarFont?: string | null;
   currentSidebarFontColor?: string | null;
   currentSidebarActiveColor?: string | null;
+  currentSidebarActiveFontColor?: string | null;
 }
 
 const SIDEBAR_COLORS = [
@@ -82,6 +83,7 @@ export const SidebarCustomizer = ({
   currentSidebarFont,
   currentSidebarFontColor,
   currentSidebarActiveColor,
+  currentSidebarActiveFontColor,
 }: SidebarCustomizerProps) => {
   const queryClient = useQueryClient();
   const [selectedColor, setSelectedColor] = useState<string | null>(currentSidebarColor || null);
@@ -89,6 +91,7 @@ export const SidebarCustomizer = ({
   const [selectedFont, setSelectedFont] = useState<string | null>(currentSidebarFont || null);
   const [selectedFontColor, setSelectedFontColor] = useState<string | null>(currentSidebarFontColor || null);
   const [selectedActiveColor, setSelectedActiveColor] = useState<string | null>(currentSidebarActiveColor || null);
+  const [selectedActiveFontColor, setSelectedActiveFontColor] = useState<string | null>(currentSidebarActiveFontColor || null);
   const [isSaving, setIsSaving] = useState(false);
 
   const handleSave = async () => {
@@ -102,6 +105,7 @@ export const SidebarCustomizer = ({
           sidebar_font: selectedFont,
           sidebar_font_color: selectedFontColor,
           sidebar_active_color: selectedActiveColor,
+          sidebar_active_font_color: selectedActiveFontColor,
         })
         .eq("user_id", userId);
 
@@ -123,6 +127,7 @@ export const SidebarCustomizer = ({
     setSelectedFont(null);
     setSelectedFontColor(null);
     setSelectedActiveColor(null);
+    setSelectedActiveFontColor(null);
     setIsSaving(true);
     try {
       const { error } = await supabase
@@ -133,6 +138,7 @@ export const SidebarCustomizer = ({
           sidebar_font: null,
           sidebar_font_color: null,
           sidebar_active_color: null,
+          sidebar_active_font_color: null,
         })
         .eq("user_id", userId);
 
@@ -374,7 +380,60 @@ export const SidebarCustomizer = ({
           </div>
         </div>
 
-        {/* Preview */}
+        {/* Active Font Color Selection */}
+        <div className="space-y-3">
+          <Label className="text-sm font-medium flex items-center gap-1.5">
+            <Type className="w-4 h-4" />
+            Cor da Fonte Selecionada
+          </Label>
+          <div className="grid grid-cols-4 sm:grid-cols-6 gap-2">
+            {[
+              { id: "default", label: "Padrão", color: null },
+              { id: "white", label: "Branco", color: "hsl(0, 0%, 100%)" },
+              { id: "dark", label: "Escuro", color: "hsl(0, 0%, 15%)" },
+              { id: "gold", label: "Dourado", color: "hsl(43, 96%, 56%)" },
+              { id: "amber", label: "Âmbar", color: "hsl(38, 92%, 50%)" },
+              { id: "cyan", label: "Ciano", color: "hsl(190, 90%, 60%)" },
+              { id: "green", label: "Verde", color: "hsl(142, 70%, 60%)" },
+              { id: "rose", label: "Rosa", color: "hsl(340, 80%, 70%)" },
+              { id: "purple", label: "Roxo", color: "hsl(270, 70%, 70%)" },
+              { id: "orange", label: "Laranja", color: "hsl(25, 95%, 55%)" },
+              { id: "sky", label: "Céu", color: "hsl(200, 80%, 65%)" },
+              { id: "teal", label: "Teal", color: "hsl(175, 70%, 50%)" },
+            ].map((preset) => {
+              const isSelected = preset.color === selectedActiveFontColor;
+              return (
+                <button
+                  key={preset.id}
+                  onClick={() => setSelectedActiveFontColor(preset.color)}
+                  className={cn(
+                    "relative w-full aspect-square rounded-lg border-2 transition-all duration-200 hover:scale-105 flex items-center justify-center",
+                    isSelected
+                      ? "border-primary ring-2 ring-primary/30 scale-105"
+                      : "border-border hover:border-primary/50"
+                  )}
+                  style={{
+                    background: preset.color || "linear-gradient(135deg, hsl(0,0%,90%), hsl(0,0%,30%))",
+                  }}
+                  title={preset.label}
+                >
+                  {isSelected && (
+                    <Check className={cn("w-4 h-4 drop-shadow-md", 
+                      preset.color && isLightColor(preset.color) ? "text-gray-800" : "text-white"
+                    )} />
+                  )}
+                  <span className={cn(
+                    "absolute bottom-0.5 left-0 right-0 text-[9px] text-center truncate px-0.5",
+                    preset.color && isLightColor(preset.color) ? "text-gray-700" : "text-white/80"
+                  )}>
+                    {preset.label}
+                  </span>
+                </button>
+              );
+            })}
+          </div>
+        </div>
+
         <div className="space-y-2">
           <Label className="text-sm font-medium">Preview</Label>
           <div
@@ -398,7 +457,7 @@ export const SidebarCustomizer = ({
                 className="text-xs px-3 py-0.5 rounded-md"
                 style={{
                   backgroundColor: selectedActiveColor ? `${selectedActiveColor}` : undefined,
-                  color: selectedFontColor || (isLightColor(selectedColor) ? "hsl(0,0%,20%)" : "hsl(0,0%,95%)"),
+                  color: selectedActiveFontColor || selectedFontColor || (isLightColor(selectedColor) ? "hsl(0,0%,20%)" : "hsl(0,0%,95%)"),
                   opacity: selectedActiveColor ? 1 : 0.6,
                 }}
               >

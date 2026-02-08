@@ -334,6 +334,7 @@ export function AppSidebar() {
   const userSidebarFont = profile?.sidebar_font || undefined;
   const userSidebarFontColor = profile?.sidebar_font_color || undefined;
   const userSidebarActiveColor = profile?.sidebar_active_color || undefined;
+  const userSidebarActiveFontColor = (profile as any)?.sidebar_active_font_color || undefined;
 
   // Extract raw HSL values from "hsl(H, S%, L%)" for CSS variable override
   const extractHslValues = (color: string): string => {
@@ -347,6 +348,8 @@ export function AppSidebar() {
     '--sidebar-foreground': userSidebarFontColor ? extractHslValues(userSidebarFontColor) : undefined,
     '--sidebar-accent': userSidebarActiveColor ? extractHslValues(userSidebarActiveColor) : undefined,
     '--sidebar-primary': userSidebarActiveColor ? extractHslValues(userSidebarActiveColor) : undefined,
+    '--sidebar-accent-foreground': userSidebarActiveFontColor ? extractHslValues(userSidebarActiveFontColor) : undefined,
+    '--sidebar-primary-foreground': userSidebarActiveFontColor ? extractHslValues(userSidebarActiveFontColor) : undefined,
     backgroundColor: userSidebarColor,
     ...(userSidebarFont ? { fontFamily: userSidebarFont } : {}),
     ...(userSidebarFontColor ? { color: userSidebarFontColor } : {}),
