@@ -1,5 +1,5 @@
-import { useState, useEffect, useMemo } from "react";
-import { User, LogOut } from "lucide-react";
+import { useState, useEffect } from "react";
+import { User } from "lucide-react";
 import { useSiteSettings } from "@/hooks/useSiteSettings";
 import logoPrincipal from "@/assets/logo-principal.png";
 
@@ -11,245 +11,181 @@ interface LogoutTransitionProps {
 }
 
 export function LogoutTransition({ onComplete, userName, userAvatar, reason = "manual" }: LogoutTransitionProps) {
-  const [phase, setPhase] = useState<"enter" | "display" | "fade">("enter");
+  const [phase, setPhase] = useState<"blank" | "logo" | "goodbye" | "fade">("blank");
   const { settings } = useSiteSettings();
   const logoUrl = settings.logo_url || logoPrincipal;
-  
   const isTimeout = reason === "timeout";
-
-  // Background floating particles
-  const bgParticles = useMemo(() => {
-    return Array.from({ length: 30 }, (_, i) => ({
-      id: i,
-      x: Math.random() * 100,
-      y: Math.random() * 100,
-      size: 2 + Math.random() * 4,
-      duration: 15 + Math.random() * 20,
-      delay: Math.random() * 10,
-      opacity: 0.1 + Math.random() * 0.3,
-    }));
-  }, []);
+  const displayName = userName || "Usuário";
 
   useEffect(() => {
-    // Total 5 seconds:
-    // - enter: 0-0.5s (fade in)
-    // - display: 0.5s-4.5s (show message)
-    // - fade: 4.5s-5s (fade out)
-    
-    const displayTimer = setTimeout(() => setPhase("display"), 500);
-    const fadeTimer = setTimeout(() => setPhase("fade"), 4500);
-    const completeTimer = setTimeout(() => onComplete(), 5000);
+    // Timeline:
+    // blank: 0-0.3s
+    // logo: 0.3s-1.5s
+    // goodbye: 1.5s-4.5s
+    // fade: 4.5s-5s
+    const t1 = setTimeout(() => setPhase("logo"), 300);
+    const t2 = setTimeout(() => setPhase("goodbye"), 1500);
+    const t3 = setTimeout(() => setPhase("fade"), 4500);
+    const t4 = setTimeout(() => onComplete(), 5000);
 
     return () => {
-      clearTimeout(displayTimer);
-      clearTimeout(fadeTimer);
-      clearTimeout(completeTimer);
+      clearTimeout(t1);
+      clearTimeout(t2);
+      clearTimeout(t3);
+      clearTimeout(t4);
     };
   }, [onComplete]);
 
   return (
     <div className="fixed inset-0 z-50 pointer-events-none overflow-hidden">
-      {/* Background gradient - same as login screen */}
-      <div 
+      {/* Solid dark background */}
+      <div
         className="absolute inset-0"
+        style={{ backgroundColor: "hsl(220, 15%, 6%)" }}
+      />
+
+      {/* Subtle gradient accent at top */}
+      <div
+        className="absolute top-0 left-0 right-0 h-[1px] transition-opacity duration-1000"
         style={{
-          background: `radial-gradient(
-            ellipse 80% 60% at 50% 50%,
-            hsl(220, 10%, 25%) 0%,
-            hsl(220, 12%, 18%) 25%,
-            hsl(220, 15%, 12%) 50%,
-            hsl(220, 18%, 6%) 75%,
-            hsl(0, 0%, 0%) 100%
-          )`
+          background: "linear-gradient(90deg, transparent 10%, hsl(210, 40%, 50%) 50%, transparent 90%)",
+          opacity: phase === "goodbye" || phase === "logo" ? 0.5 : 0,
         }}
       />
 
-      {/* Subtle inner glow */}
-      <div 
-        className="absolute inset-0"
+      {/* Logo phase */}
+      <div
+        className="absolute inset-0 flex items-center justify-center transition-all duration-700 ease-out"
         style={{
-          background: `radial-gradient(
-            circle at 50% 45%,
-            rgba(100, 110, 130, 0.15) 0%,
-            transparent 45%
-          )`
+          opacity: phase === "logo" ? 1 : 0,
+          transform: phase === "logo" ? "scale(1)" : phase === "blank" ? "scale(0.95)" : "scale(1.02)",
         }}
-      />
-
-      {/* Floating background particles */}
-      {bgParticles.map((p) => (
-        <div
-          key={`bg-${p.id}`}
-          className="absolute rounded-full bg-white/20 animate-float-particle"
-          style={{
-            left: `${p.x}%`,
-            top: `${p.y}%`,
-            width: `${p.size}px`,
-            height: `${p.size}px`,
-            opacity: p.opacity,
-            animationDuration: `${p.duration}s`,
-            animationDelay: `${p.delay}s`,
-          }}
-        />
-      ))}
-
-      {/* Vignette effect */}
-      <div 
-        className="absolute inset-0"
-        style={{
-          background: `radial-gradient(
-            ellipse at center,
-            transparent 40%,
-            rgba(0, 0, 0, 0.5) 100%
-          )`
-        }}
-      />
-
-      {/* Logo at top */}
-      <div className="absolute top-8 left-1/2 -translate-x-1/2">
+      >
         <img
           src={logoUrl}
           alt="Logo"
-          className={`h-12 object-contain transition-all duration-700 ease-out ${
-            phase === "enter" ? "opacity-0 scale-90" : phase === "fade" ? "opacity-0" : "opacity-100 scale-100"
-          }`}
+          className="h-16 max-w-[280px] object-contain"
+          style={{ filter: "brightness(1.1)" }}
         />
       </div>
 
-      {/* Main content */}
-      <div 
-        className={`absolute inset-0 flex items-center justify-center transition-all duration-700 ease-out ${
-          phase === "enter" ? "opacity-0 scale-95" : phase === "fade" ? "opacity-0 scale-105" : "opacity-100 scale-100"
-        }`}
+      {/* Goodbye phase - Windows 11 style */}
+      <div
+        className="absolute inset-0 flex flex-col items-center justify-center transition-all duration-700 ease-out"
+        style={{
+          opacity: phase === "goodbye" ? 1 : phase === "fade" ? 0 : 0,
+          transform: phase === "goodbye" ? "translateY(0)" : phase === "fade" ? "translateY(-8px)" : "translateY(12px)",
+        }}
       >
-        <div className="flex flex-col items-center gap-6">
-          {/* User avatar with wave animation */}
-          <div className="relative">
-            {userAvatar ? (
-              <img 
-                src={userAvatar} 
-                alt="Avatar"
-                className="w-24 h-24 rounded-full object-cover border-4 border-cyan-400/60 shadow-[0_0_30px_rgba(34,211,238,0.4)]"
-              />
-            ) : (
-              <div className="w-24 h-24 rounded-full bg-gradient-to-br from-cyan-500/30 to-blue-600/30 border-4 border-cyan-400/60 shadow-[0_0_30px_rgba(34,211,238,0.4)] flex items-center justify-center">
-                <User className="w-12 h-12 text-cyan-300" strokeWidth={1.5} />
-              </div>
-            )}
-            
-            {/* Waving hand emoji with glow */}
-            <div className="absolute -right-2 -bottom-2 text-4xl animate-wave drop-shadow-[0_0_10px_rgba(255,200,100,0.6)]">
-              👋
-            </div>
-          </div>
-
-          {/* Goodbye message with modern gaming style */}
-          <div className="flex items-center gap-5">
-            <span className="text-5xl animate-bounce-slow drop-shadow-[0_0_10px_rgba(255,215,0,0.6)]">💫</span>
-            <div className="flex flex-col items-center gap-1">
-              <span 
-                className="text-xl font-bold tracking-widest uppercase"
-                style={{
-                  background: "linear-gradient(180deg, #ffffff 0%, #94a3b8 100%)",
-                  WebkitBackgroundClip: "text",
-                  WebkitTextFillColor: "transparent",
-                  textShadow: "0 2px 10px rgba(255,255,255,0.2)",
-                }}
-              >
-                {isTimeout ? "Sessão expirada," : "Até logo,"}
-              </span>
-              <span 
-                className="text-7xl md:text-8xl pb-4"
-                style={{
-                  fontFamily: "'Pinyon Script', cursive",
-                  background: "linear-gradient(180deg, #ffffff 0%, #e2e8f0 50%, #cbd5e1 100%)",
-                  WebkitBackgroundClip: "text",
-                  WebkitTextFillColor: "transparent",
-                  textShadow: "0 4px 20px rgba(255,255,255,0.3)",
-                  filter: "drop-shadow(0 2px 8px rgba(0,0,0,0.4))",
-                  lineHeight: "1.3",
-                }}
-              >
-                {userName || "Usuário"}!
-              </span>
-            </div>
-            <span className="text-5xl animate-bounce-slow drop-shadow-[0_0_10px_rgba(255,215,0,0.6)]" style={{ animationDelay: "0.3s" }}>💫</span>
-          </div>
-
-          {/* Subtitle */}
-          <p 
-            className="text-base mt-2 flex items-center gap-2 text-center max-w-xs font-medium tracking-wider"
-            style={{
-              background: "linear-gradient(90deg, #94a3b8 0%, #cbd5e1 50%, #94a3b8 100%)",
-              WebkitBackgroundClip: "text",
-              WebkitTextFillColor: "transparent",
-            }}
-          >
-            <LogOut className="w-4 h-4 shrink-0 text-cyan-400" />
-            {isTimeout 
-              ? "Por segurança, você foi desconectado após 5 horas de sessão." 
-              : "Saindo do sistema..."}
-          </p>
-
-          {/* Progress bar with gradient glow */}
-          <div className="w-48 h-1.5 bg-white/10 rounded-full overflow-hidden mt-4 shadow-inner">
-            <div 
-              className="h-full bg-gradient-to-r from-cyan-400 to-blue-500 rounded-full animate-logout-progress shadow-[0_0_10px_rgba(34,211,238,0.6)]"
-              style={{ animationDuration: "4.5s" }}
+        {/* Avatar */}
+        <div
+          className="mb-8 transition-all duration-500 ease-out"
+          style={{
+            opacity: phase === "goodbye" ? 1 : 0,
+            transform: phase === "goodbye" ? "scale(1)" : "scale(0.9)",
+            transitionDelay: "0.1s",
+          }}
+        >
+          {userAvatar ? (
+            <img
+              src={userAvatar}
+              alt="Avatar"
+              className="w-28 h-28 rounded-full object-cover"
+              style={{ border: "3px solid hsla(210, 20%, 40%, 0.4)" }}
             />
-          </div>
+          ) : (
+            <div
+              className="w-28 h-28 rounded-full flex items-center justify-center"
+              style={{
+                backgroundColor: "hsl(210, 20%, 18%)",
+                border: "3px solid hsla(210, 20%, 40%, 0.4)",
+              }}
+            >
+              <User className="w-14 h-14" style={{ color: "hsl(210, 15%, 55%)" }} strokeWidth={1.2} />
+            </div>
+          )}
+        </div>
+
+        {/* Goodbye text */}
+        <div
+          className="text-center transition-all duration-500 ease-out"
+          style={{
+            opacity: phase === "goodbye" ? 1 : 0,
+            transform: phase === "goodbye" ? "translateY(0)" : "translateY(8px)",
+            transitionDelay: "0.25s",
+          }}
+        >
+          <p
+            className="text-sm font-light tracking-[0.3em] uppercase mb-3"
+            style={{ color: "hsl(210, 15%, 55%)" }}
+          >
+            {isTimeout ? "Sessão expirada" : "Até logo"}
+          </p>
+          <h1
+            className="text-4xl md:text-5xl font-light tracking-wide"
+            style={{ color: "hsl(0, 0%, 92%)" }}
+          >
+            {displayName}
+          </h1>
+        </div>
+
+        {/* Subtitle */}
+        <p
+          className="text-xs tracking-[0.15em] mt-6 transition-all duration-500 ease-out"
+          style={{
+            color: "hsl(210, 15%, 45%)",
+            opacity: phase === "goodbye" ? 1 : 0,
+            transitionDelay: "0.5s",
+          }}
+        >
+          {isTimeout
+            ? "Desconectado por segurança"
+            : "Saindo do sistema"}
+        </p>
+
+        {/* Loading dots */}
+        <div
+          className="flex gap-1.5 mt-8 transition-all duration-500 ease-out"
+          style={{
+            opacity: phase === "goodbye" ? 1 : 0,
+            transitionDelay: "0.6s",
+          }}
+        >
+          {[0, 1, 2, 3, 4].map((i) => (
+            <div
+              key={i}
+              className="w-1 h-1 rounded-full win-dot-pulse-logout"
+              style={{
+                backgroundColor: "hsl(210, 30%, 50%)",
+                animationDelay: `${i * 0.15}s`,
+              }}
+            />
+          ))}
         </div>
       </div>
 
-      {/* Animation styles */}
+      {/* Final fade overlay */}
+      <div
+        className="absolute inset-0 transition-opacity duration-500 ease-out"
+        style={{
+          backgroundColor: "hsl(220, 15%, 6%)",
+          opacity: phase === "fade" ? 1 : 0,
+        }}
+      />
+
       <style>{`
-        @keyframes float-particle {
-          0%, 100% {
-            transform: translateY(0) translateX(0);
+        @keyframes win-dot-pulse-logout {
+          0%, 80%, 100% {
+            opacity: 0.2;
+            transform: scale(1);
           }
-          25% {
-            transform: translateY(-20px) translateX(10px);
-          }
-          50% {
-            transform: translateY(-10px) translateX(-5px);
-          }
-          75% {
-            transform: translateY(-30px) translateX(5px);
+          40% {
+            opacity: 1;
+            transform: scale(1.8);
           }
         }
-        
-        .animate-float-particle {
-          animation: float-particle ease-in-out infinite;
-        }
-        
-        @keyframes wave {
-          0%, 100% {
-            transform: rotate(0deg);
-          }
-          25% {
-            transform: rotate(20deg);
-          }
-          75% {
-            transform: rotate(-10deg);
-          }
-        }
-        
-        .animate-wave {
-          animation: wave 0.8s ease-in-out infinite;
-          transform-origin: 70% 70%;
-        }
-        
-        @keyframes logout-progress {
-          0% {
-            width: 0%;
-          }
-          100% {
-            width: 100%;
-          }
-        }
-        
-        .animate-logout-progress {
-          animation: logout-progress linear forwards;
+        .win-dot-pulse-logout {
+          animation: win-dot-pulse-logout 1.4s ease-in-out infinite;
         }
       `}</style>
     </div>
