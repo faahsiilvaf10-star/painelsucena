@@ -5,10 +5,11 @@ import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/com
 import { Input } from "@/components/ui/input";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { SlideGenerator } from "@/components/slides/SlideGenerator";
+import { PptxImporter } from "@/components/slides/PptxImporter";
 import { SlideViewer } from "@/components/slides/SlideViewer";
 import { ExportPptxButton } from "@/components/slides/ExportPptxButton";
 import { usePresentations, SlideData } from "@/hooks/usePresentations";
-import { Plus, Trash2, Save, Eye, Clock, Presentation } from "lucide-react";
+import { Plus, Trash2, Save, Eye, Clock, Presentation, FileUp } from "lucide-react";
 import { format } from "date-fns";
 import { ptBR } from "date-fns/locale";
 
@@ -63,6 +64,9 @@ const SlidesPage = () => {
             <TabsTrigger value="generate">
               <Plus className="w-4 h-4 mr-1" /> Gerar
             </TabsTrigger>
+            <TabsTrigger value="import">
+              <FileUp className="w-4 h-4 mr-1" /> Importar
+            </TabsTrigger>
             <TabsTrigger value="preview" disabled={currentSlides.length === 0}>
               <Eye className="w-4 h-4 mr-1" /> Visualizar
             </TabsTrigger>
@@ -74,6 +78,11 @@ const SlidesPage = () => {
           {/* Generate Tab */}
           <TabsContent value="generate">
             <SlideGenerator onGenerated={handleGenerated} />
+          </TabsContent>
+
+          {/* Import Tab */}
+          <TabsContent value="import">
+            <PptxImporter onGenerated={handleGenerated} />
           </TabsContent>
 
           {/* Preview Tab */}
