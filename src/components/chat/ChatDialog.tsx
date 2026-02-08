@@ -10,7 +10,17 @@ import { useTypingIndicator } from "@/hooks/useTypingIndicator";
 import { useAuth } from "@/hooks/useAuth";
 import { UserWithStatus } from "@/hooks/useAllUsers";
 import { EmojiPicker } from "./EmojiPicker";
-import { Send, Image, X, Loader2, ArrowLeft, Mic, Paperclip, Camera, Check, CheckCheck } from "lucide-react";
+import { Send, Image, X, Loader2, ArrowLeft, Mic, Paperclip, Camera, Check, CheckCheck, Trash2 } from "lucide-react";
+import {
+  AlertDialog,
+  AlertDialogAction,
+  AlertDialogCancel,
+  AlertDialogContent,
+  AlertDialogDescription,
+  AlertDialogFooter,
+  AlertDialogHeader,
+  AlertDialogTitle,
+} from "@/components/ui/alert-dialog";
 import { format, formatDistanceToNow } from "date-fns";
 import { ptBR } from "date-fns/locale";
 import { cn } from "@/lib/utils";
@@ -95,11 +105,13 @@ export const ChatDialog = ({
   const scrollRef = useRef<HTMLDivElement>(null);
   const inputRef = useRef<HTMLInputElement>(null);
   const typingTimeoutRef = useRef<NodeJS.Timeout | null>(null);
+  const [clearDialogOpen, setClearDialogOpen] = useState(false);
   const {
     messages,
     isLoading,
     sendMessage,
-    uploadImage
+    uploadImage,
+    clearConversation
   } = useChatMessages(selectedUser?.user_id || null);
   const {
     isOtherTyping,
@@ -213,8 +225,36 @@ export const ChatDialog = ({
       }
     };
   }, []);
+  const handleClearConversation = async () => {
+    try {
+      await clearConversation();
+      toast.success("Conversa limpa com sucesso!");
+    } catch {
+      toast.error("Erro ao limpar conversa");
+    } finally {
+      setClearDialogOpen(false);
+    }
+  };
+
   if (!selectedUser) return null;
-  return <Dialog open={open} onOpenChange={onOpenChange}>
+  return <>
+    <AlertDialog open={clearDialogOpen} onOpenChange={setClearDialogOpen}>
+      <AlertDialogContent>
+        <AlertDialogHeader>
+          <AlertDialogTitle>Limpar conversa?</AlertDialogTitle>
+          <AlertDialogDescription>
+            Todas as mensagens desta conversa serão excluídas permanentemente. Esta ação não pode ser desfeita.
+          </AlertDialogDescription>
+        </AlertDialogHeader>
+        <AlertDialogFooter>
+          <AlertDialogCancel>Cancelar</AlertDialogCancel>
+          <AlertDialogAction onClick={handleClearConversation} className="bg-destructive text-destructive-foreground hover:bg-destructive/90">
+            Limpar
+          </AlertDialogAction>
+        </AlertDialogFooter>
+      </AlertDialogContent>
+    </AlertDialog>
+    <Dialog open={open} onOpenChange={onOpenChange}>
       <DialogContent className="w-[95vw] max-w-md h-[80vh] sm:h-[85vh] flex flex-col p-0 gap-0 overflow-hidden border-0 rounded-xl" aria-describedby="chat-description">
         <DialogDescription id="chat-description" className="sr-only">
           Chat com {selectedUser.full_name}
@@ -257,14 +297,14 @@ export const ChatDialog = ({
             </div>
 
             <div className="flex items-center gap-1">
-              <Button variant="ghost" size="icon" className="h-10 w-10 text-white hover:bg-white/10 rounded-full">
-                
-              </Button>
-              <Button variant="ghost" size="icon" className="h-10 w-10 text-white hover:bg-white/10 rounded-full">
-                
-              </Button>
-              <Button variant="ghost" size="icon" className="h-10 w-10 text-white hover:bg-white/10 rounded-full">
-                
+              <Button
+                variant="ghost"
+                size="icon"
+                className="h-10 w-10 text-white hover:bg-white/10 rounded-full"
+                onClick={() => setClearDialogOpen(true)}
+                title="Limpar conversa"
+              >
+                <Trash2 className="h-5 w-5" />
               </Button>
             </div>
           </div>
@@ -354,5 +394,6 @@ export const ChatDialog = ({
           </Button>
         </div>
       </DialogContent>
-    </Dialog>;
+    </Dialog>
+  </>;
 };

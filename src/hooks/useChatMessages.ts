@@ -139,10 +139,28 @@ export const useChatMessages = (otherUserId: string | null) => {
     return urlData.publicUrl;
   };
 
+  const clearConversation = async () => {
+    if (!user?.id || !otherUserId) throw new Error("User not authenticated");
+
+    const { error } = await supabase
+      .from("chat_messages")
+      .delete()
+      .or(
+        `and(sender_id.eq.${user.id},receiver_id.eq.${otherUserId}),and(sender_id.eq.${otherUserId},receiver_id.eq.${user.id})`
+      );
+
+    if (error) throw error;
+
+    queryClient.invalidateQueries({
+      queryKey: ["chat-messages", user.id, otherUserId],
+    });
+  };
+
   return {
     messages,
     isLoading,
     sendMessage,
     uploadImage,
+    clearConversation,
   };
 };
