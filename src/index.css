@@ -612,3 +612,40 @@
     }
   }
 }
+
+/* Mention spark animation */
+.mention-spark {
+  position: relative;
+  animation: mentionPulse 2s ease-in-out infinite;
+}
+
+.mention-spark::before,
+.mention-spark::after {
+  content: "⚡";
+  position: absolute;
+  font-size: 0.6em;
+  animation: mentionSpark 1.5s ease-in-out infinite;
+  opacity: 0;
+}
+
+.mention-spark::before {
+  top: -6px;
+  left: -2px;
+  animation-delay: 0s;
+}
+
+.mention-spark::after {
+  top: -4px;
+  right: -6px;
+  animation-delay: 0.75s;
+}
+
+@keyframes mentionSpark {
+  0%, 100% { opacity: 0; transform: scale(0.5) translateY(0); }
+  50% { opacity: 1; transform: scale(1) translateY(-3px); }
+}
+
+@keyframes mentionPulse {
+  0%, 100% { text-shadow: 0 0 0 transparent; }
+  50% { text-shadow: 0 0 8px hsl(var(--primary) / 0.4); }
+}

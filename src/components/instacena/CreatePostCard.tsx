@@ -1,4 +1,4 @@
-import { useState, useRef } from "react";
+import { useState, useRef, useCallback } from "react";
 import { ImagePlus, Video, Send, X, Loader2 } from "lucide-react";
 import { Card, CardContent } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
@@ -8,6 +8,7 @@ import { useProfile } from "@/hooks/useProfile";
 import { useCreatePost } from "@/hooks/useInstaCena";
 import { supabase } from "@/integrations/supabase/client";
 import { toast } from "sonner";
+import { MentionPicker } from "./MentionPicker";
 
 const getInitials = (name: string) => {
   const parts = name.split(" ");
@@ -22,8 +23,41 @@ export function CreatePostCard() {
   const [images, setImages] = useState<string[]>([]);
   const [videos, setVideos] = useState<string[]>([]);
   const [uploading, setUploading] = useState(false);
+  const [mentionQuery, setMentionQuery] = useState("");
+  const [showMention, setShowMention] = useState(false);
+  const [mentionCursorPos, setMentionCursorPos] = useState(0);
   const fileRef = useRef<HTMLInputElement>(null);
   const videoRef = useRef<HTMLInputElement>(null);
+  const textareaRef = useRef<HTMLTextAreaElement>(null);
+
+  const handleContentChange = useCallback((e: React.ChangeEvent<HTMLTextAreaElement>) => {
+    const val = e.target.value;
+    const cursorPos = e.target.selectionStart || 0;
+    setContent(val);
+
+    // Detect @mention trigger
+    const textBeforeCursor = val.slice(0, cursorPos);
+    const atMatch = textBeforeCursor.match(/@(\w*)$/);
+    if (atMatch) {
+      setShowMention(true);
+      setMentionQuery(atMatch[1]);
+      setMentionCursorPos(cursorPos - atMatch[0].length);
+    } else {
+      setShowMention(false);
+      setMentionQuery("");
+    }
+  }, []);
+
+  const handleMentionSelect = useCallback((profile: { user_id: string; full_name: string }) => {
+    const before = content.slice(0, mentionCursorPos);
+    const after = content.slice(mentionCursorPos).replace(/^@\w*/, "");
+    const mention = `@[${profile.full_name}](${profile.user_id}) `;
+    setContent(before + mention + after);
+    setShowMention(false);
+    setMentionQuery("");
+    // Focus back on textarea
+    setTimeout(() => textareaRef.current?.focus(), 50);
+  }, [content, mentionCursorPos]);
 
   const handleUpload = async (e: React.ChangeEvent<HTMLInputElement>) => {
     const files = e.target.files;
@@ -124,12 +158,18 @@ export function CreatePostCard() {
               {getInitials(profile?.full_name || "U")}
             </AvatarFallback>
           </Avatar>
-          <div className="flex-1">
+          <div className="flex-1 relative">
             <Textarea
+              ref={textareaRef}
               value={content}
-              onChange={(e) => setContent(e.target.value)}
-              placeholder="No que você está pensando?"
+              onChange={handleContentChange}
+              placeholder="No que você está pensando? Use @ para mencionar"
               className="min-h-[60px] resize-none border-none bg-muted/30 focus-visible:ring-0 text-sm"
+            />
+            <MentionPicker
+              query={mentionQuery}
+              visible={showMention}
+              onSelect={handleMentionSelect}
             />
           </div>
         </div>

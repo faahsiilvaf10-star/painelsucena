@@ -1,0 +1,93 @@
+import { useState, useEffect, useRef } from "react";
+import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
+import { supabase } from "@/integrations/supabase/client";
+
+interface Profile {
+  user_id: string;
+  full_name: string;
+  avatar_url: string | null;
+}
+
+interface MentionPickerProps {
+  query: string;
+  onSelect: (profile: Profile) => void;
+  visible: boolean;
+}
+
+const getInitials = (name: string) => {
+  const parts = name.split(" ");
+  if (parts.length >= 2) return `${parts[0][0]}${parts[parts.length - 1][0]}`.toUpperCase();
+  return name.substring(0, 2).toUpperCase();
+};
+
+export function MentionPicker({ query, onSelect, visible }: MentionPickerProps) {
+  const [profiles, setProfiles] = useState<Profile[]>([]);
+  const [selectedIndex, setSelectedIndex] = useState(0);
+  const containerRef = useRef<HTMLDivElement>(null);
+
+  useEffect(() => {
+    if (!visible || !query) {
+      setProfiles([]);
+      return;
+    }
+
+    const fetchProfiles = async () => {
+      const { data } = await supabase
+        .from("profiles")
+        .select("user_id, full_name, avatar_url")
+        .ilike("full_name", `%${query}%`)
+        .limit(6);
+      setProfiles(data || []);
+      setSelectedIndex(0);
+    };
+
+    fetchProfiles();
+  }, [query, visible]);
+
+  useEffect(() => {
+    if (!visible) return;
+
+    const handleKeyDown = (e: KeyboardEvent) => {
+      if (e.key === "ArrowDown") {
+        e.preventDefault();
+        setSelectedIndex((i) => Math.min(i + 1, profiles.length - 1));
+      } else if (e.key === "ArrowUp") {
+        e.preventDefault();
+        setSelectedIndex((i) => Math.max(i - 1, 0));
+      } else if (e.key === "Enter" && profiles.length > 0) {
+        e.preventDefault();
+        onSelect(profiles[selectedIndex]);
+      }
+    };
+
+    window.addEventListener("keydown", handleKeyDown);
+    return () => window.removeEventListener("keydown", handleKeyDown);
+  }, [visible, profiles, selectedIndex, onSelect]);
+
+  if (!visible || profiles.length === 0) return null;
+
+  return (
+    <div
+      ref={containerRef}
+      className="absolute bottom-full left-0 mb-1 w-64 bg-popover border border-border rounded-lg shadow-lg z-50 overflow-hidden animate-scale-in"
+    >
+      {profiles.map((p, i) => (
+        <button
+          key={p.user_id}
+          onClick={() => onSelect(p)}
+          className={`flex items-center gap-2 w-full px-3 py-2 text-sm hover:bg-accent transition-colors ${
+            i === selectedIndex ? "bg-accent" : ""
+          }`}
+        >
+          <Avatar className="h-6 w-6">
+            <AvatarImage src={p.avatar_url || undefined} />
+            <AvatarFallback className="text-[10px] bg-primary/10 text-primary">
+              {getInitials(p.full_name)}
+            </AvatarFallback>
+          </Avatar>
+          <span className="truncate">{p.full_name}</span>
+        </button>
+      ))}
+    </div>
+  );
+}
