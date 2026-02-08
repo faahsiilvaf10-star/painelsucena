@@ -122,7 +122,7 @@ export function ShareConsumoWhatsappButton({
         size="icon"
         title="Enviar via WhatsApp"
       >
-        <MessageCircle className="h-4 w-4" />
+        <MessageCircle className="h-4 w-4 text-[#25D366]" />
       </Button>
       <Button
         onClick={handleCopy}

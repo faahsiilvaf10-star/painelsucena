@@ -240,7 +240,7 @@ export function OrderDetailsDialog({ order, open, onOpenChange }: OrderDetailsDi
                 <Tooltip>
                   <TooltipTrigger asChild>
                     <Button variant="outline" size="icon" onClick={handleWhatsAppOrder}>
-                      <MessageCircle className="w-4 h-4" />
+                      <MessageCircle className="w-4 h-4 text-[#25D366]" />
                     </Button>
                   </TooltipTrigger>
                   <TooltipContent>Enviar via WhatsApp</TooltipContent>

@@ -703,7 +703,7 @@ export default function Atividades() {
               variant="outline"
               className="gap-2"
             >
-              <MessageCircle className="h-4 w-4" />
+              <MessageCircle className="h-4 w-4 text-[#25D366]" />
               WhatsApp
             </Button>
             <Button 

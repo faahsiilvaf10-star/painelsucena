@@ -340,7 +340,7 @@ const HoraExtra = () => {
                 variant="outline"
                 className="flex-1"
               >
-                <MessageCircle className="h-4 w-4 mr-2" />
+                <MessageCircle className="h-4 w-4 mr-2 text-[#25D366]" />
                 WhatsApp
               </Button>
               <Button 
@@ -408,7 +408,7 @@ const HoraExtra = () => {
                     }}
                     className="gap-1.5"
                   >
-                    <MessageCircle className="h-4 w-4" />
+                    <MessageCircle className="h-4 w-4 text-[#25D366]" />
                     <span className="hidden sm:inline">WhatsApp</span>
                   </Button>
                   <Button

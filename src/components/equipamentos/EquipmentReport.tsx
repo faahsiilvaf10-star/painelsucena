@@ -280,7 +280,7 @@ export function EquipmentReport() {
               </div>
 
               <Button size="sm" variant="outline" onClick={handleWhatsAppReport} className="gap-2">
-                <MessageCircle className="w-4 h-4" />
+                <MessageCircle className="w-4 h-4 text-[#25D366]" />
                 <span className="hidden sm:inline">WhatsApp</span>
               </Button>
               <Button size="sm" variant="outline" onClick={handleCopyReport} className="gap-2">
