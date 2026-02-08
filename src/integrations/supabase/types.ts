@@ -1397,6 +1397,36 @@ export type Database = {
         }
         Relationships: []
       }
+      presentations: {
+        Row: {
+          created_at: string
+          description: string | null
+          id: string
+          slides: Json
+          title: string
+          updated_at: string
+          user_id: string
+        }
+        Insert: {
+          created_at?: string
+          description?: string | null
+          id?: string
+          slides?: Json
+          title: string
+          updated_at?: string
+          user_id: string
+        }
+        Update: {
+          created_at?: string
+          description?: string | null
+          id?: string
+          slides?: Json
+          title?: string
+          updated_at?: string
+          user_id?: string
+        }
+        Relationships: []
+      }
       product_images: {
         Row: {
           created_at: string
