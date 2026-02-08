@@ -47,17 +47,18 @@ export const useInstaCenaPosts = () => {
         .order("created_at", { ascending: false });
       if (error) throw error;
 
-      // Fetch cargos for post authors
+      // Fetch admin status for post authors from user_roles
       const userIds = [...new Set((data || []).map((p) => p.user_id))];
-      const { data: profiles } = await supabase
-        .from("profiles")
-        .select("user_id, cargo")
-        .in("user_id", userIds);
-      const cargoMap = new Map(profiles?.map((p) => [p.user_id, p.cargo]) || []);
+      const { data: adminRoles } = await supabase
+        .from("user_roles")
+        .select("user_id")
+        .in("user_id", userIds)
+        .eq("role", "admin");
+      const adminSet = new Set(adminRoles?.map((r) => r.user_id) || []);
 
       return (data || []).map((post) => ({
         ...post,
-        user_cargo: cargoMap.get(post.user_id) || null,
+        user_cargo: adminSet.has(post.user_id) ? "admin" : null,
       })) as InstaCenaPost[];
     },
   });
