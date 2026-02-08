@@ -4,9 +4,9 @@
 export async function copyAndShareWhatsApp(text: string): Promise<boolean> {
   try {
     await navigator.clipboard.writeText(text);
-    // Open WhatsApp with pre-filled text
+    // Open WhatsApp directly via API URL (avoids wa.me redirect that corrupts emojis)
     const encoded = encodeURIComponent(text);
-    window.open(`https://wa.me/?text=${encoded}`, "_blank");
+    window.open(`https://api.whatsapp.com/send?text=${encoded}`, "_blank");
     return true;
   } catch {
     return false;
