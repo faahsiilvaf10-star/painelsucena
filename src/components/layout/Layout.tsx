@@ -65,7 +65,7 @@ const Layout = ({ children }: LayoutProps) => {
   return (
     <SidebarInset className="flex flex-col h-full overflow-hidden">
       {/* Header with notification bell and theme toggle */}
-      <header className="flex h-12 md:h-14 shrink-0 items-center justify-between gap-2 md:gap-4 border-b bg-background px-3 md:px-4">
+      <header className="flex h-9 md:h-10 shrink-0 items-center justify-between gap-2 md:gap-4 border-b bg-background px-3 md:px-4">
         <div className="flex items-center gap-2 md:gap-4 md:hidden">
           <SidebarTrigger className="h-8 w-8" />
           <span className="font-semibold text-sm">Painel Sucena</span>
