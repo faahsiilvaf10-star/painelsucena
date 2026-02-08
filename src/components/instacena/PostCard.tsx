@@ -8,6 +8,7 @@ import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover";
 import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuTrigger } from "@/components/ui/dropdown-menu";
 import { useAuth } from "@/hooks/useAuth";
+import { VerifiedBadge } from "@/components/VerifiedBadge";
 import { useIsAdmin } from "@/hooks/useUserRole";
 import { useInstaCenaComments, useInstaCenaReactions, useToggleReaction, useDeletePost, useCreateComment, type InstaCenaPost } from "@/hooks/useInstaCena";
 import { toast } from "sonner";
@@ -83,7 +84,12 @@ export function PostCard({ post }: { post: InstaCenaPost }) {
             </AvatarFallback>
           </Avatar>
           <div className="flex-1 min-w-0">
-            <p className="font-semibold text-sm">{post.user_name}</p>
+            <p className="font-semibold text-sm flex items-center gap-1">
+              {post.user_name}
+              {post.user_cargo === "admin" && (
+                <VerifiedBadge size="xs" />
+              )}
+            </p>
             <p className="text-xs text-muted-foreground">
               {formatDistanceToNow(new Date(post.created_at), { addSuffix: true, locale: ptBR })}
             </p>
