@@ -1,8 +1,8 @@
-import { Copy } from "lucide-react";
+import { Copy, MessageCircle } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { toast } from "sonner";
 import { EMOJI_CHART, EMOJI_CALENDAR, EMOJI_CHART_UP, EMOJI_POTABLE_WATER, EMOJI_TRUCK, EMOJI_CLIPBOARD } from "@/lib/whatsappEmojis";
-import { copyAndShareWhatsApp } from "@/lib/copyAndShare";
+import { copyAndShareWhatsApp, copyToClipboard } from "@/lib/copyAndShare";
 
 interface DailyRecord {
   formattedDate: string;
@@ -48,12 +48,7 @@ export function ShareConsumoWhatsappButton({
   refuelingByPoint,
   refuelingByVehicle,
 }: CopyConsumoButtonProps) {
-  const handleCopy = async () => {
-    if (dailyRecords.length === 0) {
-      toast.error("Nenhum dado para copiar");
-      return;
-    }
-
+  const buildMessage = () => {
     let filterDescription = `${MONTH_NAMES[selectedMonth]} de ${selectedYear}`;
     if (selectedDay) {
       filterDescription = `${selectedDay} de ${MONTH_NAMES[selectedMonth]} de ${selectedYear}`;
@@ -102,20 +97,41 @@ export function ShareConsumoWhatsappButton({
     }
 
     message += `\n_Sucena Empreendimentos_`;
+    return message;
+  };
 
-    const ok = await copyAndShareWhatsApp(message);
+  const handleWhatsApp = async () => {
+    if (dailyRecords.length === 0) { toast.error("Nenhum dado para compartilhar"); return; }
+    const ok = await copyAndShareWhatsApp(buildMessage());
+    if (ok) toast.success("Enviado para WhatsApp!");
+    else toast.error("Erro ao compartilhar");
+  };
+
+  const handleCopy = async () => {
+    if (dailyRecords.length === 0) { toast.error("Nenhum dado para copiar"); return; }
+    const ok = await copyToClipboard(buildMessage());
     if (ok) toast.success("Relatório copiado!");
     else toast.error("Erro ao copiar");
   };
 
   return (
-    <Button
-      onClick={handleCopy}
-      variant="outline"
-      size="icon"
-      title="Copiar relatório"
-    >
-      <Copy className="h-4 w-4" />
-    </Button>
+    <>
+      <Button
+        onClick={handleWhatsApp}
+        variant="outline"
+        size="icon"
+        title="Enviar via WhatsApp"
+      >
+        <MessageCircle className="h-4 w-4" />
+      </Button>
+      <Button
+        onClick={handleCopy}
+        variant="outline"
+        size="icon"
+        title="Copiar relatório"
+      >
+        <Copy className="h-4 w-4" />
+      </Button>
+    </>
   );
 }

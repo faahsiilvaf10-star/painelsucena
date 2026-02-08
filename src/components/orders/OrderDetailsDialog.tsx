@@ -1,7 +1,7 @@
 import { useState } from "react";
 import { format } from "date-fns";
 import { ptBR } from "date-fns/locale";
-import { Calendar, Clock, Package, User, History, Trash2, Edit2, ImageIcon, ArrowRight, Hash, Copy, List } from "lucide-react";
+import { Calendar, Clock, Package, User, History, Trash2, Edit2, ImageIcon, ArrowRight, Hash, Copy, List, MessageCircle } from "lucide-react";
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/components/ui/dialog";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
@@ -86,7 +86,7 @@ const UNIT_OPTIONS: { value: QuantityUnit; label: string }[] = [
 ];
 
 import { formatCargoLabel } from "@/lib/cargoUtils";
-import { copyAndShareWhatsApp } from "@/lib/copyAndShare";
+import { copyAndShareWhatsApp, copyToClipboard } from "@/lib/copyAndShare";
 
 export function OrderDetailsDialog({ order, open, onOpenChange }: OrderDetailsDialogProps) {
   const [showDeleteConfirm, setShowDeleteConfirm] = useState(false);
@@ -211,9 +211,16 @@ export function OrderDetailsDialog({ order, open, onOpenChange }: OrderDetailsDi
     return encodeURIComponent(message);
   };
 
-  const handleCopyOrder = async () => {
+  const handleWhatsAppOrder = async () => {
     const message = generateWhatsAppMessage();
     const ok = await copyAndShareWhatsApp(decodeURIComponent(message));
+    if (ok) toast({ title: "Enviado para WhatsApp!" });
+    else toast({ title: "Erro ao compartilhar", variant: "destructive" });
+  };
+
+  const handleCopyOrder = async () => {
+    const message = generateWhatsAppMessage();
+    const ok = await copyToClipboard(decodeURIComponent(message));
     if (ok) toast({ title: "Pedido copiado!" });
     else toast({ title: "Erro ao copiar", variant: "destructive" });
   };
@@ -230,6 +237,14 @@ export function OrderDetailsDialog({ order, open, onOpenChange }: OrderDetailsDi
               </DialogTitle>
               <div className="flex items-center gap-2">
                 <ExportOrderPdfButton order={order} />
+                <Tooltip>
+                  <TooltipTrigger asChild>
+                    <Button variant="outline" size="icon" onClick={handleWhatsAppOrder}>
+                      <MessageCircle className="w-4 h-4" />
+                    </Button>
+                  </TooltipTrigger>
+                  <TooltipContent>Enviar via WhatsApp</TooltipContent>
+                </Tooltip>
                 <Tooltip>
                   <TooltipTrigger asChild>
                     <Button variant="outline" size="icon" onClick={handleCopyOrder}>

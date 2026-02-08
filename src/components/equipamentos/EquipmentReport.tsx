@@ -1,9 +1,9 @@
 import { useMemo, useState } from "react";
 import * as E from "@/lib/whatsappEmojis";
-import { copyAndShareWhatsApp } from "@/lib/copyAndShare";
+import { copyAndShareWhatsApp, copyToClipboard } from "@/lib/copyAndShare";
 import { format, startOfDay, startOfWeek, startOfMonth, endOfDay, endOfWeek, endOfMonth, isWithinInterval, subDays } from "date-fns";
 import { ptBR } from "date-fns/locale";
-import { Copy, Clock, Wrench, CloudRain, Play, ChevronDown, BarChart3, AlertTriangle, CalendarIcon } from "lucide-react";
+import { Copy, Clock, Wrench, CloudRain, Play, ChevronDown, BarChart3, AlertTriangle, CalendarIcon, MessageCircle } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import { ScrollArea } from "@/components/ui/scroll-area";
@@ -139,7 +139,7 @@ export function EquipmentReport() {
     return `${minutes}min`;
   };
 
-  const handleCopyReport = async () => {
+  const buildReportMessage = () => {
     const periodLabel = periodLabels[period];
     const dateStr = format(new Date(), "dd/MM/yyyy", { locale: ptBR });
     
@@ -187,8 +187,17 @@ export function EquipmentReport() {
         }
       });
     }
+    return message;
+  };
 
-    const ok = await copyAndShareWhatsApp(message);
+  const handleWhatsAppReport = async () => {
+    const ok = await copyAndShareWhatsApp(buildReportMessage());
+    if (ok) toast.success("Enviado para WhatsApp!");
+    else toast.error("Erro ao compartilhar");
+  };
+
+  const handleCopyReport = async () => {
+    const ok = await copyToClipboard(buildReportMessage());
     if (ok) toast.success("Relatório copiado!");
     else toast.error("Erro ao copiar");
   };
@@ -270,6 +279,10 @@ export function EquipmentReport() {
                 </Popover>
               </div>
 
+              <Button size="sm" variant="outline" onClick={handleWhatsAppReport} className="gap-2">
+                <MessageCircle className="w-4 h-4" />
+                <span className="hidden sm:inline">WhatsApp</span>
+              </Button>
               <Button size="sm" variant="outline" onClick={handleCopyReport} className="gap-2">
                 <Copy className="w-4 h-4" />
                 <span className="hidden sm:inline">Copiar</span>
