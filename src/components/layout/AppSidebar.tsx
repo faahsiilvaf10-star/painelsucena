@@ -334,7 +334,7 @@ export function AppSidebar() {
   const userSidebarFont = profile?.sidebar_font || undefined;
   const userSidebarFontColor = profile?.sidebar_font_color || undefined;
   const userSidebarActiveColor = profile?.sidebar_active_color || undefined;
-  const userSidebarActiveFontColor = (profile as any)?.sidebar_active_font_color || undefined;
+  const userSidebarActiveFontColor = profile?.sidebar_active_font_color || undefined;
 
   // Extract raw HSL values from "hsl(H, S%, L%)" for CSS variable override
   const extractHslValues = (color: string): string => {
