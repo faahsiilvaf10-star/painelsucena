@@ -1,7 +1,7 @@
 import { useMemo } from "react";
 import { format } from "date-fns";
 import { ptBR } from "date-fns/locale";
-import { Calendar, FileText, Trash2, Copy } from "lucide-react";
+import { Calendar, FileText, Trash2, Copy, MessageCircle } from "lucide-react";
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
@@ -10,7 +10,7 @@ import { Skeleton } from "@/components/ui/skeleton";
 import { getLogoBase64 } from "@/lib/pdfLogo";
 import { formatCargoLabel } from "@/lib/cargoUtils";
 import { toast } from "sonner";
-import { copyAndShareWhatsApp } from "@/lib/copyAndShare";
+import { copyAndShareWhatsApp, copyToClipboard } from "@/lib/copyAndShare";
 
 interface OvertimeRecordData {
   id: string;
@@ -334,6 +334,31 @@ const SavedRecordsCard = ({
                   msg += `👤 ${r.user_name} - ${dateStr}\n   ${r.entry_time.slice(0, 5)} ➡️ ${r.exit_time.slice(0, 5)}${he}\n`;
                 });
                 const ok = await copyAndShareWhatsApp(msg);
+                if (ok) toast.success("Enviado para WhatsApp!");
+                else toast.error("Erro ao compartilhar");
+              }}
+              className="flex items-center gap-2"
+            >
+              <MessageCircle className="h-4 w-4" />
+              <span className="hidden sm:inline">WhatsApp</span>
+            </Button>
+            <Button
+              variant="outline"
+              size="sm"
+              onClick={async () => {
+                if (periodRecords.length === 0) {
+                  toast.error("Nenhum registro no período para copiar");
+                  return;
+                }
+                 let msg = `📋 *Registros - Período Atual*\n`;
+                msg += `📅 ${periodInfo.startFormatted} a ${periodInfo.endFormatted}\n`;
+                msg += `📊 Total: ${totals.total} | ⏰ HE: ${totals.overtime}\n\n`;
+                periodRecords.forEach((r) => {
+                  const dateStr = format(new Date(r.record_date + "T00:00:00"), "dd/MM (EEE)", { locale: ptBR });
+                  const he = r.is_overtime ? ` ⏰` : "";
+                  msg += `👤 ${r.user_name} - ${dateStr}\n   ${r.entry_time.slice(0, 5)} ➡️ ${r.exit_time.slice(0, 5)}${he}\n`;
+                });
+                const ok = await copyToClipboard(msg);
                 if (ok) toast.success("Registros copiados!");
                 else toast.error("Erro ao copiar");
               }}

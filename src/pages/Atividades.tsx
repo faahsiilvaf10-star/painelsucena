@@ -1,9 +1,9 @@
 import { useState, useEffect, useMemo } from "react";
 import * as E from "@/lib/whatsappEmojis";
-import { copyAndShareWhatsApp } from "@/lib/copyAndShare";
+import { copyAndShareWhatsApp, copyToClipboard } from "@/lib/copyAndShare";
 import { format, parseISO } from "date-fns";
 import { ptBR } from "date-fns/locale";
-import { Leaf, Save, Loader2, Calendar, Trash2, History, ArrowRight, Plus, X, Copy, Droplets } from "lucide-react";
+import { Leaf, Save, Loader2, Calendar, Trash2, History, ArrowRight, Plus, X, Copy, Droplets, MessageCircle } from "lucide-react";
 import { toast } from "sonner";
 import { useNavigate } from "react-router-dom";
 import Layout from "@/components/layout/Layout";
@@ -481,9 +481,16 @@ export default function Atividades() {
     return summary;
   };
 
-  const handleCopyReport = async () => {
+  const handleWhatsAppReport = async () => {
     const summary = generateRDOSummary();
     const ok = await copyAndShareWhatsApp(summary);
+    if (ok) toast.success("Enviado para WhatsApp!");
+    else toast.error("Erro ao compartilhar");
+  };
+
+  const handleCopyReport = async () => {
+    const summary = generateRDOSummary();
+    const ok = await copyToClipboard(summary);
     if (ok) toast.success("Relatório copiado!");
     else toast.error("Erro ao copiar relatório");
   };
@@ -692,12 +699,20 @@ export default function Atividades() {
             </Button>
 
             <Button 
+              onClick={handleWhatsAppReport} 
+              variant="outline"
+              className="gap-2"
+            >
+              <MessageCircle className="h-4 w-4" />
+              WhatsApp
+            </Button>
+            <Button 
               onClick={handleCopyReport} 
               variant="outline"
               className="gap-2"
             >
               <Copy className="h-4 w-4" />
-              Copiar Relatório
+              Copiar
             </Button>
           </div>
         </div>

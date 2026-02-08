@@ -1,5 +1,5 @@
 import { useState, useMemo } from "react";
-import { FileText, Copy, Loader2, Check, UserPlus, Pencil, Save, Lock, Unlock, Trash2 } from "lucide-react";
+import { FileText, Copy, Loader2, Check, UserPlus, Pencil, Save, Lock, Unlock, Trash2, MessageCircle } from "lucide-react";
 import Layout from "@/components/layout/Layout";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -76,7 +76,7 @@ const allRoles = [
 
 // Role labels for display
 import { EMOJI_WORKER, EMOJI_CALENDAR, EMOJI_ASTERISK_8, EMOJI_HERB, EMOJI_STAR_8, EMOJI_PERSON_RAISING_HAND, EMOJI_CHECK, EMOJI_CROSS } from "@/lib/whatsappEmojis";
-import { copyAndShareWhatsApp } from "@/lib/copyAndShare";
+import { copyAndShareWhatsApp, copyToClipboard } from "@/lib/copyAndShare";
 
 const roleLabels: Record<string, Record<string, string>> = {
   "ÁREA GABIÃO": {
@@ -489,8 +489,14 @@ const RelatorioPresenca = () => {
   // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [allEmployees, groupedEmployees, attendanceMap, selectedArea, supportGabiao, supportRocagem, selectedDate]);
 
-  const handleCopy = async () => {
+  const handleWhatsApp = async () => {
     const ok = await copyAndShareWhatsApp(generateReport);
+    if (ok) toast.success("Enviado para WhatsApp!");
+    else toast.error("Erro ao compartilhar");
+  };
+
+  const handleCopy = async () => {
+    const ok = await copyToClipboard(generateReport);
     if (ok) {
       setCopied(true);
       toast.success("Relatório copiado!");
@@ -833,6 +839,18 @@ const RelatorioPresenca = () => {
                   <Button
                     onClick={async () => {
                       const ok = await copyAndShareWhatsApp(generateAreaReport("ÁREA GABIÃO"));
+                      if (ok) toast.success("Gabião enviado para WhatsApp!");
+                    }}
+                    variant="outline"
+                    size="sm"
+                    className="gap-2"
+                  >
+                    <MessageCircle className="w-4 h-4" />
+                    WhatsApp Gabião
+                  </Button>
+                  <Button
+                    onClick={async () => {
+                      const ok = await copyToClipboard(generateAreaReport("ÁREA GABIÃO"));
                       if (ok) toast.success("Relatório Gabião copiado!");
                     }}
                     variant="outline"
@@ -851,6 +869,18 @@ const RelatorioPresenca = () => {
                   <Button
                     onClick={async () => {
                       const ok = await copyAndShareWhatsApp(generateAreaReport("ROÇAGEM E PODAGEM"));
+                      if (ok) toast.success("Roçagem enviado para WhatsApp!");
+                    }}
+                    variant="outline"
+                    size="sm"
+                    className="gap-2"
+                  >
+                    <MessageCircle className="w-4 h-4" />
+                    WhatsApp Roçagem
+                  </Button>
+                  <Button
+                    onClick={async () => {
+                      const ok = await copyToClipboard(generateAreaReport("ROÇAGEM E PODAGEM"));
                       if (ok) toast.success("Relatório Roçagem copiado!");
                     }}
                     variant="outline"

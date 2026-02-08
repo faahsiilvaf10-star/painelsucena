@@ -1,9 +1,9 @@
 import { useState, useMemo } from "react";
 import * as E from "@/lib/whatsappEmojis";
-import { copyAndShareWhatsApp } from "@/lib/copyAndShare";
+import { copyAndShareWhatsApp, copyToClipboard } from "@/lib/copyAndShare";
 import { format, getDay } from "date-fns";
 import { ptBR } from "date-fns/locale";
-import { Calendar, Clock, Save, Copy, Plus, Trash2, Calculator, RefreshCw, FileText } from "lucide-react";
+import { Calendar, Clock, Save, Copy, Plus, Trash2, Calculator, RefreshCw, FileText, MessageCircle } from "lucide-react";
 import Layout from "@/components/layout/Layout";
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
@@ -169,15 +169,18 @@ const HoraExtra = () => {
     });
   };
 
+  const handleWhatsAppRecords = async () => {
+    const message = formatRecordsForMessage();
+    if (!message) { toast.error("Preencha pelo menos um registro completo"); return; }
+    const ok = await copyAndShareWhatsApp(message);
+    if (ok) toast.success("Enviado para WhatsApp!");
+    else toast.error("Erro ao compartilhar");
+  };
+
   const handleCopyRecords = async () => {
     const message = formatRecordsForMessage();
-    
-    if (!message) {
-      toast.error("Preencha pelo menos um registro completo");
-      return;
-    }
-
-    const ok = await copyAndShareWhatsApp(message);
+    if (!message) { toast.error("Preencha pelo menos um registro completo"); return; }
+    const ok = await copyToClipboard(message);
     if (ok) toast.success("Texto copiado!");
     else toast.error("Erro ao copiar");
   };
@@ -333,12 +336,20 @@ const HoraExtra = () => {
                 {createRecords.isPending ? "Salvando..." : "Salvar Registros"}
               </Button>
               <Button 
+                onClick={handleWhatsAppRecords} 
+                variant="outline"
+                className="flex-1"
+              >
+                <MessageCircle className="h-4 w-4 mr-2" />
+                WhatsApp
+              </Button>
+              <Button 
                 onClick={handleCopyRecords} 
                 variant="outline"
                 className="flex-1"
               >
                 <Copy className="h-4 w-4 mr-2" />
-                Copiar Texto
+                Copiar
               </Button>
             </div>
           </CardContent>
@@ -375,7 +386,7 @@ const HoraExtra = () => {
                 </CardDescription>
               </div>
               <div className="flex items-center gap-2">
-                {summaryData?.summaries && summaryData.summaries.length > 0 && (
+                {summaryData?.summaries && summaryData.summaries.length > 0 && (<>
                   <Button
                     variant="outline"
                     size="sm"
@@ -392,6 +403,30 @@ const HoraExtra = () => {
                         msg += `   ${E.EMOJI_ALARM} Horas Trab.: ${s.total_hours_worked.toFixed(1)}h | HE: ${s.total_overtime_hours.toFixed(1)}h\n\n`;
                       });
                       const ok = await copyAndShareWhatsApp(msg);
+                      if (ok) toast.success("Enviado para WhatsApp!");
+                      else toast.error("Erro ao compartilhar");
+                    }}
+                    className="gap-1.5"
+                  >
+                    <MessageCircle className="h-4 w-4" />
+                    <span className="hidden sm:inline">WhatsApp</span>
+                  </Button>
+                  <Button
+                    size="sm"
+                    variant="outline"
+                    onClick={async () => {
+                      const period = summaryData.period;
+                      let msg = `${E.EMOJI_CHART} *Resumo do Período (Folha)*\n`;
+                      if (period) {
+                        msg += `${E.EMOJI_CALENDAR} ${format(new Date(period.start + 'T00:00:00'), "dd/MM/yyyy")} a ${format(new Date(period.end + 'T00:00:00'), "dd/MM/yyyy")}\n`;
+                      }
+                      msg += `\n`;
+                      summaryData.summaries.forEach((s) => {
+                        msg += `${E.EMOJI_PERSON_SILHOUETTE} *${s.user_name}* (${s.cargo.replace(/_/g, ' ')})\n`;
+                        msg += `   ${E.EMOJI_MEMO} Registros: ${s.total_records} | HE: ${s.total_overtime_records}\n`;
+                        msg += `   ${E.EMOJI_ALARM} Horas Trab.: ${s.total_hours_worked.toFixed(1)}h | HE: ${s.total_overtime_hours.toFixed(1)}h\n\n`;
+                      });
+                      const ok = await copyToClipboard(msg);
                       if (ok) toast.success("Resumo copiado!");
                       else toast.error("Erro ao copiar");
                     }}
@@ -400,7 +435,7 @@ const HoraExtra = () => {
                     <Copy className="h-4 w-4" />
                     <span className="hidden sm:inline">Copiar</span>
                   </Button>
-                )}
+                </>)}
                 {isAdmin && (
                   <Button
                     variant="outline"
