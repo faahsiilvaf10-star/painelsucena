@@ -109,12 +109,17 @@ export function PostCard({ post }: { post: InstaCenaPost }) {
           <p className="text-sm whitespace-pre-wrap mb-3">{post.content}</p>
         )}
 
-        {/* Images */}
+        {/* Images & Videos */}
         {post.image_urls && post.image_urls.length > 0 && (
           <div className={`grid gap-2 mb-3 ${post.image_urls.length === 1 ? "grid-cols-1" : "grid-cols-2"}`}>
-            {post.image_urls.map((url, i) => (
-              <img key={i} src={url} alt="" className="rounded-lg w-full object-cover max-h-80" />
-            ))}
+            {post.image_urls.map((url, i) => {
+              const isVideo = /\.(mp4|mov|webm|avi|mkv)(\?|$)/i.test(url);
+              return isVideo ? (
+                <video key={i} src={url} controls className="rounded-lg w-full max-h-80" />
+              ) : (
+                <img key={i} src={url} alt="" className="rounded-lg w-full object-cover max-h-80" />
+              );
+            })}
           </div>
         )}
 
