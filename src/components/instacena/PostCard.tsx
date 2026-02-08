@@ -1,6 +1,7 @@
 import { useState } from "react";
 import { formatDistanceToNow } from "date-fns";
 import { ptBR } from "date-fns/locale";
+import { formatCargoLabel } from "@/lib/cargoUtils";
 import { MessageCircle, ThumbsUp, Heart, Laugh, Frown, Angry, AlertCircle, Trash2, MoreHorizontal } from "lucide-react";
 import { Card, CardContent } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
@@ -87,12 +88,12 @@ export function PostCard({ post }: { post: InstaCenaPost }) {
           <div className="flex-1 min-w-0">
             <p className="font-semibold text-sm flex items-center gap-1">
               {post.user_name}
-              {post.user_cargo === "admin" && (
+              {post.is_admin && (
                 <VerifiedBadge size="xs" />
               )}
             </p>
             <p className="text-xs text-muted-foreground">
-              {formatDistanceToNow(new Date(post.created_at), { addSuffix: true, locale: ptBR })}
+              {formatCargoLabel(post.user_cargo)} · {formatDistanceToNow(new Date(post.created_at), { addSuffix: true, locale: ptBR })}
             </p>
           </div>
           {(isOwner || isAdmin) && (
