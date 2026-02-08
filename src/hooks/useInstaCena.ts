@@ -14,6 +14,7 @@ export interface InstaCenaPost {
   created_at: string;
   updated_at: string;
   user_cargo?: string | null;
+  is_admin?: boolean;
 }
 
 export interface InstaCenaComment {
@@ -47,18 +48,19 @@ export const useInstaCenaPosts = () => {
         .order("created_at", { ascending: false });
       if (error) throw error;
 
-      // Fetch admin status for post authors from user_roles
+      // Fetch cargos and admin status for post authors
       const userIds = [...new Set((data || []).map((p) => p.user_id))];
-      const { data: adminRoles } = await supabase
-        .from("user_roles")
-        .select("user_id")
-        .in("user_id", userIds)
-        .eq("role", "admin");
+      const [{ data: profiles }, { data: adminRoles }] = await Promise.all([
+        supabase.from("profiles").select("user_id, cargo").in("user_id", userIds),
+        supabase.from("user_roles").select("user_id").in("user_id", userIds).eq("role", "admin"),
+      ]);
+      const cargoMap = new Map(profiles?.map((p) => [p.user_id, p.cargo]) || []);
       const adminSet = new Set(adminRoles?.map((r) => r.user_id) || []);
 
       return (data || []).map((post) => ({
         ...post,
-        user_cargo: adminSet.has(post.user_id) ? "admin" : null,
+        user_cargo: cargoMap.get(post.user_id) || null,
+        is_admin: adminSet.has(post.user_id),
       })) as InstaCenaPost[];
     },
   });
