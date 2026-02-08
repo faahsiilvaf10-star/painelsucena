@@ -681,7 +681,7 @@ ${difficulties}`;
             )}
 
             <Button variant="outline" onClick={handleWhatsApp}>
-              <MessageCircle className="h-4 w-4 mr-2" />
+              <MessageCircle className="h-4 w-4 mr-2 text-[#25D366]" />
               WhatsApp
             </Button>
             <Button variant="outline" onClick={handleCopyOnly}>

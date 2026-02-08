@@ -845,7 +845,7 @@ const RelatorioPresenca = () => {
                     size="sm"
                     className="gap-2"
                   >
-                    <MessageCircle className="w-4 h-4" />
+                    <MessageCircle className="w-4 h-4 text-[#25D366]" />
                     WhatsApp Gabião
                   </Button>
                   <Button
@@ -875,7 +875,7 @@ const RelatorioPresenca = () => {
                     size="sm"
                     className="gap-2"
                   >
-                    <MessageCircle className="w-4 h-4" />
+                    <MessageCircle className="w-4 h-4 text-[#25D366]" />
                     WhatsApp Roçagem
                   </Button>
                   <Button
