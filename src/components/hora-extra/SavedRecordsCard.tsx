@@ -10,6 +10,7 @@ import { Skeleton } from "@/components/ui/skeleton";
 import { getLogoBase64 } from "@/lib/pdfLogo";
 import { formatCargoLabel } from "@/lib/cargoUtils";
 import { toast } from "sonner";
+import { copyAndShareWhatsApp } from "@/lib/copyAndShare";
 
 interface OvertimeRecordData {
   id: string;
@@ -332,12 +333,9 @@ const SavedRecordsCard = ({
                   const he = r.is_overtime ? ` ⏰` : "";
                   msg += `👤 ${r.user_name} - ${dateStr}\n   ${r.entry_time.slice(0, 5)} ➡️ ${r.exit_time.slice(0, 5)}${he}\n`;
                 });
-                try {
-                  await navigator.clipboard.writeText(msg);
-                  toast.success("Registros copiados!");
-                } catch {
-                  toast.error("Erro ao copiar");
-                }
+                const ok = await copyAndShareWhatsApp(msg);
+                if (ok) toast.success("Registros copiados!");
+                else toast.error("Erro ao copiar");
               }}
               className="flex items-center gap-2"
             >

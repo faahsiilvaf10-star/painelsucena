@@ -1,5 +1,6 @@
 import { useState, useMemo, useRef, useEffect } from "react";
 import * as E from "@/lib/whatsappEmojis";
+import { copyAndShareWhatsApp } from "@/lib/copyAndShare";
 import { format, parseISO } from "date-fns";
 import { ptBR } from "date-fns/locale";
 import { Copy, FileText, Sun, Cloud, CloudRain, CloudSun, Save, History, Image, X, Loader2, Calendar, Trash2, Clock, Lock, Unlock } from "lucide-react";
@@ -411,8 +412,9 @@ ${difficulties}`;
 
   const handleCopy = async () => {
     const report = generateReport();
-    await navigator.clipboard.writeText(report);
-    toast.success("Relatório copiado!");
+    const ok = await copyAndShareWhatsApp(report);
+    if (ok) toast.success("Relatório copiado!");
+    else toast.error("Erro ao copiar relatório");
   };
 
 

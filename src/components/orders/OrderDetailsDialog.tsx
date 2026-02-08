@@ -86,6 +86,7 @@ const UNIT_OPTIONS: { value: QuantityUnit; label: string }[] = [
 ];
 
 import { formatCargoLabel } from "@/lib/cargoUtils";
+import { copyAndShareWhatsApp } from "@/lib/copyAndShare";
 
 export function OrderDetailsDialog({ order, open, onOpenChange }: OrderDetailsDialogProps) {
   const [showDeleteConfirm, setShowDeleteConfirm] = useState(false);
@@ -212,12 +213,9 @@ export function OrderDetailsDialog({ order, open, onOpenChange }: OrderDetailsDi
 
   const handleCopyOrder = async () => {
     const message = generateWhatsAppMessage();
-    try {
-      await navigator.clipboard.writeText(decodeURIComponent(message));
-      toast({ title: "Pedido copiado!" });
-    } catch {
-      toast({ title: "Erro ao copiar", variant: "destructive" });
-    }
+    const ok = await copyAndShareWhatsApp(decodeURIComponent(message));
+    if (ok) toast({ title: "Pedido copiado!" });
+    else toast({ title: "Erro ao copiar", variant: "destructive" });
   };
 
   return (

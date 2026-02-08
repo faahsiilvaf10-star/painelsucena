@@ -1,5 +1,6 @@
 import { useState, useMemo } from "react";
 import * as E from "@/lib/whatsappEmojis";
+import { copyAndShareWhatsApp } from "@/lib/copyAndShare";
 import { format, getDay } from "date-fns";
 import { ptBR } from "date-fns/locale";
 import { Calendar, Clock, Save, Copy, Plus, Trash2, Calculator, RefreshCw, FileText } from "lucide-react";
@@ -176,12 +177,9 @@ const HoraExtra = () => {
       return;
     }
 
-    try {
-      await navigator.clipboard.writeText(message);
-      toast.success("Texto copiado!");
-    } catch {
-      toast.error("Erro ao copiar");
-    }
+    const ok = await copyAndShareWhatsApp(message);
+    if (ok) toast.success("Texto copiado!");
+    else toast.error("Erro ao copiar");
   };
 
   return (
@@ -393,12 +391,9 @@ const HoraExtra = () => {
                         msg += `   ${E.EMOJI_MEMO} Registros: ${s.total_records} | HE: ${s.total_overtime_records}\n`;
                         msg += `   ${E.EMOJI_ALARM} Horas Trab.: ${s.total_hours_worked.toFixed(1)}h | HE: ${s.total_overtime_hours.toFixed(1)}h\n\n`;
                       });
-                      try {
-                        await navigator.clipboard.writeText(msg);
-                        toast.success("Resumo copiado!");
-                      } catch {
-                        toast.error("Erro ao copiar");
-                      }
+                      const ok = await copyAndShareWhatsApp(msg);
+                      if (ok) toast.success("Resumo copiado!");
+                      else toast.error("Erro ao copiar");
                     }}
                     className="gap-1.5"
                   >

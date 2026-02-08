@@ -1,5 +1,6 @@
 import { useMemo, useState } from "react";
 import * as E from "@/lib/whatsappEmojis";
+import { copyAndShareWhatsApp } from "@/lib/copyAndShare";
 import { format, startOfDay, startOfWeek, startOfMonth, endOfDay, endOfWeek, endOfMonth, isWithinInterval, subDays } from "date-fns";
 import { ptBR } from "date-fns/locale";
 import { Copy, Clock, Wrench, CloudRain, Play, ChevronDown, BarChart3, AlertTriangle, CalendarIcon } from "lucide-react";
@@ -187,12 +188,9 @@ export function EquipmentReport() {
       });
     }
 
-    try {
-      await navigator.clipboard.writeText(message);
-      toast.success("Relatório copiado!");
-    } catch {
-      toast.error("Erro ao copiar");
-    }
+    const ok = await copyAndShareWhatsApp(message);
+    if (ok) toast.success("Relatório copiado!");
+    else toast.error("Erro ao copiar");
   };
 
   return (
