@@ -49,6 +49,7 @@ import ParteDiaria from "./pages/ParteDiaria";
 import ConsumoAbastecimento from "./pages/ConsumoAbastecimento";
 import MaintenancePlan from "./pages/MaintenancePlan";
 import Slides from "./pages/Slides";
+import InstaCena from "./pages/InstaCena";
 import NotFound from "./pages/NotFound";
 
 // Configure QueryClient with robust error handling and caching
@@ -133,6 +134,7 @@ const App = () => (
                     <Route path="/consumo-abastecimento" element={<ProtectedRoute><ConsumoAbastecimento /></ProtectedRoute>} />
                     <Route path="/plano-manutencao" element={<ProtectedRoute><MaintenancePlan /></ProtectedRoute>} />
                     <Route path="/slides" element={<ProtectedRoute><Slides /></ProtectedRoute>} />
+                    <Route path="/instacena" element={<ProtectedRoute><InstaCena /></ProtectedRoute>} />
                     {/* ADD ALL CUSTOM ROUTES ABOVE THE CATCH-ALL "*" ROUTE */}
                     <Route path="*" element={<NotFound />} />
                   </Routes>

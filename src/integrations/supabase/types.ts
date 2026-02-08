@@ -930,6 +930,112 @@ export type Database = {
         }
         Relationships: []
       }
+      instacena_comments: {
+        Row: {
+          content: string
+          created_at: string
+          id: string
+          post_id: string
+          user_avatar_url: string | null
+          user_id: string
+          user_name: string
+        }
+        Insert: {
+          content: string
+          created_at?: string
+          id?: string
+          post_id: string
+          user_avatar_url?: string | null
+          user_id: string
+          user_name: string
+        }
+        Update: {
+          content?: string
+          created_at?: string
+          id?: string
+          post_id?: string
+          user_avatar_url?: string | null
+          user_id?: string
+          user_name?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "instacena_comments_post_id_fkey"
+            columns: ["post_id"]
+            isOneToOne: false
+            referencedRelation: "instacena_posts"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      instacena_posts: {
+        Row: {
+          content: string | null
+          created_at: string
+          id: string
+          image_urls: string[] | null
+          updated_at: string
+          user_avatar_url: string | null
+          user_id: string
+          user_name: string
+        }
+        Insert: {
+          content?: string | null
+          created_at?: string
+          id?: string
+          image_urls?: string[] | null
+          updated_at?: string
+          user_avatar_url?: string | null
+          user_id: string
+          user_name: string
+        }
+        Update: {
+          content?: string | null
+          created_at?: string
+          id?: string
+          image_urls?: string[] | null
+          updated_at?: string
+          user_avatar_url?: string | null
+          user_id?: string
+          user_name?: string
+        }
+        Relationships: []
+      }
+      instacena_reactions: {
+        Row: {
+          created_at: string
+          id: string
+          post_id: string
+          reaction_type: string
+          user_id: string
+          user_name: string
+        }
+        Insert: {
+          created_at?: string
+          id?: string
+          post_id: string
+          reaction_type?: string
+          user_id: string
+          user_name: string
+        }
+        Update: {
+          created_at?: string
+          id?: string
+          post_id?: string
+          reaction_type?: string
+          user_id?: string
+          user_name?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "instacena_reactions_post_id_fkey"
+            columns: ["post_id"]
+            isOneToOne: false
+            referencedRelation: "instacena_posts"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       inventory_items: {
         Row: {
           ca_expiry: string | null
