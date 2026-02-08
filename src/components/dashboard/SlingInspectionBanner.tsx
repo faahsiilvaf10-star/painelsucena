@@ -52,10 +52,10 @@ export function SlingInspectionBanner() {
   }
 
   return (
-    <Card className="border-amber-500/50 bg-gradient-to-r from-amber-500/10 to-transparent animate-fade-in">
+    <Card className="border border-amber-300/30 dark:border-amber-600/20 backdrop-blur-xl bg-gradient-to-r from-amber-100/30 to-amber-50/10 dark:from-amber-900/10 dark:to-transparent shadow-[0_4px_30px_-6px_hsl(38_90%_50%/0.12)] animate-fade-in">
       <CardContent className="py-4">
         <div className="flex items-start gap-4">
-          <div className="p-2 rounded-lg bg-amber-500/20">
+          <div className="p-2.5 rounded-xl bg-amber-400/15 dark:bg-amber-500/10 backdrop-blur-sm border border-amber-300/20 dark:border-amber-600/15">
             <Link2 className="h-5 w-5 text-amber-500" />
           </div>
           
@@ -76,7 +76,7 @@ export function SlingInspectionBanner() {
               {pendingInspections.slice(0, 4).map((sling) => (
                 <div
                   key={sling.id}
-                  className="flex items-center justify-between p-2 rounded-lg bg-muted/50"
+                  className="flex items-center justify-between p-2.5 rounded-xl bg-white/30 dark:bg-white/5 backdrop-blur-sm border border-border/30"
                 >
                   <div className="flex items-center gap-3">
                     <div className={`w-4 h-4 rounded-full ${colorClasses[sling.color]}`} />

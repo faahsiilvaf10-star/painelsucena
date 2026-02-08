@@ -115,7 +115,7 @@ export const DDSHighlightCard = () => {
   return (
     <div className="grid grid-cols-1 lg:grid-cols-2 gap-6 mb-6">
       {/* Today's DDS */}
-      <Card className="overflow-hidden bg-gradient-to-br from-amber-50 to-orange-50 dark:from-amber-950/30 dark:to-orange-950/30 border-amber-200 dark:border-amber-800">
+      <Card className="overflow-hidden backdrop-blur-xl bg-gradient-to-br from-amber-100/40 to-orange-100/30 dark:from-amber-900/15 dark:to-orange-900/10 border border-amber-200/40 dark:border-amber-700/30 shadow-[0_4px_30px_-6px_hsl(38_90%_50%/0.15)] dark:shadow-[0_4px_30px_-6px_hsl(38_90%_50%/0.1)]">
         <CardHeader className="pb-3">
           <CardTitle className="flex items-center gap-2 text-lg">
             <Sun className="h-5 w-5 text-amber-500" />
@@ -176,7 +176,7 @@ export const DDSHighlightCard = () => {
               </div>
 
               {/* Theme */}
-              <div className="p-3 bg-white/60 dark:bg-black/20 rounded-lg">
+              <div className="p-3 bg-white/40 dark:bg-white/5 backdrop-blur-sm rounded-xl border border-amber-200/30 dark:border-amber-700/20">
                 <p className="text-sm text-muted-foreground mb-1">Tema do dia</p>
                 <p className="font-semibold text-amber-800 dark:text-amber-200">
                   📋 {todayDDS.theme}
@@ -268,7 +268,7 @@ export const DDSHighlightCard = () => {
       </Card>
 
       {/* Tomorrow's DDS */}
-      <Card className="overflow-hidden bg-gradient-to-br from-blue-50 to-indigo-50 dark:from-blue-950/30 dark:to-indigo-950/30 border-blue-200 dark:border-blue-800">
+      <Card className="overflow-hidden backdrop-blur-xl bg-gradient-to-br from-blue-100/40 to-indigo-100/30 dark:from-blue-900/15 dark:to-indigo-900/10 border border-blue-200/40 dark:border-blue-700/30 shadow-[0_4px_30px_-6px_hsl(220_80%_50%/0.15)] dark:shadow-[0_4px_30px_-6px_hsl(220_80%_50%/0.1)]">
         <CardHeader className="pb-3">
           <CardTitle className="flex items-center gap-2 text-lg">
             <ArrowRight className="h-5 w-5 text-blue-500" />
@@ -329,7 +329,7 @@ export const DDSHighlightCard = () => {
               </div>
 
               {/* Theme */}
-              <div className="p-3 bg-white/60 dark:bg-black/20 rounded-lg">
+              <div className="p-3 bg-white/40 dark:bg-white/5 backdrop-blur-sm rounded-xl border border-blue-200/30 dark:border-blue-700/20">
                 <p className="text-sm text-muted-foreground mb-1">Tema agendado</p>
                 <p className="font-semibold text-blue-800 dark:text-blue-200">
                   📋 {tomorrowDDS.theme}
