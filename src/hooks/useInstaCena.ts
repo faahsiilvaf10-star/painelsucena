@@ -198,6 +198,20 @@ export const useCreateComment = () => {
   });
 };
 
+export const useDeleteComment = () => {
+  const queryClient = useQueryClient();
+  return useMutation({
+    mutationFn: async ({ commentId, postId }: { commentId: string; postId: string }) => {
+      const { error } = await supabase.from("instacena_comments").delete().eq("id", commentId);
+      if (error) throw error;
+      return postId;
+    },
+    onSuccess: (postId) => {
+      queryClient.invalidateQueries({ queryKey: ["instacena-comments", postId] });
+    },
+  });
+};
+
 export const useToggleReaction = () => {
   const queryClient = useQueryClient();
   const { user } = useAuth();
