@@ -2,6 +2,7 @@ import { Copy } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { toast } from "sonner";
 import { EMOJI_CHART, EMOJI_CALENDAR, EMOJI_CHART_UP, EMOJI_POTABLE_WATER, EMOJI_TRUCK, EMOJI_CLIPBOARD } from "@/lib/whatsappEmojis";
+import { copyAndShareWhatsApp } from "@/lib/copyAndShare";
 
 interface DailyRecord {
   formattedDate: string;
@@ -102,12 +103,9 @@ export function ShareConsumoWhatsappButton({
 
     message += `\n_Sucena Empreendimentos_`;
 
-    try {
-      await navigator.clipboard.writeText(message);
-      toast.success("Relatório copiado!");
-    } catch {
-      toast.error("Erro ao copiar");
-    }
+    const ok = await copyAndShareWhatsApp(message);
+    if (ok) toast.success("Relatório copiado!");
+    else toast.error("Erro ao copiar");
   };
 
   return (

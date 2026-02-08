@@ -76,6 +76,7 @@ const allRoles = [
 
 // Role labels for display
 import { EMOJI_WORKER, EMOJI_CALENDAR, EMOJI_ASTERISK_8, EMOJI_HERB, EMOJI_STAR_8, EMOJI_PERSON_RAISING_HAND, EMOJI_CHECK, EMOJI_CROSS } from "@/lib/whatsappEmojis";
+import { copyAndShareWhatsApp } from "@/lib/copyAndShare";
 
 const roleLabels: Record<string, Record<string, string>> = {
   "ÁREA GABIÃO": {
@@ -489,12 +490,12 @@ const RelatorioPresenca = () => {
   }, [allEmployees, groupedEmployees, attendanceMap, selectedArea, supportGabiao, supportRocagem, selectedDate]);
 
   const handleCopy = async () => {
-    try {
-      await navigator.clipboard.writeText(generateReport);
+    const ok = await copyAndShareWhatsApp(generateReport);
+    if (ok) {
       setCopied(true);
       toast.success("Relatório copiado!");
       setTimeout(() => setCopied(false), 2000);
-    } catch {
+    } else {
       toast.error("Erro ao copiar");
     }
   };
@@ -831,8 +832,8 @@ const RelatorioPresenca = () => {
                 <>
                   <Button
                     onClick={async () => {
-                      await navigator.clipboard.writeText(generateAreaReport("ÁREA GABIÃO"));
-                      toast.success("Relatório Gabião copiado!");
+                      const ok = await copyAndShareWhatsApp(generateAreaReport("ÁREA GABIÃO"));
+                      if (ok) toast.success("Relatório Gabião copiado!");
                     }}
                     variant="outline"
                     size="sm"
@@ -849,8 +850,8 @@ const RelatorioPresenca = () => {
                 <>
                   <Button
                     onClick={async () => {
-                      await navigator.clipboard.writeText(generateAreaReport("ROÇAGEM E PODAGEM"));
-                      toast.success("Relatório Roçagem copiado!");
+                      const ok = await copyAndShareWhatsApp(generateAreaReport("ROÇAGEM E PODAGEM"));
+                      if (ok) toast.success("Relatório Roçagem copiado!");
                     }}
                     variant="outline"
                     size="sm"
