@@ -983,6 +983,7 @@ export type Database = {
           created_at: string
           id: string
           image_urls: string[] | null
+          is_system_post: boolean
           updated_at: string
           user_avatar_url: string | null
           user_id: string
@@ -993,6 +994,7 @@ export type Database = {
           created_at?: string
           id?: string
           image_urls?: string[] | null
+          is_system_post?: boolean
           updated_at?: string
           user_avatar_url?: string | null
           user_id: string
@@ -1003,6 +1005,7 @@ export type Database = {
           created_at?: string
           id?: string
           image_urls?: string[] | null
+          is_system_post?: boolean
           updated_at?: string
           user_avatar_url?: string | null
           user_id?: string
