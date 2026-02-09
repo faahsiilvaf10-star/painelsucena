@@ -47,19 +47,35 @@
    shiftDate?: string;
  }
  
- const STATUS_OPTIONS = [
-   { value: "operando", label: "Operando" },
-   { value: "waiting_front", label: "Aguardando Frente" },
-   { value: "maintenance", label: "Manutenção" },
-   { value: "abastecimento", label: "Abastecendo" },
-   { value: "rain", label: "Parado (Chuva)" },
-   { value: "end_of_shift", label: "Fim de Turno" },
- ] as const;
- 
- const getStatusLabel = (status: string) => {
-   const option = STATUS_OPTIONS.find((o) => o.value === status);
-   return option?.label || status;
- };
+const STATUS_OPTIONS = [
+  { value: "operando", label: "Operando" },
+  { value: "waiting_front", label: "Aguardando Frente" },
+  { value: "maintenance", label: "Manutenção" },
+  { value: "abastecimento", label: "Abastecendo" },
+  { value: "rain", label: "Parado (Chuva)" },
+  { value: "end_of_shift", label: "Fim de Turno" },
+] as const;
+
+const ALL_STATUS_LABELS: Record<string, string> = {
+  operando: "Operando",
+  waiting_front: "Aguardando Frente",
+  waiting: "Aguardando Frente",
+  aguardando_frente_servico: "Aguardando Frente de Serviço",
+  maintenance: "Manutenção",
+  manutencao_corretiva: "Manutenção Corretiva",
+  manutencao_preventiva: "Manutenção Preventiva",
+  vistoria: "Vistoria",
+  abastecimento: "Abastecendo",
+  rain: "Parado (Chuva)",
+  end_of_shift: "Fim de Turno",
+  fim_turno: "Fim de Turno",
+  end_of_day: "Fim do Dia",
+  none: "Sem Status",
+};
+
+const getStatusLabel = (status: string) => {
+  return ALL_STATUS_LABELS[status] || status;
+};
  
  export function AdminStatusEditor({ equipmentId, equipmentName, shiftDate }: AdminStatusEditorProps) {
    const [isOpen, setIsOpen] = useState(false);
