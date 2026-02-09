@@ -139,7 +139,7 @@ export default function ParteDiaria() {
       case "end_of_shift":
         return <Badge className="bg-blue-500 text-white">Fim de Turno</Badge>;
       case "end_of_day":
-        return <Badge className="bg-orange-500 text-white">Combustível</Badge>;
+        return <Badge className="bg-cyan-500 text-white">Abastecendo</Badge>;
       case "rain":
         return <Badge className="bg-sky-500 text-white">Chuva</Badge>;
       case "abastecimento":
