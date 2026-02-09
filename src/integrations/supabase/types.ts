@@ -667,6 +667,9 @@ export type Database = {
           equipment_type: string
           helper: string
           id: string
+          latitude: number | null
+          location_updated_at: string | null
+          longitude: number | null
           name: string
           plate: string
           start_hour: number
@@ -681,6 +684,9 @@ export type Database = {
           equipment_type?: string
           helper: string
           id?: string
+          latitude?: number | null
+          location_updated_at?: string | null
+          longitude?: number | null
           name: string
           plate: string
           start_hour?: number
@@ -695,6 +701,9 @@ export type Database = {
           equipment_type?: string
           helper?: string
           id?: string
+          latitude?: number | null
+          location_updated_at?: string | null
+          longitude?: number | null
           name?: string
           plate?: string
           start_hour?: number

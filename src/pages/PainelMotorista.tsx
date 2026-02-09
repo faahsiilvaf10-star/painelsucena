@@ -23,6 +23,7 @@ import { SyncIndicatorV2 } from "@/components/driver/SyncIndicatorV2";
 import { OfflineBanner } from "@/components/driver/OfflineFeedback";
 import { useEquipment } from "@/hooks/useEquipment";
 import { useOfflineSyncV2 } from "@/hooks/useOfflineSyncV2";
+import { useDriverGeolocation } from "@/hooks/useDriverGeolocation";
 
 interface QuickAccessItem {
   title: string;
@@ -57,6 +58,16 @@ const PainelMotorista = () => {
   const selectedVehicleId = localStorage.getItem("selectedVehicleId");
   const selectedVehicle = equipment.find(eq => eq.id === selectedVehicleId);
   const isMunk = selectedVehicle?.equipment_type === "munk";
+
+  // Geolocation tracking
+  const { permissionStatus, requestPermission } = useDriverGeolocation(selectedVehicleId);
+
+  // Request location permission on mount
+  useEffect(() => {
+    if (permissionStatus === "prompt") {
+      requestPermission();
+    }
+  }, [permissionStatus, requestPermission]);
 
   const handleLogout = async () => {
     try {

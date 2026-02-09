@@ -28,7 +28,7 @@ import {
   TableHeader,
   TableRow,
 } from "@/components/ui/table";
-import { Truck, Plus, Loader2, Trash2, User, Clock, AlertCircle, Droplets } from "lucide-react";
+import { Truck, Plus, Loader2, Trash2, User, Clock, AlertCircle, Droplets, MapPin } from "lucide-react";
 import { AdminStatusEditor } from "@/components/partediaria/AdminStatusEditor";
 import { AdminCountersEditor } from "@/components/partediaria/AdminCountersEditor";
 import { ExportEquipmentPdfButton } from "@/components/equipamentos/ExportEquipmentPdfButton";
@@ -327,6 +327,32 @@ export default function ParteDiaria() {
                             {timeline.driver || "Não vinculado"}
                           </span>
                         </div>
+
+                        {/* Location Info */}
+                        {(vehicle as any).latitude && (vehicle as any).longitude && (
+                          <div className="flex items-center gap-2 text-sm">
+                            <MapPin className="h-4 w-4 text-green-500" />
+                            <a
+                              href={`https://www.google.com/maps?q=${(vehicle as any).latitude},${(vehicle as any).longitude}`}
+                              target="_blank"
+                              rel="noopener noreferrer"
+                              className="text-primary hover:underline text-xs"
+                            >
+                              Ver localização no mapa
+                            </a>
+                            {(vehicle as any).location_updated_at && (
+                              <span className="text-[10px] text-muted-foreground">
+                                (atualizado {format(new Date((vehicle as any).location_updated_at), "HH:mm", { locale: ptBR })})
+                              </span>
+                            )}
+                          </div>
+                        )}
+                        {timeline.driver && !(vehicle as any).latitude && (
+                          <div className="flex items-center gap-2 text-sm">
+                            <MapPin className="h-4 w-4 text-muted-foreground" />
+                            <span className="text-xs text-muted-foreground italic">Localização indisponível</span>
+                          </div>
+                        )}
 
                         {/* Stop Time */}
                         {timeline.currentStatus !== "none" && timeline.stopStartTime && (
