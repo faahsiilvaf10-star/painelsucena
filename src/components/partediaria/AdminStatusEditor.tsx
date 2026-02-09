@@ -50,10 +50,16 @@
 const STATUS_OPTIONS = [
   { value: "operando", label: "Operando" },
   { value: "waiting_front", label: "Aguardando Frente" },
+  { value: "aguardando_frente_servico", label: "Aguardando Frente de Serviço" },
   { value: "maintenance", label: "Manutenção" },
+  { value: "manutencao_corretiva", label: "Manutenção Corretiva" },
+  { value: "manutencao_preventiva", label: "Manutenção Preventiva" },
+  { value: "vistoria", label: "Vistoria" },
   { value: "abastecimento", label: "Abastecendo" },
   { value: "rain", label: "Parado (Chuva)" },
   { value: "end_of_shift", label: "Fim de Turno" },
+  { value: "fim_turno", label: "Fim de Turno" },
+  { value: "end_of_day", label: "Fim do Dia" },
 ] as const;
 
 const ALL_STATUS_LABELS: Record<string, string> = {
