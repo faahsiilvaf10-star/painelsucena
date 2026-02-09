@@ -61,14 +61,13 @@ serve(async (req) => {
     const campaignColors = monthData.campaigns.map((c: Campaign) => c.colorName).join(", ");
     const campaignDescriptions = monthData.campaigns.map((c: Campaign) => `${c.name}: ${c.description}`).join(". ");
 
-    const prompt = `Create a beautiful, professional health awareness campaign banner for "${monthData.monthName}" in Brazil. 
+    const prompt = `Create a beautiful, professional health awareness campaign banner image for the month of "${monthData.monthName}" in Brazil. 
 The campaigns are: ${campaignNames}. The theme colors are: ${campaignColors}.
 ${campaignDescriptions}.
 Design a modern, clean banner with a Windows 11 Fluent Design aesthetic: rounded corners, frosted glass effects, soft gradients using the campaign colors (${monthData.campaigns.map((c: Campaign) => c.color).join(", ")}). 
-Include symbolic ribbons in the campaign colors, gentle bokeh lights, and a professional medical/health feel. 
-The banner should be wide (16:9 aspect ratio), elegant and inspiring. 
-Text should read "${monthData.monthName}" prominently.
-IMPORTANT: Include the company logo "SUCENA" prominently in the top-left or top-right corner of the banner. The logo text should be clean and professional.
+Include symbolic awareness ribbons in the campaign colors, gentle bokeh lights, and a professional medical/health feel. 
+The banner should be wide (16:9 aspect ratio), elegant and inspiring.
+CRITICAL: DO NOT include ANY text, words, letters, or typography in the image. The image must be purely visual/graphical with NO text at all. No month names, no campaign names, no logos as text. Only visual elements like ribbons, gradients, abstract shapes, and health symbols.
 Ultra high resolution.`;
 
     console.log("Calling AI to generate banner image...");
