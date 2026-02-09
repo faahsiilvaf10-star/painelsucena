@@ -9,6 +9,7 @@ import { useCreatePost } from "@/hooks/useInstaCena";
 import { supabase } from "@/integrations/supabase/client";
 import { toast } from "sonner";
 import { MentionPicker } from "./MentionPicker";
+import { FormattingToolbar } from "./FormattingToolbar";
 
 const getInitials = (name: string) => {
   const parts = name.split(" ");
@@ -58,6 +59,29 @@ export function CreatePostCard() {
     // Focus back on textarea
     setTimeout(() => textareaRef.current?.focus(), 50);
   }, [content, mentionCursorPos]);
+
+  const handleFormat = useCallback((prefix: string, suffix: string) => {
+    const textarea = textareaRef.current;
+    if (!textarea) return;
+
+    const start = textarea.selectionStart;
+    const end = textarea.selectionEnd;
+    const selectedText = content.slice(start, end);
+
+    const newContent =
+      content.slice(0, start) + prefix + (selectedText || "texto") + suffix + content.slice(end);
+    setContent(newContent);
+
+    // Position cursor after the inserted text
+    setTimeout(() => {
+      textarea.focus();
+      const cursorPos = selectedText
+        ? start + prefix.length + selectedText.length + suffix.length
+        : start + prefix.length;
+      const selectEnd = selectedText ? cursorPos : cursorPos + 5; // select "texto" if no selection
+      textarea.setSelectionRange(selectedText ? cursorPos : start + prefix.length, selectEnd);
+    }, 10);
+  }, [content]);
 
   const handleUpload = async (e: React.ChangeEvent<HTMLInputElement>) => {
     const files = e.target.files;
@@ -208,7 +232,12 @@ export function CreatePostCard() {
           </div>
         )}
 
-        <div className="flex items-center justify-between mt-3 pt-3 border-t border-border/50">
+        {/* Formatting toolbar */}
+        <div className="mt-2 px-1">
+          <FormattingToolbar onFormat={handleFormat} />
+        </div>
+
+        <div className="flex items-center justify-between mt-2 pt-3 border-t border-border/50">
           <div className="flex gap-1">
             <input ref={fileRef} type="file" accept="image/*" multiple className="hidden" onChange={handleUpload} />
             <Button variant="ghost" size="sm" onClick={() => fileRef.current?.click()} disabled={uploading} className="text-muted-foreground gap-1.5 text-xs">

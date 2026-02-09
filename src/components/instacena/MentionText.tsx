@@ -1,8 +1,10 @@
 import { Fragment } from "react";
+import { RichTextRenderer } from "./RichTextRenderer";
 
 /**
  * Parses content with mentions in format @[Name](user_id)
  * Renders mentions as bold text with sparkle animation
+ * Non-mention text is passed through RichTextRenderer for formatting
  */
 export function MentionText({ content }: { content: string }) {
   // Match @[Name](user_id)
@@ -24,7 +26,7 @@ export function MentionText({ content }: { content: string }) {
   }
 
   if (parts.length === 0) {
-    return <span>{content}</span>;
+    return <span><RichTextRenderer content={content} /></span>;
   }
 
   return (
@@ -38,7 +40,9 @@ export function MentionText({ content }: { content: string }) {
             @{part.value}
           </span>
         ) : (
-          <Fragment key={i}>{part.value}</Fragment>
+          <Fragment key={i}>
+            <RichTextRenderer content={part.value} />
+          </Fragment>
         )
       )}
     </span>
