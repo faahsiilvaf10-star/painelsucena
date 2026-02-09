@@ -15,6 +15,7 @@ export interface InstaCenaPost {
   updated_at: string;
   user_cargo?: string | null;
   is_admin?: boolean;
+  is_system_post?: boolean;
 }
 
 export interface InstaCenaComment {

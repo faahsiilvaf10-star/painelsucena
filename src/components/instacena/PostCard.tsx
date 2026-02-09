@@ -2,8 +2,9 @@ import { useState } from "react";
 import { formatDistanceToNow } from "date-fns";
 import { ptBR } from "date-fns/locale";
 import { formatCargoLabel } from "@/lib/cargoUtils";
-import { MessageCircle, ThumbsUp, Trash2, MoreHorizontal } from "lucide-react";
+import { MessageCircle, ThumbsUp, Trash2, MoreHorizontal, Bot } from "lucide-react";
 import { Card, CardContent } from "@/components/ui/card";
+import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover";
@@ -70,25 +71,43 @@ export function PostCard({ post }: { post: InstaCenaPost }) {
     : null;
 
   return (
-    <Card className="border-border/50 shadow-sm">
+    <Card className={`shadow-sm ${post.is_system_post ? "border-primary/30 bg-primary/5" : "border-border/50"}`}>
       <CardContent className="p-4">
         {/* Header */}
         <div className="flex items-start gap-3 mb-3">
-          <Avatar className="h-10 w-10">
-            <AvatarImage src={post.user_avatar_url || undefined} />
-            <AvatarFallback className="bg-primary/10 text-primary text-sm font-semibold">
-              {getInitials(post.user_name)}
-            </AvatarFallback>
-          </Avatar>
+          {post.is_system_post ? (
+            <div className="h-10 w-10 rounded-full bg-primary/15 flex items-center justify-center shrink-0">
+              <Bot className="h-5 w-5 text-primary" />
+            </div>
+          ) : (
+            <Avatar className="h-10 w-10">
+              <AvatarImage src={post.user_avatar_url || undefined} />
+              <AvatarFallback className="bg-primary/10 text-primary text-sm font-semibold">
+                {getInitials(post.user_name)}
+              </AvatarFallback>
+            </Avatar>
+          )}
           <div className="flex-1 min-w-0">
-            <p className="font-semibold text-sm flex items-center gap-1">
-              {post.user_name}
-              {post.is_admin && (
-                <VerifiedBadge size="xs" />
+            <p className="font-semibold text-sm flex items-center gap-1.5">
+              {post.is_system_post ? (
+                <>
+                  <span className="text-primary">Sistema</span>
+                  <Badge variant="outline" className="text-[10px] px-1.5 py-0 h-4 border-primary/40 text-primary font-medium">
+                    LOG
+                  </Badge>
+                </>
+              ) : (
+                <>
+                  {post.user_name}
+                  {post.is_admin && <VerifiedBadge size="xs" />}
+                </>
               )}
             </p>
             <p className="text-xs text-muted-foreground">
-              {formatCargoLabel(post.user_cargo)} · {formatDistanceToNow(new Date(post.created_at), { addSuffix: true, locale: ptBR })}
+              {post.is_system_post
+                ? `por ${post.user_name} · ${formatDistanceToNow(new Date(post.created_at), { addSuffix: true, locale: ptBR })}`
+                : `${formatCargoLabel(post.user_cargo)} · ${formatDistanceToNow(new Date(post.created_at), { addSuffix: true, locale: ptBR })}`
+              }
             </p>
           </div>
           {(isOwner || isAdmin) && (
