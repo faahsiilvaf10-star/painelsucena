@@ -3,14 +3,13 @@ import { ImagePlus, Video, Send, X, Loader2 } from "lucide-react";
 import { Card, CardContent } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
-import { Textarea } from "@/components/ui/textarea";
 import { useProfile } from "@/hooks/useProfile";
 import { useCreatePost } from "@/hooks/useInstaCena";
 import { supabase } from "@/integrations/supabase/client";
 import { toast } from "sonner";
 import { MentionPicker } from "./MentionPicker";
 import { FormattingToolbar } from "./FormattingToolbar";
-import { MentionText } from "./MentionText";
+import { RichTextInput, RichTextInputHandle } from "./RichTextInput";
 
 const getInitials = (name: string) => {
   const parts = name.split(" ");
@@ -21,68 +20,64 @@ const getInitials = (name: string) => {
 export function CreatePostCard() {
   const { data: profile } = useProfile();
   const createPost = useCreatePost();
-  const [content, setContent] = useState("");
+  const [hasContent, setHasContent] = useState(false);
   const [images, setImages] = useState<string[]>([]);
   const [videos, setVideos] = useState<string[]>([]);
   const [uploading, setUploading] = useState(false);
   const [mentionQuery, setMentionQuery] = useState("");
   const [showMention, setShowMention] = useState(false);
-  const [mentionCursorPos, setMentionCursorPos] = useState(0);
   const fileRef = useRef<HTMLInputElement>(null);
   const videoRef = useRef<HTMLInputElement>(null);
-  const textareaRef = useRef<HTMLTextAreaElement>(null);
+  const editorRef = useRef<RichTextInputHandle>(null);
 
-  const handleContentChange = useCallback((e: React.ChangeEvent<HTMLTextAreaElement>) => {
-    const val = e.target.value;
-    const cursorPos = e.target.selectionStart || 0;
-    setContent(val);
+  const handleInput = useCallback((plainText: string) => {
+    setHasContent(plainText.trim().length > 0);
 
-    // Detect @mention trigger
-    const textBeforeCursor = val.slice(0, cursorPos);
-    const atMatch = textBeforeCursor.match(/@(\w*)$/);
-    if (atMatch) {
-      setShowMention(true);
-      setMentionQuery(atMatch[1]);
-      setMentionCursorPos(cursorPos - atMatch[0].length);
-    } else {
-      setShowMention(false);
-      setMentionQuery("");
+    // Detect @mention trigger from plain text
+    const sel = window.getSelection();
+    if (sel && sel.rangeCount > 0) {
+      const range = sel.getRangeAt(0);
+      const textNode = range.startContainer;
+      if (textNode.nodeType === Node.TEXT_NODE && textNode.textContent) {
+        const text = textNode.textContent;
+        const cursorPos = range.startOffset;
+        const beforeCursor = text.slice(0, cursorPos);
+        const atMatch = beforeCursor.match(/@(\w*)$/);
+        if (atMatch) {
+          setShowMention(true);
+          setMentionQuery(atMatch[1]);
+          return;
+        }
+      }
     }
+    setShowMention(false);
+    setMentionQuery("");
   }, []);
 
   const handleMentionSelect = useCallback((profile: { user_id: string; full_name: string }) => {
-    const before = content.slice(0, mentionCursorPos);
-    const after = content.slice(mentionCursorPos).replace(/^@\w*/, "");
-    const mention = `@[${profile.full_name}](${profile.user_id}) `;
-    setContent(before + mention + after);
+    editorRef.current?.insertMention(profile.full_name, profile.user_id);
     setShowMention(false);
     setMentionQuery("");
-    // Focus back on textarea
-    setTimeout(() => textareaRef.current?.focus(), 50);
-  }, [content, mentionCursorPos]);
+  }, []);
 
   const handleFormat = useCallback((prefix: string, suffix: string) => {
-    const textarea = textareaRef.current;
-    if (!textarea) return;
-
-    const start = textarea.selectionStart;
-    const end = textarea.selectionEnd;
-    const selectedText = content.slice(start, end);
-
-    const newContent =
-      content.slice(0, start) + prefix + (selectedText || "texto") + suffix + content.slice(end);
-    setContent(newContent);
-
-    // Position cursor after the inserted text
-    setTimeout(() => {
-      textarea.focus();
-      const cursorPos = selectedText
-        ? start + prefix.length + selectedText.length + suffix.length
-        : start + prefix.length;
-      const selectEnd = selectedText ? cursorPos : cursorPos + 5; // select "texto" if no selection
-      textarea.setSelectionRange(selectedText ? cursorPos : start + prefix.length, selectEnd);
-    }, 10);
-  }, [content]);
+    // Map old prefix/suffix format to new format types
+    if (prefix === "**") {
+      editorRef.current?.applyFormat("bold");
+    } else if (prefix === "_") {
+      editorRef.current?.applyFormat("italic");
+    } else if (prefix === "__") {
+      editorRef.current?.applyFormat("underline");
+    } else if (prefix === "{glow}") {
+      editorRef.current?.applyFormat("glow");
+    } else if (prefix.startsWith("{color:")) {
+      const color = prefix.match(/\{color:(\w+)\}/)?.[1] || "yellow";
+      editorRef.current?.applyFormat("color", color);
+    } else if (prefix.startsWith("{font:")) {
+      const font = prefix.match(/\{font:(\w+)\}/)?.[1] || "normal";
+      editorRef.current?.applyFormat("font", font);
+    }
+  }, []);
 
   const handleUpload = async (e: React.ChangeEvent<HTMLInputElement>) => {
     const files = e.target.files;
@@ -121,7 +116,6 @@ export function CreatePostCard() {
         continue;
       }
 
-      // Validate duration
       const duration = await getVideoDuration(file);
       if (duration > 30) {
         toast.error("Vídeo deve ter no máximo 30 segundos");
@@ -158,12 +152,14 @@ export function CreatePostCard() {
   };
 
   const handleSubmit = () => {
+    const content = editorRef.current?.getContent() || "";
     if (!content.trim() && images.length === 0 && videos.length === 0) return;
     createPost.mutate(
       { content: content.trim(), imageUrls: [...images, ...videos] },
       {
         onSuccess: () => {
-          setContent("");
+          editorRef.current?.clear();
+          setHasContent(false);
           setImages([]);
           setVideos([]);
           toast.success("Publicação criada!");
@@ -184,23 +180,11 @@ export function CreatePostCard() {
             </AvatarFallback>
           </Avatar>
           <div className="flex-1 relative">
-            <div className="relative">
-              <Textarea
-                ref={textareaRef}
-                value={content}
-                onChange={handleContentChange}
-                placeholder="No que você está pensando? Use @ para mencionar"
-                className="min-h-[60px] resize-none border-none bg-muted/30 focus-visible:ring-0 text-sm text-transparent caret-foreground selection:bg-primary/20"
-              />
-              {content && (
-                <div
-                  className="absolute inset-0 pointer-events-none px-3 py-2 text-sm whitespace-pre-wrap break-words overflow-hidden"
-                  aria-hidden="true"
-                >
-                  <MentionText content={content} />
-                </div>
-              )}
-            </div>
+            <RichTextInput
+              ref={editorRef}
+              placeholder="No que você está pensando? Use @ para mencionar"
+              onInput={handleInput}
+            />
             <MentionPicker
               query={mentionQuery}
               visible={showMention}
@@ -264,7 +248,7 @@ export function CreatePostCard() {
           <Button
             size="sm"
             onClick={handleSubmit}
-            disabled={(!content.trim() && images.length === 0 && videos.length === 0) || createPost.isPending}
+            disabled={(!hasContent && images.length === 0 && videos.length === 0) || createPost.isPending}
             className="gap-1.5"
           >
             {createPost.isPending ? <Loader2 className="h-4 w-4 animate-spin" /> : <Send className="h-4 w-4" />}
