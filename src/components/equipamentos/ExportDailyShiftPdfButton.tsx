@@ -204,19 +204,7 @@ export function ExportDailyShiftPdfButton({ record, isLoading }: ExportDailyShif
         activityTables.push(emptyRows);
       }
 
-      // Always add one extra blank continuation table for manual entries
-      const blankRows: string[] = [];
-      for (let i = 0; i < ROWS_PER_TABLE; i++) {
-        blankRows.push(`
-          <tr>
-            <td class="cell horario-cell"></td>
-            <td class="cell as-cell">ÀS</td>
-            <td class="cell horario-cell"></td>
-            <td class="cell desc-cell"></td>
-          </tr>
-        `);
-      }
-      activityTables.push(blankRows);
+      // No extra blank continuation table
       
       // Generate HTML for all activity tables
       const buildActivityTableHtml = (rows: string[], tableIndex: number) => `
