@@ -16,6 +16,7 @@ import { InventoryTable } from "@/components/inventory/InventoryTable";
 import { EditItemDialog } from "@/components/inventory/EditItemDialog";
 import { ExportInventoryButton } from "@/components/inventory/ExportInventoryButton";
 import { useInventoryItems, useStorageLocations, InventoryItem } from "@/hooks/useInventory";
+import { useVisualizadorContext } from "@/contexts/VisualizadorContext";
 
 const CATEGORIES = [
   { value: "all", label: "Todas Categorias" },
@@ -34,6 +35,7 @@ export default function Estoque() {
   const [categoryFilter, setCategoryFilter] = useState("all");
   const [locationFilter, setLocationFilter] = useState("all");
   const [editItem, setEditItem] = useState<InventoryItem | null>(null);
+  const { isVisualizador } = useVisualizadorContext();
 
   const filteredItems = useMemo(() => {
     if (!items) return [];
@@ -92,8 +94,8 @@ export default function Estoque() {
             </p>
           </div>
           <div className="flex gap-2 w-full sm:w-auto">
-            <ExportInventoryButton items={filteredItems} />
-            <AddItemDialog />
+            {!isVisualizador && <ExportInventoryButton items={filteredItems} />}
+            {!isVisualizador && <AddItemDialog />}
           </div>
         </div>
         {/* Stats Cards */}

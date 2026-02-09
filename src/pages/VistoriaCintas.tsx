@@ -47,10 +47,12 @@ import {
 } from "@/hooks/useSlingEquipment";
 import { useAuth } from "@/hooks/useAuth";
 import { SlingInspectionDialog } from "@/components/vistorias/SlingInspectionDialog";
+import { useVisualizadorContext } from "@/contexts/VisualizadorContext";
 
 const VistoriaCintas = () => {
   const { user } = useAuth();
   const { slings, pendingInspections, currentMonthColor, isLoading } = useSlingWithInspections();
+  const { isVisualizador } = useVisualizadorContext();
   const createInspection = useCreateSlingInspection();
   const updateInspection = useUpdateSlingInspection();
   const createSling = useCreateSlingEquipment();
@@ -166,6 +168,7 @@ const VistoriaCintas = () => {
             </div>
           </div>
 
+          {!isVisualizador && (
           <Dialog open={addDialogOpen} onOpenChange={setAddDialogOpen}>
             <DialogTrigger asChild>
               <Button size="sm" className="gap-2 shadow-sm">
@@ -221,6 +224,7 @@ const VistoriaCintas = () => {
               </div>
             </DialogContent>
           </Dialog>
+          )}
         </div>
 
         {/* Current Month Info */}

@@ -12,6 +12,7 @@ import { OrderCard } from "@/components/orders/OrderCard";
 import { OrderDetailsDialog } from "@/components/orders/OrderDetailsDialog";
 import { useOrders, useMyOrders, usePendingOrders, Order } from "@/hooks/useOrders";
 import { useProfile } from "@/hooks/useProfile";
+import { useVisualizadorContext } from "@/contexts/VisualizadorContext";
 
 const STATUS_OPTIONS = [
   { value: "all", label: "Todos os Status" },
@@ -31,6 +32,7 @@ export default function Pedidos() {
   const [statusFilter, setStatusFilter] = useState("all");
 
   const { data: profile } = useProfile();
+  const { isVisualizador } = useVisualizadorContext();
   const { data: allOrders, isLoading: loadingAll } = useOrders();
   const { data: myOrders, isLoading: loadingMy } = useMyOrders();
   const { data: pendingOrders, isLoading: loadingPending } = usePendingOrders();
@@ -115,10 +117,12 @@ export default function Pedidos() {
               Gerencie suas solicitações de materiais
             </p>
           </div>
-          <Button onClick={() => setCreateDialogOpen(true)} className="w-full sm:w-auto">
-            <Plus className="w-4 h-4 mr-2" />
-            Novo Pedido
-          </Button>
+          {!isVisualizador && (
+            <Button onClick={() => setCreateDialogOpen(true)} className="w-full sm:w-auto">
+              <Plus className="w-4 h-4 mr-2" />
+              Novo Pedido
+            </Button>
+          )}
         </div>
 
         {/* Search and Filter Bar */}

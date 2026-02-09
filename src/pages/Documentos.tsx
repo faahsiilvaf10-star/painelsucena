@@ -60,9 +60,11 @@ import {
 import { useCreateDocumentHistory } from "@/hooks/useDocumentHistory";
 import { getDaysUntilEventBrazilNorth } from "@/lib/timezone";
 import { useAuth } from "@/hooks/useAuth";
+import { useVisualizadorContext } from "@/contexts/VisualizadorContext";
 
 const Documentos = () => {
   const { user } = useAuth();
+  const { isVisualizador } = useVisualizadorContext();
   const { data: documents, isLoading } = useDocuments();
   const updateDocument = useUpdateDocument();
   const deleteDocument = useDeleteDocument();
@@ -160,7 +162,7 @@ const Documentos = () => {
               Gerencie documentos e controle vencimentos
             </p>
           </div>
-          <AddDocumentDialog />
+          {!isVisualizador && <AddDocumentDialog />}
         </div>
 
         {/* Stats Cards */}
@@ -278,7 +280,7 @@ const Documentos = () => {
                                 </p>
                               )}
                             </div>
-                            {doc.file_url && (
+                            {doc.file_url && !isVisualizador && (
                               <Button
                                 size="sm"
                                 variant="ghost"
@@ -309,7 +311,7 @@ const Documentos = () => {
                         <TableCell>{getStatusBadge(doc.status)}</TableCell>
                         <TableCell>
                           <div className="flex items-center justify-end gap-1">
-                            {doc.status === "pending" && (
+                            {!isVisualizador && doc.status === "pending" && (
                               <>
                                 <Button
                                   size="sm"
@@ -332,8 +334,8 @@ const Documentos = () => {
                               </>
                             )}
                             <DocumentHistoryDialog documentId={doc.id} documentTitle={doc.title} />
-                            <EditDocumentDialog document={doc} />
-                            {doc.created_by === user?.id && (
+                            {!isVisualizador && <EditDocumentDialog document={doc} />}
+                            {!isVisualizador && doc.created_by === user?.id && (
                               <AlertDialog>
                                 <AlertDialogTrigger asChild>
                                   <Button

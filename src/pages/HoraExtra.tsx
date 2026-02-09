@@ -22,6 +22,7 @@ import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@
 import { Badge } from "@/components/ui/badge";
 import { Skeleton } from "@/components/ui/skeleton";
 import { useIsAdmin } from "@/hooks/useUserRole";
+import { useVisualizadorContext } from "@/contexts/VisualizadorContext";
 import { useCurrentPeriodSummaries, useCalculateOvertimeSummary } from "@/hooks/useOvertimeSummaries";
 import { useQueryClient } from "@tanstack/react-query";
 import { getLogoBase64 } from "@/lib/pdfLogo";
@@ -38,6 +39,7 @@ const HoraExtra = () => {
   const { data: profile } = useProfile();
   const { user } = useAuth();
   const { isAdmin } = useIsAdmin();
+  const { isVisualizador } = useVisualizadorContext();
   const queryClient = useQueryClient();
   const createRecords = useCreateOvertimeRecords();
   const deleteRecord = useDeleteOvertimeRecord();
@@ -316,6 +318,7 @@ const HoraExtra = () => {
             })}
 
             {/* Add Record Button */}
+            {!isVisualizador && (
             <Button
               variant="outline"
               onClick={addRecord}
@@ -324,9 +327,11 @@ const HoraExtra = () => {
               <Plus className="h-4 w-4 mr-2" />
               Adicionar Registro
             </Button>
+            )}
 
             {/* Action Buttons */}
             <div className="flex flex-col sm:flex-row gap-3 pt-4 border-t">
+              {!isVisualizador && (
               <Button 
                 onClick={handleSave} 
                 className="flex-1"
@@ -335,6 +340,7 @@ const HoraExtra = () => {
                 <Save className="h-4 w-4 mr-2" />
                 {createRecords.isPending ? "Salvando..." : "Salvar Registros"}
               </Button>
+              )}
               <Button 
                 onClick={handleWhatsAppRecords} 
                 variant="outline"
