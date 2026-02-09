@@ -1,4 +1,5 @@
 import React from "react";
+import { AnimatedEmoji, ANIMATED_EMOJIS } from "./AnimatedEmoji";
 
 /**
  * Parses custom formatting tags in post content and renders them as styled spans.
@@ -9,6 +10,7 @@ import React from "react";
  * - {color:yellow}text{/color} → highlighted text
  * - {glow}text{/glow} → glowing text
  * - {font:serif}text{/font} → font style
+ * - :emoji_id: → animated emoji
  */
 
 const COLOR_CLASSES: Record<string, string> = {
@@ -109,12 +111,44 @@ function parseRichText(input: string): RichSegment[] {
   return segments;
 }
 
+/** Splits text by :emoji_id: patterns and returns mixed React nodes */
+function renderWithAnimatedEmojis(text: string): React.ReactNode[] {
+  const emojiIds = ANIMATED_EMOJIS.map((e) => e.id).join("|");
+  const emojiRegex = new RegExp(`:(?:${emojiIds}):`, "g");
+
+  if (!emojiRegex.test(text)) return [text];
+
+  const nodes: React.ReactNode[] = [];
+  let lastIdx = 0;
+  let m: RegExpExecArray | null;
+  emojiRegex.lastIndex = 0;
+
+  while ((m = emojiRegex.exec(text)) !== null) {
+    if (m.index > lastIdx) {
+      nodes.push(text.slice(lastIdx, m.index));
+    }
+    const id = m[0].slice(1, -1); // remove colons
+    nodes.push(<AnimatedEmoji key={`ae-${m.index}`} id={id} />);
+    lastIdx = m.index + m[0].length;
+  }
+  if (lastIdx < text.length) {
+    nodes.push(text.slice(lastIdx));
+  }
+  return nodes;
+}
+
 export function RichTextRenderer({ content }: { content: string }) {
-  // Check if content has any formatting markers
-  const hasFormatting = /(\*\*|_{1,2}|{color:|{glow|{font:|{fx:)/.test(content);
+  // Check if content has any formatting markers or animated emojis
+  const hasFormatting = /(\*\*|_{1,2}|{color:|{glow|{font:|{fx:|:\w+:)/.test(content);
 
   if (!hasFormatting) {
     return <>{content}</>;
+  }
+
+  // If only animated emojis, no rich text
+  const hasRichText = /(\*\*|_{1,2}|{color:|{glow|{font:|{fx:)/.test(content);
+  if (!hasRichText) {
+    return <>{renderWithAnimatedEmojis(content)}</>;
   }
 
   const segments = parseRichText(content);
@@ -158,13 +192,15 @@ export function RichTextRenderer({ content }: { content: string }) {
           }
         }
 
+        const renderedContent = renderWithAnimatedEmojis(seg.text);
+
         if (classes.length === 0 && Object.keys(styles).length === 0) {
-          return <React.Fragment key={i}>{seg.text}</React.Fragment>;
+          return <React.Fragment key={i}>{renderedContent}</React.Fragment>;
         }
 
         return (
           <span key={i} className={classes.join(" ")} style={styles}>
-            {seg.text}
+            {renderedContent}
           </span>
         );
       })}
