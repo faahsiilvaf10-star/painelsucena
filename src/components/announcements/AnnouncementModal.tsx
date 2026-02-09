@@ -178,15 +178,6 @@ export function AnnouncementModal() {
                       alt="Banner do comunicado"
                       className="w-full h-auto object-cover max-h-64"
                     />
-                    {/* Logo overlay on banner */}
-                    <div className="absolute top-3 left-3">
-                      <img
-                        src={companyLogo}
-                        alt="Logo da empresa"
-                        className="h-10 w-auto object-contain drop-shadow-lg"
-                        style={{ filter: 'drop-shadow(0 0 6px rgba(255,255,255,0.5))' }}
-                      />
-                    </div>
                     {/* Campaign title overlay on banner */}
                     {currentAnnouncement.title.includes("Campanhas") && (
                       <div className="absolute bottom-0 left-0 right-0 bg-gradient-to-t from-black/80 via-black/40 to-transparent p-4 pt-8">
