@@ -59,7 +59,7 @@ const STATUS_OPTIONS = [
   { value: "rain", label: "Parado (Chuva)" },
   { value: "end_of_shift", label: "Fim de Turno" },
   { value: "fim_turno", label: "Fim de Turno" },
-  { value: "end_of_day", label: "Fim do Dia" },
+  { value: "end_of_day", label: "Abastecendo" },
 ] as const;
 
 const ALL_STATUS_LABELS: Record<string, string> = {
@@ -75,7 +75,7 @@ const ALL_STATUS_LABELS: Record<string, string> = {
   rain: "Parado (Chuva)",
   end_of_shift: "Fim de Turno",
   fim_turno: "Fim de Turno",
-  end_of_day: "Fim do Dia",
+  end_of_day: "Abastecendo",
   none: "Sem Status",
 };
 
