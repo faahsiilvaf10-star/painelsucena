@@ -439,15 +439,15 @@ export default function DDS() {
                 <p className="text-muted-foreground">Carregando escala...</p>
               </div>
             ) : (
-              <div className="rounded-md border overflow-hidden">
-                <Table>
+              <div className="rounded-md border overflow-x-auto">
+                <Table className="min-w-[600px]">
                   <TableHeader>
                     <TableRow>
-                      <TableHead className="w-[120px]">Data</TableHead>
-                      <TableHead className="w-[80px]">Dia</TableHead>
+                      <TableHead className="w-[90px] sm:w-[120px]">Data</TableHead>
+                      <TableHead className="w-[50px] sm:w-[80px]">Dia</TableHead>
                       <TableHead>Palestrante</TableHead>
-                      <TableHead>Tema</TableHead>
-                      {canEdit && <TableHead className="w-[100px] text-right">Ações</TableHead>}
+                      <TableHead className="hidden sm:table-cell">Tema</TableHead>
+                      {canEdit && <TableHead className="w-[80px] sm:w-[100px] text-right">Ações</TableHead>}
                     </TableRow>
                   </TableHeader>
                   <TableBody>
@@ -492,6 +492,11 @@ export default function DDS() {
                                   <p className="text-xs text-muted-foreground">
                                     {formatCargoLabel(schedule.presenter.cargo)}
                                   </p>
+                                  {schedule.theme && (
+                                    <p className="text-xs text-muted-foreground sm:hidden mt-0.5 italic">
+                                      {schedule.theme}
+                                    </p>
+                                  )}
                                 </div>
                               </div>
                             ) : schedule?.external_presenter_name ? (
@@ -517,9 +522,9 @@ export default function DDS() {
                           </TableCell>
                           <TableCell>
                             {schedule?.theme ? (
-                              <span className="text-sm">{schedule.theme}</span>
+                              <span className="text-sm hidden sm:inline">{schedule.theme}</span>
                             ) : (
-                              <span className="text-muted-foreground text-sm italic">—</span>
+                              <span className="text-muted-foreground text-sm italic hidden sm:inline">—</span>
                             )}
                           </TableCell>
                           {canEdit && (

@@ -233,7 +233,7 @@ const Admin = () => {
   if (authLoading || adminLoading || settingsLoading) {
     return (
       <Layout>
-        <div className="container mx-auto px-6 py-8">
+        <div className="container mx-auto px-3 sm:px-6 py-4 sm:py-8">
           <div className="flex items-center justify-center min-h-[400px]">
             <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-primary" />
           </div>
@@ -251,32 +251,35 @@ const Admin = () => {
 
   return (
     <Layout>
-      <div className="container mx-auto px-4 md:px-6 py-8">
-        <div className="mb-8">
-          <div className="flex items-center gap-3 mb-2">
-            <ShieldCheck className="w-8 h-8 text-primary" />
-            <h1 className="text-3xl font-bold">Administração</h1>
+      <div className="container mx-auto px-3 sm:px-4 md:px-6 py-4 sm:py-8">
+        <div className="mb-6 sm:mb-8">
+          <div className="flex items-center gap-2 sm:gap-3 mb-2">
+            <ShieldCheck className="w-6 h-6 sm:w-8 sm:h-8 text-primary" />
+            <h1 className="text-xl sm:text-3xl font-bold">Administração</h1>
           </div>
-          <p className="text-muted-foreground">
+          <p className="text-sm text-muted-foreground">
             Gerencie as configurações do sistema e permissões dos usuários.
           </p>
         </div>
 
-        <Tabs defaultValue="settings" className="space-y-6">
-          <TabsList className="grid w-full grid-cols-5 max-w-3xl">
-            <TabsTrigger value="settings">Configurações</TabsTrigger>
-            <TabsTrigger value="users">Usuários</TabsTrigger>
-            <TabsTrigger value="employees" className="flex items-center gap-1">
-              <UserCog className="w-4 h-4" />
-              Funcionários
+        <Tabs defaultValue="settings" className="space-y-4 sm:space-y-6">
+          <TabsList className="flex w-full overflow-x-auto max-w-full">
+            <TabsTrigger value="settings" className="text-xs sm:text-sm flex-shrink-0">Config.</TabsTrigger>
+            <TabsTrigger value="users" className="text-xs sm:text-sm flex-shrink-0">Usuários</TabsTrigger>
+            <TabsTrigger value="employees" className="flex items-center gap-1 text-xs sm:text-sm flex-shrink-0">
+              <UserCog className="w-3 h-3 sm:w-4 sm:h-4" />
+              <span className="hidden sm:inline">Funcionários</span>
+              <span className="sm:hidden">Func.</span>
             </TabsTrigger>
-            <TabsTrigger value="visibility" className="flex items-center gap-1">
-              <LayoutList className="w-4 h-4" />
-              Visibilidade
+            <TabsTrigger value="visibility" className="flex items-center gap-1 text-xs sm:text-sm flex-shrink-0">
+              <LayoutList className="w-3 h-3 sm:w-4 sm:h-4" />
+              <span className="hidden sm:inline">Visibilidade</span>
+              <span className="sm:hidden">Visib.</span>
             </TabsTrigger>
-            <TabsTrigger value="announcements" className="flex items-center gap-1">
-              <Megaphone className="w-4 h-4" />
-              Comunicados
+            <TabsTrigger value="announcements" className="flex items-center gap-1 text-xs sm:text-sm flex-shrink-0">
+              <Megaphone className="w-3 h-3 sm:w-4 sm:h-4" />
+              <span className="hidden sm:inline">Comunicados</span>
+              <span className="sm:hidden">Comun.</span>
             </TabsTrigger>
           </TabsList>
 

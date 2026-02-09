@@ -229,18 +229,18 @@ const Configuracoes = () => {
 
   return (
     <Layout>
-      <div className="container mx-auto px-4 md:px-6 py-8 max-w-2xl">
-        <div className="mb-8">
+      <div className="container mx-auto px-3 sm:px-4 md:px-6 py-4 sm:py-8 max-w-2xl">
+        <div className="mb-6 sm:mb-8">
           <Button
             variant="ghost"
             onClick={() => navigate(-1)}
-            className="mb-4"
+            className="mb-3 sm:mb-4"
           >
             <ArrowLeft className="w-4 h-4 mr-2" />
             Voltar
           </Button>
-          <h1 className="text-3xl font-bold">Configurações</h1>
-          <p className="text-muted-foreground">
+          <h1 className="text-xl sm:text-3xl font-bold">Configurações</h1>
+          <p className="text-xs sm:text-sm text-muted-foreground">
             Gerencie suas informações pessoais e configurações de conta.
           </p>
         </div>
