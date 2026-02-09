@@ -9,6 +9,7 @@ import { AnnouncementModal } from "@/components/announcements/AnnouncementModal"
 import { SessionExpiryWarning } from "@/components/session/SessionExpiryWarning";
 import { SessionTimeIndicator } from "@/components/session/SessionTimeIndicator";
 import { useChatNotifications } from "@/hooks/useChatNotifications";
+import { useInstaCenaNotifications } from "@/hooks/useInstaCenaNotifications";
 import { GoalAchievementMonitor } from "@/components/goals/GoalAchievementMonitor";
 
 const motivationalPhrases = [
@@ -61,6 +62,7 @@ const Layout = ({ children }: LayoutProps) => {
   
   // Enable global chat push notifications
   useChatNotifications();
+  useInstaCenaNotifications();
 
   return (
     <SidebarInset className="flex flex-col h-full overflow-hidden">
