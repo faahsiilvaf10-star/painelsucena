@@ -36,9 +36,11 @@ export const DDSHighlightCard = () => {
   const today = useMemo(() => getBrazilNorthDate(), [dateKey]);
   const tomorrow = useMemo(() => addDays(getBrazilNorthDate(), 1), [dateKey]);
 
-  // Check if user can upload photo (tecnico_seguranca or admin)
-  const isTecnicoSeguranca = profile?.cargo === "tecnico_seguranca_i" || profile?.cargo === "tecnico_seguranca_ii";
-  const canUploadPhoto = isAdmin || isTecnicoSeguranca;
+  // Check if user can upload photo (tecnico_seguranca, tecnico_meio_ambiente or admin)
+  const canUploadPhoto = isAdmin || 
+    profile?.cargo === "tecnico_seguranca_i" || 
+    profile?.cargo === "tecnico_seguranca_ii" || 
+    profile?.cargo === "tecnico_meio_ambiente";
 
   const getInitials = (name: string) => {
     const names = name.split(" ");
