@@ -76,8 +76,8 @@ export function PostCard({ post }: { post: InstaCenaPost }) {
         {/* Header */}
         <div className="flex items-start gap-3 mb-3">
           {post.is_system_post ? (
-            <div className="h-10 w-10 rounded-full bg-primary/15 flex items-center justify-center shrink-0">
-              <Bot className="h-5 w-5 text-primary" />
+            <div className="h-10 w-10 rounded-full overflow-hidden shrink-0 border border-primary/20">
+              <img src="/logo-hydro.png" alt="Sistema" className="h-full w-full object-cover" />
             </div>
           ) : (
             <Avatar className="h-10 w-10">
