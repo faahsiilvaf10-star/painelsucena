@@ -216,7 +216,7 @@ export function CreatePostCard() {
           <div className="flex gap-2 mt-3 flex-wrap">
             {videos.map((url, i) => (
               <div key={i} className="relative">
-                <video src={url} className="h-20 w-20 rounded-lg object-cover" muted />
+                <video src={url} className="h-20 w-20 rounded-lg object-contain bg-black/10" autoPlay loop muted playsInline />
                 <button
                   onClick={() => setVideos((prev) => prev.filter((_, j) => j !== i))}
                   className="absolute -top-1 -right-1 bg-destructive text-destructive-foreground rounded-full h-5 w-5 flex items-center justify-center"
