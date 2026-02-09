@@ -101,7 +101,7 @@ export function ExportMovementsByDateButton({ equipment }: ExportMovementsByDate
     initialHorimeter?: number | null;
     finalHorimeter?: number | null;
   }) => {
-    const ROWS_PER_TABLE = 20;
+    const ROWS_PER_TABLE = 16;
     
     // Split activities into tables of 20 rows each
     const activityTables: Array<Array<{ start: string; end: string; description: string }>> = [];
@@ -123,10 +123,7 @@ export function ExportMovementsByDateButton({ equipment }: ExportMovementsByDate
       );
     }
 
-    // Always add one extra blank continuation table for manual entries
-    activityTables.push(
-      Array.from({ length: ROWS_PER_TABLE }).map(() => ({ start: "", end: "", description: "" }))
-    );
+    // No extra blank continuation table
     
     // Generate HTML for a single activity table
     const buildActivityTableHtml = (rows: Array<{ start: string; end: string; description: string }>, tableIndex: number) => {
