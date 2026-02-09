@@ -25,31 +25,38 @@ import { CSS } from "@dnd-kit/utilities";
 const NAV_ITEMS_MAP: Record<string, string> = {
   "atividades": "Atividades I",
   "atividades-ii": "Atividades II",
+  "arquivos-seguranca": "Arquivos Segurança",
   "campanhas": "Campanhas",
+  "consumo-abastecimento": "Consumo Abastecimento",
   "dds": "DDS",
   "destaques": "Destaques",
   "documentos": "Documentos",
   "emergencia": "Emergência",
   "entrada-saida": "Entrada/Saída Equipamentos",
-  "equipamentos": "Equipamentos",
   "estoque": "Estoque",
   "homologados": "Homologados",
+  "hora-extra": "Hora Extra",
+  "instacena": "InstaCena",
   "lembretes": "Lembretes",
   "matriz": "Matriz Responsabilidade",
   "metas": "Metas",
+  "parte-diaria": "Parte Diária",
   "pedidos": "Pedidos",
+  "plano-manutencao": "Plano de Manutenção",
   "presenca": "Relatório de Presença",
   "rdo": "RDO",
   "relatorio": "Lista de Presença",
   "rh": "RH",
+  "slides": "Slides IA",
   "vistoria-cintas": "Vistoria Cintas",
   "vistorias": "Vistorias Equipamentos",
 };
 
 const DEFAULT_NAV_ORDER = [
-  "destaques", "atividades", "atividades-ii", "campanhas", "dds", "documentos", 
-  "entrada-saida", "equipamentos", "estoque", "homologados", "lembretes", "relatorio", 
-  "matriz", "metas", "pedidos", "rdo", "presenca", "rh", "vistoria-cintas", "vistorias", "emergencia"
+  "destaques", "instacena", "atividades", "atividades-ii", "arquivos-seguranca", "consumo-abastecimento",
+  "campanhas", "dds", "documentos", "entrada-saida", "estoque", "homologados", "hora-extra",
+  "lembretes", "relatorio", "matriz", "metas", "pedidos", "rdo", "presenca", "rh",
+  "parte-diaria", "plano-manutencao", "vistoria-cintas", "vistorias", "slides", "emergencia"
 ];
 
 function SortableNavItem({ id, label }: { id: string; label: string }) {
