@@ -84,20 +84,27 @@ export const DDSHighlightCard = () => {
         photo_url: urlData.publicUrl,
       });
 
-      // Create InstaCena post with the DDS photo
-      if (profile) {
-        const presenterName = todayDDS.presenter?.full_name || todayDDS.external_presenter_name || "Palestrante";
-        await supabase.from("instacena_posts").insert({
-          user_id: profile.user_id,
-          user_name: profile.full_name,
-          user_avatar_url: profile.avatar_url,
-          content: `📸 Foto do DDS de hoje adicionada!\n\n📋 Tema: ${todayDDS.theme}\n🎤 Palestrante: ${presenterName}`,
-          image_urls: [urlData.publicUrl],
-          is_system_post: false,
-        });
-      }
-
       toast.success("Foto do DDS adicionada com sucesso!");
+
+      // Create InstaCena post with the DDS photo (non-blocking)
+      if (profile) {
+        try {
+          const presenterName = todayDDS.presenter?.full_name || todayDDS.external_presenter_name || "Palestrante";
+          const { error: postError } = await supabase.from("instacena_posts").insert({
+            user_id: profile.user_id,
+            user_name: profile.full_name,
+            user_avatar_url: profile.avatar_url,
+            content: `📸 Foto do DDS de hoje adicionada!\n\n📋 Tema: ${todayDDS.theme}\n🎤 Palestrante: ${presenterName}`,
+            image_urls: [urlData.publicUrl],
+            is_system_post: false,
+          });
+          if (postError) {
+            console.error("Error creating InstaCena post:", postError);
+          }
+        } catch (postErr) {
+          console.error("Error creating InstaCena post:", postErr);
+        }
+      }
     } catch (error) {
       console.error("Error uploading photo:", error);
       toast.error("Erro ao fazer upload da foto");
