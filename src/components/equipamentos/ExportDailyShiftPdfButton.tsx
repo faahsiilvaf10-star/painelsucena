@@ -165,7 +165,7 @@ export function ExportDailyShiftPdfButton({ record, isLoading }: ExportDailyShif
       console.log(`[PDF Debug] Linhas de atividade geradas: ${allActivityRows.length}`);
 
       // Split rows into tables of 20 rows each (more space for manual entries)
-      const ROWS_PER_TABLE = 20;
+      const ROWS_PER_TABLE = 16;
       const activityTables: string[][] = [];
       
       for (let i = 0; i < allActivityRows.length; i += ROWS_PER_TABLE) {
