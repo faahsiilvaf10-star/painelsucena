@@ -179,7 +179,6 @@ export function useCreateEquipmentMovement() {
         };
         const newStopReason = statusMap[movement.exit_reason];
         if (newStopReason) {
-          // Find equipment by plate to update its status
           const { data: eqData } = await supabase
             .from("equipment")
             .select("id")
@@ -187,13 +186,47 @@ export function useCreateEquipmentMovement() {
             .single();
 
           if (eqData) {
+            const nowIso = new Date().toISOString();
+
+            // Update equipment status
             await supabase
               .from("equipment")
               .update({
                 stop_reason: newStopReason,
-                stop_start_time: new Date().toISOString(),
+                stop_start_time: nowIso,
               })
               .eq("id", eqData.id);
+
+            // Close any open stop history entry
+            const { data: openStop } = await supabase
+              .from("equipment_stop_history")
+              .select("id, started_at")
+              .eq("equipment_id", eqData.id)
+              .is("ended_at", null)
+              .order("started_at", { ascending: false })
+              .limit(1)
+              .maybeSingle();
+
+            if (openStop) {
+              const durationMinutes = Math.round(
+                (new Date(nowIso).getTime() - new Date(openStop.started_at).getTime()) / 60000
+              );
+              await supabase
+                .from("equipment_stop_history")
+                .update({ ended_at: nowIso, duration_minutes: durationMinutes })
+                .eq("id", openStop.id);
+            }
+
+            // Insert new stop history entry
+            await supabase
+              .from("equipment_stop_history")
+              .insert({
+                equipment_id: eqData.id,
+                stop_reason: newStopReason,
+                started_at: nowIso,
+                defect_description: movement.problem_description || null,
+                changed_by_driver: user.id,
+              });
           }
         }
       }
