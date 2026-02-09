@@ -53,7 +53,7 @@ import Slides from "./pages/Slides";
 import InstaCena from "./pages/InstaCena";
 import NotFound from "./pages/NotFound";
 
-// Configure QueryClient with robust error handling and caching
+// QueryClient with robust error handling
 const queryClient = new QueryClient({
   defaultOptions: {
     queries: {
