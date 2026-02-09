@@ -26,6 +26,8 @@ const ProtectedRoute = ({ children }: ProtectedRouteProps) => {
   useOfflineDriverRedirect();
 
   useEffect(() => {
+    let isInitialLoad = true;
+
     const { data: { subscription } } = supabase.auth.onAuthStateChange(
       (event, currentSession) => {
         setSession(currentSession);
@@ -39,7 +41,7 @@ const ProtectedRoute = ({ children }: ProtectedRouteProps) => {
           navigate('/auth', { replace: true });
         }
         
-        // Mark tab as active on sign in
+        // On fresh login, mark tab active and fetch cargo (no auto-logout check)
         if (event === 'SIGNED_IN' && currentSession?.user) {
           sessionStorage.setItem(SESSION_TAB_KEY, "1");
           setTimeout(() => {
@@ -49,26 +51,45 @@ const ProtectedRoute = ({ children }: ProtectedRouteProps) => {
       }
     );
 
-    // Try to get existing session, with refresh attempt if needed
+    // Check for existing session on page load
     const initSession = async () => {
       const { data: { session: existingSession } } = await supabase.auth.getSession();
       
       if (existingSession) {
         setSession(existingSession);
         setLoading(false);
-        // Fetch cargo first to decide if we should auto-logout
-        await fetchUserCargoAndCheckTab(existingSession.user.id);
+        
+        // Only check tab flag on initial page load (not after a fresh login)
+        const tabWasActive = sessionStorage.getItem(SESSION_TAB_KEY);
+        const { cargo } = await fetchUserCargo(existingSession.user.id);
+        const isDriverRole = cargo && DRIVER_ROLES.includes(cargo);
+        
+        // Browser was closed & reopened with a stale session → auto-logout non-drivers
+        if (!tabWasActive && !isDriverRole) {
+          console.log("Browser was closed. Auto-logging out non-driver user.");
+          setSession(null);
+          try {
+            await supabase.auth.signOut({ scope: "local" });
+          } catch { /* ignore */ }
+          navigate("/auth", { replace: true });
+          return;
+        }
+        
+        // Session is valid, mark tab as active
+        sessionStorage.setItem(SESSION_TAB_KEY, "1");
       } else {
         // Try to refresh the session if no active session found
         const { data: { session: refreshedSession } } = await supabase.auth.refreshSession();
         setSession(refreshedSession);
         setLoading(false);
         if (refreshedSession?.user) {
-          await fetchUserCargoAndCheckTab(refreshedSession.user.id);
+          await fetchUserCargo(refreshedSession.user.id);
+          sessionStorage.setItem(SESSION_TAB_KEY, "1");
         } else {
           setCargoChecked(true);
         }
       }
+      isInitialLoad = false;
     };
 
     initSession();
@@ -105,27 +126,6 @@ const ProtectedRoute = ({ children }: ProtectedRouteProps) => {
     } finally {
       setCargoChecked(true);
     }
-  };
-
-  // Fetch cargo, then check if browser was closed (auto-logout non-drivers)
-  const fetchUserCargoAndCheckTab = async (userId: string) => {
-    const { cargo, admin } = await fetchUserCargo(userId);
-    const isDriverRole = cargo && DRIVER_ROLES.includes(cargo);
-    const tabWasActive = sessionStorage.getItem(SESSION_TAB_KEY);
-
-    // If tab flag is missing (browser was closed/reopened) and user is NOT a driver, auto-logout
-    if (!tabWasActive && !isDriverRole) {
-      console.log("Browser was closed. Auto-logging out non-driver user.");
-      setSession(null);
-      try {
-        await supabase.auth.signOut({ scope: "local" });
-      } catch { /* ignore */ }
-      navigate("/auth", { replace: true });
-      return;
-    }
-
-    // Mark tab as active for this session
-    sessionStorage.setItem(SESSION_TAB_KEY, "1");
   };
 
   // Show nothing while loading session or checking cargo
