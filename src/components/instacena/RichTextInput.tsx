@@ -179,7 +179,6 @@ export const RichTextInput = forwardRef<RichTextInputHandle, RichTextInputProps>
 
       const range = sel.getRangeAt(0);
       const selectedText = range.toString();
-      const displayText = selectedText || "texto";
 
       const span = document.createElement("span");
 
@@ -215,14 +214,25 @@ export const RichTextInput = forwardRef<RichTextInputHandle, RichTextInputProps>
           break;
       }
 
-      span.textContent = displayText;
-      range.deleteContents();
-      range.insertNode(span);
-
-      // Add a space after and place cursor there
-      const space = document.createTextNode("\u00A0");
-      span.after(space);
-      placeCaretAfter(space);
+      if (selectedText) {
+        // Wrap selected text
+        span.textContent = selectedText;
+        range.deleteContents();
+        range.insertNode(span);
+        const space = document.createTextNode("\u00A0");
+        span.after(space);
+        placeCaretAfter(space);
+      } else {
+        // No selection: insert empty span and place cursor inside it
+        span.textContent = "\u200B"; // zero-width space so span is not empty
+        range.insertNode(span);
+        // Place cursor inside the span, after the zero-width space
+        const innerRange = document.createRange();
+        innerRange.setStart(span.firstChild!, 1);
+        innerRange.collapse(true);
+        sel.removeAllRanges();
+        sel.addRange(innerRange);
+      }
 
       onInput?.(editor.innerText || "");
     }, [onInput]);
