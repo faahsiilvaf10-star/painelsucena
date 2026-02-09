@@ -332,6 +332,9 @@ export function useRemoveStatusFromHistory() {
         ? (current.status_history as unknown as StatusHistoryEntry[])
         : [];
       
+      // Get the entry being removed so we can also remove from equipment_stop_history
+      const removedEntry = currentHistory[statusIndex];
+      
       // Remove the entry at the specified index
       const newHistory = currentHistory.filter((_, index) => index !== statusIndex) as unknown as Json;
 
@@ -344,11 +347,43 @@ export function useRemoveStatusFromHistory() {
         .single();
 
       if (error) throw error;
+
+      // Also remove the corresponding entry from equipment_stop_history
+      if (removedEntry) {
+        const entryTime = new Date(removedEntry.timestamp);
+        const startOfDay = new Date(targetDate + "T00:00:00");
+        const endOfDay = new Date(targetDate + "T23:59:59");
+        
+        // Find and delete matching stop history record
+        const { data: stopRecords } = await supabase
+          .from("equipment_stop_history")
+          .select("id, started_at, stop_reason")
+          .eq("equipment_id", equipmentId)
+          .gte("started_at", startOfDay.toISOString())
+          .lte("started_at", endOfDay.toISOString());
+        
+        if (stopRecords) {
+          // Find the record closest to the removed entry's timestamp
+          const matchingRecord = stopRecords.find(r => {
+            const diff = Math.abs(new Date(r.started_at).getTime() - entryTime.getTime());
+            return diff < 120000; // within 2 minutes
+          });
+          
+          if (matchingRecord) {
+            await supabase
+              .from("equipment_stop_history")
+              .delete()
+              .eq("id", matchingRecord.id);
+          }
+        }
+      }
+
       return parseShiftRecord(result);
     },
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ["daily-shift-records"] });
       queryClient.invalidateQueries({ queryKey: ["daily-shift-record"] });
+      queryClient.invalidateQueries({ queryKey: ["equipment-stop-history"] });
     },
   });
 }
@@ -394,6 +429,9 @@ export function useUpdateStatusInHistory() {
         throw new Error("Invalid status index");
       }
 
+      // Save original entry for stop_history sync
+      const originalEntry = currentHistory[statusIndex];
+
       // Update the entry at the specified index
       const updatedHistory = [...currentHistory];
       updatedHistory[statusIndex] = {
@@ -417,11 +455,48 @@ export function useUpdateStatusInHistory() {
         .single();
 
       if (error) throw error;
+
+      // Also update the corresponding entry in equipment_stop_history
+      if (originalEntry) {
+        const entryTime = new Date(originalEntry.timestamp);
+        const startOfDay = new Date(targetDate + "T00:00:00");
+        const endOfDay = new Date(targetDate + "T23:59:59");
+        
+        const { data: stopRecords } = await supabase
+          .from("equipment_stop_history")
+          .select("id, started_at, stop_reason")
+          .eq("equipment_id", equipmentId)
+          .gte("started_at", startOfDay.toISOString())
+          .lte("started_at", endOfDay.toISOString());
+        
+        if (stopRecords) {
+          const matchingRecord = stopRecords.find(r => {
+            const diff = Math.abs(new Date(r.started_at).getTime() - entryTime.getTime());
+            return diff < 120000; // within 2 minutes
+          });
+          
+          if (matchingRecord) {
+            const updateData: Record<string, any> = {};
+            if (newStatus !== undefined) updateData.stop_reason = newStatus;
+            if (newTimestamp !== undefined) updateData.started_at = newTimestamp;
+            if (newDescription !== undefined) updateData.defect_description = newDescription;
+            
+            if (Object.keys(updateData).length > 0) {
+              await supabase
+                .from("equipment_stop_history")
+                .update(updateData)
+                .eq("id", matchingRecord.id);
+            }
+          }
+        }
+      }
+
       return parseShiftRecord(result);
     },
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ["daily-shift-records"] });
       queryClient.invalidateQueries({ queryKey: ["daily-shift-record"] });
+      queryClient.invalidateQueries({ queryKey: ["equipment-stop-history"] });
     },
   });
 }
