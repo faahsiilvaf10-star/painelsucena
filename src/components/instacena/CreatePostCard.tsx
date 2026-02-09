@@ -11,6 +11,7 @@ import { MentionPicker } from "./MentionPicker";
 import { FormattingToolbar } from "./FormattingToolbar";
 import { RichTextInput, RichTextInputHandle } from "./RichTextInput";
 import { EmojiPicker } from "@/components/chat/EmojiPicker";
+import { AnimatedEmojiPicker } from "./AnimatedEmojiPicker";
 
 const getInitials = (name: string) => {
   const parts = name.split(" ");
@@ -250,6 +251,7 @@ export function CreatePostCard() {
               Vídeo
             </Button>
             <EmojiPicker onEmojiSelect={(emoji) => editorRef.current?.insertText(emoji)} />
+            <AnimatedEmojiPicker onSelect={(id) => editorRef.current?.insertText(`:${id}:`)} />
           </div>
           <Button
             size="sm"
