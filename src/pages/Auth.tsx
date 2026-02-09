@@ -225,6 +225,9 @@ const Auth = () => {
           localStorage.removeItem("rememberedName");
         }
 
+        // Mark session tab as active BEFORE navigating to protected route
+        sessionStorage.setItem("session_tab_active", "1");
+
         // Switch global overlay to "play" stage with user data
         sessionStorage.setItem(
           "loginTransitionPayload",
@@ -303,6 +306,9 @@ const Auth = () => {
           const firstName = fullName;
           const cargoLabel =
             cargoOptions.find((c) => c.value === cargo)?.label || cargo;
+
+          // Mark session tab as active BEFORE navigating to protected route
+          sessionStorage.setItem("session_tab_active", "1");
 
           // Switch global overlay to "play" stage
           sessionStorage.setItem(
