@@ -19,6 +19,7 @@ const FONT_STYLES: Record<string, string> = {
 export interface RichTextInputHandle {
   focus: () => void;
   insertMention: (name: string, userId: string) => void;
+  insertText: (text: string) => void;
   applyFormat: (type: string, value?: string) => void;
   getContent: () => string;
   clear: () => void;
@@ -276,14 +277,23 @@ export const RichTextInput = forwardRef<RichTextInputHandle, RichTextInputProps>
       onInput?.(editor.innerText || "");
     }, [onInput]);
 
+    const insertText = useCallback((text: string) => {
+      const editor = editorRef.current;
+      if (!editor) return;
+      editor.focus();
+      document.execCommand("insertText", false, text);
+      onInput?.(editor.innerText || "");
+    }, [onInput]);
+
     useImperativeHandle(ref, () => ({
       focus: () => editorRef.current?.focus(),
       insertMention,
+      insertText,
       applyFormat,
       getContent,
       clear,
       getPlainText,
-    }), [insertMention, applyFormat, getContent, clear, getPlainText]);
+    }), [insertMention, insertText, applyFormat, getContent, clear, getPlainText]);
 
     const handleInput = useCallback(() => {
       onInput?.(editorRef.current?.innerText || "");

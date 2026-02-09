@@ -1,5 +1,5 @@
 import { useState, useRef, useCallback } from "react";
-import { ImagePlus, Video, Send, X, Loader2 } from "lucide-react";
+import { ImagePlus, Video, Send, X, Loader2, Smile } from "lucide-react";
 import { Card, CardContent } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
@@ -10,6 +10,7 @@ import { toast } from "sonner";
 import { MentionPicker } from "./MentionPicker";
 import { FormattingToolbar } from "./FormattingToolbar";
 import { RichTextInput, RichTextInputHandle } from "./RichTextInput";
+import { EmojiPicker } from "@/components/chat/EmojiPicker";
 
 const getInitials = (name: string) => {
   const parts = name.split(" ");
@@ -237,7 +238,7 @@ export function CreatePostCard() {
         </div>
 
         <div className="flex items-center justify-between mt-2 pt-3 border-t border-border/50">
-          <div className="flex gap-1">
+          <div className="flex gap-1 items-center">
             <input ref={fileRef} type="file" accept="image/*" multiple className="hidden" onChange={handleUpload} />
             <Button variant="ghost" size="sm" onClick={() => fileRef.current?.click()} disabled={uploading} className="text-muted-foreground gap-1.5 text-xs">
               {uploading ? <Loader2 className="h-4 w-4 animate-spin" /> : <ImagePlus className="h-4 w-4" />}
@@ -248,6 +249,7 @@ export function CreatePostCard() {
               {uploading ? <Loader2 className="h-4 w-4 animate-spin" /> : <Video className="h-4 w-4" />}
               Vídeo
             </Button>
+            <EmojiPicker onEmojiSelect={(emoji) => editorRef.current?.insertText(emoji)} />
           </div>
           <Button
             size="sm"
