@@ -32,3 +32,6 @@ verify_jwt = false
 
 [functions.generate-slides]
 verify_jwt = false
+
+[functions.generate-campaign-banner]
+verify_jwt = false
