@@ -106,7 +106,7 @@ export function AnnouncementModal() {
     <Dialog open={!!currentAnnouncement} onOpenChange={() => {}}>
       <DialogContent 
         className={cn(
-          "sm:max-w-lg max-h-[90vh] overflow-hidden flex flex-col p-0",
+          "sm:max-w-lg max-w-[95vw] max-h-[85vh] overflow-hidden flex flex-col p-0",
           "border-0 bg-transparent shadow-none"
         )}
         hideCloseButton
@@ -150,38 +150,38 @@ export function AnnouncementModal() {
             
             {/* Close button */}
             <button 
-              className="absolute top-3 right-3 z-20 text-white/60 hover:text-white transition-colors"
+              className="absolute top-2 right-2 z-20 text-white/60 hover:text-white transition-colors p-1"
               onClick={handleConfirm}
             >
               <X className="w-5 h-5" />
             </button>
             
-            {/* Content */}
-            <div className="relative z-10 p-6">
+            {/* Content - scrollable area */}
+            <div className="relative z-10 p-4 sm:p-6 max-h-[80vh] overflow-y-auto">
               <DialogHeader className="space-y-1">
-                <DialogTitle className="flex items-center gap-2 text-white announcement-title">
-                  <Megaphone className="w-5 h-5 text-amber-400" />
+                <DialogTitle className="flex items-center gap-2 text-white announcement-title text-base sm:text-lg pr-6">
+                  <Megaphone className="w-4 h-4 sm:w-5 sm:h-5 text-amber-400 shrink-0" />
                   {currentAnnouncement.title}
                 </DialogTitle>
-                <p className="text-sm text-white/70 announcement-text">
+                <p className="text-xs sm:text-sm text-white/70 announcement-text">
                   {format(new Date(currentAnnouncement.published_at), "dd 'de' MMMM 'de' yyyy 'às' HH:mm", {
                     locale: ptBR,
                   })}
                 </p>
               </DialogHeader>
 
-              <div className="flex-1 overflow-y-auto space-y-4 py-4">
+              <div className="flex-1 space-y-3 sm:space-y-4 py-3 sm:py-4">
                 {currentAnnouncement.image_url && (
                   <div className="w-full rounded-lg overflow-hidden border border-white/10 relative">
                     <img
                       src={currentAnnouncement.image_url}
                       alt="Banner do comunicado"
-                      className="w-full h-auto object-cover max-h-64"
+                      className="w-full h-auto object-contain"
                     />
                     {/* Campaign title overlay on banner */}
                     {currentAnnouncement.title.includes("Campanhas") && (
-                      <div className="absolute bottom-0 left-0 right-0 bg-gradient-to-t from-black/80 via-black/40 to-transparent p-4 pt-8">
-                        <h3 className="text-white font-bold text-lg drop-shadow-lg">
+                      <div className="absolute bottom-0 left-0 right-0 bg-gradient-to-t from-black/80 via-black/40 to-transparent p-3 sm:p-4 pt-6 sm:pt-8">
+                        <h3 className="text-white font-bold text-sm sm:text-lg drop-shadow-lg">
                           {currentAnnouncement.title.replace("🎗️ ", "")}
                         </h3>
                       </div>
@@ -190,13 +190,13 @@ export function AnnouncementModal() {
                 )}
 
                 <div className="announcement-content">
-                  <p className="whitespace-pre-wrap text-white announcement-text text-lg">
+                  <p className="whitespace-pre-wrap text-white announcement-text text-base sm:text-lg">
                     {currentAnnouncement.content}
                   </p>
                 </div>
               </div>
 
-              <DialogFooter className="flex-col sm:flex-row gap-2 mt-4">
+              <DialogFooter className="flex-col sm:flex-row gap-2 mt-3 sm:mt-4">
                 {unreadAnnouncements.length > 1 && (
                   <div className="flex items-center gap-2 mr-auto">
                     <Button
@@ -204,11 +204,11 @@ export function AnnouncementModal() {
                       size="icon"
                       onClick={handlePrev}
                       disabled={currentIndex === 0}
-                      className="border-amber-500/50 text-white hover:bg-amber-500/20 hover:border-amber-400"
+                      className="border-amber-500/50 text-white hover:bg-amber-500/20 hover:border-amber-400 h-8 w-8 sm:h-9 sm:w-9"
                     >
                       <ChevronLeft className="w-4 h-4" />
                     </Button>
-                    <span className="text-sm text-white/70 announcement-text">
+                    <span className="text-xs sm:text-sm text-white/70 announcement-text">
                       {currentIndex + 1} de {unreadAnnouncements.length}
                     </span>
                     <Button
@@ -216,7 +216,7 @@ export function AnnouncementModal() {
                       size="icon"
                       onClick={handleNext}
                       disabled={currentIndex === unreadAnnouncements.length - 1}
-                      className="border-amber-500/50 text-white hover:bg-amber-500/20 hover:border-amber-400"
+                      className="border-amber-500/50 text-white hover:bg-amber-500/20 hover:border-amber-400 h-8 w-8 sm:h-9 sm:w-9"
                     >
                       <ChevronRight className="w-4 h-4" />
                     </Button>
@@ -225,7 +225,7 @@ export function AnnouncementModal() {
                 <Button 
                   onClick={handleConfirm} 
                   disabled={markAsRead.isPending}
-                  className="bg-gradient-to-r from-amber-600 to-amber-500 hover:from-amber-500 hover:to-amber-400 text-white font-semibold shadow-lg shadow-amber-500/30 border-0 announcement-button"
+                  className="bg-gradient-to-r from-amber-600 to-amber-500 hover:from-amber-500 hover:to-amber-400 text-white font-semibold shadow-lg shadow-amber-500/30 border-0 announcement-button w-full sm:w-auto"
                 >
                   {markAsRead.isPending ? "Confirmando..." : "Li e Entendi"}
                 </Button>
