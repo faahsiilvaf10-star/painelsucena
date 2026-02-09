@@ -251,7 +251,7 @@ export function CreatePostCard() {
               Vídeo
             </Button>
             <EmojiPicker onEmojiSelect={(emoji) => editorRef.current?.insertText(emoji)} />
-            <AnimatedEmojiPicker onSelect={(id) => editorRef.current?.insertText(`:${id}:`)} />
+            <AnimatedEmojiPicker onSelect={(id) => editorRef.current?.insertAnimatedEmoji(id)} />
           </div>
           <Button
             size="sm"

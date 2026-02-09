@@ -1,4 +1,5 @@
 import { useRef, useCallback, useEffect, forwardRef, useImperativeHandle } from "react";
+import { ANIMATED_EMOJIS } from "./AnimatedEmoji";
 
 const COLOR_STYLES: Record<string, string> = {
   yellow: "background-color: rgba(250, 204, 21, 0.3); padding: 0 2px; border-radius: 3px;",
@@ -20,6 +21,7 @@ export interface RichTextInputHandle {
   focus: () => void;
   insertMention: (name: string, userId: string) => void;
   insertText: (text: string) => void;
+  insertAnimatedEmoji: (emojiId: string) => void;
   applyFormat: (type: string, value?: string) => void;
   getContent: () => string;
   clear: () => void;
@@ -48,6 +50,12 @@ function htmlToCustomSyntax(container: HTMLElement): string {
       // Mention
       if (el.dataset.mentionId) {
         result += `@[${el.dataset.mentionName || el.textContent?.replace(/^@/, "")}](${el.dataset.mentionId})`;
+        return;
+      }
+
+      // Animated emoji
+      if (el.dataset.emojiId) {
+        result += `:${el.dataset.emojiId}:`;
         return;
       }
 
@@ -288,15 +296,54 @@ export const RichTextInput = forwardRef<RichTextInputHandle, RichTextInputProps>
       onInput?.(editor.innerText || "");
     }, [onInput]);
 
+    const insertAnimatedEmoji = useCallback((emojiId: string) => {
+      const editor = editorRef.current;
+      if (!editor) return;
+      editor.focus();
+
+      const def = ANIMATED_EMOJIS.find((e) => e.id === emojiId);
+      if (!def) return;
+
+      const emojiSpan = document.createElement("span");
+      emojiSpan.contentEditable = "false";
+      emojiSpan.dataset.emojiId = emojiId;
+      emojiSpan.className = "animated-emoji inline-block align-middle mx-0.5";
+      emojiSpan.textContent = def.emoji;
+      emojiSpan.title = def.label;
+      emojiSpan.setAttribute("role", "img");
+      emojiSpan.setAttribute("aria-label", def.label);
+      emojiSpan.style.fontSize = "1.25em";
+      emojiSpan.style.lineHeight = "1";
+      emojiSpan.style.cursor = "default";
+
+      const space = document.createTextNode("\u00A0");
+
+      const sel = window.getSelection();
+      if (sel && sel.rangeCount > 0) {
+        const range = sel.getRangeAt(0);
+        range.deleteContents();
+        range.insertNode(space);
+        range.insertNode(emojiSpan);
+        placeCaretAfter(space);
+      } else {
+        editor.appendChild(emojiSpan);
+        editor.appendChild(space);
+        placeCaretAtEnd(editor);
+      }
+
+      onInput?.(editor.innerText || "");
+    }, [onInput]);
+
     useImperativeHandle(ref, () => ({
       focus: () => editorRef.current?.focus(),
       insertMention,
       insertText,
+      insertAnimatedEmoji,
       applyFormat,
       getContent,
       clear,
       getPlainText,
-    }), [insertMention, insertText, applyFormat, getContent, clear, getPlainText]);
+    }), [insertMention, insertText, insertAnimatedEmoji, applyFormat, getContent, clear, getPlainText]);
 
     const handleInput = useCallback(() => {
       onInput?.(editorRef.current?.innerText || "");
