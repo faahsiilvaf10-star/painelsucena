@@ -65,8 +65,10 @@ function htmlToCustomSyntax(container: HTMLElement): string {
       } else if (el.dataset.formatType === "glow") {
         const glowVal = el.dataset.formatValue;
         result += glowVal ? `{glow:${glowVal}}${innerText}{/glow}` : `{glow}${innerText}{/glow}`;
-      } else if (el.dataset.formatType === "font") {
+    } else if (el.dataset.formatType === "font") {
         result += `{font:${el.dataset.formatValue}}${innerText}{/font}`;
+      } else if (el.dataset.formatType === "fx") {
+        result += `{fx:${el.dataset.formatValue}}${innerText}{/fx}`;
       } else if (el.tagName === "BR") {
         result += "\n";
       } else if (el.tagName === "DIV" || el.tagName === "P") {
