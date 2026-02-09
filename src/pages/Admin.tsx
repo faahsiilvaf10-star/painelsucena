@@ -12,7 +12,7 @@ import { useSiteSettings } from "@/hooks/useSiteSettings";
 import { supabase } from "@/integrations/supabase/client";
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import { toast } from "sonner";
-import { Shield, ShieldCheck, Trash2, UserPlus, Users, Image, Upload, UserCog, Megaphone, Pencil, LayoutList, Truck, RotateCcw, Key } from "lucide-react";
+import { Shield, ShieldCheck, Trash2, UserPlus, Users, Image, Upload, UserCog, Megaphone, Pencil, LayoutList, Truck, RotateCcw, Key, Ribbon } from "lucide-react";
 import { ClearEquipmentDialog } from "@/components/driver/ClearEquipmentDialog";
 import { BulkEmployeeEditor } from "@/components/admin/BulkEmployeeEditor";
 import { AnnouncementManager } from "@/components/admin/AnnouncementManager";
@@ -21,6 +21,7 @@ import { DeleteUserDialog } from "@/components/admin/DeleteUserDialog";
 import { ResetPasswordDialog } from "@/components/admin/ResetPasswordDialog";
 import { NavVisibilityManager } from "@/components/admin/NavVisibilityManager";
 import { Navigate, useNavigate } from "react-router-dom";
+import { getCurrentMonthCampaigns } from "@/data/campaignData";
 import type { Database } from "@/integrations/supabase/types";
 
 type AppRole = Database["public"]["Enums"]["app_role"];
@@ -51,6 +52,7 @@ const Admin = () => {
   
   // Site settings state
   const [isUploadingLogo, setIsUploadingLogo] = useState(false);
+  const [isResendingCampaign, setIsResendingCampaign] = useState(false);
   const fileInputRef = useRef<HTMLInputElement>(null);
 
   // Fetch all users with their profiles and roles
@@ -180,6 +182,50 @@ const Admin = () => {
       toast.error("Erro ao fazer upload da logo.");
     } finally {
       setIsUploadingLogo(false);
+    }
+  };
+
+  // Handle resend campaign announcement
+  const handleResendCampaign = async () => {
+    const monthData = getCurrentMonthCampaigns();
+    if (!monthData) {
+      toast.error("Nenhuma campanha encontrada para o mês atual.");
+      return;
+    }
+
+    setIsResendingCampaign(true);
+    try {
+      // Delete existing campaign announcements for this month to reset reads
+      const currentYear = new Date().getFullYear();
+      const currentMonth = new Date().getMonth() + 1;
+      const { data: existing } = await supabase
+        .from("announcements")
+        .select("id")
+        .ilike("title", `%Campanhas de ${monthData.monthName}%`)
+        .gte("created_at", `${currentYear}-${String(currentMonth).padStart(2, "0")}-01`);
+
+      if (existing && existing.length > 0) {
+        for (const ann of existing) {
+          await supabase.from("announcement_reads").delete().eq("announcement_id", ann.id);
+          await supabase.from("announcements").delete().eq("id", ann.id);
+        }
+      }
+
+      // Generate new announcement with AI banner
+      const { error } = await supabase.functions.invoke("generate-campaign-banner", {
+        body: { monthData, userId: user!.id },
+      });
+
+      if (error) throw error;
+
+      queryClient.invalidateQueries({ queryKey: ["announcements"] });
+      queryClient.invalidateQueries({ queryKey: ["unread-announcements"] });
+      toast.success(`Comunicado de ${monthData.monthName} reenviado para todos!`);
+    } catch (err) {
+      console.error("Error resending campaign:", err);
+      toast.error("Erro ao reenviar comunicado da campanha.");
+    } finally {
+      setIsResendingCampaign(false);
     }
   };
 
@@ -315,6 +361,46 @@ const Admin = () => {
                     Acessar Painel
                   </Button>
                   <ClearEquipmentDialog />
+                </div>
+              </CardContent>
+            </Card>
+
+            {/* Campaign Announcement Resend */}
+            <Card>
+              <CardHeader>
+                <CardTitle className="flex items-center gap-2">
+                  <Ribbon className="w-5 h-5" />
+                  Campanha do Mês
+                </CardTitle>
+                <CardDescription>
+                  Reenvie o comunicado da campanha de conscientização para todos os usuários.
+                </CardDescription>
+              </CardHeader>
+              <CardContent>
+                <div className="flex flex-wrap items-center gap-3">
+                  <Button
+                    onClick={handleResendCampaign}
+                    disabled={isResendingCampaign}
+                    variant="outline"
+                    className="gap-2"
+                  >
+                    {isResendingCampaign ? (
+                      <>
+                        <div className="animate-spin rounded-full h-4 w-4 border-b-2 border-current" />
+                        Gerando banner...
+                      </>
+                    ) : (
+                      <>
+                        <Ribbon className="w-4 h-4" />
+                        Reenviar Campanha do Mês
+                      </>
+                    )}
+                  </Button>
+                  <p className="text-xs text-muted-foreground">
+                    {getCurrentMonthCampaigns()
+                      ? `Campanhas: ${getCurrentMonthCampaigns()!.campaigns.map(c => c.name).join(", ")}`
+                      : "Nenhuma campanha neste mês"}
+                  </p>
                 </div>
               </CardContent>
             </Card>
