@@ -277,6 +277,7 @@ export function useCreateEquipmentMovement() {
       queryClient.invalidateQueries({ queryKey: ["equipment-movements-summary"] });
       queryClient.invalidateQueries({ queryKey: ["announcements"] });
       queryClient.invalidateQueries({ queryKey: ["equipment"] });
+      queryClient.invalidateQueries({ queryKey: ["equipment-stop-history"] });
       toast.success("Movimento registrado com sucesso!");
     },
     onError: (error) => {
