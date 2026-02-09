@@ -299,7 +299,6 @@ export const RichTextInput = forwardRef<RichTextInputHandle, RichTextInputProps>
     const insertAnimatedEmoji = useCallback((emojiId: string) => {
       const editor = editorRef.current;
       if (!editor) return;
-      editor.focus();
 
       const def = ANIMATED_EMOJIS.find((e) => e.id === emojiId);
       if (!def) return;
@@ -318,18 +317,11 @@ export const RichTextInput = forwardRef<RichTextInputHandle, RichTextInputProps>
 
       const space = document.createTextNode("\u00A0");
 
-      const sel = window.getSelection();
-      if (sel && sel.rangeCount > 0) {
-        const range = sel.getRangeAt(0);
-        range.deleteContents();
-        range.insertNode(space);
-        range.insertNode(emojiSpan);
-        placeCaretAfter(space);
-      } else {
-        editor.appendChild(emojiSpan);
-        editor.appendChild(space);
-        placeCaretAtEnd(editor);
-      }
+      // Always append at the end — the popover steals focus so selection is lost
+      editor.appendChild(emojiSpan);
+      editor.appendChild(space);
+      editor.focus();
+      placeCaretAfter(space);
 
       onInput?.(editor.innerText || "");
     }, [onInput]);
