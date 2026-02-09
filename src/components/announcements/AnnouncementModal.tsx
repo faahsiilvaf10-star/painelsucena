@@ -8,11 +8,13 @@ import {
 } from "@/components/ui/dialog";
 import { Button } from "@/components/ui/button";
 import { useUnreadAnnouncements } from "@/hooks/useAnnouncements";
+import { useSiteSettings } from "@/hooks/useSiteSettings";
 import { format } from "date-fns";
 import { ptBR } from "date-fns/locale";
 import { Megaphone, ChevronLeft, ChevronRight, X } from "lucide-react";
 import { cn } from "@/lib/utils";
 import { playSoundFile } from "@/lib/sounds";
+import logoFallback from "@/assets/logo-sucena.png";
 
 // Particle component matching sidebar style
 function SidebarStyleParticle({ x, y, size, duration, delay, opacity }: {
@@ -62,8 +64,11 @@ function ParticleField() {
 
 export function AnnouncementModal() {
   const { unreadAnnouncements, markAsRead } = useUnreadAnnouncements();
+  const { settings } = useSiteSettings();
   const [currentIndex, setCurrentIndex] = useState(0);
   const hasPlayedSound = useRef(false);
+
+  const companyLogo = settings.logo_url || logoFallback;
 
   const currentAnnouncement = unreadAnnouncements[currentIndex];
 
@@ -167,12 +172,29 @@ export function AnnouncementModal() {
 
               <div className="flex-1 overflow-y-auto space-y-4 py-4">
                 {currentAnnouncement.image_url && (
-                  <div className="w-full rounded-lg overflow-hidden border border-amber-500/30">
+                  <div className="w-full rounded-lg overflow-hidden border border-white/10 relative">
                     <img
                       src={currentAnnouncement.image_url}
                       alt="Banner do comunicado"
                       className="w-full h-auto object-cover max-h-64"
                     />
+                    {/* Logo overlay on banner */}
+                    <div className="absolute top-3 left-3">
+                      <img
+                        src={companyLogo}
+                        alt="Logo da empresa"
+                        className="h-10 w-auto object-contain drop-shadow-lg"
+                        style={{ filter: 'drop-shadow(0 0 6px rgba(255,255,255,0.5))' }}
+                      />
+                    </div>
+                    {/* Campaign title overlay on banner */}
+                    {currentAnnouncement.title.includes("Campanhas") && (
+                      <div className="absolute bottom-0 left-0 right-0 bg-gradient-to-t from-black/80 via-black/40 to-transparent p-4 pt-8">
+                        <h3 className="text-white font-bold text-lg drop-shadow-lg">
+                          {currentAnnouncement.title.replace("🎗️ ", "")}
+                        </h3>
+                      </div>
+                    )}
                   </div>
                 )}
 
