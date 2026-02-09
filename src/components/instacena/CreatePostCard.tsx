@@ -68,8 +68,9 @@ export function CreatePostCard() {
       editorRef.current?.applyFormat("italic");
     } else if (prefix === "__") {
       editorRef.current?.applyFormat("underline");
-    } else if (prefix === "{glow}") {
-      editorRef.current?.applyFormat("glow");
+    } else if (prefix.startsWith("{glow")) {
+      const glowColor = prefix.match(/\{glow:(\w+)\}/)?.[1] || "gold";
+      editorRef.current?.applyFormat("glow", glowColor);
     } else if (prefix.startsWith("{color:")) {
       const color = prefix.match(/\{color:(\w+)\}/)?.[1] || "yellow";
       editorRef.current?.applyFormat("color", color);

@@ -62,7 +62,8 @@ function htmlToCustomSyntax(container: HTMLElement): string {
       } else if (el.dataset.formatType === "color") {
         result += `{color:${el.dataset.formatValue}}${innerText}{/color}`;
       } else if (el.dataset.formatType === "glow") {
-        result += `{glow}${innerText}{/glow}`;
+        const glowVal = el.dataset.formatValue;
+        result += glowVal ? `{glow:${glowVal}}${innerText}{/glow}` : `{glow}${innerText}{/glow}`;
       } else if (el.dataset.formatType === "font") {
         result += `{font:${el.dataset.formatValue}}${innerText}{/font}`;
       } else if (el.tagName === "BR") {
@@ -201,12 +202,26 @@ export const RichTextInput = forwardRef<RichTextInputHandle, RichTextInputProps>
           span.dataset.formatType = "color";
           span.dataset.formatValue = value || "yellow";
           break;
-        case "glow":
-          span.style.color = "hsl(var(--primary))";
-          span.style.textShadow = "0 0 8px hsl(var(--primary) / 0.6), 0 0 16px hsl(var(--primary) / 0.3)";
+        case "glow": {
+          const glowColors: Record<string, { color: string; shadow: string }> = {
+            gold: { color: "#fbbf24", shadow: "0 0 8px #fbbf2499, 0 0 16px #fbbf244d" },
+            blue: { color: "#3b82f6", shadow: "0 0 8px #3b82f699, 0 0 16px #3b82f64d" },
+            green: { color: "#22c55e", shadow: "0 0 8px #22c55e99, 0 0 16px #22c55e4d" },
+            pink: { color: "#ec4899", shadow: "0 0 8px #ec489999, 0 0 16px #ec48994d" },
+            purple: { color: "#a855f7", shadow: "0 0 8px #a855f799, 0 0 16px #a855f74d" },
+            red: { color: "#ef4444", shadow: "0 0 8px #ef444499, 0 0 16px #ef44444d" },
+            cyan: { color: "#06b6d4", shadow: "0 0 8px #06b6d499, 0 0 16px #06b6d44d" },
+            orange: { color: "#f97316", shadow: "0 0 8px #f9731699, 0 0 16px #f973164d" },
+            white: { color: "#ffffff", shadow: "0 0 8px #ffffff99, 0 0 16px #ffffff4d" },
+          };
+          const gc = glowColors[value || "gold"] || glowColors.gold;
+          span.style.color = gc.color;
+          span.style.textShadow = gc.shadow;
           span.dataset.formatType = "glow";
+          span.dataset.formatValue = value || "gold";
           span.className = "animate-pulse";
           break;
+        }
         case "font":
           span.setAttribute("style", FONT_STYLES[value || "normal"] || "");
           span.dataset.formatType = "font";

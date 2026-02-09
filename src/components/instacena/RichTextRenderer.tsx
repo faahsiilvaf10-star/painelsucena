@@ -27,6 +27,18 @@ const FONT_CLASSES: Record<string, string> = {
   normal: "",
 };
 
+const GLOW_CSS: Record<string, { color: string; shadow: string }> = {
+  gold: { color: "#fbbf24", shadow: "0 0 8px #fbbf2499, 0 0 16px #fbbf244d" },
+  blue: { color: "#3b82f6", shadow: "0 0 8px #3b82f699, 0 0 16px #3b82f64d" },
+  green: { color: "#22c55e", shadow: "0 0 8px #22c55e99, 0 0 16px #22c55e4d" },
+  pink: { color: "#ec4899", shadow: "0 0 8px #ec489999, 0 0 16px #ec48994d" },
+  purple: { color: "#a855f7", shadow: "0 0 8px #a855f799, 0 0 16px #a855f74d" },
+  red: { color: "#ef4444", shadow: "0 0 8px #ef444499, 0 0 16px #ef44444d" },
+  cyan: { color: "#06b6d4", shadow: "0 0 8px #06b6d499, 0 0 16px #06b6d44d" },
+  orange: { color: "#f97316", shadow: "0 0 8px #f9731699, 0 0 16px #f973164d" },
+  white: { color: "#ffffff", shadow: "0 0 8px #ffffff99, 0 0 16px #ffffff4d" },
+};
+
 interface RichSegment {
   text: string;
   bold?: boolean;
@@ -34,6 +46,7 @@ interface RichSegment {
   underline?: boolean;
   color?: string;
   glow?: boolean;
+  glowColor?: string;
   font?: string;
 }
 
@@ -42,7 +55,7 @@ function parseRichText(input: string): RichSegment[] {
   let remaining = input;
 
   // Process formatting tags using regex replacements
-  const regex = /(\*\*(.+?)\*\*|_(.+?)_|__(.+?)__|{color:(\w+)}(.+?){\/color}|{glow}(.+?){\/glow}|{font:(\w+)}(.+?){\/font})/gs;
+  const regex = /(\*\*(.+?)\*\*|_(.+?)_|__(.+?)__|{color:(\w+)}(.+?){\/color}|{glow:(\w+)}(.+?){\/glow}|{glow}(.+?){\/glow}|{font:(\w+)}(.+?){\/font})/gs;
 
   let lastIndex = 0;
   let match: RegExpExecArray | null;
@@ -65,12 +78,15 @@ function parseRichText(input: string): RichSegment[] {
     } else if (match[5] !== undefined && match[6] !== undefined) {
       // {color:x}text{/color}
       segments.push({ text: match[6], color: match[5] });
-    } else if (match[7] !== undefined) {
-      // {glow}text{/glow}
-      segments.push({ text: match[7], glow: true });
-    } else if (match[8] !== undefined && match[9] !== undefined) {
+    } else if (match[7] !== undefined && match[8] !== undefined) {
+      // {glow:color}text{/glow}
+      segments.push({ text: match[8], glow: true, glowColor: match[7] });
+    } else if (match[9] !== undefined) {
+      // {glow}text{/glow} (legacy, default gold)
+      segments.push({ text: match[9], glow: true });
+    } else if (match[10] !== undefined && match[11] !== undefined) {
       // {font:x}text{/font}
-      segments.push({ text: match[9], font: match[8] });
+      segments.push({ text: match[11], font: match[10] });
     }
 
     lastIndex = match.index + match[0].length;
@@ -90,7 +106,7 @@ function parseRichText(input: string): RichSegment[] {
 
 export function RichTextRenderer({ content }: { content: string }) {
   // Check if content has any formatting markers
-  const hasFormatting = /(\*\*|_{1,2}|{color:|{glow}|{font:)/.test(content);
+  const hasFormatting = /(\*\*|_{1,2}|{color:|{glow|{font:)/.test(content);
 
   if (!hasFormatting) {
     return <>{content}</>;
@@ -110,9 +126,10 @@ export function RichTextRenderer({ content }: { content: string }) {
         if (seg.color && COLOR_CLASSES[seg.color]) classes.push(COLOR_CLASSES[seg.color]);
         if (seg.font && FONT_CLASSES[seg.font]) classes.push(FONT_CLASSES[seg.font]);
         if (seg.glow) {
+          const glowDef = seg.glowColor ? GLOW_CSS[seg.glowColor] : null;
           classes.push("animate-pulse");
-          styles.textShadow = "0 0 8px hsl(var(--primary) / 0.6), 0 0 16px hsl(var(--primary) / 0.3)";
-          styles.color = "hsl(var(--primary))";
+          styles.textShadow = glowDef?.shadow || "0 0 8px hsl(var(--primary) / 0.6), 0 0 16px hsl(var(--primary) / 0.3)";
+          styles.color = glowDef?.color || "hsl(var(--primary))";
         }
 
         if (classes.length === 0 && Object.keys(styles).length === 0) {
