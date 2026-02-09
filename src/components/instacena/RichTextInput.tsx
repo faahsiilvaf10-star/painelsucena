@@ -214,6 +214,7 @@ export const RichTextInput = forwardRef<RichTextInputHandle, RichTextInputProps>
             cyan: { color: "#06b6d4", shadow: "0 0 8px #06b6d499, 0 0 16px #06b6d44d" },
             orange: { color: "#f97316", shadow: "0 0 8px #f9731699, 0 0 16px #f973164d" },
             white: { color: "#ffffff", shadow: "0 0 8px #ffffff99, 0 0 16px #ffffff4d" },
+            black: { color: "#000000", shadow: "0 0 8px #00000099, 0 0 16px #0000004d" },
           };
           const gc = glowColors[value || "gold"] || glowColors.gold;
           span.style.color = gc.color;

@@ -29,6 +29,7 @@ const GLOW_COLORS = [
   { label: "Ciano", value: "cyan", css: "#06b6d4" },
   { label: "Laranja", value: "orange", css: "#f97316" },
   { label: "Branco", value: "white", css: "#ffffff" },
+  { label: "Preto", value: "black", css: "#000000" },
 ];
 
 const FONT_STYLES = [
