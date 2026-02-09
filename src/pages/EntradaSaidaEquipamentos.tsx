@@ -168,15 +168,19 @@ const EXIT_REASON_LABELS: Record<string, string> = {
               </tr>
             </thead>
             <tbody>
-              ${equipmentNoCanteiro.map(eq => `
+              ${equipmentNoCanteiro.map(eq => {
+                const sr = (eq.stop_reason || "none") as string;
+                const badgeClass = !sr || sr === "none" ? "badge-green" : ["maintenance","manutencao_corretiva"].includes(sr) ? "badge-red" : sr === "manutencao_preventiva" ? "badge-orange" : "badge-yellow";
+                const statusText = !sr || sr === "none" ? "Operando" : ["maintenance","manutencao_corretiva"].includes(sr) ? "Manutenção Corretiva" : sr === "manutencao_preventiva" ? "Manutenção Preventiva" : sr === "vistoria" ? "Vistoria" : sr === "waiting" ? "Aguardando" : ["end_of_shift","fim_turno"].includes(sr) ? "Fim de Turno" : sr === "rain" ? "Chuva" : ["end_of_day","abastecimento"].includes(sr) ? "Abastecendo" : sr;
+                return `
                 <tr>
                   <td><strong>${eq.name}</strong></td>
                   <td>${eq.plate}</td>
                   <td>${eq.driver || "-"}</td>
                   <td>${eq.helper || "-"}</td>
-                  <td><span class="badge ${eq.stop_reason === "none" ? "badge-green" : eq.stop_reason === "maintenance" ? "badge-red" : "badge-yellow"}">${eq.stop_reason === "none" ? "Operando" : eq.stop_reason === "maintenance" ? "Manutenção" : eq.stop_reason === "waiting" ? "Aguardando" : eq.stop_reason === "end_of_shift" ? "Fim de Turno" : eq.stop_reason === "rain" ? "Chuva" : eq.stop_reason || "Aguardando"}</span></td>
+                  <td><span class="badge ${badgeClass}">${statusText}</span></td>
                 </tr>
-              `).join("")}
+              `}).join("")}
             </tbody>
           </table>
           `}

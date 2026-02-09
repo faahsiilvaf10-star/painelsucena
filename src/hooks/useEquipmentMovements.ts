@@ -169,6 +169,35 @@ export function useCreateEquipmentMovement() {
 
       if (error) throw error;
 
+      // Sync equipment status when exit is registered
+      if (movement.movement_type === "saida" && movement.exit_reason) {
+        const statusMap: Record<string, string> = {
+          manutencao_corretiva: "manutencao_corretiva",
+          manutencao_preventiva: "manutencao_preventiva",
+          vistoria: "vistoria",
+          fim_turno: "end_of_shift",
+        };
+        const newStopReason = statusMap[movement.exit_reason];
+        if (newStopReason) {
+          // Find equipment by plate to update its status
+          const { data: eqData } = await supabase
+            .from("equipment")
+            .select("id")
+            .eq("plate", movement.plate)
+            .single();
+
+          if (eqData) {
+            await supabase
+              .from("equipment")
+              .update({
+                stop_reason: newStopReason,
+                stop_start_time: new Date().toISOString(),
+              })
+              .eq("id", eqData.id);
+          }
+        }
+      }
+
       // If the movement is for today, create an announcement for all users
       if (movementDate === today) {
         const isEntrada = movement.movement_type === "entrada";
@@ -214,6 +243,7 @@ export function useCreateEquipmentMovement() {
       queryClient.invalidateQueries({ queryKey: ["equipment-movements-weekly"] });
       queryClient.invalidateQueries({ queryKey: ["equipment-movements-summary"] });
       queryClient.invalidateQueries({ queryKey: ["announcements"] });
+      queryClient.invalidateQueries({ queryKey: ["equipment"] });
       toast.success("Movimento registrado com sucesso!");
     },
     onError: (error) => {

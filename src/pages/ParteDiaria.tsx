@@ -130,7 +130,12 @@ export default function ParteDiaria() {
     }
     switch (stopReason) {
       case "maintenance":
-        return <Badge className="bg-orange-500 text-white">Manutenção</Badge>;
+      case "manutencao_corretiva":
+        return <Badge className="bg-red-500 text-white">Manutenção Corretiva</Badge>;
+      case "manutencao_preventiva":
+        return <Badge className="bg-amber-500 text-white">Manutenção Preventiva</Badge>;
+      case "vistoria":
+        return <Badge className="bg-purple-500 text-white">Vistoria</Badge>;
       case "waiting":
         // Vehicle selected but driver hasn't clicked "Operar" yet
         return <Badge className="bg-yellow-500 text-black">Aguardando Início</Badge>;
