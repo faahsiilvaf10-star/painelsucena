@@ -397,9 +397,11 @@ export default function ParteDiaria() {
                                 const statusLabel = getStatusLabel(status.stop_reason);
                                 const isOperando = status.stop_reason === "operando" || status.stop_reason === "none";
                                 const isAbastecimento = status.stop_reason === "abastecimento" || status.stop_reason === "end_of_day";
-                                const isMaintenance = status.stop_reason === "maintenance";
+                                const isMaintenanceCorretiva = status.stop_reason === "maintenance" || status.stop_reason === "manutencao_corretiva";
+                                const isMaintenancePreventiva = status.stop_reason === "manutencao_preventiva";
+                                const isVistoria = status.stop_reason === "vistoria";
                                 const isEndOfShift = status.stop_reason === "end_of_shift" || status.stop_reason === "fim_turno";
-                                const isWaiting = status.stop_reason === "waiting" || status.stop_reason === "waiting_front";
+                                const isWaiting = status.stop_reason === "waiting" || status.stop_reason === "waiting_front" || status.stop_reason === "aguardando_frente_servico";
                                 const isRain = status.stop_reason === "rain";
                                 
                                 return (
@@ -414,7 +416,9 @@ export default function ParteDiaria() {
                                       className={`text-xs ${
                                         isOperando ? "bg-green-500 text-white" :
                                         isAbastecimento ? "bg-cyan-500 text-white" :
-                                        isMaintenance ? "bg-orange-500 text-white" :
+                                        isMaintenanceCorretiva ? "bg-red-500 text-white" :
+                                        isMaintenancePreventiva ? "bg-amber-500 text-white" :
+                                        isVistoria ? "bg-purple-500 text-white" :
                                         isEndOfShift ? "bg-blue-500 text-white" :
                                         isWaiting ? "bg-yellow-500 text-black" :
                                         isRain ? "bg-sky-500 text-white" :
