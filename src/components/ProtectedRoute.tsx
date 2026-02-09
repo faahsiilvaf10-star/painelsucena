@@ -11,6 +11,8 @@ interface ProtectedRouteProps {
 // Driver roles that should be redirected to the driver panel
 const DRIVER_ROLES = ['motorista_pipa', 'motorista_munk'];
 
+const SESSION_TAB_KEY = "session_tab_active";
+
 const ProtectedRoute = ({ children }: ProtectedRouteProps) => {
   const [session, setSession] = useState<Session | null>(null);
   const [loading, setLoading] = useState(true);
@@ -33,11 +35,13 @@ const ProtectedRoute = ({ children }: ProtectedRouteProps) => {
         if (event === 'SIGNED_OUT') {
           setUserCargo(null);
           setCargoChecked(false);
+          sessionStorage.removeItem(SESSION_TAB_KEY);
           navigate('/auth', { replace: true });
         }
         
-        // Fetch cargo when signed in
+        // Mark tab as active on sign in
         if (event === 'SIGNED_IN' && currentSession?.user) {
+          sessionStorage.setItem(SESSION_TAB_KEY, "1");
           setTimeout(() => {
             fetchUserCargo(currentSession.user.id);
           }, 0);
@@ -52,14 +56,15 @@ const ProtectedRoute = ({ children }: ProtectedRouteProps) => {
       if (existingSession) {
         setSession(existingSession);
         setLoading(false);
-        fetchUserCargo(existingSession.user.id);
+        // Fetch cargo first to decide if we should auto-logout
+        await fetchUserCargoAndCheckTab(existingSession.user.id);
       } else {
         // Try to refresh the session if no active session found
         const { data: { session: refreshedSession } } = await supabase.auth.refreshSession();
         setSession(refreshedSession);
         setLoading(false);
         if (refreshedSession?.user) {
-          fetchUserCargo(refreshedSession.user.id);
+          await fetchUserCargoAndCheckTab(refreshedSession.user.id);
         } else {
           setCargoChecked(true);
         }
@@ -73,7 +78,6 @@ const ProtectedRoute = ({ children }: ProtectedRouteProps) => {
 
   const fetchUserCargo = async (userId: string) => {
     try {
-      // Fetch cargo and admin status in parallel
       const [profileResult, roleResult] = await Promise.all([
         supabase
           .from("profiles")
@@ -88,17 +92,40 @@ const ProtectedRoute = ({ children }: ProtectedRouteProps) => {
           .maybeSingle()
       ]);
 
-      if (!profileResult.error && profileResult.data) {
-        setUserCargo(profileResult.data.cargo);
-      }
+      const cargo = profileResult.data?.cargo || null;
+      const admin = !!roleResult.data;
 
-      // Check if user is admin
-      setIsAdmin(!!roleResult.data);
+      setUserCargo(cargo);
+      setIsAdmin(admin);
+
+      return { cargo, admin };
     } catch (err) {
       console.error("Error fetching user cargo:", err);
+      return { cargo: null, admin: false };
     } finally {
       setCargoChecked(true);
     }
+  };
+
+  // Fetch cargo, then check if browser was closed (auto-logout non-drivers)
+  const fetchUserCargoAndCheckTab = async (userId: string) => {
+    const { cargo, admin } = await fetchUserCargo(userId);
+    const isDriverRole = cargo && DRIVER_ROLES.includes(cargo);
+    const tabWasActive = sessionStorage.getItem(SESSION_TAB_KEY);
+
+    // If tab flag is missing (browser was closed/reopened) and user is NOT a driver, auto-logout
+    if (!tabWasActive && !isDriverRole) {
+      console.log("Browser was closed. Auto-logging out non-driver user.");
+      setSession(null);
+      try {
+        await supabase.auth.signOut({ scope: "local" });
+      } catch { /* ignore */ }
+      navigate("/auth", { replace: true });
+      return;
+    }
+
+    // Mark tab as active for this session
+    sessionStorage.setItem(SESSION_TAB_KEY, "1");
   };
 
   // Show nothing while loading session or checking cargo
