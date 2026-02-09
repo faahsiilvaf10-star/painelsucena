@@ -184,20 +184,23 @@ export function CreatePostCard() {
             </AvatarFallback>
           </Avatar>
           <div className="flex-1 relative">
-            <Textarea
-              ref={textareaRef}
-              value={content}
-              onChange={handleContentChange}
-              placeholder="No que você está pensando? Use @ para mencionar"
-              className="min-h-[60px] resize-none border-none bg-muted/30 focus-visible:ring-0 text-sm"
-            />
-            {/* Live formatted preview */}
-            {content.trim() && /(\*\*|_{1,2}|{color:|{glow}|{font:|@\[)/.test(content) && (
-              <div className="mt-1.5 p-2 rounded-md bg-muted/50 border border-border/30 text-sm whitespace-pre-wrap break-words">
-                <p className="text-[10px] text-muted-foreground mb-1 font-medium uppercase tracking-wide">Pré-visualização</p>
-                <MentionText content={content} />
-              </div>
-            )}
+            <div className="relative">
+              <Textarea
+                ref={textareaRef}
+                value={content}
+                onChange={handleContentChange}
+                placeholder="No que você está pensando? Use @ para mencionar"
+                className="min-h-[60px] resize-none border-none bg-muted/30 focus-visible:ring-0 text-sm text-transparent caret-foreground selection:bg-primary/20"
+              />
+              {content && (
+                <div
+                  className="absolute inset-0 pointer-events-none px-3 py-2 text-sm whitespace-pre-wrap break-words overflow-hidden"
+                  aria-hidden="true"
+                >
+                  <MentionText content={content} />
+                </div>
+              )}
+            </div>
             <MentionPicker
               query={mentionQuery}
               visible={showMention}
