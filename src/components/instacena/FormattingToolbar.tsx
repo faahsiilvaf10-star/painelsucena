@@ -19,6 +19,18 @@ const HIGHLIGHT_COLORS = [
   { label: "Laranja", value: "orange", bg: "bg-orange-400", preview: "bg-orange-100 dark:bg-orange-900/40" },
 ];
 
+const GLOW_COLORS = [
+  { label: "Dourado", value: "gold", css: "#fbbf24" },
+  { label: "Azul", value: "blue", css: "#3b82f6" },
+  { label: "Verde", value: "green", css: "#22c55e" },
+  { label: "Rosa", value: "pink", css: "#ec4899" },
+  { label: "Roxo", value: "purple", css: "#a855f7" },
+  { label: "Vermelho", value: "red", css: "#ef4444" },
+  { label: "Ciano", value: "cyan", css: "#06b6d4" },
+  { label: "Laranja", value: "orange", css: "#f97316" },
+  { label: "Branco", value: "white", css: "#ffffff" },
+];
+
 const FONT_STYLES = [
   { label: "Normal", value: "normal" },
   { label: "Serifada", value: "serif" },
@@ -93,17 +105,34 @@ export function FormattingToolbar({ onFormat }: FormattingToolbarProps) {
         </PopoverContent>
       </Popover>
 
-      {/* Glow Effect */}
-      <Button
-        type="button"
-        variant="ghost"
-        size="sm"
-        onClick={() => onFormat("{glow}", "{/glow}")}
-        className="h-7 w-7 p-0 text-muted-foreground hover:text-foreground"
-        title="Efeito brilho"
-      >
-        <Sparkles className="h-3.5 w-3.5" />
-      </Button>
+      {/* Glow Effect Colors */}
+      <Popover>
+        <PopoverTrigger asChild>
+          <Button
+            type="button"
+            variant="ghost"
+            size="sm"
+            className="h-7 w-7 p-0 text-muted-foreground hover:text-foreground"
+            title="Efeito brilho"
+          >
+            <Sparkles className="h-3.5 w-3.5" />
+          </Button>
+        </PopoverTrigger>
+        <PopoverContent className="w-auto p-2" side="top" align="start">
+          <p className="text-xs font-medium text-muted-foreground mb-1.5">Cor do brilho</p>
+          <div className="flex gap-1.5 flex-wrap max-w-[180px]">
+            {GLOW_COLORS.map((color) => (
+              <button
+                key={color.value}
+                onClick={() => onFormat(`{glow:${color.value}}`, "{/glow}")}
+                className="h-6 w-6 rounded-full hover:scale-110 transition-transform border border-border/50"
+                style={{ background: color.css, boxShadow: `0 0 8px ${color.css}` }}
+                title={color.label}
+              />
+            ))}
+          </div>
+        </PopoverContent>
+      </Popover>
 
       {/* Font Style */}
       <Popover>
