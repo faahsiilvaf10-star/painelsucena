@@ -72,7 +72,7 @@ const statusButtons: StatusButton[] = [
   },
   {
     id: "end_of_day",
-    label: "Combustível",
+    label: "Abastecendo",
     icon: <Fuel className="h-6 w-6" />,
     color: "bg-orange-500 hover:bg-orange-600 active:bg-orange-700 text-white",
     action: "end_of_day",
