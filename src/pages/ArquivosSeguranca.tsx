@@ -30,6 +30,7 @@ const FilePdfIcon = FileText;
 import { useSecurityFiles, SecurityFile } from "@/hooks/useSecurityFiles";
 import { useAuth } from "@/hooks/useAuth";
 import { useProfile } from "@/hooks/useProfile";
+import { useVisualizadorContext } from "@/contexts/VisualizadorContext";
 import { format } from "date-fns";
 import { ptBR } from "date-fns/locale";
 
@@ -53,6 +54,7 @@ export default function ArquivosSeguranca() {
   const { files, isLoading, uploadFile, deleteFile } = useSecurityFiles();
   const { user } = useAuth();
   const { data: profile } = useProfile();
+  const { isVisualizador } = useVisualizadorContext();
   const [search, setSearch] = useState("");
   const [deleteTarget, setDeleteTarget] = useState<SecurityFile | null>(null);
   const [isUploading, setIsUploading] = useState(false);
@@ -122,14 +124,16 @@ export default function ArquivosSeguranca() {
             onChange={handleFileSelect}
             accept=".pdf,.doc,.docx,.xls,.xlsx,.ppt,.pptx,.jpg,.jpeg,.png,.gif,.txt"
           />
-          <Button
-            onClick={() => fileInputRef.current?.click()}
-            disabled={isUploading || !user}
-            className="gap-2"
-          >
-            <Upload className="h-4 w-4" />
-            {isUploading ? "Enviando..." : "Enviar Arquivo"}
-          </Button>
+          {!isVisualizador && (
+            <Button
+              onClick={() => fileInputRef.current?.click()}
+              disabled={isUploading || !user}
+              className="gap-2"
+            >
+              <Upload className="h-4 w-4" />
+              {isUploading ? "Enviando..." : "Enviar Arquivo"}
+            </Button>
+          )}
         </div>
       </div>
 
@@ -201,6 +205,7 @@ export default function ArquivosSeguranca() {
                         Por: {file.uploaded_by_name}
                       </p>
                       <div className="mt-3 flex gap-2">
+                        {!isVisualizador && (
                         <Button
                           variant="outline"
                           size="sm"
@@ -210,7 +215,8 @@ export default function ArquivosSeguranca() {
                           <Download className="h-3 w-3" />
                           Baixar
                         </Button>
-                        {(user?.id === file.uploaded_by || profile?.cargo === "preposto") && (
+                        )}
+                        {!isVisualizador && (user?.id === file.uploaded_by || profile?.cargo === "preposto") && (
                           <Button
                             variant="outline"
                             size="sm"

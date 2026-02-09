@@ -12,6 +12,7 @@ import { LoginTransitionGate } from "@/components/auth/LoginTransitionGate";
 import { LogoutTransitionGate } from "@/components/auth/LogoutTransitionGate";
 import { InstallPrompt } from "@/components/pwa/InstallPrompt";
 import ErrorBoundary from "@/components/ErrorBoundary";
+import { VisualizadorProvider } from "@/contexts/VisualizadorContext";
 
 import Index from "./pages/Index";
 import RH from "./pages/RH";
@@ -96,6 +97,7 @@ const App = () => (
               <LoginTransitionGate />
               <LogoutTransitionGate />
               <PersistentSidebar>
+                <VisualizadorProvider>
                 <ErrorBoundary>
                   <Routes>
                     <Route path="/auth" element={<Auth />} />
@@ -139,6 +141,7 @@ const App = () => (
                     <Route path="*" element={<NotFound />} />
                   </Routes>
                 </ErrorBoundary>
+                </VisualizadorProvider>
                 <PersistentFooter />
               </PersistentSidebar>
             </BrowserRouter>

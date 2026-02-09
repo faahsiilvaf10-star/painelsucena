@@ -6,10 +6,12 @@ import { Button } from "@/components/ui/button";
 import { useState } from "react";
 import { AddVehicleDialog } from "@/components/vistorias/AddVehicleDialog";
 import { useVehicleInspections } from "@/hooks/useVehicleInspections";
+import { useVisualizadorContext } from "@/contexts/VisualizadorContext";
 
 const VistoriasEquipamentos = () => {
   const [addDialogOpen, setAddDialogOpen] = useState(false);
   const { data: vehicles, isLoading } = useVehicleInspections();
+  const { isVisualizador } = useVisualizadorContext();
 
   return (
     <Layout>
@@ -33,13 +35,15 @@ const VistoriasEquipamentos = () => {
           </div>
 
           <div className="flex items-center gap-2">
-            {vehicles && vehicles.length > 0 && (
+            {!isVisualizador && vehicles && vehicles.length > 0 && (
               <ExportVehiclesButton vehicles={vehicles} />
             )}
+            {!isVisualizador && (
             <Button size="sm" className="gap-2 shadow-sm" onClick={() => setAddDialogOpen(true)}>
               <Plus className="w-4 h-4" />
               <span className="hidden sm:inline">Novo Veículo</span>
             </Button>
+            )}
           </div>
         </div>
 

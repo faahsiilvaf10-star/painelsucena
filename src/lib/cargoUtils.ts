@@ -17,6 +17,7 @@ export const CARGO_LABELS: Record<string, string> = {
   engenheiro_seguranca: "Engenheiro de Segurança",
   motorista_pipa: "Motorista de Pipa",
   motorista_munk: "Motorista Operador de Munk",
+  visualizador: "Visualizador",
 };
 
 // Short labels for compact displays
@@ -37,6 +38,7 @@ export const CARGO_LABELS_SHORT: Record<string, string> = {
   engenheiro_seguranca: "Eng. Seg.",
   motorista_pipa: "Mot. Pipa",
   motorista_munk: "Mot. Munk",
+  visualizador: "Visualiz.",
 };
 
 /**

@@ -11,6 +11,8 @@ import { SessionTimeIndicator } from "@/components/session/SessionTimeIndicator"
 import { useChatNotifications } from "@/hooks/useChatNotifications";
 import { useInstaCenaNotifications } from "@/hooks/useInstaCenaNotifications";
 import { GoalAchievementMonitor } from "@/components/goals/GoalAchievementMonitor";
+import { useVisualizadorContext } from "@/contexts/VisualizadorContext";
+import { Eye } from "lucide-react";
 
 const motivationalPhrases = [
   "O sucesso é a soma de pequenos esforços repetidos dia após dia.",
@@ -59,6 +61,7 @@ interface LayoutProps {
 
 const Layout = ({ children }: LayoutProps) => {
   const dailyPhrase = useMemo(() => getDailyPhrase(), []);
+  const { isVisualizador } = useVisualizadorContext();
   
   // Enable global chat push notifications
   useChatNotifications();
@@ -87,6 +90,12 @@ const Layout = ({ children }: LayoutProps) => {
         </div>
       </header>
       <main className="flex-1 overflow-y-auto pb-16 md:pb-14">
+        {isVisualizador && (
+          <div className="bg-amber-500/10 border-b border-amber-500/30 px-4 py-2 flex items-center gap-2 text-amber-700 dark:text-amber-400 text-sm">
+            <Eye className="h-4 w-4 shrink-0" />
+            <span>Modo Visualização — Você tem acesso somente leitura. Edições e downloads estão desabilitados.</span>
+          </div>
+        )}
         <PageTransition>
           {children}
         </PageTransition>
