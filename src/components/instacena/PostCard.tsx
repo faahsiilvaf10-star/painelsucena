@@ -139,7 +139,7 @@ export function PostCard({ post }: { post: InstaCenaPost }) {
             {post.image_urls.map((url, i) => {
               const isVideo = /\.(mp4|mov|webm|avi|mkv)(\?|$)/i.test(url);
               return isVideo ? (
-                <video key={i} src={url} controls className="rounded-lg w-full max-h-80" />
+                <video key={i} src={url} controls autoPlay loop muted playsInline className="rounded-lg w-full max-h-[500px] object-contain bg-black/5" />
               ) : (
                 <img key={i} src={url} alt="" className="rounded-lg w-full object-cover max-h-80" />
               );
