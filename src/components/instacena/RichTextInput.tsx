@@ -227,6 +227,30 @@ export const RichTextInput = forwardRef<RichTextInputHandle, RichTextInputProps>
           span.dataset.formatType = "font";
           span.dataset.formatValue = value || "normal";
           break;
+        case "fx": {
+          span.dataset.formatType = "fx";
+          span.dataset.formatValue = value || "sparkle";
+          switch (value) {
+            case "sparkle":
+              span.style.color = "#fbbf24";
+              span.style.animation = "sparkle-text 2s ease-in-out infinite";
+              break;
+            case "rainbow":
+              span.style.animation = "rainbow-shift 3s linear infinite";
+              break;
+            case "neon":
+              span.style.color = "#06b6d4";
+              span.style.animation = "neon-flicker 3s ease-in-out infinite";
+              break;
+            case "gradient":
+              span.style.background = "linear-gradient(90deg, #3b82f6, #a855f7, #ec4899)";
+              span.style.webkitBackgroundClip = "text";
+              span.style.webkitTextFillColor = "transparent";
+              (span.style as any).backgroundClip = "text";
+              break;
+          }
+          break;
+        }
       }
 
       if (selectedText) {

@@ -77,6 +77,9 @@ export function CreatePostCard() {
     } else if (prefix.startsWith("{font:")) {
       const font = prefix.match(/\{font:(\w+)\}/)?.[1] || "normal";
       editorRef.current?.applyFormat("font", font);
+    } else if (prefix.startsWith("{fx:")) {
+      const fx = prefix.match(/\{fx:(\w+)\}/)?.[1] || "sparkle";
+      editorRef.current?.applyFormat("fx", fx);
     }
   }, []);
 

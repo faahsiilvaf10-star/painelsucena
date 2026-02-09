@@ -48,6 +48,7 @@ interface RichSegment {
   glow?: boolean;
   glowColor?: string;
   font?: string;
+  fx?: string;
 }
 
 function parseRichText(input: string): RichSegment[] {
@@ -55,7 +56,7 @@ function parseRichText(input: string): RichSegment[] {
   let remaining = input;
 
   // Process formatting tags using regex replacements
-  const regex = /(\*\*(.+?)\*\*|_(.+?)_|__(.+?)__|{color:(\w+)}(.+?){\/color}|{glow:(\w+)}(.+?){\/glow}|{glow}(.+?){\/glow}|{font:(\w+)}(.+?){\/font})/gs;
+  const regex = /(\*\*(.+?)\*\*|_(.+?)_|__(.+?)__|{color:(\w+)}(.+?){\/color}|{glow:(\w+)}(.+?){\/glow}|{glow}(.+?){\/glow}|{fx:(\w+)}(.+?){\/fx}|{font:(\w+)}(.+?){\/font})/gs;
 
   let lastIndex = 0;
   let match: RegExpExecArray | null;
@@ -85,8 +86,11 @@ function parseRichText(input: string): RichSegment[] {
       // {glow}text{/glow} (legacy, default gold)
       segments.push({ text: match[9], glow: true });
     } else if (match[10] !== undefined && match[11] !== undefined) {
+      // {fx:type}text{/fx}
+      segments.push({ text: match[11], fx: match[10] });
+    } else if (match[12] !== undefined && match[13] !== undefined) {
       // {font:x}text{/font}
-      segments.push({ text: match[11], font: match[10] });
+      segments.push({ text: match[13], font: match[12] });
     }
 
     lastIndex = match.index + match[0].length;
@@ -106,7 +110,7 @@ function parseRichText(input: string): RichSegment[] {
 
 export function RichTextRenderer({ content }: { content: string }) {
   // Check if content has any formatting markers
-  const hasFormatting = /(\*\*|_{1,2}|{color:|{glow|{font:)/.test(content);
+  const hasFormatting = /(\*\*|_{1,2}|{color:|{glow|{font:|{fx:)/.test(content);
 
   if (!hasFormatting) {
     return <>{content}</>;
@@ -130,6 +134,27 @@ export function RichTextRenderer({ content }: { content: string }) {
           classes.push("animate-pulse");
           styles.textShadow = glowDef?.shadow || "0 0 8px hsl(var(--primary) / 0.6), 0 0 16px hsl(var(--primary) / 0.3)";
           styles.color = glowDef?.color || "hsl(var(--primary))";
+        }
+        if (seg.fx) {
+          switch (seg.fx) {
+            case "sparkle":
+              styles.color = "#fbbf24";
+              styles.animation = "sparkle-text 2s ease-in-out infinite";
+              break;
+            case "rainbow":
+              styles.animation = "rainbow-shift 3s linear infinite";
+              break;
+            case "neon":
+              styles.color = "#06b6d4";
+              styles.animation = "neon-flicker 3s ease-in-out infinite";
+              break;
+            case "gradient":
+              styles.background = "linear-gradient(90deg, #3b82f6, #a855f7, #ec4899)";
+              styles.WebkitBackgroundClip = "text";
+              styles.WebkitTextFillColor = "transparent";
+              (styles as any).backgroundClip = "text";
+              break;
+          }
         }
 
         if (classes.length === 0 && Object.keys(styles).length === 0) {
