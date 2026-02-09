@@ -77,7 +77,7 @@ export function PostCard({ post }: { post: InstaCenaPost }) {
         <div className="flex items-start gap-3 mb-3">
           {post.is_system_post ? (
             <div className="h-10 w-10 rounded-full overflow-hidden shrink-0 border border-primary/20">
-              <img src="/logo-hydro.png" alt="Sistema" className="h-full w-full object-cover" />
+              <img src="/logo-sucena-system.jpg" alt="Sistema" className="h-full w-full object-cover" />
             </div>
           ) : (
             <Avatar className="h-10 w-10">
