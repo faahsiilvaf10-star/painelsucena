@@ -106,48 +106,36 @@ export function AnnouncementModal() {
         )}
         hideCloseButton
       >
-        {/* Custom styled container matching sidebar */}
+        {/* Custom styled container - Windows 11 style with neon glow */}
         <div className="relative rounded-xl overflow-hidden announcement-modal-container">
-          {/* Gold glow border effect matching sidebar accent */}
-          <div className="absolute inset-0 rounded-xl announcement-glow-border" />
+          {/* White neon glow behind black border */}
+          <div 
+            className="absolute -inset-1 rounded-xl"
+            style={{
+              background: 'transparent',
+              boxShadow: '0 0 15px 3px rgba(255, 255, 255, 0.3), 0 0 30px 6px rgba(255, 255, 255, 0.15), 0 0 60px 12px rgba(255, 255, 255, 0.05)',
+            }}
+          />
           
-          {/* Inner content with sidebar-style gradient background */}
-          <div className="relative m-[3px] rounded-lg overflow-hidden">
-            {/* Main gradient background - matching sidebar exactly */}
+          {/* Black border - Windows 11 style */}
+          <div 
+            className="absolute inset-0 rounded-xl"
+            style={{
+              border: '2px solid hsl(0, 0%, 10%)',
+              boxShadow: 'inset 0 0 0 1px rgba(255, 255, 255, 0.08)',
+            }}
+          />
+          
+          {/* Inner content with dark background */}
+          <div className="relative m-[2px] rounded-lg overflow-hidden">
+            {/* Main dark background */}
             <div 
               className="absolute inset-0"
               style={{
-                background: `radial-gradient(
-                  ellipse 80% 60% at 50% 50%,
-                  hsl(220, 10%, 25%) 0%,
-                  hsl(220, 12%, 18%) 25%,
-                  hsl(220, 15%, 12%) 50%,
-                  hsl(220, 18%, 6%) 75%,
-                  hsl(0, 0%, 0%) 100%
-                )`
-              }}
-            />
-            
-            {/* Subtle inner glow for depth */}
-            <div 
-              className="absolute inset-0"
-              style={{
-                background: `radial-gradient(
-                  circle at 50% 45%,
-                  rgba(100, 110, 130, 0.15) 0%,
-                  transparent 45%
-                )`
-              }}
-            />
-            
-            {/* Vignette effect on edges */}
-            <div 
-              className="absolute inset-0"
-              style={{
-                background: `radial-gradient(
-                  ellipse at center,
-                  transparent 40%,
-                  rgba(0, 0, 0, 0.5) 100%
+                background: `linear-gradient(
+                  180deg,
+                  hsl(220, 15%, 10%) 0%,
+                  hsl(220, 18%, 6%) 100%
                 )`
               }}
             />
