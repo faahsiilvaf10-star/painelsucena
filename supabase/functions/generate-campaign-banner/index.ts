@@ -25,7 +25,7 @@ serve(async (req) => {
   }
 
   try {
-    const { monthData, userId } = await req.json() as { monthData: MonthCampaign; userId: string };
+    const { monthData, userId, logoUrl } = await req.json() as { monthData: MonthCampaign; userId: string; logoUrl?: string };
 
     if (!monthData || !userId) {
       return new Response(JSON.stringify({ error: "Missing monthData or userId" }), {
@@ -43,22 +43,44 @@ serve(async (req) => {
     const supabaseServiceKey = Deno.env.get("SUPABASE_SERVICE_ROLE_KEY")!;
     const supabase = createClient(supabaseUrl, supabaseServiceKey);
 
-    console.log(`Generating campaign banner for ${monthData.monthName}...`);
+    // Fetch company logo URL from site_settings if not provided
+    let companyLogoUrl = logoUrl;
+    if (!companyLogoUrl) {
+      const { data: siteSettings } = await supabase
+        .from("site_settings")
+        .select("logo_url")
+        .limit(1)
+        .single();
+      companyLogoUrl = siteSettings?.logo_url || null;
+    }
+
+    console.log(`Generating campaign banner for ${monthData.monthName}... Logo: ${companyLogoUrl}`);
 
     // Build prompt for AI image generation
-    const campaignNames = monthData.campaigns.map(c => c.name).join(", ");
-    const campaignColors = monthData.campaigns.map(c => c.colorName).join(", ");
-    const campaignDescriptions = monthData.campaigns.map(c => `${c.name}: ${c.description}`).join(". ");
+    const campaignNames = monthData.campaigns.map((c: Campaign) => c.name).join(", ");
+    const campaignColors = monthData.campaigns.map((c: Campaign) => c.colorName).join(", ");
+    const campaignDescriptions = monthData.campaigns.map((c: Campaign) => `${c.name}: ${c.description}`).join(". ");
 
     const prompt = `Create a beautiful, professional health awareness campaign banner for "${monthData.monthName}" in Brazil. 
 The campaigns are: ${campaignNames}. The theme colors are: ${campaignColors}.
 ${campaignDescriptions}.
-Design a modern, clean banner with a Windows 11 Fluent Design aesthetic: rounded corners, frosted glass effects, soft gradients using the campaign colors (${monthData.campaigns.map(c => c.color).join(", ")}). 
+Design a modern, clean banner with a Windows 11 Fluent Design aesthetic: rounded corners, frosted glass effects, soft gradients using the campaign colors (${monthData.campaigns.map((c: Campaign) => c.color).join(", ")}). 
 Include symbolic ribbons in the campaign colors, gentle bokeh lights, and a professional medical/health feel. 
 The banner should be wide (16:9 aspect ratio), elegant and inspiring. 
-Text should read "${monthData.monthName}" prominently. Ultra high resolution.`;
+Text should read "${monthData.monthName}" prominently.
+IMPORTANT: Include the company logo "SUCENA" prominently in the top-left or top-right corner of the banner. The logo text should be clean and professional.
+Ultra high resolution.`;
 
     console.log("Calling AI to generate banner image...");
+
+    // Build messages with optional logo image
+    const messageContent: any[] = [{ type: "text", text: prompt }];
+    if (companyLogoUrl) {
+      messageContent.push({
+        type: "image_url",
+        image_url: { url: companyLogoUrl },
+      });
+    }
 
     const aiResponse = await fetch("https://ai.gateway.lovable.dev/v1/chat/completions", {
       method: "POST",
@@ -71,7 +93,7 @@ Text should read "${monthData.monthName}" prominently. Ultra high resolution.`;
         messages: [
           {
             role: "user",
-            content: prompt,
+            content: messageContent,
           },
         ],
         modalities: ["image", "text"],
