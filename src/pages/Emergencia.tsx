@@ -5,22 +5,22 @@ import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 const Emergencia = () => {
   return (
     <Layout>
-      <div className="container mx-auto px-6 py-8">
+      <div className="container mx-auto px-3 sm:px-6 py-4 sm:py-8">
         {/* Header */}
-        <div className="mb-8 animate-fade-in">
-          <div className="flex items-center gap-4 mb-2">
-            <div className="w-12 h-12 rounded-lg bg-destructive/10 flex items-center justify-center">
-              <Phone className="w-6 h-6 text-destructive" />
+        <div className="mb-6 sm:mb-8 animate-fade-in">
+          <div className="flex items-center gap-3 sm:gap-4 mb-2">
+            <div className="w-10 h-10 sm:w-12 sm:h-12 rounded-lg bg-destructive/10 flex items-center justify-center">
+              <Phone className="w-5 h-5 sm:w-6 sm:h-6 text-destructive" />
             </div>
             <div>
-              <h1 className="text-3xl font-bold">Contatos de Emergência</h1>
-              <p className="text-muted-foreground">Procedimentos e comunicação em caso de acidentes.</p>
+              <h1 className="text-xl sm:text-3xl font-bold">Contatos de Emergência</h1>
+              <p className="text-xs sm:text-sm text-muted-foreground">Procedimentos e comunicação em caso de acidentes.</p>
             </div>
           </div>
         </div>
 
         {/* Contact Cards Grid */}
-        <div className="grid grid-cols-1 lg:grid-cols-2 gap-6 mb-8">
+        <div className="grid grid-cols-1 lg:grid-cols-2 gap-4 sm:gap-6 mb-6 sm:mb-8">
           {/* Comunicação Interna */}
           <Card className="border-l-4 border-l-destructive animate-slide-up" style={{ animationDelay: "0.1s" }}>
             <CardHeader className="pb-2">
@@ -95,7 +95,7 @@ const Emergencia = () => {
         </div>
 
         {/* Tipos de Ocorrência */}
-        <Card className="mb-8 animate-slide-up" style={{ animationDelay: "0.3s" }}>
+        <Card className="mb-6 sm:mb-8 animate-slide-up" style={{ animationDelay: "0.3s" }}>
           <CardHeader className="pb-4">
             <CardTitle className="flex items-center gap-2">
               <Info className="w-5 h-5" />
@@ -145,21 +145,21 @@ const Emergencia = () => {
 
         {/* Ponto de Encontro */}
         <div 
-          className="relative overflow-hidden rounded-xl bg-gradient-to-r from-green-600 to-green-700 p-6 text-white animate-slide-up"
+          className="relative overflow-hidden rounded-xl bg-gradient-to-r from-green-600 to-green-700 p-4 sm:p-6 text-white animate-slide-up"
           style={{ animationDelay: "0.4s" }}
         >
-          <div className="flex items-center justify-between">
-            <div className="flex items-center gap-4">
-              <div className="w-14 h-14 rounded-full bg-white/20 flex items-center justify-center">
-                <MapPin className="w-8 h-8" />
+          <div className="flex items-center justify-between gap-3">
+            <div className="flex items-center gap-3 sm:gap-4">
+              <div className="w-10 h-10 sm:w-14 sm:h-14 rounded-full bg-white/20 flex items-center justify-center shrink-0">
+                <MapPin className="w-5 h-5 sm:w-8 sm:h-8" />
               </div>
               <div>
-                <h3 className="text-2xl font-bold uppercase tracking-wide">Ponto de Encontro</h3>
-                <p className="text-green-100">Dirija-se a este local em caso de evacuação.</p>
+                <h3 className="text-lg sm:text-2xl font-bold uppercase tracking-wide">Ponto de Encontro</h3>
+                <p className="text-green-100 text-xs sm:text-base">Dirija-se a este local em caso de evacuação.</p>
               </div>
             </div>
-            <div className="w-20 h-20 rounded-full bg-white flex items-center justify-center shadow-lg">
-              <span className="text-4xl font-bold text-green-600">33</span>
+            <div className="w-14 h-14 sm:w-20 sm:h-20 rounded-full bg-white flex items-center justify-center shadow-lg shrink-0">
+              <span className="text-2xl sm:text-4xl font-bold text-green-600">33</span>
             </div>
           </div>
         </div>

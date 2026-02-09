@@ -187,11 +187,11 @@ const HoraExtra = () => {
 
   return (
     <Layout>
-      <div className="space-y-6">
-        <div className="flex items-center justify-between">
+      <div className="space-y-4 sm:space-y-6 px-3 sm:px-4 py-4 sm:py-6">
+        <div className="flex items-center justify-between gap-2">
           <div>
-            <h1 className="text-2xl font-bold text-foreground">Hora Extra</h1>
-            <p className="text-muted-foreground">
+            <h1 className="text-xl sm:text-2xl font-bold text-foreground">Hora Extra</h1>
+            <p className="text-xs sm:text-sm text-muted-foreground">
               Registre suas horas extras trabalhadas
             </p>
           </div>

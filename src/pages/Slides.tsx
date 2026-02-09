@@ -49,13 +49,13 @@ const SlidesPage = () => {
 
   return (
     <Layout>
-      <div className="container mx-auto px-4 md:px-6 py-8 max-w-5xl">
+      <div className="container mx-auto px-3 sm:px-4 md:px-6 py-4 sm:py-8 max-w-5xl">
         <div className="mb-6">
-          <h1 className="text-3xl font-bold flex items-center gap-3">
-            <Presentation className="w-8 h-8 text-primary" />
+          <h1 className="text-xl sm:text-3xl font-bold flex items-center gap-2 sm:gap-3">
+            <Presentation className="w-6 h-6 sm:w-8 sm:h-8 text-primary" />
             Slides IA
           </h1>
-          <p className="text-muted-foreground mt-1">
+          <p className="text-xs sm:text-sm text-muted-foreground mt-1">
             Gere apresentações completas com inteligência artificial.
           </p>
         </div>

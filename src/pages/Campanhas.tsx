@@ -99,27 +99,27 @@ const Campanhas = () => {
 
   return (
     <Layout>
-      <div className="container mx-auto px-6 py-8">
-        <div className="mb-8 animate-fade-in">
-          <div className="flex items-center gap-3 mb-4">
-            <div className="p-3 rounded-full bg-primary/10">
-              <Heart className="h-8 w-8 text-primary" />
+      <div className="container mx-auto px-3 sm:px-6 py-4 sm:py-8">
+        <div className="mb-6 sm:mb-8 animate-fade-in">
+          <div className="flex items-center gap-2 sm:gap-3 mb-3 sm:mb-4">
+            <div className="p-2 sm:p-3 rounded-full bg-primary/10">
+              <Heart className="h-6 w-6 sm:h-8 sm:w-8 text-primary" />
             </div>
             <div>
-              <h1 className="text-3xl md:text-4xl font-bold">
+              <h1 className="text-xl sm:text-3xl md:text-4xl font-bold">
                 Campanhas de <span className="text-gradient">Conscientização</span>
               </h1>
-              <p className="text-muted-foreground mt-1">
+              <p className="text-xs sm:text-sm text-muted-foreground mt-1">
                 Cores e causas que importam durante todo o ano
               </p>
             </div>
           </div>
 
-          <Card className="bg-gradient-to-r from-primary/10 via-secondary/10 to-accent/10 border-none mt-6">
-            <CardContent className="py-4">
-              <div className="flex items-start gap-3">
-                <Calendar className="h-5 w-5 text-primary mt-0.5 flex-shrink-0" />
-                <p className="text-sm text-muted-foreground">
+          <Card className="bg-gradient-to-r from-primary/10 via-secondary/10 to-accent/10 border-none mt-4 sm:mt-6">
+            <CardContent className="py-3 sm:py-4">
+              <div className="flex items-start gap-2 sm:gap-3">
+                <Calendar className="h-4 w-4 sm:h-5 sm:w-5 text-primary mt-0.5 flex-shrink-0" />
+                <p className="text-xs sm:text-sm text-muted-foreground">
                   Durante o ano, diversas campanhas de conscientização utilizam cores específicas para
                   alertar sobre doenças, estimular a prevenção e promover o cuidado com a saúde.
                   Conheça todas as causas, mês a mês.
@@ -129,7 +129,7 @@ const Campanhas = () => {
           </Card>
         </div>
 
-        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4 sm:gap-6">
           {campaignData.map((monthData, index) => (
             <div
               key={monthData.month}

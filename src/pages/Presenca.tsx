@@ -60,14 +60,14 @@ const Presenca = () => {
   };
   if (isLoading) {
     return <Layout>
-        <div className="container mx-auto px-6 py-8 flex items-center justify-center min-h-[60vh]">
+        <div className="container mx-auto px-3 sm:px-6 py-4 sm:py-8 flex items-center justify-center min-h-[60vh]">
           <Loader2 className="w-8 h-8 animate-spin text-primary" />
         </div>
       </Layout>;
   }
   if (error) {
     return <Layout>
-        <div className="container mx-auto px-6 py-8">
+        <div className="container mx-auto px-3 sm:px-6 py-4 sm:py-8">
           <div className="text-center py-12">
             <p className="text-destructive text-lg">Erro ao carregar dados</p>
           </div>
