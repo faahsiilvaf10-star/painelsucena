@@ -1,7 +1,7 @@
-import { useState, useRef } from "react";
+import { useState, useRef, useMemo } from "react";
 import { format } from "date-fns";
 import { ptBR } from "date-fns/locale";
-import { Plus, Lock, Unlock, Trash2, CheckCircle2, Circle, ClipboardCheck, Camera, ImageIcon, X, CalendarIcon } from "lucide-react";
+import { Plus, Lock, Unlock, Trash2, CheckCircle2, Circle, ClipboardCheck, Camera, ImageIcon, X, CalendarIcon, Filter, History } from "lucide-react";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -271,6 +271,19 @@ export default function InspecaoCanteiro() {
 
   const [date, setDate] = useState<Date>(new Date());
   const [taskInputs, setTaskInputs] = useState<string[]>([""]);
+  const [filterDate, setFilterDate] = useState<Date | undefined>(undefined);
+  const [showHistory, setShowHistory] = useState(false);
+
+  // Latest inspection (most recent by date)
+  const latestInspection = inspections.length > 0 ? inspections[0] : null;
+
+  // Filtered history (excludes latest, applies date filter)
+  const filteredHistory = useMemo(() => {
+    const history = inspections.slice(1);
+    if (!filterDate) return history;
+    const filterStr = format(filterDate, "yyyy-MM-dd");
+    return history.filter((i) => i.inspection_date === filterStr);
+  }, [inspections, filterDate]);
 
   const addTaskInput = () => setTaskInputs((prev) => [...prev, ""]);
 
@@ -383,16 +396,82 @@ export default function InspecaoCanteiro() {
           </CardContent>
         </Card>
 
-        {/* List of inspections */}
+        {/* Latest inspection */}
         {isLoading ? (
           <p className="text-center text-muted-foreground">Carregando...</p>
-        ) : inspections.length === 0 ? (
-          <p className="text-center text-muted-foreground py-8">Nenhuma inspeção registrada.</p>
+        ) : latestInspection ? (
+          <div className="space-y-3">
+            <div className="flex items-center gap-2">
+              <Badge variant="outline" className="gap-1 text-primary border-primary/30">
+                <History className="h-3 w-3" />
+                Última Inspeção
+              </Badge>
+            </div>
+            <InspectionDetail inspection={latestInspection} />
+          </div>
         ) : (
-          <div className="space-y-4">
-            {inspections.map((insp) => (
-              <InspectionDetail key={insp.id} inspection={insp} />
-            ))}
+          <p className="text-center text-muted-foreground py-8">Nenhuma inspeção registrada.</p>
+        )}
+
+        {/* History with filter */}
+        {inspections.length > 1 && (
+          <div className="space-y-3">
+            <div className="flex items-center justify-between flex-wrap gap-2">
+              <Button
+                variant="outline"
+                size="sm"
+                onClick={() => setShowHistory(!showHistory)}
+                className="gap-1.5"
+              >
+                <History className="h-4 w-4" />
+                {showHistory ? "Ocultar Histórico" : "Ver Histórico"}
+                <Badge variant="secondary" className="ml-1 text-xs">
+                  {inspections.length - 1}
+                </Badge>
+              </Button>
+
+              {showHistory && (
+                <div className="flex items-center gap-2">
+                  <Filter className="h-4 w-4 text-muted-foreground" />
+                  <Popover>
+                    <PopoverTrigger asChild>
+                      <Button variant="outline" size="sm" className="h-8 gap-1.5">
+                        <CalendarIcon className="h-3.5 w-3.5" />
+                        {filterDate ? format(filterDate, "dd/MM/yyyy") : "Filtrar por data"}
+                      </Button>
+                    </PopoverTrigger>
+                    <PopoverContent className="w-auto p-0" align="end">
+                      <Calendar
+                        mode="single"
+                        selected={filterDate}
+                        onSelect={setFilterDate}
+                        initialFocus
+                        className="p-3 pointer-events-auto"
+                      />
+                    </PopoverContent>
+                  </Popover>
+                  {filterDate && (
+                    <Button variant="ghost" size="sm" className="h-8 px-2" onClick={() => setFilterDate(undefined)}>
+                      <X className="h-3.5 w-3.5" />
+                    </Button>
+                  )}
+                </div>
+              )}
+            </div>
+
+            {showHistory && (
+              <div className="space-y-4">
+                {filteredHistory.length === 0 ? (
+                  <p className="text-center text-sm text-muted-foreground py-4">
+                    {filterDate ? "Nenhuma inspeção encontrada nesta data." : "Nenhum histórico disponível."}
+                  </p>
+                ) : (
+                  filteredHistory.map((insp) => (
+                    <InspectionDetail key={insp.id} inspection={insp} />
+                  ))
+                )}
+              </div>
+            )}
           </div>
         )}
       </div>
