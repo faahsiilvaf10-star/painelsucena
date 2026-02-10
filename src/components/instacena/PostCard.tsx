@@ -9,6 +9,7 @@ import { Button } from "@/components/ui/button";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover";
 import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuTrigger } from "@/components/ui/dropdown-menu";
+import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/components/ui/dialog";
 import { useAuth } from "@/hooks/useAuth";
 import { VerifiedBadge } from "@/components/VerifiedBadge";
 import { useIsAdmin } from "@/hooks/useUserRole";
@@ -42,6 +43,7 @@ export function PostCard({ post }: { post: InstaCenaPost }) {
 
   const [showComments, setShowComments] = useState(false);
   const [reactionsOpen, setReactionsOpen] = useState(false);
+  const [showReactionsDialog, setShowReactionsDialog] = useState(false);
 
   const myReaction = reactions.find((r) => r.user_id === user?.id);
   const isOwner = post.user_id === user?.id;
@@ -147,9 +149,13 @@ export function PostCard({ post }: { post: InstaCenaPost }) {
           </div>
         )}
 
-        {/* Reaction summary */}
+        {/* Reaction summary - clickable */}
         {Object.keys(reactionGroups).length > 0 && (
-          <div className="flex items-center gap-1 mb-2 text-xs text-muted-foreground">
+          <button
+            type="button"
+            onClick={() => setShowReactionsDialog(true)}
+            className="flex items-center gap-1 mb-2 text-xs text-muted-foreground hover:underline cursor-pointer"
+          >
             {Object.entries(reactionGroups).map(([type, count]) => {
               const r = REACTIONS.find((rx) => rx.type === type);
               return (
@@ -158,8 +164,28 @@ export function PostCard({ post }: { post: InstaCenaPost }) {
                 </span>
               );
             })}
-          </div>
+          </button>
         )}
+
+        {/* Reactions detail dialog */}
+        <Dialog open={showReactionsDialog} onOpenChange={setShowReactionsDialog}>
+          <DialogContent className="max-w-sm">
+            <DialogHeader>
+              <DialogTitle className="text-base">Reações</DialogTitle>
+            </DialogHeader>
+            <div className="space-y-2 max-h-60 overflow-y-auto">
+              {reactions.map((r) => {
+                const reactionDef = REACTIONS.find((rx) => rx.type === r.reaction_type);
+                return (
+                  <div key={r.id} className="flex items-center justify-between py-1.5 px-1">
+                    <span className="text-sm truncate">{r.user_name}</span>
+                    <span className="text-lg" title={reactionDef?.label}>{reactionDef?.emoji || "👍"}</span>
+                  </div>
+                );
+              })}
+            </div>
+          </DialogContent>
+        </Dialog>
 
         {/* Action bar */}
         <div className="flex items-center border-t border-b border-border/50 py-1 -mx-4 px-4 gap-1">
