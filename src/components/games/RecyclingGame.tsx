@@ -70,7 +70,7 @@ function shuffleArray<T>(array: T[]): T[] {
 }
 
 const ROUND_SIZE = 10;
-const TIME_PER_ITEM = 8;
+const TIME_PER_ITEM = 60;
 
 export function RecyclingGame({ onBack }: { onBack: () => void }) {
   const [gameState, setGameState] = useState<"idle" | "playing" | "finished">("idle");

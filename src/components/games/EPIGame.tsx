@@ -218,7 +218,7 @@ function shuffleArray<T>(array: T[]): T[] {
 }
 
 const ROUND_SIZE = 10;
-const TIME_PER_QUESTION = 15;
+const TIME_PER_QUESTION = 60;
 
 export function EPIGame({ onBack }: { onBack: () => void }) {
   const [gameState, setGameState] = useState<"idle" | "playing" | "finished">("idle");
