@@ -17,6 +17,7 @@ import { useInstaCenaComments, useInstaCenaReactions, useToggleReaction, useDele
 import { toast } from "sonner";
 import { MentionText } from "./MentionText";
 import { CommentSection } from "./CommentSection";
+import { PhotoViewer } from "@/components/orders/PhotoViewer";
 
 const REACTIONS = [
   { type: "like", emoji: "👍", label: "Curtir", icon: ThumbsUp },
@@ -44,6 +45,8 @@ export function PostCard({ post }: { post: InstaCenaPost }) {
   const [showComments, setShowComments] = useState(false);
   const [reactionsOpen, setReactionsOpen] = useState(false);
   const [showReactionsDialog, setShowReactionsDialog] = useState(false);
+  const [photoViewerOpen, setPhotoViewerOpen] = useState(false);
+  const [photoViewerIndex, setPhotoViewerIndex] = useState(0);
 
   const myReaction = reactions.find((r) => r.user_id === user?.id);
   const isOwner = post.user_id === user?.id;
@@ -138,15 +141,25 @@ export function PostCard({ post }: { post: InstaCenaPost }) {
         {/* Images & Videos */}
         {post.image_urls && post.image_urls.length > 0 && (
           <div className={`grid gap-2 mb-3 ${post.image_urls.length === 1 ? "grid-cols-1" : "grid-cols-2"}`}>
-            {post.image_urls.map((url, i) => {
+          {post.image_urls.map((url, i) => {
               const isVideo = /\.(mp4|mov|webm|avi|mkv)(\?|$)/i.test(url);
               return isVideo ? (
                 <video key={i} src={url} controls autoPlay loop muted playsInline controlsList="nodownload nofullscreen noremoteplayback" disablePictureInPicture onContextMenu={(e) => e.preventDefault()} className="rounded-lg w-full max-h-[500px] object-contain bg-black/5" />
               ) : (
-                <img key={i} src={url} alt="" onContextMenu={(e) => e.preventDefault()} className="rounded-lg w-full object-cover max-h-80 select-none" draggable={false} />
+                <img key={i} src={url} alt="" onContextMenu={(e) => e.preventDefault()} onClick={() => { setPhotoViewerIndex(i); setPhotoViewerOpen(true); }} className="rounded-lg w-full object-cover max-h-80 select-none cursor-pointer hover:opacity-90 transition-opacity" draggable={false} />
               );
             })}
           </div>
+        )}
+
+        {/* Photo viewer */}
+        {post.image_urls && post.image_urls.length > 0 && (
+          <PhotoViewer
+            photos={post.image_urls.filter(url => !/\.(mp4|mov|webm|avi|mkv)(\?|$)/i.test(url))}
+            initialIndex={photoViewerIndex}
+            open={photoViewerOpen}
+            onOpenChange={setPhotoViewerOpen}
+          />
         )}
 
         {/* Reaction summary - clickable */}
