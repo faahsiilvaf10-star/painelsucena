@@ -190,12 +190,12 @@ function DominoTileVisual({ tile, size = "md", onClick, disabled, highlight, ver
 
   const tileStyle: React.CSSProperties = {
     background: highlight
-      ? "linear-gradient(135deg, #fffdf5 0%, #fff8e1 100%)"
-      : "linear-gradient(135deg, #fefcf4 0%, #f5f0e0 100%)",
-    border: highlight ? "2px solid #c8a44e" : "1.5px solid #d4c8a0",
+      ? "linear-gradient(135deg, #fffff8 0%, #fff8e1 100%)"
+      : "linear-gradient(135deg, #ffffff 0%, #f8f4e8 100%)",
+    border: highlight ? "2px solid #c8a44e" : "1.5px solid #c4b888",
     boxShadow: highlight
-      ? "0 4px 12px rgba(180, 140, 40, 0.35), inset 0 1px 0 rgba(255,255,255,0.8)"
-      : "0 2px 4px rgba(0,0,0,0.15), inset 0 1px 0 rgba(255,255,255,0.6)",
+      ? "0 4px 12px rgba(180, 140, 40, 0.35), inset 0 1px 0 rgba(255,255,255,0.9)"
+      : "0 3px 8px rgba(0,0,0,0.25), inset 0 1px 0 rgba(255,255,255,0.8)",
   };
 
   if (vertical) {
@@ -206,7 +206,7 @@ function DominoTileVisual({ tile, size = "md", onClick, disabled, highlight, ver
         whileTap={!disabled ? { scale: 0.93 } : {}}
         whileHover={!disabled ? { y: -8, scale: 1.04 } : {}}
         className={`rounded-lg flex flex-col items-center justify-center transition-all
-          ${disabled && !highlight ? "opacity-50 cursor-not-allowed" : "cursor-pointer"}
+          ${disabled && !highlight ? "cursor-default" : "cursor-pointer"}
         `}
         style={{ width: dims.h + 6, height: dims.w + 6, ...tileStyle }}
       >
@@ -228,7 +228,7 @@ function DominoTileVisual({ tile, size = "md", onClick, disabled, highlight, ver
       whileTap={!disabled ? { scale: 0.93 } : {}}
       whileHover={!disabled ? { y: -4, scale: 1.04 } : {}}
       className={`rounded-lg flex items-center justify-center transition-all
-        ${disabled && !highlight ? "opacity-70 cursor-not-allowed" : "cursor-pointer"}
+        ${disabled && !highlight ? "cursor-default" : "cursor-pointer"}
       `}
       style={{ width: dims.w + 4, height: dims.h + 6, ...tileStyle }}
     >
