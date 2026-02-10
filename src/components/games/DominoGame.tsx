@@ -149,11 +149,11 @@ const DOT_POSITIONS: Record<number, [number, number][]> = {
 
 function DominoFace({ value, size }: { value: number; size: number }) {
   const dots = DOT_POSITIONS[value] || [];
-  const dotR = Math.max(6, size * 0.14);
+  const dotR = Math.max(9, size * 0.2);
   return (
     <svg width={size} height={size} viewBox="0 0 100 100" className="block">
       {dots.map(([cx, cy], i) => (
-        <circle key={i} cx={cx} cy={cy} r={dotR} fill="#1a1a1a" />
+        <circle key={i} cx={cx} cy={cy} r={dotR} fill="#000000" />
       ))}
     </svg>
   );
