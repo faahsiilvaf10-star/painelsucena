@@ -7,6 +7,7 @@ import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import { HYDRO_HOLIDAYS_2026, getHolidayForDate, type HolidayInfo } from "@/data/hydroCalendar2026";
 import logoHydro from "@/assets/logo-hydro.png";
+import Layout from "@/components/layout/Layout";
 
 const MONTHS_2026 = Array.from({ length: 12 }, (_, i) => new Date(2026, i, 1));
 
