@@ -1,7 +1,7 @@
 import { useState, useRef, useMemo, useCallback } from "react";
 import { format } from "date-fns";
 import { ptBR } from "date-fns/locale";
-import { Plus, Lock, Unlock, Trash2, CheckCircle2, Circle, ClipboardCheck, Camera, X, CalendarIcon, Filter, History, FileDown, MessageSquare } from "lucide-react";
+import { Plus, Lock, Unlock, Trash2, CheckCircle2, Circle, ClipboardCheck, Camera, X, CalendarIcon, Filter, History, FileDown, MessageSquare, Eye, ChevronLeft, ChevronRight } from "lucide-react";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -378,13 +378,204 @@ async function generateInspectionPptx(inspectionDate: string, tasks: SiteInspect
   await pptx.writeFile({ fileName: `Inspecao_Canteiro_${inspectionDate.replace(/\//g, "-")}.pptx` });
 }
 
+interface SlideData {
+  type: "title" | "summary" | "detail" | "closing";
+  title?: string;
+  subtitle?: string;
+  caption?: string;
+  tasks?: SiteInspectionTask[];
+  task?: SiteInspectionTask;
+  taskIndex?: number;
+  totalTasks?: number;
+}
+
+function buildSlides(inspectionDate: string, tasks: SiteInspectionTask[]): SlideData[] {
+  const slides: SlideData[] = [];
+  slides.push({
+    type: "title",
+    title: "Inspeção de Canteiro",
+    subtitle: inspectionDate,
+    caption: `${tasks.length} pontos de melhoria • 100% concluído`,
+  });
+  slides.push({ type: "summary", tasks });
+  tasks.forEach((task, idx) => {
+    if (task.before_photo_url || task.after_photo_url) {
+      slides.push({ type: "detail", task, taskIndex: idx });
+    }
+  });
+  slides.push({ type: "closing", totalTasks: tasks.length });
+  return slides;
+}
+
+function InspectionSlidePreview({ slides, currentSlide }: { slides: SlideData[]; currentSlide: number }) {
+  const slide = slides[currentSlide];
+  if (!slide) return null;
+
+  if (slide.type === "title") {
+    return (
+      <div className="aspect-video bg-slate-900 rounded-xl flex flex-col items-center justify-center p-8 text-white">
+        <h2 className="text-2xl md:text-3xl font-bold">{slide.title}</h2>
+        <p className="text-lg text-slate-400 mt-3">{slide.subtitle}</p>
+        <p className="text-sm text-green-400 mt-2">{slide.caption}</p>
+      </div>
+    );
+  }
+
+  if (slide.type === "summary") {
+    return (
+      <div className="aspect-video bg-white dark:bg-slate-50 rounded-xl p-4 md:p-6 overflow-auto text-slate-900">
+        <h3 className="text-lg font-bold mb-3">Resumo da Inspeção</h3>
+        <table className="w-full text-xs md:text-sm border-collapse">
+          <thead>
+            <tr className="bg-slate-900 text-white">
+              <th className="p-2 text-center w-8">#</th>
+              <th className="p-2 text-left">Ponto de Melhoria</th>
+              <th className="p-2 text-left">Observação</th>
+              <th className="p-2 text-center w-24">Status</th>
+            </tr>
+          </thead>
+          <tbody>
+            {slide.tasks?.map((task, idx) => (
+              <tr key={task.id} className="border-b border-slate-200">
+                <td className="p-2 text-center">{idx + 1}</td>
+                <td className="p-2">{task.description}</td>
+                <td className="p-2">
+                  {task.observation ? (
+                    <span style={{ background: "linear-gradient(to bottom, transparent 40%, rgba(250,204,21,0.45) 40%)" }} className="px-0.5">
+                      {task.observation}
+                    </span>
+                  ) : (
+                    <span className="text-slate-400">-</span>
+                  )}
+                </td>
+                <td className="p-2 text-center">{task.is_completed ? "✅" : "⏳"}</td>
+              </tr>
+            ))}
+          </tbody>
+        </table>
+      </div>
+    );
+  }
+
+  if (slide.type === "detail" && slide.task) {
+    const task = slide.task;
+    return (
+      <div className="aspect-video bg-white dark:bg-slate-50 rounded-xl p-4 md:p-6 overflow-auto text-slate-900">
+        <h3 className="text-base md:text-lg font-bold">{(slide.taskIndex ?? 0) + 1}. {task.description}</h3>
+        {task.observation && (
+          <p className="text-sm italic mt-1" style={{ background: "linear-gradient(to bottom, transparent 40%, rgba(250,204,21,0.45) 40%)" }}>
+            {task.observation}
+          </p>
+        )}
+        <div className="grid grid-cols-2 gap-4 mt-4">
+          <div className="space-y-1.5">
+            <p className="text-sm font-bold text-red-600 text-center">❌ Antes</p>
+            {task.before_photo_url ? (
+              <img src={task.before_photo_url} alt="Antes" className="w-full h-40 md:h-56 object-contain rounded-lg border border-slate-200" />
+            ) : (
+              <div className="w-full h-40 md:h-56 rounded-lg border-2 border-dashed border-slate-200 flex items-center justify-center text-slate-400 text-xs">Sem foto</div>
+            )}
+          </div>
+          <div className="space-y-1.5">
+            <p className="text-sm font-bold text-green-600 text-center">✅ Depois</p>
+            {task.after_photo_url ? (
+              <img src={task.after_photo_url} alt="Depois" className="w-full h-40 md:h-56 object-contain rounded-lg border border-slate-200" />
+            ) : (
+              <div className="w-full h-40 md:h-56 rounded-lg border-2 border-dashed border-slate-200 flex items-center justify-center text-slate-400 text-xs">Sem foto</div>
+            )}
+          </div>
+        </div>
+      </div>
+    );
+  }
+
+  // closing
+  return (
+    <div className="aspect-video bg-slate-900 rounded-xl flex flex-col items-center justify-center p-8 text-white">
+      <h2 className="text-2xl md:text-3xl font-bold text-green-400">Inspeção Concluída ✅</h2>
+      <p className="text-base text-slate-400 mt-3">Todos os {slide.totalTasks} pontos foram resolvidos.</p>
+    </div>
+  );
+}
+
+function InspectionPresentationDialog({
+  open,
+  onOpenChange,
+  inspectionDate,
+  tasks,
+}: {
+  open: boolean;
+  onOpenChange: (v: boolean) => void;
+  inspectionDate: string;
+  tasks: SiteInspectionTask[];
+}) {
+  const [currentSlide, setCurrentSlide] = useState(0);
+  const [exporting, setExporting] = useState(false);
+  const slides = useMemo(() => buildSlides(inspectionDate, tasks), [inspectionDate, tasks]);
+
+  const handleExport = async () => {
+    setExporting(true);
+    try {
+      await generateInspectionPptx(inspectionDate, tasks);
+      toast.success("PowerPoint gerado!");
+    } catch {
+      toast.error("Erro ao gerar.");
+    } finally {
+      setExporting(false);
+    }
+  };
+
+  return (
+    <Dialog open={open} onOpenChange={onOpenChange}>
+      <DialogContent className="max-w-4xl p-4 md:p-6">
+        <div className="space-y-4">
+          <div className="flex items-center justify-between">
+            <h3 className="font-semibold text-foreground">Apresentação da Inspeção</h3>
+            <Button size="sm" onClick={handleExport} disabled={exporting} className="gap-1.5">
+              <FileDown className="h-4 w-4" />
+              {exporting ? "Gerando..." : "Baixar PowerPoint"}
+            </Button>
+          </div>
+
+          <InspectionSlidePreview slides={slides} currentSlide={currentSlide} />
+
+          {/* Navigation */}
+          <div className="flex items-center justify-between">
+            <Button
+              variant="outline"
+              size="sm"
+              disabled={currentSlide === 0}
+              onClick={() => setCurrentSlide((c) => c - 1)}
+              className="gap-1"
+            >
+              <ChevronLeft className="h-4 w-4" /> Anterior
+            </Button>
+            <span className="text-sm text-muted-foreground">
+              {currentSlide + 1} / {slides.length}
+            </span>
+            <Button
+              variant="outline"
+              size="sm"
+              disabled={currentSlide === slides.length - 1}
+              onClick={() => setCurrentSlide((c) => c + 1)}
+              className="gap-1"
+            >
+              Próximo <ChevronRight className="h-4 w-4" />
+            </Button>
+          </div>
+        </div>
+      </DialogContent>
+    </Dialog>
+  );
+}
+
 function InspectionDetail({ inspection }: { inspection: { id: string; inspection_date: string; is_locked: boolean } }) {
   const { data: tasks = [] } = useSiteInspectionTasks(inspection.id);
   const toggleLock = useToggleLockInspection();
   const toggleTask = useToggleTaskCompletion();
   const deleteInspection = useDeleteSiteInspection();
   const { isAdmin } = useIsAdmin();
-  const [exporting, setExporting] = useState(false);
+  const [showPresentation, setShowPresentation] = useState(false);
 
   const completedCount = tasks.filter((t) => t.is_completed).length;
   const totalCount = tasks.length;
@@ -399,101 +590,99 @@ function InspectionDetail({ inspection }: { inspection: { id: string; inspection
     toggleTask.mutate({ id: taskId, is_completed: !currentState });
   };
 
-  const handleExportPptx = async () => {
-    setExporting(true);
-    try {
-      const dateStr = format(new Date(inspection.inspection_date + "T12:00:00"), "dd/MM/yyyy");
-      await generateInspectionPptx(dateStr, tasks);
-      toast.success("Apresentação gerada com sucesso!");
-    } catch (err) {
-      console.error(err);
-      toast.error("Erro ao gerar apresentação.");
-    } finally {
-      setExporting(false);
-    }
-  };
+  const dateStr = format(new Date(inspection.inspection_date + "T12:00:00"), "dd/MM/yyyy");
 
   return (
-    <Card className="border border-border/40 backdrop-blur-sm bg-card/80">
-      <CardHeader className="pb-3">
-        <div className="flex items-center justify-between flex-wrap gap-2">
-          <div className="flex items-center gap-2">
-            <CardTitle className="text-base">
-              {format(new Date(inspection.inspection_date + "T12:00:00"), "dd 'de' MMMM 'de' yyyy", { locale: ptBR })}
-            </CardTitle>
-            <Badge variant={inspection.is_locked ? "default" : "secondary"}>
-              {inspection.is_locked ? "Bloqueado" : "Aberto"}
-            </Badge>
-            {allCompleted && (
-              <Badge className="bg-green-600 text-white gap-1">
-                <CheckCircle2 className="h-3 w-3" /> 100%
+    <>
+      <Card className="border border-border/40 backdrop-blur-sm bg-card/80">
+        <CardHeader className="pb-3">
+          <div className="flex items-center justify-between flex-wrap gap-2">
+            <div className="flex items-center gap-2">
+              <CardTitle className="text-base">
+                {format(new Date(inspection.inspection_date + "T12:00:00"), "dd 'de' MMMM 'de' yyyy", { locale: ptBR })}
+              </CardTitle>
+              <Badge variant={inspection.is_locked ? "default" : "secondary"}>
+                {inspection.is_locked ? "Bloqueado" : "Aberto"}
               </Badge>
-            )}
-          </div>
-          <div className="flex items-center gap-1">
-            {allCompleted && (
-              <Button
-                size="sm"
-                variant="outline"
-                onClick={handleExportPptx}
-                disabled={exporting}
-                className="h-8 px-2 gap-1 text-green-600 border-green-600/30 hover:bg-green-50 dark:hover:bg-green-950/20"
-              >
-                <FileDown className="h-4 w-4" />
-                <span className="text-xs">{exporting ? "Gerando..." : "PowerPoint"}</span>
-              </Button>
-            )}
-            <Button
-              size="sm"
-              variant="ghost"
-              onClick={() => toggleLock.mutate({ id: inspection.id, is_locked: !inspection.is_locked })}
-              className="h-8 px-2"
-            >
-              {inspection.is_locked ? <Unlock className="h-4 w-4" /> : <Lock className="h-4 w-4" />}
-              <span className="ml-1 text-xs">{inspection.is_locked ? "Desbloquear" : "Bloquear"}</span>
-            </Button>
-            {isAdmin && (
+              {allCompleted && (
+                <Badge className="bg-green-600 text-white gap-1">
+                  <CheckCircle2 className="h-3 w-3" /> 100%
+                </Badge>
+              )}
+            </div>
+            <div className="flex items-center gap-1">
+              {allCompleted && (
+                <Button
+                  size="sm"
+                  variant="outline"
+                  onClick={() => setShowPresentation(true)}
+                  className="h-8 px-2 gap-1 text-green-600 border-green-600/30 hover:bg-green-50 dark:hover:bg-green-950/20"
+                >
+                  <Eye className="h-4 w-4" />
+                  <span className="text-xs">Apresentação</span>
+                </Button>
+              )}
               <Button
                 size="sm"
                 variant="ghost"
-                className="h-8 px-2 text-destructive hover:bg-destructive/10"
-                onClick={() => {
-                  if (confirm("Deseja excluir esta inspeção?")) {
-                    deleteInspection.mutate(inspection.id);
-                  }
-                }}
+                onClick={() => toggleLock.mutate({ id: inspection.id, is_locked: !inspection.is_locked })}
+                className="h-8 px-2"
               >
-                <Trash2 className="h-4 w-4" />
+                {inspection.is_locked ? <Unlock className="h-4 w-4" /> : <Lock className="h-4 w-4" />}
+                <span className="ml-1 text-xs">{inspection.is_locked ? "Desbloquear" : "Bloquear"}</span>
               </Button>
-            )}
+              {isAdmin && (
+                <Button
+                  size="sm"
+                  variant="ghost"
+                  className="h-8 px-2 text-destructive hover:bg-destructive/10"
+                  onClick={() => {
+                    if (confirm("Deseja excluir esta inspeção?")) {
+                      deleteInspection.mutate(inspection.id);
+                    }
+                  }}
+                >
+                  <Trash2 className="h-4 w-4" />
+                </Button>
+              )}
+            </div>
           </div>
-        </div>
-      </CardHeader>
-      <CardContent className="space-y-4">
-        {/* Progress bar */}
-        <div className="flex items-center gap-4">
-          <div className="flex-1">
-            <Progress value={percentage} className="h-3" />
+        </CardHeader>
+        <CardContent className="space-y-4">
+          {/* Progress bar */}
+          <div className="flex items-center gap-4">
+            <div className="flex-1">
+              <Progress value={percentage} className="h-3" />
+            </div>
+            <span className="text-sm font-bold text-primary whitespace-nowrap">{percentage}%</span>
           </div>
-          <span className="text-sm font-bold text-primary whitespace-nowrap">{percentage}%</span>
-        </div>
 
-        {totalCount === 0 && (
-          <p className="text-sm text-muted-foreground text-center py-2">Nenhum ponto registrado.</p>
-        )}
+          {totalCount === 0 && (
+            <p className="text-sm text-muted-foreground text-center py-2">Nenhum ponto registrado.</p>
+          )}
 
-        <div className="space-y-1">
-          {tasks.map((task) => (
-            <TaskRow
-              key={task.id}
-              task={task}
-              isLocked={inspection.is_locked}
-              onToggle={() => handleToggleTask(task.id, task.is_completed)}
-            />
-          ))}
-        </div>
-      </CardContent>
-    </Card>
+          <div className="space-y-1">
+            {tasks.map((task) => (
+              <TaskRow
+                key={task.id}
+                task={task}
+                isLocked={inspection.is_locked}
+                onToggle={() => handleToggleTask(task.id, task.is_completed)}
+              />
+            ))}
+          </div>
+        </CardContent>
+      </Card>
+
+      {allCompleted && (
+        <InspectionPresentationDialog
+          open={showPresentation}
+          onOpenChange={setShowPresentation}
+          inspectionDate={dateStr}
+          tasks={tasks}
+        />
+      )}
+    </>
   );
 }
 
