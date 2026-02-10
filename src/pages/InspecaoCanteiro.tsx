@@ -247,33 +247,93 @@ function TaskRow({
   );
 }
 
+async function fetchLogoBase64(): Promise<string> {
+  try {
+    const response = await fetch("/logo-sucena-pdf.png");
+    const blob = await response.blob();
+    return new Promise<string>((resolve, reject) => {
+      const reader = new FileReader();
+      reader.onloadend = () => resolve(reader.result as string);
+      reader.onerror = reject;
+      reader.readAsDataURL(blob);
+    });
+  } catch {
+    return "";
+  }
+}
+
+function addSlideBranding(slide: any, logoBase64: string, slideNum: number, totalSlides: number, isDark: boolean) {
+  if (logoBase64) {
+    slide.addImage({
+      data: logoBase64,
+      x: 0.3, y: 0.15, w: 1.4, h: 0.45,
+      sizing: { type: "contain", w: 1.4, h: 0.45 },
+    });
+  }
+  // Company name top-right
+  slide.addText("Sucena Engenharia e Serviços", {
+    x: 8.5, y: 0.15, w: 4.5, h: 0.25,
+    fontSize: 10, bold: true, color: isDark ? "94A3B8" : "64748B", align: "right",
+  });
+  slide.addText("Qualidade, Segurança e Meio Ambiente", {
+    x: 8.5, y: 0.38, w: 4.5, h: 0.2,
+    fontSize: 7, color: isDark ? "64748B" : "94A3B8", align: "right",
+  });
+  // Footer
+  slide.addText(`${slideNum}/${totalSlides}`, {
+    x: 12, y: 7, w: 1, h: 0.3,
+    fontSize: 8, color: isDark ? "475569" : "94A3B8", align: "right",
+  });
+  slide.addText("Sucena Engenharia e Serviços © " + new Date().getFullYear(), {
+    x: 0.3, y: 7, w: 5, h: 0.3,
+    fontSize: 7, color: isDark ? "475569" : "94A3B8",
+  });
+}
+
 async function generateInspectionPptx(inspectionDate: string, tasks: SiteInspectionTask[]) {
   const pptx = new pptxgen();
   pptx.layout = "LAYOUT_WIDE";
-  pptx.author = "Sucena";
+  pptx.author = "Sucena Engenharia e Serviços";
+  pptx.company = "Sucena Engenharia e Serviços";
   pptx.title = `Inspeção de Canteiro - ${inspectionDate}`;
 
+  const logoBase64 = await fetchLogoBase64();
+
+  // Calculate total slides
+  const detailCount = tasks.filter(t => t.before_photo_url || t.after_photo_url).length;
+  const totalSlides = 3 + detailCount; // title + summary + details + closing
+
+  let slideNum = 0;
+
   // Title slide
+  slideNum++;
   const titleSlide = pptx.addSlide();
   titleSlide.background = { color: "0F172A" };
+  addSlideBranding(titleSlide, logoBase64, slideNum, totalSlides, true);
   titleSlide.addText("Inspeção de Canteiro", {
-    x: 0.5, y: 1.5, w: "90%", h: 1.2,
+    x: 0.5, y: 1.8, w: "90%", h: 1.2,
     fontSize: 36, bold: true, color: "FFFFFF", align: "center",
   });
   titleSlide.addText(inspectionDate, {
-    x: 0.5, y: 2.8, w: "90%", h: 0.6,
+    x: 0.5, y: 3.1, w: "90%", h: 0.6,
     fontSize: 20, color: "94A3B8", align: "center",
   });
   titleSlide.addText(`${tasks.length} pontos de melhoria • 100% concluído`, {
-    x: 0.5, y: 3.6, w: "90%", h: 0.5,
+    x: 0.5, y: 3.9, w: "90%", h: 0.5,
     fontSize: 14, color: "22C55E", align: "center",
+  });
+  titleSlide.addText("Sucena Engenharia e Serviços", {
+    x: 0.5, y: 5, w: "90%", h: 0.4,
+    fontSize: 12, color: "64748B", align: "center",
   });
 
   // Summary slide
+  slideNum++;
   const summarySlide = pptx.addSlide();
   summarySlide.background = { color: "FFFFFF" };
+  addSlideBranding(summarySlide, logoBase64, slideNum, totalSlides, false);
   summarySlide.addText("Resumo da Inspeção", {
-    x: 0.5, y: 0.3, w: "90%", h: 0.7,
+    x: 0.5, y: 0.7, w: "90%", h: 0.7,
     fontSize: 24, bold: true, color: "0F172A",
   });
 
@@ -296,32 +356,34 @@ async function generateInspectionPptx(inspectionDate: string, tasks: SiteInspect
   });
 
   summarySlide.addTable(tableRows, {
-    x: 0.4, y: 1.2, w: 12.4,
+    x: 0.4, y: 1.5, w: 12.4,
     border: { type: "solid", pt: 0.5, color: "E2E8F0" },
     rowH: 0.4,
     colW: [0.5, 4.5, 5, 2.4],
   });
 
-  // Detail slides for each task with before/after photos
+  // Detail slides
   for (const [idx, task] of tasks.entries()) {
     if (task.before_photo_url || task.after_photo_url) {
+      slideNum++;
       const slide = pptx.addSlide();
       slide.background = { color: "FFFFFF" };
+      addSlideBranding(slide, logoBase64, slideNum, totalSlides, false);
 
       slide.addText(`${idx + 1}. ${task.description}`, {
-        x: 0.5, y: 0.3, w: "90%", h: 0.6,
+        x: 0.5, y: 0.7, w: "90%", h: 0.6,
         fontSize: 18, bold: true, color: "0F172A",
       });
 
       if (task.observation) {
         slide.addText(task.observation, {
-          x: 0.5, y: 0.9, w: "90%", h: 0.4,
+          x: 0.5, y: 1.3, w: "90%", h: 0.4,
           fontSize: 12, color: "92400E", italic: true,
           highlight: "FFFF00",
         });
       }
 
-      const photoY = task.observation ? 1.5 : 1.1;
+      const photoY = task.observation ? 1.9 : 1.5;
 
       if (task.before_photo_url) {
         slide.addText("❌ Antes", {
@@ -331,8 +393,8 @@ async function generateInspectionPptx(inspectionDate: string, tasks: SiteInspect
         try {
           slide.addImage({
             path: task.before_photo_url,
-            x: 0.5, y: photoY + 0.5, w: 5.5, h: 4,
-            sizing: { type: "contain", w: 5.5, h: 4 },
+            x: 0.5, y: photoY + 0.5, w: 5.5, h: 3.8,
+            sizing: { type: "contain", w: 5.5, h: 3.8 },
           });
         } catch {
           slide.addText("(foto indisponível)", {
@@ -350,8 +412,8 @@ async function generateInspectionPptx(inspectionDate: string, tasks: SiteInspect
         try {
           slide.addImage({
             path: task.after_photo_url,
-            x: 7, y: photoY + 0.5, w: 5.5, h: 4,
-            sizing: { type: "contain", w: 5.5, h: 4 },
+            x: 7, y: photoY + 0.5, w: 5.5, h: 3.8,
+            sizing: { type: "contain", w: 5.5, h: 3.8 },
           });
         } catch {
           slide.addText("(foto indisponível)", {
@@ -364,8 +426,10 @@ async function generateInspectionPptx(inspectionDate: string, tasks: SiteInspect
   }
 
   // Closing slide
+  slideNum++;
   const closingSlide = pptx.addSlide();
   closingSlide.background = { color: "0F172A" };
+  addSlideBranding(closingSlide, logoBase64, slideNum, totalSlides, true);
   closingSlide.addText("Inspeção Concluída ✅", {
     x: 0.5, y: 2, w: "90%", h: 1,
     fontSize: 32, bold: true, color: "22C55E", align: "center",
@@ -373,6 +437,10 @@ async function generateInspectionPptx(inspectionDate: string, tasks: SiteInspect
   closingSlide.addText(`Todos os ${tasks.length} pontos foram resolvidos.`, {
     x: 0.5, y: 3.2, w: "90%", h: 0.6,
     fontSize: 16, color: "94A3B8", align: "center",
+  });
+  closingSlide.addText("Sucena Engenharia e Serviços", {
+    x: 0.5, y: 4.2, w: "90%", h: 0.4,
+    fontSize: 14, bold: true, color: "64748B", align: "center",
   });
 
   await pptx.writeFile({ fileName: `Inspecao_Canteiro_${inspectionDate.replace(/\//g, "-")}.pptx` });
