@@ -300,10 +300,43 @@ const getStatusColor = (status: string) => {
           }
         }
 
+        // Also sync description to equipment_movements for "Fora da Obra" display
+        const maintenanceReasons = ["manutencao_corretiva", "manutencao_preventiva", "maintenance", "vistoria"];
+        if (editDescription && maintenanceReasons.includes(editStatus)) {
+          // Map stop_reason to exit_reason used in equipment_movements
+          const exitReasonMap: Record<string, string> = {
+            manutencao_corretiva: "manutencao_corretiva",
+            maintenance: "manutencao_corretiva",
+            manutencao_preventiva: "manutencao_preventiva",
+            vistoria: "vistoria",
+          };
+          const exitReason = exitReasonMap[editStatus];
+          if (exitReason) {
+            // Find matching movement by equipment name and date
+            const { data: movements } = await supabase
+              .from("equipment_movements")
+              .select("id")
+              .eq("equipment_name", equipmentName)
+              .eq("movement_date", effectiveDate)
+              .eq("movement_type", "saida")
+              .eq("exit_reason", exitReason as any)
+              .order("movement_time", { ascending: false })
+              .limit(1);
+
+            if (movements && movements.length > 0) {
+              await supabase
+                .from("equipment_movements")
+                .update({ problem_description: editDescription })
+                .eq("id", movements[0].id);
+            }
+          }
+        }
+
         toast.success("Status atualizado com sucesso!");
         handleCancelEdit();
         // Invalidate stop history cache
         queryClient.invalidateQueries({ queryKey: ["equipment-stop-history"] });
+        queryClient.invalidateQueries({ queryKey: ["equipment-currently-out"] });
       } catch (error) {
         console.error("Error updating status:", error);
         toast.error("Erro ao atualizar status");
