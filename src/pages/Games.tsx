@@ -7,8 +7,10 @@ import { Gamepad2, ArrowRight } from "lucide-react";
 import { motion } from "framer-motion";
 import { RecyclingGame } from "@/components/games/RecyclingGame";
 import { EPIGame } from "@/components/games/EPIGame";
+import { RocagemGame } from "@/components/games/RocagemGame";
+import { GabiaoGame } from "@/components/games/GabiaoGame";
 
-type ActiveGame = null | "recycling" | "epi";
+type ActiveGame = null | "recycling" | "epi" | "rocagem" | "gabiao";
 
 interface GameCover {
   id: ActiveGame & string;
@@ -44,6 +46,28 @@ const GAMES: GameCover[] = [
     borderColor: "border-amber-500/40 hover:border-amber-500",
     badgeLabel: "3 vidas",
     badgeColor: "bg-amber-500/15 text-amber-600 dark:text-amber-400",
+  },
+  {
+    id: "rocagem",
+    emoji: "🌾",
+    title: "Quiz de Roçagem",
+    subtitle: "Operação & Segurança",
+    description: "Segurança, técnicas e manutenção na operação de roçadeira. Quanto você sabe?",
+    gradient: "from-lime-500/20 via-green-500/10 to-yellow-500/20",
+    borderColor: "border-lime-500/40 hover:border-lime-500",
+    badgeLabel: "3 vidas",
+    badgeColor: "bg-lime-500/15 text-lime-600 dark:text-lime-400",
+  },
+  {
+    id: "gabiao",
+    emoji: "🪨",
+    title: "Quiz de Gabião",
+    subtitle: "Estrutura & Drenagem",
+    description: "Estruturas de contenção, drenagem e manutenção de gabiões. Teste seus conhecimentos!",
+    gradient: "from-sky-500/20 via-blue-500/10 to-indigo-500/20",
+    borderColor: "border-sky-500/40 hover:border-sky-500",
+    badgeLabel: "3 vidas",
+    badgeColor: "bg-sky-500/15 text-sky-600 dark:text-sky-400",
   },
 ];
 
@@ -110,6 +134,8 @@ export default function Games() {
         {/* Active Game */}
         {activeGame === "recycling" && <RecyclingGame onBack={() => setActiveGame(null)} />}
         {activeGame === "epi" && <EPIGame onBack={() => setActiveGame(null)} />}
+        {activeGame === "rocagem" && <RocagemGame onBack={() => setActiveGame(null)} />}
+        {activeGame === "gabiao" && <GabiaoGame onBack={() => setActiveGame(null)} />}
       </div>
     </Layout>
   );
