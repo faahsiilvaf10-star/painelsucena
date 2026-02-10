@@ -249,7 +249,7 @@ function TaskRow({
 
 async function fetchLogoBase64(): Promise<string> {
   try {
-    const response = await fetch("/logo-sucena-pdf.png");
+    const response = await fetch("/logo-sucena-empreendimentos.png");
     const blob = await response.blob();
     return new Promise<string>((resolve, reject) => {
       const reader = new FileReader();
@@ -271,7 +271,7 @@ function addSlideBranding(slide: any, logoBase64: string, slideNum: number, tota
     });
   }
   // Company name top-right
-  slide.addText("Sucena Engenharia e Serviços", {
+  slide.addText("Sucena Empreendimentos", {
     x: 8.5, y: 0.15, w: 4.5, h: 0.25,
     fontSize: 10, bold: true, color: isDark ? "94A3B8" : "64748B", align: "right",
   });
@@ -284,7 +284,7 @@ function addSlideBranding(slide: any, logoBase64: string, slideNum: number, tota
     x: 12, y: 7, w: 1, h: 0.3,
     fontSize: 8, color: isDark ? "475569" : "94A3B8", align: "right",
   });
-  slide.addText("Sucena Engenharia e Serviços © " + new Date().getFullYear(), {
+  slide.addText("Sucena Empreendimentos © " + new Date().getFullYear(), {
     x: 0.3, y: 7, w: 5, h: 0.3,
     fontSize: 7, color: isDark ? "475569" : "94A3B8",
   });
@@ -293,8 +293,8 @@ function addSlideBranding(slide: any, logoBase64: string, slideNum: number, tota
 async function generateInspectionPptx(inspectionDate: string, tasks: SiteInspectionTask[]) {
   const pptx = new pptxgen();
   pptx.layout = "LAYOUT_WIDE";
-  pptx.author = "Sucena Engenharia e Serviços";
-  pptx.company = "Sucena Engenharia e Serviços";
+  pptx.author = "Sucena Empreendimentos";
+  pptx.company = "Sucena Empreendimentos";
   pptx.title = `Inspeção de Canteiro - ${inspectionDate}`;
 
   const logoBase64 = await fetchLogoBase64();
@@ -322,7 +322,7 @@ async function generateInspectionPptx(inspectionDate: string, tasks: SiteInspect
     x: 0.5, y: 3.9, w: "90%", h: 0.5,
     fontSize: 14, color: "22C55E", align: "center",
   });
-  titleSlide.addText("Sucena Engenharia e Serviços", {
+  titleSlide.addText("Sucena Empreendimentos", {
     x: 0.5, y: 5, w: "90%", h: 0.4,
     fontSize: 12, color: "64748B", align: "center",
   });
@@ -438,7 +438,7 @@ async function generateInspectionPptx(inspectionDate: string, tasks: SiteInspect
     x: 0.5, y: 3.2, w: "90%", h: 0.6,
     fontSize: 16, color: "94A3B8", align: "center",
   });
-  closingSlide.addText("Sucena Engenharia e Serviços", {
+  closingSlide.addText("Sucena Empreendimentos", {
     x: 0.5, y: 4.2, w: "90%", h: 0.4,
     fontSize: 14, bold: true, color: "64748B", align: "center",
   });
