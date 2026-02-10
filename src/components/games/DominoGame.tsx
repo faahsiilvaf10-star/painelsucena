@@ -626,12 +626,13 @@ export function DominoGame({ onBack }: { onBack: () => void }) {
           </button>
         </div>
 
-        {/* Center modal */}
-        <div className="relative z-10 flex items-center justify-center px-4" style={{ minHeight: "calc(80vh - 60px)" }}>
+        {/* Center layout: lobby + ranking side by side */}
+        <div className="relative z-10 flex flex-col lg:flex-row items-start justify-center gap-4 px-4 py-4" style={{ minHeight: "calc(80vh - 60px)" }}>
+          {/* Lobby modal */}
           <motion.div
             initial={{ scale: 0.9, opacity: 0 }}
             animate={{ scale: 1, opacity: 1 }}
-            className="w-full max-w-md rounded-xl overflow-hidden shadow-2xl"
+            className="w-full max-w-md rounded-xl overflow-hidden shadow-2xl flex-shrink-0"
             style={{
               background: "#fdf5e0",
               border: "4px solid #8B6914",
@@ -728,48 +729,50 @@ export function DominoGame({ onBack }: { onBack: () => void }) {
             </div>
           </motion.div>
 
-          {/* Ranking */}
-          {ranking.length > 0 && (
-            <motion.div
-              initial={{ scale: 0.9, opacity: 0 }}
-              animate={{ scale: 1, opacity: 1 }}
-              transition={{ delay: 0.15 }}
-              className="w-full max-w-md mt-4 rounded-xl overflow-hidden shadow-2xl"
-              style={{ background: "#fdf5e0", border: "4px solid #8B6914", boxShadow: "0 0 0 2px #a07818, 0 8px 32px rgba(0,0,0,0.4)" }}
-            >
-              <div className="flex items-center gap-2 justify-center pt-4 pb-2">
-                <Trophy className="w-5 h-5" style={{ color: "#8B6914" }} />
-                <h3 className="text-lg font-black tracking-wider" style={{ color: "#5a3e0a" }}>RANKING ONLINE</h3>
-              </div>
-              <div className="px-4 pb-4 space-y-1 max-h-52 overflow-y-auto">
-                {ranking.map((r, i) => {
-                  const medal = i === 0 ? "🥇" : i === 1 ? "🥈" : i === 2 ? "🥉" : `${i + 1}º`;
-                  const isMe = r.user_id === user?.id;
-                  return (
-                    <div
-                      key={r.user_id}
-                      className="flex items-center justify-between px-3 py-2 rounded-lg"
-                      style={{
-                        background: isMe ? "#e8ddb8" : i % 2 === 0 ? "#f5efd8" : "#fdf5e0",
-                        border: isMe ? "2px solid #8B6914" : "1px solid transparent",
-                      }}
-                    >
-                      <div className="flex items-center gap-2">
-                        <span className="text-base w-8 text-center">{medal}</span>
-                        <span className="text-sm font-bold truncate max-w-[140px]" style={{ color: "#5a3e0a" }}>
-                          {r.user_name}{isMe ? " (eu)" : ""}
-                        </span>
-                      </div>
-                      <div className="flex items-center gap-3 text-xs font-bold">
-                        <span style={{ color: "#2d7a2d" }}>✅ {r.wins}</span>
-                        <span style={{ color: "#a03030" }}>❌ {r.losses}</span>
-                      </div>
+          {/* Ranking panel - side by side on desktop */}
+          <motion.div
+            initial={{ scale: 0.9, opacity: 0 }}
+            animate={{ scale: 1, opacity: 1 }}
+            transition={{ delay: 0.15 }}
+            className="w-full max-w-xs rounded-xl overflow-hidden shadow-2xl flex-shrink-0"
+            style={{ background: "#fdf5e0", border: "4px solid #8B6914", boxShadow: "0 0 0 2px #a07818, 0 8px 32px rgba(0,0,0,0.4)" }}
+          >
+            <div className="flex items-center gap-2 justify-center pt-4 pb-2">
+              <Trophy className="w-5 h-5" style={{ color: "#8B6914" }} />
+              <h3 className="text-lg font-black tracking-wider" style={{ color: "#5a3e0a" }}>RANKING</h3>
+            </div>
+            <div className="px-3 pb-4 space-y-1 max-h-[420px] overflow-y-auto">
+              {ranking.length === 0 ? (
+                <p className="text-center text-xs py-6" style={{ color: "#8a7040" }}>
+                  Nenhuma partida online finalizada ainda.
+                </p>
+              ) : ranking.map((r, i) => {
+                const medal = i === 0 ? "🥇" : i === 1 ? "🥈" : i === 2 ? "🥉" : `${i + 1}º`;
+                const isMe = r.user_id === user?.id;
+                return (
+                  <div
+                    key={r.user_id}
+                    className="flex items-center justify-between px-2 py-1.5 rounded-lg"
+                    style={{
+                      background: isMe ? "#e8ddb8" : i % 2 === 0 ? "#f5efd8" : "#fdf5e0",
+                      border: isMe ? "2px solid #8B6914" : "1px solid transparent",
+                    }}
+                  >
+                    <div className="flex items-center gap-1.5">
+                      <span className="text-sm w-7 text-center">{medal}</span>
+                      <span className="text-xs font-bold truncate max-w-[100px]" style={{ color: "#5a3e0a" }}>
+                        {r.user_name}{isMe ? " (eu)" : ""}
+                      </span>
                     </div>
-                  );
-                })}
-              </div>
-            </motion.div>
-          )}
+                    <div className="flex items-center gap-2 text-[11px] font-bold">
+                      <span style={{ color: "#2d7a2d" }}>✅{r.wins}</span>
+                      <span style={{ color: "#a03030" }}>❌{r.losses}</span>
+                    </div>
+                  </div>
+                );
+              })}
+            </div>
+          </motion.div>
         </div>
       </div>
     );
