@@ -1,7 +1,7 @@
-import { useState, useMemo } from "react";
+import { useState, useRef } from "react";
 import { format } from "date-fns";
 import { ptBR } from "date-fns/locale";
-import { Plus, Lock, Unlock, Trash2, CheckCircle2, Circle, ClipboardCheck } from "lucide-react";
+import { Plus, Lock, Unlock, Trash2, CheckCircle2, Circle, ClipboardCheck, Camera, ImageIcon, X, CalendarIcon } from "lucide-react";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -10,6 +10,7 @@ import { Progress } from "@/components/ui/progress";
 import { Separator } from "@/components/ui/separator";
 import { Calendar } from "@/components/ui/calendar";
 import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover";
+import { Dialog, DialogContent } from "@/components/ui/dialog";
 import { cn } from "@/lib/utils";
 import { toast } from "sonner";
 import { useAuth } from "@/hooks/useAuth";
@@ -21,9 +22,161 @@ import {
   useToggleLockInspection,
   useToggleTaskCompletion,
   useDeleteSiteInspection,
+  useUpdateTaskPhoto,
+  uploadInspectionPhoto,
+  type SiteInspectionTask,
 } from "@/hooks/useSiteInspections";
-import { CalendarIcon } from "lucide-react";
 import Layout from "@/components/layout/Layout";
+
+function PhotoThumbnail({
+  url,
+  type,
+  onUpload,
+  disabled,
+}: {
+  url: string | null;
+  type: "before" | "after";
+  onUpload: (file: File) => void;
+  disabled?: boolean;
+}) {
+  const [viewOpen, setViewOpen] = useState(false);
+  const inputRef = useRef<HTMLInputElement>(null);
+  const emoji = type === "before" ? "❌" : "✅";
+  const label = type === "before" ? "Antes" : "Depois";
+
+  const handleFileChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+    const file = e.target.files?.[0];
+    if (file) {
+      if (file.size > 10 * 1024 * 1024) {
+        toast.error("Arquivo muito grande (máx. 10MB)");
+        return;
+      }
+      onUpload(file);
+    }
+    e.target.value = "";
+  };
+
+  return (
+    <>
+      <input ref={inputRef} type="file" accept="image/*" className="hidden" onChange={handleFileChange} />
+
+      {url ? (
+        <button
+          onClick={() => setViewOpen(true)}
+          className="relative w-16 h-16 rounded-lg overflow-hidden border border-border/50 group flex-shrink-0"
+        >
+          <img src={url} alt={label} className="w-full h-full object-cover" />
+          <span className="absolute top-0.5 right-0.5 text-base leading-none drop-shadow-md">{emoji}</span>
+          <div className="absolute inset-0 bg-black/0 group-hover:bg-black/20 transition-colors" />
+        </button>
+      ) : (
+        <button
+          onClick={() => !disabled && inputRef.current?.click()}
+          disabled={disabled}
+          className={cn(
+            "w-16 h-16 rounded-lg border-2 border-dashed flex flex-col items-center justify-center gap-0.5 flex-shrink-0 transition-colors",
+            disabled
+              ? "border-muted opacity-40 cursor-not-allowed"
+              : "border-muted-foreground/30 hover:border-primary/50 hover:bg-primary/5 cursor-pointer"
+          )}
+        >
+          <Camera className="h-4 w-4 text-muted-foreground" />
+          <span className="text-[10px] text-muted-foreground">{label}</span>
+          <span className="text-xs leading-none">{emoji}</span>
+        </button>
+      )}
+
+      <Dialog open={viewOpen} onOpenChange={setViewOpen}>
+        <DialogContent className="max-w-[90vw] max-h-[90vh] p-2">
+          <div className="relative flex items-center justify-center">
+            {url && (
+              <img src={url} alt={label} className="max-w-full max-h-[80vh] object-contain rounded-lg" />
+            )}
+            <span className="absolute top-2 left-2 text-3xl drop-shadow-lg">{emoji}</span>
+          </div>
+        </DialogContent>
+      </Dialog>
+    </>
+  );
+}
+
+function TaskRow({
+  task,
+  isLocked,
+  onToggle,
+}: {
+  task: SiteInspectionTask;
+  isLocked: boolean;
+  onToggle: () => void;
+}) {
+  const updatePhoto = useUpdateTaskPhoto();
+  const [uploading, setUploading] = useState<"before" | "after" | null>(null);
+
+  const handleUpload = async (file: File, type: "before" | "after") => {
+    setUploading(type);
+    try {
+      const url = await uploadInspectionPhoto(file, task.id, type);
+      const field = type === "before" ? "before_photo_url" : "after_photo_url";
+      await updatePhoto.mutateAsync({ id: task.id, field, url });
+      toast.success(`Foto "${type === "before" ? "Antes" : "Depois"}" enviada!`);
+    } catch {
+      toast.error("Erro ao enviar foto.");
+    } finally {
+      setUploading(null);
+    }
+  };
+
+  return (
+    <div
+      className={cn(
+        "flex items-start gap-3 p-3 rounded-xl transition-colors border border-transparent",
+        task.is_completed ? "bg-primary/5 border-primary/10" : "hover:bg-muted/30"
+      )}
+    >
+      {/* Checkbox area */}
+      <button
+        onClick={onToggle}
+        disabled={!isLocked}
+        className={cn(
+          "mt-0.5 flex-shrink-0",
+          !isLocked && "opacity-40 cursor-not-allowed"
+        )}
+      >
+        {task.is_completed ? (
+          <CheckCircle2 className="h-5 w-5 text-primary" />
+        ) : (
+          <Circle className="h-5 w-5 text-muted-foreground" />
+        )}
+      </button>
+
+      {/* Description + photos */}
+      <div className="flex-1 min-w-0 space-y-2">
+        <span className={cn("text-sm block", task.is_completed && "line-through text-muted-foreground")}>
+          {task.description}
+        </span>
+
+        {/* Photo row */}
+        <div className="flex items-center gap-2">
+          <PhotoThumbnail
+            url={task.before_photo_url}
+            type="before"
+            onUpload={(f) => handleUpload(f, "before")}
+            disabled={!!uploading}
+          />
+          <PhotoThumbnail
+            url={task.after_photo_url}
+            type="after"
+            onUpload={(f) => handleUpload(f, "after")}
+            disabled={!!uploading}
+          />
+          {uploading && (
+            <span className="text-xs text-muted-foreground animate-pulse">Enviando...</span>
+          )}
+        </div>
+      </div>
+    </div>
+  );
+}
 
 function InspectionDetail({ inspection }: { inspection: { id: string; inspection_date: string; is_locked: boolean } }) {
   const { data: tasks = [] } = useSiteInspectionTasks(inspection.id);
@@ -84,6 +237,7 @@ function InspectionDetail({ inspection }: { inspection: { id: string; inspection
         </div>
       </CardHeader>
       <CardContent className="space-y-4">
+        {/* Progress bar */}
         <div className="flex items-center gap-4">
           <div className="flex-1">
             <Progress value={percentage} className="h-3" />
@@ -95,29 +249,14 @@ function InspectionDetail({ inspection }: { inspection: { id: string; inspection
           <p className="text-sm text-muted-foreground text-center py-2">Nenhum ponto registrado.</p>
         )}
 
-        <div className="space-y-1.5">
+        <div className="space-y-1">
           {tasks.map((task) => (
-            <button
+            <TaskRow
               key={task.id}
-              onClick={() => handleToggleTask(task.id, task.is_completed)}
-              disabled={!inspection.is_locked}
-              className={cn(
-                "flex items-center gap-2 w-full text-left p-2 rounded-lg transition-colors text-sm",
-                inspection.is_locked
-                  ? "hover:bg-muted/50 cursor-pointer"
-                  : "opacity-60 cursor-not-allowed",
-                task.is_completed && "bg-primary/5"
-              )}
-            >
-              {task.is_completed ? (
-                <CheckCircle2 className="h-4 w-4 text-primary flex-shrink-0" />
-              ) : (
-                <Circle className="h-4 w-4 text-muted-foreground flex-shrink-0" />
-              )}
-              <span className={cn(task.is_completed && "line-through text-muted-foreground")}>
-                {task.description}
-              </span>
-            </button>
+              task={task}
+              isLocked={inspection.is_locked}
+              onToggle={() => handleToggleTask(task.id, task.is_completed)}
+            />
           ))}
         </div>
       </CardContent>
