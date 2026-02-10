@@ -4,7 +4,7 @@ import { useAuth } from "@/hooks/useAuth";
 import { Json } from "@/integrations/supabase/types";
 
 const DEFAULT_NAV_ORDER = [
-  "destaques", "instacena", "arquivos-seguranca", "atividades", "atividades-ii", "campanhas",
+  "destaques", "instacena", "calendario-hydro", "arquivos-seguranca", "atividades", "atividades-ii", "campanhas",
   "consumo-abastecimento", "dds", "documentos", "entrada-saida", "estoque", "homologados",
   "hora-extra", "inspecao-canteiro", "lembretes", "relatorio", "matriz", "metas",
   "parte-diaria", "pedidos", "plano-manutencao", "rdo", "presenca", "rh", "slides",

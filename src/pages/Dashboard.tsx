@@ -42,6 +42,7 @@ import { getBrazilNorthTodayString } from "@/lib/timezone";
 import { useDocumentExpiryNotifications } from "@/hooks/useDocumentExpiryNotifications";
 import { useVehicleExpiryNotifications } from "@/hooks/useVehicleExpiryNotifications";
 import { useDashboardOrder, DashboardItemId, DEFAULT_DASHBOARD_ORDER } from "@/hooks/useDashboardOrder";
+import { useHolidayNotification } from "@/hooks/useHolidayNotification";
 import { toast } from "sonner";
 
 const Dashboard = () => {
@@ -50,6 +51,7 @@ const Dashboard = () => {
   const { data: attendanceRecords } = useAttendanceRecords(today);
   const { data: equipment } = useEquipment();
   const { dashboardOrder, updateOrder, isLoading: isLoadingOrder } = useDashboardOrder();
+  useHolidayNotification();
   
   const [isEditMode, setIsEditMode] = useState(false);
   const [localOrder, setLocalOrder] = useState<DashboardItemId[]>(dashboardOrder);
