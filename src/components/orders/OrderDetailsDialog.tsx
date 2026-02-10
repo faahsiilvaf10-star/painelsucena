@@ -1,7 +1,7 @@
 import { useState } from "react";
 import { format } from "date-fns";
 import { ptBR } from "date-fns/locale";
-import { Calendar, Clock, Package, User, History, Trash2, Edit2, ImageIcon, ArrowRight, Hash, Copy, List, MessageCircle } from "lucide-react";
+import { Calendar, Clock, Package, User, History, Trash2, Edit2, ImageIcon, ArrowRight, Hash, Copy, List, MessageCircle, Check, X } from "lucide-react";
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/components/ui/dialog";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
@@ -10,7 +10,7 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@
 import { Separator } from "@/components/ui/separator";
 import { ScrollArea } from "@/components/ui/scroll-area";
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
-import { Order, OrderStatus, QuantityUnit, useOrderHistory, useUpdateOrderStatus, useUpdateOrderQuantity, useDeleteOrder, useOrderItems } from "@/hooks/useOrders";
+import { Order, OrderStatus, QuantityUnit, useOrderHistory, useUpdateOrderStatus, useUpdateOrderQuantity, useDeleteOrder, useOrderItems, useUpdateOrderItem, useDeleteOrderItem } from "@/hooks/useOrders";
 import { useAuth } from "@/hooks/useAuth";
 import { useIsAdmin } from "@/hooks/useUserRole";
 import { useProfile } from "@/hooks/useProfile";
@@ -90,12 +90,18 @@ import { copyAndShareWhatsApp, copyToClipboard } from "@/lib/copyAndShare";
 
 export function OrderDetailsDialog({ order, open, onOpenChange }: OrderDetailsDialogProps) {
   const [showDeleteConfirm, setShowDeleteConfirm] = useState(false);
+  const [showDeleteItemConfirm, setShowDeleteItemConfirm] = useState<string | null>(null);
   const [showDeliveryDialog, setShowDeliveryDialog] = useState(false);
   const [photoViewerOpen, setPhotoViewerOpen] = useState(false);
   const [photoIndex, setPhotoIndex] = useState(0);
   const [editingQuantity, setEditingQuantity] = useState(false);
   const [newQuantity, setNewQuantity] = useState<number>(0);
   const [newUnit, setNewUnit] = useState<QuantityUnit>("unidade");
+  const [editingItemId, setEditingItemId] = useState<string | null>(null);
+  const [editItemName, setEditItemName] = useState("");
+  const [editItemQty, setEditItemQty] = useState<number>(0);
+  const [editItemUnit, setEditItemUnit] = useState<QuantityUnit>("unidade");
+  const [editItemDesc, setEditItemDesc] = useState("");
   
   const { user } = useAuth();
   const { data: profile } = useProfile();
@@ -104,6 +110,8 @@ export function OrderDetailsDialog({ order, open, onOpenChange }: OrderDetailsDi
   const updateStatus = useUpdateOrderStatus();
   const updateQuantity = useUpdateOrderQuantity();
   const deleteOrder = useDeleteOrder();
+  const updateItem = useUpdateOrderItem();
+  const deleteItem = useDeleteOrderItem();
   const { data: history } = useOrderHistory(order?.id || "");
   const { data: orderItems } = useOrderItems(order?.id || "");
 
@@ -119,7 +127,16 @@ export function OrderDetailsDialog({ order, open, onOpenChange }: OrderDetailsDi
     profile?.cargo === "aux_administrativo" ||
     profile?.cargo === "aux_almoxarifado";
 
-  const canDelete = user?.id === order.requester_id && order.status === "solicitado";
+  const canDelete = order.status === "solicitado" && (
+    user?.id === order.requester_id ||
+    profile?.cargo === "aux_administrativo" ||
+    isAdmin
+  );
+  const canEditItems = order.status === "solicitado" && (
+    user?.id === order.requester_id ||
+    profile?.cargo === "aux_administrativo" ||
+    isAdmin
+  );
   const isCancelled = order.status === "cancelado";
 
   const allImages = [
@@ -184,6 +201,41 @@ export function OrderDetailsDialog({ order, open, onOpenChange }: OrderDetailsDi
   const openPhotoViewer = (index: number) => {
     setPhotoIndex(index);
     setPhotoViewerOpen(true);
+  };
+
+  const handleStartEditItem = (item: { id: string; product_name: string; quantity: number; quantity_unit: QuantityUnit; description: string | null }) => {
+    setEditingItemId(item.id);
+    setEditItemName(item.product_name);
+    setEditItemQty(item.quantity);
+    setEditItemUnit(item.quantity_unit as QuantityUnit);
+    setEditItemDesc(item.description || "");
+  };
+
+  const handleSaveItem = async () => {
+    if (!editingItemId) return;
+    try {
+      await updateItem.mutateAsync({
+        itemId: editingItemId,
+        product_name: editItemName,
+        quantity: editItemQty,
+        quantity_unit: editItemUnit,
+        description: editItemDesc || null,
+      });
+      toast({ title: "Item atualizado!" });
+      setEditingItemId(null);
+    } catch {
+      toast({ title: "Erro ao atualizar item", variant: "destructive" });
+    }
+  };
+
+  const handleDeleteItem = async (itemId: string) => {
+    try {
+      await deleteItem.mutateAsync(itemId);
+      toast({ title: "Item removido!" });
+      setShowDeleteItemConfirm(null);
+    } catch {
+      toast({ title: "Erro ao remover item", variant: "destructive" });
+    }
   };
 
   const generateWhatsAppMessage = () => {
@@ -285,29 +337,94 @@ export function OrderDetailsDialog({ order, open, onOpenChange }: OrderDetailsDi
                           <TableHead>Produto</TableHead>
                           <TableHead className="text-right w-[100px]">Qtd</TableHead>
                           <TableHead className="w-[120px]">Unidade</TableHead>
+                          {canEditItems && <TableHead className="w-[80px]">Ações</TableHead>}
                         </TableRow>
                       </TableHeader>
                       <TableBody>
                         {orderItems.map((item, index) => (
-                          <TableRow key={item.id}>
-                            <TableCell className={`font-medium ${isCancelled ? "line-through text-muted-foreground" : ""}`}>
-                              {index + 1}
-                            </TableCell>
-                            <TableCell className={isCancelled ? "line-through text-muted-foreground" : ""}>
-                              <div>
-                                <span className="font-medium">{item.product_name}</span>
-                                {item.description && (
-                                  <p className="text-xs text-muted-foreground">{item.description}</p>
-                                )}
-                              </div>
-                            </TableCell>
-                            <TableCell className={`text-right font-medium ${isCancelled ? "line-through text-muted-foreground" : ""}`}>
-                              {item.quantity}
-                            </TableCell>
-                            <TableCell className={isCancelled ? "line-through text-muted-foreground" : ""}>
-                              {UNIT_LABELS[item.quantity_unit] || item.quantity_unit}
-                            </TableCell>
-                          </TableRow>
+                          editingItemId === item.id ? (
+                            <TableRow key={item.id}>
+                              <TableCell className="font-medium">{index + 1}</TableCell>
+                              <TableCell>
+                                <Input
+                                  value={editItemName}
+                                  onChange={(e) => setEditItemName(e.target.value)}
+                                  className="h-8 text-sm"
+                                  placeholder="Nome do produto"
+                                />
+                                <Input
+                                  value={editItemDesc}
+                                  onChange={(e) => setEditItemDesc(e.target.value)}
+                                  className="h-7 text-xs mt-1"
+                                  placeholder="Descrição (opcional)"
+                                />
+                              </TableCell>
+                              <TableCell>
+                                <Input
+                                  type="number"
+                                  step="0.01"
+                                  min="0.01"
+                                  value={editItemQty}
+                                  onChange={(e) => setEditItemQty(parseFloat(e.target.value))}
+                                  className="h-8 text-sm w-20"
+                                />
+                              </TableCell>
+                              <TableCell>
+                                <Select value={editItemUnit} onValueChange={(v) => setEditItemUnit(v as QuantityUnit)}>
+                                  <SelectTrigger className="h-8 text-xs">
+                                    <SelectValue />
+                                  </SelectTrigger>
+                                  <SelectContent>
+                                    {UNIT_OPTIONS.map((opt) => (
+                                      <SelectItem key={opt.value} value={opt.value}>{opt.label}</SelectItem>
+                                    ))}
+                                  </SelectContent>
+                                </Select>
+                              </TableCell>
+                              <TableCell>
+                                <div className="flex gap-1">
+                                  <Button variant="ghost" size="icon" className="h-7 w-7" onClick={handleSaveItem} disabled={updateItem.isPending}>
+                                    <Check className="w-3.5 h-3.5 text-primary" />
+                                  </Button>
+                                  <Button variant="ghost" size="icon" className="h-7 w-7" onClick={() => setEditingItemId(null)}>
+                                    <X className="w-3.5 h-3.5" />
+                                  </Button>
+                                </div>
+                              </TableCell>
+                            </TableRow>
+                          ) : (
+                            <TableRow key={item.id}>
+                              <TableCell className={`font-medium ${isCancelled ? "line-through text-muted-foreground" : ""}`}>
+                                {index + 1}
+                              </TableCell>
+                              <TableCell className={isCancelled ? "line-through text-muted-foreground" : ""}>
+                                <div>
+                                  <span className="font-medium">{item.product_name}</span>
+                                  {item.description && (
+                                    <p className="text-xs text-muted-foreground">{item.description}</p>
+                                  )}
+                                </div>
+                              </TableCell>
+                              <TableCell className={`text-right font-medium ${isCancelled ? "line-through text-muted-foreground" : ""}`}>
+                                {item.quantity}
+                              </TableCell>
+                              <TableCell className={isCancelled ? "line-through text-muted-foreground" : ""}>
+                                {UNIT_LABELS[item.quantity_unit] || item.quantity_unit}
+                              </TableCell>
+                              {canEditItems && (
+                                <TableCell>
+                                  <div className="flex gap-1">
+                                    <Button variant="ghost" size="icon" className="h-7 w-7" onClick={() => handleStartEditItem(item)}>
+                                      <Edit2 className="w-3.5 h-3.5" />
+                                    </Button>
+                                    <Button variant="ghost" size="icon" className="h-7 w-7 text-destructive" onClick={() => setShowDeleteItemConfirm(item.id)}>
+                                      <Trash2 className="w-3.5 h-3.5" />
+                                    </Button>
+                                  </div>
+                                </TableCell>
+                              )}
+                            </TableRow>
+                          )
                         ))}
                       </TableBody>
                     </Table>
@@ -564,6 +681,23 @@ export function OrderDetailsDialog({ order, open, onOpenChange }: OrderDetailsDi
           <AlertDialogFooter>
             <AlertDialogCancel>Cancelar</AlertDialogCancel>
             <AlertDialogAction onClick={handleDelete}>Excluir</AlertDialogAction>
+          </AlertDialogFooter>
+        </AlertDialogContent>
+      </AlertDialog>
+
+      <AlertDialog open={!!showDeleteItemConfirm} onOpenChange={(open) => !open && setShowDeleteItemConfirm(null)}>
+        <AlertDialogContent>
+          <AlertDialogHeader>
+            <AlertDialogTitle>Remover Item?</AlertDialogTitle>
+            <AlertDialogDescription>
+              Este item será removido do pedido. Esta ação não pode ser desfeita.
+            </AlertDialogDescription>
+          </AlertDialogHeader>
+          <AlertDialogFooter>
+            <AlertDialogCancel>Cancelar</AlertDialogCancel>
+            <AlertDialogAction onClick={() => showDeleteItemConfirm && handleDeleteItem(showDeleteItemConfirm)}>
+              Remover
+            </AlertDialogAction>
           </AlertDialogFooter>
         </AlertDialogContent>
       </AlertDialog>
