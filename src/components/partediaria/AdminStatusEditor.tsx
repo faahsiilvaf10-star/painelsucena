@@ -265,6 +265,8 @@ const getStatusColor = (status: string) => {
         }
         
         // Also update equipment_stop_history if we have a matching record
+        const editorName = profile?.full_name ? `${profile.full_name} (editou)` : "Admin (editou)";
+
         if (entry.stopHistoryId) {
           await supabase
             .from("equipment_stop_history")
@@ -272,6 +274,7 @@ const getStatusColor = (status: string) => {
               stop_reason: editStatus,
               started_at: newTimestamp,
               defect_description: editDescription || null,
+              changed_by_driver: editorName,
             })
             .eq("id", entry.stopHistoryId);
         } else if (entry.shiftIndex === null) {
@@ -291,6 +294,7 @@ const getStatusColor = (status: string) => {
                 stop_reason: editStatus,
                 started_at: newTimestamp,
                 defect_description: editDescription || null,
+                changed_by_driver: editorName,
               })
               .eq("id", matches[0].id);
           }
