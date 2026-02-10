@@ -1,4 +1,6 @@
- import { useState } from "react";
+import { useState } from "react";
+import { useQueryClient } from "@tanstack/react-query";
+import { supabase } from "@/integrations/supabase/client";
  import { Button } from "@/components/ui/button";
  import { Input } from "@/components/ui/input";
  import { Label } from "@/components/ui/label";
@@ -115,10 +117,11 @@ const getStatusColor = (status: string) => {
    // Delete confirmation state
    const [deleteIndex, setDeleteIndex] = useState<number | null>(null);
  
-   const addStatusToHistory = useAddStatusToHistory();
-   const removeStatusFromHistory = useRemoveStatusFromHistory();
-   const updateStatusInHistory = useUpdateStatusInHistory();
-   const { data: profile } = useProfile();
+    const addStatusToHistory = useAddStatusToHistory();
+    const removeStatusFromHistory = useRemoveStatusFromHistory();
+    const updateStatusInHistory = useUpdateStatusInHistory();
+    const queryClient = useQueryClient();
+    const { data: profile } = useProfile();
    
     const today = new Date().toISOString().split("T")[0];
     const targetDate = shiftDate || today;
@@ -138,40 +141,41 @@ const getStatusColor = (status: string) => {
     
     // Build merged history: combine daily_shift_records status_history with equipment_stop_history
     // Build merged history with source tracking
-    type MergedEntry = StatusHistoryEntry & { shiftIndex: number | null };
+    type MergedEntry = StatusHistoryEntry & { shiftIndex: number | null; stopHistoryId: string | null };
     
     const mergedHistory: MergedEntry[] = (() => {
-      // Filter stop history entries by comparing the date portion of started_at
       const todayStopHistory = stopHistory.filter((sh) => {
         const startedDate = sh.started_at.slice(0, 10);
         return startedDate === effectiveDate;
       });
       
-      // Start with shift history entries (these are the editable ones)
       const entries: MergedEntry[] = shiftStatusHistory.map((entry, idx) => ({
         ...entry,
         shiftIndex: idx,
+        stopHistoryId: null,
       }));
       
-      // Add stop history entries that don't have a matching shift entry (within 2min tolerance)
       for (const sh of todayStopHistory) {
         const shTime = new Date(sh.started_at).getTime();
-        const hasDuplicate = shiftStatusHistory.some((entry) => {
+        const matchIdx = entries.findIndex((entry) => {
           const entryTime = new Date(entry.timestamp).getTime();
           return Math.abs(entryTime - shTime) < 120000 && entry.status === sh.stop_reason;
         });
-        if (!hasDuplicate) {
+        if (matchIdx >= 0) {
+          // Link the stop history id to the existing shift entry
+          entries[matchIdx].stopHistoryId = sh.id;
+        } else {
           entries.push({
             status: sh.stop_reason,
             timestamp: sh.started_at,
             changed_by: sh.changed_by_driver || undefined,
             description: sh.defect_description || undefined,
-            shiftIndex: null, // not in shift records, view-only
+            shiftIndex: null,
+            stopHistoryId: sh.id,
           });
         }
       }
       
-      // Sort by timestamp ascending
       return entries.sort((a, b) => new Date(a.timestamp).getTime() - new Date(b.timestamp).getTime());
     })();
     
@@ -229,28 +233,61 @@ const getStatusColor = (status: string) => {
       if (editingIndex === null || !editTime) return;
       
       const entry = statusHistory[editingIndex];
-      if (!entry || entry.shiftIndex === null) {
-        toast.error("Este registro não pode ser editado por aqui");
-        handleCancelEdit();
-        return;
-      }
+      if (!entry) return;
 
       setIsSubmitting(true);
 
       try {
         const newTimestamp = new Date(`${effectiveDate}T${editTime}:00`).toISOString();
 
-        await updateStatusInHistory.mutateAsync({
-          equipmentId,
-          statusIndex: entry.shiftIndex,
-          newStatus: editStatus,
-          newTimestamp,
-          newDescription: editDescription,
-          shiftDate: effectiveDate,
-        });
+        if (entry.shiftIndex !== null) {
+          // Edit in daily_shift_records
+          await updateStatusInHistory.mutateAsync({
+            equipmentId,
+            statusIndex: entry.shiftIndex,
+            newStatus: editStatus,
+            newTimestamp,
+            newDescription: editDescription,
+            shiftDate: effectiveDate,
+          });
+        }
+        
+        // Also update equipment_stop_history if we have a matching record
+        if (entry.stopHistoryId) {
+          await supabase
+            .from("equipment_stop_history")
+            .update({
+              stop_reason: editStatus,
+              started_at: newTimestamp,
+              defect_description: editDescription || null,
+            })
+            .eq("id", entry.stopHistoryId);
+        } else if (entry.shiftIndex === null) {
+          // Entry only in stop_history, find by timestamp match
+          const { data: matches } = await supabase
+            .from("equipment_stop_history")
+            .select("id")
+            .eq("equipment_id", equipmentId)
+            .eq("started_at", entry.timestamp)
+            .eq("stop_reason", entry.status)
+            .limit(1);
+          
+          if (matches && matches.length > 0) {
+            await supabase
+              .from("equipment_stop_history")
+              .update({
+                stop_reason: editStatus,
+                started_at: newTimestamp,
+                defect_description: editDescription || null,
+              })
+              .eq("id", matches[0].id);
+          }
+        }
 
         toast.success("Status atualizado com sucesso!");
         handleCancelEdit();
+        // Invalidate stop history cache
+        queryClient.invalidateQueries({ queryKey: ["equipment-stop-history"] });
       } catch (error) {
         console.error("Error updating status:", error);
         toast.error("Erro ao atualizar status");
@@ -263,21 +300,43 @@ const getStatusColor = (status: string) => {
       if (deleteIndex === null) return;
       
       const entry = statusHistory[deleteIndex];
-      if (!entry || entry.shiftIndex === null) {
-        toast.error("Este registro não pode ser removido por aqui");
-        setDeleteIndex(null);
-        return;
-      }
+      if (!entry) return;
 
       try {
-        await removeStatusFromHistory.mutateAsync({
-          equipmentId,
-          statusIndex: entry.shiftIndex,
-          shiftDate: effectiveDate,
-        });
+        if (entry.shiftIndex !== null) {
+          await removeStatusFromHistory.mutateAsync({
+            equipmentId,
+            statusIndex: entry.shiftIndex,
+            shiftDate: effectiveDate,
+          });
+        }
+        
+        // Also delete from equipment_stop_history
+        if (entry.stopHistoryId) {
+          await supabase
+            .from("equipment_stop_history")
+            .delete()
+            .eq("id", entry.stopHistoryId);
+        } else if (entry.shiftIndex === null) {
+          const { data: matches } = await supabase
+            .from("equipment_stop_history")
+            .select("id")
+            .eq("equipment_id", equipmentId)
+            .eq("started_at", entry.timestamp)
+            .eq("stop_reason", entry.status)
+            .limit(1);
+          
+          if (matches && matches.length > 0) {
+            await supabase
+              .from("equipment_stop_history")
+              .delete()
+              .eq("id", matches[0].id);
+          }
+        }
 
         toast.success("Status removido com sucesso!");
         setDeleteIndex(null);
+        queryClient.invalidateQueries({ queryKey: ["equipment-stop-history"] });
       } catch (error) {
         console.error("Error removing status:", error);
         toast.error("Erro ao remover status");
@@ -400,26 +459,24 @@ const getStatusColor = (status: string) => {
                                  </p>
                                )}
                              </div>
-                              {entry.shiftIndex !== null && (
-                                <div className="flex gap-1">
-                                  <Button
-                                    variant="ghost"
-                                    size="icon"
-                                    className="h-7 w-7"
-                                    onClick={() => handleStartEdit(index, entry)}
-                                  >
-                                    <Pencil className="h-3 w-3" />
-                                  </Button>
-                                  <Button
-                                    variant="ghost"
-                                    size="icon"
-                                    className="h-7 w-7 text-destructive hover:text-destructive"
-                                    onClick={() => setDeleteIndex(index)}
-                                  >
-                                    <Trash2 className="h-3 w-3" />
-                                  </Button>
-                                </div>
-                              )}
+                              <div className="flex gap-1">
+                                <Button
+                                  variant="ghost"
+                                  size="icon"
+                                  className="h-7 w-7"
+                                  onClick={() => handleStartEdit(index, entry)}
+                                >
+                                  <Pencil className="h-3 w-3" />
+                                </Button>
+                                <Button
+                                  variant="ghost"
+                                  size="icon"
+                                  className="h-7 w-7 text-destructive hover:text-destructive"
+                                  onClick={() => setDeleteIndex(index)}
+                                >
+                                  <Trash2 className="h-3 w-3" />
+                                </Button>
+                              </div>
                            </>
                          )}
                        </div>
