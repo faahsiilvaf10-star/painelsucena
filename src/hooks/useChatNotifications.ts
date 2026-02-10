@@ -1,8 +1,9 @@
-import { useEffect, useRef } from "react";
+import { useEffect, useRef, useCallback } from "react";
 import { supabase } from "@/integrations/supabase/client";
 import { useAuth } from "./useAuth";
 import { useBrowserNotifications } from "./useBrowserNotifications";
 import { playSoundFile } from "@/lib/sounds";
+import { toast } from "sonner";
 import type { Tables } from "@/integrations/supabase/types";
 
 type ChatMessage = Tables<"chat_messages">;
@@ -55,10 +56,17 @@ export const useChatNotifications = () => {
           // Play sound
           playSoundFile("/sounds/msn-chat.mp3");
 
-          // Show push notification if page is in background
+          // Always show in-app toast notification
+          toast(`💬 ${senderName}`, {
+            description: messagePreview,
+            duration: 5000,
+            position: "top-right",
+          });
+
+          // Also show OS/Windows push notification (works in background AND foreground)
           showNotification(`💬 ${senderName}`, {
             body: messagePreview,
-            tag: `chat-${newMessage.sender_id}`,
+            tag: `chat-${newMessage.sender_id}-${Date.now()}`,
             icon: senderProfile?.avatar_url || "/favicon.ico",
           });
         }
