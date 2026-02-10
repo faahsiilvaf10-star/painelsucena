@@ -6,8 +6,10 @@ const corsHeaders = {
     "authorization, x-client-info, apikey, content-type",
 };
 
+// Only these equipment names should have auto end-of-shift
+const ALLOWED_EQUIPMENT_NAMES = ["Sucena", "Toro"];
+
 Deno.serve(async (req) => {
-  // Handle CORS preflight requests
   if (req.method === "OPTIONS") {
     return new Response("ok", { headers: corsHeaders });
   }
@@ -17,31 +19,28 @@ Deno.serve(async (req) => {
 
     const supabaseUrl = Deno.env.get("SUPABASE_URL")!;
     const supabaseServiceKey = Deno.env.get("SUPABASE_SERVICE_ROLE_KEY")!;
-
     const supabase = createClient(supabaseUrl, supabaseServiceKey);
 
-    // Get all equipment that is NOT already in "end_of_shift" status AND NOT in "maintenance" status
-    // Equipment in maintenance should NOT be affected by auto end-of-shift
-    // Munk equipment should NOT be affected - drivers must manually end their shifts
+    // Only fetch Sucena and Toro equipment that are NOT already end_of_shift or maintenance
     const { data: activeEquipment, error: fetchError } = await supabase
       .from("equipment")
       .select("id, name, plate, stop_reason, driver, equipment_type")
+      .in("name", ALLOWED_EQUIPMENT_NAMES)
       .neq("stop_reason", "end_of_shift")
-      .neq("stop_reason", "maintenance")
-      .neq("equipment_type", "munk");
+      .neq("stop_reason", "maintenance");
 
     if (fetchError) {
       console.error("Error fetching equipment:", fetchError);
       throw fetchError;
     }
 
-    console.log(`Found ${activeEquipment?.length || 0} equipment not in end_of_shift, maintenance, or munk type`);
+    console.log(`Found ${activeEquipment?.length || 0} allowed equipment to update (Sucena/Toro)`);
 
     if (!activeEquipment || activeEquipment.length === 0) {
       return new Response(
         JSON.stringify({
           success: true,
-          message: "No equipment to update - all already in end_of_shift, maintenance, or munk type",
+          message: "No Sucena/Toro equipment to update",
           updated: 0,
         }),
         {
@@ -52,8 +51,9 @@ Deno.serve(async (req) => {
     }
 
     const now = new Date().toISOString();
+    const equipmentIds = activeEquipment.map((eq) => eq.id);
 
-    // Update all active equipment to end_of_shift (except maintenance and munk)
+    // Update only Sucena and Toro to end_of_shift
     const { data: updatedEquipment, error: updateError } = await supabase
       .from("equipment")
       .update({
@@ -62,9 +62,7 @@ Deno.serve(async (req) => {
         driver: "",
         helper: "",
       })
-      .neq("stop_reason", "end_of_shift")
-      .neq("stop_reason", "maintenance")
-      .neq("equipment_type", "munk")
+      .in("id", equipmentIds)
       .select();
 
     if (updateError) {
@@ -74,39 +72,34 @@ Deno.serve(async (req) => {
 
     console.log(`Successfully updated ${updatedEquipment?.length || 0} equipment to end_of_shift`);
 
-    // Log each equipment that was updated for history tracking
+    // Log history for each updated equipment
     for (const eq of activeEquipment) {
-      // Only create history record if equipment was actually active (had a driver or was operating)
-      if (eq.stop_reason !== "end_of_shift") {
-        const { error: historyError } = await supabase
-          .from("equipment_stop_history")
-          .insert({
-            equipment_id: eq.id,
-            stop_reason: "end_of_shift",
-            started_at: now,
-            changed_by_driver: "Sistema (Auto 17:00)",
-          });
+      // Close any open stop history records for this equipment
+      await supabase
+        .from("equipment_stop_history")
+        .update({
+          ended_at: now,
+          duration_minutes: 0,
+        })
+        .eq("equipment_id", eq.id)
+        .is("ended_at", null)
+        .neq("stop_reason", "end_of_shift");
 
-        if (historyError) {
-          console.error(`Error creating history for equipment ${eq.id}:`, historyError);
-        } else {
-          console.log(`Created history record for equipment: ${eq.name} (${eq.plate})`);
-        }
+      // Create new end_of_shift history record
+      const { error: historyError } = await supabase
+        .from("equipment_stop_history")
+        .insert({
+          equipment_id: eq.id,
+          stop_reason: "end_of_shift",
+          started_at: now,
+          changed_by_driver: "Sistema (Auto 19:00)",
+        });
+
+      if (historyError) {
+        console.error(`Error creating history for ${eq.name}:`, historyError);
+      } else {
+        console.log(`Created history record for: ${eq.name} (${eq.plate})`);
       }
-    }
-
-    // Also close any open stop history records
-    const { error: closeHistoryError } = await supabase
-      .from("equipment_stop_history")
-      .update({
-        ended_at: now,
-        duration_minutes: 0, // Will be calculated by the system
-      })
-      .is("ended_at", null)
-      .neq("stop_reason", "end_of_shift");
-
-    if (closeHistoryError) {
-      console.error("Error closing history records:", closeHistoryError);
     }
 
     return new Response(
