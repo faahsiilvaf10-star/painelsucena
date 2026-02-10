@@ -18,7 +18,24 @@ export interface SiteInspectionTask {
   completed_at: string | null;
   before_photo_url: string | null;
   after_photo_url: string | null;
+  observation: string | null;
   created_at: string;
+}
+
+export function useUpdateTaskObservation() {
+  const queryClient = useQueryClient();
+  return useMutation({
+    mutationFn: async ({ id, observation }: { id: string; observation: string | null }) => {
+      const { error } = await supabase
+        .from("site_inspection_tasks")
+        .update({ observation })
+        .eq("id", id);
+      if (error) throw error;
+    },
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ["site-inspection-tasks"] });
+    },
+  });
 }
 
 export function useSiteInspections() {
