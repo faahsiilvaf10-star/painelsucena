@@ -9,9 +9,9 @@ import { RecyclingGame } from "@/components/games/RecyclingGame";
 import { EPIGame } from "@/components/games/EPIGame";
 import { RocagemGame } from "@/components/games/RocagemGame";
 import { GabiaoGame } from "@/components/games/GabiaoGame";
-import { DominoGame } from "@/components/games/DominoGame";
+import { CheckersGame } from "@/components/games/CheckersGame";
 
-type ActiveGame = null | "recycling" | "epi" | "rocagem" | "gabiao" | "domino";
+type ActiveGame = null | "recycling" | "epi" | "rocagem" | "gabiao" | "checkers";
 
 interface GameCover {
   id: ActiveGame & string;
@@ -71,15 +71,15 @@ const GAMES: GameCover[] = [
     badgeColor: "bg-sky-500/15 text-sky-600 dark:text-sky-400",
   },
   {
-    id: "domino",
-    emoji: "🁣",
-    title: "Dominó Online",
-    subtitle: "Multiplayer",
-    description: "Jogue dominó em tempo real contra outro usuário online! Desafie seus colegas.",
-    gradient: "from-violet-500/20 via-purple-500/10 to-fuchsia-500/20",
-    borderColor: "border-violet-500/40 hover:border-violet-500",
-    badgeLabel: "2 jogadores",
-    badgeColor: "bg-violet-500/15 text-violet-600 dark:text-violet-400",
+    id: "checkers",
+    emoji: "♟️",
+    title: "Damas",
+    subtitle: "Estratégia",
+    description: "Jogue damas contra a IA! Escolha a dificuldade e mostre sua estratégia.",
+    gradient: "from-amber-700/20 via-yellow-800/10 to-orange-700/20",
+    borderColor: "border-amber-700/40 hover:border-amber-700",
+    badgeLabel: "vs IA",
+    badgeColor: "bg-amber-700/15 text-amber-700 dark:text-amber-400",
   },
 ];
 
@@ -148,7 +148,7 @@ export default function Games() {
         {activeGame === "epi" && <EPIGame onBack={() => setActiveGame(null)} />}
         {activeGame === "rocagem" && <RocagemGame onBack={() => setActiveGame(null)} />}
         {activeGame === "gabiao" && <GabiaoGame onBack={() => setActiveGame(null)} />}
-        {activeGame === "domino" && <DominoGame onBack={() => setActiveGame(null)} />}
+        {activeGame === "checkers" && <CheckersGame onBack={() => setActiveGame(null)} />}
       </div>
     </Layout>
   );
