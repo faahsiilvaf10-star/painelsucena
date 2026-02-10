@@ -209,20 +209,8 @@ export function DriverStatusButtons() {
         shift_end_time: now,
       });
 
-      // Automatically register equipment exit (saída) in equipment_movements
-      // This will trigger the announcement for all users and update "Entrada e Saída" page
-      try {
-        await createEquipmentMovement.mutateAsync({
-          equipment_name: selectedVehicle.name,
-          plate: selectedVehicle.plate,
-          movement_type: "saida",
-          exit_reason: "fim_turno",
-          observation: `Fim de turno - Combustível: ${getFuelLevelLabel(endShiftFuelLevel)}${endShiftHorimeter ? `, Horímetro: ${endShiftHorimeter}` : ""}${endShiftKm ? `, KM: ${endShiftKm}` : ""}`,
-        });
-      } catch (movementError) {
-        console.error("Error creating equipment movement:", movementError);
-        // Don't block the end of shift if movement creation fails
-      }
+      // Fim de Turno does NOT register as equipment exit (saída)
+      // The equipment remains on site, only the shift ends
 
       // Clear the driver field from the equipment
       await supabase
