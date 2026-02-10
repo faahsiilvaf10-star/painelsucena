@@ -2,6 +2,7 @@ import { useEffect, useRef } from "react";
 import { supabase } from "@/integrations/supabase/client";
 import { useAuth } from "./useAuth";
 import { toast } from "sonner";
+import { playSoundFile } from "@/lib/sounds";
 
 /**
  * Global hook that listens for new InstaCena posts in realtime
@@ -46,6 +47,8 @@ export const useInstaCenaNotifications = () => {
             : "Nova publicação com foto";
 
           const hasImages = newPost.image_urls && newPost.image_urls.length > 0;
+
+          playSoundFile("/sounds/instacena-post.mp3");
 
           toast(`📢 ${newPost.user_name}`, {
             description: `${truncatedContent}${hasImages ? " 📸" : ""}`,
