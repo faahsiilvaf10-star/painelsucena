@@ -1842,6 +1842,68 @@ export type Database = {
         }
         Relationships: []
       }
+      site_inspection_tasks: {
+        Row: {
+          completed_at: string | null
+          created_at: string
+          description: string
+          id: string
+          inspection_id: string
+          is_completed: boolean
+        }
+        Insert: {
+          completed_at?: string | null
+          created_at?: string
+          description: string
+          id?: string
+          inspection_id: string
+          is_completed?: boolean
+        }
+        Update: {
+          completed_at?: string | null
+          created_at?: string
+          description?: string
+          id?: string
+          inspection_id?: string
+          is_completed?: boolean
+        }
+        Relationships: [
+          {
+            foreignKeyName: "site_inspection_tasks_inspection_id_fkey"
+            columns: ["inspection_id"]
+            isOneToOne: false
+            referencedRelation: "site_inspections"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      site_inspections: {
+        Row: {
+          created_at: string
+          created_by: string
+          id: string
+          inspection_date: string
+          is_locked: boolean
+          updated_at: string
+        }
+        Insert: {
+          created_at?: string
+          created_by: string
+          id?: string
+          inspection_date?: string
+          is_locked?: boolean
+          updated_at?: string
+        }
+        Update: {
+          created_at?: string
+          created_by?: string
+          id?: string
+          inspection_date?: string
+          is_locked?: boolean
+          updated_at?: string
+        }
+        Relationships: []
+      }
       site_settings: {
         Row: {
           id: string
