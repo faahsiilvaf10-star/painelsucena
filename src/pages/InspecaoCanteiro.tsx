@@ -1,7 +1,7 @@
 import { useState, useRef, useMemo, useCallback } from "react";
 import { format } from "date-fns";
 import { ptBR } from "date-fns/locale";
-import { Plus, Lock, Unlock, Trash2, CheckCircle2, Circle, ClipboardCheck, Camera, X, CalendarIcon, Filter, History, FileDown, MessageSquare, Eye, ChevronLeft, ChevronRight } from "lucide-react";
+import { Plus, Lock, Unlock, Trash2, CheckCircle2, Circle, ClipboardCheck, Camera, X, CalendarIcon, Filter, History, FileDown, MessageSquare, Eye, ChevronLeft, ChevronRight, Share2 } from "lucide-react";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -671,6 +671,22 @@ function InspectionDetail({ inspection }: { inspection: { id: string; inspection
 
   const dateStr = format(new Date(inspection.inspection_date + "T12:00:00"), "dd/MM/yyyy");
 
+  const handleShareWhatsApp = () => {
+    const lines: string[] = [];
+    lines.push(`📋 *Inspeção de Canteiro - ${dateStr}*`);
+    lines.push(`✅ Progresso: ${percentage}% (${completedCount}/${totalCount})`);
+    lines.push("");
+    tasks.forEach((task, idx) => {
+      const status = task.is_completed ? "✅" : "⏳";
+      lines.push(`${status} ${idx + 1}. ${task.description}`);
+      if (task.observation) lines.push(`   📝 *${task.observation}*`);
+    });
+    lines.push("");
+    lines.push("_Sucena Empreendimentos_");
+    const text = encodeURIComponent(lines.join("\n"));
+    window.open(`https://api.whatsapp.com/send?text=${text}`, "_blank");
+  };
+
   return (
     <>
       <Card className="border border-border/40 backdrop-blur-sm bg-card/80">
@@ -701,6 +717,15 @@ function InspectionDetail({ inspection }: { inspection: { id: string; inspection
                   <span className="text-xs">Apresentação</span>
                 </Button>
               )}
+              <Button
+                size="sm"
+                variant="ghost"
+                onClick={handleShareWhatsApp}
+                className="h-8 px-2"
+                title="Enviar por WhatsApp"
+              >
+                <Share2 className="h-4 w-4" style={{ color: "#25D366" }} />
+              </Button>
               <Button
                 size="sm"
                 variant="ghost"
