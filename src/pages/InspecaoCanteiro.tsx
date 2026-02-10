@@ -486,10 +486,12 @@ function InspectionSlidePreview({ slides, currentSlide }: { slides: SlideData[];
 
   if (slide.type === "title") {
     return (
-      <div className="aspect-video bg-slate-900 rounded-xl flex flex-col items-center justify-center p-8 text-white">
+      <div className="aspect-video bg-slate-900 rounded-xl flex flex-col items-center justify-center p-8 text-white relative">
+        <img src="/logo-sucena-empreendimentos.png" alt="Logo" className="absolute top-4 left-4 h-8 object-contain" />
         <h2 className="text-2xl md:text-3xl font-bold">{slide.title}</h2>
         <p className="text-lg text-slate-400 mt-3">{slide.subtitle}</p>
         <p className="text-sm text-green-400 mt-2">{slide.caption}</p>
+        <img src="/logo-sucena-empreendimentos.png" alt="Logo" className="mt-6 h-12 object-contain" />
       </div>
     );
   }
@@ -514,7 +516,7 @@ function InspectionSlidePreview({ slides, currentSlide }: { slides: SlideData[];
                 <td className="p-2">{task.description}</td>
                 <td className="p-2">
                   {task.observation ? (
-                    <span style={{ background: "linear-gradient(to bottom, transparent 40%, rgba(250,204,21,0.45) 40%)" }} className="px-0.5">
+                    <span className="font-bold">
                       {task.observation}
                     </span>
                   ) : (
@@ -536,7 +538,7 @@ function InspectionSlidePreview({ slides, currentSlide }: { slides: SlideData[];
       <div className="aspect-video bg-white dark:bg-slate-50 rounded-xl p-4 md:p-6 overflow-auto text-slate-900">
         <h3 className="text-base md:text-lg font-bold">{(slide.taskIndex ?? 0) + 1}. {task.description}</h3>
         {task.observation && (
-          <p className="text-sm italic mt-1" style={{ background: "linear-gradient(to bottom, transparent 40%, rgba(250,204,21,0.45) 40%)" }}>
+          <p className="text-sm font-bold mt-1">
             {task.observation}
           </p>
         )}
@@ -564,9 +566,11 @@ function InspectionSlidePreview({ slides, currentSlide }: { slides: SlideData[];
 
   // closing
   return (
-    <div className="aspect-video bg-slate-900 rounded-xl flex flex-col items-center justify-center p-8 text-white">
+    <div className="aspect-video bg-slate-900 rounded-xl flex flex-col items-center justify-center p-8 text-white relative">
+      <img src="/logo-sucena-empreendimentos.png" alt="Logo" className="absolute top-4 left-4 h-8 object-contain" />
       <h2 className="text-2xl md:text-3xl font-bold text-green-400">Inspeção Concluída ✅</h2>
       <p className="text-base text-slate-400 mt-3">Todos os {slide.totalTasks} pontos foram resolvidos.</p>
+      <img src="/logo-sucena-empreendimentos.png" alt="Logo" className="mt-6 h-12 object-contain" />
     </div>
   );
 }
