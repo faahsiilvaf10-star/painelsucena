@@ -722,12 +722,12 @@ export function DominoGame({ onBack }: { onBack: () => void }) {
           </p>
           <div className="flex gap-3 justify-center">
             <div className="rounded-xl px-4 py-3 text-center" style={{ background: "#f0e8d0", border: "1px solid #d4c8a0" }}>
-              <div className="text-2xl font-black" style={{ color: "#5a3e0a" }}>{pipCount(myHand)}</div>
-              <div className="text-[10px] uppercase tracking-wider" style={{ color: "#8a7040" }}>Meus pts</div>
+              <div className="text-2xl font-black" style={{ color: "#5a3e0a" }}>{myHand.length}</div>
+              <div className="text-[10px] uppercase tracking-wider" style={{ color: "#8a7040" }}>Minhas peças</div>
             </div>
             <div className="rounded-xl px-4 py-3 text-center" style={{ background: "#f0e8d0", border: "1px solid #d4c8a0" }}>
-              <div className="text-2xl font-black" style={{ color: "#5a3e0a" }}>{pipCount(opponentHand)}</div>
-              <div className="text-[10px] uppercase tracking-wider" style={{ color: "#8a7040" }}>Pts dele</div>
+              <div className="text-2xl font-black" style={{ color: "#5a3e0a" }}>{opponentHand.length}</div>
+              <div className="text-[10px] uppercase tracking-wider" style={{ color: "#8a7040" }}>Peças dele</div>
             </div>
           </div>
           <div className="flex gap-2 justify-center pt-2">
@@ -781,7 +781,7 @@ export function DominoGame({ onBack }: { onBack: () => void }) {
 
         {/* Opponent score badge (top center) */}
         <div className="relative z-10 flex justify-center pb-1">
-          <ScoreboardBadge label={opponentName} value={pipCount(opponentHand)} emoji="😐" />
+          <ScoreboardBadge label={opponentName} value={opponentHand.length} emoji="😐" />
         </div>
 
         {/* Opponent hand (face down) */}
@@ -900,7 +900,7 @@ export function DominoGame({ onBack }: { onBack: () => void }) {
 
         {/* Player score badge (bottom center) */}
         <div className="relative z-10 flex justify-center pb-2">
-          <ScoreboardBadge label="EU" value={pipCount(myHand)} emoji="😊" />
+          <ScoreboardBadge label="EU" value={myHand.length} emoji="😊" />
         </div>
 
         {/* Draw / Pass button */}
