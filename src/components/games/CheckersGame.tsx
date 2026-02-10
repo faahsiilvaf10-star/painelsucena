@@ -414,11 +414,21 @@ export function CheckersGame({ onBack }: { onBack: () => void }) {
   const [animatingPiece, setAnimatingPiece] = useState<{ piece: Piece; pos: Position } | null>(null);
   const [hiddenPos, setHiddenPos] = useState<Position | null>(null);
 
-  // Piece customization
-  const [pieceStyle, setPieceStyle] = useState<PieceStyle>({ color: "classic-white", effect: "none" });
+  // Piece customization (persisted in localStorage)
+  const [pieceStyle, setPieceStyle] = useState<PieceStyle>(() => {
+    try {
+      const saved = localStorage.getItem("checkers-piece-style");
+      if (saved) return JSON.parse(saved);
+    } catch {}
+    return { color: "classic-white", effect: "none" };
+  });
   const [showCustomizer, setShowCustomizer] = useState(false);
 
-  // Online multiplayer
+  // Persist piece style to localStorage
+  useEffect(() => {
+    try { localStorage.setItem("checkers-piece-style", JSON.stringify(pieceStyle)); } catch {}
+  }, [pieceStyle]);
+
   const [onlineGameId, setOnlineGameId] = useState<string | null>(null);
   const [onlineStatus, setOnlineStatus] = useState<OnlineStatus>("lobby");
   const [myOnlineColor, setMyOnlineColor] = useState<PieceColor>("white");
