@@ -29,6 +29,7 @@ import { DocumentExpiryBanner } from "@/components/documents/DocumentExpiryBanne
 import { GoalAlertBanner } from "@/components/dashboard/GoalAlertBanner";
 import { VehicleExpiryBanner } from "@/components/vistorias/VehicleExpiryBanner";
 import { SlingInspectionBanner } from "@/components/dashboard/SlingInspectionBanner";
+import { InspectionScheduleBanner } from "@/components/dashboard/InspectionScheduleBanner";
 import { DraggableDashboardItem } from "@/components/dashboard/DraggableDashboardItem";
 import { DashboardEditControls } from "@/components/dashboard/DashboardEditControls";
 import BirthdayBanner from "@/components/dashboard/BirthdayBanner";
@@ -200,6 +201,7 @@ const Dashboard = () => {
         </div>
 
         {/* Fixed banners */}
+        <InspectionScheduleBanner />
         <BirthdayBanner />
         <DDSPresenterAlert />
 
