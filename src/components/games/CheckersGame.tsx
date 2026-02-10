@@ -14,7 +14,7 @@ interface Piece { color: PieceColor; type: PieceType; }
 type Cell = Piece | null;
 type Board = Cell[][];
 interface Position { row: number; col: number; }
-interface Move { from: Position; to: Position; captures: Position[]; }
+interface Move { from: Position; to: Position; captures: Position[]; intermediateSteps?: Position[]; }
 
 const BOARD_SIZE = 8;
 const DIFFICULTY_CONFIG: Record<AIDifficulty, { label: string; emoji: string; description: string; depth: number }> = {
@@ -47,7 +47,7 @@ function getValidMoves(board: Board, color: PieceColor): Move[] {
     for (let c = 0; c < BOARD_SIZE; c++) {
       const piece = board[r][c];
       if (!piece || piece.color !== color) continue;
-      const pCaptures = getCapturesForPiece(board, { row: r, col: c }, piece, []);
+      const pCaptures = getCapturesFromOrigin(board, { row: r, col: c }, piece);
       captures.push(...pCaptures);
       if (captures.length === 0) {
         const pSimple = getSimpleMovesForPiece(board, { row: r, col: c }, piece);
@@ -55,22 +55,13 @@ function getValidMoves(board: Board, color: PieceColor): Move[] {
       }
     }
   }
-  // Captures are mandatory
-  if (captures.length > 0) {
-    // Return only max-length captures
-    const maxLen = Math.max(...captures.map(m => m.captures.length));
-    return captures.filter(m => m.captures.length === maxLen);
-  }
+  // Captures are mandatory — show ALL capture paths so the player can choose
+  if (captures.length > 0) return captures;
   return simple;
 }
 
-function getCapturesForPiece(board: Board, pos: Position, piece: Piece, alreadyCaptured: Position[]): Move[] {
-  const directions = piece.type === "king"
-    ? [[-1, -1], [-1, 1], [1, -1], [1, 1]]
-    : piece.color === "white"
-      ? [[-1, -1], [-1, 1], [1, -1], [1, 1]] // normal can capture backwards too in Brazilian rules
-      : [[-1, -1], [-1, 1], [1, -1], [1, 1]];
-
+function getCapturesForPiece(board: Board, pos: Position, piece: Piece, alreadyCaptured: Position[], path: Position[] = []): Move[] {
+  const directions = [[-1, -1], [-1, 1], [1, -1], [1, 1]];
   const results: Move[] = [];
 
   for (const [dr, dc] of directions) {
@@ -86,22 +77,64 @@ function getCapturesForPiece(board: Board, pos: Position, piece: Piece, alreadyC
     if (end !== null) continue;
     if (alreadyCaptured.some(p => p.row === midR && p.col === midC)) continue;
 
-    // Try multi-jump
     const newBoard = cloneBoard(board);
     newBoard[pos.row][pos.col] = null;
     newBoard[midR][midC] = null;
     newBoard[endR][endC] = piece;
     const newCaptured = [...alreadyCaptured, { row: midR, col: midC }];
+    const newPath = [...path, { row: endR, col: endC }];
 
-    const further = getCapturesForPiece(newBoard, { row: endR, col: endC }, piece, newCaptured);
+    const further = getCapturesForPiece(newBoard, { row: endR, col: endC }, piece, newCaptured, newPath);
     if (further.length > 0) {
-      for (const f of further) {
-        results.push({ from: pos, to: f.to, captures: [{ row: midR, col: midC }, ...f.captures] });
-      }
+      results.push(...further);
     } else {
-      results.push({ from: pos, to: { row: endR, col: endC }, captures: [{ row: midR, col: midC }] });
+      results.push({
+        from: { row: path.length === 0 ? pos.row : path[0].row - (path[0].row - pos.row), col: path.length === 0 ? pos.col : path[0].col - (path[0].col - pos.col) },
+        to: { row: endR, col: endC },
+        captures: [{ row: midR, col: midC }, ...alreadyCaptured.slice(path.length)],
+        intermediateSteps: newPath,
+      });
     }
   }
+  return results;
+}
+
+// Recalculate captures with full path tracking from the original position
+function getCapturesFromOrigin(board: Board, pos: Position, piece: Piece): Move[] {
+  const directions = [[-1, -1], [-1, 1], [1, -1], [1, 1]];
+  const results: Move[] = [];
+
+  function recurse(b: Board, curPos: Position, captured: Position[], steps: Position[]) {
+    let found = false;
+    for (const [dr, dc] of directions) {
+      const midR = curPos.row + dr;
+      const midC = curPos.col + dc;
+      const endR = curPos.row + dr * 2;
+      const endC = curPos.col + dc * 2;
+      if (endR < 0 || endR >= BOARD_SIZE || endC < 0 || endC >= BOARD_SIZE) continue;
+      const mid = b[midR][midC];
+      const end = b[endR][endC];
+      if (!mid || mid.color === piece.color) continue;
+      if (end !== null) continue;
+      if (captured.some(p => p.row === midR && p.col === midC)) continue;
+
+      found = true;
+      const nb = cloneBoard(b);
+      nb[curPos.row][curPos.col] = null;
+      nb[midR][midC] = null;
+      nb[endR][endC] = piece;
+      recurse(nb, { row: endR, col: endC }, [...captured, { row: midR, col: midC }], [...steps, { row: endR, col: endC }]);
+    }
+    if (!found && captured.length > 0) {
+      results.push({
+        from: pos,
+        to: steps[steps.length - 1],
+        captures: captured,
+        intermediateSteps: steps,
+      });
+    }
+  }
+  recurse(board, pos, [], []);
   return results;
 }
 
@@ -254,7 +287,56 @@ export function CheckersGame({ onBack }: { onBack: () => void }) {
   const gameContainerRef = useRef<HTMLDivElement>(null);
   const aiThinkingRef = useRef(false);
 
+  const [isAnimating, setIsAnimating] = useState(false);
+  const [fadingPieces, setFadingPieces] = useState<Position[]>([]);
+  const [animatingPiece, setAnimatingPiece] = useState<{ piece: Piece; pos: Position } | null>(null);
+  const [hiddenPos, setHiddenPos] = useState<Position | null>(null);
+
   const playerName = profile?.full_name || "Jogador";
+
+  // Animate a move step by step
+  const animateMove = useCallback((b: Board, move: Move, onDone: (finalBoard: Board) => void) => {
+    const piece = b[move.from.row][move.from.col]!;
+    if (!move.intermediateSteps || move.intermediateSteps.length <= 1) {
+      // Simple move or single capture — just apply with a quick layout animation
+      const newBoard = applyMove(b, move);
+      onDone(newBoard);
+      return;
+    }
+
+    setIsAnimating(true);
+    setHiddenPos(move.from);
+    setAnimatingPiece({ piece, pos: move.from });
+
+    const steps = move.intermediateSteps;
+    let stepIdx = 0;
+    const capturedSoFar: Position[] = [];
+
+    const nextStep = () => {
+      if (stepIdx >= steps.length) {
+        // Animation done — apply final board
+        setAnimatingPiece(null);
+        setHiddenPos(null);
+        setIsAnimating(false);
+        setTimeout(() => setFadingPieces([]), 500);
+        const newBoard = applyMove(b, move);
+        onDone(newBoard);
+        return;
+      }
+
+      const target = steps[stepIdx];
+      // Find which capture corresponds to this step
+      if (move.captures[stepIdx]) {
+        capturedSoFar.push(move.captures[stepIdx]);
+        setFadingPieces([...capturedSoFar]);
+      }
+      setAnimatingPiece({ piece, pos: target });
+      stepIdx++;
+      setTimeout(nextStep, 350);
+    };
+
+    setTimeout(nextStep, 80);
+  }, []);
 
   // Fullscreen tracking
   useEffect(() => {
@@ -321,7 +403,7 @@ export function CheckersGame({ onBack }: { onBack: () => void }) {
 
   // AI turn
   useEffect(() => {
-    if (view !== "playing" || currentTurn !== "black" || aiThinkingRef.current || winner) return;
+    if (view !== "playing" || currentTurn !== "black" || aiThinkingRef.current || winner || isAnimating) return;
     aiThinkingRef.current = true;
     setAiThinking(true);
     const delay = aiDifficulty === "easy" ? 500 : aiDifficulty === "medium" ? 800 : 1200;
@@ -331,22 +413,22 @@ export function CheckersGame({ onBack }: { onBack: () => void }) {
         setWinner("white");
         setView("finished");
         saveStats(true);
+        setAiThinking(false);
+        aiThinkingRef.current = false;
       } else {
-        const newBoard = applyMove(board, move);
-        setBoard(newBoard);
-        setLastMove(move);
-        if (move.captures.length > 0) setCapturedBlack(prev => prev);
-        setCapturedWhite(prev => prev + move.captures.length);
-        setCurrentTurn("white");
-        if (!checkGameEnd(newBoard, "white")) {
-          // ok
-        }
+        animateMove(board, move, (newBoard) => {
+          setBoard(newBoard);
+          setLastMove(move);
+          setCapturedWhite(prev => prev + move.captures.length);
+          setCurrentTurn("white");
+          setAiThinking(false);
+          aiThinkingRef.current = false;
+          checkGameEnd(newBoard, "white");
+        });
       }
-      setAiThinking(false);
-      aiThinkingRef.current = false;
     }, delay);
     return () => { clearTimeout(timer); aiThinkingRef.current = false; };
-  }, [view, currentTurn, board, aiDifficulty, winner, checkGameEnd, saveStats]);
+  }, [view, currentTurn, board, aiDifficulty, winner, checkGameEnd, saveStats, isAnimating, animateMove]);
 
   // Calculate valid moves when turn changes
   useEffect(() => {
@@ -356,7 +438,7 @@ export function CheckersGame({ onBack }: { onBack: () => void }) {
   }, [board, currentTurn, view, winner]);
 
   const handleCellClick = useCallback((row: number, col: number) => {
-    if (currentTurn !== "white" || aiThinking || winner) return;
+    if (currentTurn !== "white" || aiThinking || winner || isAnimating) return;
 
     const piece = board[row][col];
 
@@ -364,14 +446,15 @@ export function CheckersGame({ onBack }: { onBack: () => void }) {
     if (selectedPos && highlightedMoves.length > 0) {
       const move = highlightedMoves.find(m => m.to.row === row && m.to.col === col);
       if (move) {
-        const newBoard = applyMove(board, move);
-        setBoard(newBoard);
-        setLastMove(move);
-        setCapturedBlack(prev => prev + move.captures.length);
         setSelectedPos(null);
         setHighlightedMoves([]);
-        setCurrentTurn("black");
-        checkGameEnd(newBoard, "black");
+        animateMove(board, move, (newBoard) => {
+          setBoard(newBoard);
+          setLastMove(move);
+          setCapturedBlack(prev => prev + move.captures.length);
+          setCurrentTurn("black");
+          checkGameEnd(newBoard, "black");
+        });
         return;
       }
     }
@@ -392,7 +475,7 @@ export function CheckersGame({ onBack }: { onBack: () => void }) {
     // Deselect
     setSelectedPos(null);
     setHighlightedMoves([]);
-  }, [board, currentTurn, aiThinking, winner, selectedPos, highlightedMoves, validMoves, checkGameEnd]);
+  }, [board, currentTurn, aiThinking, winner, selectedPos, highlightedMoves, validMoves, checkGameEnd, isAnimating, animateMove]);
 
   const startGame = (difficulty: AIDifficulty) => {
     setAiDifficulty(difficulty);
@@ -615,13 +698,13 @@ export function CheckersGame({ onBack }: { onBack: () => void }) {
       {/* Board */}
       <div className="relative z-10 flex-1 flex items-center justify-center px-2 py-2">
         <div
-          className="rounded-lg overflow-hidden shadow-2xl"
+          className="rounded-lg overflow-hidden shadow-2xl relative"
           style={{
             border: "4px solid #5a3a1a",
             boxShadow: "0 0 0 2px #3a2410, 0 8px 32px rgba(0,0,0,0.5)",
           }}
         >
-          <div className="grid grid-cols-8" style={{ width: "min(85vw, 85vh, 480px)", height: "min(85vw, 85vh, 480px)" }}>
+          <div className="grid grid-cols-8 relative" style={{ width: "min(85vw, 85vh, 480px)", height: "min(85vw, 85vh, 480px)" }}>
             {board.map((row, r) =>
               row.map((cell, c) => {
                 const isDark = (r + c) % 2 === 1;
@@ -630,43 +713,74 @@ export function CheckersGame({ onBack }: { onBack: () => void }) {
                 const isLastFrom = lastMove?.from.row === r && lastMove?.from.col === c;
                 const isLastTo = lastMove?.to.row === r && lastMove?.to.col === c;
                 const isCaptured = lastMove?.captures.some(p => p.row === r && p.col === c);
-                const isMovable = currentTurn === "white" && cell?.color === "white" && movablePieces.has(`${r}-${c}`);
+                const isMovable = currentTurn === "white" && cell?.color === "white" && movablePieces.has(`${r}-${c}`) && !isAnimating;
+                const isFading = fadingPieces.some(p => p.row === r && p.col === c);
+                const isHidden = hiddenPos?.row === r && hiddenPos?.col === c;
+                const showHighlightPath = highlightedMoves.some(m =>
+                  m.intermediateSteps?.some(s => s.row === r && s.col === c)
+                );
+
+                // Don't render piece if it's the one being animated
+                const showPiece = cell && !isHidden && !isFading;
 
                 return (
                   <div
                     key={`${r}-${c}`}
                     onClick={() => isDark ? handleCellClick(r, c) : undefined}
-                    className="relative flex items-center justify-center transition-colors"
+                    className="relative flex items-center justify-center"
                     style={{
                       background: isDark
-                        ? isSelected ? "#6B8E23" : isHighlighted ? "#90EE90" : isLastFrom || isLastTo ? "#a0a060" : DARK_SQUARE
+                        ? isSelected ? "#6B8E23" : isHighlighted ? "#5a9e3a" : showHighlightPath ? "#7aae5a" : isLastFrom || isLastTo ? "#a0a060" : DARK_SQUARE
                         : LIGHT_SQUARE,
-                      cursor: isDark ? "pointer" : "default",
+                      cursor: isDark && !isAnimating ? "pointer" : "default",
                       aspectRatio: "1",
+                      transition: "background 0.2s ease",
                     }}
                   >
                     {/* Highlight dot for valid moves */}
-                    {isHighlighted && !cell && (
-                      <div className="absolute w-[30%] h-[30%] rounded-full bg-green-500/60" />
+                    {isHighlighted && !cell && !isAnimating && (
+                      <motion.div
+                        initial={{ scale: 0 }}
+                        animate={{ scale: 1 }}
+                        className="absolute w-[30%] h-[30%] rounded-full"
+                        style={{ background: "rgba(80,200,80,0.7)", boxShadow: "0 0 8px rgba(80,200,80,0.4)" }}
+                      />
                     )}
 
-                    {/* Capture indicator */}
-                    {isCaptured && (
+                    {/* Capture indicator (post-move) */}
+                    {isCaptured && !isAnimating && (
                       <motion.div
                         initial={{ scale: 1, opacity: 0.6 }}
                         animate={{ scale: 0, opacity: 0 }}
-                        transition={{ duration: 0.5 }}
-                        className="absolute w-[60%] h-[60%] rounded-full bg-red-500/40"
+                        transition={{ duration: 0.6, ease: "easeOut" }}
+                        className="absolute w-[60%] h-[60%] rounded-full"
+                        style={{ background: "rgba(220,60,60,0.4)" }}
+                      />
+                    )}
+
+                    {/* Fading piece (being captured during animation) */}
+                    {isFading && cell && (
+                      <motion.div
+                        initial={{ scale: 1, opacity: 1 }}
+                        animate={{ scale: 0.3, opacity: 0, y: 10 }}
+                        transition={{ duration: 0.4, ease: "easeOut" }}
+                        className="absolute flex items-center justify-center rounded-full"
+                        style={{
+                          width: "78%",
+                          height: "78%",
+                          background: cell.color === "white" ? WHITE_PIECE_BG : BLACK_PIECE_BG,
+                          border: `2.5px solid ${cell.color === "white" ? WHITE_PIECE_BORDER : BLACK_PIECE_BORDER}`,
+                        }}
                       />
                     )}
 
                     {/* Piece */}
-                    {cell && (
+                    {showPiece && (
                       <motion.div
                         layout
                         initial={false}
                         animate={isMovable && !aiThinking ? { scale: [1, 1.05, 1] } : {}}
-                        transition={isMovable ? { duration: 1.5, repeat: Infinity } : {}}
+                        transition={isMovable ? { duration: 1.5, repeat: Infinity } : { layout: { duration: 0.35, ease: "easeInOut" } }}
                         className="relative flex items-center justify-center rounded-full"
                         style={{
                           width: "78%",
@@ -679,7 +793,6 @@ export function CheckersGame({ onBack }: { onBack: () => void }) {
                           cursor: cell.color === "white" && isMovable ? "pointer" : "default",
                         }}
                       >
-                        {/* Inner ring */}
                         <div
                           className="absolute rounded-full"
                           style={{
@@ -688,7 +801,6 @@ export function CheckersGame({ onBack }: { onBack: () => void }) {
                             border: `1.5px solid ${cell.color === "white" ? "rgba(180,150,100,0.5)" : "rgba(255,255,255,0.15)"}`,
                           }}
                         />
-                        {/* Crown for kings */}
                         {cell.type === "king" && (
                           <span className="text-[clamp(10px,2.5vw,18px)] select-none" style={{ filter: cell.color === "white" ? "none" : "brightness(2)" }}>
                             👑
@@ -699,6 +811,47 @@ export function CheckersGame({ onBack }: { onBack: () => void }) {
                   </div>
                 );
               })
+            )}
+
+            {/* Animating piece overlay */}
+            {animatingPiece && (
+              <motion.div
+                className="absolute flex items-center justify-center rounded-full pointer-events-none"
+                animate={{
+                  left: `${(animatingPiece.pos.col / 8) * 100}%`,
+                  top: `${(animatingPiece.pos.row / 8) * 100}%`,
+                }}
+                transition={{ duration: 0.3, ease: "easeInOut" }}
+                style={{
+                  width: `${100 / 8}%`,
+                  height: `${100 / 8}%`,
+                  zIndex: 50,
+                  padding: "11%",
+                }}
+              >
+                <div
+                  className="w-full h-full rounded-full flex items-center justify-center"
+                  style={{
+                    background: animatingPiece.piece.color === "white" ? WHITE_PIECE_BG : BLACK_PIECE_BG,
+                    border: `2.5px solid ${animatingPiece.piece.color === "white" ? WHITE_PIECE_BORDER : BLACK_PIECE_BORDER}`,
+                    boxShadow: `0 6px 16px rgba(0,0,0,0.4), 0 0 20px rgba(100,180,50,0.3)`,
+                  }}
+                >
+                  <div
+                    className="absolute rounded-full"
+                    style={{
+                      width: "65%",
+                      height: "65%",
+                      border: `1.5px solid ${animatingPiece.piece.color === "white" ? "rgba(180,150,100,0.5)" : "rgba(255,255,255,0.15)"}`,
+                    }}
+                  />
+                  {animatingPiece.piece.type === "king" && (
+                    <span className="text-[clamp(10px,2.5vw,18px)] select-none" style={{ filter: animatingPiece.piece.color === "white" ? "none" : "brightness(2)" }}>
+                      👑
+                    </span>
+                  )}
+                </div>
+              </motion.div>
             )}
           </div>
         </div>
