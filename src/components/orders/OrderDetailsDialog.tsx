@@ -1,7 +1,8 @@
 import { useState } from "react";
+import { useQueryClient } from "@tanstack/react-query";
 import { format } from "date-fns";
 import { ptBR } from "date-fns/locale";
-import { Calendar, Clock, Package, User, History, Trash2, Edit2, ImageIcon, ArrowRight, Hash, Copy, List, MessageCircle, Check, X } from "lucide-react";
+import { Calendar, Clock, Package, User, History, Trash2, Edit2, ImageIcon, ArrowRight, Hash, Copy, List, MessageCircle, Check, X, XCircle } from "lucide-react";
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/components/ui/dialog";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
@@ -11,6 +12,7 @@ import { Separator } from "@/components/ui/separator";
 import { ScrollArea } from "@/components/ui/scroll-area";
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
 import { Order, OrderStatus, QuantityUnit, useOrderHistory, useUpdateOrderStatus, useUpdateOrderQuantity, useDeleteOrder, useOrderItems, useUpdateOrderItem, useDeleteOrderItem } from "@/hooks/useOrders";
+import { supabase } from "@/integrations/supabase/client";
 import { useAuth } from "@/hooks/useAuth";
 import { useIsAdmin } from "@/hooks/useUserRole";
 import { useProfile } from "@/hooks/useProfile";
@@ -109,6 +111,7 @@ export function OrderDetailsDialog({ order, open, onOpenChange }: OrderDetailsDi
   const { user } = useAuth();
   const { data: profile } = useProfile();
   const { isAdmin } = useIsAdmin();
+  const queryClient = useQueryClient();
   const { toast } = useToast();
   const updateStatus = useUpdateOrderStatus();
   const updateQuantity = useUpdateOrderQuantity();
@@ -204,6 +207,35 @@ export function OrderDetailsDialog({ order, open, onOpenChange }: OrderDetailsDi
   const openPhotoViewer = (index: number) => {
     setPhotoIndex(index);
     setPhotoViewerOpen(true);
+  };
+
+  const handleRemovePhoto = async (url: string) => {
+    try {
+      const isAiImage = url === order.ai_generated_image_url;
+      const updateData: Record<string, any> = {};
+
+      if (isAiImage) {
+        updateData.ai_generated_image_url = null;
+      } else {
+        const newPhotoUrls = (order.photo_urls || []).filter((u) => u !== url);
+        updateData.photo_urls = newPhotoUrls;
+      }
+
+      const { error } = await supabase
+        .from("orders")
+        .update(updateData)
+        .eq("id", order.id);
+
+      if (error) throw error;
+
+      toast({ title: "Foto removida!" });
+      // Invalidate queries to refresh
+      queryClient.invalidateQueries({ queryKey: ["orders"] });
+      queryClient.invalidateQueries({ queryKey: ["my-orders"] });
+      queryClient.invalidateQueries({ queryKey: ["pending-orders"] });
+    } catch {
+      toast({ title: "Erro ao remover foto", variant: "destructive" });
+    }
   };
 
   const handleStartEditItem = (item: { id: string; product_name: string; quantity: number; quantity_unit: QuantityUnit; description: string | null }) => {
@@ -456,25 +488,37 @@ export function OrderDetailsDialog({ order, open, onOpenChange }: OrderDetailsDi
                   </h4>
                   <div className="flex flex-wrap gap-2">
                     {allImages.map((url, index) => (
-                      <button
-                        key={index}
-                        onClick={() => openPhotoViewer(index)}
-                        className="relative w-24 h-24 rounded-md overflow-hidden hover:ring-2 hover:ring-primary transition-all group"
-                      >
-                        <img
-                          src={url}
-                          alt={`Imagem ${index + 1}`}
-                          className="w-full h-full object-cover group-hover:scale-105 transition-transform"
-                        />
-                        {url === order.ai_generated_image_url && (
-                          <span className="absolute bottom-0 left-0 right-0 bg-primary/80 text-primary-foreground text-[10px] text-center py-0.5">
-                            IA
-                          </span>
+                      <div key={index} className="relative">
+                        <button
+                          onClick={() => openPhotoViewer(index)}
+                          className="relative w-24 h-24 rounded-md overflow-hidden hover:ring-2 hover:ring-primary transition-all group"
+                        >
+                          <img
+                            src={url}
+                            alt={`Imagem ${index + 1}`}
+                            className="w-full h-full object-cover group-hover:scale-105 transition-transform"
+                          />
+                          {url === order.ai_generated_image_url && (
+                            <span className="absolute bottom-0 left-0 right-0 bg-primary/80 text-primary-foreground text-[10px] text-center py-0.5">
+                              IA
+                            </span>
+                          )}
+                          <div className="absolute inset-0 bg-black/0 group-hover:bg-black/20 transition-colors flex items-center justify-center">
+                            <ImageIcon className="w-6 h-6 text-white opacity-0 group-hover:opacity-100 transition-opacity" />
+                          </div>
+                        </button>
+                        {canEditItems && (
+                          <button
+                            onClick={(e) => {
+                              e.stopPropagation();
+                              handleRemovePhoto(url);
+                            }}
+                            className="absolute -top-2 -right-2 bg-destructive text-destructive-foreground rounded-full p-0.5 hover:bg-destructive/90 transition-colors z-10"
+                          >
+                            <X className="w-3.5 h-3.5" />
+                          </button>
                         )}
-                        <div className="absolute inset-0 bg-black/0 group-hover:bg-black/20 transition-colors flex items-center justify-center">
-                          <ImageIcon className="w-6 h-6 text-white opacity-0 group-hover:opacity-100 transition-opacity" />
-                        </div>
-                      </button>
+                      </div>
                     ))}
                   </div>
                 </div>
