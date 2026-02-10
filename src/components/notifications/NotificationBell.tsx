@@ -1,4 +1,4 @@
-import { Bell, Check, CheckCheck, Trash2, Calendar, BellRing, Volume2 } from "lucide-react";
+import { Bell, Check, CheckCheck, Trash2, Calendar, BellRing, Volume2, MessageCircle, Heart, AtSign } from "lucide-react";
 import { formatDistanceToNow } from "date-fns";
 import { ptBR } from "date-fns/locale";
 import {
@@ -21,8 +21,10 @@ import { useAuth } from "@/hooks/useAuth";
 import { cn } from "@/lib/utils";
 import { useMemo } from "react";
 import { toast } from "sonner";
+import { useNavigate } from "react-router-dom";
 
 export function NotificationBell() {
+  const navigate = useNavigate();
   const { user } = useAuth();
   const { data: notifications, isLoading } = useNotifications();
   const markAsRead = useMarkAsRead();
@@ -69,8 +71,24 @@ export function NotificationBell() {
     switch (type) {
       case "dds_mention":
         return <Calendar className="h-4 w-4 text-amber-500" />;
+      case "instacena_reaction":
+        return <Heart className="h-4 w-4 text-red-500" />;
+      case "instacena_comment":
+        return <MessageCircle className="h-4 w-4 text-blue-500" />;
+      case "instacena_mention":
+        return <AtSign className="h-4 w-4 text-green-500" />;
       default:
         return <Bell className="h-4 w-4 text-muted-foreground" />;
+    }
+  };
+
+  const handleNotificationClick = (notification: { id: string; read: boolean; type: string; reference_type: string | null }) => {
+    if (!notification.read) {
+      markAsRead.mutate(notification.id);
+    }
+    // Navigate to InstaCena for instacena notification types
+    if (notification.reference_type === "instacena_post") {
+      navigate("/instacena");
     }
   };
 
@@ -164,11 +182,7 @@ export function NotificationBell() {
                     "p-4 hover:bg-muted/50 transition-colors cursor-pointer group",
                     !notification.read && "bg-amber-500/5"
                   )}
-                  onClick={() => {
-                    if (!notification.read) {
-                      markAsRead.mutate(notification.id);
-                    }
-                  }}
+                  onClick={() => handleNotificationClick(notification)}
                 >
                   <div className="flex gap-3">
                     <div className="flex-shrink-0 mt-0.5">
