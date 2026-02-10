@@ -56,85 +56,65 @@ export function GameRankings() {
 
   if (!hasAnyData) return null;
 
+  const quizGames = gameIds.filter(id => {
+    if (id === "checkers") return checkersStats && checkersStats.length > 0;
+    return quizScores?.[id]?.length;
+  });
+
   return (
-    <Card className="border border-border/50">
-      <CardContent className="p-4 space-y-3">
-        <div className="flex items-center gap-2">
-          <Trophy className="w-5 h-5 text-yellow-500" />
-          <h3 className="font-bold text-foreground">Ranking dos Games</h3>
-        </div>
+    <div className="space-y-3">
+      <div className="flex items-center gap-2">
+        <Trophy className="w-5 h-5 text-yellow-500" />
+        <h3 className="font-bold text-foreground">Ranking dos Games</h3>
+      </div>
 
-        <Tabs defaultValue={gameIds.find(id => {
-          if (id === "checkers") return checkersStats && checkersStats.length > 0;
-          return quizScores?.[id]?.length;
-        }) || "recycling"} className="w-full">
-          <TabsList className="w-full flex flex-wrap h-auto gap-1 bg-muted/50 p-1">
-            {gameIds.map(id => {
-              const info = GAME_INFO[id];
-              const hasData = id === "checkers"
-                ? checkersStats && checkersStats.length > 0
-                : quizScores?.[id]?.length;
-              if (!hasData) return null;
-              return (
-                <TabsTrigger key={id} value={id} className="text-xs gap-1 flex-1 min-w-[70px]">
-                  <span>{info.emoji}</span>
-                  <span className="hidden sm:inline">{info.label}</span>
-                </TabsTrigger>
-              );
-            })}
-          </TabsList>
+      <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-5 gap-3">
+        {quizGames.map(id => {
+          const info = GAME_INFO[id];
+          const isCheckers = id === "checkers";
+          const scores = isCheckers ? null : (quizScores?.[id] || []);
+          const cStats = isCheckers ? checkersStats : null;
 
-          {gameIds.filter(id => id !== "checkers").map(id => {
-            const scores = quizScores?.[id] || [];
-            if (scores.length === 0) return null;
-            return (
-              <TabsContent key={id} value={id} className="mt-3 space-y-2">
-                {scores.map((s, i) => (
-                  <div key={s.id} className="flex items-center gap-2 p-2 rounded-lg bg-muted/30">
-                    <MedalIcon position={i} />
-                    <Avatar className="w-7 h-7">
-                      <AvatarImage src={s.avatar_url || undefined} />
-                      <AvatarFallback className="text-xs">{s.user_name.charAt(0)}</AvatarFallback>
-                    </Avatar>
-                    <span className="text-sm font-medium text-foreground flex-1 truncate">
-                      {s.user_name.split(" ")[0]}
-                    </span>
-                    <Badge variant="secondary" className="text-xs gap-1">
-                      {s.score} pts
-                    </Badge>
-                    <span className="text-xs text-muted-foreground">
-                      {s.correct_answers}/{s.total_questions}
-                    </span>
-                  </div>
-                ))}
-              </TabsContent>
-            );
-          })}
-
-          {checkersStats && checkersStats.length > 0 && (
-            <TabsContent value="checkers" className="mt-3 space-y-2">
-              {checkersStats.map((s, i) => (
-                <div key={s.id} className="flex items-center gap-2 p-2 rounded-lg bg-muted/30">
-                  <MedalIcon position={i} />
-                  <Avatar className="w-7 h-7">
-                    <AvatarImage src={s.avatar_url || undefined} />
-                    <AvatarFallback className="text-xs">{s.user_name.charAt(0)}</AvatarFallback>
-                  </Avatar>
-                  <span className="text-sm font-medium text-foreground flex-1 truncate">
-                    {s.user_name.split(" ")[0]}
-                  </span>
-                  <Badge variant="secondary" className="text-xs gap-1 text-green-600">
-                    {s.wins}V
-                  </Badge>
-                  <Badge variant="outline" className="text-xs gap-1 text-red-500">
-                    {s.losses}D
-                  </Badge>
+          return (
+            <Card key={id} className="border border-border/50">
+              <CardContent className="p-3 space-y-2">
+                <div className="flex items-center gap-1.5">
+                  <span className="text-lg">{info.emoji}</span>
+                  <span className="text-xs font-bold text-foreground truncate">{info.label}</span>
                 </div>
-              ))}
-            </TabsContent>
-          )}
-        </Tabs>
-      </CardContent>
-    </Card>
+                <div className="space-y-1.5">
+                  {!isCheckers && scores && scores.map((s, i) => (
+                    <div key={s.id} className="flex items-center gap-1.5 p-1.5 rounded-md bg-muted/30">
+                      <MedalIcon position={i} />
+                      <Avatar className="w-5 h-5">
+                        <AvatarImage src={s.avatar_url || undefined} />
+                        <AvatarFallback className="text-[10px]">{s.user_name.charAt(0)}</AvatarFallback>
+                      </Avatar>
+                      <span className="text-xs font-medium text-foreground flex-1 truncate">
+                        {s.user_name.split(" ")[0]}
+                      </span>
+                      <span className="text-[10px] font-bold text-primary">{s.score}</span>
+                    </div>
+                  ))}
+                  {isCheckers && cStats && cStats.map((s, i) => (
+                    <div key={s.id} className="flex items-center gap-1.5 p-1.5 rounded-md bg-muted/30">
+                      <MedalIcon position={i} />
+                      <Avatar className="w-5 h-5">
+                        <AvatarImage src={s.avatar_url || undefined} />
+                        <AvatarFallback className="text-[10px]">{s.user_name.charAt(0)}</AvatarFallback>
+                      </Avatar>
+                      <span className="text-xs font-medium text-foreground flex-1 truncate">
+                        {s.user_name.split(" ")[0]}
+                      </span>
+                      <span className="text-[10px] font-bold text-green-600 dark:text-green-400">{s.wins}V</span>
+                    </div>
+                  ))}
+                </div>
+              </CardContent>
+            </Card>
+          );
+        })}
+      </div>
+    </div>
   );
 }
