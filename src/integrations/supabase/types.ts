@@ -1844,6 +1844,8 @@ export type Database = {
       }
       site_inspection_tasks: {
         Row: {
+          after_photo_url: string | null
+          before_photo_url: string | null
           completed_at: string | null
           created_at: string
           description: string
@@ -1852,6 +1854,8 @@ export type Database = {
           is_completed: boolean
         }
         Insert: {
+          after_photo_url?: string | null
+          before_photo_url?: string | null
           completed_at?: string | null
           created_at?: string
           description: string
@@ -1860,6 +1864,8 @@ export type Database = {
           is_completed?: boolean
         }
         Update: {
+          after_photo_url?: string | null
+          before_photo_url?: string | null
           completed_at?: string | null
           created_at?: string
           description?: string

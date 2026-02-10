@@ -16,6 +16,8 @@ export interface SiteInspectionTask {
   description: string;
   is_completed: boolean;
   completed_at: string | null;
+  before_photo_url: string | null;
+  after_photo_url: string | null;
   created_at: string;
 }
 
@@ -115,6 +117,22 @@ export function useToggleTaskCompletion() {
   });
 }
 
+export function useUpdateTaskPhoto() {
+  const queryClient = useQueryClient();
+  return useMutation({
+    mutationFn: async ({ id, field, url }: { id: string; field: "before_photo_url" | "after_photo_url"; url: string }) => {
+      const { error } = await supabase
+        .from("site_inspection_tasks")
+        .update({ [field]: url })
+        .eq("id", id);
+      if (error) throw error;
+    },
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ["site-inspection-tasks"] });
+    },
+  });
+}
+
 export function useDeleteSiteInspection() {
   const queryClient = useQueryClient();
   return useMutation({
@@ -130,4 +148,17 @@ export function useDeleteSiteInspection() {
       queryClient.invalidateQueries({ queryKey: ["site-inspection-tasks"] });
     },
   });
+}
+
+export async function uploadInspectionPhoto(file: File, taskId: string, type: "before" | "after"): Promise<string> {
+  const ext = file.name.split(".").pop() || "jpg";
+  const path = `${taskId}/${type}-${Date.now()}.${ext}`;
+
+  const { error } = await supabase.storage
+    .from("inspection-photos")
+    .upload(path, file, { upsert: true });
+  if (error) throw error;
+
+  const { data } = supabase.storage.from("inspection-photos").getPublicUrl(path);
+  return data.publicUrl;
 }
