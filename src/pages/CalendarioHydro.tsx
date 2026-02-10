@@ -137,8 +137,8 @@ function MonthCalendar({ month }: { month: Date }) {
 
 export default function CalendarioHydro() {
   return (
-    <div className="min-h-screen bg-background">
-      <div className="container mx-auto px-3 py-4 md:px-6 md:py-6 max-w-7xl">
+    <Layout>
+      <div className="container mx-auto px-3 sm:px-6 py-3 sm:py-6 max-w-7xl">
         {/* Header */}
         <div className="flex flex-col sm:flex-row items-center justify-between gap-4 mb-6">
           <div className="flex items-center gap-3">
@@ -191,6 +191,6 @@ export default function CalendarioHydro() {
           Fonte: Feriados e compensados - RH Informa - Hydro Alunorte
         </p>
       </div>
-    </div>
+    </Layout>
   );
 }

@@ -149,9 +149,9 @@ const VistoriaCintas = () => {
 
   return (
     <Layout>
-      <div className="space-y-6 animate-fade-in">
+      <div className="space-y-4 sm:space-y-6 px-3 sm:px-6 py-3 sm:py-6 animate-fade-in">
         {/* Header */}
-        <div className="flex items-start justify-between">
+        <div className="flex flex-col sm:flex-row sm:items-start justify-between gap-3">
           <div className="space-y-1">
             <div className="flex items-center gap-3">
               <div className="p-2.5 rounded-xl bg-primary/10">

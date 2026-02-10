@@ -1,4 +1,5 @@
 import { useState } from "react";
+import Layout from "@/components/layout/Layout";
 
 import { format } from "date-fns";
 import { ptBR } from "date-fns/locale";
@@ -108,7 +109,8 @@ export default function MaintenancePlan() {
   }
 
   return (
-    <div className="container mx-auto px-4 py-6 pb-24 space-y-6 max-w-full overflow-x-auto">
+    <Layout>
+    <div className="container mx-auto px-3 sm:px-6 py-3 sm:py-6 space-y-4 sm:space-y-6 max-w-full overflow-x-auto">
       {/* Header */}
       <div className="flex items-center justify-between">
         <div>
@@ -411,5 +413,6 @@ export default function MaintenancePlan() {
         </CardContent>
       </Card>
     </div>
+    </Layout>
   );
 }

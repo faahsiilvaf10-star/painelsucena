@@ -1,4 +1,5 @@
 import { useState, useRef } from "react";
+import Layout from "@/components/layout/Layout";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -106,7 +107,8 @@ export default function ArquivosSeguranca() {
   };
 
   return (
-    <div className="space-y-6">
+    <Layout>
+    <div className="space-y-4 sm:space-y-6 px-3 sm:px-6 py-3 sm:py-6">
       <div className="flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between">
         <div>
           <h1 className="text-xl sm:text-3xl font-bold tracking-tight">Arquivos de Segurança</h1>
@@ -257,5 +259,6 @@ export default function ArquivosSeguranca() {
         </AlertDialogContent>
       </AlertDialog>
     </div>
+    </Layout>
   );
 }

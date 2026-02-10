@@ -302,29 +302,29 @@ const EXIT_REASON_LABELS: Record<string, string> = {
                  ) : (
                    <div className="overflow-x-auto">
                      <Table>
-                       <TableHeader>
-                         <TableRow>
-                           <TableHead className="w-12"></TableHead>
-                           <TableHead>Equipamento</TableHead>
-                           <TableHead>Placa</TableHead>
-                           <TableHead>Motorista</TableHead>
-                           <TableHead>Ajudante</TableHead>
-                           <TableHead>Status</TableHead>
-                         </TableRow>
-                       </TableHeader>
+                     <TableHeader>
+                          <TableRow>
+                            <TableHead className="w-12 hidden sm:table-cell"></TableHead>
+                            <TableHead>Equipamento</TableHead>
+                            <TableHead>Placa</TableHead>
+                            <TableHead className="hidden md:table-cell">Motorista</TableHead>
+                            <TableHead className="hidden lg:table-cell">Ajudante</TableHead>
+                            <TableHead>Status</TableHead>
+                          </TableRow>
+                        </TableHeader>
                        <TableBody>
                          {equipmentNoCanteiro.map((eq) => (
-                           <TableRow key={eq.id}>
-                             <TableCell>
-                               <VehicleIcon
-                                 type={eq.equipment_type as "pipa" | "munk" | "camionete" | "onibus"}
-                                 size="sm"
-                               />
-                             </TableCell>
-                             <TableCell className="font-medium">{eq.name}</TableCell>
-                             <TableCell className="font-mono text-sm">{eq.plate}</TableCell>
-                             <TableCell>{eq.driver || "-"}</TableCell>
-                             <TableCell>{eq.helper || "-"}</TableCell>
+                            <TableRow key={eq.id}>
+                              <TableCell className="hidden sm:table-cell">
+                                <VehicleIcon
+                                  type={eq.equipment_type as "pipa" | "munk" | "camionete" | "onibus"}
+                                  size="sm"
+                                />
+                              </TableCell>
+                              <TableCell className="font-medium text-sm">{eq.name}</TableCell>
+                              <TableCell className="font-mono text-xs sm:text-sm">{eq.plate}</TableCell>
+                              <TableCell className="hidden md:table-cell">{eq.driver || "-"}</TableCell>
+                              <TableCell className="hidden lg:table-cell">{eq.helper || "-"}</TableCell>
                              <TableCell>
                                <Badge
                                  variant="outline"
@@ -377,24 +377,24 @@ const EXIT_REASON_LABELS: Record<string, string> = {
                  ) : (
                    <div className="overflow-x-auto">
                      <Table>
-                       <TableHeader>
-                         <TableRow>
-                           <TableHead className="w-12"></TableHead>
-                           <TableHead>Equipamento</TableHead>
-                           <TableHead>Placa</TableHead>
-                    <TableHead>Data/Hora Saída</TableHead>
-                    <TableHead>Motivo</TableHead>
-                    <TableHead>Observações</TableHead>
-                         </TableRow>
-                       </TableHeader>
+                        <TableHeader>
+                          <TableRow>
+                            <TableHead className="w-12 hidden sm:table-cell"></TableHead>
+                            <TableHead>Equipamento</TableHead>
+                            <TableHead className="hidden sm:table-cell">Placa</TableHead>
+                     <TableHead>Data/Hora</TableHead>
+                     <TableHead>Motivo</TableHead>
+                     <TableHead className="hidden md:table-cell">Observações</TableHead>
+                          </TableRow>
+                        </TableHeader>
                        <TableBody>
                   {equipmentForaObra.map((m) => (
                     <TableRow key={m.id}>
-                             <TableCell>
-                        <ExternalLink className="h-4 w-4 text-orange-500" />
-                      </TableCell>
-                      <TableCell className="font-medium">{m.equipment_name}</TableCell>
-                      <TableCell className="font-mono text-sm">{m.plate}</TableCell>
+                              <TableCell className="hidden sm:table-cell">
+                         <ExternalLink className="h-4 w-4 text-orange-500" />
+                       </TableCell>
+                       <TableCell className="font-medium text-sm">{m.equipment_name}</TableCell>
+                       <TableCell className="font-mono text-xs sm:text-sm hidden sm:table-cell">{m.plate}</TableCell>
                       <TableCell>
                         <div className="flex items-center gap-1 text-sm">
                           <Clock className="h-3 w-3 text-muted-foreground" />
@@ -406,7 +406,7 @@ const EXIT_REASON_LABELS: Record<string, string> = {
                           {EXIT_REASON_LABELS[m.exit_reason || ""] || m.exit_reason || "-"}
                                </Badge>
                              </TableCell>
-                      <TableCell className="max-w-xs">
+                       <TableCell className="max-w-xs hidden md:table-cell">
                         {m.problem_description && (
                           <p className="text-sm text-red-600 dark:text-red-400 font-medium">
                             {m.problem_description}
@@ -418,7 +418,7 @@ const EXIT_REASON_LABELS: Record<string, string> = {
                           </p>
                         )}
                         {!m.problem_description && !m.observation && "-"}
-                      </TableCell>
+                       </TableCell>
                            </TableRow>
                          ))}
                        </TableBody>
