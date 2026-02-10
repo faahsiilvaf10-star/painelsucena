@@ -605,6 +605,45 @@ export type Database = {
         }
         Relationships: []
       }
+      domino_games: {
+        Row: {
+          created_at: string
+          game_state: Json
+          id: string
+          player1_id: string
+          player1_name: string
+          player2_id: string | null
+          player2_name: string | null
+          status: string
+          updated_at: string
+          winner_id: string | null
+        }
+        Insert: {
+          created_at?: string
+          game_state?: Json
+          id?: string
+          player1_id: string
+          player1_name: string
+          player2_id?: string | null
+          player2_name?: string | null
+          status?: string
+          updated_at?: string
+          winner_id?: string | null
+        }
+        Update: {
+          created_at?: string
+          game_state?: Json
+          id?: string
+          player1_id?: string
+          player1_name?: string
+          player2_id?: string | null
+          player2_name?: string | null
+          status?: string
+          updated_at?: string
+          winner_id?: string | null
+        }
+        Relationships: []
+      }
       employees: {
         Row: {
           area: string | null
