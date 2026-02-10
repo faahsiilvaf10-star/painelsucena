@@ -809,11 +809,11 @@ export function CheckersGame({ onBack }: { onBack: () => void }) {
               border: "1.5px solid rgba(180,150,100,0.5)",
             }} />
           )}
-          {visual.teamImg && (
-            <img src={visual.teamImg} alt="" className="w-[60%] h-[60%] object-contain pointer-events-none select-none" draggable={false} />
-          )}
-          {visual.avatarImg && (
-            <img src={visual.avatarImg} alt="" className="w-[75%] h-[75%] rounded-full object-cover pointer-events-none select-none" draggable={false} />
+           {visual.teamImg && (
+             <img src={visual.teamImg} alt="" className="w-[80%] h-[80%] object-contain pointer-events-none select-none" draggable={false} />
+           )}
+           {visual.avatarImg && (
+             <img src={visual.avatarImg} alt="" className="w-full h-full rounded-full object-cover pointer-events-none select-none" draggable={false} />
           )}
         </div>
       </div>
@@ -975,9 +975,9 @@ export function CheckersGame({ onBack }: { onBack: () => void }) {
                     }}
                   >
                     {pv.avatarImg ? (
-                      <img src={pv.avatarImg} alt="" className="w-[75%] h-[75%] rounded-full object-cover pointer-events-none" />
-                    ) : pv.teamImg ? (
-                      <img src={pv.teamImg} alt="" className="w-[60%] h-[60%] object-contain pointer-events-none" />
+                     <img src={pv.avatarImg} alt="" className="w-full h-full rounded-full object-cover pointer-events-none" />
+                     ) : pv.teamImg ? (
+                       <img src={pv.teamImg} alt="" className="w-[80%] h-[80%] object-contain pointer-events-none" />
                     ) : (
                       <div className="absolute rounded-full pointer-events-none" style={{ width: "65%", height: "65%", border: "1.5px solid rgba(180,150,100,0.5)" }} />
                     )}
