@@ -31,6 +31,7 @@ import {
 } from "@/hooks/useSiteInspections";
 import Layout from "@/components/layout/Layout";
 import { useInspectionSchedule } from "@/hooks/useInspectionSchedule";
+import { useProfile } from "@/hooks/useProfile";
 import { useIsAdmin as useIsAdminTop } from "@/hooks/useUserRole";
 import { differenceInCalendarDays, parseISO } from "date-fns";
 
@@ -798,7 +799,10 @@ export default function InspecaoCanteiro() {
   const { data: inspections = [], isLoading } = useSiteInspections();
   const createInspection = useCreateSiteInspection();
   const { isAdmin: isAdminUser } = useIsAdminTop();
+  const { data: profile } = useProfile();
   const { schedule, upsertSchedule, deleteSchedule } = useInspectionSchedule();
+
+  const canSchedule = isAdminUser || (profile?.cargo && ["tecnico_seguranca_i", "tecnico_seguranca_ii", "preposto"].includes(profile.cargo));
 
   const [date, setDate] = useState<Date>(new Date());
   const [taskInputs, setTaskInputs] = useState<string[]>([""]);
@@ -895,7 +899,7 @@ export default function InspecaoCanteiro() {
                   </p>
                   <p className="text-xs text-muted-foreground">{dateStr} às {timeStr}</p>
                 </div>
-                {isAdminUser && (
+                {canSchedule && (
                   <Button size="sm" variant="ghost" className="h-8 px-2 text-muted-foreground" onClick={() => deleteSchedule.mutate(undefined, { onSuccess: () => toast.success("Agendamento removido") })}>
                     <X className="h-4 w-4" />
                   </Button>
@@ -906,7 +910,7 @@ export default function InspecaoCanteiro() {
         })()}
 
         {/* Schedule next inspection (admin only) */}
-        {isAdminUser && (
+        {canSchedule && (
           <Card className="border border-border/40 bg-card/80 backdrop-blur-sm">
             <CardContent className="flex flex-wrap items-center gap-3 p-4">
               <div className="flex items-center gap-2">
