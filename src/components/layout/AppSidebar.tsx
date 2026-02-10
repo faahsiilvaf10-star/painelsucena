@@ -1,3 +1,4 @@
+import * as React from "react";
 import { Users, ClipboardList, Grid3X3, LayoutDashboard, FileBarChart, LogOut, LogIn, AlertTriangle, PanelLeftClose, PanelLeft, Settings, Sun, Truck, Bell, FileText, LucideIcon, Heart, ShoppingCart, Package, GripVertical, User, FolderOpen, ShieldCheck, Leaf, Hammer, Target, ClipboardCheck, BadgeCheck, Link2, ArrowLeftRight, Clock, FolderLock, Droplets, Wrench, Presentation, Newspaper, HardHat, CalendarDays } from "lucide-react";
 import { Link, useLocation, useNavigate } from "react-router-dom";
 import { useMemo } from "react";
@@ -152,17 +153,24 @@ function SortableNavItem({
   );
 }
 
-export function AppSidebar() {
+export function AppSidebar({ lockedCollapsed = false }: { lockedCollapsed?: boolean }) {
   const location = useLocation();
   const navigate = useNavigate();
   const { user, signOut } = useAuth();
   const { isAdmin } = useIsAdmin();
-  const { state, toggleSidebar } = useSidebar();
+  const { state, toggleSidebar, setOpen } = useSidebar();
   const { settings, updateSettings } = useSiteSettings();
   const { data: profile } = useProfile();
   const { navOrder } = useUserNavOrder();
   const { getHiddenItemsForCargo } = useNavVisibilityRules();
   const isCollapsed = state === "collapsed";
+
+  // Force collapsed state when locked
+  React.useEffect(() => {
+    if (lockedCollapsed) {
+      setOpen(false);
+    }
+  }, [lockedCollapsed, setOpen]);
 
   // Admin sempre edita/visualiza a ordem GLOBAL do menu.
   // Usuários comuns seguem a hierarquia definida no hook (ordem pessoal -> global -> default).
@@ -387,10 +395,11 @@ export function AppSidebar() {
       <Button
         variant="ghost"
         size="icon"
-        onClick={toggleSidebar}
+        onClick={lockedCollapsed ? undefined : toggleSidebar}
+        disabled={lockedCollapsed}
         className={`absolute top-1/2 -translate-y-1/2 z-50 h-10 w-10 md:h-8 md:w-8 rounded-full bg-sidebar-accent/90 backdrop-blur-sm border border-sidebar-border/50 text-sidebar-foreground/80 hover:text-sidebar-foreground hover:bg-sidebar-accent shadow-lg transition-all touch-manipulation ${
           isCollapsed ? "-right-5" : "-right-5"
-        }`}
+        } ${lockedCollapsed ? "opacity-50 cursor-not-allowed" : ""}`}
         style={{ touchAction: 'manipulation' }}
       >
         {isCollapsed ? (

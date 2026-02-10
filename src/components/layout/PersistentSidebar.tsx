@@ -19,6 +19,9 @@ export const PersistentSidebar = ({ children }: PersistentSidebarProps) => {
   // Check if user has a driver role - hide sidebar for drivers
   const isDriver = profile?.cargo && DRIVER_ROLES.includes(profile.cargo);
 
+  // Check if user has no avatar - block sidebar
+  const isAvatarBlocked = user && profile && (!profile.avatar_url || profile.avatar_url.trim().length === 0);
+
   // Listen for transition completion to trigger fade-in
   useEffect(() => {
     const handler = () => {
@@ -38,11 +41,11 @@ export const PersistentSidebar = ({ children }: PersistentSidebarProps) => {
 
   // Always provide SidebarProvider context, but only render sidebar when authenticated and not a driver
   return (
-    <SidebarProvider defaultOpen={true}>
+    <SidebarProvider defaultOpen={isAvatarBlocked ? false : true}>
       <div className="h-screen flex flex-row w-full bg-background overflow-hidden">
         {user && !isDriver && (
           <div className={justCompletedTransition ? "animate-fade-in" : ""}>
-            <AppSidebar />
+            <AppSidebar lockedCollapsed={!!isAvatarBlocked} />
           </div>
         )}
         <div

@@ -19,6 +19,7 @@ const ProtectedRoute = ({ children }: ProtectedRouteProps) => {
   const [userCargo, setUserCargo] = useState<string | null>(null);
   const [cargoChecked, setCargoChecked] = useState(false);
   const [isAdmin, setIsAdmin] = useState(false);
+  const [hasAvatar, setHasAvatar] = useState<boolean | null>(null);
   const location = useLocation();
   const navigate = useNavigate();
   
@@ -102,7 +103,7 @@ const ProtectedRoute = ({ children }: ProtectedRouteProps) => {
       const [profileResult, roleResult] = await Promise.all([
         supabase
           .from("profiles")
-          .select("cargo")
+          .select("cargo, avatar_url")
           .eq("user_id", userId)
           .maybeSingle(),
         supabase
@@ -115,9 +116,11 @@ const ProtectedRoute = ({ children }: ProtectedRouteProps) => {
 
       const cargo = profileResult.data?.cargo || null;
       const admin = !!roleResult.data;
+      const avatarUrl = profileResult.data?.avatar_url;
 
       setUserCargo(cargo);
       setIsAdmin(admin);
+      setHasAvatar(!!avatarUrl && avatarUrl.trim().length > 0);
 
       return { cargo, admin };
     } catch (err) {
@@ -166,6 +169,11 @@ const ProtectedRoute = ({ children }: ProtectedRouteProps) => {
   // If user is NOT a driver and NOT an admin, trying to access driver panel, redirect to home
   if (!isDriver && !isAdmin && location.pathname === '/painel-motorista') {
     return <Navigate to="/" replace />;
+  }
+
+  // Block users without profile photo - redirect to settings
+  if (hasAvatar === false && location.pathname !== '/configuracoes') {
+    return <Navigate to="/configuracoes" replace />;
   }
 
   return <>{children}</>;
