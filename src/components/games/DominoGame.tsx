@@ -144,14 +144,14 @@ const DOT_POSITIONS: Record<number, [number, number][]> = {
   3: [[28, 28], [50, 50], [72, 72]],
   4: [[28, 28], [72, 28], [28, 72], [72, 72]],
   5: [[28, 28], [72, 28], [50, 50], [28, 72], [72, 72]],
-  6: [[28, 22], [72, 22], [28, 50], [72, 50], [28, 78], [72, 78]],
+  6: [[30, 24], [70, 24], [30, 50], [70, 50], [30, 76], [70, 76]],
 };
 
-function DominoFace({ value, size, rotate180 }: { value: number; size: number; rotate180?: boolean }) {
+function DominoFace({ value, size }: { value: number; size: number }) {
   const dots = DOT_POSITIONS[value] || [];
   const dotR = Math.max(9, size * 0.2);
   return (
-    <svg width={size} height={size} viewBox="0 0 100 100" className="block" style={rotate180 ? { transform: "rotate(180deg)" } : undefined}>
+    <svg width={size} height={size} viewBox="0 0 100 100" className="block">
       {dots.map(([cx, cy], i) => (
         <circle key={i} cx={cx} cy={cy} r={dotR} fill="#000000" />
       ))}
@@ -211,11 +211,11 @@ function DominoTileVisual({ tile, size = "md", onClick, disabled, highlight, ver
         style={{ width: dims.h + 6, height: dims.w + 6, ...tileStyle }}
       >
         <div style={{ width: dims.face, height: dims.face }}>
-          <DominoFace value={tile[0]} size={dims.face} rotate180={tile[0] === 6} />
+          <DominoFace value={tile[0]} size={dims.face} />
         </div>
         <div style={{ width: "60%", height: 1.5, background: "#b8a878", margin: "1px 0" }} />
         <div style={{ width: dims.face, height: dims.face }}>
-          <DominoFace value={tile[1]} size={dims.face} rotate180={tile[1] === 6} />
+          <DominoFace value={tile[1]} size={dims.face} />
         </div>
       </motion.button>
     );
@@ -233,11 +233,11 @@ function DominoTileVisual({ tile, size = "md", onClick, disabled, highlight, ver
       style={{ width: dims.w + 4, height: dims.h + 6, ...tileStyle }}
     >
       <div style={{ width: dims.face, height: dims.face }}>
-        <DominoFace value={tile[0]} size={dims.face} rotate180={tile[0] === 6} />
+        <DominoFace value={tile[0]} size={dims.face} />
       </div>
       <div style={{ width: 1.5, height: "60%", background: "#b8a878", margin: "0 1px" }} />
       <div style={{ width: dims.face, height: dims.face }}>
-        <DominoFace value={tile[1]} size={dims.face} rotate180={tile[1] === 6} />
+        <DominoFace value={tile[1]} size={dims.face} />
       </div>
     </motion.button>
   );
