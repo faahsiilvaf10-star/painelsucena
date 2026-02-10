@@ -617,163 +617,152 @@ export function DominoGame({ onBack }: { onBack: () => void }) {
   // ── LOBBY (paciencia.co modal style on green felt) ──
   if (view === "lobby") {
     return (
-      <div className="relative min-h-[80vh] rounded-2xl overflow-hidden" style={FELT_BG}>
-        {FELT_TEXTURE}
-        {/* Back button */}
-        <div className="relative z-10 p-3">
-          <button onClick={onBack} className="flex items-center gap-1 text-white/80 hover:text-white text-sm font-medium transition-colors">
-            <ArrowLeft className="w-4 h-4" /> Voltar aos Games
-          </button>
-        </div>
+      <div className="flex flex-col lg:flex-row gap-4 items-start">
+        {/* Green felt area */}
+        <div className="relative min-h-[80vh] rounded-2xl overflow-hidden flex-1" style={FELT_BG}>
+          {FELT_TEXTURE}
+          {/* Back button */}
+          <div className="relative z-10 p-3">
+            <button onClick={onBack} className="flex items-center gap-1 text-white/80 hover:text-white text-sm font-medium transition-colors">
+              <ArrowLeft className="w-4 h-4" /> Voltar aos Games
+            </button>
+          </div>
 
-        {/* Center layout: lobby + ranking side by side */}
-        <div className="relative z-10 flex flex-col lg:flex-row items-start justify-center gap-4 px-4 py-4" style={{ minHeight: "calc(80vh - 60px)" }}>
-          {/* Lobby modal */}
-          <motion.div
-            initial={{ scale: 0.9, opacity: 0 }}
-            animate={{ scale: 1, opacity: 1 }}
-            className="w-full max-w-md rounded-xl overflow-hidden shadow-2xl flex-shrink-0"
-            style={{
-              background: "#fdf5e0",
-              border: "4px solid #8B6914",
-              boxShadow: "0 0 0 2px #a07818, 0 8px 32px rgba(0,0,0,0.4)",
-            }}
-          >
-            {/* Title */}
-            <div className="text-center pt-6 pb-3">
-              <h2 className="text-2xl font-black tracking-wider" style={{ color: "#5a3e0a" }}>
-                DOMINÓ
-              </h2>
-              <p className="text-xs mt-1" style={{ color: "#8a7040" }}>Escolha como jogar</p>
-            </div>
-
-            {/* AI Mode */}
-            <div className="px-6 pb-3">
-              <div className="flex items-center gap-2 mb-2">
-                <Bot className="w-4 h-4" style={{ color: "#6B4F10" }} />
-                <h3 className="text-sm font-bold" style={{ color: "#5a3e0a" }}>DIFICULDADE</h3>
-              </div>
-              <div className="flex gap-2 justify-center">
-                {(["easy", "medium", "hard"] as AIDifficulty[]).map((diff) => {
-                  const cfg = DIFFICULTY_CONFIG[diff];
-                  return (
-                    <button
-                      key={diff}
-                      onClick={() => startAIGame(diff)}
-                      className="px-4 py-2 rounded-lg text-sm font-bold transition-all hover:scale-105 active:scale-95"
-                      style={{
-                        background: "#fff",
-                        border: "2px solid #8B6914",
-                        color: "#5a3e0a",
-                      }}
-                    >
-                      {cfg.label}
-                    </button>
-                  );
-                })}
-              </div>
-            </div>
-
-            {/* Divider */}
-            <div className="mx-6 my-3" style={{ height: 1, background: "#d4c8a0" }} />
-
-            {/* Online */}
-            <div className="px-6 pb-4">
-              <div className="flex items-center gap-2 mb-3">
-                <Users className="w-4 h-4" style={{ color: "#6B4F10" }} />
-                <h3 className="text-sm font-bold" style={{ color: "#5a3e0a" }}>ONLINE</h3>
+          {/* Center lobby modal */}
+          <div className="relative z-10 flex items-center justify-center px-4" style={{ minHeight: "calc(80vh - 60px)" }}>
+            <motion.div
+              initial={{ scale: 0.9, opacity: 0 }}
+              animate={{ scale: 1, opacity: 1 }}
+              className="w-full max-w-md rounded-xl overflow-hidden shadow-2xl"
+              style={{
+                background: "#fdf5e0",
+                border: "4px solid #8B6914",
+                boxShadow: "0 0 0 2px #a07818, 0 8px 32px rgba(0,0,0,0.4)",
+              }}
+            >
+              <div className="text-center pt-6 pb-3">
+                <h2 className="text-2xl font-black tracking-wider" style={{ color: "#5a3e0a" }}>DOMINÓ</h2>
+                <p className="text-xs mt-1" style={{ color: "#8a7040" }}>Escolha como jogar</p>
               </div>
 
-              <button
-                onClick={createGame}
-                disabled={loading}
-                className="w-full py-3 rounded-lg text-white font-bold text-sm transition-all hover:brightness-110 active:scale-[0.98] disabled:opacity-50 flex items-center justify-center gap-2"
-                style={{ background: "linear-gradient(180deg, #8B6914 0%, #6B4F10 100%)", border: "2px solid #a07818" }}
-              >
-                {loading ? <Loader2 className="w-4 h-4 animate-spin" /> : <Plus className="w-4 h-4" />}
-                CRIAR PARTIDA
-              </button>
-
-              {/* Games list */}
-              <div className="flex items-center justify-between mt-3 mb-2">
-                <span className="text-xs font-bold" style={{ color: "#8a7040" }}>Partidas disponíveis</span>
-                <button onClick={fetchGames} disabled={refreshing} className="text-xs flex items-center gap-1" style={{ color: "#6B4F10" }}>
-                  <RefreshCw className={`w-3 h-3 ${refreshing ? "animate-spin" : ""}`} /> Atualizar
-                </button>
-              </div>
-
-              {games.length === 0 ? (
-                <p className="text-center text-xs py-4" style={{ color: "#8a7040" }}>
-                  Nenhuma partida disponível.
-                </p>
-              ) : (
-                <div className="space-y-2 max-h-40 overflow-y-auto">
-                  {games.map((game) => (
-                    <div key={game.id} className="flex items-center justify-between p-2 rounded-lg" style={{ background: "#f0e8d0", border: "1px solid #d4c8a0" }}>
-                      <div>
-                        <p className="text-sm font-semibold" style={{ color: "#5a3e0a" }}>{game.player1_name}</p>
-                        <p className="text-[10px]" style={{ color: "#8a7040" }}>Aguardando...</p>
-                      </div>
-                      <button
-                        onClick={() => joinGame(game)}
-                        disabled={loading || game.player1_id === user?.id}
-                        className="px-3 py-1 rounded text-xs font-bold text-white disabled:opacity-50"
-                        style={{ background: "#6B4F10" }}
-                      >
-                        {game.player1_id === user?.id ? "Sua" : "Entrar"}
-                      </button>
-                    </div>
-                  ))}
+              <div className="px-6 pb-3">
+                <div className="flex items-center gap-2 mb-2">
+                  <Bot className="w-4 h-4" style={{ color: "#6B4F10" }} />
+                  <h3 className="text-sm font-bold" style={{ color: "#5a3e0a" }}>DIFICULDADE</h3>
                 </div>
-              )}
-            </div>
-          </motion.div>
+                <div className="flex gap-2 justify-center">
+                  {(["easy", "medium", "hard"] as AIDifficulty[]).map((diff) => {
+                    const cfg = DIFFICULTY_CONFIG[diff];
+                    return (
+                      <button
+                        key={diff}
+                        onClick={() => startAIGame(diff)}
+                        className="px-4 py-2 rounded-lg text-sm font-bold transition-all hover:scale-105 active:scale-95"
+                        style={{ background: "#fff", border: "2px solid #8B6914", color: "#5a3e0a" }}
+                      >
+                        {cfg.label}
+                      </button>
+                    );
+                  })}
+                </div>
+              </div>
 
-          {/* Ranking panel - side by side on desktop */}
-          <motion.div
-            initial={{ scale: 0.9, opacity: 0 }}
-            animate={{ scale: 1, opacity: 1 }}
-            transition={{ delay: 0.15 }}
-            className="w-full max-w-xs rounded-xl overflow-hidden shadow-2xl flex-shrink-0"
-            style={{ background: "#fdf5e0", border: "4px solid #8B6914", boxShadow: "0 0 0 2px #a07818, 0 8px 32px rgba(0,0,0,0.4)" }}
-          >
-            <div className="flex items-center gap-2 justify-center pt-4 pb-2">
-              <Trophy className="w-5 h-5" style={{ color: "#8B6914" }} />
-              <h3 className="text-lg font-black tracking-wider" style={{ color: "#5a3e0a" }}>RANKING</h3>
-            </div>
-            <div className="px-3 pb-4 space-y-1 max-h-[420px] overflow-y-auto">
-              {ranking.length === 0 ? (
-                <p className="text-center text-xs py-6" style={{ color: "#8a7040" }}>
-                  Nenhuma partida online finalizada ainda.
-                </p>
-              ) : ranking.map((r, i) => {
-                const medal = i === 0 ? "🥇" : i === 1 ? "🥈" : i === 2 ? "🥉" : `${i + 1}º`;
-                const isMe = r.user_id === user?.id;
-                return (
-                  <div
-                    key={r.user_id}
-                    className="flex items-center justify-between px-2 py-1.5 rounded-lg"
-                    style={{
-                      background: isMe ? "#e8ddb8" : i % 2 === 0 ? "#f5efd8" : "#fdf5e0",
-                      border: isMe ? "2px solid #8B6914" : "1px solid transparent",
-                    }}
-                  >
-                    <div className="flex items-center gap-1.5">
-                      <span className="text-sm w-7 text-center">{medal}</span>
-                      <span className="text-xs font-bold truncate max-w-[100px]" style={{ color: "#5a3e0a" }}>
-                        {r.user_name}{isMe ? " (eu)" : ""}
-                      </span>
-                    </div>
-                    <div className="flex items-center gap-2 text-[11px] font-bold">
-                      <span style={{ color: "#2d7a2d" }}>✅{r.wins}</span>
-                      <span style={{ color: "#a03030" }}>❌{r.losses}</span>
-                    </div>
+              <div className="mx-6 my-3" style={{ height: 1, background: "#d4c8a0" }} />
+
+              <div className="px-6 pb-4">
+                <div className="flex items-center gap-2 mb-3">
+                  <Users className="w-4 h-4" style={{ color: "#6B4F10" }} />
+                  <h3 className="text-sm font-bold" style={{ color: "#5a3e0a" }}>ONLINE</h3>
+                </div>
+
+                <button
+                  onClick={createGame}
+                  disabled={loading}
+                  className="w-full py-3 rounded-lg text-white font-bold text-sm transition-all hover:brightness-110 active:scale-[0.98] disabled:opacity-50 flex items-center justify-center gap-2"
+                  style={{ background: "linear-gradient(180deg, #8B6914 0%, #6B4F10 100%)", border: "2px solid #a07818" }}
+                >
+                  {loading ? <Loader2 className="w-4 h-4 animate-spin" /> : <Plus className="w-4 h-4" />}
+                  CRIAR PARTIDA
+                </button>
+
+                <div className="flex items-center justify-between mt-3 mb-2">
+                  <span className="text-xs font-bold" style={{ color: "#8a7040" }}>Partidas disponíveis</span>
+                  <button onClick={fetchGames} disabled={refreshing} className="text-xs flex items-center gap-1" style={{ color: "#6B4F10" }}>
+                    <RefreshCw className={`w-3 h-3 ${refreshing ? "animate-spin" : ""}`} /> Atualizar
+                  </button>
+                </div>
+
+                {games.length === 0 ? (
+                  <p className="text-center text-xs py-4" style={{ color: "#8a7040" }}>Nenhuma partida disponível.</p>
+                ) : (
+                  <div className="space-y-2 max-h-40 overflow-y-auto">
+                    {games.map((game) => (
+                      <div key={game.id} className="flex items-center justify-between p-2 rounded-lg" style={{ background: "#f0e8d0", border: "1px solid #d4c8a0" }}>
+                        <div>
+                          <p className="text-sm font-semibold" style={{ color: "#5a3e0a" }}>{game.player1_name}</p>
+                          <p className="text-[10px]" style={{ color: "#8a7040" }}>Aguardando...</p>
+                        </div>
+                        <button
+                          onClick={() => joinGame(game)}
+                          disabled={loading || game.player1_id === user?.id}
+                          className="px-3 py-1 rounded text-xs font-bold text-white disabled:opacity-50"
+                          style={{ background: "#6B4F10" }}
+                        >
+                          {game.player1_id === user?.id ? "Sua" : "Entrar"}
+                        </button>
+                      </div>
+                    ))}
                   </div>
-                );
-              })}
-            </div>
-          </motion.div>
+                )}
+              </div>
+            </motion.div>
+          </div>
         </div>
+
+        {/* Ranking panel - OUTSIDE the green felt */}
+        <motion.div
+          initial={{ scale: 0.9, opacity: 0 }}
+          animate={{ scale: 1, opacity: 1 }}
+          transition={{ delay: 0.15 }}
+          className="w-full lg:w-72 rounded-xl overflow-hidden shadow-2xl flex-shrink-0"
+          style={{ background: "#fdf5e0", border: "4px solid #8B6914", boxShadow: "0 0 0 2px #a07818, 0 8px 32px rgba(0,0,0,0.4)" }}
+        >
+          <div className="flex items-center gap-2 justify-center pt-4 pb-2">
+            <Trophy className="w-5 h-5" style={{ color: "#8B6914" }} />
+            <h3 className="text-lg font-black tracking-wider" style={{ color: "#5a3e0a" }}>RANKING</h3>
+          </div>
+          <div className="px-3 pb-4 space-y-1 max-h-[420px] overflow-y-auto">
+            {ranking.length === 0 ? (
+              <p className="text-center text-xs py-6" style={{ color: "#8a7040" }}>
+                Nenhuma partida online finalizada ainda.
+              </p>
+            ) : ranking.map((r, i) => {
+              const medal = i === 0 ? "🥇" : i === 1 ? "🥈" : i === 2 ? "🥉" : `${i + 1}º`;
+              const isMe = r.user_id === user?.id;
+              return (
+                <div
+                  key={r.user_id}
+                  className="flex items-center justify-between px-2 py-1.5 rounded-lg"
+                  style={{
+                    background: isMe ? "#e8ddb8" : i % 2 === 0 ? "#f5efd8" : "#fdf5e0",
+                    border: isMe ? "2px solid #8B6914" : "1px solid transparent",
+                  }}
+                >
+                  <div className="flex items-center gap-1.5">
+                    <span className="text-sm w-7 text-center">{medal}</span>
+                    <span className="text-xs font-bold truncate max-w-[100px]" style={{ color: "#5a3e0a" }}>
+                      {r.user_name}{isMe ? " (eu)" : ""}
+                    </span>
+                  </div>
+                  <div className="flex items-center gap-2 text-[11px] font-bold">
+                    <span style={{ color: "#2d7a2d" }}>✅{r.wins}</span>
+                    <span style={{ color: "#a03030" }}>❌{r.losses}</span>
+                  </div>
+                </div>
+              );
+            })}
+          </div>
+        </motion.div>
       </div>
     );
   }
