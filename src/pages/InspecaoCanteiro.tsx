@@ -1,7 +1,7 @@
 import { useState, useRef, useMemo, useCallback } from "react";
 import { format } from "date-fns";
 import { ptBR } from "date-fns/locale";
-import { Plus, Lock, Unlock, Trash2, CheckCircle2, Circle, ClipboardCheck, Camera, X, CalendarIcon, Filter, History, FileDown, MessageSquare, Eye, ChevronLeft, ChevronRight, Share2 } from "lucide-react";
+import { Plus, Lock, Unlock, Trash2, CheckCircle2, Circle, ClipboardCheck, Camera, X, CalendarIcon, Filter, History, FileDown, MessageSquare, Eye, ChevronLeft, ChevronRight, Share2, Clock } from "lucide-react";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -30,6 +30,9 @@ import {
   type SiteInspectionTask,
 } from "@/hooks/useSiteInspections";
 import Layout from "@/components/layout/Layout";
+import { useInspectionSchedule } from "@/hooks/useInspectionSchedule";
+import { useIsAdmin as useIsAdminTop } from "@/hooks/useUserRole";
+import { differenceInCalendarDays, parseISO } from "date-fns";
 
 function PhotoThumbnail({
   url,
@@ -794,11 +797,15 @@ export default function InspecaoCanteiro() {
   const { user } = useAuth();
   const { data: inspections = [], isLoading } = useSiteInspections();
   const createInspection = useCreateSiteInspection();
+  const { isAdmin: isAdminUser } = useIsAdminTop();
+  const { schedule, upsertSchedule, deleteSchedule } = useInspectionSchedule();
 
   const [date, setDate] = useState<Date>(new Date());
   const [taskInputs, setTaskInputs] = useState<string[]>([""]);
   const [filterDate, setFilterDate] = useState<Date | undefined>(undefined);
   const [showHistory, setShowHistory] = useState(false);
+  const [scheduleDate, setScheduleDate] = useState<Date | undefined>(undefined);
+  const [scheduleTime, setScheduleTime] = useState("08:00");
 
   // Latest inspection (most recent by date)
   const latestInspection = inspections.length > 0 ? inspections[0] : null;
@@ -859,6 +866,100 @@ export default function InspecaoCanteiro() {
             <p className="text-sm text-muted-foreground">Registre e acompanhe os pontos de melhoria</p>
           </div>
         </div>
+
+        {/* Schedule next inspection alert */}
+        {schedule && (() => {
+          const inspDateParsed = parseISO(schedule.next_inspection_date);
+          const todayDate = new Date(); todayDate.setHours(0,0,0,0);
+          const daysUntil = differenceInCalendarDays(inspDateParsed, todayDate);
+          const timeStr = schedule.next_inspection_time?.slice(0, 5) || "08:00";
+          const dateStr = format(inspDateParsed, "dd/MM/yyyy (EEEE)", { locale: ptBR });
+          const isOverdue = daysUntil < 0;
+          const isToday = daysUntil === 0;
+          const isSoon = daysUntil <= 3;
+
+          if (!isSoon && !isOverdue) return null;
+
+          return (
+            <Card className={cn(
+              "border animate-fade-in",
+              isOverdue ? "border-destructive/50 bg-destructive/10" : isToday ? "border-orange-500/50 bg-orange-500/10" : "border-yellow-500/50 bg-yellow-500/10"
+            )}>
+              <CardContent className="flex items-center gap-3 p-4">
+                <div className={cn("p-2 rounded-lg", isOverdue ? "bg-destructive/20" : isToday ? "bg-orange-500/20" : "bg-yellow-500/20")}>
+                  <CalendarIcon className={cn("h-5 w-5", isOverdue ? "text-destructive" : isToday ? "text-orange-500 animate-pulse" : "text-yellow-500")} />
+                </div>
+                <div className="flex-1">
+                  <p className={cn("text-sm font-semibold", isOverdue ? "text-destructive" : isToday ? "text-orange-500" : "text-yellow-500")}>
+                    {isOverdue ? "⚠️ Inspeção Atrasada!" : isToday ? "📋 Inspeção Hoje!" : `📋 Inspeção em ${daysUntil} dia${daysUntil > 1 ? "s" : ""}`}
+                  </p>
+                  <p className="text-xs text-muted-foreground">{dateStr} às {timeStr}</p>
+                </div>
+                {isAdminUser && (
+                  <Button size="sm" variant="ghost" className="h-8 px-2 text-muted-foreground" onClick={() => deleteSchedule.mutate(undefined, { onSuccess: () => toast.success("Agendamento removido") })}>
+                    <X className="h-4 w-4" />
+                  </Button>
+                )}
+              </CardContent>
+            </Card>
+          );
+        })()}
+
+        {/* Schedule next inspection (admin only) */}
+        {isAdminUser && (
+          <Card className="border border-border/40 bg-card/80 backdrop-blur-sm">
+            <CardContent className="flex flex-wrap items-center gap-3 p-4">
+              <div className="flex items-center gap-2">
+                <Clock className="h-4 w-4 text-muted-foreground" />
+                <span className="text-sm font-medium">Próxima Inspeção:</span>
+              </div>
+              <Popover>
+                <PopoverTrigger asChild>
+                  <Button variant="outline" size="sm" className="h-8 gap-1.5">
+                    <CalendarIcon className="h-3.5 w-3.5" />
+                    {scheduleDate ? format(scheduleDate, "dd/MM/yyyy") : "Escolher data"}
+                  </Button>
+                </PopoverTrigger>
+                <PopoverContent className="w-auto p-0" align="start">
+                  <Calendar
+                    mode="single"
+                    selected={scheduleDate}
+                    onSelect={setScheduleDate}
+                    disabled={(d) => d < new Date(new Date().setHours(0,0,0,0))}
+                    initialFocus
+                    className="p-3 pointer-events-auto"
+                  />
+                </PopoverContent>
+              </Popover>
+              <Input
+                type="time"
+                value={scheduleTime}
+                onChange={(e) => setScheduleTime(e.target.value)}
+                className="w-28 h-8 text-sm"
+              />
+              <Button
+                size="sm"
+                className="h-8"
+                disabled={!scheduleDate || upsertSchedule.isPending}
+                onClick={() => {
+                  if (!scheduleDate || !user) return;
+                  upsertSchedule.mutate(
+                    { date: format(scheduleDate, "yyyy-MM-dd"), time: scheduleTime, userId: user.id },
+                    {
+                      onSuccess: () => {
+                        toast.success("Próxima inspeção agendada!");
+                        setScheduleDate(undefined);
+                      },
+                      onError: () => toast.error("Erro ao agendar"),
+                    }
+                  );
+                }}
+              >
+                Agendar
+              </Button>
+            </CardContent>
+          </Card>
+        )}
 
         {/* Create new inspection */}
         <Card className="border border-primary/20 bg-card/80 backdrop-blur-sm">

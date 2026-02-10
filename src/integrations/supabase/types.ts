@@ -1842,6 +1842,33 @@ export type Database = {
         }
         Relationships: []
       }
+      site_inspection_schedule: {
+        Row: {
+          created_at: string
+          created_by: string
+          id: string
+          next_inspection_date: string
+          next_inspection_time: string
+          updated_at: string
+        }
+        Insert: {
+          created_at?: string
+          created_by: string
+          id?: string
+          next_inspection_date: string
+          next_inspection_time?: string
+          updated_at?: string
+        }
+        Update: {
+          created_at?: string
+          created_by?: string
+          id?: string
+          next_inspection_date?: string
+          next_inspection_time?: string
+          updated_at?: string
+        }
+        Relationships: []
+      }
       site_inspection_tasks: {
         Row: {
           after_photo_url: string | null
