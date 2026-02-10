@@ -1164,6 +1164,7 @@ export function CheckersGame({ onBack }: { onBack: () => void }) {
                     )}
                     {showPiece && (
                       <motion.div layout initial={false}
+                        className="w-full h-full flex items-center justify-center"
                         animate={isMovable && !aiThinking ? { scale: [1, 1.05, 1] } : {}}
                         transition={isMovable ? { duration: 1.5, repeat: Infinity } : { layout: { duration: 0.5, ease: "easeInOut" } }}>
                         {renderPiece(cell, isMovable, isSelected, "board")}
