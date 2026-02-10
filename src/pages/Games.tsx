@@ -10,6 +10,7 @@ import { EPIGame } from "@/components/games/EPIGame";
 import { RocagemGame } from "@/components/games/RocagemGame";
 import { GabiaoGame } from "@/components/games/GabiaoGame";
 import { CheckersGame } from "@/components/games/CheckersGame";
+import { GameRankings } from "@/components/games/GameRankings";
 
 type ActiveGame = null | "recycling" | "epi" | "rocagem" | "gabiao" | "checkers";
 
@@ -140,6 +141,9 @@ export default function Games() {
                 </motion.div>
               ))}
             </div>
+
+            {/* Rankings */}
+            <GameRankings />
           </>
         )}
 
