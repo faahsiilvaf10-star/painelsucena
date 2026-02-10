@@ -566,17 +566,14 @@ export function ExportMovementsByDateButton({ equipment }: ExportMovementsByDate
         const startTime = format(new Date(stop.started_at), "HH:mm");
         let endTime = "";
         
-        // End time is either when this stop ended or when next activity started
-        if (stop.ended_at) {
+        // For "Fim de Turno" entries, always prefer shift_end_time from the shift record
+        const isEndOfShift = stop.stop_reason === "end_of_shift" || stop.stop_reason === "fim_turno";
+        if (isEndOfShift && shiftRecord?.shift_end_time) {
+          endTime = format(new Date(shiftRecord.shift_end_time), "HH:mm");
+        } else if (stop.ended_at) {
           endTime = format(new Date(stop.ended_at), "HH:mm");
         } else if (idx < filteredStops.length - 1) {
           endTime = format(new Date(filteredStops[idx + 1].started_at), "HH:mm");
-        } else {
-          // Last activity - leave end time blank unless it's end of shift
-          const isEndOfShift = stop.stop_reason === "end_of_shift" || stop.stop_reason === "fim_turno";
-          if (isEndOfShift && shiftRecord?.shift_end_time) {
-            endTime = format(new Date(shiftRecord.shift_end_time), "HH:mm");
-          }
         }
 
         const statusLabel = getStatusLabel(stop.stop_reason);
