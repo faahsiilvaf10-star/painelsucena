@@ -620,6 +620,7 @@ export type Database = {
           description: string
           due_date: string | null
           id: string
+          items: Json | null
           mentioned_user_id: string | null
           mentioned_user_name: string | null
           photo_urls: string[] | null
@@ -634,6 +635,7 @@ export type Database = {
           description: string
           due_date?: string | null
           id?: string
+          items?: Json | null
           mentioned_user_id?: string | null
           mentioned_user_name?: string | null
           photo_urls?: string[] | null
@@ -648,6 +650,7 @@ export type Database = {
           description?: string
           due_date?: string | null
           id?: string
+          items?: Json | null
           mentioned_user_id?: string | null
           mentioned_user_name?: string | null
           photo_urls?: string[] | null

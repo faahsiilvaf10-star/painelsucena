@@ -6,7 +6,7 @@ import { Input } from "@/components/ui/input";
 import { Textarea } from "@/components/ui/textarea";
 import { Badge } from "@/components/ui/badge";
 import { Avatar, AvatarImage, AvatarFallback } from "@/components/ui/avatar";
-import { Dialog, DialogContent, DialogTrigger } from "@/components/ui/dialog";
+import { Dialog, DialogContent } from "@/components/ui/dialog";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover";
 import { Calendar } from "@/components/ui/calendar";
@@ -26,10 +26,24 @@ import {
   User,
   X,
 } from "lucide-react";
-import { useDesvios, useCreateDesvio, useUploadDesvioPhoto, useAddCorrectionPhoto, useUpdateDesvioStatus, useDeleteDesvio } from "@/hooks/useDesvios";
+import {
+  useDesvios,
+  useCreateDesvio,
+  useUploadDesvioPhoto,
+  useUpdateDesvioItems,
+  useUpdateDesvioStatus,
+  useDeleteDesvio,
+  type DesvioItem,
+} from "@/hooks/useDesvios";
 import { useAuth } from "@/hooks/useAuth";
 import { useAllUsers } from "@/hooks/useAllUsers";
 import { toast } from "sonner";
+
+interface FormItem {
+  id: string;
+  description: string;
+  photo_url: string | null;
+}
 
 export default function Desvios() {
   const { user } = useAuth();
@@ -37,74 +51,98 @@ export default function Desvios() {
   const { allUsers } = useAllUsers();
   const createDesvio = useCreateDesvio();
   const uploadPhoto = useUploadDesvioPhoto();
-  const addCorrection = useAddCorrectionPhoto();
+  const updateItems = useUpdateDesvioItems();
   const updateStatus = useUpdateDesvioStatus();
   const deleteDesvio = useDeleteDesvio();
 
   const [showForm, setShowForm] = useState(false);
-  const [description, setDescription] = useState("");
-  const [selectedUserId, setSelectedUserId] = useState<string>("");
+  const [selectedUserId, setSelectedUserId] = useState("");
   const [dueDate, setDueDate] = useState<Date | undefined>();
-  const [photos, setPhotos] = useState<string[]>([]);
+  const [formItems, setFormItems] = useState<FormItem[]>([
+    { id: crypto.randomUUID(), description: "", photo_url: null },
+  ]);
   const [uploading, setUploading] = useState(false);
   const [viewingImage, setViewingImage] = useState<string | null>(null);
   const [filter, setFilter] = useState<"todos" | "aberto" | "corrigido">("todos");
   const fileInputRef = useRef<HTMLInputElement>(null);
+  const [activeItemId, setActiveItemId] = useState<string | null>(null);
+  const [correctionTarget, setCorrectionTarget] = useState<{ desvioId: string; itemId: string } | null>(null);
   const correctionInputRef = useRef<HTMLInputElement>(null);
-  const [correctionDesvioId, setCorrectionDesvioId] = useState<string | null>(null);
 
-  const handlePhotoUpload = async (e: React.ChangeEvent<HTMLInputElement>) => {
-    const files = e.target.files;
-    if (!files) return;
+  const addFormItem = () => {
+    setFormItems((prev) => [...prev, { id: crypto.randomUUID(), description: "", photo_url: null }]);
+  };
+
+  const removeFormItem = (id: string) => {
+    if (formItems.length <= 1) return;
+    setFormItems((prev) => prev.filter((item) => item.id !== id));
+  };
+
+  const updateFormItem = (id: string, field: keyof FormItem, value: string | null) => {
+    setFormItems((prev) => prev.map((item) => (item.id === id ? { ...item, [field]: value } : item)));
+  };
+
+  const handleItemPhotoUpload = async (e: React.ChangeEvent<HTMLInputElement>) => {
+    const file = e.target.files?.[0];
+    if (!file || !activeItemId) return;
     setUploading(true);
     try {
-      const urls: string[] = [];
-      for (const file of Array.from(files)) {
-        const url = await uploadPhoto.mutateAsync(file);
-        urls.push(url);
-      }
-      setPhotos((prev) => [...prev, ...urls]);
+      const url = await uploadPhoto.mutateAsync(file);
+      updateFormItem(activeItemId, "photo_url", url);
     } catch {
       toast.error("Erro ao fazer upload da foto");
     }
     setUploading(false);
+    setActiveItemId(null);
     if (fileInputRef.current) fileInputRef.current.value = "";
   };
 
   const handleCorrectionUpload = async (e: React.ChangeEvent<HTMLInputElement>) => {
-    const files = e.target.files;
-    if (!files || !correctionDesvioId) return;
+    const file = e.target.files?.[0];
+    if (!file || !correctionTarget) return;
     setUploading(true);
     try {
-      for (const file of Array.from(files)) {
-        const url = await uploadPhoto.mutateAsync(file);
-        await addCorrection.mutateAsync({ desvioId: correctionDesvioId, photoUrl: url });
+      const url = await uploadPhoto.mutateAsync(file);
+      const desvio = desvios?.find((d) => d.id === correctionTarget.desvioId);
+      if (desvio) {
+        const updatedItems = desvio.items.map((item) =>
+          item.id === correctionTarget.itemId ? { ...item, correction_photo_url: url } : item
+        );
+        await updateItems.mutateAsync({ desvioId: correctionTarget.desvioId, items: updatedItems });
+        toast.success("Foto de correção adicionada!");
       }
     } catch {
-      // Error handled by mutation
+      toast.error("Erro ao adicionar foto de correção");
     }
     setUploading(false);
-    setCorrectionDesvioId(null);
+    setCorrectionTarget(null);
     if (correctionInputRef.current) correctionInputRef.current.value = "";
   };
 
   const handleSubmit = async () => {
-    if (!description.trim()) {
-      toast.error("Descreva o desvio");
+    const validItems = formItems.filter((item) => item.description.trim());
+    if (validItems.length === 0) {
+      toast.error("Adicione pelo menos um item com descrição");
       return;
     }
     const selectedUser = allUsers.find((u) => u.user_id === selectedUserId);
+    const items: DesvioItem[] = validItems.map((item) => ({
+      id: item.id,
+      description: item.description.trim(),
+      photo_url: item.photo_url,
+      correction_photo_url: null,
+    }));
     await createDesvio.mutateAsync({
-      description: description.trim(),
-      photo_urls: photos,
+      description: items.map((i) => i.description).join(" | "),
+      photo_urls: items.filter((i) => i.photo_url).map((i) => i.photo_url!),
+      items,
       mentioned_user_id: selectedUserId || null,
       mentioned_user_name: selectedUser?.full_name || null,
       due_date: dueDate ? format(dueDate, "yyyy-MM-dd") : null,
     });
-    setDescription("");
+    setFormItems([{ id: crypto.randomUUID(), description: "", photo_url: null }]);
     setSelectedUserId("");
     setDueDate(undefined);
-    setPhotos([]);
     setShowForm(false);
   };
 
@@ -164,13 +202,6 @@ export default function Desvios() {
               <CardTitle className="text-base">Registrar Desvio</CardTitle>
             </CardHeader>
             <CardContent className="space-y-3">
-              <Textarea
-                placeholder="Descreva o desvio de segurança..."
-                value={description}
-                onChange={(e) => setDescription(e.target.value)}
-                rows={3}
-              />
-
               {/* Mention user */}
               <div>
                 <label className="text-sm font-medium text-foreground mb-1 block">
@@ -225,51 +256,70 @@ export default function Desvios() {
                 </Popover>
               </div>
 
-              {/* Photos */}
+              {/* Items */}
               <div>
-                <label className="text-sm font-medium text-foreground mb-1 block">
-                  <Camera className="w-3.5 h-3.5 inline mr-1" />
-                  Fotos do Desvio
+                <label className="text-sm font-medium text-foreground mb-2 block">
+                  <AlertTriangle className="w-3.5 h-3.5 inline mr-1" />
+                  Itens para Correção
                 </label>
-                <input
-                  ref={fileInputRef}
-                  type="file"
-                  accept="image/*"
-                  multiple
-                  className="hidden"
-                  onChange={handlePhotoUpload}
-                />
-                <div className="flex flex-wrap gap-2">
-                  {photos.map((url, i) => (
-                    <div key={i} className="relative w-16 h-16 rounded-lg overflow-hidden border cursor-pointer" onClick={() => setViewingImage(url)}>
-                      <img src={url} alt="" className="w-full h-full object-cover" />
-                      <button
-                        onClick={(e) => { e.stopPropagation(); setPhotos((prev) => prev.filter((_, idx) => idx !== i)); }}
-                        className="absolute top-0 right-0 bg-destructive text-destructive-foreground rounded-bl p-0.5"
-                      >
-                        <X className="w-3 h-3" />
-                      </button>
+                <div className="space-y-3">
+                  {formItems.map((item, index) => (
+                    <div key={item.id} className="border rounded-lg p-3 space-y-2 bg-muted/30">
+                      <div className="flex items-center justify-between">
+                        <span className="text-xs font-medium text-muted-foreground">Item {index + 1}</span>
+                        {formItems.length > 1 && (
+                          <button onClick={() => removeFormItem(item.id)} className="text-destructive hover:text-destructive/80">
+                            <X className="w-4 h-4" />
+                          </button>
+                        )}
+                      </div>
+                      <Input
+                        placeholder="Descreva o desvio..."
+                        value={item.description}
+                        onChange={(e) => updateFormItem(item.id, "description", e.target.value)}
+                      />
+                      <div className="flex items-center gap-2">
+                        {item.photo_url ? (
+                          <div className="relative w-14 h-14 rounded-lg overflow-hidden border cursor-pointer" onClick={() => setViewingImage(item.photo_url)}>
+                            <img src={item.photo_url} alt="" className="w-full h-full object-cover" />
+                            <button
+                              onClick={(e) => { e.stopPropagation(); updateFormItem(item.id, "photo_url", null); }}
+                              className="absolute top-0 right-0 bg-destructive text-destructive-foreground rounded-bl p-0.5"
+                            >
+                              <X className="w-3 h-3" />
+                            </button>
+                          </div>
+                        ) : (
+                          <button
+                            onClick={() => {
+                              setActiveItemId(item.id);
+                              fileInputRef.current?.click();
+                            }}
+                            disabled={uploading}
+                            className="w-14 h-14 rounded-lg border-2 border-dashed border-muted-foreground/30 flex items-center justify-center hover:border-primary/50 transition-colors"
+                          >
+                            {uploading && activeItemId === item.id ? (
+                              <div className="w-4 h-4 border-2 border-primary border-t-transparent rounded-full animate-spin" />
+                            ) : (
+                              <Camera className="w-4 h-4 text-muted-foreground" />
+                            )}
+                          </button>
+                        )}
+                        <span className="text-xs text-muted-foreground">Foto do desvio</span>
+                      </div>
                     </div>
                   ))}
-                  <button
-                    onClick={() => fileInputRef.current?.click()}
-                    disabled={uploading}
-                    className="w-16 h-16 rounded-lg border-2 border-dashed border-muted-foreground/30 flex items-center justify-center hover:border-primary/50 transition-colors"
-                  >
-                    {uploading ? (
-                      <div className="w-4 h-4 border-2 border-primary border-t-transparent rounded-full animate-spin" />
-                    ) : (
-                      <Plus className="w-5 h-5 text-muted-foreground" />
-                    )}
-                  </button>
                 </div>
+                <Button variant="outline" size="sm" className="mt-2 gap-1 text-xs w-full" onClick={addFormItem}>
+                  <Plus className="w-3 h-3" /> Adicionar Item
+                </Button>
               </div>
 
               <div className="flex gap-2 pt-2">
                 <Button onClick={handleSubmit} disabled={createDesvio.isPending} className="flex-1">
                   {createDesvio.isPending ? "Salvando..." : "Registrar Desvio"}
                 </Button>
-                <Button variant="outline" onClick={() => setShowForm(false)}>
+                <Button variant="outline" onClick={() => { setShowForm(false); setFormItems([{ id: crypto.randomUUID(), description: "", photo_url: null }]); }}>
                   Cancelar
                 </Button>
               </div>
@@ -280,13 +330,7 @@ export default function Desvios() {
         {/* Filter */}
         <div className="flex gap-2">
           {(["todos", "aberto", "corrigido"] as const).map((f) => (
-            <Button
-              key={f}
-              variant={filter === f ? "default" : "outline"}
-              size="sm"
-              onClick={() => setFilter(f)}
-              className="text-xs capitalize"
-            >
+            <Button key={f} variant={filter === f ? "default" : "outline"} size="sm" onClick={() => setFilter(f)} className="text-xs capitalize">
               {f}
             </Button>
           ))}
@@ -306,6 +350,7 @@ export default function Desvios() {
               const isOverdue = desvio.due_date && desvio.status === "aberto" && new Date(desvio.due_date) < new Date();
               const isMentioned = desvio.mentioned_user_id === user?.id;
               const isCreator = desvio.created_by === user?.id;
+              const hasItems = desvio.items && desvio.items.length > 0;
 
               return (
                 <Card
@@ -320,23 +365,20 @@ export default function Desvios() {
                     {/* Header */}
                     <div className="flex items-start justify-between gap-2">
                       <div className="flex-1">
-                        <p className="text-sm text-foreground whitespace-pre-wrap">{desvio.description}</p>
-                        <p className="text-xs text-muted-foreground mt-1">
+                        <p className="text-xs text-muted-foreground">
                           Por {desvio.created_by_name} • {format(new Date(desvio.created_at), "dd/MM/yyyy HH:mm")}
                         </p>
                       </div>
-                      <div className="flex items-center gap-1">
-                        <Badge
-                          variant={desvio.status === "corrigido" ? "default" : "secondary"}
-                          className={cn(
-                            "text-xs",
-                            desvio.status === "corrigido" && "bg-green-500 hover:bg-green-600",
-                            isOverdue && "bg-red-500 hover:bg-red-600"
-                          )}
-                        >
-                          {desvio.status === "corrigido" ? "Corrigido" : isOverdue ? "Atrasado" : "Aberto"}
-                        </Badge>
-                      </div>
+                      <Badge
+                        variant={desvio.status === "corrigido" ? "default" : "secondary"}
+                        className={cn(
+                          "text-xs",
+                          desvio.status === "corrigido" && "bg-green-500 hover:bg-green-600",
+                          isOverdue && "bg-red-500 hover:bg-red-600"
+                        )}
+                      >
+                        {desvio.status === "corrigido" ? "Corrigido" : isOverdue ? "Atrasado" : "Aberto"}
+                      </Badge>
                     </div>
 
                     {/* Mentioned user */}
@@ -359,20 +401,78 @@ export default function Desvios() {
                       </div>
                     )}
 
-                    {/* Desvio photos */}
-                    {desvio.photo_urls && desvio.photo_urls.length > 0 && (
+                    {/* Items list */}
+                    {hasItems && (
+                      <div className="space-y-2">
+                        <p className="text-xs font-medium text-muted-foreground">Itens ({desvio.items.length})</p>
+                        {desvio.items.map((item, idx) => (
+                          <div key={item.id} className="border rounded-lg p-3 bg-muted/20 space-y-2">
+                            <div className="flex items-start gap-2">
+                              <span className="text-xs font-bold text-muted-foreground mt-0.5">{idx + 1}.</span>
+                              <p className="text-sm text-foreground flex-1">{item.description}</p>
+                            </div>
+                            <div className="flex flex-wrap gap-3">
+                              {/* Desvio photo */}
+                              {item.photo_url && (
+                                <div>
+                                  <p className="text-[10px] text-muted-foreground mb-1">
+                                    <ImageIcon className="w-2.5 h-2.5 inline mr-0.5" />Desvio
+                                  </p>
+                                  <div
+                                    className="w-14 h-14 rounded-lg overflow-hidden border cursor-pointer hover:ring-2 hover:ring-primary transition-all"
+                                    onClick={() => setViewingImage(item.photo_url)}
+                                  >
+                                    <img src={item.photo_url!} alt="" className="w-full h-full object-cover" />
+                                  </div>
+                                </div>
+                              )}
+                              {/* Correction photo */}
+                              {item.correction_photo_url ? (
+                                <div>
+                                  <p className="text-[10px] text-green-600 dark:text-green-400 mb-1">
+                                    <CheckCircle2 className="w-2.5 h-2.5 inline mr-0.5" />Correção
+                                  </p>
+                                  <div
+                                    className="w-14 h-14 rounded-lg overflow-hidden border border-green-500/30 cursor-pointer hover:ring-2 hover:ring-green-500 transition-all"
+                                    onClick={() => setViewingImage(item.correction_photo_url)}
+                                  >
+                                    <img src={item.correction_photo_url!} alt="" className="w-full h-full object-cover" />
+                                  </div>
+                                </div>
+                              ) : (
+                                isMentioned && desvio.status === "aberto" && (
+                                  <div>
+                                    <p className="text-[10px] text-muted-foreground mb-1">Correção</p>
+                                    <button
+                                      onClick={() => {
+                                        setCorrectionTarget({ desvioId: desvio.id, itemId: item.id });
+                                        correctionInputRef.current?.click();
+                                      }}
+                                      disabled={uploading}
+                                      className="w-14 h-14 rounded-lg border-2 border-dashed border-green-500/30 flex items-center justify-center hover:border-green-500/50 transition-colors"
+                                    >
+                                      {uploading && correctionTarget?.itemId === item.id ? (
+                                        <div className="w-4 h-4 border-2 border-green-500 border-t-transparent rounded-full animate-spin" />
+                                      ) : (
+                                        <Upload className="w-4 h-4 text-green-500/60" />
+                                      )}
+                                    </button>
+                                  </div>
+                                )
+                              )}
+                            </div>
+                          </div>
+                        ))}
+                      </div>
+                    )}
+
+                    {/* Legacy: show old photo_urls if no items */}
+                    {!hasItems && desvio.photo_urls && desvio.photo_urls.length > 0 && (
                       <div>
-                        <p className="text-xs font-medium text-muted-foreground mb-1">
-                          <ImageIcon className="w-3 h-3 inline mr-1" />
-                          Fotos do Desvio
-                        </p>
+                        <p className="text-sm text-foreground mb-2">{desvio.description}</p>
                         <div className="flex flex-wrap gap-2">
                           {desvio.photo_urls.map((url, i) => (
-                            <div
-                              key={i}
-                              className="w-16 h-16 rounded-lg overflow-hidden border cursor-pointer hover:ring-2 hover:ring-primary transition-all"
-                              onClick={() => setViewingImage(url)}
-                            >
+                            <div key={i} className="w-14 h-14 rounded-lg overflow-hidden border cursor-pointer hover:ring-2 hover:ring-primary transition-all" onClick={() => setViewingImage(url)}>
                               <img src={url} alt="" className="w-full h-full object-cover" />
                             </div>
                           ))}
@@ -380,46 +480,12 @@ export default function Desvios() {
                       </div>
                     )}
 
-                    {/* Correction photos */}
-                    {desvio.correction_photo_urls && desvio.correction_photo_urls.length > 0 && (
-                      <div>
-                        <p className="text-xs font-medium text-green-600 dark:text-green-400 mb-1">
-                          <CheckCircle2 className="w-3 h-3 inline mr-1" />
-                          Fotos de Correção
-                        </p>
-                        <div className="flex flex-wrap gap-2">
-                          {desvio.correction_photo_urls.map((url, i) => (
-                            <div
-                              key={i}
-                              className="w-16 h-16 rounded-lg overflow-hidden border border-green-500/30 cursor-pointer hover:ring-2 hover:ring-green-500 transition-all"
-                              onClick={() => setViewingImage(url)}
-                            >
-                              <img src={url} alt="" className="w-full h-full object-cover" />
-                            </div>
-                          ))}
-                        </div>
-                      </div>
+                    {!hasItems && (!desvio.photo_urls || desvio.photo_urls.length === 0) && (
+                      <p className="text-sm text-foreground">{desvio.description}</p>
                     )}
 
                     {/* Actions */}
                     <div className="flex flex-wrap gap-2 pt-1">
-                      {/* Mentioned user can upload correction photo */}
-                      {isMentioned && desvio.status === "aberto" && (
-                        <Button
-                          variant="outline"
-                          size="sm"
-                          className="gap-1 text-xs border-green-500/30 text-green-600 hover:bg-green-500/10"
-                          onClick={() => {
-                            setCorrectionDesvioId(desvio.id);
-                            correctionInputRef.current?.click();
-                          }}
-                          disabled={uploading}
-                        >
-                          <Upload className="w-3 h-3" /> Foto Correção
-                        </Button>
-                      )}
-
-                      {/* Mark as corrected */}
                       {(isMentioned || isCreator) && desvio.status === "aberto" && (
                         <Button
                           variant="outline"
@@ -431,7 +497,6 @@ export default function Desvios() {
                         </Button>
                       )}
 
-                      {/* Reopen */}
                       {isCreator && desvio.status === "corrigido" && (
                         <Button
                           variant="outline"
@@ -443,7 +508,6 @@ export default function Desvios() {
                         </Button>
                       )}
 
-                      {/* Delete */}
                       {isCreator && (
                         <Button
                           variant="ghost"
@@ -462,15 +526,9 @@ export default function Desvios() {
           </div>
         )}
 
-        {/* Hidden correction file input */}
-        <input
-          ref={correctionInputRef}
-          type="file"
-          accept="image/*"
-          multiple
-          className="hidden"
-          onChange={handleCorrectionUpload}
-        />
+        {/* Hidden file inputs */}
+        <input ref={fileInputRef} type="file" accept="image/*" className="hidden" onChange={handleItemPhotoUpload} />
+        <input ref={correctionInputRef} type="file" accept="image/*" className="hidden" onChange={handleCorrectionUpload} />
 
         {/* Image viewer dialog */}
         <Dialog open={!!viewingImage} onOpenChange={() => setViewingImage(null)}>
