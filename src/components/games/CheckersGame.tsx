@@ -687,8 +687,8 @@ export function CheckersGame({ onBack }: { onBack: () => void }) {
         <div
           className="relative flex items-center justify-center rounded-full"
           style={{
-            width: size === "board" ? "78%" : 16,
-            height: size === "board" ? "78%" : 16,
+            width: size === "board" ? "88%" : 16,
+            height: size === "board" ? "88%" : 16,
             background: BLACK_PIECE_BG,
             border: `2.5px solid ${BLACK_PIECE_BORDER}`,
             boxShadow: isSelected
@@ -716,8 +716,8 @@ export function CheckersGame({ onBack }: { onBack: () => void }) {
       <div
         className={`relative flex items-center justify-center rounded-full ${effectClass}`}
         style={{
-          width: size === "board" ? "78%" : 16,
-          height: size === "board" ? "78%" : 16,
+          width: size === "board" ? "88%" : 16,
+          height: size === "board" ? "88%" : 16,
           background: visual.bg,
           border: `2.5px solid ${visual.border}`,
           boxShadow: isSelected
@@ -1160,7 +1160,7 @@ export function CheckersGame({ onBack }: { onBack: () => void }) {
                       <motion.div initial={{ scale: 1, opacity: 1 }} animate={{ scale: 0.3, opacity: 0, y: 10 }}
                         transition={{ duration: 0.6, ease: "easeOut" }}
                         className="absolute flex items-center justify-center rounded-full"
-                        style={{ width: "78%", height: "78%", background: cell.color === "white" ? getPieceVisual("white", pieceStyle).bg : BLACK_PIECE_BG, border: `2.5px solid ${cell.color === "white" ? getPieceVisual("white", pieceStyle).border : BLACK_PIECE_BORDER}` }} />
+                        style={{ width: "88%", height: "88%", background: cell.color === "white" ? getPieceVisual("white", pieceStyle).bg : BLACK_PIECE_BG, border: `2.5px solid ${cell.color === "white" ? getPieceVisual("white", pieceStyle).border : BLACK_PIECE_BORDER}` }} />
                     )}
                     {showPiece && (
                       <motion.div layout initial={false}
