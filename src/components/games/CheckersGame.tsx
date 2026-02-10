@@ -6,6 +6,7 @@ import { supabase } from "@/integrations/supabase/client";
 import { useAuth } from "@/hooks/useAuth";
 import { useProfile } from "@/hooks/useProfile";
 import { NeonAvatar } from "@/components/ui/NeonAvatar";
+import kingCrownFrame from "@/assets/king-crown-frame.png";
 
 // ── Types ──
 type AIDifficulty = "easy" | "medium" | "hard";
@@ -189,20 +190,55 @@ function getCapturesFromOrigin(board: Board, pos: Position, piece: Piece): Move[
   const results: Move[] = [];
   function recurse(b: Board, curPos: Position, captured: Position[], steps: Position[]) {
     let found = false;
-    for (const [dr, dc] of directions) {
-      const midR = curPos.row + dr, midC = curPos.col + dc;
-      const endR = curPos.row + dr * 2, endC = curPos.col + dc * 2;
-      if (endR < 0 || endR >= BOARD_SIZE || endC < 0 || endC >= BOARD_SIZE) continue;
-      const mid = b[midR][midC], end = b[endR][endC];
-      if (!mid || mid.color === piece.color) continue;
-      if (end !== null) continue;
-      if (captured.some(p => p.row === midR && p.col === midC)) continue;
-      found = true;
-      const nb = cloneBoard(b);
-      nb[curPos.row][curPos.col] = null;
-      nb[midR][midC] = null;
-      nb[endR][endC] = piece;
-      recurse(nb, { row: endR, col: endC }, [...captured, { row: midR, col: midC }], [...steps, { row: endR, col: endC }]);
+    if (piece.type === "king") {
+      // Flying king: can capture from distance
+      for (const [dr, dc] of directions) {
+        // Scan along the diagonal to find an enemy piece
+        let dist = 1;
+        while (true) {
+          const midR = curPos.row + dr * dist, midC = curPos.col + dc * dist;
+          if (midR < 0 || midR >= BOARD_SIZE || midC < 0 || midC >= BOARD_SIZE) break;
+          const midCell = b[midR][midC];
+          if (midCell && midCell.color === piece.color) break; // blocked by own piece
+          if (midCell && midCell.color !== piece.color) {
+            // Found enemy, check if already captured
+            if (captured.some(p => p.row === midR && p.col === midC)) break;
+            // Look for empty landing squares after the enemy
+            let landDist = 1;
+            while (true) {
+              const endR = midR + dr * landDist, endC = midC + dc * landDist;
+              if (endR < 0 || endR >= BOARD_SIZE || endC < 0 || endC >= BOARD_SIZE) break;
+              if (b[endR][endC] !== null) break;
+              found = true;
+              const nb = cloneBoard(b);
+              nb[curPos.row][curPos.col] = null;
+              nb[midR][midC] = null;
+              nb[endR][endC] = piece;
+              recurse(nb, { row: endR, col: endC }, [...captured, { row: midR, col: midC }], [...steps, { row: endR, col: endC }]);
+              landDist++;
+            }
+            break; // Can't jump over two pieces in a row
+          }
+          dist++;
+        }
+      }
+    } else {
+      // Normal piece: standard capture (jump 1 over enemy)
+      for (const [dr, dc] of directions) {
+        const midR = curPos.row + dr, midC = curPos.col + dc;
+        const endR = curPos.row + dr * 2, endC = curPos.col + dc * 2;
+        if (endR < 0 || endR >= BOARD_SIZE || endC < 0 || endC >= BOARD_SIZE) continue;
+        const mid = b[midR][midC], end = b[endR][endC];
+        if (!mid || mid.color === piece.color) continue;
+        if (end !== null) continue;
+        if (captured.some(p => p.row === midR && p.col === midC)) continue;
+        found = true;
+        const nb = cloneBoard(b);
+        nb[curPos.row][curPos.col] = null;
+        nb[midR][midC] = null;
+        nb[endR][endC] = piece;
+        recurse(nb, { row: endR, col: endC }, [...captured, { row: midR, col: midC }], [...steps, { row: endR, col: endC }]);
+      }
     }
     if (!found && captured.length > 0) {
       results.push({ from: pos, to: steps[steps.length - 1], captures: captured, intermediateSteps: steps });
@@ -216,10 +252,24 @@ function getSimpleMovesForPiece(board: Board, pos: Position, piece: Piece): Move
   const directions = piece.type === "king" ? [[-1, -1], [-1, 1], [1, -1], [1, 1]]
     : piece.color === "white" ? [[-1, -1], [-1, 1]] : [[1, -1], [1, 1]];
   const moves: Move[] = [];
-  for (const [dr, dc] of directions) {
-    const nr = pos.row + dr, nc = pos.col + dc;
-    if (nr < 0 || nr >= BOARD_SIZE || nc < 0 || nc >= BOARD_SIZE) continue;
-    if (board[nr][nc] === null) moves.push({ from: pos, to: { row: nr, col: nc }, captures: [] });
+  if (piece.type === "king") {
+    // Flying king: can move multiple squares diagonally
+    for (const [dr, dc] of directions) {
+      let dist = 1;
+      while (true) {
+        const nr = pos.row + dr * dist, nc = pos.col + dc * dist;
+        if (nr < 0 || nr >= BOARD_SIZE || nc < 0 || nc >= BOARD_SIZE) break;
+        if (board[nr][nc] !== null) break;
+        moves.push({ from: pos, to: { row: nr, col: nc }, captures: [] });
+        dist++;
+      }
+    }
+  } else {
+    for (const [dr, dc] of directions) {
+      const nr = pos.row + dr, nc = pos.col + dc;
+      if (nr < 0 || nr >= BOARD_SIZE || nc < 0 || nc >= BOARD_SIZE) continue;
+      if (board[nr][nc] === null) moves.push({ from: pos, to: { row: nr, col: nc }, captures: [] });
+    }
   }
   return moves;
 }
@@ -684,28 +734,36 @@ export function CheckersGame({ onBack }: { onBack: () => void }) {
     // AI/opponent pieces always use default style - no effects, no customization
     if (!isMyPiece) {
       return (
-        <div
-          className="relative flex items-center justify-center rounded-full"
-          style={{
-            width: size === "board" ? "88%" : 16,
-            height: size === "board" ? "88%" : 16,
-            background: BLACK_PIECE_BG,
-            border: `2.5px solid ${BLACK_PIECE_BORDER}`,
-            boxShadow: isSelected
-              ? `0 0 12px 3px rgba(100,180,50,0.6), 0 4px 8px rgba(0,0,0,0.3)`
-              : `0 3px 6px rgba(0,0,0,0.3), inset 0 1px 2px rgba(255,255,255,0.15)`,
-            cursor: isMovable ? "pointer" : "default",
-          }}
-        >
-          {size === "board" && (
-            <div className="absolute rounded-full pointer-events-none" style={{
-              width: "65%", height: "65%",
-              border: "1.5px solid rgba(255,255,255,0.15)",
-            }} />
-          )}
+        <div className="relative flex items-center justify-center" style={{ width: size === "board" ? "88%" : 16, height: size === "board" ? "88%" : 16 }}>
+          {/* Crown frame for kings */}
           {cell.type === "king" && size === "board" && (
-            <span className="text-[clamp(10px,2.5vw,18px)] select-none pointer-events-none" style={{ filter: "brightness(2)" }}>👑</span>
+            <img src={kingCrownFrame} alt="" className="absolute pointer-events-none select-none" draggable={false}
+              style={{ width: "160%", height: "160%", top: "-30%", left: "-30%", zIndex: 2, filter: "drop-shadow(0 0 6px rgba(255,215,0,0.6))" }} />
           )}
+          <div
+            className="relative flex items-center justify-center rounded-full"
+            style={{
+              width: "100%",
+              height: "100%",
+              background: BLACK_PIECE_BG,
+              border: `2.5px solid ${BLACK_PIECE_BORDER}`,
+              boxShadow: isSelected
+                ? `0 0 12px 3px rgba(100,180,50,0.6), 0 4px 8px rgba(0,0,0,0.3)`
+                : `0 3px 6px rgba(0,0,0,0.3), inset 0 1px 2px rgba(255,255,255,0.15)`,
+              cursor: isMovable ? "pointer" : "default",
+              zIndex: 1,
+            }}
+          >
+            {(
+              <div className="absolute rounded-full pointer-events-none" style={{
+                width: "65%", height: "65%",
+                border: "1.5px solid rgba(255,255,255,0.15)",
+              }} />
+            )}
+            {cell.type === "king" && (
+              <span className="text-[clamp(10px,2.5vw,18px)] select-none pointer-events-none" style={{ filter: "brightness(2)" }}>👑</span>
+            )}
+          </div>
         </div>
       );
     }
@@ -713,32 +771,40 @@ export function CheckersGame({ onBack }: { onBack: () => void }) {
     // Player's customized piece
     const visual = getMyPieceVisual();
     return (
-      <div
-        className={`relative flex items-center justify-center rounded-full ${effectClass}`}
-        style={{
-          width: size === "board" ? "88%" : 16,
-          height: size === "board" ? "88%" : 16,
-          background: visual.bg,
-          border: `2.5px solid ${visual.border}`,
-          boxShadow: isSelected
-            ? `0 0 12px 3px rgba(100,180,50,0.6), 0 4px 8px rgba(0,0,0,0.3)`
-            : `0 3px 6px rgba(0,0,0,0.3), inset 0 1px 2px rgba(255,255,255,0.6)`,
-          cursor: isMovable ? "pointer" : "default",
-          color: visual.border,
-        }}
-      >
-        {size === "board" && !visual.teamImg && (
-          <div className="absolute rounded-full pointer-events-none" style={{
-            width: "65%", height: "65%",
-            border: "1.5px solid rgba(180,150,100,0.5)",
-          }} />
-        )}
-        {size === "board" && visual.teamImg && (
-          <img src={visual.teamImg} alt="" className="w-[60%] h-[60%] object-contain pointer-events-none select-none" draggable={false} />
-        )}
+      <div className="relative flex items-center justify-center" style={{ width: size === "board" ? "88%" : 16, height: size === "board" ? "88%" : 16 }}>
+        {/* Crown frame for kings */}
         {cell.type === "king" && size === "board" && (
-          <span className="text-[clamp(10px,2.5vw,18px)] select-none pointer-events-none">👑</span>
+          <img src={kingCrownFrame} alt="" className="absolute pointer-events-none select-none" draggable={false}
+            style={{ width: "160%", height: "160%", top: "-30%", left: "-30%", zIndex: 2, filter: "drop-shadow(0 0 6px rgba(255,215,0,0.6))" }} />
         )}
+        <div
+          className={`relative flex items-center justify-center rounded-full ${effectClass}`}
+          style={{
+            width: "100%",
+            height: "100%",
+            background: visual.bg,
+            border: `2.5px solid ${visual.border}`,
+            boxShadow: isSelected
+              ? `0 0 12px 3px rgba(100,180,50,0.6), 0 4px 8px rgba(0,0,0,0.3)`
+              : `0 3px 6px rgba(0,0,0,0.3), inset 0 1px 2px rgba(255,255,255,0.6)`,
+            cursor: isMovable ? "pointer" : "default",
+            color: visual.border,
+            zIndex: 1,
+          }}
+        >
+          {!visual.teamImg && (
+            <div className="absolute rounded-full pointer-events-none" style={{
+              width: "65%", height: "65%",
+              border: "1.5px solid rgba(180,150,100,0.5)",
+            }} />
+          )}
+          {visual.teamImg && (
+            <img src={visual.teamImg} alt="" className="w-[60%] h-[60%] object-contain pointer-events-none select-none" draggable={false} />
+          )}
+          {cell.type === "king" && (
+            <span className="text-[clamp(10px,2.5vw,18px)] select-none pointer-events-none">👑</span>
+          )}
+        </div>
       </div>
     );
   };
