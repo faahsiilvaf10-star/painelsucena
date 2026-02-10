@@ -211,11 +211,11 @@ function DominoTileVisual({ tile, size = "md", onClick, disabled, highlight, ver
         style={{ width: dims.h + 6, height: dims.w + 6, ...tileStyle }}
       >
         <div style={{ width: dims.face, height: dims.face }}>
-          <DominoFace value={tile[0]} size={dims.face} rotate180={disabled && tile[0] === 6} />
+          <DominoFace value={tile[0]} size={dims.face} rotate180={tile[0] === 6} />
         </div>
         <div style={{ width: "60%", height: 1.5, background: "#b8a878", margin: "1px 0" }} />
         <div style={{ width: dims.face, height: dims.face }}>
-          <DominoFace value={tile[1]} size={dims.face} rotate180={disabled && tile[1] === 6} />
+          <DominoFace value={tile[1]} size={dims.face} rotate180={tile[1] === 6} />
         </div>
       </motion.button>
     );
@@ -233,11 +233,11 @@ function DominoTileVisual({ tile, size = "md", onClick, disabled, highlight, ver
       style={{ width: dims.w + 4, height: dims.h + 6, ...tileStyle }}
     >
       <div style={{ width: dims.face, height: dims.face }}>
-        <DominoFace value={tile[0]} size={dims.face} rotate180={disabled && tile[0] === 6} />
+        <DominoFace value={tile[0]} size={dims.face} rotate180={tile[0] === 6} />
       </div>
       <div style={{ width: 1.5, height: "60%", background: "#b8a878", margin: "0 1px" }} />
       <div style={{ width: dims.face, height: dims.face }}>
-        <DominoFace value={tile[1]} size={dims.face} rotate180={disabled && tile[1] === 6} />
+        <DominoFace value={tile[1]} size={dims.face} rotate180={tile[1] === 6} />
       </div>
     </motion.button>
   );
