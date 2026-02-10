@@ -144,11 +144,13 @@ const DOT_POSITIONS: Record<number, [number, number][]> = {
   3: [[28, 28], [50, 50], [72, 72]],
   4: [[28, 28], [72, 28], [28, 72], [72, 72]],
   5: [[28, 28], [72, 28], [50, 50], [28, 72], [72, 72]],
-  6: [[24, 30], [50, 30], [76, 30], [24, 70], [50, 70], [76, 70]],
+  6: [[30, 24], [70, 24], [30, 50], [70, 50], [30, 76], [70, 76]],
 };
 
-function DominoFace({ value, size }: { value: number; size: number }) {
-  const dots = DOT_POSITIONS[value] || [];
+const DOT_POSITIONS_6_BOARD: [number, number][] = [[24, 30], [50, 30], [76, 30], [24, 70], [50, 70], [76, 70]];
+
+function DominoFace({ value, size, onBoard }: { value: number; size: number; onBoard?: boolean }) {
+  const dots = (value === 6 && onBoard) ? DOT_POSITIONS_6_BOARD : (DOT_POSITIONS[value] || []);
   const dotR = Math.max(9, size * 0.2);
   return (
     <svg width={size} height={size} viewBox="0 0 100 100" className="block">
@@ -211,11 +213,11 @@ function DominoTileVisual({ tile, size = "md", onClick, disabled, highlight, ver
         style={{ width: dims.h + 6, height: dims.w + 6, ...tileStyle }}
       >
         <div style={{ width: dims.face, height: dims.face }}>
-          <DominoFace value={tile[0]} size={dims.face} />
+          <DominoFace value={tile[0]} size={dims.face} onBoard={disabled} />
         </div>
         <div style={{ width: "60%", height: 1.5, background: "#b8a878", margin: "1px 0" }} />
         <div style={{ width: dims.face, height: dims.face }}>
-          <DominoFace value={tile[1]} size={dims.face} />
+          <DominoFace value={tile[1]} size={dims.face} onBoard={disabled} />
         </div>
       </motion.button>
     );
@@ -233,11 +235,11 @@ function DominoTileVisual({ tile, size = "md", onClick, disabled, highlight, ver
       style={{ width: dims.w + 4, height: dims.h + 6, ...tileStyle }}
     >
       <div style={{ width: dims.face, height: dims.face }}>
-        <DominoFace value={tile[0]} size={dims.face} />
+        <DominoFace value={tile[0]} size={dims.face} onBoard={disabled} />
       </div>
       <div style={{ width: 1.5, height: "60%", background: "#b8a878", margin: "0 1px" }} />
       <div style={{ width: dims.face, height: dims.face }}>
-        <DominoFace value={tile[1]} size={dims.face} />
+        <DominoFace value={tile[1]} size={dims.face} onBoard={disabled} />
       </div>
     </motion.button>
   );
