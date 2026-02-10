@@ -735,10 +735,13 @@ export function CheckersGame({ onBack }: { onBack: () => void }) {
     if (!isMyPiece) {
       return (
         <div className="relative flex items-center justify-center" style={{ width: size === "board" ? "88%" : 16, height: size === "board" ? "88%" : 16 }}>
-          {/* Crown frame for kings */}
           {cell.type === "king" && size === "board" && (
-            <img src={kingCrownFrame} alt="" className="absolute pointer-events-none select-none" draggable={false}
-              style={{ width: "160%", height: "160%", top: "-30%", left: "-30%", zIndex: 2, filter: "drop-shadow(0 0 6px rgba(255,215,0,0.6))" }} />
+            <motion.span
+              className="absolute select-none pointer-events-none"
+              style={{ zIndex: 3, filter: "brightness(2) drop-shadow(0 0 6px rgba(255,215,0,0.8))", fontSize: "clamp(16px,4vw,28px)", top: "-35%", left: "50%", transform: "translateX(-50%)" }}
+              animate={{ y: [0, -3, 0], scale: [1, 1.1, 1], rotate: [0, 5, -5, 0] }}
+              transition={{ duration: 2, repeat: Infinity, ease: "easeInOut" }}
+            >👑</motion.span>
           )}
           <div
             className="relative flex items-center justify-center rounded-full"
@@ -746,23 +749,20 @@ export function CheckersGame({ onBack }: { onBack: () => void }) {
               width: "100%",
               height: "100%",
               background: BLACK_PIECE_BG,
-              border: `2.5px solid ${BLACK_PIECE_BORDER}`,
+              border: cell.type === "king" ? "2.5px solid #ffd700" : `2.5px solid ${BLACK_PIECE_BORDER}`,
               boxShadow: isSelected
                 ? `0 0 12px 3px rgba(100,180,50,0.6), 0 4px 8px rgba(0,0,0,0.3)`
-                : `0 3px 6px rgba(0,0,0,0.3), inset 0 1px 2px rgba(255,255,255,0.15)`,
+                : cell.type === "king"
+                  ? `0 0 10px rgba(255,215,0,0.5), 0 3px 6px rgba(0,0,0,0.3), inset 0 1px 2px rgba(255,255,255,0.15)`
+                  : `0 3px 6px rgba(0,0,0,0.3), inset 0 1px 2px rgba(255,255,255,0.15)`,
               cursor: isMovable ? "pointer" : "default",
               zIndex: 1,
             }}
           >
-            {(
-              <div className="absolute rounded-full pointer-events-none" style={{
-                width: "65%", height: "65%",
-                border: "1.5px solid rgba(255,255,255,0.15)",
-              }} />
-            )}
-            {cell.type === "king" && (
-              <span className="text-[clamp(10px,2.5vw,18px)] select-none pointer-events-none" style={{ filter: "brightness(2)" }}>👑</span>
-            )}
+            <div className="absolute rounded-full pointer-events-none" style={{
+              width: "65%", height: "65%",
+              border: "1.5px solid rgba(255,255,255,0.15)",
+            }} />
           </div>
         </div>
       );
@@ -772,10 +772,13 @@ export function CheckersGame({ onBack }: { onBack: () => void }) {
     const visual = getMyPieceVisual();
     return (
       <div className="relative flex items-center justify-center" style={{ width: size === "board" ? "88%" : 16, height: size === "board" ? "88%" : 16 }}>
-        {/* Crown frame for kings */}
         {cell.type === "king" && size === "board" && (
-          <img src={kingCrownFrame} alt="" className="absolute pointer-events-none select-none" draggable={false}
-            style={{ width: "160%", height: "160%", top: "-30%", left: "-30%", zIndex: 2, filter: "drop-shadow(0 0 6px rgba(255,215,0,0.6))" }} />
+          <motion.span
+            className="absolute select-none pointer-events-none"
+            style={{ zIndex: 3, filter: "drop-shadow(0 0 6px rgba(255,215,0,0.8))", fontSize: "clamp(16px,4vw,28px)", top: "-35%", left: "50%", transform: "translateX(-50%)" }}
+            animate={{ y: [0, -3, 0], scale: [1, 1.1, 1], rotate: [0, 5, -5, 0] }}
+            transition={{ duration: 2, repeat: Infinity, ease: "easeInOut" }}
+          >👑</motion.span>
         )}
         <div
           className={`relative flex items-center justify-center rounded-full ${effectClass}`}
@@ -783,10 +786,12 @@ export function CheckersGame({ onBack }: { onBack: () => void }) {
             width: "100%",
             height: "100%",
             background: visual.bg,
-            border: `2.5px solid ${visual.border}`,
+            border: cell.type === "king" ? `2.5px solid #ffd700` : `2.5px solid ${visual.border}`,
             boxShadow: isSelected
               ? `0 0 12px 3px rgba(100,180,50,0.6), 0 4px 8px rgba(0,0,0,0.3)`
-              : `0 3px 6px rgba(0,0,0,0.3), inset 0 1px 2px rgba(255,255,255,0.6)`,
+              : cell.type === "king"
+                ? `0 0 10px rgba(255,215,0,0.5), 0 3px 6px rgba(0,0,0,0.3), inset 0 1px 2px rgba(255,255,255,0.6)`
+                : `0 3px 6px rgba(0,0,0,0.3), inset 0 1px 2px rgba(255,255,255,0.6)`,
             cursor: isMovable ? "pointer" : "default",
             color: visual.border,
             zIndex: 1,
@@ -800,9 +805,6 @@ export function CheckersGame({ onBack }: { onBack: () => void }) {
           )}
           {visual.teamImg && (
             <img src={visual.teamImg} alt="" className="w-[60%] h-[60%] object-contain pointer-events-none select-none" draggable={false} />
-          )}
-          {cell.type === "king" && (
-            <span className="text-[clamp(10px,2.5vw,18px)] select-none pointer-events-none">👑</span>
           )}
         </div>
       </div>
