@@ -546,80 +546,115 @@ export function ExportEquipmentPdfButton({
 
       // Filter today's data
       const todayMovements = movements.filter((m) => m.movement_date === today);
-      const todayStops = stopHistory.filter((h) => {
-        const stopDate = format(new Date(h.started_at), "yyyy-MM-dd");
-        return stopDate === today;
-      });
 
-      // Calculate total stop time
-      const totalStopMinutes = todayStops.reduce(
-        (acc, stop) => acc + (stop.duration_minutes || 0),
-        0
-      );
+      // PRIMARY SOURCE: Use daily_shift_records.status_history (same as admin editor / date-based PDF)
+      // This ensures consistency between today's PDF and the date-based PDF
+      const shiftStatusHistory = shiftRecord?.status_history
+        ? (Array.isArray(shiftRecord.status_history) 
+            ? shiftRecord.status_history as Array<{ status: string; timestamp: string; changed_by?: string | null; description?: string }>
+            : [])
+        : [];
+
+      const activities: Array<{ start: string; end: string; description: string }> = [];
+
+      if (shiftStatusHistory.length > 0) {
+        // Use status_history from daily_shift_records (primary, consistent with admin editor)
+        const sortedHistory = [...shiftStatusHistory].sort(
+          (a, b) => new Date(a.timestamp).getTime() - new Date(b.timestamp).getTime()
+        );
+
+        // Filter consecutive duplicates
+        const filteredHistory = sortedHistory.filter((entry, index, arr) => {
+          if (index === 0) return true;
+          const prev = arr[index - 1];
+          return entry.status !== prev.status || entry.description !== prev.description;
+        });
+
+        for (let i = 0; i < filteredHistory.length; i++) {
+          const entry = filteredHistory[i];
+          const nextEntry = filteredHistory[i + 1];
+          const startTime = format(new Date(entry.timestamp), "HH:mm", { locale: ptBR });
+
+          const isLastEntry = i === filteredHistory.length - 1;
+          const isEndOfShift = entry.status === "end_of_shift" || entry.status === "fim_turno";
+
+          let endTime = "";
+          if (nextEntry) {
+            endTime = format(new Date(nextEntry.timestamp), "HH:mm", { locale: ptBR });
+          } else if (isLastEntry && isEndOfShift) {
+            endTime = startTime;
+          }
+
+          // Check if it's a "retorno após abastecimento" entry
+          const desc = entry.description ?? "";
+          const nDesc = normalizeText(desc);
+          const nStatus = normalizeText(entry.status ?? "");
+          const isReturnEntry = 
+            nDesc.includes("retorno apos abastecimento") ||
+            nDesc.includes("retorno do ponto") ||
+            nStatus.includes("retorno_abastecimento") ||
+            nStatus.includes("retorno abastecimento");
+
+          if (isReturnEntry) {
+            continue; // Skip "retorno" entries
+          }
+
+          const description = entry.description 
+            ? `${getStatusLabel(entry.status)}${entry.description !== getStatusLabel(entry.status) ? ` - ${entry.description}` : ""}`
+            : getStatusLabel(entry.status);
+
+          activities.push({ start: startTime, end: endTime, description });
+        }
+      } else {
+        // FALLBACK: Use equipment_stop_history (legacy behavior)
+        const todayStops = stopHistory.filter((h) => {
+          const stopDate = format(new Date(h.started_at), "yyyy-MM-dd");
+          return stopDate === today;
+        });
+
+        const sortedStops = [...todayStops].sort(
+          (a, b) => new Date(a.started_at).getTime() - new Date(b.started_at).getTime()
+        );
+
+        const filteredStops = sortedStops.filter((stop, index, arr) => {
+          if (index === 0) return true;
+          const prev = arr[index - 1];
+          return stop.stop_reason !== prev.stop_reason || stop.defect_description !== prev.defect_description;
+        });
+
+        for (let i = 0; i < filteredStops.length; i++) {
+          const stop = filteredStops[i];
+          if (isReturnAfterRefuelingStop(stop)) continue;
+
+          const nextStop = filteredStops[i + 1];
+          const isLastEntry = i === filteredStops.length - 1;
+          const isEndOfShift = stop.stop_reason === "end_of_shift" || stop.stop_reason === "fim_turno";
+
+          let endTime = "";
+          if (nextStop) {
+            endTime = stop.ended_at
+              ? format(new Date(stop.ended_at), "HH:mm", { locale: ptBR })
+              : format(new Date(nextStop.started_at), "HH:mm", { locale: ptBR });
+            if (isReturnAfterRefuelingStop(nextStop)) i++;
+          } else if (isLastEntry && isEndOfShift) {
+            endTime = stop.ended_at
+              ? format(new Date(stop.ended_at), "HH:mm", { locale: ptBR })
+              : format(new Date(stop.started_at), "HH:mm", { locale: ptBR });
+          }
+
+          activities.push({
+            start: format(new Date(stop.started_at), "HH:mm", { locale: ptBR }),
+            end: endTime,
+            description: `${getStatusLabel(stop.stop_reason)}${stop.defect_description ? ` - ${stop.defect_description}` : ""}`,
+          });
+        }
+      }
 
       const printWindow = window.open("", "_blank");
       if (!printWindow) {
         toast.error("Permita pop-ups para exportar PDF");
         setIsExporting(false);
         return;
-      }
-
-      // Sort stops and filter out consecutive duplicates
-      const sortedStops = [...todayStops].sort(
-        (a, b) => new Date(a.started_at).getTime() - new Date(b.started_at).getTime()
-      );
-
-      // Only remove if same reason AND same description consecutively
-      const filteredStops = sortedStops.filter((stop, index, arr) => {
-        if (index === 0) return true;
-        const prev = arr[index - 1];
-        return (
-          stop.stop_reason !== prev.stop_reason ||
-          stop.defect_description !== prev.defect_description
-        );
-      });
-
-      // Build activities with proper end times:
-      // - Use start time of next status as end time
-      // - Leave blank for last status UNLESS it's "Fim de Turno"
-      // - Special rule: legacy "Operando - Retorno após abastecimento" must NOT be printed;
-      //   it only closes the previous "Abastecimento" time range.
-      const activities: Array<{ start: string; end: string; description: string }> = [];
-      for (let i = 0; i < filteredStops.length; i++) {
-        const stop = filteredStops[i];
-        if (isReturnAfterRefuelingStop(stop)) {
-          continue;
-        }
-
-        const nextStop = filteredStops[i + 1];
-        const isLastEntry = i === filteredStops.length - 1;
-        const isEndOfShift = stop.stop_reason === "end_of_shift" || stop.stop_reason === "fim_turno";
-
-        let endTime = "";
-
-        // Rule: last status is always blank UNLESS it's "Fim de Turno".
-        // For non-last entries, use next status start time (or ended_at if available).
-        if (nextStop) {
-          // Use ended_at if available (e.g., closed abastecimento), else next start time
-          endTime = stop.ended_at
-            ? format(new Date(stop.ended_at), "HH:mm", { locale: ptBR })
-            : format(new Date(nextStop.started_at), "HH:mm", { locale: ptBR });
-          if (isReturnAfterRefuelingStop(nextStop)) {
-            i++; // consume marker without printing
-          }
-        } else if (isLastEntry && isEndOfShift) {
-          // Only "Fim de Turno" shows an end time when it's the last status.
-          endTime = stop.ended_at
-            ? format(new Date(stop.ended_at), "HH:mm", { locale: ptBR })
-            : format(new Date(stop.started_at), "HH:mm", { locale: ptBR });
-        }
-        // Otherwise (last entry, not end of shift) → endTime stays blank
-
-        activities.push({
-          start: format(new Date(stop.started_at), "HH:mm", { locale: ptBR }),
-          end: endTime,
-          description: `${getStatusLabel(stop.stop_reason)}${stop.defect_description ? ` - ${stop.defect_description}` : ""}`,
-        });
       }
 
       const htmlContent = buildParteDiariaFormHtml({
