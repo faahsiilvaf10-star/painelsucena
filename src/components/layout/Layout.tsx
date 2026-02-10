@@ -10,6 +10,7 @@ import { SessionExpiryWarning } from "@/components/session/SessionExpiryWarning"
 import { SessionTimeIndicator } from "@/components/session/SessionTimeIndicator";
 import { useChatNotifications } from "@/hooks/useChatNotifications";
 import { useInstaCenaNotifications } from "@/hooks/useInstaCenaNotifications";
+import { useInstaCenaBellNotifications } from "@/hooks/useInstaCenaBellNotifications";
 import { GoalAchievementMonitor } from "@/components/goals/GoalAchievementMonitor";
 import { useVisualizadorContext } from "@/contexts/VisualizadorContext";
 import { Eye } from "lucide-react";
@@ -66,6 +67,7 @@ const Layout = ({ children }: LayoutProps) => {
   // Enable global chat push notifications
   useChatNotifications();
   useInstaCenaNotifications();
+  useInstaCenaBellNotifications();
 
   return (
     <SidebarInset className="flex flex-col h-full overflow-hidden">
