@@ -87,6 +87,7 @@ export function RecyclingGame({ onBack }: { onBack: () => void }) {
   const timerRef = useRef<ReturnType<typeof setInterval> | null>(null);
   const saveScore = useSaveGameScore();
   const scoreSavedRef = useRef(false);
+  const playedIdsRef = useRef<Set<string>>(new Set());
 
   useEffect(() => {
     if (gameState === "finished" && !scoreSavedRef.current) {
@@ -101,8 +102,14 @@ export function RecyclingGame({ onBack }: { onBack: () => void }) {
   const progress = items.length > 0 ? ((currentIndex) / items.length) * 100 : 0;
 
   const startGame = useCallback(() => {
-    const shuffled = shuffleArray(ALL_WASTE_ITEMS).slice(0, ROUND_SIZE);
-    setItems(shuffled);
+    let available = ALL_WASTE_ITEMS.filter(q => !playedIdsRef.current.has(q.id));
+    if (available.length < ROUND_SIZE) {
+      playedIdsRef.current.clear();
+      available = [...ALL_WASTE_ITEMS];
+    }
+    const selected = shuffleArray(available).slice(0, ROUND_SIZE);
+    selected.forEach(q => playedIdsRef.current.add(q.id));
+    setItems(selected);
     setCurrentIndex(0);
     setScore(0);
     setStreak(0);
