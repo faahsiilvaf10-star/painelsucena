@@ -53,6 +53,7 @@ import Slides from "./pages/Slides";
 import InstaCena from "./pages/InstaCena";
 import InspecaoCanteiro from "./pages/InspecaoCanteiro";
 import CalendarioHydro from "./pages/CalendarioHydro";
+import Games from "./pages/Games";
 import NotFound from "./pages/NotFound";
 
 // QueryClient with robust error handling
@@ -141,6 +142,7 @@ const App = () => (
                     <Route path="/instacena" element={<ProtectedRoute><InstaCena /></ProtectedRoute>} />
                     <Route path="/inspecao-canteiro" element={<ProtectedRoute><InspecaoCanteiro /></ProtectedRoute>} />
                     <Route path="/calendario-hydro" element={<ProtectedRoute><CalendarioHydro /></ProtectedRoute>} />
+                    <Route path="/games" element={<ProtectedRoute><Games /></ProtectedRoute>} />
                     {/* ADD ALL CUSTOM ROUTES ABOVE THE CATCH-ALL "*" ROUTE */}
                     <Route path="*" element={<NotFound />} />
                   </Routes>
