@@ -1121,7 +1121,7 @@ export function CheckersGame({ onBack }: { onBack: () => void }) {
       <div className="relative z-10 flex-1 flex items-center justify-center px-2 py-2">
         <div className="rounded-lg overflow-hidden shadow-2xl relative"
           style={{ border: "4px solid #5a3a1a", boxShadow: "0 0 0 2px #3a2410, 0 8px 32px rgba(0,0,0,0.5)" }}>
-          <div className="grid grid-cols-8 relative" style={{ width: "min(85vw, 85vh, 480px)", height: "min(85vw, 85vh, 480px)" }}>
+          <div className="grid grid-cols-8 relative" style={{ width: "min(85vw, 85vh, 480px)", aspectRatio: "1 / 1" }}>
             {board.map((row, r) =>
               row.map((cell, c) => {
                 const isDark = (r + c) % 2 === 1;
