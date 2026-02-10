@@ -247,9 +247,9 @@ function TaskRow({
   );
 }
 
-async function fetchLogoBase64(): Promise<string> {
+async function fetchLogoBase64(path = "/logo-sucena-empreendimentos.png"): Promise<string> {
   try {
-    const response = await fetch("/logo-sucena-empreendimentos.png");
+    const response = await fetch(path);
     const blob = await response.blob();
     return new Promise<string>((resolve, reject) => {
       const reader = new FileReader();
@@ -298,6 +298,7 @@ async function generateInspectionPptx(inspectionDate: string, tasks: SiteInspect
   pptx.title = `Inspeção de Canteiro - ${inspectionDate}`;
 
   const logoBase64 = await fetchLogoBase64();
+  const coverLogoBase64 = await fetchLogoBase64("/logo-sucena-cover.png");
 
   // Calculate total slides
   const detailCount = tasks.filter(t => t.before_photo_url || t.after_photo_url).length;
@@ -322,11 +323,11 @@ async function generateInspectionPptx(inspectionDate: string, tasks: SiteInspect
     x: 0.5, y: 3.9, w: "90%", h: 0.5,
     fontSize: 14, color: "22C55E", align: "center",
   });
-  if (logoBase64) {
+  if (coverLogoBase64) {
     titleSlide.addImage({
-      data: logoBase64,
-      x: 4.65, y: 4.8, w: 4, h: 1.3,
-      sizing: { type: "contain", w: 4, h: 1.3 },
+      data: coverLogoBase64,
+      x: 4.15, y: 0.5, w: 5, h: 1.2,
+      sizing: { type: "contain", w: 5, h: 1.2 },
     });
   }
 
@@ -440,11 +441,11 @@ async function generateInspectionPptx(inspectionDate: string, tasks: SiteInspect
     x: 0.5, y: 3.2, w: "90%", h: 0.6,
     fontSize: 16, color: "94A3B8", align: "center",
   });
-  if (logoBase64) {
+  if (coverLogoBase64) {
     closingSlide.addImage({
-      data: logoBase64,
-      x: 4.65, y: 4, w: 4, h: 1.3,
-      sizing: { type: "contain", w: 4, h: 1.3 },
+      data: coverLogoBase64,
+      x: 4.15, y: 0.5, w: 5, h: 1.2,
+      sizing: { type: "contain", w: 5, h: 1.2 },
     });
   }
 
@@ -486,12 +487,11 @@ function InspectionSlidePreview({ slides, currentSlide }: { slides: SlideData[];
 
   if (slide.type === "title") {
     return (
-      <div className="aspect-video bg-slate-900 rounded-xl flex flex-col items-center justify-center p-8 text-white relative">
-        <img src="/logo-sucena-empreendimentos.png" alt="Logo" className="absolute top-4 left-4 h-8 object-contain" />
+      <div className="aspect-video bg-slate-900 rounded-xl flex flex-col items-center justify-center p-8 text-white">
+        <img src="/logo-sucena-cover.png" alt="Logo" className="h-14 object-contain mb-6" />
         <h2 className="text-2xl md:text-3xl font-bold">{slide.title}</h2>
         <p className="text-lg text-slate-400 mt-3">{slide.subtitle}</p>
         <p className="text-sm text-green-400 mt-2">{slide.caption}</p>
-        <img src="/logo-sucena-empreendimentos.png" alt="Logo" className="mt-6 h-12 object-contain" />
       </div>
     );
   }
@@ -566,11 +566,10 @@ function InspectionSlidePreview({ slides, currentSlide }: { slides: SlideData[];
 
   // closing
   return (
-    <div className="aspect-video bg-slate-900 rounded-xl flex flex-col items-center justify-center p-8 text-white relative">
-      <img src="/logo-sucena-empreendimentos.png" alt="Logo" className="absolute top-4 left-4 h-8 object-contain" />
+    <div className="aspect-video bg-slate-900 rounded-xl flex flex-col items-center justify-center p-8 text-white">
+      <img src="/logo-sucena-cover.png" alt="Logo" className="h-14 object-contain mb-6" />
       <h2 className="text-2xl md:text-3xl font-bold text-green-400">Inspeção Concluída ✅</h2>
       <p className="text-base text-slate-400 mt-3">Todos os {slide.totalTasks} pontos foram resolvidos.</p>
-      <img src="/logo-sucena-empreendimentos.png" alt="Logo" className="mt-6 h-12 object-contain" />
     </div>
   );
 }
