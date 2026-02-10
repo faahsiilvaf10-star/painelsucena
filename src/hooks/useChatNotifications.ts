@@ -2,7 +2,7 @@ import { useEffect, useRef } from "react";
 import { supabase } from "@/integrations/supabase/client";
 import { useAuth } from "./useAuth";
 import { useBrowserNotifications } from "./useBrowserNotifications";
-import { playIOSNotificationSound } from "@/lib/sounds";
+import { playSoundFile } from "@/lib/sounds";
 import type { Tables } from "@/integrations/supabase/types";
 
 type ChatMessage = Tables<"chat_messages">;
@@ -53,7 +53,7 @@ export const useChatNotifications = () => {
             : "📷 Enviou uma imagem";
 
           // Play sound
-          playIOSNotificationSound();
+          playSoundFile("/sounds/msn-chat.mp3");
 
           // Show push notification if page is in background
           showNotification(`💬 ${senderName}`, {
