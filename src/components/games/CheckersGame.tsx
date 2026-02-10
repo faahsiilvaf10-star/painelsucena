@@ -681,11 +681,41 @@ export function CheckersGame({ onBack }: { onBack: () => void }) {
   // ── Render Piece ──
   const renderPiece = (cell: Piece, isMovable: boolean, isSelected: boolean, size: "board" | "indicator") => {
     const isMyPiece = gameMode === "ai" ? cell.color === "white" : cell.color === myOnlineColor;
-    const visual = isMyPiece ? getMyPieceVisual() : { bg: BLACK_PIECE_BG, border: BLACK_PIECE_BORDER, teamLabel: "" };
-    const applyEffect = isMyPiece ? effectClass : "";
+    
+    // AI/opponent pieces always use default style - no effects, no customization
+    if (!isMyPiece) {
+      return (
+        <div
+          className="relative flex items-center justify-center rounded-full"
+          style={{
+            width: size === "board" ? "78%" : 16,
+            height: size === "board" ? "78%" : 16,
+            background: BLACK_PIECE_BG,
+            border: `2.5px solid ${BLACK_PIECE_BORDER}`,
+            boxShadow: isSelected
+              ? `0 0 12px 3px rgba(100,180,50,0.6), 0 4px 8px rgba(0,0,0,0.3)`
+              : `0 3px 6px rgba(0,0,0,0.3), inset 0 1px 2px rgba(255,255,255,0.15)`,
+            cursor: isMovable ? "pointer" : "default",
+          }}
+        >
+          {size === "board" && (
+            <div className="absolute rounded-full pointer-events-none" style={{
+              width: "65%", height: "65%",
+              border: "1.5px solid rgba(255,255,255,0.15)",
+            }} />
+          )}
+          {cell.type === "king" && size === "board" && (
+            <span className="text-[clamp(10px,2.5vw,18px)] select-none pointer-events-none" style={{ filter: "brightness(2)" }}>👑</span>
+          )}
+        </div>
+      );
+    }
+
+    // Player's customized piece
+    const visual = getMyPieceVisual();
     return (
       <div
-        className={`relative flex items-center justify-center rounded-full ${applyEffect}`}
+        className={`relative flex items-center justify-center rounded-full ${effectClass}`}
         style={{
           width: size === "board" ? "78%" : 16,
           height: size === "board" ? "78%" : 16,
@@ -693,7 +723,7 @@ export function CheckersGame({ onBack }: { onBack: () => void }) {
           border: `2.5px solid ${visual.border}`,
           boxShadow: isSelected
             ? `0 0 12px 3px rgba(100,180,50,0.6), 0 4px 8px rgba(0,0,0,0.3)`
-            : `0 3px 6px rgba(0,0,0,0.3), inset 0 1px 2px rgba(255,255,255,${cell.color === "white" || isMyPiece ? "0.6" : "0.15"})`,
+            : `0 3px 6px rgba(0,0,0,0.3), inset 0 1px 2px rgba(255,255,255,0.6)`,
           cursor: isMovable ? "pointer" : "default",
           color: visual.border,
         }}
@@ -701,7 +731,7 @@ export function CheckersGame({ onBack }: { onBack: () => void }) {
         {size === "board" && !visual.teamLabel && (
           <div className="absolute rounded-full pointer-events-none" style={{
             width: "65%", height: "65%",
-            border: `1.5px solid ${cell.color === "white" || isMyPiece ? "rgba(180,150,100,0.5)" : "rgba(255,255,255,0.15)"}`,
+            border: "1.5px solid rgba(180,150,100,0.5)",
           }} />
         )}
         {size === "board" && visual.teamLabel && (
@@ -710,7 +740,7 @@ export function CheckersGame({ onBack }: { onBack: () => void }) {
           </span>
         )}
         {cell.type === "king" && size === "board" && (
-          <span className="text-[clamp(10px,2.5vw,18px)] select-none pointer-events-none" style={{ filter: cell.color === "white" || isMyPiece ? "none" : "brightness(2)" }}>👑</span>
+          <span className="text-[clamp(10px,2.5vw,18px)] select-none pointer-events-none">👑</span>
         )}
       </div>
     );
