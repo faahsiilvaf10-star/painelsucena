@@ -171,8 +171,8 @@ const ProtectedRoute = ({ children }: ProtectedRouteProps) => {
     return <Navigate to="/" replace />;
   }
 
-  // Block users without profile photo - redirect to settings
-  if (hasAvatar === false && location.pathname !== '/configuracoes') {
+  // Block users without profile photo - redirect to settings (drivers are exempt)
+  if (hasAvatar === false && !isDriver && location.pathname !== '/configuracoes') {
     return <Navigate to="/configuracoes" replace />;
   }
 
