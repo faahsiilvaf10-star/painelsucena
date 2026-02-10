@@ -2,7 +2,7 @@ import * as React from "react";
 import { Users, ClipboardList, Grid3X3, LayoutDashboard, FileBarChart, LogOut, LogIn, AlertTriangle, PanelLeftClose, PanelLeft, Settings, Sun, Truck, Bell, FileText, LucideIcon, Heart, ShoppingCart, Package, GripVertical, User, FolderOpen, ShieldCheck, Leaf, Hammer, Target, ClipboardCheck, BadgeCheck, Link2, ArrowLeftRight, Clock, FolderLock, Droplets, Wrench, Presentation, Newspaper, HardHat, CalendarDays } from "lucide-react";
 import { Link, useLocation, useNavigate } from "react-router-dom";
 import { useMemo } from "react";
-import { useIsMobile } from "@/hooks/use-mobile";
+
 import { useAuth } from "@/hooks/useAuth";
 import { useIsAdmin } from "@/hooks/useUserRole";
 import { useSiteSettings } from "@/hooks/useSiteSettings";
@@ -161,19 +161,18 @@ export function AppSidebar({ lockedCollapsed = false }: { lockedCollapsed?: bool
   const navigate = useNavigate();
   const { user, signOut } = useAuth();
   const { isAdmin } = useIsAdmin();
-  const { state, toggleSidebar, setOpen } = useSidebar();
+  const { state, toggleSidebar, setOpen, setOpenMobile, isMobile: sidebarIsMobile } = useSidebar();
   const { settings, updateSettings } = useSiteSettings();
   const { data: profile } = useProfile();
   const { navOrder } = useUserNavOrder();
   const { getHiddenItemsForCargo } = useNavVisibilityRules();
   const isCollapsed = state === "collapsed";
-  const isMobile = useIsMobile();
 
   const handleMobileClose = React.useCallback(() => {
-    if (isMobile) {
-      setOpen(false);
+    if (sidebarIsMobile) {
+      setOpenMobile(false);
     }
-  }, [isMobile, setOpen]);
+  }, [sidebarIsMobile, setOpenMobile]);
 
   // Force collapsed state when locked
   React.useEffect(() => {
