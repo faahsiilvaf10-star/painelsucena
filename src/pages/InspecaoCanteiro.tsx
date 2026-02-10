@@ -262,25 +262,34 @@ async function fetchLogoBase64(): Promise<string> {
   }
 }
 
+// Sucena brand colors for PPTX
+const BRAND = {
+  navy: "0F2A3F",
+  teal: "0D9488",
+  tealLight: "14B8A6",
+  tealBg: "E6FAF7",
+  dark: "0C1E2C",
+  white: "FFFFFF",
+  gray: "64748B",
+  grayLight: "F1F5F9",
+  text: "1E293B",
+};
+
 function addSlideBranding(slide: any, logoBase64: string, slideNum: number, totalSlides: number) {
-  // Logo top-left on every slide
+  slide.addShape("rect", { x: 0, y: 0, w: 13.33, h: 0.06, fill: { color: BRAND.teal } });
   if (logoBase64) {
     slide.addImage({
-      data: logoBase64,
-      x: 0.3, y: 0.2, w: 1.6, h: 0.5,
-      sizing: { type: "contain", w: 1.6, h: 0.5 },
+      data: logoBase64, x: 0.4, y: 0.2, w: 1.8, h: 0.55,
+      sizing: { type: "contain", w: 1.8, h: 0.55 },
     });
   }
-  // Green accent bar top-right
-  slide.addShape("rect", { x: 11.8, y: 0, w: 1.53, h: 0.8, fill: { color: "3B7A3B" } });
-  // Footer
-  slide.addText(`${slideNum}/${totalSlides}`, {
-    x: 12, y: 7, w: 1, h: 0.3,
-    fontSize: 8, color: "94A3B8", align: "right",
+  slide.addShape("rect", { x: 0.4, y: 0.85, w: 12.5, h: 0.01, fill: { color: "E2E8F0" } });
+  slide.addShape("rect", { x: 0, y: 7.2, w: 13.33, h: 0.3, fill: { color: BRAND.navy } });
+  slide.addText("Sucena Empreendimentos", {
+    x: 0.4, y: 7.2, w: 6, h: 0.3, fontSize: 7, color: BRAND.tealLight, bold: true,
   });
-  slide.addText("Sucena Empreendimentos © " + new Date().getFullYear(), {
-    x: 0.3, y: 7, w: 5, h: 0.3,
-    fontSize: 7, color: "94A3B8",
+  slide.addText(`${slideNum} / ${totalSlides}`, {
+    x: 10, y: 7.2, w: 3, h: 0.3, fontSize: 7, color: "94A3B8", align: "right",
   });
 }
 
@@ -292,208 +301,119 @@ async function generateInspectionPptx(inspectionDate: string, tasks: SiteInspect
   pptx.title = `Inspeção de Canteiro - ${inspectionDate}`;
 
   const logoBase64 = await fetchLogoBase64();
-
   const detailCount = tasks.filter(t => t.before_photo_url || t.after_photo_url).length;
   const totalSlides = 3 + detailCount;
-
   let slideNum = 0;
 
-  // ===== TITLE SLIDE (split layout like reference) =====
+  // ===== COVER =====
   slideNum++;
-  const titleSlide = pptx.addSlide();
-  titleSlide.background = { color: "FFFFFF" };
-  // Left half - green background
-  titleSlide.addShape("rect", { x: 0, y: 0, w: 6.5, h: 7.5, fill: { color: "2D6A2D" } });
-  // Diagonal cut on green (white triangle)
-  titleSlide.addShape("rtTriangle" as any, { x: 5.5, y: 0, w: 1.5, h: 7.5, fill: { color: "FFFFFF" }, rotate: 180 });
-  // Logo centered on green half
+  const cover = pptx.addSlide();
+  cover.background = { color: BRAND.navy };
+  cover.addShape("rect", { x: 0, y: 0, w: 0.25, h: 7.5, fill: { color: BRAND.teal } });
+  cover.addShape("rect", { x: 0, y: 6.8, w: 13.33, h: 0.08, fill: { color: BRAND.teal } });
   if (logoBase64) {
-    titleSlide.addImage({
-      data: logoBase64,
-      x: 0.8, y: 2, w: 4.5, h: 3,
-      sizing: { type: "contain", w: 4.5, h: 3 },
+    cover.addImage({
+      data: logoBase64, x: 3.5, y: 1.2, w: 6, h: 2.2,
+      sizing: { type: "contain", w: 6, h: 2.2 },
     });
   }
-  // Right half - green accent bars
-  titleSlide.addShape("rect", { x: 12, y: 0, w: 1.33, h: 1, fill: { color: "3B7A3B" } });
-  titleSlide.addShape("rect", { x: 12, y: 6.5, w: 1.33, h: 1, fill: { color: "3B7A3B" } });
-  // Text on right side
-  titleSlide.addText("INSPEÇÃO DE", {
-    x: 7, y: 2, w: 5.5, h: 0.6,
-    fontSize: 14, color: "2D6A2D", fontFace: "Arial",
-    charSpacing: 6,
+  cover.addText("INSPEÇÃO DE CANTEIRO", {
+    x: 1, y: 3.8, w: 11.3, h: 0.9,
+    fontSize: 32, bold: true, color: BRAND.white, align: "center", fontFace: "Calibri", charSpacing: 4,
   });
-  titleSlide.addText("Canteiro", {
-    x: 7, y: 2.6, w: 5.5, h: 1.4,
-    fontSize: 44, bold: true, color: "1B3A1B", fontFace: "Georgia",
+  cover.addShape("rect", { x: 4.5, y: 4.7, w: 4.3, h: 0.06, fill: { color: BRAND.teal } });
+  cover.addText(inspectionDate, {
+    x: 1, y: 5, w: 11.3, h: 0.5, fontSize: 18, color: BRAND.tealLight, align: "center",
   });
-  titleSlide.addText(inspectionDate, {
-    x: 7, y: 4.2, w: 5.5, h: 0.5,
-    fontSize: 14, color: "3B7A3B",
-  });
-  titleSlide.addText(`${tasks.length} pontos de melhoria`, {
-    x: 7, y: 4.8, w: 5.5, h: 0.4,
-    fontSize: 11, color: "64748B",
-  });
-  titleSlide.addText(`${slideNum}/${totalSlides}`, {
-    x: 12, y: 7, w: 1, h: 0.3,
-    fontSize: 8, color: "94A3B8", align: "right",
+  cover.addText(`${tasks.length} pontos de melhoria identificados`, {
+    x: 1, y: 5.6, w: 11.3, h: 0.4, fontSize: 12, color: "94A3B8", align: "center",
   });
 
-  // ===== SUMMARY SLIDE =====
+  // ===== SUMMARY =====
   slideNum++;
-  const summarySlide = pptx.addSlide();
-  summarySlide.background = { color: "FFFFFF" };
-  addSlideBranding(summarySlide, logoBase64, slideNum, totalSlides);
-  summarySlide.addText("Resumo da Inspeção", {
-    x: 0.5, y: 0.8, w: "90%", h: 0.7,
-    fontSize: 22, bold: true, color: "1B3A1B", fontFace: "Georgia",
+  const summary = pptx.addSlide();
+  summary.background = { color: BRAND.white };
+  addSlideBranding(summary, logoBase64, slideNum, totalSlides);
+  summary.addText("Resumo da Inspeção", {
+    x: 0.5, y: 1, w: 12, h: 0.6, fontSize: 22, bold: true, color: BRAND.navy, fontFace: "Calibri",
   });
+  summary.addShape("rect", { x: 0.5, y: 1.55, w: 2, h: 0.04, fill: { color: BRAND.teal } });
 
-  const tableRows: pptxgen.TableRow[] = [
-    [
-      { text: "#", options: { bold: true, color: "FFFFFF", fill: { color: "3B7A3B" }, fontSize: 10, align: "center" } },
-      { text: "Ponto de Melhoria", options: { bold: true, color: "FFFFFF", fill: { color: "3B7A3B" }, fontSize: 10 } },
-      { text: "Observação", options: { bold: true, color: "FFFFFF", fill: { color: "3B7A3B" }, fontSize: 10 } },
-      { text: "Status", options: { bold: true, color: "FFFFFF", fill: { color: "3B7A3B" }, fontSize: 10, align: "center" } },
-    ],
-  ];
-
+  const tblRows: pptxgen.TableRow[] = [[
+    { text: "#", options: { bold: true, color: "FFFFFF", fill: { color: BRAND.navy }, fontSize: 10, align: "center" } },
+    { text: "Ponto de Melhoria", options: { bold: true, color: "FFFFFF", fill: { color: BRAND.navy }, fontSize: 10 } },
+    { text: "Observação", options: { bold: true, color: "FFFFFF", fill: { color: BRAND.navy }, fontSize: 10 } },
+    { text: "Status", options: { bold: true, color: "FFFFFF", fill: { color: BRAND.navy }, fontSize: 10, align: "center" } },
+  ]];
   tasks.forEach((task, idx) => {
-    const rowFill = idx % 2 === 0 ? "F0FFF0" : "FFFFFF";
-    tableRows.push([
-      { text: String(idx + 1), options: { fontSize: 9, align: "center", fill: { color: rowFill } } },
-      { text: task.description, options: { fontSize: 9, fill: { color: rowFill } } },
-      { text: task.observation || "-", options: { fontSize: 9, color: task.observation ? "92400E" : "94A3B8", fill: { color: rowFill } } },
-      { text: task.is_completed ? "✅ Concluído" : "⏳ Pendente", options: { fontSize: 9, align: "center", color: task.is_completed ? "166534" : "92400E", fill: { color: rowFill } } },
+    const bg = idx % 2 === 0 ? BRAND.tealBg : BRAND.white;
+    tblRows.push([
+      { text: String(idx + 1), options: { fontSize: 9, align: "center", fill: { color: bg } } },
+      { text: task.description, options: { fontSize: 9, fill: { color: bg }, color: BRAND.text } },
+      { text: task.observation || "—", options: { fontSize: 9, fill: { color: bg }, color: task.observation ? "92400E" : "94A3B8" } },
+      { text: task.is_completed ? "✅ Concluído" : "⏳ Pendente", options: { fontSize: 9, align: "center", fill: { color: bg }, color: task.is_completed ? BRAND.teal : "92400E", bold: true } },
     ]);
   });
-
-  summarySlide.addTable(tableRows, {
-    x: 0.4, y: 1.6, w: 12.4,
-    border: { type: "solid", pt: 0.5, color: "D1E7D1" },
-    rowH: 0.4,
-    colW: [0.5, 4.5, 5, 2.4],
+  summary.addTable(tblRows, {
+    x: 0.4, y: 1.8, w: 12.5, border: { type: "solid", pt: 0.5, color: "E2E8F0" }, rowH: 0.4, colW: [0.5, 4.5, 5, 2.5],
   });
 
-  // ===== DETAIL SLIDES (left: title+observation, right: 2x2 photo grid) =====
+  // ===== DETAILS =====
   for (const [idx, task] of tasks.entries()) {
-    if (task.before_photo_url || task.after_photo_url) {
-      slideNum++;
-      const slide = pptx.addSlide();
-      slide.background = { color: "FFFFFF" };
-      addSlideBranding(slide, logoBase64, slideNum, totalSlides);
+    if (!task.before_photo_url && !task.after_photo_url) continue;
+    slideNum++;
+    const s = pptx.addSlide();
+    s.background = { color: BRAND.white };
+    addSlideBranding(s, logoBase64, slideNum, totalSlides);
 
-      // Left side: title + description + observation
-      slide.addText(`Ponto ${idx + 1}`, {
-        x: 0.5, y: 1, w: 5, h: 0.8,
-        fontSize: 28, bold: true, color: "1B3A1B", fontFace: "Georgia",
-      });
-      slide.addText(task.description, {
-        x: 0.5, y: 1.9, w: 5, h: 0.5,
-        fontSize: 13, bold: true, color: "2D6A2D",
-      });
-      slide.addText(task.observation || "Sem observação registrada.", {
-        x: 0.5, y: 2.6, w: 5, h: 2.5,
-        fontSize: 11, color: task.observation ? "374151" : "94A3B8",
-        italic: !task.observation,
-        valign: "top",
-        paraSpaceAfter: 6,
-      });
-      // Status badge
-      if (task.is_completed) {
-        slide.addShape("rect", { x: 0.5, y: 5.3, w: 2.5, h: 0.35, fill: { color: "DCFCE7" }, rectRadius: 0.05 });
-        slide.addText("✅ Concluído", {
-          x: 0.5, y: 5.3, w: 2.5, h: 0.35,
-          fontSize: 10, bold: true, color: "166534", align: "center",
-        });
-      }
+    s.addShape("rect", { x: 0.4, y: 1.1, w: 0.55, h: 0.55, fill: { color: BRAND.teal }, rectRadius: 0.08 });
+    s.addText(String(idx + 1), {
+      x: 0.4, y: 1.1, w: 0.55, h: 0.55, fontSize: 18, bold: true, color: "FFFFFF", align: "center", valign: "middle",
+    });
+    s.addText(task.description, {
+      x: 1.1, y: 1.05, w: 11.8, h: 0.65, fontSize: 16, bold: true, color: BRAND.navy, fontFace: "Calibri",
+    });
 
-      // Right side: 2x2 grid (before, green, green, after)
-      const gridX = 6;
-      const gridY = 0.9;
-      const cellW = 3.4;
-      const cellH = 2.8;
-      const gap = 0.15;
-
-      // Top-left: Before photo
-      if (task.before_photo_url) {
-        try {
-          slide.addImage({
-            path: task.before_photo_url,
-            x: gridX, y: gridY, w: cellW, h: cellH,
-            sizing: { type: "cover", w: cellW, h: cellH },
-            rounding: true,
-          });
-        } catch { /* skip */ }
-        slide.addShape("rect", { x: gridX, y: gridY, w: 1.2, h: 0.3, fill: { color: "DC2626" }, rectRadius: 0.05 });
-        slide.addText("ANTES", {
-          x: gridX, y: gridY, w: 1.2, h: 0.3,
-          fontSize: 8, bold: true, color: "FFFFFF", align: "center",
-        });
-      } else {
-        slide.addShape("rect", { x: gridX, y: gridY, w: cellW, h: cellH, fill: { color: "F1F5F9" }, rectRadius: 0.1 });
-        slide.addText("Sem foto", { x: gridX, y: gridY + 1.2, w: cellW, h: 0.4, fontSize: 10, color: "94A3B8", align: "center" });
-      }
-
-      // Top-right: green accent block
-      slide.addShape("rect", { x: gridX + cellW + gap, y: gridY, w: cellW, h: cellH, fill: { color: "3B7A3B" }, rectRadius: 0.1 });
-
-      // Bottom-left: green accent block
-      slide.addShape("rect", { x: gridX, y: gridY + cellH + gap, w: cellW, h: cellH, fill: { color: "2D6A2D" }, rectRadius: 0.1 });
-
-      // Bottom-right: After photo
-      if (task.after_photo_url) {
-        try {
-          slide.addImage({
-            path: task.after_photo_url,
-            x: gridX + cellW + gap, y: gridY + cellH + gap, w: cellW, h: cellH,
-            sizing: { type: "cover", w: cellW, h: cellH },
-            rounding: true,
-          });
-        } catch { /* skip */ }
-        slide.addShape("rect", { x: gridX + cellW + gap, y: gridY + cellH + gap, w: 1.2, h: 0.3, fill: { color: "16A34A" }, rectRadius: 0.05 });
-        slide.addText("DEPOIS", {
-          x: gridX + cellW + gap, y: gridY + cellH + gap, w: 1.2, h: 0.3,
-          fontSize: 8, bold: true, color: "FFFFFF", align: "center",
-        });
-      } else {
-        slide.addShape("rect", { x: gridX + cellW + gap, y: gridY + cellH + gap, w: cellW, h: cellH, fill: { color: "F1F5F9" }, rectRadius: 0.1 });
-        slide.addText("Sem foto", { x: gridX + cellW + gap, y: gridY + cellH + gap + 1.2, w: cellW, h: 0.4, fontSize: 10, color: "94A3B8", align: "center" });
-      }
+    const pW = 5.4, pH = 3.6, pY = 2;
+    s.addShape("rect", { x: 0.4, y: pY - 0.01, w: pW + 0.02, h: pH + 0.35, fill: { color: BRAND.grayLight }, rectRadius: 0.1 });
+    s.addText("❌  ANTES", { x: 0.5, y: pY, w: pW, h: 0.3, fontSize: 10, bold: true, color: "DC2626" });
+    if (task.before_photo_url) {
+      try { s.addImage({ path: task.before_photo_url, x: 0.5, y: pY + 0.35, w: pW - 0.1, h: pH - 0.4, sizing: { type: "contain", w: pW - 0.1, h: pH - 0.4 } }); } catch {}
     }
-  }
 
-  // ===== CLOSING SLIDE (split layout like title) =====
-  slideNum++;
-  const closingSlide = pptx.addSlide();
-  closingSlide.background = { color: "FFFFFF" };
-  closingSlide.addShape("rect", { x: 0, y: 0, w: 6.5, h: 7.5, fill: { color: "2D6A2D" } });
-  closingSlide.addShape("rtTriangle" as any, { x: 5.5, y: 0, w: 1.5, h: 7.5, fill: { color: "FFFFFF" }, rotate: 180 });
-  if (logoBase64) {
-    closingSlide.addImage({
-      data: logoBase64,
-      x: 0.8, y: 2, w: 4.5, h: 2.5,
-      sizing: { type: "contain", w: 4.5, h: 2.5 },
+    s.addShape("rect", { x: 6.1, y: pY - 0.01, w: pW + 0.02, h: pH + 0.35, fill: { color: BRAND.grayLight }, rectRadius: 0.1 });
+    s.addText("✅  DEPOIS", { x: 6.2, y: pY, w: pW, h: 0.3, fontSize: 10, bold: true, color: BRAND.teal });
+    if (task.after_photo_url) {
+      try { s.addImage({ path: task.after_photo_url, x: 6.2, y: pY + 0.35, w: pW - 0.1, h: pH - 0.4, sizing: { type: "contain", w: pW - 0.1, h: pH - 0.4 } }); } catch {}
+    }
+
+    const obsY = pY + pH + 0.5;
+    s.addShape("rect", { x: 0.4, y: obsY, w: 11.2, h: 0.9, fill: { color: BRAND.tealBg }, rectRadius: 0.08 });
+    s.addShape("rect", { x: 0.4, y: obsY, w: 0.06, h: 0.9, fill: { color: BRAND.teal } });
+    s.addText("Observação: ", { x: 0.65, y: obsY + 0.05, w: 1.5, h: 0.35, fontSize: 10, bold: true, color: BRAND.navy });
+    s.addText(task.observation || "Sem observação registrada.", {
+      x: 0.65, y: obsY + 0.35, w: 10.8, h: 0.5, fontSize: 10, color: task.observation ? BRAND.text : "94A3B8", italic: !task.observation, valign: "top",
     });
   }
-  closingSlide.addShape("rect", { x: 12, y: 0, w: 1.33, h: 1, fill: { color: "3B7A3B" } });
-  closingSlide.addShape("rect", { x: 12, y: 6.5, w: 1.33, h: 1, fill: { color: "3B7A3B" } });
-  closingSlide.addText("Inspeção Concluída ✅", {
-    x: 7, y: 2.2, w: 5.5, h: 1,
-    fontSize: 28, bold: true, color: "3B7A3B", fontFace: "Georgia",
+
+  // ===== CLOSING =====
+  slideNum++;
+  const close = pptx.addSlide();
+  close.background = { color: BRAND.navy };
+  close.addShape("rect", { x: 0, y: 0, w: 0.25, h: 7.5, fill: { color: BRAND.teal } });
+  close.addShape("rect", { x: 0, y: 6.8, w: 13.33, h: 0.08, fill: { color: BRAND.teal } });
+  if (logoBase64) {
+    close.addImage({ data: logoBase64, x: 3.5, y: 1.5, w: 6, h: 2, sizing: { type: "contain", w: 6, h: 2 } });
+  }
+  close.addText("Inspeção Concluída", {
+    x: 1, y: 3.8, w: 11.3, h: 0.8, fontSize: 30, bold: true, color: BRAND.tealLight, align: "center", fontFace: "Calibri",
   });
-  closingSlide.addText(`Todos os ${tasks.length} pontos foram resolvidos.`, {
-    x: 7, y: 3.4, w: 5.5, h: 0.5,
-    fontSize: 14, color: "64748B",
+  close.addText("✅", { x: 1, y: 4.6, w: 11.3, h: 0.6, fontSize: 28, align: "center" });
+  close.addText(`Todos os ${tasks.length} pontos foram resolvidos com sucesso.`, {
+    x: 1, y: 5.3, w: 11.3, h: 0.5, fontSize: 14, color: "94A3B8", align: "center",
   });
-  closingSlide.addText("Sucena Empreendimentos", {
-    x: 7, y: 4.2, w: 5.5, h: 0.4,
-    fontSize: 12, bold: true, color: "1B3A1B",
-  });
-  closingSlide.addText(`${slideNum}/${totalSlides}`, {
-    x: 12, y: 7, w: 1, h: 0.3,
-    fontSize: 8, color: "94A3B8", align: "right",
+  close.addText("Sucena Empreendimentos", {
+    x: 1, y: 6, w: 11.3, h: 0.4, fontSize: 11, bold: true, color: "475569", align: "center",
   });
 
   await pptx.writeFile({ fileName: `Inspecao_Canteiro_${inspectionDate.replace(/\//g, "-")}.pptx` });
@@ -512,12 +432,7 @@ interface SlideData {
 
 function buildSlides(inspectionDate: string, tasks: SiteInspectionTask[]): SlideData[] {
   const slides: SlideData[] = [];
-  slides.push({
-    type: "title",
-    title: "Inspeção de Canteiro",
-    subtitle: inspectionDate,
-    caption: `${tasks.length} pontos de melhoria • 100% concluído`,
-  });
+  slides.push({ type: "title", subtitle: inspectionDate, caption: `${tasks.length} pontos de melhoria • 100% concluído` });
   slides.push({ type: "summary", tasks });
   tasks.forEach((task, idx) => {
     if (task.before_photo_url || task.after_photo_url) {
@@ -534,23 +449,14 @@ function InspectionSlidePreview({ slides, currentSlide }: { slides: SlideData[];
 
   if (slide.type === "title") {
     return (
-      <div className="aspect-video bg-white rounded-xl flex relative overflow-hidden border border-border">
-        {/* Left half - green with logo */}
-        <div className="w-1/2 bg-gradient-to-br from-green-800 to-green-600 flex items-center justify-center relative">
-          <div className="absolute top-0 right-0 w-16 h-full bg-white" style={{ clipPath: "polygon(100% 0, 100% 100%, 0 100%)" }} />
-          <img src="/logo-sucena-empreendimentos.png" alt="Sucena" className="h-20 md:h-28 object-contain relative z-10 drop-shadow-lg" />
-        </div>
-        {/* Right half - white with text and green accents */}
-        <div className="w-1/2 flex flex-col items-start justify-center px-6 md:px-10 relative">
-          <div className="absolute top-0 right-0 w-10 h-14 bg-green-700 rounded-bl-xl" />
-          <div className="absolute bottom-0 right-0 w-10 h-14 bg-green-700 rounded-tl-xl" />
-          <p className="text-xs md:text-sm tracking-[0.3em] text-green-800 uppercase font-medium mb-1">Inspeção de</p>
-          <h2 className="text-2xl md:text-4xl font-black text-green-900 leading-tight" style={{ fontFamily: "Georgia, serif" }}>Canteiro</h2>
-          <div className="mt-4 space-y-1">
-            <p className="text-sm text-green-700 font-medium">{slide.subtitle}</p>
-            <p className="text-xs text-muted-foreground">{slide.caption}</p>
-          </div>
-        </div>
+      <div className="aspect-video rounded-xl flex flex-col items-center justify-center relative overflow-hidden border border-border" style={{ background: "#0F2A3F" }}>
+        <div className="absolute left-0 top-0 bottom-0 w-1" style={{ background: "#0D9488" }} />
+        <div className="absolute bottom-0 left-0 right-0 h-0.5" style={{ background: "#0D9488" }} />
+        <img src="/logo-sucena-empreendimentos.png" alt="Sucena" className="h-14 md:h-20 object-contain mb-5" />
+        <h2 className="text-xl md:text-2xl font-bold text-white tracking-[0.15em]">INSPEÇÃO DE CANTEIRO</h2>
+        <div className="w-24 h-0.5 mt-2 mb-3 rounded-full" style={{ background: "#0D9488" }} />
+        <p className="text-sm" style={{ color: "#14B8A6" }}>{slide.subtitle}</p>
+        <p className="text-xs mt-1" style={{ color: "#64748B" }}>{slide.caption}</p>
       </div>
     );
   }
@@ -558,34 +464,29 @@ function InspectionSlidePreview({ slides, currentSlide }: { slides: SlideData[];
   if (slide.type === "summary") {
     return (
       <div className="aspect-video bg-white rounded-xl p-4 md:p-6 overflow-auto border border-border relative">
-        <div className="absolute top-0 right-0 w-8 h-12 bg-green-700 rounded-bl-xl" />
-        <div className="flex items-center gap-2 mb-3">
+        <div className="absolute top-0 left-0 right-0 h-0.5" style={{ background: "#0D9488" }} />
+        <div className="flex items-center gap-2 mb-1">
           <img src="/logo-sucena-empreendimentos.png" alt="Logo" className="h-5 object-contain" />
-          <span className="text-[10px] text-muted-foreground">Sucena Empreendimentos</span>
         </div>
-        <h3 className="text-lg font-black text-green-900 mb-3" style={{ fontFamily: "Georgia, serif" }}>Resumo da Inspeção</h3>
+        <div className="h-px bg-gray-200 mb-3" />
+        <h3 className="text-base font-bold mb-1" style={{ color: "#0F2A3F" }}>Resumo da Inspeção</h3>
+        <div className="w-12 h-0.5 mb-3 rounded" style={{ background: "#0D9488" }} />
         <table className="w-full text-xs md:text-sm border-collapse">
           <thead>
-            <tr className="bg-green-700 text-white">
-              <th className="p-2 text-center w-8">#</th>
-              <th className="p-2 text-left">Ponto de Melhoria</th>
-              <th className="p-2 text-left">Observação</th>
-              <th className="p-2 text-center w-24">Status</th>
+            <tr style={{ background: "#0F2A3F" }} className="text-white">
+              <th className="p-1.5 text-center w-8">#</th>
+              <th className="p-1.5 text-left">Ponto</th>
+              <th className="p-1.5 text-left">Observação</th>
+              <th className="p-1.5 text-center w-16">Status</th>
             </tr>
           </thead>
           <tbody>
             {slide.tasks?.map((task, idx) => (
-              <tr key={task.id} className={idx % 2 === 0 ? "bg-green-50" : "bg-white"}>
-                <td className="p-2 text-center text-green-900">{idx + 1}</td>
-                <td className="p-2 text-green-900">{task.description}</td>
-                <td className="p-2">
-                  {task.observation ? (
-                    <span className="text-amber-800 italic">{task.observation}</span>
-                  ) : (
-                    <span className="text-muted-foreground">-</span>
-                  )}
-                </td>
-                <td className="p-2 text-center">{task.is_completed ? "✅" : "⏳"}</td>
+              <tr key={task.id} className="border-b border-gray-100" style={{ background: idx % 2 === 0 ? "#E6FAF7" : "#fff" }}>
+                <td className="p-1.5 text-center font-medium" style={{ color: "#0F2A3F" }}>{idx + 1}</td>
+                <td className="p-1.5" style={{ color: "#1E293B" }}>{task.description}</td>
+                <td className="p-1.5 italic text-xs" style={{ color: task.observation ? "#92400E" : "#94A3B8" }}>{task.observation || "—"}</td>
+                <td className="p-1.5 text-center font-bold" style={{ color: task.is_completed ? "#0D9488" : "#92400E" }}>{task.is_completed ? "✅" : "⏳"}</td>
               </tr>
             ))}
           </tbody>
@@ -597,69 +498,55 @@ function InspectionSlidePreview({ slides, currentSlide }: { slides: SlideData[];
   if (slide.type === "detail" && slide.task) {
     const task = slide.task;
     return (
-      <div className="aspect-video bg-white rounded-xl flex overflow-hidden border border-border relative">
-        <div className="absolute top-0 right-0 w-8 h-12 bg-green-700 rounded-bl-xl z-10" />
-        {/* Left side: title + observation text */}
-        <div className="w-2/5 p-4 md:p-6 flex flex-col justify-center">
-          <div className="flex items-center gap-1.5 mb-3">
-            <img src="/logo-sucena-empreendimentos.png" alt="Logo" className="h-4 object-contain" />
-          </div>
-          <h3 className="text-lg md:text-xl font-black text-green-900 leading-tight mb-3" style={{ fontFamily: "Georgia, serif" }}>
-            Ponto {(slide.taskIndex ?? 0) + 1}
-          </h3>
-          <p className="text-xs md:text-sm text-green-900 font-medium mb-3">{task.description}</p>
-          <p className="text-xs text-gray-600 leading-relaxed">
-            {task.observation || "Sem observação registrada."}
-          </p>
-          {task.is_completed && (
-            <div className="mt-3 inline-flex items-center gap-1 bg-green-100 text-green-800 text-[10px] font-bold px-2 py-1 rounded-full w-fit">
-              ✅ Concluído
-            </div>
-          )}
+      <div className="aspect-video bg-white rounded-xl p-4 md:p-5 overflow-auto border border-border relative">
+        <div className="absolute top-0 left-0 right-0 h-0.5" style={{ background: "#0D9488" }} />
+        <div className="flex items-center gap-2 mb-1">
+          <img src="/logo-sucena-empreendimentos.png" alt="Logo" className="h-4 object-contain" />
         </div>
-        {/* Right side: 2x2 grid (before photo, green block, green block, after photo) */}
-        <div className="w-3/5 grid grid-cols-2 grid-rows-2 gap-0.5 p-1">
-          <div className="relative rounded-lg overflow-hidden">
+        <div className="h-px bg-gray-200 mb-2" />
+        <div className="flex items-center gap-2 mb-2">
+          <span className="inline-flex items-center justify-center w-6 h-6 rounded text-white text-xs font-bold" style={{ background: "#0D9488" }}>
+            {(slide.taskIndex ?? 0) + 1}
+          </span>
+          <h3 className="text-sm md:text-base font-bold" style={{ color: "#0F2A3F" }}>{task.description}</h3>
+        </div>
+        <div className="grid grid-cols-2 gap-2 mb-2">
+          <div className="rounded-lg overflow-hidden" style={{ background: "#F1F5F9" }}>
+            <p className="text-[10px] font-bold px-2 pt-1" style={{ color: "#DC2626" }}>❌ ANTES</p>
             {task.before_photo_url ? (
-              <img src={task.before_photo_url} alt="Antes" className="w-full h-full object-cover" />
+              <img src={task.before_photo_url} alt="Antes" className="w-full h-24 md:h-36 object-contain p-1" />
             ) : (
-              <div className="w-full h-full bg-gray-100 flex items-center justify-center text-muted-foreground text-xs">Sem foto</div>
+              <div className="w-full h-24 md:h-36 flex items-center justify-center text-muted-foreground text-xs">Sem foto</div>
             )}
-            <span className="absolute top-1 left-1 bg-red-600 text-white text-[9px] font-bold px-1.5 py-0.5 rounded">ANTES</span>
           </div>
-          <div className="bg-green-700 rounded-lg flex items-center justify-center">
-            <span className="text-white/30 text-3xl">🌿</span>
-          </div>
-          <div className="bg-green-800 rounded-lg flex items-center justify-center">
-            <span className="text-white/30 text-3xl">🍃</span>
-          </div>
-          <div className="relative rounded-lg overflow-hidden">
+          <div className="rounded-lg overflow-hidden" style={{ background: "#F1F5F9" }}>
+            <p className="text-[10px] font-bold px-2 pt-1" style={{ color: "#0D9488" }}>✅ DEPOIS</p>
             {task.after_photo_url ? (
-              <img src={task.after_photo_url} alt="Depois" className="w-full h-full object-cover" />
+              <img src={task.after_photo_url} alt="Depois" className="w-full h-24 md:h-36 object-contain p-1" />
             ) : (
-              <div className="w-full h-full bg-gray-100 flex items-center justify-center text-muted-foreground text-xs">Sem foto</div>
+              <div className="w-full h-24 md:h-36 flex items-center justify-center text-muted-foreground text-xs">Sem foto</div>
             )}
-            <span className="absolute top-1 left-1 bg-green-600 text-white text-[9px] font-bold px-1.5 py-0.5 rounded">DEPOIS</span>
           </div>
+        </div>
+        <div className="rounded-lg p-2 flex gap-2" style={{ background: "#E6FAF7", borderLeft: "3px solid #0D9488" }}>
+          <span className="text-[10px] font-bold shrink-0" style={{ color: "#0F2A3F" }}>Observação:</span>
+          <span className="text-[10px]" style={{ color: task.observation ? "#1E293B" : "#94A3B8" }}>
+            {task.observation || "Sem observação registrada."}
+          </span>
         </div>
       </div>
     );
   }
 
-  // closing
   return (
-    <div className="aspect-video bg-white rounded-xl flex relative overflow-hidden border border-border">
-      <div className="w-1/2 bg-gradient-to-br from-green-800 to-green-600 flex items-center justify-center relative">
-        <div className="absolute top-0 right-0 w-16 h-full bg-white" style={{ clipPath: "polygon(100% 0, 100% 100%, 0 100%)" }} />
-        <img src="/logo-sucena-empreendimentos.png" alt="Sucena" className="h-16 md:h-24 object-contain relative z-10 drop-shadow-lg" />
-      </div>
-      <div className="w-1/2 flex flex-col items-start justify-center px-6 md:px-10 relative">
-        <div className="absolute top-0 right-0 w-10 h-14 bg-green-700 rounded-bl-xl" />
-        <div className="absolute bottom-0 right-0 w-10 h-14 bg-green-700 rounded-tl-xl" />
-        <h2 className="text-xl md:text-3xl font-black text-green-700 leading-tight" style={{ fontFamily: "Georgia, serif" }}>Inspeção Concluída ✅</h2>
-        <p className="text-sm text-muted-foreground mt-3">Todos os {slide.totalTasks} pontos foram resolvidos.</p>
-        <p className="text-xs font-bold text-green-900 mt-2">Sucena Empreendimentos</p>
-      </div>
+    <div className="aspect-video rounded-xl flex flex-col items-center justify-center relative overflow-hidden border border-border" style={{ background: "#0F2A3F" }}>
+      <div className="absolute left-0 top-0 bottom-0 w-1" style={{ background: "#0D9488" }} />
+      <div className="absolute bottom-0 left-0 right-0 h-0.5" style={{ background: "#0D9488" }} />
+      <img src="/logo-sucena-empreendimentos.png" alt="Sucena" className="h-12 md:h-16 object-contain mb-4" />
+      <h2 className="text-xl md:text-2xl font-bold" style={{ color: "#14B8A6" }}>Inspeção Concluída</h2>
+      <p className="text-2xl mt-1">✅</p>
+      <p className="text-sm mt-2" style={{ color: "#94A3B8" }}>Todos os {slide.totalTasks} pontos foram resolvidos.</p>
+      <p className="text-xs mt-2 font-semibold" style={{ color: "#475569" }}>Sucena Empreendimentos</p>
     </div>
   );
 }
