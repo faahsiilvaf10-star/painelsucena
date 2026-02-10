@@ -164,7 +164,10 @@ const filterActiveReminders = (reminders: Reminder[], userId: string): Reminder[
     if (hasAcknowledged) return false;
 
     // Check if user should see this reminder based on mention_type
+    // Creator always sees their own reminders
+    const isCreator = reminder.created_by === userId;
     const isRelevant =
+      isCreator ||
       reminder.mention_type === "all" ||
       (reminder.mention_type === "me" && reminder.created_by === userId) ||
       (reminder.mention_type === "specific" &&
