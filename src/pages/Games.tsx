@@ -103,6 +103,9 @@ export default function Games() {
               </div>
             </div>
 
+            {/* Rankings */}
+            <GameRankings />
+
             {/* Game Covers */}
             <div className="grid gap-4">
               {GAMES.map((game, i) => (
@@ -141,9 +144,6 @@ export default function Games() {
                 </motion.div>
               ))}
             </div>
-
-            {/* Rankings */}
-            <GameRankings />
           </>
         )}
 
