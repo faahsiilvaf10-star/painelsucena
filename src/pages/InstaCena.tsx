@@ -18,7 +18,7 @@ const InstaCena = () => {
 
   return (
     <Layout>
-      <div className="max-w-xl mx-auto px-4 py-6 space-y-4">
+      <div className="max-w-xl mx-auto px-3 sm:px-4 py-6 space-y-4 overflow-x-hidden">
         <div className="flex items-center justify-between gap-3">
           <h1 className="text-2xl font-bold">InstaCena</h1>
           <Tabs value={filter} onValueChange={(v) => setFilter(v as typeof filter)}>
