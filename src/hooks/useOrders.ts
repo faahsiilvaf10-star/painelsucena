@@ -504,6 +504,63 @@ export const useDeleteOrder = () => {
   });
 };
 
+export const useUpdateOrderItem = () => {
+  const queryClient = useQueryClient();
+
+  return useMutation({
+    mutationFn: async ({
+      itemId,
+      product_name,
+      quantity,
+      quantity_unit,
+      description,
+    }: {
+      itemId: string;
+      product_name: string;
+      quantity: number;
+      quantity_unit: QuantityUnit;
+      description?: string | null;
+    }) => {
+      const { data, error } = await supabase
+        .from("order_items")
+        .update({ product_name, quantity, quantity_unit, description })
+        .eq("id", itemId)
+        .select()
+        .single();
+
+      if (error) throw error;
+      return data;
+    },
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ["order-items"] });
+      queryClient.invalidateQueries({ queryKey: ["orders"] });
+      queryClient.invalidateQueries({ queryKey: ["my-orders"] });
+      queryClient.invalidateQueries({ queryKey: ["pending-orders"] });
+    },
+  });
+};
+
+export const useDeleteOrderItem = () => {
+  const queryClient = useQueryClient();
+
+  return useMutation({
+    mutationFn: async (itemId: string) => {
+      const { error } = await supabase
+        .from("order_items")
+        .delete()
+        .eq("id", itemId);
+
+      if (error) throw error;
+    },
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ["order-items"] });
+      queryClient.invalidateQueries({ queryKey: ["orders"] });
+      queryClient.invalidateQueries({ queryKey: ["my-orders"] });
+      queryClient.invalidateQueries({ queryKey: ["pending-orders"] });
+    },
+  });
+};
+
 export const uploadOrderPhoto = async (file: File): Promise<string> => {
   const fileExt = file.name.split(".").pop();
   const fileName = `${crypto.randomUUID()}.${fileExt}`;
