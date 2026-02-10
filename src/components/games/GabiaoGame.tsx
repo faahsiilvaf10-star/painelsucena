@@ -258,6 +258,7 @@ export function GabiaoGame({ onBack }: { onBack: () => void }) {
   const timerRef = useRef<ReturnType<typeof setInterval> | null>(null);
   const saveScore = useSaveGameScore();
   const scoreSavedRef = useRef(false);
+  const playedIdsRef = useRef<Set<string>>(new Set());
 
   useEffect(() => {
     if (gameState === "finished" && !scoreSavedRef.current) {
@@ -272,7 +273,14 @@ export function GabiaoGame({ onBack }: { onBack: () => void }) {
   const progress = questions.length > 0 ? (currentIndex / questions.length) * 100 : 0;
 
   const startGame = useCallback(() => {
-    setQuestions(shuffleArray(ALL_QUESTIONS).slice(0, ROUND_SIZE));
+    let available = ALL_QUESTIONS.filter(q => !playedIdsRef.current.has(q.id));
+    if (available.length < ROUND_SIZE) {
+      playedIdsRef.current.clear();
+      available = [...ALL_QUESTIONS];
+    }
+    const selected = shuffleArray(available).slice(0, ROUND_SIZE);
+    selected.forEach(q => playedIdsRef.current.add(q.id));
+    setQuestions(selected);
     setCurrentIndex(0);
     setScore(0);
     setLives(3);
