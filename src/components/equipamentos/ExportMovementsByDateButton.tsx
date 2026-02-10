@@ -534,6 +534,24 @@ export function ExportMovementsByDateButton({ equipment }: ExportMovementsByDate
         }
       }
 
+      // Fallback: if final values are missing, fetch next shift's initial values
+      let fallbackFinalHorimeter: number | null = null;
+      let fallbackFinalKm: number | null = null;
+      if (!shiftRecord?.final_horimeter && !shiftRecord?.final_km) {
+        const { data: nextShift } = await supabase
+          .from("daily_shift_records")
+          .select("initial_horimeter, initial_km")
+          .eq("equipment_id", equipment.id)
+          .gt("shift_date", targetDate)
+          .order("shift_date", { ascending: true })
+          .limit(1)
+          .maybeSingle();
+        if (nextShift) {
+          fallbackFinalHorimeter = nextShift.initial_horimeter ? Number(nextShift.initial_horimeter) : null;
+          fallbackFinalKm = nextShift.initial_km ? Number(nextShift.initial_km) : null;
+        }
+      }
+
       // Build activities from stop history
       const activities: Array<{ start: string; end: string; description: string }> = [];
       
@@ -593,9 +611,9 @@ export function ExportMovementsByDateButton({ equipment }: ExportMovementsByDate
         initialFuelLevel: shiftRecord?.initial_fuel_level ?? fallbackInitialFuel,
         finalFuelLevel: shiftRecord?.final_fuel_level ?? null,
         initialKm: shiftRecord?.initial_km ? Number(shiftRecord.initial_km) : fallbackInitialKm,
-        finalKm: shiftRecord?.final_km ? Number(shiftRecord.final_km) : null,
+        finalKm: shiftRecord?.final_km ? Number(shiftRecord.final_km) : fallbackFinalKm,
         initialHorimeter: shiftRecord?.initial_horimeter ? Number(shiftRecord.initial_horimeter) : fallbackInitialHorimeter,
-        finalHorimeter: shiftRecord?.final_horimeter ? Number(shiftRecord.final_horimeter) : null,
+        finalHorimeter: shiftRecord?.final_horimeter ? Number(shiftRecord.final_horimeter) : fallbackFinalHorimeter,
       });
 
       const printWindow = window.open("", "_blank");

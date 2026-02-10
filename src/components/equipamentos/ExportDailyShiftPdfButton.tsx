@@ -109,7 +109,25 @@ export function ExportDailyShiftPdfButton({ record, isLoading }: ExportDailyShif
           }
         }
       }
-      
+
+      // Fallback: if final values are missing, fetch next shift's initial values
+      let effectiveFinalHorimeter = record.final_horimeter;
+      let effectiveFinalKm = record.final_km;
+      if (effectiveFinalHorimeter == null || effectiveFinalKm == null) {
+        const { data: nextShift } = await supabase
+          .from("daily_shift_records")
+          .select("initial_horimeter, initial_km")
+          .eq("equipment_id", record.equipment_id)
+          .gt("shift_date", record.shift_date)
+          .order("shift_date", { ascending: true })
+          .limit(1)
+          .maybeSingle();
+        if (nextShift) {
+          if (effectiveFinalHorimeter == null) effectiveFinalHorimeter = nextShift.initial_horimeter;
+          if (effectiveFinalKm == null) effectiveFinalKm = nextShift.initial_km;
+        }
+      }
+
       // Fetch exit movement for this equipment on this date
       const { data: exitMovements } = await supabase
         .from("equipment_movements")
@@ -470,7 +488,7 @@ export function ExportDailyShiftPdfButton({ record, isLoading }: ExportDailyShif
                   </div>
                   <div class="km-cell" style="border-right:none;">
                     <div class="km-label">FINAL</div>
-                    <div class="km-value">${record.final_km ?? "-"}</div>
+                    <div class="km-value">${effectiveFinalKm ?? "-"}</div>
                   </div>
                 </div>
 
@@ -483,7 +501,7 @@ export function ExportDailyShiftPdfButton({ record, isLoading }: ExportDailyShif
                   </div>
                   <div class="km-cell" style="border-right:none;">
                     <div class="km-label">FINAL</div>
-                    <div class="km-value">${record.final_horimeter ?? "-"}</div>
+                    <div class="km-value">${effectiveFinalHorimeter ?? "-"}</div>
                   </div>
                 </div>
 
