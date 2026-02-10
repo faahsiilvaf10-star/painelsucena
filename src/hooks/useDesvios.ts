@@ -4,11 +4,19 @@ import { useAuth } from "./useAuth";
 import { useProfile } from "./useProfile";
 import { toast } from "sonner";
 
+export interface DesvioItem {
+  id: string;
+  description: string;
+  photo_url: string | null;
+  correction_photo_url: string | null;
+}
+
 export interface Desvio {
   id: string;
   description: string;
   photo_urls: string[];
   correction_photo_urls: string[];
+  items: DesvioItem[];
   mentioned_user_id: string | null;
   mentioned_user_name: string | null;
   due_date: string | null;
@@ -30,7 +38,10 @@ export function useDesvios() {
         .select("*")
         .order("created_at", { ascending: false });
       if (error) throw error;
-      return data as Desvio[];
+      return (data as any[]).map((d) => ({
+        ...d,
+        items: Array.isArray(d.items) ? d.items : [],
+      })) as Desvio[];
     },
     enabled: !!user,
   });
@@ -47,6 +58,7 @@ export function useCreateDesvio() {
     mutationFn: async (params: {
       description: string;
       photo_urls: string[];
+      items: DesvioItem[];
       mentioned_user_id: string | null;
       mentioned_user_name: string | null;
       due_date: string | null;
@@ -57,6 +69,7 @@ export function useCreateDesvio() {
         .insert({
           description: params.description,
           photo_urls: params.photo_urls,
+          items: params.items as any,
           mentioned_user_id: params.mentioned_user_id,
           mentioned_user_name: params.mentioned_user_name,
           due_date: params.due_date,
@@ -93,13 +106,29 @@ export function useUploadDesvioPhoto() {
   });
 }
 
+export function useUpdateDesvioItems() {
+  const qc = useQueryClient();
+
+  return useMutation({
+    mutationFn: async ({ desvioId, items }: { desvioId: string; items: DesvioItem[] }) => {
+      const { error } = await supabase
+        .from("desvios")
+        .update({ items: items as any })
+        .eq("id", desvioId);
+      if (error) throw error;
+    },
+    onSuccess: () => {
+      qc.invalidateQueries({ queryKey: ["desvios"] });
+    },
+  });
+}
+
 export function useAddCorrectionPhoto() {
   const qc = useQueryClient();
   const { user } = useAuth();
 
   return useMutation({
     mutationFn: async ({ desvioId, photoUrl }: { desvioId: string; photoUrl: string }) => {
-      // First get current correction photos
       const { data: current, error: fetchError } = await supabase
         .from("desvios")
         .select("correction_photo_urls, mentioned_user_id")
@@ -107,7 +136,6 @@ export function useAddCorrectionPhoto() {
         .single();
       if (fetchError) throw fetchError;
 
-      // Only mentioned user can add correction
       if (current.mentioned_user_id !== user?.id) {
         throw new Error("Apenas a pessoa mencionada pode adicionar foto de correção");
       }
