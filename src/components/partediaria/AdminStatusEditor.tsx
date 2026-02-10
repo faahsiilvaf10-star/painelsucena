@@ -40,6 +40,7 @@ import {
 } from "@/hooks/useDailyShiftRecords";
 import { useEquipmentStopHistory } from "@/hooks/useEquipment";
 import { useProfile } from "@/hooks/useProfile";
+import { useAllUsers } from "@/hooks/useAllUsers";
  import { ScrollArea } from "@/components/ui/scroll-area";
  import { Badge } from "@/components/ui/badge";
  import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
@@ -122,7 +123,18 @@ const getStatusColor = (status: string) => {
     const updateStatusInHistory = useUpdateStatusInHistory();
     const queryClient = useQueryClient();
     const { data: profile } = useProfile();
-   
+    const { allUsers } = useAllUsers();
+    
+    // Resolve UUID to name for changed_by display
+    const uuidRegex = /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i;
+    const resolveChangedBy = (name?: string) => {
+      if (!name) return undefined;
+      if (uuidRegex.test(name)) {
+        const found = allUsers.find((p) => p.user_id === name);
+        return found?.full_name || name;
+      }
+      return name;
+    };
     const today = new Date().toISOString().split("T")[0];
     const targetDate = shiftDate || today;
     
@@ -453,11 +465,11 @@ const getStatusColor = (status: string) => {
                                    {entry.description}
                                  </p>
                                )}
-                               {entry.changed_by && (
-                                 <p className="text-xs text-muted-foreground/70 mt-0.5">
-                                   por {entry.changed_by}
-                                 </p>
-                               )}
+                                {entry.changed_by && (
+                                  <p className="text-xs text-muted-foreground/70 mt-0.5">
+                                    por {resolveChangedBy(entry.changed_by)}
+                                  </p>
+                                )}
                              </div>
                               <div className="flex gap-1">
                                 <Button
