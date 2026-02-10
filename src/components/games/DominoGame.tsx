@@ -1,7 +1,6 @@
 import { useState, useCallback, useEffect, useRef } from "react";
 import { Button } from "@/components/ui/button";
-import { Badge } from "@/components/ui/badge";
-import { ArrowLeft, Plus, Loader2, RotateCcw, RefreshCw, X, Bot, Users, Brain } from "lucide-react";
+import { ArrowLeft, Loader2, RotateCcw, RefreshCw, X, Bot, Users, Brain, Plus, Maximize, Minimize } from "lucide-react";
 import { motion, AnimatePresence } from "framer-motion";
 import { supabase } from "@/integrations/supabase/client";
 import { useAuth } from "@/hooks/useAuth";
@@ -39,11 +38,7 @@ interface DominoGameRow {
 // ── Domino Logic ──
 function generateAllTiles(): DominoTile[] {
   const tiles: DominoTile[] = [];
-  for (let i = 0; i <= 6; i++) {
-    for (let j = i; j <= 6; j++) {
-      tiles.push([i, j]);
-    }
-  }
+  for (let i = 0; i <= 6; i++) for (let j = i; j <= 6; j++) tiles.push([i, j]);
   return tiles;
 }
 
@@ -59,14 +54,9 @@ function shuffleTiles(tiles: DominoTile[]): DominoTile[] {
 function createInitialState(): GameState {
   const tiles = shuffleTiles(generateAllTiles());
   return {
-    board: [],
-    boardLeftEnd: -1,
-    boardRightEnd: -1,
-    player1Hand: tiles.slice(0, 7),
-    player2Hand: tiles.slice(7, 14),
-    boneyard: tiles.slice(14),
-    currentTurn: "player1",
-    passCount: 0,
+    board: [], boardLeftEnd: -1, boardRightEnd: -1,
+    player1Hand: tiles.slice(0, 7), player2Hand: tiles.slice(7, 14),
+    boneyard: tiles.slice(14), currentTurn: "player1", passCount: 0,
   };
 }
 
@@ -89,57 +79,30 @@ function pipCount(hand: DominoTile[]): number {
 }
 
 // ── AI Logic ──
-function aiChooseTile(
-  hand: DominoTile[],
-  state: GameState,
-  difficulty: AIDifficulty
-): { tileIndex: number; side: "left" | "right" } | null {
+function aiChooseTile(hand: DominoTile[], state: GameState, difficulty: AIDifficulty): { tileIndex: number; side: "left" | "right" } | null {
   const playable: { tileIndex: number; side: "left" | "right"; score: number }[] = [];
-
   for (let i = 0; i < hand.length; i++) {
     const tile = hand[i];
     const match = canPlay(tile, state.boardLeftEnd, state.boardRightEnd);
     if (!match) continue;
-
     const tilePips = tile[0] + tile[1];
     const isDouble = tile[0] === tile[1];
-
     if (match === "left" || match === "both") {
       let score = tilePips;
-      if (difficulty === "hard") {
-        if (isDouble) score += 5;
-        score += tilePips * 2;
-      } else if (difficulty === "medium") {
-        score += tilePips;
-      }
+      if (difficulty === "hard") { if (isDouble) score += 5; score += tilePips * 2; }
+      else if (difficulty === "medium") score += tilePips;
       playable.push({ tileIndex: i, side: "left", score });
     }
     if (match === "right" || match === "both") {
       let score = tilePips;
-      if (difficulty === "hard") {
-        if (isDouble) score += 5;
-        score += tilePips * 2;
-      } else if (difficulty === "medium") {
-        score += tilePips;
-      }
+      if (difficulty === "hard") { if (isDouble) score += 5; score += tilePips * 2; }
+      else if (difficulty === "medium") score += tilePips;
       playable.push({ tileIndex: i, side: "right", score });
     }
   }
-
   if (playable.length === 0) return null;
-
-  if (difficulty === "easy") {
-    return playable[Math.floor(Math.random() * playable.length)];
-  }
-
-  if (difficulty === "medium") {
-    // 50% chance random, 50% best
-    if (Math.random() < 0.5) {
-      return playable[Math.floor(Math.random() * playable.length)];
-    }
-  }
-
-  // Medium (50%) and Hard: pick highest score
+  if (difficulty === "easy") return playable[Math.floor(Math.random() * playable.length)];
+  if (difficulty === "medium" && Math.random() < 0.5) return playable[Math.floor(Math.random() * playable.length)];
   playable.sort((a, b) => b.score - a.score);
   return playable[0];
 }
@@ -147,125 +110,111 @@ function aiChooseTile(
 function aiPlayTurn(state: GameState, difficulty: AIDifficulty): GameState {
   const newState = JSON.parse(JSON.stringify(state)) as GameState;
   const hand = newState.player2Hand;
-
-  // Try to play
   const choice = aiChooseTile(hand, newState, difficulty);
-
   if (choice) {
     const tile = hand[choice.tileIndex];
     hand.splice(choice.tileIndex, 1);
-
     if (newState.board.length === 0) {
-      newState.board.push(tile);
-      newState.boardLeftEnd = tile[0];
-      newState.boardRightEnd = tile[1];
+      newState.board.push(tile); newState.boardLeftEnd = tile[0]; newState.boardRightEnd = tile[1];
     } else if (choice.side === "left") {
       const end = newState.boardLeftEnd;
       const oriented: DominoTile = tile[1] === end ? tile : [tile[1], tile[0]];
-      newState.board.unshift(oriented);
-      newState.boardLeftEnd = oriented[0];
+      newState.board.unshift(oriented); newState.boardLeftEnd = oriented[0];
     } else {
       const end = newState.boardRightEnd;
       const oriented: DominoTile = tile[0] === end ? tile : [tile[1], tile[0]];
-      newState.board.push(oriented);
-      newState.boardRightEnd = oriented[1];
+      newState.board.push(oriented); newState.boardRightEnd = oriented[1];
     }
-    newState.passCount = 0;
-    newState.currentTurn = "player1";
-    return newState;
+    newState.passCount = 0; newState.currentTurn = "player1"; return newState;
   }
-
-  // No play: draw from boneyard
   if (newState.boneyard.length > 0) {
-    const drawn = newState.boneyard.pop()!;
-    hand.push(drawn);
-    // Check if drawn tile can play
-    if (hasAnyPlay(hand, newState.boardLeftEnd, newState.boardRightEnd)) {
-      // Recursively try again with the new hand
-      return aiPlayTurn(newState, difficulty);
-    }
-    // If boneyard empty now and still can't play, pass
-    if (newState.boneyard.length === 0 && !hasAnyPlay(hand, newState.boardLeftEnd, newState.boardRightEnd)) {
-      newState.passCount += 1;
-      newState.currentTurn = "player1";
-    }
-    // Otherwise keep drawing (return current state, AI still has turn)
-    if (newState.boneyard.length > 0 && !hasAnyPlay(hand, newState.boardLeftEnd, newState.boardRightEnd)) {
-      return aiPlayTurn(newState, difficulty);
-    }
-    // If can play now, play
-    if (hasAnyPlay(hand, newState.boardLeftEnd, newState.boardRightEnd)) {
-      return aiPlayTurn(newState, difficulty);
-    }
-    newState.passCount += 1;
-    newState.currentTurn = "player1";
-    return newState;
+    const drawn = newState.boneyard.pop()!; hand.push(drawn);
+    if (hasAnyPlay(hand, newState.boardLeftEnd, newState.boardRightEnd)) return aiPlayTurn(newState, difficulty);
+    if (newState.boneyard.length > 0) return aiPlayTurn(newState, difficulty);
+    newState.passCount += 1; newState.currentTurn = "player1"; return newState;
   }
-
-  // No boneyard, can't play: pass
-  newState.passCount += 1;
-  newState.currentTurn = "player1";
-  return newState;
+  newState.passCount += 1; newState.currentTurn = "player1"; return newState;
 }
 
 // ── Dot patterns for domino face ──
 const DOT_POSITIONS: Record<number, [number, number][]> = {
   0: [],
   1: [[50, 50]],
-  2: [[25, 25], [75, 75]],
-  3: [[25, 25], [50, 50], [75, 75]],
-  4: [[25, 25], [75, 25], [25, 75], [75, 75]],
-  5: [[25, 25], [75, 25], [50, 50], [25, 75], [75, 75]],
-  6: [[25, 20], [75, 20], [25, 50], [75, 50], [25, 80], [75, 80]],
+  2: [[28, 28], [72, 72]],
+  3: [[28, 28], [50, 50], [72, 72]],
+  4: [[28, 28], [72, 28], [28, 72], [72, 72]],
+  5: [[28, 28], [72, 28], [50, 50], [28, 72], [72, 72]],
+  6: [[28, 22], [72, 22], [28, 50], [72, 50], [28, 78], [72, 78]],
 };
 
 function DominoFace({ value, size }: { value: number; size: number }) {
   const dots = DOT_POSITIONS[value] || [];
-  const dotR = size < 28 ? 2.5 : 3.5;
+  const dotR = Math.max(6, size * 0.14);
   return (
     <svg width={size} height={size} viewBox="0 0 100 100" className="block">
       {dots.map(([cx, cy], i) => (
-        <circle key={i} cx={cx} cy={cy} r={dotR / (size / 100) * 2.5} fill="currentColor" />
+        <circle key={i} cx={cx} cy={cy} r={dotR} fill="#1a1a1a" />
       ))}
     </svg>
   );
 }
 
-// ── Tile Visual ──
-function DominoTileVisual({ tile, size = "md", onClick, disabled, highlight, vertical }: {
+// ── Tile Visual (paciencia.co style: white/cream tiles, black dots, rounded) ──
+function DominoTileVisual({ tile, size = "md", onClick, disabled, highlight, vertical, faceDown }: {
   tile: DominoTile;
   size?: "sm" | "md" | "lg";
   onClick?: () => void;
   disabled?: boolean;
   highlight?: boolean;
   vertical?: boolean;
+  faceDown?: boolean;
 }) {
   const dims = {
-    sm: { w: 28, h: 14, face: 12 },
-    md: { w: 48, h: 24, face: 22 },
-    lg: { w: 60, h: 30, face: 28 },
+    sm: { w: 32, h: 16, face: 14 },
+    md: { w: 52, h: 26, face: 24 },
+    lg: { w: 64, h: 32, face: 30 },
   }[size];
+
+  if (faceDown) {
+    return (
+      <div
+        className="rounded-md shadow-md border border-white/30"
+        style={{
+          width: vertical ? dims.h + 4 : dims.w + 4,
+          height: vertical ? dims.w + 4 : dims.h + 4,
+          background: "linear-gradient(135deg, #f5f0e0 0%, #e8e0c8 100%)",
+        }}
+      />
+    );
+  }
+
+  const tileStyle: React.CSSProperties = {
+    background: highlight
+      ? "linear-gradient(135deg, #fffdf5 0%, #fff8e1 100%)"
+      : "linear-gradient(135deg, #fefcf4 0%, #f5f0e0 100%)",
+    border: highlight ? "2px solid #c8a44e" : "1.5px solid #d4c8a0",
+    boxShadow: highlight
+      ? "0 4px 12px rgba(180, 140, 40, 0.35), inset 0 1px 0 rgba(255,255,255,0.8)"
+      : "0 2px 4px rgba(0,0,0,0.15), inset 0 1px 0 rgba(255,255,255,0.6)",
+  };
 
   if (vertical) {
     return (
       <motion.button
         onClick={onClick}
         disabled={disabled}
-        whileTap={!disabled ? { scale: 0.9 } : {}}
-        whileHover={!disabled ? { y: -4 } : {}}
-        className={`rounded-lg shadow-md flex flex-col items-center justify-center transition-all
-          ${highlight
-            ? "bg-white ring-2 ring-yellow-400 shadow-yellow-400/30 shadow-lg"
-            : "bg-white/95"}
-          ${disabled ? "opacity-60 cursor-not-allowed" : "cursor-pointer hover:shadow-lg"}
+        whileTap={!disabled ? { scale: 0.93 } : {}}
+        whileHover={!disabled ? { y: -8, scale: 1.04 } : {}}
+        className={`rounded-lg flex flex-col items-center justify-center transition-all
+          ${disabled && !highlight ? "opacity-50 cursor-not-allowed" : "cursor-pointer"}
         `}
-        style={{ width: dims.h + 2, height: dims.w + 2 }}
+        style={{ width: dims.h + 6, height: dims.w + 6, ...tileStyle }}
       >
-        <div className="text-slate-800" style={{ width: dims.face, height: dims.face }}>
+        <div style={{ width: dims.face, height: dims.face }}>
           <DominoFace value={tile[0]} size={dims.face} />
         </div>
-        <div className="w-3/5 h-px bg-slate-300 my-px" />
-        <div className="text-slate-800" style={{ width: dims.face, height: dims.face }}>
+        <div style={{ width: "60%", height: 1.5, background: "#b8a878", margin: "1px 0" }} />
+        <div style={{ width: dims.face, height: dims.face }}>
           <DominoFace value={tile[1]} size={dims.face} />
         </div>
       </motion.button>
@@ -276,83 +225,77 @@ function DominoTileVisual({ tile, size = "md", onClick, disabled, highlight, ver
     <motion.button
       onClick={onClick}
       disabled={disabled}
-      whileTap={!disabled ? { scale: 0.9 } : {}}
-      whileHover={!disabled ? { y: -6, scale: 1.05 } : {}}
-      className={`rounded-lg shadow-md flex items-center justify-center transition-all
-        ${highlight
-          ? "bg-white ring-2 ring-yellow-400 shadow-yellow-400/30 shadow-lg"
-          : "bg-white/95"}
-        ${disabled ? "opacity-70 cursor-not-allowed" : "cursor-pointer hover:shadow-lg"}
+      whileTap={!disabled ? { scale: 0.93 } : {}}
+      whileHover={!disabled ? { y: -4, scale: 1.04 } : {}}
+      className={`rounded-lg flex items-center justify-center transition-all
+        ${disabled && !highlight ? "opacity-70 cursor-not-allowed" : "cursor-pointer"}
       `}
-      style={{ width: dims.w + 4, height: dims.h + 4 }}
+      style={{ width: dims.w + 4, height: dims.h + 6, ...tileStyle }}
     >
-      <div className="text-slate-800" style={{ width: dims.face, height: dims.face }}>
+      <div style={{ width: dims.face, height: dims.face }}>
         <DominoFace value={tile[0]} size={dims.face} />
       </div>
-      <div className="w-px h-3/5 bg-slate-300 mx-px" />
-      <div className="text-slate-800" style={{ width: dims.face, height: dims.face }}>
+      <div style={{ width: 1.5, height: "60%", background: "#b8a878", margin: "0 1px" }} />
+      <div style={{ width: dims.face, height: dims.face }}>
         <DominoFace value={tile[1]} size={dims.face} />
       </div>
     </motion.button>
   );
 }
 
-// ── Scoreboard ──
-function Scoreboard({ myName, opName, myPips, opPips, boneyardCount, boardCount, isMyTurn }: {
-  myName: string; opName: string; myPips: number; opPips: number;
-  boneyardCount: number; boardCount: number; isMyTurn: boolean;
-}) {
+// ── Scoreboard (golden/brown style like paciencia.co) ──
+function ScoreboardBadge({ label, value, emoji }: { label: string; value: number; emoji?: string }) {
   return (
-    <div className="bg-sky-900/80 backdrop-blur rounded-xl px-3 py-2 flex items-center justify-between text-white text-xs font-bold">
-      <div className="flex items-center gap-3">
-        <div className="text-center">
-          <div className="text-[10px] uppercase tracking-wider opacity-70">EU</div>
-          <div className="text-lg">{myPips}</div>
-        </div>
-        <div className="w-px h-8 bg-white/20" />
-        <div className="text-center">
-          <div className="text-[10px] uppercase tracking-wider opacity-70">{opName.length > 6 ? opName.slice(0, 6) + "…" : opName}</div>
-          <div className="text-lg">{opPips}</div>
-        </div>
+    <div className="flex items-center gap-1.5">
+      <div
+        className="rounded-full px-4 py-1 text-center font-black text-lg shadow-md"
+        style={{
+          background: "linear-gradient(180deg, #8B6914 0%, #6B4F10 100%)",
+          color: "#fff",
+          border: "2px solid #a07818",
+          minWidth: 48,
+        }}
+      >
+        {value}
       </div>
-      <div className="flex items-center gap-3">
-        <div className="text-center">
-          <div className="text-[10px] uppercase tracking-wider opacity-70">DORME</div>
-          <div className="text-lg">{boneyardCount}</div>
-        </div>
-        <div className="w-px h-8 bg-white/20" />
-        <div className="text-center">
-          <div className="text-[10px] uppercase tracking-wider opacity-70">MESA</div>
-          <div className="text-lg">{boardCount}</div>
-        </div>
-      </div>
+      {emoji && <span className="text-xl">{emoji}</span>}
     </div>
   );
 }
 
-const DIFFICULTY_CONFIG: Record<AIDifficulty, { label: string; emoji: string; description: string; color: string; borderColor: string }> = {
-  easy: {
-    label: "Fácil",
-    emoji: "🟢",
-    description: "IA joga aleatoriamente",
-    color: "from-emerald-500/20 to-green-500/20",
-    borderColor: "border-emerald-500/40 hover:border-emerald-500",
-  },
-  medium: {
-    label: "Médio",
-    emoji: "🟡",
-    description: "IA com estratégia moderada",
-    color: "from-amber-500/20 to-yellow-500/20",
-    borderColor: "border-amber-500/40 hover:border-amber-500",
-  },
-  hard: {
-    label: "Difícil",
-    emoji: "🔴",
-    description: "IA com estratégia avançada",
-    color: "from-red-500/20 to-rose-500/20",
-    borderColor: "border-red-500/40 hover:border-red-500",
-  },
+const DIFFICULTY_CONFIG: Record<AIDifficulty, { label: string; emoji: string; description: string }> = {
+  easy: { label: "FÁCIL", emoji: "🟢", description: "IA joga aleatoriamente" },
+  medium: { label: "MÉDIO", emoji: "🟡", description: "IA com estratégia moderada" },
+  hard: { label: "DIFÍCIL", emoji: "🔴", description: "IA com estratégia avançada" },
 };
+
+// ── Fullscreen helpers ──
+function requestFullscreen(el: HTMLElement) {
+  if (el.requestFullscreen) el.requestFullscreen();
+  else if ((el as any).webkitRequestFullscreen) (el as any).webkitRequestFullscreen();
+  else if ((el as any).msRequestFullscreen) (el as any).msRequestFullscreen();
+}
+
+function exitFullscreen() {
+  if (document.exitFullscreen) document.exitFullscreen();
+  else if ((document as any).webkitExitFullscreen) (document as any).webkitExitFullscreen();
+  else if ((document as any).msExitFullscreen) (document as any).msExitFullscreen();
+}
+
+function isFullscreen() {
+  return !!(document.fullscreenElement || (document as any).webkitFullscreenElement || (document as any).msFullscreenElement);
+}
+
+// ── Green Felt Background ──
+const FELT_BG: React.CSSProperties = {
+  background: "radial-gradient(ellipse at center, #2d8a4e 0%, #1e6b3a 40%, #145428 80%, #0e3d1c 100%)",
+};
+
+const FELT_TEXTURE = (
+  <div className="absolute inset-0 pointer-events-none" style={{
+    backgroundImage: "url(\"data:image/svg+xml,%3Csvg width='60' height='60' viewBox='0 0 60 60' xmlns='http://www.w3.org/2000/svg'%3E%3Cg fill='none' fill-rule='evenodd'%3E%3Cg fill='%23000000' fill-opacity='0.06'%3E%3Cpath d='M36 34v-4h-2v4h-4v2h4v4h2v-4h4v-2h-4zm0-30V0h-2v4h-4v2h4v4h2V6h4V4h-4zM6 34v-4H4v4H0v2h4v4h2v-4h4v-2H6zM6 4V0H4v4H0v2h4v4h2V6h4V4H6z'/%3E%3C/g%3E%3C/g%3E%3C/svg%3E\")",
+  }} />
+);
 
 // ── Main Component ──
 export function DominoGame({ onBack }: { onBack: () => void }) {
@@ -364,6 +307,8 @@ export function DominoGame({ onBack }: { onBack: () => void }) {
   const [selectedTile, setSelectedTile] = useState<number | null>(null);
   const [loading, setLoading] = useState(false);
   const [refreshing, setRefreshing] = useState(false);
+  const [isFS, setIsFS] = useState(false);
+  const gameContainerRef = useRef<HTMLDivElement>(null);
 
   // AI mode state
   const [aiMode, setAiMode] = useState(false);
@@ -376,20 +321,17 @@ export function DominoGame({ onBack }: { onBack: () => void }) {
   const playerName = profile?.full_name || "Jogador";
   const myRole = currentGame?.player1_id === user?.id ? "player1" : "player2";
 
-  // For online mode
   const isMyTurnOnline = currentGame?.game_state?.currentTurn === myRole;
   const myHandOnline = currentGame?.game_state?.[myRole === "player1" ? "player1Hand" : "player2Hand"] || [];
   const opponentHandOnline = currentGame?.game_state?.[myRole === "player1" ? "player2Hand" : "player1Hand"] || [];
   const opponentNameOnline = myRole === "player1" ? currentGame?.player2_name : currentGame?.player1_name;
   const gsOnline = currentGame?.game_state;
 
-  // For AI mode
   const isMyTurnAI = aiGameState?.currentTurn === "player1";
   const myHandAI = aiGameState?.player1Hand || [];
   const opponentHandAI = aiGameState?.player2Hand || [];
   const gsAI = aiGameState;
 
-  // Unified getters
   const isAI = aiMode && view === "playing";
   const gs = isAI ? gsAI : gsOnline;
   const isMyTurn = isAI ? isMyTurnAI : isMyTurnOnline;
@@ -397,74 +339,71 @@ export function DominoGame({ onBack }: { onBack: () => void }) {
   const opponentHand = isAI ? opponentHandAI : opponentHandOnline;
   const opponentName = isAI ? `IA (${DIFFICULTY_CONFIG[aiDifficulty].label})` : (opponentNameOnline || "Oponente");
 
+  // Fullscreen tracking
+  useEffect(() => {
+    const handler = () => setIsFS(isFullscreen());
+    document.addEventListener("fullscreenchange", handler);
+    document.addEventListener("webkitfullscreenchange", handler);
+    return () => {
+      document.removeEventListener("fullscreenchange", handler);
+      document.removeEventListener("webkitfullscreenchange", handler);
+    };
+  }, []);
+
+  // Enter fullscreen when game starts
+  useEffect(() => {
+    if (view === "playing" && gameContainerRef.current && !isFullscreen()) {
+      requestFullscreen(gameContainerRef.current);
+    }
+  }, [view]);
+
+  // Exit fullscreen when leaving
+  useEffect(() => {
+    if (view !== "playing" && isFullscreen()) exitFullscreen();
+  }, [view]);
+
   // ── AI turn effect ──
   useEffect(() => {
     if (!isAI || !gsAI || gsAI.currentTurn !== "player2" || aiThinkingRef.current) return;
     if (aiWinner) return;
-
     aiThinkingRef.current = true;
     setAiThinking(true);
-
     const delay = aiDifficulty === "easy" ? 800 : aiDifficulty === "medium" ? 1200 : 1500;
-
     const timer = setTimeout(() => {
       const newState = aiPlayTurn(gsAI, aiDifficulty);
-
-      // Check if game ended
       if (newState.player2Hand.length === 0) {
-        setAiWinner("player2");
-        setAiGameState(newState);
-        setView("finished");
+        setAiWinner("player2"); setAiGameState(newState); setView("finished");
       } else if (newState.passCount >= 2) {
         const p1Pips = pipCount(newState.player1Hand);
         const p2Pips = pipCount(newState.player2Hand);
         setAiWinner(p1Pips <= p2Pips ? "player1" : "player2");
-        setAiGameState(newState);
-        setView("finished");
-      } else {
-        setAiGameState(newState);
-      }
-
-      setAiThinking(false);
-      aiThinkingRef.current = false;
+        setAiGameState(newState); setView("finished");
+      } else setAiGameState(newState);
+      setAiThinking(false); aiThinkingRef.current = false;
     }, delay);
-
-    return () => {
-      clearTimeout(timer);
-      aiThinkingRef.current = false;
-    };
+    return () => { clearTimeout(timer); aiThinkingRef.current = false; };
   }, [isAI, gsAI, gsAI?.currentTurn, aiDifficulty, aiWinner]);
 
   // ── Online game functions ──
   const fetchGames = useCallback(async () => {
     setRefreshing(true);
-    const { data } = await supabase
-      .from("domino_games")
-      .select("*")
-      .eq("status", "waiting")
-      .order("created_at", { ascending: false });
+    const { data } = await supabase.from("domino_games").select("*").eq("status", "waiting").order("created_at", { ascending: false });
     setGames((data as any[]) || []);
     setRefreshing(false);
   }, []);
 
-  useEffect(() => {
-    if (view === "lobby") fetchGames();
-  }, [view, fetchGames]);
+  useEffect(() => { if (view === "lobby") fetchGames(); }, [view, fetchGames]);
 
   useEffect(() => {
     if (!currentGame?.id || aiMode) return;
-    const channel = supabase
-      .channel(`domino-${currentGame.id}`)
-      .on(
-        "postgres_changes",
-        { event: "UPDATE", schema: "public", table: "domino_games", filter: `id=eq.${currentGame.id}` },
+    const channel = supabase.channel(`domino-${currentGame.id}`)
+      .on("postgres_changes", { event: "UPDATE", schema: "public", table: "domino_games", filter: `id=eq.${currentGame.id}` },
         (payload) => {
           const updated = payload.new as any;
           setCurrentGame(updated);
           if (updated.status === "playing" && view === "waiting") setView("playing");
           if (updated.status === "finished") setView("finished");
-        }
-      )
+        })
       .subscribe();
     return () => { supabase.removeChannel(channel); };
   }, [currentGame?.id, view, aiMode]);
@@ -473,201 +412,124 @@ export function DominoGame({ onBack }: { onBack: () => void }) {
     if (!user) return;
     setLoading(true);
     const state = createInitialState();
-    const { data, error } = await supabase
-      .from("domino_games")
+    const { data, error } = await supabase.from("domino_games")
       .insert({ player1_id: user.id, player1_name: playerName, game_state: state as any, status: "waiting" })
-      .select()
-      .single();
+      .select().single();
     if (error) { toast.error("Erro ao criar partida"); setLoading(false); return; }
-    setCurrentGame(data as any);
-    setView("waiting");
-    setLoading(false);
+    setCurrentGame(data as any); setView("waiting"); setLoading(false);
   }, [user, playerName]);
 
   const joinGame = useCallback(async (game: DominoGameRow) => {
     if (!user) return;
     if (game.player1_id === user.id) { toast.error("Você não pode jogar contra si mesmo"); return; }
     setLoading(true);
-    const { data, error } = await supabase
-      .from("domino_games")
+    const { data, error } = await supabase.from("domino_games")
       .update({ player2_id: user.id, player2_name: playerName, status: "playing", updated_at: new Date().toISOString() })
-      .eq("id", game.id)
-      .eq("status", "waiting")
-      .select()
-      .single();
+      .eq("id", game.id).eq("status", "waiting").select().single();
     if (error) { toast.error("Partida não disponível"); setLoading(false); fetchGames(); return; }
-    setCurrentGame(data as any);
-    setView("playing");
-    setLoading(false);
+    setCurrentGame(data as any); setView("playing"); setLoading(false);
   }, [user, playerName, fetchGames]);
 
   const cancelGame = useCallback(async () => {
     if (!currentGame) return;
     await supabase.from("domino_games").delete().eq("id", currentGame.id);
-    setCurrentGame(null);
-    setView("lobby");
+    setCurrentGame(null); setView("lobby");
   }, [currentGame]);
 
-  // ── AI game functions ──
   const startAIGame = useCallback((difficulty: AIDifficulty) => {
-    setAiMode(true);
-    setAiDifficulty(difficulty);
-    setAiWinner(null);
-    setAiGameState(createInitialState());
-    setSelectedTile(null);
-    setView("playing");
+    setAiMode(true); setAiDifficulty(difficulty); setAiWinner(null);
+    setAiGameState(createInitialState()); setSelectedTile(null); setView("playing");
   }, []);
 
   const aiPlaceTile = useCallback((tileIndex: number, side: "left" | "right") => {
     if (!gsAI || gsAI.currentTurn !== "player1") return;
     const tile = gsAI.player1Hand[tileIndex];
     if (!tile) return;
-
     const newState = JSON.parse(JSON.stringify(gsAI)) as GameState;
     const hand = newState.player1Hand;
     hand.splice(tileIndex, 1);
-
     if (newState.board.length === 0) {
-      newState.board.push(tile);
-      newState.boardLeftEnd = tile[0];
-      newState.boardRightEnd = tile[1];
+      newState.board.push(tile); newState.boardLeftEnd = tile[0]; newState.boardRightEnd = tile[1];
     } else if (side === "left") {
       const end = newState.boardLeftEnd;
       const oriented: DominoTile = tile[1] === end ? tile : [tile[1], tile[0]];
-      newState.board.unshift(oriented);
-      newState.boardLeftEnd = oriented[0];
+      newState.board.unshift(oriented); newState.boardLeftEnd = oriented[0];
     } else {
       const end = newState.boardRightEnd;
       const oriented: DominoTile = tile[0] === end ? tile : [tile[1], tile[0]];
-      newState.board.push(oriented);
-      newState.boardRightEnd = oriented[1];
+      newState.board.push(oriented); newState.boardRightEnd = oriented[1];
     }
-
-    newState.passCount = 0;
-    newState.currentTurn = "player2";
-
-    if (hand.length === 0) {
-      setAiWinner("player1");
-      setAiGameState(newState);
-      setView("finished");
-      return;
-    }
-
-    setAiGameState(newState);
-    setSelectedTile(null);
+    newState.passCount = 0; newState.currentTurn = "player2";
+    if (hand.length === 0) { setAiWinner("player1"); setAiGameState(newState); setView("finished"); return; }
+    setAiGameState(newState); setSelectedTile(null);
   }, [gsAI]);
 
   const aiDrawTile = useCallback(() => {
     if (!gsAI || gsAI.currentTurn !== "player1") return;
-
     const newState = JSON.parse(JSON.stringify(gsAI)) as GameState;
-
     if (newState.boneyard.length === 0) {
-      newState.passCount += 1;
-      newState.currentTurn = "player2";
+      newState.passCount += 1; newState.currentTurn = "player2";
       if (newState.passCount >= 2) {
-        const p1Pips = pipCount(newState.player1Hand);
-        const p2Pips = pipCount(newState.player2Hand);
-        setAiWinner(p1Pips <= p2Pips ? "player1" : "player2");
-        setAiGameState(newState);
-        setView("finished");
-        return;
+        const p1Pips = pipCount(newState.player1Hand); const p2Pips = pipCount(newState.player2Hand);
+        setAiWinner(p1Pips <= p2Pips ? "player1" : "player2"); setAiGameState(newState); setView("finished"); return;
       }
-      setAiGameState(newState);
-      return;
+      setAiGameState(newState); return;
     }
-
-    const drawn = newState.boneyard.pop()!;
-    newState.player1Hand.push(drawn);
-
+    const drawn = newState.boneyard.pop()!; newState.player1Hand.push(drawn);
     if (!hasAnyPlay(newState.player1Hand, newState.boardLeftEnd, newState.boardRightEnd) && newState.boneyard.length === 0) {
-      newState.passCount += 1;
-      newState.currentTurn = "player2";
+      newState.passCount += 1; newState.currentTurn = "player2";
     }
-
     setAiGameState(newState);
   }, [gsAI]);
 
-  // ── Online game tile placement ──
   const placeTileAtSide = useCallback(async (tileIndex: number, side: "left" | "right") => {
-    if (isAI) {
-      aiPlaceTile(tileIndex, side);
-      return;
-    }
+    if (isAI) { aiPlaceTile(tileIndex, side); return; }
     if (!currentGame || !gsOnline || !isMyTurnOnline) return;
-    const tile = myHandOnline[tileIndex];
-    if (!tile) return;
-
+    const tile = myHandOnline[tileIndex]; if (!tile) return;
     const newState = JSON.parse(JSON.stringify(gsOnline)) as GameState;
     const hand = myRole === "player1" ? newState.player1Hand : newState.player2Hand;
     hand.splice(tileIndex, 1);
-
     if (newState.board.length === 0) {
-      newState.board.push(tile);
-      newState.boardLeftEnd = tile[0];
-      newState.boardRightEnd = tile[1];
+      newState.board.push(tile); newState.boardLeftEnd = tile[0]; newState.boardRightEnd = tile[1];
     } else if (side === "left") {
       const end = newState.boardLeftEnd;
       const oriented: DominoTile = tile[1] === end ? tile : [tile[1], tile[0]];
-      newState.board.unshift(oriented);
-      newState.boardLeftEnd = oriented[0];
+      newState.board.unshift(oriented); newState.boardLeftEnd = oriented[0];
     } else {
       const end = newState.boardRightEnd;
       const oriented: DominoTile = tile[0] === end ? tile : [tile[1], tile[0]];
-      newState.board.push(oriented);
-      newState.boardRightEnd = oriented[1];
+      newState.board.push(oriented); newState.boardRightEnd = oriented[1];
     }
-
-    newState.passCount = 0;
-    newState.currentTurn = myRole === "player1" ? "player2" : "player1";
-
-    let status = "playing";
-    let winnerId: string | null = null;
+    newState.passCount = 0; newState.currentTurn = myRole === "player1" ? "player2" : "player1";
+    let status = "playing"; let winnerId: string | null = null;
     if (hand.length === 0) { status = "finished"; winnerId = user!.id; }
-
-    await supabase.from("domino_games").update({
-      game_state: newState as any, status, winner_id: winnerId, updated_at: new Date().toISOString(),
-    }).eq("id", currentGame.id);
+    await supabase.from("domino_games").update({ game_state: newState as any, status, winner_id: winnerId, updated_at: new Date().toISOString() }).eq("id", currentGame.id);
     setSelectedTile(null);
   }, [isAI, aiPlaceTile, currentGame, gsOnline, isMyTurnOnline, myHandOnline, myRole, user]);
 
   const drawTile = useCallback(async () => {
-    if (isAI) {
-      aiDrawTile();
-      return;
-    }
+    if (isAI) { aiDrawTile(); return; }
     if (!currentGame || !gsOnline || !isMyTurnOnline) return;
     if (gsOnline.boneyard.length === 0) {
       const newState = JSON.parse(JSON.stringify(gsOnline)) as GameState;
-      newState.passCount += 1;
-      newState.currentTurn = myRole === "player1" ? "player2" : "player1";
-      let status = "playing";
-      let winnerId: string | null = null;
+      newState.passCount += 1; newState.currentTurn = myRole === "player1" ? "player2" : "player1";
+      let status = "playing"; let winnerId: string | null = null;
       if (newState.passCount >= 2) {
         status = "finished";
-        const p1Pips = pipCount(newState.player1Hand);
-        const p2Pips = pipCount(newState.player2Hand);
+        const p1Pips = pipCount(newState.player1Hand); const p2Pips = pipCount(newState.player2Hand);
         winnerId = p1Pips <= p2Pips ? currentGame.player1_id : currentGame.player2_id!;
       }
-      await supabase.from("domino_games").update({
-        game_state: newState as any, status, winner_id: winnerId, updated_at: new Date().toISOString(),
-      }).eq("id", currentGame.id);
+      await supabase.from("domino_games").update({ game_state: newState as any, status, winner_id: winnerId, updated_at: new Date().toISOString() }).eq("id", currentGame.id);
       return;
     }
-
     const newState = JSON.parse(JSON.stringify(gsOnline)) as GameState;
     const drawn = newState.boneyard.pop()!;
     const hand = myRole === "player1" ? newState.player1Hand : newState.player2Hand;
     hand.push(drawn);
-
     if (!hasAnyPlay(hand, newState.boardLeftEnd, newState.boardRightEnd) && newState.boneyard.length === 0) {
-      newState.passCount += 1;
-      newState.currentTurn = myRole === "player1" ? "player2" : "player1";
+      newState.passCount += 1; newState.currentTurn = myRole === "player1" ? "player2" : "player1";
     }
-
-    await supabase.from("domino_games").update({
-      game_state: newState as any, updated_at: new Date().toISOString(),
-    }).eq("id", currentGame.id);
+    await supabase.from("domino_games").update({ game_state: newState as any, updated_at: new Date().toISOString() }).eq("id", currentGame.id);
   }, [isAI, aiDrawTile, currentGame, gsOnline, isMyTurnOnline, myRole]);
 
   const handleTileClick = useCallback((index: number) => {
@@ -686,120 +548,126 @@ export function DominoGame({ onBack }: { onBack: () => void }) {
   const canPlayAny = gs ? hasAnyPlay(myHand, gs.boardLeftEnd, gs.boardRightEnd) : false;
   const isWinner = isAI ? aiWinner === "player1" : currentGame?.winner_id === user?.id;
 
-  // ── LOBBY ──
+  const goToLobby = () => {
+    if (isAI) { setAiMode(false); setAiGameState(null); setAiWinner(null); }
+    else setCurrentGame(null);
+    setView("lobby"); setSelectedTile(null);
+  };
+
+  // ── LOBBY (paciencia.co modal style on green felt) ──
   if (view === "lobby") {
     return (
-      <div className="space-y-4">
-        <Button variant="ghost" size="sm" onClick={onBack} className="gap-1 text-muted-foreground">
-          <ArrowLeft className="w-4 h-4" /> Voltar aos Games
-        </Button>
+      <div className="relative min-h-[80vh] rounded-2xl overflow-hidden" style={FELT_BG}>
+        {FELT_TEXTURE}
+        {/* Back button */}
+        <div className="relative z-10 p-3">
+          <button onClick={onBack} className="flex items-center gap-1 text-white/80 hover:text-white text-sm font-medium transition-colors">
+            <ArrowLeft className="w-4 h-4" /> Voltar aos Games
+          </button>
+        </div>
 
-        {/* Hero */}
-        <div className="relative overflow-hidden rounded-2xl bg-gradient-to-br from-sky-600 via-sky-500 to-blue-700 p-6 text-white text-center shadow-xl">
-          <div className="absolute inset-0 bg-[radial-gradient(ellipse_at_top_right,rgba(255,255,255,0.15),transparent_60%)]" />
+        {/* Center modal */}
+        <div className="relative z-10 flex items-center justify-center px-4" style={{ minHeight: "calc(80vh - 60px)" }}>
           <motion.div
-            initial={{ scale: 0.8, opacity: 0 }}
+            initial={{ scale: 0.9, opacity: 0 }}
             animate={{ scale: 1, opacity: 1 }}
-            className="relative z-10 space-y-3"
+            className="w-full max-w-md rounded-xl overflow-hidden shadow-2xl"
+            style={{
+              background: "#fdf5e0",
+              border: "4px solid #8B6914",
+              boxShadow: "0 0 0 2px #a07818, 0 8px 32px rgba(0,0,0,0.4)",
+            }}
           >
-            <div className="text-6xl filter drop-shadow-lg">🁣</div>
-            <h2 className="text-2xl font-black tracking-tight">Dominó</h2>
-            <p className="text-sm text-white/80">Jogue online ou contra a IA!</p>
+            {/* Title */}
+            <div className="text-center pt-6 pb-3">
+              <h2 className="text-2xl font-black tracking-wider" style={{ color: "#5a3e0a" }}>
+                DOMINÓ
+              </h2>
+              <p className="text-xs mt-1" style={{ color: "#8a7040" }}>Escolha como jogar</p>
+            </div>
+
+            {/* AI Mode */}
+            <div className="px-6 pb-3">
+              <div className="flex items-center gap-2 mb-2">
+                <Bot className="w-4 h-4" style={{ color: "#6B4F10" }} />
+                <h3 className="text-sm font-bold" style={{ color: "#5a3e0a" }}>DIFICULDADE</h3>
+              </div>
+              <div className="flex gap-2 justify-center">
+                {(["easy", "medium", "hard"] as AIDifficulty[]).map((diff) => {
+                  const cfg = DIFFICULTY_CONFIG[diff];
+                  return (
+                    <button
+                      key={diff}
+                      onClick={() => startAIGame(diff)}
+                      className="px-4 py-2 rounded-lg text-sm font-bold transition-all hover:scale-105 active:scale-95"
+                      style={{
+                        background: "#fff",
+                        border: "2px solid #8B6914",
+                        color: "#5a3e0a",
+                      }}
+                    >
+                      {cfg.label}
+                    </button>
+                  );
+                })}
+              </div>
+            </div>
+
+            {/* Divider */}
+            <div className="mx-6 my-3" style={{ height: 1, background: "#d4c8a0" }} />
+
+            {/* Online */}
+            <div className="px-6 pb-4">
+              <div className="flex items-center gap-2 mb-3">
+                <Users className="w-4 h-4" style={{ color: "#6B4F10" }} />
+                <h3 className="text-sm font-bold" style={{ color: "#5a3e0a" }}>ONLINE</h3>
+              </div>
+
+              <button
+                onClick={createGame}
+                disabled={loading}
+                className="w-full py-3 rounded-lg text-white font-bold text-sm transition-all hover:brightness-110 active:scale-[0.98] disabled:opacity-50 flex items-center justify-center gap-2"
+                style={{ background: "linear-gradient(180deg, #8B6914 0%, #6B4F10 100%)", border: "2px solid #a07818" }}
+              >
+                {loading ? <Loader2 className="w-4 h-4 animate-spin" /> : <Plus className="w-4 h-4" />}
+                CRIAR PARTIDA
+              </button>
+
+              {/* Games list */}
+              <div className="flex items-center justify-between mt-3 mb-2">
+                <span className="text-xs font-bold" style={{ color: "#8a7040" }}>Partidas disponíveis</span>
+                <button onClick={fetchGames} disabled={refreshing} className="text-xs flex items-center gap-1" style={{ color: "#6B4F10" }}>
+                  <RefreshCw className={`w-3 h-3 ${refreshing ? "animate-spin" : ""}`} /> Atualizar
+                </button>
+              </div>
+
+              {games.length === 0 ? (
+                <p className="text-center text-xs py-4" style={{ color: "#8a7040" }}>
+                  Nenhuma partida disponível.
+                </p>
+              ) : (
+                <div className="space-y-2 max-h-40 overflow-y-auto">
+                  {games.map((game) => (
+                    <div key={game.id} className="flex items-center justify-between p-2 rounded-lg" style={{ background: "#f0e8d0", border: "1px solid #d4c8a0" }}>
+                      <div>
+                        <p className="text-sm font-semibold" style={{ color: "#5a3e0a" }}>{game.player1_name}</p>
+                        <p className="text-[10px]" style={{ color: "#8a7040" }}>Aguardando...</p>
+                      </div>
+                      <button
+                        onClick={() => joinGame(game)}
+                        disabled={loading || game.player1_id === user?.id}
+                        className="px-3 py-1 rounded text-xs font-bold text-white disabled:opacity-50"
+                        style={{ background: "#6B4F10" }}
+                      >
+                        {game.player1_id === user?.id ? "Sua" : "Entrar"}
+                      </button>
+                    </div>
+                  ))}
+                </div>
+              )}
+            </div>
           </motion.div>
         </div>
-
-        {/* AI Mode Section */}
-        <div className="space-y-2">
-          <div className="flex items-center gap-2">
-            <Bot className="w-4 h-4 text-primary" />
-            <h3 className="text-sm font-bold text-foreground">Jogar contra IA</h3>
-          </div>
-          <div className="grid gap-2">
-            {(["easy", "medium", "hard"] as AIDifficulty[]).map((diff, i) => {
-              const cfg = DIFFICULTY_CONFIG[diff];
-              return (
-                <motion.div
-                  key={diff}
-                  initial={{ opacity: 0, x: -20 }}
-                  animate={{ opacity: 1, x: 0 }}
-                  transition={{ delay: i * 0.08 }}
-                >
-                  <button
-                    onClick={() => startAIGame(diff)}
-                    className={`w-full flex items-center gap-3 p-3 rounded-xl bg-gradient-to-r ${cfg.color} border-2 ${cfg.borderColor} transition-all hover:shadow-md active:scale-[0.98] text-left`}
-                  >
-                    <div className="text-2xl">{cfg.emoji}</div>
-                    <div className="flex-1 min-w-0">
-                      <div className="flex items-center gap-2">
-                        <p className="text-sm font-bold text-foreground">{cfg.label}</p>
-                        <Brain className="w-3.5 h-3.5 text-muted-foreground" />
-                      </div>
-                      <p className="text-xs text-muted-foreground">{cfg.description}</p>
-                    </div>
-                    <ArrowLeft className="w-4 h-4 text-muted-foreground rotate-180" />
-                  </button>
-                </motion.div>
-              );
-            })}
-          </div>
-        </div>
-
-        {/* Online Mode Section */}
-        <div className="space-y-2">
-          <div className="flex items-center gap-2">
-            <Users className="w-4 h-4 text-primary" />
-            <h3 className="text-sm font-bold text-foreground">Jogar Online</h3>
-          </div>
-
-          <Button
-            onClick={createGame}
-            disabled={loading}
-            className="w-full bg-sky-500 hover:bg-sky-600 text-white font-bold gap-2 shadow-lg"
-          >
-            {loading ? <Loader2 className="w-4 h-4 animate-spin" /> : <Plus className="w-4 h-4" />}
-            Criar Partida Online
-          </Button>
-        </div>
-
-        {/* Games list */}
-        <div className="flex items-center justify-between">
-          <h3 className="text-sm font-bold text-foreground">Partidas Disponíveis</h3>
-          <Button variant="ghost" size="sm" onClick={fetchGames} disabled={refreshing} className="gap-1 text-xs">
-            <RefreshCw className={`w-3.5 h-3.5 ${refreshing ? "animate-spin" : ""}`} /> Atualizar
-          </Button>
-        </div>
-
-        {games.length === 0 ? (
-          <div className="rounded-xl bg-muted/50 p-6 text-center text-sm text-muted-foreground">
-            Nenhuma partida online disponível.
-          </div>
-        ) : (
-          <div className="space-y-2">
-            {games.map((game, i) => (
-              <motion.div
-                key={game.id}
-                initial={{ opacity: 0, x: -20 }}
-                animate={{ opacity: 1, x: 0 }}
-                transition={{ delay: i * 0.05 }}
-                className="flex items-center gap-3 p-3 rounded-xl bg-card border border-border hover:border-sky-400/50 transition-all shadow-sm"
-              >
-                <div className="w-10 h-10 rounded-full bg-sky-100 flex items-center justify-center text-xl">🁣</div>
-                <div className="flex-1 min-w-0">
-                  <p className="text-sm font-semibold text-foreground truncate">{game.player1_name}</p>
-                  <p className="text-xs text-muted-foreground">Aguardando oponente...</p>
-                </div>
-                <Button
-                  size="sm"
-                  onClick={() => joinGame(game)}
-                  disabled={loading || game.player1_id === user?.id}
-                  className="bg-sky-500 hover:bg-sky-600 text-white"
-                >
-                  {game.player1_id === user?.id ? "Sua" : "Entrar"}
-                </Button>
-              </motion.div>
-            ))}
-          </div>
-        )}
       </div>
     );
   }
@@ -807,18 +675,25 @@ export function DominoGame({ onBack }: { onBack: () => void }) {
   // ── WAITING ──
   if (view === "waiting") {
     return (
-      <div className="space-y-4">
-        <Button variant="ghost" size="sm" onClick={() => { cancelGame(); setView("lobby"); setCurrentGame(null); }} className="gap-1 text-muted-foreground">
-          <ArrowLeft className="w-4 h-4" /> Voltar ao Lobby
-        </Button>
-        <div className="rounded-2xl bg-gradient-to-br from-sky-600 to-blue-700 p-10 text-center text-white space-y-4 shadow-xl">
-          <Loader2 className="w-12 h-12 animate-spin mx-auto opacity-80" />
-          <h2 className="text-xl font-black">Aguardando oponente...</h2>
-          <p className="text-sm text-white/70">Compartilhe com um colega para ele entrar!</p>
-          <Button variant="outline" onClick={cancelGame} className="border-white/30 text-white hover:bg-white/10">
+      <div className="relative min-h-[80vh] rounded-2xl overflow-hidden flex items-center justify-center" style={FELT_BG}>
+        {FELT_TEXTURE}
+        <motion.div
+          initial={{ scale: 0.9, opacity: 0 }}
+          animate={{ scale: 1, opacity: 1 }}
+          className="relative z-10 w-full max-w-sm rounded-xl p-8 text-center space-y-4 shadow-2xl"
+          style={{ background: "#fdf5e0", border: "4px solid #8B6914" }}
+        >
+          <Loader2 className="w-12 h-12 animate-spin mx-auto" style={{ color: "#8B6914" }} />
+          <h2 className="text-xl font-black" style={{ color: "#5a3e0a" }}>Aguardando oponente...</h2>
+          <p className="text-sm" style={{ color: "#8a7040" }}>Compartilhe com um colega!</p>
+          <button
+            onClick={() => { cancelGame(); setView("lobby"); setCurrentGame(null); }}
+            className="px-6 py-2 rounded-lg text-sm font-bold text-white"
+            style={{ background: "#8B6914", border: "2px solid #a07818" }}
+          >
             Cancelar
-          </Button>
-        </div>
+          </button>
+        </motion.div>
       </div>
     );
   }
@@ -826,180 +701,144 @@ export function DominoGame({ onBack }: { onBack: () => void }) {
   // ── FINISHED ──
   if (view === "finished") {
     return (
-      <div className="space-y-4">
-        <div className={`rounded-2xl p-8 text-center text-white space-y-4 shadow-xl ${
-          isWinner
-            ? "bg-gradient-to-br from-emerald-500 to-teal-600"
-            : "bg-gradient-to-br from-red-500 to-rose-600"
-        }`}>
-          <motion.div
-            initial={{ scale: 0 }}
-            animate={{ scale: 1 }}
-            transition={{ type: "spring", stiffness: 200 }}
-            className="text-7xl"
-          >
+      <div ref={gameContainerRef} className="relative min-h-[80vh] rounded-2xl overflow-hidden flex items-center justify-center" style={FELT_BG}>
+        {FELT_TEXTURE}
+        <motion.div
+          initial={{ scale: 0.8, opacity: 0 }}
+          animate={{ scale: 1, opacity: 1 }}
+          className="relative z-10 w-full max-w-sm rounded-xl p-8 text-center space-y-4 shadow-2xl"
+          style={{ background: "#fdf5e0", border: "4px solid #8B6914" }}
+        >
+          <motion.div initial={{ scale: 0 }} animate={{ scale: 1 }} transition={{ type: "spring", stiffness: 200 }} className="text-7xl">
             {isWinner ? "🏆" : "😔"}
           </motion.div>
-          <h2 className="text-2xl font-black">{isWinner ? "Você venceu!" : "Você perdeu!"}</h2>
-          <p className="text-sm text-white/80">
-            {isWinner ? "Parabéns pela vitória!" : `${opponentName} venceu a partida.`}
+          <h2 className="text-2xl font-black" style={{ color: "#5a3e0a" }}>
+            {isWinner ? "Você venceu!" : "Você perdeu!"}
+          </h2>
+          <p className="text-sm" style={{ color: "#8a7040" }}>
+            {isWinner ? "Parabéns pela vitória!" : `${opponentName} venceu.`}
           </p>
-
           <div className="flex gap-3 justify-center">
-            <div className="bg-white/20 backdrop-blur rounded-xl px-4 py-3 text-center">
-              <div className="text-2xl font-black">{pipCount(myHand)}</div>
-              <div className="text-[10px] uppercase tracking-wider opacity-70">Meus pts</div>
+            <div className="rounded-xl px-4 py-3 text-center" style={{ background: "#f0e8d0", border: "1px solid #d4c8a0" }}>
+              <div className="text-2xl font-black" style={{ color: "#5a3e0a" }}>{pipCount(myHand)}</div>
+              <div className="text-[10px] uppercase tracking-wider" style={{ color: "#8a7040" }}>Meus pts</div>
             </div>
-            <div className="bg-white/20 backdrop-blur rounded-xl px-4 py-3 text-center">
-              <div className="text-2xl font-black">{pipCount(opponentHand)}</div>
-              <div className="text-[10px] uppercase tracking-wider opacity-70">Pts dele</div>
+            <div className="rounded-xl px-4 py-3 text-center" style={{ background: "#f0e8d0", border: "1px solid #d4c8a0" }}>
+              <div className="text-2xl font-black" style={{ color: "#5a3e0a" }}>{pipCount(opponentHand)}</div>
+              <div className="text-[10px] uppercase tracking-wider" style={{ color: "#8a7040" }}>Pts dele</div>
             </div>
           </div>
-
           <div className="flex gap-2 justify-center pt-2">
             {isAI ? (
               <>
-                <Button onClick={() => startAIGame(aiDifficulty)} className="bg-white text-emerald-700 hover:bg-white/90 font-bold gap-2">
+                <button onClick={() => startAIGame(aiDifficulty)} className="px-4 py-2 rounded-lg text-sm font-bold text-white flex items-center gap-2" style={{ background: "#8B6914" }}>
                   <RotateCcw className="w-4 h-4" /> Jogar Novamente
-                </Button>
-                <Button onClick={() => { setAiMode(false); setAiGameState(null); setAiWinner(null); setView("lobby"); }} variant="outline" className="border-white/30 text-white hover:bg-white/10">
+                </button>
+                <button onClick={goToLobby} className="px-4 py-2 rounded-lg text-sm font-bold" style={{ color: "#5a3e0a", background: "#f0e8d0", border: "1px solid #d4c8a0" }}>
                   Lobby
-                </Button>
+                </button>
               </>
             ) : (
               <>
-                <Button onClick={() => { setView("lobby"); setCurrentGame(null); }} className="bg-white text-emerald-700 hover:bg-white/90 font-bold gap-2">
+                <button onClick={() => { setView("lobby"); setCurrentGame(null); }} className="px-4 py-2 rounded-lg text-sm font-bold text-white flex items-center gap-2" style={{ background: "#8B6914" }}>
                   <RotateCcw className="w-4 h-4" /> Nova Partida
-                </Button>
-                <Button onClick={onBack} variant="outline" className="border-white/30 text-white hover:bg-white/10">
+                </button>
+                <button onClick={onBack} className="px-4 py-2 rounded-lg text-sm font-bold" style={{ color: "#5a3e0a", background: "#f0e8d0", border: "1px solid #d4c8a0" }}>
                   Sair
-                </Button>
+                </button>
               </>
             )}
           </div>
-        </div>
+        </motion.div>
       </div>
     );
   }
 
-  // ── PLAYING ──
+  // ── PLAYING (fullscreen green felt table) ──
   if (view === "playing" && gs) {
     return (
-      <div className="space-y-0 -mx-4 md:-mx-6">
+      <div
+        ref={gameContainerRef}
+        className="relative flex flex-col overflow-hidden"
+        style={{ ...FELT_BG, minHeight: isFS ? "100vh" : "85vh", borderRadius: isFS ? 0 : 16 }}
+      >
+        {FELT_TEXTURE}
+
         {/* Top bar */}
-        <div className="px-3 pt-2 pb-1">
-          <Button
-            variant="ghost"
-            size="sm"
-            onClick={() => {
-              if (isAI) {
-                setAiMode(false);
-                setAiGameState(null);
-                setAiWinner(null);
-              } else {
-                setCurrentGame(null);
-              }
-              setView("lobby");
-              setSelectedTile(null);
-            }}
-            className="gap-1 text-muted-foreground text-xs"
-          >
+        <div className="relative z-10 flex items-center justify-between px-3 py-2">
+          <button onClick={goToLobby} className="flex items-center gap-1 text-white/70 hover:text-white text-xs font-medium transition-colors">
             <ArrowLeft className="w-3.5 h-3.5" /> Sair
-          </Button>
+          </button>
+          <button
+            onClick={() => isFS ? exitFullscreen() : gameContainerRef.current && requestFullscreen(gameContainerRef.current)}
+            className="text-white/70 hover:text-white transition-colors"
+          >
+            {isFS ? <Minimize className="w-4 h-4" /> : <Maximize className="w-4 h-4" />}
+          </button>
         </div>
 
-        {/* Scoreboard */}
-        <div className="px-3 pb-2">
-          <Scoreboard
-            myName={playerName}
-            opName={opponentName}
-            myPips={pipCount(myHand)}
-            opPips={pipCount(opponentHand)}
-            boneyardCount={gs.boneyard.length}
-            boardCount={gs.board.length}
-            isMyTurn={isMyTurn}
-          />
+        {/* Opponent score badge (top center) */}
+        <div className="relative z-10 flex justify-center pb-1">
+          <ScoreboardBadge label={opponentName} value={pipCount(opponentHand)} emoji="😐" />
         </div>
 
         {/* Opponent hand (face down) */}
-        <div className="px-3 pb-1">
-          <div className="flex items-center gap-1 justify-center">
-            {opponentHand.map((_, i) => (
-              <motion.div
-                key={i}
-                initial={{ y: -10, opacity: 0 }}
-                animate={{ y: 0, opacity: 1 }}
-                transition={{ delay: i * 0.03 }}
-                className="w-6 h-4 rounded bg-sky-800 border border-sky-700 shadow-sm"
-              />
-            ))}
-          </div>
-          <p className="text-center text-[10px] text-muted-foreground mt-1">
-            {opponentName} • {opponentHand.length} peças
-          </p>
+        <div className="relative z-10 flex justify-center gap-1 pb-2 px-4">
+          {opponentHand.map((_, i) => (
+            <motion.div
+              key={i}
+              initial={{ y: -10, opacity: 0 }}
+              animate={{ y: 0, opacity: 1 }}
+              transition={{ delay: i * 0.03 }}
+            >
+              <DominoTileVisual tile={[0, 0]} size="sm" faceDown disabled />
+            </motion.div>
+          ))}
         </div>
 
         {/* Board area */}
-        <div className="relative min-h-[220px] bg-gradient-to-b from-sky-500 via-sky-400 to-sky-500 mx-0 overflow-hidden shadow-inner">
-          <div className="absolute inset-0 opacity-10" style={{
-            backgroundImage: "radial-gradient(circle, rgba(255,255,255,0.3) 1px, transparent 1px)",
-            backgroundSize: "20px 20px"
-          }} />
-
+        <div className="relative z-10 flex-1 flex items-center justify-center overflow-auto px-4 py-2">
           {gs.board.length === 0 ? (
-            <div className="flex items-center justify-center h-full min-h-[220px]">
-              <motion.p
-                animate={{ opacity: [0.5, 1, 0.5] }}
-                transition={{ duration: 2, repeat: Infinity }}
-                className="text-white/80 font-bold text-sm"
-              >
-                Jogue a primeira peça!
-              </motion.p>
-            </div>
+            <motion.p
+              animate={{ opacity: [0.4, 1, 0.4] }}
+              transition={{ duration: 2, repeat: Infinity }}
+              className="text-white/70 font-bold text-sm"
+            >
+              Jogue a primeira peça!
+            </motion.p>
           ) : (
-            <div className="overflow-auto p-4 min-h-[220px] flex items-center justify-center">
-              <div className="flex items-center gap-0.5 flex-wrap justify-center">
-                {gs.board.map((tile, i) => (
-                  <motion.div
-                    key={i}
-                    initial={{ scale: 0, rotate: -10 }}
-                    animate={{ scale: 1, rotate: 0 }}
-                    transition={{ type: "spring", stiffness: 300, delay: i * 0.02 }}
-                  >
-                    <DominoTileVisual tile={tile} size="sm" disabled />
-                  </motion.div>
-                ))}
-              </div>
-            </div>
-          )}
-
-          {gs.board.length > 0 && (
-            <div className="absolute bottom-1 left-0 right-0 flex justify-between px-4">
-              <span className="text-[10px] font-bold text-white/70 bg-black/20 px-2 py-0.5 rounded">← {gs.boardLeftEnd}</span>
-              <span className="text-[10px] font-bold text-white/70 bg-black/20 px-2 py-0.5 rounded">{gs.boardRightEnd} →</span>
+            <div className="flex items-center gap-0.5 flex-wrap justify-center">
+              {gs.board.map((tile, i) => (
+                <motion.div
+                  key={i}
+                  initial={{ scale: 0, rotate: -10 }}
+                  animate={{ scale: 1, rotate: 0 }}
+                  transition={{ type: "spring", stiffness: 300, delay: i * 0.015 }}
+                >
+                  <DominoTileVisual tile={tile} size="sm" disabled />
+                </motion.div>
+              ))}
             </div>
           )}
         </div>
 
-        {/* Turn indicator */}
-        <div className="text-center py-2">
+        {/* Turn indicator / AI thinking */}
+        <div className="relative z-10 text-center py-1">
           {aiThinking ? (
-            <Badge className="text-sm px-4 py-1 font-bold bg-amber-500 text-white shadow-lg gap-2">
+            <span className="inline-flex items-center gap-2 px-4 py-1 rounded-full text-sm font-bold text-white" style={{ background: "rgba(139,105,20,0.8)" }}>
               <Loader2 className="w-3.5 h-3.5 animate-spin" /> IA pensando...
-            </Badge>
+            </span>
           ) : (
-            <motion.div
+            <motion.span
               animate={isMyTurn ? { scale: [1, 1.05, 1] } : {}}
               transition={{ duration: 1.5, repeat: Infinity }}
+              className={`inline-block px-4 py-1 rounded-full text-sm font-bold ${
+                isMyTurn ? "text-white" : "text-white/60"
+              }`}
+              style={isMyTurn ? { background: "rgba(34,120,60,0.9)", boxShadow: "0 0 12px rgba(34,120,60,0.5)" } : { background: "rgba(0,0,0,0.3)" }}
             >
-              <Badge className={`text-sm px-4 py-1 font-bold ${
-                isMyTurn
-                  ? "bg-emerald-500 text-white shadow-lg shadow-emerald-500/30"
-                  : "bg-muted text-muted-foreground"
-              }`}>
-                {isMyTurn ? "✋ Sua vez!" : `Vez de ${opponentName}`}
-              </Badge>
-            </motion.div>
+              {isMyTurn ? "✋ Sua vez!" : `Vez de ${opponentName}`}
+            </motion.span>
           )}
         </div>
 
@@ -1010,31 +849,29 @@ export function DominoGame({ onBack }: { onBack: () => void }) {
               initial={{ opacity: 0, y: 10 }}
               animate={{ opacity: 1, y: 0 }}
               exit={{ opacity: 0 }}
-              className="mx-3 rounded-xl bg-sky-900 text-white p-3 space-y-2 shadow-xl"
+              className="relative z-20 mx-auto rounded-xl p-3 space-y-2 shadow-xl max-w-xs"
+              style={{ background: "#fdf5e0", border: "3px solid #8B6914" }}
             >
-              <p className="text-sm text-center font-bold">Onde encaixar?</p>
+              <p className="text-sm text-center font-bold" style={{ color: "#5a3e0a" }}>Onde encaixar?</p>
               <div className="flex gap-2 justify-center">
-                <Button size="sm" onClick={() => placeTileAtSide(selectedTile, "left")}
-                  className="bg-white text-sky-800 hover:bg-white/90 font-bold">
+                <button onClick={() => placeTileAtSide(selectedTile, "left")}
+                  className="px-3 py-1.5 rounded-lg text-xs font-bold text-white" style={{ background: "#8B6914" }}>
                   ← Esquerda ({gs.boardLeftEnd})
-                </Button>
-                <Button size="sm" onClick={() => placeTileAtSide(selectedTile, "right")}
-                  className="bg-white text-sky-800 hover:bg-white/90 font-bold">
+                </button>
+                <button onClick={() => placeTileAtSide(selectedTile, "right")}
+                  className="px-3 py-1.5 rounded-lg text-xs font-bold text-white" style={{ background: "#8B6914" }}>
                   Direita ({gs.boardRightEnd}) →
-                </Button>
-                <Button size="sm" variant="ghost" onClick={() => setSelectedTile(null)} className="text-white hover:bg-white/10">
+                </button>
+                <button onClick={() => setSelectedTile(null)} className="px-2 py-1.5 rounded-lg" style={{ color: "#5a3e0a" }}>
                   <X className="w-4 h-4" />
-                </Button>
+                </button>
               </div>
             </motion.div>
           )}
         </AnimatePresence>
 
         {/* My hand */}
-        <div className={`px-3 pb-3 pt-1 rounded-t-2xl ${isMyTurn && !aiThinking ? "bg-sky-50 dark:bg-sky-950/30" : "bg-card"} transition-colors`}>
-          <div className="flex items-center justify-between mb-2 px-1">
-            <p className="text-xs font-bold text-foreground">Suas peças ({myHand.length})</p>
-          </div>
+        <div className="relative z-10 px-3 pb-2 pt-1">
           <div className="flex flex-wrap gap-2 justify-center">
             {myHand.map((tile, i) => {
               const match = canPlay(tile, gs.boardLeftEnd, gs.boardRightEnd);
@@ -1043,7 +880,7 @@ export function DominoGame({ onBack }: { onBack: () => void }) {
                   key={`${tile[0]}-${tile[1]}-${i}`}
                   initial={{ y: 20, opacity: 0 }}
                   animate={{ y: 0, opacity: 1 }}
-                  transition={{ delay: i * 0.05 }}
+                  transition={{ delay: i * 0.04 }}
                 >
                   <DominoTileVisual
                     tile={tile}
@@ -1059,15 +896,21 @@ export function DominoGame({ onBack }: { onBack: () => void }) {
           </div>
         </div>
 
+        {/* Player score badge (bottom center) */}
+        <div className="relative z-10 flex justify-center pb-2">
+          <ScoreboardBadge label="EU" value={pipCount(myHand)} emoji="😊" />
+        </div>
+
         {/* Draw / Pass button */}
         {isMyTurn && !canPlayAny && !aiThinking && (
-          <div className="text-center pb-4 px-3">
-            <Button onClick={drawTile} className="bg-sky-600 hover:bg-sky-700 text-white font-bold gap-2 w-full shadow-lg">
-              {gs.boneyard.length > 0
-                ? `🦴 Comprar peça (${gs.boneyard.length})`
-                : "⏭️ Passar a vez"
-              }
-            </Button>
+          <div className="relative z-10 text-center pb-3 px-4">
+            <button
+              onClick={drawTile}
+              className="w-full max-w-xs mx-auto py-2.5 rounded-lg text-white font-bold text-sm flex items-center justify-center gap-2"
+              style={{ background: "linear-gradient(180deg, #8B6914 0%, #6B4F10 100%)", border: "2px solid #a07818" }}
+            >
+              {gs.boneyard.length > 0 ? `🦴 Comprar peça (${gs.boneyard.length})` : "⏭️ Passar a vez"}
+            </button>
           </div>
         )}
       </div>
