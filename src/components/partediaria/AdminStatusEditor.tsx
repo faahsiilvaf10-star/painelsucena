@@ -107,10 +107,18 @@ const getStatusLabel = (status: string) => {
    const updateStatusInHistory = useUpdateStatusInHistory();
    const { data: profile } = useProfile();
    
-   const targetDate = shiftDate || new Date().toISOString().split("T")[0];
-   const { data: records = [] } = useDailyShiftRecords(targetDate);
-   const currentRecord = records.find((r) => r.equipment_id === equipmentId);
-   const statusHistory = currentRecord?.status_history || [];
+    const today = new Date().toISOString().split("T")[0];
+    const targetDate = shiftDate || today;
+    
+    // Fetch records for target date AND without date filter as fallback
+    const { data: dateRecords = [] } = useDailyShiftRecords(targetDate);
+    const { data: allRecords = [] } = useDailyShiftRecords();
+    
+    // Try to find record for the target date first, then fall back to most recent record for this equipment
+    const currentRecord = dateRecords.find((r) => r.equipment_id === equipmentId) 
+      || allRecords.find((r) => r.equipment_id === equipmentId);
+    const effectiveDate = currentRecord?.shift_date || targetDate;
+    const statusHistory = currentRecord?.status_history || [];
  
    const handleAddSubmit = async () => {
      if (!selectedStatus || !statusTime) {
@@ -121,16 +129,16 @@ const getStatusLabel = (status: string) => {
      setIsSubmitting(true);
  
      try {
-       const timestamp = new Date(`${targetDate}T${statusTime}:00`).toISOString();
- 
-       await addStatusToHistory.mutateAsync({
-         equipmentId,
-         status: selectedStatus,
-         changedBy: profile?.full_name ? `${profile.full_name} (Admin)` : "Admin",
-         description: description || undefined,
-         customTimestamp: timestamp,
-         shiftDate: targetDate,
-       });
+        const timestamp = new Date(`${effectiveDate}T${statusTime}:00`).toISOString();
+
+        await addStatusToHistory.mutateAsync({
+          equipmentId,
+          status: selectedStatus,
+          changedBy: profile?.full_name ? `${profile.full_name} (Admin)` : "Admin",
+          description: description || undefined,
+          customTimestamp: timestamp,
+          shiftDate: effectiveDate,
+        });
  
        toast.success("Status adicionado com sucesso!");
        setSelectedStatus("");
@@ -166,7 +174,7 @@ const getStatusLabel = (status: string) => {
      setIsSubmitting(true);
  
      try {
-       const newTimestamp = new Date(`${targetDate}T${editTime}:00`).toISOString();
+       const newTimestamp = new Date(`${effectiveDate}T${editTime}:00`).toISOString();
  
        await updateStatusInHistory.mutateAsync({
          equipmentId,
@@ -174,7 +182,7 @@ const getStatusLabel = (status: string) => {
          newStatus: editStatus,
          newTimestamp,
          newDescription: editDescription,
-         shiftDate: targetDate,
+          shiftDate: effectiveDate,
        });
  
        toast.success("Status atualizado com sucesso!");
@@ -194,7 +202,7 @@ const getStatusLabel = (status: string) => {
        await removeStatusFromHistory.mutateAsync({
          equipmentId,
          statusIndex: deleteIndex,
-         shiftDate: targetDate,
+         shiftDate: effectiveDate,
        });
  
        toast.success("Status removido com sucesso!");
