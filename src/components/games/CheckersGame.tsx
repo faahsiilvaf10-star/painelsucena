@@ -44,50 +44,48 @@ const PIECE_COLORS: { id: string; label: string; gradient: string; border: strin
 ];
 
 // Brasileirão Serie A teams
-const TEAM_BADGES: { id: string; label: string; emoji: string }[] = [
-  { id: "flamengo", label: "Flamengo", emoji: "🔴⚫" },
-  { id: "palmeiras", label: "Palmeiras", emoji: "🟢" },
-  { id: "corinthians", label: "Corinthians", emoji: "⚫⚪" },
-  { id: "sao-paulo", label: "São Paulo", emoji: "🔴⚪⚫" },
-  { id: "fluminense", label: "Fluminense", emoji: "🟢🔴⚪" },
-  { id: "botafogo", label: "Botafogo", emoji: "⭐⚫" },
-  { id: "vasco", label: "Vasco", emoji: "⚫⬜" },
-  { id: "gremio", label: "Grêmio", emoji: "🔵⚫⚪" },
-  { id: "internacional", label: "Internacional", emoji: "🔴⚪" },
-  { id: "atletico-mg", label: "Atlético-MG", emoji: "⚫⚪" },
-  { id: "cruzeiro", label: "Cruzeiro", emoji: "🔵⚪" },
-  { id: "santos", label: "Santos", emoji: "⚪⚫" },
-  { id: "bahia", label: "Bahia", emoji: "🔵🔴⚪" },
-  { id: "fortaleza", label: "Fortaleza", emoji: "🔵🔴⚪" },
-  { id: "athletico-pr", label: "Athletico-PR", emoji: "🔴⚫" },
-  { id: "bragantino", label: "Bragantino", emoji: "🔴⚪" },
-  { id: "cuiaba", label: "Cuiabá", emoji: "🟢🟡" },
-  { id: "goias", label: "Goiás", emoji: "🟢⚪" },
-  { id: "coritiba", label: "Coritiba", emoji: "🟢⚪" },
-  { id: "america-mg", label: "América-MG", emoji: "🟢⚫" },
+const TEAM_BADGES: { id: string; label: string; img: string }[] = [
+  { id: "flamengo", label: "Flamengo", img: "/teams/flamengo.png" },
+  { id: "palmeiras", label: "Palmeiras", img: "/teams/palmeiras.png" },
+  { id: "corinthians", label: "Corinthians", img: "/teams/corinthians.png" },
+  { id: "sao-paulo", label: "São Paulo", img: "/teams/sao-paulo.png" },
+  { id: "fluminense", label: "Fluminense", img: "/teams/fluminense.png" },
+  { id: "botafogo", label: "Botafogo", img: "/teams/botafogo.png" },
+  { id: "vasco", label: "Vasco", img: "/teams/vasco.png" },
+  { id: "gremio", label: "Grêmio", img: "/teams/gremio.png" },
+  { id: "internacional", label: "Internacional", img: "/teams/internacional.png" },
+  { id: "atletico-mg", label: "Atlético-MG", img: "/teams/atletico-mg.png" },
+  { id: "cruzeiro", label: "Cruzeiro", img: "/teams/cruzeiro.png" },
+  { id: "santos", label: "Santos", img: "/teams/santos.png" },
+  { id: "bahia", label: "Bahia", img: "/teams/bahia.png" },
+  { id: "fortaleza", label: "Fortaleza", img: "/teams/fortaleza.png" },
+  { id: "athletico-pr", label: "Athletico-PR", img: "/teams/athletico-pr.png" },
+  { id: "bragantino", label: "Bragantino", img: "/teams/bragantino.png" },
+  { id: "cuiaba", label: "Cuiabá", img: "/teams/cuiaba.png" },
+  { id: "coritiba", label: "Coritiba", img: "/teams/coritiba.png" },
+  { id: "america-mg", label: "América-MG", img: "/teams/america-mg.png" },
 ];
 
-const TEAM_GRADIENTS: Record<string, { gradient: string; border: string; textColor: string }> = {
-  "flamengo": { gradient: "radial-gradient(circle at 35% 35%, #e61e1e, #1a1a1a)", border: "#cc0000", textColor: "#fff" },
-  "palmeiras": { gradient: "radial-gradient(circle at 35% 35%, #006437, #003a1f)", border: "#004d28", textColor: "#fff" },
-  "corinthians": { gradient: "radial-gradient(circle at 35% 35%, #3a3a3a, #111111)", border: "#000", textColor: "#fff" },
-  "sao-paulo": { gradient: "radial-gradient(circle at 35% 35%, #f0f0f0, #cc0000)", border: "#cc0000", textColor: "#000" },
-  "fluminense": { gradient: "radial-gradient(circle at 35% 35%, #7b1f3b, #006633)", border: "#7b1f3b", textColor: "#fff" },
-  "botafogo": { gradient: "radial-gradient(circle at 35% 35%, #2a2a2a, #000000)", border: "#333", textColor: "#fff" },
-  "vasco": { gradient: "radial-gradient(circle at 35% 35%, #ffffff, #1a1a1a)", border: "#000", textColor: "#000" },
-  "gremio": { gradient: "radial-gradient(circle at 35% 35%, #0060aa, #001e3c)", border: "#0060aa", textColor: "#fff" },
-  "internacional": { gradient: "radial-gradient(circle at 35% 35%, #e31e24, #8b0000)", border: "#cc0000", textColor: "#fff" },
-  "atletico-mg": { gradient: "radial-gradient(circle at 35% 35%, #3a3a3a, #000000)", border: "#222", textColor: "#fff" },
-  "cruzeiro": { gradient: "radial-gradient(circle at 35% 35%, #003da5, #001a4a)", border: "#003da5", textColor: "#fff" },
-  "santos": { gradient: "radial-gradient(circle at 35% 35%, #f5f5f5, #aaaaaa)", border: "#888", textColor: "#000" },
-  "bahia": { gradient: "radial-gradient(circle at 35% 35%, #0056a6, #cc0000)", border: "#0056a6", textColor: "#fff" },
-  "fortaleza": { gradient: "radial-gradient(circle at 35% 35%, #0056a6, #cc1111)", border: "#0056a6", textColor: "#fff" },
-  "athletico-pr": { gradient: "radial-gradient(circle at 35% 35%, #cc0000, #1a1a1a)", border: "#aa0000", textColor: "#fff" },
-  "bragantino": { gradient: "radial-gradient(circle at 35% 35%, #e31e24, #ffffff)", border: "#cc0000", textColor: "#fff" },
-  "cuiaba": { gradient: "radial-gradient(circle at 35% 35%, #007a33, #ffd700)", border: "#007a33", textColor: "#fff" },
-  "goias": { gradient: "radial-gradient(circle at 35% 35%, #006633, #ffffff)", border: "#006633", textColor: "#fff" },
-  "coritiba": { gradient: "radial-gradient(circle at 35% 35%, #006633, #eeeeee)", border: "#006633", textColor: "#fff" },
-  "america-mg": { gradient: "radial-gradient(circle at 35% 35%, #006633, #1a1a1a)", border: "#006633", textColor: "#fff" },
+const TEAM_GRADIENTS: Record<string, { gradient: string; border: string }> = {
+  "flamengo": { gradient: "radial-gradient(circle at 35% 35%, #e61e1e, #1a1a1a)", border: "#cc0000" },
+  "palmeiras": { gradient: "radial-gradient(circle at 35% 35%, #006437, #003a1f)", border: "#004d28" },
+  "corinthians": { gradient: "radial-gradient(circle at 35% 35%, #3a3a3a, #111111)", border: "#000" },
+  "sao-paulo": { gradient: "radial-gradient(circle at 35% 35%, #f0f0f0, #cc0000)", border: "#cc0000" },
+  "fluminense": { gradient: "radial-gradient(circle at 35% 35%, #7b1f3b, #006633)", border: "#7b1f3b" },
+  "botafogo": { gradient: "radial-gradient(circle at 35% 35%, #2a2a2a, #000000)", border: "#333" },
+  "vasco": { gradient: "radial-gradient(circle at 35% 35%, #ffffff, #1a1a1a)", border: "#000" },
+  "gremio": { gradient: "radial-gradient(circle at 35% 35%, #0060aa, #001e3c)", border: "#0060aa" },
+  "internacional": { gradient: "radial-gradient(circle at 35% 35%, #e31e24, #8b0000)", border: "#cc0000" },
+  "atletico-mg": { gradient: "radial-gradient(circle at 35% 35%, #3a3a3a, #000000)", border: "#222" },
+  "cruzeiro": { gradient: "radial-gradient(circle at 35% 35%, #003da5, #001a4a)", border: "#003da5" },
+  "santos": { gradient: "radial-gradient(circle at 35% 35%, #f5f5f5, #aaaaaa)", border: "#888" },
+  "bahia": { gradient: "radial-gradient(circle at 35% 35%, #0056a6, #cc0000)", border: "#0056a6" },
+  "fortaleza": { gradient: "radial-gradient(circle at 35% 35%, #0056a6, #cc1111)", border: "#0056a6" },
+  "athletico-pr": { gradient: "radial-gradient(circle at 35% 35%, #cc0000, #1a1a1a)", border: "#aa0000" },
+  "bragantino": { gradient: "radial-gradient(circle at 35% 35%, #e31e24, #ffffff)", border: "#cc0000" },
+  "cuiaba": { gradient: "radial-gradient(circle at 35% 35%, #007a33, #ffd700)", border: "#007a33" },
+  "coritiba": { gradient: "radial-gradient(circle at 35% 35%, #006633, #eeeeee)", border: "#006633" },
+  "america-mg": { gradient: "radial-gradient(circle at 35% 35%, #006633, #1a1a1a)", border: "#006633" },
 };
 
 const PIECE_EFFECTS: { id: string; label: string; icon: React.ReactNode; cssClass: string }[] = [
@@ -321,15 +319,16 @@ const BLACK_PIECE_BG = "radial-gradient(circle at 35% 35%, #5a3a1a, #2a1a0a)";
 const BLACK_PIECE_BORDER = "#1a0a00";
 
 function getPieceVisual(color: PieceColor, style: PieceStyle) {
-  if (color === "black") return { bg: BLACK_PIECE_BG, border: BLACK_PIECE_BORDER, teamLabel: "" };
+  if (color === "black") return { bg: BLACK_PIECE_BG, border: BLACK_PIECE_BORDER, teamImg: "" };
   // Team mode
   if (style.team) {
     const t = TEAM_GRADIENTS[style.team];
-    if (t) return { bg: t.gradient, border: t.border, teamLabel: TEAM_BADGES.find(b => b.id === style.team)?.label?.[0]?.toUpperCase() || "" };
+    const badge = TEAM_BADGES.find(b => b.id === style.team);
+    if (t && badge) return { bg: t.gradient, border: t.border, teamImg: badge.img };
   }
   const found = PIECE_COLORS.find(c => c.id === style.color);
-  if (found) return { bg: found.gradient, border: found.border, teamLabel: "" };
-  return { bg: PIECE_COLORS[0].gradient, border: PIECE_COLORS[0].border, teamLabel: "" };
+  if (found) return { bg: found.gradient, border: found.border, teamImg: "" };
+  return { bg: PIECE_COLORS[0].gradient, border: PIECE_COLORS[0].border, teamImg: "" };
 }
 
 // ── Main Component ──
@@ -728,16 +727,14 @@ export function CheckersGame({ onBack }: { onBack: () => void }) {
           color: visual.border,
         }}
       >
-        {size === "board" && !visual.teamLabel && (
+        {size === "board" && !visual.teamImg && (
           <div className="absolute rounded-full pointer-events-none" style={{
             width: "65%", height: "65%",
             border: "1.5px solid rgba(180,150,100,0.5)",
           }} />
         )}
-        {size === "board" && visual.teamLabel && (
-          <span className="text-[clamp(8px,2vw,14px)] font-black select-none pointer-events-none" style={{ color: "#fff", textShadow: "0 1px 3px rgba(0,0,0,0.6)" }}>
-            {visual.teamLabel}
-          </span>
+        {size === "board" && visual.teamImg && (
+          <img src={visual.teamImg} alt="" className="w-[60%] h-[60%] object-contain pointer-events-none select-none" draggable={false} />
         )}
         {cell.type === "king" && size === "board" && (
           <span className="text-[clamp(10px,2.5vw,18px)] select-none pointer-events-none">👑</span>
@@ -812,11 +809,9 @@ export function CheckersGame({ onBack }: { onBack: () => void }) {
                           transform: pieceStyle.team === t.id ? "scale(1.05)" : "scale(1)",
                         }}
                       >
-                        <div className="w-7 h-7 rounded-full flex items-center justify-center"
+                        <div className="w-8 h-8 rounded-full flex items-center justify-center overflow-hidden"
                           style={{ background: tg?.gradient, border: `2px solid ${tg?.border}` }}>
-                          <span className="text-[8px] font-black" style={{ color: tg?.textColor, textShadow: "0 1px 2px rgba(0,0,0,0.4)" }}>
-                            {t.label.substring(0, 3).toUpperCase()}
-                          </span>
+                          <img src={t.img} alt={t.label} className="w-6 h-6 object-contain pointer-events-none" />
                         </div>
                         <span className="text-[9px] font-bold truncate w-full text-center" style={{ color: pieceStyle.team === t.id ? "#fff" : "#5a3e0a" }}>
                           {t.label}
@@ -856,10 +851,8 @@ export function CheckersGame({ onBack }: { onBack: () => void }) {
                   color: getPieceVisual("white", pieceStyle).border,
                 }}
               >
-                {getPieceVisual("white", pieceStyle).teamLabel ? (
-                  <span className="text-[10px] font-black select-none pointer-events-none" style={{ color: "#fff", textShadow: "0 1px 3px rgba(0,0,0,0.6)" }}>
-                    {getPieceVisual("white", pieceStyle).teamLabel}
-                  </span>
+                {getPieceVisual("white", pieceStyle).teamImg ? (
+                  <img src={getPieceVisual("white", pieceStyle).teamImg} alt="" className="w-[60%] h-[60%] object-contain pointer-events-none" />
                 ) : (
                   <div className="absolute rounded-full pointer-events-none" style={{ width: "65%", height: "65%", border: "1.5px solid rgba(180,150,100,0.5)" }} />
                 )}
