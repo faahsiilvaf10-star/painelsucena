@@ -1023,6 +1023,48 @@ export type Database = {
           },
         ]
       }
+      game_scores: {
+        Row: {
+          avatar_url: string | null
+          best_streak: number
+          correct_answers: number
+          created_at: string
+          game_id: string
+          id: string
+          played_at: string
+          score: number
+          total_questions: number
+          user_id: string
+          user_name: string
+        }
+        Insert: {
+          avatar_url?: string | null
+          best_streak?: number
+          correct_answers?: number
+          created_at?: string
+          game_id: string
+          id?: string
+          played_at?: string
+          score?: number
+          total_questions?: number
+          user_id: string
+          user_name: string
+        }
+        Update: {
+          avatar_url?: string | null
+          best_streak?: number
+          correct_answers?: number
+          created_at?: string
+          game_id?: string
+          id?: string
+          played_at?: string
+          score?: number
+          total_questions?: number
+          user_id?: string
+          user_name?: string
+        }
+        Relationships: []
+      }
       goals: {
         Row: {
           adubagem_unidade: number

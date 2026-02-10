@@ -1,4 +1,5 @@
 import { useState, useCallback, useEffect, useRef } from "react";
+import { useSaveGameScore } from "@/hooks/useGameScores";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
@@ -250,6 +251,17 @@ export function RocagemGame({ onBack }: { onBack: () => void }) {
   const [streak, setStreak] = useState(0);
   const [bestStreak, setBestStreak] = useState(0);
   const timerRef = useRef<ReturnType<typeof setInterval> | null>(null);
+  const saveScore = useSaveGameScore();
+  const scoreSavedRef = useRef(false);
+
+  useEffect(() => {
+    if (gameState === "finished" && !scoreSavedRef.current) {
+      scoreSavedRef.current = true;
+      const correctCount = answers.filter(a => a.correct).length;
+      saveScore.mutate({ gameId: "rocagem", score, correctAnswers: correctCount, totalQuestions: answers.length, bestStreak });
+    }
+    if (gameState === "idle") scoreSavedRef.current = false;
+  }, [gameState]);
 
   const currentQuestion = questions[currentIndex] || null;
   const progress = questions.length > 0 ? (currentIndex / questions.length) * 100 : 0;
