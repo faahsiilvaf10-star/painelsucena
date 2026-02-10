@@ -262,10 +262,10 @@ async function fetchLogoBase64(path = "/logo-sucena-empreendimentos.png"): Promi
   }
 }
 
-function addSlideBranding(slide: any, logoBase64: string, slideNum: number, totalSlides: number, isDark: boolean) {
-  if (logoBase64) {
+function addSlideBranding(slide: any, logoBase64: string, lightLogoBase64: string, slideNum: number, totalSlides: number, isDark: boolean) {
+  if (lightLogoBase64) {
     slide.addImage({
-      data: logoBase64,
+      data: lightLogoBase64,
       x: 0.3, y: 0.15, w: 1.4, h: 0.45,
       sizing: { type: "contain", w: 1.4, h: 0.45 },
     });
@@ -299,6 +299,7 @@ async function generateInspectionPptx(inspectionDate: string, tasks: SiteInspect
 
   const logoBase64 = await fetchLogoBase64();
   const coverLogoBase64 = await fetchLogoBase64("/logo-sucena-cover.png");
+  const lightLogoBase64 = await fetchLogoBase64("/logo-sucena-light.png");
 
   // Calculate total slides
   const detailCount = tasks.filter(t => t.before_photo_url || t.after_photo_url).length;
@@ -310,7 +311,7 @@ async function generateInspectionPptx(inspectionDate: string, tasks: SiteInspect
   slideNum++;
   const titleSlide = pptx.addSlide();
   titleSlide.background = { color: "0F172A" };
-  addSlideBranding(titleSlide, logoBase64, slideNum, totalSlides, true);
+  addSlideBranding(titleSlide, logoBase64, lightLogoBase64, slideNum, totalSlides, true);
   titleSlide.addText("Inspeção de Canteiro", {
     x: 0.5, y: 1.8, w: "90%", h: 1.2,
     fontSize: 36, bold: true, color: "FFFFFF", align: "center",
@@ -335,7 +336,7 @@ async function generateInspectionPptx(inspectionDate: string, tasks: SiteInspect
   slideNum++;
   const summarySlide = pptx.addSlide();
   summarySlide.background = { color: "FFFFFF" };
-  addSlideBranding(summarySlide, logoBase64, slideNum, totalSlides, false);
+  addSlideBranding(summarySlide, logoBase64, lightLogoBase64, slideNum, totalSlides, false);
   summarySlide.addText("Resumo da Inspeção", {
     x: 0.5, y: 0.7, w: "90%", h: 0.7,
     fontSize: 24, bold: true, color: "0F172A",
@@ -372,7 +373,7 @@ async function generateInspectionPptx(inspectionDate: string, tasks: SiteInspect
       slideNum++;
       const slide = pptx.addSlide();
       slide.background = { color: "FFFFFF" };
-      addSlideBranding(slide, logoBase64, slideNum, totalSlides, false);
+      addSlideBranding(slide, logoBase64, lightLogoBase64, slideNum, totalSlides, false);
 
       slide.addText(`${idx + 1}. ${task.description}`, {
         x: 0.5, y: 0.7, w: "90%", h: 0.6,
@@ -432,7 +433,7 @@ async function generateInspectionPptx(inspectionDate: string, tasks: SiteInspect
   slideNum++;
   const closingSlide = pptx.addSlide();
   closingSlide.background = { color: "0F172A" };
-  addSlideBranding(closingSlide, logoBase64, slideNum, totalSlides, true);
+  addSlideBranding(closingSlide, logoBase64, lightLogoBase64, slideNum, totalSlides, true);
   closingSlide.addText("Inspeção Concluída ✅", {
     x: 0.5, y: 2, w: "90%", h: 1,
     fontSize: 32, bold: true, color: "22C55E", align: "center",
@@ -488,7 +489,7 @@ function InspectionSlidePreview({ slides, currentSlide }: { slides: SlideData[];
   if (slide.type === "title") {
     return (
       <div className="aspect-video bg-slate-900 rounded-xl flex flex-col items-center justify-center p-8 text-white">
-        <img src="/logo-sucena-cover.png" alt="Logo" className="h-14 object-contain mb-6" />
+        <img src="/logo-sucena-cover.png" alt="Logo" className="h-20 object-contain mb-6" />
         <h2 className="text-2xl md:text-3xl font-bold">{slide.title}</h2>
         <p className="text-lg text-slate-400 mt-3">{slide.subtitle}</p>
         <p className="text-sm text-green-400 mt-2">{slide.caption}</p>
@@ -498,8 +499,9 @@ function InspectionSlidePreview({ slides, currentSlide }: { slides: SlideData[];
 
   if (slide.type === "summary") {
     return (
-      <div className="aspect-video bg-white dark:bg-slate-50 rounded-xl p-4 md:p-6 overflow-auto text-slate-900">
-        <h3 className="text-lg font-bold mb-3">Resumo da Inspeção</h3>
+      <div className="aspect-video bg-white dark:bg-slate-50 rounded-xl p-4 md:p-6 overflow-auto text-slate-900 relative">
+        <img src="/logo-sucena-light.png" alt="Logo" className="absolute top-3 left-4 h-6 object-contain" />
+        <h3 className="text-lg font-bold mb-3 mt-6">Resumo da Inspeção</h3>
         <table className="w-full text-xs md:text-sm border-collapse">
           <thead>
             <tr className="bg-slate-900 text-white">
@@ -535,8 +537,9 @@ function InspectionSlidePreview({ slides, currentSlide }: { slides: SlideData[];
   if (slide.type === "detail" && slide.task) {
     const task = slide.task;
     return (
-      <div className="aspect-video bg-white dark:bg-slate-50 rounded-xl p-4 md:p-6 overflow-auto text-slate-900">
-        <h3 className="text-base md:text-lg font-bold">{(slide.taskIndex ?? 0) + 1}. {task.description}</h3>
+      <div className="aspect-video bg-white dark:bg-slate-50 rounded-xl p-4 md:p-6 overflow-auto text-slate-900 relative">
+        <img src="/logo-sucena-light.png" alt="Logo" className="absolute top-3 left-4 h-6 object-contain" />
+        <h3 className="text-base md:text-lg font-bold mt-6">{(slide.taskIndex ?? 0) + 1}. {task.description}</h3>
         {task.observation && (
           <p className="text-sm font-bold mt-1">
             {task.observation}
@@ -567,7 +570,7 @@ function InspectionSlidePreview({ slides, currentSlide }: { slides: SlideData[];
   // closing
   return (
     <div className="aspect-video bg-slate-900 rounded-xl flex flex-col items-center justify-center p-8 text-white">
-      <img src="/logo-sucena-cover.png" alt="Logo" className="h-14 object-contain mb-6" />
+      <img src="/logo-sucena-cover.png" alt="Logo" className="h-20 object-contain mb-6" />
       <h2 className="text-2xl md:text-3xl font-bold text-green-400">Inspeção Concluída ✅</h2>
       <p className="text-base text-slate-400 mt-3">Todos os {slide.totalTasks} pontos foram resolvidos.</p>
     </div>
