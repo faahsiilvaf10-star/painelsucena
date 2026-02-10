@@ -87,6 +87,28 @@ export function ExportDailyShiftPdfButton({ record, isLoading }: ExportDailyShif
     try {
       const logoBase64 = await getLogoBase64();
       const formattedDate = format(new Date(record.shift_date), "dd/MM/yyyy", { locale: ptBR });
+
+      // Fallback: if initial values are missing, fetch previous shift's final (or initial) values
+      let effectiveInitialHorimeter = record.initial_horimeter;
+      let effectiveInitialKm = record.initial_km;
+      if (effectiveInitialHorimeter == null || effectiveInitialKm == null) {
+        const { data: prevShift } = await supabase
+          .from("daily_shift_records")
+          .select("final_horimeter, final_km, initial_horimeter, initial_km")
+          .eq("equipment_id", record.equipment_id)
+          .lt("shift_date", record.shift_date)
+          .order("shift_date", { ascending: false })
+          .limit(1)
+          .maybeSingle();
+        if (prevShift) {
+          if (effectiveInitialHorimeter == null) {
+            effectiveInitialHorimeter = prevShift.final_horimeter ?? prevShift.initial_horimeter;
+          }
+          if (effectiveInitialKm == null) {
+            effectiveInitialKm = prevShift.final_km ?? prevShift.initial_km;
+          }
+        }
+      }
       
       // Fetch exit movement for this equipment on this date
       const { data: exitMovements } = await supabase
@@ -444,7 +466,7 @@ export function ExportDailyShiftPdfButton({ record, isLoading }: ExportDailyShif
                 <div class="km-row">
                   <div class="km-cell">
                     <div class="km-label">INICIAL</div>
-                    <div class="km-value">${record.initial_km ?? "-"}</div>
+                    <div class="km-value">${effectiveInitialKm ?? "-"}</div>
                   </div>
                   <div class="km-cell" style="border-right:none;">
                     <div class="km-label">FINAL</div>
@@ -457,7 +479,7 @@ export function ExportDailyShiftPdfButton({ record, isLoading }: ExportDailyShif
                 <div class="km-row">
                   <div class="km-cell">
                     <div class="km-label">INICIAL</div>
-                    <div class="km-value">${record.initial_horimeter ?? "-"}</div>
+                    <div class="km-value">${effectiveInitialHorimeter ?? "-"}</div>
                   </div>
                   <div class="km-cell" style="border-right:none;">
                     <div class="km-label">FINAL</div>

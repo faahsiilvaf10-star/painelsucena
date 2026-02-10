@@ -358,18 +358,17 @@ export function DriverStatusButtons() {
         try {
           const { data: prevShift } = await supabase
             .from("daily_shift_records")
-            .select("final_horimeter, final_km")
+            .select("final_horimeter, final_km, initial_horimeter, initial_km")
             .eq("equipment_id", selectedVehicleId)
-            .not("final_horimeter", "is", null)
             .order("shift_date", { ascending: false })
             .limit(1)
             .maybeSingle();
           
-          if (prevShift?.final_horimeter) {
-            setStartShiftHorimeter(String(prevShift.final_horimeter));
-          }
-          if (prevShift?.final_km) {
-            setStartShiftKm(String(prevShift.final_km));
+          if (prevShift) {
+            const horimeter = prevShift.final_horimeter ?? prevShift.initial_horimeter;
+            const km = prevShift.final_km ?? prevShift.initial_km;
+            if (horimeter) setStartShiftHorimeter(String(horimeter));
+            if (km) setStartShiftKm(String(km));
           }
         } catch (err) {
           console.error("Error fetching previous shift data:", err);

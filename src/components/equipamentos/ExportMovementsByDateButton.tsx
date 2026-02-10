@@ -521,17 +521,16 @@ export function ExportMovementsByDateButton({ equipment }: ExportMovementsByDate
       if (!shiftRecord?.initial_horimeter && !shiftRecord?.initial_km) {
         const { data: prevShift } = await supabase
           .from("daily_shift_records")
-          .select("final_horimeter, final_km, final_fuel_level")
+          .select("final_horimeter, final_km, final_fuel_level, initial_horimeter, initial_km, initial_fuel_level")
           .eq("equipment_id", equipment.id)
           .lt("shift_date", targetDate)
-          .not("final_horimeter", "is", null)
           .order("shift_date", { ascending: false })
           .limit(1)
           .maybeSingle();
         if (prevShift) {
-          fallbackInitialHorimeter = prevShift.final_horimeter ? Number(prevShift.final_horimeter) : null;
-          fallbackInitialKm = prevShift.final_km ? Number(prevShift.final_km) : null;
-          fallbackInitialFuel = prevShift.final_fuel_level ?? null;
+          fallbackInitialHorimeter = prevShift.final_horimeter ? Number(prevShift.final_horimeter) : (prevShift.initial_horimeter ? Number(prevShift.initial_horimeter) : null);
+          fallbackInitialKm = prevShift.final_km ? Number(prevShift.final_km) : (prevShift.initial_km ? Number(prevShift.initial_km) : null);
+          fallbackInitialFuel = prevShift.final_fuel_level ?? prevShift.initial_fuel_level ?? null;
         }
       }
 
