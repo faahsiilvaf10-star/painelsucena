@@ -1245,25 +1245,11 @@ export function CheckersGame({ onBack }: { onBack: () => void }) {
 
             {/* Animating piece overlay */}
             {animatingPiece && (
-              <motion.div className="absolute flex items-center justify-center rounded-full pointer-events-none"
+              <motion.div className="absolute flex items-center justify-center pointer-events-none"
                 animate={{ left: `${(animatingPiece.pos.col / 8) * 100}%`, top: `${(animatingPiece.pos.row / 8) * 100}%` }}
                 transition={{ duration: 0.6, ease: [0.25, 0.1, 0.25, 1] }}
-                style={{ width: `${100 / 8}%`, height: `${100 / 8}%`, zIndex: 50, padding: "11%" }}>
-                <div className={`w-full h-full rounded-full flex items-center justify-center ${animatingPiece.piece.color === "white" || (gameMode === "online" && animatingPiece.piece.color === myOnlineColor) ? effectClass : ""}`}
-                  style={{
-                    background: animatingPiece.piece.color === "white" || (gameMode === "online" && animatingPiece.piece.color === myOnlineColor) ? getPieceVisual("white", pieceStyle).bg : BLACK_PIECE_BG,
-                    border: `2.5px solid ${animatingPiece.piece.color === "white" || (gameMode === "online" && animatingPiece.piece.color === myOnlineColor) ? getPieceVisual("white", pieceStyle).border : BLACK_PIECE_BORDER}`,
-                    boxShadow: `0 6px 16px rgba(0,0,0,0.4), 0 0 20px rgba(100,180,50,0.3)`,
-                    color: animatingPiece.piece.color === "white" ? getPieceVisual("white", pieceStyle).border : BLACK_PIECE_BORDER,
-                  }}>
-                  <div className="absolute rounded-full" style={{
-                    width: "65%", height: "65%",
-                    border: `1.5px solid ${animatingPiece.piece.color === "white" ? "rgba(180,150,100,0.5)" : "rgba(255,255,255,0.15)"}`,
-                  }} />
-                  {animatingPiece.piece.type === "king" && (
-                    <span className="text-[clamp(10px,2.5vw,18px)] select-none" style={{ filter: animatingPiece.piece.color === "white" ? "none" : "brightness(2)" }}>👑</span>
-                  )}
-                </div>
+                style={{ width: `${100 / 8}%`, height: `${100 / 8}%`, zIndex: 50 }}>
+                {renderPiece(animatingPiece.piece, false, false, "board")}
               </motion.div>
             )}
           </div>
