@@ -330,25 +330,31 @@ export const useUpdateOrderStatus = () => {
         .eq("user_id", user.id)
         .single();
 
-      // Update order status
+      // Update order status - ensure lowercase enum value
+      const safeNewStatus = newStatus.toLowerCase() as OrderStatus;
+      console.log("[ORDER_UPDATE] Attempting status update:", { orderId, newStatus, safeNewStatus });
       const { data, error } = await supabase
         .from("orders")
-        .update({ status: newStatus, notes })
+        .update({ status: safeNewStatus, notes })
         .eq("id", orderId)
         .select()
         .single();
 
-      if (error) throw error;
+      if (error) {
+        console.error("[ORDER_UPDATE] Error:", error);
+        throw error;
+      }
 
       // Create history entry
+      const safePreviousStatus = currentOrder?.status ? (currentOrder.status as string).toLowerCase() as OrderStatus : null;
       await supabase.from("order_history").insert({
         order_id: orderId,
-        previous_status: currentOrder?.status,
-        new_status: newStatus,
+        previous_status: safePreviousStatus,
+        new_status: safeNewStatus,
         changed_by: user.id,
         changed_by_name: profile?.full_name || "Usuário",
         notes,
-      });
+      } as any);
 
       // Notify requester of status change
       if (currentOrder?.requester_id && currentOrder.requester_id !== user.id) {
@@ -367,7 +373,7 @@ export const useUpdateOrderStatus = () => {
         await supabase.from("notifications").insert({
           user_id: currentOrder.requester_id,
           title: "📦 Atualização de Pedido",
-          message: `Seu pedido foi atualizado para: ${statusLabels[newStatus]}`,
+          message: `Seu pedido foi atualizado para: ${statusLabels[safeNewStatus] || safeNewStatus}`,
           type: "order",
           reference_id: orderId,
           reference_type: "order",
@@ -377,7 +383,7 @@ export const useUpdateOrderStatus = () => {
         const changerName = profile?.full_name || "Usuário";
         const productName = currentOrder.product_name || "Pedido";
         const orderNum = currentOrder.order_number || "";
-        const announcementContent = `Seu pedido "${productName}"${orderNum ? ` (Nº ${orderNum})` : ""} teve o status alterado para **${statusLabels[newStatus]}** por **${changerName}**.`;
+        const announcementContent = `Seu pedido "${productName}"${orderNum ? ` (Nº ${orderNum})` : ""} teve o status alterado para **${statusLabels[safeNewStatus] || safeNewStatus}** por **${changerName}**.`;
 
         await supabase.from("announcements").insert({
           title: "📦 Atualização de Pedido",
