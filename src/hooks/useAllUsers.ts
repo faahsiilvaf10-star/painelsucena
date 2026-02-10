@@ -3,6 +3,8 @@ import { supabase } from "@/integrations/supabase/client";
 import { useAuth } from "./useAuth";
 import { RealtimeChannel } from "@supabase/supabase-js";
 import { useAdminUsers } from "./useAdminUsers";
+import { playSoundFile } from "@/lib/sounds";
+import { toast } from "sonner";
 
 export type UserWithStatus = {
   id: string;
@@ -175,6 +177,22 @@ export const useAllUsers = () => {
       // Trigger animation for newly online users
       if (newlyOnline.size > 0) {
         setJustOnlineIds(newlyOnline);
+
+        // Play online sound
+        playSoundFile("/sounds/online.mp3");
+
+        // Show toast for each newly online user
+        const profileMap = new Map(profiles.map(p => [p.user_id, p]));
+        newlyOnline.forEach((uid) => {
+          const profile = profileMap.get(uid);
+          if (profile) {
+            toast(`🟢 ${profile.full_name} está online!`, {
+              duration: 3000,
+              position: "bottom-right",
+            });
+          }
+        });
+
         if (justOnlineTimeoutRef.current) {
           window.clearTimeout(justOnlineTimeoutRef.current);
         }
