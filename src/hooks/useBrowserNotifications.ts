@@ -34,33 +34,28 @@ export const useBrowserNotifications = () => {
         return null;
       }
 
-      // Only show if page is not visible (in background)
-      if (document.visibilityState === "hidden") {
-        try {
-          const notification = new Notification(title, {
-            icon: "/favicon.ico",
-            badge: "/favicon.ico",
-            tag: "painel-sucena-notification",
-            ...options,
-          });
+      try {
+        const notification = new Notification(title, {
+          icon: "/favicon.ico",
+          badge: "/favicon.ico",
+          requireInteraction: false,
+          ...options,
+        });
 
-          // Focus window when notification is clicked
-          notification.onclick = () => {
-            window.focus();
-            notification.close();
-          };
+        // Focus window when notification is clicked
+        notification.onclick = () => {
+          window.focus();
+          notification.close();
+        };
 
-          // Auto close after 5 seconds
-          setTimeout(() => notification.close(), 5000);
+        // Auto close after 8 seconds
+        setTimeout(() => notification.close(), 8000);
 
-          return notification;
-        } catch (error) {
-          console.error("Error showing notification:", error);
-          return null;
-        }
+        return notification;
+      } catch (error) {
+        console.error("Error showing notification:", error);
+        return null;
       }
-
-      return null;
     },
     [isSupported, permission]
   );
