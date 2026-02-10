@@ -19,6 +19,8 @@ export interface Desvio {
   items: DesvioItem[];
   mentioned_user_id: string | null;
   mentioned_user_name: string | null;
+  mentioned_user_ids: string[];
+  mentioned_user_names: string[];
   due_date: string | null;
   status: string;
   created_by: string;
@@ -59,8 +61,8 @@ export function useCreateDesvio() {
       description: string;
       photo_urls: string[];
       items: DesvioItem[];
-      mentioned_user_id: string | null;
-      mentioned_user_name: string | null;
+      mentioned_user_ids: string[];
+      mentioned_user_names: string[];
       due_date: string | null;
     }) => {
       if (!user) throw new Error("Não autenticado");
@@ -70,8 +72,10 @@ export function useCreateDesvio() {
           description: params.description,
           photo_urls: params.photo_urls,
           items: params.items as any,
-          mentioned_user_id: params.mentioned_user_id,
-          mentioned_user_name: params.mentioned_user_name,
+          mentioned_user_ids: params.mentioned_user_ids,
+          mentioned_user_names: params.mentioned_user_names,
+          mentioned_user_id: params.mentioned_user_ids[0] || null,
+          mentioned_user_name: params.mentioned_user_names[0] || null,
           due_date: params.due_date,
           created_by: user.id,
           created_by_name: profile?.full_name || "Usuário",
@@ -131,12 +135,14 @@ export function useAddCorrectionPhoto() {
     mutationFn: async ({ desvioId, photoUrl }: { desvioId: string; photoUrl: string }) => {
       const { data: current, error: fetchError } = await supabase
         .from("desvios")
-        .select("correction_photo_urls, mentioned_user_id")
+        .select("correction_photo_urls, mentioned_user_id, mentioned_user_ids")
         .eq("id", desvioId)
         .single();
       if (fetchError) throw fetchError;
 
-      if (current.mentioned_user_id !== user?.id) {
+      const isMentioned = current.mentioned_user_id === user?.id || 
+        ((current.mentioned_user_ids as string[]) || []).includes(user?.id || "");
+      if (!isMentioned) {
         throw new Error("Apenas a pessoa mencionada pode adicionar foto de correção");
       }
 
