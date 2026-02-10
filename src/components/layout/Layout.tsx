@@ -13,6 +13,7 @@ import { useInstaCenaNotifications } from "@/hooks/useInstaCenaNotifications";
 import { useInstaCenaBellNotifications } from "@/hooks/useInstaCenaBellNotifications";
 import { GoalAchievementMonitor } from "@/components/goals/GoalAchievementMonitor";
 import { useVisualizadorContext } from "@/contexts/VisualizadorContext";
+import { useProfile } from "@/hooks/useProfile";
 import { Eye } from "lucide-react";
 
 const motivationalPhrases = [
@@ -63,6 +64,9 @@ interface LayoutProps {
 const Layout = ({ children }: LayoutProps) => {
   const dailyPhrase = useMemo(() => getDailyPhrase(), []);
   const { isVisualizador } = useVisualizadorContext();
+  const { data: profile } = useProfile();
+  
+  const isAvatarBlocked = profile && (!profile.avatar_url || profile.avatar_url.trim().length === 0);
   
   // Enable global chat push notifications
   useChatNotifications();
@@ -74,7 +78,7 @@ const Layout = ({ children }: LayoutProps) => {
       {/* Header with notification bell and theme toggle */}
       <header className="flex h-9 md:h-10 shrink-0 items-center justify-between gap-2 md:gap-4 border-b bg-background px-3 md:px-4">
         <div className="flex items-center gap-2 md:gap-4 md:hidden">
-          <SidebarTrigger className="h-8 w-8" />
+          {!isAvatarBlocked && <SidebarTrigger className="h-8 w-8" />}
           <span className="font-semibold text-sm">Painel Sucena</span>
         </div>
         <div className="hidden md:block w-24" />

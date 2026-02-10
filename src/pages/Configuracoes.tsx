@@ -7,9 +7,10 @@ import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Separator } from "@/components/ui/separator";
 import { useAuth } from "@/hooks/useAuth";
+import { useProfile } from "@/hooks/useProfile";
 import { supabase } from "@/integrations/supabase/client";
 import { toast } from "sonner";
-import { User, Mail, Lock, Camera, Upload, Eye, EyeOff, ArrowLeft, Check } from "lucide-react";
+import { User, Mail, Lock, Camera, Upload, Eye, EyeOff, ArrowLeft, Check, AlertTriangle } from "lucide-react";
 import { z } from "zod";
 import { AnnouncementHistory } from "@/components/settings/AnnouncementHistory";
 import { NeonFramePicker } from "@/components/settings/NeonFramePicker";
@@ -17,6 +18,7 @@ import { GifAvatarCreator } from "@/components/settings/GifAvatarCreator";
 import { SidebarCustomizer } from "@/components/settings/SidebarCustomizer";
 import { NeonAvatar } from "@/components/ui/NeonAvatar";
 import { SessionDurationSetting } from "@/components/settings/SessionDurationSetting";
+import { useQueryClient } from "@tanstack/react-query";
 
 const nameSchema = z.string().trim().min(2, "Nome deve ter pelo menos 2 caracteres").max(100, "Nome deve ter no máximo 100 caracteres");
 const emailSchema = z.string().trim().email("Email inválido").max(255, "Email deve ter no máximo 255 caracteres");
@@ -24,8 +26,12 @@ const passwordSchema = z.string().min(6, "Senha deve ter pelo menos 6 caracteres
 
 const Configuracoes = () => {
   const { user } = useAuth();
+  const { data: profile } = useProfile();
   const navigate = useNavigate();
   const fileInputRef = useRef<HTMLInputElement>(null);
+  const queryClient = useQueryClient();
+
+  const isAvatarBlocked = profile && (!profile.avatar_url || profile.avatar_url.trim().length === 0);
 
   // Form states
   const [fullName, setFullName] = useState("");
@@ -209,6 +215,8 @@ const Configuracoes = () => {
 
       setAvatarUrl(newAvatarUrl);
       toast.success("Foto de perfil atualizada com sucesso!");
+      // Invalidate profile to unblock user if they had no avatar
+      queryClient.invalidateQueries({ queryKey: ["profile", user.id] });
     } catch (error: any) {
       toast.error("Erro ao atualizar foto: " + error.message);
     } finally {
@@ -231,19 +239,33 @@ const Configuracoes = () => {
     <Layout>
       <div className="container mx-auto px-3 sm:px-4 md:px-6 py-4 sm:py-8 max-w-2xl">
         <div className="mb-6 sm:mb-8">
-          <Button
-            variant="ghost"
-            onClick={() => navigate(-1)}
-            className="mb-3 sm:mb-4"
-          >
-            <ArrowLeft className="w-4 h-4 mr-2" />
-            Voltar
-          </Button>
+          {!isAvatarBlocked && (
+            <Button
+              variant="ghost"
+              onClick={() => navigate(-1)}
+              className="mb-3 sm:mb-4"
+            >
+              <ArrowLeft className="w-4 h-4 mr-2" />
+              Voltar
+            </Button>
+          )}
           <h1 className="text-xl sm:text-3xl font-bold">Configurações</h1>
           <p className="text-xs sm:text-sm text-muted-foreground">
             Gerencie suas informações pessoais e configurações de conta.
           </p>
         </div>
+
+        {isAvatarBlocked && (
+          <div className="mb-6 p-4 rounded-lg border border-destructive/50 bg-destructive/10 flex items-start gap-3">
+            <AlertTriangle className="w-5 h-5 text-destructive shrink-0 mt-0.5" />
+            <div>
+              <p className="font-semibold text-destructive">Foto de perfil obrigatória</p>
+              <p className="text-sm text-muted-foreground">
+                Você precisa enviar uma foto de perfil para acessar o sistema. Envie sua foto abaixo para desbloquear o acesso.
+              </p>
+            </div>
+          </div>
+        )}
 
         <div className="space-y-6">
           {/* Profile Photo */}
