@@ -1,6 +1,6 @@
 import { useState, useCallback, useEffect, useRef } from "react";
 import { Button } from "@/components/ui/button";
-import { ArrowLeft, Loader2, RotateCcw, RefreshCw, X, Bot, Users, Brain, Plus, Maximize, Minimize } from "lucide-react";
+import { ArrowLeft, Loader2, RotateCcw, RefreshCw, X, Bot, Users, Brain, Plus, Maximize, Minimize, Trophy } from "lucide-react";
 import { motion, AnimatePresence } from "framer-motion";
 import { supabase } from "@/integrations/supabase/client";
 import { useAuth } from "@/hooks/useAuth";
@@ -309,6 +309,8 @@ export function DominoGame({ onBack }: { onBack: () => void }) {
   const [selectedTile, setSelectedTile] = useState<number | null>(null);
   const [loading, setLoading] = useState(false);
   const [refreshing, setRefreshing] = useState(false);
+  const [ranking, setRanking] = useState<{ user_id: string; user_name: string; wins: number; losses: number }[]>([]);
+  const [statsSaved, setStatsSaved] = useState(false);
   const [isFS, setIsFS] = useState(false);
   const gameContainerRef = useRef<HTMLDivElement>(null);
 
@@ -394,7 +396,63 @@ export function DominoGame({ onBack }: { onBack: () => void }) {
     setRefreshing(false);
   }, []);
 
-  useEffect(() => { if (view === "lobby") fetchGames(); }, [view, fetchGames]);
+  const fetchRanking = useCallback(async () => {
+    const { data } = await supabase.from("domino_stats").select("*").order("wins", { ascending: false }).limit(20);
+    setRanking((data as any[]) || []);
+  }, []);
+
+  const saveOnlineStats = useCallback(async (winnerId: string | null) => {
+    if (!user || !currentGame || statsSaved) return;
+    setStatsSaved(true);
+    const myId = user.id;
+    const opponentId = currentGame.player1_id === myId ? currentGame.player2_id : currentGame.player1_id;
+    const opName = currentGame.player1_id === myId ? currentGame.player2_name : currentGame.player1_name;
+    const iWon = winnerId === myId;
+
+    const { data: myStats } = await supabase.from("domino_stats").select("*").eq("user_id", myId).maybeSingle();
+    if (myStats) {
+      await supabase.from("domino_stats").update({
+        wins: (myStats as any).wins + (iWon ? 1 : 0),
+        losses: (myStats as any).losses + (iWon ? 0 : 1),
+        user_name: playerName,
+        updated_at: new Date().toISOString(),
+      }).eq("user_id", myId);
+    } else {
+      await supabase.from("domino_stats").insert({
+        user_id: myId, user_name: playerName,
+        wins: iWon ? 1 : 0, losses: iWon ? 0 : 1,
+      });
+    }
+
+    if (opponentId && opName) {
+      const { data: opStats } = await supabase.from("domino_stats").select("*").eq("user_id", opponentId).maybeSingle();
+      if (opStats) {
+        await supabase.from("domino_stats").update({
+          wins: (opStats as any).wins + (iWon ? 0 : 1),
+          losses: (opStats as any).losses + (iWon ? 1 : 0),
+          updated_at: new Date().toISOString(),
+        }).eq("user_id", opponentId);
+      } else {
+        await supabase.from("domino_stats").insert({
+          user_id: opponentId, user_name: opName,
+          wins: iWon ? 0 : 1, losses: iWon ? 1 : 0,
+        });
+      }
+    }
+    fetchRanking();
+  }, [user, currentGame, playerName, statsSaved, fetchRanking]);
+
+  useEffect(() => { if (view === "lobby") { fetchGames(); fetchRanking(); } }, [view, fetchGames, fetchRanking]);
+
+  useEffect(() => {
+    if (!isAI && currentGame?.status === "finished" && currentGame?.winner_id && !statsSaved) {
+      saveOnlineStats(currentGame.winner_id);
+    }
+  }, [currentGame?.status, currentGame?.winner_id, isAI, saveOnlineStats, statsSaved]);
+
+  useEffect(() => {
+    if (view === "lobby" || view === "waiting") setStatsSaved(false);
+  }, [view]);
 
   useEffect(() => {
     if (!currentGame?.id || aiMode) return;
@@ -669,6 +727,49 @@ export function DominoGame({ onBack }: { onBack: () => void }) {
               )}
             </div>
           </motion.div>
+
+          {/* Ranking */}
+          {ranking.length > 0 && (
+            <motion.div
+              initial={{ scale: 0.9, opacity: 0 }}
+              animate={{ scale: 1, opacity: 1 }}
+              transition={{ delay: 0.15 }}
+              className="w-full max-w-md mt-4 rounded-xl overflow-hidden shadow-2xl"
+              style={{ background: "#fdf5e0", border: "4px solid #8B6914", boxShadow: "0 0 0 2px #a07818, 0 8px 32px rgba(0,0,0,0.4)" }}
+            >
+              <div className="flex items-center gap-2 justify-center pt-4 pb-2">
+                <Trophy className="w-5 h-5" style={{ color: "#8B6914" }} />
+                <h3 className="text-lg font-black tracking-wider" style={{ color: "#5a3e0a" }}>RANKING ONLINE</h3>
+              </div>
+              <div className="px-4 pb-4 space-y-1 max-h-52 overflow-y-auto">
+                {ranking.map((r, i) => {
+                  const medal = i === 0 ? "🥇" : i === 1 ? "🥈" : i === 2 ? "🥉" : `${i + 1}º`;
+                  const isMe = r.user_id === user?.id;
+                  return (
+                    <div
+                      key={r.user_id}
+                      className="flex items-center justify-between px-3 py-2 rounded-lg"
+                      style={{
+                        background: isMe ? "#e8ddb8" : i % 2 === 0 ? "#f5efd8" : "#fdf5e0",
+                        border: isMe ? "2px solid #8B6914" : "1px solid transparent",
+                      }}
+                    >
+                      <div className="flex items-center gap-2">
+                        <span className="text-base w-8 text-center">{medal}</span>
+                        <span className="text-sm font-bold truncate max-w-[140px]" style={{ color: "#5a3e0a" }}>
+                          {r.user_name}{isMe ? " (eu)" : ""}
+                        </span>
+                      </div>
+                      <div className="flex items-center gap-3 text-xs font-bold">
+                        <span style={{ color: "#2d7a2d" }}>✅ {r.wins}</span>
+                        <span style={{ color: "#a03030" }}>❌ {r.losses}</span>
+                      </div>
+                    </div>
+                  );
+                })}
+              </div>
+            </motion.div>
+          )}
         </div>
       </div>
     );
