@@ -22,6 +22,7 @@ interface Move { from: Position; to: Position; captures: Position[]; intermediat
 interface PieceStyle {
   color: string;
   effect: string;
+  team?: string;
 }
 
 const PIECE_COLORS: { id: string; label: string; gradient: string; border: string }[] = [
@@ -33,7 +34,61 @@ const PIECE_COLORS: { id: string; label: string; gradient: string; border: strin
   { id: "gold", label: "Dourado", gradient: "radial-gradient(circle at 35% 35%, #ffd700, #b8860b)", border: "#8B6914" },
   { id: "pink", label: "Rosa", gradient: "radial-gradient(circle at 35% 35%, #ff69b4, #cc1177)", border: "#990055" },
   { id: "cyan", label: "Ciano", gradient: "radial-gradient(circle at 35% 35%, #00e5ff, #0088aa)", border: "#005566" },
+  { id: "black", label: "Preto", gradient: "radial-gradient(circle at 35% 35%, #444444, #111111)", border: "#000000" },
+  { id: "dark-navy", label: "Marinho", gradient: "radial-gradient(circle at 35% 35%, #1a2a5e, #0a1030)", border: "#050820" },
+  { id: "dark-red", label: "Vinho", gradient: "radial-gradient(circle at 35% 35%, #8b1a1a, #4a0808)", border: "#2a0000" },
+  { id: "dark-green", label: "Musgo", gradient: "radial-gradient(circle at 35% 35%, #2d5a27, #122210)", border: "#0a1508" },
+  { id: "silver", label: "Prata", gradient: "radial-gradient(circle at 35% 35%, #d0d0d0, #909090)", border: "#606060" },
+  { id: "bronze", label: "Bronze", gradient: "radial-gradient(circle at 35% 35%, #cd7f32, #8a5520)", border: "#5a3510" },
+  { id: "orange", label: "Laranja", gradient: "radial-gradient(circle at 35% 35%, #ff8c00, #cc5500)", border: "#993300" },
 ];
+
+// Brasileirão Serie A teams
+const TEAM_BADGES: { id: string; label: string; emoji: string }[] = [
+  { id: "flamengo", label: "Flamengo", emoji: "🔴⚫" },
+  { id: "palmeiras", label: "Palmeiras", emoji: "🟢" },
+  { id: "corinthians", label: "Corinthians", emoji: "⚫⚪" },
+  { id: "sao-paulo", label: "São Paulo", emoji: "🔴⚪⚫" },
+  { id: "fluminense", label: "Fluminense", emoji: "🟢🔴⚪" },
+  { id: "botafogo", label: "Botafogo", emoji: "⭐⚫" },
+  { id: "vasco", label: "Vasco", emoji: "⚫⬜" },
+  { id: "gremio", label: "Grêmio", emoji: "🔵⚫⚪" },
+  { id: "internacional", label: "Internacional", emoji: "🔴⚪" },
+  { id: "atletico-mg", label: "Atlético-MG", emoji: "⚫⚪" },
+  { id: "cruzeiro", label: "Cruzeiro", emoji: "🔵⚪" },
+  { id: "santos", label: "Santos", emoji: "⚪⚫" },
+  { id: "bahia", label: "Bahia", emoji: "🔵🔴⚪" },
+  { id: "fortaleza", label: "Fortaleza", emoji: "🔵🔴⚪" },
+  { id: "athletico-pr", label: "Athletico-PR", emoji: "🔴⚫" },
+  { id: "bragantino", label: "Bragantino", emoji: "🔴⚪" },
+  { id: "cuiaba", label: "Cuiabá", emoji: "🟢🟡" },
+  { id: "goias", label: "Goiás", emoji: "🟢⚪" },
+  { id: "coritiba", label: "Coritiba", emoji: "🟢⚪" },
+  { id: "america-mg", label: "América-MG", emoji: "🟢⚫" },
+];
+
+const TEAM_GRADIENTS: Record<string, { gradient: string; border: string; textColor: string }> = {
+  "flamengo": { gradient: "radial-gradient(circle at 35% 35%, #e61e1e, #1a1a1a)", border: "#cc0000", textColor: "#fff" },
+  "palmeiras": { gradient: "radial-gradient(circle at 35% 35%, #006437, #003a1f)", border: "#004d28", textColor: "#fff" },
+  "corinthians": { gradient: "radial-gradient(circle at 35% 35%, #3a3a3a, #111111)", border: "#000", textColor: "#fff" },
+  "sao-paulo": { gradient: "radial-gradient(circle at 35% 35%, #f0f0f0, #cc0000)", border: "#cc0000", textColor: "#000" },
+  "fluminense": { gradient: "radial-gradient(circle at 35% 35%, #7b1f3b, #006633)", border: "#7b1f3b", textColor: "#fff" },
+  "botafogo": { gradient: "radial-gradient(circle at 35% 35%, #2a2a2a, #000000)", border: "#333", textColor: "#fff" },
+  "vasco": { gradient: "radial-gradient(circle at 35% 35%, #ffffff, #1a1a1a)", border: "#000", textColor: "#000" },
+  "gremio": { gradient: "radial-gradient(circle at 35% 35%, #0060aa, #001e3c)", border: "#0060aa", textColor: "#fff" },
+  "internacional": { gradient: "radial-gradient(circle at 35% 35%, #e31e24, #8b0000)", border: "#cc0000", textColor: "#fff" },
+  "atletico-mg": { gradient: "radial-gradient(circle at 35% 35%, #3a3a3a, #000000)", border: "#222", textColor: "#fff" },
+  "cruzeiro": { gradient: "radial-gradient(circle at 35% 35%, #003da5, #001a4a)", border: "#003da5", textColor: "#fff" },
+  "santos": { gradient: "radial-gradient(circle at 35% 35%, #f5f5f5, #aaaaaa)", border: "#888", textColor: "#000" },
+  "bahia": { gradient: "radial-gradient(circle at 35% 35%, #0056a6, #cc0000)", border: "#0056a6", textColor: "#fff" },
+  "fortaleza": { gradient: "radial-gradient(circle at 35% 35%, #0056a6, #cc1111)", border: "#0056a6", textColor: "#fff" },
+  "athletico-pr": { gradient: "radial-gradient(circle at 35% 35%, #cc0000, #1a1a1a)", border: "#aa0000", textColor: "#fff" },
+  "bragantino": { gradient: "radial-gradient(circle at 35% 35%, #e31e24, #ffffff)", border: "#cc0000", textColor: "#fff" },
+  "cuiaba": { gradient: "radial-gradient(circle at 35% 35%, #007a33, #ffd700)", border: "#007a33", textColor: "#fff" },
+  "goias": { gradient: "radial-gradient(circle at 35% 35%, #006633, #ffffff)", border: "#006633", textColor: "#fff" },
+  "coritiba": { gradient: "radial-gradient(circle at 35% 35%, #006633, #eeeeee)", border: "#006633", textColor: "#fff" },
+  "america-mg": { gradient: "radial-gradient(circle at 35% 35%, #006633, #1a1a1a)", border: "#006633", textColor: "#fff" },
+};
 
 const PIECE_EFFECTS: { id: string; label: string; icon: React.ReactNode; cssClass: string }[] = [
   { id: "none", label: "Nenhum", icon: <Star className="w-4 h-4" />, cssClass: "" },
@@ -266,10 +321,15 @@ const BLACK_PIECE_BG = "radial-gradient(circle at 35% 35%, #5a3a1a, #2a1a0a)";
 const BLACK_PIECE_BORDER = "#1a0a00";
 
 function getPieceVisual(color: PieceColor, style: PieceStyle) {
-  if (color === "black") return { bg: BLACK_PIECE_BG, border: BLACK_PIECE_BORDER };
+  if (color === "black") return { bg: BLACK_PIECE_BG, border: BLACK_PIECE_BORDER, teamLabel: "" };
+  // Team mode
+  if (style.team) {
+    const t = TEAM_GRADIENTS[style.team];
+    if (t) return { bg: t.gradient, border: t.border, teamLabel: TEAM_BADGES.find(b => b.id === style.team)?.label?.[0]?.toUpperCase() || "" };
+  }
   const found = PIECE_COLORS.find(c => c.id === style.color);
-  if (found) return { bg: found.gradient, border: found.border };
-  return { bg: PIECE_COLORS[0].gradient, border: PIECE_COLORS[0].border };
+  if (found) return { bg: found.gradient, border: found.border, teamLabel: "" };
+  return { bg: PIECE_COLORS[0].gradient, border: PIECE_COLORS[0].border, teamLabel: "" };
 }
 
 // ── Main Component ──
@@ -621,7 +681,7 @@ export function CheckersGame({ onBack }: { onBack: () => void }) {
   // ── Render Piece ──
   const renderPiece = (cell: Piece, isMovable: boolean, isSelected: boolean, size: "board" | "indicator") => {
     const isMyPiece = gameMode === "ai" ? cell.color === "white" : cell.color === myOnlineColor;
-    const visual = isMyPiece ? getMyPieceVisual() : { bg: BLACK_PIECE_BG, border: BLACK_PIECE_BORDER };
+    const visual = isMyPiece ? getMyPieceVisual() : { bg: BLACK_PIECE_BG, border: BLACK_PIECE_BORDER, teamLabel: "" };
     const applyEffect = isMyPiece ? effectClass : "";
     return (
       <div
@@ -635,23 +695,29 @@ export function CheckersGame({ onBack }: { onBack: () => void }) {
             ? `0 0 12px 3px rgba(100,180,50,0.6), 0 4px 8px rgba(0,0,0,0.3)`
             : `0 3px 6px rgba(0,0,0,0.3), inset 0 1px 2px rgba(255,255,255,${cell.color === "white" || isMyPiece ? "0.6" : "0.15"})`,
           cursor: isMovable ? "pointer" : "default",
-          color: visual.border, // for currentColor in CSS effects
+          color: visual.border,
         }}
       >
-        {size === "board" && (
-          <div className="absolute rounded-full" style={{
+        {size === "board" && !visual.teamLabel && (
+          <div className="absolute rounded-full pointer-events-none" style={{
             width: "65%", height: "65%",
             border: `1.5px solid ${cell.color === "white" || isMyPiece ? "rgba(180,150,100,0.5)" : "rgba(255,255,255,0.15)"}`,
           }} />
         )}
+        {size === "board" && visual.teamLabel && (
+          <span className="text-[clamp(8px,2vw,14px)] font-black select-none pointer-events-none" style={{ color: "#fff", textShadow: "0 1px 3px rgba(0,0,0,0.6)" }}>
+            {visual.teamLabel}
+          </span>
+        )}
         {cell.type === "king" && size === "board" && (
-          <span className="text-[clamp(10px,2.5vw,18px)] select-none" style={{ filter: cell.color === "white" || isMyPiece ? "none" : "brightness(2)" }}>👑</span>
+          <span className="text-[clamp(10px,2.5vw,18px)] select-none pointer-events-none" style={{ filter: cell.color === "white" || isMyPiece ? "none" : "brightness(2)" }}>👑</span>
         )}
       </div>
     );
   };
 
   // ── CUSTOMIZER PANEL ──
+  const [customizerTab, setCustomizerTab] = useState<"cores" | "times">("cores");
   const customizerPanel = (
     <AnimatePresence>
       {showCustomizer && (
@@ -665,28 +731,79 @@ export function CheckersGame({ onBack }: { onBack: () => void }) {
             <h3 className="text-sm font-black" style={{ color: "#5a3e0a" }}>Personalizar Peças</h3>
           </div>
           <div className="px-4 py-3 space-y-3">
-            <div>
-              <p className="text-xs font-bold mb-2" style={{ color: "#5a3e0a" }}>Cor da Peça</p>
-              <div className="flex flex-wrap gap-2">
-                {PIECE_COLORS.map(c => (
-                  <button key={c.id} onClick={() => setPieceStyle(p => ({ ...p, color: c.id }))}
-                    className="w-9 h-9 rounded-full transition-all flex-shrink-0"
-                    style={{
-                      background: c.gradient, border: pieceStyle.color === c.id ? `3px solid #8B6914` : `2px solid ${c.border}`,
-                      boxShadow: pieceStyle.color === c.id ? "0 0 8px rgba(139,105,20,0.5)" : "0 2px 4px rgba(0,0,0,0.2)",
-                      transform: pieceStyle.color === c.id ? "scale(1.15)" : "scale(1)",
-                    }}
-                    title={c.label}
-                  />
-                ))}
-              </div>
+            {/* Tabs: Cores / Times */}
+            <div className="flex gap-2">
+              <button onClick={() => setCustomizerTab("cores")}
+                className="flex-1 py-1.5 rounded-lg text-xs font-bold transition-all"
+                style={{ background: customizerTab === "cores" ? "#8B6914" : "#f0e8d0", color: customizerTab === "cores" ? "#fff" : "#5a3e0a", border: customizerTab === "cores" ? "2px solid #a07818" : "1px solid #d4c8a0" }}>
+                🎨 Cores
+              </button>
+              <button onClick={() => setCustomizerTab("times")}
+                className="flex-1 py-1.5 rounded-lg text-xs font-bold transition-all"
+                style={{ background: customizerTab === "times" ? "#8B6914" : "#f0e8d0", color: customizerTab === "times" ? "#fff" : "#5a3e0a", border: customizerTab === "times" ? "2px solid #a07818" : "1px solid #d4c8a0" }}>
+                ⚽ Times
+              </button>
             </div>
+
+            {customizerTab === "cores" && (
+              <div>
+                <p className="text-xs font-bold mb-2" style={{ color: "#5a3e0a" }}>Cor da Peça</p>
+                <div className="flex flex-wrap gap-2">
+                  {PIECE_COLORS.map(c => (
+                    <button key={c.id}
+                      onClick={(e) => { e.stopPropagation(); setPieceStyle(p => ({ ...p, color: c.id, team: undefined })); }}
+                      className="w-9 h-9 rounded-full transition-all flex-shrink-0 relative z-10"
+                      style={{
+                        background: c.gradient,
+                        border: pieceStyle.color === c.id && !pieceStyle.team ? `3px solid #8B6914` : `2px solid ${c.border}`,
+                        boxShadow: pieceStyle.color === c.id && !pieceStyle.team ? "0 0 8px rgba(139,105,20,0.5)" : "0 2px 4px rgba(0,0,0,0.2)",
+                        transform: pieceStyle.color === c.id && !pieceStyle.team ? "scale(1.15)" : "scale(1)",
+                      }}
+                      title={c.label}
+                    />
+                  ))}
+                </div>
+              </div>
+            )}
+
+            {customizerTab === "times" && (
+              <div>
+                <p className="text-xs font-bold mb-2" style={{ color: "#5a3e0a" }}>Escudo do Time</p>
+                <div className="grid grid-cols-4 gap-1.5 max-h-52 overflow-y-auto pr-1">
+                  {TEAM_BADGES.map(t => {
+                    const tg = TEAM_GRADIENTS[t.id];
+                    return (
+                      <button key={t.id}
+                        onClick={(e) => { e.stopPropagation(); setPieceStyle(p => ({ ...p, team: t.id })); }}
+                        className="flex flex-col items-center gap-0.5 p-1.5 rounded-lg transition-all"
+                        style={{
+                          background: pieceStyle.team === t.id ? "#8B6914" : "#f0e8d0",
+                          border: pieceStyle.team === t.id ? "2px solid #a07818" : "1px solid #d4c8a0",
+                          transform: pieceStyle.team === t.id ? "scale(1.05)" : "scale(1)",
+                        }}
+                      >
+                        <div className="w-7 h-7 rounded-full flex items-center justify-center"
+                          style={{ background: tg?.gradient, border: `2px solid ${tg?.border}` }}>
+                          <span className="text-[8px] font-black" style={{ color: tg?.textColor, textShadow: "0 1px 2px rgba(0,0,0,0.4)" }}>
+                            {t.label.substring(0, 3).toUpperCase()}
+                          </span>
+                        </div>
+                        <span className="text-[9px] font-bold truncate w-full text-center" style={{ color: pieceStyle.team === t.id ? "#fff" : "#5a3e0a" }}>
+                          {t.label}
+                        </span>
+                      </button>
+                    );
+                  })}
+                </div>
+              </div>
+            )}
+
             <div>
               <p className="text-xs font-bold mb-2" style={{ color: "#5a3e0a" }}>Efeito Visual</p>
               <div className="flex flex-wrap gap-1.5">
                 {PIECE_EFFECTS.map(e => (
-                  <button key={e.id} onClick={() => setPieceStyle(p => ({ ...p, effect: e.id }))}
-                    className="flex items-center gap-1 px-2.5 py-1.5 rounded-lg text-[11px] font-bold transition-all"
+                  <button key={e.id} onClick={(ev) => { ev.stopPropagation(); setPieceStyle(p => ({ ...p, effect: e.id })); }}
+                    className="flex items-center gap-1 px-2.5 py-1.5 rounded-lg text-[11px] font-bold transition-all relative z-10"
                     style={{
                       background: pieceStyle.effect === e.id ? "#8B6914" : "#f0e8d0",
                       color: pieceStyle.effect === e.id ? "#fff" : "#5a3e0a",
@@ -701,7 +818,7 @@ export function CheckersGame({ onBack }: { onBack: () => void }) {
             {/* Preview */}
             <div className="flex items-center gap-3 p-3 rounded-lg" style={{ background: "#f0e8d0" }}>
               <span className="text-xs font-bold" style={{ color: "#8a7040" }}>Preview:</span>
-              <div className={`w-10 h-10 rounded-full flex items-center justify-center ${effectClass}`}
+              <div className={`w-10 h-10 rounded-full flex items-center justify-center relative ${effectClass}`}
                 style={{
                   background: getPieceVisual("white", pieceStyle).bg,
                   border: `2.5px solid ${getPieceVisual("white", pieceStyle).border}`,
@@ -709,7 +826,13 @@ export function CheckersGame({ onBack }: { onBack: () => void }) {
                   color: getPieceVisual("white", pieceStyle).border,
                 }}
               >
-                <div className="absolute rounded-full" style={{ width: "65%", height: "65%", border: "1.5px solid rgba(180,150,100,0.5)" }} />
+                {getPieceVisual("white", pieceStyle).teamLabel ? (
+                  <span className="text-[10px] font-black select-none pointer-events-none" style={{ color: "#fff", textShadow: "0 1px 3px rgba(0,0,0,0.6)" }}>
+                    {getPieceVisual("white", pieceStyle).teamLabel}
+                  </span>
+                ) : (
+                  <div className="absolute rounded-full pointer-events-none" style={{ width: "65%", height: "65%", border: "1.5px solid rgba(180,150,100,0.5)" }} />
+                )}
               </div>
             </div>
           </div>
