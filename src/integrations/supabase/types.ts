@@ -2269,6 +2269,9 @@ export type Database = {
         | "entregue"
         | "cancelado"
         | "pedido_realizado"
+        | "em_analise"
+        | "comprado"
+        | "recusado"
       quantity_unit:
         | "unidade"
         | "centimetros"
@@ -2460,6 +2463,9 @@ export const Constants = {
         "entregue",
         "cancelado",
         "pedido_realizado",
+        "em_analise",
+        "comprado",
+        "recusado",
       ],
       quantity_unit: [
         "unidade",

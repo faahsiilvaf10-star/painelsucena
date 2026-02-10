@@ -13,11 +13,14 @@ interface OrderCardProps {
 
 const STATUS_CONFIG: Record<OrderStatus, { label: string; variant: "default" | "secondary" | "destructive" | "outline" }> = {
   solicitado: { label: "Solicitado", variant: "outline" },
+  em_analise: { label: "Em Análise", variant: "outline" },
   aprovado: { label: "Aprovado", variant: "secondary" },
+  comprado: { label: "Comprado", variant: "default" },
   a_caminho: { label: "A Caminho", variant: "default" },
   entregue: { label: "Entregue", variant: "secondary" },
   pedido_realizado: { label: "Pedido Realizado", variant: "default" },
   cancelado: { label: "Cancelado", variant: "destructive" },
+  recusado: { label: "Recusado", variant: "destructive" },
 };
 
 const UNIT_LABELS: Record<string, string> = {

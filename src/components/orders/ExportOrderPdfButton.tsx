@@ -20,11 +20,14 @@ interface ExportOrderPdfButtonProps {
 
 const STATUS_CONFIG: Record<OrderStatus, { label: string; color: string }> = {
   solicitado: { label: "Solicitado", color: "#EAB308" },
+  em_analise: { label: "Em Análise", color: "#F97316" },
   aprovado: { label: "Aprovado", color: "#3B82F6" },
+  comprado: { label: "Comprado", color: "#10B981" },
   a_caminho: { label: "A Caminho", color: "#8B5CF6" },
   entregue: { label: "Entregue", color: "#22C55E" },
   pedido_realizado: { label: "Pedido Realizado", color: "#06B6D4" },
   cancelado: { label: "Cancelado", color: "#EF4444" },
+  recusado: { label: "Recusado", color: "#DC2626" },
 };
 
 const UNIT_LABELS: Record<string, string> = {

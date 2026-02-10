@@ -42,11 +42,14 @@ interface OrderDetailsDialogProps {
 
 const STATUS_CONFIG: Record<OrderStatus, { label: string; color: string }> = {
   solicitado: { label: "Solicitado", color: "bg-yellow-500" },
+  em_analise: { label: "Em Análise", color: "bg-orange-500" },
   aprovado: { label: "Aprovado", color: "bg-blue-500" },
+  comprado: { label: "Comprado", color: "bg-emerald-500" },
   a_caminho: { label: "A Caminho", color: "bg-purple-500" },
   entregue: { label: "Entregue", color: "bg-green-500" },
   pedido_realizado: { label: "Pedido Realizado", color: "bg-cyan-500" },
   cancelado: { label: "Cancelado", color: "bg-red-500" },
+  recusado: { label: "Recusado", color: "bg-red-700" },
 };
 
 const UNIT_LABELS: Record<string, string> = {
@@ -582,11 +585,14 @@ export function OrderDetailsDialog({ order, open, onOpenChange }: OrderDetailsDi
                       </SelectTrigger>
                       <SelectContent>
                         <SelectItem value="solicitado">Solicitado</SelectItem>
+                        <SelectItem value="em_analise">Em Análise</SelectItem>
                         <SelectItem value="aprovado">Aprovado</SelectItem>
+                        <SelectItem value="comprado">Comprado</SelectItem>
                         <SelectItem value="a_caminho">A Caminho</SelectItem>
                         <SelectItem value="entregue">Entregue</SelectItem>
                         <SelectItem value="pedido_realizado">Pedido Realizado</SelectItem>
                         <SelectItem value="cancelado">Cancelado</SelectItem>
+                        <SelectItem value="recusado">Recusado</SelectItem>
                       </SelectContent>
                     </Select>
                   </div>
