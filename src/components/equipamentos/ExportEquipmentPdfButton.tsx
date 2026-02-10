@@ -501,7 +501,24 @@ export function ExportEquipmentPdfButton({
         }
       }
 
-      // Determine driver name with fallback logic:
+      // Fallback: if final values are missing, fetch next shift's initial values
+      let fallbackFinalHorimeter: number | null = null;
+      let fallbackFinalKm: number | null = null;
+      if (!shiftRecord?.final_horimeter && !shiftRecord?.final_km) {
+        const { data: nextShift } = await supabase
+          .from("daily_shift_records")
+          .select("initial_horimeter, initial_km")
+          .eq("equipment_id", equipment.id)
+          .gt("shift_date", today)
+          .order("shift_date", { ascending: true })
+          .limit(1)
+          .maybeSingle();
+        if (nextShift) {
+          fallbackFinalHorimeter = nextShift.initial_horimeter ? Number(nextShift.initial_horimeter) : null;
+          fallbackFinalKm = nextShift.initial_km ? Number(nextShift.initial_km) : null;
+        }
+      }
+
       // 1. Use equipment.driver if available
       // 2. Else use shiftRecord.driver_name if available
       // 3. Else search for changed_by in status_history
@@ -617,9 +634,9 @@ export function ExportEquipmentPdfButton({
         initialFuelLevel: shiftRecord?.initial_fuel_level ?? fallbackInitialFuel,
         finalFuelLevel: shiftRecord?.final_fuel_level ?? null,
         initialKm: shiftRecord?.initial_km ?? fallbackInitialKm,
-        finalKm: shiftRecord?.final_km ?? null,
+        finalKm: shiftRecord?.final_km ?? fallbackFinalKm,
         initialHorimeter: shiftRecord?.initial_horimeter ?? fallbackInitialHorimeter,
-        finalHorimeter: shiftRecord?.final_horimeter ?? null,
+        finalHorimeter: shiftRecord?.final_horimeter ?? fallbackFinalHorimeter,
       });
 
       printWindow.document.write(htmlContent);
