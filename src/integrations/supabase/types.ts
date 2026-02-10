@@ -611,6 +611,51 @@ export type Database = {
         }
         Relationships: []
       }
+      desvios: {
+        Row: {
+          correction_photo_urls: string[] | null
+          created_at: string
+          created_by: string
+          created_by_name: string
+          description: string
+          due_date: string | null
+          id: string
+          mentioned_user_id: string | null
+          mentioned_user_name: string | null
+          photo_urls: string[] | null
+          status: string
+          updated_at: string
+        }
+        Insert: {
+          correction_photo_urls?: string[] | null
+          created_at?: string
+          created_by: string
+          created_by_name: string
+          description: string
+          due_date?: string | null
+          id?: string
+          mentioned_user_id?: string | null
+          mentioned_user_name?: string | null
+          photo_urls?: string[] | null
+          status?: string
+          updated_at?: string
+        }
+        Update: {
+          correction_photo_urls?: string[] | null
+          created_at?: string
+          created_by?: string
+          created_by_name?: string
+          description?: string
+          due_date?: string | null
+          id?: string
+          mentioned_user_id?: string | null
+          mentioned_user_name?: string | null
+          photo_urls?: string[] | null
+          status?: string
+          updated_at?: string
+        }
+        Relationships: []
+      }
       document_history: {
         Row: {
           change_type: string
