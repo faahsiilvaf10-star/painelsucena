@@ -2,7 +2,7 @@ import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import { supabase } from "@/integrations/supabase/client";
 import { useAuth } from "@/hooks/useAuth";
 
-export type OrderStatus = 'solicitado' | 'aprovado' | 'a_caminho' | 'entregue' | 'pedido_realizado' | 'cancelado';
+export type OrderStatus = 'solicitado' | 'aprovado' | 'a_caminho' | 'entregue' | 'pedido_realizado' | 'cancelado' | 'em_analise' | 'comprado' | 'recusado';
 export type QuantityUnit = 'unidade' | 'centimetros' | 'metros' | 'quilos' | 'litros' | 'pacotes' | 'caixas' | 'pecas' | 'par' | 'rolo' | 'saco' | 'galao' | 'balde' | 'metro_quadrado' | 'metro_cubico';
 
 export interface OrderItem {
@@ -354,11 +354,14 @@ export const useUpdateOrderStatus = () => {
       if (currentOrder?.requester_id && currentOrder.requester_id !== user.id) {
         const statusLabels: Record<OrderStatus, string> = {
           solicitado: "Solicitado",
+          em_analise: "Em Análise 🔍",
           aprovado: "Aprovado ✅",
+          comprado: "Comprado 🛒",
           a_caminho: "A Caminho 🚚",
           entregue: "Entregue 📬",
           pedido_realizado: "Pedido Realizado 📦",
           cancelado: "Cancelado ❌",
+          recusado: "Recusado 🚫",
         };
 
         await supabase.from("notifications").insert({
