@@ -966,8 +966,8 @@ export function DominoGame({ onBack }: { onBack: () => void }) {
         </AnimatePresence>
 
         {/* My hand */}
-        <div className="relative z-10 px-3 pb-2 pt-1 overflow-x-auto">
-          <div className="flex gap-2 justify-center min-w-min">
+        <div className="relative z-10 px-3 pb-2 pt-1 overflow-x-auto scrollbar-hide" style={{ scrollbarWidth: 'none', msOverflowStyle: 'none' }}>
+          <div className="flex gap-2 min-w-min mx-auto" style={{ WebkitOverflowScrolling: 'touch' }}>
             {myHand.map((tile, i) => {
               const match = canPlay(tile, gs.boardLeftEnd, gs.boardRightEnd);
               return (
