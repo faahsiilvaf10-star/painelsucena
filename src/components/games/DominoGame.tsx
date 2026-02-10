@@ -170,9 +170,9 @@ function DominoTileVisual({ tile, size = "md", onClick, disabled, highlight, ver
   faceDown?: boolean;
 }) {
   const dims = {
-    sm: { w: 40, h: 20, face: 18 },
-    md: { w: 60, h: 30, face: 28 },
-    lg: { w: 76, h: 38, face: 35 },
+    sm: { w: 56, h: 28, face: 25 },
+    md: { w: 72, h: 36, face: 33 },
+    lg: { w: 90, h: 45, face: 42 },
   }[size];
 
   if (faceDown) {
