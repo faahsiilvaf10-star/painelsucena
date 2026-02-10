@@ -1,7 +1,7 @@
-import { useState, useRef, useMemo } from "react";
+import { useState, useRef, useMemo, useCallback } from "react";
 import { format } from "date-fns";
 import { ptBR } from "date-fns/locale";
-import { Plus, Lock, Unlock, Trash2, CheckCircle2, Circle, ClipboardCheck, Camera, ImageIcon, X, CalendarIcon, Filter, History } from "lucide-react";
+import { Plus, Lock, Unlock, Trash2, CheckCircle2, Circle, ClipboardCheck, Camera, X, CalendarIcon, Filter, History, FileDown, MessageSquare } from "lucide-react";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -11,8 +11,10 @@ import { Separator } from "@/components/ui/separator";
 import { Calendar } from "@/components/ui/calendar";
 import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover";
 import { Dialog, DialogContent } from "@/components/ui/dialog";
+import { Textarea } from "@/components/ui/textarea";
 import { cn } from "@/lib/utils";
 import { toast } from "sonner";
+import pptxgen from "pptxgenjs";
 import { useAuth } from "@/hooks/useAuth";
 import { useIsAdmin } from "@/hooks/useUserRole";
 import {
@@ -23,6 +25,7 @@ import {
   useToggleTaskCompletion,
   useDeleteSiteInspection,
   useUpdateTaskPhoto,
+  useUpdateTaskObservation,
   uploadInspectionPhoto,
   type SiteInspectionTask,
 } from "@/hooks/useSiteInspections";
@@ -110,7 +113,10 @@ function TaskRow({
   onToggle: () => void;
 }) {
   const updatePhoto = useUpdateTaskPhoto();
+  const updateObservation = useUpdateTaskObservation();
   const [uploading, setUploading] = useState<"before" | "after" | null>(null);
+  const [showObsInput, setShowObsInput] = useState(false);
+  const [obsValue, setObsValue] = useState(task.observation || "");
 
   const handleUpload = async (file: File, type: "before" | "after") => {
     setUploading(type);
@@ -126,56 +132,250 @@ function TaskRow({
     }
   };
 
+  const handleSaveObservation = () => {
+    const trimmed = obsValue.trim();
+    updateObservation.mutate(
+      { id: task.id, observation: trimmed || null },
+      {
+        onSuccess: () => {
+          setShowObsInput(false);
+          toast.success("Observação salva!");
+        },
+      }
+    );
+  };
+
   return (
     <div
       className={cn(
-        "flex items-start gap-3 p-3 rounded-xl transition-colors border border-transparent",
+        "flex flex-col gap-2 p-3 rounded-xl transition-colors border border-transparent",
         task.is_completed ? "bg-primary/5 border-primary/10" : "hover:bg-muted/30"
       )}
     >
-      {/* Checkbox area */}
-      <button
-        onClick={onToggle}
-        disabled={!isLocked}
-        className={cn(
-          "mt-0.5 flex-shrink-0",
-          !isLocked && "opacity-40 cursor-not-allowed"
-        )}
-      >
-        {task.is_completed ? (
-          <CheckCircle2 className="h-5 w-5 text-primary" />
-        ) : (
-          <Circle className="h-5 w-5 text-muted-foreground" />
-        )}
-      </button>
-
-      {/* Description + photos */}
-      <div className="flex-1 min-w-0 space-y-2">
-        <span className={cn("text-sm block", task.is_completed && "line-through text-muted-foreground")}>
-          {task.description}
-        </span>
-
-        {/* Photo row */}
-        <div className="flex items-center gap-2">
-          <PhotoThumbnail
-            url={task.before_photo_url}
-            type="before"
-            onUpload={(f) => handleUpload(f, "before")}
-            disabled={!!uploading}
-          />
-          <PhotoThumbnail
-            url={task.after_photo_url}
-            type="after"
-            onUpload={(f) => handleUpload(f, "after")}
-            disabled={!!uploading}
-          />
-          {uploading && (
-            <span className="text-xs text-muted-foreground animate-pulse">Enviando...</span>
+      <div className="flex items-start gap-3">
+        {/* Checkbox area */}
+        <button
+          onClick={onToggle}
+          disabled={!isLocked}
+          className={cn(
+            "mt-0.5 flex-shrink-0",
+            !isLocked && "opacity-40 cursor-not-allowed"
           )}
+        >
+          {task.is_completed ? (
+            <CheckCircle2 className="h-5 w-5 text-primary" />
+          ) : (
+            <Circle className="h-5 w-5 text-muted-foreground" />
+          )}
+        </button>
+
+        {/* Description + photos */}
+        <div className="flex-1 min-w-0 space-y-2">
+          <div className="flex items-center gap-2">
+            <span className={cn("text-sm block flex-1", task.is_completed && "line-through text-muted-foreground")}>
+              {task.description}
+            </span>
+            <Button
+              variant="ghost"
+              size="sm"
+              className="h-7 px-1.5 text-muted-foreground hover:text-foreground"
+              onClick={() => setShowObsInput(!showObsInput)}
+            >
+              <MessageSquare className="h-3.5 w-3.5" />
+            </Button>
+          </div>
+
+          {/* Observation display (highlighted) */}
+          {task.observation && !showObsInput && (
+            <button
+              onClick={() => setShowObsInput(true)}
+              className="text-left w-full"
+            >
+              <span
+                className="text-sm px-1 py-0.5 rounded"
+                style={{
+                  background: "linear-gradient(to bottom, transparent 40%, rgba(250, 204, 21, 0.45) 40%)",
+                }}
+              >
+                {task.observation}
+              </span>
+            </button>
+          )}
+
+          {/* Observation input */}
+          {showObsInput && (
+            <div className="space-y-1.5">
+              <Textarea
+                placeholder="Observação..."
+                value={obsValue}
+                onChange={(e) => setObsValue(e.target.value)}
+                className="min-h-[60px] text-sm"
+                rows={2}
+              />
+              <div className="flex gap-1.5">
+                <Button size="sm" className="h-7 text-xs" onClick={handleSaveObservation} disabled={updateObservation.isPending}>
+                  Salvar
+                </Button>
+                <Button size="sm" variant="ghost" className="h-7 text-xs" onClick={() => { setShowObsInput(false); setObsValue(task.observation || ""); }}>
+                  Cancelar
+                </Button>
+              </div>
+            </div>
+          )}
+
+          {/* Photo row */}
+          <div className="flex items-center gap-2">
+            <PhotoThumbnail
+              url={task.before_photo_url}
+              type="before"
+              onUpload={(f) => handleUpload(f, "before")}
+              disabled={!!uploading}
+            />
+            <PhotoThumbnail
+              url={task.after_photo_url}
+              type="after"
+              onUpload={(f) => handleUpload(f, "after")}
+              disabled={!!uploading}
+            />
+            {uploading && (
+              <span className="text-xs text-muted-foreground animate-pulse">Enviando...</span>
+            )}
+          </div>
         </div>
       </div>
     </div>
   );
+}
+
+async function generateInspectionPptx(inspectionDate: string, tasks: SiteInspectionTask[]) {
+  const pptx = new pptxgen();
+  pptx.layout = "LAYOUT_WIDE";
+  pptx.author = "Sucena";
+  pptx.title = `Inspeção de Canteiro - ${inspectionDate}`;
+
+  // Title slide
+  const titleSlide = pptx.addSlide();
+  titleSlide.background = { color: "0F172A" };
+  titleSlide.addText("Inspeção de Canteiro", {
+    x: 0.5, y: 1.5, w: "90%", h: 1.2,
+    fontSize: 36, bold: true, color: "FFFFFF", align: "center",
+  });
+  titleSlide.addText(inspectionDate, {
+    x: 0.5, y: 2.8, w: "90%", h: 0.6,
+    fontSize: 20, color: "94A3B8", align: "center",
+  });
+  titleSlide.addText(`${tasks.length} pontos de melhoria • 100% concluído`, {
+    x: 0.5, y: 3.6, w: "90%", h: 0.5,
+    fontSize: 14, color: "22C55E", align: "center",
+  });
+
+  // Summary slide
+  const summarySlide = pptx.addSlide();
+  summarySlide.background = { color: "FFFFFF" };
+  summarySlide.addText("Resumo da Inspeção", {
+    x: 0.5, y: 0.3, w: "90%", h: 0.7,
+    fontSize: 24, bold: true, color: "0F172A",
+  });
+
+  const tableRows: pptxgen.TableRow[] = [
+    [
+      { text: "#", options: { bold: true, color: "FFFFFF", fill: { color: "0F172A" }, fontSize: 10, align: "center" } },
+      { text: "Ponto de Melhoria", options: { bold: true, color: "FFFFFF", fill: { color: "0F172A" }, fontSize: 10 } },
+      { text: "Observação", options: { bold: true, color: "FFFFFF", fill: { color: "0F172A" }, fontSize: 10 } },
+      { text: "Status", options: { bold: true, color: "FFFFFF", fill: { color: "0F172A" }, fontSize: 10, align: "center" } },
+    ],
+  ];
+
+  tasks.forEach((task, idx) => {
+    tableRows.push([
+      { text: String(idx + 1), options: { fontSize: 9, align: "center" } },
+      { text: task.description, options: { fontSize: 9 } },
+      { text: task.observation || "-", options: { fontSize: 9, color: task.observation ? "92400E" : "94A3B8" } },
+      { text: task.is_completed ? "✅ Concluído" : "⏳ Pendente", options: { fontSize: 9, align: "center", color: task.is_completed ? "166534" : "92400E" } },
+    ]);
+  });
+
+  summarySlide.addTable(tableRows, {
+    x: 0.4, y: 1.2, w: 12.4,
+    border: { type: "solid", pt: 0.5, color: "E2E8F0" },
+    rowH: 0.4,
+    colW: [0.5, 4.5, 5, 2.4],
+  });
+
+  // Detail slides for each task with before/after photos
+  for (const [idx, task] of tasks.entries()) {
+    if (task.before_photo_url || task.after_photo_url) {
+      const slide = pptx.addSlide();
+      slide.background = { color: "FFFFFF" };
+
+      slide.addText(`${idx + 1}. ${task.description}`, {
+        x: 0.5, y: 0.3, w: "90%", h: 0.6,
+        fontSize: 18, bold: true, color: "0F172A",
+      });
+
+      if (task.observation) {
+        slide.addText(task.observation, {
+          x: 0.5, y: 0.9, w: "90%", h: 0.4,
+          fontSize: 12, color: "92400E", italic: true,
+          highlight: "FFFF00",
+        });
+      }
+
+      const photoY = task.observation ? 1.5 : 1.1;
+
+      if (task.before_photo_url) {
+        slide.addText("❌ Antes", {
+          x: 0.5, y: photoY, w: 5.5, h: 0.4,
+          fontSize: 14, bold: true, color: "DC2626", align: "center",
+        });
+        try {
+          slide.addImage({
+            path: task.before_photo_url,
+            x: 0.5, y: photoY + 0.5, w: 5.5, h: 4,
+            sizing: { type: "contain", w: 5.5, h: 4 },
+          });
+        } catch {
+          slide.addText("(foto indisponível)", {
+            x: 0.5, y: photoY + 2, w: 5.5, h: 0.5,
+            fontSize: 10, color: "94A3B8", align: "center",
+          });
+        }
+      }
+
+      if (task.after_photo_url) {
+        slide.addText("✅ Depois", {
+          x: 7, y: photoY, w: 5.5, h: 0.4,
+          fontSize: 14, bold: true, color: "16A34A", align: "center",
+        });
+        try {
+          slide.addImage({
+            path: task.after_photo_url,
+            x: 7, y: photoY + 0.5, w: 5.5, h: 4,
+            sizing: { type: "contain", w: 5.5, h: 4 },
+          });
+        } catch {
+          slide.addText("(foto indisponível)", {
+            x: 7, y: photoY + 2, w: 5.5, h: 0.5,
+            fontSize: 10, color: "94A3B8", align: "center",
+          });
+        }
+      }
+    }
+  }
+
+  // Closing slide
+  const closingSlide = pptx.addSlide();
+  closingSlide.background = { color: "0F172A" };
+  closingSlide.addText("Inspeção Concluída ✅", {
+    x: 0.5, y: 2, w: "90%", h: 1,
+    fontSize: 32, bold: true, color: "22C55E", align: "center",
+  });
+  closingSlide.addText(`Todos os ${tasks.length} pontos foram resolvidos.`, {
+    x: 0.5, y: 3.2, w: "90%", h: 0.6,
+    fontSize: 16, color: "94A3B8", align: "center",
+  });
+
+  await pptx.writeFile({ fileName: `Inspecao_Canteiro_${inspectionDate.replace(/\//g, "-")}.pptx` });
 }
 
 function InspectionDetail({ inspection }: { inspection: { id: string; inspection_date: string; is_locked: boolean } }) {
@@ -184,10 +384,12 @@ function InspectionDetail({ inspection }: { inspection: { id: string; inspection
   const toggleTask = useToggleTaskCompletion();
   const deleteInspection = useDeleteSiteInspection();
   const { isAdmin } = useIsAdmin();
+  const [exporting, setExporting] = useState(false);
 
   const completedCount = tasks.filter((t) => t.is_completed).length;
   const totalCount = tasks.length;
   const percentage = totalCount > 0 ? Math.round((completedCount / totalCount) * 100) : 0;
+  const allCompleted = totalCount > 0 && completedCount === totalCount;
 
   const handleToggleTask = (taskId: string, currentState: boolean) => {
     if (!inspection.is_locked) {
@@ -195,6 +397,20 @@ function InspectionDetail({ inspection }: { inspection: { id: string; inspection
       return;
     }
     toggleTask.mutate({ id: taskId, is_completed: !currentState });
+  };
+
+  const handleExportPptx = async () => {
+    setExporting(true);
+    try {
+      const dateStr = format(new Date(inspection.inspection_date + "T12:00:00"), "dd/MM/yyyy");
+      await generateInspectionPptx(dateStr, tasks);
+      toast.success("Apresentação gerada com sucesso!");
+    } catch (err) {
+      console.error(err);
+      toast.error("Erro ao gerar apresentação.");
+    } finally {
+      setExporting(false);
+    }
   };
 
   return (
@@ -208,8 +424,25 @@ function InspectionDetail({ inspection }: { inspection: { id: string; inspection
             <Badge variant={inspection.is_locked ? "default" : "secondary"}>
               {inspection.is_locked ? "Bloqueado" : "Aberto"}
             </Badge>
+            {allCompleted && (
+              <Badge className="bg-green-600 text-white gap-1">
+                <CheckCircle2 className="h-3 w-3" /> 100%
+              </Badge>
+            )}
           </div>
           <div className="flex items-center gap-1">
+            {allCompleted && (
+              <Button
+                size="sm"
+                variant="outline"
+                onClick={handleExportPptx}
+                disabled={exporting}
+                className="h-8 px-2 gap-1 text-green-600 border-green-600/30 hover:bg-green-50 dark:hover:bg-green-950/20"
+              >
+                <FileDown className="h-4 w-4" />
+                <span className="text-xs">{exporting ? "Gerando..." : "PowerPoint"}</span>
+              </Button>
+            )}
             <Button
               size="sm"
               variant="ghost"

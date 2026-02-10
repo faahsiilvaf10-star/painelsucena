@@ -1852,6 +1852,7 @@ export type Database = {
           id: string
           inspection_id: string
           is_completed: boolean
+          observation: string | null
         }
         Insert: {
           after_photo_url?: string | null
@@ -1862,6 +1863,7 @@ export type Database = {
           id?: string
           inspection_id: string
           is_completed?: boolean
+          observation?: string | null
         }
         Update: {
           after_photo_url?: string | null
@@ -1872,6 +1874,7 @@ export type Database = {
           id?: string
           inspection_id?: string
           is_completed?: boolean
+          observation?: string | null
         }
         Relationships: [
           {
