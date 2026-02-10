@@ -3,7 +3,7 @@ import * as E from "@/lib/whatsappEmojis";
 import { copyAndShareWhatsApp, copyToClipboard } from "@/lib/copyAndShare";
 import { format, parseISO } from "date-fns";
 import { ptBR } from "date-fns/locale";
-import { Leaf, Save, Loader2, Calendar, Trash2, History, ArrowRight, Plus, X, Copy, Droplets, MessageCircle } from "lucide-react";
+import { Leaf, Save, Loader2, Calendar, Trash2, History, ArrowRight, Plus, X, Copy, Droplets, MessageCircle, Sprout } from "lucide-react";
 import { toast } from "sonner";
 import { useNavigate } from "react-router-dom";
 import Layout from "@/components/layout/Layout";
@@ -34,6 +34,8 @@ import MonthlyReportDialog from "@/components/atividades/MonthlyReportDialog";
 import { PhotoUploader } from "@/components/atividades/PhotoUploader";
 import { ReadOnlyBanner } from "@/components/ReadOnlyBanner";
 import { GoalProgressCard } from "@/components/goals/GoalProgressCard";
+import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
+import MudasPlantioTab from "@/components/atividades/MudasPlantioTab";
 
 interface InvasoraEntry {
   nome: string;
@@ -523,6 +525,26 @@ export default function Atividades() {
       <div className="p-4 sm:p-6 space-y-4 sm:space-y-6">
         {/* Read-only banner */}
         {!canEdit && <ReadOnlyBanner message="Você está visualizando esta página em modo somente leitura. Apenas Administradores, Encarregado Geral e Encarregado I podem editar." />}
+
+        {/* Tabs */}
+        <Tabs defaultValue="jardinagem" className="w-full">
+          <TabsList className="w-full justify-start">
+            <TabsTrigger value="jardinagem" className="gap-2">
+              <Leaf className="h-4 w-4" />
+              Jardinagem
+            </TabsTrigger>
+            <TabsTrigger value="mudas" className="gap-2">
+              <Sprout className="h-4 w-4" />
+              Mudas Plantio
+            </TabsTrigger>
+          </TabsList>
+
+          <TabsContent value="mudas" className="mt-4">
+            <MudasPlantioTab canEdit={canEdit} />
+          </TabsContent>
+
+          <TabsContent value="jardinagem" className="mt-4 space-y-4 sm:space-y-6">
+
         {/* Measurement Period Summary */}
         <Card className="border-green-500/30 bg-green-500/5">
           <CardContent className="py-2 sm:py-3 px-3 sm:px-4">
@@ -1408,6 +1430,9 @@ export default function Atividades() {
             </CardContent>
           </Card>
         </div>
+
+          </TabsContent>
+        </Tabs>
       </div>
     </Layout>
   );
