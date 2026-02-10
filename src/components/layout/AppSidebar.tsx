@@ -2,6 +2,7 @@ import * as React from "react";
 import { Users, ClipboardList, Grid3X3, LayoutDashboard, FileBarChart, LogOut, LogIn, AlertTriangle, PanelLeftClose, PanelLeft, Settings, Sun, Truck, Bell, FileText, LucideIcon, Heart, ShoppingCart, Package, GripVertical, User, FolderOpen, ShieldCheck, Leaf, Hammer, Target, ClipboardCheck, BadgeCheck, Link2, ArrowLeftRight, Clock, FolderLock, Droplets, Wrench, Presentation, Newspaper, HardHat, CalendarDays } from "lucide-react";
 import { Link, useLocation, useNavigate } from "react-router-dom";
 import { useMemo } from "react";
+import { useIsMobile } from "@/hooks/use-mobile";
 import { useAuth } from "@/hooks/useAuth";
 import { useIsAdmin } from "@/hooks/useUserRole";
 import { useSiteSettings } from "@/hooks/useSiteSettings";
@@ -96,11 +97,13 @@ function SortableNavItem({
   isActive,
   isCollapsed,
   showGrip,
+  onNavigate,
 }: {
   item: NavItem;
   isActive: boolean;
   isCollapsed: boolean;
   showGrip: boolean;
+  onNavigate?: () => void;
 }) {
   const {
     attributes,
@@ -126,7 +129,7 @@ function SortableNavItem({
         tooltip={item.label}
         className="group min-h-[44px] md:min-h-[40px]"
       >
-        <Link to={item.path} className="flex items-center gap-3 md:gap-2 py-2">
+        <Link to={item.path} onClick={onNavigate} className="flex items-center gap-3 md:gap-2 py-2">
           {!isCollapsed && showGrip && (
             <span
               {...attributes}
@@ -164,6 +167,13 @@ export function AppSidebar({ lockedCollapsed = false }: { lockedCollapsed?: bool
   const { navOrder } = useUserNavOrder();
   const { getHiddenItemsForCargo } = useNavVisibilityRules();
   const isCollapsed = state === "collapsed";
+  const isMobile = useIsMobile();
+
+  const handleMobileClose = React.useCallback(() => {
+    if (isMobile) {
+      setOpen(false);
+    }
+  }, [isMobile, setOpen]);
 
   // Force collapsed state when locked
   React.useEffect(() => {
@@ -433,6 +443,7 @@ export function AppSidebar({ lockedCollapsed = false }: { lockedCollapsed?: bool
                           isActive={isActive}
                           isCollapsed={isCollapsed}
                           showGrip={isAdmin}
+                          onNavigate={handleMobileClose}
                         />
                       );
                     })}
