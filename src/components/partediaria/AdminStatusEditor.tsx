@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { useState, useCallback, useRef } from "react";
 import { useQueryClient } from "@tanstack/react-query";
 import { supabase } from "@/integrations/supabase/client";
  import { Button } from "@/components/ui/button";
@@ -28,7 +28,7 @@ import { supabase } from "@/integrations/supabase/client";
    AlertDialogHeader,
    AlertDialogTitle,
  } from "@/components/ui/alert-dialog";
- import { Edit, Plus, Loader2, Trash2, Clock, Pencil } from "lucide-react";
+ import { Edit, Plus, Loader2, Trash2, Clock, Pencil, FileText, Calendar } from "lucide-react";
  import { toast } from "sonner";
 import { format } from "date-fns";
 import { 
@@ -44,12 +44,14 @@ import { useAllUsers } from "@/hooks/useAllUsers";
  import { ScrollArea } from "@/components/ui/scroll-area";
  import { Badge } from "@/components/ui/badge";
  import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
+import { ExportDailyShiftPdfButton } from "@/components/equipamentos/ExportDailyShiftPdfButton";
  
  interface AdminStatusEditorProps {
    equipmentId: string;
    equipmentName: string;
+   equipmentPlate?: string;
    shiftDate?: string;
- }
+}
  
 const STATUS_OPTIONS = [
   { value: "operando", label: "Operando" },
@@ -99,9 +101,13 @@ const getStatusColor = (status: string) => {
   return "";
 };
  
- export function AdminStatusEditor({ equipmentId, equipmentName, shiftDate }: AdminStatusEditorProps) {
+ export function AdminStatusEditor({ equipmentId, equipmentName, equipmentPlate, shiftDate }: AdminStatusEditorProps) {
    const [isOpen, setIsOpen] = useState(false);
    const [activeTab, setActiveTab] = useState<string>("list");
+   
+   // Date picker state
+   const today = new Date().toISOString().split("T")[0];
+   const [selectedDate, setSelectedDate] = useState<string>(shiftDate || today);
    
    // Add new status state
    const [selectedStatus, setSelectedStatus] = useState<string>("");
@@ -117,7 +123,11 @@ const getStatusColor = (status: string) => {
    
    // Delete confirmation state
    const [deleteIndex, setDeleteIndex] = useState<number | null>(null);
- 
+   
+   // Auto PDF state
+   const [autoGeneratingPdf, setAutoGeneratingPdf] = useState(false);
+   const pdfButtonRef = useRef<HTMLButtonElement>(null);
+
     const addStatusToHistory = useAddStatusToHistory();
     const removeStatusFromHistory = useRemoveStatusFromHistory();
     const updateStatusInHistory = useUpdateStatusInHistory();
@@ -135,8 +145,7 @@ const getStatusColor = (status: string) => {
       }
       return name;
     };
-    const today = new Date().toISOString().split("T")[0];
-    const targetDate = shiftDate || today;
+    const targetDate = selectedDate;
     
     // Fetch records for target date AND without date filter as fallback
     const { data: dateRecords = [] } = useDailyShiftRecords(targetDate);
@@ -192,6 +201,20 @@ const getStatusColor = (status: string) => {
     })();
     
     const statusHistory = mergedHistory;
+    
+    // Auto-generate PDF after changes
+    const triggerAutoPdf = useCallback(async () => {
+      // Wait for queries to refresh
+      await queryClient.invalidateQueries({ queryKey: ["daily-shift-records"] });
+      await queryClient.invalidateQueries({ queryKey: ["equipment-stop-history"] });
+      
+      // Small delay to allow data to refresh, then click the PDF button
+      setTimeout(() => {
+        if (pdfButtonRef.current) {
+          pdfButtonRef.current.click();
+        }
+      }, 1000);
+    }, [queryClient]);
  
    const handleAddSubmit = async () => {
      if (!selectedStatus || !statusTime) {
@@ -204,7 +227,7 @@ const getStatusColor = (status: string) => {
      try {
         const timestamp = new Date(`${effectiveDate}T${statusTime}:00`).toISOString();
 
-        await addStatusToHistory.mutateAsync({
+         await addStatusToHistory.mutateAsync({
           equipmentId,
           status: selectedStatus,
           changedBy: profile?.full_name ? `${profile.full_name} (Admin)` : "Admin",
@@ -218,6 +241,9 @@ const getStatusColor = (status: string) => {
        setStatusTime("");
        setDescription("");
        setActiveTab("list");
+       
+       // Auto-generate PDF after adding
+       triggerAutoPdf();
      } catch (error) {
        console.error("Error adding status:", error);
        toast.error("Erro ao adicionar status");
@@ -337,6 +363,9 @@ const getStatusColor = (status: string) => {
         // Invalidate stop history cache
         queryClient.invalidateQueries({ queryKey: ["equipment-stop-history"] });
         queryClient.invalidateQueries({ queryKey: ["equipment-currently-out"] });
+        
+        // Auto-generate PDF after editing
+        triggerAutoPdf();
       } catch (error) {
         console.error("Error updating status:", error);
         toast.error("Erro ao atualizar status");
@@ -386,6 +415,9 @@ const getStatusColor = (status: string) => {
         toast.success("Status removido com sucesso!");
         setDeleteIndex(null);
         queryClient.invalidateQueries({ queryKey: ["equipment-stop-history"] });
+        
+        // Auto-generate PDF after deleting
+        triggerAutoPdf();
       } catch (error) {
         console.error("Error removing status:", error);
         toast.error("Erro ao remover status");
@@ -394,7 +426,7 @@ const getStatusColor = (status: string) => {
  
    return (
      <>
-       <Dialog open={isOpen} onOpenChange={setIsOpen}>
+       <Dialog open={isOpen} onOpenChange={(open) => { setIsOpen(open); if (open) setSelectedDate(shiftDate || today); }}>
          <DialogTrigger asChild>
            <Button variant="ghost" size="sm" className="h-7 text-xs">
              <Edit className="h-3 w-3 mr-1" />
@@ -405,6 +437,21 @@ const getStatusColor = (status: string) => {
            <DialogHeader>
              <DialogTitle>Gerenciar Status - {equipmentName}</DialogTitle>
            </DialogHeader>
+           
+           {/* Date Picker */}
+           <div className="flex items-center gap-2 pb-2 border-b">
+             <Calendar className="h-4 w-4 text-muted-foreground" />
+             <Label className="text-sm font-medium">Data:</Label>
+             <Input
+               type="date"
+               value={selectedDate}
+               onChange={(e) => setSelectedDate(e.target.value)}
+               className="h-8 w-auto"
+             />
+             {currentRecord && (
+               <ExportDailyShiftPdfButton ref={pdfButtonRef} record={currentRecord} isLoading={autoGeneratingPdf} />
+             )}
+           </div>
            
            <Tabs value={activeTab} onValueChange={setActiveTab} className="w-full">
              <TabsList className="grid w-full grid-cols-2">

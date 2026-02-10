@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { useState, forwardRef } from "react";
 import { Button } from "@/components/ui/button";
 import { FileText, Loader2 } from "lucide-react";
 import { format } from "date-fns";
@@ -79,7 +79,8 @@ const isReturnAfterRefuelingEntry = (entry: StatusHistoryEntry) => {
   );
 };
 
-export function ExportDailyShiftPdfButton({ record, isLoading }: ExportDailyShiftPdfButtonProps) {
+export const ExportDailyShiftPdfButton = forwardRef<HTMLButtonElement, ExportDailyShiftPdfButtonProps>(
+  function ExportDailyShiftPdfButton({ record, isLoading }, ref) {
   const [isExporting, setIsExporting] = useState(false);
 
   const handleExport = async () => {
@@ -597,6 +598,7 @@ export function ExportDailyShiftPdfButton({ record, isLoading }: ExportDailyShif
 
   return (
     <Button
+      ref={ref}
       variant="outline"
       size="sm"
       onClick={handleExport}
@@ -611,4 +613,4 @@ export function ExportDailyShiftPdfButton({ record, isLoading }: ExportDailyShif
       Imprimir Relatório
     </Button>
   );
-}
+});

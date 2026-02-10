@@ -388,6 +388,7 @@ export default function ParteDiaria() {
                                   <AdminStatusEditor
                                     equipmentId={vehicle.id}
                                     equipmentName={vehicle.name}
+                                    equipmentPlate={vehicle.plate}
                                   />
                                 </div>
                               )}
@@ -450,6 +451,7 @@ export default function ParteDiaria() {
                                 <AdminStatusEditor
                                   equipmentId={vehicle.id}
                                   equipmentName={vehicle.name}
+                                  equipmentPlate={vehicle.plate}
                                 />
                               )}
                             </div>
@@ -461,6 +463,7 @@ export default function ParteDiaria() {
                               <AdminStatusEditor
                                 equipmentId={vehicle.id}
                                 equipmentName={vehicle.name}
+                                equipmentPlate={vehicle.plate}
                               />
                             </div>
                           </div>
