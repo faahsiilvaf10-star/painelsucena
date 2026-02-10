@@ -299,6 +299,87 @@ const FELT_TEXTURE = (
   }} />
 );
 
+// ── Snake Board Layout (wraps tiles like a real domino table) ──
+const TILE_W = 60; // horizontal tile width (sm size)
+const TILE_H = 32; // horizontal tile height
+const TILE_GAP = 2;
+const CONNECTOR_SIZE = 34; // vertical connector tile size
+
+function SnakeBoard({ board }: { board: DominoTile[] }) {
+  const containerRef = useRef<HTMLDivElement>(null);
+  const [containerWidth, setContainerWidth] = useState(600);
+
+  useEffect(() => {
+    if (!containerRef.current) return;
+    const observer = new ResizeObserver(entries => {
+      for (const entry of entries) {
+        setContainerWidth(entry.contentRect.width);
+      }
+    });
+    observer.observe(containerRef.current);
+    return () => observer.disconnect();
+  }, []);
+
+  // Calculate how many tiles fit per row
+  const tilesPerRow = Math.max(3, Math.floor((containerWidth - 20) / (TILE_W + TILE_GAP)));
+
+  // Split board into rows with snake direction
+  const rows: { tiles: DominoTile[]; direction: "ltr" | "rtl"; startIndex: number }[] = [];
+  let idx = 0;
+  let rowNum = 0;
+  while (idx < board.length) {
+    const count = Math.min(tilesPerRow, board.length - idx);
+    const rowTiles = board.slice(idx, idx + count);
+    const direction = rowNum % 2 === 0 ? "ltr" : "rtl";
+    rows.push({ tiles: direction === "rtl" ? [...rowTiles].reverse() : rowTiles, direction, startIndex: idx });
+    idx += count;
+    rowNum++;
+  }
+
+  return (
+    <div ref={containerRef} className="w-full flex flex-col items-center">
+      {rows.map((row, ri) => (
+        <div key={ri}>
+          {/* Connector tile between rows */}
+          {ri > 0 && (
+            <div className={`flex ${row.direction === "ltr" ? "justify-start pl-1" : "justify-end pr-1"}`}>
+              <div
+                className="rounded-md shadow-md flex flex-col items-center justify-center"
+                style={{
+                  width: CONNECTOR_SIZE,
+                  height: CONNECTOR_SIZE + 4,
+                  background: "linear-gradient(135deg, #ffffff 0%, #f8f4e8 100%)",
+                  border: "1.5px solid #c4b888",
+                  boxShadow: "0 3px 8px rgba(0,0,0,0.25), inset 0 1px 0 rgba(255,255,255,0.8)",
+                  marginTop: -2,
+                  marginBottom: -2,
+                }}
+              >
+                <div style={{ width: 1.5, height: "100%", background: "#b8a878" }} />
+              </div>
+            </div>
+          )}
+          {/* Row of tiles */}
+          <div className={`flex items-center gap-[${TILE_GAP}px] ${row.direction === "rtl" ? "flex-row" : "flex-row"}`}
+            style={{ gap: TILE_GAP }}
+          >
+            {row.tiles.map((tile, ti) => (
+              <motion.div
+                key={`${row.startIndex + ti}`}
+                initial={{ scale: 0, rotate: -10 }}
+                animate={{ scale: 1, rotate: 0 }}
+                transition={{ type: "spring", stiffness: 300, delay: (row.startIndex + ti) * 0.015 }}
+              >
+                <DominoTileVisual tile={tile} size="sm" disabled />
+              </motion.div>
+            ))}
+          </div>
+        </div>
+      ))}
+    </div>
+  );
+}
+
 // ── Main Component ──
 export function DominoGame({ onBack }: { onBack: () => void }) {
   const { user } = useAuth();
@@ -892,28 +973,17 @@ export function DominoGame({ onBack }: { onBack: () => void }) {
         </div>
 
         {/* Board area */}
-        <div className="relative z-10 flex-1 flex items-center justify-center overflow-auto px-4 py-2">
+        <div className="relative z-10 flex-1 flex items-center overflow-auto px-2 py-2">
           {gs.board.length === 0 ? (
             <motion.p
               animate={{ opacity: [0.4, 1, 0.4] }}
               transition={{ duration: 2, repeat: Infinity }}
-              className="text-white/70 font-bold text-sm"
+              className="text-white/70 font-bold text-sm w-full text-center"
             >
               Jogue a primeira peça!
             </motion.p>
           ) : (
-            <div className="flex items-center gap-0.5 flex-wrap justify-center">
-              {gs.board.map((tile, i) => (
-                <motion.div
-                  key={i}
-                  initial={{ scale: 0, rotate: -10 }}
-                  animate={{ scale: 1, rotate: 0 }}
-                  transition={{ type: "spring", stiffness: 300, delay: i * 0.015 }}
-                >
-                  <DominoTileVisual tile={tile} size="sm" disabled />
-                </motion.div>
-              ))}
-            </div>
+            <SnakeBoard board={gs.board} />
           )}
         </div>
 
