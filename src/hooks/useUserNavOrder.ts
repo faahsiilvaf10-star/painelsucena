@@ -4,11 +4,11 @@ import { useAuth } from "@/hooks/useAuth";
 import { Json } from "@/integrations/supabase/types";
 
 const DEFAULT_NAV_ORDER = [
-  "destaques", "atividades", "atividades-ii", "metas", "campanhas", "dds", "documentos",
-  "entrada-saida", "estoque", "lembretes", "parte-diaria", "presenca", "matriz", "pedidos",
-  "rdo", "relatorio", "rh", "vistorias", "homologados", "vistoria-cintas", "hora-extra",
-  "arquivos-seguranca", "consumo-abastecimento", "plano-manutencao", "slides", "instacena",
-  "inspecao-canteiro", "emergencia"
+  "destaques", "instacena", "arquivos-seguranca", "atividades", "atividades-ii", "campanhas",
+  "consumo-abastecimento", "dds", "documentos", "entrada-saida", "estoque", "homologados",
+  "hora-extra", "inspecao-canteiro", "lembretes", "relatorio", "matriz", "metas",
+  "parte-diaria", "pedidos", "plano-manutencao", "rdo", "presenca", "rh", "slides",
+  "vistoria-cintas", "vistorias", "emergencia"
 ];
 
 export function useUserNavOrder() {
