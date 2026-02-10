@@ -78,7 +78,7 @@ const GAMES: GameCover[] = [
     description: "Jogue damas contra a IA! Escolha a dificuldade e mostre sua estratégia.",
     gradient: "from-amber-700/20 via-yellow-800/10 to-orange-700/20",
     borderColor: "border-amber-700/40 hover:border-amber-700",
-    badgeLabel: "vs IA",
+    badgeLabel: "vs IA / Online",
     badgeColor: "bg-amber-700/15 text-amber-700 dark:text-amber-400",
   },
 ];

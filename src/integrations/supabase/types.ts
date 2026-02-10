@@ -183,6 +183,105 @@ export type Database = {
         }
         Relationships: []
       }
+      checkers_games: {
+        Row: {
+          board: Json
+          captured_black: number
+          captured_white: number
+          created_at: string
+          current_turn: string
+          id: string
+          last_move: Json | null
+          player1_avatar_url: string | null
+          player1_color: string
+          player1_id: string
+          player1_name: string
+          player1_piece_style: Json | null
+          player2_avatar_url: string | null
+          player2_id: string | null
+          player2_name: string | null
+          player2_piece_style: Json | null
+          status: string
+          updated_at: string
+          winner_id: string | null
+        }
+        Insert: {
+          board?: Json
+          captured_black?: number
+          captured_white?: number
+          created_at?: string
+          current_turn?: string
+          id?: string
+          last_move?: Json | null
+          player1_avatar_url?: string | null
+          player1_color?: string
+          player1_id: string
+          player1_name: string
+          player1_piece_style?: Json | null
+          player2_avatar_url?: string | null
+          player2_id?: string | null
+          player2_name?: string | null
+          player2_piece_style?: Json | null
+          status?: string
+          updated_at?: string
+          winner_id?: string | null
+        }
+        Update: {
+          board?: Json
+          captured_black?: number
+          captured_white?: number
+          created_at?: string
+          current_turn?: string
+          id?: string
+          last_move?: Json | null
+          player1_avatar_url?: string | null
+          player1_color?: string
+          player1_id?: string
+          player1_name?: string
+          player1_piece_style?: Json | null
+          player2_avatar_url?: string | null
+          player2_id?: string | null
+          player2_name?: string | null
+          player2_piece_style?: Json | null
+          status?: string
+          updated_at?: string
+          winner_id?: string | null
+        }
+        Relationships: []
+      }
+      checkers_stats: {
+        Row: {
+          avatar_url: string | null
+          created_at: string
+          id: string
+          losses: number
+          updated_at: string
+          user_id: string
+          user_name: string
+          wins: number
+        }
+        Insert: {
+          avatar_url?: string | null
+          created_at?: string
+          id?: string
+          losses?: number
+          updated_at?: string
+          user_id: string
+          user_name: string
+          wins?: number
+        }
+        Update: {
+          avatar_url?: string | null
+          created_at?: string
+          id?: string
+          losses?: number
+          updated_at?: string
+          user_id?: string
+          user_name?: string
+          wins?: number
+        }
+        Relationships: []
+      }
       daily_gabiao_reports: {
         Row: {
           created_at: string
