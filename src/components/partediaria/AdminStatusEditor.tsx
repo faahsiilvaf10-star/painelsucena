@@ -28,7 +28,7 @@
  } from "@/components/ui/alert-dialog";
  import { Edit, Plus, Loader2, Trash2, Clock, Pencil } from "lucide-react";
  import { toast } from "sonner";
-import { format, startOfDay, endOfDay } from "date-fns";
+import { format } from "date-fns";
 import { 
   useAddStatusToHistory, 
   useRemoveStatusFromHistory, 
@@ -138,13 +138,10 @@ const getStatusColor = (status: string) => {
     
     // Build merged history: combine daily_shift_records status_history with equipment_stop_history
     const mergedHistory = (() => {
-      const dateStart = startOfDay(new Date(effectiveDate));
-      const dateEnd = endOfDay(new Date(effectiveDate));
-      
-      // Get stop history entries for this date
+      // Filter stop history entries by comparing the date portion of started_at
       const todayStopHistory = stopHistory.filter((sh) => {
-        const startedAt = new Date(sh.started_at);
-        return startedAt >= dateStart && startedAt <= dateEnd;
+        const startedDate = sh.started_at.slice(0, 10); // "YYYY-MM-DD"
+        return startedDate === effectiveDate;
       });
       
       // Convert stop history to StatusHistoryEntry format
