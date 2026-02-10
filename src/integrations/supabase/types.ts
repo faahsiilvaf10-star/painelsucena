@@ -644,6 +644,36 @@ export type Database = {
         }
         Relationships: []
       }
+      domino_stats: {
+        Row: {
+          created_at: string
+          id: string
+          losses: number
+          updated_at: string
+          user_id: string
+          user_name: string
+          wins: number
+        }
+        Insert: {
+          created_at?: string
+          id?: string
+          losses?: number
+          updated_at?: string
+          user_id: string
+          user_name: string
+          wins?: number
+        }
+        Update: {
+          created_at?: string
+          id?: string
+          losses?: number
+          updated_at?: string
+          user_id?: string
+          user_name?: string
+          wins?: number
+        }
+        Relationships: []
+      }
       employees: {
         Row: {
           area: string | null
