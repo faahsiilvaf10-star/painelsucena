@@ -241,7 +241,7 @@ function shuffleArray<T>(array: T[]): T[] {
 }
 
 const ROUND_SIZE = 10;
-const TIME_PER_QUESTION = 30;
+const TIME_PER_QUESTION = 60;
 
 export function GabiaoGame({ onBack }: { onBack: () => void }) {
   const [gameState, setGameState] = useState<"idle" | "playing" | "finished">("idle");
