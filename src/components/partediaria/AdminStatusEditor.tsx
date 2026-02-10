@@ -137,38 +137,42 @@ const getStatusColor = (status: string) => {
     const shiftStatusHistory = currentRecord?.status_history || [];
     
     // Build merged history: combine daily_shift_records status_history with equipment_stop_history
-    const mergedHistory = (() => {
+    // Build merged history with source tracking
+    type MergedEntry = StatusHistoryEntry & { shiftIndex: number | null };
+    
+    const mergedHistory: MergedEntry[] = (() => {
       // Filter stop history entries by comparing the date portion of started_at
       const todayStopHistory = stopHistory.filter((sh) => {
-        const startedDate = sh.started_at.slice(0, 10); // "YYYY-MM-DD"
+        const startedDate = sh.started_at.slice(0, 10);
         return startedDate === effectiveDate;
       });
       
-      // Convert stop history to StatusHistoryEntry format
-      const fromStopHistory: StatusHistoryEntry[] = todayStopHistory.map((sh) => ({
-        status: sh.stop_reason,
-        timestamp: sh.started_at,
-        changed_by: sh.changed_by_driver || undefined,
-        description: sh.defect_description || undefined,
+      // Start with shift history entries (these are the editable ones)
+      const entries: MergedEntry[] = shiftStatusHistory.map((entry, idx) => ({
+        ...entry,
+        shiftIndex: idx,
       }));
       
-      // Merge: use stop history as base, then add any shift entries not already represented
-      const allEntries = [...fromStopHistory];
-      
-      // Add shift history entries that don't have a matching stop history entry (within 2min tolerance)
-      for (const entry of shiftStatusHistory) {
-        const entryTime = new Date(entry.timestamp).getTime();
-        const hasDuplicate = fromStopHistory.some((sh) => {
-          const shTime = new Date(sh.timestamp).getTime();
-          return Math.abs(entryTime - shTime) < 120000 && sh.status === entry.status;
+      // Add stop history entries that don't have a matching shift entry (within 2min tolerance)
+      for (const sh of todayStopHistory) {
+        const shTime = new Date(sh.started_at).getTime();
+        const hasDuplicate = shiftStatusHistory.some((entry) => {
+          const entryTime = new Date(entry.timestamp).getTime();
+          return Math.abs(entryTime - shTime) < 120000 && entry.status === sh.stop_reason;
         });
         if (!hasDuplicate) {
-          allEntries.push(entry);
+          entries.push({
+            status: sh.stop_reason,
+            timestamp: sh.started_at,
+            changed_by: sh.changed_by_driver || undefined,
+            description: sh.defect_description || undefined,
+            shiftIndex: null, // not in shift records, view-only
+          });
         }
       }
       
       // Sort by timestamp ascending
-      return allEntries.sort((a, b) => new Date(a.timestamp).getTime() - new Date(b.timestamp).getTime());
+      return entries.sort((a, b) => new Date(a.timestamp).getTime() - new Date(b.timestamp).getTime());
     })();
     
     const statusHistory = mergedHistory;
@@ -221,50 +225,64 @@ const getStatusColor = (status: string) => {
      setEditDescription("");
    };
  
-   const handleSaveEdit = async () => {
-     if (editingIndex === null || !editTime) return;
- 
-     setIsSubmitting(true);
- 
-     try {
-       const newTimestamp = new Date(`${effectiveDate}T${editTime}:00`).toISOString();
- 
-       await updateStatusInHistory.mutateAsync({
-         equipmentId,
-         statusIndex: editingIndex,
-         newStatus: editStatus,
-         newTimestamp,
-         newDescription: editDescription,
+    const handleSaveEdit = async () => {
+      if (editingIndex === null || !editTime) return;
+      
+      const entry = statusHistory[editingIndex];
+      if (!entry || entry.shiftIndex === null) {
+        toast.error("Este registro não pode ser editado por aqui");
+        handleCancelEdit();
+        return;
+      }
+
+      setIsSubmitting(true);
+
+      try {
+        const newTimestamp = new Date(`${effectiveDate}T${editTime}:00`).toISOString();
+
+        await updateStatusInHistory.mutateAsync({
+          equipmentId,
+          statusIndex: entry.shiftIndex,
+          newStatus: editStatus,
+          newTimestamp,
+          newDescription: editDescription,
           shiftDate: effectiveDate,
-       });
+        });
+
+        toast.success("Status atualizado com sucesso!");
+        handleCancelEdit();
+      } catch (error) {
+        console.error("Error updating status:", error);
+        toast.error("Erro ao atualizar status");
+      } finally {
+        setIsSubmitting(false);
+      }
+    };
  
-       toast.success("Status atualizado com sucesso!");
-       handleCancelEdit();
-     } catch (error) {
-       console.error("Error updating status:", error);
-       toast.error("Erro ao atualizar status");
-     } finally {
-       setIsSubmitting(false);
-     }
-   };
- 
-   const handleDelete = async () => {
-     if (deleteIndex === null) return;
- 
-     try {
-       await removeStatusFromHistory.mutateAsync({
-         equipmentId,
-         statusIndex: deleteIndex,
-         shiftDate: effectiveDate,
-       });
- 
-       toast.success("Status removido com sucesso!");
-       setDeleteIndex(null);
-     } catch (error) {
-       console.error("Error removing status:", error);
-       toast.error("Erro ao remover status");
-     }
-   };
+    const handleDelete = async () => {
+      if (deleteIndex === null) return;
+      
+      const entry = statusHistory[deleteIndex];
+      if (!entry || entry.shiftIndex === null) {
+        toast.error("Este registro não pode ser removido por aqui");
+        setDeleteIndex(null);
+        return;
+      }
+
+      try {
+        await removeStatusFromHistory.mutateAsync({
+          equipmentId,
+          statusIndex: entry.shiftIndex,
+          shiftDate: effectiveDate,
+        });
+
+        toast.success("Status removido com sucesso!");
+        setDeleteIndex(null);
+      } catch (error) {
+        console.error("Error removing status:", error);
+        toast.error("Erro ao remover status");
+      }
+    };
  
    return (
      <>
@@ -382,24 +400,26 @@ const getStatusColor = (status: string) => {
                                  </p>
                                )}
                              </div>
-                             <div className="flex gap-1">
-                               <Button
-                                 variant="ghost"
-                                 size="icon"
-                                 className="h-7 w-7"
-                                 onClick={() => handleStartEdit(index, entry)}
-                               >
-                                 <Pencil className="h-3 w-3" />
-                               </Button>
-                               <Button
-                                 variant="ghost"
-                                 size="icon"
-                                 className="h-7 w-7 text-destructive hover:text-destructive"
-                                 onClick={() => setDeleteIndex(index)}
-                               >
-                                 <Trash2 className="h-3 w-3" />
-                               </Button>
-                             </div>
+                              {entry.shiftIndex !== null && (
+                                <div className="flex gap-1">
+                                  <Button
+                                    variant="ghost"
+                                    size="icon"
+                                    className="h-7 w-7"
+                                    onClick={() => handleStartEdit(index, entry)}
+                                  >
+                                    <Pencil className="h-3 w-3" />
+                                  </Button>
+                                  <Button
+                                    variant="ghost"
+                                    size="icon"
+                                    className="h-7 w-7 text-destructive hover:text-destructive"
+                                    onClick={() => setDeleteIndex(index)}
+                                  >
+                                    <Trash2 className="h-3 w-3" />
+                                  </Button>
+                                </div>
+                              )}
                            </>
                          )}
                        </div>
