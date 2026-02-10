@@ -622,7 +622,9 @@ export type Database = {
           id: string
           items: Json | null
           mentioned_user_id: string | null
+          mentioned_user_ids: string[] | null
           mentioned_user_name: string | null
+          mentioned_user_names: string[] | null
           photo_urls: string[] | null
           status: string
           updated_at: string
@@ -637,7 +639,9 @@ export type Database = {
           id?: string
           items?: Json | null
           mentioned_user_id?: string | null
+          mentioned_user_ids?: string[] | null
           mentioned_user_name?: string | null
+          mentioned_user_names?: string[] | null
           photo_urls?: string[] | null
           status?: string
           updated_at?: string
@@ -652,7 +656,9 @@ export type Database = {
           id?: string
           items?: Json | null
           mentioned_user_id?: string | null
+          mentioned_user_ids?: string[] | null
           mentioned_user_name?: string | null
+          mentioned_user_names?: string[] | null
           photo_urls?: string[] | null
           status?: string
           updated_at?: string

@@ -56,7 +56,7 @@ export default function Desvios() {
   const deleteDesvio = useDeleteDesvio();
 
   const [showForm, setShowForm] = useState(false);
-  const [selectedUserId, setSelectedUserId] = useState("");
+  const [selectedUserIds, setSelectedUserIds] = useState<string[]>([]);
   const [dueDate, setDueDate] = useState<Date | undefined>();
   const [formItems, setFormItems] = useState<FormItem[]>([
     { id: crypto.randomUUID(), description: "", photo_url: null },
@@ -125,7 +125,7 @@ export default function Desvios() {
       toast.error("Adicione pelo menos um item com descrição");
       return;
     }
-    const selectedUser = allUsers.find((u) => u.user_id === selectedUserId);
+    const selectedUsers = allUsers.filter((u) => selectedUserIds.includes(u.user_id));
     const items: DesvioItem[] = validItems.map((item) => ({
       id: item.id,
       description: item.description.trim(),
@@ -136,12 +136,12 @@ export default function Desvios() {
       description: items.map((i) => i.description).join(" | "),
       photo_urls: items.filter((i) => i.photo_url).map((i) => i.photo_url!),
       items,
-      mentioned_user_id: selectedUserId || null,
-      mentioned_user_name: selectedUser?.full_name || null,
+      mentioned_user_ids: selectedUserIds,
+      mentioned_user_names: selectedUsers.map((u) => u.full_name),
       due_date: dueDate ? format(dueDate, "yyyy-MM-dd") : null,
     });
     setFormItems([{ id: crypto.randomUUID(), description: "", photo_url: null }]);
-    setSelectedUserId("");
+    setSelectedUserIds([]);
     setDueDate(undefined);
     setShowForm(false);
   };
@@ -202,28 +202,58 @@ export default function Desvios() {
               <CardTitle className="text-base">Registrar Desvio</CardTitle>
             </CardHeader>
             <CardContent className="space-y-3">
-              {/* Mention user */}
+              {/* Mention users */}
               <div>
                 <label className="text-sm font-medium text-foreground mb-1 block">
                   <User className="w-3.5 h-3.5 inline mr-1" />
-                  Mencionar Responsável
+                  Mencionar Responsáveis
                 </label>
-                <Select value={selectedUserId} onValueChange={setSelectedUserId}>
+                {/* Selected users chips */}
+                {selectedUserIds.length > 0 && (
+                  <div className="flex flex-wrap gap-1 mb-2">
+                    {selectedUserIds.map((uid) => {
+                      const u = allUsers.find((x) => x.user_id === uid);
+                      if (!u) return null;
+                      return (
+                        <Badge key={uid} variant="secondary" className="gap-1 pr-1">
+                          <Avatar className="w-4 h-4">
+                            <AvatarImage src={u.avatar_url || undefined} />
+                            <AvatarFallback className="text-[8px]">{u.full_name.charAt(0)}</AvatarFallback>
+                          </Avatar>
+                          <span className="text-xs">{u.full_name}</span>
+                          <button onClick={() => setSelectedUserIds((prev) => prev.filter((id) => id !== uid))} className="ml-0.5 hover:text-destructive">
+                            <X className="w-3 h-3" />
+                          </button>
+                        </Badge>
+                      );
+                    })}
+                  </div>
+                )}
+                <Select
+                  value=""
+                  onValueChange={(val) => {
+                    if (!selectedUserIds.includes(val)) {
+                      setSelectedUserIds((prev) => [...prev, val]);
+                    }
+                  }}
+                >
                   <SelectTrigger>
-                    <SelectValue placeholder="Selecionar pessoa..." />
+                    <SelectValue placeholder="Adicionar pessoa..." />
                   </SelectTrigger>
                   <SelectContent>
-                    {allUsers.map((u) => (
-                      <SelectItem key={u.user_id} value={u.user_id}>
-                        <div className="flex items-center gap-2">
-                          <Avatar className="w-5 h-5">
-                            <AvatarImage src={u.avatar_url || undefined} />
-                            <AvatarFallback className="text-[10px]">{u.full_name.charAt(0)}</AvatarFallback>
-                          </Avatar>
-                          {u.full_name}
-                        </div>
-                      </SelectItem>
-                    ))}
+                    {allUsers
+                      .filter((u) => !selectedUserIds.includes(u.user_id))
+                      .map((u) => (
+                        <SelectItem key={u.user_id} value={u.user_id}>
+                          <div className="flex items-center gap-2">
+                            <Avatar className="w-5 h-5">
+                              <AvatarImage src={u.avatar_url || undefined} />
+                              <AvatarFallback className="text-[10px]">{u.full_name.charAt(0)}</AvatarFallback>
+                            </Avatar>
+                            {u.full_name}
+                          </div>
+                        </SelectItem>
+                      ))}
                   </SelectContent>
                 </Select>
               </div>
@@ -348,7 +378,7 @@ export default function Desvios() {
           <div className="space-y-3">
             {filtered.map((desvio) => {
               const isOverdue = desvio.due_date && desvio.status === "aberto" && new Date(desvio.due_date) < new Date();
-              const isMentioned = desvio.mentioned_user_id === user?.id;
+              const isMentioned = desvio.mentioned_user_id === user?.id || (desvio.mentioned_user_ids || []).includes(user?.id || "");
               const isCreator = desvio.created_by === user?.id;
               const hasItems = desvio.items && desvio.items.length > 0;
 
@@ -381,14 +411,22 @@ export default function Desvios() {
                       </Badge>
                     </div>
 
-                    {/* Mentioned user */}
-                    {desvio.mentioned_user_name && (
-                      <div className="flex items-center gap-2 text-sm">
-                        <User className="w-3.5 h-3.5 text-muted-foreground" />
-                        <span className="text-muted-foreground">Responsável:</span>
-                        <span className="font-medium text-foreground">{desvio.mentioned_user_name}</span>
-                      </div>
-                    )}
+                    {/* Mentioned users */}
+                    {(() => {
+                      const names = (desvio.mentioned_user_names && desvio.mentioned_user_names.length > 0)
+                        ? desvio.mentioned_user_names
+                        : desvio.mentioned_user_name ? [desvio.mentioned_user_name] : [];
+                      if (names.length === 0) return null;
+                      return (
+                        <div className="flex items-center gap-2 text-sm flex-wrap">
+                          <User className="w-3.5 h-3.5 text-muted-foreground" />
+                          <span className="text-muted-foreground">Responsáveis:</span>
+                          {names.map((name, i) => (
+                            <Badge key={i} variant="secondary" className="text-xs">{name}</Badge>
+                          ))}
+                        </div>
+                      );
+                    })()}
 
                     {/* Due date */}
                     {desvio.due_date && (
