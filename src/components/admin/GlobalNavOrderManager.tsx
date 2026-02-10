@@ -23,40 +23,42 @@ import {
 import { CSS } from "@dnd-kit/utilities";
 
 const NAV_ITEMS_MAP: Record<string, string> = {
+  "destaques": "Destaques",
   "atividades": "Atividades I",
   "atividades-ii": "Atividades II",
-  "arquivos-seguranca": "Arquivos Segurança",
+  "metas": "Metas",
   "campanhas": "Campanhas",
-  "consumo-abastecimento": "Consumo Abastecimento",
   "dds": "DDS",
-  "destaques": "Destaques",
   "documentos": "Documentos",
-  "emergencia": "Emergência",
   "entrada-saida": "Entrada/Saída Equipamentos",
   "estoque": "Estoque",
-  "homologados": "Homologados",
-  "hora-extra": "Hora Extra",
-  "instacena": "InstaCena",
   "lembretes": "Lembretes",
-  "matriz": "Matriz Responsabilidade",
-  "metas": "Metas",
   "parte-diaria": "Parte Diária",
-  "pedidos": "Pedidos",
-  "plano-manutencao": "Plano de Manutenção",
   "presenca": "Relatório de Presença",
+  "matriz": "Matriz Responsabilidade",
+  "pedidos": "Pedidos",
   "rdo": "RDO",
   "relatorio": "Lista de Presença",
   "rh": "RH",
-  "slides": "Slides IA",
-  "vistoria-cintas": "Vistoria Cintas",
   "vistorias": "Vistorias Equipamentos",
+  "homologados": "Homologados",
+  "vistoria-cintas": "Vistoria Cintas",
+  "hora-extra": "Hora Extra",
+  "arquivos-seguranca": "Arquivos Segurança",
+  "consumo-abastecimento": "Consumo Abastecimento",
+  "plano-manutencao": "Plano de Manutenção",
+  "slides": "Slides IA",
+  "instacena": "InstaCena",
+  "inspecao-canteiro": "Inspeção de Canteiro",
+  "emergencia": "Emergência",
 };
 
 const DEFAULT_NAV_ORDER = [
-  "destaques", "instacena", "atividades", "atividades-ii", "arquivos-seguranca", "consumo-abastecimento",
-  "campanhas", "dds", "documentos", "entrada-saida", "estoque", "homologados", "hora-extra",
-  "lembretes", "relatorio", "matriz", "metas", "pedidos", "rdo", "presenca", "rh",
-  "parte-diaria", "plano-manutencao", "vistoria-cintas", "vistorias", "slides", "emergencia"
+  "destaques", "atividades", "atividades-ii", "metas", "campanhas", "dds", "documentos",
+  "entrada-saida", "estoque", "lembretes", "parte-diaria", "presenca", "matriz", "pedidos",
+  "rdo", "relatorio", "rh", "vistorias", "homologados", "vistoria-cintas", "hora-extra",
+  "arquivos-seguranca", "consumo-abastecimento", "plano-manutencao", "slides", "instacena",
+  "inspecao-canteiro", "emergencia"
 ];
 
 function SortableNavItem({ id, label }: { id: string; label: string }) {
