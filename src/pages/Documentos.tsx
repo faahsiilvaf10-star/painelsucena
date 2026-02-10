@@ -261,9 +261,9 @@ const Documentos = () => {
                   <TableHeader>
                     <TableRow>
                       <TableHead>Título</TableHead>
-                      <TableHead>Tipo</TableHead>
+                      <TableHead className="hidden sm:table-cell">Tipo</TableHead>
                       <TableHead>Vencimento</TableHead>
-                      <TableHead>Status</TableHead>
+                      <TableHead className="hidden sm:table-cell">Status</TableHead>
                       <TableHead className="text-right">Ações</TableHead>
                     </TableRow>
                   </TableHeader>
@@ -293,22 +293,23 @@ const Documentos = () => {
                             )}
                           </div>
                         </TableCell>
-                        <TableCell>
+                        <TableCell className="hidden sm:table-cell">
                           <Badge variant="outline">
                             {DOCUMENT_TYPE_LABELS[doc.document_type]}
                           </Badge>
                         </TableCell>
                         <TableCell>
                           <div className="flex flex-col gap-1">
-                            <span>
+                            <span className="text-xs sm:text-sm">
                               {format(new Date(doc.expiry_date + "T12:00:00"), "dd/MM/yyyy", {
                                 locale: ptBR,
                               })}
                             </span>
                             {getExpiryBadge(doc.expiry_date, doc.status)}
+                            <span className="sm:hidden">{getStatusBadge(doc.status)}</span>
                           </div>
                         </TableCell>
-                        <TableCell>{getStatusBadge(doc.status)}</TableCell>
+                        <TableCell className="hidden sm:table-cell">{getStatusBadge(doc.status)}</TableCell>
                         <TableCell>
                           <div className="flex items-center justify-end gap-1">
                             {!isVisualizador && doc.status === "pending" && (

@@ -137,8 +137,8 @@ export default function ConsumoAbastecimento() {
           </div>
 
           {/* Título */}
-          <div className="bg-[#f5a623] px-8 py-2 rounded-sm">
-            <h1 className="text-lg md:text-xl font-bold text-[#1a1a2e] whitespace-nowrap">
+          <div className="bg-[#f5a623] px-4 sm:px-8 py-2 rounded-sm">
+            <h1 className="text-sm sm:text-lg md:text-xl font-bold text-[#1a1a2e] text-center">
               Relatório de Abastecimentos de Água
             </h1>
           </div>

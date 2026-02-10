@@ -860,7 +860,7 @@ export default function InspecaoCanteiro() {
 
   return (
     <Layout>
-      <div className="space-y-6 p-4 md:p-6 max-w-4xl mx-auto">
+      <div className="space-y-4 sm:space-y-6 px-3 sm:px-6 py-3 sm:py-6 max-w-4xl mx-auto">
         <div className="flex items-center gap-3">
           <div className="p-2.5 rounded-xl bg-primary/10 border border-primary/20">
             <ClipboardCheck className="h-6 w-6 text-primary" />

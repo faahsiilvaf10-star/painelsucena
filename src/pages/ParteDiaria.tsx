@@ -255,11 +255,11 @@ export default function ParteDiaria() {
 
   return (
     <Layout>
-      <div className="space-y-6">
+      <div className="space-y-4 sm:space-y-6 px-3 sm:px-6 py-3 sm:py-6">
         {/* Header */}
         <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
           <div>
-            <h1 className="text-2xl font-bold">Parte Diária</h1>
+            <h1 className="text-xl sm:text-2xl font-bold">Parte Diária</h1>
             <p className="text-muted-foreground">
               Gestão de equipamentos e acompanhamento de status dos motoristas
             </p>
