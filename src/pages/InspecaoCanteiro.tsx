@@ -322,10 +322,13 @@ async function generateInspectionPptx(inspectionDate: string, tasks: SiteInspect
     x: 0.5, y: 3.9, w: "90%", h: 0.5,
     fontSize: 14, color: "22C55E", align: "center",
   });
-  titleSlide.addText("Sucena Empreendimentos", {
-    x: 0.5, y: 5, w: "90%", h: 0.4,
-    fontSize: 12, color: "64748B", align: "center",
-  });
+  if (logoBase64) {
+    titleSlide.addImage({
+      data: logoBase64,
+      x: 4.65, y: 4.8, w: 4, h: 1.3,
+      sizing: { type: "contain", w: 4, h: 1.3 },
+    });
+  }
 
   // Summary slide
   slideNum++;
@@ -378,8 +381,7 @@ async function generateInspectionPptx(inspectionDate: string, tasks: SiteInspect
       if (task.observation) {
         slide.addText(task.observation, {
           x: 0.5, y: 1.3, w: "90%", h: 0.4,
-          fontSize: 12, color: "92400E", italic: true,
-          highlight: "FFFF00",
+          fontSize: 12, color: "0F172A", bold: true,
         });
       }
 
@@ -438,10 +440,13 @@ async function generateInspectionPptx(inspectionDate: string, tasks: SiteInspect
     x: 0.5, y: 3.2, w: "90%", h: 0.6,
     fontSize: 16, color: "94A3B8", align: "center",
   });
-  closingSlide.addText("Sucena Empreendimentos", {
-    x: 0.5, y: 4.2, w: "90%", h: 0.4,
-    fontSize: 14, bold: true, color: "64748B", align: "center",
-  });
+  if (logoBase64) {
+    closingSlide.addImage({
+      data: logoBase64,
+      x: 4.65, y: 4, w: 4, h: 1.3,
+      sizing: { type: "contain", w: 4, h: 1.3 },
+    });
+  }
 
   await pptx.writeFile({ fileName: `Inspecao_Canteiro_${inspectionDate.replace(/\//g, "-")}.pptx` });
 }
