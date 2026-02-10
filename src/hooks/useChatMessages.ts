@@ -2,7 +2,7 @@ import { useState, useEffect, useRef } from "react";
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import { supabase } from "@/integrations/supabase/client";
 import { useAuth } from "./useAuth";
-import { playIOSNotificationSound } from "@/lib/sounds";
+import { playSoundFile } from "@/lib/sounds";
 import type { Tables } from "@/integrations/supabase/types";
 
 export type ChatMessage = Tables<"chat_messages">;
@@ -63,7 +63,7 @@ export const useChatMessages = (otherUserId: string | null) => {
           ) {
             // Play sound only for incoming messages (not sent by current user)
             if (newMessage.sender_id === otherUserId && newMessage.id !== lastMessageIdRef.current) {
-              playIOSNotificationSound();
+              playSoundFile("/sounds/msn-chat.mp3");
             }
             
             lastMessageIdRef.current = newMessage.id;
