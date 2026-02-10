@@ -28,15 +28,16 @@
  } from "@/components/ui/alert-dialog";
  import { Edit, Plus, Loader2, Trash2, Clock, Pencil } from "lucide-react";
  import { toast } from "sonner";
- import { format } from "date-fns";
- import { 
-   useAddStatusToHistory, 
-   useRemoveStatusFromHistory, 
-   useUpdateStatusInHistory,
-   StatusHistoryEntry,
-   useDailyShiftRecords
- } from "@/hooks/useDailyShiftRecords";
- import { useProfile } from "@/hooks/useProfile";
+import { format, startOfDay, endOfDay } from "date-fns";
+import { 
+  useAddStatusToHistory, 
+  useRemoveStatusFromHistory, 
+  useUpdateStatusInHistory,
+  StatusHistoryEntry,
+  useDailyShiftRecords
+} from "@/hooks/useDailyShiftRecords";
+import { useEquipmentStopHistory } from "@/hooks/useEquipment";
+import { useProfile } from "@/hooks/useProfile";
  import { ScrollArea } from "@/components/ui/scroll-area";
  import { Badge } from "@/components/ui/badge";
  import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
@@ -82,6 +83,18 @@ const ALL_STATUS_LABELS: Record<string, string> = {
 const getStatusLabel = (status: string) => {
   return ALL_STATUS_LABELS[status] || status;
 };
+
+const getStatusColor = (status: string) => {
+  if (status === "operando" || status === "none") return "bg-green-500 text-white";
+  if (status === "abastecimento" || status === "end_of_day") return "bg-cyan-500 text-white";
+  if (status === "maintenance" || status === "manutencao_corretiva") return "bg-red-500 text-white";
+  if (status === "manutencao_preventiva") return "bg-amber-500 text-white";
+  if (status === "vistoria") return "bg-purple-500 text-white";
+  if (status === "end_of_shift" || status === "fim_turno") return "bg-blue-500 text-white";
+  if (status === "waiting" || status === "waiting_front" || status === "aguardando_frente_servico") return "bg-yellow-500 text-black";
+  if (status === "rain") return "bg-sky-500 text-white";
+  return "";
+};
  
  export function AdminStatusEditor({ equipmentId, equipmentName, shiftDate }: AdminStatusEditorProps) {
    const [isOpen, setIsOpen] = useState(false);
@@ -114,11 +127,54 @@ const getStatusLabel = (status: string) => {
     const { data: dateRecords = [] } = useDailyShiftRecords(targetDate);
     const { data: allRecords = [] } = useDailyShiftRecords();
     
+    // Also fetch from equipment_stop_history (the source of "Movimentações de Hoje")
+    const { data: stopHistory = [] } = useEquipmentStopHistory(equipmentId);
+    
     // Try to find record for the target date first, then fall back to most recent record for this equipment
     const currentRecord = dateRecords.find((r) => r.equipment_id === equipmentId) 
       || allRecords.find((r) => r.equipment_id === equipmentId);
     const effectiveDate = currentRecord?.shift_date || targetDate;
-    const statusHistory = currentRecord?.status_history || [];
+    const shiftStatusHistory = currentRecord?.status_history || [];
+    
+    // Build merged history: combine daily_shift_records status_history with equipment_stop_history
+    const mergedHistory = (() => {
+      const dateStart = startOfDay(new Date(effectiveDate));
+      const dateEnd = endOfDay(new Date(effectiveDate));
+      
+      // Get stop history entries for this date
+      const todayStopHistory = stopHistory.filter((sh) => {
+        const startedAt = new Date(sh.started_at);
+        return startedAt >= dateStart && startedAt <= dateEnd;
+      });
+      
+      // Convert stop history to StatusHistoryEntry format
+      const fromStopHistory: StatusHistoryEntry[] = todayStopHistory.map((sh) => ({
+        status: sh.stop_reason,
+        timestamp: sh.started_at,
+        changed_by: sh.changed_by_driver || undefined,
+        description: sh.defect_description || undefined,
+      }));
+      
+      // Merge: use stop history as base, then add any shift entries not already represented
+      const allEntries = [...fromStopHistory];
+      
+      // Add shift history entries that don't have a matching stop history entry (within 2min tolerance)
+      for (const entry of shiftStatusHistory) {
+        const entryTime = new Date(entry.timestamp).getTime();
+        const hasDuplicate = fromStopHistory.some((sh) => {
+          const shTime = new Date(sh.timestamp).getTime();
+          return Math.abs(entryTime - shTime) < 120000 && sh.status === entry.status;
+        });
+        if (!hasDuplicate) {
+          allEntries.push(entry);
+        }
+      }
+      
+      // Sort by timestamp ascending
+      return allEntries.sort((a, b) => new Date(a.timestamp).getTime() - new Date(b.timestamp).getTime());
+    })();
+    
+    const statusHistory = mergedHistory;
  
    const handleAddSubmit = async () => {
      if (!selectedStatus || !statusTime) {
@@ -310,14 +366,14 @@ const getStatusLabel = (status: string) => {
                          ) : (
                            <>
                              <div className="flex-1 min-w-0">
-                               <div className="flex items-center gap-2">
-                                 <Badge variant="secondary" className="text-xs">
-                                   {format(new Date(entry.timestamp), "HH:mm")}
-                                 </Badge>
-                                 <span className="font-medium text-sm">
-                                   {getStatusLabel(entry.status)}
-                                 </span>
-                               </div>
+                                <div className="flex items-center gap-2">
+                                  <Badge variant="secondary" className="text-xs font-mono">
+                                    {format(new Date(entry.timestamp), "HH:mm")}
+                                  </Badge>
+                                  <Badge className={`text-xs ${getStatusColor(entry.status)}`}>
+                                    {getStatusLabel(entry.status)}
+                                  </Badge>
+                                </div>
                                {entry.description && (
                                  <p className="text-xs text-muted-foreground mt-1 truncate">
                                    {entry.description}
