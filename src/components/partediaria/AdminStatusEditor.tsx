@@ -326,6 +326,48 @@ const getStatusColor = (status: string) => {
           }
         }
 
+        // When editing a "Fim de Turno" entry, also update shift_end_time in daily_shift_records
+        const fimTurnoReasons = ["end_of_shift", "fim_turno"];
+        if (fimTurnoReasons.includes(editStatus) && currentRecord) {
+          await supabase
+            .from("daily_shift_records")
+            .update({ shift_end_time: newTimestamp })
+            .eq("id", currentRecord.id);
+        }
+
+        // Update ended_at of the previous stop history entry to match this entry's new start time
+        const prevEntry = editingIndex > 0 ? statusHistory[editingIndex - 1] : null;
+        if (prevEntry) {
+          const prevStopId = prevEntry.stopHistoryId;
+          if (prevStopId) {
+            const startMs = new Date(newTimestamp).getTime();
+            const prevStartMs = new Date(prevEntry.timestamp).getTime();
+            const durationMin = Math.round((startMs - prevStartMs) / 60000);
+            await supabase
+              .from("equipment_stop_history")
+              .update({ ended_at: newTimestamp, duration_minutes: durationMin > 0 ? durationMin : null })
+              .eq("id", prevStopId);
+          } else {
+            // Try to find the previous entry in stop_history by timestamp
+            const { data: prevMatches } = await supabase
+              .from("equipment_stop_history")
+              .select("id")
+              .eq("equipment_id", equipmentId)
+              .eq("started_at", prevEntry.timestamp)
+              .eq("stop_reason", prevEntry.status)
+              .limit(1);
+            if (prevMatches && prevMatches.length > 0) {
+              const startMs = new Date(newTimestamp).getTime();
+              const prevStartMs = new Date(prevEntry.timestamp).getTime();
+              const durationMin = Math.round((startMs - prevStartMs) / 60000);
+              await supabase
+                .from("equipment_stop_history")
+                .update({ ended_at: newTimestamp, duration_minutes: durationMin > 0 ? durationMin : null })
+                .eq("id", prevMatches[0].id);
+            }
+          }
+        }
+
         // Also sync description to equipment_movements for "Fora da Obra" display
         const maintenanceReasons = ["manutencao_corretiva", "manutencao_preventiva", "maintenance", "vistoria"];
         if (editDescription && maintenanceReasons.includes(editStatus)) {
@@ -363,6 +405,7 @@ const getStatusColor = (status: string) => {
         // Invalidate stop history cache
         queryClient.invalidateQueries({ queryKey: ["equipment-stop-history"] });
         queryClient.invalidateQueries({ queryKey: ["equipment-currently-out"] });
+        queryClient.invalidateQueries({ queryKey: ["daily-shift-records"] });
         
         // Auto-generate PDF after editing
         triggerAutoPdf();
