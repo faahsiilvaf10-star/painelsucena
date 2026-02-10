@@ -147,18 +147,16 @@ const getStatusColor = (status: string) => {
     };
     const targetDate = selectedDate;
     
-    // Fetch records for target date AND without date filter as fallback
-    const { data: dateRecords = [] } = useDailyShiftRecords(targetDate);
-    const { data: allRecords = [] } = useDailyShiftRecords();
-    
-    // Also fetch from equipment_stop_history (the source of "Movimentações de Hoje")
-    const { data: stopHistory = [] } = useEquipmentStopHistory(equipmentId);
-    
-    // Try to find record for the target date first, then fall back to most recent record for this equipment
-    const currentRecord = dateRecords.find((r) => r.equipment_id === equipmentId) 
-      || allRecords.find((r) => r.equipment_id === equipmentId);
-    const effectiveDate = currentRecord?.shift_date || targetDate;
-    const shiftStatusHistory = currentRecord?.status_history || [];
+     // Fetch records for target date
+     const { data: dateRecords = [], isLoading: isLoadingRecords } = useDailyShiftRecords(targetDate);
+     
+     // Also fetch from equipment_stop_history (the source of "Movimentações de Hoje")
+     const { data: stopHistory = [] } = useEquipmentStopHistory(equipmentId);
+     
+     // Strictly use the record for the selected date (no fallback to other dates)
+     const currentRecord = dateRecords.find((r) => r.equipment_id === equipmentId) || null;
+     const effectiveDate = selectedDate;
+     const shiftStatusHistory = currentRecord?.status_history || [];
     
     // Build merged history: combine daily_shift_records status_history with equipment_stop_history
     // Build merged history with source tracking
@@ -202,19 +200,23 @@ const getStatusColor = (status: string) => {
     
     const statusHistory = mergedHistory;
     
-    // Auto-generate PDF after changes
-    const triggerAutoPdf = useCallback(async () => {
-      // Wait for queries to refresh
-      await queryClient.invalidateQueries({ queryKey: ["daily-shift-records"] });
-      await queryClient.invalidateQueries({ queryKey: ["equipment-stop-history"] });
-      
-      // Small delay to allow data to refresh, then click the PDF button
-      setTimeout(() => {
-        if (pdfButtonRef.current) {
-          pdfButtonRef.current.click();
-        }
-      }, 1000);
-    }, [queryClient]);
+     // Auto-generate PDF after changes
+     const triggerAutoPdf = useCallback(async () => {
+       // Wait for queries to refresh
+       await queryClient.invalidateQueries({ queryKey: ["daily-shift-records"] });
+       await queryClient.invalidateQueries({ queryKey: ["daily-shift-record"] });
+       await queryClient.invalidateQueries({ queryKey: ["equipment-stop-history"] });
+       
+       // Wait for refetch to complete before clicking PDF
+       await queryClient.refetchQueries({ queryKey: ["daily-shift-records", selectedDate] });
+       
+       // Longer delay to ensure React re-render with fresh data
+       setTimeout(() => {
+         if (pdfButtonRef.current) {
+           pdfButtonRef.current.click();
+         }
+       }, 1500);
+     }, [queryClient, selectedDate]);
  
    const handleAddSubmit = async () => {
      if (!selectedStatus || !statusTime) {
