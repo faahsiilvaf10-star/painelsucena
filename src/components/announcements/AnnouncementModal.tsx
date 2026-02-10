@@ -75,7 +75,7 @@ export function AnnouncementModal() {
   // Play sound when announcement modal appears
   useEffect(() => {
     if (currentAnnouncement && !hasPlayedSound.current) {
-      playSoundFile("/sounds/chime.mp3");
+      playSoundFile("/sounds/announcement.mp3");
       hasPlayedSound.current = true;
     }
     
