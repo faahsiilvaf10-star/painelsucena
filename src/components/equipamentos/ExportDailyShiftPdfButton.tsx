@@ -86,34 +86,18 @@ export const ExportDailyShiftPdfButton = forwardRef<HTMLButtonElement, ExportDai
   const handleExport = async () => {
     setIsExporting(true);
     try {
-      // Always fetch fresh data from database to avoid stale props
-      const { data: freshRecord } = await supabase
-        .from("daily_shift_records")
-        .select("*")
-        .eq("equipment_id", record.equipment_id)
-        .eq("shift_date", record.shift_date)
-        .maybeSingle();
-      
-      // Use fresh data if available, otherwise fall back to prop
-      const activeRecord = freshRecord ? {
-        ...record,
-        ...freshRecord,
-        status_history: Array.isArray(freshRecord.status_history) ? freshRecord.status_history as unknown as StatusHistoryEntry[] : record.status_history,
-        refueling_points: Array.isArray(freshRecord.refueling_points) ? freshRecord.refueling_points : record.refueling_points,
-      } : record;
-
       const logoBase64 = await getLogoBase64();
-      const formattedDate = format(new Date(activeRecord.shift_date), "dd/MM/yyyy", { locale: ptBR });
+      const formattedDate = format(new Date(record.shift_date), "dd/MM/yyyy", { locale: ptBR });
 
       // Fallback: if initial values are missing, fetch previous shift's final (or initial) values
-      let effectiveInitialHorimeter = activeRecord.initial_horimeter;
-      let effectiveInitialKm = activeRecord.initial_km;
+      let effectiveInitialHorimeter = record.initial_horimeter;
+      let effectiveInitialKm = record.initial_km;
       if (effectiveInitialHorimeter == null || effectiveInitialKm == null) {
         const { data: prevShift } = await supabase
           .from("daily_shift_records")
           .select("final_horimeter, final_km, initial_horimeter, initial_km")
-          .eq("equipment_id", activeRecord.equipment_id)
-          .lt("shift_date", activeRecord.shift_date)
+          .eq("equipment_id", record.equipment_id)
+          .lt("shift_date", record.shift_date)
           .order("shift_date", { ascending: false })
           .limit(1)
           .maybeSingle();
@@ -128,14 +112,14 @@ export const ExportDailyShiftPdfButton = forwardRef<HTMLButtonElement, ExportDai
       }
 
       // Fallback: if final values are missing, fetch next shift's initial values
-      let effectiveFinalHorimeter = activeRecord.final_horimeter;
-      let effectiveFinalKm = activeRecord.final_km;
+      let effectiveFinalHorimeter = record.final_horimeter;
+      let effectiveFinalKm = record.final_km;
       if (effectiveFinalHorimeter == null || effectiveFinalKm == null) {
         const { data: nextShift } = await supabase
           .from("daily_shift_records")
           .select("initial_horimeter, initial_km")
-          .eq("equipment_id", activeRecord.equipment_id)
-          .gt("shift_date", activeRecord.shift_date)
+          .eq("equipment_id", record.equipment_id)
+          .gt("shift_date", record.shift_date)
           .order("shift_date", { ascending: true })
           .limit(1)
           .maybeSingle();
@@ -149,8 +133,8 @@ export const ExportDailyShiftPdfButton = forwardRef<HTMLButtonElement, ExportDai
       const { data: exitMovements } = await supabase
         .from("equipment_movements")
         .select("movement_time, exit_reason, problem_description, observation")
-        .eq("plate", activeRecord.plate)
-        .eq("movement_date", activeRecord.shift_date)
+        .eq("plate", record.plate)
+        .eq("movement_date", record.shift_date)
         .eq("movement_type", "saida")
         .order("movement_time", { ascending: false })
         .limit(1);
@@ -165,7 +149,7 @@ export const ExportDailyShiftPdfButton = forwardRef<HTMLButtonElement, ExportDai
       }
 
       // Sort history by time first (important to fill the "FINAL" column correctly)
-      const sortedHistory = [...activeRecord.status_history].sort(
+      const sortedHistory = [...record.status_history].sort(
         (a, b) => new Date(a.timestamp).getTime() - new Date(b.timestamp).getTime()
       );
 
@@ -217,7 +201,7 @@ export const ExportDailyShiftPdfButton = forwardRef<HTMLButtonElement, ExportDai
       }
 
       // DEBUG: Log the number of activity rows generated
-      console.log(`[PDF Debug] Total de entradas no histórico: ${activeRecord.status_history.length}`);
+      console.log(`[PDF Debug] Total de entradas no histórico: ${record.status_history.length}`);
       console.log(`[PDF Debug] Histórico filtrado: ${filteredHistory.length}`);
       console.log(`[PDF Debug] Linhas de atividade geradas: ${allActivityRows.length}`);
 
@@ -286,7 +270,7 @@ export const ExportDailyShiftPdfButton = forwardRef<HTMLButtonElement, ExportDai
       const additionalTablesHtml = activityTables.slice(1).map((rows, idx) => `
         <div class="additional-table-container" style="page-break-before: always; margin-top: 20px; border: 2px solid #000; background: #fff;">
           <div style="background: #d0d0d0; padding: 8px 12px; font-weight: bold; font-size: 11px; border-bottom: 1px solid #000; text-align: center;">
-            ${activeRecord.equipment_name} - ${activeRecord.plate} - ${formattedDate} (Página ${idx + 2} de ${activityTables.length})
+            ${record.equipment_name} - ${record.plate} - ${formattedDate} (Página ${idx + 2} de ${activityTables.length})
           </div>
           <div style="padding: 8px;">
             ${buildActivityTableHtml(rows, idx + 1)}
@@ -294,15 +278,15 @@ export const ExportDailyShiftPdfButton = forwardRef<HTMLButtonElement, ExportDai
         </div>
       `).join("");
 
-      const initialFuelPct = fuelLevelToPercentage(activeRecord.initial_fuel_level);
-      const finalFuelPct = fuelLevelToPercentage(activeRecord.final_fuel_level || activeRecord.initial_fuel_level);
+      const initialFuelPct = fuelLevelToPercentage(record.initial_fuel_level);
+      const finalFuelPct = fuelLevelToPercentage(record.final_fuel_level || record.initial_fuel_level);
 
       const htmlContent = `
         <!DOCTYPE html>
         <html lang="pt-BR">
         <head>
           <meta charset="UTF-8">
-          <title>Parte Diária - ${activeRecord.equipment_name} - ${formattedDate}</title>
+          <title>Parte Diária - ${record.equipment_name} - ${formattedDate}</title>
           <style>
             @page { size: A4; margin: 10mm; }
             * { box-sizing: border-box; margin: 0; padding: 0; }
@@ -463,7 +447,7 @@ export const ExportDailyShiftPdfButton = forwardRef<HTMLButtonElement, ExportDai
             <!-- Motorista/Data -->
             <div class="row">
               <div class="cell-label" style="width:140px;">MOTORISTA/OPERADOR</div>
-              <div class="cell-value" style="flex:2;">${activeRecord.driver_name}</div>
+              <div class="cell-value" style="flex:2;">${record.driver_name}</div>
               <div class="cell-label">DATA</div>
               <div class="cell-value" style="width:100px;">${formattedDate}</div>
             </div>
@@ -471,15 +455,15 @@ export const ExportDailyShiftPdfButton = forwardRef<HTMLButtonElement, ExportDai
             <!-- Equipamento/Placa -->
             <div class="row">
               <div class="cell-label" style="width:140px;">EQUIPAMENTO</div>
-              <div class="cell-value" style="flex:2;">${activeRecord.equipment_name}</div>
+              <div class="cell-value" style="flex:2;">${record.equipment_name}</div>
               <div class="cell-label">PLACA</div>
-              <div class="cell-value" style="width:100px;font-family:monospace;">${activeRecord.plate}</div>
+              <div class="cell-value" style="width:100px;font-family:monospace;">${record.plate}</div>
             </div>
 
             <!-- Ajudante -->
             <div class="row">
               <div class="cell-label" style="width:140px;">AJUDANTE</div>
-              <div class="cell-value">${activeRecord.helper_name || "-"}</div>
+              <div class="cell-value">${record.helper_name || "-"}</div>
             </div>
 
             <!-- Saída do Equipamento (if exists) -->
@@ -528,13 +512,13 @@ export const ExportDailyShiftPdfButton = forwardRef<HTMLButtonElement, ExportDai
                   <div class="fuel-row">
                     <div class="fuel-item">
                       <div class="fuel-label">INICIAL</div>
-                      ${buildFuelGaugeSvg({ level: activeRecord.initial_fuel_level, width: 80, height: 48 })}
-                      <div class="fuel-text">${fuelLevelToLabel(activeRecord.initial_fuel_level)}</div>
+                      ${buildFuelGaugeSvg({ level: record.initial_fuel_level, width: 80, height: 48 })}
+                      <div class="fuel-text">${fuelLevelToLabel(record.initial_fuel_level)}</div>
                     </div>
                     <div class="fuel-item">
                       <div class="fuel-label">FINAL</div>
-                      ${buildFuelGaugeSvg({ level: activeRecord.final_fuel_level || activeRecord.initial_fuel_level, width: 80, height: 48 })}
-                      <div class="fuel-text">${fuelLevelToLabel(activeRecord.final_fuel_level || activeRecord.initial_fuel_level)}</div>
+                      ${buildFuelGaugeSvg({ level: record.final_fuel_level || record.initial_fuel_level, width: 80, height: 48 })}
+                      <div class="fuel-text">${fuelLevelToLabel(record.final_fuel_level || record.initial_fuel_level)}</div>
                     </div>
                   </div>
                 </div>
@@ -549,7 +533,7 @@ export const ExportDailyShiftPdfButton = forwardRef<HTMLButtonElement, ExportDai
             <!-- Signatures -->
             <div class="signatures">
               <div class="sig-box">
-                <div class="sig-name">${activeRecord.driver_name}</div>
+                <div class="sig-name">${record.driver_name}</div>
                 <div class="sig-line"></div>
                 <div class="sig-label">Ass. Motorista/Op</div>
               </div>

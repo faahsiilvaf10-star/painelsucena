@@ -552,92 +552,44 @@ export function ExportMovementsByDateButton({ equipment }: ExportMovementsByDate
         }
       }
 
-      // Build activities - use daily_shift_records.status_history as primary source
+      // Build activities from stop history
       const activities: Array<{ start: string; end: string; description: string }> = [];
+      
+      // Filter consecutive duplicates
+      const filteredStops = dateStops.filter((entry, index, arr) => {
+        if (index === 0) return true;
+        const prev = arr[index - 1];
+        return entry.stop_reason !== prev.stop_reason || entry.defect_description !== prev.defect_description;
+      });
 
-      // PRIMARY SOURCE: Use daily_shift_records.status_history (consistent with admin editor)
-      const shiftStatusHistory = shiftRecord?.status_history
-        ? (Array.isArray(shiftRecord.status_history) 
-            ? shiftRecord.status_history as Array<{ status: string; timestamp: string; changed_by?: string | null; description?: string }>
-            : [])
-        : [];
-
-      if (shiftStatusHistory.length > 0) {
-        // Use status_history from daily_shift_records (primary, consistent with admin editor)
-        const sortedHistory = [...shiftStatusHistory].sort(
-          (a, b) => new Date(a.timestamp).getTime() - new Date(b.timestamp).getTime()
-        );
-
-        const filteredHistory = sortedHistory.filter((entry, index, arr) => {
-          if (index === 0) return true;
-          const prev = arr[index - 1];
-          return entry.status !== prev.status || entry.description !== prev.description;
-        });
-
-        for (let i = 0; i < filteredHistory.length; i++) {
-          const entry = filteredHistory[i];
-          const nextEntry = filteredHistory[i + 1];
-          const startTime = format(new Date(entry.timestamp), "HH:mm");
-
-          const isLastEntry = i === filteredHistory.length - 1;
-          const isEndOfShift = entry.status === "end_of_shift" || entry.status === "fim_turno";
-
-          let endTime = "";
-          if (nextEntry) {
-            endTime = format(new Date(nextEntry.timestamp), "HH:mm");
-          } else if (isLastEntry && isEndOfShift) {
-            endTime = startTime;
+      filteredStops.forEach((stop, idx) => {
+        const startTime = format(new Date(stop.started_at), "HH:mm");
+        let endTime = "";
+        
+        // End time is either when this stop ended or when next activity started
+        if (stop.ended_at) {
+          endTime = format(new Date(stop.ended_at), "HH:mm");
+        } else if (idx < filteredStops.length - 1) {
+          endTime = format(new Date(filteredStops[idx + 1].started_at), "HH:mm");
+        } else {
+          // Last activity - leave end time blank unless it's end of shift
+          const isEndOfShift = stop.stop_reason === "end_of_shift" || stop.stop_reason === "fim_turno";
+          if (isEndOfShift && shiftRecord?.shift_end_time) {
+            endTime = format(new Date(shiftRecord.shift_end_time), "HH:mm");
           }
-
-          // Check if it's a "retorno" entry
-          const desc = entry.description ?? "";
-          const nDesc = normalizeText(desc);
-          const nStatus = normalizeText(entry.status ?? "");
-          const isReturnEntry = 
-            nDesc.includes("retorno apos abastecimento") ||
-            nDesc.includes("retorno do ponto") ||
-            nStatus.includes("retorno_abastecimento") ||
-            nStatus.includes("retorno abastecimento");
-
-          if (isReturnEntry) continue;
-
-          const description = entry.description 
-            ? `${getStatusLabel(entry.status)}${entry.description !== getStatusLabel(entry.status) ? ` - ${entry.description}` : ""}`
-            : getStatusLabel(entry.status);
-
-          activities.push({ start: startTime, end: endTime, description });
         }
-      } else {
-        // FALLBACK: Use equipment_stop_history
-        const filteredStops = dateStops.filter((entry, index, arr) => {
-          if (index === 0) return true;
-          const prev = arr[index - 1];
-          return entry.stop_reason !== prev.stop_reason || entry.defect_description !== prev.defect_description;
+
+        const statusLabel = getStatusLabel(stop.stop_reason);
+        const description = stop.defect_description 
+          ? `${statusLabel} - ${stop.defect_description}`
+          : statusLabel;
+
+        activities.push({
+          start: startTime,
+          end: endTime,
+          description,
         });
-
-        filteredStops.forEach((stop, idx) => {
-          const startTime = format(new Date(stop.started_at), "HH:mm");
-          let endTime = "";
-          
-          if (stop.ended_at) {
-            endTime = format(new Date(stop.ended_at), "HH:mm");
-          } else if (idx < filteredStops.length - 1) {
-            endTime = format(new Date(filteredStops[idx + 1].started_at), "HH:mm");
-          } else {
-            const isEndOfShift = stop.stop_reason === "end_of_shift" || stop.stop_reason === "fim_turno";
-            if (isEndOfShift && shiftRecord?.shift_end_time) {
-              endTime = format(new Date(shiftRecord.shift_end_time), "HH:mm");
-            }
-          }
-
-          const statusLabel = getStatusLabel(stop.stop_reason);
-          const description = stop.defect_description 
-            ? `${statusLabel} - ${stop.defect_description}`
-            : statusLabel;
-
-          activities.push({ start: startTime, end: endTime, description });
-        });
-      }
+      });
 
       // Get driver name from shift record, equipment, or stop history (changed_by_driver)
       const driverFromHistory = dateStops.find(s => s.changed_by_driver)?.changed_by_driver || "";
