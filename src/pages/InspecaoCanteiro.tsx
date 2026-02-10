@@ -262,31 +262,25 @@ async function fetchLogoBase64(): Promise<string> {
   }
 }
 
-function addSlideBranding(slide: any, logoBase64: string, slideNum: number, totalSlides: number, isDark: boolean) {
+function addSlideBranding(slide: any, logoBase64: string, slideNum: number, totalSlides: number) {
+  // Logo top-left on every slide
   if (logoBase64) {
     slide.addImage({
       data: logoBase64,
-      x: 0.3, y: 0.15, w: 1.4, h: 0.45,
-      sizing: { type: "contain", w: 1.4, h: 0.45 },
+      x: 0.3, y: 0.2, w: 1.6, h: 0.5,
+      sizing: { type: "contain", w: 1.6, h: 0.5 },
     });
   }
-  // Company name top-right
-  slide.addText("Sucena Empreendimentos", {
-    x: 8.5, y: 0.15, w: 4.5, h: 0.25,
-    fontSize: 10, bold: true, color: isDark ? "94A3B8" : "64748B", align: "right",
-  });
-  slide.addText("Qualidade, Segurança e Meio Ambiente", {
-    x: 8.5, y: 0.38, w: 4.5, h: 0.2,
-    fontSize: 7, color: isDark ? "64748B" : "94A3B8", align: "right",
-  });
+  // Green accent bar top-right
+  slide.addShape("rect", { x: 11.8, y: 0, w: 1.53, h: 0.8, fill: { color: "3B7A3B" } });
   // Footer
   slide.addText(`${slideNum}/${totalSlides}`, {
     x: 12, y: 7, w: 1, h: 0.3,
-    fontSize: 8, color: isDark ? "475569" : "94A3B8", align: "right",
+    fontSize: 8, color: "94A3B8", align: "right",
   });
   slide.addText("Sucena Empreendimentos © " + new Date().getFullYear(), {
     x: 0.3, y: 7, w: 5, h: 0.3,
-    fontSize: 7, color: isDark ? "475569" : "94A3B8",
+    fontSize: 7, color: "94A3B8",
   });
 }
 
@@ -299,148 +293,200 @@ async function generateInspectionPptx(inspectionDate: string, tasks: SiteInspect
 
   const logoBase64 = await fetchLogoBase64();
 
-  // Calculate total slides
   const detailCount = tasks.filter(t => t.before_photo_url || t.after_photo_url).length;
-  const totalSlides = 3 + detailCount; // title + summary + details + closing
+  const totalSlides = 3 + detailCount;
 
   let slideNum = 0;
 
-  // Title slide
+  // ===== TITLE SLIDE (clean white, logo centered, green accents) =====
   slideNum++;
   const titleSlide = pptx.addSlide();
-  titleSlide.background = { color: "0F172A" };
-  addSlideBranding(titleSlide, logoBase64, slideNum, totalSlides, true);
-  titleSlide.addText("Inspeção de Canteiro", {
-    x: 0.5, y: 1.8, w: "90%", h: 1.2,
-    fontSize: 36, bold: true, color: "FFFFFF", align: "center",
+  titleSlide.background = { color: "FFFFFF" };
+  // Green accent blocks
+  titleSlide.addShape("rect", { x: 0, y: 0, w: 0.15, h: 7.5, fill: { color: "3B7A3B" } });
+  titleSlide.addShape("rect", { x: 11.8, y: 0, w: 1.53, h: 1.2, fill: { color: "3B7A3B" } });
+  titleSlide.addShape("rect", { x: 11.8, y: 6.3, w: 1.53, h: 1.2, fill: { color: "3B7A3B" } });
+  // Logo large centered
+  if (logoBase64) {
+    titleSlide.addImage({
+      data: logoBase64,
+      x: 3.5, y: 1.5, w: 6, h: 2,
+      sizing: { type: "contain", w: 6, h: 2 },
+    });
+  }
+  titleSlide.addText("INSPEÇÃO DE CANTEIRO", {
+    x: 1, y: 3.8, w: 11, h: 0.8,
+    fontSize: 28, bold: true, color: "1B3A1B", align: "center",
+    fontFace: "Arial",
   });
   titleSlide.addText(inspectionDate, {
-    x: 0.5, y: 3.1, w: "90%", h: 0.6,
-    fontSize: 20, color: "94A3B8", align: "center",
+    x: 1, y: 4.6, w: 11, h: 0.5,
+    fontSize: 16, color: "3B7A3B", align: "center",
   });
-  titleSlide.addText(`${tasks.length} pontos de melhoria • 100% concluído`, {
-    x: 0.5, y: 3.9, w: "90%", h: 0.5,
-    fontSize: 14, color: "22C55E", align: "center",
-  });
-  titleSlide.addText("Sucena Empreendimentos", {
-    x: 0.5, y: 5, w: "90%", h: 0.4,
+  titleSlide.addText(`${tasks.length} pontos de melhoria`, {
+    x: 1, y: 5.3, w: 11, h: 0.4,
     fontSize: 12, color: "64748B", align: "center",
   });
+  titleSlide.addText(`${slideNum}/${totalSlides}`, {
+    x: 12, y: 7, w: 1, h: 0.3,
+    fontSize: 8, color: "94A3B8", align: "right",
+  });
 
-  // Summary slide
+  // ===== SUMMARY SLIDE =====
   slideNum++;
   const summarySlide = pptx.addSlide();
   summarySlide.background = { color: "FFFFFF" };
-  addSlideBranding(summarySlide, logoBase64, slideNum, totalSlides, false);
+  addSlideBranding(summarySlide, logoBase64, slideNum, totalSlides);
   summarySlide.addText("Resumo da Inspeção", {
-    x: 0.5, y: 0.7, w: "90%", h: 0.7,
-    fontSize: 24, bold: true, color: "0F172A",
+    x: 0.5, y: 0.8, w: "90%", h: 0.7,
+    fontSize: 22, bold: true, color: "1B3A1B",
   });
 
   const tableRows: pptxgen.TableRow[] = [
     [
-      { text: "#", options: { bold: true, color: "FFFFFF", fill: { color: "0F172A" }, fontSize: 10, align: "center" } },
-      { text: "Ponto de Melhoria", options: { bold: true, color: "FFFFFF", fill: { color: "0F172A" }, fontSize: 10 } },
-      { text: "Observação", options: { bold: true, color: "FFFFFF", fill: { color: "0F172A" }, fontSize: 10 } },
-      { text: "Status", options: { bold: true, color: "FFFFFF", fill: { color: "0F172A" }, fontSize: 10, align: "center" } },
+      { text: "#", options: { bold: true, color: "FFFFFF", fill: { color: "3B7A3B" }, fontSize: 10, align: "center" } },
+      { text: "Ponto de Melhoria", options: { bold: true, color: "FFFFFF", fill: { color: "3B7A3B" }, fontSize: 10 } },
+      { text: "Observação", options: { bold: true, color: "FFFFFF", fill: { color: "3B7A3B" }, fontSize: 10 } },
+      { text: "Status", options: { bold: true, color: "FFFFFF", fill: { color: "3B7A3B" }, fontSize: 10, align: "center" } },
     ],
   ];
 
   tasks.forEach((task, idx) => {
+    const rowFill = idx % 2 === 0 ? "F0FFF0" : "FFFFFF";
     tableRows.push([
-      { text: String(idx + 1), options: { fontSize: 9, align: "center" } },
-      { text: task.description, options: { fontSize: 9 } },
-      { text: task.observation || "-", options: { fontSize: 9, color: task.observation ? "92400E" : "94A3B8" } },
-      { text: task.is_completed ? "✅ Concluído" : "⏳ Pendente", options: { fontSize: 9, align: "center", color: task.is_completed ? "166534" : "92400E" } },
+      { text: String(idx + 1), options: { fontSize: 9, align: "center", fill: { color: rowFill } } },
+      { text: task.description, options: { fontSize: 9, fill: { color: rowFill } } },
+      { text: task.observation || "-", options: { fontSize: 9, color: task.observation ? "92400E" : "94A3B8", fill: { color: rowFill } } },
+      { text: task.is_completed ? "✅ Concluído" : "⏳ Pendente", options: { fontSize: 9, align: "center", color: task.is_completed ? "166534" : "92400E", fill: { color: rowFill } } },
     ]);
   });
 
   summarySlide.addTable(tableRows, {
-    x: 0.4, y: 1.5, w: 12.4,
-    border: { type: "solid", pt: 0.5, color: "E2E8F0" },
+    x: 0.4, y: 1.6, w: 12.4,
+    border: { type: "solid", pt: 0.5, color: "D1E7D1" },
     rowH: 0.4,
     colW: [0.5, 4.5, 5, 2.4],
   });
 
-  // Detail slides
+  // ===== DETAIL SLIDES (photo left/right + observation text beside) =====
   for (const [idx, task] of tasks.entries()) {
     if (task.before_photo_url || task.after_photo_url) {
       slideNum++;
       const slide = pptx.addSlide();
       slide.background = { color: "FFFFFF" };
-      addSlideBranding(slide, logoBase64, slideNum, totalSlides, false);
+      addSlideBranding(slide, logoBase64, slideNum, totalSlides);
 
-      slide.addText(`${idx + 1}. ${task.description}`, {
-        x: 0.5, y: 0.7, w: "90%", h: 0.6,
-        fontSize: 18, bold: true, color: "0F172A",
+      // Title bar with green background
+      slide.addShape("rect", { x: 0.3, y: 0.85, w: 12.6, h: 0.55, fill: { color: "3B7A3B" }, rectRadius: 0.05 });
+      slide.addText(`Ponto ${idx + 1}: ${task.description}`, {
+        x: 0.5, y: 0.85, w: 12.2, h: 0.55,
+        fontSize: 14, bold: true, color: "FFFFFF",
       });
 
-      if (task.observation) {
-        slide.addText(task.observation, {
-          x: 0.5, y: 1.3, w: "90%", h: 0.4,
-          fontSize: 12, color: "92400E", italic: true,
-          highlight: "FFFF00",
-        });
-      }
+      // Layout: photos in grid (2x1) on left, observation on right
+      const photoW = 3.8;
+      const photoH = 2.6;
+      const photoStartY = 1.7;
 
-      const photoY = task.observation ? 1.9 : 1.5;
-
+      // Before photo - top left
       if (task.before_photo_url) {
         slide.addText("❌ Antes", {
-          x: 0.5, y: photoY, w: 5.5, h: 0.4,
-          fontSize: 14, bold: true, color: "DC2626", align: "center",
+          x: 0.4, y: photoStartY, w: photoW, h: 0.35,
+          fontSize: 11, bold: true, color: "DC2626", align: "center",
         });
         try {
           slide.addImage({
             path: task.before_photo_url,
-            x: 0.5, y: photoY + 0.5, w: 5.5, h: 3.8,
-            sizing: { type: "contain", w: 5.5, h: 3.8 },
+            x: 0.4, y: photoStartY + 0.4, w: photoW, h: photoH,
+            sizing: { type: "contain", w: photoW, h: photoH },
           });
         } catch {
           slide.addText("(foto indisponível)", {
-            x: 0.5, y: photoY + 2, w: 5.5, h: 0.5,
+            x: 0.4, y: photoStartY + 1.5, w: photoW, h: 0.5,
             fontSize: 10, color: "94A3B8", align: "center",
           });
         }
       }
 
+      // After photo - top right of the photo area
       if (task.after_photo_url) {
         slide.addText("✅ Depois", {
-          x: 7, y: photoY, w: 5.5, h: 0.4,
-          fontSize: 14, bold: true, color: "16A34A", align: "center",
+          x: 4.5, y: photoStartY, w: photoW, h: 0.35,
+          fontSize: 11, bold: true, color: "16A34A", align: "center",
         });
         try {
           slide.addImage({
             path: task.after_photo_url,
-            x: 7, y: photoY + 0.5, w: 5.5, h: 3.8,
-            sizing: { type: "contain", w: 5.5, h: 3.8 },
+            x: 4.5, y: photoStartY + 0.4, w: photoW, h: photoH,
+            sizing: { type: "contain", w: photoW, h: photoH },
           });
         } catch {
           slide.addText("(foto indisponível)", {
-            x: 7, y: photoY + 2, w: 5.5, h: 0.5,
+            x: 4.5, y: photoStartY + 1.5, w: photoW, h: 0.5,
             fontSize: 10, color: "94A3B8", align: "center",
           });
         }
       }
+
+      // Observation text on the right side
+      slide.addShape("rect", { x: 8.7, y: photoStartY, w: 4.2, h: photoH + 0.4, fill: { color: "F0FFF0" }, rectRadius: 0.1 });
+      slide.addText("Observação", {
+        x: 8.9, y: photoStartY + 0.1, w: 3.8, h: 0.35,
+        fontSize: 12, bold: true, color: "1B3A1B",
+      });
+      slide.addText(task.observation || "Sem observação registrada.", {
+        x: 8.9, y: photoStartY + 0.5, w: 3.8, h: photoH - 0.3,
+        fontSize: 11, color: task.observation ? "374151" : "94A3B8",
+        italic: !task.observation,
+        valign: "top",
+        paraSpaceAfter: 6,
+      });
+
+      // Status badge bottom
+      const badgeY = photoStartY + photoH + 0.7;
+      slide.addShape("rect", { x: 0.4, y: badgeY, w: 3, h: 0.4, fill: { color: task.is_completed ? "DCFCE7" : "FEF9C3" }, rectRadius: 0.05 });
+      slide.addText(task.is_completed ? "✅ Concluído" : "⏳ Pendente", {
+        x: 0.4, y: badgeY, w: 3, h: 0.4,
+        fontSize: 11, bold: true, color: task.is_completed ? "166534" : "92400E", align: "center",
+      });
+      if (task.completed_at) {
+        slide.addText(`Concluído em: ${new Date(task.completed_at).toLocaleDateString("pt-BR")}`, {
+          x: 3.6, y: badgeY, w: 4, h: 0.4,
+          fontSize: 9, color: "64748B",
+        });
+      }
     }
   }
 
-  // Closing slide
+  // ===== CLOSING SLIDE =====
   slideNum++;
   const closingSlide = pptx.addSlide();
-  closingSlide.background = { color: "0F172A" };
-  addSlideBranding(closingSlide, logoBase64, slideNum, totalSlides, true);
+  closingSlide.background = { color: "FFFFFF" };
+  closingSlide.addShape("rect", { x: 0, y: 0, w: 0.15, h: 7.5, fill: { color: "3B7A3B" } });
+  closingSlide.addShape("rect", { x: 11.8, y: 0, w: 1.53, h: 1.2, fill: { color: "3B7A3B" } });
+  closingSlide.addShape("rect", { x: 11.8, y: 6.3, w: 1.53, h: 1.2, fill: { color: "3B7A3B" } });
+  if (logoBase64) {
+    closingSlide.addImage({
+      data: logoBase64,
+      x: 3.5, y: 1.5, w: 6, h: 1.8,
+      sizing: { type: "contain", w: 6, h: 1.8 },
+    });
+  }
   closingSlide.addText("Inspeção Concluída ✅", {
-    x: 0.5, y: 2, w: "90%", h: 1,
-    fontSize: 32, bold: true, color: "22C55E", align: "center",
+    x: 1, y: 3.5, w: 11, h: 0.8,
+    fontSize: 28, bold: true, color: "3B7A3B", align: "center",
   });
   closingSlide.addText(`Todos os ${tasks.length} pontos foram resolvidos.`, {
-    x: 0.5, y: 3.2, w: "90%", h: 0.6,
-    fontSize: 16, color: "94A3B8", align: "center",
+    x: 1, y: 4.4, w: 11, h: 0.5,
+    fontSize: 14, color: "64748B", align: "center",
   });
   closingSlide.addText("Sucena Empreendimentos", {
-    x: 0.5, y: 4.2, w: "90%", h: 0.4,
-    fontSize: 14, bold: true, color: "64748B", align: "center",
+    x: 1, y: 5.2, w: 11, h: 0.4,
+    fontSize: 12, bold: true, color: "1B3A1B", align: "center",
+  });
+  closingSlide.addText(`${slideNum}/${totalSlides}`, {
+    x: 12, y: 7, w: 1, h: 0.3,
+    fontSize: 8, color: "94A3B8", align: "right",
   });
 
   await pptx.writeFile({ fileName: `Inspecao_Canteiro_${inspectionDate.replace(/\//g, "-")}.pptx` });
@@ -481,21 +527,28 @@ function InspectionSlidePreview({ slides, currentSlide }: { slides: SlideData[];
 
   if (slide.type === "title") {
     return (
-      <div className="aspect-video bg-slate-900 rounded-xl flex flex-col items-center justify-center p-8 text-white">
-        <h2 className="text-2xl md:text-3xl font-bold">{slide.title}</h2>
-        <p className="text-lg text-slate-400 mt-3">{slide.subtitle}</p>
-        <p className="text-sm text-green-400 mt-2">{slide.caption}</p>
+      <div className="aspect-video bg-white rounded-xl flex flex-col items-center justify-center p-8 relative overflow-hidden border border-border">
+        <div className="absolute left-0 top-0 bottom-0 w-1 bg-green-700" />
+        <div className="absolute right-0 top-0 w-12 h-16 bg-green-700 rounded-bl-lg" />
+        <div className="absolute right-0 bottom-0 w-12 h-16 bg-green-700 rounded-tl-lg" />
+        <img src="/logo-sucena-empreendimentos.png" alt="Sucena" className="h-16 md:h-20 object-contain mb-4" />
+        <h2 className="text-xl md:text-2xl font-bold text-green-900 tracking-wide">INSPEÇÃO DE CANTEIRO</h2>
+        <p className="text-sm text-green-700 mt-2">{slide.subtitle}</p>
+        <p className="text-xs text-muted-foreground mt-1">{slide.caption}</p>
       </div>
     );
   }
 
   if (slide.type === "summary") {
     return (
-      <div className="aspect-video bg-white dark:bg-slate-50 rounded-xl p-4 md:p-6 overflow-auto text-slate-900">
-        <h3 className="text-lg font-bold mb-3">Resumo da Inspeção</h3>
+      <div className="aspect-video bg-white rounded-xl p-4 md:p-6 overflow-auto border border-border">
+        <div className="flex items-center gap-2 mb-3">
+          <img src="/logo-sucena-empreendimentos.png" alt="Logo" className="h-5 object-contain" />
+          <h3 className="text-lg font-bold text-green-900">Resumo da Inspeção</h3>
+        </div>
         <table className="w-full text-xs md:text-sm border-collapse">
           <thead>
-            <tr className="bg-slate-900 text-white">
+            <tr className="bg-green-700 text-white">
               <th className="p-2 text-center w-8">#</th>
               <th className="p-2 text-left">Ponto de Melhoria</th>
               <th className="p-2 text-left">Observação</th>
@@ -504,16 +557,14 @@ function InspectionSlidePreview({ slides, currentSlide }: { slides: SlideData[];
           </thead>
           <tbody>
             {slide.tasks?.map((task, idx) => (
-              <tr key={task.id} className="border-b border-slate-200">
-                <td className="p-2 text-center">{idx + 1}</td>
-                <td className="p-2">{task.description}</td>
+              <tr key={task.id} className={idx % 2 === 0 ? "bg-green-50" : "bg-white"}>
+                <td className="p-2 text-center text-green-900">{idx + 1}</td>
+                <td className="p-2 text-green-900">{task.description}</td>
                 <td className="p-2">
                   {task.observation ? (
-                    <span style={{ background: "linear-gradient(to bottom, transparent 40%, rgba(250,204,21,0.45) 40%)" }} className="px-0.5">
-                      {task.observation}
-                    </span>
+                    <span className="text-amber-800 italic">{task.observation}</span>
                   ) : (
-                    <span className="text-slate-400">-</span>
+                    <span className="text-muted-foreground">-</span>
                   )}
                 </td>
                 <td className="p-2 text-center">{task.is_completed ? "✅" : "⏳"}</td>
@@ -528,29 +579,35 @@ function InspectionSlidePreview({ slides, currentSlide }: { slides: SlideData[];
   if (slide.type === "detail" && slide.task) {
     const task = slide.task;
     return (
-      <div className="aspect-video bg-white dark:bg-slate-50 rounded-xl p-4 md:p-6 overflow-auto text-slate-900">
-        <h3 className="text-base md:text-lg font-bold">{(slide.taskIndex ?? 0) + 1}. {task.description}</h3>
-        {task.observation && (
-          <p className="text-sm italic mt-1" style={{ background: "linear-gradient(to bottom, transparent 40%, rgba(250,204,21,0.45) 40%)" }}>
-            {task.observation}
-          </p>
-        )}
-        <div className="grid grid-cols-2 gap-4 mt-4">
-          <div className="space-y-1.5">
-            <p className="text-sm font-bold text-red-600 text-center">❌ Antes</p>
-            {task.before_photo_url ? (
-              <img src={task.before_photo_url} alt="Antes" className="w-full h-40 md:h-56 object-contain rounded-lg border border-slate-200" />
-            ) : (
-              <div className="w-full h-40 md:h-56 rounded-lg border-2 border-dashed border-slate-200 flex items-center justify-center text-slate-400 text-xs">Sem foto</div>
-            )}
+      <div className="aspect-video bg-white rounded-xl p-4 md:p-6 overflow-auto border border-border">
+        <div className="flex items-center gap-2 mb-2">
+          <img src="/logo-sucena-empreendimentos.png" alt="Logo" className="h-5 object-contain" />
+        </div>
+        <div className="bg-green-700 text-white px-3 py-1.5 rounded text-sm font-bold mb-3">
+          Ponto {(slide.taskIndex ?? 0) + 1}: {task.description}
+        </div>
+        <div className="flex gap-3">
+          <div className="flex-1 grid grid-cols-2 gap-2">
+            <div className="space-y-1">
+              <p className="text-xs font-bold text-red-600 text-center">❌ Antes</p>
+              {task.before_photo_url ? (
+                <img src={task.before_photo_url} alt="Antes" className="w-full h-28 md:h-40 object-contain rounded border border-border" />
+              ) : (
+                <div className="w-full h-28 md:h-40 rounded border-2 border-dashed border-border flex items-center justify-center text-muted-foreground text-xs">Sem foto</div>
+              )}
+            </div>
+            <div className="space-y-1">
+              <p className="text-xs font-bold text-green-600 text-center">✅ Depois</p>
+              {task.after_photo_url ? (
+                <img src={task.after_photo_url} alt="Depois" className="w-full h-28 md:h-40 object-contain rounded border border-border" />
+              ) : (
+                <div className="w-full h-28 md:h-40 rounded border-2 border-dashed border-border flex items-center justify-center text-muted-foreground text-xs">Sem foto</div>
+              )}
+            </div>
           </div>
-          <div className="space-y-1.5">
-            <p className="text-sm font-bold text-green-600 text-center">✅ Depois</p>
-            {task.after_photo_url ? (
-              <img src={task.after_photo_url} alt="Depois" className="w-full h-40 md:h-56 object-contain rounded-lg border border-slate-200" />
-            ) : (
-              <div className="w-full h-40 md:h-56 rounded-lg border-2 border-dashed border-slate-200 flex items-center justify-center text-slate-400 text-xs">Sem foto</div>
-            )}
+          <div className="w-1/3 bg-green-50 rounded-lg p-3">
+            <p className="text-xs font-bold text-green-900 mb-1">Observação</p>
+            <p className="text-xs text-green-900">{task.observation || <span className="italic text-muted-foreground">Sem observação</span>}</p>
           </div>
         </div>
       </div>
@@ -559,9 +616,14 @@ function InspectionSlidePreview({ slides, currentSlide }: { slides: SlideData[];
 
   // closing
   return (
-    <div className="aspect-video bg-slate-900 rounded-xl flex flex-col items-center justify-center p-8 text-white">
-      <h2 className="text-2xl md:text-3xl font-bold text-green-400">Inspeção Concluída ✅</h2>
-      <p className="text-base text-slate-400 mt-3">Todos os {slide.totalTasks} pontos foram resolvidos.</p>
+    <div className="aspect-video bg-white rounded-xl flex flex-col items-center justify-center p-8 relative overflow-hidden border border-border">
+      <div className="absolute left-0 top-0 bottom-0 w-1 bg-green-700" />
+      <div className="absolute right-0 top-0 w-12 h-16 bg-green-700 rounded-bl-lg" />
+      <div className="absolute right-0 bottom-0 w-12 h-16 bg-green-700 rounded-tl-lg" />
+      <img src="/logo-sucena-empreendimentos.png" alt="Sucena" className="h-14 object-contain mb-4" />
+      <h2 className="text-2xl md:text-3xl font-bold text-green-700">Inspeção Concluída ✅</h2>
+      <p className="text-base text-muted-foreground mt-3">Todos os {slide.totalTasks} pontos foram resolvidos.</p>
+      <p className="text-sm font-semibold text-green-900 mt-2">Sucena Empreendimentos</p>
     </div>
   );
 }
