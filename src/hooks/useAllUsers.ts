@@ -245,16 +245,35 @@ export const useAllUsers = () => {
         }
       });
 
-    // Handle visibility change - re-track when tab becomes visible
+    // Handle visibility change - re-track when tab becomes visible or hidden
     const handleVisibilityChange = () => {
-      if (document.visibilityState === "visible" && channelRef.current) {
+      if (channelRef.current) {
         void trackCurrentUser(channelRef.current);
       }
     };
+
+    // Handle online event - re-track when network comes back
+    const handleOnline = () => {
+      if (channelRef.current) {
+        void trackCurrentUser(channelRef.current);
+      }
+    };
+
+    // Handle focus - re-track when window gains focus
+    const handleFocus = () => {
+      if (channelRef.current) {
+        void trackCurrentUser(channelRef.current);
+      }
+    };
+
     document.addEventListener("visibilitychange", handleVisibilityChange);
+    window.addEventListener("online", handleOnline);
+    window.addEventListener("focus", handleFocus);
 
     return () => {
       document.removeEventListener("visibilitychange", handleVisibilityChange);
+      window.removeEventListener("online", handleOnline);
+      window.removeEventListener("focus", handleFocus);
       if (heartbeatRef.current) {
         window.clearInterval(heartbeatRef.current);
         heartbeatRef.current = null;
