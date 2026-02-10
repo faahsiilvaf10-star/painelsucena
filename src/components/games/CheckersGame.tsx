@@ -24,6 +24,7 @@ interface PieceStyle {
   color: string;
   effect: string;
   team?: string;
+  useAvatar?: boolean;
 }
 
 const PIECE_COLORS: { id: string; label: string; gradient: string; border: string }[] = [
@@ -368,17 +369,22 @@ const DARK_SQUARE = "#8B5E34";
 const BLACK_PIECE_BG = "radial-gradient(circle at 35% 35%, #5a3a1a, #2a1a0a)";
 const BLACK_PIECE_BORDER = "#1a0a00";
 
-function getPieceVisual(color: PieceColor, style: PieceStyle) {
-  if (color === "black") return { bg: BLACK_PIECE_BG, border: BLACK_PIECE_BORDER, teamImg: "" };
+function getPieceVisual(color: PieceColor, style: PieceStyle, avatarUrl?: string | null) {
+  if (color === "black") return { bg: BLACK_PIECE_BG, border: BLACK_PIECE_BORDER, teamImg: "", avatarImg: "" };
+  // Avatar mode
+  if (style.useAvatar && avatarUrl) {
+    const found = PIECE_COLORS.find(c => c.id === style.color);
+    return { bg: found?.gradient || PIECE_COLORS[0].gradient, border: found?.border || PIECE_COLORS[0].border, teamImg: "", avatarImg: avatarUrl };
+  }
   // Team mode
   if (style.team) {
     const t = TEAM_GRADIENTS[style.team];
     const badge = TEAM_BADGES.find(b => b.id === style.team);
-    if (t && badge) return { bg: t.gradient, border: t.border, teamImg: badge.img };
+    if (t && badge) return { bg: t.gradient, border: t.border, teamImg: badge.img, avatarImg: "" };
   }
   const found = PIECE_COLORS.find(c => c.id === style.color);
-  if (found) return { bg: found.gradient, border: found.border, teamImg: "" };
-  return { bg: PIECE_COLORS[0].gradient, border: PIECE_COLORS[0].border, teamImg: "" };
+  if (found) return { bg: found.gradient, border: found.border, teamImg: "", avatarImg: "" };
+  return { bg: PIECE_COLORS[0].gradient, border: PIECE_COLORS[0].border, teamImg: "", avatarImg: "" };
 }
 
 // ── Main Component ──
@@ -724,7 +730,7 @@ export function CheckersGame({ onBack }: { onBack: () => void }) {
   const isWinner = gameMode === "ai" ? winner === "white" : winner === myOnlineColor;
 
   // ── Piece visual helpers ──
-  const getMyPieceVisual = () => getPieceVisual("white", pieceStyle);
+  const getMyPieceVisual = () => getPieceVisual("white", pieceStyle, playerAvatar);
   const effectClass = PIECE_EFFECTS.find(e => e.id === pieceStyle.effect)?.cssClass || "";
 
   // ── Render Piece ──
@@ -797,7 +803,7 @@ export function CheckersGame({ onBack }: { onBack: () => void }) {
             zIndex: 1,
           }}
         >
-          {!visual.teamImg && (
+          {!visual.teamImg && !visual.avatarImg && (
             <div className="absolute rounded-full pointer-events-none" style={{
               width: "65%", height: "65%",
               border: "1.5px solid rgba(180,150,100,0.5)",
@@ -806,13 +812,16 @@ export function CheckersGame({ onBack }: { onBack: () => void }) {
           {visual.teamImg && (
             <img src={visual.teamImg} alt="" className="w-[60%] h-[60%] object-contain pointer-events-none select-none" draggable={false} />
           )}
+          {visual.avatarImg && (
+            <img src={visual.avatarImg} alt="" className="w-[75%] h-[75%] rounded-full object-cover pointer-events-none select-none" draggable={false} />
+          )}
         </div>
       </div>
     );
   };
 
   // ── CUSTOMIZER PANEL ──
-  const [customizerTab, setCustomizerTab] = useState<"cores" | "times">("cores");
+  const [customizerTab, setCustomizerTab] = useState<"cores" | "times" | "foto">("cores");
   const customizerPanel = (
     <AnimatePresence>
       {showCustomizer && (
@@ -826,17 +835,22 @@ export function CheckersGame({ onBack }: { onBack: () => void }) {
             <h3 className="text-sm font-black" style={{ color: "#5a3e0a" }}>Personalizar Peças</h3>
           </div>
           <div className="px-4 py-3 space-y-3">
-            {/* Tabs: Cores / Times */}
+            {/* Tabs: Cores / Times / Foto */}
             <div className="flex gap-2">
-              <button onClick={() => setCustomizerTab("cores")}
+              <button onClick={() => { setCustomizerTab("cores"); setPieceStyle(p => ({ ...p, useAvatar: false })); }}
                 className="flex-1 py-1.5 rounded-lg text-xs font-bold transition-all"
                 style={{ background: customizerTab === "cores" ? "#8B6914" : "#f0e8d0", color: customizerTab === "cores" ? "#fff" : "#5a3e0a", border: customizerTab === "cores" ? "2px solid #a07818" : "1px solid #d4c8a0" }}>
                 🎨 Cores
               </button>
-              <button onClick={() => setCustomizerTab("times")}
+              <button onClick={() => { setCustomizerTab("times"); setPieceStyle(p => ({ ...p, useAvatar: false })); }}
                 className="flex-1 py-1.5 rounded-lg text-xs font-bold transition-all"
                 style={{ background: customizerTab === "times" ? "#8B6914" : "#f0e8d0", color: customizerTab === "times" ? "#fff" : "#5a3e0a", border: customizerTab === "times" ? "2px solid #a07818" : "1px solid #d4c8a0" }}>
                 ⚽ Times
+              </button>
+              <button onClick={() => { setCustomizerTab("foto"); setPieceStyle(p => ({ ...p, useAvatar: true, team: undefined })); }}
+                className="flex-1 py-1.5 rounded-lg text-xs font-bold transition-all"
+                style={{ background: customizerTab === "foto" ? "#8B6914" : "#f0e8d0", color: customizerTab === "foto" ? "#fff" : "#5a3e0a", border: customizerTab === "foto" ? "2px solid #a07818" : "1px solid #d4c8a0" }}>
+                📷 Foto
               </button>
             </div>
 
@@ -846,7 +860,7 @@ export function CheckersGame({ onBack }: { onBack: () => void }) {
                 <div className="flex flex-wrap gap-2">
                   {PIECE_COLORS.map(c => (
                     <button key={c.id}
-                      onClick={(e) => { e.stopPropagation(); setPieceStyle(p => ({ ...p, color: c.id, team: undefined })); }}
+                      onClick={(e) => { e.stopPropagation(); setPieceStyle(p => ({ ...p, color: c.id, team: undefined, useAvatar: false })); }}
                       className="w-9 h-9 rounded-full transition-all flex-shrink-0 relative z-10"
                       style={{
                         background: c.gradient,
@@ -891,6 +905,44 @@ export function CheckersGame({ onBack }: { onBack: () => void }) {
               </div>
             )}
 
+            {customizerTab === "foto" && (
+              <div className="space-y-2">
+                <p className="text-xs font-bold" style={{ color: "#5a3e0a" }}>Sua Foto de Perfil</p>
+                {playerAvatar ? (
+                  <div className="flex items-center gap-3 p-3 rounded-lg" style={{ background: "#f0e8d0" }}>
+                    <div className="w-12 h-12 rounded-full overflow-hidden flex-shrink-0" style={{ border: "3px solid #8B6914", boxShadow: "0 0 8px rgba(139,105,20,0.5)" }}>
+                      <img src={playerAvatar} alt={firstName} className="w-full h-full object-cover" />
+                    </div>
+                    <div>
+                      <p className="text-xs font-bold" style={{ color: "#5a3e0a" }}>{firstName}</p>
+                      <p className="text-[10px]" style={{ color: "#8a7040" }}>Sua foto será exibida nas peças!</p>
+                    </div>
+                  </div>
+                ) : (
+                  <div className="text-center p-4 rounded-lg" style={{ background: "#f0e8d0" }}>
+                    <p className="text-xs" style={{ color: "#8a7040" }}>Nenhuma foto de perfil encontrada.</p>
+                    <p className="text-[10px] mt-1" style={{ color: "#8a7040" }}>Adicione uma foto nas Configurações.</p>
+                  </div>
+                )}
+                <p className="text-xs font-bold mt-2" style={{ color: "#5a3e0a" }}>Cor de fundo da peça</p>
+                <div className="flex flex-wrap gap-2">
+                  {PIECE_COLORS.map(c => (
+                    <button key={c.id}
+                      onClick={(e) => { e.stopPropagation(); setPieceStyle(p => ({ ...p, color: c.id, useAvatar: true, team: undefined })); }}
+                      className="w-8 h-8 rounded-full transition-all flex-shrink-0 relative z-10"
+                      style={{
+                        background: c.gradient,
+                        border: pieceStyle.color === c.id ? `3px solid #8B6914` : `2px solid ${c.border}`,
+                        boxShadow: pieceStyle.color === c.id ? "0 0 8px rgba(139,105,20,0.5)" : "0 2px 4px rgba(0,0,0,0.2)",
+                        transform: pieceStyle.color === c.id ? "scale(1.15)" : "scale(1)",
+                      }}
+                      title={c.label}
+                    />
+                  ))}
+                </div>
+              </div>
+            )}
+
             <div>
               <p className="text-xs font-bold mb-2" style={{ color: "#5a3e0a" }}>Efeito Visual</p>
               <div className="flex flex-wrap gap-1.5">
@@ -911,20 +963,27 @@ export function CheckersGame({ onBack }: { onBack: () => void }) {
             {/* Preview */}
             <div className="flex items-center gap-3 p-3 rounded-lg" style={{ background: "#f0e8d0" }}>
               <span className="text-xs font-bold" style={{ color: "#8a7040" }}>Preview:</span>
-              <div className={`w-10 h-10 rounded-full flex items-center justify-center relative ${effectClass}`}
-                style={{
-                  background: getPieceVisual("white", pieceStyle).bg,
-                  border: `2.5px solid ${getPieceVisual("white", pieceStyle).border}`,
-                  boxShadow: "0 3px 6px rgba(0,0,0,0.3)",
-                  color: getPieceVisual("white", pieceStyle).border,
-                }}
-              >
-                {getPieceVisual("white", pieceStyle).teamImg ? (
-                  <img src={getPieceVisual("white", pieceStyle).teamImg} alt="" className="w-[60%] h-[60%] object-contain pointer-events-none" />
-                ) : (
-                  <div className="absolute rounded-full pointer-events-none" style={{ width: "65%", height: "65%", border: "1.5px solid rgba(180,150,100,0.5)" }} />
-                )}
-              </div>
+              {(() => {
+                const pv = getPieceVisual("white", pieceStyle, playerAvatar);
+                return (
+                  <div className={`w-10 h-10 rounded-full flex items-center justify-center relative ${effectClass}`}
+                    style={{
+                      background: pv.bg,
+                      border: `2.5px solid ${pv.border}`,
+                      boxShadow: "0 3px 6px rgba(0,0,0,0.3)",
+                      color: pv.border,
+                    }}
+                  >
+                    {pv.avatarImg ? (
+                      <img src={pv.avatarImg} alt="" className="w-[75%] h-[75%] rounded-full object-cover pointer-events-none" />
+                    ) : pv.teamImg ? (
+                      <img src={pv.teamImg} alt="" className="w-[60%] h-[60%] object-contain pointer-events-none" />
+                    ) : (
+                      <div className="absolute rounded-full pointer-events-none" style={{ width: "65%", height: "65%", border: "1.5px solid rgba(180,150,100,0.5)" }} />
+                    )}
+                  </div>
+                );
+              })()}
             </div>
           </div>
         </motion.div>
