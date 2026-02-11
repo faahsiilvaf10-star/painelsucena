@@ -46,6 +46,23 @@ export const useChatMessages = (otherUserId: string | null) => {
           });
       }
 
+      // Mark incoming messages as read
+      const unread = data.filter(
+        (m) => m.sender_id === otherUserId && !m.read_at
+      );
+      if (unread.length > 0) {
+        const readIds = unread.map((m) => m.id);
+        supabase
+          .from("chat_messages")
+          .update({ read_at: new Date().toISOString() })
+          .in("id", readIds)
+          .then(() => {
+            queryClient.invalidateQueries({
+              queryKey: ["chat-messages", user.id, otherUserId],
+            });
+          });
+      }
+
       return data;
     },
     enabled: !!user?.id && !!otherUserId,
@@ -74,18 +91,35 @@ export const useChatMessages = (otherUserId: string | null) => {
         },
         (payload) => {
           const newMessage = payload.new as ChatMessage;
-          // Only process if it's relevant to this conversation
           if (
             (newMessage.sender_id === user.id && newMessage.receiver_id === otherUserId) ||
             (newMessage.sender_id === otherUserId && newMessage.receiver_id === user.id)
           ) {
-            // Play sound only for incoming messages (not sent by current user)
             if (newMessage.sender_id === otherUserId && newMessage.id !== lastMessageIdRef.current) {
               playSoundFile("/sounds/msn-chat.mp3");
             }
             
             lastMessageIdRef.current = newMessage.id;
             
+            queryClient.invalidateQueries({
+              queryKey: ["chat-messages", user.id, otherUserId],
+            });
+          }
+        }
+      )
+      .on(
+        "postgres_changes",
+        {
+          event: "UPDATE",
+          schema: "public",
+          table: "chat_messages",
+        },
+        (payload) => {
+          const updated = payload.new as ChatMessage;
+          if (
+            (updated.sender_id === user.id && updated.receiver_id === otherUserId) ||
+            (updated.sender_id === otherUserId && updated.receiver_id === user.id)
+          ) {
             queryClient.invalidateQueries({
               queryKey: ["chat-messages", user.id, otherUserId],
             });
