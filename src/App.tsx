@@ -33,7 +33,7 @@ import Estoque from "./pages/Estoque";
 import Documentos from "./pages/Documentos";
 import Atividades from "./pages/Atividades";
 import AtividadesII from "./pages/AtividadesII";
-import Metas from "./pages/Metas";
+
 import VistoriasEquipamentos from "./pages/VistoriasEquipamentos";
 import Homologados from "./pages/Homologados";
 import VistoriaCintas from "./pages/VistoriaCintas";
@@ -123,7 +123,7 @@ const App = () => (
                     <Route path="/documentos" element={<ProtectedRoute><Documentos /></ProtectedRoute>} />
                     <Route path="/atividades" element={<ProtectedRoute><Atividades /></ProtectedRoute>} />
                     <Route path="/atividades-ii" element={<ProtectedRoute><AtividadesII /></ProtectedRoute>} />
-                    <Route path="/metas" element={<ProtectedRoute><Metas /></ProtectedRoute>} />
+                    
                     <Route path="/vistorias-equipamentos" element={<ProtectedRoute><VistoriasEquipamentos /></ProtectedRoute>} />
                     <Route path="/homologados" element={<ProtectedRoute><Homologados /></ProtectedRoute>} />
                     <Route path="/vistoria-cintas" element={<ProtectedRoute><VistoriaCintas /></ProtectedRoute>} />

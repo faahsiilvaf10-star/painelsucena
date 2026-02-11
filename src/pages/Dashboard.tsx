@@ -26,7 +26,7 @@ import { CampaignBanner } from "@/components/campaigns/CampaignBanner";
 import { OrderHighlightBanner } from "@/components/orders/OrderHighlightBanner";
 import { EquipmentStatusCard } from "@/components/dashboard/EquipmentStatusCard";
 import { DocumentExpiryBanner } from "@/components/documents/DocumentExpiryBanner";
-import { GoalAlertBanner } from "@/components/dashboard/GoalAlertBanner";
+
 import { VehicleExpiryBanner } from "@/components/vistorias/VehicleExpiryBanner";
 import { SlingInspectionBanner } from "@/components/dashboard/SlingInspectionBanner";
 import { InspectionScheduleBanner } from "@/components/dashboard/InspectionScheduleBanner";
@@ -124,7 +124,7 @@ const Dashboard = () => {
     switch (id) {
       case "birthday": return <BirthdayBanner />;
       case "matrix_alert": return <MatrixAlertBanner />;
-      case "goal_alert": return <GoalAlertBanner />;
+      case "goal_alert": return null;
       case "campaign": return <CampaignBanner />;
       case "reminder": return <ReminderHighlightBanner />;
       case "order": return <OrderHighlightBanner />;
