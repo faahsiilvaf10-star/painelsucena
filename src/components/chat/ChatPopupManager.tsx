@@ -1,4 +1,4 @@
-import { useState, useEffect, useCallback } from "react";
+import { useState, useEffect, useCallback, useRef } from "react";
 import { supabase } from "@/integrations/supabase/client";
 import { useAuth } from "@/hooks/useAuth";
 import { useAllUsers, UserWithStatus } from "@/hooks/useAllUsers";
@@ -52,6 +52,36 @@ export const ChatPopupManager = ({ onExpandChat }: ChatPopupManagerProps) => {
       return newPopups;
     });
   }, []);
+
+  // On mount: check for unread messages and open popups
+  const hasCheckedUnread = useRef(false);
+  useEffect(() => {
+    if (!user?.id || allUsers.length === 0 || hasCheckedUnread.current) return;
+    hasCheckedUnread.current = true;
+
+    const checkUnread = async () => {
+      const { data: unreadMessages } = await supabase
+        .from("chat_messages")
+        .select("sender_id")
+        .eq("receiver_id", user.id)
+        .is("read_at", null)
+        .order("created_at", { ascending: false });
+
+      if (!unreadMessages || unreadMessages.length === 0) return;
+
+      // Get unique sender IDs
+      const uniqueSenderIds = [...new Set(unreadMessages.map(m => m.sender_id))];
+
+      for (const senderId of uniqueSenderIds.slice(0, 3)) {
+        const senderUser = allUsers.find(u => u.user_id === senderId);
+        if (senderUser) {
+          openPopup(senderUser);
+        }
+      }
+    };
+
+    checkUnread();
+  }, [user?.id, allUsers, openPopup]);
 
   // Listen for new messages and open popup
   useEffect(() => {
