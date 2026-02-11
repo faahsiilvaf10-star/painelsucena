@@ -29,6 +29,7 @@ const NAV_ITEMS_MAP: Record<string, string> = {
   "metas": "Metas",
   "campanhas": "Campanhas",
   "dds": "DDS",
+  "desvios": "Desvios",
   "documentos": "Documentos",
   "entrada-saida": "Entrada/Saída Equipamentos",
   "estoque": "Estoque",
@@ -50,15 +51,17 @@ const NAV_ITEMS_MAP: Record<string, string> = {
   "slides": "Slides IA",
   "instacena": "InstaCena",
   "inspecao-canteiro": "Inspeção de Canteiro",
+  "calendario-hydro": "Calendário Hydro",
+  "games": "Games",
   "emergencia": "Emergência",
 };
 
 const DEFAULT_NAV_ORDER = [
-  "destaques", "atividades", "atividades-ii", "metas", "campanhas", "dds", "documentos",
-  "entrada-saida", "estoque", "lembretes", "parte-diaria", "presenca", "matriz", "pedidos",
-  "rdo", "relatorio", "rh", "vistorias", "homologados", "vistoria-cintas", "hora-extra",
-  "arquivos-seguranca", "consumo-abastecimento", "plano-manutencao", "slides", "instacena",
-  "inspecao-canteiro", "emergencia"
+  "destaques", "instacena", "calendario-hydro", "arquivos-seguranca", "atividades", "atividades-ii", "campanhas",
+  "consumo-abastecimento", "dds", "desvios", "documentos", "entrada-saida", "estoque", "homologados",
+  "hora-extra", "inspecao-canteiro", "lembretes", "relatorio", "matriz", "metas",
+  "parte-diaria", "pedidos", "plano-manutencao", "rdo", "presenca", "rh", "slides",
+  "vistoria-cintas", "vistorias", "emergencia", "games"
 ];
 
 function SortableNavItem({ id, label }: { id: string; label: string }) {
