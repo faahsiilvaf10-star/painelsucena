@@ -11,7 +11,7 @@ import { SessionTimeIndicator } from "@/components/session/SessionTimeIndicator"
 import { useChatNotifications } from "@/hooks/useChatNotifications";
 import { useInstaCenaNotifications } from "@/hooks/useInstaCenaNotifications";
 import { useInstaCenaBellNotifications } from "@/hooks/useInstaCenaBellNotifications";
-import { GoalAchievementMonitor } from "@/components/goals/GoalAchievementMonitor";
+
 import { useVisualizadorContext } from "@/contexts/VisualizadorContext";
 import { useProfile } from "@/hooks/useProfile";
 import { Eye } from "lucide-react";
@@ -109,7 +109,7 @@ const Layout = ({ children }: LayoutProps) => {
       <ForbiddenColorIndicator />
       <AnnouncementModal />
       <SessionExpiryWarning />
-      <GoalAchievementMonitor />
+      
     </SidebarInset>
   );
 };

@@ -33,7 +33,7 @@ import { cn } from "@/lib/utils";
 import MonthlyReportDialog from "@/components/atividades/MonthlyReportDialog";
 import { PhotoUploader } from "@/components/atividades/PhotoUploader";
 import { ReadOnlyBanner } from "@/components/ReadOnlyBanner";
-import { GoalProgressCard } from "@/components/goals/GoalProgressCard";
+
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import MudasPlantioTab from "@/components/atividades/MudasPlantioTab";
 
@@ -745,8 +745,6 @@ export default function Atividades() {
           </div>
         )}
 
-        {/* Goal Progress Card - Only Jardinagem */}
-        <GoalProgressCard type="jardinagem" />
 
         <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
           {/* Form */}

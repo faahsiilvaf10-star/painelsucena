@@ -33,7 +33,7 @@ import { cn } from "@/lib/utils";
 import MonthlyReportDialog from "@/components/atividades/MonthlyReportDialog";
 import { PhotoUploader } from "@/components/atividades/PhotoUploader";
 import { ReadOnlyBanner } from "@/components/ReadOnlyBanner";
-import { GoalProgressCard } from "@/components/goals/GoalProgressCard";
+
 
 const FAIXA_OPTIONS = [
   { value: "FAIXA 2", label: "FAIXA 2" },
@@ -734,8 +734,6 @@ export default function AtividadesII() {
           );
         })()}
 
-        {/* Goal Progress Card - Only Gabião */}
-        <GoalProgressCard type="gabiao" />
 
         {/* Main Content */}
         <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
