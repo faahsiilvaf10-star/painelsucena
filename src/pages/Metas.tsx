@@ -81,19 +81,21 @@ export default function Metas() {
   const [recomposicaoCascalho, setRecomposicaoCascalho] = useState("");
   const [recomposicaoSilteRecomp, setRecomposicaoSilteRecomp] = useState("");
 
-  // Check view permission - Admin, Planejador, Encarregado Geral, Encarregado I, Encarregado II
+  // Check view permission - Admin, Planejador, Engenheiro Planejamento, Encarregado Geral, Encarregado I, Encarregado II
   const canView = authReady && (
     isAdmin || 
     profile?.cargo === "planejador" || 
+    profile?.cargo === "engenheiro_planejamento" || 
     profile?.cargo === "encarregado_geral" || 
     profile?.cargo === "encarregado_i" || 
     profile?.cargo === "encarregado_ii"
   );
   
-  // Check edit permission - only Admin, Planejador, Encarregado Geral, Encarregado I, Encarregado II
+  // Check edit permission - only Admin, Planejador, Engenheiro Planejamento, Encarregado Geral, Encarregado I, Encarregado II
   const canEdit = authReady && (
     isAdmin || 
     profile?.cargo === "planejador" || 
+    profile?.cargo === "engenheiro_planejamento" || 
     profile?.cargo === "encarregado_geral" || 
     profile?.cargo === "encarregado_i" || 
     profile?.cargo === "encarregado_ii"
@@ -169,7 +171,7 @@ export default function Metas() {
           <Target className="h-16 w-16 text-muted-foreground" />
           <h1 className="text-2xl font-bold text-muted-foreground">Acesso Restrito</h1>
           <p className="text-muted-foreground text-center max-w-md">
-            Esta página é visível apenas para Administradores, Planejadores, Encarregado Geral, Encarregado I e Encarregado II.
+            Esta página é visível apenas para Administradores, Planejadores, Engenheiros de Planejamento, Encarregado Geral, Encarregado I e Encarregado II.
           </p>
           <Button onClick={() => navigate("/")}>Voltar ao Início</Button>
         </div>
