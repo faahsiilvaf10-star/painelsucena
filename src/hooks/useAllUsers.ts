@@ -46,10 +46,11 @@ export const useAllUsers = () => {
   const channelRef = useRef<RealtimeChannel | null>(null);
   const heartbeatRef = useRef<number | null>(null);
   const justOnlineTimeoutRef = useRef<number | null>(null);
-  // Grace period: keep users online for at least 60s after last seen
-  const ONLINE_GRACE_MS = 60_000;
+  // Grace period: keep users online for at least 90s after last seen
+  const ONLINE_GRACE_MS = 90_000;
+  const GRACE_CLEANUP_INTERVAL_MS = 15_000;
   const lastSeenTimestampRef = useRef<Map<string, number>>(new Map());
-  const graceTimerRef = useRef<number | null>(null);
+  const graceCleanupRef = useRef<number | null>(null);
 
   const cachedProfileRef = useRef<ProfileData | null>(null);
 
@@ -136,9 +137,9 @@ export const useAllUsers = () => {
       window.clearTimeout(justOnlineTimeoutRef.current);
       justOnlineTimeoutRef.current = null;
     }
-    if (graceTimerRef.current) {
-      window.clearTimeout(graceTimerRef.current);
-      graceTimerRef.current = null;
+    if (graceCleanupRef.current) {
+      window.clearInterval(graceCleanupRef.current);
+      graceCleanupRef.current = null;
     }
 
     // Reset cached profile when user changes
@@ -249,30 +250,7 @@ export const useAllUsers = () => {
       previousOnlineIdsRef.current = effectiveOnlineIds;
       setOnlineUserIds(new Set(effectiveOnlineIds));
 
-      // Schedule a re-evaluation after grace period expires for users not in presence
-      // This ensures they eventually go offline if they don't come back
-      if (graceTimerRef.current) {
-        window.clearTimeout(graceTimerRef.current);
-      }
-      const usersOnGrace = [...effectiveOnlineIds].filter(id => !presenceOnlineIds.has(id) && id !== user.id);
-      if (usersOnGrace.length > 0) {
-        graceTimerRef.current = window.setTimeout(() => {
-          // Re-evaluate: remove users whose grace expired
-          const recheckNow = Date.now();
-          setOnlineUserIds((prev) => {
-            const next = new Set(prev);
-            usersOnGrace.forEach((id) => {
-              const lastTs = lastSeenTimestampRef.current.get(id);
-              if (!lastTs || recheckNow - lastTs >= ONLINE_GRACE_MS) {
-                next.delete(id);
-                lastSeenTimestampRef.current.delete(id);
-              }
-            });
-            previousOnlineIdsRef.current = next;
-            return next;
-          });
-        }, ONLINE_GRACE_MS);
-      }
+      // Grace cleanup is handled by a stable interval (see below)
     };
 
     // Immediately mark current user as online before channel connects
@@ -294,6 +272,29 @@ export const useAllUsers = () => {
           }, 15000);
         }
       });
+
+    // Stable interval to clean up expired grace periods
+    graceCleanupRef.current = window.setInterval(() => {
+      const now = Date.now();
+      setOnlineUserIds((prev) => {
+        const next = new Set(prev);
+        let changed = false;
+        prev.forEach((id) => {
+          if (id === user.id) return;
+          const lastTs = lastSeenTimestampRef.current.get(id);
+          if (lastTs && now - lastTs >= ONLINE_GRACE_MS) {
+            next.delete(id);
+            lastSeenTimestampRef.current.delete(id);
+            changed = true;
+          }
+        });
+        if (changed) {
+          previousOnlineIdsRef.current = next;
+          return next;
+        }
+        return prev;
+      });
+    }, GRACE_CLEANUP_INTERVAL_MS);
 
     // Handle visibility change - re-track when tab becomes visible or hidden
     const handleVisibilityChange = () => {
@@ -332,9 +333,9 @@ export const useAllUsers = () => {
         window.clearTimeout(justOnlineTimeoutRef.current);
         justOnlineTimeoutRef.current = null;
       }
-      if (graceTimerRef.current) {
-        window.clearTimeout(graceTimerRef.current);
-        graceTimerRef.current = null;
+      if (graceCleanupRef.current) {
+        window.clearInterval(graceCleanupRef.current);
+        graceCleanupRef.current = null;
       }
       presenceChannel.unsubscribe();
       channelRef.current = null;
