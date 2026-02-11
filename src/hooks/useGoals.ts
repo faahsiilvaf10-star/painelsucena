@@ -433,7 +433,7 @@ export const useHistoricalGoals = () => {
         // Parse month_year to get the period dates
         const [year, month] = goal.month_year.split("-").map(Number);
         const startDate = new Date(year, month - 1, 16);
-        const endDate = new Date(year, month, 16);
+        const endDate = new Date(year, month, 15);
 
         const startStr = format(startDate, "yyyy-MM-dd");
         const endStr = format(endDate, "yyyy-MM-dd");

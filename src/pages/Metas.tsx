@@ -31,7 +31,7 @@ const generatePeriodOptions = () => {
   for (let i = 0; i < 12; i++) {
     const baseDate = subMonths(today, i);
     const startDate = setDate(baseDate, 16);
-    const endDate = setDate(addMonths(baseDate, 1), 16);
+    const endDate = setDate(addMonths(baseDate, 1), 15);
     const monthYear = format(startDate, "yyyy-MM");
     const label = `${format(startDate, "dd/MM/yyyy")} a ${format(endDate, "dd/MM/yyyy")}`;
     
@@ -247,7 +247,7 @@ export default function Metas() {
             </div>
             <div className="min-w-0">
               <h1 className="text-lg sm:text-2xl font-bold">Metas de Medição</h1>
-              <p className="text-sm text-muted-foreground">Metas por período (dia 16 a 16)</p>
+              <p className="text-sm text-muted-foreground">Metas por período (dia 16 a 15)</p>
             </div>
           </div>
 
