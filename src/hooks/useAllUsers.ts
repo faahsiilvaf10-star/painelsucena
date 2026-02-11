@@ -46,6 +46,10 @@ export const useAllUsers = () => {
   const channelRef = useRef<RealtimeChannel | null>(null);
   const heartbeatRef = useRef<number | null>(null);
   const justOnlineTimeoutRef = useRef<number | null>(null);
+  // Grace period: keep users online for at least 60s after last seen
+  const ONLINE_GRACE_MS = 60_000;
+  const lastSeenTimestampRef = useRef<Map<string, number>>(new Map());
+  const graceTimerRef = useRef<number | null>(null);
 
   const cachedProfileRef = useRef<ProfileData | null>(null);
 
@@ -132,6 +136,10 @@ export const useAllUsers = () => {
       window.clearTimeout(justOnlineTimeoutRef.current);
       justOnlineTimeoutRef.current = null;
     }
+    if (graceTimerRef.current) {
+      window.clearTimeout(graceTimerRef.current);
+      graceTimerRef.current = null;
+    }
 
     // Reset cached profile when user changes
     cachedProfileRef.current = null;
@@ -148,14 +156,15 @@ export const useAllUsers = () => {
 
     const handlePresenceSync = () => {
       const state = presenceChannel.presenceState();
-      const currentOnlineIds = new Set<string>();
+      const presenceOnlineIds = new Set<string>();
       const onlineAtTimes = new Map<string, string>();
+      const now = Date.now();
 
-      // Extract online user IDs and their online_at times
+      // Extract online user IDs from presence state
       Object.values(state).forEach((presences: any[]) => {
         presences.forEach((presence) => {
           if (presence?.user_id) {
-            currentOnlineIds.add(presence.user_id);
+            presenceOnlineIds.add(presence.user_id);
             if (presence.online_at) {
               onlineAtTimes.set(presence.user_id, presence.online_at);
             }
@@ -163,12 +172,28 @@ export const useAllUsers = () => {
         });
       });
 
-      // Always include current user as online
-      currentOnlineIds.add(user.id);
+      // Update last-seen timestamps for users currently in presence
+      presenceOnlineIds.forEach((id) => {
+        lastSeenTimestampRef.current.set(id, now);
+      });
 
-      // Detect users who just came online
+      // Build effective online set: presence + grace period
+      const effectiveOnlineIds = new Set<string>(presenceOnlineIds);
+      lastSeenTimestampRef.current.forEach((ts, id) => {
+        if (now - ts < ONLINE_GRACE_MS) {
+          effectiveOnlineIds.add(id);
+        } else {
+          // Expired — clean up
+          lastSeenTimestampRef.current.delete(id);
+        }
+      });
+
+      // Always include current user as online
+      effectiveOnlineIds.add(user.id);
+
+      // Detect users who just came online (not in previous effective set)
       const newlyOnline = new Set<string>();
-      currentOnlineIds.forEach((id) => {
+      effectiveOnlineIds.forEach((id) => {
         if (!previousOnlineIdsRef.current.has(id) && id !== user.id) {
           newlyOnline.add(id);
         }
@@ -207,7 +232,7 @@ export const useAllUsers = () => {
         
         // Set lastSeen to now for users who just went offline
         previousOnlineIdsRef.current.forEach((id) => {
-          if (!currentOnlineIds.has(id)) {
+          if (!effectiveOnlineIds.has(id)) {
             next.set(id, new Date().toISOString());
           }
         });
@@ -221,8 +246,33 @@ export const useAllUsers = () => {
       });
 
       // Update refs and state
-      previousOnlineIdsRef.current = currentOnlineIds;
-      setOnlineUserIds(new Set(currentOnlineIds));
+      previousOnlineIdsRef.current = effectiveOnlineIds;
+      setOnlineUserIds(new Set(effectiveOnlineIds));
+
+      // Schedule a re-evaluation after grace period expires for users not in presence
+      // This ensures they eventually go offline if they don't come back
+      if (graceTimerRef.current) {
+        window.clearTimeout(graceTimerRef.current);
+      }
+      const usersOnGrace = [...effectiveOnlineIds].filter(id => !presenceOnlineIds.has(id) && id !== user.id);
+      if (usersOnGrace.length > 0) {
+        graceTimerRef.current = window.setTimeout(() => {
+          // Re-evaluate: remove users whose grace expired
+          const recheckNow = Date.now();
+          setOnlineUserIds((prev) => {
+            const next = new Set(prev);
+            usersOnGrace.forEach((id) => {
+              const lastTs = lastSeenTimestampRef.current.get(id);
+              if (!lastTs || recheckNow - lastTs >= ONLINE_GRACE_MS) {
+                next.delete(id);
+                lastSeenTimestampRef.current.delete(id);
+              }
+            });
+            previousOnlineIdsRef.current = next;
+            return next;
+          });
+        }, ONLINE_GRACE_MS);
+      }
     };
 
     // Immediately mark current user as online before channel connects
@@ -281,6 +331,10 @@ export const useAllUsers = () => {
       if (justOnlineTimeoutRef.current) {
         window.clearTimeout(justOnlineTimeoutRef.current);
         justOnlineTimeoutRef.current = null;
+      }
+      if (graceTimerRef.current) {
+        window.clearTimeout(graceTimerRef.current);
+        graceTimerRef.current = null;
       }
       presenceChannel.unsubscribe();
       channelRef.current = null;
