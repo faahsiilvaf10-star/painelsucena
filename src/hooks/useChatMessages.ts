@@ -1,4 +1,4 @@
-import { useState, useEffect, useRef } from "react";
+import { useState, useEffect, useRef, useCallback } from "react";
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import { supabase } from "@/integrations/supabase/client";
 import { useAuth } from "./useAuth";
@@ -12,6 +12,7 @@ export const useChatMessages = (otherUserId: string | null) => {
   const queryClient = useQueryClient();
   const lastMessageIdRef = useRef<string | null>(null);
   const isInitialLoadRef = useRef(true);
+  const markingReadRef = useRef(false);
 
   // Fetch messages between current user and selected user
   const { data: messages = [], isLoading } = useQuery({
@@ -28,45 +29,58 @@ export const useChatMessages = (otherUserId: string | null) => {
         .order("created_at", { ascending: true });
 
       if (error) throw error;
-
-      // Mark incoming messages as delivered
-      const undelivered = data.filter(
-        (m) => m.sender_id === otherUserId && !m.delivered_at
-      );
-      if (undelivered.length > 0) {
-        const ids = undelivered.map((m) => m.id);
-        supabase
-          .from("chat_messages")
-          .update({ delivered_at: new Date().toISOString() })
-          .in("id", ids)
-          .then(() => {
-            queryClient.invalidateQueries({
-              queryKey: ["chat-messages", user.id, otherUserId],
-            });
-          });
-      }
-
-      // Mark incoming messages as read
-      const unread = data.filter(
-        (m) => m.sender_id === otherUserId && !m.read_at
-      );
-      if (unread.length > 0) {
-        const readIds = unread.map((m) => m.id);
-        supabase
-          .from("chat_messages")
-          .update({ read_at: new Date().toISOString() })
-          .in("id", readIds)
-          .then(() => {
-            queryClient.invalidateQueries({
-              queryKey: ["chat-messages", user.id, otherUserId],
-            });
-          });
-      }
-
       return data;
     },
     enabled: !!user?.id && !!otherUserId,
   });
+
+  // Mark incoming messages as delivered and read (separate from queryFn to avoid loops)
+  useEffect(() => {
+    if (!user?.id || !otherUserId || messages.length === 0 || markingReadRef.current) return;
+
+    const undelivered = messages.filter(
+      (m) => m.sender_id === otherUserId && !m.delivered_at
+    );
+    const unread = messages.filter(
+      (m) => m.sender_id === otherUserId && !m.read_at
+    );
+
+    if (undelivered.length === 0 && unread.length === 0) return;
+
+    markingReadRef.current = true;
+
+    const markMessages = async () => {
+      try {
+        const now = new Date().toISOString();
+
+        if (undelivered.length > 0) {
+          await supabase
+            .from("chat_messages")
+            .update({ delivered_at: now })
+            .in("id", undelivered.map((m) => m.id));
+        }
+
+        if (unread.length > 0) {
+          await supabase
+            .from("chat_messages")
+            .update({ read_at: now })
+            .in("id", unread.map((m) => m.id));
+        }
+
+        // Single invalidation after both updates
+        queryClient.invalidateQueries({
+          queryKey: ["chat-messages", user.id, otherUserId],
+        });
+      } finally {
+        // Delay to prevent immediate re-triggering
+        setTimeout(() => {
+          markingReadRef.current = false;
+        }, 2000);
+      }
+    };
+
+    markMessages();
+  }, [messages, user?.id, otherUserId, queryClient]);
 
   // Track initial load to prevent sound on first load
   useEffect(() => {
@@ -137,6 +151,7 @@ export const useChatMessages = (otherUserId: string | null) => {
   useEffect(() => {
     isInitialLoadRef.current = true;
     lastMessageIdRef.current = null;
+    markingReadRef.current = false;
   }, [otherUserId]);
 
   // Send message mutation
