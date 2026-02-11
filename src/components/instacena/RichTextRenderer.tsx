@@ -111,6 +111,36 @@ function parseRichText(input: string): RichSegment[] {
   return segments;
 }
 
+/** Splits text by URLs and :emoji_id: patterns and returns mixed React nodes */
+function renderWithLinksAndEmojis(text: string): React.ReactNode[] {
+  // First split by URLs
+  const urlRegex = /(https?:\/\/[^\s<>{}()\[\]"']+)/g;
+  const parts = text.split(urlRegex);
+
+  const nodes: React.ReactNode[] = [];
+  parts.forEach((part, idx) => {
+    if (urlRegex.test(part)) {
+      nodes.push(
+        <a
+          key={`link-${idx}`}
+          href={part}
+          target="_blank"
+          rel="noopener noreferrer"
+          className="text-blue-400 hover:text-blue-300 underline underline-offset-2 break-all"
+        >
+          {part}
+        </a>
+      );
+    } else {
+      // Then process animated emojis within non-URL text
+      const emojiNodes = renderWithAnimatedEmojis(part);
+      nodes.push(...emojiNodes);
+    }
+  });
+
+  return nodes;
+}
+
 /** Splits text by :emoji_id: patterns and returns mixed React nodes */
 function renderWithAnimatedEmojis(text: string): React.ReactNode[] {
   const emojiIds = ANIMATED_EMOJIS.map((e) => e.id).join("|");
@@ -141,14 +171,16 @@ export function RichTextRenderer({ content }: { content: string }) {
   // Check if content has any formatting markers or animated emojis
   const hasFormatting = /(\*\*|_{1,2}|{color:|{glow|{font:|{fx:|:\w+:)/.test(content);
 
-  if (!hasFormatting) {
-    return <>{content}</>;
+  const hasLinks = /https?:\/\//.test(content);
+
+  if (!hasFormatting && !hasLinks) {
+    return <>{renderWithLinksAndEmojis(content)}</>;
   }
 
   // If only animated emojis, no rich text
   const hasRichText = /(\*\*|_{1,2}|{color:|{glow|{font:|{fx:)/.test(content);
   if (!hasRichText) {
-    return <>{renderWithAnimatedEmojis(content)}</>;
+    return <>{renderWithLinksAndEmojis(content)}</>;
   }
 
   const segments = parseRichText(content);
@@ -192,7 +224,7 @@ export function RichTextRenderer({ content }: { content: string }) {
           }
         }
 
-        const renderedContent = renderWithAnimatedEmojis(seg.text);
+        const renderedContent = renderWithLinksAndEmojis(seg.text);
 
         if (classes.length === 0 && Object.keys(styles).length === 0) {
           return <React.Fragment key={i}>{renderedContent}</React.Fragment>;
