@@ -53,6 +53,7 @@ const NAV_ITEMS_MAP: Record<string, string> = {
   "inspecao-canteiro": "Inspeção de Canteiro",
   "calendario-hydro": "Calendário Hydro",
   "games": "Games",
+  "planejamento": "Planejamento",
   "emergencia": "Emergência",
 };
 
