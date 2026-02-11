@@ -63,7 +63,7 @@ export interface GoalInput {
   recomposicao_silte_unidade?: number;
 }
 
-// Get the current measurement period (16th to 16th)
+// Get the current measurement period (16th to 15th of next month)
 export const getCurrentMeasurementPeriod = () => {
   const today = getBrazilNorthDate();
   const currentDay = today.getDate();
@@ -72,13 +72,13 @@ export const getCurrentMeasurementPeriod = () => {
   let endDate: Date;
   
   if (currentDay >= 16) {
-    // Period: 16th of current month to 16th of next month
+    // Period: 16th of current month to 15th of next month
     startDate = setDate(today, 16);
-    endDate = setDate(addMonths(today, 1), 16);
+    endDate = setDate(addMonths(today, 1), 15);
   } else {
-    // Period: 16th of previous month to 16th of current month
+    // Period: 16th of previous month to 15th of current month
     startDate = setDate(subMonths(today, 1), 16);
-    endDate = setDate(today, 16);
+    endDate = setDate(today, 15);
   }
   
   return {
