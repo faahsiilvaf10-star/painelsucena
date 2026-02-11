@@ -9,7 +9,7 @@ import { useTypingIndicator } from "@/hooks/useTypingIndicator";
 import { useAuth } from "@/hooks/useAuth";
 import { UserWithStatus } from "@/hooks/useAllUsers";
 import { EmojiPicker } from "./EmojiPicker";
-import { Send, X, Loader2, Minimize2, Maximize2, CheckCheck, Paperclip } from "lucide-react";
+import { Send, X, Loader2, Minimize2, Maximize2, Check, CheckCheck, Paperclip } from "lucide-react";
 import { format } from "date-fns";
 import { ptBR } from "date-fns/locale";
 import { cn } from "@/lib/utils";
@@ -282,12 +282,13 @@ export const ChatPopup = ({ user: selectedUser, onClose, onExpand }: ChatPopupPr
                             >
                               {format(new Date(msg.created_at), "HH:mm", { locale: ptBR })}
                               {isOwn && (
-                                <CheckCheck
-                                  className={cn(
-                                    "h-3 w-3",
-                                    msg.read_at ? "text-[#53bdeb]" : "text-gray-400"
-                                  )}
-                                />
+                                msg.read_at ? (
+                                  <CheckCheck className="h-3 w-3 text-[#53bdeb]" />
+                                ) : msg.delivered_at ? (
+                                  <CheckCheck className="h-3 w-3 text-gray-400" />
+                                ) : (
+                                  <Check className="h-3 w-3 text-gray-400" />
+                                )
                               )}
                             </span>
                           </div>

@@ -28,6 +28,24 @@ export const useChatMessages = (otherUserId: string | null) => {
         .order("created_at", { ascending: true });
 
       if (error) throw error;
+
+      // Mark incoming messages as delivered
+      const undelivered = data.filter(
+        (m) => m.sender_id === otherUserId && !m.delivered_at
+      );
+      if (undelivered.length > 0) {
+        const ids = undelivered.map((m) => m.id);
+        supabase
+          .from("chat_messages")
+          .update({ delivered_at: new Date().toISOString() })
+          .in("id", ids)
+          .then(() => {
+            queryClient.invalidateQueries({
+              queryKey: ["chat-messages", user.id, otherUserId],
+            });
+          });
+      }
+
       return data;
     },
     enabled: !!user?.id && !!otherUserId,
