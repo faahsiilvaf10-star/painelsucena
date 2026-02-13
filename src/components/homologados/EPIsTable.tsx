@@ -5,7 +5,7 @@ import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
-import { Search, Filter, X, HardHat, Shield, Eye, ChevronLeft, ChevronRight, Building2 } from "lucide-react";
+import { Search, Filter, X, HardHat, Shield, Eye, ChevronLeft, ChevronRight, Building2, Download } from "lucide-react";
 import { episHomologados, categoriasEPIs, type EPIHomologado } from "@/data/episHomologados";
 import { EPIDetailDialog } from "./EPIDetailDialog";
 
@@ -82,6 +82,22 @@ export function EPIsTable() {
 
   return (
     <div className="space-y-6">
+      {/* Download Catálogo Button */}
+      <div className="flex justify-end">
+        <Button
+          variant="outline"
+          size="sm"
+          className="gap-2"
+          asChild
+        >
+          <a href="/catalogo-epis-homologados.pdf" download="Catálogo de EPIs Homologados.pdf">
+            <Download className="h-4 w-4 text-red-500" />
+            <span className="hidden sm:inline">Catálogo de EPIs</span>
+            <Download className="h-4 w-4 sm:hidden" />
+          </a>
+        </Button>
+      </div>
+
       {/* Stats Cards */}
       <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
         <Card className="bg-primary/5 border-primary/20">
