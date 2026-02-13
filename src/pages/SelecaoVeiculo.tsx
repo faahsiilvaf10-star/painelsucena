@@ -8,7 +8,7 @@ import { Label } from "@/components/ui/label";
 import { useAuth } from "@/hooks/useAuth";
 import { useProfile } from "@/hooks/useProfile";
 import { useEquipment } from "@/hooks/useEquipment";
-import { useCreateEquipmentMovement } from "@/hooks/useEquipmentMovements";
+
 import { VehicleIcon } from "@/components/equipamentos/VehicleIcons";
 import { supabase } from "@/integrations/supabase/client";
 import { useQueryClient } from "@tanstack/react-query";
@@ -26,7 +26,7 @@ export default function SelecaoVeiculo() {
   const { signOut, user } = useAuth();
   const { data: profile } = useProfile();
   const { data: equipment = [], isLoading } = useEquipment();
-  const createMovement = useCreateEquipmentMovement();
+  
   const queryClient = useQueryClient();
   const [selectedVehicle, setSelectedVehicle] = useState<string | null>(null);
   const [helperName, setHelperName] = useState("");
@@ -90,16 +90,8 @@ export default function SelecaoVeiculo() {
       // Invalidate equipment query to reflect changes
       queryClient.invalidateQueries({ queryKey: ["equipment"] });
 
-      // Register entry movement (driver selected vehicle, waiting to start operation)
-      const helperInfo = helperName.trim() ? ` | Ajudante: ${helperName.trim()}` : "";
-      await createMovement.mutateAsync({
-        equipment_name: selectedEquipmentData.name,
-        plate: selectedEquipmentData.plate,
-        movement_type: "entrada",
-        exit_reason: null,
-        problem_description: null,
-        observation: `Motorista ${profile.full_name} selecionou veículo (aguardando início de turno)${helperInfo}`,
-      });
+      // Entry movements are no longer registered automatically
+      // Only exit movements (saída) are tracked in the movements system
 
       // Store selected vehicle in localStorage
       localStorage.setItem("selectedVehicleId", vehicleId);
