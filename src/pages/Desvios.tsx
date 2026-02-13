@@ -45,6 +45,13 @@ interface FormItem {
   photo_url: string | null;
 }
 
+interface CorrectionDialogState {
+  desvioId: string;
+  itemId: string;
+  photoUrl: string | null;
+  observation: string;
+}
+
 export default function Desvios() {
   const { user } = useAuth();
   const { data: desvios, isLoading } = useDesvios();
@@ -68,6 +75,8 @@ export default function Desvios() {
   const [activeItemId, setActiveItemId] = useState<string | null>(null);
   const [correctionTarget, setCorrectionTarget] = useState<{ desvioId: string; itemId: string } | null>(null);
   const correctionInputRef = useRef<HTMLInputElement>(null);
+  const [correctionDialog, setCorrectionDialog] = useState<CorrectionDialogState | null>(null);
+  const correctionDialogInputRef = useRef<HTMLInputElement>(null);
 
   const addFormItem = () => {
     setFormItems((prev) => [...prev, { id: crypto.randomUUID(), description: "", photo_url: null }]);
@@ -119,6 +128,38 @@ export default function Desvios() {
     if (correctionInputRef.current) correctionInputRef.current.value = "";
   };
 
+  const handleCorrectionDialogPhotoUpload = async (e: React.ChangeEvent<HTMLInputElement>) => {
+    const file = e.target.files?.[0];
+    if (!file || !correctionDialog) return;
+    setUploading(true);
+    try {
+      const url = await uploadPhoto.mutateAsync(file);
+      setCorrectionDialog((prev) => prev ? { ...prev, photoUrl: url } : null);
+    } catch {
+      toast.error("Erro ao fazer upload da foto");
+    }
+    setUploading(false);
+    if (correctionDialogInputRef.current) correctionDialogInputRef.current.value = "";
+  };
+
+  const handleSaveCorrection = async () => {
+    if (!correctionDialog) return;
+    if (!correctionDialog.photoUrl) {
+      toast.error("Adicione uma foto de correção");
+      return;
+    }
+    const desvio = desvios?.find((d) => d.id === correctionDialog.desvioId);
+    if (!desvio) return;
+    const updatedItems = desvio.items.map((item) =>
+      item.id === correctionDialog.itemId
+        ? { ...item, correction_photo_url: correctionDialog.photoUrl, correction_observation: correctionDialog.observation.trim() || null }
+        : item
+    );
+    await updateItems.mutateAsync({ desvioId: correctionDialog.desvioId, items: updatedItems });
+    toast.success("Correção registrada!");
+    setCorrectionDialog(null);
+  };
+
   const handleSubmit = async () => {
     const validItems = formItems.filter((item) => item.description.trim());
     if (validItems.length === 0) {
@@ -131,6 +172,7 @@ export default function Desvios() {
       description: item.description.trim(),
       photo_url: item.photo_url,
       correction_photo_url: null,
+      correction_observation: null,
     }));
     await createDesvio.mutateAsync({
       description: items.map((i) => i.description).join(" | "),
@@ -466,7 +508,7 @@ export default function Desvios() {
                               )}
                               {/* Correction photo */}
                               {item.correction_photo_url ? (
-                                <div>
+                                <div className="space-y-1">
                                   <p className="text-[10px] text-green-600 dark:text-green-400 mb-1">
                                     <CheckCircle2 className="w-2.5 h-2.5 inline mr-0.5" />Correção
                                   </p>
@@ -476,6 +518,11 @@ export default function Desvios() {
                                   >
                                     <img src={item.correction_photo_url!} alt="" className="w-full h-full object-cover" />
                                   </div>
+                                  {item.correction_observation && (
+                                    <p className="text-xs text-muted-foreground italic max-w-[200px]">
+                                      <span className="font-medium text-foreground">Obs:</span> {item.correction_observation}
+                                    </p>
+                                  )}
                                 </div>
                               ) : (
                                 isMentioned && desvio.status === "aberto" && (
@@ -483,17 +530,12 @@ export default function Desvios() {
                                     <p className="text-[10px] text-muted-foreground mb-1">Correção</p>
                                     <button
                                       onClick={() => {
-                                        setCorrectionTarget({ desvioId: desvio.id, itemId: item.id });
-                                        correctionInputRef.current?.click();
+                                        setCorrectionDialog({ desvioId: desvio.id, itemId: item.id, photoUrl: null, observation: "" });
                                       }}
                                       disabled={uploading}
                                       className="w-14 h-14 rounded-lg border-2 border-dashed border-green-500/30 flex items-center justify-center hover:border-green-500/50 transition-colors"
                                     >
-                                      {uploading && correctionTarget?.itemId === item.id ? (
-                                        <div className="w-4 h-4 border-2 border-green-500 border-t-transparent rounded-full animate-spin" />
-                                      ) : (
-                                        <Upload className="w-4 h-4 text-green-500/60" />
-                                      )}
+                                      <Upload className="w-4 h-4 text-green-500/60" />
                                     </button>
                                   </div>
                                 )
@@ -574,6 +616,70 @@ export default function Desvios() {
             {viewingImage && (
               <img src={viewingImage} alt="Foto" className="w-full h-auto rounded-lg max-h-[80vh] object-contain" />
             )}
+          </DialogContent>
+        </Dialog>
+
+        {/* Correction dialog */}
+        <Dialog open={!!correctionDialog} onOpenChange={() => setCorrectionDialog(null)}>
+          <DialogContent className="max-w-sm">
+            <div className="space-y-4">
+              <h3 className="text-base font-semibold text-foreground">Registrar Correção</h3>
+
+              {/* Photo upload */}
+              <div>
+                <label className="text-sm font-medium text-foreground mb-1 block">
+                  <Camera className="w-3.5 h-3.5 inline mr-1" />
+                  Foto da Correção *
+                </label>
+                <input ref={correctionDialogInputRef} type="file" accept="image/*" className="hidden" onChange={handleCorrectionDialogPhotoUpload} />
+                {correctionDialog?.photoUrl ? (
+                  <div className="relative w-24 h-24 rounded-lg overflow-hidden border border-green-500/30">
+                    <img src={correctionDialog.photoUrl} alt="" className="w-full h-full object-cover" />
+                    <button
+                      onClick={() => setCorrectionDialog((prev) => prev ? { ...prev, photoUrl: null } : null)}
+                      className="absolute top-1 right-1 p-0.5 rounded-full bg-destructive text-destructive-foreground"
+                    >
+                      <X className="w-3 h-3" />
+                    </button>
+                  </div>
+                ) : (
+                  <button
+                    onClick={() => correctionDialogInputRef.current?.click()}
+                    disabled={uploading}
+                    className="w-24 h-24 rounded-lg border-2 border-dashed border-green-500/30 flex flex-col items-center justify-center gap-1 hover:border-green-500/50 transition-colors"
+                  >
+                    {uploading ? (
+                      <div className="w-5 h-5 border-2 border-green-500 border-t-transparent rounded-full animate-spin" />
+                    ) : (
+                      <>
+                        <Upload className="w-5 h-5 text-green-500/60" />
+                        <span className="text-[10px] text-muted-foreground">Adicionar</span>
+                      </>
+                    )}
+                  </button>
+                )}
+              </div>
+
+              {/* Observation */}
+              <div>
+                <label className="text-sm font-medium text-foreground mb-1 block">
+                  Observação da Correção
+                </label>
+                <Textarea
+                  placeholder="Descreva como foi corrigido..."
+                  value={correctionDialog?.observation || ""}
+                  onChange={(e) => setCorrectionDialog((prev) => prev ? { ...prev, observation: e.target.value } : null)}
+                  rows={3}
+                />
+              </div>
+
+              <div className="flex gap-2">
+                <Button onClick={handleSaveCorrection} disabled={!correctionDialog?.photoUrl || uploading} className="flex-1 gap-1">
+                  <CheckCircle2 className="w-4 h-4" /> Salvar Correção
+                </Button>
+                <Button variant="outline" onClick={() => setCorrectionDialog(null)}>Cancelar</Button>
+              </div>
+            </div>
           </DialogContent>
         </Dialog>
       </div>

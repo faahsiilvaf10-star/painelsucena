@@ -9,6 +9,7 @@ export interface DesvioItem {
   description: string;
   photo_url: string | null;
   correction_photo_url: string | null;
+  correction_observation: string | null;
 }
 
 export interface Desvio {
