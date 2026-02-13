@@ -20,7 +20,7 @@ import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover
 import { Badge } from "@/components/ui/badge";
 import { useAttendanceRecords } from "@/hooks/useAttendance";
 import { useEquipment } from "@/hooks/useEquipment";
-import { useEquipmentCurrentlyOut } from "@/hooks/useEquipmentMovements";
+import { useEquipmentOutByDate } from "@/hooks/useEquipmentMovements";
 import { useDailyShiftRecords } from "@/hooks/useDailyShiftRecords";
 import { useTodayDDS } from "@/hooks/useDDSSchedule";
 import { useRDOReports, useRDOReport, useSaveRDOReport, useUploadRDOPhotos, useDeleteRDOReport } from "@/hooks/useRDOReports";
@@ -102,7 +102,7 @@ export default function RDO() {
   
   const { data: attendanceRecords } = useAttendanceRecords(selectedDateStr);
   const { data: equipment } = useEquipment();
-  const { data: equipmentOut = [] } = useEquipmentCurrentlyOut();
+  const { data: equipmentOut = [] } = useEquipmentOutByDate(selectedDateStr);
   const { data: shiftRecords = [] } = useDailyShiftRecords(selectedDateStr);
   const { data: todayDDS } = useTodayDDS();
   const { data: existingReport, isLoading: isLoadingReport } = useRDOReport(selectedDateStr);

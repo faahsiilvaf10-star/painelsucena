@@ -385,6 +385,46 @@ export function useEquipmentCurrentlyIn() {
   });
 }
 
+// Get equipment currently out as of a specific date (for RDO past date support)
+export function useEquipmentOutByDate(date: string) {
+  return useQuery({
+    queryKey: ["equipment-movements-out-by-date", date],
+    queryFn: async () => {
+      // Get all movements up to and including the given date
+      const { data, error } = await supabase
+        .from("equipment_movements")
+        .select("*")
+        .lte("movement_date", date)
+        .order("movement_date", { ascending: true })
+        .order("movement_time", { ascending: true });
+
+      if (error) throw error;
+
+      const movements = (data || []) as EquipmentMovement[];
+      
+      // Track last movement per equipment (by plate) up to that date
+      const lastMovementByPlate: Record<string, EquipmentMovement> = {};
+      
+      movements.forEach((m) => {
+        lastMovementByPlate[m.plate] = m;
+      });
+      
+      // Filter only those whose last movement was "saida"
+      const currentlyOut = Object.values(lastMovementByPlate).filter(
+        (m) => m.movement_type === "saida"
+      );
+      
+      return currentlyOut.sort((a, b) => {
+        const dateCompare = b.movement_date.localeCompare(a.movement_date);
+        if (dateCompare !== 0) return dateCompare;
+        return b.movement_time.localeCompare(a.movement_time);
+      });
+    },
+    staleTime: 0,
+    refetchOnMount: "always",
+  });
+}
+
 export function useWeeklyEquipmentMovements(startDate: string, endDate: string) {
   return useQuery({
     queryKey: ["equipment-movements-weekly", startDate, endDate],
