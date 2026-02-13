@@ -239,7 +239,7 @@ const ForbiddenColorIndicator = () => {
         {/* Bolinha colorida */}
         <button
           onClick={handleClick}
-          className={`w-14 h-14 rounded-full ${colorInfo.bgClass} shadow-lg flex items-center justify-center transition-transform hover:scale-110`}
+          className={`w-8 h-8 rounded-full ${colorInfo.bgClass} shadow-md flex items-center justify-center transition-transform hover:scale-110`}
           title={`Cor proibida: ${colorInfo.name} - Arraste para mover, clique para ver todas`}
         />
         
