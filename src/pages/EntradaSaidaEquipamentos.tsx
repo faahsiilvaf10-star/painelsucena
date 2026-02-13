@@ -5,6 +5,7 @@ import { useState } from "react";
  import { useEquipment } from "@/hooks/useEquipment";
 import { useEquipmentCurrentlyOut } from "@/hooks/useEquipmentMovements";
 import { OutHistoryDialog } from "@/components/equipamentos/OutHistoryDialog";
+import { InHistoryDialog } from "@/components/equipamentos/InHistoryDialog";
  import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
  import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
  import { Badge } from "@/components/ui/badge";
@@ -286,15 +287,16 @@ const EXIT_REASON_LABELS: Record<string, string> = {
            <div className="grid gap-6">
              {/* Equipamentos no Canteiro */}
              <Card>
-               <CardHeader className="pb-3">
-                 <CardTitle className="flex items-center gap-2 text-lg">
-                   <MapPin className="h-5 w-5 text-green-600" />
-                   Equipamentos no Canteiro
-                   <Badge variant="secondary" className="ml-2">
-                     {equipmentNoCanteiro.length}
-                   </Badge>
-                 </CardTitle>
-               </CardHeader>
+                <CardHeader className="pb-3">
+                  <CardTitle className="flex items-center gap-2 text-lg flex-wrap">
+                    <MapPin className="h-5 w-5 text-green-600" />
+                    Equipamentos no Canteiro
+                    <Badge variant="secondary" className="ml-2">
+                      {equipmentNoCanteiro.length}
+                    </Badge>
+                    <InHistoryDialog />
+                  </CardTitle>
+                </CardHeader>
                <CardContent>
                  {equipmentNoCanteiro.length === 0 ? (
                    <p className="text-muted-foreground text-center py-4">
