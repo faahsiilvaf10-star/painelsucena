@@ -82,8 +82,19 @@ export function EPIsTable() {
 
   return (
     <div className="space-y-6">
-      {/* Download Catálogo Button */}
-      <div className="flex justify-end">
+      {/* Download & View Catálogo Buttons */}
+      <div className="flex justify-end gap-2">
+        <Button
+          variant="outline"
+          size="sm"
+          className="gap-2"
+          asChild
+        >
+          <a href="/catalogo-epis-homologados.pdf" target="_blank" rel="noopener noreferrer">
+            <Eye className="h-4 w-4 text-blue-500" />
+            <span className="hidden sm:inline">Visualizar</span>
+          </a>
+        </Button>
         <Button
           variant="outline"
           size="sm"
@@ -92,8 +103,7 @@ export function EPIsTable() {
         >
           <a href="/catalogo-epis-homologados.pdf" download="Catálogo de EPIs Homologados.pdf">
             <Download className="h-4 w-4 text-red-500" />
-            <span className="hidden sm:inline">Catálogo de EPIs</span>
-            <Download className="h-4 w-4 sm:hidden" />
+            <span className="hidden sm:inline">Exportar</span>
           </a>
         </Button>
       </div>
