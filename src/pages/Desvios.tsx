@@ -512,11 +512,46 @@ export default function Desvios() {
                                   <p className="text-[10px] text-green-600 dark:text-green-400 mb-1">
                                     <CheckCircle2 className="w-2.5 h-2.5 inline mr-0.5" />Correção
                                   </p>
-                                  <div
-                                    className="w-14 h-14 rounded-lg overflow-hidden border border-green-500/30 cursor-pointer hover:ring-2 hover:ring-green-500 transition-all"
-                                    onClick={() => setViewingImage(item.correction_photo_url)}
-                                  >
-                                    <img src={item.correction_photo_url!} alt="" className="w-full h-full object-cover" />
+                                  <div className="relative group">
+                                    <div
+                                      className="w-14 h-14 rounded-lg overflow-hidden border border-green-500/30 cursor-pointer hover:ring-2 hover:ring-green-500 transition-all"
+                                      onClick={() => setViewingImage(item.correction_photo_url)}
+                                    >
+                                      <img src={item.correction_photo_url!} alt="" className="w-full h-full object-cover" />
+                                    </div>
+                                    {isMentioned && desvio.status === "aberto" && (
+                                      <div className="absolute -top-1 -right-1 flex gap-0.5 opacity-0 group-hover:opacity-100 transition-opacity">
+                                        <button
+                                          onClick={(e) => {
+                                            e.stopPropagation();
+                                            setCorrectionDialog({
+                                              desvioId: desvio.id,
+                                              itemId: item.id,
+                                              photoUrl: item.correction_photo_url,
+                                              observation: item.correction_observation || "",
+                                            });
+                                          }}
+                                          className="p-0.5 rounded-full bg-primary text-primary-foreground"
+                                          title="Alterar correção"
+                                        >
+                                          <Camera className="w-2.5 h-2.5" />
+                                        </button>
+                                        <button
+                                          onClick={async (e) => {
+                                            e.stopPropagation();
+                                            const updatedItems = desvio.items.map((it) =>
+                                              it.id === item.id ? { ...it, correction_photo_url: null, correction_observation: null } : it
+                                            );
+                                            await updateItems.mutateAsync({ desvioId: desvio.id, items: updatedItems });
+                                            toast.success("Correção removida");
+                                          }}
+                                          className="p-0.5 rounded-full bg-destructive text-destructive-foreground"
+                                          title="Remover correção"
+                                        >
+                                          <X className="w-2.5 h-2.5" />
+                                        </button>
+                                      </div>
+                                    )}
                                   </div>
                                   {item.correction_observation && (
                                     <p className="text-xs text-muted-foreground italic max-w-[200px]">
