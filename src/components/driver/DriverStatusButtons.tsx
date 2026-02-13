@@ -276,19 +276,8 @@ export function DriverStatusButtons() {
         initial_fuel_level: fuelLevel,
       });
 
-      // Automatically register equipment entry (entrada) in equipment_movements
-      // This will trigger the announcement for all users and update "Entrada e Saída" page
-      try {
-        await createEquipmentMovement.mutateAsync({
-          equipment_name: selectedVehicle.name,
-          plate: selectedVehicle.plate,
-          movement_type: "entrada",
-          observation: `Início de turno - Horímetro: ${startShiftHorimeter}, KM: ${startShiftKm}, Combustível: ${getFuelLevelLabel(fuelLevel)}`,
-        });
-      } catch (movementError) {
-        console.error("Error creating equipment movement:", movementError);
-        // Don't block the start of shift if movement creation fails
-      }
+      // Entry movements are no longer registered automatically at shift start
+      // Only exit movements (saída) are tracked in the movements system
 
       await updateStatus.mutateAsync({
         id: selectedVehicleId,
