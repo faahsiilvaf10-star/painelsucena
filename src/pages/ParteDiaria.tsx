@@ -33,6 +33,7 @@ import { AdminStatusEditor } from "@/components/partediaria/AdminStatusEditor";
 import { AdminCountersEditor } from "@/components/partediaria/AdminCountersEditor";
 import { ExportEquipmentPdfButton } from "@/components/equipamentos/ExportEquipmentPdfButton";
 import { ExportMovementsByDateButton } from "@/components/equipamentos/ExportMovementsByDateButton";
+import { MovementHistoryDialog } from "@/components/equipamentos/MovementHistoryDialog";
 import { useEquipment, useCreateEquipment, useDeleteEquipment, useEquipmentStopHistory } from "@/hooks/useEquipment";
 import { useEquipmentMovements } from "@/hooks/useEquipmentMovements";
 import { useDailyShiftRecords } from "@/hooks/useDailyShiftRecords";
@@ -264,6 +265,7 @@ export default function ParteDiaria() {
               Gestão de equipamentos e acompanhamento de status dos motoristas
             </p>
           </div>
+          <MovementHistoryDialog />
         </div>
 
         <Tabs defaultValue="status" className="space-y-4">
