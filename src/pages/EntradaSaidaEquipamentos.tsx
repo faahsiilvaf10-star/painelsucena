@@ -4,6 +4,7 @@ import { useState } from "react";
  import Layout from "@/components/layout/Layout";
  import { useEquipment } from "@/hooks/useEquipment";
 import { useEquipmentCurrentlyOut } from "@/hooks/useEquipmentMovements";
+import { OutHistoryDialog } from "@/components/equipamentos/OutHistoryDialog";
  import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
  import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
  import { Badge } from "@/components/ui/badge";
@@ -360,13 +361,14 @@ const EXIT_REASON_LABELS: Record<string, string> = {
  
              {/* Equipamentos Fora da Obra */}
              <Card>
-               <CardHeader className="pb-3">
-                 <CardTitle className="flex items-center gap-2 text-lg">
-                   <ExternalLink className="h-5 w-5 text-orange-600" />
-                   Equipamentos Fora da Obra
-                   <Badge variant="secondary" className="ml-2">
-                     {equipmentForaObra.length}
-                   </Badge>
+                <CardHeader className="pb-3">
+                  <CardTitle className="flex items-center gap-2 text-lg flex-wrap">
+                    <ExternalLink className="h-5 w-5 text-orange-600" />
+                    Equipamentos Fora da Obra
+                    <Badge variant="secondary" className="ml-2">
+                      {equipmentForaObra.length}
+                    </Badge>
+                    <OutHistoryDialog />
                  </CardTitle>
                </CardHeader>
                <CardContent>
