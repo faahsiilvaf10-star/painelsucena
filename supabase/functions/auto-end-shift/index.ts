@@ -21,16 +21,13 @@ Deno.serve(async (req) => {
     const supabaseServiceKey = Deno.env.get("SUPABASE_SERVICE_ROLE_KEY")!;
     const supabase = createClient(supabaseUrl, supabaseServiceKey);
 
-    // Only fetch Sucena and Toro equipment that are NOT already end_of_shift, maintenance, or any maintenance-related status
+    // Only fetch Sucena and Toro equipment that are NOT already end_of_shift or maintenance
     const { data: activeEquipment, error: fetchError } = await supabase
       .from("equipment")
       .select("id, name, plate, stop_reason, driver, equipment_type")
       .in("name", ALLOWED_EQUIPMENT_NAMES)
       .neq("stop_reason", "end_of_shift")
-      .neq("stop_reason", "maintenance")
-      .neq("stop_reason", "manutencao_corretiva")
-      .neq("stop_reason", "manutencao_preventiva")
-      .neq("stop_reason", "vistoria");
+      .neq("stop_reason", "maintenance");
 
     if (fetchError) {
       console.error("Error fetching equipment:", fetchError);
