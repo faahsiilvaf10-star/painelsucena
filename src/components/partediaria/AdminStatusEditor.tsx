@@ -206,14 +206,15 @@ const getStatusColor = (status: string) => {
     const triggerAutoPdf = useCallback(async () => {
       // Wait for queries to refresh
       await queryClient.invalidateQueries({ queryKey: ["daily-shift-records"] });
+      await queryClient.invalidateQueries({ queryKey: ["daily-shift-record"] });
       await queryClient.invalidateQueries({ queryKey: ["equipment-stop-history"] });
       
-      // Small delay to allow data to refresh, then click the PDF button
+      // Wait for data to settle before generating PDF
       setTimeout(() => {
         if (pdfButtonRef.current) {
           pdfButtonRef.current.click();
         }
-      }, 1000);
+      }, 2000);
     }, [queryClient]);
  
    const handleAddSubmit = async () => {
@@ -458,6 +459,8 @@ const getStatusColor = (status: string) => {
         toast.success("Status removido com sucesso!");
         setDeleteIndex(null);
         queryClient.invalidateQueries({ queryKey: ["equipment-stop-history"] });
+        queryClient.invalidateQueries({ queryKey: ["daily-shift-records"] });
+        queryClient.invalidateQueries({ queryKey: ["daily-shift-record"] });
         
         // Auto-generate PDF after deleting
         triggerAutoPdf();
