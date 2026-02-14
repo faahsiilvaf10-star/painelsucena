@@ -22,7 +22,7 @@ import { useAttendanceRecords } from "@/hooks/useAttendance";
 import { useEquipment } from "@/hooks/useEquipment";
 import { useEquipmentOutByDate } from "@/hooks/useEquipmentMovements";
 import { useDailyShiftRecords } from "@/hooks/useDailyShiftRecords";
-import { useTodayDDS } from "@/hooks/useDDSSchedule";
+import { useDDSByDate } from "@/hooks/useDDSSchedule";
 import { useRDOReports, useRDOReport, useSaveRDOReport, useUploadRDOPhotos, useDeleteRDOReport } from "@/hooks/useRDOReports";
 import { useJardinagemReportByDate, formatJardinagemForRDO } from "@/hooks/useJardinagemReports";
 import { useGabiaoReportByDate, formatGabiaoForRDO } from "@/hooks/useGabiaoReports";
@@ -104,7 +104,7 @@ export default function RDO() {
   const { data: equipment } = useEquipment();
   const { data: equipmentOut = [] } = useEquipmentOutByDate(selectedDateStr);
   const { data: shiftRecords = [] } = useDailyShiftRecords(selectedDateStr);
-  const { data: todayDDS } = useTodayDDS();
+  const { data: dateDDS } = useDDSByDate(selectedDateStr);
   const { data: existingReport, isLoading: isLoadingReport } = useRDOReport(selectedDateStr);
   const { data: allReports } = useRDOReports();
   const { data: jardinagemReport } = useJardinagemReportByDate(selectedDateStr);
@@ -346,11 +346,14 @@ export default function RDO() {
           .join("\n")
       : "   Nenhum equipamento no canteiro";
 
-    // DDS info - use presenter name from user profile or external presenter name
-    const presenterName = todayDDS?.presenter?.full_name || todayDDS?.external_presenter_name || "A definir";
-    const ddsText = todayDDS
-      ? `${presenterName} - ${todayDDS.theme || "Tema a definir"}`
-      : "A definir";
+    // DDS info - use saved dds_text if available, otherwise generate from schedule
+    let ddsText = "A definir";
+    if (existingReport?.dds_text) {
+      ddsText = existingReport.dds_text;
+    } else if (dateDDS) {
+      const presenterName = dateDDS.presenter?.full_name || dateDDS.external_presenter_name || "A definir";
+      ddsText = `${presenterName} - ${dateDDS.theme || "Tema a definir"}`;
+    }
 
     // Get jardinagem activities from daily report if available
     const jardinagemFromReport = formatJardinagemForRDO(jardinagemReport);
@@ -441,6 +444,13 @@ ${difficulties}`;
     }
 
     try {
+      // Generate DDS text to save
+      let ddsTextToSave = "A definir";
+      if (dateDDS) {
+        const presenterName = dateDDS.presenter?.full_name || dateDDS.external_presenter_name || "A definir";
+        ddsTextToSave = `${presenterName} - ${dateDDS.theme || "Tema a definir"}`;
+      }
+
       await saveReport.mutateAsync({
         report_date: selectedDateStr,
         weather_morning: weatherMorning,
@@ -448,6 +458,7 @@ ${difficulties}`;
         difficulties,
         photo_urls: photos,
         report_text: generateReport(),
+        dds_text: ddsTextToSave,
       });
       
       // Lock the report after saving

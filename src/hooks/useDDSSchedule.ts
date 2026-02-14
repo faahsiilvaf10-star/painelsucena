@@ -70,6 +70,41 @@ export const useDDSSchedule = (monthYear: string) => {
   });
 };
 
+export const useDDSByDate = (dateStr: string) => {
+  return useQuery({
+    queryKey: ["dds-by-date", dateStr],
+    queryFn: async () => {
+      const { data, error } = await supabase
+        .from("dds_schedule")
+        .select("*")
+        .eq("scheduled_date", dateStr)
+        .maybeSingle();
+
+      if (error) throw error;
+
+      if (data) {
+        let profile = undefined;
+        if (data.presenter_user_id) {
+          const { data: profileData } = await supabase
+            .from("profiles")
+            .select("user_id, full_name, avatar_url, cargo, frame_color, neon_color, frame_animation")
+            .eq("user_id", data.presenter_user_id)
+            .maybeSingle();
+          profile = profileData || undefined;
+        }
+
+        return {
+          ...data,
+          presenter: profile,
+        } as DDSScheduleItem;
+      }
+
+      return null;
+    },
+    enabled: !!dateStr,
+  });
+};
+
 export const useTodayDDS = () => {
   return useQuery({
     queryKey: ["dds-today"],
