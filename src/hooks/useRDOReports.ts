@@ -17,6 +17,7 @@ export interface RDOReport {
   report_text: string;
   efetivo_gabiao_text: string | null;
   efetivo_jardinagem_text: string | null;
+  dds_text: string | null;
   created_at: string;
   updated_at: string;
 }
@@ -34,6 +35,7 @@ export interface RDOReportInsert {
   report_text: string;
   efetivo_gabiao_text?: string;
   efetivo_jardinagem_text?: string;
+  dds_text?: string;
 }
 
 export const useRDOReports = (filterDate?: string) => {

@@ -1960,6 +1960,7 @@ export type Database = {
         Row: {
           created_at: string
           created_by: string
+          dds_text: string | null
           difficulties: string | null
           efetivo_gabiao_text: string | null
           efetivo_jardinagem_text: string | null
@@ -1978,6 +1979,7 @@ export type Database = {
         Insert: {
           created_at?: string
           created_by: string
+          dds_text?: string | null
           difficulties?: string | null
           efetivo_gabiao_text?: string | null
           efetivo_jardinagem_text?: string | null
@@ -1996,6 +1998,7 @@ export type Database = {
         Update: {
           created_at?: string
           created_by?: string
+          dds_text?: string | null
           difficulties?: string | null
           efetivo_gabiao_text?: string | null
           efetivo_jardinagem_text?: string | null
