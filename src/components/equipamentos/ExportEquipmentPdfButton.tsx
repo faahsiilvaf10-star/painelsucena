@@ -544,9 +544,18 @@ export function ExportEquipmentPdfButton({
         helperName = shiftRecord.helper_name;
       }
 
+      // Re-fetch fresh stop history from DB to ensure deleted entries are excluded
+      const { data: freshStopHistory } = await supabase
+        .from("equipment_stop_history")
+        .select("*")
+        .eq("equipment_id", equipment.id)
+        .order("started_at", { ascending: true });
+
+      const activeStopHistory = freshStopHistory || stopHistory;
+
       // Filter today's data
       const todayMovements = movements.filter((m) => m.movement_date === today);
-      const todayStops = stopHistory.filter((h) => {
+      const todayStops = activeStopHistory.filter((h) => {
         const stopDate = format(new Date(h.started_at), "yyyy-MM-dd");
         return stopDate === today;
       });
