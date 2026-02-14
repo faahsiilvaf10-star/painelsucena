@@ -105,10 +105,10 @@ export function EquipmentStatusCard() {
     );
   }
 
+  const maintenanceStatuses = ["maintenance", "manutencao_corretiva", "manutencao_preventiva", "vistoria"];
   const inOperation = equipment?.filter((eq) => eq.stop_reason === "none") || [];
-  const inMaintenance = equipment?.filter((eq) => eq.stop_reason === "maintenance") || [];
-
-  const stopped = equipment?.filter((eq) => eq.stop_reason !== "none" && eq.stop_reason !== "maintenance") || [];
+  const inMaintenance = equipment?.filter((eq) => maintenanceStatuses.includes(eq.stop_reason || "")) || [];
+  const stopped = equipment?.filter((eq) => eq.stop_reason !== "none" && !maintenanceStatuses.includes(eq.stop_reason || "")) || [];
 
   return (
     <div className="space-y-4 mb-8 animate-fade-in">
