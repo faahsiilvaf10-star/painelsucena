@@ -155,9 +155,10 @@ const getStatusColor = (status: string) => {
     const { data: stopHistory = [] } = useEquipmentStopHistory(equipmentId);
     
     // Try to find record for the target date first, then fall back to most recent record for this equipment
-    const currentRecord = dateRecords.find((r) => r.equipment_id === equipmentId) 
-      || allRecords.find((r) => r.equipment_id === equipmentId);
-    const effectiveDate = currentRecord?.shift_date || targetDate;
+    const dateRecord = dateRecords.find((r) => r.equipment_id === equipmentId);
+    const currentRecord = dateRecord || allRecords.find((r) => r.equipment_id === equipmentId);
+    // Always use the selected date for filtering stop history, not the fallback record's date
+    const effectiveDate = targetDate;
     const shiftStatusHistory = currentRecord?.status_history || [];
     
     // Build merged history: combine daily_shift_records status_history with equipment_stop_history
