@@ -169,7 +169,7 @@ export function useCreateEquipmentMovement() {
 
       if (error) throw error;
 
-      // Sync equipment status when exit is registered
+      // Sync equipment status based on movement type
       if (movement.movement_type === "saida" && movement.exit_reason) {
         const statusMap: Record<string, string> = {
           manutencao_corretiva: "manutencao_corretiva",
@@ -188,7 +188,6 @@ export function useCreateEquipmentMovement() {
           if (eqData) {
             const nowIso = new Date().toISOString();
 
-            // Update equipment status
             await supabase
               .from("equipment")
               .update({
@@ -197,7 +196,6 @@ export function useCreateEquipmentMovement() {
               })
               .eq("id", eqData.id);
 
-            // Close any open stop history entry
             const { data: openStop } = await supabase
               .from("equipment_stop_history")
               .select("id, started_at")
@@ -217,7 +215,6 @@ export function useCreateEquipmentMovement() {
                 .eq("id", openStop.id);
             }
 
-            // Insert new stop history entry
             await supabase
               .from("equipment_stop_history")
               .insert({
@@ -227,6 +224,47 @@ export function useCreateEquipmentMovement() {
                 defect_description: movement.problem_description || null,
                 changed_by_driver: user.id,
               });
+          }
+        }
+      }
+
+      // When equipment returns (entrada), reset status to operating
+      if (movement.movement_type === "entrada") {
+        const { data: eqData } = await supabase
+          .from("equipment")
+          .select("id")
+          .eq("plate", movement.plate)
+          .single();
+
+        if (eqData) {
+          const nowIso = new Date().toISOString();
+
+          await supabase
+            .from("equipment")
+            .update({
+              stop_reason: "none",
+              stop_start_time: null,
+            })
+            .eq("id", eqData.id);
+
+          // Close any open stop history entry
+          const { data: openStop } = await supabase
+            .from("equipment_stop_history")
+            .select("id, started_at")
+            .eq("equipment_id", eqData.id)
+            .is("ended_at", null)
+            .order("started_at", { ascending: false })
+            .limit(1)
+            .maybeSingle();
+
+          if (openStop) {
+            const durationMinutes = Math.round(
+              (new Date(nowIso).getTime() - new Date(openStop.started_at).getTime()) / 60000
+            );
+            await supabase
+              .from("equipment_stop_history")
+              .update({ ended_at: nowIso, duration_minutes: durationMinutes })
+              .eq("id", openStop.id);
           }
         }
       }
