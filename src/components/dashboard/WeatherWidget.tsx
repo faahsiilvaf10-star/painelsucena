@@ -1,6 +1,7 @@
 import { useEffect, useState } from "react";
 import { Card, CardContent } from "@/components/ui/card";
 import { Cloud, CloudRain, Sun, CloudSun, CloudSnow, CloudLightning, Droplets, Wind, Thermometer, MapPin, RefreshCw } from "lucide-react";
+import { useIsMobile } from "@/hooks/use-mobile";
 import { Button } from "@/components/ui/button";
 import { Skeleton } from "@/components/ui/skeleton";
 
@@ -63,24 +64,37 @@ export function WeatherWidget() {
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
 
+  const isMobile = useIsMobile();
+
   const fetchWeather = async () => {
     setLoading(true);
     setError(null);
     try {
-      const pos = await new Promise<GeolocationPosition>((resolve, reject) =>
-        navigator.geolocation.getCurrentPosition(resolve, reject, { timeout: 10000 })
-      );
-      const { latitude, longitude } = pos.coords;
+      let latitude: number;
+      let longitude: number;
+      let locationName = "Barcarena, Pará";
 
-      // Reverse geocode
-      let locationName = "Sua localização";
-      try {
-        const geoRes = await fetch(`https://nominatim.openstreetmap.org/reverse?lat=${latitude}&lon=${longitude}&format=json&accept-language=pt-BR`);
-        const geoData = await geoRes.json();
-        const city = geoData.address?.city || geoData.address?.town || geoData.address?.village || geoData.address?.county;
-        const state = geoData.address?.state;
-        if (city) locationName = state ? `${city}, ${state}` : city;
-      } catch {}
+      if (isMobile) {
+        // Mobile: use geolocation
+        const pos = await new Promise<GeolocationPosition>((resolve, reject) =>
+          navigator.geolocation.getCurrentPosition(resolve, reject, { timeout: 10000 })
+        );
+        latitude = pos.coords.latitude;
+        longitude = pos.coords.longitude;
+
+        // Reverse geocode
+        try {
+          const geoRes = await fetch(`https://nominatim.openstreetmap.org/reverse?lat=${latitude}&lon=${longitude}&format=json&accept-language=pt-BR`);
+          const geoData = await geoRes.json();
+          const city = geoData.address?.city || geoData.address?.town || geoData.address?.village || geoData.address?.county;
+          const state = geoData.address?.state;
+          if (city) locationName = state ? `${city}, ${state}` : city;
+        } catch {}
+      } else {
+        // Desktop: fixed location - Barcarena, Pará
+        latitude = -1.5138;
+        longitude = -48.6253;
+      }
 
       const res = await fetch(
         `https://api.open-meteo.com/v1/forecast?latitude=${latitude}&longitude=${longitude}&current=temperature_2m,relative_humidity_2m,apparent_temperature,weather_code,wind_speed_10m,is_day&daily=weather_code,temperature_2m_max,temperature_2m_min&timezone=America/Sao_Paulo&forecast_days=5`
