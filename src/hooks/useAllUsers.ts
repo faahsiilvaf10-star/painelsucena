@@ -207,18 +207,6 @@ export const useAllUsers = () => {
         // Play online sound
         playSoundFile("/sounds/online.mp3");
 
-        // Show toast for each newly online user
-        const profileMap = new Map(profiles.map(p => [p.user_id, p]));
-        newlyOnline.forEach((uid) => {
-          const profile = profileMap.get(uid);
-          if (profile) {
-            toast(`🟢 ${profile.full_name} está online!`, {
-              duration: 3000,
-              position: "bottom-right",
-            });
-          }
-        });
-
         if (justOnlineTimeoutRef.current) {
           window.clearTimeout(justOnlineTimeoutRef.current);
         }
