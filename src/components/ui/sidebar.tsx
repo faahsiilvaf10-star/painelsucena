@@ -72,8 +72,8 @@ const SidebarProvider = React.forwardRef<
 
   // Helper to toggle the sidebar.
   const toggleSidebar = React.useCallback(() => {
-    return isMobile ? setOpenMobile((open) => !open) : setOpen((open) => !open);
-  }, [isMobile, setOpen, setOpenMobile]);
+    return setOpen((open) => !open);
+  }, [setOpen]);
 
   // Adds a keyboard shortcut to toggle the sidebar.
   React.useEffect(() => {
@@ -150,32 +150,16 @@ const Sidebar = React.forwardRef<
     );
   }
 
-  if (isMobile) {
-    return (
-      <Sheet open={openMobile} onOpenChange={setOpenMobile} {...props}>
-        <SheetContent
-          data-sidebar="sidebar"
-          data-mobile="true"
-          className="w-[--sidebar-width] bg-sidebar p-0 text-sidebar-foreground [&>button]:hidden"
-          style={
-            {
-              "--sidebar-width": SIDEBAR_WIDTH_MOBILE,
-            } as React.CSSProperties
-          }
-          side={side}
-        >
-          <div className="flex h-full w-full flex-col">{children}</div>
-        </SheetContent>
-      </Sheet>
-    );
-  }
-
   return (
     <div
       ref={ref}
-      className="group peer hidden text-sidebar-foreground md:block"
-      data-state={state}
-      data-collapsible={state === "collapsed" ? collapsible : ""}
+      className="group peer text-sidebar-foreground"
+      data-state={isMobile ? (openMobile ? "expanded" : "collapsed") : state}
+      data-collapsible={
+        isMobile
+          ? (openMobile ? "" : collapsible)
+          : (state === "collapsed" ? collapsible : "")
+      }
       data-variant={variant}
       data-side={side}
     >
@@ -192,7 +176,7 @@ const Sidebar = React.forwardRef<
       />
       <div
         className={cn(
-          "fixed inset-y-0 z-10 hidden h-svh w-[--sidebar-width] transition-[left,right,width] duration-200 ease-linear md:flex overflow-visible",
+          "fixed inset-y-0 z-10 flex h-svh w-[--sidebar-width] transition-[left,right,width] duration-200 ease-linear overflow-visible",
           side === "left"
             ? "left-0 group-data-[collapsible=offcanvas]:left-[calc(var(--sidebar-width)*-1)]"
             : "right-0 group-data-[collapsible=offcanvas]:right-[calc(var(--sidebar-width)*-1)]",
