@@ -163,20 +163,25 @@ export function PostCard({ post }: { post: InstaCenaPost }) {
         )}
 
         {/* Reaction summary - clickable */}
-        {Object.keys(reactionGroups).length > 0 && (
+        {reactions.length > 0 && (
           <button
             type="button"
             onClick={() => setShowReactionsDialog(true)}
-            className="flex items-center gap-1 mb-2 text-xs text-muted-foreground hover:underline cursor-pointer"
+            className="flex items-center gap-1.5 mb-2 text-xs text-muted-foreground hover:underline cursor-pointer flex-wrap"
           >
-            {Object.entries(reactionGroups).map(([type, count]) => {
-              const r = REACTIONS.find((rx) => rx.type === type);
-              return (
-                <span key={type} className="flex items-center gap-0.5">
-                  {r?.emoji} {count}
-                </span>
-              );
-            })}
+            <span className="flex items-center gap-0.5">
+              {Object.entries(reactionGroups).map(([type]) => {
+                const r = REACTIONS.find((rx) => rx.type === type);
+                return <span key={type} className="text-sm">{r?.emoji}</span>;
+              })}
+            </span>
+            <span>
+              {reactions.length === 1
+                ? reactions[0].user_name
+                : reactions.length === 2
+                  ? `${reactions[0].user_name} e ${reactions[1].user_name}`
+                  : `${reactions[0].user_name} e outras ${reactions.length - 1} pessoas`}
+            </span>
           </button>
         )}
 
