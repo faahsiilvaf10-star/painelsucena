@@ -1130,7 +1130,14 @@ export default function AtividadesII() {
 
               {/* Observações */}
               <div className="space-y-2">
-                <Label>📝 OBSERVAÇÕES</Label>
+                <div className="flex items-center justify-between">
+                  <Label>📝 OBSERVAÇÕES</Label>
+                  <AIImproveButton
+                    text={observacoes}
+                    onImproved={setObservacoes}
+                    disabled={!canEdit}
+                  />
+                </div>
                 <Textarea
                   value={observacoes}
                   onChange={(e) => setObservacoes(e.target.value)}
