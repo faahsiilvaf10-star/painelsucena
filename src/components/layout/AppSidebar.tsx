@@ -164,7 +164,7 @@ export function AppSidebar({ lockedCollapsed = false }: { lockedCollapsed?: bool
   const navigate = useNavigate();
   const { user, signOut } = useAuth();
   const { isAdmin } = useIsAdmin();
-  const { state, toggleSidebar, setOpen, setOpenMobile, isMobile: sidebarIsMobile } = useSidebar();
+  const { state, toggleSidebar, setOpen, isMobile: sidebarIsMobile } = useSidebar();
   const { settings, updateSettings } = useSiteSettings();
   const { data: profile } = useProfile();
   const { navOrder } = useUserNavOrder();
@@ -173,9 +173,9 @@ export function AppSidebar({ lockedCollapsed = false }: { lockedCollapsed?: bool
 
   const handleMobileClose = React.useCallback(() => {
     if (sidebarIsMobile) {
-      setOpenMobile(false);
+      setOpen(false);
     }
-  }, [sidebarIsMobile, setOpenMobile]);
+  }, [sidebarIsMobile, setOpen]);
 
   // Force collapsed state when locked
   React.useEffect(() => {
