@@ -266,9 +266,9 @@ export function WeatherWidget() {
                   }`}
                   style={{ animationDelay: `${i * 40}ms` }}
                 >
-                  <p className="text-[10px] font-semibold text-sky-300">{String(hour).padStart(2, "0")}h</p>
+                  <p className="text-[10px] font-semibold text-foreground">{String(hour).padStart(2, "0")}h</p>
                   <div className="flex justify-center my-0.5">{getWeatherIcon(filteredHourly.weatherCode[i], 16)}</div>
-                  <p className="text-xs font-bold text-amber-300">{filteredHourly.temperature[i]}°</p>
+                  <p className="text-xs font-bold text-foreground">{filteredHourly.temperature[i]}°</p>
                   <p className={`text-[10px] flex items-center gap-0.5 font-semibold ${
                     isHighRain ? "text-destructive" : isMedRain ? "text-primary" : "text-sky-400"
                   }`}>
@@ -290,11 +290,11 @@ export function WeatherWidget() {
                 key={dateStr}
                 className="text-center space-y-1 rounded-xl py-2 hover:bg-muted/40 transition-colors duration-200"
               >
-                <p className="text-xs font-semibold text-sky-300">{dayLabel}</p>
+                <p className="text-xs font-semibold text-foreground">{dayLabel}</p>
                 <div className="flex justify-center my-0.5">{getWeatherIcon(weather.daily.weatherCode[i], 16)}</div>
                 <p className="text-xs">
-                  <span className="font-bold text-amber-300">{weather.daily.tempMax[i]}°</span>
-                  <span className="text-sky-400/70 ml-0.5">{weather.daily.tempMin[i]}°</span>
+                  <span className="font-bold text-foreground">{weather.daily.tempMax[i]}°</span>
+                  <span className="text-muted-foreground ml-0.5">{weather.daily.tempMin[i]}°</span>
                 </p>
               </div>
             );
