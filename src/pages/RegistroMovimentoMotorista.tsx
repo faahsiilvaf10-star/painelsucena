@@ -1,14 +1,15 @@
 import { useState, useRef, useEffect } from "react";
 import { useNavigate } from "react-router-dom";
-import { ArrowLeft, LogIn, LogOut, Wrench, Settings, Eye, Loader2, CheckCircle2 } from "lucide-react";
+import { ArrowLeft, LogIn, LogOut, Wrench, Settings, Eye, Loader2, CheckCircle2, AlertTriangle } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Label } from "@/components/ui/label";
 import { Textarea } from "@/components/ui/textarea";
 import { RadioGroup, RadioGroupItem } from "@/components/ui/radio-group";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
+import { Alert, AlertDescription } from "@/components/ui/alert";
 import { useEquipment } from "@/hooks/useEquipment";
-import { useCreateEquipmentMovement, ExitReason } from "@/hooks/useEquipmentMovements";
+import { useCreateEquipmentMovement, useEquipmentCurrentlyOut, ExitReason } from "@/hooks/useEquipmentMovements";
 import { toast } from "sonner";
 
 type MovementType = "entrada" | "saida";
@@ -37,6 +38,7 @@ const EXIT_REASONS: { value: ExitReason; label: string; icon: React.ReactNode; c
 export default function RegistroMovimentoMotorista() {
   const navigate = useNavigate();
   const { data: equipment = [], isLoading: loadingEquipment } = useEquipment();
+  const { data: equipmentCurrentlyOut = [] } = useEquipmentCurrentlyOut();
   const createMovement = useCreateEquipmentMovement();
 
   const [movementType, setMovementType] = useState<MovementType | null>(null);
@@ -73,6 +75,10 @@ export default function RegistroMovimentoMotorista() {
 
   const selectedEquipmentData = equipment.find(e => e.id === selectedEquipment);
 
+  // Check if the selected equipment has a registered exit (is currently out)
+  const isEquipmentOut = selectedEquipmentData
+    ? equipmentCurrentlyOut.some(m => m.plate === selectedEquipmentData.plate)
+    : false;
   const handleSubmit = async () => {
     if (!selectedEquipmentData || !movementType) {
       toast.error("Selecione o equipamento e o tipo de movimento");
@@ -250,15 +256,18 @@ export default function RegistroMovimentoMotorista() {
             <CardHeader className="pb-3">
               <CardTitle className="text-base">Tipo de Movimento</CardTitle>
             </CardHeader>
-            <CardContent>
+            <CardContent className="space-y-3">
               <div className="grid grid-cols-2 gap-3">
                 <Button
                   variant={movementType === "entrada" ? "default" : "outline"}
                   className={`h-20 flex-col gap-2 text-base ${
                     movementType === "entrada" 
                       ? "bg-green-600 hover:bg-green-700 text-white" 
-                      : "border-green-500 text-green-600 hover:bg-green-50 dark:hover:bg-green-950"
+                      : isEquipmentOut
+                        ? "border-green-500 text-green-600 hover:bg-green-50 dark:hover:bg-green-950"
+                        : "border-muted text-muted-foreground opacity-50 cursor-not-allowed"
                   }`}
+                  disabled={!isEquipmentOut}
                   onClick={() => {
                     setMovementType("entrada");
                     setExitReason(null);
@@ -284,6 +293,16 @@ export default function RegistroMovimentoMotorista() {
                   <span className="font-bold">SAÍDA</span>
                 </Button>
               </div>
+
+              {/* Warning when entry is not allowed */}
+              {!isEquipmentOut && (
+                <Alert className="bg-amber-500/10 border-amber-500/30">
+                  <AlertTriangle className="h-4 w-4 text-amber-500" />
+                  <AlertDescription className="text-xs text-amber-700 dark:text-amber-300">
+                    Entrada só pode ser registrada se o equipamento tiver uma saída registrada anteriormente.
+                  </AlertDescription>
+                </Alert>
+              )}
             </CardContent>
           </Card>
         )}
