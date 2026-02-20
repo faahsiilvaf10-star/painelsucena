@@ -180,7 +180,7 @@ export function PostCard({ post }: { post: InstaCenaPost }) {
                 ? reactions[0].user_name
                 : reactions.length === 2
                   ? `${reactions[0].user_name} e ${reactions[1].user_name}`
-                  : `${reactions[0].user_name} e outras ${reactions.length - 1} pessoas`}
+                  : `${reactions[0].user_name}, ${reactions[1].user_name} e outras ${reactions.length - 2} pessoas reagiram`}
             </span>
           </button>
         )}
