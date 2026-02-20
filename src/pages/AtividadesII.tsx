@@ -33,6 +33,7 @@ import { cn } from "@/lib/utils";
 import MonthlyReportDialog from "@/components/atividades/MonthlyReportDialog";
 import { PhotoUploader } from "@/components/atividades/PhotoUploader";
 import { ReadOnlyBanner } from "@/components/ReadOnlyBanner";
+import { AIImproveButton } from "@/components/atividades/AIImproveButton";
 
 
 const FAIXA_OPTIONS = [
@@ -1107,7 +1108,14 @@ export default function AtividadesII() {
 
               {/* Manual Activities Text */}
               <div className="space-y-2">
-                <Label className="text-base font-semibold">✏️ ATIVIDADES MANUAIS</Label>
+                <div className="flex items-center justify-between">
+                  <Label className="text-base font-semibold">✏️ ATIVIDADES MANUAIS</Label>
+                  <AIImproveButton
+                    text={atividadesManuais}
+                    onImproved={setAtividadesManuais}
+                    disabled={!canEdit}
+                  />
+                </div>
                 <Textarea
                   value={atividadesManuais}
                   onChange={(e) => setAtividadesManuais(e.target.value)}

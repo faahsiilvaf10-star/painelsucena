@@ -35,3 +35,6 @@ verify_jwt = false
 
 [functions.generate-campaign-banner]
 verify_jwt = false
+
+[functions.improve-activity-text]
+verify_jwt = false
