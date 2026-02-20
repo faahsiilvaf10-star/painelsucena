@@ -181,15 +181,40 @@ export function WeatherWidget() {
   }
 
   const description = WMO_DESCRIPTIONS[weather.weatherCode] || "Indisponível";
-  const rainAlertHours = weather.hourly.time
-    .map((t, i) => ({ hour: new Date(t).getHours(), prob: weather.hourly.precipitationProbability[i] }))
+
+  // Filter hourly to working hours (07–17)
+  const workHourIndices = weather.hourly.time
+    .map((t, i) => ({ hour: new Date(t).getHours(), i }))
+    .filter(({ hour }) => hour >= 7 && hour <= 17);
+
+  const filteredHourly = {
+    time: workHourIndices.map(({ i }) => weather.hourly.time[i]),
+    temperature: workHourIndices.map(({ i }) => weather.hourly.temperature[i]),
+    weatherCode: workHourIndices.map(({ i }) => weather.hourly.weatherCode[i]),
+    precipitationProbability: workHourIndices.map(({ i }) => weather.hourly.precipitationProbability[i]),
+  };
+
+  const rainAlertHours = filteredHourly.time
+    .map((t, i) => ({ hour: new Date(t).getHours(), prob: filteredHourly.precipitationProbability[i] }))
     .filter(h => h.prob >= 50);
+
+  const severeRainHours = rainAlertHours.filter(h => h.prob >= 80);
 
   return (
     <Card className="border-border/50 bg-card/80 backdrop-blur-sm overflow-hidden">
       <CardContent className="p-4">
-        {/* Rain alert */}
-        {rainAlertHours.length > 0 && (
+        {/* Severe rain alert ≥80% - animated */}
+        {severeRainHours.length > 0 && (
+          <div className="flex items-center gap-2 bg-red-500/15 border border-red-500/40 rounded-lg px-3 py-2 mb-3 text-sm animate-pulse">
+            <CloudLightning className="h-5 w-5 text-red-400 shrink-0 animate-bounce" />
+            <span className="text-foreground">
+              <strong className="text-red-400">⚠️ Alerta severo de chuva!</strong>{" "}
+              Probabilidade ≥80% às {severeRainHours.map(h => `${String(h.hour).padStart(2, "0")}h (${h.prob}%)`).join(", ")}
+            </span>
+          </div>
+        )}
+        {/* Rain alert ≥50% */}
+        {rainAlertHours.length > 0 && severeRainHours.length === 0 && (
           <div className="flex items-center gap-2 bg-blue-500/15 border border-blue-500/30 rounded-lg px-3 py-2 mb-3 text-sm">
             <CloudRain className="h-4 w-4 text-blue-400 shrink-0" />
             <span className="text-foreground">
@@ -232,15 +257,15 @@ export function WeatherWidget() {
         <div className="border-t border-border/50 pt-3 mb-3">
           <p className="text-xs font-medium text-muted-foreground mb-2">Previsão por hora — Hoje</p>
           <div className="flex gap-2 overflow-x-auto pb-1 scrollbar-none">
-            {weather.hourly.time.map((timeStr, i) => {
+            {filteredHourly.time.map((timeStr, i) => {
               const hour = new Date(timeStr).getHours();
               return (
                 <div key={timeStr} className="flex flex-col items-center min-w-[40px] gap-0.5">
                   <p className="text-[10px] text-muted-foreground">{String(hour).padStart(2, "0")}h</p>
-                  <div className="flex justify-center">{getWeatherIcon(weather.hourly.weatherCode[i], 16)}</div>
-                  <p className="text-xs font-semibold">{weather.hourly.temperature[i]}°</p>
+                  <div className="flex justify-center">{getWeatherIcon(filteredHourly.weatherCode[i], 16)}</div>
+                  <p className="text-xs font-semibold">{filteredHourly.temperature[i]}°</p>
                   <p className="text-[10px] text-blue-400 flex items-center gap-0.5">
-                    <Droplets className="h-2.5 w-2.5" />{weather.hourly.precipitationProbability[i]}%
+                    <Droplets className="h-2.5 w-2.5" />{filteredHourly.precipitationProbability[i]}%
                   </p>
                 </div>
               );
