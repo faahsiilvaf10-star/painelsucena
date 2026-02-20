@@ -1,5 +1,5 @@
-import { useState, useMemo, useEffect } from "react";
-import { Search, Users, Phone, Calendar, Hash, MapPin, Filter, X, ChevronDown, ChevronUp, ShieldCheck, AlertTriangle, CircleAlert } from "lucide-react";
+import { useState, useMemo, useEffect, useCallback } from "react";
+import { Search, Users, Phone, Calendar, Hash, MapPin, Filter, X, ChevronDown, ChevronUp, ShieldCheck, AlertTriangle, CircleAlert, Pencil, Save } from "lucide-react";
 import Layout from "@/components/layout/Layout";
 import { Input } from "@/components/ui/input";
 import { Button } from "@/components/ui/button";
@@ -39,15 +39,28 @@ const RH = () => {
   const [sortDirection, setSortDirection] = useState<SortDirection>("asc");
   const [expandedRow, setExpandedRow] = useState<number | null>(null);
   const [colaboradores, setColaboradores] = useState<Colaborador[]>(initialColaboradores);
+  const [editingAso, setEditingAso] = useState<number | null>(null);
+  const [asoForm, setAsoForm] = useState<Record<string, string>>({});
 
   const { canEditRH, isLoading: permissionsLoading } = useRHPermissions();
 
-  // Load from localStorage on mount
+  // Load from localStorage on mount, merging with source data to pick up new ASO fields
   useEffect(() => {
     const stored = localStorage.getItem("rh_colaboradores");
     if (stored) {
       try {
-        setColaboradores(JSON.parse(stored));
+        const parsed: Colaborador[] = JSON.parse(stored);
+        // Merge: keep localStorage edits but fill in missing ASO from source
+        const merged = initialColaboradores.map(source => {
+          const saved = parsed.find(p => p.id === source.id);
+          if (saved) {
+            return { ...source, ...saved, aso: saved.aso || source.aso };
+          }
+          return source;
+        });
+        // Add any extra employees from localStorage not in source
+        const extraIds = parsed.filter(p => !initialColaboradores.find(s => s.id === p.id));
+        setColaboradores([...merged, ...extraIds]);
       } catch {
         // Use initial data if parse fails
       }
@@ -75,6 +88,37 @@ const RH = () => {
   const handleDeleteEmployee = (id: number) => {
     setColaboradores(prev => prev.filter(c => c.id !== id));
     toast.success("Colaborador removido com sucesso!");
+  };
+
+  const handleStartEditAso = (colaborador: Colaborador) => {
+    setEditingAso(colaborador.id);
+    setAsoForm({
+      admissional: colaborador.aso?.admissional || "",
+      validade: colaborador.aso?.validade || "",
+      periodico: colaborador.aso?.periodico || "",
+      retornoTrabalho: colaborador.aso?.retornoTrabalho || "",
+      mudancaRisco: colaborador.aso?.mudancaRisco || "",
+      observacao: colaborador.aso?.observacao || "",
+    });
+  };
+
+  const handleSaveAso = (id: number) => {
+    setColaboradores(prev => prev.map(c => {
+      if (c.id !== id) return c;
+      return {
+        ...c,
+        aso: {
+          admissional: asoForm.admissional || c.aso?.admissional || "",
+          validade: asoForm.validade || c.aso?.validade || "",
+          periodico: asoForm.periodico || undefined,
+          retornoTrabalho: asoForm.retornoTrabalho || undefined,
+          mudancaRisco: asoForm.mudancaRisco || undefined,
+          observacao: asoForm.observacao || undefined,
+        },
+      };
+    }));
+    setEditingAso(null);
+    toast.success("ASO atualizado com sucesso!");
   };
 
   // Filter and sort employees
@@ -411,73 +455,119 @@ const RH = () => {
                             </div>
 
                             {/* ASO Section */}
-                            {colaborador.aso && (() => {
+                            {(() => {
+                              const aso = colaborador.aso;
                               const parseDate = (d: string) => {
+                                if (!d) return null;
                                 const [day, month, year] = d.split('/').map(Number);
                                 return new Date(year, month - 1, day);
                               };
                               const today = new Date();
-                              const validade = parseDate(colaborador.aso.validade);
-                              const diffDays = Math.ceil((validade.getTime() - today.getTime()) / (1000 * 60 * 60 * 24));
+                              const validade = aso?.validade ? parseDate(aso.validade) : null;
+                              const diffDays = validade ? Math.ceil((validade.getTime() - today.getTime()) / (1000 * 60 * 60 * 24)) : null;
                               
-                              let farolColor = "text-green-500";
-                              let farolBg = "bg-green-500/10 border-green-500/30";
-                              let farolLabel = "Em dia";
-                              let FarolIcon = ShieldCheck;
+                              let farolColor = "text-muted-foreground";
+                              let farolBg = "bg-muted/50 border-border";
+                              let farolLabel = "Sem ASO";
+                              let FarolIcon = CircleAlert;
                               
-                              if (diffDays < 0) {
-                                farolColor = "text-red-500";
-                                farolBg = "bg-red-500/10 border-red-500/30";
-                                farolLabel = "Vencido";
-                                FarolIcon = CircleAlert;
-                              } else if (diffDays <= 30) {
-                                farolColor = "text-yellow-500";
-                                farolBg = "bg-yellow-500/10 border-yellow-500/30";
-                                farolLabel = "Vence em breve";
-                                FarolIcon = AlertTriangle;
-                              } else if (diffDays <= 60) {
-                                farolColor = "text-orange-400";
-                                farolBg = "bg-orange-400/10 border-orange-400/30";
-                                farolLabel = "Atenção";
-                                FarolIcon = AlertTriangle;
+                              if (diffDays !== null) {
+                                if (diffDays < 0) {
+                                  farolColor = "text-red-500";
+                                  farolBg = "bg-red-500/10 border-red-500/30";
+                                  farolLabel = "Vencido";
+                                  FarolIcon = CircleAlert;
+                                } else if (diffDays <= 30) {
+                                  farolColor = "text-yellow-500";
+                                  farolBg = "bg-yellow-500/10 border-yellow-500/30";
+                                  farolLabel = "Vence em breve";
+                                  FarolIcon = AlertTriangle;
+                                } else if (diffDays <= 60) {
+                                  farolColor = "text-orange-400";
+                                  farolBg = "bg-orange-400/10 border-orange-400/30";
+                                  farolLabel = "Atenção";
+                                  FarolIcon = AlertTriangle;
+                                } else {
+                                  farolColor = "text-green-500";
+                                  farolBg = "bg-green-500/10 border-green-500/30";
+                                  farolLabel = "Em dia";
+                                  FarolIcon = ShieldCheck;
+                                }
                               }
+
+                              const isEditing = editingAso === colaborador.id;
 
                               return (
                                 <div className={`mt-3 p-3 rounded-lg border ${farolBg}`}>
-                                  <div className="flex items-center gap-2 mb-2">
-                                    <FarolIcon className={`w-5 h-5 ${farolColor}`} />
-                                    <span className={`font-semibold text-sm ${farolColor}`}>
-                                      ASO - {farolLabel} ({diffDays > 0 ? `${diffDays} dias restantes` : `${Math.abs(diffDays)} dias vencido`})
-                                    </span>
+                                  <div className="flex items-center justify-between mb-2">
+                                    <div className="flex items-center gap-2">
+                                      <FarolIcon className={`w-5 h-5 ${farolColor}`} />
+                                      <span className={`font-semibold text-sm ${farolColor}`}>
+                                        ASO - {farolLabel} {diffDays !== null && `(${diffDays > 0 ? `${diffDays} dias restantes` : `${Math.abs(diffDays)} dias vencido`})`}
+                                      </span>
+                                    </div>
+                                    {canEditRH && !isEditing && (
+                                      <Button variant="ghost" size="sm" className="h-7 gap-1" onClick={(e) => { e.stopPropagation(); handleStartEditAso(colaborador); }}>
+                                        <Pencil className="w-3 h-3" /> Editar
+                                      </Button>
+                                    )}
+                                    {isEditing && (
+                                      <Button variant="default" size="sm" className="h-7 gap-1" onClick={(e) => { e.stopPropagation(); handleSaveAso(colaborador.id); }}>
+                                        <Save className="w-3 h-3" /> Salvar
+                                      </Button>
+                                    )}
                                   </div>
-                                  <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-5 gap-3">
-                                    <div>
-                                      <p className="text-xs text-muted-foreground">Admissional</p>
-                                      <p className="text-sm font-medium">{colaborador.aso.admissional}</p>
+                                  {isEditing ? (
+                                    <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-6 gap-3" onClick={(e) => e.stopPropagation()}>
+                                      {[
+                                        { key: "admissional", label: "Admissional" },
+                                        { key: "validade", label: "Validade" },
+                                        { key: "periodico", label: "Periódico" },
+                                        { key: "retornoTrabalho", label: "Retorno ao Trabalho" },
+                                        { key: "mudancaRisco", label: "Mudança de Risco" },
+                                        { key: "observacao", label: "Observação" },
+                                      ].map(({ key, label }) => (
+                                        <div key={key}>
+                                          <p className="text-xs text-muted-foreground mb-1">{label}</p>
+                                          <Input
+                                            className="h-8 text-sm"
+                                            placeholder="DD/MM/AAAA"
+                                            value={asoForm[key] || ""}
+                                            onChange={(e) => setAsoForm(prev => ({ ...prev, [key]: e.target.value }))}
+                                          />
+                                        </div>
+                                      ))}
                                     </div>
-                                    <div>
-                                      <p className="text-xs text-muted-foreground">Validade</p>
-                                      <p className={`text-sm font-medium ${farolColor}`}>{colaborador.aso.validade}</p>
-                                    </div>
-                                    {colaborador.aso.periodico && (
+                                  ) : (
+                                    <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-6 gap-3">
+                                      <div>
+                                        <p className="text-xs text-muted-foreground">Admissional</p>
+                                        <p className="text-sm font-medium">{aso?.admissional || "-"}</p>
+                                      </div>
+                                      <div>
+                                        <p className="text-xs text-muted-foreground">Validade</p>
+                                        <p className={`text-sm font-medium ${farolColor}`}>{aso?.validade || "-"}</p>
+                                      </div>
                                       <div>
                                         <p className="text-xs text-muted-foreground">Periódico</p>
-                                        <p className="text-sm font-medium">{colaborador.aso.periodico}</p>
+                                        <p className="text-sm font-medium">{aso?.periodico || "-"}</p>
                                       </div>
-                                    )}
-                                    {colaborador.aso.retornoTrabalho && (
                                       <div>
                                         <p className="text-xs text-muted-foreground">Retorno ao Trabalho</p>
-                                        <p className="text-sm font-medium">{colaborador.aso.retornoTrabalho}</p>
+                                        <p className="text-sm font-medium">{aso?.retornoTrabalho || "-"}</p>
                                       </div>
-                                    )}
-                                    {colaborador.aso.mudancaRisco && (
                                       <div>
                                         <p className="text-xs text-muted-foreground">Mudança de Risco</p>
-                                        <p className="text-sm font-medium">{colaborador.aso.mudancaRisco}</p>
+                                        <p className="text-sm font-medium">{aso?.mudancaRisco || "-"}</p>
                                       </div>
-                                    )}
-                                  </div>
+                                      {aso?.observacao && (
+                                        <div>
+                                          <p className="text-xs text-muted-foreground">Observação</p>
+                                          <p className="text-sm font-medium">{aso.observacao}</p>
+                                        </div>
+                                      )}
+                                    </div>
+                                  )}
                                 </div>
                               );
                             })()}
