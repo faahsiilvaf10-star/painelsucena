@@ -164,6 +164,11 @@ const Dashboard = () => {
           />
         </div>
 
+        {/* Weather Widget */}
+        <div className="mb-6 animate-slide-up" style={{ animationDelay: "0.05s" }}>
+          <WeatherWidget />
+        </div>
+
         {/* Modern Stat Cards Row */}
         <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4 mb-6 animate-slide-up">
           <ModernStatCard
@@ -201,11 +206,6 @@ const Dashboard = () => {
             variant="circular"
             color="hsl(174, 62%, 47%)"
           />
-        </div>
-
-        {/* Weather Widget */}
-        <div className="mb-6 animate-slide-up" style={{ animationDelay: "0.05s" }}>
-          <WeatherWidget />
         </div>
 
         {/* Fixed banners */}
