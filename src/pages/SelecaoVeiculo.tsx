@@ -41,7 +41,12 @@ export default function SelecaoVeiculo() {
   useEffect(() => {
     const savedVehicle = localStorage.getItem("selectedVehicleId");
     if (savedVehicle) {
-      navigate("/painel-motorista", { replace: true });
+      // If exit is pending, redirect to entry page instead
+      if (localStorage.getItem("equipmentExitPending") === "true") {
+        navigate("/registro-movimento-motorista", { replace: true });
+      } else {
+        navigate("/painel-motorista", { replace: true });
+      }
     }
   }, [navigate]);
 

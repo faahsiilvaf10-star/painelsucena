@@ -49,6 +49,13 @@ const PainelMotorista = () => {
       }
     };
   }, []);
+
+  // Check if equipment exit is pending - redirect to entry page
+  useEffect(() => {
+    if (localStorage.getItem("equipmentExitPending") === "true") {
+      navigate("/registro-movimento-motorista", { replace: true });
+    }
+  }, []);
   const navigate = useNavigate();
   const { data: profile } = useProfile();
   const { data: equipment = [] } = useEquipment();
