@@ -9,6 +9,7 @@ interface HourlyData {
   time: string[];
   temperature: number[];
   weatherCode: number[];
+  precipitationProbability: number[];
 }
 
 interface WeatherData {
@@ -104,7 +105,7 @@ export function WeatherWidget() {
       }
 
       const res = await fetch(
-        `https://api.open-meteo.com/v1/forecast?latitude=${latitude}&longitude=${longitude}&current=temperature_2m,relative_humidity_2m,apparent_temperature,weather_code,wind_speed_10m,is_day&daily=weather_code,temperature_2m_max,temperature_2m_min&hourly=temperature_2m,weather_code&timezone=America/Sao_Paulo&forecast_days=5`
+        `https://api.open-meteo.com/v1/forecast?latitude=${latitude}&longitude=${longitude}&current=temperature_2m,relative_humidity_2m,apparent_temperature,weather_code,wind_speed_10m,is_day&daily=weather_code,temperature_2m_max,temperature_2m_min&hourly=temperature_2m,weather_code,precipitation_probability&timezone=America/Sao_Paulo&forecast_days=5`
       );
       const data = await res.json();
 
@@ -132,6 +133,7 @@ export function WeatherWidget() {
           time: todayHourlyIndices.map(({ t }: { t: string }) => t),
           temperature: todayHourlyIndices.map(({ i }: { i: number }) => Math.round(data.hourly.temperature_2m[i])),
           weatherCode: todayHourlyIndices.map(({ i }: { i: number }) => data.hourly.weather_code[i]),
+          precipitationProbability: todayHourlyIndices.map(({ i }: { i: number }) => data.hourly.precipitation_probability[i] ?? 0),
         },
         locationName,
       });
@@ -225,6 +227,9 @@ export function WeatherWidget() {
                   <p className="text-[10px] text-muted-foreground">{String(hour).padStart(2, "0")}h</p>
                   <div className="flex justify-center">{getWeatherIcon(weather.hourly.weatherCode[i], 16)}</div>
                   <p className="text-xs font-semibold">{weather.hourly.temperature[i]}°</p>
+                  <p className="text-[10px] text-blue-400 flex items-center gap-0.5">
+                    <Droplets className="h-2.5 w-2.5" />{weather.hourly.precipitationProbability[i]}%
+                  </p>
                 </div>
               );
             })}
