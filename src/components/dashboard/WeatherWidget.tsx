@@ -5,6 +5,12 @@ import { useIsMobile } from "@/hooks/use-mobile";
 import { Button } from "@/components/ui/button";
 import { Skeleton } from "@/components/ui/skeleton";
 
+interface HourlyData {
+  time: string[];
+  temperature: number[];
+  weatherCode: number[];
+}
+
 interface WeatherData {
   temperature: number;
   apparentTemp: number;
@@ -18,6 +24,7 @@ interface WeatherData {
     weatherCode: number[];
     date: string[];
   };
+  hourly: HourlyData;
   locationName: string;
 }
 
@@ -97,9 +104,16 @@ export function WeatherWidget() {
       }
 
       const res = await fetch(
-        `https://api.open-meteo.com/v1/forecast?latitude=${latitude}&longitude=${longitude}&current=temperature_2m,relative_humidity_2m,apparent_temperature,weather_code,wind_speed_10m,is_day&daily=weather_code,temperature_2m_max,temperature_2m_min&timezone=America/Sao_Paulo&forecast_days=5`
+        `https://api.open-meteo.com/v1/forecast?latitude=${latitude}&longitude=${longitude}&current=temperature_2m,relative_humidity_2m,apparent_temperature,weather_code,wind_speed_10m,is_day&daily=weather_code,temperature_2m_max,temperature_2m_min&hourly=temperature_2m,weather_code&timezone=America/Sao_Paulo&forecast_days=5`
       );
       const data = await res.json();
+
+      // Filter hourly data to today only
+      const todayStr = data.daily.time[0];
+      const hourlyTime: string[] = data.hourly.time;
+      const todayHourlyIndices = hourlyTime
+        .map((t: string, i: number) => ({ t, i }))
+        .filter(({ t }: { t: string }) => t.startsWith(todayStr));
 
       setWeather({
         temperature: Math.round(data.current.temperature_2m),
@@ -113,6 +127,11 @@ export function WeatherWidget() {
           tempMin: data.daily.temperature_2m_min.map((t: number) => Math.round(t)),
           weatherCode: data.daily.weather_code,
           date: data.daily.time,
+        },
+        hourly: {
+          time: todayHourlyIndices.map(({ t }: { t: string }) => t),
+          temperature: todayHourlyIndices.map(({ i }: { i: number }) => Math.round(data.hourly.temperature_2m[i])),
+          weatherCode: todayHourlyIndices.map(({ i }: { i: number }) => data.hourly.weather_code[i]),
         },
         locationName,
       });
@@ -195,7 +214,24 @@ export function WeatherWidget() {
           </div>
         </div>
 
-        {/* 5-day forecast */}
+        {/* Hourly forecast - today */}
+        <div className="border-t border-border/50 pt-3 mb-3">
+          <p className="text-xs font-medium text-muted-foreground mb-2">Previsão por hora — Hoje</p>
+          <div className="flex gap-2 overflow-x-auto pb-1 scrollbar-none">
+            {weather.hourly.time.map((timeStr, i) => {
+              const hour = new Date(timeStr).getHours();
+              return (
+                <div key={timeStr} className="flex flex-col items-center min-w-[40px] gap-0.5">
+                  <p className="text-[10px] text-muted-foreground">{String(hour).padStart(2, "0")}h</p>
+                  <div className="flex justify-center">{getWeatherIcon(weather.hourly.weatherCode[i], 16)}</div>
+                  <p className="text-xs font-semibold">{weather.hourly.temperature[i]}°</p>
+                </div>
+              );
+            })}
+          </div>
+        </div>
+
+
         <div className="grid grid-cols-5 gap-1.5 border-t border-border/50 pt-3">
           {weather.daily.date.map((dateStr, i) => {
             const d = new Date(dateStr + "T12:00:00");
