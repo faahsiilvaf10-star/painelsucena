@@ -201,71 +201,90 @@ export function WeatherWidget() {
   const severeRainHours = rainAlertHours.filter(h => h.prob >= 80);
 
   return (
-    <Card className="border-border/50 bg-card/80 backdrop-blur-sm overflow-hidden">
+    <Card className="border-border/50 bg-card/80 backdrop-blur-sm overflow-hidden animate-fade-in">
       <CardContent className="p-4">
         {/* Severe rain alert ≥80% - animated */}
         {severeRainHours.length > 0 && (
-          <div className="flex items-center gap-2 bg-red-500/15 border border-red-500/40 rounded-lg px-3 py-2 mb-3 text-sm animate-pulse">
-            <CloudLightning className="h-5 w-5 text-red-400 shrink-0 animate-bounce" />
+          <div className="flex items-center gap-2 bg-destructive/10 border border-destructive/30 rounded-xl px-3 py-2.5 mb-3 text-sm animate-pulse shadow-lg shadow-destructive/5">
+            <CloudLightning className="h-5 w-5 text-destructive shrink-0 animate-bounce" />
             <span className="text-foreground">
-              <strong className="text-red-400">⚠️ Alerta severo de chuva!</strong>{" "}
+              <strong className="text-destructive">⚠️ Alerta severo de chuva!</strong>{" "}
               Probabilidade ≥80% às {severeRainHours.map(h => `${String(h.hour).padStart(2, "0")}h (${h.prob}%)`).join(", ")}
             </span>
           </div>
         )}
         {/* Rain alert ≥50% */}
         {rainAlertHours.length > 0 && severeRainHours.length === 0 && (
-          <div className="flex items-center gap-2 bg-blue-500/15 border border-blue-500/30 rounded-lg px-3 py-2 mb-3 text-sm">
-            <CloudRain className="h-4 w-4 text-blue-400 shrink-0" />
+          <div className="flex items-center gap-2 bg-primary/10 border border-primary/25 rounded-xl px-3 py-2.5 mb-3 text-sm animate-fade-in">
+            <CloudRain className="h-4 w-4 text-primary shrink-0" />
             <span className="text-foreground">
-              <strong className="text-blue-400">Alerta de chuva!</strong>{" "}
+              <strong className="text-primary">Alerta de chuva!</strong>{" "}
               Probabilidade ≥50% às {rainAlertHours.map(h => `${String(h.hour).padStart(2, "0")}h (${h.prob}%)`).join(", ")}
             </span>
           </div>
         )}
-        <div className="flex items-start justify-between mb-3">
-          <div>
+
+        {/* Current conditions */}
+        <div className="flex items-start justify-between mb-4">
+          <div className="animate-fade-in">
             <div className="flex items-center gap-1.5 text-xs text-muted-foreground mb-1">
               <MapPin className="h-3 w-3" />
               <span className="truncate max-w-[200px]">{weather.locationName}</span>
             </div>
-            <div className="flex items-end gap-2">
-              <span className="text-4xl font-bold">{weather.temperature}°</span>
-              <div className="pb-1">
-                {getWeatherIcon(weather.weatherCode)}
-              </div>
+            <div className="flex items-end gap-3">
+              <span className="text-5xl font-extrabold tracking-tight bg-gradient-to-b from-foreground to-foreground/70 bg-clip-text text-transparent">
+                {weather.temperature}°
+              </span>
+              <div className="pb-1.5">{getWeatherIcon(weather.weatherCode)}</div>
             </div>
-            <p className="text-sm text-muted-foreground">{description}</p>
+            <p className="text-sm text-muted-foreground mt-0.5">{description}</p>
           </div>
-          <div className="text-right space-y-1 text-xs text-muted-foreground">
-            <div className="flex items-center gap-1 justify-end">
-              <Thermometer className="h-3 w-3" />
+          <div className="text-right space-y-1.5 text-xs text-muted-foreground bg-muted/40 rounded-xl px-3 py-2.5 backdrop-blur-sm">
+            <div className="flex items-center gap-1.5 justify-end">
+              <Thermometer className="h-3.5 w-3.5 text-orange-400" />
               <span>Sensação {weather.apparentTemp}°</span>
             </div>
-            <div className="flex items-center gap-1 justify-end">
-              <Droplets className="h-3 w-3" />
+            <div className="flex items-center gap-1.5 justify-end">
+              <Droplets className="h-3.5 w-3.5 text-sky-400" />
               <span>Umidade {weather.humidity}%</span>
             </div>
-            <div className="flex items-center gap-1 justify-end">
-              <Wind className="h-3 w-3" />
+            <div className="flex items-center gap-1.5 justify-end">
+              <Wind className="h-3.5 w-3.5 text-teal-400" />
               <span>Vento {weather.windSpeed} km/h</span>
             </div>
           </div>
         </div>
 
-        {/* Hourly forecast - today */}
-        <div className="border-t border-border/50 pt-3 mb-3">
-          <p className="text-xs font-medium text-muted-foreground mb-2">Previsão por hora — Hoje</p>
-          <div className="flex gap-2 overflow-x-auto pb-1 scrollbar-none">
+        {/* Hourly forecast */}
+        <div className="border-t border-border/40 pt-3 mb-3">
+          <p className="text-xs font-semibold text-muted-foreground mb-2.5 uppercase tracking-wider">
+            Previsão por hora — Hoje
+          </p>
+          <div className="flex gap-1 overflow-x-auto pb-1.5 scrollbar-none">
             {filteredHourly.time.map((timeStr, i) => {
               const hour = new Date(timeStr).getHours();
+              const prob = filteredHourly.precipitationProbability[i];
+              const isHighRain = prob >= 80;
+              const isMedRain = prob >= 50 && prob < 80;
               return (
-                <div key={timeStr} className="flex flex-col items-center min-w-[40px] gap-0.5">
-                  <p className="text-[10px] text-muted-foreground">{String(hour).padStart(2, "0")}h</p>
-                  <div className="flex justify-center">{getWeatherIcon(filteredHourly.weatherCode[i], 16)}</div>
-                  <p className="text-xs font-semibold">{filteredHourly.temperature[i]}°</p>
-                  <p className="text-[10px] text-blue-400 flex items-center gap-0.5">
-                    <Droplets className="h-2.5 w-2.5" />{filteredHourly.precipitationProbability[i]}%
+                <div
+                  key={timeStr}
+                  className={`flex flex-col items-center min-w-[44px] gap-0.5 rounded-xl py-1.5 px-1 transition-all duration-300 ${
+                    isHighRain
+                      ? "bg-destructive/10 border border-destructive/20"
+                      : isMedRain
+                        ? "bg-primary/8 border border-primary/15"
+                        : "hover:bg-muted/50"
+                  }`}
+                  style={{ animationDelay: `${i * 40}ms` }}
+                >
+                  <p className="text-[10px] font-medium text-muted-foreground">{String(hour).padStart(2, "0")}h</p>
+                  <div className="flex justify-center my-0.5">{getWeatherIcon(filteredHourly.weatherCode[i], 16)}</div>
+                  <p className="text-xs font-bold">{filteredHourly.temperature[i]}°</p>
+                  <p className={`text-[10px] flex items-center gap-0.5 font-medium ${
+                    isHighRain ? "text-destructive" : isMedRain ? "text-primary" : "text-sky-400"
+                  }`}>
+                    <Droplets className="h-2.5 w-2.5" />{prob}%
                   </p>
                 </div>
               );
@@ -273,18 +292,21 @@ export function WeatherWidget() {
           </div>
         </div>
 
-
-        <div className="grid grid-cols-5 gap-1.5 border-t border-border/50 pt-3">
+        {/* 5-day forecast */}
+        <div className="grid grid-cols-5 gap-1.5 border-t border-border/40 pt-3">
           {weather.daily.date.map((dateStr, i) => {
             const d = new Date(dateStr + "T12:00:00");
             const dayLabel = i === 0 ? "Hoje" : WEEKDAYS[d.getDay()];
             return (
-              <div key={dateStr} className="text-center space-y-1">
-                <p className="text-xs font-medium text-muted-foreground">{dayLabel}</p>
-                <div className="flex justify-center">{getWeatherIcon(weather.daily.weatherCode[i], 16)}</div>
+              <div
+                key={dateStr}
+                className="text-center space-y-1 rounded-xl py-2 hover:bg-muted/40 transition-colors duration-200"
+              >
+                <p className="text-xs font-semibold text-muted-foreground">{dayLabel}</p>
+                <div className="flex justify-center my-0.5">{getWeatherIcon(weather.daily.weatherCode[i], 16)}</div>
                 <p className="text-xs">
-                  <span className="font-semibold">{weather.daily.tempMax[i]}°</span>
-                  <span className="text-muted-foreground ml-0.5">{weather.daily.tempMin[i]}°</span>
+                  <span className="font-bold">{weather.daily.tempMax[i]}°</span>
+                  <span className="text-muted-foreground/70 ml-0.5">{weather.daily.tempMin[i]}°</span>
                 </p>
               </div>
             );
