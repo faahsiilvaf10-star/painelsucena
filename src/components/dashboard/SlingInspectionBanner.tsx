@@ -12,6 +12,7 @@ import {
 } from "@/hooks/useSlingEquipment";
 import { useAuth } from "@/hooks/useAuth";
 import { toast } from "sonner";
+import { ExportSlingPendingPdfButton } from "./ExportSlingPendingPdfButton";
 
 export function SlingInspectionBanner() {
   const { user } = useAuth();
@@ -111,12 +112,15 @@ export function SlingInspectionBanner() {
               )}
             </div>
 
-            <Link
-              to="/vistoria-cintas"
-              className="inline-flex text-sm text-primary hover:underline"
-            >
-              Ver todas as cintas →
-            </Link>
+            <div className="flex items-center gap-3">
+              <Link
+                to="/vistoria-cintas"
+                className="inline-flex text-sm text-primary hover:underline"
+              >
+                Ver todas as cintas →
+              </Link>
+              <ExportSlingPendingPdfButton />
+            </div>
           </div>
         </div>
       </CardContent>
