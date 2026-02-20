@@ -154,12 +154,8 @@ const Sidebar = React.forwardRef<
     <div
       ref={ref}
       className="group peer text-sidebar-foreground"
-      data-state={isMobile ? (openMobile ? "expanded" : "collapsed") : state}
-      data-collapsible={
-        isMobile
-          ? (openMobile ? "" : collapsible)
-          : (state === "collapsed" ? collapsible : "")
-      }
+      data-state={state}
+      data-collapsible={state === "collapsed" ? collapsible : ""}
       data-variant={variant}
       data-side={side}
     >
