@@ -42,8 +42,9 @@ const Presenca = () => {
     isLoading: lockLoading
   } = useReportLock(today);
 
-  const encarregadoCargos = ["encarregado_geral", "encarregado_i", "encarregado_ii"];
-  const canDelete = isAdmin || encarregadoCargos.includes(profile?.cargo || "");
+  const allowedCargos = ["encarregado_geral", "encarregado_i", "encarregado_ii", "aux_administrativo"];
+  const canEdit = isAdmin || allowedCargos.includes(profile?.cargo || "");
+  const canDelete = canEdit;
 
   const filteredRecords = attendanceRecords?.filter(record => filterStatus === "all" || record.status === filterStatus) || [];
   const stats = {
