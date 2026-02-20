@@ -33,6 +33,7 @@ import { cn } from "@/lib/utils";
 import MonthlyReportDialog from "@/components/atividades/MonthlyReportDialog";
 import { PhotoUploader } from "@/components/atividades/PhotoUploader";
 import { ReadOnlyBanner } from "@/components/ReadOnlyBanner";
+import { AIImproveButton } from "@/components/atividades/AIImproveButton";
 
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import MudasPlantioTab from "@/components/atividades/MudasPlantioTab";
@@ -1242,7 +1243,14 @@ export default function Atividades() {
 
               {/* Atividades Manuais */}
               <div className="space-y-2 p-3 rounded-lg bg-amber-500/10 border border-amber-500/20">
-                <Label className="text-amber-600 dark:text-amber-400">✏️ OUTRAS ATIVIDADES (Preenchimento Manual)</Label>
+                <div className="flex items-center justify-between">
+                  <Label className="text-amber-600 dark:text-amber-400">✏️ OUTRAS ATIVIDADES (Preenchimento Manual)</Label>
+                  <AIImproveButton
+                    text={atividadesManuais}
+                    onImproved={setAtividadesManuais}
+                    disabled={!canEdit}
+                  />
+                </div>
                 <Textarea
                   value={atividadesManuais}
                   onChange={(e) => setAtividadesManuais(e.target.value)}
