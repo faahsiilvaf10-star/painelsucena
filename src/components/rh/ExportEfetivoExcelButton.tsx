@@ -55,6 +55,11 @@ export function ExportEfetivoExcelButton({ colaboradores, filterFuncao }: Export
         { key: "nascimento", width: 12 },
         { key: "contato", width: 16 },
         { key: "localidade", width: 18 },
+        { key: "aso_admissional", width: 14 },
+        { key: "aso_validade", width: 14 },
+        { key: "aso_periodico", width: 14 },
+        { key: "aso_retorno", width: 14 },
+        { key: "aso_mudanca", width: 14 },
       ];
 
       // Fetch and embed logo
@@ -97,7 +102,7 @@ export function ExportEfetivoExcelButton({ colaboradores, filterFuncao }: Export
       // Title row
       const titleRow = worksheet.addRow(["RELATÓRIO DE EFETIVO - SUCENA EMPREENDIMENTOS"]);
       titleRow.height = 28;
-      worksheet.mergeCells(`A${titleRow.number}:H${titleRow.number}`);
+      worksheet.mergeCells(`A${titleRow.number}:M${titleRow.number}`);
       const titleCell = titleRow.getCell(1);
       titleCell.font = { bold: true, size: 16, color: { argb: "FF1A1A2E" } };
       titleCell.alignment = { horizontal: "center", vertical: "middle" };
@@ -111,7 +116,7 @@ export function ExportEfetivoExcelButton({ colaboradores, filterFuncao }: Export
       const filterLabel = filterFuncao && filterFuncao !== "all" ? `Filtro: ${filterFuncao}` : "Todos os colaboradores";
       const dateStr = new Date().toLocaleDateString("pt-BR", { day: "2-digit", month: "long", year: "numeric" });
       const subtitleRow = worksheet.addRow([`${filterLabel} | Total: ${colaboradores.length} colaboradores | Gerado em: ${dateStr}`]);
-      worksheet.mergeCells(`A${subtitleRow.number}:H${subtitleRow.number}`);
+      worksheet.mergeCells(`A${subtitleRow.number}:M${subtitleRow.number}`);
       const subtitleCell = subtitleRow.getCell(1);
       subtitleCell.font = { size: 10, italic: true, color: { argb: "FF666666" } };
       subtitleCell.alignment = { horizontal: "center", vertical: "middle" };
@@ -121,7 +126,7 @@ export function ExportEfetivoExcelButton({ colaboradores, filterFuncao }: Export
       worksheet.addRow([]);
 
       // Header row
-      const headers = ["Nome", "Função", "Matrícula", "CPF", "Admissão", "Nascimento", "Contato", "Localidade"];
+      const headers = ["Nome", "Função", "Matrícula", "CPF", "Admissão", "Nascimento", "Contato", "Localidade", "ASO Admissional", "ASO Validade", "ASO Periódico", "ASO Retorno", "ASO Mud. Risco"];
       const headerRow = worksheet.addRow(headers);
       headerRow.height = 24;
       headerRow.eachCell((cell) => {
@@ -151,6 +156,11 @@ export function ExportEfetivoExcelButton({ colaboradores, filterFuncao }: Export
           c.dataNascimento,
           c.contato || "-",
           c.localidade,
+          c.aso?.admissional || "-",
+          c.aso?.validade || "-",
+          c.aso?.periodico || "-",
+          c.aso?.retornoTrabalho || "-",
+          c.aso?.mudancaRisco || "-",
         ]);
         row.height = 20;
         
@@ -180,7 +190,7 @@ export function ExportEfetivoExcelButton({ colaboradores, filterFuncao }: Export
       // Summary row
       worksheet.addRow([]);
       const summaryRow = worksheet.addRow([`Total de colaboradores: ${colaboradores.length}`]);
-      worksheet.mergeCells(`A${summaryRow.number}:H${summaryRow.number}`);
+      worksheet.mergeCells(`A${summaryRow.number}:M${summaryRow.number}`);
       const summaryCell = summaryRow.getCell(1);
       summaryCell.font = { bold: true, size: 10, color: { argb: "FF1A1A2E" } };
       summaryCell.alignment = { horizontal: "right", vertical: "middle" };
@@ -239,7 +249,7 @@ export function ExportEfetivoExcelButton({ colaboradores, filterFuncao }: Export
       // Footer
       worksheet.addRow([]);
       const footerRow = worksheet.addRow(["Sucena Empreendimentos | sucenaempreendimentos.com.br | contato@sucenaempreendimentos.com.br"]);
-      worksheet.mergeCells(`A${footerRow.number}:H${footerRow.number}`);
+      worksheet.mergeCells(`A${footerRow.number}:M${footerRow.number}`);
       const footerCell = footerRow.getCell(1);
       footerCell.font = { size: 8, italic: true, color: { argb: "FF888888" } };
       footerCell.alignment = { horizontal: "center", vertical: "middle" };
