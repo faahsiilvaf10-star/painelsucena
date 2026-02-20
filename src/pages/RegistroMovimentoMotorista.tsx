@@ -1,8 +1,9 @@
 import { useState, useRef, useEffect } from "react";
 import { useNavigate } from "react-router-dom";
-import { ArrowLeft, LogIn, LogOut, Wrench, Settings, Eye, Loader2, CheckCircle2, AlertTriangle } from "lucide-react";
+import { ArrowLeft, LogIn, LogOut, Wrench, Settings, Eye, Loader2, CheckCircle2, AlertTriangle, Gauge, Car } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
+import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Textarea } from "@/components/ui/textarea";
 import { RadioGroup, RadioGroupItem } from "@/components/ui/radio-group";
@@ -10,6 +11,8 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@
 import { Alert, AlertDescription } from "@/components/ui/alert";
 import { useEquipment } from "@/hooks/useEquipment";
 import { useCreateEquipmentMovement, useEquipmentCurrentlyOut, ExitReason } from "@/hooks/useEquipmentMovements";
+import { useUpdateShiftRecord } from "@/hooks/useDailyShiftRecords";
+import { supabase } from "@/integrations/supabase/client";
 import { toast } from "sonner";
 
 type MovementType = "entrada" | "saida";
@@ -40,6 +43,7 @@ export default function RegistroMovimentoMotorista() {
   const { data: equipment = [], isLoading: loadingEquipment } = useEquipment();
   const { data: equipmentCurrentlyOut = [] } = useEquipmentCurrentlyOut();
   const createMovement = useCreateEquipmentMovement();
+  const updateShiftRecord = useUpdateShiftRecord();
 
   const [movementType, setMovementType] = useState<MovementType | null>(null);
   const [selectedEquipment, setSelectedEquipment] = useState<string>("");
@@ -48,6 +52,11 @@ export default function RegistroMovimentoMotorista() {
   const [observation, setObservation] = useState("");
   const [showSuccess, setShowSuccess] = useState(false);
   const [successType, setSuccessType] = useState<MovementType | null>(null);
+  const [exitHorimeter, setExitHorimeter] = useState("");
+  const [exitKm, setExitKm] = useState("");
+  
+  // Check if we're in entry-only mode (equipment exit pending)
+  const exitPending = localStorage.getItem("equipmentExitPending") === "true";
   
   const observationRef = useRef<HTMLDivElement>(null);
 
@@ -63,6 +72,23 @@ export default function RegistroMovimentoMotorista() {
       setSelectedEquipment(savedVehicleId);
     }
   }, [savedVehicleId, linkedVehicle.length]);
+
+  // If exit is pending, auto-select entrada
+  useEffect(() => {
+    if (exitPending) {
+      setMovementType("entrada");
+    }
+  }, [exitPending]);
+
+  // Pre-fill horímetro/km from previous shift data
+  useEffect(() => {
+    if (savedVehicleId && movementType === "saida") {
+      const storedH = localStorage.getItem(`shift_horimeter_${savedVehicleId}`);
+      const storedK = localStorage.getItem(`shift_km_${savedVehicleId}`);
+      if (storedH) setExitHorimeter(storedH);
+      if (storedK) setExitKm(storedK);
+    }
+  }, [savedVehicleId, movementType]);
 
   // Auto-scroll when movement type is selected to show full form
   useEffect(() => {
@@ -90,6 +116,11 @@ export default function RegistroMovimentoMotorista() {
       return;
     }
 
+    if (movementType === "saida" && (!exitHorimeter.trim() || !exitKm.trim())) {
+      toast.error("Preencha o Horímetro e KM final");
+      return;
+    }
+
     if (exitReason === "manutencao_corretiva" && !problemDescription.trim()) {
       toast.error("Descreva o problema para manutenção corretiva");
       return;
@@ -105,13 +136,45 @@ export default function RegistroMovimentoMotorista() {
         observation: observation.trim() || null,
       });
 
+      // If saída: save telemetry and set exit pending flag
+      if (movementType === "saida" && savedVehicleId) {
+        const today = new Date().toISOString().split("T")[0];
+        
+        // Update daily shift record with final horimeter/km
+        try {
+          await updateShiftRecord.mutateAsync({
+            equipment_id: savedVehicleId,
+            shift_date: today,
+            final_horimeter: parseFloat(exitHorimeter),
+            final_km: parseFloat(exitKm),
+          });
+        } catch (e) {
+          console.error("Error updating shift record telemetry:", e);
+        }
+
+        // Set the exit pending flag - panel will be locked
+        localStorage.setItem("equipmentExitPending", "true");
+      }
+
+      // If entrada: clear exit pending flag
+      if (movementType === "entrada") {
+        localStorage.removeItem("equipmentExitPending");
+      }
+
       // Show success animation
       setSuccessType(movementType);
       setShowSuccess(true);
 
       // Navigate after animation
       setTimeout(() => {
-        navigate("/painel-motorista");
+        if (movementType === "saida") {
+          // After saída, stay on this page in entry-only mode
+          navigate("/registro-movimento-motorista", { replace: true });
+          window.location.reload();
+        } else {
+          // After entrada, unlock full panel
+          navigate("/painel-motorista", { replace: true });
+        }
       }, 1800);
     } catch (error) {
       console.error("Error creating movement:", error);
@@ -204,16 +267,30 @@ export default function RegistroMovimentoMotorista() {
       {/* Header */}
       <header className="sticky top-0 z-10 bg-card/95 backdrop-blur-sm border-b shadow-sm shrink-0">
         <div className="flex items-center gap-3 p-3">
-          <Button 
-            variant="ghost" 
-            size="icon" 
-            onClick={() => navigate("/painel-motorista")}
-            className="shrink-0"
-          >
-            <ArrowLeft className="h-5 w-5" />
-          </Button>
-          <h1 className="text-lg font-bold truncate">Registro de Movimento</h1>
+          {!exitPending && (
+            <Button 
+              variant="ghost" 
+              size="icon" 
+              onClick={() => navigate("/painel-motorista")}
+              className="shrink-0"
+            >
+              <ArrowLeft className="h-5 w-5" />
+            </Button>
+          )}
+          <h1 className="text-lg font-bold truncate">
+            {exitPending ? "Registrar Entrada do Equipamento" : "Registro de Movimento"}
+          </h1>
         </div>
+        {exitPending && (
+          <div className="px-3 pb-2">
+            <Alert className="bg-amber-500/10 border-amber-500/30 py-2">
+              <AlertTriangle className="h-4 w-4 text-amber-500" />
+              <AlertDescription className="text-xs text-amber-700 dark:text-amber-300">
+                O equipamento está fora da obra. Registre a entrada para liberar o painel.
+              </AlertDescription>
+            </Alert>
+          </div>
+        )}
       </header>
 
       <main className="flex-1 overflow-y-auto overscroll-contain">
@@ -250,8 +327,8 @@ export default function RegistroMovimentoMotorista() {
           </CardContent>
         </Card>
 
-        {/* Movement Type Selection */}
-        {selectedEquipment && (
+        {/* Movement Type Selection - hidden in exit pending mode */}
+        {selectedEquipment && !exitPending && (
           <Card>
             <CardHeader className="pb-3">
               <CardTitle className="text-base">Tipo de Movimento</CardTitle>
@@ -308,7 +385,7 @@ export default function RegistroMovimentoMotorista() {
         )}
 
         {/* Exit Reason Selection (only for saida) */}
-        {movementType === "saida" && (
+        {movementType === "saida" && !exitPending && (
           <Card>
             <CardHeader className="pb-3">
               <CardTitle className="text-base">Motivo da Saída</CardTitle>
@@ -343,6 +420,45 @@ export default function RegistroMovimentoMotorista() {
                   </div>
                 ))}
               </RadioGroup>
+            </CardContent>
+          </Card>
+        )}
+
+        {/* Horímetro / KM Final (only for saída) */}
+        {movementType === "saida" && !exitPending && (
+          <Card>
+            <CardHeader className="pb-3">
+              <CardTitle className="text-base">Telemetria Final *</CardTitle>
+            </CardHeader>
+            <CardContent className="space-y-4">
+              <div className="space-y-2">
+                <Label className="flex items-center gap-2 text-sm font-medium">
+                  <Gauge className="h-4 w-4 text-muted-foreground" />
+                  Horímetro Final
+                </Label>
+                <Input
+                  type="number"
+                  inputMode="decimal"
+                  value={exitHorimeter}
+                  onChange={(e) => setExitHorimeter(e.target.value)}
+                  placeholder="Ex: 1250.5"
+                  className="h-12 text-base"
+                />
+              </div>
+              <div className="space-y-2">
+                <Label className="flex items-center gap-2 text-sm font-medium">
+                  <Car className="h-4 w-4 text-muted-foreground" />
+                  KM Final
+                </Label>
+                <Input
+                  type="number"
+                  inputMode="decimal"
+                  value={exitKm}
+                  onChange={(e) => setExitKm(e.target.value)}
+                  placeholder="Ex: 85430"
+                  className="h-12 text-base"
+                />
+              </div>
             </CardContent>
           </Card>
         )}
