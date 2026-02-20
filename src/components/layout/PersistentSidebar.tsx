@@ -48,10 +48,6 @@ export const PersistentSidebar = ({ children }: PersistentSidebarProps) => {
             <AppSidebar lockedCollapsed={!!isAvatarBlocked} />
           </div>
         )}
-        {/* Mobile sidebar trigger - fixed on the right edge of sidebar, vertically centered */}
-        {user && !isDriver && !isAvatarBlocked && isMobile && (
-          <SidebarTrigger className="fixed top-1/2 -translate-y-1/2 left-[calc(var(--sidebar-width,3.5rem)-0.75rem)] z-[100] h-8 w-8 rounded-full bg-primary text-primary-foreground shadow-lg hover:bg-primary/90" />
-        )}
         <div
           className={`flex-1 flex flex-col min-w-0 h-full overflow-hidden ${
             justCompletedTransition ? "animate-fade-in" : ""

@@ -403,24 +403,23 @@ export function AppSidebar({ lockedCollapsed = false }: { lockedCollapsed?: bool
         </div>
       </SidebarHeader>
 
-      {/* Floating collapse button - desktop only, positioned in the middle of sidebar edge */}
-      {!sidebarIsMobile && (
-        <Button
-          variant="ghost"
-          size="icon"
-          onClick={lockedCollapsed ? undefined : toggleSidebar}
-          disabled={lockedCollapsed}
-          className={`absolute top-1/2 -translate-y-1/2 z-50 h-8 w-8 rounded-full bg-sidebar-accent/90 backdrop-blur-sm border border-sidebar-border/50 text-sidebar-foreground/80 hover:text-sidebar-foreground hover:bg-sidebar-accent shadow-lg transition-all ${
-            isCollapsed ? "-right-5" : "-right-5"
-          } ${lockedCollapsed ? "opacity-50 cursor-not-allowed" : ""}`}
-        >
-          {isCollapsed ? (
-            <PanelLeft className="h-4 w-4" />
-          ) : (
-            <PanelLeftClose className="h-4 w-4" />
-          )}
-        </Button>
-      )}
+      {/* Floating collapse button - positioned in the middle of sidebar edge, half in half out */}
+      <Button
+        variant="ghost"
+        size="icon"
+        onClick={lockedCollapsed ? undefined : toggleSidebar}
+        disabled={lockedCollapsed}
+        className={`absolute top-1/2 -translate-y-1/2 z-[100] h-8 w-8 rounded-full bg-sidebar-accent/90 backdrop-blur-sm border border-sidebar-border/50 text-sidebar-foreground/80 hover:text-sidebar-foreground hover:bg-sidebar-accent shadow-lg transition-all -right-4 ${
+          lockedCollapsed ? "opacity-50 cursor-not-allowed" : ""
+        }`}
+        style={{ touchAction: 'manipulation' }}
+      >
+        {isCollapsed ? (
+          <PanelLeft className="h-4 w-4" />
+        ) : (
+          <PanelLeftClose className="h-4 w-4" />
+        )}
+      </Button>
 
       {/* Navigation */}
       <SidebarContent className="relative z-10">
