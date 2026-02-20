@@ -42,9 +42,9 @@ export const PersistentSidebar = ({ children }: PersistentSidebarProps) => {
   // Always provide SidebarProvider context, but only render sidebar when authenticated and not a driver
   return (
     <SidebarProvider defaultOpen={isAvatarBlocked ? false : true}>
-      <div className="h-screen flex flex-row w-full bg-background overflow-hidden">
+      <div className="h-screen flex flex-row w-full bg-background overflow-x-clip overflow-y-hidden">
         {user && !isDriver && (
-          <div className={justCompletedTransition ? "animate-fade-in" : ""}>
+          <div className={`overflow-visible ${justCompletedTransition ? "animate-fade-in" : ""}`}>
             <AppSidebar lockedCollapsed={!!isAvatarBlocked} />
           </div>
         )}
