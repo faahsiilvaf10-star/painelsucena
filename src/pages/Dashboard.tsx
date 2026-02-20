@@ -30,6 +30,7 @@ import { DocumentExpiryBanner } from "@/components/documents/DocumentExpiryBanne
 import { VehicleExpiryBanner } from "@/components/vistorias/VehicleExpiryBanner";
 import { SlingInspectionBanner } from "@/components/dashboard/SlingInspectionBanner";
 import { InspectionScheduleBanner } from "@/components/dashboard/InspectionScheduleBanner";
+import { WeatherWidget } from "@/components/dashboard/WeatherWidget";
 import { DraggableDashboardItem } from "@/components/dashboard/DraggableDashboardItem";
 import { DashboardEditControls } from "@/components/dashboard/DashboardEditControls";
 import BirthdayBanner from "@/components/dashboard/BirthdayBanner";
@@ -200,6 +201,11 @@ const Dashboard = () => {
             variant="circular"
             color="hsl(174, 62%, 47%)"
           />
+        </div>
+
+        {/* Weather Widget */}
+        <div className="mb-6 animate-slide-up" style={{ animationDelay: "0.05s" }}>
+          <WeatherWidget />
         </div>
 
         {/* Fixed banners */}
