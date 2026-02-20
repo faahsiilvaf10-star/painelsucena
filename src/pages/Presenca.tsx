@@ -1,11 +1,13 @@
 import { useState } from "react";
-import { Calendar, Clock, CheckCircle2, XCircle, Loader2, Lock } from "lucide-react";
+import { Calendar, Clock, CheckCircle2, XCircle, Loader2, Lock, Trash2 } from "lucide-react";
 import Layout from "@/components/layout/Layout";
 import { Button } from "@/components/ui/button";
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
-import { useAttendanceRecords, useUpdateAttendance, type AttendanceStatus } from "@/hooks/useAttendance";
+import { useAttendanceRecords, useUpdateAttendance, useDeleteAttendance, type AttendanceStatus } from "@/hooks/useAttendance";
 import { useReportLock } from "@/hooks/useReportLock";
+import { useProfile } from "@/hooks/useProfile";
+import { useIsAdmin } from "@/hooks/useUserRole";
 import { toast } from "sonner";
 import { getBrazilNorthTodayString } from "@/lib/timezone";
 
@@ -32,10 +34,17 @@ const Presenca = () => {
     error
   } = useAttendanceRecords(today);
   const updateAttendance = useUpdateAttendance();
+  const deleteAttendance = useDeleteAttendance();
+  const { data: profile } = useProfile();
+  const { isAdmin } = useIsAdmin();
   const {
     isLocked,
     isLoading: lockLoading
   } = useReportLock(today);
+
+  const encarregadoCargos = ["encarregado_geral", "encarregado_i", "encarregado_ii"];
+  const canDelete = isAdmin || encarregadoCargos.includes(profile?.cargo || "");
+
   const filteredRecords = attendanceRecords?.filter(record => filterStatus === "all" || record.status === filterStatus) || [];
   const stats = {
     present: attendanceRecords?.filter(r => r.status === "present" || r.status === "late").length || 0,
@@ -58,6 +67,21 @@ const Presenca = () => {
       toast.error("Erro ao atualizar status");
     }
   };
+
+  const handleDeleteRecord = async (recordId: string, employeeName: string) => {
+    if (isLocked) {
+      toast.error("Relatório salvo! Não é possível remover.");
+      return;
+    }
+    if (!confirm(`Remover ${employeeName} da lista de presença de hoje?`)) return;
+    try {
+      await deleteAttendance.mutateAsync(recordId);
+      toast.success(`${employeeName} removido da lista`);
+    } catch {
+      toast.error("Erro ao remover registro");
+    }
+  };
+
   if (isLoading) {
     return <Layout>
         <div className="container mx-auto px-3 sm:px-6 py-4 sm:py-8 flex items-center justify-center min-h-[60vh]">
@@ -141,6 +165,7 @@ const Presenca = () => {
                 <TableHead className="text-muted-foreground min-w-[150px]">Funcionário</TableHead>
                 <TableHead className="text-muted-foreground hidden sm:table-cell">Função</TableHead>
                 <TableHead className="text-muted-foreground min-w-[120px]">Status</TableHead>
+                {canDelete && !isLocked && <TableHead className="text-muted-foreground w-[50px]"></TableHead>}
               </TableRow>
             </TableHeader>
             <TableBody>
@@ -193,6 +218,18 @@ const Presenca = () => {
                           </SelectContent>
                         </Select>}
                     </TableCell>
+                    {canDelete && !isLocked && (
+                      <TableCell className="w-[50px] text-center">
+                        <Button
+                          variant="ghost"
+                          size="icon"
+                          className="h-7 w-7 text-destructive hover:bg-destructive/10"
+                          onClick={() => handleDeleteRecord(record.id, employee?.name || "Funcionário")}
+                        >
+                          <Trash2 className="w-3.5 h-3.5" />
+                        </Button>
+                      </TableCell>
+                    )}
                   </TableRow>;
             })}
             </TableBody>
