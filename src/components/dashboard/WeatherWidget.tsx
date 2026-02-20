@@ -181,11 +181,23 @@ export function WeatherWidget() {
   }
 
   const description = WMO_DESCRIPTIONS[weather.weatherCode] || "Indisponível";
+  const rainAlertHours = weather.hourly.time
+    .map((t, i) => ({ hour: new Date(t).getHours(), prob: weather.hourly.precipitationProbability[i] }))
+    .filter(h => h.prob >= 50);
 
   return (
     <Card className="border-border/50 bg-card/80 backdrop-blur-sm overflow-hidden">
       <CardContent className="p-4">
-        {/* Current */}
+        {/* Rain alert */}
+        {rainAlertHours.length > 0 && (
+          <div className="flex items-center gap-2 bg-blue-500/15 border border-blue-500/30 rounded-lg px-3 py-2 mb-3 text-sm">
+            <CloudRain className="h-4 w-4 text-blue-400 shrink-0" />
+            <span className="text-foreground">
+              <strong className="text-blue-400">Alerta de chuva!</strong>{" "}
+              Probabilidade ≥50% às {rainAlertHours.map(h => `${String(h.hour).padStart(2, "0")}h (${h.prob}%)`).join(", ")}
+            </span>
+          </div>
+        )}
         <div className="flex items-start justify-between mb-3">
           <div>
             <div className="flex items-center gap-1.5 text-xs text-muted-foreground mb-1">
