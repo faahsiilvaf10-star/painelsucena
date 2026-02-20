@@ -78,7 +78,6 @@ const Layout = ({ children }: LayoutProps) => {
       {/* Header with notification bell and theme toggle */}
       <header className="flex h-9 md:h-10 shrink-0 items-center justify-between gap-2 md:gap-4 border-b bg-background px-3 md:px-4">
         <div className="flex items-center gap-2 md:gap-4 md:hidden">
-          {!isAvatarBlocked && <SidebarTrigger className="h-8 w-8" />}
           <span className="font-semibold text-sm">Painel Sucena</span>
         </div>
         <div className="hidden md:block w-24" />

@@ -1,8 +1,9 @@
 import { ReactNode, useEffect, useState } from "react";
 import { AppSidebar } from "./AppSidebar";
-import { SidebarProvider } from "@/components/ui/sidebar";
+import { SidebarProvider, SidebarTrigger } from "@/components/ui/sidebar";
 import { useAuth } from "@/hooks/useAuth";
 import { useProfile } from "@/hooks/useProfile";
+import { useIsMobile } from "@/hooks/use-mobile";
 
 interface PersistentSidebarProps {
   children: ReactNode;
@@ -14,6 +15,7 @@ const DRIVER_ROLES = ["motorista_pipa", "motorista_munk"];
 export const PersistentSidebar = ({ children }: PersistentSidebarProps) => {
   const { user } = useAuth();
   const { data: profile } = useProfile();
+  const isMobile = useIsMobile();
   const [justCompletedTransition, setJustCompletedTransition] = useState(false);
 
   // Check if user has a driver role - hide sidebar for drivers
@@ -25,11 +27,9 @@ export const PersistentSidebar = ({ children }: PersistentSidebarProps) => {
   // Listen for transition completion to trigger fade-in
   useEffect(() => {
     const handler = () => {
-      // Check if transition just ended (flag was cleared)
       const isActive = sessionStorage.getItem("loginTransitionInProgress") === "true";
       if (!isActive && user) {
         setJustCompletedTransition(true);
-        // Remove the animation class after it plays
         const timeout = setTimeout(() => setJustCompletedTransition(false), 600);
         return () => clearTimeout(timeout);
       }
@@ -55,6 +55,10 @@ export const PersistentSidebar = ({ children }: PersistentSidebarProps) => {
         >
           {children}
         </div>
+        {/* Floating mobile sidebar trigger - always visible */}
+        {user && !isDriver && !isAvatarBlocked && isMobile && (
+          <SidebarTrigger className="fixed bottom-20 left-2 z-50 h-10 w-10 rounded-full bg-primary text-primary-foreground shadow-lg hover:bg-primary/90" />
+        )}
       </div>
     </SidebarProvider>
   );
