@@ -1263,7 +1263,14 @@ export default function Atividades() {
               </div>
 
               <div className="space-y-2">
-                <Label>MANUTENÇÃO DE CANTEIRO</Label>
+                <div className="flex items-center justify-between">
+                  <Label>MANUTENÇÃO DE CANTEIRO</Label>
+                  <AIImproveButton
+                    text={manutencaoCanteiro}
+                    onImproved={setManutencaoCanteiro}
+                    disabled={!canEdit}
+                  />
+                </div>
                 <Textarea
                   value={manutencaoCanteiro}
                   onChange={(e) => setManutencaoCanteiro(e.target.value)}
