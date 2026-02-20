@@ -43,6 +43,7 @@ export const OnlineUsersFooter = ({
   const { isUserTyping } = useGlobalTypingIndicator();
   const [selectorOpen, setSelectorOpen] = useState(false);
   const [usersPopoverOpen, setUsersPopoverOpen] = useState(false);
+  const [isMinimized, setIsMinimized] = useState(false);
   const {
     state
   } = useSidebar();
@@ -57,7 +58,15 @@ export const OnlineUsersFooter = ({
   } = useRadio();
   const isCollapsedSidebar = state === "collapsed";
   return <div className={cn("fixed bottom-0 right-0 bg-card border-t border-border z-40 transition-[left] duration-200 ease-linear", isCollapsedSidebar ? "left-[48px]" : "left-[256px]", "max-md:left-0")}>
-      <div className="flex items-center gap-1 md:gap-3 px-2 md:px-4 py-1.5 md:py-2 overflow-x-auto scrollbar-none">
+      {/* Mobile minimize toggle button - always centered */}
+      <button
+        onClick={() => setIsMinimized(!isMinimized)}
+        className="md:hidden absolute -top-5 left-1/2 -translate-x-1/2 z-50 w-10 h-5 bg-card border border-b-0 border-border rounded-t-lg flex items-center justify-center text-muted-foreground hover:text-foreground transition-colors"
+        aria-label={isMinimized ? "Expandir barra" : "Minimizar barra"}
+      >
+        <ChevronDown className={cn("h-3.5 w-3.5 transition-transform", isMinimized && "rotate-180")} />
+      </button>
+      {!isMinimized && <div className="flex items-center gap-1 md:gap-3 px-2 md:px-4 py-1.5 md:py-2 overflow-x-auto scrollbar-none">
         {/* Radio Player */}
         <div className="flex items-center gap-0.5 md:gap-1 shrink-0">
           <button onClick={toggleRadio} className={cn("flex items-center gap-1 md:gap-2 px-2 md:px-3 py-1 md:py-1.5 rounded-l-full transition-all duration-300", isRadioActive ? "bg-green-500/20 hover:bg-green-500/30 border border-r-0 border-green-400/40" : "bg-secondary/50 hover:bg-secondary border border-r-0 border-transparent")} aria-label={!isPlaying ? "Iniciar rádio" : isMuted ? "Ativar som" : "Silenciar"}>
@@ -321,7 +330,7 @@ export const OnlineUsersFooter = ({
             </div>
           </div>
         </TooltipProvider>
-      </div>
+      </div>}
 
       {/* Animation styles */}
       <style>{`
