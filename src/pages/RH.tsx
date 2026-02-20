@@ -1,5 +1,5 @@
 import { useState, useMemo, useEffect } from "react";
-import { Search, Users, Phone, Calendar, Hash, MapPin, Filter, X, ChevronDown, ChevronUp } from "lucide-react";
+import { Search, Users, Phone, Calendar, Hash, MapPin, Filter, X, ChevronDown, ChevronUp, ShieldCheck, AlertTriangle, CircleAlert } from "lucide-react";
 import Layout from "@/components/layout/Layout";
 import { Input } from "@/components/ui/input";
 import { Button } from "@/components/ui/button";
@@ -409,6 +409,78 @@ const RH = () => {
                                 </p>
                               </div>
                             </div>
+
+                            {/* ASO Section */}
+                            {colaborador.aso && (() => {
+                              const parseDate = (d: string) => {
+                                const [day, month, year] = d.split('/').map(Number);
+                                return new Date(year, month - 1, day);
+                              };
+                              const today = new Date();
+                              const validade = parseDate(colaborador.aso.validade);
+                              const diffDays = Math.ceil((validade.getTime() - today.getTime()) / (1000 * 60 * 60 * 24));
+                              
+                              let farolColor = "text-green-500";
+                              let farolBg = "bg-green-500/10 border-green-500/30";
+                              let farolLabel = "Em dia";
+                              let FarolIcon = ShieldCheck;
+                              
+                              if (diffDays < 0) {
+                                farolColor = "text-red-500";
+                                farolBg = "bg-red-500/10 border-red-500/30";
+                                farolLabel = "Vencido";
+                                FarolIcon = CircleAlert;
+                              } else if (diffDays <= 30) {
+                                farolColor = "text-yellow-500";
+                                farolBg = "bg-yellow-500/10 border-yellow-500/30";
+                                farolLabel = "Vence em breve";
+                                FarolIcon = AlertTriangle;
+                              } else if (diffDays <= 60) {
+                                farolColor = "text-orange-400";
+                                farolBg = "bg-orange-400/10 border-orange-400/30";
+                                farolLabel = "Atenção";
+                                FarolIcon = AlertTriangle;
+                              }
+
+                              return (
+                                <div className={`mt-3 p-3 rounded-lg border ${farolBg}`}>
+                                  <div className="flex items-center gap-2 mb-2">
+                                    <FarolIcon className={`w-5 h-5 ${farolColor}`} />
+                                    <span className={`font-semibold text-sm ${farolColor}`}>
+                                      ASO - {farolLabel} ({diffDays > 0 ? `${diffDays} dias restantes` : `${Math.abs(diffDays)} dias vencido`})
+                                    </span>
+                                  </div>
+                                  <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-5 gap-3">
+                                    <div>
+                                      <p className="text-xs text-muted-foreground">Admissional</p>
+                                      <p className="text-sm font-medium">{colaborador.aso.admissional}</p>
+                                    </div>
+                                    <div>
+                                      <p className="text-xs text-muted-foreground">Validade</p>
+                                      <p className={`text-sm font-medium ${farolColor}`}>{colaborador.aso.validade}</p>
+                                    </div>
+                                    {colaborador.aso.periodico && (
+                                      <div>
+                                        <p className="text-xs text-muted-foreground">Periódico</p>
+                                        <p className="text-sm font-medium">{colaborador.aso.periodico}</p>
+                                      </div>
+                                    )}
+                                    {colaborador.aso.retornoTrabalho && (
+                                      <div>
+                                        <p className="text-xs text-muted-foreground">Retorno ao Trabalho</p>
+                                        <p className="text-sm font-medium">{colaborador.aso.retornoTrabalho}</p>
+                                      </div>
+                                    )}
+                                    {colaborador.aso.mudancaRisco && (
+                                      <div>
+                                        <p className="text-xs text-muted-foreground">Mudança de Risco</p>
+                                        <p className="text-sm font-medium">{colaborador.aso.mudancaRisco}</p>
+                                      </div>
+                                    )}
+                                  </div>
+                                </div>
+                              );
+                            })()}
                           </TableCell>
                         </TableRow>
                       )}
