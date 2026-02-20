@@ -44,8 +44,12 @@ export const PersistentSidebar = ({ children }: PersistentSidebarProps) => {
     <SidebarProvider defaultOpen={isAvatarBlocked ? false : true}>
       <div className="h-screen flex flex-row w-full bg-background overflow-hidden">
         {user && !isDriver && (
-          <div className={justCompletedTransition ? "animate-fade-in" : ""}>
+          <div className={`relative ${justCompletedTransition ? "animate-fade-in" : ""}`}>
             <AppSidebar lockedCollapsed={!!isAvatarBlocked} />
+            {/* Mobile sidebar trigger - on sidebar edge, vertically centered */}
+            {!isAvatarBlocked && isMobile && (
+              <SidebarTrigger className="absolute top-1/2 -translate-y-1/2 -right-5 z-[100] h-10 w-10 rounded-full bg-primary text-primary-foreground shadow-lg hover:bg-primary/90" />
+            )}
           </div>
         )}
         <div
@@ -55,10 +59,6 @@ export const PersistentSidebar = ({ children }: PersistentSidebarProps) => {
         >
           {children}
         </div>
-        {/* Floating mobile sidebar trigger - vertically centered on sidebar edge */}
-        {user && !isDriver && !isAvatarBlocked && isMobile && (
-          <SidebarTrigger className="fixed top-1/2 -translate-y-1/2 left-0 z-[100] h-10 w-10 rounded-full bg-primary text-primary-foreground shadow-lg hover:bg-primary/90" />
-        )}
       </div>
     </SidebarProvider>
   );
