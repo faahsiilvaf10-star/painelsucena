@@ -55,9 +55,9 @@ export const PersistentSidebar = ({ children }: PersistentSidebarProps) => {
         >
           {children}
         </div>
-        {/* Floating mobile sidebar trigger - always visible */}
+        {/* Floating mobile sidebar trigger - vertically centered on sidebar edge */}
         {user && !isDriver && !isAvatarBlocked && isMobile && (
-          <SidebarTrigger className="fixed bottom-20 left-2 z-[100] h-10 w-10 rounded-full bg-primary text-primary-foreground shadow-lg hover:bg-primary/90" />
+          <SidebarTrigger className="fixed top-1/2 -translate-y-1/2 left-0 z-[100] h-10 w-10 rounded-full bg-primary text-primary-foreground shadow-lg hover:bg-primary/90" />
         )}
       </div>
     </SidebarProvider>
