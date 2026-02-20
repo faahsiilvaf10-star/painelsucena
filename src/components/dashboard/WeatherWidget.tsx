@@ -207,7 +207,7 @@ export function WeatherWidget() {
             <CloudLightning className="h-5 w-5 text-destructive shrink-0 animate-bounce" />
             <span className="text-foreground">
               <strong className="text-destructive">⚠️ Alerta de chuva!</strong>{" "}
-              Probabilidade ≥75% às {rainAlertHours.map(h => `${String(h.hour).padStart(2, "0")}h (${h.prob}%)`).join(", ")}
+              Probabilidade de chuva às {rainAlertHours.map(h => `${String(h.hour).padStart(2, "0")}h (${h.prob}%)`).join(", ")}
             </span>
           </div>
         )}
