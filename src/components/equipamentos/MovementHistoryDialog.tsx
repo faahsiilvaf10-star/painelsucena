@@ -20,6 +20,8 @@ import {
   TooltipTrigger,
 } from "@/components/ui/tooltip";
 import { useAllEquipmentMovements } from "@/hooks/useEquipmentMovements";
+import { useIsAdmin } from "@/hooks/useUserRole";
+import { EditMovementDialog } from "./EditMovementDialog";
 
 const EXIT_REASON_LABELS: Record<string, string> = {
   manutencao_corretiva: "Manutenção Corretiva",
@@ -35,6 +37,7 @@ const ITEMS_PER_PAGE = 20;
 export function MovementHistoryDialog() {
   const [open, setOpen] = useState(false);
   const { data: movements = [], isLoading } = useAllEquipmentMovements();
+  const { isAdmin } = useIsAdmin();
   const [searchTerm, setSearchTerm] = useState("");
   const [currentPage, setCurrentPage] = useState(1);
 
@@ -110,9 +113,10 @@ export function MovementHistoryDialog() {
                   <TableHead className="hidden sm:table-cell">Placa</TableHead>
                   <TableHead>Data/Hora</TableHead>
                   <TableHead className="hidden md:table-cell">Motivo</TableHead>
-                  <TableHead className="hidden lg:table-cell">Observação</TableHead>
-                </TableRow>
-              </TableHeader>
+                   <TableHead className="hidden lg:table-cell">Observação</TableHead>
+                   {isAdmin && <TableHead className="w-10"></TableHead>}
+                 </TableRow>
+               </TableHeader>
               <TableBody>
                 {paginated.map((m) => (
                   <TableRow key={m.id}>
@@ -146,10 +150,15 @@ export function MovementHistoryDialog() {
                         ? EXIT_REASON_LABELS[m.exit_reason] || m.exit_reason
                         : "-"}
                     </TableCell>
-                    <TableCell className="hidden lg:table-cell text-sm text-muted-foreground max-w-[200px] truncate">
-                      {m.observation || m.problem_description || "-"}
-                    </TableCell>
-                  </TableRow>
+                     <TableCell className="hidden lg:table-cell text-sm text-muted-foreground max-w-[200px] truncate">
+                       {m.observation || m.problem_description || "-"}
+                     </TableCell>
+                     {isAdmin && (
+                       <TableCell>
+                         <EditMovementDialog movement={m} />
+                       </TableCell>
+                     )}
+                   </TableRow>
                 ))}
               </TableBody>
             </Table>

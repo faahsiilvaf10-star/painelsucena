@@ -325,6 +325,35 @@ export function useCreateEquipmentMovement() {
   });
 }
 
+export function useUpdateEquipmentMovement() {
+  const queryClient = useQueryClient();
+
+  return useMutation({
+    mutationFn: async ({ id, movement_date, movement_time }: { id: string; movement_date: string; movement_time: string }) => {
+      const { error } = await supabase
+        .from("equipment_movements")
+        .update({ movement_date, movement_time })
+        .eq("id", id);
+
+      if (error) throw error;
+    },
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ["equipment-movements"] });
+      queryClient.invalidateQueries({ queryKey: ["equipment-movements-all"] });
+      queryClient.invalidateQueries({ queryKey: ["equipment-movements-all-entries"] });
+      queryClient.invalidateQueries({ queryKey: ["equipment-movements-currently-out"] });
+      queryClient.invalidateQueries({ queryKey: ["equipment-movements-currently-in"] });
+      queryClient.invalidateQueries({ queryKey: ["equipment-movements-weekly"] });
+      queryClient.invalidateQueries({ queryKey: ["equipment-movements-summary"] });
+      toast.success("Movimentação atualizada!");
+    },
+    onError: (error) => {
+      console.error("Error updating movement:", error);
+      toast.error("Erro ao atualizar movimentação");
+    },
+  });
+}
+
 export function useDeleteEquipmentMovement() {
   const queryClient = useQueryClient();
 
