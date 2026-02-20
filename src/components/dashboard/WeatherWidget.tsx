@@ -220,25 +220,25 @@ export function WeatherWidget() {
               <span className="truncate max-w-[200px]">{weather.locationName}</span>
             </div>
             <div className="flex items-end gap-3">
-              <span className="text-5xl font-extrabold tracking-tight bg-gradient-to-br from-amber-400 via-orange-400 to-yellow-500 bg-clip-text text-transparent drop-shadow-sm">
+              <span className="text-5xl font-extrabold tracking-tight text-foreground">
                 {weather.temperature}°
               </span>
               <div className="pb-1.5">{getWeatherIcon(weather.weatherCode)}</div>
             </div>
-            <p className="text-sm font-medium bg-gradient-to-r from-sky-400 to-cyan-300 bg-clip-text text-transparent">{description}</p>
+            <p className="text-sm font-medium text-muted-foreground">{description}</p>
           </div>
           <div className="text-right space-y-1.5 text-xs bg-muted/40 rounded-xl px-3 py-2.5 backdrop-blur-sm">
             <div className="flex items-center gap-1.5 justify-end">
-              <Thermometer className="h-3.5 w-3.5 text-orange-400 drop-shadow-sm" />
-              <span className="text-orange-300 font-medium">Sensação {weather.apparentTemp}°</span>
+              <Thermometer className="h-3.5 w-3.5 text-muted-foreground" />
+              <span className="text-foreground font-medium">Sensação {weather.apparentTemp}°</span>
             </div>
             <div className="flex items-center gap-1.5 justify-end">
-              <Droplets className="h-3.5 w-3.5 text-sky-400 drop-shadow-sm" />
-              <span className="text-sky-300 font-medium">Umidade {weather.humidity}%</span>
+              <Droplets className="h-3.5 w-3.5 text-muted-foreground" />
+              <span className="text-foreground font-medium">Umidade {weather.humidity}%</span>
             </div>
             <div className="flex items-center gap-1.5 justify-end">
-              <Wind className="h-3.5 w-3.5 text-teal-400 drop-shadow-sm" />
-              <span className="text-teal-300 font-medium">Vento {weather.windSpeed} km/h</span>
+              <Wind className="h-3.5 w-3.5 text-muted-foreground" />
+              <span className="text-foreground font-medium">Vento {weather.windSpeed} km/h</span>
             </div>
           </div>
         </div>
