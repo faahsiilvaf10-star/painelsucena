@@ -1,6 +1,11 @@
-import { Truck, MapPin, ExternalLink, FileText, Clock, Plus, Trash2 } from "lucide-react";
+import { Truck, MapPin, ExternalLink, FileText, Clock, Plus, Trash2, LogOut } from "lucide-react";
 import { Leaf, ArrowUpCircle, ArrowDownCircle, Loader2 as Loader2Icon } from "lucide-react";
 import { useState } from "react";
+import { useCreateEquipmentMovement, ExitReason } from "@/hooks/useEquipmentMovements";
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
+import { Label } from "@/components/ui/label";
+import { Textarea } from "@/components/ui/textarea";
+import { toast } from "sonner";
  import Layout from "@/components/layout/Layout";
  import { useEquipment } from "@/hooks/useEquipment";
 import { useEquipmentCurrentlyOut } from "@/hooks/useEquipmentMovements";
@@ -61,6 +66,60 @@ const EXIT_REASON_LABELS: Record<string, string> = {
 
   const [addDialogOpen, setAddDialogOpen] = useState(false);
   const [newEquipmentName, setNewEquipmentName] = useState("");
+
+  const createMovement = useCreateEquipmentMovement();
+
+  // Admin exit dialog state
+  const [exitDialogOpen, setExitDialogOpen] = useState(false);
+  const [exitEquipment, setExitEquipment] = useState<{ name: string; plate: string } | null>(null);
+  const [exitDate, setExitDate] = useState("");
+  const [exitTime, setExitTime] = useState("");
+  const [exitReason, setExitReason] = useState<ExitReason | "">("");
+  const [exitProblem, setExitProblem] = useState("");
+  const [exitObservation, setExitObservation] = useState("");
+
+  const handleOpenExitDialog = (eq: { name: string; plate: string }) => {
+    const now = new Date();
+    const pad = (n: number) => n.toString().padStart(2, "0");
+    // Default to current date/time in Brazil North (UTC-4)
+    const brDate = new Date(now.getTime() - 4 * 60 * 60 * 1000);
+    setExitDate(brDate.toISOString().split("T")[0]);
+    setExitTime(`${pad(brDate.getUTCHours())}:${pad(brDate.getUTCMinutes())}`);
+    setExitReason("");
+    setExitProblem("");
+    setExitObservation("");
+    setExitEquipment(eq);
+    setExitDialogOpen(true);
+  };
+
+  const handleConfirmExit = () => {
+    if (!exitEquipment || !exitReason) {
+      toast.error("Selecione o motivo da saída");
+      return;
+    }
+    if (!exitDate) {
+      toast.error("Informe a data da saída");
+      return;
+    }
+    createMovement.mutate(
+      {
+        equipment_name: exitEquipment.name,
+        plate: exitEquipment.plate,
+        movement_type: "saida",
+        movement_date: exitDate,
+        movement_time: exitTime || "00:00",
+        exit_reason: exitReason as ExitReason,
+        problem_description: exitProblem || null,
+        observation: exitObservation || null,
+      },
+      {
+        onSuccess: () => {
+          setExitDialogOpen(false);
+          setExitEquipment(null);
+        },
+      }
+    );
+  };
 
   // Check if user can edit jardinagem equipment
   const canEditJardinagem = isAdmin || 
@@ -312,48 +371,62 @@ const EXIT_REASON_LABELS: Record<string, string> = {
                             <TableHead>Placa</TableHead>
                             <TableHead className="hidden md:table-cell">Motorista</TableHead>
                             <TableHead className="hidden lg:table-cell">Ajudante</TableHead>
-                            <TableHead>Status</TableHead>
-                          </TableRow>
-                        </TableHeader>
-                       <TableBody>
-                         {equipmentNoCanteiro.map((eq) => (
-                            <TableRow key={eq.id}>
-                              <TableCell className="hidden sm:table-cell">
-                                <VehicleIcon
-                                  type={eq.equipment_type as "pipa" | "munk" | "camionete" | "onibus"}
-                                  size="sm"
-                                />
-                              </TableCell>
-                              <TableCell className="font-medium text-sm">{eq.name}</TableCell>
-                              <TableCell className="font-mono text-xs sm:text-sm">{eq.plate}</TableCell>
-                              <TableCell className="hidden md:table-cell">{eq.driver || "-"}</TableCell>
-                              <TableCell className="hidden lg:table-cell">{eq.helper || "-"}</TableCell>
-                             <TableCell>
-                               <Badge
-                                 variant="outline"
-                                 className={
-                                   eq.stop_reason === "none"
-                                     ? "bg-green-500/10 text-green-600 border-green-500/30"
-                                     : eq.stop_reason === "maintenance"
-                                     ? "bg-red-500/10 text-red-600 border-red-500/30"
-                                     : "bg-yellow-500/10 text-yellow-600 border-yellow-500/30"
-                                 }
-                               >
-                                  {eq.stop_reason === "none"
-                                    ? "Operando"
-                                    : eq.stop_reason === "maintenance"
-                                    ? "Manutenção"
-                                    : eq.stop_reason === "waiting"
-                                    ? "Aguardando"
-                                    : eq.stop_reason === "end_of_shift"
-                                    ? "Fim de Turno"
-                                    : eq.stop_reason === "rain"
-                                    ? "Chuva"
-                                    : eq.stop_reason || "Aguardando"}
-                               </Badge>
-                             </TableCell>
+                             <TableHead>Status</TableHead>
+                             {isAdmin && <TableHead className="w-28">Ação</TableHead>}
                            </TableRow>
-                         ))}
+                         </TableHeader>
+                        <TableBody>
+                          {equipmentNoCanteiro.map((eq) => (
+                             <TableRow key={eq.id}>
+                               <TableCell className="hidden sm:table-cell">
+                                 <VehicleIcon
+                                   type={eq.equipment_type as "pipa" | "munk" | "camionete" | "onibus"}
+                                   size="sm"
+                                 />
+                               </TableCell>
+                               <TableCell className="font-medium text-sm">{eq.name}</TableCell>
+                               <TableCell className="font-mono text-xs sm:text-sm">{eq.plate}</TableCell>
+                               <TableCell className="hidden md:table-cell">{eq.driver || "-"}</TableCell>
+                               <TableCell className="hidden lg:table-cell">{eq.helper || "-"}</TableCell>
+                              <TableCell>
+                                <Badge
+                                  variant="outline"
+                                  className={
+                                    eq.stop_reason === "none"
+                                      ? "bg-green-500/10 text-green-600 border-green-500/30"
+                                      : eq.stop_reason === "maintenance"
+                                      ? "bg-red-500/10 text-red-600 border-red-500/30"
+                                      : "bg-yellow-500/10 text-yellow-600 border-yellow-500/30"
+                                  }
+                                >
+                                   {eq.stop_reason === "none"
+                                     ? "Operando"
+                                     : eq.stop_reason === "maintenance"
+                                     ? "Manutenção"
+                                     : eq.stop_reason === "waiting"
+                                     ? "Aguardando"
+                                     : eq.stop_reason === "end_of_shift"
+                                     ? "Fim de Turno"
+                                     : eq.stop_reason === "rain"
+                                     ? "Chuva"
+                                     : eq.stop_reason || "Aguardando"}
+                                </Badge>
+                              </TableCell>
+                              {isAdmin && (
+                                <TableCell>
+                                  <Button
+                                    size="sm"
+                                    variant="outline"
+                                    className="gap-1 text-orange-600 border-orange-300 hover:bg-orange-50"
+                                    onClick={() => handleOpenExitDialog({ name: eq.name, plate: eq.plate })}
+                                  >
+                                    <LogOut className="h-3.5 w-3.5" />
+                                    <span className="hidden sm:inline">Saída</span>
+                                  </Button>
+                                </TableCell>
+                              )}
+                            </TableRow>
+                          ))}
                        </TableBody>
                      </Table>
                    </div>
@@ -585,8 +658,94 @@ const EXIT_REASON_LABELS: Record<string, string> = {
             </Card>
            </div>
          )}
+        {/* Admin Exit Dialog */}
+        <Dialog open={exitDialogOpen} onOpenChange={setExitDialogOpen}>
+          <DialogContent className="sm:max-w-md">
+            <DialogHeader>
+              <DialogTitle className="flex items-center gap-2">
+                <LogOut className="h-5 w-5 text-orange-600" />
+                Registrar Saída de Equipamento
+              </DialogTitle>
+              <DialogDescription>
+                {exitEquipment?.name} ({exitEquipment?.plate})
+              </DialogDescription>
+            </DialogHeader>
+            <div className="space-y-4 py-2">
+              <div className="grid grid-cols-2 gap-3">
+                <div className="space-y-2">
+                  <Label>Data da Saída</Label>
+                  <Input
+                    type="date"
+                    value={exitDate}
+                    onChange={(e) => setExitDate(e.target.value)}
+                  />
+                </div>
+                <div className="space-y-2">
+                  <Label>Hora da Saída</Label>
+                  <Input
+                    type="time"
+                    value={exitTime}
+                    onChange={(e) => setExitTime(e.target.value)}
+                  />
+                </div>
+              </div>
+
+              <div className="space-y-2">
+                <Label>Motivo da Saída *</Label>
+                <Select value={exitReason} onValueChange={(v) => setExitReason(v as ExitReason)}>
+                  <SelectTrigger>
+                    <SelectValue placeholder="Selecione o motivo" />
+                  </SelectTrigger>
+                  <SelectContent>
+                    <SelectItem value="manutencao_corretiva">Manutenção Corretiva</SelectItem>
+                    <SelectItem value="manutencao_preventiva">Manutenção Preventiva</SelectItem>
+                    <SelectItem value="vistoria">Vistoria</SelectItem>
+                    <SelectItem value="operando">Operando</SelectItem>
+                    <SelectItem value="aguardando_frente_servico">Aguardando Frente de Serviço</SelectItem>
+                    <SelectItem value="fim_turno">Fim de Turno</SelectItem>
+                  </SelectContent>
+                </Select>
+              </div>
+
+              {(exitReason === "manutencao_corretiva" || exitReason === "manutencao_preventiva") && (
+                <div className="space-y-2">
+                  <Label>Descrição do Problema</Label>
+                  <Textarea
+                    value={exitProblem}
+                    onChange={(e) => setExitProblem(e.target.value)}
+                    placeholder="Descreva o problema..."
+                    rows={3}
+                  />
+                </div>
+              )}
+
+              <div className="space-y-2">
+                <Label>Observação</Label>
+                <Textarea
+                  value={exitObservation}
+                  onChange={(e) => setExitObservation(e.target.value)}
+                  placeholder="Observações adicionais..."
+                  rows={2}
+                />
+              </div>
+            </div>
+            <DialogFooter>
+              <Button variant="outline" onClick={() => setExitDialogOpen(false)}>
+                Cancelar
+              </Button>
+              <Button
+                onClick={handleConfirmExit}
+                disabled={createMovement.isPending}
+                className="gap-2"
+              >
+                {createMovement.isPending && <Loader2 className="h-4 w-4 animate-spin" />}
+                Confirmar Saída
+              </Button>
+            </DialogFooter>
+          </DialogContent>
+        </Dialog>
        </div>
-     </Layout>
+      </Layout>
    );
  };
  
