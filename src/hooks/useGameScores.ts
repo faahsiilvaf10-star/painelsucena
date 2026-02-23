@@ -37,6 +37,7 @@ export function useGameScores(gameId?: string) {
 export function useTopScoresByGame() {
   return useQuery({
     queryKey: ["game-scores-all-top"],
+    refetchInterval: 30000,
     queryFn: async () => {
       const { data, error } = await supabase
         .from("game_scores")
