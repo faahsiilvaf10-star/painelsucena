@@ -34,36 +34,21 @@ const ALL_QUESTIONS: RocagemQuestion[] = [
   {
     id: "r3", category: "tecnica", emoji: "🌿",
     scenario: "Qual é o movimento correto da roçadeira durante o corte?",
-    options: [
-      "De baixo para cima",
-      "Da direita para a esquerda (pendular)",
-      "Em círculos",
-      "Empurrando para frente"
-    ],
+    options: ["De baixo para cima", "Da direita para a esquerda (pendular)", "Em círculos", "Empurrando para frente"],
     correctIndex: 1,
     explanation: "O movimento pendular (da direita para a esquerda) aproveita o sentido de rotação da lâmina e projeta o material cortado para o lado já roçado."
   },
   {
     id: "r4", category: "manutencao", emoji: "🔧",
     scenario: "Com que frequência a lâmina/fio de nylon da roçadeira deve ser verificado?",
-    options: [
-      "Uma vez por semana",
-      "Antes de cada uso",
-      "Uma vez por mês",
-      "Apenas quando quebrar"
-    ],
+    options: ["Uma vez por semana", "Antes de cada uso", "Uma vez por mês", "Apenas quando quebrar"],
     correctIndex: 1,
     explanation: "A inspeção antes de cada uso garante que a lâmina está afiada, sem trincas e o fio de nylon está com comprimento adequado."
   },
   {
     id: "r5", category: "seguranca", emoji: "⛽",
     scenario: "Qual o procedimento correto para abastecer a roçadeira?",
-    options: [
-      "Com o motor ligado para não perder tempo",
-      "Com o motor desligado e frio",
-      "Enquanto outra pessoa segura a máquina ligada",
-      "Apenas quando acabar totalmente o combustível"
-    ],
+    options: ["Com o motor ligado para não perder tempo", "Com o motor desligado e frio", "Enquanto outra pessoa segura a máquina ligada", "Apenas quando acabar totalmente o combustível"],
     correctIndex: 1,
     explanation: "O abastecimento deve ser feito com o motor desligado e frio para evitar risco de incêndio."
   },
@@ -77,146 +62,171 @@ const ALL_QUESTIONS: RocagemQuestion[] = [
   {
     id: "r7", category: "equipamento", emoji: "🎧",
     scenario: "Qual o nível de ruído aproximado de uma roçadeira e o EPI necessário?",
-    options: [
-      "50 dB - Nenhum EPI auditivo",
-      "70 dB - Tampão simples",
-      "95-110 dB - Protetor auricular tipo concha",
-      "40 dB - Apenas se incomodar"
-    ],
+    options: ["50 dB - Nenhum EPI auditivo", "70 dB - Tampão simples", "95-110 dB - Protetor auricular tipo concha", "40 dB - Apenas se incomodar"],
     correctIndex: 2,
     explanation: "Roçadeiras produzem entre 95-110 dB, exigindo protetor auricular tipo concha para prevenir perda auditiva."
   },
   {
     id: "r8", category: "seguranca", emoji: "🐍",
     scenario: "Ao encontrar um animal peçonhento durante a roçagem, qual o procedimento correto?",
-    options: [
-      "Tentar afugentar com a roçadeira",
-      "Parar imediatamente, afastar-se e comunicar o encarregado",
-      "Continuar roçando normalmente",
-      "Capturar o animal"
-    ],
+    options: ["Tentar afugentar com a roçadeira", "Parar imediatamente e acionar o CCO", "Continuar roçando normalmente", "Capturar o animal"],
     correctIndex: 1,
-    explanation: "Deve-se parar a atividade, manter distância segura e comunicar o encarregado para acionamento de equipe especializada."
+    explanation: "Deve-se parar a atividade imediatamente, manter distância segura e acionar o CCO (Centro de Controle Operacional) para providências adequadas."
   },
   {
     id: "r9", category: "manutencao", emoji: "🔩",
     scenario: "Antes de iniciar a roçagem, o que deve ser verificado na proteção (carenagem) da roçadeira?",
-    options: [
-      "Pode ser removida para cortar melhor",
-      "Deve estar fixada, sem trincas e sem folgas",
-      "É opcional em áreas abertas",
-      "Só é necessária para lâminas de aço"
-    ],
+    options: ["Pode ser removida para cortar melhor", "Deve estar fixada, sem trincas e sem folgas", "É opcional em áreas abertas", "Só é necessária para lâminas de aço"],
     correctIndex: 1,
     explanation: "A carenagem de proteção é OBRIGATÓRIA e deve estar íntegra para proteger o operador contra projeção de materiais."
   },
   {
     id: "r10", category: "tecnica", emoji: "⛰️",
     scenario: "Em terrenos inclinados (taludes), qual o sentido correto de roçar?",
-    options: [
-      "De cima para baixo",
-      "Em linha horizontal, de uma extremidade à outra",
-      "De baixo para cima",
-      "Tanto faz o sentido"
-    ],
+    options: ["De cima para baixo", "Em linha horizontal, de uma extremidade à outra", "De baixo para cima", "Tanto faz o sentido"],
     correctIndex: 1,
     explanation: "Roçar em faixas horizontais (seguindo as curvas de nível) oferece maior estabilidade ao operador e melhor controle do equipamento."
   },
   {
     id: "r11", category: "seguranca", emoji: "☀️",
     scenario: "Em dias de calor extremo, qual cuidado adicional o operador de roçadeira deve ter?",
-    options: [
-      "Trabalhar mais rápido para terminar logo",
-      "Fazer pausas regulares para hidratação e descanso à sombra",
-      "Remover EPIs para refrescar",
-      "Não há cuidados especiais"
-    ],
+    options: ["Trabalhar mais rápido para terminar logo", "Fazer pausas regulares para hidratação e descanso à sombra", "Remover EPIs para refrescar", "Não há cuidados especiais"],
     correctIndex: 1,
     explanation: "Pausas para hidratação e descanso à sombra previnem insolação e exaustão térmica, mantendo a segurança do operador."
   },
   {
     id: "r12", category: "equipamento", emoji: "👓",
     scenario: "Qual tipo de proteção facial é necessária durante a roçagem?",
-    options: [
-      "Óculos de sol comuns",
-      "Viseira facial ou óculos de proteção com vedação lateral",
-      "Nenhuma, a carenagem já protege",
-      "Máscara de solda"
-    ],
+    options: ["Óculos de sol comuns", "Viseira facial ou óculos de proteção com vedação lateral", "Nenhuma, a carenagem já protege", "Máscara de solda"],
     correctIndex: 1,
     explanation: "A viseira facial ou óculos com vedação lateral protegem contra projeção de pedras, galhos e detritos nos olhos e face."
   },
   {
     id: "r13", category: "manutencao", emoji: "🛠️",
     scenario: "Qual a ação correta ao perceber vibração excessiva na roçadeira?",
-    options: [
-      "Continuar trabalhando, é normal",
-      "Parar imediatamente e verificar lâmina, fixação e eixo",
-      "Aumentar a rotação para compensar",
-      "Trocar apenas o fio de nylon"
-    ],
+    options: ["Continuar trabalhando, é normal", "Parar imediatamente e verificar lâmina, fixação e eixo", "Aumentar a rotação para compensar", "Trocar apenas o fio de nylon"],
     correctIndex: 1,
     explanation: "Vibração excessiva pode indicar lâmina desbalanceada, solta ou eixo danificado - riscos graves de acidente."
   },
   {
     id: "r14", category: "tecnica", emoji: "🌱",
     scenario: "Qual tipo de vegetação NÃO deve ser roçada sem autorização específica?",
-    options: [
-      "Capim-colonião",
-      "Braquiária",
-      "Mudas de espécies nativas em área de recuperação",
-      "Tiririca"
-    ],
+    options: ["Capim-colonião", "Braquiária", "Mudas de espécies nativas em área de recuperação", "Tiririca"],
     correctIndex: 2,
     explanation: "Mudas de espécies nativas em áreas de recuperação ambiental são protegidas e só devem ser manejadas com autorização."
   },
   {
     id: "r15", category: "seguranca", emoji: "⚡",
     scenario: "Qual o risco principal ao roçar próximo a fiações ou cercas elétricas?",
-    options: [
-      "Desgaste da lâmina",
-      "Choque elétrico por contato do equipamento com fios",
-      "Excesso de barulho",
-      "Não há risco"
-    ],
+    options: ["Desgaste da lâmina", "Choque elétrico por contato do equipamento com fios", "Excesso de barulho", "Não há risco"],
     correctIndex: 1,
     explanation: "O contato da lâmina metálica com fiações pode causar choque elétrico fatal. Deve-se manter distância e usar fio de nylon nessas áreas."
   },
   {
     id: "r16", category: "equipamento", emoji: "🪖",
     scenario: "Qual é o conjunto COMPLETO de EPIs para operação de roçadeira?",
-    options: [
-      "Apenas capacete e botina",
-      "Capacete, viseira, protetor auricular, luvas, perneira e botina",
-      "Colete e óculos escuros",
-      "Luvas e botas de borracha"
-    ],
+    options: ["Apenas capacete e botina", "Capacete, viseira, protetor auricular, luvas, perneira e botina", "Colete e óculos escuros", "Luvas e botas de borracha"],
     correctIndex: 1,
     explanation: "O conjunto completo inclui: capacete com viseira facial, protetor auricular, luvas anticorte, perneira anticorte e botina de segurança."
   },
   {
     id: "r17", category: "manutencao", emoji: "🔋",
     scenario: "Como deve ser guardada a roçadeira após o uso?",
-    options: [
-      "Com combustível e suja, pronta para o dia seguinte",
-      "Limpa, sem combustível, com proteção na lâmina, em local coberto",
-      "No chão, em qualquer posição",
-      "Pendurada pela lâmina"
-    ],
+    options: ["Com combustível e suja, pronta para o dia seguinte", "Limpa, sem combustível, com proteção na lâmina, em local coberto", "No chão, em qualquer posição", "Pendurada pela lâmina"],
     correctIndex: 1,
     explanation: "A roçadeira deve ser limpa, esvaziada, com protetor de lâmina e armazenada em local seco e coberto para preservar o equipamento."
   },
   {
     id: "r18", category: "tecnica", emoji: "🎯",
     scenario: "Qual a vantagem de usar fio de nylon ao invés de lâmina de aço?",
-    options: [
-      "Corta mais rápido",
-      "Menor risco de projeção de pedras e seguro próximo a estruturas",
-      "É mais durável",
-      "Não há vantagem"
-    ],
+    options: ["Corta mais rápido", "Menor risco de projeção de pedras e seguro próximo a estruturas", "É mais durável", "Não há vantagem"],
     correctIndex: 1,
     explanation: "O fio de nylon é mais seguro próximo a cercas, muros e estruturas, pois reduz projeção de fragmentos e não danifica superfícies."
+  },
+  // Novas perguntas
+  {
+    id: "r19", category: "seguranca", emoji: "🚫",
+    scenario: "É permitido operar a roçadeira sem a carenagem de proteção?",
+    options: ["Sim, em áreas abertas", "Não, a carenagem é obrigatória em todas as situações", "Sim, se estiver usando viseira", "Depende do tipo de vegetação"],
+    correctIndex: 1,
+    explanation: "A carenagem de proteção é SEMPRE obrigatória, independente do local ou tipo de vegetação, para evitar projeção de materiais."
+  },
+  {
+    id: "r20", category: "tecnica", emoji: "🔄",
+    scenario: "Qual a rotação ideal (RPM) para o corte eficiente com roçadeira?",
+    options: ["Sempre na rotação máxima", "Rotação média a alta, ajustada conforme a vegetação", "Sempre na rotação mínima", "Não importa a rotação"],
+    correctIndex: 1,
+    explanation: "A rotação deve ser ajustada conforme o tipo de vegetação: média para capim fino, alta para vegetação densa, evitando sobrecarga do motor."
+  },
+  {
+    id: "r21", category: "seguranca", emoji: "🌫️",
+    scenario: "Em condições de neblina ou baixa visibilidade, qual a medida correta?",
+    options: ["Continuar normalmente", "Suspender a atividade até melhorar a visibilidade", "Usar lanterna", "Roçar mais devagar"],
+    correctIndex: 1,
+    explanation: "Em condições de baixa visibilidade, a atividade deve ser suspensa para evitar acidentes com pedestres e veículos próximos."
+  },
+  {
+    id: "r22", category: "manutencao", emoji: "⛽",
+    scenario: "Qual a proporção correta de mistura combustível para roçadeiras 2 tempos?",
+    options: ["Gasolina pura", "Mistura de gasolina e óleo 2T conforme manual do fabricante", "Diesel e gasolina", "Álcool puro"],
+    correctIndex: 1,
+    explanation: "Roçadeiras 2 tempos exigem mistura de gasolina com óleo 2T na proporção indicada pelo fabricante (geralmente 1:25 ou 1:50)."
+  },
+  {
+    id: "r23", category: "equipamento", emoji: "🧰",
+    scenario: "O que deve conter o kit de ferramentas levado ao campo junto com a roçadeira?",
+    options: ["Apenas combustível", "Chave de vela, chave Allen, fio reserva, Lima para afiação", "Apenas fio de nylon", "Nenhuma ferramenta é necessária"],
+    correctIndex: 1,
+    explanation: "Um kit completo permite manutenções básicas em campo: troca de vela, ajuste da lâmina, reposição de fio e afiação rápida."
+  },
+  {
+    id: "r24", category: "tecnica", emoji: "🌾",
+    scenario: "Ao roçar capim alto e denso, qual técnica é mais eficiente?",
+    options: ["Cortar tudo de uma vez rente ao solo", "Fazer dois passes: primeiro mais alto, depois na altura desejada", "Usar sempre lâmina de 3 pontas", "Aumentar a velocidade de caminhada"],
+    correctIndex: 1,
+    explanation: "Em vegetação alta e densa, o duplo passe evita embuchamento, reduz esforço do motor e proporciona corte mais uniforme."
+  },
+  {
+    id: "r25", category: "seguranca", emoji: "🚗",
+    scenario: "Ao roçar próximo a vias de tráfego, qual medida de segurança é obrigatória?",
+    options: ["Nenhuma especial", "Sinalização da área com cones e uso de colete refletivo", "Apenas usar capacete", "Roçar de costas para a via"],
+    correctIndex: 1,
+    explanation: "É obrigatório sinalizar a área com cones, fitas e usar colete refletivo para alertar motoristas sobre a presença de trabalhadores."
+  },
+  {
+    id: "r26", category: "manutencao", emoji: "🔥",
+    scenario: "O que fazer quando a roçadeira apresenta dificuldade para ligar?",
+    options: ["Puxar o starter com força excessiva", "Verificar vela, filtro de ar, combustível e afogador", "Bater na máquina", "Usar gasolina pura para facilitar"],
+    correctIndex: 1,
+    explanation: "A checklist de partida inclui: verificar vela (limpa/seca), filtro de ar (desobstruído), combustível (fresco) e posição do afogador."
+  },
+  {
+    id: "r27", category: "tecnica", emoji: "🏞️",
+    scenario: "Em áreas com presença de pedras, qual o cuidado principal?",
+    options: ["Roçar normalmente", "Reduzir a rotação e usar fio de nylon ao invés de lâmina", "Usar lâmina de aço reforçada", "Ignorar as pedras"],
+    correctIndex: 1,
+    explanation: "Em áreas pedregosas, o fio de nylon reduz o risco de projeção de fragmentos perigosos. A rotação deve ser reduzida próximo a pedras."
+  },
+  {
+    id: "r28", category: "seguranca", emoji: "⛈️",
+    scenario: "É permitido operar roçadeira durante tempestade com raios?",
+    options: ["Sim, se usar EPIs", "Não, deve-se suspender a atividade imediatamente", "Sim, se estiver em área aberta", "Sim, se a roçadeira for elétrica"],
+    correctIndex: 1,
+    explanation: "Em tempestades com raios, toda atividade ao ar livre deve ser suspensa imediatamente. Equipamentos metálicos atraem descargas elétricas."
+  },
+  {
+    id: "r29", category: "equipamento", emoji: "🪒",
+    scenario: "Quando se deve trocar a lâmina de corte da roçadeira?",
+    options: ["Apenas quando quebrar", "Quando apresentar desgaste, trincas ou desbalanceamento", "Uma vez por ano", "Nunca, basta afiar"],
+    correctIndex: 1,
+    explanation: "Lâminas com desgaste excessivo, trincas ou desbalanceamento devem ser substituídas imediatamente para evitar acidentes."
+  },
+  {
+    id: "r30", category: "tecnica", emoji: "📱",
+    scenario: "É permitido usar fones de ouvido para ouvir música durante a operação de roçadeira?",
+    options: ["Sim, para tornar o trabalho mais agradável", "Não, o operador precisa ouvir sons do ambiente e da máquina", "Sim, se for só um lado", "Sim, desde que com volume baixo"],
+    correctIndex: 1,
+    explanation: "Fones de ouvido impedem a percepção de alertas, aproximação de pessoas/veículos e sons anormais do equipamento. Use apenas protetor auricular."
   },
 ];
 
