@@ -363,16 +363,21 @@ function SnakeBoard({ board }: { board: DominoTile[] }) {
           <div className={`flex items-center gap-[${TILE_GAP}px] ${row.direction === "rtl" ? "flex-row" : "flex-row"}`}
             style={{ gap: TILE_GAP }}
           >
-            {row.tiles.map((tile, ti) => (
-              <motion.div
-                key={`${row.startIndex + ti}`}
-                initial={{ scale: 0, rotate: -10 }}
-                animate={{ scale: 1, rotate: 0 }}
-                transition={{ type: "spring", stiffness: 300, delay: (row.startIndex + ti) * 0.015 }}
-              >
-                <DominoTileVisual tile={tile} size="sm" disabled />
-              </motion.div>
-            ))}
+            {row.tiles.map((tile, ti) => {
+              const isDouble = tile[0] === tile[1];
+              return (
+                <motion.div
+                  key={`${row.startIndex + ti}`}
+                  initial={{ scale: 0, rotate: -10 }}
+                  animate={{ scale: 1, rotate: 0 }}
+                  transition={{ type: "spring", stiffness: 300, delay: (row.startIndex + ti) * 0.015 }}
+                  className="flex items-center justify-center"
+                  style={isDouble ? { marginTop: -6, marginBottom: -6 } : {}}
+                >
+                  <DominoTileVisual tile={tile} size="sm" disabled vertical={isDouble} />
+                </motion.div>
+              );
+            })}
           </div>
         </div>
       ))}
