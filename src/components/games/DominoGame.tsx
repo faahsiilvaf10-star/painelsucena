@@ -373,9 +373,9 @@ function SnakeBoard({ board }: { board: DominoTile[] }) {
               return (
                 <motion.div
                   key={`tile-${globalIndex}`}
-                  initial={isNew ? { y: 80, opacity: 0, scale: 0.7 } : false}
+                  initial={isNew ? { y: 200, opacity: 0, scale: 0.8 } : false}
                   animate={{ y: 0, opacity: 1, scale: 1 }}
-                  transition={isNew ? { duration: 0.6, ease: [0.22, 1, 0.36, 1] } : { duration: 0 }}
+                  transition={isNew ? { duration: 1.2, ease: [0.16, 1, 0.3, 1] } : { duration: 0 }}
                   className="flex items-center justify-center"
                   style={isDouble ? { marginTop: -6, marginBottom: -6 } : {}}
                 >
