@@ -169,8 +169,11 @@ export function useCreateEquipmentMovement() {
 
       if (error) throw error;
 
-      // Sync equipment status based on movement type
-      if (movement.movement_type === "saida" && movement.exit_reason) {
+      // Sync equipment status based on movement type — only for today's movements
+      // Past-date movements are historical records only and should not change live equipment status
+      const isToday = movementDate === today;
+
+      if (isToday && movement.movement_type === "saida" && movement.exit_reason) {
         const statusMap: Record<string, string> = {
           manutencao_corretiva: "manutencao_corretiva",
           manutencao_preventiva: "manutencao_preventiva",
@@ -229,8 +232,8 @@ export function useCreateEquipmentMovement() {
         }
       }
 
-      // When equipment returns (entrada), reset status to operating
-      if (movement.movement_type === "entrada") {
+      // When equipment returns (entrada), reset status to operating — only for today
+      if (isToday && movement.movement_type === "entrada") {
         const { data: eqData } = await supabase
           .from("equipment")
           .select("id")
