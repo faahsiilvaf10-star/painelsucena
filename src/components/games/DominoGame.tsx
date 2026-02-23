@@ -368,9 +368,9 @@ function SnakeBoard({ board }: { board: DominoTile[] }) {
               return (
                 <motion.div
                   key={`${row.startIndex + ti}`}
-                  initial={{ scale: 0, rotate: -10 }}
-                  animate={{ scale: 1, rotate: 0 }}
-                  transition={{ type: "spring", stiffness: 300, delay: (row.startIndex + ti) * 0.015 }}
+                  initial={{ scale: 0, rotate: -15, y: -40, opacity: 0 }}
+                  animate={{ scale: 1, rotate: 0, y: 0, opacity: 1 }}
+                  transition={{ type: "spring", stiffness: 120, damping: 14, delay: (row.startIndex + ti) * 0.08 }}
                   className="flex items-center justify-center"
                   style={isDouble ? { marginTop: -6, marginBottom: -6 } : {}}
                 >
