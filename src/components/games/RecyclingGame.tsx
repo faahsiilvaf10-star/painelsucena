@@ -58,6 +58,22 @@ const ALL_WASTE_ITEMS: WasteItem[] = [
   { id: "remedio", name: "Remédio Vencido", emoji: "💊", correctBin: "perigoso", hint: "Descarte especial obrigatório" },
   { id: "oleo-motor", name: "Óleo de Motor", emoji: "🛢️", correctBin: "perigoso", hint: "Contaminante ambiental" },
   { id: "spray", name: "Aerossol/Spray", emoji: "🧯", correctBin: "perigoso", hint: "Inflamável e químico" },
+  // Novos itens
+  { id: "sacola-plastica", name: "Sacola Plástica", emoji: "🛍️", correctBin: "reciclavel", hint: "Plástico filme é reciclável" },
+  { id: "revista", name: "Revista", emoji: "📕", correctBin: "reciclavel", hint: "Papel é reciclável" },
+  { id: "copo-vidro", name: "Copo de Vidro", emoji: "🥃", correctBin: "reciclavel", hint: "Vidro é reciclável" },
+  { id: "lata-spray-vazia", name: "Lata de Spray Vazia", emoji: "🫙", correctBin: "reciclavel", hint: "Metal reciclável quando vazio e limpo" },
+  { id: "embalagem-leite", name: "Caixa de Leite", emoji: "🥛", correctBin: "reciclavel", hint: "Embalagem longa vida é reciclável" },
+  { id: "grama-cortada", name: "Grama Cortada", emoji: "🌿", correctBin: "organico", hint: "Matéria vegetal é orgânica" },
+  { id: "casca-laranja", name: "Casca de Laranja", emoji: "🍊", correctBin: "organico", hint: "Restos de frutas são orgânicos" },
+  { id: "galhos", name: "Galhos e Podas", emoji: "🪵", correctBin: "organico", hint: "Material vegetal é orgânico" },
+  { id: "saco-cimento", name: "Saco de Cimento Vazio", emoji: "🧱", correctBin: "rejeito", hint: "Contaminado com resíduos de cimento" },
+  { id: "fita-adesiva", name: "Fita Adesiva", emoji: "📎", correctBin: "rejeito", hint: "Material composto, não reciclável" },
+  { id: "isopor", name: "Isopor Sujo", emoji: "📦", correctBin: "rejeito", hint: "Isopor contaminado é rejeito" },
+  { id: "bateria-carro", name: "Bateria de Carro", emoji: "🔌", correctBin: "perigoso", hint: "Contém ácido e chumbo" },
+  { id: "oleo-cozinha", name: "Óleo de Cozinha Usado", emoji: "🫗", correctBin: "perigoso", hint: "Contaminante se descartado incorretamente" },
+  { id: "solvente", name: "Solvente/Thinner", emoji: "⚗️", correctBin: "perigoso", hint: "Produto químico inflamável" },
+  { id: "pneu-velho", name: "Pneu Velho", emoji: "⭕", correctBin: "rejeito", hint: "Descarte especial, logística reversa" },
 ];
 
 function shuffleArray<T>(array: T[]): T[] {

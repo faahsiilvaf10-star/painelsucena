@@ -34,194 +34,185 @@ const ALL_QUESTIONS: GabiaoQuestion[] = [
   {
     id: "g3", category: "drenagem", emoji: "💧",
     scenario: "Qual a principal função do gabião em obras de infraestrutura?",
-    options: [
-      "Decoração paisagística",
-      "Contenção de encostas e proteção contra erosão",
-      "Pavimentação de estradas",
-      "Geração de energia"
-    ],
+    options: ["Decoração paisagística", "Contenção de encostas e proteção contra erosão", "Pavimentação de estradas", "Geração de energia"],
     correctIndex: 1,
     explanation: "Gabiões são estruturas de contenção que protegem encostas contra erosão, controlam drenagem e estabilizam taludes."
   },
   {
     id: "g4", category: "manutencao", emoji: "🔍",
     scenario: "Na inspeção de gabiões, qual sinal indica necessidade de reparo urgente?",
-    options: [
-      "Presença de vegetação entre as pedras",
-      "Rompimento da tela com perda de pedras",
-      "Coloração escura das pedras",
-      "Presença de insetos"
-    ],
+    options: ["Presença de vegetação entre as pedras", "Rompimento da tela com perda de pedras", "Coloração escura das pedras", "Presença de insetos"],
     correctIndex: 1,
     explanation: "O rompimento da tela com perda de pedras compromete a integridade estrutural e exige reparo imediato para evitar desmoronamento."
   },
   {
     id: "g5", category: "seguranca", emoji: "🦺",
     scenario: "Qual EPI é específico para o trabalho de montagem de gabiões?",
-    options: [
-      "Óculos de sol",
-      "Luvas de raspa de couro para manuseio de arame e pedras",
-      "Máscara PFF1",
-      "Protetor solar"
-    ],
+    options: ["Óculos de sol", "Luvas de raspa de couro para manuseio de arame e pedras", "Máscara PFF1", "Protetor solar"],
     correctIndex: 1,
     explanation: "Luvas de raspa de couro protegem contra cortes no manuseio de arames e abrasão no contato com pedras."
   },
   {
     id: "g6", category: "drenagem", emoji: "🌊",
     scenario: "Por que o gabião é considerado uma estrutura permeável?",
-    options: [
-      "Porque é feito de plástico",
-      "Porque os espaços entre as pedras permitem a passagem da água",
-      "Porque possui furos na tela",
-      "Porque absorve água como esponja"
-    ],
+    options: ["Porque é feito de plástico", "Porque os espaços entre as pedras permitem a passagem da água", "Porque possui furos na tela", "Porque absorve água como esponja"],
     correctIndex: 1,
     explanation: "Os vazios entre as pedras permitem que a água passe livremente, aliviando a pressão hidrostática e prevenindo o acúmulo de água atrás da estrutura."
   },
   {
     id: "g7", category: "estrutura", emoji: "📏",
     scenario: "Qual a diferença entre gabião caixa e gabião colchão (Reno)?",
-    options: [
-      "São idênticos",
-      "O caixa é mais alto (>0.5m) para contenção; o colchão é raso (<0.3m) para revestimento",
-      "O colchão é mais resistente",
-      "O caixa é usado apenas em rios"
-    ],
+    options: ["São idênticos", "O caixa é mais alto (>0.5m) para contenção; o colchão é raso (<0.3m) para revestimento", "O colchão é mais resistente", "O caixa é usado apenas em rios"],
     correctIndex: 1,
     explanation: "Gabião caixa tem altura acima de 0.5m para contenção de taludes. O colchão Reno é raso (até 0.3m) e reveste margens e leitos contra erosão."
   },
   {
     id: "g8", category: "manutencao", emoji: "🌱",
     scenario: "A vegetação que cresce nos gabiões deve ser:",
-    options: [
-      "Sempre removida completamente",
-      "Mantida quando rasteira (ajuda na estabilização), removida quando arbórea (danifica a tela)",
-      "Ignorada completamente",
-      "Regada diariamente"
-    ],
+    options: ["Sempre removida completamente", "Mantida quando rasteira (ajuda na estabilização), removida quando arbórea (danifica a tela)", "Ignorada completamente", "Regada diariamente"],
     correctIndex: 1,
     explanation: "Vegetação rasteira ajuda a estabilizar o gabião. Plantas arbóreas devem ser removidas pois suas raízes podem deformar e romper a tela."
   },
   {
     id: "g9", category: "seguranca", emoji: "⚠️",
     scenario: "Qual o principal risco ao trabalhar na recomposição de gabiões em taludes?",
-    options: [
-      "Queimadura solar",
-      "Queda de materiais e instabilidade do terreno",
-      "Picada de inseto",
-      "Excesso de barulho"
-    ],
+    options: ["Queimadura solar", "Queda de materiais e instabilidade do terreno", "Picada de inseto", "Excesso de barulho"],
     correctIndex: 1,
     explanation: "Em taludes, há risco de queda de pedras e deslizamento. É obrigatório isolamento da área e uso de cinto de segurança quando necessário."
   },
   {
     id: "g10", category: "drenagem", emoji: "🔄",
     scenario: "Para que serve a manta geotêxtil colocada atrás do gabião?",
-    options: [
-      "Apenas para estética",
-      "Para filtrar finos do solo e evitar que obstruam os vazios entre as pedras",
-      "Para impermeabilizar",
-      "Para aumentar o peso"
-    ],
+    options: ["Apenas para estética", "Para filtrar finos do solo e evitar que obstruam os vazios entre as pedras", "Para impermeabilizar", "Para aumentar o peso"],
     correctIndex: 1,
     explanation: "A manta geotêxtil atua como filtro, impedindo que partículas finas do solo obstruam os vazios entre as pedras e comprometam a drenagem."
   },
   {
     id: "g11", category: "estrutura", emoji: "🏗️",
     scenario: "Como as caixas de gabião são conectadas entre si?",
-    options: [
-      "Com cimento",
-      "Com arame de costura/amarração",
-      "Com cola especial",
-      "Apenas empilhadas"
-    ],
+    options: ["Com cimento", "Com arame de costura/amarração", "Com cola especial", "Apenas empilhadas"],
     correctIndex: 1,
     explanation: "As caixas são costuradas entre si com arame galvanizado, formando uma estrutura monolítica que distribui as cargas uniformemente."
   },
   {
     id: "g12", category: "manutencao", emoji: "🛡️",
     scenario: "Qual a principal causa de deterioração da tela do gabião ao longo do tempo?",
-    options: [
-      "Exposição ao sol",
-      "Corrosão do arame por contato com água ácida ou solo agressivo",
-      "Peso das pedras",
-      "Vento forte"
-    ],
+    options: ["Exposição ao sol", "Corrosão do arame por contato com água ácida ou solo agressivo", "Peso das pedras", "Vento forte"],
     correctIndex: 1,
     explanation: "A corrosão do arame é a principal causa de deterioração. Por isso, usa-se arame galvanizado e, em ambientes agressivos, revestimento com PVC."
   },
   {
     id: "g13", category: "seguranca", emoji: "🪜",
     scenario: "Antes de iniciar trabalhos de recomposição de gabião, qual procedimento é obrigatório?",
-    options: [
-      "Começar imediatamente",
-      "Isolar a área, avaliar estabilidade do terreno e realizar APR/PT",
-      "Apenas vestir capacete",
-      "Chamar mais operários"
-    ],
+    options: ["Começar imediatamente", "Isolar a área, avaliar estabilidade do terreno e realizar APR/PT", "Apenas vestir capacete", "Chamar mais operários"],
     correctIndex: 1,
     explanation: "É obrigatório isolar a área, avaliar riscos, elaborar APR (Análise Preliminar de Risco) e emitir PT (Permissão de Trabalho) quando necessário."
   },
   {
     id: "g14", category: "drenagem", emoji: "🕳️",
     scenario: "O que é um bueiro de greide e qual sua relação com gabiões?",
-    options: [
-      "É um tipo de gabião",
-      "É uma travessia de drenagem sob a estrada, frequentemente protegida por gabiões na entrada/saída",
-      "É uma ferramenta de construção",
-      "Não tem relação"
-    ],
+    options: ["É um tipo de gabião", "É uma travessia de drenagem sob a estrada, frequentemente protegida por gabiões na entrada/saída", "É uma ferramenta de construção", "Não tem relação"],
     correctIndex: 1,
     explanation: "Bueiros de greide são travessias de drenagem sob estradas. Gabiões protegem suas bocas (entrada/saída) contra erosão da água."
   },
   {
     id: "g15", category: "estrutura", emoji: "📐",
     scenario: "Qual o cuidado principal no preenchimento de gabiões com pedras?",
-    options: [
-      "Colocar as pedras de qualquer forma",
-      "Arranjar as pedras com encaixe firme, minimizando vazios excessivos",
-      "Usar pedras pequenas apenas",
-      "Preencher apenas metade"
-    ],
+    options: ["Colocar as pedras de qualquer forma", "Arranjar as pedras com encaixe firme, minimizando vazios excessivos", "Usar pedras pequenas apenas", "Preencher apenas metade"],
     correctIndex: 1,
     explanation: "As pedras devem ser arranjadas com encaixe firme, usando pedras menores para preencher vazios grandes, garantindo estabilidade e peso adequado."
   },
   {
     id: "g16", category: "manutencao", emoji: "📋",
     scenario: "Qual é o intervalo recomendado para inspeções periódicas em estruturas de gabião?",
-    options: [
-      "A cada 5 anos",
-      "Semestralmente e após eventos climáticos severos",
-      "Apenas quando visualmente danificado",
-      "Nunca, gabiões são permanentes"
-    ],
+    options: ["A cada 5 anos", "Semestralmente e após eventos climáticos severos", "Apenas quando visualmente danificado", "Nunca, gabiões são permanentes"],
     correctIndex: 1,
     explanation: "Inspeções semestrais e após chuvas intensas detectam danos precoces e permitem manutenção preventiva antes de falhas graves."
   },
   {
     id: "g17", category: "drenagem", emoji: "🏔️",
     scenario: "Qual a função das canaletas de drenagem associadas aos gabiões?",
-    options: [
-      "Apenas estética",
-      "Conduzir a água superficial de forma controlada, reduzindo erosão no talude",
-      "Servir de caminho para pedestres",
-      "Armazenar água da chuva"
-    ],
+    options: ["Apenas estética", "Conduzir a água superficial de forma controlada, reduzindo erosão no talude", "Servir de caminho para pedestres", "Armazenar água da chuva"],
     correctIndex: 1,
     explanation: "Canaletas conduzem a água superficial de forma controlada até pontos seguros de descarga, protegendo os taludes contra erosão."
   },
   {
     id: "g18", category: "seguranca", emoji: "🏋️",
     scenario: "Qual o risco ergonômico principal no manuseio de pedras para gabiões?",
-    options: [
-      "Dor de cabeça",
-      "Lesões na coluna por levantamento inadequado de peso",
-      "Problemas visuais",
-      "Desidratação"
-    ],
+    options: ["Dor de cabeça", "Lesões na coluna por levantamento inadequado de peso", "Problemas visuais", "Desidratação"],
     correctIndex: 1,
     explanation: "O levantamento de pedras pesadas sem técnica adequada causa lesões lombares. Deve-se usar técnicas de ergonomia e equipamentos auxiliares."
+  },
+  // Novas perguntas
+  {
+    id: "g19", category: "estrutura", emoji: "⚖️",
+    scenario: "Qual o tamanho mínimo recomendado das pedras para preenchimento de gabião caixa?",
+    options: ["Qualquer tamanho", "Maiores que a abertura da malha da tela", "Menores que 5 cm", "Exatamente iguais"],
+    correctIndex: 1,
+    explanation: "As pedras devem ser maiores que a abertura da malha (geralmente >10cm) para não escaparem, garantindo a integridade estrutural."
+  },
+  {
+    id: "g20", category: "drenagem", emoji: "🌧️",
+    scenario: "O que acontece se os vazios do gabião forem obstruídos por sedimentos?",
+    options: ["Nada, é normal", "A pressão hidrostática aumenta e pode causar instabilidade na estrutura", "O gabião fica mais forte", "Melhora a drenagem"],
+    correctIndex: 1,
+    explanation: "A obstrução dos vazios impede a drenagem, aumentando a pressão hidrostática atrás da estrutura e podendo causar tombamento ou deslizamento."
+  },
+  {
+    id: "g21", category: "manutencao", emoji: "🔧",
+    scenario: "Como é feito o reparo de uma tela de gabião rompida?",
+    options: ["Substitui-se todo o gabião", "Costura-se um remendo de tela nova sobre a área danificada com arame de amarração", "Usa-se cola", "Não é possível reparar"],
+    correctIndex: 1,
+    explanation: "O reparo é feito fixando um pedaço de tela nova sobre a área danificada, costurado com arame galvanizado, e recompondo as pedras perdidas."
+  },
+  {
+    id: "g22", category: "seguranca", emoji: "🌊",
+    scenario: "É seguro trabalhar na recomposição de gabiões durante período de chuvas intensas?",
+    options: ["Sim, é mais fácil com a terra molhada", "Não, o risco de deslizamento e instabilidade do terreno aumenta", "Sim, desde que use capa de chuva", "Depende da temperatura"],
+    correctIndex: 1,
+    explanation: "Chuvas intensas tornam o terreno instável e aumentam o risco de deslizamento. A atividade deve ser suspensa em condições climáticas adversas."
+  },
+  {
+    id: "g23", category: "estrutura", emoji: "🧱",
+    scenario: "O que são tirantes internos no gabião e qual sua função?",
+    options: ["São decorativos", "São arames que conectam as faces opostas da caixa para evitar deformação (barrigamento)", "São as pedras maiores", "São suportes externos"],
+    correctIndex: 1,
+    explanation: "Tirantes são arames internos que conectam as faces do gabião, evitando que as laterais se deformem (barriguem) sob pressão do solo."
+  },
+  {
+    id: "g24", category: "drenagem", emoji: "🏞️",
+    scenario: "Qual tipo de gabião é mais indicado para proteção de margens de rios?",
+    options: ["Gabião caixa empilhado", "Gabião colchão (Reno) por acompanhar o perfil do terreno", "Gabião saco", "Muro de concreto"],
+    correctIndex: 1,
+    explanation: "O gabião colchão Reno é flexível e se adapta ao perfil irregular das margens, oferecendo proteção eficiente contra erosão fluvial."
+  },
+  {
+    id: "g25", category: "manutencao", emoji: "📸",
+    scenario: "O que deve ser registrado durante uma inspeção de gabião?",
+    options: ["Apenas a data", "Estado da tela, perda de pedras, deformações, vegetação invasora e condição da drenagem", "Apenas fotos", "Nada, inspeção visual basta"],
+    correctIndex: 1,
+    explanation: "Um relatório completo deve documentar todos os aspectos: integridade da tela, pedras, deformações, vegetação e sistema de drenagem associado."
+  },
+  {
+    id: "g26", category: "seguranca", emoji: "🪨",
+    scenario: "Qual o peso médio de uma pedra utilizada em gabião e qual o cuidado necessário?",
+    options: ["1-2 kg, sem cuidados", "10-30 kg, exige técnica de levantamento e uso de equipamentos auxiliares", "Menos de 500g", "Mais de 100 kg sempre"],
+    correctIndex: 1,
+    explanation: "Pedras para gabião pesam entre 10-30 kg em média. O manuseio exige postura correta, uso de luvas e, quando possível, equipamentos mecânicos."
+  },
+  {
+    id: "g27", category: "estrutura", emoji: "🔩",
+    scenario: "Qual a importância da fundação (base) antes de montar gabiões?",
+    options: ["Não é necessária fundação", "A base deve ser nivelada e compactada para distribuir cargas e evitar recalque", "Basta colocar sobre a terra", "Usa-se apenas areia"],
+    correctIndex: 1,
+    explanation: "Uma fundação nivelada e compactada garante distribuição uniforme de cargas, evitando recalques diferenciais que podem causar ruptura da estrutura."
+  },
+  {
+    id: "g28", category: "drenagem", emoji: "🔬",
+    scenario: "Qual o papel do barbacã (dreno) em muros de gabião?",
+    options: ["Decoração", "Permitir a saída controlada da água acumulada atrás do muro", "Entrada de ar", "Passagem de cabos"],
+    correctIndex: 1,
+    explanation: "Barbacãs são drenos que permitem a saída da água infiltrada, reduzindo a pressão hidrostática e prevenindo instabilidade do muro."
   },
 ];
 

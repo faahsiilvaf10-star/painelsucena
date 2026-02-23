@@ -20,7 +20,6 @@ interface EPIQuestion {
 
 // ── Question Bank ──
 const ALL_QUESTIONS: EPIQuestion[] = [
-  // Identificação de EPI
   {
     id: "q1", category: "identificacao", emoji: "🪖",
     scenario: "Qual EPI é obrigatório em TODA área de canteiro de obras?",
@@ -49,7 +48,6 @@ const ALL_QUESTIONS: EPIQuestion[] = [
     correctIndex: 2,
     explanation: "A botina de segurança com biqueira de aço protege contra impactos, perfurações e quedas de objetos."
   },
-  // Uso correto
   {
     id: "q5", category: "uso_correto", emoji: "🔊",
     scenario: "A partir de qual nível de ruído o protetor auricular é OBRIGATÓRIO?",
@@ -67,28 +65,17 @@ const ALL_QUESTIONS: EPIQuestion[] = [
   {
     id: "q7", category: "uso_correto", emoji: "😷",
     scenario: "Qual a forma CORRETA de usar uma máscara PFF2?",
-    options: [
-      "Abaixo do nariz para respirar melhor",
-      "Cobrindo nariz e boca com vedação completa",
-      "Apenas sobre a boca",
-      "Pendurada no pescoço até precisar"
-    ],
+    options: ["Abaixo do nariz para respirar melhor", "Cobrindo nariz e boca com vedação completa", "Apenas sobre a boca", "Pendurada no pescoço até precisar"],
     correctIndex: 1,
     explanation: "A PFF2 deve cobrir nariz e boca com vedação total para filtrar pelo menos 94% das partículas."
   },
   {
     id: "q8", category: "uso_correto", emoji: "🦺",
     scenario: "Quando o colete refletivo deve ser utilizado?",
-    options: [
-      "Apenas à noite",
-      "Apenas quando chove",
-      "Em toda atividade com risco de atropelamento ou baixa visibilidade",
-      "Somente fora do canteiro"
-    ],
+    options: ["Apenas à noite", "Apenas quando chove", "Em toda atividade com risco de atropelamento ou baixa visibilidade", "Somente fora do canteiro"],
     correctIndex: 2,
     explanation: "O colete refletivo é obrigatório em qualquer atividade com risco de atropelamento ou em áreas com tráfego de veículos/equipamentos."
   },
-  // Situacional
   {
     id: "q9", category: "situacional", emoji: "⚡",
     scenario: "Um eletricista vai trabalhar em um painel energizado. Qual EPI é ESPECÍFICO para essa atividade?",
@@ -120,16 +107,10 @@ const ALL_QUESTIONS: EPIQuestion[] = [
   {
     id: "q13", category: "situacional", emoji: "🧪",
     scenario: "Para aplicação de herbicida, qual o conjunto MÍNIMO de EPIs?",
-    options: [
-      "Apenas luvas",
-      "Máscara, óculos, luvas nitrílicas, avental e botina",
-      "Capacete e botina",
-      "Colete e óculos escuros"
-    ],
+    options: ["Apenas luvas", "Máscara, óculos, luvas nitrílicas, avental e botina", "Capacete e botina", "Colete e óculos escuros"],
     correctIndex: 1,
     explanation: "Produtos químicos exigem proteção respiratória, ocular, das mãos e do corpo conforme a FISPQ do produto."
   },
-  // Normas
   {
     id: "q14", category: "norma", emoji: "📋",
     scenario: "Qual NR regulamenta os Equipamentos de Proteção Individual?",
@@ -147,24 +128,14 @@ const ALL_QUESTIONS: EPIQuestion[] = [
   {
     id: "q16", category: "norma", emoji: "🔍",
     scenario: "O que significa o CA (Certificado de Aprovação) em um EPI?",
-    options: [
-      "Marca do fabricante",
-      "Aprovação do Ministério do Trabalho para comercialização",
-      "Garantia de durabilidade",
-      "Código de barras do produto"
-    ],
+    options: ["Marca do fabricante", "Aprovação do Ministério do Trabalho para comercialização", "Garantia de durabilidade", "Código de barras do produto"],
     correctIndex: 1,
     explanation: "O CA garante que o EPI foi testado e aprovado pelo órgão competente, sendo obrigatório para comercialização."
   },
   {
     id: "q17", category: "norma", emoji: "⚠️",
     scenario: "O trabalhador que se recusa a usar EPI pode sofrer qual penalidade?",
-    options: [
-      "Nenhuma, é opcional",
-      "Apenas advertência verbal",
-      "Advertência, suspensão e até demissão por justa causa",
-      "Multa financeira pessoal"
-    ],
+    options: ["Nenhuma, é opcional", "Apenas advertência verbal", "Advertência, suspensão e até demissão por justa causa", "Multa financeira pessoal"],
     correctIndex: 2,
     explanation: "A CLT prevê que a recusa injustificada de uso de EPI é falta grave, podendo resultar em demissão por justa causa."
   },
@@ -178,26 +149,87 @@ const ALL_QUESTIONS: EPIQuestion[] = [
   {
     id: "q19", category: "uso_correto", emoji: "🔄",
     scenario: "Com que frequência o capacete de segurança deve ser trocado?",
-    options: [
-      "Apenas quando quebrar",
-      "A cada 5 anos obrigatoriamente",
-      "Conforme orientação do fabricante ou quando apresentar danos",
-      "Nunca, é vitalício"
-    ],
+    options: ["Apenas quando quebrar", "A cada 5 anos obrigatoriamente", "Conforme orientação do fabricante ou quando apresentar danos", "Nunca, é vitalício"],
     correctIndex: 2,
     explanation: "O capacete deve ser substituído conforme a vida útil indicada pelo fabricante ou imediatamente se apresentar trincas, deformações ou após impacto."
   },
   {
     id: "q20", category: "identificacao", emoji: "🎧",
     scenario: "Qual é a diferença principal entre protetor auricular tipo concha e tipo plug?",
-    options: [
-      "Não há diferença",
-      "Concha cobre toda a orelha, plug é inserido no canal auditivo",
-      "Plug é para ruídos altos, concha para baixos",
-      "Concha é descartável, plug é reutilizável"
-    ],
+    options: ["Não há diferença", "Concha cobre toda a orelha, plug é inserido no canal auditivo", "Plug é para ruídos altos, concha para baixos", "Concha é descartável, plug é reutilizável"],
     correctIndex: 1,
     explanation: "O tipo concha (abafador) envolve toda a orelha externamente, enquanto o plug (inserção) é colocado dentro do canal auditivo."
+  },
+  // Novas perguntas
+  {
+    id: "q21", category: "identificacao", emoji: "🪖",
+    scenario: "Qual a diferença entre capacete classe A e classe B?",
+    options: ["Não há diferença", "Classe A protege contra impactos; Classe B também protege contra choques elétricos", "Classe B é mais leve", "Classe A é para obras e Classe B para escritórios"],
+    correctIndex: 1,
+    explanation: "Capacete classe B possui isolamento elétrico além da proteção contra impactos, sendo obrigatório em trabalhos com risco elétrico."
+  },
+  {
+    id: "q22", category: "uso_correto", emoji: "🧤",
+    scenario: "É correto usar luvas de raspa de couro para manuseio de produtos químicos?",
+    options: ["Sim, protege contra tudo", "Não, luvas de raspa não oferecem barreira química", "Sim, se forem novas", "Depende do produto"],
+    correctIndex: 1,
+    explanation: "Luvas de raspa de couro são permeáveis a líquidos e não oferecem proteção química. Use luvas nitrílicas ou de PVC conforme a FISPQ."
+  },
+  {
+    id: "q23", category: "situacional", emoji: "🏔️",
+    scenario: "Em trabalhos em taludes com inclinação acima de 45°, qual EPI adicional é necessário?",
+    options: ["Apenas botina", "Cinto de segurança com trava-quedas e linha de vida", "Joelheira", "Colete salva-vidas"],
+    correctIndex: 1,
+    explanation: "Taludes com inclinação acentuada exigem cinto paraquedista conectado a linha de vida para prevenir quedas."
+  },
+  {
+    id: "q24", category: "norma", emoji: "📊",
+    scenario: "Qual NR trata especificamente de trabalho em altura?",
+    options: ["NR-6", "NR-10", "NR-35", "NR-18"],
+    correctIndex: 2,
+    explanation: "A NR-35 regulamenta o trabalho em altura (acima de 2m), exigindo planejamento, EPIs específicos e treinamento."
+  },
+  {
+    id: "q25", category: "identificacao", emoji: "🦺",
+    scenario: "O que é um EPC e qual a diferença para um EPI?",
+    options: ["São a mesma coisa", "EPC protege o coletivo (ex: guarda-corpo); EPI protege o individual (ex: capacete)", "EPC é mais caro que EPI", "EPI protege o coletivo"],
+    correctIndex: 1,
+    explanation: "EPC (Equipamento de Proteção Coletiva) protege todos no ambiente (ex: guarda-corpo, rede). EPI protege individualmente cada trabalhador."
+  },
+  {
+    id: "q26", category: "uso_correto", emoji: "👃",
+    scenario: "Quando é necessário usar respirador com filtro químico ao invés de PFF2?",
+    options: ["Nunca, PFF2 serve para tudo", "Quando houver exposição a vapores ou gases tóxicos", "Apenas em ambientes fechados", "Apenas para poeira"],
+    correctIndex: 1,
+    explanation: "O PFF2 filtra apenas partículas. Para vapores e gases (solventes, tintas, herbicidas), é necessário respirador com filtro químico adequado."
+  },
+  {
+    id: "q27", category: "situacional", emoji: "🔨",
+    scenario: "Ao utilizar uma marreta, além de luvas e capacete, qual EPI protege os olhos?",
+    options: ["Nenhum é necessário", "Óculos de proteção contra projeção de fragmentos", "Óculos de sol", "Viseira de solda"],
+    correctIndex: 1,
+    explanation: "O impacto da marreta pode projetar fragmentos de concreto ou pedra, tornando obrigatório o uso de óculos de proteção."
+  },
+  {
+    id: "q28", category: "norma", emoji: "🏥",
+    scenario: "O que é a FISPQ e qual sua relação com EPIs?",
+    options: ["É uma marca de EPI", "Ficha com dados de segurança do produto químico que indica os EPIs necessários", "É um tipo de treinamento", "Não tem relação com EPIs"],
+    correctIndex: 1,
+    explanation: "A FISPQ (Ficha de Informações de Segurança de Produtos Químicos) indica os EPIs necessários para manuseio seguro de cada produto."
+  },
+  {
+    id: "q29", category: "uso_correto", emoji: "☀️",
+    scenario: "O protetor solar é considerado um EPI?",
+    options: ["Não, é apenas cosmético", "Sim, para trabalhadores expostos à radiação solar conforme NR-21", "Sim, mas apenas no verão", "Não, é EPC"],
+    correctIndex: 1,
+    explanation: "O protetor solar é reconhecido como EPI para trabalhadores com exposição prolongada ao sol, devendo ser fornecido pelo empregador."
+  },
+  {
+    id: "q30", category: "identificacao", emoji: "🥾",
+    scenario: "Qual a diferença entre botina com biqueira de aço e biqueira de composite?",
+    options: ["São iguais", "Composite é mais leve e não conduz eletricidade; aço é mais resistente a impactos", "Aço é mais leve", "Composite é de metal"],
+    correctIndex: 1,
+    explanation: "Biqueira de composite (fibra) é mais leve, não conduz eletricidade e calor, sendo ideal para trabalhos com risco elétrico. Aço oferece maior resistência a impactos."
   },
 ];
 
