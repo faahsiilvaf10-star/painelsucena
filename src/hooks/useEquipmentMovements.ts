@@ -186,13 +186,14 @@ export function useCreateEquipmentMovement() {
             .single();
 
           if (eqData) {
-            const nowIso = new Date().toISOString();
+            // Use movement date/time instead of now() so history aligns with the requested date
+            const movementIso = new Date(`${movementDate}T${movementTime}:00`).toISOString();
 
             await supabase
               .from("equipment")
               .update({
                 stop_reason: newStopReason,
-                stop_start_time: nowIso,
+                stop_start_time: movementIso,
               })
               .eq("id", eqData.id);
 
@@ -207,11 +208,11 @@ export function useCreateEquipmentMovement() {
 
             if (openStop) {
               const durationMinutes = Math.round(
-                (new Date(nowIso).getTime() - new Date(openStop.started_at).getTime()) / 60000
+                (new Date(movementIso).getTime() - new Date(openStop.started_at).getTime()) / 60000
               );
               await supabase
                 .from("equipment_stop_history")
-                .update({ ended_at: nowIso, duration_minutes: durationMinutes })
+                .update({ ended_at: movementIso, duration_minutes: durationMinutes })
                 .eq("id", openStop.id);
             }
 
@@ -220,7 +221,7 @@ export function useCreateEquipmentMovement() {
               .insert({
                 equipment_id: eqData.id,
                 stop_reason: newStopReason,
-                started_at: nowIso,
+                started_at: movementIso,
                 defect_description: movement.problem_description || null,
                 changed_by_driver: user.id,
               });
@@ -237,7 +238,7 @@ export function useCreateEquipmentMovement() {
           .single();
 
         if (eqData) {
-          const nowIso = new Date().toISOString();
+          const movementIso = new Date(`${movementDate}T${movementTime}:00`).toISOString();
 
           await supabase
             .from("equipment")
@@ -259,11 +260,11 @@ export function useCreateEquipmentMovement() {
 
           if (openStop) {
             const durationMinutes = Math.round(
-              (new Date(nowIso).getTime() - new Date(openStop.started_at).getTime()) / 60000
+              (new Date(movementIso).getTime() - new Date(openStop.started_at).getTime()) / 60000
             );
             await supabase
               .from("equipment_stop_history")
-              .update({ ended_at: nowIso, duration_minutes: durationMinutes })
+              .update({ ended_at: movementIso, duration_minutes: durationMinutes })
               .eq("id", openStop.id);
           }
         }
