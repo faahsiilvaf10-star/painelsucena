@@ -235,6 +235,8 @@ export function useAddStatusToHistory() {
       description,
       customTimestamp,
       shiftDate,
+      equipmentName,
+      equipmentPlate,
     }: {
       equipmentId: string;
       status: string;
@@ -242,6 +244,8 @@ export function useAddStatusToHistory() {
       description?: string;
       customTimestamp?: string;
       shiftDate?: string;
+      equipmentName?: string;
+      equipmentPlate?: string;
     }) => {
       const targetDate = shiftDate || new Date().toISOString().split("T")[0];
       const timestamp = customTimestamp || new Date().toISOString();
@@ -255,7 +259,48 @@ export function useAddStatusToHistory() {
         .maybeSingle();
 
       if (fetchError) throw fetchError;
-      if (!current) return null; // No record for this date
+
+      // If no record exists for this date, create one so admin can add status to any date
+      if (!current) {
+        // Fetch equipment info if not provided
+        let name = equipmentName || "";
+        let plate = equipmentPlate || "";
+        if (!name || !plate) {
+          const { data: eq } = await supabase
+            .from("equipment")
+            .select("name, plate, driver")
+            .eq("id", equipmentId)
+            .single();
+          if (eq) {
+            name = name || eq.name;
+            plate = plate || eq.plate;
+          }
+        }
+
+        const newEntry: StatusHistoryEntry = {
+          id: generateStatusId(),
+          status,
+          timestamp,
+          changed_by: changedBy,
+          description,
+        };
+
+        const { data: created, error: createErr } = await supabase
+          .from("daily_shift_records")
+          .insert({
+            equipment_id: equipmentId,
+            equipment_name: name,
+            plate,
+            shift_date: targetDate,
+            driver_name: changedBy || "Admin",
+            status_history: [newEntry] as unknown as Json,
+          })
+          .select()
+          .single();
+
+        if (createErr) throw createErr;
+        return parseShiftRecord(created);
+      }
 
       const currentHistory = Array.isArray(current.status_history) 
         ? (current.status_history as unknown as StatusHistoryEntry[])

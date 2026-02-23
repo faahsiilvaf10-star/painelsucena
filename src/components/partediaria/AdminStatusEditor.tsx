@@ -236,7 +236,20 @@ const getStatusColor = (status: string) => {
           description: description || undefined,
           customTimestamp: timestamp,
           shiftDate: effectiveDate,
+          equipmentName,
+          equipmentPlate,
         });
+
+        // Also add to equipment_stop_history for the selected date
+        await supabase
+          .from("equipment_stop_history")
+          .insert({
+            equipment_id: equipmentId,
+            stop_reason: selectedStatus,
+            started_at: timestamp,
+            defect_description: description || null,
+            changed_by_driver: profile?.full_name ? `${profile.full_name} (Admin)` : "Admin",
+          });
  
        toast.success("Status adicionado com sucesso!");
        setSelectedStatus("");
