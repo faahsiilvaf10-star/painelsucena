@@ -463,7 +463,7 @@ export function DominoGame({ onBack }: { onBack: () => void }) {
     if (aiWinner) return;
     aiThinkingRef.current = true;
     setAiThinking(true);
-    const delay = aiDifficulty === "easy" ? 800 : aiDifficulty === "medium" ? 1200 : 1500;
+    const delay = 2000;
     const timer = setTimeout(() => {
       const newState = aiPlayTurn(gsAI, aiDifficulty);
       if (newState.player2Hand.length === 0) {
