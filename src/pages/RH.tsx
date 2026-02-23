@@ -105,11 +105,33 @@ const RH = () => {
   const handleSaveAso = (id: number) => {
     setColaboradores(prev => prev.map(c => {
       if (c.id !== id) return c;
+
+      // When periodico is set/changed, auto-calculate validade as periodico + 365 days
+      let newValidade = asoForm.validade || c.aso?.validade || "";
+      if (asoForm.periodico && asoForm.periodico !== (c.aso?.periodico || "")) {
+        try {
+          // Parse dd/MM/yyyy format
+          const parts = asoForm.periodico.split("/");
+          if (parts.length === 3) {
+            const periodicoDate = new Date(
+              parseInt(parts[2]), parseInt(parts[1]) - 1, parseInt(parts[0])
+            );
+            periodicoDate.setFullYear(periodicoDate.getFullYear() + 1);
+            const dd = String(periodicoDate.getDate()).padStart(2, "0");
+            const mm = String(periodicoDate.getMonth() + 1).padStart(2, "0");
+            const yyyy = periodicoDate.getFullYear();
+            newValidade = `${dd}/${mm}/${yyyy}`;
+          }
+        } catch {
+          // keep existing validade on parse error
+        }
+      }
+
       return {
         ...c,
         aso: {
           admissional: asoForm.admissional || c.aso?.admissional || "",
-          validade: asoForm.validade || c.aso?.validade || "",
+          validade: newValidade,
           periodico: asoForm.periodico || undefined,
           retornoTrabalho: asoForm.retornoTrabalho || undefined,
           mudancaRisco: asoForm.mudancaRisco || undefined,
