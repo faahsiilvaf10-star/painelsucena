@@ -97,12 +97,13 @@ export function WeatherWidget() {
           if (city) locationName = state ? `${city}, ${state}` : city;
         } catch {}
       } else {
-        latitude = -1.5138;
-        longitude = -48.6253;
+        // Barcarena, Pará (centro)
+        latitude = -1.5067;
+        longitude = -48.6153;
       }
 
       const res = await fetch(
-        `https://api.open-meteo.com/v1/forecast?latitude=${latitude}&longitude=${longitude}&current=temperature_2m,relative_humidity_2m,apparent_temperature,weather_code,wind_speed_10m,is_day,precipitation,rain&daily=weather_code,temperature_2m_max,temperature_2m_min,precipitation_probability_max&hourly=temperature_2m,weather_code,precipitation_probability,precipitation,rain&timezone=America/Sao_Paulo&forecast_days=5&minutely_15=precipitation,rain`
+        `https://api.open-meteo.com/v1/forecast?latitude=${latitude}&longitude=${longitude}&current=temperature_2m,relative_humidity_2m,apparent_temperature,weather_code,wind_speed_10m,is_day,precipitation,rain&daily=weather_code,temperature_2m_max,temperature_2m_min,precipitation_probability_max&hourly=temperature_2m,weather_code,precipitation_probability,precipitation,rain&timezone=America/Sao_Paulo&forecast_days=5`
       );
       const data = await res.json();
 
@@ -216,6 +217,9 @@ export function WeatherWidget() {
             <div className="flex items-center gap-1.5 text-xs text-muted-foreground mb-1">
               <MapPin className="h-3 w-3" />
               <span className="truncate max-w-[200px]">{weather.locationName}</span>
+              <Button variant="ghost" size="icon" className="h-5 w-5 ml-1" onClick={fetchWeather} title="Atualizar previsão">
+                <RefreshCw className={`h-3 w-3 ${loading ? 'animate-spin' : ''}`} />
+              </Button>
             </div>
             <div className="flex items-end gap-3">
               <span className="text-5xl font-extrabold tracking-tight text-foreground">
