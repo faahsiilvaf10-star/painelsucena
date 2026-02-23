@@ -268,7 +268,11 @@ export function GabiaoGame({ onBack }: { onBack: () => void }) {
       playedIdsRef.current.clear();
       available = [...ALL_QUESTIONS];
     }
-    const selected = shuffleArray(available).slice(0, ROUND_SIZE);
+    const selected = shuffleArray(available).slice(0, ROUND_SIZE).map(q => {
+      const correctAnswer = q.options[q.correctIndex];
+      const shuffledOptions = shuffleArray([...q.options]);
+      return { ...q, options: shuffledOptions, correctIndex: shuffledOptions.indexOf(correctAnswer) };
+    });
     selected.forEach(q => playedIdsRef.current.add(q.id));
     setQuestions(selected);
     setCurrentIndex(0);
