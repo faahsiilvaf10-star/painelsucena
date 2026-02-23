@@ -150,8 +150,9 @@ export function WeatherWidget() {
 
   useEffect(() => {
     fetchWeather();
-    const interval = setInterval(fetchWeather, 10 * 60 * 1000); // 10 minutes
+    const interval = setInterval(fetchWeather, 5 * 60 * 1000); // 5 minutes
     return () => clearInterval(interval);
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [isMobile]);
 
   if (error) {
