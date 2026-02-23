@@ -1,4 +1,4 @@
-import { useEffect, useState } from "react";
+import { useEffect, useState, useCallback } from "react";
 import { Card, CardContent } from "@/components/ui/card";
 import { Cloud, CloudRain, Sun, CloudSun, CloudSnow, CloudLightning, Droplets, Wind, Thermometer, MapPin, RefreshCw } from "lucide-react";
 import { useIsMobile } from "@/hooks/use-mobile";
@@ -74,7 +74,7 @@ export function WeatherWidget() {
 
   const isMobile = useIsMobile();
 
-  const fetchWeather = async () => {
+  const fetchWeather = useCallback(async () => {
     setLoading(true);
     setError(null);
     try {
@@ -83,14 +83,12 @@ export function WeatherWidget() {
       let locationName = "Barcarena, Pará";
 
       if (isMobile) {
-        // Mobile: use geolocation
         const pos = await new Promise<GeolocationPosition>((resolve, reject) =>
           navigator.geolocation.getCurrentPosition(resolve, reject, { timeout: 10000 })
         );
         latitude = pos.coords.latitude;
         longitude = pos.coords.longitude;
 
-        // Reverse geocode
         try {
           const geoRes = await fetch(`https://nominatim.openstreetmap.org/reverse?lat=${latitude}&lon=${longitude}&format=json&accept-language=pt-BR`);
           const geoData = await geoRes.json();
@@ -99,17 +97,15 @@ export function WeatherWidget() {
           if (city) locationName = state ? `${city}, ${state}` : city;
         } catch {}
       } else {
-        // Desktop: fixed location - Barcarena, Pará
         latitude = -1.5138;
         longitude = -48.6253;
       }
 
       const res = await fetch(
-        `https://api.open-meteo.com/v1/forecast?latitude=${latitude}&longitude=${longitude}&current=temperature_2m,relative_humidity_2m,apparent_temperature,weather_code,wind_speed_10m,is_day&daily=weather_code,temperature_2m_max,temperature_2m_min&hourly=temperature_2m,weather_code,precipitation_probability&timezone=America/Sao_Paulo&forecast_days=5`
+        `https://api.open-meteo.com/v1/forecast?latitude=${latitude}&longitude=${longitude}&current=temperature_2m,relative_humidity_2m,apparent_temperature,weather_code,wind_speed_10m,is_day,precipitation,rain&daily=weather_code,temperature_2m_max,temperature_2m_min,precipitation_probability_max&hourly=temperature_2m,weather_code,precipitation_probability,precipitation,rain&timezone=America/Sao_Paulo&forecast_days=5&minutely_15=precipitation,rain`
       );
       const data = await res.json();
 
-      // Filter hourly data to today only
       const todayStr = data.daily.time[0];
       const hourlyTime: string[] = data.hourly.time;
       const todayHourlyIndices = hourlyTime
@@ -146,14 +142,13 @@ export function WeatherWidget() {
     } finally {
       setLoading(false);
     }
-  };
+  }, [isMobile]);
 
   useEffect(() => {
     fetchWeather();
-    const interval = setInterval(fetchWeather, 5 * 60 * 1000); // 5 minutes
+    const interval = setInterval(fetchWeather, 5 * 60 * 1000);
     return () => clearInterval(interval);
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [isMobile]);
+  }, [fetchWeather]);
 
   if (error) {
     return (
