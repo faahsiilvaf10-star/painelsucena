@@ -308,6 +308,13 @@ const CONNECTOR_SIZE = 34; // vertical connector tile size
 function SnakeBoard({ board }: { board: DominoTile[] }) {
   const containerRef = useRef<HTMLDivElement>(null);
   const [containerWidth, setContainerWidth] = useState(600);
+  const prevCountRef = useRef(board.length);
+
+  useEffect(() => {
+    prevCountRef.current = board.length;
+  });
+
+  const prevCount = prevCountRef.current;
 
   useEffect(() => {
     if (!containerRef.current) return;
@@ -320,10 +327,8 @@ function SnakeBoard({ board }: { board: DominoTile[] }) {
     return () => observer.disconnect();
   }, []);
 
-  // Calculate how many tiles fit per row
   const tilesPerRow = Math.max(3, Math.floor((containerWidth - 20) / (TILE_W + TILE_GAP)));
 
-  // Split board into rows with snake direction
   const rows: { tiles: DominoTile[]; direction: "ltr" | "rtl"; startIndex: number }[] = [];
   let idx = 0;
   let rowNum = 0;
@@ -340,7 +345,6 @@ function SnakeBoard({ board }: { board: DominoTile[] }) {
     <div ref={containerRef} className="w-full flex flex-col items-center">
       {rows.map((row, ri) => (
         <div key={ri}>
-          {/* Connector tile between rows */}
           {ri > 0 && (
             <div className={`flex ${row.direction === "ltr" ? "justify-start pl-1" : "justify-end pr-1"}`}>
               <div
@@ -359,18 +363,19 @@ function SnakeBoard({ board }: { board: DominoTile[] }) {
               </div>
             </div>
           )}
-          {/* Row of tiles */}
-          <div className={`flex items-center gap-[${TILE_GAP}px] ${row.direction === "rtl" ? "flex-row" : "flex-row"}`}
-            style={{ gap: TILE_GAP }}
-          >
+          <div className="flex items-center" style={{ gap: TILE_GAP }}>
             {row.tiles.map((tile, ti) => {
               const isDouble = tile[0] === tile[1];
+              const globalIndex = row.direction === "rtl"
+                ? row.startIndex + (row.tiles.length - 1 - ti)
+                : row.startIndex + ti;
+              const isNew = globalIndex >= prevCount;
               return (
                 <motion.div
-                  key={`${row.startIndex + ti}`}
-                  initial={{ y: 120, opacity: 0, scale: 0.85 }}
+                  key={`tile-${globalIndex}`}
+                  initial={isNew ? { y: 80, opacity: 0, scale: 0.7 } : false}
                   animate={{ y: 0, opacity: 1, scale: 1 }}
-                  transition={{ duration: 0.5, ease: [0.25, 0.1, 0.25, 1], delay: (row.startIndex + ti) * 0.06 }}
+                  transition={isNew ? { duration: 0.6, ease: [0.22, 1, 0.36, 1] } : { duration: 0 }}
                   className="flex items-center justify-center"
                   style={isDouble ? { marginTop: -6, marginBottom: -6 } : {}}
                 >
