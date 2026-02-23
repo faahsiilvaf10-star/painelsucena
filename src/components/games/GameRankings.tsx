@@ -106,29 +106,29 @@ export function GameRankings() {
                 </div>
                 <div className="space-y-1.5">
                   {!isBoardGame && scores && scores.map((s, i) => (
-                    <div key={s.id} className="flex items-center gap-1.5 p-1.5 rounded-md bg-muted/30">
+                    <div key={s.id} className="flex items-center gap-1 p-1.5 rounded-md bg-muted/30">
                       <MedalIcon position={i} />
-                      <Avatar className="w-5 h-5">
+                      <Avatar className="w-5 h-5 shrink-0">
                         <AvatarImage src={s.avatar_url || undefined} />
                         <AvatarFallback className="text-[10px]">{s.user_name.charAt(0)}</AvatarFallback>
                       </Avatar>
-                      <span className="text-xs font-medium text-foreground flex-1 truncate">
+                      <span className="text-xs font-medium text-foreground flex-1 min-w-0 truncate">
                         {s.user_name.split(" ")[0]}
                       </span>
-                      <span className="text-[10px] font-bold text-primary">{s.score}</span>
+                      <span className="text-[10px] font-bold text-primary shrink-0">{s.score}</span>
                     </div>
                   ))}
                   {isBoardGame && cStats && cStats.map((s, i) => (
-                    <div key={s.id} className="flex items-center gap-1.5 p-1.5 rounded-md bg-muted/30">
+                    <div key={s.id} className="flex items-center gap-1 p-1.5 rounded-md bg-muted/30">
                       <MedalIcon position={i} />
-                      <Avatar className="w-5 h-5">
+                      <Avatar className="w-5 h-5 shrink-0">
                         <AvatarImage src={'avatar_url' in s ? (s as any).avatar_url || undefined : undefined} />
                         <AvatarFallback className="text-[10px]">{s.user_name.charAt(0)}</AvatarFallback>
                       </Avatar>
-                      <span className="text-xs font-medium text-foreground flex-1 truncate">
+                      <span className="text-xs font-medium text-foreground flex-1 min-w-0 truncate">
                         {s.user_name.split(" ")[0]}
                       </span>
-                      <span className="text-[10px] font-bold text-green-600 dark:text-green-400">{s.wins}V</span>
+                      <span className="text-[10px] font-bold text-green-600 dark:text-green-400 shrink-0">{s.wins}V</span>
                     </div>
                   ))}
                 </div>
