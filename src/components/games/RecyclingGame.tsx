@@ -88,20 +88,20 @@ export function RecyclingGame({ onBack }: { onBack: () => void }) {
   const saveScore = useSaveGameScore();
   const scoreSavedRef = useRef(false);
   const playedIdsRef = useRef<Set<string>>(new Set());
+  const scoreRef = useRef(0);
+  const answersRef = useRef<{ item: WasteItem; chosen: BinType; correct: boolean }[]>([]);
+  const bestStreakRef = useRef(0);
 
-  useEffect(() => {
-    if (gameState === "finished" && !scoreSavedRef.current) {
-      scoreSavedRef.current = true;
-      const correctCount = answers.filter(a => a.correct).length;
-      saveScore.mutate({ gameId: "recycling", score, correctAnswers: correctCount, totalQuestions: answers.length, bestStreak });
-    }
-    if (gameState === "idle") scoreSavedRef.current = false;
-  }, [gameState]);
+  // Keep refs in sync
+  scoreRef.current = score;
+  answersRef.current = answers;
+  bestStreakRef.current = bestStreak;
 
   const currentItem = items[currentIndex] || null;
   const progress = items.length > 0 ? ((currentIndex) / items.length) * 100 : 0;
 
   const startGame = useCallback(() => {
+    scoreSavedRef.current = false;
     let available = ALL_WASTE_ITEMS.filter(q => !playedIdsRef.current.has(q.id));
     if (available.length < ROUND_SIZE) {
       playedIdsRef.current.clear();
@@ -161,8 +161,17 @@ export function RecyclingGame({ onBack }: { onBack: () => void }) {
       setFeedback(null);
       setShowHint(false);
       setTimeLeft(TIME_PER_ITEM);
-      if (currentIndex + 1 >= items.length) setGameState("finished");
-      else setCurrentIndex((prev) => prev + 1);
+      if (currentIndex + 1 >= items.length) {
+        setGameState("finished");
+        if (!scoreSavedRef.current) {
+          scoreSavedRef.current = true;
+          const finalAnswers = [...answersRef.current, { item: currentItem, chosen: isTimeout ? currentItem.correctBin : chosenBin, correct }];
+          const correctCount = finalAnswers.filter(a => a.correct).length;
+          const finalScore = scoreRef.current + points;
+          const finalBestStreak = Math.max(bestStreakRef.current, newStreak);
+          saveScore.mutate({ gameId: "recycling", score: finalScore, correctAnswers: correctCount, totalQuestions: finalAnswers.length, bestStreak: finalBestStreak });
+        }
+      } else setCurrentIndex((prev) => prev + 1);
     }, 1500);
   }, [currentItem, feedback, streak, bestStreak, timeLeft, currentIndex, items.length]);
 

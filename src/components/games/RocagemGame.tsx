@@ -254,20 +254,19 @@ export function RocagemGame({ onBack }: { onBack: () => void }) {
   const saveScore = useSaveGameScore();
   const scoreSavedRef = useRef(false);
   const playedIdsRef = useRef<Set<string>>(new Set());
+  const scoreRef = useRef(0);
+  const answersRef = useRef<{ question: RocagemQuestion; chosenIndex: number; correct: boolean }[]>([]);
+  const bestStreakRef = useRef(0);
 
-  useEffect(() => {
-    if (gameState === "finished" && !scoreSavedRef.current) {
-      scoreSavedRef.current = true;
-      const correctCount = answers.filter(a => a.correct).length;
-      saveScore.mutate({ gameId: "rocagem", score, correctAnswers: correctCount, totalQuestions: answers.length, bestStreak });
-    }
-    if (gameState === "idle") scoreSavedRef.current = false;
-  }, [gameState]);
+  scoreRef.current = score;
+  answersRef.current = answers;
+  bestStreakRef.current = bestStreak;
 
   const currentQuestion = questions[currentIndex] || null;
   const progress = questions.length > 0 ? (currentIndex / questions.length) * 100 : 0;
 
   const startGame = useCallback(() => {
+    scoreSavedRef.current = false;
     let available = ALL_QUESTIONS.filter(q => !playedIdsRef.current.has(q.id));
     if (available.length < ROUND_SIZE) {
       playedIdsRef.current.clear();
@@ -331,6 +330,14 @@ export function RocagemGame({ onBack }: { onBack: () => void }) {
       setTimeLeft(TIME_PER_QUESTION);
       if (newLives <= 0 || currentIndex + 1 >= questions.length) {
         setGameState("finished");
+        if (!scoreSavedRef.current) {
+          scoreSavedRef.current = true;
+          const finalAnswers = [...answersRef.current, { question: currentQuestion, chosenIndex: isTimeout ? -1 : chosenIndex, correct }];
+          const correctCount = finalAnswers.filter(a => a.correct).length;
+          const finalScore = scoreRef.current + points;
+          const finalBestStreak = Math.max(bestStreakRef.current, newStreak);
+          saveScore.mutate({ gameId: "rocagem", score: finalScore, correctAnswers: correctCount, totalQuestions: finalAnswers.length, bestStreak: finalBestStreak });
+        }
       } else {
         setCurrentIndex((prev) => prev + 1);
       }
