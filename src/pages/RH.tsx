@@ -50,11 +50,23 @@ const RH = () => {
     if (stored) {
       try {
         const parsed: Colaborador[] = JSON.parse(stored);
-        // Merge: keep localStorage edits but fill in missing ASO from source
+        // Merge: keep localStorage edits but update validade from source when periodico exists
         const merged = initialColaboradores.map(source => {
           const saved = parsed.find(p => p.id === source.id);
           if (saved) {
-            return { ...source, ...saved, aso: saved.aso || source.aso };
+            const savedAso = saved.aso;
+            const sourceAso = source.aso;
+            const mergedAso: typeof sourceAso = (savedAso || sourceAso)
+              ? {
+                  admissional: savedAso?.admissional || sourceAso?.admissional || "",
+                  validade: (sourceAso?.periodico && sourceAso?.validade) ? sourceAso.validade : (savedAso?.validade || sourceAso?.validade || ""),
+                  periodico: savedAso?.periodico || sourceAso?.periodico,
+                  retornoTrabalho: savedAso?.retornoTrabalho || sourceAso?.retornoTrabalho,
+                  mudancaRisco: savedAso?.mudancaRisco || sourceAso?.mudancaRisco,
+                  observacao: savedAso?.observacao || sourceAso?.observacao,
+                }
+              : undefined;
+            return { ...source, ...saved, aso: mergedAso };
           }
           return source;
         });
