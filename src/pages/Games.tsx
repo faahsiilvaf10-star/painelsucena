@@ -10,9 +10,10 @@ import { EPIGame } from "@/components/games/EPIGame";
 import { RocagemGame } from "@/components/games/RocagemGame";
 import { GabiaoGame } from "@/components/games/GabiaoGame";
 import { CheckersGame } from "@/components/games/CheckersGame";
+import { DominoGame } from "@/components/games/DominoGame";
 import { GameRankings } from "@/components/games/GameRankings";
 
-type ActiveGame = null | "recycling" | "epi" | "rocagem" | "gabiao" | "checkers";
+type ActiveGame = null | "recycling" | "epi" | "rocagem" | "gabiao" | "checkers" | "domino";
 
 interface GameCover {
   id: ActiveGame & string;
@@ -81,6 +82,17 @@ const GAMES: GameCover[] = [
     borderColor: "border-amber-700/40 hover:border-amber-700",
     badgeLabel: "vs IA / Online",
     badgeColor: "bg-amber-700/15 text-amber-700 dark:text-amber-400",
+  },
+  {
+    id: "domino",
+    emoji: "🁫",
+    title: "Dominó",
+    subtitle: "Multiplayer",
+    description: "Jogue dominó online contra outros jogadores ou desafie a IA em 3 dificuldades!",
+    gradient: "from-stone-500/20 via-amber-800/10 to-yellow-700/20",
+    borderColor: "border-stone-500/40 hover:border-stone-500",
+    badgeLabel: "vs IA / Online",
+    badgeColor: "bg-stone-500/15 text-stone-700 dark:text-stone-400",
   },
 ];
 
@@ -153,6 +165,7 @@ export default function Games() {
         {activeGame === "rocagem" && <RocagemGame onBack={() => setActiveGame(null)} />}
         {activeGame === "gabiao" && <GabiaoGame onBack={() => setActiveGame(null)} />}
         {activeGame === "checkers" && <CheckersGame onBack={() => setActiveGame(null)} />}
+        {activeGame === "domino" && <DominoGame onBack={() => setActiveGame(null)} />}
       </div>
     </Layout>
   );
