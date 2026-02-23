@@ -150,7 +150,9 @@ export function WeatherWidget() {
 
   useEffect(() => {
     fetchWeather();
-  }, []);
+    const interval = setInterval(fetchWeather, 10 * 60 * 1000); // 10 minutes
+    return () => clearInterval(interval);
+  }, [isMobile]);
 
   if (error) {
     return (
