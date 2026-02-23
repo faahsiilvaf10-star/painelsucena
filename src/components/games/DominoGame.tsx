@@ -213,11 +213,11 @@ function DominoTileVisual({ tile, size = "md", onClick, disabled, highlight, ver
         style={{ width: dims.h + 6, height: dims.w + 6, ...tileStyle }}
       >
         <div style={{ width: dims.face, height: dims.face }}>
-          <DominoFace value={tile[0]} size={dims.face} onBoard={disabled} />
+          <DominoFace value={tile[0]} size={dims.face} onBoard={false} />
         </div>
         <div style={{ width: "60%", height: 1.5, background: "#b8a878", margin: "1px 0" }} />
         <div style={{ width: dims.face, height: dims.face }}>
-          <DominoFace value={tile[1]} size={dims.face} onBoard={disabled} />
+          <DominoFace value={tile[1]} size={dims.face} onBoard={false} />
         </div>
       </motion.button>
     );
