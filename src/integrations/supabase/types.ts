@@ -1484,6 +1484,42 @@ export type Database = {
         }
         Relationships: []
       }
+      monthly_game_champions: {
+        Row: {
+          avatar_url: string | null
+          created_at: string
+          game_id: string
+          game_type: string
+          id: string
+          month_year: string
+          score: number
+          user_id: string
+          user_name: string
+        }
+        Insert: {
+          avatar_url?: string | null
+          created_at?: string
+          game_id: string
+          game_type?: string
+          id?: string
+          month_year: string
+          score?: number
+          user_id: string
+          user_name: string
+        }
+        Update: {
+          avatar_url?: string | null
+          created_at?: string
+          game_id?: string
+          game_type?: string
+          id?: string
+          month_year?: string
+          score?: number
+          user_id?: string
+          user_name?: string
+        }
+        Relationships: []
+      }
       mudas_plantio: {
         Row: {
           berma: number | null
