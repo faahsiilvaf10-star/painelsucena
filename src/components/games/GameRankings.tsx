@@ -4,7 +4,7 @@ import { supabase } from "@/integrations/supabase/client";
 import { Card, CardContent } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { Avatar, AvatarImage, AvatarFallback } from "@/components/ui/avatar";
-import { Trophy, Medal, Crown } from "lucide-react";
+import { Trophy, Medal, Crown, Info } from "lucide-react";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 
 const GAME_INFO: Record<string, { emoji: string; label: string }> = {
@@ -81,6 +81,13 @@ export function GameRankings() {
       <div className="flex items-center gap-2">
         <Trophy className="w-5 h-5 text-yellow-500" />
         <h3 className="font-bold text-foreground">Ranking dos Games</h3>
+      </div>
+
+      <div className="flex items-center gap-2 p-2.5 rounded-lg bg-blue-500/10 border border-blue-500/20">
+        <Info className="w-4 h-4 text-blue-500 shrink-0" />
+        <span className="text-xs text-blue-600 dark:text-blue-400">
+          Os rankings são zerados todo dia 01 de cada mês. Jogue e conquiste o topo! 🏆
+        </span>
       </div>
 
       <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-5 gap-3">
