@@ -1,11 +1,11 @@
+import { useState } from "react";
 import { useTopScoresByGame } from "@/hooks/useGameScores";
 import { useQuery } from "@tanstack/react-query";
 import { supabase } from "@/integrations/supabase/client";
 import { Card, CardContent } from "@/components/ui/card";
-import { Badge } from "@/components/ui/badge";
 import { Avatar, AvatarImage, AvatarFallback } from "@/components/ui/avatar";
 import { Trophy, Medal, Crown, Info } from "lucide-react";
-import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
+import { GameRankingDialog } from "./GameRankingDialog";
 
 const GAME_INFO: Record<string, { emoji: string; label: string }> = {
   recycling: { emoji: "♻️", label: "Coleta Seletiva" },
@@ -24,6 +24,7 @@ function MedalIcon({ position }: { position: number }) {
 }
 
 export function GameRankings() {
+  const [selectedGame, setSelectedGame] = useState<string | null>(null);
   const { data: quizScores, isLoading: loadingQuiz } = useTopScoresByGame();
   const { data: checkersStats, isLoading: loadingCheckers } = useQuery({
     queryKey: ["checkers-stats-ranking"],
@@ -76,6 +77,18 @@ export function GameRankings() {
     return quizScores?.[id]?.length;
   });
 
+  const getDialogProps = () => {
+    if (!selectedGame) return null;
+    const isBoardGame = selectedGame === "checkers" || selectedGame === "domino";
+    return {
+      gameId: selectedGame,
+      scores: isBoardGame ? null : (quizScores?.[selectedGame] || []),
+      boardStats: selectedGame === "checkers" ? checkersStats : selectedGame === "domino" ? dominoStats : null,
+    };
+  };
+
+  const dialogProps = getDialogProps();
+
   return (
     <div className="space-y-3">
       <div className="flex items-center gap-2">
@@ -98,7 +111,11 @@ export function GameRankings() {
           const cStats = id === "checkers" ? checkersStats : id === "domino" ? dominoStats : null;
 
           return (
-            <Card key={id} className="border border-border/50">
+            <Card 
+              key={id} 
+              className="border border-border/50 cursor-pointer hover:border-primary/50 hover:shadow-md transition-all"
+              onClick={() => setSelectedGame(id)}
+            >
               <CardContent className="p-3 space-y-2">
                 <div className="flex items-center gap-1.5">
                   <span className="text-lg">{info.emoji}</span>
@@ -137,6 +154,14 @@ export function GameRankings() {
           );
         })}
       </div>
+
+      {dialogProps && (
+        <GameRankingDialog
+          open={!!selectedGame}
+          onOpenChange={(open) => !open && setSelectedGame(null)}
+          {...dialogProps}
+        />
+      )}
     </div>
   );
 }
