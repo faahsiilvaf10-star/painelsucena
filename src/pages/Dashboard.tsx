@@ -127,7 +127,7 @@ const Dashboard = () => {
       case "matrix_alert": return <MatrixAlertBanner />;
       case "goal_alert": return null;
       case "campaign": return <CampaignBanner />;
-      case "reminder": return <ReminderHighlightBanner />;
+      case "reminder": return null; // Now rendered as fixed banner above stats
       case "order": return <OrderHighlightBanner />;
       case "vehicle_expiry": return <VehicleExpiryBanner />;
       case "document_expiry": return <DocumentExpiryBanner />;
@@ -167,6 +167,11 @@ const Dashboard = () => {
         {/* Weather Widget */}
         <div className="mb-6 animate-slide-up" style={{ animationDelay: "0.05s" }}>
           <WeatherWidget />
+        </div>
+
+        {/* Reminder Banner - fixed above stats */}
+        <div className="mb-4">
+          <ReminderHighlightBanner />
         </div>
 
         {/* Modern Stat Cards Row */}
