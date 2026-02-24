@@ -2,7 +2,7 @@ import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import { supabase } from "@/integrations/supabase/client";
 import { useAuth } from "./useAuth";
 import { useEffect } from "react";
-import { getBrazilNorthMidnight, getDaysUntilEventBrazilNorth } from "@/lib/timezone";
+import { getBrazilNorthMidnight, getBrazilNorthTodayString, getDaysUntilEventBrazilNorth } from "@/lib/timezone";
 
 export interface Reminder {
   id: string;
@@ -156,12 +156,21 @@ const filterActiveReminders = (reminders: Reminder[], userId: string): Reminder[
   // Get current day of week in Brazil North timezone (0=Sunday, 6=Saturday)
   const nowBrazil = getBrazilNorthMidnight();
   const currentDayOfWeek = nowBrazil.getDay();
+  const todayStr = `${nowBrazil.getFullYear()}-${String(nowBrazil.getMonth() + 1).padStart(2, '0')}-${String(nowBrazil.getDate()).padStart(2, '0')}`;
   
   // Filter reminders that should be shown based on alert_days_before or show_on_event_day
   return reminders.filter((reminder) => {
-    // Check if user has already acknowledged this reminder
-    const hasAcknowledged = reminder.acknowledged_by?.includes(userId);
-    if (hasAcknowledged) return false;
+    // For recurring reminders, check if acknowledged TODAY (date-specific)
+    const isRecurring = !!reminder.is_recurring && (reminder.recurring_days?.length ?? 0) > 0;
+    if (isRecurring) {
+      const todayAckKey = `${userId}:${todayStr}`;
+      const hasAcknowledgedToday = reminder.acknowledged_by?.includes(todayAckKey);
+      if (hasAcknowledgedToday) return false;
+    } else {
+      // Non-recurring: permanent acknowledge
+      const hasAcknowledged = reminder.acknowledged_by?.includes(userId);
+      if (hasAcknowledged) return false;
+    }
 
     // Check if user should see this reminder based on mention_type
     // Creator always sees their own reminders
@@ -298,8 +307,12 @@ export const useAcknowledgeReminder = () => {
 
       const currentAcknowledged = currentReminder.acknowledged_by || [];
       
+      // For recurring reminders, use date-specific acknowledge key
+      const isRecurring = !!reminder.is_recurring && (reminder.recurring_days?.length ?? 0) > 0;
+      const ackKey = isRecurring ? `${user.id}:${getBrazilNorthTodayString()}` : user.id;
+      
       // Add user to acknowledged list if not already there
-      if (!currentAcknowledged.includes(user.id)) {
+      if (!currentAcknowledged.includes(ackKey)) {
         // Save to history
         await supabase.from("reminder_history").insert({
           reminder_id: reminder.id,
@@ -315,7 +328,7 @@ export const useAcknowledgeReminder = () => {
         const { error } = await supabase
           .from("reminders")
           .update({ 
-            acknowledged_by: [...currentAcknowledged, user.id] 
+            acknowledged_by: [...currentAcknowledged, ackKey] 
           })
           .eq("id", reminder.id);
 
