@@ -227,7 +227,7 @@ function DominoFace({ value, size, onBoard }: { value: number; size: number; onB
 
 function DominoTileVisual({ tile, size = "md", onClick, disabled, highlight, vertical, faceDown }: {
   tile: DominoTile;
-  size?: "sm" | "md" | "lg";
+  size?: "xs" | "sm" | "md" | "lg";
   onClick?: () => void;
   disabled?: boolean;
   highlight?: boolean;
@@ -235,6 +235,7 @@ function DominoTileVisual({ tile, size = "md", onClick, disabled, highlight, ver
   faceDown?: boolean;
 }) {
   const dims = {
+    xs: { w: 36, h: 18, face: 16 },
     sm: { w: 56, h: 28, face: 25 },
     md: { w: 72, h: 36, face: 33 },
     lg: { w: 90, h: 45, face: 42 },
@@ -1322,16 +1323,19 @@ export function DominoGame({ onBack }: { onBack: () => void }) {
           const isTableLayout = opCount >= 2; // 3+ players total
 
           // Helper: render opponent badge + facedown tiles
-          const renderOpponent = (op: typeof displayOpponents[0], direction: "horizontal" | "vertical") => (
-            <div className={`flex ${direction === "vertical" ? "flex-col" : "flex-row"} items-center gap-1`}>
-              <PlayerBadge name={op.name} count={op.hand.length} avatarUrl={op.avatarUrl} isNeon={gs?.currentTurn === op.key} />
-              <div className={`flex ${direction === "vertical" ? "flex-col" : "flex-row"} gap-0.5 justify-center items-center`}>
-                {op.hand.map((_, i) => (
-                  <DominoTileVisual key={i} tile={[0, 0]} size="sm" faceDown disabled vertical={direction === "vertical"} />
-                ))}
+          const renderOpponent = (op: typeof displayOpponents[0], direction: "horizontal" | "vertical") => {
+            const tileSize = direction === "vertical" ? "xs" as const : "sm" as const;
+            return (
+              <div className={`flex ${direction === "vertical" ? "flex-col" : "flex-row"} items-center gap-0.5`}>
+                <PlayerBadge name={op.name} count={op.hand.length} avatarUrl={op.avatarUrl} isNeon={gs?.currentTurn === op.key} />
+                <div className={`flex ${direction === "vertical" ? "flex-col" : "flex-row"} gap-px justify-center items-center`}>
+                  {op.hand.map((_, i) => (
+                    <DominoTileVisual key={i} tile={[0, 0]} size={tileSize} faceDown disabled vertical={direction === "vertical"} />
+                  ))}
+                </div>
               </div>
-            </div>
-          );
+            );
+          };
 
           if (!isTableLayout) {
             // 2 players: classic top-bottom layout
@@ -1385,7 +1389,7 @@ export function DominoGame({ onBack }: { onBack: () => void }) {
               {/* Middle row: left opponent | board | right opponent */}
               <div className="relative z-10 flex-1 flex items-stretch overflow-hidden">
                 {/* Left opponent */}
-                <div className="flex items-center justify-center px-1 flex-shrink-0 overflow-y-auto" style={{ minWidth: 50 }}>
+                <div className="flex items-center justify-center px-0.5 flex-shrink-0" style={{ minWidth: 30 }}>
                   {renderOpponent(leftOp, "vertical")}
                 </div>
 
@@ -1402,7 +1406,7 @@ export function DominoGame({ onBack }: { onBack: () => void }) {
 
                 {/* Right opponent (4 players only) */}
                 {rightOp ? (
-                  <div className="flex items-center justify-center px-1 flex-shrink-0 overflow-y-auto" style={{ minWidth: 50 }}>
+                  <div className="flex items-center justify-center px-0.5 flex-shrink-0" style={{ minWidth: 30 }}>
                     {renderOpponent(rightOp, "vertical")}
                   </div>
                 ) : (
