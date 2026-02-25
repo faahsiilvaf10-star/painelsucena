@@ -241,15 +241,28 @@ function DominoTileVisual({ tile, size = "md", onClick, disabled, highlight, ver
   }[size];
 
   if (faceDown) {
+    const w = vertical ? dims.h + 4 : dims.w + 4;
+    const h = vertical ? dims.w + 4 : dims.h + 4;
     return (
       <div
-        className="rounded-md shadow-md border border-white/30"
+        className="rounded-md shadow-md border border-amber-800/40 overflow-hidden"
         style={{
-          width: vertical ? dims.h + 4 : dims.w + 4,
-          height: vertical ? dims.w + 4 : dims.h + 4,
-          background: "linear-gradient(135deg, #f5f0e0 0%, #e8e0c8 100%)",
+          width: w,
+          height: h,
+          background: "linear-gradient(135deg, #8B6914 0%, #6B4F10 50%, #8B6914 100%)",
+          boxShadow: "inset 0 1px 2px rgba(255,255,255,0.2), 0 2px 4px rgba(0,0,0,0.3)",
         }}
-      />
+      >
+        <div className="w-full h-full flex items-center justify-center" style={{
+          backgroundImage: "repeating-linear-gradient(45deg, transparent, transparent 3px, rgba(255,255,255,0.08) 3px, rgba(255,255,255,0.08) 4px)",
+        }}>
+          <div className="rounded-sm" style={{
+            width: w * 0.5,
+            height: h * 0.5,
+            border: "1px solid rgba(255,255,255,0.2)",
+          }} />
+        </div>
+      </div>
     );
   }
 
@@ -1314,7 +1327,7 @@ export function DominoGame({ onBack }: { onBack: () => void }) {
               <PlayerBadge name={op.name} count={op.hand.length} avatarUrl={op.avatarUrl} isNeon={gs?.currentTurn === op.key} />
               <div className={`flex ${direction === "vertical" ? "flex-row" : "flex-col"} gap-0.5 flex-wrap justify-center`}>
                 {op.hand.slice(0, Math.min(op.hand.length, 7)).map((_, i) => (
-                  <DominoTileVisual key={i} tile={[0, 0]} size="sm" faceDown disabled />
+                  <DominoTileVisual key={i} tile={[0, 0]} size="sm" faceDown disabled vertical />
                 ))}
                 {op.hand.length > 7 && (
                   <span className="text-white/50 text-[10px] font-bold">+{op.hand.length - 7}</span>
@@ -1337,7 +1350,7 @@ export function DominoGame({ onBack }: { onBack: () => void }) {
                       <div className="flex justify-center gap-1 pb-1 px-4">
                         {op.hand.map((_, i) => (
                           <motion.div key={i} initial={{ y: -10, opacity: 0 }} animate={{ y: 0, opacity: 1 }} transition={{ delay: i * 0.03 }}>
-                            <DominoTileVisual tile={[0, 0]} size="sm" faceDown disabled />
+                            <DominoTileVisual tile={[0, 0]} size="sm" faceDown disabled vertical />
                           </motion.div>
                         ))}
                       </div>
