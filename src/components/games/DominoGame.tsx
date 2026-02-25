@@ -1325,12 +1325,26 @@ export function DominoGame({ onBack }: { onBack: () => void }) {
           // Helper: render opponent badge + facedown tiles
           const renderOpponent = (op: typeof displayOpponents[0], direction: "horizontal" | "vertical") => {
             const tileSize = direction === "vertical" ? "xs" as const : "sm" as const;
+            if (direction === "vertical") {
+              // Side opponents: badge at top, tiles below vertically
+              return (
+                <div className="flex flex-col items-center gap-0.5">
+                  <PlayerBadge name={op.name} count={op.hand.length} avatarUrl={op.avatarUrl} isNeon={gs?.currentTurn === op.key} />
+                  <div className="flex flex-col gap-px justify-center items-center">
+                    {op.hand.map((_, i) => (
+                      <DominoTileVisual key={i} tile={[0, 0]} size={tileSize} faceDown disabled vertical />
+                    ))}
+                  </div>
+                </div>
+              );
+            }
+            // Top opponent: badge centered above, tiles in a row below
             return (
-              <div className={`flex ${direction === "vertical" ? "flex-col" : "flex-row"} items-center gap-0.5`}>
+              <div className="flex flex-col items-center gap-0.5">
                 <PlayerBadge name={op.name} count={op.hand.length} avatarUrl={op.avatarUrl} isNeon={gs?.currentTurn === op.key} />
-                <div className={`flex ${direction === "vertical" ? "flex-col" : "flex-row"} gap-px justify-center items-center`}>
+                <div className="flex flex-row gap-0.5 justify-center items-center">
                   {op.hand.map((_, i) => (
-                    <DominoTileVisual key={i} tile={[0, 0]} size={tileSize} faceDown disabled vertical={direction === "vertical"} />
+                    <DominoTileVisual key={i} tile={[0, 0]} size={tileSize} faceDown disabled />
                   ))}
                 </div>
               </div>
