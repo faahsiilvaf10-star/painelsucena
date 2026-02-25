@@ -414,20 +414,23 @@ export function CheckersGame({ onBack }: { onBack: () => void }) {
   const [animatingPiece, setAnimatingPiece] = useState<{ piece: Piece; pos: Position } | null>(null);
   const [hiddenPos, setHiddenPos] = useState<Position | null>(null);
 
-  // Piece customization (persisted in localStorage)
+  // Piece customization (persisted in localStorage per user)
+  const storageKey = user?.id ? `checkers-piece-style-${user.id}` : "checkers-piece-style";
   const [pieceStyle, setPieceStyle] = useState<PieceStyle>(() => {
     try {
-      const saved = localStorage.getItem("checkers-piece-style");
+      // Try user-specific key first, fallback to legacy key
+      const saved = localStorage.getItem(user?.id ? `checkers-piece-style-${user.id}` : "checkers-piece-style")
+        || localStorage.getItem("checkers-piece-style");
       if (saved) return JSON.parse(saved);
     } catch {}
     return { color: "classic-white", effect: "none" };
   });
   const [showCustomizer, setShowCustomizer] = useState(false);
 
-  // Persist piece style to localStorage
+  // Persist piece style to localStorage (per user)
   useEffect(() => {
-    try { localStorage.setItem("checkers-piece-style", JSON.stringify(pieceStyle)); } catch {}
-  }, [pieceStyle]);
+    try { localStorage.setItem(storageKey, JSON.stringify(pieceStyle)); } catch {}
+  }, [pieceStyle, storageKey]);
 
   const [onlineGameId, setOnlineGameId] = useState<string | null>(null);
   const [onlineStatus, setOnlineStatus] = useState<OnlineStatus>("lobby");
