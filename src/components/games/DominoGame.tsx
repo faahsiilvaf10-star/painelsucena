@@ -459,8 +459,8 @@ function SnakeBoard({ board }: { board: DominoTile[] }) {
   return (
     <div
       ref={scrollRef}
-      className="w-full overflow-x-auto flex items-center"
-      style={{ scrollbarWidth: "none", msOverflowStyle: "none" }}
+      className="w-full overflow-x-auto flex items-center overflow-y-visible"
+      style={{ scrollbarWidth: "none", msOverflowStyle: "none", paddingTop: 10, paddingBottom: 10 }}
     >
       <style>{`div::-webkit-scrollbar { display: none; }`}</style>
       <div className="flex items-center" style={{ gap: TILE_GAP }}>
