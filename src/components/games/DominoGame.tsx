@@ -418,12 +418,16 @@ const FELT_TEXTURE = (
 );
 
 // ── Board Layout ──
-const TILE_W = 60;
-const TILE_H = 32;
+const TILE_W = 60; // horizontal tile width (w + 4)
+const TILE_H = 34; // horizontal tile height (h + 6)
 const TILE_GAP = 2;
+const DOUBLE_W = 34; // vertical/double tile width
+const DOUBLE_H = 62; // vertical/double tile height
 
 function SnakeBoard({ board }: { board: DominoTile[] }) {
+  const containerRef = useRef<HTMLDivElement>(null);
   const renderedCountRef = useRef(0);
+  const [containerWidth, setContainerWidth] = useState(600);
 
   useEffect(() => {
     renderedCountRef.current = board.length;
@@ -431,25 +435,77 @@ function SnakeBoard({ board }: { board: DominoTile[] }) {
 
   const alreadyRendered = renderedCountRef.current;
 
+  useEffect(() => {
+    if (!containerRef.current) return;
+    const measure = () => {
+      if (containerRef.current) setContainerWidth(containerRef.current.clientWidth - 16);
+    };
+    measure();
+    const ro = new ResizeObserver(measure);
+    ro.observe(containerRef.current);
+    return () => ro.disconnect();
+  }, []);
+
+  // Split board into snake rows based on container width
+  const rows: { tiles: { tile: DominoTile; originalIndex: number }[]; reversed: boolean }[] = [];
+  let currentRowWidth = 0;
+  let currentRow: { tile: DominoTile; originalIndex: number }[] = [];
+  const maxWidth = containerWidth - 40; // padding
+
+  for (let i = 0; i < board.length; i++) {
+    const tile = board[i];
+    const isDouble = tile[0] === tile[1];
+    const tileWidth = isDouble ? DOUBLE_W : TILE_W;
+    const widthWithGap = currentRow.length > 0 ? tileWidth + TILE_GAP : tileWidth;
+
+    if (currentRowWidth + widthWithGap > maxWidth && currentRow.length > 0) {
+      rows.push({ tiles: currentRow, reversed: rows.length % 2 === 1 });
+      currentRow = [];
+      currentRowWidth = 0;
+    }
+    currentRow.push({ tile, originalIndex: i });
+    currentRowWidth += currentRow.length === 1 ? tileWidth : tileWidth + TILE_GAP;
+  }
+  if (currentRow.length > 0) {
+    rows.push({ tiles: currentRow, reversed: rows.length % 2 === 1 });
+  }
+
   return (
-    <div className="w-full flex justify-center px-2 py-2">
-      <div className="flex flex-wrap items-center justify-center" style={{ gap: TILE_GAP }}>
-        {board.map((tile, i) => {
-          const isDouble = tile[0] === tile[1];
-          const isNew = i >= alreadyRendered;
-          return (
-            <motion.div
-              key={`board-${i}-${tile[0]}-${tile[1]}`}
-              initial={isNew ? { scale: 0, opacity: 0 } : false}
-              animate={{ scale: 1, opacity: 1 }}
-              transition={isNew ? { duration: 0.4, ease: "backOut" } : { duration: 0 }}
-              className="flex items-center justify-center"
-            >
-              <DominoTileVisual tile={tile} size="sm" disabled vertical={isDouble} />
-            </motion.div>
-          );
-        })}
-      </div>
+    <div ref={containerRef} className="w-full px-2 py-2">
+      {rows.map((row, rowIdx) => {
+        const displayTiles = row.reversed ? [...row.tiles].reverse() : row.tiles;
+        // Connect to next row: last tile of current row turns vertical
+        const isLastRow = rowIdx === rows.length - 1;
+        const connectsDown = !isLastRow;
+
+        return (
+          <div
+            key={`row-${rowIdx}`}
+            className="flex items-center"
+            style={{
+              gap: TILE_GAP,
+              justifyContent: row.reversed ? "flex-end" : "flex-start",
+              marginBottom: connectsDown ? 4 : 0,
+            }}
+          >
+            {displayTiles.map(({ tile, originalIndex }) => {
+              const isDouble = tile[0] === tile[1];
+              const isNew = originalIndex >= alreadyRendered;
+              return (
+                <motion.div
+                  key={`board-${originalIndex}-${tile[0]}-${tile[1]}`}
+                  initial={isNew ? { scale: 0, opacity: 0 } : false}
+                  animate={{ scale: 1, opacity: 1 }}
+                  transition={isNew ? { duration: 0.4, ease: "backOut" } : { duration: 0 }}
+                  className="flex items-center justify-center flex-shrink-0"
+                >
+                  <DominoTileVisual tile={tile} size="sm" disabled vertical={isDouble} />
+                </motion.div>
+              );
+            })}
+          </div>
+        );
+      })}
     </div>
   );
 }
