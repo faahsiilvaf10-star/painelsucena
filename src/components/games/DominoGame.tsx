@@ -1281,45 +1281,105 @@ export function DominoGame({ onBack }: { onBack: () => void }) {
           </button>
         </div>
 
-        {/* Opponent(s) score badges + hands */}
-        <div className="relative z-10 space-y-1">
-          {displayOpponents.map((op) => (
-            <div key={op.key}>
-              <div className="flex justify-center pb-0.5">
-                <div className="flex items-center gap-1.5">
-                  <PlayerBadge name={op.name} count={op.hand.length} avatarUrl={op.avatarUrl} isNeon={gs?.currentTurn === op.key} />
-                </div>
-              </div>
-              <div className="flex justify-center gap-1 pb-1 px-4">
-                {op.hand.map((_, i) => (
-                  <motion.div
-                    key={i}
-                    initial={{ y: -10, opacity: 0 }}
-                    animate={{ y: 0, opacity: 1 }}
-                    transition={{ delay: i * 0.03 }}
-                  >
-                    <DominoTileVisual tile={[0, 0]} size="sm" faceDown disabled />
-                  </motion.div>
+        {/* --- TABLE LAYOUT --- */}
+        {(() => {
+          const opCount = displayOpponents.length;
+          const isTableLayout = opCount >= 2; // 3+ players total
+
+          // Helper: render opponent badge + facedown tiles
+          const renderOpponent = (op: typeof displayOpponents[0], direction: "horizontal" | "vertical") => (
+            <div className={`flex ${direction === "vertical" ? "flex-col" : "flex-row"} items-center gap-1`}>
+              <PlayerBadge name={op.name} count={op.hand.length} avatarUrl={op.avatarUrl} isNeon={gs?.currentTurn === op.key} />
+              <div className={`flex ${direction === "vertical" ? "flex-row" : "flex-col"} gap-0.5 flex-wrap justify-center`}>
+                {op.hand.slice(0, Math.min(op.hand.length, 7)).map((_, i) => (
+                  <DominoTileVisual key={i} tile={[0, 0]} size="sm" faceDown disabled />
                 ))}
+                {op.hand.length > 7 && (
+                  <span className="text-white/50 text-[10px] font-bold">+{op.hand.length - 7}</span>
+                )}
               </div>
             </div>
-          ))}
-        </div>
+          );
 
-        {/* Board area */}
-        <div className="relative z-10 flex-1 flex items-center overflow-auto px-2 py-2">
-          {gs.board.length === 0 ? (
-            <motion.p
-              animate={{ opacity: [0.4, 1, 0.4] }}
-              transition={{ duration: 2, repeat: Infinity }}
-              className="text-white/70 font-bold text-sm w-full text-center"
-            >
-              Jogue a primeira peça!
-            </motion.p>
-          ) : (
-            <SnakeBoard board={gs.board} />
-          )}
-        </div>
+          if (!isTableLayout) {
+            // 2 players: classic top-bottom layout
+            return (
+              <>
+                {/* Single opponent on top */}
+                <div className="relative z-10">
+                  {displayOpponents.map((op) => (
+                    <div key={op.key}>
+                      <div className="flex justify-center pb-0.5">
+                        <PlayerBadge name={op.name} count={op.hand.length} avatarUrl={op.avatarUrl} isNeon={gs?.currentTurn === op.key} />
+                      </div>
+                      <div className="flex justify-center gap-1 pb-1 px-4">
+                        {op.hand.map((_, i) => (
+                          <motion.div key={i} initial={{ y: -10, opacity: 0 }} animate={{ y: 0, opacity: 1 }} transition={{ delay: i * 0.03 }}>
+                            <DominoTileVisual tile={[0, 0]} size="sm" faceDown disabled />
+                          </motion.div>
+                        ))}
+                      </div>
+                    </div>
+                  ))}
+                </div>
+
+                {/* Board */}
+                <div className="relative z-10 flex-1 flex items-center overflow-auto px-2 py-2">
+                  {gs.board.length === 0 ? (
+                    <motion.p animate={{ opacity: [0.4, 1, 0.4] }} transition={{ duration: 2, repeat: Infinity }} className="text-white/70 font-bold text-sm w-full text-center">
+                      Jogue a primeira peça!
+                    </motion.p>
+                  ) : (
+                    <SnakeBoard board={gs.board} />
+                  )}
+                </div>
+              </>
+            );
+          }
+
+          // 3-4 players: table layout
+          // top opponent, left opponent, (right opponent if 4 players), board in center
+          const topOp = displayOpponents[0];
+          const leftOp = displayOpponents[1];
+          const rightOp = displayOpponents.length >= 3 ? displayOpponents[2] : null;
+
+          return (
+            <>
+              {/* Top opponent */}
+              <div className="relative z-10 flex justify-center py-1">
+                {renderOpponent(topOp, "horizontal")}
+              </div>
+
+              {/* Middle row: left opponent | board | right opponent */}
+              <div className="relative z-10 flex-1 flex items-stretch overflow-hidden">
+                {/* Left opponent */}
+                <div className="flex items-center justify-center px-1 flex-shrink-0" style={{ minWidth: 60, maxWidth: 80 }}>
+                  {renderOpponent(leftOp, "vertical")}
+                </div>
+
+                {/* Board */}
+                <div className="flex-1 flex items-center overflow-auto px-1 py-1">
+                  {gs.board.length === 0 ? (
+                    <motion.p animate={{ opacity: [0.4, 1, 0.4] }} transition={{ duration: 2, repeat: Infinity }} className="text-white/70 font-bold text-sm w-full text-center">
+                      Jogue a primeira peça!
+                    </motion.p>
+                  ) : (
+                    <SnakeBoard board={gs.board} />
+                  )}
+                </div>
+
+                {/* Right opponent (4 players only) */}
+                {rightOp ? (
+                  <div className="flex items-center justify-center px-1 flex-shrink-0" style={{ minWidth: 60, maxWidth: 80 }}>
+                    {renderOpponent(rightOp, "vertical")}
+                  </div>
+                ) : (
+                  <div style={{ minWidth: 20 }} />
+                )}
+              </div>
+            </>
+          );
+        })()}
 
         {/* Turn indicator */}
         <div className="relative z-10 text-center py-1">
