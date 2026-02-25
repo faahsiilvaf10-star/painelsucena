@@ -87,9 +87,10 @@ export function useSecurityFiles() {
       queryClient.invalidateQueries({ queryKey: ["security-files"] });
       toast.success("Arquivo enviado com sucesso!");
     },
-    onError: (error) => {
+    onError: (error: any) => {
       console.error("Error uploading file:", error);
-      toast.error("Erro ao enviar arquivo");
+      const msg = error?.message || error?.statusCode || JSON.stringify(error);
+      toast.error(`Erro ao enviar: ${msg}`);
     },
   });
 
