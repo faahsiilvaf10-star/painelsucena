@@ -322,7 +322,7 @@ function DominoTileVisual({ tile, size = "md", onClick, disabled, highlight, ver
   );
 }
 
-function PlayerBadge({ name, count, avatarUrl, isNeon }: { name: string; count: number; avatarUrl?: string | null; isNeon?: boolean }) {
+function PlayerBadge({ name, count, avatarUrl, isNeon, showCount = true }: { name: string; count: number; avatarUrl?: string | null; isNeon?: boolean; showCount?: boolean }) {
   const firstName = name.split(" ")[0];
   return (
     <div className="flex flex-col items-center gap-0.5">
@@ -344,17 +344,19 @@ function PlayerBadge({ name, count, avatarUrl, isNeon }: { name: string; count: 
       >
         {firstName}
       </span>
-      <div
-        className="rounded-full px-3 py-0.5 text-center font-black text-sm shadow-md"
-        style={{
-          background: "linear-gradient(180deg, #8B6914 0%, #6B4F10 100%)",
-          color: "#fff",
-          border: "2px solid #a07818",
-          minWidth: 36,
-        }}
-      >
-        {count}
-      </div>
+      {showCount && (
+        <div
+          className="rounded-full px-3 py-0.5 text-center font-black text-sm shadow-md"
+          style={{
+            background: "linear-gradient(180deg, #8B6914 0%, #6B4F10 100%)",
+            color: "#fff",
+            border: "2px solid #a07818",
+            minWidth: 36,
+          }}
+        >
+          {count}
+        </div>
+      )}
     </div>
   );
 }
@@ -1329,7 +1331,7 @@ export function DominoGame({ onBack }: { onBack: () => void }) {
               // Side opponents: badge at top, tiles below vertically
               return (
                 <div className="flex flex-col items-center gap-0.5">
-                  <PlayerBadge name={op.name} count={op.hand.length} avatarUrl={op.avatarUrl} isNeon={gs?.currentTurn === op.key} />
+                  <PlayerBadge name={op.name} count={op.hand.length} avatarUrl={op.avatarUrl} isNeon={gs?.currentTurn === op.key} showCount={false} />
                   <div className="flex flex-col gap-px justify-center items-center">
                     {op.hand.map((_, i) => (
                       <DominoTileVisual key={i} tile={[0, 0]} size={tileSize} faceDown disabled vertical />
@@ -1341,7 +1343,7 @@ export function DominoGame({ onBack }: { onBack: () => void }) {
             // Top opponent: badge centered above, tiles in a row below
             return (
               <div className="flex flex-col items-center gap-0.5">
-                <PlayerBadge name={op.name} count={op.hand.length} avatarUrl={op.avatarUrl} isNeon={gs?.currentTurn === op.key} />
+                <PlayerBadge name={op.name} count={op.hand.length} avatarUrl={op.avatarUrl} isNeon={gs?.currentTurn === op.key} showCount={false} />
                 <div className="flex flex-row gap-0.5 justify-center items-center">
                   {op.hand.map((_, i) => (
                     <DominoTileVisual key={i} tile={[0, 0]} size={tileSize} faceDown disabled />
@@ -1360,7 +1362,7 @@ export function DominoGame({ onBack }: { onBack: () => void }) {
                   {displayOpponents.map((op) => (
                     <div key={op.key}>
                       <div className="flex justify-center pb-0.5">
-                        <PlayerBadge name={op.name} count={op.hand.length} avatarUrl={op.avatarUrl} isNeon={gs?.currentTurn === op.key} />
+                        <PlayerBadge name={op.name} count={op.hand.length} avatarUrl={op.avatarUrl} isNeon={gs?.currentTurn === op.key} showCount={false} />
                       </div>
                       <div className="flex justify-center gap-1 pb-1 px-4">
                         {op.hand.map((_, i) => (
