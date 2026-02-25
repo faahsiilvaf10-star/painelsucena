@@ -1327,7 +1327,7 @@ export function DominoGame({ onBack }: { onBack: () => void }) {
               <PlayerBadge name={op.name} count={op.hand.length} avatarUrl={op.avatarUrl} isNeon={gs?.currentTurn === op.key} />
               <div className={`flex ${direction === "vertical" ? "flex-row" : "flex-col"} gap-0.5 flex-wrap justify-center`}>
                 {op.hand.slice(0, Math.min(op.hand.length, 7)).map((_, i) => (
-                  <DominoTileVisual key={i} tile={[0, 0]} size="sm" faceDown disabled vertical />
+                  <DominoTileVisual key={i} tile={[0, 0]} size="sm" faceDown disabled vertical={direction === "vertical"} />
                 ))}
                 {op.hand.length > 7 && (
                   <span className="text-white/50 text-[10px] font-bold">+{op.hand.length - 7}</span>
@@ -1350,7 +1350,7 @@ export function DominoGame({ onBack }: { onBack: () => void }) {
                       <div className="flex justify-center gap-1 pb-1 px-4">
                         {op.hand.map((_, i) => (
                           <motion.div key={i} initial={{ y: -10, opacity: 0 }} animate={{ y: 0, opacity: 1 }} transition={{ delay: i * 0.03 }}>
-                            <DominoTileVisual tile={[0, 0]} size="sm" faceDown disabled vertical />
+                            <DominoTileVisual tile={[0, 0]} size="sm" faceDown disabled />
                           </motion.div>
                         ))}
                       </div>
