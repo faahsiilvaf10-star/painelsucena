@@ -10,6 +10,7 @@ import { toast } from "sonner";
 // ── Types ──
 type DominoTile = [number, number];
 type AIDifficulty = "easy" | "medium" | "hard";
+type PlayerKey = "player1" | "player2" | "player3" | "player4";
 
 interface GameState {
   board: DominoTile[];
@@ -17,9 +18,12 @@ interface GameState {
   boardRightEnd: number;
   player1Hand: DominoTile[];
   player2Hand: DominoTile[];
+  player3Hand?: DominoTile[];
+  player4Hand?: DominoTile[];
   boneyard: DominoTile[];
-  currentTurn: "player1" | "player2";
+  currentTurn: PlayerKey;
   passCount: number;
+  playerCount?: number;
 }
 
 interface DominoGameRow {
@@ -51,12 +55,50 @@ function shuffleTiles(tiles: DominoTile[]): DominoTile[] {
   return shuffled;
 }
 
-function createInitialState(): GameState {
+function getPlayerKeys(count: number): PlayerKey[] {
+  const keys: PlayerKey[] = ["player1", "player2"];
+  if (count >= 3) keys.push("player3");
+  if (count >= 4) keys.push("player4");
+  return keys;
+}
+
+function nextTurn(current: PlayerKey, playerCount: number): PlayerKey {
+  const keys = getPlayerKeys(playerCount);
+  const idx = keys.indexOf(current);
+  return keys[(idx + 1) % keys.length];
+}
+
+function getHand(state: GameState, player: PlayerKey): DominoTile[] {
+  if (player === "player1") return state.player1Hand;
+  if (player === "player2") return state.player2Hand;
+  if (player === "player3") return state.player3Hand || [];
+  if (player === "player4") return state.player4Hand || [];
+  return [];
+}
+
+function setHand(state: GameState, player: PlayerKey, hand: DominoTile[]) {
+  if (player === "player1") state.player1Hand = hand;
+  else if (player === "player2") state.player2Hand = hand;
+  else if (player === "player3") state.player3Hand = hand;
+  else if (player === "player4") state.player4Hand = hand;
+}
+
+function createInitialState(playerCount: number = 2): GameState {
   const tiles = shuffleTiles(generateAllTiles());
+  const tilesPerPlayer = playerCount === 4 ? 7 : playerCount === 3 ? 9 : 7;
+  let idx = 0;
+  const hands: DominoTile[][] = [];
+  for (let i = 0; i < playerCount; i++) {
+    hands.push(tiles.slice(idx, idx + tilesPerPlayer));
+    idx += tilesPerPlayer;
+  }
   return {
     board: [], boardLeftEnd: -1, boardRightEnd: -1,
-    player1Hand: tiles.slice(0, 7), player2Hand: tiles.slice(7, 14),
-    boneyard: tiles.slice(14), currentTurn: "player1", passCount: 0,
+    player1Hand: hands[0], player2Hand: hands[1],
+    player3Hand: playerCount >= 3 ? hands[2] : undefined,
+    player4Hand: playerCount >= 4 ? hands[3] : undefined,
+    boneyard: tiles.slice(idx), currentTurn: "player1", passCount: 0,
+    playerCount,
   };
 }
 
@@ -79,7 +121,7 @@ function pipCount(hand: DominoTile[]): number {
 }
 
 // ── AI Logic ──
-function aiChooseTile(hand: DominoTile[], state: GameState, difficulty: AIDifficulty): { tileIndex: number; side: "left" | "right" } | null {
+function aiChooseTile(hand: DominoTile[], state: GameState, difficulty: AIDifficulty): { tileIndex: number; side: "left" | "right"; score: number } | null {
   const playable: { tileIndex: number; side: "left" | "right"; score: number }[] = [];
   for (let i = 0; i < hand.length; i++) {
     const tile = hand[i];
@@ -107,13 +149,15 @@ function aiChooseTile(hand: DominoTile[], state: GameState, difficulty: AIDiffic
   return playable[0];
 }
 
-function aiPlayTurn(state: GameState, difficulty: AIDifficulty): GameState {
+function aiPlayTurnForPlayer(state: GameState, player: PlayerKey, difficulty: AIDifficulty): GameState {
   const newState = JSON.parse(JSON.stringify(state)) as GameState;
-  const hand = newState.player2Hand;
+  const pc = newState.playerCount || 2;
+  const hand = getHand(newState, player);
   const choice = aiChooseTile(hand, newState, difficulty);
   if (choice) {
     const tile = hand[choice.tileIndex];
     hand.splice(choice.tileIndex, 1);
+    setHand(newState, player, hand);
     if (newState.board.length === 0) {
       newState.board.push(tile); newState.boardLeftEnd = tile[0]; newState.boardRightEnd = tile[1];
     } else if (choice.side === "left") {
@@ -125,15 +169,35 @@ function aiPlayTurn(state: GameState, difficulty: AIDifficulty): GameState {
       const oriented: DominoTile = tile[0] === end ? tile : [tile[1], tile[0]];
       newState.board.push(oriented); newState.boardRightEnd = oriented[1];
     }
-    newState.passCount = 0; newState.currentTurn = "player1"; return newState;
+    newState.passCount = 0; newState.currentTurn = nextTurn(player, pc);
+    return newState;
   }
+  // Try drawing
   if (newState.boneyard.length > 0) {
     const drawn = newState.boneyard.pop()!; hand.push(drawn);
-    if (hasAnyPlay(hand, newState.boardLeftEnd, newState.boardRightEnd)) return aiPlayTurn(newState, difficulty);
-    if (newState.boneyard.length > 0) return aiPlayTurn(newState, difficulty);
-    newState.passCount += 1; newState.currentTurn = "player1"; return newState;
+    setHand(newState, player, hand);
+    if (hasAnyPlay(hand, newState.boardLeftEnd, newState.boardRightEnd)) return aiPlayTurnForPlayer(newState, player, difficulty);
+    if (newState.boneyard.length > 0) return aiPlayTurnForPlayer(newState, player, difficulty);
+    newState.passCount += 1; newState.currentTurn = nextTurn(player, pc); return newState;
   }
-  newState.passCount += 1; newState.currentTurn = "player1"; return newState;
+  newState.passCount += 1; newState.currentTurn = nextTurn(player, pc); return newState;
+}
+
+// Keep backward compat for online 2-player
+function aiPlayTurn(state: GameState, difficulty: AIDifficulty): GameState {
+  return aiPlayTurnForPlayer(state, "player2", difficulty);
+}
+
+function findWinnerByPips(state: GameState): PlayerKey {
+  const pc = state.playerCount || 2;
+  const keys = getPlayerKeys(pc);
+  let best: PlayerKey = "player1";
+  let bestPips = Infinity;
+  for (const k of keys) {
+    const p = pipCount(getHand(state, k));
+    if (p < bestPips) { bestPips = p; best = k; }
+  }
+  return best;
 }
 
 // ── Dot patterns for domino face ──
@@ -161,7 +225,6 @@ function DominoFace({ value, size, onBoard }: { value: number; size: number; onB
   );
 }
 
-// ── Tile Visual (paciencia.co style: white/cream tiles, black dots, rounded) ──
 function DominoTileVisual({ tile, size = "md", onClick, disabled, highlight, vertical, faceDown }: {
   tile: DominoTile;
   size?: "sm" | "md" | "lg";
@@ -245,7 +308,6 @@ function DominoTileVisual({ tile, size = "md", onClick, disabled, highlight, ver
   );
 }
 
-// ── Scoreboard (golden/brown style like paciencia.co) ──
 function ScoreboardBadge({ label, value, emoji }: { label: string; value: number; emoji?: string }) {
   return (
     <div className="flex items-center gap-1.5">
@@ -269,6 +331,19 @@ const DIFFICULTY_CONFIG: Record<AIDifficulty, { label: string; emoji: string; de
   easy: { label: "FÁCIL", emoji: "🟢", description: "IA joga aleatoriamente" },
   medium: { label: "MÉDIO", emoji: "🟡", description: "IA com estratégia moderada" },
   hard: { label: "DIFÍCIL", emoji: "🔴", description: "IA com estratégia avançada" },
+};
+
+const PLAYER_COUNT_CONFIG: { count: number; label: string; emoji: string }[] = [
+  { count: 2, label: "2 Jogadores", emoji: "👥" },
+  { count: 3, label: "3 Jogadores", emoji: "👥" },
+  { count: 4, label: "4 Jogadores", emoji: "👥" },
+];
+
+const AI_NAMES: Record<PlayerKey, string> = {
+  player1: "Você",
+  player2: "IA 1",
+  player3: "IA 2",
+  player4: "IA 3",
 };
 
 // ── Fullscreen helpers ──
@@ -299,11 +374,11 @@ const FELT_TEXTURE = (
   }} />
 );
 
-// ── Snake Board Layout (wraps tiles like a real domino table) ──
-const TILE_W = 60; // horizontal tile width (sm size)
-const TILE_H = 32; // horizontal tile height
+// ── Snake Board Layout ──
+const TILE_W = 60;
+const TILE_H = 32;
 const TILE_GAP = 2;
-const CONNECTOR_SIZE = 34; // vertical connector tile size
+const CONNECTOR_SIZE = 34;
 
 function SnakeBoard({ board }: { board: DominoTile[] }) {
   const containerRef = useRef<HTMLDivElement>(null);
@@ -408,9 +483,10 @@ export function DominoGame({ onBack }: { onBack: () => void }) {
   // AI mode state
   const [aiMode, setAiMode] = useState(false);
   const [aiDifficulty, setAiDifficulty] = useState<AIDifficulty>("medium");
+  const [aiPlayerCount, setAiPlayerCount] = useState(2);
   const [aiGameState, setAiGameState] = useState<GameState | null>(null);
   const [aiThinking, setAiThinking] = useState(false);
-  const [aiWinner, setAiWinner] = useState<"player1" | "player2" | null>(null);
+  const [aiWinner, setAiWinner] = useState<PlayerKey | null>(null);
   const aiThinkingRef = useRef(false);
 
   const playerName = profile?.full_name || "Jogador";
@@ -424,15 +500,33 @@ export function DominoGame({ onBack }: { onBack: () => void }) {
 
   const isMyTurnAI = aiGameState?.currentTurn === "player1";
   const myHandAI = aiGameState?.player1Hand || [];
-  const opponentHandAI = aiGameState?.player2Hand || [];
   const gsAI = aiGameState;
 
   const isAI = aiMode && view === "playing";
-  const gs = isAI ? gsAI : gsOnline;
+  const isAIFinished = aiMode && view === "finished";
+  const gs = isAI || isAIFinished ? gsAI : gsOnline;
   const isMyTurn = isAI ? isMyTurnAI : isMyTurnOnline;
-  const myHand = isAI ? myHandAI : myHandOnline;
-  const opponentHand = isAI ? opponentHandAI : opponentHandOnline;
-  const opponentName = isAI ? `IA (${DIFFICULTY_CONFIG[aiDifficulty].label})` : (opponentNameOnline || "Oponente");
+  const myHand = isAI || isAIFinished ? myHandAI : myHandOnline;
+
+  // Build AI opponents list
+  const aiOpponents: { key: PlayerKey; name: string; hand: DominoTile[] }[] = [];
+  if ((isAI || isAIFinished) && gsAI) {
+    const pc = gsAI.playerCount || 2;
+    const keys = getPlayerKeys(pc).filter(k => k !== "player1");
+    for (const k of keys) {
+      aiOpponents.push({ key: k, name: AI_NAMES[k], hand: getHand(gsAI, k) });
+    }
+  }
+
+  const opponentHand = isAI || isAIFinished ? (aiOpponents[0]?.hand || []) : opponentHandOnline;
+  const opponentName = isAI || isAIFinished
+    ? (aiOpponents.length === 1 ? `IA (${DIFFICULTY_CONFIG[aiDifficulty].label})` : `IAs (${DIFFICULTY_CONFIG[aiDifficulty].label})`)
+    : (opponentNameOnline || "Oponente");
+
+  // Winner label for AI
+  const aiWinnerLabel = aiWinner
+    ? (aiWinner === "player1" ? "Você" : AI_NAMES[aiWinner])
+    : "";
 
   // Fullscreen tracking
   useEffect(() => {
@@ -445,39 +539,40 @@ export function DominoGame({ onBack }: { onBack: () => void }) {
     };
   }, []);
 
-  // Enter fullscreen when game starts
   useEffect(() => {
     if (view === "playing" && gameContainerRef.current && !isFullscreen()) {
       requestFullscreen(gameContainerRef.current);
     }
   }, [view]);
 
-  // Exit fullscreen when leaving
   useEffect(() => {
     if (view !== "playing" && isFullscreen()) exitFullscreen();
   }, [view]);
 
-  // ── AI turn effect ──
+  // ── AI turn effect (handles all AI players in sequence) ──
   useEffect(() => {
-    if (!isAI || !gsAI || gsAI.currentTurn !== "player2" || aiThinkingRef.current) return;
+    if (!aiMode || !gsAI || gsAI.currentTurn === "player1" || aiThinkingRef.current) return;
     if (aiWinner) return;
+    const currentPlayer = gsAI.currentTurn;
+    const pc = gsAI.playerCount || 2;
     aiThinkingRef.current = true;
     setAiThinking(true);
     const delay = 2000;
     const timer = setTimeout(() => {
-      const newState = aiPlayTurn(gsAI, aiDifficulty);
-      if (newState.player2Hand.length === 0) {
-        setAiWinner("player2"); setAiGameState(newState); setView("finished");
-      } else if (newState.passCount >= 2) {
-        const p1Pips = pipCount(newState.player1Hand);
-        const p2Pips = pipCount(newState.player2Hand);
-        setAiWinner(p1Pips <= p2Pips ? "player1" : "player2");
-        setAiGameState(newState); setView("finished");
-      } else setAiGameState(newState);
+      const newState = aiPlayTurnForPlayer(gsAI, currentPlayer, aiDifficulty);
+      const currentHand = getHand(newState, currentPlayer);
+      if (currentHand.length === 0) {
+        setAiWinner(currentPlayer); setAiGameState(newState); setView("finished");
+      } else if (newState.passCount >= pc) {
+        const winner = findWinnerByPips(newState);
+        setAiWinner(winner); setAiGameState(newState); setView("finished");
+      } else {
+        setAiGameState(newState);
+      }
       setAiThinking(false); aiThinkingRef.current = false;
     }, delay);
     return () => { clearTimeout(timer); aiThinkingRef.current = false; };
-  }, [isAI, gsAI, gsAI?.currentTurn, aiDifficulty, aiWinner]);
+  }, [aiMode, gsAI, gsAI?.currentTurn, aiDifficulty, aiWinner]);
 
   // ── Online game functions ──
   const fetchGames = useCallback(async () => {
@@ -562,7 +657,7 @@ export function DominoGame({ onBack }: { onBack: () => void }) {
   const createGame = useCallback(async () => {
     if (!user) return;
     setLoading(true);
-    const state = createInitialState();
+    const state = createInitialState(2);
     const { data, error } = await supabase.from("domino_games")
       .insert({ player1_id: user.id, player1_name: playerName, game_state: state as any, status: "waiting" })
       .select().single();
@@ -587,9 +682,9 @@ export function DominoGame({ onBack }: { onBack: () => void }) {
     setCurrentGame(null); setView("lobby");
   }, [currentGame]);
 
-  const startAIGame = useCallback((difficulty: AIDifficulty) => {
-    setAiMode(true); setAiDifficulty(difficulty); setAiWinner(null);
-    setAiGameState(createInitialState()); setSelectedTile(null); setView("playing");
+  const startAIGame = useCallback((difficulty: AIDifficulty, playerCount: number = 2) => {
+    setAiMode(true); setAiDifficulty(difficulty); setAiPlayerCount(playerCount); setAiWinner(null);
+    setAiGameState(createInitialState(playerCount)); setSelectedTile(null); setView("playing");
   }, []);
 
   const aiPlaceTile = useCallback((tileIndex: number, side: "left" | "right") => {
@@ -597,6 +692,7 @@ export function DominoGame({ onBack }: { onBack: () => void }) {
     const tile = gsAI.player1Hand[tileIndex];
     if (!tile) return;
     const newState = JSON.parse(JSON.stringify(gsAI)) as GameState;
+    const pc = newState.playerCount || 2;
     const hand = newState.player1Hand;
     hand.splice(tileIndex, 1);
     if (newState.board.length === 0) {
@@ -610,7 +706,7 @@ export function DominoGame({ onBack }: { onBack: () => void }) {
       const oriented: DominoTile = tile[0] === end ? tile : [tile[1], tile[0]];
       newState.board.push(oriented); newState.boardRightEnd = oriented[1];
     }
-    newState.passCount = 0; newState.currentTurn = "player2";
+    newState.passCount = 0; newState.currentTurn = nextTurn("player1", pc);
     if (hand.length === 0) { setAiWinner("player1"); setAiGameState(newState); setView("finished"); return; }
     setAiGameState(newState); setSelectedTile(null);
   }, [gsAI]);
@@ -618,17 +714,18 @@ export function DominoGame({ onBack }: { onBack: () => void }) {
   const aiDrawTile = useCallback(() => {
     if (!gsAI || gsAI.currentTurn !== "player1") return;
     const newState = JSON.parse(JSON.stringify(gsAI)) as GameState;
+    const pc = newState.playerCount || 2;
     if (newState.boneyard.length === 0) {
-      newState.passCount += 1; newState.currentTurn = "player2";
-      if (newState.passCount >= 2) {
-        const p1Pips = pipCount(newState.player1Hand); const p2Pips = pipCount(newState.player2Hand);
-        setAiWinner(p1Pips <= p2Pips ? "player1" : "player2"); setAiGameState(newState); setView("finished"); return;
+      newState.passCount += 1; newState.currentTurn = nextTurn("player1", pc);
+      if (newState.passCount >= pc) {
+        const winner = findWinnerByPips(newState);
+        setAiWinner(winner); setAiGameState(newState); setView("finished"); return;
       }
       setAiGameState(newState); return;
     }
     const drawn = newState.boneyard.pop()!; newState.player1Hand.push(drawn);
     if (!hasAnyPlay(newState.player1Hand, newState.boardLeftEnd, newState.boardRightEnd) && newState.boneyard.length === 0) {
-      newState.passCount += 1; newState.currentTurn = "player2";
+      newState.passCount += 1; newState.currentTurn = nextTurn("player1", pc);
     }
     setAiGameState(newState);
   }, [gsAI]);
@@ -697,29 +794,26 @@ export function DominoGame({ onBack }: { onBack: () => void }) {
   }, [gs, isMyTurn, myHand, placeTileAtSide]);
 
   const canPlayAny = gs ? hasAnyPlay(myHand, gs.boardLeftEnd, gs.boardRightEnd) : false;
-  const isWinner = isAI ? aiWinner === "player1" : currentGame?.winner_id === user?.id;
+  const isWinner = isAI || isAIFinished ? aiWinner === "player1" : currentGame?.winner_id === user?.id;
 
   const goToLobby = () => {
-    if (isAI) { setAiMode(false); setAiGameState(null); setAiWinner(null); }
+    if (aiMode) { setAiMode(false); setAiGameState(null); setAiWinner(null); }
     else setCurrentGame(null);
     setView("lobby"); setSelectedTile(null);
   };
 
-  // ── LOBBY (paciencia.co modal style on green felt) ──
+  // ── LOBBY ──
   if (view === "lobby") {
     return (
       <div className="flex flex-col lg:flex-row gap-4 items-start">
-        {/* Green felt area */}
         <div className="relative min-h-[80vh] rounded-2xl overflow-hidden flex-1" style={FELT_BG}>
           {FELT_TEXTURE}
-          {/* Back button */}
           <div className="relative z-10 p-3">
             <button onClick={onBack} className="flex items-center gap-1 text-white/80 hover:text-white text-sm font-medium transition-colors">
               <ArrowLeft className="w-4 h-4" /> Voltar aos Games
             </button>
           </div>
 
-          {/* Center lobby modal */}
           <div className="relative z-10 flex items-center justify-center px-4" style={{ minHeight: "calc(80vh - 60px)" }}>
             <motion.div
               initial={{ scale: 0.9, opacity: 0 }}
@@ -736,6 +830,31 @@ export function DominoGame({ onBack }: { onBack: () => void }) {
                 <p className="text-xs mt-1" style={{ color: "#8a7040" }}>Escolha como jogar</p>
               </div>
 
+              {/* Player count selector */}
+              <div className="px-6 pb-2">
+                <div className="flex items-center gap-2 mb-2">
+                  <Users className="w-4 h-4" style={{ color: "#6B4F10" }} />
+                  <h3 className="text-sm font-bold" style={{ color: "#5a3e0a" }}>JOGADORES (vs IA)</h3>
+                </div>
+                <div className="flex gap-2 justify-center">
+                  {PLAYER_COUNT_CONFIG.map((pc) => (
+                    <button
+                      key={pc.count}
+                      onClick={() => setAiPlayerCount(pc.count)}
+                      className="px-4 py-2 rounded-lg text-sm font-bold transition-all hover:scale-105 active:scale-95"
+                      style={{
+                        background: aiPlayerCount === pc.count ? "#8B6914" : "#fff",
+                        color: aiPlayerCount === pc.count ? "#fff" : "#5a3e0a",
+                        border: `2px solid ${aiPlayerCount === pc.count ? "#a07818" : "#8B6914"}`,
+                      }}
+                    >
+                      {pc.emoji} {pc.count}
+                    </button>
+                  ))}
+                </div>
+              </div>
+
+              {/* Difficulty selector */}
               <div className="px-6 pb-3">
                 <div className="flex items-center gap-2 mb-2">
                   <Bot className="w-4 h-4" style={{ color: "#6B4F10" }} />
@@ -747,11 +866,11 @@ export function DominoGame({ onBack }: { onBack: () => void }) {
                     return (
                       <button
                         key={diff}
-                        onClick={() => startAIGame(diff)}
+                        onClick={() => startAIGame(diff, aiPlayerCount)}
                         className="px-4 py-2 rounded-lg text-sm font-bold transition-all hover:scale-105 active:scale-95"
                         style={{ background: "#fff", border: "2px solid #8B6914", color: "#5a3e0a" }}
                       >
-                        {cfg.label}
+                        {cfg.emoji} {cfg.label}
                       </button>
                     );
                   })}
@@ -810,7 +929,7 @@ export function DominoGame({ onBack }: { onBack: () => void }) {
           </div>
         </div>
 
-        {/* Ranking panel - OUTSIDE the green felt */}
+        {/* Ranking panel */}
         <motion.div
           initial={{ scale: 0.9, opacity: 0 }}
           animate={{ scale: 1, opacity: 1 }}
@@ -886,6 +1005,18 @@ export function DominoGame({ onBack }: { onBack: () => void }) {
 
   // ── FINISHED ──
   if (view === "finished") {
+    const finishedIsAI = aiMode;
+    const allPlayers: { name: string; count: number }[] = [];
+    if (finishedIsAI && gsAI) {
+      allPlayers.push({ name: "Você", count: gsAI.player1Hand.length });
+      for (const op of aiOpponents) {
+        allPlayers.push({ name: op.name, count: op.hand.length });
+      }
+    } else {
+      allPlayers.push({ name: "Minhas peças", count: myHand.length });
+      allPlayers.push({ name: "Peças dele", count: opponentHand.length });
+    }
+
     return (
       <div ref={gameContainerRef} className="relative min-h-[80vh] rounded-2xl overflow-hidden flex items-center justify-center" style={FELT_BG}>
         {FELT_TEXTURE}
@@ -902,22 +1033,20 @@ export function DominoGame({ onBack }: { onBack: () => void }) {
             {isWinner ? "Você venceu!" : "Você perdeu!"}
           </h2>
           <p className="text-sm" style={{ color: "#8a7040" }}>
-            {isWinner ? "Parabéns pela vitória!" : `${opponentName} venceu.`}
+            {isWinner ? "Parabéns pela vitória!" : finishedIsAI ? `${aiWinnerLabel} venceu.` : `${opponentName} venceu.`}
           </p>
-          <div className="flex gap-3 justify-center">
-            <div className="rounded-xl px-4 py-3 text-center" style={{ background: "#f0e8d0", border: "1px solid #d4c8a0" }}>
-              <div className="text-2xl font-black" style={{ color: "#5a3e0a" }}>{myHand.length}</div>
-              <div className="text-[10px] uppercase tracking-wider" style={{ color: "#8a7040" }}>Minhas peças</div>
-            </div>
-            <div className="rounded-xl px-4 py-3 text-center" style={{ background: "#f0e8d0", border: "1px solid #d4c8a0" }}>
-              <div className="text-2xl font-black" style={{ color: "#5a3e0a" }}>{opponentHand.length}</div>
-              <div className="text-[10px] uppercase tracking-wider" style={{ color: "#8a7040" }}>Peças dele</div>
-            </div>
+          <div className="flex gap-2 justify-center flex-wrap">
+            {allPlayers.map((p, i) => (
+              <div key={i} className="rounded-xl px-4 py-3 text-center" style={{ background: "#f0e8d0", border: "1px solid #d4c8a0" }}>
+                <div className="text-2xl font-black" style={{ color: "#5a3e0a" }}>{p.count}</div>
+                <div className="text-[10px] uppercase tracking-wider" style={{ color: "#8a7040" }}>{p.name}</div>
+              </div>
+            ))}
           </div>
           <div className="flex gap-2 justify-center pt-2">
-            {isAI ? (
+            {finishedIsAI ? (
               <>
-                <button onClick={() => startAIGame(aiDifficulty)} className="px-4 py-2 rounded-lg text-sm font-bold text-white flex items-center gap-2" style={{ background: "#8B6914" }}>
+                <button onClick={() => startAIGame(aiDifficulty, aiPlayerCount)} className="px-4 py-2 rounded-lg text-sm font-bold text-white flex items-center gap-2" style={{ background: "#8B6914" }}>
                   <RotateCcw className="w-4 h-4" /> Jogar Novamente
                 </button>
                 <button onClick={goToLobby} className="px-4 py-2 rounded-lg text-sm font-bold" style={{ color: "#5a3e0a", background: "#f0e8d0", border: "1px solid #d4c8a0" }}>
@@ -940,8 +1069,12 @@ export function DominoGame({ onBack }: { onBack: () => void }) {
     );
   }
 
-  // ── PLAYING (fullscreen green felt table) ──
+  // ── PLAYING ──
   if (view === "playing" && gs) {
+    const currentTurnName = isAI
+      ? (gs.currentTurn === "player1" ? "Você" : AI_NAMES[gs.currentTurn])
+      : (isMyTurn ? "Você" : opponentName);
+
     return (
       <div
         ref={gameContainerRef}
@@ -963,24 +1096,51 @@ export function DominoGame({ onBack }: { onBack: () => void }) {
           </button>
         </div>
 
-        {/* Opponent score badge (top center) */}
-        <div className="relative z-10 flex justify-center pb-1">
-          <ScoreboardBadge label={opponentName} value={opponentHand.length} emoji="😐" />
-        </div>
-
-        {/* Opponent hand (face down) */}
-        <div className="relative z-10 flex justify-center gap-1 pb-2 px-4">
-          {opponentHand.map((_, i) => (
-            <motion.div
-              key={i}
-              initial={{ y: -10, opacity: 0 }}
-              animate={{ y: 0, opacity: 1 }}
-              transition={{ delay: i * 0.03 }}
-            >
-              <DominoTileVisual tile={[0, 0]} size="sm" faceDown disabled />
-            </motion.div>
-          ))}
-        </div>
+        {/* Opponent(s) score badges + hands */}
+        {isAI ? (
+          <div className="relative z-10 space-y-1">
+            {aiOpponents.map((op) => (
+              <div key={op.key}>
+                <div className="flex justify-center pb-0.5">
+                  <div className="flex items-center gap-1.5">
+                    <span className="text-white/80 text-xs font-bold">{op.name}</span>
+                    <ScoreboardBadge label={op.name} value={op.hand.length} emoji="😐" />
+                  </div>
+                </div>
+                <div className="flex justify-center gap-1 pb-1 px-4">
+                  {op.hand.map((_, i) => (
+                    <motion.div
+                      key={i}
+                      initial={{ y: -10, opacity: 0 }}
+                      animate={{ y: 0, opacity: 1 }}
+                      transition={{ delay: i * 0.03 }}
+                    >
+                      <DominoTileVisual tile={[0, 0]} size="sm" faceDown disabled />
+                    </motion.div>
+                  ))}
+                </div>
+              </div>
+            ))}
+          </div>
+        ) : (
+          <>
+            <div className="relative z-10 flex justify-center pb-1">
+              <ScoreboardBadge label={opponentName} value={opponentHand.length} emoji="😐" />
+            </div>
+            <div className="relative z-10 flex justify-center gap-1 pb-2 px-4">
+              {opponentHand.map((_, i) => (
+                <motion.div
+                  key={i}
+                  initial={{ y: -10, opacity: 0 }}
+                  animate={{ y: 0, opacity: 1 }}
+                  transition={{ delay: i * 0.03 }}
+                >
+                  <DominoTileVisual tile={[0, 0]} size="sm" faceDown disabled />
+                </motion.div>
+              ))}
+            </div>
+          </>
+        )}
 
         {/* Board area */}
         <div className="relative z-10 flex-1 flex items-center overflow-auto px-2 py-2">
@@ -1001,7 +1161,7 @@ export function DominoGame({ onBack }: { onBack: () => void }) {
         <div className="relative z-10 text-center py-1">
           {aiThinking ? (
             <span className="inline-flex items-center gap-2 px-4 py-1 rounded-full text-sm font-bold text-white" style={{ background: "rgba(139,105,20,0.8)" }}>
-              <Loader2 className="w-3.5 h-3.5 animate-spin" /> IA pensando...
+              <Loader2 className="w-3.5 h-3.5 animate-spin" /> {currentTurnName} pensando...
             </span>
           ) : (
             <motion.span
@@ -1012,7 +1172,7 @@ export function DominoGame({ onBack }: { onBack: () => void }) {
               }`}
               style={isMyTurn ? { background: "rgba(34,120,60,0.9)", boxShadow: "0 0 12px rgba(34,120,60,0.5)" } : { background: "rgba(0,0,0,0.3)" }}
             >
-              {isMyTurn ? "✋ Sua vez!" : `Vez de ${opponentName}`}
+              {isMyTurn ? "✋ Sua vez!" : `Vez de ${currentTurnName}`}
             </motion.span>
           )}
         </div>
@@ -1071,7 +1231,7 @@ export function DominoGame({ onBack }: { onBack: () => void }) {
           </div>
         </div>
 
-        {/* Player score badge (bottom center) */}
+        {/* Player score badge */}
         <div className="relative z-10 flex justify-center pb-2">
           <ScoreboardBadge label="EU" value={myHand.length} emoji="😊" />
         </div>
