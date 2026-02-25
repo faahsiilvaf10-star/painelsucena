@@ -1,12 +1,13 @@
 import { useState, useCallback, useEffect, useRef } from "react";
 import { Button } from "@/components/ui/button";
-import { ArrowLeft, Loader2, RotateCcw, RefreshCw, X, Bot, Users, Brain, Plus, Maximize, Minimize, Trophy } from "lucide-react";
+import { ArrowLeft, Loader2, RotateCcw, RefreshCw, X, Bot, Users, Brain, Plus, Maximize, Minimize, Trophy, Eye, EyeOff } from "lucide-react";
 import { NeonAvatar } from "@/components/ui/NeonAvatar";
 import { motion, AnimatePresence } from "framer-motion";
 import { supabase } from "@/integrations/supabase/client";
 import { useAuth } from "@/hooks/useAuth";
 import { useProfile } from "@/hooks/useProfile";
 import { toast } from "sonner";
+import { useIsAdmin } from "@/hooks/useUserRole";
 
 // ── Types ──
 type DominoTile = [number, number];
@@ -543,6 +544,8 @@ function getJoinedCount(game: DominoGameRow): number {
 export function DominoGame({ onBack }: { onBack: () => void }) {
   const { user } = useAuth();
   const { data: profile } = useProfile();
+  const { isAdmin } = useIsAdmin();
+  const [revealOpponents, setRevealOpponents] = useState(false);
   const [view, setView] = useState<"lobby" | "waiting" | "playing" | "finished">("lobby");
   const [games, setGames] = useState<DominoGameRow[]>([]);
   const [currentGame, setCurrentGame] = useState<DominoGameRow | null>(null);
@@ -1327,26 +1330,40 @@ export function DominoGame({ onBack }: { onBack: () => void }) {
           // Helper: render opponent badge + facedown tiles
           const renderOpponent = (op: typeof displayOpponents[0], direction: "horizontal" | "vertical") => {
             const tileSize = direction === "vertical" ? "xs" as const : "sm" as const;
+            const showReal = isAdmin && revealOpponents;
+
+            const eyeButton = isAdmin ? (
+              <button
+                onClick={(e) => { e.stopPropagation(); setRevealOpponents(prev => !prev); }}
+                className="p-0.5 rounded-full hover:bg-white/20 transition-colors"
+                title={revealOpponents ? "Ocultar pedras" : "Revelar pedras"}
+              >
+                {revealOpponents ? <EyeOff className="w-3.5 h-3.5 text-amber-400" /> : <Eye className="w-3.5 h-3.5 text-white/50" />}
+              </button>
+            ) : null;
+
             if (direction === "vertical") {
-              // Side opponents: badge at top, tiles below vertically
               return (
                 <div className="flex flex-col items-center gap-0.5">
                   <PlayerBadge name={op.name} count={op.hand.length} avatarUrl={op.avatarUrl} isNeon={gs?.currentTurn === op.key} showCount={false} />
+                  {eyeButton}
                   <div className="flex flex-col gap-px justify-center items-center">
                     {op.hand.map((_, i) => (
-                      <DominoTileVisual key={i} tile={[0, 0]} size={tileSize} faceDown disabled vertical />
+                      <DominoTileVisual key={i} tile={showReal ? op.hand[i] : [0, 0]} size={tileSize} faceDown={!showReal} disabled vertical />
                     ))}
                   </div>
                 </div>
               );
             }
-            // Top opponent: badge centered above, tiles in a row below
             return (
               <div className="flex flex-col items-center gap-0.5">
-                <PlayerBadge name={op.name} count={op.hand.length} avatarUrl={op.avatarUrl} isNeon={gs?.currentTurn === op.key} showCount={false} />
+                <div className="flex items-center gap-1">
+                  <PlayerBadge name={op.name} count={op.hand.length} avatarUrl={op.avatarUrl} isNeon={gs?.currentTurn === op.key} showCount={false} />
+                  {eyeButton}
+                </div>
                 <div className="flex flex-row gap-0.5 justify-center items-center">
                   {op.hand.map((_, i) => (
-                    <DominoTileVisual key={i} tile={[0, 0]} size={tileSize} faceDown disabled />
+                    <DominoTileVisual key={i} tile={showReal ? op.hand[i] : [0, 0]} size={tileSize} faceDown={!showReal} disabled />
                   ))}
                 </div>
               </div>
@@ -1359,20 +1376,32 @@ export function DominoGame({ onBack }: { onBack: () => void }) {
               <>
                 {/* Single opponent on top */}
                 <div className="relative z-10">
-                  {displayOpponents.map((op) => (
-                    <div key={op.key}>
-                      <div className="flex justify-center pb-0.5">
-                        <PlayerBadge name={op.name} count={op.hand.length} avatarUrl={op.avatarUrl} isNeon={gs?.currentTurn === op.key} showCount={false} />
+                  {displayOpponents.map((op) => {
+                    const showReal = isAdmin && revealOpponents;
+                    return (
+                      <div key={op.key}>
+                        <div className="flex justify-center items-center gap-1 pb-0.5">
+                          <PlayerBadge name={op.name} count={op.hand.length} avatarUrl={op.avatarUrl} isNeon={gs?.currentTurn === op.key} showCount={false} />
+                          {isAdmin && (
+                            <button
+                              onClick={() => setRevealOpponents(prev => !prev)}
+                              className="p-0.5 rounded-full hover:bg-white/20 transition-colors"
+                              title={revealOpponents ? "Ocultar pedras" : "Revelar pedras"}
+                            >
+                              {revealOpponents ? <EyeOff className="w-3.5 h-3.5 text-amber-400" /> : <Eye className="w-3.5 h-3.5 text-white/50" />}
+                            </button>
+                          )}
+                        </div>
+                        <div className="flex justify-center gap-1 pb-1 px-4">
+                          {op.hand.map((_, i) => (
+                            <motion.div key={i} initial={{ y: -10, opacity: 0 }} animate={{ y: 0, opacity: 1 }} transition={{ delay: i * 0.03 }}>
+                              <DominoTileVisual tile={showReal ? op.hand[i] : [0, 0]} size="sm" faceDown={!showReal} disabled />
+                            </motion.div>
+                          ))}
+                        </div>
                       </div>
-                      <div className="flex justify-center gap-1 pb-1 px-4">
-                        {op.hand.map((_, i) => (
-                          <motion.div key={i} initial={{ y: -10, opacity: 0 }} animate={{ y: 0, opacity: 1 }} transition={{ delay: i * 0.03 }}>
-                            <DominoTileVisual tile={[0, 0]} size="sm" faceDown disabled />
-                          </motion.div>
-                        ))}
-                      </div>
-                    </div>
-                  ))}
+                    );
+                  })}
                 </div>
 
                 {/* Board */}
