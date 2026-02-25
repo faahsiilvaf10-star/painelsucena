@@ -538,6 +538,7 @@ export function DominoGame({ onBack }: { onBack: () => void }) {
   const [isFS, setIsFS] = useState(false);
   const gameContainerRef = useRef<HTMLDivElement>(null);
   const [onlinePlayerCount, setOnlinePlayerCount] = useState(2);
+  const [opponentAvatars, setOpponentAvatars] = useState<Record<string, string | null>>({});
 
   // AI mode state
   const [aiMode, setAiMode] = useState(false);
@@ -557,15 +558,37 @@ export function DominoGame({ onBack }: { onBack: () => void }) {
   const isMyTurnOnline = gsOnline?.currentTurn === myRole;
   const myHandOnline = gsOnline ? getHand(gsOnline, myRole) : [];
 
+  // Fetch opponent avatars for online games
+  useEffect(() => {
+    if (aiMode || !currentGame) return;
+    const ids: string[] = [];
+    if (currentGame.player1_id) ids.push(currentGame.player1_id);
+    if (currentGame.player2_id) ids.push(currentGame.player2_id);
+    if (currentGame.player3_id) ids.push(currentGame.player3_id);
+    if (currentGame.player4_id) ids.push(currentGame.player4_id);
+    const otherIds = ids.filter(id => id !== user?.id);
+    if (otherIds.length === 0) return;
+    supabase.from("profiles").select("user_id, avatar_url").in("user_id", otherIds).then(({ data }) => {
+      if (data) {
+        const map: Record<string, string | null> = {};
+        for (const p of data) map[p.user_id] = p.avatar_url;
+        setOpponentAvatars(map);
+      }
+    });
+  }, [currentGame?.player1_id, currentGame?.player2_id, currentGame?.player3_id, currentGame?.player4_id, aiMode, user?.id]);
+
   // Build online opponents
-  const onlineOpponents: { key: PlayerKey; name: string; hand: DominoTile[] }[] = [];
+  type OpponentInfo = { key: PlayerKey; name: string; hand: DominoTile[]; avatarUrl?: string | null };
+  const onlineOpponents: OpponentInfo[] = [];
   if (currentGame && gsOnline && !aiMode) {
     const keys = getPlayerKeys(pc).filter(k => k !== myRole);
     for (const k of keys) {
+      const pid = getOnlinePlayerId(currentGame, k);
       onlineOpponents.push({
         key: k,
         name: getOnlinePlayerName(currentGame, k),
         hand: getHand(gsOnline, k),
+        avatarUrl: pid ? opponentAvatars[pid] : null,
       });
     }
   }
@@ -581,7 +604,7 @@ export function DominoGame({ onBack }: { onBack: () => void }) {
   const myHand = isAI || isAIFinished ? myHandAI : myHandOnline;
 
   // Build AI opponents list
-  const aiOpponents: { key: PlayerKey; name: string; hand: DominoTile[] }[] = [];
+  const aiOpponents: OpponentInfo[] = [];
   if ((isAI || isAIFinished) && gsAI) {
     const aiPc = gsAI.playerCount || 2;
     const keys = getPlayerKeys(aiPc).filter(k => k !== "player1");
@@ -591,7 +614,7 @@ export function DominoGame({ onBack }: { onBack: () => void }) {
   }
 
   // Unified opponents for display
-  const displayOpponents = isAI || isAIFinished ? aiOpponents : onlineOpponents;
+  const displayOpponents: OpponentInfo[] = isAI || isAIFinished ? aiOpponents : onlineOpponents;
 
   // Winner label for AI
   const aiWinnerLabel = aiWinner
@@ -1264,7 +1287,7 @@ export function DominoGame({ onBack }: { onBack: () => void }) {
             <div key={op.key}>
               <div className="flex justify-center pb-0.5">
                 <div className="flex items-center gap-1.5">
-                  <PlayerBadge name={op.name} count={op.hand.length} isNeon={gs?.currentTurn === op.key} />
+                  <PlayerBadge name={op.name} count={op.hand.length} avatarUrl={op.avatarUrl} isNeon={gs?.currentTurn === op.key} />
                 </div>
               </div>
               <div className="flex justify-center gap-1 pb-1 px-4">
