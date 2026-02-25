@@ -462,7 +462,7 @@ function SnakeBoard({ board }: { board: DominoTile[] }) {
       {rows.map((row, ri) => (
         <div key={ri}>
           {ri > 0 && (
-            <div className={`flex ${row.direction === "ltr" ? "justify-start pl-1" : "justify-end pr-1"}`}>
+            <div className={`flex ${rows[ri - 1].direction === "ltr" ? "justify-end pr-1" : "justify-start pl-1"}`}>
               <div
                 className="rounded-md shadow-md flex flex-col items-center justify-center"
                 style={{
