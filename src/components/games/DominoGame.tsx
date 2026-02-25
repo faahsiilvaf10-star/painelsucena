@@ -418,36 +418,29 @@ const FELT_TEXTURE = (
 );
 
 // ── Board Layout ──
-// In real domino: tiles go horizontally, doubles are vertical.
-// When reaching the edge, the last tile rotates 90° to "turn the corner"
-// and the next row goes in the opposite direction (snake pattern).
+// Real domino: first tile is centered, subsequent tiles extend outward
+// from center. When they hit the edge, rows snake back.
 const TILE_W = 60;
 const TILE_H = 34;
 const TILE_GAP = 2;
 const DOUBLE_W = 34;
-const DOUBLE_H = 62;
 
-type SnakeTileEntry = {
-  tile: DominoTile;
-  originalIndex: number;
-  isCorner: boolean; // tile that turns the corner (rendered vertical even if not double)
-};
+function tileWidth(tile: DominoTile) {
+  return tile[0] === tile[1] ? DOUBLE_W : TILE_W;
+}
 
 function SnakeBoard({ board }: { board: DominoTile[] }) {
   const containerRef = useRef<HTMLDivElement>(null);
   const renderedCountRef = useRef(0);
-  const [containerWidth, setContainerWidth] = useState(600);
+  const [cw, setCw] = useState(600);
 
-  useEffect(() => {
-    renderedCountRef.current = board.length;
-  });
-
+  useEffect(() => { renderedCountRef.current = board.length; });
   const alreadyRendered = renderedCountRef.current;
 
   useEffect(() => {
     if (!containerRef.current) return;
     const measure = () => {
-      if (containerRef.current) setContainerWidth(containerRef.current.clientWidth - 16);
+      if (containerRef.current) setCw(containerRef.current.clientWidth - 16);
     };
     measure();
     const ro = new ResizeObserver(measure);
@@ -455,56 +448,61 @@ function SnakeBoard({ board }: { board: DominoTile[] }) {
     return () => ro.disconnect();
   }, []);
 
-  // Build snake rows: when a row fills up, the LAST tile in that row becomes
-  // the "corner" tile (rendered vertically to indicate the turn), then the next
-  // row goes in the opposite direction.
-  const rows: { tiles: SnakeTileEntry[]; reversed: boolean }[] = [];
-  let currentRowWidth = 0;
-  let currentRow: SnakeTileEntry[] = [];
-  const maxWidth = Math.max(containerWidth - 24, 120);
+  // The board array is ordered: board[0] is the first tile played (center),
+  // tiles added to the right end come after, tiles added to the left come before.
+  // We just render them in order and center the first row, then snake.
+  const maxWidth = Math.max(cw - 16, 120);
+
+  // Build rows: first row is centered, subsequent rows snake
+  type RowData = { tiles: { tile: DominoTile; idx: number }[]; direction: "ltr" | "rtl" };
+  const rows: RowData[] = [];
+  let currentRow: { tile: DominoTile; idx: number }[] = [];
+  let rowWidth = 0;
 
   for (let i = 0; i < board.length; i++) {
     const tile = board[i];
-    const isDouble = tile[0] === tile[1];
-    const tileWidth = isDouble ? DOUBLE_W : TILE_W;
-    const widthWithGap = currentRow.length > 0 ? tileWidth + TILE_GAP : tileWidth;
+    const tw = tileWidth(tile);
+    const needed = currentRow.length > 0 ? tw + TILE_GAP : tw;
 
-    // Check if adding this tile would overflow the row
-    if (currentRowWidth + widthWithGap > maxWidth && currentRow.length > 0) {
-      // Mark the last tile in the current row as the corner piece
-      currentRow[currentRow.length - 1].isCorner = true;
-      rows.push({ tiles: currentRow, reversed: rows.length % 2 === 1 });
+    if (rowWidth + needed > maxWidth && currentRow.length > 0) {
+      const dir = rows.length % 2 === 0 ? "ltr" : "rtl";
+      rows.push({ tiles: currentRow, direction: dir });
       currentRow = [];
-      currentRowWidth = 0;
+      rowWidth = 0;
     }
-
-    currentRow.push({ tile, originalIndex: i, isCorner: false });
-    currentRowWidth += currentRow.length === 1 ? tileWidth : tileWidth + TILE_GAP;
+    currentRow.push({ tile, idx: i });
+    rowWidth += currentRow.length === 1 ? tw : tw + TILE_GAP;
   }
   if (currentRow.length > 0) {
-    rows.push({ tiles: currentRow, reversed: rows.length % 2 === 1 });
+    const dir = rows.length % 2 === 0 ? "ltr" : "rtl";
+    rows.push({ tiles: currentRow, direction: dir });
   }
 
   return (
     <div ref={containerRef} className="w-full px-2 py-2 space-y-1">
       {rows.map((row, rowIdx) => {
-        const displayTiles = row.reversed ? [...row.tiles].reverse() : row.tiles;
+        const displayTiles = row.direction === "rtl" ? [...row.tiles].reverse() : row.tiles;
+        // First row is centered; subsequent rows align to alternate sides
+        const justify = rows.length === 1
+          ? "center"
+          : rowIdx === 0
+            ? "center"
+            : row.direction === "ltr"
+              ? "flex-start"
+              : "flex-end";
 
         return (
           <div
             key={`row-${rowIdx}`}
             className="flex items-center"
-            style={{
-              gap: TILE_GAP,
-              justifyContent: row.reversed ? "flex-end" : "flex-start",
-            }}
+            style={{ gap: TILE_GAP, justifyContent: justify }}
           >
-            {displayTiles.map(({ tile, originalIndex }) => {
+            {displayTiles.map(({ tile, idx }) => {
               const isDouble = tile[0] === tile[1];
-              const isNew = originalIndex >= alreadyRendered;
+              const isNew = idx >= alreadyRendered;
               return (
                 <motion.div
-                  key={`board-${originalIndex}-${tile[0]}-${tile[1]}`}
+                  key={`board-${idx}-${tile[0]}-${tile[1]}`}
                   initial={isNew ? { scale: 0, opacity: 0 } : false}
                   animate={{ scale: 1, opacity: 1 }}
                   transition={isNew ? { duration: 0.4, ease: "backOut" } : { duration: 0 }}
