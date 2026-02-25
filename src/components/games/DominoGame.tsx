@@ -423,9 +423,7 @@ const TILE_H = 32;
 const TILE_GAP = 2;
 
 function SnakeBoard({ board }: { board: DominoTile[] }) {
-  const scrollRef = useRef<HTMLDivElement>(null);
   const renderedCountRef = useRef(0);
-  const firstTileRef = useRef<HTMLDivElement>(null);
 
   useEffect(() => {
     renderedCountRef.current = board.length;
@@ -433,59 +431,24 @@ function SnakeBoard({ board }: { board: DominoTile[] }) {
 
   const alreadyRendered = renderedCountRef.current;
 
-  // Keep the first tile centered in the scroll container
-  useEffect(() => {
-    if (!scrollRef.current || !firstTileRef.current || board.length === 0) return;
-    const container = scrollRef.current;
-    const firstTile = firstTileRef.current;
-    const tileCenter = firstTile.offsetLeft + firstTile.offsetWidth / 2;
-    const containerCenter = container.clientWidth / 2;
-    container.scrollLeft = tileCenter - containerCenter;
-  }, [board.length]);
-
-  // The board array: index 0 is the leftmost tile on the table.
-  // The "first played tile" is tracked by finding the original center.
-  // Since tiles are unshifted to the left and pushed to the right,
-  // we track how many tiles were added to the left to find the original first tile.
-  // However, we don't have that info here. Instead, we'll use a ref to track the
-  // index of the first tile ever played (it was at index 0 when board.length === 1).
-  const firstTileIndexRef = useRef<number | null>(null);
-  if (board.length === 1 && firstTileIndexRef.current === null) {
-    firstTileIndexRef.current = 0;
-  }
-  // As tiles are prepended (unshift), the first tile's index shifts right
-  // We can't easily track this without game state. Instead, just keep scroll centered.
-
   return (
-    <div
-      ref={scrollRef}
-      className="w-full overflow-x-auto flex items-center overflow-y-visible"
-      style={{ scrollbarWidth: "none", msOverflowStyle: "none", paddingTop: 10, paddingBottom: 10 }}
-    >
-      <style>{`div::-webkit-scrollbar { display: none; }`}</style>
-      <div className="flex items-center" style={{ gap: TILE_GAP }}>
-        {/* Large spacer so tiles can be centered even when few */}
-        <div className="flex-shrink-0" style={{ width: "50vw" }} />
+    <div className="w-full flex justify-center px-2 py-2">
+      <div className="flex flex-wrap items-center justify-center" style={{ gap: TILE_GAP }}>
         {board.map((tile, i) => {
           const isDouble = tile[0] === tile[1];
           const isNew = i >= alreadyRendered;
-          // The middle tile of the board is the first one played
-          const isCenterTile = board.length > 0 && i === Math.floor((board.length - 1) / 2) && board.length <= 3;
           return (
             <motion.div
               key={`board-${i}-${tile[0]}-${tile[1]}`}
-              ref={i === Math.floor(board.length / 2) ? firstTileRef : undefined}
               initial={isNew ? { scale: 0, opacity: 0 } : false}
               animate={{ scale: 1, opacity: 1 }}
               transition={isNew ? { duration: 0.4, ease: "backOut" } : { duration: 0 }}
-              className="flex items-center justify-center flex-shrink-0"
-              style={isDouble ? { marginTop: -6, marginBottom: -6 } : {}}
+              className="flex items-center justify-center"
             >
               <DominoTileVisual tile={tile} size="sm" disabled vertical={isDouble} />
             </motion.div>
           );
         })}
-        <div className="flex-shrink-0" style={{ width: "50vw" }} />
       </div>
     </div>
   );
