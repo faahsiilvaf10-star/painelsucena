@@ -499,10 +499,8 @@ function SnakeBoard({ board }: { board: DominoTile[] }) {
               justifyContent: row.reversed ? "flex-end" : "flex-start",
             }}
           >
-            {displayTiles.map(({ tile, originalIndex, isCorner }) => {
+            {displayTiles.map(({ tile, originalIndex }) => {
               const isDouble = tile[0] === tile[1];
-              // Corner tiles are rendered vertical to indicate the turn
-              const renderVertical = isDouble || isCorner;
               const isNew = originalIndex >= alreadyRendered;
               return (
                 <motion.div
@@ -512,7 +510,7 @@ function SnakeBoard({ board }: { board: DominoTile[] }) {
                   transition={isNew ? { duration: 0.4, ease: "backOut" } : { duration: 0 }}
                   className="flex items-center justify-center flex-shrink-0"
                 >
-                  <DominoTileVisual tile={tile} size="sm" disabled vertical={renderVertical} />
+                  <DominoTileVisual tile={tile} size="sm" disabled vertical={isDouble} />
                 </motion.div>
               );
             })}
