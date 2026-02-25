@@ -766,10 +766,15 @@ export type Database = {
           created_at: string
           game_state: Json
           id: string
+          max_players: number
           player1_id: string
           player1_name: string
           player2_id: string | null
           player2_name: string | null
+          player3_id: string | null
+          player3_name: string | null
+          player4_id: string | null
+          player4_name: string | null
           status: string
           updated_at: string
           winner_id: string | null
@@ -778,10 +783,15 @@ export type Database = {
           created_at?: string
           game_state?: Json
           id?: string
+          max_players?: number
           player1_id: string
           player1_name: string
           player2_id?: string | null
           player2_name?: string | null
+          player3_id?: string | null
+          player3_name?: string | null
+          player4_id?: string | null
+          player4_name?: string | null
           status?: string
           updated_at?: string
           winner_id?: string | null
@@ -790,10 +800,15 @@ export type Database = {
           created_at?: string
           game_state?: Json
           id?: string
+          max_players?: number
           player1_id?: string
           player1_name?: string
           player2_id?: string | null
           player2_name?: string | null
+          player3_id?: string | null
+          player3_name?: string | null
+          player4_id?: string | null
+          player4_name?: string | null
           status?: string
           updated_at?: string
           winner_id?: string | null
