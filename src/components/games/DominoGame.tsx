@@ -479,10 +479,9 @@ function SnakeBoard({ board }: { board: DominoTile[] }) {
   }
 
   return (
-    <div ref={containerRef} className="w-full px-2 py-2 space-y-1">
+    <div ref={containerRef} className="w-full px-2 py-2" style={{ display: "flex", flexDirection: "column", gap: 6 }}>
       {rows.map((row, rowIdx) => {
         const displayTiles = row.direction === "rtl" ? [...row.tiles].reverse() : row.tiles;
-        // First row is centered; subsequent rows align to alternate sides
         const justify = rows.length === 1
           ? "center"
           : rowIdx === 0
@@ -491,11 +490,15 @@ function SnakeBoard({ board }: { board: DominoTile[] }) {
               ? "flex-start"
               : "flex-end";
 
+        // Calculate row height based on tallest tile (doubles are ~62px, normal ~34px)
+        const hasDouble = row.tiles.some(t => t.tile[0] === t.tile[1]);
+        const rowHeight = hasDouble ? 66 : 38;
+
         return (
           <div
             key={`row-${rowIdx}`}
-            className="flex items-center"
-            style={{ gap: TILE_GAP, justifyContent: justify }}
+            className="flex items-center flex-shrink-0"
+            style={{ gap: TILE_GAP, justifyContent: justify, minHeight: rowHeight }}
           >
             {displayTiles.map(({ tile, idx }) => {
               const isDouble = tile[0] === tile[1];
