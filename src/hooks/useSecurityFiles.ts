@@ -48,24 +48,40 @@ export function useSecurityFiles() {
         .from("security-files")
         .upload(fileName, file);
 
-      if (uploadError) throw uploadError;
+      if (uploadError) {
+        console.error("Storage upload error:", uploadError);
+        throw uploadError;
+      }
 
       // Get public URL
       const { data: urlData } = supabase.storage
         .from("security-files")
         .getPublicUrl(fileName);
 
-      // Save to database
+      // Get current authenticated user id for RLS compliance
+      const { data: { user: authUser } } = await supabase.auth.getUser();
+      const authenticatedUserId = authUser?.id;
+
+      if (!authenticatedUserId) {
+        throw new Error("Usuário não autenticado");
+      }
+
+      console.log("Uploading security file - authUserId:", authenticatedUserId, "passedUserId:", userId);
+
+      // Save to database - use authenticated user id to match RLS policy
       const { error: dbError } = await supabase.from("security_files").insert({
         file_name: file.name,
         file_url: urlData.publicUrl,
         file_size: file.size,
         file_type: file.type || fileExt,
-        uploaded_by: userId,
+        uploaded_by: authenticatedUserId,
         uploaded_by_name: userName,
       });
 
-      if (dbError) throw dbError;
+      if (dbError) {
+        console.error("DB insert error:", dbError);
+        throw dbError;
+      }
     },
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ["security-files"] });
