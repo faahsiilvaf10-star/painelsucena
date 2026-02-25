@@ -205,22 +205,23 @@ function findWinnerByPips(state: GameState): PlayerKey {
 const DOT_POSITIONS: Record<number, [number, number][]> = {
   0: [],
   1: [[50, 50]],
-  2: [[28, 28], [72, 72]],
-  3: [[28, 28], [50, 50], [72, 72]],
-  4: [[28, 28], [72, 28], [28, 72], [72, 72]],
-  5: [[28, 28], [72, 28], [50, 50], [28, 72], [72, 72]],
-  6: [[30, 24], [70, 24], [30, 50], [70, 50], [30, 76], [70, 76]],
+  2: [[30, 30], [70, 70]],
+  3: [[30, 30], [50, 50], [70, 70]],
+  4: [[30, 30], [70, 30], [30, 70], [70, 70]],
+  5: [[30, 30], [70, 30], [50, 50], [30, 70], [70, 70]],
+  6: [[30, 22], [70, 22], [30, 50], [70, 50], [30, 78], [70, 78]],
 };
 
-const DOT_POSITIONS_6_BOARD: [number, number][] = [[24, 30], [50, 30], [76, 30], [24, 70], [50, 70], [76, 70]];
+// 6 dots for horizontal board tiles: 3 cols × 2 rows
+const DOT_POSITIONS_6_BOARD: [number, number][] = [[22, 30], [50, 30], [78, 30], [22, 70], [50, 70], [78, 70]];
 
 function DominoFace({ value, size, onBoard }: { value: number; size: number; onBoard?: boolean }) {
   const dots = (value === 6 && onBoard) ? DOT_POSITIONS_6_BOARD : (DOT_POSITIONS[value] || []);
-  const dotR = Math.max(9, size * 0.2);
+  const dotR = Math.max(8, size * 0.17);
   return (
     <svg width={size} height={size} viewBox="0 0 100 100" className="block">
       {dots.map(([cx, cy], i) => (
-        <circle key={i} cx={cx} cy={cy} r={dotR} fill="#000000" />
+        <circle key={i} cx={cx} cy={cy} r={dotR} fill="#1a1a1a" />
       ))}
     </svg>
   );
