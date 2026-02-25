@@ -1385,7 +1385,7 @@ export function DominoGame({ onBack }: { onBack: () => void }) {
               {/* Middle row: left opponent | board | right opponent */}
               <div className="relative z-10 flex-1 flex items-stretch overflow-hidden">
                 {/* Left opponent */}
-                <div className="flex items-center justify-center px-1 flex-shrink-0" style={{ minWidth: 60, maxWidth: 80 }}>
+                <div className="flex items-center justify-center px-1 flex-shrink-0 overflow-y-auto" style={{ minWidth: 50 }}>
                   {renderOpponent(leftOp, "vertical")}
                 </div>
 
@@ -1402,7 +1402,7 @@ export function DominoGame({ onBack }: { onBack: () => void }) {
 
                 {/* Right opponent (4 players only) */}
                 {rightOp ? (
-                  <div className="flex items-center justify-center px-1 flex-shrink-0" style={{ minWidth: 60, maxWidth: 80 }}>
+                  <div className="flex items-center justify-center px-1 flex-shrink-0 overflow-y-auto" style={{ minWidth: 50 }}>
                     {renderOpponent(rightOp, "vertical")}
                   </div>
                 ) : (
