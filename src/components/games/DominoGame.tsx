@@ -418,11 +418,20 @@ const FELT_TEXTURE = (
 );
 
 // ── Board Layout ──
-const TILE_W = 60; // horizontal tile width (w + 4)
-const TILE_H = 34; // horizontal tile height (h + 6)
+// In real domino: tiles go horizontally, doubles are vertical.
+// When reaching the edge, the last tile rotates 90° to "turn the corner"
+// and the next row goes in the opposite direction (snake pattern).
+const TILE_W = 60;
+const TILE_H = 34;
 const TILE_GAP = 2;
-const DOUBLE_W = 34; // vertical/double tile width
-const DOUBLE_H = 62; // vertical/double tile height
+const DOUBLE_W = 34;
+const DOUBLE_H = 62;
+
+type SnakeTileEntry = {
+  tile: DominoTile;
+  originalIndex: number;
+  isCorner: boolean; // tile that turns the corner (rendered vertical even if not double)
+};
 
 function SnakeBoard({ board }: { board: DominoTile[] }) {
   const containerRef = useRef<HTMLDivElement>(null);
@@ -446,11 +455,13 @@ function SnakeBoard({ board }: { board: DominoTile[] }) {
     return () => ro.disconnect();
   }, []);
 
-  // Split board into snake rows based on container width
-  const rows: { tiles: { tile: DominoTile; originalIndex: number }[]; reversed: boolean }[] = [];
+  // Build snake rows: when a row fills up, the LAST tile in that row becomes
+  // the "corner" tile (rendered vertically to indicate the turn), then the next
+  // row goes in the opposite direction.
+  const rows: { tiles: SnakeTileEntry[]; reversed: boolean }[] = [];
   let currentRowWidth = 0;
-  let currentRow: { tile: DominoTile; originalIndex: number }[] = [];
-  const maxWidth = containerWidth - 40; // padding
+  let currentRow: SnakeTileEntry[] = [];
+  const maxWidth = Math.max(containerWidth - 24, 120);
 
   for (let i = 0; i < board.length; i++) {
     const tile = board[i];
@@ -458,12 +469,16 @@ function SnakeBoard({ board }: { board: DominoTile[] }) {
     const tileWidth = isDouble ? DOUBLE_W : TILE_W;
     const widthWithGap = currentRow.length > 0 ? tileWidth + TILE_GAP : tileWidth;
 
+    // Check if adding this tile would overflow the row
     if (currentRowWidth + widthWithGap > maxWidth && currentRow.length > 0) {
+      // Mark the last tile in the current row as the corner piece
+      currentRow[currentRow.length - 1].isCorner = true;
       rows.push({ tiles: currentRow, reversed: rows.length % 2 === 1 });
       currentRow = [];
       currentRowWidth = 0;
     }
-    currentRow.push({ tile, originalIndex: i });
+
+    currentRow.push({ tile, originalIndex: i, isCorner: false });
     currentRowWidth += currentRow.length === 1 ? tileWidth : tileWidth + TILE_GAP;
   }
   if (currentRow.length > 0) {
@@ -471,12 +486,9 @@ function SnakeBoard({ board }: { board: DominoTile[] }) {
   }
 
   return (
-    <div ref={containerRef} className="w-full px-2 py-2">
+    <div ref={containerRef} className="w-full px-2 py-2 space-y-1">
       {rows.map((row, rowIdx) => {
         const displayTiles = row.reversed ? [...row.tiles].reverse() : row.tiles;
-        // Connect to next row: last tile of current row turns vertical
-        const isLastRow = rowIdx === rows.length - 1;
-        const connectsDown = !isLastRow;
 
         return (
           <div
@@ -485,11 +497,12 @@ function SnakeBoard({ board }: { board: DominoTile[] }) {
             style={{
               gap: TILE_GAP,
               justifyContent: row.reversed ? "flex-end" : "flex-start",
-              marginBottom: connectsDown ? 4 : 0,
             }}
           >
-            {displayTiles.map(({ tile, originalIndex }) => {
+            {displayTiles.map(({ tile, originalIndex, isCorner }) => {
               const isDouble = tile[0] === tile[1];
+              // Corner tiles are rendered vertical to indicate the turn
+              const renderVertical = isDouble || isCorner;
               const isNew = originalIndex >= alreadyRendered;
               return (
                 <motion.div
@@ -499,7 +512,7 @@ function SnakeBoard({ board }: { board: DominoTile[] }) {
                   transition={isNew ? { duration: 0.4, ease: "backOut" } : { duration: 0 }}
                   className="flex items-center justify-center flex-shrink-0"
                 >
-                  <DominoTileVisual tile={tile} size="sm" disabled vertical={isDouble} />
+                  <DominoTileVisual tile={tile} size="sm" disabled vertical={renderVertical} />
                 </motion.div>
               );
             })}
