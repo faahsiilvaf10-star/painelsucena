@@ -426,13 +426,15 @@ const CONNECTOR_SIZE = 34;
 function SnakeBoard({ board }: { board: DominoTile[] }) {
   const containerRef = useRef<HTMLDivElement>(null);
   const [containerWidth, setContainerWidth] = useState(600);
-  const prevCountRef = useRef(board.length);
+  // Track the set of tiles already rendered to avoid re-animating on realtime updates
+  const renderedCountRef = useRef(0);
 
+  // After render, mark all current tiles as "already rendered"
   useEffect(() => {
-    prevCountRef.current = board.length;
+    renderedCountRef.current = board.length;
   });
 
-  const prevCount = prevCountRef.current;
+  const alreadyRendered = renderedCountRef.current;
 
   useEffect(() => {
     if (!containerRef.current) return;
@@ -487,13 +489,14 @@ function SnakeBoard({ board }: { board: DominoTile[] }) {
               const globalIndex = row.direction === "rtl"
                 ? row.startIndex + (row.tiles.length - 1 - ti)
                 : row.startIndex + ti;
-              const isNew = globalIndex >= prevCount;
+              // Only animate tiles that are truly new (weren't in the previous render)
+              const isNew = globalIndex >= alreadyRendered;
               return (
                 <motion.div
-                  key={`tile-${globalIndex}`}
+                  key={`board-${globalIndex}-${tile[0]}-${tile[1]}`}
                   initial={isNew ? { y: 200, opacity: 0, scale: 0.8 } : false}
                   animate={{ y: 0, opacity: 1, scale: 1 }}
-                  transition={isNew ? { duration: 3, ease: [0.16, 1, 0.3, 1] } : { duration: 0 }}
+                  transition={isNew ? { duration: 2, ease: [0.16, 1, 0.3, 1] } : { duration: 0 }}
                   className="flex items-center justify-center"
                   style={isDouble ? { marginTop: -6, marginBottom: -6 } : {}}
                 >
