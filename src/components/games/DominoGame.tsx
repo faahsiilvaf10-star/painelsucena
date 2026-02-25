@@ -839,9 +839,19 @@ export function DominoGame({ onBack }: { onBack: () => void }) {
       }
       setAiGameState(newState); return;
     }
-    const drawn = newState.boneyard.pop()!; newState.player1Hand.push(drawn);
-    if (!hasAnyPlay(newState.player1Hand, newState.boardLeftEnd, newState.boardRightEnd) && newState.boneyard.length === 0) {
-      newState.passCount += 1; newState.currentTurn = nextTurn("player1", aiPc);
+    // Keep drawing until player can play or boneyard is empty
+    while (newState.boneyard.length > 0) {
+      const drawn = newState.boneyard.pop()!;
+      newState.player1Hand.push(drawn);
+      if (hasAnyPlay(newState.player1Hand, newState.boardLeftEnd, newState.boardRightEnd)) {
+        setAiGameState(newState); return;
+      }
+    }
+    // Boneyard empty and still can't play — pass
+    newState.passCount += 1; newState.currentTurn = nextTurn("player1", aiPc);
+    if (newState.passCount >= aiPc) {
+      const winner = findWinnerByPips(newState);
+      setAiWinner(winner); setAiGameState(newState); setView("finished"); return;
     }
     setAiGameState(newState);
   }, [gsAI]);
@@ -890,14 +900,26 @@ export function DominoGame({ onBack }: { onBack: () => void }) {
       return;
     }
     const newState = JSON.parse(JSON.stringify(gsOnline)) as GameState;
-    const drawn = newState.boneyard.pop()!;
     const hand = getHand(newState, myRole);
-    hand.push(drawn);
-    setHand(newState, myRole, hand);
-    if (!hasAnyPlay(hand, newState.boardLeftEnd, newState.boardRightEnd) && newState.boneyard.length === 0) {
-      newState.passCount += 1; newState.currentTurn = nextTurn(myRole, onlinePc);
+    // Keep drawing until player can play or boneyard is empty
+    while (newState.boneyard.length > 0) {
+      const drawn = newState.boneyard.pop()!;
+      hand.push(drawn);
+      setHand(newState, myRole, hand);
+      if (hasAnyPlay(hand, newState.boardLeftEnd, newState.boardRightEnd)) {
+        await supabase.from("domino_games").update({ game_state: newState as any, updated_at: new Date().toISOString() }).eq("id", currentGame.id);
+        return;
+      }
     }
-    await supabase.from("domino_games").update({ game_state: newState as any, updated_at: new Date().toISOString() }).eq("id", currentGame.id);
+    // Boneyard empty and still can't play — pass
+    newState.passCount += 1; newState.currentTurn = nextTurn(myRole, onlinePc);
+    let status = "playing"; let winnerId: string | null = null;
+    if (newState.passCount >= onlinePc) {
+      status = "finished";
+      const winnerKey = findWinnerByPips(newState);
+      winnerId = getOnlinePlayerId(currentGame, winnerKey);
+    }
+    await supabase.from("domino_games").update({ game_state: newState as any, status, winner_id: winnerId, updated_at: new Date().toISOString() }).eq("id", currentGame.id);
   }, [isAI, aiDrawTile, currentGame, gsOnline, isMyTurnOnline, myRole, maxPlayers]);
 
   const handleTileClick = useCallback((index: number) => {
