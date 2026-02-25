@@ -417,96 +417,61 @@ const FELT_TEXTURE = (
   }} />
 );
 
-// ── Snake Board Layout ──
+// ── Board Layout ──
 const TILE_W = 60;
 const TILE_H = 32;
 const TILE_GAP = 2;
-const CONNECTOR_SIZE = 34;
 
 function SnakeBoard({ board }: { board: DominoTile[] }) {
-  const containerRef = useRef<HTMLDivElement>(null);
-  const [containerWidth, setContainerWidth] = useState(600);
-  // Track the set of tiles already rendered to avoid re-animating on realtime updates
+  const scrollRef = useRef<HTMLDivElement>(null);
   const renderedCountRef = useRef(0);
+  const hasCenteredRef = useRef(false);
 
-  // After render, mark all current tiles as "already rendered"
   useEffect(() => {
     renderedCountRef.current = board.length;
   });
 
   const alreadyRendered = renderedCountRef.current;
 
+  // Center the scroll position so the first tile stays in the middle
   useEffect(() => {
-    if (!containerRef.current) return;
-    const observer = new ResizeObserver(entries => {
-      for (const entry of entries) {
-        setContainerWidth(entry.contentRect.width);
-      }
-    });
-    observer.observe(containerRef.current);
-    return () => observer.disconnect();
-  }, []);
-
-  const tilesPerRow = Math.max(3, Math.floor((containerWidth - 20) / (TILE_W + TILE_GAP)));
-
-  const rows: { tiles: DominoTile[]; direction: "ltr" | "rtl"; startIndex: number }[] = [];
-  let idx = 0;
-  let rowNum = 0;
-  while (idx < board.length) {
-    const count = Math.min(tilesPerRow, board.length - idx);
-    const rowTiles = board.slice(idx, idx + count);
-    const direction = rowNum % 2 === 0 ? "ltr" : "rtl";
-    rows.push({ tiles: direction === "rtl" ? [...rowTiles].reverse() : rowTiles, direction, startIndex: idx });
-    idx += count;
-    rowNum++;
-  }
+    if (!scrollRef.current || board.length === 0) return;
+    const el = scrollRef.current;
+    const scrollCenter = (el.scrollWidth - el.clientWidth) / 2;
+    if (!hasCenteredRef.current) {
+      el.scrollLeft = scrollCenter;
+      hasCenteredRef.current = true;
+    } else {
+      // Smoothly adjust when new tiles are added
+      el.scrollLeft = scrollCenter;
+    }
+  }, [board.length]);
 
   return (
-    <div ref={containerRef} className="w-full flex flex-col items-center">
-      {rows.map((row, ri) => (
-        <div key={ri}>
-          {ri > 0 && (
-            <div className={`flex ${rows[ri - 1].direction === "ltr" ? "justify-end pr-1" : "justify-start pl-1"}`}>
-              <div
-                className="rounded-md shadow-md flex flex-col items-center justify-center"
-                style={{
-                  width: CONNECTOR_SIZE,
-                  height: CONNECTOR_SIZE + 4,
-                  background: "linear-gradient(135deg, #ffffff 0%, #f8f4e8 100%)",
-                  border: "1.5px solid #c4b888",
-                  boxShadow: "0 3px 8px rgba(0,0,0,0.25), inset 0 1px 0 rgba(255,255,255,0.8)",
-                  marginTop: -2,
-                  marginBottom: -2,
-                }}
-              >
-                <div style={{ width: 1.5, height: "100%", background: "#b8a878" }} />
-              </div>
-            </div>
-          )}
-          <div className="flex items-center" style={{ gap: TILE_GAP }}>
-            {row.tiles.map((tile, ti) => {
-              const isDouble = tile[0] === tile[1];
-              const globalIndex = row.direction === "rtl"
-                ? row.startIndex + (row.tiles.length - 1 - ti)
-                : row.startIndex + ti;
-              // Only animate tiles that are truly new (weren't in the previous render)
-              const isNew = globalIndex >= alreadyRendered;
-              return (
-                <motion.div
-                  key={`board-${globalIndex}-${tile[0]}-${tile[1]}`}
-                  initial={isNew ? { y: 200, opacity: 0, scale: 0.8 } : false}
-                  animate={{ y: 0, opacity: 1, scale: 1 }}
-                  transition={isNew ? { duration: 2, ease: [0.16, 1, 0.3, 1] } : { duration: 0 }}
-                  className="flex items-center justify-center"
-                  style={isDouble ? { marginTop: -6, marginBottom: -6 } : {}}
-                >
-                  <DominoTileVisual tile={tile} size="sm" disabled vertical={isDouble} />
-                </motion.div>
-              );
-            })}
-          </div>
-        </div>
-      ))}
+    <div
+      ref={scrollRef}
+      className="w-full overflow-x-auto flex items-center"
+      style={{ scrollbarWidth: "none", msOverflowStyle: "none" }}
+    >
+      <style>{`div::-webkit-scrollbar { display: none; }`}</style>
+      <div className="flex items-center mx-auto" style={{ gap: TILE_GAP, padding: "0 40px" }}>
+        {board.map((tile, i) => {
+          const isDouble = tile[0] === tile[1];
+          const isNew = i >= alreadyRendered;
+          return (
+            <motion.div
+              key={`board-${i}-${tile[0]}-${tile[1]}`}
+              initial={isNew ? { scale: 0, opacity: 0 } : false}
+              animate={{ scale: 1, opacity: 1 }}
+              transition={isNew ? { duration: 0.4, ease: "backOut" } : { duration: 0 }}
+              className="flex items-center justify-center flex-shrink-0"
+              style={isDouble ? { marginTop: -6, marginBottom: -6 } : {}}
+            >
+              <DominoTileVisual tile={tile} size="sm" disabled vertical={isDouble} />
+            </motion.div>
+          );
+        })}
+      </div>
     </div>
   );
 }
