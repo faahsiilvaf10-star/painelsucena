@@ -129,7 +129,7 @@ export default function ArquivosSeguranca() {
           {!isVisualizador && (
             <Button
               onClick={() => fileInputRef.current?.click()}
-              disabled={isUploading || !user}
+              disabled={isUploading || !user || !profile}
               className="gap-2"
             >
               <Upload className="h-4 w-4" />
