@@ -1325,13 +1325,10 @@ export function DominoGame({ onBack }: { onBack: () => void }) {
           const renderOpponent = (op: typeof displayOpponents[0], direction: "horizontal" | "vertical") => (
             <div className={`flex ${direction === "vertical" ? "flex-col" : "flex-row"} items-center gap-1`}>
               <PlayerBadge name={op.name} count={op.hand.length} avatarUrl={op.avatarUrl} isNeon={gs?.currentTurn === op.key} />
-              <div className={`flex ${direction === "vertical" ? "flex-row" : "flex-col"} gap-0.5 flex-wrap justify-center`}>
-                {op.hand.slice(0, Math.min(op.hand.length, 7)).map((_, i) => (
+              <div className={`flex ${direction === "vertical" ? "flex-col" : "flex-row"} gap-0.5 justify-center items-center`}>
+                {op.hand.map((_, i) => (
                   <DominoTileVisual key={i} tile={[0, 0]} size="sm" faceDown disabled vertical={direction === "vertical"} />
                 ))}
-                {op.hand.length > 7 && (
-                  <span className="text-white/50 text-[10px] font-bold">+{op.hand.length - 7}</span>
-                )}
               </div>
             </div>
           );
