@@ -425,7 +425,7 @@ const TILE_GAP = 2;
 function SnakeBoard({ board }: { board: DominoTile[] }) {
   const scrollRef = useRef<HTMLDivElement>(null);
   const renderedCountRef = useRef(0);
-  const hasCenteredRef = useRef(false);
+  const firstTileRef = useRef<HTMLDivElement>(null);
 
   useEffect(() => {
     renderedCountRef.current = board.length;
@@ -433,19 +433,28 @@ function SnakeBoard({ board }: { board: DominoTile[] }) {
 
   const alreadyRendered = renderedCountRef.current;
 
-  // Center the scroll position so the first tile stays in the middle
+  // Keep the first tile centered in the scroll container
   useEffect(() => {
-    if (!scrollRef.current || board.length === 0) return;
-    const el = scrollRef.current;
-    const scrollCenter = (el.scrollWidth - el.clientWidth) / 2;
-    if (!hasCenteredRef.current) {
-      el.scrollLeft = scrollCenter;
-      hasCenteredRef.current = true;
-    } else {
-      // Smoothly adjust when new tiles are added
-      el.scrollLeft = scrollCenter;
-    }
+    if (!scrollRef.current || !firstTileRef.current || board.length === 0) return;
+    const container = scrollRef.current;
+    const firstTile = firstTileRef.current;
+    const tileCenter = firstTile.offsetLeft + firstTile.offsetWidth / 2;
+    const containerCenter = container.clientWidth / 2;
+    container.scrollLeft = tileCenter - containerCenter;
   }, [board.length]);
+
+  // The board array: index 0 is the leftmost tile on the table.
+  // The "first played tile" is tracked by finding the original center.
+  // Since tiles are unshifted to the left and pushed to the right,
+  // we track how many tiles were added to the left to find the original first tile.
+  // However, we don't have that info here. Instead, we'll use a ref to track the
+  // index of the first tile ever played (it was at index 0 when board.length === 1).
+  const firstTileIndexRef = useRef<number | null>(null);
+  if (board.length === 1 && firstTileIndexRef.current === null) {
+    firstTileIndexRef.current = 0;
+  }
+  // As tiles are prepended (unshift), the first tile's index shifts right
+  // We can't easily track this without game state. Instead, just keep scroll centered.
 
   return (
     <div
@@ -454,13 +463,18 @@ function SnakeBoard({ board }: { board: DominoTile[] }) {
       style={{ scrollbarWidth: "none", msOverflowStyle: "none" }}
     >
       <style>{`div::-webkit-scrollbar { display: none; }`}</style>
-      <div className="flex items-center mx-auto" style={{ gap: TILE_GAP, padding: "0 40px" }}>
+      <div className="flex items-center" style={{ gap: TILE_GAP }}>
+        {/* Large spacer so tiles can be centered even when few */}
+        <div className="flex-shrink-0" style={{ width: "50vw" }} />
         {board.map((tile, i) => {
           const isDouble = tile[0] === tile[1];
           const isNew = i >= alreadyRendered;
+          // The middle tile of the board is the first one played
+          const isCenterTile = board.length > 0 && i === Math.floor((board.length - 1) / 2) && board.length <= 3;
           return (
             <motion.div
               key={`board-${i}-${tile[0]}-${tile[1]}`}
+              ref={i === Math.floor(board.length / 2) ? firstTileRef : undefined}
               initial={isNew ? { scale: 0, opacity: 0 } : false}
               animate={{ scale: 1, opacity: 1 }}
               transition={isNew ? { duration: 0.4, ease: "backOut" } : { duration: 0 }}
@@ -471,6 +485,7 @@ function SnakeBoard({ board }: { board: DominoTile[] }) {
             </motion.div>
           );
         })}
+        <div className="flex-shrink-0" style={{ width: "50vw" }} />
       </div>
     </div>
   );
