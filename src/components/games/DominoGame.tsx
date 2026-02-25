@@ -1,6 +1,7 @@
 import { useState, useCallback, useEffect, useRef } from "react";
 import { Button } from "@/components/ui/button";
 import { ArrowLeft, Loader2, RotateCcw, RefreshCw, X, Bot, Users, Brain, Plus, Maximize, Minimize, Trophy } from "lucide-react";
+import { NeonAvatar } from "@/components/ui/NeonAvatar";
 import { motion, AnimatePresence } from "framer-motion";
 import { supabase } from "@/integrations/supabase/client";
 import { useAuth } from "@/hooks/useAuth";
@@ -307,21 +308,39 @@ function DominoTileVisual({ tile, size = "md", onClick, disabled, highlight, ver
   );
 }
 
-function ScoreboardBadge({ label, value, emoji }: { label: string; value: number; emoji?: string }) {
+function PlayerBadge({ name, count, avatarUrl, isNeon }: { name: string; count: number; avatarUrl?: string | null; isNeon?: boolean }) {
+  const firstName = name.split(" ")[0];
   return (
-    <div className="flex items-center gap-1.5">
+    <div className="flex flex-col items-center gap-0.5">
+      <NeonAvatar
+        src={avatarUrl}
+        name={name}
+        size="sm"
+        neonColor={isNeon ? "#c8a44e" : undefined}
+        frameColor={isNeon ? "linear-gradient(135deg, #c8a44e, #8B6914, #c8a44e)" : undefined}
+        frameAnimation={isNeon ? "pulse" : undefined}
+      />
+      <span
+        className="text-xs font-black tracking-wide"
+        style={{
+          color: "#c8a44e",
+          textShadow: "0 0 6px rgba(200,164,78,0.7), 0 0 12px rgba(200,164,78,0.4)",
+          animation: "neon-pulse-name 2s ease-in-out infinite",
+        }}
+      >
+        {firstName}
+      </span>
       <div
-        className="rounded-full px-4 py-1 text-center font-black text-lg shadow-md"
+        className="rounded-full px-3 py-0.5 text-center font-black text-sm shadow-md"
         style={{
           background: "linear-gradient(180deg, #8B6914 0%, #6B4F10 100%)",
           color: "#fff",
           border: "2px solid #a07818",
-          minWidth: 48,
+          minWidth: 36,
         }}
       >
-        {value}
+        {count}
       </div>
-      {emoji && <span className="text-xl">{emoji}</span>}
     </div>
   );
 }
@@ -362,7 +381,14 @@ function isFullscreen() {
   return !!(document.fullscreenElement || (document as any).webkitFullscreenElement || (document as any).msFullscreenElement);
 }
 
-// ── Green Felt Background ──
+const NEON_NAME_STYLE_ID = "domino-neon-name-keyframes";
+if (typeof document !== "undefined" && !document.getElementById(NEON_NAME_STYLE_ID)) {
+  const s = document.createElement("style");
+  s.id = NEON_NAME_STYLE_ID;
+  s.textContent = `@keyframes neon-pulse-name { 0%, 100% { opacity: 1; text-shadow: 0 0 6px rgba(200,164,78,0.7), 0 0 12px rgba(200,164,78,0.4); } 50% { opacity: 0.6; text-shadow: 0 0 2px rgba(200,164,78,0.3); } }`;
+  document.head.appendChild(s);
+}
+
 const FELT_BG: React.CSSProperties = {
   background: "radial-gradient(ellipse at center, #2d8a4e 0%, #1e6b3a 40%, #145428 80%, #0e3d1c 100%)",
 };
@@ -1238,8 +1264,7 @@ export function DominoGame({ onBack }: { onBack: () => void }) {
             <div key={op.key}>
               <div className="flex justify-center pb-0.5">
                 <div className="flex items-center gap-1.5">
-                  <span className="text-white/80 text-xs font-bold">{op.name}</span>
-                  <ScoreboardBadge label={op.name} value={op.hand.length} emoji="😐" />
+                  <PlayerBadge name={op.name} count={op.hand.length} isNeon={gs?.currentTurn === op.key} />
                 </div>
               </div>
               <div className="flex justify-center gap-1 pb-1 px-4">
@@ -1349,7 +1374,7 @@ export function DominoGame({ onBack }: { onBack: () => void }) {
 
         {/* Player score badge */}
         <div className="relative z-10 flex justify-center pb-2">
-          <ScoreboardBadge label="EU" value={myHand.length} emoji="😊" />
+          <PlayerBadge name={playerName} count={myHand.length} avatarUrl={profile?.avatar_url} isNeon={isMyTurn} />
         </div>
 
         {/* Draw / Pass button */}
