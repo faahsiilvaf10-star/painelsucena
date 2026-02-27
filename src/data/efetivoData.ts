@@ -7,6 +7,13 @@ export interface ASOData {
   observacao?: string;   // Observações
 }
 
+export interface Promocao {
+  funcaoAnterior: string;
+  funcaoNova: string;
+  data: string; // DD/MM/YYYY
+  observacao?: string;
+}
+
 export interface Colaborador {
   id: number;
   nome: string;
@@ -18,6 +25,7 @@ export interface Colaborador {
   contato: string;
   localidade: string;
   aso?: ASOData;
+  promocoes?: Promocao[];
 }
 
 export const colaboradoresAtivos: Colaborador[] = [
