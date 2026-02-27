@@ -362,6 +362,7 @@ export type Database = {
           coroamento_unidade: number | null
           created_at: string
           created_by: string
+          extra_entries: Json | null
           id: string
           irrigacao_carretel: boolean | null
           irrigacao_carretel_bermas: number[] | null
@@ -404,6 +405,7 @@ export type Database = {
           coroamento_unidade?: number | null
           created_at?: string
           created_by: string
+          extra_entries?: Json | null
           id?: string
           irrigacao_carretel?: boolean | null
           irrigacao_carretel_bermas?: number[] | null
@@ -446,6 +448,7 @@ export type Database = {
           coroamento_unidade?: number | null
           created_at?: string
           created_by?: string
+          extra_entries?: Json | null
           id?: string
           irrigacao_carretel?: boolean | null
           irrigacao_carretel_bermas?: number[] | null

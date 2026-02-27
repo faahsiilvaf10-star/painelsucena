@@ -43,6 +43,7 @@ export interface JardinagemReport {
   plantio_grama_berma: number | null;
   atividades_manuais: string | null;
   photo_urls: string[] | null;
+  extra_entries: Record<string, { value: string; faixa: string; berma: string }[]> | null;
   created_at: string;
   updated_at: string;
 }
@@ -84,6 +85,7 @@ export interface JardinagemReportInsert {
   plantio_grama_berma?: number;
   atividades_manuais?: string;
   photo_urls?: string[];
+  extra_entries?: Record<string, { value: string; faixa: string; berma: string }[]>;
 }
 
 export const useJardinagemReports = (filterDate?: string) => {
@@ -150,6 +152,14 @@ export const useSaveJardinagemReport = () => {
 
       const reportDate = report.report_date || getBrazilNorthTodayString();
 
+      // Separate extra_entries since it may not be in the auto-generated types yet
+      const { extra_entries, ...restReport } = report;
+      const payload = {
+        ...restReport,
+        report_date: reportDate,
+        ...(extra_entries !== undefined ? { extra_entries: extra_entries as any } : {}),
+      };
+
       // Check if report for this date already exists
       const { data: existing } = await supabase
         .from("daily_jardinagem_reports")
@@ -158,14 +168,12 @@ export const useSaveJardinagemReport = () => {
         .maybeSingle();
 
       if (existing) {
-        // Update existing report
         const { data, error } = await supabase
           .from("daily_jardinagem_reports")
           .update({
-            ...report,
-            report_date: reportDate,
+            ...payload,
             updated_at: new Date().toISOString(),
-          })
+          } as any)
           .eq("id", existing.id)
           .select()
           .single();
@@ -173,14 +181,12 @@ export const useSaveJardinagemReport = () => {
         if (error) throw error;
         return data;
       } else {
-        // Create new report
         const { data, error } = await supabase
           .from("daily_jardinagem_reports")
           .insert({
-            ...report,
-            report_date: reportDate,
+            ...payload,
             created_by: user.id,
-          })
+          } as any)
           .select()
           .single();
 
@@ -217,19 +223,36 @@ export const useDeleteJardinagemReport = () => {
 };
 
 // Helper function to format jardinagem report for RDO
+// Helper to append extra entries for a given activity key
+const appendExtraLines = (
+  lines: string[],
+  extras: Record<string, { value: string; faixa: string; berma: string }[]> | null | undefined,
+  key: string,
+  label: string,
+  unit: string,
+) => {
+  if (!extras || !extras[key]) return;
+  extras[key].forEach((entry) => {
+    const v = parseFloat(entry.value);
+    if (!v || v <= 0) return;
+    const bermaText = entry.berma ? ` (Berma ${entry.berma})` : "";
+    const faixaText = entry.faixa ? ` - ${entry.faixa}` : "";
+    lines.push(`* ${label} - ${entry.value} ${unit}${bermaText}${faixaText}`);
+  });
+};
+
 export const formatJardinagemForRDO = (report: JardinagemReport | null): string => {
   if (!report) return "";
 
   const lines: string[] = [];
+  const extras = report.extra_entries;
   
   // Include the faixa (location) at the beginning
-  // Unicode escape sequences para compatibilidade total com WhatsApp
   if (report.local_faixa && report.local_faixa.trim()) {
     lines.push(`${EMOJI_PIN} Local: ${report.local_faixa}`);
-    lines.push(""); // Empty line for separation
+    lines.push("");
   }
   
-  // Helper function to format berma text
   const formatBerma = (berma: number | null | undefined): string => {
     return berma ? ` (Berma ${berma})` : "";
   };
@@ -238,32 +261,45 @@ export const formatJardinagemForRDO = (report: JardinagemReport | null): string 
     const faixaText = report.rocagem_faixa ? ` - ${report.rocagem_faixa}` : "";
     lines.push(`* Roçagem - ${report.rocagem_m2} m²${formatBerma(report.rocagem_berma)}${faixaText}`);
   }
+  appendExtraLines(lines, extras, "rocagem", "Roçagem", "m²");
+
   if (report.podagem_unidade && report.podagem_unidade > 0) {
     const faixaText = report.podagem_faixa ? ` - ${report.podagem_faixa}` : "";
     lines.push(`* Podagem - ${report.podagem_unidade} unidade(s)${formatBerma(report.podagem_berma)}${faixaText}`);
   }
+  appendExtraLines(lines, extras, "podagem", "Podagem", "unidade(s)");
+
   if (report.coroamento_unidade && report.coroamento_unidade > 0) {
     const faixaText = report.coroamento_faixa ? ` - ${report.coroamento_faixa}` : "";
     lines.push(`* Coroamento - ${report.coroamento_unidade} unidade(s)${formatBerma(report.coroamento_berma)}${faixaText}`);
   }
+  appendExtraLines(lines, extras, "coroamento", "Coroamento", "unidade(s)");
+
   if (report.adubagem_unidade && report.adubagem_unidade > 0) {
     const faixaText = report.adubagem_faixa ? ` - ${report.adubagem_faixa}` : "";
     lines.push(`* Adubagem - ${report.adubagem_unidade} unidade(s)${formatBerma(report.adubagem_berma)}${faixaText}`);
   }
+  appendExtraLines(lines, extras, "adubagem", "Adubagem", "unidade(s)");
+
   if (report.plantio_unidade && report.plantio_unidade > 0) {
     const faixaText = report.plantio_faixa ? ` - ${report.plantio_faixa}` : "";
     lines.push(`* Plantio - ${report.plantio_unidade} unidade(s)${formatBerma(report.plantio_berma)}${faixaText}`);
   }
+  appendExtraLines(lines, extras, "plantio", "Plantio", "unidade(s)");
+
   if (report.limpeza_manual_m2 && report.limpeza_manual_m2 > 0) {
     const faixaText = report.limpeza_manual_faixa ? ` - ${report.limpeza_manual_faixa}` : "";
     lines.push(`* Limpeza Manual - ${report.limpeza_manual_m2} m²${formatBerma(report.limpeza_manual_berma)}${faixaText}`);
   }
+  appendExtraLines(lines, extras, "limpezaManual", "Limpeza Manual", "m²");
+
   if (report.limpeza_assoprador_m2 && report.limpeza_assoprador_m2 > 0) {
     const faixaText = report.limpeza_assoprador_faixa ? ` - ${report.limpeza_assoprador_faixa}` : "";
     lines.push(`* Limpeza com Soprador - ${report.limpeza_assoprador_m2} m²${formatBerma(report.limpeza_assoprador_berma)}${faixaText}`);
   }
+  appendExtraLines(lines, extras, "limpezaAssoprador", "Limpeza com Soprador", "m²");
   
-  // Handle invasoras - can be JSON array or single value
+  // Handle invasoras
   if (report.controle_invasoras_nome && report.controle_invasoras_nome.startsWith("[")) {
     try {
       const invasoras = JSON.parse(report.controle_invasoras_nome) as { nome: string; unidade: string }[];
@@ -274,7 +310,6 @@ export const formatJardinagemForRDO = (report: JardinagemReport | null): string 
         }
       });
     } catch {
-      // Fallback to single value
       if (report.controle_invasoras_unidade && report.controle_invasoras_unidade > 0) {
         const nomeInvasora = report.controle_invasoras_nome ? ` (${report.controle_invasoras_nome})` : "";
         lines.push(`* Controle de Invasoras${nomeInvasora} - ${report.controle_invasoras_unidade} unidade(s)${formatBerma(report.controle_invasoras_berma)}`);
@@ -289,14 +324,13 @@ export const formatJardinagemForRDO = (report: JardinagemReport | null): string 
     lines.push(`* Retirada de Mudas (Árvores) - ${report.retirada_mudas_unidade} unidade(s)`);
   }
   
-  // Plantio de Grama
   if (report.plantio_grama_m2 && report.plantio_grama_m2 > 0) {
     const faixaText = report.plantio_grama_faixa ? ` - ${report.plantio_grama_faixa}` : "";
     const bermaText = report.plantio_grama_berma ? ` (Berma ${report.plantio_grama_berma})` : "";
     lines.push(`* Plantio de Grama - ${report.plantio_grama_m2} m²${bermaText}${faixaText}`);
   }
+  appendExtraLines(lines, extras, "plantioGrama", "Plantio de Grama", "m²");
   
-  // Atividades manuais
   if (report.atividades_manuais) {
     lines.push(`* ${report.atividades_manuais}`);
   }
@@ -305,7 +339,6 @@ export const formatJardinagemForRDO = (report: JardinagemReport | null): string 
     lines.push(`* Manutenção de Canteiro: ${report.manutencao_canteiro}`);
   }
   
-  // Irrigation activities
   if (report.irrigacao_pipas) {
     lines.push(`* Irrigação com Pipas nas Faixas 3 e 4 e Mirante`);
   }
