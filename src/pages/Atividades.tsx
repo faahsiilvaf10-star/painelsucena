@@ -1240,26 +1240,47 @@ export default function Atividades() {
                 <p className="font-bold">📍 Local: {getFaixaLabel(localFaixa)}</p>
                 <div className="border-t pt-2 mt-2 space-y-1">
                   {rocagem && parseFloat(rocagem) > 0 && (
-                    <p>* Roçagem - {rocagem} m²{rocagemBerma && ` (Berma ${rocagemBerma})`}</p>
+                    <p>* Roçagem - {rocagem} m²{rocagemBerma && ` (Berma ${rocagemBerma})`}{rocagemFaixa && ` - ${rocagemFaixa}`}</p>
                   )}
+                  {(extraEntries["rocagem"] || []).map((e, i) => parseFloat(e.value) > 0 && (
+                    <p key={`rocagem-${i}`}>* Roçagem - {e.value} m²{e.berma && ` (Berma ${e.berma})`}{e.faixa && ` - ${e.faixa}`}</p>
+                  ))}
                   {podagem && parseInt(podagem) > 0 && (
-                    <p>* Podagem - {podagem} unidade(s){podagemBerma && ` (Berma ${podagemBerma})`}</p>
+                    <p>* Podagem - {podagem} unidade(s){podagemBerma && ` (Berma ${podagemBerma})`}{podagemFaixa && ` - ${podagemFaixa}`}</p>
                   )}
+                  {(extraEntries["podagem"] || []).map((e, i) => parseFloat(e.value) > 0 && (
+                    <p key={`podagem-${i}`}>* Podagem - {e.value} unidade(s){e.berma && ` (Berma ${e.berma})`}{e.faixa && ` - ${e.faixa}`}</p>
+                  ))}
                   {coroamento && parseInt(coroamento) > 0 && (
-                    <p>* Coroamento - {coroamento} unidade(s){coroamentoBerma && ` (Berma ${coroamentoBerma})`}</p>
+                    <p>* Coroamento - {coroamento} unidade(s){coroamentoBerma && ` (Berma ${coroamentoBerma})`}{coroamentoFaixa && ` - ${coroamentoFaixa}`}</p>
                   )}
+                  {(extraEntries["coroamento"] || []).map((e, i) => parseFloat(e.value) > 0 && (
+                    <p key={`coroamento-${i}`}>* Coroamento - {e.value} unidade(s){e.berma && ` (Berma ${e.berma})`}{e.faixa && ` - ${e.faixa}`}</p>
+                  ))}
                   {adubagem && parseInt(adubagem) > 0 && (
-                    <p>* Adubagem - {adubagem} unidade(s){adubagemBerma && ` (Berma ${adubagemBerma})`}</p>
+                    <p>* Adubagem - {adubagem} unidade(s){adubagemBerma && ` (Berma ${adubagemBerma})`}{adubagemFaixa && ` - ${adubagemFaixa}`}</p>
                   )}
+                  {(extraEntries["adubagem"] || []).map((e, i) => parseFloat(e.value) > 0 && (
+                    <p key={`adubagem-${i}`}>* Adubagem - {e.value} unidade(s){e.berma && ` (Berma ${e.berma})`}{e.faixa && ` - ${e.faixa}`}</p>
+                  ))}
                   {plantio && parseInt(plantio) > 0 && (
-                    <p>* Plantio - {plantio} unidade(s){plantioBerma && ` (Berma ${plantioBerma})`}</p>
+                    <p>* Plantio - {plantio} unidade(s){plantioBerma && ` (Berma ${plantioBerma})`}{plantioFaixa && ` - ${plantioFaixa}`}</p>
                   )}
+                  {(extraEntries["plantio"] || []).map((e, i) => parseFloat(e.value) > 0 && (
+                    <p key={`plantio-${i}`}>* Plantio - {e.value} unidade(s){e.berma && ` (Berma ${e.berma})`}{e.faixa && ` - ${e.faixa}`}</p>
+                  ))}
                   {limpezaManual && parseFloat(limpezaManual) > 0 && (
-                    <p>* Limpeza Manual - {limpezaManual} m²{limpezaManualBerma && ` (Berma ${limpezaManualBerma})`}</p>
+                    <p>* Limpeza Manual - {limpezaManual} m²{limpezaManualBerma && ` (Berma ${limpezaManualBerma})`}{limpezaManualFaixa && ` - ${limpezaManualFaixa}`}</p>
                   )}
+                  {(extraEntries["limpezaManual"] || []).map((e, i) => parseFloat(e.value) > 0 && (
+                    <p key={`limpezaManual-${i}`}>* Limpeza Manual - {e.value} m²{e.berma && ` (Berma ${e.berma})`}{e.faixa && ` - ${e.faixa}`}</p>
+                  ))}
                   {limpezaAssoprador && parseFloat(limpezaAssoprador) > 0 && (
-                    <p>* Limpeza com Soprador - {limpezaAssoprador} m²{limpezaAssopradorBerma && ` (Berma ${limpezaAssopradorBerma})`}</p>
+                    <p>* Limpeza com Soprador - {limpezaAssoprador} m²{limpezaAssopradorBerma && ` (Berma ${limpezaAssopradorBerma})`}{limpezaAssopradorFaixa && ` - ${limpezaAssopradorFaixa}`}</p>
                   )}
+                  {(extraEntries["limpezaAssoprador"] || []).map((e, i) => parseFloat(e.value) > 0 && (
+                    <p key={`limpezaAssoprador-${i}`}>* Limpeza com Soprador - {e.value} m²{e.berma && ` (Berma ${e.berma})`}{e.faixa && ` - ${e.faixa}`}</p>
+                  ))}
                   {invasoras.some(i => i.unidade && parseInt(i.unidade) > 0) && (
                     invasoras.filter(i => i.unidade && parseInt(i.unidade) > 0).map((inv, idx) => (
                       <p key={idx}>* Controle de Invasoras{inv.nome ? ` (${inv.nome})` : ""} - {inv.unidade} unidade(s){invasorasBerma && ` (Berma ${invasorasBerma})`}</p>
@@ -1271,6 +1292,9 @@ export default function Atividades() {
                   {plantioGrama && parseFloat(plantioGrama) > 0 && (
                     <p>* Plantio de Grama - {plantioGrama} m²{plantioGramaBerma && ` (Berma ${plantioGramaBerma})`}{plantioGramaFaixa && ` - ${plantioGramaFaixa}`}</p>
                   )}
+                  {(extraEntries["plantioGrama"] || []).map((e, i) => parseFloat(e.value) > 0 && (
+                    <p key={`plantioGrama-${i}`}>* Plantio de Grama - {e.value} m²{e.berma && ` (Berma ${e.berma})`}{e.faixa && ` - ${e.faixa}`}</p>
+                  ))}
                   {atividadesManuais && (
                     <p>* {atividadesManuais}</p>
                   )}
@@ -1283,7 +1307,7 @@ export default function Atividades() {
                   {irrigacaoCarretel && (
                     <p>* Irrigação com Carretel{irrigacaoCarretelBermas.length > 0 && ` (Bermas: ${irrigacaoCarretelBermas.join(", ")})`}</p>
                   )}
-                  {!rocagem && !podagem && !coroamento && !adubagem && !plantio && !limpezaManual && !limpezaAssoprador && !invasoras.some(i => i.unidade && parseInt(i.unidade) > 0) && !retiradaMudasUnidade && !manutencaoCanteiro && !irrigacaoPipas && !irrigacaoCarretel && !plantioGrama && !atividadesManuais && (
+                  {!rocagem && !podagem && !coroamento && !adubagem && !plantio && !limpezaManual && !limpezaAssoprador && !invasoras.some(i => i.unidade && parseInt(i.unidade) > 0) && !retiradaMudasUnidade && !manutencaoCanteiro && !irrigacaoPipas && !irrigacaoCarretel && !plantioGrama && !atividadesManuais && Object.keys(extraEntries).length === 0 && (
                     <p className="text-muted-foreground italic">Nenhuma atividade preenchida</p>
                   )}
                 </div>
