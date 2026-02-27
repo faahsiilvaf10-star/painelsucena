@@ -31,7 +31,8 @@ const Presenca = () => {
   const {
     data: attendanceRecords,
     isLoading,
-    error
+    error,
+    refetch
   } = useAttendanceRecords(today);
   const updateAttendance = useUpdateAttendance();
   const deleteAttendance = useDeleteAttendance();
@@ -77,6 +78,7 @@ const Presenca = () => {
     if (!confirm(`Remover ${employeeName} da lista de presença de hoje?`)) return;
     try {
       await deleteAttendance.mutateAsync(recordId);
+      await refetch();
       toast.success(`${employeeName} removido da lista`);
     } catch {
       toast.error("Erro ao remover registro");
