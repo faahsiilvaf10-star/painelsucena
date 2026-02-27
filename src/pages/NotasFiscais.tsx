@@ -14,7 +14,6 @@ import { Input } from "@/components/ui/input";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogFooter } from "@/components/ui/dialog";
 import { Label } from "@/components/ui/label";
-import { Textarea } from "@/components/ui/textarea";
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
 import { Badge } from "@/components/ui/badge";
 import { Skeleton } from "@/components/ui/skeleton";
@@ -27,11 +26,7 @@ const NotasFiscais = () => {
 
   const [dialogOpen, setDialogOpen] = useState(false);
   const [searchTerm, setSearchTerm] = useState("");
-  const [numero, setNumero] = useState("");
-  const [fornecedor, setFornecedor] = useState("");
-  const [valor, setValor] = useState("");
-  const [dataEmissao, setDataEmissao] = useState(format(new Date(), "yyyy-MM-dd"));
-  const [descricao, setDescricao] = useState("");
+  const [titulo, setTitulo] = useState("");
   const [file, setFile] = useState<File | null>(null);
   const [uploading, setUploading] = useState(false);
   const [previewUrl, setPreviewUrl] = useState<string | null>(null);
@@ -73,11 +68,11 @@ const NotasFiscais = () => {
       }
 
       const { error } = await supabase.from("notas_fiscais").insert({
-        numero,
-        fornecedor,
-        valor: valor ? parseFloat(valor) : null,
-        data_emissao: dataEmissao,
-        descricao: descricao || null,
+        numero: titulo,
+        fornecedor: titulo,
+        valor: null,
+        data_emissao: format(new Date(), "yyyy-MM-dd"),
+        descricao: null,
         file_url: fileUrl,
         file_name: fileName,
         created_by: user.id,
@@ -108,17 +103,13 @@ const NotasFiscais = () => {
 
   const resetForm = () => {
     setDialogOpen(false);
-    setNumero("");
-    setFornecedor("");
-    setValor("");
-    setDataEmissao(format(new Date(), "yyyy-MM-dd"));
-    setDescricao("");
+    setTitulo("");
     setFile(null);
   };
 
   const handleSubmit = async () => {
-    if (!numero || !fornecedor) {
-      toast.error("Preencha número e fornecedor");
+    if (!titulo) {
+      toast.error("Preencha o título da nota fiscal");
       return;
     }
     setUploading(true);
@@ -128,17 +119,8 @@ const NotasFiscais = () => {
 
   const filtered = notas?.filter((n) => {
     const term = searchTerm.toLowerCase();
-    return (
-      n.numero.toLowerCase().includes(term) ||
-      n.fornecedor.toLowerCase().includes(term) ||
-      (n.descricao && n.descricao.toLowerCase().includes(term))
-    );
+    return n.numero.toLowerCase().includes(term);
   });
-
-  const formatCurrency = (value: number | null) => {
-    if (value === null || value === undefined) return "-";
-    return new Intl.NumberFormat("pt-BR", { style: "currency", currency: "BRL" }).format(value);
-  };
 
   return (
     <div className="min-h-screen bg-background p-4 md:p-6 space-y-6">
@@ -165,7 +147,7 @@ const NotasFiscais = () => {
       <div className="relative max-w-md">
         <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground" />
         <Input
-          placeholder="Buscar por número, fornecedor..."
+          placeholder="Buscar por título..."
           value={searchTerm}
           onChange={(e) => setSearchTerm(e.target.value)}
           className="pl-10"
@@ -184,13 +166,10 @@ const NotasFiscais = () => {
           ) : filtered && filtered.length > 0 ? (
             <div className="overflow-x-auto">
               <Table>
-                <TableHeader>
+                 <TableHeader>
                   <TableRow>
-                    <TableHead>Número</TableHead>
-                    <TableHead>Fornecedor</TableHead>
-                    <TableHead className="hidden md:table-cell">Valor</TableHead>
-                    <TableHead className="hidden sm:table-cell">Data Emissão</TableHead>
-                    <TableHead className="hidden lg:table-cell">Descrição</TableHead>
+                    <TableHead>Título</TableHead>
+                    <TableHead className="hidden sm:table-cell">Data</TableHead>
                     <TableHead>Arquivo</TableHead>
                     {isAdmin && <TableHead className="w-16">Ação</TableHead>}
                   </TableRow>
@@ -199,15 +178,8 @@ const NotasFiscais = () => {
                   {filtered.map((nota) => (
                     <TableRow key={nota.id}>
                       <TableCell className="font-medium">{nota.numero}</TableCell>
-                      <TableCell>{nota.fornecedor}</TableCell>
-                      <TableCell className="hidden md:table-cell">
-                        {formatCurrency(nota.valor)}
-                      </TableCell>
                       <TableCell className="hidden sm:table-cell">
-                        {format(new Date(nota.data_emissao + "T12:00:00"), "dd/MM/yyyy")}
-                      </TableCell>
-                      <TableCell className="hidden lg:table-cell max-w-[200px] truncate">
-                        {nota.descricao || "-"}
+                        {format(new Date(nota.created_at), "dd/MM/yyyy", { locale: ptBR })}
                       </TableCell>
                       <TableCell>
                         {nota.file_url ? (
@@ -268,24 +240,8 @@ const NotasFiscais = () => {
           </DialogHeader>
           <div className="space-y-4">
             <div>
-              <Label>Número da NF *</Label>
-              <Input value={numero} onChange={(e) => setNumero(e.target.value)} placeholder="Ex: 12345" />
-            </div>
-            <div>
-              <Label>Fornecedor *</Label>
-              <Input value={fornecedor} onChange={(e) => setFornecedor(e.target.value)} placeholder="Nome do fornecedor" />
-            </div>
-            <div>
-              <Label>Valor (R$)</Label>
-              <Input type="number" step="0.01" value={valor} onChange={(e) => setValor(e.target.value)} placeholder="0,00" />
-            </div>
-            <div>
-              <Label>Data de Emissão</Label>
-              <Input type="date" value={dataEmissao} onChange={(e) => setDataEmissao(e.target.value)} />
-            </div>
-            <div>
-              <Label>Descrição</Label>
-              <Textarea value={descricao} onChange={(e) => setDescricao(e.target.value)} placeholder="Descrição opcional" rows={2} />
+              <Label>Título da Nota Fiscal *</Label>
+              <Input value={titulo} onChange={(e) => setTitulo(e.target.value)} placeholder="Ex: NF 12345 - Fornecedor" />
             </div>
             <div>
               <Label>Arquivo (PDF/Imagem)</Label>
