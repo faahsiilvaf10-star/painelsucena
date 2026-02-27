@@ -315,7 +315,9 @@ export default function Atividades() {
       setPlantioGramaBerma(existingReport.plantio_grama_berma?.toString() || "");
       setAtividadesManuais(existingReport.atividades_manuais || "");
       setPhotos(existingReport.photo_urls || []);
-      setExtraEntries({});
+      setExtraEntries(
+        (existingReport.extra_entries as Record<string, ActivityEntry[]>) || {}
+      );
     } else {
       // Reset form for new date
       setLocalFaixa("FAIXA 2");
@@ -438,6 +440,7 @@ export default function Atividades() {
         plantio_grama_berma: plantioGramaBerma ? parseInt(plantioGramaBerma) : undefined,
         atividades_manuais: atividadesManuais || undefined,
         photo_urls: photos.length > 0 ? photos : undefined,
+        extra_entries: Object.keys(extraEntries).length > 0 ? extraEntries : undefined,
       });
       
       toast.success("Atividades salvas com sucesso!");
@@ -457,30 +460,52 @@ export default function Atividades() {
     const lines: string[] = [];
     const formatBerma = (berma: string): string => berma ? ` (Berma ${berma})` : "";
     const formatFaixa = (faixa: string): string => faixa ? ` - ${faixa}` : "";
+
+    const appendExtras = (key: string, label: string, unit: string) => {
+      (extraEntries[key] || []).forEach(entry => {
+        const v = parseFloat(entry.value);
+        if (!v || v <= 0) return;
+        const bermaText = entry.berma ? ` (Berma ${entry.berma})` : "";
+        const faixaText = entry.faixa ? ` - ${entry.faixa}` : "";
+        lines.push(`* ${label} - ${entry.value} ${unit}${bermaText}${faixaText}`);
+      });
+    };
     
-    // Only include activities with values > 0
     if (rocagem && parseFloat(rocagem) > 0) {
       lines.push(`* Roçagem - ${rocagem} m²${formatBerma(rocagemBerma)}${formatFaixa(rocagemFaixa)}`);
     }
+    appendExtras("rocagem", "Roçagem", "m²");
+
     if (podagem && parseInt(podagem) > 0) {
       lines.push(`* Podagem - ${podagem} unidade(s)${formatBerma(podagemBerma)}${formatFaixa(podagemFaixa)}`);
     }
+    appendExtras("podagem", "Podagem", "unidade(s)");
+
     if (coroamento && parseInt(coroamento) > 0) {
       lines.push(`* Coroamento - ${coroamento} unidade(s)${formatBerma(coroamentoBerma)}${formatFaixa(coroamentoFaixa)}`);
     }
+    appendExtras("coroamento", "Coroamento", "unidade(s)");
+
     if (adubagem && parseInt(adubagem) > 0) {
       lines.push(`* Adubagem - ${adubagem} unidade(s)${formatBerma(adubagemBerma)}${formatFaixa(adubagemFaixa)}`);
     }
+    appendExtras("adubagem", "Adubagem", "unidade(s)");
+
     if (plantio && parseInt(plantio) > 0) {
       lines.push(`* Plantio - ${plantio} unidade(s)${formatBerma(plantioBerma)}${formatFaixa(plantioFaixa)}`);
     }
+    appendExtras("plantio", "Plantio", "unidade(s)");
+
     if (limpezaManual && parseFloat(limpezaManual) > 0) {
       lines.push(`* Limpeza Manual - ${limpezaManual} m²${formatBerma(limpezaManualBerma)}${formatFaixa(limpezaManualFaixa)}`);
     }
+    appendExtras("limpezaManual", "Limpeza Manual", "m²");
+
     if (limpezaAssoprador && parseFloat(limpezaAssoprador) > 0) {
       lines.push(`* Limpeza com Soprador - ${limpezaAssoprador} m²${formatBerma(limpezaAssopradorBerma)}${formatFaixa(limpezaAssopradorFaixa)}`);
     }
-    // Only include invasoras with unidade > 0
+    appendExtras("limpezaAssoprador", "Limpeza com Soprador", "m²");
+
     const filteredInvasoras = invasoras.filter(i => i.unidade && parseInt(i.unidade) > 0);
     filteredInvasoras.forEach(inv => {
       const nomeText = inv.nome ? ` (${inv.nome})` : "";
@@ -489,13 +514,13 @@ export default function Atividades() {
     
     if (retiradaMudasUnidade && parseInt(retiradaMudasUnidade) > 0) lines.push(`* Retirada de Mudas (Árvores) - ${retiradaMudasUnidade} unidade(s)`);
     if (manutencaoCanteiro && manutencaoCanteiro.trim()) lines.push(`* Manutenção de Canteiro: ${manutencaoCanteiro}`);
-    // Plantio de Grama
     if (plantioGrama && parseFloat(plantioGrama) > 0) {
       const faixaText = plantioGramaFaixa ? ` - ${plantioGramaFaixa}` : "";
       const bermaText = plantioGramaBerma ? ` (Berma ${plantioGramaBerma})` : "";
       lines.push(`* Plantio de Grama - ${plantioGrama} m²${bermaText}${faixaText}`);
     }
-    // Atividades Manuais
+    appendExtras("plantioGrama", "Plantio de Grama", "m²");
+
     if (atividadesManuais && atividadesManuais.trim()) lines.push(`* ${atividadesManuais}`);
     if (irrigacaoPipas) lines.push(`* Irrigação com Pipas nas Faixas 3 e 4 e Mirante`);
     if (irrigacaoCarretel && irrigacaoCarretelBermas.length > 0) {
