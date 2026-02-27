@@ -4,6 +4,8 @@ import { copyAndShareWhatsApp, copyToClipboard } from "@/lib/copyAndShare";
 import { format, parseISO } from "date-fns";
 import { ptBR } from "date-fns/locale";
 import { Leaf, Save, Loader2, Calendar, Trash2, History, ArrowRight, Plus, X, Copy, Droplets, MessageCircle, Sprout } from "lucide-react";
+import { type ActivityEntry } from "@/components/atividades/ExtraActivityEntries";
+import { ExtraActivityEntries, AddMoreButton } from "@/components/atividades/ExtraActivityEntries";
 import { toast } from "sonner";
 import { useNavigate } from "react-router-dom";
 import Layout from "@/components/layout/Layout";
@@ -167,6 +169,34 @@ export default function Atividades() {
   const [plantioGrama, setPlantioGrama] = useState("");
   const [plantioGramaFaixa, setPlantioGramaFaixa] = useState("");
   const [plantioGramaBerma, setPlantioGramaBerma] = useState("");
+
+  // Extra entries for multi-line activities
+  const [extraEntries, setExtraEntries] = useState<Record<string, ActivityEntry[]>>({});
+  
+  const addExtraEntry = (key: string) => {
+    setExtraEntries(prev => ({
+      ...prev,
+      [key]: [...(prev[key] || []), { value: "", faixa: "", berma: "" }],
+    }));
+  };
+  
+  const updateExtraEntry = (key: string, index: number, field: keyof ActivityEntry, val: string) => {
+    setExtraEntries(prev => {
+      const entries = [...(prev[key] || [])];
+      entries[index] = { ...entries[index], [field]: val };
+      return { ...prev, [key]: entries };
+    });
+  };
+  
+  const removeExtraEntry = (key: string, index: number) => {
+    setExtraEntries(prev => {
+      const entries = (prev[key] || []).filter((_, i) => i !== index);
+      const next = { ...prev };
+      if (entries.length === 0) delete next[key];
+      else next[key] = entries;
+      return next;
+    });
+  };
   
   // Atividades manuais state
   const [atividadesManuais, setAtividadesManuais] = useState("");
@@ -285,6 +315,7 @@ export default function Atividades() {
       setPlantioGramaBerma(existingReport.plantio_grama_berma?.toString() || "");
       setAtividadesManuais(existingReport.atividades_manuais || "");
       setPhotos(existingReport.photo_urls || []);
+      setExtraEntries({});
     } else {
       // Reset form for new date
       setLocalFaixa("FAIXA 2");
@@ -323,6 +354,7 @@ export default function Atividades() {
       setPlantioGramaBerma("");
       setAtividadesManuais("");
       setPhotos([]);
+      setExtraEntries({});
     }
   }, [existingReport, selectedDateStr]);
 
@@ -781,92 +813,74 @@ export default function Atividades() {
               {/* Activity Fields */}
               <div className="space-y-4">
                 {/* Roçagem */}
-                <div className="grid grid-cols-1 md:grid-cols-[1fr_140px_140px] gap-3 p-3 rounded-lg bg-muted/30">
-                  <div className="space-y-2">
-                    <Label>ROÇAGEM (m²)</Label>
-                    <Input
-                      type="number"
-                      min="0"
-                      step="0.01"
-                      value={rocagem}
-                      onChange={(e) => setRocagem(e.target.value)}
-                      placeholder="0.00"
-                    />
+                <div className="p-3 rounded-lg bg-muted/30 space-y-0">
+                  <div className="grid grid-cols-1 md:grid-cols-[1fr_140px_140px_auto] gap-3">
+                    <div className="space-y-2">
+                      <Label>ROÇAGEM (m²)</Label>
+                      <Input
+                        type="number"
+                        min="0"
+                        step="0.01"
+                        value={rocagem}
+                        onChange={(e) => setRocagem(e.target.value)}
+                        placeholder="0.00"
+                      />
+                    </div>
+                    <div className="space-y-2">
+                      <Label>Faixa</Label>
+                      <Select value={rocagemFaixa} onValueChange={setRocagemFaixa}>
+                        <SelectTrigger>
+                          <SelectValue placeholder="Selecione" />
+                        </SelectTrigger>
+                        <SelectContent>
+                          {FAIXA_OPTIONS.map((opt) => (
+                            <SelectItem key={opt.value} value={opt.value}>{opt.label}</SelectItem>
+                          ))}
+                        </SelectContent>
+                      </Select>
+                    </div>
+                    <div className="space-y-2">
+                      <Label>Berma</Label>
+                      <Select value={rocagemBerma} onValueChange={setRocagemBerma}>
+                        <SelectTrigger>
+                          <SelectValue placeholder="Selecione" />
+                        </SelectTrigger>
+                        <SelectContent>
+                          {BERMA_OPTIONS.map((opt) => (
+                            <SelectItem key={opt.value} value={opt.value}>{opt.label}</SelectItem>
+                          ))}
+                        </SelectContent>
+                      </Select>
+                    </div>
+                    <div className="flex items-end">
+                      <AddMoreButton activityKey="rocagem" onAdd={addExtraEntry} />
+                    </div>
                   </div>
-                  <div className="space-y-2">
-                    <Label>Faixa</Label>
-                    <Select value={rocagemFaixa} onValueChange={setRocagemFaixa}>
-                      <SelectTrigger>
-                        <SelectValue placeholder="Selecione" />
-                      </SelectTrigger>
-                      <SelectContent>
-                        {FAIXA_OPTIONS.map((opt) => (
-                          <SelectItem key={opt.value} value={opt.value}>
-                            {opt.label}
-                          </SelectItem>
-                        ))}
-                      </SelectContent>
-                    </Select>
-                  </div>
-                  <div className="space-y-2">
-                    <Label>Berma</Label>
-                    <Select value={rocagemBerma} onValueChange={setRocagemBerma}>
-                      <SelectTrigger>
-                        <SelectValue placeholder="Selecione" />
-                      </SelectTrigger>
-                      <SelectContent>
-                        {BERMA_OPTIONS.map((opt) => (
-                          <SelectItem key={opt.value} value={opt.value}>
-                            {opt.label}
-                          </SelectItem>
-                        ))}
-                      </SelectContent>
-                    </Select>
-                  </div>
+                  <ExtraActivityEntries
+                    activityKey="rocagem"
+                    entries={extraEntries.rocagem || []}
+                    onAdd={addExtraEntry}
+                    onUpdate={updateExtraEntry}
+                    onRemove={removeExtraEntry}
+                    faixaOptions={FAIXA_OPTIONS}
+                    bermaOptions={BERMA_OPTIONS}
+                    inputType="number"
+                    step="0.01"
+                  />
                 </div>
 
                 {/* Podagem */}
-                <div className="grid grid-cols-1 md:grid-cols-[1fr_140px_140px] gap-3 p-3 rounded-lg bg-muted/30">
-                  <div className="space-y-2">
+                <div className="p-3 rounded-lg bg-muted/30 space-y-2">
+                  <div className="flex items-center justify-between">
                     <Label>PODAGEM (Unidade)</Label>
-                    <Input
-                      type="number"
-                      min="0"
-                      value={podagem}
-                      onChange={(e) => setPodagem(e.target.value)}
-                      placeholder="0"
-                    />
+                    <AddMoreButton activityKey="podagem" onAdd={addExtraEntry} />
                   </div>
-                  <div className="space-y-2">
-                    <Label>Faixa</Label>
-                    <Select value={podagemFaixa} onValueChange={setPodagemFaixa}>
-                      <SelectTrigger>
-                        <SelectValue placeholder="Selecione" />
-                      </SelectTrigger>
-                      <SelectContent>
-                        {FAIXA_OPTIONS.map((opt) => (
-                          <SelectItem key={opt.value} value={opt.value}>
-                            {opt.label}
-                          </SelectItem>
-                        ))}
-                      </SelectContent>
-                    </Select>
+                  <div className="grid grid-cols-1 md:grid-cols-[1fr_140px_140px] gap-3">
+                    <Input type="number" min="0" value={podagem} onChange={(e) => setPodagem(e.target.value)} placeholder="0" />
+                    <Select value={podagemFaixa} onValueChange={setPodagemFaixa}><SelectTrigger><SelectValue placeholder="Faixa" /></SelectTrigger><SelectContent>{FAIXA_OPTIONS.map((opt) => (<SelectItem key={opt.value} value={opt.value}>{opt.label}</SelectItem>))}</SelectContent></Select>
+                    <Select value={podagemBerma} onValueChange={setPodagemBerma}><SelectTrigger><SelectValue placeholder="Berma" /></SelectTrigger><SelectContent>{BERMA_OPTIONS.map((opt) => (<SelectItem key={opt.value} value={opt.value}>{opt.label}</SelectItem>))}</SelectContent></Select>
                   </div>
-                  <div className="space-y-2">
-                    <Label>Berma</Label>
-                    <Select value={podagemBerma} onValueChange={setPodagemBerma}>
-                      <SelectTrigger>
-                        <SelectValue placeholder="Selecione" />
-                      </SelectTrigger>
-                      <SelectContent>
-                        {BERMA_OPTIONS.map((opt) => (
-                          <SelectItem key={opt.value} value={opt.value}>
-                            {opt.label}
-                          </SelectItem>
-                        ))}
-                      </SelectContent>
-                    </Select>
-                  </div>
+                  <ExtraActivityEntries activityKey="podagem" entries={extraEntries.podagem || []} onAdd={addExtraEntry} onUpdate={updateExtraEntry} onRemove={removeExtraEntry} faixaOptions={FAIXA_OPTIONS} bermaOptions={BERMA_OPTIONS} />
                 </div>
 
                 {/* Coroamento */}
