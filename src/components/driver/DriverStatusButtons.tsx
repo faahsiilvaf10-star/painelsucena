@@ -333,10 +333,12 @@ export function DriverStatusButtons() {
       
       if (selectedVehicleId) {
         try {
+          const today = new Date().toISOString().split("T")[0];
           const { data: prevShift } = await supabase
             .from("daily_shift_records")
             .select("final_horimeter, final_km, initial_horimeter, initial_km")
             .eq("equipment_id", selectedVehicleId)
+            .lt("shift_date", today)
             .order("shift_date", { ascending: false })
             .limit(1)
             .maybeSingle();
@@ -570,7 +572,15 @@ export function DriverStatusButtons() {
               </AlertDescription>
             </Alert>
 
-            {/* Horimeter and KM inputs - REQUIRED */}
+            {/* Horimeter and KM inputs - auto-filled from previous day */}
+            {startShiftHorimeter && startShiftKm && (
+              <Alert className="bg-emerald-50 dark:bg-emerald-950/30 border-emerald-200 dark:border-emerald-800">
+                <Info className="h-4 w-4 text-emerald-500" />
+                <AlertDescription className="text-xs text-emerald-700 dark:text-emerald-300">
+                  Valores preenchidos automaticamente com o final do dia anterior.
+                </AlertDescription>
+              </Alert>
+            )}
             <div className="grid grid-cols-2 gap-3">
               <div className="space-y-1.5">
                 <Label htmlFor="start-horimeter" className="text-xs flex items-center gap-1.5">
