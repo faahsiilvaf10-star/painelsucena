@@ -582,6 +582,20 @@ export default function Atividades() {
 
     try {
       await deleteReport.mutateAsync(existingReport.id);
+      // Reset all form state after deletion
+      setRocagem(""); setRocagemBerma(""); setRocagemFaixa("");
+      setPodagem(""); setPodagemBerma(""); setPodagemFaixa("");
+      setCoroamento(""); setCoroamentoBerma(""); setCoroamentoFaixa("");
+      setAdubagem(""); setAdubagemBerma(""); setAdubagemFaixa("");
+      setPlantio(""); setPlantioBerma(""); setPlantioFaixa("");
+      setLimpezaManual(""); setLimpezaManualBerma(""); setLimpezaManualFaixa("");
+      setLimpezaAssoprador(""); setLimpezaAssopradorBerma(""); setLimpezaAssopradorFaixa("");
+      setManutencaoCanteiro("");
+      setInvasoras([{ nome: "", unidade: "" }]); setInvasorasBerma("");
+      setRetiradaMudasUnidade("");
+      setPlantioGrama(""); setPlantioGramaFaixa(""); setPlantioGramaBerma("");
+      setExtraEntries({});
+      setLocalFaixa("FAIXA 2");
       toast.success("Registro excluído!");
     } catch (error: any) {
       toast.error("Erro ao excluir: " + error.message);
