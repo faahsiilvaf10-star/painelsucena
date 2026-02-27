@@ -1595,6 +1595,48 @@ export type Database = {
         }
         Relationships: []
       }
+      notas_fiscais: {
+        Row: {
+          created_at: string
+          created_by: string
+          data_emissao: string
+          descricao: string | null
+          file_name: string | null
+          file_url: string | null
+          fornecedor: string
+          id: string
+          numero: string
+          updated_at: string
+          valor: number | null
+        }
+        Insert: {
+          created_at?: string
+          created_by: string
+          data_emissao?: string
+          descricao?: string | null
+          file_name?: string | null
+          file_url?: string | null
+          fornecedor: string
+          id?: string
+          numero: string
+          updated_at?: string
+          valor?: number | null
+        }
+        Update: {
+          created_at?: string
+          created_by?: string
+          data_emissao?: string
+          descricao?: string | null
+          file_name?: string | null
+          file_url?: string | null
+          fornecedor?: string
+          id?: string
+          numero?: string
+          updated_at?: string
+          valor?: number | null
+        }
+        Relationships: []
+      }
       notifications: {
         Row: {
           created_at: string
