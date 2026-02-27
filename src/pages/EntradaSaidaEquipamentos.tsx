@@ -78,6 +78,13 @@ const EXIT_REASON_LABELS: Record<string, string> = {
   const [exitProblem, setExitProblem] = useState("");
   const [exitObservation, setExitObservation] = useState("");
 
+  // Admin entry dialog state
+  const [entryDialogOpen, setEntryDialogOpen] = useState(false);
+  const [entryEquipment, setEntryEquipment] = useState<{ name: string; plate: string } | null>(null);
+  const [entryDate, setEntryDate] = useState("");
+  const [entryTime, setEntryTime] = useState("");
+  const [entryObservation, setEntryObservation] = useState("");
+
   const handleOpenExitDialog = (eq: { name: string; plate: string }) => {
     const now = new Date();
     const pad = (n: number) => n.toString().padStart(2, "0");
@@ -90,6 +97,42 @@ const EXIT_REASON_LABELS: Record<string, string> = {
     setExitObservation("");
     setExitEquipment(eq);
     setExitDialogOpen(true);
+  };
+
+  const handleOpenEntryDialog = (eq: { name: string; plate: string }) => {
+    const now = new Date();
+    const pad = (n: number) => n.toString().padStart(2, "0");
+    const brDate = new Date(now.getTime() - 4 * 60 * 60 * 1000);
+    setEntryDate(brDate.toISOString().split("T")[0]);
+    setEntryTime(`${pad(brDate.getUTCHours())}:${pad(brDate.getUTCMinutes())}`);
+    setEntryObservation("");
+    setEntryEquipment(eq);
+    setEntryDialogOpen(true);
+  };
+
+  const handleConfirmEntry = () => {
+    if (!entryEquipment || !entryDate) {
+      toast.error("Informe a data da entrada");
+      return;
+    }
+    createMovement.mutate(
+      {
+        equipment_name: entryEquipment.name,
+        plate: entryEquipment.plate,
+        movement_type: "entrada",
+        movement_date: entryDate,
+        movement_time: entryTime || "00:00",
+        exit_reason: null,
+        problem_description: null,
+        observation: entryObservation || null,
+      },
+      {
+        onSuccess: () => {
+          setEntryDialogOpen(false);
+          setEntryEquipment(null);
+        },
+      }
+    );
   };
 
   const handleConfirmExit = () => {
@@ -460,13 +503,14 @@ const EXIT_REASON_LABELS: Record<string, string> = {
                             <TableHead>Equipamento</TableHead>
                             <TableHead className="hidden sm:table-cell">Placa</TableHead>
                      <TableHead>Data/Hora</TableHead>
-                     <TableHead>Motivo</TableHead>
-                     <TableHead className="hidden md:table-cell">Observações</TableHead>
-                          </TableRow>
-                        </TableHeader>
-                       <TableBody>
-                  {equipmentForaObra.map((m) => (
-                    <TableRow key={m.id}>
+                             <TableHead>Motivo</TableHead>
+                      <TableHead className="hidden md:table-cell">Observações</TableHead>
+                      {isAdmin && <TableHead className="w-28">Ação</TableHead>}
+                           </TableRow>
+                         </TableHeader>
+                        <TableBody>
+                   {equipmentForaObra.map((m) => (
+                     <TableRow key={m.id}>
                               <TableCell className="hidden sm:table-cell">
                          <ExternalLink className="h-4 w-4 text-orange-500" />
                        </TableCell>
@@ -496,7 +540,20 @@ const EXIT_REASON_LABELS: Record<string, string> = {
                         )}
                         {!m.problem_description && !m.observation && "-"}
                        </TableCell>
-                           </TableRow>
+                      {isAdmin && (
+                        <TableCell>
+                          <Button
+                            size="sm"
+                            variant="outline"
+                            className="gap-1 text-green-600 border-green-300 hover:bg-green-50"
+                            onClick={() => handleOpenEntryDialog({ name: m.equipment_name, plate: m.plate })}
+                          >
+                            <ArrowDownCircle className="h-3.5 w-3.5" />
+                            <span className="hidden sm:inline">Entrada</span>
+                          </Button>
+                        </TableCell>
+                      )}
+                            </TableRow>
                          ))}
                        </TableBody>
                      </Table>
@@ -740,6 +797,63 @@ const EXIT_REASON_LABELS: Record<string, string> = {
               >
                 {createMovement.isPending && <Loader2 className="h-4 w-4 animate-spin" />}
                 Confirmar Saída
+              </Button>
+            </DialogFooter>
+          </DialogContent>
+        </Dialog>
+
+        {/* Admin Entry Dialog */}
+        <Dialog open={entryDialogOpen} onOpenChange={setEntryDialogOpen}>
+          <DialogContent className="sm:max-w-md">
+            <DialogHeader>
+              <DialogTitle className="flex items-center gap-2">
+                <ArrowDownCircle className="h-5 w-5 text-green-600" />
+                Registrar Entrada de Equipamento
+              </DialogTitle>
+              <DialogDescription>
+                {entryEquipment?.name} ({entryEquipment?.plate})
+              </DialogDescription>
+            </DialogHeader>
+            <div className="space-y-4 py-2">
+              <div className="grid grid-cols-2 gap-3">
+                <div className="space-y-2">
+                  <Label>Data da Entrada</Label>
+                  <Input
+                    type="date"
+                    value={entryDate}
+                    onChange={(e) => setEntryDate(e.target.value)}
+                  />
+                </div>
+                <div className="space-y-2">
+                  <Label>Hora da Entrada</Label>
+                  <Input
+                    type="time"
+                    value={entryTime}
+                    onChange={(e) => setEntryTime(e.target.value)}
+                  />
+                </div>
+              </div>
+              <div className="space-y-2">
+                <Label>Observação</Label>
+                <Textarea
+                  value={entryObservation}
+                  onChange={(e) => setEntryObservation(e.target.value)}
+                  placeholder="Observações adicionais..."
+                  rows={2}
+                />
+              </div>
+            </div>
+            <DialogFooter>
+              <Button variant="outline" onClick={() => setEntryDialogOpen(false)}>
+                Cancelar
+              </Button>
+              <Button
+                onClick={handleConfirmEntry}
+                disabled={createMovement.isPending}
+                className="gap-2"
+              >
+                {createMovement.isPending && <Loader2 className="h-4 w-4 animate-spin" />}
+                Confirmar Entrada
               </Button>
             </DialogFooter>
           </DialogContent>
