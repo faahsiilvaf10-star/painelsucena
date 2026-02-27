@@ -56,6 +56,7 @@ import CalendarioHydro from "./pages/CalendarioHydro";
 import Games from "./pages/Games";
 import Desvios from "./pages/Desvios";
 import Planejamento from "./pages/Planejamento";
+import NotasFiscais from "./pages/NotasFiscais";
 import NotFound from "./pages/NotFound";
 
 // QueryClient with robust error handling
@@ -147,6 +148,7 @@ const App = () => (
                     <Route path="/games" element={<ProtectedRoute><Games /></ProtectedRoute>} />
                     <Route path="/desvios" element={<ProtectedRoute><Desvios /></ProtectedRoute>} />
                     <Route path="/planejamento" element={<ProtectedRoute><Planejamento /></ProtectedRoute>} />
+                    <Route path="/notas-fiscais" element={<ProtectedRoute><NotasFiscais /></ProtectedRoute>} />
                     {/* ADD ALL CUSTOM ROUTES ABOVE THE CATCH-ALL "*" ROUTE */}
                     <Route path="*" element={<NotFound />} />
                   </Routes>
