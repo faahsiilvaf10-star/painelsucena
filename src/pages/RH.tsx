@@ -1,5 +1,5 @@
 import { useState, useMemo, useEffect, useCallback } from "react";
-import { Search, Users, Phone, Calendar, Hash, MapPin, Filter, X, ChevronDown, ChevronUp, ShieldCheck, AlertTriangle, CircleAlert, Pencil, Save, TrendingUp, History } from "lucide-react";
+import { Search, Users, Phone, Calendar, Hash, MapPin, Filter, X, ChevronDown, ChevronUp, ShieldCheck, AlertTriangle, CircleAlert, Pencil, Save, History } from "lucide-react";
 import Layout from "@/components/layout/Layout";
 import { Input } from "@/components/ui/input";
 import { Button } from "@/components/ui/button";
@@ -29,6 +29,8 @@ import { ExportEfetivoExcelButton } from "@/components/rh/ExportEfetivoExcelButt
 import { ImportEfetivoExcelButton } from "@/components/rh/ImportEfetivoExcelButton";
 import { toast } from "sonner";
 import { PromotionDialog } from "@/components/rh/PromotionDialog";
+import { supabase } from "@/integrations/supabase/client";
+import { useQueryClient } from "@tanstack/react-query";
 
 type SortField = "id" | "nome" | "funcao" | "admissao" | "matricula";
 type SortDirection = "asc" | "desc";
@@ -44,6 +46,7 @@ const RH = () => {
   const [asoForm, setAsoForm] = useState<Record<string, string>>({});
 
   const { canEditRH, isLoading: permissionsLoading } = useRHPermissions();
+  const queryClient = useQueryClient();
 
   // Load from localStorage on mount, merging with source data to pick up new ASO fields
   useEffect(() => {
@@ -103,13 +106,17 @@ const RH = () => {
     toast.success("Colaborador removido com sucesso!");
   };
 
-  const handlePromote = useCallback((id: number, novaFuncao: string, observacao: string) => {
+  const handlePromote = useCallback(async (id: number, novaFuncao: string, observacao: string) => {
     const today = new Date();
     const dd = String(today.getDate()).padStart(2, "0");
     const mm = String(today.getMonth() + 1).padStart(2, "0");
     const yyyy = today.getFullYear();
     const dataFormatada = `${dd}/${mm}/${yyyy}`;
 
+    // Find the employee name to sync with Supabase
+    const colaborador = colaboradores.find(c => c.id === id);
+    
+    // Update localStorage state
     setColaboradores(prev => prev.map(c => {
       if (c.id !== id) return c;
       const promocao = {
@@ -124,8 +131,39 @@ const RH = () => {
         promocoes: [...(c.promocoes || []), promocao],
       };
     }));
+
+    // Sync with Supabase employees table (used by Presença, RDO, etc.)
+    if (colaborador) {
+      try {
+        // Find matching employee in Supabase by name (case-insensitive)
+        const { data: dbEmployees } = await supabase
+          .from("employees")
+          .select("id, name, role")
+          .ilike("name", colaborador.nome);
+
+        if (dbEmployees && dbEmployees.length > 0) {
+          const { error } = await supabase
+            .from("employees")
+            .update({ role: novaFuncao })
+            .eq("id", dbEmployees[0].id);
+
+          if (error) {
+            console.error("Erro ao sincronizar promoção no banco:", error);
+          } else {
+            // Invalidate queries so Presença, RDO, etc. reflect the change
+            queryClient.invalidateQueries({ queryKey: ["employees"] });
+            queryClient.invalidateQueries({ queryKey: ["employees_all"] });
+            queryClient.invalidateQueries({ queryKey: ["attendance_records"] });
+            queryClient.invalidateQueries({ queryKey: ["attendance_report"] });
+          }
+        }
+      } catch (err) {
+        console.error("Erro ao sincronizar promoção:", err);
+      }
+    }
+
     toast.success("Promoção registrada com sucesso!");
-  }, []);
+  }, [colaboradores, queryClient]);
 
   const handleStartEditAso = (colaborador: Colaborador) => {
     setEditingAso(colaborador.id);
