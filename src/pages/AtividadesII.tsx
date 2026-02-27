@@ -3,7 +3,7 @@ import * as E from "@/lib/whatsappEmojis";
 import { copyAndShareWhatsApp, copyToClipboard } from "@/lib/copyAndShare";
 import { format, parseISO } from "date-fns";
 import { ptBR } from "date-fns/locale";
-import { Hammer, Save, Loader2, Calendar, Trash2, History, Copy, MessageCircle, Plus, X } from "lucide-react";
+import { Hammer, Save, Loader2, Calendar, Trash2, History, Copy, MessageCircle, Plus, X, Lock, Unlock } from "lucide-react";
 import { toast } from "sonner";
 import { useNavigate } from "react-router-dom";
 import Layout from "@/components/layout/Layout";
@@ -22,6 +22,7 @@ import { Checkbox } from "@/components/ui/checkbox";
 import { useAuth } from "@/hooks/useAuth";
 import { useProfile } from "@/hooks/useProfile";
 import { useIsAdmin } from "@/hooks/useUserRole";
+import { useReportLock } from "@/hooks/useReportLock";
 import { 
   useGabiaoReports, 
   useGabiaoReportByDate, 
@@ -33,6 +34,7 @@ import { cn } from "@/lib/utils";
 import MonthlyReportDialog from "@/components/atividades/MonthlyReportDialog";
 import { PhotoUploader } from "@/components/atividades/PhotoUploader";
 import { ReadOnlyBanner } from "@/components/ReadOnlyBanner";
+import { Alert, AlertDescription } from "@/components/ui/alert";
 import { AIImproveButton } from "@/components/atividades/AIImproveButton";
 
 
@@ -68,6 +70,8 @@ export default function AtividadesII() {
   const { data: allReports } = useGabiaoReports();
   const saveReport = useSaveGabiaoReport();
   const deleteReport = useDeleteGabiaoReport();
+  const { isAreaLocked, canUnlockArea, lockArea, unlockArea } = useReportLock(selectedDateStr);
+  const isGabiaoLocked = isAreaLocked("gabiao");
 
   // Measurement period calculation (day 16 to day 15 of next month)
   const getMeasurementPeriod = () => {
@@ -337,7 +341,14 @@ export default function AtividadesII() {
   );
   
   // Check edit permission - only encarregado_geral, encarregado_ii, or admin can edit
-  const canEdit = authReady && (
+  const canEdit = authReady && !isGabiaoLocked && (
+    isAdmin || 
+    profile?.cargo === "encarregado_geral" || 
+    profile?.cargo === "encarregado_ii"
+  );
+  
+  // Permission to edit ignoring lock (for UI logic)
+  const hasEditPermission = authReady && (
     isAdmin || 
     profile?.cargo === "encarregado_geral" || 
     profile?.cargo === "encarregado_ii"
@@ -440,7 +451,16 @@ export default function AtividadesII() {
         photo_urls: photos.length > 0 ? photos : undefined,
       });
       
-      toast.success("Atividades salvas com sucesso!");
+      // Auto-lock after saving
+      if (!isGabiaoLocked) {
+        try {
+          await lockArea.mutateAsync("gabiao");
+        } catch (e) {
+          // Lock may already exist, ignore
+        }
+      }
+      
+      toast.success("Atividades salvas e bloqueadas com sucesso!");
     } catch (error: any) {
       toast.error("Erro ao salvar: " + error.message);
     }
@@ -553,7 +573,36 @@ export default function AtividadesII() {
     <Layout>
       <div className="p-4 sm:p-6 space-y-4 sm:space-y-6">
         {/* Read-only banner */}
-        {!canEdit && <ReadOnlyBanner message="Você está visualizando esta página em modo somente leitura. Apenas Administradores, Encarregado Geral e Encarregado II podem editar." />}
+        {!hasEditPermission && <ReadOnlyBanner message="Você está visualizando esta página em modo somente leitura. Apenas Administradores, Encarregado Geral e Encarregado II podem editar." />}
+        {isGabiaoLocked && hasEditPermission && (
+          <Alert className="mb-4 border-amber-500/50 bg-amber-500/10">
+            <Lock className="h-4 w-4 text-amber-500" />
+            <AlertDescription className="flex items-center justify-between">
+              <span className="text-amber-600 dark:text-amber-400">
+                🔒 Atividades bloqueadas para esta data. Desbloqueie para editar.
+              </span>
+              {canUnlockArea("gabiao") && (
+                <Button 
+                  variant="outline" 
+                  size="sm" 
+                  className="ml-2 gap-1 border-amber-500/50 text-amber-600 hover:bg-amber-500/10"
+                  onClick={async () => {
+                    try {
+                      await unlockArea.mutateAsync("gabiao");
+                      toast.success("Atividades desbloqueadas!");
+                    } catch (e: any) {
+                      toast.error("Erro ao desbloquear: " + e.message);
+                    }
+                  }}
+                  disabled={unlockArea.isPending}
+                >
+                  <Unlock className="h-3 w-3" />
+                  Desbloquear
+                </Button>
+              )}
+            </AlertDescription>
+          </Alert>
+        )}
         {/* Header */}
         <div className="flex flex-col gap-4">
           <div className="flex items-center gap-3">
@@ -657,19 +706,21 @@ export default function AtividadesII() {
               }}
             />
 
-            {existingReport && canEdit && (
+            {existingReport && canEdit && !isGabiaoLocked && (
               <Button variant="destructive" size="icon" onClick={handleDelete}>
                 <Trash2 className="h-4 w-4" />
               </Button>
             )}
 
-            <Button onClick={() => handleSave()} disabled={saveReport.isPending || !canEdit} variant="outline">
+            <Button onClick={() => handleSave()} disabled={saveReport.isPending || !hasEditPermission || isGabiaoLocked} variant="outline">
               {saveReport.isPending ? (
                 <Loader2 className="h-4 w-4 mr-2 animate-spin" />
+              ) : isGabiaoLocked ? (
+                <Lock className="h-4 w-4 mr-2" />
               ) : (
                 <Save className="h-4 w-4 mr-2" />
               )}
-              Salvar
+              {isGabiaoLocked ? "Bloqueado" : "Salvar"}
             </Button>
 
             <Button 

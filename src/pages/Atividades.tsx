@@ -3,7 +3,7 @@ import * as E from "@/lib/whatsappEmojis";
 import { copyAndShareWhatsApp, copyToClipboard } from "@/lib/copyAndShare";
 import { format, parseISO } from "date-fns";
 import { ptBR } from "date-fns/locale";
-import { Leaf, Save, Loader2, Calendar, Trash2, History, ArrowRight, Plus, X, Copy, Droplets, MessageCircle, Sprout } from "lucide-react";
+import { Leaf, Save, Loader2, Calendar, Trash2, History, ArrowRight, Plus, X, Copy, Droplets, MessageCircle, Sprout, Lock, Unlock } from "lucide-react";
 import { type ActivityEntry } from "@/components/atividades/ExtraActivityEntries";
 import { ExtraActivityEntries, AddMoreButton } from "@/components/atividades/ExtraActivityEntries";
 import { toast } from "sonner";
@@ -24,6 +24,7 @@ import { Checkbox } from "@/components/ui/checkbox";
 import { useAuth } from "@/hooks/useAuth";
 import { useProfile } from "@/hooks/useProfile";
 import { useIsAdmin } from "@/hooks/useUserRole";
+import { useReportLock } from "@/hooks/useReportLock";
 import { 
   useJardinagemReports, 
   useJardinagemReportByDate, 
@@ -35,6 +36,7 @@ import { cn } from "@/lib/utils";
 import MonthlyReportDialog from "@/components/atividades/MonthlyReportDialog";
 import { PhotoUploader } from "@/components/atividades/PhotoUploader";
 import { ReadOnlyBanner } from "@/components/ReadOnlyBanner";
+import { Alert, AlertDescription } from "@/components/ui/alert";
 import { AIImproveButton } from "@/components/atividades/AIImproveButton";
 
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
@@ -88,6 +90,8 @@ export default function Atividades() {
   const { data: allReports } = useJardinagemReports();
   const saveReport = useSaveJardinagemReport();
   const deleteReport = useDeleteJardinagemReport();
+  const { isAreaLocked, canUnlockArea, lockArea, unlockArea } = useReportLock(selectedDateStr);
+  const isJardinagemLocked = isAreaLocked("jardinagem");
 
   // Calculate measurement period (day 16 to day 16)
   const getMeasurementPeriod = () => {
@@ -270,7 +274,14 @@ export default function Atividades() {
   );
   
   // Check edit permission - only encarregado_geral, encarregado_i, or admin can edit
-  const canEdit = authReady && (
+  const canEdit = authReady && !isJardinagemLocked && (
+    isAdmin || 
+    profile?.cargo === "encarregado_geral" || 
+    profile?.cargo === "encarregado_i"
+  );
+  
+  // Permission to edit ignoring lock (for save button logic)
+  const hasEditPermission = authReady && (
     isAdmin || 
     profile?.cargo === "encarregado_geral" || 
     profile?.cargo === "encarregado_i"
@@ -443,7 +454,16 @@ export default function Atividades() {
         extra_entries: Object.keys(extraEntries).length > 0 ? extraEntries : undefined,
       });
       
-      toast.success("Atividades salvas com sucesso!");
+      // Auto-lock after saving
+      if (!isJardinagemLocked) {
+        try {
+          await lockArea.mutateAsync("jardinagem");
+        } catch (e) {
+          // Lock may already exist, ignore
+        }
+      }
+      
+      toast.success("Atividades salvas e bloqueadas com sucesso!");
     } catch (error: any) {
       toast.error("Erro ao salvar: " + error.message);
     }
@@ -582,7 +602,36 @@ export default function Atividades() {
     <Layout>
       <div className="p-4 sm:p-6 space-y-4 sm:space-y-6">
         {/* Read-only banner */}
-        {!canEdit && <ReadOnlyBanner message="Você está visualizando esta página em modo somente leitura. Apenas Administradores, Encarregado Geral e Encarregado I podem editar." />}
+        {!hasEditPermission && <ReadOnlyBanner message="Você está visualizando esta página em modo somente leitura. Apenas Administradores, Encarregado Geral e Encarregado I podem editar." />}
+        {isJardinagemLocked && hasEditPermission && (
+          <Alert className="mb-4 border-amber-500/50 bg-amber-500/10">
+            <Lock className="h-4 w-4 text-amber-500" />
+            <AlertDescription className="flex items-center justify-between">
+              <span className="text-amber-600 dark:text-amber-400">
+                🔒 Atividades bloqueadas para esta data. Desbloqueie para editar.
+              </span>
+              {canUnlockArea("jardinagem") && (
+                <Button 
+                  variant="outline" 
+                  size="sm" 
+                  className="ml-2 gap-1 border-amber-500/50 text-amber-600 hover:bg-amber-500/10"
+                  onClick={async () => {
+                    try {
+                      await unlockArea.mutateAsync("jardinagem");
+                      toast.success("Atividades desbloqueadas!");
+                    } catch (e: any) {
+                      toast.error("Erro ao desbloquear: " + e.message);
+                    }
+                  }}
+                  disabled={unlockArea.isPending}
+                >
+                  <Unlock className="h-3 w-3" />
+                  Desbloquear
+                </Button>
+              )}
+            </AlertDescription>
+          </Alert>
+        )}
 
         {/* Tabs */}
         <Tabs defaultValue="jardinagem" className="w-full">
@@ -763,19 +812,21 @@ export default function Atividades() {
               }}
             />
 
-            {existingReport && canEdit && (
+            {existingReport && canEdit && !isJardinagemLocked && (
               <Button variant="destructive" size="icon" onClick={handleDelete}>
                 <Trash2 className="h-4 w-4" />
               </Button>
             )}
 
-            <Button onClick={() => handleSave()} disabled={saveReport.isPending || !canEdit} variant="outline">
+            <Button onClick={() => handleSave()} disabled={saveReport.isPending || !hasEditPermission || isJardinagemLocked} variant="outline">
               {saveReport.isPending ? (
                 <Loader2 className="h-4 w-4 mr-2 animate-spin" />
+              ) : isJardinagemLocked ? (
+                <Lock className="h-4 w-4 mr-2" />
               ) : (
                 <Save className="h-4 w-4 mr-2" />
               )}
-              Salvar
+              {isJardinagemLocked ? "Bloqueado" : "Salvar"}
             </Button>
 
             <Button 
