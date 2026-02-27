@@ -505,7 +505,7 @@ const EXIT_REASON_LABELS: Record<string, string> = {
                      <TableHead>Data/Hora</TableHead>
                              <TableHead>Motivo</TableHead>
                       <TableHead className="hidden md:table-cell">Observações</TableHead>
-                      {isAdmin && <TableHead className="w-28">Ação</TableHead>}
+                      <TableHead className="w-28">Ação</TableHead>
                            </TableRow>
                          </TableHeader>
                         <TableBody>
@@ -540,7 +540,6 @@ const EXIT_REASON_LABELS: Record<string, string> = {
                         )}
                         {!m.problem_description && !m.observation && "-"}
                        </TableCell>
-                      {isAdmin && (
                         <TableCell>
                           <Button
                             size="sm"
@@ -552,7 +551,6 @@ const EXIT_REASON_LABELS: Record<string, string> = {
                             <span className="hidden sm:inline">Entrada</span>
                           </Button>
                         </TableCell>
-                      )}
                             </TableRow>
                          ))}
                        </TableBody>
