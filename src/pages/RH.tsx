@@ -1,5 +1,5 @@
 import { useState, useMemo, useEffect, useCallback } from "react";
-import { Search, Users, Phone, Calendar, Hash, MapPin, Filter, X, ChevronDown, ChevronUp, ShieldCheck, AlertTriangle, CircleAlert, Pencil, Save } from "lucide-react";
+import { Search, Users, Phone, Calendar, Hash, MapPin, Filter, X, ChevronDown, ChevronUp, ShieldCheck, AlertTriangle, CircleAlert, Pencil, Save, TrendingUp, History } from "lucide-react";
 import Layout from "@/components/layout/Layout";
 import { Input } from "@/components/ui/input";
 import { Button } from "@/components/ui/button";
@@ -28,6 +28,7 @@ import { ExportEfetivoPdfButton } from "@/components/rh/ExportEfetivoPdfButton";
 import { ExportEfetivoExcelButton } from "@/components/rh/ExportEfetivoExcelButton";
 import { ImportEfetivoExcelButton } from "@/components/rh/ImportEfetivoExcelButton";
 import { toast } from "sonner";
+import { PromotionDialog } from "@/components/rh/PromotionDialog";
 
 type SortField = "id" | "nome" | "funcao" | "admissao" | "matricula";
 type SortDirection = "asc" | "desc";
@@ -101,6 +102,30 @@ const RH = () => {
     setColaboradores(prev => prev.filter(c => c.id !== id));
     toast.success("Colaborador removido com sucesso!");
   };
+
+  const handlePromote = useCallback((id: number, novaFuncao: string, observacao: string) => {
+    const today = new Date();
+    const dd = String(today.getDate()).padStart(2, "0");
+    const mm = String(today.getMonth() + 1).padStart(2, "0");
+    const yyyy = today.getFullYear();
+    const dataFormatada = `${dd}/${mm}/${yyyy}`;
+
+    setColaboradores(prev => prev.map(c => {
+      if (c.id !== id) return c;
+      const promocao = {
+        funcaoAnterior: c.funcao,
+        funcaoNova: novaFuncao,
+        data: dataFormatada,
+        observacao: observacao || undefined,
+      };
+      return {
+        ...c,
+        funcao: novaFuncao,
+        promocoes: [...(c.promocoes || []), promocao],
+      };
+    }));
+    toast.success("Promoção registrada com sucesso!");
+  }, []);
 
   const handleStartEditAso = (colaborador: Colaborador) => {
     setEditingAso(colaborador.id);
@@ -451,10 +476,16 @@ const RH = () => {
                         </TableCell>
                         {!permissionsLoading && canEditRH && (
                           <TableCell>
-                            <DeleteEmployeeDialog
-                              employee={colaborador}
-                              onDelete={handleDeleteEmployee}
-                            />
+                            <div className="flex items-center gap-1">
+                              <PromotionDialog
+                                colaborador={colaborador}
+                                onPromote={handlePromote}
+                              />
+                              <DeleteEmployeeDialog
+                                employee={colaborador}
+                                onDelete={handleDeleteEmployee}
+                              />
+                            </div>
                           </TableCell>
                         )}
                       </TableRow>
@@ -487,6 +518,32 @@ const RH = () => {
                                 </p>
                               </div>
                             </div>
+
+                            {/* Promotion History */}
+                            {colaborador.promocoes && colaborador.promocoes.length > 0 && (
+                              <div className="mt-3 p-3 rounded-lg border bg-primary/5 border-primary/20">
+                                <div className="flex items-center gap-2 mb-2">
+                                  <History className="w-4 h-4 text-primary" />
+                                  <span className="font-semibold text-sm text-primary">
+                                    Histórico de Promoções ({colaborador.promocoes.length})
+                                  </span>
+                                </div>
+                                <div className="space-y-1.5">
+                                  {[...colaborador.promocoes].reverse().map((p, i) => (
+                                    <div key={i} className="flex items-center gap-2 text-sm">
+                                      <div className="w-1.5 h-1.5 rounded-full bg-primary shrink-0" />
+                                      <span className="text-xs font-medium text-primary">{p.data}</span>
+                                      <span className="text-muted-foreground line-through text-xs">{p.funcaoAnterior}</span>
+                                      <span className="text-xs">→</span>
+                                      <span className="font-medium text-xs">{p.funcaoNova}</span>
+                                      {p.observacao && (
+                                        <span className="text-xs text-muted-foreground italic ml-1">({p.observacao})</span>
+                                      )}
+                                    </div>
+                                  ))}
+                                </div>
+                              </div>
+                            )}
 
                             {/* ASO Section */}
                             {(() => {
