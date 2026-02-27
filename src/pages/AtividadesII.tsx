@@ -3,7 +3,7 @@ import * as E from "@/lib/whatsappEmojis";
 import { copyAndShareWhatsApp, copyToClipboard } from "@/lib/copyAndShare";
 import { format, parseISO } from "date-fns";
 import { ptBR } from "date-fns/locale";
-import { Hammer, Save, Loader2, Calendar, Trash2, History, Copy, MessageCircle } from "lucide-react";
+import { Hammer, Save, Loader2, Calendar, Trash2, History, Copy, MessageCircle, Plus, X } from "lucide-react";
 import { toast } from "sonner";
 import { useNavigate } from "react-router-dom";
 import Layout from "@/components/layout/Layout";
@@ -164,6 +164,29 @@ export default function AtividadesII() {
   const [atividadesManuais, setAtividadesManuais] = useState("");
   const [observacoes, setObservacoes] = useState("");
   
+  // Extra entries for activities with quantities/dimensions
+  const [gabiaoExtra, setGabiaoExtra] = useState<Record<string, string[]>>({});
+  
+  const addGabiaoExtra = (key: string) => {
+    setGabiaoExtra(prev => ({ ...prev, [key]: [...(prev[key] || []), ""] }));
+  };
+  const updateGabiaoExtra = (key: string, index: number, val: string) => {
+    setGabiaoExtra(prev => {
+      const entries = [...(prev[key] || [])];
+      entries[index] = val;
+      return { ...prev, [key]: entries };
+    });
+  };
+  const removeGabiaoExtra = (key: string, index: number) => {
+    setGabiaoExtra(prev => {
+      const entries = (prev[key] || []).filter((_, i) => i !== index);
+      const next = { ...prev };
+      if (entries.length === 0) delete next[key];
+      else next[key] = entries;
+      return next;
+    });
+  };
+  
   // Photo state
   const [photos, setPhotos] = useState<string[]>([]);
 
@@ -269,6 +292,7 @@ export default function AtividadesII() {
       setAtividadesManuais("");
       setObservacoes(obsLines.join("\n"));
       setPhotos((existingReport as any).photo_urls || []);
+      setGabiaoExtra({});
     } else {
       // Reset form for new date
       setLocalServico("FAIXA 2");
@@ -299,6 +323,8 @@ export default function AtividadesII() {
       setAtividadesManuais("");
       setObservacoes("");
       setObservacoes("");
+      setPhotos([]);
+      setGabiaoExtra({});
       setPhotos([]);
     }
   }, [existingReport, selectedDateStr]);
@@ -349,52 +375,33 @@ export default function AtividadesII() {
   const buildObservacoes = () => {
     const lines: string[] = [];
     
-    if (escavacaoManual) {
-      lines.push("* Escavação manual");
-    }
-    if (reposicaoManta) {
-      lines.push(`* Reposição de manta asfáltica${mantaDimensao ? ` - ${mantaDimensao}` : ""}`);
-    }
-    if (reposicaoSilte) {
-      lines.push(`* Reposição de silte${silteQuantidade ? ` - ${silteQuantidade} m²` : ""}`);
-    }
-    if (limpezaOrganizacao) {
-      lines.push("* Limpeza e organização");
-    }
-    if (retiradaTela) {
-      lines.push(`* Retirada de tela${retiradaTelaDimensao ? ` - ${retiradaTelaDimensao}` : ""}`);
-    }
-    if (retiradaCascalho) {
-      lines.push(`* Retirada de cascalho${retiradaCascalhoQuantidade ? ` - ${retiradaCascalhoQuantidade} m²` : ""}`);
-    }
-    if (lavagemVertedouro) {
-      lines.push("* Lavagem de vertedouro");
-    }
-    if (lavagemBaciasVertedouro) {
-      lines.push("* Lavagem de bacias do vertedouro");
-    }
-    if (reposicaoGeotextil) {
-      lines.push(`* Reposição de Geotêxtil${reposicaoGeotextilDimensao ? ` - ${reposicaoGeotextilDimensao}` : ""}`);
-    }
-    if (recomposicaoTela) {
-      lines.push(`* Recomposição de tela${recomposicaoTelaDimensao ? ` - ${recomposicaoTelaDimensao}` : ""}`);
-    }
-    if (recomposicaoCascalho) {
-      lines.push(`* Recomposição de cascalho${recomposicaoCascalhoQuantidade ? ` - ${recomposicaoCascalhoQuantidade} m²` : ""}`);
-    }
-    if (recomposicaoSilte) {
-      lines.push(`* Recomposição de silte${recomposicaoSilteQuantidade ? ` - ${recomposicaoSilteQuantidade} m²` : ""}`);
-    }
-    if (transporteMateriais) {
-      lines.push(`* Transporte de Materiais${transporteMateriaisQuantidade ? ` - ${transporteMateriaisQuantidade} m³` : ""}`);
-    }
+    const addWithExtras = (checked: boolean, label: string, mainVal: string, unit: string, key: string) => {
+      if (!checked) return;
+      lines.push(`* ${label}${mainVal ? ` - ${mainVal}${unit ? ` ${unit}` : ""}` : ""}`);
+      (gabiaoExtra[key] || []).forEach(v => {
+        if (v) lines.push(`* ${label} - ${v}${unit ? ` ${unit}` : ""}`);
+      });
+    };
+    
+    if (escavacaoManual) lines.push("* Escavação manual");
+    addWithExtras(reposicaoManta, "Reposição de manta asfáltica", mantaDimensao, "", "manta");
+    addWithExtras(reposicaoSilte, "Reposição de silte", silteQuantidade, "m²", "silte");
+    if (limpezaOrganizacao) lines.push("* Limpeza e organização");
+    addWithExtras(retiradaTela, "Retirada de tela", retiradaTelaDimensao, "", "retiradaTela");
+    addWithExtras(retiradaCascalho, "Retirada de cascalho", retiradaCascalhoQuantidade, "m²", "retiradaCascalho");
+    if (lavagemVertedouro) lines.push("* Lavagem de vertedouro");
+    if (lavagemBaciasVertedouro) lines.push("* Lavagem de bacias do vertedouro");
+    addWithExtras(reposicaoGeotextil, "Reposição de Geotêxtil", reposicaoGeotextilDimensao, "", "geotextil");
+    addWithExtras(recomposicaoTela, "Recomposição de tela", recomposicaoTelaDimensao, "", "recomposicaoTela");
+    addWithExtras(recomposicaoCascalho, "Recomposição de cascalho", recomposicaoCascalhoQuantidade, "m²", "recomposicaoCascalho");
+    addWithExtras(recomposicaoSilte, "Recomposição de silte", recomposicaoSilteQuantidade, "m²", "recomposicaoSilte");
+    addWithExtras(transporteMateriais, "Transporte de Materiais", transporteMateriaisQuantidade, "m³", "transporte");
     
     if (atividadesManuais.trim()) {
       lines.push("");
       lines.push(atividadesManuais.trim());
     }
     
-    // Add observacoes only if filled (manual input, no prefix)
     if (observacoes.trim()) {
       lines.push("");
       lines.push(observacoes.trim());
@@ -509,49 +516,27 @@ export default function AtividadesII() {
   const getPreviewText = () => {
     const lines: string[] = [];
     
-    if (escavacaoManual) {
-      lines.push("* Escavação manual");
-    }
-    if (reposicaoManta) {
-      lines.push(`* Reposição de manta asfáltica${mantaDimensao ? ` - ${mantaDimensao}` : ""}`);
-    }
-    if (reposicaoSilte) {
-      lines.push(`* Reposição de silte${silteQuantidade ? ` - ${silteQuantidade} m²` : ""}`);
-    }
-    if (limpezaOrganizacao) {
-      lines.push("* Limpeza e organização");
-    }
-    if (retiradaTela) {
-      lines.push(`* Retirada de tela${retiradaTelaDimensao ? ` - ${retiradaTelaDimensao}` : ""}`);
-    }
-    if (retiradaCascalho) {
-      lines.push(`* Retirada de cascalho${retiradaCascalhoQuantidade ? ` - ${retiradaCascalhoQuantidade} m²` : ""}`);
-    }
-    if (lavagemVertedouro) {
-      lines.push("* Lavagem de vertedouro");
-    }
-    if (lavagemBaciasVertedouro) {
-      lines.push("* Lavagem de bacias do vertedouro");
-    }
-    if (reposicaoGeotextil) {
-      lines.push(`* Reposição de Geotêxtil${reposicaoGeotextilDimensao ? ` - ${reposicaoGeotextilDimensao}` : ""}`);
-    }
-
-    // Recomposição activities
-    if (recomposicaoTela) {
-      lines.push(`* Recomposição de tela${recomposicaoTelaDimensao ? ` - ${recomposicaoTelaDimensao}` : ""}`);
-    }
-    if (recomposicaoCascalho) {
-      lines.push(
-        `* Recomposição de cascalho${recomposicaoCascalhoQuantidade ? ` - ${recomposicaoCascalhoQuantidade} m²` : ""}`,
-      );
-    }
-    if (recomposicaoSilte) {
-      lines.push(`* Recomposição de silte${recomposicaoSilteQuantidade ? ` - ${recomposicaoSilteQuantidade} m²` : ""}`);
-    }
-    if (transporteMateriais) {
-      lines.push(`* Transporte de Materiais${transporteMateriaisQuantidade ? ` - ${transporteMateriaisQuantidade} m³` : ""}`);
-    }
+    const addWithExtras = (checked: boolean, label: string, mainVal: string, unit: string, key: string) => {
+      if (!checked) return;
+      lines.push(`* ${label}${mainVal ? ` - ${mainVal}${unit ? ` ${unit}` : ""}` : ""}`);
+      (gabiaoExtra[key] || []).forEach(v => {
+        if (v) lines.push(`* ${label} - ${v}${unit ? ` ${unit}` : ""}`);
+      });
+    };
+    
+    if (escavacaoManual) lines.push("* Escavação manual");
+    addWithExtras(reposicaoManta, "Reposição de manta asfáltica", mantaDimensao, "", "manta");
+    addWithExtras(reposicaoSilte, "Reposição de silte", silteQuantidade, "m²", "silte");
+    if (limpezaOrganizacao) lines.push("* Limpeza e organização");
+    addWithExtras(retiradaTela, "Retirada de tela", retiradaTelaDimensao, "", "retiradaTela");
+    addWithExtras(retiradaCascalho, "Retirada de cascalho", retiradaCascalhoQuantidade, "m²", "retiradaCascalho");
+    if (lavagemVertedouro) lines.push("* Lavagem de vertedouro");
+    if (lavagemBaciasVertedouro) lines.push("* Lavagem de bacias do vertedouro");
+    addWithExtras(reposicaoGeotextil, "Reposição de Geotêxtil", reposicaoGeotextilDimensao, "", "geotextil");
+    addWithExtras(recomposicaoTela, "Recomposição de tela", recomposicaoTelaDimensao, "", "recomposicaoTela");
+    addWithExtras(recomposicaoCascalho, "Recomposição de cascalho", recomposicaoCascalhoQuantidade, "m²", "recomposicaoCascalho");
+    addWithExtras(recomposicaoSilte, "Recomposição de silte", recomposicaoSilteQuantidade, "m²", "recomposicaoSilte");
+    addWithExtras(transporteMateriais, "Transporte de Materiais", transporteMateriaisQuantidade, "m³", "transporte");
     
     if (atividadesManuais.trim()) {
       atividadesManuais.trim().split("\n").forEach(line => {
@@ -822,63 +807,61 @@ export default function AtividadesII() {
 
                 {/* Reposição de manta asfáltica */}
                 <div className="p-3 rounded-lg bg-muted/30 space-y-3">
-                  <div className="flex items-center space-x-3">
-                    <Checkbox 
-                      id="manta" 
-                      checked={reposicaoManta}
-                      onCheckedChange={(checked) => setReposicaoManta(checked === true)}
-                    />
-                    <Label htmlFor="manta" className="cursor-pointer font-medium">
-                      Reposição de manta asfáltica
-                    </Label>
+                  <div className="flex items-center justify-between">
+                    <div className="flex items-center space-x-3">
+                      <Checkbox id="manta" checked={reposicaoManta} onCheckedChange={(checked) => setReposicaoManta(checked === true)} />
+                      <Label htmlFor="manta" className="cursor-pointer font-medium">Reposição de manta asfáltica</Label>
+                    </div>
+                    {reposicaoManta && (
+                      <Button type="button" variant="ghost" size="sm" onClick={() => addGabiaoExtra("manta")} className="gap-1 h-6 text-xs px-2 text-muted-foreground hover:text-foreground">
+                        <Plus className="h-3 w-3" />
+                      </Button>
+                    )}
                   </div>
                   {reposicaoManta && (
-                    <div className="flex items-center gap-2 ml-7">
-                      <Button
-                        type="button"
-                        variant={mantaDimensao === "10 x 3" ? "default" : "outline"}
-                        size="sm"
-                        onClick={() => setMantaDimensao(mantaDimensao === "10 x 3" ? "" : "10 x 3")}
-                      >
-                        10 x 3
-                      </Button>
-                      <span className="text-sm text-muted-foreground">ou</span>
-                      <Input
-                        type="text"
-                        placeholder="Dimensão personalizada"
-                        value={mantaDimensao !== "10 x 3" ? mantaDimensao : ""}
-                        onChange={(e) => setMantaDimensao(e.target.value)}
-                        className="w-[180px]"
-                      />
-                    </div>
+                    <>
+                      <div className="flex items-center gap-2 ml-7">
+                        <Button type="button" variant={mantaDimensao === "10 x 3" ? "default" : "outline"} size="sm" onClick={() => setMantaDimensao(mantaDimensao === "10 x 3" ? "" : "10 x 3")}>10 x 3</Button>
+                        <span className="text-sm text-muted-foreground">ou</span>
+                        <Input type="text" placeholder="Dimensão personalizada" value={mantaDimensao !== "10 x 3" ? mantaDimensao : ""} onChange={(e) => setMantaDimensao(e.target.value)} className="w-[180px]" />
+                      </div>
+                      {(gabiaoExtra.manta || []).map((val, idx) => (
+                        <div key={idx} className="flex items-center gap-2 ml-7">
+                          <Input type="text" placeholder="Dimensão" value={val} onChange={(e) => updateGabiaoExtra("manta", idx, e.target.value)} className="w-[180px]" />
+                          <Button type="button" variant="ghost" size="icon" className="h-8 w-8 text-destructive hover:text-destructive hover:bg-destructive/10" onClick={() => removeGabiaoExtra("manta", idx)}><X className="h-3 w-3" /></Button>
+                        </div>
+                      ))}
+                    </>
                   )}
                 </div>
 
                 {/* Reposição de silte */}
                 <div className="p-3 rounded-lg bg-muted/30 space-y-3">
-                  <div className="flex items-center space-x-3">
-                    <Checkbox 
-                      id="silte" 
-                      checked={reposicaoSilte}
-                      onCheckedChange={(checked) => setReposicaoSilte(checked === true)}
-                    />
-                    <Label htmlFor="silte" className="cursor-pointer font-medium">
-                      Reposição de silte
-                    </Label>
+                  <div className="flex items-center justify-between">
+                    <div className="flex items-center space-x-3">
+                      <Checkbox id="silte" checked={reposicaoSilte} onCheckedChange={(checked) => setReposicaoSilte(checked === true)} />
+                      <Label htmlFor="silte" className="cursor-pointer font-medium">Reposição de silte</Label>
+                    </div>
+                    {reposicaoSilte && (
+                      <Button type="button" variant="ghost" size="sm" onClick={() => addGabiaoExtra("silte")} className="gap-1 h-6 text-xs px-2 text-muted-foreground hover:text-foreground">
+                        <Plus className="h-3 w-3" />
+                      </Button>
+                    )}
                   </div>
                   {reposicaoSilte && (
-                    <div className="flex items-center gap-2 ml-7">
-                      <Input
-                        type="number"
-                        min="0"
-                        step="0.01"
-                        placeholder="Quantidade"
-                        value={silteQuantidade}
-                        onChange={(e) => setSilteQuantidade(e.target.value)}
-                        className="w-[120px]"
-                      />
-                      <span className="text-sm font-medium">m²</span>
-                    </div>
+                    <>
+                      <div className="flex items-center gap-2 ml-7">
+                        <Input type="number" min="0" step="0.01" placeholder="Quantidade" value={silteQuantidade} onChange={(e) => setSilteQuantidade(e.target.value)} className="w-[120px]" />
+                        <span className="text-sm font-medium">m²</span>
+                      </div>
+                      {(gabiaoExtra.silte || []).map((val, idx) => (
+                        <div key={idx} className="flex items-center gap-2 ml-7">
+                          <Input type="number" min="0" step="0.01" placeholder="Quantidade" value={val} onChange={(e) => updateGabiaoExtra("silte", idx, e.target.value)} className="w-[120px]" />
+                          <span className="text-sm font-medium">m²</span>
+                          <Button type="button" variant="ghost" size="icon" className="h-8 w-8 text-destructive hover:text-destructive hover:bg-destructive/10" onClick={() => removeGabiaoExtra("silte", idx)}><X className="h-3 w-3" /></Button>
+                        </div>
+                      ))}
+                    </>
                   )}
                 </div>
 
@@ -896,212 +879,203 @@ export default function AtividadesII() {
 
                 {/* Retirada de tela */}
                 <div className="p-3 rounded-lg bg-muted/30 space-y-3">
-                  <div className="flex items-center space-x-3">
-                    <Checkbox 
-                      id="retiradaTela" 
-                      checked={retiradaTela}
-                      onCheckedChange={(checked) => setRetiradaTela(checked === true)}
-                    />
-                    <Label htmlFor="retiradaTela" className="cursor-pointer font-medium">
-                      Retirada de tela
-                    </Label>
+                  <div className="flex items-center justify-between">
+                    <div className="flex items-center space-x-3">
+                      <Checkbox id="retiradaTela" checked={retiradaTela} onCheckedChange={(checked) => setRetiradaTela(checked === true)} />
+                      <Label htmlFor="retiradaTela" className="cursor-pointer font-medium">Retirada de tela</Label>
+                    </div>
+                    {retiradaTela && (
+                      <Button type="button" variant="ghost" size="sm" onClick={() => addGabiaoExtra("retiradaTela")} className="gap-1 h-6 text-xs px-2 text-muted-foreground hover:text-foreground"><Plus className="h-3 w-3" /></Button>
+                    )}
                   </div>
                   {retiradaTela && (
-                    <div className="flex items-center gap-2 ml-7">
-                      <Input
-                        type="text"
-                        placeholder="Ex: 8 x 8"
-                        value={retiradaTelaDimensao}
-                        onChange={(e) => setRetiradaTelaDimensao(e.target.value)}
-                        className="w-[150px]"
-                      />
-                    </div>
+                    <>
+                      <div className="flex items-center gap-2 ml-7">
+                        <Input type="text" placeholder="Ex: 8 x 8" value={retiradaTelaDimensao} onChange={(e) => setRetiradaTelaDimensao(e.target.value)} className="w-[150px]" />
+                      </div>
+                      {(gabiaoExtra.retiradaTela || []).map((val, idx) => (
+                        <div key={idx} className="flex items-center gap-2 ml-7">
+                          <Input type="text" placeholder="Ex: 8 x 8" value={val} onChange={(e) => updateGabiaoExtra("retiradaTela", idx, e.target.value)} className="w-[150px]" />
+                          <Button type="button" variant="ghost" size="icon" className="h-8 w-8 text-destructive hover:text-destructive hover:bg-destructive/10" onClick={() => removeGabiaoExtra("retiradaTela", idx)}><X className="h-3 w-3" /></Button>
+                        </div>
+                      ))}
+                    </>
                   )}
                 </div>
 
                 {/* Retirada de cascalho */}
                 <div className="p-3 rounded-lg bg-muted/30 space-y-3">
-                  <div className="flex items-center space-x-3">
-                    <Checkbox 
-                      id="retiradaCascalho" 
-                      checked={retiradaCascalho}
-                      onCheckedChange={(checked) => setRetiradaCascalho(checked === true)}
-                    />
-                    <Label htmlFor="retiradaCascalho" className="cursor-pointer font-medium">
-                      Retirada de cascalho
-                    </Label>
+                  <div className="flex items-center justify-between">
+                    <div className="flex items-center space-x-3">
+                      <Checkbox id="retiradaCascalho" checked={retiradaCascalho} onCheckedChange={(checked) => setRetiradaCascalho(checked === true)} />
+                      <Label htmlFor="retiradaCascalho" className="cursor-pointer font-medium">Retirada de cascalho</Label>
+                    </div>
+                    {retiradaCascalho && (
+                      <Button type="button" variant="ghost" size="sm" onClick={() => addGabiaoExtra("retiradaCascalho")} className="gap-1 h-6 text-xs px-2 text-muted-foreground hover:text-foreground"><Plus className="h-3 w-3" /></Button>
+                    )}
                   </div>
                   {retiradaCascalho && (
-                    <div className="flex items-center gap-2 ml-7">
-                      <Input
-                        type="number"
-                        min="0"
-                        step="0.01"
-                        placeholder="Quantidade"
-                        value={retiradaCascalhoQuantidade}
-                        onChange={(e) => setRetiradaCascalhoQuantidade(e.target.value)}
-                        className="w-[120px]"
-                      />
-                      <span className="text-sm font-medium">m²</span>
-                    </div>
+                    <>
+                      <div className="flex items-center gap-2 ml-7">
+                        <Input type="number" min="0" step="0.01" placeholder="Quantidade" value={retiradaCascalhoQuantidade} onChange={(e) => setRetiradaCascalhoQuantidade(e.target.value)} className="w-[120px]" />
+                        <span className="text-sm font-medium">m²</span>
+                      </div>
+                      {(gabiaoExtra.retiradaCascalho || []).map((val, idx) => (
+                        <div key={idx} className="flex items-center gap-2 ml-7">
+                          <Input type="number" min="0" step="0.01" placeholder="Quantidade" value={val} onChange={(e) => updateGabiaoExtra("retiradaCascalho", idx, e.target.value)} className="w-[120px]" />
+                          <span className="text-sm font-medium">m²</span>
+                          <Button type="button" variant="ghost" size="icon" className="h-8 w-8 text-destructive hover:text-destructive hover:bg-destructive/10" onClick={() => removeGabiaoExtra("retiradaCascalho", idx)}><X className="h-3 w-3" /></Button>
+                        </div>
+                      ))}
+                    </>
                   )}
                 </div>
 
                 {/* Lavagem de vertedouro */}
                 <div className="flex items-center space-x-3 p-3 rounded-lg bg-muted/30">
-                  <Checkbox 
-                    id="lavagemVertedouro" 
-                    checked={lavagemVertedouro}
-                    onCheckedChange={(checked) => setLavagemVertedouro(checked === true)}
-                  />
-                  <Label htmlFor="lavagemVertedouro" className="cursor-pointer font-medium">
-                    Lavagem de vertedouro
-                  </Label>
+                  <Checkbox id="lavagemVertedouro" checked={lavagemVertedouro} onCheckedChange={(checked) => setLavagemVertedouro(checked === true)} />
+                  <Label htmlFor="lavagemVertedouro" className="cursor-pointer font-medium">Lavagem de vertedouro</Label>
                 </div>
 
                 {/* Lavagem de bacias do vertedouro */}
                 <div className="flex items-center space-x-3 p-3 rounded-lg bg-muted/30">
-                  <Checkbox 
-                    id="lavagemBacias" 
-                    checked={lavagemBaciasVertedouro}
-                    onCheckedChange={(checked) => setLavagemBaciasVertedouro(checked === true)}
-                  />
-                  <Label htmlFor="lavagemBacias" className="cursor-pointer font-medium">
-                    Lavagem de bacias do vertedouro
-                  </Label>
+                  <Checkbox id="lavagemBacias" checked={lavagemBaciasVertedouro} onCheckedChange={(checked) => setLavagemBaciasVertedouro(checked === true)} />
+                  <Label htmlFor="lavagemBacias" className="cursor-pointer font-medium">Lavagem de bacias do vertedouro</Label>
                 </div>
 
                 {/* Reposição de Geotêxtil */}
                 <div className="p-3 rounded-lg bg-muted/30 space-y-3">
-                  <div className="flex items-center space-x-3">
-                    <Checkbox 
-                      id="reposicaoGeotextil" 
-                      checked={reposicaoGeotextil}
-                      onCheckedChange={(checked) => setReposicaoGeotextil(checked === true)}
-                    />
-                    <Label htmlFor="reposicaoGeotextil" className="cursor-pointer font-medium">
-                      Reposição de Geotêxtil
-                    </Label>
+                  <div className="flex items-center justify-between">
+                    <div className="flex items-center space-x-3">
+                      <Checkbox id="reposicaoGeotextil" checked={reposicaoGeotextil} onCheckedChange={(checked) => setReposicaoGeotextil(checked === true)} />
+                      <Label htmlFor="reposicaoGeotextil" className="cursor-pointer font-medium">Reposição de Geotêxtil</Label>
+                    </div>
+                    {reposicaoGeotextil && (
+                      <Button type="button" variant="ghost" size="sm" onClick={() => addGabiaoExtra("geotextil")} className="gap-1 h-6 text-xs px-2 text-muted-foreground hover:text-foreground"><Plus className="h-3 w-3" /></Button>
+                    )}
                   </div>
                   {reposicaoGeotextil && (
-                    <div className="flex items-center gap-2 ml-7">
-                      <Input
-                        type="text"
-                        placeholder="Ex: 8 x 8"
-                        value={reposicaoGeotextilDimensao}
-                        onChange={(e) => setReposicaoGeotextilDimensao(e.target.value)}
-                        className="w-[150px]"
-                      />
-                    </div>
+                    <>
+                      <div className="flex items-center gap-2 ml-7">
+                        <Input type="text" placeholder="Ex: 8 x 8" value={reposicaoGeotextilDimensao} onChange={(e) => setReposicaoGeotextilDimensao(e.target.value)} className="w-[150px]" />
+                      </div>
+                      {(gabiaoExtra.geotextil || []).map((val, idx) => (
+                        <div key={idx} className="flex items-center gap-2 ml-7">
+                          <Input type="text" placeholder="Ex: 8 x 8" value={val} onChange={(e) => updateGabiaoExtra("geotextil", idx, e.target.value)} className="w-[150px]" />
+                          <Button type="button" variant="ghost" size="icon" className="h-8 w-8 text-destructive hover:text-destructive hover:bg-destructive/10" onClick={() => removeGabiaoExtra("geotextil", idx)}><X className="h-3 w-3" /></Button>
+                        </div>
+                      ))}
+                    </>
                   )}
                 </div>
 
                 {/* Recomposição de tela */}
                 <div className="p-3 rounded-lg bg-muted/30 space-y-3">
-                  <div className="flex items-center space-x-3">
-                    <Checkbox 
-                      id="recomposicaoTela" 
-                      checked={recomposicaoTela}
-                      onCheckedChange={(checked) => setRecomposicaoTela(checked === true)}
-                    />
-                    <Label htmlFor="recomposicaoTela" className="cursor-pointer font-medium">
-                      Recomposição de tela
-                    </Label>
+                  <div className="flex items-center justify-between">
+                    <div className="flex items-center space-x-3">
+                      <Checkbox id="recomposicaoTela" checked={recomposicaoTela} onCheckedChange={(checked) => setRecomposicaoTela(checked === true)} />
+                      <Label htmlFor="recomposicaoTela" className="cursor-pointer font-medium">Recomposição de tela</Label>
+                    </div>
+                    {recomposicaoTela && (
+                      <Button type="button" variant="ghost" size="sm" onClick={() => addGabiaoExtra("recomposicaoTela")} className="gap-1 h-6 text-xs px-2 text-muted-foreground hover:text-foreground"><Plus className="h-3 w-3" /></Button>
+                    )}
                   </div>
                   {recomposicaoTela && (
-                    <div className="flex items-center gap-2 ml-7">
-                      <Input
-                        type="text"
-                        placeholder="Ex: 8 x 8"
-                        value={recomposicaoTelaDimensao}
-                        onChange={(e) => setRecomposicaoTelaDimensao(e.target.value)}
-                        className="w-[150px]"
-                      />
-                    </div>
+                    <>
+                      <div className="flex items-center gap-2 ml-7">
+                        <Input type="text" placeholder="Ex: 8 x 8" value={recomposicaoTelaDimensao} onChange={(e) => setRecomposicaoTelaDimensao(e.target.value)} className="w-[150px]" />
+                      </div>
+                      {(gabiaoExtra.recomposicaoTela || []).map((val, idx) => (
+                        <div key={idx} className="flex items-center gap-2 ml-7">
+                          <Input type="text" placeholder="Ex: 8 x 8" value={val} onChange={(e) => updateGabiaoExtra("recomposicaoTela", idx, e.target.value)} className="w-[150px]" />
+                          <Button type="button" variant="ghost" size="icon" className="h-8 w-8 text-destructive hover:text-destructive hover:bg-destructive/10" onClick={() => removeGabiaoExtra("recomposicaoTela", idx)}><X className="h-3 w-3" /></Button>
+                        </div>
+                      ))}
+                    </>
                   )}
                 </div>
 
                 {/* Recomposição de cascalho */}
                 <div className="p-3 rounded-lg bg-muted/30 space-y-3">
-                  <div className="flex items-center space-x-3">
-                    <Checkbox 
-                      id="recomposicaoCascalho" 
-                      checked={recomposicaoCascalho}
-                      onCheckedChange={(checked) => setRecomposicaoCascalho(checked === true)}
-                    />
-                    <Label htmlFor="recomposicaoCascalho" className="cursor-pointer font-medium">
-                      Recomposição de cascalho
-                    </Label>
+                  <div className="flex items-center justify-between">
+                    <div className="flex items-center space-x-3">
+                      <Checkbox id="recomposicaoCascalho" checked={recomposicaoCascalho} onCheckedChange={(checked) => setRecomposicaoCascalho(checked === true)} />
+                      <Label htmlFor="recomposicaoCascalho" className="cursor-pointer font-medium">Recomposição de cascalho</Label>
+                    </div>
+                    {recomposicaoCascalho && (
+                      <Button type="button" variant="ghost" size="sm" onClick={() => addGabiaoExtra("recomposicaoCascalho")} className="gap-1 h-6 text-xs px-2 text-muted-foreground hover:text-foreground"><Plus className="h-3 w-3" /></Button>
+                    )}
                   </div>
                   {recomposicaoCascalho && (
-                    <div className="flex items-center gap-2 ml-7">
-                      <Input
-                        type="number"
-                        min="0"
-                        step="0.01"
-                        placeholder="Quantidade"
-                        value={recomposicaoCascalhoQuantidade}
-                        onChange={(e) => setRecomposicaoCascalhoQuantidade(e.target.value)}
-                        className="w-[120px]"
-                      />
-                      <span className="text-sm font-medium">m²</span>
-                    </div>
+                    <>
+                      <div className="flex items-center gap-2 ml-7">
+                        <Input type="number" min="0" step="0.01" placeholder="Quantidade" value={recomposicaoCascalhoQuantidade} onChange={(e) => setRecomposicaoCascalhoQuantidade(e.target.value)} className="w-[120px]" />
+                        <span className="text-sm font-medium">m²</span>
+                      </div>
+                      {(gabiaoExtra.recomposicaoCascalho || []).map((val, idx) => (
+                        <div key={idx} className="flex items-center gap-2 ml-7">
+                          <Input type="number" min="0" step="0.01" placeholder="Quantidade" value={val} onChange={(e) => updateGabiaoExtra("recomposicaoCascalho", idx, e.target.value)} className="w-[120px]" />
+                          <span className="text-sm font-medium">m²</span>
+                          <Button type="button" variant="ghost" size="icon" className="h-8 w-8 text-destructive hover:text-destructive hover:bg-destructive/10" onClick={() => removeGabiaoExtra("recomposicaoCascalho", idx)}><X className="h-3 w-3" /></Button>
+                        </div>
+                      ))}
+                    </>
                   )}
                 </div>
 
                 {/* Recomposição de silte */}
                 <div className="p-3 rounded-lg bg-muted/30 space-y-3">
-                  <div className="flex items-center space-x-3">
-                    <Checkbox 
-                      id="recomposicaoSilte" 
-                      checked={recomposicaoSilte}
-                      onCheckedChange={(checked) => setRecomposicaoSilte(checked === true)}
-                    />
-                    <Label htmlFor="recomposicaoSilte" className="cursor-pointer font-medium">
-                      Recomposição de silte
-                    </Label>
+                  <div className="flex items-center justify-between">
+                    <div className="flex items-center space-x-3">
+                      <Checkbox id="recomposicaoSilte" checked={recomposicaoSilte} onCheckedChange={(checked) => setRecomposicaoSilte(checked === true)} />
+                      <Label htmlFor="recomposicaoSilte" className="cursor-pointer font-medium">Recomposição de silte</Label>
+                    </div>
+                    {recomposicaoSilte && (
+                      <Button type="button" variant="ghost" size="sm" onClick={() => addGabiaoExtra("recomposicaoSilte")} className="gap-1 h-6 text-xs px-2 text-muted-foreground hover:text-foreground"><Plus className="h-3 w-3" /></Button>
+                    )}
                   </div>
                   {recomposicaoSilte && (
-                    <div className="flex items-center gap-2 ml-7">
-                      <Input
-                        type="number"
-                        min="0"
-                        step="0.01"
-                        placeholder="Quantidade"
-                        value={recomposicaoSilteQuantidade}
-                        onChange={(e) => setRecomposicaoSilteQuantidade(e.target.value)}
-                        className="w-[120px]"
-                      />
-                      <span className="text-sm font-medium">m²</span>
-                    </div>
+                    <>
+                      <div className="flex items-center gap-2 ml-7">
+                        <Input type="number" min="0" step="0.01" placeholder="Quantidade" value={recomposicaoSilteQuantidade} onChange={(e) => setRecomposicaoSilteQuantidade(e.target.value)} className="w-[120px]" />
+                        <span className="text-sm font-medium">m²</span>
+                      </div>
+                      {(gabiaoExtra.recomposicaoSilte || []).map((val, idx) => (
+                        <div key={idx} className="flex items-center gap-2 ml-7">
+                          <Input type="number" min="0" step="0.01" placeholder="Quantidade" value={val} onChange={(e) => updateGabiaoExtra("recomposicaoSilte", idx, e.target.value)} className="w-[120px]" />
+                          <span className="text-sm font-medium">m²</span>
+                          <Button type="button" variant="ghost" size="icon" className="h-8 w-8 text-destructive hover:text-destructive hover:bg-destructive/10" onClick={() => removeGabiaoExtra("recomposicaoSilte", idx)}><X className="h-3 w-3" /></Button>
+                        </div>
+                      ))}
+                    </>
                   )}
                 </div>
 
                 {/* Transporte de Materiais */}
                 <div className="p-3 rounded-lg bg-muted/30 space-y-3">
-                  <div className="flex items-center space-x-3">
-                    <Checkbox 
-                      id="transporteMateriais" 
-                      checked={transporteMateriais}
-                      onCheckedChange={(checked) => setTransporteMateriais(checked === true)}
-                    />
-                    <Label htmlFor="transporteMateriais" className="cursor-pointer font-medium">
-                      Transporte de Materiais
-                    </Label>
+                  <div className="flex items-center justify-between">
+                    <div className="flex items-center space-x-3">
+                      <Checkbox id="transporteMateriais" checked={transporteMateriais} onCheckedChange={(checked) => setTransporteMateriais(checked === true)} />
+                      <Label htmlFor="transporteMateriais" className="cursor-pointer font-medium">Transporte de Materiais</Label>
+                    </div>
+                    {transporteMateriais && (
+                      <Button type="button" variant="ghost" size="sm" onClick={() => addGabiaoExtra("transporte")} className="gap-1 h-6 text-xs px-2 text-muted-foreground hover:text-foreground"><Plus className="h-3 w-3" /></Button>
+                    )}
                   </div>
                   {transporteMateriais && (
-                    <div className="flex items-center gap-2 ml-7">
-                      <Input
-                        type="number"
-                        min="0"
-                        step="0.01"
-                        placeholder="Quantidade"
-                        value={transporteMateriaisQuantidade}
-                        onChange={(e) => setTransporteMateriaisQuantidade(e.target.value)}
-                        className="w-[120px]"
-                      />
-                      <span className="text-sm font-medium">m³</span>
-                    </div>
+                    <>
+                      <div className="flex items-center gap-2 ml-7">
+                        <Input type="number" min="0" step="0.01" placeholder="Quantidade" value={transporteMateriaisQuantidade} onChange={(e) => setTransporteMateriaisQuantidade(e.target.value)} className="w-[120px]" />
+                        <span className="text-sm font-medium">m³</span>
+                      </div>
+                      {(gabiaoExtra.transporte || []).map((val, idx) => (
+                        <div key={idx} className="flex items-center gap-2 ml-7">
+                          <Input type="number" min="0" step="0.01" placeholder="Quantidade" value={val} onChange={(e) => updateGabiaoExtra("transporte", idx, e.target.value)} className="w-[120px]" />
+                          <span className="text-sm font-medium">m³</span>
+                          <Button type="button" variant="ghost" size="icon" className="h-8 w-8 text-destructive hover:text-destructive hover:bg-destructive/10" onClick={() => removeGabiaoExtra("transporte", idx)}><X className="h-3 w-3" /></Button>
+                        </div>
+                      ))}
+                    </>
                   )}
                 </div>
               </div>

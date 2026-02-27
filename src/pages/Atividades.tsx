@@ -884,237 +884,83 @@ export default function Atividades() {
                 </div>
 
                 {/* Coroamento */}
-                <div className="grid grid-cols-1 md:grid-cols-[1fr_140px_140px] gap-3 p-3 rounded-lg bg-muted/30">
-                  <div className="space-y-2">
+                <div className="p-3 rounded-lg bg-muted/30 space-y-2">
+                  <div className="flex items-center justify-between">
                     <Label>COROAMENTO (Unidade)</Label>
-                    <Input
-                      type="number"
-                      min="0"
-                      value={coroamento}
-                      onChange={(e) => setCoroamento(e.target.value)}
-                      placeholder="0"
-                    />
+                    <AddMoreButton activityKey="coroamento" onAdd={addExtraEntry} />
                   </div>
-                  <div className="space-y-2">
-                    <Label>Faixa</Label>
-                    <Select value={coroamentoFaixa} onValueChange={setCoroamentoFaixa}>
-                      <SelectTrigger>
-                        <SelectValue placeholder="Selecione" />
-                      </SelectTrigger>
-                      <SelectContent>
-                        {FAIXA_OPTIONS.map((opt) => (
-                          <SelectItem key={opt.value} value={opt.value}>
-                            {opt.label}
-                          </SelectItem>
-                        ))}
-                      </SelectContent>
-                    </Select>
+                  <div className="grid grid-cols-1 md:grid-cols-[1fr_140px_140px] gap-3">
+                    <Input type="number" min="0" value={coroamento} onChange={(e) => setCoroamento(e.target.value)} placeholder="0" />
+                    <Select value={coroamentoFaixa} onValueChange={setCoroamentoFaixa}><SelectTrigger><SelectValue placeholder="Faixa" /></SelectTrigger><SelectContent>{FAIXA_OPTIONS.map((opt) => (<SelectItem key={opt.value} value={opt.value}>{opt.label}</SelectItem>))}</SelectContent></Select>
+                    <Select value={coroamentoBerma} onValueChange={setCoroamentoBerma}><SelectTrigger><SelectValue placeholder="Berma" /></SelectTrigger><SelectContent>{BERMA_OPTIONS.map((opt) => (<SelectItem key={opt.value} value={opt.value}>{opt.label}</SelectItem>))}</SelectContent></Select>
                   </div>
-                  <div className="space-y-2">
-                    <Label>Berma</Label>
-                    <Select value={coroamentoBerma} onValueChange={setCoroamentoBerma}>
-                      <SelectTrigger>
-                        <SelectValue placeholder="Selecione" />
-                      </SelectTrigger>
-                      <SelectContent>
-                        {BERMA_OPTIONS.map((opt) => (
-                          <SelectItem key={opt.value} value={opt.value}>
-                            {opt.label}
-                          </SelectItem>
-                        ))}
-                      </SelectContent>
-                    </Select>
-                  </div>
+                  <ExtraActivityEntries activityKey="coroamento" entries={extraEntries.coroamento || []} onAdd={addExtraEntry} onUpdate={updateExtraEntry} onRemove={removeExtraEntry} faixaOptions={FAIXA_OPTIONS} bermaOptions={BERMA_OPTIONS} />
                 </div>
 
                 {/* Adubagem */}
-                <div className="grid grid-cols-1 md:grid-cols-[1fr_140px_140px] gap-3 p-3 rounded-lg bg-muted/30">
-                  <div className="space-y-2">
-                    <div className="flex flex-col gap-1">
-                      <div className="flex items-center justify-between">
-                        <Label>ADUBAGEM (Unidade)</Label>
-                      </div>
+                <div className="p-3 rounded-lg bg-muted/30 space-y-2">
+                  <div className="flex items-center justify-between">
+                    <div className="space-y-1">
+                      <Label>ADUBAGEM (Unidade)</Label>
                       {measurementPeriodTotals.coroamento > 0 && (
                         <Badge 
                           variant={measurementPeriodTotals.adubagem >= measurementPeriodTotals.coroamento ? "default" : "secondary"}
-                          className="text-xs w-fit"
+                          className="text-xs w-fit block"
                         >
                           Coroamento (Medição): {measurementPeriodTotals.coroamento} | Adubagem: {measurementPeriodTotals.adubagem} | Faltam: {Math.max(0, measurementPeriodTotals.coroamento - measurementPeriodTotals.adubagem)}
                         </Badge>
                       )}
                     </div>
-                    <Input
-                      type="number"
-                      min="0"
-                      value={adubagem}
-                      onChange={(e) => setAdubagem(e.target.value)}
-                      placeholder="0"
-                    />
+                    <AddMoreButton activityKey="adubagem" onAdd={addExtraEntry} />
                   </div>
-                  <div className="space-y-2">
-                    <Label>Faixa</Label>
-                    <Select value={adubagemFaixa} onValueChange={setAdubagemFaixa}>
-                      <SelectTrigger>
-                        <SelectValue placeholder="Selecione" />
-                      </SelectTrigger>
-                      <SelectContent>
-                        {FAIXA_OPTIONS.map((opt) => (
-                          <SelectItem key={opt.value} value={opt.value}>
-                            {opt.label}
-                          </SelectItem>
-                        ))}
-                      </SelectContent>
-                    </Select>
+                  <div className="grid grid-cols-1 md:grid-cols-[1fr_140px_140px] gap-3">
+                    <Input type="number" min="0" value={adubagem} onChange={(e) => setAdubagem(e.target.value)} placeholder="0" />
+                    <Select value={adubagemFaixa} onValueChange={setAdubagemFaixa}><SelectTrigger><SelectValue placeholder="Faixa" /></SelectTrigger><SelectContent>{FAIXA_OPTIONS.map((opt) => (<SelectItem key={opt.value} value={opt.value}>{opt.label}</SelectItem>))}</SelectContent></Select>
+                    <Select value={adubagemBerma} onValueChange={setAdubagemBerma}><SelectTrigger><SelectValue placeholder="Berma" /></SelectTrigger><SelectContent>{BERMA_OPTIONS.map((opt) => (<SelectItem key={opt.value} value={opt.value}>{opt.label}</SelectItem>))}</SelectContent></Select>
                   </div>
-                  <div className="space-y-2">
-                    <Label>Berma</Label>
-                    <Select value={adubagemBerma} onValueChange={setAdubagemBerma}>
-                      <SelectTrigger>
-                        <SelectValue placeholder="Selecione" />
-                      </SelectTrigger>
-                      <SelectContent>
-                        {BERMA_OPTIONS.map((opt) => (
-                          <SelectItem key={opt.value} value={opt.value}>
-                            {opt.label}
-                          </SelectItem>
-                        ))}
-                      </SelectContent>
-                    </Select>
-                  </div>
+                  <ExtraActivityEntries activityKey="adubagem" entries={extraEntries.adubagem || []} onAdd={addExtraEntry} onUpdate={updateExtraEntry} onRemove={removeExtraEntry} faixaOptions={FAIXA_OPTIONS} bermaOptions={BERMA_OPTIONS} />
                 </div>
 
                 {/* Plantio */}
-                <div className="grid grid-cols-1 md:grid-cols-[1fr_140px_140px] gap-3 p-3 rounded-lg bg-muted/30">
-                  <div className="space-y-2">
+                <div className="p-3 rounded-lg bg-muted/30 space-y-2">
+                  <div className="flex items-center justify-between">
                     <Label>PLANTIO (Unidade)</Label>
-                    <Input
-                      type="number"
-                      min="0"
-                      value={plantio}
-                      onChange={(e) => setPlantio(e.target.value)}
-                      placeholder="0"
-                    />
+                    <AddMoreButton activityKey="plantio" onAdd={addExtraEntry} />
                   </div>
-                  <div className="space-y-2">
-                    <Label>Faixa</Label>
-                    <Select value={plantioFaixa} onValueChange={setPlantioFaixa}>
-                      <SelectTrigger>
-                        <SelectValue placeholder="Selecione" />
-                      </SelectTrigger>
-                      <SelectContent>
-                        {FAIXA_OPTIONS.map((opt) => (
-                          <SelectItem key={opt.value} value={opt.value}>
-                            {opt.label}
-                          </SelectItem>
-                        ))}
-                      </SelectContent>
-                    </Select>
+                  <div className="grid grid-cols-1 md:grid-cols-[1fr_140px_140px] gap-3">
+                    <Input type="number" min="0" value={plantio} onChange={(e) => setPlantio(e.target.value)} placeholder="0" />
+                    <Select value={plantioFaixa} onValueChange={setPlantioFaixa}><SelectTrigger><SelectValue placeholder="Faixa" /></SelectTrigger><SelectContent>{FAIXA_OPTIONS.map((opt) => (<SelectItem key={opt.value} value={opt.value}>{opt.label}</SelectItem>))}</SelectContent></Select>
+                    <Select value={plantioBerma} onValueChange={setPlantioBerma}><SelectTrigger><SelectValue placeholder="Berma" /></SelectTrigger><SelectContent>{BERMA_OPTIONS.map((opt) => (<SelectItem key={opt.value} value={opt.value}>{opt.label}</SelectItem>))}</SelectContent></Select>
                   </div>
-                  <div className="space-y-2">
-                    <Label>Berma</Label>
-                    <Select value={plantioBerma} onValueChange={setPlantioBerma}>
-                      <SelectTrigger>
-                        <SelectValue placeholder="Selecione" />
-                      </SelectTrigger>
-                      <SelectContent>
-                        {BERMA_OPTIONS.map((opt) => (
-                          <SelectItem key={opt.value} value={opt.value}>
-                            {opt.label}
-                          </SelectItem>
-                        ))}
-                      </SelectContent>
-                    </Select>
-                  </div>
+                  <ExtraActivityEntries activityKey="plantio" entries={extraEntries.plantio || []} onAdd={addExtraEntry} onUpdate={updateExtraEntry} onRemove={removeExtraEntry} faixaOptions={FAIXA_OPTIONS} bermaOptions={BERMA_OPTIONS} />
                 </div>
 
                 {/* Limpeza Manual */}
-                <div className="grid grid-cols-1 md:grid-cols-[1fr_140px_140px] gap-3 p-3 rounded-lg bg-muted/30">
-                  <div className="space-y-2">
+                <div className="p-3 rounded-lg bg-muted/30 space-y-2">
+                  <div className="flex items-center justify-between">
                     <Label>LIMPEZA MANUAL (m²)</Label>
-                    <Input
-                      type="number"
-                      min="0"
-                      step="0.01"
-                      value={limpezaManual}
-                      onChange={(e) => setLimpezaManual(e.target.value)}
-                      placeholder="0.00"
-                    />
+                    <AddMoreButton activityKey="limpezaManual" onAdd={addExtraEntry} />
                   </div>
-                  <div className="space-y-2">
-                    <Label>Faixa</Label>
-                    <Select value={limpezaManualFaixa} onValueChange={setLimpezaManualFaixa}>
-                      <SelectTrigger>
-                        <SelectValue placeholder="Selecione" />
-                      </SelectTrigger>
-                      <SelectContent>
-                        {FAIXA_OPTIONS.map((opt) => (
-                          <SelectItem key={opt.value} value={opt.value}>
-                            {opt.label}
-                          </SelectItem>
-                        ))}
-                      </SelectContent>
-                    </Select>
+                  <div className="grid grid-cols-1 md:grid-cols-[1fr_140px_140px] gap-3">
+                    <Input type="number" min="0" step="0.01" value={limpezaManual} onChange={(e) => setLimpezaManual(e.target.value)} placeholder="0.00" />
+                    <Select value={limpezaManualFaixa} onValueChange={setLimpezaManualFaixa}><SelectTrigger><SelectValue placeholder="Faixa" /></SelectTrigger><SelectContent>{FAIXA_OPTIONS.map((opt) => (<SelectItem key={opt.value} value={opt.value}>{opt.label}</SelectItem>))}</SelectContent></Select>
+                    <Select value={limpezaManualBerma} onValueChange={setLimpezaManualBerma}><SelectTrigger><SelectValue placeholder="Berma" /></SelectTrigger><SelectContent>{BERMA_OPTIONS.map((opt) => (<SelectItem key={opt.value} value={opt.value}>{opt.label}</SelectItem>))}</SelectContent></Select>
                   </div>
-                  <div className="space-y-2">
-                    <Label>Berma</Label>
-                    <Select value={limpezaManualBerma} onValueChange={setLimpezaManualBerma}>
-                      <SelectTrigger>
-                        <SelectValue placeholder="Selecione" />
-                      </SelectTrigger>
-                      <SelectContent>
-                        {BERMA_OPTIONS.map((opt) => (
-                          <SelectItem key={opt.value} value={opt.value}>
-                            {opt.label}
-                          </SelectItem>
-                        ))}
-                      </SelectContent>
-                    </Select>
-                  </div>
+                  <ExtraActivityEntries activityKey="limpezaManual" entries={extraEntries.limpezaManual || []} onAdd={addExtraEntry} onUpdate={updateExtraEntry} onRemove={removeExtraEntry} faixaOptions={FAIXA_OPTIONS} bermaOptions={BERMA_OPTIONS} inputType="number" step="0.01" />
                 </div>
 
                 {/* Limpeza com Soprador */}
-                <div className="grid grid-cols-1 md:grid-cols-[1fr_140px_140px] gap-3 p-3 rounded-lg bg-muted/30">
-                  <div className="space-y-2">
+                <div className="p-3 rounded-lg bg-muted/30 space-y-2">
+                  <div className="flex items-center justify-between">
                     <Label>LIMPEZA COM SOPRADOR (m²)</Label>
-                    <Input
-                      type="number"
-                      min="0"
-                      step="0.01"
-                      value={limpezaAssoprador}
-                      onChange={(e) => setLimpezaAssoprador(e.target.value)}
-                      placeholder="0.00"
-                    />
+                    <AddMoreButton activityKey="limpezaAssoprador" onAdd={addExtraEntry} />
                   </div>
-                  <div className="space-y-2">
-                    <Label>Faixa</Label>
-                    <Select value={limpezaAssopradorFaixa} onValueChange={setLimpezaAssopradorFaixa}>
-                      <SelectTrigger>
-                        <SelectValue placeholder="Selecione" />
-                      </SelectTrigger>
-                      <SelectContent>
-                        {FAIXA_OPTIONS.map((opt) => (
-                          <SelectItem key={opt.value} value={opt.value}>
-                            {opt.label}
-                          </SelectItem>
-                        ))}
-                      </SelectContent>
-                    </Select>
+                  <div className="grid grid-cols-1 md:grid-cols-[1fr_140px_140px] gap-3">
+                    <Input type="number" min="0" step="0.01" value={limpezaAssoprador} onChange={(e) => setLimpezaAssoprador(e.target.value)} placeholder="0.00" />
+                    <Select value={limpezaAssopradorFaixa} onValueChange={setLimpezaAssopradorFaixa}><SelectTrigger><SelectValue placeholder="Faixa" /></SelectTrigger><SelectContent>{FAIXA_OPTIONS.map((opt) => (<SelectItem key={opt.value} value={opt.value}>{opt.label}</SelectItem>))}</SelectContent></Select>
+                    <Select value={limpezaAssopradorBerma} onValueChange={setLimpezaAssopradorBerma}><SelectTrigger><SelectValue placeholder="Berma" /></SelectTrigger><SelectContent>{BERMA_OPTIONS.map((opt) => (<SelectItem key={opt.value} value={opt.value}>{opt.label}</SelectItem>))}</SelectContent></Select>
                   </div>
-                  <div className="space-y-2">
-                    <Label>Berma</Label>
-                    <Select value={limpezaAssopradorBerma} onValueChange={setLimpezaAssopradorBerma}>
-                      <SelectTrigger>
-                        <SelectValue placeholder="Selecione" />
-                      </SelectTrigger>
-                      <SelectContent>
-                        {BERMA_OPTIONS.map((opt) => (
-                          <SelectItem key={opt.value} value={opt.value}>
-                            {opt.label}
-                          </SelectItem>
-                        ))}
-                      </SelectContent>
-                    </Select>
-                  </div>
+                  <ExtraActivityEntries activityKey="limpezaAssoprador" entries={extraEntries.limpezaAssoprador || []} onAdd={addExtraEntry} onUpdate={updateExtraEntry} onRemove={removeExtraEntry} faixaOptions={FAIXA_OPTIONS} bermaOptions={BERMA_OPTIONS} inputType="number" step="0.01" />
                 </div>
               </div>
 
@@ -1211,48 +1057,17 @@ export default function Atividades() {
               </div>
 
               {/* Plantio de Grama */}
-              <div className="grid grid-cols-1 md:grid-cols-[1fr_140px_140px] gap-3 p-3 rounded-lg bg-green-500/10 border border-green-500/20">
-                <div className="space-y-2">
+              <div className="p-3 rounded-lg bg-green-500/10 border border-green-500/20 space-y-2">
+                <div className="flex items-center justify-between">
                   <Label className="text-green-600 dark:text-green-400">🌿 PLANTIO DE GRAMA (m²)</Label>
-                  <Input
-                    type="number"
-                    min="0"
-                    step="0.01"
-                    value={plantioGrama}
-                    onChange={(e) => setPlantioGrama(e.target.value)}
-                    placeholder="0.00"
-                  />
+                  <AddMoreButton activityKey="plantioGrama" onAdd={addExtraEntry} />
                 </div>
-                <div className="space-y-2">
-                  <Label>Faixa</Label>
-                  <Select value={plantioGramaFaixa} onValueChange={setPlantioGramaFaixa}>
-                    <SelectTrigger>
-                      <SelectValue placeholder="Selecione" />
-                    </SelectTrigger>
-                    <SelectContent>
-                      {FAIXA_OPTIONS.map((opt) => (
-                        <SelectItem key={opt.value} value={opt.value}>
-                          {opt.label}
-                        </SelectItem>
-                      ))}
-                    </SelectContent>
-                  </Select>
+                <div className="grid grid-cols-1 md:grid-cols-[1fr_140px_140px] gap-3">
+                  <Input type="number" min="0" step="0.01" value={plantioGrama} onChange={(e) => setPlantioGrama(e.target.value)} placeholder="0.00" />
+                  <Select value={plantioGramaFaixa} onValueChange={setPlantioGramaFaixa}><SelectTrigger><SelectValue placeholder="Faixa" /></SelectTrigger><SelectContent>{FAIXA_OPTIONS.map((opt) => (<SelectItem key={opt.value} value={opt.value}>{opt.label}</SelectItem>))}</SelectContent></Select>
+                  <Select value={plantioGramaBerma} onValueChange={setPlantioGramaBerma}><SelectTrigger><SelectValue placeholder="Berma" /></SelectTrigger><SelectContent>{BERMA_OPTIONS.map((opt) => (<SelectItem key={opt.value} value={opt.value}>{opt.label}</SelectItem>))}</SelectContent></Select>
                 </div>
-                <div className="space-y-2">
-                  <Label>Berma</Label>
-                  <Select value={plantioGramaBerma} onValueChange={setPlantioGramaBerma}>
-                    <SelectTrigger>
-                      <SelectValue placeholder="Selecione" />
-                    </SelectTrigger>
-                    <SelectContent>
-                      {BERMA_OPTIONS.map((opt) => (
-                        <SelectItem key={opt.value} value={opt.value}>
-                          {opt.label}
-                        </SelectItem>
-                      ))}
-                    </SelectContent>
-                  </Select>
-                </div>
+                <ExtraActivityEntries activityKey="plantioGrama" entries={extraEntries.plantioGrama || []} onAdd={addExtraEntry} onUpdate={updateExtraEntry} onRemove={removeExtraEntry} faixaOptions={FAIXA_OPTIONS} bermaOptions={BERMA_OPTIONS} inputType="number" step="0.01" />
               </div>
 
               {/* Atividades Manuais */}
