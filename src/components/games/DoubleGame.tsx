@@ -4,6 +4,7 @@ import { ArrowLeft, Minus, Plus, ChevronDown } from "lucide-react";
 import { motion, AnimatePresence } from "framer-motion";
 import { useDouble, buildRouletteStrip, DoubleColor } from "@/hooks/useDouble";
 import { cn } from "@/lib/utils";
+import sucenaLogo from "@/assets/logo-sucena-double.png";
 
 interface Props {
   onBack: () => void;
@@ -248,7 +249,7 @@ export function DoubleGame({ onBack }: Props) {
                       COLOR_TEXT[cell.color]
                     )}
                   >
-                    {cell.color === "white" ? "⭐" : cell.number}
+                    {cell.color === "white" ? <img src={sucenaLogo} alt="Sucena" className="w-10 h-10 object-contain" /> : cell.number}
                   </div>
                 </div>
             ))}
@@ -269,7 +270,7 @@ export function DoubleGame({ onBack }: Props) {
               COLOR_TEXT[h.color]
             )}
           >
-            {h.color === "white" ? "⭐" : h.number}
+            {h.color === "white" ? <img src={sucenaLogo} alt="S" className="w-4 h-4 object-contain" /> : h.number}
           </motion.div>
         ))}
       </div>
@@ -386,7 +387,7 @@ export function DoubleGame({ onBack }: Props) {
             >
               <div className="w-10 h-10 rounded-full border-2 border-white/80 flex items-center justify-center">
                 <span className="text-white font-bold text-sm">
-                  {color === "white" ? "⭐" : color === "red" ? "🔴" : "⚫"}
+                  {color === "white" ? <img src={sucenaLogo} alt="Sucena" className="w-6 h-6 object-contain" /> : color === "red" ? "🔴" : "⚫"}
                 </span>
               </div>
               <span className="text-[10px] font-semibold text-white/90">
