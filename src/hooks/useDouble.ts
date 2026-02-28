@@ -84,7 +84,9 @@ export function useDouble() {
   const [lastResult, setLastResult] = useState<{ number: number; color: DoubleColor } | null>(null);
   const [spinTarget, setSpinTarget] = useState<number | null>(null);
   const timerRef = useRef<ReturnType<typeof setInterval>>();
+  const nextRoundTimeoutRef = useRef<ReturnType<typeof setTimeout>>();
   const roundRef = useRef<string | null>(null);
+  const loopTokenRef = useRef(0);
 
   // Load balance
   useEffect(() => {
@@ -127,6 +129,11 @@ export function useDouble() {
   const startRound = useCallback(async () => {
     if (!user) return;
 
+    const loopToken = ++loopTokenRef.current;
+
+    if (timerRef.current) clearInterval(timerRef.current);
+    if (nextRoundTimeoutRef.current) clearTimeout(nextRoundTimeoutRef.current);
+
     const result = generateResult();
     setPhase("betting");
     setTimeLeft(15);
@@ -146,24 +153,25 @@ export function useDouble() {
       .select("id")
       .single();
 
-    if (!round) return;
+    // If a newer loop started while awaiting, abort this one
+    if (!round || loopToken !== loopTokenRef.current) return;
 
     setCurrentRoundId(round.id);
     roundRef.current = round.id;
 
     // Timer
     let t = 15;
-    if (timerRef.current) clearInterval(timerRef.current);
-
     timerRef.current = setInterval(async () => {
+      // Ignore stale interval ticks from older loops
+      if (loopToken !== loopTokenRef.current) return;
+
       t -= 1;
       setTimeLeft(t);
 
       if (t <= 5 && t > 0) {
         setPhase("spinning");
         if (t === 5) {
-          // Calculate spin target position
-          // Map result to strip position
+          // Calculate spin target position from result
           const strip = buildRouletteStrip();
           let targetIdx = 30; // middle of strip
           for (let i = 28; i < 45; i++) {
@@ -177,7 +185,9 @@ export function useDouble() {
       }
 
       if (t <= 0) {
-        clearInterval(timerRef.current);
+        if (timerRef.current) clearInterval(timerRef.current);
+        if (loopToken !== loopTokenRef.current) return;
+
         setPhase("result");
         setLastResult(result);
 
@@ -187,18 +197,22 @@ export function useDouble() {
           .update({ status: "finished", finished_at: new Date().toISOString() })
           .eq("id", roundRef.current!);
 
+        if (loopToken !== loopTokenRef.current) return;
+
         // Process payouts
         const { data: roundBets } = await supabase
           .from("double_bets")
           .select("*")
           .eq("round_id", roundRef.current!);
 
+        if (loopToken !== loopTokenRef.current) return;
+
         if (roundBets) {
           for (const bet of roundBets) {
             if (bet.bet_color === result.color) {
               const multiplier = result.color === "white" ? 14 : 2;
               const payout = Number(bet.bet_amount) * multiplier;
-              
+
               await supabase
                 .from("double_bets")
                 .update({ payout })
@@ -221,8 +235,12 @@ export function useDouble() {
         // Update history
         setHistory(prev => [{ number: result.number, color: result.color }, ...prev].slice(0, 20));
 
-        // Start next round after 5s
-        setTimeout(() => startRound(), 5000);
+        // Start next round after 5s (still guarded by loop token)
+        nextRoundTimeoutRef.current = setTimeout(() => {
+          if (loopToken === loopTokenRef.current) {
+            startRound();
+          }
+        }, 5000);
       }
     }, 1000);
   }, [user]);
@@ -233,9 +251,11 @@ export function useDouble() {
       startRound();
     }
     return () => {
+      loopTokenRef.current += 1;
       if (timerRef.current) clearInterval(timerRef.current);
+      if (nextRoundTimeoutRef.current) clearTimeout(nextRoundTimeoutRef.current);
     };
-  }, [user]);
+  }, [user, startRound]);
 
   // Subscribe to bets realtime
   useEffect(() => {
