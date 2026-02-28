@@ -110,11 +110,16 @@ export function DoubleGame({ onBack }: Props) {
     }
   }, [phase, spinTarget, centerOffset]);
 
-  const handleBet = async (color: DoubleColor) => {
+  const handleColorToggle = (color: DoubleColor) => {
     if (phase !== "betting") return;
-    const success = await placeBet(color, betAmount);
+    setSelectedColor(prev => (prev === color ? null : color));
+  };
+
+  const handleConfirmBet = async () => {
+    if (!selectedColor || phase !== "betting") return;
+    const success = await placeBet(selectedColor, betAmount);
     if (success) {
-      setSelectedColor(color);
+      // keep color selected so user can bet again quickly
     }
   };
 
@@ -281,11 +286,17 @@ export function DoubleGame({ onBack }: Props) {
           >
             <Minus className="w-4 h-4" />
           </Button>
-          <div className="flex-1 bg-zinc-300 rounded-lg px-4 py-2 text-center">
-            <span className="text-lg font-bold text-zinc-900">
-              R$ {betAmount.toFixed(2)}
-            </span>
-          </div>
+          <input
+            type="number"
+            min={0.1}
+            step={0.1}
+            value={betAmount}
+            onChange={e => {
+              const v = parseFloat(e.target.value);
+              if (!isNaN(v) && v >= 0) setBetAmount(v);
+            }}
+            className="flex-1 bg-zinc-300 rounded-lg px-4 py-2 text-center text-lg font-bold text-zinc-900 outline-none border border-zinc-400 focus:ring-2 focus:ring-primary"
+          />
           <Button
             variant="outline"
             size="icon"
@@ -335,6 +346,20 @@ export function DoubleGame({ onBack }: Props) {
           </Button>
         </div>
       </div>
+      {/* Confirm Bet Button */}
+      {selectedColor && phase === "betting" && (
+        <Button
+          className={cn(
+            "w-full text-white font-bold py-3 text-base",
+            selectedColor === "red" && "bg-red-600 hover:bg-red-700",
+            selectedColor === "black" && "bg-zinc-800 hover:bg-zinc-900",
+            selectedColor === "white" && "bg-emerald-500 hover:bg-emerald-600"
+          )}
+          onClick={handleConfirmBet}
+        >
+          Apostar R$ {betAmount.toFixed(2)} no {COLOR_LABEL[selectedColor]}
+        </Button>
+      )}
 
 
 
@@ -348,14 +373,15 @@ export function DoubleGame({ onBack }: Props) {
               key={color}
               whileTap={!disabled ? { scale: 0.95 } : undefined}
               disabled={disabled}
-              onClick={() => handleBet(color)}
+              onClick={() => handleColorToggle(color)}
               className={cn(
                 "relative rounded-xl p-4 flex flex-col items-center gap-1 border-2 transition-all",
                 disabled ? "opacity-50 cursor-not-allowed" : "cursor-pointer active:scale-95",
                 color === "red" && "bg-red-600/20 border-red-600/40 hover:border-red-500",
                 color === "black" && "bg-zinc-800/40 border-zinc-600/40 hover:border-zinc-500",
                 color === "white" && "bg-emerald-50/10 border-emerald-300/40 hover:border-emerald-300",
-                myBet > 0 && "ring-2 ring-amber-400"
+                selectedColor === color && "ring-2 ring-primary border-primary",
+                myBet > 0 && selectedColor !== color && "ring-2 ring-amber-400"
               )}
             >
               <div
