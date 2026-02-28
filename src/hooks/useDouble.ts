@@ -1,0 +1,307 @@
+import { useState, useEffect, useCallback, useRef } from "react";
+import { supabase } from "@/integrations/supabase/client";
+import { useAuth } from "@/hooks/useAuth";
+import { useProfile } from "@/hooks/useProfile";
+
+export type DoubleColor = "red" | "black" | "white";
+export type DoublePhase = "betting" | "spinning" | "result";
+
+interface DoubleRound {
+  id: string;
+  result_number: number;
+  result_color: DoubleColor;
+  status: string;
+  started_at: string;
+}
+
+interface DoubleBet {
+  id: string;
+  user_id: string;
+  user_name: string;
+  avatar_url: string | null;
+  bet_color: DoubleColor;
+  bet_amount: number;
+  payout: number | null;
+}
+
+interface HistoryItem {
+  number: number;
+  color: DoubleColor;
+}
+
+// Generate a provably fair result
+function generateResult(): { number: number; color: DoubleColor } {
+  const rand = Math.random() * 100;
+  let color: DoubleColor;
+  let number: number;
+
+  if (rand < 6) {
+    color = "white";
+    number = 0;
+  } else if (rand < 53) {
+    color = "red";
+    // Even numbers 2,4,6,8,10,12
+    const reds = [1, 2, 3, 4, 5, 6, 7];
+    number = reds[Math.floor(Math.random() * reds.length)];
+  } else {
+    color = "black";
+    // Odd numbers 1,3,5,7,9,11,13
+    const blacks = [8, 9, 10, 11, 12, 13, 14];
+    number = blacks[Math.floor(Math.random() * blacks.length)];
+  }
+
+  return { number, color };
+}
+
+// Build roulette strip: repeating pattern of colors
+export function buildRouletteStrip(): Array<{ number: number; color: DoubleColor }> {
+  const strip: Array<{ number: number; color: DoubleColor }> = [];
+  // Create a long strip with the pattern
+  for (let i = 0; i < 60; i++) {
+    const mod = i % 15;
+    if (mod === 0) {
+      strip.push({ number: 0, color: "white" });
+    } else if (mod % 2 === 1) {
+      strip.push({ number: mod, color: "red" });
+    } else {
+      strip.push({ number: mod, color: "black" });
+    }
+  }
+  return strip;
+}
+
+export function useDouble() {
+  const { user } = useAuth();
+  const { data: profile } = useProfile();
+  const [phase, setPhase] = useState<DoublePhase>("betting");
+  const [timeLeft, setTimeLeft] = useState(15);
+  const [balance, setBalance] = useState(5000);
+  const [currentRoundId, setCurrentRoundId] = useState<string | null>(null);
+  const [bets, setBets] = useState<DoubleBet[]>([]);
+  const [myBets, setMyBets] = useState<Map<DoubleColor, number>>(new Map());
+  const [history, setHistory] = useState<HistoryItem[]>([]);
+  const [lastResult, setLastResult] = useState<{ number: number; color: DoubleColor } | null>(null);
+  const [spinTarget, setSpinTarget] = useState<number | null>(null);
+  const timerRef = useRef<ReturnType<typeof setInterval>>();
+  const roundRef = useRef<string | null>(null);
+
+  // Load balance
+  useEffect(() => {
+    if (!user) return;
+    const loadBalance = async () => {
+      const { data } = await supabase
+        .from("double_balances")
+        .select("balance")
+        .eq("user_id", user.id)
+        .maybeSingle();
+
+      if (data) {
+        setBalance(Number(data.balance));
+      } else {
+        await supabase.from("double_balances").insert({ user_id: user.id, balance: 5000 });
+        setBalance(5000);
+      }
+    };
+    loadBalance();
+  }, [user]);
+
+  // Load history
+  useEffect(() => {
+    const loadHistory = async () => {
+      const { data } = await supabase
+        .from("double_rounds")
+        .select("result_number, result_color")
+        .eq("status", "finished")
+        .order("created_at", { ascending: false })
+        .limit(20);
+
+      if (data) {
+        setHistory(data.map(d => ({ number: d.result_number, color: d.result_color as DoubleColor })));
+      }
+    };
+    loadHistory();
+  }, []);
+
+  // Game loop
+  const startRound = useCallback(async () => {
+    if (!user) return;
+
+    const result = generateResult();
+    setPhase("betting");
+    setTimeLeft(15);
+    setBets([]);
+    setMyBets(new Map());
+    setLastResult(null);
+    setSpinTarget(null);
+
+    // Create round in DB
+    const { data: round } = await supabase
+      .from("double_rounds")
+      .insert({
+        result_number: result.number,
+        result_color: result.color,
+        status: "betting",
+      })
+      .select("id")
+      .single();
+
+    if (!round) return;
+
+    setCurrentRoundId(round.id);
+    roundRef.current = round.id;
+
+    // Timer
+    let t = 15;
+    if (timerRef.current) clearInterval(timerRef.current);
+
+    timerRef.current = setInterval(async () => {
+      t -= 1;
+      setTimeLeft(t);
+
+      if (t <= 5 && t > 0) {
+        setPhase("spinning");
+        if (t === 5) {
+          // Calculate spin target position
+          // Map result to strip position
+          const strip = buildRouletteStrip();
+          let targetIdx = 30; // middle of strip
+          for (let i = 28; i < 45; i++) {
+            if (strip[i].color === result.color && strip[i].number === result.number) {
+              targetIdx = i;
+              break;
+            }
+          }
+          setSpinTarget(targetIdx);
+        }
+      }
+
+      if (t <= 0) {
+        clearInterval(timerRef.current);
+        setPhase("result");
+        setLastResult(result);
+
+        // Update round status
+        await supabase
+          .from("double_rounds")
+          .update({ status: "finished", finished_at: new Date().toISOString() })
+          .eq("id", roundRef.current!);
+
+        // Process payouts
+        const { data: roundBets } = await supabase
+          .from("double_bets")
+          .select("*")
+          .eq("round_id", roundRef.current!);
+
+        if (roundBets) {
+          for (const bet of roundBets) {
+            if (bet.bet_color === result.color) {
+              const multiplier = result.color === "white" ? 14 : 2;
+              const payout = Number(bet.bet_amount) * multiplier;
+              
+              await supabase
+                .from("double_bets")
+                .update({ payout })
+                .eq("id", bet.id);
+
+              if (bet.user_id === user.id) {
+                setBalance(prev => {
+                  const newBal = prev + payout;
+                  supabase
+                    .from("double_balances")
+                    .update({ balance: newBal, updated_at: new Date().toISOString() })
+                    .eq("user_id", user.id);
+                  return newBal;
+                });
+              }
+            }
+          }
+        }
+
+        // Update history
+        setHistory(prev => [{ number: result.number, color: result.color }, ...prev].slice(0, 20));
+
+        // Start next round after 5s
+        setTimeout(() => startRound(), 5000);
+      }
+    }, 1000);
+  }, [user]);
+
+  // Start first round
+  useEffect(() => {
+    if (user) {
+      startRound();
+    }
+    return () => {
+      if (timerRef.current) clearInterval(timerRef.current);
+    };
+  }, [user]);
+
+  // Subscribe to bets realtime
+  useEffect(() => {
+    if (!currentRoundId) return;
+
+    const channel = supabase
+      .channel(`double-bets-${currentRoundId}`)
+      .on(
+        "postgres_changes",
+        { event: "INSERT", schema: "public", table: "double_bets", filter: `round_id=eq.${currentRoundId}` },
+        (payload) => {
+          const newBet = payload.new as DoubleBet;
+          setBets(prev => [...prev, newBet]);
+        }
+      )
+      .subscribe();
+
+    return () => {
+      supabase.removeChannel(channel);
+    };
+  }, [currentRoundId]);
+
+  const placeBet = useCallback(async (color: DoubleColor, amount: number) => {
+    if (!user || !currentRoundId || phase !== "betting") return false;
+    if (amount > balance || amount < 0.10) return false;
+
+    const userName = profile?.full_name || "Jogador";
+    const avatarUrl = profile?.avatar_url || null;
+
+    // Debit balance
+    const newBalance = balance - amount;
+    setBalance(newBalance);
+
+    await supabase
+      .from("double_balances")
+      .update({ balance: newBalance, updated_at: new Date().toISOString() })
+      .eq("user_id", user.id);
+
+    // Place bet
+    await supabase.from("double_bets").insert({
+      round_id: currentRoundId,
+      user_id: user.id,
+      user_name: userName,
+      avatar_url: avatarUrl,
+      bet_color: color,
+      bet_amount: amount,
+    });
+
+    setMyBets(prev => {
+      const next = new Map(prev);
+      next.set(color, (next.get(color) || 0) + amount);
+      return next;
+    });
+
+    return true;
+  }, [user, currentRoundId, phase, balance, profile]);
+
+  return {
+    phase,
+    timeLeft,
+    balance,
+    bets,
+    myBets,
+    history,
+    lastResult,
+    spinTarget,
+    placeBet,
+    currentRoundId,
+  };
+}
