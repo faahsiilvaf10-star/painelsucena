@@ -48,6 +48,22 @@ export function DoubleGame({ onBack }: Props) {
 
   const [betAmount, setBetAmount] = useState(1);
   const [selectedColor, setSelectedColor] = useState<DoubleColor | null>(null);
+
+  // Oscillating percentages every 5 minutes
+  const [colorPercentages, setColorPercentages] = useState({ red: 47, black: 47, white: 6 });
+  useEffect(() => {
+    const randomize = () => {
+      const whiteBase = 6 + (Math.random() * 4 - 2); // 4-8%
+      const remaining = 100 - whiteBase;
+      const redShift = Math.random() * 6 - 3; // ±3%
+      const red = Math.round((remaining / 2 + redShift) * 10) / 10;
+      const black = Math.round((remaining - red) * 10) / 10;
+      setColorPercentages({ red, black, white: Math.round(whiteBase * 10) / 10 });
+    };
+    randomize();
+    const interval = setInterval(randomize, 5 * 60 * 1000);
+    return () => clearInterval(interval);
+  }, []);
   const stripRef = useRef<HTMLDivElement>(null);
   const viewportRef = useRef<HTMLDivElement>(null);
   const strip = useMemo(() => buildRouletteStrip(), []);
@@ -353,7 +369,7 @@ export function DoubleGame({ onBack }: Props) {
                 {COLOR_LABEL[color]}
               </span>
               <span className="text-[10px] text-muted-foreground">
-                {MULTIPLIER[color]}
+                {MULTIPLIER[color]} · {colorPercentages[color]}%
               </span>
               {myBet > 0 && (
                 <span className="text-[10px] text-amber-400 font-bold">
