@@ -594,6 +594,11 @@ export default function Atividades() {
       setInvasoras([{ nome: "", unidade: "" }]); setInvasorasBerma("");
       setRetiradaMudasUnidade("");
       setPlantioGrama(""); setPlantioGramaFaixa(""); setPlantioGramaBerma("");
+      setAtividadesManuais("");
+      setIrrigacaoPipas(false);
+      setIrrigacaoCarretel(false);
+      setIrrigacaoCarretelBermas([]);
+      setPhotos([]);
       setExtraEntries({});
       setLocalFaixa("FAIXA 2");
       toast.success("Registro excluído!");
