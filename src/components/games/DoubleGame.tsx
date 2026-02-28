@@ -82,7 +82,7 @@ export function DoubleGame({ onBack }: Props) {
         avatar_url: profileMap.get(b.user_id)?.avatar_url,
       }));
     },
-    refetchInterval: 30000,
+    refetchInterval: 10000,
   });
 
   // Oscillating percentages every 5 minutes
