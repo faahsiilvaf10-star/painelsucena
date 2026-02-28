@@ -1,6 +1,6 @@
 import { useState, useRef, useEffect, useMemo } from "react";
 import { Button } from "@/components/ui/button";
-import { ArrowLeft, Minus, Plus, ChevronDown, Trophy } from "lucide-react";
+import { ArrowLeft, Minus, Plus, ChevronDown, Trophy, Repeat } from "lucide-react";
 import { motion, AnimatePresence } from "framer-motion";
 import { useDouble, buildRouletteStrip, DoubleColor } from "@/hooks/useDouble";
 import { cn } from "@/lib/utils";
@@ -52,6 +52,13 @@ export function DoubleGame({ onBack }: Props) {
   const [betAmount, setBetAmount] = useState(1);
   const [selectedColor, setSelectedColor] = useState<DoubleColor | null>(null);
   const [showRanking, setShowRanking] = useState(false);
+
+  // Auto-bet state
+  const [autoBetMode, setAutoBetMode] = useState(false);
+  const [autoBetActive, setAutoBetActive] = useState(false);
+  const [autoBetRounds, setAutoBetRounds] = useState(5);
+  const [autoBetRemaining, setAutoBetRemaining] = useState(0);
+  const autoBetRef = useRef({ active: false, color: null as DoubleColor | null, amount: 0, remaining: 0 });
 
   const { data: balanceRanking = [] } = useQuery({
     queryKey: ["double-balance-ranking"],
@@ -149,6 +156,52 @@ export function DoubleGame({ onBack }: Props) {
     if (success) {
       // keep color selected so user can bet again quickly
     }
+  };
+
+  // Auto-bet: place bet automatically when betting phase starts
+  useEffect(() => {
+    if (phase !== "betting" || !autoBetRef.current.active) return;
+    const ref = autoBetRef.current;
+    if (ref.remaining <= 0 || !ref.color) {
+      autoBetRef.current.active = false;
+      setAutoBetActive(false);
+      setAutoBetRemaining(0);
+      return;
+    }
+    const timer = setTimeout(async () => {
+      if (!autoBetRef.current.active) return;
+      await placeBet(ref.color!, ref.amount);
+      autoBetRef.current.remaining -= 1;
+      setAutoBetRemaining(autoBetRef.current.remaining);
+      if (autoBetRef.current.remaining <= 0) {
+        autoBetRef.current.active = false;
+        setAutoBetActive(false);
+      }
+    }, 1500);
+    return () => clearTimeout(timer);
+  }, [phase, placeBet]);
+
+  const startAutoBet = () => {
+    if (!selectedColor || autoBetRounds <= 0) return;
+    autoBetRef.current = { active: true, color: selectedColor, amount: betAmount, remaining: autoBetRounds };
+    setAutoBetActive(true);
+    setAutoBetRemaining(autoBetRounds);
+    if (phase === "betting") {
+      placeBet(selectedColor, betAmount).then(() => {
+        autoBetRef.current.remaining -= 1;
+        setAutoBetRemaining(autoBetRef.current.remaining);
+        if (autoBetRef.current.remaining <= 0) {
+          autoBetRef.current.active = false;
+          setAutoBetActive(false);
+        }
+      });
+    }
+  };
+
+  const stopAutoBet = () => {
+    autoBetRef.current.active = false;
+    setAutoBetActive(false);
+    setAutoBetRemaining(0);
   };
 
   const adjustAmount = (delta: number) => {
@@ -389,6 +442,84 @@ export function DoubleGame({ onBack }: Props) {
         </Button>
       )}
 
+      {/* Auto-Bet Panel */}
+      <div className="bg-zinc-200 rounded-xl p-3 border border-zinc-300">
+        <div className="flex items-center justify-between mb-2">
+          <span className="text-xs font-semibold text-zinc-800 flex items-center gap-1.5">
+            <Repeat className="w-3.5 h-3.5" /> Auto-Aposta
+          </span>
+          {autoBetActive && (
+            <span className="text-[10px] bg-amber-100 text-amber-800 px-2 py-0.5 rounded-full font-bold animate-pulse">
+              {autoBetRemaining} restante(s)
+            </span>
+          )}
+        </div>
+        <div className="flex items-center gap-2 mb-2">
+          <span className="text-[10px] text-zinc-600 whitespace-nowrap">Rodadas:</span>
+          <div className="flex items-center gap-1 flex-1">
+            <Button
+              variant="outline"
+              size="icon"
+              className="h-7 w-7 bg-zinc-300 border-zinc-400 text-zinc-900"
+              onClick={() => setAutoBetRounds(prev => Math.max(1, prev - 1))}
+              disabled={autoBetActive}
+            >
+              <Minus className="w-3 h-3" />
+            </Button>
+            <input
+              type="number"
+              min={1}
+              max={100}
+              value={autoBetRounds}
+              onChange={e => {
+                const v = parseInt(e.target.value);
+                if (!isNaN(v) && v >= 1) setAutoBetRounds(v);
+              }}
+              disabled={autoBetActive}
+              className="flex-1 bg-zinc-300 rounded-md px-2 py-1 text-center text-sm font-bold text-zinc-900 outline-none border border-zinc-400 focus:ring-2 focus:ring-primary disabled:opacity-50"
+            />
+            <Button
+              variant="outline"
+              size="icon"
+              className="h-7 w-7 bg-zinc-300 border-zinc-400 text-zinc-900"
+              onClick={() => setAutoBetRounds(prev => Math.min(100, prev + 1))}
+              disabled={autoBetActive}
+            >
+              <Plus className="w-3 h-3" />
+            </Button>
+          </div>
+        </div>
+        <div className="flex gap-2 mb-2">
+          {[3, 5, 10, 20].map(v => (
+            <Button
+              key={v}
+              variant="outline"
+              size="sm"
+              className="flex-1 text-xs bg-zinc-300 border-zinc-400 text-zinc-900 hover:bg-zinc-400"
+              onClick={() => setAutoBetRounds(v)}
+              disabled={autoBetActive}
+            >
+              {v}x
+            </Button>
+          ))}
+        </div>
+        {!autoBetActive ? (
+          <Button
+            className="w-full bg-red-600 hover:bg-red-700 text-white font-bold"
+            onClick={startAutoBet}
+            disabled={!selectedColor}
+          >
+            Iniciar Auto-Aposta
+          </Button>
+        ) : (
+          <Button
+            className="w-full bg-zinc-700 hover:bg-zinc-800 text-white font-bold"
+            onClick={stopAutoBet}
+          >
+            Parar Auto-Aposta ({autoBetRemaining})
+          </Button>
+        )}
+      </div>
 
 
       {/* Bet Buttons */}
