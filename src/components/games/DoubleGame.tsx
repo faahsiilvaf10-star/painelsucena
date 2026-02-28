@@ -1,9 +1,11 @@
 import { useState, useRef, useEffect, useMemo } from "react";
 import { Button } from "@/components/ui/button";
-import { ArrowLeft, Minus, Plus, ChevronDown } from "lucide-react";
+import { ArrowLeft, Minus, Plus, ChevronDown, Trophy } from "lucide-react";
 import { motion, AnimatePresence } from "framer-motion";
 import { useDouble, buildRouletteStrip, DoubleColor } from "@/hooks/useDouble";
 import { cn } from "@/lib/utils";
+import { useQuery } from "@tanstack/react-query";
+import { supabase } from "@/integrations/supabase/client";
 import sucenaLogo from "@/assets/logo-sucena-double.png";
 
 interface Props {
@@ -49,6 +51,31 @@ export function DoubleGame({ onBack }: Props) {
 
   const [betAmount, setBetAmount] = useState(1);
   const [selectedColor, setSelectedColor] = useState<DoubleColor | null>(null);
+  const [showRanking, setShowRanking] = useState(false);
+
+  const { data: balanceRanking = [] } = useQuery({
+    queryKey: ["double-balance-ranking"],
+    queryFn: async () => {
+      const { data: balances } = await supabase
+        .from("double_balances")
+        .select("user_id, balance")
+        .order("balance", { ascending: false })
+        .limit(10);
+      if (!balances?.length) return [];
+      const userIds = balances.map(b => b.user_id);
+      const { data: profiles } = await supabase
+        .from("profiles")
+        .select("user_id, full_name, avatar_url")
+        .in("user_id", userIds);
+      const profileMap = new Map(profiles?.map(p => [p.user_id, p]) || []);
+      return balances.map(b => ({
+        ...b,
+        name: profileMap.get(b.user_id)?.full_name || "Jogador",
+        avatar_url: profileMap.get(b.user_id)?.avatar_url,
+      }));
+    },
+    refetchInterval: 30000,
+  });
 
   // Oscillating percentages every 5 minutes
   const [colorPercentages, setColorPercentages] = useState({ red: 47, black: 47, white: 6 });
@@ -458,6 +485,65 @@ export function DoubleGame({ onBack }: Props) {
           </div>
         </div>
       )}
+
+      {/* Balance Ranking */}
+      <div className="bg-zinc-200 rounded-xl border border-zinc-300 overflow-hidden">
+        <button
+          onClick={() => setShowRanking(prev => !prev)}
+          className="w-full flex items-center justify-between p-3 text-zinc-900 font-semibold text-sm"
+        >
+          <span className="flex items-center gap-2">
+            <Trophy className="w-4 h-4 text-amber-500" />
+            Ranking de Saldo
+          </span>
+          <ChevronDown className={cn("w-4 h-4 transition-transform", showRanking && "rotate-180")} />
+        </button>
+        <AnimatePresence>
+          {showRanking && (
+            <motion.div
+              initial={{ height: 0, opacity: 0 }}
+              animate={{ height: "auto", opacity: 1 }}
+              exit={{ height: 0, opacity: 0 }}
+              className="overflow-hidden"
+            >
+              <div className="px-3 pb-3 space-y-1.5">
+                {balanceRanking.map((player, i) => (
+                  <div
+                    key={player.user_id}
+                    className={cn(
+                      "flex items-center gap-2 rounded-lg px-3 py-2 text-xs",
+                      i === 0 ? "bg-amber-100 border border-amber-300" :
+                      i === 1 ? "bg-zinc-100 border border-zinc-300" :
+                      i === 2 ? "bg-orange-50 border border-orange-200" :
+                      "bg-white border border-zinc-200"
+                    )}
+                  >
+                    <span className="font-bold text-zinc-500 w-5 text-center">
+                      {i === 0 ? "🥇" : i === 1 ? "🥈" : i === 2 ? "🥉" : `${i + 1}º`}
+                    </span>
+                    {player.avatar_url ? (
+                      <img src={player.avatar_url} alt="" className="w-6 h-6 rounded-full object-cover" />
+                    ) : (
+                      <div className="w-6 h-6 rounded-full bg-zinc-300 flex items-center justify-center text-[10px] font-bold text-zinc-600">
+                        {player.name.charAt(0)}
+                      </div>
+                    )}
+                    <span className="flex-1 truncate font-medium text-zinc-800">
+                      {player.name.split(" ")[0]}
+                    </span>
+                    <span className="font-bold text-emerald-600">
+                      R$ {Number(player.balance).toLocaleString("pt-BR", { minimumFractionDigits: 2 })}
+                    </span>
+                  </div>
+                ))}
+                {balanceRanking.length === 0 && (
+                  <p className="text-xs text-zinc-500 text-center py-2">Nenhum jogador ainda</p>
+                )}
+              </div>
+            </motion.div>
+          )}
+        </AnimatePresence>
+      </div>
     </div>
   );
 }
