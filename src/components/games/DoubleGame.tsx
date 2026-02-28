@@ -49,33 +49,50 @@ export function DoubleGame({ onBack }: Props) {
   const [betAmount, setBetAmount] = useState(1);
   const [selectedColor, setSelectedColor] = useState<DoubleColor | null>(null);
   const stripRef = useRef<HTMLDivElement>(null);
+  const viewportRef = useRef<HTMLDivElement>(null);
   const strip = useMemo(() => buildRouletteStrip(), []);
   const CELL_WIDTH = 100;
   const VISIBLE_CELLS = 5;
-  const CENTER_OFFSET = Math.floor(VISIBLE_CELLS / 2) * CELL_WIDTH;
+  const [viewportWidth, setViewportWidth] = useState(VISIBLE_CELLS * CELL_WIDTH);
+  const centerOffset = viewportWidth / 2 - CELL_WIDTH / 2;
+
+  useEffect(() => {
+    if (!viewportRef.current) return;
+
+    const updateViewport = () => {
+      const width = viewportRef.current?.clientWidth || VISIBLE_CELLS * CELL_WIDTH;
+      setViewportWidth(width);
+    };
+
+    updateViewport();
+    const resizeObserver = new ResizeObserver(updateViewport);
+    resizeObserver.observe(viewportRef.current);
+
+    return () => resizeObserver.disconnect();
+  }, []);
 
   // Animate roulette
   useEffect(() => {
     if (!stripRef.current) return;
-    
+
     if (phase === "betting") {
       stripRef.current.style.transition = "none";
-      stripRef.current.style.transform = `translateX(-${15 * CELL_WIDTH - CENTER_OFFSET}px)`;
+      stripRef.current.style.transform = `translateX(-${15 * CELL_WIDTH - centerOffset}px)`;
     }
 
     if (phase === "spinning" && spinTarget !== null) {
-      const targetPx = spinTarget * CELL_WIDTH - CENTER_OFFSET;
+      const targetPx = spinTarget * CELL_WIDTH - centerOffset;
       stripRef.current.style.transition = "transform 4.6s cubic-bezier(0.15, 0.85, 0.35, 1)";
       stripRef.current.style.transform = `translateX(-${targetPx}px)`;
     }
 
     // Hard snap at result to guarantee exact visual alignment with the winning cell
     if (phase === "result" && spinTarget !== null) {
-      const targetPx = spinTarget * CELL_WIDTH - CENTER_OFFSET;
+      const targetPx = spinTarget * CELL_WIDTH - centerOffset;
       stripRef.current.style.transition = "none";
       stripRef.current.style.transform = `translateX(-${targetPx}px)`;
     }
-  }, [phase, spinTarget]);
+  }, [phase, spinTarget, centerOffset]);
 
   const handleBet = async (color: DoubleColor) => {
     if (phase !== "betting") return;
@@ -189,8 +206,8 @@ export function DoubleGame({ onBack }: Props) {
         <div className="absolute top-0 bottom-0 left-1/2 w-0.5 bg-amber-400/60 z-10 -translate-x-1/2" />
 
         <div
-          className="overflow-hidden py-4"
-          style={{ width: VISIBLE_CELLS * CELL_WIDTH }}
+          ref={viewportRef}
+          className="overflow-hidden py-4 w-full max-w-[500px] mx-auto"
         >
           <div
             ref={stripRef}
