@@ -50,8 +50,8 @@ export function DoubleGame({ onBack }: Props) {
   const [selectedColor, setSelectedColor] = useState<DoubleColor | null>(null);
   const stripRef = useRef<HTMLDivElement>(null);
   const strip = useMemo(() => buildRouletteStrip(), []);
-  const CELL_WIDTH = 80;
-  const VISIBLE_CELLS = 7;
+  const CELL_WIDTH = 100;
+  const VISIBLE_CELLS = 5;
   const CENTER_OFFSET = Math.floor(VISIBLE_CELLS / 2) * CELL_WIDTH;
 
   // Animate roulette
@@ -64,7 +64,7 @@ export function DoubleGame({ onBack }: Props) {
     }
 
     if (phase === "spinning" && spinTarget !== null) {
-      const targetPx = spinTarget * CELL_WIDTH - CENTER_OFFSET + Math.random() * (CELL_WIDTH * 0.6) - CELL_WIDTH * 0.3;
+      const targetPx = spinTarget * CELL_WIDTH - CENTER_OFFSET + CELL_WIDTH / 2;
       stripRef.current.style.transition = "transform 5s cubic-bezier(0.15, 0.85, 0.35, 1)";
       stripRef.current.style.transform = `translateX(-${targetPx}px)`;
     }
@@ -191,21 +191,21 @@ export function DoubleGame({ onBack }: Props) {
             style={{ width: strip.length * CELL_WIDTH }}
           >
             {strip.map((cell, i) => (
-              <div
-                key={i}
-                className="flex-shrink-0 flex items-center justify-center"
-                style={{ width: CELL_WIDTH, height: 64 }}
-              >
                 <div
-                  className={cn(
-                    "w-14 h-14 rounded-lg flex items-center justify-center font-bold text-lg shadow-md border border-white/10",
-                    COLOR_MAP[cell.color],
-                    COLOR_TEXT[cell.color]
-                  )}
+                  key={i}
+                  className="flex-shrink-0 flex items-center justify-center"
+                  style={{ width: CELL_WIDTH, height: 80 }}
                 >
-                  {cell.color === "white" ? "⭐" : cell.number}
+                  <div
+                    className={cn(
+                      "w-[84px] h-[72px] rounded-xl flex items-center justify-center font-bold text-xl shadow-md border border-white/10",
+                      COLOR_MAP[cell.color],
+                      COLOR_TEXT[cell.color]
+                    )}
+                  >
+                    {cell.color === "white" ? "⭐" : cell.number}
+                  </div>
                 </div>
-              </div>
             ))}
           </div>
         </div>
