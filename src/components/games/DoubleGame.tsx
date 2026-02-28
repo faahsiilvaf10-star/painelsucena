@@ -59,6 +59,7 @@ export function DoubleGame({ onBack }: Props) {
   const [autoBetRounds, setAutoBetRounds] = useState(5);
   const [autoBetRemaining, setAutoBetRemaining] = useState(0);
   const autoBetRef = useRef({ active: false, color: null as DoubleColor | null, amount: 0, remaining: 0 });
+  const prevPhaseRef = useRef(phase);
 
   const { data: balanceRanking = [] } = useQuery({
     queryKey: ["double-balance-ranking"],
@@ -158,9 +159,14 @@ export function DoubleGame({ onBack }: Props) {
     }
   };
 
-  // Auto-bet: place bet automatically when betting phase starts
+  // Auto-bet: place bet only once when a NEW betting phase starts (round transition)
   useEffect(() => {
-    if (phase !== "betting" || !autoBetRef.current.active) return;
+    const wasNotBetting = prevPhaseRef.current !== "betting";
+    prevPhaseRef.current = phase;
+
+    if (phase !== "betting" || !wasNotBetting) return;
+    if (!autoBetRef.current.active) return;
+
     const ref = autoBetRef.current;
     if (ref.remaining <= 0 || !ref.color) {
       autoBetRef.current.active = false;
