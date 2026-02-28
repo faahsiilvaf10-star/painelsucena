@@ -64,7 +64,7 @@ export function DoubleGame({ onBack }: Props) {
     }
 
     if (phase === "spinning" && spinTarget !== null) {
-      const targetPx = spinTarget * CELL_WIDTH - CENTER_OFFSET + CELL_WIDTH / 2;
+      const targetPx = spinTarget * CELL_WIDTH - CENTER_OFFSET;
       stripRef.current.style.transition = "transform 5s cubic-bezier(0.15, 0.85, 0.35, 1)";
       stripRef.current.style.transform = `translateX(-${targetPx}px)`;
     }
