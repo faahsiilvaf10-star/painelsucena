@@ -364,7 +364,7 @@ export function DoubleGame({ onBack }: Props) {
 
 
       {/* Bet Buttons */}
-      <div className="grid grid-cols-3 gap-4">
+      <div className="grid grid-cols-3 gap-3">
         {(["red", "black", "white"] as DoubleColor[]).map(color => {
           const myBet = myBets.get(color) || 0;
           const disabled = phase !== "betting";
@@ -375,7 +375,7 @@ export function DoubleGame({ onBack }: Props) {
               disabled={disabled}
               onClick={() => handleColorToggle(color)}
               className={cn(
-                "relative rounded-2xl p-5 flex flex-col items-center justify-center gap-2 transition-all aspect-square",
+                "relative rounded-xl p-3 flex flex-col items-center justify-center gap-1.5 transition-all",
                 disabled ? "opacity-50 cursor-not-allowed" : "cursor-pointer",
                 color === "red" && "bg-red-600",
                 color === "black" && "bg-zinc-800",
@@ -384,19 +384,19 @@ export function DoubleGame({ onBack }: Props) {
                 myBet > 0 && selectedColor !== color && "ring-2 ring-amber-400/60"
               )}
             >
-              <div className="w-14 h-14 rounded-full border-[3px] border-white/80 flex items-center justify-center">
-                <span className="text-white font-bold text-lg">
+              <div className="w-10 h-10 rounded-full border-2 border-white/80 flex items-center justify-center">
+                <span className="text-white font-bold text-sm">
                   {color === "white" ? "⭐" : color === "red" ? "🔴" : "⚫"}
                 </span>
               </div>
-              <span className="text-[11px] font-semibold text-white/90">
+              <span className="text-[10px] font-semibold text-white/90">
                 {COLOR_LABEL[color]} · {MULTIPLIER[color]}
               </span>
-              <span className="text-[10px] text-white/60">
+              <span className="text-[9px] text-white/60">
                 {colorPercentages[color]}%
               </span>
               {myBet > 0 && (
-                <span className="text-[10px] text-amber-300 font-bold">
+                <span className="text-[9px] text-amber-300 font-bold">
                   R$ {myBet.toFixed(2)}
                 </span>
               )}
