@@ -270,26 +270,26 @@ export function DoubleGame({ onBack }: Props) {
       </div>
 
       {/* Bet Amount */}
-      <div className="bg-zinc-900 rounded-xl p-3 border border-zinc-800">
-        <p className="text-xs text-muted-foreground mb-2">Valor da aposta</p>
+      <div className="bg-zinc-200 rounded-xl p-3 border border-zinc-300">
+        <p className="text-xs text-zinc-800 mb-2">Valor da aposta</p>
         <div className="flex items-center gap-2">
           <Button
             variant="outline"
             size="icon"
-            className="h-9 w-9 bg-zinc-800 border-zinc-700"
+            className="h-9 w-9 bg-zinc-300 border-zinc-400 text-zinc-900"
             onClick={() => adjustAmount(-1)}
           >
             <Minus className="w-4 h-4" />
           </Button>
-          <div className="flex-1 bg-zinc-800 rounded-lg px-4 py-2 text-center">
-            <span className="text-lg font-bold text-foreground">
+          <div className="flex-1 bg-zinc-300 rounded-lg px-4 py-2 text-center">
+            <span className="text-lg font-bold text-zinc-900">
               R$ {betAmount.toFixed(2)}
             </span>
           </div>
           <Button
             variant="outline"
             size="icon"
-            className="h-9 w-9 bg-zinc-800 border-zinc-700"
+            className="h-9 w-9 bg-zinc-300 border-zinc-400 text-zinc-900"
             onClick={() => adjustAmount(1)}
           >
             <Plus className="w-4 h-4" />
@@ -301,7 +301,7 @@ export function DoubleGame({ onBack }: Props) {
               key={v}
               variant="outline"
               size="sm"
-              className="flex-1 text-xs bg-zinc-800 border-zinc-700 hover:bg-zinc-700"
+              className="flex-1 text-xs bg-zinc-300 border-zinc-400 text-zinc-900 hover:bg-zinc-400"
               onClick={() => setBetAmount(v)}
             >
               {v}
@@ -312,7 +312,7 @@ export function DoubleGame({ onBack }: Props) {
           <Button
             variant="outline"
             size="sm"
-            className="flex-1 bg-zinc-800 border-zinc-700"
+            className="flex-1 bg-zinc-300 border-zinc-400 text-zinc-900"
             onClick={() => setBetAmount(prev => Math.max(0.1, prev / 2))}
           >
             ½
@@ -320,7 +320,7 @@ export function DoubleGame({ onBack }: Props) {
           <Button
             variant="outline"
             size="sm"
-            className="flex-1 bg-zinc-800 border-zinc-700"
+            className="flex-1 bg-zinc-300 border-zinc-400 text-zinc-900"
             onClick={() => setBetAmount(prev => Math.min(450000, prev * 2))}
           >
             2x
@@ -328,13 +328,15 @@ export function DoubleGame({ onBack }: Props) {
           <Button
             variant="outline"
             size="sm"
-            className="flex-1 bg-zinc-800 border-zinc-700"
+            className="flex-1 bg-zinc-300 border-zinc-400 text-zinc-900"
             onClick={() => setBetAmount(balance)}
           >
             MAX
           </Button>
         </div>
       </div>
+
+
 
       {/* Bet Buttons */}
       <div className="grid grid-cols-3 gap-3">
