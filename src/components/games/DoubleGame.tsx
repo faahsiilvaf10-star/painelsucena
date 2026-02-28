@@ -383,8 +383,8 @@ export function DoubleGame({ onBack }: Props) {
 
       {/* Live Bets */}
       {bets.length > 0 && (
-        <div className="bg-zinc-900 rounded-xl p-3 border border-zinc-800">
-          <p className="text-xs text-muted-foreground mb-2 font-semibold">
+        <div className="bg-zinc-200 rounded-xl p-3 border border-zinc-300">
+          <p className="text-xs text-zinc-800 mb-2 font-semibold">
             Apostas desta rodada ({bets.length})
           </p>
           <div className="grid grid-cols-3 gap-2 mb-3">
@@ -396,10 +396,10 @@ export function DoubleGame({ onBack }: Props) {
                     COLOR_MAP[color]
                   )}
                 />
-                <p className="text-xs font-bold text-foreground">
+                <p className="text-xs font-bold text-zinc-900">
                   R$ {betsByColor[color].total.toFixed(2)}
                 </p>
-                <p className="text-[10px] text-muted-foreground">
+                <p className="text-[10px] text-zinc-700">
                   {betsByColor[color].count} aposta(s)
                 </p>
               </div>
@@ -409,7 +409,7 @@ export function DoubleGame({ onBack }: Props) {
             {bets.slice(-10).reverse().map(bet => (
               <div
                 key={bet.id}
-                className="flex items-center gap-2 text-xs py-1 border-b border-zinc-800 last:border-0"
+                className="flex items-center gap-2 text-xs py-1 border-b border-zinc-300 last:border-0"
               >
                 <div
                   className={cn(
@@ -417,14 +417,14 @@ export function DoubleGame({ onBack }: Props) {
                     COLOR_MAP[bet.bet_color as DoubleColor]
                   )}
                 />
-                <span className="flex-1 truncate text-muted-foreground">
+                <span className="flex-1 truncate text-zinc-700">
                   {bet.user_name}
                 </span>
-                <span className="font-bold text-foreground">
+                <span className="font-bold text-zinc-900">
                   R$ {Number(bet.bet_amount).toFixed(2)}
                 </span>
                 {bet.payout && (
-                  <span className="text-emerald-400 font-bold">
+                  <span className="text-emerald-600 font-bold">
                     +R$ {Number(bet.payout).toFixed(2)}
                   </span>
                 )}
