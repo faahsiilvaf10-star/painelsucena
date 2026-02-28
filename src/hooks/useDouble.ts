@@ -29,28 +29,29 @@ interface HistoryItem {
   color: DoubleColor;
 }
 
-// Generate a provably fair result
+// Generate a provably fair result aligned with roulette strip mapping
 function generateResult(): { number: number; color: DoubleColor } {
   const rand = Math.random() * 100;
-  let color: DoubleColor;
-  let number: number;
 
   if (rand < 6) {
-    color = "white";
-    number = 0;
-  } else if (rand < 53) {
-    color = "red";
-    // Even numbers 2,4,6,8,10,12
-    const reds = [1, 2, 3, 4, 5, 6, 7];
-    number = reds[Math.floor(Math.random() * reds.length)];
-  } else {
-    color = "black";
-    // Odd numbers 1,3,5,7,9,11,13
-    const blacks = [8, 9, 10, 11, 12, 13, 14];
-    number = blacks[Math.floor(Math.random() * blacks.length)];
+    return { number: 0, color: "white" };
   }
 
-  return { number, color };
+  // Roulette mapping used in buildRouletteStrip:
+  // odd numbers => red, even numbers => black
+  if (rand < 53) {
+    const redNumbers = [1, 3, 5, 7, 9, 11, 13];
+    return {
+      number: redNumbers[Math.floor(Math.random() * redNumbers.length)],
+      color: "red",
+    };
+  }
+
+  const blackNumbers = [2, 4, 6, 8, 10, 12, 14];
+  return {
+    number: blackNumbers[Math.floor(Math.random() * blackNumbers.length)],
+    color: "black",
+  };
 }
 
 // Build roulette strip: repeating pattern of colors
