@@ -11,10 +11,10 @@ import { RocagemGame } from "@/components/games/RocagemGame";
 import { GabiaoGame } from "@/components/games/GabiaoGame";
 import { CheckersGame } from "@/components/games/CheckersGame";
 import { DominoGame } from "@/components/games/DominoGame";
-import { AviatorGame } from "@/components/games/AviatorGame";
+
 import { GameRankings } from "@/components/games/GameRankings";
 
-type ActiveGame = null | "recycling" | "epi" | "rocagem" | "gabiao" | "checkers" | "domino" | "aviator";
+type ActiveGame = null | "recycling" | "epi" | "rocagem" | "gabiao" | "checkers" | "domino";
 
 interface GameCover {
   id: ActiveGame & string;
@@ -95,17 +95,6 @@ const GAMES: GameCover[] = [
     badgeLabel: "vs IA / Online",
     badgeColor: "bg-stone-500/15 text-stone-700 dark:text-stone-400",
   },
-  {
-    id: "aviator",
-    emoji: "✈️",
-    title: "Aviator",
-    subtitle: "Crash Game",
-    description: "Aposte e retire antes que o avião voe! Multiplicadores crescentes e adrenalina pura.",
-    gradient: "from-red-600/20 via-red-500/10 to-amber-500/20",
-    borderColor: "border-red-500/40 hover:border-red-500",
-    badgeLabel: "Simulação",
-    badgeColor: "bg-red-500/15 text-red-500 dark:text-red-400",
-  },
 ];
 export default function Games() {
   const [activeGame, setActiveGame] = useState<ActiveGame>(null);
@@ -177,7 +166,7 @@ export default function Games() {
         {activeGame === "gabiao" && <GabiaoGame onBack={() => setActiveGame(null)} />}
         {activeGame === "checkers" && <CheckersGame onBack={() => setActiveGame(null)} />}
         {activeGame === "domino" && <DominoGame onBack={() => setActiveGame(null)} />}
-        {activeGame === "aviator" && <AviatorGame onBack={() => setActiveGame(null)} />}
+        
       </div>
     </Layout>
   );
