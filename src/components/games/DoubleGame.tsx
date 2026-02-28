@@ -364,7 +364,7 @@ export function DoubleGame({ onBack }: Props) {
 
 
       {/* Bet Buttons */}
-      <div className="grid grid-cols-3 gap-3">
+      <div className="grid grid-cols-3 gap-4">
         {(["red", "black", "white"] as DoubleColor[]).map(color => {
           const myBet = myBets.get(color) || 0;
           const disabled = phase !== "betting";
@@ -375,32 +375,28 @@ export function DoubleGame({ onBack }: Props) {
               disabled={disabled}
               onClick={() => handleColorToggle(color)}
               className={cn(
-                "relative rounded-xl p-4 flex flex-col items-center gap-1 border-2 transition-all",
-                disabled ? "opacity-50 cursor-not-allowed" : "cursor-pointer active:scale-95",
-                color === "red" && "bg-red-600/20 border-red-600/40 hover:border-red-500",
-                color === "black" && "bg-zinc-800/40 border-zinc-600/40 hover:border-zinc-500",
-                color === "white" && "bg-emerald-50/10 border-emerald-300/40 hover:border-emerald-300",
-                selectedColor === color && "ring-2 ring-primary border-primary",
-                myBet > 0 && selectedColor !== color && "ring-2 ring-amber-400"
+                "relative rounded-2xl p-5 flex flex-col items-center justify-center gap-2 transition-all aspect-square",
+                disabled ? "opacity-50 cursor-not-allowed" : "cursor-pointer",
+                color === "red" && "bg-red-600",
+                color === "black" && "bg-zinc-800",
+                color === "white" && "bg-emerald-500",
+                selectedColor === color && "ring-4 ring-amber-400",
+                myBet > 0 && selectedColor !== color && "ring-2 ring-amber-400/60"
               )}
             >
-              <div
-                className={cn(
-                  "w-10 h-10 rounded-lg flex items-center justify-center font-bold",
-                  COLOR_MAP[color],
-                  COLOR_TEXT[color]
-                )}
-              >
-                {color === "white" ? "⭐" : color === "red" ? "🔴" : "⚫"}
+              <div className="w-14 h-14 rounded-full border-[3px] border-white/80 flex items-center justify-center">
+                <span className="text-white font-bold text-lg">
+                  {color === "white" ? "⭐" : color === "red" ? "🔴" : "⚫"}
+                </span>
               </div>
-              <span className="text-xs font-semibold text-foreground">
-                {COLOR_LABEL[color]}
+              <span className="text-[11px] font-semibold text-white/90">
+                {COLOR_LABEL[color]} · {MULTIPLIER[color]}
               </span>
-              <span className="text-[10px] text-muted-foreground">
-                {MULTIPLIER[color]} · {colorPercentages[color]}%
+              <span className="text-[10px] text-white/60">
+                {colorPercentages[color]}%
               </span>
               {myBet > 0 && (
-                <span className="text-[10px] text-amber-400 font-bold">
+                <span className="text-[10px] text-amber-300 font-bold">
                   R$ {myBet.toFixed(2)}
                 </span>
               )}
