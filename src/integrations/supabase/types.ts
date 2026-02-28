@@ -153,6 +153,101 @@ export type Database = {
         }
         Relationships: []
       }
+      aviator_balances: {
+        Row: {
+          balance: number
+          created_at: string
+          id: string
+          updated_at: string
+          user_id: string
+        }
+        Insert: {
+          balance?: number
+          created_at?: string
+          id?: string
+          updated_at?: string
+          user_id: string
+        }
+        Update: {
+          balance?: number
+          created_at?: string
+          id?: string
+          updated_at?: string
+          user_id?: string
+        }
+        Relationships: []
+      }
+      aviator_bets: {
+        Row: {
+          avatar_url: string | null
+          bet_amount: number
+          cashed_out_at: number | null
+          created_at: string
+          id: string
+          payout: number | null
+          round_id: string
+          user_id: string
+          user_name: string
+        }
+        Insert: {
+          avatar_url?: string | null
+          bet_amount: number
+          cashed_out_at?: number | null
+          created_at?: string
+          id?: string
+          payout?: number | null
+          round_id: string
+          user_id: string
+          user_name: string
+        }
+        Update: {
+          avatar_url?: string | null
+          bet_amount?: number
+          cashed_out_at?: number | null
+          created_at?: string
+          id?: string
+          payout?: number | null
+          round_id?: string
+          user_id?: string
+          user_name?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "aviator_bets_round_id_fkey"
+            columns: ["round_id"]
+            isOneToOne: false
+            referencedRelation: "aviator_rounds"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      aviator_rounds: {
+        Row: {
+          crash_point: number
+          crashed_at: string | null
+          created_at: string
+          id: string
+          started_at: string | null
+          status: string
+        }
+        Insert: {
+          crash_point: number
+          crashed_at?: string | null
+          created_at?: string
+          id?: string
+          started_at?: string | null
+          status?: string
+        }
+        Update: {
+          crash_point?: number
+          crashed_at?: string | null
+          created_at?: string
+          id?: string
+          started_at?: string | null
+          status?: string
+        }
+        Relationships: []
+      }
       chat_messages: {
         Row: {
           content: string | null
