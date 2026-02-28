@@ -135,6 +135,16 @@ export function useDouble() {
     if (nextRoundTimeoutRef.current) clearTimeout(nextRoundTimeoutRef.current);
 
     const result = generateResult();
+    const strip = buildRouletteStrip();
+    let targetIdx = 30; // middle of strip
+    for (let i = 28; i < 45; i++) {
+      if (strip[i].color === result.color && strip[i].number === result.number) {
+        targetIdx = i;
+        break;
+      }
+    }
+    const targetCell = strip[targetIdx];
+
     setPhase("betting");
     setTimeLeft(15);
     setBets([]);
@@ -146,8 +156,8 @@ export function useDouble() {
     const { data: round } = await supabase
       .from("double_rounds")
       .insert({
-        result_number: result.number,
-        result_color: result.color,
+        result_number: targetCell.number,
+        result_color: targetCell.color,
         status: "betting",
       })
       .select("id")
@@ -171,15 +181,6 @@ export function useDouble() {
       if (t <= 5 && t > 0) {
         setPhase("spinning");
         if (t === 5) {
-          // Calculate spin target position from result
-          const strip = buildRouletteStrip();
-          let targetIdx = 30; // middle of strip
-          for (let i = 28; i < 45; i++) {
-            if (strip[i].color === result.color && strip[i].number === result.number) {
-              targetIdx = i;
-              break;
-            }
-          }
           setSpinTarget(targetIdx);
         }
       }
@@ -189,12 +190,17 @@ export function useDouble() {
         if (loopToken !== loopTokenRef.current) return;
 
         setPhase("result");
-        setLastResult(result);
+        setLastResult(targetCell);
 
         // Update round status
         await supabase
           .from("double_rounds")
-          .update({ status: "finished", finished_at: new Date().toISOString() })
+          .update({
+            status: "finished",
+            result_number: targetCell.number,
+            result_color: targetCell.color,
+            finished_at: new Date().toISOString(),
+          })
           .eq("id", roundRef.current!);
 
         if (loopToken !== loopTokenRef.current) return;
@@ -209,8 +215,8 @@ export function useDouble() {
 
         if (roundBets) {
           for (const bet of roundBets) {
-            if (bet.bet_color === result.color) {
-              const multiplier = result.color === "white" ? 14 : 2;
+            if (bet.bet_color === targetCell.color) {
+              const multiplier = targetCell.color === "white" ? 14 : 2;
               const payout = Number(bet.bet_amount) * multiplier;
 
               await supabase
@@ -233,7 +239,7 @@ export function useDouble() {
         }
 
         // Update history
-        setHistory(prev => [{ number: result.number, color: result.color }, ...prev].slice(0, 20));
+        setHistory(prev => [{ number: targetCell.number, color: targetCell.color }, ...prev].slice(0, 20));
 
         // Start next round after 5s (still guarded by loop token)
         nextRoundTimeoutRef.current = setTimeout(() => {
