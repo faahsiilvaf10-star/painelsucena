@@ -11,10 +11,10 @@ import { RocagemGame } from "@/components/games/RocagemGame";
 import { GabiaoGame } from "@/components/games/GabiaoGame";
 import { CheckersGame } from "@/components/games/CheckersGame";
 import { DominoGame } from "@/components/games/DominoGame";
-
+import { DoubleGame } from "@/components/games/DoubleGame";
 import { GameRankings } from "@/components/games/GameRankings";
 
-type ActiveGame = null | "recycling" | "epi" | "rocagem" | "gabiao" | "checkers" | "domino";
+type ActiveGame = null | "recycling" | "epi" | "rocagem" | "gabiao" | "checkers" | "domino" | "double";
 
 interface GameCover {
   id: ActiveGame & string;
@@ -95,6 +95,17 @@ const GAMES: GameCover[] = [
     badgeLabel: "vs IA / Online",
     badgeColor: "bg-stone-500/15 text-stone-700 dark:text-stone-400",
   },
+  {
+    id: "double",
+    emoji: "🎰",
+    title: "Double",
+    subtitle: "Crash Game",
+    description: "Aposte em Vermelho, Preto ou Branco! Roleta animada com multiplicadores de até 14x.",
+    gradient: "from-red-600/20 via-zinc-800/10 to-emerald-500/20",
+    borderColor: "border-red-500/40 hover:border-red-500",
+    badgeLabel: "Tempo Real",
+    badgeColor: "bg-red-500/15 text-red-500 dark:text-red-400",
+  },
 ];
 export default function Games() {
   const [activeGame, setActiveGame] = useState<ActiveGame>(null);
@@ -166,7 +177,7 @@ export default function Games() {
         {activeGame === "gabiao" && <GabiaoGame onBack={() => setActiveGame(null)} />}
         {activeGame === "checkers" && <CheckersGame onBack={() => setActiveGame(null)} />}
         {activeGame === "domino" && <DominoGame onBack={() => setActiveGame(null)} />}
-        
+        {activeGame === "double" && <DoubleGame onBack={() => setActiveGame(null)} />}
       </div>
     </Layout>
   );

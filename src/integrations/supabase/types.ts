@@ -943,6 +943,107 @@ export type Database = {
         }
         Relationships: []
       }
+      double_balances: {
+        Row: {
+          balance: number
+          created_at: string
+          id: string
+          updated_at: string
+          user_id: string
+        }
+        Insert: {
+          balance?: number
+          created_at?: string
+          id?: string
+          updated_at?: string
+          user_id: string
+        }
+        Update: {
+          balance?: number
+          created_at?: string
+          id?: string
+          updated_at?: string
+          user_id?: string
+        }
+        Relationships: []
+      }
+      double_bets: {
+        Row: {
+          avatar_url: string | null
+          bet_amount: number
+          bet_color: string
+          created_at: string
+          id: string
+          payout: number | null
+          round_id: string
+          user_id: string
+          user_name: string
+        }
+        Insert: {
+          avatar_url?: string | null
+          bet_amount: number
+          bet_color: string
+          created_at?: string
+          id?: string
+          payout?: number | null
+          round_id: string
+          user_id: string
+          user_name: string
+        }
+        Update: {
+          avatar_url?: string | null
+          bet_amount?: number
+          bet_color?: string
+          created_at?: string
+          id?: string
+          payout?: number | null
+          round_id?: string
+          user_id?: string
+          user_name?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "double_bets_round_id_fkey"
+            columns: ["round_id"]
+            isOneToOne: false
+            referencedRelation: "double_rounds"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      double_rounds: {
+        Row: {
+          crash_point: number | null
+          created_at: string
+          finished_at: string | null
+          id: string
+          result_color: string
+          result_number: number
+          started_at: string | null
+          status: string
+        }
+        Insert: {
+          crash_point?: number | null
+          created_at?: string
+          finished_at?: string | null
+          id?: string
+          result_color: string
+          result_number: number
+          started_at?: string | null
+          status?: string
+        }
+        Update: {
+          crash_point?: number | null
+          created_at?: string
+          finished_at?: string | null
+          id?: string
+          result_color?: string
+          result_number?: number
+          started_at?: string | null
+          status?: string
+        }
+        Relationships: []
+      }
       employees: {
         Row: {
           area: string | null
