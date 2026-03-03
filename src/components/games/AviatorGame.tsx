@@ -85,11 +85,29 @@ export function AviatorGame({ onBack }: AviatorGameProps) {
   const autoCashoutRef = useRef(autoCashout);
   autoCashoutRef.current = autoCashout;
 
-  // Auto cashout
+  // Auto cashout - uses ref to avoid stale closure
+  const autoCashoutTriggeredRef = useRef(false);
+  
   useEffect(() => {
-    if (phase === "running" && autoCashoutEnabled && autoCashoutRef.current && currentBet && !currentBet.cashed_out_at) {
+    if (phase === "waiting") {
+      autoCashoutTriggeredRef.current = false;
+    }
+  }, [phase]);
+
+  useEffect(() => {
+    if (
+      phase === "running" &&
+      autoCashoutEnabled &&
+      autoCashoutRef.current &&
+      currentBet &&
+      !currentBet.cashed_out_at &&
+      !autoCashoutTriggeredRef.current
+    ) {
       const target = parseFloat(autoCashoutRef.current);
-      if (!isNaN(target) && multiplier >= target) cashOut();
+      if (!isNaN(target) && target > 1 && multiplier >= target) {
+        autoCashoutTriggeredRef.current = true;
+        cashOut();
+      }
     }
   }, [multiplier, phase, currentBet, autoCashoutEnabled, cashOut]);
 
