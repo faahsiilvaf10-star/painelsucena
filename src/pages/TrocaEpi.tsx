@@ -19,7 +19,7 @@ import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { Badge } from "@/components/ui/badge";
 import { Separator } from "@/components/ui/separator";
-import { ShieldCheck, Plus, FileText, Trash2, Eye, Pencil, Image, MessageCircle } from "lucide-react";
+import { ShieldCheck, Plus, FileText, Trash2, Eye, Pencil, Image, MessageCircle, Search, ChevronLeft, ChevronRight } from "lucide-react";
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/components/ui/dialog";
 import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover";
 import { Command, CommandInput, CommandList, CommandEmpty, CommandItem } from "@/components/ui/command";
@@ -191,6 +191,10 @@ export default function TrocaEpi() {
   const [showSignature, setShowSignature] = useState(false);
   const [funcPopoverOpen, setFuncPopoverOpen] = useState(false);
   const [authPopoverOpen, setAuthPopoverOpen] = useState(false);
+  const [filterText, setFilterText] = useState("");
+  const [filterMonth, setFilterMonth] = useState("");
+  const [currentPage, setCurrentPage] = useState(1);
+  const ITEMS_PER_PAGE = 10;
   // Form state
   const [data, setData] = useState(format(new Date(), "yyyy-MM-dd"));
   const [autorizadoPor, setAutorizadoPor] = useState("");
@@ -907,49 +911,112 @@ export default function TrocaEpi() {
       {/* List */}
       {isLoading ? (
         <div className="text-center py-10 text-muted-foreground">Carregando...</div>
-      ) : exchanges.length === 0 ? (
-        <Card>
-          <CardContent className="py-10 text-center text-muted-foreground">
-            <ShieldCheck className="h-12 w-12 mx-auto mb-3 opacity-30" />
-            <p>Nenhuma troca de EPI registrada.</p>
-          </CardContent>
-        </Card>
       ) : (
-        <div className="grid gap-3">
-          {exchanges.map(ex => (
-            <Card key={ex.id} className="hover:shadow-md transition-shadow">
-              <CardContent className="p-3 sm:p-4 flex flex-col sm:flex-row sm:items-center justify-between gap-2">
-                <div className="space-y-1 min-w-0">
-                  <div className="flex items-center gap-2 flex-wrap">
-                    <span className="font-semibold text-sm sm:text-base">{ex.funcionario_nome}</span>
-                    <Badge variant="outline" className="text-xs">{format(new Date(ex.data + 'T12:00:00'), "dd/MM/yyyy")}</Badge>
-                  </div>
-                  <p className="text-xs sm:text-sm text-muted-foreground truncate">
-                    Autorizado por: {ex.autorizado_por} | {ex.motivo_troca.substring(0, 40)}{ex.motivo_troca.length > 40 ? '...' : ''}
-                  </p>
-                  <div className="flex gap-1 flex-wrap">
-                    {(ex.epis || []).slice(0, 3).map((e: any) => {
-                      const item = EPI_ITEMS.find(i => i.id === (typeof e === 'string' ? e : e.id));
-                      return <Badge key={typeof e === 'string' ? e : e.id} variant="secondary" className="text-[10px]">{item?.label || 'EPI'}</Badge>;
-                    })}
-                    {(ex.epis || []).length > 3 && <Badge variant="secondary" className="text-[10px]">+{(ex.epis || []).length - 3}</Badge>}
-                  </div>
-                </div>
-                <div className="flex gap-1 shrink-0">
-                  <Button variant="ghost" size="icon" className="h-8 w-8" onClick={() => setViewExchange(ex)}><Eye className="h-4 w-4" /></Button>
-                  {ex.created_by === user?.id && (
-                    <Button variant="ghost" size="icon" className="h-8 w-8" onClick={() => handleEditExchange(ex)}><Pencil className="h-4 w-4" /></Button>
-                  )}
-                  <Button variant="ghost" size="icon" className="h-8 w-8" onClick={() => handlePrint(ex)} title="Gerar PDF"><FileText className="h-4 w-4" /></Button>
-                  <Button variant="ghost" size="icon" className="h-8 w-8" onClick={() => handlePngWhatsApp(ex)} title="PNG WhatsApp"><MessageCircle className="h-4 w-4 text-[#25D366]" /></Button>
-                  {ex.created_by === user?.id && (
-                    <Button variant="ghost" size="icon" className="h-8 w-8" onClick={() => handleDeleteWithRestore(ex)}><Trash2 className="h-4 w-4 text-destructive" /></Button>
-                  )}
-                </div>
+      <>
+      {/* Filters */}
+      <div className="flex flex-col sm:flex-row gap-2 mb-3">
+        <div className="relative flex-1">
+          <Search className="absolute left-2.5 top-2.5 h-4 w-4 text-muted-foreground" />
+          <Input
+            placeholder="Buscar por nome ou autorizador..."
+            value={filterText}
+            onChange={e => { setFilterText(e.target.value); setCurrentPage(1); }}
+            className="pl-9"
+          />
+        </div>
+        <Select value={filterMonth} onValueChange={v => { setFilterMonth(v); setCurrentPage(1); }}>
+          <SelectTrigger className="w-full sm:w-44">
+            <SelectValue placeholder="Todos os meses" />
+          </SelectTrigger>
+          <SelectContent>
+            <SelectItem value="all">Todos os meses</SelectItem>
+            {Array.from({ length: 12 }, (_, i) => {
+              const m = String(i + 1).padStart(2, "0");
+              const label = new Date(2026, i).toLocaleString("pt-BR", { month: "long" });
+              return <SelectItem key={m} value={m}>{label.charAt(0).toUpperCase() + label.slice(1)}</SelectItem>;
+            })}
+          </SelectContent>
+        </Select>
+      </div>
+
+      {(() => {
+        const filtered = exchanges
+          .filter(ex => {
+            const text = filterText.toLowerCase();
+            const matchesText = !text || ex.funcionario_nome.toLowerCase().includes(text) || ex.autorizado_por.toLowerCase().includes(text);
+            const matchesMonth = !filterMonth || filterMonth === "all" || ex.data.substring(5, 7) === filterMonth;
+            return matchesText && matchesMonth;
+          })
+          .sort((a, b) => new Date(b.data).getTime() - new Date(a.data).getTime());
+
+        const totalPages = Math.max(1, Math.ceil(filtered.length / ITEMS_PER_PAGE));
+        const page = Math.min(currentPage, totalPages);
+        const paged = filtered.slice((page - 1) * ITEMS_PER_PAGE, page * ITEMS_PER_PAGE);
+
+        if (filtered.length === 0) {
+          return (
+            <Card>
+              <CardContent className="py-10 text-center text-muted-foreground">
+                <ShieldCheck className="h-12 w-12 mx-auto mb-3 opacity-30" />
+                <p>{exchanges.length === 0 ? "Nenhuma troca de EPI registrada." : "Nenhum resultado encontrado."}</p>
               </CardContent>
             </Card>
-          ))}
-        </div>
+          );
+        }
+
+        return (
+          <>
+            <p className="text-xs text-muted-foreground mb-2">{filtered.length} registro(s) encontrado(s)</p>
+            <div className="grid gap-3 max-h-[65vh] overflow-y-auto pr-1">
+              {paged.map(ex => (
+                <Card key={ex.id} className="hover:shadow-md transition-shadow">
+                  <CardContent className="p-3 sm:p-4 flex flex-col sm:flex-row sm:items-center justify-between gap-2">
+                    <div className="space-y-1 min-w-0">
+                      <div className="flex items-center gap-2 flex-wrap">
+                        <span className="font-semibold text-sm sm:text-base">{ex.funcionario_nome}</span>
+                        <Badge variant="outline" className="text-xs">{format(new Date(ex.data + 'T12:00:00'), "dd/MM/yyyy")}</Badge>
+                      </div>
+                      <p className="text-xs sm:text-sm text-muted-foreground truncate">
+                        Autorizado por: {ex.autorizado_por} | {ex.motivo_troca.substring(0, 40)}{ex.motivo_troca.length > 40 ? '...' : ''}
+                      </p>
+                      <div className="flex gap-1 flex-wrap">
+                        {(ex.epis || []).slice(0, 3).map((e: any) => {
+                          const item = EPI_ITEMS.find(i => i.id === (typeof e === 'string' ? e : e.id));
+                          return <Badge key={typeof e === 'string' ? e : e.id} variant="secondary" className="text-[10px]">{item?.label || 'EPI'}</Badge>;
+                        })}
+                        {(ex.epis || []).length > 3 && <Badge variant="secondary" className="text-[10px]">+{(ex.epis || []).length - 3}</Badge>}
+                      </div>
+                    </div>
+                    <div className="flex gap-1 shrink-0">
+                      <Button variant="ghost" size="icon" className="h-8 w-8" onClick={() => setViewExchange(ex)}><Eye className="h-4 w-4" /></Button>
+                      {ex.created_by === user?.id && (
+                        <Button variant="ghost" size="icon" className="h-8 w-8" onClick={() => handleEditExchange(ex)}><Pencil className="h-4 w-4" /></Button>
+                      )}
+                      <Button variant="ghost" size="icon" className="h-8 w-8" onClick={() => handlePrint(ex)} title="Gerar PDF"><FileText className="h-4 w-4" /></Button>
+                      <Button variant="ghost" size="icon" className="h-8 w-8" onClick={() => handlePngWhatsApp(ex)} title="PNG WhatsApp"><MessageCircle className="h-4 w-4 text-[#25D366]" /></Button>
+                      {ex.created_by === user?.id && (
+                        <Button variant="ghost" size="icon" className="h-8 w-8" onClick={() => handleDeleteWithRestore(ex)}><Trash2 className="h-4 w-4 text-destructive" /></Button>
+                      )}
+                    </div>
+                  </CardContent>
+                </Card>
+              ))}
+            </div>
+            {totalPages > 1 && (
+              <div className="flex items-center justify-center gap-2 mt-4">
+                <Button variant="outline" size="sm" disabled={page <= 1} onClick={() => setCurrentPage(p => p - 1)}>
+                  <ChevronLeft className="h-4 w-4" /> Anterior
+                </Button>
+                <span className="text-sm text-muted-foreground">Página {page} de {totalPages}</span>
+                <Button variant="outline" size="sm" disabled={page >= totalPages} onClick={() => setCurrentPage(p => p + 1)}>
+                  Próxima <ChevronRight className="h-4 w-4" />
+                </Button>
+              </div>
+            )}
+          </>
+        );
+      })()}
+      </>
       )}
     </div>
   );
