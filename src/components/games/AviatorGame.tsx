@@ -147,13 +147,21 @@ function AviatorFlightCanvas({ phase, multiplier, waitCountdown }: { phase: Avia
       <motion.div
         className="absolute pointer-events-none"
         style={{ zIndex: 10 }}
-        animate={{
+        animate={phase === "crashed" ? {
+          left: `${(planePos.x / canvasW) * 100}%`,
+          top: "110%",
+          rotate: 120,
+          opacity: 0,
+        } : {
           left: `${(planePos.x / canvasW) * 100}%`,
           top: `${(planePos.y / canvasH) * 100}%`,
-          rotate: phase === "crashed" ? 45 : -(Math.atan2(progress * 0.6, 1) * 180 / Math.PI),
-          opacity: phase === "crashed" ? 0.4 : 1,
+          rotate: -(Math.atan2(progress * 0.6, 1) * 180 / Math.PI),
+          opacity: 1,
         }}
-        transition={{ type: "tween", duration: 0.15, ease: "linear" }}
+        transition={phase === "crashed" 
+          ? { type: "tween", duration: 1.2, ease: "easeIn" }
+          : { type: "tween", duration: 0.15, ease: "linear" }
+        }
       >
         <div className="relative -translate-x-1/2 -translate-y-1/2">
           <PropellerPlaneSVG />
