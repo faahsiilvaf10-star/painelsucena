@@ -19,7 +19,7 @@ import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { Badge } from "@/components/ui/badge";
 import { Separator } from "@/components/ui/separator";
-import { ShieldCheck, Plus, FileText, Trash2, Eye, Pencil } from "lucide-react";
+import { ShieldCheck, Plus, FileText, Trash2, Eye, Pencil, Image, MessageCircle } from "lucide-react";
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/components/ui/dialog";
 import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover";
 import { Command, CommandInput, CommandList, CommandEmpty, CommandItem } from "@/components/ui/command";
@@ -79,7 +79,7 @@ function findInventoryMatch(inventoryItems: any[], searchLabel: string): any | n
   return match || null;
 }
 
-function generatePdf(exchange: EpiExchange, logoBase64: string) {
+function buildPdfHtml(exchange: EpiExchange, logoBase64: string): string {
   const sigFunc = exchange.assinatura_funcionario || '';
   const sigAuth = exchange.assinatura_autorizador || '';
   const selectedEpis = exchange.epis || [];
@@ -98,95 +98,78 @@ function generatePdf(exchange: EpiExchange, logoBase64: string) {
       </div>`;
     }).join('');
 
-  const html = `
-    <html><head><style>
-      @page { size: A4; margin: 15mm; }
-      body { font-family: Arial, sans-serif; font-size: 12px; color: #1a1a1a; }
-      .container { border: 2px solid #333; padding: 15px; }
-      .header { display: flex; justify-content: space-between; align-items: center; margin-bottom: 10px; border-bottom: 2px solid #333; padding-bottom: 10px; }
-      .header img { max-height: 55px; }
-      .title { text-align: center; font-size: 16px; font-weight: bold; margin-bottom: 12px; text-transform: uppercase; }
-      .field-row { display: flex; gap: 10px; margin-bottom: 8px; }
-      .field { flex: 1; border-bottom: 1px solid #999; padding: 4px 2px; min-height: 22px; }
-      .field-label { font-weight: bold; white-space: nowrap; }
-      .section-title { font-weight: bold; font-size: 13px; background: #e5e7eb; padding: 4px 8px; margin: 12px 0 8px; }
-      .epi-grid { display: grid; grid-template-columns: 1fr 1fr 1fr; gap: 5px 15px; }
-      .uniforme-row { display: flex; align-items: center; gap: 8px; margin-bottom: 6px; font-size: 11px; }
-      .signature-row { display: flex; justify-content: space-between; margin-top: 30px; }
-      .signature-box { text-align: center; width: 45%; position: relative; }
-      .signature-img { display: block; margin: 0 auto; max-height: 60px; position: relative; bottom: 0; margin-bottom: 0; padding-bottom: 0; }
-      .signature-line { border-top: 1px solid #333; margin-top: 0; padding-top: 4px; font-size: 11px; }
-      .footer-notes { margin-top: 15px; font-size: 10px; color: #555; border-top: 1px solid #ccc; padding-top: 8px; }
-      .rev { text-align: right; font-size: 9px; color: #888; }
-    </style></head><body>
-    <div class="container">
-      <div class="header">
-        ${logoBase64 ? `<img src="${logoBase64}" />` : '<div></div>'}
+  return `
+    <div style="font-family:Arial,sans-serif;font-size:12px;color:#1a1a1a;border:2px solid #333;padding:15px;background:#fff;">
+      <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:10px;border-bottom:2px solid #333;padding-bottom:10px;">
+        ${logoBase64 ? `<img src="${logoBase64}" style="max-height:55px;" />` : '<div></div>'}
         <div style="text-align:right;font-size:10px;color:#666;">
           <div>CONTRATO: 4600012690</div>
           <div>Rev: 00 | Data: 05/05/2024</div>
         </div>
       </div>
-      <div class="title">Autorização de Troca de EPI's</div>
+      <div style="text-align:center;font-size:16px;font-weight:bold;margin-bottom:12px;text-transform:uppercase;">Autorização de Troca de EPI's</div>
 
-      <div class="field-row">
-        <div class="field"><span class="field-label">DATA:</span> ${format(new Date(exchange.data + 'T12:00:00'), "dd/MM/yyyy")}</div>
-        <div class="field"><span class="field-label">CONTRATO:</span> 4600012690</div>
+      <div style="display:flex;gap:10px;margin-bottom:8px;">
+        <div style="flex:1;border-bottom:1px solid #999;padding:4px 2px;"><span style="font-weight:bold;">DATA:</span> ${format(new Date(exchange.data + 'T12:00:00'), "dd/MM/yyyy")}</div>
+        <div style="flex:1;border-bottom:1px solid #999;padding:4px 2px;"><span style="font-weight:bold;">CONTRATO:</span> 4600012690</div>
       </div>
-      <div class="field-row">
-        <div class="field"><span class="field-label">AUTORIZADO POR:</span> ${exchange.autorizado_por}</div>
-        <div class="field"><span class="field-label">MATRÍCULA:</span> ${exchange.matricula_autorizador || ''}</div>
+      <div style="display:flex;gap:10px;margin-bottom:8px;">
+        <div style="flex:1;border-bottom:1px solid #999;padding:4px 2px;"><span style="font-weight:bold;">AUTORIZADO POR:</span> ${exchange.autorizado_por}</div>
+        <div style="flex:1;border-bottom:1px solid #999;padding:4px 2px;"><span style="font-weight:bold;">MATRÍCULA:</span> ${exchange.matricula_autorizador || ''}</div>
       </div>
-      <div class="field-row">
-        <div class="field" style="flex:2;"><span class="field-label">MOTIVO DA TROCA:</span> ${exchange.motivo_troca}</div>
+      <div style="display:flex;gap:10px;margin-bottom:8px;">
+        <div style="flex:2;border-bottom:1px solid #999;padding:4px 2px;"><span style="font-weight:bold;">MOTIVO DA TROCA:</span> ${exchange.motivo_troca}</div>
       </div>
-      <div class="field-row">
-        <div class="field"><span class="field-label">AUTORIZO O FUNCIONÁRIO(A):</span> ${exchange.funcionario_nome}</div>
+      <div style="display:flex;gap:10px;margin-bottom:8px;">
+        <div style="flex:1;border-bottom:1px solid #999;padding:4px 2px;"><span style="font-weight:bold;">AUTORIZO O FUNCIONÁRIO(A):</span> ${exchange.funcionario_nome}</div>
       </div>
-      <div class="field-row">
-        <div class="field"><span class="field-label">FUNÇÃO:</span> ${exchange.funcionario_funcao || ''}</div>
-        <div class="field"><span class="field-label">MATRÍCULA:</span> ${exchange.funcionario_matricula || ''}</div>
+      <div style="display:flex;gap:10px;margin-bottom:8px;">
+        <div style="flex:1;border-bottom:1px solid #999;padding:4px 2px;"><span style="font-weight:bold;">FUNÇÃO:</span> ${exchange.funcionario_funcao || ''}</div>
+        <div style="flex:1;border-bottom:1px solid #999;padding:4px 2px;"><span style="font-weight:bold;">MATRÍCULA:</span> ${exchange.funcionario_matricula || ''}</div>
       </div>
 
-      <div class="section-title">EPI</div>
-      <div class="epi-grid">
+      <div style="font-weight:bold;font-size:13px;background:#e5e7eb;padding:4px 8px;margin:12px 0 8px;">EPI</div>
+      <div style="display:grid;grid-template-columns:1fr 1fr 1fr;gap:5px 15px;">
         <div>${renderEpiColumn(episCol1)}</div>
         <div>${renderEpiColumn(episCol2)}</div>
         <div>${renderEpiColumn(episCol3)}</div>
       </div>
 
-      <div class="section-title">UNIFORME</div>
-      <div class="uniforme-row">
+      <div style="font-weight:bold;font-size:13px;background:#e5e7eb;padding:4px 8px;margin:12px 0 8px;">UNIFORME</div>
+      <div style="display:flex;align-items:center;gap:8px;margin-bottom:6px;font-size:11px;">
         <span>(${exchange.uniforme_blusa_tamanho ? 'X' : '&nbsp;&nbsp;'}) BLUSA OPERACIONAL</span>
         ${TAMANHOS.map(t => `<span>(${exchange.uniforme_blusa_tamanho === t ? 'X' : '&nbsp;&nbsp;'}) ${t}</span>`).join(' ')}
         <span>QTD: ${exchange.uniforme_blusa_quantidade || 0}</span>
       </div>
-      <div class="uniforme-row">
+      <div style="display:flex;align-items:center;gap:8px;margin-bottom:6px;font-size:11px;">
         <span>(${exchange.uniforme_calca_tamanho ? 'X' : '&nbsp;&nbsp;'}) CALÇA OPERACIONAL</span>
         ${TAMANHOS.map(t => `<span>(${exchange.uniforme_calca_tamanho === t ? 'X' : '&nbsp;&nbsp;'}) ${t}</span>`).join(' ')}
         <span>QTD: ${exchange.uniforme_calca_quantidade || 0}</span>
       </div>
 
-      <div class="signature-row">
-        <div class="signature-box">
-          ${sigAuth ? `<img src="${sigAuth}" class="signature-img" />` : '<div style="min-height:55px;"></div>'}
-          <div class="signature-line">ASSINATURA DO AUTORIZADOR</div>
+      <div style="display:flex;justify-content:space-between;margin-top:30px;">
+        <div style="text-align:center;width:45%;">
+          ${sigAuth ? `<img src="${sigAuth}" style="display:block;margin:0 auto;max-height:60px;" />` : '<div style="min-height:55px;"></div>'}
+          <div style="border-top:1px solid #333;margin-top:0;padding-top:4px;font-size:11px;">ASSINATURA DO AUTORIZADOR</div>
         </div>
-        <div class="signature-box">
-          ${sigFunc ? `<img src="${sigFunc}" class="signature-img" />` : '<div style="min-height:55px;"></div>'}
-          <div class="signature-line">ASSINATURA DO FUNCIONÁRIO</div>
+        <div style="text-align:center;width:45%;">
+          ${sigFunc ? `<img src="${sigFunc}" style="display:block;margin:0 auto;max-height:60px;" />` : '<div style="min-height:55px;"></div>'}
+          <div style="border-top:1px solid #333;margin-top:0;padding-top:4px;font-size:11px;">ASSINATURA DO FUNCIONÁRIO</div>
         </div>
       </div>
 
-      <div class="footer-notes">
+      <div style="margin-top:15px;font-size:10px;color:#555;border-top:1px solid #ccc;padding-top:8px;">
         <p>• SESMT REALIZAR A TROCA DO EPI APÓS AVALIAÇÃO TÉCNICA DO MESMO.</p>
         <p>• ALMOXARIFADO SOMENTE TROCAR COM A DEVOLUÇÃO DO EPI DANIFICADO.</p>
         <p>• EM CASO DE PERDA DO EPI, SOMENTE REALIZAR A SUBSTITUIÇÃO COM O AVAL DA LIDERANÇA IMEDIATA.</p>
       </div>
     </div>
-    </body></html>
   `;
+}
 
+function generatePdf(exchange: EpiExchange, logoBase64: string) {
+  const content = buildPdfHtml(exchange, logoBase64);
+  const html = `<html><head><style>@page{size:A4;margin:15mm;}body{font-family:Arial,sans-serif;}</style></head><body>${content}</body></html>`;
   const printWindow = window.open('', '_blank');
   if (printWindow) {
     printWindow.document.write(html);
@@ -526,6 +509,79 @@ export default function TrocaEpi() {
     generatePdf(exchange, logoBase64);
   };
 
+  const handlePngWhatsApp = async (exchange: EpiExchange) => {
+    try {
+      toast.info("Gerando imagem...");
+      const logoBase64 = await getLogoBase64();
+      const html = buildPdfHtml(exchange, logoBase64);
+
+      const container = document.createElement("div");
+      container.style.position = "fixed";
+      container.style.left = "-9999px";
+      container.style.top = "0";
+      container.style.width = "800px";
+      container.style.background = "#fff";
+      container.innerHTML = html;
+      document.body.appendChild(container);
+
+      // Wait for images to load
+      const images = container.querySelectorAll("img");
+      await Promise.all(
+        Array.from(images).map(
+          (img) =>
+            new Promise<void>((resolve) => {
+              if (img.complete) return resolve();
+              img.onload = () => resolve();
+              img.onerror = () => resolve();
+            })
+        )
+      );
+
+      const { default: html2canvas } = await import("html2canvas");
+      const canvas = await html2canvas(container, {
+        scale: 2,
+        useCORS: true,
+        backgroundColor: "#ffffff",
+      });
+      document.body.removeChild(container);
+
+      canvas.toBlob(async (blob) => {
+        if (!blob) {
+          toast.error("Erro ao gerar imagem");
+          return;
+        }
+        // Try sharing via Web Share API with file
+        const file = new File([blob], `troca-epi-${exchange.funcionario_nome}.png`, { type: "image/png" });
+        const phone = "559193645741";
+        const text = encodeURIComponent(`Troca de EPI - ${exchange.funcionario_nome}`);
+
+        if (navigator.share && navigator.canShare?.({ files: [file] })) {
+          try {
+            await navigator.share({ files: [file], text: `Troca de EPI - ${exchange.funcionario_nome}` });
+            toast.success("Imagem compartilhada!");
+            return;
+          } catch {
+            // Fallback below
+          }
+        }
+
+        // Fallback: download PNG + open WhatsApp with text
+        const url = URL.createObjectURL(blob);
+        const link = document.createElement("a");
+        link.href = url;
+        link.download = `troca-epi-${exchange.funcionario_nome}.png`;
+        link.click();
+        URL.revokeObjectURL(url);
+
+        window.open(`https://api.whatsapp.com/send?phone=${phone}&text=${text}`, "_blank");
+        toast.success("PNG baixado! Envie a imagem no WhatsApp.");
+      }, "image/png");
+    } catch (err) {
+      console.error(err);
+      toast.error("Erro ao gerar PNG");
+    }
+  };
+
   return (
     <div className="min-h-screen bg-background p-4 md:p-6 space-y-6">
       <div className="flex items-center justify-between">
@@ -807,7 +863,10 @@ export default function TrocaEpi() {
                   {viewExchange.uniforme_calca_tamanho && <p>Calça: {viewExchange.uniforme_calca_tamanho} (x{viewExchange.uniforme_calca_quantidade})</p>}
                 </div>
               )}
-              <div className="flex justify-end">
+              <div className="flex justify-end gap-2">
+                <Button variant="outline" onClick={() => handlePngWhatsApp(viewExchange)}>
+                  <MessageCircle className="h-4 w-4 mr-2 text-[#25D366]" /> PNG WhatsApp
+                </Button>
                 <Button onClick={() => handlePrint(viewExchange)}>
                   <FileText className="h-4 w-4 mr-2" /> Gerar PDF
                 </Button>
@@ -853,7 +912,8 @@ export default function TrocaEpi() {
                   {ex.created_by === user?.id && (
                     <Button variant="ghost" size="icon" className="h-8 w-8" onClick={() => handleEditExchange(ex)}><Pencil className="h-4 w-4" /></Button>
                   )}
-                  <Button variant="ghost" size="icon" className="h-8 w-8" onClick={() => handlePrint(ex)}><FileText className="h-4 w-4" /></Button>
+                  <Button variant="ghost" size="icon" className="h-8 w-8" onClick={() => handlePrint(ex)} title="Gerar PDF"><FileText className="h-4 w-4" /></Button>
+                  <Button variant="ghost" size="icon" className="h-8 w-8" onClick={() => handlePngWhatsApp(ex)} title="PNG WhatsApp"><MessageCircle className="h-4 w-4 text-[#25D366]" /></Button>
                   {ex.created_by === user?.id && (
                     <Button variant="ghost" size="icon" className="h-8 w-8" onClick={() => handleDeleteWithRestore(ex)}><Trash2 className="h-4 w-4 text-destructive" /></Button>
                   )}
