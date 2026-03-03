@@ -458,7 +458,7 @@ export function AviatorGame({ onBack }: AviatorGameProps) {
               {/* Stats grid */}
               <div className="grid grid-cols-3 gap-2">
                 <StatMini icon={Target} label="Rodadas" value={String(sessionStats.roundsPlayed)} />
-                <StatMini icon={Trophy} label="Vitórias" value={`${sessionStats.wins}/${sessionStats.roundsPlayed}`} color="text-emerald-500" />
+                <StatMini icon={Trophy} label="Vitórias" value={`${sessionStats.wins}/${sessionStats.betsPlaced}`} color="text-emerald-500" />
                 <StatMini icon={Zap} label="Win Rate" value={`${sessionStats.winRate.toFixed(0)}%`} color={sessionStats.winRate >= 50 ? "text-emerald-500" : "text-red-500"} />
                 <StatMini icon={Flame} label="Melhor Streak" value={`${sessionStats.bestStreak}x`} color="text-amber-500" />
                 <StatMini icon={TrendingUp} label="Melhor Multi" value={`${sessionStats.bestMultiplier.toFixed(2)}x`} color="text-purple-500" />

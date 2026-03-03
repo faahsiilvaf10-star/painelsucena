@@ -33,6 +33,7 @@ export interface SessionStats {
   totalWon: number;
   wins: number;
   losses: number;
+  betsPlaced: number;
   currentStreak: number;
   bestStreak: number;
   bestMultiplier: number;
@@ -60,6 +61,7 @@ const initialStats: SessionStats = {
   totalWon: 0,
   wins: 0,
   losses: 0,
+  betsPlaced: 0,
   currentStreak: 0,
   bestStreak: 0,
   bestMultiplier: 0,
@@ -126,15 +128,15 @@ export function useAviator() {
     setSessionStats(prev => {
       const newWins = won ? prev.wins + 1 : prev.wins;
       const newLosses = won ? prev.losses : prev.losses + 1;
+      const newBetsPlaced = prev.betsPlaced + 1;
       const newTotalBet = prev.totalBet + betAmount;
       const newTotalWon = prev.totalWon + (payout || 0);
       const newStreak = won ? prev.currentStreak + 1 : 0;
-      const profit = (payout || 0) - betAmount;
-      const newRounds = prev.roundsPlayed + 1;
+      const netProfit = (payout || 0) - betAmount;
 
       return {
         ...prev,
-        roundsPlayed: newRounds,
+        betsPlaced: newBetsPlaced,
         totalBet: newTotalBet,
         totalWon: newTotalWon,
         wins: newWins,
@@ -143,12 +145,12 @@ export function useAviator() {
         bestStreak: Math.max(prev.bestStreak, newStreak),
         bestMultiplier: won ? Math.max(prev.bestMultiplier, cashoutMultiplier) : prev.bestMultiplier,
         profitLoss: newTotalWon - newTotalBet,
-        winRate: newRounds > 0 ? (newWins / newRounds) * 100 : 0,
+        winRate: newBetsPlaced > 0 ? (newWins / newBetsPlaced) * 100 : 0,
         avgMultiplier: won && newWins > 0
           ? ((prev.avgMultiplier * (newWins - 1)) + cashoutMultiplier) / newWins
           : prev.avgMultiplier,
-        biggestWin: Math.max(prev.biggestWin, profit > 0 ? profit : 0),
-        biggestLoss: Math.min(prev.biggestLoss, profit < 0 ? profit : 0),
+        biggestWin: Math.max(prev.biggestWin, netProfit > 0 ? netProfit : 0),
+        biggestLoss: Math.min(prev.biggestLoss, netProfit < 0 ? netProfit : 0),
       };
     });
 
@@ -286,14 +288,21 @@ export function useAviator() {
         .eq("id", roundIdRef.current);
     }
 
-    // Track loss if bet 1 wasn't cashed out
+    // Only increment roundsPlayed if user had at least one bet this round
     const bet = currentBetRef.current;
+    const bet2 = currentBet2Ref.current;
+    const hadBet = !!bet || !!bet2;
+
+    if (hadBet) {
+      setSessionStats(prev => ({ ...prev, roundsPlayed: prev.roundsPlayed + 1 }));
+    }
+
+    // Track loss if bet 1 wasn't cashed out
     if (bet && !bet.cashed_out_at) {
       updateStats(false, bet.bet_amount, null, cp);
       toast.error(`Crash em ${cp.toFixed(2)}x! Você perdeu R$ ${bet.bet_amount.toFixed(2)}`);
     }
     // Track loss if bet 2 wasn't cashed out
-    const bet2 = currentBet2Ref.current;
     if (bet2 && !bet2.cashed_out_at) {
       updateStats(false, bet2.bet_amount, null, cp);
     }
