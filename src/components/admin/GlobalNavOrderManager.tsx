@@ -54,6 +54,8 @@ const NAV_ITEMS_MAP: Record<string, string> = {
   "calendario-hydro": "Calendário Hydro",
   "games": "Games",
   "planejamento": "Planejamento",
+  "notas-fiscais": "Notas Fiscais",
+  "troca-epi": "Troca de EPI",
   "emergencia": "Emergência",
 };
 
@@ -62,7 +64,7 @@ const DEFAULT_NAV_ORDER = [
   "estoque", "lembretes", "parte-diaria", "presenca", "matriz", "pedidos", "rdo", "relatorio",
   "rh", "vistorias", "homologados", "vistoria-cintas", "hora-extra", "arquivos-seguranca",
   "consumo-abastecimento", "plano-manutencao", "slides", "instacena", "inspecao-canteiro",
-  "calendario-hydro", "games", "desvios", "planejamento", "emergencia"
+  "calendario-hydro", "games", "desvios", "planejamento", "notas-fiscais", "troca-epi", "emergencia"
 ];
 
 function SortableNavItem({ id, label }: { id: string; label: string }) {
