@@ -5,7 +5,7 @@ import { useAuth } from "@/hooks/useAuth";
 import { useProfile } from "@/hooks/useProfile";
 import { useEpiExchanges, EpiExchange } from "@/hooks/useEpiExchanges";
 import { SignatureDialog } from "@/components/epi/SignatureDialog";
-import { useEmployees } from "@/hooks/useEmployees";
+import { colaboradoresAtivos } from "@/data/efetivoData";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
@@ -163,7 +163,7 @@ export default function TrocaEpi() {
   const { user } = useAuth();
   const { data: profile } = useProfile();
   const { exchanges, isLoading, createExchange, deleteExchange } = useEpiExchanges();
-  const { data: employees = [] } = useEmployees();
+  const efetivo = colaboradoresAtivos;
   const [showForm, setShowForm] = useState(false);
   const [viewExchange, setViewExchange] = useState<EpiExchange | null>(null);
   const [showSignature, setShowSignature] = useState(false);
@@ -290,17 +290,17 @@ export default function TrocaEpi() {
                       <CommandInput placeholder="Buscar funcionário..." />
                       <CommandList>
                         <CommandEmpty>Nenhum encontrado</CommandEmpty>
-                        {employees.filter(e => e.status === 'active').map(emp => (
+                        {efetivo.map(col => (
                           <CommandItem
-                            key={emp.id}
+                            key={col.id}
                             onSelect={() => {
-                              setAutorizadoPor(emp.name);
-                              setMatriculaAutorizador("");
+                              setAutorizadoPor(col.nome);
+                              setMatriculaAutorizador(col.matricula || "");
                               setAuthPopoverOpen(false);
                             }}
                           >
-                            <span>{emp.name}</span>
-                            <span className="ml-auto text-xs text-muted-foreground">{emp.role}</span>
+                            <span>{col.nome}</span>
+                            <span className="ml-auto text-xs text-muted-foreground">{col.matricula}</span>
                           </CommandItem>
                         ))}
                       </CommandList>
@@ -335,18 +335,18 @@ export default function TrocaEpi() {
                       <CommandInput placeholder="Buscar funcionário..." />
                       <CommandList>
                         <CommandEmpty>Nenhum encontrado</CommandEmpty>
-                        {employees.filter(e => e.status === 'active').map(emp => (
+                        {efetivo.map(col => (
                           <CommandItem
-                            key={emp.id}
+                            key={col.id}
                             onSelect={() => {
-                              setFuncionarioNome(emp.name);
-                              setFuncionarioFuncao(emp.role || "");
-                              setFuncionarioMatricula("");
+                              setFuncionarioNome(col.nome);
+                              setFuncionarioFuncao(col.funcao || "");
+                              setFuncionarioMatricula(col.matricula || "");
                               setFuncPopoverOpen(false);
                             }}
                           >
-                            <span>{emp.name}</span>
-                            <span className="ml-auto text-xs text-muted-foreground">{emp.role}</span>
+                            <span>{col.nome}</span>
+                            <span className="ml-auto text-xs text-muted-foreground">{col.funcao} - {col.matricula}</span>
                           </CommandItem>
                         ))}
                       </CommandList>
