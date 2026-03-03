@@ -576,22 +576,18 @@ export function TigrinhoGame({ onBack }: TigrinhoGameProps) {
           )}
         </AnimatePresence>
 
-        {/* Result Banner */}
+        {/* Result Banner - only show on win */}
         <AnimatePresence>
-          {lastResult && !spinning && allStopped && (
+          {isWin && lastResult && !spinning && allStopped && (
             <motion.div initial={{ opacity: 0, y: 10 }} animate={{ opacity: 1, y: 0 }} exit={{ opacity: 0 }}
               className="mx-3 mb-2 rounded-lg py-2 text-center"
-              style={{ background: isWin ? "linear-gradient(90deg, rgba(255,165,0,0.15), rgba(255,215,0,0.25), rgba(255,165,0,0.15))" : "rgba(0,0,0,0.3)" }}
+              style={{ background: "linear-gradient(90deg, rgba(255,165,0,0.15), rgba(255,215,0,0.25), rgba(255,165,0,0.15))" }}
             >
-              {isWin ? (
-                <motion.span className="text-lg font-black" style={{ color: "#FFD700" }}
-                  animate={{ scale: [1, 1.05, 1] }} transition={{ duration: 0.5, repeat: 3 }}
-                >
-                  🎉 x{lastResult.multiplier} — +{lastResult.payout} moedas!
-                </motion.span>
-              ) : (
-                <span className="text-sm" style={{ color: "#8B6914" }}>Gire novamente...</span>
-              )}
+              <motion.span className="text-lg font-black" style={{ color: "#FFD700" }}
+                animate={{ scale: [1, 1.05, 1] }} transition={{ duration: 0.5, repeat: 3 }}
+              >
+                🎉 x{lastResult.multiplier} — +{lastResult.payout} moedas!
+              </motion.span>
             </motion.div>
           )}
         </AnimatePresence>
