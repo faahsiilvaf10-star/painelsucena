@@ -553,31 +553,33 @@ export default function TrocaEpi() {
           toast.error("Erro ao gerar imagem");
           return;
         }
-        // Try sharing via Web Share API with file
-        const file = new File([blob], `troca-epi-${exchange.funcionario_nome}.png`, { type: "image/png" });
+        const fileName = `troca-epi-${exchange.funcionario_nome}.png`;
+        const file = new File([blob], fileName, { type: "image/png" });
         const phone = "559193645741";
-        const text = encodeURIComponent(`Troca de EPI - ${exchange.funcionario_nome}`);
+        const description = `Troca de EPI - ${exchange.funcionario_nome}`;
 
-        if (navigator.share && navigator.canShare?.({ files: [file] })) {
-          try {
-            await navigator.share({ files: [file], text: `Troca de EPI - ${exchange.funcionario_nome}` });
-            toast.success("Imagem compartilhada!");
-            return;
-          } catch {
-            // Fallback below
-          }
-        }
-
-        // Fallback: download PNG + open WhatsApp with text
+        // Always download the PNG first
         const url = URL.createObjectURL(blob);
         const link = document.createElement("a");
         link.href = url;
-        link.download = `troca-epi-${exchange.funcionario_nome}.png`;
+        link.download = fileName;
         link.click();
         URL.revokeObjectURL(url);
 
-        window.open(`https://api.whatsapp.com/send?phone=${phone}&text=${text}`, "_blank");
-        toast.success("PNG baixado! Envie a imagem no WhatsApp.");
+        // Try Web Share API to share file directly to WhatsApp
+        if (navigator.share && navigator.canShare?.({ files: [file] })) {
+          try {
+            await navigator.share({ files: [file], text: description });
+            toast.success("Imagem compartilhada!");
+            return;
+          } catch {
+            // User cancelled or failed — open WhatsApp link as fallback
+          }
+        }
+
+        // Fallback: open WhatsApp with the specific phone number
+        window.open(`https://wa.me/${phone}?text=${encodeURIComponent(description)}`, "_blank");
+        toast.success("PNG baixado! Anexe a imagem no WhatsApp.");
       }, "image/png");
     } catch (err) {
       console.error(err);
