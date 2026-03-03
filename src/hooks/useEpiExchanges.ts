@@ -54,6 +54,21 @@ export function useEpiExchanges() {
     onError: () => toast.error("Erro ao registrar troca de EPI"),
   });
 
+  const updateExchange = useMutation({
+    mutationFn: async ({ id, ...values }: Partial<EpiExchange> & { id: string }) => {
+      const { error } = await supabase
+        .from("epi_exchanges" as any)
+        .update(values as any)
+        .eq("id", id);
+      if (error) throw error;
+    },
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ["epi-exchanges"] });
+      toast.success("Troca de EPI atualizada com sucesso!");
+    },
+    onError: () => toast.error("Erro ao atualizar troca de EPI"),
+  });
+
   const deleteExchange = useMutation({
     mutationFn: async (id: string) => {
       const { error } = await supabase
@@ -69,5 +84,5 @@ export function useEpiExchanges() {
     onError: () => toast.error("Erro ao excluir registro"),
   });
 
-  return { exchanges, isLoading, createExchange, deleteExchange };
+  return { exchanges, isLoading, createExchange, updateExchange, deleteExchange };
 }

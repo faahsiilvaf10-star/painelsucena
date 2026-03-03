@@ -19,7 +19,7 @@ import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { Badge } from "@/components/ui/badge";
 import { Separator } from "@/components/ui/separator";
-import { ShieldCheck, Plus, FileText, Trash2, Eye } from "lucide-react";
+import { ShieldCheck, Plus, FileText, Trash2, Eye, Pencil } from "lucide-react";
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/components/ui/dialog";
 import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover";
 import { Command, CommandInput, CommandList, CommandEmpty, CommandItem } from "@/components/ui/command";
@@ -198,11 +198,12 @@ function generatePdf(exchange: EpiExchange, logoBase64: string) {
 export default function TrocaEpi() {
   const { user } = useAuth();
   const { data: profile } = useProfile();
-  const { exchanges, isLoading, createExchange, deleteExchange } = useEpiExchanges();
+  const { exchanges, isLoading, createExchange, updateExchange, deleteExchange } = useEpiExchanges();
   const { data: inventoryItems = [] } = useInventoryItems();
   const queryClient = useQueryClient();
   const efetivo = colaboradoresAtivos;
   const [showForm, setShowForm] = useState(false);
+  const [editingExchange, setEditingExchange] = useState<EpiExchange | null>(null);
   const [viewExchange, setViewExchange] = useState<EpiExchange | null>(null);
   const [showSignature, setShowSignature] = useState(false);
   const [funcPopoverOpen, setFuncPopoverOpen] = useState(false);
@@ -246,6 +247,128 @@ export default function TrocaEpi() {
     setBlusaQtd(0);
     setCalcaTamanho("");
     setCalcaQtd(0);
+    setEditingExchange(null);
+  };
+
+  // Restore inventory for an exchange's EPIs (used on delete or before edit)
+  const restoreInventoryForExchange = async (exchange: EpiExchange) => {
+    const { data: freshInventory } = await supabase
+      .from("inventory_items")
+      .select("*")
+      .order("name");
+    const currentInventory = freshInventory || [];
+    const restoredItems: string[] = [];
+
+    for (const epi of (exchange.epis || [])) {
+      const epiId = typeof epi === "string" ? epi : (epi as any).id;
+      const epiItem = EPI_ITEMS.find(e => e.id === epiId);
+      if (!epiItem) continue;
+      const match = findInventoryMatch(currentInventory, epiItem.label);
+      if (match) {
+        const newQty = match.quantity + 1;
+        await supabase.from("inventory_items").update({ quantity: newQty }).eq("id", match.id);
+        await supabase.from("inventory_movements").insert({
+          item_id: match.id,
+          movement_type: "entrada",
+          quantity: 1,
+          previous_quantity: match.quantity,
+          new_quantity: newQty,
+          reason: `Estorno Troca de EPI - ${exchange.funcionario_nome}`,
+          moved_by: user!.id,
+          moved_by_name: profile?.full_name || "Usuário",
+          destination_type: "funcionario",
+          destination_name: exchange.funcionario_nome,
+        });
+        match.quantity = newQty;
+        restoredItems.push(epiItem.label);
+      }
+    }
+
+    if (exchange.uniforme_blusa_quantidade > 0) {
+      const blusaMatch = findInventoryMatch(currentInventory, "Blusa Operacional") || findInventoryMatch(currentInventory, "Blusa");
+      if (blusaMatch) {
+        const qty = exchange.uniforme_blusa_quantidade;
+        const newQty = blusaMatch.quantity + qty;
+        await supabase.from("inventory_items").update({ quantity: newQty }).eq("id", blusaMatch.id);
+        await supabase.from("inventory_movements").insert({
+          item_id: blusaMatch.id,
+          movement_type: "entrada",
+          quantity: qty,
+          previous_quantity: blusaMatch.quantity,
+          new_quantity: newQty,
+          reason: `Estorno Troca de EPI - ${exchange.funcionario_nome}`,
+          moved_by: user!.id,
+          moved_by_name: profile?.full_name || "Usuário",
+          destination_type: "funcionario",
+          destination_name: exchange.funcionario_nome,
+        });
+        blusaMatch.quantity = newQty;
+        restoredItems.push(`Blusa (${qty})`);
+      }
+    }
+    if (exchange.uniforme_calca_quantidade > 0) {
+      const calcaMatch = findInventoryMatch(currentInventory, "Calça Operacional") || findInventoryMatch(currentInventory, "Calça");
+      if (calcaMatch) {
+        const qty = exchange.uniforme_calca_quantidade;
+        const newQty = calcaMatch.quantity + qty;
+        await supabase.from("inventory_items").update({ quantity: newQty }).eq("id", calcaMatch.id);
+        await supabase.from("inventory_movements").insert({
+          item_id: calcaMatch.id,
+          movement_type: "entrada",
+          quantity: qty,
+          previous_quantity: calcaMatch.quantity,
+          new_quantity: newQty,
+          reason: `Estorno Troca de EPI - ${exchange.funcionario_nome}`,
+          moved_by: user!.id,
+          moved_by_name: profile?.full_name || "Usuário",
+          destination_type: "funcionario",
+          destination_name: exchange.funcionario_nome,
+        });
+        calcaMatch.quantity = newQty;
+        restoredItems.push(`Calça (${qty})`);
+      }
+    }
+
+    queryClient.invalidateQueries({ queryKey: ["inventory-items"] });
+    queryClient.invalidateQueries({ queryKey: ["inventory-movements"] });
+    return restoredItems;
+  };
+
+  const handleDeleteWithRestore = async (exchange: EpiExchange) => {
+    if (exchange.created_by !== user?.id) {
+      toast.error("Apenas o criador pode excluir este registro.");
+      return;
+    }
+    const restoredItems = await restoreInventoryForExchange(exchange);
+    await deleteExchange.mutateAsync(exchange.id);
+    if (restoredItems.length > 0) {
+      toast.info(`Estoque restaurado: ${restoredItems.join(", ")}`);
+    }
+  };
+
+  const handleEditExchange = (exchange: EpiExchange) => {
+    if (exchange.created_by !== user?.id) {
+      toast.error("Apenas o criador pode editar este registro.");
+      return;
+    }
+    setEditingExchange(exchange);
+    setData(exchange.data);
+    setAutorizadoPor(exchange.autorizado_por);
+    setMatriculaAutorizador(exchange.matricula_autorizador || "");
+    setMotivoTroca(exchange.motivo_troca);
+    setFuncionarioNome(exchange.funcionario_nome);
+    setFuncionarioFuncao(exchange.funcionario_funcao || "");
+    setFuncionarioMatricula(exchange.funcionario_matricula || "");
+    setSelectedEpis(
+      (exchange.epis || []).map((e: any) =>
+        typeof e === "string" ? { id: e } : { id: e.id, value: e.value }
+      )
+    );
+    setBlusaTamanho(exchange.uniforme_blusa_tamanho || "");
+    setBlusaQtd(exchange.uniforme_blusa_quantidade || 0);
+    setCalcaTamanho(exchange.uniforme_calca_tamanho || "");
+    setCalcaQtd(exchange.uniforme_calca_quantidade || 0);
+    setShowForm(true);
   };
 
   const handleSubmit = () => {
@@ -254,7 +377,7 @@ export default function TrocaEpi() {
   };
 
   const handleSignatureConfirm = async (sigFuncionario: string, sigAutorizador: string) => {
-    await createExchange.mutateAsync({
+    const exchangeData = {
       data,
       autorizado_por: autorizadoPor,
       matricula_autorizador: matriculaAutorizador || null,
@@ -269,10 +392,17 @@ export default function TrocaEpi() {
       uniforme_calca_quantidade: calcaQtd,
       assinatura_funcionario: sigFuncionario || null,
       assinatura_autorizador: sigAutorizador || null,
-    });
+    };
+
+    // If editing, restore old inventory first, then update exchange
+    if (editingExchange) {
+      await restoreInventoryForExchange(editingExchange);
+      await updateExchange.mutateAsync({ id: editingExchange.id, ...exchangeData });
+    } else {
+      await createExchange.mutateAsync(exchangeData);
+    }
 
     // Deduct inventory for each selected EPI
-    // Re-fetch latest inventory to avoid stale quantities
     const { data: freshInventory } = await supabase
       .from("inventory_items")
       .select("*")
@@ -301,7 +431,6 @@ export default function TrocaEpi() {
           destination_type: "funcionario",
           destination_name: funcionarioNome,
         });
-        // Update local reference to avoid double-deducting same item
         match.quantity = newQty;
         deductedItems.push(epiItem.label);
       } else if (!match) {
@@ -309,7 +438,6 @@ export default function TrocaEpi() {
       }
     }
 
-    // Deduct uniforms
     if (blusaQtd > 0) {
       const blusaMatch = findInventoryMatch(currentInventory, "Blusa Operacional") || findInventoryMatch(currentInventory, "Blusa");
       if (blusaMatch && blusaMatch.quantity >= blusaQtd) {
@@ -353,7 +481,6 @@ export default function TrocaEpi() {
       }
     }
 
-    // Invalidate inventory cache
     queryClient.invalidateQueries({ queryKey: ["inventory-items"] });
     queryClient.invalidateQueries({ queryKey: ["inventory-movements"] });
 
@@ -394,7 +521,7 @@ export default function TrocaEpi() {
       <Dialog open={showForm} onOpenChange={setShowForm}>
         <DialogContent className="max-w-3xl max-h-[90vh] overflow-y-auto">
           <DialogHeader>
-            <DialogTitle>Nova Autorização de Troca de EPI</DialogTitle>
+            <DialogTitle>{editingExchange ? "Editar Troca de EPI" : "Nova Autorização de Troca de EPI"}</DialogTitle>
           </DialogHeader>
           <div className="space-y-4">
             <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
@@ -562,8 +689,8 @@ export default function TrocaEpi() {
 
             <div className="flex justify-end gap-2 pt-4">
               <Button variant="outline" onClick={() => setShowForm(false)}>Cancelar</Button>
-              <Button onClick={handleSubmit} disabled={createExchange.isPending || !autorizadoPor || !motivoTroca || !funcionarioNome}>
-                Salvar e Registrar
+              <Button onClick={handleSubmit} disabled={(createExchange.isPending || updateExchange.isPending) || !autorizadoPor || !motivoTroca || !funcionarioNome}>
+                {editingExchange ? "Atualizar e Reassinar" : "Salvar e Registrar"}
               </Button>
             </div>
           </div>
@@ -652,8 +779,13 @@ export default function TrocaEpi() {
                 </div>
                 <div className="flex gap-1">
                   <Button variant="ghost" size="icon" onClick={() => setViewExchange(ex)}><Eye className="h-4 w-4" /></Button>
+                  {ex.created_by === user?.id && (
+                    <Button variant="ghost" size="icon" onClick={() => handleEditExchange(ex)}><Pencil className="h-4 w-4" /></Button>
+                  )}
                   <Button variant="ghost" size="icon" onClick={() => handlePrint(ex)}><FileText className="h-4 w-4" /></Button>
-                  <Button variant="ghost" size="icon" onClick={() => deleteExchange.mutate(ex.id)}><Trash2 className="h-4 w-4 text-destructive" /></Button>
+                  {ex.created_by === user?.id && (
+                    <Button variant="ghost" size="icon" onClick={() => handleDeleteWithRestore(ex)}><Trash2 className="h-4 w-4 text-destructive" /></Button>
+                  )}
                 </div>
               </CardContent>
             </Card>
