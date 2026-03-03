@@ -553,8 +553,7 @@ export default function TrocaEpi() {
           toast.error("Erro ao gerar imagem");
           return;
         }
-        const fileName = `troca-epi-${exchange.funcionario_nome}.png`;
-        const file = new File([blob], fileName, { type: "image/png" });
+        const fileName = `troca-epi-${exchange.funcionario_nome}-${Date.now()}.png`;
         const phone = "559193645741";
         
         // Build description with employee name + items
@@ -566,41 +565,33 @@ export default function TrocaEpi() {
           const name = epiId === "outros" && epiValue ? epiValue : (epiItem?.label || epiId);
           return `${name} (${epiQty})`;
         }).join(", ");
-        const description = `Troca de EPI - ${exchange.funcionario_nome}\nItens: ${episList}`;
+
+        // Upload PNG to storage to get a public URL
+        const storagePath = `epi-trocas/${fileName}`;
+        const { error: uploadError } = await supabase.storage
+          .from("site-assets")
+          .upload(storagePath, blob, { contentType: "image/png", upsert: true });
+
+        if (uploadError) {
+          console.error("Upload error:", uploadError);
+          toast.error("Erro ao enviar imagem. Tente novamente.");
+          return;
+        }
+
+        const { data: pubData } = supabase.storage
+          .from("site-assets")
+          .getPublicUrl(storagePath);
+        const imageUrl = pubData.publicUrl;
+
+        const description = `Troca de EPI - ${exchange.funcionario_nome}\nItens: ${episList}\n\n${imageUrl}`;
         const isMobile = /Android|iPhone|iPad|iPod/i.test(navigator.userAgent);
 
         if (isMobile) {
-          // Mobile: share file via Web Share API directly
-          if (navigator.share && navigator.canShare?.({ files: [file] })) {
-            try {
-              window.open(`https://wa.me/${phone}?text=${encodeURIComponent(description)}`, "_blank");
-              await new Promise(r => setTimeout(r, 800));
-              await navigator.share({ files: [file], text: description });
-              toast.success("Imagem compartilhada!");
-              return;
-            } catch {
-              // User cancelled
-            }
-          } else {
-            const url = URL.createObjectURL(blob);
-            const a = document.createElement("a");
-            a.href = url;
-            a.download = fileName;
-            a.click();
-            URL.revokeObjectURL(url);
-            window.open(`https://wa.me/${phone}?text=${encodeURIComponent(description)}`, "_blank");
-            toast.success("PNG salvo! Anexe a imagem na conversa.");
-          }
+          window.open(`https://wa.me/${phone}?text=${encodeURIComponent(description)}`, "_blank");
+          toast.success("Abrindo WhatsApp com a imagem...");
         } else {
-          // Desktop: download PNG then open WhatsApp Web with the contact
-          const url = URL.createObjectURL(blob);
-          const a = document.createElement("a");
-          a.href = url;
-          a.download = fileName;
-          a.click();
-          URL.revokeObjectURL(url);
           window.open(`https://web.whatsapp.com/send?phone=${phone}&text=${encodeURIComponent(description)}`, "_blank");
-          toast.success("PNG baixado! Anexe a imagem no WhatsApp Web.");
+          toast.success("Abrindo WhatsApp Web com a imagem...");
         }
       }, "image/png");
     } catch (err) {
