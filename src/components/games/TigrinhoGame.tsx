@@ -24,6 +24,17 @@ const SYMBOL_IMAGES: Record<string, string> = {
   diamond: diamondImg,
 };
 
+const SYMBOL_VALUES: Record<string, number> = {
+  tiger: 100,
+  gold: 50,
+  coins: 25,
+  envelope: 15,
+  lantern: 10,
+  firecracker: 8,
+  bag: 5,
+  diamond: 3,
+};
+
 interface TigrinhoGameProps {
   onBack: () => void;
 }
@@ -52,7 +63,6 @@ function SpinningReel({ spinning, finalSymbols, colIndex, onStop }: {
 
   useEffect(() => {
     if (!spinning) return;
-
     intervalRef.current = setInterval(() => {
       setDisplaySymbols([
         SYMBOL_KEYS[Math.floor(Math.random() * SYMBOL_KEYS.length)],
@@ -60,13 +70,11 @@ function SpinningReel({ spinning, finalSymbols, colIndex, onStop }: {
         SYMBOL_KEYS[Math.floor(Math.random() * SYMBOL_KEYS.length)],
       ]);
     }, 60);
-
     timeoutRef.current = setTimeout(() => {
       if (intervalRef.current) clearInterval(intervalRef.current);
       setDisplaySymbols(finalSymbols);
       onStop();
     }, 800 + colIndex * 400);
-
     return () => {
       if (intervalRef.current) clearInterval(intervalRef.current);
       if (timeoutRef.current) clearTimeout(timeoutRef.current);
@@ -80,11 +88,88 @@ function SpinningReel({ spinning, finalSymbols, colIndex, onStop }: {
   return (
     <div className="flex flex-col gap-1.5">
       {displaySymbols.map((s, i) => (
-        <div key={i} className="w-full aspect-square flex items-center justify-center rounded-md p-1.5 bg-gradient-to-b from-[#1a0a02]/80 to-[#2a1005]/80">
+        <div key={i} className="w-full aspect-square flex items-center justify-center rounded-md p-1.5 bg-gradient-to-b from-[#1a0a02]/80 to-[#2a1005]/80 relative">
           <SymbolImage symbolKey={s} className={spinning ? "blur-[2px] scale-90" : "drop-shadow-[0_2px_6px_rgba(255,200,0,0.3)]"} />
         </div>
       ))}
     </div>
+  );
+}
+
+/** Floating value label on winning cells */
+function WinValueOverlay({ symbolKey, betAmount, multiplier, row, col }: {
+  symbolKey: string;
+  betAmount: number;
+  multiplier: number;
+  row: number;
+  col: number;
+}) {
+  const baseVal = SYMBOL_VALUES[symbolKey] || 1;
+  const cellValue = Math.round((betAmount * multiplier) / 3);
+
+  return (
+    <motion.div
+      className="absolute z-30 pointer-events-none flex flex-col items-center"
+      style={{
+        left: `calc(${col * 33.33}% + 20px + ${col * 6}px + 16.66%)`,
+        top: `calc(${row * 33.33}% + ${row * 6}px + 16.66%)`,
+      }}
+      initial={{ opacity: 0, scale: 0.5, y: 0 }}
+      animate={{ opacity: [0, 1, 1, 0], scale: [0.5, 1.2, 1, 0.8], y: [0, -8, -8, -30] }}
+      transition={{ duration: 1.8, delay: 0.3 }}
+    >
+      <span className="text-xs font-black px-1.5 py-0.5 rounded-md"
+        style={{
+          background: "linear-gradient(180deg, rgba(255,215,0,0.95), rgba(255,140,0,0.95))",
+          color: "#1A0A02",
+          boxShadow: "0 2px 8px rgba(255,215,0,0.5)",
+          textShadow: "0 1px 0 rgba(255,255,255,0.3)"
+        }}
+      >
+        +{cellValue}
+      </span>
+    </motion.div>
+  );
+}
+
+/** Animated payout flying to balance */
+function PayoutToBalance({ payout }: { payout: number }) {
+  return (
+    <motion.div
+      className="absolute z-40 pointer-events-none"
+      initial={{ opacity: 1, left: "50%", bottom: "30%", x: "-50%", scale: 1.3 }}
+      animate={{
+        opacity: [1, 1, 1, 0],
+        left: "75%",
+        top: "12%",
+        bottom: "auto",
+        scale: [1.3, 1.1, 0.9, 0.6],
+        x: "-50%",
+      }}
+      transition={{ duration: 1.5, delay: 1.0, ease: "easeInOut" }}
+    >
+      <span className="text-lg font-black whitespace-nowrap"
+        style={{
+          color: "#FFD700",
+          textShadow: "0 0 12px rgba(255,215,0,0.8), 0 2px 4px rgba(0,0,0,0.6)"
+        }}
+      >
+        +{payout} 🪙
+      </span>
+    </motion.div>
+  );
+}
+
+/** Balance flash effect */
+function BalanceFlash() {
+  return (
+    <motion.div
+      className="absolute inset-0 rounded-lg pointer-events-none z-10"
+      initial={{ opacity: 0 }}
+      animate={{ opacity: [0, 0.6, 0], boxShadow: ["0 0 0px #FFD700", "0 0 20px #FFD700", "0 0 0px #FFD700"] }}
+      transition={{ duration: 0.8, delay: 2.2 }}
+      style={{ border: "2px solid #FFD700" }}
+    />
   );
 }
 
@@ -94,23 +179,34 @@ export function TigrinhoGame({ onBack }: TigrinhoGameProps) {
   const [autoPlay, setAutoPlay] = useState(false);
   const [muted, setMuted] = useState(false);
   const [stoppedCols, setStoppedCols] = useState([true, true, true]);
+  const [showWinAnim, setShowWinAnim] = useState(false);
   const [displayGrid, setDisplayGrid] = useState<string[][]>(() =>
     Array.from({ length: 3 }, () => Array.from({ length: 3 }, () => SYMBOL_KEYS[Math.floor(Math.random() * SYMBOL_KEYS.length)]))
   );
   const autoPlayRef = useRef(autoPlay);
 
   useEffect(() => { autoPlayRef.current = autoPlay; }, [autoPlay]);
-  useEffect(() => { if (spinning) setStoppedCols([false, false, false]); }, [spinning]);
+  useEffect(() => {
+    if (spinning) {
+      setStoppedCols([false, false, false]);
+      setShowWinAnim(false);
+    }
+  }, [spinning]);
   useEffect(() => {
     if (lastResult) {
       setDisplayGrid(lastResult.symbols);
       setStoppedCols([true, true, true]);
+      if (lastResult.multiplier > 0) {
+        setShowWinAnim(true);
+        const t = setTimeout(() => setShowWinAnim(false), 3500);
+        return () => clearTimeout(t);
+      }
     }
   }, [lastResult]);
 
   useEffect(() => {
     if (!autoPlay || spinning) return;
-    const t = setTimeout(() => { if (autoPlayRef.current) play(); }, 2000);
+    const t = setTimeout(() => { if (autoPlayRef.current) play(); }, 2500);
     return () => clearTimeout(t);
   }, [autoPlay, spinning, play]);
 
@@ -173,13 +269,17 @@ export function TigrinhoGame({ onBack }: TigrinhoGameProps) {
         </div>
 
         {/* Balance */}
-        <div className="mx-3 mb-2 rounded-lg px-3 py-1.5 flex items-center justify-between"
+        <div className="mx-3 mb-2 rounded-lg px-3 py-1.5 flex items-center justify-between relative"
           style={{ background: "linear-gradient(90deg, rgba(0,0,0,0.5), rgba(20,10,0,0.6), rgba(0,0,0,0.5))" }}
         >
           <span className="text-[10px] uppercase tracking-widest font-bold" style={{ color: "#DAA520" }}>Saldo</span>
           <span className="text-base font-black tracking-wide" style={{ color: "#FFD700" }}>
             {balance.toLocaleString("pt-BR")} <span className="text-xs">🪙</span>
           </span>
+          {/* Balance flash on win */}
+          <AnimatePresence>
+            {showWinAnim && <BalanceFlash />}
+          </AnimatePresence>
         </div>
 
         {/* Reel Area */}
@@ -216,6 +316,22 @@ export function TigrinhoGame({ onBack }: TigrinhoGameProps) {
             ))}
           </div>
 
+          {/* Win value overlays on winning cells */}
+          <AnimatePresence>
+            {showWinAnim && lastResult && winningRows.map(row =>
+              [0, 1, 2].map(col => (
+                <WinValueOverlay
+                  key={`val-${row}-${col}`}
+                  symbolKey={lastResult.symbols[row][col]}
+                  betAmount={betAmount}
+                  multiplier={lastResult.multiplier}
+                  row={row}
+                  col={col}
+                />
+              ))
+            )}
+          </AnimatePresence>
+
           {/* Win line overlays */}
           {winningRows.map(row => (
             <motion.div key={`wl-${row}`} className="absolute left-5 right-5 h-[2px] pointer-events-none z-20"
@@ -225,6 +341,13 @@ export function TigrinhoGame({ onBack }: TigrinhoGameProps) {
             />
           ))}
         </div>
+
+        {/* Payout flying to balance */}
+        <AnimatePresence>
+          {showWinAnim && lastResult && lastResult.payout > 0 && (
+            <PayoutToBalance payout={lastResult.payout} />
+          )}
+        </AnimatePresence>
 
         {/* Result Banner */}
         <AnimatePresence>
