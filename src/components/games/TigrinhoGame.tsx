@@ -58,38 +58,107 @@ function SpinningReel({ spinning, finalSymbols, colIndex, onStop }: {
   onStop: () => void;
 }) {
   const [displaySymbols, setDisplaySymbols] = useState(finalSymbols);
+  const [offset, setOffset] = useState(0);
   const intervalRef = useRef<NodeJS.Timeout | null>(null);
   const timeoutRef = useRef<NodeJS.Timeout | null>(null);
+  const animFrameRef = useRef<number | null>(null);
+  const speedRef = useRef(0);
+  const offsetRef = useRef(0);
+  const [isStopping, setIsStopping] = useState(false);
 
   useEffect(() => {
     if (!spinning) return;
+    setIsStopping(false);
+    speedRef.current = 18 + colIndex * 2;
+    offsetRef.current = 0;
+
+    // Randomize symbols rapidly during spin
     intervalRef.current = setInterval(() => {
       setDisplaySymbols([
         SYMBOL_KEYS[Math.floor(Math.random() * SYMBOL_KEYS.length)],
         SYMBOL_KEYS[Math.floor(Math.random() * SYMBOL_KEYS.length)],
         SYMBOL_KEYS[Math.floor(Math.random() * SYMBOL_KEYS.length)],
       ]);
-    }, 60);
+    }, 80);
+
+    // Animate vertical offset for scroll illusion
+    const animate = () => {
+      offsetRef.current = (offsetRef.current + speedRef.current) % 100;
+      setOffset(offsetRef.current);
+      animFrameRef.current = requestAnimationFrame(animate);
+    };
+    animFrameRef.current = requestAnimationFrame(animate);
+
+    // Stop after delay - decelerate then snap
     timeoutRef.current = setTimeout(() => {
       if (intervalRef.current) clearInterval(intervalRef.current);
-      setDisplaySymbols(finalSymbols);
-      onStop();
-    }, 800 + colIndex * 400);
+      setIsStopping(true);
+
+      // Deceleration phase
+      let decelSpeed = speedRef.current;
+      const decelerate = () => {
+        decelSpeed *= 0.88;
+        offsetRef.current = (offsetRef.current + decelSpeed) % 100;
+        setOffset(offsetRef.current);
+        if (decelSpeed > 0.5) {
+          animFrameRef.current = requestAnimationFrame(decelerate);
+        } else {
+          // Snap to final
+          if (animFrameRef.current) cancelAnimationFrame(animFrameRef.current);
+          setOffset(0);
+          setDisplaySymbols(finalSymbols);
+          setIsStopping(false);
+          onStop();
+        }
+      };
+      if (animFrameRef.current) cancelAnimationFrame(animFrameRef.current);
+      animFrameRef.current = requestAnimationFrame(decelerate);
+    }, 600 + colIndex * 450);
+
     return () => {
       if (intervalRef.current) clearInterval(intervalRef.current);
       if (timeoutRef.current) clearTimeout(timeoutRef.current);
+      if (animFrameRef.current) cancelAnimationFrame(animFrameRef.current);
     };
   }, [spinning]);
 
   useEffect(() => {
-    if (!spinning) setDisplaySymbols(finalSymbols);
-  }, [finalSymbols, spinning]);
+    if (!spinning && !isStopping) {
+      setDisplaySymbols(finalSymbols);
+      setOffset(0);
+    }
+  }, [finalSymbols, spinning, isStopping]);
+
+  const isActive = spinning || isStopping;
 
   return (
-    <div className="flex flex-col gap-1.5">
+    <div className="flex flex-col gap-1.5 relative">
       {displaySymbols.map((s, i) => (
-        <div key={i} className="w-full aspect-square flex items-center justify-center rounded-md p-1.5 bg-gradient-to-b from-[#1a0a02]/80 to-[#2a1005]/80 relative">
-          <SymbolImage symbolKey={s} className={spinning ? "blur-[2px] scale-90" : "drop-shadow-[0_2px_6px_rgba(255,200,0,0.3)]"} />
+        <div key={i}
+          className="w-full aspect-square flex items-center justify-center rounded-md p-1.5 bg-gradient-to-b from-[#1a0a02]/80 to-[#2a1005]/80 relative overflow-hidden"
+        >
+          <div
+            className="w-full h-full flex items-center justify-center transition-none"
+            style={{
+              transform: isActive ? `translateY(${offset % 100}%)` : "translateY(0)",
+            }}
+          >
+            <SymbolImage
+              symbolKey={s}
+              className={isActive
+                ? "blur-[1.5px] scale-95 opacity-80"
+                : "drop-shadow-[0_2px_6px_rgba(255,200,0,0.3)] transition-all duration-300"
+              }
+            />
+          </div>
+          {/* Motion blur overlay during spin */}
+          {isActive && (
+            <div className="absolute inset-0 pointer-events-none"
+              style={{
+                background: "linear-gradient(180deg, rgba(26,10,2,0.4) 0%, transparent 30%, transparent 70%, rgba(26,10,2,0.4) 100%)"
+              }}
+            />
+          )}
         </div>
       ))}
     </div>
