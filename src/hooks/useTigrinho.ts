@@ -1,4 +1,4 @@
-import { useState, useCallback } from "react";
+import { useState, useCallback, useEffect, useRef } from "react";
 import { supabase } from "@/integrations/supabase/client";
 import { useAuth } from "./useAuth";
 import { useQuery, useQueryClient } from "@tanstack/react-query";
@@ -20,19 +20,39 @@ interface Outcome {
   weight: number;
 }
 
-const OUTCOMES: Outcome[] = [
-  { multiplier: 0, weight: 50 },
-  { multiplier: 2, weight: 28 },
-  { multiplier: 5, weight: 12 },
-  { multiplier: 10, weight: 6 },
-  { multiplier: 50, weight: 3.5 },
-  { multiplier: 100, weight: 0.5 },
+// Base: 70% loss, 30% win distributed among multipliers
+const BASE_OUTCOMES: Outcome[] = [
+  { multiplier: 0, weight: 70 },
+  { multiplier: 2, weight: 16 },
+  { multiplier: 5, weight: 8 },
+  { multiplier: 10, weight: 4 },
+  { multiplier: 50, weight: 1.7 },
+  { multiplier: 100, weight: 0.3 },
 ];
 
+// Oscillating outcomes: every 5 min cycle between tighter and looser
+function getOutcomes(): Outcome[] {
+  const cycleMs = 5 * 60 * 1000; // 5 minutes
+  const phase = Math.floor(Date.now() / cycleMs) % 4;
+  // phase 0: base (70/30), phase 1: tight (78/22), phase 2: loose (62/38), phase 3: base again
+  const oscillation = [0, 8, -8, 0][phase];
+  const lossWeight = 70 + oscillation;
+  const winScale = (100 - lossWeight) / 30; // scale remaining win weights
+  return [
+    { multiplier: 0, weight: lossWeight },
+    { multiplier: 2, weight: 16 * winScale },
+    { multiplier: 5, weight: 8 * winScale },
+    { multiplier: 10, weight: 4 * winScale },
+    { multiplier: 50, weight: 1.7 * winScale },
+    { multiplier: 100, weight: 0.3 * winScale },
+  ];
+}
+
 function pickOutcome(): number {
-  const totalWeight = OUTCOMES.reduce((s, o) => s + o.weight, 0);
+  const outcomes = getOutcomes();
+  const totalWeight = outcomes.reduce((s, o) => s + o.weight, 0);
   let r = Math.random() * totalWeight;
-  for (const o of OUTCOMES) {
+  for (const o of outcomes) {
     r -= o.weight;
     if (r <= 0) return o.multiplier;
   }
