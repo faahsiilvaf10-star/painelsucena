@@ -651,6 +651,7 @@ export default function TrocaEpi() {
                 {EPI_ITEMS.map(item => {
                   const selected = selectedEpis.find(e => e.id === item.id);
                   const lastDate = lastPickupMap[item.id];
+                  const invMatch = selected ? findInventoryMatch(inventoryItems, item.label) : null;
                   return (
                     <div key={item.id} className="flex flex-col gap-0.5">
                       <div className="flex items-center gap-2">
@@ -668,6 +669,11 @@ export default function TrocaEpi() {
                           />
                         )}
                       </div>
+                      {selected && invMatch && (
+                        <span className={`text-[10px] ml-6 ${invMatch.quantity <= invMatch.min_quantity ? 'text-destructive font-semibold' : 'text-muted-foreground'}`}>
+                          Estoque: {invMatch.quantity} {invMatch.unit}
+                        </span>
+                      )}
                       {selected && lastDate && (
                         <span className="text-[10px] text-warning ml-6">
                           Última retirada: {format(new Date(lastDate + "T12:00:00"), "dd/MM/yyyy")}
