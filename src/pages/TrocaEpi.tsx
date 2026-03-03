@@ -252,8 +252,9 @@ export default function TrocaEpi() {
     setSelectedEpis(prev => prev.map(e => e.id === epiId ? { ...e, value } : e));
   };
 
-  const setEpiQty = (epiId: string, qty: number) => {
-    setSelectedEpis(prev => prev.map(e => e.id === epiId ? { ...e, qty: Math.max(1, qty) } : e));
+  const setEpiQty = (epiId: string, rawValue: string) => {
+    const parsed = rawValue === "" ? undefined : Number(rawValue);
+    setSelectedEpis(prev => prev.map(e => e.id === epiId ? { ...e, qty: parsed } : e));
   };
 
   const resetForm = () => {
@@ -675,8 +676,8 @@ export default function TrocaEpi() {
                               type="number"
                               min={1}
                               className="h-7 w-14 text-xs text-center"
-                              value={selected.qty ?? 1}
-                              onChange={e => setEpiQty(item.id, Number(e.target.value))}
+                              value={selected.qty ?? ""}
+                              onChange={e => setEpiQty(item.id, e.target.value)}
                             />
                           </div>
                         )}
