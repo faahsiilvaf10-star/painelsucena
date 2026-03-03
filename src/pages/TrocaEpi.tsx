@@ -268,9 +268,12 @@ export default function TrocaEpi() {
     for (const epi of (exchange.epis || [])) {
       const epiId = typeof epi === "string" ? epi : (epi as any).id;
       const epiQty = typeof epi === "object" && (epi as any).qty ? Number((epi as any).qty) : 1;
+      const epiValue = typeof epi === "object" ? (epi as any).value : undefined;
       const epiItem = EPI_ITEMS.find(e => e.id === epiId);
       if (!epiItem) continue;
-      const match = findInventoryMatch(currentInventory, epiItem.label);
+      // For "Outros", use the stored value (actual item name) instead of the label
+      const searchLabel = epiId === "outros" && epiValue ? epiValue : epiItem.label;
+      const match = findInventoryMatch(currentInventory, searchLabel);
       if (match) {
         const newQty = match.quantity + epiQty;
         await supabase.from("inventory_items").update({ quantity: newQty }).eq("id", match.id);
@@ -287,7 +290,7 @@ export default function TrocaEpi() {
           destination_name: exchange.funcionario_nome,
         });
         match.quantity = newQty;
-        restoredItems.push(`${epiItem.label} (${epiQty})`);
+        restoredItems.push(`${searchLabel} (${epiQty})`);
       }
     }
 
