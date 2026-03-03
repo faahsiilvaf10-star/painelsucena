@@ -17,6 +17,8 @@ export interface EpiExchange {
   uniforme_blusa_quantidade: number;
   uniforme_calca_tamanho: string | null;
   uniforme_calca_quantidade: number;
+  assinatura_funcionario: string | null;
+  assinatura_autorizador: string | null;
   created_by: string;
   created_at: string;
 }

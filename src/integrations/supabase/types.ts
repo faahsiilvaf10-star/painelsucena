@@ -1138,6 +1138,8 @@ export type Database = {
       }
       epi_exchanges: {
         Row: {
+          assinatura_autorizador: string | null
+          assinatura_funcionario: string | null
           autorizado_por: string
           created_at: string
           created_by: string
@@ -1156,6 +1158,8 @@ export type Database = {
           updated_at: string
         }
         Insert: {
+          assinatura_autorizador?: string | null
+          assinatura_funcionario?: string | null
           autorizado_por: string
           created_at?: string
           created_by: string
@@ -1174,6 +1178,8 @@ export type Database = {
           updated_at?: string
         }
         Update: {
+          assinatura_autorizador?: string | null
+          assinatura_funcionario?: string | null
           autorizado_por?: string
           created_at?: string
           created_by?: string
