@@ -222,6 +222,24 @@ export default function TrocaEpi() {
   const [calcaTamanho, setCalcaTamanho] = useState("");
   const [calcaQtd, setCalcaQtd] = useState(0);
 
+  // Map EPI id -> last date the selected employee picked it up
+  const lastPickupMap = useMemo(() => {
+    const map: Record<string, string> = {};
+    if (!funcionarioNome) return map;
+    const employeeExchanges = exchanges
+      .filter(ex => ex.funcionario_nome === funcionarioNome && ex.id !== editingExchange?.id)
+      .sort((a, b) => new Date(b.data).getTime() - new Date(a.data).getTime());
+    for (const ex of employeeExchanges) {
+      for (const epi of (ex.epis || [])) {
+        const epiId = typeof epi === "string" ? epi : (epi as any).id;
+        if (!map[epiId]) {
+          map[epiId] = ex.data;
+        }
+      }
+    }
+    return map;
+  }, [funcionarioNome, exchanges, editingExchange]);
+
   const toggleEpi = (epiId: string) => {
     setSelectedEpis(prev => {
       const exists = prev.find(e => e.id === epiId);
@@ -632,20 +650,28 @@ export default function TrocaEpi() {
               <div className="grid grid-cols-1 md:grid-cols-3 gap-2">
                 {EPI_ITEMS.map(item => {
                   const selected = selectedEpis.find(e => e.id === item.id);
+                  const lastDate = lastPickupMap[item.id];
                   return (
-                    <div key={item.id} className="flex items-center gap-2">
-                      <Checkbox
-                        checked={!!selected}
-                        onCheckedChange={() => toggleEpi(item.id)}
-                      />
-                      <span className="text-sm">{item.label}</span>
-                      {item.hasInput && selected && (
-                        <Input
-                          className="h-7 w-20 text-xs"
-                          placeholder={item.inputLabel}
-                          value={selected.value || ""}
-                          onChange={e => setEpiValue(item.id, e.target.value)}
+                    <div key={item.id} className="flex flex-col gap-0.5">
+                      <div className="flex items-center gap-2">
+                        <Checkbox
+                          checked={!!selected}
+                          onCheckedChange={() => toggleEpi(item.id)}
                         />
+                        <span className="text-sm">{item.label}</span>
+                        {item.hasInput && selected && (
+                          <Input
+                            className="h-7 w-20 text-xs"
+                            placeholder={item.inputLabel}
+                            value={selected.value || ""}
+                            onChange={e => setEpiValue(item.id, e.target.value)}
+                          />
+                        )}
+                      </div>
+                      {selected && lastDate && (
+                        <span className="text-[10px] text-warning ml-6">
+                          Última retirada: {format(new Date(lastDate + "T12:00:00"), "dd/MM/yyyy")}
+                        </span>
                       )}
                     </div>
                   );
