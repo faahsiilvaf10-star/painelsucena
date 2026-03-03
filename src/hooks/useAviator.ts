@@ -164,7 +164,7 @@ export function useAviator() {
   const loadBalance = useCallback(async () => {
     if (!user) return;
     const { data } = await supabase
-      .from("aviator_balances")
+      .from("double_balances")
       .select("balance")
       .eq("user_id", user.id)
       .maybeSingle();
@@ -172,8 +172,8 @@ export function useAviator() {
     if (data) {
       setBalance(data.balance);
     } else {
-      await supabase.from("aviator_balances").insert({ user_id: user.id, balance: 3000 });
-      setBalance(3000);
+      await supabase.from("double_balances").insert({ user_id: user.id, balance: 5000 });
+      setBalance(5000);
     }
   }, [user]);
 
@@ -323,7 +323,7 @@ export function useAviator() {
     try {
       const newBalance = balanceRef.current - amount;
       await supabase
-        .from("aviator_balances")
+        .from("double_balances")
         .update({ balance: newBalance })
         .eq("user_id", user.id);
       setBalance(newBalance);
@@ -372,7 +372,7 @@ export function useAviator() {
     try {
       const bet = betRef.current;
       const newBalance = balanceRef.current + bet.bet_amount;
-      await supabase.from("aviator_balances").update({ balance: newBalance }).eq("user_id", user.id);
+      await supabase.from("double_balances").update({ balance: newBalance }).eq("user_id", user.id);
       setBalance(newBalance);
       await supabase.from("aviator_bets").delete().eq("id", bet.id);
 
@@ -403,7 +403,7 @@ export function useAviator() {
 
       await supabase.from("aviator_bets").update({ cashed_out_at: m, payout }).eq("id", betRef.current.id);
       const newBalance = balanceRef.current + payout;
-      await supabase.from("aviator_balances").update({ balance: newBalance }).eq("user_id", user.id);
+      await supabase.from("double_balances").update({ balance: newBalance }).eq("user_id", user.id);
       setBalance(newBalance);
 
       const updatedBet = { ...betRef.current, cashed_out_at: m, payout };
