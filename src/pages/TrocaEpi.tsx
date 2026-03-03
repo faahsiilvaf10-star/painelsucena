@@ -1,4 +1,5 @@
-import { useState, useMemo } from "react";
+import { useState, useMemo, useCallback } from "react";
+import { useQueryClient } from "@tanstack/react-query";
 import { format } from "date-fns";
 import { ptBR } from "date-fns/locale";
 import { useAuth } from "@/hooks/useAuth";
@@ -46,6 +47,37 @@ const EPI_ITEMS = [
 ];
 
 const TAMANHOS = ["P", "M", "G", "GG", "XG"];
+
+function normalizeText(text: string): string {
+  return text
+    .toLowerCase()
+    .normalize("NFD")
+    .replace(/[\u0300-\u036f]/g, "")
+    .replace(/\s+/g, " ")
+    .trim();
+}
+
+function findInventoryMatch(inventoryItems: any[], searchLabel: string): any | null {
+  const normalized = normalizeText(searchLabel);
+  // Try exact normalized match first
+  let match = inventoryItems.find(inv => normalizeText(inv.name) === normalized);
+  if (match) return match;
+  // Try includes in both directions
+  match = inventoryItems.find(inv => {
+    const invNorm = normalizeText(inv.name);
+    return invNorm.includes(normalized) || normalized.includes(invNorm);
+  });
+  if (match) return match;
+  // Try matching significant words (3+ chars)
+  const words = normalized.split(" ").filter(w => w.length >= 3);
+  if (words.length > 0) {
+    match = inventoryItems.find(inv => {
+      const invNorm = normalizeText(inv.name);
+      return words.every(w => invNorm.includes(w));
+    });
+  }
+  return match || null;
+}
 
 function generatePdf(exchange: EpiExchange, logoBase64: string) {
   const sigFunc = exchange.assinatura_funcionario || '';
@@ -168,6 +200,7 @@ export default function TrocaEpi() {
   const { data: profile } = useProfile();
   const { exchanges, isLoading, createExchange, deleteExchange } = useEpiExchanges();
   const { data: inventoryItems = [] } = useInventoryItems();
+  const queryClient = useQueryClient();
   const efetivo = colaboradoresAtivos;
   const [showForm, setShowForm] = useState(false);
   const [viewExchange, setViewExchange] = useState<EpiExchange | null>(null);
@@ -239,12 +272,20 @@ export default function TrocaEpi() {
     });
 
     // Deduct inventory for each selected EPI
+    // Re-fetch latest inventory to avoid stale quantities
+    const { data: freshInventory } = await supabase
+      .from("inventory_items")
+      .select("*")
+      .order("name");
+    const currentInventory = freshInventory || [];
+
     const deductedItems: string[] = [];
+    const notFoundItems: string[] = [];
+
     for (const epi of selectedEpis) {
       const epiItem = EPI_ITEMS.find(e => e.id === epi.id);
       if (!epiItem) continue;
-      const label = epiItem.label.toLowerCase();
-      const match = inventoryItems.find(inv => inv.name.toLowerCase().includes(label) || label.includes(inv.name.toLowerCase()));
+      const match = findInventoryMatch(currentInventory, epiItem.label);
       if (match && match.quantity > 0) {
         const newQty = match.quantity - 1;
         await supabase.from("inventory_items").update({ quantity: newQty }).eq("id", match.id);
@@ -260,13 +301,17 @@ export default function TrocaEpi() {
           destination_type: "funcionario",
           destination_name: funcionarioNome,
         });
+        // Update local reference to avoid double-deducting same item
+        match.quantity = newQty;
         deductedItems.push(epiItem.label);
+      } else if (!match) {
+        notFoundItems.push(epiItem.label);
       }
     }
 
     // Deduct uniforms
     if (blusaQtd > 0) {
-      const blusaMatch = inventoryItems.find(inv => inv.name.toLowerCase().includes("blusa operacional") || inv.name.toLowerCase().includes("blusa"));
+      const blusaMatch = findInventoryMatch(currentInventory, "Blusa Operacional") || findInventoryMatch(currentInventory, "Blusa");
       if (blusaMatch && blusaMatch.quantity >= blusaQtd) {
         const newQty = blusaMatch.quantity - blusaQtd;
         await supabase.from("inventory_items").update({ quantity: newQty }).eq("id", blusaMatch.id);
@@ -282,11 +327,12 @@ export default function TrocaEpi() {
           destination_type: "funcionario",
           destination_name: funcionarioNome,
         });
+        blusaMatch.quantity = newQty;
         deductedItems.push(`Blusa Operacional (${blusaQtd})`);
       }
     }
     if (calcaQtd > 0) {
-      const calcaMatch = inventoryItems.find(inv => inv.name.toLowerCase().includes("calça operacional") || inv.name.toLowerCase().includes("calca"));
+      const calcaMatch = findInventoryMatch(currentInventory, "Calça Operacional") || findInventoryMatch(currentInventory, "Calça");
       if (calcaMatch && calcaMatch.quantity >= calcaQtd) {
         const newQty = calcaMatch.quantity - calcaQtd;
         await supabase.from("inventory_items").update({ quantity: newQty }).eq("id", calcaMatch.id);
@@ -302,12 +348,20 @@ export default function TrocaEpi() {
           destination_type: "funcionario",
           destination_name: funcionarioNome,
         });
+        calcaMatch.quantity = newQty;
         deductedItems.push(`Calça Operacional (${calcaQtd})`);
       }
     }
 
+    // Invalidate inventory cache
+    queryClient.invalidateQueries({ queryKey: ["inventory-items"] });
+    queryClient.invalidateQueries({ queryKey: ["inventory-movements"] });
+
     if (deductedItems.length > 0) {
-      toast.info(`Estoque atualizado: ${deductedItems.join(", ")}`);
+      toast.success(`Estoque atualizado: ${deductedItems.join(", ")}`);
+    }
+    if (notFoundItems.length > 0) {
+      toast.warning(`Itens não encontrados no estoque: ${notFoundItems.join(", ")}`);
     }
 
     setShowSignature(false);
