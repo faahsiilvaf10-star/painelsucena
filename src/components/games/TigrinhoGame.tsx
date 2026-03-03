@@ -137,25 +137,31 @@ function SpinningReel({ spinning, finalSymbols, colIndex, onStop }: {
         <div key={i}
           className="w-full aspect-square flex items-center justify-center rounded-md p-1.5 bg-gradient-to-b from-[#1a0a02]/80 to-[#2a1005]/80 relative overflow-hidden"
         >
-          <div
-            className="w-full h-full flex items-center justify-center transition-none"
-            style={{
-              transform: isActive ? `translateY(${offset % 100}%)` : "translateY(0)",
-            }}
+          <motion.div
+            className="w-full h-full flex items-center justify-center"
+            animate={isActive
+              ? { y: [0, -30, 30, -20, 20, 0], rotateX: [0, 180, 360] }
+              : { y: 0, rotateX: 0, scale: [1, 1.05, 1] }
+            }
+            transition={isActive
+              ? { y: { duration: 0.15, repeat: Infinity }, rotateX: { duration: 0.3, repeat: Infinity } }
+              : { scale: { duration: 0.4, delay: 0.1 * colIndex } }
+            }
+            style={{ perspective: 400 }}
           >
             <SymbolImage
               symbolKey={s}
               className={isActive
-                ? "blur-[1.5px] scale-95 opacity-80"
-                : "drop-shadow-[0_2px_6px_rgba(255,200,0,0.3)] transition-all duration-300"
+                ? "blur-[1px] scale-90 opacity-70"
+                : "drop-shadow-[0_2px_6px_rgba(255,200,0,0.3)]"
               }
             />
-          </div>
+          </motion.div>
           {/* Motion blur overlay during spin */}
           {isActive && (
             <div className="absolute inset-0 pointer-events-none"
               style={{
-                background: "linear-gradient(180deg, rgba(26,10,2,0.4) 0%, transparent 30%, transparent 70%, rgba(26,10,2,0.4) 100%)"
+                background: "linear-gradient(180deg, rgba(26,10,2,0.5) 0%, transparent 25%, transparent 75%, rgba(26,10,2,0.5) 100%)"
               }}
             />
           )}
@@ -243,6 +249,151 @@ function BalanceFlash() {
   );
 }
 
+/** Full-screen win celebration with counting */
+function WinCelebration({ payout, multiplier, onDismiss }: { payout: number; multiplier: number; onDismiss: () => void }) {
+  const [count, setCount] = useState(0);
+  const countRef = useRef(0);
+
+  useEffect(() => {
+    const duration = 2000;
+    const steps = 60;
+    const increment = payout / steps;
+    const interval = duration / steps;
+    
+    const timer = setInterval(() => {
+      countRef.current = Math.min(countRef.current + increment, payout);
+      setCount(Math.round(countRef.current));
+      if (countRef.current >= payout) clearInterval(timer);
+    }, interval);
+
+    return () => clearInterval(timer);
+  }, [payout]);
+
+  return (
+    <motion.div
+      className="fixed inset-0 z-50 flex flex-col items-center justify-center cursor-pointer"
+      onClick={onDismiss}
+      initial={{ opacity: 0 }}
+      animate={{ opacity: 1 }}
+      exit={{ opacity: 0 }}
+      transition={{ duration: 0.3 }}
+      style={{ background: "radial-gradient(ellipse at center, rgba(139,26,26,0.95) 0%, rgba(0,0,0,0.97) 100%)" }}
+    >
+      {/* Sparkles */}
+      {Array.from({ length: 20 }).map((_, i) => (
+        <motion.div
+          key={`spark-${i}`}
+          className="absolute text-2xl pointer-events-none"
+          initial={{
+            opacity: 0,
+            x: "50%",
+            y: "50%",
+            scale: 0,
+          }}
+          animate={{
+            opacity: [0, 1, 0],
+            x: `${15 + Math.random() * 70}%`,
+            y: `${15 + Math.random() * 70}%`,
+            scale: [0, 1.5, 0],
+            rotate: [0, 360],
+          }}
+          transition={{
+            duration: 2 + Math.random() * 1.5,
+            delay: Math.random() * 1.5,
+            repeat: Infinity,
+            repeatDelay: Math.random() * 2,
+          }}
+        >
+          {["✨", "🪙", "💰", "⭐", "🎉"][Math.floor(Math.random() * 5)]}
+        </motion.div>
+      ))}
+
+      {/* Tiger */}
+      <motion.img
+        src={tigerImg}
+        alt="tiger"
+        className="w-24 h-24 sm:w-32 sm:h-32 object-contain mb-4"
+        animate={{ scale: [1, 1.15, 1], rotate: [0, -8, 8, -5, 5, 0] }}
+        transition={{ duration: 1.2, repeat: Infinity }}
+      />
+
+      {/* PARABÉNS */}
+      <motion.div
+        initial={{ scale: 0, rotate: -10 }}
+        animate={{ scale: 1, rotate: 0 }}
+        transition={{ type: "spring", stiffness: 200, damping: 12, delay: 0.2 }}
+      >
+        <h2 className="text-4xl sm:text-5xl font-black tracking-wider text-center mb-2"
+          style={{
+            background: "linear-gradient(180deg, #FFD700, #FF8C00, #FFD700)",
+            WebkitBackgroundClip: "text",
+            WebkitTextFillColor: "transparent",
+            filter: "drop-shadow(0 4px 8px rgba(0,0,0,0.6))",
+          }}
+        >
+          🎉 PARABÉNS! 🎉
+        </h2>
+      </motion.div>
+
+      {/* Multiplier */}
+      <motion.div
+        initial={{ opacity: 0, y: 20 }}
+        animate={{ opacity: 1, y: 0 }}
+        transition={{ delay: 0.5 }}
+        className="mb-4"
+      >
+        <span className="text-xl sm:text-2xl font-bold" style={{ color: "#DAA520" }}>
+          Multiplicador x{multiplier}
+        </span>
+      </motion.div>
+
+      {/* Counting value */}
+      <motion.div
+        initial={{ scale: 0.5, opacity: 0 }}
+        animate={{ scale: 1, opacity: 1 }}
+        transition={{ delay: 0.3, type: "spring", stiffness: 150 }}
+        className="relative"
+      >
+        <div className="px-8 py-4 rounded-2xl"
+          style={{
+            background: "linear-gradient(180deg, rgba(255,215,0,0.2), rgba(255,140,0,0.15))",
+            border: "2px solid rgba(255,215,0,0.4)",
+            boxShadow: "0 0 40px rgba(255,215,0,0.3), inset 0 0 20px rgba(255,165,0,0.1)"
+          }}
+        >
+          <div className="text-center">
+            <span className="text-xs uppercase tracking-widest font-bold block mb-1" style={{ color: "#DAA520" }}>
+              Você ganhou
+            </span>
+            <motion.span
+              className="text-5xl sm:text-6xl font-black block"
+              style={{
+                color: "#FFD700",
+                textShadow: "0 0 30px rgba(255,215,0,0.8), 0 4px 8px rgba(0,0,0,0.5)"
+              }}
+              animate={count >= payout ? { scale: [1, 1.1, 1] } : {}}
+              transition={{ duration: 0.4 }}
+            >
+              +{count}
+            </motion.span>
+            <span className="text-lg block mt-1" style={{ color: "#DAA520" }}>moedas 🪙</span>
+          </div>
+        </div>
+      </motion.div>
+
+      {/* Tap to dismiss */}
+      <motion.p
+        className="mt-8 text-xs tracking-wider"
+        style={{ color: "rgba(218,165,32,0.5)" }}
+        animate={{ opacity: [0.3, 0.7, 0.3] }}
+        transition={{ duration: 2, repeat: Infinity }}
+      >
+        Toque para continuar
+      </motion.p>
+    </motion.div>
+  );
+}
+
 export function TigrinhoGame({ onBack }: TigrinhoGameProps) {
   const { balance, betAmount, setBetAmount, spinning, lastResult, play, history } = useTigrinho();
   const [showHistory, setShowHistory] = useState(false);
@@ -250,6 +401,7 @@ export function TigrinhoGame({ onBack }: TigrinhoGameProps) {
   const [muted, setMuted] = useState(false);
   const [stoppedCols, setStoppedCols] = useState([true, true, true]);
   const [showWinAnim, setShowWinAnim] = useState(false);
+  const [showCelebration, setShowCelebration] = useState(false);
   const [displayGrid, setDisplayGrid] = useState<string[][]>(() =>
     Array.from({ length: 3 }, () => Array.from({ length: 3 }, () => SYMBOL_KEYS[Math.floor(Math.random() * SYMBOL_KEYS.length)]))
   );
@@ -260,6 +412,7 @@ export function TigrinhoGame({ onBack }: TigrinhoGameProps) {
     if (spinning) {
       setStoppedCols([false, false, false]);
       setShowWinAnim(false);
+      setShowCelebration(false);
     }
   }, [spinning]);
   useEffect(() => {
@@ -268,8 +421,10 @@ export function TigrinhoGame({ onBack }: TigrinhoGameProps) {
       setStoppedCols([true, true, true]);
       if (lastResult.multiplier > 0) {
         setShowWinAnim(true);
-        const t = setTimeout(() => setShowWinAnim(false), 3500);
-        return () => clearTimeout(t);
+        // Show celebration after a short delay for the reel animation to finish
+        const celebTimer = setTimeout(() => setShowCelebration(true), 800);
+        const hideTimer = setTimeout(() => setShowWinAnim(false), 3500);
+        return () => { clearTimeout(celebTimer); clearTimeout(hideTimer); };
       }
     }
   }, [lastResult]);
@@ -518,6 +673,17 @@ export function TigrinhoGame({ onBack }: TigrinhoGameProps) {
               ))}
             </div>
           </motion.div>
+        )}
+      </AnimatePresence>
+
+      {/* Win Celebration Overlay */}
+      <AnimatePresence>
+        {showCelebration && lastResult && lastResult.multiplier > 0 && (
+          <WinCelebration
+            payout={lastResult.payout}
+            multiplier={lastResult.multiplier}
+            onDismiss={() => setShowCelebration(false)}
+          />
         )}
       </AnimatePresence>
     </div>
