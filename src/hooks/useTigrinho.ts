@@ -22,12 +22,12 @@ interface Outcome {
 
 // Base: 90% loss, 10% win distributed among multipliers
 const BASE_OUTCOMES: Outcome[] = [
-  { multiplier: 0, weight: 90 },
-  { multiplier: 2, weight: 5.5 },
-  { multiplier: 5, weight: 2.5 },
-  { multiplier: 10, weight: 1.3 },
-  { multiplier: 50, weight: 0.6 },
-  { multiplier: 100, weight: 0.1 },
+  { multiplier: 0, weight: 76 },
+  { multiplier: 2, weight: 13.2 },
+  { multiplier: 5, weight: 6 },
+  { multiplier: 10, weight: 3.1 },
+  { multiplier: 50, weight: 1.4 },
+  { multiplier: 100, weight: 0.3 },
 ];
 
 // Oscillating outcomes: every 5 min cycle between tighter and looser
@@ -36,8 +36,8 @@ function getOutcomes(): Outcome[] {
   const phase = Math.floor(Date.now() / cycleMs) % 4;
   // phase 0: base (90/10), phase 1: tight (94/6), phase 2: loose (85/15), phase 3: base
   const oscillation = [0, 4, -5, 0][phase];
-  const lossWeight = 90 + oscillation;
-  const winScale = (100 - lossWeight) / 10;
+  const lossWeight = 76 + oscillation;
+  const winScale = (100 - lossWeight) / 24;
   return [
     { multiplier: 0, weight: lossWeight },
     { multiplier: 2, weight: 5.5 * winScale },
