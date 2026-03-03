@@ -12,7 +12,8 @@ import { useSiteSettings } from "@/hooks/useSiteSettings";
 import { supabase } from "@/integrations/supabase/client";
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import { toast } from "sonner";
-import { Shield, ShieldCheck, Trash2, UserPlus, Users, Image, Upload, UserCog, Megaphone, Pencil, LayoutList, Truck, RotateCcw, Key, Ribbon } from "lucide-react";
+import { Shield, ShieldCheck, Trash2, UserPlus, Users, Image, Upload, UserCog, Megaphone, Pencil, LayoutList, Truck, RotateCcw, Key, Ribbon, Coins } from "lucide-react";
+import { DoubleBalanceManager } from "@/components/admin/DoubleBalanceManager";
 import { ClearEquipmentDialog } from "@/components/driver/ClearEquipmentDialog";
 import { BulkEmployeeEditor } from "@/components/admin/BulkEmployeeEditor";
 import { AnnouncementManager } from "@/components/admin/AnnouncementManager";
@@ -407,6 +408,9 @@ const Admin = () => {
                 </div>
               </CardContent>
             </Card>
+
+            {/* Double Balance Manager */}
+            <DoubleBalanceManager />
 
           </TabsContent>
 
