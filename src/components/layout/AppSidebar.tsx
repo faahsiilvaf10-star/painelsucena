@@ -92,6 +92,7 @@ const allNavItems: NavItem[] = [
   { id: "desvios", icon: TriangleAlert, label: "Desvios", path: "/desvios" },
   { id: "planejamento", icon: Target, label: "Planejamento", path: "/planejamento" },
   { id: "notas-fiscais", icon: Receipt, label: "Notas Fiscais", path: "/notas-fiscais" },
+  { id: "troca-epi", icon: ShieldCheck, label: "Troca de EPI", path: "/troca-epi" },
   { id: "emergencia", icon: AlertTriangle, label: "Emergência", path: "/emergencia", isEmergency: true },
 ];
 

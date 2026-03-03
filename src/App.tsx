@@ -57,6 +57,7 @@ import Games from "./pages/Games";
 import Desvios from "./pages/Desvios";
 import Planejamento from "./pages/Planejamento";
 import NotasFiscais from "./pages/NotasFiscais";
+import TrocaEpi from "./pages/TrocaEpi";
 import NotFound from "./pages/NotFound";
 
 // QueryClient with robust error handling
@@ -149,6 +150,7 @@ const App = () => (
                     <Route path="/desvios" element={<ProtectedRoute><Desvios /></ProtectedRoute>} />
                     <Route path="/planejamento" element={<ProtectedRoute><Planejamento /></ProtectedRoute>} />
                     <Route path="/notas-fiscais" element={<ProtectedRoute><NotasFiscais /></ProtectedRoute>} />
+                    <Route path="/troca-epi" element={<ProtectedRoute><TrocaEpi /></ProtectedRoute>} />
                     {/* ADD ALL CUSTOM ROUTES ABOVE THE CATCH-ALL "*" ROUTE */}
                     <Route path="*" element={<NotFound />} />
                   </Routes>
