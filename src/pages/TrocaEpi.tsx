@@ -556,7 +556,17 @@ export default function TrocaEpi() {
         const fileName = `troca-epi-${exchange.funcionario_nome}.png`;
         const file = new File([blob], fileName, { type: "image/png" });
         const phone = "559193645741";
-        const description = `Troca de EPI - ${exchange.funcionario_nome}`;
+        
+        // Build description with employee name + items
+        const episList = (exchange.epis || []).map((e: any) => {
+          const epiId = typeof e === "string" ? e : e.id;
+          const epiQty = typeof e === "object" && e.qty ? Number(e.qty) : 1;
+          const epiValue = typeof e === "object" ? e.value : undefined;
+          const epiItem = EPI_ITEMS.find(i => i.id === epiId);
+          const name = epiId === "outros" && epiValue ? epiValue : (epiItem?.label || epiId);
+          return `${name} (${epiQty})`;
+        }).join(", ");
+        const description = `Troca de EPI - ${exchange.funcionario_nome}\nItens: ${episList}`;
 
         // Always download the PNG first
         const url = URL.createObjectURL(blob);
