@@ -568,8 +568,10 @@ export default function TrocaEpi() {
         }).join(", ");
         const description = `Troca de EPI - ${exchange.funcionario_nome}\nItens: ${episList}`;
 
-        // Try Web Share API (sends the actual image file, works on mobile)
-        if (navigator.share && navigator.canShare?.({ files: [file] })) {
+        const isMobile = /Android|iPhone|iPad|iPod/i.test(navigator.userAgent);
+
+        // Mobile: share image file + description via native share sheet
+        if (isMobile && navigator.share && navigator.canShare?.({ files: [file] })) {
           try {
             await navigator.share({
               files: [file],
@@ -579,13 +581,25 @@ export default function TrocaEpi() {
             toast.success("Imagem enviada!");
             return;
           } catch (e: any) {
-            if (e?.name === "AbortError") return; // user cancelled
+            if (e?.name === "AbortError") return;
           }
         }
 
-        // Desktop: only send text info (no PNG download)
-        window.open(`https://web.whatsapp.com/send?phone=${phone}&text=${encodeURIComponent(description)}`, "_blank");
-        toast.success("WhatsApp Web aberto com as informações.");
+        if (isMobile) {
+          // Mobile fallback: download + open WhatsApp to the contact
+          const blobUrl = URL.createObjectURL(blob);
+          const a = document.createElement("a");
+          a.href = blobUrl;
+          a.download = fileName;
+          a.click();
+          URL.revokeObjectURL(blobUrl);
+          window.open(`https://wa.me/${phone}?text=${encodeURIComponent(description)}`, "_blank");
+          toast.success("PNG salvo! Anexe na conversa do WhatsApp.");
+        } else {
+          // Desktop: only text info
+          window.open(`https://web.whatsapp.com/send?phone=${phone}&text=${encodeURIComponent(description)}`, "_blank");
+          toast.success("WhatsApp Web aberto com as informações.");
+        }
       }, "image/png");
     } catch (err) {
       console.error(err);
