@@ -78,8 +78,9 @@ function generatePdf(exchange: EpiExchange, logoBase64: string) {
       .epi-grid { display: grid; grid-template-columns: 1fr 1fr 1fr; gap: 5px 15px; }
       .uniforme-row { display: flex; align-items: center; gap: 8px; margin-bottom: 6px; font-size: 11px; }
       .signature-row { display: flex; justify-content: space-between; margin-top: 30px; }
-      .signature-box { text-align: center; width: 45%; }
-      .signature-line { border-top: 1px solid #333; margin-top: 40px; padding-top: 5px; font-size: 11px; }
+      .signature-box { text-align: center; width: 45%; display: flex; flex-direction: column; justify-content: flex-end; }
+      .signature-img { display: block; margin: 0 auto; max-height: 55px; margin-bottom: -2px; }
+      .signature-line { border-top: 1px solid #333; padding-top: 4px; font-size: 11px; }
       .footer-notes { margin-top: 15px; font-size: 10px; color: #555; border-top: 1px solid #ccc; padding-top: 8px; }
       .rev { text-align: right; font-size: 9px; color: #888; }
     </style></head><body>
@@ -133,11 +134,11 @@ function generatePdf(exchange: EpiExchange, logoBase64: string) {
 
       <div class="signature-row">
         <div class="signature-box">
-          ${sigAuth ? `<img src="${sigAuth}" style="max-height:50px;margin:0 auto;" />` : ''}
+          ${sigAuth ? `<img src="${sigAuth}" class="signature-img" />` : '<div style="min-height:55px;"></div>'}
           <div class="signature-line">ASSINATURA DO AUTORIZADOR</div>
         </div>
         <div class="signature-box">
-          ${sigFunc ? `<img src="${sigFunc}" style="max-height:50px;margin:0 auto;" />` : ''}
+          ${sigFunc ? `<img src="${sigFunc}" class="signature-img" />` : '<div style="min-height:55px;"></div>'}
           <div class="signature-line">ASSINATURA DO FUNCIONÁRIO</div>
         </div>
       </div>
