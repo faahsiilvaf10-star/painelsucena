@@ -571,12 +571,8 @@ export default function TrocaEpi() {
         const isMobile = /Android|iPhone|iPad|iPod/i.test(navigator.userAgent);
 
         if (isMobile) {
-          // Mobile: open WhatsApp conversation with the contact first, then share the image
-          window.open(`https://wa.me/${phone}?text=${encodeURIComponent(description)}`, "_blank");
-          
-          // After a short delay, trigger the native share with the image file
+          // Mobile: try native share with image + text first
           if (navigator.share && navigator.canShare?.({ files: [file] })) {
-            await new Promise(r => setTimeout(r, 1500));
             try {
               await navigator.share({
                 files: [file],
@@ -586,23 +582,26 @@ export default function TrocaEpi() {
               toast.success("Imagem enviada!");
             } catch (e: any) {
               if (e?.name !== "AbortError") {
-                toast.info("Selecione o contato +55 91 9364-5741 para enviar a imagem.");
+                // Fallback: open conversation directly
+                window.open(`https://wa.me/${phone}?text=${encodeURIComponent(description)}`, "_blank");
+                toast.info("Conversa aberta no WhatsApp.");
               }
             }
           } else {
-            // Download PNG if share API not available
+            // Fallback: download PNG + open conversation
             const blobUrl = URL.createObjectURL(blob);
             const a = document.createElement("a");
             a.href = blobUrl;
             a.download = fileName;
             a.click();
             URL.revokeObjectURL(blobUrl);
-            toast.success("PNG salvo! Anexe na conversa aberta.");
+            window.open(`https://wa.me/${phone}?text=${encodeURIComponent(description)}`, "_blank");
+            toast.success("PNG salvo! Conversa aberta no WhatsApp.");
           }
         } else {
-          // Desktop: only text info
+          // Desktop: open WhatsApp Web directly in the conversation with the contact
           window.open(`https://web.whatsapp.com/send?phone=${phone}&text=${encodeURIComponent(description)}`, "_blank");
-          toast.success("WhatsApp Web aberto com as informações.");
+          toast.success("WhatsApp Web aberto na conversa.");
         }
       }, "image/png");
     } catch (err) {
