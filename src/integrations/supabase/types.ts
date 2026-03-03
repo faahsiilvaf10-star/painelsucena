@@ -1136,6 +1136,63 @@ export type Database = {
         }
         Relationships: []
       }
+      epi_exchanges: {
+        Row: {
+          autorizado_por: string
+          created_at: string
+          created_by: string
+          data: string
+          epis: Json
+          funcionario_funcao: string | null
+          funcionario_matricula: string | null
+          funcionario_nome: string
+          id: string
+          matricula_autorizador: string | null
+          motivo_troca: string
+          uniforme_blusa_quantidade: number | null
+          uniforme_blusa_tamanho: string | null
+          uniforme_calca_quantidade: number | null
+          uniforme_calca_tamanho: string | null
+          updated_at: string
+        }
+        Insert: {
+          autorizado_por: string
+          created_at?: string
+          created_by: string
+          data?: string
+          epis?: Json
+          funcionario_funcao?: string | null
+          funcionario_matricula?: string | null
+          funcionario_nome: string
+          id?: string
+          matricula_autorizador?: string | null
+          motivo_troca: string
+          uniforme_blusa_quantidade?: number | null
+          uniforme_blusa_tamanho?: string | null
+          uniforme_calca_quantidade?: number | null
+          uniforme_calca_tamanho?: string | null
+          updated_at?: string
+        }
+        Update: {
+          autorizado_por?: string
+          created_at?: string
+          created_by?: string
+          data?: string
+          epis?: Json
+          funcionario_funcao?: string | null
+          funcionario_matricula?: string | null
+          funcionario_nome?: string
+          id?: string
+          matricula_autorizador?: string | null
+          motivo_troca?: string
+          uniforme_blusa_quantidade?: number | null
+          uniforme_blusa_tamanho?: string | null
+          uniforme_calca_quantidade?: number | null
+          uniforme_calca_tamanho?: string | null
+          updated_at?: string
+        }
+        Relationships: []
+      }
       equipment: {
         Row: {
           created_at: string
