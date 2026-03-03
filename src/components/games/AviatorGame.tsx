@@ -83,6 +83,7 @@ export function AviatorGame({ onBack }: AviatorGameProps) {
   const [autoCashout2, setAutoCashout2] = useState("");
   const [autoCashoutEnabled, setAutoCashoutEnabled] = useState(false);
   const [autoBetEnabled, setAutoBetEnabled] = useState(false);
+  const [autoBet2Enabled, setAutoBet2Enabled] = useState(false);
   const [activeTab, setActiveTab] = useState("game");
   const autoCashoutRef = useRef(autoCashout);
   autoCashoutRef.current = autoCashout;
@@ -131,6 +132,17 @@ export function AviatorGame({ onBack }: AviatorGameProps) {
       }
     }
   }, [phase, autoBetEnabled, currentBet, betAmount, placeBet]);
+
+  // Auto bet - slot 2
+  useEffect(() => {
+    if (phase === "waiting" && autoBet2Enabled && !currentBet2) {
+      const amount = parseFloat(betAmount2);
+      if (!isNaN(amount) && amount > 0) {
+        const t = setTimeout(() => placeBet2(amount), 700);
+        return () => clearTimeout(t);
+      }
+    }
+  }, [phase, autoBet2Enabled, currentBet2, betAmount2, placeBet2]);
 
   const handleBet = () => {
     const amount = parseFloat(betAmount);
@@ -383,12 +395,18 @@ export function AviatorGame({ onBack }: AviatorGameProps) {
                   </Button>
                 )}
 
-                <div className="flex items-center gap-1">
-                  <Switch checked={!!autoCashout2} onCheckedChange={v => setAutoCashout2(v ? "2.00" : "")} id="auto-cashout-2" />
-                  <Label htmlFor="auto-cashout-2" className="text-[10px]">Auto Retirar</Label>
-                  {autoCashout2 && (
-                    <Input type="number" value={autoCashout2} onChange={e => setAutoCashout2(e.target.value)} placeholder="2.00" className="h-6 w-16 text-[10px] text-center" min="1.01" step="0.1" />
-                  )}
+                <div className="space-y-1">
+                  <div className="flex items-center gap-1">
+                    <Switch checked={autoBet2Enabled} onCheckedChange={setAutoBet2Enabled} id="auto-bet-2" />
+                    <Label htmlFor="auto-bet-2" className="text-[10px]">Auto Aposta</Label>
+                  </div>
+                  <div className="flex items-center gap-1">
+                    <Switch checked={!!autoCashout2} onCheckedChange={v => setAutoCashout2(v ? "2.00" : "")} id="auto-cashout-2" />
+                    <Label htmlFor="auto-cashout-2" className="text-[10px]">Auto Retirar</Label>
+                    {autoCashout2 && (
+                      <Input type="number" value={autoCashout2} onChange={e => setAutoCashout2(e.target.value)} placeholder="2.00" className="h-6 w-16 text-[10px] text-center" min="1.01" step="0.1" />
+                    )}
+                  </div>
                 </div>
               </CardContent>
             </Card>
