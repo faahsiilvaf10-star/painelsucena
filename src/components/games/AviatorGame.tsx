@@ -72,37 +72,36 @@ const STARS = Array.from({ length: 30 }, (_, i) => ({
 export function AviatorGame({ onBack }: AviatorGameProps) {
   const {
     phase, multiplier, lastCrash, crashHistory,
-    waitCountdown, balance, currentBet, roundBets,
+    waitCountdown, balance, currentBet, currentBet2, roundBets,
     isProcessing, sessionStats, sessionDuration, betHistory,
-    placeBet, cancelBet, cashOut,
+    placeBet, placeBet2, cancelBet, cancelBet2, cashOut, cashOut2,
   } = useAviator();
 
   const [betAmount, setBetAmount] = useState("10");
+  const [betAmount2, setBetAmount2] = useState("20");
   const [autoCashout, setAutoCashout] = useState("");
+  const [autoCashout2, setAutoCashout2] = useState("");
   const [autoCashoutEnabled, setAutoCashoutEnabled] = useState(false);
   const [autoBetEnabled, setAutoBetEnabled] = useState(false);
   const [activeTab, setActiveTab] = useState("game");
   const autoCashoutRef = useRef(autoCashout);
   autoCashoutRef.current = autoCashout;
+  const autoCashout2Ref = useRef(autoCashout2);
+  autoCashout2Ref.current = autoCashout2;
 
-  // Auto cashout - uses ref to avoid stale closure
+  // Auto cashout - slot 1
   const autoCashoutTriggeredRef = useRef(false);
+  const autoCashout2TriggeredRef = useRef(false);
   
   useEffect(() => {
     if (phase === "waiting") {
       autoCashoutTriggeredRef.current = false;
+      autoCashout2TriggeredRef.current = false;
     }
   }, [phase]);
 
   useEffect(() => {
-    if (
-      phase === "running" &&
-      autoCashoutEnabled &&
-      autoCashoutRef.current &&
-      currentBet &&
-      !currentBet.cashed_out_at &&
-      !autoCashoutTriggeredRef.current
-    ) {
+    if (phase === "running" && autoCashoutEnabled && autoCashoutRef.current && currentBet && !currentBet.cashed_out_at && !autoCashoutTriggeredRef.current) {
       const target = parseFloat(autoCashoutRef.current);
       if (!isNaN(target) && target > 1 && multiplier >= target) {
         autoCashoutTriggeredRef.current = true;
@@ -110,6 +109,17 @@ export function AviatorGame({ onBack }: AviatorGameProps) {
       }
     }
   }, [multiplier, phase, currentBet, autoCashoutEnabled, cashOut]);
+
+  // Auto cashout - slot 2
+  useEffect(() => {
+    if (phase === "running" && autoCashout2Ref.current && currentBet2 && !currentBet2.cashed_out_at && !autoCashout2TriggeredRef.current) {
+      const target = parseFloat(autoCashout2Ref.current);
+      if (!isNaN(target) && target > 1 && multiplier >= target) {
+        autoCashout2TriggeredRef.current = true;
+        cashOut2();
+      }
+    }
+  }, [multiplier, phase, currentBet2, cashOut2]);
 
   // Auto bet
   useEffect(() => {
@@ -126,6 +136,12 @@ export function AviatorGame({ onBack }: AviatorGameProps) {
     const amount = parseFloat(betAmount);
     if (isNaN(amount) || amount <= 0) return;
     placeBet(amount);
+  };
+
+  const handleBet2 = () => {
+    const amount = parseFloat(betAmount2);
+    if (isNaN(amount) || amount <= 0) return;
+    placeBet2(amount);
   };
 
   const multiplierColor = phase === "crashed" ? "text-red-500" : multiplier < 2 ? "text-white" : multiplier < 5 ? "text-emerald-400" : "text-yellow-400";
@@ -269,71 +285,114 @@ export function AviatorGame({ onBack }: AviatorGameProps) {
             </CardContent>
           </Card>
 
-          {/* Betting Controls */}
-          <Card>
-            <CardContent className="p-4 space-y-3">
-              <div className="flex gap-2">
-                <div className="flex-1">
-                  <Label className="text-xs text-muted-foreground mb-1 block">Valor da Aposta</Label>
-                  <Input type="number" value={betAmount} onChange={e => setBetAmount(e.target.value)} className="h-10 text-center font-bold" min="1" step="5" />
-                </div>
-                <div className="flex flex-col gap-1 pt-5">
-                  {[5, 10, 50, 100].map(v => (
-                    <Button key={v} size="sm" variant="outline" className="h-5 text-[10px] px-2" onClick={() => setBetAmount(String(v))}>{v}</Button>
+          {/* Betting Controls — Two Panels */}
+          <div className="grid grid-cols-2 gap-2">
+            {/* Slot 1 */}
+            <Card>
+              <CardContent className="p-3 space-y-2">
+                <Label className="text-[10px] text-muted-foreground font-bold">APOSTA 1</Label>
+                <Input type="number" value={betAmount} onChange={e => setBetAmount(e.target.value)} className="h-9 text-center font-bold text-sm" min="1" step="5" />
+                <div className="flex gap-1">
+                  {[5, 10, 50].map(v => (
+                    <Button key={v} size="sm" variant="outline" className="flex-1 h-6 text-[10px] px-1" onClick={() => setBetAmount(String(v))}>{v}</Button>
                   ))}
                 </div>
-              </div>
 
-              <div className="flex gap-1">
-                <Button size="sm" variant="ghost" className="flex-1 text-xs" onClick={() => setBetAmount(String(Math.floor(balance / 2)))}>½</Button>
-                <Button size="sm" variant="ghost" className="flex-1 text-xs" onClick={() => setBetAmount(String(Math.floor(balance)))}>MAX</Button>
-                <Button size="sm" variant="ghost" className="flex-1 text-xs" onClick={() => setBetAmount(String(Math.max(1, Math.floor(parseFloat(betAmount) * 2))))}>2x</Button>
-              </div>
+                {phase === "waiting" && !currentBet && (
+                  <Button onClick={handleBet} disabled={isProcessing} className="w-full h-11 text-sm font-bold bg-emerald-600 hover:bg-emerald-700 text-white">
+                    APOSTAR R$ {parseFloat(betAmount || "0").toFixed(2)}
+                  </Button>
+                )}
+                {phase === "waiting" && currentBet && (
+                  <Button onClick={cancelBet} disabled={isProcessing} className="w-full h-11 text-sm font-bold bg-red-600 hover:bg-red-700 text-white">
+                    ❌ CANCELAR
+                  </Button>
+                )}
+                {phase === "running" && currentBet && !currentBet.cashed_out_at && (
+                  <Button onClick={cashOut} disabled={isProcessing} className="w-full h-11 text-sm font-bold bg-emerald-600 hover:bg-emerald-700 text-white animate-pulse">
+                    💰 {multiplier.toFixed(2)}x R${(currentBet.bet_amount * multiplier).toFixed(0)}
+                  </Button>
+                )}
+                {phase === "running" && currentBet && currentBet.cashed_out_at && (
+                  <Button disabled className="w-full h-11 text-xs font-bold bg-emerald-700/80 text-white">
+                    ✅ {currentBet.cashed_out_at.toFixed(2)}x
+                  </Button>
+                )}
+                {phase === "running" && !currentBet && (
+                  <Button disabled className="w-full h-11 text-xs font-bold opacity-50">Aguarde...</Button>
+                )}
+                {phase === "crashed" && (
+                  <Button disabled className="w-full h-11 text-xs font-bold bg-zinc-700 text-zinc-400">
+                    💥 {lastCrash?.toFixed(2)}x
+                  </Button>
+                )}
 
-              {phase === "waiting" && !currentBet && (
-                <Button onClick={handleBet} disabled={isProcessing} className="w-full h-14 text-lg font-bold bg-emerald-600 hover:bg-emerald-700 text-white">
-                  <TrendingUp className="w-5 h-5 mr-2" /> APOSTAR R$ {parseFloat(betAmount || "0").toFixed(2)}
-                </Button>
-              )}
-              {phase === "waiting" && currentBet && (
-                <Button onClick={cancelBet} disabled={isProcessing} className="w-full h-14 text-lg font-bold bg-red-600 hover:bg-red-700 text-white">
-                  ❌ CANCELAR APOSTA — R$ {currentBet.bet_amount.toFixed(2)}
-                </Button>
-              )}
-              {phase === "running" && currentBet && !currentBet.cashed_out_at && (
-                <Button onClick={cashOut} disabled={isProcessing} className="w-full h-14 text-lg font-bold bg-emerald-600 hover:bg-emerald-700 text-white animate-pulse">
-                  💰 RETIRAR {multiplier.toFixed(2)}x — R$ {(currentBet.bet_amount * multiplier).toFixed(2)}
-                </Button>
-              )}
-              {phase === "running" && currentBet && currentBet.cashed_out_at && (
-                <Button disabled className="w-full h-14 text-lg font-bold bg-emerald-700/80 text-white">
-                  ✅ Retirou em {currentBet.cashed_out_at.toFixed(2)}x — R$ {(currentBet.payout || 0).toFixed(2)}
-                </Button>
-              )}
-              {phase === "running" && !currentBet && (
-                <Button disabled className="w-full h-14 text-lg font-bold opacity-50">Aguarde a próxima rodada...</Button>
-              )}
-              {phase === "crashed" && (
-                <Button disabled className="w-full h-14 text-lg font-bold bg-zinc-700 text-zinc-400">
-                  💥 Crash em {lastCrash?.toFixed(2)}x — Próxima rodada...
-                </Button>
-              )}
-
-              <div className="flex gap-4 items-center pt-1">
-                <div className="flex items-center gap-2">
-                  <Switch checked={autoBetEnabled} onCheckedChange={setAutoBetEnabled} id="auto-bet" />
-                  <Label htmlFor="auto-bet" className="text-xs">Auto Aposta</Label>
+                <div className="space-y-1">
+                  <div className="flex items-center gap-1">
+                    <Switch checked={autoBetEnabled} onCheckedChange={setAutoBetEnabled} id="auto-bet-1" />
+                    <Label htmlFor="auto-bet-1" className="text-[10px]">Auto Aposta</Label>
+                  </div>
+                  <div className="flex items-center gap-1">
+                    <Switch checked={autoCashoutEnabled} onCheckedChange={setAutoCashoutEnabled} id="auto-cashout-1" />
+                    <Label htmlFor="auto-cashout-1" className="text-[10px]">Auto Retirar</Label>
+                    {autoCashoutEnabled && (
+                      <Input type="number" value={autoCashout} onChange={e => setAutoCashout(e.target.value)} placeholder="2.00" className="h-6 w-16 text-[10px] text-center" min="1.01" step="0.1" />
+                    )}
+                  </div>
                 </div>
-                <div className="flex items-center gap-2 flex-1">
-                  <Switch checked={autoCashoutEnabled} onCheckedChange={setAutoCashoutEnabled} id="auto-cashout" />
-                  <Label htmlFor="auto-cashout" className="text-xs">Auto Retirar</Label>
-                  {autoCashoutEnabled && (
-                    <Input type="number" value={autoCashout} onChange={e => setAutoCashout(e.target.value)} placeholder="2.00" className="h-7 w-20 text-xs text-center" min="1.01" step="0.1" />
+              </CardContent>
+            </Card>
+
+            {/* Slot 2 */}
+            <Card>
+              <CardContent className="p-3 space-y-2">
+                <Label className="text-[10px] text-muted-foreground font-bold">APOSTA 2</Label>
+                <Input type="number" value={betAmount2} onChange={e => setBetAmount2(e.target.value)} className="h-9 text-center font-bold text-sm" min="1" step="5" />
+                <div className="flex gap-1">
+                  {[10, 25, 100].map(v => (
+                    <Button key={v} size="sm" variant="outline" className="flex-1 h-6 text-[10px] px-1" onClick={() => setBetAmount2(String(v))}>{v}</Button>
+                  ))}
+                </div>
+
+                {phase === "waiting" && !currentBet2 && (
+                  <Button onClick={handleBet2} disabled={isProcessing} className="w-full h-11 text-sm font-bold bg-emerald-600 hover:bg-emerald-700 text-white">
+                    APOSTAR R$ {parseFloat(betAmount2 || "0").toFixed(2)}
+                  </Button>
+                )}
+                {phase === "waiting" && currentBet2 && (
+                  <Button onClick={cancelBet2} disabled={isProcessing} className="w-full h-11 text-sm font-bold bg-red-600 hover:bg-red-700 text-white">
+                    ❌ CANCELAR
+                  </Button>
+                )}
+                {phase === "running" && currentBet2 && !currentBet2.cashed_out_at && (
+                  <Button onClick={cashOut2} disabled={isProcessing} className="w-full h-11 text-sm font-bold bg-emerald-600 hover:bg-emerald-700 text-white animate-pulse">
+                    💰 {multiplier.toFixed(2)}x R${(currentBet2.bet_amount * multiplier).toFixed(0)}
+                  </Button>
+                )}
+                {phase === "running" && currentBet2 && currentBet2.cashed_out_at && (
+                  <Button disabled className="w-full h-11 text-xs font-bold bg-emerald-700/80 text-white">
+                    ✅ {currentBet2.cashed_out_at.toFixed(2)}x
+                  </Button>
+                )}
+                {phase === "running" && !currentBet2 && (
+                  <Button disabled className="w-full h-11 text-xs font-bold opacity-50">Aguarde...</Button>
+                )}
+                {phase === "crashed" && (
+                  <Button disabled className="w-full h-11 text-xs font-bold bg-zinc-700 text-zinc-400">
+                    💥 {lastCrash?.toFixed(2)}x
+                  </Button>
+                )}
+
+                <div className="flex items-center gap-1">
+                  <Switch checked={!!autoCashout2} onCheckedChange={v => setAutoCashout2(v ? "2.00" : "")} id="auto-cashout-2" />
+                  <Label htmlFor="auto-cashout-2" className="text-[10px]">Auto Retirar</Label>
+                  {autoCashout2 && (
+                    <Input type="number" value={autoCashout2} onChange={e => setAutoCashout2(e.target.value)} placeholder="2.00" className="h-6 w-16 text-[10px] text-center" min="1.01" step="0.1" />
                   )}
                 </div>
-              </div>
-            </CardContent>
-          </Card>
+              </CardContent>
+            </Card>
+          </div>
 
           {/* Round bets */}
           {roundBets.length > 0 && (
