@@ -328,7 +328,7 @@ export function AviatorGame({ onBack }: AviatorGameProps) {
   // Fullscreen mode — shows only game canvas + crash history + betting panels + balance
   if (isFullscreen) {
     return (
-      <div ref={fullscreenRef} className="fixed inset-0 z-50 bg-background flex flex-col overflow-auto">
+      <div ref={fullscreenRef} className="fixed inset-0 z-[9999] bg-background flex flex-col overflow-auto" style={{ backgroundColor: 'hsl(var(--background))' }}>
         {/* Top bar */}
         <div className="flex items-center justify-between px-3 py-2 border-b border-border shrink-0">
           <div className="flex items-center gap-2">
