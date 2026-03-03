@@ -302,7 +302,10 @@ export const useAcknowledgeReminder = () => {
         .eq("id", reminder.id)
         .maybeSingle();
 
-      if (fetchError) throw fetchError;
+      if (fetchError) {
+        console.error("Acknowledge fetch error:", fetchError);
+        throw fetchError;
+      }
       if (!currentReminder) throw new Error("Reminder not found");
 
       const currentAcknowledged = currentReminder.acknowledged_by || [];
@@ -314,7 +317,7 @@ export const useAcknowledgeReminder = () => {
       // Add user to acknowledged list if not already there
       if (!currentAcknowledged.includes(ackKey)) {
         // Save to history
-        await supabase.from("reminder_history").insert({
+        const { error: historyError } = await supabase.from("reminder_history").insert({
           reminder_id: reminder.id,
           reminder_title: reminder.title,
           reminder_description: reminder.description,
@@ -325,6 +328,11 @@ export const useAcknowledgeReminder = () => {
           mention_type: reminder.mention_type,
         });
 
+        if (historyError) {
+          console.error("Acknowledge history insert error:", historyError);
+          // Don't throw - still allow the acknowledge to proceed
+        }
+
         const { error } = await supabase
           .from("reminders")
           .update({ 
@@ -332,7 +340,10 @@ export const useAcknowledgeReminder = () => {
           })
           .eq("id", reminder.id);
 
-        if (error) throw error;
+        if (error) {
+          console.error("Acknowledge update error:", error);
+          throw error;
+        }
       }
     },
     onSuccess: () => {
