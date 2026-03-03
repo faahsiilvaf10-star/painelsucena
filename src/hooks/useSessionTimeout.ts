@@ -179,10 +179,33 @@ export const useSessionTimeout = () => {
     await signOut();
   };
 
+  // Driver 22:00 nightly auto-logout
   useEffect(() => {
-    // Skip timeout logic for drivers - they have persistent sessions
+    if (!isDriverUser || !session) return;
+
+    const scheduleNightlyLogout = () => {
+      const now = new Date();
+      const cutoff = new Date(now);
+      cutoff.setHours(22, 0, 0, 0);
+      // If already past 22:00 today, schedule for now (immediate logout)
+      if (now >= cutoff) {
+        console.log("[SessionTimeout] Past 22:00 — logging out driver now");
+        handleAutoLogout();
+        return null;
+      }
+      const ms = cutoff.getTime() - now.getTime();
+      console.log(`[SessionTimeout] Driver logout scheduled in ${Math.round(ms / 60000)} min (22:00)`);
+      return setTimeout(() => handleAutoLogout(), ms);
+    };
+
+    const tid = scheduleNightlyLogout();
+
+    return () => { if (tid) clearTimeout(tid); };
+  }, [isDriverUser, session]);
+
+  useEffect(() => {
+    // Skip timeout logic for drivers - they use the nightly 22:00 logout above
     if (isDriverUser) {
-      console.log("[SessionTimeout] Skipping timeout for driver user");
       if (timeoutRef.current) {
         clearTimeout(timeoutRef.current);
         timeoutRef.current = null;
@@ -191,7 +214,6 @@ export const useSessionTimeout = () => {
     }
 
     if (!session) {
-      // Clear session start time when logged out
       localStorage.removeItem(SESSION_START_KEY);
       if (timeoutRef.current) {
         clearTimeout(timeoutRef.current);
@@ -200,7 +222,6 @@ export const useSessionTimeout = () => {
       return;
     }
 
-    // Get or set session start time (persists across browser closes)
     let sessionStartTime = localStorage.getItem(SESSION_START_KEY);
     
     if (!sessionStartTime) {
@@ -213,13 +234,11 @@ export const useSessionTimeout = () => {
     const timeoutMs = getSessionTimeoutMs();
     const remaining = timeoutMs - elapsed;
 
-    // If already exceeded, logout immediately
     if (remaining <= 0) {
       handleAutoLogout();
       return;
     }
 
-    // Set timeout for remaining time
     timeoutRef.current = setTimeout(() => {
       handleAutoLogout();
     }, remaining);
