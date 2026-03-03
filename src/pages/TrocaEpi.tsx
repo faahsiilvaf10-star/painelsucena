@@ -583,18 +583,9 @@ export default function TrocaEpi() {
           }
         }
 
-        // Fallback (desktop or browsers without file sharing):
-        // Download the PNG automatically
-        const blobUrl = URL.createObjectURL(blob);
-        const a = document.createElement("a");
-        a.href = blobUrl;
-        a.download = fileName;
-        a.click();
-        URL.revokeObjectURL(blobUrl);
-
-        // Open WhatsApp Web to the contact with description
+        // Desktop: only send text info (no PNG download)
         window.open(`https://web.whatsapp.com/send?phone=${phone}&text=${encodeURIComponent(description)}`, "_blank");
-        toast.success("PNG baixado! Anexe a imagem na conversa do WhatsApp.");
+        toast.success("WhatsApp Web aberto com as informações.");
       }, "image/png");
     } catch (err) {
       console.error(err);
