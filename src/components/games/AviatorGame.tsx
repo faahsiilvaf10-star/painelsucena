@@ -329,6 +329,7 @@ export function AviatorGame({ onBack }: AviatorGameProps) {
 
   const handleEnterFullscreen = async () => {
     try {
+      setActiveTab("game");
       if (!fullscreenContentRef.current) return;
       if (fullscreenContentRef.current.requestFullscreen) {
         await fullscreenContentRef.current.requestFullscreen();
@@ -360,9 +361,12 @@ export function AviatorGame({ onBack }: AviatorGameProps) {
   }, []);
 
   return (
-    <div className="space-y-3">
+    <div
+      ref={fullscreenContentRef}
+      className={isFullscreen ? "fixed inset-0 z-[9999] w-screen h-screen bg-background p-3 overflow-auto" : "space-y-3"}
+    >
       {/* Header */}
-      <div className="flex items-center gap-3">
+      <div className={isFullscreen ? "hidden" : "flex items-center gap-3"}>
         <Button variant="ghost" size="icon" onClick={onBack}>
           <ArrowLeft className="w-5 h-5" />
         </Button>
@@ -379,8 +383,20 @@ export function AviatorGame({ onBack }: AviatorGameProps) {
         </div>
       </div>
 
+      {isFullscreen && (
+        <div className="sticky top-0 z-30 flex items-center justify-end gap-3 bg-background/95 backdrop-blur-sm pb-2">
+          <div className="flex items-center gap-2">
+            <Wallet className="w-4 h-4 text-emerald-500" />
+            <span className="font-bold text-emerald-500">R$ {balance.toFixed(2)}</span>
+          </div>
+          <Button variant="ghost" size="icon" className="h-8 w-8" onClick={handleExitFullscreen}>
+            <Minimize className="w-4 h-4" />
+          </Button>
+        </div>
+      )}
+
       {/* Quick session stats bar */}
-      <div className="flex gap-2 overflow-x-auto pb-0.5 scrollbar-hide text-[10px]">
+      <div className={isFullscreen ? "hidden" : "flex gap-2 overflow-x-auto pb-0.5 scrollbar-hide text-[10px]"}>
         <Badge variant="outline" className="gap-1 shrink-0">
           <Target className="w-3 h-3" /> {sessionStats.roundsPlayed} rodadas
         </Badge>
@@ -399,27 +415,13 @@ export function AviatorGame({ onBack }: AviatorGameProps) {
       </div>
 
       {/* Tabs: Game / Stats */}
-      <div
-        ref={fullscreenContentRef}
-        className={isFullscreen ? "relative w-full h-full bg-background p-3 overflow-auto" : "relative"}
-      >
-        {isFullscreen && (
-          <Button
-            variant="ghost"
-            size="icon"
-            className="absolute top-3 right-3 z-20 h-8 w-8"
-            onClick={handleExitFullscreen}
-          >
-            <Minimize className="w-4 h-4" />
-          </Button>
-        )}
-
+      <div className="relative">
         <Tabs value={activeTab} onValueChange={setActiveTab}>
-          <TabsList className="grid w-full grid-cols-3 h-8">
-          <TabsTrigger value="game" className="text-xs">🎮 Jogo</TabsTrigger>
-          <TabsTrigger value="stats" className="text-xs">📊 Métricas</TabsTrigger>
-          <TabsTrigger value="history" className="text-xs">📜 Histórico</TabsTrigger>
-        </TabsList>
+          <TabsList className={isFullscreen ? "hidden" : "grid w-full grid-cols-3 h-8"}>
+            <TabsTrigger value="game" className="text-xs">🎮 Jogo</TabsTrigger>
+            <TabsTrigger value="stats" className="text-xs">📊 Métricas</TabsTrigger>
+            <TabsTrigger value="history" className="text-xs">📜 Histórico</TabsTrigger>
+          </TabsList>
 
         <TabsContent value="game" className="space-y-3 mt-3">
           {/* Crash History */}
