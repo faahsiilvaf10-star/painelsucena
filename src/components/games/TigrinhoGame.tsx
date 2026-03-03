@@ -374,7 +374,7 @@ function WinCelebration({ payout, multiplier, onDismiss }: { payout: number; mul
               animate={count >= payout ? { scale: [1, 1.1, 1] } : {}}
               transition={{ duration: 0.4 }}
             >
-              +{count}
+              💰 +{count}
             </motion.span>
             <span className="text-lg block mt-1" style={{ color: "#DAA520" }}>moedas 🪙</span>
           </div>
