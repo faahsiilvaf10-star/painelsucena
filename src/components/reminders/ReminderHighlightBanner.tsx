@@ -80,7 +80,8 @@ export const ReminderHighlightBanner = () => {
       setDetailDialogOpen(false);
       setSelectedReminder(null);
       toast.success("Lembrete marcado como visto!");
-    } catch (error) {
+    } catch (error: any) {
+      console.error("Erro ao marcar lembrete como visto:", error?.message || error);
       toast.error("Erro ao marcar lembrete como visto");
     }
   };
