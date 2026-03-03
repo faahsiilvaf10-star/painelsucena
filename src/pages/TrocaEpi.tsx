@@ -554,6 +554,7 @@ export default function TrocaEpi() {
           return;
         }
         const fileName = `troca-epi-${exchange.funcionario_nome}-${Date.now()}.png`;
+        const file = new File([blob], fileName, { type: "image/png" });
         const phone = "559193645741";
         
         // Build description with employee name + items
@@ -565,34 +566,35 @@ export default function TrocaEpi() {
           const name = epiId === "outros" && epiValue ? epiValue : (epiItem?.label || epiId);
           return `${name} (${epiQty})`;
         }).join(", ");
+        const description = `Troca de EPI - ${exchange.funcionario_nome}\nItens: ${episList}`;
 
-        // Upload PNG to storage to get a public URL
-        const storagePath = `epi-trocas/${fileName}`;
-        const { error: uploadError } = await supabase.storage
-          .from("site-assets")
-          .upload(storagePath, blob, { contentType: "image/png", upsert: true });
-
-        if (uploadError) {
-          console.error("Upload error:", uploadError);
-          toast.error("Erro ao enviar imagem. Tente novamente.");
-          return;
+        // Try Web Share API (sends the actual image file, works on mobile)
+        if (navigator.share && navigator.canShare?.({ files: [file] })) {
+          try {
+            await navigator.share({
+              files: [file],
+              title: `Troca de EPI - ${exchange.funcionario_nome}`,
+              text: description,
+            });
+            toast.success("Imagem enviada!");
+            return;
+          } catch (e: any) {
+            if (e?.name === "AbortError") return; // user cancelled
+          }
         }
 
-        const { data: pubData } = supabase.storage
-          .from("site-assets")
-          .getPublicUrl(storagePath);
-        const imageUrl = pubData.publicUrl;
+        // Fallback (desktop or browsers without file sharing):
+        // Download the PNG automatically
+        const blobUrl = URL.createObjectURL(blob);
+        const a = document.createElement("a");
+        a.href = blobUrl;
+        a.download = fileName;
+        a.click();
+        URL.revokeObjectURL(blobUrl);
 
-        const description = `Troca de EPI - ${exchange.funcionario_nome}\nItens: ${episList}\n\n${imageUrl}`;
-        const isMobile = /Android|iPhone|iPad|iPod/i.test(navigator.userAgent);
-
-        if (isMobile) {
-          window.open(`https://wa.me/${phone}?text=${encodeURIComponent(description)}`, "_blank");
-          toast.success("Abrindo WhatsApp com a imagem...");
-        } else {
-          window.open(`https://web.whatsapp.com/send?phone=${phone}&text=${encodeURIComponent(description)}`, "_blank");
-          toast.success("Abrindo WhatsApp Web com a imagem...");
-        }
+        // Open WhatsApp Web to the contact with description
+        window.open(`https://web.whatsapp.com/send?phone=${phone}&text=${encodeURIComponent(description)}`, "_blank");
+        toast.success("PNG baixado! Anexe a imagem na conversa do WhatsApp.");
       }, "image/png");
     } catch (err) {
       console.error(err);
