@@ -114,16 +114,17 @@ function WinValueOverlay({ symbolKey, betAmount, multiplier, row, col }: {
         left: `calc(${col * 33.33}% + 20px + ${col * 6}px + 16.66%)`,
         top: `calc(${row * 33.33}% + ${row * 6}px + 16.66%)`,
       }}
-      initial={{ opacity: 0, scale: 0.5, y: 0 }}
-      animate={{ opacity: [0, 1, 1, 0], scale: [0.5, 1.2, 1, 0.8], y: [0, -8, -8, -30] }}
-      transition={{ duration: 1.8, delay: 0.3 }}
+      initial={{ opacity: 0, scale: 0.3, y: 10 }}
+      animate={{ opacity: [0, 1, 1, 1, 0], scale: [0.3, 1.6, 1.4, 1.3, 0.9], y: [10, -15, -20, -25, -50] }}
+      transition={{ duration: 2.5, delay: 0.2 + col * 0.15 }}
     >
-      <span className="text-xs font-black px-1.5 py-0.5 rounded-md"
+      <span className="text-base sm:text-lg font-black px-2.5 py-1 rounded-lg"
         style={{
-          background: "linear-gradient(180deg, rgba(255,215,0,0.95), rgba(255,140,0,0.95))",
+          background: "linear-gradient(180deg, #FFD700, #FF8C00)",
           color: "#1A0A02",
-          boxShadow: "0 2px 8px rgba(255,215,0,0.5)",
-          textShadow: "0 1px 0 rgba(255,255,255,0.3)"
+          boxShadow: "0 4px 20px rgba(255,215,0,0.7), 0 0 30px rgba(255,165,0,0.4)",
+          textShadow: "0 1px 0 rgba(255,255,255,0.4)",
+          border: "1px solid rgba(255,255,255,0.3)"
         }}
       >
         +{cellValue}
@@ -137,21 +138,21 @@ function PayoutToBalance({ payout }: { payout: number }) {
   return (
     <motion.div
       className="absolute z-40 pointer-events-none"
-      initial={{ opacity: 1, left: "50%", bottom: "30%", x: "-50%", scale: 1.3 }}
+      initial={{ opacity: 1, left: "50%", bottom: "35%", x: "-50%", scale: 1.8 }}
       animate={{
-        opacity: [1, 1, 1, 0],
+        opacity: [1, 1, 1, 0.8, 0],
         left: "75%",
-        top: "12%",
+        top: "10%",
         bottom: "auto",
-        scale: [1.3, 1.1, 0.9, 0.6],
+        scale: [1.8, 1.5, 1.2, 0.9, 0.5],
         x: "-50%",
       }}
-      transition={{ duration: 1.5, delay: 1.0, ease: "easeInOut" }}
+      transition={{ duration: 2, delay: 1.2, ease: "easeInOut" }}
     >
-      <span className="text-lg font-black whitespace-nowrap"
+      <span className="text-2xl sm:text-3xl font-black whitespace-nowrap"
         style={{
           color: "#FFD700",
-          textShadow: "0 0 12px rgba(255,215,0,0.8), 0 2px 4px rgba(0,0,0,0.6)"
+          textShadow: "0 0 20px rgba(255,215,0,1), 0 0 40px rgba(255,165,0,0.6), 0 3px 6px rgba(0,0,0,0.8)"
         }}
       >
         +{payout} 🪙
