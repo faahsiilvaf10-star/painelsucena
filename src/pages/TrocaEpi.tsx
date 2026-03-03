@@ -4,6 +4,7 @@ import { ptBR } from "date-fns/locale";
 import { useAuth } from "@/hooks/useAuth";
 import { useProfile } from "@/hooks/useProfile";
 import { useEpiExchanges, EpiExchange } from "@/hooks/useEpiExchanges";
+import { SignatureDialog } from "@/components/epi/SignatureDialog";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
@@ -41,6 +42,8 @@ const EPI_ITEMS = [
 const TAMANHOS = ["P", "M", "G", "GG", "XG"];
 
 function generatePdf(exchange: EpiExchange, logoBase64: string) {
+  const sigFunc = exchange.assinatura_funcionario || '';
+  const sigAuth = exchange.assinatura_autorizador || '';
   const selectedEpis = exchange.epis || [];
   
   const episCol1 = EPI_ITEMS.slice(0, 6);
@@ -126,8 +129,14 @@ function generatePdf(exchange: EpiExchange, logoBase64: string) {
       </div>
 
       <div class="signature-row">
-        <div class="signature-box"><div class="signature-line">ASSINATURA DO AUTORIZADOR</div></div>
-        <div class="signature-box"><div class="signature-line">ASSINATURA DO FUNCIONÁRIO</div></div>
+        <div class="signature-box">
+          ${sigAuth ? `<img src="${sigAuth}" style="max-height:50px;margin:0 auto;" />` : ''}
+          <div class="signature-line">ASSINATURA DO AUTORIZADOR</div>
+        </div>
+        <div class="signature-box">
+          ${sigFunc ? `<img src="${sigFunc}" style="max-height:50px;margin:0 auto;" />` : ''}
+          <div class="signature-line">ASSINATURA DO FUNCIONÁRIO</div>
+        </div>
       </div>
 
       <div class="footer-notes">
@@ -153,7 +162,7 @@ export default function TrocaEpi() {
   const { exchanges, isLoading, createExchange, deleteExchange } = useEpiExchanges();
   const [showForm, setShowForm] = useState(false);
   const [viewExchange, setViewExchange] = useState<EpiExchange | null>(null);
-
+  const [showSignature, setShowSignature] = useState(false);
   // Form state
   const [data, setData] = useState(format(new Date(), "yyyy-MM-dd"));
   const [autorizadoPor, setAutorizadoPor] = useState("");
@@ -195,10 +204,12 @@ export default function TrocaEpi() {
     setCalcaQtd(0);
   };
 
-  const handleSubmit = async () => {
-    if (!autorizadoPor || !motivoTroca || !funcionarioNome) {
-      return;
-    }
+  const handleSubmit = () => {
+    if (!autorizadoPor || !motivoTroca || !funcionarioNome) return;
+    setShowSignature(true);
+  };
+
+  const handleSignatureConfirm = async (sigFuncionario: string, sigAutorizador: string) => {
     await createExchange.mutateAsync({
       data,
       autorizado_por: autorizadoPor,
@@ -212,7 +223,10 @@ export default function TrocaEpi() {
       uniforme_blusa_quantidade: blusaQtd,
       uniforme_calca_tamanho: calcaTamanho || null,
       uniforme_calca_quantidade: calcaQtd,
+      assinatura_funcionario: sigFuncionario || null,
+      assinatura_autorizador: sigAutorizador || null,
     });
+    setShowSignature(false);
     resetForm();
     setShowForm(false);
   };
@@ -360,6 +374,13 @@ export default function TrocaEpi() {
           </div>
         </DialogContent>
       </Dialog>
+
+      {/* Signature Dialog */}
+      <SignatureDialog
+        open={showSignature}
+        onClose={() => setShowSignature(false)}
+        onConfirm={handleSignatureConfirm}
+      />
 
       {/* View Dialog */}
       <Dialog open={!!viewExchange} onOpenChange={() => setViewExchange(null)}>
