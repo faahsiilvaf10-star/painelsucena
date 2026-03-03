@@ -13,9 +13,10 @@ import { CheckersGame } from "@/components/games/CheckersGame";
 import { DominoGame } from "@/components/games/DominoGame";
 import { DoubleGame } from "@/components/games/DoubleGame";
 import { AviatorGame } from "@/components/games/AviatorGame";
+import { TigrinhoGame } from "@/components/games/TigrinhoGame";
 import { GameRankings } from "@/components/games/GameRankings";
 
-type ActiveGame = null | "recycling" | "epi" | "rocagem" | "gabiao" | "checkers" | "domino" | "double" | "aviator";
+type ActiveGame = null | "recycling" | "epi" | "rocagem" | "gabiao" | "checkers" | "domino" | "double" | "aviator" | "tigrinho";
 
 interface GameCover {
   id: ActiveGame & string;
@@ -118,6 +119,17 @@ const GAMES: GameCover[] = [
     badgeLabel: "Tempo Real",
     badgeColor: "bg-red-600/15 text-red-500 dark:text-red-400",
   },
+  {
+    id: "tigrinho",
+    emoji: "🐯",
+    title: "Tigrinho",
+    subtitle: "Fortune Tiger",
+    description: "Gire os rolos e combine símbolos! Multiplicadores de até x100 com o tigre da sorte.",
+    gradient: "from-amber-500/20 via-red-600/10 to-yellow-500/20",
+    borderColor: "border-amber-500/40 hover:border-amber-500",
+    badgeLabel: "Slot Machine",
+    badgeColor: "bg-amber-500/15 text-amber-600 dark:text-amber-400",
+  },
 ];
 export default function Games() {
   const [activeGame, setActiveGame] = useState<ActiveGame>(null);
@@ -191,6 +203,7 @@ export default function Games() {
         {activeGame === "domino" && <DominoGame onBack={() => setActiveGame(null)} />}
         {activeGame === "double" && <DoubleGame onBack={() => setActiveGame(null)} />}
         {activeGame === "aviator" && <AviatorGame onBack={() => setActiveGame(null)} />}
+        {activeGame === "tigrinho" && <TigrinhoGame onBack={() => setActiveGame(null)} />}
       </div>
     </Layout>
   );

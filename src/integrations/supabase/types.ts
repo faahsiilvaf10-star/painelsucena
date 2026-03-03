@@ -2761,6 +2761,42 @@ export type Database = {
         }
         Relationships: []
       }
+      tigrinho_bets: {
+        Row: {
+          avatar_url: string | null
+          bet_amount: number
+          created_at: string
+          id: string
+          multiplier: number
+          payout: number
+          result_symbols: string[]
+          user_id: string
+          user_name: string
+        }
+        Insert: {
+          avatar_url?: string | null
+          bet_amount: number
+          created_at?: string
+          id?: string
+          multiplier?: number
+          payout?: number
+          result_symbols?: string[]
+          user_id: string
+          user_name?: string
+        }
+        Update: {
+          avatar_url?: string | null
+          bet_amount?: number
+          created_at?: string
+          id?: string
+          multiplier?: number
+          payout?: number
+          result_symbols?: string[]
+          user_id?: string
+          user_name?: string
+        }
+        Relationships: []
+      }
       user_preferences: {
         Row: {
           active_tab_color: string | null
