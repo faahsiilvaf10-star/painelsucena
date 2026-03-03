@@ -119,6 +119,8 @@ function SpinningReel({ spinning, finalSymbols, colIndex, onStop }: {
       if (intervalRef.current) clearInterval(intervalRef.current);
       if (timeoutRef.current) clearTimeout(timeoutRef.current);
       if (animFrameRef.current) cancelAnimationFrame(animFrameRef.current);
+      setIsStopping(false);
+      setOffset(0);
     };
   }, [spinning]);
 
