@@ -293,6 +293,7 @@ export default function TrocaEpi() {
                         {efetivo.map(col => (
                           <CommandItem
                             key={col.id}
+                            value={`${col.nome} ${col.matricula} ${col.funcao}`}
                             onSelect={() => {
                               setAutorizadoPor(col.nome);
                               setMatriculaAutorizador(col.matricula || "");
@@ -338,6 +339,7 @@ export default function TrocaEpi() {
                         {efetivo.map(col => (
                           <CommandItem
                             key={col.id}
+                            value={`${col.nome} ${col.funcao} ${col.matricula}`}
                             onSelect={() => {
                               setFuncionarioNome(col.nome);
                               setFuncionarioFuncao(col.funcao || "");
