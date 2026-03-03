@@ -6,7 +6,7 @@ import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Switch } from "@/components/ui/switch";
 import { Label } from "@/components/ui/label";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
-import { ArrowLeft, TrendingUp, TrendingDown, Wallet, History, Rocket, BarChart3, Trophy, Flame, Clock, Target, Zap, ArrowUpDown } from "lucide-react";
+import { ArrowLeft, TrendingUp, TrendingDown, Wallet, History, Rocket, BarChart3, Trophy, Flame, Clock, Target, Zap, ArrowUpDown, Maximize, Minimize } from "lucide-react";
 import { motion, AnimatePresence } from "framer-motion";
 import { useAviator, AviatorPhase } from "@/hooks/useAviator";
 
@@ -251,6 +251,8 @@ export function AviatorGame({ onBack }: AviatorGameProps) {
   const [autoBetEnabled, setAutoBetEnabled] = useState(false);
   const [autoBet2Enabled, setAutoBet2Enabled] = useState(false);
   const [activeTab, setActiveTab] = useState("game");
+  const [isFullscreen, setIsFullscreen] = useState(false);
+  const fullscreenRef = useRef<HTMLDivElement>(null);
   const autoCashoutRef = useRef(autoCashout);
   autoCashoutRef.current = autoCashout;
   const autoCashout2Ref = useRef(autoCashout2);
@@ -323,6 +325,203 @@ export function AviatorGame({ onBack }: AviatorGameProps) {
   };
 
 
+  // Fullscreen mode — shows only game canvas + crash history + betting panels + balance
+  if (isFullscreen) {
+    return (
+      <div ref={fullscreenRef} className="fixed inset-0 z-50 bg-background flex flex-col overflow-auto">
+        {/* Top bar */}
+        <div className="flex items-center justify-between px-3 py-2 border-b border-border shrink-0">
+          <div className="flex items-center gap-2">
+            <Rocket className="w-5 h-5 text-red-500" />
+            <span className="font-bold text-foreground">Aviator</span>
+          </div>
+          <div className="flex items-center gap-3">
+            <div className="flex items-center gap-1.5">
+              <Wallet className="w-4 h-4 text-emerald-500" />
+              <span className="font-bold text-emerald-500 text-sm">R$ {balance.toFixed(2)}</span>
+            </div>
+            <Button variant="ghost" size="icon" className="h-8 w-8" onClick={() => setIsFullscreen(false)}>
+              <Minimize className="w-4 h-4" />
+            </Button>
+          </div>
+        </div>
+
+        {/* Tabs in fullscreen */}
+        <Tabs value={activeTab} onValueChange={setActiveTab} className="flex-1 flex flex-col">
+          <TabsList className="grid w-full grid-cols-3 h-8 shrink-0 rounded-none">
+            <TabsTrigger value="game" className="text-xs">🎮 Jogo</TabsTrigger>
+            <TabsTrigger value="stats" className="text-xs">📊 Métricas</TabsTrigger>
+            <TabsTrigger value="history" className="text-xs">📜 Histórico</TabsTrigger>
+          </TabsList>
+
+          <TabsContent value="game" className="flex-1 flex flex-col p-3 space-y-3 overflow-auto mt-0">
+            {/* Crash History */}
+            <div className="flex gap-1.5 overflow-x-auto pb-1 scrollbar-hide shrink-0">
+              {crashHistory.slice(0, 15).map((c, i) => (
+                <CrashDot key={i} value={c} />
+              ))}
+            </div>
+
+            {/* Game Display */}
+            <AviatorFlightCanvas phase={phase} multiplier={multiplier} waitCountdown={waitCountdown} />
+
+            {/* Betting Controls — Two Panels */}
+            <div className="grid grid-cols-2 gap-2">
+              {/* Slot 1 */}
+              <Card>
+                <CardContent className="p-3 space-y-2">
+                  <Label className="text-[10px] text-muted-foreground font-bold">APOSTA 1</Label>
+                  <Input type="number" value={betAmount} onChange={e => setBetAmount(e.target.value)} className="h-9 text-center font-bold text-sm" min="1" step="5" />
+                  <div className="flex gap-1">
+                    {[5, 10, 50].map(v => (
+                      <Button key={v} size="sm" variant="outline" className="flex-1 h-6 text-[10px] px-1" onClick={() => setBetAmount(String(v))}>{v}</Button>
+                    ))}
+                  </div>
+                  {phase === "waiting" && !currentBet && (
+                    <Button onClick={handleBet} disabled={isProcessing} className="w-full h-11 text-sm font-bold bg-emerald-600 hover:bg-emerald-700 text-white">
+                      APOSTAR R$ {parseFloat(betAmount || "0").toFixed(2)}
+                    </Button>
+                  )}
+                  {phase === "waiting" && currentBet && (
+                    <Button onClick={cancelBet} disabled={isProcessing} className="w-full h-11 text-sm font-bold bg-red-600 hover:bg-red-700 text-white">❌ CANCELAR</Button>
+                  )}
+                  {phase === "running" && currentBet && !currentBet.cashed_out_at && (
+                    <Button onClick={cashOut} disabled={isProcessing} className="w-full h-11 text-sm font-bold bg-emerald-600 hover:bg-emerald-700 text-white animate-pulse">
+                      💰 {multiplier.toFixed(2)}x R${(currentBet.bet_amount * multiplier).toFixed(0)}
+                    </Button>
+                  )}
+                  {phase === "running" && currentBet && currentBet.cashed_out_at && (
+                    <Button disabled className="w-full h-11 text-xs font-bold bg-emerald-700/80 text-white">✅ {currentBet.cashed_out_at.toFixed(2)}x</Button>
+                  )}
+                  {phase === "running" && !currentBet && (
+                    <Button disabled className="w-full h-11 text-xs font-bold opacity-50">Aguarde...</Button>
+                  )}
+                  {phase === "crashed" && (
+                    <Button disabled className="w-full h-11 text-xs font-bold bg-zinc-700 text-zinc-400">💥 {lastCrash?.toFixed(2)}x</Button>
+                  )}
+                  <div className="space-y-1">
+                    <div className="flex items-center gap-1">
+                      <Switch checked={autoBetEnabled} onCheckedChange={setAutoBetEnabled} id="fs-auto-bet-1" />
+                      <Label htmlFor="fs-auto-bet-1" className="text-[10px]">Auto Aposta</Label>
+                    </div>
+                    <div className="flex items-center gap-1">
+                      <Switch checked={autoCashoutEnabled} onCheckedChange={setAutoCashoutEnabled} id="fs-auto-cashout-1" />
+                      <Label htmlFor="fs-auto-cashout-1" className="text-[10px]">Auto Retirar</Label>
+                      {autoCashoutEnabled && (
+                        <Input type="number" value={autoCashout} onChange={e => setAutoCashout(e.target.value)} placeholder="2.00" className="h-6 w-16 text-[10px] text-center" min="1.01" step="0.1" />
+                      )}
+                    </div>
+                  </div>
+                </CardContent>
+              </Card>
+
+              {/* Slot 2 */}
+              <Card>
+                <CardContent className="p-3 space-y-2">
+                  <Label className="text-[10px] text-muted-foreground font-bold">APOSTA 2</Label>
+                  <Input type="number" value={betAmount2} onChange={e => setBetAmount2(e.target.value)} className="h-9 text-center font-bold text-sm" min="1" step="5" />
+                  <div className="flex gap-1">
+                    {[10, 25, 100].map(v => (
+                      <Button key={v} size="sm" variant="outline" className="flex-1 h-6 text-[10px] px-1" onClick={() => setBetAmount2(String(v))}>{v}</Button>
+                    ))}
+                  </div>
+                  {phase === "waiting" && !currentBet2 && (
+                    <Button onClick={handleBet2} disabled={isProcessing} className="w-full h-11 text-sm font-bold bg-emerald-600 hover:bg-emerald-700 text-white">
+                      APOSTAR R$ {parseFloat(betAmount2 || "0").toFixed(2)}
+                    </Button>
+                  )}
+                  {phase === "waiting" && currentBet2 && (
+                    <Button onClick={cancelBet2} disabled={isProcessing} className="w-full h-11 text-sm font-bold bg-red-600 hover:bg-red-700 text-white">❌ CANCELAR</Button>
+                  )}
+                  {phase === "running" && currentBet2 && !currentBet2.cashed_out_at && (
+                    <Button onClick={cashOut2} disabled={isProcessing} className="w-full h-11 text-sm font-bold bg-emerald-600 hover:bg-emerald-700 text-white animate-pulse">
+                      💰 {multiplier.toFixed(2)}x R${(currentBet2.bet_amount * multiplier).toFixed(0)}
+                    </Button>
+                  )}
+                  {phase === "running" && currentBet2 && currentBet2.cashed_out_at && (
+                    <Button disabled className="w-full h-11 text-xs font-bold bg-emerald-700/80 text-white">✅ {currentBet2.cashed_out_at.toFixed(2)}x</Button>
+                  )}
+                  {phase === "running" && !currentBet2 && (
+                    <Button disabled className="w-full h-11 text-xs font-bold opacity-50">Aguarde...</Button>
+                  )}
+                  {phase === "crashed" && (
+                    <Button disabled className="w-full h-11 text-xs font-bold bg-zinc-700 text-zinc-400">💥 {lastCrash?.toFixed(2)}x</Button>
+                  )}
+                  <div className="space-y-1">
+                    <div className="flex items-center gap-1">
+                      <Switch checked={autoBet2Enabled} onCheckedChange={setAutoBet2Enabled} id="fs-auto-bet-2" />
+                      <Label htmlFor="fs-auto-bet-2" className="text-[10px]">Auto Aposta</Label>
+                    </div>
+                    <div className="flex items-center gap-1">
+                      <Switch checked={!!autoCashout2} onCheckedChange={v => setAutoCashout2(v ? "2.00" : "")} id="fs-auto-cashout-2" />
+                      <Label htmlFor="fs-auto-cashout-2" className="text-[10px]">Auto Retirar</Label>
+                      {autoCashout2 && (
+                        <Input type="number" value={autoCashout2} onChange={e => setAutoCashout2(e.target.value)} placeholder="2.00" className="h-6 w-16 text-[10px] text-center" min="1.01" step="0.1" />
+                      )}
+                    </div>
+                  </div>
+                </CardContent>
+              </Card>
+            </div>
+          </TabsContent>
+
+          {/* Stats and History tabs reuse same content */}
+          <TabsContent value="stats" className="flex-1 p-3 overflow-auto mt-0">
+            <Card>
+              <CardHeader className="pb-2">
+                <CardTitle className="text-sm flex items-center gap-2"><BarChart3 className="w-4 h-4" /> Performance da Sessão</CardTitle>
+              </CardHeader>
+              <CardContent className="space-y-3">
+                <div className={`text-center p-4 rounded-xl ${sessionStats.profitLoss >= 0 ? "bg-emerald-500/10" : "bg-red-500/10"}`}>
+                  <p className="text-xs text-muted-foreground mb-1">Lucro / Prejuízo</p>
+                  <p className={`text-3xl font-black tabular-nums ${sessionStats.profitLoss >= 0 ? "text-emerald-500" : "text-red-500"}`}>
+                    {sessionStats.profitLoss >= 0 ? "+" : ""}R$ {sessionStats.profitLoss.toFixed(2)}
+                  </p>
+                </div>
+                <div className="grid grid-cols-3 gap-2">
+                  <StatMini icon={Target} label="Rodadas" value={String(sessionStats.roundsPlayed)} />
+                  <StatMini icon={Trophy} label="Vitórias" value={`${sessionStats.wins}/${sessionStats.betsPlaced}`} color="text-emerald-500" />
+                  <StatMini icon={Zap} label="Win Rate" value={`${sessionStats.winRate.toFixed(0)}%`} color={sessionStats.winRate >= 50 ? "text-emerald-500" : "text-red-500"} />
+                  <StatMini icon={Flame} label="Melhor Streak" value={`${sessionStats.bestStreak}x`} color="text-amber-500" />
+                  <StatMini icon={TrendingUp} label="Melhor Multi" value={`${sessionStats.bestMultiplier.toFixed(2)}x`} color="text-purple-500" />
+                  <StatMini icon={ArrowUpDown} label="Multi Médio" value={`${sessionStats.avgMultiplier.toFixed(2)}x`} />
+                </div>
+              </CardContent>
+            </Card>
+          </TabsContent>
+
+          <TabsContent value="history" className="flex-1 p-3 overflow-auto mt-0">
+            <Card>
+              <CardHeader className="pb-2">
+                <CardTitle className="text-sm flex items-center gap-2"><History className="w-4 h-4" /> Histórico de Apostas</CardTitle>
+              </CardHeader>
+              <CardContent>
+                {betHistory.length === 0 ? (
+                  <p className="text-sm text-muted-foreground text-center py-6">Nenhuma aposta realizada nesta sessão.</p>
+                ) : (
+                  <div className="space-y-1.5 max-h-[60vh] overflow-y-auto">
+                    {betHistory.map((h, i) => (
+                      <div key={i} className={`flex items-center justify-between text-xs p-2.5 rounded-lg ${h.won ? "bg-emerald-500/5 border border-emerald-500/10" : "bg-red-500/5 border border-red-500/10"}`}>
+                        <div className="flex items-center gap-2">
+                          <span className={`text-[10px] ${h.won ? "text-emerald-500" : "text-red-500"}`}>{h.won ? "✅" : "❌"}</span>
+                          <span className="text-muted-foreground">{h.time}</span>
+                        </div>
+                        <span className="font-medium">R$ {h.amount.toFixed(2)}</span>
+                        <span className={`font-bold ${h.won ? "text-emerald-500" : "text-red-500"}`}>
+                          {h.won ? `${h.multiplier.toFixed(2)}x → R$ ${(h.payout || 0).toFixed(2)}` : `Crash ${h.multiplier.toFixed(2)}x`}
+                        </span>
+                      </div>
+                    ))}
+                  </div>
+                )}
+              </CardContent>
+            </Card>
+          </TabsContent>
+        </Tabs>
+      </div>
+    );
+  }
+
   return (
     <div className="space-y-3">
       {/* Header */}
@@ -332,9 +531,14 @@ export function AviatorGame({ onBack }: AviatorGameProps) {
         </Button>
         <Rocket className="w-6 h-6 text-red-500" />
         <h1 className="text-xl font-bold text-foreground">Aviator</h1>
-        <div className="ml-auto flex items-center gap-2">
-          <Wallet className="w-4 h-4 text-emerald-500" />
-          <span className="font-bold text-emerald-500">R$ {balance.toFixed(2)}</span>
+        <div className="ml-auto flex items-center gap-3">
+          <Button variant="ghost" size="icon" className="h-8 w-8" onClick={() => setIsFullscreen(true)}>
+            <Maximize className="w-4 h-4" />
+          </Button>
+          <div className="flex items-center gap-2">
+            <Wallet className="w-4 h-4 text-emerald-500" />
+            <span className="font-bold text-emerald-500">R$ {balance.toFixed(2)}</span>
+          </div>
         </div>
       </div>
 
