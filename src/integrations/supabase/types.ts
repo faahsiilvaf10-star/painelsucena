@@ -712,6 +712,44 @@ export type Database = {
         }
         Relationships: []
       }
+      desvio_comments: {
+        Row: {
+          content: string
+          created_at: string
+          desvio_id: string
+          id: string
+          user_avatar_url: string | null
+          user_id: string
+          user_name: string
+        }
+        Insert: {
+          content: string
+          created_at?: string
+          desvio_id: string
+          id?: string
+          user_avatar_url?: string | null
+          user_id: string
+          user_name: string
+        }
+        Update: {
+          content?: string
+          created_at?: string
+          desvio_id?: string
+          id?: string
+          user_avatar_url?: string | null
+          user_id?: string
+          user_name?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "desvio_comments_desvio_id_fkey"
+            columns: ["desvio_id"]
+            isOneToOne: false
+            referencedRelation: "desvios"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       desvios: {
         Row: {
           correction_photo_urls: string[] | null

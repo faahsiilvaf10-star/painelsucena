@@ -37,6 +37,7 @@ import {
 } from "@/hooks/useDesvios";
 import { useAuth } from "@/hooks/useAuth";
 import { useAllUsers } from "@/hooks/useAllUsers";
+import { DesvioCommentSection } from "@/components/desvios/DesvioCommentSection";
 import { toast } from "sonner";
 
 interface FormItem {
@@ -634,6 +635,8 @@ export default function Desvios() {
                         </Button>
                       )}
                     </div>
+                    {/* Comments */}
+                    <DesvioCommentSection desvioId={desvio.id} />
                   </CardContent>
                 </Card>
               );
