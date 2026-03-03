@@ -216,7 +216,7 @@ export default function TrocaEpi() {
   const [funcionarioNome, setFuncionarioNome] = useState("");
   const [funcionarioFuncao, setFuncionarioFuncao] = useState("");
   const [funcionarioMatricula, setFuncionarioMatricula] = useState("");
-  const [selectedEpis, setSelectedEpis] = useState<Array<{ id: string; value?: string }>>([]);
+  const [selectedEpis, setSelectedEpis] = useState<Array<{ id: string; value?: string; qty?: number }>>([]);
   const [blusaTamanho, setBlusaTamanho] = useState("");
   const [blusaQtd, setBlusaQtd] = useState(0);
   const [calcaTamanho, setCalcaTamanho] = useState("");
@@ -244,12 +244,16 @@ export default function TrocaEpi() {
     setSelectedEpis(prev => {
       const exists = prev.find(e => e.id === epiId);
       if (exists) return prev.filter(e => e.id !== epiId);
-      return [...prev, { id: epiId }];
+      return [...prev, { id: epiId, qty: 1 }];
     });
   };
 
   const setEpiValue = (epiId: string, value: string) => {
     setSelectedEpis(prev => prev.map(e => e.id === epiId ? { ...e, value } : e));
+  };
+
+  const setEpiQty = (epiId: string, qty: number) => {
+    setSelectedEpis(prev => prev.map(e => e.id === epiId ? { ...e, qty: Math.max(1, qty) } : e));
   };
 
   const resetForm = () => {
@@ -279,16 +283,17 @@ export default function TrocaEpi() {
 
     for (const epi of (exchange.epis || [])) {
       const epiId = typeof epi === "string" ? epi : (epi as any).id;
+      const epiQty = typeof epi === "object" && (epi as any).qty ? Number((epi as any).qty) : 1;
       const epiItem = EPI_ITEMS.find(e => e.id === epiId);
       if (!epiItem) continue;
       const match = findInventoryMatch(currentInventory, epiItem.label);
       if (match) {
-        const newQty = match.quantity + 1;
+        const newQty = match.quantity + epiQty;
         await supabase.from("inventory_items").update({ quantity: newQty }).eq("id", match.id);
         await supabase.from("inventory_movements").insert({
           item_id: match.id,
           movement_type: "entrada",
-          quantity: 1,
+          quantity: epiQty,
           previous_quantity: match.quantity,
           new_quantity: newQty,
           reason: `Estorno Troca de EPI - ${exchange.funcionario_nome}`,
@@ -298,7 +303,7 @@ export default function TrocaEpi() {
           destination_name: exchange.funcionario_nome,
         });
         match.quantity = newQty;
-        restoredItems.push(epiItem.label);
+        restoredItems.push(`${epiItem.label} (${epiQty})`);
       }
     }
 
@@ -379,7 +384,7 @@ export default function TrocaEpi() {
     setFuncionarioMatricula(exchange.funcionario_matricula || "");
     setSelectedEpis(
       (exchange.epis || []).map((e: any) =>
-        typeof e === "string" ? { id: e } : { id: e.id, value: e.value }
+        typeof e === "string" ? { id: e, qty: 1 } : { id: e.id, value: e.value, qty: e.qty ?? 1 }
       )
     );
     setBlusaTamanho(exchange.uniforme_blusa_tamanho || "");
@@ -433,14 +438,15 @@ export default function TrocaEpi() {
     for (const epi of selectedEpis) {
       const epiItem = EPI_ITEMS.find(e => e.id === epi.id);
       if (!epiItem) continue;
+      const epiQty = epi.qty ?? 1;
       const match = findInventoryMatch(currentInventory, epiItem.label);
-      if (match && match.quantity > 0) {
-        const newQty = match.quantity - 1;
+      if (match && match.quantity >= epiQty) {
+        const newQty = match.quantity - epiQty;
         await supabase.from("inventory_items").update({ quantity: newQty }).eq("id", match.id);
         await supabase.from("inventory_movements").insert({
           item_id: match.id,
           movement_type: "saida",
-          quantity: 1,
+          quantity: epiQty,
           previous_quantity: match.quantity,
           new_quantity: newQty,
           reason: `Troca de EPI - ${funcionarioNome}`,
@@ -450,7 +456,7 @@ export default function TrocaEpi() {
           destination_name: funcionarioNome,
         });
         match.quantity = newQty;
-        deductedItems.push(epiItem.label);
+        deductedItems.push(`${epiItem.label} (${epiQty})`);
       } else if (!match) {
         notFoundItems.push(epiItem.label);
       }
@@ -654,13 +660,25 @@ export default function TrocaEpi() {
                   const invMatch = selected ? findInventoryMatch(inventoryItems, item.label) : null;
                   return (
                     <div key={item.id} className="flex flex-col gap-0.5 p-1.5 rounded-md hover:bg-accent/50">
-                      <div className="flex items-center gap-2 min-h-[36px]">
+                      <div className="flex items-center gap-2 min-h-[36px] flex-wrap">
                         <Checkbox
                           checked={!!selected}
                           onCheckedChange={() => toggleEpi(item.id)}
                           className="h-5 w-5"
                         />
                         <span className="text-sm flex-1">{item.label}</span>
+                        {selected && (
+                          <div className="flex items-center gap-1">
+                            <Label className="text-[10px] text-muted-foreground">Qtd:</Label>
+                            <Input
+                              type="number"
+                              min={1}
+                              className="h-7 w-14 text-xs text-center"
+                              value={selected.qty ?? 1}
+                              onChange={e => setEpiQty(item.id, Number(e.target.value))}
+                            />
+                          </div>
+                        )}
                         {item.hasInput && selected && (
                           <Input
                             className="h-8 w-24 text-xs"
