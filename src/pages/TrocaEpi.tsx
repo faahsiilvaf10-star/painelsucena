@@ -657,7 +657,8 @@ export default function TrocaEpi() {
                 {EPI_ITEMS.map(item => {
                   const selected = selectedEpis.find(e => e.id === item.id);
                   const lastDate = lastPickupMap[item.id];
-                  const invMatch = selected ? findInventoryMatch(inventoryItems, item.label) : null;
+                  const searchLabel = item.id === "outros" && selected?.value ? selected.value : item.label;
+                  const invMatch = selected ? findInventoryMatch(inventoryItems, searchLabel) : null;
                   return (
                     <div key={item.id} className="flex flex-col gap-0.5 p-1.5 rounded-md hover:bg-accent/50">
                       <div className="flex items-center gap-2 min-h-[36px] flex-wrap">
@@ -679,7 +680,7 @@ export default function TrocaEpi() {
                             />
                           </div>
                         )}
-                        {item.hasInput && selected && (
+                        {item.hasInput && selected && item.id !== "outros" && (
                           <Input
                             className="h-8 w-24 text-xs"
                             placeholder={item.inputLabel}
@@ -688,6 +689,24 @@ export default function TrocaEpi() {
                           />
                         )}
                       </div>
+                      {item.id === "outros" && selected && (
+                        <div className="ml-6 mt-1">
+                          <Select value={selected.value || ""} onValueChange={v => setEpiValue(item.id, v)}>
+                            <SelectTrigger className="h-8 text-xs w-full">
+                              <SelectValue placeholder="Selecione do estoque..." />
+                            </SelectTrigger>
+                            <SelectContent>
+                              {inventoryItems
+                                .filter(inv => inv.quantity > 0)
+                                .map(inv => (
+                                  <SelectItem key={inv.id} value={inv.name}>
+                                    {inv.name} ({inv.quantity} {inv.unit})
+                                  </SelectItem>
+                                ))}
+                            </SelectContent>
+                          </Select>
+                        </div>
+                      )}
                       {selected && invMatch && (
                         <span className={`text-[10px] ml-6 ${invMatch.quantity <= invMatch.min_quantity ? 'text-destructive font-semibold' : 'text-muted-foreground'}`}>
                           Estoque: {invMatch.quantity} {invMatch.unit}
