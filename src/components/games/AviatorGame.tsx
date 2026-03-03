@@ -14,29 +14,194 @@ interface AviatorGameProps {
   onBack: () => void;
 }
 
-function AirplaneSVG({ phase }: { phase: AviatorPhase }) {
+function PropellerPlaneSVG() {
   return (
-    <motion.div
-      className="relative"
-      animate={phase === "crashed" ? { rotate: 90, y: 40, opacity: 0.5 } : { rotate: -15 }}
-      transition={{ duration: phase === "crashed" ? 0.5 : 0.3 }}
-    >
-      <Rocket className="w-12 h-12 text-red-400 drop-shadow-[0_0_12px_rgba(239,68,68,0.6)]" />
-    </motion.div>
+    <svg width="56" height="32" viewBox="0 0 56 32" fill="none" xmlns="http://www.w3.org/2000/svg">
+      {/* Fuselage */}
+      <ellipse cx="28" cy="16" rx="18" ry="6" fill="#c0392b" />
+      {/* Cockpit */}
+      <ellipse cx="40" cy="14" rx="6" ry="4" fill="#922b21" />
+      {/* Windshield */}
+      <ellipse cx="42" cy="13" rx="3" ry="2.5" fill="#1a1a2e" stroke="#e74c3c" strokeWidth="0.5" />
+      {/* Top wing */}
+      <rect x="18" y="6" width="20" height="3" rx="1.5" fill="#e74c3c" />
+      {/* Bottom wing */}
+      <rect x="18" y="23" width="20" height="3" rx="1.5" fill="#e74c3c" />
+      {/* Tail */}
+      <polygon points="10,16 6,6 14,16" fill="#e74c3c" />
+      <polygon points="10,16 6,26 14,16" fill="#c0392b" />
+      {/* Tail fin */}
+      <rect x="6" y="14" width="6" height="4" rx="1" fill="#922b21" />
+      {/* Propeller hub */}
+      <circle cx="46" cy="16" r="2" fill="#2c2c3e" />
+      {/* Propeller blades (animated via CSS) */}
+      <g className="animate-spin origin-center" style={{ transformOrigin: '46px 16px' }}>
+        <rect x="45" y="4" width="2" height="10" rx="1" fill="#555" />
+        <rect x="45" y="18" width="2" height="10" rx="1" fill="#555" />
+      </g>
+      {/* Landing gear */}
+      <line x1="22" y1="26" x2="20" y2="30" stroke="#555" strokeWidth="1.5" />
+      <line x1="34" y1="26" x2="36" y2="30" stroke="#555" strokeWidth="1.5" />
+      <circle cx="20" cy="30" r="1.5" fill="#333" />
+      <circle cx="36" cy="30" r="1.5" fill="#333" />
+    </svg>
   );
 }
 
-function Cloud({ delay, size, y }: { delay: number; size: number; y: number }) {
+function AviatorFlightCanvas({ phase, multiplier, waitCountdown }: { phase: AviatorPhase; multiplier: number; waitCountdown: number }) {
+  const canvasW = 600;
+  const canvasH = 300;
+  const padX = 40;
+  const padY = 40;
+
+  // Progress: 0 at 1x, 1 at ~50x (logarithmic scale for smooth curve)
+  const progress = phase === "waiting" ? 0 : Math.min(1, Math.log(multiplier) / Math.log(50));
+  const crashProgress = phase === "crashed" ? Math.min(1, Math.log(multiplier) / Math.log(50)) : 0;
+
+  // Generate curve points
+  const points = useMemo(() => {
+    const p = phase === "crashed" ? crashProgress : progress;
+    const numPoints = 60;
+    const pts: { x: number; y: number }[] = [];
+    for (let i = 0; i <= numPoints; i++) {
+      const t = (i / numPoints) * p;
+      const x = padX + t * (canvasW - padX * 2);
+      // Exponential curve upward
+      const yNorm = Math.pow(t, 0.6);
+      const y = canvasH - padY - yNorm * (canvasH - padY * 2);
+      pts.push({ x, y });
+    }
+    return pts;
+  }, [progress, crashProgress, phase]);
+
+  // Build SVG path
+  const linePath = points.length > 1
+    ? `M ${points[0].x} ${points[0].y} ` + points.slice(1).map(p => `L ${p.x} ${p.y}`).join(" ")
+    : "";
+
+  // Filled area path (from line down to baseline)
+  const filledPath = linePath
+    ? `${linePath} L ${points[points.length - 1].x} ${canvasH - padY} L ${padX} ${canvasH - padY} Z`
+    : "";
+
+  // Plane position
+  const planePos = points.length > 0 ? points[points.length - 1] : { x: padX, y: canvasH - padY };
+
+  // Radiating beams
+  const beams = useMemo(() => {
+    return Array.from({ length: 12 }, (_, i) => {
+      const angle = (i / 12) * Math.PI * 2;
+      return { angle, opacity: 0.04 + (i % 3) * 0.02 };
+    });
+  }, []);
+
   return (
-    <motion.div
-      className="absolute text-white/5 pointer-events-none select-none"
-      style={{ top: `${y}%`, fontSize: `${size}px` }}
-      initial={{ right: "-10%" }}
-      animate={{ right: "110%" }}
-      transition={{ duration: 8 + delay * 2, repeat: Infinity, ease: "linear", delay }}
-    >
-      ☁️
-    </motion.div>
+    <div className="relative w-full h-[260px] md:h-[320px] overflow-hidden rounded-xl" style={{ background: "linear-gradient(135deg, #0a0a1a 0%, #0d1525 30%, #111827 60%, #0a0a14 100%)" }}>
+      {/* Radiating light beams */}
+      <svg className="absolute inset-0 w-full h-full pointer-events-none" viewBox={`0 0 ${canvasW} ${canvasH}`} preserveAspectRatio="xMidYMid slice">
+        {beams.map((b, i) => {
+          const cx = canvasW * 0.5;
+          const cy = canvasH * 0.4;
+          const len = 500;
+          const spread = 0.08;
+          const x1 = cx + Math.cos(b.angle - spread) * len;
+          const y1 = cy + Math.sin(b.angle - spread) * len;
+          const x2 = cx + Math.cos(b.angle + spread) * len;
+          const y2 = cy + Math.sin(b.angle + spread) * len;
+          return (
+            <polygon
+              key={i}
+              points={`${cx},${cy} ${x1},${y1} ${x2},${y2}`}
+              fill={`rgba(100,180,255,${b.opacity})`}
+            />
+          );
+        })}
+      </svg>
+
+      {/* Flight curve */}
+      {(phase === "running" || phase === "crashed") && points.length > 1 && (
+        <svg className="absolute inset-0 w-full h-full pointer-events-none" viewBox={`0 0 ${canvasW} ${canvasH}`} preserveAspectRatio="xMidYMid slice">
+          {/* Filled area under curve */}
+          <motion.path
+            d={filledPath}
+            fill="rgba(200,30,30,0.35)"
+            initial={{ opacity: 0 }}
+            animate={{ opacity: 1 }}
+            transition={{ duration: 0.3 }}
+          />
+          {/* Curve line */}
+          <motion.path
+            d={linePath}
+            stroke="#e74c3c"
+            strokeWidth="3"
+            fill="none"
+            strokeLinecap="round"
+            initial={{ opacity: 0 }}
+            animate={{ opacity: 1 }}
+            transition={{ duration: 0.3 }}
+          />
+        </svg>
+      )}
+
+      {/* Airplane */}
+      <motion.div
+        className="absolute pointer-events-none"
+        style={{ zIndex: 10 }}
+        animate={{
+          left: `${(planePos.x / canvasW) * 100}%`,
+          top: `${(planePos.y / canvasH) * 100}%`,
+          rotate: phase === "crashed" ? 45 : -(Math.atan2(progress * 0.6, 1) * 180 / Math.PI),
+          opacity: phase === "crashed" ? 0.4 : 1,
+        }}
+        transition={{ type: "tween", duration: 0.15, ease: "linear" }}
+      >
+        <div className="relative -translate-x-1/2 -translate-y-1/2">
+          <PropellerPlaneSVG />
+          {/* Engine trail */}
+          {phase === "running" && (
+            <div className="absolute -left-6 top-1/2 -translate-y-1/2">
+              <div className="w-6 h-1 bg-gradient-to-l from-red-500/60 to-transparent rounded-full" />
+              <div className="w-4 h-0.5 bg-gradient-to-l from-orange-400/30 to-transparent rounded-full mt-0.5" />
+            </div>
+          )}
+        </div>
+      </motion.div>
+
+      {/* Multiplier / Status overlay */}
+      <div className="absolute inset-0 flex items-center justify-center" style={{ zIndex: 20 }}>
+        <AnimatePresence mode="wait">
+          {phase === "waiting" ? (
+            <motion.div key="waiting" initial={{ scale: 0.8, opacity: 0 }} animate={{ scale: 1, opacity: 1 }} exit={{ scale: 0.8, opacity: 0 }} className="text-center">
+              <p className="text-white/60 text-sm mb-1">Próxima rodada em</p>
+              <p className="text-5xl font-black text-white tabular-nums">{waitCountdown}s</p>
+              <p className="text-white/40 text-xs mt-2">Faça sua aposta!</p>
+            </motion.div>
+          ) : (
+            <motion.div key="multiplier" initial={{ scale: 0.5, opacity: 0 }} animate={{ scale: 1, opacity: 1 }} className="text-center">
+              <motion.p
+                className={`text-6xl md:text-7xl font-black tabular-nums drop-shadow-[0_0_30px_rgba(255,255,255,0.3)] ${phase === "crashed" ? "text-red-500" : "text-white"}`}
+                animate={phase === "crashed" ? { scale: [1, 1.2, 1] } : {}}
+                transition={{ duration: 0.3 }}
+              >
+                {multiplier.toFixed(2)}x
+              </motion.p>
+              {phase === "crashed" && (
+                <motion.p initial={{ opacity: 0, y: 10 }} animate={{ opacity: 1, y: 0 }} className="text-red-400 font-bold text-lg mt-2">
+                  CRASHED!
+                </motion.p>
+              )}
+            </motion.div>
+          )}
+        </AnimatePresence>
+      </div>
+
+      {/* Phase badge */}
+      <div className="absolute top-3 left-3" style={{ zIndex: 20 }}>
+        <Badge className={`text-xs border-0 ${phase === "waiting" ? "bg-amber-500/20 text-amber-400" : phase === "running" ? "bg-emerald-500/20 text-emerald-400" : "bg-red-500/20 text-red-400"}`}>
+          {phase === "waiting" ? "⏳ Aguardando" : phase === "running" ? "🚀 Em Voo" : "💥 Crash"}
+        </Badge>
+      </div>
+    </div>
   );
 }
 
@@ -61,13 +226,6 @@ function StatMini({ icon: Icon, label, value, color = "text-foreground" }: { ico
   );
 }
 
-// Memoized stars to prevent re-render flicker
-const STARS = Array.from({ length: 30 }, (_, i) => ({
-  id: i,
-  left: `${(i * 3.33 + Math.sin(i) * 10) % 100}%`,
-  top: `${(i * 2 + Math.cos(i) * 15) % 60}%`,
-  w: `${1 + (i % 3)}px`,
-}));
 
 export function AviatorGame({ onBack }: AviatorGameProps) {
   const {
@@ -156,8 +314,6 @@ export function AviatorGame({ onBack }: AviatorGameProps) {
     placeBet2(amount);
   };
 
-  const multiplierColor = phase === "crashed" ? "text-red-500" : multiplier < 2 ? "text-white" : multiplier < 5 ? "text-emerald-400" : "text-yellow-400";
-  const graphHeight = Math.min(80, ((multiplier - 1) / 10) * 80);
 
   return (
     <div className="space-y-3">
@@ -210,92 +366,7 @@ export function AviatorGame({ onBack }: AviatorGameProps) {
           </div>
 
           {/* Game Display */}
-          <Card className="border-0 overflow-hidden">
-            <CardContent className="p-0">
-              <div
-                className="relative w-full h-[260px] md:h-[320px] overflow-hidden"
-                style={{ background: "linear-gradient(180deg, #0c0e1a 0%, #141629 40%, #1a1f3d 100%)" }}
-              >
-                {/* Stars */}
-                {STARS.map(s => (
-                  <div key={s.id} className="absolute bg-white/40 rounded-full" style={{ left: s.left, top: s.top, width: s.w, height: s.w }} />
-                ))}
-
-                {phase === "running" && (
-                  <>
-                    <Cloud delay={0} size={40} y={30} />
-                    <Cloud delay={2} size={30} y={50} />
-                    <Cloud delay={4} size={50} y={20} />
-                    <Cloud delay={6} size={35} y={60} />
-                  </>
-                )}
-
-                {phase === "running" && (
-                  <svg className="absolute inset-0 w-full h-full pointer-events-none">
-                    <motion.path
-                      d={`M 40 ${260 - 40} Q ${40 + graphHeight * 2} ${260 - 40 - graphHeight * 2} ${40 + graphHeight * 3} ${260 - 40 - graphHeight * 3}`}
-                      stroke="rgba(239,68,68,0.4)"
-                      strokeWidth="2"
-                      fill="none"
-                      initial={{ pathLength: 0 }}
-                      animate={{ pathLength: 1 }}
-                      transition={{ duration: 0.5 }}
-                    />
-                  </svg>
-                )}
-
-                <motion.div
-                  className="absolute"
-                  animate={{
-                    bottom: phase === "running" ? `${20 + graphHeight}%` : phase === "crashed" ? "10%" : "20%",
-                    left: phase === "running" ? `${15 + Math.min(graphHeight, 50)}%` : "15%",
-                  }}
-                  transition={{ type: "tween", duration: 0.3 }}
-                >
-                  <AirplaneSVG phase={phase} />
-                  {phase === "running" && (
-                    <motion.div className="absolute -left-8 top-1/2 -translate-y-1/2" initial={{ opacity: 0 }} animate={{ opacity: 1 }}>
-                      <div className="w-8 h-1 bg-gradient-to-l from-red-500/60 to-transparent rounded-full" />
-                      <div className="w-6 h-0.5 bg-gradient-to-l from-orange-500/40 to-transparent rounded-full mt-0.5" />
-                    </motion.div>
-                  )}
-                </motion.div>
-
-                <div className="absolute inset-0 flex items-center justify-center">
-                  <AnimatePresence mode="wait">
-                    {phase === "waiting" ? (
-                      <motion.div key="waiting" initial={{ scale: 0.8, opacity: 0 }} animate={{ scale: 1, opacity: 1 }} exit={{ scale: 0.8, opacity: 0 }} className="text-center">
-                        <p className="text-white/60 text-sm mb-1">Próxima rodada em</p>
-                        <p className="text-5xl font-black text-white tabular-nums">{waitCountdown}s</p>
-                        <p className="text-white/40 text-xs mt-2">Faça sua aposta!</p>
-                      </motion.div>
-                    ) : (
-                      <motion.div key="multiplier" initial={{ scale: 0.5, opacity: 0 }} animate={{ scale: 1, opacity: 1 }} className="text-center">
-                        <motion.p
-                          className={`text-6xl md:text-7xl font-black tabular-nums ${multiplierColor}`}
-                          animate={phase === "crashed" ? { scale: [1, 1.2, 1] } : {}}
-                          transition={{ duration: 0.3 }}
-                        >
-                          {multiplier.toFixed(2)}x
-                        </motion.p>
-                        {phase === "crashed" && (
-                          <motion.p initial={{ opacity: 0, y: 10 }} animate={{ opacity: 1, y: 0 }} className="text-red-400 font-bold text-lg mt-2">
-                            CRASHED!
-                          </motion.p>
-                        )}
-                      </motion.div>
-                    )}
-                  </AnimatePresence>
-                </div>
-
-                <div className="absolute top-3 left-3">
-                  <Badge className={`text-xs border-0 ${phase === "waiting" ? "bg-amber-500/20 text-amber-400" : phase === "running" ? "bg-emerald-500/20 text-emerald-400" : "bg-red-500/20 text-red-400"}`}>
-                    {phase === "waiting" ? "⏳ Aguardando" : phase === "running" ? "🚀 Em Voo" : "💥 Crash"}
-                  </Badge>
-                </div>
-              </div>
-            </CardContent>
-          </Card>
+          <AviatorFlightCanvas phase={phase} multiplier={multiplier} waitCountdown={waitCountdown} />
 
           {/* Betting Controls — Two Panels */}
           <div className="grid grid-cols-2 gap-2">
