@@ -537,7 +537,7 @@ export default function TrocaEpi() {
 
       {/* Form Dialog */}
       <Dialog open={showForm} onOpenChange={setShowForm}>
-        <DialogContent className="max-w-3xl max-h-[90vh] overflow-y-auto">
+        <DialogContent className="max-w-3xl w-[95vw] max-h-[95vh] overflow-y-auto p-3 sm:p-6">
           <DialogHeader>
             <DialogTitle>{editingExchange ? "Editar Troca de EPI" : "Nova Autorização de Troca de EPI"}</DialogTitle>
           </DialogHeader>
@@ -647,22 +647,23 @@ export default function TrocaEpi() {
 
             <div>
               <h3 className="font-semibold text-base mb-3">EPI</h3>
-              <div className="grid grid-cols-1 md:grid-cols-3 gap-2">
+              <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 gap-2">
                 {EPI_ITEMS.map(item => {
                   const selected = selectedEpis.find(e => e.id === item.id);
                   const lastDate = lastPickupMap[item.id];
                   const invMatch = selected ? findInventoryMatch(inventoryItems, item.label) : null;
                   return (
-                    <div key={item.id} className="flex flex-col gap-0.5">
-                      <div className="flex items-center gap-2">
+                    <div key={item.id} className="flex flex-col gap-0.5 p-1.5 rounded-md hover:bg-accent/50">
+                      <div className="flex items-center gap-2 min-h-[36px]">
                         <Checkbox
                           checked={!!selected}
                           onCheckedChange={() => toggleEpi(item.id)}
+                          className="h-5 w-5"
                         />
-                        <span className="text-sm">{item.label}</span>
+                        <span className="text-sm flex-1">{item.label}</span>
                         {item.hasInput && selected && (
                           <Input
-                            className="h-7 w-20 text-xs"
+                            className="h-8 w-24 text-xs"
                             placeholder={item.inputLabel}
                             value={selected.value || ""}
                             onChange={e => setEpiValue(item.id, e.target.value)}
@@ -738,7 +739,7 @@ export default function TrocaEpi() {
 
       {/* View Dialog */}
       <Dialog open={!!viewExchange} onOpenChange={() => setViewExchange(null)}>
-        <DialogContent className="max-w-2xl">
+        <DialogContent className="max-w-2xl w-[95vw] p-3 sm:p-6">
           <DialogHeader>
             <DialogTitle>Detalhes da Troca de EPI</DialogTitle>
           </DialogHeader>
@@ -792,31 +793,31 @@ export default function TrocaEpi() {
         <div className="grid gap-3">
           {exchanges.map(ex => (
             <Card key={ex.id} className="hover:shadow-md transition-shadow">
-              <CardContent className="p-4 flex items-center justify-between">
-                <div className="space-y-1">
-                  <div className="flex items-center gap-2">
-                    <span className="font-semibold">{ex.funcionario_nome}</span>
-                    <Badge variant="outline">{format(new Date(ex.data + 'T12:00:00'), "dd/MM/yyyy")}</Badge>
+              <CardContent className="p-3 sm:p-4 flex flex-col sm:flex-row sm:items-center justify-between gap-2">
+                <div className="space-y-1 min-w-0">
+                  <div className="flex items-center gap-2 flex-wrap">
+                    <span className="font-semibold text-sm sm:text-base">{ex.funcionario_nome}</span>
+                    <Badge variant="outline" className="text-xs">{format(new Date(ex.data + 'T12:00:00'), "dd/MM/yyyy")}</Badge>
                   </div>
-                  <p className="text-sm text-muted-foreground">
-                    Autorizado por: {ex.autorizado_por} | Motivo: {ex.motivo_troca.substring(0, 60)}{ex.motivo_troca.length > 60 ? '...' : ''}
+                  <p className="text-xs sm:text-sm text-muted-foreground truncate">
+                    Autorizado por: {ex.autorizado_por} | {ex.motivo_troca.substring(0, 40)}{ex.motivo_troca.length > 40 ? '...' : ''}
                   </p>
                   <div className="flex gap-1 flex-wrap">
-                    {(ex.epis || []).slice(0, 5).map((e: any) => {
+                    {(ex.epis || []).slice(0, 3).map((e: any) => {
                       const item = EPI_ITEMS.find(i => i.id === (typeof e === 'string' ? e : e.id));
-                      return <Badge key={typeof e === 'string' ? e : e.id} variant="secondary" className="text-xs">{item?.label || 'EPI'}</Badge>;
+                      return <Badge key={typeof e === 'string' ? e : e.id} variant="secondary" className="text-[10px]">{item?.label || 'EPI'}</Badge>;
                     })}
-                    {(ex.epis || []).length > 5 && <Badge variant="secondary" className="text-xs">+{(ex.epis || []).length - 5}</Badge>}
+                    {(ex.epis || []).length > 3 && <Badge variant="secondary" className="text-[10px]">+{(ex.epis || []).length - 3}</Badge>}
                   </div>
                 </div>
-                <div className="flex gap-1">
-                  <Button variant="ghost" size="icon" onClick={() => setViewExchange(ex)}><Eye className="h-4 w-4" /></Button>
+                <div className="flex gap-1 shrink-0">
+                  <Button variant="ghost" size="icon" className="h-8 w-8" onClick={() => setViewExchange(ex)}><Eye className="h-4 w-4" /></Button>
                   {ex.created_by === user?.id && (
-                    <Button variant="ghost" size="icon" onClick={() => handleEditExchange(ex)}><Pencil className="h-4 w-4" /></Button>
+                    <Button variant="ghost" size="icon" className="h-8 w-8" onClick={() => handleEditExchange(ex)}><Pencil className="h-4 w-4" /></Button>
                   )}
-                  <Button variant="ghost" size="icon" onClick={() => handlePrint(ex)}><FileText className="h-4 w-4" /></Button>
+                  <Button variant="ghost" size="icon" className="h-8 w-8" onClick={() => handlePrint(ex)}><FileText className="h-4 w-4" /></Button>
                   {ex.created_by === user?.id && (
-                    <Button variant="ghost" size="icon" onClick={() => handleDeleteWithRestore(ex)}><Trash2 className="h-4 w-4 text-destructive" /></Button>
+                    <Button variant="ghost" size="icon" className="h-8 w-8" onClick={() => handleDeleteWithRestore(ex)}><Trash2 className="h-4 w-4 text-destructive" /></Button>
                   )}
                 </div>
               </CardContent>
