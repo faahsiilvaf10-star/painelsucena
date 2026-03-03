@@ -4,6 +4,8 @@ import { useAuth } from "./useAuth";
 import { useQuery, useQueryClient } from "@tanstack/react-query";
 import { toast } from "sonner";
 
+export const SYMBOL_KEYS = ["tiger", "gold", "coins", "envelope", "lantern", "firecracker", "bag", "diamond"];
+
 interface TigrinhoBet {
   id: string;
   bet_amount: number;
@@ -27,8 +29,6 @@ const OUTCOMES: Outcome[] = [
   { multiplier: 100, weight: 0.5 },
 ];
 
-const SYMBOLS = ["🐯", "💰", "🧧", "🏮", "🔥", "💎", "🍊", "⭐"];
-
 function pickOutcome(): number {
   const totalWeight = OUTCOMES.reduce((s, o) => s + o.weight, 0);
   let r = Math.random() * totalWeight;
@@ -42,24 +42,24 @@ function pickOutcome(): number {
 function generateReelSymbols(multiplier: number): string[][] {
   const grid: string[][] = [];
   if (multiplier >= 10) {
-    const winSymbol = SYMBOLS[Math.floor(Math.random() * 3)];
+    const winSymbol = SYMBOL_KEYS[Math.floor(Math.random() * 3)];
     for (let row = 0; row < 3; row++) {
       const r: string[] = [];
       for (let col = 0; col < 3; col++) {
-        r.push(row === 1 ? winSymbol : SYMBOLS[Math.floor(Math.random() * SYMBOLS.length)]);
+        r.push(row === 1 ? winSymbol : SYMBOL_KEYS[Math.floor(Math.random() * SYMBOL_KEYS.length)]);
       }
       grid.push(r);
     }
   } else if (multiplier >= 2) {
-    const winSymbol = SYMBOLS[Math.floor(Math.random() * SYMBOLS.length)];
+    const winSymbol = SYMBOL_KEYS[Math.floor(Math.random() * SYMBOL_KEYS.length)];
     const winRow = Math.floor(Math.random() * 3);
     for (let row = 0; row < 3; row++) {
       const r: string[] = [];
       for (let col = 0; col < 3; col++) {
         if (row === winRow) {
-          r.push(col < 2 ? winSymbol : (Math.random() > 0.5 ? winSymbol : SYMBOLS[Math.floor(Math.random() * SYMBOLS.length)]));
+          r.push(col < 2 ? winSymbol : (Math.random() > 0.5 ? winSymbol : SYMBOL_KEYS[Math.floor(Math.random() * SYMBOL_KEYS.length)]));
         } else {
-          r.push(SYMBOLS[Math.floor(Math.random() * SYMBOLS.length)]);
+          r.push(SYMBOL_KEYS[Math.floor(Math.random() * SYMBOL_KEYS.length)]);
         }
       }
       grid.push(r);
@@ -70,7 +70,7 @@ function generateReelSymbols(multiplier: number): string[][] {
       const used = new Set<string>();
       for (let col = 0; col < 3; col++) {
         let s: string;
-        do { s = SYMBOLS[Math.floor(Math.random() * SYMBOLS.length)]; } while (used.has(s) && used.size < SYMBOLS.length);
+        do { s = SYMBOL_KEYS[Math.floor(Math.random() * SYMBOL_KEYS.length)]; } while (used.has(s) && used.size < SYMBOL_KEYS.length);
         used.add(s);
         r.push(s);
       }
@@ -118,14 +118,8 @@ export function useTigrinho() {
 
   const play = useCallback(async () => {
     if (!user?.id || spinning) return;
-    if (betAmount > balance) {
-      toast.error("Saldo insuficiente!");
-      return;
-    }
-    if (betAmount <= 0) {
-      toast.error("Aposta inválida!");
-      return;
-    }
+    if (betAmount > balance) { toast.error("Saldo insuficiente!"); return; }
+    if (betAmount <= 0) { toast.error("Aposta inválida!"); return; }
 
     setSpinning(true);
     setLastResult(null);
@@ -137,7 +131,6 @@ export function useTigrinho() {
 
     try {
       await supabase.from("double_balances").update({ balance: newBalance }).eq("user_id", user.id);
-
       await supabase.from("tigrinho_bets").insert({
         user_id: user.id,
         user_name: "Jogador",
@@ -147,7 +140,6 @@ export function useTigrinho() {
         result_symbols: symbols.flat(),
       });
 
-      // Delay result reveal for animation
       await new Promise((r) => setTimeout(r, 1800));
 
       setLastResult({ multiplier, payout, symbols });
