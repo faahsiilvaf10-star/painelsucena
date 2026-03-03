@@ -354,6 +354,38 @@ export function useAviator() {
     }
   }, [user, profile]);
 
+  const cancelBet = useCallback(async () => {
+    if (!user || !currentBetRef.current) return;
+    if (phaseRef.current !== "waiting") return;
+
+    setIsProcessing(true);
+    try {
+      const bet = currentBetRef.current;
+      // Refund balance
+      const newBalance = balanceRef.current + bet.bet_amount;
+      await supabase
+        .from("aviator_balances")
+        .update({ balance: newBalance })
+        .eq("user_id", user.id);
+      setBalance(newBalance);
+
+      // Delete the bet
+      await supabase
+        .from("aviator_bets")
+        .delete()
+        .eq("id", bet.id);
+
+      setCurrentBet(null);
+      currentBetRef.current = null;
+      setRoundBets(prev => prev.filter(b => b.id !== bet.id));
+      toast.info("Aposta cancelada! Saldo devolvido.");
+    } catch {
+      toast.error("Erro ao cancelar aposta.");
+    } finally {
+      setIsProcessing(false);
+    }
+  }, [user]);
+
   const cashOut = useCallback(async () => {
     if (!user || !currentBetRef.current) return;
     if (phaseRef.current !== "running") return;
@@ -416,6 +448,7 @@ export function useAviator() {
     sessionDuration,
     betHistory,
     placeBet,
+    cancelBet,
     cashOut,
     loadBalance,
   };
