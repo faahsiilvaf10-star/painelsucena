@@ -4,8 +4,11 @@ import { ptBR } from "date-fns/locale";
 import { useAuth } from "@/hooks/useAuth";
 import { useProfile } from "@/hooks/useProfile";
 import { useEpiExchanges, EpiExchange } from "@/hooks/useEpiExchanges";
+import { useInventoryItems } from "@/hooks/useInventory";
 import { SignatureDialog } from "@/components/epi/SignatureDialog";
 import { colaboradoresAtivos } from "@/data/efetivoData";
+import { supabase } from "@/integrations/supabase/client";
+import { toast } from "sonner";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
@@ -164,6 +167,7 @@ export default function TrocaEpi() {
   const { user } = useAuth();
   const { data: profile } = useProfile();
   const { exchanges, isLoading, createExchange, deleteExchange } = useEpiExchanges();
+  const { data: inventoryItems = [] } = useInventoryItems();
   const efetivo = colaboradoresAtivos;
   const [showForm, setShowForm] = useState(false);
   const [viewExchange, setViewExchange] = useState<EpiExchange | null>(null);
@@ -233,6 +237,79 @@ export default function TrocaEpi() {
       assinatura_funcionario: sigFuncionario || null,
       assinatura_autorizador: sigAutorizador || null,
     });
+
+    // Deduct inventory for each selected EPI
+    const deductedItems: string[] = [];
+    for (const epi of selectedEpis) {
+      const epiItem = EPI_ITEMS.find(e => e.id === epi.id);
+      if (!epiItem) continue;
+      const label = epiItem.label.toLowerCase();
+      const match = inventoryItems.find(inv => inv.name.toLowerCase().includes(label) || label.includes(inv.name.toLowerCase()));
+      if (match && match.quantity > 0) {
+        const newQty = match.quantity - 1;
+        await supabase.from("inventory_items").update({ quantity: newQty }).eq("id", match.id);
+        await supabase.from("inventory_movements").insert({
+          item_id: match.id,
+          movement_type: "saida",
+          quantity: 1,
+          previous_quantity: match.quantity,
+          new_quantity: newQty,
+          reason: `Troca de EPI - ${funcionarioNome}`,
+          moved_by: user!.id,
+          moved_by_name: profile?.full_name || "Usuário",
+          destination_type: "funcionario",
+          destination_name: funcionarioNome,
+        });
+        deductedItems.push(epiItem.label);
+      }
+    }
+
+    // Deduct uniforms
+    if (blusaQtd > 0) {
+      const blusaMatch = inventoryItems.find(inv => inv.name.toLowerCase().includes("blusa operacional") || inv.name.toLowerCase().includes("blusa"));
+      if (blusaMatch && blusaMatch.quantity >= blusaQtd) {
+        const newQty = blusaMatch.quantity - blusaQtd;
+        await supabase.from("inventory_items").update({ quantity: newQty }).eq("id", blusaMatch.id);
+        await supabase.from("inventory_movements").insert({
+          item_id: blusaMatch.id,
+          movement_type: "saida",
+          quantity: blusaQtd,
+          previous_quantity: blusaMatch.quantity,
+          new_quantity: newQty,
+          reason: `Troca de EPI - ${funcionarioNome}`,
+          moved_by: user!.id,
+          moved_by_name: profile?.full_name || "Usuário",
+          destination_type: "funcionario",
+          destination_name: funcionarioNome,
+        });
+        deductedItems.push(`Blusa Operacional (${blusaQtd})`);
+      }
+    }
+    if (calcaQtd > 0) {
+      const calcaMatch = inventoryItems.find(inv => inv.name.toLowerCase().includes("calça operacional") || inv.name.toLowerCase().includes("calca"));
+      if (calcaMatch && calcaMatch.quantity >= calcaQtd) {
+        const newQty = calcaMatch.quantity - calcaQtd;
+        await supabase.from("inventory_items").update({ quantity: newQty }).eq("id", calcaMatch.id);
+        await supabase.from("inventory_movements").insert({
+          item_id: calcaMatch.id,
+          movement_type: "saida",
+          quantity: calcaQtd,
+          previous_quantity: calcaMatch.quantity,
+          new_quantity: newQty,
+          reason: `Troca de EPI - ${funcionarioNome}`,
+          moved_by: user!.id,
+          moved_by_name: profile?.full_name || "Usuário",
+          destination_type: "funcionario",
+          destination_name: funcionarioNome,
+        });
+        deductedItems.push(`Calça Operacional (${calcaQtd})`);
+      }
+    }
+
+    if (deductedItems.length > 0) {
+      toast.info(`Estoque atualizado: ${deductedItems.join(", ")}`);
+    }
+
     setShowSignature(false);
     resetForm();
     setShowForm(false);
