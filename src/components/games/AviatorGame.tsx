@@ -74,7 +74,7 @@ export function AviatorGame({ onBack }: AviatorGameProps) {
     phase, multiplier, lastCrash, crashHistory,
     waitCountdown, balance, currentBet, roundBets,
     isProcessing, sessionStats, sessionDuration, betHistory,
-    placeBet, cashOut,
+    placeBet, cancelBet, cashOut,
   } = useAviator();
 
   const [betAmount, setBetAmount] = useState("10");
@@ -278,11 +278,13 @@ export function AviatorGame({ onBack }: AviatorGameProps) {
                 </Button>
               )}
               {phase === "waiting" && currentBet && (
-                <Button disabled className="w-full h-14 text-lg font-bold bg-amber-600/80 text-white">⏳ Aposta feita — Aguardando...</Button>
+                <Button onClick={cancelBet} disabled={isProcessing} className="w-full h-14 text-lg font-bold bg-red-600 hover:bg-red-700 text-white">
+                  ❌ CANCELAR APOSTA — R$ {currentBet.bet_amount.toFixed(2)}
+                </Button>
               )}
               {phase === "running" && currentBet && !currentBet.cashed_out_at && (
-                <Button onClick={cashOut} disabled={isProcessing} className="w-full h-14 text-lg font-bold bg-red-600 hover:bg-red-700 text-white animate-pulse">
-                  💰 RETIRAR R$ {(currentBet.bet_amount * multiplier).toFixed(2)}
+                <Button onClick={cashOut} disabled={isProcessing} className="w-full h-14 text-lg font-bold bg-emerald-600 hover:bg-emerald-700 text-white animate-pulse">
+                  💰 RETIRAR {multiplier.toFixed(2)}x — R$ {(currentBet.bet_amount * multiplier).toFixed(2)}
                 </Button>
               )}
               {phase === "running" && currentBet && currentBet.cashed_out_at && (
