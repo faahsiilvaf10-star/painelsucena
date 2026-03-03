@@ -83,6 +83,7 @@ export function useAviator() {
   const [waitCountdown, setWaitCountdown] = useState(0);
   const [balance, setBalance] = useState(0);
   const [currentBet, setCurrentBet] = useState<AviatorBet | null>(null);
+  const [currentBet2, setCurrentBet2] = useState<AviatorBet | null>(null);
   const [roundBets, setRoundBets] = useState<AviatorBet[]>([]);
   const [currentRoundId, setCurrentRoundId] = useState<string | null>(null);
   const [isProcessing, setIsProcessing] = useState(false);
@@ -93,6 +94,7 @@ export function useAviator() {
   const multiplierRef = useRef(multiplier);
   const crashPointRef = useRef(crashPoint);
   const currentBetRef = useRef(currentBet);
+  const currentBet2Ref = useRef(currentBet2);
   const roundIdRef = useRef(currentRoundId);
   const balanceRef = useRef(balance);
   const animFrameRef = useRef<number | null>(null);
@@ -105,6 +107,7 @@ export function useAviator() {
   multiplierRef.current = multiplier;
   crashPointRef.current = crashPoint;
   currentBetRef.current = currentBet;
+  currentBet2Ref.current = currentBet2;
   roundIdRef.current = currentRoundId;
   balanceRef.current = balance;
 
@@ -230,6 +233,7 @@ export function useAviator() {
     setPhase("waiting");
     setMultiplier(1.0);
     setCurrentBet(null);
+    setCurrentBet2(null);
     setRoundBets([]);
 
     const cp = generateCrashPoint();
@@ -282,11 +286,16 @@ export function useAviator() {
         .eq("id", roundIdRef.current);
     }
 
-    // Track loss if bet wasn't cashed out
+    // Track loss if bet 1 wasn't cashed out
     const bet = currentBetRef.current;
     if (bet && !bet.cashed_out_at) {
       updateStats(false, bet.bet_amount, null, cp);
       toast.error(`Crash em ${cp.toFixed(2)}x! Você perdeu R$ ${bet.bet_amount.toFixed(2)}`);
+    }
+    // Track loss if bet 2 wasn't cashed out
+    const bet2 = currentBet2Ref.current;
+    if (bet2 && !bet2.cashed_out_at) {
+      updateStats(false, bet2.bet_amount, null, cp);
     }
 
     crashTimeoutRef.current = setTimeout(() => {
@@ -294,18 +303,19 @@ export function useAviator() {
     }, 3000);
   }, [startWaiting, updateStats]);
 
-  const placeBet = useCallback(async (amount: number) => {
+  const placeBetSlot = useCallback(async (amount: number, slot: 1 | 2) => {
     if (!user || !profile) return;
     if (phaseRef.current !== "waiting") {
       toast.error("Espere a próxima rodada para apostar!");
       return;
     }
+    const betRef = slot === 1 ? currentBetRef : currentBet2Ref;
     if (amount <= 0 || amount > balanceRef.current) {
       toast.error(amount > balanceRef.current ? "Saldo insuficiente!" : "Valor inválido!");
       return;
     }
-    if (currentBetRef.current) {
-      toast.error("Você já apostou nesta rodada!");
+    if (betRef.current) {
+      toast.error("Você já apostou neste slot!");
       return;
     }
 
@@ -332,20 +342,15 @@ export function useAviator() {
 
       if (bet) {
         const betData: AviatorBet = {
-          id: bet.id,
-          user_id: bet.user_id,
-          user_name: bet.user_name,
-          avatar_url: bet.avatar_url,
-          bet_amount: bet.bet_amount,
-          cashed_out_at: bet.cashed_out_at,
-          payout: bet.payout,
-          round_id: bet.round_id,
-          created_at: bet.created_at,
+          id: bet.id, user_id: bet.user_id, user_name: bet.user_name,
+          avatar_url: bet.avatar_url, bet_amount: bet.bet_amount,
+          cashed_out_at: bet.cashed_out_at, payout: bet.payout,
+          round_id: bet.round_id, created_at: bet.created_at,
         };
-        setCurrentBet(betData);
-        currentBetRef.current = betData;
+        if (slot === 1) { setCurrentBet(betData); currentBetRef.current = betData; }
+        else { setCurrentBet2(betData); currentBet2Ref.current = betData; }
         setRoundBets(prev => [...prev, betData]);
-        toast.success(`Aposta de R$ ${amount.toFixed(2)} realizada!`);
+        toast.success(`Aposta ${slot} de R$ ${amount.toFixed(2)} realizada!`);
       }
     } catch {
       toast.error("Erro ao realizar aposta.");
@@ -354,31 +359,27 @@ export function useAviator() {
     }
   }, [user, profile]);
 
-  const cancelBet = useCallback(async () => {
-    if (!user || !currentBetRef.current) return;
+  const placeBet = useCallback((amount: number) => placeBetSlot(amount, 1), [placeBetSlot]);
+  const placeBet2 = useCallback((amount: number) => placeBetSlot(amount, 2), [placeBetSlot]);
+
+  const cancelBetSlot = useCallback(async (slot: 1 | 2) => {
+    if (!user) return;
     if (phaseRef.current !== "waiting") return;
+    const betRef = slot === 1 ? currentBetRef : currentBet2Ref;
+    if (!betRef.current) return;
 
     setIsProcessing(true);
     try {
-      const bet = currentBetRef.current;
-      // Refund balance
+      const bet = betRef.current;
       const newBalance = balanceRef.current + bet.bet_amount;
-      await supabase
-        .from("aviator_balances")
-        .update({ balance: newBalance })
-        .eq("user_id", user.id);
+      await supabase.from("aviator_balances").update({ balance: newBalance }).eq("user_id", user.id);
       setBalance(newBalance);
+      await supabase.from("aviator_bets").delete().eq("id", bet.id);
 
-      // Delete the bet
-      await supabase
-        .from("aviator_bets")
-        .delete()
-        .eq("id", bet.id);
-
-      setCurrentBet(null);
-      currentBetRef.current = null;
+      if (slot === 1) { setCurrentBet(null); currentBetRef.current = null; }
+      else { setCurrentBet2(null); currentBet2Ref.current = null; }
       setRoundBets(prev => prev.filter(b => b.id !== bet.id));
-      toast.info("Aposta cancelada! Saldo devolvido.");
+      toast.info(`Aposta ${slot} cancelada! Saldo devolvido.`);
     } catch {
       toast.error("Erro ao cancelar aposta.");
     } finally {
@@ -386,42 +387,40 @@ export function useAviator() {
     }
   }, [user]);
 
-  const cashOut = useCallback(async () => {
-    if (!user || !currentBetRef.current) return;
+  const cancelBet = useCallback(() => cancelBetSlot(1), [cancelBetSlot]);
+  const cancelBet2 = useCallback(() => cancelBetSlot(2), [cancelBetSlot]);
+
+  const cashOutSlot = useCallback(async (slot: 1 | 2) => {
+    if (!user) return;
     if (phaseRef.current !== "running") return;
-    if (currentBetRef.current.cashed_out_at) return;
+    const betRef = slot === 1 ? currentBetRef : currentBet2Ref;
+    if (!betRef.current || betRef.current.cashed_out_at) return;
 
     setIsProcessing(true);
     try {
       const m = multiplierRef.current;
-      const payout = currentBetRef.current.bet_amount * m;
+      const payout = betRef.current.bet_amount * m;
 
-      await supabase
-        .from("aviator_bets")
-        .update({ cashed_out_at: m, payout })
-        .eq("id", currentBetRef.current.id);
-
+      await supabase.from("aviator_bets").update({ cashed_out_at: m, payout }).eq("id", betRef.current.id);
       const newBalance = balanceRef.current + payout;
-      await supabase
-        .from("aviator_balances")
-        .update({ balance: newBalance })
-        .eq("user_id", user.id);
+      await supabase.from("aviator_balances").update({ balance: newBalance }).eq("user_id", user.id);
       setBalance(newBalance);
 
-      const updatedBet = { ...currentBetRef.current, cashed_out_at: m, payout };
-      setCurrentBet(updatedBet);
-      currentBetRef.current = updatedBet;
+      const updatedBet = { ...betRef.current, cashed_out_at: m, payout };
+      if (slot === 1) { setCurrentBet(updatedBet); currentBetRef.current = updatedBet; }
+      else { setCurrentBet2(updatedBet); currentBet2Ref.current = updatedBet; }
 
-      // Track win
       updateStats(true, updatedBet.bet_amount, payout, m);
-
-      toast.success(`Retirou em ${m.toFixed(2)}x! Ganhou R$ ${payout.toFixed(2)}`);
+      toast.success(`Aposta ${slot}: Retirou em ${m.toFixed(2)}x! Ganhou R$ ${payout.toFixed(2)}`);
     } catch {
       toast.error("Erro ao retirar.");
     } finally {
       setIsProcessing(false);
     }
   }, [user, updateStats]);
+
+  const cashOut = useCallback(() => cashOutSlot(1), [cashOutSlot]);
+  const cashOut2 = useCallback(() => cashOutSlot(2), [cashOutSlot]);
 
   // Start game loop on mount
   useEffect(() => {
@@ -434,22 +433,9 @@ export function useAviator() {
   }, [sessionStats.sessionStart, sessionStats.roundsPlayed]);
 
   return {
-    phase,
-    multiplier,
-    crashPoint,
-    lastCrash,
-    crashHistory,
-    waitCountdown,
-    balance,
-    currentBet,
-    roundBets,
-    isProcessing,
-    sessionStats,
-    sessionDuration,
-    betHistory,
-    placeBet,
-    cancelBet,
-    cashOut,
-    loadBalance,
+    phase, multiplier, crashPoint, lastCrash, crashHistory,
+    waitCountdown, balance, currentBet, currentBet2, roundBets,
+    isProcessing, sessionStats, sessionDuration, betHistory,
+    placeBet, placeBet2, cancelBet, cancelBet2, cashOut, cashOut2, loadBalance,
   };
 }
