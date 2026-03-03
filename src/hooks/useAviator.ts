@@ -238,7 +238,7 @@ export function useAviator() {
 
     const { data: round } = await supabase
       .from("aviator_rounds")
-      .insert({ crash_point: cp, status: "waiting", result_color: "", result_number: 0 } as any)
+      .insert({ crash_point: cp, status: "waiting" })
       .select()
       .single();
 
