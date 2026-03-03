@@ -570,31 +570,35 @@ export default function TrocaEpi() {
 
         const isMobile = /Android|iPhone|iPad|iPod/i.test(navigator.userAgent);
 
-        // Mobile: share image file + description via native share sheet
-        if (isMobile && navigator.share && navigator.canShare?.({ files: [file] })) {
-          try {
-            await navigator.share({
-              files: [file],
-              title: `Troca de EPI - ${exchange.funcionario_nome}`,
-              text: description,
-            });
-            toast.success("Imagem enviada!");
-            return;
-          } catch (e: any) {
-            if (e?.name === "AbortError") return;
-          }
-        }
-
         if (isMobile) {
-          // Mobile fallback: download + open WhatsApp to the contact
-          const blobUrl = URL.createObjectURL(blob);
-          const a = document.createElement("a");
-          a.href = blobUrl;
-          a.download = fileName;
-          a.click();
-          URL.revokeObjectURL(blobUrl);
+          // Mobile: open WhatsApp conversation with the contact first, then share the image
           window.open(`https://wa.me/${phone}?text=${encodeURIComponent(description)}`, "_blank");
-          toast.success("PNG salvo! Anexe na conversa do WhatsApp.");
+          
+          // After a short delay, trigger the native share with the image file
+          if (navigator.share && navigator.canShare?.({ files: [file] })) {
+            await new Promise(r => setTimeout(r, 1500));
+            try {
+              await navigator.share({
+                files: [file],
+                title: `Troca de EPI - ${exchange.funcionario_nome}`,
+                text: description,
+              });
+              toast.success("Imagem enviada!");
+            } catch (e: any) {
+              if (e?.name !== "AbortError") {
+                toast.info("Selecione o contato +55 91 9364-5741 para enviar a imagem.");
+              }
+            }
+          } else {
+            // Download PNG if share API not available
+            const blobUrl = URL.createObjectURL(blob);
+            const a = document.createElement("a");
+            a.href = blobUrl;
+            a.download = fileName;
+            a.click();
+            URL.revokeObjectURL(blobUrl);
+            toast.success("PNG salvo! Anexe na conversa aberta.");
+          }
         } else {
           // Desktop: only text info
           window.open(`https://web.whatsapp.com/send?phone=${phone}&text=${encodeURIComponent(description)}`, "_blank");
