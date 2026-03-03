@@ -567,29 +567,41 @@ export default function TrocaEpi() {
           return `${name} (${epiQty})`;
         }).join(", ");
         const description = `Troca de EPI - ${exchange.funcionario_nome}\nItens: ${episList}`;
+        const isMobile = /Android|iPhone|iPad|iPod/i.test(navigator.userAgent);
 
-        // Always download the PNG first
-        const url = URL.createObjectURL(blob);
-        const link = document.createElement("a");
-        link.href = url;
-        link.download = fileName;
-        link.click();
-        URL.revokeObjectURL(url);
-
-        // Try Web Share API to share file directly to WhatsApp
-        if (navigator.share && navigator.canShare?.({ files: [file] })) {
-          try {
-            await navigator.share({ files: [file], text: description });
-            toast.success("Imagem compartilhada!");
-            return;
-          } catch {
-            // User cancelled or failed — open WhatsApp link as fallback
+        if (isMobile) {
+          // Mobile: share file via Web Share API directly
+          if (navigator.share && navigator.canShare?.({ files: [file] })) {
+            try {
+              window.open(`https://wa.me/${phone}?text=${encodeURIComponent(description)}`, "_blank");
+              await new Promise(r => setTimeout(r, 800));
+              await navigator.share({ files: [file], text: description });
+              toast.success("Imagem compartilhada!");
+              return;
+            } catch {
+              // User cancelled
+            }
+          } else {
+            const url = URL.createObjectURL(blob);
+            const a = document.createElement("a");
+            a.href = url;
+            a.download = fileName;
+            a.click();
+            URL.revokeObjectURL(url);
+            window.open(`https://wa.me/${phone}?text=${encodeURIComponent(description)}`, "_blank");
+            toast.success("PNG salvo! Anexe a imagem na conversa.");
           }
+        } else {
+          // Desktop: download PNG then open WhatsApp Web with the contact
+          const url = URL.createObjectURL(blob);
+          const a = document.createElement("a");
+          a.href = url;
+          a.download = fileName;
+          a.click();
+          URL.revokeObjectURL(url);
+          window.open(`https://web.whatsapp.com/send?phone=${phone}&text=${encodeURIComponent(description)}`, "_blank");
+          toast.success("PNG baixado! Anexe a imagem no WhatsApp Web.");
         }
-
-        // Fallback: open WhatsApp with the specific phone number
-        window.open(`https://wa.me/${phone}?text=${encodeURIComponent(description)}`, "_blank");
-        toast.success("PNG baixado! Anexe a imagem no WhatsApp.");
       }, "image/png");
     } catch (err) {
       console.error(err);
