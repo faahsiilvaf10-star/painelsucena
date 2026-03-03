@@ -1,7 +1,7 @@
 import { useRef, useState, useEffect, useCallback } from "react";
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/components/ui/dialog";
 import { Button } from "@/components/ui/button";
-import { Eraser, Check } from "lucide-react";
+import { Eraser, Check, ArrowRight } from "lucide-react";
 
 interface SignatureCanvasProps {
   label: string;
@@ -117,35 +117,68 @@ interface SignatureDialogProps {
 }
 
 export function SignatureDialog({ open, onClose, onConfirm }: SignatureDialogProps) {
-  const [sigFuncionario, setSigFuncionario] = useState("");
+  const [step, setStep] = useState<1 | 2>(1);
   const [sigAutorizador, setSigAutorizador] = useState("");
+  const [sigFuncionario, setSigFuncionario] = useState("");
 
   useEffect(() => {
     if (open) {
-      setSigFuncionario("");
+      setStep(1);
       setSigAutorizador("");
+      setSigFuncionario("");
     }
   }, [open]);
+
+  const handleNext = () => {
+    setStep(2);
+  };
 
   return (
     <Dialog open={open} onOpenChange={(v) => !v && onClose()}>
       <DialogContent className="max-w-lg">
         <DialogHeader>
-          <DialogTitle>Assinaturas Digitais</DialogTitle>
+          <DialogTitle>
+            {step === 1 ? "Assinatura do Autorizador (1/2)" : "Assinatura do Funcionário (2/2)"}
+          </DialogTitle>
         </DialogHeader>
         <div className="space-y-4">
-          <SignatureCanvas label="Assinatura do Funcionário" onSignatureChange={setSigFuncionario} />
-          <SignatureCanvas label="Assinatura do Autorizador" onSignatureChange={setSigAutorizador} />
-          <div className="flex justify-end gap-2 pt-2">
-            <Button variant="outline" onClick={onClose}>Cancelar</Button>
-            <Button
-              onClick={() => onConfirm(sigFuncionario, sigAutorizador)}
-              disabled={!sigFuncionario || !sigAutorizador}
-              className="gap-1"
-            >
-              <Check className="h-4 w-4" /> Confirmar e Salvar
-            </Button>
-          </div>
+          {step === 1 ? (
+            <>
+              <SignatureCanvas
+                key="autorizador"
+                label="Assinatura do Autorizador"
+                onSignatureChange={setSigAutorizador}
+              />
+              <div className="flex justify-end gap-2 pt-2">
+                <Button variant="outline" onClick={onClose}>Cancelar</Button>
+                <Button
+                  onClick={handleNext}
+                  disabled={!sigAutorizador}
+                  className="gap-1"
+                >
+                  Próximo <ArrowRight className="h-4 w-4" />
+                </Button>
+              </div>
+            </>
+          ) : (
+            <>
+              <SignatureCanvas
+                key="funcionario"
+                label="Assinatura do Funcionário"
+                onSignatureChange={setSigFuncionario}
+              />
+              <div className="flex justify-end gap-2 pt-2">
+                <Button variant="outline" onClick={() => setStep(1)}>Voltar</Button>
+                <Button
+                  onClick={() => onConfirm(sigFuncionario, sigAutorizador)}
+                  disabled={!sigFuncionario}
+                  className="gap-1"
+                >
+                  <Check className="h-4 w-4" /> Confirmar e Salvar
+                </Button>
+              </div>
+            </>
+          )}
         </div>
       </DialogContent>
     </Dialog>
