@@ -1,10 +1,11 @@
-import { useState } from "react";
+import { useState, useMemo } from "react";
 import { format } from "date-fns";
 import { ptBR } from "date-fns/locale";
 import { useAuth } from "@/hooks/useAuth";
 import { useProfile } from "@/hooks/useProfile";
 import { useEpiExchanges, EpiExchange } from "@/hooks/useEpiExchanges";
 import { SignatureDialog } from "@/components/epi/SignatureDialog";
+import { useEmployees } from "@/hooks/useEmployees";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
@@ -16,6 +17,8 @@ import { Badge } from "@/components/ui/badge";
 import { Separator } from "@/components/ui/separator";
 import { ShieldCheck, Plus, FileText, Trash2, Eye } from "lucide-react";
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/components/ui/dialog";
+import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover";
+import { Command, CommandInput, CommandList, CommandEmpty, CommandItem } from "@/components/ui/command";
 import { getLogoBase64 } from "@/lib/pdfLogo";
 
 const EPI_ITEMS = [
@@ -160,9 +163,12 @@ export default function TrocaEpi() {
   const { user } = useAuth();
   const { data: profile } = useProfile();
   const { exchanges, isLoading, createExchange, deleteExchange } = useEpiExchanges();
+  const { data: employees = [] } = useEmployees();
   const [showForm, setShowForm] = useState(false);
   const [viewExchange, setViewExchange] = useState<EpiExchange | null>(null);
   const [showSignature, setShowSignature] = useState(false);
+  const [funcPopoverOpen, setFuncPopoverOpen] = useState(false);
+  const [authPopoverOpen, setAuthPopoverOpen] = useState(false);
   // Form state
   const [data, setData] = useState(format(new Date(), "yyyy-MM-dd"));
   const [autorizadoPor, setAutorizadoPor] = useState("");
@@ -273,7 +279,34 @@ export default function TrocaEpi() {
             <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
               <div>
                 <Label>Autorizado por *</Label>
-                <Input value={autorizadoPor} onChange={e => setAutorizadoPor(e.target.value)} placeholder="Nome do autorizador" />
+                <Popover open={authPopoverOpen} onOpenChange={setAuthPopoverOpen}>
+                  <PopoverTrigger asChild>
+                    <Button variant="outline" className="w-full justify-start font-normal h-10">
+                      {autorizadoPor || <span className="text-muted-foreground">Selecione o autorizador</span>}
+                    </Button>
+                  </PopoverTrigger>
+                  <PopoverContent className="p-0 w-[--radix-popover-trigger-width]" align="start">
+                    <Command>
+                      <CommandInput placeholder="Buscar funcionário..." />
+                      <CommandList>
+                        <CommandEmpty>Nenhum encontrado</CommandEmpty>
+                        {employees.filter(e => e.status === 'active').map(emp => (
+                          <CommandItem
+                            key={emp.id}
+                            onSelect={() => {
+                              setAutorizadoPor(emp.name);
+                              setMatriculaAutorizador("");
+                              setAuthPopoverOpen(false);
+                            }}
+                          >
+                            <span>{emp.name}</span>
+                            <span className="ml-auto text-xs text-muted-foreground">{emp.role}</span>
+                          </CommandItem>
+                        ))}
+                      </CommandList>
+                    </Command>
+                  </PopoverContent>
+                </Popover>
               </div>
               <div>
                 <Label>Matrícula (Autorizador)</Label>
@@ -291,7 +324,35 @@ export default function TrocaEpi() {
             <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
               <div>
                 <Label>Funcionário(a) *</Label>
-                <Input value={funcionarioNome} onChange={e => setFuncionarioNome(e.target.value)} placeholder="Nome do funcionário" />
+                <Popover open={funcPopoverOpen} onOpenChange={setFuncPopoverOpen}>
+                  <PopoverTrigger asChild>
+                    <Button variant="outline" className="w-full justify-start font-normal h-10">
+                      {funcionarioNome || <span className="text-muted-foreground">Selecione o funcionário</span>}
+                    </Button>
+                  </PopoverTrigger>
+                  <PopoverContent className="p-0 w-[--radix-popover-trigger-width]" align="start">
+                    <Command>
+                      <CommandInput placeholder="Buscar funcionário..." />
+                      <CommandList>
+                        <CommandEmpty>Nenhum encontrado</CommandEmpty>
+                        {employees.filter(e => e.status === 'active').map(emp => (
+                          <CommandItem
+                            key={emp.id}
+                            onSelect={() => {
+                              setFuncionarioNome(emp.name);
+                              setFuncionarioFuncao(emp.role || "");
+                              setFuncionarioMatricula("");
+                              setFuncPopoverOpen(false);
+                            }}
+                          >
+                            <span>{emp.name}</span>
+                            <span className="ml-auto text-xs text-muted-foreground">{emp.role}</span>
+                          </CommandItem>
+                        ))}
+                      </CommandList>
+                    </Command>
+                  </PopoverContent>
+                </Popover>
               </div>
               <div>
                 <Label>Função</Label>
