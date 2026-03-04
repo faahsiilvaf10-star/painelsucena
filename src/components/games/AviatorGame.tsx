@@ -549,32 +549,72 @@ export function AviatorGame({ onBack }: AviatorGameProps) {
             </Card>
           </div>
 
-          {/* Round bets */}
-          {roundBets.length > 0 && (
-            <Card>
-              <CardContent className="p-3">
-                <div className="flex items-center gap-2 mb-2">
-                  <History className="w-4 h-4 text-muted-foreground" />
-                  <span className="text-sm font-semibold text-foreground">Apostas desta Rodada</span>
+          {/* Live Bets Panel */}
+          <Card className="border border-border/50">
+            <CardContent className="p-3">
+              <div className="flex items-center gap-2 mb-2">
+                <div className="relative">
+                  <Users className="w-4 h-4 text-muted-foreground" />
+                  {roundBets.length > 0 && (
+                    <span className="absolute -top-1 -right-1.5 w-2 h-2 rounded-full bg-emerald-500 animate-pulse" />
+                  )}
                 </div>
-                <div className="space-y-1.5">
-                  {roundBets.map(bet => (
-                    <div key={bet.id} className="flex items-center justify-between text-xs p-2 rounded-lg bg-muted/30">
-                      <span className="font-medium">{bet.user_name}</span>
-                      <span className="text-muted-foreground">R$ {bet.bet_amount.toFixed(2)}</span>
-                      {bet.cashed_out_at ? (
-                        <Badge className="bg-emerald-500/20 text-emerald-500 border-0 text-[10px]">{bet.cashed_out_at.toFixed(2)}x → R$ {(bet.payout || 0).toFixed(2)}</Badge>
-                      ) : phase === "crashed" ? (
-                        <Badge className="bg-red-500/20 text-red-500 border-0 text-[10px]">Perdeu</Badge>
-                      ) : (
-                        <Badge className="bg-amber-500/20 text-amber-500 border-0 text-[10px]">Em jogo</Badge>
-                      )}
-                    </div>
-                  ))}
+                <span className="text-sm font-semibold text-foreground">Apostas ao Vivo</span>
+                <Badge variant="outline" className="ml-auto text-[10px] gap-1">
+                  <Users className="w-3 h-3" /> {roundBets.length}
+                </Badge>
+              </div>
+              {roundBets.length === 0 ? (
+                <p className="text-xs text-muted-foreground text-center py-3">Nenhuma aposta nesta rodada ainda...</p>
+              ) : (
+                <div className="space-y-1 max-h-[180px] overflow-y-auto scrollbar-hide">
+                  <AnimatePresence initial={false}>
+                    {roundBets.map(bet => (
+                      <motion.div
+                        key={bet.id}
+                        initial={{ opacity: 0, x: -20, height: 0 }}
+                        animate={{ opacity: 1, x: 0, height: "auto" }}
+                        exit={{ opacity: 0, x: 20 }}
+                        transition={{ type: "spring", stiffness: 500, damping: 30 }}
+                        className={`flex items-center gap-2 text-xs p-2 rounded-lg transition-colors ${
+                          bet.cashed_out_at
+                            ? "bg-emerald-500/10 border border-emerald-500/20"
+                            : phase === "crashed" && !bet.cashed_out_at
+                            ? "bg-red-500/10 border border-red-500/20"
+                            : "bg-muted/30"
+                        }`}
+                      >
+                        {/* Avatar */}
+                        <div className="w-6 h-6 rounded-full bg-primary/20 flex items-center justify-center shrink-0 overflow-hidden">
+                          {bet.avatar_url ? (
+                            <img src={bet.avatar_url} alt="" className="w-full h-full object-cover rounded-full" />
+                          ) : (
+                            <span className="text-[10px] font-bold text-primary">
+                              {bet.user_name?.charAt(0)?.toUpperCase() || "?"}
+                            </span>
+                          )}
+                        </div>
+                        {/* Name */}
+                        <span className="font-medium truncate min-w-0 flex-1">{bet.user_name}</span>
+                        {/* Amount */}
+                        <span className="text-muted-foreground font-mono shrink-0">R$ {bet.bet_amount.toFixed(2)}</span>
+                        {/* Status */}
+                        {bet.cashed_out_at ? (
+                          <Badge className="bg-emerald-500/20 text-emerald-500 border-0 text-[10px] shrink-0">
+                            ✅ {(typeof bet.cashed_out_at === 'number' ? bet.cashed_out_at : 0).toFixed(2)}x
+                          </Badge>
+                        ) : phase === "crashed" ? (
+                          <Badge className="bg-red-500/20 text-red-500 border-0 text-[10px] shrink-0">💥</Badge>
+                        ) : (
+                          <Badge className="bg-amber-500/20 text-amber-500 border-0 text-[10px] shrink-0 animate-pulse">🎮</Badge>
+                        )}
+                      </motion.div>
+                    ))}
+                  </AnimatePresence>
                 </div>
-              </CardContent>
-            </Card>
-          )}
+              )}
+            </CardContent>
+          </Card>
         </TabsContent>
 
         {/* STATS TAB */}
