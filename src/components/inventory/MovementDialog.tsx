@@ -1,8 +1,8 @@
-import { useEffect } from "react";
+import { useEffect, useState } from "react";
 import { useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { z } from "zod";
-import { ArrowDownCircle, ArrowUpCircle, RefreshCw, User, Truck, MapPin, Trash2 } from "lucide-react";
+import { ArrowDownCircle, ArrowUpCircle, RefreshCw, User, Truck, MapPin, Trash2, Check, ChevronsUpDown } from "lucide-react";
 import {
   Dialog,
   DialogContent,
@@ -27,6 +27,9 @@ import {
   SelectTrigger,
   SelectValue,
 } from "@/components/ui/select";
+import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover";
+import { Command, CommandInput, CommandList, CommandEmpty, CommandItem } from "@/components/ui/command";
+import { cn } from "@/lib/utils";
 import { useRecordMovement, InventoryItem } from "@/hooks/useInventory";
 import { useEmployees } from "@/hooks/useEmployees";
 import { useEquipment } from "@/hooks/useEquipment";
@@ -65,6 +68,7 @@ export function MovementDialog({ item, open, onOpenChange }: MovementDialogProps
   const recordMovement = useRecordMovement();
   const { data: employees } = useEmployees();
   const { data: equipment } = useEquipment();
+  const [employeePopoverOpen, setEmployeePopoverOpen] = useState(false);
 
   const form = useForm<FormData>({
     resolver: zodResolver(formSchema),
@@ -242,26 +246,52 @@ export function MovementDialog({ item, open, onOpenChange }: MovementDialogProps
                   <FormField
                     control={form.control}
                     name="destination_id"
-                    render={({ field }) => (
-                      <FormItem>
-                        <FormLabel>Funcionário</FormLabel>
-                        <Select onValueChange={field.onChange} value={field.value}>
-                          <FormControl>
-                            <SelectTrigger>
-                              <SelectValue placeholder="Selecione o funcionário" />
-                            </SelectTrigger>
-                          </FormControl>
-                          <SelectContent>
-                            {employees?.filter(e => e.status === 'active').map((emp) => (
-                              <SelectItem key={emp.id} value={emp.id}>
-                                {emp.name}
-                              </SelectItem>
-                            ))}
-                          </SelectContent>
-                        </Select>
-                        <FormMessage />
-                      </FormItem>
-                    )}
+                    render={({ field }) => {
+                      const selectedEmployee = employees?.find(e => e.id === field.value);
+                      const activeEmployees = employees?.filter(e => e.status === 'active').sort((a, b) => a.name.localeCompare(b.name)) || [];
+                      return (
+                        <FormItem>
+                          <FormLabel>Funcionário</FormLabel>
+                          <Popover open={employeePopoverOpen} onOpenChange={setEmployeePopoverOpen}>
+                            <PopoverTrigger asChild>
+                              <FormControl>
+                                <Button
+                                  variant="outline"
+                                  role="combobox"
+                                  className={cn("w-full justify-between font-normal h-10", !field.value && "text-muted-foreground")}
+                                >
+                                  {selectedEmployee ? selectedEmployee.name : "Selecione o funcionário"}
+                                  <ChevronsUpDown className="ml-2 h-4 w-4 shrink-0 opacity-50" />
+                                </Button>
+                              </FormControl>
+                            </PopoverTrigger>
+                            <PopoverContent className="p-0 w-[--radix-popover-trigger-width]" align="start">
+                              <Command>
+                                <CommandInput placeholder="Buscar funcionário..." />
+                                <CommandList>
+                                  <CommandEmpty>Nenhum funcionário encontrado</CommandEmpty>
+                                  {activeEmployees.map((emp) => (
+                                    <CommandItem
+                                      key={emp.id}
+                                      value={`${emp.name} ${emp.role} ${emp.department}`}
+                                      onSelect={() => {
+                                        field.onChange(emp.id);
+                                        setEmployeePopoverOpen(false);
+                                      }}
+                                    >
+                                      <Check className={cn("mr-2 h-4 w-4", field.value === emp.id ? "opacity-100" : "opacity-0")} />
+                                      <span>{emp.name}</span>
+                                      <span className="ml-auto text-xs text-muted-foreground">{emp.role}</span>
+                                    </CommandItem>
+                                  ))}
+                                </CommandList>
+                              </Command>
+                            </PopoverContent>
+                          </Popover>
+                          <FormMessage />
+                        </FormItem>
+                      );
+                    }}
                   />
                 )}
 
