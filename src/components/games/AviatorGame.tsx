@@ -6,7 +6,7 @@ import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Switch } from "@/components/ui/switch";
 import { Label } from "@/components/ui/label";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
-import { ArrowLeft, TrendingUp, TrendingDown, Wallet, History, Rocket, BarChart3, Trophy, Flame, Clock, Target, Zap, ArrowUpDown, Maximize, Minimize } from "lucide-react";
+import { ArrowLeft, TrendingUp, TrendingDown, Wallet, History, Rocket, BarChart3, Trophy, Flame, Clock, Target, Zap, ArrowUpDown, Maximize, Minimize, Users } from "lucide-react";
 import { motion, AnimatePresence } from "framer-motion";
 import { useAviator, AviatorPhase } from "@/hooks/useAviator";
 import { toast } from "sonner";
