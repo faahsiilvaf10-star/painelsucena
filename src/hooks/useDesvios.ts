@@ -214,7 +214,7 @@ export function useUpdateDesvioStatus() {
 
         await supabase.from("announcements").insert({
           title: "✅ Desvio Corrigido",
-          content,
+          content: `${content}\n<!--desvio:${desvio.id}-->`,
           created_by: user.id,
           target_type: "specific",
           target_users: [desvio.created_by],
