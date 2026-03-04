@@ -342,9 +342,25 @@ export function useAviator() {
       if (active) {
         const round = active as unknown as AviatorRound;
 
-        // Detect stale rounds: waiting with no started_at, or started_at in the past by > 2 min
-        const isStale = !round.started_at || 
-          (round.started_at && (Date.now() - new Date(round.started_at).getTime()) > 120000 && round.status === "waiting");
+        // Detect stale rounds
+        let isStale = !round.started_at;
+        
+        if (!isStale && round.started_at) {
+          const elapsed = (Date.now() - new Date(round.started_at).getTime()) / 1000;
+          
+          // Waiting but started_at is far in the past (> 2 min)
+          if (round.status === "waiting" && elapsed > 120) {
+            isStale = true;
+          }
+          
+          // Running but multiplier already exceeded crash point (already crashed)
+          if (round.status === "running" && elapsed > 0) {
+            const currentMultiplier = Math.pow(Math.E, elapsed * 0.08);
+            if (currentMultiplier >= round.crash_point) {
+              isStale = true;
+            }
+          }
+        }
         
         if (isStale) {
           // Mark stale round as crashed and create a fresh one
@@ -352,6 +368,10 @@ export function useAviator() {
             .update({ status: "crashed", crashed_at: new Date().toISOString() })
             .eq("id", round.id)
             .neq("status", "crashed");
+          
+          // Update history with this crash
+          setCrashHistory(prev => [round.crash_point, ...prev].slice(0, 20));
+          setLastCrash(round.crash_point);
           
           // Fall through to create a new round below
         } else {
