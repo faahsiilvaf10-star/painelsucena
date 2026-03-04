@@ -10,13 +10,28 @@ export const useEmployees = () => {
   return useQuery({
     queryKey: ["employees"],
     queryFn: async () => {
-      const { data, error } = await supabase
-        .from("employees")
-        .select("*")
-        .order("name");
-      
-      if (error) throw error;
-      return data;
+      const batchSize = 1000;
+      let from = 0;
+      let hasMore = true;
+      const allEmployees: Employee[] = [];
+
+      while (hasMore) {
+        const { data, error } = await supabase
+          .from("employees")
+          .select("*")
+          .order("name")
+          .range(from, from + batchSize - 1);
+
+        if (error) throw error;
+
+        const batch = (data ?? []) as Employee[];
+        allEmployees.push(...batch);
+
+        hasMore = batch.length === batchSize;
+        from += batchSize;
+      }
+
+      return allEmployees;
     },
   });
 };
