@@ -257,6 +257,11 @@ export function useAviator() {
       const round = roundRef.current;
 
       if (!round || !round.started_at) {
+        // If round exists but has no started_at, it's stale — trigger re-init
+        if (round && !round.started_at) {
+          initRoundRef.current();
+          return;
+        }
         setPhase("waiting");
         setWaitCountdown(0);
         animFrameRef.current = requestAnimationFrame(loop);
