@@ -27,18 +27,18 @@ export interface GabiaoReport {
 export interface GabiaoReportInsert {
   report_date: string;
   local_servico: string;
-  limpeza_canaleta_m?: number;
-  limpeza_canaleta_berma?: number;
-  recomposicao_gabiao_m?: number;
-  recomposicao_gabiao_berma?: number;
-  manutencao_drenagem_m?: number;
-  manutencao_drenagem_berma?: number;
-  limpeza_bueiro_unidade?: number;
-  limpeza_bueiro_berma?: number;
-  reparo_cerca_m?: number;
-  reparo_cerca_berma?: number;
-  observacoes?: string;
-  photo_urls?: string[];
+  limpeza_canaleta_m?: number | null;
+  limpeza_canaleta_berma?: number | null;
+  recomposicao_gabiao_m?: number | null;
+  recomposicao_gabiao_berma?: number | null;
+  manutencao_drenagem_m?: number | null;
+  manutencao_drenagem_berma?: number | null;
+  limpeza_bueiro_unidade?: number | null;
+  limpeza_bueiro_berma?: number | null;
+  reparo_cerca_m?: number | null;
+  reparo_cerca_berma?: number | null;
+  observacoes?: string | null;
+  photo_urls?: string[] | null;
 }
 
 export function useGabiaoReports() {
