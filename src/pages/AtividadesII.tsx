@@ -447,8 +447,8 @@ export default function AtividadesII() {
       await saveReport.mutateAsync({
         report_date: selectedDateStr,
         local_servico: fullLocalServico,
-        observacoes: combinedObservacoes || undefined,
-        photo_urls: photos.length > 0 ? photos : undefined,
+        observacoes: combinedObservacoes || null,
+        photo_urls: photos.length > 0 ? photos : null,
       });
       
       // Auto-lock after saving
