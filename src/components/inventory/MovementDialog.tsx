@@ -248,7 +248,7 @@ export function MovementDialog({ item, open, onOpenChange }: MovementDialogProps
                     name="destination_id"
                     render={({ field }) => {
                       const selectedEmployee = employees?.find(e => e.id === field.value);
-                      const activeEmployees = employees?.filter(e => e.status === 'active').sort((a, b) => a.name.localeCompare(b.name)) || [];
+                      const rhEmployees = employees?.slice().sort((a, b) => a.name.localeCompare(b.name)) || [];
                       return (
                         <FormItem>
                           <FormLabel>Funcionário</FormLabel>
@@ -270,7 +270,7 @@ export function MovementDialog({ item, open, onOpenChange }: MovementDialogProps
                                 <CommandInput placeholder="Buscar funcionário..." />
                                 <CommandList>
                                   <CommandEmpty>Nenhum funcionário encontrado</CommandEmpty>
-                                  {activeEmployees.map((emp) => (
+                                  {rhEmployees.map((emp) => (
                                     <CommandItem
                                       key={emp.id}
                                       value={`${emp.name} ${emp.role} ${emp.department}`}
