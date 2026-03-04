@@ -227,6 +227,7 @@ const RH = () => {
         colaborador.nome.toLowerCase().includes(searchLower) ||
         colaborador.funcao.toLowerCase().includes(searchLower) ||
         colaborador.matricula.includes(searchTerm) ||
+        (colaborador.matriculaHydro || "").includes(searchTerm) ||
         colaborador.cpf.includes(searchTerm);
       const matchesFuncao =
         filterFuncao === "all" || colaborador.funcao === filterFuncao;
@@ -473,7 +474,10 @@ const RH = () => {
                       className="cursor-pointer hover:bg-muted w-32"
                       onClick={() => handleSort("matricula")}
                     >
-                      Matrícula <SortIcon field="matricula" />
+                      Matrícula Sucena <SortIcon field="matricula" />
+                    </TableHead>
+                    <TableHead className="w-32">
+                      Matrícula Hydro
                     </TableHead>
                     <TableHead 
                       className="cursor-pointer hover:bg-muted w-32"
@@ -514,7 +518,13 @@ const RH = () => {
                         <TableCell>
                           <div className="flex items-center gap-1 text-muted-foreground">
                             <Hash className="w-3 h-3" />
-                            {colaborador.matricula}
+                            {colaborador.matricula || "—"}
+                          </div>
+                        </TableCell>
+                        <TableCell>
+                          <div className="flex items-center gap-1 text-muted-foreground">
+                            <Hash className="w-3 h-3" />
+                            {colaborador.matriculaHydro || "—"}
                           </div>
                         </TableCell>
                         <TableCell>
@@ -550,7 +560,7 @@ const RH = () => {
                       {/* Expanded Row Details */}
                       {expandedRow === colaborador.id && (
                         <TableRow className="bg-muted/30">
-                          <TableCell colSpan={canEditRH ? 7 : 6}>
+                          <TableCell colSpan={canEditRH ? 8 : 7}>
                             <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4 py-2">
                               <div>
                                 <p className="text-xs text-muted-foreground mb-1">CPF</p>
