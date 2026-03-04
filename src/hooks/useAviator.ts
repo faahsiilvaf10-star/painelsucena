@@ -257,6 +257,11 @@ export function useAviator() {
       const round = roundRef.current;
 
       if (!round || !round.started_at) {
+        // If round exists but has no started_at, it's stale — trigger re-init
+        if (round && !round.started_at) {
+          initRoundRef.current();
+          return;
+        }
         setPhase("waiting");
         setWaitCountdown(0);
         animFrameRef.current = requestAnimationFrame(loop);
@@ -336,30 +341,45 @@ export function useAviator() {
 
       if (active) {
         const round = active as unknown as AviatorRound;
-        roundRef.current = round;
-        setCurrentRoundId(round.id);
-        setCrashPoint(round.crash_point);
-        crashHandledRef.current = false;
-        nextRoundScheduledRef.current = false;
 
-        // Load existing bets for this round
-        const { data: bets } = await supabase
-          .from("aviator_bets")
-          .select("*")
-          .eq("round_id", round.id);
-        if (bets) setRoundBets(bets as unknown as AviatorBet[]);
+        // Detect stale rounds: waiting with no started_at, or started_at in the past by > 2 min
+        const isStale = !round.started_at || 
+          (round.started_at && (Date.now() - new Date(round.started_at).getTime()) > 120000 && round.status === "waiting");
+        
+        if (isStale) {
+          // Mark stale round as crashed and create a fresh one
+          await supabase.from("aviator_rounds")
+            .update({ status: "crashed", crashed_at: new Date().toISOString() })
+            .eq("id", round.id)
+            .neq("status", "crashed");
+          
+          // Fall through to create a new round below
+        } else {
+          roundRef.current = round;
+          setCurrentRoundId(round.id);
+          setCrashPoint(round.crash_point);
+          crashHandledRef.current = false;
+          nextRoundScheduledRef.current = false;
 
-        // Find user's own bets
-        if (user) {
-          const userBets = ((bets || []) as unknown as AviatorBet[]).filter(b => b.user_id === user.id);
-          setCurrentBet(userBets[0] || null);
-          currentBetRef.current = userBets[0] || null;
-          setCurrentBet2(userBets[1] || null);
-          currentBet2Ref.current = userBets[1] || null;
+          // Load existing bets for this round
+          const { data: bets } = await supabase
+            .from("aviator_bets")
+            .select("*")
+            .eq("round_id", round.id);
+          if (bets) setRoundBets(bets as unknown as AviatorBet[]);
+
+          // Find user's own bets
+          if (user) {
+            const userBets = ((bets || []) as unknown as AviatorBet[]).filter(b => b.user_id === user.id);
+            setCurrentBet(userBets[0] || null);
+            currentBetRef.current = userBets[0] || null;
+            setCurrentBet2(userBets[1] || null);
+            currentBet2Ref.current = userBets[1] || null;
+          }
+
+          startAnimLoop();
+          return;
         }
-
-        startAnimLoop();
-        return;
       }
 
       // No active round — create one
