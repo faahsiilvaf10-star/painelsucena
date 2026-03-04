@@ -19,7 +19,7 @@ import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { Badge } from "@/components/ui/badge";
 import { Separator } from "@/components/ui/separator";
-import { ShieldCheck, Plus, FileText, Trash2, Eye, Pencil, Image, MessageCircle, Search, ChevronLeft, ChevronRight } from "lucide-react";
+import { ShieldCheck, Plus, FileText, Trash2, Eye, Pencil, Image, MessageCircle, Search, ChevronLeft, ChevronRight, X } from "lucide-react";
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/components/ui/dialog";
 import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover";
 import { Command, CommandInput, CommandList, CommandEmpty, CommandItem } from "@/components/ui/command";
@@ -193,6 +193,7 @@ export default function TrocaEpi() {
   const [authPopoverOpen, setAuthPopoverOpen] = useState(false);
   const [filterText, setFilterText] = useState("");
   const [filterMonth, setFilterMonth] = useState("");
+  const [filterDay, setFilterDay] = useState("");
   const [currentPage, setCurrentPage] = useState(1);
   const ITEMS_PER_PAGE = 10;
   // Form state
@@ -937,6 +938,18 @@ export default function TrocaEpi() {
             })}
           </SelectContent>
         </Select>
+        <Input
+          type="date"
+          value={filterDay}
+          onChange={e => { setFilterDay(e.target.value); setCurrentPage(1); }}
+          className="w-full sm:w-44"
+          placeholder="Filtrar por dia"
+        />
+        {filterDay && (
+          <Button variant="ghost" size="icon" className="h-10 w-10 shrink-0" onClick={() => { setFilterDay(""); setCurrentPage(1); }}>
+            <X className="h-4 w-4" />
+          </Button>
+        )}
       </div>
 
       {(() => {
@@ -945,7 +958,8 @@ export default function TrocaEpi() {
             const text = filterText.toLowerCase();
             const matchesText = !text || ex.funcionario_nome.toLowerCase().includes(text) || ex.autorizado_por.toLowerCase().includes(text);
             const matchesMonth = !filterMonth || filterMonth === "all" || ex.data.substring(5, 7) === filterMonth;
-            return matchesText && matchesMonth;
+            const matchesDay = !filterDay || ex.data === filterDay;
+            return matchesText && matchesMonth && matchesDay;
           })
           .sort((a, b) => new Date(b.data).getTime() - new Date(a.data).getTime());
 
