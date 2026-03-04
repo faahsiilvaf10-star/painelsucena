@@ -46,6 +46,7 @@ export interface SessionStats {
 }
 
 const WAIT_DURATION = 8000;
+const CRASH_PAUSE = 3000;
 
 function generateCrashPoint(): number {
   const h = Math.random();
@@ -92,38 +93,35 @@ export function useAviator() {
   const [sessionStats, setSessionStats] = useState<SessionStats>({ ...initialStats });
   const [betHistory, setBetHistory] = useState<Array<{ amount: number; payout: number | null; multiplier: number; won: boolean; time: string }>>([]);
 
-  const phaseRef = useRef(phase);
-  const multiplierRef = useRef(multiplier);
-  const crashPointRef = useRef(crashPoint);
-  const currentBetRef = useRef(currentBet);
-  const currentBet2Ref = useRef(currentBet2);
-  const roundIdRef = useRef(currentRoundId);
-  const balanceRef = useRef(balance);
-  const animFrameRef = useRef<number | null>(null);
-  const startTimeRef = useRef<number>(0);
-  const waitTimerRef = useRef<ReturnType<typeof setInterval> | null>(null);
-  const crashTimeoutRef = useRef<ReturnType<typeof setTimeout> | null>(null);
+  // Refs
   const mountedRef = useRef(true);
+  const animFrameRef = useRef<number | null>(null);
+  const roundRef = useRef<AviatorRound | null>(null);
+  const phaseRef = useRef<AviatorPhase>("waiting");
+  const multiplierRef = useRef(1.0);
+  const currentBetRef = useRef<AviatorBet | null>(null);
+  const currentBet2Ref = useRef<AviatorBet | null>(null);
+  const balanceRef = useRef(0);
+  const crashHandledRef = useRef(false);
+  const nextRoundScheduledRef = useRef(false);
+  const creatingRef = useRef(false);
 
+  // Sync refs
   phaseRef.current = phase;
   multiplierRef.current = multiplier;
-  crashPointRef.current = crashPoint;
   currentBetRef.current = currentBet;
   currentBet2Ref.current = currentBet2;
-  roundIdRef.current = currentRoundId;
   balanceRef.current = balance;
 
-  // Cleanup on unmount
   useEffect(() => {
     mountedRef.current = true;
     return () => {
       mountedRef.current = false;
       if (animFrameRef.current) cancelAnimationFrame(animFrameRef.current);
-      if (waitTimerRef.current) clearInterval(waitTimerRef.current);
-      if (crashTimeoutRef.current) clearTimeout(crashTimeoutRef.current);
     };
   }, []);
 
+  // ─── Stats ───
   const updateStats = useCallback((won: boolean, betAmount: number, payout: number | null, cashoutMultiplier: number) => {
     setSessionStats(prev => {
       const newWins = won ? prev.wins + 1 : prev.wins;
@@ -133,7 +131,6 @@ export function useAviator() {
       const newTotalWon = prev.totalWon + (payout || 0);
       const newStreak = won ? prev.currentStreak + 1 : 0;
       const netProfit = (payout || 0) - betAmount;
-
       return {
         ...prev,
         betsPlaced: newBetsPlaced,
@@ -153,7 +150,6 @@ export function useAviator() {
         biggestLoss: Math.min(prev.biggestLoss, netProfit < 0 ? netProfit : 0),
       };
     });
-
     setBetHistory(prev => [{
       amount: betAmount,
       payout,
@@ -163,6 +159,7 @@ export function useAviator() {
     }, ...prev].slice(0, 50));
   }, []);
 
+  // ─── Balance ───
   const loadBalance = useCallback(async () => {
     if (!user) return;
     const { data } = await supabase
@@ -170,7 +167,6 @@ export function useAviator() {
       .select("balance")
       .eq("user_id", user.id)
       .maybeSingle();
-
     if (data) {
       setBalance(data.balance);
     } else {
@@ -179,6 +175,7 @@ export function useAviator() {
     }
   }, [user]);
 
+  // ─── Crash History ───
   const loadHistory = useCallback(async () => {
     const { data } = await supabase
       .from("aviator_rounds")
@@ -192,126 +189,294 @@ export function useAviator() {
     }
   }, []);
 
+  // ─── Crash Handler (ref-based to avoid stale closures) ───
+  const onCrashRef = useRef<(round: AviatorRound) => void>(() => {});
+  onCrashRef.current = (round: AviatorRound) => {
+    if (crashHandledRef.current) return;
+    crashHandledRef.current = true;
+
+    // Stop animation
+    if (animFrameRef.current) {
+      cancelAnimationFrame(animFrameRef.current);
+      animFrameRef.current = null;
+    }
+
+    setMultiplier(round.crash_point);
+    setPhase("crashed");
+    phaseRef.current = "crashed";
+    setLastCrash(round.crash_point);
+    setCrashHistory(prev => [round.crash_point, ...prev].slice(0, 20));
+
+    // Persist crash in DB (no-op if already crashed by another client)
+    if (round.status !== "crashed") {
+      supabase.from("aviator_rounds")
+        .update({ status: "crashed", crashed_at: new Date().toISOString() })
+        .eq("id", round.id)
+        .neq("status", "crashed")
+        .then(() => {});
+    }
+
+    // Handle user's active bets
+    const bet = currentBetRef.current;
+    const bet2 = currentBet2Ref.current;
+    if (bet || bet2) {
+      setSessionStats(prev => ({ ...prev, roundsPlayed: prev.roundsPlayed + 1 }));
+    }
+    if (bet && !bet.cashed_out_at) {
+      updateStats(false, bet.bet_amount, null, round.crash_point);
+      toast.error(`Crash em ${round.crash_point.toFixed(2)}x! Você perdeu R$ ${bet.bet_amount.toFixed(2)}`);
+    }
+    if (bet2 && !bet2.cashed_out_at) {
+      updateStats(false, bet2.bet_amount, null, round.crash_point);
+    }
+
+    // Refresh balance
+    loadBalance();
+
+    // Schedule next round
+    if (!nextRoundScheduledRef.current) {
+      nextRoundScheduledRef.current = true;
+      setTimeout(() => {
+        if (!mountedRef.current) return;
+        setCurrentBet(null);
+        setCurrentBet2(null);
+        currentBetRef.current = null;
+        currentBet2Ref.current = null;
+        setRoundBets([]);
+        initRoundRef.current();
+      }, CRASH_PAUSE);
+    }
+  };
+
+  // ─── Animation Loop ───
+  const startAnimLoop = useCallback(() => {
+    if (animFrameRef.current) cancelAnimationFrame(animFrameRef.current);
+
+    const loop = () => {
+      if (!mountedRef.current) return;
+      const round = roundRef.current;
+
+      if (!round || !round.started_at) {
+        setPhase("waiting");
+        setWaitCountdown(0);
+        animFrameRef.current = requestAnimationFrame(loop);
+        return;
+      }
+
+      // Already crashed via realtime
+      if (round.status === "crashed") {
+        onCrashRef.current(round);
+        return;
+      }
+
+      const now = Date.now();
+      const flyAt = new Date(round.started_at).getTime();
+
+      if (now < flyAt) {
+        // Waiting phase
+        if (phaseRef.current !== "waiting") {
+          setPhase("waiting");
+          phaseRef.current = "waiting";
+        }
+        setWaitCountdown(Math.ceil((flyAt - now) / 1000));
+        animFrameRef.current = requestAnimationFrame(loop);
+        return;
+      }
+
+      // Running phase
+      if (phaseRef.current !== "running") {
+        setPhase("running");
+        phaseRef.current = "running";
+        // Update DB status (first-writer-wins)
+        if (round.status === "waiting") {
+          supabase.from("aviator_rounds")
+            .update({ status: "running" })
+            .eq("id", round.id)
+            .eq("status", "waiting")
+            .then(() => {});
+          round.status = "running";
+        }
+      }
+
+      const elapsed = (now - flyAt) / 1000;
+      const m = Math.floor(Math.pow(Math.E, elapsed * 0.08) * 100) / 100;
+      setMultiplier(m);
+      multiplierRef.current = m;
+
+      if (m >= round.crash_point) {
+        onCrashRef.current(round);
+        return;
+      }
+
+      animFrameRef.current = requestAnimationFrame(loop);
+    };
+
+    animFrameRef.current = requestAnimationFrame(loop);
+  }, []);
+
+  // ─── Initialize / Create Round ───
+  const initRoundRef = useRef<() => Promise<void>>(async () => {});
+  initRoundRef.current = async () => {
+    if (creatingRef.current) return;
+    creatingRef.current = true;
+
+    try {
+      // Small random delay to reduce collision when multiple clients create rounds
+      await new Promise(r => setTimeout(r, Math.random() * 400));
+      if (!mountedRef.current) return;
+
+      // Find an active round
+      const { data: active } = await supabase
+        .from("aviator_rounds")
+        .select("*")
+        .in("status", ["waiting", "running"])
+        .order("created_at", { ascending: false })
+        .limit(1)
+        .maybeSingle();
+
+      if (active) {
+        const round = active as unknown as AviatorRound;
+        roundRef.current = round;
+        setCurrentRoundId(round.id);
+        setCrashPoint(round.crash_point);
+        crashHandledRef.current = false;
+        nextRoundScheduledRef.current = false;
+
+        // Load existing bets for this round
+        const { data: bets } = await supabase
+          .from("aviator_bets")
+          .select("*")
+          .eq("round_id", round.id);
+        if (bets) setRoundBets(bets as unknown as AviatorBet[]);
+
+        // Find user's own bets
+        if (user) {
+          const userBets = ((bets || []) as unknown as AviatorBet[]).filter(b => b.user_id === user.id);
+          setCurrentBet(userBets[0] || null);
+          currentBetRef.current = userBets[0] || null;
+          setCurrentBet2(userBets[1] || null);
+          currentBet2Ref.current = userBets[1] || null;
+        }
+
+        startAnimLoop();
+        return;
+      }
+
+      // No active round — create one
+      const cp = generateCrashPoint();
+      const flyAt = new Date(Date.now() + WAIT_DURATION).toISOString();
+
+      const { data: newRound } = await supabase
+        .from("aviator_rounds")
+        .insert({ crash_point: cp, status: "waiting", started_at: flyAt })
+        .select()
+        .single();
+
+      if (newRound) {
+        const round = newRound as unknown as AviatorRound;
+        roundRef.current = round;
+        setCurrentRoundId(round.id);
+        setCrashPoint(round.crash_point);
+        crashHandledRef.current = false;
+        nextRoundScheduledRef.current = false;
+        setRoundBets([]);
+        setCurrentBet(null);
+        setCurrentBet2(null);
+        currentBetRef.current = null;
+        currentBet2Ref.current = null;
+        startAnimLoop();
+      }
+    } finally {
+      creatingRef.current = false;
+    }
+  };
+
+  // ─── Switch to a new round (from realtime) ───
+  const switchToRoundFromRealtime = useCallback((round: AviatorRound) => {
+    roundRef.current = round;
+    setCurrentRoundId(round.id);
+    setCrashPoint(round.crash_point);
+    crashHandledRef.current = false;
+    nextRoundScheduledRef.current = false;
+    setRoundBets([]);
+    setCurrentBet(null);
+    setCurrentBet2(null);
+    currentBetRef.current = null;
+    currentBet2Ref.current = null;
+    startAnimLoop();
+  }, [startAnimLoop]);
+
+  // ─── Realtime Subscription ───
+  useEffect(() => {
+    const channel = supabase
+      .channel("aviator-sync")
+      .on("postgres_changes", { event: "INSERT", schema: "public", table: "aviator_rounds" }, (payload) => {
+        const round = payload.new as AviatorRound;
+        const current = roundRef.current;
+        // If we have no round or ours is already crashed, switch to the new one
+        if (!current || current.status === "crashed" || crashHandledRef.current) {
+          switchToRoundFromRealtime(round);
+        }
+      })
+      .on("postgres_changes", { event: "UPDATE", schema: "public", table: "aviator_rounds" }, (payload) => {
+        const round = payload.new as AviatorRound;
+        if (roundRef.current?.id === round.id) {
+          // Update round ref with latest data
+          roundRef.current = round;
+          if (round.status === "crashed") {
+            onCrashRef.current(round);
+          }
+        }
+      })
+      .on("postgres_changes", { event: "INSERT", schema: "public", table: "aviator_bets" }, (payload) => {
+        const bet = payload.new as unknown as AviatorBet;
+        if (bet.round_id === roundRef.current?.id) {
+          setRoundBets(prev => prev.some(b => b.id === bet.id) ? prev : [...prev, bet]);
+        }
+      })
+      .on("postgres_changes", { event: "UPDATE", schema: "public", table: "aviator_bets" }, (payload) => {
+        const bet = payload.new as unknown as AviatorBet;
+        if (bet.round_id === roundRef.current?.id) {
+          setRoundBets(prev => prev.map(b => b.id === bet.id ? bet : b));
+        }
+      })
+      .subscribe();
+
+    return () => {
+      supabase.removeChannel(channel);
+    };
+  }, [switchToRoundFromRealtime]);
+
+  // ─── Mount Init ───
   useEffect(() => {
     loadBalance();
     loadHistory();
-  }, [loadBalance, loadHistory]);
-
-  const startFlying = useCallback(async () => {
-    if (!mountedRef.current) return;
-    setPhase("running");
-
-    if (roundIdRef.current) {
-      await supabase
-        .from("aviator_rounds")
-        .update({ status: "running", started_at: new Date().toISOString() })
-        .eq("id", roundIdRef.current);
-    }
-
-    startTimeRef.current = performance.now();
-
-    const tick = () => {
-      if (!mountedRef.current) return;
-      const elapsed = (performance.now() - startTimeRef.current) / 1000;
-      const m = Math.pow(Math.E, elapsed * 0.08);
-      const rounded = Math.floor(m * 100) / 100;
-
-      setMultiplier(rounded);
-      multiplierRef.current = rounded;
-
-      if (rounded >= (crashPointRef.current || 999)) {
-        handleCrash();
-        return;
-      }
-
-      animFrameRef.current = requestAnimationFrame(tick);
-    };
-
-    animFrameRef.current = requestAnimationFrame(tick);
+    initRoundRef.current();
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
 
-  const startWaiting = useCallback(async () => {
-    if (!mountedRef.current) return;
-    setPhase("waiting");
-    setMultiplier(1.0);
-    setCurrentBet(null);
-    setCurrentBet2(null);
-    setRoundBets([]);
-
-    const cp = generateCrashPoint();
-    setCrashPoint(cp);
-    crashPointRef.current = cp;
-
-    const { data: round } = await supabase
-      .from("aviator_rounds")
-      .insert({ crash_point: cp, status: "waiting" })
-      .select()
-      .single();
-
-    if (round) {
-      setCurrentRoundId(round.id);
-      roundIdRef.current = round.id;
+  // Re-find user bets when user loads (may arrive after mount)
+  useEffect(() => {
+    if (user && roundRef.current) {
+      supabase
+        .from("aviator_bets")
+        .select("*")
+        .eq("round_id", roundRef.current.id)
+        .eq("user_id", user.id)
+        .then(({ data }) => {
+          if (data && data.length > 0) {
+            setCurrentBet(data[0] as unknown as AviatorBet);
+            currentBetRef.current = data[0] as unknown as AviatorBet;
+            if (data.length > 1) {
+              setCurrentBet2(data[1] as unknown as AviatorBet);
+              currentBet2Ref.current = data[1] as unknown as AviatorBet;
+            }
+          }
+        });
     }
+  }, [user]);
 
-    let remaining = WAIT_DURATION / 1000;
-    setWaitCountdown(remaining);
-
-    if (waitTimerRef.current) clearInterval(waitTimerRef.current);
-    waitTimerRef.current = setInterval(() => {
-      if (!mountedRef.current) {
-        if (waitTimerRef.current) clearInterval(waitTimerRef.current);
-        return;
-      }
-      remaining -= 1;
-      setWaitCountdown(Math.max(0, remaining));
-      if (remaining <= 0) {
-        if (waitTimerRef.current) clearInterval(waitTimerRef.current);
-        startFlying();
-      }
-    }, 1000);
-  }, [startFlying]);
-
-  const handleCrash = useCallback(async () => {
-    if (animFrameRef.current) cancelAnimationFrame(animFrameRef.current);
-    if (!mountedRef.current) return;
-
-    const cp = crashPointRef.current || 1.0;
-    setMultiplier(cp);
-    setPhase("crashed");
-    setLastCrash(cp);
-    setCrashHistory(prev => [cp, ...prev].slice(0, 20));
-
-    if (roundIdRef.current) {
-      await supabase
-        .from("aviator_rounds")
-        .update({ status: "crashed", crashed_at: new Date().toISOString() })
-        .eq("id", roundIdRef.current);
-    }
-
-    // Only increment roundsPlayed if user had at least one bet this round
-    const bet = currentBetRef.current;
-    const bet2 = currentBet2Ref.current;
-    const hadBet = !!bet || !!bet2;
-
-    if (hadBet) {
-      setSessionStats(prev => ({ ...prev, roundsPlayed: prev.roundsPlayed + 1 }));
-    }
-
-    // Track loss if bet 1 wasn't cashed out
-    if (bet && !bet.cashed_out_at) {
-      updateStats(false, bet.bet_amount, null, cp);
-      toast.error(`Crash em ${cp.toFixed(2)}x! Você perdeu R$ ${bet.bet_amount.toFixed(2)}`);
-    }
-    // Track loss if bet 2 wasn't cashed out
-    if (bet2 && !bet2.cashed_out_at) {
-      updateStats(false, bet2.bet_amount, null, cp);
-    }
-
-    crashTimeoutRef.current = setTimeout(() => {
-      if (mountedRef.current) startWaiting();
-    }, 3000);
-  }, [startWaiting, updateStats]);
-
+  // ─── Place Bet ───
   const placeBetSlot = useCallback(async (amount: number, slot: 1 | 2) => {
     if (!user || !profile) return;
     if (phaseRef.current !== "waiting") {
@@ -344,21 +509,17 @@ export function useAviator() {
           user_name: profile.full_name || "Jogador",
           avatar_url: profile.avatar_url,
           bet_amount: amount,
-          round_id: roundIdRef.current || "",
+          round_id: roundRef.current?.id || "",
         })
         .select()
         .single();
 
       if (bet) {
-        const betData: AviatorBet = {
-          id: bet.id, user_id: bet.user_id, user_name: bet.user_name,
-          avatar_url: bet.avatar_url, bet_amount: bet.bet_amount,
-          cashed_out_at: bet.cashed_out_at, payout: bet.payout,
-          round_id: bet.round_id, created_at: bet.created_at,
-        };
+        const betData = bet as unknown as AviatorBet;
         if (slot === 1) { setCurrentBet(betData); currentBetRef.current = betData; }
         else { setCurrentBet2(betData); currentBet2Ref.current = betData; }
-        setRoundBets(prev => [...prev, betData]);
+        // Also add locally for instant feedback (realtime will dedupe)
+        setRoundBets(prev => prev.some(b => b.id === betData.id) ? prev : [...prev, betData]);
         toast.success(`Aposta ${slot} de R$ ${amount.toFixed(2)} realizada!`);
       }
     } catch {
@@ -371,6 +532,7 @@ export function useAviator() {
   const placeBet = useCallback((amount: number) => placeBetSlot(amount, 1), [placeBetSlot]);
   const placeBet2 = useCallback((amount: number) => placeBetSlot(amount, 2), [placeBetSlot]);
 
+  // ─── Cancel Bet ───
   const cancelBetSlot = useCallback(async (slot: 1 | 2) => {
     if (!user) return;
     if (phaseRef.current !== "waiting") return;
@@ -399,6 +561,7 @@ export function useAviator() {
   const cancelBet = useCallback(() => cancelBetSlot(1), [cancelBetSlot]);
   const cancelBet2 = useCallback(() => cancelBetSlot(2), [cancelBetSlot]);
 
+  // ─── Cash Out ───
   const cashOutSlot = useCallback(async (slot: 1 | 2) => {
     if (!user) return;
     if (phaseRef.current !== "running") return;
@@ -430,12 +593,6 @@ export function useAviator() {
 
   const cashOut = useCallback(() => cashOutSlot(1), [cashOutSlot]);
   const cashOut2 = useCallback(() => cashOutSlot(2), [cashOutSlot]);
-
-  // Start game loop on mount
-  useEffect(() => {
-    startWaiting();
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, []);
 
   const sessionDuration = useMemo(() => {
     return Math.floor((Date.now() - sessionStats.sessionStart) / 60000);
