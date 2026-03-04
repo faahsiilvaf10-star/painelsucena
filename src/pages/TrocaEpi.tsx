@@ -211,7 +211,7 @@ export default function TrocaEpi() {
   const [funcionarioNome, setFuncionarioNome] = useState("");
   const [funcionarioFuncao, setFuncionarioFuncao] = useState("");
   const [funcionarioMatricula, setFuncionarioMatricula] = useState("");
-  const [selectedEpis, setSelectedEpis] = useState<Array<{ id: string; value?: string; qty?: number }>>([]);
+  const [selectedEpis, setSelectedEpis] = useState<Array<{ id: string; value?: string; qty?: number; extraInput?: string }>>([]);
   const [blusaTamanho, setBlusaTamanho] = useState("");
   const [blusaQtd, setBlusaQtd] = useState(0);
   const [calcaTamanho, setCalcaTamanho] = useState("");
@@ -787,6 +787,19 @@ export default function TrocaEpi() {
                             placeholder={item.inputLabel}
                             value={selected.value || ""}
                             onChange={e => setEpiValue(item.id, e.target.value)}
+                          />
+                        )}
+                        {item.hasInput && selected && INVENTORY_DROPDOWN_EPIS[item.id] && (
+                          <Input
+                            className="h-8 w-20 text-xs"
+                            placeholder="Nº"
+                            value={selected.extraInput || ""}
+                            onChange={e => {
+                              const updated = selectedEpis.map(ep =>
+                                ep.id === item.id ? { ...ep, extraInput: e.target.value } : ep
+                              );
+                              setSelectedEpis(updated);
+                            }}
                           />
                         )}
                       </div>
