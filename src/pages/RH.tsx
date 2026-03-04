@@ -1,5 +1,5 @@
 import { useState, useMemo, useEffect, useCallback } from "react";
-import { Search, Users, Phone, Calendar, Hash, MapPin, Filter, X, ChevronDown, ChevronUp, ShieldCheck, AlertTriangle, CircleAlert, Pencil, Save, History } from "lucide-react";
+import { Search, Users, Phone, Calendar, Hash, MapPin, Filter, X, ChevronDown, ChevronUp, ShieldCheck, AlertTriangle, CircleAlert, Pencil, Save, History, ArrowDownAZ, ArrowUpAZ } from "lucide-react";
 import Layout from "@/components/layout/Layout";
 import { Input } from "@/components/ui/input";
 import { Button } from "@/components/ui/button";
@@ -394,6 +394,25 @@ const RH = () => {
                   ))}
                 </SelectContent>
               </Select>
+              <Button
+                variant={sortField === "nome" ? "default" : "outline"}
+                onClick={() => {
+                  if (sortField === "nome") {
+                    setSortDirection(prev => prev === "asc" ? "desc" : "asc");
+                  } else {
+                    setSortField("nome");
+                    setSortDirection("asc");
+                  }
+                }}
+                className="gap-2 whitespace-nowrap"
+              >
+                {sortField === "nome" && sortDirection === "desc" ? (
+                  <ArrowUpAZ className="w-4 h-4" />
+                ) : (
+                  <ArrowDownAZ className="w-4 h-4" />
+                )}
+                A-Z
+              </Button>
               {hasActiveFilters && (
                 <Button variant="outline" onClick={clearFilters} className="gap-2">
                   <X className="w-4 h-4" />
