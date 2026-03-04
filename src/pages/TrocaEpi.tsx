@@ -46,6 +46,13 @@ const EPI_ITEMS = [
   { id: "outros", label: "Outros", hasInput: true, inputLabel: "Especifique" },
 ];
 
+// EPIs that should show an inventory dropdown instead of free-text input
+const INVENTORY_DROPDOWN_EPIS: Record<string, { keyword: string; placeholder: string }> = {
+  luva: { keyword: "luva", placeholder: "Selecione o tipo de luva..." },
+  bota_7leguas: { keyword: "7 legua", placeholder: "Selecione a bota 7 léguas..." },
+  bota_couro: { keyword: "bota de segur", placeholder: "Selecione a bota..." },
+};
+
 const TAMANHOS = ["P", "M", "G", "GG", "XG"];
 
 function normalizeText(text: string): string {
@@ -431,8 +438,9 @@ export default function TrocaEpi() {
       const epiItem = EPI_ITEMS.find(e => e.id === epi.id);
       if (!epiItem) continue;
       const epiQty = epi.qty ?? 1;
-      // For "luva" and "outros", use the selected value (specific item name) for inventory matching
-      const searchLabel = (epi.id === "luva" || epi.id === "outros") && epi.value ? epi.value : epiItem.label;
+      // For items with inventory dropdown (luva, boots, outros), use the selected value for matching
+      const hasDropdown = epi.id === "outros" || !!INVENTORY_DROPDOWN_EPIS[epi.id];
+      const searchLabel = hasDropdown && epi.value ? epi.value : epiItem.label;
       const match = findInventoryMatch(currentInventory, searchLabel);
       if (match && match.quantity >= epiQty) {
         const newQty = match.quantity - epiQty;
@@ -749,7 +757,8 @@ export default function TrocaEpi() {
                 {EPI_ITEMS.map(item => {
                   const selected = selectedEpis.find(e => e.id === item.id);
                   const lastDate = lastPickupMap[item.id];
-                  const searchLabel = (item.id === "outros" || item.id === "luva") && selected?.value ? selected.value : item.label;
+                  const hasDropdown = item.id === "outros" || !!INVENTORY_DROPDOWN_EPIS[item.id];
+                  const searchLabel = hasDropdown && selected?.value ? selected.value : item.label;
                   const invMatch = selected ? findInventoryMatch(inventoryItems, searchLabel) : null;
                   return (
                     <div key={item.id} className="flex flex-col gap-0.5 p-1.5 rounded-md hover:bg-accent/50">
@@ -772,7 +781,7 @@ export default function TrocaEpi() {
                             />
                           </div>
                         )}
-                        {item.hasInput && selected && item.id !== "outros" && item.id !== "luva" && (
+                        {item.hasInput && selected && item.id !== "outros" && !INVENTORY_DROPDOWN_EPIS[item.id] && (
                           <Input
                             className="h-8 w-24 text-xs"
                             placeholder={item.inputLabel}
@@ -781,24 +790,26 @@ export default function TrocaEpi() {
                           />
                         )}
                       </div>
-                      {item.id === "luva" && selected && (
-                        <div className="ml-6 mt-1">
-                          <Select value={selected.value || ""} onValueChange={v => setEpiValue(item.id, v)}>
-                            <SelectTrigger className="h-8 text-xs w-full">
-                              <SelectValue placeholder="Selecione o tipo de luva..." />
-                            </SelectTrigger>
-                            <SelectContent>
-                              {inventoryItems
-                                .filter(inv => inv.quantity > 0 && normalizeText(inv.name).includes("luva"))
-                                .map(inv => (
+                      {selected && INVENTORY_DROPDOWN_EPIS[item.id] && (() => {
+                        const cfg = INVENTORY_DROPDOWN_EPIS[item.id];
+                        const matches = inventoryItems.filter(inv => inv.quantity > 0 && normalizeText(inv.name).includes(cfg.keyword));
+                        return (
+                          <div className="ml-6 mt-1">
+                            <Select value={selected.value || ""} onValueChange={v => setEpiValue(item.id, v)}>
+                              <SelectTrigger className="h-8 text-xs w-full">
+                                <SelectValue placeholder={cfg.placeholder} />
+                              </SelectTrigger>
+                              <SelectContent>
+                                {matches.map(inv => (
                                   <SelectItem key={inv.id} value={inv.name}>
                                     {inv.name} ({inv.quantity} {inv.unit})
                                   </SelectItem>
                                 ))}
-                            </SelectContent>
-                          </Select>
-                        </div>
-                      )}
+                              </SelectContent>
+                            </Select>
+                          </div>
+                        );
+                      })()}
                       {item.id === "outros" && selected && (
                         <div className="ml-6 mt-1">
                           <Select value={selected.value || ""} onValueChange={v => setEpiValue(item.id, v)}>
