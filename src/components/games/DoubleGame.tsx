@@ -399,6 +399,8 @@ export function DoubleGame({ onBack }: Props) {
           const myBet = myBets.get(color) || 0;
           const disabled = phase !== "betting";
           const selectedColor = activeBetSlot === 1 ? bet1Color : bet2Color;
+          const isBet1 = bet1Color === color;
+          const isBet2 = bet2Enabled && bet2Color === color;
           return (
             <motion.button
               key={color}
@@ -415,6 +417,11 @@ export function DoubleGame({ onBack }: Props) {
                 myBet > 0 && selectedColor !== color && "ring-2 ring-amber-400/60"
               )}
             >
+              {/* Slot indicators */}
+              <div className="absolute top-1 right-1 flex gap-0.5">
+                {isBet1 && <span className="text-[8px] bg-white/90 text-zinc-900 rounded px-1 font-bold">A1</span>}
+                {isBet2 && <span className="text-[8px] bg-amber-400 text-zinc-900 rounded px-1 font-bold">A2</span>}
+              </div>
               <div className="w-10 h-10 rounded-full border-2 border-white/80 flex items-center justify-center">
                 <span className="text-white font-bold text-sm">
                   {color === "white" ? <img src={sucenaLogo} alt="Sucena" className="w-6 h-6 object-contain" /> : color === "red" ? "🔴" : "⚫"}
@@ -435,6 +442,10 @@ export function DoubleGame({ onBack }: Props) {
           );
         })}
       </div>
+      {/* Hint when bet2 enabled but no color selected */}
+      {bet2Enabled && !bet2Color && activeBetSlot === 2 && (
+        <p className="text-xs text-amber-600 text-center animate-pulse">👆 Selecione uma cor para a Aposta 2</p>
+      )}
 
       {/* Bet Slot Tabs */}
       <div className="flex gap-2">
