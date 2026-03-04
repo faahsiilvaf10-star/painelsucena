@@ -1,4 +1,4 @@
-import { useEffect, useState } from "react";
+import { useEffect, useMemo, useState } from "react";
 import { useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { z } from "zod";
@@ -70,6 +70,51 @@ export function MovementDialog({ item, open, onOpenChange }: MovementDialogProps
   const { data: equipment } = useEquipment();
   const [employeePopoverOpen, setEmployeePopoverOpen] = useState(false);
 
+  const rhLocalEmployees = useMemo(() => {
+    if (typeof window === "undefined") return [] as Array<{ name: string; role: string; department: string }>;
+    try {
+      const stored = localStorage.getItem("rh_colaboradores");
+      if (!stored) return [];
+      const parsed = JSON.parse(stored) as Array<{ nome?: string; funcao?: string; departamento?: string; setor?: string }>;
+      return parsed
+        .filter((p) => p?.nome)
+        .map((p) => ({
+          name: String(p.nome),
+          role: String(p.funcao || ""),
+          department: String(p.departamento || p.setor || ""),
+        }));
+    } catch {
+      return [];
+    }
+  }, [open]);
+
+  const employeeOptions = useMemo(() => {
+    const byName = new Map<string, { value: string; name: string; role: string; department: string }>();
+
+    (employees || []).forEach((emp) => {
+      byName.set(emp.name.trim().toLowerCase(), {
+        value: emp.id,
+        name: emp.name,
+        role: emp.role || "",
+        department: emp.department || "",
+      });
+    });
+
+    rhLocalEmployees.forEach((emp) => {
+      const key = emp.name.trim().toLowerCase();
+      if (!byName.has(key)) {
+        byName.set(key, {
+          value: `local:${encodeURIComponent(emp.name)}`,
+          name: emp.name,
+          role: emp.role,
+          department: emp.department,
+        });
+      }
+    });
+
+    return Array.from(byName.values()).sort((a, b) => a.name.localeCompare(b.name));
+  }, [employees, rhLocalEmployees]);
+
   const form = useForm<FormData>({
     resolver: zodResolver(formSchema),
     defaultValues: {
@@ -99,8 +144,10 @@ export function MovementDialog({ item, open, onOpenChange }: MovementDialogProps
 
   const getDestinationName = (destType: string, destId: string): string => {
     if (destType === "employee") {
-      const emp = employees?.find((e) => e.id === destId);
-      return emp?.name || "";
+      const selected = employeeOptions.find((e) => e.value === destId);
+      if (selected) return selected.name;
+      if (destId.startsWith("local:")) return decodeURIComponent(destId.replace("local:", ""));
+      return "";
     }
     if (destType === "equipment") {
       const eq = equipment?.find((e) => e.id === destId);
@@ -115,9 +162,14 @@ export function MovementDialog({ item, open, onOpenChange }: MovementDialogProps
   const onSubmit = async (data: FormData) => {
     if (!item) return;
 
-    const destinationName = data.destination_type 
+    const destinationName = data.destination_type
       ? getDestinationName(data.destination_type, data.destination_id || "")
       : undefined;
+
+    const destinationId =
+      data.destination_type === "employee" && data.destination_id?.startsWith("local:")
+        ? undefined
+        : data.destination_id || undefined;
 
     await recordMovement.mutateAsync({
       item_id: item.id,
@@ -125,7 +177,7 @@ export function MovementDialog({ item, open, onOpenChange }: MovementDialogProps
       quantity: data.quantity,
       reason: data.reason,
       destination_type: data.destination_type || undefined,
-      destination_id: data.destination_id || undefined,
+      destination_id: destinationId,
       destination_name: destinationName,
     });
     form.reset();
@@ -247,8 +299,7 @@ export function MovementDialog({ item, open, onOpenChange }: MovementDialogProps
                     control={form.control}
                     name="destination_id"
                     render={({ field }) => {
-                      const selectedEmployee = employees?.find(e => e.id === field.value);
-                      const rhEmployees = employees?.slice().sort((a, b) => a.name.localeCompare(b.name)) || [];
+                      const selectedEmployee = employeeOptions.find(e => e.value === field.value);
                       return (
                         <FormItem>
                           <FormLabel>Funcionário</FormLabel>
@@ -270,16 +321,16 @@ export function MovementDialog({ item, open, onOpenChange }: MovementDialogProps
                                 <CommandInput placeholder="Buscar funcionário..." />
                                 <CommandList>
                                   <CommandEmpty>Nenhum funcionário encontrado</CommandEmpty>
-                                  {rhEmployees.map((emp) => (
+                                  {employeeOptions.map((emp) => (
                                     <CommandItem
-                                      key={emp.id}
+                                      key={emp.value}
                                       value={`${emp.name} ${emp.role} ${emp.department}`}
                                       onSelect={() => {
-                                        field.onChange(emp.id);
+                                        field.onChange(emp.value);
                                         setEmployeePopoverOpen(false);
                                       }}
                                     >
-                                      <Check className={cn("mr-2 h-4 w-4", field.value === emp.id ? "opacity-100" : "opacity-0")} />
+                                      <Check className={cn("mr-2 h-4 w-4", field.value === emp.value ? "opacity-100" : "opacity-0")} />
                                       <span>{emp.name}</span>
                                       <span className="ml-auto text-xs text-muted-foreground">{emp.role}</span>
                                     </CommandItem>
