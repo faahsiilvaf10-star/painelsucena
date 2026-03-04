@@ -1,4 +1,5 @@
-import { useState, useRef } from "react";
+import { useState, useRef, useEffect } from "react";
+import { useSearchParams } from "react-router-dom";
 import Layout from "@/components/layout/Layout";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
@@ -55,6 +56,8 @@ interface CorrectionDialogState {
 
 export default function Desvios() {
   const { user } = useAuth();
+  const [searchParams, setSearchParams] = useSearchParams();
+  const highlightId = searchParams.get("highlight");
   const { data: desvios, isLoading } = useDesvios();
   const { allUsers } = useAllUsers();
   const createDesvio = useCreateDesvio();
@@ -62,6 +65,7 @@ export default function Desvios() {
   const updateItems = useUpdateDesvioItems();
   const updateStatus = useUpdateDesvioStatus();
   const deleteDesvio = useDeleteDesvio();
+
 
   const [showForm, setShowForm] = useState(false);
   const [selectedUserIds, setSelectedUserIds] = useState<string[]>([]);
@@ -78,6 +82,25 @@ export default function Desvios() {
   const correctionInputRef = useRef<HTMLInputElement>(null);
   const [correctionDialog, setCorrectionDialog] = useState<CorrectionDialogState | null>(null);
   const correctionDialogInputRef = useRef<HTMLInputElement>(null);
+
+  // Auto-scroll to highlighted desvio from announcement link
+  useEffect(() => {
+    if (highlightId && desvios && desvios.length > 0) {
+      // Set filter to "todos" so the highlighted desvio is visible
+      setFilter("todos");
+      setTimeout(() => {
+        const el = document.getElementById(`desvio-${highlightId}`);
+        if (el) {
+          el.scrollIntoView({ behavior: "smooth", block: "center" });
+          el.classList.add("ring-2", "ring-green-500", "ring-offset-2", "ring-offset-background");
+          setTimeout(() => {
+            el.classList.remove("ring-2", "ring-green-500", "ring-offset-2", "ring-offset-background");
+            setSearchParams({}, { replace: true });
+          }, 4000);
+        }
+      }, 300);
+    }
+  }, [highlightId, desvios]);
 
   const addFormItem = () => {
     setFormItems((prev) => [...prev, { id: crypto.randomUUID(), description: "", photo_url: null }]);
@@ -428,8 +451,9 @@ export default function Desvios() {
               return (
                 <Card
                   key={desvio.id}
+                  id={`desvio-${desvio.id}`}
                   className={cn(
-                    "border transition-colors",
+                    "border transition-all duration-500",
                     desvio.status === "corrigido" && "border-green-500/30 bg-green-500/5",
                     isOverdue && "border-red-500/30 bg-red-500/5"
                   )}

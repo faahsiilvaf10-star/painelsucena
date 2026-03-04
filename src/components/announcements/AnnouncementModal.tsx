@@ -1,4 +1,5 @@
 import { useState, useEffect, useRef } from "react";
+import { useNavigate } from "react-router-dom";
 import {
   Dialog,
   DialogContent,
@@ -11,7 +12,7 @@ import { useUnreadAnnouncements } from "@/hooks/useAnnouncements";
 import { useSiteSettings } from "@/hooks/useSiteSettings";
 import { format } from "date-fns";
 import { ptBR } from "date-fns/locale";
-import { Megaphone, ChevronLeft, ChevronRight, X } from "lucide-react";
+import { Megaphone, ChevronLeft, ChevronRight, X, ExternalLink } from "lucide-react";
 import { cn } from "@/lib/utils";
 import { playSoundFile } from "@/lib/sounds";
 import logoFallback from "@/assets/logo-sucena.png";
@@ -65,6 +66,7 @@ function ParticleField() {
 export function AnnouncementModal() {
   const { unreadAnnouncements, markAsRead } = useUnreadAnnouncements();
   const { settings } = useSiteSettings();
+  const navigate = useNavigate();
   const [currentIndex, setCurrentIndex] = useState(0);
   const hasPlayedSound = useRef(false);
 
@@ -87,11 +89,24 @@ export function AnnouncementModal() {
 
   if (!currentAnnouncement) return null;
 
+  // Extract desvio ID from content if present
+  const desvioIdMatch = currentAnnouncement?.content?.match(/<!--desvio:([a-f0-9-]+)-->/);
+  const linkedDesvioId = desvioIdMatch ? desvioIdMatch[1] : null;
+  const displayContent = currentAnnouncement?.content?.replace(/\n?<!--desvio:[a-f0-9-]+-->/, "") || "";
+
   const handleConfirm = async () => {
     await markAsRead.mutateAsync(currentAnnouncement.id);
     if (currentIndex >= unreadAnnouncements.length - 1) {
       setCurrentIndex(0);
     }
+  };
+
+  const handleGoToDesvio = async () => {
+    await markAsRead.mutateAsync(currentAnnouncement.id);
+    if (currentIndex >= unreadAnnouncements.length - 1) {
+      setCurrentIndex(0);
+    }
+    navigate(`/desvios?highlight=${linkedDesvioId}`);
   };
 
   const handlePrev = () => {
@@ -191,9 +206,20 @@ export function AnnouncementModal() {
 
                 <div className="announcement-content">
                   <p className="whitespace-pre-wrap text-white announcement-text text-base sm:text-lg">
-                    {currentAnnouncement.content}
+                    {displayContent}
                   </p>
                 </div>
+
+                {linkedDesvioId && (
+                  <Button
+                    variant="outline"
+                    onClick={handleGoToDesvio}
+                    className="gap-2 border-green-500/50 text-green-400 hover:bg-green-500/20 hover:border-green-400 w-full mt-2"
+                  >
+                    <ExternalLink className="w-4 h-4" />
+                    Ver Desvio Corrigido
+                  </Button>
+                )}
               </div>
 
               <DialogFooter className="flex-col sm:flex-row gap-2 mt-3 sm:mt-4">
