@@ -41,31 +41,9 @@ export function useUserNavOrder() {
 
   const effectiveDefaultOrder = globalNavOrder ?? DEFAULT_NAV_ORDER;
 
-  const { data: navOrder, isLoading } = useQuery({
-    queryKey: ["user-nav-order", user?.id],
-    queryFn: async (): Promise<string[]> => {
-      if (!user?.id) return effectiveDefaultOrder;
-
-      const { data, error } = await supabase
-        .from("user_preferences")
-        .select("nav_order")
-        .eq("user_id", user.id)
-        .maybeSingle();
-
-      if (error) {
-        console.error("Error fetching user nav order:", error);
-        return effectiveDefaultOrder;
-      }
-
-      if (data?.nav_order && Array.isArray(data.nav_order)) {
-        return data.nav_order as string[];
-      }
-
-      return effectiveDefaultOrder;
-    },
-    enabled: !!user?.id,
-    staleTime: 1000 * 60 * 5,
-  });
+  // All users now follow the global nav order defined by admin
+  const navOrder = effectiveDefaultOrder;
+  const isLoading = false;
 
   const updateNavOrder = useMutation({
     mutationFn: async (newOrder: string[]) => {
