@@ -87,6 +87,14 @@ export function useDouble() {
   const nextRoundTimeoutRef = useRef<ReturnType<typeof setTimeout>>();
   const roundRef = useRef<string | null>(null);
   const loopTokenRef = useRef(0);
+  const phaseRef = useRef<DoublePhase>(phase);
+  const balanceRef = useRef(balance);
+  const currentRoundIdRef = useRef<string | null>(null);
+
+  // Keep refs in sync
+  useEffect(() => { phaseRef.current = phase; }, [phase]);
+  useEffect(() => { balanceRef.current = balance; }, [balance]);
+  useEffect(() => { currentRoundIdRef.current = currentRoundId; }, [currentRoundId]);
 
   // Load balance
   useEffect(() => {
@@ -285,14 +293,18 @@ export function useDouble() {
   }, [currentRoundId]);
 
   const placeBet = useCallback(async (color: DoubleColor, amount: number) => {
-    if (!user || !currentRoundId || phase !== "betting") return false;
-    if (amount > balance || amount < 0.10) return false;
+    const currentPhase = phaseRef.current;
+    const currentBalance = balanceRef.current;
+    const roundId = currentRoundIdRef.current;
+
+    if (!user || !roundId || currentPhase !== "betting") return false;
+    if (amount > currentBalance || amount < 0.10) return false;
 
     const userName = profile?.full_name || "Jogador";
     const avatarUrl = profile?.avatar_url || null;
 
     // Debit balance
-    const newBalance = balance - amount;
+    const newBalance = currentBalance - amount;
     setBalance(newBalance);
 
     await supabase
@@ -302,7 +314,7 @@ export function useDouble() {
 
     // Place bet
     await supabase.from("double_bets").insert({
-      round_id: currentRoundId,
+      round_id: roundId,
       user_id: user.id,
       user_name: userName,
       avatar_url: avatarUrl,
@@ -317,7 +329,7 @@ export function useDouble() {
     });
 
     return true;
-  }, [user, currentRoundId, phase, balance, profile]);
+  }, [user, profile]);
 
   return {
     phase,

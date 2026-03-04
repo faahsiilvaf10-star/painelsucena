@@ -47,6 +47,7 @@ export function DoubleGame({ onBack }: Props) {
     lastResult,
     spinTarget,
     placeBet,
+    currentRoundId,
   } = useDouble();
 
   // Dual bet slots
@@ -69,7 +70,7 @@ export function DoubleGame({ onBack }: Props) {
     bet2Enabled: false,
     remaining: 0,
   });
-  const prevPhaseRef = useRef(phase);
+  
 
   const { data: balanceRanking = [] } = useQuery({
     queryKey: ["double-balance-ranking"],
@@ -172,12 +173,13 @@ export function DoubleGame({ onBack }: Props) {
     await placeBet(color, amount);
   };
 
-  // Auto-bet: place bets when a NEW betting phase starts
+  // Auto-bet: place bets when a NEW round starts (currentRoundId changes while phase is betting)
+  const prevRoundIdRef = useRef<string | null>(null);
   useEffect(() => {
-    const wasNotBetting = prevPhaseRef.current !== "betting";
-    prevPhaseRef.current = phase;
+    if (!currentRoundId || currentRoundId === prevRoundIdRef.current) return;
+    prevRoundIdRef.current = currentRoundId;
 
-    if (phase !== "betting" || !wasNotBetting) return;
+    if (phase !== "betting") return;
     if (!autoBetRef.current.active) return;
 
     const ref = autoBetRef.current;
@@ -205,7 +207,7 @@ export function DoubleGame({ onBack }: Props) {
       }
     }, 1500);
     return () => clearTimeout(timer);
-  }, [phase, placeBet]);
+  }, [currentRoundId, phase, placeBet]);
 
   const startAutoBet = () => {
     if (!bet1Color || autoBetRounds <= 0) return;
