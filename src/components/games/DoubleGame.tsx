@@ -49,16 +49,26 @@ export function DoubleGame({ onBack }: Props) {
     placeBet,
   } = useDouble();
 
-  const [betAmount, setBetAmount] = useState(1);
-  const [selectedColor, setSelectedColor] = useState<DoubleColor | null>(null);
+  // Dual bet slots
+  const [bet1Amount, setBet1Amount] = useState(1);
+  const [bet1Color, setBet1Color] = useState<DoubleColor | null>(null);
+  const [bet2Amount, setBet2Amount] = useState(1);
+  const [bet2Color, setBet2Color] = useState<DoubleColor | null>(null);
+  const [bet2Enabled, setBet2Enabled] = useState(false);
+  const [activeBetSlot, setActiveBetSlot] = useState<1 | 2>(1);
   const [showRanking, setShowRanking] = useState(false);
 
   // Auto-bet state
-  const [autoBetMode, setAutoBetMode] = useState(false);
   const [autoBetActive, setAutoBetActive] = useState(false);
   const [autoBetRounds, setAutoBetRounds] = useState(5);
   const [autoBetRemaining, setAutoBetRemaining] = useState(0);
-  const autoBetRef = useRef({ active: false, color: null as DoubleColor | null, amount: 0, remaining: 0 });
+  const autoBetRef = useRef({
+    active: false,
+    bet1: { color: null as DoubleColor | null, amount: 0 },
+    bet2: { color: null as DoubleColor | null, amount: 0 },
+    bet2Enabled: false,
+    remaining: 0,
+  });
   const prevPhaseRef = useRef(phase);
 
   const { data: balanceRanking = [] } = useQuery({
@@ -148,18 +158,21 @@ export function DoubleGame({ onBack }: Props) {
 
   const handleColorToggle = (color: DoubleColor) => {
     if (phase !== "betting") return;
-    setSelectedColor(prev => (prev === color ? null : color));
-  };
-
-  const handleConfirmBet = async () => {
-    if (!selectedColor || phase !== "betting") return;
-    const success = await placeBet(selectedColor, betAmount);
-    if (success) {
-      // keep color selected so user can bet again quickly
+    if (activeBetSlot === 1) {
+      setBet1Color(prev => (prev === color ? null : color));
+    } else {
+      setBet2Color(prev => (prev === color ? null : color));
     }
   };
 
-  // Auto-bet: place bet only once when a NEW betting phase starts (round transition)
+  const handleConfirmBet = async (slot: 1 | 2) => {
+    const color = slot === 1 ? bet1Color : bet2Color;
+    const amount = slot === 1 ? bet1Amount : bet2Amount;
+    if (!color || phase !== "betting") return;
+    await placeBet(color, amount);
+  };
+
+  // Auto-bet: place bets when a NEW betting phase starts
   useEffect(() => {
     const wasNotBetting = prevPhaseRef.current !== "betting";
     prevPhaseRef.current = phase;
@@ -168,7 +181,7 @@ export function DoubleGame({ onBack }: Props) {
     if (!autoBetRef.current.active) return;
 
     const ref = autoBetRef.current;
-    if (ref.remaining <= 0 || !ref.color) {
+    if (ref.remaining <= 0) {
       autoBetRef.current.active = false;
       setAutoBetActive(false);
       setAutoBetRemaining(0);
@@ -176,7 +189,14 @@ export function DoubleGame({ onBack }: Props) {
     }
     const timer = setTimeout(async () => {
       if (!autoBetRef.current.active) return;
-      await placeBet(ref.color!, ref.amount);
+      // Place bet 1
+      if (ref.bet1.color) {
+        await placeBet(ref.bet1.color, ref.bet1.amount);
+      }
+      // Place bet 2
+      if (ref.bet2Enabled && ref.bet2.color) {
+        await placeBet(ref.bet2.color, ref.bet2.amount);
+      }
       autoBetRef.current.remaining -= 1;
       setAutoBetRemaining(autoBetRef.current.remaining);
       if (autoBetRef.current.remaining <= 0) {
@@ -188,19 +208,28 @@ export function DoubleGame({ onBack }: Props) {
   }, [phase, placeBet]);
 
   const startAutoBet = () => {
-    if (!selectedColor || autoBetRounds <= 0) return;
-    autoBetRef.current = { active: true, color: selectedColor, amount: betAmount, remaining: autoBetRounds };
+    if (!bet1Color || autoBetRounds <= 0) return;
+    autoBetRef.current = {
+      active: true,
+      bet1: { color: bet1Color, amount: bet1Amount },
+      bet2: { color: bet2Color, amount: bet2Amount },
+      bet2Enabled,
+      remaining: autoBetRounds,
+    };
     setAutoBetActive(true);
     setAutoBetRemaining(autoBetRounds);
+    // Place immediately if currently betting
     if (phase === "betting") {
-      placeBet(selectedColor, betAmount).then(() => {
+      (async () => {
+        if (bet1Color) await placeBet(bet1Color, bet1Amount);
+        if (bet2Enabled && bet2Color) await placeBet(bet2Color, bet2Amount);
         autoBetRef.current.remaining -= 1;
         setAutoBetRemaining(autoBetRef.current.remaining);
         if (autoBetRef.current.remaining <= 0) {
           autoBetRef.current.active = false;
           setAutoBetActive(false);
         }
-      });
+      })();
     }
   };
 
@@ -210,8 +239,9 @@ export function DoubleGame({ onBack }: Props) {
     setAutoBetRemaining(0);
   };
 
-  const adjustAmount = (delta: number) => {
-    setBetAmount(prev => Math.max(0.1, Math.round((prev + delta) * 100) / 100));
+  const adjustAmount = (slot: 1 | 2, delta: number) => {
+    const setter = slot === 1 ? setBet1Amount : setBet2Amount;
+    setter(prev => Math.max(0.1, Math.round((prev + delta) * 100) / 100));
   };
 
   const betsByColor = useMemo(() => {
@@ -361,178 +391,12 @@ export function DoubleGame({ onBack }: Props) {
         ))}
       </div>
 
-      {/* Bet Amount */}
-      <div className="bg-zinc-200 rounded-xl p-3 border border-zinc-300">
-        <p className="text-xs text-zinc-800 mb-2">Valor da aposta</p>
-        <div className="flex items-center gap-2">
-          <Button
-            variant="outline"
-            size="icon"
-            className="h-9 w-9 bg-zinc-300 border-zinc-400 text-zinc-900"
-            onClick={() => adjustAmount(-1)}
-          >
-            <Minus className="w-4 h-4" />
-          </Button>
-          <input
-            type="number"
-            min={0.1}
-            step={0.1}
-            value={betAmount}
-            onChange={e => {
-              const v = parseFloat(e.target.value);
-              if (!isNaN(v) && v >= 0) setBetAmount(v);
-            }}
-            className="flex-1 bg-zinc-300 rounded-lg px-4 py-2 text-center text-lg font-bold text-zinc-900 outline-none border border-zinc-400 focus:ring-2 focus:ring-primary"
-          />
-          <Button
-            variant="outline"
-            size="icon"
-            className="h-9 w-9 bg-zinc-300 border-zinc-400 text-zinc-900"
-            onClick={() => adjustAmount(1)}
-          >
-            <Plus className="w-4 h-4" />
-          </Button>
-        </div>
-        <div className="flex gap-2 mt-2">
-          {[0.5, 1, 5, 10, 50, 100].map(v => (
-            <Button
-              key={v}
-              variant="outline"
-              size="sm"
-              className="flex-1 text-xs bg-zinc-300 border-zinc-400 text-zinc-900 hover:bg-zinc-400"
-              onClick={() => setBetAmount(v)}
-            >
-              {v}
-            </Button>
-          ))}
-        </div>
-        <div className="flex gap-2 mt-2">
-          <Button
-            variant="outline"
-            size="sm"
-            className="flex-1 bg-zinc-300 border-zinc-400 text-zinc-900"
-            onClick={() => setBetAmount(prev => Math.max(0.1, prev / 2))}
-          >
-            ½
-          </Button>
-          <Button
-            variant="outline"
-            size="sm"
-            className="flex-1 bg-zinc-300 border-zinc-400 text-zinc-900"
-            onClick={() => setBetAmount(prev => Math.min(450000, prev * 2))}
-          >
-            2x
-          </Button>
-          <Button
-            variant="outline"
-            size="sm"
-            className="flex-1 bg-zinc-300 border-zinc-400 text-zinc-900"
-            onClick={() => setBetAmount(balance)}
-          >
-            MAX
-          </Button>
-        </div>
-      </div>
-      {/* Confirm Bet Button */}
-      {selectedColor && phase === "betting" && (
-        <Button
-          className={cn(
-            "w-full text-white font-bold py-3 text-base",
-            selectedColor === "red" && "bg-red-600 hover:bg-red-700",
-            selectedColor === "black" && "bg-zinc-800 hover:bg-zinc-900",
-            selectedColor === "white" && "bg-emerald-500 hover:bg-emerald-600"
-          )}
-          onClick={handleConfirmBet}
-        >
-          Apostar R$ {betAmount.toFixed(2)} no {COLOR_LABEL[selectedColor]}
-        </Button>
-      )}
-
-      {/* Auto-Bet Panel */}
-      <div className="bg-zinc-200 rounded-xl p-3 border border-zinc-300">
-        <div className="flex items-center justify-between mb-2">
-          <span className="text-xs font-semibold text-zinc-800 flex items-center gap-1.5">
-            <Repeat className="w-3.5 h-3.5" /> Auto-Aposta
-          </span>
-          {autoBetActive && (
-            <span className="text-[10px] bg-amber-100 text-amber-800 px-2 py-0.5 rounded-full font-bold animate-pulse">
-              {autoBetRemaining} restante(s)
-            </span>
-          )}
-        </div>
-        <div className="flex items-center gap-2 mb-2">
-          <span className="text-[10px] text-zinc-600 whitespace-nowrap">Rodadas:</span>
-          <div className="flex items-center gap-1 flex-1">
-            <Button
-              variant="outline"
-              size="icon"
-              className="h-7 w-7 bg-zinc-300 border-zinc-400 text-zinc-900"
-              onClick={() => setAutoBetRounds(prev => Math.max(1, prev - 1))}
-              disabled={autoBetActive}
-            >
-              <Minus className="w-3 h-3" />
-            </Button>
-            <input
-              type="number"
-              min={1}
-              max={100}
-              value={autoBetRounds}
-              onChange={e => {
-                const v = parseInt(e.target.value);
-                if (!isNaN(v) && v >= 1) setAutoBetRounds(v);
-              }}
-              disabled={autoBetActive}
-              className="flex-1 bg-zinc-300 rounded-md px-2 py-1 text-center text-sm font-bold text-zinc-900 outline-none border border-zinc-400 focus:ring-2 focus:ring-primary disabled:opacity-50"
-            />
-            <Button
-              variant="outline"
-              size="icon"
-              className="h-7 w-7 bg-zinc-300 border-zinc-400 text-zinc-900"
-              onClick={() => setAutoBetRounds(prev => Math.min(100, prev + 1))}
-              disabled={autoBetActive}
-            >
-              <Plus className="w-3 h-3" />
-            </Button>
-          </div>
-        </div>
-        <div className="flex gap-2 mb-2">
-          {[3, 5, 10, 20].map(v => (
-            <Button
-              key={v}
-              variant="outline"
-              size="sm"
-              className="flex-1 text-xs bg-zinc-300 border-zinc-400 text-zinc-900 hover:bg-zinc-400"
-              onClick={() => setAutoBetRounds(v)}
-              disabled={autoBetActive}
-            >
-              {v}x
-            </Button>
-          ))}
-        </div>
-        {!autoBetActive ? (
-          <Button
-            className="w-full bg-red-600 hover:bg-red-700 text-white font-bold"
-            onClick={startAutoBet}
-            disabled={!selectedColor}
-          >
-            Iniciar Auto-Aposta
-          </Button>
-        ) : (
-          <Button
-            className="w-full bg-zinc-700 hover:bg-zinc-800 text-white font-bold"
-            onClick={stopAutoBet}
-          >
-            Parar Auto-Aposta ({autoBetRemaining})
-          </Button>
-        )}
-      </div>
-
-
-      {/* Bet Buttons */}
+      {/* Bet Buttons (color selection) */}
       <div className="grid grid-cols-3 gap-3">
         {(["red", "black", "white"] as DoubleColor[]).map(color => {
           const myBet = myBets.get(color) || 0;
           const disabled = phase !== "betting";
+          const selectedColor = activeBetSlot === 1 ? bet1Color : bet2Color;
           return (
             <motion.button
               key={color}
@@ -568,6 +432,192 @@ export function DoubleGame({ onBack }: Props) {
             </motion.button>
           );
         })}
+      </div>
+
+      {/* Bet Slot Tabs */}
+      <div className="flex gap-2">
+        <Button
+          variant={activeBetSlot === 1 ? "default" : "outline"}
+          size="sm"
+          className="flex-1"
+          onClick={() => setActiveBetSlot(1)}
+        >
+          Aposta 1 {bet1Color ? `(${COLOR_LABEL[bet1Color]})` : ""}
+        </Button>
+        <Button
+          variant={activeBetSlot === 2 ? "default" : "outline"}
+          size="sm"
+          className={cn("flex-1", !bet2Enabled && "opacity-50")}
+          onClick={() => { setBet2Enabled(true); setActiveBetSlot(2); }}
+        >
+          Aposta 2 {bet2Enabled && bet2Color ? `(${COLOR_LABEL[bet2Color]})` : bet2Enabled ? "" : "+ Adicionar"}
+        </Button>
+      </div>
+
+      {/* Bet Amount for active slot */}
+      <div className="bg-zinc-200 rounded-xl p-3 border border-zinc-300">
+        <div className="flex items-center justify-between mb-2">
+          <p className="text-xs text-zinc-800 font-semibold">
+            Valor — Aposta {activeBetSlot}
+            {(activeBetSlot === 1 ? bet1Color : bet2Color) && (
+              <span className="ml-1 text-[10px] text-zinc-500">
+                ({COLOR_LABEL[(activeBetSlot === 1 ? bet1Color : bet2Color)!]})
+              </span>
+            )}
+          </p>
+          {activeBetSlot === 2 && bet2Enabled && (
+            <Button
+              variant="ghost"
+              size="sm"
+              className="h-6 text-[10px] text-red-600 hover:text-red-700"
+              onClick={() => { setBet2Enabled(false); setBet2Color(null); setActiveBetSlot(1); }}
+            >
+              Remover
+            </Button>
+          )}
+        </div>
+        <div className="flex items-center gap-2">
+          <Button
+            variant="outline"
+            size="icon"
+            className="h-9 w-9 bg-zinc-300 border-zinc-400 text-zinc-900"
+            onClick={() => adjustAmount(activeBetSlot, -1)}
+          >
+            <Minus className="w-4 h-4" />
+          </Button>
+          <input
+            type="number"
+            min={0.1}
+            step={0.1}
+            value={activeBetSlot === 1 ? bet1Amount : bet2Amount}
+            onChange={e => {
+              const v = parseFloat(e.target.value);
+              const setter = activeBetSlot === 1 ? setBet1Amount : setBet2Amount;
+              if (!isNaN(v) && v >= 0) setter(v);
+            }}
+            className="flex-1 bg-zinc-300 rounded-lg px-4 py-2 text-center text-lg font-bold text-zinc-900 outline-none border border-zinc-400 focus:ring-2 focus:ring-primary"
+          />
+          <Button
+            variant="outline"
+            size="icon"
+            className="h-9 w-9 bg-zinc-300 border-zinc-400 text-zinc-900"
+            onClick={() => adjustAmount(activeBetSlot, 1)}
+          >
+            <Plus className="w-4 h-4" />
+          </Button>
+        </div>
+        <div className="flex gap-2 mt-2">
+          {[0.5, 1, 5, 10, 50, 100].map(v => (
+            <Button
+              key={v}
+              variant="outline"
+              size="sm"
+              className="flex-1 text-xs bg-zinc-300 border-zinc-400 text-zinc-900 hover:bg-zinc-400"
+              onClick={() => (activeBetSlot === 1 ? setBet1Amount : setBet2Amount)(v)}
+            >
+              {v}
+            </Button>
+          ))}
+        </div>
+        <div className="flex gap-2 mt-2">
+          <Button variant="outline" size="sm" className="flex-1 bg-zinc-300 border-zinc-400 text-zinc-900"
+            onClick={() => (activeBetSlot === 1 ? setBet1Amount : setBet2Amount)(prev => Math.max(0.1, prev / 2))}>½</Button>
+          <Button variant="outline" size="sm" className="flex-1 bg-zinc-300 border-zinc-400 text-zinc-900"
+            onClick={() => (activeBetSlot === 1 ? setBet1Amount : setBet2Amount)(prev => Math.min(450000, prev * 2))}>2x</Button>
+          <Button variant="outline" size="sm" className="flex-1 bg-zinc-300 border-zinc-400 text-zinc-900"
+            onClick={() => (activeBetSlot === 1 ? setBet1Amount : setBet2Amount)(balance)}>MAX</Button>
+        </div>
+      </div>
+
+      {/* Confirm Bet Buttons */}
+      {phase === "betting" && (
+        <div className="space-y-2">
+          {bet1Color && (
+            <Button
+              className={cn(
+                "w-full text-white font-bold py-3 text-base",
+                bet1Color === "red" && "bg-red-600 hover:bg-red-700",
+                bet1Color === "black" && "bg-zinc-800 hover:bg-zinc-900",
+                bet1Color === "white" && "bg-emerald-500 hover:bg-emerald-600"
+              )}
+              onClick={() => handleConfirmBet(1)}
+            >
+              Aposta 1: R$ {bet1Amount.toFixed(2)} no {COLOR_LABEL[bet1Color]}
+            </Button>
+          )}
+          {bet2Enabled && bet2Color && (
+            <Button
+              className={cn(
+                "w-full text-white font-bold py-3 text-base",
+                bet2Color === "red" && "bg-red-600 hover:bg-red-700",
+                bet2Color === "black" && "bg-zinc-800 hover:bg-zinc-900",
+                bet2Color === "white" && "bg-emerald-500 hover:bg-emerald-600"
+              )}
+              onClick={() => handleConfirmBet(2)}
+            >
+              Aposta 2: R$ {bet2Amount.toFixed(2)} no {COLOR_LABEL[bet2Color]}
+            </Button>
+          )}
+        </div>
+      )}
+
+      {/* Auto-Bet Panel */}
+      <div className="bg-zinc-200 rounded-xl p-3 border border-zinc-300">
+        <div className="flex items-center justify-between mb-2">
+          <span className="text-xs font-semibold text-zinc-800 flex items-center gap-1.5">
+            <Repeat className="w-3.5 h-3.5" /> Auto-Aposta
+          </span>
+          {autoBetActive && (
+            <span className="text-[10px] bg-amber-100 text-amber-800 px-2 py-0.5 rounded-full font-bold animate-pulse">
+              {autoBetRemaining} restante(s)
+            </span>
+          )}
+        </div>
+        {autoBetActive && (
+          <div className="text-[10px] text-zinc-600 mb-2 space-y-0.5">
+            <p>🎯 Aposta 1: R$ {autoBetRef.current.bet1.amount.toFixed(2)} no {autoBetRef.current.bet1.color ? COLOR_LABEL[autoBetRef.current.bet1.color] : "—"}</p>
+            {autoBetRef.current.bet2Enabled && autoBetRef.current.bet2.color && (
+              <p>🎯 Aposta 2: R$ {autoBetRef.current.bet2.amount.toFixed(2)} no {COLOR_LABEL[autoBetRef.current.bet2.color]}</p>
+            )}
+          </div>
+        )}
+        <div className="flex items-center gap-2 mb-2">
+          <span className="text-[10px] text-zinc-600 whitespace-nowrap">Rodadas:</span>
+          <div className="flex items-center gap-1 flex-1">
+            <Button variant="outline" size="icon" className="h-7 w-7 bg-zinc-300 border-zinc-400 text-zinc-900"
+              onClick={() => setAutoBetRounds(prev => Math.max(1, prev - 1))} disabled={autoBetActive}>
+              <Minus className="w-3 h-3" />
+            </Button>
+            <input type="number" min={1} max={100} value={autoBetRounds}
+              onChange={e => { const v = parseInt(e.target.value); if (!isNaN(v) && v >= 1) setAutoBetRounds(v); }}
+              disabled={autoBetActive}
+              className="flex-1 bg-zinc-300 rounded-md px-2 py-1 text-center text-sm font-bold text-zinc-900 outline-none border border-zinc-400 focus:ring-2 focus:ring-primary disabled:opacity-50"
+            />
+            <Button variant="outline" size="icon" className="h-7 w-7 bg-zinc-300 border-zinc-400 text-zinc-900"
+              onClick={() => setAutoBetRounds(prev => Math.min(100, prev + 1))} disabled={autoBetActive}>
+              <Plus className="w-3 h-3" />
+            </Button>
+          </div>
+        </div>
+        <div className="flex gap-2 mb-2">
+          {[3, 5, 10, 20].map(v => (
+            <Button key={v} variant="outline" size="sm"
+              className="flex-1 text-xs bg-zinc-300 border-zinc-400 text-zinc-900 hover:bg-zinc-400"
+              onClick={() => setAutoBetRounds(v)} disabled={autoBetActive}>
+              {v}x
+            </Button>
+          ))}
+        </div>
+        {!autoBetActive ? (
+          <Button className="w-full bg-red-600 hover:bg-red-700 text-white font-bold"
+            onClick={startAutoBet} disabled={!bet1Color}>
+            Iniciar Auto-Aposta{bet2Enabled && bet2Color ? " (2 apostas)" : ""}
+          </Button>
+        ) : (
+          <Button className="w-full bg-zinc-700 hover:bg-zinc-800 text-white font-bold" onClick={stopAutoBet}>
+            Parar Auto-Aposta ({autoBetRemaining})
+          </Button>
+        )}
       </div>
 
       {/* Live Bets */}
