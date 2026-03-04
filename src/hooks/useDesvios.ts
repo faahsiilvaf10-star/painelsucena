@@ -166,14 +166,61 @@ export function useAddCorrectionPhoto() {
 
 export function useUpdateDesvioStatus() {
   const qc = useQueryClient();
+  const { user } = useAuth();
+  const { data: profile } = useProfile();
 
   return useMutation({
     mutationFn: async ({ desvioId, status }: { desvioId: string; status: string }) => {
+      // Fetch desvio details before updating
+      const { data: desvio, error: fetchError } = await supabase
+        .from("desvios")
+        .select("*")
+        .eq("id", desvioId)
+        .single();
+      if (fetchError) throw fetchError;
+
       const { error } = await supabase
         .from("desvios")
         .update({ status })
         .eq("id", desvioId);
       if (error) throw error;
+
+      // Send announcement to the creator when marked as corrected
+      if (status === "corrigido" && user && desvio.created_by !== user.id) {
+        const correctorName = profile?.full_name || "Usuário";
+        const items = Array.isArray(desvio.items) ? desvio.items : [];
+        const mentionedNames = ((desvio.mentioned_user_names as string[]) || []).join(", ");
+
+        let itemDetails = "";
+        if (items.length > 0) {
+          itemDetails = items.map((item: any, i: number) => {
+            let line = `${i + 1}. ${item.description || "Sem descrição"}`;
+            if (item.correction_observation) {
+              line += `\n   ✅ Observação: ${item.correction_observation}`;
+            }
+            return line;
+          }).join("\n");
+        }
+
+        const content = [
+          `O desvio que você registrou foi **corrigido** por **${correctorName}**.`,
+          "",
+          `📋 **Descrição:** ${desvio.description}`,
+          mentionedNames ? `👤 **Responsável(is):** ${mentionedNames}` : "",
+          desvio.due_date ? `📅 **Prazo:** ${new Date(desvio.due_date).toLocaleDateString("pt-BR")}` : "",
+          "",
+          items.length > 0 ? `📝 **Itens corrigidos:**\n${itemDetails}` : "",
+        ].filter(Boolean).join("\n");
+
+        await supabase.from("announcements").insert({
+          title: "✅ Desvio Corrigido",
+          content,
+          created_by: user.id,
+          target_type: "specific",
+          target_users: [desvio.created_by],
+          published_at: new Date().toISOString(),
+        });
+      }
     },
     onSuccess: () => {
       qc.invalidateQueries({ queryKey: ["desvios"] });
