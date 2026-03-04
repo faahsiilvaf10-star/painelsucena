@@ -726,7 +726,7 @@ export default function TrocaEpi() {
                             onSelect={() => {
                               setFuncionarioNome(col.nome);
                               setFuncionarioFuncao(col.funcao || "");
-                              setFuncionarioMatricula(col.matricula || "");
+                              setFuncionarioMatricula(col.matriculaHydro || col.matricula || "");
                               setFuncPopoverOpen(false);
                             }}
                           >
@@ -744,8 +744,8 @@ export default function TrocaEpi() {
                 <Input value={funcionarioFuncao} onChange={e => setFuncionarioFuncao(e.target.value)} placeholder="Função" />
               </div>
               <div>
-                <Label>Matrícula</Label>
-                <Input value={funcionarioMatricula} onChange={e => setFuncionarioMatricula(e.target.value)} placeholder="Matrícula" />
+                <Label>Matrícula Hydro</Label>
+                <Input value={funcionarioMatricula} onChange={e => setFuncionarioMatricula(e.target.value)} placeholder="Matrícula Hydro" />
               </div>
             </div>
 
