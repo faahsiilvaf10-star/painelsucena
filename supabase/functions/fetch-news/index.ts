@@ -48,6 +48,7 @@ serve(async (req) => {
           const linkMatch = itemXml.match(linkRegex);
           const pubDateMatch = itemXml.match(pubDateRegex);
           const sourceMatch = itemXml.match(sourceRegex);
+          const imageMatch = itemXml.match(imageRegex);
 
           const title = titleMatch ? (titleMatch[1] || titleMatch[2] || "").trim() : "";
           const link = linkMatch ? linkMatch[1] : "";
