@@ -87,5 +87,18 @@ export function useResiduosEfluentes(ano: number) {
     },
   });
 
-  return { ...query, upsert, remove };
+  const removeAll = useMutation({
+    mutationFn: async () => {
+      const { error } = await supabase
+        .from("residuos_efluentes" as any)
+        .delete()
+        .eq("ano", ano);
+      if (error) throw error;
+    },
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ["residuos_efluentes", ano] });
+    },
+  });
+
+  return { ...query, upsert, remove, removeAll };
 }
