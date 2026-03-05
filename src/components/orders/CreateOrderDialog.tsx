@@ -62,7 +62,7 @@ const emptyItem: ItemForm = {
 };
 
 export function CreateOrderDialog({ open, onOpenChange }: CreateOrderDialogProps) {
-  const [items, setItems] = useState<ItemForm[]>([{ ...emptyItem }]);
+  const [items, setItems] = useState<ItemForm[]>([]);
   const [currentItem, setCurrentItem] = useState<ItemForm>({ ...emptyItem });
   const [expectedDate, setExpectedDate] = useState<Date | undefined>();
   const [mentionedCargo, setMentionedCargo] = useState<string | undefined>();
