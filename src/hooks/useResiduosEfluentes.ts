@@ -53,8 +53,7 @@ export function useResiduosEfluentes(ano: number) {
         .maybeSingle();
 
       if ((existing as any)?.id) {
-        const currentKg = Number((existing as any).kg) || 0;
-        const newKg = Math.round((currentKg + kg) * 100) / 100;
+        const newKg = Math.round(kg * 100) / 100;
         const { error } = await supabase
           .from("residuos_efluentes" as any)
           .update({ kg: newKg, updated_at: new Date().toISOString() } as any)
