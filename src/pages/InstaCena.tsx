@@ -20,7 +20,7 @@ const MONTHS = [
 
 const InstaCena = () => {
   const { data: posts, isLoading } = useInstaCenaPosts();
-  const [filter, setFilter] = useState<"all" | "posts" | "logs">("all");
+  const [filter, setFilter] = useState<"posts" | "logs">("posts");
   const [selectedDate, setSelectedDate] = useState<Date | undefined>();
   const [selectedMonth, setSelectedMonth] = useState<string>("all");
 
@@ -53,7 +53,6 @@ const InstaCena = () => {
           <div className="flex items-center gap-2">
             <Tabs value={filter} onValueChange={(v) => setFilter(v as typeof filter)}>
               <TabsList className="h-8">
-                <TabsTrigger value="all" className="text-xs px-3 h-6">Tudo</TabsTrigger>
                 <TabsTrigger value="posts" className="text-xs px-3 h-6">Posts</TabsTrigger>
                 <TabsTrigger value="logs" className="text-xs px-3 h-6">Logs</TabsTrigger>
               </TabsList>
