@@ -23,7 +23,7 @@ serve(async (req) => {
       },
     ];
 
-    const allItems: { title: string; category: string; link: string; pubDate: string; source: string }[] = [];
+    const allItems: { title: string; category: string; link: string; pubDate: string; source: string; imageUrl: string }[] = [];
 
     for (const feed of feeds) {
       try {
@@ -38,6 +38,7 @@ serve(async (req) => {
         const linkRegex = /<link>(.*?)<\/link>/;
         const pubDateRegex = /<pubDate>(.*?)<\/pubDate>/;
         const sourceRegex = /<source[^>]*url="([^"]*)"[^>]*>(.*?)<\/source>/;
+        const imageRegex = /<media:content[^>]*url="([^"]*)"[^>]*>|<enclosure[^>]*url="([^"]*)"[^>]*type="image[^"]*"[^>]*>|<img[^>]*src="([^"]*)"[^>]*>/;
 
         let match;
         let count = 0;
@@ -47,6 +48,7 @@ serve(async (req) => {
           const linkMatch = itemXml.match(linkRegex);
           const pubDateMatch = itemXml.match(pubDateRegex);
           const sourceMatch = itemXml.match(sourceRegex);
+          const imageMatch = itemXml.match(imageRegex);
 
           const title = titleMatch ? (titleMatch[1] || titleMatch[2] || "").trim() : "";
           const link = linkMatch ? linkMatch[1] : "";
@@ -57,6 +59,7 @@ serve(async (req) => {
               sourceDomain = new URL(sourceUrl).hostname.replace("www.", "");
             }
           } catch {}
+          const imageUrl = imageMatch ? (imageMatch[1] || imageMatch[2] || imageMatch[3] || "") : "";
 
           if (title) {
             allItems.push({
@@ -65,6 +68,7 @@ serve(async (req) => {
               link,
               pubDate: pubDateMatch ? pubDateMatch[1] : "",
               source: sourceDomain,
+              imageUrl,
             });
             count++;
           }
