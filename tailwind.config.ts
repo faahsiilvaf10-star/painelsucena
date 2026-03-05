@@ -97,7 +97,7 @@ export default {
         "accordion-down": "accordion-down 0.2s ease-out",
         "accordion-up": "accordion-up 0.2s ease-out",
         "bounce-slow": "bounce-slow 2s infinite",
-        "ticker": "ticker 60s linear infinite",
+        "ticker": "ticker 120s linear infinite",
       },
     },
   },
