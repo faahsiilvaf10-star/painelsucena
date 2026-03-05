@@ -9,7 +9,8 @@ import {
   Trash2,
   MapPin,
   Shield,
-  History
+  History,
+  ImageIcon
 } from "lucide-react";
 import {
   Table,
