@@ -490,6 +490,10 @@ export default function MeioAmbiente() {
 
           <PluviometriaSpreadsheet setor={setor} ano={ano} />
         </TabsContent>
+
+        <TabsContent value="abastecimento">
+          <AbastecimentoCaixaDagua />
+        </TabsContent>
       </Tabs>
     </div>
   );
