@@ -53,6 +53,7 @@ export interface OrderItemInput {
   quantity: number;
   quantity_unit: QuantityUnit;
   description?: string;
+  photo_urls?: string[];
 }
 
 export interface CreateOrderData {
@@ -255,6 +256,7 @@ export const useCreateOrder = () => {
         quantity: item.quantity,
         quantity_unit: item.quantity_unit,
         description: item.description || null,
+        photo_urls: item.photo_urls || [],
       }));
 
       const { error: itemsError } = await supabase
