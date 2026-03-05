@@ -23,7 +23,7 @@ serve(async (req) => {
       },
     ];
 
-    const allItems: { title: string; category: string; link: string; pubDate: string; source: string }[] = [];
+    const allItems: { title: string; category: string; link: string; pubDate: string; source: string; imageUrl: string }[] = [];
 
     for (const feed of feeds) {
       try {
