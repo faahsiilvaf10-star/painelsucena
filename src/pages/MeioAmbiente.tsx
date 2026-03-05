@@ -1,11 +1,13 @@
-import { useState, useMemo, useCallback } from "react";
+import { useState, useMemo, useCallback, useRef } from "react";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { Input } from "@/components/ui/input";
+import { Button } from "@/components/ui/button";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { usePluviometriaYear } from "@/hooks/usePluviometria";
-import { CloudRain, Leaf } from "lucide-react";
+import { CloudRain, Leaf, FileDown } from "lucide-react";
 import { toast } from "sonner";
-import logoSucena from "@/assets/logo-sucena.png";
+import html2canvas from "html2canvas";
+import logoSucenaEmpreendimentos from "@/assets/logo-sucena-empreendimentos.png";
 
 const MESES = [
   "JANEIRO", "FEVEREIRO", "MARÇO", "ABRIL", "MAIO", "JUNHO",
