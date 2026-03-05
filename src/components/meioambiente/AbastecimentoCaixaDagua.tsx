@@ -187,6 +187,29 @@ export default function AbastecimentoCaixaDagua() {
       pdf.setFontSize(14);
       pdf.text(String(totalAnual), margin + mesColW + 4 * semColW, totalY, { align: "center" });
 
+      // Capture chart as image and add to page 2
+      if (chartRef.current) {
+        try {
+          const html2canvas = (await import("html2canvas")).default;
+          const canvas = await html2canvas(chartRef.current, {
+            scale: 2,
+            backgroundColor: "#ffffff",
+            useCORS: true,
+          });
+          const imgData = canvas.toDataURL("image/png");
+          pdf.addPage("a4", "l");
+          const chartPageW = pdf.internal.pageSize.getWidth();
+          const chartPageH = pdf.internal.pageSize.getHeight();
+          const chartMargin = 15;
+          const imgW = chartPageW - chartMargin * 2;
+          const imgH = (canvas.height * imgW) / canvas.width;
+          const finalH = Math.min(imgH, chartPageH - chartMargin * 2);
+          pdf.addImage(imgData, "PNG", chartMargin, chartMargin, imgW, finalH);
+        } catch (chartErr) {
+          console.warn("Não foi possível capturar o gráfico:", chartErr);
+        }
+      }
+
       pdf.save(`abastecimento-caixa-dagua-${ano}.pdf`);
       toast.success("PDF exportado!");
     } catch (err) {
