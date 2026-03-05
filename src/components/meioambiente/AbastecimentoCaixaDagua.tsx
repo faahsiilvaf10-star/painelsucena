@@ -389,7 +389,7 @@ export default function AbastecimentoCaixaDagua() {
 
         {/* Footer - Total */}
         <div className="border-t-2 border-[#1a5276] p-4 bg-card flex items-center justify-end gap-4">
-          <span className="font-bold text-sm">TOTAL ACUMULADO ANO (KG)</span>
+          <span className="font-bold text-sm">TOTAL ACUMULADO ANO (LITROS)</span>
           <span className="text-2xl font-bold text-[#1a5276]">{totalAnual}</span>
         </div>
       </div>
