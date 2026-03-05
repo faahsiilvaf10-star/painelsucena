@@ -239,17 +239,17 @@ export const NewsTicker = () => {
           <DialogHeader>
             <DialogTitle className="flex items-center gap-2">
               <Newspaper className="h-5 w-5" />
-              Notícias do Dia
+              {displayLabel}
             </DialogTitle>
           </DialogHeader>
           <ScrollArea className="h-[60vh] pr-2">
             <div className="space-y-3">
-              {todayNews.length === 0 ? (
+              {displayNews.length === 0 ? (
                 <p className="text-sm text-muted-foreground text-center py-8">
-                  Nenhuma notícia publicada hoje.
+                  Nenhuma notícia disponível.
                 </p>
               ) : (
-                todayNews.map((item, i) => {
+                displayNews.map((item, i) => {
                   const logos = findTeamLogos(item.title, item.category);
                   const flags = findCountryFlags(item.title);
                   const favicon = getSourceFavicon(item.source);
