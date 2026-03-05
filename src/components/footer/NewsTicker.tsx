@@ -254,41 +254,51 @@ export const NewsTicker = () => {
                       href={item.link}
                       target="_blank"
                       rel="noopener noreferrer"
-                      className="block p-3 rounded-lg border border-border hover:bg-secondary/50 transition-colors"
+                      className="block rounded-lg border border-border hover:bg-secondary/50 transition-colors overflow-hidden"
                     >
-                      <div className="flex items-center gap-2 flex-wrap">
-                        {favicon && (
-                          <img src={favicon} alt="" className="h-4 w-4 rounded-sm shrink-0" />
-                        )}
-                        <Badge variant="outline" className="shrink-0 text-[10px]">
-                          {item.category}
-                        </Badge>
-                        {logos.length > 0 && (
-                          <div className="flex items-center gap-1 shrink-0">
-                            {logos.map((logo, j) => (
-                              <img key={j} src={logo} alt="" className="h-5 w-5 object-contain" />
-                            ))}
-                          </div>
-                        )}
-                        {flags.length > 0 && (
-                          <div className="flex items-center gap-0.5 shrink-0">
-                            {flags.map((flag, j) => (
-                              <span key={j} className="text-base">{flag}</span>
-                            ))}
-                          </div>
-                        )}
-                        {item.source && (
-                          <span className="text-[10px] text-muted-foreground shrink-0">
-                            {item.source}
-                          </span>
-                        )}
-                        {item.pubDate && (
-                          <span className="text-[10px] text-muted-foreground shrink-0 ml-auto">
-                            {formatDate(item.pubDate)}
-                          </span>
-                        )}
+                      {item.imageUrl && (
+                        <img
+                          src={item.imageUrl}
+                          alt=""
+                          className="w-full h-32 object-cover"
+                          onError={(e) => { (e.target as HTMLImageElement).style.display = 'none'; }}
+                        />
+                      )}
+                      <div className="p-3">
+                        <div className="flex items-center gap-2 flex-wrap">
+                          {favicon && (
+                            <img src={favicon} alt="" className="h-4 w-4 rounded-sm shrink-0" />
+                          )}
+                          <Badge variant="outline" className="shrink-0 text-[10px]">
+                            {item.category}
+                          </Badge>
+                          {logos.length > 0 && (
+                            <div className="flex items-center gap-1 shrink-0">
+                              {logos.map((logo, j) => (
+                                <img key={j} src={logo} alt="" className="h-5 w-5 object-contain" />
+                              ))}
+                            </div>
+                          )}
+                          {flags.length > 0 && (
+                            <div className="flex items-center gap-0.5 shrink-0">
+                              {flags.map((flag, j) => (
+                                <span key={j} className="text-base">{flag}</span>
+                              ))}
+                            </div>
+                          )}
+                          {item.source && (
+                            <span className="text-[10px] text-muted-foreground shrink-0">
+                              {item.source}
+                            </span>
+                          )}
+                          {item.pubDate && (
+                            <span className="text-[10px] text-muted-foreground shrink-0 ml-auto">
+                              {formatDate(item.pubDate)}
+                            </span>
+                          )}
+                        </div>
+                        <p className="text-sm mt-1.5 leading-snug">{item.title}</p>
                       </div>
-                      <p className="text-sm mt-1.5 leading-snug">{item.title}</p>
                     </a>
                   );
                 })
