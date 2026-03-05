@@ -87,7 +87,7 @@ function PluviometriaGrid({ setor, ano, mes }: { setor: string; ano: number; mes
   }
 
   return (
-    <div className="overflow-x-auto">
+    <div className="overflow-x-auto max-h-[70vh] overflow-y-auto border rounded-md">
       <Table>
         <TableHeader>
           <TableRow>
