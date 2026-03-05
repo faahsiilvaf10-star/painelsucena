@@ -314,6 +314,26 @@ export default function AbastecimentoCaixaDagua() {
           <span className="text-2xl font-bold text-[#1a5276]">{totalAnual}</span>
         </div>
       </div>
+
+      {/* Chart */}
+      <div className="bg-card rounded-2xl border border-border/50 p-5">
+        <h3 className="text-lg font-bold mb-4">Abastecimento por Semana (KG)</h3>
+        <div className="h-[300px]">
+          <ResponsiveContainer width="100%" height="100%">
+            <BarChart data={chartData} margin={{ top: 5, right: 20, left: 0, bottom: 5 }}>
+              <CartesianGrid strokeDasharray="3 3" stroke="hsl(var(--border))" />
+              <XAxis dataKey="mes" stroke="hsl(var(--muted-foreground))" tick={{ fontSize: 11 }} />
+              <YAxis stroke="hsl(var(--muted-foreground))" tick={{ fontSize: 11 }} />
+              <Tooltip contentStyle={{ backgroundColor: "hsl(var(--card))", border: "1px solid hsl(var(--border))", borderRadius: "12px" }} />
+              <Legend />
+              <Bar dataKey="Sem 01" fill="hsl(210, 79%, 46%)" radius={[4, 4, 0, 0]} />
+              <Bar dataKey="Sem 02" fill="hsl(174, 62%, 47%)" radius={[4, 4, 0, 0]} />
+              <Bar dataKey="Sem 03" fill="hsl(45, 93%, 47%)" radius={[4, 4, 0, 0]} />
+              <Bar dataKey="Sem 04" fill="hsl(0, 84%, 60%)" radius={[4, 4, 0, 0]} />
+            </BarChart>
+          </ResponsiveContainer>
+        </div>
+      </div>
     </div>
   );
 }
