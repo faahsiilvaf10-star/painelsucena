@@ -1,11 +1,13 @@
-import { useState, useMemo, useCallback } from "react";
+import { useState, useMemo, useCallback, useRef } from "react";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { Input } from "@/components/ui/input";
+import { Button } from "@/components/ui/button";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { usePluviometriaYear } from "@/hooks/usePluviometria";
-import { CloudRain, Leaf } from "lucide-react";
+import { CloudRain, Leaf, FileDown } from "lucide-react";
 import { toast } from "sonner";
-import logoSucena from "@/assets/logo-sucena.png";
+import html2canvas from "html2canvas";
+import logoSucenaEmpreendimentos from "@/assets/logo-sucena-empreendimentos.png";
 
 const MESES = [
   "JANEIRO", "FEVEREIRO", "MARÇO", "ABRIL", "MAIO", "JUNHO",
@@ -26,7 +28,7 @@ function PluviometriaSpreadsheet({ setor, ano }: { setor: string; ano: number })
   const { data: records, isLoading, upsert, remove } = usePluviometriaYear(setor, ano);
   const [editingCell, setEditingCell] = useState<{ mes: number; dia: number } | null>(null);
   const [editValue, setEditValue] = useState("");
-
+  const spreadsheetRef = useRef<HTMLDivElement>(null);
   // Build lookup: key "mes-dia" -> mm
   const lookup = useMemo(() => {
     const map = new Map<string, number>();
@@ -107,6 +109,28 @@ function PluviometriaSpreadsheet({ setor, ano }: { setor: string; ano: number })
     });
   }, [upsert, remove]);
 
+  const handleExportPDF = useCallback(async () => {
+    if (!spreadsheetRef.current) return;
+    toast.info("Gerando PDF...");
+    try {
+      const { jsPDF } = await import("jspdf");
+      const canvas = await html2canvas(spreadsheetRef.current, {
+        scale: 2,
+        useCORS: true,
+        logging: false,
+      });
+      const imgData = canvas.toDataURL("image/png");
+      const pdf = new jsPDF("l", "mm", "a4");
+      const pdfW = pdf.internal.pageSize.getWidth() - 20;
+      const pdfH = (canvas.height * pdfW) / canvas.width;
+      pdf.addImage(imgData, "PNG", 10, 10, pdfW, pdfH);
+      pdf.save(`pluviometria-${setor}-${ano}.pdf`);
+      toast.success("PDF exportado!");
+    } catch {
+      toast.error("Erro ao gerar PDF");
+    }
+  }, [setor, ano]);
+
   if (isLoading) {
     return <div className="flex justify-center p-8 text-muted-foreground">Carregando...</div>;
   }
@@ -125,7 +149,13 @@ function PluviometriaSpreadsheet({ setor, ano }: { setor: string; ano: number })
   };
 
   return (
-    <div className="overflow-auto max-h-[80vh] border-2 border-[#00873e] rounded">
+    <div>
+      <div className="flex justify-end mb-2">
+        <Button variant="outline" size="sm" onClick={handleExportPDF} className="gap-2">
+          <FileDown className="w-4 h-4" /> Exportar PDF
+        </Button>
+      </div>
+      <div ref={spreadsheetRef} className="overflow-auto max-h-[80vh] border-2 border-[#00873e] rounded">
       {/* Header */}
       <div className="bg-white dark:bg-card p-3 border-b-2 border-[#00873e]">
         <div className="flex items-center justify-between">
@@ -133,7 +163,7 @@ function PluviometriaSpreadsheet({ setor, ano }: { setor: string; ano: number })
             PLANILHA DE CONTROLE DE PRECIPITAÇÃO
           </h2>
           <span className="text-lg font-bold">ANO {ano}</span>
-          <img src={logoSucena} alt="Sucena" className="h-12 object-contain" />
+          <img src={logoSucenaEmpreendimentos} alt="Sucena Empreendimentos" className="h-14 object-contain" />
         </div>
         <div className="flex items-center gap-8 mt-1 text-sm">
           <div className="flex items-center gap-2">
@@ -254,6 +284,7 @@ function PluviometriaSpreadsheet({ setor, ano }: { setor: string; ano: number })
           </div>
         </div>
       </div>
+    </div>
     </div>
   );
 }
