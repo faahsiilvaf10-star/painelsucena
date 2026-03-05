@@ -462,6 +462,9 @@ export default function MeioAmbiente() {
           <TabsTrigger value="abastecimento" className="gap-2">
             <Droplets className="w-4 h-4" /> Caixa D'Água
           </TabsTrigger>
+          <TabsTrigger value="residuos" className="gap-2">
+            <Trash2 className="w-4 h-4" /> Resíduos Efluentes
+          </TabsTrigger>
         </TabsList>
 
         <TabsContent value="pluviometria">
@@ -494,6 +497,10 @@ export default function MeioAmbiente() {
 
         <TabsContent value="abastecimento">
           <AbastecimentoCaixaDagua />
+        </TabsContent>
+
+        <TabsContent value="residuos">
+          <ResiduosEfluentes />
         </TabsContent>
       </Tabs>
     </div>
