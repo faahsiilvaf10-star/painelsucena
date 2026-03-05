@@ -4,7 +4,8 @@ import { Input } from "@/components/ui/input";
 import { Button } from "@/components/ui/button";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { usePluviometriaYear } from "@/hooks/usePluviometria";
-import { CloudRain, Leaf, FileDown } from "lucide-react";
+import { CloudRain, Leaf, FileDown, Droplets } from "lucide-react";
+import AbastecimentoCaixaDagua from "@/components/meioambiente/AbastecimentoCaixaDagua";
 import { toast } from "sonner";
 import html2canvas from "html2canvas";
 import logoSucenaEmpreendimentos from "@/assets/logo-sucena-empreendimentos.png";
@@ -457,6 +458,9 @@ export default function MeioAmbiente() {
           <TabsTrigger value="pluviometria" className="gap-2">
             <CloudRain className="w-4 h-4" /> Pluviometria
           </TabsTrigger>
+          <TabsTrigger value="abastecimento" className="gap-2">
+            <Droplets className="w-4 h-4" /> Caixa D'Água
+          </TabsTrigger>
         </TabsList>
 
         <TabsContent value="pluviometria">
@@ -485,6 +489,10 @@ export default function MeioAmbiente() {
           </div>
 
           <PluviometriaSpreadsheet setor={setor} ano={ano} />
+        </TabsContent>
+
+        <TabsContent value="abastecimento">
+          <AbastecimentoCaixaDagua />
         </TabsContent>
       </Tabs>
     </div>
