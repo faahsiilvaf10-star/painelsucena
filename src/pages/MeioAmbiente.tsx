@@ -340,7 +340,7 @@ export default function MeioAmbiente() {
   const [ano, setAno] = useState(currentDate.getFullYear());
 
   return (
-    <div className="container mx-auto p-4 space-y-4 max-w-[1400px]">
+    <div className="mx-auto p-4 space-y-4 w-full overflow-x-auto">
       <div className="flex items-center gap-3">
         <Leaf className="w-7 h-7 text-[#00873e]" />
         <h1 className="text-2xl font-bold">Meio Ambiente</h1>
