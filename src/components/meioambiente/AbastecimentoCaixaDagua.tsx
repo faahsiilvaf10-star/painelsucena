@@ -3,6 +3,7 @@ import { Input } from "@/components/ui/input";
 import { Button } from "@/components/ui/button";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { FileDown } from "lucide-react";
+import { BarChart, Bar, XAxis, YAxis, CartesianGrid, Tooltip, Legend, ResponsiveContainer } from "recharts";
 import { toast } from "sonner";
 import { useAbastecimentoCaixaDagua } from "@/hooks/useAbastecimentoCaixaDagua";
 import logoSucenaEmpreendimentos from "@/assets/logo-sucena-empreendimentos.png";
