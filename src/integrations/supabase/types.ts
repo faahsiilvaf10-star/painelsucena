@@ -2577,6 +2577,39 @@ export type Database = {
         }
         Relationships: []
       }
+      residuos_efluentes: {
+        Row: {
+          ano: number
+          created_at: string
+          created_by: string
+          id: string
+          kg: number
+          mes: number
+          tipo: string
+          updated_at: string
+        }
+        Insert: {
+          ano: number
+          created_at?: string
+          created_by: string
+          id?: string
+          kg?: number
+          mes: number
+          tipo: string
+          updated_at?: string
+        }
+        Update: {
+          ano?: number
+          created_at?: string
+          created_by?: string
+          id?: string
+          kg?: number
+          mes?: number
+          tipo?: string
+          updated_at?: string
+        }
+        Relationships: []
+      }
       security_files: {
         Row: {
           created_at: string
