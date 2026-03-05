@@ -287,6 +287,7 @@ function PluviometriaSpreadsheet({ setor, ano }: { setor: string; ano: number })
         </div>
       </div>
     </div>
+    </div>
   );
 }
 
