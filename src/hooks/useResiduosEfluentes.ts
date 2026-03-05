@@ -46,16 +46,18 @@ export function useResiduosEfluentes(ano: number) {
       if (!user) throw new Error("Not authenticated");
       const { data: existing } = await supabase
         .from("residuos_efluentes" as any)
-        .select("id")
+        .select("id, kg")
         .eq("ano", ano)
         .eq("mes", mes)
         .eq("tipo", tipo)
         .maybeSingle();
 
       if ((existing as any)?.id) {
+        const currentKg = Number((existing as any).kg) || 0;
+        const newKg = currentKg + kg;
         const { error } = await supabase
           .from("residuos_efluentes" as any)
-          .update({ kg, updated_at: new Date().toISOString() } as any)
+          .update({ kg: newKg, updated_at: new Date().toISOString() } as any)
           .eq("id", (existing as any).id);
         if (error) throw error;
       } else {
