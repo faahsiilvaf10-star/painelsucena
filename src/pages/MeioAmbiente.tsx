@@ -458,6 +458,9 @@ export default function MeioAmbiente() {
           <TabsTrigger value="pluviometria" className="gap-2">
             <CloudRain className="w-4 h-4" /> Pluviometria
           </TabsTrigger>
+          <TabsTrigger value="abastecimento" className="gap-2">
+            <Droplets className="w-4 h-4" /> Caixa D'Água
+          </TabsTrigger>
         </TabsList>
 
         <TabsContent value="pluviometria">
