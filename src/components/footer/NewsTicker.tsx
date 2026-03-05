@@ -155,28 +155,23 @@ export const NewsTicker = () => {
 
   if (isLoading || news.length === 0) return null;
 
-  const isToday = (dateStr?: string) => {
-    if (!dateStr) return true;
+  const isFromDate = (dateStr: string | undefined, target: Date) => {
+    if (!dateStr) return false;
     try {
       const d = new Date(dateStr);
-      const now = new Date();
-      return d.getDate() === now.getDate() && d.getMonth() === now.getMonth() && d.getFullYear() === now.getFullYear();
+      return d.getDate() === target.getDate() && d.getMonth() === target.getMonth() && d.getFullYear() === target.getFullYear();
     } catch {
-      return true;
+      return false;
     }
   };
 
-  const formatDate = (dateStr?: string) => {
-    if (!dateStr) return "";
-    try {
-      const d = new Date(dateStr);
-      return d.toLocaleString("pt-BR", { hour: "2-digit", minute: "2-digit" });
-    } catch {
-      return "";
-    }
-  };
+  const now = new Date();
+  const yesterday = new Date(now);
+  yesterday.setDate(yesterday.getDate() - 1);
 
-  const todayNews = news.filter((item) => isToday(item.pubDate));
+  const todayNews = news.filter((item) => isFromDate(item.pubDate, now));
+  const displayNews = todayNews.length > 0 ? todayNews : news.filter((item) => isFromDate(item.pubDate, yesterday));
+  const displayLabel = todayNews.length > 0 ? "Notícias do Dia" : "Notícias de Ontem";
 
   // Build ticker with inline team logos, flags, and source favicon
   const renderTickerItems = () =>
