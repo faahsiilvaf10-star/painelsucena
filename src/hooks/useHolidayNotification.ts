@@ -21,7 +21,6 @@ export function useHolidayNotification() {
     const shown = localStorage.getItem(STORAGE_KEY);
     if (shown === storageValue) return;
 
-    const dayLabel = daysAhead === 1 ? "Amanhã" : "Segunda-feira";
     const message = daysAhead === 1
       ? `🎉 Amanhã é ${holiday.label}! Aproveite o feriado e descanse bem! 🥳`
       : `🎉 Segunda-feira é ${holiday.label}! Bom fim de semana prolongado! 🥳`;
