@@ -20,6 +20,7 @@ export default function AbastecimentoCaixaDagua() {
   const [ano, setAno] = useState(currentDate.getFullYear());
   const { data: records, isLoading, upsert, remove } = useAbastecimentoCaixaDagua(ano);
   const [editingCell, setEditingCell] = useState<{ mes: number; semana: number } | null>(null);
+  const chartRef = useRef<HTMLDivElement>(null);
   const [editValue, setEditValue] = useState("");
 
   const lookup = useMemo(() => {
