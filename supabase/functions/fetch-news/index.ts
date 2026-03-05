@@ -38,6 +38,7 @@ serve(async (req) => {
         const linkRegex = /<link>(.*?)<\/link>/;
         const pubDateRegex = /<pubDate>(.*?)<\/pubDate>/;
         const sourceRegex = /<source[^>]*url="([^"]*)"[^>]*>(.*?)<\/source>/;
+        const imageRegex = /<media:content[^>]*url="([^"]*)"[^>]*>|<enclosure[^>]*url="([^"]*)"[^>]*type="image[^"]*"[^>]*>|<img[^>]*src="([^"]*)"[^>]*>/;
 
         let match;
         let count = 0;
