@@ -59,6 +59,7 @@ import Planejamento from "./pages/Planejamento";
 import NotasFiscais from "./pages/NotasFiscais";
 import TrocaEpi from "./pages/TrocaEpi";
 import InspecaoExtintores from "./pages/InspecaoExtintores";
+import MeioAmbiente from "./pages/MeioAmbiente";
 import NotFound from "./pages/NotFound";
 
 // QueryClient with robust error handling
