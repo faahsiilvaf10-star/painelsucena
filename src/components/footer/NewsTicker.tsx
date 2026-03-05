@@ -186,10 +186,13 @@ export const NewsTicker = () => {
       return (
         <span key={i} className="inline-flex items-center gap-1">
           {i > 0 && <span className="mx-3 text-muted-foreground/40">•</span>}
-          {favicon && (
-            <img src={favicon} alt="" className="inline-block h-3.5 w-3.5 rounded-sm" />
-          )}
           <span className="text-muted-foreground/70">{item.category}</span>
+          {item.source && (
+            <span className="inline-flex items-center gap-0.5 text-muted-foreground/60">
+              {favicon && <img src={favicon} alt="" className="inline-block h-3.5 w-3.5 rounded-sm" />}
+              <span className="text-[10px]">{item.source}</span>
+            </span>
+          )}
           {logos.map((logo, j) => (
             <img key={`t${j}`} src={logo} alt="" className="inline-block h-4 w-4 object-contain" />
           ))}
