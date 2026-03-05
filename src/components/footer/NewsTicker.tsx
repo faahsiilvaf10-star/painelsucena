@@ -173,6 +173,16 @@ export const NewsTicker = () => {
   const displayNews = todayNews.length > 0 ? todayNews : news.filter((item) => isFromDate(item.pubDate, yesterday));
   const displayLabel = todayNews.length > 0 ? "Notícias do Dia" : "Notícias de Ontem";
 
+  const formatDate = (dateStr?: string) => {
+    if (!dateStr) return "";
+    try {
+      const d = new Date(dateStr);
+      return d.toLocaleString("pt-BR", { hour: "2-digit", minute: "2-digit" });
+    } catch {
+      return "";
+    }
+  };
+
   // Build ticker with inline team logos, flags, and source favicon
   const renderTickerItems = () =>
     news.map((item, i) => {
