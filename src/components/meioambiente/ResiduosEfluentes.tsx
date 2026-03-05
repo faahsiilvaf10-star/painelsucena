@@ -19,7 +19,7 @@ const ALL_TIPOS = [...TIPOS_RESIDUO, TIPO_EFLUENTE];
 export default function ResiduosEfluentes() {
   const currentDate = new Date();
   const [ano, setAno] = useState(currentDate.getFullYear());
-  const { data: records, isLoading, upsert, remove } = useResiduosEfluentes(ano);
+  const { data: records, isLoading, upsert, remove, removeAll } = useResiduosEfluentes(ano);
   const [editingCell, setEditingCell] = useState<{ mes: number; tipo: string } | null>(null);
   const [editValue, setEditValue] = useState("");
 
