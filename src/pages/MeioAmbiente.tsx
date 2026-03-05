@@ -28,7 +28,7 @@ function PluviometriaSpreadsheet({ setor, ano }: { setor: string; ano: number })
   const { data: records, isLoading, upsert, remove } = usePluviometriaYear(setor, ano);
   const [editingCell, setEditingCell] = useState<{ mes: number; dia: number } | null>(null);
   const [editValue, setEditValue] = useState("");
-
+  const spreadsheetRef = useRef<HTMLDivElement>(null);
   // Build lookup: key "mes-dia" -> mm
   const lookup = useMemo(() => {
     const map = new Map<string, number>();
