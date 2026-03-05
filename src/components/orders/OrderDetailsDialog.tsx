@@ -433,11 +433,31 @@ export function OrderDetailsDialog({ order, open, onOpenChange }: OrderDetailsDi
                                 {index + 1}
                               </TableCell>
                               <TableCell className={isCancelled ? "line-through text-muted-foreground" : ""}>
-                                <div>
-                                  <span className="font-medium">{item.product_name}</span>
-                                  {item.description && (
-                                    <p className="text-xs text-muted-foreground">{item.description}</p>
+                                <div className="flex items-center gap-2">
+                                  {/* Item photos */}
+                                  {(item as any).photo_urls && (item as any).photo_urls.length > 0 && (
+                                    <div className="flex -space-x-1 flex-shrink-0">
+                                      {(item as any).photo_urls.slice(0, 2).map((url: string, i: number) => (
+                                        <img
+                                          key={i}
+                                          src={url}
+                                          alt={`Foto ${i + 1}`}
+                                          className="w-8 h-8 rounded object-cover border border-background"
+                                        />
+                                      ))}
+                                      {(item as any).photo_urls.length > 2 && (
+                                        <span className="w-8 h-8 rounded bg-muted flex items-center justify-center text-[10px] text-muted-foreground">
+                                          +{(item as any).photo_urls.length - 2}
+                                        </span>
+                                      )}
+                                    </div>
                                   )}
+                                  <div>
+                                    <span className="font-medium">{item.product_name}</span>
+                                    {item.description && (
+                                      <p className="text-xs text-muted-foreground">{item.description}</p>
+                                    )}
+                                  </div>
                                 </div>
                               </TableCell>
                               <TableCell className={`text-right font-medium ${isCancelled ? "line-through text-muted-foreground" : ""}`}>
