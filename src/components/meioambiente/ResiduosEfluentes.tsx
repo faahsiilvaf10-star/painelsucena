@@ -2,7 +2,8 @@ import { useState, useMemo, useCallback } from "react";
 import { Input } from "@/components/ui/input";
 import { Button } from "@/components/ui/button";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
-import { FileDown } from "lucide-react";
+import { FileDown, RotateCcw } from "lucide-react";
+import { AlertDialog, AlertDialogAction, AlertDialogCancel, AlertDialogContent, AlertDialogDescription, AlertDialogFooter, AlertDialogHeader, AlertDialogTitle, AlertDialogTrigger } from "@/components/ui/alert-dialog";
 import { BarChart, Bar, XAxis, YAxis, CartesianGrid, Tooltip, Legend, ResponsiveContainer } from "recharts";
 import { toast } from "sonner";
 import { useResiduosEfluentes, TIPOS_RESIDUO, TIPO_EFLUENTE } from "@/hooks/useResiduosEfluentes";
@@ -18,7 +19,7 @@ const ALL_TIPOS = [...TIPOS_RESIDUO, TIPO_EFLUENTE];
 export default function ResiduosEfluentes() {
   const currentDate = new Date();
   const [ano, setAno] = useState(currentDate.getFullYear());
-  const { data: records, isLoading, upsert, remove } = useResiduosEfluentes(ano);
+  const { data: records, isLoading, upsert, remove, removeAll } = useResiduosEfluentes(ano);
   const [editingCell, setEditingCell] = useState<{ mes: number; tipo: string } | null>(null);
   const [editValue, setEditValue] = useState("");
 
@@ -384,9 +385,35 @@ export default function ResiduosEfluentes() {
             ))}
           </SelectContent>
         </Select>
-        <Button variant="outline" size="sm" onClick={handleExportPDF} className="gap-2 ml-auto">
+        <Button variant="outline" size="sm" onClick={handleExportPDF} className="gap-2">
           <FileDown className="w-4 h-4" /> Exportar PDF
         </Button>
+        <AlertDialog>
+          <AlertDialogTrigger asChild>
+            <Button variant="destructive" size="sm" className="gap-2">
+              <RotateCcw className="w-4 h-4" /> Redefinir Tudo
+            </Button>
+          </AlertDialogTrigger>
+          <AlertDialogContent>
+            <AlertDialogHeader>
+              <AlertDialogTitle>Redefinir todos os valores?</AlertDialogTitle>
+              <AlertDialogDescription>
+                Isso irá apagar todos os valores de Resíduos e Efluentes do ano {ano}. Esta ação não pode ser desfeita.
+              </AlertDialogDescription>
+            </AlertDialogHeader>
+            <AlertDialogFooter>
+              <AlertDialogCancel>Cancelar</AlertDialogCancel>
+              <AlertDialogAction onClick={() => {
+                removeAll.mutate(undefined, {
+                  onSuccess: () => toast.success(`Todos os valores de ${ano} foram redefinidos`),
+                  onError: () => toast.error("Erro ao redefinir"),
+                });
+              }}>
+                Confirmar
+              </AlertDialogAction>
+            </AlertDialogFooter>
+          </AlertDialogContent>
+        </AlertDialog>
       </div>
 
       {/* RESÍDUOS TABLE */}
