@@ -2214,6 +2214,42 @@ export type Database = {
         }
         Relationships: []
       }
+      pluviometria_records: {
+        Row: {
+          ano: number
+          created_at: string
+          created_by: string
+          dia: number
+          id: string
+          mes: number
+          mm: number
+          setor: string
+          updated_at: string
+        }
+        Insert: {
+          ano: number
+          created_at?: string
+          created_by: string
+          dia: number
+          id?: string
+          mes: number
+          mm?: number
+          setor?: string
+          updated_at?: string
+        }
+        Update: {
+          ano?: number
+          created_at?: string
+          created_by?: string
+          dia?: number
+          id?: string
+          mes?: number
+          mm?: number
+          setor?: string
+          updated_at?: string
+        }
+        Relationships: []
+      }
       presentations: {
         Row: {
           created_at: string

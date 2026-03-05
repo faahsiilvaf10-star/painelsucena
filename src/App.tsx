@@ -59,6 +59,7 @@ import Planejamento from "./pages/Planejamento";
 import NotasFiscais from "./pages/NotasFiscais";
 import TrocaEpi from "./pages/TrocaEpi";
 import InspecaoExtintores from "./pages/InspecaoExtintores";
+import MeioAmbiente from "./pages/MeioAmbiente";
 import NotFound from "./pages/NotFound";
 
 // QueryClient with robust error handling
@@ -153,6 +154,7 @@ const App = () => (
                     <Route path="/notas-fiscais" element={<ProtectedRoute><NotasFiscais /></ProtectedRoute>} />
                     <Route path="/troca-epi" element={<ProtectedRoute><TrocaEpi /></ProtectedRoute>} />
                     <Route path="/inspecao-extintores" element={<ProtectedRoute><InspecaoExtintores /></ProtectedRoute>} />
+                    <Route path="/meio-ambiente" element={<ProtectedRoute><MeioAmbiente /></ProtectedRoute>} />
                     {/* ADD ALL CUSTOM ROUTES ABOVE THE CATCH-ALL "*" ROUTE */}
                     <Route path="*" element={<NotFound />} />
                   </Routes>

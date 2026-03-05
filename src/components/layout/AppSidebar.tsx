@@ -94,6 +94,7 @@ const allNavItems: NavItem[] = [
   { id: "notas-fiscais", icon: Receipt, label: "Notas Fiscais", path: "/notas-fiscais" },
   { id: "troca-epi", icon: ShieldCheck, label: "Troca de EPI", path: "/troca-epi" },
   { id: "inspecao-extintores", icon: FlameKindling, label: "Inspeção Extintores", path: "/inspecao-extintores" },
+  { id: "meio-ambiente", icon: Leaf, label: "Meio Ambiente", path: "/meio-ambiente" },
   { id: "emergencia", icon: AlertTriangle, label: "Emergência", path: "/emergencia", isEmergency: true },
 ];
 
