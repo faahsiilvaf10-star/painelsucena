@@ -109,6 +109,7 @@ interface DeliveryItem {
   quantity: number;
   unit: string;
   originalUnit: QuantityUnit;
+  photoUrls: string[];
 }
 
 export function DeliveryConfirmationDialog({
