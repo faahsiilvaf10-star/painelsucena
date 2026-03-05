@@ -63,5 +63,21 @@ export function usePluviometriaYear(setor: string, ano: number) {
     },
   });
 
-  return { ...query, upsert };
+  const remove = useMutation({
+    mutationFn: async ({ mes, dia }: { mes: number; dia: number }) => {
+      const { error } = await supabase
+        .from("pluviometria_records" as any)
+        .delete()
+        .eq("setor", setor)
+        .eq("ano", ano)
+        .eq("mes", mes)
+        .eq("dia", dia);
+      if (error) throw error;
+    },
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ["pluviometria", setor, ano] });
+    },
+  });
+
+  return { ...query, upsert, remove };
 }

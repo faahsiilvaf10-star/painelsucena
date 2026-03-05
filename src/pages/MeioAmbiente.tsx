@@ -23,7 +23,7 @@ const PERIODOS: Record<string, string> = {
 };
 
 function PluviometriaSpreadsheet({ setor, ano }: { setor: string; ano: number }) {
-  const { data: records, isLoading, upsert } = usePluviometriaYear(setor, ano);
+  const { data: records, isLoading, upsert, remove } = usePluviometriaYear(setor, ano);
   const [editingCell, setEditingCell] = useState<{ mes: number; dia: number } | null>(null);
   const [editValue, setEditValue] = useState("");
 
@@ -80,6 +80,18 @@ function PluviometriaSpreadsheet({ setor, ano }: { setor: string; ano: number })
   }, [monthTotals]);
 
   const handleSave = useCallback((mes: number, dia: number, value: string) => {
+    // If empty, delete the record to clear the cell
+    if (value.trim() === "") {
+      remove.mutate({ mes, dia }, {
+        onSuccess: () => {
+          toast.success(`${MESES[mes - 1]} dia ${dia}: apagado`);
+          setEditingCell(null);
+          setEditValue("");
+        },
+        onError: () => toast.error("Erro ao apagar"),
+      });
+      return;
+    }
     const val = parseFloat(value);
     if (isNaN(val) || val < 0) {
       toast.error("Valor inválido");
@@ -93,7 +105,7 @@ function PluviometriaSpreadsheet({ setor, ano }: { setor: string; ano: number })
       },
       onError: () => toast.error("Erro ao salvar"),
     });
-  }, [upsert]);
+  }, [upsert, remove]);
 
   if (isLoading) {
     return <div className="flex justify-center p-8 text-muted-foreground">Carregando...</div>;
@@ -198,8 +210,7 @@ function PluviometriaSpreadsheet({ setor, ano }: { setor: string; ano: number })
                             }
                           }}
                           onBlur={() => {
-                            if (editValue !== "") handleSave(mesNum, dia, editValue);
-                            else { setEditingCell(null); setEditValue(""); }
+                            handleSave(mesNum, dia, editValue);
                           }}
                           autoFocus
                         />
