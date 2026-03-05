@@ -2035,6 +2035,7 @@ export type Database = {
           description: string | null
           id: string
           order_id: string
+          photo_urls: string[] | null
           product_name: string
           quantity: number
           quantity_unit: Database["public"]["Enums"]["quantity_unit"]
@@ -2044,6 +2045,7 @@ export type Database = {
           description?: string | null
           id?: string
           order_id: string
+          photo_urls?: string[] | null
           product_name: string
           quantity: number
           quantity_unit?: Database["public"]["Enums"]["quantity_unit"]
@@ -2053,6 +2055,7 @@ export type Database = {
           description?: string | null
           id?: string
           order_id?: string
+          photo_urls?: string[] | null
           product_name?: string
           quantity?: number
           quantity_unit?: Database["public"]["Enums"]["quantity_unit"]

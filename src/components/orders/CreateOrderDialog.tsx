@@ -1,7 +1,7 @@
 import { useState } from "react";
 import { format } from "date-fns";
 import { ptBR } from "date-fns/locale";
-import { CalendarIcon, ImagePlus, Loader2, Sparkles, Upload, X, Plus, Trash2 } from "lucide-react";
+import { CalendarIcon, ImagePlus, Loader2, Sparkles, Upload, X, Plus, Trash2, Pencil, Check } from "lucide-react";
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/components/ui/dialog";
 import { Textarea } from "@/components/ui/textarea";
 import { Button } from "@/components/ui/button";
@@ -52,6 +52,7 @@ interface ItemForm {
   quantity: string;
   quantity_unit: QuantityUnit;
   description: string;
+  photo_urls: string[];
 }
 
 const emptyItem: ItemForm = {
@@ -59,22 +60,23 @@ const emptyItem: ItemForm = {
   quantity: "1",
   quantity_unit: "unidade",
   description: "",
+  photo_urls: [],
 };
 
 export function CreateOrderDialog({ open, onOpenChange }: CreateOrderDialogProps) {
   const [items, setItems] = useState<ItemForm[]>([]);
   const [currentItem, setCurrentItem] = useState<ItemForm>({ ...emptyItem });
+  const [editingIndex, setEditingIndex] = useState<number | null>(null);
   const [expectedDate, setExpectedDate] = useState<Date | undefined>();
   const [mentionedCargo, setMentionedCargo] = useState<string | undefined>();
-  const [photos, setPhotos] = useState<string[]>([]);
-  const [aiImage, setAiImage] = useState<string | null>(null);
   const [isUploading, setIsUploading] = useState(false);
   const [isGeneratingAI, setIsGeneratingAI] = useState(false);
   const { toast } = useToast();
   const createOrder = useCreateOrder();
   const { data: productSuggestions = [] } = useProductSuggestions();
 
-  const handlePhotoUpload = async (e: React.ChangeEvent<HTMLInputElement>) => {
+  // Photo upload for current item being edited/created
+  const handlePhotoUpload = async (e: React.ChangeEvent<HTMLInputElement>, targetIndex?: number) => {
     const files = e.target.files;
     if (!files?.length) return;
 
@@ -82,21 +84,49 @@ export function CreateOrderDialog({ open, onOpenChange }: CreateOrderDialogProps
     try {
       const uploadPromises = Array.from(files).map(uploadOrderPhoto);
       const urls = await Promise.all(uploadPromises);
-      setPhotos((prev) => [...prev, ...urls]);
+
+      if (targetIndex !== undefined && targetIndex !== null) {
+        // Adding photos to an existing item being edited
+        const updated = [...items];
+        updated[targetIndex] = {
+          ...updated[targetIndex],
+          photo_urls: [...updated[targetIndex].photo_urls, ...urls],
+        };
+        setItems(updated);
+      } else {
+        // Adding photos to the current new item form
+        setCurrentItem(prev => ({ ...prev, photo_urls: [...prev.photo_urls, ...urls] }));
+      }
       toast({ title: "Fotos enviadas com sucesso!" });
     } catch (error) {
       toast({ title: "Erro ao enviar fotos", variant: "destructive" });
     } finally {
       setIsUploading(false);
+      // Reset input
+      e.target.value = "";
     }
   };
 
-  const removePhoto = (index: number) => {
-    setPhotos((prev) => prev.filter((_, i) => i !== index));
+  const removePhotoFromItem = (itemIndex: number, photoIndex: number) => {
+    const updated = [...items];
+    updated[itemIndex] = {
+      ...updated[itemIndex],
+      photo_urls: updated[itemIndex].photo_urls.filter((_, i) => i !== photoIndex),
+    };
+    setItems(updated);
   };
 
-  const generateAIImage = async () => {
-    const productName = currentItem.product_name || (items.length > 0 ? items[0].product_name : "");
+  const removePhotoFromCurrent = (photoIndex: number) => {
+    setCurrentItem(prev => ({
+      ...prev,
+      photo_urls: prev.photo_urls.filter((_, i) => i !== photoIndex),
+    }));
+  };
+
+  const generateAIImage = async (targetIndex?: number) => {
+    const productName = targetIndex !== undefined
+      ? items[targetIndex]?.product_name
+      : currentItem.product_name;
 
     if (!productName) {
       toast({ title: "Digite o nome do produto primeiro", variant: "destructive" });
@@ -112,10 +142,17 @@ export function CreateOrderDialog({ open, onOpenChange }: CreateOrderDialogProps
       if (error) throw error;
 
       if (data.imageUrl) {
-        setAiImage(data.imageUrl);
+        if (targetIndex !== undefined) {
+          const updated = [...items];
+          updated[targetIndex] = {
+            ...updated[targetIndex],
+            photo_urls: [...updated[targetIndex].photo_urls, data.imageUrl],
+          };
+          setItems(updated);
+        } else {
+          setCurrentItem(prev => ({ ...prev, photo_urls: [...prev.photo_urls, data.imageUrl] }));
+        }
         toast({ title: "Imagem gerada com sucesso!" });
-      } else {
-        toast({ title: data.message || "Imagem gerada, mas sem URL disponível" });
       }
     } catch (error) {
       toast({ title: "Erro ao gerar imagem", variant: "destructive" });
@@ -131,7 +168,6 @@ export function CreateOrderDialog({ open, onOpenChange }: CreateOrderDialogProps
       .eq("cargo", cargo)
       .limit(1)
       .maybeSingle();
-    
     return data?.user_id || null;
   };
 
@@ -152,7 +188,16 @@ export function CreateOrderDialog({ open, onOpenChange }: CreateOrderDialogProps
   };
 
   const removeItem = (index: number) => {
+    if (editingIndex === index) setEditingIndex(null);
     setItems(items.filter((_, i) => i !== index));
+  };
+
+  const startEditing = (index: number) => {
+    setEditingIndex(index);
+  };
+
+  const stopEditing = () => {
+    setEditingIndex(null);
   };
 
   const updateItem = (index: number, field: keyof ItemForm, value: string) => {
@@ -162,7 +207,6 @@ export function CreateOrderDialog({ open, onOpenChange }: CreateOrderDialogProps
   };
 
   const onSubmit = async () => {
-    // Combine current item if it has data
     let allItems = [...items];
     if (currentItem.product_name.trim()) {
       const qty = parseFloat(currentItem.quantity);
@@ -171,7 +215,6 @@ export function CreateOrderDialog({ open, onOpenChange }: CreateOrderDialogProps
       }
     }
 
-    // Filter out empty items
     allItems = allItems.filter(item => item.product_name.trim() && parseFloat(item.quantity) > 0);
 
     if (allItems.length === 0) {
@@ -181,7 +224,6 @@ export function CreateOrderDialog({ open, onOpenChange }: CreateOrderDialogProps
 
     try {
       let mentionedUserId: string | undefined;
-      
       if (mentionedCargo) {
         const userId = await getMentionedUserId(mentionedCargo as "aux_administrativo" | "aux_almoxarifado");
         if (userId) mentionedUserId = userId;
@@ -192,13 +234,16 @@ export function CreateOrderDialog({ open, onOpenChange }: CreateOrderDialogProps
         quantity: parseFloat(item.quantity),
         quantity_unit: item.quantity_unit,
         description: item.description || undefined,
+        photo_urls: item.photo_urls,
       }));
+
+      // Collect all photos for backwards compat on the order level
+      const allPhotos = allItems.flatMap(item => item.photo_urls);
 
       await createOrder.mutateAsync({
         items: itemsData,
         expected_date: expectedDate ? format(expectedDate, "yyyy-MM-dd") : undefined,
-        photo_urls: photos,
-        ai_generated_image_url: aiImage || undefined,
+        photo_urls: allPhotos,
         mentioned_user_id: mentionedUserId,
         mentioned_cargo: mentionedCargo,
       });
@@ -214,13 +259,68 @@ export function CreateOrderDialog({ open, onOpenChange }: CreateOrderDialogProps
   const resetForm = () => {
     setItems([]);
     setCurrentItem({ ...emptyItem });
+    setEditingIndex(null);
     setExpectedDate(undefined);
     setMentionedCargo(undefined);
-    setPhotos([]);
-    setAiImage(null);
   };
 
   const totalItems = items.length + (currentItem.product_name.trim() ? 1 : 0);
+
+  const renderPhotos = (photos: string[], onRemove: (i: number) => void) => {
+    if (photos.length === 0) return null;
+    return (
+      <div className="flex flex-wrap gap-2 mt-2">
+        {photos.map((url, i) => (
+          <div key={i} className="relative w-16 h-16">
+            <img src={url} alt={`Foto ${i + 1}`} className="w-full h-full object-cover rounded-md" />
+            <button
+              type="button"
+              onClick={() => onRemove(i)}
+              className="absolute -top-1.5 -right-1.5 bg-destructive text-destructive-foreground rounded-full p-0.5"
+            >
+              <X className="w-3 h-3" />
+            </button>
+          </div>
+        ))}
+      </div>
+    );
+  };
+
+  const renderPhotoActions = (targetIndex?: number) => {
+    const inputId = targetIndex !== undefined ? `photo-upload-${targetIndex}` : "photo-upload-new";
+    return (
+      <div className="flex gap-2 mt-2">
+        <Button
+          type="button"
+          variant="outline"
+          size="sm"
+          disabled={isUploading}
+          onClick={() => document.getElementById(inputId)?.click()}
+        >
+          {isUploading ? <Loader2 className="w-3 h-3 mr-1 animate-spin" /> : <Upload className="w-3 h-3 mr-1" />}
+          Fotos
+        </Button>
+        <Button
+          type="button"
+          variant="outline"
+          size="sm"
+          disabled={isGeneratingAI}
+          onClick={() => generateAIImage(targetIndex)}
+        >
+          {isGeneratingAI ? <Loader2 className="w-3 h-3 mr-1 animate-spin" /> : <Sparkles className="w-3 h-3 mr-1" />}
+          IA
+        </Button>
+        <input
+          id={inputId}
+          type="file"
+          accept="image/*"
+          multiple
+          className="hidden"
+          onChange={(e) => handlePhotoUpload(e, targetIndex)}
+        />
+      </div>
+    );
+  };
 
   return (
     <Dialog open={open} onOpenChange={onOpenChange}>
@@ -237,30 +337,95 @@ export function CreateOrderDialog({ open, onOpenChange }: CreateOrderDialogProps
                 Itens do Pedido
                 <Badge variant="secondary">{items.length}</Badge>
               </Label>
-              <div className="space-y-2 max-h-40 overflow-y-auto">
+              <div className="space-y-2 max-h-60 overflow-y-auto">
                 {items.map((item, index) => (
                   <Card key={index} className="bg-muted/50">
                     <CardContent className="p-3">
-                      <div className="flex items-start justify-between gap-2">
-                        <div className="flex-1 min-w-0">
-                          <div className="font-medium truncate">{item.product_name}</div>
-                          <div className="text-sm text-muted-foreground">
-                            {item.quantity} {UNIT_OPTIONS.find(u => u.value === item.quantity_unit)?.label}
+                      {editingIndex === index ? (
+                        // Editing mode
+                        <div className="space-y-3">
+                          <div className="flex items-center justify-between">
+                            <Label className="text-sm font-medium">Editando Item</Label>
+                            <Button type="button" variant="ghost" size="icon" className="h-7 w-7" onClick={stopEditing}>
+                              <Check className="h-4 w-4 text-primary" />
+                            </Button>
                           </div>
-                          {item.description && (
-                            <div className="text-xs text-muted-foreground truncate">{item.description}</div>
-                          )}
+                          <ProductAutocomplete
+                            value={item.product_name}
+                            onChange={(v) => updateItem(index, "product_name", v)}
+                            suggestions={productSuggestions}
+                            placeholder="Nome do Produto"
+                          />
+                          <div className="grid grid-cols-2 gap-2">
+                            <Input
+                              type="number"
+                              step="0.01"
+                              min="0.01"
+                              value={item.quantity}
+                              onChange={(e) => updateItem(index, "quantity", e.target.value)}
+                            />
+                            <Select
+                              value={item.quantity_unit}
+                              onValueChange={(v) => updateItem(index, "quantity_unit", v)}
+                            >
+                              <SelectTrigger><SelectValue /></SelectTrigger>
+                              <SelectContent>
+                                {UNIT_OPTIONS.map((o) => (
+                                  <SelectItem key={o.value} value={o.value}>{o.label}</SelectItem>
+                                ))}
+                              </SelectContent>
+                            </Select>
+                          </div>
+                          <Textarea
+                            placeholder="Descrição (opcional)"
+                            value={item.description}
+                            onChange={(e) => updateItem(index, "description", e.target.value)}
+                            rows={2}
+                          />
+                          {renderPhotos(item.photo_urls, (pi) => removePhotoFromItem(index, pi))}
+                          {renderPhotoActions(index)}
                         </div>
-                        <Button
-                          type="button"
-                          variant="ghost"
-                          size="icon"
-                          className="h-8 w-8 text-destructive hover:text-destructive"
-                          onClick={() => removeItem(index)}
-                        >
-                          <Trash2 className="h-4 w-4" />
-                        </Button>
-                      </div>
+                      ) : (
+                        // View mode
+                        <div className="flex items-start justify-between gap-2">
+                          <div className="flex-1 min-w-0">
+                            <div className="font-medium truncate">{item.product_name}</div>
+                            <div className="text-sm text-muted-foreground">
+                              {item.quantity} {UNIT_OPTIONS.find(u => u.value === item.quantity_unit)?.label}
+                            </div>
+                            {item.description && (
+                              <div className="text-xs text-muted-foreground truncate">{item.description}</div>
+                            )}
+                            {item.photo_urls.length > 0 && (
+                              <div className="flex gap-1 mt-1">
+                                {item.photo_urls.map((url, pi) => (
+                                  <img key={pi} src={url} alt="" className="w-10 h-10 object-cover rounded" />
+                                ))}
+                              </div>
+                            )}
+                          </div>
+                          <div className="flex gap-1">
+                            <Button
+                              type="button"
+                              variant="ghost"
+                              size="icon"
+                              className="h-8 w-8"
+                              onClick={() => startEditing(index)}
+                            >
+                              <Pencil className="h-4 w-4" />
+                            </Button>
+                            <Button
+                              type="button"
+                              variant="ghost"
+                              size="icon"
+                              className="h-8 w-8 text-destructive hover:text-destructive"
+                              onClick={() => removeItem(index)}
+                            >
+                              <Trash2 className="h-4 w-4" />
+                            </Button>
+                          </div>
+                        </div>
+                      )}
                     </CardContent>
                   </Card>
                 ))}
@@ -274,7 +439,7 @@ export function CreateOrderDialog({ open, onOpenChange }: CreateOrderDialogProps
             <Label className="font-medium">
               {items.length > 0 ? "Adicionar outro item" : "Adicionar Item"}
             </Label>
-            
+
             <div className="space-y-3">
               <div>
                 <Label className="text-sm">Nome do Produto *</Label>
@@ -303,14 +468,10 @@ export function CreateOrderDialog({ open, onOpenChange }: CreateOrderDialogProps
                     value={currentItem.quantity_unit}
                     onValueChange={(v) => setCurrentItem({ ...currentItem, quantity_unit: v as QuantityUnit })}
                   >
-                    <SelectTrigger>
-                      <SelectValue />
-                    </SelectTrigger>
+                    <SelectTrigger><SelectValue /></SelectTrigger>
                     <SelectContent>
                       {UNIT_OPTIONS.map((option) => (
-                        <SelectItem key={option.value} value={option.value}>
-                          {option.label}
-                        </SelectItem>
+                        <SelectItem key={option.value} value={option.value}>{option.label}</SelectItem>
                       ))}
                     </SelectContent>
                   </Select>
@@ -327,12 +488,11 @@ export function CreateOrderDialog({ open, onOpenChange }: CreateOrderDialogProps
                 />
               </div>
 
-              <Button
-                type="button"
-                variant="outline"
-                onClick={addItem}
-                className="w-full"
-              >
+              {/* Photos for current item */}
+              {renderPhotos(currentItem.photo_urls, removePhotoFromCurrent)}
+              {renderPhotoActions()}
+
+              <Button type="button" variant="outline" onClick={addItem} className="w-full">
                 <Plus className="w-4 h-4 mr-2" />
                 Adicionar Item à Lista
               </Button>
@@ -349,27 +509,14 @@ export function CreateOrderDialog({ open, onOpenChange }: CreateOrderDialogProps
                 <PopoverTrigger asChild>
                   <Button
                     variant="outline"
-                    className={cn(
-                      "w-full pl-3 text-left font-normal",
-                      !expectedDate && "text-muted-foreground"
-                    )}
+                    className={cn("w-full pl-3 text-left font-normal", !expectedDate && "text-muted-foreground")}
                   >
-                    {expectedDate ? (
-                      format(expectedDate, "dd/MM/yyyy", { locale: ptBR })
-                    ) : (
-                      <span>Selecione uma data</span>
-                    )}
+                    {expectedDate ? format(expectedDate, "dd/MM/yyyy", { locale: ptBR }) : <span>Selecione uma data</span>}
                     <CalendarIcon className="ml-auto h-4 w-4 opacity-50" />
                   </Button>
                 </PopoverTrigger>
                 <PopoverContent className="w-auto p-0" align="start">
-                  <Calendar
-                    mode="single"
-                    selected={expectedDate}
-                    onSelect={setExpectedDate}
-                    disabled={(date) => date < new Date()}
-                    initialFocus
-                  />
+                  <Calendar mode="single" selected={expectedDate} onSelect={setExpectedDate} disabled={(date) => date < new Date()} initialFocus />
                 </PopoverContent>
               </Popover>
             </div>
@@ -377,97 +524,13 @@ export function CreateOrderDialog({ open, onOpenChange }: CreateOrderDialogProps
             <div className="space-y-2">
               <Label>Encaminhar para</Label>
               <Select value={mentionedCargo} onValueChange={setMentionedCargo}>
-                <SelectTrigger>
-                  <SelectValue placeholder="Selecione o responsável" />
-                </SelectTrigger>
+                <SelectTrigger><SelectValue placeholder="Selecione o responsável" /></SelectTrigger>
                 <SelectContent>
                   {CARGO_OPTIONS.map((option) => (
-                    <SelectItem key={option.value} value={option.value}>
-                      {option.label}
-                    </SelectItem>
+                    <SelectItem key={option.value} value={option.value}>{option.label}</SelectItem>
                   ))}
                 </SelectContent>
               </Select>
-            </div>
-          </div>
-
-          {/* Photos Section */}
-          <div className="space-y-2">
-            <Label>Fotos do Pedido</Label>
-            <div className="flex flex-wrap gap-2">
-              {photos.map((url, index) => (
-                <div key={index} className="relative w-20 h-20">
-                  <img
-                    src={url}
-                    alt={`Foto ${index + 1}`}
-                    className="w-full h-full object-cover rounded-md"
-                  />
-                  <button
-                    type="button"
-                    onClick={() => removePhoto(index)}
-                    className="absolute -top-2 -right-2 bg-destructive text-destructive-foreground rounded-full p-1"
-                  >
-                    <X className="w-3 h-3" />
-                  </button>
-                </div>
-              ))}
-              {aiImage && (
-                <div className="relative w-20 h-20">
-                  <img
-                    src={aiImage}
-                    alt="Imagem gerada por IA"
-                    className="w-full h-full object-cover rounded-md ring-2 ring-primary"
-                  />
-                  <button
-                    type="button"
-                    onClick={() => setAiImage(null)}
-                    className="absolute -top-2 -right-2 bg-destructive text-destructive-foreground rounded-full p-1"
-                  >
-                    <X className="w-3 h-3" />
-                  </button>
-                  <span className="absolute bottom-0 left-0 right-0 bg-primary/80 text-primary-foreground text-[10px] text-center py-0.5 rounded-b-md">
-                    IA
-                  </span>
-                </div>
-              )}
-            </div>
-            <div className="flex gap-2">
-              <Button
-                type="button"
-                variant="outline"
-                size="sm"
-                disabled={isUploading}
-                onClick={() => document.getElementById("photo-upload")?.click()}
-              >
-                {isUploading ? (
-                  <Loader2 className="w-4 h-4 mr-2 animate-spin" />
-                ) : (
-                  <Upload className="w-4 h-4 mr-2" />
-                )}
-                Enviar Fotos
-              </Button>
-              <Button
-                type="button"
-                variant="outline"
-                size="sm"
-                disabled={isGeneratingAI}
-                onClick={generateAIImage}
-              >
-                {isGeneratingAI ? (
-                  <Loader2 className="w-4 h-4 mr-2 animate-spin" />
-                ) : (
-                  <Sparkles className="w-4 h-4 mr-2" />
-                )}
-                Gerar com IA
-              </Button>
-              <input
-                id="photo-upload"
-                type="file"
-                accept="image/*"
-                multiple
-                className="hidden"
-                onChange={handlePhotoUpload}
-              />
             </div>
           </div>
 
