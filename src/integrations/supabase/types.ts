@@ -1642,6 +1642,7 @@ export type Database = {
           min_quantity: number
           name: string
           notes: string | null
+          photo_urls: string[] | null
           quantity: number
           unit: string
           updated_at: string
@@ -1657,6 +1658,7 @@ export type Database = {
           min_quantity?: number
           name: string
           notes?: string | null
+          photo_urls?: string[] | null
           quantity?: number
           unit?: string
           updated_at?: string
@@ -1672,6 +1674,7 @@ export type Database = {
           min_quantity?: number
           name?: string
           notes?: string | null
+          photo_urls?: string[] | null
           quantity?: number
           unit?: string
           updated_at?: string
