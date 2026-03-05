@@ -45,15 +45,28 @@ export const NewsTicker = () => {
     .map((item) => `${item.category}  ${item.title}`)
     .join("     •     ");
 
+  const isToday = (dateStr?: string) => {
+    if (!dateStr) return true; // include items without date
+    try {
+      const d = new Date(dateStr);
+      const now = new Date();
+      return d.getDate() === now.getDate() && d.getMonth() === now.getMonth() && d.getFullYear() === now.getFullYear();
+    } catch {
+      return true;
+    }
+  };
+
   const formatDate = (dateStr?: string) => {
     if (!dateStr) return "";
     try {
       const d = new Date(dateStr);
-      return d.toLocaleString("pt-BR", { day: "2-digit", month: "2-digit", hour: "2-digit", minute: "2-digit" });
+      return d.toLocaleString("pt-BR", { hour: "2-digit", minute: "2-digit" });
     } catch {
       return "";
     }
   };
+
+  const todayNews = news.filter((item) => isToday(item.pubDate));
 
   return (
     <>
@@ -92,27 +105,33 @@ export const NewsTicker = () => {
           </DialogHeader>
           <ScrollArea className="h-[60vh] pr-2">
             <div className="space-y-3">
-              {news.map((item, i) => (
-                <a
-                  key={i}
-                  href={item.link}
-                  target="_blank"
-                  rel="noopener noreferrer"
-                  className="block p-3 rounded-lg border border-border hover:bg-secondary/50 transition-colors"
-                >
-                  <div className="flex items-start gap-2">
-                    <Badge variant="outline" className="shrink-0 text-[10px]">
-                      {item.category}
-                    </Badge>
-                    {item.pubDate && (
-                      <span className="text-[10px] text-muted-foreground shrink-0 ml-auto">
-                        {formatDate(item.pubDate)}
-                      </span>
-                    )}
-                  </div>
-                  <p className="text-sm mt-1.5 leading-snug">{item.title}</p>
-                </a>
-              ))}
+              {todayNews.length === 0 ? (
+                <p className="text-sm text-muted-foreground text-center py-8">
+                  Nenhuma notícia publicada hoje.
+                </p>
+              ) : (
+                todayNews.map((item, i) => (
+                  <a
+                    key={i}
+                    href={item.link}
+                    target="_blank"
+                    rel="noopener noreferrer"
+                    className="block p-3 rounded-lg border border-border hover:bg-secondary/50 transition-colors"
+                  >
+                    <div className="flex items-start gap-2">
+                      <Badge variant="outline" className="shrink-0 text-[10px]">
+                        {item.category}
+                      </Badge>
+                      {item.pubDate && (
+                        <span className="text-[10px] text-muted-foreground shrink-0 ml-auto">
+                          {formatDate(item.pubDate)}
+                        </span>
+                      )}
+                    </div>
+                    <p className="text-sm mt-1.5 leading-snug">{item.title}</p>
+                  </a>
+                ))
+              )}
             </div>
           </ScrollArea>
         </DialogContent>
