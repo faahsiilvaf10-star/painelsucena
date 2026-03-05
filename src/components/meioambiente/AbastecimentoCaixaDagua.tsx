@@ -1,4 +1,4 @@
-import { useState, useMemo, useCallback } from "react";
+import { useState, useMemo, useCallback, useRef } from "react";
 import { Input } from "@/components/ui/input";
 import { Button } from "@/components/ui/button";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
@@ -20,6 +20,7 @@ export default function AbastecimentoCaixaDagua() {
   const [ano, setAno] = useState(currentDate.getFullYear());
   const { data: records, isLoading, upsert, remove } = useAbastecimentoCaixaDagua(ano);
   const [editingCell, setEditingCell] = useState<{ mes: number; semana: number } | null>(null);
+  const chartRef = useRef<HTMLDivElement>(null);
   const [editValue, setEditValue] = useState("");
 
   const lookup = useMemo(() => {
@@ -186,6 +187,29 @@ export default function AbastecimentoCaixaDagua() {
       pdf.setFontSize(14);
       pdf.text(String(totalAnual), margin + mesColW + 4 * semColW, totalY, { align: "center" });
 
+      // Capture chart as image and add to page 2
+      if (chartRef.current) {
+        try {
+          const html2canvas = (await import("html2canvas")).default;
+          const canvas = await html2canvas(chartRef.current, {
+            scale: 2,
+            backgroundColor: "#ffffff",
+            useCORS: true,
+          });
+          const imgData = canvas.toDataURL("image/png");
+          pdf.addPage("a4", "l");
+          const chartPageW = pdf.internal.pageSize.getWidth();
+          const chartPageH = pdf.internal.pageSize.getHeight();
+          const chartMargin = 15;
+          const imgW = chartPageW - chartMargin * 2;
+          const imgH = (canvas.height * imgW) / canvas.width;
+          const finalH = Math.min(imgH, chartPageH - chartMargin * 2);
+          pdf.addImage(imgData, "PNG", chartMargin, chartMargin, imgW, finalH);
+        } catch (chartErr) {
+          console.warn("Não foi possível capturar o gráfico:", chartErr);
+        }
+      }
+
       pdf.save(`abastecimento-caixa-dagua-${ano}.pdf`);
       toast.success("PDF exportado!");
     } catch (err) {
@@ -316,7 +340,7 @@ export default function AbastecimentoCaixaDagua() {
       </div>
 
       {/* Chart */}
-      <div className="bg-card rounded-2xl border border-border/50 p-5">
+      <div ref={chartRef} className="bg-card rounded-2xl border border-border/50 p-5">
         <h3 className="text-lg font-bold mb-4">Abastecimento por Semana (KG)</h3>
         <div className="h-[300px]">
           <ResponsiveContainer width="100%" height="100%">
