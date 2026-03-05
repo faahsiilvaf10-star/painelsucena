@@ -5,13 +5,30 @@ const corsHeaders = {
   "Access-Control-Allow-Headers": "authorization, x-client-info, apikey, content-type",
 };
 
+async function fetchOgImage(url: string): Promise<string> {
+  try {
+    const res = await fetch(url, {
+      headers: { "User-Agent": "Mozilla/5.0 (compatible; bot)" },
+      redirect: "follow",
+    });
+    if (!res.ok) return "";
+    const html = await res.text();
+    // Only read the first 30k chars for performance
+    const head = html.substring(0, 30000);
+    const ogMatch = head.match(/<meta[^>]*property=["']og:image["'][^>]*content=["']([^"']+)["']/i)
+      || head.match(/<meta[^>]*content=["']([^"']+)["'][^>]*property=["']og:image["']/i);
+    return ogMatch ? ogMatch[1] : "";
+  } catch {
+    return "";
+  }
+}
+
 serve(async (req) => {
   if (req.method === "OPTIONS") {
     return new Response(null, { headers: corsHeaders });
   }
 
   try {
-    // Fetch from Google News RSS for football (Brazil) and world news
     const feeds = [
       {
         url: "https://news.google.com/rss/search?q=futebol+brasileiro&hl=pt-BR&gl=BR&ceid=BR:pt-419",
@@ -32,13 +49,11 @@ serve(async (req) => {
         });
         const xml = await response.text();
 
-        // Simple XML parsing for RSS items
         const itemRegex = /<item>([\s\S]*?)<\/item>/g;
         const titleRegex = /<title><!\[CDATA\[(.*?)\]\]>|<title>(.*?)<\/title>/;
         const linkRegex = /<link>(.*?)<\/link>/;
         const pubDateRegex = /<pubDate>(.*?)<\/pubDate>/;
         const sourceRegex = /<source[^>]*url="([^"]*)"[^>]*>(.*?)<\/source>/;
-        const imageRegex = /<media:content[^>]*url="([^"]*)"[^>]*>|<enclosure[^>]*url="([^"]*)"[^>]*type="image[^"]*"[^>]*>|<img[^>]*src="([^"]*)"[^>]*>/;
 
         let match;
         let count = 0;
@@ -48,7 +63,6 @@ serve(async (req) => {
           const linkMatch = itemXml.match(linkRegex);
           const pubDateMatch = itemXml.match(pubDateRegex);
           const sourceMatch = itemXml.match(sourceRegex);
-          const imageMatch = itemXml.match(imageRegex);
 
           const title = titleMatch ? (titleMatch[1] || titleMatch[2] || "").trim() : "";
           const link = linkMatch ? linkMatch[1] : "";
@@ -59,7 +73,6 @@ serve(async (req) => {
               sourceDomain = new URL(sourceUrl).hostname.replace("www.", "");
             }
           } catch {}
-          const imageUrl = imageMatch ? (imageMatch[1] || imageMatch[2] || imageMatch[3] || "") : "";
 
           if (title) {
             allItems.push({
@@ -68,7 +81,7 @@ serve(async (req) => {
               link,
               pubDate: pubDateMatch ? pubDateMatch[1] : "",
               source: sourceDomain,
-              imageUrl,
+              imageUrl: "", // placeholder, will be filled below
             });
             count++;
           }
@@ -78,7 +91,14 @@ serve(async (req) => {
       }
     }
 
-    // Shuffle and interleave
+    // Fetch OG images in parallel (limit concurrency to avoid timeouts)
+    const ogPromises = allItems.map(async (item) => {
+      if (item.link) {
+        item.imageUrl = await fetchOgImage(item.link);
+      }
+    });
+    await Promise.allSettled(ogPromises);
+
     const shuffled = allItems.sort(() => Math.random() - 0.5);
 
     return new Response(JSON.stringify({ items: shuffled }), {
