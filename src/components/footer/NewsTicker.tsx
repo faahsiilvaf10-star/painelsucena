@@ -11,6 +11,7 @@ interface NewsItem {
   link: string;
   pubDate?: string;
   source?: string;
+  imageUrl?: string;
 }
 
 // Map team keywords to their logo files in /public/teams/
