@@ -350,7 +350,7 @@ export default function ResiduosEfluentes() {
         onClick={() => {
           if (!isEditing) {
             setEditingCell({ mes: mesNum, tipo });
-            setEditValue(val !== undefined ? String(val) : "");
+            setEditValue("0");
           }
         }}
       >
