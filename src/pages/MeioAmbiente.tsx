@@ -110,71 +110,177 @@ function PluviometriaSpreadsheet({ setor, ano }: { setor: string; ano: number })
   }, [upsert, remove]);
 
   const handleExportPDF = useCallback(async () => {
-    if (!spreadsheetRef.current) return;
     toast.info("Gerando PDF...");
     try {
       const { jsPDF } = await import("jspdf");
-      const el = spreadsheetRef.current;
+      const pdf = new jsPDF("l", "mm", "a4");
+      const pageW = pdf.internal.pageSize.getWidth(); // 297
+      const pageH = pdf.internal.pageSize.getHeight(); // 210
+      const margin = 5;
+      const usableW = pageW - margin * 2;
 
-      // Temporarily remove overflow constraints so html2canvas captures everything
-      const prevOverflow = el.style.overflow;
-      const prevMaxH = el.style.maxHeight;
-      el.style.overflow = "visible";
-      el.style.maxHeight = "none";
+      // --- Header ---
+      const green = "#00873e";
+      pdf.setFontSize(14);
+      pdf.setTextColor(green);
+      pdf.setFont("helvetica", "bold");
+      pdf.text("PLANILHA DE CONTROLE DE PRECIPITAÇÃO", margin, margin + 8);
 
-      const canvas = await html2canvas(el, {
-        scale: 2,
-        useCORS: true,
-        logging: false,
-        backgroundColor: "#ffffff",
-        windowWidth: el.scrollWidth,
-        width: el.scrollWidth,
-        height: el.scrollHeight,
+      pdf.setFontSize(14);
+      pdf.setTextColor("#000000");
+      pdf.text(`ANO ${ano}`, pageW / 2 - 10, margin + 8);
+
+      // Load logo
+      try {
+        const logoImg = new Image();
+        logoImg.crossOrigin = "anonymous";
+        await new Promise<void>((resolve) => {
+          logoImg.onload = () => resolve();
+          logoImg.onerror = () => resolve();
+          logoImg.src = "/logo-sucena-empreendimentos.png";
+        });
+        if (logoImg.complete && logoImg.naturalWidth > 0) {
+          const logoH = 12;
+          const logoW = (logoImg.naturalWidth / logoImg.naturalHeight) * logoH;
+          pdf.addImage(logoImg, "PNG", pageW - margin - logoW, margin, logoW, logoH);
+        }
+      } catch {}
+
+      // Setor / Período
+      pdf.setFontSize(9);
+      pdf.setTextColor(green);
+      pdf.setFont("helvetica", "bold");
+      pdf.text("SETOR", margin, margin + 15);
+      pdf.setDrawColor(green);
+      pdf.rect(margin + 14, margin + 11.5, 25, 5);
+      pdf.setTextColor("#000000");
+      pdf.setFont("helvetica", "bold");
+      pdf.text(setor.toUpperCase(), margin + 16, margin + 15);
+
+      pdf.setTextColor(green);
+      pdf.text("PERÍODO", margin + 50, margin + 15);
+      pdf.rect(margin + 66, margin + 11.5, 35, 5);
+      pdf.setTextColor("#000000");
+      pdf.text(PERIODOS[setor], margin + 68, margin + 15);
+
+      // --- Table ---
+      const tableTop = margin + 22;
+      const monthColW = 22;
+      const totalColW = 14;
+      const dayColW = (usableW - monthColW - totalColW) / 31;
+      const rowH = 5.5;
+      const headerH = 7;
+
+      // Header row
+      pdf.setFillColor(green);
+      pdf.rect(margin, tableTop, usableW, headerH, "F");
+      pdf.setTextColor("#ffffff");
+      pdf.setFontSize(6);
+      pdf.setFont("helvetica", "bold");
+      pdf.text("MÊS/DIA", margin + 1, tableTop + 4.5);
+      for (let d = 1; d <= 31; d++) {
+        const x = margin + monthColW + (d - 1) * dayColW;
+        pdf.text(String(d), x + dayColW / 2, tableTop + 4.5, { align: "center" });
+      }
+      pdf.text("TOTAL", margin + monthColW + 31 * dayColW + 1, tableTop + 3.5);
+      pdf.text("MENSAL", margin + monthColW + 31 * dayColW + 1, tableTop + 6);
+
+      // Data rows
+      const dataTop = tableTop + headerH;
+      MESES.forEach((mesName, idx) => {
+        const mesNum = idx + 1;
+        const y = dataTop + idx * rowH;
+
+        // Row border
+        pdf.setDrawColor("#c0c0c0");
+        pdf.setLineWidth(0.1);
+        pdf.rect(margin, y, usableW, rowH);
+
+        // Month name
+        pdf.setTextColor("#000000");
+        pdf.setFont("helvetica", "bold");
+        pdf.setFontSize(6);
+        pdf.text(mesName, margin + 1, y + 3.8);
+
+        // Day cells
+        for (let d = 1; d <= 31; d++) {
+          const key = `${mesNum}-${d}`;
+          const val = lookup.get(key);
+          const cellX = margin + monthColW + (d - 1) * dayColW;
+          const color = cellColors.get(key);
+
+          // Cell border
+          pdf.setDrawColor("#d0d0d0");
+          pdf.setLineWidth(0.1);
+          pdf.rect(cellX, y, dayColW, rowH);
+
+          if (color === "green") {
+            pdf.setFillColor("#00873e");
+            pdf.rect(cellX, y, dayColW, rowH, "F");
+          } else if (color === "red") {
+            pdf.setFillColor("#c00000");
+            pdf.rect(cellX, y, dayColW, rowH, "F");
+          }
+
+          if (val !== undefined) {
+            pdf.setTextColor(color ? "#ffffff" : "#000000");
+            pdf.setFont("helvetica", color ? "bold" : "normal");
+            pdf.setFontSize(5.5);
+            pdf.text(String(val), cellX + dayColW / 2, y + 3.8, { align: "center" });
+          }
+        }
+
+        // Monthly total
+        const totalX = margin + monthColW + 31 * dayColW;
+        pdf.setDrawColor("#c0c0c0");
+        pdf.rect(totalX, y, totalColW, rowH);
+        pdf.setTextColor("#000000");
+        pdf.setFont("helvetica", "bold");
+        pdf.setFontSize(6);
+        pdf.text(String(monthTotals.get(mesNum) || 0), totalX + totalColW / 2, y + 3.8, { align: "center" });
       });
 
-      // Restore styles
-      el.style.overflow = prevOverflow;
-      el.style.maxHeight = prevMaxH;
+      // --- Legend ---
+      const legendY = dataTop + 12 * rowH + 4;
 
-      const imgData = canvas.toDataURL("image/png");
-      // Landscape A4
-      const pdf = new jsPDF("l", "mm", "a4");
-      const pageW = pdf.internal.pageSize.getWidth();
-      const pageH = pdf.internal.pageSize.getHeight();
-      const margin = 5;
-      const contentW = pageW - margin * 2;
-      const contentH = (canvas.height * contentW) / canvas.width;
+      // Yellow square
+      pdf.setFillColor("#facc15");
+      pdf.rect(margin, legendY, 3, 3, "F");
+      pdf.setTextColor("#000000");
+      pdf.setFontSize(6);
+      pdf.setFont("helvetica", "normal");
+      pdf.text("COLETA FORA DO HORÁRIO", margin + 5, legendY + 2.5);
 
-      if (contentH <= pageH - margin * 2) {
-        // Fits on one page
-        pdf.addImage(imgData, "PNG", margin, margin, contentW, contentH);
-      } else {
-        // Multi-page: slice the canvas
-        const pxPerPage = ((pageH - margin * 2) / contentW) * canvas.width;
-        let srcY = 0;
-        let page = 0;
-        while (srcY < canvas.height) {
-          if (page > 0) pdf.addPage();
-          const sliceH = Math.min(pxPerPage, canvas.height - srcY);
-          const sliceCanvas = document.createElement("canvas");
-          sliceCanvas.width = canvas.width;
-          sliceCanvas.height = sliceH;
-          const ctx = sliceCanvas.getContext("2d")!;
-          ctx.drawImage(canvas, 0, srcY, canvas.width, sliceH, 0, 0, canvas.width, sliceH);
-          const sliceData = sliceCanvas.toDataURL("image/png");
-          const sliceHMM = (sliceH * contentW) / canvas.width;
-          pdf.addImage(sliceData, "PNG", margin, margin, contentW, sliceHMM);
-          srcY += sliceH;
-          page++;
-        }
-      }
+      // Red square
+      pdf.setFillColor("#c00000");
+      pdf.rect(margin, legendY + 5, 3, 3, "F");
+      pdf.text("SEM COLETA", margin + 5, legendY + 7.5);
+
+      // Green square
+      pdf.setFillColor("#00873e");
+      pdf.rect(margin, legendY + 10, 3, 3, "F");
+      pdf.text("VALOR ACUMULADO PARA O DIA POSTERIOR", margin + 5, legendY + 12.5);
+
+      // Total Anual
+      pdf.setFontSize(16);
+      pdf.setFont("helvetica", "bold");
+      pdf.setTextColor(green);
+      pdf.text(String(totalAnual), pageW - margin - 25, legendY + 5, { align: "center" });
+      pdf.setDrawColor(green);
+      pdf.setLineWidth(0.5);
+      pdf.rect(pageW - margin - 38, legendY + 7, 26, 10);
+      pdf.setFontSize(7);
+      pdf.setTextColor("#000000");
+      pdf.text("TOTAL", pageW - margin - 25, legendY + 12, { align: "center" });
+      pdf.text("ANUAL", pageW - margin - 25, legendY + 15, { align: "center" });
 
       pdf.save(`pluviometria-${setor}-${ano}.pdf`);
       toast.success("PDF exportado!");
-    } catch {
+    } catch (err) {
+      console.error(err);
       toast.error("Erro ao gerar PDF");
     }
-  }, [setor, ano]);
+  }, [setor, ano, lookup, cellColors, monthTotals, totalAnual]);
 
   if (isLoading) {
     return <div className="flex justify-center p-8 text-muted-foreground">Carregando...</div>;
