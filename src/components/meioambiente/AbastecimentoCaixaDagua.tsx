@@ -196,7 +196,7 @@ export default function AbastecimentoCaixaDagua() {
       pdf.setFontSize(12);
       pdf.setTextColor(blue);
       pdf.setFont("helvetica", "bold");
-      pdf.text("Abastecimento por Semana (KG)", p2W / 2, cm, { align: "center" });
+      pdf.text("Abastecimento por Semana (LITROS)", p2W / 2, cm, { align: "center" });
 
       const chartLeft = cm + 15;
       const chartBottom = p2H - cm - 25;
