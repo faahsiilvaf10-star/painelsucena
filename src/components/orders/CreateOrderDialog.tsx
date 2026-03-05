@@ -387,7 +387,19 @@ export function CreateOrderDialog({ open, onOpenChange }: CreateOrderDialogProps
                         </div>
                       ) : (
                         // View mode
-                        <div className="flex items-start justify-between gap-2">
+                        <div className="flex items-center justify-between gap-3">
+                          {item.photo_urls.length > 0 && (
+                            <div className="flex gap-1 flex-shrink-0">
+                              {item.photo_urls.slice(0, 3).map((url, pi) => (
+                                <img key={pi} src={url} alt="" className="w-12 h-12 object-cover rounded-md" />
+                              ))}
+                              {item.photo_urls.length > 3 && (
+                                <div className="w-12 h-12 rounded-md bg-muted flex items-center justify-center text-xs text-muted-foreground">
+                                  +{item.photo_urls.length - 3}
+                                </div>
+                              )}
+                            </div>
+                          )}
                           <div className="flex-1 min-w-0">
                             <div className="font-medium truncate">{item.product_name}</div>
                             <div className="text-sm text-muted-foreground">
@@ -396,15 +408,8 @@ export function CreateOrderDialog({ open, onOpenChange }: CreateOrderDialogProps
                             {item.description && (
                               <div className="text-xs text-muted-foreground truncate">{item.description}</div>
                             )}
-                            {item.photo_urls.length > 0 && (
-                              <div className="flex gap-1 mt-1">
-                                {item.photo_urls.map((url, pi) => (
-                                  <img key={pi} src={url} alt="" className="w-10 h-10 object-cover rounded" />
-                                ))}
-                              </div>
-                            )}
                           </div>
-                          <div className="flex gap-1">
+                          <div className="flex gap-1 flex-shrink-0">
                             <Button
                               type="button"
                               variant="ghost"
