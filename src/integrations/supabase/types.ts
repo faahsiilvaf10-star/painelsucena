@@ -14,6 +14,39 @@ export type Database = {
   }
   public: {
     Tables: {
+      abastecimento_caixa_dagua: {
+        Row: {
+          ano: number
+          created_at: string
+          created_by: string
+          id: string
+          kg: number
+          mes: number
+          semana: number
+          updated_at: string
+        }
+        Insert: {
+          ano: number
+          created_at?: string
+          created_by: string
+          id?: string
+          kg?: number
+          mes: number
+          semana: number
+          updated_at?: string
+        }
+        Update: {
+          ano?: number
+          created_at?: string
+          created_by?: string
+          id?: string
+          kg?: number
+          mes?: number
+          semana?: number
+          updated_at?: string
+        }
+        Relationships: []
+      }
       announcement_reads: {
         Row: {
           announcement_id: string
