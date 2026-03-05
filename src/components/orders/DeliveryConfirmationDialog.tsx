@@ -133,22 +133,22 @@ export function DeliveryConfirmationDialog({
     const newItems: DeliveryItem[] = [];
     
     if (orderItems && orderItems.length > 0) {
-      // Use order items
       orderItems.forEach((item) => {
         newItems.push({
           productName: item.product_name,
           quantity: item.quantity,
           unit: mapUnitToInventory(item.quantity_unit),
           originalUnit: item.quantity_unit,
+          photoUrls: (item as any).photo_urls || [],
         });
       });
     } else {
-      // Fallback to main order product
       newItems.push({
         productName: order.product_name,
         quantity: order.quantity,
         unit: mapUnitToInventory(order.quantity_unit),
         originalUnit: order.quantity_unit,
+        photoUrls: order.photo_urls || [],
       });
     }
     
