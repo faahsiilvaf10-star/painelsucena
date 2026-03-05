@@ -55,7 +55,9 @@ const TEAM_LOGOS: Record<string, string> = {
   "vasco": "/teams/vasco.png",
 };
 
-function findTeamLogos(text: string): string[] {
+function findTeamLogos(text: string, category: string): string[] {
+  // Only show team logos for football news
+  if (!category.includes("Futebol") && !category.includes("⚽")) return [];
   const lower = text.toLowerCase();
   const found = new Set<string>();
   for (const [keyword, logo] of Object.entries(TEAM_LOGOS)) {
@@ -63,7 +65,7 @@ function findTeamLogos(text: string): string[] {
       found.add(logo);
     }
   }
-  return Array.from(found).slice(0, 3); // max 3 logos per item
+  return Array.from(found).slice(0, 3);
 }
 
 // Country flag emoji map
@@ -178,7 +180,7 @@ export const NewsTicker = () => {
   // Build ticker with inline team logos, flags, and source favicon
   const renderTickerItems = () =>
     news.map((item, i) => {
-      const logos = findTeamLogos(item.title);
+      const logos = findTeamLogos(item.title, item.category);
       const flags = findCountryFlags(item.title);
       const favicon = getSourceFavicon(item.source);
       return (
@@ -242,7 +244,7 @@ export const NewsTicker = () => {
                 </p>
               ) : (
                 todayNews.map((item, i) => {
-                  const logos = findTeamLogos(item.title);
+                  const logos = findTeamLogos(item.title, item.category);
                   const flags = findCountryFlags(item.title);
                   const favicon = getSourceFavicon(item.source);
                   return (
