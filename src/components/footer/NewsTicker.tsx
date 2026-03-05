@@ -10,6 +10,7 @@ interface NewsItem {
   category: string;
   link: string;
   pubDate?: string;
+  source?: string;
 }
 
 // Map team keywords to their logo files in /public/teams/
@@ -65,6 +66,64 @@ function findTeamLogos(text: string): string[] {
   return Array.from(found).slice(0, 3); // max 3 logos per item
 }
 
+// Country flag emoji map
+const COUNTRY_FLAGS: Record<string, string> = {
+  "brasil": "🇧🇷", "brazil": "🇧🇷",
+  "argentina": "🇦🇷",
+  "uruguai": "🇺🇾", "uruguay": "🇺🇾",
+  "paraguai": "🇵🇾", "paraguay": "🇵🇾",
+  "chile": "🇨🇱",
+  "colômbia": "🇨🇴", "colombia": "🇨🇴",
+  "peru": "🇵🇪",
+  "equador": "🇪🇨", "ecuador": "🇪🇨",
+  "venezuela": "🇻🇪",
+  "bolívia": "🇧🇴", "bolivia": "🇧🇴",
+  "estados unidos": "🇺🇸", "eua": "🇺🇸", "usa": "🇺🇸",
+  "méxico": "🇲🇽", "mexico": "🇲🇽",
+  "canadá": "🇨🇦", "canada": "🇨🇦",
+  "inglaterra": "🏴󠁧󠁢󠁥󠁮󠁧󠁿", "england": "🏴󠁧󠁢󠁥󠁮󠁧󠁿",
+  "espanha": "🇪🇸", "spain": "🇪🇸",
+  "portugal": "🇵🇹",
+  "frança": "🇫🇷", "france": "🇫🇷",
+  "alemanha": "🇩🇪", "germany": "🇩🇪",
+  "itália": "🇮🇹", "italia": "🇮🇹", "italy": "🇮🇹",
+  "holanda": "🇳🇱", "países baixos": "🇳🇱",
+  "japão": "🇯🇵", "japan": "🇯🇵",
+  "china": "🇨🇳",
+  "rússia": "🇷🇺", "russia": "🇷🇺",
+  "índia": "🇮🇳", "india": "🇮🇳",
+  "arábia saudita": "🇸🇦", "arabia saudita": "🇸🇦",
+  "austrália": "🇦🇺", "australia": "🇦🇺",
+  "coreia do sul": "🇰🇷",
+  "coreia do norte": "🇰🇵",
+  "ucrânia": "🇺🇦", "ucrania": "🇺🇦", "ukraine": "🇺🇦",
+  "israel": "🇮🇱",
+  "palestina": "🇵🇸",
+  "irã": "🇮🇷", "iran": "🇮🇷",
+  "turquia": "🇹🇷", "turkey": "🇹🇷",
+  "egito": "🇪🇬", "egypt": "🇪🇬",
+  "nigéria": "🇳🇬", "nigeria": "🇳🇬",
+  "marrocos": "🇲🇦", "morocco": "🇲🇦",
+  "áfrica do sul": "🇿🇦",
+  "cuba": "🇨🇺",
+};
+
+function findCountryFlags(text: string): string[] {
+  const lower = text.toLowerCase();
+  const found = new Set<string>();
+  for (const [keyword, flag] of Object.entries(COUNTRY_FLAGS)) {
+    if (lower.includes(keyword)) {
+      found.add(flag);
+    }
+  }
+  return Array.from(found).slice(0, 3);
+}
+
+function getSourceFavicon(source?: string): string | null {
+  if (!source) return null;
+  return `https://www.google.com/s2/favicons?domain=${source}&sz=32`;
+}
+
 export const NewsTicker = () => {
   const [news, setNews] = useState<NewsItem[]>([]);
   const [isLoading, setIsLoading] = useState(true);
@@ -116,16 +175,24 @@ export const NewsTicker = () => {
 
   const todayNews = news.filter((item) => isToday(item.pubDate));
 
-  // Build ticker with inline team logos
+  // Build ticker with inline team logos, flags, and source favicon
   const renderTickerItems = () =>
     news.map((item, i) => {
       const logos = findTeamLogos(item.title);
+      const flags = findCountryFlags(item.title);
+      const favicon = getSourceFavicon(item.source);
       return (
         <span key={i} className="inline-flex items-center gap-1">
           {i > 0 && <span className="mx-3 text-muted-foreground/40">•</span>}
+          {favicon && (
+            <img src={favicon} alt="" className="inline-block h-3.5 w-3.5 rounded-sm" />
+          )}
           <span className="text-muted-foreground/70">{item.category}</span>
           {logos.map((logo, j) => (
-            <img key={j} src={logo} alt="" className="inline-block h-4 w-4 object-contain" />
+            <img key={`t${j}`} src={logo} alt="" className="inline-block h-4 w-4 object-contain" />
+          ))}
+          {flags.map((flag, j) => (
+            <span key={`f${j}`} className="text-sm">{flag}</span>
           ))}
           <span>{item.title}</span>
         </span>
@@ -176,6 +243,8 @@ export const NewsTicker = () => {
               ) : (
                 todayNews.map((item, i) => {
                   const logos = findTeamLogos(item.title);
+                  const flags = findCountryFlags(item.title);
+                  const favicon = getSourceFavicon(item.source);
                   return (
                     <a
                       key={i}
@@ -184,7 +253,10 @@ export const NewsTicker = () => {
                       rel="noopener noreferrer"
                       className="block p-3 rounded-lg border border-border hover:bg-secondary/50 transition-colors"
                     >
-                      <div className="flex items-start gap-2">
+                      <div className="flex items-center gap-2 flex-wrap">
+                        {favicon && (
+                          <img src={favicon} alt="" className="h-4 w-4 rounded-sm shrink-0" />
+                        )}
                         <Badge variant="outline" className="shrink-0 text-[10px]">
                           {item.category}
                         </Badge>
@@ -194,6 +266,18 @@ export const NewsTicker = () => {
                               <img key={j} src={logo} alt="" className="h-5 w-5 object-contain" />
                             ))}
                           </div>
+                        )}
+                        {flags.length > 0 && (
+                          <div className="flex items-center gap-0.5 shrink-0">
+                            {flags.map((flag, j) => (
+                              <span key={j} className="text-base">{flag}</span>
+                            ))}
+                          </div>
+                        )}
+                        {item.source && (
+                          <span className="text-[10px] text-muted-foreground shrink-0">
+                            {item.source}
+                          </span>
                         )}
                         {item.pubDate && (
                           <span className="text-[10px] text-muted-foreground shrink-0 ml-auto">
