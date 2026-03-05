@@ -80,6 +80,18 @@ function PluviometriaSpreadsheet({ setor, ano }: { setor: string; ano: number })
   }, [monthTotals]);
 
   const handleSave = useCallback((mes: number, dia: number, value: string) => {
+    // If empty, delete the record to clear the cell
+    if (value.trim() === "") {
+      remove.mutate({ mes, dia }, {
+        onSuccess: () => {
+          toast.success(`${MESES[mes - 1]} dia ${dia}: apagado`);
+          setEditingCell(null);
+          setEditValue("");
+        },
+        onError: () => toast.error("Erro ao apagar"),
+      });
+      return;
+    }
     const val = parseFloat(value);
     if (isNaN(val) || val < 0) {
       toast.error("Valor inválido");
@@ -93,7 +105,7 @@ function PluviometriaSpreadsheet({ setor, ano }: { setor: string; ano: number })
       },
       onError: () => toast.error("Erro ao salvar"),
     });
-  }, [upsert]);
+  }, [upsert, remove]);
 
   if (isLoading) {
     return <div className="flex justify-center p-8 text-muted-foreground">Carregando...</div>;
