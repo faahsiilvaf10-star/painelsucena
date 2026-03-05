@@ -210,8 +210,7 @@ function PluviometriaSpreadsheet({ setor, ano }: { setor: string; ano: number })
                             }
                           }}
                           onBlur={() => {
-                            if (editValue !== "") handleSave(mesNum, dia, editValue);
-                            else { setEditingCell(null); setEditValue(""); }
+                            handleSave(mesNum, dia, editValue);
                           }}
                           autoFocus
                         />
