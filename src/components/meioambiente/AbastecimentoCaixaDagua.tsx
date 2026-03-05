@@ -67,7 +67,7 @@ export default function AbastecimentoCaixaDagua() {
     }
     upsert.mutate({ mes, semana, kg: val }, {
       onSuccess: () => {
-        toast.success(`${MESES[mes - 1]} ${SEMANAS[semana - 1]}: ${val} KG`);
+        toast.success(`${MESES[mes - 1]} ${SEMANAS[semana - 1]}: ${val} Litros`);
         setEditingCell(null);
         setEditValue("");
       },
