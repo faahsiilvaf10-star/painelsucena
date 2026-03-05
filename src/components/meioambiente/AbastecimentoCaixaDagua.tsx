@@ -67,7 +67,7 @@ export default function AbastecimentoCaixaDagua() {
     }
     upsert.mutate({ mes, semana, kg: val }, {
       onSuccess: () => {
-        toast.success(`${MESES[mes - 1]} ${SEMANAS[semana - 1]}: ${val} KG`);
+        toast.success(`${MESES[mes - 1]} ${SEMANAS[semana - 1]}: ${val} Litros`);
         setEditingCell(null);
         setEditValue("");
       },
@@ -183,7 +183,7 @@ export default function AbastecimentoCaixaDagua() {
       pdf.setFontSize(10);
       pdf.setFont("helvetica", "bold");
       pdf.setTextColor(blue);
-      pdf.text("TOTAL ACUMULADO ANO (KG):", margin + mesColW + 2 * semColW, totalY, { align: "center" });
+      pdf.text("TOTAL ACUMULADO ANO (LITROS):", margin + mesColW + 2 * semColW, totalY, { align: "center" });
       pdf.setFontSize(14);
       pdf.text(String(totalAnual), margin + mesColW + 4 * semColW, totalY, { align: "center" });
 
@@ -196,7 +196,7 @@ export default function AbastecimentoCaixaDagua() {
       pdf.setFontSize(12);
       pdf.setTextColor(blue);
       pdf.setFont("helvetica", "bold");
-      pdf.text("Abastecimento por Semana (KG)", p2W / 2, cm, { align: "center" });
+      pdf.text("Abastecimento por Semana (LITROS)", p2W / 2, cm, { align: "center" });
 
       const chartLeft = cm + 15;
       const chartBottom = p2H - cm - 25;
@@ -389,14 +389,14 @@ export default function AbastecimentoCaixaDagua() {
 
         {/* Footer - Total */}
         <div className="border-t-2 border-[#1a5276] p-4 bg-card flex items-center justify-end gap-4">
-          <span className="font-bold text-sm">TOTAL ACUMULADO ANO (KG)</span>
+          <span className="font-bold text-sm">TOTAL ACUMULADO ANO (LITROS)</span>
           <span className="text-2xl font-bold text-[#1a5276]">{totalAnual}</span>
         </div>
       </div>
 
       {/* Chart */}
       <div ref={chartRef} className="bg-card rounded-2xl border border-border/50 p-5">
-        <h3 className="text-lg font-bold mb-4">Abastecimento por Semana (KG)</h3>
+        <h3 className="text-lg font-bold mb-4">Abastecimento por Semana (LITROS)</h3>
         <div className="h-[300px]">
           <ResponsiveContainer width="100%" height="100%">
             <BarChart data={chartData} margin={{ top: 5, right: 20, left: 0, bottom: 5 }}>
