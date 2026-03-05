@@ -25,6 +25,17 @@ export function EPIDetailDialog({ epi, open, onOpenChange }: EPIDetailDialogProp
         </DialogHeader>
 
         <div className="space-y-6 py-4">
+          {/* Photo from catalog */}
+          {epi.foto && (
+            <div className="rounded-lg overflow-hidden border bg-muted/30">
+              <img
+                src={epi.foto}
+                alt={`Página do catálogo - ${epi.nome}`}
+                className="w-full h-auto object-contain max-h-[400px]"
+              />
+            </div>
+          )}
+
           {/* Header Info */}
           <div className="flex flex-wrap gap-2">
             <Badge variant="outline" className="gap-1 font-mono">
