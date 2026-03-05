@@ -37,6 +37,17 @@ export function FerramentaDetailDialog({ ferramenta, open, onOpenChange }: Ferra
         
         <ScrollArea className="max-h-[70vh] pr-4">
           <div className="space-y-6">
+            {/* Photo */}
+            {ferramenta.foto && (
+              <div className="rounded-lg overflow-hidden border">
+                <img
+                  src={ferramenta.foto}
+                  alt={ferramenta.nome}
+                  className="w-full h-auto object-contain max-h-[400px] bg-white"
+                />
+              </div>
+            )}
+
             {/* Header Info */}
             <div className="flex flex-wrap items-center gap-3">
               <Badge variant="outline">{ferramenta.categoria}</Badge>

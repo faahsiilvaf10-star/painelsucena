@@ -272,7 +272,20 @@ export function FerramentasTable() {
                   paginatedFerramentas.map((ferramenta) => (
                     <TableRow key={ferramenta.id} className="hover:bg-muted/30 cursor-pointer" onClick={() => handleViewDetails(ferramenta)}>
                       <TableCell className="font-medium max-w-[250px]">
-                        <span className="line-clamp-2">{ferramenta.nome}</span>
+                        <div className="flex items-center gap-3">
+                          {ferramenta.foto ? (
+                            <img
+                              src={ferramenta.foto}
+                              alt={ferramenta.nome}
+                              className="w-10 h-10 rounded object-cover border flex-shrink-0 bg-white"
+                            />
+                          ) : (
+                            <div className="w-10 h-10 rounded border flex items-center justify-center bg-muted flex-shrink-0">
+                              <Wrench className="h-4 w-4 text-muted-foreground" />
+                            </div>
+                          )}
+                          <span className="line-clamp-2">{ferramenta.nome}</span>
+                        </div>
                       </TableCell>
                       <TableCell>
                         <Badge variant="outline">{ferramenta.categoria}</Badge>
