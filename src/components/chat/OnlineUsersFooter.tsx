@@ -1,4 +1,5 @@
 import { useState } from "react";
+import { NewsTicker } from "@/components/footer/NewsTicker";
 import { useAllUsers, UserWithStatus } from "@/hooks/useAllUsers";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { NeonAvatar } from "@/components/ui/NeonAvatar";
@@ -335,6 +336,10 @@ export const OnlineUsersFooter = ({
             </div>
           </div>
         </TooltipProvider>
+
+        {/* News Ticker Divider */}
+        <div className="h-6 w-px bg-border shrink-0" />
+        <NewsTicker />
       </div>}
 
       {/* Animation styles */}
