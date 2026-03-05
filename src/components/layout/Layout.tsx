@@ -2,6 +2,8 @@ import { ReactNode, useMemo } from "react";
 import { SidebarInset, SidebarTrigger } from "@/components/ui/sidebar";
 import ForbiddenColorIndicator from "@/components/ForbiddenColorIndicator";
 import { NotificationBell } from "@/components/notifications/NotificationBell";
+import { RefreshCw } from "lucide-react";
+import { Tooltip, TooltipContent, TooltipTrigger } from "@/components/ui/tooltip";
 import { ThemeToggle } from "@/components/ThemeToggle";
 import { CampaignRibbon } from "@/components/campaigns/CampaignRibbon";
 import { PageTransition } from "./PageTransition";
@@ -88,6 +90,36 @@ const Layout = ({ children }: LayoutProps) => {
         </p>
         
         <div className="flex items-center gap-0.5 md:gap-1">
+          <Tooltip>
+            <TooltipTrigger asChild>
+              <button
+                onClick={() => {
+                  if ('caches' in window) {
+                    caches.keys().then(names => {
+                      names.forEach(name => caches.delete(name));
+                    });
+                  }
+                  const keysToRemove: string[] = [];
+                  for (let i = 0; i < localStorage.length; i++) {
+                    const key = localStorage.key(i);
+                    if (key && (key.startsWith('theme') || key.startsWith('sidebar') || key.startsWith('vite-'))) {
+                      keysToRemove.push(key);
+                    }
+                  }
+                  keysToRemove.forEach(k => localStorage.removeItem(k));
+                  window.location.reload();
+                }}
+                className="flex items-center gap-1 px-1.5 py-1 rounded-full text-muted-foreground hover:text-foreground hover:bg-secondary transition-colors"
+                aria-label="Recarregar e limpar cache visual"
+              >
+                <RefreshCw className="h-3.5 w-3.5" />
+                <span className="text-[10px] font-medium hidden sm:inline">Recarregar</span>
+              </button>
+            </TooltipTrigger>
+            <TooltipContent side="bottom" className="bg-card border">
+              <p className="text-xs">Recarregar e limpar cache visual</p>
+            </TooltipContent>
+          </Tooltip>
           <SessionTimeIndicator />
           <CampaignRibbon />
           <ThemeToggle />
