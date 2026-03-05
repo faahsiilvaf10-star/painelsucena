@@ -126,7 +126,8 @@ function PluviometriaSpreadsheet({ setor, ano }: { setor: string; ano: number })
     return "";
   };
 
-  const spreadsheetRef = useRef<HTMLDivElement>(null);
+
+
 
   const handleExportPDF = useCallback(async () => {
     if (!spreadsheetRef.current) return;
