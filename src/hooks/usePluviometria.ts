@@ -14,19 +14,19 @@ export interface PluviometriaRecord {
   updated_at: string;
 }
 
-export function usePluviometria(setor: string, ano: number, mes: number) {
+export function usePluviometriaYear(setor: string, ano: number) {
   const queryClient = useQueryClient();
   const { user } = useAuth();
 
   const query = useQuery({
-    queryKey: ["pluviometria", setor, ano, mes],
+    queryKey: ["pluviometria", setor, ano],
     queryFn: async () => {
       const { data, error } = await supabase
         .from("pluviometria_records" as any)
         .select("*")
         .eq("setor", setor)
         .eq("ano", ano)
-        .eq("mes", mes)
+        .order("mes")
         .order("dia");
       if (error) throw error;
       return (data || []) as unknown as PluviometriaRecord[];
@@ -34,7 +34,7 @@ export function usePluviometria(setor: string, ano: number, mes: number) {
   });
 
   const upsert = useMutation({
-    mutationFn: async ({ dia, mm }: { dia: number; mm: number }) => {
+    mutationFn: async ({ mes, dia, mm }: { mes: number; dia: number; mm: number }) => {
       if (!user) throw new Error("Not authenticated");
       const { data: existing } = await supabase
         .from("pluviometria_records" as any)
@@ -54,37 +54,14 @@ export function usePluviometria(setor: string, ano: number, mes: number) {
       } else {
         const { error } = await supabase
           .from("pluviometria_records" as any)
-          .insert({
-            setor,
-            ano,
-            mes,
-            dia,
-            mm,
-            created_by: user.id,
-          } as any);
+          .insert({ setor, ano, mes, dia, mm, created_by: user.id } as any);
         if (error) throw error;
       }
     },
     onSuccess: () => {
-      queryClient.invalidateQueries({ queryKey: ["pluviometria", setor, ano, mes] });
+      queryClient.invalidateQueries({ queryKey: ["pluviometria", setor, ano] });
     },
   });
 
-  const deleteRecord = useMutation({
-    mutationFn: async (dia: number) => {
-      const { error } = await supabase
-        .from("pluviometria_records" as any)
-        .delete()
-        .eq("setor", setor)
-        .eq("ano", ano)
-        .eq("mes", mes)
-        .eq("dia", dia);
-      if (error) throw error;
-    },
-    onSuccess: () => {
-      queryClient.invalidateQueries({ queryKey: ["pluviometria", setor, ano, mes] });
-    },
-  });
-
-  return { ...query, upsert, deleteRecord };
+  return { ...query, upsert };
 }
