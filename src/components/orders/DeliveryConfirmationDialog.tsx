@@ -183,7 +183,6 @@ export function DeliveryConfirmationDialog({
     setIsSubmitting(true);
 
     try {
-      // Create inventory items for each delivered product
       for (const item of items) {
         const category = deriveCategory(item.productName);
         
@@ -193,6 +192,7 @@ export function DeliveryConfirmationDialog({
           quantity: item.quantity,
           min_quantity: 0,
           unit: item.unit,
+          photo_urls: item.photoUrls,
           notes: `Recebido via pedido #${order?.order_number} - Local: ${
             DELIVERY_LOCATIONS.find((l) => l.value === deliveryLocation)?.label || deliveryLocation
           }`,
