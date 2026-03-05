@@ -109,26 +109,6 @@ function PluviometriaSpreadsheet({ setor, ano }: { setor: string; ano: number })
     });
   }, [upsert, remove]);
 
-  if (isLoading) {
-    return <div className="flex justify-center p-8 text-muted-foreground">Carregando...</div>;
-  }
-
-  const cellBg = (key: string) => {
-    const color = cellColors.get(key);
-    if (color === "green") return "bg-[#00873e]";
-    if (color === "red") return "bg-[#c00000]";
-    return "";
-  };
-
-  const cellText = (key: string) => {
-    const color = cellColors.get(key);
-    if (color === "green" || color === "red") return "text-white font-semibold";
-    return "";
-  };
-
-
-
-
   const handleExportPDF = useCallback(async () => {
     if (!spreadsheetRef.current) return;
     toast.info("Gerando PDF...");
