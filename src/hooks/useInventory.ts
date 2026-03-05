@@ -55,6 +55,7 @@ export interface CreateItemData {
   ca_expiry?: string;
   location_id?: string;
   notes?: string;
+  photo_urls?: string[];
 }
 
 export interface UpdateItemData extends Partial<CreateItemData> {
