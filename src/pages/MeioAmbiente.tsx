@@ -155,7 +155,7 @@ function PluviometriaSpreadsheet({ setor, ano }: { setor: string; ano: number })
           <FileDown className="w-4 h-4" /> Exportar PDF
         </Button>
       </div>
-      <div ref={spreadsheetRef} className="overflow-auto max-h-[80vh] border-2 border-[#00873e] rounded">
+      <div ref={spreadsheetRef} className="overflow-x-auto border-2 border-[#00873e] rounded">
       {/* Header */}
       <div className="bg-white dark:bg-card p-3 border-b-2 border-[#00873e]">
         <div className="flex items-center justify-between">
