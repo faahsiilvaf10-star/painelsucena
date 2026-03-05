@@ -109,8 +109,26 @@ export function InventoryTable({ items, onEdit }: InventoryTableProps) {
             ) : (
               items.map((item) => (
                 <TableRow key={item.id}>
-                  <TableCell>
+                 <TableCell>
                     <div className="flex items-center gap-2">
+                      {/* Photo thumbnails */}
+                      {item.photo_urls && item.photo_urls.length > 0 && (
+                        <div className="flex -space-x-1 flex-shrink-0">
+                          {item.photo_urls.slice(0, 2).map((url, i) => (
+                            <img
+                              key={i}
+                              src={url}
+                              alt={`Foto ${i + 1}`}
+                              className="w-8 h-8 rounded object-cover border border-background"
+                            />
+                          ))}
+                          {item.photo_urls.length > 2 && (
+                            <span className="w-8 h-8 rounded bg-muted flex items-center justify-center text-[10px] text-muted-foreground border border-background">
+                              +{item.photo_urls.length - 2}
+                            </span>
+                          )}
+                        </div>
+                      )}
                       {isLowStock(item) && (
                         <AlertTriangle className="h-4 w-4 text-yellow-500 flex-shrink-0" />
                       )}
