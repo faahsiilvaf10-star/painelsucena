@@ -1,0 +1,307 @@
+import { useState, useMemo, useCallback } from "react";
+import { Input } from "@/components/ui/input";
+import { Button } from "@/components/ui/button";
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
+import { FileDown } from "lucide-react";
+import { toast } from "sonner";
+import { useAbastecimentoCaixaDagua } from "@/hooks/useAbastecimentoCaixaDagua";
+import logoSucenaEmpreendimentos from "@/assets/logo-sucena-empreendimentos.png";
+
+const MESES = [
+  "Janeiro", "Fevereiro", "Março", "Abril", "Maio", "Junho",
+  "Julho", "Agosto", "Setembro", "Outubro", "Novembro", "Dezembro",
+];
+
+const SEMANAS = ["Sem 01", "Sem 02", "Sem 03", "Sem 04"];
+
+export default function AbastecimentoCaixaDagua() {
+  const currentDate = new Date();
+  const [ano, setAno] = useState(currentDate.getFullYear());
+  const { data: records, isLoading, upsert, remove } = useAbastecimentoCaixaDagua(ano);
+  const [editingCell, setEditingCell] = useState<{ mes: number; semana: number } | null>(null);
+  const [editValue, setEditValue] = useState("");
+
+  const lookup = useMemo(() => {
+    const map = new Map<string, number>();
+    records?.forEach((r) => map.set(`${r.mes}-${r.semana}`, Number(r.kg)));
+    return map;
+  }, [records]);
+
+  const monthTotals = useMemo(() => {
+    const totals = new Map<number, number>();
+    for (let m = 1; m <= 12; m++) {
+      let total = 0;
+      for (let s = 1; s <= 4; s++) {
+        const val = lookup.get(`${m}-${s}`);
+        if (val !== undefined) total += val;
+      }
+      totals.set(m, total);
+    }
+    return totals;
+  }, [lookup]);
+
+  const totalAnual = useMemo(() => {
+    let t = 0;
+    monthTotals.forEach((v) => (t += v));
+    return t;
+  }, [monthTotals]);
+
+  const handleSave = useCallback((mes: number, semana: number, value: string) => {
+    if (value.trim() === "") {
+      remove.mutate({ mes, semana }, {
+        onSuccess: () => {
+          toast.success(`${MESES[mes - 1]} ${SEMANAS[semana - 1]}: apagado`);
+          setEditingCell(null);
+          setEditValue("");
+        },
+        onError: () => toast.error("Erro ao apagar"),
+      });
+      return;
+    }
+    const val = parseFloat(value);
+    if (isNaN(val) || val < 0) {
+      toast.error("Valor inválido");
+      return;
+    }
+    upsert.mutate({ mes, semana, kg: val }, {
+      onSuccess: () => {
+        toast.success(`${MESES[mes - 1]} ${SEMANAS[semana - 1]}: ${val} KG`);
+        setEditingCell(null);
+        setEditValue("");
+      },
+      onError: () => toast.error("Erro ao salvar"),
+    });
+  }, [upsert, remove]);
+
+  const handleExportPDF = useCallback(async () => {
+    toast.info("Gerando PDF...");
+    try {
+      const { jsPDF } = await import("jspdf");
+      const pdf = new jsPDF("l", "mm", "a4");
+      const pageW = pdf.internal.pageSize.getWidth();
+      const margin = 10;
+      const usableW = pageW - margin * 2;
+      const blue = "#1a5276";
+
+      // Header
+      pdf.setFontSize(16);
+      pdf.setTextColor(blue);
+      pdf.setFont("helvetica", "bold");
+      pdf.text("GRÁFICO - ABASTECIMENTO CAIXA D'ÁGUA", margin, margin + 10);
+
+      pdf.setFontSize(12);
+      pdf.setTextColor("#000000");
+      pdf.text(`ANO ${ano}`, pageW / 2, margin + 10, { align: "center" });
+
+      // Logo
+      try {
+        const logoImg = new Image();
+        logoImg.crossOrigin = "anonymous";
+        await new Promise<void>((resolve) => {
+          logoImg.onload = () => resolve();
+          logoImg.onerror = () => resolve();
+          logoImg.src = "/logo-sucena-empreendimentos.png";
+        });
+        if (logoImg.complete && logoImg.naturalWidth > 0) {
+          const logoH = 14;
+          const logoW = (logoImg.naturalWidth / logoImg.naturalHeight) * logoH;
+          pdf.addImage(logoImg, "PNG", pageW - margin - logoW, margin, logoW, logoH);
+        }
+      } catch {}
+
+      // Table
+      const tableTop = margin + 20;
+      const mesColW = 30;
+      const semColW = 35;
+      const totalColW = 30;
+      const tableW = mesColW + 4 * semColW + totalColW;
+      const rowH = 8;
+      const headerH = 10;
+
+      // Header row
+      pdf.setFillColor(blue);
+      pdf.rect(margin, tableTop, tableW, headerH, "F");
+      pdf.setTextColor("#ffffff");
+      pdf.setFontSize(9);
+      pdf.setFont("helvetica", "bold");
+      pdf.text("Mês", margin + mesColW / 2, tableTop + 6.5, { align: "center" });
+      SEMANAS.forEach((sem, i) => {
+        const x = margin + mesColW + i * semColW;
+        pdf.text(sem, x + semColW / 2, tableTop + 6.5, { align: "center" });
+      });
+      pdf.text("Total", margin + mesColW + 4 * semColW + totalColW / 2, tableTop + 6.5, { align: "center" });
+
+      // Data rows
+      const dataTop = tableTop + headerH;
+      MESES.forEach((mesName, idx) => {
+        const mesNum = idx + 1;
+        const y = dataTop + idx * rowH;
+        const bgColor = idx % 2 === 0 ? "#f0f4f8" : "#ffffff";
+
+        pdf.setFillColor(bgColor);
+        pdf.rect(margin, y, tableW, rowH, "F");
+        pdf.setDrawColor("#c0c0c0");
+        pdf.setLineWidth(0.2);
+        pdf.rect(margin, y, tableW, rowH);
+
+        // Month name
+        pdf.setTextColor("#000000");
+        pdf.setFont("helvetica", "bold");
+        pdf.setFontSize(8);
+        pdf.text(mesName, margin + mesColW / 2, y + 5.5, { align: "center" });
+
+        // Week cells
+        for (let s = 1; s <= 4; s++) {
+          const key = `${mesNum}-${s}`;
+          const val = lookup.get(key);
+          const cellX = margin + mesColW + (s - 1) * semColW;
+          pdf.setDrawColor("#c0c0c0");
+          pdf.rect(cellX, y, semColW, rowH);
+
+          if (val !== undefined && val > 0) {
+            pdf.setTextColor("#1a5276");
+            pdf.setFont("helvetica", "normal");
+            pdf.setFontSize(8);
+            pdf.text(String(val), cellX + semColW / 2, y + 5.5, { align: "center" });
+          }
+        }
+
+        // Monthly total
+        const totalX = margin + mesColW + 4 * semColW;
+        pdf.setDrawColor("#c0c0c0");
+        pdf.rect(totalX, y, totalColW, rowH);
+        pdf.setTextColor("#000000");
+        pdf.setFont("helvetica", "bold");
+        pdf.setFontSize(8);
+        pdf.text(String(monthTotals.get(mesNum) || 0), totalX + totalColW / 2, y + 5.5, { align: "center" });
+      });
+
+      // Total Anual
+      const totalY = dataTop + 12 * rowH + 5;
+      pdf.setFontSize(10);
+      pdf.setFont("helvetica", "bold");
+      pdf.setTextColor(blue);
+      pdf.text("TOTAL ACUMULADO ANO (KG):", margin + mesColW + 2 * semColW, totalY, { align: "center" });
+      pdf.setFontSize(14);
+      pdf.text(String(totalAnual), margin + mesColW + 4 * semColW, totalY, { align: "center" });
+
+      pdf.save(`abastecimento-caixa-dagua-${ano}.pdf`);
+      toast.success("PDF exportado!");
+    } catch (err) {
+      console.error(err);
+      toast.error("Erro ao gerar PDF");
+    }
+  }, [ano, lookup, monthTotals, totalAnual]);
+
+  if (isLoading) {
+    return <div className="flex justify-center p-8 text-muted-foreground">Carregando...</div>;
+  }
+
+  return (
+    <div className="space-y-4">
+      <div className="flex flex-wrap items-center gap-3">
+        <Select value={String(ano)} onValueChange={(v) => setAno(Number(v))}>
+          <SelectTrigger className="w-[120px]">
+            <SelectValue />
+          </SelectTrigger>
+          <SelectContent>
+            {[2024, 2025, 2026, 2027].map((y) => (
+              <SelectItem key={y} value={String(y)}>{y}</SelectItem>
+            ))}
+          </SelectContent>
+        </Select>
+        <Button variant="outline" size="sm" onClick={handleExportPDF} className="gap-2 ml-auto">
+          <FileDown className="w-4 h-4" /> Exportar PDF
+        </Button>
+      </div>
+
+      <div className="border-2 border-[#1a5276] rounded overflow-x-auto">
+        {/* Header */}
+        <div className="bg-card p-3 border-b-2 border-[#1a5276]">
+          <div className="flex items-center justify-between">
+            <h2 className="text-lg font-bold text-[#1a5276] tracking-wide">
+              GRÁFICO - ABASTECIMENTO CAIXA D'ÁGUA
+            </h2>
+            <span className="text-lg font-bold">ANO {ano}</span>
+            <img src={logoSucenaEmpreendimentos} alt="Sucena Empreendimentos" className="h-14 object-contain" />
+          </div>
+        </div>
+
+        {/* Table */}
+        <table className="w-full border-collapse text-sm">
+          <thead>
+            <tr className="bg-[#1a5276] text-white">
+              <th className="border border-[#1a5276] px-3 py-2 text-left min-w-[100px] font-bold">Mês</th>
+              {SEMANAS.map((sem) => (
+                <th key={sem} className="border border-[#1a5276] px-3 py-2 text-center min-w-[90px] font-bold">
+                  {sem}
+                </th>
+              ))}
+              <th className="border border-[#1a5276] px-3 py-2 text-center min-w-[80px] font-bold">Total</th>
+            </tr>
+          </thead>
+          <tbody>
+            {MESES.map((mesName, idx) => {
+              const mesNum = idx + 1;
+              return (
+                <tr key={mesNum} className="hover:bg-muted/30 even:bg-muted/10">
+                  <td className="border border-[#1a5276]/30 px-3 py-1.5 font-bold text-sm">{mesName}</td>
+                  {[1, 2, 3, 4].map((semana) => {
+                    const key = `${mesNum}-${semana}`;
+                    const val = lookup.get(key);
+                    const isEditing = editingCell?.mes === mesNum && editingCell?.semana === semana;
+
+                    return (
+                      <td
+                        key={semana}
+                        className="border border-[#1a5276]/30 px-0 py-0 text-center cursor-pointer"
+                        onClick={() => {
+                          if (!isEditing) {
+                            setEditingCell({ mes: mesNum, semana });
+                            setEditValue(val !== undefined ? String(val) : "");
+                          }
+                        }}
+                      >
+                        {isEditing ? (
+                          <Input
+                            type="number"
+                            min={0}
+                            step={1}
+                            value={editValue}
+                            onChange={(e) => setEditValue(e.target.value)}
+                            className="w-full h-8 text-sm text-center p-0 border-0 rounded-none bg-yellow-100 dark:bg-yellow-900"
+                            onKeyDown={(e) => {
+                              if (e.key === "Enter") handleSave(mesNum, semana, editValue);
+                              if (e.key === "Escape") { setEditingCell(null); setEditValue(""); }
+                              if (e.key === "Tab") {
+                                e.preventDefault();
+                                handleSave(mesNum, semana, editValue);
+                              }
+                            }}
+                            onBlur={() => handleSave(mesNum, semana, editValue)}
+                            autoFocus
+                          />
+                        ) : (
+                          <span className="text-sm">{val !== undefined ? val : ""}</span>
+                        )}
+                      </td>
+                    );
+                  })}
+                  <td className="border border-[#1a5276]/30 px-3 py-1.5 text-center font-bold text-sm bg-card">
+                    {monthTotals.get(mesNum) || 0}
+                  </td>
+                </tr>
+              );
+            })}
+          </tbody>
+        </table>
+
+        {/* Footer - Total */}
+        <div className="border-t-2 border-[#1a5276] p-4 bg-card flex items-center justify-end gap-4">
+          <span className="font-bold text-sm">TOTAL ACUMULADO ANO (KG)</span>
+          <span className="text-2xl font-bold text-[#1a5276]">{totalAnual}</span>
+        </div>
+      </div>
+    </div>
+  );
+}
