@@ -114,16 +114,61 @@ function PluviometriaSpreadsheet({ setor, ano }: { setor: string; ano: number })
     toast.info("Gerando PDF...");
     try {
       const { jsPDF } = await import("jspdf");
-      const canvas = await html2canvas(spreadsheetRef.current, {
+      const el = spreadsheetRef.current;
+
+      // Temporarily remove overflow constraints so html2canvas captures everything
+      const prevOverflow = el.style.overflow;
+      const prevMaxH = el.style.maxHeight;
+      el.style.overflow = "visible";
+      el.style.maxHeight = "none";
+
+      const canvas = await html2canvas(el, {
         scale: 2,
         useCORS: true,
         logging: false,
+        backgroundColor: "#ffffff",
+        windowWidth: el.scrollWidth,
+        width: el.scrollWidth,
+        height: el.scrollHeight,
       });
+
+      // Restore styles
+      el.style.overflow = prevOverflow;
+      el.style.maxHeight = prevMaxH;
+
       const imgData = canvas.toDataURL("image/png");
+      // Landscape A4
       const pdf = new jsPDF("l", "mm", "a4");
-      const pdfW = pdf.internal.pageSize.getWidth() - 20;
-      const pdfH = (canvas.height * pdfW) / canvas.width;
-      pdf.addImage(imgData, "PNG", 10, 10, pdfW, pdfH);
+      const pageW = pdf.internal.pageSize.getWidth();
+      const pageH = pdf.internal.pageSize.getHeight();
+      const margin = 5;
+      const contentW = pageW - margin * 2;
+      const contentH = (canvas.height * contentW) / canvas.width;
+
+      if (contentH <= pageH - margin * 2) {
+        // Fits on one page
+        pdf.addImage(imgData, "PNG", margin, margin, contentW, contentH);
+      } else {
+        // Multi-page: slice the canvas
+        const pxPerPage = ((pageH - margin * 2) / contentW) * canvas.width;
+        let srcY = 0;
+        let page = 0;
+        while (srcY < canvas.height) {
+          if (page > 0) pdf.addPage();
+          const sliceH = Math.min(pxPerPage, canvas.height - srcY);
+          const sliceCanvas = document.createElement("canvas");
+          sliceCanvas.width = canvas.width;
+          sliceCanvas.height = sliceH;
+          const ctx = sliceCanvas.getContext("2d")!;
+          ctx.drawImage(canvas, 0, srcY, canvas.width, sliceH, 0, 0, canvas.width, sliceH);
+          const sliceData = sliceCanvas.toDataURL("image/png");
+          const sliceHMM = (sliceH * contentW) / canvas.width;
+          pdf.addImage(sliceData, "PNG", margin, margin, contentW, sliceHMM);
+          srcY += sliceH;
+          page++;
+        }
+      }
+
       pdf.save(`pluviometria-${setor}-${ano}.pdf`);
       toast.success("PDF exportado!");
     } catch {
