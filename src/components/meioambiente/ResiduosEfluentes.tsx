@@ -66,6 +66,11 @@ export default function ResiduosEfluentes() {
       toast.error("Valor inválido");
       return;
     }
+    if (val === 0) {
+      setEditingCell(null);
+      setEditValue("");
+      return;
+    }
     upsert.mutate({ mes, tipo, kg: val }, {
       onSuccess: () => {
         toast.success(`${MESES[mes - 1]}: ${val}`);
@@ -345,7 +350,7 @@ export default function ResiduosEfluentes() {
         onClick={() => {
           if (!isEditing) {
             setEditingCell({ mes: mesNum, tipo });
-            setEditValue(val !== undefined ? String(val) : "");
+            setEditValue("0");
           }
         }}
       >
