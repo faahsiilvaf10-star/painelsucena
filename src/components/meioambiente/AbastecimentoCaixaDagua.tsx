@@ -191,16 +191,16 @@ export default function AbastecimentoCaixaDagua() {
       pdf.addPage("a4", "l");
       const p2W = pdf.internal.pageSize.getWidth();
       const p2H = pdf.internal.pageSize.getHeight();
-      const cm = 15; // chart margin
+      const cm = 30; // larger margin to shrink chart
 
-      pdf.setFontSize(14);
+      pdf.setFontSize(12);
       pdf.setTextColor(blue);
       pdf.setFont("helvetica", "bold");
-      pdf.text("Abastecimento por Semana (KG)", cm, cm + 5);
+      pdf.text("Abastecimento por Semana (KG)", p2W / 2, cm, { align: "center" });
 
       const chartLeft = cm + 15;
-      const chartBottom = p2H - cm - 20;
-      const chartTop = cm + 15;
+      const chartBottom = p2H - cm - 25;
+      const chartTop = cm + 10;
       const chartRight = p2W - cm;
       const chartH = chartBottom - chartTop;
       const chartW = chartRight - chartLeft;
