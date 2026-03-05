@@ -396,7 +396,7 @@ export default function AbastecimentoCaixaDagua() {
 
       {/* Chart */}
       <div ref={chartRef} className="bg-card rounded-2xl border border-border/50 p-5">
-        <h3 className="text-lg font-bold mb-4">Abastecimento por Semana (KG)</h3>
+        <h3 className="text-lg font-bold mb-4">Abastecimento por Semana (LITROS)</h3>
         <div className="h-[300px]">
           <ResponsiveContainer width="100%" height="100%">
             <BarChart data={chartData} margin={{ top: 5, right: 20, left: 0, bottom: 5 }}>
