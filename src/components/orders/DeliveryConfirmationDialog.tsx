@@ -109,6 +109,7 @@ interface DeliveryItem {
   quantity: number;
   unit: string;
   originalUnit: QuantityUnit;
+  photoUrls: string[];
 }
 
 export function DeliveryConfirmationDialog({
@@ -132,22 +133,22 @@ export function DeliveryConfirmationDialog({
     const newItems: DeliveryItem[] = [];
     
     if (orderItems && orderItems.length > 0) {
-      // Use order items
       orderItems.forEach((item) => {
         newItems.push({
           productName: item.product_name,
           quantity: item.quantity,
           unit: mapUnitToInventory(item.quantity_unit),
           originalUnit: item.quantity_unit,
+          photoUrls: (item as any).photo_urls || [],
         });
       });
     } else {
-      // Fallback to main order product
       newItems.push({
         productName: order.product_name,
         quantity: order.quantity,
         unit: mapUnitToInventory(order.quantity_unit),
         originalUnit: order.quantity_unit,
+        photoUrls: order.photo_urls || [],
       });
     }
     
@@ -182,7 +183,6 @@ export function DeliveryConfirmationDialog({
     setIsSubmitting(true);
 
     try {
-      // Create inventory items for each delivered product
       for (const item of items) {
         const category = deriveCategory(item.productName);
         
@@ -192,6 +192,7 @@ export function DeliveryConfirmationDialog({
           quantity: item.quantity,
           min_quantity: 0,
           unit: item.unit,
+          photo_urls: item.photoUrls,
           notes: `Recebido via pedido #${order?.order_number} - Local: ${
             DELIVERY_LOCATIONS.find((l) => l.value === deliveryLocation)?.label || deliveryLocation
           }`,
@@ -247,6 +248,24 @@ export function DeliveryConfirmationDialog({
                   key={index}
                   className="flex items-center gap-3 p-3 bg-muted/50 rounded-lg"
                 >
+                  {/* Photo thumbnails */}
+                  {item.photoUrls.length > 0 && (
+                    <div className="flex gap-1 flex-shrink-0">
+                      {item.photoUrls.slice(0, 2).map((url, i) => (
+                        <img
+                          key={i}
+                          src={url}
+                          alt={`Foto ${i + 1}`}
+                          className="w-10 h-10 rounded object-cover border border-border"
+                        />
+                      ))}
+                      {item.photoUrls.length > 2 && (
+                        <span className="w-10 h-10 rounded bg-muted flex items-center justify-center text-xs text-muted-foreground border border-border">
+                          +{item.photoUrls.length - 2}
+                        </span>
+                      )}
+                    </div>
+                  )}
                   <div className="flex-1 min-w-0">
                     <p className="font-medium text-sm truncate">{item.productName}</p>
                     <p className="text-xs text-muted-foreground">

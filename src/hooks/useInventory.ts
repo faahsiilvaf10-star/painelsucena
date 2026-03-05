@@ -23,6 +23,7 @@ export interface InventoryItem {
   ca_expiry: string | null;
   location_id: string | null;
   notes: string | null;
+  photo_urls: string[] | null;
   created_by: string;
   created_at: string;
   updated_at: string;
@@ -55,6 +56,7 @@ export interface CreateItemData {
   ca_expiry?: string;
   location_id?: string;
   notes?: string;
+  photo_urls?: string[];
 }
 
 export interface UpdateItemData extends Partial<CreateItemData> {
