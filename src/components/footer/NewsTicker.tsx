@@ -1,7 +1,6 @@
 import { useEffect, useState, useRef } from "react";
 import { supabase } from "@/integrations/supabase/client";
-import { Newspaper, X } from "lucide-react";
-import { cn } from "@/lib/utils";
+import { Newspaper } from "lucide-react";
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/components/ui/dialog";
 import { ScrollArea } from "@/components/ui/scroll-area";
 import { Badge } from "@/components/ui/badge";
@@ -11,6 +10,59 @@ interface NewsItem {
   category: string;
   link: string;
   pubDate?: string;
+}
+
+// Map team keywords to their logo files in /public/teams/
+const TEAM_LOGOS: Record<string, string> = {
+  "américa-mg": "/teams/america-mg.png",
+  "america-mg": "/teams/america-mg.png",
+  "américa mineiro": "/teams/america-mg.png",
+  "athletico": "/teams/athletico-pr.png",
+  "athletico-pr": "/teams/athletico-pr.png",
+  "atlético-mg": "/teams/atletico-mg.png",
+  "atletico-mg": "/teams/atletico-mg.png",
+  "atlético mineiro": "/teams/atletico-mg.png",
+  "galo": "/teams/atletico-mg.png",
+  "bahia": "/teams/bahia.png",
+  "botafogo": "/teams/botafogo.png",
+  "bragantino": "/teams/bragantino.png",
+  "red bull bragantino": "/teams/bragantino.png",
+  "corinthians": "/teams/corinthians.png",
+  "timão": "/teams/corinthians.png",
+  "coritiba": "/teams/coritiba.png",
+  "cruzeiro": "/teams/cruzeiro.png",
+  "raposa": "/teams/cruzeiro.png",
+  "cuiabá": "/teams/cuiaba.png",
+  "cuiaba": "/teams/cuiaba.png",
+  "flamengo": "/teams/flamengo.png",
+  "mengão": "/teams/flamengo.png",
+  "fluminense": "/teams/fluminense.png",
+  "flu": "/teams/fluminense.png",
+  "fortaleza": "/teams/fortaleza.png",
+  "grêmio": "/teams/gremio.png",
+  "gremio": "/teams/gremio.png",
+  "internacional": "/teams/internacional.png",
+  "inter": "/teams/internacional.png",
+  "colorado": "/teams/internacional.png",
+  "palmeiras": "/teams/palmeiras.png",
+  "verdão": "/teams/palmeiras.png",
+  "santos": "/teams/santos.png",
+  "peixe": "/teams/santos.png",
+  "são paulo": "/teams/sao-paulo.png",
+  "sao paulo": "/teams/sao-paulo.png",
+  "tricolor": "/teams/sao-paulo.png",
+  "vasco": "/teams/vasco.png",
+};
+
+function findTeamLogos(text: string): string[] {
+  const lower = text.toLowerCase();
+  const found = new Set<string>();
+  for (const [keyword, logo] of Object.entries(TEAM_LOGOS)) {
+    if (lower.includes(keyword)) {
+      found.add(logo);
+    }
+  }
+  return Array.from(found).slice(0, 3); // max 3 logos per item
 }
 
 export const NewsTicker = () => {
@@ -41,12 +93,8 @@ export const NewsTicker = () => {
 
   if (isLoading || news.length === 0) return null;
 
-  const tickerText = news
-    .map((item) => `${item.category}  ${item.title}`)
-    .join("     •     ");
-
   const isToday = (dateStr?: string) => {
-    if (!dateStr) return true; // include items without date
+    if (!dateStr) return true;
     try {
       const d = new Date(dateStr);
       const now = new Date();
@@ -67,6 +115,22 @@ export const NewsTicker = () => {
   };
 
   const todayNews = news.filter((item) => isToday(item.pubDate));
+
+  // Build ticker with inline team logos
+  const renderTickerItems = () =>
+    news.map((item, i) => {
+      const logos = findTeamLogos(item.title);
+      return (
+        <span key={i} className="inline-flex items-center gap-1">
+          {i > 0 && <span className="mx-3 text-muted-foreground/40">•</span>}
+          <span className="text-muted-foreground/70">{item.category}</span>
+          {logos.map((logo, j) => (
+            <img key={j} src={logo} alt="" className="inline-block h-4 w-4 object-contain" />
+          ))}
+          <span>{item.title}</span>
+        </span>
+      );
+    });
 
   return (
     <>
@@ -89,8 +153,8 @@ export const NewsTicker = () => {
             className="whitespace-nowrap animate-ticker text-[11px] text-muted-foreground"
             style={{ display: "inline-flex", gap: "5rem" }}
           >
-            <span>{tickerText}</span>
-            <span>{tickerText}</span>
+            <span className="inline-flex items-center">{renderTickerItems()}</span>
+            <span className="inline-flex items-center">{renderTickerItems()}</span>
           </div>
         </div>
       </div>
@@ -110,27 +174,37 @@ export const NewsTicker = () => {
                   Nenhuma notícia publicada hoje.
                 </p>
               ) : (
-                todayNews.map((item, i) => (
-                  <a
-                    key={i}
-                    href={item.link}
-                    target="_blank"
-                    rel="noopener noreferrer"
-                    className="block p-3 rounded-lg border border-border hover:bg-secondary/50 transition-colors"
-                  >
-                    <div className="flex items-start gap-2">
-                      <Badge variant="outline" className="shrink-0 text-[10px]">
-                        {item.category}
-                      </Badge>
-                      {item.pubDate && (
-                        <span className="text-[10px] text-muted-foreground shrink-0 ml-auto">
-                          {formatDate(item.pubDate)}
-                        </span>
-                      )}
-                    </div>
-                    <p className="text-sm mt-1.5 leading-snug">{item.title}</p>
-                  </a>
-                ))
+                todayNews.map((item, i) => {
+                  const logos = findTeamLogos(item.title);
+                  return (
+                    <a
+                      key={i}
+                      href={item.link}
+                      target="_blank"
+                      rel="noopener noreferrer"
+                      className="block p-3 rounded-lg border border-border hover:bg-secondary/50 transition-colors"
+                    >
+                      <div className="flex items-start gap-2">
+                        <Badge variant="outline" className="shrink-0 text-[10px]">
+                          {item.category}
+                        </Badge>
+                        {logos.length > 0 && (
+                          <div className="flex items-center gap-1 shrink-0">
+                            {logos.map((logo, j) => (
+                              <img key={j} src={logo} alt="" className="h-5 w-5 object-contain" />
+                            ))}
+                          </div>
+                        )}
+                        {item.pubDate && (
+                          <span className="text-[10px] text-muted-foreground shrink-0 ml-auto">
+                            {formatDate(item.pubDate)}
+                          </span>
+                        )}
+                      </div>
+                      <p className="text-sm mt-1.5 leading-snug">{item.title}</p>
+                    </a>
+                  );
+                })
               )}
             </div>
           </ScrollArea>
