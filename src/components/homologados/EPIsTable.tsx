@@ -287,8 +287,17 @@ export function EPIsTable() {
                 ) : (
                   paginatedEPIs.map((epi) => (
                     <TableRow key={epi.id} className="hover:bg-muted/30 cursor-pointer" onClick={() => handleViewDetails(epi)}>
-                      <TableCell className="font-medium max-w-[250px]">
-                        <span className="line-clamp-2">{epi.nome}</span>
+                      <TableCell className="font-medium max-w-[300px]">
+                        <div className="flex items-center gap-3">
+                          {epi.foto && (
+                            <img
+                              src={epi.foto}
+                              alt={epi.nome}
+                              className="w-10 h-10 rounded object-cover border shrink-0"
+                            />
+                          )}
+                          <span className="line-clamp-2">{epi.nome}</span>
+                        </div>
                       </TableCell>
                       <TableCell>
                         <Badge variant="outline" className="font-mono">
