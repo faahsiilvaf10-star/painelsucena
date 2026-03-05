@@ -155,16 +155,23 @@ export const NewsTicker = () => {
 
   if (isLoading || news.length === 0) return null;
 
-  const isToday = (dateStr?: string) => {
-    if (!dateStr) return true;
+  const isFromDate = (dateStr: string | undefined, target: Date) => {
+    if (!dateStr) return false;
     try {
       const d = new Date(dateStr);
-      const now = new Date();
-      return d.getDate() === now.getDate() && d.getMonth() === now.getMonth() && d.getFullYear() === now.getFullYear();
+      return d.getDate() === target.getDate() && d.getMonth() === target.getMonth() && d.getFullYear() === target.getFullYear();
     } catch {
-      return true;
+      return false;
     }
   };
+
+  const now = new Date();
+  const yesterday = new Date(now);
+  yesterday.setDate(yesterday.getDate() - 1);
+
+  const todayNews = news.filter((item) => isFromDate(item.pubDate, now));
+  const displayNews = todayNews.length > 0 ? todayNews : news.filter((item) => isFromDate(item.pubDate, yesterday));
+  const displayLabel = todayNews.length > 0 ? "Notícias do Dia" : "Notícias de Ontem";
 
   const formatDate = (dateStr?: string) => {
     if (!dateStr) return "";
@@ -175,8 +182,6 @@ export const NewsTicker = () => {
       return "";
     }
   };
-
-  const todayNews = news.filter((item) => isToday(item.pubDate));
 
   // Build ticker with inline team logos, flags, and source favicon
   const renderTickerItems = () =>
@@ -234,17 +239,17 @@ export const NewsTicker = () => {
           <DialogHeader>
             <DialogTitle className="flex items-center gap-2">
               <Newspaper className="h-5 w-5" />
-              Notícias do Dia
+              {displayLabel}
             </DialogTitle>
           </DialogHeader>
           <ScrollArea className="h-[60vh] pr-2">
             <div className="space-y-3">
-              {todayNews.length === 0 ? (
+              {displayNews.length === 0 ? (
                 <p className="text-sm text-muted-foreground text-center py-8">
-                  Nenhuma notícia publicada hoje.
+                  Nenhuma notícia disponível.
                 </p>
               ) : (
-                todayNews.map((item, i) => {
+                displayNews.map((item, i) => {
                   const logos = findTeamLogos(item.title, item.category);
                   const flags = findCountryFlags(item.title);
                   const favicon = getSourceFavicon(item.source);
