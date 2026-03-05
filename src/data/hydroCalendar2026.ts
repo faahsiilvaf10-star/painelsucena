@@ -52,9 +52,31 @@ export function isHoliday(dateStr: string): boolean {
   return HYDRO_HOLIDAYS_2026.some(h => h.date === dateStr);
 }
 
-export function getTomorrowHoliday(): HolidayInfo | undefined {
-  const tomorrow = new Date();
+export function getUpcomingHoliday(): { holiday: HolidayInfo; daysAhead: number } | undefined {
+  const now = new Date();
+  const dayOfWeek = now.getDay(); // 0=Sun, 5=Fri
+
+  // Check tomorrow (always)
+  const tomorrow = new Date(now);
   tomorrow.setDate(tomorrow.getDate() + 1);
-  const dateStr = tomorrow.toISOString().split("T")[0];
-  return HYDRO_HOLIDAYS_2026.find(h => h.date === dateStr);
+  const tomorrowStr = tomorrow.toISOString().split("T")[0];
+  const tomorrowHoliday = HYDRO_HOLIDAYS_2026.find(h => h.date === tomorrowStr);
+  if (tomorrowHoliday) return { holiday: tomorrowHoliday, daysAhead: 1 };
+
+  // If today is Friday, also check Monday (3 days ahead)
+  if (dayOfWeek === 5) {
+    const monday = new Date(now);
+    monday.setDate(monday.getDate() + 3);
+    const mondayStr = monday.toISOString().split("T")[0];
+    const mondayHoliday = HYDRO_HOLIDAYS_2026.find(h => h.date === mondayStr);
+    if (mondayHoliday) return { holiday: mondayHoliday, daysAhead: 3 };
+  }
+
+  return undefined;
+}
+
+/** @deprecated Use getUpcomingHoliday instead */
+export function getTomorrowHoliday(): HolidayInfo | undefined {
+  const result = getUpcomingHoliday();
+  return result?.holiday;
 }
