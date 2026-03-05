@@ -248,6 +248,24 @@ export function DeliveryConfirmationDialog({
                   key={index}
                   className="flex items-center gap-3 p-3 bg-muted/50 rounded-lg"
                 >
+                  {/* Photo thumbnails */}
+                  {item.photoUrls.length > 0 && (
+                    <div className="flex gap-1 flex-shrink-0">
+                      {item.photoUrls.slice(0, 2).map((url, i) => (
+                        <img
+                          key={i}
+                          src={url}
+                          alt={`Foto ${i + 1}`}
+                          className="w-10 h-10 rounded object-cover border border-border"
+                        />
+                      ))}
+                      {item.photoUrls.length > 2 && (
+                        <span className="w-10 h-10 rounded bg-muted flex items-center justify-center text-xs text-muted-foreground border border-border">
+                          +{item.photoUrls.length - 2}
+                        </span>
+                      )}
+                    </div>
+                  )}
                   <div className="flex-1 min-w-0">
                     <p className="font-medium text-sm truncate">{item.productName}</p>
                     <p className="text-xs text-muted-foreground">
