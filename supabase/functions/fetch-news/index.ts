@@ -59,6 +59,7 @@ serve(async (req) => {
               sourceDomain = new URL(sourceUrl).hostname.replace("www.", "");
             }
           } catch {}
+          const imageUrl = imageMatch ? (imageMatch[1] || imageMatch[2] || imageMatch[3] || "") : "";
 
           if (title) {
             allItems.push({
@@ -67,6 +68,7 @@ serve(async (req) => {
               link,
               pubDate: pubDateMatch ? pubDateMatch[1] : "",
               source: sourceDomain,
+              imageUrl,
             });
             count++;
           }
