@@ -187,28 +187,83 @@ export default function AbastecimentoCaixaDagua() {
       pdf.setFontSize(14);
       pdf.text(String(totalAnual), margin + mesColW + 4 * semColW, totalY, { align: "center" });
 
-      // Capture chart as image and add to page 2
-      if (chartRef.current) {
-        try {
-          const html2canvas = (await import("html2canvas")).default;
-          const canvas = await html2canvas(chartRef.current, {
-            scale: 2,
-            backgroundColor: "#ffffff",
-            useCORS: true,
-          });
-          const imgData = canvas.toDataURL("image/png");
-          pdf.addPage("a4", "l");
-          const chartPageW = pdf.internal.pageSize.getWidth();
-          const chartPageH = pdf.internal.pageSize.getHeight();
-          const chartMargin = 15;
-          const imgW = chartPageW - chartMargin * 2;
-          const imgH = (canvas.height * imgW) / canvas.width;
-          const finalH = Math.min(imgH, chartPageH - chartMargin * 2);
-          pdf.addImage(imgData, "PNG", chartMargin, chartMargin, imgW, finalH);
-        } catch (chartErr) {
-          console.warn("Não foi possível capturar o gráfico:", chartErr);
+      // Page 2: Draw chart manually
+      pdf.addPage("a4", "l");
+      const p2W = pdf.internal.pageSize.getWidth();
+      const p2H = pdf.internal.pageSize.getHeight();
+      const cm = 15; // chart margin
+
+      pdf.setFontSize(14);
+      pdf.setTextColor(blue);
+      pdf.setFont("helvetica", "bold");
+      pdf.text("Abastecimento por Semana (KG)", cm, cm + 5);
+
+      const chartLeft = cm + 15;
+      const chartBottom = p2H - cm - 20;
+      const chartTop = cm + 15;
+      const chartRight = p2W - cm;
+      const chartH = chartBottom - chartTop;
+      const chartW = chartRight - chartLeft;
+
+      // Find max value for Y axis
+      let maxVal = 4;
+      for (let m = 1; m <= 12; m++) {
+        for (let s = 1; s <= 4; s++) {
+          const v = lookup.get(`${m}-${s}`) || 0;
+          if (v > maxVal) maxVal = v;
         }
       }
+      maxVal = Math.ceil(maxVal * 1.2) || 4;
+
+      // Y axis
+      pdf.setDrawColor("#cccccc");
+      pdf.setLineWidth(0.3);
+      const ySteps = 5;
+      for (let i = 0; i <= ySteps; i++) {
+        const y = chartBottom - (chartH * i) / ySteps;
+        pdf.line(chartLeft, y, chartRight, y);
+        pdf.setFontSize(7);
+        pdf.setTextColor("#666666");
+        pdf.setFont("helvetica", "normal");
+        const label = Math.round((maxVal * i) / ySteps);
+        pdf.text(String(label), chartLeft - 3, y + 1.5, { align: "right" });
+      }
+
+      // Bars
+      const barColors = ["#1a6fb5", "#2fb8a0", "#d4a017", "#e04040"];
+      const groupW = chartW / 12;
+      const barW = groupW / 6;
+      const mesLabels = ["Jan", "Fev", "Mar", "Abr", "Mai", "Jun", "Jul", "Ago", "Set", "Out", "Nov", "Dez"];
+
+      for (let m = 0; m < 12; m++) {
+        const gx = chartLeft + m * groupW + groupW * 0.1;
+        for (let s = 0; s < 4; s++) {
+          const val = lookup.get(`${m + 1}-${s + 1}`) || 0;
+          const barH = (val / maxVal) * chartH;
+          const bx = gx + s * barW + s * 1;
+          pdf.setFillColor(barColors[s]);
+          if (barH > 0) {
+            pdf.rect(bx, chartBottom - barH, barW, barH, "F");
+          }
+        }
+        // X label
+        pdf.setFontSize(7);
+        pdf.setTextColor("#666666");
+        pdf.text(mesLabels[m], chartLeft + m * groupW + groupW / 2, chartBottom + 5, { align: "center" });
+      }
+
+      // Legend
+      const legendY = chartBottom + 12;
+      const semNames = ["Sem 01", "Sem 02", "Sem 03", "Sem 04"];
+      let lx = chartLeft;
+      semNames.forEach((name, i) => {
+        pdf.setFillColor(barColors[i]);
+        pdf.rect(lx, legendY, 4, 3, "F");
+        pdf.setFontSize(7);
+        pdf.setTextColor("#333333");
+        pdf.text(name, lx + 6, legendY + 2.5);
+        lx += 25;
+      });
 
       pdf.save(`abastecimento-caixa-dagua-${ano}.pdf`);
       toast.success("PDF exportado!");
