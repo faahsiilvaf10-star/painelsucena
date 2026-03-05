@@ -23,7 +23,7 @@ serve(async (req) => {
       },
     ];
 
-    const allItems: { title: string; category: string; link: string; pubDate: string }[] = [];
+    const allItems: { title: string; category: string; link: string; pubDate: string; source: string }[] = [];
 
     for (const feed of feeds) {
       try {
@@ -37,6 +37,7 @@ serve(async (req) => {
         const titleRegex = /<title><!\[CDATA\[(.*?)\]\]>|<title>(.*?)<\/title>/;
         const linkRegex = /<link>(.*?)<\/link>/;
         const pubDateRegex = /<pubDate>(.*?)<\/pubDate>/;
+        const sourceRegex = /<source[^>]*url="([^"]*)"[^>]*>(.*?)<\/source>/;
 
         let match;
         let count = 0;
@@ -45,14 +46,25 @@ serve(async (req) => {
           const titleMatch = itemXml.match(titleRegex);
           const linkMatch = itemXml.match(linkRegex);
           const pubDateMatch = itemXml.match(pubDateRegex);
+          const sourceMatch = itemXml.match(sourceRegex);
 
           const title = titleMatch ? (titleMatch[1] || titleMatch[2] || "").trim() : "";
+          const link = linkMatch ? linkMatch[1] : "";
+          let sourceDomain = "";
+          try {
+            const sourceUrl = sourceMatch ? sourceMatch[1] : link;
+            if (sourceUrl) {
+              sourceDomain = new URL(sourceUrl).hostname.replace("www.", "");
+            }
+          } catch {}
+
           if (title) {
             allItems.push({
               title,
               category: feed.category,
-              link: linkMatch ? linkMatch[1] : "",
+              link,
               pubDate: pubDateMatch ? pubDateMatch[1] : "",
+              source: sourceDomain,
             });
             count++;
           }
