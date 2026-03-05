@@ -8,6 +8,7 @@ export interface FerramentaHomologada {
   epis: string[];
   cas: string[];
   nivelRisco: "Controlado" | "Moderado" | "Alto";
+  foto?: string;
 }
 
 export const ferramentasHomologadas: FerramentaHomologada[] = [
@@ -15,6 +16,7 @@ export const ferramentasHomologadas: FerramentaHomologada[] = [
     id: 1,
     nome: "Marreta 2kg",
     categoria: "Martelagem",
+    foto: "/ferramentas/marreta-2kg.jpg",
     caracteristicas: "Cabeça forjada em aço de alta qualidade, cabo em fibra com reforço pultrudado e proteção em borracha contra batidas em falso. Batentes temperados por indução.",
     riscos: [
       "Golpear acidentalmente mãos, pés ou outras partes do corpo",
@@ -44,6 +46,7 @@ export const ferramentasHomologadas: FerramentaHomologada[] = [
     id: 2,
     nome: "Marreta 5kg",
     categoria: "Martelagem",
+    foto: "/ferramentas/marreta-5kg.jpg",
     caracteristicas: "Cabeça forjada em aço de alta qualidade, cabo em fibra com reforço pultrudado no centro e proteção em borracha contra batidas em falso. Ferramenta desenvolvida para atividades extrapesadas. O cabo em fibra propicia alta resistência mecânica, térmica e à corrosão.",
     riscos: [
       "Golpear acidentalmente mãos, pés ou outras partes do corpo",
@@ -73,6 +76,7 @@ export const ferramentasHomologadas: FerramentaHomologada[] = [
     id: 3,
     nome: "Martelo de Borracha",
     categoria: "Martelagem",
+    foto: "/ferramentas/martelo-borracha.jpg",
     caracteristicas: "Martelo desenvolvido para aplicação de pisos de cerâmica. Cabo feito em Fibra de Vidro com empunhadura de borracha termoplástica.",
     riscos: [
       "Golpear acidentalmente mãos, pés ou outras partes do corpo",
@@ -102,6 +106,7 @@ export const ferramentasHomologadas: FerramentaHomologada[] = [
     id: 4,
     nome: "Martelo Unha",
     categoria: "Martelagem",
+    foto: "/ferramentas/martelo-unha.jpg",
     caracteristicas: "Martelo com garra para extração de pregos. Cabo em fibra de vidro com empunhadura ergonômica.",
     riscos: [
       "Golpear acidentalmente mãos, pés ou outras partes do corpo",
@@ -131,6 +136,7 @@ export const ferramentasHomologadas: FerramentaHomologada[] = [
     id: 5,
     nome: "Batedor de Bronze",
     categoria: "Martelagem",
+    foto: "/ferramentas/batedor-bronze.jpg",
     caracteristicas: "Batedor de bronze utilizado em atividade de ajuste de rolamento de bombas e subconjuntos. O bronze sendo mais macio reduz o risco de danificar os rolamentos. Uso exclusivo da oficina central.",
     riscos: [
       "Golpear superfície incorretamente",
@@ -158,6 +164,7 @@ export const ferramentasHomologadas: FerramentaHomologada[] = [
     id: 6,
     nome: "Talhadeira",
     categoria: "Corte",
+    foto: "/ferramentas/talhadeira.jpg",
     caracteristicas: "Ferramenta manual para corte e remoção de materiais. Ponta afiada em aço temperado.",
     riscos: [
       "Golpear acidentalmente mãos, pés ou outras partes do corpo",
@@ -186,6 +193,7 @@ export const ferramentasHomologadas: FerramentaHomologada[] = [
     id: 7,
     nome: "Estilete para Geomembrana",
     categoria: "Corte",
+    foto: "/ferramentas/estilete-geomembrana.jpg",
     caracteristicas: "Estilete para corte de geomembrana. Lâmina trapezoidal retraída para cortes precisos em plástico e outros materiais. Cabo em liga de alumínio, leve e resistente.",
     riscos: [
       "Lesão em mãos, dedos e outras partes do corpo",
@@ -216,6 +224,7 @@ export const ferramentasHomologadas: FerramentaHomologada[] = [
     id: 8,
     nome: "Estilete Convencional",
     categoria: "Corte",
+    foto: "/ferramentas/estilete-convencional.jpg",
     caracteristicas: "Lâmina trapezoidal retraída para cortes precisos. Cabo em liga de alumínio, leve e resistente. Sistema de trava de segurança.",
     riscos: [
       "Lesão em mãos, dedos e outras partes do corpo",
@@ -246,6 +255,7 @@ export const ferramentasHomologadas: FerramentaHomologada[] = [
     id: 9,
     nome: "Estilete Circular de Segurança",
     categoria: "Corte",
+    foto: "/ferramentas/estilete-circular.jpg",
     caracteristicas: "Lâmina circular interna evita acidentes e protege o operador. Bico abridor inteligente para abrir caixas sem danificar conteúdo. Corpo em ABS de alta resistência. Formato ergonômico.",
     riscos: [
       "Lesão em mãos, dedos e outras partes do corpo",
@@ -274,6 +284,7 @@ export const ferramentasHomologadas: FerramentaHomologada[] = [
     id: 10,
     nome: "Esmerilhadeira com AFT",
     categoria: "Elétrica",
+    foto: "/ferramentas/esmerilhadeira-aft.jpg",
     caracteristicas: "Punho tipo D ideal para trabalhos pesados. Tecnologia AFT que previne contragolpe. Freio instantâneo. Função antireinício. Partida suave. Gatilho Homem Morto não permite travamento. Punho traseiro antivibração e giratório. Velocidade constante.",
     riscos: [
       "Projeção de partículas do disco ou material cortado",
@@ -307,6 +318,7 @@ export const ferramentasHomologadas: FerramentaHomologada[] = [
     id: 11,
     nome: "Esmerilhadeira Convencional",
     categoria: "Elétrica",
+    foto: "/ferramentas/esmerilhadeira-convencional.jpg",
     caracteristicas: "Esmerilhadeira para trabalhos em indústrias. Proteção do disco e punho ergonômico.",
     riscos: [
       "Projeção de partículas do disco ou material cortado",
@@ -365,8 +377,30 @@ export const ferramentasHomologadas: FerramentaHomologada[] = [
   },
   {
     id: 13,
+    nome: "Dispositivo de Extração de Anel de Vedação",
+    categoria: "Dispositivo",
+    foto: "/ferramentas/dispositivo-extracao-anel.jpg",
+    caracteristicas: "Para a fabricação do dispositivo, foi utilizada a parte flexível do saca-gaxeta já existente no mercado, devido à sua alta flexibilidade. Além disso, foi adicionado um prolongamento em raio de aço, fixado por rosca, cuja função é engatar no furo do anel para possibilitar sua remoção.",
+    riscos: [
+      "Risco de prensamento de mãos e dedos"
+    ],
+    medidasPreventivas: [
+      "Utilize luva de segurança adequada para atividade"
+    ],
+    epis: [
+      "Óculos de segurança ampla visão",
+      "Protetor auditivo tipo concha",
+      "Luva tátil",
+      "Capacete branco"
+    ],
+    cas: ["CA 19072", "CA 27971", "CA 31492", "CA 498"],
+    nivelRisco: "Controlado"
+  },
+  {
+    id: 14,
     nome: "Alça Pegador de Água",
     categoria: "Dispositivo",
+    foto: "/ferramentas/alca-pegador-agua.jpg",
     caracteristicas: "Fabricada em Ferro Zincado, evita corrosão. Alça firme de ferro para segurança no transporte. Produto higiênico, não coloca a mão no gargalo. Alça de PVC para proteção da mão. Suporta galões de 10 e 20 litros.",
     riscos: [
       "Postura inadequada na utilização",
@@ -389,9 +423,10 @@ export const ferramentasHomologadas: FerramentaHomologada[] = [
     nivelRisco: "Controlado"
   },
   {
-    id: 14,
+    id: 15,
     nome: "Pegador de Grampo",
     categoria: "Dispositivo",
+    foto: "/ferramentas/pegador-grampo.jpg",
     caracteristicas: "Fabricado com ferro para fixação de geomembrana no DRS. Retira as mãos do raio de ação no momento da fixação do grampo.",
     riscos: [
       "Escorregar o grampo causando acidente",
@@ -417,9 +452,10 @@ export const ferramentasHomologadas: FerramentaHomologada[] = [
     nivelRisco: "Moderado"
   },
   {
-    id: 15,
+    id: 16,
     nome: "Pinça Plástica/Metal para Pregos",
     categoria: "Dispositivo",
+    foto: "/ferramentas/pinca-plastica-metal.jpg",
     caracteristicas: "Alicate de plástico rígido de alta qualidade. Suporte para pregos com design escalonado possui 11 furos de tamanhos diferentes. Pesa apenas 83 gramas.",
     riscos: [
       "Escorregar o alicate causando acidente",
@@ -443,9 +479,10 @@ export const ferramentasHomologadas: FerramentaHomologada[] = [
     nivelRisco: "Controlado"
   },
   {
-    id: 16,
+    id: 17,
     nome: "Dispositivo de Ancoragem Transportável",
     categoria: "Dispositivo",
+    foto: "/ferramentas/dispositivo-ancoragem.jpg",
     caracteristicas: "Dispositivo de ancoragem tipo B para atividades em taludes. Conector inox 304. Haste de 1,5m em aço CA50 zincado a fogo. Inclui kit batedor e kit extrator.",
     riscos: [
       "Não fixar o dispositivo corretamente",
@@ -472,9 +509,10 @@ export const ferramentasHomologadas: FerramentaHomologada[] = [
     nivelRisco: "Alto"
   },
   {
-    id: 17,
+    id: 18,
     nome: "Marreta Smart Mini",
     categoria: "Martelagem",
+    foto: "/ferramentas/marretas-smart.jpg",
     caracteristicas: "Ferramenta desenvolvida para atividades de impacto, eliminando o uso de marretas convencionais. Pistão de acionamento manual gera impacto frontal potente e preciso. Sistema antirreflexo evita retorno da força às mãos.",
     riscos: [
       "Não fixar o dispositivo corretamente",
@@ -497,9 +535,10 @@ export const ferramentasHomologadas: FerramentaHomologada[] = [
     nivelRisco: "Controlado"
   },
   {
-    id: 18,
+    id: 19,
     nome: "Marreta Smart Pequena",
     categoria: "Martelagem",
+    foto: "/ferramentas/marretas-smart.jpg",
     caracteristicas: "Ferramenta desenvolvida para atividades de impacto, eliminando o uso de marretas convencionais. Pistão de acionamento manual gera impacto frontal potente e preciso. Sistema antirreflexo evita retorno da força às mãos. Possibilidade de adaptação de ponteiras como talhadeiras e saca-pinos.",
     riscos: [
       "Não fixar o dispositivo corretamente",
@@ -522,9 +561,10 @@ export const ferramentasHomologadas: FerramentaHomologada[] = [
     nivelRisco: "Controlado"
   },
   {
-    id: 19,
+    id: 20,
     nome: "Marreta Smart Média",
     categoria: "Martelagem",
+    foto: "/ferramentas/marretas-smart.jpg",
     caracteristicas: "Ferramenta desenvolvida para atividades de impacto, eliminando o uso de marretas convencionais. Pistão de acionamento manual gera impacto frontal potente e preciso. Sistema antirreflexo evita retorno da força às mãos. Possibilidade de adaptação de ponteiras como talhadeiras, saca-pinos e chaves de boca.",
     riscos: [
       "Não fixar o dispositivo corretamente",
@@ -547,9 +587,10 @@ export const ferramentasHomologadas: FerramentaHomologada[] = [
     nivelRisco: "Controlado"
   },
   {
-    id: 20,
+    id: 21,
     nome: "Marreta Smart Grande",
     categoria: "Martelagem",
+    foto: "/ferramentas/marretas-smart.jpg",
     caracteristicas: "Ferramenta desenvolvida para atividades de impacto extrapesadas. Pistão de acionamento manual gera impacto frontal potente e preciso. Sistema antirreflexo evita retorno da força às mãos. Possibilidade de adaptação de diversas ponteiras.",
     riscos: [
       "Não fixar o dispositivo corretamente",
@@ -566,6 +607,35 @@ export const ferramentasHomologadas: FerramentaHomologada[] = [
       "Óculos de segurança ampla visão",
       "Protetor auditivo tipo concha",
       "Luva anti impacto",
+      "Capacete branco"
+    ],
+    cas: ["CA 19072", "CA 27971", "CA 44333", "CA 498"],
+    nivelRisco: "Moderado"
+  },
+  {
+    id: 22,
+    nome: "Calço Ergonômico HD AGMOV",
+    categoria: "Dispositivo",
+    foto: "/ferramentas/calco-ergonomico.jpg",
+    caracteristicas: "Desenvolvido para calçar veículos de carga com total ergonomia e segurança. Design permite que o operador posicione e ajuste o calço em pé, evitando riscos de posturas inadequadas e atropelamentos. Conta com caixa de bloqueio compatível com sistemas de EBTV.",
+    riscos: [
+      "Não fixar o dispositivo da maneira correta",
+      "Utilizar dispositivo danificado comprometendo a eficiência",
+      "Risco de atropelamento no momento do posicionamento do calço"
+    ],
+    medidasPreventivas: [
+      "Realizar check-list do dispositivo antes do uso",
+      "Seguir todas orientações do fabricante",
+      "Somente pessoas treinadas podem utilizar",
+      "Após utilização armazenar em local seguro",
+      "Não utilizar dispositivo danificado",
+      "Realizar a utilização com veículo totalmente desligado",
+      "Não se posicionar próximo de veículos para posicionamento do calço"
+    ],
+    epis: [
+      "Óculos de segurança ampla visão",
+      "Luva anti impacto",
+      "Protetor auditivo tipo concha",
       "Capacete branco"
     ],
     cas: ["CA 19072", "CA 27971", "CA 44333", "CA 498"],
