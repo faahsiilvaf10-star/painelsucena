@@ -1,183 +1,248 @@
-import { useState, useMemo } from "react";
-import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
+import { useState, useMemo, useCallback } from "react";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { Input } from "@/components/ui/input";
-import { Button } from "@/components/ui/button";
-import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
-import { usePluviometria } from "@/hooks/usePluviometria";
-import { CloudRain, Droplets, Leaf } from "lucide-react";
+import { usePluviometriaYear } from "@/hooks/usePluviometria";
+import { CloudRain, Leaf } from "lucide-react";
 import { toast } from "sonner";
+import logoSucena from "@/assets/logo-sucena.png";
 
 const MESES = [
-  "Janeiro", "Fevereiro", "Março", "Abril", "Maio", "Junho",
-  "Julho", "Agosto", "Setembro", "Outubro", "Novembro", "Dezembro",
+  "JANEIRO", "FEVEREIRO", "MARÇO", "ABRIL", "MAIO", "JUNHO",
+  "JULHO", "AGOSTO", "SETEMBRO", "OUTUBRO", "NOVEMBRO", "DEZEMBRO",
 ];
 
 const SETORES = [
-  { value: "campo", label: "Campo" },
-  { value: "canteiro", label: "Canteiro" },
+  { value: "campo", label: "CAMPO" },
+  { value: "canteiro", label: "CANTEIRO" },
 ];
 
-function getDaysInMonth(year: number, month: number) {
-  return new Date(year, month, 0).getDate();
-}
+const PERIODOS: Record<string, string> = {
+  campo: "08:00H ÀS 08:00H",
+  canteiro: "08:00H ÀS 17:00H",
+};
 
-function PluviometriaGrid({ setor, ano, mes }: { setor: string; ano: number; mes: number }) {
-  const { data: records, isLoading, upsert } = usePluviometria(setor, ano, mes);
-  const [editingDay, setEditingDay] = useState<number | null>(null);
+function PluviometriaSpreadsheet({ setor, ano }: { setor: string; ano: number }) {
+  const { data: records, isLoading, upsert } = usePluviometriaYear(setor, ano);
+  const [editingCell, setEditingCell] = useState<{ mes: number; dia: number } | null>(null);
   const [editValue, setEditValue] = useState("");
 
-  const daysInMonth = getDaysInMonth(ano, mes);
-  const dayValues = useMemo(() => {
-    const map = new Map<number, number>();
-    records?.forEach((r) => map.set(r.dia, Number(r.mm)));
+  // Build lookup: key "mes-dia" -> mm
+  const lookup = useMemo(() => {
+    const map = new Map<string, number>();
+    records?.forEach((r) => map.set(`${r.mes}-${r.dia}`, Number(r.mm)));
     return map;
   }, [records]);
 
-  // Calculate consecutive rain days color
-  const dayColors = useMemo(() => {
-    const colors = new Map<number, string>();
-    for (let d = 1; d <= daysInMonth; d++) {
-      const val = dayValues.get(d);
-      if (val === undefined || val === null) continue; // no data = no color
+  // For each month, compute consecutive rain colors
+  const cellColors = useMemo(() => {
+    const colors = new Map<string, "green" | "red">();
+    for (let m = 1; m <= 12; m++) {
+      for (let d = 1; d <= 31; d++) {
+        const key = `${m}-${d}`;
+        const val = lookup.get(key);
+        if (val === undefined) continue;
 
-      // Check if this day is part of 2+ consecutive rain days
-      let hasConsecutive = false;
-      // Check with previous day
-      const prev = dayValues.get(d - 1);
-      if (prev !== undefined && prev !== null && prev > 0 && val > 0) hasConsecutive = true;
-      // Check with next day
-      const next = dayValues.get(d + 1);
-      if (next !== undefined && next !== null && next > 0 && val > 0) hasConsecutive = true;
+        let hasConsecutive = false;
+        const prev = lookup.get(`${m}-${d - 1}`);
+        if (prev !== undefined && prev > 0 && val > 0) hasConsecutive = true;
+        const next = lookup.get(`${m}-${d + 1}`);
+        if (next !== undefined && next > 0 && val > 0) hasConsecutive = true;
 
-      if (val > 0 && hasConsecutive) {
-        colors.set(d, "bg-green-500/20 text-green-700 dark:text-green-400");
-      } else {
-        colors.set(d, "bg-red-500/20 text-red-700 dark:text-red-400");
+        if (val > 0 && hasConsecutive) {
+          colors.set(key, "green");
+        } else {
+          colors.set(key, "red");
+        }
       }
     }
     return colors;
-  }, [dayValues, daysInMonth]);
+  }, [lookup]);
 
-  const totalMensal = useMemo(() => {
-    let total = 0;
-    dayValues.forEach((v) => (total += v));
-    return total;
-  }, [dayValues]);
+  // Totals per month
+  const monthTotals = useMemo(() => {
+    const totals = new Map<number, number>();
+    for (let m = 1; m <= 12; m++) {
+      let total = 0;
+      for (let d = 1; d <= 31; d++) {
+        const val = lookup.get(`${m}-${d}`);
+        if (val !== undefined) total += val;
+      }
+      totals.set(m, total);
+    }
+    return totals;
+  }, [lookup]);
 
-  const handleSave = (dia: number) => {
-    const val = parseFloat(editValue);
+  const totalAnual = useMemo(() => {
+    let t = 0;
+    monthTotals.forEach((v) => (t += v));
+    return t;
+  }, [monthTotals]);
+
+  const handleSave = useCallback((mes: number, dia: number, value: string) => {
+    const val = parseFloat(value);
     if (isNaN(val) || val < 0) {
       toast.error("Valor inválido");
       return;
     }
-    upsert.mutate({ dia, mm: val }, {
+    upsert.mutate({ mes, dia, mm: val }, {
       onSuccess: () => {
-        toast.success(`Dia ${dia} atualizado: ${val}mm`);
-        setEditingDay(null);
+        toast.success(`${MESES[mes - 1]} dia ${dia}: ${val}mm`);
+        setEditingCell(null);
         setEditValue("");
       },
       onError: () => toast.error("Erro ao salvar"),
     });
-  };
+  }, [upsert]);
 
   if (isLoading) {
     return <div className="flex justify-center p-8 text-muted-foreground">Carregando...</div>;
   }
 
-  return (
-    <div className="overflow-x-auto max-h-[70vh] overflow-y-auto border rounded-md">
-      <Table>
-        <TableHeader>
-          <TableRow>
-            <TableHead className="sticky left-0 bg-background z-10 min-w-[80px]">Dia</TableHead>
-            <TableHead className="min-w-[120px]">mm (Chuva)</TableHead>
-            <TableHead className="min-w-[100px]">Status</TableHead>
-            <TableHead className="min-w-[100px]">Ação</TableHead>
-          </TableRow>
-        </TableHeader>
-        <TableBody>
-          {Array.from({ length: daysInMonth }, (_, i) => i + 1).map((dia) => {
-            const val = dayValues.get(dia);
-            const color = dayColors.get(dia);
-            const isEditing = editingDay === dia;
+  const cellBg = (key: string) => {
+    const color = cellColors.get(key);
+    if (color === "green") return "bg-[#00873e]";
+    if (color === "red") return "bg-[#c00000]";
+    return "";
+  };
 
+  const cellText = (key: string) => {
+    const color = cellColors.get(key);
+    if (color === "green" || color === "red") return "text-white font-semibold";
+    return "";
+  };
+
+  return (
+    <div className="overflow-auto max-h-[80vh] border-2 border-[#00873e] rounded">
+      {/* Header */}
+      <div className="bg-white dark:bg-card p-3 border-b-2 border-[#00873e]">
+        <div className="flex items-center justify-between">
+          <h2 className="text-lg font-bold text-[#00873e] tracking-wide">
+            PLANILHA DE CONTROLE DE PRECIPITAÇÃO
+          </h2>
+          <span className="text-lg font-bold">ANO {ano}</span>
+          <img src={logoSucena} alt="Sucena" className="h-12 object-contain" />
+        </div>
+        <div className="flex items-center gap-8 mt-1 text-sm">
+          <div className="flex items-center gap-2">
+            <span className="font-bold text-[#00873e]">SETOR</span>
+            <span className="border border-[#00873e] px-3 py-0.5 font-semibold bg-white dark:bg-card min-w-[120px]">
+              {setor.toUpperCase()}
+            </span>
+          </div>
+          <div className="flex items-center gap-2">
+            <span className="font-bold text-[#00873e]">PERÍODO</span>
+            <span className="border border-[#00873e] px-3 py-0.5 font-semibold bg-white dark:bg-card">
+              {PERIODOS[setor]}
+            </span>
+          </div>
+        </div>
+      </div>
+
+      {/* Spreadsheet grid */}
+      <table className="w-full border-collapse text-xs">
+        <thead>
+          <tr className="bg-[#00873e] text-white">
+            <th className="border border-[#00873e] px-1 py-1 text-left sticky left-0 bg-[#00873e] z-10 min-w-[90px] text-xs font-bold">
+              MÊS/DIA
+            </th>
+            {Array.from({ length: 31 }, (_, i) => (
+              <th key={i + 1} className="border border-[#00873e] px-0.5 py-1 text-center min-w-[28px] text-xs font-bold">
+                {i + 1}
+              </th>
+            ))}
+            <th className="border border-[#00873e] px-1 py-1 text-center min-w-[50px] text-xs font-bold">
+              TOTAL<br />MENSAL
+            </th>
+          </tr>
+        </thead>
+        <tbody>
+          {MESES.map((mesName, idx) => {
+            const mesNum = idx + 1;
             return (
-              <TableRow key={dia} className={color || ""}>
-                <TableCell className="font-bold sticky left-0 bg-inherit z-10">
-                  {dia}/{mes.toString().padStart(2, "0")}
-                </TableCell>
-                <TableCell>
-                  {isEditing ? (
-                    <div className="flex items-center gap-2">
-                      <Input
-                        type="number"
-                        min={0}
-                        step={0.1}
-                        value={editValue}
-                        onChange={(e) => setEditValue(e.target.value)}
-                        className="w-24 h-8"
-                        onKeyDown={(e) => {
-                          if (e.key === "Enter") handleSave(dia);
-                          if (e.key === "Escape") { setEditingDay(null); setEditValue(""); }
-                        }}
-                        autoFocus
-                      />
-                      <span className="text-xs text-muted-foreground">mm</span>
-                    </div>
-                  ) : (
-                    <span className="font-medium">
-                      {val !== undefined ? `${val} mm` : "—"}
-                    </span>
-                  )}
-                </TableCell>
-                <TableCell>
-                  {val !== undefined && val > 0 && color?.includes("green") && (
-                    <span className="inline-flex items-center gap-1 text-xs font-semibold text-green-600 dark:text-green-400">
-                      <CloudRain className="w-3.5 h-3.5" /> Acumulado
-                    </span>
-                  )}
-                  {val !== undefined && color?.includes("red") && (
-                    <span className="inline-flex items-center gap-1 text-xs font-semibold text-red-600 dark:text-red-400">
-                      <Droplets className="w-3.5 h-3.5" /> {val > 0 ? "Isolado" : "Sem chuva"}
-                    </span>
-                  )}
-                </TableCell>
-                <TableCell>
-                  {isEditing ? (
-                    <div className="flex gap-1">
-                      <Button size="sm" variant="default" className="h-7 text-xs" onClick={() => handleSave(dia)}>
-                        Salvar
-                      </Button>
-                      <Button size="sm" variant="ghost" className="h-7 text-xs" onClick={() => { setEditingDay(null); setEditValue(""); }}>
-                        Cancelar
-                      </Button>
-                    </div>
-                  ) : (
-                    <Button
-                      size="sm"
-                      variant="outline"
-                      className="h-7 text-xs"
+              <tr key={mesNum} className="hover:bg-muted/30">
+                <td className="border border-[#00873e] px-1 py-0.5 font-bold text-xs sticky left-0 bg-white dark:bg-card z-10">
+                  {mesName}
+                </td>
+                {Array.from({ length: 31 }, (_, d) => {
+                  const dia = d + 1;
+                  const key = `${mesNum}-${dia}`;
+                  const val = lookup.get(key);
+                  const isEditing = editingCell?.mes === mesNum && editingCell?.dia === dia;
+
+                  return (
+                    <td
+                      key={dia}
+                      className={`border border-[#00873e]/50 px-0 py-0 text-center cursor-pointer ${cellBg(key)} ${cellText(key)}`}
                       onClick={() => {
-                        setEditingDay(dia);
-                        setEditValue(val !== undefined ? String(val) : "");
+                        if (!isEditing) {
+                          setEditingCell({ mes: mesNum, dia });
+                          setEditValue(val !== undefined ? String(val) : "");
+                        }
                       }}
                     >
-                      Editar
-                    </Button>
-                  )}
-                </TableCell>
-              </TableRow>
+                      {isEditing ? (
+                        <Input
+                          type="number"
+                          min={0}
+                          step={0.1}
+                          value={editValue}
+                          onChange={(e) => setEditValue(e.target.value)}
+                          className="w-full h-6 text-xs text-center p-0 border-0 rounded-none bg-yellow-100 dark:bg-yellow-900"
+                          onKeyDown={(e) => {
+                            if (e.key === "Enter") handleSave(mesNum, dia, editValue);
+                            if (e.key === "Escape") { setEditingCell(null); setEditValue(""); }
+                            if (e.key === "Tab") {
+                              e.preventDefault();
+                              handleSave(mesNum, dia, editValue);
+                            }
+                          }}
+                          onBlur={() => {
+                            if (editValue !== "") handleSave(mesNum, dia, editValue);
+                            else { setEditingCell(null); setEditValue(""); }
+                          }}
+                          autoFocus
+                        />
+                      ) : (
+                        <span className="text-[10px] leading-tight">
+                          {val !== undefined ? val : ""}
+                        </span>
+                      )}
+                    </td>
+                  );
+                })}
+                <td className="border border-[#00873e] px-1 py-0.5 text-center font-bold text-xs bg-white dark:bg-card">
+                  {monthTotals.get(mesNum) || 0}
+                </td>
+              </tr>
             );
           })}
-          <TableRow className="bg-muted/50 font-bold">
-            <TableCell className="sticky left-0 bg-muted/50 z-10">TOTAL</TableCell>
-            <TableCell>{totalMensal} mm</TableCell>
-            <TableCell colSpan={2} />
-          </TableRow>
-        </TableBody>
-      </Table>
+        </tbody>
+      </table>
+
+      {/* Legend + Total Anual */}
+      <div className="border-t-2 border-[#00873e] p-3 bg-white dark:bg-card flex items-end justify-between">
+        <div className="space-y-1 text-xs">
+          <div className="flex items-center gap-2">
+            <span className="inline-block w-4 h-4 bg-yellow-400 border border-muted" />
+            <span>COLETA FORA DO HORÁRIO</span>
+          </div>
+          <div className="flex items-center gap-2">
+            <span className="inline-block w-4 h-4 bg-[#c00000] border border-muted" />
+            <span>SEM COLETA</span>
+          </div>
+          <div className="flex items-center gap-2">
+            <span className="inline-block w-4 h-4 bg-[#00873e] border border-muted" />
+            <span>VALOR ACUMULADO PARA O DIA POSTERIOR</span>
+          </div>
+        </div>
+        <div className="text-right">
+          <div className="text-2xl font-bold text-[#00873e]">{totalAnual}</div>
+          <div className="border-2 border-[#00873e] px-3 py-1 text-xs font-bold mt-1">
+            TOTAL<br />ANUAL
+          </div>
+        </div>
+      </div>
     </div>
   );
 }
@@ -186,12 +251,11 @@ export default function MeioAmbiente() {
   const currentDate = new Date();
   const [setor, setSetor] = useState("campo");
   const [ano, setAno] = useState(currentDate.getFullYear());
-  const [mes, setMes] = useState(currentDate.getMonth() + 1);
 
   return (
-    <div className="container mx-auto p-4 space-y-6 max-w-5xl">
+    <div className="container mx-auto p-4 space-y-4 max-w-[1400px]">
       <div className="flex items-center gap-3">
-        <Leaf className="w-7 h-7 text-green-600" />
+        <Leaf className="w-7 h-7 text-[#00873e]" />
         <h1 className="text-2xl font-bold">Meio Ambiente</h1>
       </div>
 
@@ -203,59 +267,31 @@ export default function MeioAmbiente() {
         </TabsList>
 
         <TabsContent value="pluviometria">
-          <Card>
-            <CardHeader>
-              <CardTitle className="flex items-center gap-2 text-lg">
-                <CloudRain className="w-5 h-5" />
-                Controle de Precipitação
-              </CardTitle>
-              <div className="flex flex-wrap gap-3 pt-2">
-                <Select value={setor} onValueChange={setSetor}>
-                  <SelectTrigger className="w-[160px]">
-                    <SelectValue />
-                  </SelectTrigger>
-                  <SelectContent>
-                    {SETORES.map((s) => (
-                      <SelectItem key={s.value} value={s.value}>{s.label}</SelectItem>
-                    ))}
-                  </SelectContent>
-                </Select>
+          <div className="flex flex-wrap gap-3 mb-4">
+            <Select value={setor} onValueChange={setSetor}>
+              <SelectTrigger className="w-[160px]">
+                <SelectValue />
+              </SelectTrigger>
+              <SelectContent>
+                {SETORES.map((s) => (
+                  <SelectItem key={s.value} value={s.value}>{s.label}</SelectItem>
+                ))}
+              </SelectContent>
+            </Select>
 
-                <Select value={String(ano)} onValueChange={(v) => setAno(Number(v))}>
-                  <SelectTrigger className="w-[120px]">
-                    <SelectValue />
-                  </SelectTrigger>
-                  <SelectContent>
-                    {[2024, 2025, 2026, 2027].map((y) => (
-                      <SelectItem key={y} value={String(y)}>{y}</SelectItem>
-                    ))}
-                  </SelectContent>
-                </Select>
+            <Select value={String(ano)} onValueChange={(v) => setAno(Number(v))}>
+              <SelectTrigger className="w-[120px]">
+                <SelectValue />
+              </SelectTrigger>
+              <SelectContent>
+                {[2024, 2025, 2026, 2027].map((y) => (
+                  <SelectItem key={y} value={String(y)}>{y}</SelectItem>
+                ))}
+              </SelectContent>
+            </Select>
+          </div>
 
-                <Select value={String(mes)} onValueChange={(v) => setMes(Number(v))}>
-                  <SelectTrigger className="w-[160px]">
-                    <SelectValue />
-                  </SelectTrigger>
-                  <SelectContent>
-                    {MESES.map((m, i) => (
-                      <SelectItem key={i + 1} value={String(i + 1)}>{m}</SelectItem>
-                    ))}
-                  </SelectContent>
-                </Select>
-              </div>
-            </CardHeader>
-            <CardContent>
-              <div className="flex gap-4 mb-4 text-xs">
-                <span className="inline-flex items-center gap-1.5 px-2 py-1 rounded bg-green-500/20 text-green-700 dark:text-green-400 font-medium">
-                  <CloudRain className="w-3 h-3" /> 2+ dias seguidos = Acumulado (verde)
-                </span>
-                <span className="inline-flex items-center gap-1.5 px-2 py-1 rounded bg-red-500/20 text-red-700 dark:text-red-400 font-medium">
-                  <Droplets className="w-3 h-3" /> Sem acúmulo = Vermelho
-                </span>
-              </div>
-              <PluviometriaGrid setor={setor} ano={ano} mes={mes} />
-            </CardContent>
-          </Card>
+          <PluviometriaSpreadsheet setor={setor} ano={ano} />
         </TabsContent>
       </Tabs>
     </div>
