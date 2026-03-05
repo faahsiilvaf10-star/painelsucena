@@ -183,7 +183,7 @@ export default function AbastecimentoCaixaDagua() {
       pdf.setFontSize(10);
       pdf.setFont("helvetica", "bold");
       pdf.setTextColor(blue);
-      pdf.text("TOTAL ACUMULADO ANO (KG):", margin + mesColW + 2 * semColW, totalY, { align: "center" });
+      pdf.text("TOTAL ACUMULADO ANO (LITROS):", margin + mesColW + 2 * semColW, totalY, { align: "center" });
       pdf.setFontSize(14);
       pdf.text(String(totalAnual), margin + mesColW + 4 * semColW, totalY, { align: "center" });
 
