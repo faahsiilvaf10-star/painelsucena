@@ -35,6 +35,7 @@ export const DDSHighlightCard = () => {
   // Use Brazil North timezone - recalculate when dateKey changes
   const today = useMemo(() => getBrazilNorthDate(), [dateKey]);
   const tomorrow = useMemo(() => addDays(getBrazilNorthDate(), 1), [dateKey]);
+  const isFriday = useMemo(() => today.getDay() === 5, [today]);
 
   // Check if user can upload photo (tecnico_seguranca, tecnico_meio_ambiente or admin)
   const canUploadPhoto = isAdmin || 
