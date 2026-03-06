@@ -44,6 +44,7 @@ import { useDocumentExpiryNotifications } from "@/hooks/useDocumentExpiryNotific
 import { useVehicleExpiryNotifications } from "@/hooks/useVehicleExpiryNotifications";
 import { useDashboardOrder, DashboardItemId, DEFAULT_DASHBOARD_ORDER } from "@/hooks/useDashboardOrder";
 import { useHolidayNotification } from "@/hooks/useHolidayNotification";
+import { useFridayNotification } from "@/hooks/useFridayNotification";
 import { toast } from "sonner";
 
 const Dashboard = () => {
@@ -53,6 +54,7 @@ const Dashboard = () => {
   const { data: equipment } = useEquipment();
   const { dashboardOrder, updateOrder, isLoading: isLoadingOrder } = useDashboardOrder();
   useHolidayNotification();
+  useFridayNotification();
   
   const [isEditMode, setIsEditMode] = useState(false);
   const [localOrder, setLocalOrder] = useState<DashboardItemId[]>(dashboardOrder);
