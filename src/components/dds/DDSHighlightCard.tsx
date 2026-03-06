@@ -35,6 +35,7 @@ export const DDSHighlightCard = () => {
   // Use Brazil North timezone - recalculate when dateKey changes
   const today = useMemo(() => getBrazilNorthDate(), [dateKey]);
   const tomorrow = useMemo(() => addDays(getBrazilNorthDate(), 1), [dateKey]);
+  const isFriday = useMemo(() => today.getDay() === 5, [today]);
 
   // Check if user can upload photo (tecnico_seguranca, tecnico_meio_ambiente or admin)
   const canUploadPhoto = isAdmin || 
@@ -365,6 +366,14 @@ export const DDSHighlightCard = () => {
                 </span>
                 <span>Prepare-se para o DDS de amanhã!</span>
               </div>
+            </div>
+          ) : isFriday ? (
+            <div className="text-center py-6 space-y-3">
+              <div className="text-5xl">🎉🛡️</div>
+              <h3 className="text-lg font-bold text-primary">Sextou!</h3>
+              <p className="text-sm text-muted-foreground leading-relaxed max-w-xs mx-auto">
+                Hoje a atenção é redobrada! Nada de correria — segurança em primeiro lugar. Tenha um ótimo fim de semana com quem você ama! ❤️
+              </p>
             </div>
           ) : (
             <div className="text-center py-6 text-muted-foreground">
