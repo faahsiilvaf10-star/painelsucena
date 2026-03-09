@@ -389,7 +389,7 @@ const SavedRecordsCard = ({
               <Skeleton key={i} className="h-12 w-full" />
             ))}
           </div>
-        ) : savedRecords && savedRecords.length > 0 ? (
+        ) : periodRecords.length > 0 ? (
           <>
             {/* Period Summary Banner */}
             <div className="mb-4 p-4 rounded-lg bg-amber-500/10 border border-amber-500/30">
