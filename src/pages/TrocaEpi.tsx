@@ -399,122 +399,157 @@ export default function TrocaEpi() {
   };
 
   const handleSignatureConfirm = async (sigFuncionario: string, sigAutorizador: string) => {
+    // Capture current state values before any async operations
+    const currentSelectedEpis = [...selectedEpis];
+    const currentFuncionarioNome = funcionarioNome;
+    const currentBlusaQtd = blusaQtd;
+    const currentCalcaQtd = calcaQtd;
+    const currentBlusaTamanho = blusaTamanho;
+    const currentCalcaTamanho = calcaTamanho;
+    const currentEditingExchange = editingExchange;
+
     const exchangeData = {
       data,
       autorizado_por: autorizadoPor,
       matricula_autorizador: matriculaAutorizador || null,
       motivo_troca: motivoTroca,
-      funcionario_nome: funcionarioNome,
+      funcionario_nome: currentFuncionarioNome,
       funcionario_funcao: funcionarioFuncao || null,
       funcionario_matricula: funcionarioMatricula || null,
-      epis: selectedEpis as any,
-      uniforme_blusa_tamanho: blusaTamanho || null,
-      uniforme_blusa_quantidade: blusaQtd,
-      uniforme_calca_tamanho: calcaTamanho || null,
-      uniforme_calca_quantidade: calcaQtd,
+      epis: currentSelectedEpis as any,
+      uniforme_blusa_tamanho: currentBlusaTamanho || null,
+      uniforme_blusa_quantidade: currentBlusaQtd,
+      uniforme_calca_tamanho: currentCalcaTamanho || null,
+      uniforme_calca_quantidade: currentCalcaQtd,
       assinatura_funcionario: sigFuncionario || null,
       assinatura_autorizador: sigAutorizador || null,
     };
 
-    // If editing, restore old inventory first, then update exchange
-    if (editingExchange) {
-      await restoreInventoryForExchange(editingExchange);
-      await updateExchange.mutateAsync({ id: editingExchange.id, ...exchangeData });
-    } else {
-      await createExchange.mutateAsync(exchangeData);
+    try {
+      // If editing, restore old inventory first, then update exchange
+      if (currentEditingExchange) {
+        await restoreInventoryForExchange(currentEditingExchange);
+        await updateExchange.mutateAsync({ id: currentEditingExchange.id, ...exchangeData });
+      } else {
+        await createExchange.mutateAsync(exchangeData);
+      }
+    } catch (err) {
+      console.error("Erro ao salvar troca de EPI:", err);
+      setShowSignature(false);
+      return;
     }
 
     // Deduct inventory for each selected EPI
-    const { data: freshInventory } = await supabase
-      .from("inventory_items")
-      .select("*")
-      .order("name");
-    const currentInventory = freshInventory || [];
-
-    const deductedItems: string[] = [];
-    const notFoundItems: string[] = [];
-
-    for (const epi of selectedEpis) {
-      const epiItem = EPI_ITEMS.find(e => e.id === epi.id);
-      if (!epiItem) continue;
-      const epiQty = epi.qty ?? 1;
-      // For items with inventory dropdown (luva, boots, outros), use the selected value for matching
-      const hasDropdown = epi.id === "outros" || !!INVENTORY_DROPDOWN_EPIS[epi.id];
-      const searchLabel = hasDropdown && epi.value ? epi.value : epiItem.label;
-      const match = findInventoryMatch(currentInventory, searchLabel);
-      if (match && match.quantity >= epiQty) {
-        const newQty = match.quantity - epiQty;
-        await supabase.from("inventory_items").update({ quantity: newQty }).eq("id", match.id);
-        await supabase.from("inventory_movements").insert({
-          item_id: match.id,
-          movement_type: "saida",
-          quantity: epiQty,
-          previous_quantity: match.quantity,
-          new_quantity: newQty,
-          reason: `Troca de EPI - ${funcionarioNome}`,
-          moved_by: user!.id,
-          moved_by_name: profile?.full_name || "Usuário",
-          destination_type: "funcionario",
-          destination_name: funcionarioNome,
-        });
-        match.quantity = newQty;
-        deductedItems.push(`${searchLabel} (${epiQty})`);
-      } else if (!match) {
-        notFoundItems.push(searchLabel);
+    try {
+      const { data: freshInventory, error: fetchError } = await supabase
+        .from("inventory_items")
+        .select("*")
+        .order("name");
+      
+      if (fetchError) {
+        console.error("Erro ao buscar estoque:", fetchError);
       }
-    }
+      
+      const currentInventory = freshInventory || [];
+      const deductedItems: string[] = [];
+      const notFoundItems: string[] = [];
 
-    if (blusaQtd > 0) {
-      const blusaMatch = findInventoryMatch(currentInventory, "Blusa Operacional") || findInventoryMatch(currentInventory, "Blusa");
-      if (blusaMatch && blusaMatch.quantity >= blusaQtd) {
-        const newQty = blusaMatch.quantity - blusaQtd;
-        await supabase.from("inventory_items").update({ quantity: newQty }).eq("id", blusaMatch.id);
-        await supabase.from("inventory_movements").insert({
-          item_id: blusaMatch.id,
-          movement_type: "saida",
-          quantity: blusaQtd,
-          previous_quantity: blusaMatch.quantity,
-          new_quantity: newQty,
-          reason: `Troca de EPI - ${funcionarioNome}`,
-          moved_by: user!.id,
-          moved_by_name: profile?.full_name || "Usuário",
-          destination_type: "funcionario",
-          destination_name: funcionarioNome,
-        });
-        blusaMatch.quantity = newQty;
-        deductedItems.push(`Blusa Operacional (${blusaQtd})`);
+      for (const epi of currentSelectedEpis) {
+        const epiItem = EPI_ITEMS.find(e => e.id === epi.id);
+        if (!epiItem) continue;
+        const epiQty = Number(epi.qty) || 1;
+        // For items with inventory dropdown (luva, boots, outros), use the selected value for matching
+        const hasDropdown = epi.id === "outros" || !!INVENTORY_DROPDOWN_EPIS[epi.id];
+        const searchLabel = hasDropdown && epi.value ? epi.value : epiItem.label;
+        const match = findInventoryMatch(currentInventory, searchLabel);
+        if (match && match.quantity >= epiQty) {
+          const newQty = match.quantity - epiQty;
+          const { error: updateErr } = await supabase.from("inventory_items").update({ quantity: newQty }).eq("id", match.id);
+          if (updateErr) {
+            console.error("Erro ao atualizar estoque para", searchLabel, updateErr);
+            continue;
+          }
+          const { error: movErr } = await supabase.from("inventory_movements").insert({
+            item_id: match.id,
+            movement_type: "saida",
+            quantity: epiQty,
+            previous_quantity: match.quantity,
+            new_quantity: newQty,
+            reason: `Troca de EPI - ${currentFuncionarioNome}`,
+            moved_by: user!.id,
+            moved_by_name: profile?.full_name || "Usuário",
+            destination_type: "funcionario",
+            destination_name: currentFuncionarioNome,
+          });
+          if (movErr) {
+            console.error("Erro ao registrar movimento para", searchLabel, movErr);
+          }
+          match.quantity = newQty;
+          deductedItems.push(`${searchLabel} (${epiQty})`);
+        } else if (!match) {
+          notFoundItems.push(searchLabel);
+        }
       }
-    }
-    if (calcaQtd > 0) {
-      const calcaMatch = findInventoryMatch(currentInventory, "Calça Operacional") || findInventoryMatch(currentInventory, "Calça");
-      if (calcaMatch && calcaMatch.quantity >= calcaQtd) {
-        const newQty = calcaMatch.quantity - calcaQtd;
-        await supabase.from("inventory_items").update({ quantity: newQty }).eq("id", calcaMatch.id);
-        await supabase.from("inventory_movements").insert({
-          item_id: calcaMatch.id,
-          movement_type: "saida",
-          quantity: calcaQtd,
-          previous_quantity: calcaMatch.quantity,
-          new_quantity: newQty,
-          reason: `Troca de EPI - ${funcionarioNome}`,
-          moved_by: user!.id,
-          moved_by_name: profile?.full_name || "Usuário",
-          destination_type: "funcionario",
-          destination_name: funcionarioNome,
-        });
-        calcaMatch.quantity = newQty;
-        deductedItems.push(`Calça Operacional (${calcaQtd})`);
+
+      if (currentBlusaQtd > 0) {
+        const blusaMatch = findInventoryMatch(currentInventory, "Blusa Operacional") || findInventoryMatch(currentInventory, "Blusa");
+        if (blusaMatch && blusaMatch.quantity >= currentBlusaQtd) {
+          const newQty = blusaMatch.quantity - currentBlusaQtd;
+          const { error: updateErr } = await supabase.from("inventory_items").update({ quantity: newQty }).eq("id", blusaMatch.id);
+          if (!updateErr) {
+            await supabase.from("inventory_movements").insert({
+              item_id: blusaMatch.id,
+              movement_type: "saida",
+              quantity: currentBlusaQtd,
+              previous_quantity: blusaMatch.quantity,
+              new_quantity: newQty,
+              reason: `Troca de EPI - ${currentFuncionarioNome}`,
+              moved_by: user!.id,
+              moved_by_name: profile?.full_name || "Usuário",
+              destination_type: "funcionario",
+              destination_name: currentFuncionarioNome,
+            });
+            blusaMatch.quantity = newQty;
+            deductedItems.push(`Blusa Operacional (${currentBlusaQtd})`);
+          }
+        }
       }
-    }
+      if (currentCalcaQtd > 0) {
+        const calcaMatch = findInventoryMatch(currentInventory, "Calça Operacional") || findInventoryMatch(currentInventory, "Calça");
+        if (calcaMatch && calcaMatch.quantity >= currentCalcaQtd) {
+          const newQty = calcaMatch.quantity - currentCalcaQtd;
+          const { error: updateErr } = await supabase.from("inventory_items").update({ quantity: newQty }).eq("id", calcaMatch.id);
+          if (!updateErr) {
+            await supabase.from("inventory_movements").insert({
+              item_id: calcaMatch.id,
+              movement_type: "saida",
+              quantity: currentCalcaQtd,
+              previous_quantity: calcaMatch.quantity,
+              new_quantity: newQty,
+              reason: `Troca de EPI - ${currentFuncionarioNome}`,
+              moved_by: user!.id,
+              moved_by_name: profile?.full_name || "Usuário",
+              destination_type: "funcionario",
+              destination_name: currentFuncionarioNome,
+            });
+            calcaMatch.quantity = newQty;
+            deductedItems.push(`Calça Operacional (${currentCalcaQtd})`);
+          }
+        }
+      }
 
-    queryClient.invalidateQueries({ queryKey: ["inventory-items"] });
-    queryClient.invalidateQueries({ queryKey: ["inventory-movements"] });
+      queryClient.invalidateQueries({ queryKey: ["inventory-items"] });
+      queryClient.invalidateQueries({ queryKey: ["inventory-movements"] });
 
-    if (deductedItems.length > 0) {
-      toast.success(`Estoque atualizado: ${deductedItems.join(", ")}`);
-    }
-    if (notFoundItems.length > 0) {
-      toast.warning(`Itens não encontrados no estoque: ${notFoundItems.join(", ")}`);
+      if (deductedItems.length > 0) {
+        toast.success(`Estoque atualizado: ${deductedItems.join(", ")}`);
+      }
+      if (notFoundItems.length > 0) {
+        toast.warning(`Itens não encontrados no estoque: ${notFoundItems.join(", ")}`);
+      }
+    } catch (err) {
+      console.error("Erro ao processar baixa no estoque:", err);
+      toast.error("Erro ao atualizar estoque. Verifique manualmente.");
     }
 
     setShowSignature(false);
