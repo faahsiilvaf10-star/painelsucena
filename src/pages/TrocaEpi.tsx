@@ -270,25 +270,34 @@ export default function TrocaEpi() {
 
   // Restore inventory for an exchange's EPIs (used on delete or before edit)
   const restoreInventoryForExchange = async (exchange: EpiExchange) => {
-    const { data: freshInventory } = await supabase
+    const { data: freshInventory, error: fetchErr } = await supabase
       .from("inventory_items")
       .select("*")
       .order("name");
+    if (fetchErr) {
+      console.error("Erro ao buscar estoque para estorno:", fetchErr);
+      return [];
+    }
     const currentInventory = freshInventory || [];
     const restoredItems: string[] = [];
 
     for (const epi of (exchange.epis || [])) {
       const epiId = typeof epi === "string" ? epi : (epi as any).id;
-      const epiQty = typeof epi === "object" && (epi as any).qty ? Number((epi as any).qty) : 1;
+      const epiQty = typeof epi === "object" && (epi as any).qty ? Number((epi as any).qty) || 1 : 1;
       const epiValue = typeof epi === "object" ? (epi as any).value : undefined;
       const epiItem = EPI_ITEMS.find(e => e.id === epiId);
       if (!epiItem) continue;
-      // For "Outros", use the stored value (actual item name) instead of the label
-      const searchLabel = epiId === "outros" && epiValue ? epiValue : epiItem.label;
+      // For "Outros" and dropdown EPIs, use the stored value (actual item name) instead of the label
+      const hasDropdown = epiId === "outros" || !!INVENTORY_DROPDOWN_EPIS[epiId];
+      const searchLabel = hasDropdown && epiValue ? epiValue : epiItem.label;
       const match = findInventoryMatch(currentInventory, searchLabel);
       if (match) {
         const newQty = match.quantity + epiQty;
-        await supabase.from("inventory_items").update({ quantity: newQty }).eq("id", match.id);
+        const { error: updateErr } = await supabase.from("inventory_items").update({ quantity: newQty }).eq("id", match.id);
+        if (updateErr) {
+          console.error("Erro ao estornar estoque para", searchLabel, updateErr);
+          continue;
+        }
         await supabase.from("inventory_movements").insert({
           item_id: match.id,
           movement_type: "entrada",
@@ -311,21 +320,23 @@ export default function TrocaEpi() {
       if (blusaMatch) {
         const qty = exchange.uniforme_blusa_quantidade;
         const newQty = blusaMatch.quantity + qty;
-        await supabase.from("inventory_items").update({ quantity: newQty }).eq("id", blusaMatch.id);
-        await supabase.from("inventory_movements").insert({
-          item_id: blusaMatch.id,
-          movement_type: "entrada",
-          quantity: qty,
-          previous_quantity: blusaMatch.quantity,
-          new_quantity: newQty,
-          reason: `Estorno Troca de EPI - ${exchange.funcionario_nome}`,
-          moved_by: user!.id,
-          moved_by_name: profile?.full_name || "Usuário",
-          destination_type: "funcionario",
-          destination_name: exchange.funcionario_nome,
-        });
-        blusaMatch.quantity = newQty;
-        restoredItems.push(`Blusa (${qty})`);
+        const { error: updateErr } = await supabase.from("inventory_items").update({ quantity: newQty }).eq("id", blusaMatch.id);
+        if (!updateErr) {
+          await supabase.from("inventory_movements").insert({
+            item_id: blusaMatch.id,
+            movement_type: "entrada",
+            quantity: qty,
+            previous_quantity: blusaMatch.quantity,
+            new_quantity: newQty,
+            reason: `Estorno Troca de EPI - ${exchange.funcionario_nome}`,
+            moved_by: user!.id,
+            moved_by_name: profile?.full_name || "Usuário",
+            destination_type: "funcionario",
+            destination_name: exchange.funcionario_nome,
+          });
+          blusaMatch.quantity = newQty;
+          restoredItems.push(`Blusa (${qty})`);
+        }
       }
     }
     if (exchange.uniforme_calca_quantidade > 0) {
@@ -333,21 +344,23 @@ export default function TrocaEpi() {
       if (calcaMatch) {
         const qty = exchange.uniforme_calca_quantidade;
         const newQty = calcaMatch.quantity + qty;
-        await supabase.from("inventory_items").update({ quantity: newQty }).eq("id", calcaMatch.id);
-        await supabase.from("inventory_movements").insert({
-          item_id: calcaMatch.id,
-          movement_type: "entrada",
-          quantity: qty,
-          previous_quantity: calcaMatch.quantity,
-          new_quantity: newQty,
-          reason: `Estorno Troca de EPI - ${exchange.funcionario_nome}`,
-          moved_by: user!.id,
-          moved_by_name: profile?.full_name || "Usuário",
-          destination_type: "funcionario",
-          destination_name: exchange.funcionario_nome,
-        });
-        calcaMatch.quantity = newQty;
-        restoredItems.push(`Calça (${qty})`);
+        const { error: updateErr } = await supabase.from("inventory_items").update({ quantity: newQty }).eq("id", calcaMatch.id);
+        if (!updateErr) {
+          await supabase.from("inventory_movements").insert({
+            item_id: calcaMatch.id,
+            movement_type: "entrada",
+            quantity: qty,
+            previous_quantity: calcaMatch.quantity,
+            new_quantity: newQty,
+            reason: `Estorno Troca de EPI - ${exchange.funcionario_nome}`,
+            moved_by: user!.id,
+            moved_by_name: profile?.full_name || "Usuário",
+            destination_type: "funcionario",
+            destination_name: exchange.funcionario_nome,
+          });
+          calcaMatch.quantity = newQty;
+          restoredItems.push(`Calça (${qty})`);
+        }
       }
     }
 
