@@ -425,7 +425,7 @@ const SavedRecordsCard = ({
                   </TableRow>
                 </TableHeader>
                 <TableBody>
-                  {savedRecords.map((record) => (
+                  {periodRecords.map((record) => (
                     <TableRow key={record.id}>
                       <TableCell className="font-medium">
                         {format(new Date(record.record_date + "T00:00:00"), "dd/MM/yyyy (EEE)", { locale: ptBR })}
