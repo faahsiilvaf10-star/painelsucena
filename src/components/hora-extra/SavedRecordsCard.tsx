@@ -51,18 +51,21 @@ const SavedRecordsCard = ({
     const currentYear = now.getFullYear();
 
     let startDate: Date;
-    let endDate = now;
+    let endDate: Date;
 
-    // If we're before day 20, period starts from day 20 of previous month
-    if (currentDay < 20) {
-      if (currentMonth === 0) {
-        startDate = new Date(currentYear - 1, 11, 20); // December 20 of previous year
-      } else {
-        startDate = new Date(currentYear, currentMonth - 1, 20);
-      }
+    // Period: day 21 of previous month to day 20 of current month
+    if (currentDay >= 21) {
+      // We're past day 20, new period: 21 of current month to 20 of next month
+      startDate = new Date(currentYear, currentMonth, 21);
+      endDate = new Date(currentYear, currentMonth + 1, 20);
     } else {
-      // We're on or after day 20, period starts from day 20 of current month
-      startDate = new Date(currentYear, currentMonth, 20);
+      // We're before day 21, current period: 21 of previous month to 20 of current month
+      if (currentMonth === 0) {
+        startDate = new Date(currentYear - 1, 11, 21);
+      } else {
+        startDate = new Date(currentYear, currentMonth - 1, 21);
+      }
+      endDate = new Date(currentYear, currentMonth, 20);
     }
 
     return {
@@ -386,7 +389,7 @@ const SavedRecordsCard = ({
               <Skeleton key={i} className="h-12 w-full" />
             ))}
           </div>
-        ) : savedRecords && savedRecords.length > 0 ? (
+        ) : periodRecords.length > 0 ? (
           <>
             {/* Period Summary Banner */}
             <div className="mb-4 p-4 rounded-lg bg-amber-500/10 border border-amber-500/30">
@@ -422,7 +425,7 @@ const SavedRecordsCard = ({
                   </TableRow>
                 </TableHeader>
                 <TableBody>
-                  {savedRecords.map((record) => (
+                  {periodRecords.map((record) => (
                     <TableRow key={record.id}>
                       <TableCell className="font-medium">
                         {format(new Date(record.record_date + "T00:00:00"), "dd/MM/yyyy (EEE)", { locale: ptBR })}
