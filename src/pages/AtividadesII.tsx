@@ -340,8 +340,8 @@ export default function AtividadesII() {
     profile?.cargo === "encarregado_ii"
   );
   
-  // Check edit permission - only encarregado_geral, encarregado_ii, or admin can edit
-  const canEdit = authReady && !isGabiaoLocked && (
+  // Check edit permission - always editable for authorized users (lock only affects RDO)
+  const canEdit = authReady && (
     isAdmin || 
     profile?.cargo === "encarregado_geral" || 
     profile?.cargo === "encarregado_ii"
