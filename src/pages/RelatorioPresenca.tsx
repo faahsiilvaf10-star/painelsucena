@@ -169,7 +169,14 @@ const RelatorioPresenca = () => {
       "AJUDANTE DE ELETRICISTA": "Auxiliar de Elétrica",
       "ELETRICISTA": "Eletricista",
     };
-    return mapping[funcao.toUpperCase()] || "";
+    const mapped = mapping[funcao.toUpperCase()];
+    if (mapped) return mapped;
+    // Fallback: title-case the original funcao
+    return funcao
+      .toLowerCase()
+      .split(" ")
+      .map(w => w.charAt(0).toUpperCase() + w.slice(1))
+      .join(" ");
   };
 
   // Editable support teams
@@ -866,7 +873,7 @@ const RelatorioPresenca = () => {
                       <SelectValue placeholder="Selecione a função" />
                     </SelectTrigger>
                     <SelectContent className="bg-popover">
-                      {allRoles.map((role) => (
+                      {[...new Set([...allRoles, ...(newEmployee.role && !allRoles.includes(newEmployee.role) ? [newEmployee.role] : [])])].map((role) => (
                         <SelectItem key={role} value={role}>
                           {role}
                         </SelectItem>
