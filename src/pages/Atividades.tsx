@@ -553,6 +553,16 @@ export default function Atividades() {
     } else if (irrigacaoCarretel) {
       lines.push(`* Irrigação com Carretel`);
     }
+
+    // Add mudas plantadas do dia
+    if (mudasPlantadasDoDia && mudasPlantadasDoDia.length > 0) {
+      mudasPlantadasDoDia.forEach((m) => {
+        let local = "";
+        if (m.faixa) local += ` - ${m.faixa}`;
+        if (m.berma) local += ` (Berma ${m.berma})`;
+        lines.push(`* Mudas Plantadas: ${m.especie} - ${m.quantidade} unidade(s)${local}`);
+      });
+    }
     
     if (lines.length > 0) {
       lines.forEach(line => {
