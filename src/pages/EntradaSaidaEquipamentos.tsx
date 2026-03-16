@@ -415,7 +415,7 @@ const EXIT_REASON_LABELS: Record<string, string> = {
                             <TableHead className="hidden md:table-cell">Motorista</TableHead>
                             <TableHead className="hidden lg:table-cell">Ajudante</TableHead>
                              <TableHead>Status</TableHead>
-                             {isAdmin && <TableHead className="w-28">Ação</TableHead>}
+                             <TableHead className="w-28">Ação</TableHead>
                            </TableRow>
                          </TableHeader>
                         <TableBody>
@@ -455,8 +455,7 @@ const EXIT_REASON_LABELS: Record<string, string> = {
                                      : eq.stop_reason || "Aguardando"}
                                 </Badge>
                               </TableCell>
-                              {isAdmin && (
-                                <TableCell>
+                               <TableCell>
                                   <Button
                                     size="sm"
                                     variant="outline"
@@ -467,7 +466,6 @@ const EXIT_REASON_LABELS: Record<string, string> = {
                                     <span className="hidden sm:inline">Saída</span>
                                   </Button>
                                 </TableCell>
-                              )}
                             </TableRow>
                           ))}
                        </TableBody>
