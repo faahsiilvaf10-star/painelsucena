@@ -171,8 +171,33 @@ const EXIT_REASON_LABELS: Record<string, string> = {
     profile?.cargo === "encarregado_i";
 
   const handleToggleJardinagemStatus = (id: string, name: string, currentStatus: "entrou" | "saiu") => {
-    const newStatus = currentStatus === "entrou" ? "saiu" : "entrou";
-    updateJardinagemStatus.mutate({ id, name, newStatus });
+    if (currentStatus === "entrou") {
+      // Opening exit dialog to pick date/time
+      const now = new Date();
+      setJardinagemExitEquipment({ id, name });
+      setJardinagemExitDate(format(now, "yyyy-MM-dd"));
+      setJardinagemExitTime(format(now, "HH:mm"));
+      setJardinagemExitDialogOpen(true);
+    } else {
+      // "Entrou" toggles directly
+      updateJardinagemStatus.mutate({ id, name, newStatus: "entrou" });
+    }
+  };
+
+  const handleConfirmJardinagemExit = () => {
+    if (!jardinagemExitEquipment) return;
+    const customDateTime = jardinagemExitDate && jardinagemExitTime
+      ? new Date(`${jardinagemExitDate}T${jardinagemExitTime}:00`).toISOString()
+      : undefined;
+    updateJardinagemStatus.mutate(
+      { id: jardinagemExitEquipment.id, name: jardinagemExitEquipment.name, newStatus: "saiu", customDateTime },
+      {
+        onSuccess: () => {
+          setJardinagemExitDialogOpen(false);
+          setJardinagemExitEquipment(null);
+        },
+      }
+    );
   };
 
   const handleAddEquipment = () => {
