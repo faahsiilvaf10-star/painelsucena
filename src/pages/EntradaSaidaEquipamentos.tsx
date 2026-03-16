@@ -415,7 +415,7 @@ const EXIT_REASON_LABELS: Record<string, string> = {
                             <TableHead className="hidden md:table-cell">Motorista</TableHead>
                             <TableHead className="hidden lg:table-cell">Ajudante</TableHead>
                              <TableHead>Status</TableHead>
-                             {isAdmin && <TableHead className="w-28">Ação</TableHead>}
+                             <TableHead className="w-28">Ação</TableHead>
                            </TableRow>
                          </TableHeader>
                         <TableBody>
