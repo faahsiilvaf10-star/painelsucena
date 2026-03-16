@@ -360,6 +360,12 @@ export default function RDO() {
     // Get jardinagem activities from daily report if available
     const jardinagemFromReport = formatJardinagemForRDO(jardinagemReport);
     
+    // Get mudas plantadas for the date
+    const mudasPlantadasFromReport = formatMudasPlantadasForRDO(mudasPlantadas);
+    
+    // Combine jardinagem + mudas plantadas
+    const jardinagemSection = [jardinagemFromReport, mudasPlantadasFromReport].filter(Boolean).join("\n");
+    
     // Get gabião activities from daily report if available
     const gabiaoFromReport = formatGabiaoForRDO(gabiaoReport);
 
@@ -387,7 +393,7 @@ ${E.EMOJI_TOOLS} ATIVIDADES:
 *Jardinagem e Gabiões*
 
      *Jardinagem*
-${jardinagemFromReport}
+${jardinagemSection}
 
 ${E.EMOJI_WORKER} Efetivo ${E.EMOJI_WORKER}
 ${jardinagemWorkforce}
