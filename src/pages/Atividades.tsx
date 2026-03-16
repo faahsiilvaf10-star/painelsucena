@@ -32,6 +32,7 @@ import {
   useDeleteJardinagemReport 
 } from "@/hooks/useJardinagemReports";
 import { getBrazilNorthDate, getBrazilNorthTodayString } from "@/lib/timezone";
+import { useMudasPlantioByDate } from "@/hooks/useMudasPlantio";
 import { cn } from "@/lib/utils";
 import MonthlyReportDialog from "@/components/atividades/MonthlyReportDialog";
 import { PhotoUploader } from "@/components/atividades/PhotoUploader";
