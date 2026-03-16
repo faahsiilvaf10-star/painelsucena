@@ -100,6 +100,7 @@ const roleLabels: Record<string, Record<string, string>> = {
 const executionRoles: Record<string, string[]> = {
   "ÁREA GABIÃO": ["Polivalente", "Meia Oficial", "Ajudante"],
   "ROÇAGEM E PODAGEM": [
+    "Polivalente",
     "Jardineiro",
     "Ajudante",
     "Motorista do Pipa",
