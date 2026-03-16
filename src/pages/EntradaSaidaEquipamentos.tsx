@@ -753,7 +753,7 @@ const EXIT_REASON_LABELS: Record<string, string> = {
                 Registrar {jardinagemDialogNewStatus === "saiu" ? "Saída" : "Entrada"} - {jardinagemExitEquipment?.name}
               </DialogTitle>
               <DialogDescription>
-                Informe a data e hora da saída do equipamento.
+                Informe a data e hora da {jardinagemDialogNewStatus === "saiu" ? "saída" : "entrada"} do equipamento.
               </DialogDescription>
             </DialogHeader>
             <div className="grid grid-cols-2 gap-4 py-4">
