@@ -5,23 +5,11 @@ import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
-import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { Badge } from "@/components/ui/badge";
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
 import { useMudasParaPlantar, useAddMudaParaPlantar, useDeleteMudaParaPlantar } from "@/hooks/useMudasParaPlantar";
 import { format, parseISO } from "date-fns";
 import { ptBR } from "date-fns/locale";
-
-const FAIXA_OPTIONS = [
-  { value: "FAIXA 1", label: "Faixa 1" },
-  { value: "FAIXA 2", label: "Faixa 2" },
-  { value: "FAIXA 3", label: "Faixa 3" },
-];
-
-const BERMA_OPTIONS_EVEN = Array.from({ length: 15 }, (_, i) => ({
-  value: (28 + i * 2).toString(),
-  label: `Berma ${28 + i * 2}`,
-}));
 
 interface MudasParaPlantarTabProps {
   canEdit: boolean;
@@ -34,8 +22,6 @@ export default function MudasParaPlantarTab({ canEdit }: MudasParaPlantarTabProp
 
   const [especie, setEspecie] = useState("");
   const [quantidade, setQuantidade] = useState("");
-  const [faixa, setFaixa] = useState("");
-  const [berma, setBerma] = useState("");
 
   const handleAdd = async () => {
     if (!especie.trim()) {
@@ -51,14 +37,10 @@ export default function MudasParaPlantarTab({ canEdit }: MudasParaPlantarTabProp
       await addMuda.mutateAsync({
         especie: especie.trim(),
         quantidade: parseInt(quantidade),
-        faixa: faixa || undefined,
-        berma: berma ? parseInt(berma) : undefined,
       });
-      toast.success("Muda para plantar registrada com sucesso!");
+      toast.success("Muda em estoque registrada com sucesso!");
       setEspecie("");
       setQuantidade("");
-      setFaixa("");
-      setBerma("");
     } catch (error: any) {
       toast.error("Erro ao registrar: " + error.message);
     }
@@ -82,7 +64,7 @@ export default function MudasParaPlantarTab({ canEdit }: MudasParaPlantarTabProp
         <CardContent className="py-3 px-4">
           <div className="flex items-center gap-2">
             <TreePine className="h-4 w-4 text-amber-500" />
-            <span className="text-sm font-medium">Total de Mudas para Plantar:</span>
+            <span className="text-sm font-medium">Total de Mudas em Estoque:</span>
             <Badge variant="outline" className="border-amber-500/50 text-amber-500 font-semibold">
               {totalMudas.toLocaleString("pt-BR")} unidades
             </Badge>
@@ -95,7 +77,7 @@ export default function MudasParaPlantarTab({ canEdit }: MudasParaPlantarTabProp
           <CardHeader className="pb-3">
             <CardTitle className="text-base flex items-center gap-2">
               <Plus className="h-4 w-4" />
-              Registrar Mudas para Plantar
+              Registrar Mudas Recebidas (Estoque)
             </CardTitle>
           </CardHeader>
           <CardContent className="space-y-4">
@@ -109,30 +91,6 @@ export default function MudasParaPlantarTab({ canEdit }: MudasParaPlantarTabProp
                 <Input type="number" min="1" placeholder="Qtd" value={quantidade} onChange={(e) => setQuantidade(e.target.value)} />
               </div>
             </div>
-            <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
-              <div className="space-y-2">
-                <Label>Faixa</Label>
-                <Select value={faixa} onValueChange={setFaixa}>
-                  <SelectTrigger><SelectValue placeholder="Selecione a faixa" /></SelectTrigger>
-                  <SelectContent>
-                    {FAIXA_OPTIONS.map((f) => (
-                      <SelectItem key={f.value} value={f.value}>{f.label}</SelectItem>
-                    ))}
-                  </SelectContent>
-                </Select>
-              </div>
-              <div className="space-y-2">
-                <Label>Berma (pares 28-56)</Label>
-                <Select value={berma} onValueChange={setBerma}>
-                  <SelectTrigger><SelectValue placeholder="Selecione a berma" /></SelectTrigger>
-                  <SelectContent>
-                    {BERMA_OPTIONS_EVEN.map((b) => (
-                      <SelectItem key={b.value} value={b.value}>{b.label}</SelectItem>
-                    ))}
-                  </SelectContent>
-                </Select>
-              </div>
-            </div>
             <Button onClick={handleAdd} disabled={addMuda.isPending} className="gap-2">
               {addMuda.isPending ? <Loader2 className="h-4 w-4 animate-spin" /> : <Plus className="h-4 w-4" />}
               Adicionar
@@ -143,7 +101,7 @@ export default function MudasParaPlantarTab({ canEdit }: MudasParaPlantarTabProp
 
       <Card>
         <CardHeader className="pb-3">
-          <CardTitle className="text-base">Registros de Mudas para Plantar</CardTitle>
+          <CardTitle className="text-base">Mudas em Estoque</CardTitle>
         </CardHeader>
         <CardContent>
           {isLoading ? (
@@ -160,7 +118,6 @@ export default function MudasParaPlantarTab({ canEdit }: MudasParaPlantarTabProp
                     <TableHead>Data</TableHead>
                     <TableHead>Espécie</TableHead>
                     <TableHead className="text-right">Qtd</TableHead>
-                    <TableHead>Local</TableHead>
                     {canEdit && <TableHead className="w-10" />}
                   </TableRow>
                 </TableHeader>
@@ -172,10 +129,6 @@ export default function MudasParaPlantarTab({ canEdit }: MudasParaPlantarTabProp
                       </TableCell>
                       <TableCell className="font-medium">{m.especie}</TableCell>
                       <TableCell className="text-right">{m.quantidade}</TableCell>
-                      <TableCell className="text-xs">
-                        {m.faixa && <Badge variant="secondary" className="mr-1">{m.faixa}</Badge>}
-                        {m.berma && <Badge variant="outline">Berma {m.berma}</Badge>}
-                      </TableCell>
                       {canEdit && (
                         <TableCell>
                           <Button variant="ghost" size="icon" className="h-7 w-7 text-destructive" onClick={() => handleDelete(m.id)}>
