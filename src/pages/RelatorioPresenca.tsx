@@ -1,4 +1,4 @@
-import { useState, useMemo } from "react";
+import { useState, useMemo, useEffect } from "react";
 import { FileText, Copy, Loader2, Check, UserPlus, Pencil, Save, Lock, Unlock, Trash2, MessageCircle } from "lucide-react";
 import Layout from "@/components/layout/Layout";
 import { Button } from "@/components/ui/button";
@@ -26,6 +26,7 @@ import { useQuery, useQueryClient } from "@tanstack/react-query";
 import { supabase } from "@/integrations/supabase/client";
 import type { Tables } from "@/integrations/supabase/types";
 import { toast } from "sonner";
+import { colaboradoresAtivos } from "@/data/efetivoData";
 import { useUpsertAttendance } from "@/hooks/useAttendance";
 import { useReportLock, AreaType } from "@/hooks/useReportLock";
 import { useSaveEfetivoToRDO } from "@/hooks/useRDOReports";
@@ -140,6 +141,36 @@ const RelatorioPresenca = () => {
     area: "jardinagem" as "gabiao" | "jardinagem",
   });
   const [isSubmitting, setIsSubmitting] = useState(false);
+  const [rhSearch, setRhSearch] = useState("");
+  const [showRhList, setShowRhList] = useState(false);
+
+  // Load RH employees from efetivoData + localStorage
+  const rhColaboradores = useMemo(() => {
+    const stored = localStorage.getItem("rh_colaboradores");
+    if (stored) {
+      try {
+        return JSON.parse(stored) as Array<{ id: number; nome: string; funcao: string }>;
+      } catch {}
+    }
+    return colaboradoresAtivos;
+  }, [dialogOpen]);
+
+  // Map RH funcao to attendance role
+  const mapFuncaoToRole = (funcao: string): string => {
+    const mapping: Record<string, string> = {
+      "OFICIAL POLIVALENTE": "Polivalente",
+      "MEIO OFICIAL": "Meia Oficial",
+      "AJUDANTE": "Ajudante",
+      "JARDINEIRO": "Jardineiro",
+      "MOTORISTA DE CAMINHÃO PIPA": "Motorista do Pipa",
+      "MOTORISTA DE CAMINHÃO MUNCK": "Motorista do Munck",
+      "SINALEIRO RIGGER": "Sinaleiro",
+      "MECANICO": "Mecânico Montador",
+      "AJUDANTE DE ELETRICISTA": "Auxiliar de Elétrica",
+      "ELETRICISTA": "Eletricista",
+    };
+    return mapping[funcao.toUpperCase()] || "";
+  };
 
   // Editable support teams
   const [supportGabiao, setSupportGabiao] = useState<SupportTeam>({
@@ -198,6 +229,18 @@ const RelatorioPresenca = () => {
       return data as Tables<"employees">[];
     },
   });
+
+  // Filter RH employees not already in the employees table
+  const filteredRhEmployees = useMemo(() => {
+    if (!rhSearch.trim()) return [];
+    const existingNames = new Set((allEmployees || []).map(e => e.name.toUpperCase()));
+    return rhColaboradores
+      .filter(c => 
+        !existingNames.has(c.nome.toUpperCase()) &&
+        c.nome.toUpperCase().includes(rhSearch.toUpperCase())
+      )
+      .slice(0, 10);
+  }, [rhSearch, rhColaboradores, allEmployees]);
 
   const isLoading = recordsLoading || employeesLoading;
 
@@ -753,8 +796,53 @@ const RelatorioPresenca = () => {
             <DialogContent className="bg-card">
               <DialogHeader>
                 <DialogTitle>Adicionar Funcionário</DialogTitle>
+                <DialogDescription>Busque na lista do RH ou digite manualmente</DialogDescription>
               </DialogHeader>
               <div className="space-y-4 mt-4">
+                {/* RH Search */}
+                <div className="relative">
+                  <Label htmlFor="rh-search">Buscar no RH</Label>
+                  <Input
+                    id="rh-search"
+                    placeholder="Digite o nome para buscar no RH..."
+                    value={rhSearch}
+                    onChange={(e) => {
+                      setRhSearch(e.target.value);
+                      setShowRhList(true);
+                    }}
+                    onFocus={() => setShowRhList(true)}
+                  />
+                  {showRhList && filteredRhEmployees.length > 0 && (
+                    <div className="absolute z-50 w-full mt-1 bg-popover border border-border rounded-lg shadow-lg max-h-48 overflow-y-auto">
+                      {filteredRhEmployees.map((emp) => (
+                        <button
+                          key={emp.id}
+                          type="button"
+                          className="w-full text-left px-3 py-2 hover:bg-accent text-sm transition-colors"
+                          onClick={() => {
+                            const mappedRole = mapFuncaoToRole(emp.funcao);
+                            setNewEmployee({
+                              name: emp.nome,
+                              role: mappedRole || newEmployee.role,
+                              area: newEmployee.area,
+                            });
+                            setRhSearch("");
+                            setShowRhList(false);
+                          }}
+                        >
+                          <span className="font-medium">{emp.nome}</span>
+                          <span className="text-muted-foreground ml-2 text-xs">({emp.funcao})</span>
+                        </button>
+                      ))}
+                    </div>
+                  )}
+                  {showRhList && rhSearch.trim() && filteredRhEmployees.length === 0 && (
+                    <div className="absolute z-50 w-full mt-1 bg-popover border border-border rounded-lg shadow-lg p-3">
+                      <p className="text-sm text-muted-foreground">Nenhum funcionário encontrado no RH</p>
+                    </div>
+                  )}
+                </div>
+
                 <div>
                   <Label htmlFor="name">Nome</Label>
                   <Input
