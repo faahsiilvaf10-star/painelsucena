@@ -67,6 +67,12 @@ const EXIT_REASON_LABELS: Record<string, string> = {
   const [addDialogOpen, setAddDialogOpen] = useState(false);
   const [newEquipmentName, setNewEquipmentName] = useState("");
 
+  // Jardinagem exit dialog state
+  const [jardinagemExitDialogOpen, setJardinagemExitDialogOpen] = useState(false);
+  const [jardinagemExitEquipment, setJardinagemExitEquipment] = useState<{ id: string; name: string } | null>(null);
+  const [jardinagemExitDate, setJardinagemExitDate] = useState("");
+  const [jardinagemExitTime, setJardinagemExitTime] = useState("");
+
   const createMovement = useCreateEquipmentMovement();
 
   // Admin exit dialog state
