@@ -53,6 +53,28 @@ export const useAddMudaParaPlantar = () => {
   });
 };
 
+export const useUpdateMudaParaPlantar = () => {
+  const queryClient = useQueryClient();
+
+  return useMutation({
+    mutationFn: async ({ id, quantidade }: { id: string; quantidade: number }) => {
+      if (quantidade <= 0) {
+        const { error } = await supabase.from("mudas_para_plantar").delete().eq("id", id);
+        if (error) throw error;
+      } else {
+        const { error } = await supabase
+          .from("mudas_para_plantar")
+          .update({ quantidade })
+          .eq("id", id);
+        if (error) throw error;
+      }
+    },
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ["mudas-para-plantar"] });
+    },
+  });
+};
+
 export const useDeleteMudaParaPlantar = () => {
   const queryClient = useQueryClient();
 
