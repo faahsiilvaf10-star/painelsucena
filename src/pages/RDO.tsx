@@ -26,6 +26,7 @@ import { useDDSByDate } from "@/hooks/useDDSSchedule";
 import { useRDOReports, useRDOReport, useSaveRDOReport, useUploadRDOPhotos, useDeleteRDOReport } from "@/hooks/useRDOReports";
 import { useJardinagemReportByDate, formatJardinagemForRDO } from "@/hooks/useJardinagemReports";
 import { useGabiaoReportByDate, formatGabiaoForRDO } from "@/hooks/useGabiaoReports";
+import { useMudasPlantioByDate, formatMudasPlantadasForRDO } from "@/hooks/useMudasPlantio";
 import { useAuth } from "@/hooks/useAuth";
 import { useProfile } from "@/hooks/useProfile";
 import { useRDOLock } from "@/hooks/useRDOLock";
