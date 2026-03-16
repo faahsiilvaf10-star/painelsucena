@@ -745,8 +745,12 @@ const EXIT_REASON_LABELS: Record<string, string> = {
           <DialogContent className="sm:max-w-md">
             <DialogHeader>
               <DialogTitle className="flex items-center gap-2">
-                <ArrowUpCircle className="h-5 w-5 text-orange-600" />
-                Registrar Saída - {jardinagemExitEquipment?.name}
+                {jardinagemDialogNewStatus === "saiu" ? (
+                  <ArrowUpCircle className="h-5 w-5 text-orange-600" />
+                ) : (
+                  <ArrowDownCircle className="h-5 w-5 text-green-600" />
+                )}
+                Registrar {jardinagemDialogNewStatus === "saiu" ? "Saída" : "Entrada"} - {jardinagemExitEquipment?.name}
               </DialogTitle>
               <DialogDescription>
                 Informe a data e hora da saída do equipamento.
