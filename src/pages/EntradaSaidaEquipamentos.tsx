@@ -766,7 +766,7 @@ const EXIT_REASON_LABELS: Record<string, string> = {
                 />
               </div>
               <div className="space-y-2">
-                <Label>Hora de Saída</Label>
+                <Label>Hora de {jardinagemDialogNewStatus === "saiu" ? "Saída" : "Entrada"}</Label>
                 <Input
                   type="time"
                   value={jardinagemExitTime}
