@@ -1871,6 +1871,39 @@ export type Database = {
         }
         Relationships: []
       }
+      mudas_para_plantar: {
+        Row: {
+          berma: number | null
+          created_at: string
+          created_by: string
+          especie: string
+          faixa: string | null
+          id: string
+          quantidade: number
+          updated_at: string
+        }
+        Insert: {
+          berma?: number | null
+          created_at?: string
+          created_by: string
+          especie: string
+          faixa?: string | null
+          id?: string
+          quantidade: number
+          updated_at?: string
+        }
+        Update: {
+          berma?: number | null
+          created_at?: string
+          created_by?: string
+          especie?: string
+          faixa?: string | null
+          id?: string
+          quantidade?: number
+          updated_at?: string
+        }
+        Relationships: []
+      }
       mudas_plantio: {
         Row: {
           berma: number | null

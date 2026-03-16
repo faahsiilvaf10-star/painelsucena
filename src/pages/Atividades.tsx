@@ -32,6 +32,7 @@ import {
   useDeleteJardinagemReport 
 } from "@/hooks/useJardinagemReports";
 import { getBrazilNorthDate, getBrazilNorthTodayString } from "@/lib/timezone";
+import { useMudasPlantioByDate } from "@/hooks/useMudasPlantio";
 import { cn } from "@/lib/utils";
 import MonthlyReportDialog from "@/components/atividades/MonthlyReportDialog";
 import { PhotoUploader } from "@/components/atividades/PhotoUploader";
@@ -41,6 +42,8 @@ import { AIImproveButton } from "@/components/atividades/AIImproveButton";
 
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import MudasPlantioTab from "@/components/atividades/MudasPlantioTab";
+import MudasParaPlantarTab from "@/components/atividades/MudasParaPlantarTab";
+import { TreePine } from "lucide-react";
 
 interface InvasoraEntry {
   nome: string;
@@ -90,6 +93,7 @@ export default function Atividades() {
   const { data: allReports } = useJardinagemReports();
   const saveReport = useSaveJardinagemReport();
   const deleteReport = useDeleteJardinagemReport();
+  const { data: mudasPlantadasDoDia } = useMudasPlantioByDate(selectedDateStr);
   const { isAreaLocked, canUnlockArea, lockArea, unlockArea } = useReportLock(selectedDateStr);
   const isJardinagemLocked = isAreaLocked("jardinagem");
 
@@ -549,6 +553,16 @@ export default function Atividades() {
     } else if (irrigacaoCarretel) {
       lines.push(`* Irrigação com Carretel`);
     }
+
+    // Add mudas plantadas do dia
+    if (mudasPlantadasDoDia && mudasPlantadasDoDia.length > 0) {
+      mudasPlantadasDoDia.forEach((m) => {
+        let local = "";
+        if (m.faixa) local += ` - ${m.faixa}`;
+        if (m.berma) local += ` (Berma ${m.berma})`;
+        lines.push(`* Mudas Plantadas: ${m.especie} - ${m.quantidade} unidade(s)${local}`);
+      });
+    }
     
     if (lines.length > 0) {
       lines.forEach(line => {
@@ -661,12 +675,20 @@ export default function Atividades() {
             </TabsTrigger>
             <TabsTrigger value="mudas" className="gap-2">
               <Sprout className="h-4 w-4" />
-              Mudas Plantio
+              Mudas Plantadas
+            </TabsTrigger>
+            <TabsTrigger value="mudas-plantar" className="gap-2">
+              <TreePine className="h-4 w-4" />
+              Mudas para Plantar
             </TabsTrigger>
           </TabsList>
 
           <TabsContent value="mudas" className="mt-4">
             <MudasPlantioTab canEdit={canEdit} />
+          </TabsContent>
+
+          <TabsContent value="mudas-plantar" className="mt-4">
+            <MudasParaPlantarTab canEdit={canEdit} />
           </TabsContent>
 
           <TabsContent value="jardinagem" className="mt-4 space-y-4 sm:space-y-6">
@@ -1377,7 +1399,15 @@ export default function Atividades() {
                   {irrigacaoCarretel && (
                     <p>* Irrigação com Carretel{irrigacaoCarretelBermas.length > 0 && ` (Bermas: ${irrigacaoCarretelBermas.join(", ")})`}</p>
                   )}
-                  {!rocagem && !podagem && !coroamento && !adubagem && !plantio && !limpezaManual && !limpezaAssoprador && !invasoras.some(i => i.unidade && parseInt(i.unidade) > 0) && !retiradaMudasUnidade && !manutencaoCanteiro && !irrigacaoPipas && !irrigacaoCarretel && !plantioGrama && !atividadesManuais && Object.keys(extraEntries).length === 0 && (
+                  {mudasPlantadasDoDia && mudasPlantadasDoDia.length > 0 && (
+                    mudasPlantadasDoDia.map((m, idx) => {
+                      let local = "";
+                      if (m.faixa) local += ` - ${m.faixa}`;
+                      if (m.berma) local += ` (Berma ${m.berma})`;
+                      return <p key={`muda-${idx}`}>* Mudas Plantadas: {m.especie} - {m.quantidade} unidade(s){local}</p>;
+                    })
+                  )}
+                  {!rocagem && !podagem && !coroamento && !adubagem && !plantio && !limpezaManual && !limpezaAssoprador && !invasoras.some(i => i.unidade && parseInt(i.unidade) > 0) && !retiradaMudasUnidade && !manutencaoCanteiro && !irrigacaoPipas && !irrigacaoCarretel && !plantioGrama && !atividadesManuais && Object.keys(extraEntries).length === 0 && (!mudasPlantadasDoDia || mudasPlantadasDoDia.length === 0) && (
                     <p className="text-muted-foreground italic">Nenhuma atividade preenchida</p>
                   )}
                 </div>

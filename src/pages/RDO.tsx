@@ -26,6 +26,7 @@ import { useDDSByDate } from "@/hooks/useDDSSchedule";
 import { useRDOReports, useRDOReport, useSaveRDOReport, useUploadRDOPhotos, useDeleteRDOReport } from "@/hooks/useRDOReports";
 import { useJardinagemReportByDate, formatJardinagemForRDO } from "@/hooks/useJardinagemReports";
 import { useGabiaoReportByDate, formatGabiaoForRDO } from "@/hooks/useGabiaoReports";
+import { useMudasPlantioByDate, formatMudasPlantadasForRDO } from "@/hooks/useMudasPlantio";
 import { useAuth } from "@/hooks/useAuth";
 import { useProfile } from "@/hooks/useProfile";
 import { useRDOLock } from "@/hooks/useRDOLock";
@@ -109,6 +110,7 @@ export default function RDO() {
   const { data: allReports } = useRDOReports();
   const { data: jardinagemReport } = useJardinagemReportByDate(selectedDateStr);
   const { data: gabiaoReport } = useGabiaoReportByDate(selectedDateStr);
+  const { data: mudasPlantadas } = useMudasPlantioByDate(selectedDateStr);
   const { data: jardinagemEquipmentList = [] } = useJardinagemEquipment();
   const saveReport = useSaveRDOReport();
   const deleteReport = useDeleteRDOReport();
@@ -358,6 +360,12 @@ export default function RDO() {
     // Get jardinagem activities from daily report if available
     const jardinagemFromReport = formatJardinagemForRDO(jardinagemReport);
     
+    // Get mudas plantadas for the date
+    const mudasPlantadasFromReport = formatMudasPlantadasForRDO(mudasPlantadas);
+    
+    // Combine jardinagem + mudas plantadas
+    const jardinagemSection = [jardinagemFromReport, mudasPlantadasFromReport].filter(Boolean).join("\n");
+    
     // Get gabião activities from daily report if available
     const gabiaoFromReport = formatGabiaoForRDO(gabiaoReport);
 
@@ -385,7 +393,7 @@ ${E.EMOJI_TOOLS} ATIVIDADES:
 *Jardinagem e Gabiões*
 
      *Jardinagem*
-${jardinagemFromReport}
+${jardinagemSection}
 
 ${E.EMOJI_WORKER} Efetivo ${E.EMOJI_WORKER}
 ${jardinagemWorkforce}

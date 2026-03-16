@@ -27,6 +27,35 @@ export const useMudasPlantio = () => {
   });
 };
 
+export const useMudasPlantioByDate = (date: string) => {
+  return useQuery({
+    queryKey: ["mudas-plantio", date],
+    queryFn: async () => {
+      const { data, error } = await supabase
+        .from("mudas_plantio")
+        .select("*")
+        .gte("created_at", `${date}T00:00:00`)
+        .lt("created_at", `${date}T23:59:59.999`)
+        .order("created_at", { ascending: false });
+      if (error) throw error;
+      return data as MudaPlantio[];
+    },
+    enabled: !!date,
+  });
+};
+
+export const formatMudasPlantadasForRDO = (mudas: MudaPlantio[] | null | undefined): string => {
+  if (!mudas || mudas.length === 0) return "";
+  const lines: string[] = [];
+  mudas.forEach((m) => {
+    let local = "";
+    if (m.faixa) local += ` - ${m.faixa}`;
+    if (m.berma) local += ` (Berma ${m.berma})`;
+    lines.push(`* Mudas Plantadas: ${m.especie} - ${m.quantidade} unidade(s)${local}`);
+  });
+  return lines.join("\n");
+};
+
 export const useAddMudaPlantio = () => {
   const queryClient = useQueryClient();
   const { user } = useAuth();
