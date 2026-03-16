@@ -758,7 +758,7 @@ const EXIT_REASON_LABELS: Record<string, string> = {
             </DialogHeader>
             <div className="grid grid-cols-2 gap-4 py-4">
               <div className="space-y-2">
-                <Label>Data de Saída</Label>
+                <Label>Data de {jardinagemDialogNewStatus === "saiu" ? "Saída" : "Entrada"}</Label>
                 <Input
                   type="date"
                   value={jardinagemExitDate}
