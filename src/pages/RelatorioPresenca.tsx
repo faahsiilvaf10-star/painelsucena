@@ -873,7 +873,7 @@ const RelatorioPresenca = () => {
                       <SelectValue placeholder="Selecione a função" />
                     </SelectTrigger>
                     <SelectContent className="bg-popover">
-                      {allRoles.map((role) => (
+                      {[...new Set([...allRoles, ...(newEmployee.role && !allRoles.includes(newEmployee.role) ? [newEmployee.role] : [])])].map((role) => (
                         <SelectItem key={role} value={role}>
                           {role}
                         </SelectItem>
