@@ -140,6 +140,48 @@ const RelatorioPresenca = () => {
     area: "jardinagem" as "gabiao" | "jardinagem",
   });
   const [isSubmitting, setIsSubmitting] = useState(false);
+  const [rhSearch, setRhSearch] = useState("");
+  const [showRhList, setShowRhList] = useState(false);
+
+  // Load RH employees from efetivoData + localStorage
+  const rhColaboradores = useMemo(() => {
+    const stored = localStorage.getItem("rh_colaboradores");
+    if (stored) {
+      try {
+        return JSON.parse(stored) as Array<{ id: number; nome: string; funcao: string }>;
+      } catch {}
+    }
+    return colaboradoresAtivos;
+  }, [dialogOpen]);
+
+  // Map RH funcao to attendance role
+  const mapFuncaoToRole = (funcao: string): string => {
+    const mapping: Record<string, string> = {
+      "OFICIAL POLIVALENTE": "Polivalente",
+      "MEIO OFICIAL": "Meia Oficial",
+      "AJUDANTE": "Ajudante",
+      "JARDINEIRO": "Jardineiro",
+      "MOTORISTA DE CAMINHÃO PIPA": "Motorista do Pipa",
+      "MOTORISTA DE CAMINHÃO MUNCK": "Motorista do Munck",
+      "SINALEIRO RIGGER": "Sinaleiro",
+      "MECANICO": "Mecânico Montador",
+      "AJUDANTE DE ELETRICISTA": "Auxiliar de Elétrica",
+      "ELETRICISTA": "Eletricista",
+    };
+    return mapping[funcao.toUpperCase()] || "";
+  };
+
+  // Filter RH employees not already in the employees table
+  const filteredRhEmployees = useMemo(() => {
+    if (!rhSearch.trim()) return [];
+    const existingNames = new Set((allEmployees || []).map(e => e.name.toUpperCase()));
+    return rhColaboradores
+      .filter(c => 
+        !existingNames.has(c.nome.toUpperCase()) &&
+        c.nome.toUpperCase().includes(rhSearch.toUpperCase())
+      )
+      .slice(0, 10);
+  }, [rhSearch, rhColaboradores, allEmployees]);
 
   // Editable support teams
   const [supportGabiao, setSupportGabiao] = useState<SupportTeam>({
