@@ -796,8 +796,53 @@ const RelatorioPresenca = () => {
             <DialogContent className="bg-card">
               <DialogHeader>
                 <DialogTitle>Adicionar Funcionário</DialogTitle>
+                <DialogDescription>Busque na lista do RH ou digite manualmente</DialogDescription>
               </DialogHeader>
               <div className="space-y-4 mt-4">
+                {/* RH Search */}
+                <div className="relative">
+                  <Label htmlFor="rh-search">Buscar no RH</Label>
+                  <Input
+                    id="rh-search"
+                    placeholder="Digite o nome para buscar no RH..."
+                    value={rhSearch}
+                    onChange={(e) => {
+                      setRhSearch(e.target.value);
+                      setShowRhList(true);
+                    }}
+                    onFocus={() => setShowRhList(true)}
+                  />
+                  {showRhList && filteredRhEmployees.length > 0 && (
+                    <div className="absolute z-50 w-full mt-1 bg-popover border border-border rounded-lg shadow-lg max-h-48 overflow-y-auto">
+                      {filteredRhEmployees.map((emp) => (
+                        <button
+                          key={emp.id}
+                          type="button"
+                          className="w-full text-left px-3 py-2 hover:bg-accent text-sm transition-colors"
+                          onClick={() => {
+                            const mappedRole = mapFuncaoToRole(emp.funcao);
+                            setNewEmployee({
+                              name: emp.nome,
+                              role: mappedRole || newEmployee.role,
+                              area: newEmployee.area,
+                            });
+                            setRhSearch("");
+                            setShowRhList(false);
+                          }}
+                        >
+                          <span className="font-medium">{emp.nome}</span>
+                          <span className="text-muted-foreground ml-2 text-xs">({emp.funcao})</span>
+                        </button>
+                      ))}
+                    </div>
+                  )}
+                  {showRhList && rhSearch.trim() && filteredRhEmployees.length === 0 && (
+                    <div className="absolute z-50 w-full mt-1 bg-popover border border-border rounded-lg shadow-lg p-3">
+                      <p className="text-sm text-muted-foreground">Nenhum funcionário encontrado no RH</p>
+                    </div>
+                  )}
+                </div>
+
                 <div>
                   <Label htmlFor="name">Nome</Label>
                   <Input
