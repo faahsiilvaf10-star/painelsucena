@@ -169,7 +169,14 @@ const RelatorioPresenca = () => {
       "AJUDANTE DE ELETRICISTA": "Auxiliar de Elétrica",
       "ELETRICISTA": "Eletricista",
     };
-    return mapping[funcao.toUpperCase()] || "";
+    const mapped = mapping[funcao.toUpperCase()];
+    if (mapped) return mapped;
+    // Fallback: title-case the original funcao
+    return funcao
+      .toLowerCase()
+      .split(" ")
+      .map(w => w.charAt(0).toUpperCase() + w.slice(1))
+      .join(" ");
   };
 
   // Editable support teams
