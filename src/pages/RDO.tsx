@@ -110,6 +110,7 @@ export default function RDO() {
   const { data: allReports } = useRDOReports();
   const { data: jardinagemReport } = useJardinagemReportByDate(selectedDateStr);
   const { data: gabiaoReport } = useGabiaoReportByDate(selectedDateStr);
+  const { data: mudasPlantadas } = useMudasPlantioByDate(selectedDateStr);
   const { data: jardinagemEquipmentList = [] } = useJardinagemEquipment();
   const saveReport = useSaveRDOReport();
   const deleteReport = useDeleteRDOReport();
