@@ -87,20 +87,22 @@ export const useDeleteJardinagemEquipment = () => {
    const queryClient = useQueryClient();
  
    return useMutation({
-     mutationFn: async ({
-       id,
-       name,
-       newStatus,
-     }: {
-       id: string;
-       name: string;
-       newStatus: "entrou" | "saiu";
-     }) => {
-       const { data: { user } } = await supabase.auth.getUser();
-       if (!user) throw new Error("Usuário não autenticado");
- 
-       const now = new Date();
- 
+    mutationFn: async ({
+      id,
+      name,
+      newStatus,
+      customDateTime,
+    }: {
+      id: string;
+      name: string;
+      newStatus: "entrou" | "saiu";
+      customDateTime?: string;
+    }) => {
+      const { data: { user } } = await supabase.auth.getUser();
+      if (!user) throw new Error("Usuário não autenticado");
+
+      const now = customDateTime ? new Date(customDateTime) : new Date();
+
        // Update the equipment status
        const { error: updateError } = await supabase
          .from("jardinagem_equipment")

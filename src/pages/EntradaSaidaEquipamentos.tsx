@@ -67,6 +67,12 @@ const EXIT_REASON_LABELS: Record<string, string> = {
   const [addDialogOpen, setAddDialogOpen] = useState(false);
   const [newEquipmentName, setNewEquipmentName] = useState("");
 
+  // Jardinagem exit dialog state
+  const [jardinagemExitDialogOpen, setJardinagemExitDialogOpen] = useState(false);
+  const [jardinagemExitEquipment, setJardinagemExitEquipment] = useState<{ id: string; name: string } | null>(null);
+  const [jardinagemExitDate, setJardinagemExitDate] = useState("");
+  const [jardinagemExitTime, setJardinagemExitTime] = useState("");
+
   const createMovement = useCreateEquipmentMovement();
 
   // Admin exit dialog state
@@ -171,8 +177,33 @@ const EXIT_REASON_LABELS: Record<string, string> = {
     profile?.cargo === "encarregado_i";
 
   const handleToggleJardinagemStatus = (id: string, name: string, currentStatus: "entrou" | "saiu") => {
-    const newStatus = currentStatus === "entrou" ? "saiu" : "entrou";
-    updateJardinagemStatus.mutate({ id, name, newStatus });
+    if (currentStatus === "entrou") {
+      // Opening exit dialog to pick date/time
+      const now = new Date();
+      setJardinagemExitEquipment({ id, name });
+      setJardinagemExitDate(format(now, "yyyy-MM-dd"));
+      setJardinagemExitTime(format(now, "HH:mm"));
+      setJardinagemExitDialogOpen(true);
+    } else {
+      // "Entrou" toggles directly
+      updateJardinagemStatus.mutate({ id, name, newStatus: "entrou" });
+    }
+  };
+
+  const handleConfirmJardinagemExit = () => {
+    if (!jardinagemExitEquipment) return;
+    const customDateTime = jardinagemExitDate && jardinagemExitTime
+      ? new Date(`${jardinagemExitDate}T${jardinagemExitTime}:00`).toISOString()
+      : undefined;
+    updateJardinagemStatus.mutate(
+      { id: jardinagemExitEquipment.id, name: jardinagemExitEquipment.name, newStatus: "saiu", customDateTime },
+      {
+        onSuccess: () => {
+          setJardinagemExitDialogOpen(false);
+          setJardinagemExitEquipment(null);
+        },
+      }
+    );
   };
 
   const handleAddEquipment = () => {
@@ -711,6 +742,53 @@ const EXIT_REASON_LABELS: Record<string, string> = {
             </Card>
            </div>
          )}
+        {/* Jardinagem Exit Dialog */}
+        <Dialog open={jardinagemExitDialogOpen} onOpenChange={setJardinagemExitDialogOpen}>
+          <DialogContent className="sm:max-w-md">
+            <DialogHeader>
+              <DialogTitle className="flex items-center gap-2">
+                <ArrowUpCircle className="h-5 w-5 text-orange-600" />
+                Registrar Saída - {jardinagemExitEquipment?.name}
+              </DialogTitle>
+              <DialogDescription>
+                Informe a data e hora da saída do equipamento.
+              </DialogDescription>
+            </DialogHeader>
+            <div className="grid grid-cols-2 gap-4 py-4">
+              <div className="space-y-2">
+                <Label>Data de Saída</Label>
+                <Input
+                  type="date"
+                  value={jardinagemExitDate}
+                  onChange={(e) => setJardinagemExitDate(e.target.value)}
+                />
+              </div>
+              <div className="space-y-2">
+                <Label>Hora de Saída</Label>
+                <Input
+                  type="time"
+                  value={jardinagemExitTime}
+                  onChange={(e) => setJardinagemExitTime(e.target.value)}
+                />
+              </div>
+            </div>
+            <DialogFooter>
+              <Button variant="outline" onClick={() => setJardinagemExitDialogOpen(false)}>
+                Cancelar
+              </Button>
+              <Button
+                onClick={handleConfirmJardinagemExit}
+                disabled={updateJardinagemStatus.isPending}
+                variant="destructive"
+              >
+                {updateJardinagemStatus.isPending ? (
+                  <Loader2Icon className="h-4 w-4 animate-spin mr-2" />
+                ) : null}
+                Confirmar Saída
+              </Button>
+            </DialogFooter>
+          </DialogContent>
+        </Dialog>
         {/* Admin Exit Dialog */}
         <Dialog open={exitDialogOpen} onOpenChange={setExitDialogOpen}>
           <DialogContent className="sm:max-w-md">
