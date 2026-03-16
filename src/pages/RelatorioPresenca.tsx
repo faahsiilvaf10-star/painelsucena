@@ -837,11 +837,12 @@ const RelatorioPresenca = () => {
                           className="w-full text-left px-3 py-2 hover:bg-accent text-sm transition-colors"
                           onClick={() => {
                             const mappedRole = mapFuncaoToRole(emp.funcao);
-                            setNewEmployee({
+                            setNewEmployee((prev) => ({
+                              ...prev,
                               name: emp.nome,
-                              role: mappedRole || newEmployee.role,
-                              area: newEmployee.area,
-                            });
+                              role: mappedRole,
+                              area: mapRoleToArea(mappedRole),
+                            }));
                             setRhSearch("");
                             setShowRhList(false);
                           }}
