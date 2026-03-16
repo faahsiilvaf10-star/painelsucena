@@ -781,12 +781,12 @@ const EXIT_REASON_LABELS: Record<string, string> = {
               <Button
                 onClick={handleConfirmJardinagemExit}
                 disabled={updateJardinagemStatus.isPending}
-                variant="destructive"
+                variant={jardinagemDialogNewStatus === "saiu" ? "destructive" : "default"}
               >
                 {updateJardinagemStatus.isPending ? (
                   <Loader2Icon className="h-4 w-4 animate-spin mr-2" />
                 ) : null}
-                Confirmar Saída
+                Confirmar {jardinagemDialogNewStatus === "saiu" ? "Saída" : "Entrada"}
               </Button>
             </DialogFooter>
           </DialogContent>
