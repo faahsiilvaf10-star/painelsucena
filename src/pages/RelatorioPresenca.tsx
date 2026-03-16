@@ -172,18 +172,6 @@ const RelatorioPresenca = () => {
     return mapping[funcao.toUpperCase()] || "";
   };
 
-  // Filter RH employees not already in the employees table
-  const filteredRhEmployees = useMemo(() => {
-    if (!rhSearch.trim()) return [];
-    const existingNames = new Set((allEmployees || []).map(e => e.name.toUpperCase()));
-    return rhColaboradores
-      .filter(c => 
-        !existingNames.has(c.nome.toUpperCase()) &&
-        c.nome.toUpperCase().includes(rhSearch.toUpperCase())
-      )
-      .slice(0, 10);
-  }, [rhSearch, rhColaboradores, allEmployees]);
-
   // Editable support teams
   const [supportGabiao, setSupportGabiao] = useState<SupportTeam>({
     tst: "ITAMAR DE SOUZA",
@@ -241,6 +229,18 @@ const RelatorioPresenca = () => {
       return data as Tables<"employees">[];
     },
   });
+
+  // Filter RH employees not already in the employees table
+  const filteredRhEmployees = useMemo(() => {
+    if (!rhSearch.trim()) return [];
+    const existingNames = new Set((allEmployees || []).map(e => e.name.toUpperCase()));
+    return rhColaboradores
+      .filter(c => 
+        !existingNames.has(c.nome.toUpperCase()) &&
+        c.nome.toUpperCase().includes(rhSearch.toUpperCase())
+      )
+      .slice(0, 10);
+  }, [rhSearch, rhColaboradores, allEmployees]);
 
   const isLoading = recordsLoading || employeesLoading;
 
