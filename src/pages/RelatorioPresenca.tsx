@@ -155,6 +155,13 @@ const RelatorioPresenca = () => {
     return colaboradoresAtivos;
   }, [dialogOpen]);
 
+  const normalizeText = (value: string) =>
+    value
+      .normalize("NFD")
+      .replace(/[\u0300-\u036f]/g, "")
+      .trim()
+      .toUpperCase();
+
   // Map RH funcao to attendance role
   const mapFuncaoToRole = (funcao: string): string => {
     const mapping: Record<string, string> = {
@@ -169,15 +176,17 @@ const RelatorioPresenca = () => {
       "AJUDANTE DE ELETRICISTA": "Auxiliar de Elétrica",
       "ELETRICISTA": "Eletricista",
     };
-    const mapped = mapping[funcao.toUpperCase()];
+    const mapped = mapping[normalizeText(funcao)];
     if (mapped) return mapped;
-    // Fallback: title-case the original funcao
     return funcao
       .toLowerCase()
       .split(" ")
       .map(w => w.charAt(0).toUpperCase() + w.slice(1))
       .join(" ");
   };
+
+  const mapRoleToArea = (role: string): "gabiao" | "jardinagem" =>
+    roleToArea[role] === "ÁREA GABIÃO" ? "gabiao" : "jardinagem";
 
   // Editable support teams
   const [supportGabiao, setSupportGabiao] = useState<SupportTeam>({
