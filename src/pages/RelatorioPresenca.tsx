@@ -85,6 +85,7 @@ const roleLabels: Record<string, Record<string, string>> = {
     Ajudante: `${EMOJI_WORKER} Ajudante:`,
   },
   "ROÇAGEM E PODAGEM": {
+    Polivalente: `${EMOJI_WORKER} Polivalentes:`,
     Jardineiro: `${EMOJI_WORKER} Jardineiro:`,
     Ajudante: `${EMOJI_WORKER} Ajudante:`,
     "Motorista do Pipa": `${EMOJI_WORKER} Motorista do Pipa`,
@@ -99,6 +100,7 @@ const roleLabels: Record<string, Record<string, string>> = {
 const executionRoles: Record<string, string[]> = {
   "ÁREA GABIÃO": ["Polivalente", "Meia Oficial", "Ajudante"],
   "ROÇAGEM E PODAGEM": [
+    "Polivalente",
     "Jardineiro",
     "Ajudante",
     "Motorista do Pipa",
