@@ -93,6 +93,7 @@ export default function Atividades() {
   const { data: allReports } = useJardinagemReports();
   const saveReport = useSaveJardinagemReport();
   const deleteReport = useDeleteJardinagemReport();
+  const { data: mudasPlantadasDoDia } = useMudasPlantioByDate(selectedDateStr);
   const { isAreaLocked, canUnlockArea, lockArea, unlockArea } = useReportLock(selectedDateStr);
   const isJardinagemLocked = isAreaLocked("jardinagem");
 
