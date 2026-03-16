@@ -176,18 +176,16 @@ const EXIT_REASON_LABELS: Record<string, string> = {
     profile?.cargo === "encarregado_geral" || 
     profile?.cargo === "encarregado_i";
 
+  const [jardinagemDialogNewStatus, setJardinagemDialogNewStatus] = useState<"entrou" | "saiu">("saiu");
+
   const handleToggleJardinagemStatus = (id: string, name: string, currentStatus: "entrou" | "saiu") => {
-    if (currentStatus === "entrou") {
-      // When clicking "Saiu", open dialog to pick date/time
-      const now = new Date();
-      setJardinagemExitEquipment({ id, name });
-      setJardinagemExitDate(format(now, "yyyy-MM-dd"));
-      setJardinagemExitTime(format(now, "HH:mm"));
-      setJardinagemExitDialogOpen(true);
-      return;
-    }
-    // "Entrou" toggles directly without dialog
-    updateJardinagemStatus.mutate({ id, name, newStatus: "entrou" });
+    const newStatus = currentStatus === "entrou" ? "saiu" : "entrou";
+    const now = new Date();
+    setJardinagemExitEquipment({ id, name });
+    setJardinagemExitDate(format(now, "yyyy-MM-dd"));
+    setJardinagemExitTime(format(now, "HH:mm"));
+    setJardinagemDialogNewStatus(newStatus);
+    setJardinagemExitDialogOpen(true);
   };
 
   const handleConfirmJardinagemExit = () => {
@@ -196,7 +194,7 @@ const EXIT_REASON_LABELS: Record<string, string> = {
       ? new Date(`${jardinagemExitDate}T${jardinagemExitTime}:00`).toISOString()
       : undefined;
     updateJardinagemStatus.mutate(
-      { id: jardinagemExitEquipment.id, name: jardinagemExitEquipment.name, newStatus: "saiu", customDateTime },
+      { id: jardinagemExitEquipment.id, name: jardinagemExitEquipment.name, newStatus: jardinagemDialogNewStatus, customDateTime },
       {
         onSuccess: () => {
           setJardinagemExitDialogOpen(false);
@@ -747,16 +745,20 @@ const EXIT_REASON_LABELS: Record<string, string> = {
           <DialogContent className="sm:max-w-md">
             <DialogHeader>
               <DialogTitle className="flex items-center gap-2">
-                <ArrowUpCircle className="h-5 w-5 text-orange-600" />
-                Registrar Saída - {jardinagemExitEquipment?.name}
+                {jardinagemDialogNewStatus === "saiu" ? (
+                  <ArrowUpCircle className="h-5 w-5 text-orange-600" />
+                ) : (
+                  <ArrowDownCircle className="h-5 w-5 text-green-600" />
+                )}
+                Registrar {jardinagemDialogNewStatus === "saiu" ? "Saída" : "Entrada"} - {jardinagemExitEquipment?.name}
               </DialogTitle>
               <DialogDescription>
-                Informe a data e hora da saída do equipamento.
+                Informe a data e hora da {jardinagemDialogNewStatus === "saiu" ? "saída" : "entrada"} do equipamento.
               </DialogDescription>
             </DialogHeader>
             <div className="grid grid-cols-2 gap-4 py-4">
               <div className="space-y-2">
-                <Label>Data de Saída</Label>
+                <Label>Data de {jardinagemDialogNewStatus === "saiu" ? "Saída" : "Entrada"}</Label>
                 <Input
                   type="date"
                   value={jardinagemExitDate}
@@ -764,7 +766,7 @@ const EXIT_REASON_LABELS: Record<string, string> = {
                 />
               </div>
               <div className="space-y-2">
-                <Label>Hora de Saída</Label>
+                <Label>Hora de {jardinagemDialogNewStatus === "saiu" ? "Saída" : "Entrada"}</Label>
                 <Input
                   type="time"
                   value={jardinagemExitTime}
@@ -779,12 +781,12 @@ const EXIT_REASON_LABELS: Record<string, string> = {
               <Button
                 onClick={handleConfirmJardinagemExit}
                 disabled={updateJardinagemStatus.isPending}
-                variant="destructive"
+                variant={jardinagemDialogNewStatus === "saiu" ? "destructive" : "default"}
               >
                 {updateJardinagemStatus.isPending ? (
                   <Loader2Icon className="h-4 w-4 animate-spin mr-2" />
                 ) : null}
-                Confirmar Saída
+                Confirmar {jardinagemDialogNewStatus === "saiu" ? "Saída" : "Entrada"}
               </Button>
             </DialogFooter>
           </DialogContent>
