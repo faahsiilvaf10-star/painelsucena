@@ -866,9 +866,25 @@ const RelatorioPresenca = () => {
                     id="name"
                     placeholder="Nome completo"
                     value={newEmployee.name}
-                    onChange={(e) =>
-                      setNewEmployee({ ...newEmployee, name: e.target.value })
-                    }
+                    onChange={(e) => {
+                      const typedName = e.target.value;
+                      const match = rhColaboradores.find(
+                        (c) => normalizeText(c.nome) === normalizeText(typedName)
+                      );
+
+                      if (match) {
+                        const mappedRole = mapFuncaoToRole(match.funcao);
+                        setNewEmployee((prev) => ({
+                          ...prev,
+                          name: typedName,
+                          role: mappedRole,
+                          area: mapRoleToArea(mappedRole),
+                        }));
+                        return;
+                      }
+
+                      setNewEmployee((prev) => ({ ...prev, name: typedName }));
+                    }}
                   />
                 </div>
                 <div>
