@@ -194,7 +194,7 @@ const EXIT_REASON_LABELS: Record<string, string> = {
       ? new Date(`${jardinagemExitDate}T${jardinagemExitTime}:00`).toISOString()
       : undefined;
     updateJardinagemStatus.mutate(
-      { id: jardinagemExitEquipment.id, name: jardinagemExitEquipment.name, newStatus: "saiu", customDateTime },
+      { id: jardinagemExitEquipment.id, name: jardinagemExitEquipment.name, newStatus: jardinagemDialogNewStatus, customDateTime },
       {
         onSuccess: () => {
           setJardinagemExitDialogOpen(false);
