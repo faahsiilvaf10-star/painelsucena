@@ -178,16 +178,16 @@ const EXIT_REASON_LABELS: Record<string, string> = {
 
   const handleToggleJardinagemStatus = (id: string, name: string, currentStatus: "entrou" | "saiu") => {
     if (currentStatus === "entrou") {
-      // Opening exit dialog to pick date/time
+      // When clicking "Saiu", open dialog to pick date/time
       const now = new Date();
       setJardinagemExitEquipment({ id, name });
       setJardinagemExitDate(format(now, "yyyy-MM-dd"));
       setJardinagemExitTime(format(now, "HH:mm"));
       setJardinagemExitDialogOpen(true);
-    } else {
-      // "Entrou" toggles directly
-      updateJardinagemStatus.mutate({ id, name, newStatus: "entrou" });
+      return;
     }
+    // "Entrou" toggles directly without dialog
+    updateJardinagemStatus.mutate({ id, name, newStatus: "entrou" });
   };
 
   const handleConfirmJardinagemExit = () => {
