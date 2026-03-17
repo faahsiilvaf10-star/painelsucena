@@ -765,6 +765,12 @@ const RH = () => {
             )}
           </CardContent>
         </Card>
+        <EditColaboradorDialog
+          open={!!editingColaborador}
+          onOpenChange={(open) => !open && setEditingColaborador(null)}
+          colaborador={editingColaborador}
+          onSave={handleEditColaborador}
+        />
       </div>
     </Layout>
   );
