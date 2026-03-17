@@ -20,6 +20,7 @@ const FAIXA_OPTIONS = [
   { value: "FAIXA 1", label: "Faixa 1" },
   { value: "FAIXA 2", label: "Faixa 2" },
   { value: "FAIXA 3", label: "Faixa 3" },
+  { value: "FAIXA 4", label: "Faixa 4" },
 ];
 
 const BERMA_OPTIONS_EVEN = Array.from({ length: 15 }, (_, i) => ({
