@@ -44,6 +44,7 @@ const RH = () => {
   const [expandedRow, setExpandedRow] = useState<number | null>(null);
   const [colaboradores, setColaboradores] = useState<Colaborador[]>(initialColaboradores);
   const [editingAso, setEditingAso] = useState<number | null>(null);
+  const [editingColaborador, setEditingColaborador] = useState<Colaborador | null>(null);
   const [asoForm, setAsoForm] = useState<Record<string, string>>({});
 
   const { canEditRH, isLoading: permissionsLoading } = useRHPermissions();
