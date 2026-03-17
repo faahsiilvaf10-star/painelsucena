@@ -98,6 +98,7 @@ export default function MudasPlantioTab({ canEdit }: MudasPlantioTabProps) {
         quantidade: qtd,
         faixa: faixa || undefined,
         berma: berma ? parseInt(berma) : undefined,
+        data_plantio: format(dataPlantio, "yyyy-MM-dd"),
       });
 
       // 2. Deduct from stock (FIFO)
