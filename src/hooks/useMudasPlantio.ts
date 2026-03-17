@@ -61,16 +61,20 @@ export const useAddMudaPlantio = () => {
   const { user } = useAuth();
 
   return useMutation({
-    mutationFn: async (muda: { especie: string; quantidade: number; faixa?: string; berma?: number }) => {
+    mutationFn: async (muda: { especie: string; quantidade: number; faixa?: string; berma?: number; data_plantio?: string }) => {
+      const insertData: any = {
+        especie: muda.especie,
+        quantidade: muda.quantidade,
+        faixa: muda.faixa || null,
+        berma: muda.berma || null,
+        created_by: user?.id || "",
+      };
+      if (muda.data_plantio) {
+        insertData.created_at = `${muda.data_plantio}T12:00:00.000Z`;
+      }
       const { data, error } = await supabase
         .from("mudas_plantio")
-        .insert({
-          especie: muda.especie,
-          quantidade: muda.quantidade,
-          faixa: muda.faixa || null,
-          berma: muda.berma || null,
-          created_by: user?.id || "",
-        })
+        .insert(insertData)
         .select()
         .single();
       if (error) throw error;
