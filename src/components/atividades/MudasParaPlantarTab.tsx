@@ -1,5 +1,5 @@
 import { useState } from "react";
-import { Plus, Trash2, TreePine, Loader2 } from "lucide-react";
+import { Plus, Trash2, TreePine, Loader2, Pencil, Check, X } from "lucide-react";
 import { toast } from "sonner";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
@@ -7,7 +7,8 @@ import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Badge } from "@/components/ui/badge";
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
-import { useMudasParaPlantar, useAddMudaParaPlantar, useDeleteMudaParaPlantar } from "@/hooks/useMudasParaPlantar";
+import { useMudasParaPlantar, useAddMudaParaPlantar, useDeleteMudaParaPlantar, useUpdateMudaParaPlantar } from "@/hooks/useMudasParaPlantar";
+import { useIsAdmin } from "@/hooks/useUserRole";
 import { format, parseISO } from "date-fns";
 import { ptBR } from "date-fns/locale";
 
@@ -19,9 +20,13 @@ export default function MudasParaPlantarTab({ canEdit }: MudasParaPlantarTabProp
   const { data: mudas, isLoading } = useMudasParaPlantar();
   const addMuda = useAddMudaParaPlantar();
   const deleteMuda = useDeleteMudaParaPlantar();
+  const updateMuda = useUpdateMudaParaPlantar();
+  const { isAdmin } = useIsAdmin();
 
   const [especie, setEspecie] = useState("");
   const [quantidade, setQuantidade] = useState("");
+  const [editingId, setEditingId] = useState<string | null>(null);
+  const [editingQtd, setEditingQtd] = useState("");
 
   const handleAdd = async () => {
     if (!especie.trim()) {
@@ -54,6 +59,33 @@ export default function MudasParaPlantarTab({ canEdit }: MudasParaPlantarTabProp
     } catch (error: any) {
       toast.error("Erro ao excluir: " + error.message);
     }
+  };
+
+  const handleEditStart = (id: string, currentQtd: number) => {
+    setEditingId(id);
+    setEditingQtd(String(currentQtd));
+  };
+
+  const handleEditSave = async () => {
+    if (!editingId) return;
+    const newQtd = parseInt(editingQtd);
+    if (isNaN(newQtd) || newQtd < 0) {
+      toast.error("Informe uma quantidade válida.");
+      return;
+    }
+    try {
+      await updateMuda.mutateAsync({ id: editingId, quantidade: newQtd });
+      toast.success("Quantidade atualizada!");
+      setEditingId(null);
+      setEditingQtd("");
+    } catch (error: any) {
+      toast.error("Erro ao atualizar: " + error.message);
+    }
+  };
+
+  const handleEditCancel = () => {
+    setEditingId(null);
+    setEditingQtd("");
   };
 
   const totalMudas = mudas?.reduce((sum, m) => sum + m.quantidade, 0) || 0;
@@ -118,7 +150,7 @@ export default function MudasParaPlantarTab({ canEdit }: MudasParaPlantarTabProp
                     <TableHead>Data</TableHead>
                     <TableHead>Espécie</TableHead>
                     <TableHead className="text-right">Qtd</TableHead>
-                    {canEdit && <TableHead className="w-10" />}
+                    {(canEdit || isAdmin) && <TableHead className="w-20" />}
                   </TableRow>
                 </TableHeader>
                 <TableBody>
@@ -128,12 +160,51 @@ export default function MudasParaPlantarTab({ canEdit }: MudasParaPlantarTabProp
                         {format(parseISO(m.created_at), "dd/MM/yy", { locale: ptBR })}
                       </TableCell>
                       <TableCell className="font-medium">{m.especie}</TableCell>
-                      <TableCell className="text-right">{m.quantidade}</TableCell>
-                      {canEdit && (
+                      <TableCell className="text-right">
+                        {editingId === m.id ? (
+                          <Input
+                            type="number"
+                            min="0"
+                            value={editingQtd}
+                            onChange={(e) => setEditingQtd(e.target.value)}
+                            className="w-20 h-7 text-right ml-auto"
+                            onKeyDown={(e) => {
+                              if (e.key === "Enter") handleEditSave();
+                              if (e.key === "Escape") handleEditCancel();
+                            }}
+                            autoFocus
+                          />
+                        ) : (
+                          m.quantidade
+                        )}
+                      </TableCell>
+                      {(canEdit || isAdmin) && (
                         <TableCell>
-                          <Button variant="ghost" size="icon" className="h-7 w-7 text-destructive" onClick={() => handleDelete(m.id)}>
-                            <Trash2 className="h-3.5 w-3.5" />
-                          </Button>
+                          <div className="flex items-center gap-1 justify-end">
+                            {editingId === m.id ? (
+                              <>
+                                <Button variant="ghost" size="icon" className="h-7 w-7 text-green-600" onClick={handleEditSave} disabled={updateMuda.isPending}>
+                                  {updateMuda.isPending ? <Loader2 className="h-3.5 w-3.5 animate-spin" /> : <Check className="h-3.5 w-3.5" />}
+                                </Button>
+                                <Button variant="ghost" size="icon" className="h-7 w-7 text-muted-foreground" onClick={handleEditCancel}>
+                                  <X className="h-3.5 w-3.5" />
+                                </Button>
+                              </>
+                            ) : (
+                              <>
+                                {isAdmin && (
+                                  <Button variant="ghost" size="icon" className="h-7 w-7 text-muted-foreground hover:text-primary" onClick={() => handleEditStart(m.id, m.quantidade)}>
+                                    <Pencil className="h-3.5 w-3.5" />
+                                  </Button>
+                                )}
+                                {canEdit && (
+                                  <Button variant="ghost" size="icon" className="h-7 w-7 text-destructive" onClick={() => handleDelete(m.id)}>
+                                    <Trash2 className="h-3.5 w-3.5" />
+                                  </Button>
+                                )}
+                              </>
+                            )}
+                          </div>
                         </TableCell>
                       )}
                     </TableRow>
