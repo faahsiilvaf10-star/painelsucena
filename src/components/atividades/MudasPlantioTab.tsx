@@ -1,5 +1,5 @@
 import { useState, useMemo } from "react";
-import { Plus, Trash2, Sprout, Loader2 } from "lucide-react";
+import { Plus, Trash2, Sprout, Loader2, CalendarIcon } from "lucide-react";
 import { toast } from "sonner";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
@@ -8,10 +8,13 @@ import { Label } from "@/components/ui/label";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { Badge } from "@/components/ui/badge";
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
+import { Calendar } from "@/components/ui/calendar";
+import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover";
 import { useMudasPlantio, useAddMudaPlantio, useDeleteMudaPlantio } from "@/hooks/useMudasPlantio";
 import { useMudasParaPlantar, useUpdateMudaParaPlantar } from "@/hooks/useMudasParaPlantar";
 import { format, parseISO } from "date-fns";
 import { ptBR } from "date-fns/locale";
+import { cn } from "@/lib/utils";
 
 const FAIXA_OPTIONS = [
   { value: "FAIXA 1", label: "Faixa 1" },
