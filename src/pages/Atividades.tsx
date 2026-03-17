@@ -463,6 +463,7 @@ export default function Atividades() {
         plantio_unidade: plantio ? parseInt(plantio) : null,
         plantio_berma: plantioBerma ? parseInt(plantioBerma) : null,
         plantio_faixa: plantioFaixa || null,
+        plantio_especie: plantioEspecie || null,
         limpeza_manual_m2: limpezaManual ? parseFloat(limpezaManual) : null,
         limpeza_manual_berma: limpezaManualBerma ? parseInt(limpezaManualBerma) : null,
         limpeza_manual_faixa: limpezaManualFaixa || null,
