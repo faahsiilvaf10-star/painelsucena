@@ -164,6 +164,7 @@ export default function Atividades() {
   const [plantio, setPlantio] = useState("");
   const [plantioBerma, setPlantioBerma] = useState("");
   const [plantioFaixa, setPlantioFaixa] = useState("");
+  const [plantioEspecie, setPlantioEspecie] = useState("");
   const [limpezaManual, setLimpezaManual] = useState("");
   const [limpezaManualBerma, setLimpezaManualBerma] = useState("");
   const [limpezaManualFaixa, setLimpezaManualFaixa] = useState("");
