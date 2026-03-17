@@ -99,7 +99,29 @@ export default function Atividades() {
   const { isAreaLocked, canUnlockArea, lockArea, unlockArea } = useReportLock(selectedDateStr);
   const isJardinagemLocked = isAreaLocked("jardinagem");
 
-  // Calculate measurement period (day 16 to day 16)
+  // Aggregate stock by species for PLANTIO species picker
+  const estoqueByEspecie = useMemo(() => {
+    if (!estoqueData) return new Map<string, { total: number; items: { id: string; quantidade: number }[] }>();
+    const map = new Map<string, { total: number; items: { id: string; quantidade: number }[] }>();
+    estoqueData.forEach((m) => {
+      const key = m.especie.trim().toUpperCase();
+      const existing = map.get(key) || { total: 0, items: [] };
+      existing.total += m.quantidade;
+      existing.items.push({ id: m.id, quantidade: m.quantidade });
+      map.set(key, existing);
+    });
+    return map;
+  }, [estoqueData]);
+
+  const especiesDisponiveis = useMemo(() => {
+    return Array.from(estoqueByEspecie.entries())
+      .filter(([, v]) => v.total > 0)
+      .map(([key, v]) => {
+        const original = estoqueData?.find((m) => m.especie.trim().toUpperCase() === key);
+        return { especie: original?.especie || key, disponivel: v.total };
+      });
+  }, [estoqueByEspecie, estoqueData]);
+
   const getMeasurementPeriod = () => {
     const currentDay = selectedDate.getDate();
     const currentMonth = selectedDate.getMonth();
