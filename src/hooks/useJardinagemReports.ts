@@ -121,7 +121,7 @@ export const useTodayJardinagemReport = () => {
         .maybeSingle();
 
       if (error) throw error;
-      return data as JardinagemReport | null;
+      return data as unknown as JardinagemReport | null;
     },
   });
 };
