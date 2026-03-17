@@ -573,9 +573,17 @@ export default function Atividades() {
     appendExtras("adubagem", "Adubagem", "unidade(s)");
 
     if (plantio && parseInt(plantio) > 0) {
-      lines.push(`* Plantio - ${plantio} unidade(s)${formatBerma(plantioBerma)}${formatFaixa(plantioFaixa)}`);
+      lines.push(`* Plantio${plantioEspecie ? ` (${plantioEspecie})` : ""} - ${plantio} unidade(s)${formatBerma(plantioBerma)}${formatFaixa(plantioFaixa)}`);
     }
-    appendExtras("plantio", "Plantio", "unidade(s)");
+    // Plantio extras with species
+    (extraEntries["plantio"] || []).forEach(entry => {
+      const v = parseFloat(entry.value);
+      if (!v || v <= 0) return;
+      const especieText = entry.especie ? ` (${entry.especie})` : "";
+      const bermaText = entry.berma ? ` (Berma ${entry.berma})` : "";
+      const faixaText = entry.faixa ? ` - ${entry.faixa}` : "";
+      lines.push(`* Plantio${especieText} - ${entry.value} unidade(s)${bermaText}${faixaText}`);
+    });
 
     if (limpezaManual && parseFloat(limpezaManual) > 0) {
       lines.push(`* Limpeza Manual - ${limpezaManual} m²${formatBerma(limpezaManualBerma)}${formatFaixa(limpezaManualFaixa)}`);
