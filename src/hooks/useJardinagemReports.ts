@@ -137,7 +137,7 @@ export const useJardinagemReportByDate = (date: string) => {
         .maybeSingle();
 
       if (error) throw error;
-      return data as JardinagemReport | null;
+      return data as unknown as JardinagemReport | null;
     },
     enabled: !!date,
   });
