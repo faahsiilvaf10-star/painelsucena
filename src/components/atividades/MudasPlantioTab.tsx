@@ -119,6 +119,7 @@ export default function MudasPlantioTab({ canEdit }: MudasPlantioTabProps) {
       setQuantidade("");
       setFaixa("");
       setBerma("");
+      setDataPlantio(new Date());
     } catch (error: any) {
       toast.error("Erro ao registrar: " + error.message);
     }
