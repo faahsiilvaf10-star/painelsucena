@@ -24,6 +24,7 @@ export interface JardinagemReport {
   plantio_unidade: number | null;
   plantio_berma: number | null;
   plantio_faixa: string | null;
+  plantio_especie: string | null;
   limpeza_manual_m2: number | null;
   limpeza_manual_berma: number | null;
   limpeza_manual_faixa: string | null;
@@ -66,6 +67,7 @@ export interface JardinagemReportInsert {
   plantio_unidade?: number | null;
   plantio_berma?: number | null;
   plantio_faixa?: string | null;
+  plantio_especie?: string | null;
   limpeza_manual_m2?: number | null;
   limpeza_manual_berma?: number | null;
   limpeza_manual_faixa?: string | null;
@@ -103,7 +105,7 @@ export const useJardinagemReports = (filterDate?: string) => {
 
       const { data, error } = await query;
       if (error) throw error;
-      return data as JardinagemReport[];
+      return data as unknown as JardinagemReport[];
     },
   });
 };
@@ -120,7 +122,7 @@ export const useTodayJardinagemReport = () => {
         .maybeSingle();
 
       if (error) throw error;
-      return data as JardinagemReport | null;
+      return data as unknown as JardinagemReport | null;
     },
   });
 };
@@ -136,7 +138,7 @@ export const useJardinagemReportByDate = (date: string) => {
         .maybeSingle();
 
       if (error) throw error;
-      return data as JardinagemReport | null;
+      return data as unknown as JardinagemReport | null;
     },
     enabled: !!date,
   });

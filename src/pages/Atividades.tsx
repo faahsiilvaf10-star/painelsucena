@@ -41,8 +41,8 @@ import { Alert, AlertDescription } from "@/components/ui/alert";
 import { AIImproveButton } from "@/components/atividades/AIImproveButton";
 
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
-import MudasPlantioTab from "@/components/atividades/MudasPlantioTab";
 import MudasParaPlantarTab from "@/components/atividades/MudasParaPlantarTab";
+import { useMudasParaPlantar, useUpdateMudaParaPlantar } from "@/hooks/useMudasParaPlantar";
 import { TreePine } from "lucide-react";
 
 interface InvasoraEntry {
@@ -94,10 +94,34 @@ export default function Atividades() {
   const saveReport = useSaveJardinagemReport();
   const deleteReport = useDeleteJardinagemReport();
   const { data: mudasPlantadasDoDia } = useMudasPlantioByDate(selectedDateStr);
+  const { data: estoqueData } = useMudasParaPlantar();
+  const updateEstoque = useUpdateMudaParaPlantar();
   const { isAreaLocked, canUnlockArea, lockArea, unlockArea } = useReportLock(selectedDateStr);
   const isJardinagemLocked = isAreaLocked("jardinagem");
 
-  // Calculate measurement period (day 16 to day 16)
+  // Aggregate stock by species for PLANTIO species picker
+  const estoqueByEspecie = useMemo(() => {
+    if (!estoqueData) return new Map<string, { total: number; items: { id: string; quantidade: number }[] }>();
+    const map = new Map<string, { total: number; items: { id: string; quantidade: number }[] }>();
+    estoqueData.forEach((m) => {
+      const key = m.especie.trim().toUpperCase();
+      const existing = map.get(key) || { total: 0, items: [] };
+      existing.total += m.quantidade;
+      existing.items.push({ id: m.id, quantidade: m.quantidade });
+      map.set(key, existing);
+    });
+    return map;
+  }, [estoqueData]);
+
+  const especiesDisponiveis = useMemo(() => {
+    return Array.from(estoqueByEspecie.entries())
+      .filter(([, v]) => v.total > 0)
+      .map(([key, v]) => {
+        const original = estoqueData?.find((m) => m.especie.trim().toUpperCase() === key);
+        return { especie: original?.especie || key, disponivel: v.total };
+      });
+  }, [estoqueByEspecie, estoqueData]);
+
   const getMeasurementPeriod = () => {
     const currentDay = selectedDate.getDate();
     const currentMonth = selectedDate.getMonth();
@@ -162,6 +186,7 @@ export default function Atividades() {
   const [plantio, setPlantio] = useState("");
   const [plantioBerma, setPlantioBerma] = useState("");
   const [plantioFaixa, setPlantioFaixa] = useState("");
+  const [plantioEspecie, setPlantioEspecie] = useState("");
   const [limpezaManual, setLimpezaManual] = useState("");
   const [limpezaManualBerma, setLimpezaManualBerma] = useState("");
   const [limpezaManualFaixa, setLimpezaManualFaixa] = useState("");
@@ -310,6 +335,7 @@ export default function Atividades() {
       setPlantio(existingReport.plantio_unidade?.toString() || "");
       setPlantioBerma(existingReport.plantio_berma?.toString() || "");
       setPlantioFaixa(existingReport.plantio_faixa || "");
+      setPlantioEspecie((existingReport as any).plantio_especie || "");
       setLimpezaManual(existingReport.limpeza_manual_m2?.toString() || "");
       setLimpezaManualBerma(existingReport.limpeza_manual_berma?.toString() || "");
       setLimpezaManualFaixa(existingReport.limpeza_manual_faixa || "");
@@ -351,6 +377,7 @@ export default function Atividades() {
       setPlantio("");
       setPlantioBerma("");
       setPlantioFaixa("");
+      setPlantioEspecie("");
       setLimpezaManual("");
       setLimpezaManualBerma("");
       setLimpezaManualFaixa("");
@@ -436,6 +463,7 @@ export default function Atividades() {
         plantio_unidade: plantio ? parseInt(plantio) : null,
         plantio_berma: plantioBerma ? parseInt(plantioBerma) : null,
         plantio_faixa: plantioFaixa || null,
+        plantio_especie: plantioEspecie || null,
         limpeza_manual_m2: limpezaManual ? parseFloat(limpezaManual) : null,
         limpeza_manual_berma: limpezaManualBerma ? parseInt(limpezaManualBerma) : null,
         limpeza_manual_faixa: limpezaManualFaixa || null,
@@ -458,7 +486,25 @@ export default function Atividades() {
         extra_entries: Object.keys(extraEntries).length > 0 ? extraEntries : null,
       });
       
-      toast.success("Atividades salvas com sucesso!");
+      // Deduct stock if plantio has species and quantity
+      const plantioQtd = plantio ? parseInt(plantio) : 0;
+      if (plantioEspecie && plantioQtd > 0) {
+        const stockEntry = estoqueByEspecie.get(plantioEspecie.trim().toUpperCase());
+        if (stockEntry) {
+          let remaining = plantioQtd;
+          for (const item of stockEntry.items) {
+            if (remaining <= 0) break;
+            const deduct = Math.min(remaining, item.quantidade);
+            await updateEstoque.mutateAsync({
+              id: item.id,
+              quantidade: item.quantidade - deduct,
+            });
+            remaining -= deduct;
+          }
+        }
+      }
+
+      toast.success("Atividades salvas e estoque atualizado!");
     } catch (error: any) {
       toast.error("Erro ao salvar: " + error.message);
     }
@@ -664,18 +710,14 @@ export default function Atividades() {
               <Leaf className="h-4 w-4" />
               Jardinagem
             </TabsTrigger>
-            <TabsTrigger value="mudas" className="gap-2">
-              <Sprout className="h-4 w-4" />
-              Mudas Plantadas
-            </TabsTrigger>
             <TabsTrigger value="mudas-plantar" className="gap-2">
               <TreePine className="h-4 w-4" />
               Mudas para Plantar
             </TabsTrigger>
           </TabsList>
 
-          <TabsContent value="mudas" className="mt-4">
-            <MudasPlantioTab canEdit={canEdit} />
+          <TabsContent value="mudas-plantar" className="mt-4">
+            <MudasParaPlantarTab canEdit={canEdit} />
           </TabsContent>
 
           <TabsContent value="mudas-plantar" className="mt-4">
@@ -1035,7 +1077,21 @@ export default function Atividades() {
                     <Label>PLANTIO (Unidade)</Label>
                     <AddMoreButton activityKey="plantio" onAdd={addExtraEntry} />
                   </div>
-                  <div className="grid grid-cols-1 md:grid-cols-[1fr_140px_140px] gap-3">
+                  <div className="grid grid-cols-1 md:grid-cols-[1fr_1fr_140px_140px] gap-3">
+                    <Select value={plantioEspecie} onValueChange={setPlantioEspecie}>
+                      <SelectTrigger><SelectValue placeholder="Espécie" /></SelectTrigger>
+                      <SelectContent>
+                        {especiesDisponiveis.length === 0 ? (
+                          <SelectItem value="__empty" disabled>Sem estoque</SelectItem>
+                        ) : (
+                          especiesDisponiveis.map((e) => (
+                            <SelectItem key={e.especie} value={e.especie}>
+                              {e.especie} ({e.disponivel} disp.)
+                            </SelectItem>
+                          ))
+                        )}
+                      </SelectContent>
+                    </Select>
                     <Input type="number" min="0" value={plantio} onChange={(e) => setPlantio(e.target.value)} placeholder="0" />
                     <Select value={plantioFaixa} onValueChange={setPlantioFaixa}><SelectTrigger><SelectValue placeholder="Faixa" /></SelectTrigger><SelectContent>{FAIXA_OPTIONS.map((opt) => (<SelectItem key={opt.value} value={opt.value}>{opt.label}</SelectItem>))}</SelectContent></Select>
                     <Select value={plantioBerma} onValueChange={setPlantioBerma}><SelectTrigger><SelectValue placeholder="Berma" /></SelectTrigger><SelectContent>{BERMA_OPTIONS.map((opt) => (<SelectItem key={opt.value} value={opt.value}>{opt.label}</SelectItem>))}</SelectContent></Select>

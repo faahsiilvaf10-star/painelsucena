@@ -505,6 +505,7 @@ export type Database = {
           manutencao_canteiro: string | null
           photo_urls: string[] | null
           plantio_berma: number | null
+          plantio_especie: string | null
           plantio_faixa: string | null
           plantio_grama_berma: number | null
           plantio_grama_faixa: string | null
@@ -548,6 +549,7 @@ export type Database = {
           manutencao_canteiro?: string | null
           photo_urls?: string[] | null
           plantio_berma?: number | null
+          plantio_especie?: string | null
           plantio_faixa?: string | null
           plantio_grama_berma?: number | null
           plantio_grama_faixa?: string | null
@@ -591,6 +593,7 @@ export type Database = {
           manutencao_canteiro?: string | null
           photo_urls?: string[] | null
           plantio_berma?: number | null
+          plantio_especie?: string | null
           plantio_faixa?: string | null
           plantio_grama_berma?: number | null
           plantio_grama_faixa?: string | null
