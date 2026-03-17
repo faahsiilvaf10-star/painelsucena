@@ -458,16 +458,7 @@ export default function Atividades() {
         extra_entries: Object.keys(extraEntries).length > 0 ? extraEntries : null,
       });
       
-      // Auto-lock after saving
-      if (!isJardinagemLocked) {
-        try {
-          await lockArea.mutateAsync("jardinagem");
-        } catch (e) {
-          // Lock may already exist, ignore
-        }
-      }
-      
-      toast.success("Atividades salvas e bloqueadas com sucesso!");
+      toast.success("Atividades salvas com sucesso!");
     } catch (error: any) {
       toast.error("Erro ao salvar: " + error.message);
     }
