@@ -22,6 +22,7 @@ import {
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { colaboradoresAtivos as initialColaboradores, funcoes, type Colaborador } from "@/data/efetivoData";
 import { AddEmployeeDialog } from "@/components/rh/AddEmployeeDialog";
+import { EditColaboradorDialog } from "@/components/rh/EditColaboradorDialog";
 import { DeleteEmployeeDialog } from "@/components/rh/DeleteEmployeeDialog";
 import { useRHPermissions } from "@/hooks/useRHPermissions";
 import { ExportEfetivoPdfButton } from "@/components/rh/ExportEfetivoPdfButton";
@@ -43,6 +44,7 @@ const RH = () => {
   const [expandedRow, setExpandedRow] = useState<number | null>(null);
   const [colaboradores, setColaboradores] = useState<Colaborador[]>(initialColaboradores);
   const [editingAso, setEditingAso] = useState<number | null>(null);
+  const [editingColaborador, setEditingColaborador] = useState<Colaborador | null>(null);
   const [asoForm, setAsoForm] = useState<Record<string, string>>({});
 
   const { canEditRH, isLoading: permissionsLoading } = useRHPermissions();
@@ -104,6 +106,10 @@ const RH = () => {
   const handleDeleteEmployee = (id: number) => {
     setColaboradores(prev => prev.filter(c => c.id !== id));
     toast.success("Colaborador removido com sucesso!");
+  };
+
+  const handleEditColaborador = (updated: Colaborador) => {
+    setColaboradores(prev => prev.map(c => c.id === updated.id ? updated : c));
   };
 
   const handlePromote = useCallback(async (id: number, novaFuncao: string, observacao: string) => {
@@ -544,6 +550,14 @@ const RH = () => {
                         {!permissionsLoading && canEditRH && (
                           <TableCell>
                             <div className="flex items-center gap-1">
+                              <Button
+                                variant="ghost"
+                                size="icon"
+                                className="h-8 w-8"
+                                onClick={(e) => { e.stopPropagation(); setEditingColaborador(colaborador); }}
+                              >
+                                <Pencil className="h-4 w-4" />
+                              </Button>
                               <PromotionDialog
                                 colaborador={colaborador}
                                 onPromote={handlePromote}
@@ -751,6 +765,12 @@ const RH = () => {
             )}
           </CardContent>
         </Card>
+        <EditColaboradorDialog
+          open={!!editingColaborador}
+          onOpenChange={(open) => !open && setEditingColaborador(null)}
+          colaborador={editingColaborador}
+          onSave={handleEditColaborador}
+        />
       </div>
     </Layout>
   );
