@@ -285,7 +285,8 @@ export const formatJardinagemForRDO = (report: JardinagemReport | null): string 
 
   if (report.plantio_unidade && report.plantio_unidade > 0) {
     const faixaText = report.plantio_faixa ? ` - ${report.plantio_faixa}` : "";
-    lines.push(`* Plantio - ${report.plantio_unidade} unidade(s)${formatBerma(report.plantio_berma)}${faixaText}`);
+    const especieText = report.plantio_especie ? ` (${report.plantio_especie})` : "";
+    lines.push(`* Plantio${especieText} - ${report.plantio_unidade} unidade(s)${formatBerma(report.plantio_berma)}${faixaText}`);
   }
   appendExtraLines(lines, extras, "plantio", "Plantio", "unidade(s)");
 
