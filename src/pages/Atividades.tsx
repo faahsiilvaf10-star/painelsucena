@@ -29,7 +29,8 @@ import {
   useJardinagemReports, 
   useJardinagemReportByDate, 
   useSaveJardinagemReport, 
-  useDeleteJardinagemReport 
+  useDeleteJardinagemReport,
+  type JardinagemReport,
 } from "@/hooks/useJardinagemReports";
 import { getBrazilNorthDate, getBrazilNorthTodayString } from "@/lib/timezone";
 import { useMudasPlantioByDate } from "@/hooks/useMudasPlantio";
