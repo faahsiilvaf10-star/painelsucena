@@ -1059,7 +1059,21 @@ export default function Atividades() {
                     <Label>PLANTIO (Unidade)</Label>
                     <AddMoreButton activityKey="plantio" onAdd={addExtraEntry} />
                   </div>
-                  <div className="grid grid-cols-1 md:grid-cols-[1fr_140px_140px] gap-3">
+                  <div className="grid grid-cols-1 md:grid-cols-[1fr_1fr_140px_140px] gap-3">
+                    <Select value={plantioEspecie} onValueChange={setPlantioEspecie}>
+                      <SelectTrigger><SelectValue placeholder="Espécie" /></SelectTrigger>
+                      <SelectContent>
+                        {especiesDisponiveis.length === 0 ? (
+                          <SelectItem value="__empty" disabled>Sem estoque</SelectItem>
+                        ) : (
+                          especiesDisponiveis.map((e) => (
+                            <SelectItem key={e.especie} value={e.especie}>
+                              {e.especie} ({e.disponivel} disp.)
+                            </SelectItem>
+                          ))
+                        )}
+                      </SelectContent>
+                    </Select>
                     <Input type="number" min="0" value={plantio} onChange={(e) => setPlantio(e.target.value)} placeholder="0" />
                     <Select value={plantioFaixa} onValueChange={setPlantioFaixa}><SelectTrigger><SelectValue placeholder="Faixa" /></SelectTrigger><SelectContent>{FAIXA_OPTIONS.map((opt) => (<SelectItem key={opt.value} value={opt.value}>{opt.label}</SelectItem>))}</SelectContent></Select>
                     <Select value={plantioBerma} onValueChange={setPlantioBerma}><SelectTrigger><SelectValue placeholder="Berma" /></SelectTrigger><SelectContent>{BERMA_OPTIONS.map((opt) => (<SelectItem key={opt.value} value={opt.value}>{opt.label}</SelectItem>))}</SelectContent></Select>
