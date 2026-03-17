@@ -97,6 +97,7 @@ export default function Atividades() {
   const { data: mudasPlantadasDoDia } = useMudasPlantioByDate(selectedDateStr);
   const { data: estoqueData } = useMudasParaPlantar();
   const updateEstoque = useUpdateMudaParaPlantar();
+  const addMudaParaPlantar = useAddMudaParaPlantar();
   const { isAreaLocked, canUnlockArea, lockArea, unlockArea } = useReportLock(selectedDateStr);
   const isJardinagemLocked = isAreaLocked("jardinagem");
 
