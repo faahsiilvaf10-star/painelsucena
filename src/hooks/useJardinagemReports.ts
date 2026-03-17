@@ -24,6 +24,7 @@ export interface JardinagemReport {
   plantio_unidade: number | null;
   plantio_berma: number | null;
   plantio_faixa: string | null;
+  plantio_especie: string | null;
   limpeza_manual_m2: number | null;
   limpeza_manual_berma: number | null;
   limpeza_manual_faixa: string | null;
