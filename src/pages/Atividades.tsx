@@ -1092,7 +1092,7 @@ export default function Atividades() {
                     <Select value={plantioFaixa} onValueChange={setPlantioFaixa}><SelectTrigger><SelectValue placeholder="Faixa" /></SelectTrigger><SelectContent>{FAIXA_OPTIONS.map((opt) => (<SelectItem key={opt.value} value={opt.value}>{opt.label}</SelectItem>))}</SelectContent></Select>
                     <Select value={plantioBerma} onValueChange={setPlantioBerma}><SelectTrigger><SelectValue placeholder="Berma" /></SelectTrigger><SelectContent>{BERMA_OPTIONS.map((opt) => (<SelectItem key={opt.value} value={opt.value}>{opt.label}</SelectItem>))}</SelectContent></Select>
                   </div>
-                  <ExtraActivityEntries activityKey="plantio" entries={extraEntries.plantio || []} onAdd={addExtraEntry} onUpdate={updateExtraEntry} onRemove={removeExtraEntry} faixaOptions={FAIXA_OPTIONS} bermaOptions={BERMA_OPTIONS} />
+                  <ExtraActivityEntries activityKey="plantio" entries={extraEntries.plantio || []} onAdd={addExtraEntry} onUpdate={updateExtraEntry} onRemove={removeExtraEntry} faixaOptions={FAIXA_OPTIONS} bermaOptions={BERMA_OPTIONS} showEspecie especiesDisponiveis={especiesDisponiveis} />
                 </div>
 
                 {/* Limpeza Manual */}
