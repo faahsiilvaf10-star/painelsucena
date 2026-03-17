@@ -104,7 +104,7 @@ export const useJardinagemReports = (filterDate?: string) => {
 
       const { data, error } = await query;
       if (error) throw error;
-      return data as JardinagemReport[];
+      return data as unknown as JardinagemReport[];
     },
   });
 };
