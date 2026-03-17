@@ -7,6 +7,12 @@ export interface ActivityEntry {
   value: string;
   faixa: string;
   berma: string;
+  especie?: string;
+}
+
+interface EspecieOption {
+  especie: string;
+  disponivel: number;
 }
 
 interface ExtraActivityEntriesProps {
@@ -20,6 +26,8 @@ interface ExtraActivityEntriesProps {
   inputType?: string;
   step?: string;
   unit?: string;
+  showEspecie?: boolean;
+  especiesDisponiveis?: EspecieOption[];
 }
 
 export function ExtraActivityEntries({
@@ -32,11 +40,29 @@ export function ExtraActivityEntries({
   bermaOptions,
   inputType = "number",
   step = "1",
+  showEspecie = false,
+  especiesDisponiveis = [],
 }: ExtraActivityEntriesProps) {
   return (
     <>
       {entries.map((entry, index) => (
-        <div key={index} className="grid grid-cols-1 md:grid-cols-[1fr_140px_140px_auto] gap-3 items-end mt-2">
+        <div key={index} className={`grid grid-cols-1 ${showEspecie ? 'md:grid-cols-[1fr_1fr_140px_140px_auto]' : 'md:grid-cols-[1fr_140px_140px_auto]'} gap-3 items-end mt-2`}>
+          {showEspecie && (
+            <Select value={entry.especie || ""} onValueChange={(v) => onUpdate(activityKey, index, "especie", v)}>
+              <SelectTrigger><SelectValue placeholder="Espécie" /></SelectTrigger>
+              <SelectContent>
+                {especiesDisponiveis.length === 0 ? (
+                  <SelectItem value="__empty" disabled>Sem estoque</SelectItem>
+                ) : (
+                  especiesDisponiveis.map((e) => (
+                    <SelectItem key={e.especie} value={e.especie}>
+                      {e.especie} ({e.disponivel} disp.)
+                    </SelectItem>
+                  ))
+                )}
+              </SelectContent>
+            </Select>
+          )}
           <Input
             type={inputType}
             min="0"

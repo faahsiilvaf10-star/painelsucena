@@ -228,7 +228,7 @@ export const useDeleteJardinagemReport = () => {
 // Helper to append extra entries for a given activity key
 const appendExtraLines = (
   lines: string[],
-  extras: Record<string, { value: string; faixa: string; berma: string }[]> | null | undefined,
+  extras: Record<string, { value: string; faixa: string; berma: string; especie?: string }[]> | null | undefined,
   key: string,
   label: string,
   unit: string,
@@ -237,9 +237,10 @@ const appendExtraLines = (
   extras[key].forEach((entry) => {
     const v = parseFloat(entry.value);
     if (!v || v <= 0) return;
+    const especieText = entry.especie ? ` (${entry.especie})` : "";
     const bermaText = entry.berma ? ` (Berma ${entry.berma})` : "";
     const faixaText = entry.faixa ? ` - ${entry.faixa}` : "";
-    lines.push(`* ${label} - ${entry.value} ${unit}${bermaText}${faixaText}`);
+    lines.push(`* ${label}${especieText} - ${entry.value} ${unit}${bermaText}${faixaText}`);
   });
 };
 

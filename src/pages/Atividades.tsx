@@ -504,6 +504,26 @@ export default function Atividades() {
         }
       }
 
+      // Deduct stock for extra plantio entries with species
+      for (const entry of (extraEntries["plantio"] || [])) {
+        const extraQtd = entry.value ? parseInt(entry.value) : 0;
+        if (entry.especie && extraQtd > 0) {
+          const stockEntry = estoqueByEspecie.get(entry.especie.trim().toUpperCase());
+          if (stockEntry) {
+            let remaining = extraQtd;
+            for (const item of stockEntry.items) {
+              if (remaining <= 0) break;
+              const deduct = Math.min(remaining, item.quantidade);
+              await updateEstoque.mutateAsync({
+                id: item.id,
+                quantidade: item.quantidade - deduct,
+              });
+              remaining -= deduct;
+            }
+          }
+        }
+      }
+
       toast.success("Atividades salvas e estoque atualizado!");
     } catch (error: any) {
       toast.error("Erro ao salvar: " + error.message);
@@ -553,9 +573,17 @@ export default function Atividades() {
     appendExtras("adubagem", "Adubagem", "unidade(s)");
 
     if (plantio && parseInt(plantio) > 0) {
-      lines.push(`* Plantio - ${plantio} unidade(s)${formatBerma(plantioBerma)}${formatFaixa(plantioFaixa)}`);
+      lines.push(`* Plantio${plantioEspecie ? ` (${plantioEspecie})` : ""} - ${plantio} unidade(s)${formatBerma(plantioBerma)}${formatFaixa(plantioFaixa)}`);
     }
-    appendExtras("plantio", "Plantio", "unidade(s)");
+    // Plantio extras with species
+    (extraEntries["plantio"] || []).forEach(entry => {
+      const v = parseFloat(entry.value);
+      if (!v || v <= 0) return;
+      const especieText = entry.especie ? ` (${entry.especie})` : "";
+      const bermaText = entry.berma ? ` (Berma ${entry.berma})` : "";
+      const faixaText = entry.faixa ? ` - ${entry.faixa}` : "";
+      lines.push(`* Plantio${especieText} - ${entry.value} unidade(s)${bermaText}${faixaText}`);
+    });
 
     if (limpezaManual && parseFloat(limpezaManual) > 0) {
       lines.push(`* Limpeza Manual - ${limpezaManual} m²${formatBerma(limpezaManualBerma)}${formatFaixa(limpezaManualFaixa)}`);
@@ -1092,7 +1120,7 @@ export default function Atividades() {
                     <Select value={plantioFaixa} onValueChange={setPlantioFaixa}><SelectTrigger><SelectValue placeholder="Faixa" /></SelectTrigger><SelectContent>{FAIXA_OPTIONS.map((opt) => (<SelectItem key={opt.value} value={opt.value}>{opt.label}</SelectItem>))}</SelectContent></Select>
                     <Select value={plantioBerma} onValueChange={setPlantioBerma}><SelectTrigger><SelectValue placeholder="Berma" /></SelectTrigger><SelectContent>{BERMA_OPTIONS.map((opt) => (<SelectItem key={opt.value} value={opt.value}>{opt.label}</SelectItem>))}</SelectContent></Select>
                   </div>
-                  <ExtraActivityEntries activityKey="plantio" entries={extraEntries.plantio || []} onAdd={addExtraEntry} onUpdate={updateExtraEntry} onRemove={removeExtraEntry} faixaOptions={FAIXA_OPTIONS} bermaOptions={BERMA_OPTIONS} />
+                  <ExtraActivityEntries activityKey="plantio" entries={extraEntries.plantio || []} onAdd={addExtraEntry} onUpdate={updateExtraEntry} onRemove={removeExtraEntry} faixaOptions={FAIXA_OPTIONS} bermaOptions={BERMA_OPTIONS} showEspecie especiesDisponiveis={especiesDisponiveis} />
                 </div>
 
                 {/* Limpeza Manual */}
@@ -1402,7 +1430,7 @@ export default function Atividades() {
                     <p>* Plantio{plantioEspecie ? ` (${plantioEspecie})` : ""} - {plantio} unidade(s){plantioBerma && ` (Berma ${plantioBerma})`}{plantioFaixa && ` - ${plantioFaixa}`}</p>
                   )}
                   {(extraEntries["plantio"] || []).map((e, i) => parseFloat(e.value) > 0 && (
-                    <p key={`plantio-${i}`}>* Plantio - {e.value} unidade(s){e.berma && ` (Berma ${e.berma})`}{e.faixa && ` - ${e.faixa}`}</p>
+                    <p key={`plantio-${i}`}>* Plantio{e.especie ? ` (${e.especie})` : ""} - {e.value} unidade(s){e.berma && ` (Berma ${e.berma})`}{e.faixa && ` - ${e.faixa}`}</p>
                   ))}
                   {limpezaManual && parseFloat(limpezaManual) > 0 && (
                     <p>* Limpeza Manual - {limpezaManual} m²{limpezaManualBerma && ` (Berma ${limpezaManualBerma})`}{limpezaManualFaixa && ` - ${limpezaManualFaixa}`}</p>
