@@ -43,7 +43,6 @@ export default function MudasPlantioTab({ canEdit }: MudasPlantioTabProps) {
   const [faixa, setFaixa] = useState("");
   const [berma, setBerma] = useState("");
   const [dataPlantio, setDataPlantio] = useState<Date>(new Date());
-  const [berma, setBerma] = useState("");
 
   // Aggregate stock by species
   const estoqueByEspecie = useMemo(() => {
