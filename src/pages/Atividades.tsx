@@ -689,18 +689,14 @@ export default function Atividades() {
               <Leaf className="h-4 w-4" />
               Jardinagem
             </TabsTrigger>
-            <TabsTrigger value="mudas" className="gap-2">
-              <Sprout className="h-4 w-4" />
-              Mudas Plantadas
-            </TabsTrigger>
             <TabsTrigger value="mudas-plantar" className="gap-2">
               <TreePine className="h-4 w-4" />
               Mudas para Plantar
             </TabsTrigger>
           </TabsList>
 
-          <TabsContent value="mudas" className="mt-4">
-            <MudasPlantioTab canEdit={canEdit} />
+          <TabsContent value="mudas-plantar" className="mt-4">
+            <MudasParaPlantarTab canEdit={canEdit} />
           </TabsContent>
 
           <TabsContent value="mudas-plantar" className="mt-4">
