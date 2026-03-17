@@ -1399,7 +1399,7 @@ export default function Atividades() {
                     <p key={`adubagem-${i}`}>* Adubagem - {e.value} unidade(s){e.berma && ` (Berma ${e.berma})`}{e.faixa && ` - ${e.faixa}`}</p>
                   ))}
                   {plantio && parseInt(plantio) > 0 && (
-                    <p>* Plantio - {plantio} unidade(s){plantioBerma && ` (Berma ${plantioBerma})`}{plantioFaixa && ` - ${plantioFaixa}`}</p>
+                    <p>* Plantio{plantioEspecie ? ` (${plantioEspecie})` : ""} - {plantio} unidade(s){plantioBerma && ` (Berma ${plantioBerma})`}{plantioFaixa && ` - ${plantioFaixa}`}</p>
                   )}
                   {(extraEntries["plantio"] || []).map((e, i) => parseFloat(e.value) > 0 && (
                     <p key={`plantio-${i}`}>* Plantio - {e.value} unidade(s){e.berma && ` (Berma ${e.berma})`}{e.faixa && ` - ${e.faixa}`}</p>
