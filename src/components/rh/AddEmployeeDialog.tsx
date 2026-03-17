@@ -29,12 +29,12 @@ export const AddEmployeeDialog = ({ onAdd }: AddEmployeeDialogProps) => {
   const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault();
     
-    if (!formData.nome || !formData.funcao || !formData.cpf || !formData.matricula) {
+    if (!formData.nome || !formData.funcao) {
       toast.error("Preencha os campos obrigatórios");
       return;
     }
 
-    onAdd(formData);
+    onAdd({ ...formData, matriculaHydro: formData.matriculaHydro || undefined });
     setFormData({
       nome: "",
       funcao: "",
@@ -42,6 +42,7 @@ export const AddEmployeeDialog = ({ onAdd }: AddEmployeeDialogProps) => {
       dataNascimento: "",
       admissao: "",
       matricula: "",
+      matriculaHydro: "",
       contato: "",
       localidade: "BARCARENA - PA",
     });
