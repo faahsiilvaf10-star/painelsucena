@@ -504,6 +504,26 @@ export default function Atividades() {
         }
       }
 
+      // Deduct stock for extra plantio entries with species
+      for (const entry of (extraEntries["plantio"] || [])) {
+        const extraQtd = entry.value ? parseInt(entry.value) : 0;
+        if (entry.especie && extraQtd > 0) {
+          const stockEntry = estoqueByEspecie.get(entry.especie.trim().toUpperCase());
+          if (stockEntry) {
+            let remaining = extraQtd;
+            for (const item of stockEntry.items) {
+              if (remaining <= 0) break;
+              const deduct = Math.min(remaining, item.quantidade);
+              await updateEstoque.mutateAsync({
+                id: item.id,
+                quantidade: item.quantidade - deduct,
+              });
+              remaining -= deduct;
+            }
+          }
+        }
+      }
+
       toast.success("Atividades salvas e estoque atualizado!");
     } catch (error: any) {
       toast.error("Erro ao salvar: " + error.message);
