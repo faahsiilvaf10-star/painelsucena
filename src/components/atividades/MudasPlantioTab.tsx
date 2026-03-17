@@ -1,5 +1,5 @@
 import { useState, useMemo } from "react";
-import { Plus, Trash2, Sprout, Loader2 } from "lucide-react";
+import { Plus, Trash2, Sprout, Loader2, CalendarIcon } from "lucide-react";
 import { toast } from "sonner";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
@@ -8,10 +8,13 @@ import { Label } from "@/components/ui/label";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { Badge } from "@/components/ui/badge";
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
+import { Calendar } from "@/components/ui/calendar";
+import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover";
 import { useMudasPlantio, useAddMudaPlantio, useDeleteMudaPlantio } from "@/hooks/useMudasPlantio";
 import { useMudasParaPlantar, useUpdateMudaParaPlantar } from "@/hooks/useMudasParaPlantar";
 import { format, parseISO } from "date-fns";
 import { ptBR } from "date-fns/locale";
+import { cn } from "@/lib/utils";
 
 const FAIXA_OPTIONS = [
   { value: "FAIXA 1", label: "Faixa 1" },
@@ -39,6 +42,7 @@ export default function MudasPlantioTab({ canEdit }: MudasPlantioTabProps) {
   const [quantidade, setQuantidade] = useState("");
   const [faixa, setFaixa] = useState("");
   const [berma, setBerma] = useState("");
+  const [dataPlantio, setDataPlantio] = useState<Date>(new Date());
 
   // Aggregate stock by species
   const estoqueByEspecie = useMemo(() => {
@@ -93,6 +97,7 @@ export default function MudasPlantioTab({ canEdit }: MudasPlantioTabProps) {
         quantidade: qtd,
         faixa: faixa || undefined,
         berma: berma ? parseInt(berma) : undefined,
+        data_plantio: format(dataPlantio, "yyyy-MM-dd"),
       });
 
       // 2. Deduct from stock (FIFO)
@@ -113,6 +118,7 @@ export default function MudasPlantioTab({ canEdit }: MudasPlantioTabProps) {
       setQuantidade("");
       setFaixa("");
       setBerma("");
+      setDataPlantio(new Date());
     } catch (error: any) {
       toast.error("Erro ao registrar: " + error.message);
     }
@@ -153,7 +159,34 @@ export default function MudasPlantioTab({ canEdit }: MudasPlantioTabProps) {
             </CardTitle>
           </CardHeader>
           <CardContent className="space-y-4">
-            <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+            <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">
+              <div className="space-y-2">
+                <Label>Data do Plantio *</Label>
+                <Popover>
+                  <PopoverTrigger asChild>
+                    <Button
+                      variant="outline"
+                      className={cn(
+                        "w-full justify-start text-left font-normal",
+                        !dataPlantio && "text-muted-foreground"
+                      )}
+                    >
+                      <CalendarIcon className="mr-2 h-4 w-4" />
+                      {dataPlantio ? format(dataPlantio, "dd/MM/yyyy", { locale: ptBR }) : "Selecione a data"}
+                    </Button>
+                  </PopoverTrigger>
+                  <PopoverContent className="w-auto p-0" align="start">
+                    <Calendar
+                      mode="single"
+                      selected={dataPlantio}
+                      onSelect={(d) => d && setDataPlantio(d)}
+                      initialFocus
+                      locale={ptBR}
+                      className={cn("p-3 pointer-events-auto")}
+                    />
+                  </PopoverContent>
+                </Popover>
+              </div>
               <div className="space-y-2">
                 <Label>Espécie (do estoque) *</Label>
                 <Select value={especie} onValueChange={(v) => { setEspecie(v); setQuantidade(""); }}>
