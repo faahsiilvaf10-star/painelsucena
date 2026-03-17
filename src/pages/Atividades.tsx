@@ -1422,7 +1422,7 @@ export default function Atividades() {
                     <p>* Plantio{plantioEspecie ? ` (${plantioEspecie})` : ""} - {plantio} unidade(s){plantioBerma && ` (Berma ${plantioBerma})`}{plantioFaixa && ` - ${plantioFaixa}`}</p>
                   )}
                   {(extraEntries["plantio"] || []).map((e, i) => parseFloat(e.value) > 0 && (
-                    <p key={`plantio-${i}`}>* Plantio - {e.value} unidade(s){e.berma && ` (Berma ${e.berma})`}{e.faixa && ` - ${e.faixa}`}</p>
+                    <p key={`plantio-${i}`}>* Plantio{e.especie ? ` (${e.especie})` : ""} - {e.value} unidade(s){e.berma && ` (Berma ${e.berma})`}{e.faixa && ` - ${e.faixa}`}</p>
                   ))}
                   {limpezaManual && parseFloat(limpezaManual) > 0 && (
                     <p>* Limpeza Manual - {limpezaManual} m²{limpezaManualBerma && ` (Berma ${limpezaManualBerma})`}{limpezaManualFaixa && ` - ${limpezaManualFaixa}`}</p>
