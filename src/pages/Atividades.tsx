@@ -377,6 +377,7 @@ export default function Atividades() {
       setPlantio("");
       setPlantioBerma("");
       setPlantioFaixa("");
+      setPlantioEspecie("");
       setLimpezaManual("");
       setLimpezaManualBerma("");
       setLimpezaManualFaixa("");
