@@ -21,6 +21,7 @@ export const AddEmployeeDialog = ({ onAdd }: AddEmployeeDialogProps) => {
     dataNascimento: "",
     admissao: "",
     matricula: "",
+    matriculaHydro: "",
     contato: "",
     localidade: "BARCARENA - PA",
   });
