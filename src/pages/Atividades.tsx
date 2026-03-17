@@ -41,8 +41,8 @@ import { Alert, AlertDescription } from "@/components/ui/alert";
 import { AIImproveButton } from "@/components/atividades/AIImproveButton";
 
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
-import MudasPlantioTab from "@/components/atividades/MudasPlantioTab";
 import MudasParaPlantarTab from "@/components/atividades/MudasParaPlantarTab";
+import { useMudasParaPlantar, useUpdateMudaParaPlantar } from "@/hooks/useMudasParaPlantar";
 import { TreePine } from "lucide-react";
 
 interface InvasoraEntry {
