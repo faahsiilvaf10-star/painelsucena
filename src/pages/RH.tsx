@@ -108,6 +108,10 @@ const RH = () => {
     toast.success("Colaborador removido com sucesso!");
   };
 
+  const handleEditColaborador = (updated: Colaborador) => {
+    setColaboradores(prev => prev.map(c => c.id === updated.id ? updated : c));
+  };
+
   const handlePromote = useCallback(async (id: number, novaFuncao: string, observacao: string) => {
     const today = new Date();
     const dd = String(today.getDate()).padStart(2, "0");
