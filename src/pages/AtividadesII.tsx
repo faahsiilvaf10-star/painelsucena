@@ -451,16 +451,7 @@ export default function AtividadesII() {
         photo_urls: photos.length > 0 ? photos : null,
       });
       
-      // Auto-lock after saving
-      if (!isGabiaoLocked) {
-        try {
-          await lockArea.mutateAsync("gabiao");
-        } catch (e) {
-          // Lock may already exist, ignore
-        }
-      }
-      
-      toast.success("Atividades salvas e bloqueadas com sucesso!");
+      toast.success("Atividades salvas com sucesso!");
     } catch (error: any) {
       toast.error("Erro ao salvar: " + error.message);
     }
