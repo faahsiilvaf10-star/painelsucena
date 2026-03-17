@@ -43,7 +43,7 @@ import { AIImproveButton } from "@/components/atividades/AIImproveButton";
 
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import MudasParaPlantarTab from "@/components/atividades/MudasParaPlantarTab";
-import { useMudasParaPlantar, useUpdateMudaParaPlantar } from "@/hooks/useMudasParaPlantar";
+import { useMudasParaPlantar, useUpdateMudaParaPlantar, useAddMudaParaPlantar } from "@/hooks/useMudasParaPlantar";
 import { TreePine } from "lucide-react";
 
 interface InvasoraEntry {
