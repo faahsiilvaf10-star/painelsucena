@@ -653,12 +653,57 @@ export default function Atividades() {
     else toast.error("Erro ao copiar relatório");
   };
 
+  const restoreStockFromReport = async (report: JardinagemReport) => {
+    const addBack = async (especie: string, qtd: number) => {
+      if (!especie || qtd <= 0) return;
+      const key = especie.trim().toUpperCase();
+      const items = mutableStockForRestore(key);
+      if (items.length > 0) {
+        // Add back to the first matching stock item
+        await updateEstoque.mutateAsync({
+          id: items[0].id,
+          quantidade: items[0].quantidade + qtd,
+        });
+      } else {
+        // Re-create stock entry if it was fully consumed
+        await addMudaParaPlantar.mutateAsync({
+          especie: especie.trim(),
+          quantidade: qtd,
+        });
+      }
+    };
+
+    // Restore main plantio
+    if (report.plantio_especie && report.plantio_unidade && report.plantio_unidade > 0) {
+      await addBack(report.plantio_especie, report.plantio_unidade);
+    }
+
+    // Restore extra plantio entries
+    const extras = report.extra_entries as Record<string, { value: string; faixa: string; berma: string; especie?: string }[]> | null;
+    if (extras?.plantio) {
+      for (const entry of extras.plantio) {
+        const qtd = entry.value ? parseInt(entry.value) : 0;
+        if (entry.especie && qtd > 0) {
+          await addBack(entry.especie, qtd);
+        }
+      }
+    }
+  };
+
+  const mutableStockForRestore = (key: string) => {
+    if (!estoqueData) return [];
+    return estoqueData.filter(item => item.especie.trim().toUpperCase() === key);
+  };
+
   const handleDelete = async () => {
     if (!existingReport) return;
     
     if (!confirm("Tem certeza que deseja excluir este registro?")) return;
 
     try {
+      // Restore stock before deleting
+      await restoreStockFromReport(existingReport as JardinagemReport);
+      
       await deleteReport.mutateAsync(existingReport.id);
       // Reset all form state after deletion
       setRocagem(""); setRocagemBerma(""); setRocagemFaixa("");
@@ -679,7 +724,7 @@ export default function Atividades() {
       setPhotos([]);
       setExtraEntries({});
       setLocalFaixa("FAIXA 2");
-      toast.success("Registro excluído!");
+      toast.success("Registro excluído e estoque restaurado!");
     } catch (error: any) {
       toast.error("Erro ao excluir: " + error.message);
     }
