@@ -486,7 +486,25 @@ export default function Atividades() {
         extra_entries: Object.keys(extraEntries).length > 0 ? extraEntries : null,
       });
       
-      toast.success("Atividades salvas com sucesso!");
+      // Deduct stock if plantio has species and quantity
+      const plantioQtd = plantio ? parseInt(plantio) : 0;
+      if (plantioEspecie && plantioQtd > 0) {
+        const stockEntry = estoqueByEspecie.get(plantioEspecie.trim().toUpperCase());
+        if (stockEntry) {
+          let remaining = plantioQtd;
+          for (const item of stockEntry.items) {
+            if (remaining <= 0) break;
+            const deduct = Math.min(remaining, item.quantidade);
+            await updateEstoque.mutateAsync({
+              id: item.id,
+              quantidade: item.quantidade - deduct,
+            });
+            remaining -= deduct;
+          }
+        }
+      }
+
+      toast.success("Atividades salvas e estoque atualizado!");
     } catch (error: any) {
       toast.error("Erro ao salvar: " + error.message);
     }
