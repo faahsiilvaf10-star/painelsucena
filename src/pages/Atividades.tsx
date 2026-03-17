@@ -335,6 +335,7 @@ export default function Atividades() {
       setPlantio(existingReport.plantio_unidade?.toString() || "");
       setPlantioBerma(existingReport.plantio_berma?.toString() || "");
       setPlantioFaixa(existingReport.plantio_faixa || "");
+      setPlantioEspecie((existingReport as any).plantio_especie || "");
       setLimpezaManual(existingReport.limpeza_manual_m2?.toString() || "");
       setLimpezaManualBerma(existingReport.limpeza_manual_berma?.toString() || "");
       setLimpezaManualFaixa(existingReport.limpeza_manual_faixa || "");
