@@ -720,10 +720,6 @@ export default function Atividades() {
             <MudasParaPlantarTab canEdit={canEdit} />
           </TabsContent>
 
-          <TabsContent value="mudas-plantar" className="mt-4">
-            <MudasParaPlantarTab canEdit={canEdit} />
-          </TabsContent>
-
           <TabsContent value="jardinagem" className="mt-4 space-y-4 sm:space-y-6">
 
         {/* Measurement Period Summary */}
