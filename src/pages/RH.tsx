@@ -550,6 +550,14 @@ const RH = () => {
                         {!permissionsLoading && canEditRH && (
                           <TableCell>
                             <div className="flex items-center gap-1">
+                              <Button
+                                variant="ghost"
+                                size="icon"
+                                className="h-8 w-8"
+                                onClick={(e) => { e.stopPropagation(); setEditingColaborador(colaborador); }}
+                              >
+                                <Pencil className="h-4 w-4" />
+                              </Button>
                               <PromotionDialog
                                 colaborador={colaborador}
                                 onPromote={handlePromote}
