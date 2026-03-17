@@ -22,6 +22,7 @@ import {
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { colaboradoresAtivos as initialColaboradores, funcoes, type Colaborador } from "@/data/efetivoData";
 import { AddEmployeeDialog } from "@/components/rh/AddEmployeeDialog";
+import { EditColaboradorDialog } from "@/components/rh/EditColaboradorDialog";
 import { DeleteEmployeeDialog } from "@/components/rh/DeleteEmployeeDialog";
 import { useRHPermissions } from "@/hooks/useRHPermissions";
 import { ExportEfetivoPdfButton } from "@/components/rh/ExportEfetivoPdfButton";
