@@ -486,41 +486,40 @@ export default function Atividades() {
         extra_entries: Object.keys(extraEntries).length > 0 ? extraEntries : null,
       });
       
+      // Build a mutable copy of stock quantities to track cumulative deductions
+      const mutableStock = new Map<string, { id: string; quantidade: number }[]>();
+      for (const [key, val] of estoqueByEspecie.entries()) {
+        mutableStock.set(key, val.items.map(item => ({ ...item })));
+      }
+
+      const deductFromStock = async (especie: string, qtd: number) => {
+        const items = mutableStock.get(especie.trim().toUpperCase());
+        if (!items || qtd <= 0) return;
+        let remaining = qtd;
+        for (const item of items) {
+          if (remaining <= 0) break;
+          const deduct = Math.min(remaining, item.quantidade);
+          if (deduct <= 0) continue;
+          item.quantidade -= deduct;
+          await updateEstoque.mutateAsync({
+            id: item.id,
+            quantidade: item.quantidade,
+          });
+          remaining -= deduct;
+        }
+      };
+
       // Deduct stock if plantio has species and quantity
       const plantioQtd = plantio ? parseInt(plantio) : 0;
       if (plantioEspecie && plantioQtd > 0) {
-        const stockEntry = estoqueByEspecie.get(plantioEspecie.trim().toUpperCase());
-        if (stockEntry) {
-          let remaining = plantioQtd;
-          for (const item of stockEntry.items) {
-            if (remaining <= 0) break;
-            const deduct = Math.min(remaining, item.quantidade);
-            await updateEstoque.mutateAsync({
-              id: item.id,
-              quantidade: item.quantidade - deduct,
-            });
-            remaining -= deduct;
-          }
-        }
+        await deductFromStock(plantioEspecie, plantioQtd);
       }
 
       // Deduct stock for extra plantio entries with species
       for (const entry of (extraEntries["plantio"] || [])) {
         const extraQtd = entry.value ? parseInt(entry.value) : 0;
         if (entry.especie && extraQtd > 0) {
-          const stockEntry = estoqueByEspecie.get(entry.especie.trim().toUpperCase());
-          if (stockEntry) {
-            let remaining = extraQtd;
-            for (const item of stockEntry.items) {
-              if (remaining <= 0) break;
-              const deduct = Math.min(remaining, item.quantidade);
-              await updateEstoque.mutateAsync({
-                id: item.id,
-                quantidade: item.quantidade - deduct,
-              });
-              remaining -= deduct;
-            }
-          }
+          await deductFromStock(entry.especie, extraQtd);
         }
       }
 
