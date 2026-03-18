@@ -1117,12 +1117,15 @@ const RelatorioPresenca = () => {
             {/* Editable Attendance by Area */}
             <div className="space-y-6">
               <Tabs defaultValue={defaultTab} className="w-full">
-                <TabsList className={`grid w-full ${showGabiaoTab && showRocagemTab ? 'grid-cols-2' : 'grid-cols-1'}`}>
+                <TabsList className={`grid w-full ${[showGabiaoTab, showRocagemTab, showAdminTab].filter(Boolean).length === 3 ? 'grid-cols-3' : [showGabiaoTab, showRocagemTab, showAdminTab].filter(Boolean).length === 2 ? 'grid-cols-2' : 'grid-cols-1'}`}>
                   {showGabiaoTab && (
                     <TabsTrigger value="gabiao">{EMOJI_ASTERISK_8} Área Gabião</TabsTrigger>
                   )}
                   {showRocagemTab && (
                     <TabsTrigger value="rocagem">{EMOJI_HERB} Roçagem e Podagem</TabsTrigger>
+                  )}
+                  {showAdminTab && (
+                    <TabsTrigger value="administrativo">📋 Administrativo</TabsTrigger>
                   )}
                 </TabsList>
                 {showGabiaoTab && (
@@ -1135,12 +1138,17 @@ const RelatorioPresenca = () => {
                     <AreaCard area="ROÇAGEM E PODAGEM" />
                   </TabsContent>
                 )}
+                {showAdminTab && (
+                  <TabsContent value="administrativo" className="mt-4">
+                    <AreaCard area="ADMINISTRATIVO" />
+                  </TabsContent>
+                )}
               </Tabs>
             </div>
 
             {/* Report Preview - Separated by Area */}
             <div className="space-y-6">
-              {/* Área Gabião Report - Hidden for Encarregado I */}
+              {/* Área Gabião Report */}
               {showGabiaoTab && (
                 <div className="bg-card rounded-xl border border-border/50 p-6">
                   <h2 className="font-semibold mb-4 text-lg">
@@ -1154,7 +1162,7 @@ const RelatorioPresenca = () => {
                 </div>
               )}
 
-              {/* Roçagem e Podagem Report - Hidden for Encarregado II */}
+              {/* Roçagem e Podagem Report */}
               {showRocagemTab && (
                 <div className="bg-card rounded-xl border border-border/50 p-6">
                   <h2 className="font-semibold mb-4 text-lg">
@@ -1162,6 +1170,20 @@ const RelatorioPresenca = () => {
                   </h2>
                   <Textarea
                     value={generateAreaReport("ROÇAGEM E PODAGEM")}
+                    readOnly
+                    className="min-h-[300px] font-mono text-sm whitespace-pre-wrap bg-muted/30"
+                  />
+                </div>
+              )}
+
+              {/* Administrativo Report */}
+              {showAdminTab && (
+                <div className="bg-card rounded-xl border border-border/50 p-6">
+                  <h2 className="font-semibold mb-4 text-lg">
+                    📋 Relatório Administrativo
+                  </h2>
+                  <Textarea
+                    value={generateAreaReport("ADMINISTRATIVO")}
                     readOnly
                     className="min-h-[300px] font-mono text-sm whitespace-pre-wrap bg-muted/30"
                   />
