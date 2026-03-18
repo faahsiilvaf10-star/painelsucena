@@ -70,6 +70,7 @@ const Auth = () => {
 
   const navigate = useNavigate();
   const { toast } = useToast();
+  const { settings } = useSiteSettings();
 
   // Fetch occupied cargos on mount
   useEffect(() => {
