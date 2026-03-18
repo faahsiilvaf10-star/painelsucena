@@ -70,50 +70,17 @@ export function MovementDialog({ item, open, onOpenChange }: MovementDialogProps
   const { data: equipment } = useEquipment();
   const [employeePopoverOpen, setEmployeePopoverOpen] = useState(false);
 
-  const rhLocalEmployees = useMemo(() => {
-    if (typeof window === "undefined") return [] as Array<{ name: string; role: string; department: string }>;
-    try {
-      const stored = localStorage.getItem("rh_colaboradores");
-      if (!stored) return [];
-      const parsed = JSON.parse(stored) as Array<{ nome?: string; funcao?: string; departamento?: string; setor?: string }>;
-      return parsed
-        .filter((p) => p?.nome)
-        .map((p) => ({
-          name: String(p.nome),
-          role: String(p.funcao || ""),
-          department: String(p.departamento || p.setor || ""),
-        }));
-    } catch {
-      return [];
-    }
-  }, [open]);
-
   const employeeOptions = useMemo(() => {
-    const byName = new Map<string, { value: string; name: string; role: string; department: string }>();
-
-    (employees || []).forEach((emp) => {
-      byName.set(emp.name.trim().toLowerCase(), {
+    return (employees || [])
+      .filter((emp) => emp.status === "active")
+      .map((emp) => ({
         value: emp.id,
         name: emp.name,
         role: emp.role || "",
         department: emp.department || "",
-      });
-    });
-
-    rhLocalEmployees.forEach((emp) => {
-      const key = emp.name.trim().toLowerCase();
-      if (!byName.has(key)) {
-        byName.set(key, {
-          value: `local:${encodeURIComponent(emp.name)}`,
-          name: emp.name,
-          role: emp.role,
-          department: emp.department,
-        });
-      }
-    });
-
-    return Array.from(byName.values()).sort((a, b) => a.name.localeCompare(b.name));
-  }, [employees, rhLocalEmployees]);
+      }))
+      .sort((a, b) => a.name.localeCompare(b.name));
+  }, [employees]);
 
   const form = useForm<FormData>({
     resolver: zodResolver(formSchema),
