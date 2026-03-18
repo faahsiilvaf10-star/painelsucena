@@ -59,6 +59,13 @@ const roleToArea: Record<string, string> = {
   "Mecânico Montador": "ROÇAGEM E PODAGEM",
   "Auxiliar de Elétrica": "ROÇAGEM E PODAGEM",
   Eletricista: "ROÇAGEM E PODAGEM",
+  "Aux Administrativo": "ADMINISTRATIVO",
+  "Auxiliar Administrativo": "ADMINISTRATIVO",
+  "Encarregado Geral": "ADMINISTRATIVO",
+  "Encarregado": "ADMINISTRATIVO",
+  "TST": "ADMINISTRATIVO",
+  "Técnico de Segurança": "ADMINISTRATIVO",
+  "Almoxarife": "ADMINISTRATIVO",
 };
 
 // All available roles
@@ -96,6 +103,16 @@ const roleLabels: Record<string, Record<string, string>> = {
     "Auxiliar de Elétrica": `${EMOJI_WORKER} Auxiliar de elétrica`,
     Eletricista: `${EMOJI_WORKER} Eletricista`,
   },
+  "ADMINISTRATIVO": {
+    "Aux Administrativo": `${EMOJI_WORKER} Aux Administrativo:`,
+    "Auxiliar Administrativo": `${EMOJI_WORKER} Auxiliar Administrativo:`,
+    "Encarregado Geral": `${EMOJI_WORKER} Encarregado Geral:`,
+    "Encarregado": `${EMOJI_WORKER} Encarregado:`,
+    "TST": `${EMOJI_WORKER} TST:`,
+    "Técnico de Segurança": `${EMOJI_WORKER} Técnico de Segurança:`,
+    "Almoxarife": `${EMOJI_WORKER} Almoxarife:`,
+    _other: `${EMOJI_WORKER}`,
+  },
 };
 
 const executionRoles: Record<string, string[]> = {
@@ -110,6 +127,15 @@ const executionRoles: Record<string, string[]> = {
     "Mecânico Montador",
     "Auxiliar de Elétrica",
     "Eletricista",
+  ],
+  "ADMINISTRATIVO": [
+    "Aux Administrativo",
+    "Auxiliar Administrativo",
+    "Encarregado Geral",
+    "Encarregado",
+    "TST",
+    "Técnico de Segurança",
+    "Almoxarife",
   ],
 };
 
@@ -126,6 +152,7 @@ const gabiaAjudantes = [
 const areaToLockType: Record<string, AreaType> = {
   "ÁREA GABIÃO": "gabiao",
   "ROÇAGEM E PODAGEM": "jardinagem",
+  "ADMINISTRATIVO": "administrativo",
 };
 
 const RelatorioPresenca = () => {
@@ -133,12 +160,12 @@ const RelatorioPresenca = () => {
     return getBrazilNorthTodayString();
   });
   const [copied, setCopied] = useState(false);
-  const [selectedArea, setSelectedArea] = useState<"all" | "ÁREA GABIÃO" | "ROÇAGEM E PODAGEM">("all");
+  const [selectedArea, setSelectedArea] = useState<"all" | "ÁREA GABIÃO" | "ROÇAGEM E PODAGEM" | "ADMINISTRATIVO">("all");
   const [dialogOpen, setDialogOpen] = useState(false);
   const [newEmployee, setNewEmployee] = useState({
     name: "",
     role: "",
-    area: "jardinagem" as "gabiao" | "jardinagem",
+    area: "jardinagem" as "gabiao" | "jardinagem" | "administrativo",
   });
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [rhSearch, setRhSearch] = useState("");
@@ -211,6 +238,7 @@ const RelatorioPresenca = () => {
   const userCargo = profile?.cargo;
   const showGabiaoTab = userCargo !== "encarregado_i"; // Hide for Encarregado I
   const showRocagemTab = userCargo !== "encarregado_ii"; // Hide for Encarregado II
+  const showAdminTab = true; // Always show Administrativo tab
   
   // Determine default tab based on visibility
   const defaultTab = useMemo(() => {
@@ -246,16 +274,24 @@ const RelatorioPresenca = () => {
     },
   });
 
-  // Filter RH employees not already in the employees table
+  // Filter RH employees not already in the employees table (from efetivoData)
   const filteredRhEmployees = useMemo(() => {
     if (!rhSearch.trim()) return [];
     const existingNames = new Set((allEmployees || []).map(e => e.name.toUpperCase()));
-    return rhColaboradores
+    
+    // Also include all active DB employees for search
+    const dbEmployees = (allEmployees || [])
+      .filter(e => e.status === "active" && e.name.toUpperCase().includes(rhSearch.toUpperCase()))
+      .map(e => ({ id: e.id as unknown as number, nome: e.name, funcao: e.role, fromDb: true }));
+    
+    const efetivoResults = rhColaboradores
       .filter(c => 
         !existingNames.has(c.nome.toUpperCase()) &&
         c.nome.toUpperCase().includes(rhSearch.toUpperCase())
       )
-      .slice(0, 10);
+      .map(c => ({ ...c, fromDb: false }));
+    
+    return [...dbEmployees, ...efetivoResults].slice(0, 15);
   }, [rhSearch, rhColaboradores, allEmployees]);
 
   const isLoading = recordsLoading || employeesLoading;
@@ -278,6 +314,7 @@ const RelatorioPresenca = () => {
     const employeeArea = (employee as Tables<"employees"> & { area?: string }).area;
     if (employeeArea === "gabiao") return "ÁREA GABIÃO";
     if (employeeArea === "jardinagem") return "ROÇAGEM E PODAGEM";
+    if (employeeArea === "administrativo") return "ADMINISTRATIVO";
     
     // Fallback to role-based logic for existing employees without area set
     if (employee.role === "Ajudante") {
@@ -292,11 +329,12 @@ const RelatorioPresenca = () => {
 
   // Group employees by area and role
   const groupedEmployees = useMemo(() => {
-    if (!allEmployees) return { "ÁREA GABIÃO": {}, "ROÇAGEM E PODAGEM": {} };
+    if (!allEmployees) return { "ÁREA GABIÃO": {}, "ROÇAGEM E PODAGEM": {}, "ADMINISTRATIVO": {} };
 
     const grouped: Record<string, Record<string, Tables<"employees">[]>> = {
       "ÁREA GABIÃO": {},
       "ROÇAGEM E PODAGEM": {},
+      "ADMINISTRATIVO": {},
     };
 
     allEmployees.forEach((emp) => {
@@ -347,7 +385,7 @@ const RelatorioPresenca = () => {
     }
   };
 
-  const handleSaveAreaReport = async (area: "ÁREA GABIÃO" | "ROÇAGEM E PODAGEM") => {
+  const handleSaveAreaReport = async (area: "ÁREA GABIÃO" | "ROÇAGEM E PODAGEM" | "ADMINISTRATIVO") => {
     const lockType = areaToLockType[area];
     
     try {
@@ -380,7 +418,7 @@ const RelatorioPresenca = () => {
           efetivo_gabiao_text: efetivoGabiaoText,
           efetivo_jardinagem_text: "",
         });
-      } else {
+      } else if (area === "ROÇAGEM E PODAGEM") {
         const efetivoJardinagemText = generateAreaReportForRDO("ROÇAGEM E PODAGEM");
         await saveEfetivoToRDO.mutateAsync({
           report_date: selectedDate,
@@ -388,6 +426,7 @@ const RelatorioPresenca = () => {
           efetivo_jardinagem_text: efetivoJardinagemText,
         });
       }
+      // ADMINISTRATIVO doesn't save to RDO
 
       // Lock the specific area
       await lockArea.mutateAsync(lockType);
@@ -397,11 +436,12 @@ const RelatorioPresenca = () => {
     }
   };
 
-  const handleUnlockAreaReport = async (area: "ÁREA GABIÃO" | "ROÇAGEM E PODAGEM") => {
+  const handleUnlockAreaReport = async (area: "ÁREA GABIÃO" | "ROÇAGEM E PODAGEM" | "ADMINISTRATIVO") => {
     const lockType = areaToLockType[area];
+    const areaNames: Record<string, string> = { "ÁREA GABIÃO": "Gabião", "ROÇAGEM E PODAGEM": "Jardinagem", "ADMINISTRATIVO": "Administrativo" };
     try {
       await unlockArea.mutateAsync(lockType);
-      toast.success(`Área ${area === "ÁREA GABIÃO" ? "Gabião" : "Jardinagem"} desbloqueada.`);
+      toast.success(`Área ${areaNames[area]} desbloqueada.`);
     } catch {
       toast.error("Erro ao desbloquear relatório");
     }
@@ -451,32 +491,42 @@ const RelatorioPresenca = () => {
   };
 
   // Generate report for a specific area
-  const generateAreaReport = (area: "ÁREA GABIÃO" | "ROÇAGEM E PODAGEM", includeDate: boolean = true) => {
+  const generateAreaReport = (area: "ÁREA GABIÃO" | "ROÇAGEM E PODAGEM" | "ADMINISTRATIVO", includeDate: boolean = true) => {
     if (!allEmployees) return "";
 
-    const support = area === "ÁREA GABIÃO" ? supportGabiao : supportRocagem;
-    const header = area === "ÁREA GABIÃO" 
-      ? `${EMOJI_ASTERISK_8}  ÁREA GABIÃO  ${EMOJI_ASTERISK_8}` 
-      : `${EMOJI_HERB} ROÇAGEM E PODAGEM ${EMOJI_HERB}`;
+    const areaHeaders: Record<string, string> = {
+      "ÁREA GABIÃO": `${EMOJI_ASTERISK_8}  ÁREA GABIÃO  ${EMOJI_ASTERISK_8}`,
+      "ROÇAGEM E PODAGEM": `${EMOJI_HERB} ROÇAGEM E PODAGEM ${EMOJI_HERB}`,
+      "ADMINISTRATIVO": `📋 ADMINISTRATIVO 📋`,
+    };
+    const header = areaHeaders[area];
 
     let report = "";
 
-    // Add date for both areas
     if (includeDate) {
       report += `${EMOJI_CALENDAR} Data: ${formatDateForReport(selectedDate)}\n\n`;
     }
 
     report += `${header}\n\n`;
-    report += `${EMOJI_STAR_8}EQUIPE DE SUPORTE${EMOJI_STAR_8}\n\n`;
-    report += `${EMOJI_PERSON_RAISING_HAND} TST : ${support.tst}\n\n`;
-    report += `${EMOJI_PERSON_RAISING_HAND} ENC GERAL: ${support.encGeral}\n\n`;
-    report += `${EMOJI_PERSON_RAISING_HAND} ENC: ${support.enc}\n\n`;
-    report += `${EMOJI_STAR_8}EQUIPE DE EXECUÇÃO${EMOJI_STAR_8}\n\n`;
 
-    const roles = executionRoles[area];
+    // Only show support team for non-administrative areas
+    if (area !== "ADMINISTRATIVO") {
+      const support = area === "ÁREA GABIÃO" ? supportGabiao : supportRocagem;
+      report += `${EMOJI_STAR_8}EQUIPE DE SUPORTE${EMOJI_STAR_8}\n\n`;
+      report += `${EMOJI_PERSON_RAISING_HAND} TST : ${support.tst}\n\n`;
+      report += `${EMOJI_PERSON_RAISING_HAND} ENC GERAL: ${support.encGeral}\n\n`;
+      report += `${EMOJI_PERSON_RAISING_HAND} ENC: ${support.enc}\n\n`;
+    }
+
+    report += `${EMOJI_STAR_8}EQUIPE${area === "ADMINISTRATIVO" ? "" : " DE EXECUÇÃO"}${EMOJI_STAR_8}\n\n`;
+
+    // For ADMINISTRATIVO, use dynamic roles from grouped employees
+    const roles = area === "ADMINISTRATIVO" 
+      ? Object.keys(groupedEmployees[area] || {})
+      : executionRoles[area];
     roles.forEach((role) => {
-      const label = roleLabels[area][role];
-      const employees = groupedEmployees[area][role] || [];
+      const label = roleLabels[area]?.[role] || `${EMOJI_WORKER} ${role}:`;
+      const employees = groupedEmployees[area]?.[role] || [];
       if (employees.length > 0) {
         report += `${label}\n\n`;
         employees.forEach((emp) => {
@@ -605,7 +655,7 @@ const RelatorioPresenca = () => {
     }
   };
 
-  const EmployeeRow = ({ employee, area }: { employee: Tables<"employees">; area: "ÁREA GABIÃO" | "ROÇAGEM E PODAGEM" }) => {
+  const EmployeeRow = ({ employee, area }: { employee: Tables<"employees">; area: "ÁREA GABIÃO" | "ROÇAGEM E PODAGEM" | "ADMINISTRATIVO" }) => {
     const present = isPresent(employee.id);
     const lockType = areaToLockType[area];
     const locked = isAreaLocked(lockType);
@@ -651,7 +701,7 @@ const RelatorioPresenca = () => {
   }: {
     label: string;
     employees: Tables<"employees">[];
-    area: "ÁREA GABIÃO" | "ROÇAGEM E PODAGEM";
+    area: "ÁREA GABIÃO" | "ROÇAGEM E PODAGEM" | "ADMINISTRATIVO";
   }) => {
     if (employees.length === 0) return null;
     return (
@@ -712,13 +762,19 @@ const RelatorioPresenca = () => {
     );
   };
 
-  const AreaCard = ({ area }: { area: "ÁREA GABIÃO" | "ROÇAGEM E PODAGEM" }) => {
-    const emoji = area === "ÁREA GABIÃO" ? EMOJI_ASTERISK_8 : EMOJI_HERB;
-    const support = area === "ÁREA GABIÃO" ? supportGabiao : supportRocagem;
-    const setSupport = area === "ÁREA GABIÃO" ? setSupportGabiao : setSupportRocagem;
+  const AreaCard = ({ area }: { area: "ÁREA GABIÃO" | "ROÇAGEM E PODAGEM" | "ADMINISTRATIVO" }) => {
+    const areaEmojis: Record<string, string> = { "ÁREA GABIÃO": EMOJI_ASTERISK_8, "ROÇAGEM E PODAGEM": EMOJI_HERB, "ADMINISTRATIVO": "📋" };
+    const areaNames: Record<string, string> = { "ÁREA GABIÃO": "Gabião", "ROÇAGEM E PODAGEM": "Jardinagem", "ADMINISTRATIVO": "Administrativo" };
+    const emoji = areaEmojis[area];
     const lockType = areaToLockType[area];
     const locked = isAreaLocked(lockType);
     const canUnlock = canUnlockArea(lockType);
+    const isAdminArea = area === "ADMINISTRATIVO";
+
+    // For ADMINISTRATIVO, dynamically get all roles present in grouped employees
+    const areaRoles = isAdminArea
+      ? Object.keys(groupedEmployees[area] || {})
+      : executionRoles[area];
 
     return (
       <div className="bg-card rounded-xl border border-border/50 p-6">
@@ -733,15 +789,27 @@ const RelatorioPresenca = () => {
             </div>
           )}
         </div>
-        <SupportTeamEditor support={support} setSupport={setSupport} />
-        <p className="text-sm font-semibold text-center mb-4">
-          {EMOJI_STAR_8} EQUIPE DE EXECUÇÃO {EMOJI_STAR_8}
-        </p>
-        {executionRoles[area].map((role) => (
+        {!isAdminArea && (
+          <>
+            <SupportTeamEditor 
+              support={area === "ÁREA GABIÃO" ? supportGabiao : supportRocagem} 
+              setSupport={area === "ÁREA GABIÃO" ? setSupportGabiao : setSupportRocagem} 
+            />
+            <p className="text-sm font-semibold text-center mb-4">
+              {EMOJI_STAR_8} EQUIPE DE EXECUÇÃO {EMOJI_STAR_8}
+            </p>
+          </>
+        )}
+        {isAdminArea && (
+          <p className="text-sm font-semibold text-center mb-4">
+            {EMOJI_STAR_8} EQUIPE {EMOJI_STAR_8}
+          </p>
+        )}
+        {areaRoles.map((role) => (
           <RoleSection
             key={role}
-            label={roleLabels[area][role]}
-            employees={groupedEmployees[area][role] || []}
+            label={roleLabels[area]?.[role] || `${EMOJI_WORKER} ${role}:`}
+            employees={groupedEmployees[area]?.[role] || []}
             area={area}
           />
         ))}
@@ -759,7 +827,7 @@ const RelatorioPresenca = () => {
               ) : (
                 <Save className="w-4 h-4" />
               )}
-              Salvar {area === "ÁREA GABIÃO" ? "Gabião" : "Jardinagem"}
+              Salvar {areaNames[area]}
             </Button>
           ) : (
             <div className="flex flex-col gap-2">
@@ -779,7 +847,7 @@ const RelatorioPresenca = () => {
                   ) : (
                     <Unlock className="w-4 h-4" />
                   )}
-                  Desbloquear {area === "ÁREA GABIÃO" ? "Gabião" : "Jardinagem"}
+                  Desbloquear {areaNames[area]}
                 </Button>
               )}
             </div>
@@ -830,18 +898,18 @@ const RelatorioPresenca = () => {
                   />
                   {showRhList && filteredRhEmployees.length > 0 && (
                     <div className="absolute z-50 w-full mt-1 bg-popover border border-border rounded-lg shadow-lg max-h-48 overflow-y-auto">
-                      {filteredRhEmployees.map((emp) => (
+                      {filteredRhEmployees.map((emp, idx) => (
                         <button
-                          key={emp.id}
+                          key={`${emp.id}-${idx}`}
                           type="button"
                           className="w-full text-left px-3 py-2 hover:bg-accent text-sm transition-colors"
                           onClick={() => {
-                            const mappedRole = mapFuncaoToRole(emp.funcao);
+                            const role = (emp as any).fromDb ? emp.funcao : mapFuncaoToRole(emp.funcao);
                             setNewEmployee((prev) => ({
                               ...prev,
                               name: emp.nome,
-                              role: mappedRole,
-                              area: mapRoleToArea(mappedRole),
+                              role: role,
+                              area: mapRoleToArea(role),
                             }));
                             setRhSearch("");
                             setShowRhList(false);
@@ -849,6 +917,7 @@ const RelatorioPresenca = () => {
                         >
                           <span className="font-medium">{emp.nome}</span>
                           <span className="text-muted-foreground ml-2 text-xs">({emp.funcao})</span>
+                          {(emp as any).fromDb && <span className="ml-1 text-xs text-primary">[RH]</span>}
                         </button>
                       ))}
                     </div>
@@ -921,6 +990,7 @@ const RelatorioPresenca = () => {
                     <SelectContent className="bg-popover">
                       <SelectItem value="gabiao">Área Gabião</SelectItem>
                       <SelectItem value="jardinagem">Roçagem e Podagem</SelectItem>
+                      <SelectItem value="administrativo">Administrativo</SelectItem>
                     </SelectContent>
                   </Select>
                 </div>
@@ -1013,8 +1083,34 @@ const RelatorioPresenca = () => {
                     <Copy className="w-4 h-4" />
                     Copiar Roçagem
                   </Button>
-
-
+                </>
+              )}
+              {showAdminTab && (
+                <>
+                  <Button
+                    onClick={async () => {
+                      const ok = await copyAndShareWhatsApp(generateAreaReport("ADMINISTRATIVO"));
+                      if (ok) toast.success("Administrativo enviado para WhatsApp!");
+                    }}
+                    variant="outline"
+                    size="sm"
+                    className="gap-2"
+                  >
+                    <MessageCircle className="w-4 h-4 text-[#25D366]" />
+                    WhatsApp Admin
+                  </Button>
+                  <Button
+                    onClick={async () => {
+                      const ok = await copyToClipboard(generateAreaReport("ADMINISTRATIVO"));
+                      if (ok) toast.success("Relatório Administrativo copiado!");
+                    }}
+                    variant="outline"
+                    size="sm"
+                    className="gap-2"
+                  >
+                    <Copy className="w-4 h-4" />
+                    Copiar Admin
+                  </Button>
                 </>
               )}
             </div>
@@ -1030,12 +1126,15 @@ const RelatorioPresenca = () => {
             {/* Editable Attendance by Area */}
             <div className="space-y-6">
               <Tabs defaultValue={defaultTab} className="w-full">
-                <TabsList className={`grid w-full ${showGabiaoTab && showRocagemTab ? 'grid-cols-2' : 'grid-cols-1'}`}>
+                <TabsList className={`grid w-full ${[showGabiaoTab, showRocagemTab, showAdminTab].filter(Boolean).length === 3 ? 'grid-cols-3' : [showGabiaoTab, showRocagemTab, showAdminTab].filter(Boolean).length === 2 ? 'grid-cols-2' : 'grid-cols-1'}`}>
                   {showGabiaoTab && (
                     <TabsTrigger value="gabiao">{EMOJI_ASTERISK_8} Área Gabião</TabsTrigger>
                   )}
                   {showRocagemTab && (
                     <TabsTrigger value="rocagem">{EMOJI_HERB} Roçagem e Podagem</TabsTrigger>
+                  )}
+                  {showAdminTab && (
+                    <TabsTrigger value="administrativo">📋 Administrativo</TabsTrigger>
                   )}
                 </TabsList>
                 {showGabiaoTab && (
@@ -1048,12 +1147,17 @@ const RelatorioPresenca = () => {
                     <AreaCard area="ROÇAGEM E PODAGEM" />
                   </TabsContent>
                 )}
+                {showAdminTab && (
+                  <TabsContent value="administrativo" className="mt-4">
+                    <AreaCard area="ADMINISTRATIVO" />
+                  </TabsContent>
+                )}
               </Tabs>
             </div>
 
             {/* Report Preview - Separated by Area */}
             <div className="space-y-6">
-              {/* Área Gabião Report - Hidden for Encarregado I */}
+              {/* Área Gabião Report */}
               {showGabiaoTab && (
                 <div className="bg-card rounded-xl border border-border/50 p-6">
                   <h2 className="font-semibold mb-4 text-lg">
@@ -1067,7 +1171,7 @@ const RelatorioPresenca = () => {
                 </div>
               )}
 
-              {/* Roçagem e Podagem Report - Hidden for Encarregado II */}
+              {/* Roçagem e Podagem Report */}
               {showRocagemTab && (
                 <div className="bg-card rounded-xl border border-border/50 p-6">
                   <h2 className="font-semibold mb-4 text-lg">
@@ -1075,6 +1179,20 @@ const RelatorioPresenca = () => {
                   </h2>
                   <Textarea
                     value={generateAreaReport("ROÇAGEM E PODAGEM")}
+                    readOnly
+                    className="min-h-[300px] font-mono text-sm whitespace-pre-wrap bg-muted/30"
+                  />
+                </div>
+              )}
+
+              {/* Administrativo Report */}
+              {showAdminTab && (
+                <div className="bg-card rounded-xl border border-border/50 p-6">
+                  <h2 className="font-semibold mb-4 text-lg">
+                    📋 Relatório Administrativo
+                  </h2>
+                  <Textarea
+                    value={generateAreaReport("ADMINISTRATIVO")}
                     readOnly
                     className="min-h-[300px] font-mono text-sm whitespace-pre-wrap bg-muted/30"
                   />

@@ -3,7 +3,7 @@ import { supabase } from "@/integrations/supabase/client";
 import { useAuth } from "./useAuth";
 import { useIsAdmin } from "./useUserRole";
 
-export type AreaType = "gabiao" | "jardinagem";
+export type AreaType = "gabiao" | "jardinagem" | "administrativo";
 
 export interface AreaLockData {
   id: string;
