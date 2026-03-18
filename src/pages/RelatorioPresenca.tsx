@@ -898,18 +898,18 @@ const RelatorioPresenca = () => {
                   />
                   {showRhList && filteredRhEmployees.length > 0 && (
                     <div className="absolute z-50 w-full mt-1 bg-popover border border-border rounded-lg shadow-lg max-h-48 overflow-y-auto">
-                      {filteredRhEmployees.map((emp) => (
+                      {filteredRhEmployees.map((emp, idx) => (
                         <button
-                          key={emp.id}
+                          key={`${emp.id}-${idx}`}
                           type="button"
                           className="w-full text-left px-3 py-2 hover:bg-accent text-sm transition-colors"
                           onClick={() => {
-                            const mappedRole = mapFuncaoToRole(emp.funcao);
+                            const role = (emp as any).fromDb ? emp.funcao : mapFuncaoToRole(emp.funcao);
                             setNewEmployee((prev) => ({
                               ...prev,
                               name: emp.nome,
-                              role: mappedRole,
-                              area: mapRoleToArea(mappedRole),
+                              role: role,
+                              area: mapRoleToArea(role),
                             }));
                             setRhSearch("");
                             setShowRhList(false);
@@ -917,6 +917,7 @@ const RelatorioPresenca = () => {
                         >
                           <span className="font-medium">{emp.nome}</span>
                           <span className="text-muted-foreground ml-2 text-xs">({emp.funcao})</span>
+                          {(emp as any).fromDb && <span className="ml-1 text-xs text-primary">[RH]</span>}
                         </button>
                       ))}
                     </div>
