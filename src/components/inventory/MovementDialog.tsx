@@ -112,8 +112,7 @@ export function MovementDialog({ item, open, onOpenChange }: MovementDialogProps
   const getDestinationName = (destType: string, destId: string): string => {
     if (destType === "employee") {
       const selected = employeeOptions.find((e) => e.value === destId);
-      if (selected) return selected.name;
-      if (destId.startsWith("local:")) return decodeURIComponent(destId.replace("local:", ""));
+      if (selected) return `${selected.name} - ${selected.role}`;
       return "";
     }
     if (destType === "equipment") {
