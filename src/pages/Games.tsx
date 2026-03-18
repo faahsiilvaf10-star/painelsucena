@@ -13,7 +13,7 @@ import { CheckersGame } from "@/components/games/CheckersGame";
 import { DominoGame } from "@/components/games/DominoGame";
 import { DoubleGame } from "@/components/games/DoubleGame";
 import { AviatorGame } from "@/components/games/AviatorGame";
-import { TigrinhoGame } from "@/components/games/TigrinhoGame";
+
 import { GameRankings } from "@/components/games/GameRankings";
 
 type ActiveGame = null | "recycling" | "epi" | "rocagem" | "gabiao" | "checkers" | "domino" | "double" | "aviator" | "tigrinho";
