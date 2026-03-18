@@ -55,11 +55,19 @@ const RH = () => {
     const stored = localStorage.getItem("rh_colaboradores");
     const deletedRaw = localStorage.getItem("rh_deleted_ids");
     const deletedIds: number[] = deletedRaw ? JSON.parse(deletedRaw) : [];
+    const wasImported = localStorage.getItem("rh_imported") === "true";
 
     if (stored) {
       try {
         const parsed: Colaborador[] = JSON.parse(stored);
-        // Merge: keep localStorage edits but update validade from source when periodico exists
+
+        // If data came from an Excel import, use it as-is (it's the source of truth)
+        if (wasImported) {
+          setColaboradores(parsed);
+          return;
+        }
+
+        // Otherwise merge with hardcoded source data
         const merged = initialColaboradores
           .filter(source => !deletedIds.includes(source.id))
           .map(source => {
@@ -85,11 +93,9 @@ const RH = () => {
         const extraIds = parsed.filter(p => !initialColaboradores.find(s => s.id === p.id) && !deletedIds.includes(p.id));
         setColaboradores([...merged, ...extraIds]);
       } catch {
-        // Use initial data if parse fails, still filtering deleted
         setColaboradores(initialColaboradores.filter(s => !deletedIds.includes(s.id)));
       }
     } else {
-      // No stored data — use initial minus deleted
       setColaboradores(initialColaboradores.filter(s => !deletedIds.includes(s.id)));
     }
   }, []);
