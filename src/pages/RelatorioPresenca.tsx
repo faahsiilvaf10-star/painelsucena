@@ -274,16 +274,24 @@ const RelatorioPresenca = () => {
     },
   });
 
-  // Filter RH employees not already in the employees table
+  // Filter RH employees not already in the employees table (from efetivoData)
   const filteredRhEmployees = useMemo(() => {
     if (!rhSearch.trim()) return [];
     const existingNames = new Set((allEmployees || []).map(e => e.name.toUpperCase()));
-    return rhColaboradores
+    
+    // Also include all active DB employees for search
+    const dbEmployees = (allEmployees || [])
+      .filter(e => e.status === "active" && e.name.toUpperCase().includes(rhSearch.toUpperCase()))
+      .map(e => ({ id: e.id as unknown as number, nome: e.name, funcao: e.role, fromDb: true }));
+    
+    const efetivoResults = rhColaboradores
       .filter(c => 
         !existingNames.has(c.nome.toUpperCase()) &&
         c.nome.toUpperCase().includes(rhSearch.toUpperCase())
       )
-      .slice(0, 10);
+      .map(c => ({ ...c, fromDb: false }));
+    
+    return [...dbEmployees, ...efetivoResults].slice(0, 15);
   }, [rhSearch, rhColaboradores, allEmployees]);
 
   const isLoading = recordsLoading || employeesLoading;
