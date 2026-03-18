@@ -411,6 +411,40 @@ const Admin = () => {
               </CardContent>
             </Card>
 
+            {/* Signup Button Toggle */}
+            <Card>
+              <CardHeader>
+                <CardTitle className="flex items-center gap-2">
+                  <UserCheck className="w-5 h-5" />
+                  Botão de Cadastro na Tela de Login
+                </CardTitle>
+                <CardDescription>
+                  Exibe ou oculta o botão de cadastro de novos usuários na tela de login.
+                </CardDescription>
+              </CardHeader>
+              <CardContent>
+                <div className="flex items-center gap-3">
+                  <Switch
+                    id="show-signup"
+                    checked={settings.show_signup_button}
+                    onCheckedChange={(checked) => {
+                      updateSettings.mutate(
+                        { show_signup_button: checked },
+                        {
+                          onSuccess: () => toast.success(checked ? "Botão de cadastro habilitado" : "Botão de cadastro ocultado"),
+                          onError: () => toast.error("Erro ao atualizar configuração"),
+                        }
+                      );
+                    }}
+                    disabled={updateSettings.isPending}
+                  />
+                  <Label htmlFor="show-signup" className="cursor-pointer">
+                    {settings.show_signup_button ? "Visível" : "Oculto"}
+                  </Label>
+                </div>
+              </CardContent>
+            </Card>
+
             {/* Double Balance Manager */}
             <DoubleBalanceManager />
 

@@ -513,6 +513,19 @@ const Auth = () => {
           </Button>
         </form>
 
+        {/* Toggle signup / login */}
+        {(settings.show_signup_button || !isLogin) && (
+          <div className="mt-4 text-center">
+            <button
+              type="button"
+              onClick={() => setIsLogin(!isLogin)}
+              className="text-white/70 hover:text-white text-xs underline underline-offset-2 transition-colors"
+            >
+              {isLogin ? "Criar uma conta" : "Já tenho uma conta"}
+            </button>
+          </div>
+        )}
+
       </div>
     </div>
   );
