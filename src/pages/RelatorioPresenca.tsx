@@ -103,6 +103,16 @@ const roleLabels: Record<string, Record<string, string>> = {
     "Auxiliar de Elétrica": `${EMOJI_WORKER} Auxiliar de elétrica`,
     Eletricista: `${EMOJI_WORKER} Eletricista`,
   },
+  "ADMINISTRATIVO": {
+    "Aux Administrativo": `${EMOJI_WORKER} Aux Administrativo:`,
+    "Auxiliar Administrativo": `${EMOJI_WORKER} Auxiliar Administrativo:`,
+    "Encarregado Geral": `${EMOJI_WORKER} Encarregado Geral:`,
+    "Encarregado": `${EMOJI_WORKER} Encarregado:`,
+    "TST": `${EMOJI_WORKER} TST:`,
+    "Técnico de Segurança": `${EMOJI_WORKER} Técnico de Segurança:`,
+    "Almoxarife": `${EMOJI_WORKER} Almoxarife:`,
+    _other: `${EMOJI_WORKER}`,
+  },
 };
 
 const executionRoles: Record<string, string[]> = {
