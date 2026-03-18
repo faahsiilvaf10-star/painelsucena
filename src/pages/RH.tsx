@@ -53,35 +53,44 @@ const RH = () => {
   // Load from localStorage on mount, merging with source data to pick up new ASO fields
   useEffect(() => {
     const stored = localStorage.getItem("rh_colaboradores");
+    const deletedRaw = localStorage.getItem("rh_deleted_ids");
+    const deletedIds: number[] = deletedRaw ? JSON.parse(deletedRaw) : [];
+
     if (stored) {
       try {
         const parsed: Colaborador[] = JSON.parse(stored);
         // Merge: keep localStorage edits but update validade from source when periodico exists
-        const merged = initialColaboradores.map(source => {
-          const saved = parsed.find(p => p.id === source.id);
-          if (saved) {
-            const savedAso = saved.aso;
-            const sourceAso = source.aso;
-            const mergedAso: typeof sourceAso = (savedAso || sourceAso)
-              ? {
-                  admissional: savedAso?.admissional || sourceAso?.admissional || "",
-                  validade: (sourceAso?.periodico && sourceAso?.validade) ? sourceAso.validade : (savedAso?.validade || sourceAso?.validade || ""),
-                  periodico: savedAso?.periodico || sourceAso?.periodico,
-                  retornoTrabalho: savedAso?.retornoTrabalho || sourceAso?.retornoTrabalho,
-                  mudancaRisco: savedAso?.mudancaRisco || sourceAso?.mudancaRisco,
-                  observacao: savedAso?.observacao || sourceAso?.observacao,
-                }
-              : undefined;
-            return { ...source, ...saved, aso: mergedAso };
-          }
-          return source;
-        });
-        // Add any extra employees from localStorage not in source
-        const extraIds = parsed.filter(p => !initialColaboradores.find(s => s.id === p.id));
+        const merged = initialColaboradores
+          .filter(source => !deletedIds.includes(source.id))
+          .map(source => {
+            const saved = parsed.find(p => p.id === source.id);
+            if (saved) {
+              const savedAso = saved.aso;
+              const sourceAso = source.aso;
+              const mergedAso: typeof sourceAso = (savedAso || sourceAso)
+                ? {
+                    admissional: savedAso?.admissional || sourceAso?.admissional || "",
+                    validade: (sourceAso?.periodico && sourceAso?.validade) ? sourceAso.validade : (savedAso?.validade || sourceAso?.validade || ""),
+                    periodico: savedAso?.periodico || sourceAso?.periodico,
+                    retornoTrabalho: savedAso?.retornoTrabalho || sourceAso?.retornoTrabalho,
+                    mudancaRisco: savedAso?.mudancaRisco || sourceAso?.mudancaRisco,
+                    observacao: savedAso?.observacao || sourceAso?.observacao,
+                  }
+                : undefined;
+              return { ...source, ...saved, aso: mergedAso };
+            }
+            return source;
+          });
+        // Add any extra employees from localStorage not in source (and not deleted)
+        const extraIds = parsed.filter(p => !initialColaboradores.find(s => s.id === p.id) && !deletedIds.includes(p.id));
         setColaboradores([...merged, ...extraIds]);
       } catch {
-        // Use initial data if parse fails
+        // Use initial data if parse fails, still filtering deleted
+        setColaboradores(initialColaboradores.filter(s => !deletedIds.includes(s.id)));
       }
+    } else {
+      // No stored data — use initial minus deleted
+      setColaboradores(initialColaboradores.filter(s => !deletedIds.includes(s.id)));
     }
   }, []);
 
@@ -105,6 +114,13 @@ const RH = () => {
 
   const handleDeleteEmployee = (id: number) => {
     setColaboradores(prev => prev.filter(c => c.id !== id));
+    // Persist deleted IDs so they don't reappear from hardcoded source
+    const deletedRaw = localStorage.getItem("rh_deleted_ids");
+    const deletedIds: number[] = deletedRaw ? JSON.parse(deletedRaw) : [];
+    if (!deletedIds.includes(id)) {
+      deletedIds.push(id);
+      localStorage.setItem("rh_deleted_ids", JSON.stringify(deletedIds));
+    }
     toast.success("Colaborador removido com sucesso!");
   };
 
