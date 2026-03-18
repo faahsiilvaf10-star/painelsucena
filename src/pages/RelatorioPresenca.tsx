@@ -377,7 +377,7 @@ const RelatorioPresenca = () => {
     }
   };
 
-  const handleSaveAreaReport = async (area: "ÁREA GABIÃO" | "ROÇAGEM E PODAGEM") => {
+  const handleSaveAreaReport = async (area: "ÁREA GABIÃO" | "ROÇAGEM E PODAGEM" | "ADMINISTRATIVO") => {
     const lockType = areaToLockType[area];
     
     try {
@@ -410,7 +410,7 @@ const RelatorioPresenca = () => {
           efetivo_gabiao_text: efetivoGabiaoText,
           efetivo_jardinagem_text: "",
         });
-      } else {
+      } else if (area === "ROÇAGEM E PODAGEM") {
         const efetivoJardinagemText = generateAreaReportForRDO("ROÇAGEM E PODAGEM");
         await saveEfetivoToRDO.mutateAsync({
           report_date: selectedDate,
@@ -418,6 +418,7 @@ const RelatorioPresenca = () => {
           efetivo_jardinagem_text: efetivoJardinagemText,
         });
       }
+      // ADMINISTRATIVO doesn't save to RDO
 
       // Lock the specific area
       await lockArea.mutateAsync(lockType);
