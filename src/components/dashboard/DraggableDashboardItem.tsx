@@ -21,7 +21,7 @@ export const DraggableDashboardItem = ({
     transform,
     transition,
     isDragging,
-  } = useSortable({ id, disabled: !isEditMode });
+  } = useSortable({ id, disabled: !isEditMode } as any);
 
   const style = {
     transform: CSS.Transform.toString(transform),

@@ -1,15 +1,16 @@
 import { useEffect, useState } from "react";
 import { Navigate, useLocation, useNavigate } from "react-router-dom";
 import { supabase } from "@/integrations/supabase/client";
-import { Session } from "@supabase/supabase-js";
 import { useOfflineDriverRedirect } from "@/hooks/useOfflineDriverRedirect";
 
 interface ProtectedRouteProps {
   children: React.ReactNode;
 }
 
+type Session = any;
+
 // Driver roles that should be redirected to the driver panel
-const DRIVER_ROLES = ['motorista_pipa', 'motorista_munk'];
+const DRIVER_ROLES = ["motorista_pipa", "motorista_munk"];
 
 const SESSION_TAB_KEY = "session_tab_active";
 
@@ -22,65 +23,71 @@ const ProtectedRoute = ({ children }: ProtectedRouteProps) => {
   const [hasAvatar, setHasAvatar] = useState<boolean | null>(null);
   const location = useLocation();
   const navigate = useNavigate();
-  
+
   // Hook for automatic offline redirect for drivers on mobile
   useOfflineDriverRedirect();
 
   useEffect(() => {
-    let isInitialLoad = true;
+    const authClient = supabase.auth as any;
 
-    const { data: { subscription } } = supabase.auth.onAuthStateChange(
-      (event, currentSession) => {
-        setSession(currentSession);
-        setLoading(false);
-        
-        // Redirect to auth on sign out
-        if (event === 'SIGNED_OUT') {
-          setUserCargo(null);
-          setCargoChecked(false);
-          sessionStorage.removeItem(SESSION_TAB_KEY);
-          navigate('/auth', { replace: true });
-        }
-        
-        // On fresh login, mark tab active and fetch cargo (no auto-logout check)
-        if (event === 'SIGNED_IN' && currentSession?.user) {
-          sessionStorage.setItem(SESSION_TAB_KEY, "1");
-          setTimeout(() => {
-            fetchUserCargo(currentSession.user.id);
-          }, 0);
-        }
+    const {
+      data: { subscription },
+    } = authClient.onAuthStateChange((event: string, currentSession: Session | null) => {
+      setSession(currentSession);
+      setLoading(false);
+
+      // Redirect to auth on sign out
+      if (event === "SIGNED_OUT") {
+        setUserCargo(null);
+        setCargoChecked(false);
+        sessionStorage.removeItem(SESSION_TAB_KEY);
+        navigate("/auth", { replace: true });
       }
-    );
+
+      // On fresh login, mark tab active and fetch cargo (no auto-logout check)
+      if (event === "SIGNED_IN" && currentSession?.user) {
+        sessionStorage.setItem(SESSION_TAB_KEY, "1");
+        setTimeout(() => {
+          fetchUserCargo(currentSession.user.id);
+        }, 0);
+      }
+    });
 
     // Check for existing session on page load
     const initSession = async () => {
-      const { data: { session: existingSession } } = await supabase.auth.getSession();
-      
+      const {
+        data: { session: existingSession },
+      } = await authClient.getSession();
+
       if (existingSession) {
         setSession(existingSession);
         setLoading(false);
-        
+
         // Only check tab flag on initial page load (not after a fresh login)
         const tabWasActive = sessionStorage.getItem(SESSION_TAB_KEY);
         const { cargo } = await fetchUserCargo(existingSession.user.id);
         const isDriverRole = cargo && DRIVER_ROLES.includes(cargo);
-        
+
         // Browser was closed & reopened with a stale session → auto-logout non-drivers
         if (!tabWasActive && !isDriverRole) {
           console.log("Browser was closed. Auto-logging out non-driver user.");
           setSession(null);
           try {
-            await supabase.auth.signOut({ scope: "local" });
-          } catch { /* ignore */ }
+            await authClient.signOut({ scope: "local" });
+          } catch {
+            /* ignore */
+          }
           navigate("/auth", { replace: true });
           return;
         }
-        
+
         // Session is valid, mark tab as active
         sessionStorage.setItem(SESSION_TAB_KEY, "1");
       } else {
         // Try to refresh the session if no active session found
-        const { data: { session: refreshedSession } } = await supabase.auth.refreshSession();
+        const {
+          data: { session: refreshedSession },
+        } = await authClient.refreshSession();
         setSession(refreshedSession);
         setLoading(false);
         if (refreshedSession?.user) {
@@ -90,7 +97,6 @@ const ProtectedRoute = ({ children }: ProtectedRouteProps) => {
           setCargoChecked(true);
         }
       }
-      isInitialLoad = false;
     };
 
     initSession();

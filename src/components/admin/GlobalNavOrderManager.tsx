@@ -75,7 +75,7 @@ function SortableNavItem({ id, label }: { id: string; label: string }) {
     transform,
     transition,
     isDragging,
-  } = useSortable({ id });
+  } = useSortable({ id } as any);
 
   const style = {
     transform: CSS.Transform.toString(transform),

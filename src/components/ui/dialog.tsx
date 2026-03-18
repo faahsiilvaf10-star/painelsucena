@@ -28,6 +28,8 @@ const DialogOverlay = React.forwardRef<
 DialogOverlay.displayName = DialogPrimitive.Overlay.displayName;
 
 interface DialogContentProps extends React.ComponentPropsWithoutRef<typeof DialogPrimitive.Content> {
+  className?: string;
+  children?: React.ReactNode;
   hideCloseButton?: boolean;
 }
 
