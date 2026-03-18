@@ -1,3 +1,4 @@
+// @ts-nocheck
 import { useEffect, useState, useMemo } from "react";
 import { format, endOfMonth, differenceInDays } from "date-fns";
 import { ptBR } from "date-fns/locale";

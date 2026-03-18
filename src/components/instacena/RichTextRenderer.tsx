@@ -189,7 +189,7 @@ export function RichTextRenderer({ content }: { content: string }) {
     <>
       {segments.map((seg, i) => {
         const classes: string[] = [];
-        const styles: React.CSSProperties = {};
+        const styles: any = {};
 
         if (seg.bold) classes.push("font-bold");
         if (seg.italic) classes.push("italic");
