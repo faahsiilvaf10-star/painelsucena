@@ -428,11 +428,12 @@ const RelatorioPresenca = () => {
     }
   };
 
-  const handleUnlockAreaReport = async (area: "ÁREA GABIÃO" | "ROÇAGEM E PODAGEM") => {
+  const handleUnlockAreaReport = async (area: "ÁREA GABIÃO" | "ROÇAGEM E PODAGEM" | "ADMINISTRATIVO") => {
     const lockType = areaToLockType[area];
+    const areaNames: Record<string, string> = { "ÁREA GABIÃO": "Gabião", "ROÇAGEM E PODAGEM": "Jardinagem", "ADMINISTRATIVO": "Administrativo" };
     try {
       await unlockArea.mutateAsync(lockType);
-      toast.success(`Área ${area === "ÁREA GABIÃO" ? "Gabião" : "Jardinagem"} desbloqueada.`);
+      toast.success(`Área ${areaNames[area]} desbloqueada.`);
     } catch {
       toast.error("Erro ao desbloquear relatório");
     }
