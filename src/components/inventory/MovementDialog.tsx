@@ -132,10 +132,7 @@ export function MovementDialog({ item, open, onOpenChange }: MovementDialogProps
       ? getDestinationName(data.destination_type, data.destination_id || "")
       : undefined;
 
-    const destinationId =
-      data.destination_type === "employee" && data.destination_id?.startsWith("local:")
-        ? undefined
-        : data.destination_id || undefined;
+    const destinationId = data.destination_id || undefined;
 
     await recordMovement.mutateAsync({
       item_id: item.id,
