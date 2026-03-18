@@ -277,7 +277,7 @@ export function MovementDialog({ item, open, onOpenChange }: MovementDialogProps
                                   role="combobox"
                                   className={cn("w-full justify-between font-normal h-10", !field.value && "text-muted-foreground")}
                                 >
-                                  {selectedEmployee ? selectedEmployee.name : "Selecione o funcionário"}
+                                  {selectedEmployee ? `${selectedEmployee.name} — ${selectedEmployee.role}` : "Selecione o funcionário"}
                                   <ChevronsUpDown className="ml-2 h-4 w-4 shrink-0 opacity-50" />
                                 </Button>
                               </FormControl>
@@ -290,15 +290,17 @@ export function MovementDialog({ item, open, onOpenChange }: MovementDialogProps
                                   {employeeOptions.map((emp) => (
                                     <CommandItem
                                       key={emp.value}
-                                      value={`${emp.name} ${emp.role} ${emp.department}`}
+                                      value={`${emp.name} ${emp.role}`}
                                       onSelect={() => {
                                         field.onChange(emp.value);
                                         setEmployeePopoverOpen(false);
                                       }}
                                     >
                                       <Check className={cn("mr-2 h-4 w-4", field.value === emp.value ? "opacity-100" : "opacity-0")} />
-                                      <span>{emp.name}</span>
-                                      <span className="ml-auto text-xs text-muted-foreground">{emp.role}</span>
+                                      <div className="flex flex-col">
+                                        <span>{emp.name}</span>
+                                        <span className="text-xs text-muted-foreground">{emp.role}</span>
+                                      </div>
                                     </CommandItem>
                                   ))}
                                 </CommandList>
