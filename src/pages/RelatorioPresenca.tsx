@@ -165,7 +165,7 @@ const RelatorioPresenca = () => {
   const [newEmployee, setNewEmployee] = useState({
     name: "",
     role: "",
-    area: "jardinagem" as "gabiao" | "jardinagem",
+    area: "jardinagem" as "gabiao" | "jardinagem" | "administrativo",
   });
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [rhSearch, setRhSearch] = useState("");
