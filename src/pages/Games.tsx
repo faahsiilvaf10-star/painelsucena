@@ -119,17 +119,6 @@ const GAMES: GameCover[] = [
     badgeLabel: "Tempo Real",
     badgeColor: "bg-red-600/15 text-red-500 dark:text-red-400",
   },
-  {
-    id: "tigrinho",
-    emoji: "🐯",
-    title: "Tigrinho",
-    subtitle: "Fortune Tiger",
-    description: "Gire os rolos e combine símbolos! Multiplicadores de até x100 com o tigre da sorte.",
-    gradient: "from-amber-500/20 via-red-600/10 to-yellow-500/20",
-    borderColor: "border-amber-500/40 hover:border-amber-500",
-    badgeLabel: "Slot Machine",
-    badgeColor: "bg-amber-500/15 text-amber-600 dark:text-amber-400",
-  },
 ];
 export default function Games() {
   const [activeGame, setActiveGame] = useState<ActiveGame>(null);
