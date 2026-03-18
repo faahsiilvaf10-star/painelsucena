@@ -128,6 +128,15 @@ const executionRoles: Record<string, string[]> = {
     "Auxiliar de Elétrica",
     "Eletricista",
   ],
+  "ADMINISTRATIVO": [
+    "Aux Administrativo",
+    "Auxiliar Administrativo",
+    "Encarregado Geral",
+    "Encarregado",
+    "TST",
+    "Técnico de Segurança",
+    "Almoxarife",
+  ],
 };
 
 // Ajudante belongs to their specific area based on employee
