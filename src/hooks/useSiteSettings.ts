@@ -43,6 +43,7 @@ export function useSiteSettings() {
           logo_url: null,
           sidebar_color: "#1e2235",
           nav_order: DEFAULT_NAV_ORDER,
+          show_signup_button: false,
           updated_at: new Date().toISOString(),
           updated_by: null,
         };
