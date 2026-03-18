@@ -981,6 +981,7 @@ const RelatorioPresenca = () => {
                     <SelectContent className="bg-popover">
                       <SelectItem value="gabiao">Área Gabião</SelectItem>
                       <SelectItem value="jardinagem">Roçagem e Podagem</SelectItem>
+                      <SelectItem value="administrativo">Administrativo</SelectItem>
                     </SelectContent>
                   </Select>
                 </div>
