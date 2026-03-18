@@ -59,6 +59,13 @@ const roleToArea: Record<string, string> = {
   "Mecânico Montador": "ROÇAGEM E PODAGEM",
   "Auxiliar de Elétrica": "ROÇAGEM E PODAGEM",
   Eletricista: "ROÇAGEM E PODAGEM",
+  "Aux Administrativo": "ADMINISTRATIVO",
+  "Auxiliar Administrativo": "ADMINISTRATIVO",
+  "Encarregado Geral": "ADMINISTRATIVO",
+  "Encarregado": "ADMINISTRATIVO",
+  "TST": "ADMINISTRATIVO",
+  "Técnico de Segurança": "ADMINISTRATIVO",
+  "Almoxarife": "ADMINISTRATIVO",
 };
 
 // All available roles
