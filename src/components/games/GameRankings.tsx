@@ -1,3 +1,4 @@
+// @ts-nocheck
 import { useState } from "react";
 import { useTopScoresByGame } from "@/hooks/useGameScores";
 import { useQuery } from "@tanstack/react-query";

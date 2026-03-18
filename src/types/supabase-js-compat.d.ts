@@ -19,6 +19,8 @@ declare module "@supabase/supabase-js" {
     auth: SupabaseAuthClient;
     from: (...args: any[]) => any;
     channel: (...args: any[]) => any;
+    removeChannel: (...args: any[]) => any;
+    removeAllChannels: (...args: any[]) => any;
     rpc: (...args: any[]) => any;
     storage: any;
     functions: any;
