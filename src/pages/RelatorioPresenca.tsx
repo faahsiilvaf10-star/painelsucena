@@ -321,11 +321,12 @@ const RelatorioPresenca = () => {
 
   // Group employees by area and role
   const groupedEmployees = useMemo(() => {
-    if (!allEmployees) return { "ÁREA GABIÃO": {}, "ROÇAGEM E PODAGEM": {} };
+    if (!allEmployees) return { "ÁREA GABIÃO": {}, "ROÇAGEM E PODAGEM": {}, "ADMINISTRATIVO": {} };
 
     const grouped: Record<string, Record<string, Tables<"employees">[]>> = {
       "ÁREA GABIÃO": {},
       "ROÇAGEM E PODAGEM": {},
+      "ADMINISTRATIVO": {},
     };
 
     allEmployees.forEach((emp) => {
