@@ -751,13 +751,19 @@ const RelatorioPresenca = () => {
     );
   };
 
-  const AreaCard = ({ area }: { area: "ÁREA GABIÃO" | "ROÇAGEM E PODAGEM" }) => {
-    const emoji = area === "ÁREA GABIÃO" ? EMOJI_ASTERISK_8 : EMOJI_HERB;
-    const support = area === "ÁREA GABIÃO" ? supportGabiao : supportRocagem;
-    const setSupport = area === "ÁREA GABIÃO" ? setSupportGabiao : setSupportRocagem;
+  const AreaCard = ({ area }: { area: "ÁREA GABIÃO" | "ROÇAGEM E PODAGEM" | "ADMINISTRATIVO" }) => {
+    const areaEmojis: Record<string, string> = { "ÁREA GABIÃO": EMOJI_ASTERISK_8, "ROÇAGEM E PODAGEM": EMOJI_HERB, "ADMINISTRATIVO": "📋" };
+    const areaNames: Record<string, string> = { "ÁREA GABIÃO": "Gabião", "ROÇAGEM E PODAGEM": "Jardinagem", "ADMINISTRATIVO": "Administrativo" };
+    const emoji = areaEmojis[area];
     const lockType = areaToLockType[area];
     const locked = isAreaLocked(lockType);
     const canUnlock = canUnlockArea(lockType);
+    const isAdminArea = area === "ADMINISTRATIVO";
+
+    // For ADMINISTRATIVO, dynamically get all roles present in grouped employees
+    const areaRoles = isAdminArea
+      ? Object.keys(groupedEmployees[area] || {})
+      : executionRoles[area];
 
     return (
       <div className="bg-card rounded-xl border border-border/50 p-6">
@@ -772,15 +778,27 @@ const RelatorioPresenca = () => {
             </div>
           )}
         </div>
-        <SupportTeamEditor support={support} setSupport={setSupport} />
-        <p className="text-sm font-semibold text-center mb-4">
-          {EMOJI_STAR_8} EQUIPE DE EXECUÇÃO {EMOJI_STAR_8}
-        </p>
-        {executionRoles[area].map((role) => (
+        {!isAdminArea && (
+          <>
+            <SupportTeamEditor 
+              support={area === "ÁREA GABIÃO" ? supportGabiao : supportRocagem} 
+              setSupport={area === "ÁREA GABIÃO" ? setSupportGabiao : setSupportRocagem} 
+            />
+            <p className="text-sm font-semibold text-center mb-4">
+              {EMOJI_STAR_8} EQUIPE DE EXECUÇÃO {EMOJI_STAR_8}
+            </p>
+          </>
+        )}
+        {isAdminArea && (
+          <p className="text-sm font-semibold text-center mb-4">
+            {EMOJI_STAR_8} EQUIPE {EMOJI_STAR_8}
+          </p>
+        )}
+        {areaRoles.map((role) => (
           <RoleSection
             key={role}
-            label={roleLabels[area][role]}
-            employees={groupedEmployees[area][role] || []}
+            label={roleLabels[area]?.[role] || `${EMOJI_WORKER} ${role}:`}
+            employees={groupedEmployees[area]?.[role] || []}
             area={area}
           />
         ))}
@@ -798,7 +816,7 @@ const RelatorioPresenca = () => {
               ) : (
                 <Save className="w-4 h-4" />
               )}
-              Salvar {area === "ÁREA GABIÃO" ? "Gabião" : "Jardinagem"}
+              Salvar {areaNames[area]}
             </Button>
           ) : (
             <div className="flex flex-col gap-2">
@@ -818,7 +836,7 @@ const RelatorioPresenca = () => {
                   ) : (
                     <Unlock className="w-4 h-4" />
                   )}
-                  Desbloquear {area === "ÁREA GABIÃO" ? "Gabião" : "Jardinagem"}
+                  Desbloquear {areaNames[area]}
                 </Button>
               )}
             </div>
