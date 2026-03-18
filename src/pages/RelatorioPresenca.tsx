@@ -238,6 +238,7 @@ const RelatorioPresenca = () => {
   const userCargo = profile?.cargo;
   const showGabiaoTab = userCargo !== "encarregado_i"; // Hide for Encarregado I
   const showRocagemTab = userCargo !== "encarregado_ii"; // Hide for Encarregado II
+  const showAdminTab = true; // Always show Administrativo tab
   
   // Determine default tab based on visibility
   const defaultTab = useMemo(() => {
