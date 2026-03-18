@@ -690,7 +690,7 @@ const RelatorioPresenca = () => {
   }: {
     label: string;
     employees: Tables<"employees">[];
-    area: "ÁREA GABIÃO" | "ROÇAGEM E PODAGEM";
+    area: "ÁREA GABIÃO" | "ROÇAGEM E PODAGEM" | "ADMINISTRATIVO";
   }) => {
     if (employees.length === 0) return null;
     return (
