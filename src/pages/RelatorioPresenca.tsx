@@ -306,6 +306,7 @@ const RelatorioPresenca = () => {
     const employeeArea = (employee as Tables<"employees"> & { area?: string }).area;
     if (employeeArea === "gabiao") return "ÁREA GABIÃO";
     if (employeeArea === "jardinagem") return "ROÇAGEM E PODAGEM";
+    if (employeeArea === "administrativo") return "ADMINISTRATIVO";
     
     // Fallback to role-based logic for existing employees without area set
     if (employee.role === "Ajudante") {
