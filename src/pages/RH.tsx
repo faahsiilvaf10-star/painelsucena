@@ -114,6 +114,13 @@ const RH = () => {
 
   const handleDeleteEmployee = (id: number) => {
     setColaboradores(prev => prev.filter(c => c.id !== id));
+    // Persist deleted IDs so they don't reappear from hardcoded source
+    const deletedRaw = localStorage.getItem("rh_deleted_ids");
+    const deletedIds: number[] = deletedRaw ? JSON.parse(deletedRaw) : [];
+    if (!deletedIds.includes(id)) {
+      deletedIds.push(id);
+      localStorage.setItem("rh_deleted_ids", JSON.stringify(deletedIds));
+    }
     toast.success("Colaborador removido com sucesso!");
   };
 
