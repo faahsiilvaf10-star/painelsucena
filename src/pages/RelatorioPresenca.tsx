@@ -483,27 +483,34 @@ const RelatorioPresenca = () => {
   };
 
   // Generate report for a specific area
-  const generateAreaReport = (area: "ÁREA GABIÃO" | "ROÇAGEM E PODAGEM", includeDate: boolean = true) => {
+  const generateAreaReport = (area: "ÁREA GABIÃO" | "ROÇAGEM E PODAGEM" | "ADMINISTRATIVO", includeDate: boolean = true) => {
     if (!allEmployees) return "";
 
-    const support = area === "ÁREA GABIÃO" ? supportGabiao : supportRocagem;
-    const header = area === "ÁREA GABIÃO" 
-      ? `${EMOJI_ASTERISK_8}  ÁREA GABIÃO  ${EMOJI_ASTERISK_8}` 
-      : `${EMOJI_HERB} ROÇAGEM E PODAGEM ${EMOJI_HERB}`;
+    const areaHeaders: Record<string, string> = {
+      "ÁREA GABIÃO": `${EMOJI_ASTERISK_8}  ÁREA GABIÃO  ${EMOJI_ASTERISK_8}`,
+      "ROÇAGEM E PODAGEM": `${EMOJI_HERB} ROÇAGEM E PODAGEM ${EMOJI_HERB}`,
+      "ADMINISTRATIVO": `📋 ADMINISTRATIVO 📋`,
+    };
+    const header = areaHeaders[area];
 
     let report = "";
 
-    // Add date for both areas
     if (includeDate) {
       report += `${EMOJI_CALENDAR} Data: ${formatDateForReport(selectedDate)}\n\n`;
     }
 
     report += `${header}\n\n`;
-    report += `${EMOJI_STAR_8}EQUIPE DE SUPORTE${EMOJI_STAR_8}\n\n`;
-    report += `${EMOJI_PERSON_RAISING_HAND} TST : ${support.tst}\n\n`;
-    report += `${EMOJI_PERSON_RAISING_HAND} ENC GERAL: ${support.encGeral}\n\n`;
-    report += `${EMOJI_PERSON_RAISING_HAND} ENC: ${support.enc}\n\n`;
-    report += `${EMOJI_STAR_8}EQUIPE DE EXECUÇÃO${EMOJI_STAR_8}\n\n`;
+
+    // Only show support team for non-administrative areas
+    if (area !== "ADMINISTRATIVO") {
+      const support = area === "ÁREA GABIÃO" ? supportGabiao : supportRocagem;
+      report += `${EMOJI_STAR_8}EQUIPE DE SUPORTE${EMOJI_STAR_8}\n\n`;
+      report += `${EMOJI_PERSON_RAISING_HAND} TST : ${support.tst}\n\n`;
+      report += `${EMOJI_PERSON_RAISING_HAND} ENC GERAL: ${support.encGeral}\n\n`;
+      report += `${EMOJI_PERSON_RAISING_HAND} ENC: ${support.enc}\n\n`;
+    }
+
+    report += `${EMOJI_STAR_8}EQUIPE${area === "ADMINISTRATIVO" ? "" : " DE EXECUÇÃO"}${EMOJI_STAR_8}\n\n`;
 
     const roles = executionRoles[area];
     roles.forEach((role) => {
