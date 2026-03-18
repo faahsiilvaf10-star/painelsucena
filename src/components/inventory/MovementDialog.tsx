@@ -70,50 +70,17 @@ export function MovementDialog({ item, open, onOpenChange }: MovementDialogProps
   const { data: equipment } = useEquipment();
   const [employeePopoverOpen, setEmployeePopoverOpen] = useState(false);
 
-  const rhLocalEmployees = useMemo(() => {
-    if (typeof window === "undefined") return [] as Array<{ name: string; role: string; department: string }>;
-    try {
-      const stored = localStorage.getItem("rh_colaboradores");
-      if (!stored) return [];
-      const parsed = JSON.parse(stored) as Array<{ nome?: string; funcao?: string; departamento?: string; setor?: string }>;
-      return parsed
-        .filter((p) => p?.nome)
-        .map((p) => ({
-          name: String(p.nome),
-          role: String(p.funcao || ""),
-          department: String(p.departamento || p.setor || ""),
-        }));
-    } catch {
-      return [];
-    }
-  }, [open]);
-
   const employeeOptions = useMemo(() => {
-    const byName = new Map<string, { value: string; name: string; role: string; department: string }>();
-
-    (employees || []).forEach((emp) => {
-      byName.set(emp.name.trim().toLowerCase(), {
+    return (employees || [])
+      .filter((emp) => emp.status === "active")
+      .map((emp) => ({
         value: emp.id,
         name: emp.name,
         role: emp.role || "",
         department: emp.department || "",
-      });
-    });
-
-    rhLocalEmployees.forEach((emp) => {
-      const key = emp.name.trim().toLowerCase();
-      if (!byName.has(key)) {
-        byName.set(key, {
-          value: `local:${encodeURIComponent(emp.name)}`,
-          name: emp.name,
-          role: emp.role,
-          department: emp.department,
-        });
-      }
-    });
-
-    return Array.from(byName.values()).sort((a, b) => a.name.localeCompare(b.name));
-  }, [employees, rhLocalEmployees]);
+      }))
+      .sort((a, b) => a.name.localeCompare(b.name));
+  }, [employees]);
 
   const form = useForm<FormData>({
     resolver: zodResolver(formSchema),
@@ -145,8 +112,7 @@ export function MovementDialog({ item, open, onOpenChange }: MovementDialogProps
   const getDestinationName = (destType: string, destId: string): string => {
     if (destType === "employee") {
       const selected = employeeOptions.find((e) => e.value === destId);
-      if (selected) return selected.name;
-      if (destId.startsWith("local:")) return decodeURIComponent(destId.replace("local:", ""));
+      if (selected) return `${selected.name} - ${selected.role}`;
       return "";
     }
     if (destType === "equipment") {
@@ -166,10 +132,7 @@ export function MovementDialog({ item, open, onOpenChange }: MovementDialogProps
       ? getDestinationName(data.destination_type, data.destination_id || "")
       : undefined;
 
-    const destinationId =
-      data.destination_type === "employee" && data.destination_id?.startsWith("local:")
-        ? undefined
-        : data.destination_id || undefined;
+    const destinationId = data.destination_id || undefined;
 
     await recordMovement.mutateAsync({
       item_id: item.id,
@@ -311,7 +274,7 @@ export function MovementDialog({ item, open, onOpenChange }: MovementDialogProps
                                   role="combobox"
                                   className={cn("w-full justify-between font-normal h-10", !field.value && "text-muted-foreground")}
                                 >
-                                  {selectedEmployee ? selectedEmployee.name : "Selecione o funcionário"}
+                                  {selectedEmployee ? `${selectedEmployee.name} — ${selectedEmployee.role}` : "Selecione o funcionário"}
                                   <ChevronsUpDown className="ml-2 h-4 w-4 shrink-0 opacity-50" />
                                 </Button>
                               </FormControl>
@@ -324,15 +287,17 @@ export function MovementDialog({ item, open, onOpenChange }: MovementDialogProps
                                   {employeeOptions.map((emp) => (
                                     <CommandItem
                                       key={emp.value}
-                                      value={`${emp.name} ${emp.role} ${emp.department}`}
+                                      value={`${emp.name} ${emp.role}`}
                                       onSelect={() => {
                                         field.onChange(emp.value);
                                         setEmployeePopoverOpen(false);
                                       }}
                                     >
                                       <Check className={cn("mr-2 h-4 w-4", field.value === emp.value ? "opacity-100" : "opacity-0")} />
-                                      <span>{emp.name}</span>
-                                      <span className="ml-auto text-xs text-muted-foreground">{emp.role}</span>
+                                      <div className="flex flex-col">
+                                        <span>{emp.name}</span>
+                                        <span className="text-xs text-muted-foreground">{emp.role}</span>
+                                      </div>
                                     </CommandItem>
                                   ))}
                                 </CommandList>
