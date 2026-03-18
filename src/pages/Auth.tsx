@@ -10,6 +10,7 @@ import { Eye, EyeOff, Loader2, User, Lock, UserCircle } from "lucide-react";
 import { z } from "zod";
 import { AuthBackground } from "@/components/auth/AuthBackground";
 import { LiveRadioPlayer } from "@/components/auth/LiveRadioPlayer";
+import { useSiteSettings } from "@/hooks/useSiteSettings";
 
 const cargoOptions = [
   { value: "preposto", label: "Preposto" },
