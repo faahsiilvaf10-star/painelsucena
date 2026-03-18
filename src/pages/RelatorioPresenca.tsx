@@ -152,6 +152,7 @@ const gabiaAjudantes = [
 const areaToLockType: Record<string, AreaType> = {
   "ÁREA GABIÃO": "gabiao",
   "ROÇAGEM E PODAGEM": "jardinagem",
+  "ADMINISTRATIVO": "administrativo",
 };
 
 const RelatorioPresenca = () => {
