@@ -192,7 +192,7 @@ export default function Games() {
         {activeGame === "domino" && <DominoGame onBack={() => setActiveGame(null)} />}
         {activeGame === "double" && <DoubleGame onBack={() => setActiveGame(null)} />}
         {activeGame === "aviator" && <AviatorGame onBack={() => setActiveGame(null)} />}
-        {activeGame === "tigrinho" && <TigrinhoGame onBack={() => setActiveGame(null)} />}
+        
       </div>
     </Layout>
   );
