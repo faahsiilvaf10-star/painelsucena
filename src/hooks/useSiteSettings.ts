@@ -63,7 +63,7 @@ export function useSiteSettings() {
   });
 
   const updateSettings = useMutation({
-    mutationFn: async (updates: Partial<Pick<SiteSettings, "logo_url" | "sidebar_color" | "nav_order">>) => {
+    mutationFn: async (updates: Partial<Pick<SiteSettings, "logo_url" | "sidebar_color" | "nav_order" | "show_signup_button">>) => {
       const { data: { user } } = await supabase.auth.getUser();
       
       if (!settings?.id) {
