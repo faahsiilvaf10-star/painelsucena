@@ -352,7 +352,7 @@ const RH = () => {
               colaboradores={filteredColaboradores} 
               filterFuncao={filterFuncao} 
             />
-            {!permissionsLoading && canEditRH && (
+            {canEditRH && (
               <>
                 <ImportEfetivoExcelButton
                   colaboradores={colaboradores}
