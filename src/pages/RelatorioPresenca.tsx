@@ -644,7 +644,7 @@ const RelatorioPresenca = () => {
     }
   };
 
-  const EmployeeRow = ({ employee, area }: { employee: Tables<"employees">; area: "ÁREA GABIÃO" | "ROÇAGEM E PODAGEM" }) => {
+  const EmployeeRow = ({ employee, area }: { employee: Tables<"employees">; area: "ÁREA GABIÃO" | "ROÇAGEM E PODAGEM" | "ADMINISTRATIVO" }) => {
     const present = isPresent(employee.id);
     const lockType = areaToLockType[area];
     const locked = isAreaLocked(lockType);
