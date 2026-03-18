@@ -160,7 +160,7 @@ const RelatorioPresenca = () => {
     return getBrazilNorthTodayString();
   });
   const [copied, setCopied] = useState(false);
-  const [selectedArea, setSelectedArea] = useState<"all" | "ÁREA GABIÃO" | "ROÇAGEM E PODAGEM">("all");
+  const [selectedArea, setSelectedArea] = useState<"all" | "ÁREA GABIÃO" | "ROÇAGEM E PODAGEM" | "ADMINISTRATIVO">("all");
   const [dialogOpen, setDialogOpen] = useState(false);
   const [newEmployee, setNewEmployee] = useState({
     name: "",
