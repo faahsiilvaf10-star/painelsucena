@@ -16,7 +16,7 @@ import { AviatorGame } from "@/components/games/AviatorGame";
 
 import { GameRankings } from "@/components/games/GameRankings";
 
-type ActiveGame = null | "recycling" | "epi" | "rocagem" | "gabiao" | "checkers" | "domino" | "double" | "aviator" | "tigrinho";
+type ActiveGame = null | "recycling" | "epi" | "rocagem" | "gabiao" | "checkers" | "domino" | "double" | "aviator";
 
 interface GameCover {
   id: ActiveGame & string;
