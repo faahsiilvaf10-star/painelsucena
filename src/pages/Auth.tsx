@@ -10,6 +10,7 @@ import { Eye, EyeOff, Loader2, User, Lock, UserCircle } from "lucide-react";
 import { z } from "zod";
 import { AuthBackground } from "@/components/auth/AuthBackground";
 import { LiveRadioPlayer } from "@/components/auth/LiveRadioPlayer";
+import { useSiteSettings } from "@/hooks/useSiteSettings";
 
 const cargoOptions = [
   { value: "preposto", label: "Preposto" },
@@ -69,6 +70,7 @@ const Auth = () => {
 
   const navigate = useNavigate();
   const { toast } = useToast();
+  const { settings } = useSiteSettings();
 
   // Fetch occupied cargos on mount
   useEffect(() => {
@@ -510,6 +512,19 @@ const Auth = () => {
             )}
           </Button>
         </form>
+
+        {/* Toggle signup / login */}
+        {(settings.show_signup_button || !isLogin) && (
+          <div className="mt-4 text-center">
+            <button
+              type="button"
+              onClick={() => setIsLogin(!isLogin)}
+              className="text-white/70 hover:text-white text-xs underline underline-offset-2 transition-colors"
+            >
+              {isLogin ? "Criar uma conta" : "Já tenho uma conta"}
+            </button>
+          </div>
+        )}
 
       </div>
     </div>

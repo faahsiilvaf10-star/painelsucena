@@ -2785,6 +2785,7 @@ export type Database = {
           id: string
           logo_url: string | null
           nav_order: Json | null
+          show_signup_button: boolean
           sidebar_color: string | null
           updated_at: string
           updated_by: string | null
@@ -2793,6 +2794,7 @@ export type Database = {
           id?: string
           logo_url?: string | null
           nav_order?: Json | null
+          show_signup_button?: boolean
           sidebar_color?: string | null
           updated_at?: string
           updated_by?: string | null
@@ -2801,6 +2803,7 @@ export type Database = {
           id?: string
           logo_url?: string | null
           nav_order?: Json | null
+          show_signup_button?: boolean
           sidebar_color?: string | null
           updated_at?: string
           updated_by?: string | null

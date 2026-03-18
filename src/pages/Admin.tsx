@@ -12,7 +12,9 @@ import { useSiteSettings } from "@/hooks/useSiteSettings";
 import { supabase } from "@/integrations/supabase/client";
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import { toast } from "sonner";
-import { Shield, ShieldCheck, Trash2, UserPlus, Users, Image, Upload, UserCog, Megaphone, Pencil, LayoutList, Truck, RotateCcw, Key, Ribbon, Coins } from "lucide-react";
+import { Shield, ShieldCheck, Trash2, UserPlus, Users, Image, Upload, UserCog, Megaphone, Pencil, LayoutList, Truck, RotateCcw, Key, Ribbon, Coins, UserCheck } from "lucide-react";
+import { Switch } from "@/components/ui/switch";
+import { Label } from "@/components/ui/label";
 import { DoubleBalanceManager } from "@/components/admin/DoubleBalanceManager";
 import { ClearEquipmentDialog } from "@/components/driver/ClearEquipmentDialog";
 import { BulkEmployeeEditor } from "@/components/admin/BulkEmployeeEditor";
@@ -405,6 +407,40 @@ const Admin = () => {
                       ? `Campanhas: ${getCurrentMonthCampaigns()!.campaigns.map(c => c.name).join(", ")}`
                       : "Nenhuma campanha neste mês"}
                   </p>
+                </div>
+              </CardContent>
+            </Card>
+
+            {/* Signup Button Toggle */}
+            <Card>
+              <CardHeader>
+                <CardTitle className="flex items-center gap-2">
+                  <UserCheck className="w-5 h-5" />
+                  Botão de Cadastro na Tela de Login
+                </CardTitle>
+                <CardDescription>
+                  Exibe ou oculta o botão de cadastro de novos usuários na tela de login.
+                </CardDescription>
+              </CardHeader>
+              <CardContent>
+                <div className="flex items-center gap-3">
+                  <Switch
+                    id="show-signup"
+                    checked={settings.show_signup_button}
+                    onCheckedChange={(checked) => {
+                      updateSettings.mutate(
+                        { show_signup_button: checked },
+                        {
+                          onSuccess: () => toast.success(checked ? "Botão de cadastro habilitado" : "Botão de cadastro ocultado"),
+                          onError: () => toast.error("Erro ao atualizar configuração"),
+                        }
+                      );
+                    }}
+                    disabled={updateSettings.isPending}
+                  />
+                  <Label htmlFor="show-signup" className="cursor-pointer">
+                    {settings.show_signup_button ? "Visível" : "Oculto"}
+                  </Label>
                 </div>
               </CardContent>
             </Card>
