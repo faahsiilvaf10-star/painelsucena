@@ -1074,8 +1074,34 @@ const RelatorioPresenca = () => {
                     <Copy className="w-4 h-4" />
                     Copiar Roçagem
                   </Button>
-
-
+                </>
+              )}
+              {showAdminTab && (
+                <>
+                  <Button
+                    onClick={async () => {
+                      const ok = await copyAndShareWhatsApp(generateAreaReport("ADMINISTRATIVO"));
+                      if (ok) toast.success("Administrativo enviado para WhatsApp!");
+                    }}
+                    variant="outline"
+                    size="sm"
+                    className="gap-2"
+                  >
+                    <MessageCircle className="w-4 h-4 text-[#25D366]" />
+                    WhatsApp Admin
+                  </Button>
+                  <Button
+                    onClick={async () => {
+                      const ok = await copyToClipboard(generateAreaReport("ADMINISTRATIVO"));
+                      if (ok) toast.success("Relatório Administrativo copiado!");
+                    }}
+                    variant="outline"
+                    size="sm"
+                    className="gap-2"
+                  >
+                    <Copy className="w-4 h-4" />
+                    Copiar Admin
+                  </Button>
                 </>
               )}
             </div>
