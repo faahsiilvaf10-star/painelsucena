@@ -1,4 +1,4 @@
-import { Truck, MapPin, ExternalLink, FileText, Clock, Plus, Trash2, LogOut } from "lucide-react";
+import { Truck, MapPin, ExternalLink, Clock, Plus, Trash2, LogOut } from "lucide-react";
 import { Leaf, ArrowUpCircle, ArrowDownCircle, Loader2 as Loader2Icon } from "lucide-react";
 import { useState } from "react";
 import { useCreateEquipmentMovement, ExitReason } from "@/hooks/useEquipmentMovements";
