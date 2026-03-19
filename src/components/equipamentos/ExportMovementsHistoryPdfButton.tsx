@@ -5,8 +5,9 @@ import { ptBR } from "date-fns/locale";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
-import { jsPDF } from "jspdf";
-import html2canvas from "html2canvas";
+// Dynamic imports to avoid chunk conflicts
+const importJsPDF = () => import("jspdf").then(m => m.jsPDF);
+const importHtml2Canvas = () => import("html2canvas").then(m => m.default);
 import {
   Dialog,
   DialogContent,
