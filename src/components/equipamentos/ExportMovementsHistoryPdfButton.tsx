@@ -1,10 +1,12 @@
-import { useState } from "react";
+import { useState, useRef } from "react";
 import { FileText, Loader2, CalendarRange } from "lucide-react";
 import { format } from "date-fns";
 import { ptBR } from "date-fns/locale";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
+import { jsPDF } from "jspdf";
+import html2canvas from "html2canvas";
 import {
   Dialog,
   DialogContent,
@@ -178,91 +180,117 @@ export function ExportMovementsHistoryPdfButton() {
       const totalSaidas = (movements || []).filter((m: any) => m.movement_type === "saida").length;
       const uniqueEquipments = new Set((movements || []).map((m: any) => m.plate)).size;
 
-      const printWindow = window.open("", "_blank");
-      if (!printWindow) {
-        toast.error("Popup bloqueado. Permita popups para exportar.");
-        return;
+      // Build hidden div for rendering
+      const container = document.createElement("div");
+      container.style.position = "absolute";
+      container.style.left = "-9999px";
+      container.style.top = "0";
+      container.style.width = "800px";
+      container.style.background = "#fff";
+      container.style.padding = "20px";
+      container.style.fontFamily = "Arial, sans-serif";
+      container.style.fontSize = "11px";
+      container.style.color = "#333";
+
+      container.innerHTML = `
+        <style>
+          .header { display: flex; align-items: center; gap: 20px; margin-bottom: 20px; border-bottom: 2px solid #333; padding-bottom: 15px; }
+          .logo { height: 50px; }
+          .title { flex: 1; }
+          .title h1 { font-size: 16px; margin-bottom: 4px; }
+          .title p { color: #666; font-size: 11px; }
+          .summary { display: flex; gap: 20px; margin-bottom: 20px; padding: 12px; background: #f8f9fa; border-radius: 8px; border: 1px solid #e2e8f0; }
+          .summary-item { text-align: center; flex: 1; }
+          .summary-item .number { font-size: 22px; font-weight: bold; }
+          .summary-item .label { font-size: 10px; color: #666; margin-top: 2px; }
+          .section { margin-bottom: 20px; }
+          .section-title { font-size: 13px; font-weight: bold; margin-bottom: 10px; padding: 8px; background: #f5f5f5; border-left: 4px solid #333; }
+          .section-title.jard { border-left-color: #22c55e; }
+          .date-section { margin-bottom: 15px; }
+          .date-header { font-size: 12px; font-weight: bold; padding: 6px 10px; background: #eef2ff; border-left: 4px solid #6366f1; margin-bottom: 5px; display: flex; justify-content: space-between; align-items: center; }
+          .date-stats { font-size: 10px; font-weight: normal; }
+          table { width: 100%; border-collapse: collapse; margin-bottom: 8px; }
+          th, td { border: 1px solid #ddd; padding: 5px 8px; text-align: left; font-size: 10px; }
+          th { background: #f9f9f9; font-weight: bold; }
+          .badge { display: inline-block; padding: 2px 6px; border-radius: 4px; font-size: 9px; font-weight: bold; white-space: nowrap; }
+          .mono { font-family: monospace; }
+          .footer { margin-top: 30px; text-align: center; font-size: 10px; color: #666; border-top: 1px solid #ddd; padding-top: 15px; }
+        </style>
+
+        <div class="header">
+          <img src="${logoBase64}" alt="Logo" class="logo" />
+          <div class="title">
+            <h1>Histórico de Movimentações de Equipamentos</h1>
+            <p>Período: ${startLabel} a ${endLabel} | Gerado em: ${dateStr}</p>
+          </div>
+        </div>
+
+        <div class="summary">
+          <div class="summary-item">
+            <div class="number" style="color: #166534;">${totalEntradas}</div>
+            <div class="label">Entradas</div>
+          </div>
+          <div class="summary-item">
+            <div class="number" style="color: #c2410c;">${totalSaidas}</div>
+            <div class="label">Saídas</div>
+          </div>
+          <div class="summary-item">
+            <div class="number" style="color: #6366f1;">${uniqueEquipments}</div>
+            <div class="label">Equipamentos</div>
+          </div>
+          <div class="summary-item">
+            <div class="number">${sortedDates.length}</div>
+            <div class="label">Dias com Movim.</div>
+          </div>
+        </div>
+
+        <div class="section">
+          <div class="section-title">🚛 Movimentações de Veículos</div>
+          ${vehicleSectionsHtml}
+        </div>
+
+        ${jardinagemHtml}
+
+        <div class="footer">
+          <p>OBRA: 460001269 | Sucena Engenharia</p>
+        </div>
+      `;
+
+      document.body.appendChild(container);
+
+      // Wait for images to load
+      await new Promise(resolve => setTimeout(resolve, 300));
+
+      const canvas = await html2canvas(container, {
+        scale: 2,
+        useCORS: true,
+        logging: false,
+        backgroundColor: "#ffffff",
+      });
+
+      document.body.removeChild(container);
+
+      const imgWidth = 210; // A4 width in mm
+      const pageHeight = 297; // A4 height in mm
+      const imgHeight = (canvas.height * imgWidth) / canvas.width;
+      const imgData = canvas.toDataURL("image/png");
+
+      const pdf = new jsPDF("p", "mm", "a4");
+      let heightLeft = imgHeight;
+      let position = 0;
+
+      pdf.addImage(imgData, "PNG", 0, position, imgWidth, imgHeight);
+      heightLeft -= pageHeight;
+
+      while (heightLeft > 0) {
+        position = heightLeft - imgHeight;
+        pdf.addPage();
+        pdf.addImage(imgData, "PNG", 0, position, imgWidth, imgHeight);
+        heightLeft -= pageHeight;
       }
 
-      printWindow.document.write(`
-        <!DOCTYPE html>
-        <html>
-        <head>
-          <title>Histórico de Movimentações - ${startLabel} a ${endLabel}</title>
-          <style>
-            * { margin: 0; padding: 0; box-sizing: border-box; }
-            body { font-family: Arial, sans-serif; padding: 20px; font-size: 11px; color: #333; }
-            .header { display: flex; align-items: center; gap: 20px; margin-bottom: 20px; border-bottom: 2px solid #333; padding-bottom: 15px; }
-            .logo { height: 50px; }
-            .title { flex: 1; }
-            .title h1 { font-size: 16px; margin-bottom: 4px; }
-            .title p { color: #666; font-size: 11px; }
-            .summary { display: flex; gap: 20px; margin-bottom: 20px; padding: 12px; background: #f8f9fa; border-radius: 8px; border: 1px solid #e2e8f0; }
-            .summary-item { text-align: center; flex: 1; }
-            .summary-item .number { font-size: 22px; font-weight: bold; }
-            .summary-item .label { font-size: 10px; color: #666; margin-top: 2px; }
-            .section { margin-bottom: 20px; }
-            .section-title { font-size: 13px; font-weight: bold; margin-bottom: 10px; padding: 8px; background: #f5f5f5; border-left: 4px solid #333; }
-            .section-title.jard { border-left-color: #22c55e; }
-            .date-section { margin-bottom: 15px; }
-            .date-header { font-size: 12px; font-weight: bold; padding: 6px 10px; background: #eef2ff; border-left: 4px solid #6366f1; margin-bottom: 5px; display: flex; justify-content: space-between; align-items: center; }
-            .date-stats { font-size: 10px; font-weight: normal; }
-            table { width: 100%; border-collapse: collapse; margin-bottom: 8px; }
-            th, td { border: 1px solid #ddd; padding: 5px 8px; text-align: left; font-size: 10px; }
-            th { background: #f9f9f9; font-weight: bold; }
-            .badge { display: inline-block; padding: 2px 6px; border-radius: 4px; font-size: 9px; font-weight: bold; white-space: nowrap; }
-            .mono { font-family: monospace; }
-            .footer { margin-top: 30px; text-align: center; font-size: 10px; color: #666; border-top: 1px solid #ddd; padding-top: 15px; }
-            @media print { 
-              body { padding: 10px; }
-              .date-section { page-break-inside: avoid; }
-            }
-          </style>
-        </head>
-        <body>
-          <div class="header">
-            <img src="${logoBase64}" alt="Logo" class="logo" />
-            <div class="title">
-              <h1>Histórico de Movimentações de Equipamentos</h1>
-              <p>Período: ${startLabel} a ${endLabel} | Gerado em: ${dateStr}</p>
-            </div>
-          </div>
-
-          <div class="summary">
-            <div class="summary-item">
-              <div class="number" style="color: #166534;">${totalEntradas}</div>
-              <div class="label">Entradas</div>
-            </div>
-            <div class="summary-item">
-              <div class="number" style="color: #c2410c;">${totalSaidas}</div>
-              <div class="label">Saídas</div>
-            </div>
-            <div class="summary-item">
-              <div class="number" style="color: #6366f1;">${uniqueEquipments}</div>
-              <div class="label">Equipamentos</div>
-            </div>
-            <div class="summary-item">
-              <div class="number">${sortedDates.length}</div>
-              <div class="label">Dias com Movim.</div>
-            </div>
-          </div>
-
-          <div class="section">
-            <div class="section-title">🚛 Movimentações de Veículos</div>
-            ${vehicleSectionsHtml}
-          </div>
-
-          ${jardinagemHtml}
-
-          <div class="footer">
-            <p>OBRA: 460001269 | Sucena Engenharia</p>
-          </div>
-        </body>
-        </html>
-      `);
-
-      printWindow.document.close();
-      setTimeout(() => printWindow.print(), 500);
+      const filename = `Movimentacoes_${startDate}_a_${endDate}.pdf`;
+      pdf.save(filename);
       toast.success("PDF gerado com sucesso!");
       setOpen(false);
     } catch (err) {
