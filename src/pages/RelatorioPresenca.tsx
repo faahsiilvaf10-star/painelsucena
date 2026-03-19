@@ -171,14 +171,7 @@ const RelatorioPresenca = () => {
   const [rhSearch, setRhSearch] = useState("");
   const [showRhList, setShowRhList] = useState(false);
 
-  // Load RH employees from DB employees table
-  const rhColaboradores = useMemo(() => {
-    if (!allEmployees?.length) return [];
-    return allEmployees
-      .filter(e => e.status === "active")
-      .map(e => ({ id: e.id as unknown as number, nome: e.name, funcao: e.role }))
-      .sort((a, b) => a.nome.localeCompare(b.nome));
-  }, [allEmployees]);
+  // rhColaboradores is computed after allEmployees query below
 
   const normalizeText = (value: string) =>
     value
