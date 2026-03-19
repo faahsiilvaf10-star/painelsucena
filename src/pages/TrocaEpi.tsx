@@ -201,8 +201,8 @@ export default function TrocaEpi() {
         id: e.id,
         nome: e.name,
         funcao: e.role || "",
-        matricula: e.phone || "",
-        matriculaHydro: e.email || "",
+        matricula: "",
+        matriculaHydro: "",
       }))
       .sort((a, b) => a.nome.localeCompare(b.nome)),
     [employees]

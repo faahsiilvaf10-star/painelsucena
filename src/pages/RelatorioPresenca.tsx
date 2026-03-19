@@ -26,7 +26,7 @@ import { useQuery, useQueryClient } from "@tanstack/react-query";
 import { supabase } from "@/integrations/supabase/client";
 import type { Tables } from "@/integrations/supabase/types";
 import { toast } from "sonner";
-import { colaboradoresAtivos } from "@/data/efetivoData";
+// Employee data fetched from DB employees table
 import { useUpsertAttendance } from "@/hooks/useAttendance";
 import { useReportLock, AreaType } from "@/hooks/useReportLock";
 import { useSaveEfetivoToRDO } from "@/hooks/useRDOReports";
@@ -171,16 +171,7 @@ const RelatorioPresenca = () => {
   const [rhSearch, setRhSearch] = useState("");
   const [showRhList, setShowRhList] = useState(false);
 
-  // Load RH employees from efetivoData + localStorage
-  const rhColaboradores = useMemo(() => {
-    const stored = localStorage.getItem("rh_colaboradores");
-    if (stored) {
-      try {
-        return JSON.parse(stored) as Array<{ id: number; nome: string; funcao: string }>;
-      } catch {}
-    }
-    return colaboradoresAtivos;
-  }, [dialogOpen]);
+  // rhColaboradores is computed after allEmployees query below
 
   const normalizeText = (value: string) =>
     value
@@ -274,24 +265,25 @@ const RelatorioPresenca = () => {
     },
   });
 
-  // Filter RH employees not already in the employees table (from efetivoData)
+  // Load RH employees from DB employees table
+  const rhColaboradores = useMemo(() => {
+    if (!allEmployees?.length) return [];
+    return allEmployees
+      .filter(e => e.status === "active")
+      .map(e => ({ id: e.id as unknown as number, nome: e.name, funcao: e.role }))
+      .sort((a, b) => a.nome.localeCompare(b.nome));
+  }, [allEmployees]);
+
+  // Filter RH employees for search
   const filteredRhEmployees = useMemo(() => {
     if (!rhSearch.trim()) return [];
-    const existingNames = new Set((allEmployees || []).map(e => e.name.toUpperCase()));
     
-    // Also include all active DB employees for search
-    const dbEmployees = (allEmployees || [])
-      .filter(e => e.status === "active" && e.name.toUpperCase().includes(rhSearch.toUpperCase()))
-      .map(e => ({ id: e.id as unknown as number, nome: e.name, funcao: e.role, fromDb: true }));
+    // Search active DB employees
+    const dbEmployees = rhColaboradores
+      .filter(c => c.nome.toUpperCase().includes(rhSearch.toUpperCase()))
+      .map(c => ({ ...c, fromDb: true }));
     
-    const efetivoResults = rhColaboradores
-      .filter(c => 
-        !existingNames.has(c.nome.toUpperCase()) &&
-        c.nome.toUpperCase().includes(rhSearch.toUpperCase())
-      )
-      .map(c => ({ ...c, fromDb: false }));
-    
-    return [...dbEmployees, ...efetivoResults].slice(0, 15);
+    return dbEmployees.slice(0, 15);
   }, [rhSearch, rhColaboradores, allEmployees]);
 
   const isLoading = recordsLoading || employeesLoading;
