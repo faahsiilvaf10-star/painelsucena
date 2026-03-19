@@ -193,7 +193,20 @@ export default function TrocaEpi() {
   const { exchanges, isLoading, createExchange, updateExchange, deleteExchange } = useEpiExchanges();
   const { data: inventoryItems = [] } = useInventoryItems();
   const queryClient = useQueryClient();
-  const efetivo = colaboradoresAtivos;
+  const { data: employees = [] } = useEmployees();
+  const efetivo = useMemo(() => 
+    employees
+      .filter(e => e.status === "active")
+      .map(e => ({
+        id: e.id,
+        nome: e.name,
+        funcao: e.role || "",
+        matricula: e.phone || "",
+        matriculaHydro: e.email || "",
+      }))
+      .sort((a, b) => a.nome.localeCompare(b.nome)),
+    [employees]
+  );
   const [showForm, setShowForm] = useState(false);
   const [editingExchange, setEditingExchange] = useState<EpiExchange | null>(null);
   const [viewExchange, setViewExchange] = useState<EpiExchange | null>(null);

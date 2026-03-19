@@ -262,6 +262,7 @@ export function ExportMovementsHistoryPdfButton() {
       // Wait for images to load
       await new Promise(resolve => setTimeout(resolve, 300));
 
+      const html2canvas = await importHtml2Canvas();
       const canvas = await html2canvas(container, {
         scale: 2,
         useCORS: true,
@@ -276,7 +277,8 @@ export function ExportMovementsHistoryPdfButton() {
       const imgHeight = (canvas.height * imgWidth) / canvas.width;
       const imgData = canvas.toDataURL("image/png");
 
-      const pdf = new jsPDF("p", "mm", "a4");
+      const JsPDF = await importJsPDF();
+      const pdf = new JsPDF("p", "mm", "a4");
       let heightLeft = imgHeight;
       let position = 0;
 
