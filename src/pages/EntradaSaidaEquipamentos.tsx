@@ -1,4 +1,4 @@
-import { Truck, MapPin, ExternalLink, FileText, Clock, Plus, Trash2, LogOut } from "lucide-react";
+import { Truck, MapPin, ExternalLink, Clock, Plus, Trash2, LogOut } from "lucide-react";
 import { Leaf, ArrowUpCircle, ArrowDownCircle, Loader2 as Loader2Icon } from "lucide-react";
 import { useState } from "react";
 import { useCreateEquipmentMovement, ExitReason } from "@/hooks/useEquipmentMovements";
@@ -20,7 +20,7 @@ import { VehicleIcon } from "@/components/equipamentos/VehicleIcons";
 import { Loader2 } from "lucide-react";
 import { format } from "date-fns";
 import { ptBR } from "date-fns/locale";
-import { getLogoBase64 } from "@/lib/pdfLogo";
+import { ExportMovementsHistoryPdfButton } from "@/components/equipamentos/ExportMovementsHistoryPdfButton";
 import { useJardinagemEquipment, useUpdateJardinagemEquipmentStatus, useCreateJardinagemEquipment, useDeleteJardinagemEquipment } from "@/hooks/useJardinagemEquipment";
 import { useProfile } from "@/hooks/useProfile";
 import { useIsAdmin } from "@/hooks/useUserRole";
@@ -239,155 +239,7 @@ const EXIT_REASON_LABELS: Record<string, string> = {
   // Equipment out = only those with real exit reasons (maintenance, inspection)
   const equipmentForaObra = reallyOut;
 
-  const handleExportPDF = async () => {
-    const logoBase64 = await getLogoBase64();
-    const now = new Date();
-    const dateStr = format(now, "dd/MM/yyyy 'às' HH:mm", { locale: ptBR });
-
-    const printWindow = window.open("", "_blank");
-    if (!printWindow) return;
-
-    printWindow.document.write(`
-      <!DOCTYPE html>
-      <html>
-      <head>
-        <title>Relatório de Equipamentos - ${format(now, "dd-MM-yyyy")}</title>
-        <style>
-          * { margin: 0; padding: 0; box-sizing: border-box; }
-          body { font-family: Arial, sans-serif; padding: 20px; font-size: 12px; }
-          .header { display: flex; align-items: center; gap: 20px; margin-bottom: 20px; border-bottom: 2px solid #333; padding-bottom: 15px; }
-          .logo { height: 50px; }
-          .title { flex: 1; }
-          .title h1 { font-size: 18px; margin-bottom: 4px; }
-          .title p { color: #666; font-size: 11px; }
-          .section { margin-bottom: 25px; }
-          .section-title { font-size: 14px; font-weight: bold; margin-bottom: 10px; padding: 8px; background: #f5f5f5; border-left: 4px solid #333; }
-          .section-title.in { border-left-color: #16a34a; }
-          .section-title.out { border-left-color: #ea580c; }
-          table { width: 100%; border-collapse: collapse; margin-bottom: 10px; }
-          th, td { border: 1px solid #ddd; padding: 8px; text-align: left; }
-          th { background: #f9f9f9; font-weight: bold; font-size: 11px; }
-          td { font-size: 11px; }
-          .badge { display: inline-block; padding: 2px 8px; border-radius: 4px; font-size: 10px; font-weight: bold; }
-          .badge-green { background: #dcfce7; color: #166534; }
-          .badge-orange { background: #ffedd5; color: #c2410c; }
-          .badge-red { background: #fee2e2; color: #dc2626; }
-          .badge-yellow { background: #fef9c3; color: #a16207; }
-          .footer { margin-top: 30px; text-align: center; font-size: 10px; color: #666; border-top: 1px solid #ddd; padding-top: 15px; }
-          .observation { font-size: 10px; color: #666; margin-top: 4px; }
-          @media print { body { padding: 10px; } }
-        </style>
-      </head>
-      <body>
-        <div class="header">
-          <img src="${logoBase64}" alt="Logo" class="logo" />
-          <div class="title">
-            <h1>Relatório de Entrada e Saída de Equipamentos</h1>
-            <p>Gerado em: ${dateStr}</p>
-          </div>
-        </div>
-
-        <div class="section">
-          <div class="section-title in">🟢 Equipamentos no Canteiro (${equipmentNoCanteiro.length})</div>
-          ${equipmentNoCanteiro.length === 0 ? '<p style="padding: 10px; color: #666;">Nenhum equipamento no canteiro</p>' : `
-          <table>
-            <thead>
-              <tr>
-                <th>Equipamento</th>
-                <th>Placa</th>
-                <th>Motorista</th>
-                <th>Ajudante</th>
-                <th>Status</th>
-              </tr>
-            </thead>
-            <tbody>
-              ${equipmentNoCanteiro.map(eq => {
-                const sr = (eq.stop_reason || "none") as string;
-                const badgeClass = !sr || sr === "none" ? "badge-green" : ["maintenance","manutencao_corretiva"].includes(sr) ? "badge-red" : sr === "manutencao_preventiva" ? "badge-orange" : "badge-yellow";
-                const statusText = !sr || sr === "none" ? "Operando" : ["maintenance","manutencao_corretiva"].includes(sr) ? "Manutenção Corretiva" : sr === "manutencao_preventiva" ? "Manutenção Preventiva" : sr === "vistoria" ? "Vistoria" : sr === "waiting" ? "Aguardando" : ["end_of_shift","fim_turno"].includes(sr) ? "Fim de Turno" : sr === "rain" ? "Chuva" : ["end_of_day","abastecimento"].includes(sr) ? "Abastecendo" : sr;
-                return `
-                <tr>
-                  <td><strong>${eq.name}</strong></td>
-                  <td>${eq.plate}</td>
-                  <td>${eq.driver || "-"}</td>
-                  <td>${eq.helper || "-"}</td>
-                  <td><span class="badge ${badgeClass}">${statusText}</span></td>
-                </tr>
-              `}).join("")}
-            </tbody>
-          </table>
-          `}
-        </div>
-
-        <div class="section">
-          <div class="section-title out">🔴 Equipamentos Fora da Obra (${equipmentForaObra.length})</div>
-          ${equipmentForaObra.length === 0 ? '<p style="padding: 10px; color: #666;">Nenhum equipamento fora da obra</p>' : `
-          <table>
-            <thead>
-              <tr>
-                <th>Equipamento</th>
-                <th>Placa</th>
-                <th>Data/Hora Saída</th>
-                <th>Motivo</th>
-                <th>Observações</th>
-              </tr>
-            </thead>
-            <tbody>
-              ${equipmentForaObra.map(m => `
-                <tr>
-                  <td><strong>${m.equipment_name}</strong></td>
-                  <td>${m.plate}</td>
-                  <td>${format(new Date(m.movement_date + "T" + m.movement_time), "dd/MM/yyyy HH:mm")}</td>
-                  <td><span class="badge badge-orange">${EXIT_REASON_LABELS[m.exit_reason || ""] || m.exit_reason || "-"}</span></td>
-                  <td>
-                    ${m.problem_description ? `<strong>Problema:</strong> ${m.problem_description}<br/>` : ""}
-                    ${m.observation || "-"}
-                  </td>
-                </tr>
-              `).join("")}
-            </tbody>
-          </table>
-          `}
-        </div>
-
-        <div class="section">
-          <div class="section-title" style="border-left-color: #22c55e;">🌿 Equipamentos para Jardinagem (${jardinagemEquipment.length})</div>
-          ${jardinagemEquipment.length === 0 ? '<p style="padding: 10px; color: #666;">Nenhum equipamento cadastrado</p>' : `
-          <table>
-            <thead>
-              <tr>
-                <th>#</th>
-                <th>Equipamento</th>
-                <th>Status</th>
-                <th>Última Atualização</th>
-              </tr>
-            </thead>
-            <tbody>
-              ${jardinagemEquipment.map((eq, idx) => `
-                <tr>
-                  <td>${idx + 1}</td>
-                  <td><strong>${eq.name}</strong></td>
-                  <td><span class="badge ${eq.status === 'entrou' ? 'badge-green' : 'badge-orange'}">${eq.status === 'entrou' ? 'Entrou' : 'Saiu'}</span></td>
-                  <td>${format(new Date(eq.status_changed_at), "dd/MM/yyyy HH:mm")}</td>
-                </tr>
-              `).join("")}
-            </tbody>
-          </table>
-          `}
-        </div>
-
-        <div class="footer">
-          <p>OBRA: 460001269 | Sucena Engenharia</p>
-        </div>
-      </body>
-      </html>
-    `);
-
-    printWindow.document.close();
-    setTimeout(() => {
-      printWindow.print();
-    }, 500);
-  };
+  // PDF export is handled by ExportMovementsHistoryPdfButton component
  
    return (
      <Layout>
@@ -404,10 +256,7 @@ const EXIT_REASON_LABELS: Record<string, string> = {
               Controle de equipamentos no canteiro e fora da obra
             </p>
           </div>
-          <Button onClick={handleExportPDF} className="gap-2">
-            <FileText className="h-4 w-4" />
-            Exportar PDF
-          </Button>
+          <ExportMovementsHistoryPdfButton />
          </div>
  
         {isLoading || loadingOut || loadingJardinagem ? (
