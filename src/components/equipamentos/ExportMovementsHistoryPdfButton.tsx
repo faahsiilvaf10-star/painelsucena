@@ -5,8 +5,9 @@ import { ptBR } from "date-fns/locale";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
-import { jsPDF } from "jspdf";
-import html2canvas from "html2canvas";
+// Dynamic imports to avoid chunk conflicts
+const importJsPDF = () => import("jspdf").then(m => m.jsPDF);
+const importHtml2Canvas = () => import("html2canvas").then(m => m.default);
 import {
   Dialog,
   DialogContent,
@@ -261,6 +262,7 @@ export function ExportMovementsHistoryPdfButton() {
       // Wait for images to load
       await new Promise(resolve => setTimeout(resolve, 300));
 
+      const html2canvas = await importHtml2Canvas();
       const canvas = await html2canvas(container, {
         scale: 2,
         useCORS: true,
@@ -275,7 +277,8 @@ export function ExportMovementsHistoryPdfButton() {
       const imgHeight = (canvas.height * imgWidth) / canvas.width;
       const imgData = canvas.toDataURL("image/png");
 
-      const pdf = new jsPDF("p", "mm", "a4");
+      const JsPDF = await importJsPDF();
+      const pdf = new JsPDF("p", "mm", "a4");
       let heightLeft = imgHeight;
       let position = 0;
 
