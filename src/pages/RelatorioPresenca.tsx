@@ -265,22 +265,23 @@ const RelatorioPresenca = () => {
     },
   });
 
-  // Filter RH employees not already in the employees table (from efetivoData)
+  // Load RH employees from DB employees table
+  const rhColaboradores = useMemo(() => {
+    if (!allEmployees?.length) return [];
+    return allEmployees
+      .filter(e => e.status === "active")
+      .map(e => ({ id: e.id as unknown as number, nome: e.name, funcao: e.role }))
+      .sort((a, b) => a.nome.localeCompare(b.nome));
+  }, [allEmployees]);
+
+  // Filter RH employees for search
   const filteredRhEmployees = useMemo(() => {
     if (!rhSearch.trim()) return [];
-    const existingNames = new Set((allEmployees || []).map(e => e.name.toUpperCase()));
     
-    // Also include all active DB employees for search
-    const dbEmployees = (allEmployees || [])
-      .filter(e => e.status === "active" && e.name.toUpperCase().includes(rhSearch.toUpperCase()))
-      .map(e => ({ id: e.id as unknown as number, nome: e.name, funcao: e.role, fromDb: true }));
-    
-    const efetivoResults = rhColaboradores
-      .filter(c => 
-        !existingNames.has(c.nome.toUpperCase()) &&
-        c.nome.toUpperCase().includes(rhSearch.toUpperCase())
-      )
-      .map(c => ({ ...c, fromDb: false }));
+    // Search active DB employees
+    const dbEmployees = rhColaboradores
+      .filter(c => c.nome.toUpperCase().includes(rhSearch.toUpperCase()))
+      .map(c => ({ ...c, fromDb: true }));
     
     return [...dbEmployees, ...efetivoResults].slice(0, 15);
   }, [rhSearch, rhColaboradores, allEmployees]);
