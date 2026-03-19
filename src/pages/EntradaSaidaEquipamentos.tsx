@@ -20,7 +20,7 @@ import { VehicleIcon } from "@/components/equipamentos/VehicleIcons";
 import { Loader2 } from "lucide-react";
 import { format } from "date-fns";
 import { ptBR } from "date-fns/locale";
-import { getLogoBase64 } from "@/lib/pdfLogo";
+import { ExportMovementsHistoryPdfButton } from "@/components/equipamentos/ExportMovementsHistoryPdfButton";
 import { useJardinagemEquipment, useUpdateJardinagemEquipmentStatus, useCreateJardinagemEquipment, useDeleteJardinagemEquipment } from "@/hooks/useJardinagemEquipment";
 import { useProfile } from "@/hooks/useProfile";
 import { useIsAdmin } from "@/hooks/useUserRole";
