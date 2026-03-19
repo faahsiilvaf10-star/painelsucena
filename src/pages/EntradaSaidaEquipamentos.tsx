@@ -256,10 +256,7 @@ const EXIT_REASON_LABELS: Record<string, string> = {
               Controle de equipamentos no canteiro e fora da obra
             </p>
           </div>
-          <Button onClick={handleExportPDF} className="gap-2">
-            <FileText className="h-4 w-4" />
-            Exportar PDF
-          </Button>
+          <ExportMovementsHistoryPdfButton />
          </div>
  
         {isLoading || loadingOut || loadingJardinagem ? (
