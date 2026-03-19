@@ -171,16 +171,14 @@ const RelatorioPresenca = () => {
   const [rhSearch, setRhSearch] = useState("");
   const [showRhList, setShowRhList] = useState(false);
 
-  // Load RH employees from efetivoData + localStorage
+  // Load RH employees from DB employees table
   const rhColaboradores = useMemo(() => {
-    const stored = localStorage.getItem("rh_colaboradores");
-    if (stored) {
-      try {
-        return JSON.parse(stored) as Array<{ id: number; nome: string; funcao: string }>;
-      } catch {}
-    }
-    return colaboradoresAtivos;
-  }, [dialogOpen]);
+    if (!allEmployees?.length) return [];
+    return allEmployees
+      .filter(e => e.status === "active")
+      .map(e => ({ id: e.id as unknown as number, nome: e.name, funcao: e.role }))
+      .sort((a, b) => a.nome.localeCompare(b.nome));
+  }, [allEmployees]);
 
   const normalizeText = (value: string) =>
     value
