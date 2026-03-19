@@ -283,7 +283,7 @@ const RelatorioPresenca = () => {
       .filter(c => c.nome.toUpperCase().includes(rhSearch.toUpperCase()))
       .map(c => ({ ...c, fromDb: true }));
     
-    return [...dbEmployees, ...efetivoResults].slice(0, 15);
+    return dbEmployees.slice(0, 15);
   }, [rhSearch, rhColaboradores, allEmployees]);
 
   const isLoading = recordsLoading || employeesLoading;
