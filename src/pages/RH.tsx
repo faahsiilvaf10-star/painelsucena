@@ -42,16 +42,8 @@ const RH = () => {
   const [sortField, setSortField] = useState<SortField>("id");
   const [sortDirection, setSortDirection] = useState<SortDirection>("asc");
   const [expandedRow, setExpandedRow] = useState<number | null>(null);
-  const [colaboradores, setColaboradores] = useState<Colaborador[]>(initialColaboradores);
-  const [editingAso, setEditingAso] = useState<number | null>(null);
-  const [editingColaborador, setEditingColaborador] = useState<Colaborador | null>(null);
-  const [asoForm, setAsoForm] = useState<Record<string, string>>({});
-
-  const { canEditRH, isLoading: permissionsLoading } = useRHPermissions();
-  const queryClient = useQueryClient();
-
-  // Load from localStorage on mount, merging with source data to pick up new ASO fields
-  useEffect(() => {
+  const [colaboradores, setColaboradores] = useState<Colaborador[]>(() => {
+    // Initialize state directly from localStorage to avoid race condition
     const stored = localStorage.getItem("rh_colaboradores");
     const deletedRaw = localStorage.getItem("rh_deleted_ids");
     const deletedIds: number[] = deletedRaw ? JSON.parse(deletedRaw) : [];
@@ -61,13 +53,10 @@ const RH = () => {
       try {
         const parsed: Colaborador[] = JSON.parse(stored);
 
-        // If data came from an Excel import, use it as-is (it's the source of truth)
         if (wasImported) {
-          setColaboradores(parsed);
-          return;
+          return parsed;
         }
 
-        // Otherwise merge with hardcoded source data
         const merged = initialColaboradores
           .filter(source => !deletedIds.includes(source.id))
           .map(source => {
@@ -89,16 +78,20 @@ const RH = () => {
             }
             return source;
           });
-        // Add any extra employees from localStorage not in source (and not deleted)
         const extraIds = parsed.filter(p => !initialColaboradores.find(s => s.id === p.id) && !deletedIds.includes(p.id));
-        setColaboradores([...merged, ...extraIds]);
+        return [...merged, ...extraIds];
       } catch {
-        setColaboradores(initialColaboradores.filter(s => !deletedIds.includes(s.id)));
+        return initialColaboradores.filter(s => !deletedIds.includes(s.id));
       }
-    } else {
-      setColaboradores(initialColaboradores.filter(s => !deletedIds.includes(s.id)));
     }
-  }, []);
+    return initialColaboradores.filter(s => !deletedIds.includes(s.id));
+  });
+  const [editingAso, setEditingAso] = useState<number | null>(null);
+  const [editingColaborador, setEditingColaborador] = useState<Colaborador | null>(null);
+  const [asoForm, setAsoForm] = useState<Record<string, string>>({});
+
+  const { canEditRH, isLoading: permissionsLoading } = useRHPermissions();
+  const queryClient = useQueryClient();
 
   // Save to localStorage when changed
   useEffect(() => {
