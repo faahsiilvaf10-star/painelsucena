@@ -697,21 +697,19 @@ export default function AtividadesII() {
               }}
             />
 
-            {existingReport && canEdit && !isGabiaoLocked && (
+            {existingReport && canEdit && (
               <Button variant="destructive" size="icon" onClick={handleDelete}>
                 <Trash2 className="h-4 w-4" />
               </Button>
             )}
 
-            <Button onClick={() => handleSave()} disabled={saveReport.isPending || !hasEditPermission || isGabiaoLocked} variant="outline">
+            <Button onClick={() => handleSave()} disabled={saveReport.isPending || !hasEditPermission} variant="outline">
               {saveReport.isPending ? (
                 <Loader2 className="h-4 w-4 mr-2 animate-spin" />
-              ) : isGabiaoLocked ? (
-                <Lock className="h-4 w-4 mr-2" />
               ) : (
                 <Save className="h-4 w-4 mr-2" />
               )}
-              {isGabiaoLocked ? "Bloqueado" : "Salvar"}
+              Salvar
             </Button>
 
             <Button 

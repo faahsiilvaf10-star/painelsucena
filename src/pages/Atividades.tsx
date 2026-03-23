@@ -305,7 +305,7 @@ export default function Atividades() {
   );
   
   // Check edit permission - only encarregado_geral, encarregado_i, or admin can edit
-  const canEdit = authReady && !isJardinagemLocked && (
+  const canEdit = authReady && (
     isAdmin || 
     profile?.cargo === "encarregado_geral" || 
     profile?.cargo === "encarregado_i"
@@ -956,21 +956,19 @@ export default function Atividades() {
               }}
             />
 
-            {existingReport && canEdit && !isJardinagemLocked && (
+            {existingReport && canEdit && (
               <Button variant="destructive" size="icon" onClick={handleDelete}>
                 <Trash2 className="h-4 w-4" />
               </Button>
             )}
 
-            <Button onClick={() => handleSave()} disabled={saveReport.isPending || !hasEditPermission || isJardinagemLocked} variant="outline">
+            <Button onClick={() => handleSave()} disabled={saveReport.isPending || !hasEditPermission} variant="outline">
               {saveReport.isPending ? (
                 <Loader2 className="h-4 w-4 mr-2 animate-spin" />
-              ) : isJardinagemLocked ? (
-                <Lock className="h-4 w-4 mr-2" />
               ) : (
                 <Save className="h-4 w-4 mr-2" />
               )}
-              {isJardinagemLocked ? "Bloqueado" : "Salvar"}
+              Salvar
             </Button>
 
             <Button 
