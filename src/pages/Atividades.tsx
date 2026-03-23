@@ -747,35 +747,6 @@ export default function Atividades() {
       <div className="p-4 sm:p-6 space-y-4 sm:space-y-6">
         {/* Read-only banner */}
         {!hasEditPermission && <ReadOnlyBanner message="Você está visualizando esta página em modo somente leitura. Apenas Administradores, Encarregado Geral e Encarregado I podem editar." />}
-        {isJardinagemLocked && hasEditPermission && (
-          <Alert className="mb-4 border-amber-500/50 bg-amber-500/10">
-            <Lock className="h-4 w-4 text-amber-500" />
-            <AlertDescription className="flex items-center justify-between">
-              <span className="text-amber-600 dark:text-amber-400">
-                🔒 Atividades bloqueadas para esta data. Desbloqueie para editar.
-              </span>
-              {canUnlockArea("jardinagem") && (
-                <Button 
-                  variant="outline" 
-                  size="sm" 
-                  className="ml-2 gap-1 border-amber-500/50 text-amber-600 hover:bg-amber-500/10"
-                  onClick={async () => {
-                    try {
-                      await unlockArea.mutateAsync("jardinagem");
-                      toast.success("Atividades desbloqueadas!");
-                    } catch (e: any) {
-                      toast.error("Erro ao desbloquear: " + e.message);
-                    }
-                  }}
-                  disabled={unlockArea.isPending}
-                >
-                  <Unlock className="h-3 w-3" />
-                  Desbloquear
-                </Button>
-              )}
-            </AlertDescription>
-          </Alert>
-        )}
 
         {/* Tabs */}
         <Tabs defaultValue="jardinagem" className="w-full">
