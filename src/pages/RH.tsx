@@ -108,6 +108,10 @@ const RH = () => {
   };
 
   const handleImportEmployees = (updated: Colaborador[]) => {
+    // Persist immediately to avoid losing imported data when navigating away quickly
+    localStorage.setItem("rh_colaboradores", JSON.stringify(updated));
+    localStorage.setItem("rh_imported", "true");
+    localStorage.removeItem("rh_deleted_ids");
     setColaboradores(updated);
   };
 
