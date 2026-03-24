@@ -3,7 +3,7 @@ import { Users, ClipboardCheck, AlertCircle, Activity } from "lucide-react";
 import { useProfile } from "@/hooks/useProfile";
 import { useSiteSettings } from "@/hooks/useSiteSettings";
 import logoPrincipal from "@/assets/logo-principal.png";
-import logoSucenaHeader from "@/assets/logo-sucena-header.png";
+import AnimatedTree from "@/components/dashboard/AnimatedTree";
 import {
   DndContext,
   closestCenter,
@@ -157,11 +157,7 @@ const Dashboard = () => {
         <div className="flex items-center justify-between mb-5 animate-fade-in">
           {isDockTheme ? (
             <div className="flex-1 flex justify-center pl-16">
-              <img 
-                src={logoSucenaHeader} 
-                alt="Logo Sucena" 
-                className="h-24 sm:h-32 object-contain" 
-              />
+              <AnimatedTree />
             </div>
           ) : (
             <div>
