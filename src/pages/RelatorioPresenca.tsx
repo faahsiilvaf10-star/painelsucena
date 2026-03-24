@@ -526,14 +526,8 @@ const RelatorioPresenca = () => {
   const generateAreaReportForRDO = (area: "ÁREA GABIÃO" | "ROÇAGEM E PODAGEM") => {
     if (!allEmployees) return "";
 
-    // Using Unicode escape sequences for WhatsApp compatibility
-    const header = area === "ÁREA GABIÃO" 
-      ? `${EMOJI_ASTERISK_8} ÁREA GABIÃO ${EMOJI_ASTERISK_8}` 
-      : `${EMOJI_HERB} ROÇAGEM E PODAGEM ${EMOJI_HERB}`;
-
     let report = "";
 
-    report += `${header}\n\n`;
     report += `${EMOJI_STAR_8} EQUIPE DE EXECUÇÃO ${EMOJI_STAR_8}\n\n`;
 
     const roles = executionRoles[area];
