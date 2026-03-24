@@ -32,6 +32,7 @@ import { toast } from "sonner";
 import { PromotionDialog } from "@/components/rh/PromotionDialog";
 import { supabase } from "@/integrations/supabase/client";
 import { useQueryClient } from "@tanstack/react-query";
+import { useRHEfetivo } from "@/hooks/useRHEfetivo";
 
 type SortField = "id" | "nome" | "funcao" | "admissao" | "matricula";
 type SortDirection = "asc" | "desc";
