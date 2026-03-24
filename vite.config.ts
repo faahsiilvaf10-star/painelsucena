@@ -18,7 +18,7 @@ export default defineConfig(({ mode }) => ({
     mode === "development" && componentTagger(),
     VitePWA({
       registerType: "autoUpdate",
-      includeAssets: ["og-image.png", "pwa-192x192.png", "pwa-512x512.png"],
+      includeAssets: ["og-image.png", "pwa-192x192.png", "pwa-512x512.png", "pwa-maskable-192x192.png", "pwa-maskable-512x512.png"],
       manifest: {
         name: "Sucena Empreendimentos - Controle Operacional",
         short_name: "Painel Sucena",
@@ -48,7 +48,13 @@ export default defineConfig(({ mode }) => ({
             purpose: "any",
           },
           {
-            src: "/pwa-512x512.png",
+            src: "/pwa-maskable-192x192.png",
+            sizes: "192x192",
+            type: "image/png",
+            purpose: "maskable",
+          },
+          {
+            src: "/pwa-maskable-512x512.png",
             sizes: "512x512",
             type: "image/png",
             purpose: "maskable",
