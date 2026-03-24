@@ -18,7 +18,7 @@ export default defineConfig(({ mode }) => ({
     mode === "development" && componentTagger(),
     VitePWA({
       registerType: "autoUpdate",
-      includeAssets: ["favicon.ico", "og-image.png", "pwa-192x192.png", "pwa-512x512.png"],
+      includeAssets: ["og-image.png", "pwa-192x192.png", "pwa-512x512.png"],
       manifest: {
         name: "Sucena Empreendimentos - Controle Operacional",
         short_name: "Painel Sucena",
