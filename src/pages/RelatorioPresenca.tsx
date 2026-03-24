@@ -868,7 +868,7 @@ const RelatorioPresenca = () => {
                 </div>
 
                 {/* Grouped list */}
-                <ScrollArea className="flex-1 min-h-0 max-h-[50vh] border border-border/50 rounded-lg">
+                <ScrollArea className="flex-1 min-h-0 h-[60vh] border border-border/50 rounded-lg" scrollbarAlwaysVisible>
                   <div className="p-2 space-y-3">
                     {Object.keys(rhGroupedByFunction).length === 0 ? (
                       <p className="text-sm text-muted-foreground text-center py-4">
