@@ -166,6 +166,7 @@ const RelatorioPresenca = () => {
   const [dialogOpen, setDialogOpen] = useState(false);
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [rhSearch, setRhSearch] = useState("");
+  const [pendingEmployee, setPendingEmployee] = useState<{ nome: string; funcao: string } | null>(null);
 
   // rhColaboradores is computed after allEmployees query below
 
