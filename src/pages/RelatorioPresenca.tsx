@@ -783,7 +783,7 @@ const RelatorioPresenca = () => {
         {areaRoles.map((role) => (
           <RoleSection
             key={role}
-            label={roleLabels[area]?.[role] || `${EMOJI_WORKER} ${role}:`}
+            label={roleLabels[area]?.[role] || `${EMOJI_WORKER} ${role.toUpperCase()}:`}
             employees={groupedEmployees[area]?.[role] || []}
             area={area}
           />
