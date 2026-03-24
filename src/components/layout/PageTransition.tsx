@@ -11,29 +11,26 @@ export function PageTransition({ children }: PageTransitionProps) {
   const [displayedChildren, setDisplayedChildren] = useState(children);
 
   useEffect(() => {
-    // Start fade out
     setIsVisible(false);
     
-    // After fade out, update content and fade in
     const timeout = setTimeout(() => {
       setDisplayedChildren(children);
       setIsVisible(true);
-    }, 150);
+    }, 350);
 
     return () => clearTimeout(timeout);
   }, [location.pathname]);
 
-  // Update children immediately on first render
   useEffect(() => {
     setDisplayedChildren(children);
   }, [children]);
 
   return (
     <div
-      className={`transition-all duration-200 ease-out ${
+      className={`transition-all duration-500 ease-in-out ${
         isVisible 
-          ? "opacity-100 translate-y-0" 
-          : "opacity-0 translate-y-2"
+          ? "opacity-100 translate-y-0 scale-100" 
+          : "opacity-0 translate-y-3 scale-[0.99]"
       }`}
     >
       {displayedChildren}
