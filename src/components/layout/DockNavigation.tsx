@@ -9,7 +9,7 @@ import { useUserNavOrder } from "@/hooks/useUserNavOrder";
 import { useNavVisibilityRules } from "@/hooks/useNavVisibilityRules";
 import {
   Users, ClipboardList, Grid3X3, LayoutDashboard, FileBarChart,
-  LogOut, Settings, Sun, Truck, Bell, FileText, Heart, ShoppingCart,
+  Sun, Truck, Bell, FileText, Heart, ShoppingCart,
   Package, FolderOpen, ShieldCheck, Leaf, Hammer, ClipboardCheck,
   BadgeCheck, Link2, ArrowLeftRight, Clock, FolderLock, Droplets,
   Wrench, Presentation, Newspaper, HardHat, CalendarDays, Gamepad2,
@@ -72,7 +72,6 @@ export const DockNavigation = () => {
   const { navOrder } = useUserNavOrder();
   const { settings } = useSiteSettings();
   const { getHiddenItemsForCargo } = useNavVisibilityRules();
-  const { signOut } = useAuth();
 
   const effectiveNavOrder = useMemo(() => {
     if (isAdmin) {
@@ -106,66 +105,30 @@ export const DockNavigation = () => {
     return ordered;
   }, [effectiveNavOrder, visibleNavItems]);
 
-  // Build dock apps: nav items + settings + admin + logout
+  // Only navigation items in the dock (no settings/admin/logout)
   const dockApps = useMemo(() => {
-    const apps = orderedNavItems.map(item => ({
+    return orderedNavItems.map(item => ({
       id: item.id,
       name: item.label,
-      icon: <item.icon className="h-5 w-5" />,
+      icon: <item.icon className="h-4 w-4" />,
       isActive: location.pathname === item.path,
       isEmergency: item.isEmergency,
     }));
-
-    // Add utility icons
-    if (isAdmin) {
-      apps.push({
-        id: "__admin",
-        name: "Administração",
-        icon: <ShieldCheck className="h-5 w-5 text-amber-400" />,
-        isActive: location.pathname === "/admin",
-        isEmergency: false,
-      });
-    }
-    apps.push({
-      id: "__settings",
-      name: "Configurações",
-      icon: <Settings className="h-5 w-5" />,
-      isActive: location.pathname === "/configuracoes",
-      isEmergency: false,
-    });
-    apps.push({
-      id: "__logout",
-      name: "Sair",
-      icon: <LogOut className="h-5 w-5 text-red-400" />,
-      isActive: false,
-      isEmergency: false,
-    });
-
-    return apps;
-  }, [orderedNavItems, location.pathname, isAdmin]);
+  }, [orderedNavItems, location.pathname]);
 
   const pathMap = useMemo(() => {
-    const map: Record<string, string> = { __admin: "/admin", __settings: "/configuracoes" };
+    const map: Record<string, string> = {};
     orderedNavItems.forEach(item => { map[item.id] = item.path; });
     return map;
   }, [orderedNavItems]);
 
-  const handleAppClick = async (appId: string) => {
-    if (appId === "__logout") {
-      const userName = profile?.full_name || "Usuário";
-      const userAvatar = profile?.avatar_url || undefined;
-      sessionStorage.setItem("logoutTransitionInProgress", "true");
-      sessionStorage.setItem("logoutTransitionPayload", JSON.stringify({ userName, userAvatar }));
-      window.dispatchEvent(new Event("logout-transition"));
-      try { await signOut(); } catch {}
-      return;
-    }
+  const handleAppClick = (appId: string) => {
     const path = pathMap[appId];
     if (path) navigate(path);
   };
 
   return (
-    <div className="fixed bottom-2 left-1/2 -translate-x-1/2 z-50">
+    <div className="fixed bottom-2 left-1/2 -translate-x-1/2 z-50 max-w-[98vw]">
       <MacOSDock
         apps={dockApps}
         onAppClick={handleAppClick}

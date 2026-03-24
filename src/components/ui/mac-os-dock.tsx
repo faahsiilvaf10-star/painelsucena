@@ -29,27 +29,48 @@ const MacOSDock: React.FC<MacOSDockProps> = ({
   const animationFrameRef = useRef<number | undefined>(undefined);
   const lastMouseMoveTime = useRef<number>(0);
 
+  // Calculate icon size dynamically based on number of apps and viewport
   const getResponsiveConfig = useCallback(() => {
     if (typeof window === 'undefined') {
-      return { baseIconSize: 48, maxScale: 1.6, effectWidth: 240 };
+      return { baseIconSize: 32, maxScale: 1.5, effectWidth: 200 };
     }
     const w = window.innerWidth;
-    if (w < 480) return { baseIconSize: 36, maxScale: 1.3, effectWidth: 160 };
-    if (w < 768) return { baseIconSize: 40, maxScale: 1.4, effectWidth: 200 };
-    if (w < 1024) return { baseIconSize: 44, maxScale: 1.5, effectWidth: 240 };
-    return { baseIconSize: 48, maxScale: 1.6, effectWidth: 280 };
-  }, []);
+    const maxDockWidth = w * 0.95; // max 95% of viewport
+    const spacing = 2;
+    // Calculate max icon size that fits all apps
+    const maxIconForFit = Math.floor((maxDockWidth - 12) / apps.length - spacing);
+    
+    if (w < 480) {
+      const size = Math.max(24, Math.min(30, maxIconForFit));
+      return { baseIconSize: size, maxScale: 1.3, effectWidth: 120 };
+    }
+    if (w < 768) {
+      const size = Math.max(26, Math.min(34, maxIconForFit));
+      return { baseIconSize: size, maxScale: 1.35, effectWidth: 150 };
+    }
+    if (w < 1024) {
+      const size = Math.max(28, Math.min(38, maxIconForFit));
+      return { baseIconSize: size, maxScale: 1.4, effectWidth: 200 };
+    }
+    const size = Math.max(30, Math.min(42, maxIconForFit));
+    return { baseIconSize: size, maxScale: 1.5, effectWidth: 240 };
+  }, [apps.length]);
 
   const [config, setConfig] = useState(getResponsiveConfig);
   const { baseIconSize, maxScale, effectWidth } = config;
   const minScale = 1.0;
-  const baseSpacing = Math.max(2, baseIconSize * 0.06);
+  const baseSpacing = Math.max(1, baseIconSize * 0.04);
 
   useEffect(() => {
     const handleResize = () => setConfig(getResponsiveConfig());
     window.addEventListener('resize', handleResize);
     return () => window.removeEventListener('resize', handleResize);
   }, [getResponsiveConfig]);
+
+  // Recalculate when apps change
+  useEffect(() => {
+    setConfig(getResponsiveConfig());
+  }, [apps.length, getResponsiveConfig]);
 
   const calculateTargetMagnification = useCallback((mousePosition: number | null) => {
     if (mousePosition === null) return apps.map(() => minScale);
@@ -109,7 +130,7 @@ const MacOSDock: React.FC<MacOSDockProps> = ({
     lastMouseMoveTime.current = now;
     if (dockRef.current) {
       const rect = dockRef.current.getBoundingClientRect();
-      const padding = Math.max(6, baseIconSize * 0.1);
+      const padding = Math.max(4, baseIconSize * 0.08);
       setMouseX(e.clientX - rect.left - padding);
     }
   }, [baseIconSize]);
@@ -119,7 +140,7 @@ const MacOSDock: React.FC<MacOSDockProps> = ({
   const handleAppClick = (appId: string, index: number) => {
     const el = iconRefs.current[index];
     if (el) {
-      const bounceHeight = Math.max(-6, -baseIconSize * 0.12);
+      const bounceHeight = Math.max(-5, -baseIconSize * 0.1);
       el.style.transition = 'transform 0.2s ease-out';
       el.style.transform = `translateY(${bounceHeight}px)`;
       setTimeout(() => { el.style.transform = 'translateY(0px)'; }, 200);
@@ -131,7 +152,7 @@ const MacOSDock: React.FC<MacOSDockProps> = ({
     ? Math.max(...currentPositions.map((pos, i) => pos + (baseIconSize * currentScales[i]) / 2))
     : (apps.length * (baseIconSize + baseSpacing)) - baseSpacing;
 
-  const padding = Math.max(6, baseIconSize * 0.1);
+  const padding = Math.max(4, baseIconSize * 0.08);
 
   return (
     <div 
@@ -140,7 +161,7 @@ const MacOSDock: React.FC<MacOSDockProps> = ({
       style={{
         width: `${contentWidth + padding * 2}px`,
         background: 'rgba(45, 45, 45, 0.75)',
-        borderRadius: `${Math.max(10, baseIconSize * 0.3)}px`,
+        borderRadius: `${Math.max(8, baseIconSize * 0.25)}px`,
         border: '1px solid rgba(255, 255, 255, 0.15)',
         boxShadow: '0 4px 16px rgba(0,0,0,0.4), 0 2px 8px rgba(0,0,0,0.3), inset 0 1px 0 rgba(255,255,255,0.15)',
         padding: `${padding}px`
@@ -171,14 +192,14 @@ const MacOSDock: React.FC<MacOSDockProps> = ({
               }}
             >
               <div 
-                className={`flex items-center justify-center rounded-xl transition-colors ${
+                className={`flex items-center justify-center rounded-lg transition-colors ${
                   app.isActive 
                     ? 'bg-white/20 shadow-lg' 
                     : 'bg-white/10 hover:bg-white/15'
                 }`}
                 style={{ 
-                  width: `${scaledSize * 0.85}px`, 
-                  height: `${scaledSize * 0.85}px`,
+                  width: `${scaledSize * 0.88}px`, 
+                  height: `${scaledSize * 0.88}px`,
                 }}
               >
                 <div style={{ transform: `scale(${Math.min(scale, 1.3)})` }} className={app.isEmergency ? 'text-red-400 animate-pulse' : 'text-white/90'}>
@@ -190,14 +211,14 @@ const MacOSDock: React.FC<MacOSDockProps> = ({
                 <div 
                   className="absolute"
                   style={{
-                    bottom: '-3px',
+                    bottom: '-2px',
                     left: '50%',
                     transform: 'translateX(-50%)',
-                    width: '4px',
-                    height: '4px',
+                    width: '3px',
+                    height: '3px',
                     borderRadius: '50%',
                     backgroundColor: 'rgba(255, 255, 255, 0.9)',
-                    boxShadow: '0 0 4px rgba(255,255,255,0.5)',
+                    boxShadow: '0 0 3px rgba(255,255,255,0.5)',
                   }}
                 />
               )}
