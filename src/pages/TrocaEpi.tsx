@@ -6,7 +6,7 @@ import { useAuth } from "@/hooks/useAuth";
 import { useProfile } from "@/hooks/useProfile";
 import { useEpiExchanges, EpiExchange } from "@/hooks/useEpiExchanges";
 import { useInventoryItems } from "@/hooks/useInventory";
-import { useEmployees } from "@/hooks/useEmployees";
+import { useRHEfetivo } from "@/hooks/useRHEfetivo";
 import { SignatureDialog } from "@/components/epi/SignatureDialog";
 import { supabase } from "@/integrations/supabase/client";
 import { toast } from "sonner";
@@ -193,20 +193,21 @@ export default function TrocaEpi() {
   const { exchanges, isLoading, createExchange, updateExchange, deleteExchange } = useEpiExchanges();
   const { data: inventoryItems = [] } = useInventoryItems();
   const queryClient = useQueryClient();
-  const { data: employees = [] } = useEmployees();
-  const efetivo = useMemo(() => 
-    employees
-      .filter(e => e.status === "active")
-      .map(e => ({
-        id: e.id,
-        nome: e.name,
-        funcao: e.role || "",
-        matricula: "",
-        matriculaHydro: "",
+  const { data: rhData } = useRHEfetivo();
+  const efetivo = useMemo(() => {
+    if (!rhData) return [];
+    const deletedIds = new Set(rhData.deletedIds || []);
+    return rhData.colaboradores
+      .filter(c => !deletedIds.has(c.id))
+      .map(c => ({
+        id: String(c.id),
+        nome: c.nome,
+        funcao: c.funcao || "",
+        matricula: c.matricula || "",
+        matriculaHydro: c.matriculaHydro || "",
       }))
-      .sort((a, b) => a.nome.localeCompare(b.nome)),
-    [employees]
-  );
+      .sort((a, b) => a.nome.localeCompare(b.nome));
+  }, [rhData]);
   const [showForm, setShowForm] = useState(false);
   const [editingExchange, setEditingExchange] = useState<EpiExchange | null>(null);
   const [viewExchange, setViewExchange] = useState<EpiExchange | null>(null);
