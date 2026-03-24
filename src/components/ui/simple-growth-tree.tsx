@@ -143,7 +143,30 @@ export function SimpleTree({ className }: SimpleTreeProps) {
     return `rgba(${r}, ${g}, ${bl}, ${a})`
   }
 
-  const growBranch = (branch: Branch, tree: Tree) => {
+  const drawLeaf = (ctx: CanvasRenderingContext2D, x: number, y: number, size: number, hue: number) => {
+    const leafSize = size * random(3, 6)
+    const angle = random(0, Math.PI * 2)
+    ctx.save()
+    ctx.translate(x, y)
+    ctx.rotate(angle)
+
+    // Leaf shape using bezier curves
+    ctx.beginPath()
+    ctx.moveTo(0, 0)
+    ctx.bezierCurveTo(leafSize * 0.3, -leafSize * 0.5, leafSize * 0.8, -leafSize * 0.3, leafSize, 0)
+    ctx.bezierCurveTo(leafSize * 0.8, leafSize * 0.3, leafSize * 0.3, leafSize * 0.5, 0, 0)
+    ctx.closePath()
+
+    const leafHue = hue + random(-20, 20)
+    const leafSat = random(120, 200)
+    const leafBright = random(100, 180)
+    ctx.fillStyle = hsbToRgb(leafHue, leafSat, leafBright, random(0.4, 0.7))
+    ctx.fill()
+
+    ctx.restore()
+  }
+
+  const growBranch = (branch: Branch, tree: Tree, ctx: CanvasRenderingContext2D) => {
     if (!branch.alive) return
 
     branch.age++
@@ -166,6 +189,16 @@ export function SimpleTree({ className }: SimpleTreeProps) {
         }
         if (branch.gen < 3 && random(1) < branch.proba4 / Math.pow(branch.gen, 1.1)) {
           brs.push(createBranch(pos, branch.stw * random(0.6, 0.8), branch.angle - random(0.3, 0.7) * branch.deviation, branch.gen + 0.15, branch.index, tree))
+        }
+      }
+
+      // Draw leaves on terminal branches (thin enough = end of branch)
+      if (branch.stw < 3 && branch.gen >= 2) {
+        const leafCount = Math.floor(random(2, 5))
+        for (let i = 0; i < leafCount; i++) {
+          const lx = branch.position.x + random(-8, 8)
+          const ly = branch.position.y + random(-8, 8)
+          drawLeaf(ctx, lx, ly, branch.stw, 110 + random(-10, 30))
         }
       }
     } else {
