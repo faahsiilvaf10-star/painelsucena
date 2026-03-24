@@ -33,6 +33,7 @@ import { useReportLock, AreaType } from "@/hooks/useReportLock";
 import { useSaveEfetivoToRDO } from "@/hooks/useRDOReports";
 import { getBrazilNorthTodayString } from "@/lib/timezone";
 import { useProfile } from "@/hooks/useProfile";
+import { useRHEfetivo } from "@/hooks/useRHEfetivo";
 
 type AttendanceWithEmployee = Tables<"attendance_records"> & {
   employees: Tables<"employees"> | null;
