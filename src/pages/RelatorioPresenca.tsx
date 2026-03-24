@@ -505,7 +505,7 @@ const RelatorioPresenca = () => {
       if (employees.length > 0) {
         report += `${label}\n\n`;
         employees.forEach((emp) => {
-          report += `${emp.name.toUpperCase()} ${getStatusEmoji(emp.id)}\n\n`;
+          report += `${toTitleCase(emp.name)} ${getStatusEmoji(emp.id)}\n\n`;
         });
       }
     });
@@ -648,7 +648,7 @@ const RelatorioPresenca = () => {
           }`}
           disabled={upsertAttendance.isPending || locked}
         >
-          <span className="font-medium">{employee.name.toUpperCase()}</span>
+          <span className="font-medium">{toTitleCase(employee.name)}</span>
           <div className="flex items-center gap-2">
             {locked && <Lock className="w-3 h-3" />}
             <span className="text-xl">{present ? EMOJI_CHECK : EMOJI_CROSS}</span>
