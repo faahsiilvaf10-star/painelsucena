@@ -1,5 +1,5 @@
-import { useState } from "react";
-import { Calendar, Clock, CheckCircle2, XCircle, Loader2, Lock, Trash2 } from "lucide-react";
+import { useState, useMemo } from "react";
+import { Calendar, CheckCircle2, XCircle, Loader2, Lock, Trash2, FileText } from "lucide-react";
 import Layout from "@/components/layout/Layout";
 import { Button } from "@/components/ui/button";
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
@@ -8,8 +8,11 @@ import { useAttendanceRecords, useUpdateAttendance, useDeleteAttendance, type At
 import { useReportLock } from "@/hooks/useReportLock";
 import { useProfile } from "@/hooks/useProfile";
 import { useIsAdmin } from "@/hooks/useUserRole";
+import { useRHEfetivo } from "@/hooks/useRHEfetivo";
 import { toast } from "sonner";
 import { getBrazilNorthTodayString } from "@/lib/timezone";
+import { ExportAttendancePdfButton } from "@/components/presenca/ExportAttendancePdfButton";
+import type { Colaborador } from "@/data/efetivoData";
 
 const statusConfig = {
   present: {
@@ -25,12 +28,13 @@ const statusConfig = {
     iconClass: "text-destructive"
   }
 };
+
 const Presenca = () => {
   const [filterStatus, setFilterStatus] = useState<string>("all");
   const today = getBrazilNorthTodayString();
   const {
     data: attendanceRecords,
-    isLoading,
+    isLoading: attendanceLoading,
     error,
     refetch
   } = useAttendanceRecords(today);
@@ -38,6 +42,7 @@ const Presenca = () => {
   const deleteAttendance = useDeleteAttendance();
   const { data: profile } = useProfile();
   const { isAdmin } = useIsAdmin();
+  const { data: rhData, isLoading: rhLoading } = useRHEfetivo();
   const {
     isLocked,
     isLoading: lockLoading
@@ -47,11 +52,75 @@ const Presenca = () => {
   const canEdit = isAdmin || allowedCargos.includes(profile?.cargo || "");
   const canDelete = canEdit;
 
-  const filteredRecords = attendanceRecords?.filter(record => filterStatus === "all" || record.status === filterStatus) || [];
+  const isLoading = attendanceLoading || rhLoading;
+
+  // Build attendance map: employee_id -> status
+  const attendanceMap = useMemo(() => {
+    const map = new Map<string, { status: "present" | "absent"; recordId: string }>();
+    attendanceRecords?.forEach((r) => {
+      if (r.employees) {
+        const normalizedStatus = r.status === "present" || r.status === "late" ? "present" : "absent";
+        map.set(r.employee_id, { status: normalizedStatus, recordId: r.id });
+      }
+    });
+    return map;
+  }, [attendanceRecords]);
+
+  // Get all RH employees (excluding deleted)
+  const rhColaboradores = useMemo(() => {
+    if (!rhData?.colaboradores?.length) return [];
+    const deletedIds = rhData.deletedIds || [];
+    return rhData.colaboradores
+      .filter(c => !deletedIds.includes(c.id))
+      .sort((a, b) => a.nome.localeCompare(b.nome));
+  }, [rhData]);
+
+  // Cross-reference: for each RH employee, find matching attendance record by name
+  // The employees table links attendance_records. We match RH name to employees table name.
+  const employeesList = useMemo(() => {
+    if (!rhColaboradores.length) return [];
+    
+    // Build name->attendance lookup from attendance records
+    const nameToAttendance = new Map<string, { status: "present" | "absent"; recordId: string }>();
+    attendanceRecords?.forEach((r) => {
+      if (r.employees) {
+        const normalizedStatus = r.status === "present" || r.status === "late" ? "present" : "absent";
+        nameToAttendance.set(r.employees.name.toUpperCase().trim(), { status: normalizedStatus, recordId: r.id });
+      }
+    });
+
+    return rhColaboradores.map(colab => {
+      const attendance = nameToAttendance.get(colab.nome.toUpperCase().trim());
+      return {
+        ...colab,
+        attendanceStatus: attendance?.status || "present" as "present" | "absent", // default present if no record
+        recordId: attendance?.recordId || null,
+        hasAttendanceRecord: !!attendance,
+      };
+    });
+  }, [rhColaboradores, attendanceRecords]);
+
+  // Filter
+  const filteredEmployees = useMemo(() => {
+    if (filterStatus === "all") return employeesList;
+    return employeesList.filter(e => e.attendanceStatus === filterStatus);
+  }, [employeesList, filterStatus]);
+
+  // Stats
   const stats = {
-    present: attendanceRecords?.filter(r => r.status === "present" || r.status === "late").length || 0,
-    absent: attendanceRecords?.filter(r => r.status === "absent" || r.status === "justified").length || 0
+    present: employeesList.filter(e => e.attendanceStatus === "present").length,
+    absent: employeesList.filter(e => e.attendanceStatus === "absent").length,
   };
+
+  const toTitleCase = (name: string) =>
+    name.toLowerCase().split(" ").map(w => w.charAt(0).toUpperCase() + w.slice(1)).join(" ");
+
+  const getInitials = (name: string) => {
+    const parts = name.trim().split(/\s+/);
+    if (parts.length >= 2) return `${parts[0][0]}${parts[parts.length - 1][0]}`.toUpperCase();
+    return parts[0].substring(0, 2).toUpperCase();
+  };
+
   const handleStatusChange = async (recordId: string, newStatus: AttendanceStatus) => {
     if (isLocked) {
       toast.error("Relatório salvo! Status não pode ser alterado.");
@@ -123,10 +192,7 @@ const Presenca = () => {
                 <Lock className="w-4 h-4" />
                 <span className="text-sm font-medium">Relatório Salvo</span>
               </div>}
-            <Button className="gap-2">
-              <Clock className="w-4 h-4" />
-              Registrar Ponto
-            </Button>
+            <ExportAttendancePdfButton />
           </div>
         </div>
 
@@ -172,36 +238,35 @@ const Presenca = () => {
               </TableRow>
             </TableHeader>
             <TableBody>
-              {filteredRecords.map((record, index) => {
-              // Normalize status: treat late as present, justified as absent
-              const normalizedStatus = record.status === "present" || record.status === "late" ? "present" : "absent";
-              const config = statusConfig[normalizedStatus];
-              const employee = record.employees;
-              return <TableRow key={record.id} className="border-border/50 animate-fade-in" style={{
-                animationDelay: `${index * 0.05}s`
+              {filteredEmployees.map((emp, index) => {
+              const config = statusConfig[emp.attendanceStatus];
+              return <TableRow key={emp.id} className="border-border/50 animate-fade-in" style={{
+                animationDelay: `${index * 0.03}s`
               }}>
                     <TableCell>
                       <div className="flex items-center gap-2 sm:gap-3">
                         <div className="w-8 h-8 sm:w-10 sm:h-10 rounded-full bg-secondary flex items-center justify-center font-semibold text-xs sm:text-sm shrink-0">
-                          {employee?.avatar || "??"}
+                          {getInitials(emp.nome)}
                         </div>
                         <div className="min-w-0">
-                          <p className="font-medium text-sm sm:text-base truncate">{employee?.name || "Desconhecido"}</p>
-                          <p className="text-xs text-muted-foreground truncate">
-                            <span className="sm:hidden">{employee?.role || "-"}</span>
-                            <span className="hidden sm:inline">{employee?.department}</span>
+                          <p className="font-medium text-sm sm:text-base truncate">{emp.nome}</p>
+                          <p className="text-xs text-muted-foreground truncate sm:hidden">
+                            {toTitleCase(emp.funcao || "-")}
                           </p>
                         </div>
                       </div>
                     </TableCell>
                     <TableCell className="text-muted-foreground hidden sm:table-cell">
-                      {employee?.role || "-"}
+                      {toTitleCase(emp.funcao || "-")}
                     </TableCell>
                     <TableCell>
-                      {isLocked ? <div className={`inline-flex items-center gap-2 px-3 py-1.5 rounded-md ${config.class}`}>
-                          <Lock className="w-3 h-3" />
+                      {isLocked || !emp.hasAttendanceRecord ? (
+                        <div className={`inline-flex items-center gap-2 px-3 py-1.5 rounded-md ${config.class}`}>
+                          {isLocked && <Lock className="w-3 h-3" />}
                           {config.label}
-                        </div> : <Select value={normalizedStatus} onValueChange={(value: AttendanceStatus) => handleStatusChange(record.id, value)}>
+                        </div>
+                      ) : (
+                        <Select value={emp.attendanceStatus} onValueChange={(value: AttendanceStatus) => handleStatusChange(emp.recordId!, value)}>
                           <SelectTrigger className={`w-[140px] h-8 ${config.class} border-0`}>
                             <SelectValue />
                           </SelectTrigger>
@@ -219,18 +284,21 @@ const Presenca = () => {
                               </span>
                             </SelectItem>
                           </SelectContent>
-                        </Select>}
+                        </Select>
+                      )}
                     </TableCell>
                     {canDelete && !isLocked && (
                       <TableCell className="w-[50px] text-center">
-                        <Button
-                          variant="ghost"
-                          size="icon"
-                          className="h-7 w-7 text-destructive hover:bg-destructive/10"
-                          onClick={() => handleDeleteRecord(record.id, employee?.name || "Funcionário")}
-                        >
-                          <Trash2 className="w-3.5 h-3.5" />
-                        </Button>
+                        {emp.hasAttendanceRecord && emp.recordId && (
+                          <Button
+                            variant="ghost"
+                            size="icon"
+                            className="h-7 w-7 text-destructive hover:bg-destructive/10"
+                            onClick={() => handleDeleteRecord(emp.recordId!, emp.nome)}
+                          >
+                            <Trash2 className="w-3.5 h-3.5" />
+                          </Button>
+                        )}
                       </TableCell>
                     )}
                   </TableRow>;
@@ -239,7 +307,7 @@ const Presenca = () => {
           </Table>
         </div>
 
-        {filteredRecords.length === 0 && <div className="text-center py-12">
+        {filteredEmployees.length === 0 && <div className="text-center py-12">
             <p className="text-muted-foreground text-lg">
               Nenhum registro encontrado
             </p>
