@@ -499,7 +499,7 @@ const RelatorioPresenca = () => {
       ? Object.keys(groupedEmployees[area] || {})
       : executionRoles[area];
     roles.forEach((role) => {
-      const label = roleLabels[area]?.[role] || `${EMOJI_WORKER} ${role}:`;
+      const label = roleLabels[area]?.[role] || `${EMOJI_WORKER} ${role.toUpperCase()}:`;
       const employees = groupedEmployees[area]?.[role] || [];
       if (employees.length > 0) {
         report += `${label}\n\n`;
