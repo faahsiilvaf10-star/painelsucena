@@ -920,6 +920,7 @@ const RelatorioPresenca = () => {
                                       if (error) throw error;
                                       toast.success(`${emp.nome} adicionado!`);
                                       queryClient.invalidateQueries({ queryKey: ["employees_all"] });
+                                      queryClient.invalidateQueries({ queryKey: ["employees"] });
                                     } catch {
                                       toast.error("Erro ao adicionar funcionário");
                                     } finally {
