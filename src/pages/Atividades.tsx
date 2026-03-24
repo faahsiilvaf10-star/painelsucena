@@ -158,12 +158,22 @@ export default function Atividades() {
     });
     
     const totals = periodReports.reduce((acc, report) => {
+      // Sum extra plantio entries from extra_entries
+      let extraPlantio = 0;
+      const extras = report.extra_entries as Record<string, { value: string; faixa: string; berma: string; especie?: string }[]> | null;
+      if (extras?.plantio) {
+        for (const entry of extras.plantio) {
+          const qtd = entry.value ? parseInt(entry.value) : 0;
+          if (qtd > 0) extraPlantio += qtd;
+        }
+      }
+
       return {
         coroamento: acc.coroamento + (report.coroamento_unidade || 0),
         adubagem: acc.adubagem + (report.adubagem_unidade || 0),
         rocagem: acc.rocagem + (parseFloat(report.rocagem_m2?.toString() || "0") || 0),
         podagem: acc.podagem + (report.podagem_unidade || 0),
-        plantio: acc.plantio + (report.plantio_unidade || 0),
+        plantio: acc.plantio + (report.plantio_unidade || 0) + extraPlantio,
         retiradaMudas: acc.retiradaMudas + (report.retirada_mudas_unidade || 0),
       };
     }, { coroamento: 0, adubagem: 0, rocagem: 0, podagem: 0, plantio: 0, retiradaMudas: 0 });
