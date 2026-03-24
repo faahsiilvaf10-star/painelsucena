@@ -160,7 +160,7 @@ const Dashboard = () => {
               <img 
                 src={logoSucenaHeader} 
                 alt="Logo Sucena" 
-                className="h-48 sm:h-64 object-contain" 
+                className="h-20 sm:h-28 object-contain" 
               />
             </div>
           ) : (
