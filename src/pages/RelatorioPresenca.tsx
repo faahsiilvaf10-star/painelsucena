@@ -226,6 +226,7 @@ const RelatorioPresenca = () => {
   const saveEfetivoToRDO = useSaveEfetivoToRDO();
   const { isAreaLocked, canUnlockArea, lockArea, unlockArea, isLoading: lockLoading } = useReportLock(selectedDate);
   const { data: profile } = useProfile();
+  const { data: rhData } = useRHEfetivo();
 
   // Determine which tabs to show based on user cargo
   const userCargo = profile?.cargo;
