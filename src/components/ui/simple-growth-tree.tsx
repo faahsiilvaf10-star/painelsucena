@@ -291,7 +291,7 @@ export function SimpleTree({ className }: SimpleTreeProps) {
     tree.branches.forEach((branch) => {
       if (branch.alive) {
         hasAliveBranches = true
-        growBranch(branch, tree)
+        growBranch(branch, tree, ctx)
         displayBranch(branch, tree, ctx)
       }
     })
