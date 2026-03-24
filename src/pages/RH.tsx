@@ -32,6 +32,7 @@ import { toast } from "sonner";
 import { PromotionDialog } from "@/components/rh/PromotionDialog";
 import { supabase } from "@/integrations/supabase/client";
 import { useQueryClient } from "@tanstack/react-query";
+import { useRHEfetivo } from "@/hooks/useRHEfetivo";
 
 type SortField = "id" | "nome" | "funcao" | "admissao" | "matricula";
 type SortDirection = "asc" | "desc";
@@ -42,50 +43,31 @@ const RH = () => {
   const [sortField, setSortField] = useState<SortField>("id");
   const [sortDirection, setSortDirection] = useState<SortDirection>("asc");
   const [expandedRow, setExpandedRow] = useState<number | null>(null);
-  const [colaboradores, setColaboradores] = useState<Colaborador[]>(() => {
-    // Initialize state directly from localStorage to avoid race condition
-    const stored = localStorage.getItem("rh_colaboradores");
-    const deletedRaw = localStorage.getItem("rh_deleted_ids");
-    const deletedIds: number[] = deletedRaw ? JSON.parse(deletedRaw) : [];
-    const wasImported = localStorage.getItem("rh_imported") === "true";
+  const { data: rhData, isLoading: rhLoading, saveMutation } = useRHEfetivo();
+  const [colaboradores, setColaboradores] = useState<Colaborador[]>(initialColaboradores);
+  const [deletedIds, setDeletedIds] = useState<number[]>([]);
+  const [dbRowId, setDbRowId] = useState<string | null>(null);
+  const [initialized, setInitialized] = useState(false);
 
-    if (stored) {
-      try {
-        const parsed: Colaborador[] = JSON.parse(stored);
-
-        if (wasImported) {
-          return parsed;
-        }
-
-        const merged = initialColaboradores
-          .filter(source => !deletedIds.includes(source.id))
-          .map(source => {
-            const saved = parsed.find(p => p.id === source.id);
-            if (saved) {
-              const savedAso = saved.aso;
-              const sourceAso = source.aso;
-              const mergedAso: typeof sourceAso = (savedAso || sourceAso)
-                ? {
-                    admissional: savedAso?.admissional || sourceAso?.admissional || "",
-                    validade: (sourceAso?.periodico && sourceAso?.validade) ? sourceAso.validade : (savedAso?.validade || sourceAso?.validade || ""),
-                    periodico: savedAso?.periodico || sourceAso?.periodico,
-                    retornoTrabalho: savedAso?.retornoTrabalho || sourceAso?.retornoTrabalho,
-                    mudancaRisco: savedAso?.mudancaRisco || sourceAso?.mudancaRisco,
-                    observacao: savedAso?.observacao || sourceAso?.observacao,
-                  }
-                : undefined;
-              return { ...source, ...saved, aso: mergedAso };
-            }
-            return source;
-          });
-        const extraIds = parsed.filter(p => !initialColaboradores.find(s => s.id === p.id) && !deletedIds.includes(p.id));
-        return [...merged, ...extraIds];
-      } catch {
-        return initialColaboradores.filter(s => !deletedIds.includes(s.id));
-      }
+  // Sync state from DB when data loads
+  useEffect(() => {
+    if (rhData && !initialized) {
+      setColaboradores(rhData.colaboradores);
+      setDeletedIds(rhData.deletedIds);
+      setDbRowId(rhData.rowId);
+      setInitialized(true);
     }
-    return initialColaboradores.filter(s => !deletedIds.includes(s.id));
-  });
+  }, [rhData, initialized]);
+
+  // Persist to database whenever colaboradores change (after initialization)
+  const persistToDb = useCallback((newColaboradores: Colaborador[], newDeletedIds: number[]) => {
+    saveMutation.mutate({
+      colaboradores: newColaboradores,
+      deletedIds: newDeletedIds,
+      existingRowId: dbRowId,
+    });
+  }, [saveMutation, dbRowId]);
+
   const [editingAso, setEditingAso] = useState<number | null>(null);
   const [editingColaborador, setEditingColaborador] = useState<Colaborador | null>(null);
   const [asoForm, setAsoForm] = useState<Record<string, string>>({});
@@ -93,42 +75,36 @@ const RH = () => {
   const { canEditRH, isLoading: permissionsLoading } = useRHPermissions();
   const queryClient = useQueryClient();
 
-  // Save to localStorage when changed
-  useEffect(() => {
-    localStorage.setItem("rh_colaboradores", JSON.stringify(colaboradores));
-  }, [colaboradores]);
-
   const handleAddEmployee = (newEmployee: Omit<Colaborador, "id">) => {
     const maxId = Math.max(...colaboradores.map(c => c.id), 0);
     const employee: Colaborador = {
       ...newEmployee,
       id: maxId + 1,
     };
-    setColaboradores(prev => [...prev, employee]);
+    const updated = [...colaboradores, employee];
+    setColaboradores(updated);
+    persistToDb(updated, deletedIds);
   };
 
   const handleImportEmployees = (updated: Colaborador[]) => {
-    // Persist immediately to avoid losing imported data when navigating away quickly
-    localStorage.setItem("rh_colaboradores", JSON.stringify(updated));
-    localStorage.setItem("rh_imported", "true");
-    localStorage.removeItem("rh_deleted_ids");
     setColaboradores(updated);
+    setDeletedIds([]);
+    persistToDb(updated, []);
   };
 
   const handleDeleteEmployee = (id: number) => {
-    setColaboradores(prev => prev.filter(c => c.id !== id));
-    // Persist deleted IDs so they don't reappear from hardcoded source
-    const deletedRaw = localStorage.getItem("rh_deleted_ids");
-    const deletedIds: number[] = deletedRaw ? JSON.parse(deletedRaw) : [];
-    if (!deletedIds.includes(id)) {
-      deletedIds.push(id);
-      localStorage.setItem("rh_deleted_ids", JSON.stringify(deletedIds));
-    }
+    const updated = colaboradores.filter(c => c.id !== id);
+    const newDeletedIds = [...deletedIds, id];
+    setColaboradores(updated);
+    setDeletedIds(newDeletedIds);
+    persistToDb(updated, newDeletedIds);
     toast.success("Colaborador removido com sucesso!");
   };
 
   const handleEditColaborador = (updated: Colaborador) => {
-    setColaboradores(prev => prev.map(c => c.id === updated.id ? updated : c));
+    const newList = colaboradores.map(c => c.id === updated.id ? updated : c);
+    setColaboradores(newList);
+    persistToDb(newList, deletedIds);
   };
 
   const handlePromote = useCallback(async (id: number, novaFuncao: string, observacao: string) => {
@@ -141,8 +117,8 @@ const RH = () => {
     // Find the employee name to sync with Supabase
     const colaborador = colaboradores.find(c => c.id === id);
     
-    // Update localStorage state
-    setColaboradores(prev => prev.map(c => {
+    // Update state and persist to DB
+    const newList = colaboradores.map(c => {
       if (c.id !== id) return c;
       const promocao = {
         funcaoAnterior: c.funcao,
@@ -155,7 +131,9 @@ const RH = () => {
         funcao: novaFuncao,
         promocoes: [...(c.promocoes || []), promocao],
       };
-    }));
+    });
+    setColaboradores(newList);
+    persistToDb(newList, deletedIds);
 
     // Sync with Supabase employees table (used by Presença, RDO, etc.)
     if (colaborador) {
@@ -188,7 +166,7 @@ const RH = () => {
     }
 
     toast.success("Promoção registrada com sucesso!");
-  }, [colaboradores, queryClient]);
+  }, [colaboradores, queryClient, persistToDb, deletedIds]);
 
   const handleStartEditAso = (colaborador: Colaborador) => {
     setEditingAso(colaborador.id);
@@ -203,14 +181,12 @@ const RH = () => {
   };
 
   const handleSaveAso = (id: number) => {
-    setColaboradores(prev => prev.map(c => {
+    const newList = colaboradores.map(c => {
       if (c.id !== id) return c;
 
-      // When periodico is set/changed, auto-calculate validade as periodico + 365 days
       let newValidade = asoForm.validade || c.aso?.validade || "";
       if (asoForm.periodico && asoForm.periodico !== (c.aso?.periodico || "")) {
         try {
-          // Parse dd/MM/yyyy format
           const parts = asoForm.periodico.split("/");
           if (parts.length === 3) {
             const periodicoDate = new Date(
@@ -238,7 +214,9 @@ const RH = () => {
           observacao: asoForm.observacao || undefined,
         },
       };
-    }));
+    });
+    setColaboradores(newList);
+    persistToDb(newList, deletedIds);
     setEditingAso(null);
     toast.success("ASO atualizado com sucesso!");
   };

@@ -2646,6 +2646,33 @@ export type Database = {
         }
         Relationships: []
       }
+      rh_efetivo: {
+        Row: {
+          colaboradores: Json
+          deleted_ids: Json
+          id: string
+          imported_at: string
+          imported_by: string
+          updated_at: string
+        }
+        Insert: {
+          colaboradores?: Json
+          deleted_ids?: Json
+          id?: string
+          imported_at?: string
+          imported_by?: string
+          updated_at?: string
+        }
+        Update: {
+          colaboradores?: Json
+          deleted_ids?: Json
+          id?: string
+          imported_at?: string
+          imported_by?: string
+          updated_at?: string
+        }
+        Relationships: []
+      }
       security_files: {
         Row: {
           created_at: string

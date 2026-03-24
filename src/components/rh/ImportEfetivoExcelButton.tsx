@@ -234,11 +234,6 @@ export function ImportEfetivoExcelButton({ colaboradores, onImport }: ImportEfet
     if (!preview) return;
     onImport(preview.finalList);
 
-    // Mark as imported so reload uses localStorage as source of truth
-    localStorage.setItem("rh_imported", "true");
-    // Clear deleted IDs since we're syncing with the spreadsheet
-    localStorage.removeItem("rh_deleted_ids");
-
     const parts = [];
     if (preview.addedCount > 0) parts.push(`${preview.addedCount} adicionado${preview.addedCount > 1 ? "s" : ""}`);
     if (preview.updatedCount > 0) parts.push(`${preview.updatedCount} atualizado${preview.updatedCount > 1 ? "s" : ""}`);
