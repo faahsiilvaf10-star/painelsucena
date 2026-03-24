@@ -491,6 +491,14 @@ const Configuracoes = () => {
             </CardContent>
           </Card>
 
+          {/* Theme Picker */}
+          {user && (
+            <ThemePicker
+              userId={user.id}
+              currentTheme={(profile as any)?.ui_theme || "classic"}
+            />
+          )}
+
           {/* Sidebar Customizer */}
           {user && (
             <SidebarCustomizer
