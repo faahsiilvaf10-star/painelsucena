@@ -117,8 +117,8 @@ const RH = () => {
     // Find the employee name to sync with Supabase
     const colaborador = colaboradores.find(c => c.id === id);
     
-    // Update localStorage state
-    setColaboradores(prev => prev.map(c => {
+    // Update state and persist to DB
+    const newList = colaboradores.map(c => {
       if (c.id !== id) return c;
       const promocao = {
         funcaoAnterior: c.funcao,
@@ -131,7 +131,9 @@ const RH = () => {
         funcao: novaFuncao,
         promocoes: [...(c.promocoes || []), promocao],
       };
-    }));
+    });
+    setColaboradores(newList);
+    persistToDb(newList, deletedIds);
 
     // Sync with Supabase employees table (used by Presença, RDO, etc.)
     if (colaborador) {
