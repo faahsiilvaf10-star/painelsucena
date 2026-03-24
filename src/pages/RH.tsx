@@ -81,31 +81,30 @@ const RH = () => {
       ...newEmployee,
       id: maxId + 1,
     };
-    setColaboradores(prev => [...prev, employee]);
+    const updated = [...colaboradores, employee];
+    setColaboradores(updated);
+    persistToDb(updated, deletedIds);
   };
 
   const handleImportEmployees = (updated: Colaborador[]) => {
-    // Persist immediately to avoid losing imported data when navigating away quickly
-    localStorage.setItem("rh_colaboradores", JSON.stringify(updated));
-    localStorage.setItem("rh_imported", "true");
-    localStorage.removeItem("rh_deleted_ids");
     setColaboradores(updated);
+    setDeletedIds([]);
+    persistToDb(updated, []);
   };
 
   const handleDeleteEmployee = (id: number) => {
-    setColaboradores(prev => prev.filter(c => c.id !== id));
-    // Persist deleted IDs so they don't reappear from hardcoded source
-    const deletedRaw = localStorage.getItem("rh_deleted_ids");
-    const deletedIds: number[] = deletedRaw ? JSON.parse(deletedRaw) : [];
-    if (!deletedIds.includes(id)) {
-      deletedIds.push(id);
-      localStorage.setItem("rh_deleted_ids", JSON.stringify(deletedIds));
-    }
+    const updated = colaboradores.filter(c => c.id !== id);
+    const newDeletedIds = [...deletedIds, id];
+    setColaboradores(updated);
+    setDeletedIds(newDeletedIds);
+    persistToDb(updated, newDeletedIds);
     toast.success("Colaborador removido com sucesso!");
   };
 
   const handleEditColaborador = (updated: Colaborador) => {
-    setColaboradores(prev => prev.map(c => c.id === updated.id ? updated : c));
+    const newList = colaboradores.map(c => c.id === updated.id ? updated : c);
+    setColaboradores(newList);
+    persistToDb(newList, deletedIds);
   };
 
   const handlePromote = useCallback(async (id: number, novaFuncao: string, observacao: string) => {
