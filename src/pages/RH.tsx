@@ -43,61 +43,30 @@ const RH = () => {
   const [sortField, setSortField] = useState<SortField>("id");
   const [sortDirection, setSortDirection] = useState<SortDirection>("asc");
   const [expandedRow, setExpandedRow] = useState<number | null>(null);
-  const [colaboradores, setColaboradores] = useState<Colaborador[]>(() => {
-    // Initialize state directly from localStorage to avoid race condition
-    const stored = localStorage.getItem("rh_colaboradores");
-    const deletedRaw = localStorage.getItem("rh_deleted_ids");
-    const deletedIds: number[] = deletedRaw ? JSON.parse(deletedRaw) : [];
-    const wasImported = localStorage.getItem("rh_imported") === "true";
+  const { data: rhData, isLoading: rhLoading, saveMutation } = useRHEfetivo();
+  const [colaboradores, setColaboradores] = useState<Colaborador[]>(initialColaboradores);
+  const [deletedIds, setDeletedIds] = useState<number[]>([]);
+  const [dbRowId, setDbRowId] = useState<string | null>(null);
+  const [initialized, setInitialized] = useState(false);
 
-    if (stored) {
-      try {
-        const parsed: Colaborador[] = JSON.parse(stored);
-
-        if (wasImported) {
-          return parsed;
-        }
-
-        const merged = initialColaboradores
-          .filter(source => !deletedIds.includes(source.id))
-          .map(source => {
-            const saved = parsed.find(p => p.id === source.id);
-            if (saved) {
-              const savedAso = saved.aso;
-              const sourceAso = source.aso;
-              const mergedAso: typeof sourceAso = (savedAso || sourceAso)
-                ? {
-                    admissional: savedAso?.admissional || sourceAso?.admissional || "",
-                    validade: (sourceAso?.periodico && sourceAso?.validade) ? sourceAso.validade : (savedAso?.validade || sourceAso?.validade || ""),
-                    periodico: savedAso?.periodico || sourceAso?.periodico,
-                    retornoTrabalho: savedAso?.retornoTrabalho || sourceAso?.retornoTrabalho,
-                    mudancaRisco: savedAso?.mudancaRisco || sourceAso?.mudancaRisco,
-                    observacao: savedAso?.observacao || sourceAso?.observacao,
-                  }
-                : undefined;
-              return { ...source, ...saved, aso: mergedAso };
-            }
-            return source;
-          });
-        const extraIds = parsed.filter(p => !initialColaboradores.find(s => s.id === p.id) && !deletedIds.includes(p.id));
-        return [...merged, ...extraIds];
-      } catch {
-        return initialColaboradores.filter(s => !deletedIds.includes(s.id));
-      }
-    }
-    return initialColaboradores.filter(s => !deletedIds.includes(s.id));
-  });
-  const [editingAso, setEditingAso] = useState<number | null>(null);
-  const [editingColaborador, setEditingColaborador] = useState<Colaborador | null>(null);
-  const [asoForm, setAsoForm] = useState<Record<string, string>>({});
-
-  const { canEditRH, isLoading: permissionsLoading } = useRHPermissions();
-  const queryClient = useQueryClient();
-
-  // Save to localStorage when changed
+  // Sync state from DB when data loads
   useEffect(() => {
-    localStorage.setItem("rh_colaboradores", JSON.stringify(colaboradores));
-  }, [colaboradores]);
+    if (rhData && !initialized) {
+      setColaboradores(rhData.colaboradores);
+      setDeletedIds(rhData.deletedIds);
+      setDbRowId(rhData.rowId);
+      setInitialized(true);
+    }
+  }, [rhData, initialized]);
+
+  // Persist to database whenever colaboradores change (after initialization)
+  const persistToDb = useCallback((newColaboradores: Colaborador[], newDeletedIds: number[]) => {
+    saveMutation.mutate({
+      colaboradores: newColaboradores,
+      deletedIds: newDeletedIds,
+      existingRowId: dbRowId,
+    });
+  }, [saveMutation, dbRowId]);
 
   const handleAddEmployee = (newEmployee: Omit<Colaborador, "id">) => {
     const maxId = Math.max(...colaboradores.map(c => c.id), 0);
