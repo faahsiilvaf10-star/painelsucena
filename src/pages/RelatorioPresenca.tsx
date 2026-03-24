@@ -842,7 +842,7 @@ const RelatorioPresenca = () => {
 
           <Dialog open={dialogOpen} onOpenChange={(open) => {
             setDialogOpen(open);
-            if (!open) { setRhSearch(""); setShowRhList(false); }
+            if (!open) { setRhSearch(""); }
           }}>
             <DialogTrigger asChild>
               <Button className="gap-2">
