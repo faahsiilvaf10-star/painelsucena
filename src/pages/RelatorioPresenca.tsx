@@ -90,29 +90,29 @@ import { copyAndShareWhatsApp, copyToClipboard } from "@/lib/copyAndShare";
 
 const roleLabels: Record<string, Record<string, string>> = {
   "ÁREA GABIÃO": {
-    Polivalente: `${EMOJI_WORKER} Polivalentes:`,
-    "Meia Oficial": `${EMOJI_WORKER} Meia oficial:`,
-    Ajudante: `${EMOJI_WORKER} Ajudante:`,
+    Polivalente: `${EMOJI_WORKER} POLIVALENTES:`,
+    "Meia Oficial": `${EMOJI_WORKER} MEIA OFICIAL:`,
+    Ajudante: `${EMOJI_WORKER} AJUDANTE:`,
   },
   "ROÇAGEM E PODAGEM": {
-    Polivalente: `${EMOJI_WORKER} Polivalentes:`,
-    Jardineiro: `${EMOJI_WORKER} Jardineiro:`,
-    Ajudante: `${EMOJI_WORKER} Ajudante:`,
-    "Motorista do Pipa": `${EMOJI_WORKER} Motorista do Pipa`,
-    "Motorista do Munck": `${EMOJI_WORKER} Motorista do Munck`,
-    Sinaleiro: `${EMOJI_WORKER} Sinaleiro`,
-    "Mecânico Montador": `${EMOJI_WORKER} Mecânico montador`,
-    "Auxiliar de Elétrica": `${EMOJI_WORKER} Auxiliar de elétrica`,
-    Eletricista: `${EMOJI_WORKER} Eletricista`,
+    Polivalente: `${EMOJI_WORKER} POLIVALENTES:`,
+    Jardineiro: `${EMOJI_WORKER} JARDINEIRO:`,
+    Ajudante: `${EMOJI_WORKER} AJUDANTE:`,
+    "Motorista do Pipa": `${EMOJI_WORKER} MOTORISTA DO PIPA`,
+    "Motorista do Munck": `${EMOJI_WORKER} MOTORISTA DO MUNCK`,
+    Sinaleiro: `${EMOJI_WORKER} SINALEIRO`,
+    "Mecânico Montador": `${EMOJI_WORKER} MECÂNICO MONTADOR`,
+    "Auxiliar de Elétrica": `${EMOJI_WORKER} AUXILIAR DE ELÉTRICA`,
+    Eletricista: `${EMOJI_WORKER} ELETRICISTA`,
   },
   "ADMINISTRATIVO": {
-    "Aux Administrativo": `${EMOJI_WORKER} Aux Administrativo:`,
-    "Auxiliar Administrativo": `${EMOJI_WORKER} Auxiliar Administrativo:`,
-    "Encarregado Geral": `${EMOJI_WORKER} Encarregado Geral:`,
-    "Encarregado": `${EMOJI_WORKER} Encarregado:`,
+    "Aux Administrativo": `${EMOJI_WORKER} AUX ADMINISTRATIVO:`,
+    "Auxiliar Administrativo": `${EMOJI_WORKER} AUXILIAR ADMINISTRATIVO:`,
+    "Encarregado Geral": `${EMOJI_WORKER} ENCARREGADO GERAL:`,
+    "Encarregado": `${EMOJI_WORKER} ENCARREGADO:`,
     "TST": `${EMOJI_WORKER} TST:`,
-    "Técnico de Segurança": `${EMOJI_WORKER} Técnico de Segurança:`,
-    "Almoxarife": `${EMOJI_WORKER} Almoxarife:`,
+    "Técnico de Segurança": `${EMOJI_WORKER} TÉCNICO DE SEGURANÇA:`,
+    "Almoxarife": `${EMOJI_WORKER} ALMOXARIFE:`,
     _other: `${EMOJI_WORKER}`,
   },
 };
@@ -499,7 +499,7 @@ const RelatorioPresenca = () => {
       ? Object.keys(groupedEmployees[area] || {})
       : executionRoles[area];
     roles.forEach((role) => {
-      const label = roleLabels[area]?.[role] || `${EMOJI_WORKER} ${role}:`;
+      const label = roleLabels[area]?.[role] || `${EMOJI_WORKER} ${role.toUpperCase()}:`;
       const employees = groupedEmployees[area]?.[role] || [];
       if (employees.length > 0) {
         report += `${label}\n\n`;
