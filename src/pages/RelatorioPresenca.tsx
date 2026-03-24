@@ -164,14 +164,8 @@ const RelatorioPresenca = () => {
   const [copied, setCopied] = useState(false);
   const [selectedArea, setSelectedArea] = useState<"all" | "ÁREA GABIÃO" | "ROÇAGEM E PODAGEM" | "ADMINISTRATIVO">("all");
   const [dialogOpen, setDialogOpen] = useState(false);
-  const [newEmployee, setNewEmployee] = useState({
-    name: "",
-    role: "",
-    area: "jardinagem" as "gabiao" | "jardinagem" | "administrativo",
-  });
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [rhSearch, setRhSearch] = useState("");
-  const [showRhList, setShowRhList] = useState(false);
 
   // rhColaboradores is computed after allEmployees query below
 
