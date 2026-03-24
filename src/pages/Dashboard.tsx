@@ -156,9 +156,9 @@ const Dashboard = () => {
         {/* Header */}
         <div className="flex items-center justify-between mb-5 animate-fade-in">
           {isDockTheme ? (
-            <div className="flex-1 flex justify-center">
+            <div className="flex-1 flex justify-center pl-16">
               <img 
-                src={settings.logo_url || logoPrincipal} 
+                src={logoSucenaHeader} 
                 alt="Logo Sucena" 
                 className="h-12 sm:h-16 object-contain" 
               />
