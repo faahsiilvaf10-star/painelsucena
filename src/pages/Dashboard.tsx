@@ -51,6 +51,10 @@ import { useFridayNotification } from "@/hooks/useFridayNotification";
 import { toast } from "sonner";
 
 const Dashboard = () => {
+  const { data: profile } = useProfile();
+  const { settings } = useSiteSettings();
+  const uiTheme = (profile as any)?.ui_theme || "classic";
+  const isDockTheme = uiTheme === "macos-dock";
   const today = getBrazilNorthTodayString();
   const { data: employees } = useEmployees();
   const { data: attendanceRecords } = useAttendanceRecords(today);
