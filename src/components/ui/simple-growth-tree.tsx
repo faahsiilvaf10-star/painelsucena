@@ -28,6 +28,7 @@ interface Tree {
   branches: Branch[]
   start: Vector2D
   coeff: number
+  growthScale: number
   teinte: number
   index: number
   proba1: number
@@ -57,14 +58,16 @@ export function SimpleTree({ className }: SimpleTreeProps) {
   }
 
   const createTree = (width: number, height: number): Tree => {
+    const growthScale = Math.max(0.62, Math.min(1, Math.min(width / 420, height / 300)))
     const x = width / 2
-    const y = height * 0.78
+    const y = height * 0.88
     const start = createVector(x, y)
 
     const tree: Tree = {
       branches: [],
       start,
-      coeff: start.y / (height - 100),
+      coeff: Math.max(0.35, start.y / Math.max(height, 1)),
+      growthScale,
       teinte: random(20, 40),
       index: 0,
       proba1: random(0.75, 0.95),
@@ -75,14 +78,14 @@ export function SimpleTree({ className }: SimpleTreeProps) {
 
     const trunk: Branch = {
       position: { ...start },
-      stw: 25 * Math.sqrt(start.y / height),
+      stw: 18 * Math.sqrt(start.y / Math.max(height, 1)) * growthScale,
       gen: 1,
       alive: true,
       age: 0,
       angle: 0,
-      speed: createVector(0, -3.2),
+      speed: createVector(0, -2.4 * growthScale),
       index: 0,
-      maxlife: maxlife * random(0.7, 1.2),
+      maxlife: maxlife * random(0.68, 1.05) * growthScale,
       proba1: tree.proba1,
       proba2: tree.proba2,
       proba3: tree.proba3,
@@ -108,9 +111,9 @@ export function SimpleTree({ className }: SimpleTreeProps) {
     alive: true,
     age: 0,
     angle,
-    speed: createVector(0, -3.2),
+    speed: createVector(0, -2.4 * tree.growthScale),
     index,
-    maxlife: maxlife * random(0.5, 1.0),
+    maxlife: maxlife * random(0.5, 1.0) * tree.growthScale,
     proba1: tree.proba1,
     proba2: tree.proba2,
     proba3: tree.proba3,
@@ -215,16 +218,15 @@ export function SimpleTree({ className }: SimpleTreeProps) {
     branch.position.x += -branch.speed.x * Math.cos(branch.angle) + branch.speed.y * Math.sin(branch.angle)
     branch.position.y += branch.speed.x * Math.sin(branch.angle) + branch.speed.y * Math.cos(branch.angle)
 
-    const shadowColor = hsbToRgb(tree.teinte + branch.age + 10 * branch.gen, 15, 15, 0.06)
+    const shadowColor = hsbToRgb(tree.teinte + branch.age + 10 * branch.gen, 15, 15, 0.05)
     ctx.strokeStyle = shadowColor
-    const shadowWidth = branch.stw * 1.2 - (branch.age / branch.maxlife) * (branch.stw * 0.4)
-    ctx.lineWidth = Math.max(0.5, shadowWidth)
+    const shadowWidth = branch.stw * 1.1 - (branch.age / branch.maxlife) * (branch.stw * 0.35)
+    ctx.lineWidth = Math.max(0.3, shadowWidth)
 
-    const dis = 0.008 * Math.pow(Math.abs(st.y - y0), 1.3)
-
+    // Local soft shadow (keeps tree inside canvas bounds)
     ctx.beginPath()
-    ctx.moveTo(x0 + dis, 2 * st.y - y0 + dis)
-    ctx.lineTo(branch.position.x + dis, 2 * st.y - branch.position.y + dis)
+    ctx.moveTo(x0 + 0.6, y0 + 0.6)
+    ctx.lineTo(branch.position.x + 0.6, branch.position.y + 0.6)
     ctx.stroke()
 
     const lightHue = tree.teinte + branch.age + 18 * branch.gen
