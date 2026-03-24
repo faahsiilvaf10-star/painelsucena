@@ -56,16 +56,16 @@ export default defineConfig(({ mode }) => ({
         ],
         screenshots: [
           {
-            src: "/screenshots/screenshot-mobile.png",
+            src: "/screenshots/screenshot-mobile.jpg",
             sizes: "540x960",
-            type: "image/png",
+            type: "image/jpeg",
             form_factor: "narrow",
             label: "Dashboard Mobile - Painel Sucena",
           },
           {
-            src: "/screenshots/screenshot-desktop.png",
+            src: "/screenshots/screenshot-desktop.jpg",
             sizes: "1920x1080",
-            type: "image/png",
+            type: "image/jpeg",
             form_factor: "wide",
             label: "Dashboard Desktop - Painel Sucena",
           },
