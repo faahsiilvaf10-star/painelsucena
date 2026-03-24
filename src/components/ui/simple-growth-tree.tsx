@@ -28,6 +28,7 @@ interface Tree {
   branches: Branch[]
   start: Vector2D
   coeff: number
+  growthScale: number
   teinte: number
   index: number
   proba1: number
