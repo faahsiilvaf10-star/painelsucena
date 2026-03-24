@@ -23,6 +23,7 @@ import { Eye } from "lucide-react";
 import { NeonAvatar } from "@/components/ui/NeonAvatar";
 import { Button } from "@/components/ui/button";
 import { HeaderRadioButton } from "./HeaderRadioButton";
+import { NewsButton } from "./NewsButton";
 
 const motivationalPhrases = [
   "O sucesso é a soma de pequenos esforços repetidos dia após dia.",
@@ -146,6 +147,8 @@ const Layout = ({ children }: LayoutProps) => {
               )}
               {/* Radio */}
               <HeaderRadioButton />
+              {/* News */}
+              <NewsButton />
               {/* Logout */}
               <Tooltip>
                 <TooltipTrigger asChild>
