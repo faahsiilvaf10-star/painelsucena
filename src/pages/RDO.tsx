@@ -285,22 +285,33 @@ export default function RDO() {
     let gabiaoWorkforce = "";
     let jardinagemWorkforce = "";
 
+    const cleanEfetivoHeaders = (text: string) =>
+      text
+        .replace(/^\s*.*ROÇAGEM E PODAGEM.*$/gim, "")
+        .replace(/^\s*.*ÁREA GABIÃO.*$/gim, "")
+        .replace(/\n{3,}/g, "\n\n")
+        .trim();
+
     if (existingReport?.efetivo_gabiao_text) {
-      gabiaoWorkforce = existingReport.efetivo_gabiao_text;
+      gabiaoWorkforce = cleanEfetivoHeaders(existingReport.efetivo_gabiao_text);
     } else {
       // Fallback to automatic calculation
-      gabiaoWorkforce = Object.entries(workforceByArea.gabiao)
-        .map(([role, count]) => `${String(count).padStart(2, "0")} ${roleLabels[role] || role}`)
-        .join("\n");
+      gabiaoWorkforce = cleanEfetivoHeaders(
+        Object.entries(workforceByArea.gabiao)
+          .map(([role, count]) => `${String(count).padStart(2, "0")} ${roleLabels[role] || role}`)
+          .join("\n")
+      );
     }
 
     if (existingReport?.efetivo_jardinagem_text) {
-      jardinagemWorkforce = existingReport.efetivo_jardinagem_text;
+      jardinagemWorkforce = cleanEfetivoHeaders(existingReport.efetivo_jardinagem_text);
     } else {
       // Fallback to automatic calculation
-      jardinagemWorkforce = Object.entries(workforceByArea.jardinagem)
-        .map(([role, count]) => `${String(count).padStart(2, "0")} ${roleLabels[role] || role}`)
-        .join("\n");
+      jardinagemWorkforce = cleanEfetivoHeaders(
+        Object.entries(workforceByArea.jardinagem)
+          .map(([role, count]) => `${String(count).padStart(2, "0")} ${roleLabels[role] || role}`)
+          .join("\n")
+      );
     }
 
     // Build equipment text
@@ -391,14 +402,10 @@ ${E.EMOJI_ARROW_RIGHT} DDS: ${ddsText}
 
 ${E.EMOJI_TOOLS} ATIVIDADES:
 
-🌿 ROÇAGEM E PODAGEM 🌿
-
 ${jardinagemSection}
 
 ${E.EMOJI_WORKER} Efetivo ${E.EMOJI_WORKER}
 ${jardinagemWorkforce}
-
-✳️ ÁREA GABIÃO ✳️
 
 ${gabiaoFromReport}
 
