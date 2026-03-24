@@ -402,10 +402,14 @@ ${E.EMOJI_ARROW_RIGHT} DDS: ${ddsText}
 
 ${E.EMOJI_TOOLS} ATIVIDADES:
 
+🌿 ROÇAGEM E PODAGEM 🌿
+
 ${jardinagemSection}
 
 ${E.EMOJI_WORKER} Efetivo ${E.EMOJI_WORKER}
 ${jardinagemWorkforce}
+
+✳️ ÁREA GABIÃO ✳️
 
 ${gabiaoFromReport}
 
