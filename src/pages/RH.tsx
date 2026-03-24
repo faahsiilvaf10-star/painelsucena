@@ -68,6 +68,13 @@ const RH = () => {
     });
   }, [saveMutation, dbRowId]);
 
+  const [editingAso, setEditingAso] = useState<number | null>(null);
+  const [editingColaborador, setEditingColaborador] = useState<Colaborador | null>(null);
+  const [asoForm, setAsoForm] = useState<Record<string, string>>({});
+
+  const { canEditRH, isLoading: permissionsLoading } = useRHPermissions();
+  const queryClient = useQueryClient();
+
   const handleAddEmployee = (newEmployee: Omit<Colaborador, "id">) => {
     const maxId = Math.max(...colaboradores.map(c => c.id), 0);
     const employee: Colaborador = {
