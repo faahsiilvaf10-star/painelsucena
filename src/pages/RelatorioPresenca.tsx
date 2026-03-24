@@ -453,41 +453,6 @@ const RelatorioPresenca = () => {
   };
 
 
-  const handleAddEmployee = async () => {
-    if (!newEmployee.name.trim() || !newEmployee.role) {
-      toast.error("Preencha nome e função");
-      return;
-    }
-
-    setIsSubmitting(true);
-    try {
-      const initials = newEmployee.name
-        .split(" ")
-        .map((n) => n[0])
-        .join("")
-        .toUpperCase()
-        .slice(0, 2);
-
-      const { error } = await supabase.from("employees").insert({
-        name: newEmployee.name.trim(),
-        role: newEmployee.role,
-        department: "Operações",
-        avatar: initials,
-        area: newEmployee.area,
-      });
-
-      if (error) throw error;
-
-      toast.success("Funcionário adicionado!");
-      setNewEmployee({ name: "", role: "", area: "jardinagem" });
-      setDialogOpen(false);
-      queryClient.invalidateQueries({ queryKey: ["employees_all"] });
-    } catch {
-      toast.error("Erro ao adicionar funcionário");
-    } finally {
-      setIsSubmitting(false);
-    }
-  };
 
   // Format date for display (DD/MM/YYYY)
   const formatDateForReport = (dateStr: string) => {
