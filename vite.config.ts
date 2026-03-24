@@ -100,6 +100,7 @@ export default defineConfig(({ mode }) => ({
       workbox: {
         globPatterns: ["**/*.{js,css,html,ico,png,svg,woff2,jpg,jpeg,webp}"],
         maximumFileSizeToCacheInBytes: 5 * 1024 * 1024, // 5 MB limit
+        navigateFallbackDenylist: [/^\/~oauth/],
         navigateFallback: "/index.html",
         // Only allow offline navigation for driver panel routes
         navigateFallbackAllowlist: [
