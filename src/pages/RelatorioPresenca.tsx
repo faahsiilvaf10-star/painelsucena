@@ -4,7 +4,7 @@ import Layout from "@/components/layout/Layout";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Textarea } from "@/components/ui/textarea";
-import { ScrollArea } from "@/components/ui/scroll-area";
+
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import {
   Dialog,
@@ -868,7 +868,7 @@ const RelatorioPresenca = () => {
                 </div>
 
                 {/* Grouped list */}
-                <ScrollArea className="flex-1 min-h-0 h-[60vh] border border-border/50 rounded-lg" scrollbarAlwaysVisible>
+                <div className="flex-1 min-h-0 h-[60vh] overflow-y-scroll border border-border/50 rounded-lg">
                   <div className="p-2 space-y-3">
                     {Object.keys(rhGroupedByFunction).length === 0 ? (
                       <p className="text-sm text-muted-foreground text-center py-4">
@@ -937,7 +937,7 @@ const RelatorioPresenca = () => {
                       ))
                     )}
                   </div>
-                </ScrollArea>
+                </div>
               </div>
             </DialogContent>
           </Dialog>
