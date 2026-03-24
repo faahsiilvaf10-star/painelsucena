@@ -22,6 +22,7 @@ import { useIsAdmin } from "@/hooks/useUserRole";
 import { Eye } from "lucide-react";
 import { NeonAvatar } from "@/components/ui/NeonAvatar";
 import { Button } from "@/components/ui/button";
+import { HeaderRadioButton } from "./HeaderRadioButton";
 
 const motivationalPhrases = [
   "O sucesso é a soma de pequenos esforços repetidos dia após dia.",
@@ -143,6 +144,8 @@ const Layout = ({ children }: LayoutProps) => {
                   <TooltipContent side="bottom"><p className="text-xs">Administração</p></TooltipContent>
                 </Tooltip>
               )}
+              {/* Radio */}
+              <HeaderRadioButton />
               {/* Logout */}
               <Tooltip>
                 <TooltipTrigger asChild>
