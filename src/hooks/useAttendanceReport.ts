@@ -183,9 +183,11 @@ export const generateEfetivoText = (
 ): string => {
   let report = "";
 
-  const roles = executionRoles[area];
+  const staticRoles = executionRoles[area] || [];
+  const dynamicRoles = Object.keys(groupedEmployees[area] || {});
+  const roles = [...staticRoles, ...dynamicRoles.filter(r => !staticRoles.includes(r))];
   roles.forEach((role) => {
-    const label = roleLabels[area][role];
+    const label = roleLabels[area]?.[role] || `👷 ${role}:`;
     const employees = groupedEmployees[area]?.[role] || [];
     const presentEmployees = employees.filter((emp) => isPresent(emp.id));
     
