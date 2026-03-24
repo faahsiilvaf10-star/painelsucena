@@ -67,7 +67,7 @@ export const useChatNotifications = () => {
           showNotification(`💬 ${senderName}`, {
             body: messagePreview,
             tag: `chat-${newMessage.sender_id}-${Date.now()}`,
-            icon: senderProfile?.avatar_url || "/favicon.ico",
+            icon: senderProfile?.avatar_url || "/pwa-192x192.png",
           });
         }
       )
