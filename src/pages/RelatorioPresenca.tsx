@@ -199,8 +199,12 @@ const RelatorioPresenca = () => {
       .join(" ");
   };
 
-  const mapRoleToArea = (role: string): "gabiao" | "jardinagem" =>
-    roleToArea[role] === "ÁREA GABIÃO" ? "gabiao" : "jardinagem";
+  const mapRoleToArea = (role: string): "gabiao" | "jardinagem" | "administrativo" => {
+    const area = roleToArea[role];
+    if (area === "ÁREA GABIÃO") return "gabiao";
+    if (area === "ADMINISTRATIVO") return "administrativo";
+    return "jardinagem";
+  };
 
   // Editable support teams
   const [supportGabiao, setSupportGabiao] = useState<SupportTeam>({
