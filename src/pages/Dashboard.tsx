@@ -154,14 +154,24 @@ const Dashboard = () => {
       <div className="container mx-auto px-3 sm:px-6 py-3 sm:py-6">
         {/* Header */}
         <div className="flex items-center justify-between mb-5 animate-fade-in">
-          <div>
-            <h1 className="text-xl sm:text-3xl font-bold">
-              <span className="text-gradient">Dashboard</span>
-            </h1>
-            <p className="text-sm text-muted-foreground mt-0.5">
-              Visão geral da operação
-            </p>
-          </div>
+          {isDockTheme ? (
+            <div className="flex-1 flex justify-center">
+              <img 
+                src={settings.logo_url || logoPrincipal} 
+                alt="Logo Sucena" 
+                className="h-12 sm:h-16 object-contain" 
+              />
+            </div>
+          ) : (
+            <div>
+              <h1 className="text-xl sm:text-3xl font-bold">
+                <span className="text-gradient">Dashboard</span>
+              </h1>
+              <p className="text-sm text-muted-foreground mt-0.5">
+                Visão geral da operação
+              </p>
+            </div>
+          )}
           <DashboardEditControls
             isEditMode={isEditMode}
             hasChanges={hasChanges}
