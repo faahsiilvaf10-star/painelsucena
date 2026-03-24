@@ -530,7 +530,9 @@ const RelatorioPresenca = () => {
 
     report += `${EMOJI_STAR_8} EQUIPE DE EXECUÇÃO ${EMOJI_STAR_8}\n\n`;
 
-    const roles = executionRoles[area];
+    const staticRoles = executionRoles[area] || [];
+    const dynamicRoles = Object.keys(groupedEmployees[area] || {});
+    const roles = [...staticRoles, ...dynamicRoles.filter(r => !staticRoles.includes(r))];
     roles.forEach((role) => {
       const label = roleLabels[area][role];
       const employees = groupedEmployees[area][role] || [];
@@ -741,9 +743,9 @@ const RelatorioPresenca = () => {
     const isAdminArea = area === "ADMINISTRATIVO";
 
     // For ADMINISTRATIVO, dynamically get all roles present in grouped employees
-    const areaRoles = isAdminArea
-      ? Object.keys(groupedEmployees[area] || {})
-      : executionRoles[area];
+    const staticRoles = executionRoles[area] || [];
+    const dynamicRolesFromGroup = Object.keys(groupedEmployees[area] || {});
+    const areaRoles = [...staticRoles, ...dynamicRolesFromGroup.filter(r => !staticRoles.includes(r))];
 
     return (
       <div className="bg-card rounded-xl border border-border/50 p-6">
