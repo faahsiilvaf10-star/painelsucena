@@ -1,9 +1,10 @@
 import { useState, useMemo, useEffect } from "react";
-import { FileText, Copy, Loader2, Check, UserPlus, Pencil, Save, Lock, Unlock, Trash2, MessageCircle } from "lucide-react";
+import { FileText, Copy, Loader2, Check, UserPlus, Pencil, Save, Lock, Unlock, Trash2, MessageCircle, Search } from "lucide-react";
 import Layout from "@/components/layout/Layout";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Textarea } from "@/components/ui/textarea";
+import { ScrollArea } from "@/components/ui/scroll-area";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import {
   Dialog,
@@ -32,6 +33,7 @@ import { useReportLock, AreaType } from "@/hooks/useReportLock";
 import { useSaveEfetivoToRDO } from "@/hooks/useRDOReports";
 import { getBrazilNorthTodayString } from "@/lib/timezone";
 import { useProfile } from "@/hooks/useProfile";
+import { useRHEfetivo } from "@/hooks/useRHEfetivo";
 
 type AttendanceWithEmployee = Tables<"attendance_records"> & {
   employees: Tables<"employees"> | null;
@@ -162,14 +164,8 @@ const RelatorioPresenca = () => {
   const [copied, setCopied] = useState(false);
   const [selectedArea, setSelectedArea] = useState<"all" | "ÁREA GABIÃO" | "ROÇAGEM E PODAGEM" | "ADMINISTRATIVO">("all");
   const [dialogOpen, setDialogOpen] = useState(false);
-  const [newEmployee, setNewEmployee] = useState({
-    name: "",
-    role: "",
-    area: "jardinagem" as "gabiao" | "jardinagem" | "administrativo",
-  });
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [rhSearch, setRhSearch] = useState("");
-  const [showRhList, setShowRhList] = useState(false);
 
   // rhColaboradores is computed after allEmployees query below
 
@@ -224,6 +220,7 @@ const RelatorioPresenca = () => {
   const saveEfetivoToRDO = useSaveEfetivoToRDO();
   const { isAreaLocked, canUnlockArea, lockArea, unlockArea, isLoading: lockLoading } = useReportLock(selectedDate);
   const { data: profile } = useProfile();
+  const { data: rhData } = useRHEfetivo();
 
   // Determine which tabs to show based on user cargo
   const userCargo = profile?.cargo;
@@ -265,26 +262,42 @@ const RelatorioPresenca = () => {
     },
   });
 
-  // Load RH employees from DB employees table
+  // Load RH employees from rh_efetivo
   const rhColaboradores = useMemo(() => {
-    if (!allEmployees?.length) return [];
-    return allEmployees
-      .filter(e => e.status === "active")
-      .map(e => ({ id: e.id as unknown as number, nome: e.name, funcao: e.role }))
+    if (!rhData?.colaboradores?.length) return [];
+    return rhData.colaboradores
+      .filter(c => {
+        const deletedIds = rhData.deletedIds || [];
+        return !deletedIds.includes(c.id);
+      })
       .sort((a, b) => a.nome.localeCompare(b.nome));
-  }, [allEmployees]);
+  }, [rhData]);
 
-  // Filter RH employees for search
-  const filteredRhEmployees = useMemo(() => {
-    if (!rhSearch.trim()) return [];
+  // Group RH employees by function for the dialog
+  const rhGroupedByFunction = useMemo(() => {
+    const groups: Record<string, typeof rhColaboradores> = {};
+    const filtered = rhSearch.trim()
+      ? rhColaboradores.filter(c => c.nome.toUpperCase().includes(rhSearch.toUpperCase()))
+      : rhColaboradores;
     
-    // Search active DB employees
-    const dbEmployees = rhColaboradores
-      .filter(c => c.nome.toUpperCase().includes(rhSearch.toUpperCase()))
-      .map(c => ({ ...c, fromDb: true }));
+    filtered.forEach(c => {
+      const funcao = c.funcao || "Sem Função";
+      if (!groups[funcao]) groups[funcao] = [];
+      groups[funcao].push(c);
+    });
     
-    return dbEmployees.slice(0, 15);
-  }, [rhSearch, rhColaboradores, allEmployees]);
+    // Sort function names
+    return Object.fromEntries(
+      Object.entries(groups).sort(([a], [b]) => a.localeCompare(b))
+    );
+  }, [rhColaboradores, rhSearch]);
+
+  // Check if employee already exists in the employees table
+  const isAlreadyAdded = (nome: string) => {
+    return allEmployees?.some(e => 
+      e.name.toUpperCase().trim() === nome.toUpperCase().trim()
+    ) || false;
+  };
 
   const isLoading = recordsLoading || employeesLoading;
 
@@ -440,41 +453,6 @@ const RelatorioPresenca = () => {
   };
 
 
-  const handleAddEmployee = async () => {
-    if (!newEmployee.name.trim() || !newEmployee.role) {
-      toast.error("Preencha nome e função");
-      return;
-    }
-
-    setIsSubmitting(true);
-    try {
-      const initials = newEmployee.name
-        .split(" ")
-        .map((n) => n[0])
-        .join("")
-        .toUpperCase()
-        .slice(0, 2);
-
-      const { error } = await supabase.from("employees").insert({
-        name: newEmployee.name.trim(),
-        role: newEmployee.role,
-        department: "Operações",
-        avatar: initials,
-        area: newEmployee.area,
-      });
-
-      if (error) throw error;
-
-      toast.success("Funcionário adicionado!");
-      setNewEmployee({ name: "", role: "", area: "jardinagem" });
-      setDialogOpen(false);
-      queryClient.invalidateQueries({ queryKey: ["employees_all"] });
-    } catch {
-      toast.error("Erro ao adicionar funcionário");
-    } finally {
-      setIsSubmitting(false);
-    }
-  };
 
   // Format date for display (DD/MM/YYYY)
   const formatDateForReport = (dateStr: string) => {
@@ -862,142 +840,104 @@ const RelatorioPresenca = () => {
             </p>
           </div>
 
-          <Dialog open={dialogOpen} onOpenChange={setDialogOpen}>
+          <Dialog open={dialogOpen} onOpenChange={(open) => {
+            setDialogOpen(open);
+            if (!open) { setRhSearch(""); }
+          }}>
             <DialogTrigger asChild>
               <Button className="gap-2">
                 <UserPlus className="w-4 h-4" />
                 Novo Funcionário
               </Button>
             </DialogTrigger>
-            <DialogContent className="bg-card">
+            <DialogContent className="bg-card max-w-lg max-h-[85vh] flex flex-col">
               <DialogHeader>
-                <DialogTitle>Adicionar Funcionário</DialogTitle>
-                <DialogDescription>Busque na lista do RH ou digite manualmente</DialogDescription>
+                <DialogTitle>Adicionar Funcionário do RH</DialogTitle>
+                <DialogDescription>Selecione um funcionário da lista do RH para adicionar à presença</DialogDescription>
               </DialogHeader>
-              <div className="space-y-4 mt-4">
-                {/* RH Search */}
+              <div className="space-y-3 mt-2 flex-1 min-h-0 flex flex-col">
+                {/* Search */}
                 <div className="relative">
-                  <Label htmlFor="rh-search">Buscar no RH</Label>
+                  <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-muted-foreground" />
                   <Input
-                    id="rh-search"
-                    placeholder="Digite o nome para buscar no RH..."
+                    placeholder="Buscar funcionário pelo nome..."
                     value={rhSearch}
-                    onChange={(e) => {
-                      setRhSearch(e.target.value);
-                      setShowRhList(true);
-                    }}
-                    onFocus={() => setShowRhList(true)}
-                  />
-                  {showRhList && filteredRhEmployees.length > 0 && (
-                    <div className="absolute z-50 w-full mt-1 bg-popover border border-border rounded-lg shadow-lg max-h-48 overflow-y-auto">
-                      {filteredRhEmployees.map((emp, idx) => (
-                        <button
-                          key={`${emp.id}-${idx}`}
-                          type="button"
-                          className="w-full text-left px-3 py-2 hover:bg-accent text-sm transition-colors"
-                          onClick={() => {
-                            const role = (emp as any).fromDb ? emp.funcao : mapFuncaoToRole(emp.funcao);
-                            setNewEmployee((prev) => ({
-                              ...prev,
-                              name: emp.nome,
-                              role: role,
-                              area: mapRoleToArea(role),
-                            }));
-                            setRhSearch("");
-                            setShowRhList(false);
-                          }}
-                        >
-                          <span className="font-medium">{emp.nome}</span>
-                          <span className="text-muted-foreground ml-2 text-xs">({emp.funcao})</span>
-                          {(emp as any).fromDb && <span className="ml-1 text-xs text-primary">[RH]</span>}
-                        </button>
-                      ))}
-                    </div>
-                  )}
-                  {showRhList && rhSearch.trim() && filteredRhEmployees.length === 0 && (
-                    <div className="absolute z-50 w-full mt-1 bg-popover border border-border rounded-lg shadow-lg p-3">
-                      <p className="text-sm text-muted-foreground">Nenhum funcionário encontrado no RH</p>
-                    </div>
-                  )}
-                </div>
-
-                <div>
-                  <Label htmlFor="name">Nome</Label>
-                  <Input
-                    id="name"
-                    placeholder="Nome completo"
-                    value={newEmployee.name}
-                    onChange={(e) => {
-                      const typedName = e.target.value;
-                      const match = rhColaboradores.find(
-                        (c) => normalizeText(c.nome) === normalizeText(typedName)
-                      );
-
-                      if (match) {
-                        const mappedRole = mapFuncaoToRole(match.funcao);
-                        setNewEmployee((prev) => ({
-                          ...prev,
-                          name: typedName,
-                          role: mappedRole,
-                          area: mapRoleToArea(mappedRole),
-                        }));
-                        return;
-                      }
-
-                      setNewEmployee((prev) => ({ ...prev, name: typedName }));
-                    }}
+                    onChange={(e) => setRhSearch(e.target.value)}
+                    className="pl-9"
                   />
                 </div>
-                <div>
-                  <Label htmlFor="role">Função</Label>
-                  <Select
-                    value={newEmployee.role}
-                    onValueChange={(value) =>
-                      setNewEmployee({ ...newEmployee, role: value })
-                    }
-                  >
-                    <SelectTrigger className="bg-background">
-                      <SelectValue placeholder="Selecione a função" />
-                    </SelectTrigger>
-                    <SelectContent className="bg-popover">
-                      {[...new Set([...allRoles, ...(newEmployee.role && !allRoles.includes(newEmployee.role) ? [newEmployee.role] : [])])].map((role) => (
-                        <SelectItem key={role} value={role}>
-                          {role}
-                        </SelectItem>
-                      ))}
-                    </SelectContent>
-                  </Select>
-                </div>
-                <div>
-                  <Label htmlFor="area">Área</Label>
-                  <Select
-                    value={newEmployee.area}
-                    onValueChange={(value: "gabiao" | "jardinagem") =>
-                      setNewEmployee({ ...newEmployee, area: value })
-                    }
-                  >
-                    <SelectTrigger className="bg-background">
-                      <SelectValue placeholder="Selecione a área" />
-                    </SelectTrigger>
-                    <SelectContent className="bg-popover">
-                      <SelectItem value="gabiao">Área Gabião</SelectItem>
-                      <SelectItem value="jardinagem">Roçagem e Podagem</SelectItem>
-                      <SelectItem value="administrativo">Administrativo</SelectItem>
-                    </SelectContent>
-                  </Select>
-                </div>
-                <Button
-                  onClick={handleAddEmployee}
-                  className="w-full"
-                  disabled={isSubmitting}
-                >
-                  {isSubmitting ? (
-                    <Loader2 className="w-4 h-4 animate-spin mr-2" />
-                  ) : (
-                    <UserPlus className="w-4 h-4 mr-2" />
-                  )}
-                  Adicionar
-                </Button>
+
+                {/* Grouped list */}
+                <ScrollArea className="flex-1 min-h-0 max-h-[50vh] border border-border/50 rounded-lg">
+                  <div className="p-2 space-y-3">
+                    {Object.keys(rhGroupedByFunction).length === 0 ? (
+                      <p className="text-sm text-muted-foreground text-center py-4">
+                        {rhSearch.trim() ? "Nenhum funcionário encontrado" : "Nenhum funcionário no RH"}
+                      </p>
+                    ) : (
+                      Object.entries(rhGroupedByFunction).map(([funcao, employees]) => (
+                        <div key={funcao}>
+                          <p className="text-xs font-bold text-muted-foreground uppercase tracking-wide px-2 py-1 bg-muted/50 rounded sticky top-0">
+                            {funcao} ({employees.length})
+                          </p>
+                          <div className="space-y-1 mt-1">
+                            {employees.map((emp) => {
+                              const alreadyAdded = isAlreadyAdded(emp.nome);
+                              return (
+                                <button
+                                  key={emp.id}
+                                  type="button"
+                                  disabled={alreadyAdded || isSubmitting}
+                                  className={`w-full text-left px-3 py-2 rounded-md text-sm transition-colors flex items-center justify-between ${
+                                    alreadyAdded
+                                      ? "opacity-50 cursor-not-allowed bg-muted/30"
+                                      : "hover:bg-accent cursor-pointer"
+                                  }`}
+                                  onClick={async () => {
+                                    if (alreadyAdded) return;
+                                    const role = mapFuncaoToRole(emp.funcao);
+                                    const area = mapRoleToArea(role);
+                                    const initials = emp.nome
+                                      .split(" ")
+                                      .map((n) => n[0])
+                                      .join("")
+                                      .toUpperCase()
+                                      .slice(0, 2);
+
+                                    setIsSubmitting(true);
+                                    try {
+                                      const { error } = await supabase.from("employees").insert({
+                                        name: emp.nome.trim(),
+                                        role: role,
+                                        department: "Operações",
+                                        avatar: initials,
+                                        area: area,
+                                      });
+                                      if (error) throw error;
+                                      toast.success(`${emp.nome} adicionado!`);
+                                      queryClient.invalidateQueries({ queryKey: ["employees_all"] });
+                                    } catch {
+                                      toast.error("Erro ao adicionar funcionário");
+                                    } finally {
+                                      setIsSubmitting(false);
+                                    }
+                                  }}
+                                >
+                                  <span className="font-medium truncate">{emp.nome}</span>
+                                  {alreadyAdded ? (
+                                    <span className="text-xs text-muted-foreground ml-2 shrink-0">Já adicionado</span>
+                                  ) : (
+                                    <UserPlus className="w-3.5 h-3.5 text-primary ml-2 shrink-0" />
+                                  )}
+                                </button>
+                              );
+                            })}
+                          </div>
+                        </div>
+                      ))
+                    )}
+                  </div>
+                </ScrollArea>
               </div>
             </DialogContent>
           </Dialog>
