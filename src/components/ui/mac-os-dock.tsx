@@ -194,7 +194,25 @@ const MacOSDock: React.FC<MacOSDockProps> = ({
                 zIndex: Math.round(scale * 10)
               }}
             >
-              <div 
+              {/* Floating name tooltip */}
+              {hoveredIndex === index && (
+                <div
+                  className="absolute pointer-events-none whitespace-nowrap px-2 py-1 rounded-md text-xs font-medium"
+                  style={{
+                    top: `${-24}px`,
+                    left: '50%',
+                    transform: 'translateX(-50%)',
+                    background: 'rgba(30, 30, 30, 0.9)',
+                    color: 'rgba(255, 255, 255, 0.95)',
+                    border: '1px solid rgba(255, 255, 255, 0.15)',
+                    boxShadow: '0 2px 8px rgba(0,0,0,0.3)',
+                    zIndex: 100,
+                  }}
+                >
+                  {app.name}
+                </div>
+              )}
+              <div
                 className={`flex items-center justify-center rounded-lg transition-colors ${
                   app.isActive 
                     ? 'bg-white/20 shadow-lg' 
