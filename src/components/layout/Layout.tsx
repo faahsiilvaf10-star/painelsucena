@@ -1,8 +1,9 @@
 import { ReactNode, useMemo } from "react";
+import { useNavigate } from "react-router-dom";
 import { SidebarInset, SidebarTrigger } from "@/components/ui/sidebar";
 import ForbiddenColorIndicator from "@/components/ForbiddenColorIndicator";
 import { NotificationBell } from "@/components/notifications/NotificationBell";
-import { RefreshCw } from "lucide-react";
+import { RefreshCw, Settings, ShieldCheck, LogOut } from "lucide-react";
 import { Tooltip, TooltipContent, TooltipTrigger } from "@/components/ui/tooltip";
 import { ThemeToggle } from "@/components/ThemeToggle";
 import { CampaignRibbon } from "@/components/campaigns/CampaignRibbon";
@@ -16,7 +17,11 @@ import { useInstaCenaBellNotifications } from "@/hooks/useInstaCenaBellNotificat
 
 import { useVisualizadorContext } from "@/contexts/VisualizadorContext";
 import { useProfile } from "@/hooks/useProfile";
+import { useAuth } from "@/hooks/useAuth";
+import { useIsAdmin } from "@/hooks/useUserRole";
 import { Eye } from "lucide-react";
+import { NeonAvatar } from "@/components/ui/NeonAvatar";
+import { Button } from "@/components/ui/button";
 
 const motivationalPhrases = [
   "O sucesso é a soma de pequenos esforços repetidos dia após dia.",
@@ -67,22 +72,101 @@ const Layout = ({ children }: LayoutProps) => {
   const dailyPhrase = useMemo(() => getDailyPhrase(), []);
   const { isVisualizador } = useVisualizadorContext();
   const { data: profile } = useProfile();
+  const { signOut } = useAuth();
+  const { isAdmin } = useIsAdmin();
+  const navigate = useNavigate();
   
   const isAvatarBlocked = profile && (!profile.avatar_url || profile.avatar_url.trim().length === 0);
+  const uiTheme = (profile as any)?.ui_theme || "classic";
+  const isDockTheme = uiTheme === "macos-dock";
   
   // Enable global chat push notifications
   useChatNotifications();
   useInstaCenaNotifications();
   useInstaCenaBellNotifications();
 
+  const handleSignOut = async () => {
+    const userName = profile?.full_name || "Usuário";
+    const userAvatar = profile?.avatar_url || undefined;
+    sessionStorage.setItem("logoutTransitionInProgress", "true");
+    sessionStorage.setItem("logoutTransitionPayload", JSON.stringify({ userName, userAvatar }));
+    window.dispatchEvent(new Event("logout-transition"));
+    try { await signOut(); } catch {}
+  };
+
   return (
     <SidebarInset className="flex flex-col h-full overflow-hidden">
       {/* Header with notification bell and theme toggle */}
       <header className="flex h-9 md:h-10 shrink-0 items-center justify-between gap-2 md:gap-4 border-b bg-background px-3 md:px-4">
-        <div className="flex items-center gap-2 md:gap-4 md:hidden">
-          <span className="font-semibold text-sm">Painel Sucena</span>
+        {/* Left side */}
+        <div className="flex items-center gap-1.5 md:gap-2">
+          {isDockTheme ? (
+            <>
+              {/* Profile photo */}
+              <button onClick={() => navigate("/configuracoes")} className="flex items-center">
+                <NeonAvatar
+                  src={profile?.avatar_url}
+                  name={profile?.full_name || "U"}
+                  frameColor={profile?.frame_color}
+                  neonColor={profile?.neon_color}
+                  frameAnimation={profile?.frame_animation}
+                  size="xs"
+                />
+              </button>
+              {/* Settings */}
+              <Tooltip>
+                <TooltipTrigger asChild>
+                  <Button
+                    variant="ghost"
+                    size="icon"
+                    onClick={() => navigate("/configuracoes")}
+                    className="h-7 w-7 text-muted-foreground hover:text-foreground"
+                  >
+                    <Settings className="h-4 w-4" />
+                  </Button>
+                </TooltipTrigger>
+                <TooltipContent side="bottom"><p className="text-xs">Configurações</p></TooltipContent>
+              </Tooltip>
+              {/* Admin */}
+              {isAdmin && (
+                <Tooltip>
+                  <TooltipTrigger asChild>
+                    <Button
+                      variant="ghost"
+                      size="icon"
+                      onClick={() => navigate("/admin")}
+                      className="h-7 w-7 text-amber-500 hover:text-amber-400 hover:bg-amber-500/20"
+                    >
+                      <ShieldCheck className="h-4 w-4" />
+                    </Button>
+                  </TooltipTrigger>
+                  <TooltipContent side="bottom"><p className="text-xs">Administração</p></TooltipContent>
+                </Tooltip>
+              )}
+              {/* Logout */}
+              <Tooltip>
+                <TooltipTrigger asChild>
+                  <Button
+                    variant="ghost"
+                    size="icon"
+                    onClick={handleSignOut}
+                    className="h-7 w-7 text-muted-foreground hover:text-destructive"
+                  >
+                    <LogOut className="h-4 w-4" />
+                  </Button>
+                </TooltipTrigger>
+                <TooltipContent side="bottom"><p className="text-xs">Sair</p></TooltipContent>
+              </Tooltip>
+            </>
+          ) : (
+            <>
+              <div className="flex items-center gap-2 md:gap-4 md:hidden">
+                <span className="font-semibold text-sm">Painel Sucena</span>
+              </div>
+              <div className="hidden md:block w-24" />
+            </>
+          )}
         </div>
-        <div className="hidden md:block w-24" />
         
         {/* Motivational phrase - centered */}
         <p className="hidden lg:block flex-1 text-center text-sm text-muted-foreground italic truncate px-4">
@@ -126,7 +210,7 @@ const Layout = ({ children }: LayoutProps) => {
           <NotificationBell />
         </div>
       </header>
-      <main className="flex-1 overflow-y-auto pb-16 md:pb-14">
+      <main className={`flex-1 overflow-y-auto ${isDockTheme ? 'pb-20 md:pb-16' : 'pb-16 md:pb-14'}`}>
         {isVisualizador && (
           <div className="bg-amber-500/10 border-b border-amber-500/30 px-4 py-2 flex items-center gap-2 text-amber-700 dark:text-amber-400 text-sm">
             <Eye className="h-4 w-4 shrink-0" />
