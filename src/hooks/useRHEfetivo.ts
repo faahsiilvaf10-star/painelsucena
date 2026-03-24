@@ -1,3 +1,4 @@
+import { useEffect } from "react";
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import { supabase } from "@/integrations/supabase/client";
 import { colaboradoresAtivos as initialColaboradores, type Colaborador } from "@/data/efetivoData";
@@ -34,7 +35,6 @@ export const useRHEfetivo = () => {
         };
       }
 
-      // No DB data — use hardcoded initial data
       return {
         colaboradores: initialColaboradores,
         deletedIds: [] as number[],
@@ -43,6 +43,24 @@ export const useRHEfetivo = () => {
       };
     },
   });
+
+  // Realtime subscription — auto-refresh for all users when data changes
+  useEffect(() => {
+    const channel = supabase
+      .channel("rh-efetivo-changes")
+      .on(
+        "postgres_changes",
+        { event: "*", schema: "public", table: "rh_efetivo" },
+        () => {
+          queryClient.invalidateQueries({ queryKey: ["rh-efetivo"] });
+        }
+      )
+      .subscribe();
+
+    return () => {
+      supabase.removeChannel(channel);
+    };
+  }, [queryClient]);
 
   const saveMutation = useMutation({
     mutationFn: async ({
