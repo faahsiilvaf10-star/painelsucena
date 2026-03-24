@@ -166,7 +166,7 @@ const RH = () => {
     }
 
     toast.success("Promoção registrada com sucesso!");
-  }, [colaboradores, queryClient]);
+  }, [colaboradores, queryClient, persistToDb, deletedIds]);
 
   const handleStartEditAso = (colaborador: Colaborador) => {
     setEditingAso(colaborador.id);
