@@ -231,17 +231,21 @@ export const ExportAttendancePdfButton = () => {
             const squareSize = Math.min(dayColWidth - squarePadding * 2, rowHeight - squarePadding * 2);
             dateChunk.forEach((d) => {
               const status = empAttendance?.get(d);
-              const isPresent = status ? status === "present" : true;
-              
-              if (isPresent) {
-                presentCount++;
-                doc.setFillColor(34, 139, 34);
-              } else {
-                doc.setFillColor(220, 38, 38);
-              }
               const sqX = xDate + (dayColWidth - squareSize) / 2;
               const sqY = y + (rowHeight - squareSize) / 2;
-              doc.rect(sqX, sqY, squareSize, squareSize, "F");
+              
+              if (!status) {
+                // No attendance record saved for this date - leave blank (white/light gray outline)
+                doc.setDrawColor(200, 200, 200);
+                doc.rect(sqX, sqY, squareSize, squareSize, "S");
+              } else if (status === "present") {
+                presentCount++;
+                doc.setFillColor(34, 139, 34);
+                doc.rect(sqX, sqY, squareSize, squareSize, "F");
+              } else {
+                doc.setFillColor(220, 38, 38);
+                doc.rect(sqX, sqY, squareSize, squareSize, "F");
+              }
               xDate += dayColWidth;
             });
 
