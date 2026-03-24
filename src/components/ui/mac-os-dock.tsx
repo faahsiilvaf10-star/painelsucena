@@ -136,7 +136,7 @@ const MacOSDock: React.FC<MacOSDockProps> = ({
     }
   }, [baseIconSize]);
 
-  const handleMouseLeave = useCallback(() => setMouseX(null), []);
+  const handleMouseLeave = useCallback(() => { setMouseX(null); setHoveredIndex(null); }, []);
 
   const handleAppClick = (appId: string, index: number) => {
     const el = iconRefs.current[index];
@@ -181,7 +181,9 @@ const MacOSDock: React.FC<MacOSDockProps> = ({
               key={app.id}
               ref={(el) => { iconRefs.current[index] = el; }}
               className="absolute cursor-pointer flex flex-col items-center justify-center"
-              title={app.name}
+              title=""
+              onMouseEnter={() => setHoveredIndex(index)}
+              onMouseLeave={() => setHoveredIndex(null)}
               onClick={() => handleAppClick(app.id, index)}
               style={{
                 left: `${position - scaledSize / 2}px`,
