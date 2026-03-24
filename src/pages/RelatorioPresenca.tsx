@@ -166,6 +166,7 @@ const RelatorioPresenca = () => {
   const [dialogOpen, setDialogOpen] = useState(false);
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [rhSearch, setRhSearch] = useState("");
+  const [pendingEmployee, setPendingEmployee] = useState<{ nome: string; funcao: string } | null>(null);
 
   // rhColaboradores is computed after allEmployees query below
 
@@ -846,7 +847,7 @@ const RelatorioPresenca = () => {
 
           <Dialog open={dialogOpen} onOpenChange={(open) => {
             setDialogOpen(open);
-            if (!open) { setRhSearch(""); }
+            if (!open) { setRhSearch(""); setPendingEmployee(null); }
           }}>
             <DialogTrigger asChild>
               <Button className="gap-2">
@@ -860,89 +861,119 @@ const RelatorioPresenca = () => {
                 <DialogDescription>Selecione um funcionário da lista do RH para adicionar à presença</DialogDescription>
               </DialogHeader>
               <div className="space-y-3 mt-2 flex-1 min-h-0 flex flex-col">
-                {/* Search */}
-                <div className="relative">
-                  <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-muted-foreground" />
-                  <Input
-                    placeholder="Buscar funcionário pelo nome..."
-                    value={rhSearch}
-                    onChange={(e) => setRhSearch(e.target.value)}
-                    className="pl-9"
-                  />
-                </div>
+                {pendingEmployee ? (
+                  // Step 2: Area selection
+                  <div className="space-y-4">
+                    <p className="text-sm font-medium">Selecione a área para <span className="text-primary font-bold">{pendingEmployee.nome}</span>:</p>
+                    <div className="grid gap-2">
+                      {([
+                        { value: "gabiao" as const, label: "Gabião" },
+                        { value: "jardinagem" as const, label: "Roçagem e Podagem" },
+                        { value: "administrativo" as const, label: "Administrativo" },
+                      ]).map((opt) => (
+                        <Button
+                          key={opt.value}
+                          variant="outline"
+                          className="justify-start h-12 text-base"
+                          disabled={isSubmitting}
+                          onClick={async () => {
+                            const role = mapFuncaoToRole(pendingEmployee.funcao);
+                            const initials = pendingEmployee.nome
+                              .split(" ")
+                              .map((n) => n[0])
+                              .join("")
+                              .toUpperCase()
+                              .slice(0, 2);
 
-                {/* Grouped list */}
-                <div className="flex-1 min-h-0 h-[60vh] overflow-y-scroll border border-border/50 rounded-lg">
-                  <div className="p-2 space-y-3">
-                    {Object.keys(rhGroupedByFunction).length === 0 ? (
-                      <p className="text-sm text-muted-foreground text-center py-4">
-                        {rhSearch.trim() ? "Nenhum funcionário encontrado" : "Nenhum funcionário no RH"}
-                      </p>
-                    ) : (
-                      Object.entries(rhGroupedByFunction).map(([funcao, employees]) => (
-                        <div key={funcao}>
-                          <p className="text-xs font-bold text-muted-foreground uppercase tracking-wide px-2 py-1 bg-muted/50 rounded sticky top-0">
-                            {funcao} ({employees.length})
-                          </p>
-                          <div className="space-y-1 mt-1">
-                            {employees.map((emp) => {
-                              const alreadyAdded = isAlreadyAdded(emp.nome);
-                              return (
-                                <button
-                                  key={emp.id}
-                                  type="button"
-                                  disabled={alreadyAdded || isSubmitting}
-                                  className={`w-full text-left px-3 py-2 rounded-md text-sm transition-colors flex items-center justify-between ${
-                                    alreadyAdded
-                                      ? "opacity-50 cursor-not-allowed bg-muted/30"
-                                      : "hover:bg-accent cursor-pointer"
-                                  }`}
-                                  onClick={async () => {
-                                    if (alreadyAdded) return;
-                                    const role = mapFuncaoToRole(emp.funcao);
-                                    const area = mapRoleToArea(role);
-                                    const initials = emp.nome
-                                      .split(" ")
-                                      .map((n) => n[0])
-                                      .join("")
-                                      .toUpperCase()
-                                      .slice(0, 2);
-
-                                    setIsSubmitting(true);
-                                    try {
-                                      const { error } = await supabase.from("employees").insert({
-                                        name: emp.nome.trim(),
-                                        role: role,
-                                        department: "Operações",
-                                        avatar: initials,
-                                        area: area,
-                                      });
-                                      if (error) throw error;
-                                      toast.success(`${emp.nome} adicionado!`);
-                                      queryClient.invalidateQueries({ queryKey: ["employees_all"] });
-                                      queryClient.invalidateQueries({ queryKey: ["employees"] });
-                                    } catch {
-                                      toast.error("Erro ao adicionar funcionário");
-                                    } finally {
-                                      setIsSubmitting(false);
-                                    }
-                                  }}
-                                >
-                                  <span className="font-medium truncate">{emp.nome}</span>
-                                  {alreadyAdded ? (
-                                    <span className="text-xs text-muted-foreground ml-2 shrink-0">Já adicionado</span>
-                                  ) : (
-                                    <UserPlus className="w-3.5 h-3.5 text-primary ml-2 shrink-0" />
-                                  )}
-                                </button>
-                              );
-                            })}
-                          </div>
-                        </div>
-                      ))
-                    )}
+                            setIsSubmitting(true);
+                            try {
+                              const { error } = await supabase.from("employees").insert({
+                                name: pendingEmployee.nome.trim(),
+                                role: role,
+                                department: "Operações",
+                                avatar: initials,
+                                area: opt.value,
+                              });
+                              if (error) throw error;
+                              toast.success(`${pendingEmployee.nome} adicionado em ${opt.label}!`);
+                              queryClient.invalidateQueries({ queryKey: ["employees_all"] });
+                              queryClient.invalidateQueries({ queryKey: ["employees"] });
+                              setPendingEmployee(null);
+                            } catch {
+                              toast.error("Erro ao adicionar funcionário");
+                            } finally {
+                              setIsSubmitting(false);
+                            }
+                          }}
+                        >
+                          {opt.label}
+                        </Button>
+                      ))}
+                    </div>
+                    <Button variant="ghost" size="sm" onClick={() => setPendingEmployee(null)}>
+                      ← Voltar
+                    </Button>
                   </div>
-                </div>
+                ) : (
+                  // Step 1: Employee selection
+                  <>
+                    <div className="relative">
+                      <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-muted-foreground" />
+                      <Input
+                        placeholder="Buscar funcionário pelo nome..."
+                        value={rhSearch}
+                        onChange={(e) => setRhSearch(e.target.value)}
+                        className="pl-9"
+                      />
+                    </div>
+
+                    <div className="flex-1 min-h-0 h-[60vh] overflow-y-scroll border border-border/50 rounded-lg">
+                      <div className="p-2 space-y-3">
+                        {Object.keys(rhGroupedByFunction).length === 0 ? (
+                          <p className="text-sm text-muted-foreground text-center py-4">
+                            {rhSearch.trim() ? "Nenhum funcionário encontrado" : "Nenhum funcionário no RH"}
+                          </p>
+                        ) : (
+                          Object.entries(rhGroupedByFunction).map(([funcao, employees]) => (
+                            <div key={funcao}>
+                              <p className="text-xs font-bold text-muted-foreground uppercase tracking-wide px-2 py-1 bg-muted/50 rounded sticky top-0">
+                                {funcao} ({employees.length})
+                              </p>
+                              <div className="space-y-1 mt-1">
+                                {employees.map((emp) => {
+                                  const alreadyAdded = isAlreadyAdded(emp.nome);
+                                  return (
+                                    <button
+                                      key={emp.id}
+                                      type="button"
+                                      disabled={alreadyAdded || isSubmitting}
+                                      className={`w-full text-left px-3 py-2 rounded-md text-sm transition-colors flex items-center justify-between ${
+                                        alreadyAdded
+                                          ? "opacity-50 cursor-not-allowed bg-muted/30"
+                                          : "hover:bg-accent cursor-pointer"
+                                      }`}
+                                      onClick={() => {
+                                        if (alreadyAdded) return;
+                                        setPendingEmployee({ nome: emp.nome, funcao: emp.funcao || "" });
+                                      }}
+                                    >
+                                      <span className="font-medium truncate">{emp.nome}</span>
+                                      {alreadyAdded ? (
+                                        <span className="text-xs text-muted-foreground ml-2 shrink-0">Já adicionado</span>
+                                      ) : (
+                                        <UserPlus className="w-3.5 h-3.5 text-primary ml-2 shrink-0" />
+                                      )}
+                                    </button>
+                                  );
+                                })}
+                              </div>
+                            </div>
+                          ))
+                        )}
+                      </div>
+                    </div>
+                  </>
+                )}
               </div>
             </DialogContent>
           </Dialog>
