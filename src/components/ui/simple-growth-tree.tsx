@@ -58,14 +58,16 @@ export function SimpleTree({ className }: SimpleTreeProps) {
   }
 
   const createTree = (width: number, height: number): Tree => {
+    const growthScale = Math.max(0.62, Math.min(1, Math.min(width / 420, height / 300)))
     const x = width / 2
-    const y = height * 0.78
+    const y = height * 0.88
     const start = createVector(x, y)
 
     const tree: Tree = {
       branches: [],
       start,
-      coeff: start.y / (height - 100),
+      coeff: Math.max(0.35, start.y / Math.max(height, 1)),
+      growthScale,
       teinte: random(20, 40),
       index: 0,
       proba1: random(0.75, 0.95),
@@ -76,14 +78,14 @@ export function SimpleTree({ className }: SimpleTreeProps) {
 
     const trunk: Branch = {
       position: { ...start },
-      stw: 25 * Math.sqrt(start.y / height),
+      stw: 18 * Math.sqrt(start.y / Math.max(height, 1)) * growthScale,
       gen: 1,
       alive: true,
       age: 0,
       angle: 0,
-      speed: createVector(0, -3.2),
+      speed: createVector(0, -2.4 * growthScale),
       index: 0,
-      maxlife: maxlife * random(0.7, 1.2),
+      maxlife: maxlife * random(0.68, 1.05) * growthScale,
       proba1: tree.proba1,
       proba2: tree.proba2,
       proba3: tree.proba3,
@@ -109,9 +111,9 @@ export function SimpleTree({ className }: SimpleTreeProps) {
     alive: true,
     age: 0,
     angle,
-    speed: createVector(0, -3.2),
+    speed: createVector(0, -2.4 * tree.growthScale),
     index,
-    maxlife: maxlife * random(0.5, 1.0),
+    maxlife: maxlife * random(0.5, 1.0) * tree.growthScale,
     proba1: tree.proba1,
     proba2: tree.proba2,
     proba3: tree.proba3,
