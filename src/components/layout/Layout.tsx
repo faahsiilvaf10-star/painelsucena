@@ -147,6 +147,8 @@ const Layout = ({ children }: LayoutProps) => {
               )}
               {/* Radio */}
               <HeaderRadioButton />
+              {/* News */}
+              <NewsButton />
               {/* Logout */}
               <Tooltip>
                 <TooltipTrigger asChild>
