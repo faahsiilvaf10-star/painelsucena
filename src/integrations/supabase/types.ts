@@ -2395,6 +2395,7 @@ export type Database = {
           sidebar_color: string | null
           sidebar_font: string | null
           sidebar_font_color: string | null
+          ui_theme: string | null
           updated_at: string
           user_id: string
         }
@@ -2413,6 +2414,7 @@ export type Database = {
           sidebar_color?: string | null
           sidebar_font?: string | null
           sidebar_font_color?: string | null
+          ui_theme?: string | null
           updated_at?: string
           user_id: string
         }
@@ -2431,6 +2433,7 @@ export type Database = {
           sidebar_color?: string | null
           sidebar_font?: string | null
           sidebar_font_color?: string | null
+          ui_theme?: string | null
           updated_at?: string
           user_id?: string
         }

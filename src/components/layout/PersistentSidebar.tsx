@@ -1,5 +1,6 @@
 import { ReactNode, useEffect, useState } from "react";
 import { AppSidebar } from "./AppSidebar";
+import { DockNavigation } from "./DockNavigation";
 import { SidebarProvider, SidebarTrigger } from "@/components/ui/sidebar";
 import { useAuth } from "@/hooks/useAuth";
 import { useProfile } from "@/hooks/useProfile";
@@ -9,7 +10,6 @@ interface PersistentSidebarProps {
   children: ReactNode;
 }
 
-// Driver roles that should have the sidebar hidden
 const DRIVER_ROLES = ["motorista_pipa", "motorista_munk"];
 
 export const PersistentSidebar = ({ children }: PersistentSidebarProps) => {
@@ -18,13 +18,11 @@ export const PersistentSidebar = ({ children }: PersistentSidebarProps) => {
   const isMobile = useIsMobile();
   const [justCompletedTransition, setJustCompletedTransition] = useState(false);
 
-  // Check if user has a driver role - hide sidebar for drivers
   const isDriver = profile?.cargo && DRIVER_ROLES.includes(profile.cargo);
-
-  // Check if user has no avatar - block sidebar
   const isAvatarBlocked = user && profile && (!profile.avatar_url || profile.avatar_url.trim().length === 0);
+  const uiTheme = (profile as any)?.ui_theme || "classic";
+  const useDock = user && !isDriver && !isAvatarBlocked && uiTheme === "macos-dock";
 
-  // Listen for transition completion to trigger fade-in
   useEffect(() => {
     const handler = () => {
       const isActive = sessionStorage.getItem("loginTransitionInProgress") === "true";
@@ -34,16 +32,14 @@ export const PersistentSidebar = ({ children }: PersistentSidebarProps) => {
         return () => clearTimeout(timeout);
       }
     };
-
     window.addEventListener("login-transition", handler);
     return () => window.removeEventListener("login-transition", handler);
   }, [user]);
 
-  // Always provide SidebarProvider context, but only render sidebar when authenticated and not a driver
   return (
     <SidebarProvider defaultOpen={isAvatarBlocked ? false : !isMobile}>
       <div className="h-screen flex flex-row w-full bg-background overflow-x-clip overflow-y-hidden">
-        {user && !isDriver && (
+        {user && !isDriver && !useDock && (
           <div className={`overflow-visible ${justCompletedTransition ? "animate-fade-in" : ""}`}>
             <AppSidebar lockedCollapsed={!!isAvatarBlocked} />
           </div>
@@ -55,6 +51,7 @@ export const PersistentSidebar = ({ children }: PersistentSidebarProps) => {
         >
           {children}
         </div>
+        {useDock && <DockNavigation />}
       </div>
     </SidebarProvider>
   );
