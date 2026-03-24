@@ -24,6 +24,7 @@ const MacOSDock: React.FC<MacOSDockProps> = ({
   const [mouseX, setMouseX] = useState<number | null>(null);
   const [currentScales, setCurrentScales] = useState<number[]>(apps.map(() => 1));
   const [currentPositions, setCurrentPositions] = useState<number[]>([]);
+  const [hoveredIndex, setHoveredIndex] = useState<number | null>(null);
   const dockRef = useRef<HTMLDivElement>(null);
   const iconRefs = useRef<(HTMLDivElement | null)[]>([]);
   const animationFrameRef = useRef<number | undefined>(undefined);
