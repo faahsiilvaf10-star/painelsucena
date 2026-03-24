@@ -156,8 +156,8 @@ const Dashboard = () => {
         {/* Header */}
         <div className="flex items-center justify-between mb-5 animate-fade-in">
           {isDockTheme ? (
-            <div className="flex-1 flex justify-center pl-10">
-              <SimpleTree className="w-56 h-44 sm:w-72 sm:h-60" />
+            <div className="flex-1 flex justify-center pl-16">
+              <SimpleTree className="w-48 h-40 sm:w-64 sm:h-52" />
             </div>
           ) : (
             <div>
