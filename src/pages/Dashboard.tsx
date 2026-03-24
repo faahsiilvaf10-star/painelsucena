@@ -1,5 +1,8 @@
 import { useState } from "react";
 import { Users, ClipboardCheck, AlertCircle, Activity } from "lucide-react";
+import { useProfile } from "@/hooks/useProfile";
+import { useSiteSettings } from "@/hooks/useSiteSettings";
+import logoPrincipal from "@/assets/logo-principal.png";
 import {
   DndContext,
   closestCenter,
