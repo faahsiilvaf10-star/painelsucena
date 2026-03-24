@@ -224,7 +224,7 @@ export const ExportAttendancePdfButton = () => {
             // Days
             const empName = colab.nome.toUpperCase().trim();
             const empAttendance = attendanceLookup.get(empName);
-            let presentCount = 0;
+            let absentCount = 0;
 
             xDate = margin + nameColWidth + funcaoColWidth;
             const squarePadding = 0.8;
@@ -235,23 +235,25 @@ export const ExportAttendancePdfButton = () => {
               const sqY = y + (rowHeight - squareSize) / 2;
               
               if (!status) {
-                // No attendance record saved for this date - leave blank (white/light gray outline)
                 doc.setDrawColor(200, 200, 200);
                 doc.rect(sqX, sqY, squareSize, squareSize, "S");
               } else if (status === "present") {
-                presentCount++;
                 doc.setFillColor(34, 139, 34);
                 doc.rect(sqX, sqY, squareSize, squareSize, "F");
               } else {
+                absentCount++;
                 doc.setFillColor(220, 38, 38);
                 doc.rect(sqX, sqY, squareSize, squareSize, "F");
               }
               xDate += dayColWidth;
             });
 
-            // Total present
+            // Total absent
             doc.setFont("helvetica", "bold");
-            doc.text(String(presentCount), xDate + totalColWidth / 2, y + rowHeight - 1.5, { align: "center" });
+            doc.setTextColor(220, 38, 38);
+            doc.text(String(absentCount), xDate + totalColWidth / 2, y + rowHeight - 1.5, { align: "center" });
+            doc.setTextColor(0, 0, 0);
+            doc.setFont("helvetica", "normal");
             doc.setFont("helvetica", "normal");
 
             y += rowHeight;
