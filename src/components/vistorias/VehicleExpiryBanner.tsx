@@ -138,7 +138,7 @@ export function VehicleExpiryBanner() {
               <div className="flex items-center justify-between gap-2 mb-2">
                 <h3 className="font-bold text-foreground flex items-center gap-2">
                   <Car className="w-4 h-4" />
-                  Vencendo em 15 dias ({expiringItems.length})
+                  Vencendo em breve ({expiringItems.length})
                 </h3>
                 <Link to="/vistorias-equipamentos">
                   <Button variant="ghost" size="sm" className="text-emerald-500 hover:text-emerald-400 hover:bg-emerald-500/10">
