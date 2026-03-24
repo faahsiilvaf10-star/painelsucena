@@ -268,26 +268,42 @@ const RelatorioPresenca = () => {
     },
   });
 
-  // Load RH employees from DB employees table
+  // Load RH employees from rh_efetivo
   const rhColaboradores = useMemo(() => {
-    if (!allEmployees?.length) return [];
-    return allEmployees
-      .filter(e => e.status === "active")
-      .map(e => ({ id: e.id as unknown as number, nome: e.name, funcao: e.role }))
+    if (!rhData?.colaboradores?.length) return [];
+    return rhData.colaboradores
+      .filter(c => {
+        const deletedIds = rhData.deletedIds || [];
+        return !deletedIds.includes(c.id);
+      })
       .sort((a, b) => a.nome.localeCompare(b.nome));
-  }, [allEmployees]);
+  }, [rhData]);
 
-  // Filter RH employees for search
-  const filteredRhEmployees = useMemo(() => {
-    if (!rhSearch.trim()) return [];
+  // Group RH employees by function for the dialog
+  const rhGroupedByFunction = useMemo(() => {
+    const groups: Record<string, typeof rhColaboradores> = {};
+    const filtered = rhSearch.trim()
+      ? rhColaboradores.filter(c => c.nome.toUpperCase().includes(rhSearch.toUpperCase()))
+      : rhColaboradores;
     
-    // Search active DB employees
-    const dbEmployees = rhColaboradores
-      .filter(c => c.nome.toUpperCase().includes(rhSearch.toUpperCase()))
-      .map(c => ({ ...c, fromDb: true }));
+    filtered.forEach(c => {
+      const funcao = c.funcao || "Sem Função";
+      if (!groups[funcao]) groups[funcao] = [];
+      groups[funcao].push(c);
+    });
     
-    return dbEmployees.slice(0, 15);
-  }, [rhSearch, rhColaboradores, allEmployees]);
+    // Sort function names
+    return Object.fromEntries(
+      Object.entries(groups).sort(([a], [b]) => a.localeCompare(b))
+    );
+  }, [rhColaboradores, rhSearch]);
+
+  // Check if employee already exists in the employees table
+  const isAlreadyAdded = (nome: string) => {
+    return allEmployees?.some(e => 
+      e.name.toUpperCase().trim() === nome.toUpperCase().trim()
+    ) || false;
+  };
 
   const isLoading = recordsLoading || employeesLoading;
 
