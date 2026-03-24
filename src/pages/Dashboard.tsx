@@ -3,7 +3,7 @@ import { Users, ClipboardCheck, AlertCircle, Activity } from "lucide-react";
 import { useProfile } from "@/hooks/useProfile";
 import { useSiteSettings } from "@/hooks/useSiteSettings";
 import logoPrincipal from "@/assets/logo-principal.png";
-import logoSucenaHeader from "@/assets/logo-sucena-header.png";
+import AnimatedTree from "@/components/dashboard/AnimatedTree";
 import {
   DndContext,
   closestCenter,
