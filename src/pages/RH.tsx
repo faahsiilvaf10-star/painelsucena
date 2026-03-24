@@ -181,14 +181,12 @@ const RH = () => {
   };
 
   const handleSaveAso = (id: number) => {
-    setColaboradores(prev => prev.map(c => {
+    const newList = colaboradores.map(c => {
       if (c.id !== id) return c;
 
-      // When periodico is set/changed, auto-calculate validade as periodico + 365 days
       let newValidade = asoForm.validade || c.aso?.validade || "";
       if (asoForm.periodico && asoForm.periodico !== (c.aso?.periodico || "")) {
         try {
-          // Parse dd/MM/yyyy format
           const parts = asoForm.periodico.split("/");
           if (parts.length === 3) {
             const periodicoDate = new Date(
@@ -216,7 +214,9 @@ const RH = () => {
           observacao: asoForm.observacao || undefined,
         },
       };
-    }));
+    });
+    setColaboradores(newList);
+    persistToDb(newList, deletedIds);
     setEditingAso(null);
     toast.success("ASO atualizado com sucesso!");
   };
