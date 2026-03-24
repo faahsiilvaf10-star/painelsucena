@@ -18,27 +18,34 @@ export default defineConfig(({ mode }) => ({
     mode === "development" && componentTagger(),
     VitePWA({
       registerType: "autoUpdate",
-      includeAssets: ["favicon.ico", "og-image.png"],
+      includeAssets: ["favicon.ico", "og-image.png", "pwa-192x192.png", "pwa-512x512.png"],
       manifest: {
         name: "Sucena Empreendimentos - Controle Operacional",
         short_name: "Painel Sucena",
-        description: "Sistema de controle operacional para gestão eficiente",
+        description: "Sistema de controle operacional para gestão eficiente de empresas. Gerencie equipamentos, presença, atividades, documentos e muito mais.",
         theme_color: "#1a1a2e",
         background_color: "#0f0f23",
         display: "standalone",
-        orientation: "portrait",
+        orientation: "any",
         scope: "/",
         start_url: "/",
+        id: "/",
+        dir: "ltr",
+        lang: "pt-BR",
+        categories: ["business", "productivity", "utilities"],
+        prefer_related_applications: false,
         icons: [
           {
             src: "/pwa-192x192.png",
             sizes: "192x192",
             type: "image/png",
+            purpose: "any",
           },
           {
             src: "/pwa-512x512.png",
             sizes: "512x512",
             type: "image/png",
+            purpose: "any",
           },
           {
             src: "/pwa-512x512.png",
@@ -47,10 +54,53 @@ export default defineConfig(({ mode }) => ({
             purpose: "maskable",
           },
         ],
+        screenshots: [
+          {
+            src: "/screenshots/screenshot-mobile.png",
+            sizes: "540x960",
+            type: "image/png",
+            form_factor: "narrow",
+            label: "Dashboard Mobile - Painel Sucena",
+          },
+          {
+            src: "/screenshots/screenshot-desktop.png",
+            sizes: "1920x1080",
+            type: "image/png",
+            form_factor: "wide",
+            label: "Dashboard Desktop - Painel Sucena",
+          },
+        ],
+        shortcuts: [
+          {
+            name: "Dashboard",
+            short_name: "Dashboard",
+            url: "/dashboard",
+            icons: [{ src: "/pwa-192x192.png", sizes: "192x192" }],
+          },
+          {
+            name: "Presença",
+            short_name: "Presença",
+            url: "/presenca",
+            icons: [{ src: "/pwa-192x192.png", sizes: "192x192" }],
+          },
+          {
+            name: "Equipamentos",
+            short_name: "Equipamentos",
+            url: "/entrada-saida-equipamentos",
+            icons: [{ src: "/pwa-192x192.png", sizes: "192x192" }],
+          },
+          {
+            name: "Desvios",
+            short_name: "Desvios",
+            url: "/desvios",
+            icons: [{ src: "/pwa-192x192.png", sizes: "192x192" }],
+          },
+        ],
       },
       workbox: {
         globPatterns: ["**/*.{js,css,html,ico,png,svg,woff2,jpg,jpeg,webp}"],
         maximumFileSizeToCacheInBytes: 5 * 1024 * 1024, // 5 MB limit
+        navigateFallbackDenylist: [/^\/~oauth/],
         navigateFallback: "/index.html",
         // Only allow offline navigation for driver panel routes
         navigateFallbackAllowlist: [
