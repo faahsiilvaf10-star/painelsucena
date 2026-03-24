@@ -495,10 +495,10 @@ const RelatorioPresenca = () => {
 
     report += `${EMOJI_STAR_8}EQUIPE${area === "ADMINISTRATIVO" ? "" : " DE EXECUÇÃO"}${EMOJI_STAR_8}\n\n`;
 
-    // For ADMINISTRATIVO, use dynamic roles from grouped employees
-    const roles = area === "ADMINISTRATIVO" 
-      ? Object.keys(groupedEmployees[area] || {})
-      : executionRoles[area];
+    // Use static executionRoles first, then add any extra roles found in grouped employees
+    const staticRoles = executionRoles[area] || [];
+    const dynamicRoles = Object.keys(groupedEmployees[area] || {});
+    const roles = [...staticRoles, ...dynamicRoles.filter(r => !staticRoles.includes(r))];
     roles.forEach((role) => {
       const label = roleLabels[area]?.[role] || `${EMOJI_WORKER} ${role.toUpperCase()}:`;
       const employees = groupedEmployees[area]?.[role] || [];
