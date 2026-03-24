@@ -227,20 +227,21 @@ export const ExportAttendancePdfButton = () => {
             let presentCount = 0;
 
             xDate = margin + nameColWidth + funcaoColWidth;
+            const squarePadding = 0.8;
+            const squareSize = Math.min(dayColWidth - squarePadding * 2, rowHeight - squarePadding * 2);
             dateChunk.forEach((d) => {
               const status = empAttendance?.get(d);
-              // If has record, use it. If no record, consider present (default)
               const isPresent = status ? status === "present" : true;
               
               if (isPresent) {
                 presentCount++;
-                doc.setTextColor(34, 139, 34);
-                doc.text("✓", xDate + dayColWidth / 2, y + rowHeight - 1.5, { align: "center" });
+                doc.setFillColor(34, 139, 34);
               } else {
-                doc.setTextColor(220, 38, 38);
-                doc.text("✗", xDate + dayColWidth / 2, y + rowHeight - 1.5, { align: "center" });
+                doc.setFillColor(220, 38, 38);
               }
-              doc.setTextColor(0, 0, 0);
+              const sqX = xDate + (dayColWidth - squareSize) / 2;
+              const sqY = y + (rowHeight - squareSize) / 2;
+              doc.rect(sqX, sqY, squareSize, squareSize, "F");
               xDate += dayColWidth;
             });
 
