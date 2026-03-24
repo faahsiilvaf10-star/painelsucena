@@ -218,16 +218,15 @@ export function SimpleTree({ className }: SimpleTreeProps) {
     branch.position.x += -branch.speed.x * Math.cos(branch.angle) + branch.speed.y * Math.sin(branch.angle)
     branch.position.y += branch.speed.x * Math.sin(branch.angle) + branch.speed.y * Math.cos(branch.angle)
 
-    const shadowColor = hsbToRgb(tree.teinte + branch.age + 10 * branch.gen, 15, 15, 0.06)
+    const shadowColor = hsbToRgb(tree.teinte + branch.age + 10 * branch.gen, 15, 15, 0.05)
     ctx.strokeStyle = shadowColor
-    const shadowWidth = branch.stw * 1.2 - (branch.age / branch.maxlife) * (branch.stw * 0.4)
-    ctx.lineWidth = Math.max(0.5, shadowWidth)
+    const shadowWidth = branch.stw * 1.1 - (branch.age / branch.maxlife) * (branch.stw * 0.35)
+    ctx.lineWidth = Math.max(0.3, shadowWidth)
 
-    const dis = 0.008 * Math.pow(Math.abs(st.y - y0), 1.3)
-
+    // Local soft shadow (keeps tree inside canvas bounds)
     ctx.beginPath()
-    ctx.moveTo(x0 + dis, 2 * st.y - y0 + dis)
-    ctx.lineTo(branch.position.x + dis, 2 * st.y - branch.position.y + dis)
+    ctx.moveTo(x0 + 0.6, y0 + 0.6)
+    ctx.lineTo(branch.position.x + 0.6, branch.position.y + 0.6)
     ctx.stroke()
 
     const lightHue = tree.teinte + branch.age + 18 * branch.gen
