@@ -36,8 +36,8 @@ export const useBrowserNotifications = () => {
 
       try {
         const notification = new Notification(title, {
-          icon: "/favicon.ico",
-          badge: "/favicon.ico",
+          icon: "/pwa-192x192.png",
+          badge: "/pwa-192x192.png",
           requireInteraction: false,
           ...options,
         });
