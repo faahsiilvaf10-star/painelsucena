@@ -3,6 +3,7 @@ import { Users, ClipboardCheck, AlertCircle, Activity } from "lucide-react";
 import { useProfile } from "@/hooks/useProfile";
 import { useSiteSettings } from "@/hooks/useSiteSettings";
 import logoPrincipal from "@/assets/logo-principal.png";
+import logoSucenaHeader from "@/assets/logo-sucena-header.png";
 import {
   DndContext,
   closestCenter,
@@ -155,9 +156,9 @@ const Dashboard = () => {
         {/* Header */}
         <div className="flex items-center justify-between mb-5 animate-fade-in">
           {isDockTheme ? (
-            <div className="flex-1 flex justify-center">
+            <div className="flex-1 flex justify-center pl-16">
               <img 
-                src={settings.logo_url || logoPrincipal} 
+                src={logoSucenaHeader} 
                 alt="Logo Sucena" 
                 className="h-12 sm:h-16 object-contain" 
               />
