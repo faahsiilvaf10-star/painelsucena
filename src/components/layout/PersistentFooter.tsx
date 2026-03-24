@@ -5,6 +5,7 @@ import { ChatDialog } from "@/components/chat/ChatDialog";
 import { ChatPopupManager } from "@/components/chat/ChatPopupManager";
 import { UserWithStatus } from "@/hooks/useAllUsers";
 import { useAuth } from "@/hooks/useAuth";
+import { RightUsersSidebar } from "./RightUsersSidebar";
 
 export const PersistentFooter = () => {
   const { user } = useAuth();
@@ -53,6 +54,7 @@ export const PersistentFooter = () => {
         selectedUser={selectedUser}
       />
       <ChatPopupManager onExpandChat={handleExpandFromPopup} />
+      <RightUsersSidebar onUserClick={handleUserClick} />
     </div>
   );
 };
