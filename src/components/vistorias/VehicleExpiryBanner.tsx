@@ -90,7 +90,7 @@ export function VehicleExpiryBanner() {
             </div>
             <div className="flex-1 min-w-0">
               <div className="flex items-center justify-between gap-2 mb-2">
-                <h3 className="font-semibold text-red-500 flex items-center gap-2">
+                <h3 className="font-bold text-foreground flex items-center gap-2">
                   <Car className="w-4 h-4" />
                   Documentos Vencidos ({expiredItems.length})
                 </h3>
@@ -104,7 +104,7 @@ export function VehicleExpiryBanner() {
                 {expiredItems.slice(0, 5).map((item, idx) => (
                   <div
                     key={`${item.vehicleId}-${item.fieldLabel}-${idx}`}
-                    className="flex items-center gap-2 text-sm text-red-400/90"
+                    className="flex items-center gap-2 text-sm text-foreground font-bold"
                   >
                     <Calendar className="w-3.5 h-3.5 flex-shrink-0" />
                     <span className="font-mono font-medium">{item.placa}</span>
@@ -136,7 +136,7 @@ export function VehicleExpiryBanner() {
             </div>
             <div className="flex-1 min-w-0">
               <div className="flex items-center justify-between gap-2 mb-2">
-                <h3 className="font-semibold text-emerald-500 flex items-center gap-2">
+                <h3 className="font-bold text-foreground flex items-center gap-2">
                   <Car className="w-4 h-4" />
                   Vencendo em 15 dias ({expiringItems.length})
                 </h3>
@@ -150,7 +150,7 @@ export function VehicleExpiryBanner() {
                 {expiringItems.slice(0, 5).map((item, idx) => (
                   <div
                     key={`${item.vehicleId}-${item.fieldLabel}-${idx}`}
-                    className="flex items-center gap-2 text-sm text-emerald-400/90"
+                    className="flex items-center gap-2 text-sm text-foreground font-bold"
                   >
                     <Calendar className="w-3.5 h-3.5 flex-shrink-0" />
                     <span className="font-mono font-medium">{item.placa}</span>
