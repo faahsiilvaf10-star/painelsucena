@@ -18,6 +18,7 @@ import { GifAvatarCreator } from "@/components/settings/GifAvatarCreator";
 import { SidebarCustomizer } from "@/components/settings/SidebarCustomizer";
 import { NeonAvatar } from "@/components/ui/NeonAvatar";
 import { SessionDurationSetting } from "@/components/settings/SessionDurationSetting";
+import { ThemePicker } from "@/components/settings/ThemePicker";
 import { useQueryClient } from "@tanstack/react-query";
 
 const nameSchema = z.string().trim().min(2, "Nome deve ter pelo menos 2 caracteres").max(100, "Nome deve ter no máximo 100 caracteres");
