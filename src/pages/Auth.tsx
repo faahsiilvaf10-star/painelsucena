@@ -9,7 +9,6 @@ import { useToast } from "@/hooks/use-toast";
 import { Eye, EyeOff, Loader2, User, Lock, UserCircle } from "lucide-react";
 import { z } from "zod";
 import { AuthBackground } from "@/components/auth/AuthBackground";
-import { LiveRadioPlayer } from "@/components/auth/LiveRadioPlayer";
 import { useSiteSettings } from "@/hooks/useSiteSettings";
 
 const cargoOptions = [
@@ -341,9 +340,6 @@ const Auth = () => {
     <div className="min-h-screen w-full relative overflow-hidden flex items-center justify-center">
       {/* Gradient background */}
       <AuthBackground />
-
-      {/* Live Radio Player */}
-      <LiveRadioPlayer />
 
       {/* Login form - centered */}
       <div className="relative z-10 w-full max-w-xs px-4 animate-fade-in">
