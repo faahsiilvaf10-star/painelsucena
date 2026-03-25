@@ -406,15 +406,9 @@ ${E.EMOJI_TOOLS} ATIVIDADES:
 
 ${jardinagemSection}
 
-${E.EMOJI_WORKER} Efetivo ${E.EMOJI_WORKER}
-${jardinagemWorkforce}
-
 ✳️ ÁREA GABIÃO ✳️
 
 ${gabiaoFromReport}
-
-${E.EMOJI_WORKER} Efetivo ${E.EMOJI_WORKER}
-${gabiaoWorkforce}
 
 ${E.EMOJI_CHECK} EQUIPAMENTOS EM OPERAÇÃO (${dynamicEquipment.length + 2})
 ${operatingEquipmentText}
