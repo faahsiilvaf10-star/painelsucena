@@ -688,14 +688,7 @@ const OvertimeHistoryDialog = () => {
       </html>
     `;
 
-    const printWindow = window.open("", "_blank");
-    if (printWindow) {
-      printWindow.document.write(printContent);
-      printWindow.document.close();
-      printWindow.onload = () => {
-        printWindow.print();
-      };
-    }
+    await downloadPdfFromHtml(printContent, `historico-horas-extras-${new Date().toISOString().slice(0,10)}.pdf`);
   }
 };
 

@@ -8,6 +8,7 @@ import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@
 import { Badge } from "@/components/ui/badge";
 import { Skeleton } from "@/components/ui/skeleton";
 import { getLogoBase64 } from "@/lib/pdfLogo";
+import { downloadPdfFromHtml } from "@/lib/pdfDownload";
 import { formatCargoLabel } from "@/lib/cargoUtils";
 import { toast } from "sonner";
 import { copyAndShareWhatsApp, copyToClipboard } from "@/lib/copyAndShare";
@@ -296,14 +297,7 @@ const SavedRecordsCard = ({
       </html>
     `;
 
-    const printWindow = window.open("", "_blank");
-    if (printWindow) {
-      printWindow.document.write(printContent);
-      printWindow.document.close();
-      printWindow.onload = () => {
-        printWindow.print();
-      };
-    }
+    await downloadPdfFromHtml(printContent, `hora-extra-${new Date().toISOString().slice(0,10)}.pdf`);
   };
 
   return (

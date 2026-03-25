@@ -2,6 +2,7 @@ import { FileDown } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { toast } from "sonner";
 import { getLogoBase64, PDF_HEADER_STYLES, generatePdfHeader } from "@/lib/pdfLogo";
+import { downloadPdfFromHtml } from "@/lib/pdfDownload";
 import {
   useSlingWithInspections,
   colorLabels,
@@ -148,15 +149,7 @@ export function ExportSlingPendingPdfButton() {
         </html>
       `;
 
-      const printWindow = window.open("", "_blank");
-      if (!printWindow) {
-        toast.error("Permita pop-ups para gerar o PDF");
-        return;
-      }
-      printWindow.document.write(html);
-      printWindow.document.close();
-      printWindow.focus();
-      setTimeout(() => printWindow.print(), 400);
+      await downloadPdfFromHtml(html, `cintas-pendentes-${format(now, "yyyy-MM-dd")}.pdf`);
 
       toast.success("PDF gerado com sucesso!");
     } catch {

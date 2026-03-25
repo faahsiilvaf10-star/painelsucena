@@ -7,6 +7,7 @@ import { toast } from "sonner";
 import { supabase } from "@/integrations/supabase/client";
 import { Equipment } from "@/hooks/useEquipment";
 import { getLogoBase64 } from "@/lib/pdfLogo";
+import { downloadPdfFromHtml } from "@/lib/pdfDownload";
 
 interface ExportWeeklyHistoryButtonProps {
   equipment: Equipment[];
@@ -64,13 +65,6 @@ export function ExportWeeklyHistoryButton({ equipment }: ExportWeeklyHistoryButt
         historyByEquipment.set(record.equipment_id, existing);
       });
 
-      // Create printable HTML
-      const printWindow = window.open("", "_blank");
-      if (!printWindow) {
-        toast.error("Permita pop-ups para exportar PDF");
-        setIsExporting(false);
-        return;
-      }
 
       // Generate equipment sections
       const equipmentSections = equipment
@@ -325,8 +319,7 @@ export function ExportWeeklyHistoryButton({ equipment }: ExportWeeklyHistoryButt
         </html>
       `;
 
-      printWindow.document.write(htmlContent);
-      printWindow.document.close();
+      await downloadPdfFromHtml(htmlContent, `historico-semanal-${format(new Date(), "yyyy-MM-dd")}.pdf`);
 
       toast.success("PDF gerado com sucesso!");
     } catch (error) {

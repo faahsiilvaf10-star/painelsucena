@@ -5,6 +5,7 @@ import { format } from "date-fns";
 import { ptBR } from "date-fns/locale";
 import { toast } from "sonner";
 import { getLogoBase64 } from "@/lib/pdfLogo";
+import { downloadPdfFromHtml } from "@/lib/pdfDownload";
 import type { DailyShiftRecord, StatusHistoryEntry } from "@/hooks/useDailyShiftRecords";
 import {
   buildFuelGaugeSvg,
@@ -165,12 +166,6 @@ export const ExportDailyShiftPdfButton = forwardRef<HTMLButtonElement, ExportDai
       
       const exitMovement = exitMovements?.[0] || null;
       
-      const printWindow = window.open("", "_blank");
-      if (!printWindow) {
-        toast.error("Pop-up bloqueado. Permita pop-ups para exportar.");
-        setIsExporting(false);
-        return;
-      }
 
       // Sort history by time first (important to fill the "FINAL" column correctly)
       const sortedHistory = [...activeRecord.status_history].sort(
@@ -592,24 +587,7 @@ export const ExportDailyShiftPdfButton = forwardRef<HTMLButtonElement, ExportDai
         </html>
       `;
 
-      printWindow.document.write(htmlContent);
-      printWindow.document.close();
-      
-      printWindow.onload = () => {
-        const images = Array.from(printWindow.document.images || []);
-        Promise.all(
-          images.map((img) =>
-            img.complete
-              ? Promise.resolve()
-              : new Promise<void>((resolve) => {
-                  img.onload = () => resolve();
-                  img.onerror = () => resolve();
-                })
-          )
-        ).finally(() => {
-          setTimeout(() => printWindow.print(), 200);
-        });
-      };
+      await downloadPdfFromHtml(htmlContent, `relatorio-turno-${activeRecord.plate}-${activeRecord.shift_date}.pdf`);
 
       toast.success("Relatório gerado com sucesso!");
     } catch (error) {

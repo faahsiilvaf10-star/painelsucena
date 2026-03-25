@@ -9,6 +9,7 @@ import { Textarea } from "@/components/ui/textarea";
 import { toast } from "sonner";
 import { FileDown, Plus, Trash2, FlameKindling } from "lucide-react";
 import { getLogoBase64, PDF_HEADER_STYLES } from "@/lib/pdfLogo";
+import { downloadPdfFromHtml } from "@/lib/pdfDownload";
 
 type InspectionValue = "C" | "NC" | "NA" | "NV" | "";
 
@@ -268,16 +269,7 @@ export default function InspecaoExtintores() {
         </html>
       `;
 
-      const printWindow = window.open("", "_blank");
-      if (!printWindow) {
-        toast.error("Permita pop-ups para gerar o PDF.");
-        return;
-      }
-      printWindow.document.write(html);
-      printWindow.document.close();
-      setTimeout(() => {
-        printWindow.print();
-      }, 500);
+      await downloadPdfFromHtml(html, `inspecao-extintores-${new Date().toISOString().slice(0,10)}.pdf`);
 
       toast.success("PDF gerado com sucesso!");
     } catch {

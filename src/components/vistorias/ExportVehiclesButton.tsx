@@ -12,6 +12,7 @@ import {
 import { toast } from "sonner";
 import { VehicleInspection, DATE_FIELDS } from "@/hooks/useVehicleInspections";
 import { getLogoBase64 } from "@/lib/pdfLogo";
+import { downloadPdfFromHtml } from "@/lib/pdfDownload";
 
 interface ExportVehiclesButtonProps {
   vehicles: VehicleInspection[];
@@ -87,13 +88,6 @@ export function ExportVehiclesButton({ vehicles }: ExportVehiclesButtonProps) {
     try {
       const logoBase64 = await getLogoBase64();
 
-      // Create a printable HTML document
-      const printWindow = window.open("", "_blank");
-      if (!printWindow) {
-        toast.error("Permita pop-ups para exportar PDF");
-        setIsExporting(false);
-        return;
-      }
 
       const tableRows = vehicles
         .map(
@@ -235,8 +229,7 @@ export function ExportVehiclesButton({ vehicles }: ExportVehiclesButtonProps) {
         </html>
       `;
 
-      printWindow.document.write(htmlContent);
-      printWindow.document.close();
+      await downloadPdfFromHtml(htmlContent, `veiculos-terceiros-${format(new Date(), "yyyy-MM-dd")}.pdf`);
 
       toast.success("PDF gerado com sucesso!");
     } catch (error) {
