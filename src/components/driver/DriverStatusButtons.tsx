@@ -163,24 +163,28 @@ export function DriverStatusButtons() {
       timerRef.current = null;
     }
 
-    // Don't run timer if end_of_shift or no vehicle
-    if (!selectedVehicle || currentStatus === "end_of_shift") {
+    // Don't run timer if end_of_shift or no vehicle or shift not started
+    if (!selectedVehicle || currentStatus === "end_of_shift" || !shiftStarted) {
       setElapsedSeconds(0);
       return;
     }
 
-    const startTime = selectedVehicle.stop_start_time
-      ? new Date(selectedVehicle.stop_start_time).getTime()
-      : null;
-
-    // If there's no stop_start_time and status is "none" (operating), use localStorage timestamp
     const shiftStartKey = `shift_start_time_${selectedVehicleId}`;
-    let referenceTime = startTime;
+    let referenceTime: number | null = null;
 
-    if (!referenceTime && currentStatus === "none") {
+    if (currentStatus !== "none" && selectedVehicle.stop_start_time) {
+      // For non-operating statuses, use stop_start_time
+      referenceTime = new Date(selectedVehicle.stop_start_time).getTime();
+    } else {
+      // For "Operando" (none), use localStorage timestamp
       const stored = localStorage.getItem(shiftStartKey);
       if (stored) {
         referenceTime = parseInt(stored, 10);
+      } else {
+        // Fallback: save current time as start and use it
+        const now = Date.now();
+        localStorage.setItem(shiftStartKey, now.toString());
+        referenceTime = now;
       }
     }
 
@@ -200,7 +204,7 @@ export function DriverStatusButtons() {
     return () => {
       if (timerRef.current) clearInterval(timerRef.current);
     };
-  }, [selectedVehicle?.stop_start_time, currentStatus, selectedVehicleId, selectedVehicle]);
+  }, [selectedVehicle?.stop_start_time, currentStatus, selectedVehicleId, selectedVehicle, shiftStarted]);
 
   const formatElapsedTime = (totalSeconds: number): string => {
     const hours = Math.floor(totalSeconds / 3600);
