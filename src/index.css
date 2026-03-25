@@ -4,6 +4,24 @@
 @tailwind components;
 @tailwind utilities;
 
+/* Smooth 120fps scrolling */
+html, body {
+  scroll-behavior: smooth;
+  -webkit-overflow-scrolling: touch;
+}
+
+* {
+  -webkit-font-smoothing: antialiased;
+  -moz-osx-font-smoothing: grayscale;
+}
+
+.overflow-y-auto,
+[class*="overflow-y-auto"] {
+  will-change: scroll-position;
+  -webkit-overflow-scrolling: touch;
+  overscroll-behavior: contain;
+}
+
 @layer base {
   :root {
     --background: 220 12% 82%;

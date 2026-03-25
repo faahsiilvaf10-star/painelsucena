@@ -64,7 +64,7 @@ export function PageTransition({ children }: PageTransitionProps) {
         };
 
   return (
-    <div style={transitionStyles} className="will-change-transform">
+    <div style={{ ...transitionStyles, backfaceVisibility: "hidden", WebkitBackfaceVisibility: "hidden" }} className="will-change-[transform,opacity,filter]">
       {displayedChildren}
     </div>
   );
