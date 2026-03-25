@@ -282,6 +282,8 @@ export function DriverStatusButtons() {
       localStorage.removeItem("selectedVehicleId");
       localStorage.removeItem(`shift_horimeter_${selectedVehicleId}`);
       localStorage.removeItem(`shift_km_${selectedVehicleId}`);
+      localStorage.removeItem(`shift_start_time_${selectedVehicleId}`);
+      setElapsedSeconds(0);
 
       setShowEndShiftDialog(false);
       
