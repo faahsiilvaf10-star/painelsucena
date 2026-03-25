@@ -29,6 +29,9 @@ export interface InstaCenaComment {
   user_avatar_url: string | null;
   content: string;
   created_at: string;
+  frame_color?: string | null;
+  neon_color?: string | null;
+  frame_animation?: string | null;
 }
 
 export interface InstaCenaReaction {
@@ -102,7 +105,19 @@ export const useInstaCenaComments = (postId: string) => {
         .eq("post_id", postId)
         .order("created_at", { ascending: true });
       if (error) throw error;
-      return data as InstaCenaComment[];
+      
+      const userIds = [...new Set((data || []).map((c) => c.user_id))];
+      const { data: profiles } = await supabase
+        .from("profiles")
+        .select("user_id, frame_color, neon_color, frame_animation")
+        .in("user_id", userIds);
+      type FrameInfo = { user_id: string; frame_color: string | null; neon_color: string | null; frame_animation: string | null };
+      const frameMap = new Map<string, FrameInfo>((profiles || []).map((p) => [p.user_id, p as FrameInfo]));
+      
+      return (data || []).map((c) => {
+        const f = frameMap.get(c.user_id);
+        return { ...c, frame_color: f?.frame_color || null, neon_color: f?.neon_color || null, frame_animation: f?.frame_animation || null };
+      }) as InstaCenaComment[];
     },
     enabled: !!postId,
   });
