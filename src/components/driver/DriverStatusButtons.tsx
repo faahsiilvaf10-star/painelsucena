@@ -321,6 +321,7 @@ export function DriverStatusButtons() {
       // Save initial values to localStorage
       localStorage.setItem(`shift_horimeter_${selectedVehicleId}`, startShiftHorimeter);
       localStorage.setItem(`shift_km_${selectedVehicleId}`, startShiftKm);
+      localStorage.setItem(`shift_start_time_${selectedVehicleId}`, Date.now().toString());
       setInitialHorimeter(startShiftHorimeter);
       setInitialKm(startShiftKm);
 
