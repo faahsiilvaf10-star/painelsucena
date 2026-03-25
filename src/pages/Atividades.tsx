@@ -314,8 +314,8 @@ export default function Atividades() {
     profile?.cargo === "encarregado_i"
   );
   
-  // Check edit permission - only encarregado_geral, encarregado_i, or admin can edit
-  const canEdit = authReady && (
+  // Check edit permission - only encarregado_geral, encarregado_i, or admin can edit, and must not be locked
+  const canEdit = authReady && !isJardinagemLocked && (
     isAdmin || 
     profile?.cargo === "encarregado_geral" || 
     profile?.cargo === "encarregado_i"
@@ -534,8 +534,12 @@ export default function Atividades() {
           await deductFromStock(entry.especie, extraQtd);
         }
       }
+      // Auto-lock after saving
+      if (!isJardinagemLocked) {
+        await lockArea.mutateAsync("jardinagem");
+      }
 
-      toast.success("Atividades salvas e estoque atualizado!");
+      toast.success("Atividades salvas e bloqueadas com sucesso!");
     } catch (error: any) {
       toast.error("Erro ao salvar: " + error.message);
     }
