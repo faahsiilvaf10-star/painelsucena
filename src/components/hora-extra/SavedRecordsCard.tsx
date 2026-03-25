@@ -96,7 +96,7 @@ const SavedRecordsCard = ({
     };
   }, [periodRecords]);
 
-  const handleExportPdf = () => {
+  const handleExportPdf = async () => {
     if (periodRecords.length === 0) {
       toast.error("Nenhum registro no período para exportar");
       return;
