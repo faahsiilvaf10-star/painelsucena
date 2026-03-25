@@ -15,13 +15,26 @@ const updateSW = registerSW({
   onRegistered(registration) {
     console.log("Service Worker registrado:", registration);
 
-    // Check for updates every 2 minutes when online
     if (registration) {
+      // Check for updates every 2 minutes when online
       setInterval(() => {
         if (navigator.onLine) {
           registration.update();
         }
       }, 2 * 60 * 1000);
+
+      // Register Periodic Background Sync
+      if ('periodicSync' in registration) {
+        (registration as any).periodicSync.register('content-sync', {
+          minInterval: 12 * 60 * 60 * 1000, // 12 hours
+        }).catch((err: Error) => console.log('Periodic sync não suportado:', err));
+      }
+
+      // Register Background Sync
+      if ('sync' in registration) {
+        (registration as any).sync.register('pending-sync')
+          .catch((err: Error) => console.log('Background sync não suportado:', err));
+      }
     }
   },
   onRegisterError(error) {
