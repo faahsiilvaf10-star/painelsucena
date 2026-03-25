@@ -94,22 +94,28 @@ export const getBrazilNorthMidnight = (): Date => {
 
 /**
  * Convert a date string to a Date object and normalize to midnight
- * for Brazil timezone comparison
+ * for Brazil timezone comparison — constructs the same way as getBrazilNorthMidnight
  */
 export const parseDateForBrazilNorth = (dateStr: string): Date => {
-  const date = new Date(dateStr + "T00:00:00");
-  return date;
+  const parts = dateStr.slice(0, 10).split('-').map(Number);
+  return new Date(parts[0], parts[1] - 1, parts[2], 0, 0, 0);
 };
 
 /**
- * Calculate days until an event from Brazil timezone perspective
+ * Calculate days until an event from Brazil timezone perspective.
+ * Both dates are built identically (local-midnight from calendar components)
+ * so the diff is always exact.
  */
 export const getDaysUntilEventBrazilNorth = (eventDateStr: string): number => {
-  const today = getBrazilNorthMidnight();
-  const eventDate = parseDateForBrazilNorth(eventDateStr);
-  
+  const todayStr = getBrazilNorthTodayString(); // "YYYY-MM-DD" in Brazil tz
+  const [ty, tm, td] = todayStr.split('-').map(Number);
+  const today = new Date(ty, tm - 1, td, 0, 0, 0);
+
+  const [ey, em, ed] = eventDateStr.slice(0, 10).split('-').map(Number);
+  const eventDate = new Date(ey, em - 1, ed, 0, 0, 0);
+
   const diffTime = eventDate.getTime() - today.getTime();
-  return Math.ceil(diffTime / (1000 * 60 * 60 * 24));
+  return Math.round(diffTime / (1000 * 60 * 60 * 24));
 };
 
 /**
