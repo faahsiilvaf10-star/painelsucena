@@ -52,8 +52,8 @@ function generateCrashPoint(): number {
   const h = Math.random();
   if (h < 0.01) return 1.0;
 
-  // ~10% chance of a high crash (8x–350x)
-  if (h > 0.90) {
+  // ~8% chance of a high crash (8x–350x)
+  if (h > 0.92) {
     const highRoll = Math.random();
     const crash = 8 + Math.pow(highRoll, 0.25) * 342; // range ~8x to ~350x
     return Math.floor(crash * 100) / 100;
