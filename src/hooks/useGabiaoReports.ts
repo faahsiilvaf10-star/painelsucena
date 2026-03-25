@@ -157,10 +157,19 @@ export const formatGabiaoForRDO = (report: GabiaoReport | null): string => {
   // Just return it directly if it exists (append to location)
   if (report.observacoes) {
     // Strip internal markers before display
-    const cleanObs = report.observacoes
+    let cleanObs = report.observacoes
       .replace(/\[ATIVIDADES_MANUAIS\]\n?/g, "")
       .replace(/\[OBSERVACOES\]\n?/g, "");
-    lines.push(cleanObs);
+    // Remove any embedded efetivo/team data that may have been pasted into observacoes
+    cleanObs = cleanObs
+      .replace(/\*{0,2}Relatório de Atividades[\s\S]*/i, "")
+      .replace(/\*{0,2}Equipe de Apoio[\s\S]*/i, "")
+      .replace(/\*{0,2}Equipe de Execução[\s\S]*/i, "")
+      .replace(/\n{2,}$/g, "")
+      .trim();
+    if (cleanObs) {
+      lines.push(cleanObs);
+    }
     return lines.join("\n");
   }
 
