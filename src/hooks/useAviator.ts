@@ -51,7 +51,16 @@ const CRASH_PAUSE = 3000;
 function generateCrashPoint(): number {
   const h = Math.random();
   if (h < 0.01) return 1.0;
-  const e = 0.95;
+
+  // ~8% chance of a high crash (5x–150x+)
+  if (h > 0.92) {
+    // Exponential distribution for exciting high multipliers
+    const highRoll = Math.random();
+    const crash = 5 + Math.pow(highRoll, 0.3) * 145; // range ~5x to ~150x
+    return Math.floor(crash * 100) / 100;
+  }
+
+  const e = 0.97;
   const crash = e / (1 - h);
   return Math.max(1.0, Math.floor(crash * 100) / 100);
 }
