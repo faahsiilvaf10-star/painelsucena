@@ -24,6 +24,7 @@ import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/components/u
 import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover";
 import { Command, CommandInput, CommandList, CommandEmpty, CommandItem } from "@/components/ui/command";
 import { getLogoBase64 } from "@/lib/pdfLogo";
+import { downloadPdfFromHtml } from "@/lib/pdfDownload";
 
 const EPI_ITEMS = [
   { id: "abafador_completo", label: "Abafador Completo", hasInput: false },
@@ -176,15 +177,10 @@ function buildPdfHtml(exchange: EpiExchange, logoBase64: string): string {
   `;
 }
 
-function generatePdf(exchange: EpiExchange, logoBase64: string) {
+async function generatePdf(exchange: EpiExchange, logoBase64: string) {
   const content = buildPdfHtml(exchange, logoBase64);
   const html = `<html><head><style>@page{size:A4;margin:15mm;}body{font-family:Arial,sans-serif;}</style></head><body>${content}</body></html>`;
-  const printWindow = window.open('', '_blank');
-  if (printWindow) {
-    printWindow.document.write(html);
-    printWindow.document.close();
-    setTimeout(() => printWindow.print(), 500);
-  }
+  await downloadPdfFromHtml(html, `troca-epi-${exchange.id}.pdf`);
 }
 
 export default function TrocaEpi() {
@@ -588,7 +584,7 @@ export default function TrocaEpi() {
 
   const handlePrint = async (exchange: EpiExchange) => {
     const logoBase64 = await getLogoBase64();
-    generatePdf(exchange, logoBase64);
+    await generatePdf(exchange, logoBase64);
   };
 
   const handlePngWhatsApp = async (exchange: EpiExchange) => {
