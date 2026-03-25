@@ -6,7 +6,7 @@ import { MessageCircle, ThumbsUp, Trash2, MoreHorizontal, Bot } from "lucide-rea
 import { Card, CardContent } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
-import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
+import { NeonAvatar } from "@/components/ui/NeonAvatar";
 import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover";
 import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuTrigger } from "@/components/ui/dropdown-menu";
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/components/ui/dialog";
@@ -85,12 +85,14 @@ export function PostCard({ post }: { post: InstaCenaPost }) {
               <img src="/logo-sucena-system.jpg" alt="Sistema" className="h-full w-full object-cover" />
             </div>
           ) : (
-            <Avatar className="h-10 w-10">
-              <AvatarImage src={post.user_avatar_url || undefined} className="object-cover" />
-              <AvatarFallback className="bg-primary/10 text-primary text-sm font-semibold">
-                {getInitials(post.user_name)}
-              </AvatarFallback>
-            </Avatar>
+            <NeonAvatar
+              src={post.user_avatar_url}
+              name={post.user_name}
+              frameColor={post.frame_color}
+              neonColor={post.neon_color}
+              frameAnimation={post.frame_animation}
+              size="sm"
+            />
           )}
           <div className="flex-1 min-w-0">
             <p className="font-semibold text-sm flex items-center gap-1.5">
