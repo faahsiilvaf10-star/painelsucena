@@ -268,33 +268,36 @@ export default function AtividadesII() {
       const transporteMatch = obs.match(/Transporte de Materiais - ([\d.]+) m³/);
       setTransporteMateriaisQuantidade(transporteMatch ? transporteMatch[1] : "");
       
-      // Extract manual activities (lines without * prefix that aren't observations)
-      // and observations (text that's not part of structured activities)
-      const lines = obs.split("\n");
-      const manualLines: string[] = [];
-      const obsLines: string[] = [];
-      let isAfterActivities = false;
+      // Parse atividades manuais and observacoes using markers
+      const manuaisMarkerIdx = obs.indexOf("[ATIVIDADES_MANUAIS]");
+      const obsMarkerIdx = obs.indexOf("[OBSERVACOES]");
       
-      for (const line of lines) {
-        const trimmed = line.trim();
-        if (!trimmed) {
-          isAfterActivities = true;
-          continue;
-        }
-        
-        // Skip structured activity lines (those starting with *)
-        if (trimmed.startsWith("*")) {
-          continue;
-        }
-        
-        // After the activities section, remaining text is observacoes
-        if (isAfterActivities) {
-          obsLines.push(trimmed);
-        }
+      if (manuaisMarkerIdx !== -1) {
+        const manuaisStart = manuaisMarkerIdx + "[ATIVIDADES_MANUAIS]".length;
+        const manuaisEnd = obsMarkerIdx !== -1 ? obsMarkerIdx : obs.length;
+        setAtividadesManuais(obs.substring(manuaisStart, manuaisEnd).trim());
+      } else {
+        setAtividadesManuais("");
       }
       
-      setAtividadesManuais("");
-      setObservacoes(obsLines.join("\n"));
+      if (obsMarkerIdx !== -1) {
+        const obsStart = obsMarkerIdx + "[OBSERVACOES]".length;
+        setObservacoes(obs.substring(obsStart).trim());
+      } else if (manuaisMarkerIdx === -1) {
+        // Legacy format: non-* lines after activities go to observacoes
+        const lines = obs.split("\n");
+        const obsLines: string[] = [];
+        let isAfterActivities = false;
+        for (const line of lines) {
+          const trimmed = line.trim();
+          if (!trimmed) { isAfterActivities = true; continue; }
+          if (trimmed.startsWith("*")) continue;
+          if (isAfterActivities) obsLines.push(trimmed);
+        }
+        setObservacoes(obsLines.join("\n"));
+      } else {
+        setObservacoes("");
+      }
       setPhotos((existingReport as any).photo_urls || []);
       setGabiaoExtra({});
     } else {
