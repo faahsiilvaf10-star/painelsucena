@@ -230,7 +230,7 @@ export const ReminderHighlightBanner = () => {
         <div className="animate-in fade-in slide-in-from-top-4 duration-500">
           <div className="flex items-center gap-2 mb-3">
             <Bell className="h-5 w-5 text-green-400" />
-            <h3 className="font-semibold text-sm text-green-400 uppercase tracking-wide">
+            <h3 className="font-semibold text-sm text-foreground uppercase tracking-wide">
               Próximos Lembretes
             </h3>
             <Link to="/lembretes">
