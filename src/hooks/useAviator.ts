@@ -50,18 +50,23 @@ const CRASH_PAUSE = 3000;
 
 function generateCrashPoint(): number {
   const h = Math.random();
-  if (h < 0.01) return 1.0;
 
-  // ~8% chance of a high crash (8x–350x)
+  // 3% chance of instant crash at 1.00
+  if (h < 0.03) return 1.0;
+
+  // 8% chance of a high crash, capped at 50x
   if (h > 0.92) {
     const highRoll = Math.random();
-    const crash = 8 + Math.pow(highRoll, 0.25) * 342; // range ~8x to ~350x
+    const crash = 5 + highRoll * 45; // range ~5x to ~50x
     return Math.floor(crash * 100) / 100;
   }
 
-  const e = 0.97;
-  const crash = e / (1 - h);
-  return Math.max(1.0, Math.floor(crash * 100) / 100);
+  // Remaining 89%: spread across 1.01–15x with a smoother curve
+  // Using a slightly higher house edge to reduce clustering at very low values
+  const normalized = (h - 0.03) / 0.89; // normalize to 0–1
+  const crash = 1.0 / (1 - Math.pow(normalized, 1.2));
+  const clamped = Math.min(crash, 15);
+  return Math.max(1.01, Math.floor(clamped * 100) / 100);
 }
 
 const initialStats: SessionStats = {
