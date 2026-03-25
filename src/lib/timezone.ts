@@ -1,14 +1,18 @@
 // Timezone utility for Pará (Belém) - UTC-3 (America/Belem)
 // Pará uses Brasília Time (UTC-3) year-round (no DST).
-const BRAZIL_TIMEZONE = 'America/Sao_Paulo';
+const BRAZIL_TIMEZONE = 'America/Belem';
 
-/**
- * Get the current date/time in Brazil timezone (Brasília - UTC-3)
- * Uses Intl API for reliable timezone conversion
- */
-export const getBrazilNorthDate = (): Date => {
-  // Use Intl to get the current time in Brasília timezone
-  const formatter = new Intl.DateTimeFormat('en-CA', {
+type BrazilNorthDateParts = {
+  year: number;
+  month: number;
+  day: number;
+  hour: number;
+  minute: number;
+  second: number;
+};
+
+const getBrazilNorthDateParts = (date: Date = new Date()): BrazilNorthDateParts => {
+  const formatter = new Intl.DateTimeFormat('en-US', {
     timeZone: BRAZIL_TIMEZONE,
     year: 'numeric',
     month: '2-digit',
@@ -16,19 +20,36 @@ export const getBrazilNorthDate = (): Date => {
     hour: '2-digit',
     minute: '2-digit',
     second: '2-digit',
-    hour12: false
+    hour12: false,
   });
-  
-  const parts = formatter.formatToParts(new Date());
-  const get = (type: string) => parts.find(p => p.type === type)?.value || '0';
-  
+
+  const parts = formatter.formatToParts(date);
+  const get = (type: Intl.DateTimeFormatPartTypes) => Number(parts.find((p) => p.type === type)?.value || 0);
+
+  return {
+    year: get('year'),
+    month: get('month'),
+    day: get('day'),
+    hour: get('hour'),
+    minute: get('minute'),
+    second: get('second'),
+  };
+};
+
+/**
+ * Get the current date/time in Brazil timezone (Brasília - UTC-3)
+ * Uses Intl API for reliable timezone conversion
+ */
+export const getBrazilNorthDate = (): Date => {
+  const { year, month, day, hour, minute, second } = getBrazilNorthDateParts();
+
   return new Date(
-    parseInt(get('year')),
-    parseInt(get('month')) - 1,
-    parseInt(get('day')),
-    parseInt(get('hour')),
-    parseInt(get('minute')),
-    parseInt(get('second'))
+    year,
+    month - 1,
+    day,
+    hour,
+    minute,
+    second
   );
 };
 
@@ -36,9 +57,8 @@ export const getBrazilNorthDate = (): Date => {
  * Get today's date string (YYYY-MM-DD) in Brazil timezone (Brasília)
  */
 export const getBrazilNorthTodayString = (): string => {
-  return new Date().toLocaleDateString('en-CA', { 
-    timeZone: BRAZIL_TIMEZONE 
-  });
+  const { year, month, day } = getBrazilNorthDateParts();
+  return `${year}-${String(month).padStart(2, '0')}-${String(day).padStart(2, '0')}`;
 };
 
 /**
@@ -107,14 +127,11 @@ export const parseDateForBrazilNorth = (dateStr: string): Date => {
  * so the diff is always exact.
  */
 export const getDaysUntilEventBrazilNorth = (eventDateStr: string): number => {
-  const todayStr = getBrazilNorthTodayString(); // "YYYY-MM-DD" in Brazil tz
-  const [ty, tm, td] = todayStr.split('-').map(Number);
-  const today = new Date(ty, tm - 1, td, 0, 0, 0);
+  const { year: ty, month: tm, day: td } = getBrazilNorthDateParts();
 
   const [ey, em, ed] = eventDateStr.slice(0, 10).split('-').map(Number);
-  const eventDate = new Date(ey, em - 1, ed, 0, 0, 0);
 
-  const diffTime = eventDate.getTime() - today.getTime();
+  const diffTime = Date.UTC(ey, em - 1, ed) - Date.UTC(ty, tm - 1, td);
   return Math.round(diffTime / (1000 * 60 * 60 * 24));
 };
 
