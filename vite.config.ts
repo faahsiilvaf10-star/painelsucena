@@ -35,6 +35,44 @@ export default defineConfig(({ mode }) => ({
         lang: "pt-BR",
         categories: ["business", "productivity", "utilities"],
         prefer_related_applications: false,
+        launch_handler: {
+          client_mode: ["navigate-existing", "auto"],
+        },
+        handle_links: "preferred",
+        share_target: {
+          action: "/share-target",
+          method: "POST",
+          enctype: "multipart/form-data",
+          params: {
+            title: "title",
+            text: "text",
+            url: "url",
+            files: [
+              {
+                name: "media",
+                accept: ["image/*", "application/pdf"],
+              },
+            ],
+          },
+        },
+        protocol_handlers: [
+          {
+            protocol: "web+painelsucena",
+            url: "/%s",
+          },
+        ],
+        file_handlers: [
+          {
+            action: "/",
+            accept: {
+              "image/*": [".png", ".jpg", ".jpeg", ".webp"],
+              "application/pdf": [".pdf"],
+            },
+          },
+        ],
+        edge_side_panel: {
+          preferred_width: 400,
+        },
         icons: [
           {
             src: "/pwa-192x192.png",
@@ -109,15 +147,9 @@ export default defineConfig(({ mode }) => ({
         maximumFileSizeToCacheInBytes: 5 * 1024 * 1024, // 5 MB limit
         navigateFallbackDenylist: [/^\/~oauth/],
         navigateFallback: "/index.html",
-        // Only allow offline navigation for driver panel routes
-        navigateFallbackAllowlist: [
-          /^\/painel-motorista/,
-          /^\/selecao-veiculo/,
-          /^\/registro-movimento-motorista/,
-          /^\/equipamentos-motorista/,
-          /^\/relatorios-motorista/,
-          /^\/pontos-abastecimento/,
-        ],
+        navigateFallbackAllowlist: [/^(?!\/(~oauth|api|supabase))/],
+        skipWaiting: true,
+        clientsClaim: true,
         runtimeCaching: [
           // Google Fonts - Cache First (rarely changes)
           {
