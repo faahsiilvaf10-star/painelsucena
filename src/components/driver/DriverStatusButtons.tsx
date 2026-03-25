@@ -539,7 +539,7 @@ export function DriverStatusButtons() {
             </p>
           )}
           {/* Activity Timer */}
-          {shiftStarted && currentStatus !== "end_of_shift" && elapsedSeconds > 0 && (
+          {shiftStarted && currentStatus !== "end_of_shift" && (
             <div className="flex items-center gap-1.5 mt-2 px-2.5 py-1.5 bg-muted/50 rounded-md w-fit">
               <Timer className="h-3.5 w-3.5 text-primary" />
               <span className="text-xs font-mono font-semibold text-foreground">
