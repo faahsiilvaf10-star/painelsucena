@@ -66,12 +66,37 @@ const Presenca = () => {
     return map;
   }, [attendanceRecords]);
 
-  // Get all RH employees (excluding deleted)
+  // Roles that belong to ÁREA GABIÃO
+  const gabiaoRoles = ["Polivalente", "Meia Oficial"];
+  const gabiaoAjudantes = [
+    "FLÁVIO HENRIQUE",
+    "VINÍCIUS JUNIOR",
+    "WELBER SANTO",
+    "FILIPE DOS SANTOS",
+    "EZEDEQUIAS SILVA",
+    "JAILSON CARDOSO",
+    "JOSE ROBERTO",
+    "MAURICIO NASCIMENTO",
+    "REGINALDO DOS SANTOS",
+    "RAIMUNDO PEREIRA",
+    "FLAVIO HENRIQUE",
+    "VINICIUS MALCHER",
+  ];
+
+  const isGabiaoEmployee = (nome: string, funcao: string) => {
+    const upperName = nome.toUpperCase().trim();
+    if (gabiaoRoles.some(r => funcao.toUpperCase() === r.toUpperCase())) return true;
+    if (funcao.toUpperCase() === "AJUDANTE" && gabiaoAjudantes.some(n => upperName.includes(n))) return true;
+    return false;
+  };
+
+  // Get all RH employees (excluding deleted and gabião area)
   const rhColaboradores = useMemo(() => {
     if (!rhData?.colaboradores?.length) return [];
     const deletedIds = rhData.deletedIds || [];
     return rhData.colaboradores
       .filter(c => !deletedIds.includes(c.id))
+      .filter(c => !isGabiaoEmployee(c.nome, c.funcao || ""))
       .sort((a, b) => a.nome.localeCompare(b.nome));
   }, [rhData]);
 
