@@ -1,5 +1,6 @@
-import { useState, useEffect } from "react";
+import { useState, useEffect, useRef } from "react";
 import { useNavigate } from "react-router-dom";
+import { Timer } from "lucide-react";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
@@ -124,6 +125,10 @@ export function DriverStatusButtons() {
   const addStatusToHistory = useAddStatusToHistory();
   const createEquipmentMovement = useCreateEquipmentMovement();
 
+  // Activity timer - counts elapsed time since current status was selected
+  const [elapsedSeconds, setElapsedSeconds] = useState(0);
+  const timerRef = useRef<ReturnType<typeof setInterval> | null>(null);
+
   useEffect(() => {
     const vehicleId = localStorage.getItem("selectedVehicleId");
     setSelectedVehicleId(vehicleId);
@@ -137,6 +142,7 @@ export function DriverStatusButtons() {
     }
   }, []);
 
+
   const selectedVehicle = equipment.find((eq) => eq.id === selectedVehicleId);
   const currentStatus = (selectedVehicle?.stop_reason || "none") as string;
   const statusInfo = getStatusLabel(currentStatus);
@@ -149,6 +155,60 @@ export function DriverStatusButtons() {
 
   // Get the current active stop from history (ended_at is null)
   const activeStop = stopHistory.find((h) => h.ended_at === null);
+
+  // Timer effect: start counting from stop_start_time or shift start
+  useEffect(() => {
+    if (timerRef.current) {
+      clearInterval(timerRef.current);
+      timerRef.current = null;
+    }
+
+    // Don't run timer if end_of_shift or no vehicle
+    if (!selectedVehicle || currentStatus === "end_of_shift") {
+      setElapsedSeconds(0);
+      return;
+    }
+
+    const startTime = selectedVehicle.stop_start_time
+      ? new Date(selectedVehicle.stop_start_time).getTime()
+      : null;
+
+    // If there's no stop_start_time and status is "none" (operating), use localStorage timestamp
+    const shiftStartKey = `shift_start_time_${selectedVehicleId}`;
+    let referenceTime = startTime;
+
+    if (!referenceTime && currentStatus === "none") {
+      const stored = localStorage.getItem(shiftStartKey);
+      if (stored) {
+        referenceTime = parseInt(stored, 10);
+      }
+    }
+
+    if (!referenceTime) {
+      setElapsedSeconds(0);
+      return;
+    }
+
+    const tick = () => {
+      const now = Date.now();
+      setElapsedSeconds(Math.max(0, Math.floor((now - referenceTime!) / 1000)));
+    };
+
+    tick();
+    timerRef.current = setInterval(tick, 1000);
+
+    return () => {
+      if (timerRef.current) clearInterval(timerRef.current);
+    };
+  }, [selectedVehicle?.stop_start_time, currentStatus, selectedVehicleId, selectedVehicle]);
+
+  const formatElapsedTime = (totalSeconds: number): string => {
+    const hours = Math.floor(totalSeconds / 3600);
+    const minutes = Math.floor((totalSeconds % 3600) / 60);
+    const seconds = totalSeconds % 60;
+    const pad = (n: number) => n.toString().padStart(2, "0");
+    return `${pad(hours)}:${pad(minutes)}:${pad(seconds)}`;
+  };
 
   const validateEndShiftValues = (): boolean => {
     setEndShiftError(null);
@@ -222,6 +282,8 @@ export function DriverStatusButtons() {
       localStorage.removeItem("selectedVehicleId");
       localStorage.removeItem(`shift_horimeter_${selectedVehicleId}`);
       localStorage.removeItem(`shift_km_${selectedVehicleId}`);
+      localStorage.removeItem(`shift_start_time_${selectedVehicleId}`);
+      setElapsedSeconds(0);
 
       setShowEndShiftDialog(false);
       
@@ -261,6 +323,7 @@ export function DriverStatusButtons() {
       // Save initial values to localStorage
       localStorage.setItem(`shift_horimeter_${selectedVehicleId}`, startShiftHorimeter);
       localStorage.setItem(`shift_km_${selectedVehicleId}`, startShiftKm);
+      localStorage.setItem(`shift_start_time_${selectedVehicleId}`, Date.now().toString());
       setInitialHorimeter(startShiftHorimeter);
       setInitialKm(startShiftKm);
 
@@ -470,6 +533,16 @@ export function DriverStatusButtons() {
             <p className="text-xs text-muted-foreground mt-1.5">
               Desde: {format(new Date(activeStop.started_at), "HH:mm", { locale: ptBR })}
             </p>
+          )}
+          {/* Activity Timer */}
+          {shiftStarted && currentStatus !== "end_of_shift" && elapsedSeconds > 0 && (
+            <div className="flex items-center gap-1.5 mt-2 px-2.5 py-1.5 bg-muted/50 rounded-md w-fit">
+              <Timer className="h-3.5 w-3.5 text-primary" />
+              <span className="text-xs font-mono font-semibold text-foreground">
+                {formatElapsedTime(elapsedSeconds)}
+              </span>
+              <span className="text-[10px] text-muted-foreground">na atividade</span>
+            </div>
           )}
         </CardHeader>
         <CardContent className="space-y-4 px-4 pb-4">
