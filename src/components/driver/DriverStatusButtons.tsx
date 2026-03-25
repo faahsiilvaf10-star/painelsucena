@@ -142,6 +142,20 @@ export function DriverStatusButtons() {
     }
   }, []);
 
+
+  const selectedVehicle = equipment.find((eq) => eq.id === selectedVehicleId);
+  const currentStatus = (selectedVehicle?.stop_reason || "none") as string;
+  const statusInfo = getStatusLabel(currentStatus);
+  
+  // Check if equipment is in maintenance mode (blocks all other buttons except "Operar")
+  const isInMaintenance = currentStatus === "maintenance";
+  
+  // Check if shift has been started (has initial values)
+  const shiftStarted = initialHorimeter !== null && initialKm !== null;
+
+  // Get the current active stop from history (ended_at is null)
+  const activeStop = stopHistory.find((h) => h.ended_at === null);
+
   // Timer effect: start counting from stop_start_time or shift start
   useEffect(() => {
     if (timerRef.current) {
@@ -180,7 +194,7 @@ export function DriverStatusButtons() {
       setElapsedSeconds(Math.max(0, Math.floor((now - referenceTime!) / 1000)));
     };
 
-    tick(); // run immediately
+    tick();
     timerRef.current = setInterval(tick, 1000);
 
     return () => {
@@ -195,19 +209,6 @@ export function DriverStatusButtons() {
     const pad = (n: number) => n.toString().padStart(2, "0");
     return `${pad(hours)}:${pad(minutes)}:${pad(seconds)}`;
   };
-
-  const selectedVehicle = equipment.find((eq) => eq.id === selectedVehicleId);
-  const currentStatus = (selectedVehicle?.stop_reason || "none") as string;
-  const statusInfo = getStatusLabel(currentStatus);
-  
-  // Check if equipment is in maintenance mode (blocks all other buttons except "Operar")
-  const isInMaintenance = currentStatus === "maintenance";
-  
-  // Check if shift has been started (has initial values)
-  const shiftStarted = initialHorimeter !== null && initialKm !== null;
-
-  // Get the current active stop from history (ended_at is null)
-  const activeStop = stopHistory.find((h) => h.ended_at === null);
 
   const validateEndShiftValues = (): boolean => {
     setEndShiftError(null);
