@@ -1,6 +1,3 @@
-import html2canvas from "html2canvas";
-import { jsPDF } from "jspdf";
-
 /**
  * Generates a real PDF file from an HTML string and triggers download.
  * Works in browsers, PWAs, TWAs, and Electron apps (no window.open/print needed).
@@ -9,6 +6,11 @@ export async function downloadPdfFromHtml(
   htmlContent: string,
   filename: string
 ): Promise<void> {
+  const [{ default: html2canvas }, { jsPDF }] = await Promise.all([
+    import("html2canvas"),
+    import("jspdf"),
+  ]);
+
   // Create a hidden container to render the HTML
   const container = document.createElement("div");
   container.style.position = "fixed";

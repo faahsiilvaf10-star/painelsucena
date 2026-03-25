@@ -13,6 +13,7 @@ import { format } from "date-fns";
 import { ptBR } from "date-fns/locale";
 import { formatCargoLabel } from "@/lib/cargoUtils";
 import { getLogoBase64 } from "@/lib/pdfLogo";
+import { downloadPdfFromHtml } from "@/lib/pdfDownload";
 
 interface ExportOrderPdfButtonProps {
   order: Order;
@@ -322,18 +323,11 @@ export function ExportOrderPdfButton({ order }: ExportOrderPdfButtonProps) {
     `;
   };
 
-  const handlePrint = async () => {
+  const exportToPdf = async () => {
     setIsGenerating(true);
     try {
       const htmlContent = await generateHtmlContent();
-      const printWindow = window.open('', '_blank');
-      if (printWindow) {
-        printWindow.document.write(htmlContent);
-        printWindow.document.close();
-        setTimeout(() => {
-          printWindow.print();
-        }, 500);
-      }
+      await downloadPdfFromHtml(htmlContent, `Pedido_${order.order_number}.pdf`);
     } catch (error) {
       console.error("Error generating PDF:", error);
     } finally {
@@ -341,42 +335,12 @@ export function ExportOrderPdfButton({ order }: ExportOrderPdfButtonProps) {
     }
   };
 
+  const handlePrint = async () => {
+    await exportToPdf();
+  };
+
   const handleDownload = async () => {
-    setIsGenerating(true);
-    try {
-      const htmlContent = await generateHtmlContent();
-      
-      // Create a hidden iframe for printing to PDF
-      const iframe = document.createElement('iframe');
-      iframe.style.position = 'absolute';
-      iframe.style.top = '-10000px';
-      iframe.style.left = '-10000px';
-      document.body.appendChild(iframe);
-      
-      const iframeDoc = iframe.contentDocument || iframe.contentWindow?.document;
-      if (iframeDoc) {
-        iframeDoc.write(htmlContent);
-        iframeDoc.close();
-        
-        // Wait for content to load then create blob
-        setTimeout(() => {
-          const blob = new Blob([htmlContent], { type: 'text/html' });
-          const url = URL.createObjectURL(blob);
-          const a = document.createElement('a');
-          a.href = url;
-          a.download = `Pedido_${order.order_number}.html`;
-          document.body.appendChild(a);
-          a.click();
-          document.body.removeChild(a);
-          URL.revokeObjectURL(url);
-          document.body.removeChild(iframe);
-        }, 300);
-      }
-    } catch (error) {
-      console.error("Error downloading PDF:", error);
-    } finally {
-      setIsGenerating(false);
-    }
+    await exportToPdf();
   };
 
   return (
