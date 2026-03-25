@@ -58,7 +58,7 @@ export const useInstaCenaPosts = () => {
         supabase.from("profiles").select("user_id, cargo, frame_color, neon_color, frame_animation").in("user_id", userIds),
         supabase.from("user_roles").select("user_id").in("user_id", userIds).eq("role", "admin"),
       ]);
-      const profileMap = new Map(profiles?.map((p) => [p.user_id, p]) || []);
+      const profileMap = new Map((profiles || []).map((p: { user_id: string; cargo: string; frame_color: string | null; neon_color: string | null; frame_animation: string | null }) => [p.user_id, p]));
       const adminSet = new Set(adminRoles?.map((r) => r.user_id) || []);
 
       return (data || []).map((post) => {
