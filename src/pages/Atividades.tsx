@@ -314,8 +314,8 @@ export default function Atividades() {
     profile?.cargo === "encarregado_i"
   );
   
-  // Check edit permission - only encarregado_geral, encarregado_i, or admin can edit
-  const canEdit = authReady && (
+  // Check edit permission - only encarregado_geral, encarregado_i, or admin can edit, and must not be locked
+  const canEdit = authReady && !isJardinagemLocked && (
     isAdmin || 
     profile?.cargo === "encarregado_geral" || 
     profile?.cargo === "encarregado_i"
@@ -534,8 +534,12 @@ export default function Atividades() {
           await deductFromStock(entry.especie, extraQtd);
         }
       }
+      // Auto-lock after saving
+      if (!isJardinagemLocked) {
+        await lockArea.mutateAsync("jardinagem");
+      }
 
-      toast.success("Atividades salvas e estoque atualizado!");
+      toast.success("Atividades salvas e bloqueadas com sucesso!");
     } catch (error: any) {
       toast.error("Erro ao salvar: " + error.message);
     }
@@ -757,6 +761,14 @@ export default function Atividades() {
       <div className="p-4 sm:p-6 space-y-4 sm:space-y-6">
         {/* Read-only banner */}
         {!hasEditPermission && <ReadOnlyBanner message="Você está visualizando esta página em modo somente leitura. Apenas Administradores, Encarregado Geral e Encarregado I podem editar." />}
+        {isJardinagemLocked && hasEditPermission && (
+          <Alert className="border-yellow-500/50 bg-yellow-500/10">
+            <Lock className="h-4 w-4 text-yellow-500" />
+            <AlertDescription className="text-yellow-500">
+              Relatório bloqueado. Clique em "Desbloquear" para editar novamente.
+            </AlertDescription>
+          </Alert>
+        )}
 
         {/* Tabs */}
         <Tabs defaultValue="jardinagem" className="w-full">
@@ -937,13 +949,26 @@ export default function Atividades() {
               }}
             />
 
+            {/* Unlock button when locked */}
+            {isJardinagemLocked && hasEditPermission && (
+              <Button 
+                variant="outline" 
+                onClick={() => unlockArea.mutateAsync("jardinagem")}
+                disabled={unlockArea.isPending}
+                className="gap-2"
+              >
+                {unlockArea.isPending ? <Loader2 className="h-4 w-4 animate-spin" /> : <Unlock className="h-4 w-4" />}
+                Desbloquear
+              </Button>
+            )}
+
             {existingReport && canEdit && (
               <Button variant="destructive" size="icon" onClick={handleDelete}>
                 <Trash2 className="h-4 w-4" />
               </Button>
             )}
 
-            <Button onClick={() => handleSave()} disabled={saveReport.isPending || !hasEditPermission} variant="outline">
+            <Button onClick={() => handleSave()} disabled={saveReport.isPending || !hasEditPermission || isJardinagemLocked} variant="outline">
               {saveReport.isPending ? (
                 <Loader2 className="h-4 w-4 mr-2 animate-spin" />
               ) : (
