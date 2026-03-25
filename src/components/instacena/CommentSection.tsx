@@ -2,7 +2,7 @@ import { useState, useRef, useCallback } from "react";
 import { formatDistanceToNow } from "date-fns";
 import { ptBR } from "date-fns/locale";
 import { Trash2 } from "lucide-react";
-import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
+import { NeonAvatar } from "@/components/ui/NeonAvatar";
 import { Button } from "@/components/ui/button";
 import { useAuth } from "@/hooks/useAuth";
 import { useIsAdmin } from "@/hooks/useUserRole";
@@ -74,12 +74,14 @@ export function CommentSection({ postId }: { postId: string }) {
     <div className="mt-3 space-y-3">
       {comments.map((c) => (
         <div key={c.id} className="flex gap-2 group">
-          <Avatar className="h-7 w-7">
-            <AvatarImage src={c.user_avatar_url || undefined} className="object-cover" />
-            <AvatarFallback className="text-[10px] bg-muted">
-              {getInitials(c.user_name)}
-            </AvatarFallback>
-          </Avatar>
+          <NeonAvatar
+            src={c.user_avatar_url}
+            name={c.user_name}
+            frameColor={c.frame_color}
+            neonColor={c.neon_color}
+            frameAnimation={c.frame_animation}
+            size="xs"
+          />
           <div className="bg-muted/50 rounded-xl px-3 py-1.5 flex-1">
             <div className="flex items-center justify-between">
               <p className="text-xs font-semibold">{c.user_name}</p>

@@ -2,7 +2,7 @@ import { useState, useRef, useCallback } from "react";
 import { ImagePlus, Video, Send, X, Loader2, Smile } from "lucide-react";
 import { Card, CardContent } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
-import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
+import { NeonAvatar } from "@/components/ui/NeonAvatar";
 import { useProfile } from "@/hooks/useProfile";
 import { useCreatePost } from "@/hooks/useInstaCena";
 import { supabase } from "@/integrations/supabase/client";
@@ -179,12 +179,14 @@ export function CreatePostCard() {
     <Card className="border-border/50 shadow-sm">
       <CardContent className="p-4">
         <div className="flex gap-3">
-          <Avatar className="h-10 w-10">
-            <AvatarImage src={profile?.avatar_url || undefined} className="object-cover" />
-            <AvatarFallback className="bg-primary/10 text-primary text-sm font-semibold">
-              {getInitials(profile?.full_name || "U")}
-            </AvatarFallback>
-          </Avatar>
+          <NeonAvatar
+            src={profile?.avatar_url}
+            name={profile?.full_name || "U"}
+            frameColor={profile?.frame_color}
+            neonColor={profile?.neon_color}
+            frameAnimation={profile?.frame_animation}
+            size="sm"
+          />
           <div className="flex-1 relative">
             <RichTextInput
               ref={editorRef}
