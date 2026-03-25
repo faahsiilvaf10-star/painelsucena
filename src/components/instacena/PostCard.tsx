@@ -86,7 +86,7 @@ export function PostCard({ post }: { post: InstaCenaPost }) {
             </div>
           ) : (
             <Avatar className="h-10 w-10">
-              <AvatarImage src={post.user_avatar_url || undefined} />
+              <AvatarImage src={post.user_avatar_url || undefined} className="object-cover" />
               <AvatarFallback className="bg-primary/10 text-primary text-sm font-semibold">
                 {getInitials(post.user_name)}
               </AvatarFallback>
