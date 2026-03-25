@@ -125,6 +125,10 @@ export function DriverStatusButtons() {
   const addStatusToHistory = useAddStatusToHistory();
   const createEquipmentMovement = useCreateEquipmentMovement();
 
+  // Activity timer - counts elapsed time since current status was selected
+  const [elapsedSeconds, setElapsedSeconds] = useState(0);
+  const timerRef = useRef<ReturnType<typeof setInterval> | null>(null);
+
   useEffect(() => {
     const vehicleId = localStorage.getItem("selectedVehicleId");
     setSelectedVehicleId(vehicleId);
@@ -137,6 +141,60 @@ export function DriverStatusButtons() {
       setInitialKm(storedKm);
     }
   }, []);
+
+  // Timer effect: start counting from stop_start_time or shift start
+  useEffect(() => {
+    if (timerRef.current) {
+      clearInterval(timerRef.current);
+      timerRef.current = null;
+    }
+
+    // Don't run timer if end_of_shift or no vehicle
+    if (!selectedVehicle || currentStatus === "end_of_shift") {
+      setElapsedSeconds(0);
+      return;
+    }
+
+    const startTime = selectedVehicle.stop_start_time
+      ? new Date(selectedVehicle.stop_start_time).getTime()
+      : null;
+
+    // If there's no stop_start_time and status is "none" (operating), use localStorage timestamp
+    const shiftStartKey = `shift_start_time_${selectedVehicleId}`;
+    let referenceTime = startTime;
+
+    if (!referenceTime && currentStatus === "none") {
+      const stored = localStorage.getItem(shiftStartKey);
+      if (stored) {
+        referenceTime = parseInt(stored, 10);
+      }
+    }
+
+    if (!referenceTime) {
+      setElapsedSeconds(0);
+      return;
+    }
+
+    const tick = () => {
+      const now = Date.now();
+      setElapsedSeconds(Math.max(0, Math.floor((now - referenceTime!) / 1000)));
+    };
+
+    tick(); // run immediately
+    timerRef.current = setInterval(tick, 1000);
+
+    return () => {
+      if (timerRef.current) clearInterval(timerRef.current);
+    };
+  }, [selectedVehicle?.stop_start_time, currentStatus, selectedVehicleId, selectedVehicle]);
+
+  const formatElapsedTime = (totalSeconds: number): string => {
+    const hours = Math.floor(totalSeconds / 3600);
+    const minutes = Math.floor((totalSeconds % 3600) / 60);
+    const seconds = totalSeconds % 60;
+    const pad = (n: number) => n.toString().padStart(2, "0");
+    return `${pad(hours)}:${pad(minutes)}:${pad(seconds)}`;
+  };
 
   const selectedVehicle = equipment.find((eq) => eq.id === selectedVehicleId);
   const currentStatus = (selectedVehicle?.stop_reason || "none") as string;
