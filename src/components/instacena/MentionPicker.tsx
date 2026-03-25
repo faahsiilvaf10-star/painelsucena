@@ -80,7 +80,7 @@ export function MentionPicker({ query, onSelect, visible }: MentionPickerProps) 
           }`}
         >
           <Avatar className="h-6 w-6">
-            <AvatarImage src={p.avatar_url || undefined} />
+            <AvatarImage src={p.avatar_url || undefined} className="object-cover" />
             <AvatarFallback className="text-[10px] bg-primary/10 text-primary">
               {getInitials(p.full_name)}
             </AvatarFallback>

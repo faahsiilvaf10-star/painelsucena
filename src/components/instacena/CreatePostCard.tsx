@@ -180,7 +180,7 @@ export function CreatePostCard() {
       <CardContent className="p-4">
         <div className="flex gap-3">
           <Avatar className="h-10 w-10">
-            <AvatarImage src={profile?.avatar_url || undefined} />
+            <AvatarImage src={profile?.avatar_url || undefined} className="object-cover" />
             <AvatarFallback className="bg-primary/10 text-primary text-sm font-semibold">
               {getInitials(profile?.full_name || "U")}
             </AvatarFallback>

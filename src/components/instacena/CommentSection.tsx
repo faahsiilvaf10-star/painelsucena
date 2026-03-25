@@ -75,7 +75,7 @@ export function CommentSection({ postId }: { postId: string }) {
       {comments.map((c) => (
         <div key={c.id} className="flex gap-2 group">
           <Avatar className="h-7 w-7">
-            <AvatarImage src={c.user_avatar_url || undefined} />
+            <AvatarImage src={c.user_avatar_url || undefined} className="object-cover" />
             <AvatarFallback className="text-[10px] bg-muted">
               {getInitials(c.user_name)}
             </AvatarFallback>
