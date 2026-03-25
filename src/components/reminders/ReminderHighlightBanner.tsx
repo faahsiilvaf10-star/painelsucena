@@ -11,7 +11,7 @@ import { useActiveReminders, useAcknowledgeReminder, useDeleteReminder, Reminder
 import { useAuth } from "@/hooks/useAuth";
 import { cn } from "@/lib/utils";
 import { Link } from "react-router-dom";
-import { getDaysUntilEventBrazilNorth } from "@/lib/timezone";
+import { getDaysUntilEventBrazilNorth, parseDateForBrazilNorth } from "@/lib/timezone";
 import { toast } from "sonner";
 import { ReminderDetailDialog } from "./ReminderDetailDialog";
 import { playSoundFile } from "@/lib/sounds";
@@ -326,7 +326,7 @@ export const ReminderHighlightBanner = () => {
                           <div className="flex items-center gap-2 mt-1">
                             <Calendar className={cn("h-3 w-3 flex-shrink-0", accentColor, "opacity-70")} />
                             <span className="text-xs text-gray-400">
-                              {format(new Date(reminder.event_date), "dd 'de' MMM", {
+                              {format(parseDateForBrazilNorth(reminder.event_date), "dd 'de' MMM", {
                                 locale: ptBR,
                               })}
                               {reminder.event_time && <span className={cn("ml-1", accentColor.replace("text-", "text-").replace("-400", "-300"))}>às {reminder.event_time.slice(0, 5)}</span>}
