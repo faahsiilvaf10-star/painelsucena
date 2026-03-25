@@ -156,7 +156,11 @@ export const formatGabiaoForRDO = (report: GabiaoReport | null): string => {
   // For the new format, observacoes contains the activities already formatted
   // Just return it directly if it exists (append to location)
   if (report.observacoes) {
-    lines.push(report.observacoes);
+    // Strip internal markers before display
+    const cleanObs = report.observacoes
+      .replace(/\[ATIVIDADES_MANUAIS\]\n?/g, "")
+      .replace(/\[OBSERVACOES\]\n?/g, "");
+    lines.push(cleanObs);
     return lines.join("\n");
   }
 
