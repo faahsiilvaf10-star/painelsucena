@@ -1,18 +1,17 @@
 import { useInspectionSchedule } from "@/hooks/useInspectionSchedule";
-import { differenceInCalendarDays, parseISO, format } from "date-fns";
+import { format } from "date-fns";
 import { ptBR } from "date-fns/locale";
 import { HardHat, AlertTriangle } from "lucide-react";
 import { Card, CardContent } from "@/components/ui/card";
+import { getDaysUntilEventBrazilNorth, parseDateForBrazilNorth } from "@/lib/timezone";
 
 export function InspectionScheduleBanner() {
   const { schedule } = useInspectionSchedule();
 
   if (!schedule) return null;
 
-  const inspDate = parseISO(schedule.next_inspection_date);
-  const today = new Date();
-  today.setHours(0, 0, 0, 0);
-  const daysUntil = differenceInCalendarDays(inspDate, today);
+  const inspDate = parseDateForBrazilNorth(schedule.next_inspection_date);
+  const daysUntil = getDaysUntilEventBrazilNorth(schedule.next_inspection_date);
 
   // Only show when within 3 days (including past/today)
   if (daysUntil > 3) return null;
