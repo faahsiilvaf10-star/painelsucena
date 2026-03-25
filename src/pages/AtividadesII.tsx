@@ -410,11 +410,13 @@ export default function AtividadesII() {
     
     if (atividadesManuais.trim()) {
       lines.push("");
+      lines.push("[ATIVIDADES_MANUAIS]");
       lines.push(atividadesManuais.trim());
     }
     
     if (observacoes.trim()) {
       lines.push("");
+      lines.push("[OBSERVACOES]");
       lines.push(observacoes.trim());
     }
     
