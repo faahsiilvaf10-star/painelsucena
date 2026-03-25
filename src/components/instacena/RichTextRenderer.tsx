@@ -111,28 +111,61 @@ function parseRichText(input: string): RichSegment[] {
   return segments;
 }
 
+/** Extracts a TikTok video ID from a URL, returns the embed URL or null */
+function getTikTokEmbedUrl(url: string): string | null {
+  const longMatch = url.match(/tiktok\.com\/@[^/]+\/video\/(\d+)/);
+  if (longMatch) return `https://www.tiktok.com/embed/v2/${longMatch[1]}`;
+  const shortMatch = url.match(/(?:vm\.tiktok\.com|tiktok\.com\/t)\/([a-zA-Z0-9]+)/);
+  if (shortMatch) return `https://www.tiktok.com/embed/v2/${shortMatch[1]}`;
+  return null;
+}
+
+function TikTokEmbed({ url }: { url: string }) {
+  const embedUrl = getTikTokEmbedUrl(url);
+  if (!embedUrl) return null;
+  return (
+    <div className="my-2 flex justify-center">
+      <iframe
+        src={embedUrl}
+        className="rounded-lg border border-border"
+        style={{ width: 325, height: 578, maxWidth: "100%" }}
+        allowFullScreen
+        allow="encrypted-media"
+        sandbox="allow-scripts allow-same-origin allow-popups"
+        title="TikTok Video"
+      />
+    </div>
+  );
+}
+
+function isTikTokUrl(url: string): boolean {
+  return /(?:tiktok\.com\/@[^/]+\/video\/\d+|vm\.tiktok\.com\/|tiktok\.com\/t\/)/.test(url);
+}
+
 /** Splits text by URLs and :emoji_id: patterns and returns mixed React nodes */
 function renderWithLinksAndEmojis(text: string): React.ReactNode[] {
-  // First split by URLs
   const urlRegex = /(https?:\/\/[^\s<>{}()\[\]"']+)/g;
   const parts = text.split(urlRegex);
 
   const nodes: React.ReactNode[] = [];
   parts.forEach((part, idx) => {
     if (urlRegex.test(part)) {
-      nodes.push(
-        <a
-          key={`link-${idx}`}
-          href={part}
-          target="_blank"
-          rel="noopener noreferrer"
-          className="text-blue-400 hover:text-blue-300 underline underline-offset-2 break-all"
-        >
-          {part}
-        </a>
-      );
+      if (isTikTokUrl(part)) {
+        nodes.push(<TikTokEmbed key={`tiktok-${idx}`} url={part} />);
+      } else {
+        nodes.push(
+          <a
+            key={`link-${idx}`}
+            href={part}
+            target="_blank"
+            rel="noopener noreferrer"
+            className="text-blue-400 hover:text-blue-300 underline underline-offset-2 break-all"
+          >
+            {part}
+          </a>
+        );
+      }
     } else {
-      // Then process animated emojis within non-URL text
       const emojiNodes = renderWithAnimatedEmojis(part);
       nodes.push(...emojiNodes);
     }
