@@ -1,49 +1,19 @@
 import { useState } from "react";
 import { NewsTicker } from "@/components/footer/NewsTicker";
-import { useAllUsers, UserWithStatus } from "@/hooks/useAllUsers";
-import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
-import { NeonAvatar } from "@/components/ui/NeonAvatar";
-import { Badge } from "@/components/ui/badge";
-import { Radio, VolumeX, Volume2, Play, ChevronDown, Circle } from "lucide-react";
+import { Radio, VolumeX, Volume2, Play, ChevronDown } from "lucide-react";
 import { cn } from "@/lib/utils";
 import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover";
-import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from "@/components/ui/tooltip";
 import { useRadio } from "@/contexts/RadioContext";
 import { useSidebar } from "@/components/ui/sidebar";
-import { ScrollArea } from "@/components/ui/scroll-area";
-import { VerifiedBadge } from "@/components/VerifiedBadge";
-import { formatDistanceToNow } from "date-fns";
-import { ptBR } from "date-fns/locale";
-import { formatCargoLabel } from "@/lib/cargoUtils";
-import { useGlobalTypingIndicator } from "@/hooks/useGlobalTypingIndicator";
 
 interface OnlineUsersFooterProps {
-  onUserClick: (user: UserWithStatus) => void;
+  onUserClick: (user: any) => void;
 }
-const getInitials = (name: string) => {
-  return name.split(" ").map(n => n[0]).join("").substring(0, 2).toUpperCase();
-};
 
-const formatLastSeen = (lastSeen?: string) => {
-  if (!lastSeen) return null;
-  try {
-    return formatDistanceToNow(new Date(lastSeen), { addSuffix: true, locale: ptBR });
-  } catch {
-    return null;
-  }
-};
 export const OnlineUsersFooter = ({
   onUserClick
 }: OnlineUsersFooterProps) => {
-  const {
-    allUsers,
-    onlineCount,
-    offlineCount,
-    isLoading
-  } = useAllUsers();
-  const { isUserTyping } = useGlobalTypingIndicator();
   const [selectorOpen, setSelectorOpen] = useState(false);
-  const [usersPopoverOpen, setUsersPopoverOpen] = useState(false);
   const [isMinimized, setIsMinimized] = useState(false);
   const {
     state
