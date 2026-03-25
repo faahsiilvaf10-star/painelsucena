@@ -15,6 +15,7 @@ import {
   CollapsibleTrigger,
 } from "@/components/ui/collapsible";
 import { toast } from "sonner";
+import { downloadPdfFromHtml } from "@/lib/pdfDownload";
 import { getLogoBase64 } from "@/lib/pdfLogo";
 import { supabase } from "@/integrations/supabase/client";
 import {
@@ -613,19 +614,7 @@ export function ExportMovementsByDateButton({ equipment }: ExportMovementsByDate
         finalHorimeter: shiftRecord?.final_horimeter ? Number(shiftRecord.final_horimeter) : fallbackFinalHorimeter,
       });
 
-      const printWindow = window.open("", "_blank");
-      if (!printWindow) {
-        toast.error("Permita pop-ups para exportar PDF");
-        return;
-      }
-
-      printWindow.document.write(htmlContent);
-      printWindow.document.close();
-      printWindow.onload = () => {
-        setTimeout(() => {
-          printWindow.print();
-        }, 500);
-      };
+      await downloadPdfFromHtml(htmlContent, `movimentacoes-${format(new Date(), "yyyy-MM-dd")}.pdf`);
 
       setIsOpen(false);
       toast.success(`PDF gerado para ${dateLabel}`);

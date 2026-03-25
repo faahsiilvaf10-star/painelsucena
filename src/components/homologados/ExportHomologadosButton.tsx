@@ -5,6 +5,7 @@ import { ptBR } from "date-fns/locale";
 import { Button } from "@/components/ui/button";
 import { toast } from "sonner";
 import { getLogoBase64 } from "@/lib/pdfLogo";
+import { downloadPdfFromHtml } from "@/lib/pdfDownload";
 
 interface Produto {
   id: number;
@@ -28,12 +29,6 @@ export function ExportHomologadosButton({ produtos }: ExportHomologadosButtonPro
     try {
       const logoBase64 = await getLogoBase64();
 
-      const printWindow = window.open("", "_blank");
-      if (!printWindow) {
-        toast.error("Permita pop-ups para exportar PDF");
-        setIsExporting(false);
-        return;
-      }
 
       const tableRows = produtos
         .map(
@@ -200,8 +195,7 @@ export function ExportHomologadosButton({ produtos }: ExportHomologadosButtonPro
         </html>
       `;
 
-      printWindow.document.write(htmlContent);
-      printWindow.document.close();
+      await downloadPdfFromHtml(htmlContent, `produtos-homologados-${format(new Date(), "yyyy-MM-dd")}.pdf`);
 
       toast.success("PDF gerado com sucesso!");
     } catch (error) {

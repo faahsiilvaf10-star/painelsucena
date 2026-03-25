@@ -5,6 +5,7 @@ import { ptBR } from "date-fns/locale";
 import { Button } from "@/components/ui/button";
 import { toast } from "sonner";
 import { getLogoBase64 } from "@/lib/pdfLogo";
+import { downloadPdfFromHtml } from "@/lib/pdfDownload";
 import type { Equipment, EquipmentStopHistory } from "@/hooks/useEquipment";
 import type { EquipmentMovement } from "@/hooks/useEquipmentMovements";
 import { supabase } from "@/integrations/supabase/client";
@@ -566,13 +567,6 @@ export function ExportEquipmentPdfButton({
         0
       );
 
-      const printWindow = window.open("", "_blank");
-      if (!printWindow) {
-        toast.error("Permita pop-ups para exportar PDF");
-        setIsExporting(false);
-        return;
-      }
-
       // Sort stops and filter out consecutive duplicates
       const sortedStops = [...todayStops].sort(
         (a, b) => new Date(a.started_at).getTime() - new Date(b.started_at).getTime()
@@ -648,30 +642,7 @@ export function ExportEquipmentPdfButton({
         finalHorimeter: shiftRecord?.final_horimeter ?? fallbackFinalHorimeter,
       });
 
-      printWindow.document.write(htmlContent);
-      printWindow.document.close();
-
-      printWindow.onload = () => {
-        const images = Array.from(printWindow.document.images || []);
-
-        const waitForImages = Promise.all(
-          images.map((img) =>
-            img.complete
-              ? Promise.resolve()
-              : new Promise<void>((resolve) => {
-                  img.onload = () => resolve();
-                  img.onerror = () => resolve();
-                })
-          )
-        );
-
-        waitForImages.finally(() => {
-          setTimeout(() => {
-            printWindow.print();
-            printWindow.onafterprint = () => printWindow.close();
-          }, 150);
-        });
-      };
+      await downloadPdfFromHtml(htmlContent, `parte-diaria-${equipment.name}-${format(new Date(), "yyyy-MM-dd")}.pdf`);
 
       toast.success("PDF gerado com sucesso!");
     } catch (error) {

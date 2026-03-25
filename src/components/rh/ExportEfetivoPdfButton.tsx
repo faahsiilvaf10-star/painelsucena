@@ -2,6 +2,7 @@ import { useState } from "react";
 import { FileDown, Loader2 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { toast } from "sonner";
+import { downloadPdfFromHtml } from "@/lib/pdfDownload";
 import type { Colaborador } from "@/data/efetivoData";
 
 interface ExportEfetivoPdfButtonProps {
@@ -325,18 +326,7 @@ export function ExportEfetivoPdfButton({ colaboradores, filterFuncao }: ExportEf
         </html>
       `;
 
-      // Open print window
-      const printWindow = window.open("", "_blank");
-      if (printWindow) {
-        printWindow.document.write(html);
-        printWindow.document.close();
-
-        printWindow.onload = () => {
-          setTimeout(() => {
-            printWindow.print();
-          }, 500);
-        };
-      }
+      await downloadPdfFromHtml(html, `efetivo-${new Date().toISOString().slice(0,10)}.pdf`);
 
       toast.success("PDF gerado com sucesso!");
     } catch (error) {

@@ -6,6 +6,7 @@ import { Button } from "@/components/ui/button";
 import { toast } from "sonner";
 import { EquipmentMovement, ExitReason } from "@/hooks/useEquipmentMovements";
 import { getLogoBase64, PDF_HEADER_STYLES } from "@/lib/pdfLogo";
+import { downloadPdfFromHtml } from "@/lib/pdfDownload";
 
 const EXIT_REASON_LABELS: Record<ExitReason, string> = {
   manutencao_corretiva: "Manutenção Corretiva",
@@ -265,22 +266,8 @@ export function ExportMovementsPdfButton({
         </html>
       `;
 
-      // Open print dialog
-      const printWindow = window.open('', '_blank');
-      if (printWindow) {
-        printWindow.document.write(htmlContent);
-        printWindow.document.close();
-        printWindow.focus();
-        
-        // Wait for content to load then print
-        setTimeout(() => {
-          printWindow.print();
-        }, 500);
-        
-        toast.success("Relatório gerado com sucesso!");
-      } else {
-        toast.error("Não foi possível abrir a janela de impressão");
-      }
+      await downloadPdfFromHtml(htmlContent, `movimentacoes-semana-${format(new Date(), "yyyy-MM-dd")}.pdf`);
+      toast.success("Relatório gerado com sucesso!");
     } catch (error) {
       console.error("Error exporting PDF:", error);
       toast.error("Erro ao gerar relatório");

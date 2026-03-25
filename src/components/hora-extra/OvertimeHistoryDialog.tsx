@@ -42,6 +42,7 @@ import {
 } from "@/components/ui/alert-dialog";
 import { toast } from "sonner";
 import { getLogoBase64 } from "@/lib/pdfLogo";
+import { downloadPdfFromHtml } from "@/lib/pdfDownload";
 
 type FilterType = "all" | "month" | "week" | "folha";
 
@@ -475,7 +476,7 @@ const OvertimeHistoryDialog = () => {
     </Dialog>
   );
 
-  function handleExportPdf() {
+  async function handleExportPdf() {
     if (!records || records.length === 0) {
       toast.error("Nenhum registro para exportar");
       return;
@@ -688,14 +689,7 @@ const OvertimeHistoryDialog = () => {
       </html>
     `;
 
-    const printWindow = window.open("", "_blank");
-    if (printWindow) {
-      printWindow.document.write(printContent);
-      printWindow.document.close();
-      printWindow.onload = () => {
-        printWindow.print();
-      };
-    }
+    await downloadPdfFromHtml(printContent, `historico-horas-extras-${new Date().toISOString().slice(0,10)}.pdf`);
   }
 };
 
