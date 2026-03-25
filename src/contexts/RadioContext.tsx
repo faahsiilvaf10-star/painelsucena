@@ -66,11 +66,32 @@ export const useRadio = () => {
   return context;
 };
 
+// Global singleton audio to survive HMR / re-mounts
+let globalAudio: HTMLAudioElement | null = null;
+let globalAudioStation: string | null = null;
+
+function getOrCreateAudio(url: string, stationId: string): HTMLAudioElement {
+  // If the same station audio already exists, reuse it
+  if (globalAudio && globalAudioStation === stationId) {
+    return globalAudio;
+  }
+  // Stop & discard previous audio
+  if (globalAudio) {
+    globalAudio.pause();
+    globalAudio.removeAttribute("src");
+    globalAudio.load();
+    globalAudio = null;
+  }
+  globalAudio = new Audio(url);
+  globalAudio.volume = 0.5;
+  globalAudioStation = stationId;
+  return globalAudio;
+}
+
 export const RadioProvider = ({ children }: { children: ReactNode }) => {
   const [isPlaying, setIsPlaying] = useState(getSavedPlayingState);
   const [isMuted, setIsMuted] = useState(false);
   const [selectedStation, setSelectedStation] = useState(getSavedStation);
-  const audioRef = useRef<HTMLAudioElement | null>(null);
   const hasInitializedRef = useRef(false);
   const userInteractedRef = useRef(false);
 
@@ -85,64 +106,52 @@ export const RadioProvider = ({ children }: { children: ReactNode }) => {
 
   // Initialize audio element once
   useEffect(() => {
-    if (!audioRef.current) {
-      audioRef.current = new Audio(selectedStation.url);
-      audioRef.current.volume = 0.5;
-      audioRef.current.preload = "auto";
-    }
+    const audio = getOrCreateAudio(selectedStation.url, selectedStation.id);
 
-    // Try autoplay if was playing before
     if (!hasInitializedRef.current) {
       hasInitializedRef.current = true;
-      
+
       if (isPlaying) {
         const tryAutoplay = async () => {
-          if (audioRef.current) {
-            try {
-              await audioRef.current.play();
-              userInteractedRef.current = true;
-            } catch (error) {
-              console.log("Autoplay blocked, waiting for user interaction");
-              // Set up listener for first user interaction
-              const handleFirstInteraction = async () => {
-                if (!userInteractedRef.current && audioRef.current && isPlaying && !isMuted) {
-                  userInteractedRef.current = true;
-                  try {
-                    await audioRef.current.play();
-                  } catch (e) {
-                    console.log("Playback failed after interaction");
-                  }
+          try {
+            await audio.play();
+            userInteractedRef.current = true;
+          } catch {
+            console.log("Autoplay blocked, waiting for user interaction");
+            const handleFirstInteraction = async () => {
+              if (!userInteractedRef.current && globalAudio && isPlaying && !isMuted) {
+                userInteractedRef.current = true;
+                try {
+                  await globalAudio.play();
+                } catch {
+                  console.log("Playback failed after interaction");
                 }
-                document.removeEventListener("click", handleFirstInteraction);
-                document.removeEventListener("keydown", handleFirstInteraction);
-                document.removeEventListener("touchstart", handleFirstInteraction);
-              };
-              
-              document.addEventListener("click", handleFirstInteraction, { once: true });
-              document.addEventListener("keydown", handleFirstInteraction, { once: true });
-              document.addEventListener("touchstart", handleFirstInteraction, { once: true });
-            }
+              }
+              document.removeEventListener("click", handleFirstInteraction);
+              document.removeEventListener("keydown", handleFirstInteraction);
+              document.removeEventListener("touchstart", handleFirstInteraction);
+            };
+
+            document.addEventListener("click", handleFirstInteraction, { once: true });
+            document.addEventListener("keydown", handleFirstInteraction, { once: true });
+            document.addEventListener("touchstart", handleFirstInteraction, { once: true });
           }
         };
         tryAutoplay();
       }
     }
-
-    return () => {
-      // Don't cleanup audio on unmount to persist across navigation
-    };
   }, []);
 
   // Handle play/pause state changes
   useEffect(() => {
-    if (!audioRef.current || !hasInitializedRef.current) return;
+    if (!hasInitializedRef.current || !globalAudio) return;
 
     if (isPlaying && !isMuted) {
-      audioRef.current.play().catch((error) => {
+      globalAudio.play().catch((error) => {
         console.log("Playback failed:", error);
       });
     } else {
-      audioRef.current.pause();
+      globalAudio.pause();
     }
   }, [isPlaying, isMuted]);
 
@@ -162,21 +171,12 @@ export const RadioProvider = ({ children }: { children: ReactNode }) => {
     userInteractedRef.current = true;
     const wasPlaying = isPlaying && !isMuted;
 
-    // Stop current audio
-    if (audioRef.current) {
-      audioRef.current.pause();
-      audioRef.current.src = "";
-    }
-
-    // Create new audio with selected station
-    audioRef.current = new Audio(station.url);
-    audioRef.current.volume = 0.5;
-
+    // Create/switch to new station audio (stops the old one internally)
+    const audio = getOrCreateAudio(station.url, station.id);
     setSelectedStation(station);
 
-    // Resume playing if it was playing before
     if (wasPlaying) {
-      audioRef.current.play().catch((error) => {
+      audio.play().catch((error) => {
         console.log("Playback failed:", error);
       });
     }
