@@ -16,6 +16,9 @@ export interface InstaCenaPost {
   user_cargo?: string | null;
   is_admin?: boolean;
   is_system_post?: boolean;
+  frame_color?: string | null;
+  neon_color?: string | null;
+  frame_animation?: string | null;
 }
 
 export interface InstaCenaComment {
@@ -52,17 +55,23 @@ export const useInstaCenaPosts = () => {
       // Fetch cargos and admin status for post authors
       const userIds = [...new Set((data || []).map((p) => p.user_id))];
       const [{ data: profiles }, { data: adminRoles }] = await Promise.all([
-        supabase.from("profiles").select("user_id, cargo").in("user_id", userIds),
+        supabase.from("profiles").select("user_id, cargo, frame_color, neon_color, frame_animation").in("user_id", userIds),
         supabase.from("user_roles").select("user_id").in("user_id", userIds).eq("role", "admin"),
       ]);
-      const cargoMap = new Map(profiles?.map((p) => [p.user_id, p.cargo]) || []);
+      const profileMap = new Map(profiles?.map((p) => [p.user_id, p]) || []);
       const adminSet = new Set(adminRoles?.map((r) => r.user_id) || []);
 
-      return (data || []).map((post) => ({
-        ...post,
-        user_cargo: cargoMap.get(post.user_id) || null,
-        is_admin: adminSet.has(post.user_id),
-      })) as InstaCenaPost[];
+      return (data || []).map((post) => {
+        const prof = profileMap.get(post.user_id);
+        return {
+          ...post,
+          user_cargo: prof?.cargo || null,
+          is_admin: adminSet.has(post.user_id),
+          frame_color: prof?.frame_color || null,
+          neon_color: prof?.neon_color || null,
+          frame_animation: prof?.frame_animation || null,
+        };
+      }) as InstaCenaPost[];
     },
   });
 
