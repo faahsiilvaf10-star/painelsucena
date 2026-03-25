@@ -453,7 +453,7 @@ export default function AtividadesII() {
 
       // Auto-lock after saving
       if (!isGabiaoLocked) {
-        await lockArea("gabiao");
+        await lockArea.mutateAsync("gabiao");
       }
       
       toast.success("Atividades salvas e bloqueadas com sucesso!");
