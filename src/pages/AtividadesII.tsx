@@ -450,8 +450,13 @@ export default function AtividadesII() {
         observacoes: combinedObservacoes || null,
         photo_urls: photos.length > 0 ? photos : null,
       });
+
+      // Auto-lock after saving
+      if (!isGabiaoLocked) {
+        await lockArea("gabiao");
+      }
       
-      toast.success("Atividades salvas com sucesso!");
+      toast.success("Atividades salvas e bloqueadas com sucesso!");
     } catch (error: any) {
       toast.error("Erro ao salvar: " + error.message);
     }
