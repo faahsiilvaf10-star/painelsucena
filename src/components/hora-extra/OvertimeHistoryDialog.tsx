@@ -476,7 +476,7 @@ const OvertimeHistoryDialog = () => {
     </Dialog>
   );
 
-  function handleExportPdf() {
+  async function handleExportPdf() {
     if (!records || records.length === 0) {
       toast.error("Nenhum registro para exportar");
       return;
