@@ -531,6 +531,16 @@ export function DriverStatusButtons() {
               Desde: {format(new Date(activeStop.started_at), "HH:mm", { locale: ptBR })}
             </p>
           )}
+          {/* Activity Timer */}
+          {shiftStarted && currentStatus !== "end_of_shift" && elapsedSeconds > 0 && (
+            <div className="flex items-center gap-1.5 mt-2 px-2.5 py-1.5 bg-muted/50 rounded-md w-fit">
+              <Timer className="h-3.5 w-3.5 text-primary" />
+              <span className="text-xs font-mono font-semibold text-foreground">
+                {formatElapsedTime(elapsedSeconds)}
+              </span>
+              <span className="text-[10px] text-muted-foreground">na atividade</span>
+            </div>
+          )}
         </CardHeader>
         <CardContent className="space-y-4 px-4 pb-4">
           {/* Offline Banner */}
