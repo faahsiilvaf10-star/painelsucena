@@ -54,12 +54,13 @@ export const useInstaCenaPosts = () => {
 
       // Fetch cargos and admin status for post authors
       const userIds = [...new Set((data || []).map((p) => p.user_id))];
-      const [{ data: profiles }, { data: adminRoles }] = await Promise.all([
+      const [profilesRes, adminRes] = await Promise.all([
         supabase.from("profiles").select("user_id, cargo, frame_color, neon_color, frame_animation").in("user_id", userIds),
         supabase.from("user_roles").select("user_id").in("user_id", userIds).eq("role", "admin"),
       ]);
-      const profileMap = new Map((profiles || []).map((p: { user_id: string; cargo: string; frame_color: string | null; neon_color: string | null; frame_animation: string | null }) => [p.user_id, p]));
-      const adminSet = new Set(adminRoles?.map((r) => r.user_id) || []);
+      type ProfileFrame = { user_id: string; cargo: string; frame_color: string | null; neon_color: string | null; frame_animation: string | null };
+      const profileMap = new Map<string, ProfileFrame>((profilesRes.data || []).map((p) => [p.user_id, p as ProfileFrame]));
+      const adminSet = new Set((adminRes.data || []).map((r) => r.user_id));
 
       return (data || []).map((post) => {
         const prof = profileMap.get(post.user_id);
