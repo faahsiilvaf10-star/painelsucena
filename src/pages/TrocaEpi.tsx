@@ -1059,6 +1059,26 @@ export default function TrocaEpi() {
                 <p><strong>Função:</strong> {viewExchange.funcionario_funcao || '-'}</p>
               </div>
               <p><strong>Motivo:</strong> {viewExchange.motivo_troca}</p>
+              {viewExchange.photo_urls && viewExchange.photo_urls.length > 0 && (
+                <div>
+                  <strong>Fotos do EPI Danificado:</strong>
+                  <div className="flex flex-wrap gap-2 mt-1">
+                    {viewExchange.photo_urls.map((url: string, idx: number) => (
+                      <img
+                        key={idx}
+                        src={url}
+                        alt={`EPI danificado ${idx + 1}`}
+                        className="h-20 w-20 object-cover rounded-md border cursor-pointer hover:opacity-80 transition"
+                        onClick={() => {
+                          setHistoryPhotoViewerPhotos(viewExchange.photo_urls);
+                          setHistoryPhotoViewerIndex(idx);
+                          setHistoryPhotoViewerOpen(true);
+                        }}
+                      />
+                    ))}
+                  </div>
+                </div>
+              )}
               <div>
                 <strong>EPIs selecionados:</strong>
                 <div className="flex flex-wrap gap-1 mt-1">
