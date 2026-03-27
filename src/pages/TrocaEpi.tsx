@@ -794,6 +794,46 @@ export default function TrocaEpi() {
               </div>
             </div>
 
+            {/* Photo upload for damaged EPI */}
+            <div>
+              <Label>Foto do EPI Danificado</Label>
+              <div className="flex flex-wrap items-center gap-2 mt-1">
+                <label className="cursor-pointer">
+                  <input
+                    type="file"
+                    accept="image/*"
+                    multiple
+                    className="hidden"
+                    onChange={handlePhotoUpload}
+                    disabled={uploadingPhoto}
+                  />
+                  <Button type="button" variant="outline" size="sm" disabled={uploadingPhoto} asChild>
+                    <span>
+                      <Camera className="h-4 w-4 mr-1" />
+                      {uploadingPhoto ? "Enviando..." : "Adicionar Foto"}
+                    </span>
+                  </Button>
+                </label>
+                {photoUrls.map((url, idx) => (
+                  <div key={idx} className="relative group">
+                    <img
+                      src={url}
+                      alt={`EPI danificado ${idx + 1}`}
+                      className="h-16 w-16 object-cover rounded-md border cursor-pointer hover:opacity-80 transition"
+                      onClick={() => { setPhotoViewerIndex(idx); setPhotoViewerOpen(true); }}
+                    />
+                    <button
+                      type="button"
+                      className="absolute -top-1 -right-1 bg-destructive text-destructive-foreground rounded-full h-5 w-5 flex items-center justify-center text-xs opacity-0 group-hover:opacity-100 transition"
+                      onClick={() => setPhotoUrls(prev => prev.filter((_, i) => i !== idx))}
+                    >
+                      <X className="h-3 w-3" />
+                    </button>
+                  </div>
+                ))}
+              </div>
+            </div>
+
             <div>
               <Label>Motivo da Troca *</Label>
               <Textarea value={motivoTroca} onChange={e => setMotivoTroca(e.target.value)} placeholder="Descreva o motivo da troca" />
