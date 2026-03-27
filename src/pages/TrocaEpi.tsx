@@ -449,6 +449,7 @@ export default function TrocaEpi() {
     setBlusaQtd(exchange.uniforme_blusa_quantidade || 0);
     setCalcaTamanho(exchange.uniforme_calca_tamanho || "");
     setCalcaQtd(exchange.uniforme_calca_quantidade || 0);
+    setPhotoUrls(exchange.photo_urls || []);
     setShowForm(true);
   };
 
@@ -482,6 +483,7 @@ export default function TrocaEpi() {
       uniforme_calca_quantidade: currentCalcaQtd,
       assinatura_funcionario: sigFuncionario || null,
       assinatura_autorizador: sigAutorizador || null,
+      photo_urls: photoUrls,
     };
 
     try {
