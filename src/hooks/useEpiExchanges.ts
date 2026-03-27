@@ -13,6 +13,7 @@ export interface EpiExchange {
   funcionario_funcao: string | null;
   funcionario_matricula: string | null;
   epis: string[];
+  photo_urls: string[];
   uniforme_blusa_tamanho: string | null;
   uniforme_blusa_quantidade: number;
   uniforme_calca_tamanho: string | null;

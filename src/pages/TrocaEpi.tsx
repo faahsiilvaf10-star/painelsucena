@@ -19,7 +19,7 @@ import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { Badge } from "@/components/ui/badge";
 import { Separator } from "@/components/ui/separator";
-import { ShieldCheck, Plus, FileText, Trash2, Eye, Pencil, Image, MessageCircle, Search, ChevronLeft, ChevronRight, X } from "lucide-react";
+import { ShieldCheck, Plus, FileText, Trash2, Eye, Pencil, Image, MessageCircle, Search, ChevronLeft, ChevronRight, X, Camera, ZoomIn, Loader2 } from "lucide-react";
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/components/ui/dialog";
 import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover";
 import { Command, CommandInput, CommandList, CommandEmpty, CommandItem } from "@/components/ui/command";
@@ -228,7 +228,9 @@ export default function TrocaEpi() {
   const [blusaQtd, setBlusaQtd] = useState(0);
   const [calcaTamanho, setCalcaTamanho] = useState("");
   const [calcaQtd, setCalcaQtd] = useState(0);
-
+  const [photoUrls, setPhotoUrls] = useState<string[]>([]);
+  const [uploadingPhoto, setUploadingPhoto] = useState(false);
+  const [zoomedPhoto, setZoomedPhoto] = useState<string | null>(null);
   // Map EPI id -> last date the selected employee picked it up
   const lastPickupMap = useMemo(() => {
     const map: Record<string, string> = {};
@@ -278,6 +280,7 @@ export default function TrocaEpi() {
     setCalcaTamanho("");
     setCalcaQtd(0);
     setEditingExchange(null);
+    setPhotoUrls([]);
   };
 
   // Restore inventory for an exchange's EPIs (used on delete or before edit)
@@ -415,12 +418,42 @@ export default function TrocaEpi() {
     setBlusaQtd(exchange.uniforme_blusa_quantidade || 0);
     setCalcaTamanho(exchange.uniforme_calca_tamanho || "");
     setCalcaQtd(exchange.uniforme_calca_quantidade || 0);
+    setPhotoUrls(exchange.photo_urls || []);
     setShowForm(true);
   };
 
   const handleSubmit = () => {
     if (!autorizadoPor || !motivoTroca || !funcionarioNome) return;
     setShowSignature(true);
+  };
+
+  const handlePhotoUpload = async (e: React.ChangeEvent<HTMLInputElement>) => {
+    const files = e.target.files;
+    if (!files || files.length === 0) return;
+    setUploadingPhoto(true);
+    try {
+      const newUrls: string[] = [];
+      for (const file of Array.from(files)) {
+        const ext = file.name.split(".").pop() || "jpg";
+        const path = `epi-danificado/${Date.now()}-${Math.random().toString(36).slice(2)}.${ext}`;
+        const { error: uploadErr } = await supabase.storage.from("desvios").upload(path, file);
+        if (uploadErr) {
+          console.error("Upload error:", uploadErr);
+          toast.error("Erro ao enviar foto");
+          continue;
+        }
+        const { data: urlData } = supabase.storage.from("desvios").getPublicUrl(path);
+        if (urlData?.publicUrl) newUrls.push(urlData.publicUrl);
+      }
+      setPhotoUrls(prev => [...prev, ...newUrls]);
+      if (newUrls.length > 0) toast.success(`${newUrls.length} foto(s) enviada(s)`);
+    } catch (err) {
+      console.error(err);
+      toast.error("Erro ao enviar foto");
+    } finally {
+      setUploadingPhoto(false);
+      e.target.value = "";
+    }
   };
 
   const handleSignatureConfirm = async (sigFuncionario: string, sigAutorizador: string) => {
@@ -448,6 +481,7 @@ export default function TrocaEpi() {
       uniforme_calca_quantidade: currentCalcaQtd,
       assinatura_funcionario: sigFuncionario || null,
       assinatura_autorizador: sigAutorizador || null,
+      photo_urls: photoUrls,
     };
 
     try {
@@ -758,6 +792,51 @@ export default function TrocaEpi() {
               </div>
             </div>
 
+            {/* Photo Upload - EPI Danificado */}
+            <div>
+              <Label className="mb-2 block">Foto do EPI Danificado</Label>
+              <div className="flex flex-wrap gap-2 items-center">
+                <label className="cursor-pointer">
+                  <input
+                    type="file"
+                    accept="image/*"
+                    multiple
+                    capture="environment"
+                    className="hidden"
+                    onChange={handlePhotoUpload}
+                    disabled={uploadingPhoto}
+                  />
+                  <div className="flex items-center gap-2 px-3 py-2 border border-dashed border-primary/50 rounded-lg hover:bg-accent/50 transition-colors">
+                    {uploadingPhoto ? (
+                      <Loader2 className="h-4 w-4 animate-spin text-primary" />
+                    ) : (
+                      <Camera className="h-4 w-4 text-primary" />
+                    )}
+                    <span className="text-sm text-primary font-medium">
+                      {uploadingPhoto ? "Enviando..." : "Adicionar Foto"}
+                    </span>
+                  </div>
+                </label>
+                {photoUrls.map((url, idx) => (
+                  <div key={idx} className="relative group">
+                    <img
+                      src={url}
+                      alt={`EPI danificado ${idx + 1}`}
+                      className="h-16 w-16 object-cover rounded-lg border cursor-pointer hover:opacity-80 transition-opacity"
+                      onClick={() => setZoomedPhoto(url)}
+                    />
+                    <button
+                      type="button"
+                      className="absolute -top-1.5 -right-1.5 bg-destructive text-destructive-foreground rounded-full h-5 w-5 flex items-center justify-center text-xs opacity-0 group-hover:opacity-100 transition-opacity"
+                      onClick={() => setPhotoUrls(prev => prev.filter((_, i) => i !== idx))}
+                    >
+                      <X className="h-3 w-3" />
+                    </button>
+                  </div>
+                ))}
+              </div>
+            </div>
+
             <div>
               <Label>Motivo da Troca *</Label>
               <Textarea value={motivoTroca} onChange={e => setMotivoTroca(e.target.value)} placeholder="Descreva o motivo da troca" />
@@ -1000,6 +1079,23 @@ export default function TrocaEpi() {
                   {viewExchange.uniforme_calca_tamanho && <p>Calça: {viewExchange.uniforme_calca_tamanho} (x{viewExchange.uniforme_calca_quantidade})</p>}
                 </div>
               )}
+              {/* Photos */}
+              {viewExchange.photo_urls && viewExchange.photo_urls.length > 0 && (
+                <div>
+                  <strong>Fotos do EPI Danificado:</strong>
+                  <div className="flex flex-wrap gap-2 mt-2">
+                    {viewExchange.photo_urls.map((url, idx) => (
+                      <img
+                        key={idx}
+                        src={url}
+                        alt={`EPI danificado ${idx + 1}`}
+                        className="h-20 w-20 object-cover rounded-lg border cursor-pointer hover:opacity-80 hover:ring-2 hover:ring-primary transition-all"
+                        onClick={() => setZoomedPhoto(url)}
+                      />
+                    ))}
+                  </div>
+                </div>
+              )}
               <div className="flex justify-end gap-2">
                 <Button variant="outline" onClick={() => handlePngWhatsApp(viewExchange)}>
                   <MessageCircle className="h-4 w-4 mr-2 text-[#25D366]" /> PNG WhatsApp
@@ -1009,6 +1105,19 @@ export default function TrocaEpi() {
                 </Button>
               </div>
             </div>
+          )}
+        </DialogContent>
+      </Dialog>
+
+      {/* Zoom Photo Dialog */}
+      <Dialog open={!!zoomedPhoto} onOpenChange={() => setZoomedPhoto(null)}>
+        <DialogContent className="max-w-4xl w-[95vw] p-2">
+          {zoomedPhoto && (
+            <img
+              src={zoomedPhoto}
+              alt="EPI danificado ampliado"
+              className="w-full h-auto max-h-[85vh] object-contain rounded-lg"
+            />
           )}
         </DialogContent>
       </Dialog>
@@ -1103,6 +1212,11 @@ export default function TrocaEpi() {
                           return <Badge key={typeof e === 'string' ? e : e.id} variant="secondary" className="text-[10px]">{item?.label || 'EPI'}</Badge>;
                         })}
                         {(ex.epis || []).length > 3 && <Badge variant="secondary" className="text-[10px]">+{(ex.epis || []).length - 3}</Badge>}
+                        {ex.photo_urls && ex.photo_urls.length > 0 && (
+                          <Badge variant="outline" className="text-[10px] gap-1">
+                            <Camera className="h-3 w-3" /> {ex.photo_urls.length} foto(s)
+                          </Badge>
+                        )}
                       </div>
                     </div>
                     <div className="flex gap-1 shrink-0">
