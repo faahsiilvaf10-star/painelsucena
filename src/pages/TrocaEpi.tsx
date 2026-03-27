@@ -236,7 +236,6 @@ export default function TrocaEpi() {
   const [historyPhotoViewerOpen, setHistoryPhotoViewerOpen] = useState(false);
   const [historyPhotoViewerPhotos, setHistoryPhotoViewerPhotos] = useState<string[]>([]);
   const [historyPhotoViewerIndex, setHistoryPhotoViewerIndex] = useState(0);
-  const [calcaQtd, setCalcaQtd] = useState(0);
 
   // Map EPI id -> last date the selected employee picked it up
   const lastPickupMap = useMemo(() => {
