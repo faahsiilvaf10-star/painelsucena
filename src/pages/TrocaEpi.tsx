@@ -1212,6 +1212,11 @@ export default function TrocaEpi() {
                           return <Badge key={typeof e === 'string' ? e : e.id} variant="secondary" className="text-[10px]">{item?.label || 'EPI'}</Badge>;
                         })}
                         {(ex.epis || []).length > 3 && <Badge variant="secondary" className="text-[10px]">+{(ex.epis || []).length - 3}</Badge>}
+                        {ex.photo_urls && ex.photo_urls.length > 0 && (
+                          <Badge variant="outline" className="text-[10px] gap-1">
+                            <Camera className="h-3 w-3" /> {ex.photo_urls.length} foto(s)
+                          </Badge>
+                        )}
                       </div>
                     </div>
                     <div className="flex gap-1 shrink-0">
