@@ -792,6 +792,51 @@ export default function TrocaEpi() {
               </div>
             </div>
 
+            {/* Photo Upload - EPI Danificado */}
+            <div>
+              <Label className="mb-2 block">Foto do EPI Danificado</Label>
+              <div className="flex flex-wrap gap-2 items-center">
+                <label className="cursor-pointer">
+                  <input
+                    type="file"
+                    accept="image/*"
+                    multiple
+                    capture="environment"
+                    className="hidden"
+                    onChange={handlePhotoUpload}
+                    disabled={uploadingPhoto}
+                  />
+                  <div className="flex items-center gap-2 px-3 py-2 border border-dashed border-primary/50 rounded-lg hover:bg-accent/50 transition-colors">
+                    {uploadingPhoto ? (
+                      <Loader2 className="h-4 w-4 animate-spin text-primary" />
+                    ) : (
+                      <Camera className="h-4 w-4 text-primary" />
+                    )}
+                    <span className="text-sm text-primary font-medium">
+                      {uploadingPhoto ? "Enviando..." : "Adicionar Foto"}
+                    </span>
+                  </div>
+                </label>
+                {photoUrls.map((url, idx) => (
+                  <div key={idx} className="relative group">
+                    <img
+                      src={url}
+                      alt={`EPI danificado ${idx + 1}`}
+                      className="h-16 w-16 object-cover rounded-lg border cursor-pointer hover:opacity-80 transition-opacity"
+                      onClick={() => setZoomedPhoto(url)}
+                    />
+                    <button
+                      type="button"
+                      className="absolute -top-1.5 -right-1.5 bg-destructive text-destructive-foreground rounded-full h-5 w-5 flex items-center justify-center text-xs opacity-0 group-hover:opacity-100 transition-opacity"
+                      onClick={() => setPhotoUrls(prev => prev.filter((_, i) => i !== idx))}
+                    >
+                      <X className="h-3 w-3" />
+                    </button>
+                  </div>
+                ))}
+              </div>
+            </div>
+
             <div>
               <Label>Motivo da Troca *</Label>
               <Textarea value={motivoTroca} onChange={e => setMotivoTroca(e.target.value)} placeholder="Descreva o motivo da troca" />
