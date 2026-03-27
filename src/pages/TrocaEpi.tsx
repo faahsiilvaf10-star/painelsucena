@@ -1232,6 +1232,20 @@ export default function TrocaEpi() {
       })()}
       </>
       )}
+
+      {/* Photo Viewers */}
+      <PhotoViewer
+        photos={photoUrls}
+        initialIndex={photoViewerIndex}
+        open={photoViewerOpen}
+        onOpenChange={setPhotoViewerOpen}
+      />
+      <PhotoViewer
+        photos={historyPhotoViewerPhotos}
+        initialIndex={historyPhotoViewerIndex}
+        open={historyPhotoViewerOpen}
+        onOpenChange={setHistoryPhotoViewerOpen}
+      />
     </div>
   );
 }
