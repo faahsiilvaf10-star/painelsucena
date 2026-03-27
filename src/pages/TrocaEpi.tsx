@@ -1079,6 +1079,23 @@ export default function TrocaEpi() {
                   {viewExchange.uniforme_calca_tamanho && <p>Calça: {viewExchange.uniforme_calca_tamanho} (x{viewExchange.uniforme_calca_quantidade})</p>}
                 </div>
               )}
+              {/* Photos */}
+              {viewExchange.photo_urls && viewExchange.photo_urls.length > 0 && (
+                <div>
+                  <strong>Fotos do EPI Danificado:</strong>
+                  <div className="flex flex-wrap gap-2 mt-2">
+                    {viewExchange.photo_urls.map((url, idx) => (
+                      <img
+                        key={idx}
+                        src={url}
+                        alt={`EPI danificado ${idx + 1}`}
+                        className="h-20 w-20 object-cover rounded-lg border cursor-pointer hover:opacity-80 hover:ring-2 hover:ring-primary transition-all"
+                        onClick={() => setZoomedPhoto(url)}
+                      />
+                    ))}
+                  </div>
+                </div>
+              )}
               <div className="flex justify-end gap-2">
                 <Button variant="outline" onClick={() => handlePngWhatsApp(viewExchange)}>
                   <MessageCircle className="h-4 w-4 mr-2 text-[#25D366]" /> PNG WhatsApp
@@ -1088,6 +1105,19 @@ export default function TrocaEpi() {
                 </Button>
               </div>
             </div>
+          )}
+        </DialogContent>
+      </Dialog>
+
+      {/* Zoom Photo Dialog */}
+      <Dialog open={!!zoomedPhoto} onOpenChange={() => setZoomedPhoto(null)}>
+        <DialogContent className="max-w-4xl w-[95vw] p-2">
+          {zoomedPhoto && (
+            <img
+              src={zoomedPhoto}
+              alt="EPI danificado ampliado"
+              className="w-full h-auto max-h-[85vh] object-contain rounded-lg"
+            />
           )}
         </DialogContent>
       </Dialog>
