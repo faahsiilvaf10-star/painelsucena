@@ -285,7 +285,33 @@ export default function TrocaEpi() {
     setBlusaQtd(0);
     setCalcaTamanho("");
     setCalcaQtd(0);
+    setPhotoUrls([]);
     setEditingExchange(null);
+  };
+
+  const handlePhotoUpload = async (e: React.ChangeEvent<HTMLInputElement>) => {
+    const files = e.target.files;
+    if (!files || files.length === 0) return;
+    setUploadingPhoto(true);
+    try {
+      const newUrls: string[] = [];
+      for (const file of Array.from(files)) {
+        const ext = file.name.split(".").pop() || "jpg";
+        const fileName = `epi-danificado-${Date.now()}-${Math.random().toString(36).slice(2)}.${ext}`;
+        const { error } = await supabase.storage.from("desvios").upload(fileName, file);
+        if (error) { console.error("Upload error:", error); continue; }
+        const { data: urlData } = supabase.storage.from("desvios").getPublicUrl(fileName);
+        newUrls.push(urlData.publicUrl);
+      }
+      setPhotoUrls(prev => [...prev, ...newUrls]);
+      if (newUrls.length > 0) toast.success(`${newUrls.length} foto(s) enviada(s)!`);
+    } catch (err) {
+      console.error(err);
+      toast.error("Erro ao enviar foto");
+    } finally {
+      setUploadingPhoto(false);
+      e.target.value = "";
+    }
   };
 
   // Restore inventory for an exchange's EPIs (used on delete or before edit)
