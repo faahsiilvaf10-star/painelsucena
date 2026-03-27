@@ -12,7 +12,7 @@ import {
   Sun, Truck, Bell, FileText, Heart, ShoppingCart,
   Package, FolderOpen, ShieldCheck, Leaf, Hammer, ClipboardCheck,
   BadgeCheck, Link2, ArrowLeftRight, Clock, FolderLock, Droplets,
-  Wrench, Presentation, Newspaper, HardHat, CalendarDays, Gamepad2,
+  Wrench, Newspaper, HardHat, CalendarDays, Gamepad2,
   TriangleAlert, Target, Receipt, FlameKindling, AlertTriangle, type LucideIcon
 } from "lucide-react";
 
