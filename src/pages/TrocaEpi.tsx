@@ -427,6 +427,35 @@ export default function TrocaEpi() {
     setShowSignature(true);
   };
 
+  const handlePhotoUpload = async (e: React.ChangeEvent<HTMLInputElement>) => {
+    const files = e.target.files;
+    if (!files || files.length === 0) return;
+    setUploadingPhoto(true);
+    try {
+      const newUrls: string[] = [];
+      for (const file of Array.from(files)) {
+        const ext = file.name.split(".").pop() || "jpg";
+        const path = `epi-danificado/${Date.now()}-${Math.random().toString(36).slice(2)}.${ext}`;
+        const { error: uploadErr } = await supabase.storage.from("desvios").upload(path, file);
+        if (uploadErr) {
+          console.error("Upload error:", uploadErr);
+          toast.error("Erro ao enviar foto");
+          continue;
+        }
+        const { data: urlData } = supabase.storage.from("desvios").getPublicUrl(path);
+        if (urlData?.publicUrl) newUrls.push(urlData.publicUrl);
+      }
+      setPhotoUrls(prev => [...prev, ...newUrls]);
+      if (newUrls.length > 0) toast.success(`${newUrls.length} foto(s) enviada(s)`);
+    } catch (err) {
+      console.error(err);
+      toast.error("Erro ao enviar foto");
+    } finally {
+      setUploadingPhoto(false);
+      e.target.value = "";
+    }
+  };
+
   const handleSignatureConfirm = async (sigFuncionario: string, sigAutorizador: string) => {
     // Capture current state values before any async operations
     const currentSelectedEpis = [...selectedEpis];
