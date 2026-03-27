@@ -1,1 +1,0 @@
-ALTER TABLE public.epi_exchanges ADD COLUMN photo_urls text[] DEFAULT '{}' NOT NULL;

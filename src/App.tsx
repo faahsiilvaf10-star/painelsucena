@@ -50,7 +50,7 @@ import PontosAbastecimento from "./pages/PontosAbastecimento";
 import ParteDiaria from "./pages/ParteDiaria";
 import ConsumoAbastecimento from "./pages/ConsumoAbastecimento";
 import MaintenancePlan from "./pages/MaintenancePlan";
-
+import Slides from "./pages/Slides";
 import InstaCena from "./pages/InstaCena";
 import InspecaoCanteiro from "./pages/InspecaoCanteiro";
 import CalendarioHydro from "./pages/CalendarioHydro";
@@ -145,7 +145,7 @@ const App = () => (
                     <Route path="/pontos-abastecimento" element={<ProtectedRoute><PontosAbastecimento /></ProtectedRoute>} />
                     <Route path="/consumo-abastecimento" element={<ProtectedRoute><ConsumoAbastecimento /></ProtectedRoute>} />
                     <Route path="/plano-manutencao" element={<ProtectedRoute><MaintenancePlan /></ProtectedRoute>} />
-                    
+                    <Route path="/slides" element={<ProtectedRoute><Slides /></ProtectedRoute>} />
                     <Route path="/instacena" element={<ProtectedRoute><InstaCena /></ProtectedRoute>} />
                     <Route path="/inspecao-canteiro" element={<ProtectedRoute><InspecaoCanteiro /></ProtectedRoute>} />
                     <Route path="/calendario-hydro" element={<ProtectedRoute><CalendarioHydro /></ProtectedRoute>} />

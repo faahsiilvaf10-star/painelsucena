@@ -19,8 +19,7 @@ import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { Badge } from "@/components/ui/badge";
 import { Separator } from "@/components/ui/separator";
-import { ShieldCheck, Plus, FileText, Trash2, Eye, Pencil, Image, MessageCircle, Search, ChevronLeft, ChevronRight, X, Camera, Upload } from "lucide-react";
-import { PhotoViewer } from "@/components/orders/PhotoViewer";
+import { ShieldCheck, Plus, FileText, Trash2, Eye, Pencil, Image, MessageCircle, Search, ChevronLeft, ChevronRight, X } from "lucide-react";
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/components/ui/dialog";
 import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover";
 import { Command, CommandInput, CommandList, CommandEmpty, CommandItem } from "@/components/ui/command";
@@ -229,13 +228,6 @@ export default function TrocaEpi() {
   const [blusaQtd, setBlusaQtd] = useState(0);
   const [calcaTamanho, setCalcaTamanho] = useState("");
   const [calcaQtd, setCalcaQtd] = useState(0);
-  const [photoUrls, setPhotoUrls] = useState<string[]>([]);
-  const [uploadingPhoto, setUploadingPhoto] = useState(false);
-  const [photoViewerOpen, setPhotoViewerOpen] = useState(false);
-  const [photoViewerIndex, setPhotoViewerIndex] = useState(0);
-  const [historyPhotoViewerOpen, setHistoryPhotoViewerOpen] = useState(false);
-  const [historyPhotoViewerPhotos, setHistoryPhotoViewerPhotos] = useState<string[]>([]);
-  const [historyPhotoViewerIndex, setHistoryPhotoViewerIndex] = useState(0);
 
   // Map EPI id -> last date the selected employee picked it up
   const lastPickupMap = useMemo(() => {
@@ -285,33 +277,7 @@ export default function TrocaEpi() {
     setBlusaQtd(0);
     setCalcaTamanho("");
     setCalcaQtd(0);
-    setPhotoUrls([]);
     setEditingExchange(null);
-  };
-
-  const handlePhotoUpload = async (e: React.ChangeEvent<HTMLInputElement>) => {
-    const files = e.target.files;
-    if (!files || files.length === 0) return;
-    setUploadingPhoto(true);
-    try {
-      const newUrls: string[] = [];
-      for (const file of Array.from(files)) {
-        const ext = file.name.split(".").pop() || "jpg";
-        const fileName = `epi-danificado-${Date.now()}-${Math.random().toString(36).slice(2)}.${ext}`;
-        const { error } = await supabase.storage.from("desvios").upload(fileName, file);
-        if (error) { console.error("Upload error:", error); continue; }
-        const { data: urlData } = supabase.storage.from("desvios").getPublicUrl(fileName);
-        newUrls.push(urlData.publicUrl);
-      }
-      setPhotoUrls(prev => [...prev, ...newUrls]);
-      if (newUrls.length > 0) toast.success(`${newUrls.length} foto(s) enviada(s)!`);
-    } catch (err) {
-      console.error(err);
-      toast.error("Erro ao enviar foto");
-    } finally {
-      setUploadingPhoto(false);
-      e.target.value = "";
-    }
   };
 
   // Restore inventory for an exchange's EPIs (used on delete or before edit)
@@ -449,7 +415,6 @@ export default function TrocaEpi() {
     setBlusaQtd(exchange.uniforme_blusa_quantidade || 0);
     setCalcaTamanho(exchange.uniforme_calca_tamanho || "");
     setCalcaQtd(exchange.uniforme_calca_quantidade || 0);
-    setPhotoUrls(exchange.photo_urls || []);
     setShowForm(true);
   };
 
@@ -483,7 +448,6 @@ export default function TrocaEpi() {
       uniforme_calca_quantidade: currentCalcaQtd,
       assinatura_funcionario: sigFuncionario || null,
       assinatura_autorizador: sigAutorizador || null,
-      photo_urls: photoUrls,
     };
 
     try {
@@ -794,46 +758,6 @@ export default function TrocaEpi() {
               </div>
             </div>
 
-            {/* Photo upload for damaged EPI */}
-            <div>
-              <Label>Foto do EPI Danificado</Label>
-              <div className="flex flex-wrap items-center gap-2 mt-1">
-                <label className="cursor-pointer">
-                  <input
-                    type="file"
-                    accept="image/*"
-                    multiple
-                    className="hidden"
-                    onChange={handlePhotoUpload}
-                    disabled={uploadingPhoto}
-                  />
-                  <Button type="button" variant="outline" size="sm" disabled={uploadingPhoto} asChild>
-                    <span>
-                      <Camera className="h-4 w-4 mr-1" />
-                      {uploadingPhoto ? "Enviando..." : "Adicionar Foto"}
-                    </span>
-                  </Button>
-                </label>
-                {photoUrls.map((url, idx) => (
-                  <div key={idx} className="relative group">
-                    <img
-                      src={url}
-                      alt={`EPI danificado ${idx + 1}`}
-                      className="h-16 w-16 object-cover rounded-md border cursor-pointer hover:opacity-80 transition"
-                      onClick={() => { setPhotoViewerIndex(idx); setPhotoViewerOpen(true); }}
-                    />
-                    <button
-                      type="button"
-                      className="absolute -top-1 -right-1 bg-destructive text-destructive-foreground rounded-full h-5 w-5 flex items-center justify-center text-xs opacity-0 group-hover:opacity-100 transition"
-                      onClick={() => setPhotoUrls(prev => prev.filter((_, i) => i !== idx))}
-                    >
-                      <X className="h-3 w-3" />
-                    </button>
-                  </div>
-                ))}
-              </div>
-            </div>
-
             <div>
               <Label>Motivo da Troca *</Label>
               <Textarea value={motivoTroca} onChange={e => setMotivoTroca(e.target.value)} placeholder="Descreva o motivo da troca" />
@@ -1059,26 +983,6 @@ export default function TrocaEpi() {
                 <p><strong>Função:</strong> {viewExchange.funcionario_funcao || '-'}</p>
               </div>
               <p><strong>Motivo:</strong> {viewExchange.motivo_troca}</p>
-              {viewExchange.photo_urls && viewExchange.photo_urls.length > 0 && (
-                <div>
-                  <strong>Fotos do EPI Danificado:</strong>
-                  <div className="flex flex-wrap gap-2 mt-1">
-                    {viewExchange.photo_urls.map((url: string, idx: number) => (
-                      <img
-                        key={idx}
-                        src={url}
-                        alt={`EPI danificado ${idx + 1}`}
-                        className="h-20 w-20 object-cover rounded-md border cursor-pointer hover:opacity-80 transition"
-                        onClick={() => {
-                          setHistoryPhotoViewerPhotos(viewExchange.photo_urls);
-                          setHistoryPhotoViewerIndex(idx);
-                          setHistoryPhotoViewerOpen(true);
-                        }}
-                      />
-                    ))}
-                  </div>
-                </div>
-              )}
               <div>
                 <strong>EPIs selecionados:</strong>
                 <div className="flex flex-wrap gap-1 mt-1">
@@ -1199,11 +1103,6 @@ export default function TrocaEpi() {
                           return <Badge key={typeof e === 'string' ? e : e.id} variant="secondary" className="text-[10px]">{item?.label || 'EPI'}</Badge>;
                         })}
                         {(ex.epis || []).length > 3 && <Badge variant="secondary" className="text-[10px]">+{(ex.epis || []).length - 3}</Badge>}
-                        {ex.photo_urls && ex.photo_urls.length > 0 && (
-                          <Badge variant="outline" className="text-[10px] gap-1">
-                            <Camera className="h-3 w-3" /> {ex.photo_urls.length} foto(s)
-                          </Badge>
-                        )}
                       </div>
                     </div>
                     <div className="flex gap-1 shrink-0">
@@ -1237,20 +1136,6 @@ export default function TrocaEpi() {
       })()}
       </>
       )}
-
-      {/* Photo Viewers */}
-      <PhotoViewer
-        photos={photoUrls}
-        initialIndex={photoViewerIndex}
-        open={photoViewerOpen}
-        onOpenChange={setPhotoViewerOpen}
-      />
-      <PhotoViewer
-        photos={historyPhotoViewerPhotos}
-        initialIndex={historyPhotoViewerIndex}
-        open={historyPhotoViewerOpen}
-        onOpenChange={setHistoryPhotoViewerOpen}
-      />
     </div>
   );
 }

@@ -1187,7 +1187,6 @@ export type Database = {
           id: string
           matricula_autorizador: string | null
           motivo_troca: string
-          photo_urls: string[]
           uniforme_blusa_quantidade: number | null
           uniforme_blusa_tamanho: string | null
           uniforme_calca_quantidade: number | null
@@ -1208,7 +1207,6 @@ export type Database = {
           id?: string
           matricula_autorizador?: string | null
           motivo_troca: string
-          photo_urls?: string[]
           uniforme_blusa_quantidade?: number | null
           uniforme_blusa_tamanho?: string | null
           uniforme_calca_quantidade?: number | null
@@ -1229,7 +1227,6 @@ export type Database = {
           id?: string
           matricula_autorizador?: string | null
           motivo_troca?: string
-          photo_urls?: string[]
           uniforme_blusa_quantidade?: number | null
           uniforme_blusa_tamanho?: string | null
           uniforme_calca_quantidade?: number | null
