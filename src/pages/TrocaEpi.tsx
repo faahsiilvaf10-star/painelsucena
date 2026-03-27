@@ -19,7 +19,7 @@ import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { Badge } from "@/components/ui/badge";
 import { Separator } from "@/components/ui/separator";
-import { ShieldCheck, Plus, FileText, Trash2, Eye, Pencil, Image, MessageCircle, Search, ChevronLeft, ChevronRight, X } from "lucide-react";
+import { ShieldCheck, Plus, FileText, Trash2, Eye, Pencil, Image, MessageCircle, Search, ChevronLeft, ChevronRight, X, Camera, ZoomIn, Loader2 } from "lucide-react";
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/components/ui/dialog";
 import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover";
 import { Command, CommandInput, CommandList, CommandEmpty, CommandItem } from "@/components/ui/command";
