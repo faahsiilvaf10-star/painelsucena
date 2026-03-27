@@ -19,6 +19,7 @@ export interface EpiExchange {
   uniforme_calca_quantidade: number;
   assinatura_funcionario: string | null;
   assinatura_autorizador: string | null;
+  photo_urls: string[];
   created_by: string;
   created_at: string;
 }
