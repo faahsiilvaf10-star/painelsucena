@@ -12,7 +12,7 @@ import {
   Sun, Truck, Bell, FileText, Heart, ShoppingCart,
   Package, FolderOpen, ShieldCheck, Leaf, Hammer, ClipboardCheck,
   BadgeCheck, Link2, ArrowLeftRight, Clock, FolderLock, Droplets,
-  Wrench, Presentation, Newspaper, HardHat, CalendarDays, Gamepad2,
+  Wrench, Newspaper, HardHat, CalendarDays, Gamepad2,
   TriangleAlert, Target, Receipt, FlameKindling, AlertTriangle, type LucideIcon
 } from "lucide-react";
 
@@ -50,7 +50,7 @@ const allNavItems: NavItem[] = [
   { id: "arquivos-seguranca", icon: FolderLock, label: "Arq. Segurança", path: "/arquivos-seguranca" },
   { id: "consumo-abastecimento", icon: Droplets, label: "Consumo", path: "/consumo-abastecimento" },
   { id: "plano-manutencao", icon: Wrench, label: "Manutenção", path: "/plano-manutencao" },
-  { id: "slides", icon: Presentation, label: "Slides IA", path: "/slides" },
+  
   { id: "instacena", icon: Newspaper, label: "InstaCena", path: "/instacena" },
   { id: "inspecao-canteiro", icon: HardHat, label: "Inspeção Canteiro", path: "/inspecao-canteiro" },
   { id: "calendario-hydro", icon: CalendarDays, label: "Calendário Hydro", path: "/calendario-hydro" },
