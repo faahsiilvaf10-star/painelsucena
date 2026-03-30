@@ -364,8 +364,8 @@ const Matriz = () => {
                 <div
                   key={folder.id}
                   onClick={() => setSelectedFolder(folder)}
-                  className={`bg-white/80 backdrop-blur-sm rounded-2xl border-2 ${folder.borderColor} p-5 cursor-pointer transition-all duration-300 hover:shadow-xl hover:-translate-y-1 animate-fade-in group relative shadow-md ${
-                    isComplete ? "border-green-400 bg-gradient-to-br from-green-50/80 to-white/80" : ""
+                  className={`bg-gray-100/90 backdrop-blur-sm rounded-2xl border-2 ${folder.borderColor} p-5 cursor-pointer transition-all duration-300 hover:shadow-xl hover:-translate-y-1 animate-fade-in group relative shadow-md ${
+                    isComplete ? "border-green-400 bg-gradient-to-br from-green-50/90 to-gray-100/90" : ""
                   }`}
                   style={{ animationDelay: `${index * 0.05}s` }}
                 >
