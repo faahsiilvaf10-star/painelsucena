@@ -62,6 +62,7 @@ const Dashboard = () => {
   const { data: attendanceRecords } = useAttendanceRecords(today);
   const { data: equipment } = useEquipment();
   const { data: currentlyInEquipment } = useEquipmentCurrentlyIn();
+  const { data: allRegisteredCount } = useAllRegisteredEquipmentCount();
   const { dashboardOrder, updateOrder, isLoading: isLoadingOrder } = useDashboardOrder();
   useHolidayNotification();
   useFridayNotification();
