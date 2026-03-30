@@ -58,20 +58,6 @@ export const EasterDecorations = () => {
         }}
       />
 
-      {/* Top Easter banner */}
-      <div className="fixed top-0 left-0 right-0 z-[2] pointer-events-none flex justify-center">
-        <div
-          className="flex items-center gap-2 px-4 py-0.5 rounded-b-xl text-xs font-medium opacity-70"
-          style={{
-            background: "linear-gradient(135deg, hsl(340 55% 70% / 0.3), hsl(280 45% 65% / 0.3), hsl(160 35% 70% / 0.3))",
-            backdropFilter: "blur(8px)",
-          }}
-        >
-          <img src={easterEgg} alt="" style={{ width: "16px", height: "auto" }} />
-          <span className="text-foreground/70">Feliz Páscoa!</span>
-          <img src={easterBunny} alt="" style={{ width: "18px", height: "auto" }} />
-        </div>
-      </div>
     </>
   );
 };
