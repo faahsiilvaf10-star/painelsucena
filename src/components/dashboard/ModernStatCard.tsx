@@ -1,5 +1,6 @@
 // @ts-nocheck
 import { LucideIcon } from "lucide-react";
+import { useState, useEffect } from "react";
 import {
   ResponsiveContainer,
   PieChart,
@@ -27,9 +28,14 @@ interface ModernStatCardProps {
 }
 
 const GaugeChart = ({ percentage, color }: { percentage: number; color: string }) => {
+  const [animated, setAnimated] = useState(0);
+  useEffect(() => {
+    const t = setTimeout(() => setAnimated(percentage), 150);
+    return () => clearTimeout(t);
+  }, [percentage]);
   const data = [
-    { value: percentage },
-    { value: 100 - percentage },
+    { value: animated },
+    { value: 100 - animated },
   ];
   return (
     <div className="relative w-16 h-16">
@@ -46,6 +52,10 @@ const GaugeChart = ({ percentage, color }: { percentage: number; color: string }
             paddingAngle={0}
             dataKey="value"
             strokeWidth={0}
+            isAnimationActive={true}
+            animationBegin={0}
+            animationDuration={1200}
+            animationEasing="ease-out"
           >
             <Cell fill={color} />
             <Cell fill="hsl(30, 10%, 82%)" />
@@ -57,7 +67,12 @@ const GaugeChart = ({ percentage, color }: { percentage: number; color: string }
 };
 
 const SparklineChart = ({ data, color }: { data: number[]; color: string }) => {
-  const chartData = data.map((v, i) => ({ v, i }));
+  const [show, setShow] = useState(false);
+  useEffect(() => {
+    const t = setTimeout(() => setShow(true), 150);
+    return () => clearTimeout(t);
+  }, []);
+  const chartData = (show ? data : data.map(() => 0)).map((v, i) => ({ v, i }));
   return (
     <div className="w-20 h-12">
       <ResponsiveContainer width="100%" height="100%">
@@ -70,6 +85,10 @@ const SparklineChart = ({ data, color }: { data: number[]; color: string }) => {
             fillOpacity={0.15}
             strokeWidth={2}
             dot={false}
+            isAnimationActive={true}
+            animationBegin={0}
+            animationDuration={1200}
+            animationEasing="ease-out"
           />
         </AreaChart>
       </ResponsiveContainer>
@@ -78,12 +97,25 @@ const SparklineChart = ({ data, color }: { data: number[]; color: string }) => {
 };
 
 const MiniBarChart = ({ data, color }: { data: number[]; color: string }) => {
-  const chartData = data.map((v, i) => ({ v, i }));
+  const [show, setShow] = useState(false);
+  useEffect(() => {
+    const t = setTimeout(() => setShow(true), 150);
+    return () => clearTimeout(t);
+  }, []);
+  const chartData = (show ? data : data.map(() => 0)).map((v, i) => ({ v, i }));
   return (
     <div className="w-20 h-12">
       <ResponsiveContainer width="100%" height="100%">
         <BarChart data={chartData} margin={{ top: 2, right: 2, left: 2, bottom: 2 }}>
-          <Bar dataKey="v" fill={color} radius={[2, 2, 0, 0]} />
+          <Bar
+            dataKey="v"
+            fill={color}
+            radius={[2, 2, 0, 0]}
+            isAnimationActive={true}
+            animationBegin={0}
+            animationDuration={1200}
+            animationEasing="ease-out"
+          />
         </BarChart>
       </ResponsiveContainer>
     </div>
@@ -91,11 +123,17 @@ const MiniBarChart = ({ data, color }: { data: number[]; color: string }) => {
 };
 
 const CircularChart = ({ percentage, color }: { percentage: number; color: string }) => {
+  const [animated, setAnimated] = useState(0);
+  useEffect(() => {
+    const t = setTimeout(() => setAnimated(percentage), 150);
+    return () => clearTimeout(t);
+  }, [percentage]);
+
   const radius = 30;
   const stroke = 5;
   const normalizedRadius = radius - stroke;
   const circumference = normalizedRadius * 2 * Math.PI;
-  const strokeDashoffset = circumference - (percentage / 100) * circumference;
+  const strokeDashoffset = circumference - (animated / 100) * circumference;
 
   return (
     <div className="relative w-16 h-16 flex items-center justify-center">
@@ -121,7 +159,7 @@ const CircularChart = ({ percentage, color }: { percentage: number; color: strin
           style={{
             transform: "rotate(-90deg)",
             transformOrigin: "50% 50%",
-            transition: "stroke-dashoffset 1s ease-out",
+            transition: "stroke-dashoffset 1.2s ease-out",
           }}
         />
         <defs>
@@ -134,7 +172,7 @@ const CircularChart = ({ percentage, color }: { percentage: number; color: strin
       </svg>
       <div className="absolute inset-0 flex items-center justify-center">
         <span className="text-[10px] font-bold" style={{ color: "hsl(30, 15%, 35%)" }}>
-          {percentage}%
+          {animated}%
         </span>
       </div>
     </div>
