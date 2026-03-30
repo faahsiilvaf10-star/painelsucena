@@ -132,12 +132,14 @@ export function useUnreadAnnouncements() {
       if (!user) return [];
 
       const now = new Date().toISOString();
+      const userCreatedAt = user.created_at || now;
 
-      // Get all announcements targeted to this user that are published
+      // Get announcements published after the user signed up
       const { data: announcements, error: annError } = await supabase
         .from("announcements")
         .select("*")
-        .lte("published_at", now);
+        .lte("published_at", now)
+        .gte("published_at", userCreatedAt);
 
       if (annError) throw annError;
 
