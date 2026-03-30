@@ -514,3 +514,21 @@ export function useWeeklyEquipmentMovements(startDate: string, endDate: string) 
     enabled: !!startDate && !!endDate,
   });
 }
+
+export function useAllRegisteredEquipmentCount() {
+  return useQuery({
+    queryKey: ["equipment-movements-all-plates"],
+    queryFn: async () => {
+      const { data, error } = await supabase
+        .from("equipment_movements")
+        .select("plate");
+
+      if (error) throw error;
+
+      const uniquePlates = new Set((data || []).map((m: { plate: string }) => m.plate));
+      return uniquePlates.size;
+    },
+    staleTime: 0,
+    refetchOnMount: "always",
+  });
+}
