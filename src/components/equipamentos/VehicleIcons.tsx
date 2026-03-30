@@ -2,6 +2,7 @@ import React from "react";
 import pipaTruckImg from "@/assets/pipa-truck.png";
 import munkTruckImg from "@/assets/munk-truck.png";
 import camioneteTruckImg from "@/assets/camionete-truck.png";
+import onibusTruckImg from "@/assets/onibus-truck.png";
 
 export type EquipmentType = "pipa" | "munk" | "camionete" | "onibus";
 
