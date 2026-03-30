@@ -1,5 +1,5 @@
 import { useEffect, useState } from "react";
-import easterBunny from "@/assets/easter-bunny.png";
+import easterPascoa from "@/assets/easter-pascoa.png";
 import easterEgg from "@/assets/easter-egg.png";
 import easterEggPink from "@/assets/easter-egg-pink.png";
 
