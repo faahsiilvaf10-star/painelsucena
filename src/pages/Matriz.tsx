@@ -197,10 +197,7 @@ const Matriz = () => {
           userName={profile?.name}
           userAvatarUrl={profile?.avatar_url}
         />
-        <div 
-          className="min-h-screen bg-cover bg-center bg-no-repeat"
-          style={{ backgroundImage: `url(${parchmentBg})` }}
-        >
+        <div className="min-h-screen" style={{ backgroundColor: '#3b4a5c' }}>
           <div className="container mx-auto px-4 sm:px-6 py-4 sm:py-8">
             <Button
               variant="ghost"
