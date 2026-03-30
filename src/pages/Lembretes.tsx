@@ -68,6 +68,7 @@ const Lembretes = () => {
   const [selectedUsers, setSelectedUsers] = useState<string[]>([]);
   const [showCreatedToast, setShowCreatedToast] = useState<Reminder | null>(null);
   const [isRecurring, setIsRecurring] = useState(false);
+  const [historyDateFilter, setHistoryDateFilter] = useState("");
   const [recurringDays, setRecurringDays] = useState<number[]>([]);
   const [filterCategory, setFilterCategory] = useState<"all" | "me" | "specific" | "everyone" | "recurring">("all");
 
