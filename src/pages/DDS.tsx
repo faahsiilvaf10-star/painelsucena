@@ -577,6 +577,23 @@ export default function DDS() {
                                     variant="ghost"
                                     size="icon"
                                     className="h-8 w-8"
+                                    onClick={() => {
+                                      setPhotoTargetId(schedule.id);
+                                      photoInputRef.current?.click();
+                                    }}
+                                    disabled={uploadingPhotoId === schedule.id}
+                                    title="Adicionar foto do DDS"
+                                  >
+                                    {uploadingPhotoId === schedule.id ? (
+                                      <Loader2 className="h-4 w-4 animate-spin" />
+                                    ) : (
+                                      <Camera className="h-4 w-4 text-primary" />
+                                    )}
+                                  </Button>
+                                  <Button
+                                    variant="ghost"
+                                    size="icon"
+                                    className="h-8 w-8"
                                     onClick={() => handleEdit(schedule)}
                                   >
                                     <Edit2 className="h-4 w-4" />
