@@ -111,165 +111,199 @@ export default function ResiduosEfluentes() {
       const { jsPDF } = await import("jspdf");
       const pdf = new jsPDF("l", "mm", "a4");
       const pageW = pdf.internal.pageSize.getWidth();
-      const margin = 10;
+      const pageH = pdf.internal.pageSize.getHeight();
+      const margin = 12;
       const blue = "#1a5276";
-
-      // Header
-      pdf.setFontSize(14);
-      pdf.setTextColor(blue);
-      pdf.setFont("helvetica", "bold");
-      pdf.text("GRÁFICO - RESÍDUOS EFLUENTES", margin, margin + 10);
-      pdf.setFontSize(12);
-      pdf.setTextColor("#000000");
-      pdf.text(`ANO ${ano}`, pageW / 2, margin + 10, { align: "center" });
-
-      // Logo
-      try {
-        const logoImg = new Image();
-        logoImg.crossOrigin = "anonymous";
-        await new Promise<void>((resolve) => {
-          logoImg.onload = () => resolve();
-          logoImg.onerror = () => resolve();
-          logoImg.src = "/logo-sucena-empreendimentos.png";
-        });
-        if (logoImg.complete && logoImg.naturalWidth > 0) {
-          const logoH = 14;
-          const logoW = (logoImg.naturalWidth / logoImg.naturalHeight) * logoH;
-          pdf.addImage(logoImg, "PNG", pageW - margin - logoW, margin, logoW, logoH);
-        }
-      } catch {}
-
-      // ---- RESÍDUOS TABLE ----
-      const tableTop = margin + 20;
-      const mesColW = 25;
-      const tipoColW = 28;
-      const totalColW = 30;
-      const tableW = mesColW + TIPOS_RESIDUO.length * tipoColW + totalColW;
+      const lightBlue = "#d6eaf8";
       const rowH = 7;
-      const headerH = 10;
+      const headerH = 9;
+
+      // ===== Helper: draw header with logo =====
+      const drawHeader = async (title: string, subtitle?: string) => {
+        pdf.setFontSize(16);
+        pdf.setTextColor(blue);
+        pdf.setFont("helvetica", "bold");
+        pdf.text(title, margin, margin + 10);
+        if (subtitle) {
+          pdf.setFontSize(11);
+          pdf.setTextColor("#444444");
+          pdf.setFont("helvetica", "normal");
+          pdf.text(subtitle, margin, margin + 17);
+        }
+        pdf.setFontSize(12);
+        pdf.setTextColor("#000000");
+        pdf.setFont("helvetica", "bold");
+        pdf.text(`ANO ${ano}`, pageW / 2, margin + 10, { align: "center" });
+        try {
+          const logoImg = new Image();
+          logoImg.crossOrigin = "anonymous";
+          await new Promise<void>((resolve) => {
+            logoImg.onload = () => resolve();
+            logoImg.onerror = () => resolve();
+            logoImg.src = "/logo-sucena-empreendimentos.png";
+          });
+          if (logoImg.complete && logoImg.naturalWidth > 0) {
+            const logoH = 14;
+            const logoW = (logoImg.naturalWidth / logoImg.naturalHeight) * logoH;
+            pdf.addImage(logoImg, "PNG", pageW - margin - logoW, margin, logoW, logoH);
+          }
+        } catch {}
+        // Divider line
+        pdf.setDrawColor(blue);
+        pdf.setLineWidth(0.5);
+        pdf.line(margin, margin + 20, pageW - margin, margin + 20);
+      };
+
+      // ===== PAGE 1: RESÍDUOS TABLE =====
+      await drawHeader("RESÍDUOS", "Controle mensal de resíduos sólidos (KG)");
+
+      const tableTop = margin + 25;
+      const mesColW = 28;
+      const tipoColW = 30;
+      const totalColW = 32;
+      const tableW = mesColW + TIPOS_RESIDUO.length * tipoColW + totalColW;
 
       // Header row
       pdf.setFillColor(blue);
       pdf.rect(margin, tableTop, tableW, headerH, "F");
       pdf.setTextColor("#ffffff");
-      pdf.setFontSize(7);
+      pdf.setFontSize(8);
       pdf.setFont("helvetica", "bold");
-      pdf.text("Mês", margin + mesColW / 2, tableTop + 6.5, { align: "center" });
+      pdf.text("Mês", margin + mesColW / 2, tableTop + 6, { align: "center" });
       TIPOS_RESIDUO.forEach((t, i) => {
         const x = margin + mesColW + i * tipoColW;
-        pdf.text(t.label, x + tipoColW / 2, tableTop + 6.5, { align: "center" });
+        pdf.text(t.label, x + tipoColW / 2, tableTop + 6, { align: "center" });
       });
-      pdf.text("Total Resíduos", margin + mesColW + TIPOS_RESIDUO.length * tipoColW + totalColW / 2, tableTop + 6.5, { align: "center" });
+      pdf.text("Total (KG)", margin + mesColW + TIPOS_RESIDUO.length * tipoColW + totalColW / 2, tableTop + 6, { align: "center" });
 
       // Data rows
       const dataTop = tableTop + headerH;
       MESES.forEach((mesName, idx) => {
         const mesNum = idx + 1;
         const y = dataTop + idx * rowH;
-        const bgColor = idx % 2 === 0 ? "#f0f4f8" : "#ffffff";
+        const bgColor = idx % 2 === 0 ? lightBlue : "#ffffff";
         pdf.setFillColor(bgColor);
         pdf.rect(margin, y, tableW, rowH, "F");
-        pdf.setDrawColor("#c0c0c0");
-        pdf.setLineWidth(0.2);
+        pdf.setDrawColor("#b0bec5");
+        pdf.setLineWidth(0.15);
         pdf.rect(margin, y, tableW, rowH);
 
-        pdf.setTextColor("#000000");
+        pdf.setTextColor("#333333");
         pdf.setFont("helvetica", "bold");
-        pdf.setFontSize(7);
+        pdf.setFontSize(7.5);
         pdf.text(mesName, margin + mesColW / 2, y + 5, { align: "center" });
 
         TIPOS_RESIDUO.forEach((t, i) => {
           const val = lookup.get(`${mesNum}-${t.key}`);
           const cellX = margin + mesColW + i * tipoColW;
-          pdf.setDrawColor("#c0c0c0");
+          pdf.setDrawColor("#b0bec5");
           pdf.rect(cellX, y, tipoColW, rowH);
           if (val !== undefined && val > 0) {
-            pdf.setTextColor("#1a5276");
+            pdf.setTextColor(blue);
             pdf.setFont("helvetica", "normal");
-            pdf.setFontSize(7);
+            pdf.setFontSize(7.5);
             pdf.text(String(val), cellX + tipoColW / 2, y + 5, { align: "center" });
           }
         });
 
         const totalX = margin + mesColW + TIPOS_RESIDUO.length * tipoColW;
-        pdf.setDrawColor("#c0c0c0");
+        pdf.setDrawColor("#b0bec5");
         pdf.rect(totalX, y, totalColW, rowH);
-        pdf.setTextColor("#000000");
-        pdf.setFont("helvetica", "bold");
-        pdf.setFontSize(7);
-        pdf.text(String(monthTotals.get(mesNum) || 0), totalX + totalColW / 2, y + 5, { align: "center" });
+        const mt = monthTotals.get(mesNum) || 0;
+        if (mt > 0) {
+          pdf.setTextColor("#000000");
+          pdf.setFont("helvetica", "bold");
+          pdf.setFontSize(7.5);
+          pdf.text(String(mt), totalX + totalColW / 2, y + 5, { align: "center" });
+        }
       });
 
-      // Total Anual
-      const totalY = dataTop + 12 * rowH + 5;
+      // Total Anual box
+      const totalY = dataTop + 12 * rowH + 4;
+      pdf.setFillColor(blue);
+      const totalBoxW = 100;
+      const totalBoxX = margin;
+      pdf.roundedRect(totalBoxX, totalY, totalBoxW, 12, 2, 2, "F");
       pdf.setFontSize(10);
       pdf.setFont("helvetica", "bold");
-      pdf.setTextColor(blue);
-      pdf.text("TOTAL ACUMULADO ANO (KG):", margin + mesColW + 2 * tipoColW, totalY, { align: "center" });
-      pdf.setFontSize(14);
-      pdf.text(String(totalAnual), margin + mesColW + 4 * tipoColW, totalY, { align: "center" });
+      pdf.setTextColor("#ffffff");
+      pdf.text(`TOTAL ACUMULADO ANO: ${totalAnual} KG`, totalBoxX + totalBoxW / 2, totalY + 8, { align: "center" });
 
-      // ---- EFLUENTES TABLE ----
-      const efTableTop = totalY + 12;
-      const efColW = 35;
-      const efTableW = mesColW + efColW;
+      // Footer
+      pdf.setFontSize(7);
+      pdf.setTextColor("#999999");
+      pdf.setFont("helvetica", "normal");
+      pdf.text(`Gerado em ${new Date().toLocaleDateString("pt-BR")}`, pageW - margin, pageH - 8, { align: "right" });
 
-      pdf.setFontSize(10);
-      pdf.setTextColor(blue);
-      pdf.setFont("helvetica", "bold");
-      pdf.text("Efluentes Sanitários (m³)", margin, efTableTop - 2);
+      // ===== PAGE 2: EFLUENTES TABLE =====
+      pdf.addPage("a4", "l");
+      await drawHeader("EFLUENTES SANITÁRIOS", "Controle mensal de efluentes (m³)");
+
+      const efTableTop = margin + 25;
+      const efMesColW = 40;
+      const efColW = 50;
+      const efTableW = efMesColW + efColW;
 
       pdf.setFillColor(blue);
       pdf.rect(margin, efTableTop, efTableW, headerH, "F");
       pdf.setTextColor("#ffffff");
-      pdf.setFontSize(7);
-      pdf.text("Mês", margin + mesColW / 2, efTableTop + 6.5, { align: "center" });
-      pdf.text("Efluentes (m³)", margin + mesColW + efColW / 2, efTableTop + 6.5, { align: "center" });
+      pdf.setFontSize(8);
+      pdf.setFont("helvetica", "bold");
+      pdf.text("Mês", margin + efMesColW / 2, efTableTop + 6, { align: "center" });
+      pdf.text("Efluentes (m³)", margin + efMesColW + efColW / 2, efTableTop + 6, { align: "center" });
 
       const efDataTop = efTableTop + headerH;
       let efTotal = 0;
       MESES.forEach((mesName, idx) => {
         const mesNum = idx + 1;
         const y = efDataTop + idx * rowH;
-        const bgColor = idx % 2 === 0 ? "#f0f4f8" : "#ffffff";
+        const bgColor = idx % 2 === 0 ? lightBlue : "#ffffff";
         pdf.setFillColor(bgColor);
         pdf.rect(margin, y, efTableW, rowH, "F");
-        pdf.setDrawColor("#c0c0c0");
-        pdf.setLineWidth(0.2);
+        pdf.setDrawColor("#b0bec5");
+        pdf.setLineWidth(0.15);
         pdf.rect(margin, y, efTableW, rowH);
 
-        pdf.setTextColor("#000000");
+        pdf.setTextColor("#333333");
         pdf.setFont("helvetica", "bold");
-        pdf.setFontSize(7);
-        pdf.text(mesName, margin + mesColW / 2, y + 5, { align: "center" });
+        pdf.setFontSize(8);
+        pdf.text(mesName, margin + efMesColW / 2, y + 5, { align: "center" });
 
         const val = lookup.get(`${mesNum}-${TIPO_EFLUENTE.key}`);
-        const cellX = margin + mesColW;
-        pdf.setDrawColor("#c0c0c0");
+        const cellX = margin + efMesColW;
+        pdf.setDrawColor("#b0bec5");
         pdf.rect(cellX, y, efColW, rowH);
         if (val !== undefined && val > 0) {
           efTotal += val;
-          pdf.setTextColor("#1a5276");
+          pdf.setTextColor(blue);
           pdf.setFont("helvetica", "normal");
           pdf.text(String(val), cellX + efColW / 2, y + 5, { align: "center" });
         }
       });
 
-      // Page 2: Charts
-      pdf.addPage("a4", "l");
-      const p2W = pdf.internal.pageSize.getWidth();
-      const p2H = pdf.internal.pageSize.getHeight();
-      const cm = 30;
-
-      pdf.setFontSize(12);
-      pdf.setTextColor(blue);
+      // Efluentes total
+      const efTotalY = efDataTop + 12 * rowH + 4;
+      pdf.setFillColor(blue);
+      pdf.roundedRect(margin, efTotalY, 80, 12, 2, 2, "F");
+      pdf.setFontSize(10);
       pdf.setFont("helvetica", "bold");
-      pdf.text("Resíduos por Mês (KG)", p2W / 2, cm, { align: "center" });
+      pdf.setTextColor("#ffffff");
+      pdf.text(`TOTAL ANO: ${efTotal.toFixed(2)} m³`, margin + 40, efTotalY + 8, { align: "center" });
 
+      pdf.setFontSize(7);
+      pdf.setTextColor("#999999");
+      pdf.setFont("helvetica", "normal");
+      pdf.text(`Gerado em ${new Date().toLocaleDateString("pt-BR")}`, pageW - margin, pageH - 8, { align: "right" });
+
+      // ===== PAGE 3: CHARTS =====
+      pdf.addPage("a4", "l");
+      await drawHeader("GRÁFICO - RESÍDUOS POR MÊS");
+
+      const cm = 35;
       const chartLeft = cm + 15;
-      const chartBottom = p2H - cm - 25;
+      const chartBottom = pageH - 35;
       const chartTop2 = cm + 10;
-      const chartRight = p2W - cm;
+      const chartRight = pageW - cm;
       const chartH = chartBottom - chartTop2;
       const chartW = chartRight - chartLeft;
 
@@ -283,17 +317,17 @@ export default function ResiduosEfluentes() {
       }
       maxVal = Math.ceil(maxVal * 1.2) || 4;
 
-      // Y axis
-      pdf.setDrawColor("#cccccc");
-      pdf.setLineWidth(0.3);
+      // Grid lines
+      pdf.setDrawColor("#e0e0e0");
+      pdf.setLineWidth(0.2);
       const ySteps = 5;
       for (let i = 0; i <= ySteps; i++) {
         const y = chartBottom - (chartH * i) / ySteps;
         pdf.line(chartLeft, y, chartRight, y);
         pdf.setFontSize(7);
-        pdf.setTextColor("#666666");
+        pdf.setTextColor("#888888");
         pdf.setFont("helvetica", "normal");
-        pdf.text(String(Math.round((maxVal * i) / ySteps)), chartLeft - 3, y + 1.5, { align: "right" });
+        pdf.text(String(Math.round((maxVal * i) / ySteps)), chartLeft - 4, y + 1.5, { align: "right" });
       }
 
       const barColors = ["#2196F3", "#4CAF50", "#9E9E9E", "#FF9800", "#8BC34A"];
@@ -320,12 +354,17 @@ export default function ResiduosEfluentes() {
       let lx = chartLeft;
       TIPOS_RESIDUO.forEach((t, i) => {
         pdf.setFillColor(barColors[i]);
-        pdf.rect(lx, legendY, 4, 3, "F");
-        pdf.setFontSize(6);
+        pdf.roundedRect(lx, legendY - 1, 5, 4, 1, 1, "F");
+        pdf.setFontSize(7);
         pdf.setTextColor("#333333");
-        pdf.text(t.label, lx + 6, legendY + 2.5);
-        lx += 30;
+        pdf.setFont("helvetica", "normal");
+        pdf.text(t.label, lx + 7, legendY + 2);
+        lx += 35;
       });
+
+      pdf.setFontSize(7);
+      pdf.setTextColor("#999999");
+      pdf.text(`Gerado em ${new Date().toLocaleDateString("pt-BR")}`, pageW - margin, pageH - 8, { align: "right" });
 
       const { triggerBlobDownload } = await import("@/lib/pdfDownload");
       const blob = pdf.output("blob");
