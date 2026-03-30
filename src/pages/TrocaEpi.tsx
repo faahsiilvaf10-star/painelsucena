@@ -773,7 +773,7 @@ export default function TrocaEpi() {
                             value={`${col.nome} ${col.matricula} ${col.funcao}`}
                             onSelect={() => {
                               setAutorizadoPor(col.nome);
-                              setMatriculaAutorizador(col.matricula || "");
+                              setMatriculaAutorizador(col.matriculaHydro || col.matricula || "");
                               setAuthPopoverOpen(false);
                             }}
                           >
