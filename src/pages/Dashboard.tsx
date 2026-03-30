@@ -165,6 +165,22 @@ const Dashboard = () => {
 
   return (
     <Layout>
+      {/* Last day of month matrix modals */}
+      <CelebrationModal
+        isOpen={lastDayMatrix.showCelebration}
+        onClose={() => lastDayMatrix.setShowCelebration(false)}
+        cargoName={lastDayMatrix.cargoName}
+        userName={lastDayMatrix.userName}
+        userAvatarUrl={lastDayMatrix.userAvatarUrl}
+      />
+      <MatrixReminderModal
+        isOpen={lastDayMatrix.showReminder}
+        onClose={() => lastDayMatrix.setShowReminder(false)}
+        cargoName={lastDayMatrix.cargoName}
+        progress={lastDayMatrix.progress}
+        userName={lastDayMatrix.userName}
+        userAvatarUrl={lastDayMatrix.userAvatarUrl}
+      />
       <div className="container mx-auto px-3 sm:px-6 py-3 sm:py-6">
         {/* Header */}
         <div className="flex items-center justify-between mb-5 animate-fade-in">
