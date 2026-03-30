@@ -46,49 +46,28 @@ export function MatrixAlertBanner() {
 
         const monthYear = getBrazilNorthMonthYear();
         
-        // Fetch all task completions for this month
+        // Fetch all task completions for this month (global - any user)
         const { data: completions, error: completionsError } = await supabase
           .from("matrix_task_completions")
-          .select("task_id, user_id")
+          .select("task_id")
           .eq("month_year", monthYear);
 
         if (completionsError) throw completionsError;
 
-        // Fetch all profiles with relevant cargos
-        const relevantCargos = Object.keys(cargoDefinitions) as Array<
-          "preposto" | "encarregado_geral" | "encarregado_i" | "encarregado_ii" | "tecnico_seguranca_i" | "tecnico_seguranca_ii"
-        >;
-        const { data: profiles, error: profilesError } = await supabase
-          .from("profiles")
-          .select("user_id, full_name, cargo")
-          .in("cargo", relevantCargos);
+        // Get globally completed task IDs (same logic as Matrix page)
+        const globallyCompletedTaskIds = new Set(completions?.map((c) => c.task_id) || []);
 
-        if (profilesError) throw profilesError;
-
-        // Build a map of user_id -> completed task_ids
-        const userCompletions = new Map<string, Set<string>>();
-        completions?.forEach((c) => {
-          if (!userCompletions.has(c.user_id)) {
-            userCompletions.set(c.user_id, new Set());
-          }
-          userCompletions.get(c.user_id)!.add(c.task_id);
-        });
-
-        // Find users who haven't completed their cargo's tasks
+        // Check each cargo's tasks against global completions
         const incomplete: IncompleteUser[] = [];
-        
-        profiles?.forEach((profile) => {
-          const cargoConfig = cargoDefinitions[profile.cargo];
-          if (!cargoConfig) return;
 
-          const userTasks = userCompletions.get(profile.user_id) || new Set();
-          const completedCount = cargoConfig.tarefas.filter((taskId) => 
-            userTasks.has(taskId)
+        Object.entries(cargoDefinitions).forEach(([, cargoConfig]) => {
+          const completedCount = cargoConfig.tarefas.filter((taskId) =>
+            globallyCompletedTaskIds.has(taskId)
           ).length;
 
           if (completedCount < cargoConfig.tarefas.length) {
             incomplete.push({
-              name: profile.full_name,
+              name: cargoConfig.cargo,
               cargo: cargoConfig.cargo,
               completedCount,
               totalTasks: cargoConfig.tarefas.length,
@@ -97,7 +76,7 @@ export function MatrixAlertBanner() {
         });
 
         // Sort by completion percentage (lowest first)
-        incomplete.sort((a, b) => 
+        incomplete.sort((a, b) =>
           (a.completedCount / a.totalTasks) - (b.completedCount / b.totalTasks)
         );
 
