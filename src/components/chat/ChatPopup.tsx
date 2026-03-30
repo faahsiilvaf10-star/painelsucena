@@ -1,4 +1,4 @@
-import { useState, useRef, useEffect } from "react";
+import { useState, useRef, useEffect, useMemo } from "react";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { NeonAvatar } from "@/components/ui/NeonAvatar";
 import { Button } from "@/components/ui/button";
@@ -13,6 +13,7 @@ import { Send, X, Loader2, Minimize2, Check, CheckCheck, Paperclip } from "lucid
 import { format } from "date-fns";
 import { ptBR } from "date-fns/locale";
 import { cn } from "@/lib/utils";
+import { useAllUsers } from "@/hooks/useAllUsers";
 import { toast } from "sonner";
 import { VerifiedBadge } from "@/components/VerifiedBadge";
 
@@ -51,6 +52,34 @@ export const ChatPopup = ({ user: selectedUser, onClose, onExpand }: ChatPopupPr
 
   const { messages, isLoading, sendMessage, uploadImage } = useChatMessages(selectedUser.user_id);
   const { isOtherTyping, sendTypingEvent, sendStopTypingEvent } = useTypingIndicator(selectedUser.user_id);
+  const { allUsers } = useAllUsers();
+
+  // Get live user data (for real-time online status and lastSeen)
+  const liveUser = useMemo(
+    () => allUsers.find(u => u.user_id === selectedUser.user_id) ?? selectedUser,
+    [allUsers, selectedUser]
+  );
+
+  const formatLastSeen = (lastSeen?: string) => {
+    if (!lastSeen) return "offline";
+    const date = new Date(lastSeen);
+    const now = new Date();
+    const diffMs = now.getTime() - date.getTime();
+    const diffMins = Math.floor(diffMs / 60000);
+    
+    if (diffMins < 1) return "visto agora";
+    if (diffMins < 60) return `visto há ${diffMins} min`;
+    
+    const isToday = date.toDateString() === now.toDateString();
+    const yesterday = new Date(now);
+    yesterday.setDate(yesterday.getDate() - 1);
+    const isYesterday = date.toDateString() === yesterday.toDateString();
+    
+    const time = format(date, "HH:mm", { locale: ptBR });
+    if (isToday) return `visto hoje às ${time}`;
+    if (isYesterday) return `visto ontem às ${time}`;
+    return `visto ${format(date, "dd/MM", { locale: ptBR })} às ${time}`;
+  };
 
   // Auto-scroll to bottom when new messages arrive
   useEffect(() => {
@@ -188,10 +217,10 @@ export const ChatPopup = ({ user: selectedUser, onClose, onExpand }: ChatPopupPr
             frameAnimation={selectedUser.frame_animation}
             size="sm"
           />
-          {selectedUser.isOnline && (
+          {liveUser.isOnline && (
             <span className="absolute -bottom-0.5 -right-0.5 w-2.5 h-2.5 bg-green-400 rounded-full border-2 border-[#008069] dark:border-[#1f2c34]" />
           )}
-          {selectedUser.isAdmin && (
+          {liveUser.isAdmin && (
             <div className="absolute -top-1 -right-1">
               <VerifiedBadge size="xs" />
             </div>
@@ -200,16 +229,16 @@ export const ChatPopup = ({ user: selectedUser, onClose, onExpand }: ChatPopupPr
 
         <div className="flex-1 min-w-0">
           <p className="text-white text-sm font-medium truncate flex items-center gap-1">
-            {selectedUser.full_name}
-            {selectedUser.isAdmin && <VerifiedBadge size="xs" />}
+            {liveUser.full_name}
+            {liveUser.isAdmin && <VerifiedBadge size="xs" />}
           </p>
           <p className="text-white/70 text-xs truncate">
             {isOtherTyping ? (
               <span className="text-[#25d366]">digitando...</span>
-            ) : selectedUser.isOnline ? (
+            ) : liveUser.isOnline ? (
               "online"
             ) : (
-              "offline"
+              formatLastSeen(liveUser.lastSeen)
             )}
           </p>
         </div>
