@@ -245,7 +245,14 @@ export default function ArquivosSeguranca() {
                         className="relative flex h-32 cursor-pointer items-center justify-center bg-muted/50 transition-colors hover:bg-muted"
                         onClick={() => handleView(file)}
                       >
-                        <FileIcon className="h-16 w-16 text-muted-foreground/70" />
+                        <div className="relative">
+                          <FileIcon className="h-16 w-16 text-muted-foreground/70" />
+                          {getFileLabel(file.file_type, file.file_name) && (
+                            <span className="absolute inset-0 flex items-center justify-center pt-2 text-[10px] font-bold text-muted-foreground">
+                              {getFileLabel(file.file_type, file.file_name)}
+                            </span>
+                          )}
+                        </div>
                         <div className="absolute inset-0 flex items-center justify-center bg-black/50 opacity-0 transition-opacity group-hover:opacity-100">
                           <Eye className="h-5 w-5 text-white" />
                         </div>
