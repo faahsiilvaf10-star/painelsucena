@@ -14,7 +14,7 @@ export interface SiteSettings {
 const DEFAULT_NAV_ORDER = [
   "atividades", "atividades-ii", "destaques", "campanhas", "dds", "documentos", "entrada-saida",
   "estoque", "lembretes", "parte-diaria", "presenca", "matriz", "pedidos", "rdo", "relatorio",
-  "rh", "vistorias", "homologados", "vistoria-cintas", "hora-extra", "arquivos-seguranca",
+  "rh", "vistorias", "homologados", "vistoria-cintas", "arquivos-seguranca",
   "consumo-abastecimento", "plano-manutencao", "slides", "instacena", "inspecao-canteiro",
   "calendario-hydro", "games", "desvios", "planejamento", "emergencia"
 ];
