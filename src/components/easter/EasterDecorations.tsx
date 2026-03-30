@@ -29,7 +29,7 @@ export const EasterDecorations = () => {
               top: "-60px",
               width: "36px",
               height: "auto",
-              animation: `easterFloat 20s ease-in-out ${i * 1.5}s infinite`,
+              animation: `easterFloat ${12 + i * 2}s linear ${i * 1.5}s infinite`,
             }}
           />
         );
