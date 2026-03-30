@@ -321,10 +321,7 @@ const Matriz = () => {
   // Grid View - Parchment Style
   return (
     <Layout>
-      <div 
-        className="min-h-screen bg-cover bg-center bg-no-repeat"
-        style={{ backgroundImage: `url(${parchmentBg})` }}
-      >
+      <div className="min-h-screen" style={{ backgroundColor: '#3b4a5c' }}>
         <div className="container mx-auto px-4 sm:px-6 py-4 sm:py-8">
           {/* Header */}
           <div className="mb-6 sm:mb-8">
