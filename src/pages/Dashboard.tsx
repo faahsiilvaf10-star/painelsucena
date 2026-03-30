@@ -61,6 +61,7 @@ const Dashboard = () => {
   const { data: employees } = useEmployees();
   const { data: attendanceRecords } = useAttendanceRecords(today);
   const { data: equipment } = useEquipment();
+  const { data: currentlyInEquipment } = useEquipmentCurrentlyIn();
   const { dashboardOrder, updateOrder, isLoading: isLoadingOrder } = useDashboardOrder();
   useHolidayNotification();
   useFridayNotification();
@@ -68,6 +69,7 @@ const Dashboard = () => {
   const [isEditMode, setIsEditMode] = useState(false);
   const [localOrder, setLocalOrder] = useState<DashboardItemId[]>(dashboardOrder);
   const [isSaving, setIsSaving] = useState(false);
+  const [animatedEquipPercent, setAnimatedEquipPercent] = useState(0);
 
   const sensors = useSensors(
     useSensor(PointerSensor),
@@ -85,9 +87,14 @@ const Dashboard = () => {
   const absentToday = attendanceRecords?.filter(a => a.status === "absent" || a.status === "justified").length || 0;
   const presencePercent = totalEmployees > 0 ? Math.round(presentToday / totalEmployees * 100) : 0;
   
-  const inOperation = equipment?.filter((eq) => eq.stop_reason === "none")?.length || 0;
+  const inOperation = currentlyInEquipment?.length || 0;
   const totalEquip = equipment?.length || 0;
   const equipPercent = totalEquip > 0 ? Math.round(inOperation / totalEquip * 100) : 0;
+
+  useEffect(() => {
+    const t = setTimeout(() => setAnimatedEquipPercent(equipPercent), 150);
+    return () => clearTimeout(t);
+  }, [equipPercent]);
 
   const handleToggleEditMode = () => {
     if (!isEditMode) {
