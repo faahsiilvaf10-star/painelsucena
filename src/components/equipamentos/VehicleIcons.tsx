@@ -1,4 +1,5 @@
 import React from "react";
+import pipaTruckImg from "@/assets/pipa-truck.png";
 
 export type EquipmentType = "pipa" | "munk" | "camionete" | "onibus";
 
