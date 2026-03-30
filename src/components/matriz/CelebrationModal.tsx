@@ -1,5 +1,6 @@
 import { useEffect, useState } from "react";
 import { Dialog, DialogContent } from "@/components/ui/dialog";
+import { X } from "lucide-react";
 
 interface CelebrationModalProps {
   isOpen: boolean;
@@ -23,19 +24,25 @@ export function CelebrationModal({ isOpen, onClose, cargoName, userName, userAva
       }));
       setSparkles(newSparkles);
 
-      const timer = setTimeout(() => onClose(), 8000);
-      return () => clearTimeout(timer);
+      // No auto-close - only closes on X click
     }
   }, [isOpen, onClose]);
 
   const displayName = userName || "Colaborador";
 
   return (
-    <Dialog open={isOpen} onOpenChange={onClose}>
-      <DialogContent className="sm:max-w-md border-none bg-transparent shadow-none overflow-visible p-0">
+    <Dialog open={isOpen} onOpenChange={() => {}}>
+      <DialogContent className="sm:max-w-md border-none bg-transparent shadow-none overflow-visible p-0 [&>button]:hidden">
         <div className="relative w-full flex items-center justify-center" style={{ minHeight: 520 }}>
           {/* Background card */}
           <div className="relative w-full rounded-3xl overflow-hidden bg-gradient-to-b from-gray-100 via-white to-gray-50 dark:from-gray-800 dark:via-gray-900 dark:to-gray-800 shadow-2xl p-6 pt-8 flex flex-col items-center">
+            {/* Close button */}
+            <button
+              onClick={onClose}
+              className="absolute top-3 right-3 z-20 w-8 h-8 rounded-full bg-red-500 hover:bg-red-600 text-white flex items-center justify-center shadow-lg transition-colors"
+            >
+              <X className="w-5 h-5" />
+            </button>
             
             {/* Sparkles */}
             {sparkles.map((s) => (
