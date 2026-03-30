@@ -91,13 +91,22 @@ export const useSaveRDOReport = () => {
         .maybeSingle();
 
       if (existing) {
-        // Update existing report
+        // Update existing report - exclude undefined efetivo fields to avoid overwriting
+        const updateFields: Record<string, any> = {
+          ...report,
+          updated_at: new Date().toISOString(),
+        };
+        // Don't overwrite efetivo fields if they're not explicitly provided
+        if (report.efetivo_gabiao_text === undefined) {
+          delete updateFields.efetivo_gabiao_text;
+        }
+        if (report.efetivo_jardinagem_text === undefined) {
+          delete updateFields.efetivo_jardinagem_text;
+        }
+
         const { data, error } = await supabase
           .from("rdo_reports")
-          .update({
-            ...report,
-            updated_at: new Date().toISOString(),
-          })
+          .update(updateFields)
           .eq("id", existing.id)
           .select()
           .single();
