@@ -62,7 +62,7 @@ export const EasterDecorations = () => {
       <img
         src={easterPascoa}
         alt=""
-        className="fixed top-1 left-16 z-[2] pointer-events-none select-none opacity-70 dark:opacity-40"
+        className="fixed top-0 left-16 z-[9999] pointer-events-none select-none opacity-70 dark:opacity-40"
         style={{
           width: "120px",
           height: "auto",
