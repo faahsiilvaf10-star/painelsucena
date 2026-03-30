@@ -52,6 +52,34 @@ export const ChatPopup = ({ user: selectedUser, onClose, onExpand }: ChatPopupPr
 
   const { messages, isLoading, sendMessage, uploadImage } = useChatMessages(selectedUser.user_id);
   const { isOtherTyping, sendTypingEvent, sendStopTypingEvent } = useTypingIndicator(selectedUser.user_id);
+  const { allUsers } = useAllUsers();
+
+  // Get live user data (for real-time online status and lastSeen)
+  const liveUser = useMemo(
+    () => allUsers.find(u => u.user_id === selectedUser.user_id) ?? selectedUser,
+    [allUsers, selectedUser]
+  );
+
+  const formatLastSeen = (lastSeen?: string) => {
+    if (!lastSeen) return "offline";
+    const date = new Date(lastSeen);
+    const now = new Date();
+    const diffMs = now.getTime() - date.getTime();
+    const diffMins = Math.floor(diffMs / 60000);
+    
+    if (diffMins < 1) return "visto agora";
+    if (diffMins < 60) return `visto há ${diffMins} min`;
+    
+    const isToday = date.toDateString() === now.toDateString();
+    const yesterday = new Date(now);
+    yesterday.setDate(yesterday.getDate() - 1);
+    const isYesterday = date.toDateString() === yesterday.toDateString();
+    
+    const time = format(date, "HH:mm", { locale: ptBR });
+    if (isToday) return `visto hoje às ${time}`;
+    if (isYesterday) return `visto ontem às ${time}`;
+    return `visto ${format(date, "dd/MM", { locale: ptBR })} às ${time}`;
+  };
 
   // Auto-scroll to bottom when new messages arrive
   useEffect(() => {
