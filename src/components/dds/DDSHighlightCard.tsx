@@ -54,71 +54,64 @@ export const DDSHighlightCard = () => {
     return name.substring(0, 2).toUpperCase();
   };
 
-  const handlePhotoUpload = async (event: React.ChangeEvent<HTMLInputElement>) => {
+  // Upload THEME photo (shows in Destaques only, NO InstaCena)
+  const handleThemePhotoUpload = async (event: React.ChangeEvent<HTMLInputElement>) => {
     const file = event.target.files?.[0];
     if (!file || !todayDDS) return;
-
-    // Validate file
-    if (!file.type.startsWith("image/")) {
-      toast.error("Por favor, selecione uma imagem");
-      return;
-    }
-
-    if (file.size > 5 * 1024 * 1024) {
-      toast.error("A imagem deve ter no máximo 5MB");
-      return;
-    }
-
+    if (!file.type.startsWith("image/")) { toast.error("Por favor, selecione uma imagem"); return; }
+    if (file.size > 5 * 1024 * 1024) { toast.error("A imagem deve ter no máximo 5MB"); return; }
     setIsUploading(true);
-
     try {
       const fileExt = file.name.split(".").pop();
-      const fileName = `dds-${todayDDS.scheduled_date}-${Date.now()}.${fileExt}`;
-
-      const { error: uploadError } = await supabase.storage
-        .from("site-assets")
-        .upload(fileName, file, { upsert: true });
-
+      const fileName = `dds-theme-${todayDDS.scheduled_date}-${Date.now()}.${fileExt}`;
+      const { error: uploadError } = await supabase.storage.from("site-assets").upload(fileName, file, { upsert: true });
       if (uploadError) throw uploadError;
-
-      const { data: urlData } = supabase.storage
-        .from("site-assets")
-        .getPublicUrl(fileName);
-
-      await updatePhoto.mutateAsync({
-        id: todayDDS.id,
-        photo_url: urlData.publicUrl,
-      });
-
-      toast.success("Foto do DDS adicionada com sucesso!");
-
-      // Create InstaCena post with the DDS photo (non-blocking)
-      if (profile) {
-        try {
-          const presenterName = todayDDS.presenter?.full_name || todayDDS.external_presenter_name || "Palestrante";
-          const { error: postError } = await supabase.from("instacena_posts").insert({
-            user_id: profile.user_id,
-            user_name: profile.full_name,
-            user_avatar_url: profile.avatar_url,
-            content: `📸 Foto do DDS de hoje adicionada!\n\n📋 Tema: ${todayDDS.theme}\n🎤 Palestrante: ${presenterName}`,
-            image_urls: [urlData.publicUrl],
-            is_system_post: false,
-          });
-          if (postError) {
-            console.error("Error creating InstaCena post:", postError);
-          }
-        } catch (postErr) {
-          console.error("Error creating InstaCena post:", postErr);
-        }
-      }
+      const { data: urlData } = supabase.storage.from("site-assets").getPublicUrl(fileName);
+      await updatePhoto.mutateAsync({ id: todayDDS.id, photo_url: urlData.publicUrl });
+      toast.success("Foto do tema adicionada!");
     } catch (error) {
-      console.error("Error uploading photo:", error);
+      console.error("Error uploading theme photo:", error);
       toast.error("Erro ao fazer upload da foto");
     } finally {
       setIsUploading(false);
-      if (fileInputRef.current) {
-        fileInputRef.current.value = "";
+      if (fileInputRef.current) fileInputRef.current.value = "";
+    }
+  };
+
+  // Upload EVENT photo (what happened during DDS → posts to InstaCena)
+  const handleEventPhotoUpload = async (event: React.ChangeEvent<HTMLInputElement>) => {
+    const file = event.target.files?.[0];
+    if (!file || !todayDDS) return;
+    if (!file.type.startsWith("image/")) { toast.error("Por favor, selecione uma imagem"); return; }
+    if (file.size > 5 * 1024 * 1024) { toast.error("A imagem deve ter no máximo 5MB"); return; }
+    setIsUploadingEvent(true);
+    try {
+      const fileExt = file.name.split(".").pop();
+      const fileName = `dds-event-${todayDDS.scheduled_date}-${Date.now()}.${fileExt}`;
+      const { error: uploadError } = await supabase.storage.from("site-assets").upload(fileName, file, { upsert: true });
+      if (uploadError) throw uploadError;
+      const { data: urlData } = supabase.storage.from("site-assets").getPublicUrl(fileName);
+      await updateEventPhoto.mutateAsync({ id: todayDDS.id, event_photo_url: urlData.publicUrl });
+      toast.success("Foto do registro adicionada!");
+
+      // Post to InstaCena
+      if (profile) {
+        const presenterName = todayDDS.presenter?.full_name || todayDDS.external_presenter_name || "Palestrante";
+        await supabase.from("instacena_posts").insert({
+          user_id: profile.user_id,
+          user_name: profile.full_name,
+          user_avatar_url: profile.avatar_url,
+          content: `📸 Registro do DDS de hoje!\n\n📋 Tema: ${todayDDS.theme}\n🎤 Palestrante: ${presenterName}`,
+          image_urls: [urlData.publicUrl],
+          is_system_post: false,
+        });
       }
+    } catch (error) {
+      console.error("Error uploading event photo:", error);
+      toast.error("Erro ao fazer upload da foto");
+    } finally {
+      setIsUploadingEvent(false);
+      if (eventFileInputRef.current) eventFileInputRef.current.value = "";
     }
   };
 
