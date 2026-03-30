@@ -1,5 +1,4 @@
 import { useEffect, useState, useCallback } from "react";
-import { Card, CardContent } from "@/components/ui/card";
 import { Cloud, CloudRain, Sun, CloudSun, CloudSnow, CloudLightning, Droplets, Wind, Thermometer, MapPin, RefreshCw } from "lucide-react";
 import { useIsMobile } from "@/hooks/use-mobile";
 import { Button } from "@/components/ui/button";
@@ -30,12 +29,12 @@ const getWeatherIcon = (code: number) => {
   const cls = "h-7 w-7";
   if (code === 0 || code === 1) return <Sun className={`${cls} text-yellow-400`} />;
   if (code === 2) return <CloudSun className={`${cls} text-amber-300`} />;
-  if (code === 3 || code === 45 || code === 48) return <Cloud className={`${cls} text-muted-foreground`} />;
+  if (code === 3 || code === 45 || code === 48) return <Cloud className={`${cls}`} style={{ color: "hsl(30, 10%, 55%)" }} />;
   if (code >= 51 && code <= 67) return <CloudRain className={`${cls} text-blue-400`} />;
   if (code >= 71 && code <= 77) return <CloudSnow className={`${cls} text-blue-200`} />;
   if (code >= 80 && code <= 82) return <CloudRain className={`${cls} text-blue-500`} />;
   if (code >= 95) return <CloudLightning className={`${cls} text-yellow-500`} />;
-  return <Cloud className={`${cls} text-muted-foreground`} />;
+  return <Cloud className={`${cls}`} style={{ color: "hsl(30, 10%, 55%)" }} />;
 };
 
 export function WeatherWidget() {
@@ -98,71 +97,62 @@ export function WeatherWidget() {
     return () => clearInterval(interval);
   }, [fetchWeather]);
 
+  const cardStyle = {
+    background: "linear-gradient(145deg, hsl(220, 15%, 22%), hsl(220, 18%, 16%))",
+    boxShadow: "6px 6px 14px hsl(30, 10%, 78%), -6px -6px 14px hsl(30, 20%, 98%)",
+    border: "1px solid hsl(30, 15%, 85%)",
+  };
+
   if (error) {
     return (
-      <Card className="border-border/50 bg-card/80 backdrop-blur-sm">
-        <CardContent className="p-4 text-center">
-          <Cloud className="h-8 w-8 mx-auto mb-2 text-muted-foreground" />
-          <p className="text-sm text-muted-foreground">{error}</p>
-          <Button variant="ghost" size="sm" className="mt-2" onClick={fetchWeather}>
-            <RefreshCw className="h-3 w-3 mr-1" /> Tentar novamente
-          </Button>
-        </CardContent>
-      </Card>
+      <div className="rounded-2xl p-4 text-center" style={cardStyle}>
+        <Cloud className="h-8 w-8 mx-auto mb-2" style={{ color: "hsl(30, 10%, 60%)" }} />
+        <p className="text-sm" style={{ color: "hsl(0, 0%, 70%)" }}>{error}</p>
+        <Button variant="ghost" size="sm" className="mt-2 text-white/70 hover:text-white" onClick={fetchWeather}>
+          <RefreshCw className="h-3 w-3 mr-1" /> Tentar novamente
+        </Button>
+      </div>
     );
   }
 
   if (loading || !weather) {
     return (
-      <Card className="border-border/50 bg-card/80 backdrop-blur-sm">
-        <CardContent className="p-4 flex items-center gap-4">
-          <Skeleton className="h-10 w-20" />
-          <Skeleton className="h-5 w-40" />
-        </CardContent>
-      </Card>
+      <div className="rounded-2xl p-4" style={cardStyle}>
+        <Skeleton className="h-10 w-20 bg-white/10" />
+        <Skeleton className="h-5 w-32 mt-2 bg-white/10" />
+      </div>
     );
   }
 
   const description = WMO_DESCRIPTIONS[weather.weatherCode] || "Indisponível";
 
   return (
-    <Card className="border-border/50 bg-card/80 backdrop-blur-sm overflow-hidden animate-fade-in">
-      <CardContent className="p-4">
-        <div className="flex items-center justify-between">
-          {/* Left: location + temp + description */}
-          <div>
-            <div className="flex items-center gap-1.5 text-xs text-muted-foreground mb-1">
-              <MapPin className="h-3 w-3" />
-              <span>{weather.locationName}</span>
-              <span className="text-[10px] text-muted-foreground/60">• {weather.lastUpdated}</span>
-              <Button variant="ghost" size="icon" className="h-5 w-5 ml-0.5" onClick={fetchWeather} title="Atualizar">
-                <RefreshCw className={`h-3 w-3 ${loading ? 'animate-spin' : ''}`} />
-              </Button>
-            </div>
-            <div className="flex items-end gap-2">
-              <span className="text-4xl font-extrabold tracking-tight text-foreground">{weather.temperature}°</span>
-              {getWeatherIcon(weather.weatherCode)}
-            </div>
-            <p className="text-sm font-medium text-muted-foreground">{description}</p>
-          </div>
+    <div className="rounded-2xl p-4 animate-fade-in" style={cardStyle}>
+      <div className="flex items-center gap-1.5 text-xs mb-2" style={{ color: "hsl(0, 0%, 65%)" }}>
+        <MapPin className="h-3 w-3" />
+        <span>{weather.locationName}</span>
+      </div>
 
-          {/* Right: details */}
-          <div className="text-right space-y-1.5 text-xs bg-muted/40 rounded-xl px-3 py-2.5 backdrop-blur-sm">
-            <div className="flex items-center gap-1.5 justify-end">
-              <Thermometer className="h-3.5 w-3.5 text-muted-foreground" />
-              <span className="text-foreground font-medium">Sensação {weather.apparentTemp}°</span>
-            </div>
-            <div className="flex items-center gap-1.5 justify-end">
-              <Droplets className="h-3.5 w-3.5 text-muted-foreground" />
-              <span className="text-foreground font-medium">Umidade {weather.humidity}%</span>
-            </div>
-            <div className="flex items-center gap-1.5 justify-end">
-              <Wind className="h-3.5 w-3.5 text-muted-foreground" />
-              <span className="text-foreground font-medium">Vento {weather.windSpeed} km/h</span>
-            </div>
-          </div>
+      <div className="flex items-end gap-2 mb-1">
+        <span className="text-4xl font-extrabold tracking-tight text-white">{weather.temperature}°</span>
+        {getWeatherIcon(weather.weatherCode)}
+      </div>
+      <p className="text-sm font-medium mb-3" style={{ color: "hsl(0, 0%, 70%)" }}>{description}</p>
+
+      <div className="space-y-1 text-xs" style={{ color: "hsl(0, 0%, 75%)" }}>
+        <div className="flex items-center gap-1.5">
+          <Thermometer className="h-3.5 w-3.5" />
+          <span>Sensação {weather.apparentTemp}°</span>
         </div>
-      </CardContent>
-    </Card>
+        <div className="flex items-center gap-1.5">
+          <Droplets className="h-3.5 w-3.5" />
+          <span>Umidade {weather.humidity}%</span>
+        </div>
+        <div className="flex items-center gap-1.5">
+          <Wind className="h-3.5 w-3.5" />
+          <span>Vento {weather.windSpeed} km/h</span>
+        </div>
+      </div>
+    </div>
   );
 }
