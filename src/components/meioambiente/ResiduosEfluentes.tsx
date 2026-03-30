@@ -317,27 +317,29 @@ export default function ResiduosEfluentes() {
       const chartH = chartBottom - chartTop2;
       const chartW = chartRight - chartLeft;
 
-      let maxVal = 4;
+      // Find max individual bar value (not stacked)
+      let maxVal = 0;
       for (let m = 1; m <= 12; m++) {
-        let rowTotal = 0;
         TIPOS_RESIDUO.forEach((t) => {
-          rowTotal += lookup.get(`${m}-${t.key}`) || 0;
+          const v = lookup.get(`${m}-${t.key}`) || 0;
+          if (v > maxVal) maxVal = v;
         });
-        if (rowTotal > maxVal) maxVal = rowTotal;
       }
-      maxVal = Math.ceil(maxVal * 1.2) || 4;
+      // Round up to nearest 10
+      maxVal = Math.max(10, Math.ceil(maxVal / 10) * 10);
 
-      // Grid lines
+      // Grid lines with round numbers (0, 10, 20, 30, 40...)
       pdf.setDrawColor("#e0e0e0");
       pdf.setLineWidth(0.2);
-      const ySteps = 5;
+      const yStep = 10; // step of 10
+      const ySteps = maxVal / yStep;
       for (let i = 0; i <= ySteps; i++) {
         const y = chartBottom - (chartH * i) / ySteps;
         pdf.line(chartLeft, y, chartRight, y);
         pdf.setFontSize(7);
         pdf.setTextColor("#888888");
         pdf.setFont("helvetica", "normal");
-        pdf.text(String(Math.round((maxVal * i) / ySteps)), chartLeft - 4, y + 1.5, { align: "right" });
+        pdf.text(String(i * yStep), chartLeft - 4, y + 1.5, { align: "right" });
       }
 
       const barColors = ["#2196F3", "#4CAF50", "#9E9E9E", "#FF9800", "#8BC34A"];
