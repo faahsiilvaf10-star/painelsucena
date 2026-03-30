@@ -273,7 +273,7 @@ const Dashboard = () => {
                       strokeWidth={8}
                       strokeLinecap="round"
                       strokeDasharray={`${42 * 2 * Math.PI} ${42 * 2 * Math.PI}`}
-                      strokeDashoffset={42 * 2 * Math.PI - (equipPercent / 100) * 42 * 2 * Math.PI}
+                      strokeDashoffset={42 * 2 * Math.PI - (animatedEquipPercent / 100) * 42 * 2 * Math.PI}
                       r={42}
                       cx={50}
                       cy={50}
