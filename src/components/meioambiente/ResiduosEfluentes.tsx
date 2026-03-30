@@ -378,6 +378,78 @@ export default function ResiduosEfluentes() {
       pdf.setTextColor("#999999");
       pdf.text(`Gerado em ${new Date().toLocaleDateString("pt-BR")}`, pageW - margin, pageH - 8, { align: "right" });
 
+      // ===== PAGE 4: EFLUENTES CHART =====
+      pdf.addPage("a4", "l");
+      await drawHeader("GRÁFICO - EFLUENTES SANITÁRIOS POR MÊS");
+
+      // Accumulated total text
+      pdf.setFontSize(10);
+      pdf.setTextColor("#333333");
+      pdf.setFont("helvetica", "normal");
+      pdf.text(
+        `Acumulado até ${new Date().toLocaleDateString("pt-BR")}: ${efTotal.toFixed(2)} m³`,
+        margin,
+        margin + 25
+      );
+
+      const efChartLeft = cm + 15;
+      const efChartBottom = pageH - 35;
+      const efChartTop = cm + 10;
+      const efChartRight = pageW - cm;
+      const efChartH = efChartBottom - efChartTop;
+      const efChartW = efChartRight - efChartLeft;
+
+      // Find max efluente value
+      let maxEfVal = 0;
+      for (let m = 1; m <= 12; m++) {
+        const v = lookup.get(`${m}-${TIPO_EFLUENTE.key}`) || 0;
+        if (v > maxEfVal) maxEfVal = v;
+      }
+      maxEfVal = Math.max(2, Math.ceil(maxEfVal));
+      // Round up to nearest even number for nice axis
+      if (maxEfVal % 2 !== 0) maxEfVal += 1;
+
+      // Grid lines
+      pdf.setDrawColor("#e0e0e0");
+      pdf.setLineWidth(0.2);
+      const efYSteps = maxEfVal;
+      for (let i = 0; i <= efYSteps; i++) {
+        const y = efChartBottom - (efChartH * i) / efYSteps;
+        pdf.line(efChartLeft, y, efChartRight, y);
+        pdf.setFontSize(7);
+        pdf.setTextColor("#888888");
+        pdf.setFont("helvetica", "normal");
+        pdf.text(String(i), efChartLeft - 4, y + 1.5, { align: "right" });
+      }
+
+      const efGroupW = efChartW / 12;
+      const efBarW = efGroupW * 0.5;
+      const efBarColor = "#00BCD4";
+
+      for (let m = 0; m < 12; m++) {
+        const val = lookup.get(`${m + 1}-${TIPO_EFLUENTE.key}`) || 0;
+        const barH = (val / maxEfVal) * efChartH;
+        const bx = efChartLeft + m * efGroupW + (efGroupW - efBarW) / 2;
+        pdf.setFillColor(efBarColor);
+        if (barH > 0) pdf.rect(bx, efChartBottom - barH, efBarW, barH, "F");
+        pdf.setFontSize(7);
+        pdf.setTextColor("#666666");
+        pdf.text(mesLabels[m], efChartLeft + m * efGroupW + efGroupW / 2, efChartBottom + 5, { align: "center" });
+      }
+
+      // Legend
+      const efLegendY = efChartBottom + 12;
+      pdf.setFillColor(efBarColor);
+      pdf.roundedRect(efChartLeft, efLegendY - 1, 5, 4, 1, 1, "F");
+      pdf.setFontSize(7);
+      pdf.setTextColor("#333333");
+      pdf.setFont("helvetica", "normal");
+      pdf.text("Efluentes (m³)", efChartLeft + 7, efLegendY + 2);
+
+      pdf.setFontSize(7);
+      pdf.setTextColor("#999999");
+      pdf.text(`Gerado em ${new Date().toLocaleDateString("pt-BR")}`, pageW - margin, pageH - 8, { align: "right" });
+
       const { triggerBlobDownload } = await import("@/lib/pdfDownload");
       const blob = pdf.output("blob");
       triggerBlobDownload(blob, `residuos-efluentes-${ano}.pdf`);
