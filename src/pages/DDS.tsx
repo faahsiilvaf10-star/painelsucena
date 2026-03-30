@@ -1,7 +1,7 @@
-import { useState, useMemo } from "react";
+import { useState, useMemo, useRef } from "react";
 import { format, parse, isWeekend, getDay } from "date-fns";
 import { ptBR } from "date-fns/locale";
-import { Shuffle, Calendar, Save, Trash2, Edit2, Sun, Shield, ChevronLeft, ChevronRight, Loader2, AtSign, Plus, User, UserPlus, BookOpen } from "lucide-react";
+import { Shuffle, Calendar, Save, Trash2, Edit2, Sun, Shield, ChevronLeft, ChevronRight, Loader2, AtSign, Plus, User, UserPlus, BookOpen, Camera, Image, X, ZoomIn } from "lucide-react";
 import Layout from "@/components/layout/Layout";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from "@/components/ui/card";
@@ -16,6 +16,7 @@ import { Label } from "@/components/ui/label";
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogFooter } from "@/components/ui/dialog";
 import { AlertDialog, AlertDialogAction, AlertDialogCancel, AlertDialogContent, AlertDialogDescription, AlertDialogFooter, AlertDialogHeader, AlertDialogTitle, AlertDialogTrigger } from "@/components/ui/alert-dialog";
 import { toast } from "sonner";
+import { supabase } from "@/integrations/supabase/client";
 import { useAuth } from "@/hooks/useAuth";
 import { useProfile } from "@/hooks/useProfile";
 import { useIsAdmin } from "@/hooks/useUserRole";
@@ -24,6 +25,7 @@ import {
   useCreateDDSSchedule,
   useUpdateDDSSchedule,
   useDeleteDDSSchedule,
+  useUpdateDDSPhoto,
   useClearMonthDDS,
   useAllProfiles,
   getWeekdaysInMonth,
@@ -60,7 +62,7 @@ export default function DDS() {
   const deleteSchedule = useDeleteDDSSchedule();
   const clearMonth = useClearMonthDDS();
   const createNotification = useCreateNotification();
-
+  const updateDDSPhoto = useUpdateDDSPhoto();
   // Hook to refresh DDS data at midnight (00:00 Pará time)
   useDDSMidnightRefresh();
 
@@ -78,6 +80,33 @@ export default function DDS() {
   const [newIsExternal, setNewIsExternal] = useState(false);
   const [newTheme, setNewTheme] = useState("");
   
+  // Photo states
+  const [fullscreenPhoto, setFullscreenPhoto] = useState<string | null>(null);
+  const [uploadingPhotoId, setUploadingPhotoId] = useState<string | null>(null);
+  const photoInputRef = useRef<HTMLInputElement>(null);
+  const [photoTargetId, setPhotoTargetId] = useState<string | null>(null);
+
+  const handlePhotoUpload = async (file: File, scheduleId: string) => {
+    if (!file || !user) return;
+    setUploadingPhotoId(scheduleId);
+    try {
+      const ext = file.name.split(".").pop() || "jpg";
+      const path = `dds/${scheduleId}_${Date.now()}.${ext}`;
+      const { error: uploadError } = await supabase.storage
+        .from("desvios")
+        .upload(path, file, { upsert: true });
+      if (uploadError) throw uploadError;
+      const { data: urlData } = supabase.storage.from("desvios").getPublicUrl(path);
+      await updateDDSPhoto.mutateAsync({ id: scheduleId, photo_url: urlData.publicUrl });
+      toast.success("Foto do DDS adicionada!");
+    } catch (err) {
+      console.error("Error uploading DDS photo:", err);
+      toast.error("Erro ao enviar foto");
+    } finally {
+      setUploadingPhotoId(null);
+    }
+  };
+
 
   // Helper to create DDS mention notification
   const notifyPresenter = async (userId: string, date: string, theme: string) => {
@@ -521,16 +550,46 @@ export default function DDS() {
                             )}
                           </TableCell>
                           <TableCell>
-                            {schedule?.theme ? (
-                              <span className="text-sm hidden sm:inline">{schedule.theme}</span>
-                            ) : (
-                              <span className="text-muted-foreground text-sm italic hidden sm:inline">—</span>
-                            )}
+                            <div className="flex items-center gap-2">
+                              {schedule?.theme ? (
+                                <span className="text-sm hidden sm:inline">{schedule.theme}</span>
+                              ) : (
+                                <span className="text-muted-foreground text-sm italic hidden sm:inline">—</span>
+                              )}
+                              {schedule?.photo_url && (
+                                <Button
+                                  variant="ghost"
+                                  size="icon"
+                                  className="h-7 w-7 shrink-0"
+                                  onClick={() => setFullscreenPhoto(schedule.photo_url)}
+                                  title="Ver foto do DDS"
+                                >
+                                  <Image className="h-4 w-4 text-primary" />
+                                </Button>
+                              )}
+                            </div>
                           </TableCell>
                           {canEdit && (
                             <TableCell className="text-right">
                               {schedule ? (
                                 <div className="flex justify-end gap-1">
+                                  <Button
+                                    variant="ghost"
+                                    size="icon"
+                                    className="h-8 w-8"
+                                    onClick={() => {
+                                      setPhotoTargetId(schedule.id);
+                                      photoInputRef.current?.click();
+                                    }}
+                                    disabled={uploadingPhotoId === schedule.id}
+                                    title="Adicionar foto do DDS"
+                                  >
+                                    {uploadingPhotoId === schedule.id ? (
+                                      <Loader2 className="h-4 w-4 animate-spin" />
+                                    ) : (
+                                      <Camera className="h-4 w-4 text-primary" />
+                                    )}
+                                  </Button>
                                   <Button
                                     variant="ghost"
                                     size="icon"
@@ -780,6 +839,42 @@ export default function DDS() {
                 Adicionar
               </Button>
             </DialogFooter>
+          </DialogContent>
+        </Dialog>
+
+        {/* Hidden file input for photo upload */}
+        <input
+          ref={photoInputRef}
+          type="file"
+          accept="image/*"
+          className="hidden"
+          onChange={(e) => {
+            const file = e.target.files?.[0];
+            if (file && photoTargetId) {
+              handlePhotoUpload(file, photoTargetId);
+            }
+            e.target.value = "";
+          }}
+        />
+
+        {/* Fullscreen Photo Dialog */}
+        <Dialog open={!!fullscreenPhoto} onOpenChange={() => setFullscreenPhoto(null)}>
+          <DialogContent className="max-w-[95vw] max-h-[95vh] p-2 sm:p-4">
+            <DialogHeader>
+              <DialogTitle className="flex items-center gap-2">
+                <Image className="h-5 w-5" />
+                Foto do DDS
+              </DialogTitle>
+            </DialogHeader>
+            {fullscreenPhoto && (
+              <div className="flex items-center justify-center overflow-auto max-h-[80vh]">
+                <img
+                  src={fullscreenPhoto}
+                  alt="Foto do DDS"
+                  className="max-w-full max-h-[75vh] object-contain rounded-lg"
+                />
+              </div>
+            )}
           </DialogContent>
         </Dialog>
       </div>
