@@ -134,7 +134,7 @@ export function EquipmentStatusList() {
               className="flex flex-col gap-2 p-3 rounded-lg bg-muted/50"
             >
               <div className="flex items-center gap-3">
-                <div className="p-2 rounded-lg bg-background">
+                <div className="p-0.5 rounded-lg bg-background">
                   <VehicleIcon
                     type={vehicle.equipment_type as "pipa" | "munk" | "camionete" | "onibus"}
                     size="sm"
