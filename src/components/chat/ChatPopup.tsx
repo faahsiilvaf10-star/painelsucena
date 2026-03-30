@@ -227,17 +227,6 @@ export const ChatPopup = ({ user: selectedUser, onClose, onExpand }: ChatPopupPr
             className="h-7 w-7 text-white/80 hover:text-white hover:bg-white/10 rounded-full"
             onClick={(e) => {
               e.stopPropagation();
-              onExpand();
-            }}
-          >
-            <Maximize2 className="h-3.5 w-3.5" />
-          </Button>
-          <Button
-            variant="ghost"
-            size="icon"
-            className="h-7 w-7 text-white/80 hover:text-white hover:bg-white/10 rounded-full"
-            onClick={(e) => {
-              e.stopPropagation();
               setIsMinimized(!isMinimized);
             }}
           >
