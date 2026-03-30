@@ -242,17 +242,10 @@ export default function ArquivosSeguranca() {
                       className="group relative overflow-hidden transition-shadow hover:shadow-lg"
                     >
                       <div
-                        className="relative flex h-36 cursor-pointer items-center justify-center bg-muted/50 transition-colors hover:bg-muted overflow-hidden"
+                        className="relative flex h-32 cursor-pointer items-center justify-center bg-muted/50 transition-colors hover:bg-muted overflow-hidden"
                         onClick={() => handleView(file)}
                       >
-                        {file.file_type?.includes("pdf") ? (
-                          <iframe
-                            src={`${file.file_url}#toolbar=0&navpanes=0&scrollbar=0`}
-                            className="pointer-events-none h-[300px] w-[300px] scale-[0.5] origin-top-left absolute top-0 left-1/2 -translate-x-1/2 translate-x-[-150px]"
-                            title={file.file_name}
-                            loading="lazy"
-                          />
-                        ) : file.file_type?.includes("image") ? (
+                        {file.file_type?.includes("image") ? (
                           <img
                             src={file.file_url}
                             alt={file.file_name}
