@@ -40,6 +40,8 @@ function getFileIcon(fileType: string | null) {
   if (fileType.includes("image")) return FileImage;
   if (fileType.includes("sheet") || fileType.includes("excel") || fileType.includes("csv"))
     return FileSpreadsheet;
+  if (fileType.includes("zip") || fileType.includes("rar") || fileType.includes("compressed") || fileType.includes("archive"))
+    return File;
   return FileText;
 }
 
