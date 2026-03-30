@@ -13,6 +13,7 @@ import { Send, X, Loader2, Minimize2, Check, CheckCheck, Paperclip } from "lucid
 import { format } from "date-fns";
 import { ptBR } from "date-fns/locale";
 import { cn } from "@/lib/utils";
+import { useAllUsers } from "@/hooks/useAllUsers";
 import { toast } from "sonner";
 import { VerifiedBadge } from "@/components/VerifiedBadge";
 
