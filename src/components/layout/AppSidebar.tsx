@@ -422,7 +422,7 @@ export function AppSidebar({ lockedCollapsed = false }: { lockedCollapsed?: bool
         {isCollapsed ? (
           <PanelLeft className="h-4 w-4" />
         ) : (
-          <img src={sidebarArrowLeft} alt="Fechar" className="h-5 w-5" />
+          <img src={sidebarArrowLeft} alt="Fechar" className="h-7 w-7" />
         )}
       </Button>
 
