@@ -780,19 +780,30 @@ const Lembretes = () => {
 
               {/* Date filter */}
               <div className="flex items-center gap-2 mb-4">
-                <Calendar className="h-4 w-4 text-muted-foreground" />
-                <Input
-                  type="date"
-                  value={historyDateFilter}
-                  onChange={(e) => setHistoryDateFilter(e.target.value)}
-                  className="w-auto"
-                  placeholder="Filtrar por data"
-                />
-                {historyDateFilter && (
-                  <Button variant="ghost" size="sm" onClick={() => setHistoryDateFilter("")}>
-                    <XIcon className="h-4 w-4" />
-                    Limpar
-                  </Button>
+                <Button
+                  variant={showHistoryFilter ? "default" : "outline"}
+                  size="sm"
+                  onClick={() => setShowHistoryFilter(!showHistoryFilter)}
+                  className="gap-1.5"
+                >
+                  <Filter className="h-4 w-4" />
+                  Filtrar
+                </Button>
+                {showHistoryFilter && (
+                  <>
+                    <Input
+                      type="date"
+                      value={historyDateFilter}
+                      onChange={(e) => setHistoryDateFilter(e.target.value)}
+                      className="w-auto"
+                    />
+                    {historyDateFilter !== format(new Date(), "yyyy-MM-dd") && historyDateFilter && (
+                      <Button variant="ghost" size="sm" onClick={() => setHistoryDateFilter(format(new Date(), "yyyy-MM-dd"))}>
+                        <XIcon className="h-4 w-4" />
+                        Hoje
+                      </Button>
+                    )}
+                  </>
                 )}
               </div>
 
