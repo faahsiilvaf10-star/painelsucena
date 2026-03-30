@@ -197,7 +197,7 @@ const Matriz = () => {
           userName={profile?.name}
           userAvatarUrl={profile?.avatar_url}
         />
-        <div className="min-h-screen" style={{ backgroundColor: '#7a8fa3' }}>
+        <div className="min-h-screen" style={{ backgroundColor: '#d5dce4' }}>
           <div className="container mx-auto px-4 sm:px-6 py-4 sm:py-8">
             <Button
               variant="ghost"
@@ -321,19 +321,19 @@ const Matriz = () => {
   // Grid View - Parchment Style
   return (
     <Layout>
-      <div className="min-h-screen" style={{ backgroundColor: '#7a8fa3' }}>
+      <div className="min-h-screen" style={{ backgroundColor: '#d5dce4' }}>
         <div className="container mx-auto px-4 sm:px-6 py-4 sm:py-8">
           {/* Header */}
           <div className="mb-6 sm:mb-8">
             <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
               <div>
-                <h1 className="text-2xl sm:text-4xl font-bold italic text-white mb-1 sm:mb-2">
+                <h1 className="text-2xl sm:text-4xl font-bold italic text-stone-800 mb-1 sm:mb-2">
                   Matriz de Responsabilidades
                 </h1>
-                <p className="text-sm text-gray-300">
+                <p className="text-sm text-stone-600">
                   Selecione uma função para visualizar o progresso.
                 </p>
-                <p className="text-orange-300 text-xs sm:text-sm mt-2 italic">
+                <p className="text-orange-600 text-xs sm:text-sm mt-2 italic">
                   * Progresso zerado no dia 01 de cada mês.
                 </p>
               </div>
