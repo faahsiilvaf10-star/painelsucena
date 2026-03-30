@@ -438,10 +438,14 @@ const RelatorioPresenca = () => {
       }
       // ADMINISTRATIVO doesn't save to RDO
 
-      // Lock the specific area
-      await lockArea.mutateAsync(lockType);
-      toast.success(`Relatório ${area === "ÁREA GABIÃO" ? "Gabião" : "Jardinagem"} salvo!`);
-    } catch {
+      // Lock the specific area (only if not already locked)
+      if (!isAreaLocked(lockType)) {
+        await lockArea.mutateAsync(lockType);
+      }
+      const areaNames: Record<string, string> = { "ÁREA GABIÃO": "Gabião", "ROÇAGEM E PODAGEM": "Jardinagem", "ADMINISTRATIVO": "Administrativo" };
+      toast.success(`Relatório ${areaNames[area]} salvo!`);
+    } catch (err) {
+      console.error("Erro ao salvar relatório:", err);
       toast.error("Erro ao salvar relatório");
     }
   };
