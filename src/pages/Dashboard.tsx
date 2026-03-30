@@ -43,7 +43,7 @@ import { useCampaignNotifications } from "@/hooks/useCampaignNotifications";
 import { useEmployees } from "@/hooks/useEmployees";
 import { useAttendanceRecords } from "@/hooks/useAttendance";
 import { useEquipment } from "@/hooks/useEquipment";
-import { useEquipmentCurrentlyIn } from "@/hooks/useEquipmentMovements";
+import { useEquipmentCurrentlyIn, useAllRegisteredEquipmentCount } from "@/hooks/useEquipmentMovements";
 import { getBrazilNorthTodayString } from "@/lib/timezone";
 import { useDocumentExpiryNotifications } from "@/hooks/useDocumentExpiryNotifications";
 import { useVehicleExpiryNotifications } from "@/hooks/useVehicleExpiryNotifications";
@@ -62,6 +62,7 @@ const Dashboard = () => {
   const { data: attendanceRecords } = useAttendanceRecords(today);
   const { data: equipment } = useEquipment();
   const { data: currentlyInEquipment } = useEquipmentCurrentlyIn();
+  const { data: allRegisteredCount } = useAllRegisteredEquipmentCount();
   const { dashboardOrder, updateOrder, isLoading: isLoadingOrder } = useDashboardOrder();
   useHolidayNotification();
   useFridayNotification();
@@ -88,7 +89,7 @@ const Dashboard = () => {
   const presencePercent = totalEmployees > 0 ? Math.round(presentToday / totalEmployees * 100) : 0;
   
   const inOperation = currentlyInEquipment?.length || 0;
-  const totalEquip = equipment?.length || 0;
+  const totalEquip = allRegisteredCount || equipment?.length || 0;
   const equipPercent = totalEquip > 0 ? Math.round(inOperation / totalEquip * 100) : 0;
 
   useEffect(() => {
