@@ -65,7 +65,7 @@ export const useLastDayMatrixCheck = () => {
     setShowReminder,
     cargoName: cargoInfo?.cargo || "",
     progress,
-    userName: profile?.name || profile?.full_name,
+    userName: profile?.full_name,
     userAvatarUrl: profile?.avatar_url,
   };
 };
