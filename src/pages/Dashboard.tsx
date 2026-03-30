@@ -69,6 +69,7 @@ const Dashboard = () => {
   const { dashboardOrder, updateOrder, isLoading: isLoadingOrder } = useDashboardOrder();
   useHolidayNotification();
   useFridayNotification();
+  const lastDayMatrix = useLastDayMatrixCheck();
   
   const [isEditMode, setIsEditMode] = useState(false);
   const [localOrder, setLocalOrder] = useState<DashboardItemId[]>(dashboardOrder);
