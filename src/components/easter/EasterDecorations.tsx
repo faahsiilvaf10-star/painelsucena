@@ -16,7 +16,9 @@ export const EasterDecorations = () => {
   return (
     <>
       {/* Floating chocolate eggs */}
-      {[8, 25, 45, 65, 85].map((left, i) => (
+      {[8, 25, 45, 65, 85].map((left, i) => {
+        const img = i % 2 === 0 ? easterEgg : easterEggPink;
+        return (
         <img
           key={`egg-${i}`}
           src={easterEgg}
