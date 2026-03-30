@@ -8,7 +8,7 @@ import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { NeonAvatar } from "@/components/ui/NeonAvatar";
 import { Dialog, DialogContent, DialogTitle } from "@/components/ui/dialog";
 import { SunBorderAvatar } from "./SunBorderAvatar";
-import { useTodayDDS, useTomorrowDDS, useUpdateDDSPhoto } from "@/hooks/useDDSSchedule";
+import { useTodayDDS, useTomorrowDDS, useUpdateDDSPhoto, useUpdateDDSEventPhoto } from "@/hooks/useDDSSchedule";
 import { useProfile } from "@/hooks/useProfile";
 import { useIsAdmin } from "@/hooks/useUserRole";
 import { supabase } from "@/integrations/supabase/client";
@@ -23,14 +23,17 @@ export const DDSHighlightCard = () => {
   const { data: profile } = useProfile();
   const { isAdmin } = useIsAdmin();
   const updatePhoto = useUpdateDDSPhoto();
+  const updateEventPhoto = useUpdateDDSEventPhoto();
 
   // Hook to refresh DDS data at midnight (00:00 Pará time)
-  // Returns a key that changes when midnight occurs, forcing re-render
   const dateKey = useDDSMidnightRefresh();
 
   const [isUploading, setIsUploading] = useState(false);
+  const [isUploadingEvent, setIsUploadingEvent] = useState(false);
   const [photoModalOpen, setPhotoModalOpen] = useState(false);
+  const [eventPhotoModalOpen, setEventPhotoModalOpen] = useState(false);
   const fileInputRef = useRef<HTMLInputElement>(null);
+  const eventFileInputRef = useRef<HTMLInputElement>(null);
 
   // Use Brazil North timezone - recalculate when dateKey changes
   const today = useMemo(() => getBrazilNorthDate(), [dateKey]);
