@@ -80,7 +80,7 @@ const allNavItems: NavItem[] = [
   { id: "vistorias", icon: ClipboardCheck, label: "Vistorias Equipamentos", path: "/vistorias-equipamentos" },
   { id: "homologados", icon: BadgeCheck, label: "Homologados", path: "/homologados" },
   { id: "vistoria-cintas", icon: Link2, label: "Vistoria Cintas", path: "/vistoria-cintas" },
-  { id: "hora-extra", icon: Clock, label: "Hora Extra", path: "/hora-extra" },
+  
   { id: "arquivos-seguranca", icon: FolderLock, label: "Documentos Salvos", path: "/arquivos-seguranca" },
   { id: "consumo-abastecimento", icon: Droplets, label: "Consumo Abastecimento", path: "/consumo-abastecimento" },
   { id: "plano-manutencao", icon: Wrench, label: "Plano de Manutenção", path: "/plano-manutencao" },

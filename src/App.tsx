@@ -39,7 +39,7 @@ import VistoriasEquipamentos from "./pages/VistoriasEquipamentos";
 import Homologados from "./pages/Homologados";
 import VistoriaCintas from "./pages/VistoriaCintas";
 import EntradaSaidaEquipamentos from "./pages/EntradaSaidaEquipamentos";
-import HoraExtra from "./pages/HoraExtra";
+
 import ArquivosSeguranca from "./pages/ArquivosSeguranca";
 import PainelMotorista from "./pages/PainelMotorista";
 import RegistroMovimentoMotorista from "./pages/RegistroMovimentoMotorista";
@@ -134,7 +134,7 @@ const App = () => (
                     <Route path="/homologados" element={<ProtectedRoute><Homologados /></ProtectedRoute>} />
                     <Route path="/vistoria-cintas" element={<ProtectedRoute><VistoriaCintas /></ProtectedRoute>} />
                     <Route path="/entrada-saida-equipamentos" element={<ProtectedRoute><EntradaSaidaEquipamentos /></ProtectedRoute>} />
-                    <Route path="/hora-extra" element={<ProtectedRoute><HoraExtra /></ProtectedRoute>} />
+                    
                     <Route path="/arquivos-seguranca" element={<ProtectedRoute><ArquivosSeguranca /></ProtectedRoute>} />
                     <Route path="/parte-diaria" element={<ProtectedRoute><ParteDiaria /></ProtectedRoute>} />
                     <Route path="/selecao-veiculo" element={<ProtectedRoute><SelecaoVeiculo /></ProtectedRoute>} />
