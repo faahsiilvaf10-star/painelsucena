@@ -43,7 +43,7 @@ import { useCampaignNotifications } from "@/hooks/useCampaignNotifications";
 import { useEmployees } from "@/hooks/useEmployees";
 import { useAttendanceRecords } from "@/hooks/useAttendance";
 import { useEquipment } from "@/hooks/useEquipment";
-import { useEquipmentCurrentlyIn } from "@/hooks/useEquipmentMovements";
+import { useEquipmentCurrentlyIn, useAllRegisteredEquipmentCount } from "@/hooks/useEquipmentMovements";
 import { getBrazilNorthTodayString } from "@/lib/timezone";
 import { useDocumentExpiryNotifications } from "@/hooks/useDocumentExpiryNotifications";
 import { useVehicleExpiryNotifications } from "@/hooks/useVehicleExpiryNotifications";
