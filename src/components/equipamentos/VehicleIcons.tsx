@@ -29,33 +29,14 @@ export const VehicleIcon: React.FC<VehicleIconProps> = ({
   switch (type) {
     case "pipa":
       return (
-        <svg
-          width={width}
-          height={height}
-          viewBox="0 0 40 24"
-          fill="none"
-          xmlns="http://www.w3.org/2000/svg"
-          className={baseClass}
-        >
-          {/* Cabin */}
-          <rect x="28" y="4" width="10" height="12" rx="1.5" fill="#F59E0B" />
-          <rect x="30" y="6" width="6" height="4" rx="1" fill="#1E293B" />
-          {/* Tank */}
-          <ellipse cx="16" cy="10" rx="14" ry="6" fill="#3B82F6" />
-          <ellipse cx="16" cy="8" rx="10" ry="2.5" fill="#60A5FA" opacity="0.5" />
-          <text x="16" y="12" textAnchor="middle" fill="white" fontSize="5" fontWeight="bold">H₂O</text>
-          {/* Wheels */}
-          <circle cx="8" cy="18" r="3.5" fill="#1F2937" />
-          <circle cx="8" cy="18" r="1.5" fill="#4B5563" />
-          <circle cx="32" cy="18" r="3.5" fill="#1F2937" />
-          <circle cx="32" cy="18" r="1.5" fill="#4B5563" />
-          {!isStopped && (
-            <>
-              <circle cx="8" cy="18" r="2.5" fill="none" stroke="#9CA3AF" strokeWidth="0.5" strokeDasharray="2 2" className="animate-spin-slow" style={{ transformOrigin: '8px 18px' }} />
-              <circle cx="32" cy="18" r="2.5" fill="none" stroke="#9CA3AF" strokeWidth="0.5" strokeDasharray="2 2" className="animate-spin-slow" style={{ transformOrigin: '32px 18px' }} />
-            </>
-          )}
-        </svg>
+        <img
+          src={pipaTruckImg}
+          alt="Caminhão Pipa"
+          width={width * 1.5}
+          height={height * 1.5}
+          className={`${baseClass} object-contain`}
+          style={{ imageRendering: 'auto' }}
+        />
       );
 
     case "munk":
