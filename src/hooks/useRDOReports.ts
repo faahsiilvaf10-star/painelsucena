@@ -38,6 +38,83 @@ export interface RDOReportInsert {
   dds_text?: string;
 }
 
+const hasText = (value: string | null | undefined): value is string =>
+  typeof value === "string" && value.trim() !== "";
+
+const hasItems = <T,>(value: T[] | null | undefined): value is T[] =>
+  Array.isArray(value) && value.length > 0;
+
+const mergeRDOReports = (reports: RDOReport[]): RDOReport | null => {
+  if (!reports.length) return null;
+
+  const sorted = [...reports].sort(
+    (a, b) => new Date(b.updated_at).getTime() - new Date(a.updated_at).getTime()
+  );
+  const latest = sorted[0];
+
+  const firstText = (
+    values: Array<string | null | undefined>,
+    fallback: string | null = null
+  ) => values.find(hasText) ?? fallback;
+
+  const firstArray = (values: Array<string[] | null | undefined>) =>
+    values.find(hasItems) ?? latest.photo_urls ?? [];
+
+  return {
+    ...latest,
+    weather_morning:
+      firstText(sorted.map((report) => report.weather_morning), latest.weather_morning) ??
+      latest.weather_morning,
+    weather_afternoon:
+      firstText(sorted.map((report) => report.weather_afternoon), latest.weather_afternoon) ??
+      latest.weather_afternoon,
+    jardinagem_location: firstText(
+      sorted.map((report) => report.jardinagem_location),
+      latest.jardinagem_location
+    ),
+    jardinagem_activities: firstText(
+      sorted.map((report) => report.jardinagem_activities),
+      latest.jardinagem_activities
+    ),
+    gabiao_location: firstText(
+      sorted.map((report) => report.gabiao_location),
+      latest.gabiao_location
+    ),
+    gabiao_activities: firstText(
+      sorted.map((report) => report.gabiao_activities),
+      latest.gabiao_activities
+    ),
+    difficulties: firstText(sorted.map((report) => report.difficulties), latest.difficulties),
+    photo_urls: firstArray(sorted.map((report) => report.photo_urls)),
+    report_text: firstText(sorted.map((report) => report.report_text), latest.report_text) ?? "",
+    efetivo_gabiao_text: firstText(
+      sorted.map((report) => report.efetivo_gabiao_text),
+      latest.efetivo_gabiao_text
+    ),
+    efetivo_jardinagem_text: firstText(
+      sorted.map((report) => report.efetivo_jardinagem_text),
+      latest.efetivo_jardinagem_text
+    ),
+    dds_text: firstText(sorted.map((report) => report.dds_text), latest.dds_text),
+    created_at: sorted[sorted.length - 1]?.created_at ?? latest.created_at,
+  };
+};
+
+const mergeRDOReportsByDate = (reports: RDOReport[]) => {
+  const groupedReports = reports.reduce<Record<string, RDOReport[]>>((acc, report) => {
+    if (!acc[report.report_date]) {
+      acc[report.report_date] = [];
+    }
+    acc[report.report_date].push(report);
+    return acc;
+  }, {});
+
+  return Object.values(groupedReports)
+    .map((group) => mergeRDOReports(group))
+    .filter((report): report is RDOReport => report !== null)
+    .sort((a, b) => b.report_date.localeCompare(a.report_date));
+};
+
 export const useRDOReports = (filterDate?: string) => {
   return useQuery({
     queryKey: ["rdo-reports", filterDate],
@@ -45,7 +122,7 @@ export const useRDOReports = (filterDate?: string) => {
       let query = supabase
         .from("rdo_reports")
         .select("*")
-        .order("report_date", { ascending: false });
+        .order("updated_at", { ascending: false });
 
       if (filterDate) {
         query = query.eq("report_date", filterDate);
@@ -53,7 +130,7 @@ export const useRDOReports = (filterDate?: string) => {
 
       const { data, error } = await query;
       if (error) throw error;
-      return data as RDOReport[];
+      return mergeRDOReportsByDate((data as RDOReport[]) ?? []);
     },
   });
 };
@@ -66,10 +143,10 @@ export const useRDOReport = (date: string) => {
         .from("rdo_reports")
         .select("*")
         .eq("report_date", date)
-        .maybeSingle();
+        .order("updated_at", { ascending: false });
 
       if (error) throw error;
-      return data as RDOReport | null;
+      return mergeRDOReports((data as RDOReport[]) ?? []);
     },
     enabled: !!date,
   });
@@ -83,50 +160,62 @@ export const useSaveRDOReport = () => {
     mutationFn: async (report: RDOReportInsert) => {
       if (!user?.id) throw new Error("User not authenticated");
 
-      // Check if report for this date already exists
-      const { data: existing } = await supabase
+      const { data: existingReports, error: existingError } = await supabase
         .from("rdo_reports")
-        .select("id")
+        .select("*")
         .eq("report_date", report.report_date)
-        .maybeSingle();
+        .order("updated_at", { ascending: false });
 
-      if (existing) {
-        // Update existing report - exclude undefined efetivo fields to avoid overwriting
-        const updateFields: Record<string, any> = {
+      if (existingError) throw existingError;
+
+      const normalizedExistingReports = (existingReports as RDOReport[]) ?? [];
+      const mergedExistingReport = mergeRDOReports(normalizedExistingReports);
+
+      if (normalizedExistingReports.length > 0) {
+        const primaryReport = normalizedExistingReports[0];
+        const updateFields: Partial<RDOReportInsert> & { updated_at: string } = {
           ...report,
           updated_at: new Date().toISOString(),
         };
-        // Don't overwrite efetivo fields if they're not explicitly provided
+
         if (report.efetivo_gabiao_text === undefined) {
-          delete updateFields.efetivo_gabiao_text;
+          if (hasText(mergedExistingReport?.efetivo_gabiao_text)) {
+            updateFields.efetivo_gabiao_text = mergedExistingReport.efetivo_gabiao_text;
+          } else {
+            delete updateFields.efetivo_gabiao_text;
+          }
         }
+
         if (report.efetivo_jardinagem_text === undefined) {
-          delete updateFields.efetivo_jardinagem_text;
+          if (hasText(mergedExistingReport?.efetivo_jardinagem_text)) {
+            updateFields.efetivo_jardinagem_text = mergedExistingReport.efetivo_jardinagem_text;
+          } else {
+            delete updateFields.efetivo_jardinagem_text;
+          }
         }
 
         const { data, error } = await supabase
           .from("rdo_reports")
           .update(updateFields)
-          .eq("id", existing.id)
-          .select()
-          .single();
-
-        if (error) throw error;
-        return data;
-      } else {
-        // Create new report
-        const { data, error } = await supabase
-          .from("rdo_reports")
-          .insert({
-            ...report,
-            created_by: user.id,
-          })
+          .eq("id", primaryReport.id)
           .select()
           .single();
 
         if (error) throw error;
         return data;
       }
+
+      const { data, error } = await supabase
+        .from("rdo_reports")
+        .insert({
+          ...report,
+          created_by: user.id,
+        })
+        .select()
+        .single();
+
+      if (error) throw error;
+      return data;
     },
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ["rdo-reports"] });
@@ -166,66 +255,70 @@ export const useSaveEfetivoToRDO = () => {
     }) => {
       if (!user?.id) throw new Error("User not authenticated");
 
-      // Check if report for this date already exists
-      const { data: existing } = await supabase
+      const { data: existingReports, error: existingError } = await supabase
         .from("rdo_reports")
-        .select("id, efetivo_gabiao_text, efetivo_jardinagem_text")
+        .select("*")
         .eq("report_date", data.report_date)
-        .maybeSingle();
+        .order("updated_at", { ascending: false });
 
-      if (existing) {
-        // Build update object only with non-empty fields to avoid overwriting existing data
+      if (existingError) throw existingError;
+
+      const normalizedExistingReports = (existingReports as RDOReport[]) ?? [];
+      const mergedExistingReport = mergeRDOReports(normalizedExistingReports);
+
+      if (normalizedExistingReports.length > 0) {
+        const primaryReport = normalizedExistingReports[0];
         const updateFields: {
           updated_at: string;
-          efetivo_gabiao_text?: string;
-          efetivo_jardinagem_text?: string;
+          efetivo_gabiao_text?: string | null;
+          efetivo_jardinagem_text?: string | null;
         } = {
           updated_at: new Date().toISOString(),
         };
-        
-        // Only update gabiao text if provided and not empty
-        if (data.efetivo_gabiao_text && data.efetivo_gabiao_text.trim() !== "") {
+
+        if (hasText(data.efetivo_gabiao_text)) {
           updateFields.efetivo_gabiao_text = data.efetivo_gabiao_text;
-        }
-        
-        // Only update jardinagem text if provided and not empty
-        if (data.efetivo_jardinagem_text && data.efetivo_jardinagem_text.trim() !== "") {
-          updateFields.efetivo_jardinagem_text = data.efetivo_jardinagem_text;
+        } else if (hasText(mergedExistingReport?.efetivo_gabiao_text)) {
+          updateFields.efetivo_gabiao_text = mergedExistingReport.efetivo_gabiao_text;
         }
 
-        // Update existing report with efetivo data (only non-empty fields)
+        if (hasText(data.efetivo_jardinagem_text)) {
+          updateFields.efetivo_jardinagem_text = data.efetivo_jardinagem_text;
+        } else if (hasText(mergedExistingReport?.efetivo_jardinagem_text)) {
+          updateFields.efetivo_jardinagem_text = mergedExistingReport.efetivo_jardinagem_text;
+        }
+
         const { data: updated, error } = await supabase
           .from("rdo_reports")
           .update(updateFields)
-          .eq("id", existing.id)
+          .eq("id", primaryReport.id)
           .select()
           .single();
 
         if (error) throw error;
         return updated;
-      } else {
-        // Create new report with just efetivo data
-        const { data: created, error } = await supabase
-          .from("rdo_reports")
-          .insert({
-            report_date: data.report_date,
-            created_by: user.id,
-            weather_morning: "sol",
-            weather_afternoon: "sol",
-            report_text: "",
-            efetivo_gabiao_text: data.efetivo_gabiao_text && data.efetivo_gabiao_text.trim() !== "" 
-              ? data.efetivo_gabiao_text 
-              : null,
-            efetivo_jardinagem_text: data.efetivo_jardinagem_text && data.efetivo_jardinagem_text.trim() !== "" 
-              ? data.efetivo_jardinagem_text 
-              : null,
-          })
-          .select()
-          .single();
-
-        if (error) throw error;
-        return created;
       }
+
+      const { data: created, error } = await supabase
+        .from("rdo_reports")
+        .insert({
+          report_date: data.report_date,
+          created_by: user.id,
+          weather_morning: "sol",
+          weather_afternoon: "sol",
+          report_text: "",
+          efetivo_gabiao_text: hasText(data.efetivo_gabiao_text)
+            ? data.efetivo_gabiao_text
+            : null,
+          efetivo_jardinagem_text: hasText(data.efetivo_jardinagem_text)
+            ? data.efetivo_jardinagem_text
+            : null,
+        })
+        .select()
+        .single();
+
+      if (error) throw error;
+      return created;
     },
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ["rdo-reports"] });
