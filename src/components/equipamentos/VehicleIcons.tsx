@@ -55,35 +55,14 @@ export const VehicleIcon: React.FC<VehicleIconProps> = ({
 
     case "camionete":
       return (
-        <svg
-          width={width}
-          height={height}
-          viewBox="0 0 36 20"
-          fill="none"
-          xmlns="http://www.w3.org/2000/svg"
-          className={baseClass}
-        >
-          {/* Body */}
-          <path d="M4 8 L4 12 L32 12 L32 6 L26 6 L22 2 L12 2 L12 8 Z" fill="#6B7280" />
-          {/* Cabin */}
-          <path d="M22 2 L26 6 L32 6 L32 12 L12 12 L12 2 Z" fill="#F59E0B" />
-          {/* Windows */}
-          <path d="M14 4 L14 10 L20 10 L20 4 L18 2 L14 2 Z" fill="#1E293B" />
-          <rect x="22" y="4" width="8" height="6" rx="1" fill="#1E293B" />
-          {/* Bed */}
-          <rect x="4" y="6" width="8" height="6" fill="#4B5563" />
-          {/* Wheels */}
-          <circle cx="8" cy="16" r="3" fill="#1F2937" />
-          <circle cx="8" cy="16" r="1.2" fill="#4B5563" />
-          <circle cx="28" cy="16" r="3" fill="#1F2937" />
-          <circle cx="28" cy="16" r="1.2" fill="#4B5563" />
-          {!isStopped && (
-            <>
-              <circle cx="8" cy="16" r="2" fill="none" stroke="#9CA3AF" strokeWidth="0.5" strokeDasharray="2 2" className="animate-spin-slow" style={{ transformOrigin: '8px 16px' }} />
-              <circle cx="28" cy="16" r="2" fill="none" stroke="#9CA3AF" strokeWidth="0.5" strokeDasharray="2 2" className="animate-spin-slow" style={{ transformOrigin: '28px 16px' }} />
-            </>
-          )}
-        </svg>
+        <img
+          src={camioneteTruckImg}
+          alt="Camionete"
+          width={width * 3}
+          height={height * 3}
+          className={`${baseClass} object-contain`}
+          style={{ imageRendering: 'auto' }}
+        />
       );
 
     case "onibus":
