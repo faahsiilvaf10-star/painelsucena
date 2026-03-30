@@ -24,14 +24,6 @@ import {
   FileImage,
   FileSpreadsheet,
   File,
-  HardHat,
-  TreePine,
-  ShieldCheck,
-  Handshake,
-  CalendarClock,
-  Monitor,
-  Warehouse,
-  Truck,
 } from "lucide-react";
 import { useSecurityFiles, SecurityFile, SECURITY_FILE_CATEGORIES } from "@/hooks/useSecurityFiles";
 import { useAuth } from "@/hooks/useAuth";
@@ -39,6 +31,14 @@ import { useProfile } from "@/hooks/useProfile";
 import { useVisualizadorContext } from "@/contexts/VisualizadorContext";
 import { format } from "date-fns";
 import { ptBR } from "date-fns/locale";
+import iconEncarregado from "@/assets/icons/icon-encarregado.png";
+import iconMeioAmbiente from "@/assets/icons/icon-meio-ambiente.png";
+import iconSeguranca from "@/assets/icons/icon-seguranca.png";
+import iconPreposto from "@/assets/icons/icon-preposto.png";
+import iconPlanejamento from "@/assets/icons/icon-planejamento.png";
+import iconAdministrativo from "@/assets/icons/icon-administrativo.png";
+import iconAlmoxarifado from "@/assets/icons/icon-almoxarifado.png";
+import iconTransporte from "@/assets/icons/icon-transporte.png";
 
 const FilePdfIcon = FileText;
 
@@ -134,15 +134,15 @@ function SecurityFilePreview({
   );
 }
 
-const CATEGORY_ICONS: Record<string, React.ComponentType<{ className?: string }>> = {
-  Encarregado: HardHat,
-  "Tec Meio Ambiente": TreePine,
-  "Tec Segurança": ShieldCheck,
-  Preposto: Handshake,
-  Planejamento: CalendarClock,
-  Administrativo: Monitor,
-  Almoxarifado: Warehouse,
-  Transporte: Truck,
+const CATEGORY_IMAGES: Record<string, string> = {
+  Encarregado: iconEncarregado,
+  "Tec Meio Ambiente": iconMeioAmbiente,
+  "Tec Segurança": iconSeguranca,
+  Preposto: iconPreposto,
+  Planejamento: iconPlanejamento,
+  Administrativo: iconAdministrativo,
+  Almoxarifado: iconAlmoxarifado,
+  Transporte: iconTransporte,
 };
 
 export default function ArquivosSeguranca() {
@@ -170,7 +170,7 @@ export default function ArquivosSeguranca() {
           <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-4 gap-3 sm:gap-4">
             {SECURITY_FILE_CATEGORIES.map((cat) => {
               const count = files.filter((f) => f.category === cat).length;
-              const CatIcon = CATEGORY_ICONS[cat] || FileText;
+              const catImage = CATEGORY_IMAGES[cat];
               return (
                 <Card
                   key={cat}
@@ -178,7 +178,7 @@ export default function ArquivosSeguranca() {
                   onClick={() => setSelectedCategory(cat)}
                 >
                   <CardContent className="flex flex-col items-center justify-center p-6 text-center gap-2">
-                    <CatIcon className="h-10 w-10 text-primary" />
+                    <img src={catImage} alt={cat} className="h-16 w-16 object-contain" loading="lazy" width={64} height={64} />
                     <h3 className="font-semibold text-sm sm:text-base">{cat}</h3>
                     <span className="text-xs text-muted-foreground">
                       {count} {count === 1 ? "arquivo" : "arquivos"}
