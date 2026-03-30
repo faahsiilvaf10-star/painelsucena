@@ -892,7 +892,7 @@ export default function DDS() {
           </DialogContent>
         </Dialog>
 
-        {/* Hidden file input for photo upload */}
+        {/* Hidden file input for theme photo upload */}
         <input
           ref={photoInputRef}
           type="file"
@@ -901,7 +901,25 @@ export default function DDS() {
           onChange={(e) => {
             const file = e.target.files?.[0];
             if (file && photoTargetId) {
-              handlePhotoUpload(file, photoTargetId);
+              handleThemePhotoUpload(file, photoTargetId);
+            }
+            e.target.value = "";
+          }}
+        />
+
+        {/* Hidden file input for event photo upload */}
+        <input
+          ref={eventPhotoInputRef}
+          type="file"
+          accept="image/*"
+          className="hidden"
+          onChange={(e) => {
+            const file = e.target.files?.[0];
+            if (file && eventPhotoTargetId) {
+              const schedule = scheduleData?.find(s => s.id === eventPhotoTargetId);
+              if (schedule) {
+                handleEventPhotoUpload(file, eventPhotoTargetId, schedule);
+              }
             }
             e.target.value = "";
           }}
