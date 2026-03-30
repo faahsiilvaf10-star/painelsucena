@@ -1,7 +1,9 @@
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
+import { useEffect } from "react";
 import { supabase } from "@/integrations/supabase/client";
 import { useAuth } from "./useAuth";
 import { useIsAdmin } from "./useUserRole";
+import { getBrazilNorthTodayString } from "@/lib/timezone";
 
 export type AreaType = "gabiao" | "jardinagem" | "administrativo";
 
@@ -13,10 +15,35 @@ export interface AreaLockData {
   locked_at: string;
 }
 
+const DAILY_UNLOCK_KEY = "daily_auto_unlock";
+
 export const useReportLock = (date: string) => {
   const { user } = useAuth();
   const { isAdmin } = useIsAdmin();
   const queryClient = useQueryClient();
+
+  // Auto-unlock today's reports once per day on first load
+  useEffect(() => {
+    const today = getBrazilNorthTodayString();
+    if (date !== today || !user) return;
+
+    const lastUnlock = localStorage.getItem(DAILY_UNLOCK_KEY);
+    if (lastUnlock === today) return;
+
+    // Clear all locks for today so reports start unlocked
+    const autoUnlock = async () => {
+      await supabase
+        .from("attendance_report_locks")
+        .delete()
+        .eq("date", today)
+        .in("area", ["gabiao", "jardinagem"]);
+
+      localStorage.setItem(DAILY_UNLOCK_KEY, today);
+      queryClient.invalidateQueries({ queryKey: ["report_lock", today] });
+    };
+
+    autoUnlock();
+  }, [date, user, queryClient]);
 
   // Check if reports are locked for this date (both areas)
   const { data: lockData, isLoading } = useQuery({
