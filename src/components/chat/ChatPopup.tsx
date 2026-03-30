@@ -217,10 +217,10 @@ export const ChatPopup = ({ user: selectedUser, onClose, onExpand }: ChatPopupPr
             frameAnimation={selectedUser.frame_animation}
             size="sm"
           />
-          {selectedUser.isOnline && (
+          {liveUser.isOnline && (
             <span className="absolute -bottom-0.5 -right-0.5 w-2.5 h-2.5 bg-green-400 rounded-full border-2 border-[#008069] dark:border-[#1f2c34]" />
           )}
-          {selectedUser.isAdmin && (
+          {liveUser.isAdmin && (
             <div className="absolute -top-1 -right-1">
               <VerifiedBadge size="xs" />
             </div>
@@ -229,16 +229,16 @@ export const ChatPopup = ({ user: selectedUser, onClose, onExpand }: ChatPopupPr
 
         <div className="flex-1 min-w-0">
           <p className="text-white text-sm font-medium truncate flex items-center gap-1">
-            {selectedUser.full_name}
-            {selectedUser.isAdmin && <VerifiedBadge size="xs" />}
+            {liveUser.full_name}
+            {liveUser.isAdmin && <VerifiedBadge size="xs" />}
           </p>
           <p className="text-white/70 text-xs truncate">
             {isOtherTyping ? (
               <span className="text-[#25d366]">digitando...</span>
-            ) : selectedUser.isOnline ? (
+            ) : liveUser.isOnline ? (
               "online"
             ) : (
-              "offline"
+              formatLastSeen(liveUser.lastSeen)
             )}
           </p>
         </div>
