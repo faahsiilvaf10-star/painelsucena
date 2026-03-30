@@ -280,8 +280,8 @@ export default function RDO() {
 
   // Generate the formatted report
   const generateReport = () => {
-    // Use saved efetivo from Relatório de Presença if available
-    // Otherwise fallback to automatic calculation
+    // Use only saved efetivo from Relatório de Presença.
+    // Names should appear in the preview only after the attendance list is saved.
     let gabiaoWorkforce = "";
     let jardinagemWorkforce = "";
 
@@ -294,24 +294,10 @@ export default function RDO() {
 
     if (existingReport?.efetivo_gabiao_text) {
       gabiaoWorkforce = cleanEfetivoHeaders(existingReport.efetivo_gabiao_text);
-    } else {
-      // Fallback to automatic calculation
-      gabiaoWorkforce = cleanEfetivoHeaders(
-        Object.entries(workforceByArea.gabiao)
-          .map(([role, count]) => `${String(count).padStart(2, "0")} ${roleLabels[role] || role}`)
-          .join("\n")
-      );
     }
 
     if (existingReport?.efetivo_jardinagem_text) {
       jardinagemWorkforce = cleanEfetivoHeaders(existingReport.efetivo_jardinagem_text);
-    } else {
-      // Fallback to automatic calculation
-      jardinagemWorkforce = cleanEfetivoHeaders(
-        Object.entries(workforceByArea.jardinagem)
-          .map(([role, count]) => `${String(count).padStart(2, "0")} ${roleLabels[role] || role}`)
-          .join("\n")
-      );
     }
 
     // Build equipment text
