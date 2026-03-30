@@ -85,27 +85,59 @@ export default function DDS() {
   // Photo states
   const [fullscreenPhoto, setFullscreenPhoto] = useState<string | null>(null);
   const [uploadingPhotoId, setUploadingPhotoId] = useState<string | null>(null);
+  const [uploadingEventPhotoId, setUploadingEventPhotoId] = useState<string | null>(null);
   const photoInputRef = useRef<HTMLInputElement>(null);
+  const eventPhotoInputRef = useRef<HTMLInputElement>(null);
   const [photoTargetId, setPhotoTargetId] = useState<string | null>(null);
+  const [eventPhotoTargetId, setEventPhotoTargetId] = useState<string | null>(null);
 
-  const handlePhotoUpload = async (file: File, scheduleId: string) => {
+  const handleThemePhotoUpload = async (file: File, scheduleId: string) => {
     if (!file || !user) return;
     setUploadingPhotoId(scheduleId);
     try {
       const ext = file.name.split(".").pop() || "jpg";
-      const path = `dds/${scheduleId}_${Date.now()}.${ext}`;
-      const { error: uploadError } = await supabase.storage
-        .from("desvios")
-        .upload(path, file, { upsert: true });
+      const path = `dds/theme_${scheduleId}_${Date.now()}.${ext}`;
+      const { error: uploadError } = await supabase.storage.from("site-assets").upload(path, file, { upsert: true });
       if (uploadError) throw uploadError;
-      const { data: urlData } = supabase.storage.from("desvios").getPublicUrl(path);
+      const { data: urlData } = supabase.storage.from("site-assets").getPublicUrl(path);
       await updateDDSPhoto.mutateAsync({ id: scheduleId, photo_url: urlData.publicUrl });
-      toast.success("Foto do DDS adicionada!");
+      toast.success("Foto do tema adicionada!");
     } catch (err) {
-      console.error("Error uploading DDS photo:", err);
+      console.error("Error uploading theme photo:", err);
       toast.error("Erro ao enviar foto");
     } finally {
       setUploadingPhotoId(null);
+    }
+  };
+
+  const handleEventPhotoUpload = async (file: File, scheduleId: string, schedule: DDSScheduleItem) => {
+    if (!file || !user) return;
+    setUploadingEventPhotoId(scheduleId);
+    try {
+      const ext = file.name.split(".").pop() || "jpg";
+      const path = `dds/event_${scheduleId}_${Date.now()}.${ext}`;
+      const { error: uploadError } = await supabase.storage.from("site-assets").upload(path, file, { upsert: true });
+      if (uploadError) throw uploadError;
+      const { data: urlData } = supabase.storage.from("site-assets").getPublicUrl(path);
+      await updateDDSEventPhoto.mutateAsync({ id: scheduleId, event_photo_url: urlData.publicUrl });
+      toast.success("Registro do DDS adicionado!");
+      // Post to InstaCena
+      if (profile) {
+        const presenterName = schedule.presenter?.full_name || schedule.external_presenter_name || "Palestrante";
+        await supabase.from("instacena_posts").insert({
+          user_id: user.id,
+          user_name: profile.full_name,
+          user_avatar_url: profile.avatar_url,
+          content: `📸 Registro do DDS!\n\n📋 Tema: ${schedule.theme}\n🎤 Palestrante: ${presenterName}`,
+          image_urls: [urlData.publicUrl],
+          is_system_post: false,
+        });
+      }
+    } catch (err) {
+      console.error("Error uploading event photo:", err);
+      toast.error("Erro ao enviar foto");
+    } finally {
+      setUploadingEventPhotoId(null);
     }
   };
 
