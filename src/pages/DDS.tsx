@@ -79,6 +79,33 @@ export default function DDS() {
   const [newIsExternal, setNewIsExternal] = useState(false);
   const [newTheme, setNewTheme] = useState("");
   
+  // Photo states
+  const [fullscreenPhoto, setFullscreenPhoto] = useState<string | null>(null);
+  const [uploadingPhotoId, setUploadingPhotoId] = useState<string | null>(null);
+  const photoInputRef = useRef<HTMLInputElement>(null);
+  const [photoTargetId, setPhotoTargetId] = useState<string | null>(null);
+
+  const handlePhotoUpload = async (file: File, scheduleId: string) => {
+    if (!file || !user) return;
+    setUploadingPhotoId(scheduleId);
+    try {
+      const ext = file.name.split(".").pop() || "jpg";
+      const path = `dds/${scheduleId}_${Date.now()}.${ext}`;
+      const { error: uploadError } = await supabase.storage
+        .from("desvios")
+        .upload(path, file, { upsert: true });
+      if (uploadError) throw uploadError;
+      const { data: urlData } = supabase.storage.from("desvios").getPublicUrl(path);
+      await updateDDSPhoto.mutateAsync({ id: scheduleId, photo_url: urlData.publicUrl });
+      toast.success("Foto do DDS adicionada!");
+    } catch (err) {
+      console.error("Error uploading DDS photo:", err);
+      toast.error("Erro ao enviar foto");
+    } finally {
+      setUploadingPhotoId(null);
+    }
+  };
+
 
   // Helper to create DDS mention notification
   const notifyPresenter = async (userId: string, date: string, theme: string) => {
