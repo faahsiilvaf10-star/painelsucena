@@ -23,6 +23,7 @@ interface ModernStatCardProps {
   accentColor?: string;
   sparklineData?: number[];
   barData?: number[];
+  bgTint?: string;
 }
 
 const GaugeChart = ({ percentage, color }: { percentage: number; color: string }) => {
@@ -47,7 +48,7 @@ const GaugeChart = ({ percentage, color }: { percentage: number; color: string }
             strokeWidth={0}
           >
             <Cell fill={color} />
-            <Cell fill="hsl(var(--muted))" />
+            <Cell fill="hsl(30, 10%, 82%)" />
           </Pie>
         </PieChart>
       </ResponsiveContainer>
@@ -90,31 +91,51 @@ const MiniBarChart = ({ data, color }: { data: number[]; color: string }) => {
 };
 
 const CircularChart = ({ percentage, color }: { percentage: number; color: string }) => {
-  const data = [
-    { value: percentage },
-    { value: 100 - percentage },
-  ];
+  const radius = 30;
+  const stroke = 5;
+  const normalizedRadius = radius - stroke;
+  const circumference = normalizedRadius * 2 * Math.PI;
+  const strokeDashoffset = circumference - (percentage / 100) * circumference;
+
   return (
-    <div className="relative w-16 h-16">
-      <ResponsiveContainer width="100%" height="100%">
-        <PieChart>
-          <Pie
-            data={data}
-            cx="50%"
-            cy="50%"
-            innerRadius={22}
-            outerRadius={30}
-            paddingAngle={2}
-            dataKey="value"
-            strokeWidth={0}
-          >
-            <Cell fill={color} />
-            <Cell fill="hsl(var(--muted))" />
-          </Pie>
-        </PieChart>
-      </ResponsiveContainer>
+    <div className="relative w-16 h-16 flex items-center justify-center">
+      <svg height={radius * 2} width={radius * 2}>
+        <circle
+          stroke="hsl(30, 10%, 80%)"
+          fill="transparent"
+          strokeWidth={stroke}
+          r={normalizedRadius}
+          cx={radius}
+          cy={radius}
+        />
+        <circle
+          stroke="url(#copperMini)"
+          fill="transparent"
+          strokeWidth={stroke}
+          strokeLinecap="round"
+          strokeDasharray={`${circumference} ${circumference}`}
+          strokeDashoffset={strokeDashoffset}
+          r={normalizedRadius}
+          cx={radius}
+          cy={radius}
+          style={{
+            transform: "rotate(-90deg)",
+            transformOrigin: "50% 50%",
+            transition: "stroke-dashoffset 1s ease-out",
+          }}
+        />
+        <defs>
+          <linearGradient id="copperMini" x1="0%" y1="0%" x2="100%" y2="100%">
+            <stop offset="0%" stopColor="hsl(25, 55%, 55%)" />
+            <stop offset="50%" stopColor="hsl(30, 65%, 65%)" />
+            <stop offset="100%" stopColor="hsl(20, 50%, 45%)" />
+          </linearGradient>
+        </defs>
+      </svg>
       <div className="absolute inset-0 flex items-center justify-center">
-        <span className="text-[10px] font-bold" style={{ color }}>{percentage}%</span>
+        <span className="text-[10px] font-bold" style={{ color: "hsl(30, 15%, 35%)" }}>
+          {percentage}%
+        </span>
       </div>
     </div>
   );
@@ -130,18 +151,38 @@ const ModernStatCard = ({
   accentColor,
   sparklineData = [4, 7, 5, 8, 6, 9, 7],
   barData = [3, 7, 5, 9, 4, 8, 6],
+  bgTint,
 }: ModernStatCardProps) => {
   return (
-    <div className="group relative bg-card rounded-2xl p-5 hover-lift border border-border/50 overflow-hidden">
-      <div className="absolute inset-0 bg-gradient-to-br from-primary/5 to-transparent opacity-0 group-hover:opacity-100 transition-opacity duration-300" />
-      
+    <div
+      className="group relative rounded-2xl p-5 overflow-hidden transition-transform hover:scale-[1.02]"
+      style={{
+        background: bgTint || "linear-gradient(145deg, hsl(30, 15%, 94%), hsl(30, 10%, 88%))",
+        boxShadow:
+          "6px 6px 14px hsl(30, 10%, 78%), -6px -6px 14px hsl(30, 20%, 98%), inset 0 1px 0 hsl(30, 20%, 96%)",
+        border: "1px solid hsl(30, 15%, 85%)",
+      }}
+    >
       <div className="relative z-10 flex items-center justify-between">
         <div className="flex-1 min-w-0">
-          <p className="text-sm text-muted-foreground font-medium truncate">{title}</p>
+          <p
+            className="text-sm font-medium truncate"
+            style={{ color: "hsl(30, 10%, 45%)" }}
+          >
+            {title}
+          </p>
           <div className="flex items-baseline gap-2 mt-1">
-            <span className="text-2xl font-bold">{value}</span>
+            <span
+              className="text-2xl font-bold"
+              style={{ color: "hsl(30, 15%, 18%)" }}
+            >
+              {value}
+            </span>
             {percentage > 0 && variant !== "circular" && (
-              <span className="text-xs font-semibold" style={{ color }}>
+              <span
+                className="text-xs font-semibold"
+                style={{ color: "hsl(30, 20%, 45%)" }}
+              >
                 {percentage}%
               </span>
             )}
@@ -149,16 +190,16 @@ const ModernStatCard = ({
         </div>
 
         <div className="flex-shrink-0 ml-3">
-          {variant === "gauge" && <GaugeChart percentage={percentage} color={color} />}
-          {variant === "sparkline" && <SparklineChart data={sparklineData} color={color} />}
-          {variant === "bars" && <MiniBarChart data={barData} color={accentColor || color} />}
-          {variant === "circular" && <CircularChart percentage={percentage} color={color} />}
+          {variant === "gauge" && <GaugeChart percentage={percentage} color="hsl(30, 50%, 55%)" />}
+          {variant === "sparkline" && <SparklineChart data={sparklineData} color="hsl(30, 40%, 50%)" />}
+          {variant === "bars" && <MiniBarChart data={barData} color={accentColor || "hsl(30, 50%, 55%)"} />}
+          {variant === "circular" && <CircularChart percentage={percentage} color="hsl(30, 50%, 55%)" />}
         </div>
       </div>
 
       {/* Bottom icon accent */}
       <div className="absolute bottom-2 right-3 opacity-10">
-        <Icon className="w-8 h-8" style={{ color }} />
+        <Icon className="w-8 h-8" style={{ color: "hsl(30, 30%, 50%)" }} />
       </div>
     </div>
   );
