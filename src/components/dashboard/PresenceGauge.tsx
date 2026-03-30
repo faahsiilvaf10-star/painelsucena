@@ -1,4 +1,5 @@
 import { ClipboardCheck } from "lucide-react";
+import { useState, useEffect } from "react";
 
 interface PresenceGaugeProps {
   present: number;
@@ -7,14 +8,20 @@ interface PresenceGaugeProps {
 }
 
 export function PresenceGauge({ present, total, percentage }: PresenceGaugeProps) {
+  const [animatedPercentage, setAnimatedPercentage] = useState(0);
+
+  useEffect(() => {
+    const timer = setTimeout(() => setAnimatedPercentage(percentage), 100);
+    return () => clearTimeout(timer);
+  }, [percentage]);
+
   const svgSize = 180;
   const stroke = 12;
   const radius = (svgSize - stroke) / 2;
   const circumference = radius * 2 * Math.PI;
-  const gap = circumference * 0.15; // 15% gap at the bottom
+  const gap = circumference * 0.15;
   const usableArc = circumference - gap;
-  const filledArc = (percentage / 100) * usableArc;
-  // Rotate so gap is at bottom center: start from ~210deg
+  const filledArc = (animatedPercentage / 100) * usableArc;
   const startAngle = 150;
 
   return (
