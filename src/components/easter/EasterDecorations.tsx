@@ -1,5 +1,5 @@
 import { useEffect, useState } from "react";
-import easterBunny from "@/assets/easter-bunny.png";
+import easterPascoa from "@/assets/easter-pascoa.png";
 import easterEgg from "@/assets/easter-egg.png";
 import easterEggPink from "@/assets/easter-egg-pink.png";
 
@@ -35,23 +35,23 @@ export const EasterDecorations = () => {
         );
       })}
 
-      {/* Corner bunnies */}
+      {/* Corner Páscoa images */}
       <img
-        src={easterBunny}
+        src={easterPascoa}
         alt=""
         className="fixed bottom-2 left-2 pointer-events-none select-none z-[1] opacity-50 dark:opacity-25"
         style={{
-          width: "70px",
+          width: "100px",
           height: "auto",
           animation: "easterBounce 3s ease-in-out infinite",
         }}
       />
       <img
-        src={easterBunny}
+        src={easterPascoa}
         alt=""
         className="fixed bottom-2 right-2 pointer-events-none select-none z-[1] opacity-50 dark:opacity-25"
         style={{
-          width: "70px",
+          width: "100px",
           height: "auto",
           animation: "easterBounce 3s ease-in-out 1.5s infinite",
           transform: "scaleX(-1)",
