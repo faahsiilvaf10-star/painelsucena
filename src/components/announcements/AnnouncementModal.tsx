@@ -9,79 +9,25 @@ import {
 } from "@/components/ui/dialog";
 import { Button } from "@/components/ui/button";
 import { useUnreadAnnouncements } from "@/hooks/useAnnouncements";
-import { useSiteSettings } from "@/hooks/useSiteSettings";
 import { format } from "date-fns";
 import { ptBR } from "date-fns/locale";
-import { Megaphone, ChevronLeft, ChevronRight, X, ExternalLink } from "lucide-react";
+import { ChevronLeft, ChevronRight, X, ExternalLink } from "lucide-react";
 import { cn } from "@/lib/utils";
 import { playSoundFile } from "@/lib/sounds";
-import logoFallback from "@/assets/logo-sucena.png";
-
-// Particle component matching sidebar style
-function SidebarStyleParticle({ x, y, size, duration, delay, opacity }: {
-  x: number;
-  y: number;
-  size: number;
-  duration: number;
-  delay: number;
-  opacity: number;
-}) {
-  return (
-    <div
-      className="absolute rounded-full bg-white/20 animate-sidebar-particle"
-      style={{
-        left: `${x}%`,
-        top: `${y}%`,
-        width: `${size}px`,
-        height: `${size}px`,
-        opacity: opacity,
-        animationDuration: `${duration}s`,
-        animationDelay: `${delay}s`,
-      }}
-    />
-  );
-}
-
-// Particle field matching sidebar aesthetic
-function ParticleField() {
-  const particles = Array.from({ length: 25 }, (_, i) => ({
-    id: i,
-    x: Math.random() * 100,
-    y: Math.random() * 100,
-    size: 1.5 + Math.random() * 3,
-    duration: 6 + Math.random() * 10,
-    delay: Math.random() * 5,
-    opacity: 0.1 + Math.random() * 0.25,
-  }));
-
-  return (
-    <div className="absolute inset-0 overflow-hidden pointer-events-none">
-      {particles.map((p) => (
-        <SidebarStyleParticle key={p.id} {...p} />
-      ))}
-    </div>
-  );
-}
 
 export function AnnouncementModal() {
   const { unreadAnnouncements, markAsRead } = useUnreadAnnouncements();
-  const { settings } = useSiteSettings();
   const navigate = useNavigate();
   const [currentIndex, setCurrentIndex] = useState(0);
   const hasPlayedSound = useRef(false);
 
-  const companyLogo = settings.logo_url || logoFallback;
-
   const currentAnnouncement = unreadAnnouncements[currentIndex];
 
-  // Play sound when announcement modal appears
   useEffect(() => {
     if (currentAnnouncement && !hasPlayedSound.current) {
       playSoundFile("/sounds/announcement.mp3");
       hasPlayedSound.current = true;
     }
-    
-    // Reset when all announcements are read
     if (!currentAnnouncement) {
       hasPlayedSound.current = false;
     }
@@ -89,7 +35,6 @@ export function AnnouncementModal() {
 
   if (!currentAnnouncement) return null;
 
-  // Extract desvio ID from content if present
   const desvioIdMatch = currentAnnouncement?.content?.match(/<!--desvio:([a-f0-9-]+)-->/);
   const linkedDesvioId = desvioIdMatch ? desvioIdMatch[1] : null;
   const displayContent = currentAnnouncement?.content?.replace(/\n?<!--desvio:[a-f0-9-]+-->/, "") || "";
@@ -119,144 +64,170 @@ export function AnnouncementModal() {
 
   return (
     <Dialog open={!!currentAnnouncement} onOpenChange={() => {}}>
-      <DialogContent 
+      <DialogContent
         className={cn(
           "sm:max-w-lg max-w-[95vw] max-h-[85vh] overflow-hidden flex flex-col p-0",
           "border-0 bg-transparent shadow-none"
         )}
         hideCloseButton
       >
-        {/* Custom styled container - Windows 11 style with neon glow */}
-        <div className="relative rounded-xl overflow-hidden announcement-modal-container">
-          {/* White neon glow behind black border */}
-          <div 
-            className="absolute -inset-1 rounded-xl"
-            style={{
-              background: 'transparent',
-              boxShadow: '0 0 15px 3px rgba(255, 255, 255, 0.3), 0 0 30px 6px rgba(255, 255, 255, 0.15), 0 0 60px 12px rgba(255, 255, 255, 0.05)',
-            }}
-          />
-          
-          {/* Black border - Windows 11 style */}
-          <div 
-            className="absolute inset-0 rounded-xl"
-            style={{
-              border: '2px solid hsl(0, 0%, 10%)',
-              boxShadow: 'inset 0 0 0 1px rgba(255, 255, 255, 0.08)',
-            }}
-          />
-          
-          {/* Inner content with dark background */}
-          <div className="relative m-[2px] rounded-lg overflow-hidden">
-            {/* Main dark background */}
-            <div 
-              className="absolute inset-0"
-              style={{
-                background: `linear-gradient(
-                  180deg,
-                  hsl(220, 15%, 10%) 0%,
-                  hsl(220, 18%, 6%) 100%
-                )`
-              }}
-            />
-            
-            {/* Particle effects */}
-            <ParticleField />
-            
-            {/* Close button */}
-            <button 
-              className="absolute top-2 right-2 z-20 text-white/60 hover:text-white transition-colors p-1"
-              onClick={handleConfirm}
-            >
-              <X className="w-5 h-5" />
-            </button>
-            
-            {/* Content - scrollable area */}
-            <div className="relative z-10 p-4 sm:p-6 max-h-[80vh] overflow-y-auto">
-              <DialogHeader className="space-y-1">
-                <DialogTitle className="flex items-center gap-2 text-white announcement-title text-base sm:text-lg pr-6">
-                  <Megaphone className="w-4 h-4 sm:w-5 sm:h-5 text-amber-400 shrink-0" />
-                  {currentAnnouncement.title}
-                </DialogTitle>
-                <p className="text-xs sm:text-sm text-white/70 announcement-text">
-                  {format(new Date(currentAnnouncement.published_at), "dd 'de' MMMM 'de' yyyy 'às' HH:mm", {
-                    locale: ptBR,
-                  })}
-                </p>
-              </DialogHeader>
+        {/* Light card container */}
+        <div
+          className="relative rounded-2xl overflow-hidden"
+          style={{
+            background: "hsl(0, 0%, 95%)",
+            boxShadow: "0 8px 32px rgba(0,0,0,0.18), 0 2px 8px rgba(0,0,0,0.10)",
+          }}
+        >
+          {/* Close button */}
+          <button
+            className="absolute top-3 right-3 z-20 transition-colors p-1"
+            style={{ color: "hsl(30, 10%, 40%)" }}
+            onClick={handleConfirm}
+          >
+            <X className="w-5 h-5" />
+          </button>
 
-              <div className="flex-1 space-y-3 sm:space-y-4 py-3 sm:py-4">
-                {currentAnnouncement.image_url && (
-                  <div className="w-full rounded-lg overflow-hidden border border-white/10 relative">
-                    <img
-                      src={currentAnnouncement.image_url}
-                      alt="Banner do comunicado"
-                      className="w-full h-auto object-contain"
-                    />
-                    {/* Campaign title overlay on banner */}
-                    {currentAnnouncement.title.includes("Campanhas") && (
-                      <div className="absolute bottom-0 left-0 right-0 bg-gradient-to-t from-black/80 via-black/40 to-transparent p-3 sm:p-4 pt-6 sm:pt-8">
-                        <h3 className="text-white font-bold text-sm sm:text-lg drop-shadow-lg">
-                          {currentAnnouncement.title.replace("🎗️ ", "")}
-                        </h3>
-                      </div>
-                    )}
-                  </div>
-                )}
+          {/* Content */}
+          <div className="relative z-10 p-5 sm:p-7 max-h-[80vh] overflow-y-auto">
+            <DialogHeader className="space-y-1">
+              <DialogTitle
+                className="flex items-center gap-2 pr-6"
+                style={{
+                  fontFamily: "'Georgia', 'Times New Roman', serif",
+                  fontWeight: 700,
+                  fontSize: "1.15rem",
+                  color: "hsl(30, 15%, 20%)",
+                }}
+              >
+                <span className="text-xl">📢</span>
+                <span
+                  className="inline-block w-3 h-3 rounded-full shrink-0"
+                  style={{ background: "hsl(160, 55%, 40%)" }}
+                />
+                {currentAnnouncement.title}
+              </DialogTitle>
+              <p
+                style={{
+                  fontFamily: "'Georgia', 'Times New Roman', serif",
+                  fontSize: "0.82rem",
+                  color: "hsl(0, 0%, 50%)",
+                }}
+              >
+                {format(new Date(currentAnnouncement.published_at), "dd 'de' MMMM 'de' yyyy 'às' HH:mm", {
+                  locale: ptBR,
+                })}
+              </p>
+            </DialogHeader>
 
-                <div className="announcement-content">
-                  <p className="whitespace-pre-wrap text-white announcement-text text-base sm:text-lg">
-                    {displayContent}
-                  </p>
+            <div className="flex-1 space-y-3 py-4">
+              {currentAnnouncement.image_url && (
+                <div className="w-full rounded-lg overflow-hidden relative">
+                  <img
+                    src={currentAnnouncement.image_url}
+                    alt="Banner do comunicado"
+                    className="w-full h-auto object-contain"
+                  />
+                  {currentAnnouncement.title.includes("Campanhas") && (
+                    <div className="absolute bottom-0 left-0 right-0 bg-gradient-to-t from-black/80 via-black/40 to-transparent p-3 sm:p-4 pt-6 sm:pt-8">
+                      <h3 className="text-white font-bold text-sm sm:text-lg drop-shadow-lg">
+                        {currentAnnouncement.title.replace("🎗️ ", "")}
+                      </h3>
+                    </div>
+                  )}
                 </div>
+              )}
 
-                {linkedDesvioId && (
-                  <Button
-                    variant="outline"
-                    onClick={handleGoToDesvio}
-                    className="gap-2 border-green-500/50 text-green-400 hover:bg-green-500/20 hover:border-green-400 w-full mt-2"
-                  >
-                    <ExternalLink className="w-4 h-4" />
-                    Ver Desvio Corrigido
-                  </Button>
-                )}
+              {/* Separator */}
+              <div style={{ borderTop: "1px solid hsl(0, 0%, 82%)" }} />
+
+              <div>
+                <p
+                  className="whitespace-pre-wrap"
+                  style={{
+                    fontFamily: "'Georgia', 'Times New Roman', serif",
+                    fontSize: "1.05rem",
+                    color: "hsl(0, 0%, 15%)",
+                    lineHeight: 1.6,
+                  }}
+                >
+                  {displayContent}
+                </p>
               </div>
 
-              <DialogFooter className="flex-col sm:flex-row gap-2 mt-3 sm:mt-4">
-                {unreadAnnouncements.length > 1 && (
-                  <div className="flex items-center gap-2 mr-auto">
-                    <Button
-                      variant="outline"
-                      size="icon"
-                      onClick={handlePrev}
-                      disabled={currentIndex === 0}
-                      className="border-amber-500/50 text-white hover:bg-amber-500/20 hover:border-amber-400 h-8 w-8 sm:h-9 sm:w-9"
-                    >
-                      <ChevronLeft className="w-4 h-4" />
-                    </Button>
-                    <span className="text-xs sm:text-sm text-white/70 announcement-text">
-                      {currentIndex + 1} de {unreadAnnouncements.length}
-                    </span>
-                    <Button
-                      variant="outline"
-                      size="icon"
-                      onClick={handleNext}
-                      disabled={currentIndex === unreadAnnouncements.length - 1}
-                      className="border-amber-500/50 text-white hover:bg-amber-500/20 hover:border-amber-400 h-8 w-8 sm:h-9 sm:w-9"
-                    >
-                      <ChevronRight className="w-4 h-4" />
-                    </Button>
-                  </div>
-                )}
-                <Button 
-                  onClick={handleConfirm} 
-                  disabled={markAsRead.isPending}
-                  className="bg-gradient-to-r from-amber-600 to-amber-500 hover:from-amber-500 hover:to-amber-400 text-white font-semibold shadow-lg shadow-amber-500/30 border-0 announcement-button w-full sm:w-auto"
+              {linkedDesvioId && (
+                <Button
+                  variant="outline"
+                  onClick={handleGoToDesvio}
+                  className="gap-2 w-full mt-2"
+                  style={{
+                    borderColor: "hsl(160, 55%, 40%)",
+                    color: "hsl(160, 55%, 30%)",
+                    fontFamily: "'Georgia', 'Times New Roman', serif",
+                  }}
                 >
-                  {markAsRead.isPending ? "Confirmando..." : "Li e Entendi"}
+                  <ExternalLink className="w-4 h-4" />
+                  Ver Desvio Corrigido
                 </Button>
-              </DialogFooter>
+              )}
             </div>
+
+            <DialogFooter className="flex-col sm:flex-row gap-2 mt-2">
+              {unreadAnnouncements.length > 1 && (
+                <div className="flex items-center gap-2 mr-auto">
+                  <Button
+                    variant="outline"
+                    size="icon"
+                    onClick={handlePrev}
+                    disabled={currentIndex === 0}
+                    className="h-8 w-8 sm:h-9 sm:w-9"
+                    style={{
+                      borderColor: "hsl(0, 0%, 75%)",
+                      color: "hsl(0, 0%, 30%)",
+                    }}
+                  >
+                    <ChevronLeft className="w-4 h-4" />
+                  </Button>
+                  <span
+                    style={{
+                      fontFamily: "'Georgia', 'Times New Roman', serif",
+                      fontSize: "0.85rem",
+                      color: "hsl(0, 0%, 50%)",
+                    }}
+                  >
+                    {currentIndex + 1} de {unreadAnnouncements.length}
+                  </span>
+                  <Button
+                    variant="outline"
+                    size="icon"
+                    onClick={handleNext}
+                    disabled={currentIndex === unreadAnnouncements.length - 1}
+                    className="h-8 w-8 sm:h-9 sm:w-9"
+                    style={{
+                      borderColor: "hsl(0, 0%, 75%)",
+                      color: "hsl(0, 0%, 30%)",
+                    }}
+                  >
+                    <ChevronRight className="w-4 h-4" />
+                  </Button>
+                </div>
+              )}
+              <button
+                onClick={handleConfirm}
+                disabled={markAsRead.isPending}
+                className="uppercase tracking-wider font-bold px-8 py-3 rounded-lg transition-all sm:ml-auto"
+                style={{
+                  fontFamily: "'Georgia', 'Times New Roman', serif",
+                  fontSize: "0.95rem",
+                  background: "linear-gradient(180deg, hsl(5, 60%, 58%) 0%, hsl(5, 55%, 50%) 100%)",
+                  color: "hsl(0, 0%, 100%)",
+                  boxShadow: "0 4px 12px rgba(180, 70, 60, 0.4), inset 0 1px 0 rgba(255,255,255,0.2)",
+                  letterSpacing: "0.12em",
+                }}
+              >
+                {markAsRead.isPending ? "CONFIRMANDO..." : "LI E ENTENDI"}
+              </button>
+            </DialogFooter>
           </div>
         </div>
       </DialogContent>
