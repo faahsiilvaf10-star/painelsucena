@@ -25,15 +25,14 @@ import {
   FileSpreadsheet,
   File,
 } from "lucide-react";
-
-// PDF icon using FileText with special styling
-const FilePdfIcon = FileText;
-import { useSecurityFiles, SecurityFile } from "@/hooks/useSecurityFiles";
+import { useSecurityFiles, SecurityFile, SECURITY_FILE_CATEGORIES } from "@/hooks/useSecurityFiles";
 import { useAuth } from "@/hooks/useAuth";
 import { useProfile } from "@/hooks/useProfile";
 import { useVisualizadorContext } from "@/contexts/VisualizadorContext";
 import { format } from "date-fns";
 import { ptBR } from "date-fns/locale";
+
+const FilePdfIcon = FileText;
 
 function getFileIcon(fileType: string | null) {
   if (!fileType) return File;
@@ -57,13 +56,51 @@ export default function ArquivosSeguranca() {
   const { data: profile } = useProfile();
   const { isVisualizador } = useVisualizadorContext();
   const [search, setSearch] = useState("");
+  const [selectedCategory, setSelectedCategory] = useState<string | null>(null);
+  const [uploadCategory, setUploadCategory] = useState<string>("Transporte");
   const [deleteTarget, setDeleteTarget] = useState<SecurityFile | null>(null);
   const [isUploading, setIsUploading] = useState(false);
   const fileInputRef = useRef<HTMLInputElement>(null);
 
-  const filteredFiles = files.filter((file) =>
-    file.file_name.toLowerCase().includes(search.toLowerCase())
-  );
+  // If no category selected, show the category selector
+  if (!selectedCategory) {
+    return (
+      <Layout>
+        <div className="space-y-4 sm:space-y-6 px-3 sm:px-6 py-3 sm:py-6">
+          <div>
+            <h1 className="text-xl sm:text-3xl font-bold tracking-tight">Documentos Salvos</h1>
+            <p className="text-xs sm:text-sm text-muted-foreground">
+              Selecione a categoria para visualizar os documentos
+            </p>
+          </div>
+          <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-4 gap-3 sm:gap-4">
+            {SECURITY_FILE_CATEGORIES.map((cat) => {
+              const count = files.filter((f) => f.category === cat).length;
+              return (
+                <Card
+                  key={cat}
+                  className="cursor-pointer transition-all hover:shadow-lg hover:scale-[1.02] active:scale-[0.98]"
+                  onClick={() => setSelectedCategory(cat)}
+                >
+                  <CardContent className="flex flex-col items-center justify-center p-6 text-center gap-2">
+                    <FileText className="h-10 w-10 text-primary" />
+                    <h3 className="font-semibold text-sm sm:text-base">{cat}</h3>
+                    <span className="text-xs text-muted-foreground">
+                      {count} {count === 1 ? "arquivo" : "arquivos"}
+                    </span>
+                  </CardContent>
+                </Card>
+              );
+            })}
+          </div>
+        </div>
+      </Layout>
+    );
+  }
+
+  const filteredFiles = files
+    .filter((file) => file.category === selectedCategory)
+    .filter((file) => file.file_name.toLowerCase().includes(search.toLowerCase()));
 
   const handleFileSelect = async (e: React.ChangeEvent<HTMLInputElement>) => {
     const selectedFiles = e.target.files;
@@ -76,6 +113,7 @@ export default function ArquivosSeguranca() {
           file,
           userId: user.id,
           userName: profile.full_name,
+          category: selectedCategory,
         });
       }
     } finally {
@@ -108,157 +146,166 @@ export default function ArquivosSeguranca() {
 
   return (
     <Layout>
-    <div className="space-y-4 sm:space-y-6 px-3 sm:px-6 py-3 sm:py-6">
-      <div className="flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between">
-        <div>
-          <h1 className="text-xl sm:text-3xl font-bold tracking-tight">Arquivos de Segurança</h1>
-          <p className="text-xs sm:text-sm text-muted-foreground">
-            Documentos e arquivos relacionados à segurança do trabalho
-          </p>
-        </div>
-
-        <div className="flex gap-2">
-          <input
-            ref={fileInputRef}
-            type="file"
-            multiple
-            className="hidden"
-            onChange={handleFileSelect}
-            accept=".pdf,.doc,.docx,.xls,.xlsx,.ppt,.pptx,.jpg,.jpeg,.png,.gif,.txt"
-          />
-          {!isVisualizador && (
-            <Button
-              onClick={() => fileInputRef.current?.click()}
-              disabled={isUploading || !user || !profile}
-              className="gap-2"
-            >
-              <Upload className="h-4 w-4" />
-              {isUploading ? "Enviando..." : "Enviar Arquivo"}
-            </Button>
-          )}
-        </div>
-      </div>
-
-      <Card>
-        <CardHeader className="pb-4">
-          <div className="flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between">
-            <CardTitle className="text-lg">Arquivos ({filteredFiles.length})</CardTitle>
-            <div className="relative w-full sm:w-64">
-              <Search className="absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-muted-foreground" />
-              <Input
-                placeholder="Buscar arquivo..."
-                value={search}
-                onChange={(e) => setSearch(e.target.value)}
-                className="pl-9"
-              />
+      <div className="space-y-4 sm:space-y-6 px-3 sm:px-6 py-3 sm:py-6">
+        <div className="flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between">
+          <div>
+            <div className="flex items-center gap-2">
+              <Button variant="ghost" size="sm" onClick={() => setSelectedCategory(null)}>
+                ← Voltar
+              </Button>
+              <h1 className="text-xl sm:text-3xl font-bold tracking-tight">
+                {selectedCategory}
+              </h1>
             </div>
+            <p className="text-xs sm:text-sm text-muted-foreground ml-10">
+              Documentos da categoria {selectedCategory}
+            </p>
           </div>
-        </CardHeader>
-        <CardContent>
-          {isLoading ? (
-            <div className="grid grid-cols-1 gap-4 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4">
-              {[...Array(8)].map((_, i) => (
-                <Skeleton key={i} className="h-48 rounded-lg" />
-              ))}
-            </div>
-          ) : filteredFiles.length === 0 ? (
-            <div className="flex flex-col items-center justify-center py-12 text-center">
-              <FileText className="h-12 w-12 text-muted-foreground/50" />
-              <h3 className="mt-4 text-lg font-semibold">Nenhum arquivo encontrado</h3>
-              <p className="text-muted-foreground">
-                {search
-                  ? "Tente uma busca diferente"
-                  : "Clique em 'Enviar Arquivo' para adicionar"}
-              </p>
-            </div>
-          ) : (
-            <div className="grid grid-cols-1 gap-4 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4">
-              {filteredFiles.map((file) => {
-                const FileIcon = getFileIcon(file.file_type);
-                return (
-                  <Card
-                    key={file.id}
-                    className="group relative overflow-hidden transition-shadow hover:shadow-lg"
-                  >
-                    <div
-                      className="relative flex h-32 cursor-pointer items-center justify-center bg-muted/50 transition-colors hover:bg-muted"
-                      onClick={() => handleView(file)}
-                    >
-                      <FileIcon className="h-16 w-16 text-muted-foreground/70" />
-                      <div className="absolute inset-0 flex items-center justify-center bg-black/50 opacity-0 transition-opacity group-hover:opacity-100">
-                        <Eye className="h-5 w-5 text-white" />
-                      </div>
-                    </div>
-                    <CardContent className="p-3">
-                      <h4
-                        className="cursor-pointer truncate font-medium hover:text-primary"
-                        onClick={() => handleView(file)}
-                        title={file.file_name}
-                      >
-                        {file.file_name}
-                      </h4>
-                      <div className="mt-1 flex items-center justify-between text-xs text-muted-foreground">
-                        <span>{formatFileSize(file.file_size)}</span>
-                        <span>
-                          {format(new Date(file.created_at), "dd/MM/yy", { locale: ptBR })}
-                        </span>
-                      </div>
-                      <p className="mt-1 truncate text-xs text-muted-foreground">
-                        Por: {file.uploaded_by_name}
-                      </p>
-                      <div className="mt-3 flex gap-2">
-                        {!isVisualizador && (
-                        <Button
-                          variant="outline"
-                          size="sm"
-                          className="flex-1 gap-1"
-                          onClick={() => handleDownload(file)}
-                        >
-                          <Download className="h-3 w-3" />
-                          Baixar
-                        </Button>
-                        )}
-                        {!isVisualizador && (user?.id === file.uploaded_by || profile?.cargo === "preposto") && (
-                          <Button
-                            variant="outline"
-                            size="sm"
-                            className="text-destructive hover:bg-destructive hover:text-destructive-foreground"
-                            onClick={() => setDeleteTarget(file)}
-                          >
-                            <Trash2 className="h-3 w-3" />
-                          </Button>
-                        )}
-                      </div>
-                    </CardContent>
-                  </Card>
-                );
-              })}
-            </div>
-          )}
-        </CardContent>
-      </Card>
 
-      <AlertDialog open={!!deleteTarget} onOpenChange={() => setDeleteTarget(null)}>
-        <AlertDialogContent>
-          <AlertDialogHeader>
-            <AlertDialogTitle>Excluir arquivo?</AlertDialogTitle>
-            <AlertDialogDescription>
-              Tem certeza que deseja excluir "{deleteTarget?.file_name}"? Esta ação não pode
-              ser desfeita.
-            </AlertDialogDescription>
-          </AlertDialogHeader>
-          <AlertDialogFooter>
-            <AlertDialogCancel>Cancelar</AlertDialogCancel>
-            <AlertDialogAction
-              onClick={handleDelete}
-              className="bg-destructive text-destructive-foreground hover:bg-destructive/90"
-            >
-              Excluir
-            </AlertDialogAction>
-          </AlertDialogFooter>
-        </AlertDialogContent>
-      </AlertDialog>
-    </div>
+          <div className="flex gap-2">
+            <input
+              ref={fileInputRef}
+              type="file"
+              multiple
+              className="hidden"
+              onChange={handleFileSelect}
+              accept=".pdf,.doc,.docx,.xls,.xlsx,.ppt,.pptx,.jpg,.jpeg,.png,.gif,.txt"
+            />
+            {!isVisualizador && (
+              <Button
+                onClick={() => fileInputRef.current?.click()}
+                disabled={isUploading || !user || !profile}
+                className="gap-2"
+              >
+                <Upload className="h-4 w-4" />
+                {isUploading ? "Enviando..." : "Enviar Arquivo"}
+              </Button>
+            )}
+          </div>
+        </div>
+
+        <Card>
+          <CardHeader className="pb-4">
+            <div className="flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between">
+              <CardTitle className="text-lg">Arquivos ({filteredFiles.length})</CardTitle>
+              <div className="relative w-full sm:w-64">
+                <Search className="absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-muted-foreground" />
+                <Input
+                  placeholder="Buscar arquivo..."
+                  value={search}
+                  onChange={(e) => setSearch(e.target.value)}
+                  className="pl-9"
+                />
+              </div>
+            </div>
+          </CardHeader>
+          <CardContent>
+            {isLoading ? (
+              <div className="grid grid-cols-1 gap-4 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4">
+                {[...Array(8)].map((_, i) => (
+                  <Skeleton key={i} className="h-48 rounded-lg" />
+                ))}
+              </div>
+            ) : filteredFiles.length === 0 ? (
+              <div className="flex flex-col items-center justify-center py-12 text-center">
+                <FileText className="h-12 w-12 text-muted-foreground/50" />
+                <h3 className="mt-4 text-lg font-semibold">Nenhum arquivo encontrado</h3>
+                <p className="text-muted-foreground">
+                  {search
+                    ? "Tente uma busca diferente"
+                    : "Clique em 'Enviar Arquivo' para adicionar"}
+                </p>
+              </div>
+            ) : (
+              <div className="grid grid-cols-1 gap-4 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4">
+                {filteredFiles.map((file) => {
+                  const FileIcon = getFileIcon(file.file_type);
+                  return (
+                    <Card
+                      key={file.id}
+                      className="group relative overflow-hidden transition-shadow hover:shadow-lg"
+                    >
+                      <div
+                        className="relative flex h-32 cursor-pointer items-center justify-center bg-muted/50 transition-colors hover:bg-muted"
+                        onClick={() => handleView(file)}
+                      >
+                        <FileIcon className="h-16 w-16 text-muted-foreground/70" />
+                        <div className="absolute inset-0 flex items-center justify-center bg-black/50 opacity-0 transition-opacity group-hover:opacity-100">
+                          <Eye className="h-5 w-5 text-white" />
+                        </div>
+                      </div>
+                      <CardContent className="p-3">
+                        <h4
+                          className="cursor-pointer truncate font-medium hover:text-primary"
+                          onClick={() => handleView(file)}
+                          title={file.file_name}
+                        >
+                          {file.file_name}
+                        </h4>
+                        <div className="mt-1 flex items-center justify-between text-xs text-muted-foreground">
+                          <span>{formatFileSize(file.file_size)}</span>
+                          <span>
+                            {format(new Date(file.created_at), "dd/MM/yy", { locale: ptBR })}
+                          </span>
+                        </div>
+                        <p className="mt-1 truncate text-xs text-muted-foreground">
+                          Por: {file.uploaded_by_name}
+                        </p>
+                        <div className="mt-3 flex gap-2">
+                          {!isVisualizador && (
+                            <Button
+                              variant="outline"
+                              size="sm"
+                              className="flex-1 gap-1"
+                              onClick={() => handleDownload(file)}
+                            >
+                              <Download className="h-3 w-3" />
+                              Baixar
+                            </Button>
+                          )}
+                          {!isVisualizador &&
+                            (user?.id === file.uploaded_by ||
+                              profile?.cargo === "preposto") && (
+                              <Button
+                                variant="outline"
+                                size="sm"
+                                className="text-destructive hover:bg-destructive hover:text-destructive-foreground"
+                                onClick={() => setDeleteTarget(file)}
+                              >
+                                <Trash2 className="h-3 w-3" />
+                              </Button>
+                            )}
+                        </div>
+                      </CardContent>
+                    </Card>
+                  );
+                })}
+              </div>
+            )}
+          </CardContent>
+        </Card>
+
+        <AlertDialog open={!!deleteTarget} onOpenChange={() => setDeleteTarget(null)}>
+          <AlertDialogContent>
+            <AlertDialogHeader>
+              <AlertDialogTitle>Excluir arquivo?</AlertDialogTitle>
+              <AlertDialogDescription>
+                Tem certeza que deseja excluir "{deleteTarget?.file_name}"? Esta ação não pode
+                ser desfeita.
+              </AlertDialogDescription>
+            </AlertDialogHeader>
+            <AlertDialogFooter>
+              <AlertDialogCancel>Cancelar</AlertDialogCancel>
+              <AlertDialogAction
+                onClick={handleDelete}
+                className="bg-destructive text-destructive-foreground hover:bg-destructive/90"
+              >
+                Excluir
+              </AlertDialogAction>
+            </AlertDialogFooter>
+          </AlertDialogContent>
+        </AlertDialog>
+      </div>
     </Layout>
   );
 }
