@@ -787,3 +787,17 @@ html, body {
   0%, 100% { transform: scale(1) rotate(0deg); }
   50% { transform: scale(1.2) rotate(15deg); }
 }
+
+/* Easter animations */
+@keyframes easterFloat {
+  0% { opacity: 0; transform: translateY(-30px) rotate(0deg); }
+  5% { opacity: 0.6; }
+  50% { opacity: 0.4; transform: translateY(50vh) rotate(180deg); }
+  95% { opacity: 0.2; }
+  100% { opacity: 0; transform: translateY(100vh) rotate(360deg); }
+}
+
+@keyframes easterBounce {
+  0%, 100% { transform: translateY(0) scale(1); }
+  50% { transform: translateY(-8px) scale(1.1); }
+}
