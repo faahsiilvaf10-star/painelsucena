@@ -19,20 +19,21 @@ export const EasterDecorations = () => {
       {[8, 25, 45, 65, 85].map((left, i) => {
         const img = i % 2 === 0 ? easterEgg : easterEggPink;
         return (
-        <img
-          key={`egg-${i}`}
-          src={easterEgg}
-          alt=""
-          className="fixed pointer-events-none select-none z-[1] opacity-0"
-          style={{
-            left: `${left}%`,
-            top: "-60px",
-            width: "36px",
-            height: "auto",
-            animation: `easterFloat 20s ease-in-out ${i * 1.5}s infinite`,
-          }}
-        />
-      ))}
+          <img
+            key={`egg-${i}`}
+            src={img}
+            alt=""
+            className="fixed pointer-events-none select-none z-[1] opacity-0"
+            style={{
+              left: `${left}%`,
+              top: "-60px",
+              width: "36px",
+              height: "auto",
+              animation: `easterFloat 20s ease-in-out ${i * 1.5}s infinite`,
+            }}
+          />
+        );
+      })}
 
       {/* Corner bunnies */}
       <img
