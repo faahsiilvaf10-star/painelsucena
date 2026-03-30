@@ -242,17 +242,33 @@ export default function ArquivosSeguranca() {
                       className="group relative overflow-hidden transition-shadow hover:shadow-lg"
                     >
                       <div
-                        className="relative flex h-32 cursor-pointer items-center justify-center bg-muted/50 transition-colors hover:bg-muted"
+                        className="relative flex h-36 cursor-pointer items-center justify-center bg-muted/50 transition-colors hover:bg-muted overflow-hidden"
                         onClick={() => handleView(file)}
                       >
-                        <div className="relative">
-                          <FileIcon className="h-16 w-16 text-muted-foreground/70" />
-                          {getFileLabel(file.file_type, file.file_name) && (
-                            <span className="absolute inset-0 flex items-center justify-center pt-2 text-[10px] font-bold text-muted-foreground">
-                              {getFileLabel(file.file_type, file.file_name)}
-                            </span>
-                          )}
-                        </div>
+                        {file.file_type?.includes("pdf") ? (
+                          <iframe
+                            src={`${file.file_url}#toolbar=0&navpanes=0&scrollbar=0`}
+                            className="pointer-events-none h-[300px] w-[300px] scale-[0.5] origin-top-left absolute top-0 left-1/2 -translate-x-1/2 translate-x-[-150px]"
+                            title={file.file_name}
+                            loading="lazy"
+                          />
+                        ) : file.file_type?.includes("image") ? (
+                          <img
+                            src={file.file_url}
+                            alt={file.file_name}
+                            className="h-full w-full object-cover"
+                            loading="lazy"
+                          />
+                        ) : (
+                          <div className="relative">
+                            <FileIcon className="h-16 w-16 text-muted-foreground/70" />
+                            {getFileLabel(file.file_type, file.file_name) && (
+                              <span className="absolute inset-0 flex items-center justify-center pt-2 text-[10px] font-bold text-muted-foreground">
+                                {getFileLabel(file.file_type, file.file_name)}
+                              </span>
+                            )}
+                          </div>
+                        )}
                         <div className="absolute inset-0 flex items-center justify-center bg-black/50 opacity-0 transition-opacity group-hover:opacity-100">
                           <Eye className="h-5 w-5 text-white" />
                         </div>
