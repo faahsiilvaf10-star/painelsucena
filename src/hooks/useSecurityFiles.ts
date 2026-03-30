@@ -2,6 +2,19 @@ import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import { supabase } from "@/integrations/supabase/client";
 import { toast } from "sonner";
 
+export const SECURITY_FILE_CATEGORIES = [
+  "Encarregado",
+  "Tec Meio Ambiente",
+  "Tec Segurança",
+  "Preposto",
+  "Planejamento",
+  "Administrativo",
+  "Almoxarifado",
+  "Transporte",
+] as const;
+
+export type SecurityFileCategory = typeof SECURITY_FILE_CATEGORIES[number];
+
 export interface SecurityFile {
   id: string;
   file_name: string;
@@ -10,6 +23,7 @@ export interface SecurityFile {
   file_type: string | null;
   uploaded_by: string;
   uploaded_by_name: string;
+  category: string;
   created_at: string;
   updated_at: string;
 }
@@ -35,10 +49,12 @@ export function useSecurityFiles() {
       file,
       userId,
       userName,
+      category,
     }: {
       file: File;
       userId: string;
       userName: string;
+      category: string;
     }) => {
       // Upload to storage
       const fileExt = file.name.split(".").pop();
@@ -76,7 +92,8 @@ export function useSecurityFiles() {
         file_type: file.type || fileExt,
         uploaded_by: authenticatedUserId,
         uploaded_by_name: userName,
-      });
+        category: category,
+      } as any);
 
       if (dbError) {
         console.error("DB insert error:", dbError);
