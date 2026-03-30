@@ -24,8 +24,7 @@ export function CelebrationModal({ isOpen, onClose, cargoName, userName, userAva
       }));
       setSparkles(newSparkles);
 
-      const timer = setTimeout(() => onClose(), 8000);
-      return () => clearTimeout(timer);
+      // No auto-close - only closes on X click
     }
   }, [isOpen, onClose]);
 
