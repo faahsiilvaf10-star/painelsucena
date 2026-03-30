@@ -45,6 +45,20 @@ function getFileIcon(fileType: string | null) {
   return FileText;
 }
 
+function getFileLabel(fileType: string | null, fileName: string | null): string | null {
+  if (fileType?.includes("pdf")) return "PDF";
+  if (fileType?.includes("zip") || fileName?.endsWith(".zip")) return "ZIP";
+  if (fileType?.includes("rar") || fileName?.endsWith(".rar")) return "RAR";
+  if (fileType?.includes("7z") || fileName?.endsWith(".7z")) return "7Z";
+  if (fileType?.includes("image")) return "IMG";
+  if (fileType?.includes("sheet") || fileType?.includes("excel")) return "XLS";
+  if (fileType?.includes("csv") || fileName?.endsWith(".csv")) return "CSV";
+  if (fileType?.includes("word") || fileName?.endsWith(".doc") || fileName?.endsWith(".docx")) return "DOC";
+  if (fileType?.includes("presentation") || fileName?.endsWith(".ppt") || fileName?.endsWith(".pptx")) return "PPT";
+  if (fileName?.endsWith(".txt")) return "TXT";
+  return null;
+}
+
 function formatFileSize(bytes: number | null) {
   if (!bytes) return "N/A";
   if (bytes < 1024) return `${bytes} B`;
