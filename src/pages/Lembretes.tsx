@@ -776,56 +776,114 @@ const Lembretes = () => {
                 <h3 className="font-semibold text-muted-foreground">Histórico de Ações</h3>
                 <Badge variant="secondary">{reminderHistory.length}</Badge>
               </div>
-              <div className="space-y-2">
-                {reminderHistory.slice(0, 20).map((item) => {
-                  const profile = allProfiles?.find(p => p.user_id === item.action_by);
-                  return (
-                    <div
-                      key={item.id}
-                      className="flex items-center justify-between p-3 rounded-lg bg-muted/30 border border-border/50"
-                    >
-                      <div className="flex items-center gap-3">
-                        <div className={cn(
-                          "p-1.5 rounded-full",
-                          item.action === "acknowledged" 
-                            ? "bg-green-500/20 text-green-500" 
-                            : "bg-destructive/20 text-destructive"
-                        )}>
-                          {item.action === "acknowledged" ? (
-                            <Check className="h-4 w-4" />
-                          ) : (
-                            <XIcon className="h-4 w-4" />
-                          )}
-                        </div>
-                        <div>
-                          <p className="font-medium text-sm">{item.reminder_title}</p>
-                          <div className="flex items-center gap-2 text-xs text-muted-foreground">
-                            <span>
-                              {item.action === "acknowledged" ? "Visto por" : "Cancelado por"}{" "}
-                              {profile?.full_name || "Usuário"}
-                            </span>
-                            <span>•</span>
-                            <span>
-                              {format(new Date(item.created_at), "dd/MM/yyyy 'às' HH:mm", { locale: ptBR })}
-                            </span>
-                          </div>
-                        </div>
-                      </div>
-                      <Badge 
-                        variant="outline" 
-                        className={cn(
-                          "text-xs",
-                          item.action === "acknowledged" 
-                            ? "border-green-500/50 text-green-500" 
-                            : "border-destructive/50 text-destructive"
-                        )}
-                      >
-                        {item.action === "acknowledged" ? "Visto" : "Cancelado"}
-                      </Badge>
-                    </div>
-                  );
-                })}
+
+              {/* Date filter */}
+              <div className="flex items-center gap-2 mb-4">
+                <Calendar className="h-4 w-4 text-muted-foreground" />
+                <Input
+                  type="date"
+                  value={historyDateFilter}
+                  onChange={(e) => setHistoryDateFilter(e.target.value)}
+                  className="w-auto"
+                  placeholder="Filtrar por data"
+                />
+                {historyDateFilter && (
+                  <Button variant="ghost" size="sm" onClick={() => setHistoryDateFilter("")}>
+                    <XIcon className="h-4 w-4" />
+                    Limpar
+                  </Button>
+                )}
               </div>
+
+              {(() => {
+                // Filter by date if set
+                const filtered = historyDateFilter
+                  ? reminderHistory.filter((item) => {
+                      const itemDate = format(new Date(item.created_at), "yyyy-MM-dd");
+                      return itemDate === historyDateFilter;
+                    })
+                  : reminderHistory;
+
+                // Group by date
+                const grouped = filtered.reduce<Record<string, typeof filtered>>((acc, item) => {
+                  const dateKey = format(new Date(item.created_at), "yyyy-MM-dd");
+                  if (!acc[dateKey]) acc[dateKey] = [];
+                  acc[dateKey].push(item);
+                  return acc;
+                }, {});
+
+                const sortedDates = Object.keys(grouped).sort((a, b) => b.localeCompare(a));
+
+                if (sortedDates.length === 0) {
+                  return (
+                    <p className="text-sm text-muted-foreground text-center py-4">
+                      Nenhum registro encontrado para esta data.
+                    </p>
+                  );
+                }
+
+                return sortedDates.map((dateKey) => (
+                  <div key={dateKey} className="mb-6">
+                    <div className="flex items-center gap-2 mb-2">
+                      <Separator className="flex-1" />
+                      <span className="text-xs font-semibold text-muted-foreground px-2 whitespace-nowrap">
+                        {format(new Date(dateKey + "T12:00:00"), "dd/MM/yyyy (EEEE)", { locale: ptBR })}
+                      </span>
+                      <Separator className="flex-1" />
+                    </div>
+                    <div className="space-y-2">
+                      {grouped[dateKey].map((item) => {
+                        const profile = allProfiles?.find(p => p.user_id === item.action_by);
+                        return (
+                          <div
+                            key={item.id}
+                            className="flex items-center justify-between p-3 rounded-lg bg-muted/30 border border-border/50"
+                          >
+                            <div className="flex items-center gap-3">
+                              <div className={cn(
+                                "p-1.5 rounded-full",
+                                item.action === "acknowledged" 
+                                  ? "bg-green-500/20 text-green-500" 
+                                  : "bg-destructive/20 text-destructive"
+                              )}>
+                                {item.action === "acknowledged" ? (
+                                  <Check className="h-4 w-4" />
+                                ) : (
+                                  <XIcon className="h-4 w-4" />
+                                )}
+                              </div>
+                              <div>
+                                <p className="font-medium text-sm">{item.reminder_title}</p>
+                                <div className="flex items-center gap-2 text-xs text-muted-foreground">
+                                  <span>
+                                    {item.action === "acknowledged" ? "Visto por" : "Cancelado por"}{" "}
+                                    {profile?.full_name || "Usuário"}
+                                  </span>
+                                  <span>•</span>
+                                  <span>
+                                    {format(new Date(item.created_at), "HH:mm")}
+                                  </span>
+                                </div>
+                              </div>
+                            </div>
+                            <Badge 
+                              variant="outline" 
+                              className={cn(
+                                "text-xs",
+                                item.action === "acknowledged" 
+                                  ? "border-green-500/50 text-green-500" 
+                                  : "border-destructive/50 text-destructive"
+                              )}
+                            >
+                              {item.action === "acknowledged" ? "Visto" : "Cancelado"}
+                            </Badge>
+                          </div>
+                        );
+                      })}
+                    </div>
+                  </div>
+                ));
+              })()}
             </div>
           )}
         </div>
