@@ -32,8 +32,8 @@ export const VehicleIcon: React.FC<VehicleIconProps> = ({
         <img
           src={pipaTruckImg}
           alt="Caminhão Pipa"
-          width={width * 1.5}
-          height={height * 1.5}
+          width={width * 3}
+          height={height * 3}
           className={`${baseClass} object-contain`}
           style={{ imageRendering: 'auto' }}
         />
