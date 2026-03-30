@@ -47,6 +47,7 @@ import { NeonAvatar } from "@/components/ui/NeonAvatar";
 import { toast } from "sonner";
 import { SidebarBackground } from "./SidebarBackground";
 import { formatCargoLabel } from "@/lib/cargoUtils";
+import sidebarArrowLeft from "@/assets/sidebar-arrow-left.png";
 
 interface NavItem {
   id: string;
