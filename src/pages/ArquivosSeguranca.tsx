@@ -34,6 +34,8 @@ import { ptBR } from "date-fns/locale";
 
 const FilePdfIcon = FileText;
 
+type FileIconComponent = React.ComponentType<{ className?: string }>;
+
 function getFileIcon(fileType: string | null) {
   if (!fileType) return File;
   if (fileType.includes("pdf")) return FilePdfIcon;
@@ -66,6 +68,64 @@ function formatFileSize(bytes: number | null) {
   return `${(bytes / (1024 * 1024)).toFixed(1)} MB`;
 }
 
+function SecurityFilePreview({
+  file,
+  fileLabel,
+  FileIcon,
+}: {
+  file: SecurityFile;
+  fileLabel: string | null;
+  FileIcon: FileIconComponent;
+}) {
+  const [previewFailed, setPreviewFailed] = useState(false);
+  const isImage = file.file_type?.includes("image");
+  const isPdf =
+    file.file_type?.includes("pdf") || file.file_name.toLowerCase().endsWith(".pdf");
+
+  if (isImage && !previewFailed) {
+    return (
+      <img
+        src={file.file_url}
+        alt={file.file_name}
+        className="h-full w-full object-cover"
+        loading="lazy"
+        onError={() => setPreviewFailed(true)}
+      />
+    );
+  }
+
+  if (isPdf && !previewFailed) {
+    return (
+      <object
+        data={`${file.file_url}#toolbar=0&navpanes=0&scrollbar=0`}
+        type="application/pdf"
+        className="h-full w-full pointer-events-none"
+        aria-label={`Pré-visualização de ${file.file_name}`}
+      >
+        <div className="relative flex h-full w-full items-center justify-center">
+          <FileIcon className="h-16 w-16 text-muted-foreground/70" />
+          {fileLabel && (
+            <span className="absolute inset-0 flex items-center justify-center pt-2 text-[10px] font-bold text-muted-foreground">
+              {fileLabel}
+            </span>
+          )}
+        </div>
+      </object>
+    );
+  }
+
+  return (
+    <div className="relative">
+      <FileIcon className="h-16 w-16 text-muted-foreground/70" />
+      {fileLabel && (
+        <span className="absolute inset-0 flex items-center justify-center pt-2 text-[10px] font-bold text-muted-foreground">
+          {fileLabel}
+        </span>
+      )}
+    </div>
+  );
+}
+
 export default function ArquivosSeguranca() {
   const { files, isLoading, uploadFile, deleteFile } = useSecurityFiles();
   const { user } = useAuth();
@@ -73,7 +133,6 @@ export default function ArquivosSeguranca() {
   const { isVisualizador } = useVisualizadorContext();
   const [search, setSearch] = useState("");
   const [selectedCategory, setSelectedCategory] = useState<string | null>(null);
-  const [uploadCategory, setUploadCategory] = useState<string>("Transporte");
   const [deleteTarget, setDeleteTarget] = useState<SecurityFile | null>(null);
   const [isUploading, setIsUploading] = useState(false);
   const fileInputRef = useRef<HTMLInputElement>(null);
@@ -236,6 +295,7 @@ export default function ArquivosSeguranca() {
               <div className="grid grid-cols-1 gap-4 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4">
                 {filteredFiles.map((file) => {
                   const FileIcon = getFileIcon(file.file_type);
+                  const fileLabel = getFileLabel(file.file_type, file.file_name);
                   return (
                     <Card
                       key={file.id}
@@ -245,23 +305,11 @@ export default function ArquivosSeguranca() {
                         className="relative flex h-32 cursor-pointer items-center justify-center bg-muted/50 transition-colors hover:bg-muted overflow-hidden"
                         onClick={() => handleView(file)}
                       >
-                        {file.file_type?.includes("image") ? (
-                          <img
-                            src={file.file_url}
-                            alt={file.file_name}
-                            className="h-full w-full object-cover"
-                            loading="lazy"
-                          />
-                        ) : (
-                          <div className="relative">
-                            <FileIcon className="h-16 w-16 text-muted-foreground/70" />
-                            {getFileLabel(file.file_type, file.file_name) && (
-                              <span className="absolute inset-0 flex items-center justify-center pt-2 text-[10px] font-bold text-muted-foreground">
-                                {getFileLabel(file.file_type, file.file_name)}
-                              </span>
-                            )}
-                          </div>
-                        )}
+                        <SecurityFilePreview
+                          file={file}
+                          fileLabel={fileLabel}
+                          FileIcon={FileIcon}
+                        />
                         <div className="absolute inset-0 flex items-center justify-center bg-black/50 opacity-0 transition-opacity group-hover:opacity-100">
                           <Eye className="h-5 w-5 text-white" />
                         </div>
