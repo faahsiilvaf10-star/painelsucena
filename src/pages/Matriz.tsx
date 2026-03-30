@@ -200,6 +200,8 @@ const Matriz = () => {
           isOpen={showCelebration} 
           onClose={() => setShowCelebration(false)}
           cargoName={selectedFolder.cargo}
+          userName={profile?.name}
+          userAvatarUrl={profile?.avatar_url}
         />
         <div className="container mx-auto px-4 sm:px-6 py-4 sm:py-8">
           {/* Back Button */}
