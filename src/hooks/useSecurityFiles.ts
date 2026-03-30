@@ -58,14 +58,22 @@ export function useSecurityFiles() {
     }) => {
       // Upload to storage
       const fileExt = file.name.split(".").pop();
-      const fileName = `${userId}/${Date.now()}-${file.name}`;
+      // Sanitize filename to avoid storage path issues
+      const safeName = file.name
+        .normalize("NFD")
+        .replace(/[\u0300-\u036f]/g, "")
+        .replace(/[^a-zA-Z0-9._-]/g, "_");
+      const fileName = `${userId}/${Date.now()}-${safeName}`;
 
-      const { error: uploadError } = await supabase.storage
+      const { error: uploadError, data: uploadData } = await supabase.storage
         .from("security-files")
         .upload(fileName, file, {
           cacheControl: "3600",
           upsert: false,
+          contentType: file.type || "application/octet-stream",
         });
+
+      console.log("Storage upload result:", { fileName, uploadError, uploadData });
 
       if (uploadError) {
         console.error("Storage upload error:", uploadError);
