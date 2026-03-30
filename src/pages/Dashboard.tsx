@@ -2,7 +2,6 @@ import { useState } from "react";
 import { Users, ClipboardCheck, AlertCircle, Activity } from "lucide-react";
 import { useProfile } from "@/hooks/useProfile";
 import { useSiteSettings } from "@/hooks/useSiteSettings";
-import logoPrincipal from "@/assets/logo-principal.png";
 import { SimpleTree } from "@/components/ui/simple-growth-tree";
 import {
   DndContext,
@@ -21,6 +20,7 @@ import {
 } from "@dnd-kit/sortable";
 import Layout from "@/components/layout/Layout";
 import ModernStatCard from "@/components/dashboard/ModernStatCard";
+import { PresenceGauge } from "@/components/dashboard/PresenceGauge";
 import { AttendanceTrendChart } from "@/components/dashboard/AttendanceTrendChart";
 import { MatrixSideChart } from "@/components/dashboard/MatrixSideChart";
 import { DDSHighlightCard } from "@/components/dds/DDSHighlightCard";
@@ -137,15 +137,15 @@ const Dashboard = () => {
       case "matrix_alert": return <MatrixAlertBanner />;
       case "goal_alert": return null;
       case "campaign": return <CampaignBanner />;
-      case "reminder": return null; // Now rendered as fixed banner above stats
+      case "reminder": return null;
       case "order": return <OrderHighlightBanner />;
       case "vehicle_expiry": return <VehicleExpiryBanner />;
       case "document_expiry": return <DocumentExpiryBanner />;
       case "sling_inspection": return <SlingInspectionBanner />;
       case "dds": return <DDSHighlightCard />;
       case "equipment": return <EquipmentStatusCard />;
-      case "stats": return null; // Handled by the modern stat cards above
-      case "matrix_chart": return null; // Handled by the new charts section
+      case "stats": return null;
+      case "matrix_chart": return null;
       default: return null;
     }
   };
@@ -161,10 +161,13 @@ const Dashboard = () => {
             </div>
           ) : (
             <div>
-              <h1 className="text-xl sm:text-3xl font-bold">
-                <span className="text-gradient">Dashboard</span>
+              <h1
+                className="text-xl sm:text-3xl font-bold"
+                style={{ color: "hsl(30, 15%, 18%)", fontFamily: "'Georgia', serif" }}
+              >
+                Dashboard
               </h1>
-              <p className="text-sm text-muted-foreground mt-0.5">
+              <p className="text-sm mt-0.5" style={{ color: "hsl(30, 10%, 50%)" }}>
                 Visão geral da operação
               </p>
             </div>
@@ -180,53 +183,128 @@ const Dashboard = () => {
           />
         </div>
 
-        {/* Weather Widget */}
-        <div className="mb-6 animate-slide-up" style={{ animationDelay: "0.05s" }}>
-          <WeatherWidget />
+        {/* Main stats grid - matching reference layout */}
+        <div className="grid grid-cols-1 lg:grid-cols-12 gap-4 mb-6 animate-slide-up">
+          {/* Left column: Weather + Total Funcionários */}
+          <div className="lg:col-span-3 flex flex-col gap-4">
+            <WeatherWidget />
+            <ModernStatCard
+              title="Total de Funcionários"
+              value={totalEmployees}
+              percentage={presencePercent}
+              icon={Users}
+              variant="gauge"
+              color="hsl(30, 50%, 55%)"
+            />
+          </div>
+
+          {/* Center: Large Presence Gauge */}
+          <div className="lg:col-span-3">
+            <PresenceGauge
+              present={presentToday}
+              total={totalEmployees}
+              percentage={presencePercent}
+            />
+          </div>
+
+          {/* Right-center: Presentes Hoje + Ausências */}
+          <div className="lg:col-span-3 flex flex-col gap-4">
+            <ModernStatCard
+              title="Presentes Hoje"
+              value={presentToday}
+              percentage={presencePercent}
+              icon={ClipboardCheck}
+              variant="sparkline"
+              color="hsl(30, 40%, 50%)"
+              sparklineData={[5, 8, 6, 9, 7, 10, presentToday || 8]}
+            />
+            <ModernStatCard
+              title="Ausências"
+              value={absentToday}
+              percentage={totalEmployees > 0 ? Math.round(absentToday / totalEmployees * 100) : 0}
+              icon={AlertCircle}
+              variant="bars"
+              color="hsl(30, 50%, 55%)"
+              accentColor="hsl(30, 50%, 55%)"
+              barData={[2, 4, 1, 3, 2, 5, absentToday || 1]}
+            />
+          </div>
+
+          {/* Far right: Equipamentos Ativos */}
+          <div className="lg:col-span-3">
+            <div
+              className="rounded-2xl p-5 h-full flex flex-col justify-between overflow-hidden transition-transform hover:scale-[1.02]"
+              style={{
+                background: "linear-gradient(145deg, hsl(190, 30%, 88%), hsl(190, 25%, 82%))",
+                boxShadow:
+                  "6px 6px 14px hsl(190, 15%, 74%), -6px -6px 14px hsl(190, 30%, 96%), inset 0 1px 0 hsl(190, 30%, 94%)",
+                border: "1px solid hsl(190, 20%, 82%)",
+              }}
+            >
+              <p
+                className="text-xs font-bold uppercase tracking-widest mb-3"
+                style={{ color: "hsl(30, 15%, 30%)", letterSpacing: "0.15em" }}
+              >
+                Equipamentos Ativos
+              </p>
+              {/* Copper circular gauge */}
+              <div className="flex items-center justify-center flex-1">
+                <div className="relative">
+                  <svg height={100} width={100}>
+                    <circle
+                      stroke="hsl(190, 15%, 78%)"
+                      fill="transparent"
+                      strokeWidth={8}
+                      r={42}
+                      cx={50}
+                      cy={50}
+                    />
+                    <circle
+                      stroke="url(#copperEquip)"
+                      fill="transparent"
+                      strokeWidth={8}
+                      strokeLinecap="round"
+                      strokeDasharray={`${42 * 2 * Math.PI} ${42 * 2 * Math.PI}`}
+                      strokeDashoffset={42 * 2 * Math.PI - (equipPercent / 100) * 42 * 2 * Math.PI}
+                      r={42}
+                      cx={50}
+                      cy={50}
+                      style={{
+                        transform: "rotate(-90deg)",
+                        transformOrigin: "50% 50%",
+                        transition: "stroke-dashoffset 1s ease-out",
+                      }}
+                    />
+                    <defs>
+                      <linearGradient id="copperEquip" x1="0%" y1="0%" x2="100%" y2="100%">
+                        <stop offset="0%" stopColor="hsl(25, 55%, 55%)" />
+                        <stop offset="50%" stopColor="hsl(30, 65%, 65%)" />
+                        <stop offset="100%" stopColor="hsl(20, 50%, 45%)" />
+                      </linearGradient>
+                    </defs>
+                  </svg>
+                  <div className="absolute inset-0 flex items-center justify-center">
+                    <span className="text-sm font-bold" style={{ color: "hsl(30, 15%, 30%)" }}>
+                      {equipPercent}%
+                    </span>
+                  </div>
+                </div>
+              </div>
+              <div className="mt-2 flex items-baseline gap-2">
+                <span className="text-2xl font-bold" style={{ color: "hsl(30, 15%, 18%)" }}>
+                  {inOperation}/{totalEquip}
+                </span>
+                <span className="text-xs" style={{ color: "hsl(30, 10%, 50%)" }}>
+                  {equipPercent}%
+                </span>
+              </div>
+            </div>
+          </div>
         </div>
 
-        {/* Reminder Banner - fixed above stats */}
+        {/* Reminder Banner */}
         <div className="mb-4">
           <ReminderHighlightBanner />
-        </div>
-
-        {/* Modern Stat Cards Row */}
-        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4 mb-6 animate-slide-up">
-          <ModernStatCard
-            title="Total de Funcionários"
-            value={totalEmployees}
-            percentage={presencePercent}
-            icon={Users}
-            variant="gauge"
-            color="hsl(174, 62%, 47%)"
-          />
-          <ModernStatCard
-            title="Presentes Hoje"
-            value={presentToday}
-            percentage={presencePercent}
-            icon={ClipboardCheck}
-            variant="sparkline"
-            color="hsl(174, 62%, 47%)"
-            sparklineData={[5, 8, 6, 9, 7, 10, presentToday || 8]}
-          />
-          <ModernStatCard
-            title="Ausências"
-            value={absentToday}
-            percentage={totalEmployees > 0 ? Math.round(absentToday / totalEmployees * 100) : 0}
-            icon={AlertCircle}
-            variant="bars"
-            color="hsl(0, 84%, 60%)"
-            accentColor="hsl(43, 96%, 56%)"
-            barData={[2, 4, 1, 3, 2, 5, absentToday || 1]}
-          />
-          <ModernStatCard
-            title="Equipamentos Ativos"
-            value={`${inOperation}/${totalEquip}`}
-            percentage={equipPercent}
-            icon={Activity}
-            variant="circular"
-            color="hsl(174, 62%, 47%)"
-          />
         </div>
 
         {/* Fixed banners */}
@@ -256,7 +334,7 @@ const Dashboard = () => {
           </DndContext>
         )}
 
-        {/* Charts Row - Main line chart + Side area chart */}
+        {/* Charts Row */}
         <div className="grid grid-cols-1 lg:grid-cols-3 gap-4 mt-6">
           <div className="lg:col-span-2 animate-slide-up" style={{ animationDelay: "0.1s" }}>
             <AttendanceTrendChart />
