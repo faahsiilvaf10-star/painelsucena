@@ -2681,6 +2681,7 @@ export type Database = {
       }
       security_files: {
         Row: {
+          category: string
           created_at: string
           file_name: string
           file_size: number | null
@@ -2692,6 +2693,7 @@ export type Database = {
           uploaded_by_name: string
         }
         Insert: {
+          category?: string
           created_at?: string
           file_name: string
           file_size?: number | null
@@ -2703,6 +2705,7 @@ export type Database = {
           uploaded_by_name: string
         }
         Update: {
+          category?: string
           created_at?: string
           file_name?: string
           file_size?: number | null
