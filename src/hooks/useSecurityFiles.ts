@@ -58,11 +58,14 @@ export function useSecurityFiles() {
     }) => {
       // Upload to storage
       const fileExt = file.name.split(".").pop();
-      const fileName = `${Date.now()}-${file.name}`;
+      const fileName = `${userId}/${Date.now()}-${file.name}`;
 
       const { error: uploadError } = await supabase.storage
         .from("security-files")
-        .upload(fileName, file);
+        .upload(fileName, file, {
+          cacheControl: "3600",
+          upsert: false,
+        });
 
       if (uploadError) {
         console.error("Storage upload error:", uploadError);

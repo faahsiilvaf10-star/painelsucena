@@ -40,6 +40,8 @@ function getFileIcon(fileType: string | null) {
   if (fileType.includes("image")) return FileImage;
   if (fileType.includes("sheet") || fileType.includes("excel") || fileType.includes("csv"))
     return FileSpreadsheet;
+  if (fileType.includes("zip") || fileType.includes("rar") || fileType.includes("compressed") || fileType.includes("archive"))
+    return File;
   return FileText;
 }
 
@@ -169,7 +171,7 @@ export default function ArquivosSeguranca() {
               multiple
               className="hidden"
               onChange={handleFileSelect}
-              accept=".pdf,.doc,.docx,.xls,.xlsx,.ppt,.pptx,.jpg,.jpeg,.png,.gif,.txt"
+              accept=".pdf,.doc,.docx,.xls,.xlsx,.ppt,.pptx,.jpg,.jpeg,.png,.gif,.txt,.zip,.rar,.7z"
             />
             {!isVisualizador && (
               <Button
