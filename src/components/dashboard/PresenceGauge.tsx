@@ -7,130 +7,140 @@ interface PresenceGaugeProps {
 }
 
 export function PresenceGauge({ present, total, percentage }: PresenceGaugeProps) {
-  const radius = 80;
-  const stroke = 10;
-  const normalizedRadius = radius - stroke;
-  const circumference = normalizedRadius * 2 * Math.PI;
-  const strokeDashoffset = circumference - (percentage / 100) * circumference;
+  const svgSize = 180;
+  const stroke = 12;
+  const radius = (svgSize - stroke) / 2;
+  const circumference = radius * 2 * Math.PI;
+  const gap = circumference * 0.15; // 15% gap at the bottom
+  const usableArc = circumference - gap;
+  const filledArc = (percentage / 100) * usableArc;
+  // Rotate so gap is at bottom center: start from ~210deg
+  const startAngle = 150;
 
   return (
     <div
-      className="relative flex flex-col items-center justify-center rounded-2xl p-6"
+      className="relative flex flex-col items-center justify-center rounded-2xl p-6 h-full"
       style={{
-        background: "linear-gradient(145deg, hsl(30, 15%, 92%), hsl(30, 10%, 86%))",
+        background: "linear-gradient(145deg, hsl(30, 15%, 94%), hsl(30, 10%, 88%))",
         boxShadow:
-          "8px 8px 16px hsl(30, 10%, 78%), -8px -8px 16px hsl(30, 20%, 98%), inset 0 1px 0 hsl(30, 20%, 96%)",
-        minHeight: 220,
+          "6px 6px 14px hsl(30, 10%, 78%), -6px -6px 14px hsl(30, 20%, 98%), inset 0 1px 0 hsl(30, 20%, 96%)",
+        border: "1px solid hsl(30, 15%, 85%)",
       }}
     >
-      {/* Copper ring SVG */}
-      <svg height={radius * 2} width={radius * 2} className="drop-shadow-md">
-        {/* Background ring */}
-        <circle
-          stroke="hsl(30, 12%, 82%)"
-          fill="transparent"
-          strokeWidth={stroke}
-          r={normalizedRadius}
-          cx={radius}
-          cy={radius}
-        />
-        {/* Copper progress ring */}
-        <circle
-          stroke="url(#copperGradient)"
-          fill="transparent"
-          strokeWidth={stroke}
-          strokeLinecap="round"
-          strokeDasharray={`${circumference} ${circumference}`}
-          strokeDashoffset={strokeDashoffset}
-          r={normalizedRadius}
-          cx={radius}
-          cy={radius}
-          style={{
-            transform: "rotate(-90deg)",
-            transformOrigin: "50% 50%",
-            transition: "stroke-dashoffset 1s ease-out",
-          }}
-        />
-        <defs>
-          <linearGradient id="copperGradient" x1="0%" y1="0%" x2="100%" y2="100%">
-            <stop offset="0%" stopColor="hsl(25, 55%, 55%)" />
-            <stop offset="50%" stopColor="hsl(30, 65%, 65%)" />
-            <stop offset="100%" stopColor="hsl(20, 50%, 45%)" />
-          </linearGradient>
-        </defs>
-      </svg>
-
-      {/* Center text */}
-      <div className="absolute inset-0 flex flex-col items-center justify-center" style={{ paddingTop: 8 }}>
-        <span
-          className="uppercase tracking-widest font-bold"
-          style={{
-            fontSize: "0.65rem",
-            color: "hsl(30, 20%, 45%)",
-            letterSpacing: "0.18em",
-          }}
-        >
-          Presença
-        </span>
-        <span
-          className="font-extrabold leading-none"
-          style={{
-            fontSize: "1.8rem",
-            color: "hsl(30, 15%, 20%)",
-          }}
-        >
-          {present}
-          <span
+      {/* SVG Ring */}
+      <div className="relative" style={{ width: svgSize, height: svgSize }}>
+        <svg height={svgSize} width={svgSize} className="drop-shadow-sm">
+          {/* Background arc */}
+          <circle
+            stroke="hsl(30, 10%, 84%)"
+            fill="transparent"
+            strokeWidth={stroke}
+            strokeLinecap="round"
+            strokeDasharray={`${usableArc} ${gap}`}
+            r={radius}
+            cx={svgSize / 2}
+            cy={svgSize / 2}
             style={{
-              fontSize: "0.95rem",
-              color: "hsl(30, 10%, 50%)",
-              fontWeight: 500,
-              marginLeft: 4,
+              transform: `rotate(${startAngle}deg)`,
+              transformOrigin: "50% 50%",
+            }}
+          />
+          {/* Copper progress arc */}
+          <circle
+            stroke="url(#copperGaugeGrad)"
+            fill="transparent"
+            strokeWidth={stroke}
+            strokeLinecap="round"
+            strokeDasharray={`${filledArc} ${circumference - filledArc}`}
+            r={radius}
+            cx={svgSize / 2}
+            cy={svgSize / 2}
+            style={{
+              transform: `rotate(${startAngle}deg)`,
+              transformOrigin: "50% 50%",
+              transition: "stroke-dasharray 1s ease-out",
+            }}
+          />
+          <defs>
+            <linearGradient id="copperGaugeGrad" x1="0%" y1="0%" x2="100%" y2="100%">
+              <stop offset="0%" stopColor="hsl(25, 60%, 55%)" />
+              <stop offset="50%" stopColor="hsl(30, 70%, 65%)" />
+              <stop offset="100%" stopColor="hsl(20, 55%, 48%)" />
+            </linearGradient>
+          </defs>
+        </svg>
+
+        {/* Center content inside ring */}
+        <div className="absolute inset-0 flex flex-col items-center justify-center">
+          <span
+            className="uppercase tracking-[0.2em] font-semibold"
+            style={{
+              fontSize: "0.6rem",
+              color: "hsl(30, 15%, 50%)",
             }}
           >
-            | {percentage}%
+            Presença
           </span>
-        </span>
+          <div className="flex items-baseline gap-1">
+            <span
+              className="font-extrabold leading-none"
+              style={{
+                fontSize: "2.2rem",
+                color: "hsl(30, 15%, 18%)",
+              }}
+            >
+              {present}
+            </span>
+            <span
+              style={{
+                fontSize: "0.9rem",
+                color: "hsl(30, 10%, 55%)",
+                fontWeight: 500,
+              }}
+            >
+              | {percentage}%
+            </span>
+          </div>
+        </div>
       </div>
 
-      {/* Bottom section */}
-      <div className="mt-3 flex items-center gap-2">
+      {/* Bottom label */}
+      <div className="mt-3 text-center">
         <span
-          className="font-semibold"
+          className="font-medium block"
           style={{
             fontSize: "0.85rem",
-            color: "hsl(30, 15%, 25%)",
+            color: "hsl(30, 10%, 45%)",
           }}
         >
           Presentes Hoje
         </span>
-      </div>
-      <div className="flex items-center gap-2 mt-0.5">
-        <span
-          className="font-extrabold"
-          style={{
-            fontSize: "1.5rem",
-            color: "hsl(30, 15%, 20%)",
-          }}
-        >
-          {present}
-        </span>
-        <span
-          style={{
-            fontSize: "0.85rem",
-            color: "hsl(30, 10%, 50%)",
-          }}
-        >
-          | {percentage}%
-        </span>
-        <ClipboardCheck
-          className="ml-auto"
-          style={{
-            width: 22,
-            height: 22,
-            color: "hsl(30, 15%, 60%)",
-          }}
-        />
+        <div className="flex items-center justify-center gap-2 mt-1">
+          <span
+            className="font-extrabold"
+            style={{
+              fontSize: "1.4rem",
+              color: "hsl(30, 15%, 18%)",
+            }}
+          >
+            {present}
+          </span>
+          <span
+            style={{
+              fontSize: "0.85rem",
+              color: "hsl(30, 10%, 55%)",
+            }}
+          >
+            | {percentage}%
+          </span>
+          <ClipboardCheck
+            style={{
+              width: 18,
+              height: 18,
+              color: "hsl(30, 10%, 60%)",
+            }}
+          />
+        </div>
       </div>
     </div>
   );
