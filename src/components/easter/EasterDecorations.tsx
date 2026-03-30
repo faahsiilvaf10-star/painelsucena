@@ -1,6 +1,7 @@
 import { useEffect, useState } from "react";
 import easterBunny from "@/assets/easter-bunny.png";
 import easterEgg from "@/assets/easter-egg.png";
+import easterEggPink from "@/assets/easter-egg-pink.png";
 
 export const EasterDecorations = () => {
   const [show, setShow] = useState(false);
