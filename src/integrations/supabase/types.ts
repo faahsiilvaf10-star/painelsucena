@@ -713,6 +713,7 @@ export type Database = {
         Row: {
           created_at: string
           created_by: string
+          event_photo_url: string | null
           external_presenter_name: string | null
           id: string
           month_year: string
@@ -725,6 +726,7 @@ export type Database = {
         Insert: {
           created_at?: string
           created_by: string
+          event_photo_url?: string | null
           external_presenter_name?: string | null
           id?: string
           month_year: string
@@ -737,6 +739,7 @@ export type Database = {
         Update: {
           created_at?: string
           created_by?: string
+          event_photo_url?: string | null
           external_presenter_name?: string | null
           id?: string
           month_year?: string
