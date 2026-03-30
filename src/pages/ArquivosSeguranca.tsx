@@ -39,6 +39,7 @@ import iconPlanejamento from "@/assets/icons/icon-planejamento.png";
 import iconAdministrativo from "@/assets/icons/icon-administrativo.png";
 import iconAlmoxarifado from "@/assets/icons/icon-almoxarifado.png";
 import iconTransporte from "@/assets/icons/icon-transporte.png";
+import winrarIcon from "@/assets/winrar-icon.png";
 
 const FilePdfIcon = FileText;
 
@@ -89,6 +90,9 @@ function SecurityFilePreview({
   const isImage = file.file_type?.includes("image");
   const isPdf =
     file.file_type?.includes("pdf") || file.file_name.toLowerCase().endsWith(".pdf");
+  const isCompressed =
+    file.file_type?.includes("zip") || file.file_type?.includes("rar") || file.file_type?.includes("compressed") || file.file_type?.includes("archive") ||
+    file.file_name.toLowerCase().endsWith(".zip") || file.file_name.toLowerCase().endsWith(".rar") || file.file_name.toLowerCase().endsWith(".7z");
 
   if (isImage && !previewFailed) {
     return (
@@ -119,6 +123,14 @@ function SecurityFilePreview({
           )}
         </div>
       </object>
+    );
+  }
+
+  if (isCompressed) {
+    return (
+      <div className="relative flex h-full w-full items-center justify-center">
+        <img src={winrarIcon} alt="Arquivo compactado" className="h-20 w-20 object-contain" />
+      </div>
     );
   }
 
