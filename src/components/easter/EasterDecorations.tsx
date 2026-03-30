@@ -1,6 +1,7 @@
 import { useEffect, useState } from "react";
 import easterBunny from "@/assets/easter-bunny.png";
 import easterEgg from "@/assets/easter-egg.png";
+import easterEggPink from "@/assets/easter-egg-pink.png";
 
 export const EasterDecorations = () => {
   const [show, setShow] = useState(false);
@@ -15,21 +16,24 @@ export const EasterDecorations = () => {
   return (
     <>
       {/* Floating chocolate eggs */}
-      {[8, 25, 45, 65, 85].map((left, i) => (
-        <img
-          key={`egg-${i}`}
-          src={easterEgg}
-          alt=""
-          className="fixed pointer-events-none select-none z-[1] opacity-0"
-          style={{
-            left: `${left}%`,
-            top: "-60px",
-            width: "36px",
-            height: "auto",
-            animation: `easterFloat 20s ease-in-out ${i * 1.5}s infinite`,
-          }}
-        />
-      ))}
+      {[8, 25, 45, 65, 85].map((left, i) => {
+        const img = i % 2 === 0 ? easterEgg : easterEggPink;
+        return (
+          <img
+            key={`egg-${i}`}
+            src={img}
+            alt=""
+            className="fixed pointer-events-none select-none z-[1] opacity-0"
+            style={{
+              left: `${left}%`,
+              top: "-60px",
+              width: "36px",
+              height: "auto",
+              animation: `easterFloat 20s ease-in-out ${i * 1.5}s infinite`,
+            }}
+          />
+        );
+      })}
 
       {/* Corner bunnies */}
       <img
