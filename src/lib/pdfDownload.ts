@@ -1,4 +1,26 @@
 /**
+ * Robust PDF blob download that works in browsers, PWAs, TWAs, and Electron.
+ */
+export function triggerBlobDownload(blob: Blob, filename: string): void {
+  const url = URL.createObjectURL(blob);
+  const link = document.createElement("a");
+  link.style.display = "none";
+  link.href = url;
+  link.download = filename;
+  link.setAttribute("target", "_self");
+  document.body.appendChild(link);
+
+  // Use setTimeout to ensure the click is processed
+  setTimeout(() => {
+    link.click();
+    setTimeout(() => {
+      document.body.removeChild(link);
+      URL.revokeObjectURL(url);
+    }, 250);
+  }, 0);
+}
+
+/**
  * Generates a real PDF file from an HTML string and triggers download.
  * Works in browsers, PWAs, TWAs, and Electron apps (no window.open/print needed).
  */
