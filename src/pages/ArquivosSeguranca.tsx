@@ -24,6 +24,14 @@ import {
   FileImage,
   FileSpreadsheet,
   File,
+  HardHat,
+  TreePine,
+  ShieldCheck,
+  Handshake,
+  CalendarClock,
+  Monitor,
+  Warehouse,
+  Truck,
 } from "lucide-react";
 import { useSecurityFiles, SecurityFile, SECURITY_FILE_CATEGORIES } from "@/hooks/useSecurityFiles";
 import { useAuth } from "@/hooks/useAuth";
@@ -126,6 +134,17 @@ function SecurityFilePreview({
   );
 }
 
+const CATEGORY_ICONS: Record<string, React.ComponentType<{ className?: string }>> = {
+  Encarregado: HardHat,
+  "Tec Meio Ambiente": TreePine,
+  "Tec Segurança": ShieldCheck,
+  Preposto: Handshake,
+  Planejamento: CalendarClock,
+  Administrativo: Monitor,
+  Almoxarifado: Warehouse,
+  Transporte: Truck,
+};
+
 export default function ArquivosSeguranca() {
   const { files, isLoading, uploadFile, deleteFile } = useSecurityFiles();
   const { user } = useAuth();
@@ -151,6 +170,7 @@ export default function ArquivosSeguranca() {
           <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-4 gap-3 sm:gap-4">
             {SECURITY_FILE_CATEGORIES.map((cat) => {
               const count = files.filter((f) => f.category === cat).length;
+              const CatIcon = CATEGORY_ICONS[cat] || FileText;
               return (
                 <Card
                   key={cat}
@@ -158,7 +178,7 @@ export default function ArquivosSeguranca() {
                   onClick={() => setSelectedCategory(cat)}
                 >
                   <CardContent className="flex flex-col items-center justify-center p-6 text-center gap-2">
-                    <FileText className="h-10 w-10 text-primary" />
+                    <CatIcon className="h-10 w-10 text-primary" />
                     <h3 className="font-semibold text-sm sm:text-base">{cat}</h3>
                     <span className="text-xs text-muted-foreground">
                       {count} {count === 1 ? "arquivo" : "arquivos"}
