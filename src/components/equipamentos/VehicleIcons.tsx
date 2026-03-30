@@ -42,38 +42,14 @@ export const VehicleIcon: React.FC<VehicleIconProps> = ({
 
     case "munk":
       return (
-        <svg
-          width={width}
-          height={height}
-          viewBox="0 0 44 24"
-          fill="none"
-          xmlns="http://www.w3.org/2000/svg"
-          className={baseClass}
-        >
-          {/* Cabin */}
-          <rect x="32" y="6" width="10" height="10" rx="1.5" fill="#F59E0B" />
-          <rect x="34" y="8" width="6" height="4" rx="1" fill="#1E293B" />
-          {/* Bed */}
-          <rect x="4" y="10" width="28" height="6" rx="1" fill="#4B5563" />
-          {/* Crane Base */}
-          <rect x="26" y="4" width="6" height="6" fill="#EA580C" rx="1" />
-          {/* Crane Arm */}
-          <rect x="10" y="2" width="18" height="3" rx="1" fill="#F97316" />
-          {/* Hook */}
-          <path d="M10 2 L10 0 L6 0 L6 4 L8 4 L8 2" stroke="#DC2626" strokeWidth="1.5" fill="none" />
-          <circle cx="6" cy="5" r="1.5" fill="#DC2626" />
-          {/* Wheels */}
-          <circle cx="10" cy="20" r="3.5" fill="#1F2937" />
-          <circle cx="10" cy="20" r="1.5" fill="#4B5563" />
-          <circle cx="36" cy="20" r="3.5" fill="#1F2937" />
-          <circle cx="36" cy="20" r="1.5" fill="#4B5563" />
-          {!isStopped && (
-            <>
-              <circle cx="10" cy="20" r="2.5" fill="none" stroke="#9CA3AF" strokeWidth="0.5" strokeDasharray="2 2" className="animate-spin-slow" style={{ transformOrigin: '10px 20px' }} />
-              <circle cx="36" cy="20" r="2.5" fill="none" stroke="#9CA3AF" strokeWidth="0.5" strokeDasharray="2 2" className="animate-spin-slow" style={{ transformOrigin: '36px 20px' }} />
-            </>
-          )}
-        </svg>
+        <img
+          src={munkTruckImg}
+          alt="Caminhão Munk"
+          width={width * 3}
+          height={height * 3}
+          className={`${baseClass} object-contain`}
+          style={{ imageRendering: 'auto' }}
+        />
       );
 
     case "camionete":
