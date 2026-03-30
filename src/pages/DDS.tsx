@@ -24,6 +24,7 @@ import {
   useCreateDDSSchedule,
   useUpdateDDSSchedule,
   useDeleteDDSSchedule,
+  useUpdateDDSPhoto,
   useClearMonthDDS,
   useAllProfiles,
   getWeekdaysInMonth,
