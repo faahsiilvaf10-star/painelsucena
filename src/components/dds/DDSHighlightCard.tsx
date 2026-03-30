@@ -392,6 +392,26 @@ export const DDSHighlightCard = () => {
           </div>
         </DialogContent>
       </Dialog>
+
+      {/* Event Photo Modal */}
+      <Dialog open={eventPhotoModalOpen} onOpenChange={setEventPhotoModalOpen}>
+        <DialogContent className="max-w-4xl w-full p-0 bg-black/95 border-none">
+          <DialogTitle className="sr-only">Registro do DDS de Hoje</DialogTitle>
+          <div className="relative">
+            <Button variant="ghost" size="icon" className="absolute top-2 right-2 z-10 text-white hover:bg-white/20" onClick={() => setEventPhotoModalOpen(false)}>
+              <X className="h-6 w-6" />
+            </Button>
+            {(todayDDS as any)?.event_photo_url && (
+              <img src={(todayDDS as any).event_photo_url} alt="Registro do DDS" className="w-full max-h-[80vh] object-contain" />
+            )}
+            <div className="absolute bottom-0 left-0 right-0 bg-gradient-to-t from-black/80 to-transparent p-4">
+              <p className="text-white text-center">
+                <span className="font-semibold">📸 Registro do DDS - {format(today, "d 'de' MMMM 'de' yyyy", { locale: ptBR })}</span>
+              </p>
+            </div>
+          </div>
+        </DialogContent>
+      </Dialog>
     </div>
   );
 };
