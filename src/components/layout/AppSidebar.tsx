@@ -84,7 +84,7 @@ const allNavItems: NavItem[] = [
   { id: "arquivos-seguranca", icon: FolderLock, label: "Arquivos Segurança", path: "/arquivos-seguranca" },
   { id: "consumo-abastecimento", icon: Droplets, label: "Consumo Abastecimento", path: "/consumo-abastecimento" },
   { id: "plano-manutencao", icon: Wrench, label: "Plano de Manutenção", path: "/plano-manutencao" },
-  { id: "slides", icon: Presentation, label: "Slides IA", path: "/slides" },
+  
   { id: "instacena", icon: Newspaper, label: "InstaCena", path: "/instacena" },
   { id: "inspecao-canteiro", icon: HardHat, label: "Inspeção de Canteiro", path: "/inspecao-canteiro" },
   { id: "calendario-hydro", icon: CalendarDays, label: "Calendário Hydro", path: "/calendario-hydro" },
