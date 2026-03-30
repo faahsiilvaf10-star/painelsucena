@@ -59,7 +59,7 @@ export const EasterDecorations = () => {
       />
 
       {/* Top center Páscoa image */}
-      <div className="fixed top-0 left-0 right-0 z-[2] pointer-events-none flex justify-center">
+      <div className="fixed top-0 left-16 z-[2] pointer-events-none">
         <img
           src={easterPascoa}
           alt=""
