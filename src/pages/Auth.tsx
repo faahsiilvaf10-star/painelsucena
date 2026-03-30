@@ -400,7 +400,7 @@ const Auth = () => {
                 type="email"
                 value={email}
                 onChange={(e) => setEmail(e.target.value)}
-                placeholder="Username"
+                placeholder="Email"
                 className="pl-10 h-9 bg-white/95 border-0 text-gray-700 text-sm placeholder:text-gray-400 rounded shadow-sm focus:ring-2 focus:ring-blue-400"
               />
             </div>
