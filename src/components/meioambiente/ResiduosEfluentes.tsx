@@ -299,6 +299,16 @@ export default function ResiduosEfluentes() {
       pdf.addPage("a4", "l");
       await drawHeader("GRÁFICO - RESÍDUOS POR MÊS");
 
+      // Accumulated total text
+      pdf.setFontSize(10);
+      pdf.setTextColor("#333333");
+      pdf.setFont("helvetica", "normal");
+      pdf.text(
+        `Acumulado até ${new Date().toLocaleDateString("pt-BR")}: ${totalAnual} KG`,
+        margin,
+        margin + 25
+      );
+
       const cm = 35;
       const chartLeft = cm + 15;
       const chartBottom = pageH - 35;
