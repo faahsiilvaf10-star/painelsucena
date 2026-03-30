@@ -40,6 +40,9 @@ import { DashboardEditControls } from "@/components/dashboard/DashboardEditContr
 import BirthdayBanner from "@/components/dashboard/BirthdayBanner";
 import DDSPresenterAlert from "@/components/dds/DDSPresenterAlert";
 import { useCampaignNotifications } from "@/hooks/useCampaignNotifications";
+import { useLastDayMatrixCheck } from "@/hooks/useLastDayMatrixCheck";
+import { CelebrationModal } from "@/components/matriz/CelebrationModal";
+import { MatrixReminderModal } from "@/components/matriz/MatrixReminderModal";
 import { useEmployees } from "@/hooks/useEmployees";
 import { useAttendanceRecords } from "@/hooks/useAttendance";
 import { useEquipment } from "@/hooks/useEquipment";
