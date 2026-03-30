@@ -293,7 +293,8 @@ export function ExportMovementsHistoryPdfButton() {
       }
 
       const filename = `Movimentacoes_${startDate}_a_${endDate}.pdf`;
-      pdf.save(filename);
+      const { triggerBlobDownload } = await import("@/lib/pdfDownload");
+      triggerBlobDownload(pdf.output("blob"), filename);
       toast.success("PDF gerado com sucesso!");
       setOpen(false);
     } catch (err) {

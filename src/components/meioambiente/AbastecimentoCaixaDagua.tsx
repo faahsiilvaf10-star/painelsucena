@@ -266,15 +266,9 @@ export default function AbastecimentoCaixaDagua() {
         lx += 25;
       });
 
+      const { triggerBlobDownload } = await import("@/lib/pdfDownload");
       const blob = pdf.output("blob");
-      const url = URL.createObjectURL(blob);
-      const link = document.createElement("a");
-      link.href = url;
-      link.download = `abastecimento-caixa-dagua-${ano}.pdf`;
-      document.body.appendChild(link);
-      link.click();
-      document.body.removeChild(link);
-      URL.revokeObjectURL(url);
+      triggerBlobDownload(blob, `abastecimento-caixa-dagua-${ano}.pdf`);
       toast.success("PDF exportado!");
     } catch (err) {
       console.error(err);
