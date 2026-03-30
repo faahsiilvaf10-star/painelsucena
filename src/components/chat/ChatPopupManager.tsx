@@ -142,7 +142,7 @@ export const ChatPopupManager = ({ onExpandChat }: ChatPopupManagerProps) => {
   if (!user || openPopups.length === 0) return null;
 
   return (
-    <div className="fixed bottom-12 right-4 z-50 flex items-end gap-2">
+    <div className="fixed bottom-14 right-4 z-50 flex items-end gap-3">
       {openPopups.map((popup) => (
         <ChatPopup
           key={popup.user.user_id}
