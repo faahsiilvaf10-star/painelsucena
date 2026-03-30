@@ -39,13 +39,17 @@ export const RightUsersSidebar = ({ onUserClick }: RightUsersSidebarProps) => {
       <button
         onClick={() => setIsOpen(!isOpen)}
         className={cn(
-          "fixed top-1/2 -translate-y-1/2 z-40 flex items-center justify-center",
-          "h-10 w-5 rounded-l-md bg-primary/90 text-primary-foreground shadow-md",
-          "hover:bg-primary transition-all",
-          isOpen ? "right-[220px] md:right-[240px]" : "right-0"
+          "fixed top-1/2 -translate-y-1/2 z-40 flex items-center justify-center transition-all",
+          isOpen
+            ? "h-10 w-5 rounded-l-md bg-primary/90 text-primary-foreground shadow-md hover:bg-primary right-[220px] md:right-[240px]"
+            : "h-12 w-12 rounded-full shadow-lg right-2"
         )}
       >
-        {isOpen ? <ChevronRight className="h-3 w-3" /> : <ChevronLeft className="h-3 w-3" />}
+        {isOpen ? (
+          <ChevronRight className="h-3 w-3" />
+        ) : (
+          <img src={chatBubbleIcon} alt="Chat" className="h-12 w-12 object-contain" />
+        )}
       </button>
 
       {/* Sidebar panel */}
