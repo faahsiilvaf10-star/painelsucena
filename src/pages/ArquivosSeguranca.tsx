@@ -90,6 +90,9 @@ function SecurityFilePreview({
   const isImage = file.file_type?.includes("image");
   const isPdf =
     file.file_type?.includes("pdf") || file.file_name.toLowerCase().endsWith(".pdf");
+  const isExcel =
+    file.file_type?.includes("sheet") || file.file_type?.includes("excel") ||
+    file.file_name.toLowerCase().endsWith(".xls") || file.file_name.toLowerCase().endsWith(".xlsx");
   const isCompressed =
     file.file_type?.includes("zip") || file.file_type?.includes("rar") || file.file_type?.includes("compressed") || file.file_type?.includes("archive") ||
     file.file_name.toLowerCase().endsWith(".zip") || file.file_name.toLowerCase().endsWith(".rar") || file.file_name.toLowerCase().endsWith(".7z");
@@ -123,6 +126,18 @@ function SecurityFilePreview({
           )}
         </div>
       </object>
+    );
+  }
+
+  if (isExcel && !previewFailed) {
+    const viewerUrl = `https://view.officeapps.live.com/op/embed.aspx?src=${encodeURIComponent(file.file_url)}`;
+    return (
+      <iframe
+        src={viewerUrl}
+        className="h-full w-full pointer-events-none border-0"
+        title={`Pré-visualização de ${file.file_name}`}
+        onError={() => setPreviewFailed(true)}
+      />
     );
   }
 
