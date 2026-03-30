@@ -276,7 +276,15 @@ function PluviometriaSpreadsheet({ setor, ano }: { setor: string; ano: number })
       pdf.text("TOTAL", pageW - margin - 25, legendY + 12, { align: "center" });
       pdf.text("ANUAL", pageW - margin - 25, legendY + 15, { align: "center" });
 
-      pdf.save(`pluviometria-${setor}-${ano}.pdf`);
+      const blob = pdf.output("blob");
+      const url = URL.createObjectURL(blob);
+      const link = document.createElement("a");
+      link.href = url;
+      link.download = `pluviometria-${setor}-${ano}.pdf`;
+      document.body.appendChild(link);
+      link.click();
+      document.body.removeChild(link);
+      URL.revokeObjectURL(url);
       toast.success("PDF exportado!");
     } catch (err) {
       console.error(err);

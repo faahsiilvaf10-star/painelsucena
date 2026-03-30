@@ -327,7 +327,15 @@ export default function ResiduosEfluentes() {
         lx += 30;
       });
 
-      pdf.save(`residuos-efluentes-${ano}.pdf`);
+      const blob = pdf.output("blob");
+      const url = URL.createObjectURL(blob);
+      const link = document.createElement("a");
+      link.href = url;
+      link.download = `residuos-efluentes-${ano}.pdf`;
+      document.body.appendChild(link);
+      link.click();
+      document.body.removeChild(link);
+      URL.revokeObjectURL(url);
       toast.success("PDF exportado!");
     } catch (err) {
       console.error(err);

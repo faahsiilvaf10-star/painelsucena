@@ -266,7 +266,15 @@ export default function AbastecimentoCaixaDagua() {
         lx += 25;
       });
 
-      pdf.save(`abastecimento-caixa-dagua-${ano}.pdf`);
+      const blob = pdf.output("blob");
+      const url = URL.createObjectURL(blob);
+      const link = document.createElement("a");
+      link.href = url;
+      link.download = `abastecimento-caixa-dagua-${ano}.pdf`;
+      document.body.appendChild(link);
+      link.click();
+      document.body.removeChild(link);
+      URL.revokeObjectURL(url);
       toast.success("PDF exportado!");
     } catch (err) {
       console.error(err);
