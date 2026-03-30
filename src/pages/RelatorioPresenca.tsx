@@ -534,13 +534,13 @@ const RelatorioPresenca = () => {
     const dynamicRoles = Object.keys(groupedEmployees[area] || {});
     const roles = [...staticRoles, ...dynamicRoles.filter(r => !staticRoles.includes(r))];
     roles.forEach((role) => {
-      const label = roleLabels[area][role];
+      const label = roleLabels[area]?.[role] || roleLabels[area]?.["_other"] || `${EMOJI_WORKER} ${role.toUpperCase()}:`;
       const employees = groupedEmployees[area][role] || [];
       const presentEmployees = employees.filter((emp) => isPresent(emp.id));
       
       if (employees.length > 0 && presentEmployees.length > 0) {
         // Remove emoji and colon from label for cleaner display
-        const cleanLabel = label.replace(/^.{1,2}\s*/g, '').replace(/:$/, '');
+        const cleanLabel = (label || role).replace(/^.{1,2}\s*/g, '').replace(/:$/, '');
         report += `${EMOJI_WORKER} ${cleanLabel}: ${presentEmployees.length}\n`;
         // Add employee names with Title Case formatting
         presentEmployees.forEach((emp) => {
