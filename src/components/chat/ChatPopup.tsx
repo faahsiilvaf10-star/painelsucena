@@ -9,7 +9,7 @@ import { useTypingIndicator } from "@/hooks/useTypingIndicator";
 import { useAuth } from "@/hooks/useAuth";
 import { UserWithStatus } from "@/hooks/useAllUsers";
 import { EmojiPicker } from "./EmojiPicker";
-import { Send, X, Loader2, Minimize2, Maximize2, Check, CheckCheck, Paperclip } from "lucide-react";
+import { Send, X, Loader2, Minimize2, Check, CheckCheck, Paperclip } from "lucide-react";
 import { format } from "date-fns";
 import { ptBR } from "date-fns/locale";
 import { cn } from "@/lib/utils";
