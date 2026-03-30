@@ -616,12 +616,29 @@ export default function DDS() {
                                       photoInputRef.current?.click();
                                     }}
                                     disabled={uploadingPhotoId === schedule.id}
-                                    title="Adicionar foto do DDS"
+                                    title="Foto do tema"
                                   >
                                     {uploadingPhotoId === schedule.id ? (
                                       <Loader2 className="h-4 w-4 animate-spin" />
                                     ) : (
                                       <Camera className="h-4 w-4 text-primary" />
+                                    )}
+                                  </Button>
+                                  <Button
+                                    variant="ghost"
+                                    size="icon"
+                                    className="h-8 w-8"
+                                    onClick={() => {
+                                      setEventPhotoTargetId(schedule.id);
+                                      eventPhotoInputRef.current?.click();
+                                    }}
+                                    disabled={uploadingEventPhotoId === schedule.id}
+                                    title="Registro do DDS (InstaCena)"
+                                  >
+                                    {uploadingEventPhotoId === schedule.id ? (
+                                      <Loader2 className="h-4 w-4 animate-spin" />
+                                    ) : (
+                                      <Image className="h-4 w-4 text-amber-500" />
                                     )}
                                   </Button>
                                   <Button
