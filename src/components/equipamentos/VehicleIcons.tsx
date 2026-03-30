@@ -2,6 +2,7 @@ import React from "react";
 import pipaTruckImg from "@/assets/pipa-truck.png";
 import munkTruckImg from "@/assets/munk-truck.png";
 import camioneteTruckImg from "@/assets/camionete-truck.png";
+import onibusTruckImg from "@/assets/onibus-truck.png";
 
 export type EquipmentType = "pipa" | "munk" | "camionete" | "onibus";
 
@@ -67,39 +68,14 @@ export const VehicleIcon: React.FC<VehicleIconProps> = ({
 
     case "onibus":
       return (
-        <svg
-          width={width}
-          height={height}
-          viewBox="0 0 48 24"
-          fill="none"
-          xmlns="http://www.w3.org/2000/svg"
-          className={baseClass}
-        >
-          {/* Body */}
-          <rect x="2" y="4" width="44" height="14" rx="2" fill="#6366F1" />
-          {/* Windows */}
-          <rect x="6" y="6" width="6" height="6" rx="1" fill="#1E293B" />
-          <rect x="14" y="6" width="6" height="6" rx="1" fill="#1E293B" />
-          <rect x="22" y="6" width="6" height="6" rx="1" fill="#1E293B" />
-          <rect x="30" y="6" width="6" height="6" rx="1" fill="#1E293B" />
-          {/* Windshield */}
-          <rect x="38" y="6" width="6" height="8" rx="1" fill="#1E293B" />
-          {/* Door */}
-          <rect x="10" y="12" width="4" height="6" fill="#4F46E5" />
-          {/* Stripe */}
-          <rect x="2" y="14" width="44" height="2" fill="#A5B4FC" />
-          {/* Wheels */}
-          <circle cx="12" cy="20" r="3" fill="#1F2937" />
-          <circle cx="12" cy="20" r="1.2" fill="#4B5563" />
-          <circle cx="36" cy="20" r="3" fill="#1F2937" />
-          <circle cx="36" cy="20" r="1.2" fill="#4B5563" />
-          {!isStopped && (
-            <>
-              <circle cx="12" cy="20" r="2" fill="none" stroke="#9CA3AF" strokeWidth="0.5" strokeDasharray="2 2" className="animate-spin-slow" style={{ transformOrigin: '12px 20px' }} />
-              <circle cx="36" cy="20" r="2" fill="none" stroke="#9CA3AF" strokeWidth="0.5" strokeDasharray="2 2" className="animate-spin-slow" style={{ transformOrigin: '36px 20px' }} />
-            </>
-          )}
-        </svg>
+        <img
+          src={onibusTruckImg}
+          alt="Ônibus"
+          width={width * 3}
+          height={height * 3}
+          className={`${baseClass} object-contain`}
+          style={{ imageRendering: 'auto' }}
+        />
       );
   }
 };
