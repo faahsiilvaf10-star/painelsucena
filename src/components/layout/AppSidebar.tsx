@@ -47,6 +47,7 @@ import { NeonAvatar } from "@/components/ui/NeonAvatar";
 import { toast } from "sonner";
 import { SidebarBackground } from "./SidebarBackground";
 import { formatCargoLabel } from "@/lib/cargoUtils";
+import sidebarArrowLeft from "@/assets/sidebar-arrow-left.png";
 
 interface NavItem {
   id: string;
@@ -421,7 +422,7 @@ export function AppSidebar({ lockedCollapsed = false }: { lockedCollapsed?: bool
         {isCollapsed ? (
           <PanelLeft className="h-4 w-4" />
         ) : (
-          <PanelLeftClose className="h-4 w-4" />
+          <img src={sidebarArrowLeft} alt="Fechar" className="h-5 w-5" />
         )}
       </Button>
 
