@@ -59,19 +59,15 @@ export const EasterDecorations = () => {
       />
 
       {/* Top center Páscoa image */}
-      <div className="fixed top-0 left-16 z-[2] pointer-events-none">
-        <img
-          src={easterPascoa}
-          alt=""
-          className="select-none opacity-70 dark:opacity-40"
-          style={{
-            width: "120px",
-            height: "auto",
-            marginTop: "-5px",
-            animation: "easterBounce 3s ease-in-out infinite",
-          }}
-        />
-      </div>
+      <img
+        src={easterPascoa}
+        alt=""
+        className="fixed top-1 left-16 z-[2] pointer-events-none select-none opacity-70 dark:opacity-40"
+        style={{
+          width: "120px",
+          height: "auto",
+        }}
+      />
     </>
   );
 };
