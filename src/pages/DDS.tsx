@@ -841,6 +841,42 @@ export default function DDS() {
             </DialogFooter>
           </DialogContent>
         </Dialog>
+
+        {/* Hidden file input for photo upload */}
+        <input
+          ref={photoInputRef}
+          type="file"
+          accept="image/*"
+          className="hidden"
+          onChange={(e) => {
+            const file = e.target.files?.[0];
+            if (file && photoTargetId) {
+              handlePhotoUpload(file, photoTargetId);
+            }
+            e.target.value = "";
+          }}
+        />
+
+        {/* Fullscreen Photo Dialog */}
+        <Dialog open={!!fullscreenPhoto} onOpenChange={() => setFullscreenPhoto(null)}>
+          <DialogContent className="max-w-[95vw] max-h-[95vh] p-2 sm:p-4">
+            <DialogHeader>
+              <DialogTitle className="flex items-center gap-2">
+                <Image className="h-5 w-5" />
+                Foto do DDS
+              </DialogTitle>
+            </DialogHeader>
+            {fullscreenPhoto && (
+              <div className="flex items-center justify-center overflow-auto max-h-[80vh]">
+                <img
+                  src={fullscreenPhoto}
+                  alt="Foto do DDS"
+                  className="max-w-full max-h-[75vh] object-contain rounded-lg"
+                />
+              </div>
+            )}
+          </DialogContent>
+        </Dialog>
       </div>
     </Layout>
   );
