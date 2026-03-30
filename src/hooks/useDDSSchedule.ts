@@ -12,6 +12,7 @@ export interface DDSScheduleItem {
   external_presenter_name: string | null;
   theme: string;
   photo_url: string | null;
+  event_photo_url: string | null;
   created_by: string;
   created_at: string;
   updated_at: string;
