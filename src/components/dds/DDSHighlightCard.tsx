@@ -202,80 +202,61 @@ export const DDSHighlightCard = () => {
                 </p>
               </div>
 
-              {/* Photo Section */}
-              {todayDDS.photo_url ? (
-                <div className="relative rounded-lg overflow-hidden group">
-                  <div 
-                    className="cursor-pointer"
-                    onClick={() => setPhotoModalOpen(true)}
-                  >
-                    <img
-                      src={todayDDS.photo_url}
-                      alt="Foto do DDS de hoje"
-                      className="w-full h-48 object-cover transition-transform group-hover:scale-105"
-                    />
-                    <div className="absolute inset-0 bg-black/0 group-hover:bg-black/20 transition-colors flex items-center justify-center pointer-events-none">
-                      <span className="opacity-0 group-hover:opacity-100 transition-opacity text-white text-sm font-medium bg-black/50 px-3 py-1.5 rounded-full">
-                        Clique para ampliar
-                      </span>
+              {/* Theme Photo Section */}
+              <div>
+                <p className="text-xs font-medium text-muted-foreground mb-2">📋 Foto do Tema</p>
+                {todayDDS.photo_url ? (
+                  <div className="relative rounded-lg overflow-hidden group">
+                    <div className="cursor-pointer" onClick={() => setPhotoModalOpen(true)}>
+                      <img src={todayDDS.photo_url} alt="Foto do tema DDS" className="w-full h-40 object-cover transition-transform group-hover:scale-105" />
+                      <div className="absolute inset-0 bg-black/0 group-hover:bg-black/20 transition-colors flex items-center justify-center pointer-events-none">
+                        <span className="opacity-0 group-hover:opacity-100 transition-opacity text-white text-sm font-medium bg-black/50 px-3 py-1.5 rounded-full">Clique para ampliar</span>
+                      </div>
                     </div>
-                  </div>
-                  <div className="absolute bottom-2 right-2 flex items-center gap-2">
-                    <span className="px-2 py-1 bg-black/50 text-white text-xs rounded-full">
-                      📸 Foto do dia
-                    </span>
-                  </div>
-                  {canUploadPhoto && (
-                    <Button
-                      variant="destructive"
-                      size="icon"
-                      className="absolute top-2 right-2 h-8 w-8 opacity-0 group-hover:opacity-100 transition-opacity"
-                      onClick={async (e) => {
-                        e.stopPropagation();
-                        if (confirm("Tem certeza que deseja remover a foto do DDS?")) {
-                          try {
-                            await updatePhoto.mutateAsync({
-                              id: todayDDS.id,
-                              photo_url: null,
-                            });
-                            toast.success("Foto removida com sucesso!");
-                          } catch (error) {
-                            console.error("Error removing photo:", error);
-                            toast.error("Erro ao remover a foto");
-                          }
-                        }
-                      }}
-                      title="Remover foto"
-                    >
-                      <X className="h-4 w-4" />
-                    </Button>
-                  )}
-                </div>
-              ) : canUploadPhoto ? (
-                <div className="border-2 border-dashed border-slate-300 dark:border-slate-700 rounded-lg p-4">
-                  <input
-                    ref={fileInputRef}
-                    type="file"
-                    accept="image/*"
-                    onChange={handlePhotoUpload}
-                    className="hidden"
-                    id="dds-photo-upload"
-                  />
-                  <label
-                    htmlFor="dds-photo-upload"
-                    className="flex flex-col items-center gap-2 cursor-pointer"
-                  >
-                    {isUploading ? (
-                      <Loader2 className="h-8 w-8 animate-spin text-slate-500" />
-                    ) : (
-                      <Camera className="h-8 w-8 text-slate-500" />
+                    {canUploadPhoto && (
+                      <Button variant="destructive" size="icon" className="absolute top-2 right-2 h-7 w-7 opacity-0 group-hover:opacity-100 transition-opacity"
+                        onClick={async (e) => { e.stopPropagation(); if (confirm("Remover foto do tema?")) { await updatePhoto.mutateAsync({ id: todayDDS.id, photo_url: null }); toast.success("Foto removida!"); } }}
+                        title="Remover foto do tema"><X className="h-4 w-4" /></Button>
                     )}
-                    <span className="text-sm text-muted-foreground">
-                      {isUploading ? "Enviando..." : "Adicionar foto do DDS"}
-                    </span>
-                  </label>
-                </div>
-              ) : null}
+                  </div>
+                ) : canUploadPhoto ? (
+                  <div className="border-2 border-dashed border-slate-300 dark:border-slate-700 rounded-lg p-3">
+                    <input ref={fileInputRef} type="file" accept="image/*" onChange={handleThemePhotoUpload} className="hidden" id="dds-theme-upload" />
+                    <label htmlFor="dds-theme-upload" className="flex flex-col items-center gap-1 cursor-pointer">
+                      {isUploading ? <Loader2 className="h-6 w-6 animate-spin text-muted-foreground" /> : <Camera className="h-6 w-6 text-muted-foreground" />}
+                      <span className="text-xs text-muted-foreground">{isUploading ? "Enviando..." : "Foto do tema"}</span>
+                    </label>
+                  </div>
+                ) : null}
+              </div>
+
+              {/* Event Photo Section (goes to InstaCena) */}
+              <div>
+                <p className="text-xs font-medium text-muted-foreground mb-2">📸 Registro do DDS</p>
+                {(todayDDS as any).event_photo_url ? (
+                  <div className="relative rounded-lg overflow-hidden group">
+                    <div className="cursor-pointer" onClick={() => setEventPhotoModalOpen(true)}>
+                      <img src={(todayDDS as any).event_photo_url} alt="Registro do DDS" className="w-full h-40 object-cover transition-transform group-hover:scale-105" />
+                      <div className="absolute inset-0 bg-black/0 group-hover:bg-black/20 transition-colors flex items-center justify-center pointer-events-none">
+                        <span className="opacity-0 group-hover:opacity-100 transition-opacity text-white text-sm font-medium bg-black/50 px-3 py-1.5 rounded-full">Clique para ampliar</span>
+                      </div>
+                    </div>
+                    {canUploadPhoto && (
+                      <Button variant="destructive" size="icon" className="absolute top-2 right-2 h-7 w-7 opacity-0 group-hover:opacity-100 transition-opacity"
+                        onClick={async (e) => { e.stopPropagation(); if (confirm("Remover registro?")) { await updateEventPhoto.mutateAsync({ id: todayDDS.id, event_photo_url: null }); toast.success("Registro removido!"); } }}
+                        title="Remover registro"><X className="h-4 w-4" /></Button>
+                    )}
+                  </div>
+                ) : canUploadPhoto ? (
+                  <div className="border-2 border-dashed border-slate-300 dark:border-slate-700 rounded-lg p-3">
+                    <input ref={eventFileInputRef} type="file" accept="image/*" onChange={handleEventPhotoUpload} className="hidden" id="dds-event-upload" />
+                    <label htmlFor="dds-event-upload" className="flex flex-col items-center gap-1 cursor-pointer">
+                      {isUploadingEvent ? <Loader2 className="h-6 w-6 animate-spin text-muted-foreground" /> : <Upload className="h-6 w-6 text-muted-foreground" />}
+                      <span className="text-xs text-muted-foreground">{isUploadingEvent ? "Enviando..." : "Registro (vai para InstaCena)"}</span>
+                    </label>
+                  </div>
+                ) : null}
+              </div>
             </div>
           ) : (
             <div className="text-center py-6 text-muted-foreground">
