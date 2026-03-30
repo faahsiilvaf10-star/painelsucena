@@ -31,8 +31,8 @@ export function CelebrationModal({ isOpen, onClose, cargoName, userName, userAva
   const displayName = userName || "Colaborador";
 
   return (
-    <Dialog open={isOpen} onOpenChange={onClose}>
-      <DialogContent className="sm:max-w-md border-none bg-transparent shadow-none overflow-visible p-0">
+    <Dialog open={isOpen} onOpenChange={() => {}}>
+      <DialogContent className="sm:max-w-md border-none bg-transparent shadow-none overflow-visible p-0 [&>button]:hidden">
         <div className="relative w-full flex items-center justify-center" style={{ minHeight: 520 }}>
           {/* Background card */}
           <div className="relative w-full rounded-3xl overflow-hidden bg-gradient-to-b from-gray-100 via-white to-gray-50 dark:from-gray-800 dark:via-gray-900 dark:to-gray-800 shadow-2xl p-6 pt-8 flex flex-col items-center">
