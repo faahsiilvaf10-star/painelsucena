@@ -61,7 +61,7 @@ export default function DDS() {
   const deleteSchedule = useDeleteDDSSchedule();
   const clearMonth = useClearMonthDDS();
   const createNotification = useCreateNotification();
-
+  const updateDDSPhoto = useUpdateDDSPhoto();
   // Hook to refresh DDS data at midnight (00:00 Pará time)
   useDDSMidnightRefresh();
 
