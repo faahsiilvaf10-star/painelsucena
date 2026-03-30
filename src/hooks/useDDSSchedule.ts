@@ -12,6 +12,7 @@ export interface DDSScheduleItem {
   external_presenter_name: string | null;
   theme: string;
   photo_url: string | null;
+  event_photo_url: string | null;
   created_by: string;
   created_at: string;
   updated_at: string;
@@ -187,10 +188,33 @@ export const useUpdateDDSPhoto = () => {
   const queryClient = useQueryClient();
 
   return useMutation({
-    mutationFn: async ({ id, photo_url }: { id: string; photo_url: string }) => {
+    mutationFn: async ({ id, photo_url }: { id: string; photo_url: string | null }) => {
       const { data, error } = await supabase
         .from("dds_schedule")
-        .update({ photo_url })
+        .update({ photo_url } as any)
+        .eq("id", id)
+        .select()
+        .single();
+
+      if (error) throw error;
+      return data;
+    },
+    onSuccess: (data) => {
+      queryClient.invalidateQueries({ queryKey: ["dds-schedule", data.month_year] });
+      queryClient.invalidateQueries({ queryKey: ["dds-today"] });
+      queryClient.invalidateQueries({ queryKey: ["dds-tomorrow"] });
+    },
+  });
+};
+
+export const useUpdateDDSEventPhoto = () => {
+  const queryClient = useQueryClient();
+
+  return useMutation({
+    mutationFn: async ({ id, event_photo_url }: { id: string; event_photo_url: string | null }) => {
+      const { data, error } = await supabase
+        .from("dds_schedule")
+        .update({ event_photo_url } as any)
         .eq("id", id)
         .select()
         .single();

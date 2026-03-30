@@ -8,7 +8,7 @@ import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { NeonAvatar } from "@/components/ui/NeonAvatar";
 import { Dialog, DialogContent, DialogTitle } from "@/components/ui/dialog";
 import { SunBorderAvatar } from "./SunBorderAvatar";
-import { useTodayDDS, useTomorrowDDS, useUpdateDDSPhoto } from "@/hooks/useDDSSchedule";
+import { useTodayDDS, useTomorrowDDS, useUpdateDDSPhoto, useUpdateDDSEventPhoto } from "@/hooks/useDDSSchedule";
 import { useProfile } from "@/hooks/useProfile";
 import { useIsAdmin } from "@/hooks/useUserRole";
 import { supabase } from "@/integrations/supabase/client";
@@ -23,14 +23,17 @@ export const DDSHighlightCard = () => {
   const { data: profile } = useProfile();
   const { isAdmin } = useIsAdmin();
   const updatePhoto = useUpdateDDSPhoto();
+  const updateEventPhoto = useUpdateDDSEventPhoto();
 
   // Hook to refresh DDS data at midnight (00:00 Pará time)
-  // Returns a key that changes when midnight occurs, forcing re-render
   const dateKey = useDDSMidnightRefresh();
 
   const [isUploading, setIsUploading] = useState(false);
+  const [isUploadingEvent, setIsUploadingEvent] = useState(false);
   const [photoModalOpen, setPhotoModalOpen] = useState(false);
+  const [eventPhotoModalOpen, setEventPhotoModalOpen] = useState(false);
   const fileInputRef = useRef<HTMLInputElement>(null);
+  const eventFileInputRef = useRef<HTMLInputElement>(null);
 
   // Use Brazil North timezone - recalculate when dateKey changes
   const today = useMemo(() => getBrazilNorthDate(), [dateKey]);
@@ -51,71 +54,64 @@ export const DDSHighlightCard = () => {
     return name.substring(0, 2).toUpperCase();
   };
 
-  const handlePhotoUpload = async (event: React.ChangeEvent<HTMLInputElement>) => {
+  // Upload THEME photo (shows in Destaques only, NO InstaCena)
+  const handleThemePhotoUpload = async (event: React.ChangeEvent<HTMLInputElement>) => {
     const file = event.target.files?.[0];
     if (!file || !todayDDS) return;
-
-    // Validate file
-    if (!file.type.startsWith("image/")) {
-      toast.error("Por favor, selecione uma imagem");
-      return;
-    }
-
-    if (file.size > 5 * 1024 * 1024) {
-      toast.error("A imagem deve ter no máximo 5MB");
-      return;
-    }
-
+    if (!file.type.startsWith("image/")) { toast.error("Por favor, selecione uma imagem"); return; }
+    if (file.size > 5 * 1024 * 1024) { toast.error("A imagem deve ter no máximo 5MB"); return; }
     setIsUploading(true);
-
     try {
       const fileExt = file.name.split(".").pop();
-      const fileName = `dds-${todayDDS.scheduled_date}-${Date.now()}.${fileExt}`;
-
-      const { error: uploadError } = await supabase.storage
-        .from("site-assets")
-        .upload(fileName, file, { upsert: true });
-
+      const fileName = `dds-theme-${todayDDS.scheduled_date}-${Date.now()}.${fileExt}`;
+      const { error: uploadError } = await supabase.storage.from("site-assets").upload(fileName, file, { upsert: true });
       if (uploadError) throw uploadError;
-
-      const { data: urlData } = supabase.storage
-        .from("site-assets")
-        .getPublicUrl(fileName);
-
-      await updatePhoto.mutateAsync({
-        id: todayDDS.id,
-        photo_url: urlData.publicUrl,
-      });
-
-      toast.success("Foto do DDS adicionada com sucesso!");
-
-      // Create InstaCena post with the DDS photo (non-blocking)
-      if (profile) {
-        try {
-          const presenterName = todayDDS.presenter?.full_name || todayDDS.external_presenter_name || "Palestrante";
-          const { error: postError } = await supabase.from("instacena_posts").insert({
-            user_id: profile.user_id,
-            user_name: profile.full_name,
-            user_avatar_url: profile.avatar_url,
-            content: `📸 Foto do DDS de hoje adicionada!\n\n📋 Tema: ${todayDDS.theme}\n🎤 Palestrante: ${presenterName}`,
-            image_urls: [urlData.publicUrl],
-            is_system_post: false,
-          });
-          if (postError) {
-            console.error("Error creating InstaCena post:", postError);
-          }
-        } catch (postErr) {
-          console.error("Error creating InstaCena post:", postErr);
-        }
-      }
+      const { data: urlData } = supabase.storage.from("site-assets").getPublicUrl(fileName);
+      await updatePhoto.mutateAsync({ id: todayDDS.id, photo_url: urlData.publicUrl });
+      toast.success("Foto do tema adicionada!");
     } catch (error) {
-      console.error("Error uploading photo:", error);
+      console.error("Error uploading theme photo:", error);
       toast.error("Erro ao fazer upload da foto");
     } finally {
       setIsUploading(false);
-      if (fileInputRef.current) {
-        fileInputRef.current.value = "";
+      if (fileInputRef.current) fileInputRef.current.value = "";
+    }
+  };
+
+  // Upload EVENT photo (what happened during DDS → posts to InstaCena)
+  const handleEventPhotoUpload = async (event: React.ChangeEvent<HTMLInputElement>) => {
+    const file = event.target.files?.[0];
+    if (!file || !todayDDS) return;
+    if (!file.type.startsWith("image/")) { toast.error("Por favor, selecione uma imagem"); return; }
+    if (file.size > 5 * 1024 * 1024) { toast.error("A imagem deve ter no máximo 5MB"); return; }
+    setIsUploadingEvent(true);
+    try {
+      const fileExt = file.name.split(".").pop();
+      const fileName = `dds-event-${todayDDS.scheduled_date}-${Date.now()}.${fileExt}`;
+      const { error: uploadError } = await supabase.storage.from("site-assets").upload(fileName, file, { upsert: true });
+      if (uploadError) throw uploadError;
+      const { data: urlData } = supabase.storage.from("site-assets").getPublicUrl(fileName);
+      await updateEventPhoto.mutateAsync({ id: todayDDS.id, event_photo_url: urlData.publicUrl });
+      toast.success("Foto do registro adicionada!");
+
+      // Post to InstaCena
+      if (profile) {
+        const presenterName = todayDDS.presenter?.full_name || todayDDS.external_presenter_name || "Palestrante";
+        await supabase.from("instacena_posts").insert({
+          user_id: profile.user_id,
+          user_name: profile.full_name,
+          user_avatar_url: profile.avatar_url,
+          content: `📸 Registro do DDS de hoje!\n\n📋 Tema: ${todayDDS.theme}\n🎤 Palestrante: ${presenterName}`,
+          image_urls: [urlData.publicUrl],
+          is_system_post: false,
+        });
       }
+    } catch (error) {
+      console.error("Error uploading event photo:", error);
+      toast.error("Erro ao fazer upload da foto");
+    } finally {
+      setIsUploadingEvent(false);
+      if (eventFileInputRef.current) eventFileInputRef.current.value = "";
     }
   };
 
@@ -206,80 +202,61 @@ export const DDSHighlightCard = () => {
                 </p>
               </div>
 
-              {/* Photo Section */}
-              {todayDDS.photo_url ? (
-                <div className="relative rounded-lg overflow-hidden group">
-                  <div 
-                    className="cursor-pointer"
-                    onClick={() => setPhotoModalOpen(true)}
-                  >
-                    <img
-                      src={todayDDS.photo_url}
-                      alt="Foto do DDS de hoje"
-                      className="w-full h-48 object-cover transition-transform group-hover:scale-105"
-                    />
-                    <div className="absolute inset-0 bg-black/0 group-hover:bg-black/20 transition-colors flex items-center justify-center pointer-events-none">
-                      <span className="opacity-0 group-hover:opacity-100 transition-opacity text-white text-sm font-medium bg-black/50 px-3 py-1.5 rounded-full">
-                        Clique para ampliar
-                      </span>
+              {/* Theme Photo Section */}
+              <div>
+                <p className="text-xs font-medium text-muted-foreground mb-2">📋 Foto do Tema</p>
+                {todayDDS.photo_url ? (
+                  <div className="relative rounded-lg overflow-hidden group">
+                    <div className="cursor-pointer" onClick={() => setPhotoModalOpen(true)}>
+                      <img src={todayDDS.photo_url} alt="Foto do tema DDS" className="w-full h-40 object-cover transition-transform group-hover:scale-105" />
+                      <div className="absolute inset-0 bg-black/0 group-hover:bg-black/20 transition-colors flex items-center justify-center pointer-events-none">
+                        <span className="opacity-0 group-hover:opacity-100 transition-opacity text-white text-sm font-medium bg-black/50 px-3 py-1.5 rounded-full">Clique para ampliar</span>
+                      </div>
                     </div>
-                  </div>
-                  <div className="absolute bottom-2 right-2 flex items-center gap-2">
-                    <span className="px-2 py-1 bg-black/50 text-white text-xs rounded-full">
-                      📸 Foto do dia
-                    </span>
-                  </div>
-                  {canUploadPhoto && (
-                    <Button
-                      variant="destructive"
-                      size="icon"
-                      className="absolute top-2 right-2 h-8 w-8 opacity-0 group-hover:opacity-100 transition-opacity"
-                      onClick={async (e) => {
-                        e.stopPropagation();
-                        if (confirm("Tem certeza que deseja remover a foto do DDS?")) {
-                          try {
-                            await updatePhoto.mutateAsync({
-                              id: todayDDS.id,
-                              photo_url: null,
-                            });
-                            toast.success("Foto removida com sucesso!");
-                          } catch (error) {
-                            console.error("Error removing photo:", error);
-                            toast.error("Erro ao remover a foto");
-                          }
-                        }
-                      }}
-                      title="Remover foto"
-                    >
-                      <X className="h-4 w-4" />
-                    </Button>
-                  )}
-                </div>
-              ) : canUploadPhoto ? (
-                <div className="border-2 border-dashed border-slate-300 dark:border-slate-700 rounded-lg p-4">
-                  <input
-                    ref={fileInputRef}
-                    type="file"
-                    accept="image/*"
-                    onChange={handlePhotoUpload}
-                    className="hidden"
-                    id="dds-photo-upload"
-                  />
-                  <label
-                    htmlFor="dds-photo-upload"
-                    className="flex flex-col items-center gap-2 cursor-pointer"
-                  >
-                    {isUploading ? (
-                      <Loader2 className="h-8 w-8 animate-spin text-slate-500" />
-                    ) : (
-                      <Camera className="h-8 w-8 text-slate-500" />
+                    {canUploadPhoto && (
+                      <Button variant="destructive" size="icon" className="absolute top-2 right-2 h-7 w-7 opacity-0 group-hover:opacity-100 transition-opacity"
+                        onClick={async (e) => { e.stopPropagation(); if (confirm("Remover foto do tema?")) { await updatePhoto.mutateAsync({ id: todayDDS.id, photo_url: null }); toast.success("Foto removida!"); } }}
+                        title="Remover foto do tema"><X className="h-4 w-4" /></Button>
                     )}
-                    <span className="text-sm text-muted-foreground">
-                      {isUploading ? "Enviando..." : "Adicionar foto do DDS"}
-                    </span>
-                  </label>
-                </div>
-              ) : null}
+                  </div>
+                ) : canUploadPhoto ? (
+                  <div className="border-2 border-dashed border-slate-300 dark:border-slate-700 rounded-lg p-3">
+                    <input ref={fileInputRef} type="file" accept="image/*" onChange={handleThemePhotoUpload} className="hidden" id="dds-theme-upload" />
+                    <label htmlFor="dds-theme-upload" className="flex flex-col items-center gap-1 cursor-pointer">
+                      {isUploading ? <Loader2 className="h-6 w-6 animate-spin text-muted-foreground" /> : <Camera className="h-6 w-6 text-muted-foreground" />}
+                      <span className="text-xs text-muted-foreground">{isUploading ? "Enviando..." : "Foto do tema"}</span>
+                    </label>
+                  </div>
+                ) : null}
+              </div>
+
+              {/* Event Photo Section (goes to InstaCena) */}
+              <div>
+                <p className="text-xs font-medium text-muted-foreground mb-2">📸 Registro do DDS</p>
+                {(todayDDS as any).event_photo_url ? (
+                  <div className="relative rounded-lg overflow-hidden group">
+                    <div className="cursor-pointer" onClick={() => setEventPhotoModalOpen(true)}>
+                      <img src={(todayDDS as any).event_photo_url} alt="Registro do DDS" className="w-full h-40 object-cover transition-transform group-hover:scale-105" />
+                      <div className="absolute inset-0 bg-black/0 group-hover:bg-black/20 transition-colors flex items-center justify-center pointer-events-none">
+                        <span className="opacity-0 group-hover:opacity-100 transition-opacity text-white text-sm font-medium bg-black/50 px-3 py-1.5 rounded-full">Clique para ampliar</span>
+                      </div>
+                    </div>
+                    {canUploadPhoto && (
+                      <Button variant="destructive" size="icon" className="absolute top-2 right-2 h-7 w-7 opacity-0 group-hover:opacity-100 transition-opacity"
+                        onClick={async (e) => { e.stopPropagation(); if (confirm("Remover registro?")) { await updateEventPhoto.mutateAsync({ id: todayDDS.id, event_photo_url: null }); toast.success("Registro removido!"); } }}
+                        title="Remover registro"><X className="h-4 w-4" /></Button>
+                    )}
+                  </div>
+                ) : canUploadPhoto ? (
+                  <div className="border-2 border-dashed border-slate-300 dark:border-slate-700 rounded-lg p-3">
+                    <input ref={eventFileInputRef} type="file" accept="image/*" onChange={handleEventPhotoUpload} className="hidden" id="dds-event-upload" />
+                    <label htmlFor="dds-event-upload" className="flex flex-col items-center gap-1 cursor-pointer">
+                      {isUploadingEvent ? <Loader2 className="h-6 w-6 animate-spin text-muted-foreground" /> : <Upload className="h-6 w-6 text-muted-foreground" />}
+                      <span className="text-xs text-muted-foreground">{isUploadingEvent ? "Enviando..." : "Registro (vai para InstaCena)"}</span>
+                    </label>
+                  </div>
+                ) : null}
+              </div>
             </div>
           ) : (
             <div className="text-center py-6 text-muted-foreground">
@@ -410,6 +387,26 @@ export const DDSHighlightCard = () => {
                 {todayDDS?.theme && (
                   <span className="block text-sm text-white/80 mt-1">📋 {todayDDS.theme}</span>
                 )}
+              </p>
+            </div>
+          </div>
+        </DialogContent>
+      </Dialog>
+
+      {/* Event Photo Modal */}
+      <Dialog open={eventPhotoModalOpen} onOpenChange={setEventPhotoModalOpen}>
+        <DialogContent className="max-w-4xl w-full p-0 bg-black/95 border-none">
+          <DialogTitle className="sr-only">Registro do DDS de Hoje</DialogTitle>
+          <div className="relative">
+            <Button variant="ghost" size="icon" className="absolute top-2 right-2 z-10 text-white hover:bg-white/20" onClick={() => setEventPhotoModalOpen(false)}>
+              <X className="h-6 w-6" />
+            </Button>
+            {(todayDDS as any)?.event_photo_url && (
+              <img src={(todayDDS as any).event_photo_url} alt="Registro do DDS" className="w-full max-h-[80vh] object-contain" />
+            )}
+            <div className="absolute bottom-0 left-0 right-0 bg-gradient-to-t from-black/80 to-transparent p-4">
+              <p className="text-white text-center">
+                <span className="font-semibold">📸 Registro do DDS - {format(today, "d 'de' MMMM 'de' yyyy", { locale: ptBR })}</span>
               </p>
             </div>
           </div>

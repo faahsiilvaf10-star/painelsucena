@@ -26,6 +26,7 @@ import {
   useUpdateDDSSchedule,
   useDeleteDDSSchedule,
   useUpdateDDSPhoto,
+  useUpdateDDSEventPhoto,
   useClearMonthDDS,
   useAllProfiles,
   getWeekdaysInMonth,
@@ -63,6 +64,7 @@ export default function DDS() {
   const clearMonth = useClearMonthDDS();
   const createNotification = useCreateNotification();
   const updateDDSPhoto = useUpdateDDSPhoto();
+  const updateDDSEventPhoto = useUpdateDDSEventPhoto();
   // Hook to refresh DDS data at midnight (00:00 Pará time)
   useDDSMidnightRefresh();
 
@@ -83,27 +85,59 @@ export default function DDS() {
   // Photo states
   const [fullscreenPhoto, setFullscreenPhoto] = useState<string | null>(null);
   const [uploadingPhotoId, setUploadingPhotoId] = useState<string | null>(null);
+  const [uploadingEventPhotoId, setUploadingEventPhotoId] = useState<string | null>(null);
   const photoInputRef = useRef<HTMLInputElement>(null);
+  const eventPhotoInputRef = useRef<HTMLInputElement>(null);
   const [photoTargetId, setPhotoTargetId] = useState<string | null>(null);
+  const [eventPhotoTargetId, setEventPhotoTargetId] = useState<string | null>(null);
 
-  const handlePhotoUpload = async (file: File, scheduleId: string) => {
+  const handleThemePhotoUpload = async (file: File, scheduleId: string) => {
     if (!file || !user) return;
     setUploadingPhotoId(scheduleId);
     try {
       const ext = file.name.split(".").pop() || "jpg";
-      const path = `dds/${scheduleId}_${Date.now()}.${ext}`;
-      const { error: uploadError } = await supabase.storage
-        .from("desvios")
-        .upload(path, file, { upsert: true });
+      const path = `dds/theme_${scheduleId}_${Date.now()}.${ext}`;
+      const { error: uploadError } = await supabase.storage.from("site-assets").upload(path, file, { upsert: true });
       if (uploadError) throw uploadError;
-      const { data: urlData } = supabase.storage.from("desvios").getPublicUrl(path);
+      const { data: urlData } = supabase.storage.from("site-assets").getPublicUrl(path);
       await updateDDSPhoto.mutateAsync({ id: scheduleId, photo_url: urlData.publicUrl });
-      toast.success("Foto do DDS adicionada!");
+      toast.success("Foto do tema adicionada!");
     } catch (err) {
-      console.error("Error uploading DDS photo:", err);
+      console.error("Error uploading theme photo:", err);
       toast.error("Erro ao enviar foto");
     } finally {
       setUploadingPhotoId(null);
+    }
+  };
+
+  const handleEventPhotoUpload = async (file: File, scheduleId: string, schedule: DDSScheduleItem) => {
+    if (!file || !user) return;
+    setUploadingEventPhotoId(scheduleId);
+    try {
+      const ext = file.name.split(".").pop() || "jpg";
+      const path = `dds/event_${scheduleId}_${Date.now()}.${ext}`;
+      const { error: uploadError } = await supabase.storage.from("site-assets").upload(path, file, { upsert: true });
+      if (uploadError) throw uploadError;
+      const { data: urlData } = supabase.storage.from("site-assets").getPublicUrl(path);
+      await updateDDSEventPhoto.mutateAsync({ id: scheduleId, event_photo_url: urlData.publicUrl });
+      toast.success("Registro do DDS adicionado!");
+      // Post to InstaCena
+      if (profile) {
+        const presenterName = schedule.presenter?.full_name || schedule.external_presenter_name || "Palestrante";
+        await supabase.from("instacena_posts").insert({
+          user_id: user.id,
+          user_name: profile.full_name,
+          user_avatar_url: profile.avatar_url,
+          content: `📸 Registro do DDS!\n\n📋 Tema: ${schedule.theme}\n🎤 Palestrante: ${presenterName}`,
+          image_urls: [urlData.publicUrl],
+          is_system_post: false,
+        });
+      }
+    } catch (err) {
+      console.error("Error uploading event photo:", err);
+      toast.error("Erro ao enviar foto");
+    } finally {
+      setUploadingEventPhotoId(null);
     }
   };
 
@@ -557,14 +591,13 @@ export default function DDS() {
                                 <span className="text-muted-foreground text-sm italic hidden sm:inline">—</span>
                               )}
                               {schedule?.photo_url && (
-                                <Button
-                                  variant="ghost"
-                                  size="icon"
-                                  className="h-7 w-7 shrink-0"
-                                  onClick={() => setFullscreenPhoto(schedule.photo_url)}
-                                  title="Ver foto do DDS"
-                                >
-                                  <Image className="h-4 w-4 text-primary" />
+                                <Button variant="ghost" size="icon" className="h-7 w-7 shrink-0" onClick={() => setFullscreenPhoto(schedule.photo_url)} title="Ver foto do tema">
+                                  <Camera className="h-4 w-4 text-primary" />
+                                </Button>
+                              )}
+                              {schedule?.event_photo_url && (
+                                <Button variant="ghost" size="icon" className="h-7 w-7 shrink-0" onClick={() => setFullscreenPhoto(schedule.event_photo_url)} title="Ver registro do DDS">
+                                  <Image className="h-4 w-4 text-amber-500" />
                                 </Button>
                               )}
                             </div>
@@ -582,12 +615,29 @@ export default function DDS() {
                                       photoInputRef.current?.click();
                                     }}
                                     disabled={uploadingPhotoId === schedule.id}
-                                    title="Adicionar foto do DDS"
+                                    title="Foto do tema"
                                   >
                                     {uploadingPhotoId === schedule.id ? (
                                       <Loader2 className="h-4 w-4 animate-spin" />
                                     ) : (
                                       <Camera className="h-4 w-4 text-primary" />
+                                    )}
+                                  </Button>
+                                  <Button
+                                    variant="ghost"
+                                    size="icon"
+                                    className="h-8 w-8"
+                                    onClick={() => {
+                                      setEventPhotoTargetId(schedule.id);
+                                      eventPhotoInputRef.current?.click();
+                                    }}
+                                    disabled={uploadingEventPhotoId === schedule.id}
+                                    title="Registro do DDS (InstaCena)"
+                                  >
+                                    {uploadingEventPhotoId === schedule.id ? (
+                                      <Loader2 className="h-4 w-4 animate-spin" />
+                                    ) : (
+                                      <Image className="h-4 w-4 text-amber-500" />
                                     )}
                                   </Button>
                                   <Button
@@ -842,7 +892,7 @@ export default function DDS() {
           </DialogContent>
         </Dialog>
 
-        {/* Hidden file input for photo upload */}
+        {/* Hidden file input for theme photo upload */}
         <input
           ref={photoInputRef}
           type="file"
@@ -851,7 +901,25 @@ export default function DDS() {
           onChange={(e) => {
             const file = e.target.files?.[0];
             if (file && photoTargetId) {
-              handlePhotoUpload(file, photoTargetId);
+              handleThemePhotoUpload(file, photoTargetId);
+            }
+            e.target.value = "";
+          }}
+        />
+
+        {/* Hidden file input for event photo upload */}
+        <input
+          ref={eventPhotoInputRef}
+          type="file"
+          accept="image/*"
+          className="hidden"
+          onChange={(e) => {
+            const file = e.target.files?.[0];
+            if (file && eventPhotoTargetId) {
+              const schedule = scheduleData?.find(s => s.id === eventPhotoTargetId);
+              if (schedule) {
+                handleEventPhotoUpload(file, eventPhotoTargetId, schedule);
+              }
             }
             e.target.value = "";
           }}
