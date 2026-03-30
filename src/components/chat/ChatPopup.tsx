@@ -9,7 +9,7 @@ import { useTypingIndicator } from "@/hooks/useTypingIndicator";
 import { useAuth } from "@/hooks/useAuth";
 import { UserWithStatus } from "@/hooks/useAllUsers";
 import { EmojiPicker } from "./EmojiPicker";
-import { Send, X, Loader2, Minimize2, Maximize2, Check, CheckCheck, Paperclip } from "lucide-react";
+import { Send, X, Loader2, Minimize2, Check, CheckCheck, Paperclip } from "lucide-react";
 import { format } from "date-fns";
 import { ptBR } from "date-fns/locale";
 import { cn } from "@/lib/utils";
@@ -221,17 +221,6 @@ export const ChatPopup = ({ user: selectedUser, onClose, onExpand }: ChatPopupPr
         )}
 
         <div className="flex items-center gap-1">
-          <Button
-            variant="ghost"
-            size="icon"
-            className="h-7 w-7 text-white/80 hover:text-white hover:bg-white/10 rounded-full"
-            onClick={(e) => {
-              e.stopPropagation();
-              onExpand();
-            }}
-          >
-            <Maximize2 className="h-3.5 w-3.5" />
-          </Button>
           <Button
             variant="ghost"
             size="icon"

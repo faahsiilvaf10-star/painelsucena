@@ -1,4 +1,4 @@
-import { useState, useEffect, useCallback, useRef } from "react";
+import { useState, useEffect, useCallback, useRef, forwardRef, useImperativeHandle } from "react";
 import { supabase } from "@/integrations/supabase/client";
 import { useAuth } from "@/hooks/useAuth";
 import { useAllUsers, UserWithStatus } from "@/hooks/useAllUsers";
@@ -12,39 +12,28 @@ interface PopupChat {
   minimized: boolean;
 }
 
-interface ChatPopupManagerProps {
-  onExpandChat: (user: UserWithStatus) => void;
+export interface ChatPopupManagerHandle {
+  openPopup: (user: UserWithStatus) => void;
 }
 
-export const ChatPopupManager = ({ onExpandChat }: ChatPopupManagerProps) => {
+export const ChatPopupManager = forwardRef<ChatPopupManagerHandle>((_props, ref) => {
   const { user } = useAuth();
   const { allUsers } = useAllUsers();
   const [openPopups, setOpenPopups] = useState<PopupChat[]>([]);
 
-  // Close a popup
   const closePopup = useCallback((userId: string) => {
     setOpenPopups(prev => prev.filter(p => p.user.user_id !== userId));
   }, []);
 
-  // Expand popup to full dialog
-  const handleExpand = useCallback((popupUser: UserWithStatus) => {
-    closePopup(popupUser.user_id);
-    onExpandChat(popupUser);
-  }, [closePopup, onExpandChat]);
-
-  // Open popup for a user (can be called externally too)
   const openPopup = useCallback((senderUser: UserWithStatus) => {
     setOpenPopups(prev => {
-      // Check if already open
       if (prev.find(p => p.user.user_id === senderUser.user_id)) {
-        // Just un-minimize if already open
         return prev.map(p => 
           p.user.user_id === senderUser.user_id 
             ? { ...p, minimized: false } 
             : p
         );
       }
-      // Add new popup (max 3)
       const newPopups = [...prev, { user: senderUser, minimized: false }];
       if (newPopups.length > 3) {
         return newPopups.slice(-3);
@@ -52,6 +41,8 @@ export const ChatPopupManager = ({ onExpandChat }: ChatPopupManagerProps) => {
       return newPopups;
     });
   }, []);
+
+  useImperativeHandle(ref, () => ({ openPopup }), [openPopup]);
 
   // On mount: check for unread messages and open popups
   const hasCheckedUnread = useRef(false);
@@ -69,7 +60,6 @@ export const ChatPopupManager = ({ onExpandChat }: ChatPopupManagerProps) => {
 
       if (!unreadMessages || unreadMessages.length === 0) return;
 
-      // Get unique sender IDs
       const uniqueSenderIds = [...new Set(unreadMessages.map(m => m.sender_id))];
 
       for (const senderId of uniqueSenderIds.slice(0, 3)) {
@@ -100,13 +90,11 @@ export const ChatPopupManager = ({ onExpandChat }: ChatPopupManagerProps) => {
         async (payload) => {
           const newMessage = payload.new as ChatMessage;
           
-          // Find sender in allUsers
           const senderUser = allUsers.find(u => u.user_id === newMessage.sender_id);
           
           if (senderUser) {
             openPopup(senderUser);
           } else {
-            // If user not in list yet, fetch their profile
             const { data: profile } = await supabase
               .from("profiles")
               .select("*")
@@ -148,9 +136,11 @@ export const ChatPopupManager = ({ onExpandChat }: ChatPopupManagerProps) => {
           key={popup.user.user_id}
           user={popup.user}
           onClose={() => closePopup(popup.user.user_id)}
-          onExpand={() => handleExpand(popup.user)}
+          onExpand={() => {}} // No-op on desktop, always stays as popup
         />
       ))}
     </div>
   );
-};
+});
+
+ChatPopupManager.displayName = "ChatPopupManager";
