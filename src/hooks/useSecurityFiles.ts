@@ -65,12 +65,15 @@ export function useSecurityFiles() {
         .replace(/[^a-zA-Z0-9._-]/g, "_");
       const fileName = `${userId}/${Date.now()}-${safeName}`;
 
-      const { error: uploadError } = await supabase.storage
+      const { error: uploadError, data: uploadData } = await supabase.storage
         .from("security-files")
         .upload(fileName, file, {
           cacheControl: "3600",
           upsert: false,
+          contentType: file.type || "application/octet-stream",
         });
+
+      console.log("Storage upload result:", { fileName, uploadError, uploadData });
 
       if (uploadError) {
         console.error("Storage upload error:", uploadError);
