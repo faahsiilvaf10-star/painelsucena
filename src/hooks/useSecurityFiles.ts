@@ -58,7 +58,12 @@ export function useSecurityFiles() {
     }) => {
       // Upload to storage
       const fileExt = file.name.split(".").pop();
-      const fileName = `${userId}/${Date.now()}-${file.name}`;
+      // Sanitize filename to avoid storage path issues
+      const safeName = file.name
+        .normalize("NFD")
+        .replace(/[\u0300-\u036f]/g, "")
+        .replace(/[^a-zA-Z0-9._-]/g, "_");
+      const fileName = `${userId}/${Date.now()}-${safeName}`;
 
       const { error: uploadError } = await supabase.storage
         .from("security-files")
