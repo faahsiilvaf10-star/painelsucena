@@ -39,6 +39,7 @@ import iconPlanejamento from "@/assets/icons/icon-planejamento.png";
 import iconAdministrativo from "@/assets/icons/icon-administrativo.png";
 import iconAlmoxarifado from "@/assets/icons/icon-almoxarifado.png";
 import iconTransporte from "@/assets/icons/icon-transporte.png";
+import winrarIcon from "@/assets/winrar-icon.png";
 
 const FilePdfIcon = FileText;
 
