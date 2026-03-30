@@ -135,12 +135,44 @@ export const ChatPopup = ({ user: selectedUser, onClose, onExpand }: ChatPopupPr
 
   const unreadCount = messages.filter(m => m.sender_id === selectedUser.user_id && !m.read_at).length;
 
+  // Minimized Facebook-style bubble
+  if (isMinimized) {
+    return (
+      <div className="relative group cursor-pointer" onClick={() => setIsMinimized(false)}>
+        <NeonAvatar
+          src={selectedUser.avatar_url}
+          name={selectedUser.full_name}
+          frameColor={selectedUser.frame_color}
+          neonColor={selectedUser.neon_color}
+          frameAnimation={selectedUser.frame_animation}
+          size="md"
+        />
+        {selectedUser.isOnline && (
+          <span className="absolute bottom-0 right-0 w-3 h-3 bg-green-500 rounded-full border-2 border-background" />
+        )}
+        {unreadCount > 0 && (
+          <span className="absolute -top-1 -right-1 w-5 h-5 rounded-full bg-red-500 text-white text-[10px] flex items-center justify-center font-bold animate-pulse">
+            {unreadCount > 9 ? "9+" : unreadCount}
+          </span>
+        )}
+        <Button
+          variant="ghost"
+          size="icon"
+          className="absolute -top-1 -left-1 h-4 w-4 rounded-full bg-muted text-muted-foreground opacity-0 group-hover:opacity-100 transition-opacity hover:bg-destructive hover:text-destructive-foreground"
+          onClick={(e) => { e.stopPropagation(); onClose(); }}
+        >
+          <X className="h-2.5 w-2.5" />
+        </Button>
+        <p className="text-[10px] text-center text-foreground mt-1 max-w-[56px] truncate">
+          {selectedUser.full_name.split(" ")[0]}
+        </p>
+      </div>
+    );
+  }
+
   return (
     <div
-      className={cn(
-        "bg-card border border-border rounded-t-xl shadow-2xl flex flex-col transition-all duration-200 overflow-hidden",
-        isMinimized ? "h-12 w-64" : "h-96 w-80"
-      )}
+      className="bg-card border border-border rounded-t-xl shadow-2xl flex flex-col transition-all duration-200 overflow-hidden h-96 w-80"
     >
       {/* Header */}
       <div
