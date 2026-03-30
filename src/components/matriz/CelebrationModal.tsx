@@ -101,24 +101,26 @@ export function CelebrationModal({ isOpen, onClose, cargoName, userName, userAva
 
             {/* Parabéns title */}
             <h2 
-              className="text-4xl font-extrabold mb-1 z-10"
+              className="text-5xl mb-1 z-10"
               style={{
+                fontFamily: "'Dancing Script', 'Georgia', cursive",
                 background: "linear-gradient(135deg, #D4A017, #FFD700, #B8860B)",
                 WebkitBackgroundClip: "text",
                 WebkitTextFillColor: "transparent",
                 textShadow: "none",
                 animation: "title-appear 0.6s ease-out 0.3s both",
+                fontWeight: 700,
               }}
             >
               Parabéns
             </h2>
 
-            {/* User name */}
+            {/* Cargo name */}
             <p 
-              className="text-lg font-bold text-foreground z-10 mb-3"
+              className="text-base font-semibold text-foreground z-10 mb-3"
               style={{ animation: "title-appear 0.6s ease-out 0.5s both" }}
             >
-              {displayName}
+              ✦ {cargoName}
             </p>
 
             {/* Message card */}
