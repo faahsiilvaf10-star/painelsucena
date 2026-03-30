@@ -550,11 +550,24 @@ export default function DDS() {
                             )}
                           </TableCell>
                           <TableCell>
-                            {schedule?.theme ? (
-                              <span className="text-sm hidden sm:inline">{schedule.theme}</span>
-                            ) : (
-                              <span className="text-muted-foreground text-sm italic hidden sm:inline">—</span>
-                            )}
+                            <div className="flex items-center gap-2">
+                              {schedule?.theme ? (
+                                <span className="text-sm hidden sm:inline">{schedule.theme}</span>
+                              ) : (
+                                <span className="text-muted-foreground text-sm italic hidden sm:inline">—</span>
+                              )}
+                              {schedule?.photo_url && (
+                                <Button
+                                  variant="ghost"
+                                  size="icon"
+                                  className="h-7 w-7 shrink-0"
+                                  onClick={() => setFullscreenPhoto(schedule.photo_url)}
+                                  title="Ver foto do DDS"
+                                >
+                                  <Image className="h-4 w-4 text-primary" />
+                                </Button>
+                              )}
+                            </div>
                           </TableCell>
                           {canEdit && (
                             <TableCell className="text-right">
