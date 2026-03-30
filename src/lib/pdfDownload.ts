@@ -123,7 +123,9 @@ export async function downloadPdfFromHtml(
       heightLeft -= pageHeight;
     }
 
-    pdf.save(filename.endsWith(".pdf") ? filename : `${filename}.pdf`);
+    const finalName = filename.endsWith(".pdf") ? filename : `${filename}.pdf`;
+    const blob = pdf.output("blob");
+    triggerBlobDownload(blob, finalName);
   } finally {
     document.body.removeChild(container);
   }
