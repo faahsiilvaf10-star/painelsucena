@@ -24,6 +24,7 @@ import { NeonAvatar } from "@/components/ui/NeonAvatar";
 import { Button } from "@/components/ui/button";
 import { HeaderRadioButton } from "./HeaderRadioButton";
 import { NewsButton } from "./NewsButton";
+import { EasterDecorations } from "@/components/easter/EasterDecorations";
 
 const motivationalPhrases = [
   "O sucesso é a soma de pequenos esforços repetidos dia após dia.",
@@ -230,6 +231,7 @@ const Layout = ({ children }: LayoutProps) => {
       <ForbiddenColorIndicator />
       <AnnouncementModal />
       <SessionExpiryWarning />
+      <EasterDecorations />
       
     </SidebarInset>
   );

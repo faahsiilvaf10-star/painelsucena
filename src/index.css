@@ -24,91 +24,91 @@ html, body {
 
 @layer base {
   :root {
-    --background: 220 12% 82%;
-    --foreground: 222 47% 11%;
+    --background: 45 60% 94%;
+    --foreground: 270 20% 20%;
 
-    --card: 220 12% 86%;
-    --card-foreground: 222 47% 11%;
+    --card: 45 50% 96%;
+    --card-foreground: 270 20% 20%;
 
-    --popover: 220 12% 86%;
-    --popover-foreground: 222 47% 11%;
+    --popover: 45 50% 96%;
+    --popover-foreground: 270 20% 20%;
 
-    --primary: 174 62% 47%;
+    --primary: 280 45% 65%;
     --primary-foreground: 0 0% 100%;
 
-    --secondary: 220 12% 78%;
-    --secondary-foreground: 222 47% 11%;
+    --secondary: 160 35% 85%;
+    --secondary-foreground: 270 20% 20%;
 
-    --muted: 220 12% 78%;
-    --muted-foreground: 220 10% 35%;
+    --muted: 45 30% 88%;
+    --muted-foreground: 270 10% 40%;
 
-    --accent: 174 62% 47%;
+    --accent: 340 55% 70%;
     --accent-foreground: 0 0% 100%;
 
     --destructive: 0 84% 60%;
     --destructive-foreground: 0 0% 100%;
 
-    --border: 220 12% 72%;
-    --input: 220 12% 75%;
-    --ring: 174 62% 47%;
+    --border: 45 30% 82%;
+    --input: 45 30% 84%;
+    --ring: 280 45% 65%;
 
-    --radius: 0.75rem;
+    --radius: 1rem;
 
-    --success: 142 76% 36%;
-    --warning: 38 92% 50%;
-    --info: 199 89% 48%;
+    --success: 142 50% 45%;
+    --warning: 38 80% 55%;
+    --info: 199 60% 55%;
 
-    --sidebar-background: 225 25% 15%;
-    --sidebar-foreground: 210 20% 98%;
-    --sidebar-primary: 174 62% 47%;
+    --sidebar-background: 270 25% 22%;
+    --sidebar-foreground: 45 40% 95%;
+    --sidebar-primary: 280 45% 65%;
     --sidebar-primary-foreground: 0 0% 100%;
-    --sidebar-accent: 174 62% 47%;
+    --sidebar-accent: 340 55% 70%;
     --sidebar-accent-foreground: 0 0% 100%;
-    --sidebar-border: 225 20% 20%;
-    --sidebar-ring: 174 62% 47%;
+    --sidebar-border: 270 20% 28%;
+    --sidebar-ring: 280 45% 65%;
   }
 
   .dark {
-    --background: 224 30% 10%;
-    --foreground: 210 20% 98%;
+    --background: 270 20% 12%;
+    --foreground: 45 40% 95%;
 
-    --card: 224 25% 14%;
-    --card-foreground: 210 20% 98%;
+    --card: 270 18% 16%;
+    --card-foreground: 45 40% 95%;
 
-    --popover: 224 25% 14%;
-    --popover-foreground: 210 20% 98%;
+    --popover: 270 18% 16%;
+    --popover-foreground: 45 40% 95%;
 
-    --primary: 174 62% 47%;
+    --primary: 280 50% 60%;
     --primary-foreground: 0 0% 100%;
 
-    --secondary: 224 20% 18%;
-    --secondary-foreground: 210 20% 98%;
+    --secondary: 270 15% 22%;
+    --secondary-foreground: 45 40% 95%;
 
-    --muted: 224 20% 18%;
-    --muted-foreground: 215 16% 57%;
+    --muted: 270 15% 20%;
+    --muted-foreground: 270 10% 55%;
 
-    --accent: 174 62% 47%;
+    --accent: 340 50% 60%;
     --accent-foreground: 0 0% 100%;
 
     --destructive: 0 84% 60%;
     --destructive-foreground: 0 0% 100%;
 
-    --border: 224 20% 20%;
-    --input: 224 20% 20%;
-    --ring: 174 62% 47%;
+    --border: 270 15% 24%;
+    --input: 270 15% 22%;
+    --ring: 280 50% 60%;
 
-    --success: 142 76% 36%;
-    --warning: 38 92% 50%;
-    --info: 199 89% 48%;
+    --success: 142 50% 40%;
+    --warning: 38 80% 50%;
+    --info: 199 60% 50%;
 
-    --sidebar-background: 225 25% 12%;
-    --sidebar-foreground: 210 20% 98%;
-    --sidebar-primary: 174 62% 47%;
+    --sidebar-background: 270 25% 10%;
+    --sidebar-foreground: 45 40% 95%;
+    --sidebar-primary: 280 50% 60%;
     --sidebar-primary-foreground: 0 0% 100%;
-    --sidebar-accent: 174 62% 47%;
+    --sidebar-accent: 340 50% 60%;
     --sidebar-accent-foreground: 0 0% 100%;
-    --sidebar-border: 225 20% 18%;
-    --sidebar-ring: 174 62% 47%;
+    --sidebar-border: 270 20% 16%;
+    --sidebar-ring: 280 50% 60%;
   }
 }
 
@@ -786,4 +786,18 @@ html, body {
 @keyframes ae-bloom {
   0%, 100% { transform: scale(1) rotate(0deg); }
   50% { transform: scale(1.2) rotate(15deg); }
+}
+
+/* Easter animations */
+@keyframes easterFloat {
+  0% { opacity: 0; transform: translateY(-30px) rotate(0deg); }
+  5% { opacity: 0.6; }
+  50% { opacity: 0.4; transform: translateY(50vh) rotate(180deg); }
+  95% { opacity: 0.2; }
+  100% { opacity: 0; transform: translateY(100vh) rotate(360deg); }
+}
+
+@keyframes easterBounce {
+  0%, 100% { transform: translateY(0) scale(1); }
+  50% { transform: translateY(-8px) scale(1.1); }
 }
