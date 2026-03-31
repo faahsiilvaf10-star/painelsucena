@@ -415,6 +415,39 @@ export const ChatPopup = ({ user: selectedUser, onClose, onExpand }: ChatPopupPr
           </div>
         </>
       )}
+
+      {/* Confirmation overlay for clearing conversation */}
+      {confirmClear && (
+        <div className="absolute inset-0 z-20 bg-black/50 flex items-center justify-center rounded-t-xl">
+          <div className="bg-card rounded-lg p-4 mx-4 shadow-xl space-y-3 max-w-[260px]">
+            <p className="text-sm text-foreground text-center">Limpar toda a conversa?</p>
+            <div className="flex gap-2 justify-center">
+              <Button
+                variant="outline"
+                size="sm"
+                onClick={() => setConfirmClear(false)}
+              >
+                Cancelar
+              </Button>
+              <Button
+                variant="destructive"
+                size="sm"
+                onClick={async () => {
+                  try {
+                    await clearConversation();
+                    setConfirmClear(false);
+                    toast.success("Conversa limpa!");
+                  } catch {
+                    toast.error("Erro ao limpar conversa.");
+                  }
+                }}
+              >
+                Limpar
+              </Button>
+            </div>
+          </div>
+        </div>
+      )}
     </div>
   );
 };
