@@ -103,9 +103,24 @@ function buildPdfHtml(exchange: EpiExchange, logoBase64: string): string {
       const found = selectedEpis.find((e: any) => typeof e === 'string' ? e === item.id : (e as any).id === item.id);
       const checked = !!found;
       const extra = typeof found === 'object' && found !== null ? (found as any).value || '' : '';
+      // For "Outros", also render extra outros_* entries
+      const extrasHtml = item.id === "outros"
+        ? selectedEpis
+            .filter((e: any) => {
+              const id = typeof e === 'string' ? e : (e as any).id;
+              return id.startsWith("outros_");
+            })
+            .map((e: any) => {
+              const val = (e as any).value || '';
+              const qty = (e as any).qty || 1;
+              return `<div style="margin-bottom:3px;font-size:11px;margin-left:16px;">
+                <span style="font-weight:bold;">(X) Outros: ${val}${qty > 1 ? ' (Qtd: ' + qty + ')' : ''}</span>
+              </div>`;
+            }).join('')
+        : '';
       return `<div style="margin-bottom:3px;font-size:11px;">
         <span style="font-weight:${checked ? 'bold' : 'normal'};">(${checked ? 'X' : '&nbsp;&nbsp;'}) ${item.label}${extra ? ': ' + extra : ''}</span>
-      </div>`;
+      </div>${extrasHtml}`;
     }).join('');
 
   return `
