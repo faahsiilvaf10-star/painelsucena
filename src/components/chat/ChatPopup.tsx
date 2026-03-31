@@ -61,8 +61,14 @@ export const ChatPopup = ({ user: selectedUser, onClose, onExpand }: ChatPopupPr
     [allUsers, selectedUser]
   );
 
+  const fallbackLastSeen = useMemo(() => {
+    if (liveUser.lastSeen) return liveUser.lastSeen;
+    const latestMessage = messages[messages.length - 1];
+    return latestMessage?.created_at;
+  }, [liveUser.lastSeen, messages]);
+
   const formatLastSeen = (lastSeen?: string) => {
-    if (!lastSeen) return "offline";
+    if (!lastSeen) return "";
     const date = new Date(lastSeen);
     const now = new Date();
     const diffMs = now.getTime() - date.getTime();
