@@ -514,11 +514,12 @@ export default function TrocaEpi() {
       const notFoundItems: string[] = [];
 
       for (const epi of currentSelectedEpis) {
-        const epiItem = EPI_ITEMS.find(e => e.id === epi.id);
+        const isOutrosExtra = epi.id.startsWith("outros_");
+        const epiItem = isOutrosExtra ? EPI_ITEMS.find(e => e.id === "outros") : EPI_ITEMS.find(e => e.id === epi.id);
         if (!epiItem) continue;
         const epiQty = Number(epi.qty) || 1;
         // For items with inventory dropdown (luva, boots, outros), use the selected value for matching
-        const hasDropdown = epi.id === "outros" || !!INVENTORY_DROPDOWN_EPIS[epi.id];
+        const hasDropdown = epi.id === "outros" || isOutrosExtra || !!INVENTORY_DROPDOWN_EPIS[epi.id];
         const searchLabel = hasDropdown && epi.value ? epi.value : epiItem.label;
         const match = findInventoryMatch(currentInventory, searchLabel);
         if (match && match.quantity >= epiQty) {
