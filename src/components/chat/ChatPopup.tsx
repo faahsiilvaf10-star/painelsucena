@@ -202,7 +202,7 @@ export const ChatPopup = ({ user: selectedUser, onClose, onExpand }: ChatPopupPr
 
   return (
     <div
-      className="bg-card border border-border rounded-t-xl shadow-2xl flex flex-col transition-all duration-200 overflow-hidden h-96 w-80"
+      className="bg-card border border-border rounded-t-xl shadow-2xl flex flex-col transition-all duration-200 overflow-hidden h-96 w-80 relative"
     >
       {/* Header */}
       <div
