@@ -673,8 +673,9 @@ export default function TrocaEpi() {
           const epiId = typeof e === "string" ? e : e.id;
           const epiQty = typeof e === "object" && e.qty ? Number(e.qty) : 1;
           const epiValue = typeof e === "object" ? e.value : undefined;
-          const epiItem = EPI_ITEMS.find(i => i.id === epiId);
-          const name = epiId === "outros" && epiValue ? epiValue : (epiItem?.label || epiId);
+          const isOutros = epiId === "outros" || epiId.startsWith("outros_");
+          const epiItem = isOutros ? EPI_ITEMS.find(i => i.id === "outros") : EPI_ITEMS.find(i => i.id === epiId);
+          const name = isOutros && epiValue ? epiValue : (epiItem?.label || epiId);
           return `${name} (${epiQty})`;
         }).join(", ");
         const description = `Troca de EPI - ${exchange.funcionario_nome}\nItens: ${episList}`;
