@@ -9,7 +9,7 @@ import { useTypingIndicator } from "@/hooks/useTypingIndicator";
 import { useAuth } from "@/hooks/useAuth";
 import { UserWithStatus } from "@/hooks/useAllUsers";
 import { EmojiPicker } from "./EmojiPicker";
-import { Send, X, Loader2, Minimize2, Check, CheckCheck, Paperclip } from "lucide-react";
+import { Send, X, Loader2, Minimize2, Check, CheckCheck, Paperclip, Trash2 } from "lucide-react";
 import { format } from "date-fns";
 import { ptBR } from "date-fns/locale";
 import { cn } from "@/lib/utils";
@@ -50,8 +50,9 @@ export const ChatPopup = ({ user: selectedUser, onClose, onExpand }: ChatPopupPr
   const inputRef = useRef<HTMLInputElement>(null);
   const typingTimeoutRef = useRef<NodeJS.Timeout | null>(null);
 
-  const { messages, isLoading, sendMessage, uploadImage } = useChatMessages(selectedUser.user_id);
+  const { messages, isLoading, sendMessage, uploadImage, clearConversation } = useChatMessages(selectedUser.user_id);
   const { isOtherTyping, sendTypingEvent, sendStopTypingEvent } = useTypingIndicator(selectedUser.user_id);
+  const [confirmClear, setConfirmClear] = useState(false);
   const { allUsers } = useAllUsers();
 
   // Get live user data (for real-time online status and lastSeen)
@@ -201,7 +202,7 @@ export const ChatPopup = ({ user: selectedUser, onClose, onExpand }: ChatPopupPr
 
   return (
     <div
-      className="bg-card border border-border rounded-t-xl shadow-2xl flex flex-col transition-all duration-200 overflow-hidden h-96 w-80"
+      className="bg-card border border-border rounded-t-xl shadow-2xl flex flex-col transition-all duration-200 overflow-hidden h-96 w-80 relative"
     >
       {/* Header */}
       <div
@@ -250,6 +251,17 @@ export const ChatPopup = ({ user: selectedUser, onClose, onExpand }: ChatPopupPr
         )}
 
         <div className="flex items-center gap-1">
+          <Button
+            variant="ghost"
+            size="icon"
+            className="h-7 w-7 text-white/80 hover:text-white hover:bg-white/10 rounded-full"
+            onClick={(e) => {
+              e.stopPropagation();
+              setConfirmClear(true);
+            }}
+          >
+            <Trash2 className="h-3.5 w-3.5" />
+          </Button>
           <Button
             variant="ghost"
             size="icon"
@@ -402,6 +414,39 @@ export const ChatPopup = ({ user: selectedUser, onClose, onExpand }: ChatPopupPr
             </Button>
           </div>
         </>
+      )}
+
+      {/* Confirmation overlay for clearing conversation */}
+      {confirmClear && (
+        <div className="absolute inset-0 z-20 bg-black/50 flex items-center justify-center rounded-t-xl">
+          <div className="bg-card rounded-lg p-4 mx-4 shadow-xl space-y-3 max-w-[260px]">
+            <p className="text-sm text-foreground text-center">Limpar toda a conversa?</p>
+            <div className="flex gap-2 justify-center">
+              <Button
+                variant="outline"
+                size="sm"
+                onClick={() => setConfirmClear(false)}
+              >
+                Cancelar
+              </Button>
+              <Button
+                variant="destructive"
+                size="sm"
+                onClick={async () => {
+                  try {
+                    await clearConversation();
+                    setConfirmClear(false);
+                    toast.success("Conversa limpa!");
+                  } catch {
+                    toast.error("Erro ao limpar conversa.");
+                  }
+                }}
+              >
+                Limpar
+              </Button>
+            </div>
+          </div>
+        </div>
       )}
     </div>
   );
