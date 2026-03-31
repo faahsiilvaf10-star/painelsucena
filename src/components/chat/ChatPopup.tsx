@@ -54,6 +54,7 @@ export const ChatPopup = ({ user: selectedUser, onClose, onExpand }: ChatPopupPr
   const { messages, isLoading, sendMessage, uploadImage, clearConversation } = useChatMessages(selectedUser.user_id);
   const { isOtherTyping, sendTypingEvent, sendStopTypingEvent } = useTypingIndicator(selectedUser.user_id);
   const [confirmClear, setConfirmClear] = useState(false);
+  const [persistedLastSeen, setPersistedLastSeen] = useState<string | null>(selectedUser.lastSeen ?? null);
   const { allUsers } = useAllUsers();
 
   // Get live user data (for real-time online status and lastSeen)
@@ -62,7 +63,9 @@ export const ChatPopup = ({ user: selectedUser, onClose, onExpand }: ChatPopupPr
     [allUsers, selectedUser]
   );
 
-  const formatLastSeen = (lastSeen?: string) => {
+  const effectiveLastSeen = liveUser.lastSeen ?? persistedLastSeen ?? selectedUser.lastSeen ?? null;
+
+  const formatLastSeen = (lastSeen?: string | null) => {
     if (!lastSeen) return "";
     const date = new Date(lastSeen);
     const now = new Date();
