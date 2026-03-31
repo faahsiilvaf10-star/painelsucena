@@ -300,10 +300,11 @@ export default function TrocaEpi() {
       const epiId = typeof epi === "string" ? epi : (epi as any).id;
       const epiQty = typeof epi === "object" && (epi as any).qty ? Number((epi as any).qty) || 1 : 1;
       const epiValue = typeof epi === "object" ? (epi as any).value : undefined;
-      const epiItem = EPI_ITEMS.find(e => e.id === epiId);
+      const isOutrosExtra = epiId.startsWith("outros_");
+      const epiItem = isOutrosExtra ? EPI_ITEMS.find(e => e.id === "outros") : EPI_ITEMS.find(e => e.id === epiId);
       if (!epiItem) continue;
       // For "Outros" and dropdown EPIs, use the stored value (actual item name) instead of the label
-      const hasDropdown = epiId === "outros" || !!INVENTORY_DROPDOWN_EPIS[epiId];
+      const hasDropdown = epiId === "outros" || isOutrosExtra || !!INVENTORY_DROPDOWN_EPIS[epiId];
       const searchLabel = hasDropdown && epiValue ? epiValue : epiItem.label;
       const match = findInventoryMatch(currentInventory, searchLabel);
       if (match) {
