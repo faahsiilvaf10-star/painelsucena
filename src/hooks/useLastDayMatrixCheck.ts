@@ -43,18 +43,23 @@ export const useLastDayMatrixCheck = () => {
 
   useEffect(() => {
     if (matrixLoading || profileLoading || !isLastDayOfMonth || !cargoInfo) return;
-    if (isAdmin) return; // admins don't have a specific cargo folder
+    if (isAdmin) return;
 
     const today = getBrazilNorthTodayString();
     const shownKey = localStorage.getItem(LAST_DAY_MATRIX_KEY);
-    if (shownKey === today) return;
-
-    localStorage.setItem(LAST_DAY_MATRIX_KEY, today);
 
     if (progress === 100) {
-      setShowCelebration(true);
-    } else {
-      setShowReminder(true);
+      // Show celebration only once per day
+      if (shownKey !== `${today}_celebration`) {
+        localStorage.setItem(LAST_DAY_MATRIX_KEY, `${today}_celebration`);
+        setShowCelebration(true);
+      }
+    } else if (progress >= 0) {
+      // Show reminder only once per day, and only if not already celebrated
+      if (shownKey !== today && shownKey !== `${today}_celebration`) {
+        localStorage.setItem(LAST_DAY_MATRIX_KEY, today);
+        setShowReminder(true);
+      }
     }
   }, [matrixLoading, profileLoading, isLastDayOfMonth, cargoInfo, progress, isAdmin]);
 
