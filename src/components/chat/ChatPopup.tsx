@@ -86,12 +86,48 @@ export const ChatPopup = ({ user: selectedUser, onClose, onExpand }: ChatPopupPr
     return `visto ${format(date, "dd/MM", { locale: ptBR })} às ${time}`;
   };
 
-  // Auto-scroll to bottom when new messages arrive
   useEffect(() => {
-    if (scrollRef.current && !isMinimized) {
-      scrollRef.current.scrollTop = scrollRef.current.scrollHeight;
-    }
-  }, [messages, isOtherTyping, isMinimized]);
+    setPersistedLastSeen(selectedUser.lastSeen ?? null);
+  }, [selectedUser.lastSeen, selectedUser.user_id]);
+
+  useEffect(() => {
+    const loadLastSeen = async () => {
+      const { data } = await supabase
+        .from("user_presence")
+        .select("last_seen_at")
+        .eq("user_id", selectedUser.user_id)
+        .maybeSingle();
+
+      if (data?.last_seen_at) {
+        setPersistedLastSeen(data.last_seen_at);
+      }
+    };
+
+    const channel = supabase
+      .channel(`chat-popup-presence-${selectedUser.user_id}`)
+      .on(
+        "postgres_changes",
+        {
+          event: "UPDATE",
+          schema: "public",
+          table: "user_presence",
+          filter: `user_id=eq.${selectedUser.user_id}`,
+        },
+        (payload) => {
+          const nextLastSeen = (payload.new as { last_seen_at?: string | null }).last_seen_at ?? null;
+          setPersistedLastSeen(nextLastSeen);
+        }
+      )
+      .subscribe();
+
+    void loadLastSeen();
+
+    return () => {
+      supabase.removeChannel(channel);
+    };
+  }, [selectedUser.user_id]);
+
+  // Auto-scroll to bottom when new messages arrive
 
   // Focus input when popup opens
   useEffect(() => {
