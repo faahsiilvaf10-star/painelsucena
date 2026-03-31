@@ -103,9 +103,24 @@ function buildPdfHtml(exchange: EpiExchange, logoBase64: string): string {
       const found = selectedEpis.find((e: any) => typeof e === 'string' ? e === item.id : (e as any).id === item.id);
       const checked = !!found;
       const extra = typeof found === 'object' && found !== null ? (found as any).value || '' : '';
+      // For "Outros", also render extra outros_* entries
+      const extrasHtml = item.id === "outros"
+        ? selectedEpis
+            .filter((e: any) => {
+              const id = typeof e === 'string' ? e : (e as any).id;
+              return id.startsWith("outros_");
+            })
+            .map((e: any) => {
+              const val = (e as any).value || '';
+              const qty = (e as any).qty || 1;
+              return `<div style="margin-bottom:3px;font-size:11px;margin-left:16px;">
+                <span style="font-weight:bold;">(X) Outros: ${val}${qty > 1 ? ' (Qtd: ' + qty + ')' : ''}</span>
+              </div>`;
+            }).join('')
+        : '';
       return `<div style="margin-bottom:3px;font-size:11px;">
         <span style="font-weight:${checked ? 'bold' : 'normal'};">(${checked ? 'X' : '&nbsp;&nbsp;'}) ${item.label}${extra ? ': ' + extra : ''}</span>
-      </div>`;
+      </div>${extrasHtml}`;
     }).join('');
 
   return `
@@ -300,10 +315,11 @@ export default function TrocaEpi() {
       const epiId = typeof epi === "string" ? epi : (epi as any).id;
       const epiQty = typeof epi === "object" && (epi as any).qty ? Number((epi as any).qty) || 1 : 1;
       const epiValue = typeof epi === "object" ? (epi as any).value : undefined;
-      const epiItem = EPI_ITEMS.find(e => e.id === epiId);
+      const isOutrosExtra = epiId.startsWith("outros_");
+      const epiItem = isOutrosExtra ? EPI_ITEMS.find(e => e.id === "outros") : EPI_ITEMS.find(e => e.id === epiId);
       if (!epiItem) continue;
       // For "Outros" and dropdown EPIs, use the stored value (actual item name) instead of the label
-      const hasDropdown = epiId === "outros" || !!INVENTORY_DROPDOWN_EPIS[epiId];
+      const hasDropdown = epiId === "outros" || isOutrosExtra || !!INVENTORY_DROPDOWN_EPIS[epiId];
       const searchLabel = hasDropdown && epiValue ? epiValue : epiItem.label;
       const match = findInventoryMatch(currentInventory, searchLabel);
       if (match) {
@@ -514,11 +530,12 @@ export default function TrocaEpi() {
       const notFoundItems: string[] = [];
 
       for (const epi of currentSelectedEpis) {
-        const epiItem = EPI_ITEMS.find(e => e.id === epi.id);
+        const isOutrosExtra = epi.id.startsWith("outros_");
+        const epiItem = isOutrosExtra ? EPI_ITEMS.find(e => e.id === "outros") : EPI_ITEMS.find(e => e.id === epi.id);
         if (!epiItem) continue;
         const epiQty = Number(epi.qty) || 1;
         // For items with inventory dropdown (luva, boots, outros), use the selected value for matching
-        const hasDropdown = epi.id === "outros" || !!INVENTORY_DROPDOWN_EPIS[epi.id];
+        const hasDropdown = epi.id === "outros" || isOutrosExtra || !!INVENTORY_DROPDOWN_EPIS[epi.id];
         const searchLabel = hasDropdown && epi.value ? epi.value : epiItem.label;
         const match = findInventoryMatch(currentInventory, searchLabel);
         if (match && match.quantity >= epiQty) {
@@ -671,8 +688,9 @@ export default function TrocaEpi() {
           const epiId = typeof e === "string" ? e : e.id;
           const epiQty = typeof e === "object" && e.qty ? Number(e.qty) : 1;
           const epiValue = typeof e === "object" ? e.value : undefined;
-          const epiItem = EPI_ITEMS.find(i => i.id === epiId);
-          const name = epiId === "outros" && epiValue ? epiValue : (epiItem?.label || epiId);
+          const isOutros = epiId === "outros" || epiId.startsWith("outros_");
+          const epiItem = isOutros ? EPI_ITEMS.find(i => i.id === "outros") : EPI_ITEMS.find(i => i.id === epiId);
+          const name = isOutros && epiValue ? epiValue : (epiItem?.label || epiId);
           return `${name} (${epiQty})`;
         }).join(", ");
         const description = `Troca de EPI - ${exchange.funcionario_nome}\nItens: ${episList}`;
@@ -963,21 +981,85 @@ export default function TrocaEpi() {
                         );
                       })()}
                       {item.id === "outros" && selected && (
-                        <div className="ml-6 mt-1">
-                          <Select value={selected.value || ""} onValueChange={v => setEpiValue(item.id, v)}>
-                            <SelectTrigger className="h-8 text-xs w-full">
-                              <SelectValue placeholder="Selecione do estoque..." />
-                            </SelectTrigger>
-                            <SelectContent>
-                              {inventoryItems
-                                .filter(inv => inv.quantity > 0)
-                                .map(inv => (
-                                  <SelectItem key={inv.id} value={inv.name}>
-                                    {inv.name} ({inv.quantity} {inv.unit})
-                                  </SelectItem>
-                                ))}
-                            </SelectContent>
-                          </Select>
+                        <div className="ml-6 mt-1 space-y-2">
+                          <div className="flex items-center gap-2">
+                            <Select value={selected.value || ""} onValueChange={v => setEpiValue(item.id, v)}>
+                              <SelectTrigger className="h-8 text-xs w-full">
+                                <SelectValue placeholder="Selecione do estoque..." />
+                              </SelectTrigger>
+                              <SelectContent>
+                                {inventoryItems
+                                  .filter(inv => inv.quantity > 0)
+                                  .map(inv => (
+                                    <SelectItem key={inv.id} value={inv.name}>
+                                      {inv.name} ({inv.quantity} {inv.unit})
+                                    </SelectItem>
+                                  ))}
+                              </SelectContent>
+                            </Select>
+                          </div>
+                          {/* Extra "Outros" rows */}
+                          {selectedEpis
+                            .filter(e => e.id.startsWith("outros_"))
+                            .map((extra) => {
+                              const extraInvMatch = extra.value ? findInventoryMatch(inventoryItems, extra.value) : null;
+                              return (
+                                <div key={extra.id} className="flex items-center gap-2">
+                                  <Select value={extra.value || ""} onValueChange={v => setEpiValue(extra.id, v)}>
+                                    <SelectTrigger className="h-8 text-xs flex-1">
+                                      <SelectValue placeholder="Selecione do estoque..." />
+                                    </SelectTrigger>
+                                    <SelectContent>
+                                      {inventoryItems
+                                        .filter(inv => inv.quantity > 0)
+                                        .map(inv => (
+                                          <SelectItem key={inv.id} value={inv.name}>
+                                            {inv.name} ({inv.quantity} {inv.unit})
+                                          </SelectItem>
+                                        ))}
+                                    </SelectContent>
+                                  </Select>
+                                  <div className="flex items-center gap-1">
+                                    <Label className="text-[10px] text-muted-foreground">Qtd:</Label>
+                                    <Input
+                                      type="number"
+                                      min={1}
+                                      className="h-7 w-14 text-xs text-center"
+                                      value={extra.qty ?? ""}
+                                      onChange={e => setEpiQty(extra.id, e.target.value)}
+                                    />
+                                  </div>
+                                  {extraInvMatch && (
+                                    <span className={`text-[10px] ${extraInvMatch.quantity <= extraInvMatch.min_quantity ? 'text-destructive font-semibold' : 'text-muted-foreground'}`}>
+                                      Est: {extraInvMatch.quantity}
+                                    </span>
+                                  )}
+                                  <Button
+                                    type="button"
+                                    variant="ghost"
+                                    size="icon"
+                                    className="h-7 w-7"
+                                    onClick={() => setSelectedEpis(prev => prev.filter(e => e.id !== extra.id))}
+                                  >
+                                    <Trash2 className="h-3.5 w-3.5 text-destructive" />
+                                  </Button>
+                                </div>
+                              );
+                            })}
+                          <Button
+                            type="button"
+                            variant="outline"
+                            size="sm"
+                            className="h-7 text-xs"
+                            onClick={() => {
+                              const existingExtras = selectedEpis.filter(e => e.id.startsWith("outros_"));
+                              const nextIdx = existingExtras.length + 1;
+                              setSelectedEpis(prev => [...prev, { id: `outros_${nextIdx}`, qty: 1 }]);
+                            }}
+                          >
+                            <Plus className="h-3 w-3 mr-1" />
+                            Adicionar outro item
+                          </Button>
                         </div>
                       )}
                       {selected && invMatch && (
