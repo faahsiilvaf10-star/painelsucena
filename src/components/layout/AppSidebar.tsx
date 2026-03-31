@@ -49,6 +49,7 @@ import { SidebarBackground } from "./SidebarBackground";
 import { formatCargoLabel } from "@/lib/cargoUtils";
 import sidebarArrowLeft from "@/assets/sidebar-arrow-left.png";
 import sidebarArrowRight from "@/assets/sidebar-arrow-right.png";
+import sidebarCollapsedLogo from "@/assets/sidebar-collapsed-logo.png";
 
 interface NavItem {
   id: string;
@@ -402,9 +403,11 @@ export function AppSidebar({ lockedCollapsed = false }: { lockedCollapsed?: bool
               className="h-8 md:h-10 max-w-[120px] md:max-w-[140px] object-contain" 
             />
           ) : (
-            <div className="w-8 h-8 rounded-lg bg-primary flex items-center justify-center">
-              <span className="text-sm font-bold text-primary-foreground">S</span>
-            </div>
+            <img 
+              src={sidebarCollapsedLogo} 
+              alt="Logo" 
+              className="h-8 w-8 object-contain" 
+            />
           )}
         </div>
       </SidebarHeader>
