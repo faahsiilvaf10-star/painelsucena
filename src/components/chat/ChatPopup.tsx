@@ -50,8 +50,9 @@ export const ChatPopup = ({ user: selectedUser, onClose, onExpand }: ChatPopupPr
   const inputRef = useRef<HTMLInputElement>(null);
   const typingTimeoutRef = useRef<NodeJS.Timeout | null>(null);
 
-  const { messages, isLoading, sendMessage, uploadImage } = useChatMessages(selectedUser.user_id);
+  const { messages, isLoading, sendMessage, uploadImage, clearConversation } = useChatMessages(selectedUser.user_id);
   const { isOtherTyping, sendTypingEvent, sendStopTypingEvent } = useTypingIndicator(selectedUser.user_id);
+  const [confirmClear, setConfirmClear] = useState(false);
   const { allUsers } = useAllUsers();
 
   // Get live user data (for real-time online status and lastSeen)
