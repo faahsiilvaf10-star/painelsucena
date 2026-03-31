@@ -48,6 +48,7 @@ import { toast } from "sonner";
 import { SidebarBackground } from "./SidebarBackground";
 import { formatCargoLabel } from "@/lib/cargoUtils";
 import sidebarArrowLeft from "@/assets/sidebar-arrow-left.png";
+import sidebarClosedIcon from "@/assets/sidebar-closed-icon.png";
 
 interface NavItem {
   id: string;
