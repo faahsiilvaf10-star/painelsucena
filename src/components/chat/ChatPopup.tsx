@@ -14,6 +14,7 @@ import { format } from "date-fns";
 import { ptBR } from "date-fns/locale";
 import { cn } from "@/lib/utils";
 import { useAllUsers } from "@/hooks/useAllUsers";
+import { supabase } from "@/integrations/supabase/client";
 import { toast } from "sonner";
 import { VerifiedBadge } from "@/components/VerifiedBadge";
 
@@ -53,6 +54,7 @@ export const ChatPopup = ({ user: selectedUser, onClose, onExpand }: ChatPopupPr
   const { messages, isLoading, sendMessage, uploadImage, clearConversation } = useChatMessages(selectedUser.user_id);
   const { isOtherTyping, sendTypingEvent, sendStopTypingEvent } = useTypingIndicator(selectedUser.user_id);
   const [confirmClear, setConfirmClear] = useState(false);
+  const [persistedLastSeen, setPersistedLastSeen] = useState<string | null>(selectedUser.lastSeen ?? null);
   const { allUsers } = useAllUsers();
 
   // Get live user data (for real-time online status and lastSeen)
@@ -61,7 +63,9 @@ export const ChatPopup = ({ user: selectedUser, onClose, onExpand }: ChatPopupPr
     [allUsers, selectedUser]
   );
 
-  const formatLastSeen = (lastSeen?: string) => {
+  const effectiveLastSeen = liveUser.lastSeen ?? persistedLastSeen ?? selectedUser.lastSeen ?? null;
+
+  const formatLastSeen = (lastSeen?: string | null) => {
     if (!lastSeen) return "";
     const date = new Date(lastSeen);
     const now = new Date();
@@ -82,12 +86,48 @@ export const ChatPopup = ({ user: selectedUser, onClose, onExpand }: ChatPopupPr
     return `visto ${format(date, "dd/MM", { locale: ptBR })} às ${time}`;
   };
 
-  // Auto-scroll to bottom when new messages arrive
   useEffect(() => {
-    if (scrollRef.current && !isMinimized) {
-      scrollRef.current.scrollTop = scrollRef.current.scrollHeight;
-    }
-  }, [messages, isOtherTyping, isMinimized]);
+    setPersistedLastSeen(selectedUser.lastSeen ?? null);
+  }, [selectedUser.lastSeen, selectedUser.user_id]);
+
+  useEffect(() => {
+    const loadLastSeen = async () => {
+      const { data } = await supabase
+        .from("user_presence")
+        .select("last_seen_at")
+        .eq("user_id", selectedUser.user_id)
+        .maybeSingle();
+
+      if (data?.last_seen_at) {
+        setPersistedLastSeen(data.last_seen_at);
+      }
+    };
+
+    const channel = supabase
+      .channel(`chat-popup-presence-${selectedUser.user_id}`)
+      .on(
+        "postgres_changes",
+        {
+          event: "UPDATE",
+          schema: "public",
+          table: "user_presence",
+          filter: `user_id=eq.${selectedUser.user_id}`,
+        },
+        (payload) => {
+          const nextLastSeen = (payload.new as { last_seen_at?: string | null }).last_seen_at ?? null;
+          setPersistedLastSeen(nextLastSeen);
+        }
+      )
+      .subscribe();
+
+    void loadLastSeen();
+
+    return () => {
+      supabase.removeChannel(channel);
+    };
+  }, [selectedUser.user_id]);
+
+  // Auto-scroll to bottom when new messages arrive
 
   // Focus input when popup opens
   useEffect(() => {
@@ -238,8 +278,8 @@ export const ChatPopup = ({ user: selectedUser, onClose, onExpand }: ChatPopupPr
               <span className="text-[#25d366]">digitando...</span>
             ) : liveUser.isOnline ? (
               "online"
-            ) : liveUser.lastSeen ? (
-              formatLastSeen(liveUser.lastSeen)
+            ) : effectiveLastSeen ? (
+              formatLastSeen(effectiveLastSeen)
             ) : (
               "offline"
             )}
