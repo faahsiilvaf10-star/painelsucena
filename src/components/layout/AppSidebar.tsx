@@ -49,6 +49,7 @@ import { SidebarBackground } from "./SidebarBackground";
 import { formatCargoLabel } from "@/lib/cargoUtils";
 import sidebarArrowLeft from "@/assets/sidebar-arrow-left.png";
 import sidebarArrowRight from "@/assets/sidebar-arrow-right.png";
+import sidebarCollapsedLogo from "@/assets/sidebar-collapsed-logo.png";
 
 interface NavItem {
   id: string;
