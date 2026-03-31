@@ -963,21 +963,85 @@ export default function TrocaEpi() {
                         );
                       })()}
                       {item.id === "outros" && selected && (
-                        <div className="ml-6 mt-1">
-                          <Select value={selected.value || ""} onValueChange={v => setEpiValue(item.id, v)}>
-                            <SelectTrigger className="h-8 text-xs w-full">
-                              <SelectValue placeholder="Selecione do estoque..." />
-                            </SelectTrigger>
-                            <SelectContent>
-                              {inventoryItems
-                                .filter(inv => inv.quantity > 0)
-                                .map(inv => (
-                                  <SelectItem key={inv.id} value={inv.name}>
-                                    {inv.name} ({inv.quantity} {inv.unit})
-                                  </SelectItem>
-                                ))}
-                            </SelectContent>
-                          </Select>
+                        <div className="ml-6 mt-1 space-y-2">
+                          <div className="flex items-center gap-2">
+                            <Select value={selected.value || ""} onValueChange={v => setEpiValue(item.id, v)}>
+                              <SelectTrigger className="h-8 text-xs w-full">
+                                <SelectValue placeholder="Selecione do estoque..." />
+                              </SelectTrigger>
+                              <SelectContent>
+                                {inventoryItems
+                                  .filter(inv => inv.quantity > 0)
+                                  .map(inv => (
+                                    <SelectItem key={inv.id} value={inv.name}>
+                                      {inv.name} ({inv.quantity} {inv.unit})
+                                    </SelectItem>
+                                  ))}
+                              </SelectContent>
+                            </Select>
+                          </div>
+                          {/* Extra "Outros" rows */}
+                          {selectedEpis
+                            .filter(e => e.id.startsWith("outros_"))
+                            .map((extra) => {
+                              const extraInvMatch = extra.value ? findInventoryMatch(inventoryItems, extra.value) : null;
+                              return (
+                                <div key={extra.id} className="flex items-center gap-2">
+                                  <Select value={extra.value || ""} onValueChange={v => setEpiValue(extra.id, v)}>
+                                    <SelectTrigger className="h-8 text-xs flex-1">
+                                      <SelectValue placeholder="Selecione do estoque..." />
+                                    </SelectTrigger>
+                                    <SelectContent>
+                                      {inventoryItems
+                                        .filter(inv => inv.quantity > 0)
+                                        .map(inv => (
+                                          <SelectItem key={inv.id} value={inv.name}>
+                                            {inv.name} ({inv.quantity} {inv.unit})
+                                          </SelectItem>
+                                        ))}
+                                    </SelectContent>
+                                  </Select>
+                                  <div className="flex items-center gap-1">
+                                    <Label className="text-[10px] text-muted-foreground">Qtd:</Label>
+                                    <Input
+                                      type="number"
+                                      min={1}
+                                      className="h-7 w-14 text-xs text-center"
+                                      value={extra.qty ?? ""}
+                                      onChange={e => setEpiQty(extra.id, e.target.value)}
+                                    />
+                                  </div>
+                                  {extraInvMatch && (
+                                    <span className={`text-[10px] ${extraInvMatch.quantity <= extraInvMatch.min_quantity ? 'text-destructive font-semibold' : 'text-muted-foreground'}`}>
+                                      Est: {extraInvMatch.quantity}
+                                    </span>
+                                  )}
+                                  <Button
+                                    type="button"
+                                    variant="ghost"
+                                    size="icon"
+                                    className="h-7 w-7"
+                                    onClick={() => setSelectedEpis(prev => prev.filter(e => e.id !== extra.id))}
+                                  >
+                                    <Trash2 className="h-3.5 w-3.5 text-destructive" />
+                                  </Button>
+                                </div>
+                              );
+                            })}
+                          <Button
+                            type="button"
+                            variant="outline"
+                            size="sm"
+                            className="h-7 text-xs"
+                            onClick={() => {
+                              const existingExtras = selectedEpis.filter(e => e.id.startsWith("outros_"));
+                              const nextIdx = existingExtras.length + 1;
+                              setSelectedEpis(prev => [...prev, { id: `outros_${nextIdx}`, qty: 1 }]);
+                            }}
+                          >
+                            <Plus className="h-3 w-3 mr-1" />
+                            Adicionar outro item
+                          </Button>
                         </div>
                       )}
                       {selected && invMatch && (
