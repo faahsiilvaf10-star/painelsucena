@@ -244,8 +244,10 @@ export const ChatPopup = ({ user: selectedUser, onClose, onExpand }: ChatPopupPr
               <span className="text-[#25d366]">digitando...</span>
             ) : liveUser.isOnline ? (
               "online"
+            ) : fallbackLastSeen ? (
+              formatLastSeen(fallbackLastSeen)
             ) : (
-              formatLastSeen(liveUser.lastSeen)
+              "visto recentemente"
             )}
           </p>
         </div>
