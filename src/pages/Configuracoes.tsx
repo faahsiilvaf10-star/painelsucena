@@ -8,6 +8,7 @@ import { Label } from "@/components/ui/label";
 import { Separator } from "@/components/ui/separator";
 import { useAuth } from "@/hooks/useAuth";
 import { useProfile } from "@/hooks/useProfile";
+import { useIsAdmin } from "@/hooks/useUserRole";
 import { supabase } from "@/integrations/supabase/client";
 import { toast } from "sonner";
 import { User, Mail, Lock, Camera, Upload, Eye, EyeOff, ArrowLeft, Check, AlertTriangle } from "lucide-react";
@@ -28,6 +29,7 @@ const passwordSchema = z.string().min(6, "Senha deve ter pelo menos 6 caracteres
 const Configuracoes = () => {
   const { user } = useAuth();
   const { data: profile } = useProfile();
+  const { isAdmin } = useIsAdmin();
   const navigate = useNavigate();
   const fileInputRef = useRef<HTMLInputElement>(null);
   const queryClient = useQueryClient();
@@ -491,29 +493,30 @@ const Configuracoes = () => {
             </CardContent>
           </Card>
 
-          {/* Theme Picker */}
-          {user && (
-            <ThemePicker
-              userId={user.id}
-              currentTheme={(profile as any)?.ui_theme || "classic"}
-            />
-          )}
+          {/* Admin-only sections */}
+          {isAdmin && user && (
+            <>
+              {/* Theme Picker - Global */}
+              <ThemePicker
+                userId={user.id}
+                currentTheme={(profile as any)?.ui_theme || "classic"}
+              />
 
-          {/* Sidebar Customizer */}
-          {user && (
-            <SidebarCustomizer
-              userId={user.id}
-              currentSidebarColor={sidebarColor}
-              currentSidebarAnimation={sidebarAnimation}
-              currentSidebarFont={sidebarFont}
-              currentSidebarFontColor={sidebarFontColor}
-              currentSidebarActiveColor={sidebarActiveColor}
-              currentSidebarActiveFontColor={sidebarActiveFontColor}
-            />
-          )}
+              {/* Sidebar Customizer */}
+              <SidebarCustomizer
+                userId={user.id}
+                currentSidebarColor={sidebarColor}
+                currentSidebarAnimation={sidebarAnimation}
+                currentSidebarFont={sidebarFont}
+                currentSidebarFontColor={sidebarFontColor}
+                currentSidebarActiveColor={sidebarActiveColor}
+                currentSidebarActiveFontColor={sidebarActiveFontColor}
+              />
 
-          {/* Announcement History */}
-          <AnnouncementHistory />
+              {/* Announcement History */}
+              <AnnouncementHistory />
+            </>
+          )}
         </div>
       </div>
     </Layout>

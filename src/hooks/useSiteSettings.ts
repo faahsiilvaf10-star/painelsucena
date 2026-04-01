@@ -7,6 +7,7 @@ export interface SiteSettings {
   sidebar_color: string;
   nav_order: string[];
   show_signup_button: boolean;
+  ui_theme: string;
   updated_at: string;
   updated_by: string | null;
 }
@@ -36,7 +37,6 @@ export function useSiteSettings() {
         throw error;
       }
 
-      // If no settings exist, return defaults but without ID (will need to be created)
       if (!data) {
         return {
           id: "",
@@ -44,6 +44,7 @@ export function useSiteSettings() {
           sidebar_color: "#1e2235",
           nav_order: DEFAULT_NAV_ORDER,
           show_signup_button: false,
+          ui_theme: "classic",
           updated_at: new Date().toISOString(),
           updated_by: null,
         };
@@ -56,14 +57,15 @@ export function useSiteSettings() {
       return {
         ...data,
         nav_order: navOrder,
+        ui_theme: (data as any).ui_theme || "classic",
       };
     },
-    staleTime: 1000 * 60 * 5, // Cache for 5 minutes
+    staleTime: 1000 * 60 * 5,
     retry: 2,
   });
 
   const updateSettings = useMutation({
-    mutationFn: async (updates: Partial<Pick<SiteSettings, "logo_url" | "sidebar_color" | "nav_order" | "show_signup_button">>) => {
+    mutationFn: async (updates: Partial<Pick<SiteSettings, "logo_url" | "sidebar_color" | "nav_order" | "show_signup_button" | "ui_theme">>) => {
       const { data: { user } } = await supabase.auth.getUser();
       
       if (!settings?.id) {
@@ -112,6 +114,7 @@ export function useSiteSettings() {
       sidebar_color: "#1e2235",
       nav_order: DEFAULT_NAV_ORDER,
       show_signup_button: false,
+      ui_theme: "classic",
       updated_at: new Date().toISOString(),
       updated_by: null,
     },
