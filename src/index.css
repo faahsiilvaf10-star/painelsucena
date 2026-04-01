@@ -833,4 +833,3 @@ html, body {
 .group[data-state="collapsed"] .sidebar-s-curve {
   animation: sidebar-s-wave-close 0.5s cubic-bezier(0.45, 0.05, 0.55, 0.95) forwards;
 }
-}
