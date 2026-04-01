@@ -5,6 +5,7 @@ import { SidebarProvider, SidebarTrigger } from "@/components/ui/sidebar";
 import { useAuth } from "@/hooks/useAuth";
 import { useProfile } from "@/hooks/useProfile";
 import { useIsMobile } from "@/hooks/use-mobile";
+import { Loader2 } from "lucide-react";
 
 interface PersistentSidebarProps {
   children: ReactNode;
@@ -13,8 +14,8 @@ interface PersistentSidebarProps {
 const DRIVER_ROLES = ["motorista_pipa", "motorista_munk"];
 
 export const PersistentSidebar = ({ children }: PersistentSidebarProps) => {
-  const { user } = useAuth();
-  const { data: profile } = useProfile();
+  const { user, loading: authLoading } = useAuth();
+  const { data: profile, isLoading: profileLoading } = useProfile();
   const isMobile = useIsMobile();
   const [justCompletedTransition, setJustCompletedTransition] = useState(false);
 
@@ -22,6 +23,9 @@ export const PersistentSidebar = ({ children }: PersistentSidebarProps) => {
   const isAvatarBlocked = user && profile && (!profile.avatar_url || profile.avatar_url.trim().length === 0);
   const uiTheme = (profile as any)?.ui_theme || "classic";
   const useDock = user && !isDriver && !isAvatarBlocked && uiTheme === "macos-dock";
+
+  // Wait for auth + profile to load before rendering layout to prevent theme flash
+  const layoutReady = !authLoading && (!user || !profileLoading);
 
   useEffect(() => {
     const handler = () => {
@@ -35,6 +39,14 @@ export const PersistentSidebar = ({ children }: PersistentSidebarProps) => {
     window.addEventListener("login-transition", handler);
     return () => window.removeEventListener("login-transition", handler);
   }, [user]);
+
+  if (!layoutReady) {
+    return (
+      <div className="h-screen w-full grid place-items-center bg-background">
+        <Loader2 className="h-6 w-6 animate-spin text-muted-foreground" />
+      </div>
+    );
+  }
 
   return (
     <SidebarProvider defaultOpen={isAvatarBlocked ? false : !isMobile}>
