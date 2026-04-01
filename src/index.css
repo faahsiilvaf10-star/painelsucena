@@ -804,32 +804,3 @@ html, body {
   0%, 100% { transform: translateY(0) scale(1); }
   50% { transform: translateY(-8px) scale(1.1); }
 }
-
-/* Sidebar S-curve animation */
-@keyframes sidebar-s-wave-open {
-  0% { transform: translateX(-100%) skewX(8deg); }
-  30% { transform: translateX(-30%) skewX(-4deg); }
-  60% { transform: translateX(-5%) skewX(2deg); }
-  80% { transform: translateX(2%) skewX(-1deg); }
-  100% { transform: translateX(0) skewX(0deg); }
-}
-
-@keyframes sidebar-s-wave-close {
-  0% { transform: translateX(0) skewX(0deg); }
-  20% { transform: translateX(2%) skewX(3deg); }
-  50% { transform: translateX(-40%) skewX(-5deg); }
-  100% { transform: translateX(-100%) skewX(8deg); }
-}
-
-.sidebar-s-curve[data-sidebar="sidebar"] {
-  transform-origin: left center;
-}
-
-/* Apply S-curve animation when sidebar state changes */
-.group[data-state="expanded"] .sidebar-s-curve {
-  animation: sidebar-s-wave-open 0.5s cubic-bezier(0.45, 0.05, 0.55, 0.95) forwards;
-}
-
-.group[data-state="collapsed"] .sidebar-s-curve {
-  animation: sidebar-s-wave-close 0.5s cubic-bezier(0.45, 0.05, 0.55, 0.95) forwards;
-}
