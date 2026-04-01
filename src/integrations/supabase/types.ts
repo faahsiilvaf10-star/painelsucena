@@ -2826,6 +2826,7 @@ export type Database = {
           nav_order: Json | null
           show_signup_button: boolean
           sidebar_color: string | null
+          ui_theme: string
           updated_at: string
           updated_by: string | null
         }
@@ -2835,6 +2836,7 @@ export type Database = {
           nav_order?: Json | null
           show_signup_button?: boolean
           sidebar_color?: string | null
+          ui_theme?: string
           updated_at?: string
           updated_by?: string | null
         }
@@ -2844,6 +2846,7 @@ export type Database = {
           nav_order?: Json | null
           show_signup_button?: boolean
           sidebar_color?: string | null
+          ui_theme?: string
           updated_at?: string
           updated_by?: string | null
         }

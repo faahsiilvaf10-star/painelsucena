@@ -6,6 +6,7 @@ import { supabase } from "@/integrations/supabase/client";
 import { toast } from "sonner";
 import { Palette, Check, PanelLeft, Monitor } from "lucide-react";
 import { cn } from "@/lib/utils";
+import { useSiteSettings } from "@/hooks/useSiteSettings";
 
 interface ThemePickerProps {
   userId: string;
@@ -31,22 +32,19 @@ const UI_THEMES = [
 
 export const ThemePicker = ({ userId, currentTheme }: ThemePickerProps) => {
   const queryClient = useQueryClient();
-  const [selected, setSelected] = useState(currentTheme || "classic");
+  const { settings, updateSettings } = useSiteSettings();
+  const globalTheme = (settings as any)?.ui_theme || "classic";
+  const [selected, setSelected] = useState(globalTheme);
   const [isSaving, setIsSaving] = useState(false);
 
   const handleSave = async () => {
     setIsSaving(true);
     try {
-      const { error } = await supabase
-        .from("profiles")
-        .update({ ui_theme: selected })
-        .eq("user_id", userId);
+      // Save to site_settings (global for all users)
+      await updateSettings.mutateAsync({ ui_theme: selected } as any);
 
-      if (error) throw error;
-
-      await queryClient.invalidateQueries({ queryKey: ["profile"] });
-      await queryClient.refetchQueries({ queryKey: ["profile", userId] });
-      toast.success("Tema atualizado! Recarregue a página para aplicar completamente.");
+      await queryClient.invalidateQueries({ queryKey: ["site-settings"] });
+      toast.success("Tema global atualizado para todos os usuários!");
     } catch (error: any) {
       toast.error("Erro ao salvar tema: " + error.message);
     } finally {
@@ -59,10 +57,10 @@ export const ThemePicker = ({ userId, currentTheme }: ThemePickerProps) => {
       <CardHeader>
         <CardTitle className="flex items-center gap-2">
           <Palette className="w-5 h-5" />
-          Tema da Interface
+          Tema da Interface (Global)
         </CardTitle>
         <CardDescription>
-          Escolha o estilo de navegação do sistema.
+          Escolha o estilo de navegação do sistema. Será aplicado para todos os usuários.
         </CardDescription>
       </CardHeader>
       <CardContent className="space-y-4">
@@ -126,7 +124,7 @@ export const ThemePicker = ({ userId, currentTheme }: ThemePickerProps) => {
           })}
         </div>
 
-        <Button onClick={handleSave} disabled={isSaving || selected === currentTheme} className="w-full">
+        <Button onClick={handleSave} disabled={isSaving || selected === globalTheme} className="w-full">
           {isSaving ? (
             <>
               <div className="w-4 h-4 border-2 border-current border-t-transparent rounded-full animate-spin mr-2" />
@@ -135,7 +133,7 @@ export const ThemePicker = ({ userId, currentTheme }: ThemePickerProps) => {
           ) : (
             <>
               <Check className="w-4 h-4 mr-2" />
-              Aplicar Tema
+              Aplicar Tema Global
             </>
           )}
         </Button>

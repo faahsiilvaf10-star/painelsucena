@@ -5,6 +5,7 @@ import { SidebarProvider, SidebarTrigger } from "@/components/ui/sidebar";
 import { useAuth } from "@/hooks/useAuth";
 import { useProfile } from "@/hooks/useProfile";
 import { useIsMobile } from "@/hooks/use-mobile";
+import { useSiteSettings } from "@/hooks/useSiteSettings";
 import { Loader2 } from "lucide-react";
 
 interface PersistentSidebarProps {
@@ -16,16 +17,19 @@ const DRIVER_ROLES = ["motorista_pipa", "motorista_munk"];
 export const PersistentSidebar = ({ children }: PersistentSidebarProps) => {
   const { user, loading: authLoading } = useAuth();
   const { data: profile, isLoading: profileLoading } = useProfile();
+  const { settings, isLoading: settingsLoading } = useSiteSettings();
   const isMobile = useIsMobile();
   const [justCompletedTransition, setJustCompletedTransition] = useState(false);
 
   const isDriver = profile?.cargo && DRIVER_ROLES.includes(profile.cargo);
   const isAvatarBlocked = user && profile && (!profile.avatar_url || profile.avatar_url.trim().length === 0);
-  const uiTheme = (profile as any)?.ui_theme || "classic";
+  
+  // Use global theme from site_settings
+  const uiTheme = settings?.ui_theme || "classic";
   const useDock = user && !isDriver && !isAvatarBlocked && uiTheme === "macos-dock";
 
-  // Wait for auth + profile to load before rendering layout to prevent theme flash
-  const layoutReady = !authLoading && (!user || !profileLoading);
+  // Wait for auth + profile + settings to load before rendering layout
+  const layoutReady = !authLoading && (!user || (!profileLoading && !settingsLoading));
 
   useEffect(() => {
     const handler = () => {
