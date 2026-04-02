@@ -37,6 +37,11 @@ export const ThemePicker = ({ userId, currentTheme }: ThemePickerProps) => {
   const [selected, setSelected] = useState(globalTheme);
   const [isSaving, setIsSaving] = useState(false);
 
+  // Keep selection in sync with loaded global settings
+  useEffect(() => {
+    setSelected(globalTheme);
+  }, [globalTheme]);
+
   const handleSave = async () => {
     setIsSaving(true);
     try {
