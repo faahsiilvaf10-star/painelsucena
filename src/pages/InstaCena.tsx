@@ -14,9 +14,10 @@ import { Calendar } from "@/components/ui/calendar";
 import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { cn } from "@/lib/utils";
-import { useIsAdmin } from "@/hooks/useUserRole";
 import { useSiteSettings } from "@/hooks/useSiteSettings";
 import { toast } from "sonner";
+import { useEditMode } from "@/contexts/EditModeContext";
+import { EditableImage } from "@/components/cms/EditableImage";
 
 const MONTHS = [
   "Janeiro", "Fevereiro", "Março", "Abril", "Maio", "Junho",
@@ -28,7 +29,7 @@ const InstaCena = () => {
   const [filter, setFilter] = useState<"posts" | "logs">("posts");
   const [selectedDate, setSelectedDate] = useState<Date | undefined>();
   const [selectedMonth, setSelectedMonth] = useState<string>("all");
-  const { isAdmin } = useIsAdmin();
+  const { isEditMode, canEdit } = useEditMode();
   const { settings, updateSettings } = useSiteSettings();
   const mainRef = useRef<HTMLElement | null>(null);
 
@@ -99,14 +100,14 @@ const InstaCena = () => {
   }, []);
 
   const onPointerDown = useCallback((e: React.PointerEvent) => {
-    if (!isAdmin) return;
+    if (!isEditMode) return;
 
     dragging.current = true;
     const rect = (e.target as HTMLElement).getBoundingClientRect();
     offset.current = { x: e.clientX - rect.left, y: e.clientY - rect.top };
     (e.target as HTMLElement).setPointerCapture(e.pointerId);
     e.preventDefault();
-  }, [isAdmin]);
+  }, [isEditMode]);
 
   const onPointerMove = useCallback((e: React.PointerEvent) => {
     if (!dragging.current) return;
@@ -126,14 +127,14 @@ const InstaCena = () => {
   }, [dragPos, updateSettings]);
 
   const onRightPointerDown = useCallback((e: React.PointerEvent) => {
-    if (!isAdmin) return;
+    if (!isEditMode) return;
 
     draggingRight.current = true;
     const rect = (e.target as HTMLElement).getBoundingClientRect();
     offsetRight.current = { x: e.clientX - rect.left, y: e.clientY - rect.top };
     (e.target as HTMLElement).setPointerCapture(e.pointerId);
     e.preventDefault();
-  }, [isAdmin]);
+  }, [isEditMode]);
 
   const onRightPointerMove = useCallback((e: React.PointerEvent) => {
     if (!draggingRight.current) return;
@@ -190,7 +191,7 @@ const InstaCena = () => {
           <div className="sticky top-0 z-20 h-0 overflow-visible hidden lg:block">
             {showGif && (
               <div
-                className={cn("absolute w-max animate-gif-float", !isAdmin && "pointer-events-none")}
+                className={cn("absolute w-max animate-gif-float", !isEditMode && "pointer-events-none")}
                 style={{
                   left: currentPos.x,
                   top: currentPos.y,
@@ -204,7 +205,7 @@ const InstaCena = () => {
                   onPointerUp={onPointerUp}
                   className={cn(
                     "select-none",
-                    isAdmin ? "cursor-grab active:cursor-grabbing" : "pointer-events-none"
+                    isEditMode ? "cursor-grab active:cursor-grabbing" : "pointer-events-none"
                   )}
                     style={{
                       width: currentSize,
@@ -215,7 +216,7 @@ const InstaCena = () => {
                       touchAction: "none",
                     }}
                 />
-                {isAdmin && (
+                {isEditMode && (
                   <button
                     onClick={() => setShowLeftResize(!showLeftResize)}
                     className="absolute -bottom-3 -right-3 p-1 rounded-full bg-primary text-primary-foreground shadow-lg hover:scale-110 transition-transform"
@@ -224,7 +225,7 @@ const InstaCena = () => {
                     <Maximize2 className="h-3.5 w-3.5" />
                   </button>
                 )}
-                {isAdmin && showLeftResize && (
+                {isEditMode && showLeftResize && (
                   <div className="absolute top-full left-0 mt-2 bg-card border border-border rounded-lg shadow-xl p-3 space-y-2 min-w-[200px] z-50" onClick={(e) => e.stopPropagation()}>
                     <div className="text-xs font-medium">Largura: {localSize ?? gifSize}px</div>
                     <input
@@ -296,7 +297,7 @@ const InstaCena = () => {
 
             {showRightGif && (
               <div
-                className={cn("absolute w-max animate-gif-float", !isAdmin && "pointer-events-none")}
+                className={cn("absolute w-max animate-gif-float", !isEditMode && "pointer-events-none")}
                 style={{
                   left: currentRightPos.x,
                   top: currentRightPos.y,
@@ -310,7 +311,7 @@ const InstaCena = () => {
                   onPointerUp={onRightPointerUp}
                   className={cn(
                     "select-none",
-                    isAdmin ? "cursor-grab active:cursor-grabbing" : "pointer-events-none"
+                    isEditMode ? "cursor-grab active:cursor-grabbing" : "pointer-events-none"
                   )}
                   style={{
                     width: currentRightSize,
@@ -321,7 +322,7 @@ const InstaCena = () => {
                      touchAction: "none",
                   }}
                 />
-                {isAdmin && (
+                {isEditMode && (
                   <button
                     onClick={() => setShowRightResize(!showRightResize)}
                     className="absolute -bottom-3 -right-3 p-1 rounded-full bg-primary text-primary-foreground shadow-lg hover:scale-110 transition-transform"
@@ -330,7 +331,7 @@ const InstaCena = () => {
                     <Maximize2 className="h-3.5 w-3.5" />
                   </button>
                 )}
-                {isAdmin && showRightResize && (
+                {isEditMode && showRightResize && (
                   <div className="absolute top-full right-0 mt-2 bg-card border border-border rounded-lg shadow-xl p-3 space-y-2 min-w-[200px] z-50" onClick={(e) => e.stopPropagation()}>
                     <div className="text-xs font-medium">Largura: {localRightSize ?? gifRightSize}px</div>
                     <input
@@ -405,7 +406,15 @@ const InstaCena = () => {
         <div className="min-w-0 flex-1">
           <div className="max-w-xl mx-auto py-1 space-y-4 overflow-x-hidden">
             <div className="flex items-center justify-between gap-2 flex-wrap">
-              <img src={instaCenaLogo} alt="InstaCena" className="h-32 object-contain" />
+              <EditableImage
+                pageKey="instacena"
+                elementKey="page-logo"
+                defaultSrc={instaCenaLogo}
+                alt="InstaCena"
+                className="h-32"
+                imgClassName="h-32 object-contain"
+                canEdit={isEditMode}
+              />
               <div className="flex items-center gap-2">
                 <Tabs value={filter} onValueChange={(v) => setFilter(v as typeof filter)}>
                   <TabsList className="h-8">

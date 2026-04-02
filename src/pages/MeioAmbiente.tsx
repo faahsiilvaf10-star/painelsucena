@@ -11,6 +11,8 @@ import ResiduosEfluentes from "@/components/meioambiente/ResiduosEfluentes";
 import { toast } from "sonner";
 import html2canvas from "html2canvas";
 import logoSucenaEmpreendimentos from "@/assets/logo-sucena-empreendimentos.png";
+import { EditableImage } from "@/components/cms/EditableImage";
+import { useEditMode } from "@/contexts/EditModeContext";
 
 const MESES = [
   "JANEIRO", "FEVEREIRO", "MARÇO", "ABRIL", "MAIO", "JUNHO",
@@ -29,6 +31,7 @@ const PERIODOS: Record<string, string> = {
 
 function PluviometriaSpreadsheet({ setor, ano }: { setor: string; ano: number }) {
   const { data: records, isLoading, upsert, remove } = usePluviometriaYear(setor, ano);
+  const { isEditMode } = useEditMode();
   const [editingCell, setEditingCell] = useState<{ mes: number; dia: number } | null>(null);
   const [editValue, setEditValue] = useState("");
   const spreadsheetRef = useRef<HTMLDivElement>(null);
@@ -319,7 +322,15 @@ function PluviometriaSpreadsheet({ setor, ano }: { setor: string; ano: number })
             PLANILHA DE CONTROLE DE PRECIPITAÇÃO
           </h2>
           <span className="text-lg font-bold">ANO {ano}</span>
-          <img src={logoSucenaEmpreendimentos} alt="Sucena Empreendimentos" className="h-14 object-contain" />
+          <EditableImage
+            pageKey="meio-ambiente"
+            elementKey="page-logo"
+            defaultSrc={logoSucenaEmpreendimentos}
+            alt="Sucena Empreendimentos"
+            className="h-14"
+            imgClassName="h-14 object-contain"
+            canEdit={isEditMode}
+          />
         </div>
         <div className="flex items-center gap-8 mt-1 text-sm">
           <div className="flex items-center gap-2">
