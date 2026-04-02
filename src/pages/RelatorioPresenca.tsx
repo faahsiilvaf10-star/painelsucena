@@ -1,6 +1,7 @@
 import { useState, useMemo, useEffect } from "react";
 import { FileText, Copy, Loader2, Check, UserPlus, Pencil, Save, Lock, Unlock, Trash2, MessageCircle, Search } from "lucide-react";
 import Layout from "@/components/layout/Layout";
+import { EditablePageTitle } from "@/components/cms/EditablePageTitle";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Textarea } from "@/components/ui/textarea";
