@@ -181,6 +181,7 @@ export default function ArquivosSeguranca() {
   const { user } = useAuth();
   const { data: profile } = useProfile();
   const { isVisualizador } = useVisualizadorContext();
+  const { isEditMode } = useEditMode();
   const [search, setSearch] = useState("");
   const [selectedCategory, setSelectedCategory] = useState<string | null>(null);
   const [deleteTarget, setDeleteTarget] = useState<SecurityFile | null>(null);
