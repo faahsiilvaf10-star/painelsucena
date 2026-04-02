@@ -990,7 +990,7 @@ const Admin = () => {
           onOpenChange={setEditDialogOpen}
           user={selectedUserForAction}
           onSuccess={() => {
-            queryClient.invalidateQueries({ queryKey: ["admin-users"] });
+            queryClient.invalidateQueries({ queryKey: ["admin-users-with-roles"] });
           }}
         />
 
@@ -1000,7 +1000,7 @@ const Admin = () => {
           onOpenChange={setDeleteDialogOpen}
           user={selectedUserForAction}
           onSuccess={() => {
-            queryClient.invalidateQueries({ queryKey: ["admin-users"] });
+            queryClient.invalidateQueries({ queryKey: ["admin-users-with-roles"] });
           }}
         />
 
