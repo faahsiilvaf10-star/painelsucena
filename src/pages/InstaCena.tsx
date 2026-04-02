@@ -206,7 +206,7 @@ const InstaCena = () => {
         )}
         {showRightGif && (
           <div
-            className={cn("fixed z-10 hidden lg:block", !isAdmin && "pointer-events-none")}
+            className={cn("fixed z-10 hidden lg:block animate-gif-float", !isAdmin && "pointer-events-none")}
             style={{ left: currentRightPos.x, top: currentRightPos.y }}
           >
             <img
