@@ -231,7 +231,7 @@ export default function Desvios() {
               <AlertTriangle className="w-6 h-6 text-destructive" />
             </div>
             <div>
-              <h1 className="text-xl md:text-2xl font-bold text-foreground">Desvios</h1>
+              <EditablePageTitle pageKey="desvios" defaultValue="Desvios" className="text-xl md:text-2xl font-bold text-foreground" />
               <p className="text-sm text-muted-foreground">Desvios de segurança</p>
             </div>
           </div>

@@ -201,7 +201,7 @@ const Presenca = () => {
         {/* Header */}
         <div className="flex flex-col md:flex-row md:items-center justify-between gap-4 mb-6 sm:mb-8">
           <div>
-            <h1 className="text-2xl sm:text-4xl font-bold mb-2">Funcionários Trabalhando hoje!</h1>
+            <EditablePageTitle pageKey="presenca" defaultValue="Funcionários Trabalhando hoje!" className="text-2xl sm:text-4xl font-bold mb-2" />
             <p className="text-muted-foreground flex items-center gap-2">
               <Calendar className="w-4 h-4" />
               {new Date().toLocaleDateString("pt-BR", {
