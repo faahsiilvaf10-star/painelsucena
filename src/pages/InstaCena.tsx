@@ -30,6 +30,7 @@ const InstaCena = () => {
   const [selectedMonth, setSelectedMonth] = useState<string>("all");
   const { isAdmin } = useIsAdmin();
   const { settings, updateSettings } = useSiteSettings();
+  const pageRef = useRef<HTMLDivElement | null>(null);
 
   // --- Left GIF state ---
   const gifPos = settings.instacena_gif_position || { x: 16, y: 80 };
@@ -54,7 +55,6 @@ const InstaCena = () => {
   const [showRightResize, setShowRightResize] = useState(false);
   const draggingRight = useRef(false);
   const offsetRight = useRef({ x: 0, y: 0 });
-  const [scrollY, setScrollY] = useState(0);
 
   useEffect(() => {
     setDragPos(null);
@@ -72,36 +72,26 @@ const InstaCena = () => {
     settings.instacena_gif_right_height,
   ]);
 
-  useEffect(() => {
-    let main = document.querySelector("main") as HTMLElement | null;
-    let raf = 0;
+  const getRelativePosition = useCallback((clientX: number, clientY: number, dragOffset: { x: number; y: number }) => {
+    const pageRect = pageRef.current?.getBoundingClientRect();
 
-    const syncScroll = () => {
-      cancelAnimationFrame(raf);
-      raf = requestAnimationFrame(() => {
-        const mainScroll = main?.scrollTop ?? 0;
-        const windowScroll = window.scrollY || document.documentElement.scrollTop || 0;
-        setScrollY(mainScroll > 0 ? mainScroll : windowScroll);
-      });
-    };
+    if (!pageRect) {
+      return {
+        x: clientX - dragOffset.x,
+        y: clientY - dragOffset.y,
+      };
+    }
 
-    const handleMainScroll = () => syncScroll();
-    const handleWindowScroll = () => syncScroll();
-
-    syncScroll();
-    main?.addEventListener("scroll", handleMainScroll, { passive: true });
-    window.addEventListener("scroll", handleWindowScroll, { passive: true });
-
-    return () => {
-      main?.removeEventListener("scroll", handleMainScroll);
-      window.removeEventListener("scroll", handleWindowScroll);
-      cancelAnimationFrame(raf);
+    return {
+      x: clientX - pageRect.left - dragOffset.x,
+      y: clientY - pageRect.top - dragOffset.y,
     };
   }, []);
 
   // Left GIF handlers
   const onPointerDown = useCallback((e: React.PointerEvent) => {
     if (!isAdmin) return;
+
     dragging.current = true;
     const rect = (e.target as HTMLElement).getBoundingClientRect();
     offset.current = { x: e.clientX - rect.left, y: e.clientY - rect.top };
@@ -111,14 +101,12 @@ const InstaCena = () => {
 
   const onPointerMove = useCallback((e: React.PointerEvent) => {
     if (!dragging.current) return;
-    setDragPos({
-      x: e.clientX - offset.current.x,
-      y: e.clientY - offset.current.y - scrollY,
-    });
-  }, [scrollY]);
+    setDragPos(getRelativePosition(e.clientX, e.clientY, offset.current));
+  }, [getRelativePosition]);
 
   const onPointerUp = useCallback(() => {
     if (!dragging.current) return;
+
     dragging.current = false;
     if (dragPos) {
       updateSettings.mutate(
@@ -131,6 +119,7 @@ const InstaCena = () => {
   // Right GIF handlers
   const onRightPointerDown = useCallback((e: React.PointerEvent) => {
     if (!isAdmin) return;
+
     draggingRight.current = true;
     const rect = (e.target as HTMLElement).getBoundingClientRect();
     offsetRight.current = { x: e.clientX - rect.left, y: e.clientY - rect.top };
@@ -140,14 +129,12 @@ const InstaCena = () => {
 
   const onRightPointerMove = useCallback((e: React.PointerEvent) => {
     if (!draggingRight.current) return;
-    setDragRightPos({
-      x: e.clientX - offsetRight.current.x,
-      y: e.clientY - offsetRight.current.y - scrollY,
-    });
-  }, [scrollY]);
+    setDragRightPos(getRelativePosition(e.clientX, e.clientY, offsetRight.current));
+  }, [getRelativePosition]);
 
   const onRightPointerUp = useCallback(() => {
     if (!draggingRight.current) return;
+
     draggingRight.current = false;
     if (dragRightPos) {
       updateSettings.mutate(
@@ -165,12 +152,10 @@ const InstaCena = () => {
   const currentRightSize = localRightSize ?? gifRightSize;
   const showRightGif = gifRightUrl && gifRightUrl !== "__removed__";
 
-  const leftRenderTop = currentPos.y + scrollY;
-  const rightRenderTop = currentRightPos.y + scrollY;
-
   const filteredPosts = posts?.filter((p) => {
     if (filter === "posts" && p.is_system_post) return false;
     if (filter === "logs" && !p.is_system_post) return false;
+
     if (selectedDate) {
       const postDate = new Date(p.created_at).toLocaleDateString("en-CA");
       const filterDate = format(selectedDate, "yyyy-MM-dd");
@@ -179,6 +164,7 @@ const InstaCena = () => {
       const postMonth = new Date(p.created_at).getMonth().toString();
       if (postMonth !== selectedMonth) return false;
     }
+
     return true;
   });
 
@@ -191,14 +177,13 @@ const InstaCena = () => {
 
   return (
     <Layout>
-      <div className="relative min-h-screen">
+      <div ref={pageRef} className="relative min-h-screen">
         {showGif && (
           <div
-            className={cn("fixed z-10 hidden lg:block animate-gif-float", !isAdmin && "pointer-events-none")}
+            className={cn("absolute z-10 hidden lg:block animate-gif-float", !isAdmin && "pointer-events-none")}
             style={{
               left: currentPos.x,
-              top: leftRenderTop,
-              transition: dragging.current ? "none" : "top 0.3s ease-out",
+              top: currentPos.y,
             }}
           >
             <img
@@ -280,11 +265,10 @@ const InstaCena = () => {
 
         {showRightGif && (
           <div
-            className={cn("fixed z-10 hidden lg:block animate-gif-float", !isAdmin && "pointer-events-none")}
+            className={cn("absolute z-10 hidden lg:block animate-gif-float", !isAdmin && "pointer-events-none")}
             style={{
               left: currentRightPos.x,
-              top: rightRenderTop,
-              transition: draggingRight.current ? "none" : "top 0.3s ease-out",
+              top: currentRightPos.y,
             }}
           >
             <img
