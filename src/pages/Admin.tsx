@@ -271,7 +271,7 @@ const Admin = () => {
         <div className="mb-6 sm:mb-8">
           <div className="flex items-center gap-2 sm:gap-3 mb-2">
             {isModerator ? (
-              <ShieldHalf className="w-6 h-6 sm:w-8 sm:h-8 text-amber-500" />
+              <ModeratorBadge size="lg" />
             ) : (
               <ShieldCheck className="w-6 h-6 sm:w-8 sm:h-8 text-primary" />
             )}
