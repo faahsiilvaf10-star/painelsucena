@@ -3,6 +3,7 @@ import { format } from "date-fns";
 import { ptBR } from "date-fns/locale";
 import { CalendarIcon, X, Loader2 } from "lucide-react";
 import instaCenaLogo from "@/assets/instacena-logo.png";
+import instaCenaEaster from "@/assets/instacena-easter.gif";
 import Layout from "@/components/layout/Layout";
 import { CreatePostCard } from "@/components/instacena/CreatePostCard";
 import { PostCard } from "@/components/instacena/PostCard";
