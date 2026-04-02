@@ -1,6 +1,7 @@
 import { Truck, MapPin, ExternalLink, Clock, Plus, Trash2, LogOut } from "lucide-react";
 import { Leaf, ArrowUpCircle, ArrowDownCircle, Loader2 as Loader2Icon } from "lucide-react";
 import { useState } from "react";
+import { EditablePageTitle } from "@/components/cms/EditablePageTitle";
 import { useCreateEquipmentMovement, ExitReason } from "@/hooks/useEquipmentMovements";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { Label } from "@/components/ui/label";
