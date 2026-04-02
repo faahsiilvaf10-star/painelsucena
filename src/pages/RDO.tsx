@@ -132,7 +132,7 @@ export default function RDO() {
     contrato: "460001269",
     gerencia: "Hydro",
     lideranca: "Eng. Luís Araújo",
-    tst: "Alexia chaves",
+    tst: "Itamar Junior e Alexssandro Chaves",
     local: "Alunorte Barcarena",
     horario: defaultHorario,
   });
