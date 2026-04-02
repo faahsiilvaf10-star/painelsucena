@@ -1,5 +1,5 @@
 import { forwardRef } from "react";
-import adminCrown from "@/assets/admin-crown.png";
+import adminBadge from "@/assets/admin-badge.png";
 import { cn } from "@/lib/utils";
 
 interface VerifiedBadgeProps {
@@ -19,7 +19,7 @@ export const VerifiedBadge = forwardRef<HTMLImageElement, VerifiedBadgeProps>(
     return (
       <img 
         ref={ref}
-        src={adminCrown} 
+        src={adminBadge} 
         alt="Administrador" 
         className={cn(
           sizeClasses[size], 
