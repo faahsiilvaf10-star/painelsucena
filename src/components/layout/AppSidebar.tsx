@@ -52,6 +52,8 @@ import sidebarArrowRight from "@/assets/sidebar-arrow-right.png";
 import sidebarCollapsedLogo from "@/assets/sidebar-collapsed-logo.png";
 import { useEditMode } from "@/contexts/EditModeContext";
 import { EditableText } from "@/components/cms/EditableText";
+import { VerifiedBadge } from "@/components/VerifiedBadge";
+import { ModeratorBadge } from "@/components/ModeratorBadge";
 
 interface NavItem {
   id: string;
