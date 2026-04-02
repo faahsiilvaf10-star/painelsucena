@@ -56,6 +56,7 @@ const InstaCena = () => {
   const draggingRight = useRef(false);
   const offsetRight = useRef({ x: 0, y: 0 });
   const resizeRightTimer = useRef<ReturnType<typeof setTimeout>>();
+  const [scrollY, setScrollY] = useState(0);
 
   useEffect(() => {
     setDragPos(null);
@@ -63,6 +64,19 @@ const InstaCena = () => {
     setDragRightPos(null);
     setLocalRightSize(null);
   }, [settings.instacena_gif_position, settings.instacena_gif_size, settings.instacena_gif_right_position, settings.instacena_gif_right_size]);
+
+  // Smooth scroll follow - listen to the scrollable container
+  useEffect(() => {
+    const scrollContainer = document.querySelector("main") || document.querySelector("[data-radix-scroll-area-viewport]") || window;
+    const handleScroll = () => {
+      const st = scrollContainer === window 
+        ? window.scrollY 
+        : (scrollContainer as HTMLElement).scrollTop;
+      setScrollY(st);
+    };
+    scrollContainer.addEventListener("scroll", handleScroll, { passive: true });
+    return () => scrollContainer.removeEventListener("scroll", handleScroll);
+  }, []);
 
   // Left GIF handlers
   const onPointerDown = useCallback((e: React.PointerEvent) => {
