@@ -7,13 +7,25 @@ export const useAdminUsers = () => {
     queryFn: async () => {
       const { data, error } = await supabase
         .from("user_roles")
-        .select("user_id")
-        .eq("role", "admin");
+        .select("user_id, role")
+        .in("role", ["admin", "moderator"]);
 
       if (error) throw error;
-      
-      return new Set(data?.map((row) => row.user_id) ?? []);
+
+      const adminSet = new Set<string>();
+      const moderatorSet = new Set<string>();
+
+      data?.forEach((row) => {
+        if (row.role === "admin") adminSet.add(row.user_id);
+        if (row.role === "moderator") moderatorSet.add(row.user_id);
+      });
+
+      // Combined set for backward compatibility (isAdmin checks)
+      const combinedSet = new Set([...adminSet, ...moderatorSet]);
+
+      return { admins: adminSet, moderators: moderatorSet, all: combinedSet };
     },
-    staleTime: 5 * 60 * 1000, // 5 minutes
+    staleTime: 5 * 60 * 1000,
+    select: (data) => data,
   });
 };
