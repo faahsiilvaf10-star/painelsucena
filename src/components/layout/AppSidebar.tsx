@@ -177,6 +177,25 @@ export function AppSidebar({ lockedCollapsed = false }: { lockedCollapsed?: bool
   const { navOrder } = useUserNavOrder();
   const { getHiddenItemsForCargo } = useNavVisibilityRules();
   const isCollapsed = state === "collapsed";
+  const logoEditRef = React.useRef<HTMLInputElement>(null);
+
+  const handleLogoEditUpload = React.useCallback(async (e: React.ChangeEvent<HTMLInputElement>) => {
+    const file = e.target.files?.[0];
+    if (!file || !file.type.startsWith("image/")) return;
+    try {
+      const ext = file.name.split(".").pop();
+      const path = `logos/logo-${Date.now()}.${ext}`;
+      const { error: upErr } = await (await import("@/integrations/supabase/client")).supabase.storage
+        .from("site-assets").upload(path, file, { upsert: true });
+      if (upErr) throw upErr;
+      const { data } = (await import("@/integrations/supabase/client")).supabase.storage
+        .from("site-assets").getPublicUrl(path);
+      await updateSettings.mutateAsync({ logo_url: data.publicUrl });
+    } catch (err) {
+      console.error("Logo upload error:", err);
+    }
+    if (logoEditRef.current) logoEditRef.current.value = "";
+  }, [updateSettings]);
 
   const handleMobileClose = React.useCallback(() => {
     if (sidebarIsMobile) {
