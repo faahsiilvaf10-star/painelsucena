@@ -261,7 +261,7 @@ export default function ParteDiaria() {
         {/* Header */}
         <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
           <div>
-            <h1 className="text-xl sm:text-2xl font-bold">Parte Diária</h1>
+            <EditablePageTitle pageKey="parte-diaria" defaultValue="Parte Diária" className="text-xl sm:text-2xl font-bold" />
             <p className="text-muted-foreground">
               Gestão de equipamentos e acompanhamento de status dos motoristas
             </p>

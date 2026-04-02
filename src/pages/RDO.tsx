@@ -560,7 +560,7 @@ ${difficulties}`;
           <div className="flex items-center gap-3">
             <FileText className="h-6 w-6 sm:h-8 sm:w-8 text-primary shrink-0" />
             <div className="min-w-0">
-              <h1 className="text-lg sm:text-2xl font-bold">RDO - Relatório Diário de Obra</h1>
+              <EditablePageTitle pageKey="rdo" defaultValue="RDO - Relatório Diário de Obra" className="text-lg sm:text-2xl font-bold" />
               <div className="flex flex-wrap items-center gap-2">
                 <p className="text-sm text-muted-foreground">{capitalizedDate}</p>
                 {isFriday && (

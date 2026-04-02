@@ -251,7 +251,7 @@ const EXIT_REASON_LABELS: Record<string, string> = {
               <div className="p-2 rounded-lg bg-primary/10">
                 <Truck className="h-6 w-6 text-primary" />
               </div>
-              Entrada e Saída de Equipamentos
+              <EditablePageTitle pageKey="entrada-saida" defaultValue="Entrada e Saída de Equipamentos" className="inline" as="h1" />
             </h1>
             <p className="text-muted-foreground mt-2">
               Controle de equipamentos no canteiro e fora da obra

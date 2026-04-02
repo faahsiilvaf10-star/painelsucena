@@ -820,7 +820,7 @@ export default function Atividades() {
               <Leaf className="h-5 w-5 sm:h-6 sm:w-6 text-green-500" />
             </div>
             <div className="min-w-0">
-              <h1 className="text-lg sm:text-2xl font-bold">Atividades - Jardinagem</h1>
+              <EditablePageTitle pageKey="atividades" defaultValue="Atividades - Jardinagem" className="text-lg sm:text-2xl font-bold" />
               <p className="text-sm text-muted-foreground truncate">{capitalizedDate}</p>
             </div>
           </div>
