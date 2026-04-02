@@ -50,6 +50,8 @@ import { formatCargoLabel } from "@/lib/cargoUtils";
 import sidebarArrowLeft from "@/assets/sidebar-arrow-left.png";
 import sidebarArrowRight from "@/assets/sidebar-arrow-right.png";
 import sidebarCollapsedLogo from "@/assets/sidebar-collapsed-logo.png";
+import { useEditMode } from "@/contexts/EditModeContext";
+import { EditableText } from "@/components/cms/EditableText";
 
 interface NavItem {
   id: string;
