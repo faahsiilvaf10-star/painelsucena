@@ -321,7 +321,15 @@ function PluviometriaSpreadsheet({ setor, ano }: { setor: string; ano: number })
             PLANILHA DE CONTROLE DE PRECIPITAÇÃO
           </h2>
           <span className="text-lg font-bold">ANO {ano}</span>
-          <img src={logoSucenaEmpreendimentos} alt="Sucena Empreendimentos" className="h-14 object-contain" />
+          <EditableImage
+            pageKey="meio-ambiente"
+            elementKey="page-logo"
+            defaultSrc={logoSucenaEmpreendimentos}
+            alt="Sucena Empreendimentos"
+            className="h-14"
+            imgClassName="h-14 object-contain"
+            canEdit={false}
+          />
         </div>
         <div className="flex items-center gap-8 mt-1 text-sm">
           <div className="flex items-center gap-2">

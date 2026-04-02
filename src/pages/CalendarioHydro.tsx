@@ -140,13 +140,22 @@ function MonthCalendar({ month }: { month: Date }) {
 }
 
 export default function CalendarioHydro() {
+  const { isEditMode } = useEditMode();
   return (
     <Layout>
       <div className="container mx-auto px-3 sm:px-6 py-3 sm:py-6 max-w-7xl">
         {/* Header */}
         <div className="flex flex-col sm:flex-row items-center justify-between gap-4 mb-6">
           <div className="flex items-center gap-3">
-            <img src={logoHydro} alt="Hydro" className="h-10 md:h-12 object-contain" />
+            <EditableImage
+              pageKey="calendario-hydro"
+              elementKey="page-logo"
+              defaultSrc={logoHydro}
+              alt="Hydro"
+              className="h-10 md:h-12"
+              imgClassName="h-10 md:h-12 object-contain"
+              canEdit={isEditMode}
+            />
             <div>
               <h1 className="text-xl md:text-2xl font-bold text-foreground flex items-center gap-2">
                 <CalendarDays className="h-6 w-6 text-primary" />
