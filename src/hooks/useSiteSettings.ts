@@ -11,6 +11,7 @@ export interface SiteSettings {
   primary_color: string | null;
   instacena_gif_position: { x: number; y: number } | null;
   instacena_gif_size: number;
+  instacena_gif_height: number | null;
   instacena_gif_url: string | null;
   updated_at: string;
   updated_by: string | null;
