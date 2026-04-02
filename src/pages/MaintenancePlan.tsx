@@ -1,4 +1,5 @@
 import { useState } from "react";
+import { EditablePageTitle } from "@/components/cms/EditablePageTitle";
 import Layout from "@/components/layout/Layout";
 
 import { format } from "date-fns";
