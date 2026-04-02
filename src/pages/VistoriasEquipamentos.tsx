@@ -1,4 +1,5 @@
 import Layout from "@/components/layout/Layout";
+import { EditablePageTitle } from "@/components/cms/EditablePageTitle";
 import { VehicleInspectionTable } from "@/components/vistorias/VehicleInspectionTable";
 import { ExportVehiclesButton } from "@/components/vistorias/ExportVehiclesButton";
 import { ClipboardCheck, Plus, Loader2 } from "lucide-react";

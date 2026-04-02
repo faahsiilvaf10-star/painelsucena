@@ -30,6 +30,7 @@ import {
   type SiteInspectionTask,
 } from "@/hooks/useSiteInspections";
 import Layout from "@/components/layout/Layout";
+import { EditablePageTitle } from "@/components/cms/EditablePageTitle";
 import { useInspectionSchedule } from "@/hooks/useInspectionSchedule";
 import { useProfile } from "@/hooks/useProfile";
 import { useIsAdmin as useIsAdminTop } from "@/hooks/useUserRole";

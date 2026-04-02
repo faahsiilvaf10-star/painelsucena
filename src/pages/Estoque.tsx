@@ -1,6 +1,7 @@
 import { useState, useMemo } from "react";
 import { Package, Search, Filter, MapPin, AlertTriangle } from "lucide-react";
 import Layout from "@/components/layout/Layout";
+import { EditablePageTitle } from "@/components/cms/EditablePageTitle";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
 import {
