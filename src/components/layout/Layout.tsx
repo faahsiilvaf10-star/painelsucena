@@ -78,6 +78,7 @@ const Layout = ({ children }: LayoutProps) => {
   const { data: profile } = useProfile();
   const { signOut } = useAuth();
   const { isAdmin } = useIsAdmin();
+  const { isEditMode, toggleEditMode, canEdit } = useEditMode();
   const navigate = useNavigate();
   
   const isAvatarBlocked = profile && (!profile.avatar_url || profile.avatar_url.trim().length === 0);
