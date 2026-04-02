@@ -930,18 +930,20 @@ const Admin = () => {
                                   >
                                     <Pencil className="w-4 h-4" />
                                   </Button>
-                                  <Button
-                                    variant="ghost"
-                                    size="icon"
-                                    className="text-destructive hover:text-destructive"
-                                    onClick={() => {
-                                      setSelectedUserForAction(u);
-                                      setDeleteDialogOpen(true);
-                                    }}
-                                    title="Excluir usuário"
-                                  >
-                                    <Trash2 className="w-4 h-4" />
-                                  </Button>
+                                  {canDeleteUsers && (
+                                    <Button
+                                      variant="ghost"
+                                      size="icon"
+                                      className="text-destructive hover:text-destructive"
+                                      onClick={() => {
+                                        setSelectedUserForAction(u);
+                                        setDeleteDialogOpen(true);
+                                      }}
+                                      title="Excluir usuário"
+                                    >
+                                      <Trash2 className="w-4 h-4" />
+                                    </Button>
+                                  )}
                                 </>
                               )}
                             </div>
