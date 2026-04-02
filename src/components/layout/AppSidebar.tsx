@@ -393,15 +393,34 @@ export function AppSidebar({ lockedCollapsed = false }: { lockedCollapsed?: bool
         <SidebarBackground animation={userSidebarAnimation} bgColor={userSidebarColor} />
       </div>
       
-      {/* Header with Logo */}
+      {/* Header with Logo - clickable for admin/moderator to change */}
       <SidebarHeader className="border-b border-sidebar-border/50 p-3 md:p-4 relative z-10">
         <div className="flex items-center justify-center">
           {!isCollapsed ? (
-            <img 
-              src={settings.logo_url || logoPrincipal} 
-              alt="Logo" 
-              className="h-8 md:h-10 max-w-[120px] md:max-w-[140px] object-contain" 
-            />
+            <div className="relative group">
+              <img 
+                src={settings.logo_url || logoPrincipal} 
+                alt="Logo" 
+                className="h-8 md:h-10 max-w-[120px] md:max-w-[140px] object-contain" 
+              />
+              {isAdmin && (
+                <>
+                  <input
+                    ref={logoEditRef}
+                    type="file"
+                    accept="image/*"
+                    onChange={handleLogoEditUpload}
+                    className="hidden"
+                  />
+                  <div
+                    className="absolute inset-0 bg-black/40 opacity-0 group-hover:opacity-100 flex items-center justify-center cursor-pointer rounded transition-opacity"
+                    onClick={() => logoEditRef.current?.click()}
+                  >
+                    <span className="text-white text-[10px] font-medium">Trocar</span>
+                  </div>
+                </>
+              )}
+            </div>
           ) : (
             <img 
               src={sidebarCollapsedLogo} 
