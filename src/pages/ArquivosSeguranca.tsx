@@ -204,7 +204,9 @@ export default function ArquivosSeguranca() {
             </p>
           </div>
           <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-4 gap-3 sm:gap-4">
-            {SECURITY_FILE_CATEGORIES.map((cat) => {
+            {SECURITY_FILE_CATEGORIES
+              .filter((cat) => !ADMIN_ONLY_CATEGORIES.includes(cat) || isAdmin)
+              .map((cat) => {
               const count = files.filter((f) => f.category === cat).length;
               const catImage = CATEGORY_IMAGES[cat];
               return (
