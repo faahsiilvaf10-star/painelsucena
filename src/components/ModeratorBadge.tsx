@@ -14,18 +14,14 @@ const sizeClasses = {
   lg: "w-6 h-6",
 };
 
-export const ModeratorBadge = forwardRef<SVGSVGElement, ModeratorBadgeProps>(
+export const ModeratorBadge = forwardRef<HTMLSpanElement, ModeratorBadgeProps>(
   function ModeratorBadge({ size = "sm", className }, ref) {
     return (
-      <ShieldHalf
-        ref={ref}
-        className={cn(
-          sizeClasses[size],
-          "text-amber-500 animate-pulse-soft",
-          className
-        )}
-        title="Moderador"
-      />
+      <span ref={ref} className={cn("inline-flex", className)}>
+        <ShieldHalf
+          className={cn(sizeClasses[size], "text-amber-500 animate-pulse-soft")}
+        />
+      </span>
     );
   }
 );
