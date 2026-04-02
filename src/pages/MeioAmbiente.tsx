@@ -11,6 +11,8 @@ import ResiduosEfluentes from "@/components/meioambiente/ResiduosEfluentes";
 import { toast } from "sonner";
 import html2canvas from "html2canvas";
 import logoSucenaEmpreendimentos from "@/assets/logo-sucena-empreendimentos.png";
+import { EditableImage } from "@/components/cms/EditableImage";
+import { useEditMode } from "@/contexts/EditModeContext";
 
 const MESES = [
   "JANEIRO", "FEVEREIRO", "MARÇO", "ABRIL", "MAIO", "JUNHO",
