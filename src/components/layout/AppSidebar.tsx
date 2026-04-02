@@ -430,7 +430,7 @@ export function AppSidebar({ lockedCollapsed = false }: { lockedCollapsed?: bool
                 alt="Logo" 
                 className="h-8 md:h-10 max-w-[120px] md:max-w-[140px] object-contain" 
               />
-              {isAdmin && editMode && (
+              {isAdmin && isEditMode && (
                 <>
                   <input
                     ref={logoEditRef}
