@@ -450,6 +450,129 @@ const Admin = () => {
             {/* Double Balance Manager */}
             <DoubleBalanceManager />
 
+            {/* InstaCena GIF Manager */}
+            <Card>
+              <CardHeader>
+                <CardTitle className="flex items-center gap-2">
+                  <Film className="w-5 h-5" />
+                  GIF do InstaCena
+                </CardTitle>
+                <CardDescription>
+                  Altere, remova ou restaure o GIF decorativo da página InstaCena. Ajuste o tamanho aqui também.
+                </CardDescription>
+              </CardHeader>
+              <CardContent className="space-y-4">
+                <div className="flex items-center gap-6">
+                  <div className="w-24 h-24 border-2 border-dashed border-border rounded-lg flex items-center justify-center overflow-hidden bg-muted">
+                    {settings.instacena_gif_url === "__removed__" ? (
+                      <span className="text-xs text-muted-foreground text-center px-1">Removido</span>
+                    ) : settings.instacena_gif_url ? (
+                      <img src={settings.instacena_gif_url} alt="GIF atual" className="w-full h-full object-contain p-1" />
+                    ) : (
+                      <Film className="w-8 h-8 text-muted-foreground" />
+                    )}
+                  </div>
+                  <div className="space-y-2">
+                    <input
+                      ref={gifInputRef}
+                      type="file"
+                      accept="image/gif,image/*"
+                      onChange={async (e) => {
+                        const file = e.target.files?.[0];
+                        if (!file) return;
+                        if (file.size > 5 * 1024 * 1024) {
+                          toast.error("Arquivo muito grande (máx 5MB)");
+                          return;
+                        }
+                        setIsUploadingGif(true);
+                        try {
+                          const ext = file.name.split(".").pop();
+                          const path = `instacena-gif/gif-${Date.now()}.${ext}`;
+                          const { error: upErr } = await supabase.storage.from("site-assets").upload(path, file, { upsert: true });
+                          if (upErr) throw upErr;
+                          const { data: urlData } = supabase.storage.from("site-assets").getPublicUrl(path);
+                          await updateSettings.mutateAsync({ instacena_gif_url: urlData.publicUrl } as any);
+                          toast.success("GIF atualizado!");
+                        } catch (err: any) {
+                          toast.error("Erro ao enviar GIF: " + err.message);
+                        } finally {
+                          setIsUploadingGif(false);
+                          if (gifInputRef.current) gifInputRef.current.value = "";
+                        }
+                      }}
+                      className="hidden"
+                    />
+                    <div className="flex flex-wrap gap-2">
+                      <Button
+                        onClick={() => gifInputRef.current?.click()}
+                        disabled={isUploadingGif}
+                        variant="outline"
+                        size="sm"
+                      >
+                        {isUploadingGif ? (
+                          <><div className="animate-spin rounded-full h-4 w-4 border-b-2 border-current mr-2" />Enviando...</>
+                        ) : (
+                          <><Upload className="w-4 h-4 mr-2" />Alterar GIF</>
+                        )}
+                      </Button>
+                      {settings.instacena_gif_url !== "__removed__" && (
+                        <Button
+                          variant="destructive"
+                          size="sm"
+                          onClick={() => {
+                            updateSettings.mutate(
+                              { instacena_gif_url: "__removed__" } as any,
+                              { onSuccess: () => toast.success("GIF removido!") }
+                            );
+                          }}
+                        >
+                          <Trash2 className="w-4 h-4 mr-2" />
+                          Remover
+                        </Button>
+                      )}
+                      {(settings.instacena_gif_url === "__removed__" || settings.instacena_gif_url) && (
+                        <Button
+                          variant="outline"
+                          size="sm"
+                          onClick={() => {
+                            updateSettings.mutate(
+                              { instacena_gif_url: null } as any,
+                              { onSuccess: () => toast.success("GIF padrão restaurado!") }
+                            );
+                          }}
+                        >
+                          <RotateCcw className="w-4 h-4 mr-2" />
+                          Restaurar Padrão
+                        </Button>
+                      )}
+                    </div>
+                    <p className="text-xs text-muted-foreground">Formatos: GIF, PNG, JPG. Máx: 5MB</p>
+                  </div>
+                </div>
+
+                {/* Size slider */}
+                <div className="space-y-2">
+                  <Label>Tamanho do GIF: {settings.instacena_gif_size || 200}px</Label>
+                  <div className="flex items-center gap-3">
+                    <span className="text-xs text-muted-foreground">80</span>
+                    <input
+                      type="range"
+                      min={80}
+                      max={600}
+                      step={10}
+                      value={settings.instacena_gif_size || 200}
+                      onChange={(e) => {
+                        const val = parseInt(e.target.value);
+                        updateSettings.mutate({ instacena_gif_size: val } as any);
+                      }}
+                      className="flex-1"
+                    />
+                    <span className="text-xs text-muted-foreground">600</span>
+                  </div>
+                </div>
+              </CardContent>
+            </Card>
+
           </TabsContent>
 
           {/* Users Tab */}
