@@ -24,6 +24,8 @@ import { NeonAvatar } from "@/components/ui/NeonAvatar";
 import { Button } from "@/components/ui/button";
 import { HeaderRadioButton } from "./HeaderRadioButton";
 import { NewsButton } from "./NewsButton";
+import { useEditMode } from "@/contexts/EditModeContext";
+import { Pencil, PencilOff } from "lucide-react";
 
 const motivationalPhrases = [
   "O sucesso é a soma de pequenos esforços repetidos dia após dia.",
