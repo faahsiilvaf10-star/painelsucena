@@ -1,4 +1,5 @@
 import { useState, useEffect } from "react";
+import { EditablePageTitle } from "@/components/cms/EditablePageTitle";
 import { 
   ChevronRight, 
   Folder,
