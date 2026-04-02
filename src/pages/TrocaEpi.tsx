@@ -1,4 +1,5 @@
 import { useState, useMemo, useCallback } from "react";
+import { EditablePageTitle } from "@/components/cms/EditablePageTitle";
 import { useQueryClient } from "@tanstack/react-query";
 import { format } from "date-fns";
 import { ptBR } from "date-fns/locale";
