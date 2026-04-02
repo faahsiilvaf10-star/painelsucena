@@ -915,8 +915,8 @@ const Admin = () => {
                                   </SelectContent>
                                 </Select>
                               ) : (
-                                <Badge variant={u.role === "admin" ? "default" : u.role === "moderator" ? "secondary" : "outline"}>
-                                  {u.role === "admin" ? "Admin" : u.role === "moderator" ? "Moderador" : "Usuário"}
+                                <Badge variant={u.role === "admin" ? "default" : u.role === "moderator" ? "secondary" : u.role === "visualizador" ? "outline" : "outline"}>
+                                  {u.role === "admin" ? "Admin" : u.role === "moderator" ? "Moderador" : u.role === "visualizador" ? "Visualizador" : "Usuário"}
                                 </Badge>
                               )
                             ) : (
