@@ -24,8 +24,6 @@ import { NeonAvatar } from "@/components/ui/NeonAvatar";
 import { Button } from "@/components/ui/button";
 import { HeaderRadioButton } from "./HeaderRadioButton";
 import { NewsButton } from "./NewsButton";
-import { EasterDecorations } from "@/components/easter/EasterDecorations";
-import easterPascoa from "@/assets/easter-pascoa.png";
 
 const motivationalPhrases = [
   "O sucesso é a soma de pequenos esforços repetidos dia após dia.",
