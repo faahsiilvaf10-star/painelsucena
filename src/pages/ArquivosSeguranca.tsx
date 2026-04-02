@@ -176,6 +176,7 @@ const CATEGORY_IMAGES: Record<string, string> = {
   Administrativo: iconAdministrativo,
   Almoxarifado: iconAlmoxarifado,
   Transporte: iconTransporte,
+  Confidencial: iconConfidencial,
 };
 
 export default function ArquivosSeguranca() {
