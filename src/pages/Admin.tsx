@@ -12,7 +12,8 @@ import { useSiteSettings } from "@/hooks/useSiteSettings";
 import { supabase } from "@/integrations/supabase/client";
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import { toast } from "sonner";
-import { Shield, ShieldCheck, ShieldHalf, Trash2, UserPlus, Users, Image, Upload, UserCog, Megaphone, Pencil, LayoutList, Truck, RotateCcw, Key, Ribbon, Coins, UserCheck, Film } from "lucide-react";
+import { Shield, ShieldCheck, Trash2, UserPlus, Users, Image, Upload, UserCog, Megaphone, Pencil, LayoutList, Truck, RotateCcw, Key, Ribbon, Coins, UserCheck, Film } from "lucide-react";
+import { ModeratorBadge } from "@/components/ModeratorBadge";
 import { Switch } from "@/components/ui/switch";
 import { Label } from "@/components/ui/label";
 import { DoubleBalanceManager } from "@/components/admin/DoubleBalanceManager";
@@ -270,7 +271,7 @@ const Admin = () => {
         <div className="mb-6 sm:mb-8">
           <div className="flex items-center gap-2 sm:gap-3 mb-2">
             {isModerator ? (
-              <ShieldHalf className="w-6 h-6 sm:w-8 sm:h-8 text-amber-500" />
+              <ModeratorBadge size="lg" />
             ) : (
               <ShieldCheck className="w-6 h-6 sm:w-8 sm:h-8 text-primary" />
             )}
@@ -760,7 +761,7 @@ const Admin = () => {
               <Card>
                 <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
                   <CardTitle className="text-sm font-medium">Moderadores</CardTitle>
-                  <ShieldHalf className="h-4 w-4 text-amber-500" />
+                  <ModeratorBadge size="sm" />
                 </CardHeader>
                 <CardContent>
                   <div className="text-2xl font-bold">
@@ -894,7 +895,7 @@ const Admin = () => {
                                     </SelectItem>
                                     <SelectItem value="moderator">
                                       <div className="flex items-center gap-2">
-                                        <ShieldHalf className="w-4 h-4 text-amber-500" />
+                                        <ModeratorBadge size="sm" />
                                         Moderador
                                       </div>
                                     </SelectItem>
