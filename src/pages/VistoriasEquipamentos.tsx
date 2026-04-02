@@ -25,9 +25,7 @@ const VistoriasEquipamentos = () => {
                 <ClipboardCheck className="w-5 h-5 text-primary" />
               </div>
               <div>
-                <h1 className="text-xl font-semibold text-foreground tracking-tight">
-                  Vistorias Equipamentos
-                </h1>
+                <EditablePageTitle pageKey="vistorias" defaultValue="Vistorias Equipamentos" className="text-xl font-semibold text-foreground tracking-tight" />
                 <p className="text-sm text-muted-foreground">
                   Relatório de Veículos Terceiros
                 </p>

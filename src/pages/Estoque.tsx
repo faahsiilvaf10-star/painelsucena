@@ -88,7 +88,7 @@ export default function Estoque() {
           <div>
             <h1 className="text-xl sm:text-2xl font-bold flex items-center gap-2">
               <Package className="h-5 w-5 sm:h-6 sm:w-6" />
-              Estoque de Materiais
+              <EditablePageTitle pageKey="estoque" defaultValue="Estoque de Materiais" className="inline" as="h1" />
             </h1>
             <p className="text-sm text-muted-foreground">
               Gerencie o inventário de materiais e EPIs
