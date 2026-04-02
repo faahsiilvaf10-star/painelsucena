@@ -73,20 +73,28 @@ const InstaCena = () => {
   ]);
 
   useEffect(() => {
-    const main = document.querySelector("main") as HTMLElement | null;
-    if (!main) return;
-
+    let main = document.querySelector("main") as HTMLElement | null;
     let raf = 0;
-    const onScroll = () => {
+
+    const syncScroll = () => {
       cancelAnimationFrame(raf);
-      raf = requestAnimationFrame(() => setScrollY(main.scrollTop));
+      raf = requestAnimationFrame(() => {
+        const mainScroll = main?.scrollTop ?? 0;
+        const windowScroll = window.scrollY || document.documentElement.scrollTop || 0;
+        setScrollY(mainScroll > 0 ? mainScroll : windowScroll);
+      });
     };
 
-    setScrollY(main.scrollTop);
-    main.addEventListener("scroll", onScroll, { passive: true });
+    const handleMainScroll = () => syncScroll();
+    const handleWindowScroll = () => syncScroll();
+
+    syncScroll();
+    main?.addEventListener("scroll", handleMainScroll, { passive: true });
+    window.addEventListener("scroll", handleWindowScroll, { passive: true });
 
     return () => {
-      main.removeEventListener("scroll", onScroll);
+      main?.removeEventListener("scroll", handleMainScroll);
+      window.removeEventListener("scroll", handleWindowScroll);
       cancelAnimationFrame(raf);
     };
   }, []);
