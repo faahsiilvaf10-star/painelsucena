@@ -744,7 +744,7 @@ export default function TrocaEpi() {
         <div className="flex items-center gap-3">
           <ShieldCheck className="h-7 w-7 text-primary" />
           <div>
-            <h1 className="text-2xl font-bold text-foreground">Troca de EPI</h1>
+            <EditablePageTitle pageKey="troca-epi" defaultValue="Troca de EPI" className="text-2xl font-bold text-foreground" />
             <p className="text-sm text-muted-foreground">Autorização de troca de equipamentos de proteção individual</p>
           </div>
         </div>

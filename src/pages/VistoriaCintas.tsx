@@ -159,9 +159,7 @@ const VistoriaCintas = () => {
                 <Link2 className="w-5 h-5 text-primary" />
               </div>
               <div>
-                <h1 className="text-xl font-semibold text-foreground tracking-tight">
-                  Vistoria de Cintas
-                </h1>
+                <EditablePageTitle pageKey="vistoria-cintas" defaultValue="Vistoria de Cintas" className="text-xl font-semibold text-foreground tracking-tight" />
                 <p className="text-sm text-muted-foreground">
                   Controle de inspeção mensal por cor
                 </p>
