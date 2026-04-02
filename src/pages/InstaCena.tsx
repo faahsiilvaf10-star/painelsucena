@@ -220,8 +220,8 @@ const InstaCena = () => {
         )}
         {showRightGif && (
           <div
-            className={cn("fixed z-10 hidden lg:block animate-gif-float", !isAdmin && "pointer-events-none")}
-            style={{ left: currentRightPos.x, top: currentRightPos.y }}
+            className={cn("absolute z-10 hidden lg:block animate-gif-float", !isAdmin && "pointer-events-none")}
+            style={{ left: currentRightPos.x, top: currentRightPos.y + scrollY, transition: "top 0.3s ease-out" }}
           >
             <img
               src={gifRightUrl!}
