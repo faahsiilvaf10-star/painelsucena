@@ -118,6 +118,7 @@ const InstaCena = () => {
             Nenhuma publicação encontrada. 🔍
           </p>
         )}
+        </div>
       </div>
     </Layout>
   );
