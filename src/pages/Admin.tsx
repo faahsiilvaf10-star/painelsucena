@@ -555,7 +555,7 @@ const Admin = () => {
                 {/* Width & Height sliders */}
                 <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
                   <div className="space-y-2">
-                    <Label>Largura: {settings.instacena_gif_size || 200}px</Label>
+                    <Label>Largura: {localGifWidth ?? settings.instacena_gif_size ?? 200}px</Label>
                     <div className="flex items-center gap-3">
                       <span className="text-xs text-muted-foreground">80</span>
                       <input
@@ -563,13 +563,23 @@ const Admin = () => {
                         min={80}
                         max={600}
                         step={10}
-                        value={settings.instacena_gif_size || 200}
-                        onChange={(e) => {
-                          const val = parseInt(e.target.value);
-                          updateSettings.mutate(
-                            { instacena_gif_size: val } as any,
-                            { onSuccess: () => toast.success("Largura salva!") }
-                          );
+                        value={localGifWidth ?? settings.instacena_gif_size ?? 200}
+                        onChange={(e) => setLocalGifWidth(parseInt(e.target.value))}
+                        onMouseUp={() => {
+                          if (localGifWidth !== null) {
+                            updateSettings.mutate(
+                              { instacena_gif_size: localGifWidth } as any,
+                              { onSuccess: () => { toast.success("Largura salva!"); setLocalGifWidth(null); } }
+                            );
+                          }
+                        }}
+                        onTouchEnd={() => {
+                          if (localGifWidth !== null) {
+                            updateSettings.mutate(
+                              { instacena_gif_size: localGifWidth } as any,
+                              { onSuccess: () => { toast.success("Largura salva!"); setLocalGifWidth(null); } }
+                            );
+                          }
                         }}
                         className="flex-1 accent-primary"
                       />
@@ -577,7 +587,7 @@ const Admin = () => {
                     </div>
                   </div>
                   <div className="space-y-2">
-                    <Label>Altura: {settings.instacena_gif_height || "Auto"}px</Label>
+                    <Label>Altura: {(localGifHeight ?? settings.instacena_gif_height) || "Auto"}{(localGifHeight ?? settings.instacena_gif_height) ? "px" : ""}</Label>
                     <div className="flex items-center gap-3">
                       <span className="text-xs text-muted-foreground">Auto</span>
                       <input
@@ -585,13 +595,25 @@ const Admin = () => {
                         min={0}
                         max={800}
                         step={10}
-                        value={settings.instacena_gif_height || 0}
-                        onChange={(e) => {
-                          const val = parseInt(e.target.value);
-                          updateSettings.mutate(
-                            { instacena_gif_height: val === 0 ? null : val } as any,
-                            { onSuccess: () => toast.success(val === 0 ? "Altura automática!" : "Altura salva!") }
-                          );
+                        value={localGifHeight ?? settings.instacena_gif_height ?? 0}
+                        onChange={(e) => setLocalGifHeight(parseInt(e.target.value))}
+                        onMouseUp={() => {
+                          if (localGifHeight !== null) {
+                            const val = localGifHeight;
+                            updateSettings.mutate(
+                              { instacena_gif_height: val === 0 ? null : val } as any,
+                              { onSuccess: () => { toast.success(val === 0 ? "Altura automática!" : "Altura salva!"); setLocalGifHeight(null); } }
+                            );
+                          }
+                        }}
+                        onTouchEnd={() => {
+                          if (localGifHeight !== null) {
+                            const val = localGifHeight;
+                            updateSettings.mutate(
+                              { instacena_gif_height: val === 0 ? null : val } as any,
+                              { onSuccess: () => { toast.success(val === 0 ? "Altura automática!" : "Altura salva!"); setLocalGifHeight(null); } }
+                            );
+                          }
                         }}
                         className="flex-1 accent-primary"
                       />
