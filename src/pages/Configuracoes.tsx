@@ -503,6 +503,9 @@ const Configuracoes = () => {
                 currentTheme={(profile as any)?.ui_theme || "classic"}
               />
 
+              {/* Primary Color Picker - Global */}
+              <PrimaryColorPicker />
+
               {/* Sidebar Customizer */}
               <SidebarCustomizer
                 userId={user.id}
