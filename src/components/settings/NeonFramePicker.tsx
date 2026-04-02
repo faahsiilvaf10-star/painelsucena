@@ -65,6 +65,12 @@ export function NeonFramePicker({
   const [neonColor, setNeonColor] = useState<string | null>(currentNeonColor);
   const [frameAnimation, setFrameAnimation] = useState<string | null>(currentFrameAnimation);
   const [isSaving, setIsSaving] = useState(false);
+
+  useEffect(() => {
+    setFrameColor(currentFrameColor);
+    setNeonColor(currentNeonColor);
+    setFrameAnimation(currentFrameAnimation);
+  }, [currentFrameColor, currentNeonColor, currentFrameAnimation]);
   const queryClient = useQueryClient();
 
   const hasChanges =
