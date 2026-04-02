@@ -8,6 +8,7 @@ export interface SiteSettings {
   nav_order: string[];
   show_signup_button: boolean;
   ui_theme: string;
+  primary_color: string | null;
   updated_at: string;
   updated_by: string | null;
 }
