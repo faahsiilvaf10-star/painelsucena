@@ -117,6 +117,10 @@ const Admin = () => {
     enabled: isAdmin,
   });
 
+  // Moderator restriction flags
+  const canManageRoles = isStrictAdmin;
+  const canDeleteUsers = isStrictAdmin;
+
   // Safety: protect against cache pollution / unexpected shapes
   const users: UserWithRole[] = Array.isArray(usersData) ? usersData : [];
 
