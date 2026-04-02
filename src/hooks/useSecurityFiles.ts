@@ -11,7 +11,10 @@ export const SECURITY_FILE_CATEGORIES = [
   "Administrativo",
   "Almoxarifado",
   "Transporte",
+  "Confidencial",
 ] as const;
+
+export const ADMIN_ONLY_CATEGORIES: readonly string[] = ["Confidencial"];
 
 export type SecurityFileCategory = typeof SECURITY_FILE_CATEGORIES[number];
 

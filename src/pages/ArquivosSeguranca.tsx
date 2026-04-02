@@ -29,10 +29,11 @@ import {
   FileSpreadsheet,
   File,
 } from "lucide-react";
-import { useSecurityFiles, SecurityFile, SECURITY_FILE_CATEGORIES } from "@/hooks/useSecurityFiles";
+import { useSecurityFiles, SecurityFile, SECURITY_FILE_CATEGORIES, ADMIN_ONLY_CATEGORIES } from "@/hooks/useSecurityFiles";
 import { useAuth } from "@/hooks/useAuth";
 import { useProfile } from "@/hooks/useProfile";
 import { useVisualizadorContext } from "@/contexts/VisualizadorContext";
+import { useIsAdmin } from "@/hooks/useUserRole";
 import { format } from "date-fns";
 import { ptBR } from "date-fns/locale";
 import iconEncarregado from "@/assets/icons/icon-encarregado.png";
@@ -43,6 +44,7 @@ import iconPlanejamento from "@/assets/icons/icon-planejamento.png";
 import iconAdministrativo from "@/assets/icons/icon-administrativo.png";
 import iconAlmoxarifado from "@/assets/icons/icon-almoxarifado.png";
 import iconTransporte from "@/assets/icons/icon-transporte.png";
+import iconConfidencial from "@/assets/crown-folder.png";
 import winrarIcon from "@/assets/winrar-icon.png";
 
 const FilePdfIcon = FileText;
@@ -174,6 +176,7 @@ const CATEGORY_IMAGES: Record<string, string> = {
   Administrativo: iconAdministrativo,
   Almoxarifado: iconAlmoxarifado,
   Transporte: iconTransporte,
+  Confidencial: iconConfidencial,
 };
 
 export default function ArquivosSeguranca() {
@@ -181,6 +184,7 @@ export default function ArquivosSeguranca() {
   const { user } = useAuth();
   const { data: profile } = useProfile();
   const { isVisualizador } = useVisualizadorContext();
+  const { isAdmin } = useIsAdmin();
   const { isEditMode } = useEditMode();
   const [search, setSearch] = useState("");
   const [selectedCategory, setSelectedCategory] = useState<string | null>(null);
@@ -200,7 +204,9 @@ export default function ArquivosSeguranca() {
             </p>
           </div>
           <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-4 gap-3 sm:gap-4">
-            {SECURITY_FILE_CATEGORIES.map((cat) => {
+            {SECURITY_FILE_CATEGORIES
+              .filter((cat) => !ADMIN_ONLY_CATEGORIES.includes(cat) || isAdmin)
+              .map((cat) => {
               const count = files.filter((f) => f.category === cat).length;
               const catImage = CATEGORY_IMAGES[cat];
               return (
