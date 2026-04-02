@@ -792,15 +792,3 @@ html, body {
   50% { transform: scale(1.2) rotate(15deg); }
 }
 
-/* Easter animations */
-@keyframes easterFloat {
-  0% { opacity: 0; transform: translateY(-60px) rotate(0deg); }
-  3% { opacity: 0.5; }
-  90% { opacity: 0.3; }
-  100% { opacity: 0; transform: translateY(110vh) rotate(360deg); }
-}
-
-@keyframes easterBounce {
-  0%, 100% { transform: translateY(0) scale(1); }
-  50% { transform: translateY(-8px) scale(1.1); }
-}

@@ -231,7 +231,7 @@ const Layout = ({ children }: LayoutProps) => {
       <ForbiddenColorIndicator />
       <AnnouncementModal />
       <SessionExpiryWarning />
-      <EasterDecorations />
+      
       
     </SidebarInset>
   );
