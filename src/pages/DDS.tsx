@@ -366,8 +366,8 @@ export default function DDS() {
         <div className="flex flex-col gap-4">
           <div>
             <h1 className="text-xl sm:text-3xl font-bold flex items-center gap-2 sm:gap-3">
-              <Sun className="h-6 w-6 sm:h-8 sm:w-8 text-amber-500 shrink-0" />
-              <span className="leading-tight">DDS - Diálogo de Segurança</span>
+              <EditableIcon pageKey="dds" elementKey="dds-icon" defaultIcon={<Sun className="h-6 w-6 sm:h-8 sm:w-8 text-amber-500 shrink-0" />} iconSize={32} />
+              <EditablePageTitle pageKey="dds" defaultValue="DDS - Diálogo de Segurança" className="leading-tight inline" as="h1" />
             </h1>
             <p className="text-sm text-muted-foreground mt-1">
               Gerencie escalas e consulte os temas programados
