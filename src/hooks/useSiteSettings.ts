@@ -9,6 +9,7 @@ export interface SiteSettings {
   show_signup_button: boolean;
   ui_theme: string;
   primary_color: string | null;
+  instacena_gif_position: { x: number; y: number } | null;
   updated_at: string;
   updated_by: string | null;
 }
@@ -47,6 +48,7 @@ export function useSiteSettings() {
           show_signup_button: false,
           ui_theme: "classic",
           primary_color: null,
+          instacena_gif_position: { x: 16, y: 80 },
           updated_at: new Date().toISOString(),
           updated_by: null,
         };
@@ -61,6 +63,7 @@ export function useSiteSettings() {
         nav_order: navOrder,
         ui_theme: (data as any).ui_theme || "classic",
         primary_color: (data as any).primary_color || null,
+        instacena_gif_position: (data as any).instacena_gif_position || { x: 16, y: 80 },
       };
     },
     staleTime: 1000 * 60 * 5,
@@ -68,7 +71,7 @@ export function useSiteSettings() {
   });
 
   const updateSettings = useMutation({
-    mutationFn: async (updates: Partial<Pick<SiteSettings, "logo_url" | "sidebar_color" | "nav_order" | "show_signup_button" | "ui_theme" | "primary_color">>) => {
+    mutationFn: async (updates: Partial<Pick<SiteSettings, "logo_url" | "sidebar_color" | "nav_order" | "show_signup_button" | "ui_theme" | "primary_color" | "instacena_gif_position">>) => {
       const { data: { user } } = await supabase.auth.getUser();
       
       if (!settings?.id) {
@@ -119,6 +122,7 @@ export function useSiteSettings() {
       show_signup_button: false,
       ui_theme: "classic",
       primary_color: null,
+      instacena_gif_position: { x: 16, y: 80 },
       updated_at: new Date().toISOString(),
       updated_by: null,
     },
