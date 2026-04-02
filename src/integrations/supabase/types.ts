@@ -2289,6 +2289,48 @@ export type Database = {
         }
         Relationships: []
       }
+      page_customizations: {
+        Row: {
+          color_value: string | null
+          created_at: string
+          element_key: string
+          element_type: string
+          id: string
+          image_url: string | null
+          metadata: Json | null
+          page_key: string
+          text_value: string | null
+          updated_at: string
+          updated_by: string | null
+        }
+        Insert: {
+          color_value?: string | null
+          created_at?: string
+          element_key: string
+          element_type?: string
+          id?: string
+          image_url?: string | null
+          metadata?: Json | null
+          page_key: string
+          text_value?: string | null
+          updated_at?: string
+          updated_by?: string | null
+        }
+        Update: {
+          color_value?: string | null
+          created_at?: string
+          element_key?: string
+          element_type?: string
+          id?: string
+          image_url?: string | null
+          metadata?: Json | null
+          page_key?: string
+          text_value?: string | null
+          updated_at?: string
+          updated_by?: string | null
+        }
+        Relationships: []
+      }
       pluviometria_records: {
         Row: {
           ano: number
@@ -3168,6 +3210,7 @@ export type Database = {
         Returns: boolean
       }
       is_admin: { Args: { _user_id: string }; Returns: boolean }
+      is_admin_or_moderator: { Args: { _user_id: string }; Returns: boolean }
     }
     Enums: {
       app_role: "admin" | "user" | "moderator"
