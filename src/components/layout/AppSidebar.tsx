@@ -177,6 +177,25 @@ export function AppSidebar({ lockedCollapsed = false }: { lockedCollapsed?: bool
   const { navOrder } = useUserNavOrder();
   const { getHiddenItemsForCargo } = useNavVisibilityRules();
   const isCollapsed = state === "collapsed";
+  const logoEditRef = React.useRef<HTMLInputElement>(null);
+
+  const handleLogoEditUpload = React.useCallback(async (e: React.ChangeEvent<HTMLInputElement>) => {
+    const file = e.target.files?.[0];
+    if (!file || !file.type.startsWith("image/")) return;
+    try {
+      const ext = file.name.split(".").pop();
+      const path = `logos/logo-${Date.now()}.${ext}`;
+      const { error: upErr } = await (await import("@/integrations/supabase/client")).supabase.storage
+        .from("site-assets").upload(path, file, { upsert: true });
+      if (upErr) throw upErr;
+      const { data } = (await import("@/integrations/supabase/client")).supabase.storage
+        .from("site-assets").getPublicUrl(path);
+      await updateSettings.mutateAsync({ logo_url: data.publicUrl });
+    } catch (err) {
+      console.error("Logo upload error:", err);
+    }
+    if (logoEditRef.current) logoEditRef.current.value = "";
+  }, [updateSettings]);
 
   const handleMobileClose = React.useCallback(() => {
     if (sidebarIsMobile) {
@@ -393,15 +412,34 @@ export function AppSidebar({ lockedCollapsed = false }: { lockedCollapsed?: bool
         <SidebarBackground animation={userSidebarAnimation} bgColor={userSidebarColor} />
       </div>
       
-      {/* Header with Logo */}
+      {/* Header with Logo - clickable for admin/moderator to change */}
       <SidebarHeader className="border-b border-sidebar-border/50 p-3 md:p-4 relative z-10">
         <div className="flex items-center justify-center">
           {!isCollapsed ? (
-            <img 
-              src={settings.logo_url || logoPrincipal} 
-              alt="Logo" 
-              className="h-8 md:h-10 max-w-[120px] md:max-w-[140px] object-contain" 
-            />
+            <div className="relative group">
+              <img 
+                src={settings.logo_url || logoPrincipal} 
+                alt="Logo" 
+                className="h-8 md:h-10 max-w-[120px] md:max-w-[140px] object-contain" 
+              />
+              {isAdmin && (
+                <>
+                  <input
+                    ref={logoEditRef}
+                    type="file"
+                    accept="image/*"
+                    onChange={handleLogoEditUpload}
+                    className="hidden"
+                  />
+                  <div
+                    className="absolute inset-0 bg-black/40 opacity-0 group-hover:opacity-100 flex items-center justify-center cursor-pointer rounded transition-opacity"
+                    onClick={() => logoEditRef.current?.click()}
+                  >
+                    <span className="text-white text-[10px] font-medium">Trocar</span>
+                  </div>
+                </>
+              )}
+            </div>
           ) : (
             <img 
               src={sidebarCollapsedLogo} 

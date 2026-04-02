@@ -12,7 +12,7 @@ import { useSiteSettings } from "@/hooks/useSiteSettings";
 import { supabase } from "@/integrations/supabase/client";
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import { toast } from "sonner";
-import { Shield, ShieldCheck, Trash2, UserPlus, Users, Image, Upload, UserCog, Megaphone, Pencil, LayoutList, Truck, RotateCcw, Key, Ribbon, Coins, UserCheck, Film } from "lucide-react";
+import { Shield, ShieldCheck, ShieldHalf, Trash2, UserPlus, Users, Image, Upload, UserCog, Megaphone, Pencil, LayoutList, Truck, RotateCcw, Key, Ribbon, Coins, UserCheck, Film } from "lucide-react";
 import { Switch } from "@/components/ui/switch";
 import { Label } from "@/components/ui/label";
 import { DoubleBalanceManager } from "@/components/admin/DoubleBalanceManager";
@@ -40,7 +40,7 @@ interface UserWithRole {
 
 const Admin = () => {
   const { user, loading: authLoading } = useAuth();
-  const { isAdmin, isLoading: adminLoading } = useIsAdmin();
+  const { isAdmin, isStrictAdmin, isModerator, isLoading: adminLoading } = useIsAdmin();
   const { settings, updateSettings, uploadLogo, isLoading: settingsLoading } = useSiteSettings();
   const navigate = useNavigate();
   const queryClient = useQueryClient();
@@ -116,6 +116,10 @@ const Admin = () => {
     },
     enabled: isAdmin,
   });
+
+  // Moderator restriction flags
+  const canManageRoles = isStrictAdmin;
+  const canDeleteUsers = isStrictAdmin;
 
   // Safety: protect against cache pollution / unexpected shapes
   const users: UserWithRole[] = Array.isArray(usersData) ? usersData : [];
@@ -265,8 +269,14 @@ const Admin = () => {
       <div className="container mx-auto px-3 sm:px-4 md:px-6 py-4 sm:py-8">
         <div className="mb-6 sm:mb-8">
           <div className="flex items-center gap-2 sm:gap-3 mb-2">
-            <ShieldCheck className="w-6 h-6 sm:w-8 sm:h-8 text-primary" />
-            <h1 className="text-xl sm:text-3xl font-bold">Administração</h1>
+            {isModerator ? (
+              <ShieldHalf className="w-6 h-6 sm:w-8 sm:h-8 text-amber-500" />
+            ) : (
+              <ShieldCheck className="w-6 h-6 sm:w-8 sm:h-8 text-primary" />
+            )}
+            <h1 className="text-xl sm:text-3xl font-bold">
+              {isModerator ? "Moderação" : "Administração"}
+            </h1>
           </div>
           <p className="text-sm text-muted-foreground">
             Gerencie as configurações do sistema e permissões dos usuários.
@@ -726,7 +736,7 @@ const Admin = () => {
           </TabsContent>
           <TabsContent value="users" className="space-y-6">
             {/* Stats Cards */}
-            <div className="grid gap-4 md:grid-cols-3">
+            <div className="grid gap-4 md:grid-cols-4">
               <Card>
                 <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
                   <CardTitle className="text-sm font-medium">Total de Usuários</CardTitle>
@@ -749,6 +759,17 @@ const Admin = () => {
               </Card>
               <Card>
                 <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
+                  <CardTitle className="text-sm font-medium">Moderadores</CardTitle>
+                  <ShieldHalf className="h-4 w-4 text-amber-500" />
+                </CardHeader>
+                <CardContent>
+                  <div className="text-2xl font-bold">
+                    {users.filter((u) => u.role === "moderator").length}
+                  </div>
+                </CardContent>
+              </Card>
+              <Card>
+                <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
                   <CardTitle className="text-sm font-medium">Sem Role</CardTitle>
                   <Shield className="h-4 w-4 text-muted-foreground" />
                 </CardHeader>
@@ -758,8 +779,8 @@ const Admin = () => {
               </Card>
             </div>
 
-            {/* Add Role Section */}
-            {usersWithoutRole.length > 0 && (
+            {/* Add Role Section - Only for strict admins */}
+            {canManageRoles && usersWithoutRole.length > 0 && (
               <Card>
                 <CardHeader>
                   <CardTitle className="flex items-center gap-2">
@@ -790,6 +811,7 @@ const Admin = () => {
                       </SelectTrigger>
                       <SelectContent>
                         <SelectItem value="user">Usuário</SelectItem>
+                        <SelectItem value="moderator">Moderador</SelectItem>
                         <SelectItem value="admin">Administrador</SelectItem>
                       </SelectContent>
                     </Select>
@@ -847,36 +869,48 @@ const Admin = () => {
                           </TableCell>
                           <TableCell>
                             {u.role ? (
-                              <Select
-                                value={u.role}
-                                onValueChange={(newRole) => {
-                                  if (u.role_id) {
-                                    updateRoleMutation.mutate({
-                                      roleId: u.role_id,
-                                      newRole: newRole as AppRole,
-                                    });
-                                  }
-                                }}
-                                disabled={u.user_id === user?.id}
-                              >
-                                <SelectTrigger className="w-[140px]">
-                                  <SelectValue />
-                                </SelectTrigger>
-                                <SelectContent>
-                                  <SelectItem value="user">
-                                    <div className="flex items-center gap-2">
-                                      <Shield className="w-4 h-4" />
-                                      Usuário
-                                    </div>
-                                  </SelectItem>
-                                  <SelectItem value="admin">
-                                    <div className="flex items-center gap-2">
-                                      <ShieldCheck className="w-4 h-4" />
-                                      Administrador
-                                    </div>
-                                  </SelectItem>
-                                </SelectContent>
-                              </Select>
+                              canManageRoles ? (
+                                <Select
+                                  value={u.role}
+                                  onValueChange={(newRole) => {
+                                    if (u.role_id) {
+                                      updateRoleMutation.mutate({
+                                        roleId: u.role_id,
+                                        newRole: newRole as AppRole,
+                                      });
+                                    }
+                                  }}
+                                  disabled={u.user_id === user?.id}
+                                >
+                                  <SelectTrigger className="w-[160px]">
+                                    <SelectValue />
+                                  </SelectTrigger>
+                                  <SelectContent>
+                                    <SelectItem value="user">
+                                      <div className="flex items-center gap-2">
+                                        <Shield className="w-4 h-4" />
+                                        Usuário
+                                      </div>
+                                    </SelectItem>
+                                    <SelectItem value="moderator">
+                                      <div className="flex items-center gap-2">
+                                        <ShieldHalf className="w-4 h-4 text-amber-500" />
+                                        Moderador
+                                      </div>
+                                    </SelectItem>
+                                    <SelectItem value="admin">
+                                      <div className="flex items-center gap-2">
+                                        <ShieldCheck className="w-4 h-4" />
+                                        Administrador
+                                      </div>
+                                    </SelectItem>
+                                  </SelectContent>
+                                </Select>
+                              ) : (
+                                <Badge variant={u.role === "admin" ? "default" : u.role === "moderator" ? "secondary" : "outline"}>
+                                  {u.role === "admin" ? "Admin" : u.role === "moderator" ? "Moderador" : "Usuário"}
+                                </Badge>
+                              )
                             ) : (
                               <Badge variant="secondary">Sem role</Badge>
                             )}
@@ -907,18 +941,20 @@ const Admin = () => {
                                   >
                                     <Pencil className="w-4 h-4" />
                                   </Button>
-                                  <Button
-                                    variant="ghost"
-                                    size="icon"
-                                    className="text-destructive hover:text-destructive"
-                                    onClick={() => {
-                                      setSelectedUserForAction(u);
-                                      setDeleteDialogOpen(true);
-                                    }}
-                                    title="Excluir usuário"
-                                  >
-                                    <Trash2 className="w-4 h-4" />
-                                  </Button>
+                                  {canDeleteUsers && (
+                                    <Button
+                                      variant="ghost"
+                                      size="icon"
+                                      className="text-destructive hover:text-destructive"
+                                      onClick={() => {
+                                        setSelectedUserForAction(u);
+                                        setDeleteDialogOpen(true);
+                                      }}
+                                      title="Excluir usuário"
+                                    >
+                                      <Trash2 className="w-4 h-4" />
+                                    </Button>
+                                  )}
                                 </>
                               )}
                             </div>

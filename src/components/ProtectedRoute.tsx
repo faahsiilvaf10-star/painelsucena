@@ -116,7 +116,7 @@ const ProtectedRoute = ({ children }: ProtectedRouteProps) => {
           .from("user_roles")
           .select("role")
           .eq("user_id", userId)
-          .eq("role", "admin")
+          .in("role", ["admin", "moderator"])
           .maybeSingle()
       ]);
 

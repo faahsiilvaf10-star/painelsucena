@@ -440,7 +440,8 @@ export const useAllUsers = () => {
         ...profile,
         isOnline,
         isCurrentUser,
-        isAdmin: adminUserIds?.has(profile.user_id) ?? false,
+        isAdmin: adminUserIds?.all?.has(profile.user_id) ?? false,
+        isModerator: adminUserIds?.moderators?.has(profile.user_id) ?? false,
         lastSeen: isOnline ? undefined : fallbackLastSeen,
         justCameOnline: justOnlineIds.has(profile.user_id),
       };
