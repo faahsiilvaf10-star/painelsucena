@@ -10,7 +10,7 @@ interface ModeratorBadgeProps {
 const sizeClasses = {
   xs: "w-4 h-4",
   sm: "w-5 h-5",
-  md: "w-6 h-6",
+  md: "w-7 h-7",
   lg: "w-8 h-8",
 };
 
