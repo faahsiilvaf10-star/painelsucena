@@ -118,6 +118,7 @@ export function useSiteSettings() {
       nav_order: DEFAULT_NAV_ORDER,
       show_signup_button: false,
       ui_theme: "classic",
+      primary_color: null,
       updated_at: new Date().toISOString(),
       updated_by: null,
     },
