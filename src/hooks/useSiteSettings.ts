@@ -17,6 +17,8 @@ export interface SiteSettings {
   instacena_gif_right_position: { x: number; y: number } | null;
   instacena_gif_right_size: number;
   instacena_gif_right_height: number | null;
+  instacena_gif_opacity: number;
+  instacena_gif_right_opacity: number;
   updated_at: string;
   updated_by: string | null;
 }
