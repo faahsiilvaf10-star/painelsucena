@@ -127,16 +127,16 @@ const InstaCena = () => {
             onPointerUp={onPointerUp}
             onWheel={onWheel}
             className={cn(
-              "fixed h-auto z-10 hidden lg:block select-none",
+              "fixed z-10 hidden lg:block select-none",
               isAdmin ? "cursor-grab active:cursor-grabbing" : "pointer-events-none"
             )}
             style={{
               left: currentPos.x,
               top: currentPos.y,
               width: currentSize,
+              height: gifHeight || "auto",
               borderRadius: 0,
-              maxHeight: "calc(100vh - 80px)",
-              objectFit: "contain",
+              objectFit: gifHeight ? "cover" : "contain",
               touchAction: "none",
             }}
           />
