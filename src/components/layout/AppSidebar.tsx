@@ -558,6 +558,21 @@ export function AppSidebar({ lockedCollapsed = false }: { lockedCollapsed?: bool
                     <ShieldCheck className="h-5 w-5" />
                   </Button>
                 )}
+                {canEdit && (
+                  <Button
+                    variant="ghost"
+                    size="icon"
+                    onClick={toggleEditMode}
+                    className={`h-10 w-10 md:h-9 md:w-9 transition-colors ${
+                      isEditMode 
+                        ? "text-primary bg-primary/20 hover:bg-primary/30" 
+                        : "text-sidebar-foreground/70 hover:text-sidebar-foreground hover:bg-sidebar-accent"
+                    }`}
+                    title={isEditMode ? "Desativar modo edição" : "Ativar modo edição"}
+                  >
+                    {isEditMode ? <PencilOff className="h-5 w-5" /> : <Pencil className="h-5 w-5" />}
+                  </Button>
+                )}
                 <Button
                   variant="ghost"
                   size="icon"
