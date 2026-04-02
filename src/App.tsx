@@ -109,6 +109,7 @@ const App = () => (
               <LogoutTransitionGate />
               <PersistentSidebar>
                 <VisualizadorProvider>
+                <EditModeProvider>
                 <ErrorBoundary>
                   <Routes>
                     <Route path="/auth" element={<Auth />} />
