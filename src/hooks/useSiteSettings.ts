@@ -88,6 +88,8 @@ export function useSiteSettings() {
         instacena_gif_right_position: d.instacena_gif_right_position || { x: 1000, y: 80 },
         instacena_gif_right_size: d.instacena_gif_right_size || 200,
         instacena_gif_right_height: d.instacena_gif_right_height || null,
+        instacena_gif_opacity: d.instacena_gif_opacity ?? 1,
+        instacena_gif_right_opacity: d.instacena_gif_right_opacity ?? 1,
       };
     },
     staleTime: 1000 * 60 * 5,
