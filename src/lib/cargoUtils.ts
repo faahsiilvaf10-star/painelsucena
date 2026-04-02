@@ -1,6 +1,7 @@
 // Centralized cargo formatting utilities
 
 export const CARGO_LABELS: Record<string, string> = {
+  moderador: "Moderador",
   preposto: "Preposto",
   encarregado_geral: "Encarregado Geral",
   encarregado_i: "Encarregado I",
