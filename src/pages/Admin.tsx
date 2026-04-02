@@ -895,7 +895,7 @@ const Admin = () => {
                                     </SelectItem>
                                     <SelectItem value="moderator">
                                       <div className="flex items-center gap-2">
-                                        <ShieldHalf className="w-4 h-4 text-amber-500" />
+                                        <ModeratorBadge size="sm" />
                                         Moderador
                                       </div>
                                     </SelectItem>
