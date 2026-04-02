@@ -45,6 +45,8 @@ const DEFAULT_SETTINGS: Omit<SiteSettings, "id" | "updated_at" | "updated_by"> &
   instacena_gif_right_position: { x: 1000, y: 80 },
   instacena_gif_right_size: 200,
   instacena_gif_right_height: null,
+  instacena_gif_opacity: 1,
+  instacena_gif_right_opacity: 1,
   updated_at: new Date().toISOString(),
   updated_by: null,
 };
