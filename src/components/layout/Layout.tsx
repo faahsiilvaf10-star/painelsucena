@@ -100,7 +100,7 @@ const Layout = ({ children }: LayoutProps) => {
     <SidebarInset className="flex flex-col h-full overflow-hidden">
       {/* Header with notification bell and theme toggle */}
       <header className="flex h-9 md:h-10 shrink-0 items-center justify-between gap-2 md:gap-4 border-b bg-background px-3 md:px-4 relative">
-        <img src={easterPascoa} alt="" className="absolute left-1 top-1/2 -translate-y-1/2 h-9 md:h-11 w-auto pointer-events-none select-none opacity-80 dark:opacity-50" />
+        
         {/* Left side */}
         <div className="flex items-center gap-1.5 md:gap-2">
           {isDockTheme ? (
