@@ -316,8 +316,9 @@ const InstaCena = () => {
                     width: currentRightSize,
                     height: (localRightHeight ?? gifRightHeight) || "auto",
                     borderRadius: 0,
-                    objectFit: (localRightHeight ?? gifRightHeight) ? "cover" : "contain",
-                    touchAction: "none",
+                     objectFit: (localRightHeight ?? gifRightHeight) ? "cover" : "contain",
+                     opacity: localRightOpacity ?? gifRightOpacity,
+                     touchAction: "none",
                   }}
                 />
                 {isAdmin && (
