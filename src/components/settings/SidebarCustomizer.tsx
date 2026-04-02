@@ -94,6 +94,16 @@ export const SidebarCustomizer = ({
   const [selectedActiveFontColor, setSelectedActiveFontColor] = useState<string | null>(currentSidebarActiveFontColor || null);
   const [isSaving, setIsSaving] = useState(false);
 
+  // Keep selections in sync with loaded profile data
+  useEffect(() => {
+    setSelectedColor(currentSidebarColor || null);
+    setSelectedAnimation(currentSidebarAnimation || "particles");
+    setSelectedFont(currentSidebarFont || null);
+    setSelectedFontColor(currentSidebarFontColor || null);
+    setSelectedActiveColor(currentSidebarActiveColor || null);
+    setSelectedActiveFontColor(currentSidebarActiveFontColor || null);
+  }, [currentSidebarColor, currentSidebarAnimation, currentSidebarFont, currentSidebarFontColor, currentSidebarActiveColor, currentSidebarActiveFontColor]);
+
   const handleSave = async () => {
     setIsSaving(true);
     try {
