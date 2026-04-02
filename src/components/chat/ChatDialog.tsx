@@ -26,6 +26,7 @@ import { ptBR } from "date-fns/locale";
 import { cn } from "@/lib/utils";
 import { toast } from "sonner";
 import { VerifiedBadge } from "@/components/VerifiedBadge";
+import { ModeratorBadge } from "@/components/ModeratorBadge";
 import { formatCargoLabel } from "@/lib/cargoUtils";
 
 // Format last seen time in a user-friendly way
