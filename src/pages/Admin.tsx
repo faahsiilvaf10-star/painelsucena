@@ -12,7 +12,7 @@ import { useSiteSettings } from "@/hooks/useSiteSettings";
 import { supabase } from "@/integrations/supabase/client";
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import { toast } from "sonner";
-import { Shield, ShieldCheck, Trash2, UserPlus, Users, Image, Upload, UserCog, Megaphone, Pencil, LayoutList, Truck, RotateCcw, Key, Ribbon, Coins, UserCheck, Film } from "lucide-react";
+import { Shield, ShieldCheck, Trash2, UserPlus, Users, Image, Upload, UserCog, Megaphone, Pencil, LayoutList, Truck, RotateCcw, Key, Ribbon, Coins, UserCheck, Film, Eye } from "lucide-react";
 import { ModeratorBadge } from "@/components/ModeratorBadge";
 import { Switch } from "@/components/ui/switch";
 import { Label } from "@/components/ui/label";
@@ -814,6 +814,7 @@ const Admin = () => {
                         <SelectItem value="user">Usuário</SelectItem>
                         <SelectItem value="moderator">Moderador</SelectItem>
                         <SelectItem value="admin">Administrador</SelectItem>
+                        <SelectItem value="visualizador">Visualizador</SelectItem>
                       </SelectContent>
                     </Select>
                     <Button
@@ -905,11 +906,17 @@ const Admin = () => {
                                         Administrador
                                       </div>
                                     </SelectItem>
+                                    <SelectItem value="visualizador">
+                                      <div className="flex items-center gap-2">
+                                        <Eye className="w-4 h-4" />
+                                        Visualizador
+                                      </div>
+                                    </SelectItem>
                                   </SelectContent>
                                 </Select>
                               ) : (
-                                <Badge variant={u.role === "admin" ? "default" : u.role === "moderator" ? "secondary" : "outline"}>
-                                  {u.role === "admin" ? "Admin" : u.role === "moderator" ? "Moderador" : "Usuário"}
+                                <Badge variant={u.role === "admin" ? "default" : u.role === "moderator" ? "secondary" : u.role === "visualizador" ? "outline" : "outline"}>
+                                  {u.role === "admin" ? "Admin" : u.role === "moderator" ? "Moderador" : u.role === "visualizador" ? "Visualizador" : "Usuário"}
                                 </Badge>
                               )
                             ) : (

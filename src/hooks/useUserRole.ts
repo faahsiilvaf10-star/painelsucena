@@ -2,7 +2,7 @@ import { useEffect, useState } from "react";
 import { useQuery } from "@tanstack/react-query";
 import { supabase } from "@/integrations/supabase/client";
 
-export type AppRole = "admin" | "moderator" | "user";
+export type AppRole = "admin" | "moderator" | "user" | "visualizador";
 
 export const useUserRole = () => {
   // IMPORTANT:
@@ -66,6 +66,7 @@ export const useIsAdmin = () => {
     isAdmin: role === "admin" || role === "moderator",
     isStrictAdmin: role === "admin",
     isModerator: role === "moderator",
+    isVisualizador: role === "visualizador",
     role,
     // Avoid "false negatives" while auth/role is still being resolved.
     isLoading: !authReady || isLoading || isFetching,
