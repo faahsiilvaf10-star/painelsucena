@@ -1,5 +1,5 @@
 import { forwardRef } from "react";
-import adminCrown from "@/assets/admin-crown.png";
+import adminBadge from "@/assets/admin-badge.png";
 import { cn } from "@/lib/utils";
 
 interface VerifiedBadgeProps {
