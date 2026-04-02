@@ -800,6 +800,7 @@ const Admin = () => {
                       </SelectTrigger>
                       <SelectContent>
                         <SelectItem value="user">Usuário</SelectItem>
+                        <SelectItem value="moderator">Moderador</SelectItem>
                         <SelectItem value="admin">Administrador</SelectItem>
                       </SelectContent>
                     </Select>
