@@ -542,10 +542,10 @@ export function AppSidebar({ lockedCollapsed = false }: { lockedCollapsed?: bool
                     variant="ghost"
                     size="icon"
                     onClick={() => navigate("/admin")}
-                    className="h-10 w-10 md:h-9 md:w-9 text-amber-500 hover:text-amber-400 hover:bg-amber-500/20"
-                    title="Administração"
+                    className="h-10 w-10 md:h-9 md:w-9 hover:bg-amber-500/20"
+                    title={isModerator ? "Moderação" : "Administração"}
                   >
-                    <ShieldCheck className="h-5 w-5" />
+                    {isModerator ? <ModeratorBadge size="md" /> : <VerifiedBadge size="md" />}
                   </Button>
                 )}
                 {canEdit && (
