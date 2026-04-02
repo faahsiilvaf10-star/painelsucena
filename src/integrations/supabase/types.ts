@@ -2824,6 +2824,7 @@ export type Database = {
           id: string
           logo_url: string | null
           nav_order: Json | null
+          primary_color: string | null
           show_signup_button: boolean
           sidebar_color: string | null
           ui_theme: string
@@ -2834,6 +2835,7 @@ export type Database = {
           id?: string
           logo_url?: string | null
           nav_order?: Json | null
+          primary_color?: string | null
           show_signup_button?: boolean
           sidebar_color?: string | null
           ui_theme?: string
@@ -2844,6 +2846,7 @@ export type Database = {
           id?: string
           logo_url?: string | null
           nav_order?: Json | null
+          primary_color?: string | null
           show_signup_button?: boolean
           sidebar_color?: string | null
           ui_theme?: string
