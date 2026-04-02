@@ -9,6 +9,7 @@ export interface SiteSettings {
   show_signup_button: boolean;
   ui_theme: string;
   primary_color: string | null;
+  instacena_gif_position: { x: number; y: number } | null;
   updated_at: string;
   updated_by: string | null;
 }
