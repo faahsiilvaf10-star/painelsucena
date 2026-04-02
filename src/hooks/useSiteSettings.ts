@@ -122,6 +122,7 @@ export function useSiteSettings() {
       show_signup_button: false,
       ui_theme: "classic",
       primary_color: null,
+      instacena_gif_position: { x: 16, y: 80 },
       updated_at: new Date().toISOString(),
       updated_by: null,
     },
