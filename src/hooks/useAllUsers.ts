@@ -18,6 +18,7 @@ export type UserWithStatus = {
   isOnline: boolean;
   isCurrentUser: boolean;
   isAdmin: boolean;
+  isModerator: boolean;
   online_at?: string;
   lastSeen?: string;
   justCameOnline?: boolean;
