@@ -1,5 +1,6 @@
 import { Phone, Radio, PhoneCall, Heart, Flame, Leaf, Bug, MapPin, Info } from "lucide-react";
 import Layout from "@/components/layout/Layout";
+import { EditablePageTitle } from "@/components/cms/EditablePageTitle";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 
 const Emergencia = () => {

@@ -1,6 +1,7 @@
 import { useState, useMemo, useEffect, useCallback } from "react";
 import { Search, Users, Phone, Calendar, Hash, MapPin, Filter, X, ChevronDown, ChevronUp, ShieldCheck, AlertTriangle, CircleAlert, Pencil, Save, History, ArrowDownAZ, ArrowUpAZ } from "lucide-react";
 import Layout from "@/components/layout/Layout";
+import { EditablePageTitle } from "@/components/cms/EditablePageTitle";
 import { Input } from "@/components/ui/input";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";

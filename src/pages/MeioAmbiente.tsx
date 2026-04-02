@@ -3,6 +3,7 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@
 import { Input } from "@/components/ui/input";
 import { Button } from "@/components/ui/button";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
+import { EditablePageTitle } from "@/components/cms/EditablePageTitle";
 import { usePluviometriaYear } from "@/hooks/usePluviometria";
 import { CloudRain, Leaf, FileDown, Droplets, Trash2 } from "lucide-react";
 import AbastecimentoCaixaDagua from "@/components/meioambiente/AbastecimentoCaixaDagua";

@@ -1,6 +1,7 @@
 import { useState, useMemo } from "react";
 import { Calendar, CheckCircle2, XCircle, Loader2, Lock, Trash2, FileText } from "lucide-react";
 import Layout from "@/components/layout/Layout";
+import { EditablePageTitle } from "@/components/cms/EditablePageTitle";
 import { Button } from "@/components/ui/button";
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
