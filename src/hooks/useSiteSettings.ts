@@ -60,6 +60,7 @@ export function useSiteSettings() {
         ...data,
         nav_order: navOrder,
         ui_theme: (data as any).ui_theme || "classic",
+        primary_color: (data as any).primary_color || null,
       };
     },
     staleTime: 1000 * 60 * 5,
