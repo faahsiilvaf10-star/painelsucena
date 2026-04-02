@@ -814,6 +814,7 @@ const Admin = () => {
                         <SelectItem value="user">Usuário</SelectItem>
                         <SelectItem value="moderator">Moderador</SelectItem>
                         <SelectItem value="admin">Administrador</SelectItem>
+                        <SelectItem value="visualizador">Visualizador</SelectItem>
                       </SelectContent>
                     </Select>
                     <Button
