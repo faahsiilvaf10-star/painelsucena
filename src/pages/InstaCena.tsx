@@ -206,13 +206,14 @@ const InstaCena = () => {
                     "select-none",
                     isAdmin ? "cursor-grab active:cursor-grabbing" : "pointer-events-none"
                   )}
-                  style={{
-                    width: currentSize,
-                    height: (localHeight ?? gifHeight) || "auto",
-                    borderRadius: 0,
-                    objectFit: (localHeight ?? gifHeight) ? "cover" : "contain",
-                    touchAction: "none",
-                  }}
+                    style={{
+                      width: currentSize,
+                      height: (localHeight ?? gifHeight) || "auto",
+                      borderRadius: 0,
+                      objectFit: (localHeight ?? gifHeight) ? "cover" : "contain",
+                      opacity: localOpacity ?? gifOpacity,
+                      touchAction: "none",
+                    }}
                 />
                 {isAdmin && (
                   <button
