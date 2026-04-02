@@ -162,6 +162,7 @@ const App = () => (
                     <Route path="*" element={<NotFound />} />
                   </Routes>
                 </ErrorBoundary>
+                </EditModeProvider>
                 </VisualizadorProvider>
                 <PersistentFooter />
               </PersistentSidebar>
