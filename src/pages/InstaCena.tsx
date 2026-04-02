@@ -54,7 +54,7 @@ const InstaCena = () => {
           <img
             src={instaCenaEaster}
             alt=""
-            className="sticky top-3 w-full h-auto pointer-events-none"
+            className="sticky top-0 w-full h-auto pointer-events-none"
             style={{ borderRadius: 0, maxHeight: "calc(100vh - 24px)", objectFit: "contain" }}
           />
         </aside>
