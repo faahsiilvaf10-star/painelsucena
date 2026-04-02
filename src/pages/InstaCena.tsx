@@ -49,7 +49,13 @@ const InstaCena = () => {
 
   return (
     <Layout>
-      <div className="max-w-xl mx-auto px-3 sm:px-4 py-1 space-y-4 overflow-x-hidden">
+      <div className="relative max-w-xl mx-auto px-3 sm:px-4 py-1 space-y-4 overflow-x-hidden">
+        <img
+          src={instaCenaEaster}
+          alt=""
+          className="fixed left-2 bottom-24 w-28 h-auto z-10 pointer-events-none hidden lg:block"
+          style={{ borderRadius: 0 }}
+        />
         <div className="flex items-center justify-between gap-2 flex-wrap">
           <img src={instaCenaLogo} alt="InstaCena" className="h-32 object-contain" />
           <div className="flex items-center gap-2">
