@@ -31,6 +31,7 @@ const PERIODOS: Record<string, string> = {
 
 function PluviometriaSpreadsheet({ setor, ano }: { setor: string; ano: number }) {
   const { data: records, isLoading, upsert, remove } = usePluviometriaYear(setor, ano);
+  const { isEditMode } = useEditMode();
   const [editingCell, setEditingCell] = useState<{ mes: number; dia: number } | null>(null);
   const [editValue, setEditValue] = useState("");
   const spreadsheetRef = useRef<HTMLDivElement>(null);
