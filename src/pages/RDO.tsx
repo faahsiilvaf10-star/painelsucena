@@ -7,6 +7,7 @@ import { ptBR } from "date-fns/locale";
 import { Copy, FileText, Sun, Cloud, CloudRain, CloudSun, Save, History, Image, X, Loader2, Calendar, Trash2, Clock, Lock, Unlock, MessageCircle } from "lucide-react";
 import { toast } from "sonner";
 import Layout from "@/components/layout/Layout";
+import { EditablePageTitle } from "@/components/cms/EditablePageTitle";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Textarea } from "@/components/ui/textarea";
