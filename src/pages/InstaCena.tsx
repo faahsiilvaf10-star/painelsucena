@@ -49,13 +49,14 @@ const InstaCena = () => {
 
   return (
     <Layout>
-      <div className="relative max-w-xl mx-auto px-3 sm:px-4 py-1 space-y-4 overflow-x-hidden">
+      <div className="relative">
         <img
           src={instaCenaEaster}
           alt=""
-          className="fixed left-2 bottom-24 w-28 h-auto z-10 pointer-events-none hidden lg:block"
+          className="fixed left-4 bottom-20 w-32 h-auto z-10 pointer-events-none"
           style={{ borderRadius: 0 }}
         />
+        <div className="max-w-xl mx-auto px-3 sm:px-4 py-1 space-y-4 overflow-x-hidden">
         <div className="flex items-center justify-between gap-2 flex-wrap">
           <img src={instaCenaLogo} alt="InstaCena" className="h-32 object-contain" />
           <div className="flex items-center gap-2">
@@ -117,6 +118,7 @@ const InstaCena = () => {
             Nenhuma publicação encontrada. 🔍
           </p>
         )}
+        </div>
       </div>
     </Layout>
   );
