@@ -101,7 +101,7 @@ const InstaCena = () => {
   }, []);
 
   const onPointerDown = useCallback((e: React.PointerEvent) => {
-    if (!isAdmin) return;
+    if (!isEditMode) return;
 
     dragging.current = true;
     const rect = (e.target as HTMLElement).getBoundingClientRect();
