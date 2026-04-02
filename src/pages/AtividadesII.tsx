@@ -36,6 +36,8 @@ import { PhotoUploader } from "@/components/atividades/PhotoUploader";
 import { ReadOnlyBanner } from "@/components/ReadOnlyBanner";
 import { Alert, AlertDescription } from "@/components/ui/alert";
 import { AIImproveButton } from "@/components/atividades/AIImproveButton";
+import { EditablePageTitle } from "@/components/cms/EditablePageTitle";
+import { EditableIcon } from "@/components/cms/EditableIcon";
 
 
 const FAIXA_OPTIONS = [
