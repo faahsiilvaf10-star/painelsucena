@@ -191,6 +191,29 @@ const InstaCena = () => {
             }}
           />
         )}
+        {showRightGif && (
+          <img
+            src={gifRightUrl!}
+            alt=""
+            onPointerDown={onRightPointerDown}
+            onPointerMove={onRightPointerMove}
+            onPointerUp={onRightPointerUp}
+            onWheel={onRightWheel}
+            className={cn(
+              "fixed z-10 hidden lg:block select-none",
+              isAdmin ? "cursor-grab active:cursor-grabbing" : "pointer-events-none"
+            )}
+            style={{
+              left: currentRightPos.x,
+              top: currentRightPos.y,
+              width: currentRightSize,
+              height: gifRightHeight || "auto",
+              borderRadius: 0,
+              objectFit: gifRightHeight ? "cover" : "contain",
+              touchAction: "none",
+            }}
+          />
+        )}
         <div className="min-w-0 flex-1">
           <div className="max-w-xl mx-auto py-1 space-y-4 overflow-x-hidden">
           <div className="flex items-center justify-between gap-2 flex-wrap">
