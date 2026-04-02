@@ -8,6 +8,7 @@ import { type ActivityEntry } from "@/components/atividades/ExtraActivityEntries
 import { ExtraActivityEntries, AddMoreButton } from "@/components/atividades/ExtraActivityEntries";
 import { toast } from "sonner";
 import { useNavigate } from "react-router-dom";
+import { EditablePageTitle } from "@/components/cms/EditablePageTitle";
 import Layout from "@/components/layout/Layout";
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
