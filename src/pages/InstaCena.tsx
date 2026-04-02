@@ -135,7 +135,7 @@ const InstaCena = () => {
     offsetRight.current = { x: e.clientX - rect.left, y: e.clientY - rect.top };
     (e.target as HTMLElement).setPointerCapture(e.pointerId);
     e.preventDefault();
-  }, [isAdmin]);
+  }, [isEditMode]);
 
   const onRightPointerMove = useCallback((e: React.PointerEvent) => {
     if (!draggingRight.current) return;
@@ -192,7 +192,7 @@ const InstaCena = () => {
           <div className="sticky top-0 z-20 h-0 overflow-visible hidden lg:block">
             {showGif && (
               <div
-                className={cn("absolute w-max animate-gif-float", !isAdmin && "pointer-events-none")}
+                className={cn("absolute w-max animate-gif-float", !isEditMode && "pointer-events-none")}
                 style={{
                   left: currentPos.x,
                   top: currentPos.y,
@@ -206,7 +206,7 @@ const InstaCena = () => {
                   onPointerUp={onPointerUp}
                   className={cn(
                     "select-none",
-                    isAdmin ? "cursor-grab active:cursor-grabbing" : "pointer-events-none"
+                    isEditMode ? "cursor-grab active:cursor-grabbing" : "pointer-events-none"
                   )}
                     style={{
                       width: currentSize,
@@ -217,7 +217,7 @@ const InstaCena = () => {
                       touchAction: "none",
                     }}
                 />
-                {isAdmin && (
+                {isEditMode && (
                   <button
                     onClick={() => setShowLeftResize(!showLeftResize)}
                     className="absolute -bottom-3 -right-3 p-1 rounded-full bg-primary text-primary-foreground shadow-lg hover:scale-110 transition-transform"
@@ -226,7 +226,7 @@ const InstaCena = () => {
                     <Maximize2 className="h-3.5 w-3.5" />
                   </button>
                 )}
-                {isAdmin && showLeftResize && (
+                {isEditMode && showLeftResize && (
                   <div className="absolute top-full left-0 mt-2 bg-card border border-border rounded-lg shadow-xl p-3 space-y-2 min-w-[200px] z-50" onClick={(e) => e.stopPropagation()}>
                     <div className="text-xs font-medium">Largura: {localSize ?? gifSize}px</div>
                     <input
@@ -298,7 +298,7 @@ const InstaCena = () => {
 
             {showRightGif && (
               <div
-                className={cn("absolute w-max animate-gif-float", !isAdmin && "pointer-events-none")}
+                className={cn("absolute w-max animate-gif-float", !isEditMode && "pointer-events-none")}
                 style={{
                   left: currentRightPos.x,
                   top: currentRightPos.y,
@@ -312,7 +312,7 @@ const InstaCena = () => {
                   onPointerUp={onRightPointerUp}
                   className={cn(
                     "select-none",
-                    isAdmin ? "cursor-grab active:cursor-grabbing" : "pointer-events-none"
+                    isEditMode ? "cursor-grab active:cursor-grabbing" : "pointer-events-none"
                   )}
                   style={{
                     width: currentRightSize,
@@ -323,7 +323,7 @@ const InstaCena = () => {
                      touchAction: "none",
                   }}
                 />
-                {isAdmin && (
+                {isEditMode && (
                   <button
                     onClick={() => setShowRightResize(!showRightResize)}
                     className="absolute -bottom-3 -right-3 p-1 rounded-full bg-primary text-primary-foreground shadow-lg hover:scale-110 transition-transform"
@@ -332,7 +332,7 @@ const InstaCena = () => {
                     <Maximize2 className="h-3.5 w-3.5" />
                   </button>
                 )}
-                {isAdmin && showRightResize && (
+                {isEditMode && showRightResize && (
                   <div className="absolute top-full right-0 mt-2 bg-card border border-border rounded-lg shadow-xl p-3 space-y-2 min-w-[200px] z-50" onClick={(e) => e.stopPropagation()}>
                     <div className="text-xs font-medium">Largura: {localRightSize ?? gifRightSize}px</div>
                     <input
