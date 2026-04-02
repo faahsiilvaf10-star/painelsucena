@@ -31,7 +31,7 @@ const InstaCena = () => {
   const { isAdmin } = useIsAdmin();
   const { settings, updateSettings } = useSiteSettings();
 
-  // Draggable & resizable GIF state
+  // --- Left GIF state ---
   const gifPos = settings.instacena_gif_position || { x: 16, y: 80 };
   const gifSize = settings.instacena_gif_size || 200;
   const gifHeight = settings.instacena_gif_height;
@@ -42,11 +42,25 @@ const InstaCena = () => {
   const offset = useRef({ x: 0, y: 0 });
   const resizeTimer = useRef<ReturnType<typeof setTimeout>>();
 
+  // --- Right GIF state ---
+  const gifRightPos = settings.instacena_gif_right_position || { x: 1000, y: 80 };
+  const gifRightSize = settings.instacena_gif_right_size || 200;
+  const gifRightHeight = settings.instacena_gif_right_height;
+  const gifRightUrl = settings.instacena_gif_right_url;
+  const [dragRightPos, setDragRightPos] = useState<{ x: number; y: number } | null>(null);
+  const [localRightSize, setLocalRightSize] = useState<number | null>(null);
+  const draggingRight = useRef(false);
+  const offsetRight = useRef({ x: 0, y: 0 });
+  const resizeRightTimer = useRef<ReturnType<typeof setTimeout>>();
+
   useEffect(() => {
     setDragPos(null);
     setLocalSize(null);
-  }, [settings.instacena_gif_position, settings.instacena_gif_size]);
+    setDragRightPos(null);
+    setLocalRightSize(null);
+  }, [settings.instacena_gif_position, settings.instacena_gif_size, settings.instacena_gif_right_position, settings.instacena_gif_right_size]);
 
+  // Left GIF handlers
   const onPointerDown = useCallback((e: React.PointerEvent) => {
     if (!isAdmin) return;
     dragging.current = true;
@@ -58,10 +72,7 @@ const InstaCena = () => {
 
   const onPointerMove = useCallback((e: React.PointerEvent) => {
     if (!dragging.current) return;
-    setDragPos({
-      x: e.clientX - offset.current.x,
-      y: e.clientY - offset.current.y,
-    });
+    setDragPos({ x: e.clientX - offset.current.x, y: e.clientY - offset.current.y });
   }, []);
 
   const onPointerUp = useCallback(() => {
@@ -70,7 +81,7 @@ const InstaCena = () => {
     if (dragPos) {
       updateSettings.mutate(
         { instacena_gif_position: { x: Math.round(dragPos.x), y: Math.round(dragPos.y) } } as any,
-        { onSuccess: () => toast.success("Posição do GIF salva!") }
+        { onSuccess: () => toast.success("Posição do GIF esquerdo salva!") }
       );
     }
   }, [dragPos, updateSettings]);
@@ -83,16 +94,55 @@ const InstaCena = () => {
     setLocalSize(newSize);
     clearTimeout(resizeTimer.current);
     resizeTimer.current = setTimeout(() => {
-      updateSettings.mutate(
-        { instacena_gif_size: newSize } as any,
-        { onSuccess: () => toast.success("Tamanho do GIF salvo!") }
-      );
+      updateSettings.mutate({ instacena_gif_size: newSize } as any, { onSuccess: () => toast.success("Tamanho salvo!") });
     }, 600);
   }, [isAdmin, localSize, gifSize, updateSettings]);
+
+  // Right GIF handlers
+  const onRightPointerDown = useCallback((e: React.PointerEvent) => {
+    if (!isAdmin) return;
+    draggingRight.current = true;
+    const rect = (e.target as HTMLElement).getBoundingClientRect();
+    offsetRight.current = { x: e.clientX - rect.left, y: e.clientY - rect.top };
+    (e.target as HTMLElement).setPointerCapture(e.pointerId);
+    e.preventDefault();
+  }, [isAdmin]);
+
+  const onRightPointerMove = useCallback((e: React.PointerEvent) => {
+    if (!draggingRight.current) return;
+    setDragRightPos({ x: e.clientX - offsetRight.current.x, y: e.clientY - offsetRight.current.y });
+  }, []);
+
+  const onRightPointerUp = useCallback(() => {
+    if (!draggingRight.current) return;
+    draggingRight.current = false;
+    if (dragRightPos) {
+      updateSettings.mutate(
+        { instacena_gif_right_position: { x: Math.round(dragRightPos.x), y: Math.round(dragRightPos.y) } } as any,
+        { onSuccess: () => toast.success("Posição do GIF direito salva!") }
+      );
+    }
+  }, [dragRightPos, updateSettings]);
+
+  const onRightWheel = useCallback((e: React.WheelEvent) => {
+    if (!isAdmin) return;
+    e.preventDefault();
+    const current = localRightSize ?? gifRightSize;
+    const newSize = Math.max(80, Math.min(600, current + (e.deltaY < 0 ? 20 : -20)));
+    setLocalRightSize(newSize);
+    clearTimeout(resizeRightTimer.current);
+    resizeRightTimer.current = setTimeout(() => {
+      updateSettings.mutate({ instacena_gif_right_size: newSize } as any, { onSuccess: () => toast.success("Tamanho salvo!") });
+    }, 600);
+  }, [isAdmin, localRightSize, gifRightSize, updateSettings]);
 
   const currentPos = dragPos || gifPos;
   const currentSize = localSize ?? gifSize;
   const showGif = gifUrl !== "__removed__";
+
+  const currentRightPos = dragRightPos || gifRightPos;
+  const currentRightSize = localRightSize ?? gifRightSize;
+  const showRightGif = gifRightUrl && gifRightUrl !== "__removed__";
 
   const filteredPosts = posts?.filter((p) => {
     if (filter === "posts" && p.is_system_post) return false;
@@ -137,6 +187,29 @@ const InstaCena = () => {
               height: gifHeight || "auto",
               borderRadius: 0,
               objectFit: gifHeight ? "cover" : "contain",
+              touchAction: "none",
+            }}
+          />
+        )}
+        {showRightGif && (
+          <img
+            src={gifRightUrl!}
+            alt=""
+            onPointerDown={onRightPointerDown}
+            onPointerMove={onRightPointerMove}
+            onPointerUp={onRightPointerUp}
+            onWheel={onRightWheel}
+            className={cn(
+              "fixed z-10 hidden lg:block select-none",
+              isAdmin ? "cursor-grab active:cursor-grabbing" : "pointer-events-none"
+            )}
+            style={{
+              left: currentRightPos.x,
+              top: currentRightPos.y,
+              width: currentRightSize,
+              height: gifRightHeight || "auto",
+              borderRadius: 0,
+              objectFit: gifRightHeight ? "cover" : "contain",
               touchAction: "none",
             }}
           />

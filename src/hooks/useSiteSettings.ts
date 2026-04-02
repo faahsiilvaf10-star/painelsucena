@@ -13,17 +13,39 @@ export interface SiteSettings {
   instacena_gif_size: number;
   instacena_gif_height: number | null;
   instacena_gif_url: string | null;
+  instacena_gif_right_url: string | null;
+  instacena_gif_right_position: { x: number; y: number } | null;
+  instacena_gif_right_size: number;
+  instacena_gif_right_height: number | null;
   updated_at: string;
   updated_by: string | null;
 }
 
-const DEFAULT_NAV_ORDER = [
-  "atividades", "atividades-ii", "destaques", "campanhas", "dds", "documentos", "entrada-saida",
-  "estoque", "lembretes", "parte-diaria", "presenca", "matriz", "pedidos", "rdo", "relatorio",
-  "rh", "vistorias", "homologados", "vistoria-cintas", "arquivos-seguranca",
-  "consumo-abastecimento", "plano-manutencao", "slides", "instacena", "inspecao-canteiro",
-  "calendario-hydro", "games", "desvios", "planejamento", "emergencia"
-];
+const DEFAULT_SETTINGS: Omit<SiteSettings, "id" | "updated_at" | "updated_by"> & { id: string; updated_at: string; updated_by: null } = {
+  id: "",
+  logo_url: null,
+  sidebar_color: "#1e2235",
+  nav_order: [
+    "atividades", "atividades-ii", "destaques", "campanhas", "dds", "documentos", "entrada-saida",
+    "estoque", "lembretes", "parte-diaria", "presenca", "matriz", "pedidos", "rdo", "relatorio",
+    "rh", "vistorias", "homologados", "vistoria-cintas", "arquivos-seguranca",
+    "consumo-abastecimento", "plano-manutencao", "slides", "instacena", "inspecao-canteiro",
+    "calendario-hydro", "games", "desvios", "planejamento", "emergencia"
+  ],
+  show_signup_button: false,
+  ui_theme: "classic",
+  primary_color: null,
+  instacena_gif_position: { x: 16, y: 80 },
+  instacena_gif_size: 200,
+  instacena_gif_height: null,
+  instacena_gif_url: null,
+  instacena_gif_right_url: null,
+  instacena_gif_right_position: { x: 1000, y: 80 },
+  instacena_gif_right_size: 200,
+  instacena_gif_right_height: null,
+  updated_at: new Date().toISOString(),
+  updated_by: null,
+};
 
 export function useSiteSettings() {
   const queryClient = useQueryClient();
@@ -42,37 +64,26 @@ export function useSiteSettings() {
         throw error;
       }
 
-      if (!data) {
-        return {
-          id: "",
-          logo_url: null,
-          sidebar_color: "#1e2235",
-          nav_order: DEFAULT_NAV_ORDER,
-          show_signup_button: false,
-          ui_theme: "classic",
-          primary_color: null,
-          instacena_gif_position: { x: 16, y: 80 },
-          instacena_gif_size: 200,
-          instacena_gif_height: null,
-          instacena_gif_url: null,
-          updated_at: new Date().toISOString(),
-          updated_by: null,
-        };
-      }
+      if (!data) return { ...DEFAULT_SETTINGS };
 
       const navOrder = Array.isArray(data.nav_order) 
         ? (data.nav_order as unknown as string[]) 
-        : DEFAULT_NAV_ORDER;
+        : DEFAULT_SETTINGS.nav_order;
 
+      const d = data as any;
       return {
         ...data,
         nav_order: navOrder,
-        ui_theme: (data as any).ui_theme || "classic",
-        primary_color: (data as any).primary_color || null,
-        instacena_gif_position: (data as any).instacena_gif_position || { x: 16, y: 80 },
-        instacena_gif_size: (data as any).instacena_gif_size || 200,
-        instacena_gif_height: (data as any).instacena_gif_height || null,
-        instacena_gif_url: (data as any).instacena_gif_url || null,
+        ui_theme: d.ui_theme || "classic",
+        primary_color: d.primary_color || null,
+        instacena_gif_position: d.instacena_gif_position || { x: 16, y: 80 },
+        instacena_gif_size: d.instacena_gif_size || 200,
+        instacena_gif_height: d.instacena_gif_height || null,
+        instacena_gif_url: d.instacena_gif_url || null,
+        instacena_gif_right_url: d.instacena_gif_right_url || null,
+        instacena_gif_right_position: d.instacena_gif_right_position || { x: 1000, y: 80 },
+        instacena_gif_right_size: d.instacena_gif_right_size || 200,
+        instacena_gif_right_height: d.instacena_gif_right_height || null,
       };
     },
     staleTime: 1000 * 60 * 5,
@@ -80,7 +91,7 @@ export function useSiteSettings() {
   });
 
   const updateSettings = useMutation({
-    mutationFn: async (updates: Partial<Pick<SiteSettings, "logo_url" | "sidebar_color" | "nav_order" | "show_signup_button" | "ui_theme" | "primary_color" | "instacena_gif_position" | "instacena_gif_size" | "instacena_gif_height" | "instacena_gif_url">>) => {
+    mutationFn: async (updates: Partial<Omit<SiteSettings, "id" | "updated_at" | "updated_by">>) => {
       const { data: { user } } = await supabase.auth.getUser();
       
       if (!settings?.id) {
@@ -123,21 +134,7 @@ export function useSiteSettings() {
   };
 
   return {
-    settings: settings ?? {
-      id: "",
-      logo_url: null,
-      sidebar_color: "#1e2235",
-      nav_order: DEFAULT_NAV_ORDER,
-      show_signup_button: false,
-      ui_theme: "classic",
-      primary_color: null,
-      instacena_gif_position: { x: 16, y: 80 },
-      instacena_gif_size: 200,
-      instacena_gif_height: null,
-      instacena_gif_url: null,
-      updated_at: new Date().toISOString(),
-      updated_by: null,
-    },
+    settings: settings ?? { ...DEFAULT_SETTINGS },
     isLoading,
     error,
     updateSettings,

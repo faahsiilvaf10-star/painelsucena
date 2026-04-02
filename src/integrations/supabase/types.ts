@@ -2824,6 +2824,10 @@ export type Database = {
           id: string
           instacena_gif_height: number | null
           instacena_gif_position: Json | null
+          instacena_gif_right_height: number | null
+          instacena_gif_right_position: Json | null
+          instacena_gif_right_size: number | null
+          instacena_gif_right_url: string | null
           instacena_gif_size: number | null
           instacena_gif_url: string | null
           logo_url: string | null
@@ -2839,6 +2843,10 @@ export type Database = {
           id?: string
           instacena_gif_height?: number | null
           instacena_gif_position?: Json | null
+          instacena_gif_right_height?: number | null
+          instacena_gif_right_position?: Json | null
+          instacena_gif_right_size?: number | null
+          instacena_gif_right_url?: string | null
           instacena_gif_size?: number | null
           instacena_gif_url?: string | null
           logo_url?: string | null
@@ -2854,6 +2862,10 @@ export type Database = {
           id?: string
           instacena_gif_height?: number | null
           instacena_gif_position?: Json | null
+          instacena_gif_right_height?: number | null
+          instacena_gif_right_position?: Json | null
+          instacena_gif_right_size?: number | null
+          instacena_gif_right_url?: string | null
           instacena_gif_size?: number | null
           instacena_gif_url?: string | null
           logo_url?: string | null
