@@ -272,7 +272,7 @@ export const ChatPopup = ({ user: selectedUser, onClose, onExpand }: ChatPopupPr
         <div className="flex-1 min-w-0">
           <p className="text-white text-sm font-medium truncate flex items-center gap-1">
             {liveUser.full_name}
-            {liveUser.isAdmin && <VerifiedBadge size="xs" />}
+            {liveUser.isModerator ? <ModeratorBadge size="xs" /> : liveUser.isAdmin && <VerifiedBadge size="xs" />}
           </p>
           <p className="text-white/70 text-xs truncate">
             {isOtherTyping ? (
