@@ -56,6 +56,7 @@ const InstaCena = () => {
   const draggingRight = useRef(false);
   const offsetRight = useRef({ x: 0, y: 0 });
   const resizeRightTimer = useRef<ReturnType<typeof setTimeout>>();
+  const [scrollY, setScrollY] = useState(0);
 
   useEffect(() => {
     setDragPos(null);
@@ -63,6 +64,19 @@ const InstaCena = () => {
     setDragRightPos(null);
     setLocalRightSize(null);
   }, [settings.instacena_gif_position, settings.instacena_gif_size, settings.instacena_gif_right_position, settings.instacena_gif_right_size]);
+
+  // Smooth scroll follow - listen to the scrollable container
+  useEffect(() => {
+    const scrollContainer = document.querySelector("main") || document.querySelector("[data-radix-scroll-area-viewport]") || window;
+    const handleScroll = () => {
+      const st = scrollContainer === window 
+        ? window.scrollY 
+        : (scrollContainer as HTMLElement).scrollTop;
+      setScrollY(st);
+    };
+    scrollContainer.addEventListener("scroll", handleScroll, { passive: true });
+    return () => scrollContainer.removeEventListener("scroll", handleScroll);
+  }, []);
 
   // Left GIF handlers
   const onPointerDown = useCallback((e: React.PointerEvent) => {
@@ -154,8 +168,8 @@ const InstaCena = () => {
       <div className="relative">
         {showGif && (
           <div
-            className={cn("fixed z-10 hidden lg:block animate-gif-float", !isAdmin && "pointer-events-none")}
-            style={{ left: currentPos.x, top: currentPos.y }}
+            className={cn("fixed z-10 hidden lg:block", !isAdmin && "pointer-events-none")}
+            style={{ left: currentPos.x, top: currentPos.y, transform: `translateY(${scrollY * 0.15}px)`, transition: "transform 0.4s cubic-bezier(0.25, 0.46, 0.45, 0.94)" }}
           >
             <img
               src={gifUrl || instaCenaEaster}
@@ -206,8 +220,8 @@ const InstaCena = () => {
         )}
         {showRightGif && (
           <div
-            className={cn("fixed z-10 hidden lg:block animate-gif-float", !isAdmin && "pointer-events-none")}
-            style={{ left: currentRightPos.x, top: currentRightPos.y }}
+            className={cn("fixed z-10 hidden lg:block", !isAdmin && "pointer-events-none")}
+            style={{ left: currentRightPos.x, top: currentRightPos.y, transform: `translateY(${scrollY * 0.15}px)`, transition: "transform 0.4s cubic-bezier(0.25, 0.46, 0.45, 0.94)" }}
           >
             <img
               src={gifRightUrl!}
