@@ -736,7 +736,7 @@ const Admin = () => {
           </TabsContent>
           <TabsContent value="users" className="space-y-6">
             {/* Stats Cards */}
-            <div className="grid gap-4 md:grid-cols-3">
+            <div className="grid gap-4 md:grid-cols-4">
               <Card>
                 <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
                   <CardTitle className="text-sm font-medium">Total de Usuários</CardTitle>
@@ -754,6 +754,17 @@ const Admin = () => {
                 <CardContent>
                   <div className="text-2xl font-bold">
                     {users.filter((u) => u.role === "admin").length}
+                  </div>
+                </CardContent>
+              </Card>
+              <Card>
+                <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
+                  <CardTitle className="text-sm font-medium">Moderadores</CardTitle>
+                  <ShieldHalf className="h-4 w-4 text-amber-500" />
+                </CardHeader>
+                <CardContent>
+                  <div className="text-2xl font-bold">
+                    {users.filter((u) => u.role === "moderator").length}
                   </div>
                 </CardContent>
               </Card>
