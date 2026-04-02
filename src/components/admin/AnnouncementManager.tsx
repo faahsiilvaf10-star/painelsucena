@@ -8,6 +8,8 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
 import { Badge } from "@/components/ui/badge";
 import { Switch } from "@/components/ui/switch";
+import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover";
+import { ScrollArea } from "@/components/ui/scroll-area";
 import { useAnnouncements, Announcement } from "@/hooks/useAnnouncements";
 import { useQuery } from "@tanstack/react-query";
 import { supabase } from "@/integrations/supabase/client";
@@ -416,12 +418,44 @@ export function AnnouncementManager() {
                       )}
                     </TableCell>
                     <TableCell>
-                      <div className="flex items-center gap-1">
-                        <Eye className="w-4 h-4 text-muted-foreground" />
-                        <span>
-                          {getReadCount(announcement.id)} / {getTargetCount(announcement)}
-                        </span>
-                      </div>
+                      <Popover>
+                        <PopoverTrigger asChild>
+                          <Button variant="ghost" size="sm" className="gap-1 px-2">
+                            <Eye className="w-4 h-4 text-muted-foreground" />
+                            <span>
+                              {getReadCount(announcement.id)} / {getTargetCount(announcement)}
+                            </span>
+                          </Button>
+                        </PopoverTrigger>
+                        <PopoverContent className="w-64 p-3" align="start">
+                          <p className="text-sm font-medium mb-2">Visualizado por:</p>
+                          {(() => {
+                            const readers = allReads
+                              .filter((r) => r.announcement_id === announcement.id)
+                              .map((r) => {
+                                const profile = profiles.find((p) => p.user_id === r.user_id);
+                                return { name: profile?.full_name || "Usuário", read_at: r.read_at };
+                              });
+                            if (readers.length === 0) {
+                              return <p className="text-xs text-muted-foreground">Ninguém visualizou ainda.</p>;
+                            }
+                            return (
+                              <ScrollArea className="max-h-48">
+                                <div className="space-y-1.5">
+                                  {readers.map((reader, i) => (
+                                    <div key={i} className="flex items-center justify-between text-xs">
+                                      <span className="truncate mr-2">{reader.name}</span>
+                                      <span className="text-muted-foreground whitespace-nowrap">
+                                        {format(new Date(reader.read_at), "dd/MM HH:mm")}
+                                      </span>
+                                    </div>
+                                  ))}
+                                </div>
+                              </ScrollArea>
+                            );
+                          })()}
+                        </PopoverContent>
+                      </Popover>
                     </TableCell>
                     <TableCell className="text-right">
                       <Button
