@@ -2822,6 +2822,7 @@ export type Database = {
       site_settings: {
         Row: {
           id: string
+          instacena_gif_position: Json | null
           logo_url: string | null
           nav_order: Json | null
           primary_color: string | null
@@ -2833,6 +2834,7 @@ export type Database = {
         }
         Insert: {
           id?: string
+          instacena_gif_position?: Json | null
           logo_url?: string | null
           nav_order?: Json | null
           primary_color?: string | null
@@ -2844,6 +2846,7 @@ export type Database = {
         }
         Update: {
           id?: string
+          instacena_gif_position?: Json | null
           logo_url?: string | null
           nav_order?: Json | null
           primary_color?: string | null
