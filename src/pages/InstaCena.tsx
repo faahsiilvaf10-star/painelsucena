@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { useState, useRef, useCallback, useEffect } from "react";
 import { format } from "date-fns";
 import { ptBR } from "date-fns/locale";
 import { CalendarIcon, X, Loader2 } from "lucide-react";
@@ -14,6 +14,9 @@ import { Calendar } from "@/components/ui/calendar";
 import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { cn } from "@/lib/utils";
+import { useIsAdmin } from "@/hooks/useUserRole";
+import { useSiteSettings } from "@/hooks/useSiteSettings";
+import { toast } from "sonner";
 
 const MONTHS = [
   "Janeiro", "Fevereiro", "Março", "Abril", "Maio", "Junho",
@@ -25,6 +28,48 @@ const InstaCena = () => {
   const [filter, setFilter] = useState<"posts" | "logs">("posts");
   const [selectedDate, setSelectedDate] = useState<Date | undefined>();
   const [selectedMonth, setSelectedMonth] = useState<string>("all");
+  const { data: isAdmin } = useIsAdmin();
+  const { settings, updateSettings } = useSiteSettings();
+
+  // Draggable GIF state
+  const gifPos = settings.instacena_gif_position || { x: 16, y: 80 };
+  const [dragPos, setDragPos] = useState<{ x: number; y: number } | null>(null);
+  const dragging = useRef(false);
+  const offset = useRef({ x: 0, y: 0 });
+
+  useEffect(() => {
+    setDragPos(null);
+  }, [settings.instacena_gif_position]);
+
+  const onPointerDown = useCallback((e: React.PointerEvent) => {
+    if (!isAdmin) return;
+    dragging.current = true;
+    const rect = (e.target as HTMLElement).getBoundingClientRect();
+    offset.current = { x: e.clientX - rect.left, y: e.clientY - rect.top };
+    (e.target as HTMLElement).setPointerCapture(e.pointerId);
+    e.preventDefault();
+  }, [isAdmin]);
+
+  const onPointerMove = useCallback((e: React.PointerEvent) => {
+    if (!dragging.current) return;
+    setDragPos({
+      x: e.clientX - offset.current.x,
+      y: e.clientY - offset.current.y,
+    });
+  }, []);
+
+  const onPointerUp = useCallback(() => {
+    if (!dragging.current) return;
+    dragging.current = false;
+    if (dragPos) {
+      updateSettings.mutate(
+        { instacena_gif_position: { x: Math.round(dragPos.x), y: Math.round(dragPos.y) } } as any,
+        { onSuccess: () => toast.success("Posição do GIF salva!") }
+      );
+    }
+  }, [dragPos, updateSettings]);
+
+  const currentPos = dragPos || gifPos;
 
   const filteredPosts = posts?.filter((p) => {
     if (filter === "posts" && p.is_system_post) return false;
@@ -53,8 +98,21 @@ const InstaCena = () => {
         <img
           src={instaCenaEaster}
           alt=""
-          className="fixed left-[270px] top-16 w-[200px] h-auto z-10 pointer-events-none hidden lg:block"
-          style={{ borderRadius: 0, maxHeight: "calc(100vh - 80px)", objectFit: "contain" }}
+          onPointerDown={onPointerDown}
+          onPointerMove={onPointerMove}
+          onPointerUp={onPointerUp}
+          className={cn(
+            "fixed w-[200px] h-auto z-10 hidden lg:block",
+            isAdmin ? "cursor-grab active:cursor-grabbing" : "pointer-events-none"
+          )}
+          style={{
+            left: currentPos.x,
+            top: currentPos.y,
+            borderRadius: 0,
+            maxHeight: "calc(100vh - 80px)",
+            objectFit: "contain",
+            touchAction: "none",
+          }}
         />
         <div className="min-w-0 flex-1">
           <div className="max-w-xl mx-auto py-1 space-y-4 overflow-x-hidden">
