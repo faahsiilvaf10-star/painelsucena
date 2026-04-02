@@ -29,7 +29,7 @@ const InstaCena = () => {
   const [filter, setFilter] = useState<"posts" | "logs">("posts");
   const [selectedDate, setSelectedDate] = useState<Date | undefined>();
   const [selectedMonth, setSelectedMonth] = useState<string>("all");
-  const { isAdmin } = useIsAdmin();
+  const { isEditMode, canEdit } = useEditMode();
   const { isEditMode } = useEditMode();
   const { settings, updateSettings } = useSiteSettings();
   const mainRef = useRef<HTMLElement | null>(null);
