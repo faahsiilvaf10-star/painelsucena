@@ -511,6 +511,7 @@ export function AppSidebar({ lockedCollapsed = false }: { lockedCollapsed?: bool
                           isCollapsed={isCollapsed}
                           showGrip={isAdmin}
                           onNavigate={handleMobileClose}
+                          editMode={isEditMode}
                         />
                       );
                     })}
