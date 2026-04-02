@@ -63,7 +63,10 @@ export const useUserRole = () => {
 export const useIsAdmin = () => {
   const { data: role, isLoading, isFetching, authReady } = useUserRole();
   return {
-    isAdmin: role === "admin",
+    isAdmin: role === "admin" || role === "moderator",
+    isStrictAdmin: role === "admin",
+    isModerator: role === "moderator",
+    role,
     // Avoid "false negatives" while auth/role is still being resolved.
     isLoading: !authReady || isLoading || isFetching,
     authReady,
