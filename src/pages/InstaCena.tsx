@@ -406,7 +406,15 @@ const InstaCena = () => {
         <div className="min-w-0 flex-1">
           <div className="max-w-xl mx-auto py-1 space-y-4 overflow-x-hidden">
             <div className="flex items-center justify-between gap-2 flex-wrap">
-              <img src={instaCenaLogo} alt="InstaCena" className="h-32 object-contain" />
+              <EditableImage
+                pageKey="instacena"
+                elementKey="page-logo"
+                defaultSrc={instaCenaLogo}
+                alt="InstaCena"
+                className="h-32"
+                imgClassName="h-32 object-contain"
+                canEdit={isEditMode}
+              />
               <div className="flex items-center gap-2">
                 <Tabs value={filter} onValueChange={(v) => setFilter(v as typeof filter)}>
                   <TabsList className="h-8">
