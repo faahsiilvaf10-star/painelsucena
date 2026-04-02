@@ -34,6 +34,7 @@ const InstaCena = () => {
   // Draggable & resizable GIF state
   const gifPos = settings.instacena_gif_position || { x: 16, y: 80 };
   const gifSize = settings.instacena_gif_size || 200;
+  const gifHeight = settings.instacena_gif_height;
   const gifUrl = settings.instacena_gif_url;
   const [dragPos, setDragPos] = useState<{ x: number; y: number } | null>(null);
   const [localSize, setLocalSize] = useState<number | null>(null);
@@ -126,16 +127,16 @@ const InstaCena = () => {
             onPointerUp={onPointerUp}
             onWheel={onWheel}
             className={cn(
-              "fixed h-auto z-10 hidden lg:block select-none",
+              "fixed z-10 hidden lg:block select-none",
               isAdmin ? "cursor-grab active:cursor-grabbing" : "pointer-events-none"
             )}
             style={{
               left: currentPos.x,
               top: currentPos.y,
               width: currentSize,
+              height: gifHeight || "auto",
               borderRadius: 0,
-              maxHeight: "calc(100vh - 80px)",
-              objectFit: "contain",
+              objectFit: gifHeight ? "cover" : "contain",
               touchAction: "none",
             }}
           />

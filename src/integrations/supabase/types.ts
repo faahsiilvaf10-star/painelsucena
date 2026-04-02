@@ -2822,6 +2822,7 @@ export type Database = {
       site_settings: {
         Row: {
           id: string
+          instacena_gif_height: number | null
           instacena_gif_position: Json | null
           instacena_gif_size: number | null
           instacena_gif_url: string | null
@@ -2836,6 +2837,7 @@ export type Database = {
         }
         Insert: {
           id?: string
+          instacena_gif_height?: number | null
           instacena_gif_position?: Json | null
           instacena_gif_size?: number | null
           instacena_gif_url?: string | null
@@ -2850,6 +2852,7 @@ export type Database = {
         }
         Update: {
           id?: string
+          instacena_gif_height?: number | null
           instacena_gif_position?: Json | null
           instacena_gif_size?: number | null
           instacena_gif_url?: string | null

@@ -550,24 +550,52 @@ const Admin = () => {
                   </div>
                 </div>
 
-                {/* Size slider */}
-                <div className="space-y-2">
-                  <Label>Tamanho do GIF: {settings.instacena_gif_size || 200}px</Label>
-                  <div className="flex items-center gap-3">
-                    <span className="text-xs text-muted-foreground">80</span>
-                    <input
-                      type="range"
-                      min={80}
-                      max={600}
-                      step={10}
-                      value={settings.instacena_gif_size || 200}
-                      onChange={(e) => {
-                        const val = parseInt(e.target.value);
-                        updateSettings.mutate({ instacena_gif_size: val } as any);
-                      }}
-                      className="flex-1"
-                    />
-                    <span className="text-xs text-muted-foreground">600</span>
+                {/* Width & Height sliders */}
+                <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+                  <div className="space-y-2">
+                    <Label>Largura: {settings.instacena_gif_size || 200}px</Label>
+                    <div className="flex items-center gap-3">
+                      <span className="text-xs text-muted-foreground">80</span>
+                      <input
+                        type="range"
+                        min={80}
+                        max={600}
+                        step={10}
+                        value={settings.instacena_gif_size || 200}
+                        onChange={(e) => {
+                          const val = parseInt(e.target.value);
+                          updateSettings.mutate(
+                            { instacena_gif_size: val } as any,
+                            { onSuccess: () => toast.success("Largura salva!") }
+                          );
+                        }}
+                        className="flex-1 accent-primary"
+                      />
+                      <span className="text-xs text-muted-foreground">600</span>
+                    </div>
+                  </div>
+                  <div className="space-y-2">
+                    <Label>Altura: {settings.instacena_gif_height || "Auto"}px</Label>
+                    <div className="flex items-center gap-3">
+                      <span className="text-xs text-muted-foreground">Auto</span>
+                      <input
+                        type="range"
+                        min={0}
+                        max={800}
+                        step={10}
+                        value={settings.instacena_gif_height || 0}
+                        onChange={(e) => {
+                          const val = parseInt(e.target.value);
+                          updateSettings.mutate(
+                            { instacena_gif_height: val === 0 ? null : val } as any,
+                            { onSuccess: () => toast.success(val === 0 ? "Altura automática!" : "Altura salva!") }
+                          );
+                        }}
+                        className="flex-1 accent-primary"
+                      />
+                      <span className="text-xs text-muted-foreground">800</span>
+                    </div>
+                    <p className="text-xs text-muted-foreground">0 = automático (proporcional à largura)</p>
                   </div>
                 </div>
               </CardContent>
