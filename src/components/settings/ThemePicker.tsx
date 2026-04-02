@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { useQueryClient } from "@tanstack/react-query";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
@@ -36,6 +36,11 @@ export const ThemePicker = ({ userId, currentTheme }: ThemePickerProps) => {
   const globalTheme = (settings as any)?.ui_theme || "classic";
   const [selected, setSelected] = useState(globalTheme);
   const [isSaving, setIsSaving] = useState(false);
+
+  // Keep selection in sync with loaded global settings
+  useEffect(() => {
+    setSelected(globalTheme);
+  }, [globalTheme]);
 
   const handleSave = async () => {
     setIsSaving(true);

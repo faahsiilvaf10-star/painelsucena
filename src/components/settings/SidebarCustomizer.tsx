@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { useQueryClient } from "@tanstack/react-query";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
@@ -93,6 +93,16 @@ export const SidebarCustomizer = ({
   const [selectedActiveColor, setSelectedActiveColor] = useState<string | null>(currentSidebarActiveColor || null);
   const [selectedActiveFontColor, setSelectedActiveFontColor] = useState<string | null>(currentSidebarActiveFontColor || null);
   const [isSaving, setIsSaving] = useState(false);
+
+  // Keep selections in sync with loaded profile data
+  useEffect(() => {
+    setSelectedColor(currentSidebarColor || null);
+    setSelectedAnimation(currentSidebarAnimation || "particles");
+    setSelectedFont(currentSidebarFont || null);
+    setSelectedFontColor(currentSidebarFontColor || null);
+    setSelectedActiveColor(currentSidebarActiveColor || null);
+    setSelectedActiveFontColor(currentSidebarActiveFontColor || null);
+  }, [currentSidebarColor, currentSidebarAnimation, currentSidebarFont, currentSidebarFontColor, currentSidebarActiveColor, currentSidebarActiveFontColor]);
 
   const handleSave = async () => {
     setIsSaving(true);
