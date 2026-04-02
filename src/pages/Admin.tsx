@@ -57,6 +57,8 @@ const Admin = () => {
   const [isUploadingLogo, setIsUploadingLogo] = useState(false);
   const [isResendingCampaign, setIsResendingCampaign] = useState(false);
   const [isUploadingGif, setIsUploadingGif] = useState(false);
+  const [localGifWidth, setLocalGifWidth] = useState<number | null>(null);
+  const [localGifHeight, setLocalGifHeight] = useState<number | null>(null);
   const fileInputRef = useRef<HTMLInputElement>(null);
   const gifInputRef = useRef<HTMLInputElement>(null);
 
