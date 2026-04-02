@@ -90,17 +90,6 @@ const InstaCena = () => {
     }
   }, [dragPos, updateSettings]);
 
-  const onWheel = useCallback((e: React.WheelEvent) => {
-    if (!isAdmin) return;
-    e.preventDefault();
-    const current = localSize ?? gifSize;
-    const newSize = Math.max(80, Math.min(600, current + (e.deltaY < 0 ? 20 : -20)));
-    setLocalSize(newSize);
-    clearTimeout(resizeTimer.current);
-    resizeTimer.current = setTimeout(() => {
-      updateSettings.mutate({ instacena_gif_size: newSize } as any, { onSuccess: () => toast.success("Tamanho salvo!") });
-    }, 600);
-  }, [isAdmin, localSize, gifSize, updateSettings]);
 
   // Right GIF handlers
   const onRightPointerDown = useCallback((e: React.PointerEvent) => {
