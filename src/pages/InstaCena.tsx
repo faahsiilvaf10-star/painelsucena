@@ -37,9 +37,11 @@ const InstaCena = () => {
   const gifSize = settings.instacena_gif_size || 200;
   const gifHeight = settings.instacena_gif_height;
   const gifUrl = settings.instacena_gif_url;
+  const gifOpacity = settings.instacena_gif_opacity ?? 1;
   const [dragPos, setDragPos] = useState<{ x: number; y: number } | null>(null);
   const [localSize, setLocalSize] = useState<number | null>(null);
   const [localHeight, setLocalHeight] = useState<number | null>(null);
+  const [localOpacity, setLocalOpacity] = useState<number | null>(null);
   const [showLeftResize, setShowLeftResize] = useState(false);
   const dragging = useRef(false);
   const offset = useRef({ x: 0, y: 0 });
@@ -49,9 +51,11 @@ const InstaCena = () => {
   const gifRightSize = settings.instacena_gif_right_size || 200;
   const gifRightHeight = settings.instacena_gif_right_height;
   const gifRightUrl = settings.instacena_gif_right_url;
+  const gifRightOpacity = settings.instacena_gif_right_opacity ?? 1;
   const [dragRightPos, setDragRightPos] = useState<{ x: number; y: number } | null>(null);
   const [localRightSize, setLocalRightSize] = useState<number | null>(null);
   const [localRightHeight, setLocalRightHeight] = useState<number | null>(null);
+  const [localRightOpacity, setLocalRightOpacity] = useState<number | null>(null);
   const [showRightResize, setShowRightResize] = useState(false);
   const draggingRight = useRef(false);
   const offsetRight = useRef({ x: 0, y: 0 });
