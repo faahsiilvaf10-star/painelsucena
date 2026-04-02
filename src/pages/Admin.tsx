@@ -906,6 +906,12 @@ const Admin = () => {
                                         Administrador
                                       </div>
                                     </SelectItem>
+                                    <SelectItem value="visualizador">
+                                      <div className="flex items-center gap-2">
+                                        <Eye className="w-4 h-4" />
+                                        Visualizador
+                                      </div>
+                                    </SelectItem>
                                   </SelectContent>
                                 </Select>
                               ) : (
