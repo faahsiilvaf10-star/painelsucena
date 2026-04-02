@@ -110,12 +110,14 @@ function SortableNavItem({
   isCollapsed,
   showGrip,
   onNavigate,
+  editMode,
 }: {
   item: NavItem;
   isActive: boolean;
   isCollapsed: boolean;
   showGrip: boolean;
   onNavigate?: () => void;
+  editMode?: boolean;
 }) {
   const {
     attributes,
@@ -157,11 +159,24 @@ function SortableNavItem({
               item.isEmergency ? "text-red-500 animate-pulse" : ""
             }`}
           />
-          <span
-            className={`font-medium text-sm md:text-base truncate ${item.isEmergency ? "text-red-500" : ""}`}
-          >
-            {item.label}
-          </span>
+          {editMode ? (
+            <span onClick={(e) => e.preventDefault()}>
+              <EditableText
+                pageKey="sidebar"
+                elementKey={`nav-${item.id}`}
+                defaultValue={item.label}
+                className={`font-medium text-sm md:text-base truncate ${item.isEmergency ? "text-red-500" : ""}`}
+                as="span"
+                canEdit={true}
+              />
+            </span>
+          ) : (
+            <span
+              className={`font-medium text-sm md:text-base truncate ${item.isEmergency ? "text-red-500" : ""}`}
+            >
+              {item.label}
+            </span>
+          )}
         </Link>
       </SidebarMenuButton>
     </SidebarMenuItem>
