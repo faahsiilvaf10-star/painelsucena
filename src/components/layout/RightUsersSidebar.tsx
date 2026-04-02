@@ -130,7 +130,7 @@ const UserRow = ({ user, isTyping, onClick }: { user: UserWithStatus; isTyping: 
               <span className="text-xs font-medium truncate text-foreground">
                 {user.full_name.split(" ")[0]}
               </span>
-              {user.isAdmin && <VerifiedBadge size="xs" />}
+              {user.isModerator ? <ModeratorBadge size="xs" /> : user.isAdmin && <VerifiedBadge size="xs" />}
             </div>
             {isTyping ? (
               <span className="text-[10px] text-green-500 italic">digitando...</span>
