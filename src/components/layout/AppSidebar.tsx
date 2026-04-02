@@ -52,6 +52,8 @@ import sidebarArrowRight from "@/assets/sidebar-arrow-right.png";
 import sidebarCollapsedLogo from "@/assets/sidebar-collapsed-logo.png";
 import { useEditMode } from "@/contexts/EditModeContext";
 import { EditableText } from "@/components/cms/EditableText";
+import { VerifiedBadge } from "@/components/VerifiedBadge";
+import { ModeratorBadge } from "@/components/ModeratorBadge";
 
 interface NavItem {
   id: string;
@@ -177,7 +179,7 @@ export function AppSidebar({ lockedCollapsed = false }: { lockedCollapsed?: bool
   const location = useLocation();
   const navigate = useNavigate();
   const { user, signOut } = useAuth();
-  const { isAdmin } = useIsAdmin();
+  const { isAdmin, isModerator } = useIsAdmin();
   const { isEditMode, toggleEditMode, canEdit } = useEditMode();
   const { state, toggleSidebar, setOpen, isMobile: sidebarIsMobile } = useSidebar();
   const { settings, updateSettings } = useSiteSettings();
@@ -542,10 +544,10 @@ export function AppSidebar({ lockedCollapsed = false }: { lockedCollapsed?: bool
                     variant="ghost"
                     size="icon"
                     onClick={() => navigate("/admin")}
-                    className="h-10 w-10 md:h-9 md:w-9 text-amber-500 hover:text-amber-400 hover:bg-amber-500/20"
-                    title="Administração"
+                    className="h-10 w-10 md:h-9 md:w-9 hover:bg-amber-500/20"
+                    title={isModerator ? "Moderação" : "Administração"}
                   >
-                    <ShieldCheck className="h-5 w-5" />
+                    {isModerator ? <ModeratorBadge size="md" /> : <VerifiedBadge size="md" />}
                   </Button>
                 )}
                 {canEdit && (
