@@ -867,7 +867,7 @@ export default function InspecaoCanteiro() {
             <ClipboardCheck className="h-6 w-6 text-primary" />
           </div>
           <div>
-            <h1 className="text-xl md:text-2xl font-bold text-foreground">Inspeção de Canteiro</h1>
+            <EditablePageTitle pageKey="inspecao-canteiro" defaultValue="Inspeção de Canteiro" className="text-xl md:text-2xl font-bold text-foreground" />
             <p className="text-sm text-muted-foreground">Registre e acompanhe os pontos de melhoria</p>
           </div>
         </div>
