@@ -1,7 +1,7 @@
 import { useState, useRef, useCallback, useEffect } from "react";
 import { format } from "date-fns";
 import { ptBR } from "date-fns/locale";
-import { CalendarIcon, X, Loader2 } from "lucide-react";
+import { CalendarIcon, X, Loader2, Maximize2 } from "lucide-react";
 import instaCenaLogo from "@/assets/instacena-logo.png";
 import instaCenaEaster from "@/assets/instacena-easter.gif";
 import Layout from "@/components/layout/Layout";
@@ -38,6 +38,8 @@ const InstaCena = () => {
   const gifUrl = settings.instacena_gif_url;
   const [dragPos, setDragPos] = useState<{ x: number; y: number } | null>(null);
   const [localSize, setLocalSize] = useState<number | null>(null);
+  const [localHeight, setLocalHeight] = useState<number | null>(null);
+  const [showLeftResize, setShowLeftResize] = useState(false);
   const dragging = useRef(false);
   const offset = useRef({ x: 0, y: 0 });
   const resizeTimer = useRef<ReturnType<typeof setTimeout>>();
@@ -49,6 +51,8 @@ const InstaCena = () => {
   const gifRightUrl = settings.instacena_gif_right_url;
   const [dragRightPos, setDragRightPos] = useState<{ x: number; y: number } | null>(null);
   const [localRightSize, setLocalRightSize] = useState<number | null>(null);
+  const [localRightHeight, setLocalRightHeight] = useState<number | null>(null);
+  const [showRightResize, setShowRightResize] = useState(false);
   const draggingRight = useRef(false);
   const offsetRight = useRef({ x: 0, y: 0 });
   const resizeRightTimer = useRef<ReturnType<typeof setTimeout>>();
@@ -169,50 +173,108 @@ const InstaCena = () => {
     <Layout>
       <div className="relative">
         {showGif && (
-          <img
-            src={gifUrl || instaCenaEaster}
-            alt=""
-            onPointerDown={onPointerDown}
-            onPointerMove={onPointerMove}
-            onPointerUp={onPointerUp}
-            onWheel={onWheel}
-            className={cn(
-              "fixed z-10 hidden lg:block select-none",
-              isAdmin ? "cursor-grab active:cursor-grabbing" : "pointer-events-none"
+          <div
+            className="fixed z-10 hidden lg:block"
+            style={{ left: currentPos.x, top: currentPos.y }}
+          >
+            <img
+              src={gifUrl || instaCenaEaster}
+              alt=""
+              onPointerDown={onPointerDown}
+              onPointerMove={onPointerMove}
+              onPointerUp={onPointerUp}
+              onWheel={onWheel}
+              className={cn(
+                "select-none",
+                isAdmin ? "cursor-grab active:cursor-grabbing" : "pointer-events-none"
+              )}
+              style={{
+                width: currentSize,
+                height: (localHeight ?? gifHeight) || "auto",
+                borderRadius: 0,
+                objectFit: (localHeight ?? gifHeight) ? "cover" : "contain",
+                touchAction: "none",
+              }}
+            />
+            {isAdmin && (
+              <button
+                onClick={() => setShowLeftResize(!showLeftResize)}
+                className="absolute -bottom-3 -right-3 p-1 rounded-full bg-primary text-primary-foreground shadow-lg hover:scale-110 transition-transform"
+                title="Redimensionar"
+              >
+                <Maximize2 className="h-3.5 w-3.5" />
+              </button>
             )}
-            style={{
-              left: currentPos.x,
-              top: currentPos.y,
-              width: currentSize,
-              height: gifHeight || "auto",
-              borderRadius: 0,
-              objectFit: gifHeight ? "cover" : "contain",
-              touchAction: "none",
-            }}
-          />
+            {isAdmin && showLeftResize && (
+              <div className="absolute top-full left-0 mt-2 bg-card border border-border rounded-lg shadow-xl p-3 space-y-2 min-w-[200px] z-50" onClick={(e) => e.stopPropagation()}>
+                <div className="text-xs font-medium">Largura: {localSize ?? gifSize}px</div>
+                <input type="range" min={80} max={600} step={10} value={localSize ?? gifSize}
+                  onChange={(e) => setLocalSize(parseInt(e.target.value))}
+                  onMouseUp={() => { if (localSize !== null) updateSettings.mutate({ instacena_gif_size: localSize } as any, { onSuccess: () => toast.success("Largura salva!") }); }}
+                  onTouchEnd={() => { if (localSize !== null) updateSettings.mutate({ instacena_gif_size: localSize } as any, { onSuccess: () => toast.success("Largura salva!") }); }}
+                  className="w-full accent-primary" />
+                <div className="text-xs font-medium">Altura: {(localHeight ?? gifHeight) || "Auto"}{(localHeight ?? gifHeight) ? "px" : ""}</div>
+                <input type="range" min={0} max={800} step={10} value={localHeight ?? gifHeight ?? 0}
+                  onChange={(e) => setLocalHeight(parseInt(e.target.value))}
+                  onMouseUp={() => { if (localHeight !== null) { const v = localHeight; updateSettings.mutate({ instacena_gif_height: v === 0 ? null : v } as any, { onSuccess: () => toast.success("Altura salva!") }); } }}
+                  onTouchEnd={() => { if (localHeight !== null) { const v = localHeight; updateSettings.mutate({ instacena_gif_height: v === 0 ? null : v } as any, { onSuccess: () => toast.success("Altura salva!") }); } }}
+                  className="w-full accent-primary" />
+                <p className="text-[10px] text-muted-foreground">0 = automático (proporcional)</p>
+              </div>
+            )}
+          </div>
         )}
         {showRightGif && (
-          <img
-            src={gifRightUrl!}
-            alt=""
-            onPointerDown={onRightPointerDown}
-            onPointerMove={onRightPointerMove}
-            onPointerUp={onRightPointerUp}
-            onWheel={onRightWheel}
-            className={cn(
-              "fixed z-10 hidden lg:block select-none",
-              isAdmin ? "cursor-grab active:cursor-grabbing" : "pointer-events-none"
+          <div
+            className="fixed z-10 hidden lg:block"
+            style={{ left: currentRightPos.x, top: currentRightPos.y }}
+          >
+            <img
+              src={gifRightUrl!}
+              alt=""
+              onPointerDown={onRightPointerDown}
+              onPointerMove={onRightPointerMove}
+              onPointerUp={onRightPointerUp}
+              onWheel={onRightWheel}
+              className={cn(
+                "select-none",
+                isAdmin ? "cursor-grab active:cursor-grabbing" : "pointer-events-none"
+              )}
+              style={{
+                width: currentRightSize,
+                height: (localRightHeight ?? gifRightHeight) || "auto",
+                borderRadius: 0,
+                objectFit: (localRightHeight ?? gifRightHeight) ? "cover" : "contain",
+                touchAction: "none",
+              }}
+            />
+            {isAdmin && (
+              <button
+                onClick={() => setShowRightResize(!showRightResize)}
+                className="absolute -bottom-3 -right-3 p-1 rounded-full bg-primary text-primary-foreground shadow-lg hover:scale-110 transition-transform"
+                title="Redimensionar"
+              >
+                <Maximize2 className="h-3.5 w-3.5" />
+              </button>
             )}
-            style={{
-              left: currentRightPos.x,
-              top: currentRightPos.y,
-              width: currentRightSize,
-              height: gifRightHeight || "auto",
-              borderRadius: 0,
-              objectFit: gifRightHeight ? "cover" : "contain",
-              touchAction: "none",
-            }}
-          />
+            {isAdmin && showRightResize && (
+              <div className="absolute top-full right-0 mt-2 bg-card border border-border rounded-lg shadow-xl p-3 space-y-2 min-w-[200px] z-50" onClick={(e) => e.stopPropagation()}>
+                <div className="text-xs font-medium">Largura: {localRightSize ?? gifRightSize}px</div>
+                <input type="range" min={80} max={600} step={10} value={localRightSize ?? gifRightSize}
+                  onChange={(e) => setLocalRightSize(parseInt(e.target.value))}
+                  onMouseUp={() => { if (localRightSize !== null) updateSettings.mutate({ instacena_gif_right_size: localRightSize } as any, { onSuccess: () => toast.success("Largura salva!") }); }}
+                  onTouchEnd={() => { if (localRightSize !== null) updateSettings.mutate({ instacena_gif_right_size: localRightSize } as any, { onSuccess: () => toast.success("Largura salva!") }); }}
+                  className="w-full accent-primary" />
+                <div className="text-xs font-medium">Altura: {(localRightHeight ?? gifRightHeight) || "Auto"}{(localRightHeight ?? gifRightHeight) ? "px" : ""}</div>
+                <input type="range" min={0} max={800} step={10} value={localRightHeight ?? gifRightHeight ?? 0}
+                  onChange={(e) => setLocalRightHeight(parseInt(e.target.value))}
+                  onMouseUp={() => { if (localRightHeight !== null) { const v = localRightHeight; updateSettings.mutate({ instacena_gif_right_height: v === 0 ? null : v } as any, { onSuccess: () => toast.success("Altura salva!") }); } }}
+                  onTouchEnd={() => { if (localRightHeight !== null) { const v = localRightHeight; updateSettings.mutate({ instacena_gif_right_height: v === 0 ? null : v } as any, { onSuccess: () => toast.success("Altura salva!") }); } }}
+                  className="w-full accent-primary" />
+                <p className="text-[10px] text-muted-foreground">0 = automático (proporcional)</p>
+              </div>
+            )}
+          </div>
         )}
         <div className="min-w-0 flex-1">
           <div className="max-w-xl mx-auto py-1 space-y-4 overflow-x-hidden">
