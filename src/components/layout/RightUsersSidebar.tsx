@@ -7,6 +7,7 @@ import chatBubbleIcon from "@/assets/chat-bubble-icon.png";
 import { cn } from "@/lib/utils";
 import { Tooltip, TooltipContent, TooltipTrigger } from "@/components/ui/tooltip";
 import { VerifiedBadge } from "@/components/VerifiedBadge";
+import { ModeratorBadge } from "@/components/ModeratorBadge";
 import { formatDistanceToNow } from "date-fns";
 import { ptBR } from "date-fns/locale";
 import { formatCargoLabel } from "@/lib/cargoUtils";
