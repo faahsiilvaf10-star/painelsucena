@@ -34,6 +34,7 @@ const InstaCena = () => {
   // Draggable & resizable GIF state
   const gifPos = settings.instacena_gif_position || { x: 16, y: 80 };
   const gifSize = settings.instacena_gif_size || 200;
+  const gifHeight = settings.instacena_gif_height;
   const gifUrl = settings.instacena_gif_url;
   const [dragPos, setDragPos] = useState<{ x: number; y: number } | null>(null);
   const [localSize, setLocalSize] = useState<number | null>(null);
