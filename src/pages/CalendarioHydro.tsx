@@ -1,4 +1,5 @@
 import { useMemo, useState } from "react";
+import { EditablePageTitle } from "@/components/cms/EditablePageTitle";
 import { format, startOfMonth, endOfMonth, startOfWeek, endOfWeek, addDays, isSameMonth, isToday, isSameDay } from "date-fns";
 import { ptBR } from "date-fns/locale";
 import { ChevronLeft, ChevronRight, Download, CalendarDays } from "lucide-react";
