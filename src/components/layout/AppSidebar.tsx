@@ -159,24 +159,14 @@ function SortableNavItem({
               item.isEmergency ? "text-red-500 animate-pulse" : ""
             }`}
           />
-          {editMode ? (
-            <span onClick={(e) => e.preventDefault()}>
-              <EditableText
-                pageKey="sidebar"
-                elementKey={`nav-${item.id}`}
-                defaultValue={item.label}
-                className={`font-medium text-sm md:text-base truncate ${item.isEmergency ? "text-red-500" : ""}`}
-                as="span"
-                canEdit={true}
-              />
-            </span>
-          ) : (
-            <span
-              className={`font-medium text-sm md:text-base truncate ${item.isEmergency ? "text-red-500" : ""}`}
-            >
-              {item.label}
-            </span>
-          )}
+          <EditableText
+            pageKey="sidebar"
+            elementKey={`nav-${item.id}`}
+            defaultValue={item.label}
+            className={`font-medium text-sm md:text-base truncate ${item.isEmergency ? "text-red-500" : ""}`}
+            as="span"
+            canEdit={!!editMode}
+          />
         </Link>
       </SidebarMenuButton>
     </SidebarMenuItem>
