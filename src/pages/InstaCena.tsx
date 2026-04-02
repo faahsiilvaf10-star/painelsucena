@@ -165,11 +165,11 @@ const InstaCena = () => {
 
   return (
     <Layout>
-      <div className="relative">
+      <div className="relative min-h-screen">
         {showGif && (
           <div
-            className={cn("sticky z-10 hidden lg:block animate-gif-float", !isAdmin && "pointer-events-none")}
-            style={{ left: currentPos.x, top: currentPos.y, alignSelf: "flex-start" }}
+            className={cn("fixed z-10 hidden lg:block animate-gif-float", !isAdmin && "pointer-events-none")}
+            style={{ left: currentPos.x, top: currentPos.y }}
           >
             <img
               src={gifUrl || instaCenaEaster}
