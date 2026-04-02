@@ -65,17 +65,17 @@ const InstaCena = () => {
     setLocalRightSize(null);
   }, [settings.instacena_gif_position, settings.instacena_gif_size, settings.instacena_gif_right_position, settings.instacena_gif_right_size]);
 
-  // Smooth scroll follow - listen to the scrollable container
+  // Listen to <main> scroll container
   useEffect(() => {
-    const scrollContainer = document.querySelector("main") || document.querySelector("[data-radix-scroll-area-viewport]") || window;
-    const handleScroll = () => {
-      const st = scrollContainer === window 
-        ? window.scrollY 
-        : (scrollContainer as HTMLElement).scrollTop;
-      setScrollY(st);
+    const main = document.querySelector("main");
+    if (!main) return;
+    let raf = 0;
+    const onScroll = () => {
+      cancelAnimationFrame(raf);
+      raf = requestAnimationFrame(() => setScrollY(main.scrollTop));
     };
-    scrollContainer.addEventListener("scroll", handleScroll, { passive: true });
-    return () => scrollContainer.removeEventListener("scroll", handleScroll);
+    main.addEventListener("scroll", onScroll, { passive: true });
+    return () => { main.removeEventListener("scroll", onScroll); cancelAnimationFrame(raf); };
   }, []);
 
   // Left GIF handlers
@@ -165,11 +165,11 @@ const InstaCena = () => {
 
   return (
     <Layout>
-      <div className="relative">
+      <div className="relative min-h-screen">
         {showGif && (
           <div
-            className={cn("fixed z-10 hidden lg:block animate-gif-float", !isAdmin && "pointer-events-none")}
-            style={{ left: currentPos.x, top: currentPos.y }}
+            className={cn("absolute z-10 hidden lg:block animate-gif-float", !isAdmin && "pointer-events-none")}
+            style={{ left: currentPos.x, top: currentPos.y + scrollY, transition: "top 0.3s ease-out" }}
           >
             <img
               src={gifUrl || instaCenaEaster}
@@ -220,8 +220,8 @@ const InstaCena = () => {
         )}
         {showRightGif && (
           <div
-            className={cn("fixed z-10 hidden lg:block animate-gif-float", !isAdmin && "pointer-events-none")}
-            style={{ left: currentRightPos.x, top: currentRightPos.y }}
+            className={cn("absolute z-10 hidden lg:block animate-gif-float", !isAdmin && "pointer-events-none")}
+            style={{ left: currentRightPos.x, top: currentRightPos.y + scrollY, transition: "top 0.3s ease-out" }}
           >
             <img
               src={gifRightUrl!}
