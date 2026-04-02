@@ -1,6 +1,7 @@
 import { useState, useMemo } from "react";
 import { Plus, Package, ClipboardList, History, Search, X, Filter } from "lucide-react";
 import Layout from "@/components/layout/Layout";
+import { EditablePageTitle } from "@/components/cms/EditablePageTitle";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
@@ -111,7 +112,7 @@ export default function Pedidos() {
           <div>
             <h1 className="text-xl sm:text-2xl font-bold flex items-center gap-2">
               <Package className="w-6 h-6 sm:w-7 sm:h-7 text-primary" />
-              Pedidos
+              <EditablePageTitle pageKey="pedidos" defaultValue="Pedidos" className="inline" as="h1" />
             </h1>
             <p className="text-sm text-muted-foreground mt-1">
               Gerencie suas solicitações de materiais

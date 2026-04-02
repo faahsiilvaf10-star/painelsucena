@@ -1,4 +1,5 @@
 import { useState } from "react";
+import { EditablePageTitle } from "@/components/cms/EditablePageTitle";
 import Layout from "@/components/layout/Layout";
 
 import { format } from "date-fns";
@@ -116,7 +117,7 @@ export default function MaintenancePlan() {
         <div>
           <h1 className="text-2xl font-bold flex items-center gap-2">
             <Wrench className="h-6 w-6 text-primary" />
-            Plano de Manutenção
+            <EditablePageTitle pageKey="manutencao" defaultValue="Plano de Manutenção" className="inline" as="h1" />
           </h1>
           <p className="text-muted-foreground">
             Acompanhamento de manutenção preventiva a cada 700 horas

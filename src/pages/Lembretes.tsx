@@ -3,6 +3,7 @@ import { format, formatDistanceToNow } from "date-fns";
 import { ptBR } from "date-fns/locale";
 import { Bell, Plus, Trash2, Users, User, Globe, Calendar, Clock, AlertCircle, Repeat, Filter, Pencil } from "lucide-react";
 import Layout from "@/components/layout/Layout";
+import { EditablePageTitle } from "@/components/cms/EditablePageTitle";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -238,9 +239,7 @@ const Lembretes = () => {
         {/* Header */}
         <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3 sm:gap-0 mb-6 sm:mb-8">
           <div>
-            <h1 className="text-2xl sm:text-3xl font-bold mb-1 sm:mb-2">
-              <span className="text-gradient">Lembretes</span>
-            </h1>
+            <EditablePageTitle pageKey="lembretes" defaultValue="Lembretes" className="text-2xl sm:text-3xl font-bold mb-1 sm:mb-2 text-gradient" />
             <p className="text-sm text-muted-foreground">
               Crie lembretes e mencione usuários
             </p>

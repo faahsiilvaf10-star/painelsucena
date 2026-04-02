@@ -1,6 +1,9 @@
 import { useState, useRef } from "react";
 import Layout from "@/components/layout/Layout";
 import { EditablePageTitle } from "@/components/cms/EditablePageTitle";
+import { EditableText } from "@/components/cms/EditableText";
+import { EditableImage } from "@/components/cms/EditableImage";
+import { useEditMode } from "@/contexts/EditModeContext";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -178,6 +181,7 @@ export default function ArquivosSeguranca() {
   const { user } = useAuth();
   const { data: profile } = useProfile();
   const { isVisualizador } = useVisualizadorContext();
+  const { isEditMode } = useEditMode();
   const [search, setSearch] = useState("");
   const [selectedCategory, setSelectedCategory] = useState<string | null>(null);
   const [deleteTarget, setDeleteTarget] = useState<SecurityFile | null>(null);
@@ -206,8 +210,22 @@ export default function ArquivosSeguranca() {
                   onClick={() => setSelectedCategory(cat)}
                 >
                   <CardContent className="flex flex-col items-center justify-center p-6 text-center gap-2">
-                    <img src={catImage} alt={cat} className="h-16 w-16 object-contain" loading="lazy" width={64} height={64} />
-                    <h3 className="font-semibold text-sm sm:text-base">{cat}</h3>
+                    <EditableImage
+                      pageKey="arquivos-seguranca"
+                      elementKey={`cat-icon-${cat}`}
+                      defaultSrc={catImage}
+                      alt={cat}
+                      canEdit={isEditMode}
+                      imgClassName="h-16 w-16 object-contain"
+                    />
+                    <EditableText
+                      pageKey="arquivos-seguranca"
+                      elementKey={`cat-name-${cat}`}
+                      defaultValue={cat}
+                      canEdit={isEditMode}
+                      as="h3"
+                      className="font-semibold text-sm sm:text-base"
+                    />
                     <span className="text-xs text-muted-foreground">
                       {count} {count === 1 ? "arquivo" : "arquivos"}
                     </span>

@@ -1,4 +1,5 @@
 import { useState, useEffect } from "react";
+import { EditablePageTitle } from "@/components/cms/EditablePageTitle";
 import { useNavigate } from "react-router-dom";
 import { ArrowLeft, Droplets, Loader2 } from "lucide-react";
 import { Button } from "@/components/ui/button";
@@ -212,7 +213,7 @@ export default function PontosAbastecimento() {
           <div className="flex-1 min-w-0">
             <h1 className="text-base sm:text-lg font-bold truncate flex items-center gap-2">
               <Droplets className="h-5 w-5 text-blue-500" />
-              Pontos de Abastecimento
+              <EditablePageTitle pageKey="pontos-abastecimento" defaultValue="Pontos de Abastecimento" className="inline" as="h1" />
             </h1>
             {selectedVehicle && (
               <p className="text-[10px] sm:text-xs text-muted-foreground">

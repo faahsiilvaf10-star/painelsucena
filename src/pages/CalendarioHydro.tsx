@@ -1,4 +1,5 @@
 import { useMemo, useState } from "react";
+import { EditablePageTitle } from "@/components/cms/EditablePageTitle";
 import { format, startOfMonth, endOfMonth, startOfWeek, endOfWeek, addDays, isSameMonth, isToday, isSameDay } from "date-fns";
 import { ptBR } from "date-fns/locale";
 import { ChevronLeft, ChevronRight, Download, CalendarDays } from "lucide-react";
@@ -147,7 +148,7 @@ export default function CalendarioHydro() {
             <div>
               <h1 className="text-xl md:text-2xl font-bold text-foreground flex items-center gap-2">
                 <CalendarDays className="h-6 w-6 text-primary" />
-                Calendário Projetos Alunorte 2026
+                <EditablePageTitle pageKey="calendario-hydro" defaultValue="Calendário Projetos Alunorte 2026" className="inline" as="h1" />
               </h1>
               <p className="text-sm text-muted-foreground">Feriados e dias compensados</p>
             </div>

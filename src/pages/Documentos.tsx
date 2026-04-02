@@ -1,4 +1,5 @@
 import { useState } from "react";
+import { EditablePageTitle } from "@/components/cms/EditablePageTitle";
 import Layout from "@/components/layout/Layout";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
@@ -156,7 +157,7 @@ const Documentos = () => {
           <div>
             <h1 className="text-xl sm:text-3xl font-bold flex items-center gap-2">
               <FileText className="h-6 w-6 sm:h-8 sm:w-8 text-primary" />
-              Documentos
+              <EditablePageTitle pageKey="documentos" defaultValue="Documentos" className="inline" as="h1" />
             </h1>
             <p className="text-sm text-muted-foreground mt-1">
               Gerencie documentos e controle vencimentos

@@ -1,5 +1,6 @@
 // @ts-nocheck
 import { useState, useMemo } from "react";
+import { EditablePageTitle } from "@/components/cms/EditablePageTitle";
 import { motion, AnimatePresence } from "framer-motion";
 import { format, addMonths, subMonths, setDate } from "date-fns";
 import { ptBR } from "date-fns/locale";
@@ -158,7 +159,7 @@ export default function Planejamento() {
               <div className="p-2 rounded-xl bg-gradient-to-br from-primary/20 to-primary/5">
                 <Target className="h-7 w-7 text-primary" />
               </div>
-              Planejamento
+              <EditablePageTitle pageKey="planejamento" defaultValue="Planejamento" className="inline" as="h1" />
             </h1>
             <p className="text-muted-foreground mt-1">Metas de produção por período de medição</p>
           </div>
