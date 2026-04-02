@@ -329,7 +329,7 @@ function PluviometriaSpreadsheet({ setor, ano }: { setor: string; ano: number })
             alt="Sucena Empreendimentos"
             className="h-14"
             imgClassName="h-14 object-contain"
-            canEdit={false}
+            canEdit={isEditMode}
           />
         </div>
         <div className="flex items-center gap-8 mt-1 text-sm">
