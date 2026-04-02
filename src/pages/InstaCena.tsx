@@ -53,7 +53,7 @@ const InstaCena = () => {
         <img
           src={instaCenaEaster}
           alt=""
-          className="fixed left-0 top-16 w-[200px] h-auto z-10 pointer-events-none hidden lg:block"
+          className="fixed left-0 top-1/2 -translate-y-1/2 w-[200px] h-auto z-10 pointer-events-none hidden lg:block"
           style={{ borderRadius: 0, maxHeight: 'calc(100vh - 80px)', objectFit: 'contain' }}
         />
         <div className="max-w-xl mx-auto px-3 sm:px-4 py-1 space-y-4 overflow-x-hidden">
