@@ -56,7 +56,9 @@ const Admin = () => {
   // Site settings state
   const [isUploadingLogo, setIsUploadingLogo] = useState(false);
   const [isResendingCampaign, setIsResendingCampaign] = useState(false);
+  const [isUploadingGif, setIsUploadingGif] = useState(false);
   const fileInputRef = useRef<HTMLInputElement>(null);
+  const gifInputRef = useRef<HTMLInputElement>(null);
 
   // Fetch all users with their profiles and roles
   const { data: usersData, isLoading: usersLoading } = useQuery({
