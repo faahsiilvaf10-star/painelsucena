@@ -1,5 +1,6 @@
 // @ts-nocheck
 import { useState, useMemo } from "react";
+import { EditablePageTitle } from "@/components/cms/EditablePageTitle";
 import { motion, AnimatePresence } from "framer-motion";
 import { format, addMonths, subMonths, setDate } from "date-fns";
 import { ptBR } from "date-fns/locale";
