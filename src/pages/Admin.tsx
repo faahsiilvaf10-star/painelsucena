@@ -269,8 +269,14 @@ const Admin = () => {
       <div className="container mx-auto px-3 sm:px-4 md:px-6 py-4 sm:py-8">
         <div className="mb-6 sm:mb-8">
           <div className="flex items-center gap-2 sm:gap-3 mb-2">
-            <ShieldCheck className="w-6 h-6 sm:w-8 sm:h-8 text-primary" />
-            <h1 className="text-xl sm:text-3xl font-bold">Administração</h1>
+            {isModerator ? (
+              <ShieldHalf className="w-6 h-6 sm:w-8 sm:h-8 text-amber-500" />
+            ) : (
+              <ShieldCheck className="w-6 h-6 sm:w-8 sm:h-8 text-primary" />
+            )}
+            <h1 className="text-xl sm:text-3xl font-bold">
+              {isModerator ? "Moderação" : "Administração"}
+            </h1>
           </div>
           <p className="text-sm text-muted-foreground">
             Gerencie as configurações do sistema e permissões dos usuários.
