@@ -184,6 +184,29 @@ const Layout = ({ children }: LayoutProps) => {
         </p>
         
         <div className="flex items-center gap-0.5 md:gap-1">
+          {canEdit && (
+            <Tooltip>
+              <TooltipTrigger asChild>
+                <button
+                  onClick={toggleEditMode}
+                  className={`flex items-center gap-1 px-1.5 py-1 rounded-full transition-colors ${
+                    isEditMode 
+                      ? "text-primary bg-primary/20 hover:bg-primary/30" 
+                      : "text-muted-foreground hover:text-foreground hover:bg-secondary"
+                  }`}
+                  aria-label={isEditMode ? "Desativar modo edição" : "Ativar modo edição"}
+                >
+                  {isEditMode ? <PencilOff className="h-3.5 w-3.5" /> : <Pencil className="h-3.5 w-3.5" />}
+                  <span className="text-[10px] font-medium hidden sm:inline">
+                    {isEditMode ? "Editando" : "Editar"}
+                  </span>
+                </button>
+              </TooltipTrigger>
+              <TooltipContent side="bottom" className="bg-card border">
+                <p className="text-xs">{isEditMode ? "Desativar modo edição" : "Ativar modo edição em tempo real"}</p>
+              </TooltipContent>
+            </Tooltip>
+          )}
           <Tooltip>
             <TooltipTrigger asChild>
               <button
@@ -221,6 +244,12 @@ const Layout = ({ children }: LayoutProps) => {
         </div>
       </header>
       <main className={`flex-1 overflow-y-auto ${isDockTheme ? 'pb-20 md:pb-16' : 'pb-16 md:pb-14'}`}>
+        {isEditMode && (
+          <div className="bg-primary/10 border-b border-primary/30 px-4 py-1.5 flex items-center gap-2 text-primary text-sm">
+            <Pencil className="h-3.5 w-3.5 shrink-0 animate-pulse" />
+            <span className="text-xs font-medium">Modo Edição ativo — Clique em qualquer título ou nome para editar em tempo real</span>
+          </div>
+        )}
         {isVisualizador && (
           <div className="bg-amber-500/10 border-b border-amber-500/30 px-4 py-2 flex items-center gap-2 text-amber-700 dark:text-amber-400 text-sm">
             <Eye className="h-4 w-4 shrink-0" />
