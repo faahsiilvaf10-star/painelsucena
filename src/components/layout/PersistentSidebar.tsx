@@ -28,6 +28,22 @@ export const PersistentSidebar = ({ children }: PersistentSidebarProps) => {
   const uiTheme = settings?.ui_theme || "classic";
   const useDock = user && !isDriver && !isAvatarBlocked && uiTheme === "macos-dock";
 
+  // Apply global primary color from site_settings
+  useEffect(() => {
+    const primaryColor = settings?.primary_color;
+    if (primaryColor) {
+      document.documentElement.style.setProperty("--primary", primaryColor);
+      document.documentElement.style.setProperty("--ring", primaryColor);
+    } else {
+      document.documentElement.style.removeProperty("--primary");
+      document.documentElement.style.removeProperty("--ring");
+    }
+    return () => {
+      document.documentElement.style.removeProperty("--primary");
+      document.documentElement.style.removeProperty("--ring");
+    };
+  }, [settings?.primary_color]);
+
   // Wait for auth + profile + settings to load before rendering layout
   const layoutReady = !authLoading && (!user || (!profileLoading && !settingsLoading));
 
