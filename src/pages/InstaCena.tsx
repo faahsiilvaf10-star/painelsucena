@@ -30,7 +30,6 @@ const InstaCena = () => {
   const [selectedDate, setSelectedDate] = useState<Date | undefined>();
   const [selectedMonth, setSelectedMonth] = useState<string>("all");
   const { isEditMode, canEdit } = useEditMode();
-  const { isEditMode } = useEditMode();
   const { settings, updateSettings } = useSiteSettings();
   const mainRef = useRef<HTMLElement | null>(null);
 
