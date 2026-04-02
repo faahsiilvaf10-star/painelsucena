@@ -858,36 +858,48 @@ const Admin = () => {
                           </TableCell>
                           <TableCell>
                             {u.role ? (
-                              <Select
-                                value={u.role}
-                                onValueChange={(newRole) => {
-                                  if (u.role_id) {
-                                    updateRoleMutation.mutate({
-                                      roleId: u.role_id,
-                                      newRole: newRole as AppRole,
-                                    });
-                                  }
-                                }}
-                                disabled={u.user_id === user?.id}
-                              >
-                                <SelectTrigger className="w-[140px]">
-                                  <SelectValue />
-                                </SelectTrigger>
-                                <SelectContent>
-                                  <SelectItem value="user">
-                                    <div className="flex items-center gap-2">
-                                      <Shield className="w-4 h-4" />
-                                      Usuário
-                                    </div>
-                                  </SelectItem>
-                                  <SelectItem value="admin">
-                                    <div className="flex items-center gap-2">
-                                      <ShieldCheck className="w-4 h-4" />
-                                      Administrador
-                                    </div>
-                                  </SelectItem>
-                                </SelectContent>
-                              </Select>
+                              canManageRoles ? (
+                                <Select
+                                  value={u.role}
+                                  onValueChange={(newRole) => {
+                                    if (u.role_id) {
+                                      updateRoleMutation.mutate({
+                                        roleId: u.role_id,
+                                        newRole: newRole as AppRole,
+                                      });
+                                    }
+                                  }}
+                                  disabled={u.user_id === user?.id}
+                                >
+                                  <SelectTrigger className="w-[160px]">
+                                    <SelectValue />
+                                  </SelectTrigger>
+                                  <SelectContent>
+                                    <SelectItem value="user">
+                                      <div className="flex items-center gap-2">
+                                        <Shield className="w-4 h-4" />
+                                        Usuário
+                                      </div>
+                                    </SelectItem>
+                                    <SelectItem value="moderator">
+                                      <div className="flex items-center gap-2">
+                                        <ShieldHalf className="w-4 h-4 text-amber-500" />
+                                        Moderador
+                                      </div>
+                                    </SelectItem>
+                                    <SelectItem value="admin">
+                                      <div className="flex items-center gap-2">
+                                        <ShieldCheck className="w-4 h-4" />
+                                        Administrador
+                                      </div>
+                                    </SelectItem>
+                                  </SelectContent>
+                                </Select>
+                              ) : (
+                                <Badge variant={u.role === "admin" ? "default" : u.role === "moderator" ? "secondary" : "outline"}>
+                                  {u.role === "admin" ? "Admin" : u.role === "moderator" ? "Moderador" : "Usuário"}
+                                </Badge>
+                              )
                             ) : (
                               <Badge variant="secondary">Sem role</Badge>
                             )}
