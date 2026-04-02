@@ -28,7 +28,7 @@ const InstaCena = () => {
   const [filter, setFilter] = useState<"posts" | "logs">("posts");
   const [selectedDate, setSelectedDate] = useState<Date | undefined>();
   const [selectedMonth, setSelectedMonth] = useState<string>("all");
-  const { data: isAdmin } = useIsAdmin();
+  const { isAdmin } = useIsAdmin();
   const { settings, updateSettings } = useSiteSettings();
 
   // Draggable GIF state
