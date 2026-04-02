@@ -12,7 +12,7 @@ import { useSiteSettings } from "@/hooks/useSiteSettings";
 import { supabase } from "@/integrations/supabase/client";
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import { toast } from "sonner";
-import { Shield, ShieldCheck, Trash2, UserPlus, Users, Image, Upload, UserCog, Megaphone, Pencil, LayoutList, Truck, RotateCcw, Key, Ribbon, Coins, UserCheck } from "lucide-react";
+import { Shield, ShieldCheck, Trash2, UserPlus, Users, Image, Upload, UserCog, Megaphone, Pencil, LayoutList, Truck, RotateCcw, Key, Ribbon, Coins, UserCheck, Film } from "lucide-react";
 import { Switch } from "@/components/ui/switch";
 import { Label } from "@/components/ui/label";
 import { DoubleBalanceManager } from "@/components/admin/DoubleBalanceManager";
