@@ -629,9 +629,101 @@ const Admin = () => {
               </CardContent>
             </Card>
 
-          </TabsContent>
+            {/* InstaCena Right GIF Manager */}
+            <Card>
+              <CardHeader>
+                <CardTitle className="flex items-center gap-2">
+                  <Film className="w-5 h-5" />
+                  GIF Direito do InstaCena
+                </CardTitle>
+                <CardDescription>
+                  Adicione, altere ou remova um GIF no lado direito da página InstaCena.
+                </CardDescription>
+              </CardHeader>
+              <CardContent className="space-y-4">
+                <div className="flex items-center gap-6">
+                  <div className="w-24 h-24 border-2 border-dashed border-border rounded-lg flex items-center justify-center overflow-hidden bg-muted">
+                    {settings.instacena_gif_right_url === "__removed__" ? (
+                      <span className="text-xs text-muted-foreground text-center px-1">Removido</span>
+                    ) : settings.instacena_gif_right_url ? (
+                      <img src={settings.instacena_gif_right_url} alt="GIF direito" className="w-full h-full object-contain p-1" />
+                    ) : (
+                      <span className="text-xs text-muted-foreground text-center px-1">Nenhum</span>
+                    )}
+                  </div>
+                  <div className="space-y-2">
+                    <input
+                      ref={gifRightInputRef}
+                      type="file"
+                      accept="image/gif,image/*"
+                      onChange={async (e) => {
+                        const file = e.target.files?.[0];
+                        if (!file) return;
+                        if (file.size > 5 * 1024 * 1024) { toast.error("Arquivo muito grande (máx 5MB)"); return; }
+                        setIsUploadingGifRight(true);
+                        try {
+                          const ext = file.name.split(".").pop();
+                          const path = `instacena-gif/gif-right-${Date.now()}.${ext}`;
+                          const { error: upErr } = await supabase.storage.from("site-assets").upload(path, file, { upsert: true });
+                          if (upErr) throw upErr;
+                          const { data: urlData } = supabase.storage.from("site-assets").getPublicUrl(path);
+                          await updateSettings.mutateAsync({ instacena_gif_right_url: urlData.publicUrl } as any);
+                          toast.success("GIF direito atualizado!");
+                        } catch (err: any) {
+                          toast.error("Erro: " + err.message);
+                        } finally {
+                          setIsUploadingGifRight(false);
+                          if (gifRightInputRef.current) gifRightInputRef.current.value = "";
+                        }
+                      }}
+                      className="hidden"
+                    />
+                    <div className="flex flex-wrap gap-2">
+                      <Button onClick={() => gifRightInputRef.current?.click()} disabled={isUploadingGifRight} variant="outline" size="sm">
+                        {isUploadingGifRight ? (<><div className="animate-spin rounded-full h-4 w-4 border-b-2 border-current mr-2" />Enviando...</>) : (<><Upload className="w-4 h-4 mr-2" />Adicionar/Alterar GIF</>)}
+                      </Button>
+                      {settings.instacena_gif_right_url && settings.instacena_gif_right_url !== "__removed__" && (
+                        <Button variant="destructive" size="sm" onClick={() => updateSettings.mutate({ instacena_gif_right_url: "__removed__" } as any, { onSuccess: () => toast.success("GIF removido!") })}>
+                          <Trash2 className="w-4 h-4 mr-2" />Remover
+                        </Button>
+                      )}
+                    </div>
+                    <p className="text-xs text-muted-foreground">Formatos: GIF, PNG, JPG. Máx: 5MB</p>
+                  </div>
+                </div>
 
-          {/* Users Tab */}
+                {settings.instacena_gif_right_url && settings.instacena_gif_right_url !== "__removed__" && (
+                  <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+                    <div className="space-y-2">
+                      <Label>Largura: {localGifRightWidth ?? settings.instacena_gif_right_size ?? 200}px</Label>
+                      <div className="flex items-center gap-3">
+                        <span className="text-xs text-muted-foreground">80</span>
+                        <input type="range" min={80} max={600} step={10} value={localGifRightWidth ?? settings.instacena_gif_right_size ?? 200}
+                          onChange={(e) => setLocalGifRightWidth(parseInt(e.target.value))}
+                          onMouseUp={() => { if (localGifRightWidth !== null) updateSettings.mutate({ instacena_gif_right_size: localGifRightWidth } as any, { onSuccess: () => { toast.success("Largura salva!"); setLocalGifRightWidth(null); } }); }}
+                          onTouchEnd={() => { if (localGifRightWidth !== null) updateSettings.mutate({ instacena_gif_right_size: localGifRightWidth } as any, { onSuccess: () => { toast.success("Largura salva!"); setLocalGifRightWidth(null); } }); }}
+                          className="flex-1 accent-primary" />
+                        <span className="text-xs text-muted-foreground">600</span>
+                      </div>
+                    </div>
+                    <div className="space-y-2">
+                      <Label>Altura: {(localGifRightHeight ?? settings.instacena_gif_right_height) || "Auto"}{(localGifRightHeight ?? settings.instacena_gif_right_height) ? "px" : ""}</Label>
+                      <div className="flex items-center gap-3">
+                        <span className="text-xs text-muted-foreground">Auto</span>
+                        <input type="range" min={0} max={800} step={10} value={localGifRightHeight ?? settings.instacena_gif_right_height ?? 0}
+                          onChange={(e) => setLocalGifRightHeight(parseInt(e.target.value))}
+                          onMouseUp={() => { if (localGifRightHeight !== null) { const v = localGifRightHeight; updateSettings.mutate({ instacena_gif_right_height: v === 0 ? null : v } as any, { onSuccess: () => { toast.success("Altura salva!"); setLocalGifRightHeight(null); } }); } }}
+                          onTouchEnd={() => { if (localGifRightHeight !== null) { const v = localGifRightHeight; updateSettings.mutate({ instacena_gif_right_height: v === 0 ? null : v } as any, { onSuccess: () => { toast.success("Altura salva!"); setLocalGifRightHeight(null); } }); } }}
+                          className="flex-1 accent-primary" />
+                        <span className="text-xs text-muted-foreground">800</span>
+                      </div>
+                    </div>
+                  </div>
+                )}
+              </CardContent>
+            </Card>
+
+          </TabsContent>
           <TabsContent value="users" className="space-y-6">
             {/* Stats Cards */}
             <div className="grid gap-4 md:grid-cols-3">
