@@ -63,6 +63,7 @@ export function useSiteSettings() {
         nav_order: navOrder,
         ui_theme: (data as any).ui_theme || "classic",
         primary_color: (data as any).primary_color || null,
+        instacena_gif_position: (data as any).instacena_gif_position || { x: 16, y: 80 },
       };
     },
     staleTime: 1000 * 60 * 5,
