@@ -128,7 +128,7 @@ const InstaCena = () => {
   }, [dragPos, updateSettings]);
 
   const onRightPointerDown = useCallback((e: React.PointerEvent) => {
-    if (!isAdmin) return;
+    if (!isEditMode) return;
 
     draggingRight.current = true;
     const rect = (e.target as HTMLElement).getBoundingClientRect();
