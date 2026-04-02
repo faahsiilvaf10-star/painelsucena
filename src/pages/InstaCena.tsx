@@ -30,7 +30,7 @@ const InstaCena = () => {
   const [selectedMonth, setSelectedMonth] = useState<string>("all");
   const { isAdmin } = useIsAdmin();
   const { settings, updateSettings } = useSiteSettings();
-  const pageRef = useRef<HTMLDivElement | null>(null);
+  const mainRef = useRef<HTMLElement | null>(null);
 
   // --- Left GIF state ---
   const gifPos = settings.instacena_gif_position || { x: 16, y: 80 };
@@ -57,6 +57,10 @@ const InstaCena = () => {
   const offsetRight = useRef({ x: 0, y: 0 });
 
   useEffect(() => {
+    mainRef.current = document.querySelector("main") as HTMLElement | null;
+  }, []);
+
+  useEffect(() => {
     setDragPos(null);
     setLocalSize(null);
     setLocalHeight(null);
@@ -73,9 +77,9 @@ const InstaCena = () => {
   ]);
 
   const getRelativePosition = useCallback((clientX: number, clientY: number, dragOffset: { x: number; y: number }) => {
-    const pageRect = pageRef.current?.getBoundingClientRect();
+    const hostRect = mainRef.current?.getBoundingClientRect();
 
-    if (!pageRect) {
+    if (!hostRect) {
       return {
         x: clientX - dragOffset.x,
         y: clientY - dragOffset.y,
@@ -83,12 +87,11 @@ const InstaCena = () => {
     }
 
     return {
-      x: clientX - pageRect.left - dragOffset.x,
-      y: clientY - pageRect.top - dragOffset.y,
+      x: clientX - hostRect.left - dragOffset.x,
+      y: clientY - hostRect.top - dragOffset.y,
     };
   }, []);
 
-  // Left GIF handlers
   const onPointerDown = useCallback((e: React.PointerEvent) => {
     if (!isAdmin) return;
 
@@ -116,7 +119,6 @@ const InstaCena = () => {
     }
   }, [dragPos, updateSettings]);
 
-  // Right GIF handlers
   const onRightPointerDown = useCallback((e: React.PointerEvent) => {
     if (!isAdmin) return;
 
@@ -177,172 +179,176 @@ const InstaCena = () => {
 
   return (
     <Layout>
-      <div ref={pageRef} className="relative min-h-screen">
-        {showGif && (
-          <div
-            className={cn("absolute z-10 hidden lg:block animate-gif-float", !isAdmin && "pointer-events-none")}
-            style={{
-              left: currentPos.x,
-              top: currentPos.y,
-            }}
-          >
-            <img
-              src={gifUrl || instaCenaEaster}
-              alt=""
-              onPointerDown={onPointerDown}
-              onPointerMove={onPointerMove}
-              onPointerUp={onPointerUp}
-              className={cn(
-                "select-none",
-                isAdmin ? "cursor-grab active:cursor-grabbing" : "pointer-events-none"
-              )}
-              style={{
-                width: currentSize,
-                height: (localHeight ?? gifHeight) || "auto",
-                borderRadius: 0,
-                objectFit: (localHeight ?? gifHeight) ? "cover" : "contain",
-                touchAction: "none",
-              }}
-            />
-            {isAdmin && (
-              <button
-                onClick={() => setShowLeftResize(!showLeftResize)}
-                className="absolute -bottom-3 -right-3 p-1 rounded-full bg-primary text-primary-foreground shadow-lg hover:scale-110 transition-transform"
-                title="Redimensionar"
+      <div className="relative min-h-screen">
+        {(showGif || showRightGif) && (
+          <div className="sticky top-0 z-20 h-0 overflow-visible hidden lg:block">
+            {showGif && (
+              <div
+                className={cn("absolute w-max animate-gif-float", !isAdmin && "pointer-events-none")}
+                style={{
+                  left: currentPos.x,
+                  top: currentPos.y,
+                }}
               >
-                <Maximize2 className="h-3.5 w-3.5" />
-              </button>
-            )}
-            {isAdmin && showLeftResize && (
-              <div className="absolute top-full left-0 mt-2 bg-card border border-border rounded-lg shadow-xl p-3 space-y-2 min-w-[200px] z-50" onClick={(e) => e.stopPropagation()}>
-                <div className="text-xs font-medium">Largura: {localSize ?? gifSize}px</div>
-                <input
-                  type="range"
-                  min={80}
-                  max={600}
-                  step={10}
-                  value={localSize ?? gifSize}
-                  onChange={(e) => setLocalSize(parseInt(e.target.value))}
-                  onMouseUp={() => {
-                    if (localSize !== null) {
-                      updateSettings.mutate({ instacena_gif_size: localSize } as any, { onSuccess: () => toast.success("Largura salva!") });
-                    }
+                <img
+                  src={gifUrl || instaCenaEaster}
+                  alt=""
+                  onPointerDown={onPointerDown}
+                  onPointerMove={onPointerMove}
+                  onPointerUp={onPointerUp}
+                  className={cn(
+                    "select-none",
+                    isAdmin ? "cursor-grab active:cursor-grabbing" : "pointer-events-none"
+                  )}
+                  style={{
+                    width: currentSize,
+                    height: (localHeight ?? gifHeight) || "auto",
+                    borderRadius: 0,
+                    objectFit: (localHeight ?? gifHeight) ? "cover" : "contain",
+                    touchAction: "none",
                   }}
-                  onTouchEnd={() => {
-                    if (localSize !== null) {
-                      updateSettings.mutate({ instacena_gif_size: localSize } as any, { onSuccess: () => toast.success("Largura salva!") });
-                    }
-                  }}
-                  className="w-full accent-primary"
                 />
-                <div className="text-xs font-medium">Altura: {(localHeight ?? gifHeight) || "Auto"}{(localHeight ?? gifHeight) ? "px" : ""}</div>
-                <input
-                  type="range"
-                  min={0}
-                  max={800}
-                  step={10}
-                  value={localHeight ?? gifHeight ?? 0}
-                  onChange={(e) => setLocalHeight(parseInt(e.target.value))}
-                  onMouseUp={() => {
-                    if (localHeight !== null) {
-                      const v = localHeight;
-                      updateSettings.mutate({ instacena_gif_height: v === 0 ? null : v } as any, { onSuccess: () => toast.success("Altura salva!") });
-                    }
-                  }}
-                  onTouchEnd={() => {
-                    if (localHeight !== null) {
-                      const v = localHeight;
-                      updateSettings.mutate({ instacena_gif_height: v === 0 ? null : v } as any, { onSuccess: () => toast.success("Altura salva!") });
-                    }
-                  }}
-                  className="w-full accent-primary"
-                />
-                <p className="text-[10px] text-muted-foreground">0 = automático (proporcional)</p>
+                {isAdmin && (
+                  <button
+                    onClick={() => setShowLeftResize(!showLeftResize)}
+                    className="absolute -bottom-3 -right-3 p-1 rounded-full bg-primary text-primary-foreground shadow-lg hover:scale-110 transition-transform"
+                    title="Redimensionar"
+                  >
+                    <Maximize2 className="h-3.5 w-3.5" />
+                  </button>
+                )}
+                {isAdmin && showLeftResize && (
+                  <div className="absolute top-full left-0 mt-2 bg-card border border-border rounded-lg shadow-xl p-3 space-y-2 min-w-[200px] z-50" onClick={(e) => e.stopPropagation()}>
+                    <div className="text-xs font-medium">Largura: {localSize ?? gifSize}px</div>
+                    <input
+                      type="range"
+                      min={80}
+                      max={600}
+                      step={10}
+                      value={localSize ?? gifSize}
+                      onChange={(e) => setLocalSize(parseInt(e.target.value))}
+                      onMouseUp={() => {
+                        if (localSize !== null) {
+                          updateSettings.mutate({ instacena_gif_size: localSize } as any, { onSuccess: () => toast.success("Largura salva!") });
+                        }
+                      }}
+                      onTouchEnd={() => {
+                        if (localSize !== null) {
+                          updateSettings.mutate({ instacena_gif_size: localSize } as any, { onSuccess: () => toast.success("Largura salva!") });
+                        }
+                      }}
+                      className="w-full accent-primary"
+                    />
+                    <div className="text-xs font-medium">Altura: {(localHeight ?? gifHeight) || "Auto"}{(localHeight ?? gifHeight) ? "px" : ""}</div>
+                    <input
+                      type="range"
+                      min={0}
+                      max={800}
+                      step={10}
+                      value={localHeight ?? gifHeight ?? 0}
+                      onChange={(e) => setLocalHeight(parseInt(e.target.value))}
+                      onMouseUp={() => {
+                        if (localHeight !== null) {
+                          const v = localHeight;
+                          updateSettings.mutate({ instacena_gif_height: v === 0 ? null : v } as any, { onSuccess: () => toast.success("Altura salva!") });
+                        }
+                      }}
+                      onTouchEnd={() => {
+                        if (localHeight !== null) {
+                          const v = localHeight;
+                          updateSettings.mutate({ instacena_gif_height: v === 0 ? null : v } as any, { onSuccess: () => toast.success("Altura salva!") });
+                        }
+                      }}
+                      className="w-full accent-primary"
+                    />
+                    <p className="text-[10px] text-muted-foreground">0 = automático (proporcional)</p>
+                  </div>
+                )}
               </div>
             )}
-          </div>
-        )}
 
-        {showRightGif && (
-          <div
-            className={cn("absolute z-10 hidden lg:block animate-gif-float", !isAdmin && "pointer-events-none")}
-            style={{
-              left: currentRightPos.x,
-              top: currentRightPos.y,
-            }}
-          >
-            <img
-              src={gifRightUrl!}
-              alt=""
-              onPointerDown={onRightPointerDown}
-              onPointerMove={onRightPointerMove}
-              onPointerUp={onRightPointerUp}
-              className={cn(
-                "select-none",
-                isAdmin ? "cursor-grab active:cursor-grabbing" : "pointer-events-none"
-              )}
-              style={{
-                width: currentRightSize,
-                height: (localRightHeight ?? gifRightHeight) || "auto",
-                borderRadius: 0,
-                objectFit: (localRightHeight ?? gifRightHeight) ? "cover" : "contain",
-                touchAction: "none",
-              }}
-            />
-            {isAdmin && (
-              <button
-                onClick={() => setShowRightResize(!showRightResize)}
-                className="absolute -bottom-3 -right-3 p-1 rounded-full bg-primary text-primary-foreground shadow-lg hover:scale-110 transition-transform"
-                title="Redimensionar"
+            {showRightGif && (
+              <div
+                className={cn("absolute w-max animate-gif-float", !isAdmin && "pointer-events-none")}
+                style={{
+                  left: currentRightPos.x,
+                  top: currentRightPos.y,
+                }}
               >
-                <Maximize2 className="h-3.5 w-3.5" />
-              </button>
-            )}
-            {isAdmin && showRightResize && (
-              <div className="absolute top-full right-0 mt-2 bg-card border border-border rounded-lg shadow-xl p-3 space-y-2 min-w-[200px] z-50" onClick={(e) => e.stopPropagation()}>
-                <div className="text-xs font-medium">Largura: {localRightSize ?? gifRightSize}px</div>
-                <input
-                  type="range"
-                  min={80}
-                  max={600}
-                  step={10}
-                  value={localRightSize ?? gifRightSize}
-                  onChange={(e) => setLocalRightSize(parseInt(e.target.value))}
-                  onMouseUp={() => {
-                    if (localRightSize !== null) {
-                      updateSettings.mutate({ instacena_gif_right_size: localRightSize } as any, { onSuccess: () => toast.success("Largura salva!") });
-                    }
+                <img
+                  src={gifRightUrl!}
+                  alt=""
+                  onPointerDown={onRightPointerDown}
+                  onPointerMove={onRightPointerMove}
+                  onPointerUp={onRightPointerUp}
+                  className={cn(
+                    "select-none",
+                    isAdmin ? "cursor-grab active:cursor-grabbing" : "pointer-events-none"
+                  )}
+                  style={{
+                    width: currentRightSize,
+                    height: (localRightHeight ?? gifRightHeight) || "auto",
+                    borderRadius: 0,
+                    objectFit: (localRightHeight ?? gifRightHeight) ? "cover" : "contain",
+                    touchAction: "none",
                   }}
-                  onTouchEnd={() => {
-                    if (localRightSize !== null) {
-                      updateSettings.mutate({ instacena_gif_right_size: localRightSize } as any, { onSuccess: () => toast.success("Largura salva!") });
-                    }
-                  }}
-                  className="w-full accent-primary"
                 />
-                <div className="text-xs font-medium">Altura: {(localRightHeight ?? gifRightHeight) || "Auto"}{(localRightHeight ?? gifRightHeight) ? "px" : ""}</div>
-                <input
-                  type="range"
-                  min={0}
-                  max={800}
-                  step={10}
-                  value={localRightHeight ?? gifRightHeight ?? 0}
-                  onChange={(e) => setLocalRightHeight(parseInt(e.target.value))}
-                  onMouseUp={() => {
-                    if (localRightHeight !== null) {
-                      const v = localRightHeight;
-                      updateSettings.mutate({ instacena_gif_right_height: v === 0 ? null : v } as any, { onSuccess: () => toast.success("Altura salva!") });
-                    }
-                  }}
-                  onTouchEnd={() => {
-                    if (localRightHeight !== null) {
-                      const v = localRightHeight;
-                      updateSettings.mutate({ instacena_gif_right_height: v === 0 ? null : v } as any, { onSuccess: () => toast.success("Altura salva!") });
-                    }
-                  }}
-                  className="w-full accent-primary"
-                />
-                <p className="text-[10px] text-muted-foreground">0 = automático (proporcional)</p>
+                {isAdmin && (
+                  <button
+                    onClick={() => setShowRightResize(!showRightResize)}
+                    className="absolute -bottom-3 -right-3 p-1 rounded-full bg-primary text-primary-foreground shadow-lg hover:scale-110 transition-transform"
+                    title="Redimensionar"
+                  >
+                    <Maximize2 className="h-3.5 w-3.5" />
+                  </button>
+                )}
+                {isAdmin && showRightResize && (
+                  <div className="absolute top-full right-0 mt-2 bg-card border border-border rounded-lg shadow-xl p-3 space-y-2 min-w-[200px] z-50" onClick={(e) => e.stopPropagation()}>
+                    <div className="text-xs font-medium">Largura: {localRightSize ?? gifRightSize}px</div>
+                    <input
+                      type="range"
+                      min={80}
+                      max={600}
+                      step={10}
+                      value={localRightSize ?? gifRightSize}
+                      onChange={(e) => setLocalRightSize(parseInt(e.target.value))}
+                      onMouseUp={() => {
+                        if (localRightSize !== null) {
+                          updateSettings.mutate({ instacena_gif_right_size: localRightSize } as any, { onSuccess: () => toast.success("Largura salva!") });
+                        }
+                      }}
+                      onTouchEnd={() => {
+                        if (localRightSize !== null) {
+                          updateSettings.mutate({ instacena_gif_right_size: localRightSize } as any, { onSuccess: () => toast.success("Largura salva!") });
+                        }
+                      }}
+                      className="w-full accent-primary"
+                    />
+                    <div className="text-xs font-medium">Altura: {(localRightHeight ?? gifRightHeight) || "Auto"}{(localRightHeight ?? gifRightHeight) ? "px" : ""}</div>
+                    <input
+                      type="range"
+                      min={0}
+                      max={800}
+                      step={10}
+                      value={localRightHeight ?? gifRightHeight ?? 0}
+                      onChange={(e) => setLocalRightHeight(parseInt(e.target.value))}
+                      onMouseUp={() => {
+                        if (localRightHeight !== null) {
+                          const v = localRightHeight;
+                          updateSettings.mutate({ instacena_gif_right_height: v === 0 ? null : v } as any, { onSuccess: () => toast.success("Altura salva!") });
+                        }
+                      }}
+                      onTouchEnd={() => {
+                        if (localRightHeight !== null) {
+                          const v = localRightHeight;
+                          updateSettings.mutate({ instacena_gif_right_height: v === 0 ? null : v } as any, { onSuccess: () => toast.success("Altura salva!") });
+                        }
+                      }}
+                      className="w-full accent-primary"
+                    />
+                    <p className="text-[10px] text-muted-foreground">0 = automático (proporcional)</p>
+                  </div>
+                )}
               </div>
             )}
           </div>
