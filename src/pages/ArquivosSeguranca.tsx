@@ -210,8 +210,22 @@ export default function ArquivosSeguranca() {
                   onClick={() => setSelectedCategory(cat)}
                 >
                   <CardContent className="flex flex-col items-center justify-center p-6 text-center gap-2">
-                    <img src={catImage} alt={cat} className="h-16 w-16 object-contain" loading="lazy" width={64} height={64} />
-                    <h3 className="font-semibold text-sm sm:text-base">{cat}</h3>
+                    <EditableImage
+                      pageKey="arquivos-seguranca"
+                      elementKey={`cat-icon-${cat}`}
+                      defaultSrc={catImage}
+                      alt={cat}
+                      canEdit={isEditMode}
+                      imgClassName="h-16 w-16 object-contain"
+                    />
+                    <EditableText
+                      pageKey="arquivos-seguranca"
+                      elementKey={`cat-name-${cat}`}
+                      defaultValue={cat}
+                      canEdit={isEditMode}
+                      as="h3"
+                      className="font-semibold text-sm sm:text-base"
+                    />
                     <span className="text-xs text-muted-foreground">
                       {count} {count === 1 ? "arquivo" : "arquivos"}
                     </span>
