@@ -3233,6 +3233,7 @@ export type Database = {
         | "motorista_pipa"
         | "motorista_munk"
         | "visualizador"
+        | "moderador"
       document_status: "pending" | "updated" | "cancelled"
       document_type:
         | "pt"
@@ -3424,6 +3425,7 @@ export const Constants = {
         "motorista_pipa",
         "motorista_munk",
         "visualizador",
+        "moderador",
       ],
       document_status: ["pending", "updated", "cancelled"],
       document_type: [
