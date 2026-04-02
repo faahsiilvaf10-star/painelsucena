@@ -19,7 +19,7 @@ export const VerifiedBadge = forwardRef<HTMLImageElement, VerifiedBadgeProps>(
     return (
       <img 
         ref={ref}
-        src={adminCrown} 
+        src={adminBadge} 
         alt="Administrador" 
         className={cn(
           sizeClasses[size], 
