@@ -1,4 +1,5 @@
 import { useState, useEffect } from "react";
+import { EditablePageTitle } from "@/components/cms/EditablePageTitle";
 import { useNavigate } from "react-router-dom";
 import { ArrowLeft, Droplets, Loader2 } from "lucide-react";
 import { Button } from "@/components/ui/button";
