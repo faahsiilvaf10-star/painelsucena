@@ -768,8 +768,8 @@ const Admin = () => {
               </Card>
             </div>
 
-            {/* Add Role Section */}
-            {usersWithoutRole.length > 0 && (
+            {/* Add Role Section - Only for strict admins */}
+            {canManageRoles && usersWithoutRole.length > 0 && (
               <Card>
                 <CardHeader>
                   <CardTitle className="flex items-center gap-2">
