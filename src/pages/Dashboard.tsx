@@ -3,6 +3,7 @@ import { Users, ClipboardCheck, AlertCircle, Activity } from "lucide-react";
 import { useProfile } from "@/hooks/useProfile";
 import { useSiteSettings } from "@/hooks/useSiteSettings";
 import { SimpleTree } from "@/components/ui/simple-growth-tree";
+import { EditablePageTitle } from "@/components/cms/EditablePageTitle";
 import {
   DndContext,
   closestCenter,
