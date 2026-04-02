@@ -29,10 +29,11 @@ import {
   FileSpreadsheet,
   File,
 } from "lucide-react";
-import { useSecurityFiles, SecurityFile, SECURITY_FILE_CATEGORIES } from "@/hooks/useSecurityFiles";
+import { useSecurityFiles, SecurityFile, SECURITY_FILE_CATEGORIES, ADMIN_ONLY_CATEGORIES } from "@/hooks/useSecurityFiles";
 import { useAuth } from "@/hooks/useAuth";
 import { useProfile } from "@/hooks/useProfile";
 import { useVisualizadorContext } from "@/contexts/VisualizadorContext";
+import { useIsAdmin } from "@/hooks/useUserRole";
 import { format } from "date-fns";
 import { ptBR } from "date-fns/locale";
 import iconEncarregado from "@/assets/icons/icon-encarregado.png";
@@ -43,6 +44,7 @@ import iconPlanejamento from "@/assets/icons/icon-planejamento.png";
 import iconAdministrativo from "@/assets/icons/icon-administrativo.png";
 import iconAlmoxarifado from "@/assets/icons/icon-almoxarifado.png";
 import iconTransporte from "@/assets/icons/icon-transporte.png";
+import iconConfidencial from "@/assets/crown-folder.png";
 import winrarIcon from "@/assets/winrar-icon.png";
 
 const FilePdfIcon = FileText;
