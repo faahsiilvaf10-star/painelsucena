@@ -71,6 +71,7 @@ export function useSiteSettings() {
         primary_color: (data as any).primary_color || null,
         instacena_gif_position: (data as any).instacena_gif_position || { x: 16, y: 80 },
         instacena_gif_size: (data as any).instacena_gif_size || 200,
+        instacena_gif_height: (data as any).instacena_gif_height || null,
         instacena_gif_url: (data as any).instacena_gif_url || null,
       };
     },
