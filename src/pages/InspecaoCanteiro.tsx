@@ -30,6 +30,7 @@ import {
   type SiteInspectionTask,
 } from "@/hooks/useSiteInspections";
 import Layout from "@/components/layout/Layout";
+import { EditablePageTitle } from "@/components/cms/EditablePageTitle";
 import { useInspectionSchedule } from "@/hooks/useInspectionSchedule";
 import { useProfile } from "@/hooks/useProfile";
 import { useIsAdmin as useIsAdminTop } from "@/hooks/useUserRole";
@@ -866,7 +867,7 @@ export default function InspecaoCanteiro() {
             <ClipboardCheck className="h-6 w-6 text-primary" />
           </div>
           <div>
-            <h1 className="text-xl md:text-2xl font-bold text-foreground">Inspeção de Canteiro</h1>
+            <EditablePageTitle pageKey="inspecao-canteiro" defaultValue="Inspeção de Canteiro" className="text-xl md:text-2xl font-bold text-foreground" />
             <p className="text-sm text-muted-foreground">Registre e acompanhe os pontos de melhoria</p>
           </div>
         </div>

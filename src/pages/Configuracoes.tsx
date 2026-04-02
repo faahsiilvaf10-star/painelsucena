@@ -1,6 +1,7 @@
 import { useState, useRef, useEffect } from "react";
 import { useNavigate } from "react-router-dom";
 import Layout from "@/components/layout/Layout";
+import { EditablePageTitle } from "@/components/cms/EditablePageTitle";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -253,7 +254,7 @@ const Configuracoes = () => {
               Voltar
             </Button>
           )}
-          <h1 className="text-xl sm:text-3xl font-bold">Configurações</h1>
+          <EditablePageTitle pageKey="configuracoes" defaultValue="Configurações" className="text-xl sm:text-3xl font-bold" />
           <p className="text-xs sm:text-sm text-muted-foreground">
             Gerencie suas informações pessoais e configurações de conta.
           </p>

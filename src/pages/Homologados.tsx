@@ -1,5 +1,6 @@
 import { useState, useMemo } from "react";
 import Layout from "@/components/layout/Layout";
+import { EditablePageTitle } from "@/components/cms/EditablePageTitle";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
 import { Badge } from "@/components/ui/badge";
@@ -92,7 +93,7 @@ const Homologados = () => {
         {/* Header */}
         <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">
           <div>
-            <h1 className="text-2xl font-bold text-foreground">Catálogo Homologado</h1>
+            <EditablePageTitle pageKey="homologados" defaultValue="Catálogo Homologado" className="text-2xl font-bold text-foreground" />
             <p className="text-muted-foreground">
               Consulte produtos químicos e ferramentas homologados para uso na operação
             </p>

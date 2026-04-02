@@ -1,5 +1,6 @@
 import { useState, useRef } from "react";
 import Layout from "@/components/layout/Layout";
+import { EditablePageTitle } from "@/components/cms/EditablePageTitle";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -189,7 +190,7 @@ export default function ArquivosSeguranca() {
       <Layout>
         <div className="space-y-4 sm:space-y-6 px-3 sm:px-6 py-3 sm:py-6">
           <div>
-            <h1 className="text-xl sm:text-3xl font-bold tracking-tight">Documentos Salvos</h1>
+            <EditablePageTitle pageKey="arquivos-seguranca" defaultValue="Documentos Salvos" className="text-xl sm:text-3xl font-bold tracking-tight" />
             <p className="text-xs sm:text-sm text-muted-foreground">
               Selecione a categoria para visualizar os documentos
             </p>

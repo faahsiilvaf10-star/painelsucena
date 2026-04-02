@@ -1,5 +1,6 @@
 import { useState, useRef } from "react";
 import Layout from "@/components/layout/Layout";
+import { EditablePageTitle } from "@/components/cms/EditablePageTitle";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -284,7 +285,7 @@ export default function InspecaoExtintores() {
           <div className="flex items-center gap-3">
             <FlameKindling className="h-7 w-7 text-red-500" />
             <div>
-              <h1 className="text-2xl font-bold text-foreground">Inspeção de Extintores</h1>
+              <EditablePageTitle pageKey="inspecao-extintores" defaultValue="Inspeção de Extintores" className="text-2xl font-bold text-foreground" />
               <p className="text-sm text-muted-foreground">Controle de prevenção contra incêndio</p>
             </div>
           </div>

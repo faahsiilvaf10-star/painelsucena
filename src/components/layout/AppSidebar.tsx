@@ -1,5 +1,5 @@
 import * as React from "react";
-import { Users, ClipboardList, Grid3X3, LayoutDashboard, FileBarChart, LogOut, LogIn, AlertTriangle, PanelLeftClose, PanelLeft, Settings, Sun, Truck, Bell, FileText, LucideIcon, Heart, ShoppingCart, Package, GripVertical, User, FolderOpen, ShieldCheck, Leaf, Hammer, ClipboardCheck, BadgeCheck, Link2, ArrowLeftRight, Clock, FolderLock, Droplets, Wrench, Presentation, Newspaper, HardHat, CalendarDays, Gamepad2, TriangleAlert, Target, Receipt, FlameKindling } from "lucide-react";
+import { Users, ClipboardList, Grid3X3, LayoutDashboard, FileBarChart, LogOut, LogIn, AlertTriangle, PanelLeftClose, PanelLeft, Settings, Sun, Truck, Bell, FileText, LucideIcon, Heart, ShoppingCart, Package, GripVertical, User, FolderOpen, ShieldCheck, Leaf, Hammer, ClipboardCheck, BadgeCheck, Link2, ArrowLeftRight, Clock, FolderLock, Droplets, Wrench, Presentation, Newspaper, HardHat, CalendarDays, Gamepad2, TriangleAlert, Target, Receipt, FlameKindling, Pencil, PencilOff } from "lucide-react";
 import { Link, useLocation, useNavigate } from "react-router-dom";
 import { useMemo } from "react";
 
@@ -50,6 +50,8 @@ import { formatCargoLabel } from "@/lib/cargoUtils";
 import sidebarArrowLeft from "@/assets/sidebar-arrow-left.png";
 import sidebarArrowRight from "@/assets/sidebar-arrow-right.png";
 import sidebarCollapsedLogo from "@/assets/sidebar-collapsed-logo.png";
+import { useEditMode } from "@/contexts/EditModeContext";
+import { EditableText } from "@/components/cms/EditableText";
 
 interface NavItem {
   id: string;
@@ -108,12 +110,14 @@ function SortableNavItem({
   isCollapsed,
   showGrip,
   onNavigate,
+  editMode,
 }: {
   item: NavItem;
   isActive: boolean;
   isCollapsed: boolean;
   showGrip: boolean;
   onNavigate?: () => void;
+  editMode?: boolean;
 }) {
   const {
     attributes,
@@ -155,11 +159,14 @@ function SortableNavItem({
               item.isEmergency ? "text-red-500 animate-pulse" : ""
             }`}
           />
-          <span
+          <EditableText
+            pageKey="sidebar"
+            elementKey={`nav-${item.id}`}
+            defaultValue={item.label}
             className={`font-medium text-sm md:text-base truncate ${item.isEmergency ? "text-red-500" : ""}`}
-          >
-            {item.label}
-          </span>
+            as="span"
+            canEdit={!!editMode}
+          />
         </Link>
       </SidebarMenuButton>
     </SidebarMenuItem>
@@ -171,6 +178,7 @@ export function AppSidebar({ lockedCollapsed = false }: { lockedCollapsed?: bool
   const navigate = useNavigate();
   const { user, signOut } = useAuth();
   const { isAdmin } = useIsAdmin();
+  const { isEditMode, toggleEditMode, canEdit } = useEditMode();
   const { state, toggleSidebar, setOpen, isMobile: sidebarIsMobile } = useSidebar();
   const { settings, updateSettings } = useSiteSettings();
   const { data: profile } = useProfile();
@@ -493,6 +501,7 @@ export function AppSidebar({ lockedCollapsed = false }: { lockedCollapsed?: bool
                           isCollapsed={isCollapsed}
                           showGrip={isAdmin}
                           onNavigate={handleMobileClose}
+                          editMode={isEditMode}
                         />
                       );
                     })}
@@ -537,6 +546,21 @@ export function AppSidebar({ lockedCollapsed = false }: { lockedCollapsed?: bool
                     title="Administração"
                   >
                     <ShieldCheck className="h-5 w-5" />
+                  </Button>
+                )}
+                {canEdit && (
+                  <Button
+                    variant="ghost"
+                    size="icon"
+                    onClick={toggleEditMode}
+                    className={`h-10 w-10 md:h-9 md:w-9 transition-colors ${
+                      isEditMode 
+                        ? "text-primary bg-primary/20 hover:bg-primary/30" 
+                        : "text-sidebar-foreground/70 hover:text-sidebar-foreground hover:bg-sidebar-accent"
+                    }`}
+                    title={isEditMode ? "Desativar modo edição" : "Ativar modo edição"}
+                  >
+                    {isEditMode ? <PencilOff className="h-5 w-5" /> : <Pencil className="h-5 w-5" />}
                   </Button>
                 )}
                 <Button

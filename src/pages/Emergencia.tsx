@@ -1,5 +1,6 @@
 import { Phone, Radio, PhoneCall, Heart, Flame, Leaf, Bug, MapPin, Info } from "lucide-react";
 import Layout from "@/components/layout/Layout";
+import { EditablePageTitle } from "@/components/cms/EditablePageTitle";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 
 const Emergencia = () => {
@@ -13,7 +14,7 @@ const Emergencia = () => {
               <Phone className="w-5 h-5 sm:w-6 sm:h-6 text-destructive" />
             </div>
             <div>
-              <h1 className="text-xl sm:text-3xl font-bold">Contatos de Emergência</h1>
+              <EditablePageTitle pageKey="emergencia" defaultValue="Contatos de Emergência" className="text-xl sm:text-3xl font-bold" />
               <p className="text-xs sm:text-sm text-muted-foreground">Procedimentos e comunicação em caso de acidentes.</p>
             </div>
           </div>

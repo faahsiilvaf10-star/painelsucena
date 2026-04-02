@@ -1,5 +1,6 @@
 import { useState } from "react";
 import Layout from "@/components/layout/Layout";
+import { EditablePageTitle } from "@/components/cms/EditablePageTitle";
 import { Card, CardContent } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
@@ -134,7 +135,7 @@ export default function Games() {
                 <Gamepad2 className="w-6 h-6 text-primary" />
               </div>
               <div>
-                <h1 className="text-xl md:text-2xl font-bold text-foreground">Games</h1>
+                <EditablePageTitle pageKey="games" defaultValue="Games" className="text-xl md:text-2xl font-bold text-foreground" />
                 <p className="text-sm text-muted-foreground">Jogos educativos sobre segurança e meio ambiente</p>
               </div>
             </div>

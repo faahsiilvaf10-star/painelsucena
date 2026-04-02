@@ -1,6 +1,7 @@
 import { useState, useMemo, useEffect, useCallback } from "react";
 import { Search, Users, Phone, Calendar, Hash, MapPin, Filter, X, ChevronDown, ChevronUp, ShieldCheck, AlertTriangle, CircleAlert, Pencil, Save, History, ArrowDownAZ, ArrowUpAZ } from "lucide-react";
 import Layout from "@/components/layout/Layout";
+import { EditablePageTitle } from "@/components/cms/EditablePageTitle";
 import { Input } from "@/components/ui/input";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
@@ -312,7 +313,7 @@ const RH = () => {
         {/* Header */}
         <div className="flex flex-col md:flex-row md:items-center justify-between gap-4 mb-6">
           <div>
-            <h1 className="text-2xl sm:text-4xl font-bold mb-2">Efetivo</h1>
+            <EditablePageTitle pageKey="rh" defaultValue="Efetivo" className="text-2xl sm:text-4xl font-bold mb-2" />
             <p className="text-muted-foreground">
               Quadro de colaboradores ativos: <span className="font-semibold text-primary">{colaboradores.length}</span> funcionários
             </p>

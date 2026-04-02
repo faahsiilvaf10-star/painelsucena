@@ -3,6 +3,7 @@ import { Users, ClipboardCheck, AlertCircle, Activity } from "lucide-react";
 import { useProfile } from "@/hooks/useProfile";
 import { useSiteSettings } from "@/hooks/useSiteSettings";
 import { SimpleTree } from "@/components/ui/simple-growth-tree";
+import { EditablePageTitle } from "@/components/cms/EditablePageTitle";
 import {
   DndContext,
   closestCenter,
@@ -190,12 +191,12 @@ const Dashboard = () => {
             </div>
           ) : (
             <div>
-              <h1
+              <EditablePageTitle
+                pageKey="dashboard"
+                defaultValue="Dashboard"
                 className="text-xl sm:text-3xl font-bold"
-                style={{ color: "hsl(30, 15%, 18%)", fontFamily: "'Georgia', serif" }}
-              >
-                Dashboard
-              </h1>
+                as="h1"
+              />
               <p className="text-sm mt-0.5" style={{ color: "hsl(30, 10%, 50%)" }}>
                 Visão geral da operação
               </p>
