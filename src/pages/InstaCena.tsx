@@ -172,7 +172,7 @@ const InstaCena = () => {
               onPointerDown={onPointerDown}
               onPointerMove={onPointerMove}
               onPointerUp={onPointerUp}
-              onWheel={onWheel}
+              
               className={cn(
                 "select-none",
                 isAdmin ? "cursor-grab active:cursor-grabbing" : "pointer-events-none"
