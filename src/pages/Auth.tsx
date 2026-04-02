@@ -12,6 +12,7 @@ import { AuthBackground } from "@/components/auth/AuthBackground";
 import { useSiteSettings } from "@/hooks/useSiteSettings";
 
 const cargoOptions = [
+  { value: "moderador", label: "Moderador" },
   { value: "preposto", label: "Preposto" },
   { value: "encarregado_geral", label: "Encarregado Geral" },
   { value: "encarregado_i", label: "Encarregado I" },

@@ -49,6 +49,7 @@ const NAV_ITEMS = [
 
 // All cargo types
 const CARGO_TYPES = [
+  { id: "moderador", label: "Moderador" },
   { id: "preposto", label: "Preposto" },
   { id: "encarregado_geral", label: "Encarregado Geral" },
   { id: "encarregado_i", label: "Encarregado I" },
