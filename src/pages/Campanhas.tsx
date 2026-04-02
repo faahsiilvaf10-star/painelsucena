@@ -1,8 +1,13 @@
+import { useState } from "react";
 import Layout from "@/components/layout/Layout";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { Ribbon, Heart, Calendar } from "lucide-react";
 import { campaignData, MonthCampaign } from "@/data/campaignData";
+import { useIsAdmin } from "@/hooks/useUserRole";
+import { EditableText } from "@/components/cms/EditableText";
+import { EditableImage } from "@/components/cms/EditableImage";
+import { EditModeToggle } from "@/components/cms/EditModeToggle";
 
 const CAMPAIGN_BANNERS: Record<number, string> = {
   2: "/campaigns/campanha-2.png",
@@ -20,6 +25,9 @@ const CAMPAIGN_BANNERS: Record<number, string> = {
 
 const Campanhas = () => {
   const currentMonth = new Date().getMonth() + 1;
+  const { isAdmin, isModerator } = useIsAdmin();
+  const canEdit = isAdmin || isModerator;
+  const [editMode, setEditMode] = useState(false);
 
   const MonthCard = ({ monthData }: { monthData: MonthCampaign }) => {
     const isCurrentMonth = monthData.month === currentMonth;
@@ -38,11 +46,22 @@ const Campanhas = () => {
         )}
 
         {bannerSrc ? (
-          <img
-            src={bannerSrc}
-            alt={`Banner ${monthData.monthName}`}
-            className="w-full object-cover"
-          />
+          editMode ? (
+            <EditableImage
+              pageKey="campanhas"
+              elementKey={`banner-month-${monthData.month}`}
+              defaultSrc={bannerSrc}
+              alt={`Banner ${monthData.monthName}`}
+              canEdit={editMode}
+              imgClassName="w-full object-cover"
+            />
+          ) : (
+            <img
+              src={bannerSrc}
+              alt={`Banner ${monthData.monthName}`}
+              className="w-full object-cover"
+            />
+          )
         ) : (
           <CardHeader className="pb-4">
             <div className="flex items-center gap-4">
@@ -76,7 +95,14 @@ const Campanhas = () => {
         )}
 
         <CardContent className="space-y-3 pt-4">
-          <h3 className="text-lg font-semibold">{monthData.monthName}</h3>
+          <EditableText
+            pageKey="campanhas"
+            elementKey={`month-title-${monthData.month}`}
+            defaultValue={monthData.monthName}
+            className="text-lg font-semibold"
+            as="h3"
+            canEdit={editMode}
+          />
           {monthData.campaigns.map((campaign, idx) => (
             <div
               key={idx}
@@ -86,10 +112,22 @@ const Campanhas = () => {
                 backgroundColor: `${campaign.color}08`,
               }}
             >
-              <h4 className="font-semibold text-sm mb-1" style={{ color: campaign.color }}>
-                {campaign.name}
-              </h4>
-              <p className="text-sm text-muted-foreground">{campaign.description}</p>
+              <EditableText
+                pageKey="campanhas"
+                elementKey={`campaign-name-${monthData.month}-${idx}`}
+                defaultValue={campaign.name}
+                className="font-semibold text-sm mb-1"
+                as="h4"
+                canEdit={editMode}
+              />
+              <EditableText
+                pageKey="campanhas"
+                elementKey={`campaign-desc-${monthData.month}-${idx}`}
+                defaultValue={campaign.description}
+                className="text-sm text-muted-foreground"
+                as="p"
+                canEdit={editMode}
+              />
             </div>
           ))}
         </CardContent>
@@ -101,29 +139,57 @@ const Campanhas = () => {
     <Layout>
       <div className="container mx-auto px-3 sm:px-6 py-4 sm:py-8">
         <div className="mb-6 sm:mb-8 animate-fade-in">
-          <div className="flex items-center gap-2 sm:gap-3 mb-3 sm:mb-4">
-            <div className="p-2 sm:p-3 rounded-full bg-primary/10">
-              <Heart className="h-6 w-6 sm:h-8 sm:w-8 text-primary" />
+          <div className="flex items-center justify-between gap-2 sm:gap-3 mb-3 sm:mb-4">
+            <div className="flex items-center gap-2 sm:gap-3">
+              <div className="p-2 sm:p-3 rounded-full bg-primary/10">
+                <Heart className="h-6 w-6 sm:h-8 sm:w-8 text-primary" />
+              </div>
+              <div>
+                <h1 className="text-xl sm:text-3xl md:text-4xl font-bold">
+                  <EditableText
+                    pageKey="campanhas"
+                    elementKey="page-title"
+                    defaultValue="Campanhas de"
+                    canEdit={editMode}
+                    as="span"
+                  />{" "}
+                  <span className="text-gradient">
+                    <EditableText
+                      pageKey="campanhas"
+                      elementKey="page-title-highlight"
+                      defaultValue="Conscientização"
+                      canEdit={editMode}
+                      as="span"
+                    />
+                  </span>
+                </h1>
+                <EditableText
+                  pageKey="campanhas"
+                  elementKey="page-subtitle"
+                  defaultValue="Cores e causas que importam durante todo o ano"
+                  className="text-xs sm:text-sm text-muted-foreground mt-1"
+                  as="p"
+                  canEdit={editMode}
+                />
+              </div>
             </div>
-            <div>
-              <h1 className="text-xl sm:text-3xl md:text-4xl font-bold">
-                Campanhas de <span className="text-gradient">Conscientização</span>
-              </h1>
-              <p className="text-xs sm:text-sm text-muted-foreground mt-1">
-                Cores e causas que importam durante todo o ano
-              </p>
-            </div>
+            {canEdit && (
+              <EditModeToggle isEditMode={editMode} onToggle={() => setEditMode(!editMode)} />
+            )}
           </div>
 
           <Card className="bg-gradient-to-r from-primary/10 via-secondary/10 to-accent/10 border-none mt-4 sm:mt-6">
             <CardContent className="py-3 sm:py-4">
               <div className="flex items-start gap-2 sm:gap-3">
                 <Calendar className="h-4 w-4 sm:h-5 sm:w-5 text-primary mt-0.5 flex-shrink-0" />
-                <p className="text-xs sm:text-sm text-muted-foreground">
-                  Durante o ano, diversas campanhas de conscientização utilizam cores específicas para
-                  alertar sobre doenças, estimular a prevenção e promover o cuidado com a saúde.
-                  Conheça todas as causas, mês a mês.
-                </p>
+                <EditableText
+                  pageKey="campanhas"
+                  elementKey="info-text"
+                  defaultValue="Durante o ano, diversas campanhas de conscientização utilizam cores específicas para alertar sobre doenças, estimular a prevenção e promover o cuidado com a saúde. Conheça todas as causas, mês a mês."
+                  className="text-xs sm:text-sm text-muted-foreground"
+                  as="p"
+                  canEdit={editMode}
+                />
               </div>
             </CardContent>
           </Card>
