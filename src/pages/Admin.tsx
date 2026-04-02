@@ -40,7 +40,7 @@ interface UserWithRole {
 
 const Admin = () => {
   const { user, loading: authLoading } = useAuth();
-  const { isAdmin, isLoading: adminLoading } = useIsAdmin();
+  const { isAdmin, isStrictAdmin, isModerator, isLoading: adminLoading } = useIsAdmin();
   const { settings, updateSettings, uploadLogo, isLoading: settingsLoading } = useSiteSettings();
   const navigate = useNavigate();
   const queryClient = useQueryClient();
