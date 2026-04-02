@@ -264,7 +264,7 @@ export const ChatPopup = ({ user: selectedUser, onClose, onExpand }: ChatPopupPr
           )}
           {liveUser.isAdmin && (
             <div className="absolute -top-1 -right-1">
-              <VerifiedBadge size="xs" />
+              {liveUser.isModerator ? <ModeratorBadge size="xs" /> : <VerifiedBadge size="xs" />}
             </div>
           )}
         </div>
