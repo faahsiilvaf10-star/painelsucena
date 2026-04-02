@@ -269,6 +269,26 @@ const InstaCena = () => {
                       className="w-full accent-primary"
                     />
                     <p className="text-[10px] text-muted-foreground">0 = automático (proporcional)</p>
+                    <div className="text-xs font-medium">Opacidade: {Math.round((localOpacity ?? gifOpacity) * 100)}%</div>
+                    <input
+                      type="range"
+                      min={5}
+                      max={100}
+                      step={5}
+                      value={Math.round((localOpacity ?? gifOpacity) * 100)}
+                      onChange={(e) => setLocalOpacity(parseInt(e.target.value) / 100)}
+                      onMouseUp={() => {
+                        if (localOpacity !== null) {
+                          updateSettings.mutate({ instacena_gif_opacity: localOpacity } as any, { onSuccess: () => toast.success("Opacidade salva!") });
+                        }
+                      }}
+                      onTouchEnd={() => {
+                        if (localOpacity !== null) {
+                          updateSettings.mutate({ instacena_gif_opacity: localOpacity } as any, { onSuccess: () => toast.success("Opacidade salva!") });
+                        }
+                      }}
+                      className="w-full accent-primary"
+                    />
                   </div>
                 )}
               </div>
