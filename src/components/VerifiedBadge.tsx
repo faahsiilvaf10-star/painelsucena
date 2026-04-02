@@ -1,5 +1,5 @@
 import { forwardRef } from "react";
-import verifiedBadge from "@/assets/verified-badge.png";
+import adminCrown from "@/assets/admin-crown.png";
 import { cn } from "@/lib/utils";
 
 interface VerifiedBadgeProps {
@@ -19,8 +19,8 @@ export const VerifiedBadge = forwardRef<HTMLImageElement, VerifiedBadgeProps>(
     return (
       <img 
         ref={ref}
-        src={verifiedBadge} 
-        alt="Verificado" 
+        src={adminCrown} 
+        alt="Administrador" 
         className={cn(
           sizeClasses[size], 
           "animate-pulse-soft",
