@@ -108,7 +108,7 @@ const InstaCena = () => {
     offset.current = { x: e.clientX - rect.left, y: e.clientY - rect.top };
     (e.target as HTMLElement).setPointerCapture(e.pointerId);
     e.preventDefault();
-  }, [isAdmin]);
+  }, [isEditMode]);
 
   const onPointerMove = useCallback((e: React.PointerEvent) => {
     if (!dragging.current) return;
