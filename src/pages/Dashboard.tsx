@@ -190,12 +190,12 @@ const Dashboard = () => {
             </div>
           ) : (
             <div>
-              <h1
+              <EditablePageTitle
+                pageKey="dashboard"
+                defaultValue="Dashboard"
                 className="text-xl sm:text-3xl font-bold"
-                style={{ color: "hsl(30, 15%, 18%)", fontFamily: "'Georgia', serif" }}
-              >
-                Dashboard
-              </h1>
+                as="h1"
+              />
               <p className="text-sm mt-0.5" style={{ color: "hsl(30, 10%, 50%)" }}>
                 Visão geral da operação
               </p>
