@@ -1,4 +1,5 @@
 import { useState } from "react";
+import { EditablePageTitle } from "@/components/cms/EditablePageTitle";
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import { supabase } from "@/integrations/supabase/client";
 import { useAuth } from "@/hooks/useAuth";
