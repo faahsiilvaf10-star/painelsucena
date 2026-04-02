@@ -49,75 +49,79 @@ const InstaCena = () => {
 
   return (
     <Layout>
-      <div className="relative">
-        <img
-          src={instaCenaEaster}
-          alt=""
-          className="fixed left-0 top-1/2 -translate-y-1/2 w-[200px] h-auto z-10 pointer-events-none hidden lg:block"
-          style={{ borderRadius: 0, maxHeight: 'calc(100vh - 80px)', objectFit: 'contain' }}
-        />
-        <div className="max-w-xl mx-auto px-3 sm:px-4 py-1 space-y-4 overflow-x-hidden">
-        <div className="flex items-center justify-between gap-2 flex-wrap">
-          <img src={instaCenaLogo} alt="InstaCena" className="h-32 object-contain" />
-          <div className="flex items-center gap-2">
-            <Tabs value={filter} onValueChange={(v) => setFilter(v as typeof filter)}>
-              <TabsList className="h-8">
-                <TabsTrigger value="posts" className="text-xs px-3 h-6">Posts</TabsTrigger>
-                <TabsTrigger value="logs" className="text-xs px-3 h-6">Logs</TabsTrigger>
-              </TabsList>
-            </Tabs>
+      <div className="mx-auto flex max-w-[1180px] items-start gap-4 px-3 sm:px-4">
+        <aside className="hidden lg:block w-[200px] shrink-0 xl:w-[220px]">
+          <img
+            src={instaCenaEaster}
+            alt=""
+            className="sticky top-0 w-full h-auto pointer-events-none"
+            style={{ borderRadius: 0, maxHeight: "calc(100vh - 24px)", objectFit: "contain" }}
+          />
+        </aside>
+        <div className="min-w-0 flex-1">
+          <div className="max-w-xl mx-auto py-1 space-y-4 overflow-x-hidden">
+          <div className="flex items-center justify-between gap-2 flex-wrap">
+            <img src={instaCenaLogo} alt="InstaCena" className="h-32 object-contain" />
+            <div className="flex items-center gap-2">
+              <Tabs value={filter} onValueChange={(v) => setFilter(v as typeof filter)}>
+                <TabsList className="h-8">
+                  <TabsTrigger value="posts" className="text-xs px-3 h-6">Posts</TabsTrigger>
+                  <TabsTrigger value="logs" className="text-xs px-3 h-6">Logs</TabsTrigger>
+                </TabsList>
+              </Tabs>
+            </div>
           </div>
-        </div>
 
-        <div className="flex items-center gap-2 flex-wrap">
-          <Select value={selectedMonth} onValueChange={(v) => { setSelectedMonth(v); if (v !== "all") setSelectedDate(undefined); }}>
-            <SelectTrigger className={cn("h-8 w-[130px] text-xs", selectedMonth !== "all" && "border-primary text-primary")}>
-              <SelectValue placeholder="Mês" />
-            </SelectTrigger>
-            <SelectContent>
-              <SelectItem value="all">Todos os meses</SelectItem>
-              {MONTHS.map((m, i) => (
-                <SelectItem key={i} value={i.toString()}>{m}</SelectItem>
-              ))}
-            </SelectContent>
-          </Select>
-          <Popover>
-            <PopoverTrigger asChild>
-              <Button variant="outline" size="sm" className={cn("h-8 gap-1 text-xs", selectedDate && "border-primary text-primary")}>
-                <CalendarIcon className="h-3.5 w-3.5" />
-                {selectedDate ? format(selectedDate, "dd/MM", { locale: ptBR }) : "Dia"}
+          <div className="flex items-center gap-2 flex-wrap">
+            <Select value={selectedMonth} onValueChange={(v) => { setSelectedMonth(v); if (v !== "all") setSelectedDate(undefined); }}>
+              <SelectTrigger className={cn("h-8 w-[130px] text-xs", selectedMonth !== "all" && "border-primary text-primary")}>
+                <SelectValue placeholder="Mês" />
+              </SelectTrigger>
+              <SelectContent>
+                <SelectItem value="all">Todos os meses</SelectItem>
+                {MONTHS.map((m, i) => (
+                  <SelectItem key={i} value={i.toString()}>{m}</SelectItem>
+                ))}
+              </SelectContent>
+            </Select>
+            <Popover>
+              <PopoverTrigger asChild>
+                <Button variant="outline" size="sm" className={cn("h-8 gap-1 text-xs", selectedDate && "border-primary text-primary")}>
+                  <CalendarIcon className="h-3.5 w-3.5" />
+                  {selectedDate ? format(selectedDate, "dd/MM", { locale: ptBR }) : "Dia"}
+                </Button>
+              </PopoverTrigger>
+              <PopoverContent className="w-auto p-0" align="start">
+                <Calendar
+                  mode="single"
+                  selected={selectedDate}
+                  onSelect={(d) => { setSelectedDate(d); if (d) setSelectedMonth("all"); }}
+                  className={cn("p-3 pointer-events-auto")}
+                  locale={ptBR}
+                />
+              </PopoverContent>
+            </Popover>
+            {hasActiveFilter && (
+              <Button variant="ghost" size="sm" className="h-8 text-xs gap-1" onClick={clearFilters}>
+                <X className="h-3.5 w-3.5" /> Limpar
               </Button>
-            </PopoverTrigger>
-            <PopoverContent className="w-auto p-0" align="start">
-              <Calendar
-                mode="single"
-                selected={selectedDate}
-                onSelect={(d) => { setSelectedDate(d); if (d) setSelectedMonth("all"); }}
-                className={cn("p-3 pointer-events-auto")}
-                locale={ptBR}
-              />
-            </PopoverContent>
-          </Popover>
-          {hasActiveFilter && (
-            <Button variant="ghost" size="sm" className="h-8 text-xs gap-1" onClick={clearFilters}>
-              <X className="h-3.5 w-3.5" /> Limpar
-            </Button>
-          )}
-        </div>
-
-        <CreatePostCard />
-
-        {isLoading ? (
-          <div className="flex justify-center py-12">
-            <Loader2 className="h-8 w-8 animate-spin text-muted-foreground" />
+            )}
           </div>
-        ) : filteredPosts && filteredPosts.length > 0 ? (
-          filteredPosts.map((post) => <PostCard key={post.id} post={post} />)
-        ) : (
-          <p className="text-center text-muted-foreground py-12 text-sm">
-            Nenhuma publicação encontrada. 🔍
-          </p>
-        )}
+
+          <CreatePostCard />
+
+          {isLoading ? (
+            <div className="flex justify-center py-12">
+              <Loader2 className="h-8 w-8 animate-spin text-muted-foreground" />
+            </div>
+          ) : filteredPosts && filteredPosts.length > 0 ? (
+            filteredPosts.map((post) => <PostCard key={post.id} post={post} />)
+          ) : (
+            <p className="text-center text-muted-foreground py-12 text-sm">
+              Nenhuma publicação encontrada. 🔍
+            </p>
+          )}
+          </div>
         </div>
       </div>
     </Layout>
