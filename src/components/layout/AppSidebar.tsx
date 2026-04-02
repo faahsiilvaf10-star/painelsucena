@@ -188,6 +188,7 @@ export function AppSidebar({ lockedCollapsed = false }: { lockedCollapsed?: bool
   const navigate = useNavigate();
   const { user, signOut } = useAuth();
   const { isAdmin } = useIsAdmin();
+  const { isEditMode, toggleEditMode, canEdit } = useEditMode();
   const { state, toggleSidebar, setOpen, isMobile: sidebarIsMobile } = useSidebar();
   const { settings, updateSettings } = useSiteSettings();
   const { data: profile } = useProfile();
