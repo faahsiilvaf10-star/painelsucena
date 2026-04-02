@@ -26,6 +26,7 @@ import { ptBR } from "date-fns/locale";
 import { cn } from "@/lib/utils";
 import { toast } from "sonner";
 import { VerifiedBadge } from "@/components/VerifiedBadge";
+import { ModeratorBadge } from "@/components/ModeratorBadge";
 import { formatCargoLabel } from "@/lib/cargoUtils";
 
 // Format last seen time in a user-friendly way
@@ -281,7 +282,7 @@ export const ChatDialog = ({
             <div className="flex-1 min-w-0">
               <DialogTitle className="text-white text-base font-medium flex items-center gap-1 truncate">
                 {selectedUser.full_name}
-                {selectedUser.isAdmin && <VerifiedBadge size="xs" />}
+                {selectedUser.isModerator ? <ModeratorBadge size="xs" /> : selectedUser.isAdmin && <VerifiedBadge size="xs" />}
               </DialogTitle>
               <p className="text-white/70 text-xs truncate">
                 {isOtherTyping ? (

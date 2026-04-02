@@ -7,6 +7,7 @@ import chatBubbleIcon from "@/assets/chat-bubble-icon.png";
 import { cn } from "@/lib/utils";
 import { Tooltip, TooltipContent, TooltipTrigger } from "@/components/ui/tooltip";
 import { VerifiedBadge } from "@/components/VerifiedBadge";
+import { ModeratorBadge } from "@/components/ModeratorBadge";
 import { formatDistanceToNow } from "date-fns";
 import { ptBR } from "date-fns/locale";
 import { formatCargoLabel } from "@/lib/cargoUtils";
@@ -129,7 +130,7 @@ const UserRow = ({ user, isTyping, onClick }: { user: UserWithStatus; isTyping: 
               <span className="text-xs font-medium truncate text-foreground">
                 {user.full_name.split(" ")[0]}
               </span>
-              {user.isAdmin && <VerifiedBadge size="xs" />}
+              {user.isModerator ? <ModeratorBadge size="xs" /> : user.isAdmin && <VerifiedBadge size="xs" />}
             </div>
             {isTyping ? (
               <span className="text-[10px] text-green-500 italic">digitando...</span>

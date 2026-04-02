@@ -114,6 +114,7 @@ export const ChatPopupManager = forwardRef<ChatPopupManagerHandle>((_props, ref)
                 isOnline: false,
                 isCurrentUser: false,
                 isAdmin: false,
+                isModerator: false,
               };
               openPopup(newUser);
             }
