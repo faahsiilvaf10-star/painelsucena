@@ -53,7 +53,7 @@ const InstaCena = () => {
         <img
           src={instaCenaEaster}
           alt=""
-          className="fixed left-2 bottom-24 w-28 h-auto z-10 pointer-events-none hidden lg:block"
+          className="absolute -left-36 top-1/3 w-28 h-auto z-10 pointer-events-none hidden xl:block"
           style={{ borderRadius: 0 }}
         />
         <div className="flex items-center justify-between gap-2 flex-wrap">
