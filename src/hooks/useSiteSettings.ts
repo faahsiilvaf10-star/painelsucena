@@ -53,6 +53,7 @@ export function useSiteSettings() {
           primary_color: null,
           instacena_gif_position: { x: 16, y: 80 },
           instacena_gif_size: 200,
+          instacena_gif_height: null,
           instacena_gif_url: null,
           updated_at: new Date().toISOString(),
           updated_by: null,
