@@ -17,6 +17,7 @@ import { cn } from "@/lib/utils";
 import { useIsAdmin } from "@/hooks/useUserRole";
 import { useSiteSettings } from "@/hooks/useSiteSettings";
 import { toast } from "sonner";
+import { useEditMode } from "@/contexts/EditModeContext";
 
 const MONTHS = [
   "Janeiro", "Fevereiro", "Março", "Abril", "Maio", "Junho",
