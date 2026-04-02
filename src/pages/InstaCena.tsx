@@ -168,8 +168,8 @@ const InstaCena = () => {
       <div className="relative min-h-screen">
         {showGif && (
           <div
-            className={cn("fixed z-10 hidden lg:block animate-gif-float", !isAdmin && "pointer-events-none")}
-            style={{ left: currentPos.x, top: currentPos.y }}
+            className={cn("absolute z-10 hidden lg:block animate-gif-float", !isAdmin && "pointer-events-none")}
+            style={{ left: currentPos.x, top: currentPos.y + scrollY, transition: "top 0.3s ease-out" }}
           >
             <img
               src={gifUrl || instaCenaEaster}
