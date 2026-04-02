@@ -25,6 +25,7 @@ import type { Database } from "@/integrations/supabase/types";
 type CargoType = Database["public"]["Enums"]["cargo_type"];
 
 const cargoLabels: Record<CargoType, string> = {
+  moderador: "Moderador",
   preposto: "Preposto",
   encarregado_geral: "Encarregado Geral",
   encarregado_i: "Encarregado I",
