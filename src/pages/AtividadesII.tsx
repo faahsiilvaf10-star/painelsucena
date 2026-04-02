@@ -592,7 +592,7 @@ export default function AtividadesII() {
               <Hammer className="h-5 w-5 sm:h-6 sm:w-6 text-orange-500" />
             </div>
             <div className="min-w-0">
-              <h1 className="text-lg sm:text-2xl font-bold">Atividades II - Gabião</h1>
+              <EditablePageTitle pageKey="atividades-ii" defaultValue="Atividades II - Gabião" className="text-lg sm:text-2xl font-bold" />
               <p className="text-sm text-muted-foreground truncate">{capitalizedDate}</p>
             </div>
           </div>
