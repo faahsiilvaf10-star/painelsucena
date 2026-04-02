@@ -37,9 +37,11 @@ const InstaCena = () => {
   const gifSize = settings.instacena_gif_size || 200;
   const gifHeight = settings.instacena_gif_height;
   const gifUrl = settings.instacena_gif_url;
+  const gifOpacity = settings.instacena_gif_opacity ?? 1;
   const [dragPos, setDragPos] = useState<{ x: number; y: number } | null>(null);
   const [localSize, setLocalSize] = useState<number | null>(null);
   const [localHeight, setLocalHeight] = useState<number | null>(null);
+  const [localOpacity, setLocalOpacity] = useState<number | null>(null);
   const [showLeftResize, setShowLeftResize] = useState(false);
   const dragging = useRef(false);
   const offset = useRef({ x: 0, y: 0 });
@@ -49,9 +51,11 @@ const InstaCena = () => {
   const gifRightSize = settings.instacena_gif_right_size || 200;
   const gifRightHeight = settings.instacena_gif_right_height;
   const gifRightUrl = settings.instacena_gif_right_url;
+  const gifRightOpacity = settings.instacena_gif_right_opacity ?? 1;
   const [dragRightPos, setDragRightPos] = useState<{ x: number; y: number } | null>(null);
   const [localRightSize, setLocalRightSize] = useState<number | null>(null);
   const [localRightHeight, setLocalRightHeight] = useState<number | null>(null);
+  const [localRightOpacity, setLocalRightOpacity] = useState<number | null>(null);
   const [showRightResize, setShowRightResize] = useState(false);
   const draggingRight = useRef(false);
   const offsetRight = useRef({ x: 0, y: 0 });
@@ -64,9 +68,11 @@ const InstaCena = () => {
     setDragPos(null);
     setLocalSize(null);
     setLocalHeight(null);
+    setLocalOpacity(null);
     setDragRightPos(null);
     setLocalRightSize(null);
     setLocalRightHeight(null);
+    setLocalRightOpacity(null);
   }, [
     settings.instacena_gif_position,
     settings.instacena_gif_size,
@@ -200,13 +206,14 @@ const InstaCena = () => {
                     "select-none",
                     isAdmin ? "cursor-grab active:cursor-grabbing" : "pointer-events-none"
                   )}
-                  style={{
-                    width: currentSize,
-                    height: (localHeight ?? gifHeight) || "auto",
-                    borderRadius: 0,
-                    objectFit: (localHeight ?? gifHeight) ? "cover" : "contain",
-                    touchAction: "none",
-                  }}
+                    style={{
+                      width: currentSize,
+                      height: (localHeight ?? gifHeight) || "auto",
+                      borderRadius: 0,
+                      objectFit: (localHeight ?? gifHeight) ? "cover" : "contain",
+                      opacity: localOpacity ?? gifOpacity,
+                      touchAction: "none",
+                    }}
                 />
                 {isAdmin && (
                   <button
@@ -262,6 +269,26 @@ const InstaCena = () => {
                       className="w-full accent-primary"
                     />
                     <p className="text-[10px] text-muted-foreground">0 = automático (proporcional)</p>
+                    <div className="text-xs font-medium">Opacidade: {Math.round((localOpacity ?? gifOpacity) * 100)}%</div>
+                    <input
+                      type="range"
+                      min={5}
+                      max={100}
+                      step={5}
+                      value={Math.round((localOpacity ?? gifOpacity) * 100)}
+                      onChange={(e) => setLocalOpacity(parseInt(e.target.value) / 100)}
+                      onMouseUp={() => {
+                        if (localOpacity !== null) {
+                          updateSettings.mutate({ instacena_gif_opacity: localOpacity } as any, { onSuccess: () => toast.success("Opacidade salva!") });
+                        }
+                      }}
+                      onTouchEnd={() => {
+                        if (localOpacity !== null) {
+                          updateSettings.mutate({ instacena_gif_opacity: localOpacity } as any, { onSuccess: () => toast.success("Opacidade salva!") });
+                        }
+                      }}
+                      className="w-full accent-primary"
+                    />
                   </div>
                 )}
               </div>
@@ -289,8 +316,9 @@ const InstaCena = () => {
                     width: currentRightSize,
                     height: (localRightHeight ?? gifRightHeight) || "auto",
                     borderRadius: 0,
-                    objectFit: (localRightHeight ?? gifRightHeight) ? "cover" : "contain",
-                    touchAction: "none",
+                     objectFit: (localRightHeight ?? gifRightHeight) ? "cover" : "contain",
+                     opacity: localRightOpacity ?? gifRightOpacity,
+                     touchAction: "none",
                   }}
                 />
                 {isAdmin && (
@@ -347,6 +375,26 @@ const InstaCena = () => {
                       className="w-full accent-primary"
                     />
                     <p className="text-[10px] text-muted-foreground">0 = automático (proporcional)</p>
+                    <div className="text-xs font-medium">Opacidade: {Math.round((localRightOpacity ?? gifRightOpacity) * 100)}%</div>
+                    <input
+                      type="range"
+                      min={5}
+                      max={100}
+                      step={5}
+                      value={Math.round((localRightOpacity ?? gifRightOpacity) * 100)}
+                      onChange={(e) => setLocalRightOpacity(parseInt(e.target.value) / 100)}
+                      onMouseUp={() => {
+                        if (localRightOpacity !== null) {
+                          updateSettings.mutate({ instacena_gif_right_opacity: localRightOpacity } as any, { onSuccess: () => toast.success("Opacidade salva!") });
+                        }
+                      }}
+                      onTouchEnd={() => {
+                        if (localRightOpacity !== null) {
+                          updateSettings.mutate({ instacena_gif_right_opacity: localRightOpacity } as any, { onSuccess: () => toast.success("Opacidade salva!") });
+                        }
+                      }}
+                      className="w-full accent-primary"
+                    />
                   </div>
                 )}
               </div>

@@ -2823,8 +2823,10 @@ export type Database = {
         Row: {
           id: string
           instacena_gif_height: number | null
+          instacena_gif_opacity: number | null
           instacena_gif_position: Json | null
           instacena_gif_right_height: number | null
+          instacena_gif_right_opacity: number | null
           instacena_gif_right_position: Json | null
           instacena_gif_right_size: number | null
           instacena_gif_right_url: string | null
@@ -2842,8 +2844,10 @@ export type Database = {
         Insert: {
           id?: string
           instacena_gif_height?: number | null
+          instacena_gif_opacity?: number | null
           instacena_gif_position?: Json | null
           instacena_gif_right_height?: number | null
+          instacena_gif_right_opacity?: number | null
           instacena_gif_right_position?: Json | null
           instacena_gif_right_size?: number | null
           instacena_gif_right_url?: string | null
@@ -2861,8 +2865,10 @@ export type Database = {
         Update: {
           id?: string
           instacena_gif_height?: number | null
+          instacena_gif_opacity?: number | null
           instacena_gif_position?: Json | null
           instacena_gif_right_height?: number | null
+          instacena_gif_right_opacity?: number | null
           instacena_gif_right_position?: Json | null
           instacena_gif_right_size?: number | null
           instacena_gif_right_url?: string | null

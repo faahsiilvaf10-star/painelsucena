@@ -17,6 +17,8 @@ export interface SiteSettings {
   instacena_gif_right_position: { x: number; y: number } | null;
   instacena_gif_right_size: number;
   instacena_gif_right_height: number | null;
+  instacena_gif_opacity: number;
+  instacena_gif_right_opacity: number;
   updated_at: string;
   updated_by: string | null;
 }
@@ -43,6 +45,8 @@ const DEFAULT_SETTINGS: Omit<SiteSettings, "id" | "updated_at" | "updated_by"> &
   instacena_gif_right_position: { x: 1000, y: 80 },
   instacena_gif_right_size: 200,
   instacena_gif_right_height: null,
+  instacena_gif_opacity: 1,
+  instacena_gif_right_opacity: 1,
   updated_at: new Date().toISOString(),
   updated_by: null,
 };
@@ -84,6 +88,8 @@ export function useSiteSettings() {
         instacena_gif_right_position: d.instacena_gif_right_position || { x: 1000, y: 80 },
         instacena_gif_right_size: d.instacena_gif_right_size || 200,
         instacena_gif_right_height: d.instacena_gif_right_height || null,
+        instacena_gif_opacity: d.instacena_gif_opacity ?? 1,
+        instacena_gif_right_opacity: d.instacena_gif_right_opacity ?? 1,
       };
     },
     staleTime: 1000 * 60 * 5,
