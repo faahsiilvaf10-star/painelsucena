@@ -31,15 +31,20 @@ const InstaCena = () => {
   const { isAdmin } = useIsAdmin();
   const { settings, updateSettings } = useSiteSettings();
 
-  // Draggable GIF state
+  // Draggable & resizable GIF state
   const gifPos = settings.instacena_gif_position || { x: 16, y: 80 };
+  const gifSize = settings.instacena_gif_size || 200;
+  const gifUrl = settings.instacena_gif_url;
   const [dragPos, setDragPos] = useState<{ x: number; y: number } | null>(null);
+  const [localSize, setLocalSize] = useState<number | null>(null);
   const dragging = useRef(false);
   const offset = useRef({ x: 0, y: 0 });
+  const resizeTimer = useRef<ReturnType<typeof setTimeout>>();
 
   useEffect(() => {
     setDragPos(null);
-  }, [settings.instacena_gif_position]);
+    setLocalSize(null);
+  }, [settings.instacena_gif_position, settings.instacena_gif_size]);
 
   const onPointerDown = useCallback((e: React.PointerEvent) => {
     if (!isAdmin) return;
@@ -69,7 +74,24 @@ const InstaCena = () => {
     }
   }, [dragPos, updateSettings]);
 
+  const onWheel = useCallback((e: React.WheelEvent) => {
+    if (!isAdmin) return;
+    e.preventDefault();
+    const current = localSize ?? gifSize;
+    const newSize = Math.max(80, Math.min(600, current + (e.deltaY < 0 ? 20 : -20)));
+    setLocalSize(newSize);
+    clearTimeout(resizeTimer.current);
+    resizeTimer.current = setTimeout(() => {
+      updateSettings.mutate(
+        { instacena_gif_size: newSize } as any,
+        { onSuccess: () => toast.success("Tamanho do GIF salvo!") }
+      );
+    }, 600);
+  }, [isAdmin, localSize, gifSize, updateSettings]);
+
   const currentPos = dragPos || gifPos;
+  const currentSize = localSize ?? gifSize;
+  const showGif = gifUrl !== "__removed__";
 
   const filteredPosts = posts?.filter((p) => {
     if (filter === "posts" && p.is_system_post) return false;
@@ -95,25 +117,29 @@ const InstaCena = () => {
   return (
     <Layout>
       <div className="relative">
-        <img
-          src={instaCenaEaster}
-          alt=""
-          onPointerDown={onPointerDown}
-          onPointerMove={onPointerMove}
-          onPointerUp={onPointerUp}
-          className={cn(
-            "fixed w-[200px] h-auto z-10 hidden lg:block",
-            isAdmin ? "cursor-grab active:cursor-grabbing" : "pointer-events-none"
-          )}
-          style={{
-            left: currentPos.x,
-            top: currentPos.y,
-            borderRadius: 0,
-            maxHeight: "calc(100vh - 80px)",
-            objectFit: "contain",
-            touchAction: "none",
-          }}
-        />
+        {showGif && (
+          <img
+            src={gifUrl || instaCenaEaster}
+            alt=""
+            onPointerDown={onPointerDown}
+            onPointerMove={onPointerMove}
+            onPointerUp={onPointerUp}
+            onWheel={onWheel}
+            className={cn(
+              "fixed h-auto z-10 hidden lg:block select-none",
+              isAdmin ? "cursor-grab active:cursor-grabbing" : "pointer-events-none"
+            )}
+            style={{
+              left: currentPos.x,
+              top: currentPos.y,
+              width: currentSize,
+              borderRadius: 0,
+              maxHeight: "calc(100vh - 80px)",
+              objectFit: "contain",
+              touchAction: "none",
+            }}
+          />
+        )}
         <div className="min-w-0 flex-1">
           <div className="max-w-xl mx-auto py-1 space-y-4 overflow-x-hidden">
           <div className="flex items-center justify-between gap-2 flex-wrap">
