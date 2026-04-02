@@ -174,7 +174,7 @@ const InstaCena = () => {
       <div className="relative">
         {showGif && (
           <div
-            className="fixed z-10 hidden lg:block"
+            className="absolute z-10 hidden lg:block"
             style={{ left: currentPos.x, top: currentPos.y }}
           >
             <img
@@ -226,7 +226,7 @@ const InstaCena = () => {
         )}
         {showRightGif && (
           <div
-            className="fixed z-10 hidden lg:block"
+            className="absolute z-10 hidden lg:block"
             style={{ left: currentRightPos.x, top: currentRightPos.y }}
           >
             <img
