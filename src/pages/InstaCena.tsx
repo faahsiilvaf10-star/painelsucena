@@ -68,9 +68,11 @@ const InstaCena = () => {
     setDragPos(null);
     setLocalSize(null);
     setLocalHeight(null);
+    setLocalOpacity(null);
     setDragRightPos(null);
     setLocalRightSize(null);
     setLocalRightHeight(null);
+    setLocalRightOpacity(null);
   }, [
     settings.instacena_gif_position,
     settings.instacena_gif_size,
