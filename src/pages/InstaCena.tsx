@@ -489,7 +489,7 @@ const InstaCena = () => {
                 <Loader2 className="h-8 w-8 animate-spin text-muted-foreground" />
               </div>
             ) : filteredPosts && filteredPosts.length > 0 ? (
-              filteredPosts.map((post) => <PostCard key={post.id} post={post} />)
+              filteredPosts.map((post) => <div key={post.id} id={`post-${post.id}`}><PostCard post={post} /></div>)
             ) : (
               <p className="text-center text-muted-foreground py-12 text-sm">
                 Nenhuma publicação encontrada. 🔍
