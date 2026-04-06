@@ -82,24 +82,24 @@ export function NotificationBell() {
     }
   };
 
-  const handleNotificationClick = (notification: { id: string; read: boolean; type: string; reference_type: string | null }) => {
+  const handleNotificationClick = (notification: { id: string; read: boolean; type: string; reference_type: string | null; reference_id: string | null }) => {
     if (!notification.read) {
       markAsRead.mutate(notification.id);
     }
-    // Navigate based on reference_type or notification type
     const refType = notification.reference_type;
     const nType = notification.type;
+    const refId = notification.reference_id;
 
     if (refType === "instacena_post") {
-      navigate("/instacena");
+      navigate(refId ? `/instacena?post=${refId}` : "/instacena");
     } else if (refType === "dds_schedule" || nType === "dds_mention") {
       navigate("/dds");
     } else if (refType === "order" || nType === "order") {
-      navigate("/pedidos");
+      navigate(refId ? `/pedidos?order=${refId}` : "/pedidos");
     } else if (refType === "campaign" || nType === "campaign") {
       navigate("/campanhas");
     } else if (nType === "desvio") {
-      navigate("/desvios");
+      navigate(refId ? `/desvios?desvio=${refId}` : "/desvios");
     } else if (nType === "document") {
       navigate("/documentos");
     } else if (nType === "reminder") {
