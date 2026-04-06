@@ -718,6 +718,30 @@ export type Database = {
         }
         Relationships: []
       }
+      dds_participation_locks: {
+        Row: {
+          created_at: string
+          dds_date: string
+          id: string
+          locked_by: string
+          locked_by_name: string
+        }
+        Insert: {
+          created_at?: string
+          dds_date: string
+          id?: string
+          locked_by: string
+          locked_by_name: string
+        }
+        Update: {
+          created_at?: string
+          dds_date?: string
+          id?: string
+          locked_by?: string
+          locked_by_name?: string
+        }
+        Relationships: []
+      }
       dds_planning_document: {
         Row: {
           file_name: string

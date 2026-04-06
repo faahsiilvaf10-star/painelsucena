@@ -3,11 +3,13 @@ import { Dialog, DialogContent, DialogTitle } from "@/components/ui/dialog";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { ScrollArea } from "@/components/ui/scroll-area";
-import { Check, X, Search, Save, Loader2, Users, ChevronDown, FileText } from "lucide-react";
+import { Check, X, Search, Save, Loader2, Users, ChevronDown, FileText, Lock, Unlock } from "lucide-react";
 import { useDDSParticipation, useSaveDDSParticipation, AbsenceReason } from "@/hooks/useDDSParticipation";
 import { useRHEfetivo } from "@/hooks/useRHEfetivo";
 import { useProfile } from "@/hooks/useProfile";
 import { useAuth } from "@/hooks/useAuth";
+import { useIsAdmin } from "@/hooks/useUserRole";
+import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import { toast } from "sonner";
 import { getLogoBase64, generatePdfHeader, PDF_HEADER_STYLES } from "@/lib/pdfLogo";
 import { downloadPdfFromHtml } from "@/lib/pdfDownload";
@@ -49,15 +51,48 @@ interface AttendanceState {
   absence_reason: AbsenceReason | null;
 }
 
+const UNLOCK_CARGOS = [
+  "tecnico_seguranca_i",
+  "tecnico_seguranca_ii",
+  "tecnico_meio_ambiente",
+];
+
+const useDDSLock = (date: string) => {
+  return useQuery({
+    queryKey: ["dds-participation-lock", date],
+    queryFn: async () => {
+      const { data, error } = await supabase
+        .from("dds_participation_locks")
+        .select("*")
+        .eq("dds_date", date)
+        .maybeSingle();
+      if (error) throw error;
+      return data;
+    },
+    enabled: !!date,
+  });
+};
+
 export const DDSParticipationDialog = ({ open, onOpenChange, date }: Props) => {
   const { data: rhData } = useRHEfetivo();
   const { data: existing, isLoading } = useDDSParticipation(date);
   const saveMutation = useSaveDDSParticipation();
   const { data: profile } = useProfile();
   const { user } = useAuth();
+  const { isAdmin } = useIsAdmin();
+  const queryClient = useQueryClient();
+  const { data: lockData, isLoading: lockLoading } = useDDSLock(date);
   const [search, setSearch] = useState("");
   const [attendance, setAttendance] = useState<Record<string, AttendanceState>>({});
   const [generatingPdf, setGeneratingPdf] = useState(false);
+
+  const canUnlock = useMemo(() => {
+    if (isAdmin) return true;
+    if (!profile) return false;
+    return UNLOCK_CARGOS.includes(profile.cargo || "");
+  }, [isAdmin, profile]);
+
+  const isLocked = !!lockData && !lockLoading;
 
   const employees = useMemo(() => {
     if (!rhData) return [];
@@ -92,6 +127,7 @@ export const DDSParticipationDialog = ({ open, onOpenChange, date }: Props) => {
   }, [employees, search]);
 
   const togglePresent = (name: string) => {
+    if (isLocked) return;
     setAttendance((prev) => {
       const cur = prev[name];
       if (cur?.present) {
@@ -102,6 +138,7 @@ export const DDSParticipationDialog = ({ open, onOpenChange, date }: Props) => {
   };
 
   const setAbsenceReason = (name: string, reason: AbsenceReason) => {
+    if (isLocked) return;
     setAttendance((prev) => ({
       ...prev,
       [name]: { present: false, absence_reason: reason },
@@ -109,6 +146,7 @@ export const DDSParticipationDialog = ({ open, onOpenChange, date }: Props) => {
   };
 
   const markAll = (present: boolean) => {
+    if (isLocked) return;
     const map: Record<string, AttendanceState> = {};
     employees.forEach((e) => {
       map[e.nome] = { present, absence_reason: present ? null : "falta" };
@@ -179,7 +217,6 @@ export const DDSParticipationDialog = ({ open, onOpenChange, date }: Props) => {
         </div>
       `;
 
-      // Render HTML to image
       const container = document.createElement("div");
       container.style.position = "fixed";
       container.style.left = "-9999px";
@@ -193,13 +230,11 @@ export const DDSParticipationDialog = ({ open, onOpenChange, date }: Props) => {
 
       const blob = await new Promise<Blob>((resolve) => canvas.toBlob((b) => resolve(b!), "image/png"));
 
-      // Upload to storage
       const path = `instacena/dds-presenca-${date}-${Date.now()}.png`;
       const { error: uploadErr } = await supabase.storage.from("site-assets").upload(path, blob, { upsert: true });
       if (uploadErr) throw uploadErr;
       const { data: urlData } = supabase.storage.from("site-assets").getPublicUrl(path);
 
-      // Create InstaCena post
       await supabase.from("instacena_posts").insert({
         user_id: user.id,
         user_name: profile.full_name || "Sistema",
@@ -213,6 +248,34 @@ export const DDSParticipationDialog = ({ open, onOpenChange, date }: Props) => {
     }
   };
 
+  const lockList = async () => {
+    if (!profile) return;
+    try {
+      await supabase.from("dds_participation_locks").insert({
+        dds_date: date,
+        locked_by: profile.user_id,
+        locked_by_name: profile.full_name || "Sistema",
+      });
+      queryClient.invalidateQueries({ queryKey: ["dds-participation-lock", date] });
+    } catch (err) {
+      console.error("Erro ao bloquear lista:", err);
+    }
+  };
+
+  const handleUnlock = async () => {
+    if (!canUnlock) {
+      toast.error("Apenas Técnico de Segurança ou Admin pode desbloquear");
+      return;
+    }
+    try {
+      await supabase.from("dds_participation_locks").delete().eq("dds_date", date);
+      queryClient.invalidateQueries({ queryKey: ["dds-participation-lock", date] });
+      toast.success("Lista desbloqueada!");
+    } catch {
+      toast.error("Erro ao desbloquear lista");
+    }
+  };
+
   const handleSave = async () => {
     if (!profile) return;
     const participants = Object.entries(attendance).map(([name, state]) => ({
@@ -223,6 +286,7 @@ export const DDSParticipationDialog = ({ open, onOpenChange, date }: Props) => {
     try {
       await saveMutation.mutateAsync({ date, participants, userId: profile.user_id });
       toast.success("Lista de presença do DDS salva!");
+      await lockList();
       await generatePdf();
       await postToInstaCena();
       onOpenChange(false);
@@ -332,12 +396,33 @@ export const DDSParticipationDialog = ({ open, onOpenChange, date }: Props) => {
         <DialogTitle className="flex items-center gap-2">
           <Users className="h-5 w-5" />
           Lista de Presença DDS
+          {isLocked && (
+            <span className="ml-auto flex items-center gap-1 text-xs text-amber-600 bg-amber-100 dark:bg-amber-900/30 px-2 py-1 rounded-full">
+              <Lock className="h-3 w-3" />
+              Bloqueada
+            </span>
+          )}
         </DialogTitle>
 
         <div className="flex items-center gap-2 text-sm text-muted-foreground">
           <span className="font-medium text-green-600">{presentCount} presentes</span>
           <span>de {totalCount} colaboradores</span>
         </div>
+
+        {isLocked && (
+          <div className="flex items-center gap-2 p-3 bg-amber-50 dark:bg-amber-900/20 border border-amber-200 dark:border-amber-800 rounded-lg text-sm">
+            <Lock className="h-4 w-4 text-amber-600 flex-shrink-0" />
+            <span className="text-amber-700 dark:text-amber-300 flex-1">
+              Lista bloqueada por <strong>{lockData?.locked_by_name}</strong>
+            </span>
+            {canUnlock && (
+              <Button variant="outline" size="sm" onClick={handleUnlock} className="gap-1 text-xs h-7">
+                <Unlock className="h-3 w-3" />
+                Desbloquear
+              </Button>
+            )}
+          </div>
+        )}
 
         <div className="relative">
           <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground" />
@@ -349,14 +434,16 @@ export const DDSParticipationDialog = ({ open, onOpenChange, date }: Props) => {
           />
         </div>
 
-        <div className="flex gap-2">
-          <Button variant="outline" size="sm" onClick={() => markAll(true)} className="text-xs">
-            <Check className="h-3 w-3 mr-1" /> Marcar todos
-          </Button>
-          <Button variant="outline" size="sm" onClick={() => markAll(false)} className="text-xs">
-            <X className="h-3 w-3 mr-1" /> Desmarcar todos
-          </Button>
-        </div>
+        {!isLocked && (
+          <div className="flex gap-2">
+            <Button variant="outline" size="sm" onClick={() => markAll(true)} className="text-xs">
+              <Check className="h-3 w-3 mr-1" /> Marcar todos
+            </Button>
+            <Button variant="outline" size="sm" onClick={() => markAll(false)} className="text-xs">
+              <X className="h-3 w-3 mr-1" /> Desmarcar todos
+            </Button>
+          </div>
+        )}
 
         <ScrollArea className="flex-1 min-h-0 max-h-[50vh] border rounded-lg overflow-y-auto" style={{ maxHeight: "50vh" }}>
           {isLoading ? (
@@ -372,13 +459,14 @@ export const DDSParticipationDialog = ({ open, onOpenChange, date }: Props) => {
                     <button
                       onClick={() => togglePresent(emp.nome)}
                       className="flex-shrink-0"
+                      disabled={isLocked}
                     >
                       <div
                         className={`h-7 w-7 rounded-full flex items-center justify-center transition-colors ${
                           state.present
                             ? "bg-green-500 text-white"
                             : "bg-red-100 dark:bg-red-900/30 text-red-500"
-                        }`}
+                        } ${isLocked ? "opacity-60" : ""}`}
                       >
                         {state.present ? <Check className="h-4 w-4" /> : <X className="h-4 w-4" />}
                       </div>
@@ -387,7 +475,7 @@ export const DDSParticipationDialog = ({ open, onOpenChange, date }: Props) => {
                       <p className="text-sm font-medium truncate">{emp.nome}</p>
                       <p className="text-xs text-muted-foreground">{emp.funcao}</p>
                     </div>
-                    {!state.present && (
+                    {!state.present && !isLocked && (
                       <DropdownMenu>
                         <DropdownMenuTrigger asChild>
                           <Button
@@ -414,6 +502,11 @@ export const DDSParticipationDialog = ({ open, onOpenChange, date }: Props) => {
                         </DropdownMenuContent>
                       </DropdownMenu>
                     )}
+                    {!state.present && isLocked && state.absence_reason && (
+                      <span className={`text-xs px-2 py-0.5 rounded-full ${ABSENCE_COLORS[state.absence_reason]}`}>
+                        {ABSENCE_LABELS[state.absence_reason]}
+                      </span>
+                    )}
                   </div>
                 );
               })}
@@ -427,14 +520,21 @@ export const DDSParticipationDialog = ({ open, onOpenChange, date }: Props) => {
         </ScrollArea>
 
         <div className="flex gap-2">
-          <Button onClick={handleSave} disabled={saveMutation.isPending || generatingPdf} className="flex-1">
-            {saveMutation.isPending ? (
-              <Loader2 className="h-4 w-4 animate-spin mr-2" />
-            ) : (
-              <Save className="h-4 w-4 mr-2" />
-            )}
-            Salvar Lista
-          </Button>
+          {!isLocked ? (
+            <Button onClick={handleSave} disabled={saveMutation.isPending || generatingPdf} className="flex-1">
+              {saveMutation.isPending ? (
+                <Loader2 className="h-4 w-4 animate-spin mr-2" />
+              ) : (
+                <Save className="h-4 w-4 mr-2" />
+              )}
+              Salvar Lista
+            </Button>
+          ) : (
+            <div className="flex-1 flex items-center justify-center text-sm text-muted-foreground gap-1">
+              <Lock className="h-4 w-4" />
+              Lista salva e bloqueada
+            </div>
+          )}
           <Button
             variant="outline"
             onClick={generatePdf}
