@@ -41,6 +41,10 @@ import { EditableIcon } from "@/components/cms/EditableIcon";
 import { DDSThemesCard } from "@/components/dds/DDSThemesCard";
 import { formatCargoLabel } from "@/lib/cargoUtils";
 import { useDDSMidnightRefresh } from "@/hooks/useMidnightRefresh";
+import { useDDSParticipationMonth, useDDSParticipation, AbsenceReason } from "@/hooks/useDDSParticipation";
+import { DDSParticipationDialog } from "@/components/dds/DDSParticipationDialog";
+import { getLogoBase64, generatePdfHeader, PDF_HEADER_STYLES } from "@/lib/pdfLogo";
+import { downloadPdfFromHtml } from "@/lib/pdfDownload";
 
 const dayNames = ["Dom", "Seg", "Ter", "Qua", "Qui", "Sex", "Sáb"];
 
