@@ -1,11 +1,14 @@
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import { supabase } from "@/integrations/supabase/client";
 
+export type AbsenceReason = "falta" | "atestado" | "treinamento" | "exame" | "folga";
+
 export interface DDSParticipationRecord {
   id: string;
   dds_date: string;
   employee_name: string;
   present: boolean;
+  absence_reason: AbsenceReason | null;
   saved_by: string;
   created_at: string;
   updated_at: string;
@@ -36,7 +39,7 @@ export const useSaveDDSParticipation = () => {
       userId,
     }: {
       date: string;
-      participants: { name: string; present: boolean }[];
+      participants: { name: string; present: boolean; absence_reason?: AbsenceReason | null }[];
       userId: string;
     }) => {
       // Delete existing records for this date then insert new ones
@@ -46,6 +49,7 @@ export const useSaveDDSParticipation = () => {
         dds_date: date,
         employee_name: p.name,
         present: p.present,
+        absence_reason: p.present ? null : (p.absence_reason || null),
         saved_by: userId,
       }));
 

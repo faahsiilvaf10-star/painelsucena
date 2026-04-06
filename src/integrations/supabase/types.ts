@@ -687,6 +687,7 @@ export type Database = {
       }
       dds_participation: {
         Row: {
+          absence_reason: string | null
           created_at: string
           dds_date: string
           employee_name: string
@@ -696,6 +697,7 @@ export type Database = {
           updated_at: string
         }
         Insert: {
+          absence_reason?: string | null
           created_at?: string
           dds_date: string
           employee_name: string
@@ -705,6 +707,7 @@ export type Database = {
           updated_at?: string
         }
         Update: {
+          absence_reason?: string | null
           created_at?: string
           dds_date?: string
           employee_name?: string

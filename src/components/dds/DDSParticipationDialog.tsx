@@ -3,16 +3,43 @@ import { Dialog, DialogContent, DialogTitle } from "@/components/ui/dialog";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { ScrollArea } from "@/components/ui/scroll-area";
-import { Check, X, Search, Save, Loader2, Users } from "lucide-react";
-import { useDDSParticipation, useSaveDDSParticipation } from "@/hooks/useDDSParticipation";
+import { Check, X, Search, Save, Loader2, Users, ChevronDown } from "lucide-react";
+import { useDDSParticipation, useSaveDDSParticipation, AbsenceReason } from "@/hooks/useDDSParticipation";
 import { useRHEfetivo } from "@/hooks/useRHEfetivo";
 import { useProfile } from "@/hooks/useProfile";
 import { toast } from "sonner";
+import {
+  DropdownMenu,
+  DropdownMenuContent,
+  DropdownMenuItem,
+  DropdownMenuTrigger,
+} from "@/components/ui/dropdown-menu";
 
 interface Props {
   open: boolean;
   onOpenChange: (open: boolean) => void;
-  date: string; // YYYY-MM-DD
+  date: string;
+}
+
+const ABSENCE_LABELS: Record<AbsenceReason, string> = {
+  falta: "Falta",
+  atestado: "Atestado",
+  treinamento: "Treinamento",
+  exame: "Exame",
+  folga: "Folga",
+};
+
+const ABSENCE_COLORS: Record<AbsenceReason, string> = {
+  falta: "bg-red-500 text-white",
+  atestado: "bg-yellow-500 text-white",
+  treinamento: "bg-blue-500 text-white",
+  exame: "bg-purple-500 text-white",
+  folga: "bg-orange-500 text-white",
+};
+
+interface AttendanceState {
+  present: boolean;
+  absence_reason: AbsenceReason | null;
 }
 
 export const DDSParticipationDialog = ({ open, onOpenChange, date }: Props) => {
@@ -21,7 +48,7 @@ export const DDSParticipationDialog = ({ open, onOpenChange, date }: Props) => {
   const saveMutation = useSaveDDSParticipation();
   const { data: profile } = useProfile();
   const [search, setSearch] = useState("");
-  const [attendance, setAttendance] = useState<Record<string, boolean>>({});
+  const [attendance, setAttendance] = useState<Record<string, AttendanceState>>({});
 
   const employees = useMemo(() => {
     if (!rhData) return [];
@@ -31,16 +58,18 @@ export const DDSParticipationDialog = ({ open, onOpenChange, date }: Props) => {
       .sort((a, b) => a.nome.localeCompare(b.nome));
   }, [rhData]);
 
-  // Initialize attendance from existing records or default all to false
   useEffect(() => {
     if (!open) return;
-    const map: Record<string, boolean> = {};
+    const map: Record<string, AttendanceState> = {};
     employees.forEach((e) => {
-      map[e.nome] = false;
+      map[e.nome] = { present: false, absence_reason: null };
     });
     if (existing) {
       existing.forEach((r) => {
-        map[r.employee_name] = r.present;
+        map[r.employee_name] = {
+          present: r.present,
+          absence_reason: (r.absence_reason as AbsenceReason) || null,
+        };
       });
     }
     setAttendance(map);
@@ -53,23 +82,37 @@ export const DDSParticipationDialog = ({ open, onOpenChange, date }: Props) => {
     return employees.filter((e) => e.nome.toLowerCase().includes(q));
   }, [employees, search]);
 
-  const toggle = (name: string) => {
-    setAttendance((prev) => ({ ...prev, [name]: !prev[name] }));
+  const togglePresent = (name: string) => {
+    setAttendance((prev) => {
+      const cur = prev[name];
+      if (cur?.present) {
+        return { ...prev, [name]: { present: false, absence_reason: "falta" } };
+      }
+      return { ...prev, [name]: { present: true, absence_reason: null } };
+    });
+  };
+
+  const setAbsenceReason = (name: string, reason: AbsenceReason) => {
+    setAttendance((prev) => ({
+      ...prev,
+      [name]: { present: false, absence_reason: reason },
+    }));
   };
 
   const markAll = (present: boolean) => {
-    const map: Record<string, boolean> = {};
+    const map: Record<string, AttendanceState> = {};
     employees.forEach((e) => {
-      map[e.nome] = present;
+      map[e.nome] = { present, absence_reason: present ? null : "falta" };
     });
     setAttendance(map);
   };
 
   const handleSave = async () => {
     if (!profile) return;
-    const participants = Object.entries(attendance).map(([name, present]) => ({
+    const participants = Object.entries(attendance).map(([name, state]) => ({
       name,
-      present,
+      present: state.present,
+      absence_reason: state.absence_reason,
     }));
     try {
       await saveMutation.mutateAsync({ date, participants, userId: profile.user_id });
@@ -80,7 +123,7 @@ export const DDSParticipationDialog = ({ open, onOpenChange, date }: Props) => {
     }
   };
 
-  const presentCount = Object.values(attendance).filter(Boolean).length;
+  const presentCount = Object.values(attendance).filter((s) => s.present).length;
   const totalCount = employees.length;
 
   return (
@@ -96,7 +139,6 @@ export const DDSParticipationDialog = ({ open, onOpenChange, date }: Props) => {
           <span>de {totalCount} colaboradores</span>
         </div>
 
-        {/* Search */}
         <div className="relative">
           <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground" />
           <Input
@@ -107,7 +149,6 @@ export const DDSParticipationDialog = ({ open, onOpenChange, date }: Props) => {
           />
         </div>
 
-        {/* Bulk actions */}
         <div className="flex gap-2">
           <Button variant="outline" size="sm" onClick={() => markAll(true)} className="text-xs">
             <Check className="h-3 w-3 mr-1" /> Marcar todos
@@ -117,7 +158,6 @@ export const DDSParticipationDialog = ({ open, onOpenChange, date }: Props) => {
           </Button>
         </div>
 
-        {/* Employee list */}
         <ScrollArea className="flex-1 min-h-0 max-h-[50vh] border rounded-lg overflow-y-auto" style={{ maxHeight: "50vh" }}>
           {isLoading ? (
             <div className="flex justify-center py-8">
@@ -126,27 +166,55 @@ export const DDSParticipationDialog = ({ open, onOpenChange, date }: Props) => {
           ) : (
             <div className="divide-y">
               {filtered.map((emp) => {
-                const present = attendance[emp.nome] ?? false;
+                const state = attendance[emp.nome] ?? { present: false, absence_reason: null };
                 return (
-                  <button
-                    key={emp.id}
-                    onClick={() => toggle(emp.nome)}
-                    className="w-full flex items-center gap-3 px-4 py-3 hover:bg-muted/50 transition-colors text-left"
-                  >
-                    <div
-                      className={`flex-shrink-0 h-7 w-7 rounded-full flex items-center justify-center transition-colors ${
-                        present
-                          ? "bg-green-500 text-white"
-                          : "bg-red-100 dark:bg-red-900/30 text-red-500"
-                      }`}
+                  <div key={emp.id} className="flex items-center gap-2 px-4 py-3 hover:bg-muted/50 transition-colors">
+                    <button
+                      onClick={() => togglePresent(emp.nome)}
+                      className="flex-shrink-0"
                     >
-                      {present ? <Check className="h-4 w-4" /> : <X className="h-4 w-4" />}
-                    </div>
-                    <div className="flex-1 min-w-0">
+                      <div
+                        className={`h-7 w-7 rounded-full flex items-center justify-center transition-colors ${
+                          state.present
+                            ? "bg-green-500 text-white"
+                            : "bg-red-100 dark:bg-red-900/30 text-red-500"
+                        }`}
+                      >
+                        {state.present ? <Check className="h-4 w-4" /> : <X className="h-4 w-4" />}
+                      </div>
+                    </button>
+                    <div className="flex-1 min-w-0" onClick={() => togglePresent(emp.nome)} role="button">
                       <p className="text-sm font-medium truncate">{emp.nome}</p>
                       <p className="text-xs text-muted-foreground">{emp.funcao}</p>
                     </div>
-                  </button>
+                    {!state.present && (
+                      <DropdownMenu>
+                        <DropdownMenuTrigger asChild>
+                          <Button
+                            variant="outline"
+                            size="sm"
+                            className={`text-xs h-7 px-2 gap-1 ${
+                              state.absence_reason ? ABSENCE_COLORS[state.absence_reason] : ""
+                            }`}
+                          >
+                            {state.absence_reason ? ABSENCE_LABELS[state.absence_reason] : "Motivo"}
+                            <ChevronDown className="h-3 w-3" />
+                          </Button>
+                        </DropdownMenuTrigger>
+                        <DropdownMenuContent align="end">
+                          {(Object.keys(ABSENCE_LABELS) as AbsenceReason[]).map((reason) => (
+                            <DropdownMenuItem
+                              key={reason}
+                              onClick={() => setAbsenceReason(emp.nome, reason)}
+                              className="text-xs"
+                            >
+                              {ABSENCE_LABELS[reason]}
+                            </DropdownMenuItem>
+                          ))}
+                        </DropdownMenuContent>
+                      </DropdownMenu>
+                    )}
+                  </div>
                 );
               })}
               {filtered.length === 0 && (
@@ -158,7 +226,6 @@ export const DDSParticipationDialog = ({ open, onOpenChange, date }: Props) => {
           )}
         </ScrollArea>
 
-        {/* Save */}
         <Button onClick={handleSave} disabled={saveMutation.isPending} className="w-full">
           {saveMutation.isPending ? (
             <Loader2 className="h-4 w-4 animate-spin mr-2" />
