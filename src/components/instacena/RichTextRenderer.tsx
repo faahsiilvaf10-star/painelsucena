@@ -231,7 +231,10 @@ export function RichTextRenderer({ content }: { content: string }) {
           styles.padding = "0 2px";
           styles.borderRadius = "3px";
         }
-        if (seg.font && FONT_CLASSES[seg.font]) classes.push(FONT_CLASSES[seg.font]);
+        if (seg.font && FONT_INLINE[seg.font]) {
+          styles.fontFamily = FONT_INLINE[seg.font];
+          if (seg.font === "cursive") styles.fontStyle = "italic";
+        }
         if (seg.glow) {
           const glowDef = seg.glowColor ? GLOW_CSS[seg.glowColor] : null;
           classes.push("animate-pulse");
