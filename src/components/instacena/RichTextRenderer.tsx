@@ -56,10 +56,9 @@ interface RichSegment {
 
 function parseRichText(input: string): RichSegment[] {
   const segments: RichSegment[] = [];
-  let remaining = input;
 
-  // Process formatting tags using regex replacements
-  const regex = /(\*\*(.+?)\*\*|_(.+?)_|__(.+?)__|{color:(\w+)}(.+?){\/color}|{glow:(\w+)}(.+?){\/glow}|{glow}(.+?){\/glow}|{fx:(\w+)}(.+?){\/fx}|{font:(\w+)}(.+?){\/font})/gs;
+  // IMPORTANT: __underline__ must come BEFORE _italic_ to avoid false matches
+  const regex = /(\*\*(.+?)\*\*|__(.+?)__|_(.+?)_|{color:(\w+)}(.+?){\/color}|{glow:(\w+)}(.+?){\/glow}|{glow}(.+?){\/glow}|{fx:(\w+)}(.+?){\/fx}|{font:(\w+)}(.+?){\/font})/gs;
 
   let lastIndex = 0;
   let match: RegExpExecArray | null;
@@ -73,12 +72,12 @@ function parseRichText(input: string): RichSegment[] {
     if (match[2] !== undefined) {
       // **bold**
       segments.push({ text: match[2], bold: true });
-    } else if (match[4] !== undefined) {
-      // __underline__ (must check before _italic_ since __ contains _)
-      segments.push({ text: match[4], underline: true });
     } else if (match[3] !== undefined) {
+      // __underline__ (now checked before _italic_)
+      segments.push({ text: match[3], underline: true });
+    } else if (match[4] !== undefined) {
       // _italic_
-      segments.push({ text: match[3], italic: true });
+      segments.push({ text: match[4], italic: true });
     } else if (match[5] !== undefined && match[6] !== undefined) {
       // {color:x}text{/color}
       segments.push({ text: match[6], color: match[5] });
