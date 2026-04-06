@@ -204,7 +204,7 @@ export const DDSParticipationDialog = ({ open, onOpenChange, date }: Props) => {
         user_id: user.id,
         user_name: profile.full_name || "Sistema",
         user_avatar_url: profile.avatar_url,
-        content: `📋 Lista de Presença DDS - ${formattedDate}\n✅ ${presentList.length} presentes | ❌ ${absentList.length} ausentes | Total: ${sortedEntries.length}`,
+        content: `📋 Lista de Presença DDS - ${formattedDate}\n✅ ${presentList.length} presentes | ❌ ${absentList.length} ausentes | Total: ${sortedEntries.length}\n🚫 Cor Proibida do Mês: ${forbiddenColor.name}`,
         image_urls: [urlData.publicUrl],
         is_system_post: true,
       });
