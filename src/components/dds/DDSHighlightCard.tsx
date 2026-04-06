@@ -35,6 +35,7 @@ export const DDSHighlightCard = () => {
   const [eventPhotoModalOpen, setEventPhotoModalOpen] = useState(false);
   const fileInputRef = useRef<HTMLInputElement>(null);
   const eventFileInputRef = useRef<HTMLInputElement>(null);
+  const [participationOpen, setParticipationOpen] = useState(false);
 
   // Use Brazil North timezone - recalculate when dateKey changes
   const today = useMemo(() => getBrazilNorthDate(), [dateKey]);
