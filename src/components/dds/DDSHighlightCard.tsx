@@ -259,6 +259,22 @@ export const DDSHighlightCard = () => {
                   </div>
                 ) : null}
               </div>
+
+              {/* Participation List Button */}
+              <Button
+                variant="outline"
+                className="w-full"
+                onClick={() => setParticipationOpen(true)}
+              >
+                <ClipboardList className="h-4 w-4 mr-2" />
+                Ver Lista de Presença
+              </Button>
+
+              <DDSParticipationDialog
+                open={participationOpen}
+                onOpenChange={setParticipationOpen}
+                date={todayDDS.scheduled_date}
+              />
             </div>
           ) : (
             <div className="text-center py-6 text-muted-foreground">
