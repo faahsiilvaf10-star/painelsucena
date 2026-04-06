@@ -36,7 +36,25 @@ const InstaCena = () => {
   const { settings, updateSettings } = useSiteSettings();
   const mainRef = useRef<HTMLElement | null>(null);
 
-  // --- Left GIF state ---
+  // Scroll to post from notification
+  useEffect(() => {
+    const postId = searchParams.get("post");
+    if (postId && !isLoading && posts && !scrolledToPost.current) {
+      scrolledToPost.current = true;
+      // Clear the query param
+      setSearchParams({}, { replace: true });
+      // Small delay for DOM render
+      setTimeout(() => {
+        const el = document.getElementById(`post-${postId}`);
+        if (el) {
+          el.scrollIntoView({ behavior: "smooth", block: "center" });
+          el.classList.add("ring-2", "ring-primary", "ring-offset-2");
+          setTimeout(() => el.classList.remove("ring-2", "ring-primary", "ring-offset-2"), 3000);
+        }
+      }, 300);
+    }
+  }, [searchParams, isLoading, posts, setSearchParams]);
+
   const gifPos = settings.instacena_gif_position || { x: 16, y: 80 };
   const gifSize = settings.instacena_gif_size || 200;
   const gifHeight = settings.instacena_gif_height;
