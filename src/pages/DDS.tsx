@@ -175,7 +175,7 @@ export default function DDS() {
     setUploadingPhotoId(scheduleId);
     try {
       const ext = file.name.split(".").pop() || "jpg";
-      const path = `dds/theme_${scheduleId}_${Date.now()}.${ext}`;
+      const path = `dds-theme_${scheduleId}_${Date.now()}.${ext}`;
       const { error: uploadError } = await supabase.storage.from("site-assets").upload(path, file, { upsert: true });
       if (uploadError) throw uploadError;
       const { data: urlData } = supabase.storage.from("site-assets").getPublicUrl(path);
@@ -194,7 +194,7 @@ export default function DDS() {
     setUploadingEventPhotoId(scheduleId);
     try {
       const ext = file.name.split(".").pop() || "jpg";
-      const path = `dds/event_${scheduleId}_${Date.now()}.${ext}`;
+      const path = `dds-event_${scheduleId}_${Date.now()}.${ext}`;
       const { error: uploadError } = await supabase.storage.from("site-assets").upload(path, file, { upsert: true });
       if (uploadError) throw uploadError;
       const { data: urlData } = supabase.storage.from("site-assets").getPublicUrl(path);
