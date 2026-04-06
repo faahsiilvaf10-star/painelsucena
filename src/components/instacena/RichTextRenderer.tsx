@@ -22,10 +22,10 @@ const COLOR_BG: Record<string, string> = {
   orange: "rgba(251, 146, 60, 0.3)",
 };
 
-const FONT_CLASSES: Record<string, string> = {
-  serif: "font-serif",
-  mono: "font-mono",
-  cursive: "italic font-serif",
+const FONT_INLINE: Record<string, string> = {
+  serif: "serif",
+  mono: "monospace",
+  cursive: "serif",
   normal: "",
 };
 
