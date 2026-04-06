@@ -52,10 +52,10 @@ const FASE_OPTIONS = Array.from({ length: 5 }, (_, i) => ({
   label: `Fase ${1 + i}`,
 }));
 
-// Generate elevado options from 28 to 56
-const ELEVADO_OPTIONS = Array.from({ length: 29 }, (_, i) => ({
-  value: (28 + i).toString(),
-  label: `${28 + i}`,
+// Generate elevado options from 26 to 56
+const ELEVADO_OPTIONS = Array.from({ length: 31 }, (_, i) => ({
+  value: (26 + i).toString(),
+  label: `${26 + i}`,
 }));
 
 export default function AtividadesII() {
