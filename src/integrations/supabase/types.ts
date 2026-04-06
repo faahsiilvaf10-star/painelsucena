@@ -685,6 +685,36 @@ export type Database = {
           },
         ]
       }
+      dds_participation: {
+        Row: {
+          created_at: string
+          dds_date: string
+          employee_name: string
+          id: string
+          present: boolean
+          saved_by: string
+          updated_at: string
+        }
+        Insert: {
+          created_at?: string
+          dds_date: string
+          employee_name: string
+          id?: string
+          present?: boolean
+          saved_by: string
+          updated_at?: string
+        }
+        Update: {
+          created_at?: string
+          dds_date?: string
+          employee_name?: string
+          id?: string
+          present?: boolean
+          saved_by?: string
+          updated_at?: string
+        }
+        Relationships: []
+      }
       dds_planning_document: {
         Row: {
           file_name: string
