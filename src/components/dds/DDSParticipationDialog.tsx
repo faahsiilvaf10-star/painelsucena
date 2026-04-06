@@ -116,6 +116,82 @@ export const DDSParticipationDialog = ({ open, onOpenChange, date }: Props) => {
     setAttendance(map);
   };
 
+  const postToInstaCena = async () => {
+    if (!user || !profile) return;
+    try {
+      const logoBase64 = await getLogoBase64();
+      const formattedDate = date.split("-").reverse().join("/");
+      const sortedEntries = Object.entries(attendance).sort(([a], [b]) => a.localeCompare(b));
+      const presentList = sortedEntries.filter(([, s]) => s.present);
+      const absentList = sortedEntries.filter(([, s]) => !s.present);
+
+      const reasonLabel = (r: AbsenceReason | null) => {
+        if (!r) return "Falta";
+        return ABSENCE_LABELS[r] || r;
+      };
+
+      const html = `
+        <div id="dds-capture" style="font-family:Arial,sans-serif;padding:30px;color:#1f2937;background:white;width:800px;">
+          ${generatePdfHeader("Lista de Presença - DDS", formattedDate, logoBase64)}
+          <div style="display:flex;gap:20px;margin-bottom:20px;">
+            <div style="padding:10px 16px;border-radius:8px;font-size:13px;font-weight:600;background:#dcfce7;color:#166534;">✅ Presentes: ${presentList.length}</div>
+            <div style="padding:10px 16px;border-radius:8px;font-size:13px;font-weight:600;background:#fee2e2;color:#991b1b;">❌ Ausentes: ${absentList.length}</div>
+            <div style="padding:10px 16px;border-radius:8px;font-size:13px;font-weight:600;background:#f3f4f6;color:#374151;">Total: ${sortedEntries.length}</div>
+          </div>
+          <div style="font-size:14px;font-weight:700;margin:20px 0 8px;padding-bottom:4px;border-bottom:2px solid #e5e7eb;">Presentes</div>
+          <table style="width:100%;border-collapse:collapse;font-size:12px;">
+            <thead><tr><th style="background:#1f2937;color:white;padding:8px 12px;text-align:left;">#</th><th style="background:#1f2937;color:white;padding:8px 12px;text-align:left;">Colaborador</th><th style="background:#1f2937;color:white;padding:8px 12px;text-align:left;">Status</th></tr></thead>
+            <tbody>
+              ${presentList.map(([name], i) => `<tr style="background:${i % 2 === 0 ? '#fff' : '#f9fafb'}"><td style="padding:7px 12px;border-bottom:1px solid #e5e7eb;">${i + 1}</td><td style="padding:7px 12px;border-bottom:1px solid #e5e7eb;">${name}</td><td style="padding:7px 12px;border-bottom:1px solid #e5e7eb;"><span style="background:#dcfce7;color:#166534;padding:2px 8px;border-radius:9999px;font-size:10px;font-weight:600;">Presente</span></td></tr>`).join("")}
+              ${presentList.length === 0 ? '<tr><td colspan="3" style="text-align:center;color:#9ca3af;padding:12px;">Nenhum</td></tr>' : ""}
+            </tbody>
+          </table>
+          <div style="font-size:14px;font-weight:700;margin:20px 0 8px;padding-bottom:4px;border-bottom:2px solid #e5e7eb;">Ausentes</div>
+          <table style="width:100%;border-collapse:collapse;font-size:12px;">
+            <thead><tr><th style="background:#1f2937;color:white;padding:8px 12px;text-align:left;">#</th><th style="background:#1f2937;color:white;padding:8px 12px;text-align:left;">Colaborador</th><th style="background:#1f2937;color:white;padding:8px 12px;text-align:left;">Motivo</th></tr></thead>
+            <tbody>
+              ${absentList.map(([name, state], i) => `<tr style="background:${i % 2 === 0 ? '#fff' : '#f9fafb'}"><td style="padding:7px 12px;border-bottom:1px solid #e5e7eb;">${i + 1}</td><td style="padding:7px 12px;border-bottom:1px solid #e5e7eb;">${name}</td><td style="padding:7px 12px;border-bottom:1px solid #e5e7eb;"><span style="padding:2px 8px;border-radius:9999px;font-size:10px;font-weight:600;">${reasonLabel(state.absence_reason)}</span></td></tr>`).join("")}
+              ${absentList.length === 0 ? '<tr><td colspan="3" style="text-align:center;color:#9ca3af;padding:12px;">Nenhum</td></tr>' : ""}
+            </tbody>
+          </table>
+          <div style="margin-top:40px;text-align:center;font-size:10px;color:#9ca3af;border-top:1px solid #e5e7eb;padding-top:15px;">Sucena Engenharia • Lista de Presença DDS • ${formattedDate}</div>
+        </div>
+      `;
+
+      // Render HTML to image
+      const container = document.createElement("div");
+      container.style.position = "fixed";
+      container.style.left = "-9999px";
+      container.style.top = "0";
+      container.innerHTML = html;
+      document.body.appendChild(container);
+
+      const target = container.querySelector("#dds-capture") as HTMLElement;
+      const canvas = await html2canvas(target, { scale: 2, backgroundColor: "#ffffff", useCORS: true });
+      document.body.removeChild(container);
+
+      const blob = await new Promise<Blob>((resolve) => canvas.toBlob((b) => resolve(b!), "image/png"));
+
+      // Upload to storage
+      const path = `instacena/dds-presenca-${date}-${Date.now()}.png`;
+      const { error: uploadErr } = await supabase.storage.from("site-assets").upload(path, blob, { upsert: true });
+      if (uploadErr) throw uploadErr;
+      const { data: urlData } = supabase.storage.from("site-assets").getPublicUrl(path);
+
+      // Create InstaCena post
+      await supabase.from("instacena_posts").insert({
+        user_id: user.id,
+        user_name: profile.full_name || "Sistema",
+        user_avatar_url: profile.avatar_url,
+        content: `📋 Lista de Presença DDS - ${formattedDate}\n✅ ${presentList.length} presentes | ❌ ${absentList.length} ausentes | Total: ${sortedEntries.length}`,
+        image_urls: [urlData.publicUrl],
+        is_system_post: true,
+      });
+    } catch (err) {
+      console.error("Erro ao postar no InstaCena:", err);
+    }
+  };
+
   const handleSave = async () => {
     if (!profile) return;
     const participants = Object.entries(attendance).map(([name, state]) => ({
@@ -127,6 +203,7 @@ export const DDSParticipationDialog = ({ open, onOpenChange, date }: Props) => {
       await saveMutation.mutateAsync({ date, participants, userId: profile.user_id });
       toast.success("Lista de presença do DDS salva!");
       await generatePdf();
+      await postToInstaCena();
       onOpenChange(false);
     } catch {
       toast.error("Erro ao salvar lista");
