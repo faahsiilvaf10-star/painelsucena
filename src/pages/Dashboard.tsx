@@ -320,13 +320,18 @@ const Dashboard = () => {
                   </div>
                 </div>
               </div>
-              <div className="mt-2 flex items-baseline gap-2">
-                <span className="text-2xl font-bold" style={{ color: "hsl(30, 15%, 18%)" }}>
-                  {inOperation}/{totalEquip}
-                </span>
-                <span className="text-xs" style={{ color: "hsl(30, 10%, 50%)" }}>
-                  {equipPercent}%
-                </span>
+              <div className="mt-2">
+                <div className="flex items-baseline gap-2">
+                  <span className="text-2xl font-bold" style={{ color: "hsl(30, 15%, 18%)" }}>
+                    {inOperation}/{totalEquip}
+                  </span>
+                  <span className="text-xs" style={{ color: "hsl(30, 10%, 50%)" }}>
+                    {equipPercent}%
+                  </span>
+                </div>
+                <p className="text-[10px] mt-0.5" style={{ color: "hsl(30, 10%, 45%)" }}>
+                  {inOperation} no canteiro de {totalEquip} equipamentos
+                </p>
               </div>
             </div>
           </div>
