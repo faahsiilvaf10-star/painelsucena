@@ -7,9 +7,12 @@ import { Check, X, Search, Save, Loader2, Users, ChevronDown, FileText } from "l
 import { useDDSParticipation, useSaveDDSParticipation, AbsenceReason } from "@/hooks/useDDSParticipation";
 import { useRHEfetivo } from "@/hooks/useRHEfetivo";
 import { useProfile } from "@/hooks/useProfile";
+import { useAuth } from "@/hooks/useAuth";
 import { toast } from "sonner";
 import { getLogoBase64, generatePdfHeader, PDF_HEADER_STYLES } from "@/lib/pdfLogo";
 import { downloadPdfFromHtml } from "@/lib/pdfDownload";
+import { supabase } from "@/integrations/supabase/client";
+import html2canvas from "html2canvas";
 import {
   DropdownMenu,
   DropdownMenuContent,
