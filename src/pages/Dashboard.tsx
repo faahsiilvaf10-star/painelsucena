@@ -95,8 +95,10 @@ const Dashboard = () => {
   const absentToday = attendanceRecords?.filter(a => a.status === "absent" || a.status === "justified").length || 0;
   const presencePercent = totalEmployees > 0 ? Math.round(presentToday / totalEmployees * 100) : 0;
   
-  const inOperation = currentlyInEquipment?.length || 0;
-  const totalEquip = equipment?.length || 0;
+  const jardinagemTotal = jardinagemEquipment?.length || 0;
+  const jardinagemIn = jardinagemEquipment?.filter(e => e.status === "entrou").length || 0;
+  const inOperation = (currentlyInEquipment?.length || 0) + jardinagemIn;
+  const totalEquip = (equipment?.length || 0) + jardinagemTotal;
   const equipPercent = totalEquip > 0 ? Math.round(inOperation / totalEquip * 100) : 0;
 
   useEffect(() => {
