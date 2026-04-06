@@ -226,7 +226,11 @@ export function RichTextRenderer({ content }: { content: string }) {
         if (seg.bold) classes.push("font-bold");
         if (seg.italic) classes.push("italic");
         if (seg.underline) classes.push("underline underline-offset-2");
-        if (seg.color && COLOR_CLASSES[seg.color]) classes.push(COLOR_CLASSES[seg.color]);
+        if (seg.color && COLOR_BG[seg.color]) {
+          styles.backgroundColor = COLOR_BG[seg.color];
+          styles.padding = "0 2px";
+          styles.borderRadius = "3px";
+        }
         if (seg.font && FONT_CLASSES[seg.font]) classes.push(FONT_CLASSES[seg.font]);
         if (seg.glow) {
           const glowDef = seg.glowColor ? GLOW_CSS[seg.glowColor] : null;
