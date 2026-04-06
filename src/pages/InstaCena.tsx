@@ -1,4 +1,5 @@
 import { useState, useRef, useCallback, useEffect } from "react";
+import { useSearchParams } from "react-router-dom";
 import { format } from "date-fns";
 import { ptBR } from "date-fns/locale";
 import { CalendarIcon, X, Loader2, Maximize2 } from "lucide-react";
@@ -25,7 +26,9 @@ const MONTHS = [
 ];
 
 const InstaCena = () => {
+  const [searchParams, setSearchParams] = useSearchParams();
   const { data: posts, isLoading } = useInstaCenaPosts();
+  const scrolledToPost = useRef(false);
   const [filter, setFilter] = useState<"posts" | "logs">("posts");
   const [selectedDate, setSelectedDate] = useState<Date | undefined>();
   const [selectedMonth, setSelectedMonth] = useState<string>("all");
@@ -33,7 +36,25 @@ const InstaCena = () => {
   const { settings, updateSettings } = useSiteSettings();
   const mainRef = useRef<HTMLElement | null>(null);
 
-  // --- Left GIF state ---
+  // Scroll to post from notification
+  useEffect(() => {
+    const postId = searchParams.get("post");
+    if (postId && !isLoading && posts && !scrolledToPost.current) {
+      scrolledToPost.current = true;
+      // Clear the query param
+      setSearchParams({}, { replace: true });
+      // Small delay for DOM render
+      setTimeout(() => {
+        const el = document.getElementById(`post-${postId}`);
+        if (el) {
+          el.scrollIntoView({ behavior: "smooth", block: "center" });
+          el.classList.add("ring-2", "ring-primary", "ring-offset-2");
+          setTimeout(() => el.classList.remove("ring-2", "ring-primary", "ring-offset-2"), 3000);
+        }
+      }, 300);
+    }
+  }, [searchParams, isLoading, posts, setSearchParams]);
+
   const gifPos = settings.instacena_gif_position || { x: 16, y: 80 };
   const gifSize = settings.instacena_gif_size || 200;
   const gifHeight = settings.instacena_gif_height;
@@ -468,7 +489,7 @@ const InstaCena = () => {
                 <Loader2 className="h-8 w-8 animate-spin text-muted-foreground" />
               </div>
             ) : filteredPosts && filteredPosts.length > 0 ? (
-              filteredPosts.map((post) => <PostCard key={post.id} post={post} />)
+              filteredPosts.map((post) => <div key={post.id} id={`post-${post.id}`}><PostCard post={post} /></div>)
             ) : (
               <p className="text-center text-muted-foreground py-12 text-sm">
                 Nenhuma publicação encontrada. 🔍
