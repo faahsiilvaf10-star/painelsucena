@@ -8,7 +8,7 @@ import { useDDSParticipation, useSaveDDSParticipation, AbsenceReason } from "@/h
 import { useRHEfetivo } from "@/hooks/useRHEfetivo";
 import { useProfile } from "@/hooks/useProfile";
 import { useAuth } from "@/hooks/useAuth";
-import { useUserRole } from "@/hooks/useUserRole";
+import { useIsAdmin } from "@/hooks/useUserRole";
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import { toast } from "sonner";
 import { getLogoBase64, generatePdfHeader, PDF_HEADER_STYLES } from "@/lib/pdfLogo";
@@ -79,7 +79,7 @@ export const DDSParticipationDialog = ({ open, onOpenChange, date }: Props) => {
   const saveMutation = useSaveDDSParticipation();
   const { data: profile } = useProfile();
   const { user } = useAuth();
-  const { isAdmin } = useUserRole();
+  const { isAdmin } = useIsAdmin();
   const queryClient = useQueryClient();
   const { data: lockData, isLoading: lockLoading } = useDDSLock(date);
   const [search, setSearch] = useState("");
