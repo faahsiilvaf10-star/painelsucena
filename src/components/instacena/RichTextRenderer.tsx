@@ -13,13 +13,13 @@ import { AnimatedEmoji, ANIMATED_EMOJIS } from "./AnimatedEmoji";
  * - :emoji_id: → animated emoji
  */
 
-const COLOR_CLASSES: Record<string, string> = {
-  yellow: "bg-yellow-200/80 dark:bg-yellow-800/40 px-0.5 rounded",
-  green: "bg-green-200/80 dark:bg-green-800/40 px-0.5 rounded",
-  blue: "bg-blue-200/80 dark:bg-blue-800/40 px-0.5 rounded",
-  pink: "bg-pink-200/80 dark:bg-pink-800/40 px-0.5 rounded",
-  purple: "bg-purple-200/80 dark:bg-purple-800/40 px-0.5 rounded",
-  orange: "bg-orange-200/80 dark:bg-orange-800/40 px-0.5 rounded",
+const COLOR_BG: Record<string, string> = {
+  yellow: "rgba(250, 204, 21, 0.3)",
+  green: "rgba(74, 222, 128, 0.3)",
+  blue: "rgba(96, 165, 250, 0.3)",
+  pink: "rgba(244, 114, 182, 0.3)",
+  purple: "rgba(192, 132, 252, 0.3)",
+  orange: "rgba(251, 146, 60, 0.3)",
 };
 
 const FONT_CLASSES: Record<string, string> = {
