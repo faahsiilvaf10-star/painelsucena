@@ -116,6 +116,25 @@ export const DDSParticipationDialog = ({ open, onOpenChange, date }: Props) => {
     setAttendance(map);
   };
 
+  const getForbiddenColor = (dateStr: string) => {
+    const month = parseInt(dateStr.split("-")[1], 10) - 1;
+    const colorMap: Record<number, { name: string; hex: string }> = {
+      0: { name: "Vermelha", hex: "#ef4444" },
+      1: { name: "Azul", hex: "#3b82f6" },
+      2: { name: "Amarela", hex: "#facc15" },
+      3: { name: "Verde", hex: "#22c55e" },
+      4: { name: "Vermelha", hex: "#ef4444" },
+      5: { name: "Azul", hex: "#3b82f6" },
+      6: { name: "Amarela", hex: "#facc15" },
+      7: { name: "Verde", hex: "#22c55e" },
+      8: { name: "Vermelha", hex: "#ef4444" },
+      9: { name: "Azul", hex: "#3b82f6" },
+      10: { name: "Amarela", hex: "#facc15" },
+      11: { name: "Verde", hex: "#22c55e" },
+    };
+    return colorMap[month];
+  };
+
   const postToInstaCena = async () => {
     if (!user || !profile) return;
     try {
@@ -124,6 +143,7 @@ export const DDSParticipationDialog = ({ open, onOpenChange, date }: Props) => {
       const sortedEntries = Object.entries(attendance).sort(([a], [b]) => a.localeCompare(b));
       const presentList = sortedEntries.filter(([, s]) => s.present);
       const absentList = sortedEntries.filter(([, s]) => !s.present);
+      const forbiddenColor = getForbiddenColor(date);
 
       const reasonLabel = (r: AbsenceReason | null) => {
         if (!r) return "Falta";
