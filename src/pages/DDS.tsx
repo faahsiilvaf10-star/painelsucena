@@ -73,6 +73,8 @@ export default function DDS() {
   const updateDDSEventPhoto = useUpdateDDSEventPhoto();
   // Hook to refresh DDS data at midnight (00:00 Pará time)
   useDDSMidnightRefresh();
+  const { data: participationDates } = useDDSParticipationMonth(monthYear);
+  const [participationDialogDate, setParticipationDialogDate] = useState<string | null>(null);
 
   // Edit modal state
   const [editingItem, setEditingItem] = useState<DDSScheduleItem | null>(null);
