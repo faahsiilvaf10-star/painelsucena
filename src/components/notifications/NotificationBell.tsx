@@ -86,9 +86,24 @@ export function NotificationBell() {
     if (!notification.read) {
       markAsRead.mutate(notification.id);
     }
-    // Navigate to InstaCena for instacena notification types
-    if (notification.reference_type === "instacena_post") {
+    // Navigate based on reference_type or notification type
+    const refType = notification.reference_type;
+    const nType = notification.type;
+
+    if (refType === "instacena_post") {
       navigate("/instacena");
+    } else if (refType === "dds_schedule" || nType === "dds_mention") {
+      navigate("/dds");
+    } else if (refType === "order" || nType === "order") {
+      navigate("/pedidos");
+    } else if (refType === "campaign" || nType === "campaign") {
+      navigate("/campanhas");
+    } else if (nType === "desvio") {
+      navigate("/desvios");
+    } else if (nType === "document") {
+      navigate("/documentos");
+    } else if (nType === "reminder") {
+      navigate("/lembretes");
     }
   };
 
