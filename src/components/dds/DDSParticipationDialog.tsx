@@ -29,6 +29,7 @@ const ABSENCE_LABELS: Record<AbsenceReason, string> = {
   treinamento: "Treinamento",
   exame: "Exame",
   folga: "Folga",
+  afastado: "Afastado",
 };
 
 const ABSENCE_COLORS: Record<AbsenceReason, string> = {
@@ -37,6 +38,7 @@ const ABSENCE_COLORS: Record<AbsenceReason, string> = {
   treinamento: "bg-blue-500 text-white",
   exame: "bg-purple-500 text-white",
   folga: "bg-orange-500 text-white",
+  afastado: "bg-gray-500 text-white",
 };
 
 interface AttendanceState {

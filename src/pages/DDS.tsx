@@ -51,6 +51,7 @@ const dayNames = ["Dom", "Seg", "Ter", "Qua", "Qui", "Sex", "Sáb"];
 const ABSENCE_LABELS_PDF: Record<string, string> = {
   falta: "Falta",
   atestado: "Atestado",
+  afastado: "Afastado",
   treinamento: "Treinamento",
   exame: "Exame",
   folga: "Folga",
