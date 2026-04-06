@@ -153,10 +153,11 @@ export const DDSParticipationDialog = ({ open, onOpenChange, date }: Props) => {
       const html = `
         <div id="dds-capture" style="font-family:Arial,sans-serif;padding:30px;color:#1f2937;background:white;width:800px;">
           ${generatePdfHeader("Lista de Presença - DDS", formattedDate, logoBase64)}
-          <div style="display:flex;gap:20px;margin-bottom:20px;">
+          <div style="display:flex;gap:20px;margin-bottom:20px;flex-wrap:wrap;">
             <div style="padding:10px 16px;border-radius:8px;font-size:13px;font-weight:600;background:#dcfce7;color:#166534;">✅ Presentes: ${presentList.length}</div>
             <div style="padding:10px 16px;border-radius:8px;font-size:13px;font-weight:600;background:#fee2e2;color:#991b1b;">❌ Ausentes: ${absentList.length}</div>
             <div style="padding:10px 16px;border-radius:8px;font-size:13px;font-weight:600;background:#f3f4f6;color:#374151;">Total: ${sortedEntries.length}</div>
+            <div style="padding:10px 16px;border-radius:8px;font-size:13px;font-weight:600;background:#1f2937;color:white;display:flex;align-items:center;gap:8px;">🚫 Cor Proibida: <span style="display:inline-block;width:18px;height:18px;border-radius:50%;background:${forbiddenColor.hex};border:2px solid white;"></span> ${forbiddenColor.name}</div>
           </div>
           <div style="font-size:14px;font-weight:700;margin:20px 0 8px;padding-bottom:4px;border-bottom:2px solid #e5e7eb;">Presentes</div>
           <table style="width:100%;border-collapse:collapse;font-size:12px;">
