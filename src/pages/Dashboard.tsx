@@ -68,6 +68,7 @@ const Dashboard = () => {
   const { data: equipment } = useEquipment();
   const { data: currentlyInEquipment } = useEquipmentCurrentlyIn();
   const { data: allRegisteredCount } = useAllRegisteredEquipmentCount();
+  const { data: jardinagemEquipment } = useJardinagemEquipment();
   const { dashboardOrder, updateOrder, isLoading: isLoadingOrder } = useDashboardOrder();
   useHolidayNotification();
   useFridayNotification();
