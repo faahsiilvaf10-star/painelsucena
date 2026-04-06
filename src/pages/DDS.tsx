@@ -48,6 +48,75 @@ import { downloadPdfFromHtml } from "@/lib/pdfDownload";
 
 const dayNames = ["Dom", "Seg", "Ter", "Qua", "Qui", "Sex", "Sáb"];
 
+const ABSENCE_LABELS_PDF: Record<string, string> = {
+  falta: "Falta",
+  atestado: "Atestado",
+  treinamento: "Treinamento",
+  exame: "Exame",
+  folga: "Folga",
+};
+
+const generateParticipationPdf = async (date: string) => {
+  const { data, error } = await supabase.from("dds_participation").select("*").eq("dds_date", date);
+  if (error || !data || data.length === 0) {
+    toast.error("Nenhum registro de presença encontrado para esta data");
+    return;
+  }
+  const logoBase64 = await getLogoBase64();
+  const formattedDate = date.split("-").reverse().join("/");
+  const sorted = [...data].sort((a, b) => a.employee_name.localeCompare(b.employee_name));
+  const presentList = sorted.filter((r) => r.present);
+  const absentList = sorted.filter((r) => !r.present);
+
+  const html = `
+    <html><head><style>
+      body { font-family: Arial, sans-serif; padding: 30px; color: #1f2937; }
+      ${PDF_HEADER_STYLES}
+      .summary { display: flex; gap: 20px; margin-bottom: 20px; }
+      .summary-item { padding: 10px 16px; border-radius: 8px; font-size: 13px; font-weight: 600; }
+      .summary-present { background: #dcfce7; color: #166534; }
+      .summary-absent { background: #fee2e2; color: #991b1b; }
+      .summary-total { background: #f3f4f6; color: #374151; }
+      table { width: 100%; border-collapse: collapse; margin-top: 10px; font-size: 12px; }
+      th { background: #1f2937; color: white; padding: 8px 12px; text-align: left; }
+      td { padding: 7px 12px; border-bottom: 1px solid #e5e7eb; }
+      tr:nth-child(even) { background: #f9fafb; }
+      .badge { display: inline-block; padding: 2px 8px; border-radius: 9999px; font-size: 10px; font-weight: 600; }
+      .badge-present { background: #dcfce7; color: #166534; }
+      .badge-falta { background: #fee2e2; color: #991b1b; }
+      .badge-atestado { background: #fef3c7; color: #92400e; }
+      .badge-treinamento { background: #dbeafe; color: #1e40af; }
+      .badge-exame { background: #ede9fe; color: #5b21b6; }
+      .badge-folga { background: #ffedd5; color: #9a3412; }
+      .section-title { font-size: 14px; font-weight: 700; margin: 20px 0 8px; padding-bottom: 4px; border-bottom: 2px solid #e5e7eb; }
+      .footer { margin-top: 40px; text-align: center; font-size: 10px; color: #9ca3af; border-top: 1px solid #e5e7eb; padding-top: 15px; }
+    </style></head><body>
+      ${generatePdfHeader("Lista de Presença - DDS", formattedDate, logoBase64)}
+      <div class="summary">
+        <div class="summary-item summary-present">✅ Presentes: ${presentList.length}</div>
+        <div class="summary-item summary-absent">❌ Ausentes: ${absentList.length}</div>
+        <div class="summary-item summary-total">Total: ${sorted.length}</div>
+      </div>
+      <div class="section-title">Presentes</div>
+      <table><thead><tr><th>#</th><th>Colaborador</th><th>Status</th></tr></thead><tbody>
+        ${presentList.map((r, i) => `<tr><td>${i + 1}</td><td>${r.employee_name}</td><td><span class="badge badge-present">Presente</span></td></tr>`).join("")}
+        ${presentList.length === 0 ? '<tr><td colspan="3" style="text-align:center;color:#9ca3af;">Nenhum</td></tr>' : ""}
+      </tbody></table>
+      <div class="section-title">Ausentes</div>
+      <table><thead><tr><th>#</th><th>Colaborador</th><th>Motivo</th></tr></thead><tbody>
+        ${absentList.map((r, i) => {
+          const reason = (r as any).absence_reason || "falta";
+          return `<tr><td>${i + 1}</td><td>${r.employee_name}</td><td><span class="badge badge-${reason}">${ABSENCE_LABELS_PDF[reason] || reason}</span></td></tr>`;
+        }).join("")}
+        ${absentList.length === 0 ? '<tr><td colspan="3" style="text-align:center;color:#9ca3af;">Nenhum</td></tr>' : ""}
+      </tbody></table>
+      <div class="footer">Sucena Engenharia • Lista de Presença DDS • ${formattedDate}</div>
+    </body></html>
+  `;
+  await downloadPdfFromHtml(html, `DDS_Presenca_${date}.pdf`);
+  toast.success("PDF gerado com sucesso!");
+};
+
 export default function DDS() {
   const { user } = useAuth();
   const { data: profile, isLoading: profileLoading } = useProfile();
