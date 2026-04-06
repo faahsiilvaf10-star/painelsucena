@@ -282,6 +282,99 @@ function PluviometriaSpreadsheet({ setor, ano }: { setor: string; ano: number })
       pdf.text("TOTAL", pageW - margin - 25, legendY + 12, { align: "center" });
       pdf.text("ANUAL", pageW - margin - 25, legendY + 15, { align: "center" });
 
+      // --- Monthly Bar Chart (new page) ---
+      pdf.addPage("l");
+      const chartMargin = 15;
+      const chartTop = 30;
+      const chartBottom = pageH - 20;
+      const chartLeft = chartMargin + 15;
+      const chartRight = pageW - chartMargin;
+      const chartH = chartBottom - chartTop;
+      const chartW = chartRight - chartLeft;
+
+      // Chart title
+      pdf.setFontSize(14);
+      pdf.setTextColor(green);
+      pdf.setFont("helvetica", "bold");
+      pdf.text(`GRÁFICO DE PRECIPITAÇÃO MENSAL - ${setor.toUpperCase()} - ${ano}`, pageW / 2, 15, { align: "center" });
+
+      // Logo on chart page
+      try {
+        const logoImg2 = new Image();
+        logoImg2.crossOrigin = "anonymous";
+        await new Promise<void>((resolve) => {
+          logoImg2.onload = () => resolve();
+          logoImg2.onerror = () => resolve();
+          logoImg2.src = "/logo-sucena-empreendimentos.png";
+        });
+        if (logoImg2.complete && logoImg2.naturalWidth > 0) {
+          const logoH2 = 12;
+          const logoW2 = (logoImg2.naturalWidth / logoImg2.naturalHeight) * logoH2;
+          pdf.addImage(logoImg2, "PNG", pageW - chartMargin - logoW2, 5, logoW2, logoH2);
+        }
+      } catch {}
+
+      // Find max value for Y axis
+      const monthValues = MESES.map((_, i) => monthTotals.get(i + 1) || 0);
+      const maxVal = Math.max(...monthValues, 1);
+      const yAxisMax = Math.ceil(maxVal / 50) * 50 || 50;
+
+      // Y axis
+      pdf.setDrawColor("#999999");
+      pdf.setLineWidth(0.3);
+      pdf.line(chartLeft, chartTop, chartLeft, chartBottom);
+      // X axis
+      pdf.line(chartLeft, chartBottom, chartRight, chartBottom);
+
+      // Y axis labels & grid lines
+      const ySteps = 5;
+      pdf.setFontSize(7);
+      pdf.setFont("helvetica", "normal");
+      pdf.setTextColor("#666666");
+      for (let i = 0; i <= ySteps; i++) {
+        const val = Math.round((yAxisMax / ySteps) * i);
+        const y = chartBottom - (chartH / ySteps) * i;
+        pdf.setDrawColor("#e0e0e0");
+        pdf.setLineWidth(0.1);
+        if (i > 0) pdf.line(chartLeft, y, chartRight, y);
+        pdf.setTextColor("#666666");
+        pdf.text(`${val} mm`, chartLeft - 2, y + 1.5, { align: "right" });
+      }
+
+      // Bars
+      const barW = (chartW / 12) * 0.6;
+      const gap = chartW / 12;
+      MESES.forEach((mesName, idx) => {
+        const val = monthValues[idx];
+        const barH = (val / yAxisMax) * chartH;
+        const x = chartLeft + gap * idx + (gap - barW) / 2;
+        const y = chartBottom - barH;
+
+        // Gradient effect: draw bar with main color
+        pdf.setFillColor(green);
+        pdf.roundedRect(x, y, barW, barH, 1.5, 1.5, "F");
+
+        // Value on top
+        if (val > 0) {
+          pdf.setFontSize(6);
+          pdf.setFont("helvetica", "bold");
+          pdf.setTextColor("#000000");
+          pdf.text(`${val}`, x + barW / 2, y - 2, { align: "center" });
+        }
+
+        // Month label below
+        pdf.setFontSize(6);
+        pdf.setFont("helvetica", "bold");
+        pdf.setTextColor("#333333");
+        pdf.text(mesName.slice(0, 3), x + barW / 2, chartBottom + 5, { align: "center" });
+      });
+
+      // Unit label
+      pdf.setFontSize(8);
+      pdf.setTextColor("#666666");
+      pdf.setFont("helvetica", "italic");
+      pdf.text("Precipitação (mm)", chartLeft + chartW / 2, chartBottom + 12, { align: "center" });
+
       const { triggerBlobDownload } = await import("@/lib/pdfDownload");
       const blob = pdf.output("blob");
       triggerBlobDownload(blob, `pluviometria-${setor}-${ano}.pdf`);
