@@ -16,6 +16,7 @@ import { toast } from "sonner";
 import { getBrazilNorthDate } from "@/lib/timezone";
 import { formatCargoLabel } from "@/lib/cargoUtils";
 import { useDDSMidnightRefresh } from "@/hooks/useMidnightRefresh";
+import { DDSParticipationDialog } from "./DDSParticipationDialog";
 
 export const DDSHighlightCard = () => {
   const { data: todayDDS, isLoading: loadingToday } = useTodayDDS();
