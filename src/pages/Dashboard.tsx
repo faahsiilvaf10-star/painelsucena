@@ -97,7 +97,10 @@ const Dashboard = () => {
   
   const jardinagemTotal = jardinagemEquipment?.length || 0;
   const jardinagemIn = jardinagemEquipment?.filter(e => e.status === "entrou").length || 0;
-  const inOperation = (currentlyInEquipment?.length || 0) + jardinagemIn;
+  // Filter currentlyInEquipment to only count plates that belong to the equipment table (vehicles)
+  const vehiclePlates = new Set((equipment || []).map(e => e.plate));
+  const vehiclesIn = (currentlyInEquipment || []).filter(m => vehiclePlates.has(m.plate)).length;
+  const inOperation = vehiclesIn + jardinagemIn;
   const totalEquip = (equipment?.length || 0) + jardinagemTotal;
   const equipPercent = totalEquip > 0 ? Math.round(inOperation / totalEquip * 100) : 0;
 
