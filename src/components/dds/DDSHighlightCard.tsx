@@ -1,7 +1,7 @@
 import { useState, useRef, useMemo } from "react";
 import { format, addDays } from "date-fns";
 import { ptBR } from "date-fns/locale";
-import { Sun, Calendar, Camera, Upload, Loader2, ArrowRight, UserPlus, X } from "lucide-react";
+import { Sun, Calendar, Camera, Upload, Loader2, ArrowRight, UserPlus, X, ClipboardList } from "lucide-react";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
@@ -16,6 +16,7 @@ import { toast } from "sonner";
 import { getBrazilNorthDate } from "@/lib/timezone";
 import { formatCargoLabel } from "@/lib/cargoUtils";
 import { useDDSMidnightRefresh } from "@/hooks/useMidnightRefresh";
+import { DDSParticipationDialog } from "./DDSParticipationDialog";
 
 export const DDSHighlightCard = () => {
   const { data: todayDDS, isLoading: loadingToday } = useTodayDDS();
@@ -34,6 +35,7 @@ export const DDSHighlightCard = () => {
   const [eventPhotoModalOpen, setEventPhotoModalOpen] = useState(false);
   const fileInputRef = useRef<HTMLInputElement>(null);
   const eventFileInputRef = useRef<HTMLInputElement>(null);
+  const [participationOpen, setParticipationOpen] = useState(false);
 
   // Use Brazil North timezone - recalculate when dateKey changes
   const today = useMemo(() => getBrazilNorthDate(), [dateKey]);
@@ -257,6 +259,22 @@ export const DDSHighlightCard = () => {
                   </div>
                 ) : null}
               </div>
+
+              {/* Participation List Button */}
+              <Button
+                variant="outline"
+                className="w-full"
+                onClick={() => setParticipationOpen(true)}
+              >
+                <ClipboardList className="h-4 w-4 mr-2" />
+                Ver Lista de Presença
+              </Button>
+
+              <DDSParticipationDialog
+                open={participationOpen}
+                onOpenChange={setParticipationOpen}
+                date={todayDDS.scheduled_date}
+              />
             </div>
           ) : (
             <div className="text-center py-6 text-muted-foreground">

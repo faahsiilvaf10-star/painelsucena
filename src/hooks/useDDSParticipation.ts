@@ -1,0 +1,61 @@
+import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
+import { supabase } from "@/integrations/supabase/client";
+
+export interface DDSParticipationRecord {
+  id: string;
+  dds_date: string;
+  employee_name: string;
+  present: boolean;
+  saved_by: string;
+  created_at: string;
+  updated_at: string;
+}
+
+export const useDDSParticipation = (date: string) => {
+  return useQuery({
+    queryKey: ["dds-participation", date],
+    queryFn: async () => {
+      const { data, error } = await supabase
+        .from("dds_participation")
+        .select("*")
+        .eq("dds_date", date);
+      if (error) throw error;
+      return (data || []) as DDSParticipationRecord[];
+    },
+    enabled: !!date,
+  });
+};
+
+export const useSaveDDSParticipation = () => {
+  const queryClient = useQueryClient();
+
+  return useMutation({
+    mutationFn: async ({
+      date,
+      participants,
+      userId,
+    }: {
+      date: string;
+      participants: { name: string; present: boolean }[];
+      userId: string;
+    }) => {
+      // Delete existing records for this date then insert new ones
+      await supabase.from("dds_participation").delete().eq("dds_date", date);
+
+      const rows = participants.map((p) => ({
+        dds_date: date,
+        employee_name: p.name,
+        present: p.present,
+        saved_by: userId,
+      }));
+
+      if (rows.length > 0) {
+        const { error } = await supabase.from("dds_participation").insert(rows);
+        if (error) throw error;
+      }
+    },
+    onSuccess: (_, vars) => {
+      queryClient.invalidateQueries({ queryKey: ["dds-participation", vars.date] });
+    },
+  });
+};
