@@ -54,6 +54,7 @@ export const DDSParticipationDialog = ({ open, onOpenChange, date }: Props) => {
   const { data: existing, isLoading } = useDDSParticipation(date);
   const saveMutation = useSaveDDSParticipation();
   const { data: profile } = useProfile();
+  const { user } = useAuth();
   const [search, setSearch] = useState("");
   const [attendance, setAttendance] = useState<Record<string, AttendanceState>>({});
   const [generatingPdf, setGeneratingPdf] = useState(false);
