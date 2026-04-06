@@ -26,7 +26,9 @@ const MONTHS = [
 ];
 
 const InstaCena = () => {
+  const [searchParams, setSearchParams] = useSearchParams();
   const { data: posts, isLoading } = useInstaCenaPosts();
+  const scrolledToPost = useRef(false);
   const [filter, setFilter] = useState<"posts" | "logs">("posts");
   const [selectedDate, setSelectedDate] = useState<Date | undefined>();
   const [selectedMonth, setSelectedMonth] = useState<string>("all");
