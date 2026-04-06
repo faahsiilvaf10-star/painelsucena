@@ -29,6 +29,26 @@ export const useDDSParticipation = (date: string) => {
   });
 };
 
+// Fetch all participation dates for a month (yyyy-MM)
+export const useDDSParticipationMonth = (monthYear: string) => {
+  const startDate = `${monthYear}-01`;
+  const endDate = `${monthYear}-31`;
+  return useQuery({
+    queryKey: ["dds-participation-month", monthYear],
+    queryFn: async () => {
+      const { data, error } = await supabase
+        .from("dds_participation")
+        .select("dds_date")
+        .gte("dds_date", startDate)
+        .lte("dds_date", endDate);
+      if (error) throw error;
+      const dates = new Set((data || []).map((r: { dds_date: string }) => r.dds_date));
+      return dates;
+    },
+    enabled: !!monthYear,
+  });
+};
+
 export const useSaveDDSParticipation = () => {
   const queryClient = useQueryClient();
 
