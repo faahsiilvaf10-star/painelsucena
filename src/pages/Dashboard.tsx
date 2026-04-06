@@ -94,7 +94,7 @@ const Dashboard = () => {
   const presencePercent = totalEmployees > 0 ? Math.round(presentToday / totalEmployees * 100) : 0;
   
   const inOperation = currentlyInEquipment?.length || 0;
-  const totalEquip = allRegisteredCount || equipment?.length || 0;
+  const totalEquip = equipment?.length || 0;
   const equipPercent = totalEquip > 0 ? Math.round(inOperation / totalEquip * 100) : 0;
 
   useEffect(() => {
