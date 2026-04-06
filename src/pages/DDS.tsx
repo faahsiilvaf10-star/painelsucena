@@ -1,7 +1,7 @@
 import { useState, useMemo, useRef } from "react";
 import { format, parse, isWeekend, getDay } from "date-fns";
 import { ptBR } from "date-fns/locale";
-import { Shuffle, Calendar, Save, Trash2, Edit2, Sun, Shield, ChevronLeft, ChevronRight, Loader2, AtSign, Plus, User, UserPlus, BookOpen, Camera, Image, X, ZoomIn } from "lucide-react";
+import { Shuffle, Calendar, Save, Trash2, Edit2, Sun, Shield, ChevronLeft, ChevronRight, Loader2, AtSign, Plus, User, UserPlus, BookOpen, Camera, Image, X, ZoomIn, Eye, FileText } from "lucide-react";
 import Layout from "@/components/layout/Layout";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from "@/components/ui/card";
