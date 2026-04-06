@@ -677,6 +677,16 @@ export default function DDS() {
                                   <Image className="h-4 w-4 text-amber-500" />
                                 </Button>
                               )}
+                              {participationDates?.has(dateStr) && (
+                                <>
+                                  <Button variant="ghost" size="icon" className="h-7 w-7 shrink-0" onClick={() => setParticipationDialogDate(dateStr)} title="Ver lista de presença">
+                                    <Eye className="h-4 w-4 text-green-600" />
+                                  </Button>
+                                  <Button variant="ghost" size="icon" className="h-7 w-7 shrink-0" onClick={() => generateParticipationPdf(dateStr)} title="Baixar PDF da presença">
+                                    <FileText className="h-4 w-4 text-red-500" />
+                                  </Button>
+                                </>
+                              )}
                             </div>
                           </TableCell>
                           {canEdit && (
