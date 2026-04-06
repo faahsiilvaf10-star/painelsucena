@@ -51,6 +51,7 @@ const dayNames = ["Dom", "Seg", "Ter", "Qua", "Qui", "Sex", "Sáb"];
 const ABSENCE_LABELS_PDF: Record<string, string> = {
   falta: "Falta",
   atestado: "Atestado",
+  afastado: "Afastado",
   treinamento: "Treinamento",
   exame: "Exame",
   folga: "Folga",
@@ -88,6 +89,7 @@ const generateParticipationPdf = async (date: string) => {
       .badge-treinamento { background: #dbeafe; color: #1e40af; }
       .badge-exame { background: #ede9fe; color: #5b21b6; }
       .badge-folga { background: #ffedd5; color: #9a3412; }
+      .badge-afastado { background: #e5e7eb; color: #374151; }
       .section-title { font-size: 14px; font-weight: 700; margin: 20px 0 8px; padding-bottom: 4px; border-bottom: 2px solid #e5e7eb; }
       .footer { margin-top: 40px; text-align: center; font-size: 10px; color: #9ca3af; border-top: 1px solid #e5e7eb; padding-top: 15px; }
     </style></head><body>

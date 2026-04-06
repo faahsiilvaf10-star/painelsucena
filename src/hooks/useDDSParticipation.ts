@@ -1,7 +1,7 @@
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import { supabase } from "@/integrations/supabase/client";
 
-export type AbsenceReason = "falta" | "atestado" | "treinamento" | "exame" | "folga";
+export type AbsenceReason = "falta" | "atestado" | "treinamento" | "exame" | "folga" | "afastado";
 
 export interface DDSParticipationRecord {
   id: string;

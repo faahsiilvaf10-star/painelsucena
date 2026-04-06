@@ -29,6 +29,7 @@ const ABSENCE_LABELS: Record<AbsenceReason, string> = {
   treinamento: "Treinamento",
   exame: "Exame",
   folga: "Folga",
+  afastado: "Afastado",
 };
 
 const ABSENCE_COLORS: Record<AbsenceReason, string> = {
@@ -37,6 +38,7 @@ const ABSENCE_COLORS: Record<AbsenceReason, string> = {
   treinamento: "bg-blue-500 text-white",
   exame: "bg-purple-500 text-white",
   folga: "bg-orange-500 text-white",
+  afastado: "bg-gray-500 text-white",
 };
 
 interface AttendanceState {
@@ -161,7 +163,8 @@ export const DDSParticipationDialog = ({ open, onOpenChange, date }: Props) => {
           .badge-atestado { background: #fef3c7; color: #92400e; }
           .badge-treinamento { background: #dbeafe; color: #1e40af; }
           .badge-exame { background: #ede9fe; color: #5b21b6; }
-          .badge-folga { background: #ffedd5; color: #9a3412; }
+           .badge-folga { background: #ffedd5; color: #9a3412; }
+           .badge-afastado { background: #e5e7eb; color: #374151; }
           .section-title { font-size: 14px; font-weight: 700; margin: 20px 0 8px; padding-bottom: 4px; border-bottom: 2px solid #e5e7eb; }
           .footer { margin-top: 40px; text-align: center; font-size: 10px; color: #9ca3af; border-top: 1px solid #e5e7eb; padding-top: 15px; }
         </style></head><body>
