@@ -51,6 +51,7 @@ export const DDSParticipationDialog = ({ open, onOpenChange, date }: Props) => {
   const { data: profile } = useProfile();
   const [search, setSearch] = useState("");
   const [attendance, setAttendance] = useState<Record<string, AttendanceState>>({});
+  const [generatingPdf, setGeneratingPdf] = useState(false);
 
   const employees = useMemo(() => {
     if (!rhData) return [];
@@ -119,9 +120,101 @@ export const DDSParticipationDialog = ({ open, onOpenChange, date }: Props) => {
     try {
       await saveMutation.mutateAsync({ date, participants, userId: profile.user_id });
       toast.success("Lista de presença do DDS salva!");
+      await generatePdf();
       onOpenChange(false);
     } catch {
       toast.error("Erro ao salvar lista");
+    }
+  };
+
+  const generatePdf = async () => {
+    setGeneratingPdf(true);
+    try {
+      const logoBase64 = await getLogoBase64();
+      const formattedDate = date.split("-").reverse().join("/");
+
+      const sortedEntries = Object.entries(attendance).sort(([a], [b]) => a.localeCompare(b));
+      const presentList = sortedEntries.filter(([, s]) => s.present);
+      const absentList = sortedEntries.filter(([, s]) => !s.present);
+
+      const reasonLabel = (r: AbsenceReason | null) => {
+        if (!r) return "Falta";
+        return ABSENCE_LABELS[r] || r;
+      };
+
+      const html = `
+        <html><head><style>
+          body { font-family: Arial, sans-serif; padding: 30px; color: #1f2937; }
+          ${PDF_HEADER_STYLES}
+          .summary { display: flex; gap: 20px; margin-bottom: 20px; }
+          .summary-item { padding: 10px 16px; border-radius: 8px; font-size: 13px; font-weight: 600; }
+          .summary-present { background: #dcfce7; color: #166534; }
+          .summary-absent { background: #fee2e2; color: #991b1b; }
+          .summary-total { background: #f3f4f6; color: #374151; }
+          table { width: 100%; border-collapse: collapse; margin-top: 10px; font-size: 12px; }
+          th { background: #1f2937; color: white; padding: 8px 12px; text-align: left; }
+          td { padding: 7px 12px; border-bottom: 1px solid #e5e7eb; }
+          tr:nth-child(even) { background: #f9fafb; }
+          .badge { display: inline-block; padding: 2px 8px; border-radius: 9999px; font-size: 10px; font-weight: 600; }
+          .badge-present { background: #dcfce7; color: #166534; }
+          .badge-falta { background: #fee2e2; color: #991b1b; }
+          .badge-atestado { background: #fef3c7; color: #92400e; }
+          .badge-treinamento { background: #dbeafe; color: #1e40af; }
+          .badge-exame { background: #ede9fe; color: #5b21b6; }
+          .badge-folga { background: #ffedd5; color: #9a3412; }
+          .section-title { font-size: 14px; font-weight: 700; margin: 20px 0 8px; padding-bottom: 4px; border-bottom: 2px solid #e5e7eb; }
+          .footer { margin-top: 40px; text-align: center; font-size: 10px; color: #9ca3af; border-top: 1px solid #e5e7eb; padding-top: 15px; }
+        </style></head><body>
+          ${generatePdfHeader("Lista de Presença - DDS", formattedDate, logoBase64)}
+          <div class="summary">
+            <div class="summary-item summary-present">✅ Presentes: ${presentList.length}</div>
+            <div class="summary-item summary-absent">❌ Ausentes: ${absentList.length}</div>
+            <div class="summary-item summary-total">Total: ${sortedEntries.length}</div>
+          </div>
+
+          <div class="section-title">Presentes</div>
+          <table>
+            <thead><tr><th>#</th><th>Colaborador</th><th>Status</th></tr></thead>
+            <tbody>
+              ${presentList.map(([name], i) => `
+                <tr>
+                  <td>${i + 1}</td>
+                  <td>${name}</td>
+                  <td><span class="badge badge-present">Presente</span></td>
+                </tr>
+              `).join("")}
+              ${presentList.length === 0 ? '<tr><td colspan="3" style="text-align:center;color:#9ca3af;">Nenhum</td></tr>' : ""}
+            </tbody>
+          </table>
+
+          <div class="section-title">Ausentes</div>
+          <table>
+            <thead><tr><th>#</th><th>Colaborador</th><th>Motivo</th></tr></thead>
+            <tbody>
+              ${absentList.map(([name, state], i) => {
+                const reason = state.absence_reason || "falta";
+                return `
+                  <tr>
+                    <td>${i + 1}</td>
+                    <td>${name}</td>
+                    <td><span class="badge badge-${reason}">${reasonLabel(state.absence_reason)}</span></td>
+                  </tr>
+                `;
+              }).join("")}
+              ${absentList.length === 0 ? '<tr><td colspan="3" style="text-align:center;color:#9ca3af;">Nenhum</td></tr>' : ""}
+            </tbody>
+          </table>
+
+          <div class="footer">Sucena Engenharia • Lista de Presença DDS • ${formattedDate}</div>
+        </body></html>
+      `;
+
+      await downloadPdfFromHtml(html, `DDS_Presenca_${date}.pdf`);
+      toast.success("PDF gerado com sucesso!");
+    } catch {
+      toast.error("Erro ao gerar PDF");
+    } finally {
+      setGeneratingPdf(false);
     }
   };
 
@@ -228,14 +321,25 @@ export const DDSParticipationDialog = ({ open, onOpenChange, date }: Props) => {
           )}
         </ScrollArea>
 
-        <Button onClick={handleSave} disabled={saveMutation.isPending} className="w-full">
-          {saveMutation.isPending ? (
-            <Loader2 className="h-4 w-4 animate-spin mr-2" />
-          ) : (
-            <Save className="h-4 w-4 mr-2" />
-          )}
-          Salvar Lista
-        </Button>
+        <div className="flex gap-2">
+          <Button onClick={handleSave} disabled={saveMutation.isPending || generatingPdf} className="flex-1">
+            {saveMutation.isPending ? (
+              <Loader2 className="h-4 w-4 animate-spin mr-2" />
+            ) : (
+              <Save className="h-4 w-4 mr-2" />
+            )}
+            Salvar Lista
+          </Button>
+          <Button
+            variant="outline"
+            onClick={generatePdf}
+            disabled={generatingPdf || Object.keys(attendance).length === 0}
+            className="gap-1"
+          >
+            {generatingPdf ? <Loader2 className="h-4 w-4 animate-spin" /> : <FileText className="h-4 w-4" />}
+            PDF
+          </Button>
+        </div>
       </DialogContent>
     </Dialog>
   );
