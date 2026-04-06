@@ -241,7 +241,7 @@ export const DDSParticipationDialog = ({ open, onOpenChange, date }: Props) => {
         user_avatar_url: profile.avatar_url,
         content: `📋 Lista de Presença DDS - ${formattedDate}\n✅ ${presentList.length} presentes | ❌ ${absentList.length} ausentes | Total: ${sortedEntries.length}\n🚫 Cor Proibida do Mês: ${forbiddenColor.name}`,
         image_urls: [urlData.publicUrl],
-        is_system_post: true,
+        is_system_post: false,
       });
     } catch (err) {
       console.error("Erro ao postar no InstaCena:", err);
