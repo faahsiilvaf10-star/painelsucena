@@ -287,7 +287,6 @@ export const DDSParticipationDialog = ({ open, onOpenChange, date }: Props) => {
       await saveMutation.mutateAsync({ date, participants, userId: profile.user_id });
       toast.success("Lista de presença do DDS salva!");
       await lockList();
-      await generatePdf();
       await postToInstaCena();
       onOpenChange(false);
     } catch {
