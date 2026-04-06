@@ -1,7 +1,7 @@
 import { useState, useRef, useMemo } from "react";
 import { format, addDays } from "date-fns";
 import { ptBR } from "date-fns/locale";
-import { Sun, Calendar, Camera, Upload, Loader2, ArrowRight, UserPlus, X } from "lucide-react";
+import { Sun, Calendar, Camera, Upload, Loader2, ArrowRight, UserPlus, X, ClipboardList } from "lucide-react";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
