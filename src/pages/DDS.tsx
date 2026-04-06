@@ -1033,6 +1033,14 @@ export default function DDS() {
           </DialogContent>
         </Dialog>
       </div>
+
+      {participationDialogDate && (
+        <DDSParticipationDialog
+          open={!!participationDialogDate}
+          onOpenChange={(open) => { if (!open) setParticipationDialogDate(null); }}
+          date={participationDialogDate}
+        />
+      )}
     </Layout>
   );
 }
