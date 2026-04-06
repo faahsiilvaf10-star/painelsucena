@@ -116,6 +116,25 @@ export const DDSParticipationDialog = ({ open, onOpenChange, date }: Props) => {
     setAttendance(map);
   };
 
+  const getForbiddenColor = (dateStr: string) => {
+    const month = parseInt(dateStr.split("-")[1], 10) - 1;
+    const colorMap: Record<number, { name: string; hex: string }> = {
+      0: { name: "Vermelha", hex: "#ef4444" },
+      1: { name: "Azul", hex: "#3b82f6" },
+      2: { name: "Amarela", hex: "#facc15" },
+      3: { name: "Verde", hex: "#22c55e" },
+      4: { name: "Vermelha", hex: "#ef4444" },
+      5: { name: "Azul", hex: "#3b82f6" },
+      6: { name: "Amarela", hex: "#facc15" },
+      7: { name: "Verde", hex: "#22c55e" },
+      8: { name: "Vermelha", hex: "#ef4444" },
+      9: { name: "Azul", hex: "#3b82f6" },
+      10: { name: "Amarela", hex: "#facc15" },
+      11: { name: "Verde", hex: "#22c55e" },
+    };
+    return colorMap[month];
+  };
+
   const postToInstaCena = async () => {
     if (!user || !profile) return;
     try {
@@ -124,6 +143,7 @@ export const DDSParticipationDialog = ({ open, onOpenChange, date }: Props) => {
       const sortedEntries = Object.entries(attendance).sort(([a], [b]) => a.localeCompare(b));
       const presentList = sortedEntries.filter(([, s]) => s.present);
       const absentList = sortedEntries.filter(([, s]) => !s.present);
+      const forbiddenColor = getForbiddenColor(date);
 
       const reasonLabel = (r: AbsenceReason | null) => {
         if (!r) return "Falta";
@@ -133,10 +153,11 @@ export const DDSParticipationDialog = ({ open, onOpenChange, date }: Props) => {
       const html = `
         <div id="dds-capture" style="font-family:Arial,sans-serif;padding:30px;color:#1f2937;background:white;width:800px;">
           ${generatePdfHeader("Lista de Presença - DDS", formattedDate, logoBase64)}
-          <div style="display:flex;gap:20px;margin-bottom:20px;">
+          <div style="display:flex;gap:20px;margin-bottom:20px;flex-wrap:wrap;">
             <div style="padding:10px 16px;border-radius:8px;font-size:13px;font-weight:600;background:#dcfce7;color:#166534;">✅ Presentes: ${presentList.length}</div>
             <div style="padding:10px 16px;border-radius:8px;font-size:13px;font-weight:600;background:#fee2e2;color:#991b1b;">❌ Ausentes: ${absentList.length}</div>
             <div style="padding:10px 16px;border-radius:8px;font-size:13px;font-weight:600;background:#f3f4f6;color:#374151;">Total: ${sortedEntries.length}</div>
+            <div style="padding:10px 16px;border-radius:8px;font-size:13px;font-weight:600;background:#1f2937;color:white;display:flex;align-items:center;gap:8px;">🚫 Cor Proibida: <span style="display:inline-block;width:18px;height:18px;border-radius:50%;background:${forbiddenColor.hex};border:2px solid white;"></span> ${forbiddenColor.name}</div>
           </div>
           <div style="font-size:14px;font-weight:700;margin:20px 0 8px;padding-bottom:4px;border-bottom:2px solid #e5e7eb;">Presentes</div>
           <table style="width:100%;border-collapse:collapse;font-size:12px;">
@@ -183,7 +204,7 @@ export const DDSParticipationDialog = ({ open, onOpenChange, date }: Props) => {
         user_id: user.id,
         user_name: profile.full_name || "Sistema",
         user_avatar_url: profile.avatar_url,
-        content: `📋 Lista de Presença DDS - ${formattedDate}\n✅ ${presentList.length} presentes | ❌ ${absentList.length} ausentes | Total: ${sortedEntries.length}`,
+        content: `📋 Lista de Presença DDS - ${formattedDate}\n✅ ${presentList.length} presentes | ❌ ${absentList.length} ausentes | Total: ${sortedEntries.length}\n🚫 Cor Proibida do Mês: ${forbiddenColor.name}`,
         image_urls: [urlData.publicUrl],
         is_system_post: true,
       });
