@@ -6,6 +6,7 @@ import { ptBR } from "date-fns/locale";
 import { useAuth } from "@/hooks/useAuth";
 import { useProfile } from "@/hooks/useProfile";
 import { useEpiExchanges, EpiExchange } from "@/hooks/useEpiExchanges";
+import { useMaterialRequisitions, MaterialRequisition } from "@/hooks/useMaterialRequisitions";
 import { useInventoryItems } from "@/hooks/useInventory";
 import { useRHEfetivo } from "@/hooks/useRHEfetivo";
 import { SignatureDialog } from "@/components/epi/SignatureDialog";
@@ -20,7 +21,8 @@ import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { Badge } from "@/components/ui/badge";
 import { Separator } from "@/components/ui/separator";
-import { ShieldCheck, Plus, FileText, Trash2, Eye, Pencil, Image, MessageCircle, Search, ChevronLeft, ChevronRight, X, Camera, ZoomIn, Loader2 } from "lucide-react";
+import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
+import { ShieldCheck, Plus, FileText, Trash2, Eye, Pencil, Image, MessageCircle, Search, ChevronLeft, ChevronRight, X, Camera, ZoomIn, Loader2, Package } from "lucide-react";
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/components/ui/dialog";
 import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover";
 import { Command, CommandInput, CommandList, CommandEmpty, CommandItem } from "@/components/ui/command";
@@ -48,7 +50,6 @@ const EPI_ITEMS = [
   { id: "outros", label: "Outros", hasInput: true, inputLabel: "Especifique" },
 ];
 
-// EPIs that should show an inventory dropdown instead of free-text input
 const INVENTORY_DROPDOWN_EPIS: Record<string, { keyword: string; placeholder: string }> = {
   luva: { keyword: "luva", placeholder: "Selecione o tipo de luva..." },
   bota_7leguas: { keyword: "7 legua", placeholder: "Selecione a bota 7 léguas..." },
@@ -58,6 +59,11 @@ const INVENTORY_DROPDOWN_EPIS: Record<string, { keyword: string; placeholder: st
 };
 
 const TAMANHOS = ["P", "M", "G", "GG", "XG"];
+
+const AREA_DESTINO_OPTIONS = ["Gabião", "Jardinagem", "Transporte", "Escritório"];
+
+// EPI category keywords to filter OUT for material tab
+const EPI_KEYWORDS = ["epi", "luva", "bota", "capacete", "carneira", "colete", "protetor", "óculos", "oculos", "abafador", "perneira", "tyveck", "pff", "máscara", "mascara"];
 
 function normalizeText(text: string): string {
   return text
@@ -70,16 +76,13 @@ function normalizeText(text: string): string {
 
 function findInventoryMatch(inventoryItems: any[], searchLabel: string): any | null {
   const normalized = normalizeText(searchLabel);
-  // Try exact normalized match first
   let match = inventoryItems.find(inv => normalizeText(inv.name) === normalized);
   if (match) return match;
-  // Try includes in both directions
   match = inventoryItems.find(inv => {
     const invNorm = normalizeText(inv.name);
     return invNorm.includes(normalized) || normalized.includes(invNorm);
   });
   if (match) return match;
-  // Try matching significant words (3+ chars)
   const words = normalized.split(" ").filter(w => w.length >= 3);
   if (words.length > 0) {
     match = inventoryItems.find(inv => {
@@ -104,7 +107,6 @@ function buildPdfHtml(exchange: EpiExchange, logoBase64: string): string {
       const found = selectedEpis.find((e: any) => typeof e === 'string' ? e === item.id : (e as any).id === item.id);
       const checked = !!found;
       const extra = typeof found === 'object' && found !== null ? (found as any).value || '' : '';
-      // For "Outros", also render extra outros_* entries
       const extrasHtml = item.id === "outros"
         ? selectedEpis
             .filter((e: any) => {
@@ -193,16 +195,89 @@ function buildPdfHtml(exchange: EpiExchange, logoBase64: string): string {
   `;
 }
 
+function buildMaterialPdfHtml(req: MaterialRequisition, logoBase64: string): string {
+  const sigFunc = req.assinatura_funcionario || '';
+  const sigAuth = req.assinatura_autorizador || '';
+  const materiais = req.materiais || [];
+
+  const materiaisRows = materiais.map(m => 
+    `<tr>
+      <td style="border:1px solid #ccc;padding:4px 8px;font-size:11px;">${m.name}</td>
+      <td style="border:1px solid #ccc;padding:4px 8px;font-size:11px;text-align:center;">${m.qty}</td>
+    </tr>`
+  ).join('');
+
+  return `
+    <div style="font-family:Arial,sans-serif;font-size:12px;color:#1a1a1a;border:2px solid #333;padding:15px;background:#fff;">
+      <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:10px;border-bottom:2px solid #333;padding-bottom:10px;">
+        ${logoBase64 ? `<img src="${logoBase64}" style="max-height:55px;" />` : '<div></div>'}
+        <div style="text-align:right;font-size:10px;color:#666;">
+          <div>CONTRATO: 4600012690</div>
+        </div>
+      </div>
+      <div style="text-align:center;font-size:16px;font-weight:bold;margin-bottom:12px;text-transform:uppercase;">Requisição de Material</div>
+
+      <div style="display:flex;gap:10px;margin-bottom:8px;">
+        <div style="flex:1;border-bottom:1px solid #999;padding:4px 2px;"><span style="font-weight:bold;">DATA:</span> ${format(new Date(req.data + 'T12:00:00'), "dd/MM/yyyy")}</div>
+        <div style="flex:1;border-bottom:1px solid #999;padding:4px 2px;"><span style="font-weight:bold;">ÁREA DESTINO:</span> ${req.area_destino}</div>
+      </div>
+      <div style="display:flex;gap:10px;margin-bottom:8px;">
+        <div style="flex:1;border-bottom:1px solid #999;padding:4px 2px;"><span style="font-weight:bold;">AUTORIZADO POR:</span> ${req.autorizado_por}</div>
+        <div style="flex:1;border-bottom:1px solid #999;padding:4px 2px;"><span style="font-weight:bold;">MATRÍCULA:</span> ${req.matricula_autorizador || ''}</div>
+      </div>
+      <div style="display:flex;gap:10px;margin-bottom:8px;">
+        <div style="flex:2;border-bottom:1px solid #999;padding:4px 2px;"><span style="font-weight:bold;">MOTIVO:</span> ${req.motivo}</div>
+      </div>
+      <div style="display:flex;gap:10px;margin-bottom:8px;">
+        <div style="flex:1;border-bottom:1px solid #999;padding:4px 2px;"><span style="font-weight:bold;">FUNCIONÁRIO(A):</span> ${req.funcionario_nome}</div>
+      </div>
+      <div style="display:flex;gap:10px;margin-bottom:8px;">
+        <div style="flex:1;border-bottom:1px solid #999;padding:4px 2px;"><span style="font-weight:bold;">FUNÇÃO:</span> ${req.funcionario_funcao || ''}</div>
+        <div style="flex:1;border-bottom:1px solid #999;padding:4px 2px;"><span style="font-weight:bold;">MATRÍCULA:</span> ${req.funcionario_matricula || ''}</div>
+      </div>
+
+      <div style="font-weight:bold;font-size:13px;background:#e5e7eb;padding:4px 8px;margin:12px 0 8px;">MATERIAIS</div>
+      <table style="width:100%;border-collapse:collapse;margin-bottom:12px;">
+        <thead>
+          <tr>
+            <th style="border:1px solid #ccc;padding:4px 8px;font-size:11px;text-align:left;background:#f3f4f6;">Material</th>
+            <th style="border:1px solid #ccc;padding:4px 8px;font-size:11px;text-align:center;background:#f3f4f6;">Qtd</th>
+          </tr>
+        </thead>
+        <tbody>${materiaisRows}</tbody>
+      </table>
+
+      <div style="display:flex;justify-content:space-between;margin-top:30px;">
+        <div style="text-align:center;width:45%;">
+          ${sigAuth ? `<img src="${sigAuth}" style="display:block;margin:0 auto;max-height:60px;" />` : '<div style="min-height:55px;"></div>'}
+          <div style="border-top:1px solid #333;margin-top:0;padding-top:4px;font-size:11px;">ASSINATURA DO AUTORIZADOR</div>
+        </div>
+        <div style="text-align:center;width:45%;">
+          ${sigFunc ? `<img src="${sigFunc}" style="display:block;margin:0 auto;max-height:60px;" />` : '<div style="min-height:55px;"></div>'}
+          <div style="border-top:1px solid #333;margin-top:0;padding-top:4px;font-size:11px;">ASSINATURA DO FUNCIONÁRIO</div>
+        </div>
+      </div>
+    </div>
+  `;
+}
+
 async function generatePdf(exchange: EpiExchange, logoBase64: string) {
   const content = buildPdfHtml(exchange, logoBase64);
   const html = `<html><head><style>@page{size:A4;margin:15mm;}body{font-family:Arial,sans-serif;}</style></head><body>${content}</body></html>`;
   await downloadPdfFromHtml(html, `troca-epi-${exchange.id}.pdf`);
 }
 
+async function generateMaterialPdf(req: MaterialRequisition, logoBase64: string) {
+  const content = buildMaterialPdfHtml(req, logoBase64);
+  const html = `<html><head><style>@page{size:A4;margin:15mm;}body{font-family:Arial,sans-serif;}</style></head><body>${content}</body></html>`;
+  await downloadPdfFromHtml(html, `requisicao-material-${req.id}.pdf`);
+}
+
 export default function TrocaEpi() {
   const { user } = useAuth();
   const { data: profile } = useProfile();
   const { exchanges, isLoading, createExchange, updateExchange, deleteExchange } = useEpiExchanges();
+  const { requisitions, isLoading: isLoadingMaterial, createRequisition, updateRequisition, deleteRequisition } = useMaterialRequisitions();
   const { data: inventoryItems = [] } = useInventoryItems();
   const queryClient = useQueryClient();
   const { data: rhData } = useRHEfetivo();
@@ -220,6 +295,20 @@ export default function TrocaEpi() {
       }))
       .sort((a, b) => a.nome.localeCompare(b.nome));
   }, [rhData]);
+
+  // Material items (non-EPI from inventory)
+  const materialItems = useMemo(() => {
+    return inventoryItems.filter(item => {
+      const norm = normalizeText(item.name);
+      const catNorm = normalizeText(item.category || "");
+      // Exclude items that are EPI category
+      if (catNorm === "epi" || catNorm === "epis") return false;
+      // Exclude items matching EPI keywords
+      return !EPI_KEYWORDS.some(kw => norm.includes(kw));
+    }).filter(item => item.quantity > 0);
+  }, [inventoryItems]);
+
+  const [activeTab, setActiveTab] = useState("epi");
   const [showForm, setShowForm] = useState(false);
   const [editingExchange, setEditingExchange] = useState<EpiExchange | null>(null);
   const [viewExchange, setViewExchange] = useState<EpiExchange | null>(null);
@@ -231,7 +320,9 @@ export default function TrocaEpi() {
   const [filterDay, setFilterDay] = useState("");
   const [currentPage, setCurrentPage] = useState(1);
   const ITEMS_PER_PAGE = 10;
-  // Form state
+  const [zoomedPhoto, setZoomedPhoto] = useState<string | null>(null);
+
+  // EPI Form state
   const [data, setData] = useState(format(new Date(), "yyyy-MM-dd"));
   const [autorizadoPor, setAutorizadoPor] = useState("");
   const [matriculaAutorizador, setMatriculaAutorizador] = useState("");
@@ -246,8 +337,30 @@ export default function TrocaEpi() {
   const [calcaQtd, setCalcaQtd] = useState(0);
   const [photoUrls, setPhotoUrls] = useState<string[]>([]);
   const [uploadingPhoto, setUploadingPhoto] = useState(false);
-  const [zoomedPhoto, setZoomedPhoto] = useState<string | null>(null);
-  // Map EPI id -> last date the selected employee picked it up
+
+  // Material Form state
+  const [showMaterialForm, setShowMaterialForm] = useState(false);
+  const [editingMaterial, setEditingMaterial] = useState<MaterialRequisition | null>(null);
+  const [viewMaterial, setViewMaterial] = useState<MaterialRequisition | null>(null);
+  const [showMaterialSignature, setShowMaterialSignature] = useState(false);
+  const [matData, setMatData] = useState(format(new Date(), "yyyy-MM-dd"));
+  const [matAutorizadoPor, setMatAutorizadoPor] = useState("");
+  const [matMatriculaAutorizador, setMatMatriculaAutorizador] = useState("");
+  const [matMotivo, setMatMotivo] = useState("");
+  const [matFuncionarioNome, setMatFuncionarioNome] = useState("");
+  const [matFuncionarioFuncao, setMatFuncionarioFuncao] = useState("");
+  const [matFuncionarioMatricula, setMatFuncionarioMatricula] = useState("");
+  const [matAreaDestino, setMatAreaDestino] = useState("");
+  const [matSelectedItems, setMatSelectedItems] = useState<Array<{ id: string; name: string; qty: number }>>([]);
+  const [matPhotoUrls, setMatPhotoUrls] = useState<string[]>([]);
+  const [matUploadingPhoto, setMatUploadingPhoto] = useState(false);
+  const [matFuncPopoverOpen, setMatFuncPopoverOpen] = useState(false);
+  const [matAuthPopoverOpen, setMatAuthPopoverOpen] = useState(false);
+  const [matFilterText, setMatFilterText] = useState("");
+  const [matFilterMonth, setMatFilterMonth] = useState("");
+  const [matFilterDay, setMatFilterDay] = useState("");
+  const [matCurrentPage, setMatCurrentPage] = useState(1);
+
   const lastPickupMap = useMemo(() => {
     const map: Record<string, string> = {};
     if (!funcionarioNome) return map;
@@ -299,7 +412,21 @@ export default function TrocaEpi() {
     setPhotoUrls([]);
   };
 
-  // Restore inventory for an exchange's EPIs (used on delete or before edit)
+  const resetMaterialForm = () => {
+    setMatData(format(new Date(), "yyyy-MM-dd"));
+    setMatAutorizadoPor("");
+    setMatMatriculaAutorizador("");
+    setMatMotivo("");
+    setMatFuncionarioNome("");
+    setMatFuncionarioFuncao("");
+    setMatFuncionarioMatricula("");
+    setMatAreaDestino("");
+    setMatSelectedItems([]);
+    setEditingMaterial(null);
+    setMatPhotoUrls([]);
+  };
+
+  // Restore inventory for an exchange's EPIs
   const restoreInventoryForExchange = async (exchange: EpiExchange) => {
     const { data: freshInventory, error: fetchErr } = await supabase
       .from("inventory_items")
@@ -319,17 +446,13 @@ export default function TrocaEpi() {
       const isOutrosExtra = epiId.startsWith("outros_");
       const epiItem = isOutrosExtra ? EPI_ITEMS.find(e => e.id === "outros") : EPI_ITEMS.find(e => e.id === epiId);
       if (!epiItem) continue;
-      // For "Outros" and dropdown EPIs, use the stored value (actual item name) instead of the label
       const hasDropdown = epiId === "outros" || isOutrosExtra || !!INVENTORY_DROPDOWN_EPIS[epiId];
       const searchLabel = hasDropdown && epiValue ? epiValue : epiItem.label;
       const match = findInventoryMatch(currentInventory, searchLabel);
       if (match) {
         const newQty = match.quantity + epiQty;
         const { error: updateErr } = await supabase.from("inventory_items").update({ quantity: newQty }).eq("id", match.id);
-        if (updateErr) {
-          console.error("Erro ao estornar estoque para", searchLabel, updateErr);
-          continue;
-        }
+        if (updateErr) continue;
         await supabase.from("inventory_movements").insert({
           item_id: match.id,
           movement_type: "entrada",
@@ -355,16 +478,11 @@ export default function TrocaEpi() {
         const { error: updateErr } = await supabase.from("inventory_items").update({ quantity: newQty }).eq("id", blusaMatch.id);
         if (!updateErr) {
           await supabase.from("inventory_movements").insert({
-            item_id: blusaMatch.id,
-            movement_type: "entrada",
-            quantity: qty,
-            previous_quantity: blusaMatch.quantity,
-            new_quantity: newQty,
+            item_id: blusaMatch.id, movement_type: "entrada", quantity: qty,
+            previous_quantity: blusaMatch.quantity, new_quantity: newQty,
             reason: `Estorno Troca de EPI - ${exchange.funcionario_nome}`,
-            moved_by: user!.id,
-            moved_by_name: profile?.full_name || "Usuário",
-            destination_type: "funcionario",
-            destination_name: exchange.funcionario_nome,
+            moved_by: user!.id, moved_by_name: profile?.full_name || "Usuário",
+            destination_type: "funcionario", destination_name: exchange.funcionario_nome,
           });
           blusaMatch.quantity = newQty;
           restoredItems.push(`Blusa (${qty})`);
@@ -379,16 +497,11 @@ export default function TrocaEpi() {
         const { error: updateErr } = await supabase.from("inventory_items").update({ quantity: newQty }).eq("id", calcaMatch.id);
         if (!updateErr) {
           await supabase.from("inventory_movements").insert({
-            item_id: calcaMatch.id,
-            movement_type: "entrada",
-            quantity: qty,
-            previous_quantity: calcaMatch.quantity,
-            new_quantity: newQty,
+            item_id: calcaMatch.id, movement_type: "entrada", quantity: qty,
+            previous_quantity: calcaMatch.quantity, new_quantity: newQty,
             reason: `Estorno Troca de EPI - ${exchange.funcionario_nome}`,
-            moved_by: user!.id,
-            moved_by_name: profile?.full_name || "Usuário",
-            destination_type: "funcionario",
-            destination_name: exchange.funcionario_nome,
+            moved_by: user!.id, moved_by_name: profile?.full_name || "Usuário",
+            destination_type: "funcionario", destination_name: exchange.funcionario_nome,
           });
           calcaMatch.quantity = newQty;
           restoredItems.push(`Calça (${qty})`);
@@ -401,6 +514,34 @@ export default function TrocaEpi() {
     return restoredItems;
   };
 
+  // Restore inventory for material requisition
+  const restoreInventoryForMaterial = async (req: MaterialRequisition) => {
+    const { data: freshInventory } = await supabase.from("inventory_items").select("*").order("name");
+    const currentInventory = freshInventory || [];
+    const restoredItems: string[] = [];
+    for (const mat of (req.materiais || [])) {
+      const match = findInventoryMatch(currentInventory, mat.name);
+      if (match) {
+        const newQty = match.quantity + mat.qty;
+        const { error } = await supabase.from("inventory_items").update({ quantity: newQty }).eq("id", match.id);
+        if (!error) {
+          await supabase.from("inventory_movements").insert({
+            item_id: match.id, movement_type: "entrada", quantity: mat.qty,
+            previous_quantity: match.quantity, new_quantity: newQty,
+            reason: `Estorno Requisição Material - ${req.funcionario_nome}`,
+            moved_by: user!.id, moved_by_name: profile?.full_name || "Usuário",
+            destination_type: "area", destination_name: req.area_destino,
+          });
+          match.quantity = newQty;
+          restoredItems.push(`${mat.name} (${mat.qty})`);
+        }
+      }
+    }
+    queryClient.invalidateQueries({ queryKey: ["inventory-items"] });
+    queryClient.invalidateQueries({ queryKey: ["inventory-movements"] });
+    return restoredItems;
+  };
+
   const handleDeleteWithRestore = async (exchange: EpiExchange) => {
     if (exchange.created_by !== user?.id) {
       toast.error("Apenas o criador pode excluir este registro.");
@@ -408,9 +549,17 @@ export default function TrocaEpi() {
     }
     const restoredItems = await restoreInventoryForExchange(exchange);
     await deleteExchange.mutateAsync(exchange.id);
-    if (restoredItems.length > 0) {
-      toast.info(`Estoque restaurado: ${restoredItems.join(", ")}`);
+    if (restoredItems.length > 0) toast.info(`Estoque restaurado: ${restoredItems.join(", ")}`);
+  };
+
+  const handleDeleteMaterial = async (req: MaterialRequisition) => {
+    if (req.created_by !== user?.id) {
+      toast.error("Apenas o criador pode excluir este registro.");
+      return;
     }
+    const restoredItems = await restoreInventoryForMaterial(req);
+    await deleteRequisition.mutateAsync(req.id);
+    if (restoredItems.length > 0) toast.info(`Estoque restaurado: ${restoredItems.join(", ")}`);
   };
 
   const handleEditExchange = (exchange: EpiExchange) => {
@@ -439,42 +588,66 @@ export default function TrocaEpi() {
     setShowForm(true);
   };
 
+  const handleEditMaterial = (req: MaterialRequisition) => {
+    if (req.created_by !== user?.id) {
+      toast.error("Apenas o criador pode editar este registro.");
+      return;
+    }
+    setEditingMaterial(req);
+    setMatData(req.data);
+    setMatAutorizadoPor(req.autorizado_por);
+    setMatMatriculaAutorizador(req.matricula_autorizador || "");
+    setMatMotivo(req.motivo);
+    setMatFuncionarioNome(req.funcionario_nome);
+    setMatFuncionarioFuncao(req.funcionario_funcao || "");
+    setMatFuncionarioMatricula(req.funcionario_matricula || "");
+    setMatAreaDestino(req.area_destino);
+    setMatSelectedItems(req.materiais || []);
+    setMatPhotoUrls(req.photo_urls || []);
+    setShowMaterialForm(true);
+  };
+
   const handleSubmit = () => {
     if (!autorizadoPor || !motivoTroca || !funcionarioNome) return;
     setShowSignature(true);
   };
 
-  const handlePhotoUpload = async (e: React.ChangeEvent<HTMLInputElement>) => {
+  const handleMaterialSubmit = () => {
+    if (!matAutorizadoPor || !matMotivo || !matFuncionarioNome || !matAreaDestino || matSelectedItems.length === 0) {
+      toast.error("Preencha todos os campos obrigatórios e adicione pelo menos um material.");
+      return;
+    }
+    setShowMaterialSignature(true);
+  };
+
+  const handlePhotoUpload = async (e: React.ChangeEvent<HTMLInputElement>, isMaterial = false) => {
     const files = e.target.files;
     if (!files || files.length === 0) return;
-    setUploadingPhoto(true);
+    if (isMaterial) setMatUploadingPhoto(true);
+    else setUploadingPhoto(true);
     try {
       const newUrls: string[] = [];
       for (const file of Array.from(files)) {
         const ext = file.name.split(".").pop() || "jpg";
         const path = `epi-danificado/${Date.now()}-${Math.random().toString(36).slice(2)}.${ext}`;
         const { error: uploadErr } = await supabase.storage.from("desvios").upload(path, file);
-        if (uploadErr) {
-          console.error("Upload error:", uploadErr);
-          toast.error("Erro ao enviar foto");
-          continue;
-        }
+        if (uploadErr) { toast.error("Erro ao enviar foto"); continue; }
         const { data: urlData } = supabase.storage.from("desvios").getPublicUrl(path);
         if (urlData?.publicUrl) newUrls.push(urlData.publicUrl);
       }
-      setPhotoUrls(prev => [...prev, ...newUrls]);
+      if (isMaterial) setMatPhotoUrls(prev => [...prev, ...newUrls]);
+      else setPhotoUrls(prev => [...prev, ...newUrls]);
       if (newUrls.length > 0) toast.success(`${newUrls.length} foto(s) enviada(s)`);
     } catch (err) {
-      console.error(err);
       toast.error("Erro ao enviar foto");
     } finally {
-      setUploadingPhoto(false);
+      if (isMaterial) setMatUploadingPhoto(false);
+      else setUploadingPhoto(false);
       e.target.value = "";
     }
   };
 
   const handleSignatureConfirm = async (sigFuncionario: string, sigAutorizador: string) => {
-    // Capture current state values before any async operations
     const currentSelectedEpis = [...selectedEpis];
     const currentFuncionarioNome = funcionarioNome;
     const currentBlusaQtd = blusaQtd;
@@ -502,7 +675,6 @@ export default function TrocaEpi() {
     };
 
     try {
-      // If editing, restore old inventory first, then update exchange
       if (currentEditingExchange) {
         await restoreInventoryForExchange(currentEditingExchange);
         await updateExchange.mutateAsync({ id: currentEditingExchange.id, ...exchangeData });
@@ -515,17 +687,9 @@ export default function TrocaEpi() {
       return;
     }
 
-    // Deduct inventory for each selected EPI
+    // Deduct inventory
     try {
-      const { data: freshInventory, error: fetchError } = await supabase
-        .from("inventory_items")
-        .select("*")
-        .order("name");
-      
-      if (fetchError) {
-        console.error("Erro ao buscar estoque:", fetchError);
-      }
-      
+      const { data: freshInventory } = await supabase.from("inventory_items").select("*").order("name");
       const currentInventory = freshInventory || [];
       const deductedItems: string[] = [];
       const notFoundItems: string[] = [];
@@ -535,32 +699,20 @@ export default function TrocaEpi() {
         const epiItem = isOutrosExtra ? EPI_ITEMS.find(e => e.id === "outros") : EPI_ITEMS.find(e => e.id === epi.id);
         if (!epiItem) continue;
         const epiQty = Number(epi.qty) || 1;
-        // For items with inventory dropdown (luva, boots, outros), use the selected value for matching
         const hasDropdown = epi.id === "outros" || isOutrosExtra || !!INVENTORY_DROPDOWN_EPIS[epi.id];
         const searchLabel = hasDropdown && epi.value ? epi.value : epiItem.label;
         const match = findInventoryMatch(currentInventory, searchLabel);
         if (match && match.quantity >= epiQty) {
           const newQty = match.quantity - epiQty;
           const { error: updateErr } = await supabase.from("inventory_items").update({ quantity: newQty }).eq("id", match.id);
-          if (updateErr) {
-            console.error("Erro ao atualizar estoque para", searchLabel, updateErr);
-            continue;
-          }
-          const { error: movErr } = await supabase.from("inventory_movements").insert({
-            item_id: match.id,
-            movement_type: "saida",
-            quantity: epiQty,
-            previous_quantity: match.quantity,
-            new_quantity: newQty,
+          if (updateErr) continue;
+          await supabase.from("inventory_movements").insert({
+            item_id: match.id, movement_type: "saida", quantity: epiQty,
+            previous_quantity: match.quantity, new_quantity: newQty,
             reason: `Troca de EPI - ${currentFuncionarioNome}`,
-            moved_by: user!.id,
-            moved_by_name: profile?.full_name || "Usuário",
-            destination_type: "funcionario",
-            destination_name: currentFuncionarioNome,
+            moved_by: user!.id, moved_by_name: profile?.full_name || "Usuário",
+            destination_type: "funcionario", destination_name: currentFuncionarioNome,
           });
-          if (movErr) {
-            console.error("Erro ao registrar movimento para", searchLabel, movErr);
-          }
           match.quantity = newQty;
           deductedItems.push(`${searchLabel} (${epiQty})`);
         } else if (!match) {
@@ -572,61 +724,39 @@ export default function TrocaEpi() {
         const blusaMatch = findInventoryMatch(currentInventory, "Blusa Operacional") || findInventoryMatch(currentInventory, "Blusa");
         if (blusaMatch && blusaMatch.quantity >= currentBlusaQtd) {
           const newQty = blusaMatch.quantity - currentBlusaQtd;
-          const { error: updateErr } = await supabase.from("inventory_items").update({ quantity: newQty }).eq("id", blusaMatch.id);
-          if (!updateErr) {
-            await supabase.from("inventory_movements").insert({
-              item_id: blusaMatch.id,
-              movement_type: "saida",
-              quantity: currentBlusaQtd,
-              previous_quantity: blusaMatch.quantity,
-              new_quantity: newQty,
-              reason: `Troca de EPI - ${currentFuncionarioNome}`,
-              moved_by: user!.id,
-              moved_by_name: profile?.full_name || "Usuário",
-              destination_type: "funcionario",
-              destination_name: currentFuncionarioNome,
-            });
-            blusaMatch.quantity = newQty;
-            deductedItems.push(`Blusa Operacional (${currentBlusaQtd})`);
-          }
+          await supabase.from("inventory_items").update({ quantity: newQty }).eq("id", blusaMatch.id);
+          await supabase.from("inventory_movements").insert({
+            item_id: blusaMatch.id, movement_type: "saida", quantity: currentBlusaQtd,
+            previous_quantity: blusaMatch.quantity, new_quantity: newQty,
+            reason: `Troca de EPI - ${currentFuncionarioNome}`,
+            moved_by: user!.id, moved_by_name: profile?.full_name || "Usuário",
+            destination_type: "funcionario", destination_name: currentFuncionarioNome,
+          });
+          deductedItems.push(`Blusa Operacional (${currentBlusaQtd})`);
         }
       }
       if (currentCalcaQtd > 0) {
         const calcaMatch = findInventoryMatch(currentInventory, "Calça Operacional") || findInventoryMatch(currentInventory, "Calça");
         if (calcaMatch && calcaMatch.quantity >= currentCalcaQtd) {
           const newQty = calcaMatch.quantity - currentCalcaQtd;
-          const { error: updateErr } = await supabase.from("inventory_items").update({ quantity: newQty }).eq("id", calcaMatch.id);
-          if (!updateErr) {
-            await supabase.from("inventory_movements").insert({
-              item_id: calcaMatch.id,
-              movement_type: "saida",
-              quantity: currentCalcaQtd,
-              previous_quantity: calcaMatch.quantity,
-              new_quantity: newQty,
-              reason: `Troca de EPI - ${currentFuncionarioNome}`,
-              moved_by: user!.id,
-              moved_by_name: profile?.full_name || "Usuário",
-              destination_type: "funcionario",
-              destination_name: currentFuncionarioNome,
-            });
-            calcaMatch.quantity = newQty;
-            deductedItems.push(`Calça Operacional (${currentCalcaQtd})`);
-          }
+          await supabase.from("inventory_items").update({ quantity: newQty }).eq("id", calcaMatch.id);
+          await supabase.from("inventory_movements").insert({
+            item_id: calcaMatch.id, movement_type: "saida", quantity: currentCalcaQtd,
+            previous_quantity: calcaMatch.quantity, new_quantity: newQty,
+            reason: `Troca de EPI - ${currentFuncionarioNome}`,
+            moved_by: user!.id, moved_by_name: profile?.full_name || "Usuário",
+            destination_type: "funcionario", destination_name: currentFuncionarioNome,
+          });
+          deductedItems.push(`Calça Operacional (${currentCalcaQtd})`);
         }
       }
 
       queryClient.invalidateQueries({ queryKey: ["inventory-items"] });
       queryClient.invalidateQueries({ queryKey: ["inventory-movements"] });
-
-      if (deductedItems.length > 0) {
-        toast.success(`Estoque atualizado: ${deductedItems.join(", ")}`);
-      }
-      if (notFoundItems.length > 0) {
-        toast.warning(`Itens não encontrados no estoque: ${notFoundItems.join(", ")}`);
-      }
+      if (deductedItems.length > 0) toast.success(`Estoque atualizado: ${deductedItems.join(", ")}`);
+      if (notFoundItems.length > 0) toast.warning(`Itens não encontrados no estoque: ${notFoundItems.join(", ")}`);
     } catch (err) {
-      console.error("Erro ao processar baixa no estoque:", err);
-      toast.error("Erro ao atualizar estoque. Verifique manualmente.");
+      toast.error("Erro ao atualizar estoque.");
     }
 
     setShowSignature(false);
@@ -634,9 +764,81 @@ export default function TrocaEpi() {
     setShowForm(false);
   };
 
+  const handleMaterialSignatureConfirm = async (sigFuncionario: string, sigAutorizador: string) => {
+    const currentItems = [...matSelectedItems];
+    const currentFuncNome = matFuncionarioNome;
+    const currentEditing = editingMaterial;
+
+    const reqData = {
+      data: matData,
+      autorizado_por: matAutorizadoPor,
+      matricula_autorizador: matMatriculaAutorizador || null,
+      motivo: matMotivo,
+      funcionario_nome: currentFuncNome,
+      funcionario_funcao: matFuncionarioFuncao || null,
+      funcionario_matricula: matFuncionarioMatricula || null,
+      materiais: currentItems as any,
+      area_destino: matAreaDestino,
+      photo_urls: matPhotoUrls,
+      assinatura_funcionario: sigFuncionario || null,
+      assinatura_autorizador: sigAutorizador || null,
+    };
+
+    try {
+      if (currentEditing) {
+        await restoreInventoryForMaterial(currentEditing);
+        await updateRequisition.mutateAsync({ id: currentEditing.id, ...reqData });
+      } else {
+        await createRequisition.mutateAsync(reqData);
+      }
+    } catch (err) {
+      setShowMaterialSignature(false);
+      return;
+    }
+
+    // Deduct inventory for materials
+    try {
+      const { data: freshInventory } = await supabase.from("inventory_items").select("*").order("name");
+      const currentInventory = freshInventory || [];
+      const deductedItems: string[] = [];
+
+      for (const mat of currentItems) {
+        const match = findInventoryMatch(currentInventory, mat.name);
+        if (match && match.quantity >= mat.qty) {
+          const newQty = match.quantity - mat.qty;
+          await supabase.from("inventory_items").update({ quantity: newQty }).eq("id", match.id);
+          await supabase.from("inventory_movements").insert({
+            item_id: match.id, movement_type: "saida", quantity: mat.qty,
+            previous_quantity: match.quantity, new_quantity: newQty,
+            reason: `Requisição Material - ${currentFuncNome} (${matAreaDestino})`,
+            moved_by: user!.id, moved_by_name: profile?.full_name || "Usuário",
+            destination_type: "area", destination_name: matAreaDestino,
+          });
+          match.quantity = newQty;
+          deductedItems.push(`${mat.name} (${mat.qty})`);
+        }
+      }
+
+      queryClient.invalidateQueries({ queryKey: ["inventory-items"] });
+      queryClient.invalidateQueries({ queryKey: ["inventory-movements"] });
+      if (deductedItems.length > 0) toast.success(`Estoque atualizado: ${deductedItems.join(", ")}`);
+    } catch (err) {
+      toast.error("Erro ao atualizar estoque.");
+    }
+
+    setShowMaterialSignature(false);
+    resetMaterialForm();
+    setShowMaterialForm(false);
+  };
+
   const handlePrint = async (exchange: EpiExchange) => {
     const logoBase64 = await getLogoBase64();
     await generatePdf(exchange, logoBase64);
+  };
+
+  const handlePrintMaterial = async (req: MaterialRequisition) => {
+    const logoBase64 = await getLogoBase64();
+    await generateMaterialPdf(req, logoBase64);
   };
 
   const handlePngWhatsApp = async (exchange: EpiExchange) => {
@@ -644,7 +846,6 @@ export default function TrocaEpi() {
       toast.info("Gerando imagem...");
       const logoBase64 = await getLogoBase64();
       const html = buildPdfHtml(exchange, logoBase64);
-
       const container = document.createElement("div");
       container.style.position = "fixed";
       container.style.left = "-9999px";
@@ -653,38 +854,16 @@ export default function TrocaEpi() {
       container.style.background = "#fff";
       container.innerHTML = html;
       document.body.appendChild(container);
-
-      // Wait for images to load
       const images = container.querySelectorAll("img");
-      await Promise.all(
-        Array.from(images).map(
-          (img) =>
-            new Promise<void>((resolve) => {
-              if (img.complete) return resolve();
-              img.onload = () => resolve();
-              img.onerror = () => resolve();
-            })
-        )
-      );
-
+      await Promise.all(Array.from(images).map(img => new Promise<void>(resolve => { if (img.complete) return resolve(); img.onload = () => resolve(); img.onerror = () => resolve(); })));
       const { default: html2canvas } = await import("html2canvas");
-      const canvas = await html2canvas(container, {
-        scale: 2,
-        useCORS: true,
-        backgroundColor: "#ffffff",
-      });
+      const canvas = await html2canvas(container, { scale: 2, useCORS: true, backgroundColor: "#ffffff" });
       document.body.removeChild(container);
-
       canvas.toBlob(async (blob) => {
-        if (!blob) {
-          toast.error("Erro ao gerar imagem");
-          return;
-        }
+        if (!blob) { toast.error("Erro ao gerar imagem"); return; }
         const fileName = `troca-epi-${exchange.funcionario_nome}-${Date.now()}.png`;
         const file = new File([blob], fileName, { type: "image/png" });
         const phone = "559193645741";
-        
-        // Build description with employee name + items
         const episList = (exchange.epis || []).map((e: any) => {
           const epiId = typeof e === "string" ? e : e.id;
           const epiQty = typeof e === "object" && e.qty ? Number(e.qty) : 1;
@@ -695,48 +874,118 @@ export default function TrocaEpi() {
           return `${name} (${epiQty})`;
         }).join(", ");
         const description = `Troca de EPI - ${exchange.funcionario_nome}\nItens: ${episList}`;
-
         const isMobile = /Android|iPhone|iPad|iPod/i.test(navigator.userAgent);
-
         if (isMobile) {
-          // Mobile: try native share with image + text first
           if (navigator.share && navigator.canShare?.({ files: [file] })) {
-            try {
-              await navigator.share({
-                files: [file],
-                title: `Troca de EPI - ${exchange.funcionario_nome}`,
-                text: description,
-              });
-              toast.success("Imagem enviada!");
-            } catch (e: any) {
-              if (e?.name !== "AbortError") {
-                // Fallback: open conversation directly
-                window.open(`https://wa.me/${phone}?text=${encodeURIComponent(description)}`, "_blank");
-                toast.info("Conversa aberta no WhatsApp.");
-              }
-            }
+            try { await navigator.share({ files: [file], title: `Troca de EPI - ${exchange.funcionario_nome}`, text: description }); toast.success("Imagem enviada!"); } catch (e: any) { if (e?.name !== "AbortError") { window.open(`https://wa.me/${phone}?text=${encodeURIComponent(description)}`, "_blank"); } }
           } else {
-            // Fallback: download PNG + open conversation
             const blobUrl = URL.createObjectURL(blob);
-            const a = document.createElement("a");
-            a.href = blobUrl;
-            a.download = fileName;
-            a.click();
-            URL.revokeObjectURL(blobUrl);
+            const a = document.createElement("a"); a.href = blobUrl; a.download = fileName; a.click(); URL.revokeObjectURL(blobUrl);
             window.open(`https://wa.me/${phone}?text=${encodeURIComponent(description)}`, "_blank");
-            toast.success("PNG salvo! Conversa aberta no WhatsApp.");
           }
         } else {
-          // Desktop: open WhatsApp Web directly in the conversation with the contact
           window.open(`https://web.whatsapp.com/send?phone=${phone}&text=${encodeURIComponent(description)}`, "_blank");
-          toast.success("WhatsApp Web aberto na conversa.");
         }
       }, "image/png");
-    } catch (err) {
-      console.error(err);
-      toast.error("Erro ao gerar PNG");
-    }
+    } catch (err) { toast.error("Erro ao gerar PNG"); }
   };
+
+  // Render photo upload section
+  const renderPhotoUpload = (urls: string[], setUrls: React.Dispatch<React.SetStateAction<string[]>>, uploading: boolean, isMaterial: boolean) => (
+    <div>
+      <Label className="mb-2 block">Fotos</Label>
+      <div className="flex flex-wrap gap-2 items-center">
+        <label className="cursor-pointer">
+          <input type="file" accept="image/*" multiple capture="environment" className="hidden" onChange={e => handlePhotoUpload(e, isMaterial)} disabled={uploading} />
+          <div className="flex items-center gap-2 px-3 py-2 border border-dashed border-primary/50 rounded-lg hover:bg-accent/50 transition-colors">
+            {uploading ? <Loader2 className="h-4 w-4 animate-spin text-primary" /> : <Camera className="h-4 w-4 text-primary" />}
+            <span className="text-sm text-primary font-medium">{uploading ? "Enviando..." : "Adicionar Foto"}</span>
+          </div>
+        </label>
+        {urls.map((url, idx) => (
+          <div key={idx} className="relative group">
+            <img src={url} alt={`Foto ${idx + 1}`} className="h-16 w-16 object-cover rounded-lg border cursor-pointer hover:opacity-80 transition-opacity" onClick={() => setZoomedPhoto(url)} />
+            <button type="button" className="absolute -top-1.5 -right-1.5 bg-destructive text-destructive-foreground rounded-full h-5 w-5 flex items-center justify-center text-xs opacity-0 group-hover:opacity-100 transition-opacity" onClick={() => setUrls(prev => prev.filter((_, i) => i !== idx))}>
+              <X className="h-3 w-3" />
+            </button>
+          </div>
+        ))}
+      </div>
+    </div>
+  );
+
+  // Render authorizer picker
+  const renderAuthPicker = (value: string, setValue: (v: string) => void, setMatricula: (v: string) => void, open: boolean, setOpen: (v: boolean) => void) => (
+    <Popover open={open} onOpenChange={setOpen}>
+      <PopoverTrigger asChild>
+        <Button variant="outline" className="w-full justify-start font-normal h-10">
+          {value || <span className="text-muted-foreground">Selecione o autorizador</span>}
+        </Button>
+      </PopoverTrigger>
+      <PopoverContent className="p-0 w-[--radix-popover-trigger-width]" align="start">
+        <Command>
+          <CommandInput placeholder="Buscar funcionário..." />
+          <CommandList>
+            <CommandEmpty>Nenhum encontrado</CommandEmpty>
+            {efetivo.map(col => (
+              <CommandItem key={col.id} value={`${col.nome} ${col.matricula} ${col.funcao}`} onSelect={() => { setValue(col.nome); setMatricula(col.matriculaHydro || col.matricula || ""); setOpen(false); }}>
+                <span>{col.nome}</span>
+                <span className="ml-auto text-xs text-muted-foreground">{col.matricula}</span>
+              </CommandItem>
+            ))}
+          </CommandList>
+        </Command>
+      </PopoverContent>
+    </Popover>
+  );
+
+  // Render employee picker
+  const renderFuncPicker = (value: string, setValue: (v: string) => void, setFuncao: (v: string) => void, setMatricula: (v: string) => void, open: boolean, setOpen: (v: boolean) => void) => (
+    <Popover open={open} onOpenChange={setOpen}>
+      <PopoverTrigger asChild>
+        <Button variant="outline" className="w-full justify-start font-normal h-10">
+          {value || <span className="text-muted-foreground">Selecione o funcionário</span>}
+        </Button>
+      </PopoverTrigger>
+      <PopoverContent className="p-0 w-[--radix-popover-trigger-width]" align="start">
+        <Command>
+          <CommandInput placeholder="Buscar funcionário..." />
+          <CommandList>
+            <CommandEmpty>Nenhum encontrado</CommandEmpty>
+            {efetivo.map(col => (
+              <CommandItem key={col.id} value={`${col.nome} ${col.funcao} ${col.matricula}`} onSelect={() => { setValue(col.nome); setFuncao(col.funcao || ""); setMatricula(col.matriculaHydro || col.matricula || ""); setOpen(false); }}>
+                <span>{col.nome}</span>
+                <span className="ml-auto text-xs text-muted-foreground">{col.funcao} - {col.matricula}</span>
+              </CommandItem>
+            ))}
+          </CommandList>
+        </Command>
+      </PopoverContent>
+    </Popover>
+  );
+
+  // Filter helper
+  const renderFilters = (text: string, setText: (v: string) => void, month: string, setMonth: (v: string) => void, day: string, setDay: (v: string) => void, setPage: (v: number) => void) => (
+    <div className="flex flex-col sm:flex-row gap-2 mb-3">
+      <div className="relative flex-1">
+        <Search className="absolute left-2.5 top-2.5 h-4 w-4 text-muted-foreground" />
+        <Input placeholder="Buscar por nome ou autorizador..." value={text} onChange={e => { setText(e.target.value); setPage(1); }} className="pl-9" />
+      </div>
+      <Select value={month} onValueChange={v => { setMonth(v); setPage(1); }}>
+        <SelectTrigger className="w-full sm:w-44"><SelectValue placeholder="Todos os meses" /></SelectTrigger>
+        <SelectContent>
+          <SelectItem value="all">Todos os meses</SelectItem>
+          {Array.from({ length: 12 }, (_, i) => {
+            const m = String(i + 1).padStart(2, "0");
+            const label = new Date(2026, i).toLocaleString("pt-BR", { month: "long" });
+            return <SelectItem key={m} value={m}>{label.charAt(0).toUpperCase() + label.slice(1)}</SelectItem>;
+          })}
+        </SelectContent>
+      </Select>
+      <Input type="date" value={day} onChange={e => { setDay(e.target.value); setPage(1); }} className="w-full sm:w-44" />
+      {day && <Button variant="ghost" size="icon" className="h-10 w-10 shrink-0" onClick={() => { setDay(""); setPage(1); }}><X className="h-4 w-4" /></Button>}
+    </div>
+  );
 
   return (
     <div className="min-h-screen bg-background p-4 md:p-6 space-y-6">
@@ -744,17 +993,171 @@ export default function TrocaEpi() {
         <div className="flex items-center gap-3">
           <ShieldCheck className="h-7 w-7 text-primary" />
           <div>
-            <EditablePageTitle pageKey="troca-epi" defaultValue="Troca de EPI" className="text-2xl font-bold text-foreground" />
-            <p className="text-sm text-muted-foreground">Autorização de troca de equipamentos de proteção individual</p>
+            <EditablePageTitle pageKey="troca-epi" defaultValue="Requisição" className="text-2xl font-bold text-foreground" />
+            <p className="text-sm text-muted-foreground">Requisição de EPI e materiais</p>
           </div>
         </div>
-        <Button onClick={() => { resetForm(); setShowForm(true); }}>
-          <Plus className="h-4 w-4 mr-2" />
-          Nova Troca
-        </Button>
       </div>
 
-      {/* Form Dialog */}
+      <Tabs value={activeTab} onValueChange={setActiveTab}>
+        <TabsList className="grid w-full grid-cols-2 max-w-md">
+          <TabsTrigger value="epi" className="gap-2"><ShieldCheck className="h-4 w-4" /> Troca de EPI</TabsTrigger>
+          <TabsTrigger value="material" className="gap-2"><Package className="h-4 w-4" /> Material</TabsTrigger>
+        </TabsList>
+
+        {/* ===== EPI TAB ===== */}
+        <TabsContent value="epi" className="space-y-4">
+          <div className="flex justify-end">
+            <Button onClick={() => { resetForm(); setShowForm(true); }}>
+              <Plus className="h-4 w-4 mr-2" /> Nova Troca
+            </Button>
+          </div>
+
+          {isLoading ? (
+            <div className="text-center py-10 text-muted-foreground">Carregando...</div>
+          ) : (
+            <>
+              {renderFilters(filterText, setFilterText, filterMonth, setFilterMonth, filterDay, setFilterDay, setCurrentPage)}
+              {(() => {
+                const filtered = exchanges
+                  .filter(ex => {
+                    const text = filterText.toLowerCase();
+                    const matchesText = !text || ex.funcionario_nome.toLowerCase().includes(text) || ex.autorizado_por.toLowerCase().includes(text);
+                    const matchesMonth = !filterMonth || filterMonth === "all" || ex.data.substring(5, 7) === filterMonth;
+                    const matchesDay = !filterDay || ex.data === filterDay;
+                    return matchesText && matchesMonth && matchesDay;
+                  })
+                  .sort((a, b) => new Date(b.data).getTime() - new Date(a.data).getTime());
+                const totalPages = Math.max(1, Math.ceil(filtered.length / ITEMS_PER_PAGE));
+                const page = Math.min(currentPage, totalPages);
+                const paged = filtered.slice((page - 1) * ITEMS_PER_PAGE, page * ITEMS_PER_PAGE);
+                if (filtered.length === 0) return (
+                  <Card><CardContent className="py-10 text-center text-muted-foreground"><ShieldCheck className="h-12 w-12 mx-auto mb-3 opacity-30" /><p>Nenhuma troca de EPI registrada.</p></CardContent></Card>
+                );
+                return (
+                  <>
+                    <p className="text-xs text-muted-foreground mb-2">{filtered.length} registro(s)</p>
+                    <div className="grid gap-3 max-h-[65vh] overflow-y-auto pr-1">
+                      {paged.map(ex => (
+                        <Card key={ex.id} className="hover:shadow-md transition-shadow">
+                          <CardContent className="p-3 sm:p-4 flex flex-col sm:flex-row sm:items-center justify-between gap-2">
+                            <div className="space-y-1 min-w-0">
+                              <div className="flex items-center gap-2 flex-wrap">
+                                <span className="font-semibold text-sm sm:text-base">{ex.funcionario_nome}</span>
+                                <Badge variant="outline" className="text-xs">{format(new Date(ex.data + 'T12:00:00'), "dd/MM/yyyy")}</Badge>
+                              </div>
+                              <p className="text-xs sm:text-sm text-muted-foreground truncate">Autorizado por: {ex.autorizado_por} | {ex.motivo_troca.substring(0, 40)}{ex.motivo_troca.length > 40 ? '...' : ''}</p>
+                              <div className="flex gap-1 flex-wrap">
+                                {(ex.epis || []).slice(0, 3).map((e: any) => {
+                                  const item = EPI_ITEMS.find(i => i.id === (typeof e === 'string' ? e : e.id));
+                                  return <Badge key={typeof e === 'string' ? e : e.id} variant="secondary" className="text-[10px]">{item?.label || 'EPI'}</Badge>;
+                                })}
+                                {(ex.epis || []).length > 3 && <Badge variant="secondary" className="text-[10px]">+{(ex.epis || []).length - 3}</Badge>}
+                                {ex.photo_urls && ex.photo_urls.length > 0 && <Badge variant="outline" className="text-[10px] gap-1"><Camera className="h-3 w-3" /> {ex.photo_urls.length}</Badge>}
+                              </div>
+                            </div>
+                            <div className="flex gap-1 shrink-0">
+                              <Button variant="ghost" size="icon" className="h-8 w-8" onClick={() => setViewExchange(ex)}><Eye className="h-4 w-4" /></Button>
+                              {ex.created_by === user?.id && <Button variant="ghost" size="icon" className="h-8 w-8" onClick={() => handleEditExchange(ex)}><Pencil className="h-4 w-4" /></Button>}
+                              <Button variant="ghost" size="icon" className="h-8 w-8" onClick={() => handlePrint(ex)}><FileText className="h-4 w-4" /></Button>
+                              <Button variant="ghost" size="icon" className="h-8 w-8" onClick={() => handlePngWhatsApp(ex)}><MessageCircle className="h-4 w-4 text-[#25D366]" /></Button>
+                              {ex.created_by === user?.id && <Button variant="ghost" size="icon" className="h-8 w-8" onClick={() => handleDeleteWithRestore(ex)}><Trash2 className="h-4 w-4 text-destructive" /></Button>}
+                            </div>
+                          </CardContent>
+                        </Card>
+                      ))}
+                    </div>
+                    {totalPages > 1 && (
+                      <div className="flex items-center justify-center gap-2 mt-4">
+                        <Button variant="outline" size="sm" disabled={page <= 1} onClick={() => setCurrentPage(p => p - 1)}><ChevronLeft className="h-4 w-4" /> Anterior</Button>
+                        <span className="text-sm text-muted-foreground">Página {page} de {totalPages}</span>
+                        <Button variant="outline" size="sm" disabled={page >= totalPages} onClick={() => setCurrentPage(p => p + 1)}>Próxima <ChevronRight className="h-4 w-4" /></Button>
+                      </div>
+                    )}
+                  </>
+                );
+              })()}
+            </>
+          )}
+        </TabsContent>
+
+        {/* ===== MATERIAL TAB ===== */}
+        <TabsContent value="material" className="space-y-4">
+          <div className="flex justify-end">
+            <Button onClick={() => { resetMaterialForm(); setShowMaterialForm(true); }}>
+              <Plus className="h-4 w-4 mr-2" /> Nova Requisição
+            </Button>
+          </div>
+
+          {isLoadingMaterial ? (
+            <div className="text-center py-10 text-muted-foreground">Carregando...</div>
+          ) : (
+            <>
+              {renderFilters(matFilterText, setMatFilterText, matFilterMonth, setMatFilterMonth, matFilterDay, setMatFilterDay, setMatCurrentPage)}
+              {(() => {
+                const filtered = requisitions
+                  .filter(r => {
+                    const text = matFilterText.toLowerCase();
+                    const matchesText = !text || r.funcionario_nome.toLowerCase().includes(text) || r.autorizado_por.toLowerCase().includes(text);
+                    const matchesMonth = !matFilterMonth || matFilterMonth === "all" || r.data.substring(5, 7) === matFilterMonth;
+                    const matchesDay = !matFilterDay || r.data === matFilterDay;
+                    return matchesText && matchesMonth && matchesDay;
+                  })
+                  .sort((a, b) => new Date(b.data).getTime() - new Date(a.data).getTime());
+                const totalPages = Math.max(1, Math.ceil(filtered.length / ITEMS_PER_PAGE));
+                const page = Math.min(matCurrentPage, totalPages);
+                const paged = filtered.slice((page - 1) * ITEMS_PER_PAGE, page * ITEMS_PER_PAGE);
+                if (filtered.length === 0) return (
+                  <Card><CardContent className="py-10 text-center text-muted-foreground"><Package className="h-12 w-12 mx-auto mb-3 opacity-30" /><p>Nenhuma requisição de material registrada.</p></CardContent></Card>
+                );
+                return (
+                  <>
+                    <p className="text-xs text-muted-foreground mb-2">{filtered.length} registro(s)</p>
+                    <div className="grid gap-3 max-h-[65vh] overflow-y-auto pr-1">
+                      {paged.map(r => (
+                        <Card key={r.id} className="hover:shadow-md transition-shadow">
+                          <CardContent className="p-3 sm:p-4 flex flex-col sm:flex-row sm:items-center justify-between gap-2">
+                            <div className="space-y-1 min-w-0">
+                              <div className="flex items-center gap-2 flex-wrap">
+                                <span className="font-semibold text-sm sm:text-base">{r.funcionario_nome}</span>
+                                <Badge variant="outline" className="text-xs">{format(new Date(r.data + 'T12:00:00'), "dd/MM/yyyy")}</Badge>
+                                <Badge className="text-xs">{r.area_destino}</Badge>
+                              </div>
+                              <p className="text-xs sm:text-sm text-muted-foreground truncate">Autorizado por: {r.autorizado_por} | {r.motivo.substring(0, 40)}{r.motivo.length > 40 ? '...' : ''}</p>
+                              <div className="flex gap-1 flex-wrap">
+                                {(r.materiais || []).slice(0, 3).map((m, i) => (
+                                  <Badge key={i} variant="secondary" className="text-[10px]">{m.name} (x{m.qty})</Badge>
+                                ))}
+                                {(r.materiais || []).length > 3 && <Badge variant="secondary" className="text-[10px]">+{(r.materiais || []).length - 3}</Badge>}
+                                {r.photo_urls && r.photo_urls.length > 0 && <Badge variant="outline" className="text-[10px] gap-1"><Camera className="h-3 w-3" /> {r.photo_urls.length}</Badge>}
+                              </div>
+                            </div>
+                            <div className="flex gap-1 shrink-0">
+                              <Button variant="ghost" size="icon" className="h-8 w-8" onClick={() => setViewMaterial(r)}><Eye className="h-4 w-4" /></Button>
+                              {r.created_by === user?.id && <Button variant="ghost" size="icon" className="h-8 w-8" onClick={() => handleEditMaterial(r)}><Pencil className="h-4 w-4" /></Button>}
+                              <Button variant="ghost" size="icon" className="h-8 w-8" onClick={() => handlePrintMaterial(r)}><FileText className="h-4 w-4" /></Button>
+                              {r.created_by === user?.id && <Button variant="ghost" size="icon" className="h-8 w-8" onClick={() => handleDeleteMaterial(r)}><Trash2 className="h-4 w-4 text-destructive" /></Button>}
+                            </div>
+                          </CardContent>
+                        </Card>
+                      ))}
+                    </div>
+                    {totalPages > 1 && (
+                      <div className="flex items-center justify-center gap-2 mt-4">
+                        <Button variant="outline" size="sm" disabled={page <= 1} onClick={() => setMatCurrentPage(p => p - 1)}><ChevronLeft className="h-4 w-4" /> Anterior</Button>
+                        <span className="text-sm text-muted-foreground">Página {page} de {totalPages}</span>
+                        <Button variant="outline" size="sm" disabled={page >= totalPages} onClick={() => setMatCurrentPage(p => p + 1)}>Próxima <ChevronRight className="h-4 w-4" /></Button>
+                      </div>
+                    )}
+                  </>
+                );
+              })()}
+            </>
+          )}
+        </TabsContent>
+      </Tabs>
+
+      {/* ===== EPI FORM DIALOG ===== */}
       <Dialog open={showForm} onOpenChange={setShowForm}>
         <DialogContent className="max-w-3xl w-[95vw] max-h-[95vh] overflow-y-auto p-3 sm:p-6">
           <DialogHeader>
@@ -762,149 +1165,30 @@ export default function TrocaEpi() {
           </DialogHeader>
           <div className="space-y-4">
             <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-              <div>
-                <Label>Data *</Label>
-                <Input type="date" value={data} onChange={e => setData(e.target.value)} />
-              </div>
-              <div>
-                <Label>Contrato</Label>
-                <Input value="4600012690" disabled />
-              </div>
+              <div><Label>Data *</Label><Input type="date" value={data} onChange={e => setData(e.target.value)} /></div>
+              <div><Label>Contrato</Label><Input value="4600012690" disabled /></div>
             </div>
-
             <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
               <div>
                 <Label>Autorizado por *</Label>
-                <Popover open={authPopoverOpen} onOpenChange={setAuthPopoverOpen}>
-                  <PopoverTrigger asChild>
-                    <Button variant="outline" className="w-full justify-start font-normal h-10">
-                      {autorizadoPor || <span className="text-muted-foreground">Selecione o autorizador</span>}
-                    </Button>
-                  </PopoverTrigger>
-                  <PopoverContent className="p-0 w-[--radix-popover-trigger-width]" align="start">
-                    <Command>
-                      <CommandInput placeholder="Buscar funcionário..." />
-                      <CommandList>
-                        <CommandEmpty>Nenhum encontrado</CommandEmpty>
-                        {efetivo.map(col => (
-                          <CommandItem
-                            key={col.id}
-                            value={`${col.nome} ${col.matricula} ${col.funcao}`}
-                            onSelect={() => {
-                              setAutorizadoPor(col.nome);
-                              setMatriculaAutorizador(col.matriculaHydro || col.matricula || "");
-                              setAuthPopoverOpen(false);
-                            }}
-                          >
-                            <span>{col.nome}</span>
-                            <span className="ml-auto text-xs text-muted-foreground">{col.matricula}</span>
-                          </CommandItem>
-                        ))}
-                      </CommandList>
-                    </Command>
-                  </PopoverContent>
-                </Popover>
+                {renderAuthPicker(autorizadoPor, setAutorizadoPor, setMatriculaAutorizador, authPopoverOpen, setAuthPopoverOpen)}
               </div>
-              <div>
-                <Label>Matrícula (Autorizador)</Label>
-                <Input value={matriculaAutorizador} onChange={e => setMatriculaAutorizador(e.target.value)} placeholder="Matrícula" />
-              </div>
+              <div><Label>Matrícula (Autorizador)</Label><Input value={matriculaAutorizador} onChange={e => setMatriculaAutorizador(e.target.value)} /></div>
             </div>
 
-            {/* Photo Upload - EPI Danificado */}
-            <div>
-              <Label className="mb-2 block">Foto do EPI Danificado</Label>
-              <div className="flex flex-wrap gap-2 items-center">
-                <label className="cursor-pointer">
-                  <input
-                    type="file"
-                    accept="image/*"
-                    multiple
-                    capture="environment"
-                    className="hidden"
-                    onChange={handlePhotoUpload}
-                    disabled={uploadingPhoto}
-                  />
-                  <div className="flex items-center gap-2 px-3 py-2 border border-dashed border-primary/50 rounded-lg hover:bg-accent/50 transition-colors">
-                    {uploadingPhoto ? (
-                      <Loader2 className="h-4 w-4 animate-spin text-primary" />
-                    ) : (
-                      <Camera className="h-4 w-4 text-primary" />
-                    )}
-                    <span className="text-sm text-primary font-medium">
-                      {uploadingPhoto ? "Enviando..." : "Adicionar Foto"}
-                    </span>
-                  </div>
-                </label>
-                {photoUrls.map((url, idx) => (
-                  <div key={idx} className="relative group">
-                    <img
-                      src={url}
-                      alt={`EPI danificado ${idx + 1}`}
-                      className="h-16 w-16 object-cover rounded-lg border cursor-pointer hover:opacity-80 transition-opacity"
-                      onClick={() => setZoomedPhoto(url)}
-                    />
-                    <button
-                      type="button"
-                      className="absolute -top-1.5 -right-1.5 bg-destructive text-destructive-foreground rounded-full h-5 w-5 flex items-center justify-center text-xs opacity-0 group-hover:opacity-100 transition-opacity"
-                      onClick={() => setPhotoUrls(prev => prev.filter((_, i) => i !== idx))}
-                    >
-                      <X className="h-3 w-3" />
-                    </button>
-                  </div>
-                ))}
-              </div>
-            </div>
+            {renderPhotoUpload(photoUrls, setPhotoUrls, uploadingPhoto, false)}
 
-            <div>
-              <Label>Motivo da Troca *</Label>
-              <Textarea value={motivoTroca} onChange={e => setMotivoTroca(e.target.value)} placeholder="Descreva o motivo da troca" />
-            </div>
+            <div><Label>Motivo da Troca *</Label><Textarea value={motivoTroca} onChange={e => setMotivoTroca(e.target.value)} placeholder="Descreva o motivo da troca" /></div>
 
             <Separator />
 
             <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
               <div>
                 <Label>Funcionário(a) *</Label>
-                <Popover open={funcPopoverOpen} onOpenChange={setFuncPopoverOpen}>
-                  <PopoverTrigger asChild>
-                    <Button variant="outline" className="w-full justify-start font-normal h-10">
-                      {funcionarioNome || <span className="text-muted-foreground">Selecione o funcionário</span>}
-                    </Button>
-                  </PopoverTrigger>
-                  <PopoverContent className="p-0 w-[--radix-popover-trigger-width]" align="start">
-                    <Command>
-                      <CommandInput placeholder="Buscar funcionário..." />
-                      <CommandList>
-                        <CommandEmpty>Nenhum encontrado</CommandEmpty>
-                        {efetivo.map(col => (
-                          <CommandItem
-                            key={col.id}
-                            value={`${col.nome} ${col.funcao} ${col.matricula}`}
-                            onSelect={() => {
-                              setFuncionarioNome(col.nome);
-                              setFuncionarioFuncao(col.funcao || "");
-                              setFuncionarioMatricula(col.matriculaHydro || col.matricula || "");
-                              setFuncPopoverOpen(false);
-                            }}
-                          >
-                            <span>{col.nome}</span>
-                            <span className="ml-auto text-xs text-muted-foreground">{col.funcao} - {col.matricula}</span>
-                          </CommandItem>
-                        ))}
-                      </CommandList>
-                    </Command>
-                  </PopoverContent>
-                </Popover>
+                {renderFuncPicker(funcionarioNome, setFuncionarioNome, setFuncionarioFuncao, setFuncionarioMatricula, funcPopoverOpen, setFuncPopoverOpen)}
               </div>
-              <div>
-                <Label>Função</Label>
-                <Input value={funcionarioFuncao} onChange={e => setFuncionarioFuncao(e.target.value)} placeholder="Função" />
-              </div>
-              <div>
-                <Label>Matrícula Hydro</Label>
-                <Input value={funcionarioMatricula} onChange={e => setFuncionarioMatricula(e.target.value)} placeholder="Matrícula Hydro" />
-              </div>
+              <div><Label>Função</Label><Input value={funcionarioFuncao} onChange={e => setFuncionarioFuncao(e.target.value)} /></div>
+              <div><Label>Matrícula Hydro</Label><Input value={funcionarioMatricula} onChange={e => setFuncionarioMatricula(e.target.value)} /></div>
             </div>
 
             <Separator />
@@ -921,44 +1205,22 @@ export default function TrocaEpi() {
                   return (
                     <div key={item.id} className="flex flex-col gap-0.5 p-1.5 rounded-md hover:bg-accent/50">
                       <div className="flex items-center gap-2 min-h-[36px] flex-wrap">
-                        <Checkbox
-                          checked={!!selected}
-                          onCheckedChange={() => toggleEpi(item.id)}
-                          className="h-5 w-5"
-                        />
+                        <Checkbox checked={!!selected} onCheckedChange={() => toggleEpi(item.id)} className="h-5 w-5" />
                         <span className="text-sm flex-1">{item.label}</span>
                         {selected && (
                           <div className="flex items-center gap-1">
                             <Label className="text-[10px] text-muted-foreground">Qtd:</Label>
-                            <Input
-                              type="number"
-                              min={1}
-                              className="h-7 w-14 text-xs text-center"
-                              value={selected.qty ?? ""}
-                              onChange={e => setEpiQty(item.id, e.target.value)}
-                            />
+                            <Input type="number" min={1} className="h-7 w-14 text-xs text-center" value={selected.qty ?? ""} onChange={e => setEpiQty(item.id, e.target.value)} />
                           </div>
                         )}
                         {item.hasInput && selected && item.id !== "outros" && !INVENTORY_DROPDOWN_EPIS[item.id] && (
-                          <Input
-                            className="h-8 w-24 text-xs"
-                            placeholder={item.inputLabel}
-                            value={selected.value || ""}
-                            onChange={e => setEpiValue(item.id, e.target.value)}
-                          />
+                          <Input className="h-8 w-24 text-xs" placeholder={item.inputLabel} value={selected.value || ""} onChange={e => setEpiValue(item.id, e.target.value)} />
                         )}
                         {item.hasInput && selected && INVENTORY_DROPDOWN_EPIS[item.id] && (
-                          <Input
-                            className="h-8 w-20 text-xs"
-                            placeholder="Nº"
-                            value={selected.extraInput || ""}
-                            onChange={e => {
-                              const updated = selectedEpis.map(ep =>
-                                ep.id === item.id ? { ...ep, extraInput: e.target.value } : ep
-                              );
-                              setSelectedEpis(updated);
-                            }}
-                          />
+                          <Input className="h-8 w-20 text-xs" placeholder="Nº" value={selected.extraInput || ""} onChange={e => {
+                            const updated = selectedEpis.map(ep => ep.id === item.id ? { ...ep, extraInput: e.target.value } : ep);
+                            setSelectedEpis(updated);
+                          }} />
                         )}
                       </div>
                       {selected && INVENTORY_DROPDOWN_EPIS[item.id] && (() => {
@@ -967,112 +1229,43 @@ export default function TrocaEpi() {
                         return (
                           <div className="ml-6 mt-1">
                             <Select value={selected.value || ""} onValueChange={v => setEpiValue(item.id, v)}>
-                              <SelectTrigger className="h-8 text-xs w-full">
-                                <SelectValue placeholder={cfg.placeholder} />
-                              </SelectTrigger>
-                              <SelectContent>
-                                {matches.map(inv => (
-                                  <SelectItem key={inv.id} value={inv.name}>
-                                    {inv.name} ({inv.quantity} {inv.unit})
-                                  </SelectItem>
-                                ))}
-                              </SelectContent>
+                              <SelectTrigger className="h-8 text-xs w-full"><SelectValue placeholder={cfg.placeholder} /></SelectTrigger>
+                              <SelectContent>{matches.map(inv => <SelectItem key={inv.id} value={inv.name}>{inv.name} ({inv.quantity} {inv.unit})</SelectItem>)}</SelectContent>
                             </Select>
                           </div>
                         );
                       })()}
                       {item.id === "outros" && selected && (
                         <div className="ml-6 mt-1 space-y-2">
-                          <div className="flex items-center gap-2">
-                            <Select value={selected.value || ""} onValueChange={v => setEpiValue(item.id, v)}>
-                              <SelectTrigger className="h-8 text-xs w-full">
-                                <SelectValue placeholder="Selecione do estoque..." />
-                              </SelectTrigger>
-                              <SelectContent>
-                                {inventoryItems
-                                  .filter(inv => inv.quantity > 0)
-                                  .map(inv => (
-                                    <SelectItem key={inv.id} value={inv.name}>
-                                      {inv.name} ({inv.quantity} {inv.unit})
-                                    </SelectItem>
-                                  ))}
-                              </SelectContent>
-                            </Select>
-                          </div>
-                          {/* Extra "Outros" rows */}
-                          {selectedEpis
-                            .filter(e => e.id.startsWith("outros_"))
-                            .map((extra) => {
-                              const extraInvMatch = extra.value ? findInventoryMatch(inventoryItems, extra.value) : null;
-                              return (
-                                <div key={extra.id} className="flex items-center gap-2">
-                                  <Select value={extra.value || ""} onValueChange={v => setEpiValue(extra.id, v)}>
-                                    <SelectTrigger className="h-8 text-xs flex-1">
-                                      <SelectValue placeholder="Selecione do estoque..." />
-                                    </SelectTrigger>
-                                    <SelectContent>
-                                      {inventoryItems
-                                        .filter(inv => inv.quantity > 0)
-                                        .map(inv => (
-                                          <SelectItem key={inv.id} value={inv.name}>
-                                            {inv.name} ({inv.quantity} {inv.unit})
-                                          </SelectItem>
-                                        ))}
-                                    </SelectContent>
-                                  </Select>
-                                  <div className="flex items-center gap-1">
-                                    <Label className="text-[10px] text-muted-foreground">Qtd:</Label>
-                                    <Input
-                                      type="number"
-                                      min={1}
-                                      className="h-7 w-14 text-xs text-center"
-                                      value={extra.qty ?? ""}
-                                      onChange={e => setEpiQty(extra.id, e.target.value)}
-                                    />
-                                  </div>
-                                  {extraInvMatch && (
-                                    <span className={`text-[10px] ${extraInvMatch.quantity <= extraInvMatch.min_quantity ? 'text-destructive font-semibold' : 'text-muted-foreground'}`}>
-                                      Est: {extraInvMatch.quantity}
-                                    </span>
-                                  )}
-                                  <Button
-                                    type="button"
-                                    variant="ghost"
-                                    size="icon"
-                                    className="h-7 w-7"
-                                    onClick={() => setSelectedEpis(prev => prev.filter(e => e.id !== extra.id))}
-                                  >
-                                    <Trash2 className="h-3.5 w-3.5 text-destructive" />
-                                  </Button>
+                          <Select value={selected.value || ""} onValueChange={v => setEpiValue(item.id, v)}>
+                            <SelectTrigger className="h-8 text-xs w-full"><SelectValue placeholder="Selecione do estoque..." /></SelectTrigger>
+                            <SelectContent>{inventoryItems.filter(inv => inv.quantity > 0).map(inv => <SelectItem key={inv.id} value={inv.name}>{inv.name} ({inv.quantity} {inv.unit})</SelectItem>)}</SelectContent>
+                          </Select>
+                          {selectedEpis.filter(e => e.id.startsWith("outros_")).map(extra => {
+                            const extraInvMatch = extra.value ? findInventoryMatch(inventoryItems, extra.value) : null;
+                            return (
+                              <div key={extra.id} className="flex items-center gap-2">
+                                <Select value={extra.value || ""} onValueChange={v => setEpiValue(extra.id, v)}>
+                                  <SelectTrigger className="h-8 text-xs flex-1"><SelectValue placeholder="Selecione do estoque..." /></SelectTrigger>
+                                  <SelectContent>{inventoryItems.filter(inv => inv.quantity > 0).map(inv => <SelectItem key={inv.id} value={inv.name}>{inv.name} ({inv.quantity} {inv.unit})</SelectItem>)}</SelectContent>
+                                </Select>
+                                <div className="flex items-center gap-1">
+                                  <Label className="text-[10px] text-muted-foreground">Qtd:</Label>
+                                  <Input type="number" min={1} className="h-7 w-14 text-xs text-center" value={extra.qty ?? ""} onChange={e => setEpiQty(extra.id, e.target.value)} />
                                 </div>
-                              );
-                            })}
-                          <Button
-                            type="button"
-                            variant="outline"
-                            size="sm"
-                            className="h-7 text-xs"
-                            onClick={() => {
-                              const existingExtras = selectedEpis.filter(e => e.id.startsWith("outros_"));
-                              const nextIdx = existingExtras.length + 1;
-                              setSelectedEpis(prev => [...prev, { id: `outros_${nextIdx}`, qty: 1 }]);
-                            }}
-                          >
-                            <Plus className="h-3 w-3 mr-1" />
-                            Adicionar outro item
-                          </Button>
+                                {extraInvMatch && <span className={`text-[10px] ${extraInvMatch.quantity <= extraInvMatch.min_quantity ? 'text-destructive font-semibold' : 'text-muted-foreground'}`}>Est: {extraInvMatch.quantity}</span>}
+                                <Button type="button" variant="ghost" size="icon" className="h-7 w-7" onClick={() => setSelectedEpis(prev => prev.filter(e => e.id !== extra.id))}><Trash2 className="h-3.5 w-3.5 text-destructive" /></Button>
+                              </div>
+                            );
+                          })}
+                          <Button type="button" variant="outline" size="sm" className="h-7 text-xs" onClick={() => {
+                            const existingExtras = selectedEpis.filter(e => e.id.startsWith("outros_"));
+                            setSelectedEpis(prev => [...prev, { id: `outros_${existingExtras.length + 1}`, qty: 1 }]);
+                          }}><Plus className="h-3 w-3 mr-1" /> Adicionar outro item</Button>
                         </div>
                       )}
-                      {selected && invMatch && (
-                        <span className={`text-[10px] ml-6 ${invMatch.quantity <= invMatch.min_quantity ? 'text-destructive font-semibold' : 'text-muted-foreground'}`}>
-                          Estoque: {invMatch.quantity} {invMatch.unit}
-                        </span>
-                      )}
-                      {selected && lastDate && (
-                        <span className="text-[10px] text-warning ml-6">
-                          Última retirada: {format(new Date(lastDate + "T12:00:00"), "dd/MM/yyyy")}
-                        </span>
-                      )}
+                      {selected && invMatch && <span className={`text-[10px] ml-6 ${invMatch.quantity <= invMatch.min_quantity ? 'text-destructive font-semibold' : 'text-muted-foreground'}`}>Estoque: {invMatch.quantity} {invMatch.unit}</span>}
+                      {selected && lastDate && <span className="text-[10px] text-warning ml-6">Última retirada: {format(new Date(lastDate + "T12:00:00"), "dd/MM/yyyy")}</span>}
                     </div>
                   );
                 })}
@@ -1088,9 +1281,7 @@ export default function TrocaEpi() {
                   <span className="text-sm font-medium">Blusa Operacional:</span>
                   <Select value={blusaTamanho} onValueChange={setBlusaTamanho}>
                     <SelectTrigger className="w-24 h-8"><SelectValue placeholder="Tam." /></SelectTrigger>
-                    <SelectContent>
-                      {TAMANHOS.map(t => <SelectItem key={t} value={t}>{t}</SelectItem>)}
-                    </SelectContent>
+                    <SelectContent>{TAMANHOS.map(t => <SelectItem key={t} value={t}>{t}</SelectItem>)}</SelectContent>
                   </Select>
                   <div className="flex items-center gap-1">
                     <Label className="text-xs">Qtd:</Label>
@@ -1101,9 +1292,7 @@ export default function TrocaEpi() {
                   <span className="text-sm font-medium">Calça Operacional:</span>
                   <Select value={calcaTamanho} onValueChange={setCalcaTamanho}>
                     <SelectTrigger className="w-24 h-8"><SelectValue placeholder="Tam." /></SelectTrigger>
-                    <SelectContent>
-                      {TAMANHOS.map(t => <SelectItem key={t} value={t}>{t}</SelectItem>)}
-                    </SelectContent>
+                    <SelectContent>{TAMANHOS.map(t => <SelectItem key={t} value={t}>{t}</SelectItem>)}</SelectContent>
                   </Select>
                   <div className="flex items-center gap-1">
                     <Label className="text-xs">Qtd:</Label>
@@ -1123,19 +1312,104 @@ export default function TrocaEpi() {
         </DialogContent>
       </Dialog>
 
-      {/* Signature Dialog */}
-      <SignatureDialog
-        open={showSignature}
-        onClose={() => setShowSignature(false)}
-        onConfirm={handleSignatureConfirm}
-      />
+      {/* ===== MATERIAL FORM DIALOG ===== */}
+      <Dialog open={showMaterialForm} onOpenChange={setShowMaterialForm}>
+        <DialogContent className="max-w-3xl w-[95vw] max-h-[95vh] overflow-y-auto p-3 sm:p-6">
+          <DialogHeader>
+            <DialogTitle>{editingMaterial ? "Editar Requisição de Material" : "Nova Requisição de Material"}</DialogTitle>
+          </DialogHeader>
+          <div className="space-y-4">
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+              <div><Label>Data *</Label><Input type="date" value={matData} onChange={e => setMatData(e.target.value)} /></div>
+              <div>
+                <Label>Área Destino *</Label>
+                <Select value={matAreaDestino} onValueChange={setMatAreaDestino}>
+                  <SelectTrigger><SelectValue placeholder="Selecione a área" /></SelectTrigger>
+                  <SelectContent>
+                    {AREA_DESTINO_OPTIONS.map(a => <SelectItem key={a} value={a}>{a}</SelectItem>)}
+                  </SelectContent>
+                </Select>
+              </div>
+            </div>
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+              <div>
+                <Label>Autorizado por *</Label>
+                {renderAuthPicker(matAutorizadoPor, setMatAutorizadoPor, setMatMatriculaAutorizador, matAuthPopoverOpen, setMatAuthPopoverOpen)}
+              </div>
+              <div><Label>Matrícula (Autorizador)</Label><Input value={matMatriculaAutorizador} onChange={e => setMatMatriculaAutorizador(e.target.value)} /></div>
+            </div>
 
-      {/* View Dialog */}
+            {renderPhotoUpload(matPhotoUrls, setMatPhotoUrls, matUploadingPhoto, true)}
+
+            <div><Label>Motivo *</Label><Textarea value={matMotivo} onChange={e => setMatMotivo(e.target.value)} placeholder="Descreva o motivo da requisição" /></div>
+
+            <Separator />
+
+            <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+              <div>
+                <Label>Funcionário(a) *</Label>
+                {renderFuncPicker(matFuncionarioNome, setMatFuncionarioNome, setMatFuncionarioFuncao, setMatFuncionarioMatricula, matFuncPopoverOpen, setMatFuncPopoverOpen)}
+              </div>
+              <div><Label>Função</Label><Input value={matFuncionarioFuncao} onChange={e => setMatFuncionarioFuncao(e.target.value)} /></div>
+              <div><Label>Matrícula Hydro</Label><Input value={matFuncionarioMatricula} onChange={e => setMatFuncionarioMatricula(e.target.value)} /></div>
+            </div>
+
+            <Separator />
+
+            <div>
+              <h3 className="font-semibold text-base mb-3">Materiais</h3>
+              <div className="space-y-2">
+                {matSelectedItems.map((item, idx) => {
+                  const invItem = inventoryItems.find(i => i.name === item.name);
+                  return (
+                    <div key={idx} className="flex items-center gap-2">
+                      <Select value={item.name} onValueChange={v => {
+                        setMatSelectedItems(prev => prev.map((it, i) => i === idx ? { ...it, name: v, id: v } : it));
+                      }}>
+                        <SelectTrigger className="flex-1 h-9 text-sm"><SelectValue placeholder="Selecione do estoque..." /></SelectTrigger>
+                        <SelectContent>
+                          {materialItems.map(inv => (
+                            <SelectItem key={inv.id} value={inv.name}>{inv.name} ({inv.quantity} {inv.unit})</SelectItem>
+                          ))}
+                        </SelectContent>
+                      </Select>
+                      <div className="flex items-center gap-1">
+                        <Label className="text-[10px] text-muted-foreground">Qtd:</Label>
+                        <Input type="number" min={1} className="h-8 w-16 text-xs text-center" value={item.qty} onChange={e => {
+                          setMatSelectedItems(prev => prev.map((it, i) => i === idx ? { ...it, qty: Number(e.target.value) || 1 } : it));
+                        }} />
+                      </div>
+                      {invItem && <span className={`text-[10px] ${invItem.quantity <= invItem.min_quantity ? 'text-destructive font-semibold' : 'text-muted-foreground'}`}>Est: {invItem.quantity}</span>}
+                      <Button type="button" variant="ghost" size="icon" className="h-7 w-7" onClick={() => setMatSelectedItems(prev => prev.filter((_, i) => i !== idx))}>
+                        <Trash2 className="h-3.5 w-3.5 text-destructive" />
+                      </Button>
+                    </div>
+                  );
+                })}
+                <Button type="button" variant="outline" size="sm" onClick={() => setMatSelectedItems(prev => [...prev, { id: "", name: "", qty: 1 }])}>
+                  <Plus className="h-3 w-3 mr-1" /> Adicionar Material
+                </Button>
+              </div>
+            </div>
+
+            <div className="flex justify-end gap-2 pt-4">
+              <Button variant="outline" onClick={() => setShowMaterialForm(false)}>Cancelar</Button>
+              <Button onClick={handleMaterialSubmit} disabled={(createRequisition.isPending || updateRequisition.isPending) || !matAutorizadoPor || !matMotivo || !matFuncionarioNome || !matAreaDestino || matSelectedItems.length === 0}>
+                {editingMaterial ? "Atualizar e Reassinar" : "Salvar e Registrar"}
+              </Button>
+            </div>
+          </div>
+        </DialogContent>
+      </Dialog>
+
+      {/* Signature Dialogs */}
+      <SignatureDialog open={showSignature} onClose={() => setShowSignature(false)} onConfirm={handleSignatureConfirm} />
+      <SignatureDialog open={showMaterialSignature} onClose={() => setShowMaterialSignature(false)} onConfirm={handleMaterialSignatureConfirm} />
+
+      {/* EPI View Dialog */}
       <Dialog open={!!viewExchange} onOpenChange={() => setViewExchange(null)}>
         <DialogContent className="max-w-2xl w-[95vw] p-3 sm:p-6">
-          <DialogHeader>
-            <DialogTitle>Detalhes da Troca de EPI</DialogTitle>
-          </DialogHeader>
+          <DialogHeader><DialogTitle>Detalhes da Troca de EPI</DialogTitle></DialogHeader>
           {viewExchange && (
             <div className="space-y-3 text-sm">
               <div className="grid grid-cols-2 gap-2">
@@ -1162,30 +1436,59 @@ export default function TrocaEpi() {
                   {viewExchange.uniforme_calca_tamanho && <p>Calça: {viewExchange.uniforme_calca_tamanho} (x{viewExchange.uniforme_calca_quantidade})</p>}
                 </div>
               )}
-              {/* Photos */}
               {viewExchange.photo_urls && viewExchange.photo_urls.length > 0 && (
                 <div>
-                  <strong>Fotos do EPI Danificado:</strong>
+                  <strong>Fotos:</strong>
                   <div className="flex flex-wrap gap-2 mt-2">
                     {viewExchange.photo_urls.map((url, idx) => (
-                      <img
-                        key={idx}
-                        src={url}
-                        alt={`EPI danificado ${idx + 1}`}
-                        className="h-20 w-20 object-cover rounded-lg border cursor-pointer hover:opacity-80 hover:ring-2 hover:ring-primary transition-all"
-                        onClick={() => setZoomedPhoto(url)}
-                      />
+                      <img key={idx} src={url} alt={`Foto ${idx + 1}`} className="h-20 w-20 object-cover rounded-lg border cursor-pointer hover:opacity-80 hover:ring-2 hover:ring-primary transition-all" onClick={() => setZoomedPhoto(url)} />
                     ))}
                   </div>
                 </div>
               )}
               <div className="flex justify-end gap-2">
-                <Button variant="outline" onClick={() => handlePngWhatsApp(viewExchange)}>
-                  <MessageCircle className="h-4 w-4 mr-2 text-[#25D366]" /> PNG WhatsApp
-                </Button>
-                <Button onClick={() => handlePrint(viewExchange)}>
-                  <FileText className="h-4 w-4 mr-2" /> Gerar PDF
-                </Button>
+                <Button variant="outline" onClick={() => handlePngWhatsApp(viewExchange)}><MessageCircle className="h-4 w-4 mr-2 text-[#25D366]" /> PNG WhatsApp</Button>
+                <Button onClick={() => handlePrint(viewExchange)}><FileText className="h-4 w-4 mr-2" /> Gerar PDF</Button>
+              </div>
+            </div>
+          )}
+        </DialogContent>
+      </Dialog>
+
+      {/* Material View Dialog */}
+      <Dialog open={!!viewMaterial} onOpenChange={() => setViewMaterial(null)}>
+        <DialogContent className="max-w-2xl w-[95vw] p-3 sm:p-6">
+          <DialogHeader><DialogTitle>Detalhes da Requisição de Material</DialogTitle></DialogHeader>
+          {viewMaterial && (
+            <div className="space-y-3 text-sm">
+              <div className="grid grid-cols-2 gap-2">
+                <p><strong>Data:</strong> {format(new Date(viewMaterial.data + 'T12:00:00'), "dd/MM/yyyy")}</p>
+                <p><strong>Área Destino:</strong> {viewMaterial.area_destino}</p>
+                <p><strong>Autorizado por:</strong> {viewMaterial.autorizado_por}</p>
+                <p><strong>Funcionário:</strong> {viewMaterial.funcionario_nome}</p>
+                <p><strong>Função:</strong> {viewMaterial.funcionario_funcao || '-'}</p>
+              </div>
+              <p><strong>Motivo:</strong> {viewMaterial.motivo}</p>
+              <div>
+                <strong>Materiais:</strong>
+                <div className="flex flex-wrap gap-1 mt-1">
+                  {(viewMaterial.materiais || []).map((m, i) => (
+                    <Badge key={i} variant="secondary">{m.name} (x{m.qty})</Badge>
+                  ))}
+                </div>
+              </div>
+              {viewMaterial.photo_urls && viewMaterial.photo_urls.length > 0 && (
+                <div>
+                  <strong>Fotos:</strong>
+                  <div className="flex flex-wrap gap-2 mt-2">
+                    {viewMaterial.photo_urls.map((url, idx) => (
+                      <img key={idx} src={url} alt={`Foto ${idx + 1}`} className="h-20 w-20 object-cover rounded-lg border cursor-pointer hover:opacity-80 hover:ring-2 hover:ring-primary transition-all" onClick={() => setZoomedPhoto(url)} />
+                    ))}
+                  </div>
+                </div>
+              )}
+              <div className="flex justify-end gap-2">
+                <Button onClick={() => handlePrintMaterial(viewMaterial)}><FileText className="h-4 w-4 mr-2" /> Gerar PDF</Button>
               </div>
             </div>
           )}
@@ -1195,144 +1498,9 @@ export default function TrocaEpi() {
       {/* Zoom Photo Dialog */}
       <Dialog open={!!zoomedPhoto} onOpenChange={() => setZoomedPhoto(null)}>
         <DialogContent className="max-w-4xl w-[95vw] p-2">
-          {zoomedPhoto && (
-            <img
-              src={zoomedPhoto}
-              alt="EPI danificado ampliado"
-              className="w-full h-auto max-h-[85vh] object-contain rounded-lg"
-            />
-          )}
+          {zoomedPhoto && <img src={zoomedPhoto} alt="Foto ampliada" className="w-full h-auto max-h-[85vh] object-contain rounded-lg" />}
         </DialogContent>
       </Dialog>
-
-      {/* List */}
-      {isLoading ? (
-        <div className="text-center py-10 text-muted-foreground">Carregando...</div>
-      ) : (
-      <>
-      {/* Filters */}
-      <div className="flex flex-col sm:flex-row gap-2 mb-3">
-        <div className="relative flex-1">
-          <Search className="absolute left-2.5 top-2.5 h-4 w-4 text-muted-foreground" />
-          <Input
-            placeholder="Buscar por nome ou autorizador..."
-            value={filterText}
-            onChange={e => { setFilterText(e.target.value); setCurrentPage(1); }}
-            className="pl-9"
-          />
-        </div>
-        <Select value={filterMonth} onValueChange={v => { setFilterMonth(v); setCurrentPage(1); }}>
-          <SelectTrigger className="w-full sm:w-44">
-            <SelectValue placeholder="Todos os meses" />
-          </SelectTrigger>
-          <SelectContent>
-            <SelectItem value="all">Todos os meses</SelectItem>
-            {Array.from({ length: 12 }, (_, i) => {
-              const m = String(i + 1).padStart(2, "0");
-              const label = new Date(2026, i).toLocaleString("pt-BR", { month: "long" });
-              return <SelectItem key={m} value={m}>{label.charAt(0).toUpperCase() + label.slice(1)}</SelectItem>;
-            })}
-          </SelectContent>
-        </Select>
-        <Input
-          type="date"
-          value={filterDay}
-          onChange={e => { setFilterDay(e.target.value); setCurrentPage(1); }}
-          className="w-full sm:w-44"
-          placeholder="Filtrar por dia"
-        />
-        {filterDay && (
-          <Button variant="ghost" size="icon" className="h-10 w-10 shrink-0" onClick={() => { setFilterDay(""); setCurrentPage(1); }}>
-            <X className="h-4 w-4" />
-          </Button>
-        )}
-      </div>
-
-      {(() => {
-        const filtered = exchanges
-          .filter(ex => {
-            const text = filterText.toLowerCase();
-            const matchesText = !text || ex.funcionario_nome.toLowerCase().includes(text) || ex.autorizado_por.toLowerCase().includes(text);
-            const matchesMonth = !filterMonth || filterMonth === "all" || ex.data.substring(5, 7) === filterMonth;
-            const matchesDay = !filterDay || ex.data === filterDay;
-            return matchesText && matchesMonth && matchesDay;
-          })
-          .sort((a, b) => new Date(b.data).getTime() - new Date(a.data).getTime());
-
-        const totalPages = Math.max(1, Math.ceil(filtered.length / ITEMS_PER_PAGE));
-        const page = Math.min(currentPage, totalPages);
-        const paged = filtered.slice((page - 1) * ITEMS_PER_PAGE, page * ITEMS_PER_PAGE);
-
-        if (filtered.length === 0) {
-          return (
-            <Card>
-              <CardContent className="py-10 text-center text-muted-foreground">
-                <ShieldCheck className="h-12 w-12 mx-auto mb-3 opacity-30" />
-                <p>{exchanges.length === 0 ? "Nenhuma troca de EPI registrada." : "Nenhum resultado encontrado."}</p>
-              </CardContent>
-            </Card>
-          );
-        }
-
-        return (
-          <>
-            <p className="text-xs text-muted-foreground mb-2">{filtered.length} registro(s) encontrado(s)</p>
-            <div className="grid gap-3 max-h-[65vh] overflow-y-auto pr-1">
-              {paged.map(ex => (
-                <Card key={ex.id} className="hover:shadow-md transition-shadow">
-                  <CardContent className="p-3 sm:p-4 flex flex-col sm:flex-row sm:items-center justify-between gap-2">
-                    <div className="space-y-1 min-w-0">
-                      <div className="flex items-center gap-2 flex-wrap">
-                        <span className="font-semibold text-sm sm:text-base">{ex.funcionario_nome}</span>
-                        <Badge variant="outline" className="text-xs">{format(new Date(ex.data + 'T12:00:00'), "dd/MM/yyyy")}</Badge>
-                      </div>
-                      <p className="text-xs sm:text-sm text-muted-foreground truncate">
-                        Autorizado por: {ex.autorizado_por} | {ex.motivo_troca.substring(0, 40)}{ex.motivo_troca.length > 40 ? '...' : ''}
-                      </p>
-                      <div className="flex gap-1 flex-wrap">
-                        {(ex.epis || []).slice(0, 3).map((e: any) => {
-                          const item = EPI_ITEMS.find(i => i.id === (typeof e === 'string' ? e : e.id));
-                          return <Badge key={typeof e === 'string' ? e : e.id} variant="secondary" className="text-[10px]">{item?.label || 'EPI'}</Badge>;
-                        })}
-                        {(ex.epis || []).length > 3 && <Badge variant="secondary" className="text-[10px]">+{(ex.epis || []).length - 3}</Badge>}
-                        {ex.photo_urls && ex.photo_urls.length > 0 && (
-                          <Badge variant="outline" className="text-[10px] gap-1">
-                            <Camera className="h-3 w-3" /> {ex.photo_urls.length} foto(s)
-                          </Badge>
-                        )}
-                      </div>
-                    </div>
-                    <div className="flex gap-1 shrink-0">
-                      <Button variant="ghost" size="icon" className="h-8 w-8" onClick={() => setViewExchange(ex)}><Eye className="h-4 w-4" /></Button>
-                      {ex.created_by === user?.id && (
-                        <Button variant="ghost" size="icon" className="h-8 w-8" onClick={() => handleEditExchange(ex)}><Pencil className="h-4 w-4" /></Button>
-                      )}
-                      <Button variant="ghost" size="icon" className="h-8 w-8" onClick={() => handlePrint(ex)} title="Gerar PDF"><FileText className="h-4 w-4" /></Button>
-                      <Button variant="ghost" size="icon" className="h-8 w-8" onClick={() => handlePngWhatsApp(ex)} title="PNG WhatsApp"><MessageCircle className="h-4 w-4 text-[#25D366]" /></Button>
-                      {ex.created_by === user?.id && (
-                        <Button variant="ghost" size="icon" className="h-8 w-8" onClick={() => handleDeleteWithRestore(ex)}><Trash2 className="h-4 w-4 text-destructive" /></Button>
-                      )}
-                    </div>
-                  </CardContent>
-                </Card>
-              ))}
-            </div>
-            {totalPages > 1 && (
-              <div className="flex items-center justify-center gap-2 mt-4">
-                <Button variant="outline" size="sm" disabled={page <= 1} onClick={() => setCurrentPage(p => p - 1)}>
-                  <ChevronLeft className="h-4 w-4" /> Anterior
-                </Button>
-                <span className="text-sm text-muted-foreground">Página {page} de {totalPages}</span>
-                <Button variant="outline" size="sm" disabled={page >= totalPages} onClick={() => setCurrentPage(p => p + 1)}>
-                  Próxima <ChevronRight className="h-4 w-4" />
-                </Button>
-              </div>
-            )}
-          </>
-        );
-      })()}
-      </>
-      )}
     </div>
   );
 }
