@@ -1874,6 +1874,63 @@ export type Database = {
         }
         Relationships: []
       }
+      material_requisitions: {
+        Row: {
+          area_destino: string
+          assinatura_autorizador: string | null
+          assinatura_funcionario: string | null
+          autorizado_por: string
+          created_at: string
+          created_by: string
+          data: string
+          funcionario_funcao: string | null
+          funcionario_matricula: string | null
+          funcionario_nome: string
+          id: string
+          materiais: Json
+          matricula_autorizador: string | null
+          motivo: string
+          photo_urls: string[]
+          updated_at: string
+        }
+        Insert: {
+          area_destino: string
+          assinatura_autorizador?: string | null
+          assinatura_funcionario?: string | null
+          autorizado_por: string
+          created_at?: string
+          created_by: string
+          data?: string
+          funcionario_funcao?: string | null
+          funcionario_matricula?: string | null
+          funcionario_nome: string
+          id?: string
+          materiais?: Json
+          matricula_autorizador?: string | null
+          motivo: string
+          photo_urls?: string[]
+          updated_at?: string
+        }
+        Update: {
+          area_destino?: string
+          assinatura_autorizador?: string | null
+          assinatura_funcionario?: string | null
+          autorizado_por?: string
+          created_at?: string
+          created_by?: string
+          data?: string
+          funcionario_funcao?: string | null
+          funcionario_matricula?: string | null
+          funcionario_nome?: string
+          id?: string
+          materiais?: Json
+          matricula_autorizador?: string | null
+          motivo?: string
+          photo_urls?: string[]
+          updated_at?: string
+        }
+        Relationships: []
+      }
       matrix_task_completions: {
         Row: {
           completed_at: string
