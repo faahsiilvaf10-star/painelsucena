@@ -258,11 +258,11 @@ export default function PosChuva() {
       y += 8;
       if (sigEnc) {
         try { pdf.addImage(sigEnc, "PNG", 10, y, 60, 20); } catch {}
-        pdf.text("Ciência do Encarregado", 10, y + 23);
+        pdf.text("Encarregado Resp. pela Liberação", 10, y + 23);
       }
       if (sigTec) {
         try { pdf.addImage(sigTec, "PNG", 110, y, 60, 20); } catch {}
-        pdf.text("Ciência do Téc. Segurança", 110, y + 23);
+        pdf.text("Téc. Segurança da Contratada", 110, y + 23);
       }
       y += 30;
     };
