@@ -2481,6 +2481,90 @@ export type Database = {
         }
         Relationships: []
       }
+      pos_chuva_inspections: {
+        Row: {
+          atividade: string | null
+          avaliacao_1_data: string | null
+          avaliacao_1_horario: string | null
+          avaliacao_1_sig_encarregado: string | null
+          avaliacao_1_sig_tecnico: string | null
+          avaliacao_2_data: string | null
+          avaliacao_2_horario: string | null
+          avaliacao_2_sig_encarregado: string | null
+          avaliacao_2_sig_tecnico: string | null
+          avaliacao_3_data: string | null
+          avaliacao_3_horario: string | null
+          avaliacao_3_sig_encarregado: string | null
+          avaliacao_3_sig_tecnico: string | null
+          checklist: Json
+          created_at: string
+          created_by: string
+          data: string
+          empresa: string | null
+          id: string
+          local_inspecao: string | null
+          observacoes: string | null
+          plano_acao: Json
+          projeto: string | null
+          responsavel: string | null
+          updated_at: string
+        }
+        Insert: {
+          atividade?: string | null
+          avaliacao_1_data?: string | null
+          avaliacao_1_horario?: string | null
+          avaliacao_1_sig_encarregado?: string | null
+          avaliacao_1_sig_tecnico?: string | null
+          avaliacao_2_data?: string | null
+          avaliacao_2_horario?: string | null
+          avaliacao_2_sig_encarregado?: string | null
+          avaliacao_2_sig_tecnico?: string | null
+          avaliacao_3_data?: string | null
+          avaliacao_3_horario?: string | null
+          avaliacao_3_sig_encarregado?: string | null
+          avaliacao_3_sig_tecnico?: string | null
+          checklist?: Json
+          created_at?: string
+          created_by: string
+          data?: string
+          empresa?: string | null
+          id?: string
+          local_inspecao?: string | null
+          observacoes?: string | null
+          plano_acao?: Json
+          projeto?: string | null
+          responsavel?: string | null
+          updated_at?: string
+        }
+        Update: {
+          atividade?: string | null
+          avaliacao_1_data?: string | null
+          avaliacao_1_horario?: string | null
+          avaliacao_1_sig_encarregado?: string | null
+          avaliacao_1_sig_tecnico?: string | null
+          avaliacao_2_data?: string | null
+          avaliacao_2_horario?: string | null
+          avaliacao_2_sig_encarregado?: string | null
+          avaliacao_2_sig_tecnico?: string | null
+          avaliacao_3_data?: string | null
+          avaliacao_3_horario?: string | null
+          avaliacao_3_sig_encarregado?: string | null
+          avaliacao_3_sig_tecnico?: string | null
+          checklist?: Json
+          created_at?: string
+          created_by?: string
+          data?: string
+          empresa?: string | null
+          id?: string
+          local_inspecao?: string | null
+          observacoes?: string | null
+          plano_acao?: Json
+          projeto?: string | null
+          responsavel?: string | null
+          updated_at?: string
+        }
+        Relationships: []
+      }
       presentations: {
         Row: {
           created_at: string
