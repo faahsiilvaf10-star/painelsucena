@@ -127,12 +127,21 @@ interface SignatureDialogProps {
   open: boolean;
   onClose: () => void;
   onConfirm: (sigFuncionario: string, sigAutorizador: string) => void;
+  label1?: string;
+  label2?: string;
+  title1?: string;
+  title2?: string;
 }
 
-export function SignatureDialog({ open, onClose, onConfirm }: SignatureDialogProps) {
+export function SignatureDialog({ open, onClose, onConfirm, label1, label2, title1, title2 }: SignatureDialogProps) {
   const [step, setStep] = useState<1 | 2>(1);
   const [sigAutorizador, setSigAutorizador] = useState("");
   const [sigFuncionario, setSigFuncionario] = useState("");
+
+  const firstLabel = label1 || "Assinatura do Autorizador";
+  const secondLabel = label2 || "Assinatura do Funcionário";
+  const firstTitle = title1 || "Assinatura do Autorizador (1/2)";
+  const secondTitle = title2 || "Assinatura do Funcionário (2/2)";
 
   useEffect(() => {
     if (open) {
@@ -151,7 +160,7 @@ export function SignatureDialog({ open, onClose, onConfirm }: SignatureDialogPro
       <DialogContent className="max-w-lg w-[95vw] p-3 sm:p-6">
         <DialogHeader>
           <DialogTitle className="text-base sm:text-lg">
-            {step === 1 ? "Assinatura do Autorizador (1/2)" : "Assinatura do Funcionário (2/2)"}
+            {step === 1 ? firstTitle : secondTitle}
           </DialogTitle>
         </DialogHeader>
         <div className="space-y-4">
