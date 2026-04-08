@@ -60,7 +60,7 @@ export default function PosChuva() {
   const createMutation = useCreatePosChuva();
 
   // Form state
-  const [empresa, setEmpresa] = useState("");
+  const [empresa, setEmpresa] = useState("Sucena Empreendimentos");
   const [data, setData] = useState(format(new Date(), "yyyy-MM-dd"));
   const [projeto, setProjeto] = useState("");
   const [responsavel, setResponsavel] = useState("");
