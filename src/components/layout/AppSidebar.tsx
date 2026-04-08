@@ -102,6 +102,7 @@ const allNavItems: NavItem[] = [
   { id: "troca-epi", icon: ShieldCheck, label: "Requisição", path: "/troca-epi" },
   { id: "inspecao-extintores", icon: FlameKindling, label: "Inspeção Extintores", path: "/inspecao-extintores" },
   { id: "meio-ambiente", icon: Leaf, label: "Meio Ambiente", path: "/meio-ambiente" },
+  { id: "pos-chuva", icon: Droplets, label: "Pós Chuva", path: "/pos-chuva" },
   { id: "emergencia", icon: AlertTriangle, label: "Emergência", path: "/emergencia", isEmergency: true },
 ];
 
