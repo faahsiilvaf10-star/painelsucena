@@ -168,7 +168,7 @@ export function SignatureDialog({ open, onClose, onConfirm, label1, label2, titl
             <>
               <SignatureCanvas
                 key="autorizador"
-                label="Assinatura do Autorizador"
+                label={firstLabel}
                 onSignatureChange={setSigAutorizador}
               />
               <div className="flex justify-end gap-2 pt-2">
@@ -187,7 +187,7 @@ export function SignatureDialog({ open, onClose, onConfirm, label1, label2, titl
             <>
               <SignatureCanvas
                 key="funcionario"
-                label="Assinatura do Funcionário"
+                label={secondLabel}
                 onSignatureChange={setSigFuncionario}
               />
               <div className="flex justify-end gap-2 pt-2">
