@@ -8,7 +8,8 @@ const DEFAULT_NAV_ORDER = [
   "estoque", "lembretes", "parte-diaria", "presenca", "matriz", "pedidos", "rdo", "relatorio",
   "rh", "vistorias", "homologados", "vistoria-cintas", "hora-extra", "arquivos-seguranca",
   "consumo-abastecimento", "plano-manutencao", "slides", "instacena", "inspecao-canteiro",
-  "calendario-hydro", "games", "desvios", "planejamento", "notas-fiscais", "troca-epi", "emergencia"
+  "calendario-hydro", "games", "desvios", "planejamento", "notas-fiscais", "troca-epi",
+  "inspecao-extintores", "meio-ambiente", "pos-chuva", "emergencia"
 ];
 
 export function useUserNavOrder() {
