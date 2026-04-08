@@ -394,11 +394,11 @@ export default function PosChuva() {
                       <div className="grid grid-cols-2 gap-4 mt-2">
                         <div className="text-center">
                           <img src={aval.sigEnc} alt="Encarregado" className="h-16 mx-auto border rounded" />
-                          <p className="text-xs text-muted-foreground mt-1">Encarregado</p>
+                          <p className="text-xs text-muted-foreground mt-1">Encarregado Resp. Liberação</p>
                         </div>
                         <div className="text-center">
                           <img src={aval.sigTec} alt="Técnico" className="h-16 mx-auto border rounded" />
-                          <p className="text-xs text-muted-foreground mt-1">Téc. Segurança</p>
+                          <p className="text-xs text-muted-foreground mt-1">Téc. Segurança Contratada</p>
                         </div>
                         <p className="text-xs text-muted-foreground col-span-2">Data: {aval.data} - Horário: {aval.horario}</p>
                       </div>
