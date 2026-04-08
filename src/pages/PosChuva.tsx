@@ -44,6 +44,10 @@ function PosChuvaSignatureDialog({
       open={open}
       onClose={onClose}
       onConfirm={(sig1, sig2) => onConfirm(sig2, sig1)}
+      label1="Assinatura do Encarregado Responsável pela Liberação"
+      label2="Assinatura do Técnico de Segurança da Contratada"
+      title1={`Encarregado Responsável (${avaliacaoNum}ª Avaliação - 1/2)`}
+      title2={`Técnico de Segurança (${avaliacaoNum}ª Avaliação - 2/2)`}
     />
   );
 }
@@ -254,11 +258,11 @@ export default function PosChuva() {
       y += 8;
       if (sigEnc) {
         try { pdf.addImage(sigEnc, "PNG", 10, y, 60, 20); } catch {}
-        pdf.text("Ciência do Encarregado", 10, y + 23);
+        pdf.text("Encarregado Resp. pela Liberação", 10, y + 23);
       }
       if (sigTec) {
         try { pdf.addImage(sigTec, "PNG", 110, y, 60, 20); } catch {}
-        pdf.text("Ciência do Téc. Segurança", 110, y + 23);
+        pdf.text("Téc. Segurança da Contratada", 110, y + 23);
       }
       y += 30;
     };
@@ -390,11 +394,11 @@ export default function PosChuva() {
                       <div className="grid grid-cols-2 gap-4 mt-2">
                         <div className="text-center">
                           <img src={aval.sigEnc} alt="Encarregado" className="h-16 mx-auto border rounded" />
-                          <p className="text-xs text-muted-foreground mt-1">Encarregado</p>
+                          <p className="text-xs text-muted-foreground mt-1">Encarregado Resp. Liberação</p>
                         </div>
                         <div className="text-center">
                           <img src={aval.sigTec} alt="Técnico" className="h-16 mx-auto border rounded" />
-                          <p className="text-xs text-muted-foreground mt-1">Téc. Segurança</p>
+                          <p className="text-xs text-muted-foreground mt-1">Téc. Segurança Contratada</p>
                         </div>
                         <p className="text-xs text-muted-foreground col-span-2">Data: {aval.data} - Horário: {aval.horario}</p>
                       </div>
