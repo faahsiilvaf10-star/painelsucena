@@ -44,6 +44,10 @@ function PosChuvaSignatureDialog({
       open={open}
       onClose={onClose}
       onConfirm={(sig1, sig2) => onConfirm(sig2, sig1)}
+      label1="Assinatura do Encarregado Responsável pela Liberação"
+      label2="Assinatura do Técnico de Segurança da Contratada"
+      title1={`Encarregado Responsável (${avaliacaoNum}ª Avaliação - 1/2)`}
+      title2={`Técnico de Segurança (${avaliacaoNum}ª Avaliação - 2/2)`}
     />
   );
 }
