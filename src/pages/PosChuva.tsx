@@ -283,7 +283,7 @@ export default function PosChuva() {
   };
 
   return (
-    <Layout title="Pós Chuva">
+    <Layout>
       <div className="space-y-4 pb-24">
         <div className="flex items-center gap-2">
           <CloudRain className="h-6 w-6 text-primary" />
