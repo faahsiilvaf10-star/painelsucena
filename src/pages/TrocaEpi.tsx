@@ -1458,7 +1458,7 @@ export default function TrocaEpi() {
               {(viewExchange.uniforme_blusa_tamanho || viewExchange.uniforme_calca_tamanho) && (
                 <div>
                   <strong>Uniforme:</strong>
-                  {viewExchange.uniforme_blusa_tamanho && <p>Blusa: {viewExchange.uniforme_blusa_tamanho} (x{viewExchange.uniforme_blusa_quantidade})</p>}
+                  {viewExchange.uniforme_blusa_tamanho && <p>Camisa: {viewExchange.uniforme_blusa_tamanho} (x{viewExchange.uniforme_blusa_quantidade})</p>}
                   {viewExchange.uniforme_calca_tamanho && <p>Calça: {viewExchange.uniforme_calca_tamanho} (x{viewExchange.uniforme_calca_quantidade})</p>}
                 </div>
               )}
