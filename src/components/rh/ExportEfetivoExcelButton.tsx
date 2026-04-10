@@ -194,8 +194,8 @@ export function ExportEfetivoExcelButton({ colaboradores, filterFuncao }: Export
 
       // Summary row
       worksheet.addRow([]);
-      const summaryRow = worksheet.addRow([`Total de colaboradores: ${colaboradores.length}`]);
-      worksheet.mergeCells(`A${summaryRow.number}:M${summaryRow.number}`);
+      const summaryRow = worksheet.addRow([`Total de colaboradores: ${sortedColaboradores.length}`]);
+      worksheet.mergeCells(`A${summaryRow.number}:N${summaryRow.number}`);
       const summaryCell = summaryRow.getCell(1);
       summaryCell.font = { bold: true, size: 10, color: { argb: "FF1A1A2E" } };
       summaryCell.alignment = { horizontal: "right", vertical: "middle" };
@@ -254,7 +254,7 @@ export function ExportEfetivoExcelButton({ colaboradores, filterFuncao }: Export
       // Footer
       worksheet.addRow([]);
       const footerRow = worksheet.addRow(["Sucena Empreendimentos | sucenaempreendimentos.com.br | contato@sucenaempreendimentos.com.br"]);
-      worksheet.mergeCells(`A${footerRow.number}:M${footerRow.number}`);
+      worksheet.mergeCells(`A${footerRow.number}:N${footerRow.number}`);
       const footerCell = footerRow.getCell(1);
       footerCell.font = { size: 8, italic: true, color: { argb: "FF888888" } };
       footerCell.alignment = { horizontal: "center", vertical: "middle" };
