@@ -308,6 +308,14 @@ export default function TrocaEpi() {
     }).filter(item => item.quantity > 0);
   }, [inventoryItems]);
 
+  const camisaOptions = useMemo(() => {
+    return inventoryItems.filter(inv => normalizeText(inv.name).includes("camisa") && inv.quantity > 0);
+  }, [inventoryItems]);
+
+  const calcaOptions = useMemo(() => {
+    return inventoryItems.filter(inv => normalizeText(inv.name).includes("calca") && inv.quantity > 0);
+  }, [inventoryItems]);
+
   const [activeTab, setActiveTab] = useState("epi");
   const [showForm, setShowForm] = useState(false);
   const [editingExchange, setEditingExchange] = useState<EpiExchange | null>(null);
