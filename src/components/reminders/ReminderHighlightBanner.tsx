@@ -1,13 +1,15 @@
-import { format } from "date-fns";
+import { format, addDays } from "date-fns";
 import { ptBR } from "date-fns/locale";
-import { Bell, AlertCircle, Calendar, Users, User, Globe, Check, X, AlertTriangle, UserCircle } from "lucide-react";
+import { Bell, AlertCircle, Calendar, Users, User, Globe, Check, X, AlertTriangle, UserCircle, Clock } from "lucide-react";
 import { useState, useMemo, useEffect } from "react";
 import { Card, CardContent } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { ScrollArea, ScrollBar } from "@/components/ui/scroll-area";
 import { Alert, AlertDescription, AlertTitle } from "@/components/ui/alert";
-import { useActiveReminders, useAcknowledgeReminder, useDeleteReminder, Reminder } from "@/hooks/useReminders";
+import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover";
+import { Calendar as CalendarComponent } from "@/components/ui/calendar";
+import { useActiveReminders, useAcknowledgeReminder, useDeleteReminder, useSnoozeReminder, Reminder } from "@/hooks/useReminders";
 import { useAuth } from "@/hooks/useAuth";
 import { cn } from "@/lib/utils";
 import { Link } from "react-router-dom";
