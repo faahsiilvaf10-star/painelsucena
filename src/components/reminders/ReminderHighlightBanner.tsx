@@ -206,7 +206,31 @@ export const ReminderHighlightBanner = () => {
                               </div>
                             </div>
                           </div>
-                          <div className="flex items-center gap-2">
+                          <div className="flex items-center gap-2 flex-shrink-0">
+                            <Popover open={snoozeOpenId === reminder.id} onOpenChange={(open) => setSnoozeOpenId(open ? reminder.id : null)}>
+                              <PopoverTrigger asChild>
+                                <Button
+                                  variant="outline"
+                                  size="sm"
+                                  className="h-8 gap-1 border-orange-500/50 text-orange-400 bg-orange-500/10 hover:bg-orange-500/20 hover:text-orange-300"
+                                  onClick={(e) => e.stopPropagation()}
+                                >
+                                  <Clock className="h-4 w-4" />
+                                  Adiar
+                                </Button>
+                              </PopoverTrigger>
+                              <PopoverContent className="w-auto p-0" align="end" onClick={(e) => e.stopPropagation()}>
+                                <CalendarComponent
+                                  mode="single"
+                                  selected={undefined}
+                                  onSelect={(date) => { if (date) handleSnooze(reminder.id, date); }}
+                                  disabled={(date) => date <= new Date()}
+                                  initialFocus
+                                  className={cn("p-3 pointer-events-auto")}
+                                  locale={ptBR}
+                                />
+                              </PopoverContent>
+                            </Popover>
                             <Button
                               variant="outline"
                               size="sm"
