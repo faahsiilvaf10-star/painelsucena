@@ -45,11 +45,15 @@ export function ExportEfetivoExcelButton({ colaboradores, filterFuncao }: Export
         },
       });
 
+      // Sort alphabetically by name
+      const sortedColaboradores = [...colaboradores].sort((a, b) => a.nome.localeCompare(b.nome, 'pt-BR'));
+
       // Set column widths
       worksheet.columns = [
         { key: "nome", width: 35 },
         { key: "funcao", width: 25 },
-        { key: "matricula", width: 12 },
+        { key: "matricula", width: 14 },
+        { key: "matriculaHydro", width: 16 },
         { key: "cpf", width: 15 },
         { key: "admissao", width: 12 },
         { key: "nascimento", width: 12 },
@@ -102,7 +106,7 @@ export function ExportEfetivoExcelButton({ colaboradores, filterFuncao }: Export
       // Title row
       const titleRow = worksheet.addRow(["RELATÓRIO DE EFETIVO - SUCENA EMPREENDIMENTOS"]);
       titleRow.height = 28;
-      worksheet.mergeCells(`A${titleRow.number}:M${titleRow.number}`);
+      worksheet.mergeCells(`A${titleRow.number}:N${titleRow.number}`);
       const titleCell = titleRow.getCell(1);
       titleCell.font = { bold: true, size: 16, color: { argb: "FF1A1A2E" } };
       titleCell.alignment = { horizontal: "center", vertical: "middle" };
@@ -115,8 +119,8 @@ export function ExportEfetivoExcelButton({ colaboradores, filterFuncao }: Export
       // Subtitle row with filter info and date
       const filterLabel = filterFuncao && filterFuncao !== "all" ? `Filtro: ${filterFuncao}` : "Todos os colaboradores";
       const dateStr = new Date().toLocaleDateString("pt-BR", { day: "2-digit", month: "long", year: "numeric" });
-      const subtitleRow = worksheet.addRow([`${filterLabel} | Total: ${colaboradores.length} colaboradores | Gerado em: ${dateStr}`]);
-      worksheet.mergeCells(`A${subtitleRow.number}:M${subtitleRow.number}`);
+      const subtitleRow = worksheet.addRow([`${filterLabel} | Total: ${sortedColaboradores.length} colaboradores | Gerado em: ${dateStr}`]);
+      worksheet.mergeCells(`A${subtitleRow.number}:N${subtitleRow.number}`);
       const subtitleCell = subtitleRow.getCell(1);
       subtitleCell.font = { size: 10, italic: true, color: { argb: "FF666666" } };
       subtitleCell.alignment = { horizontal: "center", vertical: "middle" };
@@ -126,7 +130,7 @@ export function ExportEfetivoExcelButton({ colaboradores, filterFuncao }: Export
       worksheet.addRow([]);
 
       // Header row
-      const headers = ["Nome", "Função", "Matrícula", "CPF", "Admissão", "Nascimento", "Contato", "Localidade", "ASO Admissional", "ASO Validade", "ASO Periódico", "ASO Retorno", "ASO Mud. Risco"];
+      const headers = ["Nome", "Função", "Matrícula Sucena", "Matrícula Hydro", "CPF", "Admissão", "Nascimento", "Contato", "Localidade", "ASO Admissional", "ASO Validade", "ASO Periódico", "ASO Retorno", "ASO Mud. Risco"];
       const headerRow = worksheet.addRow(headers);
       headerRow.height = 24;
       headerRow.eachCell((cell) => {
@@ -146,11 +150,12 @@ export function ExportEfetivoExcelButton({ colaboradores, filterFuncao }: Export
       });
 
       // Data rows
-      colaboradores.forEach((c, index) => {
+      sortedColaboradores.forEach((c, index) => {
         const row = worksheet.addRow([
           c.nome,
           c.funcao,
           c.matricula,
+          c.matriculaHydro || "-",
           c.cpf,
           c.admissao,
           c.dataNascimento,
@@ -189,15 +194,15 @@ export function ExportEfetivoExcelButton({ colaboradores, filterFuncao }: Export
 
       // Summary row
       worksheet.addRow([]);
-      const summaryRow = worksheet.addRow([`Total de colaboradores: ${colaboradores.length}`]);
-      worksheet.mergeCells(`A${summaryRow.number}:M${summaryRow.number}`);
+      const summaryRow = worksheet.addRow([`Total de colaboradores: ${sortedColaboradores.length}`]);
+      worksheet.mergeCells(`A${summaryRow.number}:N${summaryRow.number}`);
       const summaryCell = summaryRow.getCell(1);
       summaryCell.font = { bold: true, size: 10, color: { argb: "FF1A1A2E" } };
       summaryCell.alignment = { horizontal: "right", vertical: "middle" };
 
       // Function summary
       const funcaoStats: Record<string, number> = {};
-      colaboradores.forEach((c) => {
+      sortedColaboradores.forEach((c) => {
         funcaoStats[c.funcao] = (funcaoStats[c.funcao] || 0) + 1;
       });
       const sortedFuncaoStats = Object.entries(funcaoStats).sort((a, b) => b[1] - a[1]);
@@ -249,7 +254,7 @@ export function ExportEfetivoExcelButton({ colaboradores, filterFuncao }: Export
       // Footer
       worksheet.addRow([]);
       const footerRow = worksheet.addRow(["Sucena Empreendimentos | sucenaempreendimentos.com.br | contato@sucenaempreendimentos.com.br"]);
-      worksheet.mergeCells(`A${footerRow.number}:M${footerRow.number}`);
+      worksheet.mergeCells(`A${footerRow.number}:N${footerRow.number}`);
       const footerCell = footerRow.getCell(1);
       footerCell.font = { size: 8, italic: true, color: { argb: "FF888888" } };
       footerCell.alignment = { horizontal: "center", vertical: "middle" };

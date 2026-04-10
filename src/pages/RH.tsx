@@ -496,7 +496,7 @@ const RH = () => {
                   </TableRow>
                 </TableHeader>
                 <TableBody>
-                  {filteredColaboradores.map((colaborador) => (
+                  {filteredColaboradores.map((colaborador, index) => (
                     <>
                       <TableRow 
                         key={colaborador.id}
@@ -504,7 +504,7 @@ const RH = () => {
                         onClick={() => setExpandedRow(expandedRow === colaborador.id ? null : colaborador.id)}
                       >
                         <TableCell className="font-medium text-muted-foreground">
-                          {colaborador.id}
+                          {index + 1}
                         </TableCell>
                         <TableCell>
                           <div className="flex items-center gap-3">
