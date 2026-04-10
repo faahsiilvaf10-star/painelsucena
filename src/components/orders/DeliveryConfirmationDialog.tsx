@@ -187,7 +187,7 @@ export function DeliveryConfirmationDialog({
         const category = deriveCategory(item.productName);
         
         await createItem.mutateAsync({
-          name: item.productName,
+          name: item.productName.toUpperCase(),
           category,
           quantity: item.quantity,
           min_quantity: 0,
