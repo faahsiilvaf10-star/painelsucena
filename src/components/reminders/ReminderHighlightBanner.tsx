@@ -1,13 +1,15 @@
-import { format } from "date-fns";
+import { format, addDays } from "date-fns";
 import { ptBR } from "date-fns/locale";
-import { Bell, AlertCircle, Calendar, Users, User, Globe, Check, X, AlertTriangle, UserCircle } from "lucide-react";
+import { Bell, AlertCircle, Calendar, Users, User, Globe, Check, X, AlertTriangle, UserCircle, Clock } from "lucide-react";
 import { useState, useMemo, useEffect } from "react";
 import { Card, CardContent } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { ScrollArea, ScrollBar } from "@/components/ui/scroll-area";
 import { Alert, AlertDescription, AlertTitle } from "@/components/ui/alert";
-import { useActiveReminders, useAcknowledgeReminder, useDeleteReminder, Reminder } from "@/hooks/useReminders";
+import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover";
+import { Calendar as CalendarComponent } from "@/components/ui/calendar";
+import { useActiveReminders, useAcknowledgeReminder, useDeleteReminder, useSnoozeReminder, Reminder } from "@/hooks/useReminders";
 import { useAuth } from "@/hooks/useAuth";
 import { cn } from "@/lib/utils";
 import { Link } from "react-router-dom";
@@ -32,10 +34,12 @@ export const ReminderHighlightBanner = () => {
   const { data: activeReminders, isLoading } = useActiveReminders();
   const acknowledgeReminder = useAcknowledgeReminder();
   const deleteReminder = useDeleteReminder();
+  const snoozeReminder = useSnoozeReminder();
   const [dismissedIds, setDismissedIds] = useState<Set<string>>(new Set());
   const [hasPlayedSound, setHasPlayedSound] = useState(false);
   const [selectedReminder, setSelectedReminder] = useState<Reminder | null>(null);
   const [detailDialogOpen, setDetailDialogOpen] = useState(false);
+  const [snoozeOpenId, setSnoozeOpenId] = useState<string | null>(null);
 
   const visibleReminders = useMemo(() => {
     return activeReminders?.filter((r) => !dismissedIds.has(r.id)) || [];
@@ -105,6 +109,18 @@ export const ReminderHighlightBanner = () => {
     setSelectedReminder(reminder);
     setDetailDialogOpen(true);
     playSoundFile("/sounds/pop.mp3");
+  };
+
+  const handleSnooze = async (reminderId: string, date: Date) => {
+    try {
+      const snoozedUntil = format(date, "yyyy-MM-dd");
+      await snoozeReminder.mutateAsync({ reminderId, snoozedUntil });
+      setDismissedIds((prev) => new Set([...prev, reminderId]));
+      setSnoozeOpenId(null);
+      toast.success(`Lembrete adiado até ${format(date, "dd/MM/yyyy")}`);
+    } catch (error) {
+      toast.error("Erro ao adiar lembrete");
+    }
   };
 
   if (isLoading || visibleReminders.length === 0) {
@@ -190,7 +206,31 @@ export const ReminderHighlightBanner = () => {
                               </div>
                             </div>
                           </div>
-                          <div className="flex items-center gap-2">
+                          <div className="flex items-center gap-2 flex-shrink-0">
+                            <Popover open={snoozeOpenId === reminder.id} onOpenChange={(open) => setSnoozeOpenId(open ? reminder.id : null)}>
+                              <PopoverTrigger asChild>
+                                <Button
+                                  variant="outline"
+                                  size="sm"
+                                  className="h-8 gap-1 border-orange-500/50 text-orange-400 bg-orange-500/10 hover:bg-orange-500/20 hover:text-orange-300"
+                                  onClick={(e) => e.stopPropagation()}
+                                >
+                                  <Clock className="h-4 w-4" />
+                                  Adiar
+                                </Button>
+                              </PopoverTrigger>
+                              <PopoverContent className="w-auto p-0" align="end" onClick={(e) => e.stopPropagation()}>
+                                <CalendarComponent
+                                  mode="single"
+                                  selected={undefined}
+                                  onSelect={(date) => { if (date) handleSnooze(reminder.id, date); }}
+                                  disabled={(date) => date <= new Date()}
+                                  initialFocus
+                                  className={cn("p-3 pointer-events-auto")}
+                                  locale={ptBR}
+                                />
+                              </PopoverContent>
+                            </Popover>
                             <Button
                               variant="outline"
                               size="sm"
@@ -287,6 +327,30 @@ export const ReminderHighlightBanner = () => {
                     onClick={() => handleOpenDetail(reminder)}
                   >
                     <div className="absolute top-2 right-2 flex gap-1 z-10">
+                      <Popover open={snoozeOpenId === `card-${reminder.id}`} onOpenChange={(open) => setSnoozeOpenId(open ? `card-${reminder.id}` : null)}>
+                        <PopoverTrigger asChild>
+                          <Button
+                            variant="ghost"
+                            size="icon"
+                            className="h-6 w-6 rounded-full opacity-60 hover:opacity-100 hover:bg-orange-500/20 text-orange-400"
+                            onClick={(e) => e.stopPropagation()}
+                            title="Adiar lembrete"
+                          >
+                            <Clock className="h-3 w-3" />
+                          </Button>
+                        </PopoverTrigger>
+                        <PopoverContent className="w-auto p-0 z-50" align="end" onClick={(e) => e.stopPropagation()}>
+                          <CalendarComponent
+                            mode="single"
+                            selected={undefined}
+                            onSelect={(date) => { if (date) handleSnooze(reminder.id, date); }}
+                            disabled={(date) => date <= new Date()}
+                            initialFocus
+                            className={cn("p-3 pointer-events-auto")}
+                            locale={ptBR}
+                          />
+                        </PopoverContent>
+                      </Popover>
                       <Button
                         variant="ghost"
                         size="icon"

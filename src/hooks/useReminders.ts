@@ -109,6 +109,7 @@ export const useActiveReminders = () => {
       const todayStart = getBrazilNorthMidnight();
       const todayEnd = new Date(todayStart);
       todayEnd.setDate(todayEnd.getDate() + 1);
+      const todayDateStr = todayStart.toISOString().split("T")[0];
 
       // Fetch acknowledgements made today (used for recurring reminders)
       const { data: todayAcknowledgements } = await supabase
@@ -122,6 +123,17 @@ export const useActiveReminders = () => {
       const acknowledgedTodayReminderIds = new Set(
         (todayAcknowledgements || []).map((a) => a.reminder_id)
       );
+
+      // Fetch active snoozes for this user (snoozed_until > today)
+      const { data: snoozeData } = await supabase
+        .from("reminder_snoozes" as any)
+        .select("reminder_id, snoozed_until")
+        .eq("user_id", user.id);
+
+      const snoozedMap = new Map<string, string>();
+      (snoozeData || []).forEach((s: any) => {
+        snoozedMap.set(s.reminder_id, s.snoozed_until);
+      });
 
       // Fetch reminders with creator profile
       const { data, error } = await supabase
@@ -141,7 +153,6 @@ export const useActiveReminders = () => {
 
         if (fallbackError) throw fallbackError;
 
-        // Fetch profiles separately
         const creatorIds = [...new Set((fallbackData || []).map(r => r.created_by))];
         const { data: profiles } = await supabase
           .from("profiles")
@@ -155,7 +166,7 @@ export const useActiveReminders = () => {
           creator_name: profileMap.get(r.created_by) || "Desconhecido",
         })) as Reminder[];
 
-        return filterActiveReminders(reminders, user.id, acknowledgedTodayReminderIds);
+        return filterActiveReminders(reminders, user.id, acknowledgedTodayReminderIds, snoozedMap, todayDateStr);
       }
 
       const reminders = (data || []).map(r => ({
@@ -163,7 +174,7 @@ export const useActiveReminders = () => {
         creator_name: (r.profiles as any)?.full_name || "Desconhecido",
       })) as Reminder[];
       
-      return filterActiveReminders(reminders, user.id, acknowledgedTodayReminderIds);
+      return filterActiveReminders(reminders, user.id, acknowledgedTodayReminderIds, snoozedMap, todayDateStr);
     },
     enabled: !!user?.id,
   });
@@ -173,26 +184,31 @@ export const useActiveReminders = () => {
 const filterActiveReminders = (
   reminders: Reminder[],
   userId: string,
-  acknowledgedTodayReminderIds: Set<string>
+  acknowledgedTodayReminderIds: Set<string>,
+  snoozedMap: Map<string, string>,
+  todayDateStr: string
 ): Reminder[] => {
   // Get current day of week in Brazil North timezone (0=Sunday, 6=Saturday)
   const nowBrazil = getBrazilNorthMidnight();
   const currentDayOfWeek = nowBrazil.getDay();
   
-  // Filter reminders that should be shown based on alert_days_before or show_on_event_day
   return reminders.filter((reminder) => {
+    // Check if snoozed until a future date
+    const snoozedUntil = snoozedMap.get(reminder.id);
+    if (snoozedUntil && snoozedUntil > todayDateStr) {
+      return false; // Still snoozed
+    }
+
     // For recurring reminders, hide only if acknowledged TODAY via history
     const isRecurring = !!reminder.is_recurring && (reminder.recurring_days?.length ?? 0) > 0;
     if (isRecurring) {
       if (acknowledgedTodayReminderIds.has(reminder.id)) return false;
     } else {
-      // Non-recurring: permanent acknowledge via acknowledged_by UUID array
       const hasAcknowledged = reminder.acknowledged_by?.includes(userId);
       if (hasAcknowledged) return false;
     }
 
     // Check if user should see this reminder based on mention_type
-    // Creator always sees their own reminders
     const isCreator = reminder.created_by === userId;
     const isRelevant =
       isCreator ||
@@ -205,14 +221,12 @@ const filterActiveReminders = (
 
     // Handle recurring reminders (by day of week)
     if (!!reminder.is_recurring && (reminder.recurring_days?.length ?? 0) > 0) {
-      // Show if today is one of the recurring days
       return (reminder.recurring_days || []).includes(currentDayOfWeek);
     }
 
     // Handle regular (non-recurring) reminders
     const daysUntilEvent = getDaysUntilEventBrazilNorth(reminder.event_date);
 
-    // Show if within alert_days_before range OR if it's the event day
     if (reminder.alert_days_before > 0 && daysUntilEvent <= reminder.alert_days_before && daysUntilEvent >= 0) {
       return true;
     }
@@ -407,5 +421,28 @@ export const useReminderHistory = () => {
       return data as ReminderHistory[];
     },
     enabled: !!user?.id,
+  });
+};
+
+export const useSnoozeReminder = () => {
+  const queryClient = useQueryClient();
+  const { user } = useAuth();
+
+  return useMutation({
+    mutationFn: async ({ reminderId, snoozedUntil }: { reminderId: string; snoozedUntil: string }) => {
+      if (!user?.id) throw new Error("User not authenticated");
+
+      const { error } = await supabase
+        .from("reminder_snoozes" as any)
+        .upsert(
+          { reminder_id: reminderId, user_id: user.id, snoozed_until: snoozedUntil } as any,
+          { onConflict: "reminder_id,user_id" }
+        );
+
+      if (error) throw error;
+    },
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ["active-reminders"] });
+    },
   });
 };
