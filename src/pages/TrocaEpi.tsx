@@ -165,13 +165,13 @@ function buildPdfHtml(exchange: EpiExchange, logoBase64: string): string {
 
       <div style="font-weight:bold;font-size:13px;background:#e5e7eb;padding:4px 8px;margin:12px 0 8px;">UNIFORME</div>
       <div style="display:flex;align-items:center;gap:8px;margin-bottom:6px;font-size:11px;">
-        <span>(${exchange.uniforme_blusa_tamanho ? 'X' : '&nbsp;&nbsp;'}) BLUSA OPERACIONAL</span>
-        ${TAMANHOS.map(t => `<span>(${exchange.uniforme_blusa_tamanho === t ? 'X' : '&nbsp;&nbsp;'}) ${t}</span>`).join(' ')}
+        <span>(${exchange.uniforme_blusa_tamanho ? 'X' : '&nbsp;&nbsp;'}) CAMISA OPERACIONAL</span>
+        <span style="margin-left:4px;">${exchange.uniforme_blusa_tamanho || '—'}</span>
         <span>QTD: ${exchange.uniforme_blusa_quantidade || 0}</span>
       </div>
       <div style="display:flex;align-items:center;gap:8px;margin-bottom:6px;font-size:11px;">
         <span>(${exchange.uniforme_calca_tamanho ? 'X' : '&nbsp;&nbsp;'}) CALÇA OPERACIONAL</span>
-        ${TAMANHOS.map(t => `<span>(${exchange.uniforme_calca_tamanho === t ? 'X' : '&nbsp;&nbsp;'}) ${t}</span>`).join(' ')}
+        <span style="margin-left:4px;">${exchange.uniforme_calca_tamanho || '—'}</span>
         <span>QTD: ${exchange.uniforme_calca_quantidade || 0}</span>
       </div>
 
@@ -306,6 +306,14 @@ export default function TrocaEpi() {
       // Exclude items matching EPI keywords
       return !EPI_KEYWORDS.some(kw => norm.includes(kw));
     }).filter(item => item.quantity > 0);
+  }, [inventoryItems]);
+
+  const camisaOptions = useMemo(() => {
+    return inventoryItems.filter(inv => normalizeText(inv.name).includes("camisa") && inv.quantity > 0);
+  }, [inventoryItems]);
+
+  const calcaOptions = useMemo(() => {
+    return inventoryItems.filter(inv => normalizeText(inv.name).includes("calca") && inv.quantity > 0);
   }, [inventoryItems]);
 
   const [activeTab, setActiveTab] = useState("epi");
@@ -471,7 +479,9 @@ export default function TrocaEpi() {
     }
 
     if (exchange.uniforme_blusa_quantidade > 0) {
-      const blusaMatch = findInventoryMatch(currentInventory, "Blusa Operacional") || findInventoryMatch(currentInventory, "Blusa");
+      const blusaMatch = exchange.uniforme_blusa_tamanho
+        ? findInventoryMatch(currentInventory, exchange.uniforme_blusa_tamanho)
+        : findInventoryMatch(currentInventory, "Camisa Operacional") || findInventoryMatch(currentInventory, "Camisa");
       if (blusaMatch) {
         const qty = exchange.uniforme_blusa_quantidade;
         const newQty = blusaMatch.quantity + qty;
@@ -480,17 +490,19 @@ export default function TrocaEpi() {
           await supabase.from("inventory_movements").insert({
             item_id: blusaMatch.id, movement_type: "entrada", quantity: qty,
             previous_quantity: blusaMatch.quantity, new_quantity: newQty,
-            reason: `Estorno Troca de EPI - ${exchange.funcionario_nome}`,
+            reason: `Estorno Requisição - ${exchange.funcionario_nome}`,
             moved_by: user!.id, moved_by_name: profile?.full_name || "Usuário",
             destination_type: "funcionario", destination_name: exchange.funcionario_nome,
           });
           blusaMatch.quantity = newQty;
-          restoredItems.push(`Blusa (${qty})`);
+          restoredItems.push(`Camisa (${qty})`);
         }
       }
     }
     if (exchange.uniforme_calca_quantidade > 0) {
-      const calcaMatch = findInventoryMatch(currentInventory, "Calça Operacional") || findInventoryMatch(currentInventory, "Calça");
+      const calcaMatch = exchange.uniforme_calca_tamanho
+        ? findInventoryMatch(currentInventory, exchange.uniforme_calca_tamanho)
+        : findInventoryMatch(currentInventory, "Calça Operacional") || findInventoryMatch(currentInventory, "Calça");
       if (calcaMatch) {
         const qty = exchange.uniforme_calca_quantidade;
         const newQty = calcaMatch.quantity + qty;
@@ -499,7 +511,7 @@ export default function TrocaEpi() {
           await supabase.from("inventory_movements").insert({
             item_id: calcaMatch.id, movement_type: "entrada", quantity: qty,
             previous_quantity: calcaMatch.quantity, new_quantity: newQty,
-            reason: `Estorno Troca de EPI - ${exchange.funcionario_nome}`,
+            reason: `Estorno Requisição - ${exchange.funcionario_nome}`,
             moved_by: user!.id, moved_by_name: profile?.full_name || "Usuário",
             destination_type: "funcionario", destination_name: exchange.funcionario_nome,
           });
@@ -721,29 +733,33 @@ export default function TrocaEpi() {
       }
 
       if (currentBlusaQtd > 0) {
-        const blusaMatch = findInventoryMatch(currentInventory, "Blusa Operacional") || findInventoryMatch(currentInventory, "Blusa");
+        const blusaMatch = blusaTamanho
+          ? findInventoryMatch(currentInventory, blusaTamanho)
+          : findInventoryMatch(currentInventory, "Camisa Operacional") || findInventoryMatch(currentInventory, "Camisa");
         if (blusaMatch && blusaMatch.quantity >= currentBlusaQtd) {
           const newQty = blusaMatch.quantity - currentBlusaQtd;
           await supabase.from("inventory_items").update({ quantity: newQty }).eq("id", blusaMatch.id);
           await supabase.from("inventory_movements").insert({
             item_id: blusaMatch.id, movement_type: "saida", quantity: currentBlusaQtd,
             previous_quantity: blusaMatch.quantity, new_quantity: newQty,
-            reason: `Troca de EPI - ${currentFuncionarioNome}`,
+            reason: `Requisição - ${currentFuncionarioNome}`,
             moved_by: user!.id, moved_by_name: profile?.full_name || "Usuário",
             destination_type: "funcionario", destination_name: currentFuncionarioNome,
           });
-          deductedItems.push(`Blusa Operacional (${currentBlusaQtd})`);
+          deductedItems.push(`Camisa Operacional (${currentBlusaQtd})`);
         }
       }
       if (currentCalcaQtd > 0) {
-        const calcaMatch = findInventoryMatch(currentInventory, "Calça Operacional") || findInventoryMatch(currentInventory, "Calça");
+        const calcaMatch = calcaTamanho
+          ? findInventoryMatch(currentInventory, calcaTamanho)
+          : findInventoryMatch(currentInventory, "Calça Operacional") || findInventoryMatch(currentInventory, "Calça");
         if (calcaMatch && calcaMatch.quantity >= currentCalcaQtd) {
           const newQty = calcaMatch.quantity - currentCalcaQtd;
           await supabase.from("inventory_items").update({ quantity: newQty }).eq("id", calcaMatch.id);
           await supabase.from("inventory_movements").insert({
             item_id: calcaMatch.id, movement_type: "saida", quantity: currentCalcaQtd,
             previous_quantity: calcaMatch.quantity, new_quantity: newQty,
-            reason: `Troca de EPI - ${currentFuncionarioNome}`,
+            reason: `Requisição - ${currentFuncionarioNome}`,
             moved_by: user!.id, moved_by_name: profile?.full_name || "Usuário",
             destination_type: "funcionario", destination_name: currentFuncionarioNome,
           });
@@ -1278,10 +1294,15 @@ export default function TrocaEpi() {
               <h3 className="font-semibold text-base mb-3">Uniforme</h3>
               <div className="space-y-3">
                 <div className="flex flex-wrap items-center gap-3">
-                  <span className="text-sm font-medium">Blusa Operacional:</span>
+                  <span className="text-sm font-medium">Camisa Operacional:</span>
                   <Select value={blusaTamanho} onValueChange={setBlusaTamanho}>
-                    <SelectTrigger className="w-24 h-8"><SelectValue placeholder="Tam." /></SelectTrigger>
-                    <SelectContent>{TAMANHOS.map(t => <SelectItem key={t} value={t}>{t}</SelectItem>)}</SelectContent>
+                    <SelectTrigger className="w-48 h-8"><SelectValue placeholder="Selecione a camisa..." /></SelectTrigger>
+                    <SelectContent>
+                      {camisaOptions.map(inv => (
+                        <SelectItem key={inv.id} value={inv.name}>{inv.name} ({inv.quantity} {inv.unit})</SelectItem>
+                      ))}
+                      {camisaOptions.length === 0 && <div className="px-2 py-1 text-xs text-muted-foreground">Nenhuma camisa no estoque</div>}
+                    </SelectContent>
                   </Select>
                   <div className="flex items-center gap-1">
                     <Label className="text-xs">Qtd:</Label>
@@ -1291,8 +1312,13 @@ export default function TrocaEpi() {
                 <div className="flex flex-wrap items-center gap-3">
                   <span className="text-sm font-medium">Calça Operacional:</span>
                   <Select value={calcaTamanho} onValueChange={setCalcaTamanho}>
-                    <SelectTrigger className="w-24 h-8"><SelectValue placeholder="Tam." /></SelectTrigger>
-                    <SelectContent>{TAMANHOS.map(t => <SelectItem key={t} value={t}>{t}</SelectItem>)}</SelectContent>
+                    <SelectTrigger className="w-48 h-8"><SelectValue placeholder="Selecione a calça..." /></SelectTrigger>
+                    <SelectContent>
+                      {calcaOptions.map(inv => (
+                        <SelectItem key={inv.id} value={inv.name}>{inv.name} ({inv.quantity} {inv.unit})</SelectItem>
+                      ))}
+                      {calcaOptions.length === 0 && <div className="px-2 py-1 text-xs text-muted-foreground">Nenhuma calça no estoque</div>}
+                    </SelectContent>
                   </Select>
                   <div className="flex items-center gap-1">
                     <Label className="text-xs">Qtd:</Label>
@@ -1432,7 +1458,7 @@ export default function TrocaEpi() {
               {(viewExchange.uniforme_blusa_tamanho || viewExchange.uniforme_calca_tamanho) && (
                 <div>
                   <strong>Uniforme:</strong>
-                  {viewExchange.uniforme_blusa_tamanho && <p>Blusa: {viewExchange.uniforme_blusa_tamanho} (x{viewExchange.uniforme_blusa_quantidade})</p>}
+                  {viewExchange.uniforme_blusa_tamanho && <p>Camisa: {viewExchange.uniforme_blusa_tamanho} (x{viewExchange.uniforme_blusa_quantidade})</p>}
                   {viewExchange.uniforme_calca_tamanho && <p>Calça: {viewExchange.uniforme_calca_tamanho} (x{viewExchange.uniforme_calca_quantidade})</p>}
                 </div>
               )}
