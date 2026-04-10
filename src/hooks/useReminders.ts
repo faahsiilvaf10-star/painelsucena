@@ -423,3 +423,26 @@ export const useReminderHistory = () => {
     enabled: !!user?.id,
   });
 };
+
+export const useSnoozeReminder = () => {
+  const queryClient = useQueryClient();
+  const { user } = useAuth();
+
+  return useMutation({
+    mutationFn: async ({ reminderId, snoozedUntil }: { reminderId: string; snoozedUntil: string }) => {
+      if (!user?.id) throw new Error("User not authenticated");
+
+      const { error } = await supabase
+        .from("reminder_snoozes" as any)
+        .upsert(
+          { reminder_id: reminderId, user_id: user.id, snoozed_until: snoozedUntil } as any,
+          { onConflict: "reminder_id,user_id" }
+        );
+
+      if (error) throw error;
+    },
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ["active-reminders"] });
+    },
+  });
+};
