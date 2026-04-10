@@ -504,13 +504,9 @@ export default function Atividades() {
       // If editing an existing report, restore old plantio values to stock first
       if (existingReport) {
         await restoreStockFromReport(existingReport as JardinagemReport);
-        // Invalidate stock data so we get fresh values
-        await queryClient.invalidateQueries({ queryKey: ["mudas-para-plantar"] });
-        // Small delay to ensure fresh data is available
-        await new Promise(resolve => setTimeout(resolve, 300));
       }
 
-      // Re-fetch fresh stock data after potential restore
+      // Fetch fresh stock data directly from DB (after potential restore)
       const { data: freshEstoque } = await supabase
         .from("mudas_para_plantar")
         .select("*")
