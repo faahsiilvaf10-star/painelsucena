@@ -327,6 +327,30 @@ export const ReminderHighlightBanner = () => {
                     onClick={() => handleOpenDetail(reminder)}
                   >
                     <div className="absolute top-2 right-2 flex gap-1 z-10">
+                      <Popover open={snoozeOpenId === `card-${reminder.id}`} onOpenChange={(open) => setSnoozeOpenId(open ? `card-${reminder.id}` : null)}>
+                        <PopoverTrigger asChild>
+                          <Button
+                            variant="ghost"
+                            size="icon"
+                            className="h-6 w-6 rounded-full opacity-60 hover:opacity-100 hover:bg-orange-500/20 text-orange-400"
+                            onClick={(e) => e.stopPropagation()}
+                            title="Adiar lembrete"
+                          >
+                            <Clock className="h-3 w-3" />
+                          </Button>
+                        </PopoverTrigger>
+                        <PopoverContent className="w-auto p-0 z-50" align="end" onClick={(e) => e.stopPropagation()}>
+                          <CalendarComponent
+                            mode="single"
+                            selected={undefined}
+                            onSelect={(date) => { if (date) handleSnooze(reminder.id, date); }}
+                            disabled={(date) => date <= new Date()}
+                            initialFocus
+                            className={cn("p-3 pointer-events-auto")}
+                            locale={ptBR}
+                          />
+                        </PopoverContent>
+                      </Popover>
                       <Button
                         variant="ghost"
                         size="icon"
