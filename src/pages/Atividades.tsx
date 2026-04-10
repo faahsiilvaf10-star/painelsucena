@@ -1,4 +1,5 @@
 import { useState, useEffect, useMemo } from "react";
+import { supabase } from "@/integrations/supabase/client";
 import * as E from "@/lib/whatsappEmojis";
 import { copyAndShareWhatsApp, copyToClipboard } from "@/lib/copyAndShare";
 import { format, parseISO } from "date-fns";
@@ -499,10 +500,25 @@ export default function Atividades() {
         extra_entries: Object.keys(extraEntries).length > 0 ? extraEntries : null,
       });
       
+      // If editing an existing report, restore old plantio values to stock first
+      if (existingReport) {
+        await restoreStockFromReport(existingReport as JardinagemReport);
+      }
+
+      // Fetch fresh stock data directly from DB (after potential restore)
+      const { data: freshEstoque } = await supabase
+        .from("mudas_para_plantar")
+        .select("*")
+        .order("created_at", { ascending: false });
+
       // Build a mutable copy of stock quantities to track cumulative deductions
       const mutableStock = new Map<string, { id: string; quantidade: number }[]>();
-      for (const [key, val] of estoqueByEspecie.entries()) {
-        mutableStock.set(key, val.items.map(item => ({ ...item })));
+      if (freshEstoque) {
+        for (const item of freshEstoque) {
+          const key = item.especie.trim().toUpperCase();
+          if (!mutableStock.has(key)) mutableStock.set(key, []);
+          mutableStock.get(key)!.push({ id: item.id, quantidade: item.quantidade });
+        }
       }
 
       const deductFromStock = async (especie: string, qtd: number) => {
