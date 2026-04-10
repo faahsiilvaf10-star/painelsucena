@@ -184,26 +184,31 @@ export const useActiveReminders = () => {
 const filterActiveReminders = (
   reminders: Reminder[],
   userId: string,
-  acknowledgedTodayReminderIds: Set<string>
+  acknowledgedTodayReminderIds: Set<string>,
+  snoozedMap: Map<string, string>,
+  todayDateStr: string
 ): Reminder[] => {
   // Get current day of week in Brazil North timezone (0=Sunday, 6=Saturday)
   const nowBrazil = getBrazilNorthMidnight();
   const currentDayOfWeek = nowBrazil.getDay();
   
-  // Filter reminders that should be shown based on alert_days_before or show_on_event_day
   return reminders.filter((reminder) => {
+    // Check if snoozed until a future date
+    const snoozedUntil = snoozedMap.get(reminder.id);
+    if (snoozedUntil && snoozedUntil > todayDateStr) {
+      return false; // Still snoozed
+    }
+
     // For recurring reminders, hide only if acknowledged TODAY via history
     const isRecurring = !!reminder.is_recurring && (reminder.recurring_days?.length ?? 0) > 0;
     if (isRecurring) {
       if (acknowledgedTodayReminderIds.has(reminder.id)) return false;
     } else {
-      // Non-recurring: permanent acknowledge via acknowledged_by UUID array
       const hasAcknowledged = reminder.acknowledged_by?.includes(userId);
       if (hasAcknowledged) return false;
     }
 
     // Check if user should see this reminder based on mention_type
-    // Creator always sees their own reminders
     const isCreator = reminder.created_by === userId;
     const isRelevant =
       isCreator ||
@@ -216,14 +221,12 @@ const filterActiveReminders = (
 
     // Handle recurring reminders (by day of week)
     if (!!reminder.is_recurring && (reminder.recurring_days?.length ?? 0) > 0) {
-      // Show if today is one of the recurring days
       return (reminder.recurring_days || []).includes(currentDayOfWeek);
     }
 
     // Handle regular (non-recurring) reminders
     const daysUntilEvent = getDaysUntilEventBrazilNorth(reminder.event_date);
 
-    // Show if within alert_days_before range OR if it's the event day
     if (reminder.alert_days_before > 0 && daysUntilEvent <= reminder.alert_days_before && daysUntilEvent >= 0) {
       return true;
     }
