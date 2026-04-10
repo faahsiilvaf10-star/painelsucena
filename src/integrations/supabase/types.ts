@@ -2808,6 +2808,38 @@ export type Database = {
         }
         Relationships: []
       }
+      reminder_snoozes: {
+        Row: {
+          created_at: string
+          id: string
+          reminder_id: string
+          snoozed_until: string
+          user_id: string
+        }
+        Insert: {
+          created_at?: string
+          id?: string
+          reminder_id: string
+          snoozed_until: string
+          user_id: string
+        }
+        Update: {
+          created_at?: string
+          id?: string
+          reminder_id?: string
+          snoozed_until?: string
+          user_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "reminder_snoozes_reminder_id_fkey"
+            columns: ["reminder_id"]
+            isOneToOne: false
+            referencedRelation: "reminders"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       reminders: {
         Row: {
           acknowledged_by: string[] | null
