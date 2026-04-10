@@ -1,14 +1,20 @@
-import { useEffect, useRef } from "react";
+import { createElement, useEffect, useRef } from "react";
 import { supabase } from "@/integrations/supabase/client";
 import { useAuth } from "./useAuth";
 import { toast } from "sonner";
 import { playSoundFile } from "@/lib/sounds";
 import instaCenaLogo from "@/assets/instacena-logo.png";
 
+const getInstaCenaToastIcon = () =>
+  createElement("img", {
+    src: instaCenaLogo,
+    alt: "InstaCena",
+    className: "h-6 w-6 rounded-full object-cover",
+  });
+
 const navigateToPost = (postId: string) => {
   const path = `/instacena?highlight=${postId}`;
   if (window.location.pathname === "/instacena") {
-    // Already on the page, scroll to the post
     const el = document.getElementById(`post-${postId}`);
     if (el) {
       el.scrollIntoView({ behavior: "smooth", block: "center" });
@@ -28,7 +34,7 @@ const showInstaCenaToast = (title: string, description: string, postId: string) 
   toast(title, {
     description,
     duration: 8000,
-    icon: <img src={instaCenaLogo} alt="InstaCena" className="h-6 w-6 rounded-full object-cover" />,
+    icon: getInstaCenaToastIcon(),
     action: {
       label: "Ver",
       onClick: () => navigateToPost(postId),
@@ -36,10 +42,6 @@ const showInstaCenaToast = (title: string, description: string, postId: string) 
   });
 };
 
-/**
- * Global hook that listens for new InstaCena posts, comments & reactions in realtime
- * and shows a toast popup when someone else interacts.
- */
 export const useInstaCenaNotifications = () => {
   const { user } = useAuth();
   const initializedRef = useRef(false);
@@ -51,7 +53,6 @@ export const useInstaCenaNotifications = () => {
       initializedRef.current = true;
     }
 
-    // Listen for new posts
     const postsChannel = supabase
       .channel("instacena-toast-posts")
       .on(
@@ -72,7 +73,7 @@ export const useInstaCenaNotifications = () => {
 
           const truncatedContent = newPost.content
             ? newPost.content.length > 80
-              ? newPost.content.substring(0, 80) + "..."
+              ? `${newPost.content.substring(0, 80)}...`
               : newPost.content
             : "Nova publicação com foto";
 
@@ -81,13 +82,12 @@ export const useInstaCenaNotifications = () => {
           showInstaCenaToast(
             `📢 ${newPost.user_name}`,
             `${truncatedContent}${hasImages ? " 📸" : ""}`,
-            newPost.id
+            newPost.id,
           );
-        }
+        },
       )
       .subscribe();
 
-    // Listen for new comments on user's posts
     const commentsChannel = supabase
       .channel("instacena-toast-comments")
       .on(
@@ -104,7 +104,6 @@ export const useInstaCenaNotifications = () => {
 
           if (comment.user_id === user.id) return;
 
-          // Check if the post belongs to the current user
           const { data: post } = await supabase
             .from("instacena_posts")
             .select("user_id")
@@ -114,19 +113,18 @@ export const useInstaCenaNotifications = () => {
           if (!post || post.user_id !== user.id) return;
 
           const truncated = comment.content.length > 60
-            ? comment.content.substring(0, 60) + "..."
+            ? `${comment.content.substring(0, 60)}...`
             : comment.content;
 
           showInstaCenaToast(
             `💬 ${comment.user_name} comentou`,
             truncated,
-            comment.post_id
+            comment.post_id,
           );
-        }
+        },
       )
       .subscribe();
 
-    // Listen for new reactions on user's posts
     const reactionsChannel = supabase
       .channel("instacena-toast-reactions")
       .on(
@@ -152,20 +150,24 @@ export const useInstaCenaNotifications = () => {
           if (!post || post.user_id !== user.id) return;
 
           const emojiMap: Record<string, string> = {
-            like: "👍", love: "❤️", haha: "😂", wow: "😮", sad: "😢", angry: "😡",
+            like: "👍",
+            love: "❤️",
+            haha: "😂",
+            wow: "😮",
+            sad: "😢",
+            angry: "😡",
           };
           const emoji = emojiMap[reaction.reaction_type] || "👍";
 
           showInstaCenaToast(
             `${emoji} ${reaction.user_name} reagiu`,
             "Reagiu à sua publicação",
-            reaction.post_id
+            reaction.post_id,
           );
-        }
+        },
       )
       .subscribe();
 
-    // Listen for DDS event photos (posted as InstaCena system posts with DDS content)
     const ddsChannel = supabase
       .channel("instacena-toast-dds")
       .on(
@@ -181,7 +183,6 @@ export const useInstaCenaNotifications = () => {
             event_photo_url: string | null;
           };
 
-          // Only trigger when event_photo_url is newly set
           if (!updated.event_photo_url || old.event_photo_url === updated.event_photo_url) return;
 
           playSoundFile("/sounds/instacena-post.mp3");
@@ -189,7 +190,7 @@ export const useInstaCenaNotifications = () => {
           toast("📋 Foto do DDS postada!", {
             description: `Tema: ${updated.theme}`,
             duration: 8000,
-            icon: <img src={instaCenaLogo} alt="InstaCena" className="h-6 w-6 rounded-full object-cover" />,
+            icon: getInstaCenaToastIcon(),
             action: {
               label: "Ver no InstaCena",
               onClick: () => {
@@ -197,7 +198,7 @@ export const useInstaCenaNotifications = () => {
               },
             },
           });
-        }
+        },
       )
       .subscribe();
 
