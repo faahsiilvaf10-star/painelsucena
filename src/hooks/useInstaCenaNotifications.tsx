@@ -28,7 +28,7 @@ const showInstaCenaToast = (title: string, description: string, postId: string) 
   toast(title, {
     description,
     duration: 6000,
-    icon: <img src={INSTACENA_LOGO} alt="InstaCena" className="h-6 w-6 rounded-full object-cover" />,
+    icon: <img src={instaCenaLogo} alt="InstaCena" className="h-6 w-6 rounded-full object-cover" />,
     action: {
       label: "Ver",
       onClick: () => navigateToPost(postId),
@@ -189,7 +189,7 @@ export const useInstaCenaNotifications = () => {
           toast("📋 Foto do DDS postada!", {
             description: `Tema: ${updated.theme}`,
             duration: 6000,
-            icon: <img src={INSTACENA_LOGO} alt="InstaCena" className="h-6 w-6 rounded-full object-cover" />,
+            icon: <img src={instaCenaLogo} alt="InstaCena" className="h-6 w-6 rounded-full object-cover" />,
             action: {
               label: "Ver no InstaCena",
               onClick: () => {
