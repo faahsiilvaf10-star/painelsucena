@@ -499,10 +499,29 @@ export default function Atividades() {
         extra_entries: Object.keys(extraEntries).length > 0 ? extraEntries : null,
       });
       
+      // If editing an existing report, restore old plantio values to stock first
+      if (existingReport) {
+        await restoreStockFromReport(existingReport as JardinagemReport);
+        // Invalidate stock data so we get fresh values
+        await queryClient.invalidateQueries({ queryKey: ["mudas-para-plantar"] });
+        // Small delay to ensure fresh data is available
+        await new Promise(resolve => setTimeout(resolve, 300));
+      }
+
+      // Re-fetch fresh stock data after potential restore
+      const { data: freshEstoque } = await supabase
+        .from("mudas_para_plantar")
+        .select("*")
+        .order("created_at", { ascending: false });
+
       // Build a mutable copy of stock quantities to track cumulative deductions
       const mutableStock = new Map<string, { id: string; quantidade: number }[]>();
-      for (const [key, val] of estoqueByEspecie.entries()) {
-        mutableStock.set(key, val.items.map(item => ({ ...item })));
+      if (freshEstoque) {
+        for (const item of freshEstoque) {
+          const key = item.especie.trim().toUpperCase();
+          if (!mutableStock.has(key)) mutableStock.set(key, []);
+          mutableStock.get(key)!.push({ id: item.id, quantidade: item.quantidade });
+        }
       }
 
       const deductFromStock = async (especie: string, qtd: number) => {
