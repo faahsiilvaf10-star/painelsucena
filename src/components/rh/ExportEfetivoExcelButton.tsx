@@ -202,7 +202,7 @@ export function ExportEfetivoExcelButton({ colaboradores, filterFuncao }: Export
 
       // Function summary
       const funcaoStats: Record<string, number> = {};
-      colaboradores.forEach((c) => {
+      sortedColaboradores.forEach((c) => {
         funcaoStats[c.funcao] = (funcaoStats[c.funcao] || 0) + 1;
       });
       const sortedFuncaoStats = Object.entries(funcaoStats).sort((a, b) => b[1] - a[1]);
