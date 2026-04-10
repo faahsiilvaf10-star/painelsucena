@@ -165,13 +165,13 @@ function buildPdfHtml(exchange: EpiExchange, logoBase64: string): string {
 
       <div style="font-weight:bold;font-size:13px;background:#e5e7eb;padding:4px 8px;margin:12px 0 8px;">UNIFORME</div>
       <div style="display:flex;align-items:center;gap:8px;margin-bottom:6px;font-size:11px;">
-        <span>(${exchange.uniforme_blusa_tamanho ? 'X' : '&nbsp;&nbsp;'}) BLUSA OPERACIONAL</span>
-        ${TAMANHOS.map(t => `<span>(${exchange.uniforme_blusa_tamanho === t ? 'X' : '&nbsp;&nbsp;'}) ${t}</span>`).join(' ')}
+        <span>(${exchange.uniforme_blusa_tamanho ? 'X' : '&nbsp;&nbsp;'}) CAMISA OPERACIONAL</span>
+        <span style="margin-left:4px;">${exchange.uniforme_blusa_tamanho || '—'}</span>
         <span>QTD: ${exchange.uniforme_blusa_quantidade || 0}</span>
       </div>
       <div style="display:flex;align-items:center;gap:8px;margin-bottom:6px;font-size:11px;">
         <span>(${exchange.uniforme_calca_tamanho ? 'X' : '&nbsp;&nbsp;'}) CALÇA OPERACIONAL</span>
-        ${TAMANHOS.map(t => `<span>(${exchange.uniforme_calca_tamanho === t ? 'X' : '&nbsp;&nbsp;'}) ${t}</span>`).join(' ')}
+        <span style="margin-left:4px;">${exchange.uniforme_calca_tamanho || '—'}</span>
         <span>QTD: ${exchange.uniforme_calca_quantidade || 0}</span>
       </div>
 
@@ -471,7 +471,9 @@ export default function TrocaEpi() {
     }
 
     if (exchange.uniforme_blusa_quantidade > 0) {
-      const blusaMatch = findInventoryMatch(currentInventory, "Blusa Operacional") || findInventoryMatch(currentInventory, "Blusa");
+      const blusaMatch = exchange.uniforme_blusa_tamanho
+        ? findInventoryMatch(currentInventory, exchange.uniforme_blusa_tamanho)
+        : findInventoryMatch(currentInventory, "Camisa Operacional") || findInventoryMatch(currentInventory, "Camisa");
       if (blusaMatch) {
         const qty = exchange.uniforme_blusa_quantidade;
         const newQty = blusaMatch.quantity + qty;
@@ -480,12 +482,12 @@ export default function TrocaEpi() {
           await supabase.from("inventory_movements").insert({
             item_id: blusaMatch.id, movement_type: "entrada", quantity: qty,
             previous_quantity: blusaMatch.quantity, new_quantity: newQty,
-            reason: `Estorno Troca de EPI - ${exchange.funcionario_nome}`,
+            reason: `Estorno Requisição - ${exchange.funcionario_nome}`,
             moved_by: user!.id, moved_by_name: profile?.full_name || "Usuário",
             destination_type: "funcionario", destination_name: exchange.funcionario_nome,
           });
           blusaMatch.quantity = newQty;
-          restoredItems.push(`Blusa (${qty})`);
+          restoredItems.push(`Camisa (${qty})`);
         }
       }
     }
@@ -721,18 +723,20 @@ export default function TrocaEpi() {
       }
 
       if (currentBlusaQtd > 0) {
-        const blusaMatch = findInventoryMatch(currentInventory, "Blusa Operacional") || findInventoryMatch(currentInventory, "Blusa");
+        const blusaMatch = blusaTamanho
+          ? findInventoryMatch(currentInventory, blusaTamanho)
+          : findInventoryMatch(currentInventory, "Camisa Operacional") || findInventoryMatch(currentInventory, "Camisa");
         if (blusaMatch && blusaMatch.quantity >= currentBlusaQtd) {
           const newQty = blusaMatch.quantity - currentBlusaQtd;
           await supabase.from("inventory_items").update({ quantity: newQty }).eq("id", blusaMatch.id);
           await supabase.from("inventory_movements").insert({
             item_id: blusaMatch.id, movement_type: "saida", quantity: currentBlusaQtd,
             previous_quantity: blusaMatch.quantity, new_quantity: newQty,
-            reason: `Troca de EPI - ${currentFuncionarioNome}`,
+            reason: `Requisição - ${currentFuncionarioNome}`,
             moved_by: user!.id, moved_by_name: profile?.full_name || "Usuário",
             destination_type: "funcionario", destination_name: currentFuncionarioNome,
           });
-          deductedItems.push(`Blusa Operacional (${currentBlusaQtd})`);
+          deductedItems.push(`Camisa Operacional (${currentBlusaQtd})`);
         }
       }
       if (currentCalcaQtd > 0) {
