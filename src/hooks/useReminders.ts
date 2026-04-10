@@ -109,6 +109,7 @@ export const useActiveReminders = () => {
       const todayStart = getBrazilNorthMidnight();
       const todayEnd = new Date(todayStart);
       todayEnd.setDate(todayEnd.getDate() + 1);
+      const todayDateStr = todayStart.toISOString().split("T")[0];
 
       // Fetch acknowledgements made today (used for recurring reminders)
       const { data: todayAcknowledgements } = await supabase
@@ -122,6 +123,17 @@ export const useActiveReminders = () => {
       const acknowledgedTodayReminderIds = new Set(
         (todayAcknowledgements || []).map((a) => a.reminder_id)
       );
+
+      // Fetch active snoozes for this user (snoozed_until > today)
+      const { data: snoozeData } = await supabase
+        .from("reminder_snoozes" as any)
+        .select("reminder_id, snoozed_until")
+        .eq("user_id", user.id);
+
+      const snoozedMap = new Map<string, string>();
+      (snoozeData || []).forEach((s: any) => {
+        snoozedMap.set(s.reminder_id, s.snoozed_until);
+      });
 
       // Fetch reminders with creator profile
       const { data, error } = await supabase
@@ -141,7 +153,6 @@ export const useActiveReminders = () => {
 
         if (fallbackError) throw fallbackError;
 
-        // Fetch profiles separately
         const creatorIds = [...new Set((fallbackData || []).map(r => r.created_by))];
         const { data: profiles } = await supabase
           .from("profiles")
@@ -155,7 +166,7 @@ export const useActiveReminders = () => {
           creator_name: profileMap.get(r.created_by) || "Desconhecido",
         })) as Reminder[];
 
-        return filterActiveReminders(reminders, user.id, acknowledgedTodayReminderIds);
+        return filterActiveReminders(reminders, user.id, acknowledgedTodayReminderIds, snoozedMap, todayDateStr);
       }
 
       const reminders = (data || []).map(r => ({
@@ -163,7 +174,7 @@ export const useActiveReminders = () => {
         creator_name: (r.profiles as any)?.full_name || "Desconhecido",
       })) as Reminder[];
       
-      return filterActiveReminders(reminders, user.id, acknowledgedTodayReminderIds);
+      return filterActiveReminders(reminders, user.id, acknowledgedTodayReminderIds, snoozedMap, todayDateStr);
     },
     enabled: !!user?.id,
   });
