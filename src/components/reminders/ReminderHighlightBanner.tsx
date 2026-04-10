@@ -34,10 +34,12 @@ export const ReminderHighlightBanner = () => {
   const { data: activeReminders, isLoading } = useActiveReminders();
   const acknowledgeReminder = useAcknowledgeReminder();
   const deleteReminder = useDeleteReminder();
+  const snoozeReminder = useSnoozeReminder();
   const [dismissedIds, setDismissedIds] = useState<Set<string>>(new Set());
   const [hasPlayedSound, setHasPlayedSound] = useState(false);
   const [selectedReminder, setSelectedReminder] = useState<Reminder | null>(null);
   const [detailDialogOpen, setDetailDialogOpen] = useState(false);
+  const [snoozeOpenId, setSnoozeOpenId] = useState<string | null>(null);
 
   const visibleReminders = useMemo(() => {
     return activeReminders?.filter((r) => !dismissedIds.has(r.id)) || [];
