@@ -3,8 +3,7 @@ import { supabase } from "@/integrations/supabase/client";
 import { useAuth } from "./useAuth";
 import { toast } from "sonner";
 import { playSoundFile } from "@/lib/sounds";
-
-const INSTACENA_LOGO = "/instacena-logo.png";
+import instaCenaLogo from "@/assets/instacena-logo.png";
 
 const navigateToPost = (postId: string) => {
   const path = `/instacena?highlight=${postId}`;
