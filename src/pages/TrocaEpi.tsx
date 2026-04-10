@@ -740,14 +740,16 @@ export default function TrocaEpi() {
         }
       }
       if (currentCalcaQtd > 0) {
-        const calcaMatch = findInventoryMatch(currentInventory, "Calça Operacional") || findInventoryMatch(currentInventory, "Calça");
+        const calcaMatch = calcaTamanho
+          ? findInventoryMatch(currentInventory, calcaTamanho)
+          : findInventoryMatch(currentInventory, "Calça Operacional") || findInventoryMatch(currentInventory, "Calça");
         if (calcaMatch && calcaMatch.quantity >= currentCalcaQtd) {
           const newQty = calcaMatch.quantity - currentCalcaQtd;
           await supabase.from("inventory_items").update({ quantity: newQty }).eq("id", calcaMatch.id);
           await supabase.from("inventory_movements").insert({
             item_id: calcaMatch.id, movement_type: "saida", quantity: currentCalcaQtd,
             previous_quantity: calcaMatch.quantity, new_quantity: newQty,
-            reason: `Troca de EPI - ${currentFuncionarioNome}`,
+            reason: `Requisição - ${currentFuncionarioNome}`,
             moved_by: user!.id, moved_by_name: profile?.full_name || "Usuário",
             destination_type: "funcionario", destination_name: currentFuncionarioNome,
           });
