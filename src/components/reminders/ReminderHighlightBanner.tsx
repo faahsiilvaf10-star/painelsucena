@@ -111,6 +111,18 @@ export const ReminderHighlightBanner = () => {
     playSoundFile("/sounds/pop.mp3");
   };
 
+  const handleSnooze = async (reminderId: string, date: Date) => {
+    try {
+      const snoozedUntil = format(date, "yyyy-MM-dd");
+      await snoozeReminder.mutateAsync({ reminderId, snoozedUntil });
+      setDismissedIds((prev) => new Set([...prev, reminderId]));
+      setSnoozeOpenId(null);
+      toast.success(`Lembrete adiado até ${format(date, "dd/MM/yyyy")}`);
+    } catch (error) {
+      toast.error("Erro ao adiar lembrete");
+    }
+  };
+
   if (isLoading || visibleReminders.length === 0) {
     return null;
   }
