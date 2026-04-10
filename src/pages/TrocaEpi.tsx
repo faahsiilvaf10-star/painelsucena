@@ -1286,10 +1286,15 @@ export default function TrocaEpi() {
               <h3 className="font-semibold text-base mb-3">Uniforme</h3>
               <div className="space-y-3">
                 <div className="flex flex-wrap items-center gap-3">
-                  <span className="text-sm font-medium">Blusa Operacional:</span>
+                  <span className="text-sm font-medium">Camisa Operacional:</span>
                   <Select value={blusaTamanho} onValueChange={setBlusaTamanho}>
-                    <SelectTrigger className="w-24 h-8"><SelectValue placeholder="Tam." /></SelectTrigger>
-                    <SelectContent>{TAMANHOS.map(t => <SelectItem key={t} value={t}>{t}</SelectItem>)}</SelectContent>
+                    <SelectTrigger className="w-48 h-8"><SelectValue placeholder="Selecione a camisa..." /></SelectTrigger>
+                    <SelectContent>
+                      {camisaOptions.map(inv => (
+                        <SelectItem key={inv.id} value={inv.name}>{inv.name} ({inv.quantity} {inv.unit})</SelectItem>
+                      ))}
+                      {camisaOptions.length === 0 && <div className="px-2 py-1 text-xs text-muted-foreground">Nenhuma camisa no estoque</div>}
+                    </SelectContent>
                   </Select>
                   <div className="flex items-center gap-1">
                     <Label className="text-xs">Qtd:</Label>
@@ -1299,8 +1304,13 @@ export default function TrocaEpi() {
                 <div className="flex flex-wrap items-center gap-3">
                   <span className="text-sm font-medium">Calça Operacional:</span>
                   <Select value={calcaTamanho} onValueChange={setCalcaTamanho}>
-                    <SelectTrigger className="w-24 h-8"><SelectValue placeholder="Tam." /></SelectTrigger>
-                    <SelectContent>{TAMANHOS.map(t => <SelectItem key={t} value={t}>{t}</SelectItem>)}</SelectContent>
+                    <SelectTrigger className="w-48 h-8"><SelectValue placeholder="Selecione a calça..." /></SelectTrigger>
+                    <SelectContent>
+                      {calcaOptions.map(inv => (
+                        <SelectItem key={inv.id} value={inv.name}>{inv.name} ({inv.quantity} {inv.unit})</SelectItem>
+                      ))}
+                      {calcaOptions.length === 0 && <div className="px-2 py-1 text-xs text-muted-foreground">Nenhuma calça no estoque</div>}
+                    </SelectContent>
                   </Select>
                   <div className="flex items-center gap-1">
                     <Label className="text-xs">Qtd:</Label>
