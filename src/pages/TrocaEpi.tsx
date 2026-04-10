@@ -492,7 +492,9 @@ export default function TrocaEpi() {
       }
     }
     if (exchange.uniforme_calca_quantidade > 0) {
-      const calcaMatch = findInventoryMatch(currentInventory, "Calça Operacional") || findInventoryMatch(currentInventory, "Calça");
+      const calcaMatch = exchange.uniforme_calca_tamanho
+        ? findInventoryMatch(currentInventory, exchange.uniforme_calca_tamanho)
+        : findInventoryMatch(currentInventory, "Calça Operacional") || findInventoryMatch(currentInventory, "Calça");
       if (calcaMatch) {
         const qty = exchange.uniforme_calca_quantidade;
         const newQty = calcaMatch.quantity + qty;
@@ -501,7 +503,7 @@ export default function TrocaEpi() {
           await supabase.from("inventory_movements").insert({
             item_id: calcaMatch.id, movement_type: "entrada", quantity: qty,
             previous_quantity: calcaMatch.quantity, new_quantity: newQty,
-            reason: `Estorno Troca de EPI - ${exchange.funcionario_nome}`,
+            reason: `Estorno Requisição - ${exchange.funcionario_nome}`,
             moved_by: user!.id, moved_by_name: profile?.full_name || "Usuário",
             destination_type: "funcionario", destination_name: exchange.funcionario_nome,
           });
