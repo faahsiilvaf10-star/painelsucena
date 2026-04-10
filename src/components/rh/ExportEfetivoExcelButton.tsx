@@ -45,11 +45,15 @@ export function ExportEfetivoExcelButton({ colaboradores, filterFuncao }: Export
         },
       });
 
+      // Sort alphabetically by name
+      const sortedColaboradores = [...colaboradores].sort((a, b) => a.nome.localeCompare(b.nome, 'pt-BR'));
+
       // Set column widths
       worksheet.columns = [
         { key: "nome", width: 35 },
         { key: "funcao", width: 25 },
-        { key: "matricula", width: 12 },
+        { key: "matricula", width: 14 },
+        { key: "matriculaHydro", width: 16 },
         { key: "cpf", width: 15 },
         { key: "admissao", width: 12 },
         { key: "nascimento", width: 12 },
@@ -102,7 +106,7 @@ export function ExportEfetivoExcelButton({ colaboradores, filterFuncao }: Export
       // Title row
       const titleRow = worksheet.addRow(["RELATÓRIO DE EFETIVO - SUCENA EMPREENDIMENTOS"]);
       titleRow.height = 28;
-      worksheet.mergeCells(`A${titleRow.number}:M${titleRow.number}`);
+      worksheet.mergeCells(`A${titleRow.number}:N${titleRow.number}`);
       const titleCell = titleRow.getCell(1);
       titleCell.font = { bold: true, size: 16, color: { argb: "FF1A1A2E" } };
       titleCell.alignment = { horizontal: "center", vertical: "middle" };
