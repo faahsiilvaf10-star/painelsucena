@@ -111,14 +111,15 @@ export function ExportEfetivoPdfButton({ colaboradores, filterFuncao }: ExportEf
               white-space: nowrap;
             }
             .filter-info {
-              background: #2d2d44;
-              color: white;
+              background: #f0f4f8;
+              color: #1a1a2e;
               padding: 8px 20px;
               border-radius: 8px;
               margin-bottom: 15px;
               display: flex;
               justify-content: space-between;
               align-items: center;
+              border: 1px solid #d0d7de;
             }
             .summary-grid {
               display: flex;
@@ -127,32 +128,32 @@ export function ExportEfetivoPdfButton({ colaboradores, filterFuncao }: ExportEf
               margin-bottom: 15px;
             }
             .summary-card {
-              background: #2d2d44;
+              background: #f0f4f8;
               border-radius: 6px;
               padding: 10px 15px;
-              border: 1px solid #3d3d5c;
+              border: 1px solid #d0d7de;
               min-width: 100px;
             }
             .summary-card h3 {
-              color: #9ca3af;
+              color: #555;
               font-size: 9px;
               margin-bottom: 4px;
               text-transform: uppercase;
             }
             .summary-card .value {
-              color: #22d3ee;
+              color: #0969da;
               font-size: 18px;
               font-weight: bold;
             }
             .section {
-              background: #2d2d44;
+              background: #ffffff;
               border-radius: 8px;
               padding: 12px;
               margin-bottom: 15px;
-              border: 1px solid #3d3d5c;
+              border: 1px solid #d0d7de;
             }
             .section-title {
-              color: white;
+              color: #1a1a2e;
               font-size: 12px;
               font-weight: 600;
               margin-bottom: 10px;
@@ -162,26 +163,27 @@ export function ExportEfetivoPdfButton({ colaboradores, filterFuncao }: ExportEf
               border-collapse: collapse;
             }
             th {
-              background: #1a1a2e;
-              color: #9ca3af;
+              background: #f0f4f8;
+              color: #555;
               padding: 8px 6px;
               text-align: left;
               font-size: 9px;
               font-weight: 600;
               text-transform: uppercase;
+              border-bottom: 2px solid #d0d7de;
             }
             td {
               padding: 6px;
-              border-bottom: 1px solid #3d3d5c;
-              color: white;
+              border-bottom: 1px solid #e5e7eb;
+              color: #1a1a2e;
               font-size: 9px;
             }
             tr:nth-child(even) {
-              background: rgba(0,0,0,0.1);
+              background: #f9fafb;
             }
             .funcao-badge {
-              background: #3d3d5c;
-              color: #22d3ee;
+              background: #e8f0fe;
+              color: #0969da;
               padding: 2px 8px;
               border-radius: 4px;
               font-size: 8px;
@@ -210,15 +212,16 @@ export function ExportEfetivoPdfButton({ colaboradores, filterFuncao }: ExportEf
               gap: 8px;
             }
             .funcao-item {
-              background: #1a1a2e;
+              background: #f0f4f8;
               padding: 6px 10px;
               border-radius: 4px;
               display: flex;
               justify-content: space-between;
               align-items: center;
+              border: 1px solid #d0d7de;
             }
             .funcao-item .name {
-              color: #9ca3af;
+              color: #555;
               font-size: 8px;
               max-width: 80%;
               overflow: hidden;
@@ -226,7 +229,7 @@ export function ExportEfetivoPdfButton({ colaboradores, filterFuncao }: ExportEf
               white-space: nowrap;
             }
             .funcao-item .count {
-              color: #22d3ee;
+              color: #0969da;
               font-weight: bold;
               font-size: 11px;
             }
