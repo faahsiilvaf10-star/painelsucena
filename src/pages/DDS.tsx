@@ -669,11 +669,6 @@ export default function DDS() {
                               ) : (
                                 <span className="text-muted-foreground text-sm italic hidden sm:inline">—</span>
                               )}
-                              {schedule?.photo_url && (
-                                <Button variant="ghost" size="icon" className="h-7 w-7 shrink-0" onClick={() => setFullscreenPhoto(schedule.photo_url)} title="Ver foto do tema">
-                                  <Camera className="h-4 w-4 text-primary" />
-                                </Button>
-                              )}
                               {schedule?.event_photo_url && (
                                 <Button variant="ghost" size="icon" className="h-7 w-7 shrink-0" onClick={() => setFullscreenPhoto(schedule.event_photo_url)} title="Ver registro do DDS">
                                   <Image className="h-4 w-4 text-amber-500" />
@@ -695,23 +690,6 @@ export default function DDS() {
                             <TableCell className="text-right">
                               {schedule ? (
                                 <div className="flex justify-end gap-1">
-                                  <Button
-                                    variant="ghost"
-                                    size="icon"
-                                    className="h-8 w-8"
-                                    onClick={() => {
-                                      setPhotoTargetId(schedule.id);
-                                      photoInputRef.current?.click();
-                                    }}
-                                    disabled={uploadingPhotoId === schedule.id}
-                                    title="Foto do tema"
-                                  >
-                                    {uploadingPhotoId === schedule.id ? (
-                                      <Loader2 className="h-4 w-4 animate-spin" />
-                                    ) : (
-                                      <Camera className="h-4 w-4 text-primary" />
-                                    )}
-                                  </Button>
                                   <Button
                                     variant="ghost"
                                     size="icon"
