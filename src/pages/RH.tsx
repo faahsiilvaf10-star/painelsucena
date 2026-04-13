@@ -41,7 +41,7 @@ type SortDirection = "asc" | "desc";
 const RH = () => {
   const [searchTerm, setSearchTerm] = useState("");
   const [filterFuncao, setFilterFuncao] = useState<string>("all");
-  const [sortField, setSortField] = useState<SortField>("id");
+  const [sortField, setSortField] = useState<SortField>("nome");
   const [sortDirection, setSortDirection] = useState<SortDirection>("asc");
   const [expandedRow, setExpandedRow] = useState<number | null>(null);
   const { data: rhData, isLoading: rhLoading, saveMutation } = useRHEfetivo();
