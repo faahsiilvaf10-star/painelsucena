@@ -862,7 +862,8 @@ const RelatorioPresenca = () => {
           <>
             <SupportTeamEditor 
               support={area === "ÁREA GABIÃO" ? supportGabiao : supportRocagem} 
-              setSupport={area === "ÁREA GABIÃO" ? setSupportGabiao : setSupportRocagem} 
+              setSupport={area === "ÁREA GABIÃO" ? setSupportGabiao : setSupportRocagem}
+              areaKey={area === "ÁREA GABIÃO" ? "gabiao" : "jardinagem"}
             />
             <p className="text-sm font-semibold text-center mb-4">
               {EMOJI_STAR_8} EQUIPE DE EXECUÇÃO {EMOJI_STAR_8}
