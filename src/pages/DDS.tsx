@@ -167,24 +167,6 @@ export default function DDS() {
   const eventPhotoInputRef = useRef<HTMLInputElement>(null);
   const [eventPhotoTargetId, setEventPhotoTargetId] = useState<string | null>(null);
 
-  const handleThemePhotoUpload = async (file: File, scheduleId: string) => {
-    if (!file || !user) return;
-    setUploadingPhotoId(scheduleId);
-    try {
-      const ext = file.name.split(".").pop() || "jpg";
-      const path = `dds-theme_${scheduleId}_${Date.now()}.${ext}`;
-      const { error: uploadError } = await supabase.storage.from("site-assets").upload(path, file, { upsert: true });
-      if (uploadError) throw uploadError;
-      const { data: urlData } = supabase.storage.from("site-assets").getPublicUrl(path);
-      await updateDDSPhoto.mutateAsync({ id: scheduleId, photo_url: urlData.publicUrl });
-      toast.success("Foto do tema adicionada!");
-    } catch (err) {
-      console.error("Error uploading theme photo:", err);
-      toast.error("Erro ao enviar foto");
-    } finally {
-      setUploadingPhotoId(null);
-    }
-  };
 
   const handleEventPhotoUpload = async (file: File, scheduleId: string, schedule: DDSScheduleItem) => {
     if (!file || !user) return;
