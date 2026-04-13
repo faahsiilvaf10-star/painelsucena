@@ -281,15 +281,17 @@ export function ExportEfetivoPdfButton({ colaboradores, filterFuncao }: ExportEf
               <table>
                 <thead>
                   <tr>
-                    <th style="width: 30px;">#</th>
+                    <th style="width: 25px;">#</th>
                     <th>Nome</th>
                     <th>Função</th>
-                    <th style="width: 80px;">Matrícula</th>
-                    <th style="width: 100px;">CPF</th>
-                    <th style="width: 80px;">Admissão</th>
-                    <th style="width: 80px;">Nascimento</th>
-                    <th style="width: 100px;">Contato</th>
+                    <th style="width: 65px;">Matrícula</th>
+                    <th style="width: 65px;">Mat. Hydro</th>
+                    <th style="width: 85px;">CPF</th>
+                    <th style="width: 65px;">Admissão</th>
+                    <th style="width: 65px;">Nascimento</th>
+                    <th style="width: 80px;">Contato</th>
                     <th>Localidade</th>
+                    <th>NRs</th>
                   </tr>
                 </thead>
                 <tbody>
@@ -299,11 +301,13 @@ export function ExportEfetivoPdfButton({ colaboradores, filterFuncao }: ExportEf
                       <td><strong>${c.nome}</strong></td>
                       <td><span class="funcao-badge">${c.funcao}</span></td>
                       <td>${c.matricula}</td>
+                      <td>${c.matriculaHydro || "-"}</td>
                       <td>${c.cpf}</td>
                       <td>${c.admissao}</td>
                       <td>${c.dataNascimento}</td>
                       <td>${c.contato || "-"}</td>
                       <td>${c.localidade}</td>
+                      <td>${c.nrs && c.nrs.length > 0 ? c.nrs.join(", ") : "-"}</td>
                     </tr>
                   `).join("")}
                 </tbody>
