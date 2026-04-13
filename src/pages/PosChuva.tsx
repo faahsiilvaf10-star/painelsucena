@@ -199,7 +199,8 @@ export default function PosChuva() {
       try { pdf.addImage(logoSucena, "PNG", margin, y, 35, 12); } catch {}
     }
     if (logoHydro) {
-      try { pdf.addImage(logoHydro, "PNG", w - margin - 35, y, 35, 12); } catch {}
+      // Hydro logo is roughly square-ish with text below - use proportional sizing
+      try { pdf.addImage(logoHydro, "PNG", w - margin - 25, y, 25, 14); } catch {}
     }
     y += 16;
 
@@ -275,23 +276,35 @@ export default function PosChuva() {
     // Assinaturas
     const renderAval = (num: number, avalData: string | null, avalHorario: string | null, sigEnc: string | null, sigTec: string | null) => {
       if (!sigEnc) return;
-      if (y > 245) { pdf.addPage(); y = 15; }
+      if (y > 235) { pdf.addPage(); y = 15; }
       pdf.setFont("helvetica", "bold");
       pdf.setFontSize(9);
       pdf.text(`Assinaturas - ${num}ª Avaliação`, margin, y);
       y += 5;
       pdf.setFont("helvetica", "normal");
+      pdf.setFontSize(8);
       pdf.text(`Data: ${avalData || ""}   Horário: ${avalHorario || ""}`, margin, y);
       y += 8;
+      const sigW = 60;
+      const sigH = 20;
+      const lineY = y + sigH + 2;
       if (sigEnc) {
-        try { pdf.addImage(sigEnc, "PNG", margin, y, 60, 20); } catch {}
-        pdf.text("Encarregado Resp. pela Liberação", margin, y + 23);
+        try { pdf.addImage(sigEnc, "PNG", margin, y, sigW, sigH); } catch {}
+        pdf.setDrawColor(0);
+        pdf.setLineWidth(0.4);
+        pdf.line(margin, lineY, margin + sigW, lineY);
+        pdf.setFontSize(7);
+        pdf.text("Encarregado Resp. pela Liberação", margin + sigW / 2, lineY + 4, { align: "center" });
       }
       if (sigTec) {
-        try { pdf.addImage(sigTec, "PNG", 110, y, 60, 20); } catch {}
-        pdf.text("Téc. Segurança da Contratada", 110, y + 23);
+        try { pdf.addImage(sigTec, "PNG", 110, y, sigW, sigH); } catch {}
+        pdf.setDrawColor(0);
+        pdf.setLineWidth(0.4);
+        pdf.line(110, lineY, 110 + sigW, lineY);
+        pdf.setFontSize(7);
+        pdf.text("Téc. Segurança da Contratada", 110 + sigW / 2, lineY + 4, { align: "center" });
       }
-      y += 30;
+      y = lineY + 10;
     };
 
     renderAval(1, inspection.avaliacao_1_data, inspection.avaliacao_1_horario, inspection.avaliacao_1_sig_encarregado, inspection.avaliacao_1_sig_tecnico);
