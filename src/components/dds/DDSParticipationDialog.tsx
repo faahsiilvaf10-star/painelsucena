@@ -3,7 +3,7 @@ import { Dialog, DialogContent, DialogTitle } from "@/components/ui/dialog";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { ScrollArea } from "@/components/ui/scroll-area";
-import { Check, X, Search, Save, Loader2, Users, ChevronDown, FileText, Lock, Unlock, BarChart3 } from "lucide-react";
+import { Check, X, Search, Save, Loader2, Users, ChevronDown, FileText, Lock, Unlock, BarChart3, ChevronRight } from "lucide-react";
 import { useDDSParticipation, useSaveDDSParticipation, AbsenceReason } from "@/hooks/useDDSParticipation";
 import { useRHEfetivo } from "@/hooks/useRHEfetivo";
 import { useProfile } from "@/hooks/useProfile";
