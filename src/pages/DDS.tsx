@@ -163,11 +163,8 @@ export default function DDS() {
   
   // Photo states
   const [fullscreenPhoto, setFullscreenPhoto] = useState<string | null>(null);
-  const [uploadingPhotoId, setUploadingPhotoId] = useState<string | null>(null);
   const [uploadingEventPhotoId, setUploadingEventPhotoId] = useState<string | null>(null);
-  const photoInputRef = useRef<HTMLInputElement>(null);
   const eventPhotoInputRef = useRef<HTMLInputElement>(null);
-  const [photoTargetId, setPhotoTargetId] = useState<string | null>(null);
   const [eventPhotoTargetId, setEventPhotoTargetId] = useState<string | null>(null);
 
   const handleThemePhotoUpload = async (file: File, scheduleId: string) => {
