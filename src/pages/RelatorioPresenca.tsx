@@ -208,7 +208,7 @@ const RelatorioPresenca = () => {
     return "jardinagem";
   };
 
-  // Editable support teams
+  // Editable support teams - loaded from DB
   const [supportGabiao, setSupportGabiao] = useState<SupportTeam>({
     tst: "ITAMAR DE SOUZA",
     encGeral: "DOMINGUES FABRICIO",
@@ -220,6 +220,28 @@ const RelatorioPresenca = () => {
     encGeral: "DOMINGUES FABRICIO",
     enc: "RUDNEY SILVA",
   });
+
+  // Load support team settings from DB
+  const { data: supportSettings } = useQuery({
+    queryKey: ["support_team_settings"],
+    queryFn: async () => {
+      const { data, error } = await supabase
+        .from("support_team_settings")
+        .select("*");
+      if (error) throw error;
+      return data;
+    },
+  });
+
+  // Sync DB values into state once loaded
+  useEffect(() => {
+    if (supportSettings) {
+      const gabiao = supportSettings.find(s => s.area === "gabiao");
+      const jardinagem = supportSettings.find(s => s.area === "jardinagem");
+      if (gabiao) setSupportGabiao({ tst: gabiao.tst, encGeral: gabiao.enc_geral, enc: gabiao.enc });
+      if (jardinagem) setSupportRocagem({ tst: jardinagem.tst, encGeral: jardinagem.enc_geral, enc: jardinagem.enc });
+    }
+  }, [supportSettings]);
 
   const queryClient = useQueryClient();
   const upsertAttendance = useUpsertAttendance();
