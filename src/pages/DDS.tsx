@@ -695,23 +695,6 @@ export default function DDS() {
                                     size="icon"
                                     className="h-8 w-8"
                                     onClick={() => {
-                                      setPhotoTargetId(schedule.id);
-                                      photoInputRef.current?.click();
-                                    }}
-                                    disabled={uploadingPhotoId === schedule.id}
-                                    title="Foto do tema"
-                                  >
-                                    {uploadingPhotoId === schedule.id ? (
-                                      <Loader2 className="h-4 w-4 animate-spin" />
-                                    ) : (
-                                      <Camera className="h-4 w-4 text-primary" />
-                                    )}
-                                  </Button>
-                                  <Button
-                                    variant="ghost"
-                                    size="icon"
-                                    className="h-8 w-8"
-                                    onClick={() => {
                                       setEventPhotoTargetId(schedule.id);
                                       eventPhotoInputRef.current?.click();
                                     }}
