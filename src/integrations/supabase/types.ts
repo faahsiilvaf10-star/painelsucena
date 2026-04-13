@@ -3255,6 +3255,36 @@ export type Database = {
         }
         Relationships: []
       }
+      support_team_settings: {
+        Row: {
+          area: string
+          enc: string
+          enc_geral: string
+          id: string
+          tst: string
+          updated_at: string
+          updated_by: string | null
+        }
+        Insert: {
+          area: string
+          enc?: string
+          enc_geral?: string
+          id?: string
+          tst?: string
+          updated_at?: string
+          updated_by?: string | null
+        }
+        Update: {
+          area?: string
+          enc?: string
+          enc_geral?: string
+          id?: string
+          tst?: string
+          updated_at?: string
+          updated_by?: string | null
+        }
+        Relationships: []
+      }
       tigrinho_bets: {
         Row: {
           avatar_url: string | null
