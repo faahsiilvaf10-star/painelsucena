@@ -959,20 +959,6 @@ export default function DDS() {
           </DialogContent>
         </Dialog>
 
-        {/* Hidden file input for theme photo upload */}
-        <input
-          ref={photoInputRef}
-          type="file"
-          accept="image/*"
-          className="hidden"
-          onChange={(e) => {
-            const file = e.target.files?.[0];
-            if (file && photoTargetId) {
-              handleThemePhotoUpload(file, photoTargetId);
-            }
-            e.target.value = "";
-          }}
-        />
 
         {/* Hidden file input for event photo upload */}
         <input
