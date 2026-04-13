@@ -86,6 +86,25 @@ export const DDSParticipationDialog = ({ open, onOpenChange, date }: Props) => {
   const [attendance, setAttendance] = useState<Record<string, AttendanceState>>({});
   const [generatingPdf, setGeneratingPdf] = useState(false);
   const [showStats, setShowStats] = useState(false);
+  const [expandedReason, setExpandedReason] = useState<string | null>(null);
+
+  // Fetch monthly participation data for stats
+  const monthYear = date.substring(0, 7); // yyyy-MM
+  const { data: monthlyData } = useQuery({
+    queryKey: ["dds-participation-monthly-stats", monthYear, date],
+    queryFn: async () => {
+      const startDate = `${monthYear}-01`;
+      const endDate = date;
+      const { data, error } = await supabase
+        .from("dds_participation")
+        .select("employee_name, present, absence_reason")
+        .gte("dds_date", startDate)
+        .lte("dds_date", endDate);
+      if (error) throw error;
+      return data || [];
+    },
+    enabled: showStats && !!date,
+  });
 
   const canUnlock = useMemo(() => {
     if (isAdmin) return true;
