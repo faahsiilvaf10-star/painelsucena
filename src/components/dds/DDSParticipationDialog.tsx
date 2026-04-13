@@ -394,7 +394,7 @@ export const DDSParticipationDialog = ({ open, onOpenChange, date }: Props) => {
       <DialogContent className="max-w-lg max-h-[85vh] flex flex-col">
         <DialogTitle className="flex items-center gap-2">
           <Users className="h-5 w-5" />
-          Lista de Presença DDS
+          Lista de Presença DDS — {date.split("-").reverse().join("/")}
           {isLocked && (
             <span className="ml-auto flex items-center gap-1 text-xs text-amber-600 bg-amber-100 dark:bg-amber-900/30 px-2 py-1 rounded-full">
               <Lock className="h-3 w-3" />
