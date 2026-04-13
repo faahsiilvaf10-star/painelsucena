@@ -3,7 +3,7 @@ import { Dialog, DialogContent, DialogTitle } from "@/components/ui/dialog";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { ScrollArea } from "@/components/ui/scroll-area";
-import { Check, X, Search, Save, Loader2, Users, ChevronDown, FileText, Lock, Unlock } from "lucide-react";
+import { Check, X, Search, Save, Loader2, Users, ChevronDown, FileText, Lock, Unlock, BarChart3 } from "lucide-react";
 import { useDDSParticipation, useSaveDDSParticipation, AbsenceReason } from "@/hooks/useDDSParticipation";
 import { useRHEfetivo } from "@/hooks/useRHEfetivo";
 import { useProfile } from "@/hooks/useProfile";
@@ -85,6 +85,7 @@ export const DDSParticipationDialog = ({ open, onOpenChange, date }: Props) => {
   const [search, setSearch] = useState("");
   const [attendance, setAttendance] = useState<Record<string, AttendanceState>>({});
   const [generatingPdf, setGeneratingPdf] = useState(false);
+  const [showStats, setShowStats] = useState(false);
 
   const canUnlock = useMemo(() => {
     if (isAdmin) return true;
@@ -406,7 +407,45 @@ export const DDSParticipationDialog = ({ open, onOpenChange, date }: Props) => {
         <div className="flex items-center gap-2 text-sm text-muted-foreground">
           <span className="font-medium text-green-600">{presentCount} presentes</span>
           <span>de {totalCount} colaboradores</span>
+          <Button variant="ghost" size="icon" className="h-7 w-7 ml-auto" onClick={() => setShowStats(s => !s)} title="Ver gráfico de status">
+            <BarChart3 className="h-4 w-4" />
+          </Button>
         </div>
+
+        {showStats && (() => {
+          const absentEntries = Object.values(attendance).filter(s => !s.present);
+          const reasonCounts: Record<string, number> = {};
+          absentEntries.forEach(s => {
+            const key = s.absence_reason || "falta";
+            reasonCounts[key] = (reasonCounts[key] || 0) + 1;
+          });
+          const maxBar = Math.max(presentCount, ...Object.values(reasonCounts), 1);
+          return (
+            <div className="p-3 bg-muted/50 rounded-lg space-y-2 text-xs">
+              <div className="flex items-center gap-2">
+                <span className="w-24 text-right font-medium">✅ Presentes</span>
+                <div className="flex-1 bg-muted rounded-full h-5 overflow-hidden">
+                  <div className="bg-green-500 h-full rounded-full transition-all" style={{ width: `${(presentCount / maxBar) * 100}%` }} />
+                </div>
+                <span className="w-8 font-bold">{presentCount}</span>
+              </div>
+              {(Object.keys(ABSENCE_LABELS) as AbsenceReason[]).map(reason => {
+                const count = reasonCounts[reason] || 0;
+                if (count === 0) return null;
+                const colorMap: Record<string, string> = { falta: "bg-red-500", atestado: "bg-yellow-500", treinamento: "bg-blue-500", exame: "bg-purple-500", folga: "bg-orange-500", afastado: "bg-gray-500" };
+                return (
+                  <div key={reason} className="flex items-center gap-2">
+                    <span className="w-24 text-right font-medium">❌ {ABSENCE_LABELS[reason]}</span>
+                    <div className="flex-1 bg-muted rounded-full h-5 overflow-hidden">
+                      <div className={`${colorMap[reason]} h-full rounded-full transition-all`} style={{ width: `${(count / maxBar) * 100}%` }} />
+                    </div>
+                    <span className="w-8 font-bold">{count}</span>
+                  </div>
+                );
+              })}
+            </div>
+          );
+        })()}
 
         {isLocked && (
           <div className="flex items-center gap-2 p-3 bg-amber-50 dark:bg-amber-900/20 border border-amber-200 dark:border-amber-800 rounded-lg text-sm">
