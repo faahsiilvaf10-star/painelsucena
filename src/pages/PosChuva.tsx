@@ -169,96 +169,123 @@ export default function PosChuva() {
 
   const generatePdf = async (inspection: PosChuvaInspection) => {
     const { jsPDF } = await import("jspdf");
+    const autoTable = (await import("jspdf-autotable")).default;
     const pdf = new jsPDF("p", "mm", "a4");
     const w = 210;
-    let y = 15;
+    const margin = 10;
+    let y = 10;
 
-    pdf.setFontSize(14);
+    // Load logos
+    const loadImg = async (url: string): Promise<string> => {
+      try {
+        const res = await fetch(url);
+        const blob = await res.blob();
+        return new Promise((resolve, reject) => {
+          const reader = new FileReader();
+          reader.onloadend = () => resolve(reader.result as string);
+          reader.onerror = reject;
+          reader.readAsDataURL(blob);
+        });
+      } catch { return ""; }
+    };
+
+    const [logoSucena, logoHydro] = await Promise.all([
+      loadImg("/logo-sucena-pdf.png"),
+      loadImg("/logo-hydro.png"),
+    ]);
+
+    // Header with logos
+    if (logoSucena) {
+      try { pdf.addImage(logoSucena, "PNG", margin, y, 35, 12); } catch {}
+    }
+    if (logoHydro) {
+      try { pdf.addImage(logoHydro, "PNG", w - margin - 35, y, 35, 12); } catch {}
+    }
+    y += 16;
+
+    pdf.setFontSize(13);
     pdf.setFont("helvetica", "bold");
     pdf.text("Lista de Verificação - Pós Chuva / Ventos Fortes", w / 2, y, { align: "center" });
-    y += 10;
+    y += 8;
 
-    pdf.setFontSize(9);
-    pdf.setFont("helvetica", "normal");
-    const info = [
-      [`Empresa: ${inspection.empresa || ""}`, `Data: ${inspection.data || ""}`],
-      [`Projeto: ${inspection.projeto || ""}`, `Nº Contrato: 4600012690`],
-      [`Responsável: ${inspection.responsavel || ""}`],
-      [`Local: ${inspection.local_inspecao || ""}`],
-      [`Atividade: ${inspection.atividade || ""}`],
-    ];
-    info.forEach((line) => {
-      pdf.text(line.join("     "), 10, y);
-      y += 5;
+    // Info table
+    autoTable(pdf, {
+      startY: y,
+      margin: { left: margin, right: margin },
+      theme: "plain",
+      styles: { fontSize: 8, cellPadding: 1.5, font: "helvetica" },
+      columnStyles: { 0: { fontStyle: "bold", cellWidth: 25 }, 1: { cellWidth: 65 }, 2: { fontStyle: "bold", cellWidth: 25 }, 3: { cellWidth: 65 } },
+      body: [
+        ["Empresa:", inspection.empresa || "", "Data:", inspection.data || ""],
+        ["Projeto:", inspection.projeto || "", "Nº Contrato:", "4600012690"],
+        ["Responsável:", inspection.responsavel || "", "Local:", inspection.local_inspecao || ""],
+        ["Atividade:", inspection.atividade || "", "", ""],
+      ],
     });
-    y += 3;
+    y = (pdf as any).lastAutoTable.finalY + 5;
 
     // Checklist table
-    pdf.setFontSize(8);
-    pdf.setFont("helvetica", "bold");
-    const colX = [10, 18, 160, 175, 190];
-    pdf.text("Nº", colX[0], y);
-    pdf.text("Guia - Lista de Verificação", colX[1], y);
-    pdf.text("C", colX[2], y);
-    pdf.text("NC", colX[3], y);
-    pdf.text("NA", colX[4], y);
-    y += 1;
-    pdf.line(10, y, 200, y);
-    y += 4;
-
-    pdf.setFont("helvetica", "normal");
     const cl = inspection.checklist as ChecklistItem[];
-    cl.forEach((item) => {
-      const lines = pdf.splitTextToSize(item.pergunta, 135);
-      pdf.text(String(item.numero), colX[0], y);
-      pdf.text(lines, colX[1], y);
-      pdf.text(item.resposta === "C" ? "X" : "", colX[2] + 2, y);
-      pdf.text(item.resposta === "NC" ? "X" : "", colX[3] + 2, y);
-      pdf.text(item.resposta === "NA" ? "X" : "", colX[4] + 2, y);
-      y += lines.length * 4 + 2;
+    autoTable(pdf, {
+      startY: y,
+      margin: { left: margin, right: margin },
+      theme: "grid",
+      headStyles: { fillColor: [240, 240, 240], textColor: [30, 30, 30], fontStyle: "bold", fontSize: 7, halign: "center" },
+      styles: { fontSize: 7.5, cellPadding: 2, font: "helvetica", lineColor: [200, 200, 200], lineWidth: 0.3 },
+      columnStyles: {
+        0: { cellWidth: 10, halign: "center" },
+        1: { cellWidth: 130 },
+        2: { cellWidth: 15, halign: "center" },
+        3: { cellWidth: 15, halign: "center" },
+        4: { cellWidth: 15, halign: "center" },
+      },
+      head: [["Nº", "Guia - Lista de Verificação", "C", "NC", "NA"]],
+      body: cl.map((item) => [
+        String(item.numero),
+        item.pergunta,
+        item.resposta === "C" ? "X" : "",
+        item.resposta === "NC" ? "X" : "",
+        item.resposta === "NA" ? "X" : "",
+      ]),
     });
-    y += 5;
+    y = (pdf as any).lastAutoTable.finalY + 6;
 
     // Plano de ação
     const pa = inspection.plano_acao as PlanoAcaoItem[];
     if (pa.length > 0) {
+      if (y > 250) { pdf.addPage(); y = 15; }
       pdf.setFont("helvetica", "bold");
       pdf.setFontSize(10);
       pdf.text("PLANO DE AÇÃO", w / 2, y, { align: "center" });
-      y += 6;
-      pdf.setFontSize(8);
-      pdf.text("Item NC", 10, y);
-      pdf.text("Ação", 35, y);
-      pdf.text("Responsável", 120, y);
-      pdf.text("Prazo", 170, y);
-      y += 1;
-      pdf.line(10, y, 200, y);
-      y += 4;
-      pdf.setFont("helvetica", "normal");
-      pa.forEach((item) => {
-        pdf.text(item.item_nc, 10, y);
-        pdf.text(item.acao, 35, y);
-        pdf.text(item.responsavel, 120, y);
-        pdf.text(item.prazo, 170, y);
-        y += 5;
-      });
       y += 5;
+
+      autoTable(pdf, {
+        startY: y,
+        margin: { left: margin, right: margin },
+        theme: "grid",
+        headStyles: { fillColor: [240, 240, 240], textColor: [30, 30, 30], fontStyle: "bold", fontSize: 7, halign: "center" },
+        styles: { fontSize: 7.5, cellPadding: 2, font: "helvetica", lineColor: [200, 200, 200], lineWidth: 0.3 },
+        head: [["Item NC", "Ação", "Responsável", "Prazo"]],
+        columnStyles: { 0: { cellWidth: 20 }, 1: { cellWidth: 80 }, 2: { cellWidth: 45 }, 3: { cellWidth: 35 } },
+        body: pa.map((item) => [item.item_nc, item.acao, item.responsavel, item.prazo]),
+      });
+      y = (pdf as any).lastAutoTable.finalY + 6;
     }
 
     // Assinaturas
     const renderAval = (num: number, avalData: string | null, avalHorario: string | null, sigEnc: string | null, sigTec: string | null) => {
       if (!sigEnc) return;
-      if (y > 250) { pdf.addPage(); y = 15; }
+      if (y > 245) { pdf.addPage(); y = 15; }
       pdf.setFont("helvetica", "bold");
       pdf.setFontSize(9);
-      pdf.text(`Assinaturas - ${num}ª Avaliação`, 10, y);
+      pdf.text(`Assinaturas - ${num}ª Avaliação`, margin, y);
       y += 5;
       pdf.setFont("helvetica", "normal");
-      pdf.text(`Data: ${avalData || ""}   Horário: ${avalHorario || ""}`, 10, y);
+      pdf.text(`Data: ${avalData || ""}   Horário: ${avalHorario || ""}`, margin, y);
       y += 8;
       if (sigEnc) {
-        try { pdf.addImage(sigEnc, "PNG", 10, y, 60, 20); } catch {}
-        pdf.text("Encarregado Resp. pela Liberação", 10, y + 23);
+        try { pdf.addImage(sigEnc, "PNG", margin, y, 60, 20); } catch {}
+        pdf.text("Encarregado Resp. pela Liberação", margin, y + 23);
       }
       if (sigTec) {
         try { pdf.addImage(sigTec, "PNG", 110, y, 60, 20); } catch {}
@@ -275,11 +302,11 @@ export default function PosChuva() {
     if (inspection.observacoes) {
       if (y > 260) { pdf.addPage(); y = 15; }
       pdf.setFont("helvetica", "bold");
-      pdf.text("Observações:", 10, y);
+      pdf.text("Observações:", margin, y);
       y += 5;
       pdf.setFont("helvetica", "normal");
       const obsLines = pdf.splitTextToSize(inspection.observacoes, 180);
-      pdf.text(obsLines, 10, y);
+      pdf.text(obsLines, margin, y);
     }
 
     const blob = pdf.output("blob");
