@@ -9,6 +9,8 @@ import {
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
+import { Badge } from "@/components/ui/badge";
+import { Checkbox } from "@/components/ui/checkbox";
 import {
   Select,
   SelectContent,
@@ -18,6 +20,14 @@ import {
 } from "@/components/ui/select";
 import { Colaborador, funcoes } from "@/data/efetivoData";
 import { toast } from "sonner";
+import { X } from "lucide-react";
+
+const ALL_NRS = [
+  "NR-01", "NR-04", "NR-05", "NR-06", "NR-07", "NR-09", "NR-10",
+  "NR-11", "NR-12", "NR-13", "NR-15", "NR-17", "NR-18",
+  "NR-20", "NR-23", "NR-25", "NR-26", "NR-28",
+  "NR-33", "NR-34", "NR-35",
+];
 
 interface EditColaboradorDialogProps {
   open: boolean;
@@ -57,6 +67,236 @@ const formatPhone = (value: string) => {
 };
 
 export const EditColaboradorDialog = ({
+  open,
+  onOpenChange,
+  colaborador,
+  onSave,
+}: EditColaboradorDialogProps) => {
+  const [formData, setFormData] = useState({
+    nome: "",
+    funcao: "",
+    cpf: "",
+    dataNascimento: "",
+    admissao: "",
+    matricula: "",
+    matriculaHydro: "",
+    contato: "",
+    localidade: "",
+  });
+  const [selectedNrs, setSelectedNrs] = useState<string[]>([]);
+  const [showNrPicker, setShowNrPicker] = useState(false);
+
+  useEffect(() => {
+    if (open && colaborador) {
+      setFormData({
+        nome: colaborador.nome,
+        funcao: colaborador.funcao,
+        cpf: colaborador.cpf,
+        dataNascimento: colaborador.dataNascimento,
+        admissao: colaborador.admissao,
+        matricula: colaborador.matricula,
+        matriculaHydro: colaborador.matriculaHydro || "",
+        contato: colaborador.contato,
+        localidade: colaborador.localidade,
+      });
+      setSelectedNrs(colaborador.nrs || []);
+      setShowNrPicker(false);
+    }
+  }, [open, colaborador]);
+
+  const toggleNr = (nr: string) => {
+    setSelectedNrs((prev) =>
+      prev.includes(nr) ? prev.filter((n) => n !== nr) : [...prev, nr].sort()
+    );
+  };
+
+  const handleSubmit = (e: React.FormEvent) => {
+    e.preventDefault();
+    if (!colaborador) return;
+    if (!formData.nome || !formData.funcao) {
+      toast.error("Preencha os campos obrigatórios");
+      return;
+    }
+
+    onSave({
+      ...colaborador,
+      ...formData,
+      matriculaHydro: formData.matriculaHydro || undefined,
+      nrs: selectedNrs.length > 0 ? selectedNrs : undefined,
+    });
+    onOpenChange(false);
+    toast.success("Colaborador atualizado com sucesso!");
+  };
+
+  return (
+    <Dialog open={open} onOpenChange={onOpenChange}>
+      <DialogContent className="max-w-lg max-h-[90vh] overflow-y-auto">
+        <DialogHeader>
+          <DialogTitle>Editar Colaborador</DialogTitle>
+        </DialogHeader>
+        <form onSubmit={handleSubmit} className="space-y-4">
+          <div className="space-y-2">
+            <Label htmlFor="edit-nome">Nome Completo *</Label>
+            <Input
+              id="edit-nome"
+              value={formData.nome}
+              onChange={(e) => setFormData({ ...formData, nome: e.target.value.toUpperCase() })}
+              required
+            />
+          </div>
+
+          <div className="space-y-2">
+            <Label htmlFor="edit-funcao">Função *</Label>
+            <Select
+              value={formData.funcao}
+              onValueChange={(value) => setFormData({ ...formData, funcao: value })}
+            >
+              <SelectTrigger>
+                <SelectValue placeholder="Selecione a função" />
+              </SelectTrigger>
+              <SelectContent>
+                {funcoes.map((funcao) => (
+                  <SelectItem key={funcao} value={funcao}>
+                    {funcao}
+                  </SelectItem>
+                ))}
+              </SelectContent>
+            </Select>
+          </div>
+
+          {/* NRs Section */}
+          <div className="space-y-2">
+            <div className="flex items-center justify-between">
+              <Label>NRs do Colaborador</Label>
+              <Button
+                type="button"
+                variant="outline"
+                size="sm"
+                className="h-7 text-xs"
+                onClick={() => setShowNrPicker(!showNrPicker)}
+              >
+                {showNrPicker ? "Fechar" : "Selecionar NRs"}
+              </Button>
+            </div>
+            {selectedNrs.length > 0 && (
+              <div className="flex flex-wrap gap-1">
+                {selectedNrs.map((nr) => (
+                  <Badge
+                    key={nr}
+                    variant="secondary"
+                    className="text-xs cursor-pointer hover:bg-destructive/20 gap-1"
+                    onClick={() => toggleNr(nr)}
+                  >
+                    {nr}
+                    <X className="w-3 h-3" />
+                  </Badge>
+                ))}
+              </div>
+            )}
+            {selectedNrs.length === 0 && !showNrPicker && (
+              <p className="text-xs text-muted-foreground">Nenhuma NR selecionada</p>
+            )}
+            {showNrPicker && (
+              <div className="grid grid-cols-3 gap-2 p-3 border rounded-lg bg-muted/30 max-h-48 overflow-y-auto">
+                {ALL_NRS.map((nr) => (
+                  <label
+                    key={nr}
+                    className="flex items-center gap-2 text-sm cursor-pointer hover:bg-accent/50 rounded p-1"
+                  >
+                    <Checkbox
+                      checked={selectedNrs.includes(nr)}
+                      onCheckedChange={() => toggleNr(nr)}
+                    />
+                    {nr}
+                  </label>
+                ))}
+              </div>
+            )}
+          </div>
+
+          <div className="grid grid-cols-2 gap-4">
+            <div className="space-y-2">
+              <Label htmlFor="edit-cpf">CPF</Label>
+              <Input
+                id="edit-cpf"
+                value={formData.cpf}
+                onChange={(e) => setFormData({ ...formData, cpf: formatCPF(e.target.value) })}
+                placeholder="000.000.000-00"
+              />
+            </div>
+            <div className="space-y-2">
+              <Label htmlFor="edit-matricula">Matrícula Sucena</Label>
+              <Input
+                id="edit-matricula"
+                value={formData.matricula}
+                onChange={(e) => setFormData({ ...formData, matricula: e.target.value.replace(/\D/g, "") })}
+                placeholder="0000"
+              />
+            </div>
+          </div>
+
+          <div className="space-y-2">
+            <Label htmlFor="edit-matriculaHydro">Matrícula Hydro</Label>
+            <Input
+              id="edit-matriculaHydro"
+              value={formData.matriculaHydro}
+              onChange={(e) => setFormData({ ...formData, matriculaHydro: e.target.value.replace(/\D/g, "") })}
+              placeholder="00000"
+            />
+          </div>
+
+          <div className="grid grid-cols-2 gap-4">
+            <div className="space-y-2">
+              <Label htmlFor="edit-dataNascimento">Data de Nascimento</Label>
+              <Input
+                id="edit-dataNascimento"
+                value={formData.dataNascimento}
+                onChange={(e) => setFormData({ ...formData, dataNascimento: formatDate(e.target.value) })}
+                placeholder="DD/MM/AAAA"
+              />
+            </div>
+            <div className="space-y-2">
+              <Label htmlFor="edit-admissao">Data de Admissão</Label>
+              <Input
+                id="edit-admissao"
+                value={formData.admissao}
+                onChange={(e) => setFormData({ ...formData, admissao: formatDate(e.target.value) })}
+                placeholder="DD/MM/AAAA"
+              />
+            </div>
+          </div>
+
+          <div className="space-y-2">
+            <Label htmlFor="edit-contato">Contato</Label>
+            <Input
+              id="edit-contato"
+              value={formData.contato}
+              onChange={(e) => setFormData({ ...formData, contato: formatPhone(e.target.value) })}
+              placeholder="(00) 00000-0000"
+            />
+          </div>
+
+          <div className="space-y-2">
+            <Label htmlFor="edit-localidade">Localidade</Label>
+            <Input
+              id="edit-localidade"
+              value={formData.localidade}
+              onChange={(e) => setFormData({ ...formData, localidade: e.target.value.toUpperCase() })}
+              placeholder="Cidade - UF"
+            />
+          </div>
+
+          <DialogFooter>
+            <Button type="button" variant="outline" onClick={() => onOpenChange(false)}>
+              Cancelar
+            </Button>
+            <Button type="submit">Salvar Alterações</Button>
+          </DialogFooter>
+        </form>
+      </DialogContent>
+    </Dialog>
+  );
+};
   open,
   onOpenChange,
   colaborador,

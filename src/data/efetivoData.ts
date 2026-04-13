@@ -25,6 +25,7 @@ export interface Colaborador {
   matriculaHydro?: string;
   contato: string;
   localidade: string;
+  nrs?: string[];
   aso?: ASOData;
   promocoes?: Promocao[];
 }

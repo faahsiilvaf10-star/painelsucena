@@ -511,7 +511,18 @@ const RH = () => {
                             <div className="w-10 h-10 rounded-full bg-gradient-to-br from-primary to-primary/60 flex items-center justify-center text-primary-foreground font-bold text-sm shrink-0">
                               {colaborador.nome.split(" ").map(n => n[0]).slice(0, 2).join("")}
                             </div>
-                            <span className="font-medium">{colaborador.nome}</span>
+                            <div>
+                              <span className="font-medium">{colaborador.nome}</span>
+                              {colaborador.nrs && colaborador.nrs.length > 0 && (
+                                <div className="flex flex-wrap gap-1 mt-1">
+                                  {colaborador.nrs.map((nr) => (
+                                    <Badge key={nr} variant="secondary" className="text-[10px] px-1.5 py-0 h-4">
+                                      {nr}
+                                    </Badge>
+                                  ))}
+                                </div>
+                              )}
+                            </div>
                           </div>
                         </TableCell>
                         <TableCell>
