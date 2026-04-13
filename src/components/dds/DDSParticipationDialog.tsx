@@ -3,7 +3,7 @@ import { Dialog, DialogContent, DialogTitle } from "@/components/ui/dialog";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { ScrollArea } from "@/components/ui/scroll-area";
-import { Check, X, Search, Save, Loader2, Users, ChevronDown, FileText, Lock, Unlock, BarChart3 } from "lucide-react";
+import { Check, X, Search, Save, Loader2, Users, ChevronDown, FileText, Lock, Unlock, BarChart3, ChevronRight } from "lucide-react";
 import { useDDSParticipation, useSaveDDSParticipation, AbsenceReason } from "@/hooks/useDDSParticipation";
 import { useRHEfetivo } from "@/hooks/useRHEfetivo";
 import { useProfile } from "@/hooks/useProfile";
@@ -86,6 +86,25 @@ export const DDSParticipationDialog = ({ open, onOpenChange, date }: Props) => {
   const [attendance, setAttendance] = useState<Record<string, AttendanceState>>({});
   const [generatingPdf, setGeneratingPdf] = useState(false);
   const [showStats, setShowStats] = useState(false);
+  const [expandedReason, setExpandedReason] = useState<string | null>(null);
+
+  // Fetch monthly participation data for stats
+  const monthYear = date.substring(0, 7); // yyyy-MM
+  const { data: monthlyData } = useQuery({
+    queryKey: ["dds-participation-monthly-stats", monthYear, date],
+    queryFn: async () => {
+      const startDate = `${monthYear}-01`;
+      const endDate = date;
+      const { data, error } = await supabase
+        .from("dds_participation")
+        .select("employee_name, present, absence_reason")
+        .gte("dds_date", startDate)
+        .lte("dds_date", endDate);
+      if (error) throw error;
+      return data || [];
+    },
+    enabled: showStats && !!date,
+  });
 
   const canUnlock = useMemo(() => {
     if (isAdmin) return true;
@@ -413,33 +432,69 @@ export const DDSParticipationDialog = ({ open, onOpenChange, date }: Props) => {
         </div>
 
         {showStats && (() => {
-          const absentEntries = Object.values(attendance).filter(s => !s.present);
-          const reasonCounts: Record<string, number> = {};
-          absentEntries.forEach(s => {
-            const key = s.absence_reason || "falta";
-            reasonCounts[key] = (reasonCounts[key] || 0) + 1;
+          if (!monthlyData) return <div className="flex justify-center py-4"><Loader2 className="h-5 w-5 animate-spin text-muted-foreground" /></div>;
+
+          const presentNames = new Set<string>();
+          const reasonNames: Record<string, Set<string>> = {};
+          
+          monthlyData.forEach(r => {
+            if (r.present) {
+              presentNames.add(r.employee_name);
+            } else {
+              const key = r.absence_reason || "falta";
+              if (!reasonNames[key]) reasonNames[key] = new Set();
+              reasonNames[key].add(r.employee_name);
+            }
           });
-          const maxBar = Math.max(presentCount, ...Object.values(reasonCounts), 1);
+
+          const presentUniqueCount = presentNames.size;
+          const allCounts = [presentUniqueCount, ...Object.values(reasonNames).map(s => s.size)];
+          const maxBar = Math.max(...allCounts, 1);
+          const formattedStart = `01/${date.substring(5, 7)}`;
+          const formattedEnd = `${date.substring(8, 10)}/${date.substring(5, 7)}`;
+          const colorMap: Record<string, string> = { falta: "bg-red-500", atestado: "bg-yellow-500", treinamento: "bg-blue-500", exame: "bg-purple-500", folga: "bg-orange-500", afastado: "bg-gray-500" };
+
+          const toTitleCase = (n: string) => n.toLowerCase().split(' ').map(w => w.charAt(0).toUpperCase() + w.slice(1)).join(' ');
+
           return (
-            <div className="p-3 bg-muted/50 rounded-lg space-y-2 text-xs">
-              <div className="flex items-center gap-2">
+            <div className="p-3 bg-muted/50 rounded-lg space-y-1 text-xs">
+              <p className="text-[10px] text-muted-foreground mb-2 text-center">Período: {formattedStart} a {formattedEnd}</p>
+              
+              {/* Presentes */}
+              <button className="flex items-center gap-2 w-full hover:bg-muted/50 rounded p-1 transition-colors" onClick={() => setExpandedReason(expandedReason === "present" ? null : "present")}>
+                <ChevronRight className={`h-3 w-3 transition-transform ${expandedReason === "present" ? "rotate-90" : ""}`} />
                 <span className="w-24 text-right font-medium">✅ Presentes</span>
                 <div className="flex-1 bg-muted rounded-full h-5 overflow-hidden">
-                  <div className="bg-green-500 h-full rounded-full transition-all" style={{ width: `${(presentCount / maxBar) * 100}%` }} />
+                  <div className="bg-green-500 h-full rounded-full transition-all" style={{ width: `${(presentUniqueCount / maxBar) * 100}%` }} />
                 </div>
-                <span className="w-8 font-bold">{presentCount}</span>
-              </div>
+                <span className="w-8 font-bold text-right">{presentUniqueCount}</span>
+              </button>
+              {expandedReason === "present" && (
+                <div className="ml-8 pl-2 border-l-2 border-green-300 dark:border-green-700 space-y-0.5 py-1 max-h-32 overflow-y-auto">
+                  {[...presentNames].sort().map(n => <p key={n} className="text-[11px] text-muted-foreground">{toTitleCase(n)}</p>)}
+                </div>
+              )}
+
+              {/* Ausências por motivo */}
               {(Object.keys(ABSENCE_LABELS) as AbsenceReason[]).map(reason => {
-                const count = reasonCounts[reason] || 0;
-                if (count === 0) return null;
-                const colorMap: Record<string, string> = { falta: "bg-red-500", atestado: "bg-yellow-500", treinamento: "bg-blue-500", exame: "bg-purple-500", folga: "bg-orange-500", afastado: "bg-gray-500" };
+                const names = reasonNames[reason];
+                if (!names || names.size === 0) return null;
+                const isExpanded = expandedReason === reason;
                 return (
-                  <div key={reason} className="flex items-center gap-2">
-                    <span className="w-24 text-right font-medium">❌ {ABSENCE_LABELS[reason]}</span>
-                    <div className="flex-1 bg-muted rounded-full h-5 overflow-hidden">
-                      <div className={`${colorMap[reason]} h-full rounded-full transition-all`} style={{ width: `${(count / maxBar) * 100}%` }} />
-                    </div>
-                    <span className="w-8 font-bold">{count}</span>
+                  <div key={reason}>
+                    <button className="flex items-center gap-2 w-full hover:bg-muted/50 rounded p-1 transition-colors" onClick={() => setExpandedReason(isExpanded ? null : reason)}>
+                      <ChevronRight className={`h-3 w-3 transition-transform ${isExpanded ? "rotate-90" : ""}`} />
+                      <span className="w-24 text-right font-medium">❌ {ABSENCE_LABELS[reason]}</span>
+                      <div className="flex-1 bg-muted rounded-full h-5 overflow-hidden">
+                        <div className={`${colorMap[reason]} h-full rounded-full transition-all`} style={{ width: `${(names.size / maxBar) * 100}%` }} />
+                      </div>
+                      <span className="w-8 font-bold text-right">{names.size}</span>
+                    </button>
+                    {isExpanded && (
+                      <div className="ml-8 pl-2 border-l-2 border-muted-foreground/20 space-y-0.5 py-1 max-h-32 overflow-y-auto">
+                        {[...names].sort().map(n => <p key={n} className="text-[11px] text-muted-foreground">{toTitleCase(n)}</p>)}
+                      </div>
+                    )}
                   </div>
                 );
               })}
