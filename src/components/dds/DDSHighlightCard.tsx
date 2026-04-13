@@ -1,7 +1,7 @@
 import { useState, useRef, useMemo } from "react";
 import { format, addDays } from "date-fns";
 import { ptBR } from "date-fns/locale";
-import { Sun, Calendar, Camera, Upload, Loader2, ArrowRight, UserPlus, X, ClipboardList } from "lucide-react";
+import { Sun, Calendar, Camera, Upload, Loader2, ArrowRight, UserPlus, X, ClipboardList, Filter } from "lucide-react";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
@@ -36,6 +36,8 @@ export const DDSHighlightCard = () => {
   const fileInputRef = useRef<HTMLInputElement>(null);
   const eventFileInputRef = useRef<HTMLInputElement>(null);
   const [participationOpen, setParticipationOpen] = useState(false);
+  const [historicalDate, setHistoricalDate] = useState("");
+  const [historicalOpen, setHistoricalOpen] = useState(false);
 
   // Use Brazil North timezone - recalculate when dateKey changes
   const today = useMemo(() => getBrazilNorthDate(), [dateKey]);
@@ -234,20 +236,53 @@ export const DDSHighlightCard = () => {
               </div>
 
               {/* Participation List Button */}
-              <Button
-                variant="outline"
-                className="w-full"
-                onClick={() => setParticipationOpen(true)}
-              >
-                <ClipboardList className="h-4 w-4 mr-2" />
-                Ver Lista de Presença
-              </Button>
+              <div className="flex gap-2">
+                <Button
+                  variant="outline"
+                  className="flex-1"
+                  onClick={() => setParticipationOpen(true)}
+                >
+                  <ClipboardList className="h-4 w-4 mr-2" />
+                  Ver Lista de Presença
+                </Button>
+                <div className="flex items-center gap-1">
+                  <input
+                    type="date"
+                    value={historicalDate}
+                    onChange={(e) => {
+                      setHistoricalDate(e.target.value);
+                      if (e.target.value) setHistoricalOpen(true);
+                    }}
+                    className="sr-only"
+                    id="dds-date-filter"
+                  />
+                  <Button
+                    variant="outline"
+                    size="icon"
+                    onClick={() => { const el = document.getElementById("dds-date-filter"); if (el) { try { (el as any).showPicker(); } catch { el.click(); } } }}
+                    title="Filtrar por data"
+                  >
+                    <Filter className="h-4 w-4" />
+                  </Button>
+                </div>
+              </div>
 
               <DDSParticipationDialog
                 open={participationOpen}
                 onOpenChange={setParticipationOpen}
                 date={todayDDS.scheduled_date}
               />
+
+              {historicalDate && (
+                <DDSParticipationDialog
+                  open={historicalOpen}
+                  onOpenChange={(open) => {
+                    setHistoricalOpen(open);
+                    if (!open) setHistoricalDate("");
+                  }}
+                  date={historicalDate}
+                />
+              )}
             </div>
           ) : (
             <div className="text-center py-6 text-muted-foreground">
