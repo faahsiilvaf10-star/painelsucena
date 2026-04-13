@@ -245,7 +245,7 @@ export const DDSHighlightCard = () => {
                   <ClipboardList className="h-4 w-4 mr-2" />
                   Ver Lista de Presença
                 </Button>
-                <div className="flex items-center gap-1">
+                <div className="relative">
                   <input
                     type="date"
                     value={historicalDate}
@@ -253,13 +253,13 @@ export const DDSHighlightCard = () => {
                       setHistoricalDate(e.target.value);
                       if (e.target.value) setHistoricalOpen(true);
                     }}
-                    className="sr-only"
+                    className="absolute inset-0 w-full h-full opacity-0 cursor-pointer z-10"
                     id="dds-date-filter"
                   />
                   <Button
                     variant="outline"
                     size="icon"
-                    onClick={() => { const el = document.getElementById("dds-date-filter"); if (el) { try { (el as any).showPicker(); } catch { el.click(); } } }}
+                    className="pointer-events-none"
                     title="Filtrar por data"
                   >
                     <Filter className="h-4 w-4" />
