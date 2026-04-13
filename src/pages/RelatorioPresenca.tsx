@@ -498,7 +498,7 @@ const RelatorioPresenca = () => {
 
     const areaHeaders: Record<string, string> = {
       "ÁREA GABIÃO": `${EMOJI_ASTERISK_8}  ÁREA GABIÃO  ${EMOJI_ASTERISK_8}`,
-      "ROÇAGEM E PODAGEM": `${EMOJI_HERB} ROÇAGEM E PODAGEM ${EMOJI_HERB}`,
+      "ROÇAGEM E PODAGEM": `${EMOJI_HERB} JARDINAGEM ${EMOJI_HERB}`,
       "ADMINISTRATIVO": `📋 ADMINISTRATIVO 📋`,
     };
     const header = areaHeaders[area];
@@ -849,7 +849,7 @@ const RelatorioPresenca = () => {
       <div className="bg-card rounded-xl border border-border/50 p-6">
         <div className="flex items-center justify-between mb-2">
           <h2 className="text-xl font-bold text-center flex-1">
-            {emoji} {area} {emoji}
+            {emoji} {areaNames[area] || area} {emoji}
           </h2>
           {locked && (
             <div className="flex items-center gap-1 px-2 py-1 bg-amber-500/20 text-amber-500 rounded-md text-xs">
@@ -1238,7 +1238,7 @@ const RelatorioPresenca = () => {
               {showRocagemTab && (
                 <div className="bg-card rounded-xl border border-border/50 p-6">
                   <h2 className="font-semibold mb-4 text-lg">
-                    {EMOJI_HERB} Relatório Roçagem e Podagem
+                    {EMOJI_HERB} Relatório Jardinagem
                   </h2>
                   <Textarea
                     value={generateAreaReport("ROÇAGEM E PODAGEM")}
