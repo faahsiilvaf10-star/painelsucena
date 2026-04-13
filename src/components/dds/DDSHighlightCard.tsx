@@ -259,7 +259,7 @@ export const DDSHighlightCard = () => {
                   <Button
                     variant="outline"
                     size="icon"
-                    onClick={() => { const el = document.getElementById("dds-date-filter") as HTMLInputElement; if (el) { if ('showPicker' in el) { (el as any).showPicker(); } else { el.click(); } } }}
+                    onClick={() => { const el = document.getElementById("dds-date-filter"); if (el) { try { (el as any).showPicker(); } catch { el.click(); } } }}
                     title="Filtrar por data"
                   >
                     <Filter className="h-4 w-4" />
