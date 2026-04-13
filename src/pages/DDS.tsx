@@ -163,31 +163,10 @@ export default function DDS() {
   
   // Photo states
   const [fullscreenPhoto, setFullscreenPhoto] = useState<string | null>(null);
-  const [uploadingPhotoId, setUploadingPhotoId] = useState<string | null>(null);
   const [uploadingEventPhotoId, setUploadingEventPhotoId] = useState<string | null>(null);
-  const photoInputRef = useRef<HTMLInputElement>(null);
   const eventPhotoInputRef = useRef<HTMLInputElement>(null);
-  const [photoTargetId, setPhotoTargetId] = useState<string | null>(null);
   const [eventPhotoTargetId, setEventPhotoTargetId] = useState<string | null>(null);
 
-  const handleThemePhotoUpload = async (file: File, scheduleId: string) => {
-    if (!file || !user) return;
-    setUploadingPhotoId(scheduleId);
-    try {
-      const ext = file.name.split(".").pop() || "jpg";
-      const path = `dds-theme_${scheduleId}_${Date.now()}.${ext}`;
-      const { error: uploadError } = await supabase.storage.from("site-assets").upload(path, file, { upsert: true });
-      if (uploadError) throw uploadError;
-      const { data: urlData } = supabase.storage.from("site-assets").getPublicUrl(path);
-      await updateDDSPhoto.mutateAsync({ id: scheduleId, photo_url: urlData.publicUrl });
-      toast.success("Foto do tema adicionada!");
-    } catch (err) {
-      console.error("Error uploading theme photo:", err);
-      toast.error("Erro ao enviar foto");
-    } finally {
-      setUploadingPhotoId(null);
-    }
-  };
 
   const handleEventPhotoUpload = async (file: File, scheduleId: string, schedule: DDSScheduleItem) => {
     if (!file || !user) return;
@@ -959,20 +938,6 @@ export default function DDS() {
           </DialogContent>
         </Dialog>
 
-        {/* Hidden file input for theme photo upload */}
-        <input
-          ref={photoInputRef}
-          type="file"
-          accept="image/*"
-          className="hidden"
-          onChange={(e) => {
-            const file = e.target.files?.[0];
-            if (file && photoTargetId) {
-              handleThemePhotoUpload(file, photoTargetId);
-            }
-            e.target.value = "";
-          }}
-        />
 
         {/* Hidden file input for event photo upload */}
         <input
