@@ -714,48 +714,119 @@ const RelatorioPresenca = () => {
     );
   };
 
+  const saveSupportTeamToDb = async (area: "gabiao" | "jardinagem", support: SupportTeam) => {
+    const { error } = await supabase
+      .from("support_team_settings")
+      .upsert({
+        area,
+        tst: support.tst,
+        enc_geral: support.encGeral,
+        enc: support.enc,
+        updated_at: new Date().toISOString(),
+        updated_by: profile?.user_id || null,
+      }, { onConflict: "area" });
+    if (error) throw error;
+    queryClient.invalidateQueries({ queryKey: ["support_team_settings"] });
+  };
+
   const SupportTeamEditor = ({
     support,
     setSupport,
+    areaKey,
   }: {
     support: SupportTeam;
     setSupport: React.Dispatch<React.SetStateAction<SupportTeam>>;
+    areaKey: "gabiao" | "jardinagem";
   }) => {
+    const [isEditing, setIsEditing] = useState(false);
+    const [isSaving, setIsSaving] = useState(false);
+    const [draft, setDraft] = useState(support);
+
+    useEffect(() => {
+      setDraft(support);
+    }, [support]);
+
+    const handleSave = async () => {
+      setIsSaving(true);
+      try {
+        await saveSupportTeamToDb(areaKey, draft);
+        setSupport(draft);
+        setIsEditing(false);
+        toast.success("Equipe de suporte salva!");
+      } catch {
+        toast.error("Erro ao salvar equipe de suporte");
+      } finally {
+        setIsSaving(false);
+      }
+    };
+
+    const handleCancel = () => {
+      setDraft(support);
+      setIsEditing(false);
+    };
+
     return (
       <div className="bg-muted/30 rounded-lg p-4 mb-4">
-        <p className="text-sm font-semibold text-center mb-3 flex items-center justify-center gap-2">
-          {EMOJI_STAR_8} EQUIPE DE SUPORTE {EMOJI_STAR_8}
-          <Pencil className="w-3 h-3 text-muted-foreground" />
-        </p>
-        <div className="space-y-3">
-          <div className="flex items-center gap-2">
-            <span className="text-sm text-muted-foreground w-24 shrink-0">{EMOJI_PERSON_RAISING_HAND} TST:</span>
-            <Input
-              value={support.tst}
-              onChange={(e) => setSupport({ ...support, tst: e.target.value })}
-              className="h-8 text-sm bg-background"
-              placeholder="Nome do TST"
-            />
-          </div>
-          <div className="flex items-center gap-2">
-            <span className="text-sm text-muted-foreground w-24 shrink-0">{EMOJI_PERSON_RAISING_HAND} ENC GERAL:</span>
-            <Input
-              value={support.encGeral}
-              onChange={(e) => setSupport({ ...support, encGeral: e.target.value })}
-              className="h-8 text-sm bg-background"
-              placeholder="Nome do ENC Geral"
-            />
-          </div>
-          <div className="flex items-center gap-2">
-            <span className="text-sm text-muted-foreground w-24 shrink-0">{EMOJI_PERSON_RAISING_HAND} ENC:</span>
-            <Input
-              value={support.enc}
-              onChange={(e) => setSupport({ ...support, enc: e.target.value })}
-              className="h-8 text-sm bg-background"
-              placeholder="Nome do ENC"
-            />
-          </div>
+        <div className="flex items-center justify-center gap-2 mb-3">
+          <p className="text-sm font-semibold">
+            {EMOJI_STAR_8} EQUIPE DE SUPORTE {EMOJI_STAR_8}
+          </p>
+          {!isEditing && (
+            <button
+              onClick={() => setIsEditing(true)}
+              className="p-1 rounded hover:bg-primary/20 text-muted-foreground hover:text-primary transition-colors"
+              title="Editar equipe de suporte"
+            >
+              <Pencil className="w-3.5 h-3.5" />
+            </button>
+          )}
         </div>
+        {isEditing ? (
+          <div className="space-y-3">
+            <div className="flex items-center gap-2">
+              <span className="text-sm text-muted-foreground w-24 shrink-0">{EMOJI_PERSON_RAISING_HAND} TST:</span>
+              <Input
+                value={draft.tst}
+                onChange={(e) => setDraft({ ...draft, tst: e.target.value })}
+                className="h-8 text-sm bg-background"
+                placeholder="Nome do TST"
+              />
+            </div>
+            <div className="flex items-center gap-2">
+              <span className="text-sm text-muted-foreground w-24 shrink-0">{EMOJI_PERSON_RAISING_HAND} ENC GERAL:</span>
+              <Input
+                value={draft.encGeral}
+                onChange={(e) => setDraft({ ...draft, encGeral: e.target.value })}
+                className="h-8 text-sm bg-background"
+                placeholder="Nome do ENC Geral"
+              />
+            </div>
+            <div className="flex items-center gap-2">
+              <span className="text-sm text-muted-foreground w-24 shrink-0">{EMOJI_PERSON_RAISING_HAND} ENC:</span>
+              <Input
+                value={draft.enc}
+                onChange={(e) => setDraft({ ...draft, enc: e.target.value })}
+                className="h-8 text-sm bg-background"
+                placeholder="Nome do ENC"
+              />
+            </div>
+            <div className="flex justify-end gap-2 pt-2">
+              <Button variant="ghost" size="sm" onClick={handleCancel} disabled={isSaving}>
+                Cancelar
+              </Button>
+              <Button size="sm" onClick={handleSave} disabled={isSaving} className="gap-1">
+                {isSaving ? <Loader2 className="w-3 h-3 animate-spin" /> : <Save className="w-3 h-3" />}
+                Salvar
+              </Button>
+            </div>
+          </div>
+        ) : (
+          <div className="space-y-1.5 text-sm">
+            <p>{EMOJI_PERSON_RAISING_HAND} TST: <span className="font-medium">{support.tst}</span></p>
+            <p>{EMOJI_PERSON_RAISING_HAND} ENC GERAL: <span className="font-medium">{support.encGeral}</span></p>
+            <p>{EMOJI_PERSON_RAISING_HAND} ENC: <span className="font-medium">{support.enc}</span></p>
+          </div>
+        )}
       </div>
     );
   };
