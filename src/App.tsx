@@ -65,6 +65,7 @@ import InspecaoExtintores from "./pages/InspecaoExtintores";
 import MeioAmbiente from "./pages/MeioAmbiente";
 import PosChuva from "./pages/PosChuva";
 import Seguranca from "./pages/Seguranca";
+import RecursosHumanos from "./pages/RecursosHumanos";
 import Almoxarifado from "./pages/Almoxarifado";
 import NotFound from "./pages/NotFound";
 
@@ -164,6 +165,7 @@ const App = () => (
                     <Route path="/meio-ambiente" element={<ProtectedRoute><MeioAmbiente /></ProtectedRoute>} />
                     <Route path="/pos-chuva" element={<ProtectedRoute><PosChuva /></ProtectedRoute>} />
                     <Route path="/seguranca" element={<ProtectedRoute><Seguranca /></ProtectedRoute>} />
+                    <Route path="/recursos-humanos" element={<ProtectedRoute><RecursosHumanos /></ProtectedRoute>} />
                     <Route path="/almoxarifado" element={<ProtectedRoute><Almoxarifado /></ProtectedRoute>} />
                     <Route path="/equipamentos" element={<ProtectedRoute><Equipamentos /></ProtectedRoute>} />
                     {/* ADD ALL CUSTOM ROUTES ABOVE THE CATCH-ALL "*" ROUTE */}
