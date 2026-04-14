@@ -76,6 +76,18 @@ export const OnlineUsersFooter = ({
               </div>}
           </button>
 
+          {/* Playlist skip controls */}
+          {isPlaylist && isRadioActive && (
+            <div className="flex items-center">
+              <button onClick={prevTrack} className="p-1 hover:bg-secondary/50 rounded transition-colors" aria-label="Anterior">
+                <SkipBack className="h-3 w-3 text-green-500" />
+              </button>
+              <button onClick={nextTrack} className="p-1 hover:bg-secondary/50 rounded transition-colors" aria-label="Próxima">
+                <SkipForward className="h-3 w-3 text-green-500" />
+              </button>
+            </div>
+          )}
+
           {/* Station Selector */}
           <Popover open={selectorOpen} onOpenChange={setSelectorOpen}>
             <PopoverTrigger asChild>
