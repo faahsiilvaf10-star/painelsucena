@@ -81,7 +81,7 @@ const allNavItems: NavItem[] = [
   
   { id: "instacena", icon: Newspaper, label: "InstaCena", path: "/instacena" },
   
-  { id: "games", icon: Gamepad2, label: "Games", path: "/games" },
+  
   { id: "planejamento", icon: Target, label: "Planejamento", path: "/planejamento" },
   { id: "meio-ambiente", icon: Leaf, label: "Meio Ambiente", path: "/meio-ambiente" },
   { id: "seguranca", icon: Shield, label: "Segurança", path: "/seguranca" },
