@@ -15,7 +15,6 @@ import { toast } from "sonner";
 import { User, Mail, Lock, Camera, Upload, Eye, EyeOff, ArrowLeft, Check, AlertTriangle } from "lucide-react";
 import { z } from "zod";
 import { AnnouncementHistory } from "@/components/settings/AnnouncementHistory";
-import { MusicManager } from "@/components/settings/MusicManager";
 import { NeonFramePicker } from "@/components/settings/NeonFramePicker";
 import { GifAvatarCreator } from "@/components/settings/GifAvatarCreator";
 import { SidebarCustomizer } from "@/components/settings/SidebarCustomizer";
@@ -518,9 +517,6 @@ const Configuracoes = () => {
                 currentSidebarActiveColor={sidebarActiveColor}
                 currentSidebarActiveFontColor={sidebarActiveFontColor}
               />
-
-              {/* Music Manager */}
-              <MusicManager />
 
               {/* Announcement History */}
               <AnnouncementHistory />
