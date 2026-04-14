@@ -3,19 +3,35 @@ import { registerSW } from "virtual:pwa-register";
 import App from "./App.tsx";
 import "./index.css";
 
-// ===== FORCE CACHE BUST (v2026-04-14) =====
-// On every app load, clear all caches and unregister stale SWs
+// ===== FORCE CACHE BUST (v2026-04-14-b) =====
+const APP_VERSION = "2026-04-14-b";
+const LAST_VERSION_KEY = "app_last_version";
+
 (async () => {
   try {
+    const lastVersion = localStorage.getItem(LAST_VERSION_KEY);
+    const needsFullClear = lastVersion !== APP_VERSION;
+
     // Clear all Cache Storage
     if ("caches" in window) {
       const keys = await caches.keys();
       await Promise.all(keys.map((k) => caches.delete(k)));
     }
+
     // Unregister all existing service workers to force fresh install
     if ("serviceWorker" in navigator) {
       const registrations = await navigator.serviceWorker.getRegistrations();
       await Promise.all(registrations.map((r) => r.unregister()));
+    }
+
+    // If version changed, do a hard reload once
+    if (needsFullClear) {
+      localStorage.setItem(LAST_VERSION_KEY, APP_VERSION);
+      // Clear sessionStorage too
+      sessionStorage.clear();
+      console.log(`[UPDATE] Versão atualizada para ${APP_VERSION}, recarregando...`);
+      window.location.reload();
+      return;
     }
   } catch (e) {
     console.warn("Cache cleanup on boot:", e);
