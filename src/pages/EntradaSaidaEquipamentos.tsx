@@ -18,6 +18,7 @@ import { InHistoryDialog } from "@/components/equipamentos/InHistoryDialog";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { VehicleIcon } from "@/components/equipamentos/VehicleIcons";
+import { EquipmentMovementHistoryDialog } from "@/components/equipamentos/EquipmentMovementHistoryDialog";
 import { Loader2 } from "lucide-react";
 import { format } from "date-fns";
 import { ptBR } from "date-fns/locale";
@@ -67,6 +68,10 @@ const EXIT_REASON_LABELS: Record<string, string> = {
 
   const [addDialogOpen, setAddDialogOpen] = useState(false);
   const [newEquipmentName, setNewEquipmentName] = useState("");
+
+  // Equipment movement history dialog
+  const [historyDialogOpen, setHistoryDialogOpen] = useState(false);
+  const [historyEquipment, setHistoryEquipment] = useState<{ name: string; plate: string } | null>(null);
 
   // Jardinagem exit dialog state
   const [jardinagemExitDialogOpen, setJardinagemExitDialogOpen] = useState(false);
@@ -299,7 +304,14 @@ const EXIT_REASON_LABELS: Record<string, string> = {
                          </TableHeader>
                         <TableBody>
                           {equipmentNoCanteiro.map((eq) => (
-                             <TableRow key={eq.id}>
+                             <TableRow 
+                               key={eq.id} 
+                               className="cursor-pointer hover:bg-muted/50"
+                               onClick={() => {
+                                 setHistoryEquipment({ name: eq.name, plate: eq.plate });
+                                 setHistoryDialogOpen(true);
+                               }}
+                             >
                                <TableCell className="hidden sm:table-cell">
                                  <VehicleIcon
                                    type={eq.equipment_type as "pipa" | "munk" | "camionete" | "onibus"}
@@ -334,12 +346,12 @@ const EXIT_REASON_LABELS: Record<string, string> = {
                                      : eq.stop_reason || "Aguardando"}
                                 </Badge>
                               </TableCell>
-                               <TableCell>
-                                  <Button
-                                    size="sm"
-                                    variant="outline"
-                                    className="gap-1 text-orange-600 border-orange-300 hover:bg-orange-50"
-                                    onClick={() => handleOpenExitDialog({ name: eq.name, plate: eq.plate })}
+                                <TableCell onClick={(e) => e.stopPropagation()}>
+                                   <Button
+                                     size="sm"
+                                     variant="outline"
+                                     className="gap-1 text-orange-600 border-orange-300 hover:bg-orange-50"
+                                     onClick={() => handleOpenExitDialog({ name: eq.name, plate: eq.plate })}
                                   >
                                     <LogOut className="h-3.5 w-3.5" />
                                     <span className="hidden sm:inline">Saída</span>
@@ -387,7 +399,14 @@ const EXIT_REASON_LABELS: Record<string, string> = {
                          </TableHeader>
                         <TableBody>
                    {equipmentForaObra.map((m) => (
-                     <TableRow key={m.id}>
+                     <TableRow 
+                       key={m.id} 
+                       className="cursor-pointer hover:bg-muted/50"
+                       onClick={() => {
+                         setHistoryEquipment({ name: m.equipment_name, plate: m.plate });
+                         setHistoryDialogOpen(true);
+                       }}
+                     >
                               <TableCell className="hidden sm:table-cell">
                          <ExternalLink className="h-4 w-4 text-orange-500" />
                        </TableCell>
@@ -417,7 +436,7 @@ const EXIT_REASON_LABELS: Record<string, string> = {
                         )}
                         {!m.problem_description && !m.observation && "-"}
                        </TableCell>
-                        <TableCell>
+                        <TableCell onClick={(e) => e.stopPropagation()}>
                           <Button
                             size="sm"
                             variant="outline"
@@ -784,6 +803,16 @@ const EXIT_REASON_LABELS: Record<string, string> = {
             </DialogFooter>
           </DialogContent>
         </Dialog>
+
+        {/* Equipment Movement History Dialog */}
+        {historyEquipment && (
+          <EquipmentMovementHistoryDialog
+            equipmentName={historyEquipment.name}
+            plate={historyEquipment.plate}
+            open={historyDialogOpen}
+            onOpenChange={setHistoryDialogOpen}
+          />
+        )}
        </div>
       </Layout>
    );
