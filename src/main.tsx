@@ -3,142 +3,55 @@ import { registerSW } from "virtual:pwa-register";
 import App from "./App.tsx";
 import "./index.css";
 
-const PUBLISHED_APP_URL = "https://painelsucena.lovable.app";
-const DESKTOP_BOOT_REFRESH_KEY = "__desktop_boot_refresh__";
+// Register Service Worker for PWA — works on all platforms (mobile, desktop, browser)
+const updateSW = registerSW({
+  immediate: true,
+  onNeedRefresh() {
+    showUpdateBanner();
+  },
+  onOfflineReady() {
+    console.log("App pronto para uso offline");
+  },
+  onRegistered(registration) {
+    console.log("Service Worker registrado:", registration);
+    if (!registration) return;
 
-type NavigatorWithUserAgentData = Navigator & {
-  userAgentData?: {
-    platform?: string;
-  };
-};
+    const checkForUpdates = () => {
+      if (navigator.onLine) {
+        registration.update().catch((e) => console.error("Erro ao buscar atualização:", e));
+      }
+    };
 
-function getClientPlatform() {
-  const navigatorWithUserAgentData = navigator as NavigatorWithUserAgentData;
-  return navigatorWithUserAgentData.userAgentData?.platform ?? navigator.platform ?? navigator.userAgent;
-}
+    // Check immediately, then every 2 minutes
+    checkForUpdates();
+    setInterval(checkForUpdates, 2 * 60 * 1000);
 
-function getShellInfo() {
-  const isFileProtocol = window.location.protocol === "file:";
-  const isElectronShell = /electron/i.test(navigator.userAgent);
-  const isStandaloneDisplayMode = window.matchMedia("(display-mode: standalone)").matches;
-  const isDesktopPlatform = /win|mac|linux/i.test(getClientPlatform());
-
-  return {
-    isFileProtocol,
-    isDesktopInstalledApp:
-      isFileProtocol || isElectronShell || (isStandaloneDisplayMode && isDesktopPlatform),
-  };
-}
-
-async function clearRuntimeCaches() {
-  if ("caches" in window) {
-    const keys = await caches.keys();
-    await Promise.all(keys.map((key) => caches.delete(key)));
-  }
-
-  if ("serviceWorker" in navigator) {
-    const registrations = await navigator.serviceWorker.getRegistrations();
-    await Promise.all(registrations.map((registration) => registration.unregister()));
-  }
-}
-
-function buildFreshCurrentUrl() {
-  const url = new URL(window.location.href);
-  url.searchParams.set("__desktop_refresh", Date.now().toString());
-  return url.toString();
-}
-
-function buildPublishedDesktopUrl() {
-  const url = new URL("/", PUBLISHED_APP_URL);
-  url.searchParams.set("__desktop_refresh", Date.now().toString());
-  return url.toString();
-}
-
-async function forceDesktopFreshLaunch() {
-  const { isDesktopInstalledApp, isFileProtocol } = getShellInfo();
-
-  if (!isDesktopInstalledApp) {
-    return false;
-  }
-
-  const alreadyRefreshedThisLaunch = sessionStorage.getItem(DESKTOP_BOOT_REFRESH_KEY) === "1";
-  if (alreadyRefreshedThisLaunch) {
-    return false;
-  }
-
-  sessionStorage.setItem(DESKTOP_BOOT_REFRESH_KEY, "1");
-  await clearRuntimeCaches();
-
-  window.location.replace(isFileProtocol ? buildPublishedDesktopUrl() : buildFreshCurrentUrl());
-  return true;
-}
-
-const { isDesktopInstalledApp } = getShellInfo();
-const noopUpdateSW = async (_reloadPage?: boolean) => {};
-
-const updateSW = isDesktopInstalledApp
-  ? noopUpdateSW
-  : registerSW({
-      immediate: true,
-      onNeedRefresh() {
-        showUpdateBanner();
-      },
-      onOfflineReady() {
-        console.log("App pronto para uso offline");
-      },
-      onRegistered(registration) {
-        console.log("Service Worker registrado:", registration);
-
-        if (!registration) {
-          return;
-        }
-
-        const checkForUpdates = () => {
-          if (navigator.onLine) {
-            registration.update().catch((error) => {
-              console.error("Erro ao buscar atualização do app:", error);
-            });
-          }
-        };
-
-        checkForUpdates();
-        setInterval(checkForUpdates, 2 * 60 * 1000);
-
-        window.addEventListener("focus", checkForUpdates);
-        window.addEventListener("online", checkForUpdates);
-        document.addEventListener("visibilitychange", () => {
-          if (document.visibilityState === "visible") {
-            checkForUpdates();
-          }
-        });
-
-        if ("periodicSync" in registration) {
-          (registration as ServiceWorkerRegistration & {
-            periodicSync: { register: (tag: string, options: { minInterval: number }) => Promise<void> };
-          }).periodicSync
-            .register("content-sync", {
-              minInterval: 12 * 60 * 60 * 1000,
-            })
-            .catch((err: Error) => console.log("Periodic sync não suportado:", err));
-        }
-
-        if ("sync" in registration) {
-          (registration as ServiceWorkerRegistration & {
-            sync: { register: (tag: string) => Promise<void> };
-          }).sync
-            .register("pending-sync")
-            .catch((err: Error) => console.log("Background sync não suportado:", err));
-        }
-      },
-      onRegisterError(error) {
-        console.error("Erro ao registrar Service Worker:", error);
-      },
+    // Also check on focus / visibility / online
+    window.addEventListener("focus", checkForUpdates);
+    window.addEventListener("online", checkForUpdates);
+    document.addEventListener("visibilitychange", () => {
+      if (document.visibilityState === "visible") checkForUpdates();
     });
 
+    if ("periodicSync" in registration) {
+      (registration as any).periodicSync
+        .register("content-sync", { minInterval: 12 * 60 * 60 * 1000 })
+        .catch((err: Error) => console.log("Periodic sync não suportado:", err));
+    }
+
+    if ("sync" in registration) {
+      (registration as any).sync
+        .register("pending-sync")
+        .catch((err: Error) => console.log("Background sync não suportado:", err));
+    }
+  },
+  onRegisterError(error) {
+    console.error("Erro ao registrar Service Worker:", error);
+  },
+});
+
 function showUpdateBanner() {
-  if (document.getElementById("update-banner")) {
-    return;
-  }
+  if (document.getElementById("update-banner")) return;
 
   const banner = document.createElement("div");
   banner.id = "update-banner";
@@ -169,10 +82,7 @@ function showUpdateBanner() {
   const countdownEl = document.getElementById("update-countdown");
   const timer = setInterval(() => {
     seconds -= 1;
-    if (countdownEl) {
-      countdownEl.textContent = String(seconds);
-    }
-
+    if (countdownEl) countdownEl.textContent = String(seconds);
     if (seconds <= 0) {
       clearInterval(timer);
       clearCachesAndReload();
@@ -182,26 +92,17 @@ function showUpdateBanner() {
 
 async function clearCachesAndReload() {
   try {
-    await clearRuntimeCaches();
-    await updateSW(true);
-  } catch (error) {
-    console.error("Erro ao limpar cache:", error);
-  }
-
-  window.location.replace(buildFreshCurrentUrl());
-}
-
-async function bootstrap() {
-  try {
-    const redirected = await forceDesktopFreshLaunch();
-    if (redirected) {
-      return;
+    // Clear all Cache Storage
+    if ("caches" in window) {
+      const keys = await caches.keys();
+      await Promise.all(keys.map((k) => caches.delete(k)));
     }
-  } catch (error) {
-    console.error("Erro ao preparar atualização do app desktop:", error);
+    // Activate new SW
+    await updateSW(true);
+  } catch (e) {
+    console.error("Erro ao limpar cache:", e);
   }
-
-  createRoot(document.getElementById("root")!).render(<App />);
+  window.location.reload();
 }
 
-void bootstrap();
+createRoot(document.getElementById("root")!).render(<App />);
