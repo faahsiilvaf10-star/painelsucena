@@ -1,5 +1,5 @@
 import { useNavigate } from "react-router-dom";
-import { Layout } from "@/components/layout/Layout";
+import Layout from "@/components/layout/Layout";
 import { Card, CardContent } from "@/components/ui/card";
 import {
   Sun, FolderOpen, ClipboardCheck, BadgeCheck, Link2,
