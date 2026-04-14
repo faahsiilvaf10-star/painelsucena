@@ -1,6 +1,6 @@
 import { useState } from "react";
 import { NewsTicker } from "@/components/footer/NewsTicker";
-import { Radio, VolumeX, Volume2, Play, ChevronDown } from "lucide-react";
+import { Radio, VolumeX, Volume2, Play, ChevronDown, SkipBack, SkipForward, Music } from "lucide-react";
 import { cn } from "@/lib/utils";
 import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover";
 import { useRadio } from "@/contexts/RadioContext";
@@ -25,7 +25,11 @@ export const OnlineUsersFooter = ({
     stations,
     toggleRadio,
     changeStation,
-    isRadioActive
+    isRadioActive,
+    isPlaylist,
+    currentTrack,
+    nextTrack,
+    prevTrack,
   } = useRadio();
   const isCollapsedSidebar = state === "collapsed";
   return <div className={cn("fixed bottom-0 right-0 z-40 transition-[left] duration-200 ease-linear", isMinimized ? "bg-transparent border-t-0" : "bg-card border-t border-border", isCollapsedSidebar ? "left-[48px]" : "left-[256px]", "max-md:left-0")}>
