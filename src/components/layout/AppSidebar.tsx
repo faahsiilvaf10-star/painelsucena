@@ -76,7 +76,7 @@ const allNavItems: NavItem[] = [
   { id: "rdo-hub", icon: FileText, label: "Relatório Diário Obra", path: "/relatorio-diario-obra" },
   
   { id: "arquivos-seguranca", icon: FolderLock, label: "Documentos Salvos", path: "/arquivos-seguranca" },
-  { id: "consumo-abastecimento", icon: Droplets, label: "Consumo Abastecimento", path: "/consumo-abastecimento" },
+  
   
   
   { id: "instacena", icon: Newspaper, label: "InstaCena", path: "/instacena" },
