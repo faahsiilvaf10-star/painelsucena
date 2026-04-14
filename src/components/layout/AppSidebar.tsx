@@ -70,7 +70,7 @@ const allNavItems: NavItem[] = [
   { id: "atividades-ii", icon: Hammer, label: "Atividades II", path: "/atividades-ii", hiddenFrom: ["encarregado_i"] },
   
   { id: "destaques", icon: LayoutDashboard, label: "Destaques", path: "/" },
-  { id: "campanhas", icon: Heart, label: "Campanhas", path: "/campanhas" },
+  { id: "entrada-saida", icon: ArrowLeftRight, label: "Entrada e Saída", path: "/entrada-saida-equipamentos" },
   { id: "entrada-saida", icon: ArrowLeftRight, label: "Entrada e Saída", path: "/entrada-saida-equipamentos" },
   
   { id: "estoque", icon: Package, label: "Estoque", path: "/estoque" },
