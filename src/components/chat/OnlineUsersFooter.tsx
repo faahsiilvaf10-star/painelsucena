@@ -51,14 +51,20 @@ export const OnlineUsersFooter = ({
         <div className="flex items-center gap-0.5 md:gap-1 shrink-0">
           <button onClick={toggleRadio} className={cn("flex items-center gap-1 md:gap-2 px-2 md:px-3 py-1 md:py-1.5 rounded-l-full transition-all duration-300", isRadioActive ? "bg-green-500/20 hover:bg-green-500/30 border border-r-0 border-green-400/40" : "bg-secondary/50 hover:bg-secondary border border-r-0 border-transparent")} aria-label={!isPlaying ? "Iniciar rádio" : isMuted ? "Ativar som" : "Silenciar"}>
             <div className="relative">
-              <Radio className={cn("h-4 w-4 transition-colors", isRadioActive ? "text-green-500" : "text-muted-foreground")} />
+              {isPlaylist ? (
+                <Music className={cn("h-4 w-4 transition-colors", isRadioActive ? "text-green-500" : "text-muted-foreground")} />
+              ) : (
+                <Radio className={cn("h-4 w-4 transition-colors", isRadioActive ? "text-green-500" : "text-muted-foreground")} />
+              )}
               {isRadioActive && <span className="absolute -top-0.5 -right-0.5 w-1.5 h-1.5 bg-green-500 rounded-full animate-ping" />}
             </div>
             
             {!isPlaying ? <Play className="h-3 w-3 text-muted-foreground" /> : isRadioActive ? <Volume2 className="h-3 w-3 text-green-500" /> : <VolumeX className="h-3 w-3 text-muted-foreground" />}
             
-            <span className={cn("text-xs font-medium transition-colors", isRadioActive ? "text-green-500" : "text-muted-foreground")}>
-              {isRadioActive ? "Ao Vivo" : isPlaying ? "Mudo" : selectedStation.name}
+            <span className={cn("text-xs font-medium transition-colors max-w-[120px] truncate", isRadioActive ? "text-green-500" : "text-muted-foreground")}>
+              {isRadioActive
+                ? (isPlaylist && currentTrack ? currentTrack.title : isPlaylist ? "Playlist" : "Ao Vivo")
+                : isPlaying ? "Mudo" : selectedStation.name}
             </span>
 
             {/* Sound wave animation */}
