@@ -2098,6 +2098,45 @@ export type Database = {
         }
         Relationships: []
       }
+      music_tracks: {
+        Row: {
+          artist: string | null
+          created_at: string
+          duration_seconds: number | null
+          file_name: string
+          file_url: string
+          id: string
+          sort_order: number
+          title: string
+          updated_at: string
+          uploaded_by: string | null
+        }
+        Insert: {
+          artist?: string | null
+          created_at?: string
+          duration_seconds?: number | null
+          file_name: string
+          file_url: string
+          id?: string
+          sort_order?: number
+          title: string
+          updated_at?: string
+          uploaded_by?: string | null
+        }
+        Update: {
+          artist?: string | null
+          created_at?: string
+          duration_seconds?: number | null
+          file_name?: string
+          file_url?: string
+          id?: string
+          sort_order?: number
+          title?: string
+          updated_at?: string
+          uploaded_by?: string | null
+        }
+        Relationships: []
+      }
       nav_visibility_rules: {
         Row: {
           cargo: string
