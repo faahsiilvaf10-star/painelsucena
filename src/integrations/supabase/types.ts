@@ -3146,7 +3146,12 @@ export type Database = {
           nav_order: Json | null
           primary_color: string | null
           show_signup_button: boolean
+          sidebar_active_color: string | null
+          sidebar_active_font_color: string | null
+          sidebar_animation: string | null
           sidebar_color: string | null
+          sidebar_font: string | null
+          sidebar_font_color: string | null
           ui_theme: string
           updated_at: string
           updated_by: string | null
@@ -3167,7 +3172,12 @@ export type Database = {
           nav_order?: Json | null
           primary_color?: string | null
           show_signup_button?: boolean
+          sidebar_active_color?: string | null
+          sidebar_active_font_color?: string | null
+          sidebar_animation?: string | null
           sidebar_color?: string | null
+          sidebar_font?: string | null
+          sidebar_font_color?: string | null
           ui_theme?: string
           updated_at?: string
           updated_by?: string | null
@@ -3188,7 +3198,12 @@ export type Database = {
           nav_order?: Json | null
           primary_color?: string | null
           show_signup_button?: boolean
+          sidebar_active_color?: string | null
+          sidebar_active_font_color?: string | null
+          sidebar_animation?: string | null
           sidebar_color?: string | null
+          sidebar_font?: string | null
+          sidebar_font_color?: string | null
           ui_theme?: string
           updated_at?: string
           updated_by?: string | null
