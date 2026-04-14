@@ -1,5 +1,6 @@
 import { Toaster } from "@/components/ui/toaster";
 import { Toaster as Sonner } from "@/components/ui/sonner";
+import Equipamentos from "./pages/Equipamentos";
 import { TooltipProvider } from "@/components/ui/tooltip";
 import { QueryClientProvider } from "@tanstack/react-query";
 import { QueryClient } from "@tanstack/query-core";
@@ -164,6 +165,7 @@ const App = () => (
                     <Route path="/pos-chuva" element={<ProtectedRoute><PosChuva /></ProtectedRoute>} />
                     <Route path="/seguranca" element={<ProtectedRoute><Seguranca /></ProtectedRoute>} />
                     <Route path="/almoxarifado" element={<ProtectedRoute><Almoxarifado /></ProtectedRoute>} />
+                    <Route path="/equipamentos" element={<ProtectedRoute><Equipamentos /></ProtectedRoute>} />
                     {/* ADD ALL CUSTOM ROUTES ABOVE THE CATCH-ALL "*" ROUTE */}
                     <Route path="*" element={<NotFound />} />
                   </Routes>

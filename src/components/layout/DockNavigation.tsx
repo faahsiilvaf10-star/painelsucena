@@ -13,7 +13,7 @@ import {
   Package, FolderOpen, ShieldCheck, Leaf, Hammer, ClipboardCheck,
   BadgeCheck, Link2, ArrowLeftRight, Clock, FolderLock, Droplets,
   Wrench, Presentation, Newspaper, HardHat, CalendarDays, Gamepad2,
-  TriangleAlert, Target, Receipt, FlameKindling, AlertTriangle, Shield, Warehouse, type LucideIcon
+  TriangleAlert, Target, Receipt, FlameKindling, AlertTriangle, Shield, Warehouse, Settings, type LucideIcon
 } from "lucide-react";
 
 interface NavItem {
