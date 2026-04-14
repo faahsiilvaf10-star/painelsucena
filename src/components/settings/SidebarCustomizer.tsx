@@ -3,10 +3,10 @@ import { useQueryClient } from "@tanstack/react-query";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Label } from "@/components/ui/label";
-import { supabase } from "@/integrations/supabase/client";
 import { toast } from "sonner";
 import { PanelLeft, Check, RotateCcw, Sparkles, Type, Palette, MousePointerClick } from "lucide-react";
 import { cn } from "@/lib/utils";
+import { useSiteSettings } from "@/hooks/useSiteSettings";
 
 interface SidebarCustomizerProps {
   userId: string;
@@ -86,44 +86,40 @@ export const SidebarCustomizer = ({
   currentSidebarActiveFontColor,
 }: SidebarCustomizerProps) => {
   const queryClient = useQueryClient();
-  const [selectedColor, setSelectedColor] = useState<string | null>(currentSidebarColor || null);
-  const [selectedAnimation, setSelectedAnimation] = useState<string | null>(currentSidebarAnimation || "particles");
-  const [selectedFont, setSelectedFont] = useState<string | null>(currentSidebarFont || null);
-  const [selectedFontColor, setSelectedFontColor] = useState<string | null>(currentSidebarFontColor || null);
-  const [selectedActiveColor, setSelectedActiveColor] = useState<string | null>(currentSidebarActiveColor || null);
-  const [selectedActiveFontColor, setSelectedActiveFontColor] = useState<string | null>(currentSidebarActiveFontColor || null);
+  const { settings, updateSettings } = useSiteSettings();
+  
+  const [selectedColor, setSelectedColor] = useState<string | null>(settings.sidebar_color || null);
+  const [selectedAnimation, setSelectedAnimation] = useState<string | null>(settings.sidebar_animation ?? "particles");
+  const [selectedFont, setSelectedFont] = useState<string | null>(settings.sidebar_font || null);
+  const [selectedFontColor, setSelectedFontColor] = useState<string | null>(settings.sidebar_font_color || null);
+  const [selectedActiveColor, setSelectedActiveColor] = useState<string | null>(settings.sidebar_active_color || null);
+  const [selectedActiveFontColor, setSelectedActiveFontColor] = useState<string | null>(settings.sidebar_active_font_color || null);
   const [isSaving, setIsSaving] = useState(false);
 
-  // Keep selections in sync with loaded profile data
+  // Keep selections in sync with global settings
   useEffect(() => {
-    setSelectedColor(currentSidebarColor || null);
-    setSelectedAnimation(currentSidebarAnimation || "particles");
-    setSelectedFont(currentSidebarFont || null);
-    setSelectedFontColor(currentSidebarFontColor || null);
-    setSelectedActiveColor(currentSidebarActiveColor || null);
-    setSelectedActiveFontColor(currentSidebarActiveFontColor || null);
-  }, [currentSidebarColor, currentSidebarAnimation, currentSidebarFont, currentSidebarFontColor, currentSidebarActiveColor, currentSidebarActiveFontColor]);
+    setSelectedColor(settings.sidebar_color || null);
+    setSelectedAnimation(settings.sidebar_animation ?? "particles");
+    setSelectedFont(settings.sidebar_font || null);
+    setSelectedFontColor(settings.sidebar_font_color || null);
+    setSelectedActiveColor(settings.sidebar_active_color || null);
+    setSelectedActiveFontColor(settings.sidebar_active_font_color || null);
+  }, [settings]);
 
   const handleSave = async () => {
     setIsSaving(true);
     try {
-      const { error } = await supabase
-        .from("profiles")
-        .update({
-          sidebar_color: selectedColor,
-          sidebar_animation: selectedAnimation,
-          sidebar_font: selectedFont,
-          sidebar_font_color: selectedFontColor,
-          sidebar_active_color: selectedActiveColor,
-          sidebar_active_font_color: selectedActiveFontColor,
-        })
-        .eq("user_id", userId);
+      await updateSettings.mutateAsync({
+        sidebar_color: selectedColor || "#1e2235",
+        sidebar_animation: selectedAnimation,
+        sidebar_font: selectedFont,
+        sidebar_font_color: selectedFontColor,
+        sidebar_active_color: selectedActiveColor,
+        sidebar_active_font_color: selectedActiveFontColor,
+      } as any);
 
-      if (error) throw error;
-      
-      await queryClient.invalidateQueries({ queryKey: ["profile"] });
-      await queryClient.refetchQueries({ queryKey: ["profile", userId] });
-      toast.success("Personalização da sidebar salva!");
+      await queryClient.invalidateQueries({ queryKey: ["site-settings"] });
+      toast.success("Personalização da sidebar salva para todos os usuários!");
     } catch (error: any) {
       toast.error("Erro ao salvar: " + error.message);
     } finally {
@@ -140,23 +136,17 @@ export const SidebarCustomizer = ({
     setSelectedActiveFontColor(null);
     setIsSaving(true);
     try {
-      const { error } = await supabase
-        .from("profiles")
-        .update({
-          sidebar_color: null,
-          sidebar_animation: "particles",
-          sidebar_font: null,
-          sidebar_font_color: null,
-          sidebar_active_color: null,
-          sidebar_active_font_color: null,
-        })
-        .eq("user_id", userId);
+      await updateSettings.mutateAsync({
+        sidebar_color: "#1e2235",
+        sidebar_animation: "particles",
+        sidebar_font: null,
+        sidebar_font_color: null,
+        sidebar_active_color: null,
+        sidebar_active_font_color: null,
+      } as any);
 
-      if (error) throw error;
-      
-      await queryClient.invalidateQueries({ queryKey: ["profile"] });
-      await queryClient.refetchQueries({ queryKey: ["profile", userId] });
-      toast.success("Sidebar restaurada ao padrão!");
+      await queryClient.invalidateQueries({ queryKey: ["site-settings"] });
+      toast.success("Sidebar restaurada ao padrão para todos!");
     } catch (error: any) {
       toast.error("Erro ao restaurar: " + error.message);
     } finally {
