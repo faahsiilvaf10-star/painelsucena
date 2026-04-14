@@ -1,6 +1,6 @@
 import { useState } from "react";
 import { NewsTicker } from "@/components/footer/NewsTicker";
-import { Play, Pause, ChevronDown, SkipBack, SkipForward, Music, Volume2 } from "lucide-react";
+import { Play, Pause, ChevronDown, Music, Volume2 } from "lucide-react";
 import { cn } from "@/lib/utils";
 import { useRadio } from "@/contexts/RadioContext";
 import { useSidebar } from "@/components/ui/sidebar";
@@ -15,8 +15,7 @@ export const OnlineUsersFooter = ({ onUserClick }: OnlineUsersFooterProps) => {
   const [isMinimized, setIsMinimized] = useState(false);
   const { state } = useSidebar();
   const {
-    isPlaying, volume, setVolume, currentTrack, toggleRadio,
-    nextTrack, prevTrack, currentHour,
+    isPlaying, volume, setVolume, currentTrack, toggleRadio, currentHour,
   } = useRadio();
 
   const isCollapsedSidebar = state === "collapsed";
@@ -89,18 +88,6 @@ export const OnlineUsersFooter = ({ onUserClick }: OnlineUsersFooterProps) => {
                 </div>
               )}
             </button>
-
-            {/* Skip controls */}
-            {isPlaying && (
-              <div className="flex items-center">
-                <button onClick={prevTrack} className="p-1 hover:bg-secondary/50 rounded transition-colors" aria-label="Anterior">
-                  <SkipBack className="h-3 w-3 text-green-500" />
-                </button>
-                <button onClick={nextTrack} className="p-1 hover:bg-secondary/50 rounded transition-colors" aria-label="Próxima">
-                  <SkipForward className="h-3 w-3 text-green-500" />
-                </button>
-              </div>
-            )}
 
             {/* Volume */}
             <Popover>
