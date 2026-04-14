@@ -372,13 +372,13 @@ export function AppSidebar({ lockedCollapsed = false }: { lockedCollapsed?: bool
     }
   };
 
-  // Global sidebar settings from site_settings (admin-defined)
-  const userSidebarColor = settings.sidebar_color || "hsl(220, 18%, 6%)";
-  const userSidebarAnimation = (settings as any).sidebar_animation ?? "particles";
-  const userSidebarFont = (settings as any).sidebar_font || undefined;
-  const userSidebarFontColor = (settings as any).sidebar_font_color || undefined;
-  const userSidebarActiveColor = (settings as any).sidebar_active_color || undefined;
-  const userSidebarActiveFontColor = (settings as any).sidebar_active_font_color || undefined;
+  // Per-user sidebar color (falls back to global site setting, then default dark)
+  const userSidebarColor = profile?.sidebar_color || settings.sidebar_color || "hsl(220, 18%, 6%)";
+  const userSidebarAnimation = profile?.sidebar_animation ?? "particles";
+  const userSidebarFont = profile?.sidebar_font || undefined;
+  const userSidebarFontColor = profile?.sidebar_font_color || undefined;
+  const userSidebarActiveColor = profile?.sidebar_active_color || undefined;
+  const userSidebarActiveFontColor = profile?.sidebar_active_font_color || undefined;
 
   // Extract raw HSL values from "hsl(H, S%, L%)" for CSS variable override
   const extractHslValues = (color: string): string => {
