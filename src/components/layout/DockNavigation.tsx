@@ -33,7 +33,6 @@ const allNavItems: NavItem[] = [
   { id: "lembretes", icon: Bell, label: "Lembretes", path: "/lembretes" },
   
   { id: "rh-hub", icon: Users, label: "RH", path: "/recursos-humanos" },
-  { id: "matriz", icon: Grid3X3, label: "Matriz", path: "/matriz" },
   
   { id: "arquivos-seguranca", icon: FolderLock, label: "Documentos Salvos", path: "/arquivos-seguranca" },
   { id: "consumo-abastecimento", icon: Droplets, label: "Consumo", path: "/consumo-abastecimento" },
