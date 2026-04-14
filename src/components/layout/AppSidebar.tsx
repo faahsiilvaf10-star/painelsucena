@@ -72,7 +72,7 @@ const allNavItems: NavItem[] = [
   { id: "lembretes", icon: Bell, label: "Lembretes", path: "/lembretes" },
   
   { id: "rh-hub", icon: Users, label: "RH", path: "/recursos-humanos" },
-  { id: "matriz", icon: Grid3X3, label: "Matriz Responsabilidade", path: "/matriz" },
+  
   { id: "rdo-hub", icon: FileText, label: "Relatório Diário Obra", path: "/relatorio-diario-obra" },
   
   { id: "arquivos-seguranca", icon: FolderLock, label: "Documentos Salvos", path: "/arquivos-seguranca" },
