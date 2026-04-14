@@ -13,7 +13,7 @@ import {
   Package, FolderOpen, ShieldCheck, Leaf, Hammer, ClipboardCheck,
   BadgeCheck, Link2, ArrowLeftRight, Clock, FolderLock, Droplets,
   Wrench, Presentation, Newspaper, HardHat, CalendarDays, Gamepad2,
-  TriangleAlert, Target, Receipt, FlameKindling, AlertTriangle, Shield, type LucideIcon
+  TriangleAlert, Target, Receipt, FlameKindling, AlertTriangle, Shield, Warehouse, type LucideIcon
 } from "lucide-react";
 
 interface NavItem {
@@ -31,12 +31,10 @@ const allNavItems: NavItem[] = [
   { id: "atividades-ii", icon: Hammer, label: "Atividades II", path: "/atividades-ii", hiddenFrom: ["encarregado_i"] },
   { id: "destaques", icon: LayoutDashboard, label: "Destaques", path: "/" },
   { id: "entrada-saida", icon: ArrowLeftRight, label: "Entrada e Saída", path: "/entrada-saida-equipamentos" },
-  { id: "estoque", icon: Package, label: "Estoque", path: "/estoque" },
   { id: "lembretes", icon: Bell, label: "Lembretes", path: "/lembretes" },
   { id: "parte-diaria", icon: Truck, label: "Parte Diária", path: "/parte-diaria" },
   { id: "presenca", icon: ClipboardList, label: "Relatório de Presença", path: "/presenca" },
   { id: "matriz", icon: Grid3X3, label: "Matriz", path: "/matriz" },
-  { id: "pedidos", icon: ShoppingCart, label: "Pedidos", path: "/pedidos" },
   { id: "rdo", icon: FileText, label: "RDO", path: "/rdo" },
   { id: "relatorio", icon: FileBarChart, label: "Lista de Presença", path: "/relatorio-presenca", restrictedTo: ["encarregado_geral", "encarregado_i", "encarregado_ii"] },
   { id: "rh", icon: Users, label: "RH", path: "/rh" },
@@ -47,9 +45,9 @@ const allNavItems: NavItem[] = [
   { id: "calendario-hydro", icon: CalendarDays, label: "Calendário Hydro", path: "/calendario-hydro" },
   { id: "games", icon: Gamepad2, label: "Games", path: "/games" },
   { id: "planejamento", icon: Target, label: "Planejamento", path: "/planejamento" },
-  { id: "notas-fiscais", icon: Receipt, label: "Notas Fiscais", path: "/notas-fiscais" },
   { id: "meio-ambiente", icon: Leaf, label: "Meio Ambiente", path: "/meio-ambiente" },
   { id: "seguranca", icon: Shield, label: "Segurança", path: "/seguranca" },
+  { id: "almoxarifado", icon: Warehouse, label: "Almoxarifado", path: "/almoxarifado" },
   { id: "emergencia", icon: AlertTriangle, label: "Emergência", path: "/emergencia", isEmergency: true },
 ];
 
