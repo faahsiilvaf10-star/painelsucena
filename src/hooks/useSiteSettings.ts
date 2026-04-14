@@ -5,6 +5,11 @@ export interface SiteSettings {
   id: string;
   logo_url: string | null;
   sidebar_color: string;
+  sidebar_animation: string | null;
+  sidebar_font: string | null;
+  sidebar_font_color: string | null;
+  sidebar_active_color: string | null;
+  sidebar_active_font_color: string | null;
   nav_order: string[];
   show_signup_button: boolean;
   ui_theme: string;
@@ -27,6 +32,11 @@ const DEFAULT_SETTINGS: Omit<SiteSettings, "id" | "updated_at" | "updated_by"> &
   id: "",
   logo_url: null,
   sidebar_color: "#1e2235",
+  sidebar_animation: "particles",
+  sidebar_font: null,
+  sidebar_font_color: null,
+  sidebar_active_color: null,
+  sidebar_active_font_color: null,
   nav_order: [
     "atividades", "atividades-ii", "destaques", "campanhas", "dds", "documentos", "entrada-saida",
     "estoque", "lembretes", "parte-diaria", "presenca", "matriz", "pedidos", "rdo", "relatorio",
@@ -79,6 +89,11 @@ export function useSiteSettings() {
         ...data,
         nav_order: navOrder,
         ui_theme: d.ui_theme || "classic",
+        sidebar_animation: d.sidebar_animation ?? "particles",
+        sidebar_font: d.sidebar_font || null,
+        sidebar_font_color: d.sidebar_font_color || null,
+        sidebar_active_color: d.sidebar_active_color || null,
+        sidebar_active_font_color: d.sidebar_active_font_color || null,
         primary_color: d.primary_color || null,
         instacena_gif_position: d.instacena_gif_position || { x: 16, y: 80 },
         instacena_gif_size: d.instacena_gif_size || 200,
