@@ -41,7 +41,7 @@ export function WeatherWidget() {
   const [weather, setWeather] = useState<WeatherData | null>(null);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
-  const isMobile = useIsMobile();
+  
 
   const fetchWeather = useCallback(async () => {
     setLoading(true);
