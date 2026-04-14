@@ -71,8 +71,6 @@ const allNavItems: NavItem[] = [
   
   { id: "destaques", icon: LayoutDashboard, label: "Destaques", path: "/" },
   { id: "campanhas", icon: Heart, label: "Campanhas", path: "/campanhas" },
-  { id: "dds", icon: Sun, label: "DDS", path: "/dds" },
-  { id: "documentos", icon: FolderOpen, label: "Permissão de Trabalho", path: "/documentos" },
   { id: "entrada-saida", icon: ArrowLeftRight, label: "Entrada e Saída", path: "/entrada-saida-equipamentos" },
   
   { id: "estoque", icon: Package, label: "Estoque", path: "/estoque" },
@@ -84,25 +82,17 @@ const allNavItems: NavItem[] = [
   { id: "rdo", icon: FileText, label: "RDO", path: "/rdo" },
   { id: "relatorio", icon: FileBarChart, label: "Lista de Presença", path: "/relatorio-presenca", restrictedTo: ["encarregado_geral", "encarregado_i", "encarregado_ii"] },
   { id: "rh", icon: Users, label: "RH", path: "/rh" },
-  { id: "vistorias", icon: ClipboardCheck, label: "Vistorias Equipamentos", path: "/vistorias-equipamentos" },
-  { id: "homologados", icon: BadgeCheck, label: "Homologados", path: "/homologados" },
-  { id: "vistoria-cintas", icon: Link2, label: "Vistoria Cintas", path: "/vistoria-cintas" },
   
   { id: "arquivos-seguranca", icon: FolderLock, label: "Documentos Salvos", path: "/arquivos-seguranca" },
   { id: "consumo-abastecimento", icon: Droplets, label: "Consumo Abastecimento", path: "/consumo-abastecimento" },
   { id: "plano-manutencao", icon: Wrench, label: "Plano de Manutenção", path: "/plano-manutencao" },
   
   { id: "instacena", icon: Newspaper, label: "InstaCena", path: "/instacena" },
-  { id: "inspecao-canteiro", icon: HardHat, label: "Inspeção de Canteiro", path: "/inspecao-canteiro" },
   { id: "calendario-hydro", icon: CalendarDays, label: "Calendário Hydro", path: "/calendario-hydro" },
   { id: "games", icon: Gamepad2, label: "Games", path: "/games" },
-  { id: "desvios", icon: TriangleAlert, label: "Desvios", path: "/desvios" },
   { id: "planejamento", icon: Target, label: "Planejamento", path: "/planejamento" },
   { id: "notas-fiscais", icon: Receipt, label: "Notas Fiscais", path: "/notas-fiscais" },
-  { id: "troca-epi", icon: ShieldCheck, label: "Requisição", path: "/troca-epi" },
-  { id: "inspecao-extintores", icon: FlameKindling, label: "Inspeção Extintores", path: "/inspecao-extintores" },
   { id: "meio-ambiente", icon: Leaf, label: "Meio Ambiente", path: "/meio-ambiente" },
-  { id: "pos-chuva", icon: Droplets, label: "Pós Chuva", path: "/pos-chuva" },
   { id: "seguranca", icon: Shield, label: "Segurança", path: "/seguranca" },
   { id: "emergencia", icon: AlertTriangle, label: "Emergência", path: "/emergencia", isEmergency: true },
 ];
