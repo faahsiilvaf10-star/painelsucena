@@ -18,9 +18,9 @@ import {
   SelectTrigger,
   SelectValue,
 } from "@/components/ui/select";
-import { Colaborador, funcoes } from "@/data/efetivoData";
+import { Colaborador, funcoes, NrDateInfo } from "@/data/efetivoData";
 import { toast } from "sonner";
-import { X } from "lucide-react";
+import { X, Calendar } from "lucide-react";
 
 const ALL_NRS = [
   "NR-01", "NR-04", "NR-05", "NR-06", "NR-07", "NR-09", "NR-10",
@@ -84,6 +84,7 @@ export const EditColaboradorDialog = ({
     localidade: "",
   });
   const [selectedNrs, setSelectedNrs] = useState<string[]>([]);
+  const [nrDates, setNrDates] = useState<Record<string, NrDateInfo>>({});
   const [showNrPicker, setShowNrPicker] = useState(false);
 
   useEffect(() => {
@@ -100,14 +101,32 @@ export const EditColaboradorDialog = ({
         localidade: colaborador.localidade,
       });
       setSelectedNrs(colaborador.nrs || []);
+      setNrDates(colaborador.nrDates || {});
       setShowNrPicker(false);
     }
   }, [open, colaborador]);
 
   const toggleNr = (nr: string) => {
-    setSelectedNrs((prev) =>
-      prev.includes(nr) ? prev.filter((n) => n !== nr) : [...prev, nr].sort()
-    );
+    setSelectedNrs((prev) => {
+      if (prev.includes(nr)) {
+        const updated = { ...nrDates };
+        delete updated[nr];
+        setNrDates(updated);
+        return prev.filter((n) => n !== nr);
+      }
+      return [...prev, nr].sort();
+    });
+  };
+
+  const updateNrDate = (nr: string, field: "realizacao" | "vencimento", value: string) => {
+    setNrDates((prev) => ({
+      ...prev,
+      [nr]: {
+        realizacao: prev[nr]?.realizacao || "",
+        vencimento: prev[nr]?.vencimento || "",
+        [field]: formatDate(value),
+      },
+    }));
   };
 
   const handleSubmit = (e: React.FormEvent) => {
@@ -123,6 +142,7 @@ export const EditColaboradorDialog = ({
       ...formData,
       matriculaHydro: formData.matriculaHydro || undefined,
       nrs: selectedNrs.length > 0 ? selectedNrs : undefined,
+      nrDates: Object.keys(nrDates).length > 0 ? nrDates : undefined,
     });
     onOpenChange(false);
     toast.success("Colaborador atualizado com sucesso!");
@@ -213,6 +233,41 @@ export const EditColaboradorDialog = ({
               </div>
             )}
           </div>
+
+          {/* NR Date Fields */}
+          {selectedNrs.length > 0 && (
+            <div className="space-y-3 border rounded-lg p-3 bg-muted/20">
+              <Label className="flex items-center gap-2 text-sm font-semibold">
+                <Calendar className="w-4 h-4" />
+                Datas das NRs
+              </Label>
+              {selectedNrs.map((nr) => (
+                <div key={nr} className="space-y-1">
+                  <p className="text-xs font-medium text-muted-foreground">{nr}</p>
+                  <div className="grid grid-cols-2 gap-2">
+                    <div>
+                      <Label className="text-[10px] text-muted-foreground">Realização</Label>
+                      <Input
+                        value={nrDates[nr]?.realizacao || ""}
+                        onChange={(e) => updateNrDate(nr, "realizacao", e.target.value)}
+                        placeholder="DD/MM/AAAA"
+                        className="h-8 text-xs"
+                      />
+                    </div>
+                    <div>
+                      <Label className="text-[10px] text-muted-foreground">Vencimento</Label>
+                      <Input
+                        value={nrDates[nr]?.vencimento || ""}
+                        onChange={(e) => updateNrDate(nr, "vencimento", e.target.value)}
+                        placeholder="DD/MM/AAAA"
+                        className="h-8 text-xs"
+                      />
+                    </div>
+                  </div>
+                </div>
+              ))}
+            </div>
+          )}
 
           <div className="grid grid-cols-2 gap-4">
             <div className="space-y-2">
