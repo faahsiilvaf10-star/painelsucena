@@ -35,7 +35,7 @@ const allNavItems: NavItem[] = [
   { id: "rh-hub", icon: Users, label: "RH", path: "/recursos-humanos" },
   
   { id: "arquivos-seguranca", icon: FolderLock, label: "Documentos Salvos", path: "/arquivos-seguranca" },
-  { id: "consumo-abastecimento", icon: Droplets, label: "Consumo", path: "/consumo-abastecimento" },
+  
   
   { id: "instacena", icon: Newspaper, label: "InstaCena", path: "/instacena" },
   
