@@ -355,6 +355,7 @@ const Dashboard = () => {
         <BirthdayBanner />
         <DDSPresenterAlert />
         <NRExpiryBanner />
+        <ASOExpiryBanner />
 
         {/* Draggable items */}
         {!isLoadingOrder && (
