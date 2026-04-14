@@ -146,10 +146,10 @@ export const RadioProvider = ({ children }: { children: ReactNode }) => {
     globalAudio.volume = isPlaying ? volume : 0;
   }, [isPlaying]);
 
-  // Volume sync
+  // Volume sync — only apply real volume when "playing" (unmuted)
   useEffect(() => {
-    if (globalAudio) globalAudio.volume = volume;
-  }, [volume]);
+    if (globalAudio && isPlaying) globalAudio.volume = volume;
+  }, [volume, isPlaying]);
 
   const setVolume = useCallback((v: number) => {
     setVolumeState(Math.max(0, Math.min(1, v)));
