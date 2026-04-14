@@ -91,44 +91,69 @@ export const RadioProvider = ({ children }: { children: ReactNode }) => {
   useEffect(() => { localStorage.setItem("radio_playing", String(isPlaying)); }, [isPlaying]);
   useEffect(() => { localStorage.setItem("radio_volume", String(volume)); }, [volume]);
 
-  // Play track
+  const currentTrackUrlRef = useRef<string | null>(null);
+
+  // Load track when track changes (not when play/pause changes)
   useEffect(() => {
-    if (!isPlaying || playlistTracks.length === 0) {
+    if (playlistTracks.length === 0) {
       if (globalAudio) { globalAudio.pause(); }
+      currentTrackUrlRef.current = null;
       return;
     }
 
     const track = playlistTracks[currentTrackIndex % playlistTracks.length];
     if (!track) return;
 
-    // Create or reuse audio
+    // Only create new audio if the track URL actually changed
+    if (currentTrackUrlRef.current === track.file_url && globalAudio) {
+      // Same track, just ensure play state
+      if (isPlaying) {
+        globalAudio.play().catch(() => {});
+      }
+      return;
+    }
+
+    // Different track — destroy old, create new
     if (globalAudio) { globalAudio.pause(); globalAudio.removeAttribute("src"); globalAudio.load(); }
     globalAudio = new Audio(track.file_url);
     globalAudio.volume = volume;
+    currentTrackUrlRef.current = track.file_url;
 
     const handleEnded = () => {
       setCurrentTrackIndex(prev => (prev + 1) % playlistTracks.length);
     };
     globalAudio.addEventListener("ended", handleEnded);
-    globalAudio.play().catch(err => {
-      console.log("Playback failed:", err);
-      // Wait for user interaction
-      if (!userInteractedRef.current) {
-        const handler = () => {
-          userInteractedRef.current = true;
-          if (globalAudio && isPlaying) globalAudio.play().catch(() => {});
-          document.removeEventListener("click", handler);
-          document.removeEventListener("touchstart", handler);
-        };
-        document.addEventListener("click", handler, { once: true });
-        document.addEventListener("touchstart", handler, { once: true });
-      }
-    });
+
+    if (isPlaying) {
+      globalAudio.play().catch(err => {
+        console.log("Playback failed:", err);
+        if (!userInteractedRef.current) {
+          const handler = () => {
+            userInteractedRef.current = true;
+            if (globalAudio && isPlaying) globalAudio.play().catch(() => {});
+            document.removeEventListener("click", handler);
+            document.removeEventListener("touchstart", handler);
+          };
+          document.addEventListener("click", handler, { once: true });
+          document.addEventListener("touchstart", handler, { once: true });
+        }
+      });
+    }
 
     return () => {
       globalAudio?.removeEventListener("ended", handleEnded);
     };
-  }, [currentTrackIndex, currentHour, isPlaying, playlistTracks.length]);
+  }, [currentTrackIndex, currentHour, playlistTracks.length]);
+
+  // Handle play/pause toggle without restarting
+  useEffect(() => {
+    if (!globalAudio) return;
+    if (isPlaying) {
+      globalAudio.play().catch(() => {});
+    } else {
+      globalAudio.pause();
+    }
+  }, [isPlaying]);
 
   // Volume sync
   useEffect(() => {
