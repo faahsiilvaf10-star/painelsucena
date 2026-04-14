@@ -93,7 +93,7 @@ export const RadioProvider = ({ children }: { children: ReactNode }) => {
 
   const currentTrackUrlRef = useRef<string | null>(null);
 
-  // Load track when track changes (not when play/pause changes)
+  // Always keep audio playing — mute/unmute on toggle
   useEffect(() => {
     if (playlistTracks.length === 0) {
       if (globalAudio) { globalAudio.pause(); }
@@ -106,17 +106,13 @@ export const RadioProvider = ({ children }: { children: ReactNode }) => {
 
     // Only create new audio if the track URL actually changed
     if (currentTrackUrlRef.current === track.file_url && globalAudio) {
-      // Same track, just ensure play state
-      if (isPlaying) {
-        globalAudio.play().catch(() => {});
-      }
-      return;
+      return; // already playing this track
     }
 
     // Different track — destroy old, create new
     if (globalAudio) { globalAudio.pause(); globalAudio.removeAttribute("src"); globalAudio.load(); }
     globalAudio = new Audio(track.file_url);
-    globalAudio.volume = volume;
+    globalAudio.volume = isPlaying ? volume : 0;
     currentTrackUrlRef.current = track.file_url;
 
     const handleEnded = () => {
@@ -124,35 +120,30 @@ export const RadioProvider = ({ children }: { children: ReactNode }) => {
     };
     globalAudio.addEventListener("ended", handleEnded);
 
-    if (isPlaying) {
-      globalAudio.play().catch(err => {
-        console.log("Playback failed:", err);
-        if (!userInteractedRef.current) {
-          const handler = () => {
-            userInteractedRef.current = true;
-            if (globalAudio && isPlaying) globalAudio.play().catch(() => {});
-            document.removeEventListener("click", handler);
-            document.removeEventListener("touchstart", handler);
-          };
-          document.addEventListener("click", handler, { once: true });
-          document.addEventListener("touchstart", handler, { once: true });
-        }
-      });
-    }
+    // Always play — audio runs continuously like a live radio
+    globalAudio.play().catch(err => {
+      console.log("Playback failed:", err);
+      if (!userInteractedRef.current) {
+        const handler = () => {
+          userInteractedRef.current = true;
+          if (globalAudio) globalAudio.play().catch(() => {});
+          document.removeEventListener("click", handler);
+          document.removeEventListener("touchstart", handler);
+        };
+        document.addEventListener("click", handler, { once: true });
+        document.addEventListener("touchstart", handler, { once: true });
+      }
+    });
 
     return () => {
       globalAudio?.removeEventListener("ended", handleEnded);
     };
   }, [currentTrackIndex, currentHour, playlistTracks.length]);
 
-  // Handle play/pause toggle without restarting
+  // Mute/unmute on play/pause toggle — audio keeps running
   useEffect(() => {
     if (!globalAudio) return;
-    if (isPlaying) {
-      globalAudio.play().catch(() => {});
-    } else {
-      globalAudio.pause();
-    }
+    globalAudio.volume = isPlaying ? volume : 0;
   }, [isPlaying]);
 
   // Volume sync
