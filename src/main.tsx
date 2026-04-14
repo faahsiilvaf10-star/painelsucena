@@ -3,10 +3,28 @@ import { registerSW } from "virtual:pwa-register";
 import App from "./App.tsx";
 import "./index.css";
 
+// ===== FORCE CACHE BUST (v2026-04-14) =====
+// On every app load, clear all caches and unregister stale SWs
+(async () => {
+  try {
+    // Clear all Cache Storage
+    if ("caches" in window) {
+      const keys = await caches.keys();
+      await Promise.all(keys.map((k) => caches.delete(k)));
+    }
+    // Unregister all existing service workers to force fresh install
+    if ("serviceWorker" in navigator) {
+      const registrations = await navigator.serviceWorker.getRegistrations();
+      await Promise.all(registrations.map((r) => r.unregister()));
+    }
+  } catch (e) {
+    console.warn("Cache cleanup on boot:", e);
+  }
+})();
+
 // Register Service Worker for PWA/offline support
 const updateSW = registerSW({
   onNeedRefresh() {
-    // New version available — show brief toast then auto-reload clearing cache
     showUpdateBanner();
   },
   onOfflineReady() {
@@ -26,7 +44,7 @@ const updateSW = registerSW({
       // Register Periodic Background Sync
       if ('periodicSync' in registration) {
         (registration as any).periodicSync.register('content-sync', {
-          minInterval: 12 * 60 * 60 * 1000, // 12 hours
+          minInterval: 12 * 60 * 60 * 1000,
         }).catch((err: Error) => console.log('Periodic sync não suportado:', err));
       }
 
@@ -42,11 +60,7 @@ const updateSW = registerSW({
   },
 });
 
-/**
- * Shows an update banner, clears all caches, and auto-reloads after 3 seconds.
- */
 function showUpdateBanner() {
-  // Create the banner element
   const banner = document.createElement("div");
   banner.id = "update-banner";
   banner.innerHTML = `
@@ -72,7 +86,6 @@ function showUpdateBanner() {
   `;
   document.body.appendChild(banner);
 
-  // Countdown and auto-reload
   let seconds = 3;
   const countdownEl = document.getElementById("update-countdown");
   const timer = setInterval(() => {
@@ -85,24 +98,16 @@ function showUpdateBanner() {
   }, 1000);
 }
 
-/**
- * Clears all browser caches (Cache API + SW) then hard reloads.
- */
 async function clearCachesAndReload() {
   try {
-    // Clear all Cache Storage entries
     if ("caches" in window) {
       const keys = await caches.keys();
       await Promise.all(keys.map((k) => caches.delete(k)));
     }
-
-    // Tell the SW to activate the new version
     await updateSW(true);
   } catch (e) {
     console.error("Erro ao limpar cache:", e);
   }
-
-  // Force hard reload (bypass cache)
   window.location.reload();
 }
 
