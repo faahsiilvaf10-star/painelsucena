@@ -23,48 +23,24 @@ import {
 import { CSS } from "@dnd-kit/utilities";
 
 const NAV_ITEMS_MAP: Record<string, string> = {
+  "rdo-hub": "Relatório Diário Obra",
+  "meio-ambiente": "Meio Ambiente",
   "destaques": "Destaques",
-  "atividades": "Atividades I",
-  "atividades-ii": "Atividades II",
-  
-  "campanhas": "Campanhas",
-  "dds": "DDS",
-  "desvios": "Desvios",
-  "documentos": "Documentos",
-  "entrada-saida": "Entrada/Saída Equipamentos",
-  "estoque": "Estoque",
+  "seguranca": "Segurança",
+  "almoxarifado": "Almoxarifado",
+  "equipamentos": "Equipamentos",
+  "rh-hub": "RH",
   "lembretes": "Lembretes",
-  "parte-diaria": "Parte Diária",
-  "presenca": "Relatório de Presença",
-  "matriz": "Matriz Responsabilidade",
-  "pedidos": "Pedidos",
-  "rdo": "RDO",
-  "relatorio": "Lista de Presença",
-  "rh": "RH",
-  "vistorias": "Vistorias Equipamentos",
-  "homologados": "Homologados",
-  "vistoria-cintas": "Vistoria Cintas",
-  "hora-extra": "Hora Extra",
-  "arquivos-seguranca": "Arquivos Segurança",
-  "consumo-abastecimento": "Consumo Abastecimento",
-  "plano-manutencao": "Plano de Manutenção",
-  "slides": "Slides IA",
+  "arquivos-seguranca": "Documentos Salvos",
   "instacena": "InstaCena",
-  "inspecao-canteiro": "Inspeção de Canteiro",
-  "calendario-hydro": "Calendário Hydro",
-  "games": "Games",
   "planejamento": "Planejamento",
-  "notas-fiscais": "Notas Fiscais",
-  "troca-epi": "Troca de EPI",
   "emergencia": "Emergência",
 };
 
 const DEFAULT_NAV_ORDER = [
-  "atividades", "atividades-ii", "destaques", "campanhas", "dds", "documentos", "entrada-saida",
-  "estoque", "lembretes", "parte-diaria", "presenca", "matriz", "pedidos", "rdo", "relatorio",
-  "rh", "vistorias", "homologados", "vistoria-cintas", "hora-extra", "arquivos-seguranca",
-  "consumo-abastecimento", "plano-manutencao", "slides", "instacena", "inspecao-canteiro",
-  "calendario-hydro", "games", "desvios", "planejamento", "notas-fiscais", "troca-epi", "emergencia"
+  "rdo-hub", "meio-ambiente", "destaques", "seguranca", "almoxarifado",
+  "equipamentos", "rh-hub", "lembretes", "arquivos-seguranca",
+  "instacena", "planejamento", "emergencia"
 ];
 
 function SortableNavItem({ id, label }: { id: string; label: string }) {
