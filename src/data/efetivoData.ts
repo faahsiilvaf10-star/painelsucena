@@ -14,6 +14,11 @@ export interface Promocao {
   observacao?: string;
 }
 
+export interface NrDateInfo {
+  realizacao: string; // DD/MM/YYYY
+  vencimento: string; // DD/MM/YYYY
+}
+
 export interface Colaborador {
   id: number;
   nome: string;
@@ -26,6 +31,7 @@ export interface Colaborador {
   contato: string;
   localidade: string;
   nrs?: string[];
+  nrDates?: Record<string, NrDateInfo>;
   aso?: ASOData;
   promocoes?: Promocao[];
 }

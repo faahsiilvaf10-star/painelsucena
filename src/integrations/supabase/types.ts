@@ -1178,6 +1178,44 @@ export type Database = {
         }
         Relationships: []
       }
+      employee_nrs: {
+        Row: {
+          completion_date: string | null
+          created_at: string
+          employee_id: string
+          expiry_date: string | null
+          id: string
+          nr_name: string
+          updated_at: string
+        }
+        Insert: {
+          completion_date?: string | null
+          created_at?: string
+          employee_id: string
+          expiry_date?: string | null
+          id?: string
+          nr_name: string
+          updated_at?: string
+        }
+        Update: {
+          completion_date?: string | null
+          created_at?: string
+          employee_id?: string
+          expiry_date?: string | null
+          id?: string
+          nr_name?: string
+          updated_at?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "employee_nrs_employee_id_fkey"
+            columns: ["employee_id"]
+            isOneToOne: false
+            referencedRelation: "employees"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       employees: {
         Row: {
           area: string | null
