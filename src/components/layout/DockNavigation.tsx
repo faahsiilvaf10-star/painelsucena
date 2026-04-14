@@ -33,16 +33,14 @@ const allNavItems: NavItem[] = [
   { id: "equipamentos", icon: Settings, label: "Equipamentos", path: "/equipamentos" },
   { id: "lembretes", icon: Bell, label: "Lembretes", path: "/lembretes" },
   
-  { id: "presenca", icon: ClipboardList, label: "Relatório de Presença", path: "/presenca" },
+  { id: "rh-hub", icon: Users, label: "RH", path: "/recursos-humanos" },
   { id: "matriz", icon: Grid3X3, label: "Matriz", path: "/matriz" },
   { id: "rdo", icon: FileText, label: "RDO", path: "/rdo" },
-  { id: "relatorio", icon: FileBarChart, label: "Lista de Presença", path: "/relatorio-presenca", restrictedTo: ["encarregado_geral", "encarregado_i", "encarregado_ii"] },
-  { id: "rh", icon: Users, label: "RH", path: "/rh" },
   { id: "arquivos-seguranca", icon: FolderLock, label: "Documentos Salvos", path: "/arquivos-seguranca" },
   { id: "consumo-abastecimento", icon: Droplets, label: "Consumo", path: "/consumo-abastecimento" },
   
   { id: "instacena", icon: Newspaper, label: "InstaCena", path: "/instacena" },
-  { id: "calendario-hydro", icon: CalendarDays, label: "Calendário Hydro", path: "/calendario-hydro" },
+  
   { id: "games", icon: Gamepad2, label: "Games", path: "/games" },
   { id: "planejamento", icon: Target, label: "Planejamento", path: "/planejamento" },
   { id: "meio-ambiente", icon: Leaf, label: "Meio Ambiente", path: "/meio-ambiente" },
