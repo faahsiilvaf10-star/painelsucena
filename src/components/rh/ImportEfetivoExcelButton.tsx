@@ -85,7 +85,7 @@ function parseExcel(
     if (!cell.value) return "";
     if (cell.value instanceof Date) {
       const d = cell.value;
-      return `${String(d.getDate()).padStart(2, "0")}/${String(d.getMonth() + 1).padStart(2, "0")}/${d.getFullYear()}`;
+      return `${String(d.getUTCDate()).padStart(2, "0")}/${String(d.getUTCMonth() + 1).padStart(2, "0")}/${d.getUTCFullYear()}`;
     }
     return String(cell.value).trim();
   };
