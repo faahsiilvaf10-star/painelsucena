@@ -51,9 +51,17 @@ export function WeatherWidget() {
       const longitude = -48.6356;
       const locationName = "Vila dos Cabanos, Barcarena - PA";
 
-      const res = await fetch(
-        `https://api.open-meteo.com/v1/forecast?latitude=${latitude}&longitude=${longitude}&current=temperature_2m,relative_humidity_2m,apparent_temperature,weather_code,wind_speed_10m,is_day&timezone=America/Sao_Paulo&_=${Date.now()}`
-      );
+      const url = `https://api.open-meteo.com/v1/forecast?latitude=${latitude}&longitude=${longitude}&current=temperature_2m,relative_humidity_2m,apparent_temperature,weather_code,wind_speed_10m,is_day&timezone=America/Sao_Paulo&_=${Date.now()}`;
+      
+      let res: Response;
+      try {
+        res = await fetch(url);
+      } catch {
+        // Fallback: try with corsproxy
+        res = await fetch(`https://corsproxy.io/?${encodeURIComponent(url)}`);
+      }
+      
+      if (!res.ok) throw new Error("API error");
       const data = await res.json();
 
       setWeather({
