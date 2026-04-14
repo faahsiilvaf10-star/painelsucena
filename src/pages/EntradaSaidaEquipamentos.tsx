@@ -18,6 +18,7 @@ import { InHistoryDialog } from "@/components/equipamentos/InHistoryDialog";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { VehicleIcon } from "@/components/equipamentos/VehicleIcons";
+import { EquipmentMovementHistoryDialog } from "@/components/equipamentos/EquipmentMovementHistoryDialog";
 import { Loader2 } from "lucide-react";
 import { format } from "date-fns";
 import { ptBR } from "date-fns/locale";
@@ -67,6 +68,10 @@ const EXIT_REASON_LABELS: Record<string, string> = {
 
   const [addDialogOpen, setAddDialogOpen] = useState(false);
   const [newEquipmentName, setNewEquipmentName] = useState("");
+
+  // Equipment movement history dialog
+  const [historyDialogOpen, setHistoryDialogOpen] = useState(false);
+  const [historyEquipment, setHistoryEquipment] = useState<{ name: string; plate: string } | null>(null);
 
   // Jardinagem exit dialog state
   const [jardinagemExitDialogOpen, setJardinagemExitDialogOpen] = useState(false);
@@ -299,7 +304,14 @@ const EXIT_REASON_LABELS: Record<string, string> = {
                          </TableHeader>
                         <TableBody>
                           {equipmentNoCanteiro.map((eq) => (
-                             <TableRow key={eq.id}>
+                             <TableRow 
+                               key={eq.id} 
+                               className="cursor-pointer hover:bg-muted/50"
+                               onClick={() => {
+                                 setHistoryEquipment({ name: eq.name, plate: eq.plate });
+                                 setHistoryDialogOpen(true);
+                               }}
+                             >
                                <TableCell className="hidden sm:table-cell">
                                  <VehicleIcon
                                    type={eq.equipment_type as "pipa" | "munk" | "camionete" | "onibus"}
