@@ -3,10 +3,10 @@ import { registerSW } from "virtual:pwa-register";
 import App from "./App.tsx";
 import "./index.css";
 
-// Register Service Worker for PWA/offline support
+// Register Service Worker for PWA — works on all platforms (mobile, desktop, browser)
 const updateSW = registerSW({
+  immediate: true,
   onNeedRefresh() {
-    // New version available — show brief toast then auto-reload clearing cache
     showUpdateBanner();
   },
   onOfflineReady() {
@@ -14,27 +14,35 @@ const updateSW = registerSW({
   },
   onRegistered(registration) {
     console.log("Service Worker registrado:", registration);
+    if (!registration) return;
 
-    if (registration) {
-      // Check for updates every 2 minutes when online
-      setInterval(() => {
-        if (navigator.onLine) {
-          registration.update();
-        }
-      }, 2 * 60 * 1000);
-
-      // Register Periodic Background Sync
-      if ('periodicSync' in registration) {
-        (registration as any).periodicSync.register('content-sync', {
-          minInterval: 12 * 60 * 60 * 1000, // 12 hours
-        }).catch((err: Error) => console.log('Periodic sync não suportado:', err));
+    const checkForUpdates = () => {
+      if (navigator.onLine) {
+        registration.update().catch((e) => console.error("Erro ao buscar atualização:", e));
       }
+    };
 
-      // Register Background Sync
-      if ('sync' in registration) {
-        (registration as any).sync.register('pending-sync')
-          .catch((err: Error) => console.log('Background sync não suportado:', err));
-      }
+    // Check immediately, then every 2 minutes
+    checkForUpdates();
+    setInterval(checkForUpdates, 2 * 60 * 1000);
+
+    // Also check on focus / visibility / online
+    window.addEventListener("focus", checkForUpdates);
+    window.addEventListener("online", checkForUpdates);
+    document.addEventListener("visibilitychange", () => {
+      if (document.visibilityState === "visible") checkForUpdates();
+    });
+
+    if ("periodicSync" in registration) {
+      (registration as any).periodicSync
+        .register("content-sync", { minInterval: 12 * 60 * 60 * 1000 })
+        .catch((err: Error) => console.log("Periodic sync não suportado:", err));
+    }
+
+    if ("sync" in registration) {
+      (registration as any).sync
+        .register("pending-sync")
+        .catch((err: Error) => console.log("Background sync não suportado:", err));
     }
   },
   onRegisterError(error) {
@@ -42,11 +50,9 @@ const updateSW = registerSW({
   },
 });
 
-/**
- * Shows an update banner, clears all caches, and auto-reloads after 3 seconds.
- */
 function showUpdateBanner() {
-  // Create the banner element
+  if (document.getElementById("update-banner")) return;
+
   const banner = document.createElement("div");
   banner.id = "update-banner";
   banner.innerHTML = `
@@ -72,11 +78,10 @@ function showUpdateBanner() {
   `;
   document.body.appendChild(banner);
 
-  // Countdown and auto-reload
   let seconds = 3;
   const countdownEl = document.getElementById("update-countdown");
   const timer = setInterval(() => {
-    seconds--;
+    seconds -= 1;
     if (countdownEl) countdownEl.textContent = String(seconds);
     if (seconds <= 0) {
       clearInterval(timer);
@@ -85,24 +90,18 @@ function showUpdateBanner() {
   }, 1000);
 }
 
-/**
- * Clears all browser caches (Cache API + SW) then hard reloads.
- */
 async function clearCachesAndReload() {
   try {
-    // Clear all Cache Storage entries
+    // Clear all Cache Storage
     if ("caches" in window) {
       const keys = await caches.keys();
       await Promise.all(keys.map((k) => caches.delete(k)));
     }
-
-    // Tell the SW to activate the new version
+    // Activate new SW
     await updateSW(true);
   } catch (e) {
     console.error("Erro ao limpar cache:", e);
   }
-
-  // Force hard reload (bypass cache)
   window.location.reload();
 }
 
