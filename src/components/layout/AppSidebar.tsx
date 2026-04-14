@@ -66,9 +66,6 @@ interface NavItem {
 }
 
 const allNavItems: NavItem[] = [
-  { id: "atividades", icon: Leaf, label: "Atividades I", path: "/atividades", hiddenFrom: ["encarregado_ii"] },
-  { id: "atividades-ii", icon: Hammer, label: "Atividades II", path: "/atividades-ii", hiddenFrom: ["encarregado_i"] },
-  
   { id: "destaques", icon: LayoutDashboard, label: "Destaques", path: "/" },
   { id: "equipamentos", icon: Settings, label: "Equipamentos", path: "/equipamentos" },
   
@@ -76,7 +73,7 @@ const allNavItems: NavItem[] = [
   
   { id: "rh-hub", icon: Users, label: "RH", path: "/recursos-humanos" },
   { id: "matriz", icon: Grid3X3, label: "Matriz Responsabilidade", path: "/matriz" },
-  { id: "rdo", icon: FileText, label: "RDO", path: "/rdo" },
+  { id: "rdo-hub", icon: FileText, label: "Relatório Diário Obra", path: "/relatorio-diario-obra" },
   
   { id: "arquivos-seguranca", icon: FolderLock, label: "Documentos Salvos", path: "/arquivos-seguranca" },
   { id: "consumo-abastecimento", icon: Droplets, label: "Consumo Abastecimento", path: "/consumo-abastecimento" },
