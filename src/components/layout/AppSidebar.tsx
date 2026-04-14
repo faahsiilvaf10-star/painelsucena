@@ -70,10 +70,10 @@ const allNavItems: NavItem[] = [
   { id: "atividades-ii", icon: Hammer, label: "Atividades II", path: "/atividades-ii", hiddenFrom: ["encarregado_i"] },
   
   { id: "destaques", icon: LayoutDashboard, label: "Destaques", path: "/" },
-  { id: "entrada-saida", icon: ArrowLeftRight, label: "Entrada e Saída", path: "/entrada-saida-equipamentos" },
+  { id: "equipamentos", icon: Settings, label: "Equipamentos", path: "/equipamentos" },
   
   { id: "lembretes", icon: Bell, label: "Lembretes", path: "/lembretes" },
-  { id: "parte-diaria", icon: Truck, label: "Parte Diária", path: "/parte-diaria" },
+  
   { id: "presenca", icon: ClipboardList, label: "Relatório de Presença", path: "/presenca" },
   { id: "matriz", icon: Grid3X3, label: "Matriz Responsabilidade", path: "/matriz" },
   { id: "rdo", icon: FileText, label: "RDO", path: "/rdo" },
@@ -82,7 +82,7 @@ const allNavItems: NavItem[] = [
   
   { id: "arquivos-seguranca", icon: FolderLock, label: "Documentos Salvos", path: "/arquivos-seguranca" },
   { id: "consumo-abastecimento", icon: Droplets, label: "Consumo Abastecimento", path: "/consumo-abastecimento" },
-  { id: "plano-manutencao", icon: Wrench, label: "Plano de Manutenção", path: "/plano-manutencao" },
+  
   
   { id: "instacena", icon: Newspaper, label: "InstaCena", path: "/instacena" },
   { id: "calendario-hydro", icon: CalendarDays, label: "Calendário Hydro", path: "/calendario-hydro" },
