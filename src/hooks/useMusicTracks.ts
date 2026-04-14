@@ -4,14 +4,17 @@ import { useEffect } from "react";
 
 export interface MusicTrack {
   id: string;
-  title: string;
-  artist: string | null;
   file_url: string;
   file_name: string;
-  duration_seconds: number | null;
-  sort_order: number;
+  time_slot: number;
   created_at: string;
 }
+
+export const TIME_SLOT_LABELS = Array.from({ length: 24 }, (_, i) => {
+  const start = `${String(i).padStart(2, "0")}:00`;
+  const end = `${String((i + 1) % 24).padStart(2, "0")}:00`;
+  return { value: i, label: `${start} - ${end}` };
+});
 
 export const useMusicTracks = () => {
   const queryClient = useQueryClient();
@@ -22,14 +25,13 @@ export const useMusicTracks = () => {
       const { data, error } = await supabase
         .from("music_tracks")
         .select("*")
-        .order("sort_order", { ascending: true })
+        .order("time_slot", { ascending: true })
         .order("created_at", { ascending: true });
       if (error) throw error;
       return data as MusicTrack[];
     },
   });
 
-  // Realtime subscription
   useEffect(() => {
     const channel = supabase
       .channel("music-tracks-changes")
@@ -47,7 +49,7 @@ export const useUploadMusicTrack = () => {
   const queryClient = useQueryClient();
 
   return useMutation({
-    mutationFn: async ({ file, title, artist }: { file: File; title: string; artist?: string }) => {
+    mutationFn: async ({ file, timeSlot }: { file: File; timeSlot: number }) => {
       const ext = file.name.split(".").pop();
       const fileName = `${Date.now()}_${Math.random().toString(36).slice(2)}.${ext}`;
 
@@ -63,10 +65,9 @@ export const useUploadMusicTrack = () => {
       const { error: insertError } = await supabase
         .from("music_tracks")
         .insert({
-          title,
-          artist: artist || null,
           file_url: urlData.publicUrl,
           file_name: file.name,
+          time_slot: timeSlot,
           uploaded_by: (await supabase.auth.getUser()).data.user?.id,
         });
       if (insertError) throw insertError;
@@ -82,7 +83,6 @@ export const useDeleteMusicTrack = () => {
 
   return useMutation({
     mutationFn: async (track: MusicTrack) => {
-      // Extract file path from URL
       const urlParts = track.file_url.split("/music-files/");
       if (urlParts[1]) {
         await supabase.storage.from("music-files").remove([urlParts[1]]);

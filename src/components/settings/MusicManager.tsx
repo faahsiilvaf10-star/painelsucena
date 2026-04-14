@@ -3,9 +3,10 @@ import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
-import { Music, Upload, Trash2, Loader2 } from "lucide-react";
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
+import { Music, Upload, Trash2, Loader2, Clock } from "lucide-react";
 import { toast } from "sonner";
-import { useMusicTracks, useUploadMusicTrack, useDeleteMusicTrack } from "@/hooks/useMusicTracks";
+import { useMusicTracks, useUploadMusicTrack, useDeleteMusicTrack, TIME_SLOT_LABELS } from "@/hooks/useMusicTracks";
 import { cn } from "@/lib/utils";
 
 export const MusicManager = () => {
@@ -14,8 +15,7 @@ export const MusicManager = () => {
   const deleteMutation = useDeleteMusicTrack();
   const fileInputRef = useRef<HTMLInputElement>(null);
 
-  const [title, setTitle] = useState("");
-  const [artist, setArtist] = useState("");
+  const [selectedTimeSlot, setSelectedTimeSlot] = useState<number>(8);
   const [selectedFiles, setSelectedFiles] = useState<File[]>([]);
   const [uploading, setUploading] = useState(false);
 
@@ -39,13 +39,8 @@ export const MusicManager = () => {
     let failed = 0;
 
     for (const file of selectedFiles) {
-      const trackTitle = selectedFiles.length === 1 && title
-        ? title
-        : file.name.replace(/\.[^/.]+$/, "");
-      const trackArtist = selectedFiles.length === 1 ? artist : "";
-
       try {
-        await uploadMutation.mutateAsync({ file, title: trackTitle, artist: trackArtist });
+        await uploadMutation.mutateAsync({ file, timeSlot: selectedTimeSlot });
         success++;
       } catch (err) {
         console.error("Upload failed:", err);
@@ -55,11 +50,9 @@ export const MusicManager = () => {
 
     setUploading(false);
     setSelectedFiles([]);
-    setTitle("");
-    setArtist("");
     if (fileInputRef.current) fileInputRef.current.value = "";
 
-    if (success > 0) toast.success(`${success} música(s) adicionada(s)!`);
+    if (success > 0) toast.success(`${success} música(s) adicionada(s) ao horário ${TIME_SLOT_LABELS[selectedTimeSlot].label}!`);
     if (failed > 0) toast.error(`${failed} arquivo(s) falharam no upload`);
   };
 
@@ -72,6 +65,17 @@ export const MusicManager = () => {
     }
   };
 
+  // Group tracks by time slot
+  const tracksBySlot = tracks.reduce<Record<number, typeof tracks>>((acc, track) => {
+    if (!acc[track.time_slot]) acc[track.time_slot] = [];
+    acc[track.time_slot].push(track);
+    return acc;
+  }, {});
+
+  const slotsWithTracks = Object.keys(tracksBySlot)
+    .map(Number)
+    .sort((a, b) => a - b);
+
   return (
     <Card>
       <CardHeader>
@@ -83,25 +87,31 @@ export const MusicManager = () => {
       <CardContent className="space-y-4">
         {/* Upload Section */}
         <div className="space-y-3 p-4 rounded-lg border border-dashed border-border bg-muted/30">
-          <div className="grid grid-cols-1 md:grid-cols-2 gap-3">
-            <div>
-              <Label>Título (opcional para múltiplos)</Label>
-              <Input
-                value={title}
-                onChange={e => setTitle(e.target.value)}
-                placeholder="Nome da música"
-                disabled={uploading}
-              />
-            </div>
-            <div>
-              <Label>Artista (opcional)</Label>
-              <Input
-                value={artist}
-                onChange={e => setArtist(e.target.value)}
-                placeholder="Nome do artista"
-                disabled={uploading}
-              />
-            </div>
+          <div>
+            <Label className="flex items-center gap-1.5 mb-1.5">
+              <Clock className="h-3.5 w-3.5" />
+              Horário de Reprodução
+            </Label>
+            <Select
+              value={String(selectedTimeSlot)}
+              onValueChange={(v) => setSelectedTimeSlot(Number(v))}
+            >
+              <SelectTrigger>
+                <SelectValue />
+              </SelectTrigger>
+              <SelectContent className="max-h-60">
+                {TIME_SLOT_LABELS.map(slot => (
+                  <SelectItem key={slot.value} value={String(slot.value)}>
+                    {slot.label}
+                    {tracksBySlot[slot.value] && (
+                      <span className="ml-2 text-muted-foreground">
+                        ({tracksBySlot[slot.value].length} música{tracksBySlot[slot.value].length !== 1 ? "s" : ""})
+                      </span>
+                    )}
+                  </SelectItem>
+                ))}
+              </SelectContent>
+            </Select>
           </div>
 
           <div>
@@ -117,7 +127,7 @@ export const MusicManager = () => {
             />
             {selectedFiles.length > 0 && (
               <p className="text-xs text-muted-foreground mt-1">
-                {selectedFiles.length} arquivo(s) selecionado(s) — {(selectedFiles.reduce((a, f) => a + f.size, 0) / 1024 / 1024).toFixed(1)}MB total
+                {selectedFiles.length} arquivo(s) — {(selectedFiles.reduce((a, f) => a + f.size, 0) / 1024 / 1024).toFixed(1)}MB
               </p>
             )}
           </div>
@@ -135,57 +145,65 @@ export const MusicManager = () => {
             ) : (
               <>
                 <Upload className="h-4 w-4 mr-2" />
-                Enviar {selectedFiles.length > 0 ? `${selectedFiles.length} música(s)` : "Músicas"}
+                Enviar para {TIME_SLOT_LABELS[selectedTimeSlot].label}
               </>
             )}
           </Button>
         </div>
 
-        {/* Track List */}
-        <div className="space-y-1">
+        {/* Track List grouped by time slot */}
+        <div className="space-y-3">
           <Label className="text-sm text-muted-foreground">
-            Playlist ({tracks.length} música{tracks.length !== 1 ? "s" : ""})
+            Programação ({tracks.length} música{tracks.length !== 1 ? "s" : ""})
           </Label>
 
           {isLoading ? (
             <div className="flex items-center justify-center py-8">
               <Loader2 className="h-5 w-5 animate-spin text-muted-foreground" />
             </div>
-          ) : tracks.length === 0 ? (
+          ) : slotsWithTracks.length === 0 ? (
             <p className="text-sm text-muted-foreground text-center py-4">
               Nenhuma música adicionada ainda
             </p>
           ) : (
-            <div className="max-h-64 overflow-y-auto space-y-1">
-              {tracks.map((track, i) => (
-                <div
-                  key={track.id}
-                  className={cn(
-                    "flex items-center justify-between px-3 py-2 rounded-md text-sm",
-                    "bg-secondary/30 hover:bg-secondary/50 transition-colors"
-                  )}
-                >
-                  <div className="flex items-center gap-2 min-w-0">
-                    <span className="text-muted-foreground text-xs w-5 text-right shrink-0">
-                      {i + 1}
+            <div className="max-h-80 overflow-y-auto space-y-3">
+              {slotsWithTracks.map(slot => (
+                <div key={slot} className="space-y-1">
+                  <div className="flex items-center gap-2 px-2">
+                    <Clock className="h-3.5 w-3.5 text-primary" />
+                    <span className="text-xs font-semibold text-primary">
+                      {TIME_SLOT_LABELS[slot].label}
                     </span>
-                    <Music className="h-3.5 w-3.5 text-primary shrink-0" />
-                    <div className="min-w-0">
-                      <p className="font-medium truncate">{track.title}</p>
-                      {track.artist && (
-                        <p className="text-xs text-muted-foreground truncate">{track.artist}</p>
-                      )}
-                    </div>
+                    <span className="text-xs text-muted-foreground">
+                      ({tracksBySlot[slot].length})
+                    </span>
                   </div>
-                  <Button
-                    variant="ghost"
-                    size="icon"
-                    className="h-7 w-7 shrink-0 text-destructive hover:text-destructive"
-                    onClick={() => handleDelete(track)}
-                    disabled={deleteMutation.isPending}
-                  >
-                    <Trash2 className="h-3.5 w-3.5" />
-                  </Button>
+                  {tracksBySlot[slot].map((track, i) => (
+                    <div
+                      key={track.id}
+                      className={cn(
+                        "flex items-center justify-between px-3 py-1.5 rounded-md text-sm",
+                        "bg-secondary/30 hover:bg-secondary/50 transition-colors ml-4"
+                      )}
+                    >
+                      <div className="flex items-center gap-2 min-w-0">
+                        <span className="text-muted-foreground text-xs w-4 text-right shrink-0">
+                          {i + 1}
+                        </span>
+                        <Music className="h-3 w-3 text-muted-foreground shrink-0" />
+                        <p className="text-sm truncate">{track.file_name}</p>
+                      </div>
+                      <Button
+                        variant="ghost"
+                        size="icon"
+                        className="h-6 w-6 shrink-0 text-destructive hover:text-destructive"
+                        onClick={() => handleDelete(track)}
+                        disabled={deleteMutation.isPending}
+                      >
+                        <Trash2 className="h-3 w-3" />
+                      </Button>
+                    </div>
+                  ))}
                 </div>
               ))}
             </div>
