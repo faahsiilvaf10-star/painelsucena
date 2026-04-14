@@ -63,7 +63,7 @@ export const OnlineUsersFooter = ({
             
             <span className={cn("text-xs font-medium transition-colors max-w-[120px] truncate", isRadioActive ? "text-green-500" : "text-muted-foreground")}>
               {isRadioActive
-                ? (isPlaylist && currentTrack ? currentTrack.title : isPlaylist ? "Playlist" : "Ao Vivo")
+                ? (isPlaylist && currentTrack ? currentTrack.file_name.replace(/\.[^/.]+$/, "") : isPlaylist ? "Playlist" : "Ao Vivo")
                 : isPlaying ? "Mudo" : selectedStation.name}
             </span>
 
