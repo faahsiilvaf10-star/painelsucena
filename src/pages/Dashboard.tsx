@@ -31,7 +31,7 @@ import { CampaignBanner } from "@/components/campaigns/CampaignBanner";
 import { OrderHighlightBanner } from "@/components/orders/OrderHighlightBanner";
 import { EquipmentStatusCard } from "@/components/dashboard/EquipmentStatusCard";
 import { DocumentExpiryBanner } from "@/components/documents/DocumentExpiryBanner";
-
+import { NRExpiryBanner } from "@/components/dashboard/NRExpiryBanner";
 import { VehicleExpiryBanner } from "@/components/vistorias/VehicleExpiryBanner";
 import { SlingInspectionBanner } from "@/components/dashboard/SlingInspectionBanner";
 import { InspectionScheduleBanner } from "@/components/dashboard/InspectionScheduleBanner";
@@ -353,6 +353,7 @@ const Dashboard = () => {
         <InspectionScheduleBanner />
         <BirthdayBanner />
         <DDSPresenterAlert />
+        <NRExpiryBanner />
 
         {/* Draggable items */}
         {!isLoadingOrder && (
