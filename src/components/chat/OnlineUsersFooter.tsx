@@ -89,10 +89,6 @@ export const OnlineUsersFooter = ({ onUserClick }: OnlineUsersFooterProps) => {
               )}
             </button>
 
-
-
-            )}
-
             {/* Volume */}
             <Popover>
               <PopoverTrigger asChild>
