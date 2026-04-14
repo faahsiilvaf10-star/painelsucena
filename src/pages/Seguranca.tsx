@@ -23,7 +23,7 @@ const Seguranca = () => {
 
   return (
     <Layout>
-      <div className="min-h-[calc(100vh-4rem)] bg-[#0a0a0a] p-4 md:p-8">
+      <div className="min-h-[calc(100vh-4rem)] p-4 md:p-8">
         <div className="flex items-center gap-3 mb-8 justify-center">
           <div className="p-2 rounded-xl bg-gradient-to-br from-[#c9a84c] to-[#f0d78c] text-[#1a1a1a]">
             <Shield className="h-7 w-7" />
