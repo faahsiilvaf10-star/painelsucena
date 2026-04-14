@@ -71,7 +71,7 @@ export function WeatherWidget() {
     } finally {
       setLoading(false);
     }
-  }, [isMobile]);
+  }, []);
 
   useEffect(() => {
     fetchWeather();
