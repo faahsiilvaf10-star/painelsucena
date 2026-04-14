@@ -2,7 +2,7 @@ import { useNavigate } from "react-router-dom";
 import Layout from "@/components/layout/Layout";
 import {
   Sun, FolderOpen, ClipboardCheck, BadgeCheck, Link2,
-  HardHat, Droplets, TriangleAlert, ShieldCheck, FlameKindling, Shield, Heart
+  HardHat, Droplets, TriangleAlert, ShieldCheck, FlameKindling, Shield, Heart, Grid3X3
 } from "lucide-react";
 
 const securityPages = [
@@ -17,6 +17,7 @@ const securityPages = [
   { label: "Requisição", icon: ShieldCheck, path: "/troca-epi" },
   { label: "Inspeção\nExtintores", icon: FlameKindling, path: "/inspecao-extintores" },
   { label: "Campanhas", icon: Heart, path: "/campanhas" },
+  { label: "Matriz\nResponsabilidade", icon: Grid3X3, path: "/matriz" },
 ];
 
 const Seguranca = () => {
