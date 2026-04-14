@@ -63,6 +63,7 @@ import TrocaEpi from "./pages/TrocaEpi";
 import InspecaoExtintores from "./pages/InspecaoExtintores";
 import MeioAmbiente from "./pages/MeioAmbiente";
 import PosChuva from "./pages/PosChuva";
+import Seguranca from "./pages/Seguranca";
 import NotFound from "./pages/NotFound";
 
 // QueryClient with robust error handling
@@ -160,6 +161,7 @@ const App = () => (
                     <Route path="/inspecao-extintores" element={<ProtectedRoute><InspecaoExtintores /></ProtectedRoute>} />
                     <Route path="/meio-ambiente" element={<ProtectedRoute><MeioAmbiente /></ProtectedRoute>} />
                     <Route path="/pos-chuva" element={<ProtectedRoute><PosChuva /></ProtectedRoute>} />
+                    <Route path="/seguranca" element={<ProtectedRoute><Seguranca /></ProtectedRoute>} />
                     {/* ADD ALL CUSTOM ROUTES ABOVE THE CATCH-ALL "*" ROUTE */}
                     <Route path="*" element={<NotFound />} />
                   </Routes>

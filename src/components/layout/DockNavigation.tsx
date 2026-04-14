@@ -13,7 +13,7 @@ import {
   Package, FolderOpen, ShieldCheck, Leaf, Hammer, ClipboardCheck,
   BadgeCheck, Link2, ArrowLeftRight, Clock, FolderLock, Droplets,
   Wrench, Presentation, Newspaper, HardHat, CalendarDays, Gamepad2,
-  TriangleAlert, Target, Receipt, FlameKindling, AlertTriangle, type LucideIcon
+  TriangleAlert, Target, Receipt, FlameKindling, AlertTriangle, Shield, type LucideIcon
 } from "lucide-react";
 
 interface NavItem {
@@ -61,6 +61,7 @@ const allNavItems: NavItem[] = [
   { id: "troca-epi", icon: ShieldCheck, label: "Troca de EPI", path: "/troca-epi" },
   { id: "inspecao-extintores", icon: FlameKindling, label: "Inspeção Extintores", path: "/inspecao-extintores" },
   { id: "meio-ambiente", icon: Leaf, label: "Meio Ambiente", path: "/meio-ambiente" },
+  { id: "seguranca", icon: Shield, label: "Segurança", path: "/seguranca" },
   { id: "emergencia", icon: AlertTriangle, label: "Emergência", path: "/emergencia", isEmergency: true },
 ];
 
