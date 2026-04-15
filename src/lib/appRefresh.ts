@@ -28,8 +28,28 @@ export function isEmbeddedPreview() {
   }
 }
 
+export function isElectronRuntime() {
+  const userAgent = navigator.userAgent.toLowerCase();
+  const navigatorWithBrands = navigator as Navigator & {
+    userAgentData?: {
+      brands?: Array<{ brand: string; version: string }>;
+    };
+  };
+  const runtimeProcess = (globalThis as typeof globalThis & {
+    process?: {
+      versions?: Record<string, string | undefined>;
+    };
+  }).process;
+
+  return Boolean(
+    runtimeProcess?.versions?.electron ||
+      userAgent.includes(" electron/") ||
+      navigatorWithBrands.userAgentData?.brands?.some((brand) => brand.brand.toLowerCase().includes("electron")),
+  );
+}
+
 export function shouldDisableServiceWorker() {
-  return import.meta.env.DEV || isPreviewHost() || isEmbeddedPreview();
+  return import.meta.env.DEV || isPreviewHost() || isEmbeddedPreview() || isElectronRuntime();
 }
 
 export function getPreviewCacheResetAttempts() {
