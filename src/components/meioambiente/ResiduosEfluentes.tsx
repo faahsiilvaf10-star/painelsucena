@@ -100,7 +100,7 @@ export default function ResiduosEfluentes() {
       const mesNum = idx + 1;
       return {
         mes: mesName.substring(0, 3),
-        "Efluentes (m³)": lookup.get(`${mesNum}-${TIPO_EFLUENTE.key}`) || 0,
+        "Fluentes (m³)": lookup.get(`${mesNum}-${TIPO_EFLUENTE.key}`) || 0,
       };
     });
   }, [lookup]);
@@ -237,7 +237,7 @@ export default function ResiduosEfluentes() {
 
       // ===== PAGE 2: EFLUENTES TABLE =====
       pdf.addPage("a4", "l");
-      await drawHeader("EFLUENTES SANITÁRIOS", "Controle mensal de efluentes (m³)");
+      await drawHeader("FLUENTES SANITÁRIOS", "Controle mensal de fluentes (m³)");
 
       const efTableTop = margin + 25;
       const efMesColW = 40;
@@ -250,7 +250,7 @@ export default function ResiduosEfluentes() {
       pdf.setFontSize(8);
       pdf.setFont("helvetica", "bold");
       pdf.text("Mês", margin + efMesColW / 2, efTableTop + 6, { align: "center" });
-      pdf.text("Efluentes (m³)", margin + efMesColW + efColW / 2, efTableTop + 6, { align: "center" });
+      pdf.text("Fluentes (m³)", margin + efMesColW + efColW / 2, efTableTop + 6, { align: "center" });
 
       const efDataTop = efTableTop + headerH;
       let efTotal = 0;
@@ -380,7 +380,7 @@ export default function ResiduosEfluentes() {
 
       // ===== PAGE 4: EFLUENTES CHART =====
       pdf.addPage("a4", "l");
-      await drawHeader("GRÁFICO - EFLUENTES SANITÁRIOS POR MÊS");
+      await drawHeader("GRÁFICO - FLUENTES SANITÁRIOS POR MÊS");
 
       // Accumulated total text
       pdf.setFontSize(10);
@@ -444,7 +444,7 @@ export default function ResiduosEfluentes() {
       pdf.setFontSize(7);
       pdf.setTextColor("#333333");
       pdf.setFont("helvetica", "normal");
-      pdf.text("Efluentes (m³)", efChartLeft + 7, efLegendY + 2);
+      pdf.text("Fluentes (m³)", efChartLeft + 7, efLegendY + 2);
 
       pdf.setFontSize(7);
       pdf.setTextColor("#999999");
@@ -452,7 +452,7 @@ export default function ResiduosEfluentes() {
 
       const { triggerBlobDownload } = await import("@/lib/pdfDownload");
       const blob = pdf.output("blob");
-      triggerBlobDownload(blob, `residuos-efluentes-${ano}.pdf`);
+      triggerBlobDownload(blob, `residuos-fluentes-${ano}.pdf`);
       toast.success("PDF exportado!");
     } catch (err) {
       console.error(err);
@@ -497,7 +497,11 @@ export default function ResiduosEfluentes() {
             autoFocus
           />
         ) : (
-          <span className="text-sm">{val !== undefined ? val : ""}</span>
+          <span className="text-sm">
+            {val !== undefined
+              ? (tipo === TIPO_EFLUENTE.key ? val.toFixed(1) : String(val))
+              : ""}
+          </span>
         )}
       </td>
     );
@@ -529,7 +533,7 @@ export default function ResiduosEfluentes() {
             <AlertDialogHeader>
               <AlertDialogTitle>Redefinir todos os valores?</AlertDialogTitle>
               <AlertDialogDescription>
-                Isso irá apagar todos os valores de Resíduos e Efluentes do ano {ano}. Esta ação não pode ser desfeita.
+                Isso irá apagar todos os valores de Resíduos e Fluentes do ano {ano}. Esta ação não pode ser desfeita.
               </AlertDialogDescription>
             </AlertDialogHeader>
             <AlertDialogFooter>
@@ -594,14 +598,14 @@ export default function ResiduosEfluentes() {
       {/* EFLUENTES TABLE */}
       <div className="border-2 border-[#1a5276] rounded overflow-x-auto">
         <div className="bg-card p-3 border-b-2 border-[#1a5276]">
-          <h2 className="text-lg font-bold text-[#1a5276] tracking-wide">EFLUENTES SANITÁRIOS</h2>
+          <h2 className="text-lg font-bold text-[#1a5276] tracking-wide">FLUENTES SANITÁRIOS</h2>
         </div>
         <table className="w-full border-collapse text-sm">
           <thead>
             <tr className="bg-[#1a5276] text-white">
               <th className="border border-[#1a5276] px-3 py-2 text-left min-w-[100px] font-bold">Mês</th>
               <th className="border border-[#1a5276] px-3 py-2 text-center min-w-[150px] font-bold">
-                Efluentes Sanitários (m³)
+                Fluentes Sanitários (m³)
               </th>
             </tr>
           </thead>
@@ -641,7 +645,7 @@ export default function ResiduosEfluentes() {
       </div>
 
       <div className="bg-card rounded-2xl border border-border/50 p-5">
-        <h3 className="text-lg font-bold mb-4">Efluentes Sanitários por Mês (m³)</h3>
+        <h3 className="text-lg font-bold mb-4">Fluentes Sanitários por Mês (m³)</h3>
         <div className="h-[300px]">
           <ResponsiveContainer width="100%" height="100%">
             <BarChart data={efluenteChartData} margin={{ top: 5, right: 20, left: 0, bottom: 5 }}>
@@ -650,7 +654,7 @@ export default function ResiduosEfluentes() {
               <YAxis stroke="hsl(var(--muted-foreground))" tick={{ fontSize: 11 }} />
               <Tooltip contentStyle={{ backgroundColor: "hsl(var(--card))", border: "1px solid hsl(var(--border))", borderRadius: "12px" }} />
               <Legend />
-              <Bar dataKey="Efluentes (m³)" fill="hsl(199, 89%, 48%)" radius={[4, 4, 0, 0]} />
+              <Bar dataKey="Fluentes (m³)" fill="hsl(199, 89%, 48%)" radius={[4, 4, 0, 0]} />
             </BarChart>
           </ResponsiveContainer>
         </div>
