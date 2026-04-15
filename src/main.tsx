@@ -151,14 +151,13 @@ async function bootstrap() {
     }
   } else {
     clearPreviewCacheResetAttempts();
-    registerAppServiceWorker();
-    listenForControllerChange();
 
     if (versionChanged) {
-      // First load or version changed — clear old caches once
       await clearClientCaches();
-      registerAppServiceWorker();
     }
+
+    registerAppServiceWorker();
+    listenForControllerChange();
   }
 
   // Always render the app — never block on update banners

@@ -28,6 +28,8 @@ export default defineConfig(({ mode }) => ({
     VitePWA({
       injectRegister: false,
       registerType: "autoUpdate",
+      strategies: "injectManifest",
+      srcDir: "src",
       filename: "app-runtime-sw.js",
       devOptions: {
         enabled: false,
@@ -156,66 +158,9 @@ export default defineConfig(({ mode }) => ({
           },
         ],
       },
-      workbox: {
+      injectManifest: {
         globPatterns: ["**/*.{js,css,html,ico,png,svg,woff2,jpg,jpeg,webp}"],
-        maximumFileSizeToCacheInBytes: 6 * 1024 * 1024, // 6 MB limit
-        cleanupOutdatedCaches: true,
-        navigateFallbackDenylist: [/^\/~oauth/],
-        navigateFallback: "/index.html",
-        navigateFallbackAllowlist: [/^(?!\/(~oauth|api|supabase))/],
-        skipWaiting: true,
-        clientsClaim: true,
-        runtimeCaching: [
-          // Google Fonts - Cache First (rarely changes)
-          {
-            urlPattern: /^https:\/\/fonts\.googleapis\.com\/.*/i,
-            handler: "CacheFirst",
-            options: {
-              cacheName: "google-fonts-cache",
-              expiration: {
-                maxEntries: 10,
-                maxAgeSeconds: 60 * 60 * 24 * 365, // 1 year
-              },
-            },
-          },
-          // Google Fonts Static - Cache First
-          {
-            urlPattern: /^https:\/\/fonts\.gstatic\.com\/.*/i,
-            handler: "CacheFirst",
-            options: {
-              cacheName: "google-fonts-static",
-              expiration: {
-                maxEntries: 30,
-                maxAgeSeconds: 60 * 60 * 24 * 365, // 1 year
-              },
-            },
-          },
-          // Image Assets - Stale While Revalidate
-          {
-            urlPattern: /\.(?:png|jpg|jpeg|svg|gif|webp|ico)$/i,
-            handler: "StaleWhileRevalidate",
-            options: {
-              cacheName: "image-cache",
-              expiration: {
-                maxEntries: 100,
-                maxAgeSeconds: 60 * 60 * 24 * 30, // 30 days
-              },
-            },
-          },
-          // Supabase Storage - Network First with Fallback
-          {
-            urlPattern: /^https:\/\/.*\.supabase\.co\/storage\/.*/i,
-            handler: "NetworkFirst",
-            options: {
-              cacheName: "supabase-storage",
-              expiration: {
-                maxEntries: 50,
-                maxAgeSeconds: 60 * 60 * 24 * 7, // 7 days
-              },
-              networkTimeoutSeconds: 5,
-            },
-          },
-        ],
+        maximumFileSizeToCacheInBytes: 6 * 1024 * 1024,
       },
     }),
   ].filter(Boolean),
