@@ -18,6 +18,9 @@ export default defineConfig(({ mode }) => ({
     mode === "development" && componentTagger(),
     VitePWA({
       registerType: "autoUpdate",
+      devOptions: {
+        enabled: false,
+      },
       includeAssets: ["og-image.png", "pwa-192x192.png", "pwa-512x512.png", "pwa-maskable-192x192.png", "pwa-maskable-512x512.png"],
       manifest: {
         name: "Sucena Empreendimentos - Controle Operacional",
@@ -145,6 +148,7 @@ export default defineConfig(({ mode }) => ({
       workbox: {
         globPatterns: ["**/*.{js,css,html,ico,png,svg,woff2,jpg,jpeg,webp}"],
         maximumFileSizeToCacheInBytes: 6 * 1024 * 1024, // 6 MB limit
+        cleanupOutdatedCaches: true,
         navigateFallbackDenylist: [/^\/~oauth/],
         navigateFallback: "/index.html",
         navigateFallbackAllowlist: [/^(?!\/(~oauth|api|supabase))/],
