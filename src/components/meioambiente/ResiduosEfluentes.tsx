@@ -499,8 +499,8 @@ export default function ResiduosEfluentes() {
         ) : (
           <span className="text-sm">
             {val !== undefined
-              ? (tipo === TIPO_EFLUENTE.key ? val.toFixed(1) : val)
-              : (tipo === TIPO_EFLUENTE.key ? "" : "")}
+              ? (tipo === TIPO_EFLUENTE.key ? val.toFixed(1) : String(val))
+              : ""}
           </span>
         )}
       </td>
