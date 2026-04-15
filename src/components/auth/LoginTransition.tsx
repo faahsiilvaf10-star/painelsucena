@@ -19,8 +19,8 @@ export function LoginTransition({ onComplete, userName, userAvatar, userCargo }:
 
   // Play subtle sound
   useEffect(() => {
-    audioRef.current = new Audio("/sounds/chime.mp3");
-    audioRef.current.volume = 0.35;
+    audioRef.current = new Audio("/sounds/login-welcome.wav");
+    audioRef.current.volume = 0.5;
     audioRef.current.play().catch(() => {});
     return () => {
       if (audioRef.current) {
