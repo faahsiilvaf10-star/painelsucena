@@ -21,7 +21,7 @@ export const TIPOS_RESIDUO = [
   { key: "organico", label: "ORGÂNICO(KG)" },
 ];
 
-export const TIPO_EFLUENTE = { key: "efluente_sanitario", label: "Fluentes Sanitários (m³)" };
+export const TIPO_EFLUENTE = { key: "efluente_sanitario", label: "Efluentes Sanitários (m³)" };
 
 export function useResiduosEfluentes(ano: number) {
   const queryClient = useQueryClient();
