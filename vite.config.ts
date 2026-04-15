@@ -26,7 +26,9 @@ export default defineConfig(({ mode }) => ({
     react(),
     mode === "development" && componentTagger(),
     VitePWA({
+      injectRegister: false,
       registerType: "autoUpdate",
+      filename: "app-sw.js",
       devOptions: {
         enabled: false,
       },
