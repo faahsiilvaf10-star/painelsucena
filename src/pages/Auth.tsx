@@ -160,13 +160,6 @@ const Auth = () => {
     sessionStorage.setItem("loginTransitionStage", "pending");
     dispatchTransitionEvent();
 
-    // --- Clear ALL caches on every login to guarantee fresh content ---
-    try {
-      await clearClientCaches();
-    } catch {
-      // ignore cache clearing errors
-    }
-
     try {
       if (isLogin) {
         const { data: authData, error } = await supabase.auth.signInWithPassword({
