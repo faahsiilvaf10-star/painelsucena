@@ -49,20 +49,33 @@ export function WeatherWidget() {
     try {
       const latitude = -1.5189;
       const longitude = -48.6356;
-      const locationName = "Vila dos Cabanos, Barcarena - PA";
+      const locationName = "Barcarena - Vila dos Cabanos";
 
-      const url = `https://api.open-meteo.com/v1/forecast?latitude=${latitude}&longitude=${longitude}&current=temperature_2m,relative_humidity_2m,apparent_temperature,weather_code,wind_speed_10m,is_day&timezone=America/Sao_Paulo&_=${Date.now()}`;
+      const baseUrl = `https://api.open-meteo.com/v1/forecast?latitude=${latitude}&longitude=${longitude}&current=temperature_2m,relative_humidity_2m,apparent_temperature,weather_code,wind_speed_10m,is_day&timezone=America/Sao_Paulo`;
       
-      let res: Response;
-      try {
-        res = await fetch(url);
-      } catch {
-        // Fallback: try with corsproxy
-        res = await fetch(`https://corsproxy.io/?${encodeURIComponent(url)}`);
+      const urls = [
+        baseUrl,
+        `https://corsproxy.io/?${encodeURIComponent(baseUrl)}`,
+        `https://api.allorigins.win/raw?url=${encodeURIComponent(baseUrl)}`,
+      ];
+
+      let data: any = null;
+      for (const url of urls) {
+        try {
+          const controller = new AbortController();
+          const timeout = setTimeout(() => controller.abort(), 8000);
+          const res = await fetch(url, { signal: controller.signal });
+          clearTimeout(timeout);
+          if (res.ok) {
+            data = await res.json();
+            break;
+          }
+        } catch {
+          // try next proxy
+        }
       }
-      
-      if (!res.ok) throw new Error("API error");
-      const data = await res.json();
+
+      if (!data?.current) throw new Error("No data");
 
       setWeather({
         temperature: Math.round(data.current.temperature_2m),
@@ -74,8 +87,8 @@ export function WeatherWidget() {
         locationName,
         lastUpdated: new Date().toLocaleTimeString('pt-BR', { hour: '2-digit', minute: '2-digit' }),
       });
-    } catch (err: any) {
-      setError(err?.code === 1 ? "Permissão de localização negada" : "Erro ao obter previsão");
+    } catch {
+      setError("Erro ao obter previsão");
     } finally {
       setLoading(false);
     }
