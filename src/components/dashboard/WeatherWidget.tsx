@@ -1,8 +1,8 @@
 import { useEffect, useState, useCallback } from "react";
 import { Cloud, CloudRain, Sun, CloudSun, CloudSnow, CloudLightning, Droplets, Wind, Thermometer, MapPin, RefreshCw } from "lucide-react";
-import { useIsMobile } from "@/hooks/use-mobile";
 import { Button } from "@/components/ui/button";
 import { Skeleton } from "@/components/ui/skeleton";
+import { supabase } from "@/integrations/supabase/client";
 
 interface WeatherData {
   temperature: number;
@@ -41,30 +41,17 @@ export function WeatherWidget() {
   const [weather, setWeather] = useState<WeatherData | null>(null);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
-  const isMobile = useIsMobile();
 
   const fetchWeather = useCallback(async () => {
     setLoading(true);
     setError(null);
     try {
-      // Vila dos Cabanos, Barcarena - PA (coordenadas fixas)
-      const latitude = -1.5189;
-      const longitude = -48.6303;
       const locationName = "Vila dos Cabanos, Barcarena - PA";
 
-      const res = await fetch(
-        `https://api.open-meteo.com/v1/forecast?latitude=${latitude}&longitude=${longitude}&current=temperature_2m,relative_humidity_2m,apparent_temperature,weather_code,wind_speed_10m,is_day&timezone=America/Sao_Paulo`
-      );
+      const { data, error: fnError } = await supabase.functions.invoke('get-weather');
       
-      if (!res.ok) {
-        throw new Error(`HTTP ${res.status}`);
-      }
-      
-      const data = await res.json();
-      
-      if (!data?.current) {
-        throw new Error("Dados indisponíveis");
-      }
+      if (fnError) throw fnError;
+      if (!data?.current) throw new Error("Dados indisponíveis");
 
       setWeather({
         temperature: Math.round(data.current.temperature_2m),
