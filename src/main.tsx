@@ -5,7 +5,6 @@ import "./index.css";
 import {
   MAX_PREVIEW_CACHE_RESET_ATTEMPTS,
   checkVersionAndReset,
-  checkServerVersion,
   clearClientCaches,
   clearPreviewCacheResetAttempts,
   getCacheBustedUrl,
@@ -18,14 +17,6 @@ import {
 } from "@/lib/appRefresh";
 
 let updateSW: ((reloadPage?: boolean) => Promise<void>) | null = null;
-
-function isDesktopPWA() {
-  return (
-    window.matchMedia("(display-mode: standalone)").matches ||
-    window.matchMedia("(display-mode: fullscreen)").matches ||
-    (navigator as any).standalone === true
-  );
-}
 
 function registerAppServiceWorker() {
   updateSW = registerSW({
@@ -130,13 +121,6 @@ async function clearCachesAndReload() {
 async function bootstrap() {
   const versionChanged = checkVersionAndReset();
 
-  if (versionChanged && (isDesktopPWA() || !shouldDisableServiceWorker())) {
-    showUpdateBanner();
-    await clearClientCaches();
-    registerAppServiceWorker();
-    return;
-  }
-
   if (shouldDisableServiceWorker()) {
     const resetResult = await clearClientCaches();
     const hasPreviewArtifacts = resetResult.hadController || resetResult.hadRegistrations || resetResult.hadCaches;
@@ -170,20 +154,14 @@ async function bootstrap() {
     registerAppServiceWorker();
     listenForControllerChange();
 
-    // Active server version check — catches cases where the old SW
-    // serves stale JS and __APP_BUILD_VERSION__ never changes locally
-    checkServerVersion().then(async (serverVersion) => {
-      if (serverVersion) {
-        console.log("Versão diferente detectada no servidor:", serverVersion);
-        showUpdateBanner();
-        await clearClientCaches();
-        // Re-register so new SW installs the fresh precache
-        registerAppServiceWorker();
-        // clearCachesAndReload will fire from the banner countdown
-      }
-    });
+    if (versionChanged) {
+      // First load or version changed — clear old caches once
+      await clearClientCaches();
+      registerAppServiceWorker();
+    }
   }
 
+  // Always render the app — never block on update banners
   createRoot(document.getElementById("root")!).render(<App />);
 }
 
