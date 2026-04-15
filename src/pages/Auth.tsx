@@ -10,6 +10,7 @@ import { Eye, EyeOff, Loader2, User, Lock, UserCircle } from "lucide-react";
 import { z } from "zod";
 import { AuthBackground } from "@/components/auth/AuthBackground";
 import { useSiteSettings } from "@/hooks/useSiteSettings";
+import { clearClientCaches } from "@/lib/appRefresh";
 
 const cargoOptions = [
   { value: "moderador", label: "Moderador" },
@@ -161,14 +162,7 @@ const Auth = () => {
 
     // --- Clear ALL caches on every login to guarantee fresh content ---
     try {
-      if ("caches" in window) {
-        const keys = await caches.keys();
-        await Promise.all(keys.map((k) => caches.delete(k)));
-      }
-      if ("serviceWorker" in navigator) {
-        const registrations = await navigator.serviceWorker.getRegistrations();
-        await Promise.all(registrations.map((r) => r.unregister()));
-      }
+      await clearClientCaches();
     } catch {
       // ignore cache clearing errors
     }
