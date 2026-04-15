@@ -3,7 +3,16 @@ import { registerSW } from "virtual:pwa-register";
 import App from "./App.tsx";
 import "./index.css";
 
-const PREVIEW_CACHE_RESET_KEY = "preview-sw-reset-done";
+const PREVIEW_CACHE_RESET_KEY = "preview-sw-reset-attempts";
+const MAX_PREVIEW_CACHE_RESET_ATTEMPTS = 3;
+
+type PreviewResetResult = {
+  hadCaches: boolean;
+  hadController: boolean;
+  hadRegistrations: boolean;
+  remainingCaches: number;
+  remainingRegistrations: number;
+};
 
 function isPreviewHost() {
   return window.location.hostname.includes("id-preview--");
@@ -21,26 +30,64 @@ function shouldDisableServiceWorker() {
   return import.meta.env.DEV || isPreviewHost() || isEmbeddedPreview();
 }
 
-async function resetPreviewCaches() {
-  let changed = false;
+function getPreviewCacheResetAttempts() {
+  const rawValue = sessionStorage.getItem(PREVIEW_CACHE_RESET_KEY);
+  const attempts = Number.parseInt(rawValue ?? "0", 10);
+
+  return Number.isFinite(attempts) ? attempts : 0;
+}
+
+function setPreviewCacheResetAttempts(attempts: number) {
+  sessionStorage.setItem(PREVIEW_CACHE_RESET_KEY, String(attempts));
+}
+
+function clearPreviewCacheResetAttempts() {
+  sessionStorage.removeItem(PREVIEW_CACHE_RESET_KEY);
+}
+
+function getPreviewReloadUrl(attempt: number) {
+  const url = new URL(window.location.href);
+  url.searchParams.set("preview-bust", `${Date.now()}`);
+  url.searchParams.set("preview-reset-attempt", String(attempt));
+  return url.toString();
+}
+
+async function resetPreviewCaches(): Promise<PreviewResetResult> {
+  const hadController = "serviceWorker" in navigator && Boolean(navigator.serviceWorker.controller);
+  let hadRegistrations = false;
+  let remainingRegistrations = 0;
+  let hadCaches = false;
+  let remainingCaches = 0;
 
   if ("serviceWorker" in navigator) {
     const registrations = await navigator.serviceWorker.getRegistrations();
-    if (registrations.length > 0) {
-      changed = true;
+    hadRegistrations = registrations.length > 0;
+
+    if (hadRegistrations) {
       await Promise.all(registrations.map((registration) => registration.unregister().catch(() => false)));
     }
+
+    remainingRegistrations = (await navigator.serviceWorker.getRegistrations()).length;
   }
 
   if ("caches" in window) {
     const keys = await caches.keys();
-    if (keys.length > 0) {
-      changed = true;
+    hadCaches = keys.length > 0;
+
+    if (hadCaches) {
       await Promise.all(keys.map((key) => caches.delete(key).catch(() => false)));
     }
+
+    remainingCaches = (await caches.keys()).length;
   }
 
-  return changed;
+  return {
+    hadCaches,
+    hadController,
+    hadRegistrations,
+    remainingCaches,
+    remainingRegistrations,
+  };
 }
 
 let updateSW: ((reloadPage?: boolean) => Promise<void>) | null = null;
@@ -150,20 +197,30 @@ async function clearCachesAndReload() {
 
 async function bootstrap() {
   if (shouldDisableServiceWorker()) {
-    const hadPreviewCache = await resetPreviewCaches();
-    const alreadyReset = sessionStorage.getItem(PREVIEW_CACHE_RESET_KEY) === "true";
+    const resetResult = await resetPreviewCaches();
+    const hasPreviewArtifacts = resetResult.hadController || resetResult.hadRegistrations || resetResult.hadCaches;
+    const resetAttempts = getPreviewCacheResetAttempts();
 
-    if (hadPreviewCache && !alreadyReset) {
-      sessionStorage.setItem(PREVIEW_CACHE_RESET_KEY, "true");
-      const url = new URL(window.location.href);
-      url.searchParams.set("preview-bust", Date.now().toString());
-      window.location.replace(url.toString());
+    if (hasPreviewArtifacts && resetAttempts < MAX_PREVIEW_CACHE_RESET_ATTEMPTS) {
+      const nextAttempt = resetAttempts + 1;
+      setPreviewCacheResetAttempts(nextAttempt);
+      console.log(
+        `Preview detectado: removendo cache e Service Worker antigos (tentativa ${nextAttempt}/${MAX_PREVIEW_CACHE_RESET_ATTEMPTS}).`,
+        resetResult,
+      );
+      window.location.replace(getPreviewReloadUrl(nextAttempt));
       return;
     }
 
-    sessionStorage.removeItem(PREVIEW_CACHE_RESET_KEY);
-    console.log("Preview detectado: Service Worker desativado para evitar cache antigo.");
+    clearPreviewCacheResetAttempts();
+
+    if (hasPreviewArtifacts) {
+      console.warn("Preview detectado: resquícios de cache antigo persistiram após as tentativas de limpeza.", resetResult);
+    } else {
+      console.log("Preview detectado: Service Worker desativado e cache limpo para evitar versão antiga.", resetResult);
+    }
   } else {
+    clearPreviewCacheResetAttempts();
     registerAppServiceWorker();
   }
 
