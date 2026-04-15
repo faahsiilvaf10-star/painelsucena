@@ -168,7 +168,7 @@ export const RadioProvider = ({ children }: { children: ReactNode }) => {
     return () => {
       globalAudio?.removeEventListener("ended", handleEnded);
     };
-  }, [currentTrackIndex, currentHour, playlistTracks.length]);
+  }, [currentTrack?.file_url, shuffleAll]);
 
   // Mute/unmute on play/pause toggle — audio keeps running
   useEffect(() => {
