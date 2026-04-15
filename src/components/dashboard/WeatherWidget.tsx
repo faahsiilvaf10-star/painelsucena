@@ -1,8 +1,8 @@
 import { useEffect, useState, useCallback } from "react";
 import { Cloud, CloudRain, Sun, CloudSun, CloudSnow, CloudLightning, Droplets, Wind, Thermometer, MapPin, RefreshCw } from "lucide-react";
-import { useIsMobile } from "@/hooks/use-mobile";
 import { Button } from "@/components/ui/button";
 import { Skeleton } from "@/components/ui/skeleton";
+import { supabase } from "@/integrations/supabase/client";
 
 interface WeatherData {
   temperature: number;
@@ -47,35 +47,9 @@ export function WeatherWidget() {
     setLoading(true);
     setError(null);
     try {
-      const latitude = -1.5189;
-      const longitude = -48.6356;
-      const locationName = "Barcarena - Vila dos Cabanos";
-
-      const baseUrl = `https://api.open-meteo.com/v1/forecast?latitude=${latitude}&longitude=${longitude}&current=temperature_2m,relative_humidity_2m,apparent_temperature,weather_code,wind_speed_10m,is_day&timezone=America/Sao_Paulo`;
-      
-      const urls = [
-        baseUrl,
-        `https://corsproxy.io/?${encodeURIComponent(baseUrl)}`,
-        `https://api.allorigins.win/raw?url=${encodeURIComponent(baseUrl)}`,
-      ];
-
-      let data: any = null;
-      for (const url of urls) {
-        try {
-          const controller = new AbortController();
-          const timeout = setTimeout(() => controller.abort(), 8000);
-          const res = await fetch(url, { signal: controller.signal });
-          clearTimeout(timeout);
-          if (res.ok) {
-            data = await res.json();
-            break;
-          }
-        } catch {
-          // try next proxy
-        }
-      }
-
-      if (!data?.current) throw new Error("No data");
+      const { data, error: functionError } = await supabase.functions.invoke("weather-current");
+      if (functionError) throw functionError;
+      if (!data?.current) throw new Error(data?.error || "No data");
 
       setWeather({
         temperature: Math.round(data.current.temperature_2m),
@@ -84,10 +58,11 @@ export function WeatherWidget() {
         windSpeed: Math.round(data.current.wind_speed_10m),
         weatherCode: data.current.weather_code,
         isDay: data.current.is_day === 1,
-        locationName,
-        lastUpdated: new Date().toLocaleTimeString('pt-BR', { hour: '2-digit', minute: '2-digit' }),
+        locationName: data.locationName || "Barcarena - Vila dos Cabanos",
+        lastUpdated: new Date(data.fetchedAt || Date.now()).toLocaleTimeString('pt-BR', { hour: '2-digit', minute: '2-digit' }),
       });
-    } catch {
+    } catch (err) {
+      console.error("Erro ao obter previsão:", err);
       setError("Erro ao obter previsão");
     } finally {
       setLoading(false);
