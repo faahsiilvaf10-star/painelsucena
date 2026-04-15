@@ -9,6 +9,12 @@ export default defineConfig(({ mode }) => ({
   server: {
     host: "::",
     port: 8080,
+    headers: {
+      "Cache-Control": "no-store, no-cache, must-revalidate, proxy-revalidate, max-age=0",
+      Expires: "0",
+      Pragma: "no-cache",
+      "Surrogate-Control": "no-store",
+    },
     hmr: {
       overlay: false,
     },
