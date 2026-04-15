@@ -3,52 +3,93 @@ import { registerSW } from "virtual:pwa-register";
 import App from "./App.tsx";
 import "./index.css";
 
-// Register Service Worker for PWA — works on all platforms (mobile, desktop, browser)
-const updateSW = registerSW({
-  immediate: true,
-  onNeedRefresh() {
-    showUpdateBanner();
-  },
-  onOfflineReady() {
-    console.log("App pronto para uso offline");
-  },
-  onRegistered(registration) {
-    console.log("Service Worker registrado:", registration);
-    if (!registration) return;
+const PREVIEW_CACHE_RESET_KEY = "preview-sw-reset-done";
 
-    const checkForUpdates = () => {
-      if (navigator.onLine) {
-        registration.update().catch((e) => console.error("Erro ao buscar atualização:", e));
+function isPreviewHost() {
+  return window.location.hostname.includes("id-preview--");
+}
+
+function isEmbeddedPreview() {
+  try {
+    return window.self !== window.top;
+  } catch {
+    return true;
+  }
+}
+
+function shouldDisableServiceWorker() {
+  return import.meta.env.DEV || isPreviewHost() || isEmbeddedPreview();
+}
+
+async function resetPreviewCaches() {
+  let changed = false;
+
+  if ("serviceWorker" in navigator) {
+    const registrations = await navigator.serviceWorker.getRegistrations();
+    if (registrations.length > 0) {
+      changed = true;
+      await Promise.all(registrations.map((registration) => registration.unregister().catch(() => false)));
+    }
+  }
+
+  if ("caches" in window) {
+    const keys = await caches.keys();
+    if (keys.length > 0) {
+      changed = true;
+      await Promise.all(keys.map((key) => caches.delete(key).catch(() => false)));
+    }
+  }
+
+  return changed;
+}
+
+let updateSW: ((reloadPage?: boolean) => Promise<void>) | null = null;
+
+function registerAppServiceWorker() {
+  updateSW = registerSW({
+    immediate: true,
+    onNeedRefresh() {
+      showUpdateBanner();
+    },
+    onOfflineReady() {
+      console.log("App pronto para uso offline");
+    },
+    onRegistered(registration) {
+      console.log("Service Worker registrado:", registration);
+      if (!registration) return;
+
+      const checkForUpdates = () => {
+        if (navigator.onLine) {
+          registration.update().catch((e) => console.error("Erro ao buscar atualização:", e));
+        }
+      };
+
+      checkForUpdates();
+      setInterval(checkForUpdates, 2 * 60 * 1000);
+
+      window.addEventListener("focus", checkForUpdates);
+      window.addEventListener("online", checkForUpdates);
+      document.addEventListener("visibilitychange", () => {
+        if (document.visibilityState === "visible") checkForUpdates();
+      });
+
+      if ("periodicSync" in registration) {
+        (registration as any).periodicSync
+          .register("content-sync", { minInterval: 12 * 60 * 60 * 1000 })
+          .catch((err: Error) => console.log("Periodic sync não suportado:", err));
       }
-    };
 
-    // Check immediately, then every 2 minutes
-    checkForUpdates();
-    setInterval(checkForUpdates, 2 * 60 * 1000);
-
-    // Also check on focus / visibility / online
-    window.addEventListener("focus", checkForUpdates);
-    window.addEventListener("online", checkForUpdates);
-    document.addEventListener("visibilitychange", () => {
-      if (document.visibilityState === "visible") checkForUpdates();
-    });
-
-    if ("periodicSync" in registration) {
-      (registration as any).periodicSync
-        .register("content-sync", { minInterval: 12 * 60 * 60 * 1000 })
-        .catch((err: Error) => console.log("Periodic sync não suportado:", err));
-    }
-
-    if ("sync" in registration) {
-      (registration as any).sync
-        .register("pending-sync")
-        .catch((err: Error) => console.log("Background sync não suportado:", err));
-    }
-  },
-  onRegisterError(error) {
-    console.error("Erro ao registrar Service Worker:", error);
-  },
-});
+      if ("sync" in registration) {
+        (registration as any).sync
+          .register("pending-sync")
+          .catch((err: Error) => console.log("Background sync não suportado:", err));
+      }
+    },
+    onRegisterError(error) {
+      console.error("Erro ao registrar Service Worker:", error);
+    },
+  });
+}
 
 function showUpdateBanner() {
   if (document.getElementById("update-banner")) return;
@@ -98,11 +139,35 @@ async function clearCachesAndReload() {
       await Promise.all(keys.map((k) => caches.delete(k)));
     }
     // Activate new SW
-    await updateSW(true);
+    if (updateSW) {
+      await updateSW(true);
+    }
   } catch (e) {
     console.error("Erro ao limpar cache:", e);
   }
   window.location.reload();
 }
 
-createRoot(document.getElementById("root")!).render(<App />);
+async function bootstrap() {
+  if (shouldDisableServiceWorker()) {
+    const hadPreviewCache = await resetPreviewCaches();
+    const alreadyReset = sessionStorage.getItem(PREVIEW_CACHE_RESET_KEY) === "true";
+
+    if (hadPreviewCache && !alreadyReset) {
+      sessionStorage.setItem(PREVIEW_CACHE_RESET_KEY, "true");
+      const url = new URL(window.location.href);
+      url.searchParams.set("preview-bust", Date.now().toString());
+      window.location.replace(url.toString());
+      return;
+    }
+
+    sessionStorage.removeItem(PREVIEW_CACHE_RESET_KEY);
+    console.log("Preview detectado: Service Worker desativado para evitar cache antigo.");
+  } else {
+    registerAppServiceWorker();
+  }
+
+  createRoot(document.getElementById("root")!).render(<App />);
+}
+
+void bootstrap();
