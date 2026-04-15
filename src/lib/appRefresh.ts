@@ -32,6 +32,7 @@ export function isEmbeddedPreview() {
 }
 
 export function isElectronRuntime() {
+  const searchParams = new URLSearchParams(window.location.search);
   const userAgent = navigator.userAgent.toLowerCase();
   const navigatorWithBrands = navigator as Navigator & {
     userAgentData?: {
@@ -45,6 +46,7 @@ export function isElectronRuntime() {
   }).process;
 
   return Boolean(
+    searchParams.get("desktop-shell") === "electron" ||
     runtimeProcess?.versions?.electron ||
       userAgent.includes(" electron/") ||
       navigatorWithBrands.userAgentData?.brands?.some((brand) => brand.brand.toLowerCase().includes("electron")),
