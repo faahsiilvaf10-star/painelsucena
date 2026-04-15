@@ -3,6 +3,7 @@ import { registerSW } from "virtual:pwa-register";
 import App from "./App.tsx";
 import "./index.css";
 import {
+  ELECTRON_VERSION_POLL_INTERVAL_MS,
   MAX_PREVIEW_CACHE_RESET_ATTEMPTS,
   checkServerVersion,
   checkVersionAndReset,
@@ -10,13 +11,16 @@ import {
   clearPreviewCacheResetAttempts,
   getCacheBustedUrl,
   getPreviewCacheResetAttempts,
+  isElectronRuntime,
   listenForControllerChange,
   markPreviewDocumentFresh,
+  refreshIfDocumentStale,
   setPreviewCacheResetAttempts,
   shouldDisableServiceWorker,
 } from "@/lib/appRefresh";
 
 let updateSW: ((reloadPage?: boolean) => Promise<void>) | null = null;
+let runtimeVersionMonitorStarted = false;
 
 function registerAppServiceWorker() {
   updateSW = registerSW({
@@ -118,10 +122,46 @@ async function clearCachesAndReload() {
   window.location.replace(getCacheBustedUrl());
 }
 
+function startRuntimeVersionMonitor() {
+  if (runtimeVersionMonitorStarted || !isElectronRuntime()) return;
+
+  runtimeVersionMonitorStarted = true;
+
+  window.setInterval(() => {
+    void refreshIfDocumentStale("electron-interval");
+  }, ELECTRON_VERSION_POLL_INTERVAL_MS);
+
+  window.addEventListener("focus", () => {
+    void refreshIfDocumentStale("electron-focus");
+  });
+
+  window.addEventListener("online", () => {
+    void refreshIfDocumentStale("electron-online");
+  });
+
+  document.addEventListener("visibilitychange", () => {
+    if (document.visibilityState === "visible") {
+      void refreshIfDocumentStale("electron-visibility");
+    }
+  });
+}
+
 async function bootstrap() {
   const versionChanged = checkVersionAndReset();
+  const electronRuntime = isElectronRuntime();
 
   if (shouldDisableServiceWorker()) {
+    if (electronRuntime) {
+      const resetResult = await clearClientCaches();
+
+      if (await refreshIfDocumentStale("electron-bootstrap")) {
+        return;
+      }
+
+      clearPreviewCacheResetAttempts();
+      markPreviewDocumentFresh();
+      console.log("Electron detectado: cache limpo e monitor de versão ativado.", resetResult);
+    } else {
     const resetResult = await clearClientCaches();
     const serverVersionMismatch = await checkServerVersion();
     const hasPreviewArtifacts = resetResult.hadController || resetResult.hadRegistrations || resetResult.hadCaches;
@@ -157,6 +197,7 @@ async function bootstrap() {
     } else {
       console.log("Preview detectado: Service Worker desativado e cache limpo para evitar versão antiga.", resetResult);
     }
+    }
   } else {
     clearPreviewCacheResetAttempts();
 
@@ -170,6 +211,10 @@ async function bootstrap() {
 
   // Always render the app — never block on update banners
   createRoot(document.getElementById("root")!).render(<App />);
+
+  if (electronRuntime) {
+    startRuntimeVersionMonitor();
+  }
 }
 
 void bootstrap();
