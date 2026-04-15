@@ -587,7 +587,7 @@ function PluviometriaSpreadsheet({ setor, ano }: { setor: string; ano: number })
 const hubPages = [
   { label: "Pluviometria", icon: CloudRain, key: "pluviometria" },
   { label: "Caixa\nD'Água", icon: Droplets, key: "abastecimento" },
-  { label: "Resíduos\nFluentes", icon: Trash2, key: "residuos" },
+  { label: "Resíduos\ne Fluentes", icon: Trash2, key: "residuos" },
   { label: "Consumo\nAbastecimento", icon: Droplets, key: "consumo" },
 ];
 
@@ -653,7 +653,7 @@ export default function MeioAmbiente() {
         <span className="text-2xl font-bold">
           {selectedSection === "pluviometria" && "Pluviometria"}
           {selectedSection === "abastecimento" && "Caixa D'Água"}
-          {selectedSection === "residuos" && "Resíduos Fluentes"}
+          {selectedSection === "residuos" && "Resíduos e Fluentes"}
         </span>
       </div>
 
