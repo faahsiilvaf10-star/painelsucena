@@ -5,10 +5,12 @@ import "./index.css";
 import {
   MAX_PREVIEW_CACHE_RESET_ATTEMPTS,
   checkVersionAndReset,
+  checkServerVersion,
   clearClientCaches,
   clearPreviewCacheResetAttempts,
   getCacheBustedUrl,
   getPreviewCacheResetAttempts,
+  listenForControllerChange,
   markPreviewDocumentFresh,
   setPreviewCacheResetAttempts,
   shouldDisableServiceWorker,
@@ -166,6 +168,20 @@ async function bootstrap() {
   } else {
     clearPreviewCacheResetAttempts();
     registerAppServiceWorker();
+    listenForControllerChange();
+
+    // Active server version check — catches cases where the old SW
+    // serves stale JS and __APP_BUILD_VERSION__ never changes locally
+    checkServerVersion().then(async (serverVersion) => {
+      if (serverVersion) {
+        console.log("Versão diferente detectada no servidor:", serverVersion);
+        showUpdateBanner();
+        await clearClientCaches();
+        // Re-register so new SW installs the fresh precache
+        registerAppServiceWorker();
+        // clearCachesAndReload will fire from the banner countdown
+      }
+    });
   }
 
   createRoot(document.getElementById("root")!).render(<App />);

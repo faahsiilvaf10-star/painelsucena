@@ -138,3 +138,47 @@ export async function hardRefreshToLatest(options: { clearVisualState?: boolean 
   markPreviewDocumentFresh();
   window.location.replace(getCacheBustedUrl());
 }
+
+/**
+ * Fetches the live index.html from the server (bypassing SW/browser cache)
+ * and extracts the embedded build version to compare against the running one.
+ * Returns the server version string if different, or null if up-to-date.
+ */
+export async function checkServerVersion(): Promise<string | null> {
+  try {
+    const res = await fetch("/index.html", {
+      cache: "no-store",
+      headers: { "Cache-Control": "no-cache", Pragma: "no-cache" },
+    });
+    if (!res.ok) return null;
+    const html = await res.text();
+    // The vite build injects __APP_BUILD_VERSION__ as a string literal in the JS bundle.
+    // We look for the variable assignment pattern in the inlined/linked scripts.
+    // A simpler heuristic: look for the <script> src hash — if the index.html changed at all,
+    // the script src hash will differ, meaning there's a new build.
+    const scriptMatch = html.match(/src="\/assets\/[^"]+\.js"/);
+    const currentScripts = document.querySelectorAll('script[src*="/assets/"]');
+    if (scriptMatch && currentScripts.length > 0) {
+      const serverScript = scriptMatch[0];
+      const currentScript = currentScripts[0].getAttribute("src") || "";
+      if (!serverScript.includes(currentScript)) {
+        return serverScript; // different build
+      }
+    }
+    return null;
+  } catch {
+    return null;
+  }
+}
+
+/**
+ * Listens for SW controller changes (new SW activated) and forces a clean reload.
+ */
+export function listenForControllerChange() {
+  if (!("serviceWorker" in navigator)) return;
+  navigator.serviceWorker.addEventListener("controllerchange", () => {
+    // A new SW took control — reload to get fresh assets
+    console.log("Novo Service Worker ativado — recarregando...");
+    window.location.replace(getCacheBustedUrl());
+  });
+}
