@@ -61,7 +61,7 @@ export function LoginTransitionGate() {
         clearTransitionStorage();
         window.dispatchEvent(new Event(EVENT_NAME));
       }
-    }, 30000);
+    }, 10000);
     return () => window.clearTimeout(timeout);
   }, [snapshot.active]);
 
