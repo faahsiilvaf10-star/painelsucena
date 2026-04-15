@@ -6,9 +6,18 @@ import { VitePWA } from "vite-plugin-pwa";
 
 // https://vitejs.dev/config/
 export default defineConfig(({ mode }) => ({
+  define: {
+    __APP_BUILD_VERSION__: JSON.stringify(Date.now().toString(36)),
+  },
   server: {
     host: "::",
     port: 8080,
+    headers: {
+      "Cache-Control": "no-store, no-cache, must-revalidate, proxy-revalidate, max-age=0",
+      Expires: "0",
+      Pragma: "no-cache",
+      "Surrogate-Control": "no-store",
+    },
     hmr: {
       overlay: false,
     },
@@ -17,7 +26,12 @@ export default defineConfig(({ mode }) => ({
     react(),
     mode === "development" && componentTagger(),
     VitePWA({
+      injectRegister: false,
       registerType: "autoUpdate",
+      filename: "app-runtime-sw.js",
+      devOptions: {
+        enabled: false,
+      },
       includeAssets: ["og-image.png", "pwa-192x192.png", "pwa-512x512.png", "pwa-maskable-192x192.png", "pwa-maskable-512x512.png"],
       manifest: {
         name: "Sucena Empreendimentos - Controle Operacional",
@@ -145,6 +159,7 @@ export default defineConfig(({ mode }) => ({
       workbox: {
         globPatterns: ["**/*.{js,css,html,ico,png,svg,woff2,jpg,jpeg,webp}"],
         maximumFileSizeToCacheInBytes: 6 * 1024 * 1024, // 6 MB limit
+        cleanupOutdatedCaches: true,
         navigateFallbackDenylist: [/^\/~oauth/],
         navigateFallback: "/index.html",
         navigateFallbackAllowlist: [/^(?!\/(~oauth|api|supabase))/],

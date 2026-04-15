@@ -1,201 +1,213 @@
 import { createContext, useContext, useState, useRef, useEffect, ReactNode, useCallback } from "react";
+import { supabase } from "@/integrations/supabase/client";
 
-const RADIO_STATIONS = [
-  { id: "pop-hits", name: "Pop Hits", genre: "Pop/Internacional", url: "https://live.hunter.fm/pop_high" },
-  { id: "liberal", name: "Liberal FM", genre: "Hits", url: "https://stream.zeno.fm/4d6hhyp8cv8uv" },
-  { id: "reggaeton", name: "Reggaeton", genre: "Reggaeton", url: "https://stream.zeno.fm/8wup8yd9dm0uv" },
-  { id: "sertanejo", name: "Sertaneja Hits", genre: "Sertanejo", url: "https://live.hunter.fm/sertanejo_high" },
-  { id: "pagode", name: "Pagode Hits", genre: "Pagode", url: "https://live.hunter.fm/pagode_high" },
-  { id: "gospel", name: "Gospel", genre: "Gospel", url: "https://stream.zeno.fm/yn65fsaurfhvv" },
-  { id: "piseiro", name: "Piseiro", genre: "Piseiro", url: "https://stream.zeno.fm/f3wvnrg2e98uv" },
-];
-
-export type RadioStation = typeof RADIO_STATIONS[0];
+interface PlaylistTrack {
+  id: string;
+  file_url: string;
+  file_name: string;
+  time_slot: number;
+}
 
 interface RadioContextType {
   isPlaying: boolean;
-  isMuted: boolean;
-  selectedStation: RadioStation;
-  stations: RadioStation[];
+  volume: number;
+  setVolume: (v: number) => void;
+  currentTrack: PlaylistTrack | null;
+  playlistTracks: PlaylistTrack[];
   toggleRadio: () => void;
-  changeStation: (station: RadioStation) => void;
-  isRadioActive: boolean;
+  nextTrack: () => void;
+  prevTrack: () => void;
+  currentHour: number;
+  shuffleAll: boolean;
+  setShuffleAll: (v: boolean) => void;
 }
 
 const RadioContext = createContext<RadioContextType | null>(null);
 
-// Get saved station from localStorage
-const getSavedStation = (): RadioStation => {
-  try {
-    const saved = localStorage.getItem("radio_station");
-    if (saved) {
-      const parsed = JSON.parse(saved);
-      const found = RADIO_STATIONS.find(s => s.id === parsed.id);
-      if (found) return found;
-    }
-  } catch (e) {
-    console.log("Error loading saved station");
-  }
-  return RADIO_STATIONS[0];
-};
-
-// Get saved playing state
-const getSavedPlayingState = (): boolean => {
-  try {
-    return localStorage.getItem("radio_playing") === "true";
-  } catch (e) {
-    return false;
-  }
-};
-
-// Safe hook that doesn't throw during HMR reloads
 export const useRadio = () => {
   const context = useContext(RadioContext);
   if (!context) {
-    // Return a fallback during HMR reloads to prevent crashes
     return {
-      isPlaying: false,
-      isMuted: false,
-      selectedStation: RADIO_STATIONS[0],
-      stations: RADIO_STATIONS,
-      toggleRadio: () => {},
-      changeStation: () => {},
-      isRadioActive: false,
+      isPlaying: false, volume: 0.5, setVolume: () => {},
+      currentTrack: null, playlistTracks: [], toggleRadio: () => {},
+      nextTrack: () => {}, prevTrack: () => {}, currentHour: new Date().getHours(),
+      shuffleAll: false, setShuffleAll: () => {},
     };
   }
   return context;
 };
 
-// Global singleton audio to survive HMR / re-mounts
-let globalAudio: HTMLAudioElement | null = null;
-let globalAudioStation: string | null = null;
-
-function getOrCreateAudio(url: string, stationId: string): HTMLAudioElement {
-  // If the same station audio already exists, reuse it
-  if (globalAudio && globalAudioStation === stationId) {
-    return globalAudio;
-  }
-  // Stop & discard previous audio
-  if (globalAudio) {
-    globalAudio.pause();
-    globalAudio.removeAttribute("src");
-    globalAudio.load();
-    globalAudio = null;
-  }
-  globalAudio = new Audio(url);
-  globalAudio.volume = 0.5;
-  globalAudioStation = stationId;
-  return globalAudio;
+function getCurrentHour(): number {
+  return new Date().getHours();
 }
 
+let globalAudio: HTMLAudioElement | null = null;
+
 export const RadioProvider = ({ children }: { children: ReactNode }) => {
-  const [isPlaying, setIsPlaying] = useState(getSavedPlayingState);
-  const [isMuted, setIsMuted] = useState(false);
-  const [selectedStation, setSelectedStation] = useState(getSavedStation);
-  const hasInitializedRef = useRef(false);
+  const [isPlaying, setIsPlaying] = useState(() => {
+    try { return localStorage.getItem("radio_playing") === "true"; } catch { return false; }
+  });
+  const [volume, setVolumeState] = useState(() => {
+    try { return parseFloat(localStorage.getItem("radio_volume") || "0.5"); } catch { return 0.5; }
+  });
+  const [allTracks, setAllTracks] = useState<PlaylistTrack[]>([]);
+  const [currentHour, setCurrentHour] = useState(getCurrentHour);
+  const [currentTrackIndex, setCurrentTrackIndex] = useState(0);
+  const [shuffleAll, setShuffleAllState] = useState(() => {
+    try { return localStorage.getItem("radio_shuffle_all") === "true"; } catch { return false; }
+  });
+  const [shuffledOrder, setShuffledOrder] = useState<number[]>([]);
   const userInteractedRef = useRef(false);
 
-  // Save state to localStorage
+  // When shuffle mode or tracks change, build a shuffled index array
   useEffect(() => {
-    localStorage.setItem("radio_playing", String(isPlaying && !isMuted));
-  }, [isPlaying, isMuted]);
-
-  useEffect(() => {
-    localStorage.setItem("radio_station", JSON.stringify(selectedStation));
-  }, [selectedStation]);
-
-  // Initialize audio element once
-  useEffect(() => {
-    const audio = getOrCreateAudio(selectedStation.url, selectedStation.id);
-
-    if (!hasInitializedRef.current) {
-      hasInitializedRef.current = true;
-
-      if (isPlaying) {
-        const tryAutoplay = async () => {
-          try {
-            await audio.play();
-            userInteractedRef.current = true;
-          } catch {
-            console.log("Autoplay blocked, waiting for user interaction");
-            const handleFirstInteraction = async () => {
-              if (!userInteractedRef.current && globalAudio && isPlaying && !isMuted) {
-                userInteractedRef.current = true;
-                try {
-                  await globalAudio.play();
-                } catch {
-                  console.log("Playback failed after interaction");
-                }
-              }
-              document.removeEventListener("click", handleFirstInteraction);
-              document.removeEventListener("keydown", handleFirstInteraction);
-              document.removeEventListener("touchstart", handleFirstInteraction);
-            };
-
-            document.addEventListener("click", handleFirstInteraction, { once: true });
-            document.addEventListener("keydown", handleFirstInteraction, { once: true });
-            document.addEventListener("touchstart", handleFirstInteraction, { once: true });
-          }
-        };
-        tryAutoplay();
+    if (shuffleAll && allTracks.length > 0) {
+      const indices = Array.from({ length: allTracks.length }, (_, i) => i);
+      for (let i = indices.length - 1; i > 0; i--) {
+        const j = Math.floor(Math.random() * (i + 1));
+        [indices[i], indices[j]] = [indices[j], indices[i]];
       }
+      setShuffledOrder(indices);
+      setCurrentTrackIndex(0);
     }
+  }, [shuffleAll, allTracks.length]);
+
+  const activeTracks = shuffleAll ? allTracks : allTracks.filter(t => t.time_slot === currentHour);
+  const playlistTracks = activeTracks;
+
+  const currentTrack = (() => {
+    if (activeTracks.length === 0) return null;
+    if (shuffleAll && shuffledOrder.length > 0) {
+      const idx = shuffledOrder[currentTrackIndex % shuffledOrder.length];
+      return allTracks[idx] || null;
+    }
+    return activeTracks[currentTrackIndex % activeTracks.length] || null;
+  })();
+
+  // Load tracks
+  useEffect(() => {
+    const load = async () => {
+      const { data } = await supabase
+        .from("music_tracks")
+        .select("id, file_url, file_name, time_slot")
+        .order("time_slot")
+        .order("created_at");
+      if (data) setAllTracks(data as PlaylistTrack[]);
+    };
+    load();
+    const channel = supabase
+      .channel("radio-music-tracks")
+      .on("postgres_changes", { event: "*", schema: "public", table: "music_tracks" }, () => load())
+      .subscribe();
+    return () => { supabase.removeChannel(channel); };
   }, []);
 
-  // Handle play/pause state changes
+  // Check hour change every 30s
   useEffect(() => {
-    if (!hasInitializedRef.current || !globalAudio) return;
+    const interval = setInterval(() => {
+      const hour = getCurrentHour();
+      if (hour !== currentHour) {
+        setCurrentHour(hour);
+        setCurrentTrackIndex(0);
+      }
+    }, 30000);
+    return () => clearInterval(interval);
+  }, [currentHour]);
 
-    if (isPlaying && !isMuted) {
-      globalAudio.play().catch((error) => {
-        console.log("Playback failed:", error);
-      });
-    } else {
-      globalAudio.pause();
+  // Persist state
+  useEffect(() => { localStorage.setItem("radio_playing", String(isPlaying)); }, [isPlaying]);
+  useEffect(() => { localStorage.setItem("radio_volume", String(volume)); }, [volume]);
+  useEffect(() => { localStorage.setItem("radio_shuffle_all", String(shuffleAll)); }, [shuffleAll]);
+
+  const setShuffleAll = useCallback((v: boolean) => {
+    setShuffleAllState(v);
+  }, []);
+
+  const currentTrackUrlRef = useRef<string | null>(null);
+
+  // Always keep audio playing — mute/unmute on toggle
+  useEffect(() => {
+    if (!currentTrack) {
+      if (globalAudio) { globalAudio.pause(); }
+      currentTrackUrlRef.current = null;
+      return;
     }
-  }, [isPlaying, isMuted]);
+
+    // Only create new audio if the track URL actually changed
+    if (currentTrackUrlRef.current === currentTrack.file_url && globalAudio) {
+      return;
+    }
+
+    // Different track — destroy old, create new
+    if (globalAudio) { globalAudio.pause(); globalAudio.removeAttribute("src"); globalAudio.load(); }
+    globalAudio = new Audio(currentTrack.file_url);
+    globalAudio.volume = isPlaying ? volume : 0;
+    currentTrackUrlRef.current = currentTrack.file_url;
+
+    const len = shuffleAll ? shuffledOrder.length : activeTracks.length;
+    const handleEnded = () => {
+      if (len > 0) setCurrentTrackIndex(prev => (prev + 1) % len);
+    };
+    globalAudio.addEventListener("ended", handleEnded);
+
+    // Always play — audio runs continuously like a live radio
+    globalAudio.play().catch(err => {
+      console.log("Playback failed:", err);
+      if (!userInteractedRef.current) {
+        const handler = () => {
+          userInteractedRef.current = true;
+          if (globalAudio) globalAudio.play().catch(() => {});
+          document.removeEventListener("click", handler);
+          document.removeEventListener("touchstart", handler);
+        };
+        document.addEventListener("click", handler, { once: true });
+        document.addEventListener("touchstart", handler, { once: true });
+      }
+    });
+
+    return () => {
+      globalAudio?.removeEventListener("ended", handleEnded);
+    };
+  }, [currentTrack?.file_url, shuffleAll]);
+
+  // Mute/unmute on play/pause toggle — audio keeps running
+  useEffect(() => {
+    if (!globalAudio) return;
+    globalAudio.volume = isPlaying ? volume : 0;
+  }, [isPlaying]);
+
+  // Volume sync
+  useEffect(() => {
+    if (globalAudio) globalAudio.volume = volume;
+  }, [volume]);
+
+  const setVolume = useCallback((v: number) => {
+    setVolumeState(Math.max(0, Math.min(1, v)));
+  }, []);
 
   const toggleRadio = useCallback(() => {
     userInteractedRef.current = true;
-    if (!isPlaying) {
-      setIsPlaying(true);
-      setIsMuted(false);
-    } else if (!isMuted) {
-      setIsMuted(true);
-    } else {
-      setIsMuted(false);
-    }
-  }, [isPlaying, isMuted]);
+    setIsPlaying(prev => !prev);
+  }, []);
 
-  const changeStation = useCallback((station: RadioStation) => {
-    userInteractedRef.current = true;
-    const wasPlaying = isPlaying && !isMuted;
+  const totalLen = shuffleAll ? shuffledOrder.length : playlistTracks.length;
 
-    // Create/switch to new station audio (stops the old one internally)
-    const audio = getOrCreateAudio(station.url, station.id);
-    setSelectedStation(station);
+  const nextTrack = useCallback(() => {
+    if (totalLen === 0) return;
+    setCurrentTrackIndex(prev => (prev + 1) % totalLen);
+  }, [totalLen]);
 
-    if (wasPlaying) {
-      audio.play().catch((error) => {
-        console.log("Playback failed:", error);
-      });
-    }
-  }, [isPlaying, isMuted]);
-
-  const isRadioActive = isPlaying && !isMuted;
+  const prevTrack = useCallback(() => {
+    if (totalLen === 0) return;
+    setCurrentTrackIndex(prev => prev === 0 ? totalLen - 1 : prev - 1);
+  }, [totalLen]);
 
   return (
-    <RadioContext.Provider
-      value={{
-        isPlaying,
-        isMuted,
-        selectedStation,
-        stations: RADIO_STATIONS,
-        toggleRadio,
-        changeStation,
-        isRadioActive,
-      }}
-    >
+    <RadioContext.Provider value={{
+      isPlaying, volume, setVolume, currentTrack, playlistTracks,
+      toggleRadio, nextTrack, prevTrack, currentHour,
+      shuffleAll, setShuffleAll,
+    }}>
       {children}
     </RadioContext.Provider>
   );

@@ -1,0 +1,184 @@
+export const PREVIEW_CACHE_RESET_KEY = "preview-sw-reset-attempts";
+export const MAX_PREVIEW_CACHE_RESET_ATTEMPTS = 3;
+
+const PREVIEW_DOCUMENT_VERSION_KEY = "preview-document-version";
+const VERSION_STORAGE_KEY = "app-build-version";
+const BUILD_VERSION = __APP_BUILD_VERSION__;
+
+export type CacheResetResult = {
+  hadCaches: boolean;
+  hadController: boolean;
+  hadRegistrations: boolean;
+  remainingCaches: number;
+  remainingRegistrations: number;
+};
+
+export function isPreviewHost() {
+  return window.location.hostname.includes("id-preview--");
+}
+
+export function isEmbeddedPreview() {
+  try {
+    return window.self !== window.top;
+  } catch {
+    return true;
+  }
+}
+
+export function shouldDisableServiceWorker() {
+  return import.meta.env.DEV || isPreviewHost() || isEmbeddedPreview();
+}
+
+export function getPreviewCacheResetAttempts() {
+  const rawValue = sessionStorage.getItem(PREVIEW_CACHE_RESET_KEY);
+  const attempts = Number.parseInt(rawValue ?? "0", 10);
+
+  return Number.isFinite(attempts) ? attempts : 0;
+}
+
+export function setPreviewCacheResetAttempts(attempts: number) {
+  sessionStorage.setItem(PREVIEW_CACHE_RESET_KEY, String(attempts));
+}
+
+export function clearPreviewCacheResetAttempts() {
+  sessionStorage.removeItem(PREVIEW_CACHE_RESET_KEY);
+}
+
+export function shouldForcePreviewDocumentReload() {
+  return sessionStorage.getItem(PREVIEW_DOCUMENT_VERSION_KEY) !== BUILD_VERSION;
+}
+
+export function markPreviewDocumentFresh() {
+  sessionStorage.setItem(PREVIEW_DOCUMENT_VERSION_KEY, BUILD_VERSION);
+}
+
+export function getCacheBustedUrl(extraSearchParams: Record<string, string | number> = {}) {
+  const url = new URL(window.location.href);
+  url.searchParams.set("preview-bust", `${Date.now()}`);
+  url.searchParams.set("app-build", BUILD_VERSION);
+
+  Object.entries(extraSearchParams).forEach(([key, value]) => {
+    url.searchParams.set(key, String(value));
+  });
+
+  return url.toString();
+}
+
+export function checkVersionAndReset(): boolean {
+  const stored = localStorage.getItem(VERSION_STORAGE_KEY);
+
+  if (stored !== BUILD_VERSION) {
+    console.log(`Nova versão detectada: ${stored} → ${BUILD_VERSION}. Limpando cache...`);
+    localStorage.setItem(VERSION_STORAGE_KEY, BUILD_VERSION);
+    return true;
+  }
+
+  return false;
+}
+
+export async function clearClientCaches(): Promise<CacheResetResult> {
+  const hadController = "serviceWorker" in navigator && Boolean(navigator.serviceWorker.controller);
+  let hadRegistrations = false;
+  let remainingRegistrations = 0;
+  let hadCaches = false;
+  let remainingCaches = 0;
+
+  if ("serviceWorker" in navigator) {
+    const registrations = await navigator.serviceWorker.getRegistrations();
+    hadRegistrations = registrations.length > 0;
+
+    if (hadRegistrations) {
+      await Promise.all(registrations.map((registration) => registration.unregister().catch(() => false)));
+    }
+
+    remainingRegistrations = (await navigator.serviceWorker.getRegistrations()).length;
+  }
+
+  if ("caches" in window) {
+    const keys = await caches.keys();
+    hadCaches = keys.length > 0;
+
+    if (hadCaches) {
+      await Promise.all(keys.map((key) => caches.delete(key).catch(() => false)));
+    }
+
+    remainingCaches = (await caches.keys()).length;
+  }
+
+  return {
+    hadCaches,
+    hadController,
+    hadRegistrations,
+    remainingCaches,
+    remainingRegistrations,
+  };
+}
+
+function clearVisualCacheKeys() {
+  const keysToRemove: string[] = [];
+
+  for (let index = 0; index < localStorage.length; index += 1) {
+    const key = localStorage.key(index);
+    if (key && (key.startsWith("theme") || key.startsWith("sidebar") || key.startsWith("vite-"))) {
+      keysToRemove.push(key);
+    }
+  }
+
+  keysToRemove.forEach((key) => localStorage.removeItem(key));
+}
+
+export async function hardRefreshToLatest(options: { clearVisualState?: boolean } = {}) {
+  await clearClientCaches();
+
+  if (options.clearVisualState) {
+    clearVisualCacheKeys();
+  }
+
+  clearPreviewCacheResetAttempts();
+  markPreviewDocumentFresh();
+  window.location.replace(getCacheBustedUrl());
+}
+
+/**
+ * Fetches the live index.html from the server (bypassing SW/browser cache)
+ * and extracts the embedded build version to compare against the running one.
+ * Returns the server version string if different, or null if up-to-date.
+ */
+export async function checkServerVersion(): Promise<string | null> {
+  try {
+    const res = await fetch("/index.html", {
+      cache: "no-store",
+      headers: { "Cache-Control": "no-cache", Pragma: "no-cache" },
+    });
+    if (!res.ok) return null;
+    const html = await res.text();
+    // The vite build injects __APP_BUILD_VERSION__ as a string literal in the JS bundle.
+    // We look for the variable assignment pattern in the inlined/linked scripts.
+    // A simpler heuristic: look for the <script> src hash — if the index.html changed at all,
+    // the script src hash will differ, meaning there's a new build.
+    const scriptMatch = html.match(/src="\/assets\/[^"]+\.js"/);
+    const currentScripts = document.querySelectorAll('script[src*="/assets/"]');
+    if (scriptMatch && currentScripts.length > 0) {
+      const serverScript = scriptMatch[0];
+      const currentScript = currentScripts[0].getAttribute("src") || "";
+      if (!serverScript.includes(currentScript)) {
+        return serverScript; // different build
+      }
+    }
+    return null;
+  } catch {
+    return null;
+  }
+}
+
+/**
+ * Listens for SW controller changes (new SW activated) and forces a clean reload.
+ */
+export function listenForControllerChange() {
+  if (!("serviceWorker" in navigator)) return;
+  navigator.serviceWorker.addEventListener("controllerchange", () => {
+    // A new SW took control — reload to get fresh assets
+    console.log("Novo Service Worker ativado — recarregando...");
+    window.location.replace(getCacheBustedUrl());
+  });
+}

@@ -1,8 +1,8 @@
 import { useEffect, useState, useCallback } from "react";
 import { Cloud, CloudRain, Sun, CloudSun, CloudSnow, CloudLightning, Droplets, Wind, Thermometer, MapPin, RefreshCw } from "lucide-react";
+import { useIsMobile } from "@/hooks/use-mobile";
 import { Button } from "@/components/ui/button";
 import { Skeleton } from "@/components/ui/skeleton";
-import { supabase } from "@/integrations/supabase/client";
 
 interface WeatherData {
   temperature: number;
@@ -41,17 +41,28 @@ export function WeatherWidget() {
   const [weather, setWeather] = useState<WeatherData | null>(null);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
+  
 
   const fetchWeather = useCallback(async () => {
     setLoading(true);
     setError(null);
     try {
+      const latitude = -1.5189;
+      const longitude = -48.6356;
       const locationName = "Vila dos Cabanos, Barcarena - PA";
 
-      const { data, error: fnError } = await supabase.functions.invoke('get-weather');
+      const url = `https://api.open-meteo.com/v1/forecast?latitude=${latitude}&longitude=${longitude}&current=temperature_2m,relative_humidity_2m,apparent_temperature,weather_code,wind_speed_10m,is_day&timezone=America/Sao_Paulo&_=${Date.now()}`;
       
-      if (fnError) throw fnError;
-      if (!data?.current) throw new Error("Dados indisponíveis");
+      let res: Response;
+      try {
+        res = await fetch(url);
+      } catch {
+        // Fallback: try with corsproxy
+        res = await fetch(`https://corsproxy.io/?${encodeURIComponent(url)}`);
+      }
+      
+      if (!res.ok) throw new Error("API error");
+      const data = await res.json();
 
       setWeather({
         temperature: Math.round(data.current.temperature_2m),
@@ -64,8 +75,7 @@ export function WeatherWidget() {
         lastUpdated: new Date().toLocaleTimeString('pt-BR', { hour: '2-digit', minute: '2-digit' }),
       });
     } catch (err: any) {
-      console.error("[WeatherWidget] Erro:", err);
-      setError("Erro ao obter previsão");
+      setError(err?.code === 1 ? "Permissão de localização negada" : "Erro ao obter previsão");
     } finally {
       setLoading(false);
     }
