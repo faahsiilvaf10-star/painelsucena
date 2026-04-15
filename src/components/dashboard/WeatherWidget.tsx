@@ -47,32 +47,24 @@ export function WeatherWidget() {
     setLoading(true);
     setError(null);
     try {
-      let latitude: number;
-      let longitude: number;
-      let locationName = "Barcarena, Pará";
-
-      if (isMobile) {
-        const pos = await new Promise<GeolocationPosition>((resolve, reject) =>
-          navigator.geolocation.getCurrentPosition(resolve, reject, { timeout: 10000 })
-        );
-        latitude = pos.coords.latitude;
-        longitude = pos.coords.longitude;
-        try {
-          const geoRes = await fetch(`https://nominatim.openstreetmap.org/reverse?lat=${latitude}&lon=${longitude}&format=json&accept-language=pt-BR`);
-          const geoData = await geoRes.json();
-          const city = geoData.address?.city || geoData.address?.town || geoData.address?.village || geoData.address?.county;
-          const state = geoData.address?.state;
-          if (city) locationName = state ? `${city}, ${state}` : city;
-        } catch {}
-      } else {
-        latitude = -1.5067;
-        longitude = -48.6153;
-      }
+      // Vila dos Cabanos, Barcarena - PA (coordenadas fixas)
+      const latitude = -1.5189;
+      const longitude = -48.6303;
+      const locationName = "Vila dos Cabanos, Barcarena - PA";
 
       const res = await fetch(
-        `https://api.open-meteo.com/v1/forecast?latitude=${latitude}&longitude=${longitude}&current=temperature_2m,relative_humidity_2m,apparent_temperature,weather_code,wind_speed_10m,is_day&timezone=America/Sao_Paulo&_=${Date.now()}`
+        `https://api.open-meteo.com/v1/forecast?latitude=${latitude}&longitude=${longitude}&current=temperature_2m,relative_humidity_2m,apparent_temperature,weather_code,wind_speed_10m,is_day&timezone=America/Sao_Paulo`
       );
+      
+      if (!res.ok) {
+        throw new Error(`HTTP ${res.status}`);
+      }
+      
       const data = await res.json();
+      
+      if (!data?.current) {
+        throw new Error("Dados indisponíveis");
+      }
 
       setWeather({
         temperature: Math.round(data.current.temperature_2m),
@@ -85,11 +77,12 @@ export function WeatherWidget() {
         lastUpdated: new Date().toLocaleTimeString('pt-BR', { hour: '2-digit', minute: '2-digit' }),
       });
     } catch (err: any) {
-      setError(err?.code === 1 ? "Permissão de localização negada" : "Erro ao obter previsão");
+      console.error("[WeatherWidget] Erro:", err);
+      setError("Erro ao obter previsão");
     } finally {
       setLoading(false);
     }
-  }, [isMobile]);
+  }, []);
 
   useEffect(() => {
     fetchWeather();
