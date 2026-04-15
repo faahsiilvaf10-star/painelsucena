@@ -11,35 +11,57 @@ interface LoginTransitionProps {
 }
 
 export function LoginTransition({ onComplete, userName, userAvatar, userCargo }: LoginTransitionProps) {
-  const [phase, setPhase] = useState<"blank" | "logo" | "welcome" | "fade">("blank");
+  const [phase, setPhase] = useState<"blank" | "logo" | "welcome" | "fade" | "done">("blank");
   const { settings } = useSiteSettings();
   const logoUrl = settings.logo_url || logoPrincipal;
   const audioRef = useRef<HTMLAudioElement | null>(null);
+  const audioEndedRef = useRef(false);
+  const visualDoneRef = useRef(false);
   const displayName = userName || "Usuário";
 
-  // Play subtle sound
+  const tryFinish = () => {
+    if (audioEndedRef.current && visualDoneRef.current) {
+      onComplete();
+    }
+  };
+
+  // Play audio — never cut it
   useEffect(() => {
-    audioRef.current = new Audio("/sounds/login-welcome.wav");
-    audioRef.current.volume = 0.5;
-    audioRef.current.play().catch(() => {});
+    const audio = new Audio("/sounds/login-welcome.wav");
+    audio.volume = 0.5;
+    audioRef.current = audio;
+
+    audio.addEventListener("ended", () => {
+      audioEndedRef.current = true;
+      tryFinish();
+    });
+
+    // Fallback in case audio fails to load/play
+    audio.addEventListener("error", () => {
+      audioEndedRef.current = true;
+      tryFinish();
+    });
+
+    audio.play().catch(() => {
+      audioEndedRef.current = true;
+      tryFinish();
+    });
+
     return () => {
-      if (audioRef.current) {
-        audioRef.current.pause();
-        audioRef.current = null;
-      }
+      // Don't pause on unmount — let audio finish naturally
     };
   }, []);
 
   useEffect(() => {
-    // Timeline:
-    // blank: 0-0.3s
-    // logo: 0.3s-2s (logo fades in centered)
-    // welcome: 2s-6s (welcome screen)
-    // fade: 6s-6.8s (fade out)
+    // Timeline visual phases
     const t1 = setTimeout(() => setPhase("logo"), 300);
     const t2 = setTimeout(() => setPhase("welcome"), 2000);
     const t3 = setTimeout(() => setPhase("fade"), 6000);
-    const t4 = setTimeout(() => onComplete(), 6800);
+    const t4 = setTimeout(() => {
+      setPhase("done");
+      visualDoneRef.current = true;
+      tryFinish();
+    }, 6800);
 
     return () => {
       clearTimeout(t1);
