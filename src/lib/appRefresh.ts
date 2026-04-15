@@ -4,6 +4,7 @@ export const MAX_PREVIEW_CACHE_RESET_ATTEMPTS = 3;
 const PREVIEW_DOCUMENT_VERSION_KEY = "preview-document-version";
 const VERSION_STORAGE_KEY = "app-build-version";
 const BUILD_VERSION = __APP_BUILD_VERSION__;
+const PREVIEW_HOST_FRAGMENTS = ["id-preview--", "lovableproject.com"];
 
 export type CacheResetResult = {
   hadCaches: boolean;
@@ -14,7 +15,9 @@ export type CacheResetResult = {
 };
 
 export function isPreviewHost() {
-  return window.location.hostname.includes("id-preview--");
+  const hostname = window.location.hostname.toLowerCase();
+
+  return PREVIEW_HOST_FRAGMENTS.some((fragment) => hostname.includes(fragment));
 }
 
 export function isEmbeddedPreview() {
