@@ -1,6 +1,6 @@
-import { Suspense, lazy } from "react";
 import { Toaster } from "@/components/ui/toaster";
 import { Toaster as Sonner } from "@/components/ui/sonner";
+import Equipamentos from "./pages/Equipamentos";
 import { TooltipProvider } from "@/components/ui/tooltip";
 import { QueryClientProvider } from "@tanstack/react-query";
 import { QueryClient } from "@tanstack/query-core";
@@ -17,69 +17,66 @@ import ErrorBoundary from "@/components/ErrorBoundary";
 import { VisualizadorProvider } from "@/contexts/VisualizadorContext";
 import { EditModeProvider } from "@/contexts/EditModeContext";
 
-// Lazy load all pages for code splitting
-const Index = lazy(() => import("./pages/Index"));
-const Auth = lazy(() => import("./pages/Auth"));
-const RH = lazy(() => import("./pages/RH"));
-const Presenca = lazy(() => import("./pages/Presenca"));
-const RelatorioPresenca = lazy(() => import("./pages/RelatorioPresenca"));
-const Matriz = lazy(() => import("./pages/Matriz"));
-const Emergencia = lazy(() => import("./pages/Emergencia"));
-const Admin = lazy(() => import("./pages/Admin"));
-const Configuracoes = lazy(() => import("./pages/Configuracoes"));
-const DDS = lazy(() => import("./pages/DDS"));
-const Lembretes = lazy(() => import("./pages/Lembretes"));
-const RDO = lazy(() => import("./pages/RDO"));
-const Campanhas = lazy(() => import("./pages/Campanhas"));
-const Pedidos = lazy(() => import("./pages/Pedidos"));
-const Estoque = lazy(() => import("./pages/Estoque"));
-const Documentos = lazy(() => import("./pages/Documentos"));
-const Atividades = lazy(() => import("./pages/Atividades"));
-const AtividadesII = lazy(() => import("./pages/AtividadesII"));
-const VistoriasEquipamentos = lazy(() => import("./pages/VistoriasEquipamentos"));
-const Homologados = lazy(() => import("./pages/Homologados"));
-const VistoriaCintas = lazy(() => import("./pages/VistoriaCintas"));
-const EntradaSaidaEquipamentos = lazy(() => import("./pages/EntradaSaidaEquipamentos"));
-const ArquivosSeguranca = lazy(() => import("./pages/ArquivosSeguranca"));
-const PainelMotorista = lazy(() => import("./pages/PainelMotorista"));
-const RegistroMovimentoMotorista = lazy(() => import("./pages/RegistroMovimentoMotorista"));
-const SelecaoVeiculo = lazy(() => import("./pages/SelecaoVeiculo"));
-const EquipamentosMotorista = lazy(() => import("./pages/EquipamentosMotorista"));
-const RelatoriosMotorista = lazy(() => import("./pages/RelatoriosMotorista"));
-const PontosAbastecimento = lazy(() => import("./pages/PontosAbastecimento"));
-const ParteDiaria = lazy(() => import("./pages/ParteDiaria"));
-const ConsumoAbastecimento = lazy(() => import("./pages/ConsumoAbastecimento"));
-const MaintenancePlan = lazy(() => import("./pages/MaintenancePlan"));
-const InstaCena = lazy(() => import("./pages/InstaCena"));
-const InspecaoCanteiro = lazy(() => import("./pages/InspecaoCanteiro"));
-const CalendarioHydro = lazy(() => import("./pages/CalendarioHydro"));
-const Games = lazy(() => import("./pages/Games"));
-const Desvios = lazy(() => import("./pages/Desvios"));
-const Planejamento = lazy(() => import("./pages/Planejamento"));
-const NotasFiscais = lazy(() => import("./pages/NotasFiscais"));
-const TrocaEpi = lazy(() => import("./pages/TrocaEpi"));
-const InspecaoExtintores = lazy(() => import("./pages/InspecaoExtintores"));
-const MeioAmbiente = lazy(() => import("./pages/MeioAmbiente"));
-const PosChuva = lazy(() => import("./pages/PosChuva"));
-const Seguranca = lazy(() => import("./pages/Seguranca"));
-const RecursosHumanos = lazy(() => import("./pages/RecursosHumanos"));
-const RelatorioDiarioObra = lazy(() => import("./pages/RelatorioDiarioObra"));
-const Almoxarifado = lazy(() => import("./pages/Almoxarifado"));
-const Equipamentos = lazy(() => import("./pages/Equipamentos"));
-const NotFound = lazy(() => import("./pages/NotFound"));
+import Index from "./pages/Index";
+import RH from "./pages/RH";
+import Presenca from "./pages/Presenca";
+import RelatorioPresenca from "./pages/RelatorioPresenca";
+import Matriz from "./pages/Matriz";
+import Emergencia from "./pages/Emergencia";
+import Admin from "./pages/Admin";
+import Auth from "./pages/Auth";
+import Configuracoes from "./pages/Configuracoes";
+import DDS from "./pages/DDS";
 
-// Minimal loading fallback
-const PageLoader = () => (
-  <div className="flex items-center justify-center min-h-[60vh]">
-    <div className="w-8 h-8 border-3 border-primary border-t-transparent rounded-full animate-spin" />
-  </div>
-);
+import Lembretes from "./pages/Lembretes";
+import RDO from "./pages/RDO";
+import Campanhas from "./pages/Campanhas";
+import Pedidos from "./pages/Pedidos";
+import Estoque from "./pages/Estoque";
+import Documentos from "./pages/Documentos";
+import Atividades from "./pages/Atividades";
+import AtividadesII from "./pages/AtividadesII";
+
+import VistoriasEquipamentos from "./pages/VistoriasEquipamentos";
+import Homologados from "./pages/Homologados";
+import VistoriaCintas from "./pages/VistoriaCintas";
+import EntradaSaidaEquipamentos from "./pages/EntradaSaidaEquipamentos";
+
+import ArquivosSeguranca from "./pages/ArquivosSeguranca";
+import PainelMotorista from "./pages/PainelMotorista";
+import RegistroMovimentoMotorista from "./pages/RegistroMovimentoMotorista";
+import SelecaoVeiculo from "./pages/SelecaoVeiculo";
+import EquipamentosMotorista from "./pages/EquipamentosMotorista";
+import RelatoriosMotorista from "./pages/RelatoriosMotorista";
+import PontosAbastecimento from "./pages/PontosAbastecimento";
+import ParteDiaria from "./pages/ParteDiaria";
+import ConsumoAbastecimento from "./pages/ConsumoAbastecimento";
+import MaintenancePlan from "./pages/MaintenancePlan";
+
+import InstaCena from "./pages/InstaCena";
+import InspecaoCanteiro from "./pages/InspecaoCanteiro";
+import CalendarioHydro from "./pages/CalendarioHydro";
+import Games from "./pages/Games";
+import Desvios from "./pages/Desvios";
+import Planejamento from "./pages/Planejamento";
+import NotasFiscais from "./pages/NotasFiscais";
+import TrocaEpi from "./pages/TrocaEpi";
+import InspecaoExtintores from "./pages/InspecaoExtintores";
+import MeioAmbiente from "./pages/MeioAmbiente";
+import PosChuva from "./pages/PosChuva";
+import Seguranca from "./pages/Seguranca";
+import RecursosHumanos from "./pages/RecursosHumanos";
+import RelatorioDiarioObra from "./pages/RelatorioDiarioObra";
+import Almoxarifado from "./pages/Almoxarifado";
+import NotFound from "./pages/NotFound";
 
 // QueryClient with robust error handling
 const queryClient = new QueryClient({
   defaultOptions: {
     queries: {
+      // Retry failed requests up to 3 times with exponential backoff
       retry: (failureCount, error) => {
+        // Don't retry on 4xx errors (client errors)
         if (error && typeof error === 'object' && 'status' in error) {
           const status = (error as { status: number }).status;
           if (status >= 400 && status < 500) return false;
@@ -87,12 +84,16 @@ const queryClient = new QueryClient({
         return failureCount < 3;
       },
       retryDelay: (attemptIndex) => Math.min(1000 * 2 ** attemptIndex, 30000),
-      staleTime: 1000 * 60 * 2,
-      gcTime: 1000 * 60 * 10,
+      // Keep data fresh but don't refetch too aggressively
+      staleTime: 1000 * 60 * 2, // 2 minutes
+      gcTime: 1000 * 60 * 10, // 10 minutes (formerly cacheTime)
+      // Don't refetch on window focus to prevent unnecessary requests
       refetchOnWindowFocus: false,
+      // Refetch on reconnect to ensure fresh data after network issues
       refetchOnReconnect: true,
     },
     mutations: {
+      // Retry mutations once on network errors
       retry: 1,
       retryDelay: 1000,
     },
@@ -116,60 +117,62 @@ const App = () => (
               <PersistentSidebar>
                 <VisualizadorProvider>
                 <ErrorBoundary>
-                  <Suspense fallback={<PageLoader />}>
-                    <Routes>
-                      <Route path="/auth" element={<Auth />} />
-                      <Route path="/" element={<ProtectedRoute><Index /></ProtectedRoute>} />
-                      <Route path="/rh" element={<ProtectedRoute><RH /></ProtectedRoute>} />
-                      <Route path="/presenca" element={<ProtectedRoute><Presenca /></ProtectedRoute>} />
-                      <Route path="/relatorio-presenca" element={<ProtectedRoute><RelatorioPresenca /></ProtectedRoute>} />
-                      <Route path="/matriz" element={<ProtectedRoute><Matriz /></ProtectedRoute>} />
-                      <Route path="/emergencia" element={<ProtectedRoute><Emergencia /></ProtectedRoute>} />
-                      <Route path="/admin" element={<ProtectedRoute><Admin /></ProtectedRoute>} />
-                      <Route path="/configuracoes" element={<ProtectedRoute><Configuracoes /></ProtectedRoute>} />
-                      <Route path="/dds" element={<ProtectedRoute><DDS /></ProtectedRoute>} />
-                      <Route path="/lembretes" element={<ProtectedRoute><Lembretes /></ProtectedRoute>} />
-                      <Route path="/rdo" element={<ProtectedRoute><RDO /></ProtectedRoute>} />
-                      <Route path="/campanhas" element={<ProtectedRoute><Campanhas /></ProtectedRoute>} />
-                      <Route path="/pedidos" element={<ProtectedRoute><Pedidos /></ProtectedRoute>} />
-                      <Route path="/estoque" element={<ProtectedRoute><Estoque /></ProtectedRoute>} />
-                      <Route path="/documentos" element={<ProtectedRoute><Documentos /></ProtectedRoute>} />
-                      <Route path="/atividades" element={<ProtectedRoute><Atividades /></ProtectedRoute>} />
-                      <Route path="/atividades-ii" element={<ProtectedRoute><AtividadesII /></ProtectedRoute>} />
-                      <Route path="/vistorias-equipamentos" element={<ProtectedRoute><VistoriasEquipamentos /></ProtectedRoute>} />
-                      <Route path="/homologados" element={<ProtectedRoute><Homologados /></ProtectedRoute>} />
-                      <Route path="/vistoria-cintas" element={<ProtectedRoute><VistoriaCintas /></ProtectedRoute>} />
-                      <Route path="/entrada-saida-equipamentos" element={<ProtectedRoute><EntradaSaidaEquipamentos /></ProtectedRoute>} />
-                      <Route path="/arquivos-seguranca" element={<ProtectedRoute><ArquivosSeguranca /></ProtectedRoute>} />
-                      <Route path="/parte-diaria" element={<ProtectedRoute><ParteDiaria /></ProtectedRoute>} />
-                      <Route path="/selecao-veiculo" element={<ProtectedRoute><SelecaoVeiculo /></ProtectedRoute>} />
-                      <Route path="/painel-motorista" element={<ProtectedRoute><PainelMotorista /></ProtectedRoute>} />
-                      <Route path="/registro-movimento-motorista" element={<ProtectedRoute><RegistroMovimentoMotorista /></ProtectedRoute>} />
-                      <Route path="/equipamentos-motorista" element={<ProtectedRoute><EquipamentosMotorista /></ProtectedRoute>} />
-                      <Route path="/relatorios-motorista" element={<ProtectedRoute><RelatoriosMotorista /></ProtectedRoute>} />
-                      <Route path="/pontos-abastecimento" element={<ProtectedRoute><PontosAbastecimento /></ProtectedRoute>} />
-                      <Route path="/consumo-abastecimento" element={<ProtectedRoute><ConsumoAbastecimento /></ProtectedRoute>} />
-                      <Route path="/plano-manutencao" element={<ProtectedRoute><MaintenancePlan /></ProtectedRoute>} />
-                      <Route path="/instacena" element={<ProtectedRoute><InstaCena /></ProtectedRoute>} />
-                      <Route path="/inspecao-canteiro" element={<ProtectedRoute><InspecaoCanteiro /></ProtectedRoute>} />
-                      <Route path="/calendario-hydro" element={<ProtectedRoute><CalendarioHydro /></ProtectedRoute>} />
-                      <Route path="/games" element={<ProtectedRoute><Games /></ProtectedRoute>} />
-                      <Route path="/desvios" element={<ProtectedRoute><Desvios /></ProtectedRoute>} />
-                      <Route path="/planejamento" element={<ProtectedRoute><Planejamento /></ProtectedRoute>} />
-                      <Route path="/notas-fiscais" element={<ProtectedRoute><NotasFiscais /></ProtectedRoute>} />
-                      <Route path="/troca-epi" element={<ProtectedRoute><TrocaEpi /></ProtectedRoute>} />
-                      <Route path="/inspecao-extintores" element={<ProtectedRoute><InspecaoExtintores /></ProtectedRoute>} />
-                      <Route path="/meio-ambiente" element={<ProtectedRoute><MeioAmbiente /></ProtectedRoute>} />
-                      <Route path="/pos-chuva" element={<ProtectedRoute><PosChuva /></ProtectedRoute>} />
-                      <Route path="/seguranca" element={<ProtectedRoute><Seguranca /></ProtectedRoute>} />
-                      <Route path="/recursos-humanos" element={<ProtectedRoute><RecursosHumanos /></ProtectedRoute>} />
-                      <Route path="/relatorio-diario-obra" element={<ProtectedRoute><RelatorioDiarioObra /></ProtectedRoute>} />
-                      <Route path="/almoxarifado" element={<ProtectedRoute><Almoxarifado /></ProtectedRoute>} />
-                      <Route path="/equipamentos" element={<ProtectedRoute><Equipamentos /></ProtectedRoute>} />
-                      {/* ADD ALL CUSTOM ROUTES ABOVE THE CATCH-ALL "*" ROUTE */}
-                      <Route path="*" element={<NotFound />} />
-                    </Routes>
-                  </Suspense>
+                  <Routes>
+                    <Route path="/auth" element={<Auth />} />
+                    <Route path="/" element={<ProtectedRoute><Index /></ProtectedRoute>} />
+                    <Route path="/rh" element={<ProtectedRoute><RH /></ProtectedRoute>} />
+                    <Route path="/presenca" element={<ProtectedRoute><Presenca /></ProtectedRoute>} />
+                    <Route path="/relatorio-presenca" element={<ProtectedRoute><RelatorioPresenca /></ProtectedRoute>} />
+                    <Route path="/matriz" element={<ProtectedRoute><Matriz /></ProtectedRoute>} />
+                    <Route path="/emergencia" element={<ProtectedRoute><Emergencia /></ProtectedRoute>} />
+                    <Route path="/admin" element={<ProtectedRoute><Admin /></ProtectedRoute>} />
+                    <Route path="/configuracoes" element={<ProtectedRoute><Configuracoes /></ProtectedRoute>} />
+                    <Route path="/dds" element={<ProtectedRoute><DDS /></ProtectedRoute>} />
+                    <Route path="/lembretes" element={<ProtectedRoute><Lembretes /></ProtectedRoute>} />
+                    
+                    <Route path="/rdo" element={<ProtectedRoute><RDO /></ProtectedRoute>} />
+                    <Route path="/campanhas" element={<ProtectedRoute><Campanhas /></ProtectedRoute>} />
+                    <Route path="/pedidos" element={<ProtectedRoute><Pedidos /></ProtectedRoute>} />
+                    <Route path="/estoque" element={<ProtectedRoute><Estoque /></ProtectedRoute>} />
+                    <Route path="/documentos" element={<ProtectedRoute><Documentos /></ProtectedRoute>} />
+                    <Route path="/atividades" element={<ProtectedRoute><Atividades /></ProtectedRoute>} />
+                    <Route path="/atividades-ii" element={<ProtectedRoute><AtividadesII /></ProtectedRoute>} />
+                    
+                    <Route path="/vistorias-equipamentos" element={<ProtectedRoute><VistoriasEquipamentos /></ProtectedRoute>} />
+                    <Route path="/homologados" element={<ProtectedRoute><Homologados /></ProtectedRoute>} />
+                    <Route path="/vistoria-cintas" element={<ProtectedRoute><VistoriaCintas /></ProtectedRoute>} />
+                    <Route path="/entrada-saida-equipamentos" element={<ProtectedRoute><EntradaSaidaEquipamentos /></ProtectedRoute>} />
+                    
+                    <Route path="/arquivos-seguranca" element={<ProtectedRoute><ArquivosSeguranca /></ProtectedRoute>} />
+                    <Route path="/parte-diaria" element={<ProtectedRoute><ParteDiaria /></ProtectedRoute>} />
+                    <Route path="/selecao-veiculo" element={<ProtectedRoute><SelecaoVeiculo /></ProtectedRoute>} />
+                    <Route path="/painel-motorista" element={<ProtectedRoute><PainelMotorista /></ProtectedRoute>} />
+                    <Route path="/registro-movimento-motorista" element={<ProtectedRoute><RegistroMovimentoMotorista /></ProtectedRoute>} />
+                    <Route path="/equipamentos-motorista" element={<ProtectedRoute><EquipamentosMotorista /></ProtectedRoute>} />
+                    <Route path="/relatorios-motorista" element={<ProtectedRoute><RelatoriosMotorista /></ProtectedRoute>} />
+                    <Route path="/pontos-abastecimento" element={<ProtectedRoute><PontosAbastecimento /></ProtectedRoute>} />
+                    <Route path="/consumo-abastecimento" element={<ProtectedRoute><ConsumoAbastecimento /></ProtectedRoute>} />
+                    <Route path="/plano-manutencao" element={<ProtectedRoute><MaintenancePlan /></ProtectedRoute>} />
+                    
+                    <Route path="/instacena" element={<ProtectedRoute><InstaCena /></ProtectedRoute>} />
+                    <Route path="/inspecao-canteiro" element={<ProtectedRoute><InspecaoCanteiro /></ProtectedRoute>} />
+                    <Route path="/calendario-hydro" element={<ProtectedRoute><CalendarioHydro /></ProtectedRoute>} />
+                    <Route path="/games" element={<ProtectedRoute><Games /></ProtectedRoute>} />
+                    <Route path="/desvios" element={<ProtectedRoute><Desvios /></ProtectedRoute>} />
+                    <Route path="/planejamento" element={<ProtectedRoute><Planejamento /></ProtectedRoute>} />
+                    <Route path="/notas-fiscais" element={<ProtectedRoute><NotasFiscais /></ProtectedRoute>} />
+                    <Route path="/troca-epi" element={<ProtectedRoute><TrocaEpi /></ProtectedRoute>} />
+                    <Route path="/inspecao-extintores" element={<ProtectedRoute><InspecaoExtintores /></ProtectedRoute>} />
+                    <Route path="/meio-ambiente" element={<ProtectedRoute><MeioAmbiente /></ProtectedRoute>} />
+                    <Route path="/pos-chuva" element={<ProtectedRoute><PosChuva /></ProtectedRoute>} />
+                    <Route path="/seguranca" element={<ProtectedRoute><Seguranca /></ProtectedRoute>} />
+                    <Route path="/recursos-humanos" element={<ProtectedRoute><RecursosHumanos /></ProtectedRoute>} />
+                    <Route path="/relatorio-diario-obra" element={<ProtectedRoute><RelatorioDiarioObra /></ProtectedRoute>} />
+                    <Route path="/almoxarifado" element={<ProtectedRoute><Almoxarifado /></ProtectedRoute>} />
+                    <Route path="/equipamentos" element={<ProtectedRoute><Equipamentos /></ProtectedRoute>} />
+                    {/* ADD ALL CUSTOM ROUTES ABOVE THE CATCH-ALL "*" ROUTE */}
+                    <Route path="*" element={<NotFound />} />
+                  </Routes>
                 </ErrorBoundary>
                 </VisualizadorProvider>
                 <PersistentFooter />

@@ -1,7 +1,7 @@
 import { createRoot } from "react-dom/client";
+import { registerSW } from "virtual:pwa-register";
 import App from "./App.tsx";
 import "./index.css";
-import { initPerformanceMonitoring } from "@/lib/performanceMonitor";
 import {
   MAX_PREVIEW_CACHE_RESET_ATTEMPTS,
   checkVersionAndReset,
@@ -9,51 +9,58 @@ import {
   clearPreviewCacheResetAttempts,
   getCacheBustedUrl,
   getPreviewCacheResetAttempts,
+  listenForControllerChange,
   markPreviewDocumentFresh,
   setPreviewCacheResetAttempts,
   shouldDisableServiceWorker,
   shouldForcePreviewDocumentReload,
 } from "@/lib/appRefresh";
 
-// Flag to suppress controllerchange reload right after we register
-let justRegisteredSW = false;
+let updateSW: ((reloadPage?: boolean) => Promise<void>) | null = null;
 
 function registerAppServiceWorker() {
-  if (!("serviceWorker" in navigator)) return;
+  updateSW = registerSW({
+    immediate: true,
+    onNeedRefresh() {
+      showUpdateBanner();
+    },
+    onOfflineReady() {
+      console.log("App pronto para uso offline");
+    },
+    onRegistered(registration) {
+      console.log("Service Worker registrado:", registration);
+      if (!registration) return;
 
-  justRegisteredSW = true;
-  setTimeout(() => { justRegisteredSW = false; }, 5000);
-
-  navigator.serviceWorker.register("/app-runtime-sw.js").then((registration) => {
-    console.log("Service Worker registrado:", registration);
-    if (!registration) return;
-
-    const checkForUpdates = () => {
-      if (navigator.onLine) {
-        registration.update().catch((e) => console.error("Erro ao buscar atualização:", e));
-      }
-    };
-
-    // Check for updates periodically
-    setInterval(checkForUpdates, 2 * 60 * 1000);
-    window.addEventListener("focus", checkForUpdates);
-    document.addEventListener("visibilitychange", () => {
-      if (document.visibilityState === "visible") checkForUpdates();
-    });
-
-    // Listen for waiting SW
-    registration.addEventListener("updatefound", () => {
-      const newWorker = registration.installing;
-      if (!newWorker) return;
-      newWorker.addEventListener("statechange", () => {
-        if (newWorker.state === "installed" && navigator.serviceWorker.controller) {
-          // New SW waiting — show update banner
-          showUpdateBanner();
+      const checkForUpdates = () => {
+        if (navigator.onLine) {
+          registration.update().catch((e) => console.error("Erro ao buscar atualização:", e));
         }
+      };
+
+      checkForUpdates();
+      setInterval(checkForUpdates, 2 * 60 * 1000);
+
+      window.addEventListener("focus", checkForUpdates);
+      window.addEventListener("online", checkForUpdates);
+      document.addEventListener("visibilitychange", () => {
+        if (document.visibilityState === "visible") checkForUpdates();
       });
-    });
-  }).catch((error) => {
-    console.error("Erro ao registrar Service Worker:", error);
+
+      if ("periodicSync" in registration) {
+        (registration as any).periodicSync
+          .register("content-sync", { minInterval: 12 * 60 * 60 * 1000 })
+          .catch((err: Error) => console.log("Periodic sync não suportado:", err));
+      }
+
+      if ("sync" in registration) {
+        (registration as any).sync
+          .register("pending-sync")
+          .catch((err: Error) => console.log("Background sync não suportado:", err));
+      }
+    },
+    onRegisterError(error) {
+      console.error("Erro ao registrar Service Worker:", error);
+    },
   });
 }
 
@@ -92,22 +99,23 @@ function showUpdateBanner() {
     if (countdownEl) countdownEl.textContent = String(seconds);
     if (seconds <= 0) {
       clearInterval(timer);
-      window.location.reload();
+      clearCachesAndReload();
     }
   }, 1000);
 }
 
-function listenForControllerChange() {
-  if (!("serviceWorker" in navigator)) return;
-  navigator.serviceWorker.addEventListener("controllerchange", () => {
-    // Suppress reload if we just registered the SW ourselves
-    if (justRegisteredSW) {
-      console.log("SW controller changed (initial registration) — não recarregando.");
-      return;
+async function clearCachesAndReload() {
+  try {
+    await clearClientCaches();
+
+    if (updateSW) {
+      await updateSW(true);
     }
-    console.log("Novo Service Worker ativado — recarregando...");
-    window.location.reload();
-  });
+  } catch (e) {
+    console.error("Erro ao limpar cache:", e);
+  }
+
+  window.location.replace(getCacheBustedUrl());
 }
 
 async function bootstrap() {
@@ -133,21 +141,27 @@ async function bootstrap() {
 
     clearPreviewCacheResetAttempts();
     markPreviewDocumentFresh();
+
+    if (hasPreviewArtifacts) {
+      console.warn("Preview detectado: resquícios de cache antigo persistiram após as tentativas de limpeza.", resetResult);
+    } else if (shouldReloadDocument) {
+      console.log("Preview detectado: documento recarregado com cache-busting para evitar versão antiga.", resetResult);
+    } else {
+      console.log("Preview detectado: Service Worker desativado e cache limpo para evitar versão antiga.", resetResult);
+    }
   } else {
     clearPreviewCacheResetAttempts();
-    listenForControllerChange();
     registerAppServiceWorker();
+    listenForControllerChange();
 
     if (versionChanged) {
-      // Clear old caches on version change but don't re-register
+      // First load or version changed — clear old caches once
       await clearClientCaches();
+      registerAppServiceWorker();
     }
   }
 
-  // Initialize performance monitoring
-  initPerformanceMonitoring();
-
-  // Render the app
+  // Always render the app — never block on update banners
   createRoot(document.getElementById("root")!).render(<App />);
 }
 

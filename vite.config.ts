@@ -22,63 +22,6 @@ export default defineConfig(({ mode }) => ({
       overlay: false,
     },
   },
-  build: {
-    // Enable minification with terser-equivalent via esbuild (default in Vite)
-    minify: "esbuild",
-    // Target modern browsers for smaller output
-    target: "es2020",
-    // Enable CSS code splitting
-    cssCodeSplit: true,
-    // Optimize chunk size
-    rollupOptions: {
-      output: {
-        // Manual chunk splitting for better caching
-        manualChunks(id) {
-          // Vendor chunks - rarely change, cached long-term
-          if (id.includes("node_modules")) {
-            if (id.includes("react") || id.includes("react-dom") || id.includes("react-router")) {
-              return "vendor-react";
-            }
-            if (id.includes("@tanstack")) {
-              return "vendor-query";
-            }
-            if (id.includes("@supabase")) {
-              return "vendor-supabase";
-            }
-            if (id.includes("recharts") || id.includes("d3-")) {
-              return "vendor-charts";
-            }
-            if (id.includes("@radix-ui") || id.includes("class-variance-authority") || id.includes("clsx")) {
-              return "vendor-ui";
-            }
-            if (id.includes("jspdf") || id.includes("html2canvas")) {
-              return "vendor-pdf";
-            }
-            if (id.includes("date-fns") || id.includes("lucide-react")) {
-              return "vendor-utils";
-            }
-            return "vendor-misc";
-          }
-          // Group game components
-          if (id.includes("/components/games/") || id.includes("/pages/Games")) {
-            return "feature-games";
-          }
-          // Group driver panel
-          if (id.includes("/pages/PainelMotorista") || id.includes("/pages/RegistroMovimento") || 
-              id.includes("/pages/SelecaoVeiculo") || id.includes("/pages/EquipamentosMotorista") ||
-              id.includes("/pages/RelatoriosMotorista") || id.includes("/components/driver/")) {
-            return "feature-driver";
-          }
-        },
-      },
-    },
-    // Report compressed sizes
-    reportCompressedSize: true,
-    // Increase chunk size warning limit (we have manual chunks)
-    chunkSizeWarningLimit: 800,
-    // Source maps only in dev
-    sourcemap: mode === "development",
-  },
   plugins: [
     react(),
     mode === "development" && componentTagger(),
@@ -215,7 +158,7 @@ export default defineConfig(({ mode }) => ({
       },
       workbox: {
         globPatterns: ["**/*.{js,css,html,ico,png,svg,woff2,jpg,jpeg,webp}"],
-        maximumFileSizeToCacheInBytes: 6 * 1024 * 1024,
+        maximumFileSizeToCacheInBytes: 6 * 1024 * 1024, // 6 MB limit
         cleanupOutdatedCaches: true,
         navigateFallbackDenylist: [/^\/~oauth/],
         navigateFallback: "/index.html",
@@ -223,6 +166,7 @@ export default defineConfig(({ mode }) => ({
         skipWaiting: true,
         clientsClaim: true,
         runtimeCaching: [
+          // Google Fonts - Cache First (rarely changes)
           {
             urlPattern: /^https:\/\/fonts\.googleapis\.com\/.*/i,
             handler: "CacheFirst",
@@ -230,10 +174,11 @@ export default defineConfig(({ mode }) => ({
               cacheName: "google-fonts-cache",
               expiration: {
                 maxEntries: 10,
-                maxAgeSeconds: 60 * 60 * 24 * 365,
+                maxAgeSeconds: 60 * 60 * 24 * 365, // 1 year
               },
             },
           },
+          // Google Fonts Static - Cache First
           {
             urlPattern: /^https:\/\/fonts\.gstatic\.com\/.*/i,
             handler: "CacheFirst",
@@ -241,10 +186,11 @@ export default defineConfig(({ mode }) => ({
               cacheName: "google-fonts-static",
               expiration: {
                 maxEntries: 30,
-                maxAgeSeconds: 60 * 60 * 24 * 365,
+                maxAgeSeconds: 60 * 60 * 24 * 365, // 1 year
               },
             },
           },
+          // Image Assets - Stale While Revalidate
           {
             urlPattern: /\.(?:png|jpg|jpeg|svg|gif|webp|ico)$/i,
             handler: "StaleWhileRevalidate",
@@ -252,10 +198,11 @@ export default defineConfig(({ mode }) => ({
               cacheName: "image-cache",
               expiration: {
                 maxEntries: 100,
-                maxAgeSeconds: 60 * 60 * 24 * 30,
+                maxAgeSeconds: 60 * 60 * 24 * 30, // 30 days
               },
             },
           },
+          // Supabase Storage - Network First with Fallback
           {
             urlPattern: /^https:\/\/.*\.supabase\.co\/storage\/.*/i,
             handler: "NetworkFirst",
@@ -263,7 +210,7 @@ export default defineConfig(({ mode }) => ({
               cacheName: "supabase-storage",
               expiration: {
                 maxEntries: 50,
-                maxAgeSeconds: 60 * 60 * 24 * 7,
+                maxAgeSeconds: 60 * 60 * 24 * 7, // 7 days
               },
               networkTimeoutSeconds: 5,
             },
