@@ -497,7 +497,11 @@ export default function ResiduosEfluentes() {
             autoFocus
           />
         ) : (
-          <span className="text-sm">{val !== undefined ? val : ""}</span>
+          <span className="text-sm">
+            {val !== undefined
+              ? (tipo === TIPO_EFLUENTE.key ? val.toFixed(1) : val)
+              : (tipo === TIPO_EFLUENTE.key ? "" : "")}
+          </span>
         )}
       </td>
     );
