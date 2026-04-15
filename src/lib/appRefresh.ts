@@ -3,8 +3,11 @@ export const MAX_PREVIEW_CACHE_RESET_ATTEMPTS = 3;
 
 const PREVIEW_DOCUMENT_VERSION_KEY = "preview-document-version";
 const VERSION_STORAGE_KEY = "app-build-version";
+const ELECTRON_REFRESH_GUARD_KEY = "electron-version-refresh-guard";
+const ELECTRON_REFRESH_GUARD_TTL_MS = 15_000;
 const BUILD_VERSION = __APP_BUILD_VERSION__;
 const PREVIEW_HOST_FRAGMENTS = ["id-preview--", "lovableproject.com"];
+export const ELECTRON_VERSION_POLL_INTERVAL_MS = 5_000;
 
 export type CacheResetResult = {
   hadCaches: boolean;
@@ -65,6 +68,33 @@ export function setPreviewCacheResetAttempts(attempts: number) {
 
 export function clearPreviewCacheResetAttempts() {
   sessionStorage.removeItem(PREVIEW_CACHE_RESET_KEY);
+}
+
+function getElectronRefreshGuard() {
+  const rawValue = sessionStorage.getItem(ELECTRON_REFRESH_GUARD_KEY);
+
+  if (!rawValue) {
+    return null;
+  }
+
+  try {
+    const parsed = JSON.parse(rawValue) as {
+      expiresAt?: number;
+      target?: string;
+    };
+
+    if (!parsed.target || typeof parsed.expiresAt !== "number") {
+      return null;
+    }
+
+    return parsed;
+  } catch {
+    return null;
+  }
+}
+
+export function clearElectronRefreshGuard() {
+  sessionStorage.removeItem(ELECTRON_REFRESH_GUARD_KEY);
 }
 
 export function shouldForcePreviewDocumentReload() {
@@ -200,6 +230,44 @@ export async function checkServerVersion(): Promise<string | null> {
   } catch {
     return null;
   }
+}
+
+export async function refreshIfDocumentStale(trigger = "runtime-check"): Promise<boolean> {
+  const serverVersionMismatch = await checkServerVersion();
+
+  if (!serverVersionMismatch) {
+    clearElectronRefreshGuard();
+    return false;
+  }
+
+  if (isElectronRuntime()) {
+    const refreshGuard = getElectronRefreshGuard();
+
+    if (refreshGuard && refreshGuard.target === serverVersionMismatch && refreshGuard.expiresAt > Date.now()) {
+      return false;
+    }
+
+    sessionStorage.setItem(
+      ELECTRON_REFRESH_GUARD_KEY,
+      JSON.stringify({
+        target: serverVersionMismatch,
+        expiresAt: Date.now() + ELECTRON_REFRESH_GUARD_TTL_MS,
+      }),
+    );
+  }
+
+  console.log(`Nova build detectada (${trigger}) — recarregando aplicação...`, { serverVersionMismatch });
+  await clearClientCaches();
+  clearPreviewCacheResetAttempts();
+  markPreviewDocumentFresh();
+  window.location.replace(
+    getCacheBustedUrl({
+      "server-build": serverVersionMismatch,
+      "update-trigger": trigger,
+    }),
+  );
+
+  return true;
 }
 
 /**
