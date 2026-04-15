@@ -2,71 +2,51 @@ import { createRoot } from "react-dom/client";
 import { registerSW } from "virtual:pwa-register";
 import App from "./App.tsx";
 import "./index.css";
-import {
-  MAX_PREVIEW_CACHE_RESET_ATTEMPTS,
-  checkVersionAndReset,
-  clearClientCaches,
-  clearPreviewCacheResetAttempts,
-  getCacheBustedUrl,
-  getPreviewCacheResetAttempts,
-  listenForControllerChange,
-  markPreviewDocumentFresh,
-  setPreviewCacheResetAttempts,
-  shouldDisableServiceWorker,
-  shouldForcePreviewDocumentReload,
-} from "@/lib/appRefresh";
 
-let updateSW: ((reloadPage?: boolean) => Promise<void>) | null = null;
+// Register Service Worker for PWA/offline support
+const updateSW = registerSW({
+  onNeedRefresh() {
+    // New version available — show brief toast then auto-reload clearing cache
+    showUpdateBanner();
+  },
+  onOfflineReady() {
+    console.log("App pronto para uso offline");
+  },
+  onRegistered(registration) {
+    console.log("Service Worker registrado:", registration);
 
-function registerAppServiceWorker() {
-  updateSW = registerSW({
-    immediate: true,
-    onNeedRefresh() {
-      showUpdateBanner();
-    },
-    onOfflineReady() {
-      console.log("App pronto para uso offline");
-    },
-    onRegistered(registration) {
-      console.log("Service Worker registrado:", registration);
-      if (!registration) return;
-
-      const checkForUpdates = () => {
+    if (registration) {
+      // Check for updates every 2 minutes when online
+      setInterval(() => {
         if (navigator.onLine) {
-          registration.update().catch((e) => console.error("Erro ao buscar atualização:", e));
+          registration.update();
         }
-      };
+      }, 2 * 60 * 1000);
 
-      checkForUpdates();
-      setInterval(checkForUpdates, 2 * 60 * 1000);
-
-      window.addEventListener("focus", checkForUpdates);
-      window.addEventListener("online", checkForUpdates);
-      document.addEventListener("visibilitychange", () => {
-        if (document.visibilityState === "visible") checkForUpdates();
-      });
-
-      if ("periodicSync" in registration) {
-        (registration as any).periodicSync
-          .register("content-sync", { minInterval: 12 * 60 * 60 * 1000 })
-          .catch((err: Error) => console.log("Periodic sync não suportado:", err));
+      // Register Periodic Background Sync
+      if ('periodicSync' in registration) {
+        (registration as any).periodicSync.register('content-sync', {
+          minInterval: 12 * 60 * 60 * 1000, // 12 hours
+        }).catch((err: Error) => console.log('Periodic sync não suportado:', err));
       }
 
-      if ("sync" in registration) {
-        (registration as any).sync
-          .register("pending-sync")
-          .catch((err: Error) => console.log("Background sync não suportado:", err));
+      // Register Background Sync
+      if ('sync' in registration) {
+        (registration as any).sync.register('pending-sync')
+          .catch((err: Error) => console.log('Background sync não suportado:', err));
       }
-    },
-    onRegisterError(error) {
-      console.error("Erro ao registrar Service Worker:", error);
-    },
-  });
-}
+    }
+  },
+  onRegisterError(error) {
+    console.error("Erro ao registrar Service Worker:", error);
+  },
+});
 
+/**
+ * Shows an update banner, clears all caches, and auto-reloads after 3 seconds.
+ */
 function showUpdateBanner() {
-  if (document.getElementById("update-banner")) return;
-
+  // Create the banner element
   const banner = document.createElement("div");
   banner.id = "update-banner";
   banner.innerHTML = `
@@ -92,10 +72,11 @@ function showUpdateBanner() {
   `;
   document.body.appendChild(banner);
 
+  // Countdown and auto-reload
   let seconds = 3;
   const countdownEl = document.getElementById("update-countdown");
   const timer = setInterval(() => {
-    seconds -= 1;
+    seconds--;
     if (countdownEl) countdownEl.textContent = String(seconds);
     if (seconds <= 0) {
       clearInterval(timer);
@@ -104,65 +85,25 @@ function showUpdateBanner() {
   }, 1000);
 }
 
+/**
+ * Clears all browser caches (Cache API + SW) then hard reloads.
+ */
 async function clearCachesAndReload() {
   try {
-    await clearClientCaches();
-
-    if (updateSW) {
-      await updateSW(true);
+    // Clear all Cache Storage entries
+    if ("caches" in window) {
+      const keys = await caches.keys();
+      await Promise.all(keys.map((k) => caches.delete(k)));
     }
+
+    // Tell the SW to activate the new version
+    await updateSW(true);
   } catch (e) {
     console.error("Erro ao limpar cache:", e);
   }
 
-  window.location.replace(getCacheBustedUrl());
+  // Force hard reload (bypass cache)
+  window.location.reload();
 }
 
-async function bootstrap() {
-  const versionChanged = checkVersionAndReset();
-
-  if (shouldDisableServiceWorker()) {
-    const resetResult = await clearClientCaches();
-    const hasPreviewArtifacts = resetResult.hadController || resetResult.hadRegistrations || resetResult.hadCaches;
-    const resetAttempts = getPreviewCacheResetAttempts();
-    const shouldReloadDocument = shouldForcePreviewDocumentReload();
-
-    if ((hasPreviewArtifacts || shouldReloadDocument) && resetAttempts < MAX_PREVIEW_CACHE_RESET_ATTEMPTS) {
-      const nextAttempt = resetAttempts + 1;
-      setPreviewCacheResetAttempts(nextAttempt);
-      markPreviewDocumentFresh();
-      console.log(
-        `Preview detectado: forçando atualização limpa (tentativa ${nextAttempt}/${MAX_PREVIEW_CACHE_RESET_ATTEMPTS}).`,
-        { ...resetResult, shouldReloadDocument },
-      );
-      window.location.replace(getCacheBustedUrl({ "preview-reset-attempt": nextAttempt }));
-      return;
-    }
-
-    clearPreviewCacheResetAttempts();
-    markPreviewDocumentFresh();
-
-    if (hasPreviewArtifacts) {
-      console.warn("Preview detectado: resquícios de cache antigo persistiram após as tentativas de limpeza.", resetResult);
-    } else if (shouldReloadDocument) {
-      console.log("Preview detectado: documento recarregado com cache-busting para evitar versão antiga.", resetResult);
-    } else {
-      console.log("Preview detectado: Service Worker desativado e cache limpo para evitar versão antiga.", resetResult);
-    }
-  } else {
-    clearPreviewCacheResetAttempts();
-    registerAppServiceWorker();
-    listenForControllerChange();
-
-    if (versionChanged) {
-      // First load or version changed — clear old caches once
-      await clearClientCaches();
-      registerAppServiceWorker();
-    }
-  }
-
-  // Always render the app — never block on update banners
-  createRoot(document.getElementById("root")!).render(<App />);
-}
-
-void bootstrap();
+createRoot(document.getElementById("root")!).render(<App />);

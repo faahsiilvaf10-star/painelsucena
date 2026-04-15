@@ -1,6 +1,5 @@
 // @ts-nocheck
 import { useState, useMemo, useCallback, useRef } from "react";
-import { useNavigate } from "react-router-dom";
 import { BarChart, Bar, XAxis, YAxis, CartesianGrid, Tooltip as RechartsTooltip, ResponsiveContainer } from "recharts";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { Input } from "@/components/ui/input";
@@ -8,7 +7,7 @@ import { Button } from "@/components/ui/button";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { EditablePageTitle } from "@/components/cms/EditablePageTitle";
 import { usePluviometriaYear } from "@/hooks/usePluviometria";
-import { CloudRain, Leaf, FileDown, Droplets, Trash2, ArrowLeft } from "lucide-react";
+import { CloudRain, Leaf, FileDown, Droplets, Trash2 } from "lucide-react";
 import AbastecimentoCaixaDagua from "@/components/meioambiente/AbastecimentoCaixaDagua";
 import ResiduosEfluentes from "@/components/meioambiente/ResiduosEfluentes";
 import { toast } from "sonner";
@@ -584,81 +583,32 @@ function PluviometriaSpreadsheet({ setor, ano }: { setor: string; ano: number })
   );
 }
 
-const hubPages = [
-  { label: "Pluviometria", icon: CloudRain, key: "pluviometria" },
-  { label: "Caixa\nD'Água", icon: Droplets, key: "abastecimento" },
-  { label: "Resíduos\nEfluentes", icon: Trash2, key: "residuos" },
-  { label: "Consumo\nAbastecimento", icon: Droplets, key: "consumo" },
-];
-
 export default function MeioAmbiente() {
-  const navigate = useNavigate();
   const currentDate = new Date();
   const [setor, setSetor] = useState("campo");
   const [ano, setAno] = useState(currentDate.getFullYear());
-  const [selectedSection, setSelectedSection] = useState<string | null>(null);
-
-  if (!selectedSection) {
-    return (
-      <div className="min-h-[calc(100vh-4rem)] p-4 md:p-8">
-        <div className="flex items-center gap-3 mb-8 justify-center">
-          <div className="p-2 rounded-xl bg-gradient-to-br from-[#c9a84c] to-[#f0d78c] text-[#1a1a1a]">
-            <Leaf className="h-7 w-7" />
-          </div>
-          <h1 className="text-2xl md:text-3xl font-bold text-[#c9a84c]">Meio Ambiente</h1>
-        </div>
-
-        <div className="grid grid-cols-2 sm:grid-cols-4 gap-4 md:gap-5 max-w-4xl mx-auto">
-          {hubPages.map((page) => (
-            <button
-              key={page.key}
-              onClick={() => {
-                if (page.key === "consumo") {
-                  navigate("/consumo-abastecimento");
-                } else {
-                  setSelectedSection(page.key);
-                }
-              }}
-              className="group relative rounded-2xl p-[2px] cursor-pointer transition-all duration-300 hover:scale-105 hover:shadow-[0_0_30px_rgba(201,168,76,0.3)] focus:outline-none"
-              style={{
-                background: "linear-gradient(145deg, #d4a84c, #b8942e, #e8c95a, #a07828)",
-              }}
-            >
-              <div
-                className="rounded-[14px] flex flex-col items-center justify-center gap-3 p-5 md:p-6 h-full min-h-[140px] md:min-h-[160px]"
-                style={{
-                  background: "linear-gradient(160deg, #d4a84c 0%, #c49a3c 25%, #b08830 50%, #c49a3c 75%, #d8b050 100%)",
-                }}
-              >
-                <div className="absolute inset-[6px] rounded-xl border border-[#b8942e]/50 pointer-events-none" />
-                <page.icon className="h-10 w-10 md:h-12 md:w-12 text-[#1a1a1a] drop-shadow-sm group-hover:scale-110 transition-transform duration-300" strokeWidth={1.5} />
-                <span className="text-[#1a1a1a] text-xs md:text-sm font-semibold text-center leading-tight whitespace-pre-line">
-                  {page.label}
-                </span>
-              </div>
-            </button>
-          ))}
-        </div>
-      </div>
-    );
-  }
 
   return (
     <div className="mx-auto p-4 space-y-4 w-full overflow-x-auto">
       <div className="flex items-center gap-3">
-        <Button variant="ghost" size="icon" onClick={() => setSelectedSection(null)}>
-          <ArrowLeft className="w-5 h-5" />
-        </Button>
         <Leaf className="w-7 h-7 text-[#00873e]" />
-        <span className="text-2xl font-bold">
-          {selectedSection === "pluviometria" && "Pluviometria"}
-          {selectedSection === "abastecimento" && "Caixa D'Água"}
-          {selectedSection === "residuos" && "Resíduos Efluentes"}
-        </span>
+        <EditablePageTitle pageKey="meio-ambiente" defaultValue="Meio Ambiente" className="text-2xl font-bold" />
       </div>
 
-      {selectedSection === "pluviometria" && (
-        <>
+      <Tabs defaultValue="pluviometria">
+        <TabsList>
+          <TabsTrigger value="pluviometria" className="gap-2">
+            <CloudRain className="w-4 h-4" /> Pluviometria
+          </TabsTrigger>
+          <TabsTrigger value="abastecimento" className="gap-2">
+            <Droplets className="w-4 h-4" /> Caixa D'Água
+          </TabsTrigger>
+          <TabsTrigger value="residuos" className="gap-2">
+            <Trash2 className="w-4 h-4" /> Resíduos Efluentes
+          </TabsTrigger>
+        </TabsList>
+
+        <TabsContent value="pluviometria">
           <div className="flex flex-wrap gap-3 mb-4">
             <Select value={setor} onValueChange={setSetor}>
               <SelectTrigger className="w-[160px]">
@@ -682,12 +632,18 @@ export default function MeioAmbiente() {
               </SelectContent>
             </Select>
           </div>
-          <PluviometriaSpreadsheet setor={setor} ano={ano} />
-        </>
-      )}
 
-      {selectedSection === "abastecimento" && <AbastecimentoCaixaDagua />}
-      {selectedSection === "residuos" && <ResiduosEfluentes />}
+          <PluviometriaSpreadsheet setor={setor} ano={ano} />
+        </TabsContent>
+
+        <TabsContent value="abastecimento">
+          <AbastecimentoCaixaDagua />
+        </TabsContent>
+
+        <TabsContent value="residuos">
+          <ResiduosEfluentes />
+        </TabsContent>
+      </Tabs>
     </div>
   );
 }

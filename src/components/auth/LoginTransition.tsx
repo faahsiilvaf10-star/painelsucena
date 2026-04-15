@@ -162,30 +162,22 @@ export function LoginTransition({ onComplete, userName, userAvatar, userCargo }:
 
         {/* Loading indicator - minimal dots */}
         <div
-          className="flex flex-col items-center gap-4 mt-10 transition-all duration-500 ease-out"
+          className="flex gap-1.5 mt-10 transition-all duration-500 ease-out"
           style={{
             opacity: phase === "welcome" ? 1 : 0,
             transitionDelay: "0.6s",
           }}
         >
-          <div className="flex gap-1.5">
-            {[0, 1, 2, 3, 4].map((i) => (
-              <div
-                key={i}
-                className="w-1 h-1 rounded-full win-dot-pulse"
-                style={{
-                  backgroundColor: "hsl(210, 30%, 50%)",
-                  animationDelay: `${i * 0.15}s`,
-                }}
-              />
-            ))}
-          </div>
-          <p
-            className="text-xs font-light tracking-wider"
-            style={{ color: "hsl(210, 15%, 50%)" }}
-          >
-            Nova atualização encontrada — atualizando sistema...
-          </p>
+          {[0, 1, 2, 3, 4].map((i) => (
+            <div
+              key={i}
+              className="w-1 h-1 rounded-full win-dot-pulse"
+              style={{
+                backgroundColor: "hsl(210, 30%, 50%)",
+                animationDelay: `${i * 0.15}s`,
+              }}
+            />
+          ))}
         </div>
       </div>
 

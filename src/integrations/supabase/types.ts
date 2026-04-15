@@ -2098,36 +2098,6 @@ export type Database = {
         }
         Relationships: []
       }
-      music_tracks: {
-        Row: {
-          created_at: string
-          file_name: string
-          file_url: string
-          id: string
-          time_slot: number
-          updated_at: string
-          uploaded_by: string | null
-        }
-        Insert: {
-          created_at?: string
-          file_name: string
-          file_url: string
-          id?: string
-          time_slot?: number
-          updated_at?: string
-          uploaded_by?: string | null
-        }
-        Update: {
-          created_at?: string
-          file_name?: string
-          file_url?: string
-          id?: string
-          time_slot?: number
-          updated_at?: string
-          uploaded_by?: string | null
-        }
-        Relationships: []
-      }
       nav_visibility_rules: {
         Row: {
           cargo: string
@@ -3176,12 +3146,7 @@ export type Database = {
           nav_order: Json | null
           primary_color: string | null
           show_signup_button: boolean
-          sidebar_active_color: string | null
-          sidebar_active_font_color: string | null
-          sidebar_animation: string | null
           sidebar_color: string | null
-          sidebar_font: string | null
-          sidebar_font_color: string | null
           ui_theme: string
           updated_at: string
           updated_by: string | null
@@ -3202,12 +3167,7 @@ export type Database = {
           nav_order?: Json | null
           primary_color?: string | null
           show_signup_button?: boolean
-          sidebar_active_color?: string | null
-          sidebar_active_font_color?: string | null
-          sidebar_animation?: string | null
           sidebar_color?: string | null
-          sidebar_font?: string | null
-          sidebar_font_color?: string | null
           ui_theme?: string
           updated_at?: string
           updated_by?: string | null
@@ -3228,12 +3188,7 @@ export type Database = {
           nav_order?: Json | null
           primary_color?: string | null
           show_signup_button?: boolean
-          sidebar_active_color?: string | null
-          sidebar_active_font_color?: string | null
-          sidebar_animation?: string | null
           sidebar_color?: string | null
-          sidebar_font?: string | null
-          sidebar_font_color?: string | null
           ui_theme?: string
           updated_at?: string
           updated_by?: string | null

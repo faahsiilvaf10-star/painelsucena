@@ -1,6 +1,5 @@
 import { Toaster } from "@/components/ui/toaster";
 import { Toaster as Sonner } from "@/components/ui/sonner";
-import Equipamentos from "./pages/Equipamentos";
 import { TooltipProvider } from "@/components/ui/tooltip";
 import { QueryClientProvider } from "@tanstack/react-query";
 import { QueryClient } from "@tanstack/query-core";
@@ -64,10 +63,6 @@ import TrocaEpi from "./pages/TrocaEpi";
 import InspecaoExtintores from "./pages/InspecaoExtintores";
 import MeioAmbiente from "./pages/MeioAmbiente";
 import PosChuva from "./pages/PosChuva";
-import Seguranca from "./pages/Seguranca";
-import RecursosHumanos from "./pages/RecursosHumanos";
-import RelatorioDiarioObra from "./pages/RelatorioDiarioObra";
-import Almoxarifado from "./pages/Almoxarifado";
 import NotFound from "./pages/NotFound";
 
 // QueryClient with robust error handling
@@ -165,11 +160,6 @@ const App = () => (
                     <Route path="/inspecao-extintores" element={<ProtectedRoute><InspecaoExtintores /></ProtectedRoute>} />
                     <Route path="/meio-ambiente" element={<ProtectedRoute><MeioAmbiente /></ProtectedRoute>} />
                     <Route path="/pos-chuva" element={<ProtectedRoute><PosChuva /></ProtectedRoute>} />
-                    <Route path="/seguranca" element={<ProtectedRoute><Seguranca /></ProtectedRoute>} />
-                    <Route path="/recursos-humanos" element={<ProtectedRoute><RecursosHumanos /></ProtectedRoute>} />
-                    <Route path="/relatorio-diario-obra" element={<ProtectedRoute><RelatorioDiarioObra /></ProtectedRoute>} />
-                    <Route path="/almoxarifado" element={<ProtectedRoute><Almoxarifado /></ProtectedRoute>} />
-                    <Route path="/equipamentos" element={<ProtectedRoute><Equipamentos /></ProtectedRoute>} />
                     {/* ADD ALL CUSTOM ROUTES ABOVE THE CATCH-ALL "*" ROUTE */}
                     <Route path="*" element={<NotFound />} />
                   </Routes>

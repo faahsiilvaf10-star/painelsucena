@@ -1,6 +1,4 @@
 /// <reference types="vite/client" />
-
-declare const __APP_BUILD_VERSION__: string;
 /// <reference types="vite-plugin-pwa/client" />
 
 // Virtual module declarations for PWA

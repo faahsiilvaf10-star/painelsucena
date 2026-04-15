@@ -1,36 +1,35 @@
 import { useState } from "react";
 import { NewsTicker } from "@/components/footer/NewsTicker";
-import { Play, Pause, ChevronDown, Music, Volume2 } from "lucide-react";
+import { Radio, VolumeX, Volume2, Play, ChevronDown } from "lucide-react";
 import { cn } from "@/lib/utils";
+import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover";
 import { useRadio } from "@/contexts/RadioContext";
 import { useSidebar } from "@/components/ui/sidebar";
-import { Slider } from "@/components/ui/slider";
-import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover";
 
 interface OnlineUsersFooterProps {
   onUserClick: (user: any) => void;
 }
 
-export const OnlineUsersFooter = ({ onUserClick }: OnlineUsersFooterProps) => {
+export const OnlineUsersFooter = ({
+  onUserClick
+}: OnlineUsersFooterProps) => {
+  const [selectorOpen, setSelectorOpen] = useState(false);
   const [isMinimized, setIsMinimized] = useState(false);
-  const { state } = useSidebar();
   const {
-    isPlaying, volume, setVolume, currentTrack, toggleRadio, currentHour,
+    state
+  } = useSidebar();
+  const {
+    isPlaying,
+    isMuted,
+    selectedStation,
+    stations,
+    toggleRadio,
+    changeStation,
+    isRadioActive
   } = useRadio();
-
   const isCollapsedSidebar = state === "collapsed";
-  const trackName = currentTrack
-    ? currentTrack.file_name.replace(/\.[^/.]+$/, "")
-    : `Sem músicas (${String(currentHour).padStart(2, "0")}:00)`;
-
-  return (
-    <div className={cn(
-      "fixed bottom-0 right-0 z-40 transition-[left] duration-200 ease-linear",
-      isMinimized ? "bg-transparent border-t-0" : "bg-card border-t border-border",
-      isCollapsedSidebar ? "left-[48px]" : "left-[256px]",
-      "max-md:left-0"
-    )}>
-      {/* Mobile minimize toggle */}
+  return <div className={cn("fixed bottom-0 right-0 z-40 transition-[left] duration-200 ease-linear", isMinimized ? "bg-transparent border-t-0" : "bg-card border-t border-border", isCollapsedSidebar ? "left-[48px]" : "left-[256px]", "max-md:left-0")}>
+      {/* Mobile minimize toggle button - always centered */}
       <button
         onClick={() => setIsMinimized(!isMinimized)}
         className={cn(
@@ -43,90 +42,94 @@ export const OnlineUsersFooter = ({ onUserClick }: OnlineUsersFooterProps) => {
       >
         <ChevronDown className={cn("h-4 w-4 transition-transform", isMinimized && "rotate-180")} />
       </button>
+      {!isMinimized && <div className="flex items-center gap-1 md:gap-3 px-2 md:px-4 py-1.5 md:py-2 overflow-x-auto scrollbar-none">
+        {/* Radio Player */}
+        <div className="flex items-center gap-0.5 md:gap-1 shrink-0">
+          <button onClick={toggleRadio} className={cn("flex items-center gap-1 md:gap-2 px-2 md:px-3 py-1 md:py-1.5 rounded-l-full transition-all duration-300", isRadioActive ? "bg-green-500/20 hover:bg-green-500/30 border border-r-0 border-green-400/40" : "bg-secondary/50 hover:bg-secondary border border-r-0 border-transparent")} aria-label={!isPlaying ? "Iniciar rádio" : isMuted ? "Ativar som" : "Silenciar"}>
+            <div className="relative">
+              <Radio className={cn("h-4 w-4 transition-colors", isRadioActive ? "text-green-500" : "text-muted-foreground")} />
+              {isRadioActive && <span className="absolute -top-0.5 -right-0.5 w-1.5 h-1.5 bg-green-500 rounded-full animate-ping" />}
+            </div>
+            
+            {!isPlaying ? <Play className="h-3 w-3 text-muted-foreground" /> : isRadioActive ? <Volume2 className="h-3 w-3 text-green-500" /> : <VolumeX className="h-3 w-3 text-muted-foreground" />}
+            
+            <span className={cn("text-xs font-medium transition-colors", isRadioActive ? "text-green-500" : "text-muted-foreground")}>
+              {isRadioActive ? "Ao Vivo" : isPlaying ? "Mudo" : selectedStation.name}
+            </span>
 
-      {!isMinimized && (
-        <div className="flex items-center gap-1 md:gap-3 px-2 md:px-4 py-1.5 md:py-2 overflow-x-auto scrollbar-none">
-          {/* Radio Player */}
-          <div className="flex items-center gap-1 shrink-0">
-            {/* Play/Pause */}
-            <button
-              onClick={toggleRadio}
-              className={cn(
-                "flex items-center gap-1.5 px-2.5 py-1.5 rounded-full transition-all duration-300",
-                isPlaying
-                  ? "bg-green-500/20 hover:bg-green-500/30 border border-green-400/40"
-                  : "bg-secondary/50 hover:bg-secondary border border-transparent"
-              )}
-              aria-label={isPlaying ? "Pausar" : "Tocar"}
-            >
-              <div className="relative">
-                <Music className={cn("h-4 w-4 transition-colors", isPlaying ? "text-green-500" : "text-muted-foreground")} />
-                {isPlaying && <span className="absolute -top-0.5 -right-0.5 w-1.5 h-1.5 bg-green-500 rounded-full animate-ping" />}
+            {/* Sound wave animation */}
+            {isRadioActive && <div className="flex items-end gap-0.5 h-3">
+                {[1, 2, 3].map(i => <div key={i} className="w-0.5 bg-green-500 rounded-full animate-sound-wave" style={{
+              animationDelay: `${i * 0.15}s`,
+              height: "100%"
+            }} />)}
+              </div>}
+          </button>
+
+          {/* Station Selector */}
+          <Popover open={selectorOpen} onOpenChange={setSelectorOpen}>
+            <PopoverTrigger asChild>
+              <button className={cn("flex items-center gap-0.5 md:gap-1 px-1.5 md:px-2 py-1 md:py-1.5 rounded-r-full transition-all duration-300", isRadioActive ? "bg-green-500/20 hover:bg-green-500/30 border border-l-0 border-green-400/40" : "bg-secondary/50 hover:bg-secondary border border-l-0 border-transparent")} aria-label="Selecionar rádio">
+                <ChevronDown className={cn("h-3 w-3 transition-transform", selectorOpen && "rotate-180", isRadioActive ? "text-green-500" : "text-muted-foreground")} />
+              </button>
+            </PopoverTrigger>
+            <PopoverContent className="w-56 p-2" align="start" side="top" sideOffset={8}>
+              <div className="space-y-1">
+                <p className="text-xs font-medium text-muted-foreground px-2 py-1">
+                  Selecione uma rádio
+                </p>
+                {stations.map(station => <button key={station.id} onClick={() => {
+                changeStation(station);
+                setSelectorOpen(false);
+              }} className={cn("w-full flex items-center justify-between px-3 py-2 rounded-md text-sm transition-colors", selectedStation.id === station.id ? "bg-primary text-primary-foreground" : "hover:bg-secondary")}>
+                    <span className="font-medium">{station.name}</span>
+                    <span className={cn("text-xs", selectedStation.id === station.id ? "text-primary-foreground/70" : "text-muted-foreground")}>
+                      {station.genre}
+                    </span>
+                  </button>)}
               </div>
-
-              {isPlaying
-                ? <Pause className="h-3.5 w-3.5 text-green-500" />
-                : <Play className="h-3.5 w-3.5 text-muted-foreground" />}
-
-              <span className={cn(
-                "text-xs font-medium transition-colors max-w-[140px] truncate",
-                isPlaying ? "text-green-500" : "text-muted-foreground"
-              )}>
-                {trackName}
-              </span>
-
-              {/* Sound wave */}
-              {isPlaying && currentTrack && (
-                <div className="flex items-end gap-0.5 h-3">
-                  {[1, 2, 3].map(i => (
-                    <div
-                      key={i}
-                      className="w-0.5 bg-green-500 rounded-full animate-sound-wave"
-                      style={{ animationDelay: `${i * 0.15}s`, height: "100%" }}
-                    />
-                  ))}
-                </div>
-              )}
-            </button>
-
-            {/* Volume */}
-            <Popover>
-              <PopoverTrigger asChild>
-                <button className="p-1 hover:bg-secondary/50 rounded transition-colors" aria-label="Volume">
-                  <Volume2 className={cn("h-3.5 w-3.5", isPlaying ? "text-green-500" : "text-muted-foreground")} />
-                </button>
-              </PopoverTrigger>
-              <PopoverContent className="w-36 p-3" align="start" side="top" sideOffset={8}>
-                <div className="flex items-center gap-2">
-                  <Volume2 className="h-3 w-3 text-muted-foreground shrink-0" />
-                  <Slider
-                    value={[volume * 100]}
-                    onValueChange={([v]) => setVolume(v / 100)}
-                    max={100}
-                    step={1}
-                    className="flex-1"
-                  />
-                </div>
-              </PopoverContent>
-            </Popover>
-          </div>
-
-          {/* News Ticker Divider */}
-          <div className="h-6 w-px bg-border shrink-0" />
-          <NewsTicker />
+            </PopoverContent>
+          </Popover>
         </div>
-      )}
+
+
+
+
+        {/* News Ticker Divider */}
+        <div className="h-6 w-px bg-border shrink-0" />
+        <NewsTicker />
+      </div>}
 
       {/* Animation styles */}
       <style>{`
         @keyframes sound-wave {
-          0%, 100% { transform: scaleY(0.3); }
-          50% { transform: scaleY(1); }
+          0%, 100% {
+            transform: scaleY(0.3);
+          }
+          50% {
+            transform: scaleY(1);
+          }
         }
+        
         .animate-sound-wave {
           animation: sound-wave 0.8s ease-in-out infinite;
         }
+        
+        @keyframes online-pulse {
+          0% {
+            box-shadow: 0 0 0 0 rgba(34, 197, 94, 0.7);
+          }
+          70% {
+            box-shadow: 0 0 0 10px rgba(34, 197, 94, 0);
+          }
+          100% {
+            box-shadow: 0 0 0 0 rgba(34, 197, 94, 0);
+          }
+        }
+        
+        .animate-online-pulse {
+          animation: online-pulse 1s ease-out 3;
+        }
       `}</style>
-    </div>
-  );
+    </div>;
 };
