@@ -1,4 +1,4 @@
-import { useState, useEffect } from "react";
+import { useState, useEffect, useRef } from "react";
 import { User } from "lucide-react";
 import { useSiteSettings } from "@/hooks/useSiteSettings";
 import logoPrincipal from "@/assets/logo-principal.png";
@@ -11,22 +11,48 @@ interface LogoutTransitionProps {
 }
 
 export function LogoutTransition({ onComplete, userName, userAvatar, reason = "manual" }: LogoutTransitionProps) {
-  const [phase, setPhase] = useState<"blank" | "logo" | "goodbye" | "fade">("blank");
+  const [phase, setPhase] = useState<"blank" | "logo" | "goodbye" | "fade" | "done">("blank");
   const { settings } = useSiteSettings();
   const logoUrl = settings.logo_url || logoPrincipal;
   const isTimeout = reason === "timeout";
   const displayName = userName || "Usuário";
+  const audioEndedRef = useRef(false);
+  const visualDoneRef = useRef(false);
+
+  const tryFinish = () => {
+    if (audioEndedRef.current && visualDoneRef.current) {
+      onComplete();
+    }
+  };
+
+  // Play logout audio — let it finish completely
+  useEffect(() => {
+    const audio = new Audio("/sounds/logout-farewell.wav");
+    audio.volume = 0.5;
+
+    audio.addEventListener("ended", () => {
+      audioEndedRef.current = true;
+      tryFinish();
+    });
+    audio.addEventListener("error", () => {
+      audioEndedRef.current = true;
+      tryFinish();
+    });
+    audio.play().catch(() => {
+      audioEndedRef.current = true;
+      tryFinish();
+    });
+  }, []);
 
   useEffect(() => {
-    // Timeline:
-    // blank: 0-0.3s
-    // logo: 0.3s-1.5s
-    // goodbye: 1.5s-4.5s
-    // fade: 4.5s-5s
     const t1 = setTimeout(() => setPhase("logo"), 300);
     const t2 = setTimeout(() => setPhase("goodbye"), 1500);
     const t3 = setTimeout(() => setPhase("fade"), 4500);
-    const t4 = setTimeout(() => onComplete(), 5000);
+    const t4 = setTimeout(() => {
+      setPhase("done");
+      visualDoneRef.current = true;
+      tryFinish();
+    }, 5000);
 
     return () => {
       clearTimeout(t1);
