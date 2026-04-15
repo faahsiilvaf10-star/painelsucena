@@ -93,14 +93,3 @@ export const useDDSMidnightRefresh = () => {
     ["dds-schedule"],
   ]);
 };
-
-/**
- * Hook specifically for DDS schedule that refreshes at midnight
- */
-export const useDDSMidnightRefresh = () => {
-  return useMidnightRefresh([
-    ["dds-today"],
-    ["dds-tomorrow"],
-    ["dds-schedule"],
-  ]);
-};
