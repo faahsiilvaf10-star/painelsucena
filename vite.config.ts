@@ -28,7 +28,7 @@ export default defineConfig(({ mode }) => ({
     VitePWA({
       injectRegister: false,
       registerType: "autoUpdate",
-      filename: "app-sw.js",
+      filename: "app-runtime-sw.js",
       devOptions: {
         enabled: false,
       },
