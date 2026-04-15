@@ -5,7 +5,6 @@ import "./index.css";
 import {
   MAX_PREVIEW_CACHE_RESET_ATTEMPTS,
   checkVersionAndReset,
-  checkServerVersion,
   clearClientCaches,
   clearPreviewCacheResetAttempts,
   getCacheBustedUrl,
@@ -18,14 +17,6 @@ import {
 } from "@/lib/appRefresh";
 
 let updateSW: ((reloadPage?: boolean) => Promise<void>) | null = null;
-
-function isDesktopPWA() {
-  return (
-    window.matchMedia("(display-mode: standalone)").matches ||
-    window.matchMedia("(display-mode: fullscreen)").matches ||
-    (navigator as any).standalone === true
-  );
-}
 
 function registerAppServiceWorker() {
   updateSW = registerSW({
