@@ -4,6 +4,7 @@ import App from "./App.tsx";
 import "./index.css";
 import {
   MAX_PREVIEW_CACHE_RESET_ATTEMPTS,
+  checkServerVersion,
   checkVersionAndReset,
   clearClientCaches,
   clearPreviewCacheResetAttempts,
@@ -13,7 +14,6 @@ import {
   markPreviewDocumentFresh,
   setPreviewCacheResetAttempts,
   shouldDisableServiceWorker,
-  shouldForcePreviewDocumentReload,
 } from "@/lib/appRefresh";
 
 let updateSW: ((reloadPage?: boolean) => Promise<void>) | null = null;
@@ -123,17 +123,22 @@ async function bootstrap() {
 
   if (shouldDisableServiceWorker()) {
     const resetResult = await clearClientCaches();
+    const serverVersionMismatch = await checkServerVersion();
     const hasPreviewArtifacts = resetResult.hadController || resetResult.hadRegistrations || resetResult.hadCaches;
     const resetAttempts = getPreviewCacheResetAttempts();
-    const shouldReloadDocument = shouldForcePreviewDocumentReload();
+    const hasOutdatedPreviewDocument = Boolean(serverVersionMismatch);
 
-    if ((hasPreviewArtifacts || shouldReloadDocument) && resetAttempts < MAX_PREVIEW_CACHE_RESET_ATTEMPTS) {
+    if ((hasPreviewArtifacts || hasOutdatedPreviewDocument) && resetAttempts < MAX_PREVIEW_CACHE_RESET_ATTEMPTS) {
       const nextAttempt = resetAttempts + 1;
       setPreviewCacheResetAttempts(nextAttempt);
-      markPreviewDocumentFresh();
+
+      if (!hasOutdatedPreviewDocument) {
+        markPreviewDocumentFresh();
+      }
+
       console.log(
         `Preview detectado: forçando atualização limpa (tentativa ${nextAttempt}/${MAX_PREVIEW_CACHE_RESET_ATTEMPTS}).`,
-        { ...resetResult, shouldReloadDocument },
+        { ...resetResult, hasOutdatedPreviewDocument, serverVersionMismatch },
       );
       window.location.replace(getCacheBustedUrl({ "preview-reset-attempt": nextAttempt }));
       return;
@@ -144,8 +149,11 @@ async function bootstrap() {
 
     if (hasPreviewArtifacts) {
       console.warn("Preview detectado: resquícios de cache antigo persistiram após as tentativas de limpeza.", resetResult);
-    } else if (shouldReloadDocument) {
-      console.log("Preview detectado: documento recarregado com cache-busting para evitar versão antiga.", resetResult);
+    } else if (hasOutdatedPreviewDocument) {
+      console.warn(
+        "Preview detectado: o documento carregado estava desatualizado em relação ao servidor, mas o limite de tentativas foi atingido.",
+        { ...resetResult, serverVersionMismatch },
+      );
     } else {
       console.log("Preview detectado: Service Worker desativado e cache limpo para evitar versão antiga.", resetResult);
     }

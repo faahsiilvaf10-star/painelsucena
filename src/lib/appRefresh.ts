@@ -149,25 +149,33 @@ export async function hardRefreshToLatest(options: { clearVisualState?: boolean 
  */
 export async function checkServerVersion(): Promise<string | null> {
   try {
-    const res = await fetch("/index.html", {
+    const url = new URL("/index.html", window.location.origin);
+    url.searchParams.set("preview-version-probe", `${Date.now()}`);
+
+    const res = await fetch(url.toString(), {
       cache: "no-store",
-      headers: { "Cache-Control": "no-cache", Pragma: "no-cache" },
+      headers: { "Cache-Control": "no-cache, no-store, max-age=0", Pragma: "no-cache" },
     });
     if (!res.ok) return null;
+
     const html = await res.text();
-    // The vite build injects __APP_BUILD_VERSION__ as a string literal in the JS bundle.
-    // We look for the variable assignment pattern in the inlined/linked scripts.
-    // A simpler heuristic: look for the <script> src hash — if the index.html changed at all,
-    // the script src hash will differ, meaning there's a new build.
-    const scriptMatch = html.match(/src="\/assets\/[^"]+\.js"/);
-    const currentScripts = document.querySelectorAll('script[src*="/assets/"]');
-    if (scriptMatch && currentScripts.length > 0) {
-      const serverScript = scriptMatch[0];
-      const currentScript = currentScripts[0].getAttribute("src") || "";
-      if (!serverScript.includes(currentScript)) {
-        return serverScript; // different build
-      }
+
+    const serverScriptMatch = html.match(/src="(\/assets\/[^"]+\.js)"/);
+    const currentScript = Array.from(document.querySelectorAll("script[src]"))
+      .map((script) => script.getAttribute("src") || "")
+      .map((src) => {
+        try {
+          return new URL(src, window.location.origin).pathname;
+        } catch {
+          return src;
+        }
+      })
+      .find((src) => src.startsWith("/assets/") && src.endsWith(".js"));
+
+    if (serverScriptMatch?.[1] && currentScript && serverScriptMatch[1] !== currentScript) {
+      return serverScriptMatch[1];
     }
+
     return null;
   } catch {
     return null;
