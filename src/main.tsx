@@ -2,6 +2,7 @@ import { createRoot } from "react-dom/client";
 import { registerSW } from "virtual:pwa-register";
 import App from "./App.tsx";
 import "./index.css";
+import { initPerformanceMonitoring } from "@/lib/performanceMonitor";
 import {
   MAX_PREVIEW_CACHE_RESET_ATTEMPTS,
   checkVersionAndReset,
@@ -155,13 +156,15 @@ async function bootstrap() {
     listenForControllerChange();
 
     if (versionChanged) {
-      // First load or version changed — clear old caches once
       await clearClientCaches();
       registerAppServiceWorker();
     }
   }
 
-  // Always render the app — never block on update banners
+  // Initialize performance monitoring
+  initPerformanceMonitoring();
+
+  // Render the app
   createRoot(document.getElementById("root")!).render(<App />);
 }
 
