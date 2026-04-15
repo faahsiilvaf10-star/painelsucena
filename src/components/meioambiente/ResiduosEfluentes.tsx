@@ -596,14 +596,14 @@ export default function ResiduosEfluentes() {
       {/* EFLUENTES TABLE */}
       <div className="border-2 border-[#1a5276] rounded overflow-x-auto">
         <div className="bg-card p-3 border-b-2 border-[#1a5276]">
-          <h2 className="text-lg font-bold text-[#1a5276] tracking-wide">FLUENTES SANITÁRIOS</h2>
+          <h2 className="text-lg font-bold text-[#1a5276] tracking-wide">EFLUENTES SANITÁRIOS</h2>
         </div>
         <table className="w-full border-collapse text-sm">
           <thead>
             <tr className="bg-[#1a5276] text-white">
               <th className="border border-[#1a5276] px-3 py-2 text-left min-w-[100px] font-bold">Mês</th>
               <th className="border border-[#1a5276] px-3 py-2 text-center min-w-[150px] font-bold">
-                Fluentes Sanitários (m³)
+                Efluentes Sanitários (m³)
               </th>
             </tr>
           </thead>
