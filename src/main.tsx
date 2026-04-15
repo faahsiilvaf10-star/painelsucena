@@ -2,96 +2,18 @@ import { createRoot } from "react-dom/client";
 import { registerSW } from "virtual:pwa-register";
 import App from "./App.tsx";
 import "./index.css";
-
-const PREVIEW_CACHE_RESET_KEY = "preview-sw-reset-attempts";
-const MAX_PREVIEW_CACHE_RESET_ATTEMPTS = 3;
-
-type PreviewResetResult = {
-  hadCaches: boolean;
-  hadController: boolean;
-  hadRegistrations: boolean;
-  remainingCaches: number;
-  remainingRegistrations: number;
-};
-
-function isPreviewHost() {
-  return window.location.hostname.includes("id-preview--");
-}
-
-function isEmbeddedPreview() {
-  try {
-    return window.self !== window.top;
-  } catch {
-    return true;
-  }
-}
-
-function shouldDisableServiceWorker() {
-  return import.meta.env.DEV || isPreviewHost() || isEmbeddedPreview();
-}
-
-function getPreviewCacheResetAttempts() {
-  const rawValue = sessionStorage.getItem(PREVIEW_CACHE_RESET_KEY);
-  const attempts = Number.parseInt(rawValue ?? "0", 10);
-
-  return Number.isFinite(attempts) ? attempts : 0;
-}
-
-function setPreviewCacheResetAttempts(attempts: number) {
-  sessionStorage.setItem(PREVIEW_CACHE_RESET_KEY, String(attempts));
-}
-
-function clearPreviewCacheResetAttempts() {
-  sessionStorage.removeItem(PREVIEW_CACHE_RESET_KEY);
-}
-
-function getPreviewReloadUrl(attempt: number) {
-  const url = new URL(window.location.href);
-  url.searchParams.set("preview-bust", `${Date.now()}`);
-  url.searchParams.set("preview-reset-attempt", String(attempt));
-  return url.toString();
-}
-
-async function resetPreviewCaches(): Promise<PreviewResetResult> {
-  const hadController = "serviceWorker" in navigator && Boolean(navigator.serviceWorker.controller);
-  let hadRegistrations = false;
-  let remainingRegistrations = 0;
-  let hadCaches = false;
-  let remainingCaches = 0;
-
-  if ("serviceWorker" in navigator) {
-    const registrations = await navigator.serviceWorker.getRegistrations();
-    hadRegistrations = registrations.length > 0;
-
-    if (hadRegistrations) {
-      await Promise.all(registrations.map((registration) => registration.unregister().catch(() => false)));
-    }
-
-    remainingRegistrations = (await navigator.serviceWorker.getRegistrations()).length;
-  }
-
-  if ("caches" in window) {
-    const keys = await caches.keys();
-    hadCaches = keys.length > 0;
-
-    if (hadCaches) {
-      await Promise.all(keys.map((key) => caches.delete(key).catch(() => false)));
-    }
-
-    remainingCaches = (await caches.keys()).length;
-  }
-
-  return {
-    hadCaches,
-    hadController,
-    hadRegistrations,
-    remainingCaches,
-    remainingRegistrations,
-  };
-}
-
-const APP_BUILD_VERSION = __APP_BUILD_VERSION__;
-const VERSION_STORAGE_KEY = "app-build-version";
+import {
+  MAX_PREVIEW_CACHE_RESET_ATTEMPTS,
+  checkVersionAndReset,
+  clearClientCaches,
+  clearPreviewCacheResetAttempts,
+  getCacheBustedUrl,
+  getPreviewCacheResetAttempts,
+  markPreviewDocumentFresh,
+  setPreviewCacheResetAttempts,
+  shouldDisableServiceWorker,
+  shouldForcePreviewDocumentReload,
+} from "@/lib/appRefresh";
 
 let updateSW: ((reloadPage?: boolean) => Promise<void>) | null = null;
 
@@ -101,35 +23,6 @@ function isDesktopPWA() {
     window.matchMedia("(display-mode: fullscreen)").matches ||
     (navigator as any).standalone === true
   );
-}
-
-async function forceFullCacheReset(): Promise<boolean> {
-  let cleared = false;
-  if ("caches" in window) {
-    const keys = await caches.keys();
-    if (keys.length > 0) {
-      await Promise.all(keys.map((k) => caches.delete(k)));
-      cleared = true;
-    }
-  }
-  if ("serviceWorker" in navigator) {
-    const regs = await navigator.serviceWorker.getRegistrations();
-    if (regs.length > 0) {
-      await Promise.all(regs.map((r) => r.unregister()));
-      cleared = true;
-    }
-  }
-  return cleared;
-}
-
-function checkVersionAndReset(): boolean {
-  const stored = localStorage.getItem(VERSION_STORAGE_KEY);
-  if (stored !== APP_BUILD_VERSION) {
-    console.log(`Nova versão detectada: ${stored} → ${APP_BUILD_VERSION}. Limpando cache...`);
-    localStorage.setItem(VERSION_STORAGE_KEY, APP_BUILD_VERSION);
-    return true; // version changed
-  }
-  return false;
 }
 
 function registerAppServiceWorker() {
@@ -220,53 +113,53 @@ function showUpdateBanner() {
 
 async function clearCachesAndReload() {
   try {
-    // Clear all Cache Storage
-    if ("caches" in window) {
-      const keys = await caches.keys();
-      await Promise.all(keys.map((k) => caches.delete(k)));
-    }
-    // Activate new SW
+    await clearClientCaches();
+
     if (updateSW) {
       await updateSW(true);
     }
   } catch (e) {
     console.error("Erro ao limpar cache:", e);
   }
-  window.location.reload();
+
+  window.location.replace(getCacheBustedUrl());
 }
 
 async function bootstrap() {
-  // Desktop PWA / .exe: force full cache reset on new version
   const versionChanged = checkVersionAndReset();
 
   if (versionChanged && (isDesktopPWA() || !shouldDisableServiceWorker())) {
     showUpdateBanner();
-    await forceFullCacheReset();
-    // Re-register SW after clearing
+    await clearClientCaches();
     registerAppServiceWorker();
-    return; // clearCachesAndReload will handle the reload via banner countdown
+    return;
   }
 
   if (shouldDisableServiceWorker()) {
-    const resetResult = await resetPreviewCaches();
+    const resetResult = await clearClientCaches();
     const hasPreviewArtifacts = resetResult.hadController || resetResult.hadRegistrations || resetResult.hadCaches;
     const resetAttempts = getPreviewCacheResetAttempts();
+    const shouldReloadDocument = shouldForcePreviewDocumentReload();
 
-    if (hasPreviewArtifacts && resetAttempts < MAX_PREVIEW_CACHE_RESET_ATTEMPTS) {
+    if ((hasPreviewArtifacts || shouldReloadDocument) && resetAttempts < MAX_PREVIEW_CACHE_RESET_ATTEMPTS) {
       const nextAttempt = resetAttempts + 1;
       setPreviewCacheResetAttempts(nextAttempt);
+      markPreviewDocumentFresh();
       console.log(
-        `Preview detectado: removendo cache e Service Worker antigos (tentativa ${nextAttempt}/${MAX_PREVIEW_CACHE_RESET_ATTEMPTS}).`,
-        resetResult,
+        `Preview detectado: forçando atualização limpa (tentativa ${nextAttempt}/${MAX_PREVIEW_CACHE_RESET_ATTEMPTS}).`,
+        { ...resetResult, shouldReloadDocument },
       );
-      window.location.replace(getPreviewReloadUrl(nextAttempt));
+      window.location.replace(getCacheBustedUrl({ "preview-reset-attempt": nextAttempt }));
       return;
     }
 
     clearPreviewCacheResetAttempts();
+    markPreviewDocumentFresh();
 
     if (hasPreviewArtifacts) {
       console.warn("Preview detectado: resquícios de cache antigo persistiram após as tentativas de limpeza.", resetResult);
+    } else if (shouldReloadDocument) {
+      console.log("Preview detectado: documento recarregado com cache-busting para evitar versão antiga.", resetResult);
     } else {
       console.log("Preview detectado: Service Worker desativado e cache limpo para evitar versão antiga.", resetResult);
     }

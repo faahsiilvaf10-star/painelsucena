@@ -26,6 +26,7 @@ import { HeaderRadioButton } from "./HeaderRadioButton";
 import { NewsButton } from "./NewsButton";
 import { useEditMode } from "@/contexts/EditModeContext";
 import { Pencil, PencilOff } from "lucide-react";
+import { hardRefreshToLatest } from "@/lib/appRefresh";
 
 const motivationalPhrases = [
   "O sucesso é a soma de pequenos esforços repetidos dia após dia.",
@@ -210,21 +211,8 @@ const Layout = ({ children }: LayoutProps) => {
           <Tooltip>
             <TooltipTrigger asChild>
               <button
-                onClick={() => {
-                  if ('caches' in window) {
-                    caches.keys().then(names => {
-                      names.forEach(name => caches.delete(name));
-                    });
-                  }
-                  const keysToRemove: string[] = [];
-                  for (let i = 0; i < localStorage.length; i++) {
-                    const key = localStorage.key(i);
-                    if (key && (key.startsWith('theme') || key.startsWith('sidebar') || key.startsWith('vite-'))) {
-                      keysToRemove.push(key);
-                    }
-                  }
-                  keysToRemove.forEach(k => localStorage.removeItem(k));
-                  window.location.reload();
+                  onClick={async () => {
+                    await hardRefreshToLatest({ clearVisualState: true });
                 }}
                 className="flex items-center gap-1 px-1.5 py-1 rounded-full text-muted-foreground hover:text-foreground hover:bg-secondary transition-colors"
                 aria-label="Recarregar e limpar cache visual"
