@@ -127,28 +127,26 @@ export const RadioProvider = ({ children }: { children: ReactNode }) => {
 
   // Always keep audio playing — mute/unmute on toggle
   useEffect(() => {
-    if (playlistTracks.length === 0) {
+    if (!currentTrack) {
       if (globalAudio) { globalAudio.pause(); }
       currentTrackUrlRef.current = null;
       return;
     }
 
-    const track = playlistTracks[currentTrackIndex % playlistTracks.length];
-    if (!track) return;
-
     // Only create new audio if the track URL actually changed
-    if (currentTrackUrlRef.current === track.file_url && globalAudio) {
-      return; // already playing this track
+    if (currentTrackUrlRef.current === currentTrack.file_url && globalAudio) {
+      return;
     }
 
     // Different track — destroy old, create new
     if (globalAudio) { globalAudio.pause(); globalAudio.removeAttribute("src"); globalAudio.load(); }
-    globalAudio = new Audio(track.file_url);
+    globalAudio = new Audio(currentTrack.file_url);
     globalAudio.volume = isPlaying ? volume : 0;
-    currentTrackUrlRef.current = track.file_url;
+    currentTrackUrlRef.current = currentTrack.file_url;
 
+    const len = shuffleAll ? shuffledOrder.length : activeTracks.length;
     const handleEnded = () => {
-      setCurrentTrackIndex(prev => (prev + 1) % playlistTracks.length);
+      if (len > 0) setCurrentTrackIndex(prev => (prev + 1) % len);
     };
     globalAudio.addEventListener("ended", handleEnded);
 
