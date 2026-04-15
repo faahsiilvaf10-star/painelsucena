@@ -38,3 +38,6 @@ verify_jwt = false
 
 [functions.improve-activity-text]
 verify_jwt = false
+
+[functions.weather-current]
+verify_jwt = false
