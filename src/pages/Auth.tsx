@@ -10,7 +10,6 @@ import { Eye, EyeOff, Loader2, User, Lock, UserCircle } from "lucide-react";
 import { z } from "zod";
 import { AuthBackground } from "@/components/auth/AuthBackground";
 import { useSiteSettings } from "@/hooks/useSiteSettings";
-import { clearClientCaches } from "@/lib/appRefresh";
 
 const cargoOptions = [
   { value: "moderador", label: "Moderador" },
