@@ -4,15 +4,18 @@ import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
-import { Music, Upload, Trash2, Loader2, Clock } from "lucide-react";
+import { Switch } from "@/components/ui/switch";
+import { Music, Upload, Trash2, Loader2, Clock, Shuffle } from "lucide-react";
 import { toast } from "sonner";
 import { useMusicTracks, useUploadMusicTrack, useDeleteMusicTrack, TIME_SLOT_LABELS } from "@/hooks/useMusicTracks";
+import { useRadio } from "@/contexts/RadioContext";
 import { cn } from "@/lib/utils";
 
 export const MusicManager = () => {
   const { data: tracks = [], isLoading } = useMusicTracks();
   const uploadMutation = useUploadMusicTrack();
   const deleteMutation = useDeleteMusicTrack();
+  const { shuffleAll, setShuffleAll } = useRadio();
   const fileInputRef = useRef<HTMLInputElement>(null);
 
   const [selectedTimeSlot, setSelectedTimeSlot] = useState<number>(8);
@@ -85,6 +88,20 @@ export const MusicManager = () => {
         </CardTitle>
       </CardHeader>
       <CardContent className="space-y-4">
+        {/* Shuffle Toggle */}
+        <div className="flex items-center justify-between p-4 rounded-lg border border-border bg-muted/30">
+          <div className="flex items-center gap-3">
+            <Shuffle className="h-5 w-5 text-primary" />
+            <div>
+              <p className="text-sm font-medium">Modo Aleatório</p>
+              <p className="text-xs text-muted-foreground">
+                Toca todas as músicas em ordem aleatória, ignorando os horários
+              </p>
+            </div>
+          </div>
+          <Switch checked={shuffleAll} onCheckedChange={setShuffleAll} />
+        </div>
+
         {/* Upload Section */}
         <div className="space-y-3 p-4 rounded-lg border border-dashed border-border bg-muted/30">
           <div>
