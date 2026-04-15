@@ -13,7 +13,7 @@ export default defineConfig(({ mode }) => ({
       "Cache-Control": "no-store, no-cache, must-revalidate, proxy-revalidate, max-age=0",
       Expires: "0",
       Pragma: "no-cache",
-      Surrogate-Control: "no-store",
+      "Surrogate-Control": "no-store",
     },
     hmr: {
       overlay: false,
