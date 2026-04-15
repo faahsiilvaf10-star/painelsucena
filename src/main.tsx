@@ -90,7 +90,47 @@ async function resetPreviewCaches(): Promise<PreviewResetResult> {
   };
 }
 
+const APP_BUILD_VERSION = __APP_BUILD_VERSION__;
+const VERSION_STORAGE_KEY = "app-build-version";
+
 let updateSW: ((reloadPage?: boolean) => Promise<void>) | null = null;
+
+function isDesktopPWA() {
+  return (
+    window.matchMedia("(display-mode: standalone)").matches ||
+    window.matchMedia("(display-mode: fullscreen)").matches ||
+    (navigator as any).standalone === true
+  );
+}
+
+async function forceFullCacheReset(): Promise<boolean> {
+  let cleared = false;
+  if ("caches" in window) {
+    const keys = await caches.keys();
+    if (keys.length > 0) {
+      await Promise.all(keys.map((k) => caches.delete(k)));
+      cleared = true;
+    }
+  }
+  if ("serviceWorker" in navigator) {
+    const regs = await navigator.serviceWorker.getRegistrations();
+    if (regs.length > 0) {
+      await Promise.all(regs.map((r) => r.unregister()));
+      cleared = true;
+    }
+  }
+  return cleared;
+}
+
+function checkVersionAndReset(): boolean {
+  const stored = localStorage.getItem(VERSION_STORAGE_KEY);
+  if (stored !== APP_BUILD_VERSION) {
+    console.log(`Nova versão detectada: ${stored} → ${APP_BUILD_VERSION}. Limpando cache...`);
+    localStorage.setItem(VERSION_STORAGE_KEY, APP_BUILD_VERSION);
+    return true; // version changed
+  }
+  return false;
+}
 
 function registerAppServiceWorker() {
   updateSW = registerSW({
@@ -196,6 +236,17 @@ async function clearCachesAndReload() {
 }
 
 async function bootstrap() {
+  // Desktop PWA / .exe: force full cache reset on new version
+  const versionChanged = checkVersionAndReset();
+
+  if (versionChanged && (isDesktopPWA() || !shouldDisableServiceWorker())) {
+    showUpdateBanner();
+    await forceFullCacheReset();
+    // Re-register SW after clearing
+    registerAppServiceWorker();
+    return; // clearCachesAndReload will handle the reload via banner countdown
+  }
+
   if (shouldDisableServiceWorker()) {
     const resetResult = await resetPreviewCaches();
     const hasPreviewArtifacts = resetResult.hadController || resetResult.hadRegistrations || resetResult.hadCaches;
