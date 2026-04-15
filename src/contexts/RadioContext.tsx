@@ -18,6 +18,8 @@ interface RadioContextType {
   nextTrack: () => void;
   prevTrack: () => void;
   currentHour: number;
+  shuffleAll: boolean;
+  setShuffleAll: (v: boolean) => void;
 }
 
 const RadioContext = createContext<RadioContextType | null>(null);
@@ -29,6 +31,7 @@ export const useRadio = () => {
       isPlaying: false, volume: 0.5, setVolume: () => {},
       currentTrack: null, playlistTracks: [], toggleRadio: () => {},
       nextTrack: () => {}, prevTrack: () => {}, currentHour: new Date().getHours(),
+      shuffleAll: false, setShuffleAll: () => {},
     };
   }
   return context;
@@ -50,12 +53,36 @@ export const RadioProvider = ({ children }: { children: ReactNode }) => {
   const [allTracks, setAllTracks] = useState<PlaylistTrack[]>([]);
   const [currentHour, setCurrentHour] = useState(getCurrentHour);
   const [currentTrackIndex, setCurrentTrackIndex] = useState(0);
+  const [shuffleAll, setShuffleAllState] = useState(() => {
+    try { return localStorage.getItem("radio_shuffle_all") === "true"; } catch { return false; }
+  });
+  const [shuffledOrder, setShuffledOrder] = useState<number[]>([]);
   const userInteractedRef = useRef(false);
 
-  const playlistTracks = allTracks.filter(t => t.time_slot === currentHour);
-  const currentTrack = playlistTracks.length > 0
-    ? playlistTracks[currentTrackIndex % playlistTracks.length] || null
-    : null;
+  // When shuffle mode or tracks change, build a shuffled index array
+  useEffect(() => {
+    if (shuffleAll && allTracks.length > 0) {
+      const indices = Array.from({ length: allTracks.length }, (_, i) => i);
+      for (let i = indices.length - 1; i > 0; i--) {
+        const j = Math.floor(Math.random() * (i + 1));
+        [indices[i], indices[j]] = [indices[j], indices[i]];
+      }
+      setShuffledOrder(indices);
+      setCurrentTrackIndex(0);
+    }
+  }, [shuffleAll, allTracks.length]);
+
+  const activeTracks = shuffleAll ? allTracks : allTracks.filter(t => t.time_slot === currentHour);
+  const playlistTracks = activeTracks;
+
+  const currentTrack = (() => {
+    if (activeTracks.length === 0) return null;
+    if (shuffleAll && shuffledOrder.length > 0) {
+      const idx = shuffledOrder[currentTrackIndex % shuffledOrder.length];
+      return allTracks[idx] || null;
+    }
+    return activeTracks[currentTrackIndex % activeTracks.length] || null;
+  })();
 
   // Load tracks
   useEffect(() => {
@@ -90,6 +117,11 @@ export const RadioProvider = ({ children }: { children: ReactNode }) => {
   // Persist state
   useEffect(() => { localStorage.setItem("radio_playing", String(isPlaying)); }, [isPlaying]);
   useEffect(() => { localStorage.setItem("radio_volume", String(volume)); }, [volume]);
+  useEffect(() => { localStorage.setItem("radio_shuffle_all", String(shuffleAll)); }, [shuffleAll]);
+
+  const setShuffleAll = useCallback((v: boolean) => {
+    setShuffleAllState(v);
+  }, []);
 
   const currentTrackUrlRef = useRef<string | null>(null);
 
@@ -160,20 +192,23 @@ export const RadioProvider = ({ children }: { children: ReactNode }) => {
     setIsPlaying(prev => !prev);
   }, []);
 
+  const totalLen = shuffleAll ? shuffledOrder.length : playlistTracks.length;
+
   const nextTrack = useCallback(() => {
-    if (playlistTracks.length === 0) return;
-    setCurrentTrackIndex(prev => (prev + 1) % playlistTracks.length);
-  }, [playlistTracks.length]);
+    if (totalLen === 0) return;
+    setCurrentTrackIndex(prev => (prev + 1) % totalLen);
+  }, [totalLen]);
 
   const prevTrack = useCallback(() => {
-    if (playlistTracks.length === 0) return;
-    setCurrentTrackIndex(prev => prev === 0 ? playlistTracks.length - 1 : prev - 1);
-  }, [playlistTracks.length]);
+    if (totalLen === 0) return;
+    setCurrentTrackIndex(prev => prev === 0 ? totalLen - 1 : prev - 1);
+  }, [totalLen]);
 
   return (
     <RadioContext.Provider value={{
       isPlaying, volume, setVolume, currentTrack, playlistTracks,
       toggleRadio, nextTrack, prevTrack, currentHour,
+      shuffleAll, setShuffleAll,
     }}>
       {children}
     </RadioContext.Provider>
