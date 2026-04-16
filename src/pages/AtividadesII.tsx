@@ -1022,15 +1022,45 @@ export default function AtividadesII() {
                 </div>
 
                 {/* Lavagem de vertedouro */}
-                <div className="flex items-center space-x-3 p-3 rounded-lg bg-muted/30">
-                  <Checkbox id="lavagemVertedouro" checked={lavagemVertedouro} onCheckedChange={(checked) => setLavagemVertedouro(checked === true)} />
-                  <Label htmlFor="lavagemVertedouro" className="cursor-pointer font-medium">Lavagem de vertedouro</Label>
+                <div className="p-3 rounded-lg bg-muted/30 space-y-2">
+                  <div className="flex items-center justify-between">
+                    <div className="flex items-center space-x-3">
+                      <Checkbox id="lavagemVertedouro" checked={lavagemVertedouro} onCheckedChange={(checked) => setLavagemVertedouro(checked === true)} />
+                      <Label htmlFor="lavagemVertedouro" className="cursor-pointer font-medium">Lavagem de vertedouro</Label>
+                    </div>
+                    {lavagemVertedouro && (
+                      <Button type="button" variant="ghost" size="sm" onClick={() => addGabiaoExtra("lavagemVertedouro")} className="gap-1 h-6 text-xs px-2 text-muted-foreground hover:text-foreground">
+                        <Plus className="h-3 w-3" />
+                      </Button>
+                    )}
+                  </div>
+                  {lavagemVertedouro && (gabiaoExtra.lavagemVertedouro || []).map((_, idx) => (
+                    <div key={idx} className="flex items-center justify-between ml-7 text-sm text-muted-foreground">
+                      <span>+ Lavagem de vertedouro</span>
+                      <Button type="button" variant="ghost" size="icon" className="h-7 w-7 text-destructive hover:text-destructive hover:bg-destructive/10" onClick={() => removeGabiaoExtra("lavagemVertedouro", idx)}><X className="h-3 w-3" /></Button>
+                    </div>
+                  ))}
                 </div>
 
                 {/* Lavagem de bacias do vertedouro */}
-                <div className="flex items-center space-x-3 p-3 rounded-lg bg-muted/30">
-                  <Checkbox id="lavagemBacias" checked={lavagemBaciasVertedouro} onCheckedChange={(checked) => setLavagemBaciasVertedouro(checked === true)} />
-                  <Label htmlFor="lavagemBacias" className="cursor-pointer font-medium">Lavagem de bacias do vertedouro</Label>
+                <div className="p-3 rounded-lg bg-muted/30 space-y-2">
+                  <div className="flex items-center justify-between">
+                    <div className="flex items-center space-x-3">
+                      <Checkbox id="lavagemBacias" checked={lavagemBaciasVertedouro} onCheckedChange={(checked) => setLavagemBaciasVertedouro(checked === true)} />
+                      <Label htmlFor="lavagemBacias" className="cursor-pointer font-medium">Lavagem de bacias do vertedouro</Label>
+                    </div>
+                    {lavagemBaciasVertedouro && (
+                      <Button type="button" variant="ghost" size="sm" onClick={() => addGabiaoExtra("lavagemBacias")} className="gap-1 h-6 text-xs px-2 text-muted-foreground hover:text-foreground">
+                        <Plus className="h-3 w-3" />
+                      </Button>
+                    )}
+                  </div>
+                  {lavagemBaciasVertedouro && (gabiaoExtra.lavagemBacias || []).map((_, idx) => (
+                    <div key={idx} className="flex items-center justify-between ml-7 text-sm text-muted-foreground">
+                      <span>+ Lavagem de bacias do vertedouro</span>
+                      <Button type="button" variant="ghost" size="icon" className="h-7 w-7 text-destructive hover:text-destructive hover:bg-destructive/10" onClick={() => removeGabiaoExtra("lavagemBacias", idx)}><X className="h-3 w-3" /></Button>
+                    </div>
+                  ))}
                 </div>
 
                 {/* Reposição de Geotêxtil */}
