@@ -1,8 +1,8 @@
-import { useState } from "react";
+import { useState, useRef } from "react";
 import { useQueryClient } from "@tanstack/react-query";
 import { format } from "date-fns";
 import { ptBR } from "date-fns/locale";
-import { Calendar, Clock, Package, User, History, Trash2, Edit2, ImageIcon, ArrowRight, Hash, Copy, List, MessageCircle, Check, X, XCircle } from "lucide-react";
+import { Calendar, Clock, Package, User, History, Trash2, Edit2, ImageIcon, ArrowRight, Hash, Copy, List, MessageCircle, Check, X, XCircle, Upload, Loader2, Sparkles } from "lucide-react";
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/components/ui/dialog";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
@@ -11,7 +11,7 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@
 import { Separator } from "@/components/ui/separator";
 import { ScrollArea } from "@/components/ui/scroll-area";
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
-import { Order, OrderStatus, QuantityUnit, useOrderHistory, useUpdateOrderStatus, useUpdateOrderQuantity, useDeleteOrder, useOrderItems, useUpdateOrderItem, useDeleteOrderItem } from "@/hooks/useOrders";
+import { Order, OrderStatus, QuantityUnit, useOrderHistory, useUpdateOrderStatus, useUpdateOrderQuantity, useDeleteOrder, useOrderItems, useUpdateOrderItem, useDeleteOrderItem, uploadOrderPhoto } from "@/hooks/useOrders";
 import { supabase } from "@/integrations/supabase/client";
 import { useAuth } from "@/hooks/useAuth";
 import { useIsAdmin } from "@/hooks/useUserRole";
@@ -107,6 +107,9 @@ export function OrderDetailsDialog({ order, open, onOpenChange }: OrderDetailsDi
   const [editItemQty, setEditItemQty] = useState<number>(0);
   const [editItemUnit, setEditItemUnit] = useState<QuantityUnit>("unidade");
   const [editItemDesc, setEditItemDesc] = useState("");
+  const itemPhotoInputRef = useRef<HTMLInputElement | null>(null);
+  const [photoTargetItemId, setPhotoTargetItemId] = useState<string | null>(null);
+  const [uploadingItemId, setUploadingItemId] = useState<string | null>(null);
   
   const { user } = useAuth();
   const { data: profile } = useProfile();
@@ -138,9 +141,12 @@ export function OrderDetailsDialog({ order, open, onOpenChange }: OrderDetailsDi
     profile?.cargo === "aux_administrativo" ||
     isAdmin
   );
-  const canEditItems = order.status === "solicitado" && (
+  // Allow editing items (name, qty, photos) at any time except after delivery/cancel
+  // for the requester, admins or aux administrativo/almoxarifado.
+  const canEditItems = order.status !== "entregue" && order.status !== "cancelado" && (
     user?.id === order.requester_id ||
     profile?.cargo === "aux_administrativo" ||
+    profile?.cargo === "aux_almoxarifado" ||
     isAdmin
   );
   const isCancelled = order.status === "cancelado";
@@ -251,6 +257,7 @@ export function OrderDetailsDialog({ order, open, onOpenChange }: OrderDetailsDi
     try {
       await updateItem.mutateAsync({
         itemId: editingItemId,
+        orderId: order.id,
         product_name: editItemName,
         quantity: editItemQty,
         quantity_unit: editItemUnit,
@@ -265,11 +272,65 @@ export function OrderDetailsDialog({ order, open, onOpenChange }: OrderDetailsDi
 
   const handleDeleteItem = async (itemId: string) => {
     try {
-      await deleteItem.mutateAsync(itemId);
+      await deleteItem.mutateAsync({ itemId, orderId: order.id });
       toast({ title: "Item removido!" });
       setShowDeleteItemConfirm(null);
     } catch {
       toast({ title: "Erro ao remover item", variant: "destructive" });
+    }
+  };
+
+  // ----- Item photos management -----
+
+  const triggerItemPhotoUpload = (itemId: string) => {
+    setPhotoTargetItemId(itemId);
+    setTimeout(() => itemPhotoInputRef.current?.click(), 0);
+  };
+
+  const handleItemPhotosChange = async (e: React.ChangeEvent<HTMLInputElement>) => {
+    const files = e.target.files;
+    if (!files?.length || !photoTargetItemId) {
+      e.target.value = "";
+      return;
+    }
+    const targetId = photoTargetItemId;
+    const target = orderItems?.find((it) => it.id === targetId) as any;
+    if (!target) {
+      e.target.value = "";
+      return;
+    }
+    setUploadingItemId(targetId);
+    try {
+      const urls = await Promise.all(Array.from(files).map(uploadOrderPhoto));
+      const newPhotos = [...((target.photo_urls as string[]) || []), ...urls];
+      await updateItem.mutateAsync({
+        itemId: targetId,
+        orderId: order.id,
+        photo_urls: newPhotos,
+      });
+      toast({ title: "Foto(s) adicionada(s)!" });
+    } catch {
+      toast({ title: "Erro ao enviar foto", variant: "destructive" });
+    } finally {
+      setUploadingItemId(null);
+      setPhotoTargetItemId(null);
+      e.target.value = "";
+    }
+  };
+
+  const handleRemoveItemPhoto = async (itemId: string, photoUrl: string) => {
+    const target = orderItems?.find((it) => it.id === itemId) as any;
+    if (!target) return;
+    const newPhotos = ((target.photo_urls as string[]) || []).filter((u) => u !== photoUrl);
+    try {
+      await updateItem.mutateAsync({
+        itemId,
+        orderId: order.id,
+        photo_urls: newPhotos,
+      });
+      toast({ title: "Foto removida!" });
+    } catch {
+      toast({ title: "Erro ao remover foto", variant: "destructive" });
     }
   };
 
@@ -436,20 +497,26 @@ export function OrderDetailsDialog({ order, open, onOpenChange }: OrderDetailsDi
                                 <div className="flex items-center gap-2">
                                   {/* Item photos */}
                                   {(item as any).photo_urls && (item as any).photo_urls.length > 0 && (
-                                    <div className="flex -space-x-1 flex-shrink-0">
-                                      {(item as any).photo_urls.slice(0, 2).map((url: string, i: number) => (
-                                        <img
-                                          key={i}
-                                          src={url}
-                                          alt={`Foto ${i + 1}`}
-                                          className="w-8 h-8 rounded object-cover border border-background"
-                                        />
+                                    <div className="flex flex-wrap gap-1 flex-shrink-0">
+                                      {((item as any).photo_urls as string[]).map((url: string, i: number) => (
+                                        <div key={i} className="relative w-10 h-10">
+                                          <img
+                                            src={url}
+                                            alt={`Foto ${i + 1}`}
+                                            className="w-10 h-10 rounded object-cover border border-background"
+                                          />
+                                          {canEditItems && (
+                                            <button
+                                              type="button"
+                                              onClick={() => handleRemoveItemPhoto(item.id, url)}
+                                              className="absolute -top-1.5 -right-1.5 bg-destructive text-destructive-foreground rounded-full p-0.5 hover:bg-destructive/90"
+                                              aria-label="Remover foto"
+                                            >
+                                              <X className="w-3 h-3" />
+                                            </button>
+                                          )}
+                                        </div>
                                       ))}
-                                      {(item as any).photo_urls.length > 2 && (
-                                        <span className="w-8 h-8 rounded bg-muted flex items-center justify-center text-[10px] text-muted-foreground">
-                                          +{(item as any).photo_urls.length - 2}
-                                        </span>
-                                      )}
                                     </div>
                                   )}
                                   <div>
@@ -469,6 +536,20 @@ export function OrderDetailsDialog({ order, open, onOpenChange }: OrderDetailsDi
                               {canEditItems && (
                                 <TableCell>
                                   <div className="flex gap-1">
+                                    <Button
+                                      variant="ghost"
+                                      size="icon"
+                                      className="h-7 w-7"
+                                      onClick={() => triggerItemPhotoUpload(item.id)}
+                                      disabled={uploadingItemId === item.id}
+                                      title="Adicionar foto"
+                                    >
+                                      {uploadingItemId === item.id ? (
+                                        <Loader2 className="w-3.5 h-3.5 animate-spin" />
+                                      ) : (
+                                        <Upload className="w-3.5 h-3.5" />
+                                      )}
+                                    </Button>
                                     <Button variant="ghost" size="icon" className="h-7 w-7" onClick={() => handleStartEditItem(item)}>
                                       <Edit2 className="w-3.5 h-3.5" />
                                     </Button>
@@ -730,6 +811,16 @@ export function OrderDetailsDialog({ order, open, onOpenChange }: OrderDetailsDi
           </ScrollArea>
         </DialogContent>
       </Dialog>
+
+      {/* Hidden input used for adding photos to an item */}
+      <input
+        ref={itemPhotoInputRef}
+        type="file"
+        accept="image/*"
+        multiple
+        className="hidden"
+        onChange={handleItemPhotosChange}
+      />
 
       {/* Photo Viewer */}
       <PhotoViewer

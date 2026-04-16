@@ -515,31 +515,77 @@ export const useDeleteOrder = () => {
   });
 };
 
+// Re-sync the order's product_name + photo_urls + quantity to reflect the
+// current items (so the card title and previews update after edits/removals).
+const syncOrderSummary = async (orderId: string) => {
+  const { data: items } = await supabase
+    .from("order_items")
+    .select("*")
+    .eq("order_id", orderId)
+    .order("created_at", { ascending: true });
+
+  if (!items || items.length === 0) return;
+
+  const first = items[0] as any;
+  const totalItems = items.length;
+  const productSummary = totalItems === 1
+    ? first.product_name
+    : `${first.product_name} (+${totalItems - 1} itens)`;
+
+  const allPhotos = items.flatMap((it: any) => it.photo_urls || []);
+
+  await supabase
+    .from("orders")
+    .update({
+      product_name: productSummary,
+      description: totalItems > 1 ? `Pedido com ${totalItems} itens` : (first.description ?? null),
+      quantity: first.quantity,
+      quantity_unit: first.quantity_unit,
+      photo_urls: allPhotos,
+    })
+    .eq("id", orderId);
+};
+
 export const useUpdateOrderItem = () => {
   const queryClient = useQueryClient();
 
   return useMutation({
     mutationFn: async ({
       itemId,
+      orderId,
       product_name,
       quantity,
       quantity_unit,
       description,
+      photo_urls,
     }: {
       itemId: string;
-      product_name: string;
-      quantity: number;
-      quantity_unit: QuantityUnit;
+      orderId?: string;
+      product_name?: string;
+      quantity?: number;
+      quantity_unit?: QuantityUnit;
       description?: string | null;
+      photo_urls?: string[];
     }) => {
+      const updateData: Record<string, any> = {};
+      if (product_name !== undefined) updateData.product_name = product_name;
+      if (quantity !== undefined) updateData.quantity = quantity;
+      if (quantity_unit !== undefined) updateData.quantity_unit = quantity_unit;
+      if (description !== undefined) updateData.description = description;
+      if (photo_urls !== undefined) updateData.photo_urls = photo_urls;
+
       const { data, error } = await supabase
         .from("order_items")
-        .update({ product_name, quantity, quantity_unit, description })
+        .update(updateData)
         .eq("id", itemId)
         .select()
         .single();
 
       if (error) throw error;
+
+      const targetOrderId = orderId || (data as any)?.order_id;
+      if (targetOrderId) await syncOrderSummary(targetOrderId);
+
       return data;
     },
     onSuccess: () => {
@@ -555,13 +601,26 @@ export const useDeleteOrderItem = () => {
   const queryClient = useQueryClient();
 
   return useMutation({
-    mutationFn: async (itemId: string) => {
+    mutationFn: async ({ itemId, orderId }: { itemId: string; orderId?: string }) => {
+      // Try to capture order_id before deleting if not provided
+      let targetOrderId = orderId;
+      if (!targetOrderId) {
+        const { data: existing } = await supabase
+          .from("order_items")
+          .select("order_id")
+          .eq("id", itemId)
+          .maybeSingle();
+        targetOrderId = (existing as any)?.order_id;
+      }
+
       const { error } = await supabase
         .from("order_items")
         .delete()
         .eq("id", itemId);
 
       if (error) throw error;
+
+      if (targetOrderId) await syncOrderSummary(targetOrderId);
     },
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ["order-items"] });
