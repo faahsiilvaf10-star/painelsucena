@@ -167,11 +167,12 @@ export const RadioProvider = ({ children }: { children: ReactNode }) => {
       .channel("radio-now-playing")
       .on("postgres_changes", { event: "*", schema: "public", table: "radio_now_playing" }, (payload) => {
         const row = payload.new as any;
-        if (row?.track_id) {
+        if (row?.track_id !== undefined) {
           setSyncedTrackId(row.track_id);
           setSyncedStartedAt(row.started_at);
           setSyncedQueue(Array.isArray(row.queue) ? row.queue : []);
           setSyncedPlayed(Array.isArray(row.played_ids) ? row.played_ids : []);
+          setShuffleAllState(!!row.shuffle_all);
         }
       })
       .subscribe();
