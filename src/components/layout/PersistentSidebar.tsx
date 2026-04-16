@@ -1,4 +1,5 @@
 import { ReactNode, useEffect, useState } from "react";
+import { useLocation } from "react-router-dom";
 import { AppSidebar } from "./AppSidebar";
 import { DockNavigation } from "./DockNavigation";
 import { SidebarProvider, SidebarTrigger } from "@/components/ui/sidebar";
