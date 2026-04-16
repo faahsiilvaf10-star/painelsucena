@@ -41,6 +41,24 @@ function getCurrentHour(): number {
   return new Date().getHours();
 }
 
+// Deterministic seeded shuffle — all clients get the same order for the same day
+function getDailySeed(): number {
+  const d = new Date();
+  return d.getFullYear() * 10000 + (d.getMonth() + 1) * 100 + d.getDate();
+}
+
+function seededShuffle<T>(items: T[], seed: number): T[] {
+  let s = seed % 2147483647;
+  if (s <= 0) s += 2147483646;
+  const random = () => { s = (s * 16807) % 2147483647; return (s - 1) / 2147483646; };
+  const result = [...items];
+  for (let i = result.length - 1; i > 0; i--) {
+    const j = Math.floor(random() * (i + 1));
+    [result[i], result[j]] = [result[j], result[i]];
+  }
+  return result;
+}
+
 let globalAudio: HTMLAudioElement | null = null;
 
 export const RadioProvider = ({ children }: { children: ReactNode }) => {
@@ -52,50 +70,30 @@ export const RadioProvider = ({ children }: { children: ReactNode }) => {
   });
   const [allTracks, setAllTracks] = useState<PlaylistTrack[]>([]);
   const [currentHour, setCurrentHour] = useState(getCurrentHour);
-  const [currentTrackIndex, setCurrentTrackIndex] = useState(0);
   const [shuffleAll, setShuffleAllState] = useState(() => {
     try { return localStorage.getItem("radio_shuffle_all") === "true"; } catch { return false; }
   });
-  const [shuffledOrder, setShuffledOrder] = useState<number[]>([]);
+  const [syncedTrackId, setSyncedTrackId] = useState<string | null>(null);
+  const [syncedStartedAt, setSyncedStartedAt] = useState<string | null>(null);
   const userInteractedRef = useRef(false);
-  const shuffleBuiltForRef = useRef<number>(0);
+  const currentTrackUrlRef = useRef<string | null>(null);
+  const advancingRef = useRef(false);
+  const allTracksRef = useRef<PlaylistTrack[]>([]);
+  const shuffleAllRef = useRef(shuffleAll);
+  const currentHourRef = useRef(currentHour);
 
-  // When shuffle mode or tracks change, build a shuffled index array — only once per track list size
-  useEffect(() => {
-    if (shuffleAll && allTracks.length > 0 && shuffleBuiltForRef.current !== allTracks.length) {
-      const indices = Array.from({ length: allTracks.length }, (_, i) => i);
-      for (let i = indices.length - 1; i > 0; i--) {
-        const j = Math.floor(Math.random() * (i + 1));
-        [indices[i], indices[j]] = [indices[j], indices[i]];
-      }
-      shuffleBuiltForRef.current = allTracks.length;
-      setShuffledOrder(indices);
-      // Only reset index if nothing is playing yet
-      if (!globalAudio || globalAudio.paused) {
-        setCurrentTrackIndex(0);
-      }
-    } else if (!shuffleAll) {
-      shuffleBuiltForRef.current = 0;
-      setShuffledOrder([]);
-    }
-  }, [shuffleAll, allTracks.length]);
+  // Keep refs in sync
+  useEffect(() => { allTracksRef.current = allTracks; }, [allTracks]);
+  useEffect(() => { shuffleAllRef.current = shuffleAll; }, [shuffleAll]);
+  useEffect(() => { currentHourRef.current = currentHour; }, [currentHour]);
 
-  const activeTracks = shuffleAll ? allTracks : allTracks.filter(t => t.time_slot === currentHour);
-  const playlistTracks = activeTracks;
+  // Build deterministic playlist for display
+  const playlist = shuffleAll
+    ? seededShuffle(allTracks, getDailySeed())
+    : allTracks.filter(t => t.time_slot === currentHour);
 
-  const currentTrack = (() => {
-    if (shuffleAll) {
-      if (allTracks.length === 0) return null;
-      if (shuffledOrder.length > 0) {
-        const idx = shuffledOrder[currentTrackIndex % shuffledOrder.length];
-        return allTracks[idx] || allTracks[0];
-      }
-      // Fallback: shuffledOrder not yet built, pick first track
-      return allTracks[currentTrackIndex % allTracks.length] || null;
-    }
-    if (activeTracks.length === 0) return null;
-    return activeTracks[currentTrackIndex % activeTracks.length] || null;
-  })();
+  // Current track comes from DB state — look up in ALL tracks
+  const currentTrack = allTracks.find(t => t.id === syncedTrackId) || null;
 
   // Load tracks
   useEffect(() => {
@@ -115,30 +113,66 @@ export const RadioProvider = ({ children }: { children: ReactNode }) => {
     return () => { supabase.removeChannel(channel); };
   }, []);
 
-  // Check hour change every 30s
+  // Load & subscribe to radio_now_playing (live sync)
   useEffect(() => {
-    const interval = setInterval(() => {
-      const hour = getCurrentHour();
-      if (hour !== currentHour) {
-        setCurrentHour(hour);
-        setCurrentTrackIndex(0);
+    const loadState = async () => {
+      const { data } = await supabase
+        .from("radio_now_playing" as any)
+        .select("track_id, started_at")
+        .eq("id", "singleton")
+        .maybeSingle();
+      if (data) {
+        setSyncedTrackId((data as any).track_id);
+        setSyncedStartedAt((data as any).started_at);
       }
-    }, 30000);
-    return () => clearInterval(interval);
-  }, [currentHour]);
+    };
+    loadState();
 
-  // Persist state
-  useEffect(() => { localStorage.setItem("radio_playing", String(isPlaying)); }, [isPlaying]);
-  useEffect(() => { localStorage.setItem("radio_volume", String(volume)); }, [volume]);
-  useEffect(() => { localStorage.setItem("radio_shuffle_all", String(shuffleAll)); }, [shuffleAll]);
-
-  const setShuffleAll = useCallback((v: boolean) => {
-    setShuffleAllState(v);
+    const channel = supabase
+      .channel("radio-now-playing")
+      .on("postgres_changes", { event: "*", schema: "public", table: "radio_now_playing" }, (payload) => {
+        const row = payload.new as any;
+        if (row?.track_id) {
+          setSyncedTrackId(row.track_id);
+          setSyncedStartedAt(row.started_at);
+        }
+      })
+      .subscribe();
+    return () => { supabase.removeChannel(channel); };
   }, []);
 
-  const currentTrackUrlRef = useRef<string | null>(null);
+  // Helper: get current playlist from refs (avoids stale closures)
+  const getPlaylist = useCallback(() => {
+    const tracks = allTracksRef.current;
+    if (shuffleAllRef.current) return seededShuffle(tracks, getDailySeed());
+    return tracks.filter(t => t.time_slot === currentHourRef.current);
+  }, []);
 
-  // Always keep audio playing — mute/unmute on toggle
+  // Advance to a specific track in the DB
+  const advanceToTrack = useCallback(async (trackId: string) => {
+    if (advancingRef.current) return;
+    advancingRef.current = true;
+    try {
+      const now = new Date().toISOString();
+      await supabase
+        .from("radio_now_playing" as any)
+        .upsert({ id: "singleton", track_id: trackId, started_at: now, updated_at: now } as any, { onConflict: "id" });
+      setSyncedTrackId(trackId);
+      setSyncedStartedAt(now);
+    } finally {
+      advancingRef.current = false;
+    }
+  }, []);
+
+  // When tracks load and no synced track exists, initialize with the first track
+  useEffect(() => {
+    if (allTracks.length > 0 && !syncedTrackId) {
+      const pl = getPlaylist();
+      if (pl.length > 0) advanceToTrack(pl[0].id);
+    }
+  }, [allTracks.length, syncedTrackId]);
+
+  // Audio playback — sync to the DB-provided track and seek to correct position
   useEffect(() => {
     if (!currentTrack) {
       if (globalAudio) { globalAudio.pause(); }
@@ -146,24 +180,41 @@ export const RadioProvider = ({ children }: { children: ReactNode }) => {
       return;
     }
 
-    // Only create new audio if the track URL actually changed
+    // Same track already playing — don't restart
     if (currentTrackUrlRef.current === currentTrack.file_url && globalAudio) {
       return;
     }
 
-    // Different track — destroy old, create new
+    // Destroy old audio
     if (globalAudio) { globalAudio.pause(); globalAudio.removeAttribute("src"); globalAudio.load(); }
+
     globalAudio = new Audio(currentTrack.file_url);
     globalAudio.volume = isPlaying ? volume : 0;
     currentTrackUrlRef.current = currentTrack.file_url;
 
-    const len = shuffleAll ? shuffledOrder.length : activeTracks.length;
-    const handleEnded = () => {
-      if (len > 0) setCurrentTrackIndex(prev => (prev + 1) % len);
+    const handleLoaded = () => {
+      if (!globalAudio || !syncedStartedAt) return;
+      const elapsed = (Date.now() - new Date(syncedStartedAt).getTime()) / 1000;
+      if (globalAudio.duration && elapsed > 0 && elapsed < globalAudio.duration) {
+        globalAudio.currentTime = elapsed;
+      } else if (globalAudio.duration && elapsed >= globalAudio.duration) {
+        // Track should have already ended — advance
+        advanceNext();
+        return;
+      }
     };
-    globalAudio.addEventListener("ended", handleEnded);
 
-    // Always play — audio runs continuously like a live radio
+    const advanceNext = () => {
+      const pl = getPlaylist();
+      if (pl.length === 0) return;
+      const idx = pl.findIndex(t => t.id === currentTrack.id);
+      const nextIdx = idx < 0 ? 0 : (idx + 1) % pl.length;
+      advanceToTrack(pl[nextIdx].id);
+    };
+
+    globalAudio.addEventListener("loadedmetadata", handleLoaded);
+    globalAudio.addEventListener("ended", advanceNext);
+
     globalAudio.play().catch(err => {
       console.log("Playback failed:", err);
       if (!userInteractedRef.current) {
@@ -179,46 +230,65 @@ export const RadioProvider = ({ children }: { children: ReactNode }) => {
     });
 
     return () => {
-      globalAudio?.removeEventListener("ended", handleEnded);
+      globalAudio?.removeEventListener("loadedmetadata", handleLoaded);
+      globalAudio?.removeEventListener("ended", advanceNext);
     };
-  }, [currentTrack?.file_url, shuffleAll]);
+  }, [currentTrack?.file_url, syncedStartedAt]);
 
-  // Mute/unmute on play/pause toggle — audio keeps running
+  // Mute/unmute on play/pause toggle — audio keeps running for sync
   useEffect(() => {
-    if (!globalAudio) return;
-    globalAudio.volume = isPlaying ? volume : 0;
+    if (globalAudio) globalAudio.volume = isPlaying ? volume : 0;
   }, [isPlaying]);
 
   // Volume sync
   useEffect(() => {
-    if (globalAudio) globalAudio.volume = volume;
+    if (globalAudio && isPlaying) globalAudio.volume = volume;
   }, [volume]);
 
-  const setVolume = useCallback((v: number) => {
-    setVolumeState(Math.max(0, Math.min(1, v)));
-  }, []);
+  // Check hour change every 60s
+  useEffect(() => {
+    const interval = setInterval(() => {
+      const hour = getCurrentHour();
+      if (hour !== currentHour) setCurrentHour(hour);
+    }, 60000);
+    return () => clearInterval(interval);
+  }, [currentHour]);
+
+  // Persist local prefs
+  useEffect(() => { localStorage.setItem("radio_playing", String(isPlaying)); }, [isPlaying]);
+  useEffect(() => { localStorage.setItem("radio_volume", String(volume)); }, [volume]);
+  useEffect(() => { localStorage.setItem("radio_shuffle_all", String(shuffleAll)); }, [shuffleAll]);
+
+  const setShuffleAll = useCallback((v: boolean) => setShuffleAllState(v), []);
+  const setVolume = useCallback((v: number) => setVolumeState(Math.max(0, Math.min(1, v))), []);
 
   const toggleRadio = useCallback(() => {
     userInteractedRef.current = true;
     setIsPlaying(prev => !prev);
   }, []);
 
-  const totalLen = shuffleAll ? shuffledOrder.length : playlistTracks.length;
+  const nextTrackFn = useCallback(() => {
+    const pl = getPlaylist();
+    const trackId = syncedTrackId;
+    if (pl.length === 0) return;
+    const idx = pl.findIndex(t => t.id === trackId);
+    const nextIdx = idx < 0 ? 0 : (idx + 1) % pl.length;
+    advanceToTrack(pl[nextIdx].id);
+  }, [syncedTrackId, getPlaylist, advanceToTrack]);
 
-  const nextTrack = useCallback(() => {
-    if (totalLen === 0) return;
-    setCurrentTrackIndex(prev => (prev + 1) % totalLen);
-  }, [totalLen]);
-
-  const prevTrack = useCallback(() => {
-    if (totalLen === 0) return;
-    setCurrentTrackIndex(prev => prev === 0 ? totalLen - 1 : prev - 1);
-  }, [totalLen]);
+  const prevTrackFn = useCallback(() => {
+    const pl = getPlaylist();
+    const trackId = syncedTrackId;
+    if (pl.length === 0) return;
+    const idx = pl.findIndex(t => t.id === trackId);
+    const prevIdx = idx <= 0 ? pl.length - 1 : idx - 1;
+    advanceToTrack(pl[prevIdx].id);
+  }, [syncedTrackId, getPlaylist, advanceToTrack]);
 
   return (
     <RadioContext.Provider value={{
-      isPlaying, volume, setVolume, currentTrack, playlistTracks,
-      toggleRadio, nextTrack, prevTrack, currentHour,
+      isPlaying, volume, setVolume, currentTrack, playlistTracks: playlist,
+      toggleRadio, nextTrack: nextTrackFn, prevTrack: prevTrackFn, currentHour,
       shuffleAll, setShuffleAll,
     }}>
       {children}
