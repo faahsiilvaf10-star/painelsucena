@@ -18,6 +18,8 @@ export const MusicManager = () => {
   const deleteMutation = useDeleteMusicTrack();
   const deleteAllMutation = useDeleteAllTracksBySlot();
   const { shuffleAll, setShuffleAll } = useRadio();
+  const { role } = useUserRole();
+  const isAdmin = role === "admin";
   const fileInputRef = useRef<HTMLInputElement>(null);
 
   const [selectedTimeSlot, setSelectedTimeSlot] = useState<number>(8);
