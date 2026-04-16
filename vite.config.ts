@@ -91,6 +91,12 @@ export default defineConfig(({ mode }) => ({
         },
         icons: [
           {
+            src: "/pwa-icon.ico",
+            sizes: "256x256",
+            type: "image/x-icon",
+            purpose: "any",
+          },
+          {
             src: "/pwa-192x192.png",
             sizes: "192x192",
             type: "image/png",
