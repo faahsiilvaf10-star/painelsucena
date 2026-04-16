@@ -69,6 +69,8 @@ export const RadioProvider = ({ children }: { children: ReactNode }) => {
       }
       setShuffledOrder(indices);
       setCurrentTrackIndex(0);
+    } else if (!shuffleAll) {
+      setShuffledOrder([]);
     }
   }, [shuffleAll, allTracks.length]);
 
