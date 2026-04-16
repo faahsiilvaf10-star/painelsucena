@@ -114,7 +114,7 @@ export const MusicManager = () => {
               </p>
             </div>
           </div>
-          <Switch checked={shuffleAll} onCheckedChange={setShuffleAll} />
+          <Switch checked={shuffleAll} onCheckedChange={setShuffleAll} disabled={!isStrictAdmin} />
         </div>
 
         {/* Upload Section */}
