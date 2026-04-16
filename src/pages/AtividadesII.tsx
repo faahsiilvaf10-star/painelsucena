@@ -399,14 +399,22 @@ export default function AtividadesII() {
       });
     };
     
-    if (escavacaoManual) lines.push("* Escavação manual");
+    const addSimpleWithExtras = (checked: boolean, label: string, key: string) => {
+      if (!checked) return;
+      lines.push(`* ${label}`);
+      (gabiaoExtra[key] || []).forEach(() => {
+        lines.push(`* ${label}`);
+      });
+    };
+
+    addSimpleWithExtras(escavacaoManual, "Escavação manual", "escavacao");
     addWithExtras(reposicaoManta, "Reposição de manta asfáltica", mantaDimensao, "", "manta");
     addWithExtras(reposicaoSilte, "Reposição de silte", silteQuantidade, "m²", "silte");
-    if (limpezaOrganizacao) lines.push("* Limpeza e organização");
+    addSimpleWithExtras(limpezaOrganizacao, "Limpeza e organização", "limpeza");
     addWithExtras(retiradaTela, "Retirada de tela", retiradaTelaDimensao, "", "retiradaTela");
     addWithExtras(retiradaCascalho, "Retirada de cascalho", retiradaCascalhoQuantidade, "m²", "retiradaCascalho");
-    if (lavagemVertedouro) lines.push("* Lavagem de vertedouro");
-    if (lavagemBaciasVertedouro) lines.push("* Lavagem de bacias do vertedouro");
+    addSimpleWithExtras(lavagemVertedouro, "Lavagem de vertedouro", "lavagemVertedouro");
+    addSimpleWithExtras(lavagemBaciasVertedouro, "Lavagem de bacias do vertedouro", "lavagemBacias");
     addWithExtras(reposicaoGeotextil, "Reposição de Geotêxtil", reposicaoGeotextilDimensao, "", "geotextil");
     addWithExtras(recomposicaoTela, "Recomposição de tela", recomposicaoTelaDimensao, "", "recomposicaoTela");
     addWithExtras(recomposicaoCascalho, "Recomposição de cascalho", recomposicaoCascalhoQuantidade, "m²", "recomposicaoCascalho");
