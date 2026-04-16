@@ -854,15 +854,30 @@ export default function AtividadesII() {
                 <Label className="text-base font-semibold">📋 ATIVIDADES</Label>
                 
                 {/* Escavação manual */}
-                <div className="flex items-center space-x-3 p-3 rounded-lg bg-muted/30">
-                  <Checkbox 
-                    id="escavacao" 
-                    checked={escavacaoManual}
-                    onCheckedChange={(checked) => setEscavacaoManual(checked === true)}
-                  />
-                  <Label htmlFor="escavacao" className="cursor-pointer font-medium">
-                    Escavação manual
-                  </Label>
+                <div className="p-3 rounded-lg bg-muted/30 space-y-2">
+                  <div className="flex items-center justify-between">
+                    <div className="flex items-center space-x-3">
+                      <Checkbox 
+                        id="escavacao" 
+                        checked={escavacaoManual}
+                        onCheckedChange={(checked) => setEscavacaoManual(checked === true)}
+                      />
+                      <Label htmlFor="escavacao" className="cursor-pointer font-medium">
+                        Escavação manual
+                      </Label>
+                    </div>
+                    {escavacaoManual && (
+                      <Button type="button" variant="ghost" size="sm" onClick={() => addGabiaoExtra("escavacao")} className="gap-1 h-6 text-xs px-2 text-muted-foreground hover:text-foreground">
+                        <Plus className="h-3 w-3" />
+                      </Button>
+                    )}
+                  </div>
+                  {escavacaoManual && (gabiaoExtra.escavacao || []).map((_, idx) => (
+                    <div key={idx} className="flex items-center justify-between ml-7 text-sm text-muted-foreground">
+                      <span>+ Escavação manual</span>
+                      <Button type="button" variant="ghost" size="icon" className="h-7 w-7 text-destructive hover:text-destructive hover:bg-destructive/10" onClick={() => removeGabiaoExtra("escavacao", idx)}><X className="h-3 w-3" /></Button>
+                    </div>
+                  ))}
                 </div>
 
                 {/* Reposição de manta asfáltica */}
