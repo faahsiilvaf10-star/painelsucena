@@ -7,7 +7,7 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@
 import { Switch } from "@/components/ui/switch";
 import { Music, Upload, Trash2, Loader2, Clock, Shuffle } from "lucide-react";
 import { toast } from "sonner";
-import { useMusicTracks, useUploadMusicTrack, useDeleteMusicTrack, TIME_SLOT_LABELS } from "@/hooks/useMusicTracks";
+import { useMusicTracks, useUploadMusicTrack, useDeleteMusicTrack, useDeleteAllTracksBySlot, TIME_SLOT_LABELS } from "@/hooks/useMusicTracks";
 import { useRadio } from "@/contexts/RadioContext";
 import { cn } from "@/lib/utils";
 
@@ -15,6 +15,7 @@ export const MusicManager = () => {
   const { data: tracks = [], isLoading } = useMusicTracks();
   const uploadMutation = useUploadMusicTrack();
   const deleteMutation = useDeleteMusicTrack();
+  const deleteAllMutation = useDeleteAllTracksBySlot();
   const { shuffleAll, setShuffleAll } = useRadio();
   const fileInputRef = useRef<HTMLInputElement>(null);
 
@@ -65,6 +66,18 @@ export const MusicManager = () => {
       toast.success("Música removida");
     } catch {
       toast.error("Erro ao remover música");
+    }
+  };
+
+  const handleDeleteAllSlot = async (slot: number) => {
+    const slotTracks = tracksBySlot[slot];
+    if (!slotTracks || slotTracks.length === 0) return;
+    if (!confirm(`Apagar todas as ${slotTracks.length} músicas do horário ${TIME_SLOT_LABELS[slot].label}?`)) return;
+    try {
+      await deleteAllMutation.mutateAsync(slotTracks);
+      toast.success(`${slotTracks.length} música(s) removida(s) do horário ${TIME_SLOT_LABELS[slot].label}`);
+    } catch {
+      toast.error("Erro ao remover músicas");
     }
   };
 
@@ -194,6 +207,16 @@ export const MusicManager = () => {
                     <span className="text-xs text-muted-foreground">
                       ({tracksBySlot[slot].length})
                     </span>
+                    <Button
+                      variant="ghost"
+                      size="icon"
+                      className="h-5 w-5 ml-auto shrink-0 text-destructive hover:text-destructive hover:bg-destructive/10"
+                      onClick={() => handleDeleteAllSlot(slot)}
+                      disabled={deleteAllMutation.isPending}
+                      title={`Apagar todas do horário ${TIME_SLOT_LABELS[slot].label}`}
+                    >
+                      <Trash2 className="h-3 w-3" />
+                    </Button>
                   </div>
                   {tracksBySlot[slot].map((track, i) => (
                     <div
