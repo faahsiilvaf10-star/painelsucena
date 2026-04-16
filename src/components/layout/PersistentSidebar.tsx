@@ -86,7 +86,7 @@ export const PersistentSidebar = ({ children }: PersistentSidebarProps) => {
         >
           {children}
         </div>
-        {useDock && <DockNavigation />}
+        {useDock && !isAuthPage && <DockNavigation />}
       </div>
     </SidebarProvider>
   );
