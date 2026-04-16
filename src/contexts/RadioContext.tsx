@@ -282,6 +282,14 @@ export const RadioProvider = ({ children }: { children: ReactNode }) => {
     writeState(nextId, queue, played);
   }, [buildQueue, writeState]);
 
+  // ─── Auto-play when shuffle is active on load ───
+  useEffect(() => {
+    if (!tracksLoaded || !radioStateLoaded) return;
+    if (shuffleAll && !isPlaying) {
+      setIsPlaying(true);
+    }
+  }, [tracksLoaded, radioStateLoaded, shuffleAll]);
+
   // ─── Recover radio state when the current track or queue becomes invalid ───
   useEffect(() => {
     if (!tracksLoaded || !radioStateLoaded || allTracks.length === 0) return;
