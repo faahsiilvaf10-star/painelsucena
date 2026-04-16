@@ -281,9 +281,6 @@ export function OrderDetailsDialog({ order, open, onOpenChange }: OrderDetailsDi
   };
 
   // ----- Item photos management -----
-  const itemPhotoInputRef = useRef<HTMLInputElement | null>(null);
-  const [photoTargetItemId, setPhotoTargetItemId] = useState<string | null>(null);
-  const [uploadingItemId, setUploadingItemId] = useState<string | null>(null);
 
   const triggerItemPhotoUpload = (itemId: string) => {
     setPhotoTargetItemId(itemId);
