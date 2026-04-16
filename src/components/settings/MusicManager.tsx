@@ -9,6 +9,7 @@ import { Music, Upload, Trash2, Loader2, Clock, Shuffle } from "lucide-react";
 import { toast } from "sonner";
 import { useMusicTracks, useUploadMusicTrack, useDeleteMusicTrack, useDeleteAllTracksBySlot, TIME_SLOT_LABELS } from "@/hooks/useMusicTracks";
 import { useRadio } from "@/contexts/RadioContext";
+import { useUserRole } from "@/hooks/useUserRole";
 import { cn } from "@/lib/utils";
 
 export const MusicManager = () => {
