@@ -3,7 +3,7 @@ import Layout from "@/components/layout/Layout";
 import { Users, ClipboardList, FileBarChart, CalendarDays } from "lucide-react";
 
 const rhPages = [
-  { label: "RH", icon: Users, path: "/rh" },
+  { label: "Efetivo", icon: Users, path: "/rh" },
   { label: "Relatório\nde Presença", icon: ClipboardList, path: "/presenca" },
   { label: "Lista de\nPresença", icon: FileBarChart, path: "/relatorio-presenca" },
   { label: "Calendário\nHydro", icon: CalendarDays, path: "/calendario-hydro" },
@@ -19,7 +19,7 @@ const RecursosHumanos = () => {
           <div className="p-2 rounded-xl bg-gradient-to-br from-[#c9a84c] to-[#f0d78c] text-[#1a1a1a]">
             <Users className="h-7 w-7" />
           </div>
-          <h1 className="text-2xl md:text-3xl font-bold text-[#c9a84c]">RH</h1>
+          <h1 className="text-2xl md:text-3xl font-bold text-[#c9a84c]">Efetivo</h1>
         </div>
 
         <div className="grid grid-cols-2 sm:grid-cols-4 gap-4 md:gap-5 max-w-4xl mx-auto">
