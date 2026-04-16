@@ -86,9 +86,7 @@ export const RadioProvider = ({ children }: { children: ReactNode }) => {
   });
   const [allTracks, setAllTracks] = useState<PlaylistTrack[]>([]);
   const [currentHour, setCurrentHour] = useState(getCurrentHour);
-  const [shuffleAll, setShuffleAllState] = useState(() => {
-    try { return localStorage.getItem("radio_shuffle_all") === "true"; } catch { return false; }
-  });
+  const [shuffleAll, setShuffleAllState] = useState(false);
   const [tracksLoaded, setTracksLoaded] = useState(false);
   const [radioStateLoaded, setRadioStateLoaded] = useState(false);
 
