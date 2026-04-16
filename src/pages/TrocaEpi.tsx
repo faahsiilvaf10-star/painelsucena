@@ -1,4 +1,4 @@
-import { useState, useMemo, useCallback } from "react";
+import { useState, useMemo, useCallback, useEffect, useRef } from "react";
 import { EditablePageTitle } from "@/components/cms/EditablePageTitle";
 import { useQueryClient } from "@tanstack/react-query";
 import { format } from "date-fns";
@@ -72,6 +72,104 @@ function normalizeText(text: string): string {
     .replace(/[\u0300-\u036f]/g, "")
     .replace(/\s+/g, " ")
     .trim();
+}
+
+type ExchangeSharePayload = {
+  description: string;
+  file: File;
+  fileName: string;
+  title: string;
+};
+
+let html2CanvasPromise: Promise<typeof import("html2canvas")["default"]> | null = null;
+let logoBase64Promise: Promise<string> | null = null;
+
+function loadHtml2Canvas() {
+  if (!html2CanvasPromise) {
+    html2CanvasPromise = import("html2canvas").then((module) => module.default);
+  }
+
+  return html2CanvasPromise;
+}
+
+function loadCachedLogoBase64() {
+  if (!logoBase64Promise) {
+    logoBase64Promise = getLogoBase64().catch(() => "");
+  }
+
+  return logoBase64Promise;
+}
+
+function sanitizeShareFileName(value: string) {
+  const normalized = normalizeText(value)
+    .replace(/[^a-z0-9]+/g, "-")
+    .replace(/^-+|-+$/g, "");
+
+  return normalized || "requisicao";
+}
+
+function dataUrlToFile(dataUrl: string, fileName: string) {
+  const [header, base64 = ""] = dataUrl.split(",");
+  const mime = header.match(/data:(.*?);base64/)?.[1] || "image/png";
+  const binary = atob(base64);
+  const bytes = new Uint8Array(binary.length);
+
+  for (let i = 0; i < binary.length; i += 1) {
+    bytes[i] = binary.charCodeAt(i);
+  }
+
+  return new File([bytes], fileName, { type: mime, lastModified: Date.now() });
+}
+
+function buildExchangeShareDescription(exchange: EpiExchange) {
+  const episList = (exchange.epis || [])
+    .map((e: any) => {
+      const epiId = typeof e === "string" ? e : e.id;
+      const epiQty = typeof e === "object" && e.qty ? Number(e.qty) : 1;
+      const epiValue = typeof e === "object" ? e.value : undefined;
+      const isOutros = epiId === "outros" || epiId.startsWith("outros_");
+      const epiItem = isOutros ? EPI_ITEMS.find((item) => item.id === "outros") : EPI_ITEMS.find((item) => item.id === epiId);
+      const name = isOutros && epiValue ? epiValue : (epiItem?.label || epiId);
+
+      return `${name} (${epiQty})`;
+    })
+    .join(", ");
+
+  let description = `Troca de EPI - ${exchange.funcionario_nome}`;
+
+  if (episList) {
+    description += `\nItens: ${episList}`;
+  }
+
+  const uniformeParts: string[] = [];
+
+  if (exchange.uniforme_blusa_quantidade && exchange.uniforme_blusa_quantidade > 0) {
+    uniformeParts.push(`Camisa: ${exchange.uniforme_blusa_tamanho || "N/I"} (${exchange.uniforme_blusa_quantidade})`);
+  }
+
+  if (exchange.uniforme_calca_quantidade && exchange.uniforme_calca_quantidade > 0) {
+    uniformeParts.push(`Calça: ${exchange.uniforme_calca_tamanho || "N/I"} (${exchange.uniforme_calca_quantidade})`);
+  }
+
+  if (uniformeParts.length > 0) {
+    description += `\nUniforme: ${uniformeParts.join(", ")}`;
+  }
+
+  return description;
+}
+
+function getExchangeShareKey(exchange: EpiExchange) {
+  return JSON.stringify({
+    id: exchange.id,
+    created_at: exchange.created_at,
+    data: exchange.data,
+    funcionario_nome: exchange.funcionario_nome,
+    epis: exchange.epis,
+    uniforme_blusa_tamanho: exchange.uniforme_blusa_tamanho,
+    uniforme_blusa_quantidade: exchange.uniforme_blusa_quantidade,
+    uniforme_calca_tamanho: exchange.uniforme_calca_tamanho,
+    uniforme_calca_quantidade: exchange.uniforme_calca_quantidade,
+  });
 }
 
 function findInventoryMatch(inventoryItems: any[], searchLabel: string): any | null {
@@ -315,6 +413,133 @@ export default function TrocaEpi() {
   const calcaOptions = useMemo(() => {
     return inventoryItems.filter(inv => normalizeText(inv.name).includes("calca") && inv.quantity > 0);
   }, [inventoryItems]);
+
+  const sharePayloadCacheRef = useRef(new Map<string, ExchangeSharePayload>());
+  const sharePayloadPromiseRef = useRef(new Map<string, Promise<ExchangeSharePayload>>());
+
+  useEffect(() => {
+    void loadCachedLogoBase64();
+    void loadHtml2Canvas();
+  }, []);
+
+  const buildExchangeSharePayload = useCallback(async (exchange: EpiExchange): Promise<ExchangeSharePayload> => {
+    const isMobileDevice = /Android|iPhone|iPad|iPod/i.test(navigator.userAgent);
+    const logoBase64 = await loadCachedLogoBase64();
+    const html = buildPdfHtml(exchange, logoBase64);
+    const container = document.createElement("div");
+
+    container.style.position = "fixed";
+    container.style.left = "-9999px";
+    container.style.top = "0";
+    container.style.width = "800px";
+    container.style.background = "#fff";
+    container.innerHTML = html;
+    document.body.appendChild(container);
+
+    try {
+      const images = container.querySelectorAll("img");
+      await Promise.all(Array.from(images).map((img) => new Promise<void>((resolve) => {
+        if (img.complete) {
+          resolve();
+          return;
+        }
+
+        img.onload = () => resolve();
+        img.onerror = () => resolve();
+      })));
+
+      const html2canvas = await loadHtml2Canvas();
+      const canvas = await html2canvas(container, {
+        scale: isMobileDevice ? 1.4 : 2,
+        useCORS: true,
+        backgroundColor: "#ffffff",
+      });
+      const dataUrl = canvas.toDataURL("image/png");
+
+      if (!dataUrl || dataUrl === "data:,") {
+        throw new Error("empty-share-image");
+      }
+
+      const fileName = `troca-epi-${sanitizeShareFileName(exchange.funcionario_nome)}.png`;
+
+      return {
+        description: buildExchangeShareDescription(exchange),
+        file: dataUrlToFile(dataUrl, fileName),
+        fileName,
+        title: `Troca de EPI - ${exchange.funcionario_nome}`,
+      };
+    } finally {
+      if (container.parentNode) {
+        container.parentNode.removeChild(container);
+      }
+    }
+  }, []);
+
+  const getExchangeSharePayload = useCallback((exchange: EpiExchange) => {
+    const shareKey = getExchangeShareKey(exchange);
+    const cachedPayload = sharePayloadCacheRef.current.get(shareKey);
+
+    if (cachedPayload) {
+      return Promise.resolve(cachedPayload);
+    }
+
+    const pendingPayload = sharePayloadPromiseRef.current.get(shareKey);
+
+    if (pendingPayload) {
+      return pendingPayload;
+    }
+
+    const payloadPromise = buildExchangeSharePayload(exchange)
+      .then((payload) => {
+        sharePayloadCacheRef.current.set(shareKey, payload);
+        sharePayloadPromiseRef.current.delete(shareKey);
+        return payload;
+      })
+      .catch((error) => {
+        sharePayloadPromiseRef.current.delete(shareKey);
+        throw error;
+      });
+
+    sharePayloadPromiseRef.current.set(shareKey, payloadPromise);
+
+    return payloadPromise;
+  }, [buildExchangeSharePayload]);
+
+  const primeExchangeSharePayload = useCallback((exchange: EpiExchange) => {
+    const shareKey = getExchangeShareKey(exchange);
+
+    if (sharePayloadCacheRef.current.has(shareKey) || sharePayloadPromiseRef.current.has(shareKey)) {
+      return;
+    }
+
+    void getExchangeSharePayload(exchange);
+  }, [getExchangeSharePayload]);
+
+  useEffect(() => {
+    const validKeys = new Set((exchanges || []).map(getExchangeShareKey));
+
+    Array.from(sharePayloadCacheRef.current.keys()).forEach((key) => {
+      if (!validKeys.has(key)) {
+        sharePayloadCacheRef.current.delete(key);
+      }
+    });
+
+    Array.from(sharePayloadPromiseRef.current.keys()).forEach((key) => {
+      if (!validKeys.has(key)) {
+        sharePayloadPromiseRef.current.delete(key);
+      }
+    });
+  }, [exchanges]);
+
+  useEffect(() => {
+    if (typeof navigator === "undefined" || !/Android|iPhone|iPad|iPod/i.test(navigator.userAgent)) {
+      return;
+    }
+
+    (exchanges || []).slice(0, 2).forEach((exchange) => {
+      primeExchangeSharePayload(exchange);
+    });
+  }, [exchanges, primeExchangeSharePayload]);
 
   const [activeTab, setActiveTab] = useState("epi");
   const [showForm, setShowForm] = useState(false);
@@ -848,120 +1073,79 @@ export default function TrocaEpi() {
   };
 
   const handlePrint = async (exchange: EpiExchange) => {
-    const logoBase64 = await getLogoBase64();
+    const logoBase64 = await loadCachedLogoBase64();
     await generatePdf(exchange, logoBase64);
   };
 
   const handlePrintMaterial = async (req: MaterialRequisition) => {
-    const logoBase64 = await getLogoBase64();
+    const logoBase64 = await loadCachedLogoBase64();
     await generateMaterialPdf(req, logoBase64);
   };
 
   const handlePngWhatsApp = async (exchange: EpiExchange) => {
     const isMobile = /Android|iPhone|iPad|iPod/i.test(navigator.userAgent);
+    const phone = "559193645741";
+    const shareKey = getExchangeShareKey(exchange);
+    const hadCachedPayload = sharePayloadCacheRef.current.has(shareKey);
 
     try {
-      toast.info("Gerando imagem...");
-      const logoBase64 = await getLogoBase64();
-      const html = buildPdfHtml(exchange, logoBase64);
-      const container = document.createElement("div");
-      container.style.position = "fixed";
-      container.style.left = "-9999px";
-      container.style.top = "0";
-      container.style.width = "800px";
-      container.style.background = "#fff";
-      container.innerHTML = html;
-      document.body.appendChild(container);
+      toast.info(hadCachedPayload ? "Abrindo compartilhamento..." : "Gerando imagem...");
+      const payload = hadCachedPayload
+        ? sharePayloadCacheRef.current.get(shareKey)!
+        : await getExchangeSharePayload(exchange);
 
-      try {
-        const images = container.querySelectorAll("img");
-        await Promise.all(Array.from(images).map(img => new Promise<void>(resolve => {
-          if (img.complete) return resolve();
-          img.onload = () => resolve();
-          img.onerror = () => resolve();
-        })));
+      if (isMobile) {
+        const shareVariants: ShareData[] = typeof navigator.share === "function"
+          ? [
+              { files: [payload.file], title: payload.title, text: payload.description },
+              { files: [payload.file], title: payload.title },
+              { files: [payload.file] },
+            ].filter((shareData) => {
+              if (typeof navigator.canShare !== "function") {
+                return true;
+              }
 
-        const { default: html2canvas } = await import("html2canvas");
-        const canvas = await html2canvas(container, { scale: 2, useCORS: true, backgroundColor: "#ffffff" });
-        const blob = await new Promise<Blob | null>(resolve => canvas.toBlob(resolve, "image/png"));
+              try {
+                return navigator.canShare(shareData);
+              } catch {
+                return false;
+              }
+            })
+          : [];
 
-        if (!blob) {
-          toast.error("Erro ao gerar imagem");
-          return;
-        }
-
-        const fileName = `troca-epi-${exchange.funcionario_nome}-${Date.now()}.png`;
-        const file = new File([blob], fileName, { type: blob.type || "image/png", lastModified: Date.now() });
-        const phone = "559193645741";
-        const episList = (exchange.epis || []).map((e: any) => {
-          const epiId = typeof e === "string" ? e : e.id;
-          const epiQty = typeof e === "object" && e.qty ? Number(e.qty) : 1;
-          const epiValue = typeof e === "object" ? e.value : undefined;
-          const isOutros = epiId === "outros" || epiId.startsWith("outros_");
-          const epiItem = isOutros ? EPI_ITEMS.find(i => i.id === "outros") : EPI_ITEMS.find(i => i.id === epiId);
-          const name = isOutros && epiValue ? epiValue : (epiItem?.label || epiId);
-          return `${name} (${epiQty})`;
-        }).join(", ");
-
-        let description = `Troca de EPI - ${exchange.funcionario_nome}\nItens: ${episList}`;
-        const uniformeParts: string[] = [];
-        if (exchange.uniforme_blusa_quantidade && exchange.uniforme_blusa_quantidade > 0) {
-          uniformeParts.push(`Camisa: ${exchange.uniforme_blusa_tamanho || "N/I"} (${exchange.uniforme_blusa_quantidade})`);
-        }
-        if (exchange.uniforme_calca_quantidade && exchange.uniforme_calca_quantidade > 0) {
-          uniformeParts.push(`Calça: ${exchange.uniforme_calca_tamanho || "N/I"} (${exchange.uniforme_calca_quantidade})`);
-        }
-        if (uniformeParts.length > 0) {
-          description += `\nUniforme: ${uniformeParts.join(", ")}`;
-        }
-
-        if (isMobile) {
-          if (typeof navigator.share !== "function") {
-            toast.error("Seu celular não suporta compartilhamento direto da imagem.");
+        for (const shareData of shareVariants) {
+          try {
+            await navigator.share(shareData);
+            toast.success("Compartilhado com sucesso!");
             return;
-          }
-
-          if (typeof navigator.canShare === "function" && !navigator.canShare({ files: [file] })) {
-            toast.error("Seu navegador não permite compartilhar essa imagem diretamente.");
-            return;
-          }
-
-          const shareVariants: ShareData[] = [
-            { files: [file], title: `Troca de EPI - ${exchange.funcionario_nome}`, text: description },
-            { files: [file], title: `Troca de EPI - ${exchange.funcionario_nome}` },
-            { files: [file] },
-          ];
-
-          for (const shareData of shareVariants) {
-            try {
-              await navigator.share(shareData);
-              toast.success("Compartilhado com sucesso!");
+          } catch (error: any) {
+            if (error?.name === "AbortError") {
               return;
-            } catch (error: any) {
-              if (error?.name === "AbortError") return;
             }
           }
+        }
 
-          toast.error("Não foi possível abrir o compartilhamento direto no celular.");
+        if (!hadCachedPayload && shareVariants.length > 0) {
+          toast.info("Imagem pronta. Toque novamente para compartilhar direto no celular.");
           return;
         }
 
-        const blobUrl = URL.createObjectURL(blob);
-        const a = document.createElement("a");
-        a.href = blobUrl;
-        a.download = fileName;
-        document.body.appendChild(a);
-        a.click();
-        document.body.removeChild(a);
-        await new Promise(r => setTimeout(r, 500));
-        URL.revokeObjectURL(blobUrl);
-        toast.success("Imagem baixada! Anexe-a na conversa.");
-        window.open(`https://web.whatsapp.com/send?phone=${phone}&text=${encodeURIComponent(description)}`, "_blank");
-      } finally {
-        if (container.parentNode) {
-          container.parentNode.removeChild(container);
-        }
+        window.location.href = `whatsapp://send?phone=${phone}&text=${encodeURIComponent(payload.description)}`;
+        toast.error("Seu celular bloqueou o anexo direto. Abri o WhatsApp com a descrição.");
+        return;
       }
+
+      const blobUrl = URL.createObjectURL(payload.file);
+      const a = document.createElement("a");
+      a.href = blobUrl;
+      a.download = payload.fileName;
+      document.body.appendChild(a);
+      a.click();
+      document.body.removeChild(a);
+      await new Promise((resolve) => setTimeout(resolve, 500));
+      URL.revokeObjectURL(blobUrl);
+      toast.success("Imagem baixada! Anexe-a na conversa.");
+      window.open(`https://web.whatsapp.com/send?phone=${phone}&text=${encodeURIComponent(payload.description)}`, "_blank");
     } catch (err) {
       toast.error("Erro ao gerar PNG");
     }
@@ -1137,7 +1321,7 @@ export default function TrocaEpi() {
                               <Button variant="ghost" size="icon" className="h-8 w-8" onClick={() => setViewExchange(ex)}><Eye className="h-4 w-4" /></Button>
                               {ex.created_by === user?.id && <Button variant="ghost" size="icon" className="h-8 w-8" onClick={() => handleEditExchange(ex)}><Pencil className="h-4 w-4" /></Button>}
                               <Button variant="ghost" size="icon" className="h-8 w-8" onClick={() => handlePrint(ex)}><FileText className="h-4 w-4" /></Button>
-                              <Button variant="ghost" size="icon" className="h-8 w-8" onClick={() => handlePngWhatsApp(ex)}><MessageCircle className="h-4 w-4 text-[#25D366]" /></Button>
+                              <Button variant="ghost" size="icon" className="h-8 w-8" onTouchStart={() => primeExchangeSharePayload(ex)} onClick={() => handlePngWhatsApp(ex)}><MessageCircle className="h-4 w-4 text-[#25D366]" /></Button>
                               {ex.created_by === user?.id && <Button variant="ghost" size="icon" className="h-8 w-8" onClick={() => handleDeleteWithRestore(ex)}><Trash2 className="h-4 w-4 text-destructive" /></Button>}
                             </div>
                           </CardContent>
@@ -1534,7 +1718,7 @@ export default function TrocaEpi() {
                 </div>
               )}
               <div className="flex justify-end gap-2">
-                <Button variant="outline" onClick={() => handlePngWhatsApp(viewExchange)}><MessageCircle className="h-4 w-4 mr-2 text-[#25D366]" /> PNG WhatsApp</Button>
+                <Button variant="outline" onTouchStart={() => primeExchangeSharePayload(viewExchange)} onClick={() => handlePngWhatsApp(viewExchange)}><MessageCircle className="h-4 w-4 mr-2 text-[#25D366]" /> PNG WhatsApp</Button>
                 <Button onClick={() => handlePrint(viewExchange)}><FileText className="h-4 w-4 mr-2" /> Gerar PDF</Button>
               </div>
             </div>
