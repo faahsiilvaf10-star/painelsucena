@@ -902,19 +902,40 @@ export default function TrocaEpi() {
           description += `\nUniforme: ${uniformeParts.join(", ")}`;
         }
         const isMobile = /Android|iPhone|iPad|iPod/i.test(navigator.userAgent);
-        if (isMobile) {
-          if (navigator.share && navigator.canShare?.({ files: [file] })) {
-            try { await navigator.share({ files: [file], title: `Troca de EPI - ${exchange.funcionario_nome}`, text: description }); toast.success("Imagem enviada!"); } catch (e: any) { if (e?.name !== "AbortError") { window.open(`https://wa.me/${phone}?text=${encodeURIComponent(description)}`, "_blank"); } }
-          } else {
-            const blobUrl = URL.createObjectURL(blob);
-            const a = document.createElement("a"); a.href = blobUrl; a.download = fileName; a.click(); URL.revokeObjectURL(blobUrl);
-            window.open(`https://wa.me/${phone}?text=${encodeURIComponent(description)}`, "_blank");
+        
+        // Try Web Share API with file (works on most modern mobile browsers)
+        if (navigator.share) {
+          const shareData: ShareData = { text: description };
+          try {
+            // Check if file sharing is supported
+            if (navigator.canShare && navigator.canShare({ files: [file] })) {
+              shareData.files = [file];
+            }
+            await navigator.share(shareData);
+            toast.success("Compartilhado com sucesso!");
+            return;
+          } catch (e: any) {
+            // User cancelled - don't fallback
+            if (e?.name === "AbortError") return;
+            // Share failed, fall through to fallback
           }
+        }
+
+        // Fallback: download image + open WhatsApp
+        const blobUrl = URL.createObjectURL(blob);
+        const a = document.createElement("a");
+        a.href = blobUrl;
+        a.download = fileName;
+        document.body.appendChild(a);
+        a.click();
+        document.body.removeChild(a);
+        // Small delay to ensure download starts before navigation
+        await new Promise(r => setTimeout(r, 500));
+        URL.revokeObjectURL(blobUrl);
+        toast.success("Imagem baixada! Cole-a na conversa.");
+        if (isMobile) {
+          window.open(`https://wa.me/${phone}?text=${encodeURIComponent(description)}`, "_blank");
         } else {
-          // Desktop: download image first, then open WhatsApp
-          const blobUrl = URL.createObjectURL(blob);
-          const a = document.createElement("a"); a.href = blobUrl; a.download = fileName; a.click(); URL.revokeObjectURL(blobUrl);
-          toast.success("Imagem baixada! Cole-a no WhatsApp.");
           window.open(`https://web.whatsapp.com/send?phone=${phone}&text=${encodeURIComponent(description)}`, "_blank");
         }
       }, "image/png");
