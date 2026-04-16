@@ -138,9 +138,12 @@ export function OrderDetailsDialog({ order, open, onOpenChange }: OrderDetailsDi
     profile?.cargo === "aux_administrativo" ||
     isAdmin
   );
-  const canEditItems = order.status === "solicitado" && (
+  // Allow editing items (name, qty, photos) at any time except after delivery/cancel
+  // for the requester, admins or aux administrativo/almoxarifado.
+  const canEditItems = order.status !== "entregue" && order.status !== "cancelado" && (
     user?.id === order.requester_id ||
     profile?.cargo === "aux_administrativo" ||
+    profile?.cargo === "aux_almoxarifado" ||
     isAdmin
   );
   const isCancelled = order.status === "cancelado";
