@@ -941,15 +941,30 @@ export default function AtividadesII() {
                 </div>
 
                 {/* Limpeza e organização */}
-                <div className="flex items-center space-x-3 p-3 rounded-lg bg-muted/30">
-                  <Checkbox 
-                    id="limpeza" 
-                    checked={limpezaOrganizacao}
-                    onCheckedChange={(checked) => setLimpezaOrganizacao(checked === true)}
-                  />
-                  <Label htmlFor="limpeza" className="cursor-pointer font-medium">
-                    Limpeza e organização
-                  </Label>
+                <div className="p-3 rounded-lg bg-muted/30 space-y-2">
+                  <div className="flex items-center justify-between">
+                    <div className="flex items-center space-x-3">
+                      <Checkbox 
+                        id="limpeza" 
+                        checked={limpezaOrganizacao}
+                        onCheckedChange={(checked) => setLimpezaOrganizacao(checked === true)}
+                      />
+                      <Label htmlFor="limpeza" className="cursor-pointer font-medium">
+                        Limpeza e organização
+                      </Label>
+                    </div>
+                    {limpezaOrganizacao && (
+                      <Button type="button" variant="ghost" size="sm" onClick={() => addGabiaoExtra("limpeza")} className="gap-1 h-6 text-xs px-2 text-muted-foreground hover:text-foreground">
+                        <Plus className="h-3 w-3" />
+                      </Button>
+                    )}
+                  </div>
+                  {limpezaOrganizacao && (gabiaoExtra.limpeza || []).map((_, idx) => (
+                    <div key={idx} className="flex items-center justify-between ml-7 text-sm text-muted-foreground">
+                      <span>+ Limpeza e organização</span>
+                      <Button type="button" variant="ghost" size="icon" className="h-7 w-7 text-destructive hover:text-destructive hover:bg-destructive/10" onClick={() => removeGabiaoExtra("limpeza", idx)}><X className="h-3 w-3" /></Button>
+                    </div>
+                  ))}
                 </div>
 
                 {/* Retirada de tela */}
