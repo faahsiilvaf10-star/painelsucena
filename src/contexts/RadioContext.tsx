@@ -58,18 +58,24 @@ export const RadioProvider = ({ children }: { children: ReactNode }) => {
   });
   const [shuffledOrder, setShuffledOrder] = useState<number[]>([]);
   const userInteractedRef = useRef(false);
+  const shuffleBuiltForRef = useRef<number>(0);
 
-  // When shuffle mode or tracks change, build a shuffled index array
+  // When shuffle mode or tracks change, build a shuffled index array — only once per track list size
   useEffect(() => {
-    if (shuffleAll && allTracks.length > 0) {
+    if (shuffleAll && allTracks.length > 0 && shuffleBuiltForRef.current !== allTracks.length) {
       const indices = Array.from({ length: allTracks.length }, (_, i) => i);
       for (let i = indices.length - 1; i > 0; i--) {
         const j = Math.floor(Math.random() * (i + 1));
         [indices[i], indices[j]] = [indices[j], indices[i]];
       }
+      shuffleBuiltForRef.current = allTracks.length;
       setShuffledOrder(indices);
-      setCurrentTrackIndex(0);
+      // Only reset index if nothing is playing yet
+      if (!globalAudio || globalAudio.paused) {
+        setCurrentTrackIndex(0);
+      }
     } else if (!shuffleAll) {
+      shuffleBuiltForRef.current = 0;
       setShuffledOrder([]);
     }
   }, [shuffleAll, allTracks.length]);
