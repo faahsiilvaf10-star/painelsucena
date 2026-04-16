@@ -107,6 +107,9 @@ export function OrderDetailsDialog({ order, open, onOpenChange }: OrderDetailsDi
   const [editItemQty, setEditItemQty] = useState<number>(0);
   const [editItemUnit, setEditItemUnit] = useState<QuantityUnit>("unidade");
   const [editItemDesc, setEditItemDesc] = useState("");
+  const itemPhotoInputRef = useRef<HTMLInputElement | null>(null);
+  const [photoTargetItemId, setPhotoTargetItemId] = useState<string | null>(null);
+  const [uploadingItemId, setUploadingItemId] = useState<string | null>(null);
   
   const { user } = useAuth();
   const { data: profile } = useProfile();
