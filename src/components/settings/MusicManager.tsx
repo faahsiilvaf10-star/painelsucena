@@ -9,6 +9,7 @@ import { Music, Upload, Trash2, Loader2, Clock, Shuffle } from "lucide-react";
 import { toast } from "sonner";
 import { useMusicTracks, useUploadMusicTrack, useDeleteMusicTrack, useDeleteAllTracksBySlot, TIME_SLOT_LABELS } from "@/hooks/useMusicTracks";
 import { useRadio } from "@/contexts/RadioContext";
+import { useIsAdmin } from "@/hooks/useUserRole";
 import { cn } from "@/lib/utils";
 
 export const MusicManager = () => {
@@ -17,6 +18,7 @@ export const MusicManager = () => {
   const deleteMutation = useDeleteMusicTrack();
   const deleteAllMutation = useDeleteAllTracksBySlot();
   const { shuffleAll, setShuffleAll } = useRadio();
+  const { isStrictAdmin } = useIsAdmin();
   const fileInputRef = useRef<HTMLInputElement>(null);
 
   const [selectedTimeSlot, setSelectedTimeSlot] = useState<number>(8);
@@ -112,7 +114,7 @@ export const MusicManager = () => {
               </p>
             </div>
           </div>
-          <Switch checked={shuffleAll} onCheckedChange={setShuffleAll} />
+          <Switch checked={shuffleAll} onCheckedChange={setShuffleAll} disabled={!isStrictAdmin} />
         </div>
 
         {/* Upload Section */}
