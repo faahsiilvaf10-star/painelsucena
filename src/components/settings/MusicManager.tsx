@@ -7,7 +7,7 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@
 import { Switch } from "@/components/ui/switch";
 import { Music, Upload, Trash2, Loader2, Clock, Shuffle } from "lucide-react";
 import { toast } from "sonner";
-import { useMusicTracks, useUploadMusicTrack, useDeleteMusicTrack, TIME_SLOT_LABELS } from "@/hooks/useMusicTracks";
+import { useMusicTracks, useUploadMusicTrack, useDeleteMusicTrack, useDeleteAllTracksBySlot, TIME_SLOT_LABELS } from "@/hooks/useMusicTracks";
 import { useRadio } from "@/contexts/RadioContext";
 import { cn } from "@/lib/utils";
 
@@ -15,6 +15,7 @@ export const MusicManager = () => {
   const { data: tracks = [], isLoading } = useMusicTracks();
   const uploadMutation = useUploadMusicTrack();
   const deleteMutation = useDeleteMusicTrack();
+  const deleteAllMutation = useDeleteAllTracksBySlot();
   const { shuffleAll, setShuffleAll } = useRadio();
   const fileInputRef = useRef<HTMLInputElement>(null);
 
