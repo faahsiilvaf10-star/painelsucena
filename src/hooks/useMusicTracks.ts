@@ -95,3 +95,26 @@ export const useDeleteMusicTrack = () => {
     },
   });
 };
+
+export const useDeleteAllTracksBySlot = () => {
+  const queryClient = useQueryClient();
+
+  return useMutation({
+    mutationFn: async (tracks: MusicTrack[]) => {
+      // Remove files from storage
+      const filePaths = tracks
+        .map(t => t.file_url.split("/music-files/")[1])
+        .filter(Boolean) as string[];
+      if (filePaths.length > 0) {
+        await supabase.storage.from("music-files").remove(filePaths);
+      }
+      // Delete DB records
+      const ids = tracks.map(t => t.id);
+      const { error } = await supabase.from("music_tracks").delete().in("id", ids);
+      if (error) throw error;
+    },
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ["music-tracks"] });
+    },
+  });
+};
