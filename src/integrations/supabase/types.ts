@@ -2753,6 +2753,27 @@ export type Database = {
         }
         Relationships: []
       }
+      radio_now_playing: {
+        Row: {
+          id: string
+          started_at: string
+          track_id: string
+          updated_at: string
+        }
+        Insert: {
+          id?: string
+          started_at?: string
+          track_id: string
+          updated_at?: string
+        }
+        Update: {
+          id?: string
+          started_at?: string
+          track_id?: string
+          updated_at?: string
+        }
+        Relationships: []
+      }
       rdo_report_locks: {
         Row: {
           created_at: string
