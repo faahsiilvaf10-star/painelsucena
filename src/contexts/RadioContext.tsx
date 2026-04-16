@@ -424,12 +424,27 @@ export const RadioProvider = ({ children }: { children: ReactNode }) => {
 
   const setShuffleAll = useCallback(async (v: boolean) => {
     setShuffleAllState(v);
-    const now = new Date().toISOString();
-    await supabase
-      .from("radio_now_playing" as any)
-      .update({ shuffle_all: v, updated_at: now } as any)
-      .eq("id", "singleton");
-  }, []);
+    const tracks = allTracksRef.current;
+
+    if (v && tracks.length > 0) {
+      // Build a fresh shuffled queue and start playing immediately
+      const queue = buildQueue(tracks, []);
+      const firstId = queue.shift()!;
+      await writeState(firstId, queue, []);
+      // Also persist shuffle_all in the same row (writeState doesn't set it)
+      const now = new Date().toISOString();
+      await supabase
+        .from("radio_now_playing" as any)
+        .update({ shuffle_all: true, updated_at: now } as any)
+        .eq("id", "singleton");
+    } else {
+      const now = new Date().toISOString();
+      await supabase
+        .from("radio_now_playing" as any)
+        .update({ shuffle_all: v, updated_at: now } as any)
+        .eq("id", "singleton");
+    }
+  }, [buildQueue, writeState]);
   const setVolume = useCallback((v: number) => setVolumeState(Math.max(0, Math.min(1, v))), []);
 
   const toggleRadio = useCallback(() => {
