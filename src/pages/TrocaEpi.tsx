@@ -889,7 +889,18 @@ export default function TrocaEpi() {
           const name = isOutros && epiValue ? epiValue : (epiItem?.label || epiId);
           return `${name} (${epiQty})`;
         }).join(", ");
-        const description = `Troca de EPI - ${exchange.funcionario_nome}\nItens: ${episList}`;
+        let description = `Troca de EPI - ${exchange.funcionario_nome}\nItens: ${episList}`;
+        // Add uniforme info
+        const uniformeParts: string[] = [];
+        if (exchange.uniforme_blusa_quantidade && exchange.uniforme_blusa_quantidade > 0) {
+          uniformeParts.push(`Camisa: ${exchange.uniforme_blusa_tamanho || "N/I"} (${exchange.uniforme_blusa_quantidade})`);
+        }
+        if (exchange.uniforme_calca_quantidade && exchange.uniforme_calca_quantidade > 0) {
+          uniformeParts.push(`Calça: ${exchange.uniforme_calca_tamanho || "N/I"} (${exchange.uniforme_calca_quantidade})`);
+        }
+        if (uniformeParts.length > 0) {
+          description += `\nUniforme: ${uniformeParts.join(", ")}`;
+        }
         const isMobile = /Android|iPhone|iPad|iPod/i.test(navigator.userAgent);
         if (isMobile) {
           if (navigator.share && navigator.canShare?.({ files: [file] })) {
@@ -900,6 +911,10 @@ export default function TrocaEpi() {
             window.open(`https://wa.me/${phone}?text=${encodeURIComponent(description)}`, "_blank");
           }
         } else {
+          // Desktop: download image first, then open WhatsApp
+          const blobUrl = URL.createObjectURL(blob);
+          const a = document.createElement("a"); a.href = blobUrl; a.download = fileName; a.click(); URL.revokeObjectURL(blobUrl);
+          toast.success("Imagem baixada! Cole-a no WhatsApp.");
           window.open(`https://web.whatsapp.com/send?phone=${phone}&text=${encodeURIComponent(description)}`, "_blank");
         }
       }, "image/png");
