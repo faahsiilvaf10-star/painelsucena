@@ -2756,18 +2756,24 @@ export type Database = {
       radio_now_playing: {
         Row: {
           id: string
+          played_ids: Json
+          queue: Json
           started_at: string
           track_id: string
           updated_at: string
         }
         Insert: {
           id?: string
+          played_ids?: Json
+          queue?: Json
           started_at?: string
           track_id: string
           updated_at?: string
         }
         Update: {
           id?: string
+          played_ids?: Json
+          queue?: Json
           started_at?: string
           track_id?: string
           updated_at?: string
