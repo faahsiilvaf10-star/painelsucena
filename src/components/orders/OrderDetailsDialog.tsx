@@ -497,20 +497,26 @@ export function OrderDetailsDialog({ order, open, onOpenChange }: OrderDetailsDi
                                 <div className="flex items-center gap-2">
                                   {/* Item photos */}
                                   {(item as any).photo_urls && (item as any).photo_urls.length > 0 && (
-                                    <div className="flex -space-x-1 flex-shrink-0">
-                                      {(item as any).photo_urls.slice(0, 2).map((url: string, i: number) => (
-                                        <img
-                                          key={i}
-                                          src={url}
-                                          alt={`Foto ${i + 1}`}
-                                          className="w-8 h-8 rounded object-cover border border-background"
-                                        />
+                                    <div className="flex flex-wrap gap-1 flex-shrink-0">
+                                      {((item as any).photo_urls as string[]).map((url: string, i: number) => (
+                                        <div key={i} className="relative w-10 h-10">
+                                          <img
+                                            src={url}
+                                            alt={`Foto ${i + 1}`}
+                                            className="w-10 h-10 rounded object-cover border border-background"
+                                          />
+                                          {canEditItems && (
+                                            <button
+                                              type="button"
+                                              onClick={() => handleRemoveItemPhoto(item.id, url)}
+                                              className="absolute -top-1.5 -right-1.5 bg-destructive text-destructive-foreground rounded-full p-0.5 hover:bg-destructive/90"
+                                              aria-label="Remover foto"
+                                            >
+                                              <X className="w-3 h-3" />
+                                            </button>
+                                          )}
+                                        </div>
                                       ))}
-                                      {(item as any).photo_urls.length > 2 && (
-                                        <span className="w-8 h-8 rounded bg-muted flex items-center justify-center text-[10px] text-muted-foreground">
-                                          +{(item as any).photo_urls.length - 2}
-                                        </span>
-                                      )}
                                     </div>
                                   )}
                                   <div>
@@ -530,6 +536,20 @@ export function OrderDetailsDialog({ order, open, onOpenChange }: OrderDetailsDi
                               {canEditItems && (
                                 <TableCell>
                                   <div className="flex gap-1">
+                                    <Button
+                                      variant="ghost"
+                                      size="icon"
+                                      className="h-7 w-7"
+                                      onClick={() => triggerItemPhotoUpload(item.id)}
+                                      disabled={uploadingItemId === item.id}
+                                      title="Adicionar foto"
+                                    >
+                                      {uploadingItemId === item.id ? (
+                                        <Loader2 className="w-3.5 h-3.5 animate-spin" />
+                                      ) : (
+                                        <Upload className="w-3.5 h-3.5" />
+                                      )}
+                                    </Button>
                                     <Button variant="ghost" size="icon" className="h-7 w-7" onClick={() => handleStartEditItem(item)}>
                                       <Edit2 className="w-3.5 h-3.5" />
                                     </Button>
