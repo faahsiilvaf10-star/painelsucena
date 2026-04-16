@@ -96,7 +96,7 @@ export function InstallPrompt() {
           
           <div className="flex items-start gap-3">
             <img 
-              src="/pwa-icon.ico" 
+              src="/pwa-icon.png" 
               alt="App Logo" 
               className="w-12 h-12 rounded-xl shrink-0"
             />
