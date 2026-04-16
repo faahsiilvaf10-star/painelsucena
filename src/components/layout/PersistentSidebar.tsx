@@ -48,7 +48,8 @@ export const PersistentSidebar = ({ children }: PersistentSidebarProps) => {
   }, [settings?.primary_color]);
 
   // Wait for auth + profile + settings to load before rendering layout
-  const layoutReady = !authLoading && (!user || (!profileLoading && !settingsLoading));
+  // Skip the loading gate entirely on the auth page to avoid flashing
+  const layoutReady = isAuthPage || (!authLoading && (!user || (!profileLoading && !settingsLoading)));
 
   useEffect(() => {
     const handler = () => {
