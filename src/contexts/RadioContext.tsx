@@ -151,11 +151,13 @@ export const RadioProvider = ({ children }: { children: ReactNode }) => {
         setSyncedStartedAt(d.started_at);
         setSyncedQueue(Array.isArray(d.queue) ? d.queue : []);
         setSyncedPlayed(Array.isArray(d.played_ids) ? d.played_ids : []);
+        setShuffleAllState(!!d.shuffle_all);
       } else {
         setSyncedTrackId(null);
         setSyncedStartedAt(null);
         setSyncedQueue([]);
         setSyncedPlayed([]);
+        setShuffleAllState(false);
       }
       setRadioStateLoaded(true);
     };
