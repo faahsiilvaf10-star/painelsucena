@@ -2758,6 +2758,7 @@ export type Database = {
           id: string
           played_ids: Json
           queue: Json
+          shuffle_all: boolean
           started_at: string
           track_id: string
           updated_at: string
@@ -2766,6 +2767,7 @@ export type Database = {
           id?: string
           played_ids?: Json
           queue?: Json
+          shuffle_all?: boolean
           started_at?: string
           track_id: string
           updated_at?: string
@@ -2774,6 +2776,7 @@ export type Database = {
           id?: string
           played_ids?: Json
           queue?: Json
+          shuffle_all?: boolean
           started_at?: string
           track_id?: string
           updated_at?: string

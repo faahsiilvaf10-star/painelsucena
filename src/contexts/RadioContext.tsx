@@ -86,9 +86,7 @@ export const RadioProvider = ({ children }: { children: ReactNode }) => {
   });
   const [allTracks, setAllTracks] = useState<PlaylistTrack[]>([]);
   const [currentHour, setCurrentHour] = useState(getCurrentHour);
-  const [shuffleAll, setShuffleAllState] = useState(() => {
-    try { return localStorage.getItem("radio_shuffle_all") === "true"; } catch { return false; }
-  });
+  const [shuffleAll, setShuffleAllState] = useState(false);
   const [tracksLoaded, setTracksLoaded] = useState(false);
   const [radioStateLoaded, setRadioStateLoaded] = useState(false);
 
@@ -153,11 +151,13 @@ export const RadioProvider = ({ children }: { children: ReactNode }) => {
         setSyncedStartedAt(d.started_at);
         setSyncedQueue(Array.isArray(d.queue) ? d.queue : []);
         setSyncedPlayed(Array.isArray(d.played_ids) ? d.played_ids : []);
+        setShuffleAllState(!!d.shuffle_all);
       } else {
         setSyncedTrackId(null);
         setSyncedStartedAt(null);
         setSyncedQueue([]);
         setSyncedPlayed([]);
+        setShuffleAllState(false);
       }
       setRadioStateLoaded(true);
     };
@@ -167,11 +167,12 @@ export const RadioProvider = ({ children }: { children: ReactNode }) => {
       .channel("radio-now-playing")
       .on("postgres_changes", { event: "*", schema: "public", table: "radio_now_playing" }, (payload) => {
         const row = payload.new as any;
-        if (row?.track_id) {
+        if (row?.track_id !== undefined) {
           setSyncedTrackId(row.track_id);
           setSyncedStartedAt(row.started_at);
           setSyncedQueue(Array.isArray(row.queue) ? row.queue : []);
           setSyncedPlayed(Array.isArray(row.played_ids) ? row.played_ids : []);
+          setShuffleAllState(!!row.shuffle_all);
         }
       })
       .subscribe();
@@ -420,9 +421,15 @@ export const RadioProvider = ({ children }: { children: ReactNode }) => {
   // Persist local prefs
   useEffect(() => { localStorage.setItem("radio_playing", String(isPlaying)); }, [isPlaying]);
   useEffect(() => { localStorage.setItem("radio_volume", String(volume)); }, [volume]);
-  useEffect(() => { localStorage.setItem("radio_shuffle_all", String(shuffleAll)); }, [shuffleAll]);
 
-  const setShuffleAll = useCallback((v: boolean) => setShuffleAllState(v), []);
+  const setShuffleAll = useCallback(async (v: boolean) => {
+    setShuffleAllState(v);
+    const now = new Date().toISOString();
+    await supabase
+      .from("radio_now_playing" as any)
+      .update({ shuffle_all: v, updated_at: now } as any)
+      .eq("id", "singleton");
+  }, []);
   const setVolume = useCallback((v: number) => setVolumeState(Math.max(0, Math.min(1, v))), []);
 
   const toggleRadio = useCallback(() => {
