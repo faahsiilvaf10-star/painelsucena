@@ -20,8 +20,10 @@ export const PersistentSidebar = ({ children }: PersistentSidebarProps) => {
   const { data: profile, isLoading: profileLoading } = useProfile();
   const { settings, isLoading: settingsLoading } = useSiteSettings();
   const isMobile = useIsMobile();
+  const location = useLocation();
   const [justCompletedTransition, setJustCompletedTransition] = useState(false);
 
+  const isAuthPage = location.pathname === "/auth";
   const isDriver = profile?.cargo && DRIVER_ROLES.includes(profile.cargo);
   const isAvatarBlocked = user && profile && (!profile.avatar_url || profile.avatar_url.trim().length === 0);
   
