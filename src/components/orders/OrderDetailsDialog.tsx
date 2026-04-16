@@ -812,6 +812,16 @@ export function OrderDetailsDialog({ order, open, onOpenChange }: OrderDetailsDi
         </DialogContent>
       </Dialog>
 
+      {/* Hidden input used for adding photos to an item */}
+      <input
+        ref={itemPhotoInputRef}
+        type="file"
+        accept="image/*"
+        multiple
+        className="hidden"
+        onChange={handleItemPhotosChange}
+      />
+
       {/* Photo Viewer */}
       <PhotoViewer
         photos={order.photo_urls || []}
