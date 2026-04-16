@@ -1,4 +1,5 @@
 import { ReactNode, useEffect, useState } from "react";
+import { useLocation } from "react-router-dom";
 import { AppSidebar } from "./AppSidebar";
 import { DockNavigation } from "./DockNavigation";
 import { SidebarProvider, SidebarTrigger } from "@/components/ui/sidebar";
@@ -19,8 +20,10 @@ export const PersistentSidebar = ({ children }: PersistentSidebarProps) => {
   const { data: profile, isLoading: profileLoading } = useProfile();
   const { settings, isLoading: settingsLoading } = useSiteSettings();
   const isMobile = useIsMobile();
+  const location = useLocation();
   const [justCompletedTransition, setJustCompletedTransition] = useState(false);
 
+  const isAuthPage = location.pathname === "/auth";
   const isDriver = profile?.cargo && DRIVER_ROLES.includes(profile.cargo);
   const isAvatarBlocked = user && profile && (!profile.avatar_url || profile.avatar_url.trim().length === 0);
   
@@ -71,7 +74,7 @@ export const PersistentSidebar = ({ children }: PersistentSidebarProps) => {
   return (
     <SidebarProvider defaultOpen={isAvatarBlocked ? false : !isMobile}>
       <div className="h-screen flex flex-row w-full bg-background overflow-x-clip overflow-y-hidden">
-        {user && !isDriver && !useDock && (
+        {user && !isDriver && !useDock && !isAuthPage && (
           <div className={`overflow-visible ${justCompletedTransition ? "animate-fade-in" : ""}`}>
             <AppSidebar lockedCollapsed={!!isAvatarBlocked} />
           </div>
@@ -83,7 +86,7 @@ export const PersistentSidebar = ({ children }: PersistentSidebarProps) => {
         >
           {children}
         </div>
-        {useDock && <DockNavigation />}
+        {useDock && !isAuthPage && <DockNavigation />}
       </div>
     </SidebarProvider>
   );
