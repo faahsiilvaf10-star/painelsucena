@@ -207,6 +207,16 @@ export const MusicManager = () => {
                     <span className="text-xs text-muted-foreground">
                       ({tracksBySlot[slot].length})
                     </span>
+                    <Button
+                      variant="ghost"
+                      size="icon"
+                      className="h-5 w-5 ml-auto shrink-0 text-destructive hover:text-destructive hover:bg-destructive/10"
+                      onClick={() => handleDeleteAllSlot(slot)}
+                      disabled={deleteAllMutation.isPending}
+                      title={`Apagar todas do horário ${TIME_SLOT_LABELS[slot].label}`}
+                    >
+                      <Trash2 className="h-3 w-3" />
+                    </Button>
                   </div>
                   {tracksBySlot[slot].map((track, i) => (
                     <div
