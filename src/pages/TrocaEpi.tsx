@@ -159,7 +159,17 @@ function buildExchangeShareDescription(exchange: EpiExchange) {
 }
 
 function getExchangeShareKey(exchange: EpiExchange) {
-  return `${exchange.id}:${exchange.updated_at}`;
+  return JSON.stringify({
+    id: exchange.id,
+    created_at: exchange.created_at,
+    data: exchange.data,
+    funcionario_nome: exchange.funcionario_nome,
+    epis: exchange.epis,
+    uniforme_blusa_tamanho: exchange.uniforme_blusa_tamanho,
+    uniforme_blusa_quantidade: exchange.uniforme_blusa_quantidade,
+    uniforme_calca_tamanho: exchange.uniforme_calca_tamanho,
+    uniforme_calca_quantidade: exchange.uniforme_calca_quantidade,
+  });
 }
 
 function findInventoryMatch(inventoryItems: any[], searchLabel: string): any | null {
