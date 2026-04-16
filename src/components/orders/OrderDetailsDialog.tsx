@@ -254,6 +254,7 @@ export function OrderDetailsDialog({ order, open, onOpenChange }: OrderDetailsDi
     try {
       await updateItem.mutateAsync({
         itemId: editingItemId,
+        orderId: order.id,
         product_name: editItemName,
         quantity: editItemQty,
         quantity_unit: editItemUnit,
@@ -268,11 +269,68 @@ export function OrderDetailsDialog({ order, open, onOpenChange }: OrderDetailsDi
 
   const handleDeleteItem = async (itemId: string) => {
     try {
-      await deleteItem.mutateAsync(itemId);
+      await deleteItem.mutateAsync({ itemId, orderId: order.id });
       toast({ title: "Item removido!" });
       setShowDeleteItemConfirm(null);
     } catch {
       toast({ title: "Erro ao remover item", variant: "destructive" });
+    }
+  };
+
+  // ----- Item photos management -----
+  const itemPhotoInputRef = useRef<HTMLInputElement | null>(null);
+  const [photoTargetItemId, setPhotoTargetItemId] = useState<string | null>(null);
+  const [uploadingItemId, setUploadingItemId] = useState<string | null>(null);
+
+  const triggerItemPhotoUpload = (itemId: string) => {
+    setPhotoTargetItemId(itemId);
+    setTimeout(() => itemPhotoInputRef.current?.click(), 0);
+  };
+
+  const handleItemPhotosChange = async (e: React.ChangeEvent<HTMLInputElement>) => {
+    const files = e.target.files;
+    if (!files?.length || !photoTargetItemId) {
+      e.target.value = "";
+      return;
+    }
+    const targetId = photoTargetItemId;
+    const target = orderItems?.find((it) => it.id === targetId) as any;
+    if (!target) {
+      e.target.value = "";
+      return;
+    }
+    setUploadingItemId(targetId);
+    try {
+      const urls = await Promise.all(Array.from(files).map(uploadOrderPhoto));
+      const newPhotos = [...((target.photo_urls as string[]) || []), ...urls];
+      await updateItem.mutateAsync({
+        itemId: targetId,
+        orderId: order.id,
+        photo_urls: newPhotos,
+      });
+      toast({ title: "Foto(s) adicionada(s)!" });
+    } catch {
+      toast({ title: "Erro ao enviar foto", variant: "destructive" });
+    } finally {
+      setUploadingItemId(null);
+      setPhotoTargetItemId(null);
+      e.target.value = "";
+    }
+  };
+
+  const handleRemoveItemPhoto = async (itemId: string, photoUrl: string) => {
+    const target = orderItems?.find((it) => it.id === itemId) as any;
+    if (!target) return;
+    const newPhotos = ((target.photo_urls as string[]) || []).filter((u) => u !== photoUrl);
+    try {
+      await updateItem.mutateAsync({
+        itemId,
+        orderId: order.id,
+        photo_urls: newPhotos,
+      });
+      toast({ title: "Foto removida!" });
+    } catch {
+      toast({ title: "Erro ao remover foto", variant: "destructive" });
     }
   };
 
