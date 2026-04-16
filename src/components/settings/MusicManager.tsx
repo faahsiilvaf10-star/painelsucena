@@ -69,6 +69,18 @@ export const MusicManager = () => {
     }
   };
 
+  const handleDeleteAllSlot = async (slot: number) => {
+    const slotTracks = tracksBySlot[slot];
+    if (!slotTracks || slotTracks.length === 0) return;
+    if (!confirm(`Apagar todas as ${slotTracks.length} músicas do horário ${TIME_SLOT_LABELS[slot].label}?`)) return;
+    try {
+      await deleteAllMutation.mutateAsync(slotTracks);
+      toast.success(`${slotTracks.length} música(s) removida(s) do horário ${TIME_SLOT_LABELS[slot].label}`);
+    } catch {
+      toast.error("Erro ao remover músicas");
+    }
+  };
+
   // Group tracks by time slot
   const tracksBySlot = tracks.reduce<Record<number, typeof tracks>>((acc, track) => {
     if (!acc[track.time_slot]) acc[track.time_slot] = [];
