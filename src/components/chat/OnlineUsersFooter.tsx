@@ -15,13 +15,15 @@ export const OnlineUsersFooter = ({ onUserClick }: OnlineUsersFooterProps) => {
   const [isMinimized, setIsMinimized] = useState(false);
   const { state } = useSidebar();
   const {
-    isPlaying, volume, setVolume, currentTrack, toggleRadio, currentHour,
+    isPlaying, volume, setVolume, currentTrack, toggleRadio, currentHour, shuffleAll, playlistTracks,
   } = useRadio();
 
   const isCollapsedSidebar = state === "collapsed";
   const trackName = currentTrack
     ? currentTrack.file_name.replace(/\.[^/.]+$/, "")
-    : `Sem músicas (${String(currentHour).padStart(2, "0")}:00)`;
+    : shuffleAll && playlistTracks.length > 0
+      ? "Carregando rádio..."
+      : `Sem músicas (${String(currentHour).padStart(2, "0")}:00)`;
 
   return (
     <div className={cn(
