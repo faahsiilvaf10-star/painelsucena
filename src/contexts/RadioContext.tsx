@@ -58,6 +58,23 @@ function shuffleArray<T>(items: T[]): T[] {
   return result;
 }
 
+function sanitizeTrackIds(ids: string[], validIds: Set<string>): string[] {
+  const seen = new Set<string>();
+  const sanitized: string[] = [];
+
+  for (const id of ids) {
+    if (!validIds.has(id) || seen.has(id)) continue;
+    seen.add(id);
+    sanitized.push(id);
+  }
+
+  return sanitized;
+}
+
+function areArraysEqual(a: string[], b: string[]): boolean {
+  return a.length === b.length && a.every((value, index) => value === b[index]);
+}
+
 let globalAudio: HTMLAudioElement | null = null;
 
 export const RadioProvider = ({ children }: { children: ReactNode }) => {
@@ -72,6 +89,8 @@ export const RadioProvider = ({ children }: { children: ReactNode }) => {
   const [shuffleAll, setShuffleAllState] = useState(() => {
     try { return localStorage.getItem("radio_shuffle_all") === "true"; } catch { return false; }
   });
+  const [tracksLoaded, setTracksLoaded] = useState(false);
+  const [radioStateLoaded, setRadioStateLoaded] = useState(false);
 
   // Synced state from DB
   const [syncedTrackId, setSyncedTrackId] = useState<string | null>(null);
@@ -98,12 +117,16 @@ export const RadioProvider = ({ children }: { children: ReactNode }) => {
   // ─── Load tracks ───
   useEffect(() => {
     const load = async () => {
-      const { data } = await supabase
+      const { data, error } = await supabase
         .from("music_tracks")
         .select("id, file_url, file_name, time_slot")
         .order("time_slot")
         .order("created_at");
-      if (data) setAllTracks(data as PlaylistTrack[]);
+      if (error) {
+        console.error("Failed to load radio tracks", error);
+      }
+      setAllTracks((data as PlaylistTrack[]) ?? []);
+      setTracksLoaded(true);
     };
     load();
     const channel = supabase
@@ -116,18 +139,27 @@ export const RadioProvider = ({ children }: { children: ReactNode }) => {
   // ─── Load & subscribe to radio_now_playing ───
   useEffect(() => {
     const loadState = async () => {
-      const { data } = await supabase
+      const { data, error } = await supabase
         .from("radio_now_playing" as any)
         .select("track_id, started_at, queue, played_ids")
         .eq("id", "singleton")
         .maybeSingle();
+      if (error) {
+        console.error("Failed to load radio state", error);
+      }
       if (data) {
         const d = data as any;
         setSyncedTrackId(d.track_id);
         setSyncedStartedAt(d.started_at);
         setSyncedQueue(Array.isArray(d.queue) ? d.queue : []);
         setSyncedPlayed(Array.isArray(d.played_ids) ? d.played_ids : []);
+      } else {
+        setSyncedTrackId(null);
+        setSyncedStartedAt(null);
+        setSyncedQueue([]);
+        setSyncedPlayed([]);
       }
+      setRadioStateLoaded(true);
     };
     loadState();
 
@@ -190,6 +222,22 @@ export const RadioProvider = ({ children }: { children: ReactNode }) => {
     }
   }, []);
 
+  const syncStateCollections = useCallback(async (queue: string[], playedIds: string[]) => {
+    const now = new Date().toISOString();
+    const { error } = await supabase
+      .from("radio_now_playing" as any)
+      .update({ queue, played_ids: playedIds, updated_at: now } as any)
+      .eq("id", "singleton");
+
+    if (error) {
+      console.error("Failed to sync radio queue state", error);
+      return;
+    }
+
+    setSyncedQueue(queue);
+    setSyncedPlayed(playedIds);
+  }, []);
+
   // ─── Advance to next track (pop from queue, add current to played) ───
   const advanceNext = useCallback(() => {
     const tracks = allTracksRef.current;
@@ -233,39 +281,64 @@ export const RadioProvider = ({ children }: { children: ReactNode }) => {
     writeState(nextId, queue, played);
   }, [buildQueue, writeState]);
 
-  // ─── Initialize when tracks load and no state exists ───
+  // ─── Recover radio state when the current track or queue becomes invalid ───
   useEffect(() => {
-    if (allTracks.length > 0 && !syncedTrackId) {
-      const queue = buildQueue(allTracks, []);
-      if (queue.length > 0) {
-        const firstId = queue.shift()!;
-        writeState(firstId, queue, []);
+    if (!tracksLoaded || !radioStateLoaded || allTracks.length === 0) return;
+
+    const validIds = new Set(allTracks.map(track => track.id));
+    const sanitizedQueue = sanitizeTrackIds(syncedQueue, validIds);
+    let sanitizedPlayed = sanitizeTrackIds(syncedPlayed, validIds);
+    const currentTrackIsValid = syncedTrackId ? validIds.has(syncedTrackId) : false;
+
+    if (currentTrackIsValid) {
+      if (!areArraysEqual(sanitizedQueue, syncedQueue) || !areArraysEqual(sanitizedPlayed, syncedPlayed)) {
+        void syncStateCollections(sanitizedQueue, sanitizedPlayed);
       }
+      return;
     }
-  }, [allTracks.length, syncedTrackId]);
+
+    let nextQueue = sanitizedQueue;
+    if (nextQueue.length === 0) {
+      if (sanitizedPlayed.length >= allTracks.length) {
+        sanitizedPlayed = [];
+      }
+      nextQueue = buildQueue(allTracks, sanitizedPlayed);
+    }
+
+    const nextId = nextQueue.shift();
+    if (!nextId) return;
+
+    void writeState(nextId, nextQueue, sanitizedPlayed);
+  }, [allTracks, buildQueue, radioStateLoaded, syncedPlayed, syncedQueue, syncedTrackId, syncStateCollections, tracksLoaded, writeState]);
 
   // ─── Inject new tracks into existing queue when track list grows ───
   useEffect(() => {
-    if (allTracks.length === 0 || !syncedTrackId) return;
-    const knownIds = new Set([...syncedPlayed, ...syncedQueue, syncedTrackId]);
+    if (!tracksLoaded || !radioStateLoaded || allTracks.length === 0 || !syncedTrackId) return;
+
+    const validIds = new Set(allTracks.map(track => track.id));
+    if (!validIds.has(syncedTrackId)) return;
+
+    const sanitizedQueue = sanitizeTrackIds(syncedQueue, validIds);
+    const sanitizedPlayed = sanitizeTrackIds(syncedPlayed, validIds);
+    const knownIds = new Set([...sanitizedPlayed, ...sanitizedQueue, syncedTrackId]);
     const newTracks = allTracks.filter(t => !knownIds.has(t.id)).map(t => t.id);
-    if (newTracks.length > 0) {
-      const updatedQueue = [...syncedQueue];
-      for (const id of newTracks) {
-        const pos = Math.floor(Math.random() * (updatedQueue.length + 1));
-        updatedQueue.splice(pos, 0, id);
-      }
-      // Update queue in DB without changing current track
-      const now = new Date().toISOString();
-      supabase
-        .from("radio_now_playing" as any)
-        .update({ queue: updatedQueue, updated_at: now } as any)
-        .eq("id", "singleton")
-        .then(() => {
-          setSyncedQueue(updatedQueue);
-        });
+
+    if (
+      newTracks.length === 0 &&
+      areArraysEqual(sanitizedQueue, syncedQueue) &&
+      areArraysEqual(sanitizedPlayed, syncedPlayed)
+    ) {
+      return;
     }
-  }, [allTracks.length]);
+
+    const updatedQueue = [...sanitizedQueue];
+    for (const id of newTracks) {
+      const pos = Math.floor(Math.random() * (updatedQueue.length + 1));
+      updatedQueue.splice(pos, 0, id);
+    }
+
+    void syncStateCollections(updatedQueue, sanitizedPlayed);
+  }, [allTracks, radioStateLoaded, syncedPlayed, syncedQueue, syncedTrackId, syncStateCollections, tracksLoaded]);
 
   // ─── Audio playback — sync to DB track with seek ───
   useEffect(() => {
@@ -296,8 +369,14 @@ export const RadioProvider = ({ children }: { children: ReactNode }) => {
       }
     };
 
+    const handleError = () => {
+      console.error("Radio track failed to load, skipping to the next one", currentTrack.file_name);
+      advanceNext();
+    };
+
     globalAudio.addEventListener("loadedmetadata", handleLoaded);
     globalAudio.addEventListener("ended", advanceNext);
+    globalAudio.addEventListener("error", handleError);
 
     globalAudio.play().catch(err => {
       console.log("Playback failed:", err);
@@ -316,6 +395,7 @@ export const RadioProvider = ({ children }: { children: ReactNode }) => {
     return () => {
       globalAudio?.removeEventListener("loadedmetadata", handleLoaded);
       globalAudio?.removeEventListener("ended", advanceNext);
+      globalAudio?.removeEventListener("error", handleError);
     };
   }, [currentTrack?.file_url, syncedStartedAt]);
 
