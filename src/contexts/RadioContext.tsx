@@ -421,9 +421,15 @@ export const RadioProvider = ({ children }: { children: ReactNode }) => {
   // Persist local prefs
   useEffect(() => { localStorage.setItem("radio_playing", String(isPlaying)); }, [isPlaying]);
   useEffect(() => { localStorage.setItem("radio_volume", String(volume)); }, [volume]);
-  useEffect(() => { localStorage.setItem("radio_shuffle_all", String(shuffleAll)); }, [shuffleAll]);
 
-  const setShuffleAll = useCallback((v: boolean) => setShuffleAllState(v), []);
+  const setShuffleAll = useCallback(async (v: boolean) => {
+    setShuffleAllState(v);
+    const now = new Date().toISOString();
+    await supabase
+      .from("radio_now_playing" as any)
+      .update({ shuffle_all: v, updated_at: now } as any)
+      .eq("id", "singleton");
+  }, []);
   const setVolume = useCallback((v: number) => setVolumeState(Math.max(0, Math.min(1, v))), []);
 
   const toggleRadio = useCallback(() => {
