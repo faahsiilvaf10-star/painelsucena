@@ -78,11 +78,16 @@ export const RadioProvider = ({ children }: { children: ReactNode }) => {
   const playlistTracks = activeTracks;
 
   const currentTrack = (() => {
-    if (activeTracks.length === 0) return null;
-    if (shuffleAll && shuffledOrder.length > 0) {
-      const idx = shuffledOrder[currentTrackIndex % shuffledOrder.length];
-      return allTracks[idx] || null;
+    if (shuffleAll) {
+      if (allTracks.length === 0) return null;
+      if (shuffledOrder.length > 0) {
+        const idx = shuffledOrder[currentTrackIndex % shuffledOrder.length];
+        return allTracks[idx] || allTracks[0];
+      }
+      // Fallback: shuffledOrder not yet built, pick first track
+      return allTracks[currentTrackIndex % allTracks.length] || null;
     }
+    if (activeTracks.length === 0) return null;
     return activeTracks[currentTrackIndex % activeTracks.length] || null;
   })();
 
