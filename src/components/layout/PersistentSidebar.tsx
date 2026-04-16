@@ -74,7 +74,7 @@ export const PersistentSidebar = ({ children }: PersistentSidebarProps) => {
   return (
     <SidebarProvider defaultOpen={isAvatarBlocked ? false : !isMobile}>
       <div className="h-screen flex flex-row w-full bg-background overflow-x-clip overflow-y-hidden">
-        {user && !isDriver && !useDock && (
+        {user && !isDriver && !useDock && !isAuthPage && (
           <div className={`overflow-visible ${justCompletedTransition ? "animate-fade-in" : ""}`}>
             <AppSidebar lockedCollapsed={!!isAvatarBlocked} />
           </div>
