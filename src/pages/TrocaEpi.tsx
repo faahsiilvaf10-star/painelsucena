@@ -858,6 +858,8 @@ export default function TrocaEpi() {
   };
 
   const handlePngWhatsApp = async (exchange: EpiExchange) => {
+    const isMobile = /Android|iPhone|iPad|iPod/i.test(navigator.userAgent);
+
     try {
       toast.info("Gerando imagem...");
       const logoBase64 = await getLogoBase64();
@@ -870,15 +872,26 @@ export default function TrocaEpi() {
       container.style.background = "#fff";
       container.innerHTML = html;
       document.body.appendChild(container);
-      const images = container.querySelectorAll("img");
-      await Promise.all(Array.from(images).map(img => new Promise<void>(resolve => { if (img.complete) return resolve(); img.onload = () => resolve(); img.onerror = () => resolve(); })));
-      const { default: html2canvas } = await import("html2canvas");
-      const canvas = await html2canvas(container, { scale: 2, useCORS: true, backgroundColor: "#ffffff" });
-      document.body.removeChild(container);
-      canvas.toBlob(async (blob) => {
-        if (!blob) { toast.error("Erro ao gerar imagem"); return; }
+
+      try {
+        const images = container.querySelectorAll("img");
+        await Promise.all(Array.from(images).map(img => new Promise<void>(resolve => {
+          if (img.complete) return resolve();
+          img.onload = () => resolve();
+          img.onerror = () => resolve();
+        })));
+
+        const { default: html2canvas } = await import("html2canvas");
+        const canvas = await html2canvas(container, { scale: 2, useCORS: true, backgroundColor: "#ffffff" });
+        const blob = await new Promise<Blob | null>(resolve => canvas.toBlob(resolve, "image/png"));
+
+        if (!blob) {
+          toast.error("Erro ao gerar imagem");
+          return;
+        }
+
         const fileName = `troca-epi-${exchange.funcionario_nome}-${Date.now()}.png`;
-        const file = new File([blob], fileName, { type: "image/png" });
+        const file = new File([blob], fileName, { type: blob.type || "image/png", lastModified: Date.now() });
         const phone = "559193645741";
         const episList = (exchange.epis || []).map((e: any) => {
           const epiId = typeof e === "string" ? e : e.id;
@@ -889,8 +902,8 @@ export default function TrocaEpi() {
           const name = isOutros && epiValue ? epiValue : (epiItem?.label || epiId);
           return `${name} (${epiQty})`;
         }).join(", ");
+
         let description = `Troca de EPI - ${exchange.funcionario_nome}\nItens: ${episList}`;
-        // Add uniforme info
         const uniformeParts: string[] = [];
         if (exchange.uniforme_blusa_quantidade && exchange.uniforme_blusa_quantidade > 0) {
           uniformeParts.push(`Camisa: ${exchange.uniforme_blusa_tamanho || "N/I"} (${exchange.uniforme_blusa_quantidade})`);
@@ -901,27 +914,38 @@ export default function TrocaEpi() {
         if (uniformeParts.length > 0) {
           description += `\nUniforme: ${uniformeParts.join(", ")}`;
         }
-        const isMobile = /Android|iPhone|iPad|iPod/i.test(navigator.userAgent);
-        
-        // Try Web Share API with file (works on most modern mobile browsers)
-        if (navigator.share) {
-          const shareData: ShareData = { text: description };
-          try {
-            // Check if file sharing is supported
-            if (navigator.canShare && navigator.canShare({ files: [file] })) {
-              shareData.files = [file];
-            }
-            await navigator.share(shareData);
-            toast.success("Compartilhado com sucesso!");
+
+        if (isMobile) {
+          if (typeof navigator.share !== "function") {
+            toast.error("Seu celular não suporta compartilhamento direto da imagem.");
             return;
-          } catch (e: any) {
-            // User cancelled - don't fallback
-            if (e?.name === "AbortError") return;
-            // Share failed, fall through to fallback
           }
+
+          if (typeof navigator.canShare === "function" && !navigator.canShare({ files: [file] })) {
+            toast.error("Seu navegador não permite compartilhar essa imagem diretamente.");
+            return;
+          }
+
+          const shareVariants: ShareData[] = [
+            { files: [file], title: `Troca de EPI - ${exchange.funcionario_nome}`, text: description },
+            { files: [file], title: `Troca de EPI - ${exchange.funcionario_nome}` },
+            { files: [file] },
+          ];
+
+          for (const shareData of shareVariants) {
+            try {
+              await navigator.share(shareData);
+              toast.success("Compartilhado com sucesso!");
+              return;
+            } catch (error: any) {
+              if (error?.name === "AbortError") return;
+            }
+          }
+
+          toast.error("Não foi possível abrir o compartilhamento direto no celular.");
+          return;
         }
 
-        // Fallback: download image + open WhatsApp
         const blobUrl = URL.createObjectURL(blob);
         const a = document.createElement("a");
         a.href = blobUrl;
@@ -929,17 +953,18 @@ export default function TrocaEpi() {
         document.body.appendChild(a);
         a.click();
         document.body.removeChild(a);
-        // Small delay to ensure download starts before navigation
         await new Promise(r => setTimeout(r, 500));
         URL.revokeObjectURL(blobUrl);
-        toast.success("Imagem baixada! Cole-a na conversa.");
-        if (isMobile) {
-          window.open(`https://wa.me/${phone}?text=${encodeURIComponent(description)}`, "_blank");
-        } else {
-          window.open(`https://web.whatsapp.com/send?phone=${phone}&text=${encodeURIComponent(description)}`, "_blank");
+        toast.success("Imagem baixada! Anexe-a na conversa.");
+        window.open(`https://web.whatsapp.com/send?phone=${phone}&text=${encodeURIComponent(description)}`, "_blank");
+      } finally {
+        if (container.parentNode) {
+          container.parentNode.removeChild(container);
         }
-      }, "image/png");
-    } catch (err) { toast.error("Erro ao gerar PNG"); }
+      }
+    } catch (err) {
+      toast.error("Erro ao gerar PNG");
+    }
   };
 
   // Render photo upload section
