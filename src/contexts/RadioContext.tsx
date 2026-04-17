@@ -454,7 +454,7 @@ export const RadioProvider = ({ children }: { children: ReactNode }) => {
       globalAudio?.removeEventListener("error", handleError);
     };
     // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [currentTrack?.file_url]);
+  }, [currentTrack?.file_url, pathname]);
 
   // Mute/unmute
   useEffect(() => {
