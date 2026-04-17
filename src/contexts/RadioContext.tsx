@@ -354,11 +354,19 @@ export const RadioProvider = ({ children }: { children: ReactNode }) => {
   // that field for the same track and would otherwise restart the audio
   // mid-playback (bug: "música para e volta de vez em quando").
   useEffect(() => {
-    if (!currentTrack) {
+    // Never play music on the login page.
+    const isAuthRoute = typeof window !== "undefined" && window.location.pathname.startsWith("/auth");
+
+    if (!currentTrack || isAuthRoute) {
       if (globalAudio) { globalAudio.pause(); }
+      if (isAuthRoute) {
+        // keep ref so we resume after login without rebuilding
+        return;
+      }
       currentTrackUrlRef.current = null;
       return;
     }
+
 
     if (currentTrackUrlRef.current === currentTrack.file_url && globalAudio) {
       // Same track already playing — leave it alone.
