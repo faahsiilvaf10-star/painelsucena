@@ -110,6 +110,11 @@ export function AnnouncementManager() {
       return;
     }
 
+    if (targetEnvironments.length === 0) {
+      toast.error("Selecione pelo menos um ambiente.");
+      return;
+    }
+
     let scheduledAt: string | null = null;
     if (isScheduled && scheduledDate && scheduledTime) {
       scheduledAt = new Date(`${scheduledDate}T${scheduledTime}`).toISOString();
@@ -122,9 +127,16 @@ export function AnnouncementManager() {
       target_type: targetType,
       target_users: targetType === "specific" ? selectedUsers : [],
       scheduled_at: scheduledAt,
+      environments: targetEnvironments,
     });
 
     resetForm();
+  };
+
+  const toggleEnvironment = (env: string) => {
+    setTargetEnvironments((prev) =>
+      prev.includes(env) ? prev.filter((e) => e !== env) : [...prev, env]
+    );
   };
 
   const toggleUserSelection = (userId: string) => {
