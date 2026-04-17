@@ -3,7 +3,6 @@ import { supabase } from "@/integrations/supabase/client";
 import { useAuth } from "./useAuth";
 import { useProfile } from "./useProfile";
 import { useEffect } from "react";
-import { syncToPartner } from "@/lib/instaCenaSync";
 
 export interface InstaCenaPost {
   id: string;
