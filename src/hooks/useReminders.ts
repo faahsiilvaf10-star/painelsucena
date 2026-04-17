@@ -2,6 +2,7 @@
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import { supabase } from "@/integrations/supabase/client";
 import { useAuth } from "./useAuth";
+import { useEnvironment } from "./useEnvironment";
 import { useEffect } from "react";
 import { getBrazilNorthMidnight, getDaysUntilEventBrazilNorth } from "@/lib/timezone";
 
@@ -40,10 +41,11 @@ export interface ReminderInsert {
 
 export const useReminders = () => {
   const { user } = useAuth();
+  const { environment } = useEnvironment();
   const queryClient = useQueryClient();
 
   const query = useQuery({
-    queryKey: ["reminders", user?.id],
+    queryKey: ["reminders", user?.id, environment],
     queryFn: async () => {
       if (!user?.id) return [];
 
@@ -100,9 +102,10 @@ export const useReminders = () => {
 
 export const useActiveReminders = () => {
   const { user } = useAuth();
+  const { environment } = useEnvironment();
 
   return useQuery({
-    queryKey: ["active-reminders", user?.id],
+    queryKey: ["active-reminders", user?.id, environment],
     queryFn: async () => {
       if (!user?.id) return [];
 
