@@ -2,6 +2,7 @@
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import { supabase } from "@/integrations/supabase/client";
 import { useAuth } from "./useAuth";
+import { useEnvironment } from "./useEnvironment";
 import { useEffect } from "react";
 import { getBrazilNorthMidnight, getDaysUntilEventBrazilNorth } from "@/lib/timezone";
 
