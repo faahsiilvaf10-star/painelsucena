@@ -92,12 +92,22 @@ export default {
           "0%": { transform: "translateX(0)" },
           "100%": { transform: "translateX(-50%)" },
         },
+        "admin-glow": {
+          "0%, 100%": { opacity: "0.55", transform: "scale(1)" },
+          "50%": { opacity: "1", transform: "scale(1.18)" },
+        },
+        "admin-spin": {
+          "0%": { transform: "rotate(0deg)" },
+          "100%": { transform: "rotate(360deg)" },
+        },
       },
       animation: {
         "accordion-down": "accordion-down 0.2s ease-out",
         "accordion-up": "accordion-up 0.2s ease-out",
         "bounce-slow": "bounce-slow 2s infinite",
         "ticker": "ticker 120s linear infinite",
+        "admin-glow": "admin-glow 2.2s ease-in-out infinite",
+        "admin-spin": "admin-spin 6s linear infinite",
       },
     },
   },
