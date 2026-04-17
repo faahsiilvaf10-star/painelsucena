@@ -20,6 +20,7 @@ import { EditModeProvider } from "@/contexts/EditModeContext";
 // Lazy-load ALL pages — only the current route's code is downloaded
 const Index = lazy(() => import("./pages/Index"));
 const Auth = lazy(() => import("./pages/Auth"));
+const SelecaoAmbiente = lazy(() => import("./pages/SelecaoAmbiente"));
 const RH = lazy(() => import("./pages/RH"));
 const Presenca = lazy(() => import("./pages/Presenca"));
 const RelatorioPresenca = lazy(() => import("./pages/RelatorioPresenca"));
@@ -127,6 +128,7 @@ const App = () => (
                   <Suspense fallback={<PageLoader />}>
                     <Routes>
                       <Route path="/auth" element={<Auth />} />
+                      <Route path="/selecao-ambiente" element={<ProtectedRoute><SelecaoAmbiente /></ProtectedRoute>} />
                       <Route path="/" element={<ProtectedRoute><Index /></ProtectedRoute>} />
                       <Route path="/rh" element={<ProtectedRoute><RH /></ProtectedRoute>} />
                       <Route path="/presenca" element={<ProtectedRoute><Presenca /></ProtectedRoute>} />

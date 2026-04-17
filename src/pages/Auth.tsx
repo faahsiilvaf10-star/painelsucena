@@ -237,7 +237,7 @@ const Auth = () => {
             userName: nextUserName,
             userAvatar: nextUserAvatar,
             userCargo: nextUserCargo,
-            destination: "/",
+            destination: "/selecao-ambiente",
           })
         );
         sessionStorage.setItem("loginTransitionStage", "play");
@@ -318,7 +318,7 @@ const Auth = () => {
             JSON.stringify({
               userName: firstName,
               userCargo: cargoLabel,
-              destination: "/",
+              destination: "/selecao-ambiente",
             })
           );
           sessionStorage.setItem("loginTransitionStage", "play");

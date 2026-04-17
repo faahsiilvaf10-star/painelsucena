@@ -56,6 +56,13 @@ export const useAuth = () => {
     setSession(null);
     setUser(null);
 
+    // Clear environment selection so the user is asked again on next login.
+    try {
+      sessionStorage.removeItem("selected_environment");
+    } catch {
+      /* ignore */
+    }
+
     // We are seeing `/logout` returning session_not_found; ensure we still fully
     // log out locally by clearing stored tokens.
     clearAuthStorage();

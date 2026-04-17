@@ -2,6 +2,7 @@ import { useEffect, useState } from "react";
 import { Navigate, useLocation, useNavigate } from "react-router-dom";
 import { supabase } from "@/integrations/supabase/client";
 import { useOfflineDriverRedirect } from "@/hooks/useOfflineDriverRedirect";
+import { getStoredEnvironment } from "@/hooks/useEnvironment";
 
 interface ProtectedRouteProps {
   children: React.ReactNode;
@@ -147,12 +148,21 @@ const ProtectedRoute = ({ children }: ProtectedRouteProps) => {
   }
 
   const isDriver = userCargo && DRIVER_ROLES.includes(userCargo);
-  
+
   // Pages that drivers are allowed to access
   const DRIVER_ALLOWED_PATHS = ['/selecao-veiculo', '/painel-motorista', '/registro-movimento-motorista', '/hora-extra', '/equipamentos-motorista', '/relatorios-motorista', '/pontos-abastecimento', '/lembretes'];
 
   // Check if driver has selected a vehicle
   const hasSelectedVehicle = localStorage.getItem("selectedVehicleId");
+
+  // Environment gate: non-drivers must pick an environment after login.
+  // Drivers go straight to their dedicated flow (vehicle selection / driver panel).
+  if (!isDriver) {
+    const environment = getStoredEnvironment();
+    if (!environment && location.pathname !== "/selecao-ambiente") {
+      return <Navigate to="/selecao-ambiente" replace />;
+    }
+  }
 
   // If user is a driver
   if (isDriver && !isAdmin) {
