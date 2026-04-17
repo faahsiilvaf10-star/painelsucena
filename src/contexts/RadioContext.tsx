@@ -349,7 +349,10 @@ export const RadioProvider = ({ children }: { children: ReactNode }) => {
     void syncStateCollections(updatedQueue, sanitizedPlayed);
   }, [allTracks, radioStateLoaded, syncedPlayed, syncedQueue, syncedTrackId, syncStateCollections, tracksLoaded]);
 
-  // ─── Audio playback — sync to DB track with seek ───
+  // ─── Audio playback — only recreate when the URL actually changes ───
+  // IMPORTANT: do NOT depend on syncedStartedAt. Realtime updates can bump
+  // that field for the same track and would otherwise restart the audio
+  // mid-playback (bug: "música para e volta de vez em quando").
   useEffect(() => {
     if (!currentTrack) {
       if (globalAudio) { globalAudio.pause(); }
@@ -358,6 +361,7 @@ export const RadioProvider = ({ children }: { children: ReactNode }) => {
     }
 
     if (currentTrackUrlRef.current === currentTrack.file_url && globalAudio) {
+      // Same track already playing — leave it alone.
       return;
     }
 
@@ -367,14 +371,21 @@ export const RadioProvider = ({ children }: { children: ReactNode }) => {
     globalAudio.volume = isPlaying ? volume : 0;
     currentTrackUrlRef.current = currentTrack.file_url;
 
+    // Capture started_at at the moment this track loaded. Subsequent realtime
+    // updates for the same track won't retrigger this effect, so the seek
+    // happens exactly once.
+    const startedAtSnapshot = syncedStartedAt;
+
+    let didInitialSeek = false;
     const handleLoaded = () => {
-      if (!globalAudio || !syncedStartedAt) return;
-      const elapsed = (Date.now() - new Date(syncedStartedAt).getTime()) / 1000;
+      if (!globalAudio || didInitialSeek) return;
+      didInitialSeek = true;
+      if (!startedAtSnapshot) return;
+      const elapsed = (Date.now() - new Date(startedAtSnapshot).getTime()) / 1000;
       if (globalAudio.duration && elapsed > 0 && elapsed < globalAudio.duration) {
-        globalAudio.currentTime = elapsed;
+        try { globalAudio.currentTime = elapsed; } catch { /* ignore */ }
       } else if (globalAudio.duration && elapsed >= globalAudio.duration) {
         advanceNext();
-        return;
       }
     };
 
@@ -406,7 +417,8 @@ export const RadioProvider = ({ children }: { children: ReactNode }) => {
       globalAudio?.removeEventListener("ended", advanceNext);
       globalAudio?.removeEventListener("error", handleError);
     };
-  }, [currentTrack?.file_url, syncedStartedAt]);
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [currentTrack?.file_url]);
 
   // Mute/unmute
   useEffect(() => {
