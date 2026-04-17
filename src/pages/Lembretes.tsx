@@ -54,11 +54,34 @@ const WEEKDAYS = [
 const Lembretes = () => {
   const { toast } = useToast();
   const { user } = useAuth();
+  const { environment } = useEnvironment();
   const { data: reminders, isLoading } = useReminders();
   const { data: reminderHistory, isLoading: isLoadingHistory } = useReminderHistory();
   const { data: allProfiles } = useAllProfiles();
   const createReminder = useCreateReminder();
   const deleteReminder = useDeleteReminder();
+
+  // Usuários com acesso ao ambiente atual (admins têm acesso a tudo)
+  const { data: envUserIds } = useQuery({
+    queryKey: ["env-user-access", environment],
+    queryFn: async () => {
+      const ids = new Set<string>();
+      // Acessos explícitos
+      const { data: access } = await supabase
+        .from("user_environment_access")
+        .select("user_id")
+        .eq("environment", environment || "barcarena");
+      (access || []).forEach((r: any) => ids.add(r.user_id));
+      // Admins (sempre)
+      const { data: admins } = await supabase
+        .from("user_roles")
+        .select("user_id")
+        .eq("role", "admin");
+      (admins || []).forEach((r: any) => ids.add(r.user_id));
+      return ids;
+    },
+    enabled: !!environment,
+  });
 
   const [isOpen, setIsOpen] = useState(false);
   const [title, setTitle] = useState("");
