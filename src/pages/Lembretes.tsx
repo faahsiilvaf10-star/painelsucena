@@ -33,6 +33,8 @@ import { useToast } from "@/hooks/use-toast";
 import { useReminders, useCreateReminder, useDeleteReminder, useReminderHistory, Reminder } from "@/hooks/useReminders";
 import { useAllProfiles } from "@/hooks/useDDSSchedule";
 import { useAuth } from "@/hooks/useAuth";
+import { useEnvironment } from "@/hooks/useEnvironment";
+import { useQuery } from "@tanstack/react-query";
 import { cn } from "@/lib/utils";
 import { getDaysUntilEventBrazilNorth } from "@/lib/timezone";
 import { Check, X as XIcon, History } from "lucide-react";
