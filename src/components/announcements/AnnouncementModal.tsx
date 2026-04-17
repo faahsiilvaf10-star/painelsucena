@@ -16,12 +16,13 @@ import { cn } from "@/lib/utils";
 import { playSoundFile } from "@/lib/sounds";
 
 export function AnnouncementModal() {
-  const { unreadAnnouncements, markAsRead } = useUnreadAnnouncements();
+  const { unreadAnnouncements, markAsRead, markAllAsRead } = useUnreadAnnouncements();
   const navigate = useNavigate();
   const [currentIndex, setCurrentIndex] = useState(0);
   const hasPlayedSound = useRef(false);
 
   const currentAnnouncement = unreadAnnouncements[currentIndex];
+  const totalUnread = unreadAnnouncements.length;
 
   useEffect(() => {
     if (currentAnnouncement && !hasPlayedSound.current) {
@@ -41,16 +42,19 @@ export function AnnouncementModal() {
 
   const handleConfirm = async () => {
     await markAsRead.mutateAsync(currentAnnouncement.id);
-    if (currentIndex >= unreadAnnouncements.length - 1) {
-      setCurrentIndex(0);
-    }
+    // Mantém o índice — a query será atualizada e o próximo não-lido aparecerá em currentIndex (ou o modal fecha).
+    setCurrentIndex(0);
+  };
+
+  const handleCloseAll = async () => {
+    const ids = unreadAnnouncements.map((a) => a.id);
+    await markAllAsRead.mutateAsync(ids);
+    setCurrentIndex(0);
   };
 
   const handleGoToDesvio = async () => {
     await markAsRead.mutateAsync(currentAnnouncement.id);
-    if (currentIndex >= unreadAnnouncements.length - 1) {
-      setCurrentIndex(0);
-    }
+    setCurrentIndex(0);
     navigate(`/desvios?highlight=${linkedDesvioId}`);
   };
 
