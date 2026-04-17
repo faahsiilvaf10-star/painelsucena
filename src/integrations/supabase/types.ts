@@ -1662,7 +1662,10 @@ export type Database = {
         Row: {
           content: string
           created_at: string
+          external_id: string | null
+          external_source: string | null
           id: string
+          origin: string
           post_id: string
           user_avatar_url: string | null
           user_id: string
@@ -1671,7 +1674,10 @@ export type Database = {
         Insert: {
           content: string
           created_at?: string
+          external_id?: string | null
+          external_source?: string | null
           id?: string
+          origin?: string
           post_id: string
           user_avatar_url?: string | null
           user_id: string
@@ -1680,7 +1686,10 @@ export type Database = {
         Update: {
           content?: string
           created_at?: string
+          external_id?: string | null
+          external_source?: string | null
           id?: string
+          origin?: string
           post_id?: string
           user_avatar_url?: string | null
           user_id?: string
@@ -1700,9 +1709,12 @@ export type Database = {
         Row: {
           content: string | null
           created_at: string
+          external_id: string | null
+          external_source: string | null
           id: string
           image_urls: string[] | null
           is_system_post: boolean
+          origin: string
           updated_at: string
           user_avatar_url: string | null
           user_id: string
@@ -1711,9 +1723,12 @@ export type Database = {
         Insert: {
           content?: string | null
           created_at?: string
+          external_id?: string | null
+          external_source?: string | null
           id?: string
           image_urls?: string[] | null
           is_system_post?: boolean
+          origin?: string
           updated_at?: string
           user_avatar_url?: string | null
           user_id: string
@@ -1722,9 +1737,12 @@ export type Database = {
         Update: {
           content?: string | null
           created_at?: string
+          external_id?: string | null
+          external_source?: string | null
           id?: string
           image_urls?: string[] | null
           is_system_post?: boolean
+          origin?: string
           updated_at?: string
           user_avatar_url?: string | null
           user_id?: string
@@ -1735,7 +1753,10 @@ export type Database = {
       instacena_reactions: {
         Row: {
           created_at: string
+          external_id: string | null
+          external_source: string | null
           id: string
+          origin: string
           post_id: string
           reaction_type: string
           user_id: string
@@ -1743,7 +1764,10 @@ export type Database = {
         }
         Insert: {
           created_at?: string
+          external_id?: string | null
+          external_source?: string | null
           id?: string
+          origin?: string
           post_id: string
           reaction_type?: string
           user_id: string
@@ -1751,7 +1775,10 @@ export type Database = {
         }
         Update: {
           created_at?: string
+          external_id?: string | null
+          external_source?: string | null
           id?: string
+          origin?: string
           post_id?: string
           reaction_type?: string
           user_id?: string
