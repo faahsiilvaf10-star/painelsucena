@@ -47,8 +47,18 @@ export default function SelecaoAmbiente() {
   const navigate = useNavigate();
   const { setEnvironment } = useEnvironment();
   const { toast } = useToast();
+  const { environments: allowedEnvs, isLoading: accessLoading } = useMyEnvironmentAccess();
   const [user, setUser] = useState<UserSummary | null>(null);
   const [selecting, setSelecting] = useState<EnvironmentId | null>(null);
+
+  // Auto-seleciona se o usuário só tem 1 ambiente liberado
+  useEffect(() => {
+    if (accessLoading) return;
+    if (allowedEnvs.length === 1) {
+      setEnvironment(allowedEnvs[0]);
+      window.location.replace("/");
+    }
+  }, [accessLoading, allowedEnvs, setEnvironment]);
 
   useEffect(() => {
     let mounted = true;
