@@ -86,7 +86,17 @@ const RH = () => {
   const [asoForm, setAsoForm] = useState<Record<string, string>>({});
 
   const { canEditRH, isLoading: permissionsLoading } = useRHPermissions();
+  const { isAdmin } = useIsAdmin();
   const queryClient = useQueryClient();
+  const [clearAllOpen, setClearAllOpen] = useState(false);
+
+  const handleClearAllEmployees = useCallback(() => {
+    setColaboradores([]);
+    setDeletedIds([]);
+    persistToDb([], []);
+    setClearAllOpen(false);
+    toast.success("Todo o efetivo foi apagado neste ambiente.");
+  }, [persistToDb]);
 
   const handleAddEmployee = (newEmployee: Omit<Colaborador, "id">) => {
     const maxId = Math.max(...colaboradores.map(c => c.id), 0);
