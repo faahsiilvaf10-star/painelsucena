@@ -1814,6 +1814,7 @@ export type Database = {
         Row: {
           content: string | null
           created_at: string
+          environment: string | null
           external_id: string | null
           external_source: string | null
           id: string
@@ -1828,6 +1829,7 @@ export type Database = {
         Insert: {
           content?: string | null
           created_at?: string
+          environment?: string | null
           external_id?: string | null
           external_source?: string | null
           id?: string
@@ -1842,6 +1844,7 @@ export type Database = {
         Update: {
           content?: string | null
           created_at?: string
+          environment?: string | null
           external_id?: string | null
           external_source?: string | null
           id?: string
