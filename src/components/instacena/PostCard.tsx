@@ -115,6 +115,11 @@ export function PostCard({ post }: { post: InstaCenaPost }) {
                 ? `por ${post.user_name} · ${formatDistanceToNow(new Date(post.created_at), { addSuffix: true, locale: ptBR })}`
                 : `${formatCargoLabel(post.user_cargo)} · ${formatDistanceToNow(new Date(post.created_at), { addSuffix: true, locale: ptBR })}`
               }
+              {post.environment && (
+                <span className="ml-1.5 inline-flex items-center gap-0.5 text-[10px] text-muted-foreground/70">
+                  · 📍 {post.environment.charAt(0).toUpperCase() + post.environment.slice(1)}
+                </span>
+              )}
             </p>
           </div>
           {(isOwner || isAdmin) && (
