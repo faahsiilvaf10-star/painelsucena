@@ -89,6 +89,33 @@ export const RadioProvider = ({ children }: { children: ReactNode }) => {
   const [shuffleAll, setShuffleAllState] = useState(false);
   const [tracksLoaded, setTracksLoaded] = useState(false);
   const [radioStateLoaded, setRadioStateLoaded] = useState(false);
+  const [pathname, setPathname] = useState(() =>
+    typeof window !== "undefined" ? window.location.pathname : "/"
+  );
+
+  // Track route changes (push/replaceState + popstate) so the radio can mute on /auth.
+  useEffect(() => {
+    if (typeof window === "undefined") return;
+    const update = () => setPathname(window.location.pathname);
+    const origPush = window.history.pushState;
+    const origReplace = window.history.replaceState;
+    window.history.pushState = function (...args) {
+      const r = origPush.apply(this, args as any);
+      update();
+      return r;
+    };
+    window.history.replaceState = function (...args) {
+      const r = origReplace.apply(this, args as any);
+      update();
+      return r;
+    };
+    window.addEventListener("popstate", update);
+    return () => {
+      window.history.pushState = origPush;
+      window.history.replaceState = origReplace;
+      window.removeEventListener("popstate", update);
+    };
+  }, []);
 
   // Synced state from DB
   const [syncedTrackId, setSyncedTrackId] = useState<string | null>(null);
@@ -354,11 +381,20 @@ export const RadioProvider = ({ children }: { children: ReactNode }) => {
   // that field for the same track and would otherwise restart the audio
   // mid-playback (bug: "música para e volta de vez em quando").
   useEffect(() => {
-    if (!currentTrack) {
+    // Never play music on the login page.
+    const isAuthRoute = pathname.startsWith("/auth");
+
+    if (!currentTrack || isAuthRoute) {
       if (globalAudio) { globalAudio.pause(); }
+      if (isAuthRoute) {
+        // keep currentTrackUrlRef so we resume the same track after login
+        return;
+      }
       currentTrackUrlRef.current = null;
       return;
     }
+
+
 
     if (currentTrackUrlRef.current === currentTrack.file_url && globalAudio) {
       // Same track already playing — leave it alone.
@@ -418,7 +454,7 @@ export const RadioProvider = ({ children }: { children: ReactNode }) => {
       globalAudio?.removeEventListener("error", handleError);
     };
     // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [currentTrack?.file_url]);
+  }, [currentTrack?.file_url, pathname]);
 
   // Mute/unmute
   useEffect(() => {
