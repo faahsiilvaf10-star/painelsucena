@@ -180,8 +180,6 @@ export const useCreatePost = () => {
         image_urls: imageUrls || [],
       }).select().single();
       if (error) throw error;
-      // Fire-and-forget: replicar no projeto parceiro
-      syncToPartner({ entity: "post", action: "upsert", payload: data });
       return data;
     },
     onSuccess: () => {
@@ -196,7 +194,6 @@ export const useDeletePost = () => {
     mutationFn: async (postId: string) => {
       const { error } = await supabase.from("instacena_posts").delete().eq("id", postId);
       if (error) throw error;
-      syncToPartner({ entity: "post", action: "delete", payload: { id: postId } });
     },
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ["instacena-posts"] });
@@ -220,7 +217,6 @@ export const useCreateComment = () => {
         content,
       }).select().single();
       if (error) throw error;
-      syncToPartner({ entity: "comment", action: "upsert", payload: data });
     },
     onSuccess: (_, { postId }) => {
       queryClient.invalidateQueries({ queryKey: ["instacena-comments", postId] });
@@ -234,7 +230,6 @@ export const useDeleteComment = () => {
     mutationFn: async ({ commentId, postId }: { commentId: string; postId: string }) => {
       const { error } = await supabase.from("instacena_comments").delete().eq("id", commentId);
       if (error) throw error;
-      syncToPartner({ entity: "comment", action: "delete", payload: { id: commentId } });
       return postId;
     },
     onSuccess: (postId) => {
@@ -264,27 +259,22 @@ export const useToggleReaction = () => {
         if (existing.reaction_type === reactionType) {
           // Remove reaction
           await supabase.from("instacena_reactions").delete().eq("id", existing.id);
-          syncToPartner({ entity: "reaction", action: "delete", payload: { id: existing.id } });
         } else {
           // Update reaction type
-          const { data: updated } = await supabase
+          await supabase
             .from("instacena_reactions")
             .update({ reaction_type: reactionType })
-            .eq("id", existing.id)
-            .select()
-            .single();
-          if (updated) syncToPartner({ entity: "reaction", action: "upsert", payload: updated });
+            .eq("id", existing.id);
         }
       } else {
         // Insert new reaction
-        const { data, error } = await supabase.from("instacena_reactions").insert({
+        const { error } = await supabase.from("instacena_reactions").insert({
           post_id: postId,
           user_id: user.id,
           user_name: profile?.full_name || "Usuário",
           reaction_type: reactionType,
-        }).select().single();
+        });
         if (error) throw error;
-        syncToPartner({ entity: "reaction", action: "upsert", payload: data });
       }
     },
     onSuccess: (_, { postId }) => {
