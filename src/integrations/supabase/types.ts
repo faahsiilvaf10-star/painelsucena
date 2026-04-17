@@ -2660,6 +2660,7 @@ export type Database = {
           created_at: string
           element_key: string
           element_type: string
+          environment: string
           id: string
           image_url: string | null
           metadata: Json | null
@@ -2673,6 +2674,7 @@ export type Database = {
           created_at?: string
           element_key: string
           element_type?: string
+          environment?: string
           id?: string
           image_url?: string | null
           metadata?: Json | null
@@ -2686,6 +2688,7 @@ export type Database = {
           created_at?: string
           element_key?: string
           element_type?: string
+          environment?: string
           id?: string
           image_url?: string | null
           metadata?: Json | null

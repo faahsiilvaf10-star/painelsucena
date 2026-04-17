@@ -1,5 +1,6 @@
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import { supabase } from "@/integrations/supabase/client";
+import { useEnvironment } from "@/hooks/useEnvironment";
 
 export interface PageCustomization {
   id: string;
@@ -17,9 +18,10 @@ export interface PageCustomization {
 
 export function usePageCustomizations(pageKey?: string) {
   const queryClient = useQueryClient();
+  const { environment } = useEnvironment();
 
   const { data: customizations, isLoading } = useQuery({
-    queryKey: ["page-customizations", pageKey ?? "all"],
+    queryKey: ["page-customizations", pageKey ?? "all", environment ?? "barcarena"],
     queryFn: async () => {
       let query = supabase
         .from("page_customizations")
@@ -79,6 +81,8 @@ export function usePageCustomizations(pageKey?: string) {
       queryClient.invalidateQueries({ queryKey: ["page-customizations"] });
     },
   });
+
+  // (environment is set automatically by the database trigger via x-environment header)
 
   return {
     customizations: customizations ?? [],
