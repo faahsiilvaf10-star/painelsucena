@@ -68,8 +68,11 @@ export default function SelecaoAmbiente() {
       title: `Ambiente selecionado`,
       description: ENVIRONMENTS[envId].label,
     });
-    // Tiny delay so the toast/feedback shows before route change
-    setTimeout(() => navigate("/", { replace: true }), 200);
+    // Recarrega a página para garantir que todos os hooks/queries usem
+    // o novo header x-environment desde a primeira chamada.
+    setTimeout(() => {
+      window.location.replace("/");
+    }, 250);
   };
 
   const handleLogout = async () => {
