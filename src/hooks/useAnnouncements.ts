@@ -67,22 +67,34 @@ export function useAnnouncements() {
       target_type: string;
       target_users?: string[];
       scheduled_at?: string | null;
+      environments?: string[]; // ambientes alvo (default: ambiente atual)
     }) => {
       const now = new Date().toISOString();
       const isScheduled = announcement.scheduled_at && new Date(announcement.scheduled_at) > new Date();
-      
-      const { data, error } = await supabase
-        .from("announcements")
-        .insert({
-          ...announcement,
-          created_by: user!.id,
-          published_at: isScheduled ? announcement.scheduled_at : now,
-        })
-        .select()
-        .single();
+      const publishedAt = isScheduled ? announcement.scheduled_at : now;
 
-      if (error) throw error;
-      return data;
+      const { environments, ...rest } = announcement;
+      const targetEnvs = environments && environments.length > 0 ? environments : [undefined];
+
+      const inserted: any[] = [];
+      for (const env of targetEnvs) {
+        const payload: any = {
+          ...rest,
+          created_by: user!.id,
+          published_at: publishedAt,
+        };
+        if (env) payload.environment = env;
+
+        const { data, error } = await supabase
+          .from("announcements")
+          .insert(payload)
+          .select()
+          .single();
+
+        if (error) throw error;
+        inserted.push(data);
+      }
+      return inserted[0];
     },
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ["announcements"] });

@@ -38,6 +38,7 @@ export function AnnouncementManager() {
   const [isScheduled, setIsScheduled] = useState(false);
   const [scheduledDate, setScheduledDate] = useState("");
   const [scheduledTime, setScheduledTime] = useState("");
+  const [targetEnvironments, setTargetEnvironments] = useState<string[]>(["barcarena", "paragominas"]);
 
   // Fetch all profiles for user selection
   const { data: profiles = [] } = useQuery({
@@ -62,6 +63,7 @@ export function AnnouncementManager() {
     setIsScheduled(false);
     setScheduledDate("");
     setScheduledTime("");
+    setTargetEnvironments(["barcarena", "paragominas"]);
     setIsCreating(false);
   };
 
@@ -108,6 +110,11 @@ export function AnnouncementManager() {
       return;
     }
 
+    if (targetEnvironments.length === 0) {
+      toast.error("Selecione pelo menos um ambiente.");
+      return;
+    }
+
     let scheduledAt: string | null = null;
     if (isScheduled && scheduledDate && scheduledTime) {
       scheduledAt = new Date(`${scheduledDate}T${scheduledTime}`).toISOString();
@@ -120,9 +127,16 @@ export function AnnouncementManager() {
       target_type: targetType,
       target_users: targetType === "specific" ? selectedUsers : [],
       scheduled_at: scheduledAt,
+      environments: targetEnvironments,
     });
 
     resetForm();
+  };
+
+  const toggleEnvironment = (env: string) => {
+    setTargetEnvironments((prev) =>
+      prev.includes(env) ? prev.filter((e) => e !== env) : [...prev, env]
+    );
   };
 
   const toggleUserSelection = (userId: string) => {
@@ -235,6 +249,42 @@ export function AnnouncementManager() {
                   className="hidden"
                 />
               </div>
+            </div>
+
+            <div className="space-y-2">
+              <Label>Ambientes alvo</Label>
+              <div className="flex gap-2">
+                {[
+                  { id: "barcarena", label: "Barcarena - Alunorte" },
+                  { id: "paragominas", label: "Paragominas" },
+                ].map((env) => {
+                  const active = targetEnvironments.includes(env.id);
+                  return (
+                    <button
+                      key={env.id}
+                      type="button"
+                      onClick={() => toggleEnvironment(env.id)}
+                      className={`flex-1 px-4 py-3 rounded-lg border-2 text-sm font-medium transition-all ${
+                        active
+                          ? "border-primary bg-primary/10 text-foreground"
+                          : "border-border bg-muted/30 text-muted-foreground hover:border-muted-foreground"
+                      }`}
+                    >
+                      <div className="flex items-center justify-center gap-2">
+                        <span className={`w-4 h-4 rounded border flex items-center justify-center text-xs ${
+                          active ? "bg-primary border-primary text-primary-foreground" : "border-muted-foreground"
+                        }`}>
+                          {active && "✓"}
+                        </span>
+                        {env.label}
+                      </div>
+                    </button>
+                  );
+                })}
+              </div>
+              <p className="text-xs text-muted-foreground">
+                O comunicado será publicado em cada ambiente selecionado.
+              </p>
             </div>
 
             <div className="space-y-2">
