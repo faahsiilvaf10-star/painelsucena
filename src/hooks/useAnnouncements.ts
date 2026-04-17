@@ -209,14 +209,17 @@ export function useUnreadAnnouncements() {
   const markAllAsRead = useMutation({
     mutationFn: async (announcementIds: string[]) => {
       if (!user || announcementIds.length === 0) return;
-      const rows = announcementIds.map((id) => ({
-        announcement_id: id,
-        user_id: user.id,
-      }));
-      const { error } = await supabase
-        .from("announcement_reads")
-        .upsert(rows, { onConflict: "announcement_id,user_id", ignoreDuplicates: true });
-      if (error && !error.message.includes("duplicate")) throw error;
+      // Insere uma a uma para respeitar RLS e ignorar duplicatas individualmente
+      await Promise.all(
+        announcementIds.map(async (id) => {
+          const { error } = await supabase
+            .from("announcement_reads")
+            .insert({ announcement_id: id, user_id: user.id });
+          if (error && !error.message.includes("duplicate")) {
+            console.error("[markAllAsRead] erro ao marcar", id, error);
+          }
+        })
+      );
     },
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ["unread-announcements"] });
