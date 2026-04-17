@@ -32,7 +32,7 @@ const ENV_VISUAL: Record<EnvironmentId, EnvVisual> = {
     ctaHover: "group-hover:from-sky-500 group-hover:to-blue-600",
   },
   paragominas: {
-    emoji: "🔔",
+    emoji: "🏭",
     cardGradient: "from-emerald-50/90 via-green-50/70 to-stone-50/60",
     badgeBg: "bg-gradient-to-r from-emerald-500 to-green-500",
     badgeText: "text-white",
