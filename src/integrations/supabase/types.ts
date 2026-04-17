@@ -19,6 +19,7 @@ export type Database = {
           ano: number
           created_at: string
           created_by: string
+          environment: string
           id: string
           kg: number
           mes: number
@@ -29,6 +30,7 @@ export type Database = {
           ano: number
           created_at?: string
           created_by: string
+          environment?: string
           id?: string
           kg?: number
           mes: number
@@ -39,6 +41,7 @@ export type Database = {
           ano?: number
           created_at?: string
           created_by?: string
+          environment?: string
           id?: string
           kg?: number
           mes?: number
@@ -125,6 +128,7 @@ export type Database = {
           created_at: string
           date: string
           employee_id: string
+          environment: string
           id: string
           status: Database["public"]["Enums"]["attendance_status"]
           updated_at: string
@@ -135,6 +139,7 @@ export type Database = {
           created_at?: string
           date?: string
           employee_id: string
+          environment?: string
           id?: string
           status?: Database["public"]["Enums"]["attendance_status"]
           updated_at?: string
@@ -145,6 +150,7 @@ export type Database = {
           created_at?: string
           date?: string
           employee_id?: string
+          environment?: string
           id?: string
           status?: Database["public"]["Enums"]["attendance_status"]
           updated_at?: string
@@ -164,6 +170,7 @@ export type Database = {
           area: string
           created_at: string
           date: string
+          environment: string
           id: string
           locked_at: string
           locked_by: string
@@ -172,6 +179,7 @@ export type Database = {
           area?: string
           created_at?: string
           date: string
+          environment?: string
           id?: string
           locked_at?: string
           locked_by: string
@@ -180,6 +188,7 @@ export type Database = {
           area?: string
           created_at?: string
           date?: string
+          environment?: string
           id?: string
           locked_at?: string
           locked_by?: string
@@ -417,6 +426,7 @@ export type Database = {
         Row: {
           created_at: string
           created_by: string
+          environment: string
           id: string
           limpeza_bueiro_berma: number | null
           limpeza_bueiro_unidade: number | null
@@ -437,6 +447,7 @@ export type Database = {
         Insert: {
           created_at?: string
           created_by: string
+          environment?: string
           id?: string
           limpeza_bueiro_berma?: number | null
           limpeza_bueiro_unidade?: number | null
@@ -457,6 +468,7 @@ export type Database = {
         Update: {
           created_at?: string
           created_by?: string
+          environment?: string
           id?: string
           limpeza_bueiro_berma?: number | null
           limpeza_bueiro_unidade?: number | null
@@ -490,6 +502,7 @@ export type Database = {
           coroamento_unidade: number | null
           created_at: string
           created_by: string
+          environment: string
           extra_entries: Json | null
           id: string
           irrigacao_carretel: boolean | null
@@ -534,6 +547,7 @@ export type Database = {
           coroamento_unidade?: number | null
           created_at?: string
           created_by: string
+          environment?: string
           extra_entries?: Json | null
           id?: string
           irrigacao_carretel?: boolean | null
@@ -578,6 +592,7 @@ export type Database = {
           coroamento_unidade?: number | null
           created_at?: string
           created_by?: string
+          environment?: string
           extra_entries?: Json | null
           id?: string
           irrigacao_carretel?: boolean | null
@@ -615,6 +630,7 @@ export type Database = {
         Row: {
           created_at: string
           driver_name: string
+          environment: string
           equipment_id: string
           equipment_name: string
           final_fuel_level: string | null
@@ -636,6 +652,7 @@ export type Database = {
         Insert: {
           created_at?: string
           driver_name: string
+          environment?: string
           equipment_id: string
           equipment_name: string
           final_fuel_level?: string | null
@@ -657,6 +674,7 @@ export type Database = {
         Update: {
           created_at?: string
           driver_name?: string
+          environment?: string
           equipment_id?: string
           equipment_name?: string
           final_fuel_level?: string | null
@@ -691,6 +709,7 @@ export type Database = {
           created_at: string
           dds_date: string
           employee_name: string
+          environment: string
           id: string
           present: boolean
           saved_by: string
@@ -701,6 +720,7 @@ export type Database = {
           created_at?: string
           dds_date: string
           employee_name: string
+          environment?: string
           id?: string
           present?: boolean
           saved_by: string
@@ -711,6 +731,7 @@ export type Database = {
           created_at?: string
           dds_date?: string
           employee_name?: string
+          environment?: string
           id?: string
           present?: boolean
           saved_by?: string
@@ -722,6 +743,7 @@ export type Database = {
         Row: {
           created_at: string
           dds_date: string
+          environment: string
           id: string
           locked_by: string
           locked_by_name: string
@@ -729,6 +751,7 @@ export type Database = {
         Insert: {
           created_at?: string
           dds_date: string
+          environment?: string
           id?: string
           locked_by: string
           locked_by_name: string
@@ -736,6 +759,7 @@ export type Database = {
         Update: {
           created_at?: string
           dds_date?: string
+          environment?: string
           id?: string
           locked_by?: string
           locked_by_name?: string
@@ -770,6 +794,7 @@ export type Database = {
         Row: {
           created_at: string
           created_by: string
+          environment: string
           event_photo_url: string | null
           external_presenter_name: string | null
           id: string
@@ -783,6 +808,7 @@ export type Database = {
         Insert: {
           created_at?: string
           created_by: string
+          environment?: string
           event_photo_url?: string | null
           external_presenter_name?: string | null
           id?: string
@@ -796,6 +822,7 @@ export type Database = {
         Update: {
           created_at?: string
           created_by?: string
+          environment?: string
           event_photo_url?: string | null
           external_presenter_name?: string | null
           id?: string
@@ -813,6 +840,7 @@ export type Database = {
           content: string
           created_at: string
           desvio_id: string
+          environment: string
           id: string
           user_avatar_url: string | null
           user_id: string
@@ -822,6 +850,7 @@ export type Database = {
           content: string
           created_at?: string
           desvio_id: string
+          environment?: string
           id?: string
           user_avatar_url?: string | null
           user_id: string
@@ -831,6 +860,7 @@ export type Database = {
           content?: string
           created_at?: string
           desvio_id?: string
+          environment?: string
           id?: string
           user_avatar_url?: string | null
           user_id?: string
@@ -854,6 +884,7 @@ export type Database = {
           created_by_name: string
           description: string
           due_date: string | null
+          environment: string
           id: string
           items: Json | null
           mentioned_user_id: string | null
@@ -871,6 +902,7 @@ export type Database = {
           created_by_name: string
           description: string
           due_date?: string | null
+          environment?: string
           id?: string
           items?: Json | null
           mentioned_user_id?: string | null
@@ -888,6 +920,7 @@ export type Database = {
           created_by_name?: string
           description?: string
           due_date?: string | null
+          environment?: string
           id?: string
           items?: Json | null
           mentioned_user_id?: string | null
@@ -907,6 +940,7 @@ export type Database = {
           changed_by_name: string
           created_at: string
           document_id: string
+          environment: string
           id: string
           new_status: Database["public"]["Enums"]["document_status"] | null
           notes: string | null
@@ -918,6 +952,7 @@ export type Database = {
           changed_by_name: string
           created_at?: string
           document_id: string
+          environment?: string
           id?: string
           new_status?: Database["public"]["Enums"]["document_status"] | null
           notes?: string | null
@@ -931,6 +966,7 @@ export type Database = {
           changed_by_name?: string
           created_at?: string
           document_id?: string
+          environment?: string
           id?: string
           new_status?: Database["public"]["Enums"]["document_status"] | null
           notes?: string | null
@@ -954,6 +990,7 @@ export type Database = {
           created_by: string
           description: string | null
           document_type: Database["public"]["Enums"]["document_type"]
+          environment: string
           expiry_date: string
           file_url: string | null
           id: string
@@ -968,6 +1005,7 @@ export type Database = {
           created_by: string
           description?: string | null
           document_type?: Database["public"]["Enums"]["document_type"]
+          environment?: string
           expiry_date: string
           file_url?: string | null
           id?: string
@@ -982,6 +1020,7 @@ export type Database = {
           created_by?: string
           description?: string | null
           document_type?: Database["public"]["Enums"]["document_type"]
+          environment?: string
           expiry_date?: string
           file_url?: string | null
           id?: string
@@ -1183,6 +1222,7 @@ export type Database = {
           completion_date: string | null
           created_at: string
           employee_id: string
+          environment: string
           expiry_date: string | null
           id: string
           nr_name: string
@@ -1192,6 +1232,7 @@ export type Database = {
           completion_date?: string | null
           created_at?: string
           employee_id: string
+          environment?: string
           expiry_date?: string | null
           id?: string
           nr_name: string
@@ -1201,6 +1242,7 @@ export type Database = {
           completion_date?: string | null
           created_at?: string
           employee_id?: string
+          environment?: string
           expiry_date?: string | null
           id?: string
           nr_name?: string
@@ -1223,6 +1265,7 @@ export type Database = {
           created_at: string
           department: string
           email: string | null
+          environment: string
           exam_scheduled: string | null
           id: string
           name: string
@@ -1240,6 +1283,7 @@ export type Database = {
           created_at?: string
           department: string
           email?: string | null
+          environment?: string
           exam_scheduled?: string | null
           id?: string
           name: string
@@ -1257,6 +1301,7 @@ export type Database = {
           created_at?: string
           department?: string
           email?: string | null
+          environment?: string
           exam_scheduled?: string | null
           id?: string
           name?: string
@@ -1278,6 +1323,7 @@ export type Database = {
           created_at: string
           created_by: string
           data: string
+          environment: string
           epis: Json
           funcionario_funcao: string | null
           funcionario_matricula: string | null
@@ -1299,6 +1345,7 @@ export type Database = {
           created_at?: string
           created_by: string
           data?: string
+          environment?: string
           epis?: Json
           funcionario_funcao?: string | null
           funcionario_matricula?: string | null
@@ -1320,6 +1367,7 @@ export type Database = {
           created_at?: string
           created_by?: string
           data?: string
+          environment?: string
           epis?: Json
           funcionario_funcao?: string | null
           funcionario_matricula?: string | null
@@ -1341,6 +1389,7 @@ export type Database = {
           created_at: string
           driver: string
           end_hour: number
+          environment: string
           equipment_type: string
           helper: string
           id: string
@@ -1358,6 +1407,7 @@ export type Database = {
           created_at?: string
           driver: string
           end_hour?: number
+          environment?: string
           equipment_type?: string
           helper: string
           id?: string
@@ -1375,6 +1425,7 @@ export type Database = {
           created_at?: string
           driver?: string
           end_hour?: number
+          environment?: string
           equipment_type?: string
           helper?: string
           id?: string
@@ -1394,6 +1445,7 @@ export type Database = {
         Row: {
           base_horimeter: number
           created_at: string
+          environment: string
           equipment_id: string
           equipment_name: string
           id: string
@@ -1406,6 +1458,7 @@ export type Database = {
         Insert: {
           base_horimeter?: number
           created_at?: string
+          environment?: string
           equipment_id: string
           equipment_name: string
           id?: string
@@ -1418,6 +1471,7 @@ export type Database = {
         Update: {
           base_horimeter?: number
           created_at?: string
+          environment?: string
           equipment_id?: string
           equipment_name?: string
           id?: string
@@ -1441,6 +1495,7 @@ export type Database = {
         Row: {
           created_at: string
           created_by: string
+          environment: string
           equipment_name: string
           exit_reason:
             | Database["public"]["Enums"]["equipment_exit_reason"]
@@ -1457,6 +1512,7 @@ export type Database = {
         Insert: {
           created_at?: string
           created_by: string
+          environment?: string
           equipment_name: string
           exit_reason?:
             | Database["public"]["Enums"]["equipment_exit_reason"]
@@ -1473,6 +1529,7 @@ export type Database = {
         Update: {
           created_at?: string
           created_by?: string
+          environment?: string
           equipment_name?: string
           exit_reason?:
             | Database["public"]["Enums"]["equipment_exit_reason"]
@@ -1495,6 +1552,7 @@ export type Database = {
           defect_description: string | null
           duration_minutes: number | null
           ended_at: string | null
+          environment: string
           equipment_id: string
           id: string
           started_at: string
@@ -1506,6 +1564,7 @@ export type Database = {
           defect_description?: string | null
           duration_minutes?: number | null
           ended_at?: string | null
+          environment?: string
           equipment_id: string
           id?: string
           started_at: string
@@ -1517,6 +1576,7 @@ export type Database = {
           defect_description?: string | null
           duration_minutes?: number | null
           ended_at?: string | null
+          environment?: string
           equipment_id?: string
           id?: string
           started_at?: string
@@ -1801,6 +1861,7 @@ export type Database = {
           category: string
           created_at: string
           created_by: string
+          environment: string
           id: string
           location_id: string | null
           min_quantity: number
@@ -1817,6 +1878,7 @@ export type Database = {
           category?: string
           created_at?: string
           created_by: string
+          environment?: string
           id?: string
           location_id?: string | null
           min_quantity?: number
@@ -1833,6 +1895,7 @@ export type Database = {
           category?: string
           created_at?: string
           created_by?: string
+          environment?: string
           id?: string
           location_id?: string | null
           min_quantity?: number
@@ -1859,6 +1922,7 @@ export type Database = {
           destination_id: string | null
           destination_name: string | null
           destination_type: string | null
+          environment: string
           id: string
           item_id: string
           moved_by: string
@@ -1874,6 +1938,7 @@ export type Database = {
           destination_id?: string | null
           destination_name?: string | null
           destination_type?: string | null
+          environment?: string
           id?: string
           item_id: string
           moved_by: string
@@ -1889,6 +1954,7 @@ export type Database = {
           destination_id?: string | null
           destination_name?: string | null
           destination_type?: string | null
+          environment?: string
           id?: string
           item_id?: string
           moved_by?: string
@@ -1912,6 +1978,7 @@ export type Database = {
       jardinagem_equipment: {
         Row: {
           created_at: string
+          environment: string
           id: string
           name: string
           status: string
@@ -1921,6 +1988,7 @@ export type Database = {
         }
         Insert: {
           created_at?: string
+          environment?: string
           id?: string
           name: string
           status?: string
@@ -1930,6 +1998,7 @@ export type Database = {
         }
         Update: {
           created_at?: string
+          environment?: string
           id?: string
           name?: string
           status?: string
@@ -1948,6 +2017,7 @@ export type Database = {
           created_at: string
           created_by: string
           data: string
+          environment: string
           funcionario_funcao: string | null
           funcionario_matricula: string | null
           funcionario_nome: string
@@ -1966,6 +2036,7 @@ export type Database = {
           created_at?: string
           created_by: string
           data?: string
+          environment?: string
           funcionario_funcao?: string | null
           funcionario_matricula?: string | null
           funcionario_nome: string
@@ -1984,6 +2055,7 @@ export type Database = {
           created_at?: string
           created_by?: string
           data?: string
+          environment?: string
           funcionario_funcao?: string | null
           funcionario_matricula?: string | null
           funcionario_nome?: string
@@ -2000,6 +2072,7 @@ export type Database = {
         Row: {
           completed_at: string
           created_at: string
+          environment: string
           id: string
           month_year: string
           task_id: string
@@ -2008,6 +2081,7 @@ export type Database = {
         Insert: {
           completed_at?: string
           created_at?: string
+          environment?: string
           id?: string
           month_year: string
           task_id: string
@@ -2016,6 +2090,7 @@ export type Database = {
         Update: {
           completed_at?: string
           created_at?: string
+          environment?: string
           id?: string
           month_year?: string
           task_id?: string
@@ -2064,6 +2139,7 @@ export type Database = {
           berma: number | null
           created_at: string
           created_by: string
+          environment: string
           especie: string
           faixa: string | null
           id: string
@@ -2074,6 +2150,7 @@ export type Database = {
           berma?: number | null
           created_at?: string
           created_by: string
+          environment?: string
           especie: string
           faixa?: string | null
           id?: string
@@ -2084,6 +2161,7 @@ export type Database = {
           berma?: number | null
           created_at?: string
           created_by?: string
+          environment?: string
           especie?: string
           faixa?: string | null
           id?: string
@@ -2097,6 +2175,7 @@ export type Database = {
           berma: number | null
           created_at: string
           created_by: string
+          environment: string
           especie: string
           faixa: string | null
           id: string
@@ -2107,6 +2186,7 @@ export type Database = {
           berma?: number | null
           created_at?: string
           created_by: string
+          environment?: string
           especie: string
           faixa?: string | null
           id?: string
@@ -2117,6 +2197,7 @@ export type Database = {
           berma?: number | null
           created_at?: string
           created_by?: string
+          environment?: string
           especie?: string
           faixa?: string | null
           id?: string
@@ -2188,6 +2269,7 @@ export type Database = {
           created_by: string
           data_emissao: string
           descricao: string | null
+          environment: string
           file_name: string | null
           file_url: string | null
           fornecedor: string
@@ -2201,6 +2283,7 @@ export type Database = {
           created_by: string
           data_emissao?: string
           descricao?: string | null
+          environment?: string
           file_name?: string | null
           file_url?: string | null
           fornecedor: string
@@ -2214,6 +2297,7 @@ export type Database = {
           created_by?: string
           data_emissao?: string
           descricao?: string | null
+          environment?: string
           file_name?: string | null
           file_url?: string | null
           fornecedor?: string
@@ -2266,6 +2350,7 @@ export type Database = {
           changed_by: string
           changed_by_name: string
           created_at: string
+          environment: string
           id: string
           new_quantity: number | null
           new_status: Database["public"]["Enums"]["order_status"]
@@ -2281,6 +2366,7 @@ export type Database = {
           changed_by: string
           changed_by_name: string
           created_at?: string
+          environment?: string
           id?: string
           new_quantity?: number | null
           new_status: Database["public"]["Enums"]["order_status"]
@@ -2296,6 +2382,7 @@ export type Database = {
           changed_by?: string
           changed_by_name?: string
           created_at?: string
+          environment?: string
           id?: string
           new_quantity?: number | null
           new_status?: Database["public"]["Enums"]["order_status"]
@@ -2320,6 +2407,7 @@ export type Database = {
         Row: {
           created_at: string
           description: string | null
+          environment: string
           id: string
           order_id: string
           photo_urls: string[] | null
@@ -2330,6 +2418,7 @@ export type Database = {
         Insert: {
           created_at?: string
           description?: string | null
+          environment?: string
           id?: string
           order_id: string
           photo_urls?: string[] | null
@@ -2340,6 +2429,7 @@ export type Database = {
         Update: {
           created_at?: string
           description?: string | null
+          environment?: string
           id?: string
           order_id?: string
           photo_urls?: string[] | null
@@ -2362,6 +2452,7 @@ export type Database = {
           ai_generated_image_url: string | null
           created_at: string
           description: string | null
+          environment: string
           expected_date: string | null
           id: string
           mentioned_cargo: string | null
@@ -2381,6 +2472,7 @@ export type Database = {
           ai_generated_image_url?: string | null
           created_at?: string
           description?: string | null
+          environment?: string
           expected_date?: string | null
           id?: string
           mentioned_cargo?: string | null
@@ -2400,6 +2492,7 @@ export type Database = {
           ai_generated_image_url?: string | null
           created_at?: string
           description?: string | null
+          environment?: string
           expected_date?: string | null
           id?: string
           mentioned_cargo?: string | null
@@ -3375,6 +3468,7 @@ export type Database = {
         Row: {
           created_at: string
           description: string | null
+          environment: string
           id: string
           name: string
           updated_at: string
@@ -3382,6 +3476,7 @@ export type Database = {
         Insert: {
           created_at?: string
           description?: string | null
+          environment?: string
           id?: string
           name: string
           updated_at?: string
@@ -3389,6 +3484,7 @@ export type Database = {
         Update: {
           created_at?: string
           description?: string | null
+          environment?: string
           id?: string
           name?: string
           updated_at?: string
@@ -3602,6 +3698,7 @@ export type Database = {
     }
     Functions: {
       can_manage_employees: { Args: { _user_id: string }; Returns: boolean }
+      current_environment: { Args: never; Returns: string }
       has_role: {
         Args: {
           _role: Database["public"]["Enums"]["app_role"]
