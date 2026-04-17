@@ -25,8 +25,26 @@ export function LoginTransition({ onComplete, userName, userAvatar, userCargo }:
     }
   };
 
-  // Play audio — never cut it
+  // Play audio — only once per day, resets at 07:00 AM
   useEffect(() => {
+    // Compute current "audio day" key — a day starts at 07:00 local time
+    const now = new Date();
+    const audioDay = new Date(now);
+    if (now.getHours() < 7) {
+      // Before 7 AM still belongs to the previous day's cycle
+      audioDay.setDate(audioDay.getDate() - 1);
+    }
+    const dayKey = `${audioDay.getFullYear()}-${audioDay.getMonth() + 1}-${audioDay.getDate()}`;
+    const storageKey = "login-welcome-audio-last-day";
+    const lastPlayedDay = localStorage.getItem(storageKey);
+
+    if (lastPlayedDay === dayKey) {
+      // Already played today (within current 07h cycle) — skip audio
+      audioEndedRef.current = true;
+      tryFinish();
+      return;
+    }
+
     const audio = new Audio("/sounds/login-welcome.wav");
     audio.volume = 0.5;
     audioRef.current = audio;
@@ -42,7 +60,10 @@ export function LoginTransition({ onComplete, userName, userAvatar, userCargo }:
       tryFinish();
     });
 
-    audio.play().catch(() => {
+    audio.play().then(() => {
+      // Mark as played for this cycle only after playback actually starts
+      localStorage.setItem(storageKey, dayKey);
+    }).catch(() => {
       audioEndedRef.current = true;
       tryFinish();
     });
