@@ -102,9 +102,10 @@ export const useReminders = () => {
 
 export const useActiveReminders = () => {
   const { user } = useAuth();
+  const { environment } = useEnvironment();
 
   return useQuery({
-    queryKey: ["active-reminders", user?.id],
+    queryKey: ["active-reminders", user?.id, environment],
     queryFn: async () => {
       if (!user?.id) return [];
 
