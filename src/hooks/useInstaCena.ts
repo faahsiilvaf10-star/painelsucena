@@ -2,6 +2,7 @@ import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import { supabase } from "@/integrations/supabase/client";
 import { useAuth } from "./useAuth";
 import { useProfile } from "./useProfile";
+import { useEnvironment } from "./useEnvironment";
 import { useEffect } from "react";
 
 export interface InstaCenaPost {
@@ -19,6 +20,7 @@ export interface InstaCenaPost {
   frame_color?: string | null;
   neon_color?: string | null;
   frame_animation?: string | null;
+  environment?: string | null;
 }
 
 export interface InstaCenaComment {
@@ -168,6 +170,7 @@ export const useCreatePost = () => {
   const queryClient = useQueryClient();
   const { user } = useAuth();
   const { data: profile } = useProfile();
+  const { environment } = useEnvironment();
 
   return useMutation({
     mutationFn: async ({ content, imageUrls }: { content: string; imageUrls?: string[] }) => {
@@ -178,7 +181,8 @@ export const useCreatePost = () => {
         user_avatar_url: profile?.avatar_url || null,
         content,
         image_urls: imageUrls || [],
-      }).select().single();
+        environment: environment || "barcarena",
+      } as any).select().single();
       if (error) throw error;
       return data;
     },
