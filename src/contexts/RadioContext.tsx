@@ -382,17 +382,18 @@ export const RadioProvider = ({ children }: { children: ReactNode }) => {
   // mid-playback (bug: "música para e volta de vez em quando").
   useEffect(() => {
     // Never play music on the login page.
-    const isAuthRoute = typeof window !== "undefined" && window.location.pathname.startsWith("/auth");
+    const isAuthRoute = pathname.startsWith("/auth");
 
     if (!currentTrack || isAuthRoute) {
       if (globalAudio) { globalAudio.pause(); }
       if (isAuthRoute) {
-        // keep ref so we resume after login without rebuilding
+        // keep currentTrackUrlRef so we resume the same track after login
         return;
       }
       currentTrackUrlRef.current = null;
       return;
     }
+
 
 
     if (currentTrackUrlRef.current === currentTrack.file_url && globalAudio) {
