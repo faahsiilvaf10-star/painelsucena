@@ -387,6 +387,43 @@ const RH = () => {
                 <AddEmployeeDialog onAdd={handleAddEmployee} />
               </>
             )}
+            {isAdmin && (
+              <AlertDialog open={clearAllOpen} onOpenChange={setClearAllOpen}>
+                <AlertDialogTrigger asChild>
+                  <Button
+                    variant="destructive"
+                    size="icon"
+                    title="Apagar todo o efetivo"
+                    aria-label="Apagar todo o efetivo"
+                  >
+                    <Trash2 className="w-4 h-4" />
+                  </Button>
+                </AlertDialogTrigger>
+                <AlertDialogContent>
+                  <AlertDialogHeader>
+                    <AlertDialogTitle className="flex items-center gap-2">
+                      <AlertTriangle className="w-5 h-5 text-destructive" />
+                      Apagar todo o efetivo?
+                    </AlertDialogTitle>
+                    <AlertDialogDescription>
+                      Esta ação removerá <strong>todos os {colaboradores.length} colaboradores</strong> deste ambiente de forma permanente.
+                      <br />
+                      <br />
+                      Esta operação <strong>não pode ser desfeita</strong>. Considere exportar um Excel antes de prosseguir.
+                    </AlertDialogDescription>
+                  </AlertDialogHeader>
+                  <AlertDialogFooter>
+                    <AlertDialogCancel>Cancelar</AlertDialogCancel>
+                    <AlertDialogAction
+                      onClick={handleClearAllEmployees}
+                      className="bg-destructive text-destructive-foreground hover:bg-destructive/90"
+                    >
+                      Sim, apagar tudo
+                    </AlertDialogAction>
+                  </AlertDialogFooter>
+                </AlertDialogContent>
+              </AlertDialog>
+            )}
             <Card className="bg-primary/10 border-primary/20">
               <CardContent className="p-4 flex items-center gap-3">
                 <Users className="w-8 h-8 text-primary" />
