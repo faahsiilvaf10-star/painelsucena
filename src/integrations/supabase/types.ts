@@ -1668,7 +1668,7 @@ export type Database = {
           origin: string
           post_id: string
           user_avatar_url: string | null
-          user_id: string
+          user_id: string | null
           user_name: string
         }
         Insert: {
@@ -1680,7 +1680,7 @@ export type Database = {
           origin?: string
           post_id: string
           user_avatar_url?: string | null
-          user_id: string
+          user_id?: string | null
           user_name: string
         }
         Update: {
@@ -1692,7 +1692,7 @@ export type Database = {
           origin?: string
           post_id?: string
           user_avatar_url?: string | null
-          user_id?: string
+          user_id?: string | null
           user_name?: string
         }
         Relationships: [
@@ -1717,7 +1717,7 @@ export type Database = {
           origin: string
           updated_at: string
           user_avatar_url: string | null
-          user_id: string
+          user_id: string | null
           user_name: string
         }
         Insert: {
@@ -1731,7 +1731,7 @@ export type Database = {
           origin?: string
           updated_at?: string
           user_avatar_url?: string | null
-          user_id: string
+          user_id?: string | null
           user_name: string
         }
         Update: {
@@ -1745,7 +1745,7 @@ export type Database = {
           origin?: string
           updated_at?: string
           user_avatar_url?: string | null
-          user_id?: string
+          user_id?: string | null
           user_name?: string
         }
         Relationships: []
@@ -1759,7 +1759,7 @@ export type Database = {
           origin: string
           post_id: string
           reaction_type: string
-          user_id: string
+          user_id: string | null
           user_name: string
         }
         Insert: {
@@ -1770,7 +1770,7 @@ export type Database = {
           origin?: string
           post_id: string
           reaction_type?: string
-          user_id: string
+          user_id?: string | null
           user_name: string
         }
         Update: {
@@ -1781,7 +1781,7 @@ export type Database = {
           origin?: string
           post_id?: string
           reaction_type?: string
-          user_id?: string
+          user_id?: string | null
           user_name?: string
         }
         Relationships: [
