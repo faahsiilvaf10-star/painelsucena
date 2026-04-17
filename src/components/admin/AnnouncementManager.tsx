@@ -38,6 +38,7 @@ export function AnnouncementManager() {
   const [isScheduled, setIsScheduled] = useState(false);
   const [scheduledDate, setScheduledDate] = useState("");
   const [scheduledTime, setScheduledTime] = useState("");
+  const [targetEnvironments, setTargetEnvironments] = useState<string[]>(["barcarena", "paragominas"]);
 
   // Fetch all profiles for user selection
   const { data: profiles = [] } = useQuery({
