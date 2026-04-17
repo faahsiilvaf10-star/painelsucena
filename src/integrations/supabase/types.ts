@@ -2696,6 +2696,7 @@ export type Database = {
           created_at: string
           created_by: string
           dia: number
+          environment: string
           id: string
           mes: number
           mm: number
@@ -2707,6 +2708,7 @@ export type Database = {
           created_at?: string
           created_by: string
           dia: number
+          environment?: string
           id?: string
           mes: number
           mm?: number
@@ -2718,6 +2720,7 @@ export type Database = {
           created_at?: string
           created_by?: string
           dia?: number
+          environment?: string
           id?: string
           mes?: number
           mm?: number
@@ -2746,6 +2749,7 @@ export type Database = {
           created_by: string
           data: string
           empresa: string | null
+          environment: string
           id: string
           local_inspecao: string | null
           observacoes: string | null
@@ -2773,6 +2777,7 @@ export type Database = {
           created_by: string
           data?: string
           empresa?: string | null
+          environment?: string
           id?: string
           local_inspecao?: string | null
           observacoes?: string | null
@@ -2800,6 +2805,7 @@ export type Database = {
           created_by?: string
           data?: string
           empresa?: string | null
+          environment?: string
           id?: string
           local_inspecao?: string | null
           observacoes?: string | null
@@ -2843,6 +2849,7 @@ export type Database = {
       product_images: {
         Row: {
           created_at: string
+          environment: string
           generated_at: string | null
           id: string
           image_url: string | null
@@ -2852,6 +2859,7 @@ export type Database = {
         }
         Insert: {
           created_at?: string
+          environment?: string
           generated_at?: string | null
           id?: string
           image_url?: string | null
@@ -2861,6 +2869,7 @@ export type Database = {
         }
         Update: {
           created_at?: string
+          environment?: string
           generated_at?: string | null
           id?: string
           image_url?: string | null
@@ -2963,6 +2972,7 @@ export type Database = {
       rdo_report_locks: {
         Row: {
           created_at: string
+          environment: string
           id: string
           locked_at: string
           locked_by: string
@@ -2970,6 +2980,7 @@ export type Database = {
         }
         Insert: {
           created_at?: string
+          environment?: string
           id?: string
           locked_at?: string
           locked_by: string
@@ -2977,6 +2988,7 @@ export type Database = {
         }
         Update: {
           created_at?: string
+          environment?: string
           id?: string
           locked_at?: string
           locked_by?: string
@@ -2992,6 +3004,7 @@ export type Database = {
           difficulties: string | null
           efetivo_gabiao_text: string | null
           efetivo_jardinagem_text: string | null
+          environment: string
           gabiao_activities: string | null
           gabiao_location: string | null
           id: string
@@ -3011,6 +3024,7 @@ export type Database = {
           difficulties?: string | null
           efetivo_gabiao_text?: string | null
           efetivo_jardinagem_text?: string | null
+          environment?: string
           gabiao_activities?: string | null
           gabiao_location?: string | null
           id?: string
@@ -3030,6 +3044,7 @@ export type Database = {
           difficulties?: string | null
           efetivo_gabiao_text?: string | null
           efetivo_jardinagem_text?: string | null
+          environment?: string
           gabiao_activities?: string | null
           gabiao_location?: string | null
           id?: string
@@ -3177,6 +3192,7 @@ export type Database = {
           ano: number
           created_at: string
           created_by: string
+          environment: string
           id: string
           kg: number
           mes: number
@@ -3187,6 +3203,7 @@ export type Database = {
           ano: number
           created_at?: string
           created_by: string
+          environment?: string
           id?: string
           kg?: number
           mes: number
@@ -3197,6 +3214,7 @@ export type Database = {
           ano?: number
           created_at?: string
           created_by?: string
+          environment?: string
           id?: string
           kg?: number
           mes?: number
@@ -3236,6 +3254,7 @@ export type Database = {
         Row: {
           category: string
           created_at: string
+          environment: string
           file_name: string
           file_size: number | null
           file_type: string | null
@@ -3248,6 +3267,7 @@ export type Database = {
         Insert: {
           category?: string
           created_at?: string
+          environment?: string
           file_name: string
           file_size?: number | null
           file_type?: string | null
@@ -3260,6 +3280,7 @@ export type Database = {
         Update: {
           category?: string
           created_at?: string
+          environment?: string
           file_name?: string
           file_size?: number | null
           file_type?: string | null
@@ -3275,6 +3296,7 @@ export type Database = {
         Row: {
           created_at: string
           created_by: string
+          environment: string
           id: string
           next_inspection_date: string
           next_inspection_time: string
@@ -3283,6 +3305,7 @@ export type Database = {
         Insert: {
           created_at?: string
           created_by: string
+          environment?: string
           id?: string
           next_inspection_date: string
           next_inspection_time?: string
@@ -3291,6 +3314,7 @@ export type Database = {
         Update: {
           created_at?: string
           created_by?: string
+          environment?: string
           id?: string
           next_inspection_date?: string
           next_inspection_time?: string
@@ -3305,6 +3329,7 @@ export type Database = {
           completed_at: string | null
           created_at: string
           description: string
+          environment: string
           id: string
           inspection_id: string
           is_completed: boolean
@@ -3316,6 +3341,7 @@ export type Database = {
           completed_at?: string | null
           created_at?: string
           description: string
+          environment?: string
           id?: string
           inspection_id: string
           is_completed?: boolean
@@ -3327,6 +3353,7 @@ export type Database = {
           completed_at?: string | null
           created_at?: string
           description?: string
+          environment?: string
           id?: string
           inspection_id?: string
           is_completed?: boolean
@@ -3346,6 +3373,7 @@ export type Database = {
         Row: {
           created_at: string
           created_by: string
+          environment: string
           id: string
           inspection_date: string
           is_locked: boolean
@@ -3354,6 +3382,7 @@ export type Database = {
         Insert: {
           created_at?: string
           created_by: string
+          environment?: string
           id?: string
           inspection_date?: string
           is_locked?: boolean
@@ -3362,6 +3391,7 @@ export type Database = {
         Update: {
           created_at?: string
           created_by?: string
+          environment?: string
           id?: string
           inspection_date?: string
           is_locked?: boolean
@@ -3456,6 +3486,7 @@ export type Database = {
           created_at: string
           created_by: string
           description: string
+          environment: string
           id: string
           tag: string
           updated_at: string
@@ -3465,6 +3496,7 @@ export type Database = {
           created_at?: string
           created_by: string
           description: string
+          environment?: string
           id?: string
           tag: string
           updated_at?: string
@@ -3474,6 +3506,7 @@ export type Database = {
           created_at?: string
           created_by?: string
           description?: string
+          environment?: string
           id?: string
           tag?: string
           updated_at?: string
@@ -3483,6 +3516,7 @@ export type Database = {
       sling_inspections: {
         Row: {
           created_at: string
+          environment: string
           id: string
           inspected_at: string | null
           inspected_by: string | null
@@ -3494,6 +3528,7 @@ export type Database = {
         }
         Insert: {
           created_at?: string
+          environment?: string
           id?: string
           inspected_at?: string | null
           inspected_by?: string | null
@@ -3505,6 +3540,7 @@ export type Database = {
         }
         Update: {
           created_at?: string
+          environment?: string
           id?: string
           inspected_at?: string | null
           inspected_by?: string | null
@@ -3712,6 +3748,7 @@ export type Database = {
           created_at: string
           created_by: string
           cronografo: string | null
+          environment: string
           id: string
           laudo_mecanico: string | null
           laudo_opacidade: string | null
@@ -3726,6 +3763,7 @@ export type Database = {
           created_at?: string
           created_by: string
           cronografo?: string | null
+          environment?: string
           id?: string
           laudo_mecanico?: string | null
           laudo_opacidade?: string | null
@@ -3740,6 +3778,7 @@ export type Database = {
           created_at?: string
           created_by?: string
           cronografo?: string | null
+          environment?: string
           id?: string
           laudo_mecanico?: string | null
           laudo_opacidade?: string | null
