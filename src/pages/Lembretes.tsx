@@ -35,6 +35,7 @@ import { useAllProfiles } from "@/hooks/useDDSSchedule";
 import { useAuth } from "@/hooks/useAuth";
 import { useEnvironment } from "@/hooks/useEnvironment";
 import { useQuery } from "@tanstack/react-query";
+import { supabase } from "@/integrations/supabase/client";
 import { cn } from "@/lib/utils";
 import { getDaysUntilEventBrazilNorth } from "@/lib/timezone";
 import { Check, X as XIcon, History } from "lucide-react";
