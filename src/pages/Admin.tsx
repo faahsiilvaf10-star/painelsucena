@@ -12,7 +12,7 @@ import { useSiteSettings } from "@/hooks/useSiteSettings";
 import { supabase } from "@/integrations/supabase/client";
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import { toast } from "sonner";
-import { Shield, ShieldCheck, Trash2, UserPlus, Users, Image, Upload, UserCog, Megaphone, Pencil, LayoutList, Truck, RotateCcw, Key, Ribbon, Coins, UserCheck, Film, Eye } from "lucide-react";
+import { Shield, ShieldCheck, Trash2, UserPlus, Users, Image, Upload, UserCog, Megaphone, Pencil, LayoutList, Truck, RotateCcw, Key, Ribbon, Coins, UserCheck, Film, Eye, Globe } from "lucide-react";
 import { ModeratorBadge } from "@/components/ModeratorBadge";
 import { Switch } from "@/components/ui/switch";
 import { Label } from "@/components/ui/label";
@@ -24,6 +24,8 @@ import { EditUserDialog } from "@/components/admin/EditUserDialog";
 import { DeleteUserDialog } from "@/components/admin/DeleteUserDialog";
 import { ResetPasswordDialog } from "@/components/admin/ResetPasswordDialog";
 import { NavVisibilityManager } from "@/components/admin/NavVisibilityManager";
+import { EnvironmentAccessManager } from "@/components/admin/EnvironmentAccessManager";
+import { EnvironmentAccessDialog } from "@/components/admin/EnvironmentAccessDialog";
 import { Navigate, useNavigate } from "react-router-dom";
 import { getCurrentMonthCampaigns } from "@/data/campaignData";
 import type { Database } from "@/integrations/supabase/types";
@@ -297,6 +299,11 @@ const Admin = () => {
               <LayoutList className="w-3 h-3 sm:w-4 sm:h-4" />
               <span className="hidden sm:inline">Visibilidade</span>
               <span className="sm:hidden">Visib.</span>
+            </TabsTrigger>
+            <TabsTrigger value="environments" className="flex items-center gap-1 text-xs sm:text-sm flex-shrink-0">
+              <Globe className="w-3 h-3 sm:w-4 sm:h-4" />
+              <span className="hidden sm:inline">Ambientes</span>
+              <span className="sm:hidden">Amb.</span>
             </TabsTrigger>
             <TabsTrigger value="announcements" className="flex items-center gap-1 text-xs sm:text-sm flex-shrink-0">
               <Megaphone className="w-3 h-3 sm:w-4 sm:h-4" />
@@ -949,6 +956,20 @@ const Admin = () => {
                                   >
                                     <Pencil className="w-4 h-4" />
                                   </Button>
+                                  <EnvironmentAccessDialog
+                                    userId={u.user_id}
+                                    userName={u.full_name || u.email}
+                                    trigger={
+                                      <Button
+                                        variant="ghost"
+                                        size="icon"
+                                        title="Acesso por ambiente"
+                                        className="text-emerald-600 hover:text-emerald-700"
+                                      >
+                                        <Globe className="w-4 h-4" />
+                                      </Button>
+                                    }
+                                  />
                                   {canDeleteUsers && (
                                     <Button
                                       variant="ghost"
@@ -983,6 +1004,11 @@ const Admin = () => {
           {/* Visibility Tab */}
           <TabsContent value="visibility">
             <NavVisibilityManager />
+          </TabsContent>
+
+          {/* Environments Tab */}
+          <TabsContent value="environments">
+            <EnvironmentAccessManager />
           </TabsContent>
 
           {/* Announcements Tab */}
