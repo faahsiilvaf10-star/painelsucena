@@ -191,16 +191,46 @@ export function useUnreadAnnouncements() {
   // Mark announcement as read
   const markAsRead = useMutation({
     mutationFn: async (announcementId: string) => {
-      const { error } = await supabase
-        .from("announcement_reads")
-        .insert({
-          announcement_id: announcementId,
-          user_id: user!.id,
-        });
+      if (!user) return;
+      // Localiza o anúncio para usar o environment correto (evita falhas de RLS quando
+      // o usuário troca de ambiente)
+      const ann = (unreadAnnouncements as Announcement[] | undefined)?.find(
+        (a) => a.id === announcementId
+      );
+      const env = (ann as any)?.environment;
 
-      if (error && !error.message.includes("duplicate")) throw error;
+      const payload: Record<string, any> = {
+        announcement_id: announcementId,
+        user_id: user.id,
+      };
+      if (env) payload.environment = env;
+
+      const { error } = await supabase.from("announcement_reads").insert(payload);
+      if (error && !error.message.includes("duplicate")) {
+        console.error("[markAsRead] erro:", error);
+        throw error;
+      }
     },
-    onSuccess: () => {
+    onMutate: async (announcementId: string) => {
+      // Atualiza otimisticamente removendo o anúncio da lista
+      await queryClient.cancelQueries({ queryKey: ["unread-announcements", user?.id] });
+      const previous = queryClient.getQueryData<Announcement[]>([
+        "unread-announcements",
+        user?.id,
+      ]);
+      queryClient.setQueryData<Announcement[]>(
+        ["unread-announcements", user?.id],
+        (old) => (old || []).filter((a) => a.id !== announcementId)
+      );
+      return { previous };
+    },
+    onError: (_err, _id, ctx) => {
+      if (ctx?.previous) {
+        queryClient.setQueryData(["unread-announcements", user?.id], ctx.previous);
+      }
+      toast.error("Não foi possível marcar como lido. Tente novamente.");
+    },
+    onSettled: () => {
       queryClient.invalidateQueries({ queryKey: ["unread-announcements"] });
     },
   });
@@ -209,19 +239,49 @@ export function useUnreadAnnouncements() {
   const markAllAsRead = useMutation({
     mutationFn: async (announcementIds: string[]) => {
       if (!user || announcementIds.length === 0) return;
-      // Insere uma a uma para respeitar RLS e ignorar duplicatas individualmente
-      await Promise.all(
+      const list = (unreadAnnouncements as Announcement[] | undefined) || [];
+      // Inserções individuais para respeitar RLS por ambiente e tolerar duplicatas
+      const results = await Promise.allSettled(
         announcementIds.map(async (id) => {
-          const { error } = await supabase
-            .from("announcement_reads")
-            .insert({ announcement_id: id, user_id: user.id });
+          const ann = list.find((a) => a.id === id);
+          const env = (ann as any)?.environment;
+          const payload: Record<string, any> = {
+            announcement_id: id,
+            user_id: user.id,
+          };
+          if (env) payload.environment = env;
+          const { error } = await supabase.from("announcement_reads").insert(payload);
           if (error && !error.message.includes("duplicate")) {
             console.error("[markAllAsRead] erro ao marcar", id, error);
+            throw error;
           }
         })
       );
+      const failed = results.filter((r) => r.status === "rejected").length;
+      if (failed > 0) {
+        console.warn(`[markAllAsRead] ${failed}/${announcementIds.length} falharam`);
+      }
     },
-    onSuccess: () => {
+    onMutate: async () => {
+      await queryClient.cancelQueries({ queryKey: ["unread-announcements", user?.id] });
+      const previous = queryClient.getQueryData<Announcement[]>([
+        "unread-announcements",
+        user?.id,
+      ]);
+      // Limpa otimisticamente
+      queryClient.setQueryData<Announcement[]>(
+        ["unread-announcements", user?.id],
+        []
+      );
+      return { previous };
+    },
+    onError: (_err, _ids, ctx) => {
+      if (ctx?.previous) {
+        queryClient.setQueryData(["unread-announcements", user?.id], ctx.previous);
+      }
+      toast.error("Falha ao fechar todos. Tente novamente.");
+    },
+    onSettled: () => {
       queryClient.invalidateQueries({ queryKey: ["unread-announcements"] });
     },
   });
