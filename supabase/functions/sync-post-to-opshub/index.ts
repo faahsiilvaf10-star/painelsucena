@@ -38,8 +38,8 @@ Deno.serve(async (req) => {
       apikey: OPSHUB_KEY,
       Authorization: `Bearer ${OPSHUB_KEY}`,
       "Content-Type": "application/json",
-      // return=representation lets us see what was inserted; merge-duplicates needs on_conflict in URL
-      Prefer: "return=representation,resolution=merge-duplicates",
+      // Plain insert; OpsHub indexes may not exist for upsert. Duplicates are avoided by external_id uniqueness on the local side.
+      Prefer: "return=representation",
     };
 
     let response: Response;
@@ -54,8 +54,7 @@ Deno.serve(async (req) => {
         { method: "DELETE", headers }
       );
     } else {
-      action = "UPSERT";
-      // INSERT (or UPDATE → upsert by external_source+external_id)
+      action = "INSERT";
       const rec = payload.record;
       const body: Record<string, unknown> = {
         ...rec,
@@ -63,18 +62,13 @@ Deno.serve(async (req) => {
         external_source: "painelsucena",
         external_id: rec.id,
       };
-      // Drop the local primary key so the remote project assigns its own
       delete body.id;
 
-      // on_conflict tells PostgREST which unique index to use for upsert
-      response = await fetch(
-        `${baseUrl}?on_conflict=external_source,external_id`,
-        {
-          method: "POST",
-          headers,
-          body: JSON.stringify(body),
-        }
-      );
+      response = await fetch(baseUrl, {
+        method: "POST",
+        headers,
+        body: JSON.stringify(body),
+      });
     }
 
     const text = await response.text();
