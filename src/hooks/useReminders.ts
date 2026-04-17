@@ -41,10 +41,11 @@ export interface ReminderInsert {
 
 export const useReminders = () => {
   const { user } = useAuth();
+  const { environment } = useEnvironment();
   const queryClient = useQueryClient();
 
   const query = useQuery({
-    queryKey: ["reminders", user?.id],
+    queryKey: ["reminders", user?.id, environment],
     queryFn: async () => {
       if (!user?.id) return [];
 
