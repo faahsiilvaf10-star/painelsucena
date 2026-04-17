@@ -45,6 +45,10 @@ export function LoginTransition({ onComplete, userName, userAvatar, userCargo }:
       return;
     }
 
+    // Mark as played for this cycle IMMEDIATELY to prevent double-trigger
+    // from rapid re-mounts or simultaneous login flows in the same day
+    localStorage.setItem(storageKey, dayKey);
+
     const audio = new Audio("/sounds/login-welcome.wav");
     audio.volume = 0.5;
     audioRef.current = audio;
@@ -60,10 +64,7 @@ export function LoginTransition({ onComplete, userName, userAvatar, userCargo }:
       tryFinish();
     });
 
-    audio.play().then(() => {
-      // Mark as played for this cycle only after playback actually starts
-      localStorage.setItem(storageKey, dayKey);
-    }).catch(() => {
+    audio.play().catch(() => {
       audioEndedRef.current = true;
       tryFinish();
     });
