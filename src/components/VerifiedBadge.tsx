@@ -15,10 +15,10 @@ const sizeClasses = {
 };
 
 const glowSizeClasses = {
-  xs: "w-6 h-6",
-  sm: "w-8 h-8",
-  md: "w-10 h-10",
-  lg: "w-12 h-12",
+  xs: "w-[18px] h-[18px]",
+  sm: "w-[22px] h-[22px]",
+  md: "w-[30px] h-[30px]",
+  lg: "w-[34px] h-[34px]",
 };
 
 export const VerifiedBadge = forwardRef<HTMLDivElement, VerifiedBadgeProps>(
@@ -33,7 +33,7 @@ export const VerifiedBadge = forwardRef<HTMLDivElement, VerifiedBadgeProps>(
         )}
         title="Administrador verificado"
       >
-        {/* Animated gold glow behind the badge */}
+        {/* Subtle animated gold glow behind the badge */}
         <span
           aria-hidden
           className={cn(
@@ -42,27 +42,14 @@ export const VerifiedBadge = forwardRef<HTMLDivElement, VerifiedBadgeProps>(
           )}
           style={{
             background:
-              "radial-gradient(circle, rgba(255,215,0,0.85) 0%, rgba(255,180,0,0.45) 40%, rgba(255,180,0,0) 70%)",
-            filter: "blur(4px)",
-          }}
-        />
-        <span
-          aria-hidden
-          className={cn(
-            "absolute rounded-full pointer-events-none animate-admin-spin",
-            glowSizeClasses[size]
-          )}
-          style={{
-            background:
-              "conic-gradient(from 0deg, rgba(255,215,0,0) 0%, rgba(255,235,120,0.9) 25%, rgba(255,215,0,0) 50%, rgba(255,235,120,0.9) 75%, rgba(255,215,0,0) 100%)",
-            filter: "blur(3px)",
-            opacity: 0.7,
+              "radial-gradient(circle, rgba(255,200,0,0.30) 0%, rgba(255,180,0,0.10) 45%, rgba(255,180,0,0) 75%)",
+            filter: "blur(2px)",
           }}
         />
         <img
           src={adminBadge}
           alt="Administrador"
-          className={cn(sizeClasses[size], "relative z-10 drop-shadow-[0_0_4px_rgba(255,200,0,0.8)]")}
+          className={cn(sizeClasses[size], "relative z-10 object-contain")}
         />
       </div>
     );

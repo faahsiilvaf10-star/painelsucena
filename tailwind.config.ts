@@ -93,8 +93,8 @@ export default {
           "100%": { transform: "translateX(-50%)" },
         },
         "admin-glow": {
-          "0%, 100%": { opacity: "0.55", transform: "scale(1)" },
-          "50%": { opacity: "1", transform: "scale(1.18)" },
+          "0%, 100%": { opacity: "0.45", transform: "scale(0.95)" },
+          "50%": { opacity: "0.75", transform: "scale(1.05)" },
         },
         "admin-spin": {
           "0%": { transform: "rotate(0deg)" },
