@@ -956,6 +956,20 @@ const Admin = () => {
                                   >
                                     <Pencil className="w-4 h-4" />
                                   </Button>
+                                  <EnvironmentAccessDialog
+                                    userId={u.user_id}
+                                    userName={u.full_name || u.email}
+                                    trigger={
+                                      <Button
+                                        variant="ghost"
+                                        size="icon"
+                                        title="Acesso por ambiente"
+                                        className="text-emerald-600 hover:text-emerald-700"
+                                      >
+                                        <Globe className="w-4 h-4" />
+                                      </Button>
+                                    }
+                                  />
                                   {canDeleteUsers && (
                                     <Button
                                       variant="ghost"
