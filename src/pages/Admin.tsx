@@ -1006,6 +1006,11 @@ const Admin = () => {
             <NavVisibilityManager />
           </TabsContent>
 
+          {/* Environments Tab */}
+          <TabsContent value="environments">
+            <EnvironmentAccessManager />
+          </TabsContent>
+
           {/* Announcements Tab */}
           <TabsContent value="announcements">
             <AnnouncementManager />
