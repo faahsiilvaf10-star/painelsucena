@@ -53,18 +53,21 @@ export type Database = {
       announcement_reads: {
         Row: {
           announcement_id: string
+          environment: string
           id: string
           read_at: string
           user_id: string
         }
         Insert: {
           announcement_id: string
+          environment?: string
           id?: string
           read_at?: string
           user_id: string
         }
         Update: {
           announcement_id?: string
+          environment?: string
           id?: string
           read_at?: string
           user_id?: string
@@ -84,6 +87,7 @@ export type Database = {
           content: string
           created_at: string
           created_by: string
+          environment: string
           id: string
           image_url: string | null
           published_at: string | null
@@ -97,6 +101,7 @@ export type Database = {
           content: string
           created_at?: string
           created_by: string
+          environment?: string
           id?: string
           image_url?: string | null
           published_at?: string | null
@@ -110,6 +115,7 @@ export type Database = {
           content?: string
           created_at?: string
           created_by?: string
+          environment?: string
           id?: string
           image_url?: string | null
           published_at?: string | null
@@ -199,6 +205,7 @@ export type Database = {
         Row: {
           balance: number
           created_at: string
+          environment: string
           id: string
           updated_at: string
           user_id: string
@@ -206,6 +213,7 @@ export type Database = {
         Insert: {
           balance?: number
           created_at?: string
+          environment?: string
           id?: string
           updated_at?: string
           user_id: string
@@ -213,6 +221,7 @@ export type Database = {
         Update: {
           balance?: number
           created_at?: string
+          environment?: string
           id?: string
           updated_at?: string
           user_id?: string
@@ -225,6 +234,7 @@ export type Database = {
           bet_amount: number
           cashed_out_at: number | null
           created_at: string
+          environment: string
           id: string
           payout: number | null
           round_id: string
@@ -236,6 +246,7 @@ export type Database = {
           bet_amount: number
           cashed_out_at?: number | null
           created_at?: string
+          environment?: string
           id?: string
           payout?: number | null
           round_id: string
@@ -247,6 +258,7 @@ export type Database = {
           bet_amount?: number
           cashed_out_at?: number | null
           created_at?: string
+          environment?: string
           id?: string
           payout?: number | null
           round_id?: string
@@ -268,6 +280,7 @@ export type Database = {
           crash_point: number
           crashed_at: string | null
           created_at: string
+          environment: string
           id: string
           started_at: string | null
           status: string
@@ -276,6 +289,7 @@ export type Database = {
           crash_point: number
           crashed_at?: string | null
           created_at?: string
+          environment?: string
           id?: string
           started_at?: string | null
           status?: string
@@ -284,6 +298,7 @@ export type Database = {
           crash_point?: number
           crashed_at?: string | null
           created_at?: string
+          environment?: string
           id?: string
           started_at?: string | null
           status?: string
@@ -330,6 +345,7 @@ export type Database = {
           captured_white: number
           created_at: string
           current_turn: string
+          environment: string
           id: string
           last_move: Json | null
           player1_avatar_url: string | null
@@ -351,6 +367,7 @@ export type Database = {
           captured_white?: number
           created_at?: string
           current_turn?: string
+          environment?: string
           id?: string
           last_move?: Json | null
           player1_avatar_url?: string | null
@@ -372,6 +389,7 @@ export type Database = {
           captured_white?: number
           created_at?: string
           current_turn?: string
+          environment?: string
           id?: string
           last_move?: Json | null
           player1_avatar_url?: string | null
@@ -393,6 +411,7 @@ export type Database = {
         Row: {
           avatar_url: string | null
           created_at: string
+          environment: string
           id: string
           losses: number
           updated_at: string
@@ -403,6 +422,7 @@ export type Database = {
         Insert: {
           avatar_url?: string | null
           created_at?: string
+          environment?: string
           id?: string
           losses?: number
           updated_at?: string
@@ -413,6 +433,7 @@ export type Database = {
         Update: {
           avatar_url?: string | null
           created_at?: string
+          environment?: string
           id?: string
           losses?: number
           updated_at?: string
@@ -768,6 +789,7 @@ export type Database = {
       }
       dds_planning_document: {
         Row: {
+          environment: string
           file_name: string
           file_url: string
           id: string
@@ -775,6 +797,7 @@ export type Database = {
           uploaded_by: string
         }
         Insert: {
+          environment?: string
           file_name: string
           file_url: string
           id?: string
@@ -782,6 +805,7 @@ export type Database = {
           uploaded_by: string
         }
         Update: {
+          environment?: string
           file_name?: string
           file_url?: string
           id?: string
@@ -1035,6 +1059,7 @@ export type Database = {
       domino_games: {
         Row: {
           created_at: string
+          environment: string
           game_state: Json
           id: string
           max_players: number
@@ -1052,6 +1077,7 @@ export type Database = {
         }
         Insert: {
           created_at?: string
+          environment?: string
           game_state?: Json
           id?: string
           max_players?: number
@@ -1069,6 +1095,7 @@ export type Database = {
         }
         Update: {
           created_at?: string
+          environment?: string
           game_state?: Json
           id?: string
           max_players?: number
@@ -1089,6 +1116,7 @@ export type Database = {
       domino_stats: {
         Row: {
           created_at: string
+          environment: string
           id: string
           losses: number
           updated_at: string
@@ -1098,6 +1126,7 @@ export type Database = {
         }
         Insert: {
           created_at?: string
+          environment?: string
           id?: string
           losses?: number
           updated_at?: string
@@ -1107,6 +1136,7 @@ export type Database = {
         }
         Update: {
           created_at?: string
+          environment?: string
           id?: string
           losses?: number
           updated_at?: string
@@ -1120,6 +1150,7 @@ export type Database = {
         Row: {
           balance: number
           created_at: string
+          environment: string
           id: string
           updated_at: string
           user_id: string
@@ -1127,6 +1158,7 @@ export type Database = {
         Insert: {
           balance?: number
           created_at?: string
+          environment?: string
           id?: string
           updated_at?: string
           user_id: string
@@ -1134,6 +1166,7 @@ export type Database = {
         Update: {
           balance?: number
           created_at?: string
+          environment?: string
           id?: string
           updated_at?: string
           user_id?: string
@@ -1146,6 +1179,7 @@ export type Database = {
           bet_amount: number
           bet_color: string
           created_at: string
+          environment: string
           id: string
           payout: number | null
           round_id: string
@@ -1157,6 +1191,7 @@ export type Database = {
           bet_amount: number
           bet_color: string
           created_at?: string
+          environment?: string
           id?: string
           payout?: number | null
           round_id: string
@@ -1168,6 +1203,7 @@ export type Database = {
           bet_amount?: number
           bet_color?: string
           created_at?: string
+          environment?: string
           id?: string
           payout?: number | null
           round_id?: string
@@ -1188,6 +1224,7 @@ export type Database = {
         Row: {
           crash_point: number | null
           created_at: string
+          environment: string
           finished_at: string | null
           id: string
           result_color: string
@@ -1198,6 +1235,7 @@ export type Database = {
         Insert: {
           crash_point?: number | null
           created_at?: string
+          environment?: string
           finished_at?: string | null
           id?: string
           result_color: string
@@ -1208,6 +1246,7 @@ export type Database = {
         Update: {
           crash_point?: number | null
           created_at?: string
+          environment?: string
           finished_at?: string | null
           id?: string
           result_color?: string
@@ -1598,6 +1637,7 @@ export type Database = {
           best_streak: number
           correct_answers: number
           created_at: string
+          environment: string
           game_id: string
           id: string
           played_at: string
@@ -1611,6 +1651,7 @@ export type Database = {
           best_streak?: number
           correct_answers?: number
           created_at?: string
+          environment?: string
           game_id: string
           id?: string
           played_at?: string
@@ -1624,6 +1665,7 @@ export type Database = {
           best_streak?: number
           correct_answers?: number
           created_at?: string
+          environment?: string
           game_id?: string
           id?: string
           played_at?: string
@@ -1641,6 +1683,7 @@ export type Database = {
           coroamento_unidade: number
           created_at: string
           created_by: string
+          environment: string
           escavacao_manual_unidade: number
           id: string
           limpeza_assoprador_m2: number
@@ -1668,6 +1711,7 @@ export type Database = {
           coroamento_unidade?: number
           created_at?: string
           created_by: string
+          environment?: string
           escavacao_manual_unidade?: number
           id?: string
           limpeza_assoprador_m2?: number
@@ -1695,6 +1739,7 @@ export type Database = {
           coroamento_unidade?: number
           created_at?: string
           created_by?: string
+          environment?: string
           escavacao_manual_unidade?: number
           id?: string
           limpeza_assoprador_m2?: number
@@ -2102,6 +2147,7 @@ export type Database = {
         Row: {
           avatar_url: string | null
           created_at: string
+          environment: string
           game_id: string
           game_type: string
           id: string
@@ -2113,6 +2159,7 @@ export type Database = {
         Insert: {
           avatar_url?: string | null
           created_at?: string
+          environment?: string
           game_id: string
           game_type?: string
           id?: string
@@ -2124,6 +2171,7 @@ export type Database = {
         Update: {
           avatar_url?: string | null
           created_at?: string
+          environment?: string
           game_id?: string
           game_type?: string
           id?: string
@@ -2209,6 +2257,7 @@ export type Database = {
       music_tracks: {
         Row: {
           created_at: string
+          environment: string
           file_name: string
           file_url: string
           id: string
@@ -2218,6 +2267,7 @@ export type Database = {
         }
         Insert: {
           created_at?: string
+          environment?: string
           file_name: string
           file_url: string
           id?: string
@@ -2227,6 +2277,7 @@ export type Database = {
         }
         Update: {
           created_at?: string
+          environment?: string
           file_name?: string
           file_url?: string
           id?: string
@@ -2240,6 +2291,7 @@ export type Database = {
         Row: {
           cargo: string
           created_at: string
+          environment: string
           id: string
           is_hidden: boolean
           nav_item_id: string
@@ -2248,6 +2300,7 @@ export type Database = {
         Insert: {
           cargo: string
           created_at?: string
+          environment?: string
           id?: string
           is_hidden?: boolean
           nav_item_id: string
@@ -2256,6 +2309,7 @@ export type Database = {
         Update: {
           cargo?: string
           created_at?: string
+          environment?: string
           id?: string
           is_hidden?: boolean
           nav_item_id?: string
@@ -2311,6 +2365,7 @@ export type Database = {
       notifications: {
         Row: {
           created_at: string
+          environment: string
           id: string
           message: string
           read: boolean
@@ -2322,6 +2377,7 @@ export type Database = {
         }
         Insert: {
           created_at?: string
+          environment?: string
           id?: string
           message: string
           read?: boolean
@@ -2333,6 +2389,7 @@ export type Database = {
         }
         Update: {
           created_at?: string
+          environment?: string
           id?: string
           message?: string
           read?: boolean
