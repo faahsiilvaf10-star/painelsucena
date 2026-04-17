@@ -534,6 +534,17 @@ export function AppSidebar({ lockedCollapsed = false }: { lockedCollapsed?: bool
                     {isModerator ? <ModeratorBadge size="md" /> : <VerifiedBadge size="md" />}
                   </Button>
                 )}
+                {isAdmin && (
+                  <Button
+                    variant="ghost"
+                    size="icon"
+                    onClick={() => navigate("/selecao-ambiente")}
+                    className="h-10 w-10 md:h-9 md:w-9 text-sidebar-foreground/70 hover:text-emerald-500 hover:bg-emerald-500/20"
+                    title="Trocar de ambiente"
+                  >
+                    <Building2 className="h-5 w-5" />
+                  </Button>
+                )}
                 {canEdit && (
                   <Button
                     variant="ghost"
