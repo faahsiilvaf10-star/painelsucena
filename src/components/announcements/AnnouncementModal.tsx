@@ -11,7 +11,7 @@ import { Button } from "@/components/ui/button";
 import { useUnreadAnnouncements } from "@/hooks/useAnnouncements";
 import { format } from "date-fns";
 import { ptBR } from "date-fns/locale";
-import { ChevronLeft, ChevronRight, X, ExternalLink } from "lucide-react";
+import { ChevronLeft, ChevronRight, X, ExternalLink, CheckCheck } from "lucide-react";
 import { cn } from "@/lib/utils";
 import { playSoundFile } from "@/lib/sounds";
 
