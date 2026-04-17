@@ -11,17 +11,18 @@ import { Button } from "@/components/ui/button";
 import { useUnreadAnnouncements } from "@/hooks/useAnnouncements";
 import { format } from "date-fns";
 import { ptBR } from "date-fns/locale";
-import { ChevronLeft, ChevronRight, X, ExternalLink } from "lucide-react";
+import { ChevronLeft, ChevronRight, X, ExternalLink, CheckCheck } from "lucide-react";
 import { cn } from "@/lib/utils";
 import { playSoundFile } from "@/lib/sounds";
 
 export function AnnouncementModal() {
-  const { unreadAnnouncements, markAsRead } = useUnreadAnnouncements();
+  const { unreadAnnouncements, markAsRead, markAllAsRead } = useUnreadAnnouncements();
   const navigate = useNavigate();
   const [currentIndex, setCurrentIndex] = useState(0);
   const hasPlayedSound = useRef(false);
 
   const currentAnnouncement = unreadAnnouncements[currentIndex];
+  const totalUnread = unreadAnnouncements.length;
 
   useEffect(() => {
     if (currentAnnouncement && !hasPlayedSound.current) {
@@ -41,16 +42,19 @@ export function AnnouncementModal() {
 
   const handleConfirm = async () => {
     await markAsRead.mutateAsync(currentAnnouncement.id);
-    if (currentIndex >= unreadAnnouncements.length - 1) {
-      setCurrentIndex(0);
-    }
+    // Mantém o índice — a query será atualizada e o próximo não-lido aparecerá em currentIndex (ou o modal fecha).
+    setCurrentIndex(0);
+  };
+
+  const handleCloseAll = async () => {
+    const ids = unreadAnnouncements.map((a) => a.id);
+    await markAllAsRead.mutateAsync(ids);
+    setCurrentIndex(0);
   };
 
   const handleGoToDesvio = async () => {
     await markAsRead.mutateAsync(currentAnnouncement.id);
-    if (currentIndex >= unreadAnnouncements.length - 1) {
-      setCurrentIndex(0);
-    }
+    setCurrentIndex(0);
     navigate(`/desvios?highlight=${linkedDesvioId}`);
   };
 
@@ -79,14 +83,30 @@ export function AnnouncementModal() {
             boxShadow: "0 8px 32px rgba(0,0,0,0.18), 0 2px 8px rgba(0,0,0,0.10)",
           }}
         >
-          {/* Close button */}
-          <button
-            className="absolute top-3 right-3 z-20 transition-colors p-1"
-            style={{ color: "hsl(30, 10%, 40%)" }}
-            onClick={handleConfirm}
-          >
-            <X className="w-5 h-5" />
-          </button>
+          {/* Top-right actions */}
+          <div className="absolute top-3 right-3 z-20 flex items-center gap-1">
+            {totalUnread > 1 && (
+              <button
+                className="flex items-center gap-1 px-2 py-1 rounded-md text-xs font-semibold transition-colors hover:bg-black/5"
+                style={{ color: "hsl(30, 10%, 30%)" }}
+                onClick={handleCloseAll}
+                disabled={markAllAsRead.isPending}
+                title="Marcar todos como lidos"
+              >
+                <CheckCheck className="w-4 h-4" />
+                <span className="hidden sm:inline">Fechar todos ({totalUnread})</span>
+                <span className="sm:hidden">{totalUnread}</span>
+              </button>
+            )}
+            <button
+              className="transition-colors p-1 rounded hover:bg-black/5"
+              style={{ color: "hsl(30, 10%, 40%)" }}
+              onClick={handleConfirm}
+              title="Fechar este comunicado"
+            >
+              <X className="w-5 h-5" />
+            </button>
+          </div>
 
           {/* Content */}
           <div className="relative z-10 p-5 sm:p-7 max-h-[80vh] overflow-y-auto">
