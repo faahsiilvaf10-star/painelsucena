@@ -479,7 +479,10 @@ const Lembretes = () => {
                       <Label>Selecione os usuários</Label>
                       <ScrollArea className="h-48 rounded-md border p-2">
                         <div className="space-y-2">
-                          {allProfiles?.filter(p => p.user_id !== user?.id).map((profile) => (
+                          {allProfiles
+                            ?.filter(p => p.user_id !== user?.id)
+                            .filter(p => !envUserIds || envUserIds.has(p.user_id))
+                            .map((profile) => (
                             <div
                               key={profile.user_id}
                               className={cn(
