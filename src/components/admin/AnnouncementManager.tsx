@@ -63,6 +63,7 @@ export function AnnouncementManager() {
     setIsScheduled(false);
     setScheduledDate("");
     setScheduledTime("");
+    setTargetEnvironments(["barcarena", "paragominas"]);
     setIsCreating(false);
   };
 
