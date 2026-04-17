@@ -3653,6 +3653,30 @@ export type Database = {
         }
         Relationships: []
       }
+      user_environment_access: {
+        Row: {
+          created_at: string
+          environment: string
+          granted_by: string | null
+          id: string
+          user_id: string
+        }
+        Insert: {
+          created_at?: string
+          environment: string
+          granted_by?: string | null
+          id?: string
+          user_id: string
+        }
+        Update: {
+          created_at?: string
+          environment?: string
+          granted_by?: string | null
+          id?: string
+          user_id?: string
+        }
+        Relationships: []
+      }
       user_preferences: {
         Row: {
           active_tab_color: string | null
@@ -3798,6 +3822,10 @@ export type Database = {
     Functions: {
       can_manage_employees: { Args: { _user_id: string }; Returns: boolean }
       current_environment: { Args: never; Returns: string }
+      has_environment_access: {
+        Args: { _environment: string; _user_id: string }
+        Returns: boolean
+      }
       has_role: {
         Args: {
           _role: Database["public"]["Enums"]["app_role"]
