@@ -89,6 +89,33 @@ export const RadioProvider = ({ children }: { children: ReactNode }) => {
   const [shuffleAll, setShuffleAllState] = useState(false);
   const [tracksLoaded, setTracksLoaded] = useState(false);
   const [radioStateLoaded, setRadioStateLoaded] = useState(false);
+  const [pathname, setPathname] = useState(() =>
+    typeof window !== "undefined" ? window.location.pathname : "/"
+  );
+
+  // Track route changes (push/replaceState + popstate) so the radio can mute on /auth.
+  useEffect(() => {
+    if (typeof window === "undefined") return;
+    const update = () => setPathname(window.location.pathname);
+    const origPush = window.history.pushState;
+    const origReplace = window.history.replaceState;
+    window.history.pushState = function (...args) {
+      const r = origPush.apply(this, args as any);
+      update();
+      return r;
+    };
+    window.history.replaceState = function (...args) {
+      const r = origReplace.apply(this, args as any);
+      update();
+      return r;
+    };
+    window.addEventListener("popstate", update);
+    return () => {
+      window.history.pushState = origPush;
+      window.history.replaceState = origReplace;
+      window.removeEventListener("popstate", update);
+    };
+  }, []);
 
   // Synced state from DB
   const [syncedTrackId, setSyncedTrackId] = useState<string | null>(null);
