@@ -186,21 +186,49 @@ const RH = () => {
       if (c.id !== id) return c;
 
       let newValidade = asoForm.validade || c.aso?.validade || "";
-      if (asoForm.periodico && asoForm.periodico !== (c.aso?.periodico || "")) {
+
+      // Helper: soma 1 ano a uma data dd/mm/yyyy
+      const addOneYear = (dateStr: string): string | null => {
         try {
-          const parts = asoForm.periodico.split("/");
-          if (parts.length === 3) {
-            const periodicoDate = new Date(
-              parseInt(parts[2]), parseInt(parts[1]) - 1, parseInt(parts[0])
-            );
-            periodicoDate.setFullYear(periodicoDate.getFullYear() + 1);
-            const dd = String(periodicoDate.getDate()).padStart(2, "0");
-            const mm = String(periodicoDate.getMonth() + 1).padStart(2, "0");
-            const yyyy = periodicoDate.getFullYear();
-            newValidade = `${dd}/${mm}/${yyyy}`;
-          }
+          const parts = dateStr.split("/");
+          if (parts.length !== 3) return null;
+          const d = new Date(
+            parseInt(parts[2]), parseInt(parts[1]) - 1, parseInt(parts[0])
+          );
+          d.setFullYear(d.getFullYear() + 1);
+          const dd = String(d.getDate()).padStart(2, "0");
+          const mm = String(d.getMonth() + 1).padStart(2, "0");
+          const yyyy = d.getFullYear();
+          return `${dd}/${mm}/${yyyy}`;
         } catch {
-          // keep existing validade on parse error
+          return null;
+        }
+      };
+
+      // Recalcula validade quando Periódico, Retorno ao Trabalho ou Mudança de Risco mudam.
+      // Usa o mais recente entre eles como base (data mais nova define o novo vencimento).
+      const triggers: Array<{ field: string; oldVal: string }> = [
+        { field: asoForm.periodico, oldVal: c.aso?.periodico || "" },
+        { field: asoForm.retornoTrabalho, oldVal: c.aso?.retornoTrabalho || "" },
+        { field: asoForm.mudancaRisco, oldVal: c.aso?.mudancaRisco || "" },
+      ];
+      const changed = triggers.filter(t => t.field && t.field !== t.oldVal);
+      if (changed.length > 0) {
+        // Pega a data mais recente entre as alteradas
+        let latest: Date | null = null;
+        let latestStr = "";
+        for (const t of changed) {
+          const parts = t.field.split("/");
+          if (parts.length !== 3) continue;
+          const d = new Date(parseInt(parts[2]), parseInt(parts[1]) - 1, parseInt(parts[0]));
+          if (!latest || d > latest) {
+            latest = d;
+            latestStr = t.field;
+          }
+        }
+        if (latestStr) {
+          const next = addOneYear(latestStr);
+          if (next) newValidade = next;
         }
       }
 
