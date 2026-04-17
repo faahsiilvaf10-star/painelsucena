@@ -300,6 +300,11 @@ const Admin = () => {
               <span className="hidden sm:inline">Visibilidade</span>
               <span className="sm:hidden">Visib.</span>
             </TabsTrigger>
+            <TabsTrigger value="environments" className="flex items-center gap-1 text-xs sm:text-sm flex-shrink-0">
+              <Globe className="w-3 h-3 sm:w-4 sm:h-4" />
+              <span className="hidden sm:inline">Ambientes</span>
+              <span className="sm:hidden">Amb.</span>
+            </TabsTrigger>
             <TabsTrigger value="announcements" className="flex items-center gap-1 text-xs sm:text-sm flex-shrink-0">
               <Megaphone className="w-3 h-3 sm:w-4 sm:h-4" />
               <span className="hidden sm:inline">Comunicados</span>
