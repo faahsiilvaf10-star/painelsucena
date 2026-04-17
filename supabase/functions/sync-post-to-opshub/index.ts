@@ -38,12 +38,15 @@ Deno.serve(async (req) => {
       apikey: OPSHUB_KEY,
       Authorization: `Bearer ${OPSHUB_KEY}`,
       "Content-Type": "application/json",
-      Prefer: "return=minimal,resolution=merge-duplicates",
+      // return=representation lets us see what was inserted; merge-duplicates needs on_conflict in URL
+      Prefer: "return=representation,resolution=merge-duplicates",
     };
 
     let response: Response;
+    let action: string;
 
     if (payload.action === "DELETE") {
+      action = "DELETE";
       const id = (payload.old_record?.id ?? payload.record?.id) as string;
       if (!id) throw new Error("Missing id for DELETE");
       response = await fetch(
@@ -51,11 +54,11 @@ Deno.serve(async (req) => {
         { method: "DELETE", headers }
       );
     } else {
-      // INSERT (or UPDATE → upsert by external_id)
+      action = "UPSERT";
+      // INSERT (or UPDATE → upsert by external_source+external_id)
       const rec = payload.record;
       const body: Record<string, unknown> = {
         ...rec,
-        // Force origin tracking; original local id becomes external_id on the other side
         origin: "external",
         external_source: "painelsucena",
         external_id: rec.id,
@@ -63,14 +66,20 @@ Deno.serve(async (req) => {
       // Drop the local primary key so the remote project assigns its own
       delete body.id;
 
-      response = await fetch(baseUrl, {
-        method: "POST",
-        headers,
-        body: JSON.stringify(body),
-      });
+      // on_conflict tells PostgREST which unique index to use for upsert
+      response = await fetch(
+        `${baseUrl}?on_conflict=external_source,external_id`,
+        {
+          method: "POST",
+          headers,
+          body: JSON.stringify(body),
+        }
+      );
     }
 
     const text = await response.text();
+    console.log(`OpsHub ${action} ${payload.type} → status=${response.status} body=${text.slice(0, 500)}`);
+
     if (!response.ok) {
       console.error(`OpsHub sync failed [${response.status}]:`, text);
       return new Response(
@@ -79,7 +88,7 @@ Deno.serve(async (req) => {
       );
     }
 
-    return new Response(JSON.stringify({ ok: true }), {
+    return new Response(JSON.stringify({ ok: true, response: text }), {
       headers: { ...corsHeaders, "Content-Type": "application/json" },
     });
   } catch (err) {
