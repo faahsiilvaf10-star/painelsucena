@@ -85,7 +85,7 @@ const PageLoader = () => (
 );
 
 // QueryClient with robust error handling
-const queryClient = new QueryClient({
+export const queryClient = new QueryClient({
   defaultOptions: {
     queries: {
       retry: (failureCount, error) => {
@@ -107,6 +107,14 @@ const queryClient = new QueryClient({
     },
   },
 });
+
+// Limpa todo o cache de queries quando o ambiente é trocado para evitar
+// que dados do ambiente anterior fiquem visíveis.
+if (typeof window !== "undefined") {
+  window.addEventListener("environment-changed", () => {
+    queryClient.clear();
+  });
+}
 
 const App = () => (
   <ErrorBoundary>
