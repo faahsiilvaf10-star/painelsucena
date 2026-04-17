@@ -205,6 +205,24 @@ export function useUnreadAnnouncements() {
     },
   });
 
+  // Mark all unread announcements as read at once
+  const markAllAsRead = useMutation({
+    mutationFn: async (announcementIds: string[]) => {
+      if (!user || announcementIds.length === 0) return;
+      const rows = announcementIds.map((id) => ({
+        announcement_id: id,
+        user_id: user.id,
+      }));
+      const { error } = await supabase
+        .from("announcement_reads")
+        .upsert(rows, { onConflict: "announcement_id,user_id", ignoreDuplicates: true });
+      if (error && !error.message.includes("duplicate")) throw error;
+    },
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ["unread-announcements"] });
+    },
+  });
+
   // Subscribe to realtime updates
   useEffect(() => {
     if (!user) return;
