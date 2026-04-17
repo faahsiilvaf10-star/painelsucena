@@ -2572,6 +2572,7 @@ export type Database = {
           cargo: string
           created_at: string
           entry_time: string
+          environment: string
           exit_time: string
           id: string
           is_overtime: boolean
@@ -2584,6 +2585,7 @@ export type Database = {
           cargo: string
           created_at?: string
           entry_time: string
+          environment?: string
           exit_time: string
           id?: string
           is_overtime?: boolean
@@ -2596,6 +2598,7 @@ export type Database = {
           cargo?: string
           created_at?: string
           entry_time?: string
+          environment?: string
           exit_time?: string
           id?: string
           is_overtime?: boolean
@@ -2610,6 +2613,7 @@ export type Database = {
         Row: {
           cargo: string
           created_at: string
+          environment: string
           id: string
           period_end: string
           period_start: string
@@ -2623,6 +2627,7 @@ export type Database = {
         Insert: {
           cargo: string
           created_at?: string
+          environment?: string
           id?: string
           period_end: string
           period_start: string
@@ -2636,6 +2641,7 @@ export type Database = {
         Update: {
           cargo?: string
           created_at?: string
+          environment?: string
           id?: string
           period_end?: string
           period_start?: string
@@ -3064,6 +3070,7 @@ export type Database = {
           action: string
           action_by: string
           created_at: string
+          environment: string
           event_date: string
           id: string
           mention_type: string
@@ -3076,6 +3083,7 @@ export type Database = {
           action: string
           action_by: string
           created_at?: string
+          environment?: string
           event_date: string
           id?: string
           mention_type: string
@@ -3088,6 +3096,7 @@ export type Database = {
           action?: string
           action_by?: string
           created_at?: string
+          environment?: string
           event_date?: string
           id?: string
           mention_type?: string
@@ -3101,6 +3110,7 @@ export type Database = {
       reminder_snoozes: {
         Row: {
           created_at: string
+          environment: string
           id: string
           reminder_id: string
           snoozed_until: string
@@ -3108,6 +3118,7 @@ export type Database = {
         }
         Insert: {
           created_at?: string
+          environment?: string
           id?: string
           reminder_id: string
           snoozed_until: string
@@ -3115,6 +3126,7 @@ export type Database = {
         }
         Update: {
           created_at?: string
+          environment?: string
           id?: string
           reminder_id?: string
           snoozed_until?: string
@@ -3227,6 +3239,7 @@ export type Database = {
         Row: {
           colaboradores: Json
           deleted_ids: Json
+          environment: string
           id: string
           imported_at: string
           imported_by: string
@@ -3235,6 +3248,7 @@ export type Database = {
         Insert: {
           colaboradores?: Json
           deleted_ids?: Json
+          environment?: string
           id?: string
           imported_at?: string
           imported_by?: string
@@ -3243,6 +3257,7 @@ export type Database = {
         Update: {
           colaboradores?: Json
           deleted_ids?: Json
+          environment?: string
           id?: string
           imported_at?: string
           imported_by?: string
@@ -3622,6 +3637,7 @@ export type Database = {
           avatar_url: string | null
           bet_amount: number
           created_at: string
+          environment: string
           id: string
           multiplier: number
           payout: number
@@ -3633,6 +3649,7 @@ export type Database = {
           avatar_url?: string | null
           bet_amount: number
           created_at?: string
+          environment?: string
           id?: string
           multiplier?: number
           payout?: number
@@ -3644,6 +3661,7 @@ export type Database = {
           avatar_url?: string | null
           bet_amount?: number
           created_at?: string
+          environment?: string
           id?: string
           multiplier?: number
           payout?: number
