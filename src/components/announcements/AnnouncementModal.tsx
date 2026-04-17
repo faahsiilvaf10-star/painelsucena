@@ -83,14 +83,30 @@ export function AnnouncementModal() {
             boxShadow: "0 8px 32px rgba(0,0,0,0.18), 0 2px 8px rgba(0,0,0,0.10)",
           }}
         >
-          {/* Close button */}
-          <button
-            className="absolute top-3 right-3 z-20 transition-colors p-1"
-            style={{ color: "hsl(30, 10%, 40%)" }}
-            onClick={handleConfirm}
-          >
-            <X className="w-5 h-5" />
-          </button>
+          {/* Top-right actions */}
+          <div className="absolute top-3 right-3 z-20 flex items-center gap-1">
+            {totalUnread > 1 && (
+              <button
+                className="flex items-center gap-1 px-2 py-1 rounded-md text-xs font-semibold transition-colors hover:bg-black/5"
+                style={{ color: "hsl(30, 10%, 30%)" }}
+                onClick={handleCloseAll}
+                disabled={markAllAsRead.isPending}
+                title="Marcar todos como lidos"
+              >
+                <CheckCheck className="w-4 h-4" />
+                <span className="hidden sm:inline">Fechar todos ({totalUnread})</span>
+                <span className="sm:hidden">{totalUnread}</span>
+              </button>
+            )}
+            <button
+              className="transition-colors p-1 rounded hover:bg-black/5"
+              style={{ color: "hsl(30, 10%, 40%)" }}
+              onClick={handleConfirm}
+              title="Fechar este comunicado"
+            >
+              <X className="w-5 h-5" />
+            </button>
+          </div>
 
           {/* Content */}
           <div className="relative z-10 p-5 sm:p-7 max-h-[80vh] overflow-y-auto">
