@@ -41,3 +41,6 @@ verify_jwt = false
 
 [functions.weather-current]
 verify_jwt = false
+
+[functions.instacena-sync-receiver]
+verify_jwt = false
