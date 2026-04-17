@@ -262,5 +262,6 @@ export function useUnreadAnnouncements() {
     unreadAnnouncements,
     isLoading,
     markAsRead,
+    markAllAsRead,
   };
 }
