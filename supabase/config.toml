@@ -44,3 +44,6 @@ verify_jwt = false
 
 [functions.instacena-sync-receiver]
 verify_jwt = false
+
+[functions.sync-post-to-opshub]
+verify_jwt = false
