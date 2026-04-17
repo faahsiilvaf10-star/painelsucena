@@ -166,11 +166,23 @@ export default function SelecaoAmbiente() {
             const env = ENVIRONMENTS[id];
             const visual = ENV_VISUAL[id];
             const isLoading = selecting === id;
+            const hasAccess = allowedEnvs.includes(id);
+            const isLocked = !accessLoading && !hasAccess;
 
             return (
               <button
                 key={id}
-                onClick={() => handleSelect(id)}
+                onClick={() => {
+                  if (isLocked) {
+                    toast({
+                      title: "Acesso bloqueado",
+                      description: "Solicite ao administrador acesso a este ambiente.",
+                      variant: "destructive",
+                    });
+                    return;
+                  }
+                  handleSelect(id);
+                }}
                 disabled={selecting !== null}
                 className={[
                   "group relative flex flex-col overflow-hidden rounded-3xl text-left",
@@ -178,10 +190,20 @@ export default function SelecaoAmbiente() {
                   "backdrop-blur-xl transition-all duration-500",
                   "bg-gradient-to-br",
                   visual.cardGradient,
-                  "hover:-translate-y-1 hover:shadow-[0_30px_80px_-20px_rgba(15,23,42,0.35)]",
+                  isLocked
+                    ? "opacity-60 grayscale cursor-not-allowed"
+                    : "hover:-translate-y-1 hover:shadow-[0_30px_80px_-20px_rgba(15,23,42,0.35)]",
                   "disabled:opacity-60 disabled:cursor-not-allowed",
                 ].join(" ")}
               >
+                {/* Lock overlay */}
+                {isLocked && (
+                  <div className="absolute top-4 right-4 z-20 flex items-center gap-1.5 rounded-full bg-slate-900/80 px-3 py-1 text-xs font-medium text-white backdrop-blur">
+                    <Lock className="h-3 w-3" />
+                    Bloqueado
+                  </div>
+                )}
+
                 {/* Emoji icon tile */}
                 <div className="mb-8 grid h-20 w-20 place-items-center rounded-2xl bg-white shadow-lg ring-1 ring-white/80">
                   <span className="text-4xl leading-none" aria-hidden>
@@ -223,13 +245,15 @@ export default function SelecaoAmbiente() {
                   <div
                     className={[
                       "grid h-12 w-14 shrink-0 place-items-center rounded-xl text-white shadow-lg transition-all duration-300",
-                      visual.ctaBg,
-                      visual.ctaHover,
-                      "group-hover:translate-x-0.5",
+                      isLocked ? "bg-slate-400" : visual.ctaBg,
+                      isLocked ? "" : visual.ctaHover,
+                      isLocked ? "" : "group-hover:translate-x-0.5",
                     ].join(" ")}
                   >
                     {isLoading ? (
                       <Loader2 className="h-5 w-5 animate-spin" />
+                    ) : isLocked ? (
+                      <Lock className="h-5 w-5" />
                     ) : (
                       <ArrowRight className="h-5 w-5" />
                     )}
