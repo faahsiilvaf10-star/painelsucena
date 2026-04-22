@@ -299,11 +299,16 @@ export const ExportRelatorioPresencaExcel = ({ year, month, colaboradores, absen
         cell.alignment = { horizontal: "center", vertical: "middle" };
       });
 
-      const grandTotalCell = totalsRow.getCell(totalCols);
+      const grandTotalCell = totalsRow.getCell(totalAusCol);
       grandTotalCell.value = absences.length || "";
       grandTotalCell.font = { name: "Arial", size: 11, bold: true, color: { argb: "FFFFFFFF" } };
       grandTotalCell.fill = { type: "pattern", pattern: "solid", fgColor: { argb: "FFB91C1C" } };
       grandTotalCell.alignment = { horizontal: "center", vertical: "middle" };
+      // Preenche CID/Obs do totalsRow vazios com mesmo fundo escuro
+      [cidCol, obsCol].forEach((col) => {
+        const c = totalsRow.getCell(col);
+        c.fill = { type: "pattern", pattern: "solid", fgColor: { argb: "FF1E3A5F" } };
+      });
       totalsRow.height = 22;
 
       // Legend (below)
