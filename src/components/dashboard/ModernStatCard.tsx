@@ -100,20 +100,20 @@ const ModernStatCard = ({
   if (variant === "gauge") {
     return (
       <div className="rounded-2xl p-4 bg-card border border-border shadow-sm overflow-hidden">
-        <p className="text-[11px] text-muted-foreground mb-1.5 truncate">{title}</p>
+        <p className="text-[10px] text-muted-foreground mb-1 truncate">{title}</p>
         <div className="flex items-center justify-between gap-2 min-w-0">
           <div className="flex flex-col min-w-0">
-            <span className="text-xl font-extrabold text-foreground leading-none truncate">
+            <span className="text-base font-extrabold text-foreground leading-none truncate">
               {value}
             </span>
             {percentage > 0 && (
-              <span className="text-[10px] font-semibold text-emerald-600 dark:text-emerald-400 inline-flex items-center mt-1">
+              <span className="text-[9px] font-semibold text-emerald-600 dark:text-emerald-400 inline-flex items-center mt-0.5">
                 {percentage}%
-                <ArrowUp className="h-2.5 w-2.5" />
+                <ArrowUp className="h-2 w-2" />
               </span>
             )}
           </div>
-          <HalfGauge percentage={percentage} size={52} stroke={6} />
+          <HalfGauge percentage={percentage} size={42} stroke={5} />
         </div>
       </div>
     );
