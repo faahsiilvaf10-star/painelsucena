@@ -93,21 +93,26 @@ const HalfGauge = ({ percentage }: { percentage: number }) => {
   }, [percentage]);
   const size = 80;
   const stroke = 8;
+  const pad = stroke; // extra room so rounded ends aren't clipped
+  const width = size + pad * 2;
+  const height = size / 2 + pad * 2;
+  const cx = width / 2;
+  const cy = pad + size / 2;
   const r = (size - stroke) / 2;
   const c = r * Math.PI; // half circumference
   const dash = (animated / 100) * c;
   return (
-    <div className="relative" style={{ width: size, height: size / 2 + 6 }}>
-      <svg width={size} height={size / 2 + 6} viewBox={`0 0 ${size} ${size / 2 + 6}`}>
+    <div className="relative shrink-0" style={{ width, height }}>
+      <svg width={width} height={height} viewBox={`0 0 ${width} ${height}`} className="overflow-visible">
         <path
-          d={`M ${stroke / 2} ${size / 2} A ${r} ${r} 0 0 1 ${size - stroke / 2} ${size / 2}`}
+          d={`M ${cx - r} ${cy} A ${r} ${r} 0 0 1 ${cx + r} ${cy}`}
           fill="none"
           stroke="hsl(var(--muted))"
           strokeWidth={stroke}
           strokeLinecap="round"
         />
         <path
-          d={`M ${stroke / 2} ${size / 2} A ${r} ${r} 0 0 1 ${size - stroke / 2} ${size / 2}`}
+          d={`M ${cx - r} ${cy} A ${r} ${r} 0 0 1 ${cx + r} ${cy}`}
           fill="none"
           stroke="hsl(142, 65%, 45%)"
           strokeWidth={stroke}
