@@ -224,25 +224,41 @@ const Dashboard = () => {
             </div>
           )}
           <div className="flex items-center gap-2 flex-wrap">
-            <div className="hidden sm:inline-flex items-center gap-2 rounded-xl border border-border bg-card px-3 py-2 text-sm shadow-sm">
-              <Calendar className="h-4 w-4 text-muted-foreground" />
-              <span className="font-medium text-foreground">
-                {new Date().toLocaleDateString("pt-BR", {
-                  day: "2-digit",
-                  month: "long",
-                  year: "numeric",
-                })}
-              </span>
-            </div>
-            <DashboardEditControls
-              isEditMode={isEditMode}
-              hasChanges={hasChanges}
-              isSaving={isSaving}
-              onToggleEditMode={handleToggleEditMode}
-              onSave={handleSave}
-              onCancel={handleCancel}
-              onReset={handleReset}
-            />
+            <Popover>
+              <PopoverTrigger asChild>
+                <button
+                  type="button"
+                  className="inline-flex items-center gap-2 rounded-xl border border-border bg-card px-3 py-2 text-sm shadow-sm hover:bg-muted/60 transition-colors"
+                >
+                  <CalendarIcon className="h-4 w-4 text-muted-foreground" />
+                  <span className="font-medium text-foreground">
+                    {format(selectedDate, "dd 'de' MMMM 'de' yyyy", { locale: ptBR })}
+                  </span>
+                </button>
+              </PopoverTrigger>
+              <PopoverContent className="w-auto p-0" align="end">
+                <Calendar
+                  mode="single"
+                  selected={selectedDate}
+                  onSelect={(d) => d && setSelectedDate(d)}
+                  locale={ptBR}
+                  initialFocus
+                  className="pointer-events-auto"
+                />
+              </PopoverContent>
+            </Popover>
+            {!isToday && (
+              <button
+                type="button"
+                onClick={() => {
+                  const [y, m, d] = todayString.split("-").map(Number);
+                  setSelectedDate(new Date(y, m - 1, d));
+                }}
+                className="text-xs text-primary hover:underline"
+              >
+                Hoje
+              </button>
+            )}
           </div>
         </div>
 
