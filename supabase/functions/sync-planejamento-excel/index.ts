@@ -124,8 +124,8 @@ Deno.serve(async (req) => {
   if (req.method === "OPTIONS") return new Response(null, { headers: corsHeaders });
 
   try {
-    const file = await findFileId();
-    if (!file) {
+    const workbook = await findWorkbook();
+    if (!workbook) {
       return new Response(
         JSON.stringify({
           ok: false,
@@ -136,8 +136,7 @@ Deno.serve(async (req) => {
       );
     }
 
-    const itemPath = buildItemPath(file.id);
-    const range = await readUsedRange(itemPath, SHEET_NAME_HINT || undefined);
+    const range = await readUsedRange(workbook.itemPath, SHEET_NAME_HINT || undefined);
     const rows = range.values ?? [];
 
     // Heurística: cada linha que tem um número na coluna A (linha numérica)
