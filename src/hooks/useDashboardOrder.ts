@@ -5,7 +5,6 @@ import { useAuth } from "./useAuth";
 export type DashboardItemId = 
   | "birthday"
   | "matrix_alert"
-  | "goal_alert"
   | "campaign"
   | "reminder"
   | "order"
@@ -21,7 +20,6 @@ export const DEFAULT_DASHBOARD_ORDER: DashboardItemId[] = [
   "birthday",
   "reminder",
   "matrix_alert",
-  "goal_alert",
   "order",
   "vehicle_expiry",
   "document_expiry",
@@ -36,7 +34,6 @@ export const DEFAULT_DASHBOARD_ORDER: DashboardItemId[] = [
 export const DASHBOARD_ITEM_LABELS: Record<DashboardItemId, string> = {
   birthday: "Aniversariantes",
   matrix_alert: "Alerta da Matriz",
-  goal_alert: "Alerta de Metas",
   campaign: "Campanha de Saúde",
   reminder: "Lembretes",
   order: "Pedidos",

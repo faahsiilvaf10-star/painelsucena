@@ -40,7 +40,7 @@ const NAV_ITEMS = [
   { id: "calendario-hydro", label: "Calendário Hydro" },
   { id: "games", label: "Games" },
   { id: "desvios", label: "Desvios" },
-  { id: "planejamento", label: "Planejamento" },
+  
   { id: "notas-fiscais", label: "Notas Fiscais" },
   { id: "troca-epi", label: "Troca de EPI" },
   { id: "inspecao-extintores", label: "Inspeção Extintores" },

@@ -32,7 +32,7 @@ const DEFAULT_SETTINGS: Omit<SiteSettings, "id" | "updated_at" | "updated_by"> &
     "estoque", "lembretes", "parte-diaria", "presenca", "matriz", "pedidos", "rdo", "relatorio",
     "rh", "vistorias", "homologados", "vistoria-cintas", "arquivos-seguranca",
     "consumo-abastecimento", "plano-manutencao", "slides", "instacena", "inspecao-canteiro",
-    "calendario-hydro", "games", "desvios", "planejamento", "emergencia"
+    "calendario-hydro", "games", "desvios", "emergencia"
   ],
   show_signup_button: false,
   ui_theme: "classic",
