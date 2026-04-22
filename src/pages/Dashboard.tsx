@@ -414,7 +414,7 @@ const Dashboard = () => {
             <AttendanceTrendChart />
           </div>
           <div className="animate-slide-up" style={{ animationDelay: "0.15s" }}>
-            <PlanejamentoProgressCard />
+            <MatrixGauge referenceDate={selectedDate} />
           </div>
         </div>
 
