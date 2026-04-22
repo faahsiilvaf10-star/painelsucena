@@ -29,6 +29,7 @@ export const OnlineUsersFooter = ({ onUserClick }: OnlineUsersFooterProps) => {
   const { state } = useSidebar();
 
   const isCollapsedSidebar = state === "collapsed";
+  const forbiddenColor = FORBIDDEN_COLORS[getBrazilNorthMonth()];
 
   return (
     <div className={cn(
