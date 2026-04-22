@@ -245,7 +245,7 @@ const Layout = ({ children }: LayoutProps) => {
           {children}
         </PageTransition>
       </main>
-      <ForbiddenColorIndicator />
+      
       <AnnouncementModal />
       <SessionExpiryWarning />
       
