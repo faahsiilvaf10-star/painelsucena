@@ -42,7 +42,7 @@ const iconFor = (kind: ActivityKind) => {
 export function RecentActivitiesCard() {
   const { data: desvios } = useDesvios();
   const { data: movements } = useAllEquipmentMovements();
-  const { posts } = useInstaCenaPosts();
+  const { data: posts } = useInstaCenaPosts();
 
   const items = useMemo<ActivityItem[]>(() => {
     const list: ActivityItem[] = [];
