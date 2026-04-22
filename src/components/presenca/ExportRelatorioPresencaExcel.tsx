@@ -360,26 +360,29 @@ export const ExportRelatorioPresencaExcel = ({ year, month, colaboradores, absen
         lr.getCell(2).alignment = { horizontal: "left", vertical: "middle", indent: 1 };
       });
 
-      // Column widths
-      ws.getColumn(1).width = 12;
-      ws.getColumn(2).width = 38;
-      ws.getColumn(3).width = 26;
-      for (let i = 0; i < daysInMonth; i++) ws.getColumn(4 + i).width = 4.5;
-      for (let i = 0; i < ALL_REASONS.length; i++) ws.getColumn(4 + daysInMonth + i).width = 5.5;
-      ws.getColumn(totalAusCol).width = 9;
-      ws.getColumn(cidCol).width = 14;
-      ws.getColumn(cidByDayCol).width = 36;
-      ws.getColumn(obsCol).width = 50;
+      // Column widths (otimizado para A4 paisagem)
+      ws.getColumn(1).width = 8;
+      ws.getColumn(2).width = 26;
+      ws.getColumn(3).width = 16;
+      for (let i = 0; i < daysInMonth; i++) ws.getColumn(4 + i).width = 3.2;
+      for (let i = 0; i < ALL_REASONS.length; i++) ws.getColumn(4 + daysInMonth + i).width = 4;
+      ws.getColumn(totalAusCol).width = 7;
+      ws.getColumn(cidCol).width = 10;
+      ws.getColumn(cidByDayCol).width = 22;
+      ws.getColumn(obsCol).width = 28;
 
-      // Print setup
+      // Print setup — A4 paisagem
       ws.pageSetup = {
         orientation: "landscape",
-        paperSize: 9,
+        paperSize: 9, // A4
         fitToPage: true,
         fitToWidth: 1,
         fitToHeight: 0,
-        margins: { left: 0.3, right: 0.3, top: 0.5, bottom: 0.5, header: 0.2, footer: 0.2 },
+        horizontalCentered: true,
+        margins: { left: 0.25, right: 0.25, top: 0.4, bottom: 0.4, header: 0.2, footer: 0.2 },
       };
+      ws.pageSetup.printTitlesRow = "1:3";
+      ws.headerFooter.oddFooter = "&CPágina &P de &N";
 
       const buffer = await wb.xlsx.writeBuffer();
       const blob = new Blob([buffer], {
