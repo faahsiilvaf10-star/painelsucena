@@ -167,15 +167,7 @@ export type Database = {
           reason?: string
           updated_at?: string
         }
-        Relationships: [
-          {
-            foreignKeyName: "attendance_absence_reasons_employee_id_fkey"
-            columns: ["employee_id"]
-            isOneToOne: false
-            referencedRelation: "employees"
-            referencedColumns: ["id"]
-          },
-        ]
+        Relationships: []
       }
       attendance_records: {
         Row: {
