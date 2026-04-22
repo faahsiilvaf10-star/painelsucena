@@ -127,6 +127,56 @@ export type Database = {
         }
         Relationships: []
       }
+      attendance_absence_reasons: {
+        Row: {
+          cid: string | null
+          created_at: string
+          created_by: string | null
+          date: string
+          days_count: number
+          employee_id: string
+          environment: string
+          id: string
+          notes: string | null
+          reason: string
+          updated_at: string
+        }
+        Insert: {
+          cid?: string | null
+          created_at?: string
+          created_by?: string | null
+          date: string
+          days_count?: number
+          employee_id: string
+          environment?: string
+          id?: string
+          notes?: string | null
+          reason: string
+          updated_at?: string
+        }
+        Update: {
+          cid?: string | null
+          created_at?: string
+          created_by?: string | null
+          date?: string
+          days_count?: number
+          employee_id?: string
+          environment?: string
+          id?: string
+          notes?: string | null
+          reason?: string
+          updated_at?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "attendance_absence_reasons_employee_id_fkey"
+            columns: ["employee_id"]
+            isOneToOne: false
+            referencedRelation: "employees"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       attendance_records: {
         Row: {
           check_in: string | null
