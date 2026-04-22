@@ -265,7 +265,7 @@ export const ExportRelatorioPresencaExcel = ({ year, month, colaboradores, absen
             right: { style: "thin", color: { argb: "FFE2E8F0" } },
           };
         }
-        row.height = 18;
+        row.height = 28;
       });
 
       // Totals row
