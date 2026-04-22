@@ -210,6 +210,15 @@ export default function AtividadesII() {
       
       const geotextilMatch = obs.match(/Reposição de Geotêxtil - ([^\n]+)/);
       setReposicaoGeotextilDimensao(geotextilMatch ? geotextilMatch[1] : "");
+
+      const retGeotextilMatch = obs.match(/Retirada de Geotêxtil - ([^\n]+)/);
+      setRetiradaGeotextilDimensao(retGeotextilMatch ? retGeotextilMatch[1] : "");
+
+      const retGeomembranaMatch = obs.match(/Retirada de Geomembrana - ([^\n]+)/);
+      setRetiradaGeomembranaDimensao(retGeomembranaMatch ? retGeomembranaMatch[1] : "");
+
+      const repGeomembranaMatch = obs.match(/Reposição de Geomembrana - ([^\n]+)/);
+      setReposicaoGeomembranaDimensao(repGeomembranaMatch ? repGeomembranaMatch[1] : "");
       
       const recompTelaMatch = obs.match(/Recomposição de tela - ([^\n]+)/);
       setRecomposicaoTelaDimensao(recompTelaMatch ? recompTelaMatch[1] : "");
