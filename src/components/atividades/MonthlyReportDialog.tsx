@@ -207,10 +207,6 @@ export default function MonthlyReportDialog({
     setFilterMonth(new Date(parseInt(year), parseInt(month) - 1, 1));
   };
 
-  const handleMedicaoChange = (value: string) => {
-    const [year, month] = value.split("-");
-    setMedicaoMonth(new Date(parseInt(year), parseInt(month) - 1, 16));
-  };
 
   const colorClass = type === "jardinagem" ? "text-green-500" : "text-orange-500";
   const bgClass = type === "jardinagem" ? "bg-green-600/20" : "bg-orange-600/20";
@@ -241,13 +237,12 @@ export default function MonthlyReportDialog({
         <div className="flex flex-wrap gap-3 items-end pb-4 border-b">
           <div className="space-y-1">
             <Label className="text-xs text-muted-foreground">Tipo de Filtro</Label>
-            <Select value={filterType} onValueChange={(v: "month" | "range" | "medicao") => setFilterType(v)}>
+            <Select value={filterType} onValueChange={(v: "month" | "range") => setFilterType(v)}>
               <SelectTrigger className="w-[150px]">
                 <SelectValue />
               </SelectTrigger>
               <SelectContent>
                 <SelectItem value="month">Por Mês</SelectItem>
-                <SelectItem value="medicao">Por Medição</SelectItem>
                 <SelectItem value="range">Por Período</SelectItem>
               </SelectContent>
             </Select>
@@ -274,29 +269,6 @@ export default function MonthlyReportDialog({
             </div>
           )}
 
-          {filterType === "medicao" && (
-            <div className="space-y-1">
-              <Label className="text-xs text-muted-foreground flex items-center gap-1">
-                <Ruler className="h-3 w-3" />
-                Período de Medição (16 a 16)
-              </Label>
-              <Select 
-                value={format(medicaoMonth, "yyyy-MM")} 
-                onValueChange={handleMedicaoChange}
-              >
-                <SelectTrigger className="w-[220px]">
-                  <SelectValue />
-                </SelectTrigger>
-                <SelectContent>
-                  {medicaoOptions.map((opt) => (
-                    <SelectItem key={opt.value} value={opt.value}>
-                      {opt.label}
-                    </SelectItem>
-                  ))}
-                </SelectContent>
-              </Select>
-            </div>
-          )}
 
           {filterType === "range" && (
             <>
@@ -382,11 +354,9 @@ export default function MonthlyReportDialog({
                     <p className="text-sm text-muted-foreground mb-4">
                       {filterType === "month" 
                         ? format(filterMonth, "MMMM 'de' yyyy", { locale: ptBR })
-                        : filterType === "medicao"
-                          ? `Medição: ${format(medicaoDates.from, "dd/MM/yyyy")} até ${format(medicaoDates.to, "dd/MM/yyyy")}`
-                          : dateRange.from && dateRange.to 
-                            ? `${format(dateRange.from, "dd/MM/yyyy")} até ${format(dateRange.to, "dd/MM/yyyy")}`
-                            : "Período não selecionado"
+                        : dateRange.from && dateRange.to 
+                          ? `${format(dateRange.from, "dd/MM/yyyy")} até ${format(dateRange.to, "dd/MM/yyyy")}`
+                          : "Período não selecionado"
                       }
                       {" • "}{sortedReports.length} dia{sortedReports.length !== 1 ? "s" : ""} com registro
                     </p>
