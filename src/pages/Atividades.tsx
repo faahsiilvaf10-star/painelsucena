@@ -126,62 +126,7 @@ export default function Atividades() {
       });
   }, [estoqueByEspecie, estoqueData]);
 
-  const getMeasurementPeriod = () => {
-    const currentDay = selectedDate.getDate();
-    const currentMonth = selectedDate.getMonth();
-    const currentYear = selectedDate.getFullYear();
-    
-    let startDate: Date;
-    let endDate: Date;
-    
-    if (currentDay >= 16) {
-      // From day 16 of current month to day 15 of next month
-      startDate = new Date(currentYear, currentMonth, 16);
-      endDate = new Date(currentYear, currentMonth + 1, 15);
-    } else {
-      // From day 16 of previous month to day 15 of current month
-      startDate = new Date(currentYear, currentMonth - 1, 16);
-      endDate = new Date(currentYear, currentMonth, 15);
-    }
-    
-    return { startDate, endDate };
-  };
-
-  // Calculate totals for the measurement period
-  const measurementPeriodTotals = useMemo(() => {
-    if (!allReports) return { coroamento: 0, adubagem: 0, rocagem: 0, podagem: 0, plantio: 0, retiradaMudas: 0 };
-    
-    const { startDate, endDate } = getMeasurementPeriod();
-    const startStr = format(startDate, "yyyy-MM-dd");
-    const endStr = format(endDate, "yyyy-MM-dd");
-    
-    const periodReports = allReports.filter(report => {
-      return report.report_date >= startStr && report.report_date <= endStr;
-    });
-    
-    const totals = periodReports.reduce((acc, report) => {
-      // Sum extra plantio entries from extra_entries
-      let extraPlantio = 0;
-      const extras = report.extra_entries as Record<string, { value: string; faixa: string; berma: string; especie?: string }[]> | null;
-      if (extras?.plantio) {
-        for (const entry of extras.plantio) {
-          const qtd = entry.value ? parseInt(entry.value) : 0;
-          if (qtd > 0) extraPlantio += qtd;
-        }
-      }
-
-      return {
-        coroamento: acc.coroamento + (report.coroamento_unidade || 0),
-        adubagem: acc.adubagem + (report.adubagem_unidade || 0),
-        rocagem: acc.rocagem + (parseFloat(report.rocagem_m2?.toString() || "0") || 0),
-        podagem: acc.podagem + (report.podagem_unidade || 0),
-        plantio: acc.plantio + (report.plantio_unidade || 0) + extraPlantio,
-        retiradaMudas: acc.retiradaMudas + (report.retirada_mudas_unidade || 0),
-      };
-    }, { coroamento: 0, adubagem: 0, rocagem: 0, podagem: 0, plantio: 0, retiradaMudas: 0 });
-    
-    return totals;
-  }, [allReports, selectedDate]);
+  const measurementPeriodTotals = useMemo(() => ({ coroamento: 0, adubagem: 0, rocagem: 0, podagem: 0, plantio: 0, retiradaMudas: 0 }), []);
 
   // Form state
   const [localFaixa, setLocalFaixa] = useState("FAIXA 2");
