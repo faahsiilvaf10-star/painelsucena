@@ -18,6 +18,11 @@ interface ExcelRange {
   values?: (string | number | null)[][];
 }
 
+interface FoundWorkbook {
+  itemPath: string;
+  name: string;
+}
+
 async function gw(path: string): Promise<Response> {
   const LOVABLE_API_KEY = Deno.env.get("LOVABLE_API_KEY");
   const MS_KEY = Deno.env.get("MICROSOFT_EXCEL_API_KEY");
@@ -31,42 +36,59 @@ async function gw(path: string): Promise<Response> {
   });
 }
 
-async function findFileId(): Promise<{ id: string; name: string } | null> {
-  // 1) tenta no próprio drive
+async function canAccessWorkbook(itemPath: string): Promise<boolean> {
+  const r = await gw(`${itemPath}/workbook/worksheets?$top=1&$select=name`);
+  return r.ok;
+}
+
+async function findWorkbook(): Promise<FoundWorkbook | null> {
+  const candidates: FoundWorkbook[] = [];
+
   let r = await gw(
     `/me/drive/root/search(q='${encodeURIComponent(FILE_NAME_HINT)}')?$top=10&$select=id,name,file`,
   );
   let j = await r.json();
-  let hit = (j?.value ?? []).find((v: { file?: unknown; name: string }) =>
-    v.file && v.name?.toLowerCase().endsWith(".xlsx"),
-  );
-  if (hit) return { id: hit.id, name: hit.name };
+  for (const hit of j?.value ?? []) {
+    if (hit?.file && hit?.name?.toLowerCase().endsWith(".xlsx")) {
+      candidates.push({
+        itemPath: `/me/drive/items/${encodeURIComponent(hit.id)}`,
+        name: hit.name,
+      });
+    }
+  }
 
-  // 2) tenta em "Compartilhados comigo"
   r = await gw(`/me/drive/sharedWithMe?$top=50`);
   j = await r.json();
-  hit = (j?.value ?? []).find((v: { name?: string }) =>
-    v.name?.toLowerCase().includes(FILE_NAME_HINT.toLowerCase()) &&
-    v.name?.toLowerCase().endsWith(".xlsx"),
-  );
-  if (hit) {
-    // sharedWithMe retorna remoteItem; precisamos do driveId+itemId
-    const remote = (hit as { remoteItem?: { id: string; parentReference?: { driveId?: string } } }).remoteItem;
-    if (remote?.id && remote?.parentReference?.driveId) {
-      // URL-encode o itemId (contém '!') e o driveId
-      const driveId = encodeURIComponent(remote.parentReference.driveId);
-      const itemId = encodeURIComponent(remote.id);
-      return { id: `drives/${driveId}/items/${itemId}`, name: hit.name };
-    }
-    return { id: encodeURIComponent(hit.id), name: hit.name };
-  }
-  return null;
-}
+  for (const hit of j?.value ?? []) {
+    if (!hit?.name?.toLowerCase().includes(FILE_NAME_HINT.toLowerCase())) continue;
+    if (!hit?.name?.toLowerCase().endsWith(".xlsx")) continue;
 
-function buildItemPath(idOrPath: string): string {
-  // Se já contém "drives/", usa como path absoluto
-  if (idOrPath.startsWith("drives/")) return `/${idOrPath}`;
-  return `/me/drive/items/${idOrPath}`;
+    const remote = hit.remoteItem as { id?: string; parentReference?: { driveId?: string } } | undefined;
+    if (remote?.id && remote?.parentReference?.driveId) {
+      candidates.push({
+        itemPath:
+          `/drives/${encodeURIComponent(remote.parentReference.driveId)}` +
+          `/items/${encodeURIComponent(remote.id)}`,
+        name: hit.name,
+      });
+      continue;
+    }
+
+    if (hit?.id) {
+      candidates.push({
+        itemPath: `/me/drive/items/${encodeURIComponent(hit.id)}`,
+        name: hit.name,
+      });
+    }
+  }
+
+  for (const candidate of candidates) {
+    if (await canAccessWorkbook(candidate.itemPath)) {
+      return candidate;
+    }
+  }
+
+  return candidates[0] ?? null;
 }
 
 async function readUsedRange(itemPath: string, sheetName?: string): Promise<ExcelRange> {
