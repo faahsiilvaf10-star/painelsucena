@@ -47,6 +47,7 @@ import { DashboardEditControls } from "@/components/dashboard/DashboardEditContr
 import BirthdayBanner from "@/components/dashboard/BirthdayBanner";
 import DDSPresenterAlert from "@/components/dds/DDSPresenterAlert";
 import { RecentActivitiesCard } from "@/components/dashboard/RecentActivitiesCard";
+import { PlanejamentoProgressCard } from "@/components/dashboard/PlanejamentoProgressCard";
 import { useCampaignNotifications } from "@/hooks/useCampaignNotifications";
 import { useLastDayMatrixCheck } from "@/hooks/useLastDayMatrixCheck";
 import { CelebrationModal } from "@/components/matriz/CelebrationModal";
@@ -414,6 +415,13 @@ const Dashboard = () => {
           </div>
           <div className="animate-slide-up" style={{ animationDelay: "0.15s" }}>
             <MatrixSideChart />
+          </div>
+        </div>
+
+        {/* Avanço Mensal (Planejamento) */}
+        <div className="grid grid-cols-1 lg:grid-cols-3 gap-4 mt-4">
+          <div className="animate-slide-up" style={{ animationDelay: "0.2s" }}>
+            <PlanejamentoProgressCard />
           </div>
         </div>
       </div>
