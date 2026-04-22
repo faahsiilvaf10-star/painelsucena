@@ -38,6 +38,7 @@ import { Alert, AlertDescription } from "@/components/ui/alert";
 import { AIImproveButton } from "@/components/atividades/AIImproveButton";
 import { EditablePageTitle } from "@/components/cms/EditablePageTitle";
 import { EditableIcon } from "@/components/cms/EditableIcon";
+import { JardinagemMetasSummary } from "@/components/atividades/JardinagemMetasSummary";
 
 
 const FAIXA_OPTIONS = [
