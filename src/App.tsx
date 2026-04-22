@@ -6,7 +6,6 @@ import { QueryClientProvider } from "@tanstack/react-query";
 import { QueryClient } from "@tanstack/query-core";
 import { BrowserRouter, Routes, Route } from "react-router-dom";
 import { ThemeProvider } from "@/components/ThemeProvider";
-import { RadioProvider } from "@/contexts/RadioContext";
 import { PersistentFooter } from "@/components/layout/PersistentFooter";
 import { PersistentSidebar } from "@/components/layout/PersistentSidebar";
 import ProtectedRoute from "@/components/ProtectedRoute";
@@ -120,8 +119,7 @@ const App = () => (
   <ErrorBoundary>
     <ThemeProvider attribute="class" defaultTheme="light" enableSystem>
       <QueryClientProvider client={queryClient}>
-        <RadioProvider>
-          <TooltipProvider>
+        <TooltipProvider>
             <Toaster />
             <Sonner />
             <InstallPrompt />
@@ -194,8 +192,7 @@ const App = () => (
               </PersistentSidebar>
               </EditModeProvider>
             </BrowserRouter>
-          </TooltipProvider>
-        </RadioProvider>
+        </TooltipProvider>
       </QueryClientProvider>
     </ThemeProvider>
   </ErrorBoundary>
