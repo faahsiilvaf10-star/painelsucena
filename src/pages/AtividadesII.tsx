@@ -98,6 +98,12 @@ export default function AtividadesII() {
   const [lavagemBaciasVertedouro, setLavagemBaciasVertedouro] = useState(false);
   const [reposicaoGeotextil, setReposicaoGeotextil] = useState(false);
   const [reposicaoGeotextilDimensao, setReposicaoGeotextilDimensao] = useState("");
+  const [retiradaGeotextil, setRetiradaGeotextil] = useState(false);
+  const [retiradaGeotextilDimensao, setRetiradaGeotextilDimensao] = useState("");
+  const [retiradaGeomembrana, setRetiradaGeomembrana] = useState(false);
+  const [retiradaGeomembranaDimensao, setRetiradaGeomembranaDimensao] = useState("");
+  const [reposicaoGeomembrana, setReposicaoGeomembrana] = useState(false);
+  const [reposicaoGeomembranaDimensao, setReposicaoGeomembranaDimensao] = useState("");
   
   // Recomposição activities
   const [recomposicaoTela, setRecomposicaoTela] = useState(false);
@@ -181,6 +187,9 @@ export default function AtividadesII() {
       setLavagemVertedouro(obs.includes("Lavagem de vertedouro") && !obs.includes("Lavagem de bacias"));
       setLavagemBaciasVertedouro(obs.includes("Lavagem de bacias"));
       setReposicaoGeotextil(obs.includes("Reposição de Geotêxtil"));
+      setRetiradaGeotextil(obs.includes("Retirada de Geotêxtil"));
+      setRetiradaGeomembrana(obs.includes("Retirada de Geomembrana"));
+      setReposicaoGeomembrana(obs.includes("Reposição de Geomembrana"));
       setRecomposicaoTela(obs.includes("Recomposição de tela"));
       setRecomposicaoCascalho(obs.includes("Recomposição de cascalho"));
       setRecomposicaoSilte(obs.includes("Recomposição de silte"));
@@ -201,6 +210,15 @@ export default function AtividadesII() {
       
       const geotextilMatch = obs.match(/Reposição de Geotêxtil - ([^\n]+)/);
       setReposicaoGeotextilDimensao(geotextilMatch ? geotextilMatch[1] : "");
+
+      const retGeotextilMatch = obs.match(/Retirada de Geotêxtil - ([^\n]+)/);
+      setRetiradaGeotextilDimensao(retGeotextilMatch ? retGeotextilMatch[1] : "");
+
+      const retGeomembranaMatch = obs.match(/Retirada de Geomembrana - ([^\n]+)/);
+      setRetiradaGeomembranaDimensao(retGeomembranaMatch ? retGeomembranaMatch[1] : "");
+
+      const repGeomembranaMatch = obs.match(/Reposição de Geomembrana - ([^\n]+)/);
+      setReposicaoGeomembranaDimensao(repGeomembranaMatch ? repGeomembranaMatch[1] : "");
       
       const recompTelaMatch = obs.match(/Recomposição de tela - ([^\n]+)/);
       setRecomposicaoTelaDimensao(recompTelaMatch ? recompTelaMatch[1] : "");
@@ -265,6 +283,12 @@ export default function AtividadesII() {
       setLavagemBaciasVertedouro(false);
       setReposicaoGeotextil(false);
       setReposicaoGeotextilDimensao("");
+      setRetiradaGeotextil(false);
+      setRetiradaGeotextilDimensao("");
+      setRetiradaGeomembrana(false);
+      setRetiradaGeomembranaDimensao("");
+      setReposicaoGeomembrana(false);
+      setReposicaoGeomembranaDimensao("");
       setRecomposicaoTela(false);
       setRecomposicaoTelaDimensao("");
       setRecomposicaoCascalho(false);
@@ -360,6 +384,9 @@ export default function AtividadesII() {
     addSimpleWithExtras(lavagemVertedouro, "Lavagem de vertedouro", "lavagemVertedouro");
     addSimpleWithExtras(lavagemBaciasVertedouro, "Lavagem de bacias do vertedouro", "lavagemBacias");
     addWithExtras(reposicaoGeotextil, "Reposição de Geotêxtil", reposicaoGeotextilDimensao, "", "geotextil");
+    addWithExtras(retiradaGeotextil, "Retirada de Geotêxtil", retiradaGeotextilDimensao, "", "retiradaGeotextil");
+    addWithExtras(retiradaGeomembrana, "Retirada de Geomembrana", retiradaGeomembranaDimensao, "", "retiradaGeomembrana");
+    addWithExtras(reposicaoGeomembrana, "Reposição de Geomembrana", reposicaoGeomembranaDimensao, "", "reposicaoGeomembrana");
     addWithExtras(recomposicaoTela, "Recomposição de tela", recomposicaoTelaDimensao, "", "recomposicaoTela");
     addWithExtras(recomposicaoCascalho, "Recomposição de cascalho", recomposicaoCascalhoQuantidade, "m²", "recomposicaoCascalho");
     addWithExtras(recomposicaoSilte, "Recomposição de silte", recomposicaoSilteQuantidade, "m²", "recomposicaoSilte");
@@ -516,6 +543,9 @@ export default function AtividadesII() {
     addSimpleWithExtras(lavagemVertedouro, "Lavagem de vertedouro", "lavagemVertedouro");
     addSimpleWithExtras(lavagemBaciasVertedouro, "Lavagem de bacias do vertedouro", "lavagemBacias");
     addWithExtras(reposicaoGeotextil, "Reposição de Geotêxtil", reposicaoGeotextilDimensao, "", "geotextil");
+    addWithExtras(retiradaGeotextil, "Retirada de Geotêxtil", retiradaGeotextilDimensao, "", "retiradaGeotextil");
+    addWithExtras(retiradaGeomembrana, "Retirada de Geomembrana", retiradaGeomembranaDimensao, "", "retiradaGeomembrana");
+    addWithExtras(reposicaoGeomembrana, "Reposição de Geomembrana", reposicaoGeomembranaDimensao, "", "reposicaoGeomembrana");
     addWithExtras(recomposicaoTela, "Recomposição de tela", recomposicaoTelaDimensao, "", "recomposicaoTela");
     addWithExtras(recomposicaoCascalho, "Recomposição de cascalho", recomposicaoCascalhoQuantidade, "m²", "recomposicaoCascalho");
     addWithExtras(recomposicaoSilte, "Recomposição de silte", recomposicaoSilteQuantidade, "m²", "recomposicaoSilte");
@@ -1007,6 +1037,84 @@ export default function AtividadesII() {
                         <div key={idx} className="flex items-center gap-2 ml-7">
                           <Input type="text" placeholder="Ex: 8 x 8" value={val} onChange={(e) => updateGabiaoExtra("geotextil", idx, e.target.value)} className="w-[150px]" />
                           <Button type="button" variant="ghost" size="icon" className="h-8 w-8 text-destructive hover:text-destructive hover:bg-destructive/10" onClick={() => removeGabiaoExtra("geotextil", idx)}><X className="h-3 w-3" /></Button>
+                        </div>
+                      ))}
+                    </>
+                  )}
+                </div>
+
+                {/* Retirada de Geotêxtil */}
+                <div className="p-3 rounded-lg bg-muted/30 space-y-3">
+                  <div className="flex items-center justify-between">
+                    <div className="flex items-center space-x-3">
+                      <Checkbox id="retiradaGeotextil" checked={retiradaGeotextil} onCheckedChange={(checked) => setRetiradaGeotextil(checked === true)} />
+                      <Label htmlFor="retiradaGeotextil" className="cursor-pointer font-medium">Retirada de Geotêxtil</Label>
+                    </div>
+                    {retiradaGeotextil && (
+                      <Button type="button" variant="ghost" size="sm" onClick={() => addGabiaoExtra("retiradaGeotextil")} className="gap-1 h-6 text-xs px-2 text-muted-foreground hover:text-foreground"><Plus className="h-3 w-3" /></Button>
+                    )}
+                  </div>
+                  {retiradaGeotextil && (
+                    <>
+                      <div className="flex items-center gap-2 ml-7">
+                        <Input type="text" placeholder="Ex: 8 x 8" value={retiradaGeotextilDimensao} onChange={(e) => setRetiradaGeotextilDimensao(e.target.value)} className="w-[150px]" />
+                      </div>
+                      {(gabiaoExtra.retiradaGeotextil || []).map((val, idx) => (
+                        <div key={idx} className="flex items-center gap-2 ml-7">
+                          <Input type="text" placeholder="Ex: 8 x 8" value={val} onChange={(e) => updateGabiaoExtra("retiradaGeotextil", idx, e.target.value)} className="w-[150px]" />
+                          <Button type="button" variant="ghost" size="icon" className="h-8 w-8 text-destructive hover:text-destructive hover:bg-destructive/10" onClick={() => removeGabiaoExtra("retiradaGeotextil", idx)}><X className="h-3 w-3" /></Button>
+                        </div>
+                      ))}
+                    </>
+                  )}
+                </div>
+
+                {/* Retirada de Geomembrana */}
+                <div className="p-3 rounded-lg bg-muted/30 space-y-3">
+                  <div className="flex items-center justify-between">
+                    <div className="flex items-center space-x-3">
+                      <Checkbox id="retiradaGeomembrana" checked={retiradaGeomembrana} onCheckedChange={(checked) => setRetiradaGeomembrana(checked === true)} />
+                      <Label htmlFor="retiradaGeomembrana" className="cursor-pointer font-medium">Retirada de Geomembrana</Label>
+                    </div>
+                    {retiradaGeomembrana && (
+                      <Button type="button" variant="ghost" size="sm" onClick={() => addGabiaoExtra("retiradaGeomembrana")} className="gap-1 h-6 text-xs px-2 text-muted-foreground hover:text-foreground"><Plus className="h-3 w-3" /></Button>
+                    )}
+                  </div>
+                  {retiradaGeomembrana && (
+                    <>
+                      <div className="flex items-center gap-2 ml-7">
+                        <Input type="text" placeholder="Ex: 8 x 8" value={retiradaGeomembranaDimensao} onChange={(e) => setRetiradaGeomembranaDimensao(e.target.value)} className="w-[150px]" />
+                      </div>
+                      {(gabiaoExtra.retiradaGeomembrana || []).map((val, idx) => (
+                        <div key={idx} className="flex items-center gap-2 ml-7">
+                          <Input type="text" placeholder="Ex: 8 x 8" value={val} onChange={(e) => updateGabiaoExtra("retiradaGeomembrana", idx, e.target.value)} className="w-[150px]" />
+                          <Button type="button" variant="ghost" size="icon" className="h-8 w-8 text-destructive hover:text-destructive hover:bg-destructive/10" onClick={() => removeGabiaoExtra("retiradaGeomembrana", idx)}><X className="h-3 w-3" /></Button>
+                        </div>
+                      ))}
+                    </>
+                  )}
+                </div>
+
+                {/* Reposição de Geomembrana */}
+                <div className="p-3 rounded-lg bg-muted/30 space-y-3">
+                  <div className="flex items-center justify-between">
+                    <div className="flex items-center space-x-3">
+                      <Checkbox id="reposicaoGeomembrana" checked={reposicaoGeomembrana} onCheckedChange={(checked) => setReposicaoGeomembrana(checked === true)} />
+                      <Label htmlFor="reposicaoGeomembrana" className="cursor-pointer font-medium">Reposição de Geomembrana</Label>
+                    </div>
+                    {reposicaoGeomembrana && (
+                      <Button type="button" variant="ghost" size="sm" onClick={() => addGabiaoExtra("reposicaoGeomembrana")} className="gap-1 h-6 text-xs px-2 text-muted-foreground hover:text-foreground"><Plus className="h-3 w-3" /></Button>
+                    )}
+                  </div>
+                  {reposicaoGeomembrana && (
+                    <>
+                      <div className="flex items-center gap-2 ml-7">
+                        <Input type="text" placeholder="Ex: 8 x 8" value={reposicaoGeomembranaDimensao} onChange={(e) => setReposicaoGeomembranaDimensao(e.target.value)} className="w-[150px]" />
+                      </div>
+                      {(gabiaoExtra.reposicaoGeomembrana || []).map((val, idx) => (
+                        <div key={idx} className="flex items-center gap-2 ml-7">
+                          <Input type="text" placeholder="Ex: 8 x 8" value={val} onChange={(e) => updateGabiaoExtra("reposicaoGeomembrana", idx, e.target.value)} className="w-[150px]" />
+                          <Button type="button" variant="ghost" size="icon" className="h-8 w-8 text-destructive hover:text-destructive hover:bg-destructive/10" onClick={() => removeGabiaoExtra("reposicaoGeomembrana", idx)}><X className="h-3 w-3" /></Button>
                         </div>
                       ))}
                     </>
