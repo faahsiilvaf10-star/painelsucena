@@ -1,8 +1,9 @@
 import { useState, useMemo } from "react";
-import { Calendar, CheckCircle2, XCircle, Loader2, Lock, Trash2, FileText } from "lucide-react";
+import { Calendar, CheckCircle2, XCircle, Loader2, Lock, Trash2, FileText, Pencil } from "lucide-react";
 import Layout from "@/components/layout/Layout";
 import { EditablePageTitle } from "@/components/cms/EditablePageTitle";
 import { Button } from "@/components/ui/button";
+import { Badge } from "@/components/ui/badge";
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { useAttendanceRecords, useUpdateAttendance, useDeleteAttendance, type AttendanceStatus } from "@/hooks/useAttendance";
@@ -10,6 +11,9 @@ import { useReportLock } from "@/hooks/useReportLock";
 import { useProfile } from "@/hooks/useProfile";
 import { useIsAdmin } from "@/hooks/useUserRole";
 import { useRHEfetivo } from "@/hooks/useRHEfetivo";
+import { useAbsenceReasons } from "@/hooks/useAbsenceReasons";
+import { AbsenceReasonDialog } from "@/components/presenca/AbsenceReasonDialog";
+import { supabase } from "@/integrations/supabase/client";
 import { toast } from "sonner";
 import { getBrazilNorthTodayString } from "@/lib/timezone";
 import { ExportAttendancePdfButton } from "@/components/presenca/ExportAttendancePdfButton";
@@ -44,10 +48,17 @@ const Presenca = () => {
   const { data: profile } = useProfile();
   const { isAdmin } = useIsAdmin();
   const { data: rhData, isLoading: rhLoading } = useRHEfetivo();
+  const { data: absenceReasons } = useAbsenceReasons(today);
   const {
     isLocked,
     isLoading: lockLoading
   } = useReportLock(today);
+
+  const [absenceDialog, setAbsenceDialog] = useState<{
+    employeeId: string;
+    employeeName: string;
+    initial?: { reason: string; days: number; cid: string; notes: string };
+  } | null>(null);
 
   const allowedCargos = ["encarregado_geral", "encarregado_i", "encarregado_ii", "aux_administrativo"];
   const canEdit = isAdmin || allowedCargos.includes(profile?.cargo || "");
@@ -105,26 +116,33 @@ const Presenca = () => {
   // The employees table links attendance_records. We match RH name to employees table name.
   const employeesList = useMemo(() => {
     if (!rhColaboradores.length) return [];
-    
-    // Build name->attendance lookup from attendance records
-    const nameToAttendance = new Map<string, { status: "present" | "absent"; recordId: string }>();
+
+    const nameToAttendance = new Map<string, { status: "present" | "absent"; recordId: string; employeeId: string }>();
     attendanceRecords?.forEach((r) => {
       if (r.employees) {
         const normalizedStatus = r.status === "present" || r.status === "late" ? "present" : "absent";
-        nameToAttendance.set(r.employees.name.toUpperCase().trim(), { status: normalizedStatus, recordId: r.id });
+        nameToAttendance.set(r.employees.name.toUpperCase().trim(), { status: normalizedStatus, recordId: r.id, employeeId: r.employee_id });
       }
+    });
+
+    const reasonByEmpId = new Map<string, { reason: string; days: number; cid: string | null; notes: string | null; date: string }>();
+    absenceReasons?.forEach((a) => {
+      reasonByEmpId.set(a.employee_id, { reason: a.reason, days: a.days_count, cid: a.cid, notes: a.notes, date: a.date });
     });
 
     return rhColaboradores.map(colab => {
       const attendance = nameToAttendance.get(colab.nome.toUpperCase().trim());
+      const reason = attendance ? reasonByEmpId.get(attendance.employeeId) : undefined;
       return {
         ...colab,
-        attendanceStatus: attendance?.status || "present" as "present" | "absent", // default present if no record
+        attendanceStatus: attendance?.status || "present" as "present" | "absent",
         recordId: attendance?.recordId || null,
+        employeeId: attendance?.employeeId || null,
         hasAttendanceRecord: !!attendance,
+        absenceReason: reason,
       };
     });
-  }, [rhColaboradores, attendanceRecords]);
+  }, [rhColaboradores, attendanceRecords, absenceReasons]);
 
   // Filter
   const filteredEmployees = useMemo(() => {
@@ -147,7 +165,7 @@ const Presenca = () => {
     return parts[0].substring(0, 2).toUpperCase();
   };
 
-  const handleStatusChange = async (recordId: string, newStatus: AttendanceStatus) => {
+  const handleStatusChange = async (recordId: string, employeeId: string, employeeName: string, newStatus: AttendanceStatus) => {
     if (isLocked) {
       toast.error("Relatório salvo! Status não pode ser alterado.");
       return;
@@ -159,6 +177,12 @@ const Presenca = () => {
         check_in: newStatus === "absent" || newStatus === "justified" ? null : undefined,
         check_out: newStatus === "absent" || newStatus === "justified" ? null : undefined
       });
+      if (newStatus === "absent") {
+        setAbsenceDialog({ employeeId, employeeName });
+      } else {
+        // remove any absence reason for today
+        await supabase.from("attendance_absence_reasons").delete().eq("employee_id", employeeId).eq("date", today);
+      }
       toast.success("Status atualizado com sucesso!");
     } catch (err) {
       toast.error("Erro ao atualizar status");
