@@ -219,11 +219,23 @@ export const ExportRelatorioPresencaExcel = ({ year, month, colaboradores, absen
           }
         });
 
-        const totalCell = row.getCell(totalCols);
+        const totalCell = row.getCell(totalAusCol);
         totalCell.value = totalAus || "";
         totalCell.font = { name: "Arial", size: 10, bold: true, color: { argb: totalAus ? "FFB91C1C" : "FFCBD5E1" } };
         totalCell.alignment = { horizontal: "center", vertical: "middle" };
         totalCell.fill = { type: "pattern", pattern: "solid", fgColor: { argb: "FFF8FAFC" } };
+
+        // CID column (concatena todos os CIDs únicos do mês)
+        const cidCell = row.getCell(cidCol);
+        cidCell.value = Array.from(cidSet).join(", ");
+        cidCell.font = { name: "Arial", size: 9, color: { argb: "FF1E293B" } };
+        cidCell.alignment = { horizontal: "center", vertical: "middle", wrapText: true };
+
+        // Observações (todas as ocorrências do mês)
+        const obsCell = row.getCell(obsCol);
+        obsCell.value = obsList.join(" | ");
+        obsCell.font = { name: "Arial", size: 9, color: { argb: "FF1E293B" } };
+        obsCell.alignment = { horizontal: "left", vertical: "middle", wrapText: true, indent: 1 };
 
         // Row styling
         row.getCell(1).font = { name: "Arial", size: 9, bold: true };
