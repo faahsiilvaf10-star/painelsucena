@@ -98,6 +98,12 @@ export default function AtividadesII() {
   const [lavagemBaciasVertedouro, setLavagemBaciasVertedouro] = useState(false);
   const [reposicaoGeotextil, setReposicaoGeotextil] = useState(false);
   const [reposicaoGeotextilDimensao, setReposicaoGeotextilDimensao] = useState("");
+  const [retiradaGeotextil, setRetiradaGeotextil] = useState(false);
+  const [retiradaGeotextilDimensao, setRetiradaGeotextilDimensao] = useState("");
+  const [retiradaGeomembrana, setRetiradaGeomembrana] = useState(false);
+  const [retiradaGeomembranaDimensao, setRetiradaGeomembranaDimensao] = useState("");
+  const [reposicaoGeomembrana, setReposicaoGeomembrana] = useState(false);
+  const [reposicaoGeomembranaDimensao, setReposicaoGeomembranaDimensao] = useState("");
   
   // Recomposição activities
   const [recomposicaoTela, setRecomposicaoTela] = useState(false);
