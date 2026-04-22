@@ -1043,6 +1043,84 @@ export default function AtividadesII() {
                   )}
                 </div>
 
+                {/* Retirada de Geotêxtil */}
+                <div className="p-3 rounded-lg bg-muted/30 space-y-3">
+                  <div className="flex items-center justify-between">
+                    <div className="flex items-center space-x-3">
+                      <Checkbox id="retiradaGeotextil" checked={retiradaGeotextil} onCheckedChange={(checked) => setRetiradaGeotextil(checked === true)} />
+                      <Label htmlFor="retiradaGeotextil" className="cursor-pointer font-medium">Retirada de Geotêxtil</Label>
+                    </div>
+                    {retiradaGeotextil && (
+                      <Button type="button" variant="ghost" size="sm" onClick={() => addGabiaoExtra("retiradaGeotextil")} className="gap-1 h-6 text-xs px-2 text-muted-foreground hover:text-foreground"><Plus className="h-3 w-3" /></Button>
+                    )}
+                  </div>
+                  {retiradaGeotextil && (
+                    <>
+                      <div className="flex items-center gap-2 ml-7">
+                        <Input type="text" placeholder="Ex: 8 x 8" value={retiradaGeotextilDimensao} onChange={(e) => setRetiradaGeotextilDimensao(e.target.value)} className="w-[150px]" />
+                      </div>
+                      {(gabiaoExtra.retiradaGeotextil || []).map((val, idx) => (
+                        <div key={idx} className="flex items-center gap-2 ml-7">
+                          <Input type="text" placeholder="Ex: 8 x 8" value={val} onChange={(e) => updateGabiaoExtra("retiradaGeotextil", idx, e.target.value)} className="w-[150px]" />
+                          <Button type="button" variant="ghost" size="icon" className="h-8 w-8 text-destructive hover:text-destructive hover:bg-destructive/10" onClick={() => removeGabiaoExtra("retiradaGeotextil", idx)}><X className="h-3 w-3" /></Button>
+                        </div>
+                      ))}
+                    </>
+                  )}
+                </div>
+
+                {/* Retirada de Geomembrana */}
+                <div className="p-3 rounded-lg bg-muted/30 space-y-3">
+                  <div className="flex items-center justify-between">
+                    <div className="flex items-center space-x-3">
+                      <Checkbox id="retiradaGeomembrana" checked={retiradaGeomembrana} onCheckedChange={(checked) => setRetiradaGeomembrana(checked === true)} />
+                      <Label htmlFor="retiradaGeomembrana" className="cursor-pointer font-medium">Retirada de Geomembrana</Label>
+                    </div>
+                    {retiradaGeomembrana && (
+                      <Button type="button" variant="ghost" size="sm" onClick={() => addGabiaoExtra("retiradaGeomembrana")} className="gap-1 h-6 text-xs px-2 text-muted-foreground hover:text-foreground"><Plus className="h-3 w-3" /></Button>
+                    )}
+                  </div>
+                  {retiradaGeomembrana && (
+                    <>
+                      <div className="flex items-center gap-2 ml-7">
+                        <Input type="text" placeholder="Ex: 8 x 8" value={retiradaGeomembranaDimensao} onChange={(e) => setRetiradaGeomembranaDimensao(e.target.value)} className="w-[150px]" />
+                      </div>
+                      {(gabiaoExtra.retiradaGeomembrana || []).map((val, idx) => (
+                        <div key={idx} className="flex items-center gap-2 ml-7">
+                          <Input type="text" placeholder="Ex: 8 x 8" value={val} onChange={(e) => updateGabiaoExtra("retiradaGeomembrana", idx, e.target.value)} className="w-[150px]" />
+                          <Button type="button" variant="ghost" size="icon" className="h-8 w-8 text-destructive hover:text-destructive hover:bg-destructive/10" onClick={() => removeGabiaoExtra("retiradaGeomembrana", idx)}><X className="h-3 w-3" /></Button>
+                        </div>
+                      ))}
+                    </>
+                  )}
+                </div>
+
+                {/* Reposição de Geomembrana */}
+                <div className="p-3 rounded-lg bg-muted/30 space-y-3">
+                  <div className="flex items-center justify-between">
+                    <div className="flex items-center space-x-3">
+                      <Checkbox id="reposicaoGeomembrana" checked={reposicaoGeomembrana} onCheckedChange={(checked) => setReposicaoGeomembrana(checked === true)} />
+                      <Label htmlFor="reposicaoGeomembrana" className="cursor-pointer font-medium">Reposição de Geomembrana</Label>
+                    </div>
+                    {reposicaoGeomembrana && (
+                      <Button type="button" variant="ghost" size="sm" onClick={() => addGabiaoExtra("reposicaoGeomembrana")} className="gap-1 h-6 text-xs px-2 text-muted-foreground hover:text-foreground"><Plus className="h-3 w-3" /></Button>
+                    )}
+                  </div>
+                  {reposicaoGeomembrana && (
+                    <>
+                      <div className="flex items-center gap-2 ml-7">
+                        <Input type="text" placeholder="Ex: 8 x 8" value={reposicaoGeomembranaDimensao} onChange={(e) => setReposicaoGeomembranaDimensao(e.target.value)} className="w-[150px]" />
+                      </div>
+                      {(gabiaoExtra.reposicaoGeomembrana || []).map((val, idx) => (
+                        <div key={idx} className="flex items-center gap-2 ml-7">
+                          <Input type="text" placeholder="Ex: 8 x 8" value={val} onChange={(e) => updateGabiaoExtra("reposicaoGeomembrana", idx, e.target.value)} className="w-[150px]" />
+                          <Button type="button" variant="ghost" size="icon" className="h-8 w-8 text-destructive hover:text-destructive hover:bg-destructive/10" onClick={() => removeGabiaoExtra("reposicaoGeomembrana", idx)}><X className="h-3 w-3" /></Button>
+                        </div>
+                      ))}
+                    </>
+                  )}
+                </div>
+
                 {/* Recomposição de tela */}
                 <div className="p-3 rounded-lg bg-muted/30 space-y-3">
                   <div className="flex items-center justify-between">
