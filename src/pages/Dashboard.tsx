@@ -223,13 +223,6 @@ const Dashboard = () => {
                 })}
               </span>
             </div>
-            <button
-              type="button"
-              className="inline-flex items-center gap-2 rounded-xl border border-border bg-card px-3 py-2 text-sm font-medium text-foreground shadow-sm hover:bg-muted/60 transition-colors"
-            >
-              <Filter className="h-4 w-4 text-muted-foreground" />
-              <span className="hidden sm:inline">Filtros</span>
-            </button>
             <DashboardEditControls
               isEditMode={isEditMode}
               hasChanges={hasChanges}
