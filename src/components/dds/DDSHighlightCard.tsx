@@ -102,15 +102,21 @@ export const DDSHighlightCard = () => {
       // Post to InstaCena
       if (profile) {
         const presenterName = todayDDS.presenter?.full_name || todayDDS.external_presenter_name || "Palestrante";
-        const envLabel = envInfo?.label || "";
-        await supabase.from("instacena_posts").insert({
-          user_id: profile.user_id,
-          user_name: profile.full_name,
-          user_avatar_url: profile.avatar_url,
-          content: `📸 Registro do DDS de hoje!\n\n📍 Local: ${envLabel}\n📋 Tema: ${todayDDS.theme}\n🎤 Palestrante: ${presenterName}`,
-          image_urls: [urlData.publicUrl],
-          is_system_post: false,
-        });
+        // Resolve municipality: prioritize the DDS record's environment, fallback to the active session environment
+        const ddsEnvId = (todayDDS.environment as "barcarena" | "paragominas" | undefined) || envInfo?.id;
+        const envLabel = ddsEnvId && ENVIRONMENTS[ddsEnvId] ? ENVIRONMENTS[ddsEnvId].label : "";
+        if (!envLabel) {
+          toast.error("Não foi possível identificar o município (Barcarena/Paragominas) deste DDS. A foto foi salva, mas o post no InstaCena foi cancelado.");
+        } else {
+          await supabase.from("instacena_posts").insert({
+            user_id: profile.user_id,
+            user_name: profile.full_name,
+            user_avatar_url: profile.avatar_url,
+            content: `📸 Registro do DDS de hoje!\n\n📍 Local: ${envLabel}\n📋 Tema: ${todayDDS.theme}\n🎤 Palestrante: ${presenterName}`,
+            image_urls: [urlData.publicUrl],
+            is_system_post: false,
+          });
+        }
       }
     } catch (error) {
       console.error("Error uploading event photo:", error);
