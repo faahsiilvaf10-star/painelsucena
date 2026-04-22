@@ -74,20 +74,31 @@ export function WeatherWidget() {
     return () => clearInterval(interval);
   }, [fetchWeather]);
 
-  // Deep night-blue gradient with subtle cloud overlay (matches reference)
+  const code = weather?.weatherCode ?? 3;
+  const isRainy =
+    (code >= 51 && code <= 67) ||
+    (code >= 80 && code <= 82) ||
+    code >= 95;
+  const isSunny = code === 0 || code === 1 || code === 2;
+
   const cardClass =
-    "relative rounded-2xl p-5 h-full overflow-hidden text-white shadow-lg transition-transform hover:scale-[1.01]";
+    "relative rounded-2xl p-5 h-full overflow-hidden shadow-lg transition-transform hover:scale-[1.01]";
+  const sunnyBg =
+    "linear-gradient(160deg, hsl(200, 90%, 88%) 0%, hsl(195, 85%, 78%) 55%, hsl(200, 80%, 70%) 100%)";
+  const rainyBg =
+    "linear-gradient(155deg, hsl(225, 60%, 18%) 0%, hsl(232, 55%, 24%) 55%, hsl(220, 50%, 32%) 100%)";
   const cardStyle: React.CSSProperties = {
-    background:
-      "linear-gradient(155deg, hsl(225, 60%, 18%) 0%, hsl(232, 55%, 24%) 55%, hsl(220, 50%, 32%) 100%)",
+    background: isSunny ? sunnyBg : rainyBg,
+    color: isSunny ? "hsl(220, 40%, 18%)" : "white",
   };
+  const textMuted = isSunny ? "text-slate-700/80" : "text-white/80";
 
   if (error) {
     return (
       <div className={cardClass} style={cardStyle}>
-        <Cloud className="h-8 w-8 mx-auto mb-2 text-slate-300" />
-        <p className="text-sm text-white/70 text-center">{error}</p>
-        <Button variant="ghost" size="sm" className="mt-2 text-white/80 hover:text-white w-full" onClick={fetchWeather}>
+        <Cloud className="h-8 w-8 mx-auto mb-2" />
+        <p className={`text-sm text-center ${textMuted}`}>{error}</p>
+        <Button variant="ghost" size="sm" className={`mt-2 w-full ${textMuted}`} onClick={fetchWeather}>
           <RefreshCw className="h-3 w-3 mr-1" /> Tentar novamente
         </Button>
       </div>
@@ -104,28 +115,35 @@ export function WeatherWidget() {
   }
 
   const description = WMO_DESCRIPTIONS[weather.weatherCode] || "Indisponível";
-  const isRainy =
-    (weather.weatherCode >= 51 && weather.weatherCode <= 67) ||
-    (weather.weatherCode >= 80 && weather.weatherCode <= 82) ||
-    weather.weatherCode >= 95;
 
   return (
     <div className={cardClass} style={cardStyle}>
-      {/* Subtle cloud silhouette decoration */}
-      <div
-        className="pointer-events-none absolute -bottom-6 -right-6 h-32 w-32 rounded-full opacity-20 blur-2xl"
-        style={{ background: "radial-gradient(circle, hsl(220, 60%, 70%), transparent 70%)" }}
-      />
+      {!isSunny && (
+        <div
+          className="pointer-events-none absolute -bottom-6 -right-6 h-32 w-32 rounded-full opacity-20 blur-2xl"
+          style={{ background: "radial-gradient(circle, hsl(220, 60%, 70%), transparent 70%)" }}
+        />
+      )}
+
+      {isSunny && (
+        <>
+          <div className="pointer-events-none absolute -top-10 -right-10 z-0">
+            <div className="weather-sun" />
+          </div>
+          <div className="pointer-events-none absolute inset-0 overflow-hidden">
+            <div className="weather-sun-cloud weather-sun-cloud-1" />
+            <div className="weather-sun-cloud weather-sun-cloud-2" />
+          </div>
+        </>
+      )}
 
       {isRainy && (
         <>
-          {/* Animated drifting clouds in background */}
           <div className="pointer-events-none absolute inset-0 overflow-hidden">
             <div className="weather-cloud weather-cloud-1" />
             <div className="weather-cloud weather-cloud-2" />
             <div className="weather-cloud weather-cloud-3" />
           </div>
-          {/* Falling raindrops */}
           <div className="pointer-events-none absolute inset-0 overflow-hidden">
             {Array.from({ length: 18 }).map((_, i) => (
               <span
