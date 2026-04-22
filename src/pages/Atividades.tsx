@@ -45,6 +45,7 @@ import { AIImproveButton } from "@/components/atividades/AIImproveButton";
 
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import MudasParaPlantarTab from "@/components/atividades/MudasParaPlantarTab";
+import { JardinagemMetasSummary } from "@/components/atividades/JardinagemMetasSummary";
 import { useMudasParaPlantar, useUpdateMudaParaPlantar, useAddMudaParaPlantar } from "@/hooks/useMudasParaPlantar";
 import { TreePine } from "lucide-react";
 
@@ -762,6 +763,9 @@ export default function Atividades() {
           </TabsContent>
 
           <TabsContent value="jardinagem" className="mt-4 space-y-4 sm:space-y-6">
+
+        {/* Resumo de metas do mês */}
+        <JardinagemMetasSummary />
 
         {/* Header */}
         <div className="flex flex-col gap-4">
