@@ -58,33 +58,7 @@ export default function MonthlyReportDialog({
     from: undefined,
     to: undefined,
   });
-  const [filterType, setFilterType] = useState<"month" | "range" | "medicao">("month");
-  const [medicaoMonth, setMedicaoMonth] = useState<Date>(new Date());
-
-  // Generate measurement period options (last 12 months)
-  const medicaoOptions = useMemo(() => {
-    const options = [];
-    const now = getBrazilNorthDate();
-    for (let i = 0; i < 12; i++) {
-      const baseDate = new Date(now.getFullYear(), now.getMonth() - i, 16);
-      const startDate = setDate(baseDate, 16);
-      const endDate = setDate(addMonths(baseDate, 1), 16);
-      options.push({
-        value: format(baseDate, "yyyy-MM"),
-        label: `${format(startDate, "dd/MM/yyyy")} a ${format(endDate, "dd/MM/yyyy")}`,
-        startDate,
-        endDate,
-      });
-    }
-    return options;
-  }, []);
-
-  // Get current measurement period dates
-  const medicaoDates = useMemo(() => {
-    const startDate = setDate(medicaoMonth, 16);
-    const endDate = setDate(addMonths(medicaoMonth, 1), 16);
-    return { from: startDate, to: endDate };
-  }, [medicaoMonth]);
+  const [filterType, setFilterType] = useState<"month" | "range">("month");
 
   // Generate month options (last 12 months)
   const monthOptions = useMemo(() => {
@@ -116,15 +90,8 @@ export default function MonthlyReportDialog({
         const reportDate = parseISO(report.report_date);
         return isWithinInterval(reportDate, { start: dateRange.from!, end: dateRange.to! });
       });
-    } else if (filterType === "medicao") {
-      return reports.filter((report) => {
-        const reportDate = parseISO(report.report_date);
-        return isWithinInterval(reportDate, { start: medicaoDates.from, end: medicaoDates.to });
-      });
-    }
-
     return reports;
-  }, [reports, filterType, filterMonth, dateRange, medicaoDates]);
+  }, [reports, filterType, filterMonth, dateRange]);
 
   // Sort by date descending
   const sortedReports = useMemo(() => {
