@@ -3,6 +3,22 @@ import { NewsTicker } from "@/components/footer/NewsTicker";
 import { ChevronDown, Play } from "lucide-react";
 import { cn } from "@/lib/utils";
 import { useSidebar } from "@/components/ui/sidebar";
+import { getBrazilNorthMonth } from "@/lib/timezone";
+
+const FORBIDDEN_COLORS: Record<number, { name: string; bgClass: string }> = {
+  0: { name: "Vermelha", bgClass: "bg-red-500" },
+  1: { name: "Azul", bgClass: "bg-blue-500" },
+  2: { name: "Amarela", bgClass: "bg-yellow-400" },
+  3: { name: "Verde", bgClass: "bg-green-500" },
+  4: { name: "Vermelha", bgClass: "bg-red-500" },
+  5: { name: "Azul", bgClass: "bg-blue-500" },
+  6: { name: "Amarela", bgClass: "bg-yellow-400" },
+  7: { name: "Verde", bgClass: "bg-green-500" },
+  8: { name: "Vermelha", bgClass: "bg-red-500" },
+  9: { name: "Azul", bgClass: "bg-blue-500" },
+  10: { name: "Amarela", bgClass: "bg-yellow-400" },
+  11: { name: "Verde", bgClass: "bg-green-500" },
+};
 
 interface OnlineUsersFooterProps {
   onUserClick: (user: any) => void;
@@ -13,6 +29,7 @@ export const OnlineUsersFooter = ({ onUserClick }: OnlineUsersFooterProps) => {
   const { state } = useSidebar();
 
   const isCollapsedSidebar = state === "collapsed";
+  const forbiddenColor = FORBIDDEN_COLORS[getBrazilNorthMonth()];
 
   return (
     <div className={cn(
@@ -52,6 +69,15 @@ export const OnlineUsersFooter = ({ onUserClick }: OnlineUsersFooterProps) => {
               Clique no play para ouvir na plataforma ForMusic
             </span>
           </a>
+          <div
+            className="flex-shrink-0 flex items-center gap-1.5 px-2 py-1 rounded-full bg-muted/50"
+            title={`Cor proibida do mês: ${forbiddenColor.name}`}
+          >
+            <span className={cn("w-3.5 h-3.5 rounded-full shadow-sm", forbiddenColor.bgClass)} />
+            <span className="text-[11px] font-medium whitespace-nowrap text-muted-foreground">
+              Cor proibida: {forbiddenColor.name}
+            </span>
+          </div>
           <NewsTicker />
         </div>
       )}
