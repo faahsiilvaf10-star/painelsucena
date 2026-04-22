@@ -172,7 +172,7 @@ export default function Planejamento() {
             Avanço Mensal — Meta DRS. Cada linha representa uma meta a bater.
           </p>
         </div>
-        {isAdmin && (
+        {canEdit && (
           <Button onClick={handleSync} disabled={syncing} variant="outline" size="sm">
             <RefreshCw className={cn("w-4 h-4 mr-2", syncing && "animate-spin")} />
             {syncing ? "Sincronizando..." : "Sincronizar agora"}
