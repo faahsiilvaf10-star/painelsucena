@@ -283,6 +283,12 @@ export default function AtividadesII() {
       setLavagemBaciasVertedouro(false);
       setReposicaoGeotextil(false);
       setReposicaoGeotextilDimensao("");
+      setRetiradaGeotextil(false);
+      setRetiradaGeotextilDimensao("");
+      setRetiradaGeomembrana(false);
+      setRetiradaGeomembranaDimensao("");
+      setReposicaoGeomembrana(false);
+      setReposicaoGeomembranaDimensao("");
       setRecomposicaoTela(false);
       setRecomposicaoTelaDimensao("");
       setRecomposicaoCascalho(false);
