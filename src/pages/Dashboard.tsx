@@ -1,5 +1,9 @@
 import { useState, useEffect } from "react";
-import { Users, ClipboardCheck, AlertCircle, Activity, Calendar, Filter, ArrowUp } from "lucide-react";
+import { Users, ClipboardCheck, AlertCircle, Activity, Calendar as CalendarIcon, Filter, ArrowUp } from "lucide-react";
+import { format } from "date-fns";
+import { ptBR } from "date-fns/locale";
+import { Calendar } from "@/components/ui/calendar";
+import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover";
 import { useProfile } from "@/hooks/useProfile";
 import { useSiteSettings } from "@/hooks/useSiteSettings";
 import { SimpleTree } from "@/components/ui/simple-growth-tree";
