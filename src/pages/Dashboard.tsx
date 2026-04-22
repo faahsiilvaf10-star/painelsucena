@@ -215,7 +215,7 @@ const Dashboard = () => {
               <EditablePageTitle
                 pageKey="dashboard"
                 defaultValue="Dashboard"
-                className="text-xl sm:text-3xl font-bold"
+                className="text-xl sm:text-3xl font-bold text-gradient"
                 as="h1"
               />
               <p className="text-sm mt-0.5 text-muted-foreground">
