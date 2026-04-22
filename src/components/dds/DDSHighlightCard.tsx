@@ -26,7 +26,7 @@ export const DDSHighlightCard = () => {
   const { isAdmin } = useIsAdmin();
   const updatePhoto = useUpdateDDSPhoto();
   const updateEventPhoto = useUpdateDDSEventPhoto();
-
+  const { info: envInfo } = useEnvironment();
   // Hook to refresh DDS data at midnight (00:00 Pará time)
   const dateKey = useDDSMidnightRefresh();
 
