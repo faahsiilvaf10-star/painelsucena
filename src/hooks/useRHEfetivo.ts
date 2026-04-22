@@ -2,6 +2,7 @@ import { useEffect } from "react";
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import { supabase } from "@/integrations/supabase/client";
 import { colaboradoresAtivos as initialColaboradores, type Colaborador } from "@/data/efetivoData";
+import { useEnvironment } from "@/hooks/useEnvironment";
 
 interface RHEfetivoRow {
   id: string;
@@ -9,17 +10,24 @@ interface RHEfetivoRow {
   deleted_ids: number[];
   imported_at: string;
   imported_by: string;
+  environment: string;
 }
 
 export const useRHEfetivo = () => {
   const queryClient = useQueryClient();
+  const { environment } = useEnvironment();
+  // Default fallback (Barcarena) when no env selected yet
+  const env = environment ?? "barcarena";
 
   const query = useQuery({
-    queryKey: ["rh-efetivo"],
+    queryKey: ["rh-efetivo", env],
     queryFn: async () => {
+      // RLS already filters by current_environment() via x-environment header,
+      // but we also filter explicitly to be safe.
       const { data, error } = await supabase
         .from("rh_efetivo")
         .select("*")
+        .eq("environment", env)
         .order("imported_at", { ascending: false })
         .limit(1);
 
@@ -28,8 +36,9 @@ export const useRHEfetivo = () => {
       if (data && data.length > 0) {
         const row = data[0] as unknown as RHEfetivoRow;
         const importedColabs = (row.colaboradores || []) as Colaborador[];
-        // Fallback: if imported row is empty, use initial dataset so RH features still work
-        const colaboradores = importedColabs.length > 0 ? importedColabs : initialColaboradores;
+        // Fallback only for Barcarena (legado). Paragominas começa vazio.
+        const fallback = env === "barcarena" ? initialColaboradores : [];
+        const colaboradores = importedColabs.length > 0 ? importedColabs : fallback;
         return {
           colaboradores,
           deletedIds: (row.deleted_ids || []) as number[],
@@ -38,8 +47,9 @@ export const useRHEfetivo = () => {
         };
       }
 
+      // No row at all for this environment
       return {
-        colaboradores: initialColaboradores,
+        colaboradores: env === "barcarena" ? initialColaboradores : [],
         deletedIds: [] as number[],
         hasImported: false,
         rowId: null as string | null,
@@ -50,12 +60,12 @@ export const useRHEfetivo = () => {
   // Realtime subscription — auto-refresh for all users when data changes
   useEffect(() => {
     const channel = supabase
-      .channel("rh-efetivo-changes")
+      .channel(`rh-efetivo-changes-${env}`)
       .on(
         "postgres_changes",
         { event: "*", schema: "public", table: "rh_efetivo" },
         () => {
-          queryClient.invalidateQueries({ queryKey: ["rh-efetivo"] });
+          queryClient.invalidateQueries({ queryKey: ["rh-efetivo", env] });
         }
       )
       .subscribe();
@@ -63,7 +73,7 @@ export const useRHEfetivo = () => {
     return () => {
       supabase.removeChannel(channel);
     };
-  }, [queryClient]);
+  }, [queryClient, env]);
 
   const saveMutation = useMutation({
     mutationFn: async ({
@@ -86,6 +96,7 @@ export const useRHEfetivo = () => {
           .eq("id", existingRowId);
         if (error) throw error;
       } else {
+        // environment column is set automatically by trigger from x-environment header
         const { error } = await supabase.from("rh_efetivo").insert({
           colaboradores: colaboradores as any,
           deleted_ids: deletedIds as any,
@@ -95,7 +106,7 @@ export const useRHEfetivo = () => {
       }
     },
     onSuccess: () => {
-      queryClient.invalidateQueries({ queryKey: ["rh-efetivo"] });
+      queryClient.invalidateQueries({ queryKey: ["rh-efetivo", env] });
     },
   });
 
