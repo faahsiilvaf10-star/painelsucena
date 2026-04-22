@@ -101,14 +101,28 @@ export const ExportRelatorioPresencaExcel = ({ year, month, colaboradores, absen
 
       const totalCols = 3 + daysInMonth + ALL_REASONS.length + 1 + 3; // matr, nome, função + dias + motivos + total + CID + CIDs por dia + Observações
 
+      // Logo Sucena - carrega como base64 e adiciona à planilha
+      try {
+        const logoResp = await fetch(sucenaLogo);
+        const logoBuffer = await logoResp.arrayBuffer();
+        const imageId = wb.addImage({ buffer: logoBuffer as any, extension: "png" });
+        ws.addImage(imageId, {
+          tl: { col: 0.15, row: 0.15 },
+          ext: { width: 110, height: 60 },
+          editAs: "oneCell",
+        });
+      } catch (err) {
+        console.warn("Falha ao carregar logo Sucena:", err);
+      }
+
       // Title
       ws.mergeCells(1, 1, 1, totalCols);
       const titleCell = ws.getCell(1, 1);
       titleCell.value = `RELATÓRIO DE PRESENÇA — ${MONTH_NAMES[month - 1].toUpperCase()} / ${year}`;
-      titleCell.font = { name: "Arial", size: 14, bold: true, color: { argb: "FFFFFFFF" } };
+      titleCell.font = { name: "Arial", size: 16, bold: true, color: { argb: "FFFFFFFF" } };
       titleCell.alignment = { horizontal: "center", vertical: "middle" };
       titleCell.fill = { type: "pattern", pattern: "solid", fgColor: { argb: "FF1E3A5F" } };
-      ws.getRow(1).height = 26;
+      ws.getRow(1).height = 70;
 
       // Subtitle
       ws.mergeCells(2, 1, 2, totalCols);
