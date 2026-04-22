@@ -44,6 +44,7 @@ import {
   type AbsenceRow,
 } from "@/hooks/useAbsenceReasons";
 import type { Colaborador } from "@/data/efetivoData";
+import { ExportRelatorioPresencaExcel } from "@/components/presenca/ExportRelatorioPresencaExcel";
 
 const MONTH_NAMES = [
   "Janeiro", "Fevereiro", "Março", "Abril", "Maio", "Junho",
@@ -208,6 +209,13 @@ const RelatorioPresenca = () => {
           <Button variant="outline" size="icon" onClick={nextMonth}>
             <ChevronRight className="w-4 h-4" />
           </Button>
+
+          <ExportRelatorioPresencaExcel
+            year={year}
+            month={month}
+            colaboradores={filteredColabs}
+            absences={absences || []}
+          />
 
           <div className="relative ml-auto w-full md:w-[280px]">
             <Search className="w-4 h-4 absolute left-2 top-1/2 -translate-y-1/2 text-muted-foreground" />
