@@ -37,6 +37,16 @@ export const OnlineUsersFooter = ({ onUserClick }: OnlineUsersFooterProps) => {
 
       {!isMinimized && (
         <div className="flex items-center gap-1 md:gap-3 px-2 md:px-4 py-1.5 md:py-2 overflow-x-auto scrollbar-none">
+          <a
+            href="https://formusic.lovable.app/"
+            target="_blank"
+            rel="noopener noreferrer"
+            className="flex-shrink-0 flex items-center justify-center w-8 h-8 rounded-full bg-primary/10 hover:bg-primary/20 text-primary transition-colors"
+            aria-label="Abrir rádio"
+            title="Abrir rádio"
+          >
+            <Play className="h-4 w-4 fill-current" />
+          </a>
           <NewsTicker />
         </div>
       )}
