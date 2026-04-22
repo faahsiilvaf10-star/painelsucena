@@ -48,10 +48,17 @@ const Presenca = () => {
   const { data: profile } = useProfile();
   const { isAdmin } = useIsAdmin();
   const { data: rhData, isLoading: rhLoading } = useRHEfetivo();
+  const { data: absenceReasons } = useAbsenceReasons(today);
   const {
     isLocked,
     isLoading: lockLoading
   } = useReportLock(today);
+
+  const [absenceDialog, setAbsenceDialog] = useState<{
+    employeeId: string;
+    employeeName: string;
+    initial?: { reason: string; days: number; cid: string; notes: string };
+  } | null>(null);
 
   const allowedCargos = ["encarregado_geral", "encarregado_i", "encarregado_ii", "aux_administrativo"];
   const canEdit = isAdmin || allowedCargos.includes(profile?.cargo || "");
