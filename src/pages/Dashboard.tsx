@@ -277,9 +277,9 @@ const Dashboard = () => {
             />
           </div>
 
-          {/* Center: Matriz do Mês (Gauge) */}
+          {/* Center: Avanço Mensal (Planejamento) */}
           <div className="lg:col-span-3">
-            <MatrixGauge referenceDate={selectedDate} />
+            <PlanejamentoProgressCard />
           </div>
 
           {/* Right-center: Presentes Hoje + Ausências */}
@@ -414,7 +414,7 @@ const Dashboard = () => {
             <AttendanceTrendChart />
           </div>
           <div className="animate-slide-up" style={{ animationDelay: "0.15s" }}>
-            <PlanejamentoProgressCard />
+            <MatrixGauge referenceDate={selectedDate} />
           </div>
         </div>
 
