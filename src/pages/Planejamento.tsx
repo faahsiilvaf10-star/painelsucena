@@ -1,5 +1,8 @@
 import { useMemo, useState } from "react";
-import { Target, TrendingUp, CheckCircle2, AlertCircle, Pencil, Save, X } from "lucide-react";
+import { Target, TrendingUp, CheckCircle2, AlertCircle, Pencil, Save, X, RefreshCw } from "lucide-react";
+import { supabase } from "@/integrations/supabase/client";
+import { useQueryClient } from "@tanstack/react-query";
+import { toast } from "sonner";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Progress } from "@/components/ui/progress";
 import { Badge } from "@/components/ui/badge";
@@ -111,6 +114,24 @@ function MetaRow({ meta, canEdit }: { meta: PlanejamentoMeta; canEdit: boolean }
 export default function Planejamento() {
   const { data: metas = [], isLoading } = usePlanejamentoMetas();
   const { isAdmin } = useIsAdmin();
+  const qc = useQueryClient();
+  const [syncing, setSyncing] = useState(false);
+
+  const handleSync = async () => {
+    setSyncing(true);
+    try {
+      const { data, error } = await supabase.functions.invoke("sync-planejamento-excel");
+      if (error) throw error;
+      const d = data as { ok: boolean; updated?: number; error?: string };
+      if (!d.ok) throw new Error(d.error || "Falha na sincronização");
+      toast.success(`Sincronizado: ${d.updated ?? 0} meta(s) atualizada(s)`);
+      qc.invalidateQueries({ queryKey: ["planejamento-metas"] });
+    } catch (e) {
+      toast.error(e instanceof Error ? e.message : "Erro ao sincronizar");
+    } finally {
+      setSyncing(false);
+    }
+  };
 
   const grouped = useMemo(() => {
     const groups: { categoria: string; items: PlanejamentoMeta[] }[] = [];
@@ -142,12 +163,18 @@ export default function Planejamento() {
         <div className="p-2 rounded-lg bg-primary/10">
           <Target className="w-6 h-6 text-primary" />
         </div>
-        <div>
+        <div className="flex-1">
           <h1 className="text-xl sm:text-3xl font-bold text-gradient">Planejamento</h1>
           <p className="text-sm text-muted-foreground">
             Avanço Mensal — Meta DRS. Cada linha representa uma meta a bater.
           </p>
         </div>
+        {isAdmin && (
+          <Button onClick={handleSync} disabled={syncing} variant="outline" size="sm">
+            <RefreshCw className={cn("w-4 h-4 mr-2", syncing && "animate-spin")} />
+            {syncing ? "Sincronizando..." : "Sincronizar agora"}
+          </Button>
+        )}
       </div>
 
       {/* Summary cards */}
