@@ -278,7 +278,7 @@ const Dashboard = () => {
 
           {/* Center: Matriz do Mês (Gauge) */}
           <div className="lg:col-span-3">
-            <MatrixGauge />
+            <MatrixGauge referenceDate={selectedDate} />
           </div>
 
           {/* Right-center: Presentes Hoje + Ausências */}
