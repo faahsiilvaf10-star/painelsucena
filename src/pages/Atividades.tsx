@@ -728,6 +728,20 @@ export default function Atividades() {
     return estoqueData.filter(item => item.especie.trim().toUpperCase() === key);
   };
 
+  // When unlocking, restore the stock to the state it had BEFORE the last save.
+  // This way, the deducted seedlings come back, and saving again will deduct fresh.
+  const handleUnlock = async () => {
+    try {
+      if (existingReport) {
+        await restoreStockFromReport(existingReport as JardinagemReport);
+      }
+      await unlockArea.mutateAsync("jardinagem");
+      toast.success("Área desbloqueada e estoque de mudas restaurado!");
+    } catch (error: any) {
+      toast.error("Erro ao desbloquear: " + error.message);
+    }
+  };
+
   const handleDelete = async () => {
     if (!existingReport) return;
     
@@ -970,7 +984,7 @@ export default function Atividades() {
             {isJardinagemLocked && hasEditPermission && (
               <Button 
                 variant="outline" 
-                onClick={() => unlockArea.mutateAsync("jardinagem")}
+                onClick={handleUnlock}
                 disabled={unlockArea.isPending}
                 className="gap-2"
               >
