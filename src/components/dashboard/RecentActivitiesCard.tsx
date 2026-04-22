@@ -2,7 +2,7 @@ import { useMemo } from "react";
 import { Link } from "react-router-dom";
 import { CheckCircle2, Wrench, Image as ImageIcon, AlertTriangle, ArrowRight, Clock } from "lucide-react";
 import { useDesvios } from "@/hooks/useDesvios";
-import { useEquipmentMovements } from "@/hooks/useEquipmentMovements";
+import { useAllEquipmentMovements } from "@/hooks/useEquipmentMovements";
 import { useInstaCenaPosts } from "@/hooks/useInstaCena";
 
 type ActivityKind = "equipment" | "desvio" | "post";
@@ -41,8 +41,8 @@ const iconFor = (kind: ActivityKind) => {
 
 export function RecentActivitiesCard() {
   const { data: desvios } = useDesvios();
-  const { data: movements } = useEquipmentMovements();
-  const { data: posts } = useInstaCenaPosts();
+  const { data: movements } = useAllEquipmentMovements();
+  const { posts } = useInstaCenaPosts();
 
   const items = useMemo<ActivityItem[]>(() => {
     const list: ActivityItem[] = [];
