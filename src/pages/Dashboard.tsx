@@ -255,13 +255,9 @@ const Dashboard = () => {
             />
           </div>
 
-          {/* Center: Large Presence Gauge */}
+          {/* Center: Matriz do Mês (Gauge) */}
           <div className="lg:col-span-3">
-            <PresenceGauge
-              present={presentToday}
-              total={totalEmployees}
-              percentage={presencePercent}
-            />
+            <MatrixGauge />
           </div>
 
           {/* Right-center: Presentes Hoje + Ausências */}
