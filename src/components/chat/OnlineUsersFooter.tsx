@@ -41,11 +41,16 @@ export const OnlineUsersFooter = ({ onUserClick }: OnlineUsersFooterProps) => {
             href="https://formusic.lovable.app/"
             target="_blank"
             rel="noopener noreferrer"
-            className="flex-shrink-0 flex items-center justify-center w-8 h-8 rounded-full bg-primary/10 hover:bg-primary/20 text-primary transition-colors"
-            aria-label="Abrir rádio"
-            title="Abrir rádio"
+            className="flex-shrink-0 flex items-center gap-1.5 px-2 py-1 rounded-full bg-primary/10 hover:bg-primary/20 text-primary transition-colors"
+            aria-label="Abrir ForMusic"
+            title="Abrir ForMusic"
           >
-            <Play className="h-4 w-4 fill-current" />
+            <span className="flex items-center justify-center w-5 h-5 rounded-full bg-primary text-primary-foreground">
+              <Play className="h-2.5 w-2.5 fill-current" />
+            </span>
+            <span className="text-[11px] font-medium whitespace-nowrap">
+              Clique no play para ouvir na plataforma ForMusic
+            </span>
           </a>
           <NewsTicker />
         </div>
