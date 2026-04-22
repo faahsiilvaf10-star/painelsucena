@@ -229,7 +229,7 @@ export default function Planejamento() {
               </CardHeader>
               <CardContent className="space-y-3">
                 {group.items.map((m) => (
-                  <MetaRow key={m.id} meta={m} canEdit={isAdmin} />
+                  <MetaRow key={m.id} meta={m} canEdit={canEdit} />
                 ))}
               </CardContent>
             </Card>
