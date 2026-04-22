@@ -54,15 +54,15 @@ export function JardinagemMetasSummary({
   if (isLoading || items.length === 0) return null;
 
   return (
-    <Card className="border-green-500/30 bg-gradient-to-br from-green-500/5 to-emerald-500/5">
+    <Card className={borderColor}>
       <CardHeader className="pb-3">
         <div className="flex items-center justify-between gap-2 flex-wrap">
           <CardTitle className="text-sm sm:text-base flex items-center gap-2">
-            <Target className="h-4 w-4 text-green-600" />
-            Metas do mês — Jardinagem
+            <Target className={cn("h-4 w-4", iconColor)} />
+            {title}
           </CardTitle>
           <div className="flex items-center gap-2">
-            <TrendingUp className="h-4 w-4 text-green-600" />
+            <TrendingUp className={cn("h-4 w-4", iconColor)} />
             <span className={cn("text-sm font-bold tabular-nums", tone(overall))}>
               {overall.toFixed(1)}%
             </span>
