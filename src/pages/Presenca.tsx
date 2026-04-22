@@ -316,7 +316,7 @@ const Presenca = () => {
                           {config.label}
                         </div>
                       ) : (
-                        <Select value={emp.attendanceStatus} onValueChange={(value: AttendanceStatus) => handleStatusChange(emp.recordId!, value)}>
+                        <Select value={emp.attendanceStatus} onValueChange={(value: AttendanceStatus) => handleStatusChange(emp.recordId!, emp.id, emp.nome, value)}>
                           <SelectTrigger className={`w-[140px] h-8 ${config.class} border-0`}>
                             <SelectValue />
                           </SelectTrigger>
