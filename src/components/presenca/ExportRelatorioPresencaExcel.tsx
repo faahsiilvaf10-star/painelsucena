@@ -131,11 +131,14 @@ export const ExportRelatorioPresencaExcel = ({ year, month, colaboradores, absen
       ws.getCell(3, 4 + daysInMonth).value = "TOTAIS POR MOTIVO";
       const totalAusCol = 3 + daysInMonth + ALL_REASONS.length + 1;
       const cidCol = totalAusCol + 1;
-      const obsCol = totalAusCol + 2;
+      const cidByDayCol = totalAusCol + 2;
+      const obsCol = totalAusCol + 3;
       ws.mergeCells(3, totalAusCol, 4, totalAusCol);
       ws.getCell(3, totalAusCol).value = "TOTAL\nAUSÊNCIAS";
       ws.mergeCells(3, cidCol, 4, cidCol);
       ws.getCell(3, cidCol).value = "CID";
+      ws.mergeCells(3, cidByDayCol, 4, cidByDayCol);
+      ws.getCell(3, cidByDayCol).value = "CIDs POR DIA";
       ws.mergeCells(3, obsCol, 4, obsCol);
       ws.getCell(3, obsCol).value = "OBSERVAÇÕES";
 
