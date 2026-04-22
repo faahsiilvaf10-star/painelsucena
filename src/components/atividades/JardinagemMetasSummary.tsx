@@ -21,15 +21,27 @@ function tone(p: number) {
   return "text-muted-foreground";
 }
 
-export function JardinagemMetasSummary() {
+interface MetasSummaryProps {
+  linhas?: number[];
+  title?: string;
+  iconColor?: string;
+  borderColor?: string;
+}
+
+export function JardinagemMetasSummary({
+  linhas = JARDINAGEM_LINHAS,
+  title = "Metas do mês — Jardinagem",
+  iconColor = "text-green-600",
+  borderColor = "border-green-500/30 bg-gradient-to-br from-green-500/5 to-emerald-500/5",
+}: MetasSummaryProps = {}) {
   const { data: metas = [], isLoading } = usePlanejamentoMetas();
 
   const items = useMemo(
     () =>
       metas.filter(
-        (m) => !m.is_section_header && m.linha !== null && JARDINAGEM_LINHAS.includes(m.linha) && m.meta > 0
+        (m) => !m.is_section_header && m.linha !== null && linhas.includes(m.linha) && m.meta > 0
       ),
-    [metas]
+    [metas, linhas]
   );
 
   const overall = useMemo(() => {
@@ -42,15 +54,15 @@ export function JardinagemMetasSummary() {
   if (isLoading || items.length === 0) return null;
 
   return (
-    <Card className="border-green-500/30 bg-gradient-to-br from-green-500/5 to-emerald-500/5">
+    <Card className={borderColor}>
       <CardHeader className="pb-3">
         <div className="flex items-center justify-between gap-2 flex-wrap">
           <CardTitle className="text-sm sm:text-base flex items-center gap-2">
-            <Target className="h-4 w-4 text-green-600" />
-            Metas do mês — Jardinagem
+            <Target className={cn("h-4 w-4", iconColor)} />
+            {title}
           </CardTitle>
           <div className="flex items-center gap-2">
-            <TrendingUp className="h-4 w-4 text-green-600" />
+            <TrendingUp className={cn("h-4 w-4", iconColor)} />
             <span className={cn("text-sm font-bold tabular-nums", tone(overall))}>
               {overall.toFixed(1)}%
             </span>

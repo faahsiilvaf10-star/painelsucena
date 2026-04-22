@@ -38,6 +38,7 @@ import { Alert, AlertDescription } from "@/components/ui/alert";
 import { AIImproveButton } from "@/components/atividades/AIImproveButton";
 import { EditablePageTitle } from "@/components/cms/EditablePageTitle";
 import { EditableIcon } from "@/components/cms/EditableIcon";
+import { JardinagemMetasSummary } from "@/components/atividades/JardinagemMetasSummary";
 
 
 const FAIXA_OPTIONS = [
@@ -544,6 +545,15 @@ export default function AtividadesII() {
             </AlertDescription>
           </Alert>
         )}
+
+        {/* Resumo de meta do mês — Linha 250 (Gabião) */}
+        <JardinagemMetasSummary
+          linhas={[250]}
+          title="Meta do mês — Gabião"
+          iconColor="text-orange-600"
+          borderColor="border-orange-500/30 bg-gradient-to-br from-orange-500/5 to-amber-500/5"
+        />
+
         {/* Header */}
         <div className="flex flex-col gap-4">
           <div className="flex items-center gap-3">
