@@ -238,6 +238,12 @@ export const ExportRelatorioPresencaExcel = ({ year, month, colaboradores, absen
         cidCell.font = { name: "Arial", size: 9, color: { argb: "FF1E293B" } };
         cidCell.alignment = { horizontal: "center", vertical: "middle", wrapText: true };
 
+        // CIDs por dia (lista detalhada)
+        const cidByDayCell = row.getCell(cidByDayCol);
+        cidByDayCell.value = cidByDayList.join(" | ");
+        cidByDayCell.font = { name: "Arial", size: 9, color: { argb: "FF1E293B" } };
+        cidByDayCell.alignment = { horizontal: "left", vertical: "middle", wrapText: true, indent: 1 };
+
         // Observações (todas as ocorrências do mês)
         const obsCell = row.getCell(obsCol);
         obsCell.value = obsList.join(" | ");
