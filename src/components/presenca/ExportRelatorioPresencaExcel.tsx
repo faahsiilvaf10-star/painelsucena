@@ -98,7 +98,7 @@ export const ExportRelatorioPresencaExcel = ({ year, month, colaboradores, absen
       });
       const empKey = (c: Colaborador) => String(c.matricula || c.id);
 
-      const totalCols = 3 + daysInMonth + ALL_REASONS.length + 1; // matr, nome, função + dias + motivos + total ausências
+      const totalCols = 3 + daysInMonth + ALL_REASONS.length + 1 + 2; // matr, nome, função + dias + motivos + total + CID + Observações
 
       // Title
       ws.mergeCells(1, 1, 1, totalCols);
@@ -129,8 +129,15 @@ export const ExportRelatorioPresencaExcel = ({ year, month, colaboradores, absen
       ws.getCell(3, 4).value = "DIAS DO MÊS";
       ws.mergeCells(3, 4 + daysInMonth, 3, 3 + daysInMonth + ALL_REASONS.length);
       ws.getCell(3, 4 + daysInMonth).value = "TOTAIS POR MOTIVO";
-      ws.mergeCells(3, totalCols, 4, totalCols);
-      ws.getCell(3, totalCols).value = "TOTAL\nAUSÊNCIAS";
+      const totalAusCol = 3 + daysInMonth + ALL_REASONS.length + 1;
+      const cidCol = totalAusCol + 1;
+      const obsCol = totalAusCol + 2;
+      ws.mergeCells(3, totalAusCol, 4, totalAusCol);
+      ws.getCell(3, totalAusCol).value = "TOTAL\nAUSÊNCIAS";
+      ws.mergeCells(3, cidCol, 4, cidCol);
+      ws.getCell(3, cidCol).value = "CID";
+      ws.mergeCells(3, obsCol, 4, obsCol);
+      ws.getCell(3, obsCol).value = "OBSERVAÇÕES";
 
       // Header row 2 - days + reasons
       dayList.forEach((d, idx) => {
@@ -174,24 +181,28 @@ export const ExportRelatorioPresencaExcel = ({ year, month, colaboradores, absen
 
         const reasonCounts: Record<string, number> = {};
         let totalAus = 0;
+        const cidSet = new Set<string>();
+        const obsList: string[] = [];
 
         dayList.forEach((d, idx) => {
           const date = `${year}-${String(month).padStart(2, "0")}-${String(d).padStart(2, "0")}`;
           const abs = empMap?.get(date);
           const cell = row.getCell(4 + idx);
           if (abs) {
-            cell.value = reasonShort(abs.reason);
+            cell.value = abs.reason;
             const fill = REASON_FILL[abs.reason] || "FFE2E8F0";
             const font = REASON_FONT[abs.reason] || "FF1E293B";
             cell.fill = { type: "pattern", pattern: "solid", fgColor: { argb: fill } };
-            cell.font = { name: "Arial", size: 9, bold: true, color: { argb: font } };
+            cell.font = { name: "Arial", size: 8, bold: true, color: { argb: font } };
             reasonCounts[abs.reason] = (reasonCounts[abs.reason] || 0) + 1;
             totalAus++;
+            if (abs.cid) cidSet.add(abs.cid);
+            if (abs.notes) obsList.push(`Dia ${String(d).padStart(2, "0")}: ${abs.notes}`);
           } else {
             cell.value = "•";
             cell.font = { name: "Arial", size: 9, color: { argb: "FF94A3B8" } };
           }
-          cell.alignment = { horizontal: "center", vertical: "middle" };
+          cell.alignment = { horizontal: "center", vertical: "middle", wrapText: true };
         });
 
         // Reason totals
@@ -208,11 +219,23 @@ export const ExportRelatorioPresencaExcel = ({ year, month, colaboradores, absen
           }
         });
 
-        const totalCell = row.getCell(totalCols);
+        const totalCell = row.getCell(totalAusCol);
         totalCell.value = totalAus || "";
         totalCell.font = { name: "Arial", size: 10, bold: true, color: { argb: totalAus ? "FFB91C1C" : "FFCBD5E1" } };
         totalCell.alignment = { horizontal: "center", vertical: "middle" };
         totalCell.fill = { type: "pattern", pattern: "solid", fgColor: { argb: "FFF8FAFC" } };
+
+        // CID column (concatena todos os CIDs únicos do mês)
+        const cidCell = row.getCell(cidCol);
+        cidCell.value = Array.from(cidSet).join(", ");
+        cidCell.font = { name: "Arial", size: 9, color: { argb: "FF1E293B" } };
+        cidCell.alignment = { horizontal: "center", vertical: "middle", wrapText: true };
+
+        // Observações (todas as ocorrências do mês)
+        const obsCell = row.getCell(obsCol);
+        obsCell.value = obsList.join(" | ");
+        obsCell.font = { name: "Arial", size: 9, color: { argb: "FF1E293B" } };
+        obsCell.alignment = { horizontal: "left", vertical: "middle", wrapText: true, indent: 1 };
 
         // Row styling
         row.getCell(1).font = { name: "Arial", size: 9, bold: true };
@@ -242,7 +265,7 @@ export const ExportRelatorioPresencaExcel = ({ year, month, colaboradores, absen
             right: { style: "thin", color: { argb: "FFE2E8F0" } },
           };
         }
-        row.height = 18;
+        row.height = 28;
       });
 
       // Totals row
@@ -276,11 +299,16 @@ export const ExportRelatorioPresencaExcel = ({ year, month, colaboradores, absen
         cell.alignment = { horizontal: "center", vertical: "middle" };
       });
 
-      const grandTotalCell = totalsRow.getCell(totalCols);
+      const grandTotalCell = totalsRow.getCell(totalAusCol);
       grandTotalCell.value = absences.length || "";
       grandTotalCell.font = { name: "Arial", size: 11, bold: true, color: { argb: "FFFFFFFF" } };
       grandTotalCell.fill = { type: "pattern", pattern: "solid", fgColor: { argb: "FFB91C1C" } };
       grandTotalCell.alignment = { horizontal: "center", vertical: "middle" };
+      // Preenche CID/Obs do totalsRow vazios com mesmo fundo escuro
+      [cidCol, obsCol].forEach((col) => {
+        const c = totalsRow.getCell(col);
+        c.fill = { type: "pattern", pattern: "solid", fgColor: { argb: "FF1E3A5F" } };
+      });
       totalsRow.height = 22;
 
       // Legend (below)
@@ -310,7 +338,9 @@ export const ExportRelatorioPresencaExcel = ({ year, month, colaboradores, absen
       ws.getColumn(3).width = 26;
       for (let i = 0; i < daysInMonth; i++) ws.getColumn(4 + i).width = 4.5;
       for (let i = 0; i < ALL_REASONS.length; i++) ws.getColumn(4 + daysInMonth + i).width = 5.5;
-      ws.getColumn(totalCols).width = 9;
+      ws.getColumn(totalAusCol).width = 9;
+      ws.getColumn(cidCol).width = 14;
+      ws.getColumn(obsCol).width = 50;
 
       // Print setup
       ws.pageSetup = {
