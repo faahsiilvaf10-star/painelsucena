@@ -4,8 +4,8 @@ import { Users, ClipboardList, FileBarChart, CalendarDays } from "lucide-react";
 
 const rhPages = [
   { label: "Efetivo", icon: Users, path: "/rh" },
-  { label: "Relatório\nde Presença", icon: ClipboardList, path: "/presenca" },
-  { label: "Lista de\nPresença", icon: FileBarChart, path: "/relatorio-presenca" },
+  { label: "Relatório\nde Presença", icon: ClipboardList, path: "/relatorio-presenca" },
+  { label: "Lista de\nPresença", icon: FileBarChart, path: "/presenca" },
   { label: "Calendário\nHydro", icon: CalendarDays, path: "/calendario-hydro" },
 ];
 
