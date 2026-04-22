@@ -17,6 +17,7 @@ import { getBrazilNorthDate } from "@/lib/timezone";
 import { formatCargoLabel } from "@/lib/cargoUtils";
 import { useDDSMidnightRefresh } from "@/hooks/useMidnightRefresh";
 import { DDSParticipationDialog } from "./DDSParticipationDialog";
+import { useEnvironment, ENVIRONMENTS } from "@/hooks/useEnvironment";
 
 export const DDSHighlightCard = () => {
   const { data: todayDDS, isLoading: loadingToday } = useTodayDDS();
@@ -25,7 +26,7 @@ export const DDSHighlightCard = () => {
   const { isAdmin } = useIsAdmin();
   const updatePhoto = useUpdateDDSPhoto();
   const updateEventPhoto = useUpdateDDSEventPhoto();
-
+  const { info: envInfo } = useEnvironment();
   // Hook to refresh DDS data at midnight (00:00 Pará time)
   const dateKey = useDDSMidnightRefresh();
 
@@ -101,11 +102,12 @@ export const DDSHighlightCard = () => {
       // Post to InstaCena
       if (profile) {
         const presenterName = todayDDS.presenter?.full_name || todayDDS.external_presenter_name || "Palestrante";
+        const envLabel = envInfo?.label || "";
         await supabase.from("instacena_posts").insert({
           user_id: profile.user_id,
           user_name: profile.full_name,
           user_avatar_url: profile.avatar_url,
-          content: `📸 Registro do DDS de hoje!\n\n📋 Tema: ${todayDDS.theme}\n🎤 Palestrante: ${presenterName}`,
+          content: `📸 Registro do DDS de hoje!\n\n📍 Local: ${envLabel}\n📋 Tema: ${todayDDS.theme}\n🎤 Palestrante: ${presenterName}`,
           image_urls: [urlData.publicUrl],
           is_system_post: false,
         });
