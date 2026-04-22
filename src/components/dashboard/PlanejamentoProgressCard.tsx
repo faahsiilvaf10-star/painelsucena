@@ -146,12 +146,12 @@ function Stat({
       ? "text-amber-600 dark:text-amber-400"
       : "text-foreground";
   return (
-    <div className="rounded-xl border border-border bg-muted/30 p-2 text-center">
+    <div className="rounded-xl border border-border bg-muted/30 p-2 text-center min-w-0">
       <div className={`flex items-center justify-center gap-1 ${toneClass}`}>
         {icon}
-        <span className="text-base font-bold">{value}</span>
+        <span className="text-base font-bold leading-none">{value}</span>
       </div>
-      <p className="text-[10px] uppercase tracking-wider text-muted-foreground mt-0.5">
+      <p className="text-[9px] sm:text-[10px] uppercase tracking-wider text-muted-foreground mt-1 leading-tight break-words">
         {label}
       </p>
     </div>
