@@ -7,8 +7,12 @@ const corsHeaders = {
 };
 
 const GATEWAY = "https://connector-gateway.lovable.dev/microsoft_excel";
-const FILE_NAME_HINT = "Avanço Mensal"; // procura por esse nome
+const FILE_NAME_HINT = "Avanço Mensal"; // procura por esse nome (sharedWithMe)
 const SHEET_NAME_HINT = ""; // primeira sheet por padrão
+// Layout fixo da planilha: A=LINHA, B=ATIVIDADE, C=META (BM), D=REALIZADO, E=%, F=UNID.
+const COL_LINHA = 0;
+const COL_META = 2;
+const COL_REAL = 3;
 
 interface ExcelRange {
   values?: (string | number | null)[][];
@@ -134,28 +138,14 @@ Deno.serve(async (req) => {
     const samples: Array<{ linha: number; meta: number | null; realizado: number | null }> = [];
 
     for (const row of rows) {
-      const linha = num(row[0]);
+      const linha = num(row[COL_LINHA]);
       if (linha === null) continue;
       scanned++;
       const target = byLinha.get(linha);
       if (!target) continue;
 
-      // Detecta colunas "Meta" e "Realizado" — heurística: dois últimos números da linha,
-      // sendo meta o maior dos dois normalmente. Para robustez, procuramos por números nas
-      // últimas 6 colunas e usamos os dois primeiros encontrados a partir do fim.
-      const tail = row.slice(-8).map(num).filter((v): v is number => v !== null);
-      let metaVal: number | null = null;
-      let realVal: number | null = null;
-      if (tail.length >= 2) {
-        // assume [..., realizado, meta] ou [..., meta, realizado] — pega os 2 últimos
-        const a = tail[tail.length - 2];
-        const b = tail[tail.length - 1];
-        // se um deles é claramente maior, esse é a meta; caso contrário mantém ordem [meta, realizado]
-        metaVal = Math.max(a, b);
-        realVal = Math.min(a, b);
-      } else if (tail.length === 1) {
-        realVal = tail[0];
-      }
+      const metaVal = num(row[COL_META]);
+      const realVal = num(row[COL_REAL]);
 
       if (samples.length < 5) samples.push({ linha, meta: metaVal, realizado: realVal });
 
