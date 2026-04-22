@@ -33,14 +33,14 @@ const NAV_ITEMS_MAP: Record<string, string> = {
   "lembretes": "Lembretes",
   "arquivos-seguranca": "Documentos Salvos",
   "instacena": "InstaCena",
-  
+  "planejamento": "Planejamento",
   "emergencia": "Emergência",
 };
 
 const DEFAULT_NAV_ORDER = [
   "rdo-hub", "meio-ambiente", "destaques", "seguranca", "almoxarifado",
   "equipamentos", "rh-hub", "lembretes", "arquivos-seguranca",
-  "instacena", "emergencia"
+  "instacena", "planejamento", "emergencia"
 ];
 
 function SortableNavItem({ id, label }: { id: string; label: string }) {

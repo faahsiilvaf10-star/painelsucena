@@ -44,6 +44,7 @@ const allNavItems: NavItem[] = [
   { id: "meio-ambiente", icon: Leaf, label: "Meio Ambiente", path: "/meio-ambiente" },
   { id: "seguranca", icon: Shield, label: "Segurança", path: "/seguranca" },
   { id: "almoxarifado", icon: Warehouse, label: "Almoxarifado", path: "/almoxarifado" },
+  { id: "planejamento", icon: Target, label: "Planejamento", path: "/planejamento" },
   { id: "emergencia", icon: AlertTriangle, label: "Emergência", path: "/emergencia", isEmergency: true },
 ];
 
