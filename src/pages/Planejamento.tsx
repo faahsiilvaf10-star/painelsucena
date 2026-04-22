@@ -11,6 +11,7 @@ import { Input } from "@/components/ui/input";
 import { Skeleton } from "@/components/ui/skeleton";
 import { usePlanejamentoMetas, useUpdatePlanejamentoMeta, type PlanejamentoMeta } from "@/hooks/usePlanejamentoMetas";
 import { useIsAdmin } from "@/hooks/useUserRole";
+import { useProfile } from "@/hooks/useProfile";
 import { cn } from "@/lib/utils";
 
 function pct(realizado: number, meta: number) {
