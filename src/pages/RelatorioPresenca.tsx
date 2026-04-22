@@ -167,7 +167,7 @@ const RelatorioPresenca = () => {
     <Layout>
       <div className="space-y-4 p-3 md:p-6">
         <div className="flex flex-col md:flex-row md:items-center md:justify-between gap-3">
-          <EditablePageTitle pageId="relatorio-presenca" defaultTitle="Relatório de Presença" />
+          <EditablePageTitle pageKey="relatorio-presenca-title" defaultValue="Relatório de Presença" />
           {!canEdit && (
             <div className="flex items-center gap-2 text-xs text-muted-foreground bg-muted/40 px-3 py-1.5 rounded-md">
               <ShieldAlert className="w-4 h-4" />
