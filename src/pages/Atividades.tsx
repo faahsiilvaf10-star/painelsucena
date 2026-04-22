@@ -984,7 +984,7 @@ export default function Atividades() {
             {isJardinagemLocked && hasEditPermission && (
               <Button 
                 variant="outline" 
-                onClick={() => unlockArea.mutateAsync("jardinagem")}
+                onClick={handleUnlock}
                 disabled={unlockArea.isPending}
                 className="gap-2"
               >
