@@ -188,7 +188,7 @@ export default function Planejamento() {
           ))}
         </div>
       ) : (
-        <div className="space-y-6">
+        <div className="h-[calc(100vh-22rem)] overflow-y-auto pr-2 space-y-6 rounded-lg">
           {grouped.map((group) => (
             <Card key={group.categoria}>
               <CardHeader>
