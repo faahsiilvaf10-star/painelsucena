@@ -8,6 +8,7 @@ import {
   BarChart,
   Bar,
 } from "recharts";
+import { HalfGauge } from "@/components/dashboard/HalfGauge";
 
 type ChartVariant = "gauge" | "sparkline" | "bars" | "circular";
 
