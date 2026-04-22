@@ -2615,6 +2615,54 @@ export type Database = {
         }
         Relationships: []
       }
+      planejamento_metas: {
+        Row: {
+          atividade: string
+          categoria: string | null
+          created_at: string
+          display_order: number
+          environment: string
+          id: string
+          is_section_header: boolean
+          linha: number | null
+          meta: number
+          realizado: number
+          unidade: string | null
+          updated_at: string
+          updated_by: string | null
+        }
+        Insert: {
+          atividade: string
+          categoria?: string | null
+          created_at?: string
+          display_order?: number
+          environment?: string
+          id?: string
+          is_section_header?: boolean
+          linha?: number | null
+          meta?: number
+          realizado?: number
+          unidade?: string | null
+          updated_at?: string
+          updated_by?: string | null
+        }
+        Update: {
+          atividade?: string
+          categoria?: string | null
+          created_at?: string
+          display_order?: number
+          environment?: string
+          id?: string
+          is_section_header?: boolean
+          linha?: number | null
+          meta?: number
+          realizado?: number
+          unidade?: string | null
+          updated_at?: string
+          updated_by?: string | null
+        }
+        Relationships: []
+      }
       pluviometria_records: {
         Row: {
           ano: number
