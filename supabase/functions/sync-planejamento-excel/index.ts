@@ -188,7 +188,8 @@ Deno.serve(async (req) => {
     return new Response(
       JSON.stringify({
         ok: true,
-        file: file.name,
+        file: workbook.name,
+        itemPath: workbook.itemPath,
         rows: rows.length,
         scanned,
         updated,
