@@ -26,22 +26,21 @@ const WMO_DESCRIPTIONS: Record<number, string> = {
 };
 
 const getWeatherIcon = (code: number) => {
-  const cls = "h-7 w-7";
-  if (code === 0 || code === 1) return <Sun className={`${cls} text-yellow-400`} />;
+  const cls = "h-10 w-10";
+  if (code === 0 || code === 1) return <Sun className={`${cls} text-yellow-300`} />;
   if (code === 2) return <CloudSun className={`${cls} text-amber-300`} />;
-  if (code === 3 || code === 45 || code === 48) return <Cloud className={`${cls}`} style={{ color: "hsl(30, 10%, 55%)" }} />;
-  if (code >= 51 && code <= 67) return <CloudRain className={`${cls} text-blue-400`} />;
+  if (code === 3 || code === 45 || code === 48) return <Cloud className={`${cls} text-slate-300`} />;
+  if (code >= 51 && code <= 67) return <CloudRain className={`${cls} text-sky-300`} />;
   if (code >= 71 && code <= 77) return <CloudSnow className={`${cls} text-blue-200`} />;
-  if (code >= 80 && code <= 82) return <CloudRain className={`${cls} text-blue-500`} />;
-  if (code >= 95) return <CloudLightning className={`${cls} text-yellow-500`} />;
-  return <Cloud className={`${cls}`} style={{ color: "hsl(30, 10%, 55%)" }} />;
+  if (code >= 80 && code <= 82) return <CloudRain className={`${cls} text-sky-400`} />;
+  if (code >= 95) return <CloudLightning className={`${cls} text-yellow-400`} />;
+  return <Cloud className={`${cls} text-slate-300`} />;
 };
 
 export function WeatherWidget() {
   const [weather, setWeather] = useState<WeatherData | null>(null);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
-  
 
   const fetchWeather = useCallback(async () => {
     setLoading(true);
@@ -75,18 +74,20 @@ export function WeatherWidget() {
     return () => clearInterval(interval);
   }, [fetchWeather]);
 
-  const cardStyle = {
-    background: "linear-gradient(145deg, hsl(220, 15%, 22%), hsl(220, 18%, 16%))",
-    boxShadow: "6px 6px 14px hsl(30, 10%, 78%), -6px -6px 14px hsl(30, 20%, 98%)",
-    border: "1px solid hsl(30, 15%, 85%)",
+  // Deep night-blue gradient with subtle cloud overlay (matches reference)
+  const cardClass =
+    "relative rounded-2xl p-5 h-full overflow-hidden text-white shadow-lg transition-transform hover:scale-[1.01]";
+  const cardStyle: React.CSSProperties = {
+    background:
+      "linear-gradient(155deg, hsl(225, 60%, 18%) 0%, hsl(232, 55%, 24%) 55%, hsl(220, 50%, 32%) 100%)",
   };
 
   if (error) {
     return (
-      <div className="rounded-2xl p-4 text-center" style={cardStyle}>
-        <Cloud className="h-8 w-8 mx-auto mb-2" style={{ color: "hsl(30, 10%, 60%)" }} />
-        <p className="text-sm" style={{ color: "hsl(0, 0%, 70%)" }}>{error}</p>
-        <Button variant="ghost" size="sm" className="mt-2 text-white/70 hover:text-white" onClick={fetchWeather}>
+      <div className={cardClass} style={cardStyle}>
+        <Cloud className="h-8 w-8 mx-auto mb-2 text-slate-300" />
+        <p className="text-sm text-white/70 text-center">{error}</p>
+        <Button variant="ghost" size="sm" className="mt-2 text-white/80 hover:text-white w-full" onClick={fetchWeather}>
           <RefreshCw className="h-3 w-3 mr-1" /> Tentar novamente
         </Button>
       </div>
@@ -95,7 +96,7 @@ export function WeatherWidget() {
 
   if (loading || !weather) {
     return (
-      <div className="rounded-2xl p-4" style={cardStyle}>
+      <div className={cardClass} style={cardStyle}>
         <Skeleton className="h-10 w-20 bg-white/10" />
         <Skeleton className="h-5 w-32 mt-2 bg-white/10" />
       </div>
@@ -105,30 +106,40 @@ export function WeatherWidget() {
   const description = WMO_DESCRIPTIONS[weather.weatherCode] || "Indisponível";
 
   return (
-    <div className="rounded-2xl p-4 animate-fade-in" style={cardStyle}>
-      <div className="flex items-center gap-1.5 text-xs mb-2" style={{ color: "hsl(0, 0%, 65%)" }}>
-        <MapPin className="h-3 w-3" />
-        <span>{weather.locationName}</span>
-      </div>
+    <div className={cardClass} style={cardStyle}>
+      {/* Subtle cloud silhouette decoration */}
+      <div
+        className="pointer-events-none absolute -bottom-6 -right-6 h-32 w-32 rounded-full opacity-20 blur-2xl"
+        style={{ background: "radial-gradient(circle, hsl(220, 60%, 70%), transparent 70%)" }}
+      />
 
-      <div className="flex items-end gap-2 mb-1">
-        <span className="text-4xl font-extrabold tracking-tight text-white">{weather.temperature}°</span>
-        {getWeatherIcon(weather.weatherCode)}
-      </div>
-      <p className="text-sm font-medium mb-3" style={{ color: "hsl(0, 0%, 70%)" }}>{description}</p>
+      <div className="relative z-10">
+        <div className="flex items-center gap-1.5 text-[11px] mb-3 text-white/80">
+          <MapPin className="h-3 w-3" />
+          <span className="truncate">{weather.locationName}</span>
+        </div>
 
-      <div className="space-y-1 text-xs" style={{ color: "hsl(0, 0%, 75%)" }}>
-        <div className="flex items-center gap-1.5">
-          <Thermometer className="h-3.5 w-3.5" />
-          <span>Sensação {weather.apparentTemp}°</span>
+        <div className="flex items-start justify-between mb-1">
+          <span className="text-5xl font-extrabold tracking-tight leading-none">
+            {weather.temperature}°
+          </span>
+          {getWeatherIcon(weather.weatherCode)}
         </div>
-        <div className="flex items-center gap-1.5">
-          <Droplets className="h-3.5 w-3.5" />
-          <span>Umidade {weather.humidity}%</span>
-        </div>
-        <div className="flex items-center gap-1.5">
-          <Wind className="h-3.5 w-3.5" />
-          <span>Vento {weather.windSpeed} km/h</span>
+        <p className="text-sm font-medium mb-4 text-white/85">{description}</p>
+
+        <div className="space-y-1.5 text-xs text-white/80 border-t border-white/10 pt-3">
+          <div className="flex items-center gap-1.5">
+            <Thermometer className="h-3.5 w-3.5" />
+            <span>Sensação {weather.apparentTemp}°</span>
+          </div>
+          <div className="flex items-center gap-1.5">
+            <Droplets className="h-3.5 w-3.5" />
+            <span>Umidade {weather.humidity}%</span>
+          </div>
+          <div className="flex items-center gap-1.5">
+            <Wind className="h-3.5 w-3.5" />
+            <span>Vento {weather.windSpeed} km/h</span>
+          </div>
         </div>
       </div>
     </div>
