@@ -98,7 +98,7 @@ export const ExportRelatorioPresencaExcel = ({ year, month, colaboradores, absen
       });
       const empKey = (c: Colaborador) => String(c.matricula || c.id);
 
-      const totalCols = 3 + daysInMonth + ALL_REASONS.length + 1; // matr, nome, função + dias + motivos + total ausências
+      const totalCols = 3 + daysInMonth + ALL_REASONS.length + 1 + 2; // matr, nome, função + dias + motivos + total + CID + Observações
 
       // Title
       ws.mergeCells(1, 1, 1, totalCols);
