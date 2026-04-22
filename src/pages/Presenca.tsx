@@ -116,26 +116,33 @@ const Presenca = () => {
   // The employees table links attendance_records. We match RH name to employees table name.
   const employeesList = useMemo(() => {
     if (!rhColaboradores.length) return [];
-    
-    // Build name->attendance lookup from attendance records
-    const nameToAttendance = new Map<string, { status: "present" | "absent"; recordId: string }>();
+
+    const nameToAttendance = new Map<string, { status: "present" | "absent"; recordId: string; employeeId: string }>();
     attendanceRecords?.forEach((r) => {
       if (r.employees) {
         const normalizedStatus = r.status === "present" || r.status === "late" ? "present" : "absent";
-        nameToAttendance.set(r.employees.name.toUpperCase().trim(), { status: normalizedStatus, recordId: r.id });
+        nameToAttendance.set(r.employees.name.toUpperCase().trim(), { status: normalizedStatus, recordId: r.id, employeeId: r.employee_id });
       }
+    });
+
+    const reasonByEmpId = new Map<string, { reason: string; days: number; cid: string | null; notes: string | null; date: string }>();
+    absenceReasons?.forEach((a) => {
+      reasonByEmpId.set(a.employee_id, { reason: a.reason, days: a.days_count, cid: a.cid, notes: a.notes, date: a.date });
     });
 
     return rhColaboradores.map(colab => {
       const attendance = nameToAttendance.get(colab.nome.toUpperCase().trim());
+      const reason = attendance ? reasonByEmpId.get(attendance.employeeId) : undefined;
       return {
         ...colab,
-        attendanceStatus: attendance?.status || "present" as "present" | "absent", // default present if no record
+        attendanceStatus: attendance?.status || "present" as "present" | "absent",
         recordId: attendance?.recordId || null,
+        employeeId: attendance?.employeeId || null,
         hasAttendanceRecord: !!attendance,
+        absenceReason: reason,
       };
     });
-  }, [rhColaboradores, attendanceRecords]);
+  }, [rhColaboradores, attendanceRecords, absenceReasons]);
 
   // Filter
   const filteredEmployees = useMemo(() => {
