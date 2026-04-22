@@ -22,6 +22,7 @@ import {
 import Layout from "@/components/layout/Layout";
 import ModernStatCard from "@/components/dashboard/ModernStatCard";
 import { PresenceGauge } from "@/components/dashboard/PresenceGauge";
+import { MatrixGauge } from "@/components/dashboard/MatrixGauge";
 import { AttendanceTrendChart } from "@/components/dashboard/AttendanceTrendChart";
 import { MatrixSideChart } from "@/components/dashboard/MatrixSideChart";
 import { DDSHighlightCard } from "@/components/dds/DDSHighlightCard";
@@ -255,13 +256,9 @@ const Dashboard = () => {
             />
           </div>
 
-          {/* Center: Large Presence Gauge */}
+          {/* Center: Matriz do Mês (Gauge) */}
           <div className="lg:col-span-3">
-            <PresenceGauge
-              present={presentToday}
-              total={totalEmployees}
-              percentage={presencePercent}
-            />
+            <MatrixGauge />
           </div>
 
           {/* Right-center: Presentes Hoje + Ausências */}
