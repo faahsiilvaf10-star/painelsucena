@@ -102,11 +102,12 @@ export const DDSHighlightCard = () => {
       // Post to InstaCena
       if (profile) {
         const presenterName = todayDDS.presenter?.full_name || todayDDS.external_presenter_name || "Palestrante";
+        const envLabel = envInfo?.label || ENVIRONMENTS[(todayDDS.environment as "barcarena" | "paragominas") || "barcarena"]?.label || "";
         await supabase.from("instacena_posts").insert({
           user_id: profile.user_id,
           user_name: profile.full_name,
           user_avatar_url: profile.avatar_url,
-          content: `📸 Registro do DDS de hoje!\n\n📋 Tema: ${todayDDS.theme}\n🎤 Palestrante: ${presenterName}`,
+          content: `📸 Registro do DDS de hoje!\n\n📍 Local: ${envLabel}\n📋 Tema: ${todayDDS.theme}\n🎤 Palestrante: ${presenterName}`,
           image_urls: [urlData.publicUrl],
           is_system_post: false,
         });
