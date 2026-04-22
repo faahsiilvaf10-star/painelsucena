@@ -98,7 +98,7 @@ export const ExportRelatorioPresencaExcel = ({ year, month, colaboradores, absen
       });
       const empKey = (c: Colaborador) => String(c.matricula || c.id);
 
-      const totalCols = 3 + daysInMonth + ALL_REASONS.length + 1 + 2; // matr, nome, função + dias + motivos + total + CID + Observações
+      const totalCols = 3 + daysInMonth + ALL_REASONS.length + 1 + 3; // matr, nome, função + dias + motivos + total + CID + CIDs por dia + Observações
 
       // Title
       ws.mergeCells(1, 1, 1, totalCols);
@@ -131,11 +131,14 @@ export const ExportRelatorioPresencaExcel = ({ year, month, colaboradores, absen
       ws.getCell(3, 4 + daysInMonth).value = "TOTAIS POR MOTIVO";
       const totalAusCol = 3 + daysInMonth + ALL_REASONS.length + 1;
       const cidCol = totalAusCol + 1;
-      const obsCol = totalAusCol + 2;
+      const cidByDayCol = totalAusCol + 2;
+      const obsCol = totalAusCol + 3;
       ws.mergeCells(3, totalAusCol, 4, totalAusCol);
       ws.getCell(3, totalAusCol).value = "TOTAL\nAUSÊNCIAS";
       ws.mergeCells(3, cidCol, 4, cidCol);
       ws.getCell(3, cidCol).value = "CID";
+      ws.mergeCells(3, cidByDayCol, 4, cidByDayCol);
+      ws.getCell(3, cidByDayCol).value = "CIDs POR DIA";
       ws.mergeCells(3, obsCol, 4, obsCol);
       ws.getCell(3, obsCol).value = "OBSERVAÇÕES";
 
@@ -182,6 +185,7 @@ export const ExportRelatorioPresencaExcel = ({ year, month, colaboradores, absen
         const reasonCounts: Record<string, number> = {};
         let totalAus = 0;
         const cidSet = new Set<string>();
+        const cidByDayList: string[] = [];
         const obsList: string[] = [];
 
         dayList.forEach((d, idx) => {
@@ -196,7 +200,10 @@ export const ExportRelatorioPresencaExcel = ({ year, month, colaboradores, absen
             cell.font = { name: "Arial", size: 8, bold: true, color: { argb: font } };
             reasonCounts[abs.reason] = (reasonCounts[abs.reason] || 0) + 1;
             totalAus++;
-            if (abs.cid) cidSet.add(abs.cid);
+            if (abs.cid) {
+              cidSet.add(abs.cid);
+              cidByDayList.push(`Dia ${String(d).padStart(2, "0")}: ${abs.cid}`);
+            }
             if (abs.notes) obsList.push(`Dia ${String(d).padStart(2, "0")}: ${abs.notes}`);
           } else {
             cell.value = "•";
@@ -230,6 +237,12 @@ export const ExportRelatorioPresencaExcel = ({ year, month, colaboradores, absen
         cidCell.value = Array.from(cidSet).join(", ");
         cidCell.font = { name: "Arial", size: 9, color: { argb: "FF1E293B" } };
         cidCell.alignment = { horizontal: "center", vertical: "middle", wrapText: true };
+
+        // CIDs por dia (lista detalhada)
+        const cidByDayCell = row.getCell(cidByDayCol);
+        cidByDayCell.value = cidByDayList.join(" | ");
+        cidByDayCell.font = { name: "Arial", size: 9, color: { argb: "FF1E293B" } };
+        cidByDayCell.alignment = { horizontal: "left", vertical: "middle", wrapText: true, indent: 1 };
 
         // Observações (todas as ocorrências do mês)
         const obsCell = row.getCell(obsCol);
@@ -304,8 +317,8 @@ export const ExportRelatorioPresencaExcel = ({ year, month, colaboradores, absen
       grandTotalCell.font = { name: "Arial", size: 11, bold: true, color: { argb: "FFFFFFFF" } };
       grandTotalCell.fill = { type: "pattern", pattern: "solid", fgColor: { argb: "FFB91C1C" } };
       grandTotalCell.alignment = { horizontal: "center", vertical: "middle" };
-      // Preenche CID/Obs do totalsRow vazios com mesmo fundo escuro
-      [cidCol, obsCol].forEach((col) => {
+      // Preenche CID/CIDs por dia/Obs do totalsRow vazios com mesmo fundo escuro
+      [cidCol, cidByDayCol, obsCol].forEach((col) => {
         const c = totalsRow.getCell(col);
         c.fill = { type: "pattern", pattern: "solid", fgColor: { argb: "FF1E3A5F" } };
       });
@@ -340,6 +353,7 @@ export const ExportRelatorioPresencaExcel = ({ year, month, colaboradores, absen
       for (let i = 0; i < ALL_REASONS.length; i++) ws.getColumn(4 + daysInMonth + i).width = 5.5;
       ws.getColumn(totalAusCol).width = 9;
       ws.getColumn(cidCol).width = 14;
+      ws.getColumn(cidByDayCol).width = 36;
       ws.getColumn(obsCol).width = 50;
 
       // Print setup
