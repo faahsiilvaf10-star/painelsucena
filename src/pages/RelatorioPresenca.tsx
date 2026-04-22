@@ -502,7 +502,7 @@ const AbsenceDialog = ({ open, onOpenChange, editing, onSave, onClear }: Absence
               <SelectTrigger>
                 <SelectValue placeholder="Selecione o motivo" />
               </SelectTrigger>
-              <SelectContent>
+              <SelectContent className="max-h-[260px] overflow-y-auto">
                 {ABSENCE_REASONS.map((r) => (
                   <SelectItem key={r} value={r}>
                     {r}
