@@ -47,18 +47,27 @@ export default function SelecaoAmbiente() {
   const navigate = useNavigate();
   const { setEnvironment } = useEnvironment();
   const { toast } = useToast();
-  const { environments: allowedEnvs, isLoading: accessLoading } = useMyEnvironmentAccess();
+  const { environments: allowedEnvs, isLoading: accessLoading, isAdmin } = useMyEnvironmentAccess();
   const [user, setUser] = useState<UserSummary | null>(null);
   const [selecting, setSelecting] = useState<EnvironmentId | null>(null);
 
-  // Auto-seleciona se o usuário só tem 1 ambiente liberado
+  // Auto-seleciona:
+  // - Não-admin: entra direto no ambiente padrão (primeiro liberado, ou Barcarena).
+  // - Admin com apenas 1 ambiente: entra direto.
+  // Apenas admins com múltiplos ambientes veem a tela de seleção.
   useEffect(() => {
     if (accessLoading) return;
+    if (!isAdmin) {
+      const target = allowedEnvs[0] ?? "barcarena";
+      setEnvironment(target as EnvironmentId);
+      window.location.replace("/");
+      return;
+    }
     if (allowedEnvs.length === 1) {
       setEnvironment(allowedEnvs[0]);
       window.location.replace("/");
     }
-  }, [accessLoading, allowedEnvs, setEnvironment]);
+  }, [accessLoading, allowedEnvs, isAdmin, setEnvironment]);
 
   useEffect(() => {
     let mounted = true;
