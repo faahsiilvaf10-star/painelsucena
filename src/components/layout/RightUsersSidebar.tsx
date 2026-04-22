@@ -3,7 +3,7 @@ import { useAllUsers, UserWithStatus } from "@/hooks/useAllUsers";
 import { NeonAvatar } from "@/components/ui/NeonAvatar";
 import { ScrollArea } from "@/components/ui/scroll-area";
 import { Users, ChevronRight, MessageCircle } from "lucide-react";
-import chatBubbleIcon from "@/assets/chat-bubble-icon.png";
+import chatBubbleIcon from "@/assets/instacena-chat-icon.png";
 import { cn } from "@/lib/utils";
 import { Tooltip, TooltipContent, TooltipTrigger } from "@/components/ui/tooltip";
 import { VerifiedBadge } from "@/components/VerifiedBadge";
@@ -40,16 +40,17 @@ export const RightUsersSidebar = ({ onUserClick }: RightUsersSidebarProps) => {
       <button
         onClick={() => setIsOpen(!isOpen)}
         className={cn(
-          "fixed top-1/2 -translate-y-1/2 z-40 flex items-center justify-center transition-all",
+          "fixed z-40 flex items-center justify-center transition-all",
           isOpen
-            ? "h-10 w-5 rounded-l-md bg-primary/90 text-primary-foreground shadow-md hover:bg-primary right-[220px] md:right-[240px]"
-            : "h-12 w-12 rounded-full shadow-lg right-2"
+            ? "top-1/2 -translate-y-1/2 h-10 w-5 rounded-l-md bg-primary/90 text-primary-foreground shadow-md hover:bg-primary right-[220px] md:right-[240px]"
+            : "bottom-16 right-3 h-14 w-14 rounded-full shadow-lg hover:scale-110"
         )}
+        aria-label="Abrir chat"
       >
         {isOpen ? (
           <ChevronRight className="h-3 w-3" />
         ) : (
-          <img src={chatBubbleIcon} alt="Chat" className="h-12 w-12 object-contain" />
+          <img src={chatBubbleIcon} alt="InstaCena Chat" className="h-14 w-14 object-contain drop-shadow-lg" />
         )}
       </button>
 
