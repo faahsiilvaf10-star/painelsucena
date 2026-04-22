@@ -53,7 +53,7 @@ export const OnlineUsersFooter = ({ onUserClick }: OnlineUsersFooterProps) => {
       </button>
 
       {!isMinimized && (
-        <div className="flex items-center gap-1 md:gap-3 px-2 md:px-4 py-1.5 md:py-2 overflow-x-auto scrollbar-none">
+        <div className="flex items-center gap-1 md:gap-3 px-2 md:px-4 py-1.5 md:py-2">
           <a
             href="https://formusic.lovable.app/"
             target="_blank"
@@ -65,20 +65,22 @@ export const OnlineUsersFooter = ({ onUserClick }: OnlineUsersFooterProps) => {
             <span className="flex items-center justify-center w-5 h-5 rounded-full bg-primary text-primary-foreground">
               <Play className="h-2.5 w-2.5 fill-current" />
             </span>
-            <span className="text-[11px] font-medium whitespace-nowrap">
+            <span className="text-[11px] font-medium whitespace-nowrap hidden sm:inline">
               Clique no play para ouvir na plataforma ForMusic
             </span>
           </a>
-          <NewsTicker />
+          <div className="flex-1 min-w-0 overflow-hidden">
+            <NewsTicker />
+          </div>
           <div
-            className="ml-auto flex-shrink-0 flex items-center gap-1.5 px-2 py-1 rounded-full bg-muted/50"
+            className="flex-shrink-0 flex items-center gap-1.5 px-2 py-1 rounded-full bg-muted/50"
             title={`Cor proibida do mês: ${forbiddenColor.name}`}
           >
             <span className={cn("w-3.5 h-3.5 rounded-full shadow-sm", forbiddenColor.bgClass)} />
             <span
               className={cn(
-                "text-[11px] font-medium whitespace-nowrap text-muted-foreground",
-                isCollapsedSidebar && "hidden"
+                "text-[11px] font-medium whitespace-nowrap text-muted-foreground hidden md:inline",
+                isCollapsedSidebar && "md:hidden"
               )}
             >
               Cor proibida: {forbiddenColor.name}
