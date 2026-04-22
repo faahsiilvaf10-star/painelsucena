@@ -5,6 +5,10 @@ import { ptBR } from "date-fns/locale";
 import { supabase } from "@/integrations/supabase/client";
 import { getBrazilNorthDate, getBrazilNorthMonthYear } from "@/lib/timezone";
 
+interface MatrixGaugeProps {
+  referenceDate?: Date;
+}
+
 const cargoDefinitions = [
   { id: "preposto", tarefas: ["p1", "p2", "p3", "p4", "p5"] },
   { id: "encarregado-geral", tarefas: ["eg1", "eg2", "eg3"] },
