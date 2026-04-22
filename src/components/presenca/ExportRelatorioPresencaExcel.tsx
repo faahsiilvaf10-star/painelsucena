@@ -181,24 +181,28 @@ export const ExportRelatorioPresencaExcel = ({ year, month, colaboradores, absen
 
         const reasonCounts: Record<string, number> = {};
         let totalAus = 0;
+        const cidSet = new Set<string>();
+        const obsList: string[] = [];
 
         dayList.forEach((d, idx) => {
           const date = `${year}-${String(month).padStart(2, "0")}-${String(d).padStart(2, "0")}`;
           const abs = empMap?.get(date);
           const cell = row.getCell(4 + idx);
           if (abs) {
-            cell.value = reasonShort(abs.reason);
+            cell.value = abs.reason;
             const fill = REASON_FILL[abs.reason] || "FFE2E8F0";
             const font = REASON_FONT[abs.reason] || "FF1E293B";
             cell.fill = { type: "pattern", pattern: "solid", fgColor: { argb: fill } };
-            cell.font = { name: "Arial", size: 9, bold: true, color: { argb: font } };
+            cell.font = { name: "Arial", size: 8, bold: true, color: { argb: font } };
             reasonCounts[abs.reason] = (reasonCounts[abs.reason] || 0) + 1;
             totalAus++;
+            if (abs.cid) cidSet.add(abs.cid);
+            if (abs.notes) obsList.push(`Dia ${String(d).padStart(2, "0")}: ${abs.notes}`);
           } else {
             cell.value = "•";
             cell.font = { name: "Arial", size: 9, color: { argb: "FF94A3B8" } };
           }
-          cell.alignment = { horizontal: "center", vertical: "middle" };
+          cell.alignment = { horizontal: "center", vertical: "middle", wrapText: true };
         });
 
         // Reason totals
