@@ -102,7 +102,7 @@ export const DDSHighlightCard = () => {
       // Post to InstaCena
       if (profile) {
         const presenterName = todayDDS.presenter?.full_name || todayDDS.external_presenter_name || "Palestrante";
-        const envLabel = envInfo?.label || ENVIRONMENTS[(todayDDS.environment as "barcarena" | "paragominas") || "barcarena"]?.label || "";
+        const envLabel = envInfo?.label || "";
         await supabase.from("instacena_posts").insert({
           user_id: profile.user_id,
           user_name: profile.full_name,
