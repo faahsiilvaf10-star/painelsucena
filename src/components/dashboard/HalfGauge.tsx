@@ -84,11 +84,11 @@ export function HalfGauge({
         <path
           d={arc}
           fill="none"
-          stroke={color}
+          stroke={dynamicColor}
           strokeWidth={stroke}
           strokeLinecap="round"
           strokeDasharray={`${dash} ${c}`}
-          style={{ transition: "stroke-dasharray 1s ease-out" }}
+          style={{ transition: "stroke-dasharray 1s ease-out, stroke 0.6s ease-out" }}
         />
       </svg>
     </div>
