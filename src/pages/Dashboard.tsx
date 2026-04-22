@@ -193,7 +193,7 @@ const Dashboard = () => {
       />
       <div className="container mx-auto px-3 sm:px-6 py-3 sm:py-6">
         {/* Header */}
-        <div className="flex items-center justify-between mb-5 animate-fade-in">
+        <div className="flex items-center justify-between mb-5 animate-fade-in flex-wrap gap-3">
           {isDockTheme ? (
             <div className="flex-1 flex justify-center pl-16">
               <SimpleTree className="w-48 h-40 sm:w-64 sm:h-52" />
@@ -206,23 +206,42 @@ const Dashboard = () => {
                 className="text-xl sm:text-3xl font-bold"
                 as="h1"
               />
-              <p className="text-sm mt-0.5" style={{ color: "hsl(30, 10%, 50%)" }}>
+              <p className="text-sm mt-0.5 text-muted-foreground">
                 Visão geral da operação
               </p>
             </div>
           )}
-          <DashboardEditControls
-            isEditMode={isEditMode}
-            hasChanges={hasChanges}
-            isSaving={isSaving}
-            onToggleEditMode={handleToggleEditMode}
-            onSave={handleSave}
-            onCancel={handleCancel}
-            onReset={handleReset}
-          />
+          <div className="flex items-center gap-2 flex-wrap">
+            <div className="hidden sm:inline-flex items-center gap-2 rounded-xl border border-border bg-card px-3 py-2 text-sm shadow-sm">
+              <Calendar className="h-4 w-4 text-muted-foreground" />
+              <span className="font-medium text-foreground">
+                {new Date().toLocaleDateString("pt-BR", {
+                  day: "2-digit",
+                  month: "long",
+                  year: "numeric",
+                })}
+              </span>
+            </div>
+            <button
+              type="button"
+              className="inline-flex items-center gap-2 rounded-xl border border-border bg-card px-3 py-2 text-sm font-medium text-foreground shadow-sm hover:bg-muted/60 transition-colors"
+            >
+              <Filter className="h-4 w-4 text-muted-foreground" />
+              <span className="hidden sm:inline">Filtros</span>
+            </button>
+            <DashboardEditControls
+              isEditMode={isEditMode}
+              hasChanges={hasChanges}
+              isSaving={isSaving}
+              onToggleEditMode={handleToggleEditMode}
+              onSave={handleSave}
+              onCancel={handleCancel}
+              onReset={handleReset}
+            />
+          </div>
         </div>
 
-        {/* Main stats grid - matching reference layout */}
+        {/* Main stats grid */}
         <div className="grid grid-cols-1 lg:grid-cols-12 gap-4 mb-6 animate-slide-up">
           {/* Left column: Weather + Total Funcionários */}
           <div className="lg:col-span-3 flex flex-col gap-4">
@@ -233,7 +252,6 @@ const Dashboard = () => {
               percentage={presencePercent}
               icon={Users}
               variant="gauge"
-              color="hsl(30, 50%, 55%)"
             />
           </div>
 
@@ -249,12 +267,11 @@ const Dashboard = () => {
           {/* Right-center: Presentes Hoje + Ausências */}
           <div className="lg:col-span-3 flex flex-col gap-4">
             <ModernStatCard
-              title="Presentes Hoje"
+              title="Presentes hoje"
               value={presentToday}
               percentage={presencePercent}
               icon={ClipboardCheck}
               variant="sparkline"
-              color="hsl(30, 40%, 50%)"
               sparklineData={[5, 8, 6, 9, 7, 10, presentToday || 8]}
             />
             <ModernStatCard
@@ -263,87 +280,80 @@ const Dashboard = () => {
               percentage={totalEmployees > 0 ? Math.round(absentToday / totalEmployees * 100) : 0}
               icon={AlertCircle}
               variant="bars"
-              color="hsl(30, 50%, 55%)"
-              accentColor="hsl(30, 50%, 55%)"
               barData={[2, 4, 1, 3, 2, 5, absentToday || 1]}
             />
           </div>
 
-          {/* Far right: Equipamentos Ativos */}
+          {/* Far right: Equipamentos Ativos (clean white card matching reference) */}
           <div className="lg:col-span-3">
-            <div
-              className="rounded-2xl p-5 h-full flex flex-col justify-between overflow-hidden transition-transform hover:scale-[1.02]"
-              style={{
-                background: "linear-gradient(145deg, hsl(190, 30%, 88%), hsl(190, 25%, 82%))",
-                boxShadow:
-                  "6px 6px 14px hsl(190, 15%, 74%), -6px -6px 14px hsl(190, 30%, 96%), inset 0 1px 0 hsl(190, 30%, 94%)",
-                border: "1px solid hsl(190, 20%, 82%)",
-              }}
-            >
-              <p
-                className="text-xs font-bold uppercase tracking-widest mb-3"
-                style={{ color: "hsl(30, 15%, 30%)", letterSpacing: "0.15em" }}
-              >
+            <div className="rounded-2xl p-5 h-full flex flex-col bg-card border border-border shadow-sm transition-transform hover:scale-[1.01]">
+              <p className="text-[11px] font-semibold uppercase tracking-[0.18em] text-muted-foreground mb-3">
                 Equipamentos Ativos
               </p>
-              {/* Copper circular gauge */}
-              <div className="flex items-center justify-center flex-1">
+
+              <div className="flex items-center justify-center flex-1 my-2">
                 <div className="relative">
-                  <svg height={100} width={100}>
+                  <svg height={140} width={140}>
                     <circle
-                      stroke="hsl(190, 15%, 78%)"
+                      stroke="hsl(var(--muted))"
                       fill="transparent"
-                      strokeWidth={8}
-                      r={42}
-                      cx={50}
-                      cy={50}
+                      strokeWidth={12}
+                      r={60}
+                      cx={70}
+                      cy={70}
                     />
                     <circle
-                      stroke="url(#copperEquip)"
+                      stroke="hsl(142, 65%, 45%)"
                       fill="transparent"
-                      strokeWidth={8}
+                      strokeWidth={12}
                       strokeLinecap="round"
-                      strokeDasharray={`${42 * 2 * Math.PI} ${42 * 2 * Math.PI}`}
-                      strokeDashoffset={42 * 2 * Math.PI - (animatedEquipPercent / 100) * 42 * 2 * Math.PI}
-                      r={42}
-                      cx={50}
-                      cy={50}
+                      strokeDasharray={`${60 * 2 * Math.PI} ${60 * 2 * Math.PI}`}
+                      strokeDashoffset={60 * 2 * Math.PI - (animatedEquipPercent / 100) * 60 * 2 * Math.PI}
+                      r={60}
+                      cx={70}
+                      cy={70}
                       style={{
                         transform: "rotate(-90deg)",
                         transformOrigin: "50% 50%",
                         transition: "stroke-dashoffset 1s ease-out",
                       }}
                     />
-                    <defs>
-                      <linearGradient id="copperEquip" x1="0%" y1="0%" x2="100%" y2="100%">
-                        <stop offset="0%" stopColor="hsl(25, 55%, 55%)" />
-                        <stop offset="50%" stopColor="hsl(30, 65%, 65%)" />
-                        <stop offset="100%" stopColor="hsl(20, 50%, 45%)" />
-                      </linearGradient>
-                    </defs>
                   </svg>
                   <div className="absolute inset-0 flex items-center justify-center">
-                    <span className="text-sm font-bold" style={{ color: "hsl(30, 15%, 30%)" }}>
+                    <span className="text-2xl font-extrabold text-emerald-600 dark:text-emerald-400">
                       {equipPercent}%
                     </span>
                   </div>
                 </div>
               </div>
-              <div className="mt-2">
+
+              <div>
                 <div className="flex items-baseline gap-2">
-                  <span className="text-2xl font-bold" style={{ color: "hsl(30, 15%, 18%)" }}>
-                    {inOperation}/{totalEquip}
+                  <span className="text-2xl font-extrabold text-foreground">
+                    {inOperation}
                   </span>
-                  <span className="text-xs" style={{ color: "hsl(30, 10%, 50%)" }}>
-                    {equipPercent}%
-                  </span>
+                  <span className="text-sm text-muted-foreground">de {totalEquip}</span>
                 </div>
-                <p className="text-[10px] mt-0.5" style={{ color: "hsl(30, 10%, 45%)" }}>
+                <p className="text-xs text-muted-foreground mt-0.5 mb-2">
+                  equipamentos em uso
+                </p>
+                <div className="h-1.5 w-full rounded-full bg-muted overflow-hidden">
+                  <div
+                    className="h-full rounded-full bg-emerald-500 transition-all duration-1000"
+                    style={{ width: `${equipPercent}%` }}
+                  />
+                </div>
+                <p className="text-[11px] text-muted-foreground mt-2">
                   {inOperation} no canteiro de {totalEquip} equipamentos
                 </p>
               </div>
             </div>
           </div>
+        </div>
+
+        {/* Recent activities row (mix real do sistema) */}
+        <div className="mb-4 animate-slide-up" style={{ animationDelay: "0.05s" }}>
+          <RecentActivitiesCard />
         </div>
 
         {/* Reminder Banner */}
