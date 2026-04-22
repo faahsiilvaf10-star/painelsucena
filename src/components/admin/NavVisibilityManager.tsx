@@ -12,6 +12,7 @@ import { Skeleton } from "@/components/ui/skeleton";
 const NAV_ITEMS = [
   { id: "atividades", label: "Atividades I" },
   { id: "atividades-ii", label: "Atividades II" },
+  { id: "planejamento", label: "Planejamento" },
   { id: "meio-ambiente", label: "Meio Ambiente" },
   { id: "destaques", label: "Destaques" },
   { id: "campanhas", label: "Campanhas" },
