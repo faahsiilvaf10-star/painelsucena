@@ -338,7 +338,9 @@ export const ExportRelatorioPresencaExcel = ({ year, month, colaboradores, absen
       ws.getColumn(3).width = 26;
       for (let i = 0; i < daysInMonth; i++) ws.getColumn(4 + i).width = 4.5;
       for (let i = 0; i < ALL_REASONS.length; i++) ws.getColumn(4 + daysInMonth + i).width = 5.5;
-      ws.getColumn(totalCols).width = 9;
+      ws.getColumn(totalAusCol).width = 9;
+      ws.getColumn(cidCol).width = 14;
+      ws.getColumn(obsCol).width = 50;
 
       // Print setup
       ws.pageSetup = {
