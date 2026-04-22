@@ -165,7 +165,7 @@ const Presenca = () => {
     return parts[0].substring(0, 2).toUpperCase();
   };
 
-  const handleStatusChange = async (recordId: string, newStatus: AttendanceStatus) => {
+  const handleStatusChange = async (recordId: string, employeeId: string, employeeName: string, newStatus: AttendanceStatus) => {
     if (isLocked) {
       toast.error("Relatório salvo! Status não pode ser alterado.");
       return;
@@ -177,6 +177,12 @@ const Presenca = () => {
         check_in: newStatus === "absent" || newStatus === "justified" ? null : undefined,
         check_out: newStatus === "absent" || newStatus === "justified" ? null : undefined
       });
+      if (newStatus === "absent") {
+        setAbsenceDialog({ employeeId, employeeName });
+      } else {
+        // remove any absence reason for today
+        await supabase.from("attendance_absence_reasons").delete().eq("employee_id", employeeId).eq("date", today);
+      }
       toast.success("Status atualizado com sucesso!");
     } catch (err) {
       toast.error("Erro ao atualizar status");
