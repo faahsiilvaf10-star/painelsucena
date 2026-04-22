@@ -168,13 +168,30 @@ export function PlanejamentoProgressCard() {
       <Dialog open={!!openFilter} onOpenChange={(o) => !o && setOpenFilter(null)}>
         <DialogContent className="max-w-2xl max-h-[80vh] flex flex-col">
           <DialogHeader>
-            <DialogTitle>
-              {openFilter ? FILTER_LABELS[openFilter] : ""}
-            </DialogTitle>
-            <DialogDescription>
-              {filteredItems.length}{" "}
-              {filteredItems.length === 1 ? "meta" : "metas"}
-            </DialogDescription>
+            <div className="flex items-start justify-between gap-3">
+              <div className="flex-1 min-w-0">
+                <DialogTitle>
+                  {openFilter ? FILTER_LABELS[openFilter] : ""}
+                </DialogTitle>
+                <DialogDescription>
+                  {filteredItems.length}{" "}
+                  {filteredItems.length === 1 ? "meta" : "metas"}
+                </DialogDescription>
+              </div>
+              {openFilter && filteredItems.length > 0 && (
+                <Button
+                  size="sm"
+                  variant="outline"
+                  onClick={() =>
+                    exportFilteredToPdf(openFilter, filteredItems, stats.avancoGeral)
+                  }
+                  className="shrink-0"
+                >
+                  <FileDown className="h-4 w-4 mr-2" />
+                  Exportar PDF
+                </Button>
+              )}
+            </div>
           </DialogHeader>
           <div className="overflow-y-auto pr-2 space-y-2">
             {filteredItems.length === 0 ? (
@@ -189,6 +206,118 @@ export function PlanejamentoProgressCard() {
       </Dialog>
     </div>
   );
+}
+
+async function exportFilteredToPdf(
+  filter: FilterKind,
+  items: PlanejamentoMeta[],
+  avancoGeral: number,
+) {
+  try {
+    const logo = await getLogoBase64();
+    const title = FILTER_LABELS[filter];
+    const today = format(new Date(), "dd 'de' MMMM 'de' yyyy", { locale: ptBR });
+
+    const rows = items
+      .map((m) => {
+        const meta = Number(m.meta) || 0;
+        const real = Number(m.realizado) || 0;
+        const p = meta > 0 ? Math.min(100, (real / meta) * 100) : 0;
+        const completed = meta > 0 && real >= meta;
+        const statusLabel = completed ? "Concluída" : "Em andamento";
+        const statusColor = completed ? "#059669" : "#d97706";
+        return `
+          <tr>
+            <td style="text-align:center;font-family:monospace;">${m.linha ?? "-"}</td>
+            <td>${escapeHtml(m.atividade)}</td>
+            <td style="text-align:right;">${real.toLocaleString("pt-BR")}</td>
+            <td style="text-align:right;">${meta.toLocaleString("pt-BR")}</td>
+            <td style="text-align:center;">${escapeHtml(m.unidade ?? "-")}</td>
+            <td style="text-align:right;font-weight:bold;">${p.toFixed(1)}%</td>
+            <td style="text-align:center;color:${statusColor};font-weight:600;">${statusLabel}</td>
+          </tr>
+        `;
+      })
+      .join("");
+
+    const html = `
+      <html>
+        <head>
+          <meta charset="utf-8" />
+          <style>
+            ${PDF_HEADER_STYLES}
+            body { font-family: Arial, sans-serif; padding: 24px; color: #1f2937; }
+            .summary {
+              display: flex; gap: 12px; margin-bottom: 16px;
+            }
+            .summary .box {
+              flex: 1; padding: 10px 14px;
+              border: 1px solid #e5e7eb; border-radius: 8px;
+              background: #f9fafb;
+            }
+            .summary .label {
+              font-size: 10px; text-transform: uppercase;
+              letter-spacing: 0.08em; color: #6b7280;
+            }
+            .summary .value {
+              font-size: 18px; font-weight: bold; color: #111827;
+            }
+            table { width: 100%; border-collapse: collapse; margin-top: 8px; font-size: 11px; }
+            th, td { border: 1px solid #e5e7eb; padding: 6px 8px; vertical-align: top; }
+            th { background: #f3f4f6; text-align: left; font-size: 10px; text-transform: uppercase; letter-spacing: 0.04em; }
+            tr:nth-child(even) td { background: #fafafa; }
+            .footer { margin-top: 24px; font-size: 10px; color: #9ca3af; text-align: center; }
+          </style>
+        </head>
+        <body>
+          ${generatePdfHeader("Avanço Mensal — Planejamento", `${title} • ${today}`, logo)}
+          <div class="summary">
+            <div class="box">
+              <div class="label">Total exibido</div>
+              <div class="value">${items.length}</div>
+            </div>
+            <div class="box">
+              <div class="label">Avanço geral</div>
+              <div class="value">${avancoGeral}%</div>
+            </div>
+            <div class="box">
+              <div class="label">Categoria</div>
+              <div class="value" style="font-size:14px;">${title}</div>
+            </div>
+          </div>
+          <table>
+            <thead>
+              <tr>
+                <th style="width:50px;">Linha</th>
+                <th>Atividade</th>
+                <th style="width:80px;text-align:right;">Realizado</th>
+                <th style="width:80px;text-align:right;">Meta</th>
+                <th style="width:70px;text-align:center;">Unidade</th>
+                <th style="width:60px;text-align:right;">%</th>
+                <th style="width:90px;text-align:center;">Status</th>
+              </tr>
+            </thead>
+            <tbody>${rows}</tbody>
+          </table>
+          <div class="footer">Sucena • Gerado em ${today}</div>
+        </body>
+      </html>
+    `;
+
+    await downloadPdfFromHtml(html, `planejamento-${filter}-${format(new Date(), "yyyy-MM-dd")}.pdf`);
+    toast.success("PDF gerado com sucesso");
+  } catch (e) {
+    console.error(e);
+    toast.error("Erro ao gerar PDF");
+  }
+}
+
+function escapeHtml(s: string) {
+  return String(s ?? "")
+    .replace(/&/g, "&amp;")
+    .replace(/</g, "&lt;")
+    .replace(/>/g, "&gt;")
+    .replace(/"/g, "&quot;");
 }
 
 function MetaItem({ meta }: { meta: PlanejamentoMeta }) {
