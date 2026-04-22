@@ -347,7 +347,7 @@ export function OrderDetailsDialog({ order, open, onOpenChange }: OrderDetailsDi
     message += `*Solicitante:* ${order.requester_name}\n`;
     message += `*Data:* ${format(new Date(order.created_at), "dd/MM/yyyy 'às' HH:mm", { locale: ptBR })}\n`;
     if (order.expected_date) {
-      message += `*Previsão:* ${format(new Date(order.expected_date), "dd/MM/yyyy", { locale: ptBR })}\n`;
+      message += `*Previsão:* ${format(new Date(`${order.expected_date}T00:00:00`), "dd/MM/yyyy", { locale: ptBR })}\n`;
     }
     // Show user name if available, otherwise show cargo
     if (order.mentioned_user_name) {
@@ -706,7 +706,7 @@ export function OrderDetailsDialog({ order, open, onOpenChange }: OrderDetailsDi
                       <Clock className="w-3 h-3" /> Previsão de Entrega
                     </span>
                     <p className={`font-medium ${isCancelled ? "line-through text-muted-foreground" : ""}`}>
-                      {format(new Date(order.expected_date), "dd/MM/yyyy", { locale: ptBR })}
+                      {format(new Date(`${order.expected_date}T00:00:00`), "dd/MM/yyyy", { locale: ptBR })}
                     </p>
                   </div>
                 )}

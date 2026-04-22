@@ -95,7 +95,7 @@ export function OrderCard({ order, onClick }: OrderCardProps) {
               {order.expected_date && (
                 <span className="flex items-center gap-1">
                   <Clock className="w-3 h-3" />
-                  Prev: {format(new Date(order.expected_date), "dd/MM", { locale: ptBR })}
+                  Prev: {format(new Date(`${order.expected_date}T00:00:00`), "dd/MM", { locale: ptBR })}
                 </span>
               )}
               {(order.mentioned_user_name || order.mentioned_cargo) && (
