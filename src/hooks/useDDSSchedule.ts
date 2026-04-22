@@ -13,6 +13,7 @@ export interface DDSScheduleItem {
   theme: string;
   photo_url: string | null;
   event_photo_url: string | null;
+  environment: string;
   created_by: string;
   created_at: string;
   updated_at: string;
