@@ -74,7 +74,12 @@ export const OnlineUsersFooter = ({ onUserClick }: OnlineUsersFooterProps) => {
             title={`Cor proibida do mês: ${forbiddenColor.name}`}
           >
             <span className={cn("w-3.5 h-3.5 rounded-full shadow-sm", forbiddenColor.bgClass)} />
-            <span className="text-[11px] font-medium whitespace-nowrap text-muted-foreground">
+            <span
+              className={cn(
+                "text-[11px] font-medium whitespace-nowrap text-muted-foreground",
+                isCollapsedSidebar && "hidden"
+              )}
+            >
               Cor proibida: {forbiddenColor.name}
             </span>
           </div>
