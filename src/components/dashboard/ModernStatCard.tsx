@@ -86,45 +86,6 @@ const MiniBarChart = ({ data }: { data: number[] }) => {
   );
 };
 
-const HalfGauge = ({ percentage }: { percentage: number }) => {
-  const [animated, setAnimated] = useState(0);
-  useEffect(() => {
-    const t = setTimeout(() => setAnimated(percentage), 150);
-    return () => clearTimeout(t);
-  }, [percentage]);
-  const size = 80;
-  const stroke = 8;
-  const pad = stroke; // extra room so rounded ends aren't clipped
-  const width = size + pad * 2;
-  const height = size / 2 + pad * 2;
-  const cx = width / 2;
-  const cy = pad + size / 2;
-  const r = (size - stroke) / 2;
-  const c = r * Math.PI; // half circumference
-  const dash = (animated / 100) * c;
-  return (
-    <div className="relative shrink-0" style={{ width, height }}>
-      <svg width={width} height={height} viewBox={`0 0 ${width} ${height}`} className="overflow-visible">
-        <path
-          d={`M ${cx - r} ${cy} A ${r} ${r} 0 0 1 ${cx + r} ${cy}`}
-          fill="none"
-          stroke="hsl(var(--muted))"
-          strokeWidth={stroke}
-          strokeLinecap="round"
-        />
-        <path
-          d={`M ${cx - r} ${cy} A ${r} ${r} 0 0 1 ${cx + r} ${cy}`}
-          fill="none"
-          stroke="hsl(142, 65%, 45%)"
-          strokeWidth={stroke}
-          strokeLinecap="round"
-          strokeDasharray={`${dash} ${c}`}
-          style={{ transition: "stroke-dasharray 1s ease-out" }}
-        />
-      </svg>
-    </div>
-  );
-};
 
 const ModernStatCard = ({
   title,
