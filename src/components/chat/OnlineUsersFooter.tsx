@@ -3,6 +3,22 @@ import { NewsTicker } from "@/components/footer/NewsTicker";
 import { ChevronDown, Play } from "lucide-react";
 import { cn } from "@/lib/utils";
 import { useSidebar } from "@/components/ui/sidebar";
+import { getBrazilNorthMonth } from "@/lib/timezone";
+
+const FORBIDDEN_COLORS: Record<number, { name: string; bgClass: string }> = {
+  0: { name: "Vermelha", bgClass: "bg-red-500" },
+  1: { name: "Azul", bgClass: "bg-blue-500" },
+  2: { name: "Amarela", bgClass: "bg-yellow-400" },
+  3: { name: "Verde", bgClass: "bg-green-500" },
+  4: { name: "Vermelha", bgClass: "bg-red-500" },
+  5: { name: "Azul", bgClass: "bg-blue-500" },
+  6: { name: "Amarela", bgClass: "bg-yellow-400" },
+  7: { name: "Verde", bgClass: "bg-green-500" },
+  8: { name: "Vermelha", bgClass: "bg-red-500" },
+  9: { name: "Azul", bgClass: "bg-blue-500" },
+  10: { name: "Amarela", bgClass: "bg-yellow-400" },
+  11: { name: "Verde", bgClass: "bg-green-500" },
+};
 
 interface OnlineUsersFooterProps {
   onUserClick: (user: any) => void;
