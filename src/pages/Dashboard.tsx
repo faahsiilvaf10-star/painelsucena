@@ -414,14 +414,14 @@ const Dashboard = () => {
             <AttendanceTrendChart />
           </div>
           <div className="animate-slide-up" style={{ animationDelay: "0.15s" }}>
-            <MatrixSideChart />
+            <PlanejamentoProgressCard />
           </div>
         </div>
 
-        {/* Avanço Mensal (Planejamento) */}
+        {/* Matriz do mês (gráfico lateral) */}
         <div className="grid grid-cols-1 lg:grid-cols-3 gap-4 mt-4">
-          <div className="animate-slide-up" style={{ animationDelay: "0.2s" }}>
-            <PlanejamentoProgressCard />
+          <div className="lg:col-start-3 animate-slide-up" style={{ animationDelay: "0.2s" }}>
+            <MatrixSideChart />
           </div>
         </div>
       </div>
