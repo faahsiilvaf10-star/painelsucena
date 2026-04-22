@@ -847,3 +847,41 @@ html, body {
   10% { opacity: 0.85; }
   100% { transform: translateY(180px); opacity: 0; }
 }
+
+/* Weather widget — sunny variant */
+.weather-sun {
+  width: 180px;
+  height: 180px;
+  border-radius: 50%;
+  background: radial-gradient(circle at 35% 35%, hsl(48, 100%, 78%) 0%, hsl(42, 100%, 62%) 45%, hsl(36, 100%, 52%) 75%, hsl(30, 100%, 48%) 100%);
+  box-shadow:
+    0 0 60px hsla(45, 100%, 65%, 0.55),
+    0 0 120px hsla(40, 100%, 60%, 0.35);
+  animation: weather-sun-pulse 4s ease-in-out infinite;
+}
+@keyframes weather-sun-pulse {
+  0%, 100% { transform: scale(1); filter: brightness(1); }
+  50% { transform: scale(1.05); filter: brightness(1.1); }
+}
+.animate-spin-slow {
+  animation: spin 18s linear infinite;
+}
+
+.weather-sun-cloud {
+  position: absolute;
+  background: radial-gradient(ellipse at center, rgba(255,255,255,0.95) 0%, rgba(255,255,255,0.7) 50%, transparent 75%);
+  border-radius: 50%;
+  filter: blur(2px);
+}
+.weather-sun-cloud-1 {
+  width: 110px; height: 42px;
+  top: 28%; left: -40%;
+  animation: weather-cloud-drift 28s linear infinite;
+}
+.weather-sun-cloud-2 {
+  width: 80px; height: 32px;
+  top: 70%; left: -40%;
+  opacity: 0.8;
+  animation: weather-cloud-drift 36s linear infinite;
+  animation-delay: -12s;
+}
