@@ -543,6 +543,9 @@ export default function AtividadesII() {
     addSimpleWithExtras(lavagemVertedouro, "Lavagem de vertedouro", "lavagemVertedouro");
     addSimpleWithExtras(lavagemBaciasVertedouro, "Lavagem de bacias do vertedouro", "lavagemBacias");
     addWithExtras(reposicaoGeotextil, "Reposição de Geotêxtil", reposicaoGeotextilDimensao, "", "geotextil");
+    addWithExtras(retiradaGeotextil, "Retirada de Geotêxtil", retiradaGeotextilDimensao, "", "retiradaGeotextil");
+    addWithExtras(retiradaGeomembrana, "Retirada de Geomembrana", retiradaGeomembranaDimensao, "", "retiradaGeomembrana");
+    addWithExtras(reposicaoGeomembrana, "Reposição de Geomembrana", reposicaoGeomembranaDimensao, "", "reposicaoGeomembrana");
     addWithExtras(recomposicaoTela, "Recomposição de tela", recomposicaoTelaDimensao, "", "recomposicaoTela");
     addWithExtras(recomposicaoCascalho, "Recomposição de cascalho", recomposicaoCascalhoQuantidade, "m²", "recomposicaoCascalho");
     addWithExtras(recomposicaoSilte, "Recomposição de silte", recomposicaoSilteQuantidade, "m²", "recomposicaoSilte");
