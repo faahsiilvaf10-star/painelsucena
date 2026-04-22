@@ -1,6 +1,9 @@
 import { useMemo, useState } from "react";
 import { Link } from "react-router-dom";
-import { Target, CheckCircle2, AlertCircle, ArrowRight } from "lucide-react";
+import { Target, CheckCircle2, AlertCircle, ArrowRight, FileDown } from "lucide-react";
+import { format } from "date-fns";
+import { ptBR } from "date-fns/locale";
+import { toast } from "sonner";
 import { usePlanejamentoMetas, type PlanejamentoMeta } from "@/hooks/usePlanejamentoMetas";
 import {
   Dialog,
@@ -11,6 +14,9 @@ import {
 } from "@/components/ui/dialog";
 import { Progress } from "@/components/ui/progress";
 import { Badge } from "@/components/ui/badge";
+import { Button } from "@/components/ui/button";
+import { getLogoBase64, PDF_HEADER_STYLES, generatePdfHeader } from "@/lib/pdfLogo";
+import { downloadPdfFromHtml } from "@/lib/pdfDownload";
 import { cn } from "@/lib/utils";
 
 type FilterKind = "total" | "concluidas" | "faltam";
