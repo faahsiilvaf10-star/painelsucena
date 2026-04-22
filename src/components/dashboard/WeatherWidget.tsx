@@ -104,6 +104,10 @@ export function WeatherWidget() {
   }
 
   const description = WMO_DESCRIPTIONS[weather.weatherCode] || "Indisponível";
+  const isRainy =
+    (weather.weatherCode >= 51 && weather.weatherCode <= 67) ||
+    (weather.weatherCode >= 80 && weather.weatherCode <= 82) ||
+    weather.weatherCode >= 95;
 
   return (
     <div className={cardClass} style={cardStyle}>
@@ -112,6 +116,31 @@ export function WeatherWidget() {
         className="pointer-events-none absolute -bottom-6 -right-6 h-32 w-32 rounded-full opacity-20 blur-2xl"
         style={{ background: "radial-gradient(circle, hsl(220, 60%, 70%), transparent 70%)" }}
       />
+
+      {isRainy && (
+        <>
+          {/* Animated drifting clouds in background */}
+          <div className="pointer-events-none absolute inset-0 overflow-hidden">
+            <div className="weather-cloud weather-cloud-1" />
+            <div className="weather-cloud weather-cloud-2" />
+            <div className="weather-cloud weather-cloud-3" />
+          </div>
+          {/* Falling raindrops */}
+          <div className="pointer-events-none absolute inset-0 overflow-hidden">
+            {Array.from({ length: 18 }).map((_, i) => (
+              <span
+                key={i}
+                className="weather-raindrop"
+                style={{
+                  left: `${(i * 5.7) % 100}%`,
+                  animationDelay: `${(i * 0.17) % 2}s`,
+                  animationDuration: `${0.7 + ((i * 0.13) % 0.8)}s`,
+                }}
+              />
+            ))}
+          </div>
+        </>
+      )}
 
       <div className="relative z-10">
         <div className="flex items-center gap-1.5 text-[11px] mb-3 text-white/80">
