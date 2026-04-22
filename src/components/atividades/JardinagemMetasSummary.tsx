@@ -7,7 +7,7 @@ import { usePlanejamentoMetas } from "@/hooks/usePlanejamentoMetas";
 import { cn } from "@/lib/utils";
 
 // Linhas do planejamento que pertencem ao escopo de Jardinagem (replantio + manutenção DRS)
-const JARDINAGEM_LINHAS = [50, 60, 70, 80, 100, 110, 120, 130, 140, 150, 160, 170, 180, 190, 260];
+const JARDINAGEM_LINHAS = [50, 60, 70, 80, 100, 110, 120, 130, 140];
 
 function pct(realizado: number, meta: number) {
   if (!meta || meta <= 0) return 0;
