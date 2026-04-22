@@ -11,6 +11,7 @@ import { Input } from "@/components/ui/input";
 import { Skeleton } from "@/components/ui/skeleton";
 import { usePlanejamentoMetas, useUpdatePlanejamentoMeta, type PlanejamentoMeta } from "@/hooks/usePlanejamentoMetas";
 import { useIsAdmin } from "@/hooks/useUserRole";
+import { useProfile } from "@/hooks/useProfile";
 import { cn } from "@/lib/utils";
 
 function pct(realizado: number, meta: number) {
@@ -113,7 +114,9 @@ function MetaRow({ meta, canEdit }: { meta: PlanejamentoMeta; canEdit: boolean }
 
 export default function Planejamento() {
   const { data: metas = [], isLoading } = usePlanejamentoMetas();
-  const { isAdmin } = useIsAdmin();
+  const { isStrictAdmin } = useIsAdmin();
+  const { data: profile } = useProfile();
+  const canEdit = isStrictAdmin || profile?.cargo === "planejador";
   const qc = useQueryClient();
   const [syncing, setSyncing] = useState(false);
 
@@ -169,7 +172,7 @@ export default function Planejamento() {
             Avanço Mensal — Meta DRS. Cada linha representa uma meta a bater.
           </p>
         </div>
-        {isAdmin && (
+        {canEdit && (
           <Button onClick={handleSync} disabled={syncing} variant="outline" size="sm">
             <RefreshCw className={cn("w-4 h-4 mr-2", syncing && "animate-spin")} />
             {syncing ? "Sincronizando..." : "Sincronizar agora"}
@@ -226,7 +229,7 @@ export default function Planejamento() {
               </CardHeader>
               <CardContent className="space-y-3">
                 {group.items.map((m) => (
-                  <MetaRow key={m.id} meta={m} canEdit={isAdmin} />
+                  <MetaRow key={m.id} meta={m} canEdit={canEdit} />
                 ))}
               </CardContent>
             </Card>
