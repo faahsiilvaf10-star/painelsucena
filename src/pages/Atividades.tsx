@@ -126,7 +126,7 @@ export default function Atividades() {
       });
   }, [estoqueByEspecie, estoqueData]);
 
-  const measurementPeriodTotals = useMemo(() => ({ coroamento: 0, adubagem: 0, rocagem: 0, podagem: 0, plantio: 0, retiradaMudas: 0 }), []);
+  
 
   // Form state
   const [localFaixa, setLocalFaixa] = useState("FAIXA 2");
@@ -729,8 +729,6 @@ export default function Atividades() {
     return FAIXA_OPTIONS.find((f) => f.value === value)?.label || value;
   };
 
-  const { startDate, endDate } = getMeasurementPeriod();
-  const measurementPeriodLabel = `${format(startDate, "dd/MM/yyyy")} a ${format(endDate, "dd/MM/yyyy")}`;
 
   return (
     <Layout>
@@ -764,29 +762,6 @@ export default function Atividades() {
           </TabsContent>
 
           <TabsContent value="jardinagem" className="mt-4 space-y-4 sm:space-y-6">
-
-        {/* Measurement Period Summary */}
-        <Card className="border-green-500/30 bg-green-500/5">
-          <CardContent className="py-2 sm:py-3 px-3 sm:px-4">
-            <div className="flex flex-col gap-2">
-              <div className="flex flex-wrap items-center gap-2">
-                <Calendar className="h-4 w-4 text-green-500 shrink-0" />
-                <span className="text-xs sm:text-sm font-medium">Período de Medição:</span>
-                <Badge variant="outline" className="border-green-500/50 text-green-500 font-semibold text-xs">
-                  {measurementPeriodLabel}
-                </Badge>
-              </div>
-              <div className="flex flex-wrap items-center gap-x-3 gap-y-1 text-xs text-muted-foreground">
-                <span>🌿 Roçagem: <strong className="text-foreground">{measurementPeriodTotals.rocagem.toLocaleString('pt-BR')} m²</strong></span>
-                <span>✂️ Podagem: <strong className="text-foreground">{measurementPeriodTotals.podagem}</strong></span>
-                <span>🌱 Coroamento: <strong className="text-foreground">{measurementPeriodTotals.coroamento}</strong></span>
-                <span>💧 Adubagem: <strong className="text-foreground">{measurementPeriodTotals.adubagem}</strong></span>
-                <span>🌳 Plantio: <strong className="text-foreground">{measurementPeriodTotals.plantio}</strong></span>
-                <span>🌲 Retirada: <strong className="text-foreground">{measurementPeriodTotals.retiradaMudas}</strong></span>
-              </div>
-            </div>
-          </CardContent>
-        </Card>
 
         {/* Header */}
         <div className="flex flex-col gap-4">
@@ -1100,17 +1075,7 @@ export default function Atividades() {
                 {/* Adubagem */}
                 <div className="p-3 rounded-lg bg-muted/30 space-y-2">
                   <div className="flex items-center justify-between">
-                    <div className="space-y-1">
-                      <Label>ADUBAGEM (Unidade)</Label>
-                      {measurementPeriodTotals.coroamento > 0 && (
-                        <Badge 
-                          variant={measurementPeriodTotals.adubagem >= measurementPeriodTotals.coroamento ? "default" : "secondary"}
-                          className="text-xs w-fit block"
-                        >
-                          Coroamento (Medição): {measurementPeriodTotals.coroamento} | Adubagem: {measurementPeriodTotals.adubagem} | Faltam: {Math.max(0, measurementPeriodTotals.coroamento - measurementPeriodTotals.adubagem)}
-                        </Badge>
-                      )}
-                    </div>
+                    <Label>ADUBAGEM (Unidade)</Label>
                     <AddMoreButton activityKey="adubagem" onAdd={addExtraEntry} />
                   </div>
                   <div className="grid grid-cols-1 md:grid-cols-[1fr_140px_140px] gap-3">
