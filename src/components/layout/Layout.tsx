@@ -22,7 +22,6 @@ import { useIsAdmin } from "@/hooks/useUserRole";
 import { Eye } from "lucide-react";
 import { NeonAvatar } from "@/components/ui/NeonAvatar";
 import { Button } from "@/components/ui/button";
-import { HeaderRadioButton } from "./HeaderRadioButton";
 import { NewsButton } from "./NewsButton";
 import { useEditMode } from "@/contexts/EditModeContext";
 import { Pencil, PencilOff } from "lucide-react";
@@ -150,8 +149,6 @@ const Layout = ({ children }: LayoutProps) => {
                   <TooltipContent side="bottom"><p className="text-xs">Administração</p></TooltipContent>
                 </Tooltip>
               )}
-              {/* Radio */}
-              <HeaderRadioButton />
               {/* News */}
               <NewsButton />
               {/* Logout */}
