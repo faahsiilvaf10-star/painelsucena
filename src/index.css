@@ -803,27 +803,28 @@ html, body {
 /* Weather widget — animated rain effect */
 .weather-cloud {
   position: absolute;
-  background: radial-gradient(ellipse at center, rgba(255,255,255,0.18) 0%, rgba(255,255,255,0.08) 45%, transparent 70%);
+  background: radial-gradient(ellipse at center, rgba(255,255,255,0.55) 0%, rgba(255,255,255,0.3) 50%, transparent 75%);
   border-radius: 50%;
-  filter: blur(6px);
-  opacity: 0.7;
+  filter: blur(4px);
+  opacity: 1;
 }
 .weather-cloud-1 {
-  width: 140px; height: 60px;
+  width: 160px; height: 70px;
   top: 14%; left: -40%;
+  opacity: 0.85;
   animation: weather-cloud-drift 18s linear infinite;
 }
 .weather-cloud-2 {
-  width: 100px; height: 44px;
+  width: 120px; height: 52px;
   top: 42%; left: -40%;
-  opacity: 0.5;
+  opacity: 0.7;
   animation: weather-cloud-drift 26s linear infinite;
   animation-delay: -8s;
 }
 .weather-cloud-3 {
-  width: 170px; height: 70px;
+  width: 190px; height: 80px;
   top: 65%; left: -40%;
-  opacity: 0.4;
+  opacity: 0.6;
   animation: weather-cloud-drift 22s linear infinite;
   animation-delay: -14s;
 }
