@@ -99,7 +99,7 @@ const ModernStatCard = ({
   // Special compact layout for "Total de Funcionários" gauge variant
   if (variant === "gauge") {
     return (
-      <div className="rounded-2xl p-3 bg-card border border-border shadow-sm overflow-hidden">
+      <div className="rounded-2xl p-4 bg-card border border-border shadow-sm overflow-hidden">
         <p className="text-[11px] text-muted-foreground mb-1.5 truncate">{title}</p>
         <div className="flex items-center justify-between gap-2 min-w-0">
           <div className="flex flex-col min-w-0">
