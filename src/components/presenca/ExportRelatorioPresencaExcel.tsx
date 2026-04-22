@@ -185,6 +185,7 @@ export const ExportRelatorioPresencaExcel = ({ year, month, colaboradores, absen
         const reasonCounts: Record<string, number> = {};
         let totalAus = 0;
         const cidSet = new Set<string>();
+        const cidByDayList: string[] = [];
         const obsList: string[] = [];
 
         dayList.forEach((d, idx) => {
@@ -199,7 +200,10 @@ export const ExportRelatorioPresencaExcel = ({ year, month, colaboradores, absen
             cell.font = { name: "Arial", size: 8, bold: true, color: { argb: font } };
             reasonCounts[abs.reason] = (reasonCounts[abs.reason] || 0) + 1;
             totalAus++;
-            if (abs.cid) cidSet.add(abs.cid);
+            if (abs.cid) {
+              cidSet.add(abs.cid);
+              cidByDayList.push(`Dia ${String(d).padStart(2, "0")}: ${abs.cid}`);
+            }
             if (abs.notes) obsList.push(`Dia ${String(d).padStart(2, "0")}: ${abs.notes}`);
           } else {
             cell.value = "•";
