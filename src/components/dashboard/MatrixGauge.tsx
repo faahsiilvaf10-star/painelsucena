@@ -18,16 +18,18 @@ const cargoDefinitions = [
   { id: "tecnico-seguranca-ii", tarefas: ["ts2-1", "ts2-2", "ts2-3", "ts2-4", "ts2-5", "ts2-6"] },
 ];
 
-export function MatrixGauge() {
+export function MatrixGauge({ referenceDate }: MatrixGaugeProps = {}) {
   const [completed, setCompleted] = useState(0);
   const [total, setTotal] = useState(0);
   const [percentage, setPercentage] = useState(0);
   const [animated, setAnimated] = useState(0);
 
+  const effectiveDate = referenceDate ?? getBrazilNorthDate();
+  const monthYear = format(effectiveDate, "yyyy-MM");
+
   useEffect(() => {
     const fetchData = async () => {
       try {
-        const monthYear = getBrazilNorthMonthYear();
         const { data, error } = await supabase
           .from("matrix_task_completions")
           .select("task_id")
@@ -50,7 +52,7 @@ export function MatrixGauge() {
       }
     };
     fetchData();
-  }, []);
+  }, [monthYear]);
 
   useEffect(() => {
     const t = setTimeout(() => setAnimated(percentage), 100);
@@ -63,7 +65,7 @@ export function MatrixGauge() {
   const c = r * 2 * Math.PI;
   const dash = (animated / 100) * c;
 
-  const monthLabel = format(getBrazilNorthDate(), "MMMM", { locale: ptBR });
+  const monthLabel = format(effectiveDate, "MMMM", { locale: ptBR });
   const TrendIcon = percentage >= 50 ? ArrowUp : ArrowDown;
   const trendColor =
     percentage >= 50
