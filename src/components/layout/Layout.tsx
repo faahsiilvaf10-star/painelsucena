@@ -1,7 +1,7 @@
 import { ReactNode, useMemo } from "react";
 import { useNavigate } from "react-router-dom";
 import { SidebarInset, SidebarTrigger } from "@/components/ui/sidebar";
-import ForbiddenColorIndicator from "@/components/ForbiddenColorIndicator";
+
 import { NotificationBell } from "@/components/notifications/NotificationBell";
 import { RefreshCw, Settings, ShieldCheck, LogOut } from "lucide-react";
 import { Tooltip, TooltipContent, TooltipTrigger } from "@/components/ui/tooltip";
@@ -245,7 +245,7 @@ const Layout = ({ children }: LayoutProps) => {
           {children}
         </PageTransition>
       </main>
-      <ForbiddenColorIndicator />
+      
       <AnnouncementModal />
       <SessionExpiryWarning />
       
