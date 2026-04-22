@@ -1,16 +1,39 @@
-import { useMemo } from "react";
+import { useMemo, useState } from "react";
 import { Link } from "react-router-dom";
 import { Target, CheckCircle2, AlertCircle, ArrowRight } from "lucide-react";
-import { usePlanejamentoMetas } from "@/hooks/usePlanejamentoMetas";
+import { usePlanejamentoMetas, type PlanejamentoMeta } from "@/hooks/usePlanejamentoMetas";
+import {
+  Dialog,
+  DialogContent,
+  DialogHeader,
+  DialogTitle,
+  DialogDescription,
+} from "@/components/ui/dialog";
+import { Progress } from "@/components/ui/progress";
+import { Badge } from "@/components/ui/badge";
+import { cn } from "@/lib/utils";
+
+type FilterKind = "total" | "concluidas" | "faltam";
+
+const FILTER_LABELS: Record<FilterKind, string> = {
+  total: "Todas as metas",
+  concluidas: "Metas concluídas",
+  faltam: "Metas que faltam bater",
+};
 
 export function PlanejamentoProgressCard() {
   const { data: metas, isLoading } = usePlanejamentoMetas();
+  const [openFilter, setOpenFilter] = useState<FilterKind | null>(null);
+
+  const items = useMemo(
+    () =>
+      (metas ?? []).filter(
+        (m) => !m.is_section_header && Number(m.meta) > 0,
+      ),
+    [metas],
+  );
 
   const stats = useMemo(() => {
-    const items = (metas ?? []).filter(
-      (m) => !m.is_section_header && Number(m.meta) > 0,
-    );
-    const total = items.length;
     let concluidas = 0;
     let faltam = 0;
     let somaMeta = 0;
@@ -25,8 +48,16 @@ export function PlanejamentoProgressCard() {
     }
     const avancoGeral =
       somaMeta > 0 ? Math.min(100, Math.round((somaReal / somaMeta) * 100)) : 0;
-    return { total, concluidas, faltam, avancoGeral };
-  }, [metas]);
+    return { total: items.length, concluidas, faltam, avancoGeral };
+  }, [items]);
+
+  const filteredItems = useMemo(() => {
+    if (!openFilter) return [];
+    if (openFilter === "total") return items;
+    if (openFilter === "concluidas")
+      return items.filter((m) => Number(m.realizado) >= Number(m.meta));
+    return items.filter((m) => Number(m.realizado) < Number(m.meta));
+  }, [items, openFilter]);
 
   const ringSize = 140;
   const strokeWidth = 12;
@@ -98,18 +129,21 @@ export function PlanejamentoProgressCard() {
           label="Total"
           value={stats.total}
           tone="muted"
+          onClick={() => setOpenFilter("total")}
         />
         <Stat
           icon={<CheckCircle2 className="h-3.5 w-3.5" />}
           label="Concluídas"
           value={stats.concluidas}
           tone="success"
+          onClick={() => setOpenFilter("concluidas")}
         />
         <Stat
           icon={<AlertCircle className="h-3.5 w-3.5" />}
           label="Faltam"
           value={stats.faltam}
           tone="warning"
+          onClick={() => setOpenFilter("faltam")}
         />
       </div>
 
@@ -124,6 +158,78 @@ export function PlanejamentoProgressCard() {
           {stats.concluidas} de {stats.total} metas concluídas
         </p>
       </div>
+
+      <Dialog open={!!openFilter} onOpenChange={(o) => !o && setOpenFilter(null)}>
+        <DialogContent className="max-w-2xl max-h-[80vh] flex flex-col">
+          <DialogHeader>
+            <DialogTitle>
+              {openFilter ? FILTER_LABELS[openFilter] : ""}
+            </DialogTitle>
+            <DialogDescription>
+              {filteredItems.length}{" "}
+              {filteredItems.length === 1 ? "meta" : "metas"}
+            </DialogDescription>
+          </DialogHeader>
+          <div className="overflow-y-auto pr-2 space-y-2">
+            {filteredItems.length === 0 ? (
+              <p className="text-sm text-muted-foreground text-center py-8">
+                Nenhuma meta nesta categoria.
+              </p>
+            ) : (
+              filteredItems.map((m) => <MetaItem key={m.id} meta={m} />)
+            )}
+          </div>
+        </DialogContent>
+      </Dialog>
+    </div>
+  );
+}
+
+function MetaItem({ meta }: { meta: PlanejamentoMeta }) {
+  const m = Number(meta.meta) || 0;
+  const r = Number(meta.realizado) || 0;
+  const p = m > 0 ? Math.min(100, (r / m) * 100) : 0;
+  const completed = m > 0 && r >= m;
+  return (
+    <div className="rounded-lg border bg-card p-3">
+      <div className="flex items-start justify-between gap-2">
+        <div className="flex items-center gap-2 flex-wrap min-w-0">
+          {meta.linha !== null && (
+            <Badge variant="outline" className="font-mono text-xs shrink-0">
+              {meta.linha}
+            </Badge>
+          )}
+          {completed ? (
+            <Badge className="bg-emerald-500/10 text-emerald-700 border-emerald-300 shrink-0">
+              <CheckCircle2 className="w-3 h-3 mr-1" /> Concluída
+            </Badge>
+          ) : (
+            <Badge variant="secondary" className="text-xs shrink-0">
+              <AlertCircle className="w-3 h-3 mr-1" /> Em andamento
+            </Badge>
+          )}
+        </div>
+      </div>
+      <p className="mt-2 text-sm font-medium leading-snug">{meta.atividade}</p>
+      <div className="mt-2 flex items-center justify-between text-xs">
+        <span className="text-muted-foreground">
+          <span className="font-semibold text-foreground">
+            {r.toLocaleString("pt-BR")}
+          </span>
+          {" / "}
+          <span>{m.toLocaleString("pt-BR")}</span>
+          {meta.unidade ? ` ${meta.unidade}` : ""}
+        </span>
+        <span
+          className={cn(
+            "font-bold tabular-nums",
+            completed ? "text-emerald-600" : "text-amber-600",
+          )}
+        >
+          {p.toFixed(1)}%
+        </span>
+      </div>
+      <Progress value={p} className="h-1.5 mt-1.5" />
     </div>
   );
 }
@@ -133,11 +239,13 @@ function Stat({
   label,
   value,
   tone,
+  onClick,
 }: {
   icon: React.ReactNode;
   label: string;
   value: number;
   tone: "muted" | "success" | "warning";
+  onClick?: () => void;
 }) {
   const toneClass =
     tone === "success"
@@ -146,15 +254,19 @@ function Stat({
       ? "text-amber-600 dark:text-amber-400"
       : "text-foreground";
   return (
-    <div className="rounded-xl border border-border bg-muted/30 p-2 text-center min-w-0">
+    <button
+      type="button"
+      onClick={onClick}
+      className="rounded-xl border border-border bg-muted/30 p-2 text-center min-w-0 hover:bg-muted/60 hover:border-primary/40 transition-colors cursor-pointer"
+    >
       <div className={`flex items-center justify-center gap-1 ${toneClass}`}>
         {icon}
         <span className="text-base font-bold leading-none">{value}</span>
       </div>
-      <p className="text-[9px] sm:text-[10px] uppercase tracking-wider text-muted-foreground mt-1 leading-tight break-words">
+      <p className="text-[9px] sm:text-[10px] uppercase tracking-wider text-muted-foreground mt-1 leading-tight whitespace-nowrap">
         {label}
       </p>
-    </div>
+    </button>
   );
 }
 
