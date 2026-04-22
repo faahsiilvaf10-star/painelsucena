@@ -69,7 +69,14 @@ const Dashboard = () => {
   const { settings } = useSiteSettings();
   const uiTheme = (profile as any)?.ui_theme || "classic";
   const isDockTheme = uiTheme === "macos-dock";
-  const today = getBrazilNorthTodayString();
+  const todayString = getBrazilNorthTodayString();
+  const [selectedDate, setSelectedDate] = useState<Date>(() => {
+    const [y, m, d] = todayString.split("-").map(Number);
+    return new Date(y, m - 1, d);
+  });
+  const selectedDateString = format(selectedDate, "yyyy-MM-dd");
+  const isToday = selectedDateString === todayString;
+  const today = selectedDateString;
   const { data: employees } = useEmployees();
   const { data: attendanceRecords } = useAttendanceRecords(today);
   const { data: equipment } = useEquipment();
