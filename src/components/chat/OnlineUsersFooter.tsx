@@ -1,6 +1,6 @@
 import { useState } from "react";
 import { NewsTicker } from "@/components/footer/NewsTicker";
-import { ChevronDown } from "lucide-react";
+import { ChevronDown, Play } from "lucide-react";
 import { cn } from "@/lib/utils";
 import { useSidebar } from "@/components/ui/sidebar";
 
