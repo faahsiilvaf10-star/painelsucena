@@ -297,7 +297,7 @@ export function ExportOrderPdfButton({ order }: ExportOrderPdfButtonProps) {
             ${order.expected_date ? `
               <div class="info-item">
                 <div class="info-label">Previsão de Entrega</div>
-                <div class="info-value">${format(new Date(order.expected_date), "dd/MM/yyyy", { locale: ptBR })}</div>
+                <div class="info-value">${format(new Date(`${order.expected_date}T00:00:00`), "dd/MM/yyyy", { locale: ptBR })}</div>
               </div>
             ` : ''}
             ${(order.mentioned_user_name || order.mentioned_cargo) ? `
