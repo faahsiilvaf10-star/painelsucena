@@ -27,10 +27,13 @@ export const useRHEfetivo = () => {
 
       if (data && data.length > 0) {
         const row = data[0] as unknown as RHEfetivoRow;
+        const importedColabs = (row.colaboradores || []) as Colaborador[];
+        // Fallback: if imported row is empty, use initial dataset so RH features still work
+        const colaboradores = importedColabs.length > 0 ? importedColabs : initialColaboradores;
         return {
-          colaboradores: row.colaboradores as Colaborador[],
+          colaboradores,
           deletedIds: (row.deleted_ids || []) as number[],
-          hasImported: true,
+          hasImported: importedColabs.length > 0,
           rowId: row.id,
         };
       }
