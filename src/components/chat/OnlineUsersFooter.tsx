@@ -69,6 +69,15 @@ export const OnlineUsersFooter = ({ onUserClick }: OnlineUsersFooterProps) => {
               Clique no play para ouvir na plataforma ForMusic
             </span>
           </a>
+          <div
+            className="flex-shrink-0 flex items-center gap-1.5 px-2 py-1 rounded-full bg-muted/50"
+            title={`Cor proibida do mês: ${forbiddenColor.name}`}
+          >
+            <span className={cn("w-3.5 h-3.5 rounded-full shadow-sm", forbiddenColor.bgClass)} />
+            <span className="text-[11px] font-medium whitespace-nowrap text-muted-foreground">
+              Cor proibida: {forbiddenColor.name}
+            </span>
+          </div>
           <NewsTicker />
         </div>
       )}
