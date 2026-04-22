@@ -1,5 +1,9 @@
 import { useState, useEffect } from "react";
-import { Users, ClipboardCheck, AlertCircle, Activity, Calendar, Filter, ArrowUp } from "lucide-react";
+import { Users, ClipboardCheck, AlertCircle, Activity, Calendar as CalendarIcon, Filter, ArrowUp } from "lucide-react";
+import { format } from "date-fns";
+import { ptBR } from "date-fns/locale";
+import { Calendar } from "@/components/ui/calendar";
+import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover";
 import { useProfile } from "@/hooks/useProfile";
 import { useSiteSettings } from "@/hooks/useSiteSettings";
 import { SimpleTree } from "@/components/ui/simple-growth-tree";
@@ -65,7 +69,14 @@ const Dashboard = () => {
   const { settings } = useSiteSettings();
   const uiTheme = (profile as any)?.ui_theme || "classic";
   const isDockTheme = uiTheme === "macos-dock";
-  const today = getBrazilNorthTodayString();
+  const todayString = getBrazilNorthTodayString();
+  const [selectedDate, setSelectedDate] = useState<Date>(() => {
+    const [y, m, d] = todayString.split("-").map(Number);
+    return new Date(y, m - 1, d);
+  });
+  const selectedDateString = format(selectedDate, "yyyy-MM-dd");
+  const isToday = selectedDateString === todayString;
+  const today = selectedDateString;
   const { data: employees } = useEmployees();
   const { data: attendanceRecords } = useAttendanceRecords(today);
   const { data: equipment } = useEquipment();
@@ -213,25 +224,41 @@ const Dashboard = () => {
             </div>
           )}
           <div className="flex items-center gap-2 flex-wrap">
-            <div className="hidden sm:inline-flex items-center gap-2 rounded-xl border border-border bg-card px-3 py-2 text-sm shadow-sm">
-              <Calendar className="h-4 w-4 text-muted-foreground" />
-              <span className="font-medium text-foreground">
-                {new Date().toLocaleDateString("pt-BR", {
-                  day: "2-digit",
-                  month: "long",
-                  year: "numeric",
-                })}
-              </span>
-            </div>
-            <DashboardEditControls
-              isEditMode={isEditMode}
-              hasChanges={hasChanges}
-              isSaving={isSaving}
-              onToggleEditMode={handleToggleEditMode}
-              onSave={handleSave}
-              onCancel={handleCancel}
-              onReset={handleReset}
-            />
+            <Popover>
+              <PopoverTrigger asChild>
+                <button
+                  type="button"
+                  className="inline-flex items-center gap-2 rounded-xl border border-border bg-card px-3 py-2 text-sm shadow-sm hover:bg-muted/60 transition-colors"
+                >
+                  <CalendarIcon className="h-4 w-4 text-muted-foreground" />
+                  <span className="font-medium text-foreground">
+                    {format(selectedDate, "dd 'de' MMMM 'de' yyyy", { locale: ptBR })}
+                  </span>
+                </button>
+              </PopoverTrigger>
+              <PopoverContent className="w-auto p-0" align="end">
+                <Calendar
+                  mode="single"
+                  selected={selectedDate}
+                  onSelect={(d) => d && setSelectedDate(d)}
+                  locale={ptBR}
+                  initialFocus
+                  className="pointer-events-auto"
+                />
+              </PopoverContent>
+            </Popover>
+            {!isToday && (
+              <button
+                type="button"
+                onClick={() => {
+                  const [y, m, d] = todayString.split("-").map(Number);
+                  setSelectedDate(new Date(y, m - 1, d));
+                }}
+                className="text-xs text-primary hover:underline"
+              >
+                Hoje
+              </button>
+            )}
           </div>
         </div>
 
