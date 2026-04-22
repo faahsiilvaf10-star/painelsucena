@@ -53,9 +53,12 @@ async function findFileId(): Promise<{ id: string; name: string } | null> {
     // sharedWithMe retorna remoteItem; precisamos do driveId+itemId
     const remote = (hit as { remoteItem?: { id: string; parentReference?: { driveId?: string } } }).remoteItem;
     if (remote?.id && remote?.parentReference?.driveId) {
-      return { id: `drives/${remote.parentReference.driveId}/items/${remote.id}`, name: hit.name };
+      // URL-encode o itemId (contém '!') e o driveId
+      const driveId = encodeURIComponent(remote.parentReference.driveId);
+      const itemId = encodeURIComponent(remote.id);
+      return { id: `drives/${driveId}/items/${itemId}`, name: hit.name };
     }
-    return { id: hit.id, name: hit.name };
+    return { id: encodeURIComponent(hit.id), name: hit.name };
   }
   return null;
 }
