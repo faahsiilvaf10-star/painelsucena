@@ -55,7 +55,7 @@ const InspecaoCanteiro = lazy(() => import("./pages/InspecaoCanteiro"));
 const CalendarioHydro = lazy(() => import("./pages/CalendarioHydro"));
 const Games = lazy(() => import("./pages/Games"));
 const Desvios = lazy(() => import("./pages/Desvios"));
-const Planejamento = lazy(() => import("./pages/Planejamento"));
+
 const NotasFiscais = lazy(() => import("./pages/NotasFiscais"));
 const TrocaEpi = lazy(() => import("./pages/TrocaEpi"));
 const InspecaoExtintores = lazy(() => import("./pages/InspecaoExtintores"));
@@ -171,7 +171,7 @@ const App = () => (
                       <Route path="/calendario-hydro" element={<ProtectedRoute><CalendarioHydro /></ProtectedRoute>} />
                       <Route path="/games" element={<ProtectedRoute><Games /></ProtectedRoute>} />
                       <Route path="/desvios" element={<ProtectedRoute><Desvios /></ProtectedRoute>} />
-                      <Route path="/planejamento" element={<ProtectedRoute><Planejamento /></ProtectedRoute>} />
+                      
                       <Route path="/notas-fiscais" element={<ProtectedRoute><NotasFiscais /></ProtectedRoute>} />
                       <Route path="/troca-epi" element={<ProtectedRoute><TrocaEpi /></ProtectedRoute>} />
                       <Route path="/inspecao-extintores" element={<ProtectedRoute><InspecaoExtintores /></ProtectedRoute>} />

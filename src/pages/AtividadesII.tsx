@@ -75,63 +75,6 @@ export default function AtividadesII() {
   const { isAreaLocked, canUnlockArea, lockArea, unlockArea } = useReportLock(selectedDateStr);
   const isGabiaoLocked = isAreaLocked("gabiao");
 
-  // Measurement period calculation (day 16 to day 15 of next month)
-  const getMeasurementPeriod = () => {
-    const currentDay = selectedDate.getDate();
-    const currentMonth = selectedDate.getMonth();
-    const currentYear = selectedDate.getFullYear();
-    
-    let startDate: Date;
-    let endDate: Date;
-    
-    if (currentDay >= 16) {
-      // From day 16 of current month to day 15 of next month
-      startDate = new Date(currentYear, currentMonth, 16);
-      endDate = new Date(currentYear, currentMonth + 1, 15);
-    } else {
-      // From day 16 of previous month to day 15 of current month
-      startDate = new Date(currentYear, currentMonth - 1, 16);
-      endDate = new Date(currentYear, currentMonth, 15);
-    }
-    
-    return { startDate, endDate };
-  };
-
-  // Calculate totals for the measurement period by parsing observacoes
-  const measurementPeriodTotals = useMemo(() => {
-    if (!allReports) return { escavacaoManual: 0, reposicaoManta: 0, reposicaoSilte: 0, recomposicaoTela: 0, recomposicaoCascalho: 0, recomposicaoSilte: 0 };
-    
-    const { startDate, endDate } = getMeasurementPeriod();
-    const startStr = format(startDate, "yyyy-MM-dd");
-    const endStr = format(endDate, "yyyy-MM-dd");
-    
-    const periodReports = allReports.filter(report => {
-      return report.report_date >= startStr && report.report_date <= endStr;
-    });
-    
-    const totals = periodReports.reduce((acc, report) => {
-      const obs = report.observacoes || "";
-      // Count occurrences of each activity type
-      const hasEscavacao = obs.includes("Escavação manual") ? 1 : 0;
-      const hasManta = obs.includes("Reposição de manta") ? 1 : 0;
-      const hasSilte = obs.includes("Reposição de silte") ? 1 : 0;
-      const hasRecompTela = obs.includes("Recomposição de tela") ? 1 : 0;
-      const hasRecompCascalho = obs.includes("Recomposição de cascalho") ? 1 : 0;
-      const hasRecompSilte = obs.includes("Recomposição de silte") ? 1 : 0;
-      
-      return {
-        escavacaoManual: acc.escavacaoManual + hasEscavacao,
-        reposicaoManta: acc.reposicaoManta + hasManta,
-        reposicaoSilte: acc.reposicaoSilte + hasSilte,
-        recomposicaoTela: acc.recomposicaoTela + hasRecompTela,
-        recomposicaoCascalho: acc.recomposicaoCascalho + hasRecompCascalho,
-        recomposicaoSilte: acc.recomposicaoSilte + hasRecompSilte,
-      };
-    }, { escavacaoManual: 0, reposicaoManta: 0, reposicaoSilte: 0, recomposicaoTela: 0, recomposicaoCascalho: 0, recomposicaoSilte: 0 });
-    
-    return totals;
-  }, [allReports, selectedDate]);
-
   // Form state
   const [localServico, setLocalServico] = useState("FAIXA 2");
   const [fase, setFase] = useState("");
@@ -750,35 +693,6 @@ export default function AtividadesII() {
             </Button>
           </div>
         </div>
-
-        {/* Measurement Period Summary */}
-        {(() => {
-          const { startDate, endDate } = getMeasurementPeriod();
-          const measurementPeriodLabel = `${format(startDate, "dd/MM/yyyy")} a ${format(endDate, "dd/MM/yyyy")}`;
-          return (
-            <Card className="border-orange-500/30 bg-orange-500/5">
-              <CardContent className="py-3 px-4">
-                <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-2">
-                  <div className="flex items-center gap-2">
-                    <Calendar className="h-4 w-4 text-orange-500" />
-                    <span className="text-sm font-medium">Período de Medição Atual:</span>
-                    <Badge variant="outline" className="border-orange-500/50 text-orange-500 font-semibold">
-                      {measurementPeriodLabel}
-                    </Badge>
-                  </div>
-                  <div className="flex flex-wrap items-center gap-x-3 gap-y-1 text-xs text-muted-foreground">
-                    <span>⛏️ Escavação: <strong className="text-foreground">{measurementPeriodTotals.escavacaoManual}</strong></span>
-                    <span>🧱 Manta: <strong className="text-foreground">{measurementPeriodTotals.reposicaoManta}</strong></span>
-                    <span>🏗️ Rep. Silte: <strong className="text-foreground">{measurementPeriodTotals.reposicaoSilte}</strong></span>
-                    <span>🔗 Tela: <strong className="text-foreground">{measurementPeriodTotals.recomposicaoTela}</strong></span>
-                    <span>🪨 Cascalho: <strong className="text-foreground">{measurementPeriodTotals.recomposicaoCascalho}</strong></span>
-                    <span>🏔️ Rec. Silte: <strong className="text-foreground">{measurementPeriodTotals.recomposicaoSilte}</strong></span>
-                  </div>
-                </div>
-              </CardContent>
-            </Card>
-          );
-        })()}
 
 
         {/* Main Content */}

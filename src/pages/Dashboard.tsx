@@ -170,7 +170,7 @@ const Dashboard = () => {
     switch (id) {
       case "birthday": return <BirthdayBanner />;
       case "matrix_alert": return <MatrixAlertBanner />;
-      case "goal_alert": return null;
+      
       case "campaign": return <CampaignBanner />;
       case "reminder": return null;
       case "order": return <OrderHighlightBanner />;
