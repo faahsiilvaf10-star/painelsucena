@@ -1,5 +1,5 @@
 import { useState, useEffect } from "react";
-import { Users, ClipboardCheck, AlertCircle, Activity } from "lucide-react";
+import { Users, ClipboardCheck, AlertCircle, Activity, Calendar, Filter, ArrowUp } from "lucide-react";
 import { useProfile } from "@/hooks/useProfile";
 import { useSiteSettings } from "@/hooks/useSiteSettings";
 import { SimpleTree } from "@/components/ui/simple-growth-tree";
@@ -41,6 +41,7 @@ import { DraggableDashboardItem } from "@/components/dashboard/DraggableDashboar
 import { DashboardEditControls } from "@/components/dashboard/DashboardEditControls";
 import BirthdayBanner from "@/components/dashboard/BirthdayBanner";
 import DDSPresenterAlert from "@/components/dds/DDSPresenterAlert";
+import { RecentActivitiesCard } from "@/components/dashboard/RecentActivitiesCard";
 import { useCampaignNotifications } from "@/hooks/useCampaignNotifications";
 import { useLastDayMatrixCheck } from "@/hooks/useLastDayMatrixCheck";
 import { CelebrationModal } from "@/components/matriz/CelebrationModal";
