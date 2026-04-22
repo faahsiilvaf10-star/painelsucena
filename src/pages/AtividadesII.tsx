@@ -187,6 +187,9 @@ export default function AtividadesII() {
       setLavagemVertedouro(obs.includes("Lavagem de vertedouro") && !obs.includes("Lavagem de bacias"));
       setLavagemBaciasVertedouro(obs.includes("Lavagem de bacias"));
       setReposicaoGeotextil(obs.includes("Reposição de Geotêxtil"));
+      setRetiradaGeotextil(obs.includes("Retirada de Geotêxtil"));
+      setRetiradaGeomembrana(obs.includes("Retirada de Geomembrana"));
+      setReposicaoGeomembrana(obs.includes("Reposição de Geomembrana"));
       setRecomposicaoTela(obs.includes("Recomposição de tela"));
       setRecomposicaoCascalho(obs.includes("Recomposição de cascalho"));
       setRecomposicaoSilte(obs.includes("Recomposição de silte"));
