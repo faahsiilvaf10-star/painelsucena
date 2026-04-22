@@ -3,25 +3,12 @@ import { serve } from "https://deno.land/std@0.168.0/http/server.ts";
 const corsHeaders = {
   "Access-Control-Allow-Origin": "*",
   "Access-Control-Allow-Headers": "authorization, x-client-info, apikey, content-type",
+  "Access-Control-Allow-Methods": "POST, GET, OPTIONS",
 };
 
 const LOCATION_NAME = "Barcarena - Vila dos Cabanos";
 const WEATHER_URL =
   "https://api.open-meteo.com/v1/forecast?latitude=-1.5189&longitude=-48.6356&current=temperature_2m,relative_humidity_2m,apparent_temperature,weather_code,wind_speed_10m,is_day&timezone=America/Sao_Paulo";
-
-async function fetchWithTimeout(url: string, timeoutMs = 10000) {
-  const controller = new AbortController();
-  const timeoutId = setTimeout(() => controller.abort(), timeoutMs);
-
-  try {
-    return await fetch(url, {
-      headers: { Accept: "application/json" },
-      signal: controller.signal,
-    });
-  } finally {
-    clearTimeout(timeoutId);
-  }
-}
 
 serve(async (req) => {
   if (req.method === "OPTIONS") {
@@ -29,7 +16,14 @@ serve(async (req) => {
   }
 
   try {
-    const response = await fetchWithTimeout(WEATHER_URL);
+    const controller = new AbortController();
+    const timeoutId = setTimeout(() => controller.abort(), 10000);
+
+    const response = await fetch(WEATHER_URL, {
+      headers: { Accept: "application/json" },
+      signal: controller.signal,
+    });
+    clearTimeout(timeoutId);
 
     if (!response.ok) {
       const details = await response.text();
@@ -49,15 +43,19 @@ serve(async (req) => {
         locationName: LOCATION_NAME,
       }),
       {
+        status: 200,
         headers: { ...corsHeaders, "Content-Type": "application/json" },
       },
     );
   } catch (error) {
     console.error("weather-current error:", error);
 
-    return new Response(JSON.stringify({ error: "Erro ao obter previsão" }), {
-      status: 500,
-      headers: { ...corsHeaders, "Content-Type": "application/json" },
-    });
+    return new Response(
+      JSON.stringify({ error: "Erro ao obter previsão", details: String(error) }),
+      {
+        status: 500,
+        headers: { ...corsHeaders, "Content-Type": "application/json" },
+      },
+    );
   }
 });
