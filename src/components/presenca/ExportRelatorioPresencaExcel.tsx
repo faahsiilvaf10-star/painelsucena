@@ -5,6 +5,7 @@ import { toast } from "sonner";
 import ExcelJS from "exceljs";
 import type { Colaborador } from "@/data/efetivoData";
 import type { AbsenceRow, AbsenceReason } from "@/hooks/useAbsenceReasons";
+import sucenaLogo from "@/assets/logo-sucena.png";
 
 interface Props {
   year: number;
