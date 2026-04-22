@@ -22,6 +22,7 @@ import {
 import Layout from "@/components/layout/Layout";
 import ModernStatCard from "@/components/dashboard/ModernStatCard";
 import { PresenceGauge } from "@/components/dashboard/PresenceGauge";
+import { MatrixGauge } from "@/components/dashboard/MatrixGauge";
 import { AttendanceTrendChart } from "@/components/dashboard/AttendanceTrendChart";
 import { MatrixSideChart } from "@/components/dashboard/MatrixSideChart";
 import { DDSHighlightCard } from "@/components/dds/DDSHighlightCard";
