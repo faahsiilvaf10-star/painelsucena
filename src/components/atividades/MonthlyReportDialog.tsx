@@ -90,6 +90,8 @@ export default function MonthlyReportDialog({
         const reportDate = parseISO(report.report_date);
         return isWithinInterval(reportDate, { start: dateRange.from!, end: dateRange.to! });
       });
+    }
+
     return reports;
   }, [reports, filterType, filterMonth, dateRange]);
 
