@@ -161,7 +161,7 @@ export function WeatherWidget() {
       )}
 
       <div className="relative z-10">
-        <div className="flex items-center gap-1.5 text-[11px] mb-3 text-white/80">
+        <div className={`flex items-center gap-1.5 text-[11px] mb-3 ${textMuted}`}>
           <MapPin className="h-3 w-3" />
           <span className="truncate">{weather.locationName}</span>
         </div>
@@ -170,11 +170,12 @@ export function WeatherWidget() {
           <span className="text-5xl font-extrabold tracking-tight leading-none">
             {weather.temperature}°
           </span>
-          {getWeatherIcon(weather.weatherCode)}
+          {!isSunny && getWeatherIcon(weather.weatherCode)}
+          {isSunny && <Sun className="h-8 w-8 text-amber-500 drop-shadow-sm animate-spin-slow" />}
         </div>
-        <p className="text-sm font-medium mb-4 text-white/85">{description}</p>
+        <p className={`text-sm font-medium mb-4 ${textMuted}`}>{description}</p>
 
-        <div className="space-y-1.5 text-xs text-white/80 border-t border-white/10 pt-3">
+        <div className={`space-y-1.5 text-xs border-t pt-3 ${textMuted} ${isSunny ? "border-slate-900/10" : "border-white/10"}`}>
           <div className="flex items-center gap-1.5">
             <Thermometer className="h-3.5 w-3.5" />
             <span>Sensação {weather.apparentTemp}°</span>
