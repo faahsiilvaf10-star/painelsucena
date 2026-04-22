@@ -21,15 +21,27 @@ function tone(p: number) {
   return "text-muted-foreground";
 }
 
-export function JardinagemMetasSummary() {
+interface MetasSummaryProps {
+  linhas?: number[];
+  title?: string;
+  iconColor?: string;
+  borderColor?: string;
+}
+
+export function JardinagemMetasSummary({
+  linhas = JARDINAGEM_LINHAS,
+  title = "Metas do mês — Jardinagem",
+  iconColor = "text-green-600",
+  borderColor = "border-green-500/30 bg-gradient-to-br from-green-500/5 to-emerald-500/5",
+}: MetasSummaryProps = {}) {
   const { data: metas = [], isLoading } = usePlanejamentoMetas();
 
   const items = useMemo(
     () =>
       metas.filter(
-        (m) => !m.is_section_header && m.linha !== null && JARDINAGEM_LINHAS.includes(m.linha) && m.meta > 0
+        (m) => !m.is_section_header && m.linha !== null && linhas.includes(m.linha) && m.meta > 0
       ),
-    [metas]
+    [metas, linhas]
   );
 
   const overall = useMemo(() => {
