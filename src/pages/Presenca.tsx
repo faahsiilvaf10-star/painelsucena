@@ -353,6 +353,26 @@ const Presenca = () => {
     window.open(url, "_blank");
   };
 
+  const handleSaveLock = async () => {
+    try {
+      await lockMutation.mutateAsync(activeArea);
+      toast.success("Lista de presença salva e bloqueada");
+    } catch {
+      toast.error("Erro ao salvar");
+    }
+  };
+
+  const handleUnlock = async () => {
+    try {
+      await unlockMutation.mutateAsync(activeArea);
+      toast.success("Lista desbloqueada para edição");
+    } catch {
+      toast.error("Erro ao desbloquear");
+    }
+  };
+
+  const locked = isLocked(activeArea);
+
   return (
     <Layout>
       <div className="p-4 md:p-6 space-y-6 max-w-7xl mx-auto">
