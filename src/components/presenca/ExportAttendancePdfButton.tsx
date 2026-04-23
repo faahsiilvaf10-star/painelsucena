@@ -192,9 +192,10 @@ export const ExportAttendancePdfButton = () => {
           doc.rect(margin, y, pageWidth - margin * 2, rowHeight + 1, "F");
           doc.setTextColor(255, 255, 255);
           doc.text("Funcionário", margin + 2, y + rowHeight - 1);
-          doc.text("Função", margin + nameColWidth + 1, y + rowHeight - 1);
+          doc.text("Matrícula", margin + nameColWidth + 1, y + rowHeight - 1);
+          doc.text("Função", margin + nameColWidth + matriculaColWidth + 1, y + rowHeight - 1);
 
-          let xDate = margin + nameColWidth + funcaoColWidth;
+          let xDate = margin + nameColWidth + matriculaColWidth + funcaoColWidth;
           dateChunk.forEach((d) => {
             const dayNum = d.split("-")[2];
             doc.text(dayNum, xDate + dayColWidth / 2, y + rowHeight - 1, { align: "center" });
