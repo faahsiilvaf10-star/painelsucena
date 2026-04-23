@@ -53,11 +53,12 @@ export const useAllUsers = () => {
   const channelRef = useRef<RealtimeChannel | null>(null);
   const heartbeatRef = useRef<number | null>(null);
   const justOnlineTimeoutRef = useRef<number | null>(null);
-  const ONLINE_GRACE_MS = 90_000;
-  const GRACE_CLEANUP_INTERVAL_MS = 15_000;
+  const ONLINE_GRACE_MS = 45_000;
+  const GRACE_CLEANUP_INTERVAL_MS = 5_000;
   const lastSeenTimestampRef = useRef<Map<string, number>>(new Map());
   const graceCleanupRef = useRef<number | null>(null);
   const cachedProfileRef = useRef<ProfileData | null>(null);
+  const [, setRefreshKey] = useState(0);
 
   const persistPresence = useCallback(
     async ({ online_at, last_seen_at }: { online_at: string | null; last_seen_at: string }) => {
@@ -327,7 +328,7 @@ export const useAllUsers = () => {
 
           heartbeatRef.current = window.setInterval(() => {
             void trackCurrentUser(presenceChannel);
-          }, 15000);
+          }, 10000);
         }
       });
 
@@ -429,6 +430,13 @@ export const useAllUsers = () => {
     };
   }, [user, trackCurrentUser, persistPresence]);
 
+  useEffect(() => {
+    const interval = setInterval(() => {
+      setRefreshKey((k) => k + 1);
+    }, 5000);
+    return () => clearInterval(interval);
+  }, []);
+
   const allUsers: UserWithStatus[] = profiles
     .map((profile) => {
       const isCurrentUser = profile.user_id === user?.id;
@@ -455,7 +463,7 @@ export const useAllUsers = () => {
       return a.full_name.localeCompare(b.full_name);
     });
 
-  const onlineCount = Math.max(onlineUserIds.size, allUsers.filter((u) => u.isOnline).length);
+  const onlineCount = onlineUserIds.size;
   const offlineCount = allUsers.filter((u) => !u.isOnline).length;
 
   return {
