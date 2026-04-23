@@ -73,7 +73,7 @@ export function ExportEfetivoPdfButton({ colaboradores, filterFuncao }: ExportEf
               box-sizing: border-box;
             }
             @page {
-              size: A4 landscape;
+              size: A4;
               margin: 10mm;
             }
             body {
