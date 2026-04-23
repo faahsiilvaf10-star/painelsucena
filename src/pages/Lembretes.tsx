@@ -481,7 +481,6 @@ const Lembretes = () => {
                         <div className="space-y-2">
                           {allProfiles
                             ?.filter(p => p.user_id !== user?.id)
-                            .filter(p => !envUserIds || envUserIds.has(p.user_id))
                             .map((profile) => (
                             <div
                               key={profile.user_id}
