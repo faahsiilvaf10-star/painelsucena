@@ -132,7 +132,7 @@ export const ChatPopupManager = forwardRef<ChatPopupManagerHandle>((_props, ref)
     };
   }, [user?.id, allUsers, openPopup]);
 
-  if (!user || openPopups.length === 0) return null;
+  if (!user || openPopups.length === 0 || isDriver) return null;
 
   return (
     <div className="fixed bottom-14 right-4 z-50 flex items-end gap-3">
