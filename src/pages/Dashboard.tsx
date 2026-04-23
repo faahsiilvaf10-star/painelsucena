@@ -1,4 +1,4 @@
-import { useState, useEffect } from "react";
+import { useState, useEffect, useMemo } from "react";
 import { Users, ClipboardCheck, AlertCircle, Activity, Calendar as CalendarIcon, Filter, ArrowUp } from "lucide-react";
 import { format } from "date-fns";
 import { ptBR } from "date-fns/locale";
@@ -52,8 +52,8 @@ import { useCampaignNotifications } from "@/hooks/useCampaignNotifications";
 import { useLastDayMatrixCheck } from "@/hooks/useLastDayMatrixCheck";
 import { CelebrationModal } from "@/components/matriz/CelebrationModal";
 import { MatrixReminderModal } from "@/components/matriz/MatrixReminderModal";
-import { useEmployees } from "@/hooks/useEmployees";
-import { useAttendanceRecords } from "@/hooks/useAttendance";
+import { useRHEfetivo } from "@/hooks/useRHEfetivo";
+import { useAttendanceDailyMarks } from "@/hooks/useAttendanceDailyMarks";
 import { useEquipment } from "@/hooks/useEquipment";
 import { useEquipmentCurrentlyIn, useAllRegisteredEquipmentCount } from "@/hooks/useEquipmentMovements";
 import { useJardinagemEquipment } from "@/hooks/useJardinagemEquipment";
@@ -78,8 +78,8 @@ const Dashboard = () => {
   const selectedDateString = format(selectedDate, "yyyy-MM-dd");
   const isToday = selectedDateString === todayString;
   const today = selectedDateString;
-  const { data: employees } = useEmployees();
-  const { data: attendanceRecords } = useAttendanceRecords(today);
+  const { data: rhData } = useRHEfetivo();
+  const { data: dailyMarks } = useAttendanceDailyMarks(selectedDateString);
   const { data: equipment } = useEquipment();
   const { data: currentlyInEquipment } = useEquipmentCurrentlyIn();
   const { data: allRegisteredCount } = useAllRegisteredEquipmentCount();
@@ -105,9 +105,31 @@ const Dashboard = () => {
   useDocumentExpiryNotifications();
   useVehicleExpiryNotifications();
 
-  const totalEmployees = employees?.length || 0;
-  const presentToday = attendanceRecords?.filter(a => a.status === "present" || a.status === "late").length || 0;
-  const absentToday = attendanceRecords?.filter(a => a.status === "absent" || a.status === "justified").length || 0;
+  const activeColaboradores = useMemo(() => {
+    if (!rhData?.colaboradores) return [];
+    const deletedIds = rhData.deletedIds || [];
+    return rhData.colaboradores.filter(c => !deletedIds.includes(c.id));
+  }, [rhData]);
+
+  const totalEmployees = activeColaboradores.length;
+  
+  const absentToday = useMemo(() => {
+    if (!dailyMarks) return 0;
+    const allAbsentIds = new Set<number>();
+    dailyMarks.forEach(m => {
+      (m.absent_employee_ids || []).forEach(id => allAbsentIds.add(Number(id)));
+    });
+    
+    // Only count absents that are in our active list
+    const activeIds = new Set(activeColaboradores.map(c => c.id));
+    let count = 0;
+    allAbsentIds.forEach(id => {
+      if (activeIds.has(id)) count++;
+    });
+    return count;
+  }, [dailyMarks, activeColaboradores]);
+
+  const presentToday = totalEmployees - absentToday;
   const presencePercent = totalEmployees > 0 ? Math.round(presentToday / totalEmployees * 100) : 0;
   
   const jardinagemTotal = jardinagemEquipment?.length || 0;
