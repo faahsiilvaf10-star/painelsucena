@@ -33,7 +33,7 @@ export const OnlineUsersFooter = ({ onUserClick }: OnlineUsersFooterProps) => {
 
   return (
     <div className={cn(
-      "fixed bottom-0 right-0 z-40 transition-[left] duration-200 ease-linear",
+      "fixed bottom-0 right-0 z-40 overflow-hidden transition-[left] duration-200 ease-linear",
       isMinimized ? "bg-transparent border-t-0" : "bg-card border-t border-border",
       isCollapsedSidebar ? "left-[48px]" : "left-[256px]",
       "max-md:left-0"
@@ -54,12 +54,12 @@ export const OnlineUsersFooter = ({ onUserClick }: OnlineUsersFooterProps) => {
       </button>
 
       {!isMinimized && (
-        <div className="flex items-center gap-1 md:gap-3 px-2 md:px-4 py-1.5 md:py-2">
+        <div className="flex w-full min-w-0 items-center gap-1 md:gap-3 px-2 md:px-4 py-1.5 md:py-2 overflow-hidden">
           <a
             href="https://formusic.lovable.app/"
             target="_blank"
             rel="noopener noreferrer"
-            className="flex-shrink-0 flex items-center gap-1.5 px-2 py-1 rounded-full bg-primary/10 hover:bg-primary/20 text-primary transition-colors"
+            className="flex shrink-0 items-center gap-1.5 px-2 py-1 rounded-full bg-primary/10 hover:bg-primary/20 text-primary transition-colors"
             aria-label="Abrir ForMusic"
             title="Abrir ForMusic"
           >
@@ -74,7 +74,7 @@ export const OnlineUsersFooter = ({ onUserClick }: OnlineUsersFooterProps) => {
             <NewsTicker />
           </div>
           <div
-            className="flex-shrink-0 flex items-center gap-1.5 px-2 py-1 rounded-full bg-muted/50"
+            className="flex shrink-0 items-center gap-1.5 px-2 py-1 rounded-full bg-muted/50"
             title={`Cor proibida do mês: ${forbiddenColor.name}`}
           >
             <span className={cn("w-3.5 h-3.5 rounded-full shadow-sm", forbiddenColor.bgClass)} />
