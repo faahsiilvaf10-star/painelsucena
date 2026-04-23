@@ -383,7 +383,7 @@ export function AppSidebar({ lockedCollapsed = false }: { lockedCollapsed?: bool
       <div className="absolute inset-0 overflow-hidden rounded-r-2xl pointer-events-none bg-sidebar" />
       
       {/* Header with Logo - clickable for admin/moderator to change */}
-      <SidebarHeader className={`border-sidebar-border/50 relative z-10 ${isCollapsed ? "p-2" : "border-b p-3 md:p-4"}`}>
+      <SidebarHeader className={`border-sidebar-border/50 relative z-10 ${isCollapsed ? "p-1.5" : "border-b p-2 md:p-3"}`}>
         <div className="flex items-center justify-center">
           {!isCollapsed ? (
             <div className="relative group">
