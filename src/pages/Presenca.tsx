@@ -227,6 +227,11 @@ const Presenca = () => {
       setAddEmployeeIds(new Set());
       setAddSearch("");
       setAddOpen(false);
+      // Garante que a prévia reflita imediatamente os novos funcionários
+      await queryClient.refetchQueries({
+        queryKey: ["attendance-area-assignments"],
+      });
+      setActiveArea(addArea);
     } catch (e) {
       toast.error("Erro ao adicionar");
     }
