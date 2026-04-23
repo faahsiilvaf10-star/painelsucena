@@ -108,6 +108,22 @@ const Layout = ({ children }: LayoutProps) => {
         
         {/* Left side */}
         <div className="flex items-center gap-1.5 md:gap-2">
+          {showBackButton && (
+            <Tooltip>
+              <TooltipTrigger asChild>
+                <Button
+                  variant="ghost"
+                  size="icon"
+                  onClick={() => navigate(-1)}
+                  className="h-7 w-7 text-muted-foreground hover:text-foreground"
+                  aria-label="Voltar"
+                >
+                  <ArrowLeft className="h-4 w-4" />
+                </Button>
+              </TooltipTrigger>
+              <TooltipContent side="bottom"><p className="text-xs">Voltar</p></TooltipContent>
+            </Tooltip>
+          )}
           {isDockTheme ? (
             <>
               {/* Profile photo */}
