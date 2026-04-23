@@ -24,12 +24,13 @@ export const PersistentSidebar = ({ children }: PersistentSidebarProps) => {
   const [justCompletedTransition, setJustCompletedTransition] = useState(false);
 
   const isAuthPage = location.pathname === "/auth";
+  const isEnvSelectionPage = location.pathname === "/selecao-ambiente";
   const isDriver = profile?.cargo && DRIVER_ROLES.includes(profile.cargo);
   const isAvatarBlocked = user && profile && (!profile.avatar_url || profile.avatar_url.trim().length === 0);
   
   // Use global theme from site_settings
   const uiTheme = settings?.ui_theme || "classic";
-  const useDock = user && !isDriver && !isAvatarBlocked && uiTheme === "macos-dock";
+  const useDock = user && !isDriver && !isAvatarBlocked && !isEnvSelectionPage && uiTheme === "macos-dock";
 
   // Apply global primary color from site_settings
   useEffect(() => {
