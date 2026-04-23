@@ -15,6 +15,21 @@ const DRIVER_ROLES = ["motorista_pipa", "motorista_munk"];
 
 const SESSION_TAB_KEY = "session_tab_active";
 
+// Minimal loading fallback consistent with App.tsx
+const PageLoader = () => (
+  <div className="flex items-center justify-center min-h-screen bg-background">
+    <div className="flex gap-1.5">
+      {[0, 1, 2, 3, 4].map((i) => (
+        <div
+          key={i}
+          className="w-1.5 h-1.5 rounded-full bg-primary/60 animate-pulse"
+          style={{ animationDelay: `${i * 150}ms` }}
+        />
+      ))}
+    </div>
+  </div>
+);
+
 const ProtectedRoute = ({ children }: ProtectedRouteProps) => {
   const [session, setSession] = useState<Session | null>(null);
   const [loading, setLoading] = useState(true);
@@ -56,47 +71,61 @@ const ProtectedRoute = ({ children }: ProtectedRouteProps) => {
 
     // Check for existing session on page load
     const initSession = async () => {
-      const {
-        data: { session: existingSession },
-      } = await authClient.getSession();
-
-      if (existingSession) {
-        setSession(existingSession);
-        setLoading(false);
-
-        // Only check tab flag on initial page load (not after a fresh login)
-        const tabWasActive = sessionStorage.getItem(SESSION_TAB_KEY);
-        const { cargo } = await fetchUserCargo(existingSession.user.id);
-        const isDriverRole = cargo && DRIVER_ROLES.includes(cargo);
-
-        // Browser was closed & reopened with a stale session → auto-logout non-drivers
-        if (!tabWasActive && !isDriverRole) {
-          console.log("Browser was closed. Auto-logging out non-driver user.");
-          setSession(null);
-          try {
-            await authClient.signOut({ scope: "local" });
-          } catch {
-            /* ignore */
-          }
-          navigate("/auth", { replace: true });
-          return;
-        }
-
-        // Session is valid, mark tab as active
-        sessionStorage.setItem(SESSION_TAB_KEY, "1");
-      } else {
-        // Try to refresh the session if no active session found
+      try {
         const {
-          data: { session: refreshedSession },
-        } = await authClient.refreshSession();
-        setSession(refreshedSession);
-        setLoading(false);
-        if (refreshedSession?.user) {
-          await fetchUserCargo(refreshedSession.user.id);
+          data: { session: existingSession },
+          error: sessionError
+        } = await authClient.getSession();
+
+        if (sessionError) throw sessionError;
+
+        if (existingSession) {
+          setSession(existingSession);
+          setLoading(false);
+
+          // Only check tab flag on initial page load (not after a fresh login)
+          const tabWasActive = sessionStorage.getItem(SESSION_TAB_KEY);
+          const cargoInfo = await fetchUserCargo(existingSession.user.id);
+          const cargo = cargoInfo?.cargo;
+          const isDriverRole = cargo && DRIVER_ROLES.includes(cargo);
+
+          // Browser was closed & reopened with a stale session → auto-logout non-drivers
+          if (!tabWasActive && !isDriverRole) {
+            console.log("Browser was closed. Auto-logging out non-driver user.");
+            setSession(null);
+            try {
+              await authClient.signOut({ scope: "local" });
+            } catch {
+              /* ignore */
+            }
+            navigate("/auth", { replace: true });
+            return;
+          }
+
+          // Session is valid, mark tab as active
           sessionStorage.setItem(SESSION_TAB_KEY, "1");
         } else {
-          setCargoChecked(true);
+          // Try to refresh the session if no active session found
+          const {
+            data: { session: refreshedSession },
+            error: refreshError
+          } = await authClient.refreshSession();
+          
+          if (refreshError) throw refreshError;
+          
+          setSession(refreshedSession);
+          setLoading(false);
+          if (refreshedSession?.user) {
+            await fetchUserCargo(refreshedSession.user.id);
+            sessionStorage.setItem(SESSION_TAB_KEY, "1");
+          } else {
+            setCargoChecked(true);
+          }
         }
+      } catch (err) {
+        console.error("Error initializing session:", err);
+        setLoading(false);
+        setCargoChecked(true);
       }
     };
 
@@ -138,9 +167,9 @@ const ProtectedRoute = ({ children }: ProtectedRouteProps) => {
     }
   };
 
-  // Show nothing while loading session or checking cargo
+  // Show loader while loading session or checking cargo instead of blank page
   if (loading || !cargoChecked) {
-    return null;
+    return <PageLoader />;
   }
 
   if (!session) {
