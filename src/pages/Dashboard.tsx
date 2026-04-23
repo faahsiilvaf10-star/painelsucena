@@ -357,7 +357,7 @@ const Dashboard = () => {
                 </p>
                 <div className="h-1.5 w-full rounded-full bg-muted overflow-hidden">
                   <div
-                    className="h-full rounded-full bg-emerald-500 transition-all duration-1000"
+                    className="h-full rounded-full bg-primary transition-all duration-1000"
                     style={{ width: `${equipPercent}%` }}
                   />
                 </div>
