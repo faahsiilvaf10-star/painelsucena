@@ -455,7 +455,7 @@ export const useAllUsers = () => {
       return a.full_name.localeCompare(b.full_name);
     });
 
-  const onlineCount = allUsers.filter((u) => u.isOnline).length;
+  const onlineCount = Math.max(onlineUserIds.size, allUsers.filter((u) => u.isOnline).length);
   const offlineCount = allUsers.filter((u) => !u.isOnline).length;
 
   return {
