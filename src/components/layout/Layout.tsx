@@ -80,6 +80,8 @@ const Layout = ({ children }: LayoutProps) => {
   const { isAdmin } = useIsAdmin();
   const { isEditMode, toggleEditMode, canEdit } = useEditMode();
   const navigate = useNavigate();
+  const location = useLocation();
+  const showBackButton = location.pathname !== "/dashboard" && location.pathname !== "/";
   
   const isAvatarBlocked = profile && (!profile.avatar_url || profile.avatar_url.trim().length === 0);
   const uiTheme = (profile as any)?.ui_theme || "classic";
