@@ -62,14 +62,15 @@ html, body {
     --warning: 38 80% 55%;
     --info: 199 60% 55%;
 
-    --sidebar-background: 270 25% 22%;
-    --sidebar-foreground: 45 40% 95%;
-    --sidebar-primary: 280 45% 65%;
-    --sidebar-primary-foreground: 0 0% 100%;
-    --sidebar-accent: 160 40% 35%;
-    --sidebar-accent-foreground: 0 0% 100%;
-    --sidebar-border: 270 20% 28%;
-    --sidebar-ring: 280 45% 65%;
+    /* Sidebar global — Sucena Gold/Black aplicado também no tema claro */
+    --sidebar-background: 0 0% 6%;
+    --sidebar-foreground: 0 0% 74%;
+    --sidebar-primary: 45 100% 48%;
+    --sidebar-primary-foreground: 0 0% 10%;
+    --sidebar-accent: 45 100% 48%;
+    --sidebar-accent-foreground: 0 0% 10%;
+    --sidebar-border: 45 100% 48% / 0.06;
+    --sidebar-ring: 45 100% 48%;
   }
 
   .dark {
@@ -183,8 +184,9 @@ html, body {
   }
 
 
-  /* Sidebar: item ativo com glow dourado pulsante e barra lateral */
-  .dark [data-sidebar="menu-button"][data-active="true"] {
+  /* Sidebar: item ativo com glow dourado pulsante e barra lateral
+     (aplicado em ambos temas — sidebar é sempre Sucena Gold/Black) */
+  [data-sidebar="menu-button"][data-active="true"] {
     background: linear-gradient(90deg, hsl(45 100% 55% / 0.18) 0%, hsl(45 100% 55% / 0.06) 100%) !important;
     color: hsl(45 100% 62%) !important;
     box-shadow:
@@ -194,15 +196,21 @@ html, body {
     animation: sidebar-active-glow 2.4s ease-in-out infinite;
   }
 
-  .dark [data-sidebar="menu-button"][data-active="true"] svg,
-  .dark [data-sidebar="menu-button"][data-active="true"] span {
+  [data-sidebar="menu-button"][data-active="true"] svg,
+  [data-sidebar="menu-button"][data-active="true"] span {
     color: hsl(45 100% 62%) !important;
     filter: drop-shadow(0 0 4px hsl(45 100% 55% / 0.5));
   }
 
-  .dark [data-sidebar="menu-button"]:hover:not([data-active="true"]) {
+  [data-sidebar="menu-button"]:hover:not([data-active="true"]) {
     background: hsl(45 100% 55% / 0.06) !important;
     color: hsl(45 90% 78%) !important;
+  }
+
+  /* Emergência: vermelho pulsante mantém-se em ambos temas dentro do sidebar */
+  [data-sidebar="menu-button"] .text-red-500 {
+    color: hsl(0 90% 60%) !important;
+    filter: drop-shadow(0 0 6px hsl(0 90% 50% / 0.6));
   }
 
   @keyframes sidebar-active-glow {
@@ -245,11 +253,8 @@ html, body {
     }
   }
 
-  /* Emergência: vermelho pulsante mantém-se mesmo no dark */
-  .dark [data-sidebar="menu-button"] .text-red-500 {
-    color: hsl(0 90% 60%) !important;
-    filter: drop-shadow(0 0 6px hsl(0 90% 50% / 0.6));
-  }
+
+
 
   /* Scrollbar dourada */
   .dark ::-webkit-scrollbar { width: 8px; height: 8px; }
