@@ -402,11 +402,12 @@ const Dashboard = () => {
                 </div>
                 <p className="text-[11px] text-muted-foreground mt-2">
                   {inOperation} no canteiro de {totalEquip} equipamentos
-                </div>
+                </p>
               </div>
             </div>
           </div>
-        </Suspense>
+        </div>
+      </Suspense>
 
         {/* Recent activities row (mix real do sistema) */}
         <div className="mb-4 animate-slide-up" style={{ animationDelay: "0.05s" }}>
