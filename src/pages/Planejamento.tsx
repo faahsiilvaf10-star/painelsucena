@@ -1,4 +1,4 @@
-import { useMemo, useState } from "react";
+import { useEffect, useMemo, useRef, useState } from "react";
 import { Target, TrendingUp, CheckCircle2, AlertCircle, Pencil, Save, X, RefreshCw } from "lucide-react";
 import { supabase } from "@/integrations/supabase/client";
 import { useQueryClient } from "@tanstack/react-query";
@@ -119,22 +119,45 @@ export default function Planejamento() {
   const canEdit = isStrictAdmin || profile?.cargo === "planejador";
   const qc = useQueryClient();
   const [syncing, setSyncing] = useState(false);
+  const autoSyncRef = useRef(false);
 
-  const handleSync = async () => {
-    setSyncing(true);
+  const runSync = async (silent: boolean) => {
+    if (autoSyncRef.current) return;
+    autoSyncRef.current = true;
+    if (!silent) setSyncing(true);
     try {
       const { data, error } = await supabase.functions.invoke("sync-planejamento-excel");
       if (error) throw error;
       const d = data as { ok: boolean; updated?: number; error?: string };
       if (!d.ok) throw new Error(d.error || "Falha na sincronização");
-      toast.success(`Sincronizado: ${d.updated ?? 0} meta(s) atualizada(s)`);
+      if (!silent) {
+        toast.success(`Sincronizado: ${d.updated ?? 0} meta(s) atualizada(s)`);
+      }
       qc.invalidateQueries({ queryKey: ["planejamento-metas"] });
     } catch (e) {
-      toast.error(e instanceof Error ? e.message : "Erro ao sincronizar");
+      if (!silent) {
+        toast.error(e instanceof Error ? e.message : "Erro ao sincronizar");
+      } else {
+        console.warn("[Planejamento] Auto-sync falhou:", e);
+      }
     } finally {
-      setSyncing(false);
+      if (!silent) setSyncing(false);
+      autoSyncRef.current = false;
     }
   };
+
+  const handleSync = () => runSync(false);
+
+  // Sincronização automática a cada 5 minutos (silenciosa)
+  useEffect(() => {
+    // dispara a primeira sincronização logo ao montar
+    runSync(true);
+    const interval = setInterval(() => {
+      runSync(true);
+    }, 5 * 60 * 1000);
+    return () => clearInterval(interval);
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, []);
 
   const grouped = useMemo(() => {
     const groups: { categoria: string; items: PlanejamentoMeta[] }[] = [];
