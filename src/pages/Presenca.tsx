@@ -247,6 +247,7 @@ const Presenca = () => {
                 <Lock className="w-4 h-4" />
                 <span className="text-sm font-medium">Relatório Salvo</span>
               </div>}
+            <AttendancePreviewDialog employees={employeesList} date={today} />
             <ExportAttendancePdfButton />
           </div>
         </div>
