@@ -25,7 +25,7 @@ interface ModernStatCardProps {
   bgTint?: string;
 }
 
-const ORANGE = "hsl(22, 95%, 55%)";
+const ORANGE = "hsl(var(--primary))";
 
 const SparklineChart = ({ data }: { data: number[] }) => {
   const [show, setShow] = useState(false);

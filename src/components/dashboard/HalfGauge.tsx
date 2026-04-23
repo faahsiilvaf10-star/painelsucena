@@ -32,14 +32,14 @@ export function HalfGauge({
   animate = true,
   className,
 }: HalfGaugeProps) {
-  // Cor dinâmica conforme a porcentagem
+  // Cor dinâmica conforme a porcentagem (paleta dourada)
   const dynamicColor =
     color ??
     (percentage >= 70
-      ? "hsl(142, 70%, 45%)" // verde
+      ? "hsl(var(--primary))"
       : percentage >= 40
-      ? "hsl(22, 95%, 55%)" // laranja
-      : "hsl(0, 75%, 55%)"); // vermelho
+      ? "hsl(var(--primary) / 0.75)"
+      : "hsl(var(--destructive))");
   const [animated, setAnimated] = useState(animate ? 0 : percentage);
 
   useEffect(() => {
