@@ -263,7 +263,10 @@ const EXIT_REASON_LABELS: Record<string, string> = {
               Controle de equipamentos no canteiro e fora da obra
             </p>
           </div>
-          <ExportMovementsHistoryPdfButton />
+          <div className="flex flex-wrap items-center gap-2">
+            <TotalEquipmentStatusModal />
+            <ExportMovementsHistoryPdfButton />
+          </div>
          </div>
  
         {isLoading || loadingOut || loadingJardinagem ? (
