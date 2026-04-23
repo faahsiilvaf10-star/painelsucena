@@ -81,14 +81,29 @@ export function WeatherWidget() {
     code >= 95;
   const isSunny = code === 0 || code === 1 || code === 2;
 
+  // 7 fotos de construção (uma por dia da semana: dom, seg, ter, qua, qui, sex, sab)
+  const constructionImages = [
+    "https://images.unsplash.com/photo-1503387762-592deb58ef4e?auto=format&fit=crop&w=1200&q=80", // ponte/estrutura
+    "https://images.unsplash.com/photo-1541888946425-d81bb19240f5?auto=format&fit=crop&w=1200&q=80", // canteiro de obras
+    "https://images.unsplash.com/photo-1504307651254-35680f356dfd?auto=format&fit=crop&w=1200&q=80", // ponte ao entardecer
+    "https://images.unsplash.com/photo-1519452575417-564c1401ecc0?auto=format&fit=crop&w=1200&q=80", // guindaste
+    "https://images.unsplash.com/photo-1590725140246-20acdee442be?auto=format&fit=crop&w=1200&q=80", // engenheiro/obra
+    "https://images.unsplash.com/photo-1517089596392-fb9a9033e05b?auto=format&fit=crop&w=1200&q=80", // estrutura metálica
+    "https://images.unsplash.com/photo-1581094794329-c8112a89af12?auto=format&fit=crop&w=1200&q=80", // operário com capacete
+  ];
+  const todayImage = constructionImages[new Date().getDay()];
+
   const cardClass =
     "relative rounded-2xl p-5 h-full overflow-hidden shadow-lg transition-transform hover:scale-[1.01]";
-  const sunnyBg =
-    "linear-gradient(160deg, hsl(200, 90%, 88%) 0%, hsl(195, 85%, 78%) 55%, hsl(200, 80%, 70%) 100%)";
-  // Dark cloudy/rainy background with bridge image overlay (matches reference)
+  // Tema claro: imagem de fundo com leve overlay claro para legibilidade
+  const sunnyBg = `
+    linear-gradient(160deg, hsl(200 90% 88% / 0.78) 0%, hsl(195 85% 78% / 0.65) 55%, hsl(200 80% 70% / 0.55) 100%),
+    url("${todayImage}") center/cover no-repeat
+  `;
+  // Tema escuro: mesma foto com overlay preto + dourado
   const rainyBg = `
     linear-gradient(155deg, hsl(0 0% 6% / 0.82) 0%, hsl(0 0% 4% / 0.7) 55%, hsl(45 40% 12% / 0.6) 100%),
-    url("https://images.unsplash.com/photo-1504307651254-35680f356dfd?auto=format&fit=crop&w=1200&q=80") center/cover no-repeat
+    url("${todayImage}") center/cover no-repeat
   `;
   const cardStyle: React.CSSProperties = {
     background: isSunny ? sunnyBg : rainyBg,
