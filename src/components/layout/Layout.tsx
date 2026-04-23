@@ -1,9 +1,9 @@
 import { ReactNode, useMemo } from "react";
-import { useNavigate } from "react-router-dom";
+import { useNavigate, useLocation } from "react-router-dom";
 import { SidebarInset, SidebarTrigger } from "@/components/ui/sidebar";
 
 import { NotificationBell } from "@/components/notifications/NotificationBell";
-import { RefreshCw, Settings, ShieldCheck, LogOut } from "lucide-react";
+import { RefreshCw, Settings, ShieldCheck, LogOut, ArrowLeft } from "lucide-react";
 import { Tooltip, TooltipContent, TooltipTrigger } from "@/components/ui/tooltip";
 import { ThemeToggle } from "@/components/ThemeToggle";
 import { CampaignRibbon } from "@/components/campaigns/CampaignRibbon";
