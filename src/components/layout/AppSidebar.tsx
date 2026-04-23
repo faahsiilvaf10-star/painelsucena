@@ -50,6 +50,7 @@ import { formatCargoLabel } from "@/lib/cargoUtils";
 import sidebarArrowLeft from "@/assets/sidebar-arrow-left.png";
 import sidebarArrowRight from "@/assets/sidebar-arrow-right.png";
 import sidebarCollapsedLogo from "@/assets/sidebar-collapsed-logo.png";
+import admIcon from "@/assets/adm-icon.png";
 import { useEditMode } from "@/contexts/EditModeContext";
 import { EditableText } from "@/components/cms/EditableText";
 import { VerifiedBadge } from "@/components/VerifiedBadge";
@@ -506,7 +507,7 @@ export function AppSidebar({ lockedCollapsed = false }: { lockedCollapsed?: bool
                     className="h-10 w-10 md:h-9 md:w-9 hover:bg-amber-500/20"
                     title={isModerator ? "Moderação" : "Administração"}
                   >
-                    {isModerator ? <ModeratorBadge size="md" /> : <VerifiedBadge size="md" />}
+                    <img src={admIcon} alt="ADM" className="h-7 w-7 object-contain" />
                   </Button>
                 )}
                 {isAdmin && (
