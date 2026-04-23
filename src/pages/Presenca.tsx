@@ -17,6 +17,7 @@ import { supabase } from "@/integrations/supabase/client";
 import { toast } from "sonner";
 import { getBrazilNorthTodayString } from "@/lib/timezone";
 import { ExportAttendancePdfButton } from "@/components/presenca/ExportAttendancePdfButton";
+import { AttendancePreviewDialog } from "@/components/presenca/AttendancePreviewDialog";
 import type { Colaborador } from "@/data/efetivoData";
 
 const statusConfig = {
