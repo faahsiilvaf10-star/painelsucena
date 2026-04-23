@@ -82,10 +82,12 @@ export function TotalEquipmentStatusModal({ trigger }: TotalEquipmentStatusModal
   return (
     <Dialog>
       <DialogTrigger asChild>
-        <Button variant="outline" className="gap-2 bg-primary/10 hover:bg-primary/20 border-primary/30 transition-all">
-          <Info className="h-4 w-4 text-primary" />
-          <span className="font-semibold">Status 17 Equipamentos</span>
-        </Button>
+        {trigger || (
+          <Button variant="outline" className="gap-2 bg-primary/10 hover:bg-primary/20 border-primary/30 transition-all">
+            <Info className="h-4 w-4 text-primary" />
+            <span className="font-semibold">Status 17 Equipamentos</span>
+          </Button>
+        )}
       </DialogTrigger>
       <DialogContent className="max-w-4xl max-h-[90vh] overflow-y-auto p-0">
         <div className="p-6">
