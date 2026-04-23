@@ -13,6 +13,7 @@ interface WeatherData {
   isDay: boolean;
   locationName: string;
   lastUpdated: string;
+  isFallback: boolean;
 }
 
 const WMO_DESCRIPTIONS: Record<number, string> = {
