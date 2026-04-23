@@ -81,9 +81,11 @@ export const OnlineUsersFooter = ({ onUserClick }: OnlineUsersFooterProps) => {
           <div className="flex-1 min-w-0 overflow-hidden">
             <NewsTicker />
           </div>
-          <div
-            className="flex shrink-0 items-center gap-1.5 px-2 py-1 rounded-full bg-muted/50"
-            title={`Cor proibida do mês: ${forbiddenColor.name}`}
+          <button
+            type="button"
+            onClick={() => setColorDialogOpen(true)}
+            className="flex shrink-0 items-center gap-1.5 px-2 py-1 rounded-full bg-muted/50 hover:bg-muted transition-colors cursor-pointer"
+            title={`Cor proibida do mês: ${forbiddenColor.name} — clique para ver todas`}
           >
             <span className={cn("w-3.5 h-3.5 rounded-full shadow-sm", forbiddenColor.bgClass)} />
             <span
@@ -94,9 +96,47 @@ export const OnlineUsersFooter = ({ onUserClick }: OnlineUsersFooterProps) => {
             >
               Cor proibida: {forbiddenColor.name}
             </span>
-          </div>
+          </button>
         </div>
       )}
+
+      <Dialog open={colorDialogOpen} onOpenChange={setColorDialogOpen}>
+        <DialogContent className="max-w-md">
+          <DialogHeader>
+            <DialogTitle>Cores proibidas do ano</DialogTitle>
+          </DialogHeader>
+          <div className="grid grid-cols-1 sm:grid-cols-2 gap-2 mt-2">
+            {MONTH_NAMES.map((month, idx) => {
+              const c = FORBIDDEN_COLORS[idx];
+              const isCurrent = idx === currentMonth;
+              return (
+                <div
+                  key={month}
+                  className={cn(
+                    "flex items-center gap-2 rounded-lg border p-2.5 transition-colors",
+                    isCurrent
+                      ? "border-primary bg-primary/10"
+                      : "border-border bg-muted/30"
+                  )}
+                >
+                  <span className={cn("w-4 h-4 rounded-full shadow-sm shrink-0", c.bgClass)} />
+                  <div className="flex flex-col min-w-0">
+                    <span className={cn(
+                      "text-xs font-semibold",
+                      isCurrent && "text-primary"
+                    )}>
+                      {month}
+                    </span>
+                    <span className="text-[11px] text-muted-foreground">
+                      {c.name}
+                    </span>
+                  </div>
+                </div>
+              );
+            })}
+          </div>
+        </DialogContent>
+      </Dialog>
     </div>
   );
 };
