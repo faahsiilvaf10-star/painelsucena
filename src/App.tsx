@@ -117,9 +117,8 @@ if (typeof window !== "undefined") {
   });
 }
 
-const App = () => {
-  console.log("App component rendering");
-  return (
+const App = () => (
+
 
   <ErrorBoundary>
     <ThemeProvider attribute="class" defaultTheme="light" enableSystem>
@@ -205,8 +204,8 @@ const App = () => {
       </QueryClientProvider>
     </ThemeProvider>
   </ErrorBoundary>
-  );
-};
+);
+
 
 
 export default App;
