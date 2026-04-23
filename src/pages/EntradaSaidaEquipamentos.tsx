@@ -1,6 +1,7 @@
-import { Truck, MapPin, ExternalLink, Clock, Plus, Trash2, LogOut } from "lucide-react";
+import { Truck, MapPin, ExternalLink, Clock, Plus, Trash2, LogOut, Info } from "lucide-react";
 import { Leaf, ArrowUpCircle, ArrowDownCircle, Loader2 as Loader2Icon } from "lucide-react";
 import { useState } from "react";
+import { Link } from "react-router-dom";
 import { EditablePageTitle } from "@/components/cms/EditablePageTitle";
 import { useCreateEquipmentMovement, ExitReason } from "@/hooks/useEquipmentMovements";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
@@ -23,7 +24,7 @@ import { Loader2 } from "lucide-react";
 import { format } from "date-fns";
 import { ptBR } from "date-fns/locale";
 import { ExportMovementsHistoryPdfButton } from "@/components/equipamentos/ExportMovementsHistoryPdfButton";
-import { TotalEquipmentStatusModal } from "@/components/equipamentos/TotalEquipmentStatusModal";
+// TotalEquipmentStatusModal removed in favor of direct page link
 import { useJardinagemEquipment, useUpdateJardinagemEquipmentStatus, useCreateJardinagemEquipment, useDeleteJardinagemEquipment } from "@/hooks/useJardinagemEquipment";
 import { useProfile } from "@/hooks/useProfile";
 import { useIsAdmin } from "@/hooks/useUserRole";
@@ -264,7 +265,12 @@ const EXIT_REASON_LABELS: Record<string, string> = {
             </p>
           </div>
           <div className="flex flex-wrap items-center gap-2">
-            <TotalEquipmentStatusModal />
+            <Link to="/status-geral-equipamentos">
+              <Button variant="outline" className="gap-2 bg-primary/10 hover:bg-primary/20 border-primary/30 transition-all">
+                <Info className="h-4 w-4 text-primary" />
+                <span className="font-semibold">Status 17 Equipamentos</span>
+              </Button>
+            </Link>
             <ExportMovementsHistoryPdfButton />
           </div>
          </div>

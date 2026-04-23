@@ -1,5 +1,6 @@
 import { useState, useEffect, useMemo } from "react";
-import { Users, ClipboardCheck, AlertCircle, Activity, Calendar as CalendarIcon, Filter, ArrowUp } from "lucide-react";
+import { Link } from "react-router-dom";
+import { Users, ClipboardCheck, AlertCircle, Activity, Calendar as CalendarIcon, Filter, ArrowUp, ArrowRight } from "lucide-react";
 import { format } from "date-fns";
 import { ptBR } from "date-fns/locale";
 import { Calendar } from "@/components/ui/calendar";
@@ -328,9 +329,17 @@ const Dashboard = () => {
           {/* Far right: Equipamentos Ativos (clean white card matching reference) */}
           <div className="lg:col-span-3">
             <div className="rounded-2xl p-5 h-full flex flex-col bg-card border border-border shadow-sm transition-transform hover:scale-[1.01]">
-              <p className="text-[11px] font-semibold uppercase tracking-[0.18em] text-muted-foreground mb-3">
-                Equipamentos Ativos
-              </p>
+              <div className="flex items-start justify-between mb-3">
+                <p className="text-[11px] font-semibold uppercase tracking-[0.18em] text-muted-foreground">
+                  Equipamentos Ativos
+                </p>
+                <Link
+                  to="/status-geral-equipamentos"
+                  className="text-xs text-primary hover:underline inline-flex items-center gap-1"
+                >
+                  Ver tudo <ArrowRight className="h-3 w-3" />
+                </Link>
+              </div>
 
               <div className="flex items-center justify-center flex-1 my-2">
                 <div className="relative">
