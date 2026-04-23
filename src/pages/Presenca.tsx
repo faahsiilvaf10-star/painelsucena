@@ -619,7 +619,7 @@ const Presenca = () => {
                       <Button
                         onClick={handleAddAssign}
                         disabled={
-                          !addEmployeeId || assignMutation.isPending
+                          addEmployeeIds.size === 0 || assignMutation.isPending
                         }
                       >
                         Adicionar
