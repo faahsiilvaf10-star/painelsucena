@@ -81,7 +81,7 @@ export function ExportEfetivoPdfButton({ colaboradores, filterFuncao }: ExportEf
               background: #ffffff;
               padding: 10px;
               color: #1a1a2e;
-              font-size: 10px;
+              font-size: 11px;
             }
             .container {
               max-width: 100%;
