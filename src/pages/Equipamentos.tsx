@@ -1,6 +1,7 @@
 import { useNavigate } from "react-router-dom";
 import Layout from "@/components/layout/Layout";
-import { ArrowLeftRight, Truck, Wrench, Settings } from "lucide-react";
+import { ArrowLeftRight, Truck, Wrench, Settings, ListChecks } from "lucide-react";
+import { TotalEquipmentStatusModal } from "@/components/equipamentos/TotalEquipmentStatusModal";
 
 const equipamentosPages = [
   { label: "Entrada\ne Saída", icon: ArrowLeftRight, path: "/entrada-saida-equipamentos" },
