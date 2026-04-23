@@ -306,6 +306,7 @@ export default function RDO() {
       return buildAreaPresenceText(area, empsInArea, absent, {
         includeHeader: false,
         onlyPresent: true,
+        includeSupport: false,
       });
     };
 
