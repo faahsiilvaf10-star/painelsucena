@@ -117,7 +117,10 @@ if (typeof window !== "undefined") {
   });
 }
 
-const App = () => (
+const App = () => {
+  console.log("App component rendering");
+  return (
+
   <ErrorBoundary>
     <ThemeProvider attribute="class" defaultTheme="light" enableSystem>
       <QueryClientProvider client={queryClient}>
@@ -202,6 +205,8 @@ const App = () => (
       </QueryClientProvider>
     </ThemeProvider>
   </ErrorBoundary>
-);
+  );
+};
+
 
 export default App;
