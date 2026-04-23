@@ -48,6 +48,7 @@ export function PostCard({ post }: { post: InstaCenaPost }) {
   const [showReactionsDialog, setShowReactionsDialog] = useState(false);
   const [photoViewerOpen, setPhotoViewerOpen] = useState(false);
   const [photoViewerIndex, setPhotoViewerIndex] = useState(0);
+  const [profileViewerOpen, setProfileViewerOpen] = useState(false);
 
   const myReaction = reactions.find((r) => r.user_id === user?.id);
   const isOwner = post.user_id === user?.id;
