@@ -173,10 +173,10 @@ export function ExportEfetivoPdfButton({ colaboradores, filterFuncao }: ExportEf
               border-bottom: 2px solid #d0d7de;
             }
             td {
-              padding: 6px;
+              padding: 10px 8px;
               border-bottom: 1px solid #e5e7eb;
               color: #1a1a2e;
-              font-size: 9px;
+              font-size: 10px;
             }
             tr:nth-child(even) {
               background: #f9fafb;
