@@ -383,7 +383,7 @@ export function AppSidebar({ lockedCollapsed = false }: { lockedCollapsed?: bool
       <div className="absolute inset-0 overflow-hidden rounded-r-2xl pointer-events-none bg-sidebar" />
       
       {/* Header with Logo - clickable for admin/moderator to change */}
-      <SidebarHeader className="border-b border-sidebar-border/50 p-3 md:p-4 relative z-10">
+      <SidebarHeader className={`border-sidebar-border/50 relative z-10 ${isCollapsed ? "p-2" : "border-b p-3 md:p-4"}`}>
         <div className="flex items-center justify-center">
           {!isCollapsed ? (
             <div className="relative group">
@@ -414,7 +414,7 @@ export function AppSidebar({ lockedCollapsed = false }: { lockedCollapsed?: bool
             <img 
               src={sidebarCollapsedLogo} 
               alt="Logo" 
-              className="h-12 w-12 object-contain" 
+              className="h-8 w-8 object-contain" 
             />
           )}
         </div>
@@ -476,18 +476,18 @@ export function AppSidebar({ lockedCollapsed = false }: { lockedCollapsed?: bool
       </SidebarContent>
 
       {/* Footer */}
-      <SidebarFooter className="border-t border-sidebar-border/50 p-2 md:p-2 relative z-10">
+      <SidebarFooter className={`border-t border-sidebar-border/50 relative z-10 ${isCollapsed ? "p-1 py-4" : "p-2 md:p-2"}`}>
         {user ? (
           <>
             {/* User Info */}
-            <div className="flex items-center gap-2 md:gap-3 p-2">
+            <div className={`flex items-center gap-2 md:gap-3 ${isCollapsed ? "justify-center" : "p-2"}`}>
               <NeonAvatar
                 src={profile?.avatar_url}
                 name={profile?.full_name || "Usuário"}
                 frameColor={profile?.frame_color}
                 neonColor={profile?.neon_color}
                 frameAnimation={profile?.frame_animation}
-                size="sm"
+                size={isCollapsed ? "xs" : "sm"}
               />
               {!isCollapsed && (
                 <div className="flex-1 min-w-0">
@@ -504,10 +504,10 @@ export function AppSidebar({ lockedCollapsed = false }: { lockedCollapsed?: bool
                     variant="ghost"
                     size="icon"
                     onClick={() => navigate("/admin")}
-                    className="h-10 w-10 md:h-9 md:w-9 hover:bg-amber-500/20"
+                    className={`${isCollapsed ? "h-8 w-8" : "h-10 w-10 md:h-9 md:w-9"} hover:bg-amber-500/20`}
                     title={isModerator ? "Moderação" : "Administração"}
                   >
-                    <img src={admIcon} alt="ADM" className="h-7 w-7 object-contain" />
+                    <img src={admIcon} alt="ADM" className={`${isCollapsed ? "h-6 w-6" : "h-7 w-7"} object-contain`} />
                   </Button>
                 )}
                 {isAdmin && (
@@ -515,10 +515,10 @@ export function AppSidebar({ lockedCollapsed = false }: { lockedCollapsed?: bool
                     variant="ghost"
                     size="icon"
                     onClick={() => navigate("/selecao-ambiente")}
-                    className="h-10 w-10 md:h-9 md:w-9 text-sidebar-foreground/70 hover:text-emerald-500 hover:bg-emerald-500/20"
+                    className={`${isCollapsed ? "h-8 w-8" : "h-10 w-10 md:h-9 md:w-9"} text-sidebar-foreground/70 hover:text-emerald-500 hover:bg-emerald-500/20`}
                     title="Trocar de ambiente"
                   >
-                    <Building2 className="h-5 w-5" />
+                    <Building2 className={`${isCollapsed ? "h-4 w-4" : "h-5 w-5"}`} />
                   </Button>
                 )}
                 {canEdit && (
@@ -526,33 +526,33 @@ export function AppSidebar({ lockedCollapsed = false }: { lockedCollapsed?: bool
                     variant="ghost"
                     size="icon"
                     onClick={toggleEditMode}
-                    className={`h-10 w-10 md:h-9 md:w-9 transition-colors ${
+                    className={`${isCollapsed ? "h-8 w-8" : "h-10 w-10 md:h-9 md:w-9"} transition-colors ${
                       isEditMode 
                         ? "text-primary bg-primary/20 hover:bg-primary/30" 
                         : "text-sidebar-foreground/70 hover:text-sidebar-foreground hover:bg-sidebar-accent"
                     }`}
                     title={isEditMode ? "Desativar modo edição" : "Ativar modo edição"}
                   >
-                    {isEditMode ? <PencilOff className="h-5 w-5" /> : <Pencil className="h-5 w-5" />}
+                    {isEditMode ? <PencilOff className={`${isCollapsed ? "h-4 w-4" : "h-5 w-5"}`} /> : <Pencil className={`${isCollapsed ? "h-4 w-4" : "h-5 w-5"}`} />}
                   </Button>
                 )}
                 <Button
                   variant="ghost"
                   size="icon"
                   onClick={() => navigate("/configuracoes")}
-                  className="h-10 w-10 md:h-9 md:w-9 text-sidebar-foreground/70 hover:text-sidebar-foreground hover:bg-sidebar-accent"
+                  className={`${isCollapsed ? "h-8 w-8" : "h-10 w-10 md:h-9 md:w-9"} text-sidebar-foreground/70 hover:text-sidebar-foreground hover:bg-sidebar-accent`}
                   title="Configurações"
                 >
-                  <Settings className="h-5 w-5" />
+                  <Settings className={`${isCollapsed ? "h-4 w-4" : "h-5 w-5"}`} />
                 </Button>
                 <Button
                   variant="ghost"
                   size="icon"
                   onClick={handleSignOut}
-                  className="h-10 w-10 md:h-9 md:w-9 text-sidebar-foreground/70 hover:text-red-500 hover:bg-red-500/20"
+                  className={`${isCollapsed ? "h-8 w-8" : "h-10 w-10 md:h-9 md:w-9"} text-sidebar-foreground/70 hover:text-red-500 hover:bg-red-500/20`}
                   title="Sair"
                 >
-                  <LogOut className="h-5 w-5" />
+                  <LogOut className={`${isCollapsed ? "h-4 w-4" : "h-5 w-5"}`} />
                 </Button>
               </div>
           </>
