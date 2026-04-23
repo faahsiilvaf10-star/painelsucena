@@ -32,12 +32,23 @@ export const OnlineUsersFooter = ({ onUserClick }: OnlineUsersFooterProps) => {
   const forbiddenColor = FORBIDDEN_COLORS[getBrazilNorthMonth()];
 
   return (
-    <div className={cn(
-      "fixed bottom-0 right-0 z-40 transition-[left] duration-200 ease-linear",
-      isMinimized ? "bg-transparent border-t-0" : "bg-card border-t border-border",
-      isCollapsedSidebar ? "left-[48px]" : "left-[256px]",
-      "max-md:left-0"
-    )}>
+    <div
+      className={cn(
+        "fixed bottom-0 right-0 z-40 transition-[left] duration-200 ease-linear",
+        isMinimized ? "border-t-0" : "border-t",
+        isCollapsedSidebar ? "left-[48px]" : "left-[256px]",
+        "max-md:left-0"
+      )}
+      style={
+        isMinimized
+          ? { background: "transparent" }
+          : {
+              background: "linear-gradient(180deg, hsl(0 0% 9%) 0%, hsl(0 0% 6%) 100%)",
+              borderColor: "hsl(45 80% 28% / 0.4)",
+              color: "hsl(0 0% 96%)",
+            }
+      }
+    >
       {/* Mobile minimize toggle */}
       <button
         onClick={() => setIsMinimized(!isMinimized)}
