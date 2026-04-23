@@ -143,16 +143,17 @@ export const AddEmployeeDialog = ({ onAdd }: AddEmployeeDialogProps) => {
                 placeholder="00000"
               />
             </div>
+          </div>
 
-            <div className="space-y-2">
-              <Label htmlFor="matricula">Matrícula Sucena</Label>
-              <Input
-                id="matricula"
-                value={formData.matricula}
-                onChange={(e) => setFormData({ ...formData, matricula: e.target.value.replace(/\D/g, "") })}
-                placeholder="0000"
-              />
-            </div>
+          <div className="space-y-2">
+            <Label htmlFor="matricula">Matrícula Sucena</Label>
+            <Input
+              id="matricula"
+              value={formData.matricula}
+              onChange={(e) => setFormData({ ...formData, matricula: e.target.value.replace(/\D/g, "") })}
+              placeholder="0000"
+            />
+          </div>
 
           <div className="grid grid-cols-2 gap-4">
             <div className="space-y-2">
