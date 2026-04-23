@@ -3,10 +3,6 @@ import { registerSW } from "virtual:pwa-register";
 import App from "./App.tsx";
 import "./index.css";
 import { installEnvironmentHeader } from "@/lib/environmentHeader";
-
-// Injeta o header x-environment em toda chamada ao Supabase para
-// que as RLS policies filtrem os dados do ambiente selecionado.
-installEnvironmentHeader();
 import {
   ELECTRON_VERSION_POLL_INTERVAL_MS,
   MAX_PREVIEW_CACHE_RESET_ATTEMPTS,
@@ -23,6 +19,11 @@ import {
   setPreviewCacheResetAttempts,
   shouldDisableServiceWorker,
 } from "@/lib/appRefresh";
+
+// Injeta o header x-environment em toda chamada ao Supabase para
+// que as RLS policies filtrem os dados do ambiente selecionado.
+installEnvironmentHeader();
+
 
 let updateSW: ((reloadPage?: boolean) => Promise<void>) | null = null;
 let runtimeVersionMonitorStarted = false;
