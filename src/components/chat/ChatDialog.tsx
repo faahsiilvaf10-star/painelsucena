@@ -28,6 +28,7 @@ import { toast } from "sonner";
 import { VerifiedBadge } from "@/components/VerifiedBadge";
 import { ModeratorBadge } from "@/components/ModeratorBadge";
 import { formatCargoLabel } from "@/lib/cargoUtils";
+import { ProfilePhotoViewer } from "@/components/ProfilePhotoViewer";
 
 // Format last seen time in a user-friendly way
 const formatLastSeen = (lastSeen?: string): string => {
