@@ -169,7 +169,7 @@ export function WeatherWidget() {
 
       <div className="relative z-10">
         <div className={`flex items-center gap-1.5 text-[11px] mb-3 ${textMuted}`}>
-          <MapPin className="h-3 w-3" />
+          <MapPin className={`h-3 w-3 ${isSunny ? "" : "text-primary"}`} />
           <span className="truncate">{weather.locationName}</span>
         </div>
 
@@ -182,17 +182,17 @@ export function WeatherWidget() {
         </div>
         <p className={`text-sm font-medium mb-4 ${textMuted}`}>{description}</p>
 
-        <div className={`space-y-1.5 text-xs border-t pt-3 ${textMuted} ${isSunny ? "border-slate-900/10" : "border-white/10"}`}>
+        <div className={`space-y-1.5 text-xs border-t pt-3 ${textMuted} ${isSunny ? "border-slate-900/10" : "border-primary/20"}`}>
           <div className="flex items-center gap-1.5">
-            <Thermometer className="h-3.5 w-3.5" />
+            <Thermometer className={`h-3.5 w-3.5 ${isSunny ? "" : "text-primary"}`} />
             <span>Sensação {weather.apparentTemp}°</span>
           </div>
           <div className="flex items-center gap-1.5">
-            <Droplets className="h-3.5 w-3.5" />
+            <Droplets className={`h-3.5 w-3.5 ${isSunny ? "" : "text-primary"}`} />
             <span>Umidade {weather.humidity}%</span>
           </div>
           <div className="flex items-center gap-1.5">
-            <Wind className="h-3.5 w-3.5" />
+            <Wind className={`h-3.5 w-3.5 ${isSunny ? "" : "text-primary"}`} />
             <span>Vento {weather.windSpeed} km/h</span>
           </div>
         </div>
