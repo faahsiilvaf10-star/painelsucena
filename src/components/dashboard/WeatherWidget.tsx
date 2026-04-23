@@ -185,9 +185,24 @@ export function WeatherWidget() {
       )}
 
       <div className="relative z-10">
-        <div className={`flex items-center gap-1.5 text-[11px] mb-3 ${textMuted}`}>
-          <MapPin className={`h-3 w-3 ${isSunny ? "" : "text-primary"}`} />
-          <span className="truncate">{weather.locationName}</span>
+        <div className={`flex items-center justify-between gap-1.5 text-[11px] mb-3 ${textMuted}`}>
+          <div className="flex items-center gap-1.5 min-w-0">
+            <MapPin className={`h-3 w-3 shrink-0 ${isSunny ? "" : "text-primary"}`} />
+            <span className="truncate">{weather.locationName}</span>
+          </div>
+          <div className={`flex items-center gap-1 shrink-0 px-1.5 py-0.5 rounded-full ${isSunny ? 'bg-slate-900/5' : 'bg-white/10'}`}>
+            {weather.isFallback ? (
+              <>
+                <AlertCircle className="h-2.5 w-2.5 text-amber-500" />
+                <span className="font-medium">Fallback</span>
+              </>
+            ) : (
+              <>
+                <CheckCircle2 className="h-2.5 w-2.5 text-emerald-500" />
+                <span className="font-medium">Tempo Real</span>
+              </>
+            )}
+          </div>
         </div>
 
         <div className="flex items-start justify-between mb-1">
