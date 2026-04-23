@@ -18,6 +18,7 @@ import { toast } from "sonner";
 import { MentionText } from "./MentionText";
 import { CommentSection } from "./CommentSection";
 import { PhotoViewer } from "@/components/orders/PhotoViewer";
+import { ProfilePhotoViewer } from "@/components/ProfilePhotoViewer";
 
 const REACTIONS = [
   { type: "like", emoji: "👍", label: "Curtir", icon: ThumbsUp },
