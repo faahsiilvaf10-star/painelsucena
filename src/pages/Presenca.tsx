@@ -273,20 +273,21 @@ const Presenca = () => {
     lines.push(header);
     lines.push("");
 
-    // Suporte
-    const tst = list.find(
+    // Suporte (não exibir na área ADM)
+    const isAdm = area === "adm";
+    const tst = !isAdm ? list.find(
       (c) =>
         (c.funcao === "TECNICO DE SEGURANÇA DO TRABALHO" ||
           c.funcao === "ENGENHEIRO DE SEGURANÇA DO TRABALHO") &&
         isPresent(c)
-    );
-    const encGeral = list.find(
+    ) : undefined;
+    const encGeral = !isAdm ? list.find(
       (c) => (c.funcao || "").toUpperCase().startsWith("ENCARREGADO GERAL") && isPresent(c)
-    );
-    const enc = list.find((c) => {
+    ) : undefined;
+    const enc = !isAdm ? list.find((c) => {
       const f = (c.funcao || "").toUpperCase();
       return f.startsWith("ENCARREGADO") && !f.startsWith("ENCARREGADO GERAL") && isPresent(c);
-    });
+    }) : undefined;
 
     if (tst || encGeral || enc) {
       lines.push("✴️EQUIPE DE SUPORTE✴️");
