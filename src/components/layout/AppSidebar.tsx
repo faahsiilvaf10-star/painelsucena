@@ -431,9 +431,9 @@ export function AppSidebar({ lockedCollapsed = false }: { lockedCollapsed?: bool
         style={{ touchAction: 'manipulation' }}
       >
         {isCollapsed ? (
-          <img src={sidebarArrowRight} alt="Abrir" className="h-7 w-7 rotate-180" />
+          <img src={sidebarArrowRight} alt="Abrir" className="h-7 w-7" />
         ) : (
-          <img src={sidebarArrowLeft} alt="Fechar" className="h-7 w-7" />
+          <img src={sidebarArrowLeft} alt="Fechar" className="h-7 w-7 rotate-180" />
         )}
       </Button>
 
