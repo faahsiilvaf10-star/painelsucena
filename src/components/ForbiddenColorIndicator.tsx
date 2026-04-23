@@ -117,7 +117,6 @@ const ForbiddenColorIndicator = () => {
 
   // Mouse events
   const onMouseDown = (e: React.MouseEvent) => {
-    e.preventDefault();
     handleDragStart(e.clientX, e.clientY);
   };
 
