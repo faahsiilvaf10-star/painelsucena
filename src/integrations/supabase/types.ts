@@ -169,6 +169,36 @@ export type Database = {
         }
         Relationships: []
       }
+      attendance_area_assignments: {
+        Row: {
+          area: string
+          created_at: string
+          employee_id: number
+          employee_name: string
+          environment: string
+          id: string
+          updated_at: string
+        }
+        Insert: {
+          area: string
+          created_at?: string
+          employee_id: number
+          employee_name: string
+          environment?: string
+          id?: string
+          updated_at?: string
+        }
+        Update: {
+          area?: string
+          created_at?: string
+          employee_id?: number
+          employee_name?: string
+          environment?: string
+          id?: string
+          updated_at?: string
+        }
+        Relationships: []
+      }
       attendance_records: {
         Row: {
           check_in: string | null
