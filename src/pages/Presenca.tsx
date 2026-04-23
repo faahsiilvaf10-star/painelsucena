@@ -118,6 +118,7 @@ const ROLE_LABELS: Record<string, string> = {
 };
 
 const Presenca = () => {
+  const queryClient = useQueryClient();
   const { data: rhData, isLoading } = useRHEfetivo();
   const {
     data: assignments,
