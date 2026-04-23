@@ -1,9 +1,9 @@
 import { ReactNode, useMemo } from "react";
-import { useNavigate } from "react-router-dom";
+import { useNavigate, useLocation } from "react-router-dom";
 import { SidebarInset, SidebarTrigger } from "@/components/ui/sidebar";
 
 import { NotificationBell } from "@/components/notifications/NotificationBell";
-import { RefreshCw, Settings, ShieldCheck, LogOut } from "lucide-react";
+import { RefreshCw, Settings, ShieldCheck, LogOut, ArrowLeft } from "lucide-react";
 import { Tooltip, TooltipContent, TooltipTrigger } from "@/components/ui/tooltip";
 import { ThemeToggle } from "@/components/ThemeToggle";
 import { CampaignRibbon } from "@/components/campaigns/CampaignRibbon";
@@ -80,6 +80,8 @@ const Layout = ({ children }: LayoutProps) => {
   const { isAdmin } = useIsAdmin();
   const { isEditMode, toggleEditMode, canEdit } = useEditMode();
   const navigate = useNavigate();
+  const location = useLocation();
+  const showBackButton = location.pathname !== "/dashboard" && location.pathname !== "/";
   
   const isAvatarBlocked = profile && (!profile.avatar_url || profile.avatar_url.trim().length === 0);
   const uiTheme = (profile as any)?.ui_theme || "classic";
@@ -106,6 +108,22 @@ const Layout = ({ children }: LayoutProps) => {
         
         {/* Left side */}
         <div className="flex items-center gap-1.5 md:gap-2">
+          {showBackButton && (
+            <Tooltip>
+              <TooltipTrigger asChild>
+                <Button
+                  variant="ghost"
+                  size="icon"
+                  onClick={() => navigate(-1)}
+                  className="h-7 w-7 text-muted-foreground hover:text-foreground"
+                  aria-label="Voltar"
+                >
+                  <ArrowLeft className="h-4 w-4" />
+                </Button>
+              </TooltipTrigger>
+              <TooltipContent side="bottom"><p className="text-xs">Voltar</p></TooltipContent>
+            </Tooltip>
+          )}
           {isDockTheme ? (
             <>
               {/* Profile photo */}
