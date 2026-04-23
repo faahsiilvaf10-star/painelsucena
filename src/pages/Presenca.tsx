@@ -306,14 +306,18 @@ const Presenca = () => {
       }
     }
 
-    // Execução
-    const exec = list.filter((c) => {
-      const f = (c.funcao || "").toUpperCase();
-      return !SUPPORT_ROLES.includes(f) && !f.startsWith("ENCARREGADO");
-    });
+    // Execução (na área ADM, lista todos por função, sem distinção de suporte)
+    const exec = isAdm
+      ? list.filter(isPresent)
+      : list.filter((c) => {
+          const f = (c.funcao || "").toUpperCase();
+          return !SUPPORT_ROLES.includes(f) && !f.startsWith("ENCARREGADO");
+        });
     if (exec.length > 0) {
-      lines.push("✴️EQUIPE DE EXECUÇÃO✴️");
-      lines.push("");
+      if (!isAdm) {
+        lines.push("✴️EQUIPE DE EXECUÇÃO✴️");
+        lines.push("");
+      }
       const groups = new Map<string, Colaborador[]>();
       exec.forEach((c) => {
         const role = (c.funcao || "").toUpperCase();
