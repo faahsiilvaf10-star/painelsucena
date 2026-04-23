@@ -461,30 +461,75 @@ const Presenca = () => {
                         <label className="text-sm font-medium mb-1 block">
                           Funcionário
                         </label>
-                        <Select
-                          value={addEmployeeId}
-                          onValueChange={setAddEmployeeId}
-                        >
-                          <SelectTrigger>
-                            <SelectValue placeholder="Selecione um funcionário" />
-                          </SelectTrigger>
-                          <SelectContent className="max-h-[300px]">
-                            {unassignedEmployees.length === 0 ? (
-                              <div className="px-2 py-3 text-sm text-muted-foreground text-center">
-                                Todos os funcionários já estão atribuídos.
-                              </div>
-                            ) : (
-                              unassignedEmployees.map((c) => (
-                                <SelectItem key={c.id} value={String(c.id)}>
-                                  {toTitleCase(c.nome)} —{" "}
-                                  <span className="text-xs text-muted-foreground">
-                                    {c.funcao}
-                                  </span>
-                                </SelectItem>
-                              ))
-                            )}
-                          </SelectContent>
-                        </Select>
+                        <Input
+                          placeholder="Digite o nome para buscar..."
+                          value={addSearch}
+                          onChange={(e) => setAddSearch(e.target.value)}
+                          className="mb-2"
+                          autoFocus
+                        />
+                        <ScrollArea className="h-[240px] rounded-md border">
+                          {unassignedEmployees.length === 0 ? (
+                            <div className="px-3 py-6 text-sm text-muted-foreground text-center">
+                              Todos os funcionários já estão atribuídos.
+                            </div>
+                          ) : (
+                            (() => {
+                              const q = addSearch.trim().toLowerCase();
+                              const list = q
+                                ? unassignedEmployees.filter(
+                                    (c) =>
+                                      c.nome.toLowerCase().includes(q) ||
+                                      (c.funcao || "")
+                                        .toLowerCase()
+                                        .includes(q)
+                                  )
+                                : unassignedEmployees;
+                              if (list.length === 0) {
+                                return (
+                                  <div className="px-3 py-6 text-sm text-muted-foreground text-center">
+                                    Nenhum funcionário encontrado.
+                                  </div>
+                                );
+                              }
+                              return (
+                                <div className="p-1">
+                                  {list.map((c) => {
+                                    const selected =
+                                      addEmployeeId === String(c.id);
+                                    return (
+                                      <button
+                                        key={c.id}
+                                        type="button"
+                                        onClick={() =>
+                                          setAddEmployeeId(String(c.id))
+                                        }
+                                        className={`w-full text-left px-3 py-2 rounded-md text-sm transition-colors ${
+                                          selected
+                                            ? "bg-primary text-primary-foreground"
+                                            : "hover:bg-accent"
+                                        }`}
+                                      >
+                                        <div className="font-medium">
+                                          {toTitleCase(c.nome)}
+                                        </div>
+                                        <div
+                                          className={`text-xs ${
+                                            selected
+                                              ? "text-primary-foreground/80"
+                                              : "text-muted-foreground"
+                                          }`}
+                                        >
+                                          {c.funcao}
+                                        </div>
+                                      </button>
+                                    );
+                                  })}
+                                </div>
+                              );
+                            })()
+                          )}
+                        </ScrollArea>
                       </div>
                       <div>
                         <label className="text-sm font-medium mb-1 block">
