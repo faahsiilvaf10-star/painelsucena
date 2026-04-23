@@ -323,21 +323,19 @@ const Presenca = () => {
   };
 
   const reportText = useMemo(() => {
-    const parts: string[] = [];
-    parts.push(`📅 Data: ${formatDateBR(date)}`);
-    parts.push("");
-    AREAS.forEach((a) => {
-      const list = allColaboradores.filter(
-        (c) => employeeAreaMap.get(c.id) === a.id
-      );
-      if (list.length === 0) return;
-      parts.push(buildReportForArea(a.id));
-      parts.push("");
-      parts.push("");
-    });
-    return parts.join("\n").trim();
+    const list = allColaboradores.filter(
+      (c) => employeeAreaMap.get(c.id) === activeArea
+    );
+    if (list.length === 0) {
+      return `📅 Data: ${formatDateBR(date)}\n\n(Nenhum funcionário nesta área)`;
+    }
+    return [
+      `📅 Data: ${formatDateBR(date)}`,
+      "",
+      buildReportForArea(activeArea),
+    ].join("\n");
     // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [date, allColaboradores, employeeAreaMap, absentByArea]);
+  }, [date, allColaboradores, employeeAreaMap, absentByArea, activeArea]);
 
   const handleCopy = async () => {
     try {
