@@ -73,24 +73,24 @@ html, body {
   }
 
   .dark {
-    /* Sucena Gold/Black theme */
-    --background: 0 0% 6%;
-    --foreground: 45 95% 60%;
+    /* Sucena Gold/Black theme — referência exata */
+    --background: 0 0% 7%;
+    --foreground: 45 90% 92%;
 
     --card: 0 0% 10%;
-    --card-foreground: 45 95% 65%;
+    --card-foreground: 45 90% 92%;
 
     --popover: 0 0% 10%;
-    --popover-foreground: 45 95% 65%;
+    --popover-foreground: 45 90% 92%;
 
     --primary: 45 100% 55%;
     --primary-foreground: 0 0% 6%;
 
     --secondary: 0 0% 14%;
-    --secondary-foreground: 45 95% 60%;
+    --secondary-foreground: 45 90% 92%;
 
     --muted: 0 0% 14%;
-    --muted-foreground: 45 30% 65%;
+    --muted-foreground: 45 25% 65%;
 
     --accent: 45 100% 55%;
     --accent-foreground: 0 0% 6%;
@@ -98,7 +98,7 @@ html, body {
     --destructive: 0 84% 60%;
     --destructive-foreground: 0 0% 100%;
 
-    --border: 45 60% 25%;
+    --border: 45 70% 20%;
     --input: 0 0% 14%;
     --ring: 45 100% 55%;
 
@@ -107,14 +107,95 @@ html, body {
     --info: 45 100% 55%;
 
     --sidebar-background: 0 0% 8%;
-    --sidebar-foreground: 45 95% 60%;
+    --sidebar-foreground: 45 85% 88%;
     --sidebar-primary: 45 100% 55%;
     --sidebar-primary-foreground: 0 0% 6%;
-    --sidebar-accent: 45 100% 20%;
-    --sidebar-accent-foreground: 45 100% 70%;
-    --sidebar-border: 45 50% 18%;
+    --sidebar-accent: 45 100% 55%;
+    --sidebar-accent-foreground: 0 0% 6%;
+    --sidebar-border: 45 60% 16%;
     --sidebar-ring: 45 100% 55%;
   }
+
+  /* === Dark theme — refinements baseados na imagem === */
+  .dark body {
+    background:
+      radial-gradient(ellipse 80% 50% at 50% -10%, hsl(45 100% 50% / 0.05), transparent 60%),
+      hsl(var(--background));
+  }
+
+  /* Sidebar: item ativo com glow dourado pulsante e barra lateral */
+  .dark [data-sidebar="menu-button"][data-active="true"] {
+    background: linear-gradient(90deg, hsl(45 100% 55% / 0.18) 0%, hsl(45 100% 55% / 0.06) 100%) !important;
+    color: hsl(45 100% 62%) !important;
+    box-shadow:
+      inset 3px 0 0 hsl(45 100% 55%),
+      0 0 20px hsl(45 100% 55% / 0.25),
+      0 0 40px hsl(45 100% 55% / 0.12);
+    animation: sidebar-active-glow 2.4s ease-in-out infinite;
+  }
+
+  .dark [data-sidebar="menu-button"][data-active="true"] svg,
+  .dark [data-sidebar="menu-button"][data-active="true"] span {
+    color: hsl(45 100% 62%) !important;
+    filter: drop-shadow(0 0 4px hsl(45 100% 55% / 0.5));
+  }
+
+  .dark [data-sidebar="menu-button"]:hover:not([data-active="true"]) {
+    background: hsl(45 100% 55% / 0.06) !important;
+    color: hsl(45 90% 78%) !important;
+  }
+
+  @keyframes sidebar-active-glow {
+    0%, 100% {
+      box-shadow:
+        inset 3px 0 0 hsl(45 100% 55%),
+        0 0 18px hsl(45 100% 55% / 0.22),
+        0 0 36px hsl(45 100% 55% / 0.08);
+    }
+    50% {
+      box-shadow:
+        inset 3px 0 0 hsl(45 100% 65%),
+        0 0 28px hsl(45 100% 55% / 0.4),
+        0 0 56px hsl(45 100% 55% / 0.18);
+    }
+  }
+
+  /* Card destacado (clima/featured) — borda dourada vibrante com glow constante */
+  .dark .card-gold-glow {
+    border: 1px solid hsl(45 100% 55% / 0.7) !important;
+    box-shadow:
+      0 0 20px hsl(45 100% 55% / 0.3),
+      0 0 40px hsl(45 100% 55% / 0.15),
+      inset 0 0 30px hsl(45 100% 55% / 0.04);
+    animation: card-gold-pulse 3s ease-in-out infinite;
+  }
+
+  @keyframes card-gold-pulse {
+    0%, 100% {
+      box-shadow:
+        0 0 20px hsl(45 100% 55% / 0.3),
+        0 0 40px hsl(45 100% 55% / 0.15),
+        inset 0 0 30px hsl(45 100% 55% / 0.04);
+    }
+    50% {
+      box-shadow:
+        0 0 30px hsl(45 100% 55% / 0.5),
+        0 0 60px hsl(45 100% 55% / 0.25),
+        inset 0 0 40px hsl(45 100% 55% / 0.08);
+    }
+  }
+
+  /* Emergência: vermelho pulsante mantém-se mesmo no dark */
+  .dark [data-sidebar="menu-button"] .text-red-500 {
+    color: hsl(0 90% 60%) !important;
+    filter: drop-shadow(0 0 6px hsl(0 90% 50% / 0.6));
+  }
+
+  /* Scrollbar dourada */
+  .dark ::-webkit-scrollbar { width: 8px; height: 8px; }
+  .dark ::-webkit-scrollbar-track { background: hsl(0 0% 8%); }
+  .dark ::-webkit-scrollbar-thumb { background: hsl(45 80% 28%); border-radius: 4px; }
+  .dark ::-webkit-scrollbar-thumb:hover { background: hsl(45 100% 50%); }
 }
 
 @layer base {
