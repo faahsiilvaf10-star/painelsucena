@@ -263,6 +263,7 @@ export function ExportEfetivoPdfButton({ colaboradores, filterFuncao }: ExportEf
                   <tr>
                     <th style="width: 30px;">#</th>
                     <th>Nome Completo</th>
+                    <th style="width: 80px;">Matrícula</th>
                     <th style="width: 100px;">Data de Admissão</th>
                     <th>NRs e Validades</th>
                   </tr>
