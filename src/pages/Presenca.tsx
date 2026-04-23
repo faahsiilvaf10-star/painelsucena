@@ -134,6 +134,7 @@ const Presenca = () => {
   const [previewOpen, setPreviewOpen] = useState(false);
   const [addOpen, setAddOpen] = useState(false);
   const [addEmployeeId, setAddEmployeeId] = useState<string>("");
+  const [addSearch, setAddSearch] = useState("");
   const [addArea, setAddArea] = useState<AttendanceArea>("gabiao");
   const [copied, setCopied] = useState(false);
   const [search, setSearch] = useState("");
