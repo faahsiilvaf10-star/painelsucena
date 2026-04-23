@@ -52,11 +52,11 @@ export function AttendanceTrendChart() {
         <h3 className="text-lg font-bold">Presença vs Ausências</h3>
         <div className="flex items-center gap-4 text-sm">
           <div className="flex items-center gap-1.5">
-            <span className="w-3 h-3 rounded-full bg-[hsl(174,62%,47%)]" />
+            <span className="w-3 h-3 rounded-full bg-primary" />
             <span className="text-muted-foreground">Presentes</span>
           </div>
           <div className="flex items-center gap-1.5">
-            <span className="w-3 h-3 rounded-full bg-[hsl(0,84%,60%)]" />
+            <span className="w-3 h-3 rounded-full bg-destructive" />
             <span className="text-muted-foreground">Ausentes</span>
           </div>
         </div>
