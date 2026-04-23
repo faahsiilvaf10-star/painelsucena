@@ -273,20 +273,21 @@ const Presenca = () => {
     lines.push(header);
     lines.push("");
 
-    // Suporte
-    const tst = list.find(
+    // Suporte (não exibir na área ADM)
+    const isAdm = area === "adm";
+    const tst = !isAdm ? list.find(
       (c) =>
         (c.funcao === "TECNICO DE SEGURANÇA DO TRABALHO" ||
           c.funcao === "ENGENHEIRO DE SEGURANÇA DO TRABALHO") &&
         isPresent(c)
-    );
-    const encGeral = list.find(
+    ) : undefined;
+    const encGeral = !isAdm ? list.find(
       (c) => (c.funcao || "").toUpperCase().startsWith("ENCARREGADO GERAL") && isPresent(c)
-    );
-    const enc = list.find((c) => {
+    ) : undefined;
+    const enc = !isAdm ? list.find((c) => {
       const f = (c.funcao || "").toUpperCase();
       return f.startsWith("ENCARREGADO") && !f.startsWith("ENCARREGADO GERAL") && isPresent(c);
-    });
+    }) : undefined;
 
     if (tst || encGeral || enc) {
       lines.push("✴️EQUIPE DE SUPORTE✴️");
@@ -305,14 +306,18 @@ const Presenca = () => {
       }
     }
 
-    // Execução
-    const exec = list.filter((c) => {
-      const f = (c.funcao || "").toUpperCase();
-      return !SUPPORT_ROLES.includes(f) && !f.startsWith("ENCARREGADO");
-    });
+    // Execução (na área ADM, lista todos por função, sem distinção de suporte)
+    const exec = isAdm
+      ? list.filter(isPresent)
+      : list.filter((c) => {
+          const f = (c.funcao || "").toUpperCase();
+          return !SUPPORT_ROLES.includes(f) && !f.startsWith("ENCARREGADO");
+        });
     if (exec.length > 0) {
-      lines.push("✴️EQUIPE DE EXECUÇÃO✴️");
-      lines.push("");
+      if (!isAdm) {
+        lines.push("✴️EQUIPE DE EXECUÇÃO✴️");
+        lines.push("");
+      }
       const groups = new Map<string, Colaborador[]>();
       exec.forEach((c) => {
         const role = (c.funcao || "").toUpperCase();
