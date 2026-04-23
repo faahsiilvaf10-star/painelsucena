@@ -769,6 +769,7 @@ const Presenca = () => {
                               checked={absent}
                               onCheckedChange={() => toggleAbsent(c.id)}
                               aria-label="Marcar como ausente"
+                              disabled={locked}
                             />
                             <div className="flex-1 min-w-0">
                               <div
