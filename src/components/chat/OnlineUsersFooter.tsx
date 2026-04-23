@@ -4,6 +4,7 @@ import { ChevronDown, Play } from "lucide-react";
 import { cn } from "@/lib/utils";
 import { useSidebar } from "@/components/ui/sidebar";
 import { getBrazilNorthMonth } from "@/lib/timezone";
+import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/components/ui/dialog";
 
 const FORBIDDEN_COLORS: Record<number, { name: string; bgClass: string }> = {
   0: { name: "Vermelha", bgClass: "bg-red-500" },
@@ -20,16 +21,23 @@ const FORBIDDEN_COLORS: Record<number, { name: string; bgClass: string }> = {
   11: { name: "Verde", bgClass: "bg-green-500" },
 };
 
+const MONTH_NAMES = [
+  "Janeiro", "Fevereiro", "Março", "Abril", "Maio", "Junho",
+  "Julho", "Agosto", "Setembro", "Outubro", "Novembro", "Dezembro",
+];
+
 interface OnlineUsersFooterProps {
   onUserClick: (user: any) => void;
 }
 
 export const OnlineUsersFooter = ({ onUserClick }: OnlineUsersFooterProps) => {
   const [isMinimized, setIsMinimized] = useState(false);
+  const [colorDialogOpen, setColorDialogOpen] = useState(false);
   const { state } = useSidebar();
 
+  const currentMonth = getBrazilNorthMonth();
   const isCollapsedSidebar = state === "collapsed";
-  const forbiddenColor = FORBIDDEN_COLORS[getBrazilNorthMonth()];
+  const forbiddenColor = FORBIDDEN_COLORS[currentMonth];
 
   return (
     <div className={cn(
