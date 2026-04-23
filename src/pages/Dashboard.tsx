@@ -402,7 +402,7 @@ const Dashboard = () => {
                 </div>
                 <p className="text-[11px] text-muted-foreground mt-2">
                   {inOperation} no canteiro de {totalEquip} equipamentos
-                </p>
+                </div>
               </div>
             </div>
           </div>
