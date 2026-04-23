@@ -49,6 +49,7 @@ interface EditReminderDialogProps {
 export const EditReminderDialog = ({ reminder, trigger }: EditReminderDialogProps) => {
   const { toast } = useToast();
   const { data: allProfiles } = useAllProfiles();
+  const { user } = useAuth();
   const updateReminder = useUpdateReminder();
 
   const [isOpen, setIsOpen] = useState(false);
