@@ -142,6 +142,17 @@ const Presenca = () => {
     jardinagem: new Set(),
     adm: new Set(),
   });
+
+  // Sincroniza ausências salvas (banco) com o estado local
+  useEffect(() => {
+    if (!dailyMarks) return;
+    setAbsentByArea({
+      gabiao: getAbsentIds("gabiao"),
+      jardinagem: getAbsentIds("jardinagem"),
+      adm: getAbsentIds("adm"),
+    });
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [dailyMarks]);
   const [previewOpen, setPreviewOpen] = useState(false);
   const [addOpen, setAddOpen] = useState(false);
   const [addEmployeeIds, setAddEmployeeIds] = useState<Set<number>>(new Set());
