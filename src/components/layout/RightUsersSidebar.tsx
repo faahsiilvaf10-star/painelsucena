@@ -50,7 +50,7 @@ export const RightUsersSidebar = ({ onUserClick }: RightUsersSidebarProps) => {
         {isOpen ? (
           <ChevronRight className="h-3 w-3" />
         ) : (
-          <img src={chatBubbleIcon} alt="InstaCena Chat" className="h-14 w-14 object-contain drop-shadow-lg" />
+          <img src={chatBubbleIcon} alt="InstaCena Chat" className="h-14 w-14 object-contain drop-shadow-lg dark:invert" />
         )}
       </button>
 
