@@ -406,24 +406,30 @@ const Dashboard = () => {
               </div>
             </div>
           </div>
-        </div>
+        </Suspense>
 
         {/* Recent activities row (mix real do sistema) */}
         <div className="mb-4 animate-slide-up" style={{ animationDelay: "0.05s" }}>
-          <RecentActivitiesCard />
+          <Suspense fallback={<DashboardItemSkeleton />}>
+            <RecentActivitiesCard />
+          </Suspense>
         </div>
 
         {/* Reminder Banner */}
         <div className="mb-4">
-          <ReminderHighlightBanner />
+          <Suspense fallback={<DashboardItemSkeleton />}>
+            <ReminderHighlightBanner />
+          </Suspense>
         </div>
 
         {/* Fixed banners */}
-        <InspectionScheduleBanner />
-        <BirthdayBanner />
-        <DDSPresenterAlert />
-        <NRExpiryBanner />
-        <ASOExpiryBanner />
+        <Suspense fallback={null}>
+          <InspectionScheduleBanner />
+          <BirthdayBanner />
+          <DDSPresenterAlert />
+          <NRExpiryBanner />
+          <ASOExpiryBanner />
+        </Suspense>
 
         {/* Draggable items */}
         {!isLoadingOrder && (
