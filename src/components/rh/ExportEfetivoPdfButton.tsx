@@ -281,6 +281,7 @@ export function ExportEfetivoPdfButton({ colaboradores, filterFuncao }: ExportEf
                       <tr>
                         <td>${index + 1}</td>
                         <td><strong>${c.nome}</strong></td>
+                        <td>${c.matricula || "-"}</td>
                         <td>${c.admissao || "-"}</td>
                         <td>${nrsFormatted}</td>
                       </tr>
