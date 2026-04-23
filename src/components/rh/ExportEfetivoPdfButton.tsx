@@ -73,7 +73,7 @@ export function ExportEfetivoPdfButton({ colaboradores, filterFuncao }: ExportEf
               box-sizing: border-box;
             }
             @page {
-              size: A4 landscape;
+              size: A4;
               margin: 10mm;
             }
             body {
@@ -81,7 +81,7 @@ export function ExportEfetivoPdfButton({ colaboradores, filterFuncao }: ExportEf
               background: #ffffff;
               padding: 10px;
               color: #1a1a2e;
-              font-size: 10px;
+              font-size: 11px;
             }
             .container {
               max-width: 100%;
@@ -173,10 +173,10 @@ export function ExportEfetivoPdfButton({ colaboradores, filterFuncao }: ExportEf
               border-bottom: 2px solid #d0d7de;
             }
             td {
-              padding: 6px;
+              padding: 10px 8px;
               border-bottom: 1px solid #e5e7eb;
               color: #1a1a2e;
-              font-size: 9px;
+              font-size: 10px;
             }
             tr:nth-child(even) {
               background: #f9fafb;
@@ -256,60 +256,35 @@ export function ExportEfetivoPdfButton({ colaboradores, filterFuncao }: ExportEf
               ${hydroLogoBase64 ? `<img src="${hydroLogoBase64}" class="logo" alt="Hydro" />` : "<div></div>"}
             </div>
 
-            <!-- Filter Info -->
-            <div class="filter-info">
-              <span><strong>Filtro:</strong> ${filterDescription}</span>
-              <span><strong>Total:</strong> ${colaboradores.length} colaboradores</span>
-            </div>
-
-            <!-- Function Summary -->
-            <div class="section">
-              <div class="section-title">Resumo por Função</div>
-              <div class="funcao-summary">
-                ${sortedFuncaoStats.map(([funcao, count]) => `
-                  <div class="funcao-item">
-                    <span class="name" title="${funcao}">${funcao}</span>
-                    <span class="count">${count}</span>
-                  </div>
-                `).join("")}
-              </div>
-            </div>
-
             <!-- Employee Table -->
             <div class="section">
-              <div class="section-title">Lista de Colaboradores</div>
               <table>
                 <thead>
                   <tr>
-                    <th style="width: 25px;">#</th>
-                    <th>Nome</th>
-                    <th>Função</th>
-                    <th style="width: 65px;">Matrícula</th>
-                    <th style="width: 65px;">Mat. Hydro</th>
-                    <th style="width: 85px;">CPF</th>
-                    <th style="width: 65px;">Admissão</th>
-                    <th style="width: 65px;">Nascimento</th>
-                    <th style="width: 80px;">Contato</th>
-                    <th>Localidade</th>
-                    <th>NRs</th>
+                    <th style="width: 30px;">#</th>
+                    <th>Nome Completo</th>
+                    <th style="width: 100px;">Data de Admissão</th>
+                    <th>NRs e Validades</th>
                   </tr>
                 </thead>
                 <tbody>
-                  ${colaboradores.map((c, index) => `
-                    <tr>
-                      <td>${index + 1}</td>
-                      <td><strong>${c.nome}</strong></td>
-                      <td><span class="funcao-badge">${c.funcao}</span></td>
-                      <td>${c.matricula}</td>
-                      <td>${c.matriculaHydro || "-"}</td>
-                      <td>${c.cpf}</td>
-                      <td>${c.admissao}</td>
-                      <td>${c.dataNascimento}</td>
-                      <td>${c.contato || "-"}</td>
-                      <td>${c.localidade}</td>
-                      <td>${c.nrs && c.nrs.length > 0 ? c.nrs.join(", ") : "-"}</td>
-                    </tr>
-                  `).join("")}
+                  ${colaboradores.map((c, index) => {
+                    const nrsFormatted = c.nrs && c.nrs.length > 0 
+                      ? c.nrs.map(nr => {
+                          const dateInfo = c.nrDates?.[nr];
+                          return dateInfo ? `${nr} (Val: ${dateInfo.vencimento})` : nr;
+                        }).join(", ")
+                      : "-";
+                    
+                    return `
+                      <tr>
+                        <td>${index + 1}</td>
+                        <td><strong>${c.nome}</strong></td>
+                        <td>${c.admissao || "-"}</td>
+                        <td>${nrsFormatted}</td>
+                      </tr>
+                    `;
+                  }).join("")}
                 </tbody>
               </table>
             </div>
