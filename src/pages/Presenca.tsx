@@ -281,11 +281,12 @@ const Presenca = () => {
         isPresent(c)
     );
     const encGeral = list.find(
-      (c) => c.funcao === "ENCARREGADO GERAL" && isPresent(c)
+      (c) => (c.funcao || "").toUpperCase().startsWith("ENCARREGADO GERAL") && isPresent(c)
     );
-    const enc = list.find(
-      (c) => c.funcao === "ENCARREGADO DE FRENTE DE SERVIÇO" && isPresent(c)
-    );
+    const enc = list.find((c) => {
+      const f = (c.funcao || "").toUpperCase();
+      return f.startsWith("ENCARREGADO") && !f.startsWith("ENCARREGADO GERAL") && isPresent(c);
+    });
 
     if (tst || encGeral || enc) {
       lines.push("✴️EQUIPE DE SUPORTE✴️");
@@ -305,9 +306,10 @@ const Presenca = () => {
     }
 
     // Execução
-    const exec = list.filter(
-      (c) => !SUPPORT_ROLES.includes((c.funcao || "").toUpperCase())
-    );
+    const exec = list.filter((c) => {
+      const f = (c.funcao || "").toUpperCase();
+      return !SUPPORT_ROLES.includes(f) && !f.startsWith("ENCARREGADO");
+    });
     if (exec.length > 0) {
       lines.push("✴️EQUIPE DE EXECUÇÃO✴️");
       lines.push("");
