@@ -281,11 +281,12 @@ const Presenca = () => {
         isPresent(c)
     );
     const encGeral = list.find(
-      (c) => c.funcao === "ENCARREGADO GERAL" && isPresent(c)
+      (c) => (c.funcao || "").toUpperCase().startsWith("ENCARREGADO GERAL") && isPresent(c)
     );
-    const enc = list.find(
-      (c) => c.funcao === "ENCARREGADO DE FRENTE DE SERVIÇO" && isPresent(c)
-    );
+    const enc = list.find((c) => {
+      const f = (c.funcao || "").toUpperCase();
+      return f.startsWith("ENCARREGADO") && !f.startsWith("ENCARREGADO GERAL") && isPresent(c);
+    });
 
     if (tst || encGeral || enc) {
       lines.push("✴️EQUIPE DE SUPORTE✴️");
