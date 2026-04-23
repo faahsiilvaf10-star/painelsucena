@@ -663,7 +663,29 @@ const Presenca = () => {
                   </DialogContent>
                 </Dialog>
 
-                <div className="ml-auto">
+                <div className="ml-auto flex items-center gap-2">
+                  {locked ? (
+                    <Button
+                      variant="outline"
+                      className="gap-2"
+                      onClick={handleUnlock}
+                      disabled={unlockMutation.isPending}
+                    >
+                      <Unlock className="w-4 h-4" />
+                      Desbloquear
+                    </Button>
+                  ) : (
+                    <Button
+                      variant="default"
+                      className="gap-2"
+                      onClick={handleSaveLock}
+                      disabled={lockMutation.isPending}
+                    >
+                      <Save className="w-4 h-4" />
+                      Salvar
+                    </Button>
+                  )}
+
                   <Dialog open={previewOpen} onOpenChange={setPreviewOpen}>
                     <DialogTrigger asChild>
                       <Button variant="outline" className="gap-2">
@@ -674,11 +696,11 @@ const Presenca = () => {
                     <DialogContent className="max-w-2xl">
                       <DialogHeader>
                         <DialogTitle>
-                          Pré-visualização do Relatório
+                          Pré-visualização — {a.label}
                         </DialogTitle>
                         <DialogDescription>
-                          Inclui todas as áreas preenchidas (Gabião,
-                          Jardinagem, ADM).
+                          Relatório apenas desta área. Use as outras abas para
+                          gerar separadamente.
                         </DialogDescription>
                       </DialogHeader>
                       <ScrollArea className="h-[60vh] rounded-md border bg-muted/30 p-4">
@@ -708,6 +730,13 @@ const Presenca = () => {
                   </Dialog>
                 </div>
               </div>
+
+              {locked && (
+                <div className="flex items-center gap-2 rounded-md border border-amber-200 bg-amber-50 dark:bg-amber-950/30 dark:border-amber-900 px-3 py-2 text-sm text-amber-800 dark:text-amber-200">
+                  <Lock className="w-4 h-4" />
+                  Lista bloqueada — clique em "Desbloquear" para editar.
+                </div>
+              )}
 
               <Card>
                 <CardHeader>
