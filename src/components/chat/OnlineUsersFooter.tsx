@@ -34,9 +34,7 @@ export const OnlineUsersFooter = ({ onUserClick }: OnlineUsersFooterProps) => {
   return (
     <div className={cn(
       "fixed bottom-0 right-0 z-40 transition-[left] duration-200 ease-linear",
-      isMinimized
-        ? "bg-transparent border-t-0"
-        : "bg-card border-t border-border dark:bg-black dark:border-primary/40",
+      isMinimized ? "bg-transparent border-t-0" : "bg-card border-t border-border",
       isCollapsedSidebar ? "left-[48px]" : "left-[256px]",
       "max-md:left-0"
     )}>
@@ -45,10 +43,10 @@ export const OnlineUsersFooter = ({ onUserClick }: OnlineUsersFooterProps) => {
       <button
         onClick={() => setIsMinimized(!isMinimized)}
         className={cn(
-          "md:hidden absolute left-1/2 -translate-x-1/2 z-50 flex items-center justify-center text-muted-foreground hover:text-foreground transition-all dark:text-primary",
+          "md:hidden absolute left-1/2 -translate-x-1/2 z-50 flex items-center justify-center text-muted-foreground hover:text-foreground transition-all",
           isMinimized
-            ? "bottom-2 w-11 h-11 rounded-full bg-card border border-border shadow-lg dark:bg-black dark:border-primary/40"
-            : "-top-5 w-10 h-5 rounded-t-lg bg-card border border-b-0 border-border dark:bg-black dark:border-primary/40"
+            ? "bottom-2 w-11 h-11 rounded-full bg-card border border-border shadow-lg"
+            : "-top-5 w-10 h-5 rounded-t-lg bg-card border border-b-0 border-border"
         )}
         aria-label={isMinimized ? "Expandir barra" : "Minimizar barra"}
       >
@@ -76,13 +74,13 @@ export const OnlineUsersFooter = ({ onUserClick }: OnlineUsersFooterProps) => {
             <NewsTicker />
           </div>
           <div
-            className="flex-shrink-0 flex items-center gap-1.5 px-2 py-1 rounded-full bg-muted/50 dark:bg-primary/10"
+            className="flex-shrink-0 flex items-center gap-1.5 px-2 py-1 rounded-full bg-muted/50"
             title={`Cor proibida do mês: ${forbiddenColor.name}`}
           >
             <span className={cn("w-3.5 h-3.5 rounded-full shadow-sm", forbiddenColor.bgClass)} />
             <span
               className={cn(
-                "text-[11px] font-medium whitespace-nowrap text-muted-foreground dark:text-primary hidden md:inline",
+                "text-[11px] font-medium whitespace-nowrap text-muted-foreground hidden md:inline",
                 isCollapsedSidebar && "md:hidden"
               )}
             >
