@@ -22,7 +22,11 @@ import { useEquipmentCurrentlyOut } from "@/hooks/useEquipmentMovements";
 import { VehicleIcon } from "@/components/equipamentos/VehicleIcons";
 import { Loader2 } from "lucide-react";
 
-export function TotalEquipmentStatusModal() {
+interface TotalEquipmentStatusModalProps {
+  trigger?: React.ReactNode;
+}
+
+export function TotalEquipmentStatusModal({ trigger }: TotalEquipmentStatusModalProps) {
   const { data: equipment = [], isLoading: loadingEq } = useEquipment();
   const { data: jardinagemEquipment = [], isLoading: loadingJardinagem } = useJardinagemEquipment();
   const { data: equipmentOut = [], isLoading: loadingOut } = useEquipmentCurrentlyOut();
