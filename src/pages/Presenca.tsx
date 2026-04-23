@@ -793,6 +793,7 @@ const Presenca = () => {
                               size="icon"
                               onClick={() => handleRemove(c.id)}
                               title="Remover desta área"
+                              disabled={locked}
                             >
                               <Trash2 className="w-4 h-4 text-muted-foreground" />
                             </Button>
