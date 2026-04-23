@@ -1,4 +1,4 @@
-import { useMemo, useState } from "react";
+import { useEffect, useMemo, useState } from "react";
 import { useQueryClient } from "@tanstack/react-query";
 import Layout from "@/components/layout/Layout";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
@@ -44,6 +44,7 @@ import {
   type AttendanceArea,
 } from "@/hooks/useAttendanceAreaAssignments";
 import { useAttendanceReportLocks } from "@/hooks/useAttendanceReportLock";
+import { useAttendanceDailyMarks } from "@/hooks/useAttendanceDailyMarks";
 import type { Colaborador } from "@/data/efetivoData";
 
 const toTitleCase = (name: string) =>
@@ -131,6 +132,8 @@ const Presenca = () => {
   );
   const { isLocked, lockMutation, unlockMutation } =
     useAttendanceReportLocks(date);
+  const { data: dailyMarks, getAbsentIds, saveMutation: marksSaveMutation } =
+    useAttendanceDailyMarks(date);
   const [activeArea, setActiveArea] = useState<AttendanceArea>("gabiao");
   const [absentByArea, setAbsentByArea] = useState<
     Record<AttendanceArea, Set<number>>
@@ -139,6 +142,17 @@ const Presenca = () => {
     jardinagem: new Set(),
     adm: new Set(),
   });
+
+  // Sincroniza ausências salvas (banco) com o estado local
+  useEffect(() => {
+    if (!dailyMarks) return;
+    setAbsentByArea({
+      gabiao: getAbsentIds("gabiao"),
+      jardinagem: getAbsentIds("jardinagem"),
+      adm: getAbsentIds("adm"),
+    });
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [dailyMarks]);
   const [previewOpen, setPreviewOpen] = useState(false);
   const [addOpen, setAddOpen] = useState(false);
   const [addEmployeeIds, setAddEmployeeIds] = useState<Set<number>>(new Set());
@@ -362,8 +376,13 @@ const Presenca = () => {
 
   const handleSaveLock = async () => {
     try {
+      // Persiste as ausências para a área (vai para o RDO)
+      await marksSaveMutation.mutateAsync({
+        area: activeArea,
+        absentIds: Array.from(absentByArea[activeArea]),
+      });
       await lockMutation.mutateAsync(activeArea);
-      toast.success("Lista de presença salva e bloqueada");
+      toast.success("Lista salva e enviada para o RDO");
     } catch {
       toast.error("Erro ao salvar");
     }

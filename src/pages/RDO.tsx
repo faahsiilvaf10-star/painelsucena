@@ -34,6 +34,10 @@ import { useProfile } from "@/hooks/useProfile";
 import { useRDOLock } from "@/hooks/useRDOLock";
 import { useIsAdmin } from "@/hooks/useUserRole";
 import { useJardinagemEquipment } from "@/hooks/useJardinagemEquipment";
+import { useRHEfetivo } from "@/hooks/useRHEfetivo";
+import { useAttendanceAreaAssignments } from "@/hooks/useAttendanceAreaAssignments";
+import { useAttendanceDailyMarks } from "@/hooks/useAttendanceDailyMarks";
+import { buildAreaPresenceText } from "@/lib/attendanceReport";
 import { getBrazilNorthDate, getBrazilNorthTodayString } from "@/lib/timezone";
 import { cn } from "@/lib/utils";
 import { AlertDialog, AlertDialogAction, AlertDialogCancel, AlertDialogContent, AlertDialogDescription, AlertDialogFooter, AlertDialogHeader, AlertDialogTitle, AlertDialogTrigger } from "@/components/ui/alert-dialog";
@@ -114,6 +118,9 @@ export default function RDO() {
   const { data: gabiaoReport } = useGabiaoReportByDate(selectedDateStr);
   const { data: mudasPlantadas } = useMudasPlantioByDate(selectedDateStr);
   const { data: jardinagemEquipmentList = [] } = useJardinagemEquipment();
+  const { data: rhEfetivo } = useRHEfetivo();
+  const { data: areaAssignments } = useAttendanceAreaAssignments();
+  const { getAbsentIds: getDailyAbsentIds } = useAttendanceDailyMarks(selectedDateStr);
   const saveReport = useSaveRDOReport();
   const deleteReport = useDeleteRDOReport();
   const uploadPhotos = useUploadRDOPhotos();
@@ -281,25 +288,29 @@ export default function RDO() {
 
   // Generate the formatted report
   const generateReport = () => {
-    // Use only saved efetivo from Relatório de Presença.
-    // Names should appear in the preview only after the attendance list is saved.
-    let gabiaoWorkforce = "";
-    let jardinagemWorkforce = "";
+    // Constrói o efetivo (apenas presentes) a partir da Lista de Presença
+    const allColaboradores = (rhEfetivo?.colaboradores ?? [])
+      .slice()
+      .sort((a, b) => a.nome.localeCompare(b.nome, "pt-BR"));
+    const employeeAreaMap = new Map<number, "gabiao" | "jardinagem" | "adm">();
+    (areaAssignments ?? []).forEach((a) =>
+      employeeAreaMap.set(a.employee_id, a.area as "gabiao" | "jardinagem" | "adm")
+    );
 
-    const cleanEfetivoHeaders = (text: string) =>
-      text
-        .replace(/^\s*.*ROÇAGEM E PODAGEM.*$/gim, "")
-        .replace(/^\s*.*ÁREA GABIÃO.*$/gim, "")
-        .replace(/\n{3,}/g, "\n\n")
-        .trim();
+    const buildArea = (area: "gabiao" | "jardinagem") => {
+      const empsInArea = allColaboradores.filter(
+        (c) => employeeAreaMap.get(c.id) === area
+      );
+      if (empsInArea.length === 0) return "";
+      const absent = getDailyAbsentIds(area);
+      return buildAreaPresenceText(area, empsInArea, absent, {
+        includeHeader: false,
+        onlyPresent: true,
+      });
+    };
 
-    if (existingReport?.efetivo_gabiao_text) {
-      gabiaoWorkforce = cleanEfetivoHeaders(existingReport.efetivo_gabiao_text);
-    }
-
-    if (existingReport?.efetivo_jardinagem_text) {
-      jardinagemWorkforce = cleanEfetivoHeaders(existingReport.efetivo_jardinagem_text);
-    }
+    const gabiaoWorkforce = buildArea("gabiao");
+    const jardinagemWorkforce = buildArea("jardinagem");
 
     // Build equipment text
     const equipmentText = equipmentSummary.items
