@@ -18,8 +18,12 @@ export interface ChatPopupManagerHandle {
 
 export const ChatPopupManager = forwardRef<ChatPopupManagerHandle>((_props, ref) => {
   const { user } = useAuth();
-  const { allUsers } = useAllUsers();
+  const { allUsers: rawUsers } = useAllUsers();
+  const allUsers = rawUsers.filter(u => !u.cargo?.startsWith("motorista_"));
   const [openPopups, setOpenPopups] = useState<PopupChat[]>([]);
+
+  const currentUser = rawUsers.find(u => u.isCurrentUser);
+  const isDriver = currentUser?.cargo?.startsWith("motorista_");
 
   const closePopup = useCallback((userId: string) => {
     setOpenPopups(prev => prev.filter(p => p.user.user_id !== userId));
@@ -128,7 +132,7 @@ export const ChatPopupManager = forwardRef<ChatPopupManagerHandle>((_props, ref)
     };
   }, [user?.id, allUsers, openPopup]);
 
-  if (!user || openPopups.length === 0) return null;
+  if (!user || openPopups.length === 0 || isDriver) return null;
 
   return (
     <div className="fixed bottom-14 right-4 z-50 flex items-end gap-3">
