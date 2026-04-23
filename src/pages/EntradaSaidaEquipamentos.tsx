@@ -23,6 +23,7 @@ import { Loader2 } from "lucide-react";
 import { format } from "date-fns";
 import { ptBR } from "date-fns/locale";
 import { ExportMovementsHistoryPdfButton } from "@/components/equipamentos/ExportMovementsHistoryPdfButton";
+import { TotalEquipmentStatusModal } from "@/components/equipamentos/TotalEquipmentStatusModal";
 import { useJardinagemEquipment, useUpdateJardinagemEquipmentStatus, useCreateJardinagemEquipment, useDeleteJardinagemEquipment } from "@/hooks/useJardinagemEquipment";
 import { useProfile } from "@/hooks/useProfile";
 import { useIsAdmin } from "@/hooks/useUserRole";
@@ -262,7 +263,10 @@ const EXIT_REASON_LABELS: Record<string, string> = {
               Controle de equipamentos no canteiro e fora da obra
             </p>
           </div>
-          <ExportMovementsHistoryPdfButton />
+          <div className="flex flex-wrap items-center gap-2">
+            <TotalEquipmentStatusModal />
+            <ExportMovementsHistoryPdfButton />
+          </div>
          </div>
  
         {isLoading || loadingOut || loadingJardinagem ? (

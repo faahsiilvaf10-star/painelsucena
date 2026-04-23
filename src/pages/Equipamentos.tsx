@@ -1,6 +1,7 @@
 import { useNavigate } from "react-router-dom";
 import Layout from "@/components/layout/Layout";
-import { ArrowLeftRight, Truck, Wrench, Settings } from "lucide-react";
+import { ArrowLeftRight, Truck, Wrench, Settings, ListChecks } from "lucide-react";
+import { TotalEquipmentStatusModal } from "@/components/equipamentos/TotalEquipmentStatusModal";
 
 const equipamentosPages = [
   { label: "Entrada\ne Saída", icon: ArrowLeftRight, path: "/entrada-saida-equipamentos" },
@@ -21,7 +22,7 @@ const Equipamentos = () => {
           <h1 className="text-2xl md:text-3xl font-bold text-[#c9a84c]">Equipamentos</h1>
         </div>
 
-        <div className="grid grid-cols-2 sm:grid-cols-3 gap-4 md:gap-5 max-w-3xl mx-auto">
+        <div className="grid grid-cols-2 sm:grid-cols-2 gap-4 md:gap-5 max-w-2xl mx-auto">
           {equipamentosPages.map((page) => (
             <button
               key={page.path}
@@ -45,6 +46,32 @@ const Equipamentos = () => {
               </div>
             </button>
           ))}
+          
+          <div className="group relative rounded-2xl p-[2px] cursor-pointer transition-all duration-300 hover:scale-105 hover:shadow-[0_0_30px_rgba(201,168,76,0.3)]">
+            <div
+              className="absolute inset-0 rounded-2xl"
+              style={{
+                background: "linear-gradient(145deg, #d4a84c, #b8942e, #e8c95a, #a07828)",
+              }}
+            />
+            <TotalEquipmentStatusModal 
+              trigger={
+                <div
+                  className="relative rounded-[14px] flex flex-col items-center justify-center gap-3 p-5 md:p-6 h-full min-h-[140px] md:min-h-[160px] w-full"
+                  style={{
+                    background: "linear-gradient(160deg, #d4a84c 0%, #c49a3c 25%, #b08830 50%, #c49a3c 75%, #d8b050 100%)",
+                  }}
+                >
+                  <div className="absolute inset-[6px] rounded-xl border border-[#b8942e]/50 pointer-events-none" />
+                  <ListChecks className="h-10 w-10 md:h-12 md:w-12 text-[#1a1a1a] drop-shadow-sm group-hover:scale-110 transition-transform duration-300" strokeWidth={1.5} />
+                  <span className="text-[#1a1a1a] text-xs md:text-sm font-semibold text-center leading-tight whitespace-pre-line">
+                    Status Geral
+                    (17 Equipamentos)
+                  </span>
+                </div>
+              }
+            />
+          </div>
         </div>
       </div>
     </Layout>
