@@ -176,4 +176,28 @@ export default defineConfig(({ mode }) => ({
     },
     dedupe: ["react", "react-dom", "react/jsx-runtime", "next-themes"],
   },
+  build: {
+    target: "esnext",
+    minify: "esbuild",
+    cssMinify: true,
+    cssCodeSplit: true,
+    reportCompressedSize: false,
+    chunkSizeWarningLimit: 1000,
+    rollupOptions: {
+      output: {
+        manualChunks: (id) => {
+          if (id.includes("node_modules")) {
+            if (id.includes("lucide-react")) return "vendor-icons";
+            if (id.includes("framer-motion")) return "vendor-animation";
+            if (id.includes("recharts")) return "vendor-charts";
+            if (id.includes("jspdf") || id.includes("exceljs") || id.includes("pptxgenjs") || id.includes("jszip")) return "vendor-export";
+            if (id.includes("@supabase")) return "vendor-supabase";
+            if (id.includes("@radix-ui")) return "vendor-ui-radix";
+            if (id.includes("date-fns")) return "vendor-date";
+            return "vendor";
+          }
+        },
+      },
+    },
+  },
 }));
