@@ -55,7 +55,7 @@ import { MatrixReminderModal } from "@/components/matriz/MatrixReminderModal";
 import { useRHEfetivo } from "@/hooks/useRHEfetivo";
 import { useAttendanceDailyMarks } from "@/hooks/useAttendanceDailyMarks";
 import { useEquipment } from "@/hooks/useEquipment";
-import { useEquipmentCurrentlyIn, useAllRegisteredEquipmentCount } from "@/hooks/useEquipmentMovements";
+import { useEquipmentCurrentlyOut, useAllRegisteredEquipmentCount } from "@/hooks/useEquipmentMovements";
 import { useJardinagemEquipment } from "@/hooks/useJardinagemEquipment";
 import { getBrazilNorthTodayString } from "@/lib/timezone";
 import { useDocumentExpiryNotifications } from "@/hooks/useDocumentExpiryNotifications";
@@ -81,7 +81,7 @@ const Dashboard = () => {
   const { data: rhData } = useRHEfetivo();
   const { data: dailyMarks } = useAttendanceDailyMarks(selectedDateString);
   const { data: equipment } = useEquipment();
-  const { data: currentlyInEquipment } = useEquipmentCurrentlyIn();
+  const { data: currentlyOutEquipment } = useEquipmentCurrentlyOut();
   const { data: allRegisteredCount } = useAllRegisteredEquipmentCount();
   const { data: jardinagemEquipment } = useJardinagemEquipment();
   const { dashboardOrder, updateOrder, isLoading: isLoadingOrder } = useDashboardOrder();
@@ -136,7 +136,8 @@ const Dashboard = () => {
   const jardinagemIn = jardinagemEquipment?.filter(e => e.status === "entrou").length || 0;
   // Filter currentlyInEquipment to only count plates that belong to the equipment table (vehicles)
   const vehiclePlates = new Set((equipment || []).map(e => e.plate));
-  const vehiclesIn = (currentlyInEquipment || []).filter(m => vehiclePlates.has(m.plate)).length;
+  const vehiclesOut = (currentlyOutEquipment || []).filter(m => vehiclePlates.has(m.plate)).length;
+  const vehiclesIn = (equipment || []).length - vehiclesOut;
   const inOperation = vehiclesIn + jardinagemIn;
   const totalEquip = (equipment?.length || 0) + jardinagemTotal;
   const equipPercent = totalEquip > 0 ? Math.round(inOperation / totalEquip * 100) : 0;
