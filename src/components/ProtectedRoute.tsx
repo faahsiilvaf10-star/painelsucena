@@ -44,15 +44,36 @@ const ProtectedRoute = ({ children }: ProtectedRouteProps) => {
   useOfflineDriverRedirect();
 
   useEffect(() => {
-    const authClient = supabase.auth as any;
+    let mounted = true;
 
-    const {
-      data: { subscription },
-    } = authClient.onAuthStateChange((event: string, currentSession: Session | null) => {
+    const initAuth = async () => {
+      try {
+        const { data: { session: currentSession } } = await supabase.auth.getSession();
+        
+        if (!mounted) return;
+
+        if (currentSession) {
+          setSession(currentSession);
+          sessionStorage.setItem(SESSION_TAB_KEY, "1");
+          await fetchUserCargo(currentSession.user.id);
+        } else {
+          setLoading(false);
+          setCargoChecked(true);
+        }
+      } catch (err) {
+        console.error("Error initializing auth:", err);
+        if (mounted) {
+          setLoading(false);
+          setCargoChecked(true);
+        }
+      }
+    };
+
+    const { data: { subscription } } = supabase.auth.onAuthStateChange((event, currentSession) => {
+      if (!mounted) return;
+
       setSession(currentSession);
-      setLoading(false);
-
-      // Redirect to auth on sign out
+      
       if (event === "SIGNED_OUT") {
         setUserCargo(null);
         setCargoChecked(false);
@@ -60,78 +81,20 @@ const ProtectedRoute = ({ children }: ProtectedRouteProps) => {
         navigate("/auth", { replace: true });
       }
 
-      // On fresh login, mark tab active and fetch cargo (no auto-logout check)
       if (event === "SIGNED_IN" && currentSession?.user) {
         sessionStorage.setItem(SESSION_TAB_KEY, "1");
-        setTimeout(() => {
-          fetchUserCargo(currentSession.user.id);
-        }, 0);
+        fetchUserCargo(currentSession.user.id);
       }
+      
+      setLoading(false);
     });
 
-    // Check for existing session on page load
-    const initSession = async () => {
-      try {
-        const {
-          data: { session: existingSession },
-          error: sessionError
-        } = await authClient.getSession();
+    initAuth();
 
-        if (sessionError) throw sessionError;
-
-        if (existingSession) {
-          setSession(existingSession);
-          setLoading(false);
-
-          // Only check tab flag on initial page load (not after a fresh login)
-          const tabWasActive = sessionStorage.getItem(SESSION_TAB_KEY);
-          const cargoInfo = await fetchUserCargo(existingSession.user.id);
-          const cargo = cargoInfo?.cargo;
-          const isDriverRole = cargo && DRIVER_ROLES.includes(cargo);
-
-          // Browser was closed & reopened with a stale session → auto-logout non-drivers
-          if (!tabWasActive && !isDriverRole) {
-            console.log("Browser was closed. Auto-logging out non-driver user.");
-            setSession(null);
-            try {
-              await authClient.signOut({ scope: "local" });
-            } catch {
-              /* ignore */
-            }
-            navigate("/auth", { replace: true });
-            return;
-          }
-
-          // Session is valid, mark tab as active
-          sessionStorage.setItem(SESSION_TAB_KEY, "1");
-        } else {
-          // Try to refresh the session if no active session found
-          const {
-            data: { session: refreshedSession },
-            error: refreshError
-          } = await authClient.refreshSession();
-          
-          if (refreshError) throw refreshError;
-          
-          setSession(refreshedSession);
-          setLoading(false);
-          if (refreshedSession?.user) {
-            await fetchUserCargo(refreshedSession.user.id);
-            sessionStorage.setItem(SESSION_TAB_KEY, "1");
-          } else {
-            setCargoChecked(true);
-          }
-        }
-      } catch (err) {
-        console.error("Error initializing session:", err);
-        setLoading(false);
-        setCargoChecked(true);
-      }
+    return () => {
+      mounted = false;
+      subscription.unsubscribe();
     };
-
-    initSession();
-
-    return () => subscription.unsubscribe();
   }, [navigate]);
 
   const fetchUserCargo = async (userId: string) => {
