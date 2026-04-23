@@ -150,10 +150,11 @@ export const ExportAttendancePdfButton = () => {
       doc.text(`Período: ${startBR} a ${endBR}`, pageWidth / 2, 18, { align: "center" });
 
       // Table setup
-      const nameColWidth = 55;
-      const funcaoColWidth = 35;
+      const nameColWidth = 50;
+      const matriculaColWidth = 18;
+      const funcaoColWidth = 32;
       const totalColWidth = 12;
-      const availableWidth = pageWidth - margin * 2 - nameColWidth - funcaoColWidth - totalColWidth;
+      const availableWidth = pageWidth - margin * 2 - nameColWidth - matriculaColWidth - funcaoColWidth - totalColWidth;
       const dayColWidth = Math.min(availableWidth / allDates.length, 8);
       const headerY = 24;
       const rowHeight = 5.5;
