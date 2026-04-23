@@ -55,7 +55,7 @@ export const AbsenceReasonDialog = ({
   const [days, setDays] = useState<number>(initialDays ?? 1);
   const [cid, setCid] = useState<string>(initialCid ?? "");
   const [notes, setNotes] = useState<string>(initialNotes ?? "");
-  const save = useSaveAbsenceReason();
+  const save = useUpsertAbsence();
 
   useEffect(() => {
     if (open) {
