@@ -22,8 +22,8 @@ import {
 import { toast } from "sonner";
 import {
   ABSENCE_REASONS,
-  useSaveAbsenceReason,
-  type AbsenceReasonType,
+  useUpsertAbsence,
+  type AbsenceReason,
 } from "@/hooks/useAbsenceReasons";
 
 interface Props {
@@ -55,7 +55,7 @@ export const AbsenceReasonDialog = ({
   const [days, setDays] = useState<number>(initialDays ?? 1);
   const [cid, setCid] = useState<string>(initialCid ?? "");
   const [notes, setNotes] = useState<string>(initialNotes ?? "");
-  const save = useSaveAbsenceReason();
+  const save = useUpsertAbsence();
 
   useEffect(() => {
     if (open) {
@@ -72,10 +72,10 @@ export const AbsenceReasonDialog = ({
   const handleSave = async () => {
     try {
       await save.mutateAsync({
-        employee_id: employeeId,
+        employeeKey: employeeId,
         date,
-        reason: reason as AbsenceReasonType,
-        days_count: showDays ? Math.max(1, days) : 1,
+        reason: reason as AbsenceReason,
+        daysCount: showDays ? Math.max(1, days) : 1,
         cid: cid.trim() || null,
         notes: notes.trim() || null,
       });
