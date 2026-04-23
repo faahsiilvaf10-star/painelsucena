@@ -73,55 +73,115 @@ html, body {
   }
 
   .dark {
-    /* Sucena Gold/Black theme — referência exata */
-    --background: 0 0% 7%;
-    --foreground: 45 90% 92%;
+    /* Sucena Gold/Black theme — paleta exata da referência */
+    /* #0b0b0b = 0 0% 4.3%  | #f5b400 = 45 100% 48% | #f5f5f5 = 0 0% 96% */
+    --background: 0 0% 4%;
+    --foreground: 0 0% 96%;
 
-    --card: 0 0% 10%;
-    --card-foreground: 45 90% 92%;
+    --card: 0 0% 8%;
+    --card-foreground: 0 0% 96%;
 
-    --popover: 0 0% 10%;
-    --popover-foreground: 45 90% 92%;
+    --popover: 0 0% 8%;
+    --popover-foreground: 0 0% 96%;
 
-    --primary: 45 100% 55%;
-    --primary-foreground: 0 0% 6%;
+    --primary: 45 100% 48%;
+    --primary-foreground: 0 0% 10%;
 
-    --secondary: 0 0% 14%;
-    --secondary-foreground: 45 90% 92%;
+    --secondary: 0 0% 10%;
+    --secondary-foreground: 0 0% 96%;
 
-    --muted: 0 0% 14%;
-    --muted-foreground: 45 25% 65%;
+    --muted: 0 0% 10%;
+    --muted-foreground: 0 0% 74%;
 
-    --accent: 45 100% 55%;
-    --accent-foreground: 0 0% 6%;
+    --accent: 45 100% 48%;
+    --accent-foreground: 0 0% 10%;
 
     --destructive: 0 84% 60%;
     --destructive-foreground: 0 0% 100%;
 
-    --border: 45 70% 20%;
-    --input: 0 0% 14%;
-    --ring: 45 100% 55%;
+    /* rgba(245,180,0,0.18) ≈ borda dourada suave */
+    --border: 45 100% 48% / 0.18;
+    --input: 0 0% 7%;
+    --ring: 45 100% 48%;
 
-    --success: 142 60% 45%;
-    --warning: 38 95% 55%;
-    --info: 45 100% 55%;
+    --success: 142 71% 45%;
+    --warning: 38 92% 50%;
+    --info: 199 89% 60%;
 
-    --sidebar-background: 0 0% 8%;
-    --sidebar-foreground: 45 85% 88%;
-    --sidebar-primary: 45 100% 55%;
-    --sidebar-primary-foreground: 0 0% 6%;
-    --sidebar-accent: 45 100% 55%;
-    --sidebar-accent-foreground: 0 0% 6%;
-    --sidebar-border: 45 60% 16%;
-    --sidebar-ring: 45 100% 55%;
+    --sidebar-background: 0 0% 6%;
+    --sidebar-foreground: 0 0% 74%;
+    --sidebar-primary: 45 100% 48%;
+    --sidebar-primary-foreground: 0 0% 10%;
+    --sidebar-accent: 45 100% 48%;
+    --sidebar-accent-foreground: 0 0% 10%;
+    --sidebar-border: 45 100% 48% / 0.06;
+    --sidebar-ring: 45 100% 48%;
   }
 
-  /* === Dark theme — refinements baseados na imagem === */
+  /* === Dark theme — Sucena Gold (refinamento exato da referência) === */
   .dark body {
     background:
-      radial-gradient(ellipse 80% 50% at 50% -10%, hsl(45 100% 50% / 0.05), transparent 60%),
-      hsl(var(--background));
+      radial-gradient(circle at top center, hsl(45 100% 48% / 0.06), transparent 28%),
+      linear-gradient(180deg, hsl(0 0% 5%) 0%, hsl(0 0% 3%) 100%);
+    color: hsl(var(--foreground));
   }
+
+  /* Cards com gradiente vertical e brilho dourado superior direito */
+  .dark .bg-card,
+  .dark [class*="bg-card"] {
+    background: linear-gradient(180deg, hsl(0 0% 9%) 0%, hsl(0 0% 6%) 100%) !important;
+    position: relative;
+  }
+
+  /* Tipografia dourada para títulos de cards */
+  .dark h1, .dark h2, .dark h3 {
+    color: hsl(0 0% 100%);
+  }
+
+  /* Inputs / selects / textareas com borda dourada suave */
+  .dark input,
+  .dark select,
+  .dark textarea {
+    background: hsl(0 0% 7%) !important;
+    border-color: hsl(45 100% 48% / 0.18) !important;
+    color: hsl(var(--foreground)) !important;
+  }
+  .dark input:focus,
+  .dark select:focus,
+  .dark textarea:focus {
+    border-color: hsl(45 100% 48% / 0.5) !important;
+    box-shadow: 0 0 0 3px hsl(45 100% 48% / 0.12) !important;
+  }
+
+  /* Tabelas — header dourado claro */
+  .dark th {
+    color: hsl(45 50% 75%) !important;
+    border-bottom: 1px solid hsl(45 100% 48% / 0.18) !important;
+    font-weight: 600;
+  }
+  .dark td {
+    border-bottom: 1px solid hsl(0 0% 100% / 0.05) !important;
+  }
+
+  /* Botão primário com gradiente dourado e sombra */
+  .dark .bg-primary {
+    background: linear-gradient(135deg, hsl(45 100% 48%) 0%, hsl(45 100% 63%) 100%) !important;
+    color: hsl(0 0% 10%) !important;
+    box-shadow: 0 6px 18px hsl(45 100% 48% / 0.25);
+  }
+  .dark .bg-primary:hover {
+    box-shadow: 0 8px 24px hsl(45 100% 48% / 0.4);
+  }
+
+  /* Badges dourados */
+  .dark .border-primary {
+    border-color: hsl(45 100% 48% / 0.55) !important;
+  }
+  .dark .text-primary {
+    color: hsl(45 100% 60%) !important;
+    text-shadow: 0 0 8px hsl(45 100% 48% / 0.3);
+  }
+
 
   /* Sidebar: item ativo com glow dourado pulsante e barra lateral */
   .dark [data-sidebar="menu-button"][data-active="true"] {
