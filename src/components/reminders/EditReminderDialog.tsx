@@ -28,6 +28,7 @@ import {
 import { useToast } from "@/hooks/use-toast";
 import { Reminder, useUpdateReminder } from "@/hooks/useReminders";
 import { useAllProfiles } from "@/hooks/useDDSSchedule";
+import { useAuth } from "@/hooks/useAuth";
 import { cn } from "@/lib/utils";
 
 const WEEKDAYS = [
