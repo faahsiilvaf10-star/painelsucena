@@ -1,6 +1,6 @@
 import { useEffect, useState } from "react";
 import { useNavigate } from "react-router-dom";
-import { ArrowRight, LogOut, Loader2, Lock } from "lucide-react";
+import { ArrowRight, LogOut, Loader2, Lock, Factory, Building2 } from "lucide-react";
 import { supabase } from "@/integrations/supabase/client";
 import { useEnvironment, ENVIRONMENTS, type EnvironmentId } from "@/hooks/useEnvironment";
 import { useMyEnvironmentAccess } from "@/hooks/useEnvironmentAccess";
@@ -12,35 +12,109 @@ interface UserSummary {
   avatarUrl: string | null;
 }
 
-interface EnvVisual {
-  emoji: string;
-  cardGradient: string;
-  badgeBg: string;
-  badgeText: string;
+type EnvVisual = {
+  Icon: typeof Factory;
+  iconColor: string;
+  iconBg: string;
+  iconRing: string;
   badgeLabel: string;
+  badgeBg: string;
   ctaBg: string;
   ctaHover: string;
-}
+  illustrationColor: string;
+};
 
 const ENV_VISUAL: Record<EnvironmentId, EnvVisual> = {
   barcarena: {
-    emoji: "🏭",
-    cardGradient: "from-sky-100/90 via-sky-50/80 to-blue-50/60",
-    badgeBg: "bg-gradient-to-r from-sky-500 to-blue-500",
-    badgeText: "text-white",
+    Icon: Factory,
+    iconColor: "text-blue-600",
+    iconBg: "bg-white",
+    iconRing: "ring-blue-100",
     badgeLabel: "SISTEMA ATUAL",
-    ctaBg: "bg-gradient-to-br from-sky-400 to-blue-500",
-    ctaHover: "group-hover:from-sky-500 group-hover:to-blue-600",
+    badgeBg: "bg-blue-600 text-white",
+    ctaBg: "bg-blue-600",
+    ctaHover: "group-hover:bg-blue-700",
+    illustrationColor: "text-blue-100",
   },
   paragominas: {
-    emoji: "🏭",
-    cardGradient: "from-emerald-50/90 via-green-50/70 to-stone-50/60",
-    badgeBg: "bg-gradient-to-r from-emerald-500 to-green-500",
-    badgeText: "text-white",
+    Icon: Building2,
+    iconColor: "text-emerald-600",
+    iconBg: "bg-white",
+    iconRing: "ring-emerald-100",
     badgeLabel: "NOVA OPERAÇÃO",
-    ctaBg: "bg-gradient-to-br from-emerald-400 to-green-500",
-    ctaHover: "group-hover:from-emerald-500 group-hover:to-green-600",
+    badgeBg: "bg-emerald-600 text-white",
+    ctaBg: "bg-emerald-600",
+    ctaHover: "group-hover:bg-emerald-700",
+    illustrationColor: "text-emerald-100",
   },
+};
+
+// Decorative SVG illustration of buildings (industrial / city)
+function FactoryIllustration({ className }: { className?: string }) {
+  return (
+    <svg viewBox="0 0 240 200" fill="currentColor" className={className} aria-hidden>
+      <path d="M30 180 V90 L70 110 V70 L120 100 V60 H160 V180 Z" opacity="0.45" />
+      <rect x="150" y="30" width="14" height="50" opacity="0.45" />
+      <rect x="80" y="120" width="10" height="14" fill="white" opacity="0.7" />
+      <rect x="100" y="120" width="10" height="14" fill="white" opacity="0.7" />
+      <rect x="130" y="90" width="10" height="14" fill="white" opacity="0.7" />
+      <rect x="130" y="115" width="10" height="14" fill="white" opacity="0.7" />
+    </svg>
+  );
+}
+
+function CityIllustration({ className }: { className?: string }) {
+  return (
+    <svg viewBox="0 0 240 200" fill="currentColor" className={className} aria-hidden>
+      <rect x="40" y="60" width="50" height="120" opacity="0.45" />
+      <rect x="100" y="30" width="50" height="150" opacity="0.45" />
+      <rect x="160" y="80" width="40" height="100" opacity="0.45" />
+      {[0, 1, 2, 3, 4, 5].map((row) =>
+        [0, 1].map((col) => (
+          <rect
+            key={`a-${row}-${col}`}
+            x={50 + col * 18}
+            y={75 + row * 18}
+            width="10"
+            height="10"
+            fill="white"
+            opacity="0.7"
+          />
+        )),
+      )}
+      {[0, 1, 2, 3, 4, 5, 6, 7].map((row) =>
+        [0, 1].map((col) => (
+          <rect
+            key={`b-${row}-${col}`}
+            x={110 + col * 18}
+            y={45 + row * 16}
+            width="10"
+            height="9"
+            fill="white"
+            opacity="0.7"
+          />
+        )),
+      )}
+      {[0, 1, 2, 3, 4].map((row) =>
+        [0, 1].map((col) => (
+          <rect
+            key={`c-${row}-${col}`}
+            x={168 + col * 14}
+            y={92 + row * 16}
+            width="8"
+            height="9"
+            fill="white"
+            opacity="0.7"
+          />
+        )),
+      )}
+    </svg>
+  );
+}
+
+const ILLUSTRATIONS: Record<EnvironmentId, (props: { className?: string }) => JSX.Element> = {
+  barcarena: FactoryIllustration,
+  paragominas: CityIllustration,
 };
 
 export default function SelecaoAmbiente() {
@@ -51,10 +125,6 @@ export default function SelecaoAmbiente() {
   const [user, setUser] = useState<UserSummary | null>(null);
   const [selecting, setSelecting] = useState<EnvironmentId | null>(null);
 
-  // Auto-seleciona:
-  // - Não-admin: entra direto no ambiente padrão (primeiro liberado, ou Barcarena).
-  // - Admin com apenas 1 ambiente: entra direto.
-  // Apenas admins com múltiplos ambientes veem a tela de seleção.
   useEffect(() => {
     if (accessLoading) return;
     if (!isAdmin) {
@@ -71,7 +141,6 @@ export default function SelecaoAmbiente() {
 
   useEffect(() => {
     let mounted = true;
-
     (async () => {
       const { data } = await supabase.auth.getUser();
       if (!mounted) return;
@@ -80,20 +149,17 @@ export default function SelecaoAmbiente() {
         navigate("/auth", { replace: true });
         return;
       }
-
       const { data: profile } = await supabase
         .from("profiles")
         .select("full_name, avatar_url")
         .eq("user_id", u.id)
         .maybeSingle();
-
       if (!mounted) return;
       setUser({
         fullName: profile?.full_name || u.email?.split("@")[0] || "Usuário",
         avatarUrl: profile?.avatar_url || null,
       });
     })();
-
     return () => {
       mounted = false;
     };
@@ -121,30 +187,29 @@ export default function SelecaoAmbiente() {
   };
 
   return (
-    <div className="fixed inset-0 z-50 overflow-auto">
-      {/* Animated gradient background */}
-      <div className="absolute inset-0 animated-env-bg" />
-      {/* Soft mountain mist at bottom */}
-      <div className="pointer-events-none absolute inset-x-0 bottom-0 h-1/3 bg-gradient-to-t from-white/50 via-white/20 to-transparent" />
-
-      <div className="relative z-10 mx-auto flex min-h-full max-w-6xl flex-col px-6 py-10">
+    <div className="fixed inset-0 z-50 overflow-auto bg-white">
+      <div className="mx-auto flex min-h-full max-w-6xl flex-col px-6 py-8 md:px-10 md:py-10">
         {/* Header */}
-        <header className="mb-12 flex items-center justify-between">
+        <header className="mb-10 flex items-center justify-between md:mb-14">
           <div className="flex items-center gap-3">
             {user?.avatarUrl ? (
               <img
                 src={user.avatarUrl}
                 alt={user.fullName}
-                className="h-12 w-12 rounded-full object-cover ring-2 ring-white/60 shadow-md"
+                className="h-12 w-12 rounded-full object-cover ring-1 ring-slate-200"
               />
             ) : (
-              <div className="grid h-12 w-12 place-items-center rounded-full bg-white/70 text-slate-600 shadow-md ring-2 ring-white/60 backdrop-blur">
+              <div className="grid h-12 w-12 place-items-center rounded-full bg-slate-100 text-slate-600 ring-1 ring-slate-200">
                 {user?.fullName?.[0]?.toUpperCase() ?? "U"}
               </div>
             )}
-            <div>
-              <p className="text-xs uppercase tracking-[0.2em] text-slate-500">Bem-vindo</p>
-              <p className="text-base font-medium text-slate-800">{user?.fullName ?? "..."}</p>
+            <div className="leading-tight">
+              <p className="text-[11px] font-medium uppercase tracking-[0.18em] text-slate-400">
+                Bem-vindo
+              </p>
+              <p className="text-base font-semibold text-slate-900">
+                {user?.fullName ?? "..."}
+              </p>
             </div>
           </div>
 
@@ -152,7 +217,7 @@ export default function SelecaoAmbiente() {
             variant="ghost"
             size="sm"
             onClick={handleLogout}
-            className="gap-2 text-slate-700 hover:bg-white/40 hover:text-slate-900"
+            className="gap-2 text-blue-600 hover:bg-blue-50 hover:text-blue-700"
           >
             <LogOut className="h-4 w-4" />
             Sair
@@ -160,103 +225,106 @@ export default function SelecaoAmbiente() {
         </header>
 
         {/* Title */}
-        <div className="mb-12 text-center">
-          <h1 className="text-4xl font-bold tracking-tight text-slate-900 md:text-5xl">
+        <div className="mb-10 text-center md:mb-14">
+          <h1 className="text-4xl font-extrabold tracking-tight text-slate-900 md:text-5xl">
             Selecione o ambiente
           </h1>
-          <p className="mt-3 text-base text-slate-600">
+          <p className="mt-3 text-base text-slate-500">
             Escolha qual operação você deseja acessar agora.
           </p>
         </div>
 
         {/* Cards */}
-        <div className="grid flex-1 gap-8 md:grid-cols-2">
+        <div className="grid flex-1 gap-6 md:grid-cols-2 md:gap-8">
           {(Object.keys(ENVIRONMENTS) as EnvironmentId[]).map((id) => {
             const env = ENVIRONMENTS[id];
             const visual = ENV_VISUAL[id];
+            const Illustration = ILLUSTRATIONS[id];
             const isLoading = selecting === id;
             const hasAccess = allowedEnvs.includes(id);
             const isLocked = !accessLoading && !hasAccess;
 
             return (
-              <button
+              <div
                 key={id}
-                onClick={() => {
-                  if (isLocked) {
-                    toast({
-                      title: "Acesso bloqueado",
-                      description: "Solicite ao administrador acesso a este ambiente.",
-                      variant: "destructive",
-                    });
-                    return;
-                  }
-                  handleSelect(id);
-                }}
-                disabled={selecting !== null}
                 className={[
-                  "group relative flex flex-col overflow-hidden rounded-3xl text-left",
-                  "border border-white/60 p-8 shadow-[0_20px_60px_-20px_rgba(15,23,42,0.25)]",
-                  "backdrop-blur-xl transition-all duration-500",
-                  "bg-gradient-to-br",
-                  visual.cardGradient,
-                  isLocked
-                    ? "opacity-60 grayscale cursor-not-allowed"
-                    : "hover:-translate-y-1 hover:shadow-[0_30px_80px_-20px_rgba(15,23,42,0.35)]",
-                  "disabled:opacity-60 disabled:cursor-not-allowed",
+                  "group relative flex flex-col overflow-hidden rounded-3xl bg-white p-7 md:p-8",
+                  "border border-slate-200/80",
+                  "shadow-[0_1px_2px_rgba(15,23,42,0.04),0_8px_24px_-12px_rgba(15,23,42,0.08)]",
+                  "transition-all duration-300",
+                  isLocked ? "opacity-70" : "hover:-translate-y-0.5 hover:shadow-[0_2px_4px_rgba(15,23,42,0.06),0_18px_40px_-18px_rgba(15,23,42,0.18)]",
                 ].join(" ")}
               >
-                {/* Lock overlay */}
+                {/* Lock badge */}
                 {isLocked && (
-                  <div className="absolute top-4 right-4 z-20 flex items-center gap-1.5 rounded-full bg-slate-900/80 px-3 py-1 text-xs font-medium text-white backdrop-blur">
+                  <div className="absolute right-4 top-4 z-20 flex items-center gap-1.5 rounded-full bg-slate-900/85 px-3 py-1 text-[11px] font-medium text-white">
                     <Lock className="h-3 w-3" />
                     Bloqueado
                   </div>
                 )}
 
-                {/* Emoji icon tile */}
-                <div className="mb-8 grid h-20 w-20 place-items-center rounded-2xl bg-white shadow-lg ring-1 ring-white/80">
-                  <span className="text-4xl leading-none" aria-hidden>
-                    {visual.emoji}
-                  </span>
+                {/* Decorative illustration */}
+                <Illustration
+                  className={`pointer-events-none absolute -right-2 top-6 h-44 w-56 ${visual.illustrationColor}`}
+                />
+
+                {/* Icon tile */}
+                <div
+                  className={[
+                    "relative z-10 grid h-16 w-16 place-items-center rounded-full ring-8",
+                    visual.iconBg,
+                    visual.iconRing,
+                  ].join(" ")}
+                >
+                  <visual.Icon className={`h-8 w-8 ${visual.iconColor}`} strokeWidth={2.2} />
                 </div>
 
                 {/* Title + desc */}
-                <h2 className="text-2xl font-bold tracking-tight text-slate-900">
+                <h2 className="relative z-10 mt-8 text-2xl font-bold tracking-tight text-slate-900">
                   {env.label}
                 </h2>
-                <p className="mt-3 text-base leading-relaxed text-slate-600">
+                <p className="relative z-10 mt-2 max-w-[20rem] text-[15px] leading-relaxed text-slate-500">
                   {env.description}
                 </p>
 
                 {/* Pill badge */}
-                <div className="mt-6">
+                <div className="relative z-10 mt-5">
                   <span
                     className={[
-                      "inline-flex items-center rounded-full px-4 py-1.5 text-xs font-semibold tracking-wider shadow-md",
+                      "inline-flex items-center rounded-full px-3.5 py-1 text-[11px] font-semibold tracking-wider",
                       visual.badgeBg,
-                      visual.badgeText,
                     ].join(" ")}
                   >
                     {visual.badgeLabel}
                   </span>
                 </div>
 
-                {/* Bottom CTA card */}
-                <div className="mt-8 flex items-center justify-between rounded-2xl bg-white/70 p-5 shadow-inner ring-1 ring-white/80 backdrop-blur">
-                  <div className="min-w-0 flex-1 pr-4">
-                    <p className="truncate text-lg font-semibold text-slate-900">
-                      {env.label}
-                    </p>
-                    <p className="mt-0.5 text-sm text-slate-600 line-clamp-2">
-                      {env.description}
-                    </p>
-                  </div>
-                  <div
+                {/* Bottom CTA bar */}
+                <button
+                  onClick={() => {
+                    if (isLocked) {
+                      toast({
+                        title: "Acesso bloqueado",
+                        description: "Solicite ao administrador acesso a este ambiente.",
+                        variant: "destructive",
+                      });
+                      return;
+                    }
+                    handleSelect(id);
+                  }}
+                  disabled={selecting !== null || isLocked}
+                  className={[
+                    "relative z-10 mt-8 flex items-center justify-between gap-4 rounded-2xl border border-slate-200 bg-white p-3 pl-5 text-left transition-colors",
+                    isLocked ? "cursor-not-allowed" : "hover:border-slate-300",
+                  ].join(" ")}
+                >
+                  <span className="truncate text-[15px] font-semibold text-slate-900">
+                    Acessar {env.label}
+                  </span>
+                  <span
                     className={[
-                      "grid h-12 w-14 shrink-0 place-items-center rounded-xl text-white shadow-lg transition-all duration-300",
-                      isLocked ? "bg-slate-400" : visual.ctaBg,
-                      isLocked ? "" : visual.ctaHover,
-                      isLocked ? "" : "group-hover:translate-x-0.5",
+                      "grid h-11 w-12 shrink-0 place-items-center rounded-xl text-white transition-colors",
+                      isLocked ? "bg-slate-400" : `${visual.ctaBg} ${visual.ctaHover}`,
                     ].join(" ")}
                   >
                     {isLoading ? (
@@ -266,40 +334,17 @@ export default function SelecaoAmbiente() {
                     ) : (
                       <ArrowRight className="h-5 w-5" />
                     )}
-                  </div>
-                </div>
-              </button>
+                  </span>
+                </button>
+              </div>
             );
           })}
         </div>
 
-        <footer className="mt-10 text-center text-xs text-slate-500">
+        <footer className="mt-10 text-center text-xs text-slate-400">
           Sua escolha permanece ativa até o próximo logout.
         </footer>
       </div>
-
-      {/* Animated gradient styles */}
-      <style>{`
-        .animated-env-bg {
-          background: linear-gradient(
-            125deg,
-            #eaf3ff 0%,
-            #f4f8ff 18%,
-            #fff8ec 36%,
-            #f0fbf2 54%,
-            #eaf3ff 72%,
-            #f7efff 88%,
-            #fff8ec 100%
-          );
-          background-size: 320% 320%;
-          animation: env-gradient-shift 22s ease infinite;
-        }
-        @keyframes env-gradient-shift {
-          0%   { background-position: 0% 50%; }
-          50%  { background-position: 100% 50%; }
-          100% { background-position: 0% 50%; }
-        }
-      `}</style>
     </div>
   );
 }
