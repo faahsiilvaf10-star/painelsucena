@@ -294,46 +294,47 @@ const Dashboard = () => {
         </div>
 
         {/* Main stats grid */}
-        <div className="grid grid-cols-1 lg:grid-cols-12 gap-3 mb-4 animate-slide-up">
-          {/* Left column: Weather + Total Funcionários */}
-          <div className="lg:col-span-3 flex flex-col gap-3">
-            <WeatherWidget />
-            <ModernStatCard
-              title="Total de Funcionários"
-              value={totalEmployees}
-              percentage={presencePercent}
-              icon={Users}
-              variant="gauge"
-            />
-          </div>
+        <Suspense fallback={<DashboardItemSkeleton />}>
+          <div className="grid grid-cols-1 lg:grid-cols-12 gap-3 mb-4 animate-slide-up">
+            {/* Left column: Weather + Total Funcionários */}
+            <div className="lg:col-span-3 flex flex-col gap-3">
+              <WeatherWidget />
+              <ModernStatCard
+                title="Total de Funcionários"
+                value={totalEmployees}
+                percentage={presencePercent}
+                icon={Users}
+                variant="gauge"
+              />
+            </div>
 
-          {/* Center: Avanço Mensal (Planejamento) */}
-          <div className="lg:col-span-3">
-            <PlanejamentoProgressCard />
-          </div>
+            {/* Center: Avanço Mensal (Planejamento) */}
+            <div className="lg:col-span-3">
+              <PlanejamentoProgressCard />
+            </div>
 
-          {/* Right-center: Presentes Hoje + Ausências */}
-          <div className="lg:col-span-3 flex flex-col gap-3">
-            <ModernStatCard
-              title="Presentes hoje"
-              value={presentToday}
-              percentage={presencePercent}
-              icon={ClipboardCheck}
-              variant="sparkline"
-              sparklineData={[5, 8, 6, 9, 7, 10, presentToday || 8]}
-            />
-            <ModernStatCard
-              title="Ausências"
-              value={absentToday}
-              percentage={totalEmployees > 0 ? Math.round(absentToday / totalEmployees * 100) : 0}
-              icon={AlertCircle}
-              variant="bars"
-              barData={[2, 4, 1, 3, 2, 5, absentToday || 1]}
-            />
-          </div>
+            {/* Right-center: Presentes Hoje + Ausências */}
+            <div className="lg:col-span-3 flex flex-col gap-3">
+              <ModernStatCard
+                title="Presentes hoje"
+                value={presentToday}
+                percentage={presencePercent}
+                icon={ClipboardCheck}
+                variant="sparkline"
+                sparklineData={[5, 8, 6, 9, 7, 10, presentToday || 8]}
+              />
+              <ModernStatCard
+                title="Ausências"
+                value={absentToday}
+                percentage={totalEmployees > 0 ? Math.round(absentToday / totalEmployees * 100) : 0}
+                icon={AlertCircle}
+                variant="bars"
+                barData={[2, 4, 1, 3, 2, 5, absentToday || 1]}
+              />
+            </div>
 
-          {/* Far right: Equipamentos Ativos (clean white card matching reference) */}
-          <div className="lg:col-span-3">
+            {/* Far right: Equipamentos Ativos (clean white card matching reference) */}
+            <div className="lg:col-span-3">
             <div className="rounded-2xl p-5 h-full flex flex-col bg-card border border-border shadow-sm transition-transform hover:scale-[1.01]">
               <div className="flex items-start justify-between mb-3">
                 <p className="text-[11px] font-semibold uppercase tracking-[0.18em] text-muted-foreground">
