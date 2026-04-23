@@ -15,6 +15,7 @@ export const PersistentFooter = () => {
   const [isMounted, setIsMounted] = useState(false);
 
   const isDriverPage = ["/painel-motorista", "/registro-movimento-motorista", "/selecao-veiculo", "/equipamentos-motorista", "/relatorios-motorista", "/pontos-abastecimento"].includes(location.pathname);
+  const isEnvSelection = location.pathname === "/selecao-ambiente";
 
   useEffect(() => {
     setIsMounted(true);
@@ -38,7 +39,7 @@ export const PersistentFooter = () => {
     popupManagerRef.current?.openPopup(userClicked);
   };
 
-  if (!isMounted || !user || isDriverPage) return null;
+  if (!isMounted || !user || isDriverPage || isEnvSelection) return null;
 
   return createPortal(
     <div className={justCompletedTransition ? "animate-fade-in" : ""}>
