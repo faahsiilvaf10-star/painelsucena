@@ -130,9 +130,9 @@ const App = () => {
             <InstallPrompt />
             
             <BrowserRouter>
-              {/* Temporary disabled transition gates to debug blank page */}
-              {/* <LoginTransitionGate /> */}
-              {/* <LogoutTransitionGate /> */}
+              <LoginTransitionGate />
+              <LogoutTransitionGate />
+
 
               <EditModeProvider>
               <PersistentSidebar>
