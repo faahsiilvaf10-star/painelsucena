@@ -2,10 +2,15 @@ import { useMemo } from "react";
 import { Cake, PartyPopper, Gift } from "lucide-react";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
-import { colaboradoresAtivos } from "@/data/efetivoData";
 import { getBrazilNorthDate } from "@/lib/timezone";
+import { useRHEfetivo } from "@/hooks/useRHEfetivo";
 
 const BirthdayBanner = () => {
+  const { data } = useRHEfetivo();
+  const colaboradoresAtivos = useMemo(
+    () => (data?.colaboradores ?? []).filter((c: any) => c.status !== "inativo" && c.status !== "demitido"),
+    [data?.colaboradores]
+  );
   const today = getBrazilNorthDate();
   const currentDay = today.getDate();
   const currentMonth = today.getMonth() + 1; // 1-indexed
