@@ -565,10 +565,10 @@ const RH = () => {
                       className="cursor-pointer hover:bg-muted w-32"
                       onClick={() => handleSort("matricula")}
                     >
-                      Matrícula Sucena <SortIcon field="matricula" />
+                      Matrícula Hydro <SortIcon field="matricula" />
                     </TableHead>
                     <TableHead className="w-32">
-                      Matrícula Hydro
+                      Matrícula Sucena
                     </TableHead>
                     <TableHead 
                       className="cursor-pointer hover:bg-muted w-32"
@@ -620,13 +620,13 @@ const RH = () => {
                         <TableCell>
                           <div className="flex items-center gap-1 text-muted-foreground">
                             <Hash className="w-3 h-3" />
-                            {colaborador.matricula || "—"}
+                            {colaborador.matriculaHydro || "—"}
                           </div>
                         </TableCell>
                         <TableCell>
                           <div className="flex items-center gap-1 text-muted-foreground">
                             <Hash className="w-3 h-3" />
-                            {colaborador.matriculaHydro || "—"}
+                            {colaborador.matricula || "—"}
                           </div>
                         </TableCell>
                         <TableCell>

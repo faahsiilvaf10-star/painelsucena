@@ -108,13 +108,18 @@ function parseExcel(
       continue;
     }
 
+    const rawMatricula = getCellString(row, colMap.matricula);
+    // If matricula looks like Hydro (5 digits) or is the only one provided
+    const isHydro = rawMatricula.length >= 5;
+
     importedEmployees.push({
       nome,
       funcao: getCellString(row, colMap.funcao) || "AJUDANTE",
       cpf: getCellString(row, colMap.cpf),
       dataNascimento: getCellString(row, colMap.dataNascimento),
       admissao: getCellString(row, colMap.admissao),
-      matricula: getCellString(row, colMap.matricula),
+      matricula: isHydro ? "" : rawMatricula,
+      matriculaHydro: isHydro ? rawMatricula : "",
       contato: getCellString(row, colMap.contato),
       localidade: getCellString(row, colMap.localidade) || "BARCARENA - PA",
     });

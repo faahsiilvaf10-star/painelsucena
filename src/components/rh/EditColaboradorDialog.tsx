@@ -280,23 +280,23 @@ export const EditColaboradorDialog = ({
               />
             </div>
             <div className="space-y-2">
-              <Label htmlFor="edit-matricula">Matrícula Sucena</Label>
+              <Label htmlFor="edit-matriculaHydro">Matrícula Hydro</Label>
               <Input
-                id="edit-matricula"
-                value={formData.matricula}
-                onChange={(e) => setFormData({ ...formData, matricula: e.target.value.replace(/\D/g, "") })}
-                placeholder="0000"
+                id="edit-matriculaHydro"
+                value={formData.matriculaHydro}
+                onChange={(e) => setFormData({ ...formData, matriculaHydro: e.target.value.replace(/\D/g, "") })}
+                placeholder="00000"
               />
             </div>
           </div>
 
           <div className="space-y-2">
-            <Label htmlFor="edit-matriculaHydro">Matrícula Hydro</Label>
+            <Label htmlFor="edit-matricula">Matrícula Sucena</Label>
             <Input
-              id="edit-matriculaHydro"
-              value={formData.matriculaHydro}
-              onChange={(e) => setFormData({ ...formData, matriculaHydro: e.target.value.replace(/\D/g, "") })}
-              placeholder="00000"
+              id="edit-matricula"
+              value={formData.matricula}
+              onChange={(e) => setFormData({ ...formData, matricula: e.target.value.replace(/\D/g, "") })}
+              placeholder="0000"
             />
           </div>
 

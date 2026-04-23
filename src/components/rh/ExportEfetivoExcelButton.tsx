@@ -130,7 +130,7 @@ export function ExportEfetivoExcelButton({ colaboradores, filterFuncao }: Export
       worksheet.addRow([]);
 
       // Header row
-      const headers = ["Nome", "Função", "Matrícula Sucena", "Matrícula Hydro", "CPF", "Admissão", "Nascimento", "Contato", "Localidade", "ASO Admissional", "ASO Validade", "ASO Periódico", "ASO Retorno", "ASO Mud. Risco"];
+      const headers = ["Nome", "Função", "Matrícula Hydro", "Matrícula Sucena", "CPF", "Admissão", "Nascimento", "Contato", "Localidade", "ASO Admissional", "ASO Validade", "ASO Periódico", "ASO Retorno", "ASO Mud. Risco"];
       const headerRow = worksheet.addRow(headers);
       headerRow.height = 24;
       headerRow.eachCell((cell) => {
@@ -154,8 +154,8 @@ export function ExportEfetivoExcelButton({ colaboradores, filterFuncao }: Export
         const row = worksheet.addRow([
           c.nome,
           c.funcao,
-          c.matricula,
           c.matriculaHydro || "-",
+          c.matricula,
           c.cpf,
           c.admissao,
           c.dataNascimento,
