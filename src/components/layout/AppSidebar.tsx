@@ -129,9 +129,9 @@ function SortableNavItem({
         asChild
         isActive={isActive}
         tooltip={item.label}
-        className="group min-h-[44px] md:min-h-[40px]"
+        className="group min-h-[36px] md:min-h-[32px]"
       >
-        <Link to={item.path} onClick={onNavigate} className="flex items-center gap-3 md:gap-2 py-2">
+        <Link to={item.path} onClick={onNavigate} className="flex items-center gap-2 md:gap-1.5 py-1.5">
           {!isCollapsed && showGrip && (
             <span
               {...attributes}
