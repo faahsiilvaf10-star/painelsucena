@@ -321,7 +321,7 @@ const Dashboard = () => {
                       cy={70}
                     />
                     <circle
-                      stroke="hsl(142, 65%, 45%)"
+                      stroke="hsl(var(--primary))"
                       fill="transparent"
                       strokeWidth={12}
                       strokeLinecap="round"
@@ -338,7 +338,7 @@ const Dashboard = () => {
                     />
                   </svg>
                   <div className="absolute inset-0 flex items-center justify-center">
-                    <span className="text-2xl font-extrabold text-emerald-600 dark:text-emerald-400">
+                    <span className="text-2xl font-extrabold text-primary">
                       {equipPercent}%
                     </span>
                   </div>
