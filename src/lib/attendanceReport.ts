@@ -149,9 +149,12 @@ export function buildAreaPresenceText(
   }
 
   // Execução
-  const exec = visible.filter(
-    (c) => !SUPPORT_ROLES.includes((c.funcao || "").toUpperCase())
-  );
+  const exec = visible.filter((c) => {
+    const f = (c.funcao || "").toUpperCase();
+    if (SUPPORT_ROLES.includes(f)) return false;
+    if (f.startsWith("ENCARREGADO")) return false;
+    return true;
+  });
   if (exec.length > 0) {
     lines.push("✴️EQUIPE DE EXECUÇÃO✴️");
     lines.push("");
