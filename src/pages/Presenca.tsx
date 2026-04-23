@@ -306,9 +306,10 @@ const Presenca = () => {
     }
 
     // Execução
-    const exec = list.filter(
-      (c) => !SUPPORT_ROLES.includes((c.funcao || "").toUpperCase())
-    );
+    const exec = list.filter((c) => {
+      const f = (c.funcao || "").toUpperCase();
+      return !SUPPORT_ROLES.includes(f) && !f.startsWith("ENCARREGADO");
+    });
     if (exec.length > 0) {
       lines.push("✴️EQUIPE DE EXECUÇÃO✴️");
       lines.push("");
