@@ -84,6 +84,7 @@ export function buildAreaPresenceText(
     includeHeader?: boolean;
     onlyPresent?: boolean;
     skipPresentMark?: boolean;
+    includeSupport?: boolean;
   } = {}
 ): string {
   const {
@@ -91,6 +92,7 @@ export function buildAreaPresenceText(
     includeHeader = true,
     onlyPresent = false,
     skipPresentMark = false,
+    includeSupport = true,
   } = options;
 
   const isPresent = (c: Colaborador) => !absentIds.has(c.id);
@@ -103,18 +105,22 @@ export function buildAreaPresenceText(
   }
 
   // Suporte
-  const tst = visible.find(
-    (c) =>
-      (c.funcao === "TECNICO DE SEGURANÇA DO TRABALHO" ||
-        c.funcao === "ENGENHEIRO DE SEGURANÇA DO TRABALHO") &&
-      isPresent(c)
-  );
-  const encGeral = visible.find(
-    (c) => c.funcao === "ENCARREGADO GERAL" && isPresent(c)
-  );
-  const enc = visible.find(
-    (c) => c.funcao === "ENCARREGADO DE FRENTE DE SERVIÇO" && isPresent(c)
-  );
+  const tst = includeSupport
+    ? visible.find(
+        (c) =>
+          (c.funcao === "TECNICO DE SEGURANÇA DO TRABALHO" ||
+            c.funcao === "ENGENHEIRO DE SEGURANÇA DO TRABALHO") &&
+          isPresent(c)
+      )
+    : undefined;
+  const encGeral = includeSupport
+    ? visible.find((c) => c.funcao === "ENCARREGADO GERAL" && isPresent(c))
+    : undefined;
+  const enc = includeSupport
+    ? visible.find(
+        (c) => c.funcao === "ENCARREGADO DE FRENTE DE SERVIÇO" && isPresent(c)
+      )
+    : undefined;
 
   if (tst || encGeral || enc) {
     lines.push("✴️EQUIPE DE SUPORTE✴️");
