@@ -28,6 +28,7 @@ import {
 import { useToast } from "@/hooks/use-toast";
 import { Reminder, useUpdateReminder } from "@/hooks/useReminders";
 import { useAllProfiles } from "@/hooks/useDDSSchedule";
+import { useAuth } from "@/hooks/useAuth";
 import { cn } from "@/lib/utils";
 
 const WEEKDAYS = [
@@ -48,6 +49,7 @@ interface EditReminderDialogProps {
 export const EditReminderDialog = ({ reminder, trigger }: EditReminderDialogProps) => {
   const { toast } = useToast();
   const { data: allProfiles } = useAllProfiles();
+  const { user } = useAuth();
   const updateReminder = useUpdateReminder();
 
   const [isOpen, setIsOpen] = useState(false);
@@ -367,7 +369,9 @@ export const EditReminderDialog = ({ reminder, trigger }: EditReminderDialogProp
                 <Label>Selecione os usuários</Label>
                 <ScrollArea className="h-40 rounded-md border p-2">
                   <div className="space-y-2">
-                    {allProfiles?.map((profile) => (
+                    {allProfiles
+                      ?.filter(p => p.user_id !== user?.id)
+                      .map((profile) => (
                       <div
                         key={profile.user_id}
                         className={cn(
