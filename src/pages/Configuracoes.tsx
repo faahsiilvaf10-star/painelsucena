@@ -17,7 +17,7 @@ import { z } from "zod";
 import { AnnouncementHistory } from "@/components/settings/AnnouncementHistory";
 import { NeonFramePicker } from "@/components/settings/NeonFramePicker";
 import { GifAvatarCreator } from "@/components/settings/GifAvatarCreator";
-import { SidebarCustomizer } from "@/components/settings/SidebarCustomizer";
+// SidebarCustomizer removido — sidebar é global e padrão
 import { NeonAvatar } from "@/components/ui/NeonAvatar";
 import { SessionDurationSetting } from "@/components/settings/SessionDurationSetting";
 import { ThemePicker } from "@/components/settings/ThemePicker";
