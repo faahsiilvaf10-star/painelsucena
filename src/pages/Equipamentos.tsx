@@ -1,7 +1,6 @@
-import { useNavigate } from "react-router-dom";
+import { useNavigate, Link } from "react-router-dom";
 import Layout from "@/components/layout/Layout";
 import { ArrowLeftRight, Truck, Wrench, Settings, ListChecks } from "lucide-react";
-import { TotalEquipmentStatusModal } from "@/components/equipamentos/TotalEquipmentStatusModal";
 
 const equipamentosPages = [
   { label: "Entrada\ne Saída", icon: ArrowLeftRight, path: "/entrada-saida-equipamentos" },
@@ -47,31 +46,30 @@ const Equipamentos = () => {
             </button>
           ))}
           
-          <div className="group relative rounded-2xl p-[2px] cursor-pointer transition-all duration-300 hover:scale-105 hover:shadow-[0_0_30px_rgba(201,168,76,0.3)]">
+          <Link
+            to="/status-geral-equipamentos"
+            className="group relative rounded-2xl p-[2px] cursor-pointer transition-all duration-300 hover:scale-105 hover:shadow-[0_0_30px_rgba(201,168,76,0.3)]"
+          >
             <div
               className="absolute inset-0 rounded-2xl"
               style={{
                 background: "linear-gradient(145deg, #d4a84c, #b8942e, #e8c95a, #a07828)",
               }}
             />
-            <TotalEquipmentStatusModal 
-              trigger={
-                <div
-                  className="relative rounded-[14px] flex flex-col items-center justify-center gap-3 p-5 md:p-6 h-full min-h-[140px] md:min-h-[160px] w-full"
-                  style={{
-                    background: "linear-gradient(160deg, #d4a84c 0%, #c49a3c 25%, #b08830 50%, #c49a3c 75%, #d8b050 100%)",
-                  }}
-                >
-                  <div className="absolute inset-[6px] rounded-xl border border-[#b8942e]/50 pointer-events-none" />
-                  <ListChecks className="h-10 w-10 md:h-12 md:w-12 text-[#1a1a1a] drop-shadow-sm group-hover:scale-110 transition-transform duration-300" strokeWidth={1.5} />
-                  <span className="text-[#1a1a1a] text-xs md:text-sm font-semibold text-center leading-tight whitespace-pre-line">
-                    Status Geral
-                    (17 Equipamentos)
-                  </span>
-                </div>
-              }
-            />
-          </div>
+            <div
+              className="relative rounded-[14px] flex flex-col items-center justify-center gap-3 p-5 md:p-6 h-full min-h-[140px] md:min-h-[160px] w-full"
+              style={{
+                background: "linear-gradient(160deg, #d4a84c 0%, #c49a3c 25%, #b08830 50%, #c49a3c 75%, #d8b050 100%)",
+              }}
+            >
+              <div className="absolute inset-[6px] rounded-xl border border-[#b8942e]/50 pointer-events-none" />
+              <ListChecks className="h-10 w-10 md:h-12 md:w-12 text-[#1a1a1a] drop-shadow-sm group-hover:scale-110 transition-transform duration-300" strokeWidth={1.5} />
+              <span className="text-[#1a1a1a] text-xs md:text-sm font-semibold text-center leading-tight whitespace-pre-line">
+                Status Geral
+                (17 Equipamentos)
+              </span>
+            </div>
+          </Link>
         </div>
       </div>
     </Layout>
