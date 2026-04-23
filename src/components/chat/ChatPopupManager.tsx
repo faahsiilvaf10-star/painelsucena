@@ -18,10 +18,11 @@ export interface ChatPopupManagerHandle {
 
 export const ChatPopupManager = forwardRef<ChatPopupManagerHandle>((_props, ref) => {
   const { user } = useAuth();
-  const { allUsers } = useAllUsers();
+  const { allUsers: rawUsers } = useAllUsers();
+  const allUsers = rawUsers.filter(u => !u.cargo?.startsWith("motorista_"));
   const [openPopups, setOpenPopups] = useState<PopupChat[]>([]);
 
-  const currentUser = allUsers.find(u => u.isCurrentUser);
+  const currentUser = rawUsers.find(u => u.isCurrentUser);
   const isDriver = currentUser?.cargo?.startsWith("motorista_");
 
   const closePopup = useCallback((userId: string) => {
