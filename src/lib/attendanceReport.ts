@@ -84,8 +84,16 @@ export function buildAreaPresenceText(
     includeHeader?: boolean;
     onlyPresent?: boolean;
     skipPresentMark?: boolean;
+    includeSupport?: boolean;
   } = {}
 ): string {
+  const {
+    includeStats = false,
+    includeHeader = true,
+    onlyPresent = false,
+    skipPresentMark = false,
+    includeSupport = true,
+  } = options;
   const {
     includeStats = false,
     includeHeader = true,
