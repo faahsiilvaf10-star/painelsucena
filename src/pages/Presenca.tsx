@@ -210,6 +210,7 @@ const Presenca = () => {
       });
       toast.success(`${toTitleCase(emp.nome)} adicionado`);
       setAddEmployeeId("");
+      setAddSearch("");
       setAddOpen(false);
     } catch (e) {
       toast.error("Erro ao adicionar");
