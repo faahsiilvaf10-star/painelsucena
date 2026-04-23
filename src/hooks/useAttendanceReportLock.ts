@@ -63,7 +63,7 @@ export const useAttendanceReportLocks = (date: string) => {
             area,
             locked_by: user.id,
           },
-          { onConflict: "date,area,environment" }
+          { onConflict: "date,area" }
         );
       if (error) throw error;
     },
