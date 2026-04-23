@@ -8,6 +8,7 @@ interface NeonAvatarProps {
   frameAnimation?: string | null;
   size?: "xs" | "sm" | "md" | "lg";
   className?: string;
+  onClick?: () => void;
 }
 
 const sizeConfig = {
