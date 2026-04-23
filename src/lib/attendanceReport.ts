@@ -94,12 +94,6 @@ export function buildAreaPresenceText(
     skipPresentMark = false,
     includeSupport = true,
   } = options;
-  const {
-    includeStats = false,
-    includeHeader = true,
-    onlyPresent = false,
-    skipPresentMark = false,
-  } = options;
 
   const isPresent = (c: Colaborador) => !absentIds.has(c.id);
   const visible = onlyPresent ? areaEmployees.filter(isPresent) : areaEmployees;
