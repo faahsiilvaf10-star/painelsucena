@@ -105,8 +105,8 @@ export function MatrixGauge({ referenceDate }: MatrixGaugeProps = {}) {
           />
           <defs>
             <linearGradient id="matrixOrange" x1="0%" y1="0%" x2="100%" y2="100%">
-              <stop offset="0%" stopColor="hsl(28, 95%, 60%)" />
-              <stop offset="100%" stopColor="hsl(20, 90%, 50%)" />
+              <stop offset="0%" stopColor="hsl(var(--primary))" />
+              <stop offset="100%" stopColor="hsl(var(--primary))" stopOpacity="0.7" />
             </linearGradient>
           </defs>
         </svg>
