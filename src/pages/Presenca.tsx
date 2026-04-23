@@ -196,20 +196,27 @@ const Presenca = () => {
   const absentCount = absentSet.size;
 
   const handleAddAssign = async () => {
-    if (!addEmployeeId) {
-      toast.error("Selecione um funcionário");
+    if (addEmployeeIds.size === 0) {
+      toast.error("Selecione pelo menos um funcionário");
       return;
     }
-    const emp = allColaboradores.find((c) => c.id === Number(addEmployeeId));
-    if (!emp) return;
+    const emps = allColaboradores.filter((c) => addEmployeeIds.has(c.id));
     try {
-      await assignMutation.mutateAsync({
-        employee_id: emp.id,
-        employee_name: emp.nome,
-        area: addArea,
-      });
-      toast.success(`${toTitleCase(emp.nome)} adicionado`);
-      setAddEmployeeId("");
+      await Promise.all(
+        emps.map((emp) =>
+          assignMutation.mutateAsync({
+            employee_id: emp.id,
+            employee_name: emp.nome,
+            area: addArea,
+          })
+        )
+      );
+      toast.success(
+        emps.length === 1
+          ? `${toTitleCase(emps[0].nome)} adicionado`
+          : `${emps.length} funcionários adicionados`
+      );
+      setAddEmployeeIds(new Set());
       setAddSearch("");
       setAddOpen(false);
     } catch (e) {
