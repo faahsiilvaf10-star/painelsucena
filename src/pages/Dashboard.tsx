@@ -68,6 +68,10 @@ import { useHolidayNotification } from "@/hooks/useHolidayNotification";
 import { useFridayNotification } from "@/hooks/useFridayNotification";
 import { toast } from "sonner";
 
+const DashboardItemSkeleton = () => (
+  <div className="w-full h-32 bg-card/50 animate-pulse rounded-2xl border border-border/50" />
+);
+
 const Dashboard = () => {
   const { data: profile } = useProfile();
   const { settings } = useSiteSettings();
