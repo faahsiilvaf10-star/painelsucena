@@ -60,6 +60,7 @@ export function WeatherWidget() {
         isDay: data.current.is_day === 1,
         locationName: data.locationName || "Barcarena - Vila dos Cabanos",
         lastUpdated: new Date(data.fetchedAt || Date.now()).toLocaleTimeString('pt-BR', { hour: '2-digit', minute: '2-digit' }),
+        isFallback: !!data.fallback,
       });
     } catch (err) {
       console.error("Erro ao obter previsão:", err);
