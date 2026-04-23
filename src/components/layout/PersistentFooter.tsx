@@ -1,4 +1,5 @@
 import { useEffect, useState, useRef } from "react";
+import { createPortal } from "react-dom";
 import { useLocation } from "react-router-dom";
 import { OnlineUsersFooter } from "@/components/chat/OnlineUsersFooter";
 import { ChatPopupManager, ChatPopupManagerHandle } from "@/components/chat/ChatPopupManager";
@@ -11,8 +12,13 @@ export const PersistentFooter = () => {
   const location = useLocation();
   const popupManagerRef = useRef<ChatPopupManagerHandle>(null);
   const [justCompletedTransition, setJustCompletedTransition] = useState(false);
+  const [isMounted, setIsMounted] = useState(false);
 
   const isDriverPage = ["/painel-motorista", "/registro-movimento-motorista", "/selecao-veiculo", "/equipamentos-motorista", "/relatorios-motorista", "/pontos-abastecimento"].includes(location.pathname);
+
+  useEffect(() => {
+    setIsMounted(true);
+  }, []);
 
   useEffect(() => {
     const handler = () => {
@@ -32,13 +38,14 @@ export const PersistentFooter = () => {
     popupManagerRef.current?.openPopup(userClicked);
   };
 
-  if (!user || isDriverPage) return null;
+  if (!isMounted || !user || isDriverPage) return null;
 
-  return (
+  return createPortal(
     <div className={justCompletedTransition ? "animate-fade-in" : ""}>
       <OnlineUsersFooter onUserClick={handleUserClick} />
       <ChatPopupManager ref={popupManagerRef} />
       <RightUsersSidebar onUserClick={handleUserClick} />
-    </div>
+    </div>,
+    document.body
   );
 };

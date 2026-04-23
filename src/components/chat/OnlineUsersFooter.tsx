@@ -34,7 +34,7 @@ export const OnlineUsersFooter = ({ onUserClick }: OnlineUsersFooterProps) => {
   return (
     <div className={cn(
       "fixed bottom-0 right-0 z-40 transition-[left] duration-200 ease-linear",
-      isMinimized ? "bg-transparent border-t-0" : "bg-card border-t border-border dark:bg-zinc-900 dark:border-zinc-800",
+      isMinimized ? "bg-transparent border-t-0" : "bg-card border-t border-border",
       isCollapsedSidebar ? "left-[48px]" : "left-[256px]",
       "max-md:left-0"
     )}>
