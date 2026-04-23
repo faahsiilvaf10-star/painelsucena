@@ -27,13 +27,20 @@ const formatLastSeen = (lastSeen?: string) => {
 };
 
 export const RightUsersSidebar = ({ onUserClick }: RightUsersSidebarProps) => {
-  const { allUsers, onlineCount, offlineCount } = useAllUsers();
+  const { allUsers } = useAllUsers();
   const { isUserTyping } = useGlobalTypingIndicator();
   const [isOpen, setIsOpen] = useState(false);
+
+  const currentUser = allUsers.find(u => u.isCurrentUser);
+  const isDriver = currentUser?.cargo?.startsWith("motorista_");
 
   const filteredUsers = allUsers.filter((u) => !u.cargo?.startsWith("motorista_"));
   const onlineUsers = filteredUsers.filter((u) => u.isOnline);
   const offlineUsers = filteredUsers.filter((u) => !u.isOnline);
+  
+  const onlineCount = onlineUsers.length;
+
+  if (isDriver) return null;
 
   return (
     <>
