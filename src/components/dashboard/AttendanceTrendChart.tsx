@@ -52,11 +52,11 @@ export function AttendanceTrendChart() {
         <h3 className="text-lg font-bold">Presença vs Ausências</h3>
         <div className="flex items-center gap-4 text-sm">
           <div className="flex items-center gap-1.5">
-            <span className="w-3 h-3 rounded-full bg-[hsl(174,62%,47%)]" />
+            <span className="w-3 h-3 rounded-full bg-primary" />
             <span className="text-muted-foreground">Presentes</span>
           </div>
           <div className="flex items-center gap-1.5">
-            <span className="w-3 h-3 rounded-full bg-[hsl(0,84%,60%)]" />
+            <span className="w-3 h-3 rounded-full bg-destructive" />
             <span className="text-muted-foreground">Ausentes</span>
           </div>
         </div>
@@ -85,17 +85,17 @@ export function AttendanceTrendChart() {
             <Line
               type="monotone"
               dataKey="presentes"
-              stroke="hsl(174, 62%, 47%)"
+              stroke="hsl(var(--primary))"
               strokeWidth={3}
-              dot={{ r: 5, fill: "hsl(174, 62%, 47%)", strokeWidth: 2, stroke: "hsl(var(--card))" }}
+              dot={{ r: 5, fill: "hsl(var(--primary))", strokeWidth: 2, stroke: "hsl(var(--card))" }}
               activeDot={{ r: 7 }}
             />
             <Line
               type="monotone"
               dataKey="ausentes"
-              stroke="hsl(0, 84%, 60%)"
+              stroke="hsl(var(--destructive))"
               strokeWidth={3}
-              dot={{ r: 5, fill: "hsl(0, 84%, 60%)", strokeWidth: 2, stroke: "hsl(var(--card))" }}
+              dot={{ r: 5, fill: "hsl(var(--destructive))", strokeWidth: 2, stroke: "hsl(var(--card))" }}
               activeDot={{ r: 7 }}
             />
           </LineChart>

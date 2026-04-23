@@ -111,11 +111,11 @@ export function MatrixSideChart() {
             <Area
               type="monotone"
               dataKey="value"
-              stroke="hsl(174, 62%, 47%)"
-              fill="hsl(174, 62%, 47%)"
+              stroke="hsl(var(--primary))"
+              fill="hsl(var(--primary))"
               fillOpacity={0.2}
               strokeWidth={2}
-              dot={{ r: 3, fill: "hsl(174, 62%, 47%)" }}
+              dot={{ r: 3, fill: "hsl(var(--primary))" }}
             />
           </AreaChart>
         </ResponsiveContainer>
