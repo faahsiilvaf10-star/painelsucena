@@ -133,7 +133,7 @@ const Presenca = () => {
   });
   const [previewOpen, setPreviewOpen] = useState(false);
   const [addOpen, setAddOpen] = useState(false);
-  const [addEmployeeId, setAddEmployeeId] = useState<string>("");
+  const [addEmployeeIds, setAddEmployeeIds] = useState<Set<number>>(new Set());
   const [addSearch, setAddSearch] = useState("");
   const [addArea, setAddArea] = useState<AttendanceArea>("gabiao");
   const [copied, setCopied] = useState(false);
@@ -196,20 +196,27 @@ const Presenca = () => {
   const absentCount = absentSet.size;
 
   const handleAddAssign = async () => {
-    if (!addEmployeeId) {
-      toast.error("Selecione um funcionário");
+    if (addEmployeeIds.size === 0) {
+      toast.error("Selecione pelo menos um funcionário");
       return;
     }
-    const emp = allColaboradores.find((c) => c.id === Number(addEmployeeId));
-    if (!emp) return;
+    const emps = allColaboradores.filter((c) => addEmployeeIds.has(c.id));
     try {
-      await assignMutation.mutateAsync({
-        employee_id: emp.id,
-        employee_name: emp.nome,
-        area: addArea,
-      });
-      toast.success(`${toTitleCase(emp.nome)} adicionado`);
-      setAddEmployeeId("");
+      await Promise.all(
+        emps.map((emp) =>
+          assignMutation.mutateAsync({
+            employee_id: emp.id,
+            employee_name: emp.nome,
+            area: addArea,
+          })
+        )
+      );
+      toast.success(
+        emps.length === 1
+          ? `${toTitleCase(emps[0].nome)} adicionado`
+          : `${emps.length} funcionários adicionados`
+      );
+      setAddEmployeeIds(new Set());
       setAddSearch("");
       setAddOpen(false);
     } catch (e) {
@@ -493,35 +500,77 @@ const Presenca = () => {
                                   </div>
                                 );
                               }
+                              const allSelected = list.every((c) =>
+                                addEmployeeIds.has(c.id)
+                              );
+                              const toggleAll = () => {
+                                setAddEmployeeIds((prev) => {
+                                  const next = new Set(prev);
+                                  if (allSelected) {
+                                    list.forEach((c) => next.delete(c.id));
+                                  } else {
+                                    list.forEach((c) => next.add(c.id));
+                                  }
+                                  return next;
+                                });
+                              };
                               return (
                                 <div className="p-1">
+                                  <button
+                                    type="button"
+                                    onClick={toggleAll}
+                                    className="w-full text-left px-3 py-2 rounded-md text-xs font-medium text-muted-foreground hover:bg-accent border-b mb-1"
+                                  >
+                                    {allSelected
+                                      ? "Desmarcar todos visíveis"
+                                      : "Selecionar todos visíveis"}{" "}
+                                    ({list.length})
+                                  </button>
                                   {list.map((c) => {
-                                    const selected =
-                                      addEmployeeId === String(c.id);
+                                    const selected = addEmployeeIds.has(c.id);
                                     return (
                                       <button
                                         key={c.id}
                                         type="button"
                                         onClick={() =>
-                                          setAddEmployeeId(String(c.id))
+                                          setAddEmployeeIds((prev) => {
+                                            const next = new Set(prev);
+                                            if (next.has(c.id))
+                                              next.delete(c.id);
+                                            else next.add(c.id);
+                                            return next;
+                                          })
                                         }
-                                        className={`w-full text-left px-3 py-2 rounded-md text-sm transition-colors ${
+                                        className={`w-full text-left px-3 py-2 rounded-md text-sm transition-colors flex items-start gap-2 ${
                                           selected
                                             ? "bg-primary text-primary-foreground"
                                             : "hover:bg-accent"
                                         }`}
                                       >
-                                        <div className="font-medium">
-                                          {toTitleCase(c.nome)}
-                                        </div>
                                         <div
-                                          className={`text-xs ${
+                                          className={`mt-0.5 w-4 h-4 rounded border flex items-center justify-center shrink-0 ${
                                             selected
-                                              ? "text-primary-foreground/80"
-                                              : "text-muted-foreground"
+                                              ? "bg-primary-foreground border-primary-foreground"
+                                              : "border-muted-foreground/40"
                                           }`}
                                         >
-                                          {c.funcao}
+                                          {selected && (
+                                            <Check className="w-3 h-3 text-primary" />
+                                          )}
+                                        </div>
+                                        <div className="flex-1">
+                                          <div className="font-medium">
+                                            {toTitleCase(c.nome)}
+                                          </div>
+                                          <div
+                                            className={`text-xs ${
+                                              selected
+                                                ? "text-primary-foreground/80"
+                                                : "text-muted-foreground"
+                                            }`}
+                                          >
+                                            {c.funcao}
+                                          </div>
                                         </div>
                                       </button>
                                     );
@@ -531,6 +580,11 @@ const Presenca = () => {
                             })()
                           )}
                         </ScrollArea>
+                        {addEmployeeIds.size > 0 && (
+                          <p className="text-xs text-muted-foreground mt-2">
+                            {addEmployeeIds.size} selecionado(s)
+                          </p>
+                        )}
                       </div>
                       <div>
                         <label className="text-sm font-medium mb-1 block">
@@ -565,7 +619,7 @@ const Presenca = () => {
                       <Button
                         onClick={handleAddAssign}
                         disabled={
-                          !addEmployeeId || assignMutation.isPending
+                          addEmployeeIds.size === 0 || assignMutation.isPending
                         }
                       >
                         Adicionar
