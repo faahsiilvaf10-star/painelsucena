@@ -22,7 +22,7 @@ const Equipamentos = () => {
           <h1 className="text-2xl md:text-3xl font-bold text-[#c9a84c]">Equipamentos</h1>
         </div>
 
-        <div className="grid grid-cols-2 sm:grid-cols-3 gap-4 md:gap-5 max-w-3xl mx-auto">
+        <div className="grid grid-cols-2 sm:grid-cols-2 gap-4 md:gap-5 max-w-2xl mx-auto">
           {equipamentosPages.map((page) => (
             <button
               key={page.path}
@@ -46,6 +46,16 @@ const Equipamentos = () => {
               </div>
             </button>
           ))}
+          
+          <div className="group relative rounded-2xl p-[2px] cursor-pointer transition-all duration-300 hover:scale-105 hover:shadow-[0_0_30px_rgba(201,168,76,0.3)]">
+            <div
+              className="absolute inset-0 rounded-2xl"
+              style={{
+                background: "linear-gradient(145deg, #d4a84c, #b8942e, #e8c95a, #a07828)",
+              }}
+            />
+            <TotalEquipmentStatusModal />
+          </div>
         </div>
       </div>
     </Layout>
