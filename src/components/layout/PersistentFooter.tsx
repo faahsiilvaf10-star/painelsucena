@@ -39,7 +39,7 @@ export const PersistentFooter = () => {
     popupManagerRef.current?.openPopup(userClicked);
   };
 
-  if (!isMounted || !user || isDriverPage) return null;
+  if (!isMounted || !user || isDriverPage || isEnvSelection) return null;
 
   return createPortal(
     <div className={justCompletedTransition ? "animate-fade-in" : ""}>
