@@ -199,6 +199,39 @@ export type Database = {
         }
         Relationships: []
       }
+      attendance_daily_marks: {
+        Row: {
+          absent_employee_ids: number[]
+          area: string
+          created_at: string
+          created_by: string | null
+          date: string
+          environment: string
+          id: string
+          updated_at: string
+        }
+        Insert: {
+          absent_employee_ids?: number[]
+          area: string
+          created_at?: string
+          created_by?: string | null
+          date: string
+          environment?: string
+          id?: string
+          updated_at?: string
+        }
+        Update: {
+          absent_employee_ids?: number[]
+          area?: string
+          created_at?: string
+          created_by?: string | null
+          date?: string
+          environment?: string
+          id?: string
+          updated_at?: string
+        }
+        Relationships: []
+      }
       attendance_records: {
         Row: {
           check_in: string | null
