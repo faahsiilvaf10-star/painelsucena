@@ -106,7 +106,7 @@ export function PostCard({ post }: { post: InstaCenaPost }) {
               ) : (
                 <>
                   {post.user_name}
-                  {post.is_admin && <VerifiedBadge size="xs" />}
+                  {post.is_admin && <VerifiedBadge size="sm" />}
                 </>
               )}
             </p>
