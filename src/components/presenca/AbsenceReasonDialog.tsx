@@ -22,8 +22,8 @@ import {
 import { toast } from "sonner";
 import {
   ABSENCE_REASONS,
-  useSaveAbsenceReason,
-  type AbsenceReasonType,
+  useUpsertAbsence,
+  type AbsenceReason,
 } from "@/hooks/useAbsenceReasons";
 
 interface Props {
