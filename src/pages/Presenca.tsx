@@ -32,6 +32,9 @@ import {
   XCircle,
   Plus,
   Trash2,
+  Save,
+  Lock,
+  Unlock,
 } from "lucide-react";
 import { toast } from "sonner";
 import { useRHEfetivo } from "@/hooks/useRHEfetivo";
