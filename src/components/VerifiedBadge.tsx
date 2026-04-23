@@ -1,5 +1,5 @@
 import { forwardRef } from "react";
-import adminBadge from "@/assets/admin-badge-gold.png";
+import adminBadge from "@/assets/admin-badge-blue.png";
 import { cn } from "@/lib/utils";
 
 interface VerifiedBadgeProps {
@@ -42,7 +42,7 @@ export const VerifiedBadge = forwardRef<HTMLDivElement, VerifiedBadgeProps>(
           )}
           style={{
             background:
-              "radial-gradient(circle, rgba(255,200,0,0.30) 0%, rgba(255,180,0,0.10) 45%, rgba(255,180,0,0) 75%)",
+              "radial-gradient(circle, rgba(56,182,255,0.35) 0%, rgba(30,144,255,0.12) 45%, rgba(30,144,255,0) 75%)",
             filter: "blur(2px)",
           }}
         />
