@@ -21,6 +21,9 @@ export const ChatPopupManager = forwardRef<ChatPopupManagerHandle>((_props, ref)
   const { allUsers } = useAllUsers();
   const [openPopups, setOpenPopups] = useState<PopupChat[]>([]);
 
+  const currentUser = allUsers.find(u => u.isCurrentUser);
+  const isDriver = currentUser?.cargo?.startsWith("motorista_");
+
   const closePopup = useCallback((userId: string) => {
     setOpenPopups(prev => prev.filter(p => p.user.user_id !== userId));
   }, []);
