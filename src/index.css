@@ -253,11 +253,8 @@ html, body {
     }
   }
 
-  /* Emergência: vermelho pulsante mantém-se mesmo no dark */
-  .dark [data-sidebar="menu-button"] .text-red-500 {
-    color: hsl(0 90% 60%) !important;
-    filter: drop-shadow(0 0 6px hsl(0 90% 50% / 0.6));
-  }
+
+
 
   /* Scrollbar dourada */
   .dark ::-webkit-scrollbar { width: 8px; height: 8px; }
