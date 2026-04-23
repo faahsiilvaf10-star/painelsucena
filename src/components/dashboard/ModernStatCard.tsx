@@ -35,9 +35,9 @@ const SparklineChart = ({ data }: { data: number[] }) => {
   }, []);
   const chartData = (show ? data : data.map(() => 0)).map((v, i) => ({ v, i }));
   return (
-    <div className="w-full h-24 mt-2">
+    <div className="w-full h-16 mt-1">
       <ResponsiveContainer width="100%" height="100%">
-        <AreaChart data={chartData} margin={{ top: 4, right: 0, left: 0, bottom: 0 }}>
+        <AreaChart data={chartData} margin={{ top: 2, right: 0, left: 0, bottom: 0 }}>
           <defs>
             <linearGradient id="sparkOrange" x1="0" y1="0" x2="0" y2="1">
               <stop offset="0%" stopColor={ORANGE} stopOpacity={0.45} />
