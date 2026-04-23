@@ -83,27 +83,11 @@ const ProtectedRoute = ({ children }: ProtectedRouteProps) => {
           setSession(existingSession);
           setLoading(false);
 
-          // Only check tab flag on initial page load (not after a fresh login)
-          const tabWasActive = sessionStorage.getItem(SESSION_TAB_KEY);
-          const cargoInfo = await fetchUserCargo(existingSession.user.id);
-          const cargo = cargoInfo?.cargo;
-          const isDriverRole = cargo && DRIVER_ROLES.includes(cargo);
-
-          // Browser was closed & reopened with a stale session → auto-logout non-drivers
-          if (!tabWasActive && !isDriverRole) {
-            console.log("Browser was closed. Auto-logging out non-driver user.");
-            setSession(null);
-            try {
-              await authClient.signOut({ scope: "local" });
-            } catch {
-              /* ignore */
-            }
-            navigate("/auth", { replace: true });
-            return;
-          }
-
           // Session is valid, mark tab as active
           sessionStorage.setItem(SESSION_TAB_KEY, "1");
+          
+          // Fetch cargo to determine redirects
+          await fetchUserCargo(existingSession.user.id);
         } else {
           // Try to refresh the session if no active session found
           const {
