@@ -373,39 +373,14 @@ export function AppSidebar({ lockedCollapsed = false }: { lockedCollapsed?: bool
     }
   };
 
-  // Per-user sidebar color (falls back to global site setting, then default dark)
-  const userSidebarColor = profile?.sidebar_color || settings.sidebar_color || "hsl(220, 18%, 6%)";
-  const userSidebarAnimation = profile?.sidebar_animation ?? "particles";
-  const userSidebarFont = profile?.sidebar_font || undefined;
-  const userSidebarFontColor = profile?.sidebar_font_color || undefined;
-  const userSidebarActiveColor = profile?.sidebar_active_color || undefined;
-  const userSidebarActiveFontColor = profile?.sidebar_active_font_color || undefined;
-
-  // Extract raw HSL values from "hsl(H, S%, L%)" for CSS variable override
-  const extractHslValues = (color: string): string => {
-    const match = color.match(/hsl\(\s*([\d.]+)\s*,?\s*([\d.]+)%?\s*,?\s*([\d.]+)%?\s*\)/);
-    if (match) return `${match[1]} ${match[2]}% ${match[3]}%`;
-    return color;
-  };
-
-  const sidebarStyle: React.CSSProperties = {
-    '--sidebar-background': extractHslValues(userSidebarColor),
-    '--sidebar-foreground': userSidebarFontColor ? extractHslValues(userSidebarFontColor) : undefined,
-    '--sidebar-accent': userSidebarActiveColor ? extractHslValues(userSidebarActiveColor) : undefined,
-    '--sidebar-primary': userSidebarActiveColor ? extractHslValues(userSidebarActiveColor) : undefined,
-    '--sidebar-accent-foreground': userSidebarActiveFontColor ? extractHslValues(userSidebarActiveFontColor) : undefined,
-    '--sidebar-primary-foreground': userSidebarActiveFontColor ? extractHslValues(userSidebarActiveFontColor) : undefined,
-    backgroundColor: userSidebarColor,
-    ...(userSidebarFont ? { fontFamily: userSidebarFont } : {}),
-    ...(userSidebarFontColor ? { color: userSidebarFontColor } : {}),
-  } as React.CSSProperties;
+  // Sidebar padrão global — personalizações por usuário foram removidas.
+  // Sempre usa os tokens do tema (--sidebar-*) que respeitam tema claro/escuro.
+  const sidebarStyle: React.CSSProperties = {};
 
   return (
     <Sidebar collapsible="icon" className="border-r-0 relative shrink-0 h-screen sticky top-0 rounded-r-2xl md:rounded-r-2xl overflow-visible" style={sidebarStyle}>
-      {/* Background with animation */}
-      <div className="absolute inset-0 overflow-hidden rounded-r-2xl">
-        <SidebarBackground animation={userSidebarAnimation} bgColor={userSidebarColor} />
-      </div>
+      {/* Background sutil padrão (sem animações personalizadas) */}
+      <div className="absolute inset-0 overflow-hidden rounded-r-2xl pointer-events-none bg-sidebar" />
       
       {/* Header with Logo - clickable for admin/moderator to change */}
       <SidebarHeader className="border-b border-sidebar-border/50 p-3 md:p-4 relative z-10">
