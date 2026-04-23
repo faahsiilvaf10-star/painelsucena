@@ -367,7 +367,9 @@ export const EditReminderDialog = ({ reminder, trigger }: EditReminderDialogProp
                 <Label>Selecione os usuários</Label>
                 <ScrollArea className="h-40 rounded-md border p-2">
                   <div className="space-y-2">
-                    {allProfiles?.map((profile) => (
+                    {allProfiles
+                      ?.filter(p => p.user_id !== reminder.created_by)
+                      .map((profile) => (
                       <div
                         key={profile.user_id}
                         className={cn(
