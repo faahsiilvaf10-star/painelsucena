@@ -288,9 +288,9 @@ const Dashboard = () => {
         </div>
 
         {/* Main stats grid */}
-        <div className="grid grid-cols-1 lg:grid-cols-12 gap-4 mb-6 animate-slide-up">
+        <div className="grid grid-cols-1 lg:grid-cols-12 gap-3 mb-4 animate-slide-up">
           {/* Left column: Weather + Total Funcionários */}
-          <div className="lg:col-span-3 flex flex-col gap-4">
+          <div className="lg:col-span-3 flex flex-col gap-3">
             <WeatherWidget />
             <ModernStatCard
               title="Total de Funcionários"
@@ -307,7 +307,7 @@ const Dashboard = () => {
           </div>
 
           {/* Right-center: Presentes Hoje + Ausências */}
-          <div className="lg:col-span-3 flex flex-col gap-4">
+          <div className="lg:col-span-3 flex flex-col gap-3">
             <ModernStatCard
               title="Presentes hoje"
               value={presentToday}
