@@ -31,8 +31,9 @@ export const RightUsersSidebar = ({ onUserClick }: RightUsersSidebarProps) => {
   const { isUserTyping } = useGlobalTypingIndicator();
   const [isOpen, setIsOpen] = useState(false);
 
-  const onlineUsers = allUsers.filter((u) => u.isOnline);
-  const offlineUsers = allUsers.filter((u) => !u.isOnline);
+  const filteredUsers = allUsers.filter((u) => !u.cargo?.startsWith("motorista_"));
+  const onlineUsers = filteredUsers.filter((u) => u.isOnline);
+  const offlineUsers = filteredUsers.filter((u) => !u.isOnline);
 
   return (
     <>
