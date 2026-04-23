@@ -72,10 +72,10 @@ export const AbsenceReasonDialog = ({
   const handleSave = async () => {
     try {
       await save.mutateAsync({
-        employee_id: employeeId,
+        employeeKey: employeeId,
         date,
-        reason: reason as AbsenceReasonType,
-        days_count: showDays ? Math.max(1, days) : 1,
+        reason: reason as AbsenceReason,
+        daysCount: showDays ? Math.max(1, days) : 1,
         cid: cid.trim() || null,
         notes: notes.trim() || null,
       });
