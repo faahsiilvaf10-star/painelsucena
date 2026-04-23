@@ -44,6 +44,7 @@ import {
   type AttendanceArea,
 } from "@/hooks/useAttendanceAreaAssignments";
 import { useAttendanceReportLocks } from "@/hooks/useAttendanceReportLock";
+import { useAttendanceDailyMarks } from "@/hooks/useAttendanceDailyMarks";
 import type { Colaborador } from "@/data/efetivoData";
 
 const toTitleCase = (name: string) =>
@@ -131,6 +132,8 @@ const Presenca = () => {
   );
   const { isLocked, lockMutation, unlockMutation } =
     useAttendanceReportLocks(date);
+  const { data: dailyMarks, getAbsentIds, saveMutation: marksSaveMutation } =
+    useAttendanceDailyMarks(date);
   const [activeArea, setActiveArea] = useState<AttendanceArea>("gabiao");
   const [absentByArea, setAbsentByArea] = useState<
     Record<AttendanceArea, Set<number>>
@@ -362,8 +365,13 @@ const Presenca = () => {
 
   const handleSaveLock = async () => {
     try {
+      // Persiste as ausências para a área (vai para o RDO)
+      await marksSaveMutation.mutateAsync({
+        area: activeArea,
+        absentIds: Array.from(absentByArea[activeArea]),
+      });
       await lockMutation.mutateAsync(activeArea);
-      toast.success("Lista de presença salva e bloqueada");
+      toast.success("Lista salva e enviada para o RDO");
     } catch {
       toast.error("Erro ao salvar");
     }
