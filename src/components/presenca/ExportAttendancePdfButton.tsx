@@ -219,16 +219,20 @@ export const ExportAttendancePdfButton = () => {
             const displayName = toTitleCase(colab.nome);
             doc.text(displayName.substring(0, 30), margin + 2, y + rowHeight - 1.5);
 
+            // Matrícula
+            const matricula = colab.matricula || "-";
+            doc.text(matricula, margin + nameColWidth + 1, y + rowHeight - 1.5);
+
             // Function
             const funcao = toTitleCase(colab.funcao || "-");
-            doc.text(funcao.substring(0, 18), margin + nameColWidth + 1, y + rowHeight - 1.5);
+            doc.text(funcao.substring(0, 15), margin + nameColWidth + matriculaColWidth + 1, y + rowHeight - 1.5);
 
             // Days
             const empName = colab.nome.toUpperCase().trim();
             const empAttendance = attendanceLookup.get(empName);
             let absentCount = 0;
 
-            xDate = margin + nameColWidth + funcaoColWidth;
+            xDate = margin + nameColWidth + matriculaColWidth + funcaoColWidth;
             const squarePadding = 0.8;
             const squareSize = Math.min(dayColWidth - squarePadding * 2, rowHeight - squarePadding * 2);
             dateChunk.forEach((d) => {
