@@ -1,4 +1,5 @@
 import { useMemo, useState } from "react";
+import { useQueryClient } from "@tanstack/react-query";
 import Layout from "@/components/layout/Layout";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
@@ -117,6 +118,7 @@ const ROLE_LABELS: Record<string, string> = {
 };
 
 const Presenca = () => {
+  const queryClient = useQueryClient();
   const { data: rhData, isLoading } = useRHEfetivo();
   const {
     data: assignments,
@@ -225,6 +227,11 @@ const Presenca = () => {
       setAddEmployeeIds(new Set());
       setAddSearch("");
       setAddOpen(false);
+      // Garante que a prévia reflita imediatamente os novos funcionários
+      await queryClient.refetchQueries({
+        queryKey: ["attendance-area-assignments"],
+      });
+      setActiveArea(addArea);
     } catch (e) {
       toast.error("Erro ao adicionar");
     }
