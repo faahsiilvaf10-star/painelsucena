@@ -85,13 +85,20 @@ export function WeatherWidget() {
     "relative rounded-2xl p-5 h-full overflow-hidden shadow-lg transition-transform hover:scale-[1.01]";
   const sunnyBg =
     "linear-gradient(160deg, hsl(200, 90%, 88%) 0%, hsl(195, 85%, 78%) 55%, hsl(200, 80%, 70%) 100%)";
-  const rainyBg =
-    "linear-gradient(155deg, hsl(225, 60%, 18%) 0%, hsl(232, 55%, 24%) 55%, hsl(220, 50%, 32%) 100%)";
+  // Dark cloudy/rainy background with bridge image overlay (matches reference)
+  const rainyBg = `
+    linear-gradient(155deg, hsl(0 0% 6% / 0.82) 0%, hsl(0 0% 4% / 0.7) 55%, hsl(45 40% 12% / 0.6) 100%),
+    url("https://images.unsplash.com/photo-1504307651254-35680f356dfd?auto=format&fit=crop&w=1200&q=80") center/cover no-repeat
+  `;
   const cardStyle: React.CSSProperties = {
     background: isSunny ? sunnyBg : rainyBg,
-    color: isSunny ? "hsl(220, 40%, 18%)" : "white",
+    color: isSunny ? "hsl(220, 40%, 18%)" : "hsl(0 0% 96%)",
+    border: isSunny ? "1px solid hsl(var(--border))" : "1px solid hsl(var(--primary) / 0.35)",
+    boxShadow: isSunny
+      ? undefined
+      : "0 0 0 1px hsl(var(--primary) / 0.15), 0 0 28px hsl(var(--primary) / 0.18), 0 18px 40px hsl(0 0% 0% / 0.45)",
   };
-  const textMuted = isSunny ? "text-slate-700/80" : "text-white/80";
+  const textMuted = isSunny ? "text-slate-700/80" : "text-white/75";
 
   if (error) {
     return (
@@ -162,7 +169,7 @@ export function WeatherWidget() {
 
       <div className="relative z-10">
         <div className={`flex items-center gap-1.5 text-[11px] mb-3 ${textMuted}`}>
-          <MapPin className="h-3 w-3" />
+          <MapPin className={`h-3 w-3 ${isSunny ? "" : "text-primary"}`} />
           <span className="truncate">{weather.locationName}</span>
         </div>
 
@@ -175,17 +182,17 @@ export function WeatherWidget() {
         </div>
         <p className={`text-sm font-medium mb-4 ${textMuted}`}>{description}</p>
 
-        <div className={`space-y-1.5 text-xs border-t pt-3 ${textMuted} ${isSunny ? "border-slate-900/10" : "border-white/10"}`}>
+        <div className={`space-y-1.5 text-xs border-t pt-3 ${textMuted} ${isSunny ? "border-slate-900/10" : "border-primary/20"}`}>
           <div className="flex items-center gap-1.5">
-            <Thermometer className="h-3.5 w-3.5" />
+            <Thermometer className={`h-3.5 w-3.5 ${isSunny ? "" : "text-primary"}`} />
             <span>Sensação {weather.apparentTemp}°</span>
           </div>
           <div className="flex items-center gap-1.5">
-            <Droplets className="h-3.5 w-3.5" />
+            <Droplets className={`h-3.5 w-3.5 ${isSunny ? "" : "text-primary"}`} />
             <span>Umidade {weather.humidity}%</span>
           </div>
           <div className="flex items-center gap-1.5">
-            <Wind className="h-3.5 w-3.5" />
+            <Wind className={`h-3.5 w-3.5 ${isSunny ? "" : "text-primary"}`} />
             <span>Vento {weather.windSpeed} km/h</span>
           </div>
         </div>
