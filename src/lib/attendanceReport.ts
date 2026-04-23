@@ -114,12 +114,21 @@ export function buildAreaPresenceText(
       )
     : undefined;
   const encGeral = includeSupport
-    ? visible.find((c) => c.funcao === "ENCARREGADO GERAL" && isPresent(c))
+    ? visible.find(
+        (c) =>
+          (c.funcao || "").toUpperCase().startsWith("ENCARREGADO GERAL") &&
+          isPresent(c)
+      )
     : undefined;
   const enc = includeSupport
-    ? visible.find(
-        (c) => c.funcao === "ENCARREGADO DE FRENTE DE SERVIÇO" && isPresent(c)
-      )
+    ? visible.find((c) => {
+        const f = (c.funcao || "").toUpperCase();
+        return (
+          f.startsWith("ENCARREGADO") &&
+          !f.startsWith("ENCARREGADO GERAL") &&
+          isPresent(c)
+        );
+      })
     : undefined;
 
   if (tst || encGeral || enc) {
