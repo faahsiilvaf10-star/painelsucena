@@ -152,70 +152,80 @@ function startRuntimeVersionMonitor() {
 }
 
 async function bootstrap() {
-  const versionChanged = checkVersionAndReset();
   const electronRuntime = isElectronRuntime();
+  
+  try {
+    const versionChanged = checkVersionAndReset();
 
-  if (shouldDisableServiceWorker()) {
-    if (electronRuntime) {
-      const resetResult = await clearClientCaches();
+    if (shouldDisableServiceWorker()) {
+      if (electronRuntime) {
+        const resetResult = await clearClientCaches();
 
-      if (await refreshIfDocumentStale("electron-bootstrap")) {
-        return;
-      }
+        if (await refreshIfDocumentStale("electron-bootstrap")) {
+          return;
+        }
 
-      clearPreviewCacheResetAttempts();
-      markPreviewDocumentFresh();
-      console.log("Electron detectado: cache limpo e monitor de versão ativado.", resetResult);
-    } else {
-    const resetResult = await clearClientCaches();
-    const serverVersionMismatch = await checkServerVersion();
-    const hasPreviewArtifacts = resetResult.hadController || resetResult.hadRegistrations || resetResult.hadCaches;
-    const resetAttempts = getPreviewCacheResetAttempts();
-    const hasOutdatedPreviewDocument = Boolean(serverVersionMismatch);
-
-    if ((hasPreviewArtifacts || hasOutdatedPreviewDocument) && resetAttempts < MAX_PREVIEW_CACHE_RESET_ATTEMPTS) {
-      const nextAttempt = resetAttempts + 1;
-      setPreviewCacheResetAttempts(nextAttempt);
-
-      if (!hasOutdatedPreviewDocument) {
+        clearPreviewCacheResetAttempts();
         markPreviewDocumentFresh();
+        console.log("Electron detectado: cache limpo e monitor de versão ativado.", resetResult);
+      } else {
+        const resetResult = await clearClientCaches();
+        const serverVersionMismatch = await checkServerVersion();
+        const hasPreviewArtifacts = resetResult.hadController || resetResult.hadRegistrations || resetResult.hadCaches;
+        const resetAttempts = getPreviewCacheResetAttempts();
+        const hasOutdatedPreviewDocument = Boolean(serverVersionMismatch);
+
+        if ((hasPreviewArtifacts || hasOutdatedPreviewDocument) && resetAttempts < MAX_PREVIEW_CACHE_RESET_ATTEMPTS) {
+          const nextAttempt = resetAttempts + 1;
+          setPreviewCacheResetAttempts(nextAttempt);
+
+          if (!hasOutdatedPreviewDocument) {
+            markPreviewDocumentFresh();
+          }
+
+          console.log(
+            `Preview detectado: forçando atualização limpa (tentativa ${nextAttempt}/${MAX_PREVIEW_CACHE_RESET_ATTEMPTS}).`,
+            { ...resetResult, hasOutdatedPreviewDocument, serverVersionMismatch },
+          );
+          window.location.replace(getCacheBustedUrl({ "preview-reset-attempt": nextAttempt }));
+          return;
+        }
+
+        clearPreviewCacheResetAttempts();
+        markPreviewDocumentFresh();
+
+        if (hasPreviewArtifacts) {
+          console.warn("Preview detectado: resquícios de cache antigo persistiram após as tentativas de limpeza.", resetResult);
+        } else if (hasOutdatedPreviewDocument) {
+          console.warn(
+            "Preview detectado: o documento carregado estava desatualizado em relação ao servidor, mas o limite de tentativas foi atingido.",
+            { ...resetResult, serverVersionMismatch },
+          );
+        } else {
+          console.log("Preview detectado: Service Worker desativado e cache limpo para evitar versão antiga.", resetResult);
+        }
+      }
+    } else {
+      clearPreviewCacheResetAttempts();
+
+      if (versionChanged) {
+        await clearClientCaches();
       }
 
-      console.log(
-        `Preview detectado: forçando atualização limpa (tentativa ${nextAttempt}/${MAX_PREVIEW_CACHE_RESET_ATTEMPTS}).`,
-        { ...resetResult, hasOutdatedPreviewDocument, serverVersionMismatch },
-      );
-      window.location.replace(getCacheBustedUrl({ "preview-reset-attempt": nextAttempt }));
-      return;
+      registerAppServiceWorker();
+      listenForControllerChange();
     }
-
-    clearPreviewCacheResetAttempts();
-    markPreviewDocumentFresh();
-
-    if (hasPreviewArtifacts) {
-      console.warn("Preview detectado: resquícios de cache antigo persistiram após as tentativas de limpeza.", resetResult);
-    } else if (hasOutdatedPreviewDocument) {
-      console.warn(
-        "Preview detectado: o documento carregado estava desatualizado em relação ao servidor, mas o limite de tentativas foi atingido.",
-        { ...resetResult, serverVersionMismatch },
-      );
-    } else {
-      console.log("Preview detectado: Service Worker desativado e cache limpo para evitar versão antiga.", resetResult);
-    }
-    }
-  } else {
-    clearPreviewCacheResetAttempts();
-
-    if (versionChanged) {
-      await clearClientCaches();
-    }
-
-    registerAppServiceWorker();
-    listenForControllerChange();
+  } catch (error) {
+    console.error("Erro durante o bootstrap da aplicação:", error);
   }
 
-  // Always render the app — never block on update banners
-  createRoot(document.getElementById("root")!).render(<App />);
+  // Always render the app — never block on update banners or minor bootstrap errors
+  const rootElement = document.getElementById("root");
+  if (rootElement) {
+    createRoot(rootElement).render(<App />);
+  } else {
+    console.error("Elemento root não encontrado");
+  }
 
   if (electronRuntime) {
     startRuntimeVersionMonitor();
