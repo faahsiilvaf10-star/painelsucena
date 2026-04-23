@@ -228,22 +228,22 @@ const Dashboard = () => {
         userName={lastDayMatrix.userName}
         userAvatarUrl={lastDayMatrix.userAvatarUrl}
       />
-      <div className="container mx-auto px-3 sm:px-6 py-3 sm:py-6">
+      <div className="container mx-auto px-2 sm:px-4 py-2 sm:py-4">
         {/* Header */}
-        <div className="flex items-center justify-between mb-5 animate-fade-in flex-wrap gap-3">
+        <div className="flex items-center justify-between mb-4 animate-fade-in flex-wrap gap-2">
           {isDockTheme ? (
             <div className="flex-1 flex justify-center pl-16">
-              <SimpleTree className="w-48 h-40 sm:w-64 sm:h-52" />
+              <SimpleTree className="w-40 h-32 sm:w-56 sm:h-48" />
             </div>
           ) : (
             <div>
               <EditablePageTitle
                 pageKey="dashboard"
                 defaultValue="Dashboard"
-                className="text-xl sm:text-3xl font-bold text-gradient"
+                className="text-lg sm:text-2xl font-bold text-gradient"
                 as="h1"
               />
-              <p className="text-sm mt-0.5 text-muted-foreground">
+              <p className="text-[10px] sm:text-xs mt-0 text-muted-foreground">
                 Visão geral da operação
               </p>
             </div>
