@@ -55,6 +55,7 @@ const InspecaoCanteiro = lazy(() => import("./pages/InspecaoCanteiro"));
 const CalendarioHydro = lazy(() => import("./pages/CalendarioHydro"));
 const Games = lazy(() => import("./pages/Games"));
 const Desvios = lazy(() => import("./pages/Desvios"));
+const StatusGeralEquipamentos = lazy(() => import("./pages/StatusGeralEquipamentos"));
 
 const NotasFiscais = lazy(() => import("./pages/NotasFiscais"));
 const TrocaEpi = lazy(() => import("./pages/TrocaEpi"));
@@ -184,6 +185,7 @@ const App = () => (
                       <Route path="/almoxarifado" element={<ProtectedRoute><Almoxarifado /></ProtectedRoute>} />
                       <Route path="/equipamentos" element={<ProtectedRoute><Equipamentos /></ProtectedRoute>} />
                       <Route path="/planejamento" element={<ProtectedRoute><Planejamento /></ProtectedRoute>} />
+                      <Route path="/status-geral-equipamentos" element={<ProtectedRoute><StatusGeralEquipamentos /></ProtectedRoute>} />
                       {/* ADD ALL CUSTOM ROUTES ABOVE THE CATCH-ALL "*" ROUTE */}
                       <Route path="*" element={<NotFound />} />
                     </Routes>
