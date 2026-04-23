@@ -462,10 +462,20 @@ const Presenca = () => {
                   onChange={(e) => setSearch(e.target.value)}
                   className="max-w-xs"
                 />
-                <Button variant="outline" size="sm" onClick={markAllPresent}>
+                <Button
+                  variant="outline"
+                  size="sm"
+                  onClick={markAllPresent}
+                  disabled={locked}
+                >
                   Todos presentes
                 </Button>
-                <Button variant="outline" size="sm" onClick={markAllAbsent}>
+                <Button
+                  variant="outline"
+                  size="sm"
+                  onClick={markAllAbsent}
+                  disabled={locked}
+                >
                   Todos ausentes
                 </Button>
 
@@ -475,6 +485,7 @@ const Presenca = () => {
                       size="sm"
                       className="gap-2"
                       onClick={() => setAddArea(a.id)}
+                      disabled={locked}
                     >
                       <Plus className="w-4 h-4" />
                       Adicionar funcionário
