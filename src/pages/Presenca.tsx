@@ -32,6 +32,9 @@ import {
   XCircle,
   Plus,
   Trash2,
+  Save,
+  Lock,
+  Unlock,
 } from "lucide-react";
 import { toast } from "sonner";
 import { useRHEfetivo } from "@/hooks/useRHEfetivo";
@@ -39,6 +42,7 @@ import {
   useAttendanceAreaAssignments,
   type AttendanceArea,
 } from "@/hooks/useAttendanceAreaAssignments";
+import { useAttendanceReportLocks } from "@/hooks/useAttendanceReportLock";
 import type { Colaborador } from "@/data/efetivoData";
 
 const toTitleCase = (name: string) =>
@@ -123,6 +127,8 @@ const Presenca = () => {
   const [date, setDate] = useState<string>(() =>
     new Date().toISOString().slice(0, 10)
   );
+  const { isLocked, lockMutation, unlockMutation } =
+    useAttendanceReportLocks(date);
   const [activeArea, setActiveArea] = useState<AttendanceArea>("gabiao");
   const [absentByArea, setAbsentByArea] = useState<
     Record<AttendanceArea, Set<number>>
@@ -317,21 +323,19 @@ const Presenca = () => {
   };
 
   const reportText = useMemo(() => {
-    const parts: string[] = [];
-    parts.push(`📅 Data: ${formatDateBR(date)}`);
-    parts.push("");
-    AREAS.forEach((a) => {
-      const list = allColaboradores.filter(
-        (c) => employeeAreaMap.get(c.id) === a.id
-      );
-      if (list.length === 0) return;
-      parts.push(buildReportForArea(a.id));
-      parts.push("");
-      parts.push("");
-    });
-    return parts.join("\n").trim();
+    const list = allColaboradores.filter(
+      (c) => employeeAreaMap.get(c.id) === activeArea
+    );
+    if (list.length === 0) {
+      return `📅 Data: ${formatDateBR(date)}\n\n(Nenhum funcionário nesta área)`;
+    }
+    return [
+      `📅 Data: ${formatDateBR(date)}`,
+      "",
+      buildReportForArea(activeArea),
+    ].join("\n");
     // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [date, allColaboradores, employeeAreaMap, absentByArea]);
+  }, [date, allColaboradores, employeeAreaMap, absentByArea, activeArea]);
 
   const handleCopy = async () => {
     try {
@@ -348,6 +352,26 @@ const Presenca = () => {
     const url = `https://wa.me/?text=${encodeURIComponent(reportText)}`;
     window.open(url, "_blank");
   };
+
+  const handleSaveLock = async () => {
+    try {
+      await lockMutation.mutateAsync(activeArea);
+      toast.success("Lista de presença salva e bloqueada");
+    } catch {
+      toast.error("Erro ao salvar");
+    }
+  };
+
+  const handleUnlock = async () => {
+    try {
+      await unlockMutation.mutateAsync(activeArea);
+      toast.success("Lista desbloqueada para edição");
+    } catch {
+      toast.error("Erro ao desbloquear");
+    }
+  };
+
+  const locked = isLocked(activeArea);
 
   return (
     <Layout>
@@ -438,10 +462,20 @@ const Presenca = () => {
                   onChange={(e) => setSearch(e.target.value)}
                   className="max-w-xs"
                 />
-                <Button variant="outline" size="sm" onClick={markAllPresent}>
+                <Button
+                  variant="outline"
+                  size="sm"
+                  onClick={markAllPresent}
+                  disabled={locked}
+                >
                   Todos presentes
                 </Button>
-                <Button variant="outline" size="sm" onClick={markAllAbsent}>
+                <Button
+                  variant="outline"
+                  size="sm"
+                  onClick={markAllAbsent}
+                  disabled={locked}
+                >
                   Todos ausentes
                 </Button>
 
@@ -451,6 +485,7 @@ const Presenca = () => {
                       size="sm"
                       className="gap-2"
                       onClick={() => setAddArea(a.id)}
+                      disabled={locked}
                     >
                       <Plus className="w-4 h-4" />
                       Adicionar funcionário
@@ -628,7 +663,29 @@ const Presenca = () => {
                   </DialogContent>
                 </Dialog>
 
-                <div className="ml-auto">
+                <div className="ml-auto flex items-center gap-2">
+                  {locked ? (
+                    <Button
+                      variant="outline"
+                      className="gap-2"
+                      onClick={handleUnlock}
+                      disabled={unlockMutation.isPending}
+                    >
+                      <Unlock className="w-4 h-4" />
+                      Desbloquear
+                    </Button>
+                  ) : (
+                    <Button
+                      variant="default"
+                      className="gap-2"
+                      onClick={handleSaveLock}
+                      disabled={lockMutation.isPending}
+                    >
+                      <Save className="w-4 h-4" />
+                      Salvar
+                    </Button>
+                  )}
+
                   <Dialog open={previewOpen} onOpenChange={setPreviewOpen}>
                     <DialogTrigger asChild>
                       <Button variant="outline" className="gap-2">
@@ -639,11 +696,11 @@ const Presenca = () => {
                     <DialogContent className="max-w-2xl">
                       <DialogHeader>
                         <DialogTitle>
-                          Pré-visualização do Relatório
+                          Pré-visualização — {a.label}
                         </DialogTitle>
                         <DialogDescription>
-                          Inclui todas as áreas preenchidas (Gabião,
-                          Jardinagem, ADM).
+                          Relatório apenas desta área. Use as outras abas para
+                          gerar separadamente.
                         </DialogDescription>
                       </DialogHeader>
                       <ScrollArea className="h-[60vh] rounded-md border bg-muted/30 p-4">
@@ -673,6 +730,13 @@ const Presenca = () => {
                   </Dialog>
                 </div>
               </div>
+
+              {locked && (
+                <div className="flex items-center gap-2 rounded-md border border-destructive/30 bg-destructive/10 px-3 py-2 text-sm text-destructive">
+                  <Lock className="w-4 h-4" />
+                  Lista bloqueada — clique em "Desbloquear" para editar.
+                </div>
+              )}
 
               <Card>
                 <CardHeader>
@@ -705,6 +769,7 @@ const Presenca = () => {
                               checked={absent}
                               onCheckedChange={() => toggleAbsent(c.id)}
                               aria-label="Marcar como ausente"
+                              disabled={locked}
                             />
                             <div className="flex-1 min-w-0">
                               <div
@@ -728,6 +793,7 @@ const Presenca = () => {
                               size="icon"
                               onClick={() => handleRemove(c.id)}
                               title="Remover desta área"
+                              disabled={locked}
                             >
                               <Trash2 className="w-4 h-4 text-muted-foreground" />
                             </Button>
