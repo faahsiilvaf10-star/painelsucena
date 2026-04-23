@@ -69,9 +69,9 @@ const MiniBarChart = ({ data }: { data: number[] }) => {
   }, []);
   const chartData = (show ? data : data.map(() => 0)).map((v, i) => ({ v, i }));
   return (
-    <div className="w-full h-24 mt-2">
+    <div className="w-full h-16 mt-1">
       <ResponsiveContainer width="100%" height="100%">
-        <BarChart data={chartData} margin={{ top: 4, right: 0, left: 0, bottom: 0 }}>
+        <BarChart data={chartData} margin={{ top: 2, right: 0, left: 0, bottom: 0 }}>
           <Bar
             dataKey="v"
             fill={ORANGE}
