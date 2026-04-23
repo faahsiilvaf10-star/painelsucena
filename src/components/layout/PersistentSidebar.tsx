@@ -77,15 +77,14 @@ export const PersistentSidebar = ({ children }: PersistentSidebarProps) => {
     <SidebarProvider defaultOpen={isAvatarBlocked ? false : !isMobile}>
       <div className="h-screen flex flex-row w-full bg-background overflow-x-clip overflow-y-hidden">
         {user && !isDriver && !useDock && !isAuthPage && !isEnvSelectionPage && (
-          <div className={`overflow-visible ${justCompletedTransition ? "animate-fade-in" : ""}`}>
+          <div className="overflow-visible">
             <AppSidebar lockedCollapsed={!!isAvatarBlocked} />
           </div>
         )}
         <div
-          className={`flex-1 flex flex-col min-w-0 h-full overflow-hidden ${
-            justCompletedTransition ? "animate-fade-in" : ""
-          }`}
+          className="flex-1 flex flex-col min-w-0 h-full overflow-hidden"
         >
+
           {children}
         </div>
         {useDock && !isAuthPage && <DockNavigation />}

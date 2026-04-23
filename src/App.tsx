@@ -118,6 +118,8 @@ if (typeof window !== "undefined") {
 }
 
 const App = () => (
+
+
   <ErrorBoundary>
     <ThemeProvider attribute="class" defaultTheme="light" enableSystem>
       <QueryClientProvider client={queryClient}>
@@ -129,6 +131,8 @@ const App = () => (
             <BrowserRouter>
               <LoginTransitionGate />
               <LogoutTransitionGate />
+
+
               <EditModeProvider>
               <PersistentSidebar>
                 <VisualizadorProvider>
@@ -201,5 +205,7 @@ const App = () => (
     </ThemeProvider>
   </ErrorBoundary>
 );
+
+
 
 export default App;
