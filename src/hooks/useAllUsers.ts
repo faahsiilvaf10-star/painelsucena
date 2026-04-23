@@ -58,6 +58,7 @@ export const useAllUsers = () => {
   const lastSeenTimestampRef = useRef<Map<string, number>>(new Map());
   const graceCleanupRef = useRef<number | null>(null);
   const cachedProfileRef = useRef<ProfileData | null>(null);
+  const [, setRefreshKey] = useState(0);
 
   const persistPresence = useCallback(
     async ({ online_at, last_seen_at }: { online_at: string | null; last_seen_at: string }) => {
@@ -428,6 +429,13 @@ export const useAllUsers = () => {
       channelRef.current = null;
     };
   }, [user, trackCurrentUser, persistPresence]);
+
+  useEffect(() => {
+    const interval = setInterval(() => {
+      setRefreshKey((k) => k + 1);
+    }, 5000);
+    return () => clearInterval(interval);
+  }, []);
 
   const allUsers: UserWithStatus[] = profiles
     .map((profile) => {
