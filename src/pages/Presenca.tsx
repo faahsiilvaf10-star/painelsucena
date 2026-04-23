@@ -127,6 +127,8 @@ const Presenca = () => {
   const [date, setDate] = useState<string>(() =>
     new Date().toISOString().slice(0, 10)
   );
+  const { isLocked, lockMutation, unlockMutation } =
+    useAttendanceReportLocks(date);
   const [activeArea, setActiveArea] = useState<AttendanceArea>("gabiao");
   const [absentByArea, setAbsentByArea] = useState<
     Record<AttendanceArea, Set<number>>
