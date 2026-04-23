@@ -507,16 +507,8 @@ const Configuracoes = () => {
               {/* Primary Color Picker - Global */}
               <PrimaryColorPicker />
 
-              {/* Sidebar Customizer */}
-              <SidebarCustomizer
-                userId={user.id}
-                currentSidebarColor={sidebarColor}
-                currentSidebarAnimation={sidebarAnimation}
-                currentSidebarFont={sidebarFont}
-                currentSidebarFontColor={sidebarFontColor}
-                currentSidebarActiveColor={sidebarActiveColor}
-                currentSidebarActiveFontColor={sidebarActiveFontColor}
-              />
+              {/* SidebarCustomizer removido — sidebar agora é padrão global para todos os usuários */}
+
 
               {/* Announcement History */}
               <AnnouncementHistory />
