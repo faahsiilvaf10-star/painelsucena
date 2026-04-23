@@ -42,6 +42,7 @@ import {
   useAttendanceAreaAssignments,
   type AttendanceArea,
 } from "@/hooks/useAttendanceAreaAssignments";
+import { useAttendanceReportLocks } from "@/hooks/useAttendanceReportLock";
 import type { Colaborador } from "@/data/efetivoData";
 
 const toTitleCase = (name: string) =>
