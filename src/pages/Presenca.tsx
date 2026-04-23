@@ -48,7 +48,11 @@ const Presenca = () => {
   const { data: profile } = useProfile();
   const { isAdmin } = useIsAdmin();
   const { data: rhData, isLoading: rhLoading } = useRHEfetivo();
-  const { data: absenceReasons } = useAbsenceReasons(today);
+  const todayDate = new Date(today);
+  const { data: absenceReasons } = useAbsenceReasons({
+    year: todayDate.getFullYear(),
+    month: todayDate.getMonth() + 1,
+  });
   const {
     isLocked,
     isLoading: lockLoading
