@@ -1,4 +1,4 @@
-const { app, BrowserWindow, ipcMain, session, shell } = require("electron");
+const { app, BrowserWindow, ipcMain, session, shell, desktopCapturer } = require("electron");
 const path = require("path");
 
 const APP_URL = process.env.ELECTRON_APP_URL || "https://painelsucena.lovable.app";
@@ -215,6 +215,22 @@ ipcMain.handle("desktop:reload-latest", async () => {
   await clearDesktopCaches(mainWindow.webContents.session);
   await loadLatestPublished("renderer-request");
   return true;
+});
+
+ipcMain.handle("desktop:list-screen-sources", async () => {
+  const sources = await desktopCapturer.getSources({
+    types: ["screen", "window"],
+    thumbnailSize: { width: 640, height: 360 },
+    fetchWindowIcons: true,
+  });
+
+  return sources.map((source) => ({
+    id: source.id,
+    name: source.name,
+    display_id: source.display_id,
+    appIcon: source.appIcon?.toDataURL?.() ?? null,
+    thumbnail: source.thumbnail?.toDataURL?.() ?? null,
+  }));
 });
 
 app.whenReady().then(async () => {
