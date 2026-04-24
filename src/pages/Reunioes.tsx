@@ -493,6 +493,8 @@ export default function Reunioes() {
           onOpenChange={setSummaryOpen}
           summary={meetingSummary}
           meetingTitle={activeMeeting.title}
+          transcript={meetingTranscript}
+          roomName={activeMeeting.room_name}
         />
       </Layout>
     );
