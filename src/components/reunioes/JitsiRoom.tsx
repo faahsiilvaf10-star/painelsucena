@@ -114,11 +114,12 @@ export function JitsiRoom({
         "invite",
       ];
 
-      // Prefixa o nome da sala para evitar colisão com salas existentes no meet.jit.si
-      // que possam estar com lobby/moderator habilitado por outros usuários.
-      const uniqueRoomName = roomName.startsWith("OpsHub")
+      // Prefixa e estabiliza o nome da sala para reduzir colisões com salas públicas do meet.jit.si
+      // que podem já estar em modo host/visitor.
+      const sanitizedRoomName = roomName.replace(/[^a-zA-Z0-9]/g, "");
+      const uniqueRoomName = roomName.startsWith("OpsHubRoom")
         ? roomName
-        : `OpsHub${roomName.replace(/[^a-zA-Z0-9]/g, "")}`;
+        : `OpsHubRoom${sanitizedRoomName}`;
 
       try {
         const api = new window.JitsiMeetExternalAPI(JITSI_DOMAIN, {
@@ -140,6 +141,11 @@ export function JitsiRoom({
             enableClosePage: false,
             enableLobbyChat: false,
             lobby: { enableChat: false, autoKnock: false },
+            visitors: {
+              showJoinMeetingDialog: false,
+              hideVisitorCountForVisitors: true,
+              enableMediaOnPromote: { audio: true, video: true },
+            },
             enableInsecureRoomNameWarning: false,
             startTileView: true,
             tileView: { numberOfVisibleTiles: 25 },
