@@ -17,10 +17,29 @@ export interface AreaLockData {
 
 const DAILY_UNLOCK_KEY = "daily_auto_unlock";
 
+const ENCARREGADO_CARGOS = ["encarregado_geral", "encarregado_i", "encarregado_ii"];
+
 export const useReportLock = (date: string) => {
   const { user } = useAuth();
   const { isAdmin } = useIsAdmin();
   const queryClient = useQueryClient();
+
+  // Fetch user cargo to allow encarregados to unlock saved reports
+  const { data: userCargo } = useQuery({
+    queryKey: ["user_cargo_for_lock", user?.id],
+    enabled: !!user,
+    queryFn: async () => {
+      const { data } = await supabase
+        .from("profiles")
+        .select("cargo")
+        .eq("user_id", user!.id)
+        .maybeSingle();
+      return data?.cargo ?? null;
+    },
+  });
+
+  const isEncarregado = !!userCargo && ENCARREGADO_CARGOS.includes(userCargo);
+  const canManage = isAdmin || isEncarregado;
 
   // Auto-unlock today's reports once per day on first load
   useEffect(() => {
