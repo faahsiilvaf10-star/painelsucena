@@ -219,6 +219,18 @@ export const JitsiRoom = forwardRef<JitsiRoomHandle, JitsiRoomProps>(function Ji
         apiRef.current = api;
         console.log("[JitsiRoom] API created");
 
+        // Garante permissões no iframe (compartilhamento de tela, câmera, mic)
+        try {
+          const iframe: HTMLIFrameElement | null = api.getIFrame?.() ?? containerRef.current?.querySelector("iframe");
+          if (iframe) {
+            const allowValue =
+              "camera; microphone; fullscreen; display-capture; autoplay; clipboard-write; clipboard-read; screen-wake-lock; speaker-selection; web-share";
+            iframe.setAttribute("allow", allowValue);
+            iframe.setAttribute("allowfullscreen", "true");
+          }
+        } catch (e) {
+          console.warn("[JitsiRoom] could not set iframe permissions", e);
+        }
         api.addListener("videoConferenceJoined", () => {
           console.log("[JitsiRoom] joined");
 
