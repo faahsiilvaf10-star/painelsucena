@@ -445,8 +445,8 @@ ${jardinagemEquipmentText}
 
 Condições climáticas:
 • MANHÃ = ${weatherLabels[weatherMorning]}
-• TARDE = ${weatherLabels[weatherAfternoon]}${showLiveTemperature && currentTemp ? `
-• 🌡️ TEMPERATURA ATUAL = ${currentTemp.temperature}°C (sensação ${currentTemp.apparentTemp}°C) — Vila dos Cabanos` : ""}
+• TARDE = ${weatherLabels[weatherAfternoon]}${showTemperature && displayTemp ? `
+• 🌡️ TEMPERATURA${isBeforeCutoff ? " ATUAL" : " (16h)"} = ${displayTemp.temperature}°C (sensação ${displayTemp.apparentTemp}°C) — Vila dos Cabanos` : ""}
 
 ${E.EMOJI_WARNING} DIFICULDADES/DESVIOS
 ${difficulties}`;
