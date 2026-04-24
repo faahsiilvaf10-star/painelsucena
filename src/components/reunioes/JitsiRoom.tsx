@@ -256,6 +256,31 @@ export const JitsiRoom = forwardRef<JitsiRoomHandle, JitsiRoomProps>(function Ji
             if (avatarUrl) {
               api.executeCommand("avatarUrl", avatarUrl);
             }
+            // Aplica plano de fundo virtual padrão (logo Sucena)
+            // assim que a câmera estiver ativa.
+            const applyDefaultBackground = async () => {
+              try {
+                const bgUrl = `${window.location.origin}/meeting-background.jpg`;
+                const response = await fetch(bgUrl);
+                const blob = await response.blob();
+                const dataUrl: string = await new Promise((resolve, reject) => {
+                  const reader = new FileReader();
+                  reader.onload = () => resolve(reader.result as string);
+                  reader.onerror = () => reject(new Error("read-bg-failed"));
+                  reader.readAsDataURL(blob);
+                });
+                api.executeCommand("setVirtualBackground", {
+                  enabled: true,
+                  backgroundType: "image",
+                  selectedThumbnail: "opshub-default",
+                  url: dataUrl,
+                });
+              } catch (err) {
+                console.warn("[JitsiRoom] failed to apply default background", err);
+              }
+            };
+            // pequeno delay para garantir que o track de vídeo já esteja inicializado
+            setTimeout(applyDefaultBackground, 1500);
           } catch {
             /* ignore */
           }
