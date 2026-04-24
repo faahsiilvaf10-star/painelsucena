@@ -144,7 +144,7 @@ export const ReminderHighlightBanner = () => {
       {todayReminders.length > 0 && (
         <div className="animate-in fade-in slide-in-from-top-4 duration-500">
           <div
-            className="rounded-2xl overflow-hidden shadow-lg border border-orange-200/60 dark:border-orange-500/20"
+            className="rounded-2xl overflow-hidden shadow-lg reminder-today-glow"
             style={{
               background:
                 "linear-gradient(135deg, hsl(35 100% 96%) 0%, hsl(30 100% 92%) 50%, hsl(28 100% 88%) 100%)",
