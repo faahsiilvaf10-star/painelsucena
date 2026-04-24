@@ -330,6 +330,13 @@ export default function Reunioes() {
                   <Button
                     size="sm"
                     variant="outline"
+                    onClick={() => setManageOpen(true)}
+                  >
+                    <UsersRound className="mr-1.5 h-4 w-4" /> Participantes
+                  </Button>
+                  <Button
+                    size="sm"
+                    variant="outline"
                     onClick={() => setInviteOpen(true)}
                   >
                     <UserPlus className="mr-1.5 h-4 w-4" /> Chamar usuário
@@ -350,6 +357,7 @@ export default function Reunioes() {
           </div>
           <div className="flex-1 min-h-0 bg-black">
             <JitsiRoom
+              ref={jitsiRef}
               {...({
                 roomName: activeMeeting.room_name,
                 displayName: joinDisplayName || defaultName,
