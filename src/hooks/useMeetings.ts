@@ -15,6 +15,7 @@ export interface Meeting {
   status: string;
   created_by: string;
   created_by_name: string;
+  created_by_avatar?: string | null;
   ended_at: string | null;
   created_at: string;
   updated_at: string;
@@ -52,11 +53,17 @@ export function useMeetings() {
     queryFn: async () => {
       const { data, error } = await supabase
         .from("meetings")
-        .select("*")
+        .select(`
+          *,
+          creator:profiles!meetings_created_by_fkey(avatar_url)
+        `)
         .order("scheduled_date", { ascending: false })
         .order("start_time", { ascending: false });
       if (error) throw error;
-      return (data ?? []) as Meeting[];
+      return (data ?? []).map((m: any) => ({
+        ...m,
+        created_by_avatar: m.creator?.avatar_url,
+      })) as Meeting[];
     },
   });
 

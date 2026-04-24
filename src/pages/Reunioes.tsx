@@ -116,7 +116,20 @@ function MeetingCard({
               <Users className="h-3 w-3" />
               {meeting.participants.length} convidado(s)
             </span>
-            <span className="text-muted-foreground/70">por {meeting.created_by_name}</span>
+            <span className="flex items-center gap-1.5 text-muted-foreground/70">
+              {meeting.created_by_avatar ? (
+                <img 
+                  src={meeting.created_by_avatar} 
+                  alt={meeting.created_by_name}
+                  className="h-4 w-4 rounded-full object-cover"
+                />
+              ) : (
+                <div className="h-4 w-4 rounded-full bg-primary/10 flex items-center justify-center">
+                  <span className="text-[8px] font-bold">{meeting.created_by_name?.charAt(0)}</span>
+                </div>
+              )}
+              por {meeting.created_by_name}
+            </span>
           </div>
         </div>
         <div className="flex flex-wrap gap-2">
@@ -383,6 +396,23 @@ export default function Reunioes() {
                   Anfitrião
                 </Badge>
               )}
+              <div className="ml-4 flex items-center gap-2 border-l pl-4 text-xs">
+                {activeMeeting.created_by_avatar ? (
+                  <img 
+                    src={activeMeeting.created_by_avatar} 
+                    alt={activeMeeting.created_by_name}
+                    className="h-6 w-6 rounded-full border border-primary/20 object-cover shadow-sm"
+                  />
+                ) : (
+                  <div className="h-6 w-6 rounded-full bg-primary/10 flex items-center justify-center border border-primary/20">
+                    <span className="text-[10px] font-bold text-primary">{activeMeeting.created_by_name?.charAt(0)}</span>
+                  </div>
+                )}
+                <div className="flex flex-col leading-none">
+                  <span className="text-[10px] text-muted-foreground uppercase font-medium tracking-wider">Conduzindo</span>
+                  <span className="font-semibold text-foreground/90">{activeMeeting.created_by_name}</span>
+                </div>
+              </div>
             </div>
             <div className="flex items-center gap-2">
               <Button
@@ -584,6 +614,8 @@ export default function Reunioes() {
               <PreJoinScreen
                 defaultName={defaultName}
                 meetingTitle={activeMeeting.title}
+                createdByAvatar={activeMeeting.created_by_avatar}
+                createdByName={activeMeeting.created_by_name}
                 onCancel={() => {
                   setStage("list");
                   setActiveMeeting(null);
