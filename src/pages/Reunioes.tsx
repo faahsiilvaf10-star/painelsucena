@@ -53,6 +53,7 @@ function buildShareUrl(roomName: string) {
 function MeetingCard({
   meeting,
   canManage,
+  canJoin,
   onJoin,
   onCopy,
   onDelete,
@@ -60,6 +61,7 @@ function MeetingCard({
 }: {
   meeting: Meeting;
   canManage: boolean;
+  canJoin: boolean;
   onJoin: (m: Meeting) => void;
   onCopy: (m: Meeting) => void;
   onDelete: (m: Meeting) => void;
@@ -78,6 +80,11 @@ function MeetingCard({
             ) : (
               <Badge variant="outline" className="border-primary/30 text-primary">
                 {meeting.status === "agendada" ? "Agendada" : meeting.status}
+              </Badge>
+            )}
+            {!canJoin && !isFinished && (
+              <Badge variant="secondary" className="gap-1">
+                Apenas convidados
               </Badge>
             )}
           </div>
@@ -106,16 +113,18 @@ function MeetingCard({
           </div>
         </div>
         <div className="flex flex-wrap gap-2">
-          {!past && (
+          {!past && canJoin && (
             <Button size="sm" onClick={() => onJoin(meeting)}>
               <LogIn className="mr-1.5 h-4 w-4" />
               Entrar
             </Button>
           )}
-          <Button size="sm" variant="outline" onClick={() => onCopy(meeting)}>
-            <Copy className="mr-1.5 h-4 w-4" />
-            Link
-          </Button>
+          {canManage && (
+            <Button size="sm" variant="outline" onClick={() => onCopy(meeting)}>
+              <Copy className="mr-1.5 h-4 w-4" />
+              Link
+            </Button>
+          )}
           {canManage && (
             <Button
               size="sm"
