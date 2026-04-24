@@ -19,6 +19,7 @@ interface MeetingTranscriberProps {
   meetingId?: string | null;
   meetingTitle?: string;
   participants?: string[];
+  snapshots?: string[];
   onSummaryReady?: (
     summary: { summary: string; key_points: string[]; action_items: Array<{ task: string; owner?: string }> },
     transcriptId: string,
@@ -31,6 +32,7 @@ export function MeetingTranscriber({
   meetingId,
   meetingTitle,
   participants = [],
+  snapshots = [],
   onSummaryReady,
 }: MeetingTranscriberProps) {
   const { user } = useAuth();
@@ -163,6 +165,7 @@ export function MeetingTranscriber({
           environment: environment || "barcarena",
           transcript,
           participants,
+          snapshots,
           created_by: user.id,
           created_by_name: profile?.full_name || user.email || "Anônimo",
           ended_at: new Date().toISOString(),
@@ -269,17 +272,18 @@ export function MeetingTranscriber({
           <Button
             size="sm"
             variant="outline"
-            onClick={() =>
-              exportMeetingPdf(
+            onClick={() => {
+              void exportMeetingPdf(
                 {
                   meetingTitle,
                   roomName,
                   participants,
                   transcript: finalText,
+                  snapshots,
                 },
                 `transcricao-${(meetingTitle || roomName || "reuniao").replace(/[^a-z0-9]+/gi, "_")}.pdf`,
-              )
-            }
+              );
+            }}
             disabled={!finalText.trim()}
             title="Exportar transcrição em PDF"
           >

@@ -2178,6 +2178,7 @@ export type Database = {
           meeting_title: string | null
           participants: string[]
           room_name: string
+          snapshots: string[]
           started_at: string
           summary: string | null
           transcript: string
@@ -2196,6 +2197,7 @@ export type Database = {
           meeting_title?: string | null
           participants?: string[]
           room_name: string
+          snapshots?: string[]
           started_at?: string
           summary?: string | null
           transcript?: string
@@ -2214,6 +2216,7 @@ export type Database = {
           meeting_title?: string | null
           participants?: string[]
           room_name?: string
+          snapshots?: string[]
           started_at?: string
           summary?: string | null
           transcript?: string

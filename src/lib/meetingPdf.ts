@@ -8,13 +8,37 @@ export interface MeetingPdfData {
   summary?: string;
   keyPoints?: string[];
   actionItems?: Array<{ task: string; owner?: string }>;
+  snapshots?: string[];
   generatedAt?: Date;
 }
 
 const MARGIN = 15;
 const LINE = 5.5;
 
-export function exportMeetingPdf(data: MeetingPdfData, filename = "reuniao.pdf") {
+async function loadImageAsDataURL(url: string): Promise<{ dataUrl: string; width: number; height: number } | null> {
+  try {
+    const res = await fetch(url, { mode: "cors" });
+    const blob = await res.blob();
+    const dataUrl = await new Promise<string>((resolve, reject) => {
+      const r = new FileReader();
+      r.onload = () => resolve(r.result as string);
+      r.onerror = () => reject(new Error("read-failed"));
+      r.readAsDataURL(blob);
+    });
+    const dims = await new Promise<{ width: number; height: number }>((resolve, reject) => {
+      const img = new Image();
+      img.onload = () => resolve({ width: img.naturalWidth, height: img.naturalHeight });
+      img.onerror = () => reject(new Error("image-load-failed"));
+      img.src = dataUrl;
+    });
+    return { dataUrl, ...dims };
+  } catch (e) {
+    console.warn("loadImageAsDataURL failed", url, e);
+    return null;
+  }
+}
+
+export async function exportMeetingPdf(data: MeetingPdfData, filename = "reuniao.pdf") {
   const doc = new jsPDF("p", "mm", "a4");
   const pageWidth = doc.internal.pageSize.getWidth();
   const pageHeight = doc.internal.pageSize.getHeight();
@@ -103,6 +127,33 @@ export function exportMeetingPdf(data: MeetingPdfData, filename = "reuniao.pdf")
       writeBullet(text);
     });
     y += 2;
+  }
+
+  if (data.snapshots && data.snapshots.length > 0) {
+    doc.addPage();
+    y = MARGIN;
+    writeHeading("Capturas da Reunião", 13);
+    const usable = pageWidth - MARGIN * 2;
+    for (let i = 0; i < data.snapshots.length; i += 1) {
+      const url = data.snapshots[i];
+      const img = await loadImageAsDataURL(url);
+      if (!img) continue;
+      const ratio = img.height / img.width;
+      const drawW = usable;
+      const drawH = drawW * ratio;
+      ensureSpace(drawH + 8);
+      doc.setFont("helvetica", "bold");
+      doc.setFontSize(9);
+      doc.setTextColor(80, 80, 80);
+      doc.text(`Captura ${i + 1}`, MARGIN, y);
+      y += 4;
+      try {
+        doc.addImage(img.dataUrl, "JPEG", MARGIN, y, drawW, drawH);
+      } catch (e) {
+        console.warn("addImage failed", e);
+      }
+      y += drawH + 6;
+    }
   }
 
   if (data.transcript && data.transcript.trim()) {

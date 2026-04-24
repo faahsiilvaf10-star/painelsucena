@@ -44,6 +44,7 @@ import { InviteUserDialog } from "@/components/reunioes/InviteUserDialog";
 import { ManageParticipantsDialog } from "@/components/reunioes/ManageParticipantsDialog";
 import { MeetingTranscriber } from "@/components/reunioes/MeetingTranscriber";
 import { MeetingSummaryDialog, type MeetingSummary } from "@/components/reunioes/MeetingSummaryDialog";
+import { MeetingSnapshotCapture, type MeetingSnapshot } from "@/components/reunioes/MeetingSnapshotCapture";
 import { supabase } from "@/integrations/supabase/client";
 
 type Stage = "list" | "prejoin" | "in-call";
@@ -165,6 +166,7 @@ export default function Reunioes() {
   const [summaryOpen, setSummaryOpen] = useState(false);
   const [meetingSummary, setMeetingSummary] = useState<MeetingSummary | null>(null);
   const [meetingTranscript, setMeetingTranscript] = useState<string>("");
+  const [meetingSnapshots, setMeetingSnapshots] = useState<MeetingSnapshot[]>([]);
 
   const defaultName = useMemo(
     () => profile?.full_name || user?.email?.split("@")[0] || "Convidado",
@@ -418,16 +420,24 @@ export default function Reunioes() {
                 })}
               />
             </div>
-            <div className="hidden lg:block min-h-0 bg-background rounded-md overflow-hidden">
-              <MeetingTranscriber
+            <div className="hidden lg:flex flex-col gap-3 min-h-0">
+              <div className="flex-1 min-h-0 bg-background rounded-md overflow-hidden">
+                <MeetingTranscriber
+                  roomName={activeMeeting.room_name}
+                  meetingId={activeMeeting.id !== "adhoc" ? activeMeeting.id : null}
+                  meetingTitle={activeMeeting.title}
+                  snapshots={meetingSnapshots.map((s) => s.url)}
+                  onSummaryReady={(s, _id, transcript) => {
+                    setMeetingSummary(s);
+                    setMeetingTranscript(transcript);
+                    setSummaryOpen(true);
+                  }}
+                />
+              </div>
+              <MeetingSnapshotCapture
                 roomName={activeMeeting.room_name}
-                meetingId={activeMeeting.id !== "adhoc" ? activeMeeting.id : null}
-                meetingTitle={activeMeeting.title}
-                onSummaryReady={(s, _id, transcript) => {
-                  setMeetingSummary(s);
-                  setMeetingTranscript(transcript);
-                  setSummaryOpen(true);
-                }}
+                snapshots={meetingSnapshots}
+                onChange={setMeetingSnapshots}
               />
             </div>
           </div>
@@ -495,6 +505,7 @@ export default function Reunioes() {
           meetingTitle={activeMeeting.title}
           transcript={meetingTranscript}
           roomName={activeMeeting.room_name}
+          snapshots={meetingSnapshots.map((s) => s.url)}
         />
       </Layout>
     );
