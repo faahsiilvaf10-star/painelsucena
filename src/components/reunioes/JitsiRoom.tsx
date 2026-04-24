@@ -1,4 +1,4 @@
-import { useEffect, useRef, useState } from "react";
+import { forwardRef, useEffect, useImperativeHandle, useRef, useState } from "react";
 import { toast } from "sonner";
 import { useTrackMeetingPresence } from "@/hooks/useActiveMeetingPresence";
 
@@ -69,20 +69,29 @@ export interface JitsiRoomProps {
   onParticipantLeft?: (p: { displayName?: string; id?: string }) => void;
 }
 
-export function JitsiRoom({
-  roomName,
-  displayName,
-  email,
-  avatarUrl,
-  subject,
-  startWithAudioMuted = false,
-  startWithVideoMuted = false,
-  isModerator = false,
-  onReady,
-  onLeave,
-  onParticipantJoined,
-  onParticipantLeft,
-}: JitsiRoomProps) {
+export interface JitsiRoomHandle {
+  getParticipants: () => Array<{ participantId: string; displayName?: string; avatarURL?: string }>;
+  kickParticipant: (participantId: string) => void;
+  getMyId: () => string | undefined;
+}
+
+export const JitsiRoom = forwardRef<JitsiRoomHandle, JitsiRoomProps>(function JitsiRoom(
+  {
+    roomName,
+    displayName,
+    email,
+    avatarUrl,
+    subject,
+    startWithAudioMuted = false,
+    startWithVideoMuted = false,
+    isModerator = false,
+    onReady,
+    onLeave,
+    onParticipantJoined,
+    onParticipantLeft,
+  },
+  ref,
+) {
   const containerRef = useRef<HTMLDivElement | null>(null);
   const apiRef = useRef<any>(null);
   const retriedVisitorFallbackRef = useRef(false);
@@ -244,5 +253,40 @@ export function JitsiRoom({
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [roomName, roomVariant, isModerator]);
 
+  useImperativeHandle(
+    ref,
+    () => ({
+      getParticipants: () => {
+        const api = apiRef.current;
+        if (!api?.getParticipantsInfo) return [];
+        try {
+          const list = api.getParticipantsInfo() || [];
+          return list.map((p: any) => ({
+            participantId: p.participantId || p.id,
+            displayName: p.displayName || p.formattedDisplayName,
+            avatarURL: p.avatarURL,
+          }));
+        } catch {
+          return [];
+        }
+      },
+      kickParticipant: (participantId: string) => {
+        try {
+          apiRef.current?.executeCommand?.("kickParticipant", participantId);
+        } catch (e) {
+          console.error("[JitsiRoom] kickParticipant failed", e);
+        }
+      },
+      getMyId: () => {
+        try {
+          return apiRef.current?.myUserId?.();
+        } catch {
+          return undefined;
+        }
+      },
+    }),
+    [],
+  );
+
   return <div ref={containerRef} className="h-full w-full" style={{ minHeight: 400 }} />;
-}
+});
