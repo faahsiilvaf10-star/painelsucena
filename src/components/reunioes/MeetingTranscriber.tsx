@@ -211,6 +211,7 @@ export function MeetingTranscriber({
           action_items: aiData.action_items || [],
         },
         inserted.id,
+        transcript,
       );
     } finally {
       setSummarizing(false);
