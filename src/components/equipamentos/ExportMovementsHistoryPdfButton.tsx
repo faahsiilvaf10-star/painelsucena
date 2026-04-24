@@ -86,6 +86,61 @@ export function ExportMovementsHistoryPdfButton() {
 
       const sortedDates = Object.keys(movementsByDate).sort();
 
+      // Build a map of last known exit reason per plate (within the queried range)
+      // so an "entrada" can show the reason of the previous "saída".
+      const lastExitByPlate = new Map<string, { reason: string; problem: string | null }>();
+      const entradaContextByMovementId = new Map<string, { reason: string; problem: string | null }>();
+      (movements || []).forEach((m: any) => {
+        if (m.movement_type === "saida" && m.exit_reason) {
+          lastExitByPlate.set(m.plate, {
+            reason: m.exit_reason,
+            problem: m.problem_description ?? null,
+          });
+        } else if (m.movement_type === "entrada") {
+          const ctx = lastExitByPlate.get(m.plate);
+          if (ctx) {
+            entradaContextByMovementId.set(m.id, ctx);
+            // Clear so the same exit isn't reused for a later entrada on the same plate
+            lastExitByPlate.delete(m.plate);
+          }
+        }
+      });
+
+      // Fallback: if the first movement of a plate in the range is an "entrada"
+      // (the matching saída happened before the range), look it up.
+      const platesNeedingPriorExit = (movements || [])
+        .filter((m: any) => m.movement_type === "entrada" && !entradaContextByMovementId.has(m.id))
+        .map((m: any) => ({ id: m.id, plate: m.plate, before: `${m.movement_date}T${m.movement_time || "23:59:59"}` }));
+
+      if (platesNeedingPriorExit.length > 0) {
+        const uniquePlates = Array.from(new Set(platesNeedingPriorExit.map((p) => p.plate)));
+        const { data: priorExits } = await supabase
+          .from("equipment_movements")
+          .select("plate, movement_date, movement_time, exit_reason, problem_description")
+          .in("plate", uniquePlates)
+          .eq("movement_type", "saida")
+          .lt("movement_date", startDate)
+          .order("movement_date", { ascending: false })
+          .order("movement_time", { ascending: false });
+
+        const lastPriorByPlate = new Map<string, any>();
+        (priorExits || []).forEach((e: any) => {
+          if (!lastPriorByPlate.has(e.plate) && e.exit_reason) {
+            lastPriorByPlate.set(e.plate, e);
+          }
+        });
+
+        platesNeedingPriorExit.forEach(({ id, plate }) => {
+          const e = lastPriorByPlate.get(plate);
+          if (e) {
+            entradaContextByMovementId.set(id, {
+              reason: e.exit_reason,
+              problem: e.problem_description ?? null,
+            });
+          }
+        });
+      }
+
       const buildMovementRows = (movs: any[]) => {
         return movs.map((m: any) => {
           const isEntrada = m.movement_type === "entrada";
@@ -94,9 +149,17 @@ export function ExportMovementsHistoryPdfButton() {
           const badgeClass = isEntrada
             ? "background: #dcfce7; color: #166534;"
             : "background: #ffedd5; color: #c2410c;";
-          const reasonBadge = !isEntrada && m.exit_reason
-            ? `<span class="badge" style="background: #fef3c7; color: #92400e;">${EXIT_REASON_LABELS[m.exit_reason] || m.exit_reason}</span>`
+
+          const entradaCtx = isEntrada ? entradaContextByMovementId.get(m.id) : undefined;
+          const reasonValue = !isEntrada ? m.exit_reason : entradaCtx?.reason;
+          const reasonLabel = reasonValue ? (EXIT_REASON_LABELS[reasonValue] || reasonValue) : null;
+          const reasonBadge = reasonLabel
+            ? `<span class="badge" style="background: #fef3c7; color: #92400e;">${reasonLabel}${isEntrada ? " (saída)" : ""}</span>`
             : "-";
+
+          const problemValue = isEntrada
+            ? (m.problem_description || entradaCtx?.problem || "-")
+            : (m.problem_description || "-");
 
           return `
             <tr>
@@ -105,7 +168,7 @@ export function ExportMovementsHistoryPdfButton() {
               <td class="mono">${m.plate}</td>
               <td><span class="badge" style="${badgeClass}">${emoji} ${typeLabel}</span></td>
               <td>${reasonBadge}</td>
-              <td>${m.problem_description || "-"}</td>
+              <td>${problemValue}</td>
               <td>${m.observation || "-"}</td>
             </tr>
           `;
