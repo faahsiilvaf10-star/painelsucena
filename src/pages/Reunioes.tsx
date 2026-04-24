@@ -44,6 +44,7 @@ import { InviteUserDialog } from "@/components/reunioes/InviteUserDialog";
 import { ManageParticipantsDialog } from "@/components/reunioes/ManageParticipantsDialog";
 import { MeetingTranscriber } from "@/components/reunioes/MeetingTranscriber";
 import { MeetingSummaryDialog, type MeetingSummary } from "@/components/reunioes/MeetingSummaryDialog";
+import { MeetingSnapshotCapture, type MeetingSnapshot } from "@/components/reunioes/MeetingSnapshotCapture";
 import { supabase } from "@/integrations/supabase/client";
 
 type Stage = "list" | "prejoin" | "in-call";
