@@ -162,7 +162,9 @@ export default function RDO() {
     return () => clearInterval(interval);
   }, [isBeforeCutoff]);
 
-  const showTemperature = isToday && !existingReport;
+  // Mostra a temperatura sempre que for o RDO do dia atual (mesmo após salvar).
+  // Antes das 16h: ao vivo. Após 16h: congelada no último valor capturado.
+  const showTemperature = isToday;
   // Só faz fetch/auto-refresh ANTES das 16h. Após 16h, o último valor capturado fica congelado.
   const { data: currentTemp } = useCurrentTemperature(showTemperature && isBeforeCutoff);
   const [frozenTemp, setFrozenTemp] = useState<typeof currentTemp>(null);
