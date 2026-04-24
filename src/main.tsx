@@ -12,20 +12,21 @@ installEnvironmentHeader();
 if (typeof window !== "undefined") {
   try {
     const isTransitioning = sessionStorage.getItem("loginTransitionInProgress") === "true";
-    // Se a transição estiver marcada mas não houver timestamp, marcamos agora.
-    // Se já houver e passou 15 segundos, limpamos.
-    const start = sessionStorage.getItem("loginTransitionStartTime");
-    const now = Date.now();
+    const onAuthPage = window.location.pathname === "/auth";
     
-    if (isTransitioning) {
-      if (!start) {
-        sessionStorage.setItem("loginTransitionStartTime", now.toString());
-      } else if (now - Number(start) > 15000) {
-        console.warn("Limpando transição de login expirada no main.tsx");
+    // Se estiver na página de auth, sempre limpamos a transição para evitar tela branca
+    if (onAuthPage || isTransitioning) {
+      const start = sessionStorage.getItem("loginTransitionStartTime");
+      const now = Date.now();
+      
+      if (onAuthPage || !start || (now - Number(start) > 10000)) {
+        console.warn("Limpando transição de login por segurança");
         sessionStorage.removeItem("loginTransitionInProgress");
         sessionStorage.removeItem("loginTransitionStage");
         sessionStorage.removeItem("loginTransitionPayload");
         sessionStorage.removeItem("loginTransitionStartTime");
+      } else if (!start) {
+        sessionStorage.setItem("loginTransitionStartTime", now.toString());
       }
     }
   } catch (e) {

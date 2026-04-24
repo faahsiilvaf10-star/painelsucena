@@ -58,10 +58,11 @@ export function LoginTransitionGate() {
       const stillActive = sessionStorage.getItem("loginTransitionInProgress") === "true";
       const stage = sessionStorage.getItem("loginTransitionStage");
       if (stillActive && stage === "pending") {
+        console.warn("Force unlocking transition gate due to timeout");
         clearTransitionStorage();
         window.dispatchEvent(new Event(EVENT_NAME));
       }
-    }, 10000);
+    }, 5000); // Reduced to 5s for better UX
     return () => window.clearTimeout(timeout);
   }, [snapshot.active]);
 

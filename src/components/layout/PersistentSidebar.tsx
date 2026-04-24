@@ -53,7 +53,7 @@ export const PersistentSidebar = ({ children }: PersistentSidebarProps) => {
   const [forceReady, setForceReady] = useState(false);
   
   useEffect(() => {
-    const timer = setTimeout(() => setForceReady(true), 6000); // 6s safety timeout
+    const timer = setTimeout(() => setForceReady(true), 3000); // Reduced safety timeout to 3s
     return () => clearTimeout(timer);
   }, []);
 
@@ -74,8 +74,9 @@ export const PersistentSidebar = ({ children }: PersistentSidebarProps) => {
 
   if (!layoutReady) {
     return (
-      <div className="h-screen w-full grid place-items-center bg-background">
-        <Loader2 className="h-6 w-6 animate-spin text-muted-foreground" />
+      <div className="h-screen w-full flex flex-col items-center justify-center bg-background gap-4">
+        <Loader2 className="h-8 w-8 animate-spin text-primary" />
+        <p className="text-sm text-muted-foreground animate-pulse">Carregando sistema...</p>
       </div>
     );
   }
