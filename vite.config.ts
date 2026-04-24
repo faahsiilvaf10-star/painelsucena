@@ -185,29 +185,10 @@ export default defineConfig(({ mode }) => ({
     chunkSizeWarningLimit: 1000,
     rollupOptions: {
       output: {
-        manualChunks: (id) => {
-          if (id.includes("node_modules")) {
-            // CRITICAL: React, React-DOM, scheduler and Radix UI MUST stay in the same chunk
-            // to avoid "Cannot read properties of undefined (reading 'forwardRef')" errors.
-            // Radix components call React.forwardRef at module init time.
-            if (
-              id.includes("/react/") ||
-              id.includes("/react-dom/") ||
-              id.includes("/scheduler/") ||
-              id.includes("/react-is/") ||
-              id.includes("@radix-ui")
-            ) {
-              return "vendor-react";
-            }
-            if (id.includes("lucide-react")) return "vendor-icons";
-            if (id.includes("framer-motion")) return "vendor-animation";
-            if (id.includes("recharts")) return "vendor-charts";
-            if (id.includes("jspdf") || id.includes("exceljs") || id.includes("pptxgenjs") || id.includes("jszip")) return "vendor-export";
-            if (id.includes("@supabase")) return "vendor-supabase";
-            if (id.includes("date-fns")) return "vendor-date";
-            return "vendor";
-          }
-        },
+        // Let Rollup handle chunking automatically.
+        // Manual chunks were causing "Cannot read properties of undefined (reading 'createContext'/'forwardRef')"
+        // because React was being separated from libraries that depend on it at module init time
+        // (Radix UI, react-query, react-router, react-hook-form, next-themes, sonner, etc.)
       },
     },
   },
