@@ -255,21 +255,22 @@ export default function Reunioes() {
           </div>
           <div className="flex-1 min-h-0 bg-black">
             <JitsiRoom
-              roomName={activeMeeting.room_name}
-              displayName={joinDisplayName || defaultName}
-              subject={activeMeeting.title}
-              startWithAudioMuted={audioMuted}
-              startWithVideoMuted={videoMuted}
-              isModerator={
-                activeMeeting.id !== "adhoc" && activeMeeting.created_by === user?.id
-              }
-              onParticipantJoined={(p) =>
-                p?.displayName && toast(`${p.displayName} entrou`, { duration: 2500 })
-              }
-              onParticipantLeft={(p) =>
-                p?.displayName && toast(`${p.displayName} saiu`, { duration: 2500 })
-              }
-              onLeave={handleLeaveCall}
+              {...({
+                roomName: activeMeeting.room_name,
+                displayName: joinDisplayName || defaultName,
+                subject: activeMeeting.title,
+                startWithAudioMuted: audioMuted,
+                startWithVideoMuted: videoMuted,
+                isModerator:
+                  activeMeeting.id !== "adhoc" && activeMeeting.created_by === user?.id,
+                onParticipantJoined: (p: { displayName?: string; id?: string }) => {
+                  if (p?.displayName) toast(`${p.displayName} entrou`, { duration: 2500 });
+                },
+                onParticipantLeft: (p: { displayName?: string; id?: string }) => {
+                  if (p?.displayName) toast(`${p.displayName} saiu`, { duration: 2500 });
+                },
+                onLeave: handleLeaveCall,
+              })}
             />
           </div>
         </div>
