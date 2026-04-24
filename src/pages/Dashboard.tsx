@@ -57,6 +57,7 @@ import { CelebrationModal } from "@/components/matriz/CelebrationModal";
 import { MatrixReminderModal } from "@/components/matriz/MatrixReminderModal";
 import { useRHEfetivo } from "@/hooks/useRHEfetivo";
 import { useAttendanceDailyMarks } from "@/hooks/useAttendanceDailyMarks";
+import { useAttendanceAreaAssignments } from "@/hooks/useAttendanceAreaAssignments";
 import { useEquipment } from "@/hooks/useEquipment";
 import { useEquipmentCurrentlyOut, useAllRegisteredEquipmentCount } from "@/hooks/useEquipmentMovements";
 import { useJardinagemEquipment } from "@/hooks/useJardinagemEquipment";
