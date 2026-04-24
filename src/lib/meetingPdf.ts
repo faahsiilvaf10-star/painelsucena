@@ -129,6 +129,33 @@ export async function exportMeetingPdf(data: MeetingPdfData, filename = "reuniao
     y += 2;
   }
 
+  if (data.snapshots && data.snapshots.length > 0) {
+    doc.addPage();
+    y = MARGIN;
+    writeHeading("Capturas da Reunião", 13);
+    const usable = pageWidth - MARGIN * 2;
+    for (let i = 0; i < data.snapshots.length; i += 1) {
+      const url = data.snapshots[i];
+      const img = await loadImageAsDataURL(url);
+      if (!img) continue;
+      const ratio = img.height / img.width;
+      const drawW = usable;
+      const drawH = drawW * ratio;
+      ensureSpace(drawH + 8);
+      doc.setFont("helvetica", "bold");
+      doc.setFontSize(9);
+      doc.setTextColor(80, 80, 80);
+      doc.text(`Captura ${i + 1}`, MARGIN, y);
+      y += 4;
+      try {
+        doc.addImage(img.dataUrl, "JPEG", MARGIN, y, drawW, drawH);
+      } catch (e) {
+        console.warn("addImage failed", e);
+      }
+      y += drawH + 6;
+    }
+  }
+
   if (data.transcript && data.transcript.trim()) {
     doc.addPage();
     y = MARGIN;
