@@ -252,7 +252,12 @@ export const ChatPopup = ({ user: selectedUser, onClose, onExpand }: ChatPopupPr
         className="flex items-center gap-2 px-3 py-2 bg-[#008069] dark:bg-[#1f2c34] cursor-pointer shrink-0"
         onClick={() => setIsMinimized(!isMinimized)}
       >
-        <div className="relative">
+        <button
+          type="button"
+          onClick={(e) => { e.stopPropagation(); setAvatarPreviewOpen(true); }}
+          className="relative shrink-0 rounded-full focus:outline-none focus:ring-2 focus:ring-white/50 transition-transform hover:scale-105"
+          aria-label={`Ver foto de ${liveUser.full_name}`}
+        >
           <NeonAvatar
             src={selectedUser.avatar_url}
             name={selectedUser.full_name}
@@ -269,13 +274,17 @@ export const ChatPopup = ({ user: selectedUser, onClose, onExpand }: ChatPopupPr
               {liveUser.isModerator ? <ModeratorBadge size="xs" /> : <VerifiedBadge size="xs" />}
             </div>
           )}
-        </div>
+        </button>
 
         <div className="flex-1 min-w-0">
-          <p className="text-white text-sm font-medium truncate flex items-center gap-1">
+          <button
+            type="button"
+            onClick={(e) => { e.stopPropagation(); setAvatarPreviewOpen(true); }}
+            className="text-white text-sm font-medium truncate flex items-center gap-1 hover:underline focus:outline-none focus:underline text-left"
+          >
             {liveUser.full_name}
             {liveUser.isModerator ? <ModeratorBadge size="xs" /> : liveUser.isAdmin && <VerifiedBadge size="xs" />}
-          </p>
+          </button>
           <p className="text-white/70 text-xs truncate">
             {isOtherTyping ? (
               <span className="text-[#25d366]">digitando...</span>
@@ -288,6 +297,13 @@ export const ChatPopup = ({ user: selectedUser, onClose, onExpand }: ChatPopupPr
             )}
           </p>
         </div>
+
+        <AvatarPreviewDialog
+          open={avatarPreviewOpen}
+          onOpenChange={setAvatarPreviewOpen}
+          src={selectedUser.avatar_url}
+          name={liveUser.full_name}
+        />
 
         {unreadCount > 0 && isMinimized && (
           <span className="w-5 h-5 rounded-full bg-[#25d366] text-white text-xs flex items-center justify-center font-medium">
