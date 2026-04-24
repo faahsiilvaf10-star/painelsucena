@@ -414,14 +414,23 @@ export default function Reunioes() {
         </AlertDialog>
 
         {isHost && (
-          <InviteUserDialog
-            open={inviteOpen}
-            onOpenChange={setInviteOpen}
-            meetingTitle={activeMeeting.title}
-            meetingId={activeMeeting.id}
-            roomName={activeMeeting.room_name}
-            meetingCreatedBy={activeMeeting.created_by}
-          />
+          <>
+            <InviteUserDialog
+              open={inviteOpen}
+              onOpenChange={setInviteOpen}
+              meetingTitle={activeMeeting.title}
+              meetingId={activeMeeting.id}
+              roomName={activeMeeting.room_name}
+              meetingCreatedBy={activeMeeting.created_by}
+            />
+            <ManageParticipantsDialog
+              open={manageOpen}
+              onOpenChange={setManageOpen}
+              fetchParticipants={() => jitsiRef.current?.getParticipants() ?? []}
+              myId={jitsiRef.current?.getMyId()}
+              onKick={(id) => jitsiRef.current?.kickParticipant(id)}
+            />
+          </>
         )}
       </Layout>
     );
