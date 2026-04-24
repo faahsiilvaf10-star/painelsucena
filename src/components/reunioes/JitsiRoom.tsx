@@ -1,5 +1,5 @@
 import { useEffect, useRef } from "react";
-
+import { useTrackMeetingPresence } from "@/hooks/useActiveMeetingPresence";
 declare global {
   interface Window {
     JitsiMeetExternalAPI?: any;
@@ -63,6 +63,7 @@ export function JitsiRoom({
 }: JitsiRoomProps) {
   const containerRef = useRef<HTMLDivElement | null>(null);
   const apiRef = useRef<any>(null);
+  useTrackMeetingPresence(roomName);
 
   useEffect(() => {
     let disposed = false;

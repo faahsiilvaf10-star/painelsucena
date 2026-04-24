@@ -55,6 +55,7 @@ import { useEditMode } from "@/contexts/EditModeContext";
 import { EditableText } from "@/components/cms/EditableText";
 import { VerifiedBadge } from "@/components/VerifiedBadge";
 import { ModeratorBadge } from "@/components/ModeratorBadge";
+import { useActiveMeetingPresence } from "@/hooks/useActiveMeetingPresence";
 
 interface NavItem {
   id: string;
@@ -108,6 +109,8 @@ function SortableNavItem({
   onNavigate?: () => void;
   editMode?: boolean;
 }) {
+  const { hasActive: meetingActive } = useActiveMeetingPresence();
+  const showMeetingPulse = item.id === "reunioes" && meetingActive;
   const {
     attributes,
     listeners,
@@ -156,6 +159,16 @@ function SortableNavItem({
             as="span"
             canEdit={!!editMode}
           />
+          {showMeetingPulse && (
+            <span
+              className="ml-auto relative flex h-2.5 w-2.5 flex-shrink-0"
+              title="Reunião em andamento"
+              aria-label="Reunião em andamento"
+            >
+              <span className="absolute inline-flex h-full w-full animate-ping rounded-full bg-green-500 opacity-75" />
+              <span className="relative inline-flex h-2.5 w-2.5 rounded-full bg-green-500 shadow-[0_0_10px_2px_rgba(34,197,94,0.9)]" />
+            </span>
+          )}
         </Link>
       </SidebarMenuButton>
     </SidebarMenuItem>
