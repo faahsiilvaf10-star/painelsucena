@@ -273,7 +273,11 @@ export function ExportEfetivoPdfButton({ colaboradores, filterFuncao }: ExportEf
                     const nrsFormatted = c.nrs && c.nrs.length > 0 
                       ? c.nrs.map(nr => {
                           const dateInfo = c.nrDates?.[nr];
-                          return dateInfo ? `${nr} (Val: ${dateInfo.vencimento})` : nr;
+                          if (!dateInfo) return nr;
+                          const parts: string[] = [];
+                          if (dateInfo.realizacao) parts.push(`Real: ${dateInfo.realizacao}`);
+                          if (dateInfo.vencimento) parts.push(`Val: ${dateInfo.vencimento}`);
+                          return parts.length > 0 ? `${nr} (${parts.join(" / ")})` : nr;
                         }).join(", ")
                       : "-";
                     
