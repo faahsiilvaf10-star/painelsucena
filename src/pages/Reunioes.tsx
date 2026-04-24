@@ -164,6 +164,7 @@ export default function Reunioes() {
   const [pendingDelete, setPendingDelete] = useState<Meeting | null>(null);
   const [summaryOpen, setSummaryOpen] = useState(false);
   const [meetingSummary, setMeetingSummary] = useState<MeetingSummary | null>(null);
+  const [meetingTranscript, setMeetingTranscript] = useState<string>("");
 
   const defaultName = useMemo(
     () => profile?.full_name || user?.email?.split("@")[0] || "Convidado",
