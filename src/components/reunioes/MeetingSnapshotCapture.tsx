@@ -1,9 +1,16 @@
-import { useEffect, useRef, useState } from "react";
+import { useEffect, useMemo, useRef, useState } from "react";
 import { Camera, Loader2, Trash2, Image as ImageIcon } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Card } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { ScrollArea } from "@/components/ui/scroll-area";
+import {
+  Dialog,
+  DialogContent,
+  DialogDescription,
+  DialogHeader,
+  DialogTitle,
+} from "@/components/ui/dialog";
 import { toast } from "sonner";
 import { supabase } from "@/integrations/supabase/client";
 import { useAuth } from "@/hooks/useAuth";
@@ -25,6 +32,9 @@ export function MeetingSnapshotCapture({ roomName, snapshots, onChange }: Meetin
   const streamRef = useRef<MediaStream | null>(null);
   const [capturing, setCapturing] = useState(false);
   const [previewing, setPreviewing] = useState<string | null>(null);
+  const [desktopSources, setDesktopSources] = useState<DesktopCaptureSource[]>([]);
+  const [sourcePickerOpen, setSourcePickerOpen] = useState(false);
+  const [sourceLoading, setSourceLoading] = useState(false);
 
   useEffect(() => {
     return () => {
@@ -33,10 +43,76 @@ export function MeetingSnapshotCapture({ roomName, snapshots, onChange }: Meetin
     };
   }, []);
 
+  const canUseDesktopPicker = useMemo(
+    () => Boolean(window.desktopApp?.isElectron && window.desktopApp?.listScreenSources),
+    [],
+  );
+
+  const getDesktopStream = async (sourceId: string): Promise<MediaStream> => {
+    return navigator.mediaDevices.getUserMedia({
+      audio: false,
+      video: {
+        // Electron/Chromium desktop capture constraint
+        // eslint-disable-next-line @typescript-eslint/no-explicit-any
+        mandatory: {
+          chromeMediaSource: "desktop",
+          chromeMediaSourceId: sourceId,
+          minWidth: 1280,
+          maxWidth: 3840,
+          minHeight: 720,
+          maxHeight: 2160,
+        } as any,
+      } as MediaTrackConstraints,
+    });
+  };
+
+  const openDesktopPicker = async () => {
+    if (!window.desktopApp?.listScreenSources) return null;
+    setSourceLoading(true);
+    try {
+      const sources = await window.desktopApp.listScreenSources();
+      if (!sources?.length) {
+        toast.error("Nenhuma tela ou janela disponível para compartilhar.");
+        return null;
+      }
+      setDesktopSources(sources);
+      setSourcePickerOpen(true);
+      return null;
+    } catch (e) {
+      console.warn("listScreenSources error", e);
+      toast.error("Não foi possível carregar as telas para captura.");
+      return null;
+    } finally {
+      setSourceLoading(false);
+    }
+  };
+
+  const selectDesktopSource = async (sourceId: string) => {
+    try {
+      const stream = await getDesktopStream(sourceId);
+      streamRef.current = stream;
+      stream.getVideoTracks()[0]?.addEventListener("ended", () => {
+        streamRef.current = null;
+      });
+      setSourcePickerOpen(false);
+      return stream;
+    } catch (e) {
+      console.warn("desktop getUserMedia error", e);
+      toast.error("Não foi possível iniciar a captura da tela selecionada.");
+      return null;
+    }
+  };
+
   const ensureStream = async (): Promise<MediaStream | null> => {
     if (streamRef.current && streamRef.current.getVideoTracks().some((t) => t.readyState === "live")) {
       return streamRef.current;
     }
+
+    if (canUseDesktopPicker) {
+      await openDesktopPicker();
+      return null;
+    }
+
     try {
       const stream = await (navigator.mediaDevices as any).getDisplayMedia({
         video: { frameRate: 5 },
@@ -166,13 +242,13 @@ export function MeetingSnapshotCapture({ roomName, snapshots, onChange }: Meetin
             )}
           </div>
           <div className="flex items-center gap-1">
-            <Button size="sm" variant="default" onClick={captureFrame} disabled={capturing}>
-              {capturing ? (
+            <Button size="sm" variant="default" onClick={captureFrame} disabled={capturing || sourceLoading}>
+              {capturing || sourceLoading ? (
                 <Loader2 className="mr-1.5 h-3.5 w-3.5 animate-spin" />
               ) : (
                 <Camera className="mr-1.5 h-3.5 w-3.5" />
               )}
-              Capturar
+              {sourceLoading ? "Carregando" : "Capturar"}
             </Button>
             {streamRef.current && (
               <Button size="sm" variant="outline" onClick={stopShare}>
@@ -221,6 +297,66 @@ export function MeetingSnapshotCapture({ roomName, snapshots, onChange }: Meetin
           <img src={previewing} alt="Preview" className="max-h-full max-w-full rounded" />
         </div>
       )}
+
+      <Dialog open={sourcePickerOpen} onOpenChange={setSourcePickerOpen}>
+        <DialogContent className="max-w-4xl">
+          <DialogHeader>
+            <DialogTitle>Escolha uma tela ou janela</DialogTitle>
+            <DialogDescription>
+              Selecione o conteúdo mostrado na reunião para capturar slides, planilhas ou whiteboard.
+            </DialogDescription>
+          </DialogHeader>
+
+          <div className="grid max-h-[70vh] grid-cols-1 gap-3 overflow-y-auto pr-1 md:grid-cols-2">
+            {desktopSources.map((source) => (
+              <button
+                key={source.id}
+                type="button"
+                onClick={async () => {
+                  const stream = await selectDesktopSource(source.id);
+                  if (!stream) return;
+                  setTimeout(() => {
+                    void captureFrame();
+                  }, 50);
+                }}
+                className="overflow-hidden rounded-md border border-border bg-card text-left transition hover:border-primary/50 hover:shadow-sm"
+              >
+                <div className="aspect-video bg-muted">
+                  {source.thumbnail ? (
+                    <img
+                      src={source.thumbnail}
+                      alt={source.name}
+                      className="h-full w-full object-cover"
+                    />
+                  ) : (
+                    <div className="flex h-full items-center justify-center text-sm text-muted-foreground">
+                      Sem prévia
+                    </div>
+                  )}
+                </div>
+                <div className="flex items-center gap-3 p-3">
+                  {source.appIcon ? (
+                    <img src={source.appIcon} alt="Ícone do app" className="h-5 w-5 shrink-0 rounded-sm" />
+                  ) : (
+                    <div className="h-5 w-5 shrink-0 rounded-sm bg-muted" />
+                  )}
+                  <div className="min-w-0">
+                    <p className="truncate text-sm font-medium">{source.name}</p>
+                    <p className="text-xs text-muted-foreground">
+                      {source.id.startsWith("screen:") ? "Tela inteira" : "Janela do aplicativo"}
+                    </p>
+                  </div>
+                </div>
+              </button>
+            ))}
+            {desktopSources.length === 0 && (
+              <div className="col-span-full rounded-md border border-dashed border-border p-6 text-center text-sm text-muted-foreground">
+                Nenhuma tela disponível no momento.
+              </div>
+            )}
+          </div>
+        </DialogContent>
+      </Dialog>
     </>
   );
 }
