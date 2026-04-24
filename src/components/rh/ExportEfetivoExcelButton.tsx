@@ -298,7 +298,7 @@ export function ExportEfetivoExcelButton({ colaboradores, filterFuncao }: Export
       ) : (
         <FileSpreadsheet className="h-4 w-4" />
       )}
-      Exportar Excel
+      Baixar Planilha completa
     </Button>
   );
 }
