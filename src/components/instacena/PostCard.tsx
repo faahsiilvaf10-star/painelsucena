@@ -18,6 +18,7 @@ import { toast } from "sonner";
 import { MentionText } from "./MentionText";
 import { CommentSection } from "./CommentSection";
 import { PhotoViewer } from "@/components/orders/PhotoViewer";
+import { AvatarPreviewDialog } from "@/components/ui/AvatarPreviewDialog";
 
 const REACTIONS = [
   { type: "like", emoji: "👍", label: "Curtir", icon: ThumbsUp },
@@ -47,6 +48,7 @@ export function PostCard({ post }: { post: InstaCenaPost }) {
   const [showReactionsDialog, setShowReactionsDialog] = useState(false);
   const [photoViewerOpen, setPhotoViewerOpen] = useState(false);
   const [photoViewerIndex, setPhotoViewerIndex] = useState(0);
+  const [avatarPreviewOpen, setAvatarPreviewOpen] = useState(false);
 
   const myReaction = reactions.find((r) => r.user_id === user?.id);
   const isOwner = post.user_id === user?.id;
@@ -85,14 +87,21 @@ export function PostCard({ post }: { post: InstaCenaPost }) {
               <img src="/logo-sucena-system.jpg" alt="Sistema" className="h-full w-full object-cover" />
             </div>
           ) : (
-            <NeonAvatar
-              src={post.user_avatar_url}
-              name={post.user_name}
-              frameColor={post.frame_color}
-              neonColor={post.neon_color}
-              frameAnimation={post.frame_animation}
-              size="sm"
-            />
+            <button
+              type="button"
+              onClick={() => setAvatarPreviewOpen(true)}
+              className="rounded-full focus:outline-none focus:ring-2 focus:ring-primary/50 transition-transform hover:scale-105"
+              aria-label={`Ver foto de ${post.user_name}`}
+            >
+              <NeonAvatar
+                src={post.user_avatar_url}
+                name={post.user_name}
+                frameColor={post.frame_color}
+                neonColor={post.neon_color}
+                frameAnimation={post.frame_animation}
+                size="sm"
+              />
+            </button>
           )}
           <div className="flex-1 min-w-0">
             <p className="font-semibold text-sm flex items-center gap-1.5">
@@ -105,7 +114,13 @@ export function PostCard({ post }: { post: InstaCenaPost }) {
                 </>
               ) : (
                 <>
-                  {post.user_name}
+                  <button
+                    type="button"
+                    onClick={() => setAvatarPreviewOpen(true)}
+                    className="hover:underline focus:outline-none focus:underline"
+                  >
+                    {post.user_name}
+                  </button>
                   {post.is_admin && <VerifiedBadge size="sm" />}
                 </>
               )}
@@ -122,6 +137,16 @@ export function PostCard({ post }: { post: InstaCenaPost }) {
               )}
             </p>
           </div>
+
+          {/* Avatar preview dialog */}
+          {!post.is_system_post && (
+            <AvatarPreviewDialog
+              open={avatarPreviewOpen}
+              onOpenChange={setAvatarPreviewOpen}
+              src={post.user_avatar_url}
+              name={post.user_name}
+            />
+          )}
           {(isOwner || isAdmin) && (
             <DropdownMenu>
               <DropdownMenuTrigger asChild>
