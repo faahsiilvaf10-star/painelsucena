@@ -82,7 +82,7 @@ export function NotificationBell() {
     }
   };
 
-  const handleNotificationClick = (notification: { id: string; read: boolean; type: string; reference_type: string | null; reference_id: string | null }) => {
+  const handleNotificationClick = (notification: { id: string; read: boolean; type: string; reference_type: string | null; reference_id: string | null; message?: string | null }) => {
     if (!notification.read) {
       markAsRead.mutate(notification.id);
     }
@@ -104,6 +104,19 @@ export function NotificationBell() {
       navigate("/documentos");
     } else if (nType === "reminder") {
       navigate("/lembretes");
+    } else if (refType === "meeting" || nType === "meeting_invite") {
+      // Extrai o room_name do link embutido na mensagem
+      let room: string | null = null;
+      const msg = notification.message || "";
+      const match = msg.match(/[?&]room=([^\s&]+)/);
+      if (match) {
+        try {
+          room = decodeURIComponent(match[1]);
+        } catch {
+          room = match[1];
+        }
+      }
+      navigate(room ? `/reunioes?room=${encodeURIComponent(room)}` : "/reunioes");
     }
   };
 
