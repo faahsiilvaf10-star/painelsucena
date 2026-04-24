@@ -17,11 +17,11 @@ export function useActiveMeetingPresence() {
     });
 
     const updateCount = () => {
-      const state = channel.presenceState();
-      const total = Object.values(state).reduce(
-        (sum, arr) => sum + (Array.isArray(arr) ? arr.length : 0),
-        0
-      );
+      const state = channel.presenceState() as Record<string, unknown[]>;
+      let total = 0;
+      for (const arr of Object.values(state)) {
+        if (Array.isArray(arr)) total += arr.length;
+      }
       setActiveCount(total);
     };
 
