@@ -272,47 +272,36 @@ export const JitsiRoom = forwardRef<JitsiRoomHandle, JitsiRoomProps>(function Ji
               setTimeout(applyAvatar, 2000);
               setTimeout(applyAvatar, 5000);
             }
-            // Aplica plano de fundo virtual padrão (logo Sucena)
-            // assim que a câmera estiver ativa.
+            // Aplica plano de fundo virtual padrão apenas quando houver vídeo local ativo.
+            // No Electron, data URLs e reaplicações agressivas podem quebrar a segmentação
+            // e fazer a câmera sumir com fundo preto/pixelado.
             const applyDefaultBackground = async () => {
               try {
+                const isElectron = Boolean(window.desktopApp?.isElectron);
                 const bgUrl = `${window.location.origin}/meeting-background.png`;
-                console.log("[JitsiRoom] fetching background", bgUrl);
-                const response = await fetch(bgUrl);
-                if (!response.ok) throw new Error(`bg fetch failed: ${response.status}`);
-                const blob = await response.blob();
-                const dataUrl: string = await new Promise((resolve, reject) => {
-                  const reader = new FileReader();
-                  reader.onload = () => resolve(reader.result as string);
-                  reader.onerror = () => reject(new Error("read-bg-failed"));
-                  reader.readAsDataURL(blob);
-                });
-                console.log("[JitsiRoom] applying virtual background", { size: blob.size });
+                console.log("[JitsiRoom] applying background", { bgUrl, isElectron });
+
                 api.executeCommand("setVirtualBackground", {
                   enabled: true,
                   backgroundType: "image",
                   selectedThumbnail: "opshub-default",
-                  url: dataUrl,
+                  url: bgUrl,
                 });
-                // Reaplica após pequeno delay para garantir
-                setTimeout(() => {
-                  try {
-                    api.executeCommand("setVirtualBackground", {
-                      enabled: true,
-                      backgroundType: "image",
-                      selectedThumbnail: "opshub-default",
-                      url: dataUrl,
-                    });
-                  } catch {
-                    /* ignore */
-                  }
-                }, 3000);
               } catch (err) {
                 console.warn("[JitsiRoom] failed to apply default background", err);
               }
             };
-            // pequeno delay para garantir que o track de vídeo já esteja inicializado
-            setTimeout(applyDefaultBackground, 2000);
+
+            const scheduleBackgroundApply = () => {
+              setTimeout(applyDefaultBackground, 2500);
+            };
+
+            scheduleBackgroundApply();
+            api.addListener("videoMuteStatusChanged", (event: { muted?: boolean }) => {
+              if (event?.muted === false) {
+                scheduleBackgroundApply();
+              }
+            });
           } catch {
             /* ignore */
           }
