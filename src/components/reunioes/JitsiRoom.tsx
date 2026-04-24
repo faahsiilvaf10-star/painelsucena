@@ -69,20 +69,29 @@ export interface JitsiRoomProps {
   onParticipantLeft?: (p: { displayName?: string; id?: string }) => void;
 }
 
-export function JitsiRoom({
-  roomName,
-  displayName,
-  email,
-  avatarUrl,
-  subject,
-  startWithAudioMuted = false,
-  startWithVideoMuted = false,
-  isModerator = false,
-  onReady,
-  onLeave,
-  onParticipantJoined,
-  onParticipantLeft,
-}: JitsiRoomProps) {
+export interface JitsiRoomHandle {
+  getParticipants: () => Array<{ participantId: string; displayName?: string; avatarURL?: string }>;
+  kickParticipant: (participantId: string) => void;
+  getMyId: () => string | undefined;
+}
+
+export const JitsiRoom = forwardRef<JitsiRoomHandle, JitsiRoomProps>(function JitsiRoom(
+  {
+    roomName,
+    displayName,
+    email,
+    avatarUrl,
+    subject,
+    startWithAudioMuted = false,
+    startWithVideoMuted = false,
+    isModerator = false,
+    onReady,
+    onLeave,
+    onParticipantJoined,
+    onParticipantLeft,
+  },
+  ref,
+) {
   const containerRef = useRef<HTMLDivElement | null>(null);
   const apiRef = useRef<any>(null);
   const retriedVisitorFallbackRef = useRef(false);
