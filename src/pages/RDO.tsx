@@ -37,6 +37,7 @@ import { useJardinagemEquipment } from "@/hooks/useJardinagemEquipment";
 import { useRHEfetivo } from "@/hooks/useRHEfetivo";
 import { useAttendanceAreaAssignments } from "@/hooks/useAttendanceAreaAssignments";
 import { useAttendanceDailyMarks } from "@/hooks/useAttendanceDailyMarks";
+import { useCurrentTemperature } from "@/hooks/useCurrentTemperature";
 import { buildAreaPresenceText } from "@/lib/attendanceReport";
 import { getBrazilNorthDate, getBrazilNorthTodayString } from "@/lib/timezone";
 import { cn } from "@/lib/utils";
@@ -148,6 +149,14 @@ export default function RDO() {
   const [weatherMorning, setWeatherMorning] = useState("sol");
   const [weatherAfternoon, setWeatherAfternoon] = useState("sol");
   const [difficulties, setDifficulties] = useState("Não Houve.");
+
+  // Temperatura atual: exibida na prévia somente para o RDO do dia atual,
+  // antes das 16h e enquanto o relatório ainda não foi salvo.
+  const isToday = selectedDateStr === todayStr;
+  const nowHour = new Date().getHours();
+  const beforeCutoff = nowHour < 16;
+  const showLiveTemperature = isToday && beforeCutoff && !existingReport;
+  const { data: currentTemp } = useCurrentTemperature(showLiveTemperature);
 
   // Update horario when date changes (Friday = 16:00, other days = 17:00)
   useEffect(() => {
@@ -423,7 +432,8 @@ ${jardinagemEquipmentText}
 
 Condições climáticas:
 • MANHÃ = ${weatherLabels[weatherMorning]}
-• TARDE = ${weatherLabels[weatherAfternoon]}
+• TARDE = ${weatherLabels[weatherAfternoon]}${showLiveTemperature && currentTemp ? `
+• 🌡️ TEMPERATURA ATUAL = ${currentTemp.temperature}°C (sensação ${currentTemp.apparentTemp}°C) — Vila dos Cabanos` : ""}
 
 ${E.EMOJI_WARNING} DIFICULDADES/DESVIOS
 ${difficulties}`;
