@@ -41,6 +41,7 @@ export interface JitsiRoomProps {
   roomName: string;
   displayName: string;
   email?: string;
+  avatarUrl?: string;
   subject?: string;
   startWithAudioMuted?: boolean;
   startWithVideoMuted?: boolean;
@@ -55,6 +56,7 @@ export function JitsiRoom({
   roomName,
   displayName,
   email,
+  avatarUrl,
   subject,
   startWithAudioMuted = false,
   startWithVideoMuted = false,
@@ -118,7 +120,7 @@ export function JitsiRoom({
           parentNode: containerRef.current,
           width: "100%",
           height: "100%",
-          userInfo: { displayName, email: email || "" },
+          userInfo: { displayName, email: email || "", avatarURL: avatarUrl || "" },
           configOverwrite: {
             subject: subject || roomName,
             startWithAudioMuted,
@@ -159,6 +161,9 @@ export function JitsiRoom({
           onReady?.();
           try {
             api.executeCommand("setTileView", true);
+            if (avatarUrl) {
+              api.executeCommand("avatarUrl", avatarUrl);
+            }
           } catch {
             /* ignore */
           }
