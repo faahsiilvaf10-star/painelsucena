@@ -408,6 +408,7 @@ export default function Reunioes() {
             meetingTitle={activeMeeting.title}
             meetingId={activeMeeting.id}
             roomName={activeMeeting.room_name}
+            meetingCreatedBy={activeMeeting.created_by}
           />
         )}
       </Layout>
