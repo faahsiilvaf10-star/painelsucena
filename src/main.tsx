@@ -7,6 +7,31 @@ import { installEnvironmentHeader } from "@/lib/environmentHeader";
 // Injeta o header x-environment em toda chamada ao Supabase
 installEnvironmentHeader();
 
+// Limpeza de segurança para transições de login presas
+if (typeof window !== "undefined") {
+  try {
+    const isTransitioning = sessionStorage.getItem("loginTransitionInProgress") === "true";
+    // Se a transição estiver marcada mas não houver timestamp, marcamos agora.
+    // Se já houver e passou 15 segundos, limpamos.
+    const start = sessionStorage.getItem("loginTransitionStartTime");
+    const now = Date.now();
+    
+    if (isTransitioning) {
+      if (!start) {
+        sessionStorage.setItem("loginTransitionStartTime", now.toString());
+      } else if (now - Number(start) > 15000) {
+        console.warn("Limpando transição de login expirada no main.tsx");
+        sessionStorage.removeItem("loginTransitionInProgress");
+        sessionStorage.removeItem("loginTransitionStage");
+        sessionStorage.removeItem("loginTransitionPayload");
+        sessionStorage.removeItem("loginTransitionStartTime");
+      }
+    }
+  } catch (e) {
+    console.error("Erro na limpeza de segurança:", e);
+  }
+}
+
 // Register SW for PWA support (only in production-like environments)
 if (typeof window !== "undefined" && !window.location.hostname.includes("lovableproject.com")) {
   registerSW({
