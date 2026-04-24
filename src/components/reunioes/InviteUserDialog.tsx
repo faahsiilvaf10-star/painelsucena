@@ -15,6 +15,7 @@ import { Badge } from "@/components/ui/badge";
 import { useAllUsers } from "@/hooks/useAllUsers";
 import { useCreateNotification } from "@/hooks/useNotifications";
 import { useAuth } from "@/hooks/useAuth";
+import { supabase } from "@/integrations/supabase/client";
 import { toast } from "sonner";
 
 interface InviteUserDialogProps {
