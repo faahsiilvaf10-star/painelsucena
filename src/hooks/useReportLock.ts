@@ -87,8 +87,8 @@ export const useReportLock = (date: string) => {
   // Check if user can unlock specific area (owner or admin)
   const canUnlockArea = (area: AreaType) => {
     if (!lockData || !user) return false;
-    // Admins can unlock any area
-    if (isAdmin) return true;
+    // Admins and encarregados can unlock any area
+    if (canManage) return true;
     const areaLock = lockData.find(lock => lock.area === area);
     return areaLock?.locked_by === user.id;
   };
