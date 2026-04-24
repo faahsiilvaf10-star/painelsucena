@@ -150,6 +150,14 @@ export default function RDO() {
   const [weatherAfternoon, setWeatherAfternoon] = useState("sol");
   const [difficulties, setDifficulties] = useState("Não Houve.");
 
+  // Temperatura atual: exibida na prévia somente para o RDO do dia atual,
+  // antes das 16h e enquanto o relatório ainda não foi salvo.
+  const isToday = selectedDateStr === todayStr;
+  const nowHour = new Date().getHours();
+  const beforeCutoff = nowHour < 16;
+  const showLiveTemperature = isToday && beforeCutoff && !existingReport;
+  const { data: currentTemp } = useCurrentTemperature(showLiveTemperature);
+
   // Update horario when date changes (Friday = 16:00, other days = 17:00)
   useEffect(() => {
     const newHorario = selectedDate.getDay() === 5 ? "07:00 as 16:00" : "07:00 as 17:00";
