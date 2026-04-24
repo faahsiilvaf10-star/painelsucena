@@ -56,6 +56,7 @@ import { EditableText } from "@/components/cms/EditableText";
 import { VerifiedBadge } from "@/components/VerifiedBadge";
 import { ModeratorBadge } from "@/components/ModeratorBadge";
 import { useActiveMeetingPresence } from "@/hooks/useActiveMeetingPresence";
+import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from "@/components/ui/tooltip";
 
 interface NavItem {
   id: string;
@@ -109,8 +110,11 @@ function SortableNavItem({
   onNavigate?: () => void;
   editMode?: boolean;
 }) {
-  const { hasActive: meetingActive } = useActiveMeetingPresence();
+  const { hasActive: meetingActive, activeCount } = useActiveMeetingPresence();
   const showMeetingPulse = item.id === "reunioes" && meetingActive;
+  const meetingTooltip = `Reunião em andamento • ${activeCount} ${
+    activeCount === 1 ? "pessoa" : "pessoas"
+  } na sala`;
   const {
     attributes,
     listeners,
@@ -160,14 +164,32 @@ function SortableNavItem({
             canEdit={!!editMode}
           />
           {showMeetingPulse && (
-            <span
-              className="ml-auto relative flex h-2.5 w-2.5 flex-shrink-0"
-              title="Reunião em andamento"
-              aria-label="Reunião em andamento"
-            >
-              <span className="absolute inline-flex h-full w-full animate-ping rounded-full bg-green-500 opacity-75" />
-              <span className="relative inline-flex h-2.5 w-2.5 rounded-full bg-green-500 shadow-[0_0_10px_2px_rgba(34,197,94,0.9)]" />
-            </span>
+            <TooltipProvider delayDuration={150}>
+              <Tooltip>
+                <TooltipTrigger asChild>
+                  <span
+                    className="ml-auto flex items-center gap-1.5 flex-shrink-0"
+                    aria-label={meetingTooltip}
+                  >
+                    <span className="relative flex h-2.5 w-2.5">
+                      <span className="absolute inline-flex h-full w-full animate-ping rounded-full bg-green-500 opacity-75" />
+                      <span className="relative inline-flex h-2.5 w-2.5 rounded-full bg-green-500 shadow-[0_0_10px_2px_rgba(34,197,94,0.9)]" />
+                    </span>
+                    {!isCollapsed && (
+                      <span className="text-[11px] font-semibold leading-none text-green-500">
+                        {activeCount}
+                      </span>
+                    )}
+                  </span>
+                </TooltipTrigger>
+                <TooltipContent side="right" className="text-xs">
+                  <div className="font-semibold">Reunião em andamento</div>
+                  <div className="text-muted-foreground">
+                    {activeCount} {activeCount === 1 ? "pessoa" : "pessoas"} na sala agora
+                  </div>
+                </TooltipContent>
+              </Tooltip>
+            </TooltipProvider>
           )}
         </Link>
       </SidebarMenuButton>
