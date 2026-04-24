@@ -72,24 +72,32 @@ export function JitsiRoom({
     let disposed = false;
 
     const init = async () => {
+      console.log("[JitsiRoom] init started", { roomName });
       try {
         await loadJitsiScript();
+        console.log("[JitsiRoom] script loaded");
       } catch (e) {
-        console.error("Jitsi script load failed", e);
+        console.error("[JitsiRoom] script load failed", e);
         return;
       }
-      if (disposed || !containerRef.current || !window.JitsiMeetExternalAPI) return;
+      if (disposed) {
+        console.log("[JitsiRoom] disposed before mount");
+        return;
+      }
+      if (!containerRef.current) {
+        console.error("[JitsiRoom] containerRef is null");
+        return;
+      }
+      if (!window.JitsiMeetExternalAPI) {
+        console.error("[JitsiRoom] JitsiMeetExternalAPI not available");
+        return;
+      }
 
-      // Toolbar — moderador tem controles de "mute everyone" e gerenciar
-      const moderatorButtons = [
-        "mute-everyone",
-        "mute-video-everyone",
-        "security",
-      ];
+      const moderatorButtons = ["mute-everyone", "mute-video-everyone", "security"];
       const baseButtons = [
         "microphone",
         "camera",
-        "desktop", // compartilhar tela (abre seletor nativo: tela, janela ou aba)
+        "desktop",
         "fullscreen",
         "fodeviceselection",
         "hangup",
@@ -104,69 +112,64 @@ export function JitsiRoom({
         "invite",
       ];
 
-      const api = new window.JitsiMeetExternalAPI(JITSI_DOMAIN, {
-        roomName,
-        parentNode: containerRef.current,
-        width: "100%",
-        height: "100%",
-        userInfo: { displayName, email: email || "" },
-        configOverwrite: {
-          subject: subject || roomName,
-          startWithAudioMuted,
-          startWithVideoMuted,
-          prejoinPageEnabled: false,
-          disableDeepLinking: true,
-          enableWelcomePage: false,
-          enableClosePage: false,
-          // Layout estilo Teams: grade automática sem cortes
-          startWithVideoFilterEnabled: false,
-          disableTileEnlargement: false,
-          tileView: { numberOfVisibleTiles: 25 },
-          startTileView: true, // abrir já em modo grade
-          // Compartilhamento de tela: permite escolher tela inteira, janela ou aba
-          desktopSharingFrameRate: { min: 5, max: 30 },
-          desktopSharingSources: ["screen", "window", "tab"],
-          // Mostra o nome embaixo de cada vídeo
-          hideDisplayName: false,
-          hideDominantSpeakerBadge: false,
-          // Preencher tile sem cortar (object-fit: contain)
-          disableLocalVideoFlip: false,
-        },
-        interfaceConfigOverwrite: {
-          MOBILE_APP_PROMO: false,
-          SHOW_JITSI_WATERMARK: false,
-          SHOW_WATERMARK_FOR_GUESTS: false,
-          DEFAULT_BACKGROUND: "#0f172a",
-          DISABLE_VIDEO_BACKGROUND: false,
-          DISABLE_DOMINANT_SPEAKER_INDICATOR: false,
-          // CRÍTICO: vídeo "contain" para não cortar o rosto/janela
-          VIDEO_LAYOUT_FIT: "both",
-          FILM_STRIP_MAX_HEIGHT: 120,
-          VERTICAL_FILMSTRIP: true,
-          // Sempre exibir o nome do participante
-          SHOW_CHROME_EXTENSION_BANNER: false,
-          DISABLE_TRANSCRIPTION_SUBTITLES: true,
-          TILE_ASPECT_RATIO: 16 / 9,
-          TOOLBAR_BUTTONS: isModerator
-            ? [...baseButtons, ...moderatorButtons]
-            : baseButtons,
-        },
-      });
+      try {
+        const api = new window.JitsiMeetExternalAPI(JITSI_DOMAIN, {
+          roomName,
+          parentNode: containerRef.current,
+          width: "100%",
+          height: "100%",
+          userInfo: { displayName, email: email || "" },
+          configOverwrite: {
+            subject: subject || roomName,
+            startWithAudioMuted,
+            startWithVideoMuted,
+            prejoinPageEnabled: false,
+            disableDeepLinking: true,
+            enableWelcomePage: false,
+            enableClosePage: false,
+            startTileView: true,
+            tileView: { numberOfVisibleTiles: 25 },
+            desktopSharingFrameRate: { min: 5, max: 30 },
+            desktopSharingSources: ["screen", "window", "tab"],
+            hideDisplayName: false,
+            hideDominantSpeakerBadge: false,
+          },
+          interfaceConfigOverwrite: {
+            MOBILE_APP_PROMO: false,
+            SHOW_JITSI_WATERMARK: false,
+            SHOW_WATERMARK_FOR_GUESTS: false,
+            DEFAULT_BACKGROUND: "#0f172a",
+            VIDEO_LAYOUT_FIT: "both",
+            FILM_STRIP_MAX_HEIGHT: 120,
+            VERTICAL_FILMSTRIP: true,
+            SHOW_CHROME_EXTENSION_BANNER: false,
+            DISABLE_TRANSCRIPTION_SUBTITLES: true,
+            TILE_ASPECT_RATIO: 16 / 9,
+            TOOLBAR_BUTTONS: isModerator
+              ? [...baseButtons, ...moderatorButtons]
+              : baseButtons,
+          },
+        });
 
-      apiRef.current = api;
-      api.addListener("videoConferenceJoined", () => {
-        onReady?.();
-        // Forçar tile view (grade) ao entrar para layout estilo Teams
-        try {
-          api.executeCommand("setTileView", true);
-        } catch {
-          /* ignore */
-        }
-      });
-      api.addListener("readyToClose", () => onLeave?.());
-      api.addListener("videoConferenceLeft", () => onLeave?.());
-      api.addListener("participantJoined", (p: any) => onParticipantJoined?.(p));
-      api.addListener("participantLeft", (p: any) => onParticipantLeft?.(p));
+        apiRef.current = api;
+        console.log("[JitsiRoom] API created");
+
+        api.addListener("videoConferenceJoined", () => {
+          console.log("[JitsiRoom] joined");
+          onReady?.();
+          try {
+            api.executeCommand("setTileView", true);
+          } catch {
+            /* ignore */
+          }
+        });
+        api.addListener("readyToClose", () => onLeave?.());
+        api.addListener("videoConferenceLeft", () => onLeave?.());
+        api.addListener("participantJoined", (p: any) => onParticipantJoined?.(p));
+        api.addListener("participantLeft", (p: any) => onParticipantLeft?.(p));
+      } catch (e) {
+        console.error("[JitsiRoom] failed to create API", e);
+      }
     };
 
     init();
@@ -183,5 +186,5 @@ export function JitsiRoom({
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [roomName, isModerator]);
 
-  return <div ref={containerRef} className="h-full w-full" />;
+  return <div ref={containerRef} className="h-full w-full" style={{ minHeight: 400 }} />;
 }
