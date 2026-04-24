@@ -1056,3 +1056,26 @@ html, body {
   animation: weather-cloud-drift 36s linear infinite;
   animation-delay: -12s;
 }
+
+/* Jitsi local video: no mirror + consistent center framing */
+.jitsi-room-container,
+.jitsi-room-container iframe {
+  display: block;
+  width: 100% !important;
+  height: 100% !important;
+  border: 0;
+}
+
+/* The Jitsi iframe renders its own DOM; these rules apply when Jitsi's
+   internal styles bubble up via shared classes used in some embeds.
+   They guarantee local self-view is not mirrored and stays centered. */
+.jitsi-room-container video.flipVideoX,
+.jitsi-room-container video.mirror-video,
+.jitsi-room-container .local-video video,
+.jitsi-room-container #localVideoWrapper video,
+.jitsi-room-container span#localVideoWrapper video {
+  transform: none !important;
+  -webkit-transform: none !important;
+  object-fit: cover !important;
+  object-position: center center !important;
+}
