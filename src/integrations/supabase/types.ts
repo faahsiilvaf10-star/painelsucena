@@ -2164,6 +2164,63 @@ export type Database = {
         }
         Relationships: []
       }
+      meeting_transcripts: {
+        Row: {
+          action_items: Json | null
+          created_at: string
+          created_by: string
+          created_by_name: string
+          ended_at: string | null
+          environment: string
+          id: string
+          key_points: Json | null
+          meeting_id: string | null
+          meeting_title: string | null
+          participants: string[]
+          room_name: string
+          started_at: string
+          summary: string | null
+          transcript: string
+          updated_at: string
+        }
+        Insert: {
+          action_items?: Json | null
+          created_at?: string
+          created_by: string
+          created_by_name: string
+          ended_at?: string | null
+          environment?: string
+          id?: string
+          key_points?: Json | null
+          meeting_id?: string | null
+          meeting_title?: string | null
+          participants?: string[]
+          room_name: string
+          started_at?: string
+          summary?: string | null
+          transcript?: string
+          updated_at?: string
+        }
+        Update: {
+          action_items?: Json | null
+          created_at?: string
+          created_by?: string
+          created_by_name?: string
+          ended_at?: string | null
+          environment?: string
+          id?: string
+          key_points?: Json | null
+          meeting_id?: string | null
+          meeting_title?: string | null
+          participants?: string[]
+          room_name?: string
+          started_at?: string
+          summary?: string | null
+          transcript?: string
+          updated_at?: string
+        }
+        Relationships: []
+      }
       meetings: {
         Row: {
           created_at: string

@@ -42,6 +42,8 @@ import { JitsiRoom, type JitsiRoomHandle } from "@/components/reunioes/JitsiRoom
 import { PreJoinScreen } from "@/components/reunioes/PreJoinScreen";
 import { InviteUserDialog } from "@/components/reunioes/InviteUserDialog";
 import { ManageParticipantsDialog } from "@/components/reunioes/ManageParticipantsDialog";
+import { MeetingTranscriber } from "@/components/reunioes/MeetingTranscriber";
+import { MeetingSummaryDialog, type MeetingSummary } from "@/components/reunioes/MeetingSummaryDialog";
 import { supabase } from "@/integrations/supabase/client";
 
 type Stage = "list" | "prejoin" | "in-call";
@@ -160,6 +162,8 @@ export default function Reunioes() {
   const [manageOpen, setManageOpen] = useState(false);
   const jitsiRef = useRef<JitsiRoomHandle | null>(null);
   const [pendingDelete, setPendingDelete] = useState<Meeting | null>(null);
+  const [summaryOpen, setSummaryOpen] = useState(false);
+  const [meetingSummary, setMeetingSummary] = useState<MeetingSummary | null>(null);
 
   const defaultName = useMemo(
     () => profile?.full_name || user?.email?.split("@")[0] || "Convidado",
@@ -391,26 +395,39 @@ export default function Reunioes() {
               </Button>
             </div>
           </div>
-          <div className="flex-1 min-h-0 bg-black">
-            <JitsiRoom
-              ref={jitsiRef}
-              {...({
-                roomName: activeMeeting.room_name,
-                displayName: joinDisplayName || defaultName,
-                avatarUrl: profile?.avatar_url || undefined,
-                subject: activeMeeting.title,
-                startWithAudioMuted: audioMuted,
-                startWithVideoMuted: videoMuted,
-                isModerator: isHost,
-                onParticipantJoined: (p: { displayName?: string; id?: string }) => {
-                  if (p?.displayName) toast(`${p.displayName} entrou`, { duration: 2500 });
-                },
-                onParticipantLeft: (p: { displayName?: string; id?: string }) => {
-                  if (p?.displayName) toast(`${p.displayName} saiu`, { duration: 2500 });
-                },
-                onLeave: handleLeaveCall,
-              })}
-            />
+          <div className="flex-1 min-h-0 grid grid-cols-1 lg:grid-cols-[1fr_360px] gap-2 bg-black p-1">
+            <div className="min-h-0 bg-black">
+              <JitsiRoom
+                ref={jitsiRef}
+                {...({
+                  roomName: activeMeeting.room_name,
+                  displayName: joinDisplayName || defaultName,
+                  avatarUrl: profile?.avatar_url || undefined,
+                  subject: activeMeeting.title,
+                  startWithAudioMuted: audioMuted,
+                  startWithVideoMuted: videoMuted,
+                  isModerator: isHost,
+                  onParticipantJoined: (p: { displayName?: string; id?: string }) => {
+                    if (p?.displayName) toast(`${p.displayName} entrou`, { duration: 2500 });
+                  },
+                  onParticipantLeft: (p: { displayName?: string; id?: string }) => {
+                    if (p?.displayName) toast(`${p.displayName} saiu`, { duration: 2500 });
+                  },
+                  onLeave: handleLeaveCall,
+                })}
+              />
+            </div>
+            <div className="hidden lg:block min-h-0 bg-background rounded-md overflow-hidden">
+              <MeetingTranscriber
+                roomName={activeMeeting.room_name}
+                meetingId={activeMeeting.id !== "adhoc" ? activeMeeting.id : null}
+                meetingTitle={activeMeeting.title}
+                onSummaryReady={(s) => {
+                  setMeetingSummary(s);
+                  setSummaryOpen(true);
+                }}
+              />
+            </div>
           </div>
         </div>
 
@@ -468,9 +485,17 @@ export default function Reunioes() {
             />
           </>
         )}
+
+        <MeetingSummaryDialog
+          open={summaryOpen}
+          onOpenChange={setSummaryOpen}
+          summary={meetingSummary}
+          meetingTitle={activeMeeting.title}
+        />
       </Layout>
     );
   }
+
 
   // ===== PRE-JOIN =====
   if (stage === "prejoin" && activeMeeting) {
