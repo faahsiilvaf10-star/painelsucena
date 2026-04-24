@@ -15,6 +15,8 @@ import { Alert, AlertDescription } from "@/components/ui/alert";
 interface PreJoinProps {
   defaultName: string;
   meetingTitle: string;
+  createdByAvatar?: string | null;
+  createdByName?: string;
   onCancel: () => void;
   onJoin: (opts: {
     displayName: string;
