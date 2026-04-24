@@ -15,7 +15,30 @@ export interface MeetingPdfData {
 const MARGIN = 15;
 const LINE = 5.5;
 
-export function exportMeetingPdf(data: MeetingPdfData, filename = "reuniao.pdf") {
+async function loadImageAsDataURL(url: string): Promise<{ dataUrl: string; width: number; height: number } | null> {
+  try {
+    const res = await fetch(url, { mode: "cors" });
+    const blob = await res.blob();
+    const dataUrl = await new Promise<string>((resolve, reject) => {
+      const r = new FileReader();
+      r.onload = () => resolve(r.result as string);
+      r.onerror = () => reject(new Error("read-failed"));
+      r.readAsDataURL(blob);
+    });
+    const dims = await new Promise<{ width: number; height: number }>((resolve, reject) => {
+      const img = new Image();
+      img.onload = () => resolve({ width: img.naturalWidth, height: img.naturalHeight });
+      img.onerror = () => reject(new Error("image-load-failed"));
+      img.src = dataUrl;
+    });
+    return { dataUrl, ...dims };
+  } catch (e) {
+    console.warn("loadImageAsDataURL failed", url, e);
+    return null;
+  }
+}
+
+export async function exportMeetingPdf(data: MeetingPdfData, filename = "reuniao.pdf") {
   const doc = new jsPDF("p", "mm", "a4");
   const pageWidth = doc.internal.pageSize.getWidth();
   const pageHeight = doc.internal.pageSize.getHeight();
