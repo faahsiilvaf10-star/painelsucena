@@ -346,5 +346,11 @@ export const JitsiRoom = forwardRef<JitsiRoomHandle, JitsiRoomProps>(function Ji
     [],
   );
 
-  return <div ref={containerRef} className="h-full w-full" style={{ minHeight: 400 }} />;
+  return (
+    <div
+      ref={containerRef}
+      className="jitsi-room-container h-full w-full"
+      style={{ minHeight: 400 }}
+    />
+  );
 });
