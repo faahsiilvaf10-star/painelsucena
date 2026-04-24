@@ -505,6 +505,7 @@ export default function Reunioes() {
           meetingTitle={activeMeeting.title}
           transcript={meetingTranscript}
           roomName={activeMeeting.room_name}
+          snapshots={meetingSnapshots.map((s) => s.url)}
         />
       </Layout>
     );
