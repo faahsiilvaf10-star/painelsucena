@@ -149,9 +149,23 @@ export function PreJoinScreen({
       </div>
 
       <div className="space-y-4">
-        <div>
-          <h2 className="text-xl font-semibold">{meetingTitle}</h2>
-          <p className="text-sm text-muted-foreground">Pronto para entrar?</p>
+        <div className="space-y-3">
+          <div>
+            <h2 className="text-xl font-semibold leading-tight">{meetingTitle}</h2>
+            {createdByName && (
+              <div className="mt-2 flex items-center gap-2">
+                {createdByAvatar ? (
+                  <img src={createdByAvatar} alt={createdByName} className="h-5 w-5 rounded-full object-cover border border-primary/20" />
+                ) : (
+                  <div className="h-5 w-5 rounded-full bg-primary/10 flex items-center justify-center border border-primary/20 text-[10px] font-bold text-primary">
+                    {createdByName.charAt(0)}
+                  </div>
+                )}
+                <span className="text-sm text-muted-foreground italic">Conduzida por {createdByName}</span>
+              </div>
+            )}
+            <p className="mt-2 text-sm text-muted-foreground">Pronto para entrar?</p>
+          </div>
         </div>
 
         <div className="space-y-2">
