@@ -41,6 +41,7 @@ export interface JitsiRoomProps {
   roomName: string;
   displayName: string;
   email?: string;
+  avatarUrl?: string;
   subject?: string;
   startWithAudioMuted?: boolean;
   startWithVideoMuted?: boolean;
