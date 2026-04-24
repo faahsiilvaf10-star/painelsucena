@@ -10,10 +10,8 @@ export function ThemeProvider({ children, ...props }: ThemeProviderProps) {
     setMounted(true);
   }, []);
 
-  // Prevent hydration mismatch by not rendering until mounted
-  if (!mounted) {
-    return <div style={{ visibility: "hidden" }}>{children}</div>;
-  }
+  // Always render children to prevent blank screen if hydration/mounting is delayed
+  return <NextThemesProvider {...props}>{children}</NextThemesProvider>;
 
   return <NextThemesProvider {...props}>{children}</NextThemesProvider>;
 }
