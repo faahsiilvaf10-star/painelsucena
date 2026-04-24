@@ -150,13 +150,26 @@ export default function RDO() {
   const [weatherAfternoon, setWeatherAfternoon] = useState("sol");
   const [difficulties, setDifficulties] = useState("Não Houve.");
 
-  // Temperatura atual: exibida na prévia somente para o RDO do dia atual,
-  // antes das 16h e enquanto o relatório ainda não foi salvo.
+  // Temperatura: capturada em tempo real até as 16h e congelada após esse horário.
+  // Exibida apenas no RDO do dia atual e enquanto o relatório ainda não foi salvo.
   const isToday = selectedDateStr === todayStr;
-  const nowHour = new Date().getHours();
-  const beforeCutoff = nowHour < 16;
-  const showLiveTemperature = isToday && beforeCutoff && !existingReport;
-  const { data: currentTemp } = useCurrentTemperature(showLiveTemperature);
+  const [isBeforeCutoff, setIsBeforeCutoff] = useState(() => new Date().getHours() < 16);
+  useEffect(() => {
+    if (!isBeforeCutoff) return;
+    const interval = setInterval(() => {
+      if (new Date().getHours() >= 16) setIsBeforeCutoff(false);
+    }, 30 * 1000);
+    return () => clearInterval(interval);
+  }, [isBeforeCutoff]);
+
+  const showTemperature = isToday && !existingReport;
+  // Só faz fetch/auto-refresh ANTES das 16h. Após 16h, o último valor capturado fica congelado.
+  const { data: currentTemp } = useCurrentTemperature(showTemperature && isBeforeCutoff);
+  const [frozenTemp, setFrozenTemp] = useState<typeof currentTemp>(null);
+  useEffect(() => {
+    if (currentTemp) setFrozenTemp(currentTemp);
+  }, [currentTemp]);
+  const displayTemp = isBeforeCutoff ? currentTemp : frozenTemp;
 
   // Update horario when date changes (Friday = 16:00, other days = 17:00)
   useEffect(() => {
@@ -432,8 +445,8 @@ ${jardinagemEquipmentText}
 
 Condições climáticas:
 • MANHÃ = ${weatherLabels[weatherMorning]}
-• TARDE = ${weatherLabels[weatherAfternoon]}${showLiveTemperature && currentTemp ? `
-• 🌡️ TEMPERATURA ATUAL = ${currentTemp.temperature}°C (sensação ${currentTemp.apparentTemp}°C) — Vila dos Cabanos` : ""}
+• TARDE = ${weatherLabels[weatherAfternoon]}${showTemperature && displayTemp ? `
+• 🌡️ TEMPERATURA${isBeforeCutoff ? " ATUAL" : " (16h)"} = ${displayTemp.temperature}°C (sensação ${displayTemp.apparentTemp}°C) — Vila dos Cabanos` : ""}
 
 ${E.EMOJI_WARNING} DIFICULDADES/DESVIOS
 ${difficulties}`;
