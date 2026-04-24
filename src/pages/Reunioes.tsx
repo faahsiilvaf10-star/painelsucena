@@ -420,16 +420,24 @@ export default function Reunioes() {
                 })}
               />
             </div>
-            <div className="hidden lg:block min-h-0 bg-background rounded-md overflow-hidden">
-              <MeetingTranscriber
+            <div className="hidden lg:flex flex-col gap-3 min-h-0">
+              <div className="flex-1 min-h-0 bg-background rounded-md overflow-hidden">
+                <MeetingTranscriber
+                  roomName={activeMeeting.room_name}
+                  meetingId={activeMeeting.id !== "adhoc" ? activeMeeting.id : null}
+                  meetingTitle={activeMeeting.title}
+                  snapshots={meetingSnapshots.map((s) => s.url)}
+                  onSummaryReady={(s, _id, transcript) => {
+                    setMeetingSummary(s);
+                    setMeetingTranscript(transcript);
+                    setSummaryOpen(true);
+                  }}
+                />
+              </div>
+              <MeetingSnapshotCapture
                 roomName={activeMeeting.room_name}
-                meetingId={activeMeeting.id !== "adhoc" ? activeMeeting.id : null}
-                meetingTitle={activeMeeting.title}
-                onSummaryReady={(s, _id, transcript) => {
-                  setMeetingSummary(s);
-                  setMeetingTranscript(transcript);
-                  setSummaryOpen(true);
-                }}
+                snapshots={meetingSnapshots}
+                onChange={setMeetingSnapshots}
               />
             </div>
           </div>
