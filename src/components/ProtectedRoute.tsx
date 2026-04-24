@@ -33,6 +33,7 @@ const PageLoader = () => (
 const ProtectedRoute = ({ children }: ProtectedRouteProps) => {
   const [session, setSession] = useState<Session | null>(null);
   const [loading, setLoading] = useState(true);
+  const [userCargo, setUserCargo] = useState<string | null>(null);
   const [cargoChecked, setCargoChecked] = useState(false);
   const [forceLoad, setForceLoad] = useState(false);
 
