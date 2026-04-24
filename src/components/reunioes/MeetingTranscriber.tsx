@@ -19,7 +19,11 @@ interface MeetingTranscriberProps {
   meetingId?: string | null;
   meetingTitle?: string;
   participants?: string[];
-  onSummaryReady?: (summary: { summary: string; key_points: string[]; action_items: Array<{ task: string; owner?: string }> }, transcriptId: string) => void;
+  onSummaryReady?: (
+    summary: { summary: string; key_points: string[]; action_items: Array<{ task: string; owner?: string }> },
+    transcriptId: string,
+    transcript: string,
+  ) => void;
 }
 
 export function MeetingTranscriber({
