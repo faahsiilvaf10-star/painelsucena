@@ -35,14 +35,6 @@ export function MeetingTranscriber({
   snapshots = [],
   onSummaryReady,
 }: MeetingTranscriberProps) {
-
-export function MeetingTranscriber({
-  roomName,
-  meetingId,
-  meetingTitle,
-  participants = [],
-  onSummaryReady,
-}: MeetingTranscriberProps) {
   const { user } = useAuth();
   const { data: profile } = useProfile();
   const { environment } = useEnvironment();
