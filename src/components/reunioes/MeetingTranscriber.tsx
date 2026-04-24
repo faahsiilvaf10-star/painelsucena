@@ -1,5 +1,6 @@
 import { useEffect, useRef, useState } from "react";
-import { Mic, MicOff, Loader2, Sparkles, FileText, Save } from "lucide-react";
+import { Mic, MicOff, Loader2, Sparkles, FileText, Save, Download } from "lucide-react";
+import { exportMeetingPdf } from "@/lib/meetingPdf";
 import { Button } from "@/components/ui/button";
 import { Card } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
@@ -18,7 +19,11 @@ interface MeetingTranscriberProps {
   meetingId?: string | null;
   meetingTitle?: string;
   participants?: string[];
-  onSummaryReady?: (summary: { summary: string; key_points: string[]; action_items: Array<{ task: string; owner?: string }> }, transcriptId: string) => void;
+  onSummaryReady?: (
+    summary: { summary: string; key_points: string[]; action_items: Array<{ task: string; owner?: string }> },
+    transcriptId: string,
+    transcript: string,
+  ) => void;
 }
 
 export function MeetingTranscriber({
@@ -206,6 +211,7 @@ export function MeetingTranscriber({
           action_items: aiData.action_items || [],
         },
         inserted.id,
+        transcript,
       );
     } finally {
       setSummarizing(false);
@@ -259,6 +265,25 @@ export function MeetingTranscriber({
               <Sparkles className="mr-1.5 h-3.5 w-3.5" />
             )}
             Resumir
+          </Button>
+          <Button
+            size="sm"
+            variant="outline"
+            onClick={() =>
+              exportMeetingPdf(
+                {
+                  meetingTitle,
+                  roomName,
+                  participants,
+                  transcript: finalText,
+                },
+                `transcricao-${(meetingTitle || roomName || "reuniao").replace(/[^a-z0-9]+/gi, "_")}.pdf`,
+              )
+            }
+            disabled={!finalText.trim()}
+            title="Exportar transcrição em PDF"
+          >
+            <Download className="mr-1.5 h-3.5 w-3.5" /> PDF
           </Button>
         </div>
       </div>

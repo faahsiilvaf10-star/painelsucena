@@ -164,6 +164,7 @@ export default function Reunioes() {
   const [pendingDelete, setPendingDelete] = useState<Meeting | null>(null);
   const [summaryOpen, setSummaryOpen] = useState(false);
   const [meetingSummary, setMeetingSummary] = useState<MeetingSummary | null>(null);
+  const [meetingTranscript, setMeetingTranscript] = useState<string>("");
 
   const defaultName = useMemo(
     () => profile?.full_name || user?.email?.split("@")[0] || "Convidado",
@@ -422,8 +423,9 @@ export default function Reunioes() {
                 roomName={activeMeeting.room_name}
                 meetingId={activeMeeting.id !== "adhoc" ? activeMeeting.id : null}
                 meetingTitle={activeMeeting.title}
-                onSummaryReady={(s) => {
+                onSummaryReady={(s, _id, transcript) => {
                   setMeetingSummary(s);
+                  setMeetingTranscript(transcript);
                   setSummaryOpen(true);
                 }}
               />
@@ -491,6 +493,8 @@ export default function Reunioes() {
           onOpenChange={setSummaryOpen}
           summary={meetingSummary}
           meetingTitle={activeMeeting.title}
+          transcript={meetingTranscript}
+          roomName={activeMeeting.room_name}
         />
       </Layout>
     );

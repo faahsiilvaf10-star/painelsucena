@@ -1,7 +1,9 @@
-import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogDescription } from "@/components/ui/dialog";
+import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogDescription, DialogFooter } from "@/components/ui/dialog";
 import { ScrollArea } from "@/components/ui/scroll-area";
 import { Badge } from "@/components/ui/badge";
-import { FileText, ListChecks, Sparkles } from "lucide-react";
+import { Button } from "@/components/ui/button";
+import { FileText, ListChecks, Sparkles, Download } from "lucide-react";
+import { exportMeetingPdf } from "@/lib/meetingPdf";
 
 export interface MeetingSummary {
   summary: string;
@@ -14,9 +16,37 @@ interface MeetingSummaryDialogProps {
   onOpenChange: (open: boolean) => void;
   summary: MeetingSummary | null;
   meetingTitle?: string;
+  transcript?: string;
+  roomName?: string;
+  participants?: string[];
 }
 
-export function MeetingSummaryDialog({ open, onOpenChange, summary, meetingTitle }: MeetingSummaryDialogProps) {
+export function MeetingSummaryDialog({
+  open,
+  onOpenChange,
+  summary,
+  meetingTitle,
+  transcript,
+  roomName,
+  participants,
+}: MeetingSummaryDialogProps) {
+  const handleExport = () => {
+    if (!summary) return;
+    const safeName = (meetingTitle || roomName || "reuniao").replace(/[^a-z0-9]+/gi, "_");
+    exportMeetingPdf(
+      {
+        meetingTitle,
+        roomName,
+        participants,
+        transcript,
+        summary: summary.summary,
+        keyPoints: summary.key_points,
+        actionItems: summary.action_items,
+      },
+      `ata-${safeName}.pdf`,
+    );
+  };
+
   return (
     <Dialog open={open} onOpenChange={onOpenChange}>
       <DialogContent className="max-w-2xl max-h-[85vh]">
@@ -30,7 +60,7 @@ export function MeetingSummaryDialog({ open, onOpenChange, summary, meetingTitle
           </DialogDescription>
         </DialogHeader>
 
-        <ScrollArea className="max-h-[65vh] pr-3">
+        <ScrollArea className="max-h-[60vh] pr-3">
           {!summary ? (
             <p className="text-sm text-muted-foreground">Nenhum resumo disponível.</p>
           ) : (
@@ -80,6 +110,16 @@ export function MeetingSummaryDialog({ open, onOpenChange, summary, meetingTitle
             </div>
           )}
         </ScrollArea>
+
+        <DialogFooter className="gap-2 sm:gap-2">
+          <Button variant="outline" onClick={() => onOpenChange(false)}>
+            Fechar
+          </Button>
+          <Button onClick={handleExport} disabled={!summary}>
+            <Download className="mr-1.5 h-4 w-4" />
+            Baixar PDF
+          </Button>
+        </DialogFooter>
       </DialogContent>
     </Dialog>
   );
