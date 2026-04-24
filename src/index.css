@@ -570,7 +570,6 @@ html, body {
   }
 
   /* Announcement Modal Styles */
-  @import url('https://fonts.googleapis.com/css2?family=Playfair+Display:ital,wght@0,400;0,500;0,600;0,700;1,400&display=swap');
   
   .announcement-modal-container {
     filter: drop-shadow(0 0 15px hsl(174 62% 47% / 0.6)) 
