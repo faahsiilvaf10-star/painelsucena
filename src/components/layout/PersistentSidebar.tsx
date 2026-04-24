@@ -53,7 +53,7 @@ export const PersistentSidebar = ({ children }: PersistentSidebarProps) => {
   const [forceReady, setForceReady] = useState(false);
   
   useEffect(() => {
-    const timer = setTimeout(() => setForceReady(true), 6000); // 6s safety timeout
+    const timer = setTimeout(() => setForceReady(true), 3000); // Reduced safety timeout to 3s
     return () => clearTimeout(timer);
   }, []);
 
