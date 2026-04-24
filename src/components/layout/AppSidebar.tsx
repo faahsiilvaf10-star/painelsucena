@@ -109,6 +109,8 @@ function SortableNavItem({
   onNavigate?: () => void;
   editMode?: boolean;
 }) {
+  const { hasActive: meetingActive } = useActiveMeetingPresence();
+  const showMeetingPulse = item.id === "reunioes" && meetingActive;
   const {
     attributes,
     listeners,
