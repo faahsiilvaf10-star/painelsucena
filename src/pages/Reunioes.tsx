@@ -395,26 +395,39 @@ export default function Reunioes() {
               </Button>
             </div>
           </div>
-          <div className="flex-1 min-h-0 bg-black">
-            <JitsiRoom
-              ref={jitsiRef}
-              {...({
-                roomName: activeMeeting.room_name,
-                displayName: joinDisplayName || defaultName,
-                avatarUrl: profile?.avatar_url || undefined,
-                subject: activeMeeting.title,
-                startWithAudioMuted: audioMuted,
-                startWithVideoMuted: videoMuted,
-                isModerator: isHost,
-                onParticipantJoined: (p: { displayName?: string; id?: string }) => {
-                  if (p?.displayName) toast(`${p.displayName} entrou`, { duration: 2500 });
-                },
-                onParticipantLeft: (p: { displayName?: string; id?: string }) => {
-                  if (p?.displayName) toast(`${p.displayName} saiu`, { duration: 2500 });
-                },
-                onLeave: handleLeaveCall,
-              })}
-            />
+          <div className="flex-1 min-h-0 grid grid-cols-1 lg:grid-cols-[1fr_360px] gap-2 bg-black p-1">
+            <div className="min-h-0 bg-black">
+              <JitsiRoom
+                ref={jitsiRef}
+                {...({
+                  roomName: activeMeeting.room_name,
+                  displayName: joinDisplayName || defaultName,
+                  avatarUrl: profile?.avatar_url || undefined,
+                  subject: activeMeeting.title,
+                  startWithAudioMuted: audioMuted,
+                  startWithVideoMuted: videoMuted,
+                  isModerator: isHost,
+                  onParticipantJoined: (p: { displayName?: string; id?: string }) => {
+                    if (p?.displayName) toast(`${p.displayName} entrou`, { duration: 2500 });
+                  },
+                  onParticipantLeft: (p: { displayName?: string; id?: string }) => {
+                    if (p?.displayName) toast(`${p.displayName} saiu`, { duration: 2500 });
+                  },
+                  onLeave: handleLeaveCall,
+                })}
+              />
+            </div>
+            <div className="hidden lg:block min-h-0 bg-background rounded-md overflow-hidden">
+              <MeetingTranscriber
+                roomName={activeMeeting.room_name}
+                meetingId={activeMeeting.id !== "adhoc" ? activeMeeting.id : null}
+                meetingTitle={activeMeeting.title}
+                onSummaryReady={(s) => {
+                  setMeetingSummary(s);
+                  setSummaryOpen(true);
+                }}
+              />
+            </div>
           </div>
         </div>
 
