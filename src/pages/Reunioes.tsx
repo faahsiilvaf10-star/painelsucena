@@ -496,7 +496,6 @@ export default function Reunioes() {
     );
   }
 
-  // (closing duplicated below was removed) 
 
   // ===== PRE-JOIN =====
   if (stage === "prejoin" && activeMeeting) {
