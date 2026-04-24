@@ -99,7 +99,7 @@ export function PreJoinScreen({
   return (
     <div className="grid gap-6 md:grid-cols-2">
       <div className="space-y-3">
-        <div className="aspect-video w-full overflow-hidden rounded-2xl bg-slate-900 shadow-lg">
+        <div className="aspect-video w-full overflow-hidden rounded-2xl bg-muted shadow-lg">
           {videoMuted ? (
             <div className="flex h-full w-full items-center justify-center text-white/70">
               <CameraOff className="h-12 w-12" />
