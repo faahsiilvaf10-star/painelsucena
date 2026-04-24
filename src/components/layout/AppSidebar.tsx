@@ -56,6 +56,7 @@ import { EditableText } from "@/components/cms/EditableText";
 import { VerifiedBadge } from "@/components/VerifiedBadge";
 import { ModeratorBadge } from "@/components/ModeratorBadge";
 import { useActiveMeetingPresence } from "@/hooks/useActiveMeetingPresence";
+import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from "@/components/ui/tooltip";
 
 interface NavItem {
   id: string;
