@@ -163,15 +163,16 @@ export default function RDO() {
   }, [isBeforeCutoff]);
 
   // Mostra a temperatura sempre que for o RDO do dia atual (mesmo após salvar).
-  // Antes das 16h: ao vivo. Após 16h: congelada no último valor capturado.
+  // Antes das 16h: ao vivo. Após 16h: congelada no último valor capturado (faz fetch único se ainda não houver).
   const showTemperature = isToday;
-  // Só faz fetch/auto-refresh ANTES das 16h. Após 16h, o último valor capturado fica congelado.
-  const { data: currentTemp } = useCurrentTemperature(showTemperature && isBeforeCutoff);
-  const [frozenTemp, setFrozenTemp] = useState<typeof currentTemp>(null);
+  const [frozenTemp, setFrozenTemp] = useState<{ temperature: number; apparentTemp: number; humidity: number; fetchedAt: string } | null>(null);
+  // Faz fetch/auto-refresh sempre que for hoje. Após 16h, o último valor fica congelado em frozenTemp.
+  const { data: currentTemp } = useCurrentTemperature(showTemperature && (isBeforeCutoff || !frozenTemp));
   useEffect(() => {
-    if (currentTemp) setFrozenTemp(currentTemp);
-  }, [currentTemp]);
-  const displayTemp = isBeforeCutoff ? currentTemp : frozenTemp;
+    if (currentTemp && isBeforeCutoff) setFrozenTemp(currentTemp);
+    else if (currentTemp && !frozenTemp) setFrozenTemp(currentTemp);
+  }, [currentTemp, isBeforeCutoff, frozenTemp]);
+  const displayTemp = isBeforeCutoff ? (currentTemp ?? frozenTemp) : frozenTemp;
 
   // Update horario when date changes (Friday = 16:00, other days = 17:00)
   useEffect(() => {
