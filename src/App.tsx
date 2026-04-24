@@ -116,10 +116,9 @@ if (typeof window !== "undefined") {
   });
 }
 
-const App = () => (
-
-
-  <ErrorBoundary>
+const App = () => {
+  return (
+    <ErrorBoundary>
     <ThemeProvider attribute="class" defaultTheme="light" enableSystem>
       <QueryClientProvider client={queryClient}>
         <TooltipProvider>
@@ -206,7 +205,8 @@ const App = () => (
       </QueryClientProvider>
     </ThemeProvider>
   </ErrorBoundary>
-);
+  );
+};
 
 
 
