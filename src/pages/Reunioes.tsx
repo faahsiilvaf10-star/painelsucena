@@ -423,8 +423,9 @@ export default function Reunioes() {
                 roomName={activeMeeting.room_name}
                 meetingId={activeMeeting.id !== "adhoc" ? activeMeeting.id : null}
                 meetingTitle={activeMeeting.title}
-                onSummaryReady={(s) => {
+                onSummaryReady={(s, _id, transcript) => {
                   setMeetingSummary(s);
+                  setMeetingTranscript(transcript);
                   setSummaryOpen(true);
                 }}
               />
