@@ -272,36 +272,10 @@ export const JitsiRoom = forwardRef<JitsiRoomHandle, JitsiRoomProps>(function Ji
               setTimeout(applyAvatar, 2000);
               setTimeout(applyAvatar, 5000);
             }
-            // Aplica plano de fundo virtual padrão apenas quando houver vídeo local ativo.
-            // No Electron, data URLs e reaplicações agressivas podem quebrar a segmentação
-            // e fazer a câmera sumir com fundo preto/pixelado.
-            const applyDefaultBackground = async () => {
-              try {
-                const isElectron = Boolean(window.desktopApp?.isElectron);
-                const bgUrl = `${window.location.origin}/meeting-background.png`;
-                console.log("[JitsiRoom] applying background", { bgUrl, isElectron });
-
-                api.executeCommand("setVirtualBackground", {
-                  enabled: true,
-                  backgroundType: "image",
-                  selectedThumbnail: "opshub-default",
-                  url: bgUrl,
-                });
-              } catch (err) {
-                console.warn("[JitsiRoom] failed to apply default background", err);
-              }
-            };
-
-            const scheduleBackgroundApply = () => {
-              setTimeout(applyDefaultBackground, 2500);
-            };
-
-            scheduleBackgroundApply();
-            api.addListener("videoMuteStatusChanged", (event: { muted?: boolean }) => {
-              if (event?.muted === false) {
-                scheduleBackgroundApply();
-              }
-            });
+            // Não aplica fundo virtual automaticamente. Os usuários iniciam sem fundo
+            // e podem escolher manualmente em "Selecionar fundo" no menu do Jitsi.
+            // A imagem /meeting-background.png fica disponível como uma das opções
+            // através do upload manual feito pelo próprio usuário, se desejar.
           } catch {
             /* ignore */
           }
