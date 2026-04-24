@@ -19,6 +19,7 @@ interface MeetingSummaryDialogProps {
   transcript?: string;
   roomName?: string;
   participants?: string[];
+  snapshots?: string[];
 }
 
 export function MeetingSummaryDialog({
@@ -29,11 +30,12 @@ export function MeetingSummaryDialog({
   transcript,
   roomName,
   participants,
+  snapshots = [],
 }: MeetingSummaryDialogProps) {
   const handleExport = () => {
     if (!summary) return;
     const safeName = (meetingTitle || roomName || "reuniao").replace(/[^a-z0-9]+/gi, "_");
-    exportMeetingPdf(
+    void exportMeetingPdf(
       {
         meetingTitle,
         roomName,
@@ -42,6 +44,7 @@ export function MeetingSummaryDialog({
         summary: summary.summary,
         keyPoints: summary.key_points,
         actionItems: summary.action_items,
+        snapshots,
       },
       `ata-${safeName}.pdf`,
     );
