@@ -294,8 +294,12 @@ export default function Reunioes() {
 
   // ===== IN-CALL =====
   if (stage === "in-call" && activeMeeting) {
-    const isHost =
-      activeMeeting.id !== "adhoc" && activeMeeting.created_by === user?.id;
+    const isHost = Boolean(
+      user?.id &&
+        activeMeeting.id !== "adhoc" &&
+        activeMeeting.created_by &&
+        activeMeeting.created_by === user.id
+    );
     return (
       <Layout>
         <div className="fixed inset-0 z-50 flex flex-col bg-background">
