@@ -1,5 +1,6 @@
 import { useEffect, useRef, useState } from "react";
-import { Mic, MicOff, Loader2, Sparkles, FileText, Save } from "lucide-react";
+import { Mic, MicOff, Loader2, Sparkles, FileText, Save, Download } from "lucide-react";
+import { exportMeetingPdf } from "@/lib/meetingPdf";
 import { Button } from "@/components/ui/button";
 import { Card } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
