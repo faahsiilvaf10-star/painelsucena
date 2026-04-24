@@ -56,6 +56,7 @@ export function JitsiRoom({
   roomName,
   displayName,
   email,
+  avatarUrl,
   subject,
   startWithAudioMuted = false,
   startWithVideoMuted = false,
