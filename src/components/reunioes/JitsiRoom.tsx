@@ -37,7 +37,7 @@ function loadJitsiScript(): Promise<void> {
   return scriptPromise;
 }
 
-interface JitsiRoomProps {
+export interface JitsiRoomProps {
   roomName: string;
   displayName: string;
   email?: string;
