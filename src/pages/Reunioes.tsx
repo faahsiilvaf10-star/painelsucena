@@ -283,6 +283,8 @@ export default function Reunioes() {
 
   // ===== IN-CALL =====
   if (stage === "in-call" && activeMeeting) {
+    const isHost =
+      activeMeeting.id !== "adhoc" && activeMeeting.created_by === user?.id;
     return (
       <Layout>
         <div className="fixed inset-0 z-50 flex flex-col bg-background">
@@ -290,6 +292,11 @@ export default function Reunioes() {
             <div className="flex items-center gap-2 text-sm">
               <Video className="h-4 w-4 text-primary" />
               <span className="font-semibold">{activeMeeting.title}</span>
+              {isHost && (
+                <Badge variant="outline" className="ml-2 border-primary/40 text-primary">
+                  Anfitrião
+                </Badge>
+              )}
             </div>
             <div className="flex items-center gap-2">
               <Button
@@ -299,7 +306,25 @@ export default function Reunioes() {
               >
                 <Copy className="mr-1.5 h-4 w-4" /> Copiar link
               </Button>
-              <Button size="sm" variant="destructive" onClick={() => setConfirmLeave(true)}>
+              {isHost && (
+                <>
+                  <Button
+                    size="sm"
+                    variant="outline"
+                    onClick={() => setInviteOpen(true)}
+                  >
+                    <UserPlus className="mr-1.5 h-4 w-4" /> Chamar usuário
+                  </Button>
+                  <Button
+                    size="sm"
+                    variant="destructive"
+                    onClick={() => setConfirmEndForAll(true)}
+                  >
+                    <PhoneOff className="mr-1.5 h-4 w-4" /> Encerrar para todos
+                  </Button>
+                </>
+              )}
+              <Button size="sm" variant="outline" onClick={() => setConfirmLeave(true)}>
                 <X className="mr-1.5 h-4 w-4" /> Sair
               </Button>
             </div>
@@ -313,8 +338,7 @@ export default function Reunioes() {
                 subject: activeMeeting.title,
                 startWithAudioMuted: audioMuted,
                 startWithVideoMuted: videoMuted,
-                isModerator:
-                  activeMeeting.id !== "adhoc" && activeMeeting.created_by === user?.id,
+                isModerator: isHost,
                 onParticipantJoined: (p: { displayName?: string; id?: string }) => {
                   if (p?.displayName) toast(`${p.displayName} entrou`, { duration: 2500 });
                 },
@@ -326,6 +350,7 @@ export default function Reunioes() {
             />
           </div>
         </div>
+
         <AlertDialog open={confirmLeave} onOpenChange={setConfirmLeave}>
           <AlertDialogContent>
             <AlertDialogHeader>
@@ -340,6 +365,36 @@ export default function Reunioes() {
             </AlertDialogFooter>
           </AlertDialogContent>
         </AlertDialog>
+
+        <AlertDialog open={confirmEndForAll} onOpenChange={setConfirmEndForAll}>
+          <AlertDialogContent>
+            <AlertDialogHeader>
+              <AlertDialogTitle>Encerrar reunião para todos?</AlertDialogTitle>
+              <AlertDialogDescription>
+                Todos os participantes serão desconectados imediatamente. Esta ação não pode ser desfeita.
+              </AlertDialogDescription>
+            </AlertDialogHeader>
+            <AlertDialogFooter>
+              <AlertDialogCancel>Cancelar</AlertDialogCancel>
+              <AlertDialogAction
+                onClick={handleEndForAll}
+                className="bg-destructive text-destructive-foreground hover:bg-destructive/90"
+              >
+                Encerrar para todos
+              </AlertDialogAction>
+            </AlertDialogFooter>
+          </AlertDialogContent>
+        </AlertDialog>
+
+        {isHost && (
+          <InviteUserDialog
+            open={inviteOpen}
+            onOpenChange={setInviteOpen}
+            meetingTitle={activeMeeting.title}
+            meetingId={activeMeeting.id}
+            roomName={activeMeeting.room_name}
+          />
+        )}
       </Layout>
     );
   }
