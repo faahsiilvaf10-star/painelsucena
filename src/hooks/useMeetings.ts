@@ -60,7 +60,10 @@ export function useMeetings() {
         .order("scheduled_date", { ascending: false })
         .order("start_time", { ascending: false });
       if (error) throw error;
-      return (data ?? []) as Meeting[];
+      return (data ?? []).map((m: any) => ({
+        ...m,
+        created_by_avatar: m.creator?.avatar_url,
+      })) as Meeting[];
     },
   });
 
