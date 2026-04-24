@@ -159,6 +159,16 @@ function SortableNavItem({
             as="span"
             canEdit={!!editMode}
           />
+          {showMeetingPulse && (
+            <span
+              className="ml-auto relative flex h-2.5 w-2.5 flex-shrink-0"
+              title="Reunião em andamento"
+              aria-label="Reunião em andamento"
+            >
+              <span className="absolute inline-flex h-full w-full animate-ping rounded-full bg-green-500 opacity-75" />
+              <span className="relative inline-flex h-2.5 w-2.5 rounded-full bg-green-500 shadow-[0_0_10px_2px_rgba(34,197,94,0.9)]" />
+            </span>
+          )}
         </Link>
       </SidebarMenuButton>
     </SidebarMenuItem>
