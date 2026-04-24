@@ -157,6 +157,16 @@ export const JitsiRoom = forwardRef<JitsiRoomHandle, JitsiRoomProps>(function Ji
           width: "100%",
           height: "100%",
           userInfo: { displayName, email: email || "", avatarURL: avatarUrl || "" },
+          // Permissões necessárias para o iframe interno do Jitsi acessar
+          // câmera, microfone e compartilhamento de tela (display-capture).
+          // Sem isto, o seletor de tela do navegador trava em "carregando".
+          // eslint-disable-next-line @typescript-eslint/no-explicit-any
+          ...({
+            iframeAttributes: {
+              allow:
+                "camera; microphone; fullscreen; display-capture; autoplay; clipboard-write; clipboard-read; screen-wake-lock; speaker-selection; web-share",
+            },
+          } as any),
           configOverwrite: {
             subject: subject || roomName,
             startWithAudioMuted,
