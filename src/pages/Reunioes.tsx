@@ -163,9 +163,18 @@ export default function Reunioes() {
     if (!room || stage !== "list") return;
     const found = meetings.find((m) => m.room_name === room);
     if (found) {
+      if (!isAuthorizedFor(found)) {
+        toast.error("Acesso restrito", {
+          description:
+            "Apenas convidados pelo anfitrião podem entrar nesta reunião.",
+        });
+        setSearchParams({}, { replace: true });
+        return;
+      }
       setActiveMeeting(found);
       setStage("prejoin");
     }
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [searchParams, meetings, stage]);
 
   const isAuthorizedFor = (m: Meeting | null) => {
