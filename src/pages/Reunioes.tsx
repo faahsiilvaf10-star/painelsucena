@@ -13,6 +13,8 @@ import {
   Video,
   Check,
   X,
+  PhoneOff,
+  UserPlus,
 } from "lucide-react";
 import Layout from "@/components/layout/Layout";
 import { Button } from "@/components/ui/button";
@@ -37,6 +39,8 @@ import { useAuth } from "@/hooks/useAuth";
 import { CreateMeetingDialog } from "@/components/reunioes/CreateMeetingDialog";
 import { JitsiRoom } from "@/components/reunioes/JitsiRoom";
 import { PreJoinScreen } from "@/components/reunioes/PreJoinScreen";
+import { InviteUserDialog } from "@/components/reunioes/InviteUserDialog";
+import { supabase } from "@/integrations/supabase/client";
 
 type Stage = "list" | "prejoin" | "in-call";
 
@@ -140,6 +144,8 @@ export default function Reunioes() {
   const [createOpen, setCreateOpen] = useState(false);
   const [linkInput, setLinkInput] = useState("");
   const [confirmLeave, setConfirmLeave] = useState(false);
+  const [confirmEndForAll, setConfirmEndForAll] = useState(false);
+  const [inviteOpen, setInviteOpen] = useState(false);
   const [pendingDelete, setPendingDelete] = useState<Meeting | null>(null);
 
   const defaultName = useMemo(
