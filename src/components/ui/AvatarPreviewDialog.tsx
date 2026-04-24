@@ -17,9 +17,7 @@ export const AvatarPreviewDialog = ({ open, onOpenChange, src, name }: AvatarPre
   return (
     <Dialog open={open} onOpenChange={onOpenChange}>
       <DialogContent className="max-w-md p-0 overflow-hidden bg-background border-border">
-        <VisuallyHidden>
-          <DialogTitle>Foto de perfil de {name}</DialogTitle>
-        </VisuallyHidden>
+        <DialogTitle className="sr-only">Foto de perfil de {name}</DialogTitle>
         <div className="flex flex-col items-center justify-center bg-gradient-to-b from-muted/30 to-background">
           {src ? (
             <img
