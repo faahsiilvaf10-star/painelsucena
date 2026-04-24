@@ -168,7 +168,25 @@ export default function Reunioes() {
     }
   }, [searchParams, meetings, stage]);
 
+  const isAuthorizedFor = (m: Meeting | null) => {
+    if (!m) return false;
+    // Reuniões ad-hoc (entrada por link sem registro) ficam liberadas
+    if (m.id === "adhoc") return true;
+    if (!user?.id) return false;
+    // Anfitrião sempre pode entrar
+    if (m.created_by === user.id) return true;
+    // Apenas usuários convidados (presentes em participants) podem entrar
+    return Array.isArray(m.participants) && m.participants.includes(user.id);
+  };
+
   const handleJoin = (m: Meeting) => {
+    if (!isAuthorizedFor(m)) {
+      toast.error("Acesso restrito", {
+        description:
+          "Apenas convidados pelo anfitrião podem entrar nesta reunião.",
+      });
+      return;
+    }
     setActiveMeeting(m);
     setStage("prejoin");
     setSearchParams({ room: m.room_name }, { replace: true });
