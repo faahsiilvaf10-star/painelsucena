@@ -8,7 +8,9 @@ declare global {
   }
 }
 
-const JITSI_DOMAIN = "meet.jit.si";
+// Servidor Jitsi público que NÃO exige autenticação de moderador.
+// meet.jit.si passou a exigir login para criar salas; meet.ffmuc.net é open/free.
+const JITSI_DOMAIN = "meet.ffmuc.net";
 const SCRIPT_SRC = `https://${JITSI_DOMAIN}/external_api.js`;
 
 let scriptPromise: Promise<void> | null = null;
