@@ -18,6 +18,7 @@ import { supabase } from "@/integrations/supabase/client";
 import { toast } from "sonner";
 import { VerifiedBadge } from "@/components/VerifiedBadge";
 import { ModeratorBadge } from "@/components/ModeratorBadge";
+import { AvatarPreviewDialog } from "@/components/ui/AvatarPreviewDialog";
 
 interface ChatPopupProps {
   user: UserWithStatus;
@@ -56,6 +57,7 @@ export const ChatPopup = ({ user: selectedUser, onClose, onExpand }: ChatPopupPr
   const { isOtherTyping, sendTypingEvent, sendStopTypingEvent } = useTypingIndicator(selectedUser.user_id);
   const [confirmClear, setConfirmClear] = useState(false);
   const [persistedLastSeen, setPersistedLastSeen] = useState<string | null>(selectedUser.lastSeen ?? null);
+  const [avatarPreviewOpen, setAvatarPreviewOpen] = useState(false);
   const { allUsers } = useAllUsers();
 
   // Get live user data (for real-time online status and lastSeen)
