@@ -429,17 +429,17 @@ const Dashboard = () => {
         </div>
       </Suspense>
 
-        {/* Recent activities row (mix real do sistema) */}
-        <div className="mb-4 animate-slide-up" style={{ animationDelay: "0.05s" }}>
-          <Suspense fallback={<DashboardItemSkeleton />}>
-            <RecentActivitiesCard />
-          </Suspense>
-        </div>
-
         {/* Reminder Banner */}
         <div className="mb-4">
           <Suspense fallback={<DashboardItemSkeleton />}>
             <ReminderHighlightBanner />
+          </Suspense>
+        </div>
+
+        {/* Recent activities row (mix real do sistema) */}
+        <div className="mb-4 animate-slide-up" style={{ animationDelay: "0.05s" }}>
+          <Suspense fallback={<DashboardItemSkeleton />}>
+            <RecentActivitiesCard />
           </Suspense>
         </div>
 
