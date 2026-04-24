@@ -9,6 +9,7 @@ import { useIsAdmin } from "@/hooks/useUserRole";
 import { useInstaCenaComments, useCreateComment, useDeleteComment } from "@/hooks/useInstaCena";
 import { MentionText } from "./MentionText";
 import { MentionPicker } from "./MentionPicker";
+import { AvatarPreviewDialog } from "@/components/ui/AvatarPreviewDialog";
 import { toast } from "sonner";
 
 const getInitials = (name: string) => {
@@ -28,6 +29,7 @@ export function CommentSection({ postId }: { postId: string }) {
   const [mentionQuery, setMentionQuery] = useState("");
   const [showMention, setShowMention] = useState(false);
   const [mentionCursorPos, setMentionCursorPos] = useState(0);
+  const [previewAvatar, setPreviewAvatar] = useState<{ src?: string | null; name: string } | null>(null);
   const inputRef = useRef<HTMLInputElement>(null);
 
   const handleContentChange = useCallback((e: React.ChangeEvent<HTMLInputElement>) => {
