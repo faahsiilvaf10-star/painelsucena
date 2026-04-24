@@ -253,13 +253,16 @@ export default function Reunioes() {
               </Button>
             </div>
           </div>
-          <div className="flex-1">
+          <div className="flex-1 min-h-0 bg-black">
             <JitsiRoom
               roomName={activeMeeting.room_name}
               displayName={joinDisplayName || defaultName}
               subject={activeMeeting.title}
               startWithAudioMuted={audioMuted}
               startWithVideoMuted={videoMuted}
+              isModerator={
+                activeMeeting.id !== "adhoc" && activeMeeting.created_by === user?.id
+              }
               onParticipantJoined={(p) =>
                 p?.displayName && toast(`${p.displayName} entrou`, { duration: 2500 })
               }

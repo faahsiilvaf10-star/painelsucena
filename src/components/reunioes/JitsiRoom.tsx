@@ -1,5 +1,6 @@
 import { useEffect, useRef } from "react";
 import { useTrackMeetingPresence } from "@/hooks/useActiveMeetingPresence";
+
 declare global {
   interface Window {
     JitsiMeetExternalAPI?: any;
@@ -43,6 +44,7 @@ interface JitsiRoomProps {
   subject?: string;
   startWithAudioMuted?: boolean;
   startWithVideoMuted?: boolean;
+  isModerator?: boolean;
   onReady?: () => void;
   onLeave?: () => void;
   onParticipantJoined?: (p: { displayName?: string; id?: string }) => void;
@@ -56,6 +58,7 @@ export function JitsiRoom({
   subject,
   startWithAudioMuted = false,
   startWithVideoMuted = false,
+  isModerator = false,
   onReady,
   onLeave,
   onParticipantJoined,
@@ -77,6 +80,30 @@ export function JitsiRoom({
       }
       if (disposed || !containerRef.current || !window.JitsiMeetExternalAPI) return;
 
+      // Toolbar — moderador tem controles de "mute everyone" e gerenciar
+      const moderatorButtons = [
+        "mute-everyone",
+        "mute-video-everyone",
+        "security",
+      ];
+      const baseButtons = [
+        "microphone",
+        "camera",
+        "desktop", // compartilhar tela (abre seletor nativo: tela, janela ou aba)
+        "fullscreen",
+        "fodeviceselection",
+        "hangup",
+        "chat",
+        "raisehand",
+        "videoquality",
+        "filmstrip",
+        "tileview",
+        "settings",
+        "participants-pane",
+        "select-background",
+        "invite",
+      ];
+
       const api = new window.JitsiMeetExternalAPI(JITSI_DOMAIN, {
         roomName,
         parentNode: containerRef.current,
@@ -91,6 +118,19 @@ export function JitsiRoom({
           disableDeepLinking: true,
           enableWelcomePage: false,
           enableClosePage: false,
+          // Layout estilo Teams: grade automática sem cortes
+          startWithVideoFilterEnabled: false,
+          disableTileEnlargement: false,
+          tileView: { numberOfVisibleTiles: 25 },
+          startTileView: true, // abrir já em modo grade
+          // Compartilhamento de tela: permite escolher tela inteira, janela ou aba
+          desktopSharingFrameRate: { min: 5, max: 30 },
+          desktopSharingSources: ["screen", "window", "tab"],
+          // Mostra o nome embaixo de cada vídeo
+          hideDisplayName: false,
+          hideDominantSpeakerBadge: false,
+          // Preencher tile sem cortar (object-fit: contain)
+          disableLocalVideoFlip: false,
         },
         interfaceConfigOverwrite: {
           MOBILE_APP_PROMO: false,
@@ -98,27 +138,31 @@ export function JitsiRoom({
           SHOW_WATERMARK_FOR_GUESTS: false,
           DEFAULT_BACKGROUND: "#0f172a",
           DISABLE_VIDEO_BACKGROUND: false,
-          TOOLBAR_BUTTONS: [
-            "microphone",
-            "camera",
-            "desktop",
-            "fullscreen",
-            "fodeviceselection",
-            "hangup",
-            "chat",
-            "raisehand",
-            "videoquality",
-            "filmstrip",
-            "tileview",
-            "settings",
-            "participants-pane",
-            "mute-everyone",
-          ],
+          DISABLE_DOMINANT_SPEAKER_INDICATOR: false,
+          // CRÍTICO: vídeo "contain" para não cortar o rosto/janela
+          VIDEO_LAYOUT_FIT: "both",
+          FILM_STRIP_MAX_HEIGHT: 120,
+          VERTICAL_FILMSTRIP: true,
+          // Sempre exibir o nome do participante
+          SHOW_CHROME_EXTENSION_BANNER: false,
+          DISABLE_TRANSCRIPTION_SUBTITLES: true,
+          TILE_ASPECT_RATIO: 16 / 9,
+          TOOLBAR_BUTTONS: isModerator
+            ? [...baseButtons, ...moderatorButtons]
+            : baseButtons,
         },
       });
 
       apiRef.current = api;
-      api.addListener("videoConferenceJoined", () => onReady?.());
+      api.addListener("videoConferenceJoined", () => {
+        onReady?.();
+        // Forçar tile view (grade) ao entrar para layout estilo Teams
+        try {
+          api.executeCommand("setTileView", true);
+        } catch {
+          /* ignore */
+        }
+      });
       api.addListener("readyToClose", () => onLeave?.());
       api.addListener("videoConferenceLeft", () => onLeave?.());
       api.addListener("participantJoined", (p: any) => onParticipantJoined?.(p));
@@ -137,7 +181,7 @@ export function JitsiRoom({
       apiRef.current = null;
     };
     // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [roomName]);
+  }, [roomName, isModerator]);
 
   return <div ref={containerRef} className="h-full w-full" />;
 }
