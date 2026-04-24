@@ -257,7 +257,20 @@ export const JitsiRoom = forwardRef<JitsiRoomHandle, JitsiRoomProps>(function Ji
           try {
             api.executeCommand("setTileView", true);
             if (avatarUrl) {
-              api.executeCommand("avatarUrl", avatarUrl);
+              // Aplica o avatar várias vezes para garantir que o Jitsi
+              // não sobrescreva com as iniciais geradas automaticamente.
+              const applyAvatar = () => {
+                try {
+                  api.executeCommand("avatarUrl", avatarUrl);
+                  api.executeCommand("displayName", displayName);
+                } catch {
+                  /* ignore */
+                }
+              };
+              applyAvatar();
+              setTimeout(applyAvatar, 500);
+              setTimeout(applyAvatar, 2000);
+              setTimeout(applyAvatar, 5000);
             }
             // Aplica plano de fundo virtual padrão (logo Sucena)
             // assim que a câmera estiver ativa.
