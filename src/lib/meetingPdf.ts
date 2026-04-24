@@ -8,6 +8,7 @@ export interface MeetingPdfData {
   summary?: string;
   keyPoints?: string[];
   actionItems?: Array<{ task: string; owner?: string }>;
+  snapshots?: string[];
   generatedAt?: Date;
 }
 
