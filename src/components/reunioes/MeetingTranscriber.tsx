@@ -165,6 +165,7 @@ export function MeetingTranscriber({
           environment: environment || "barcarena",
           transcript,
           participants,
+          snapshots,
           created_by: user.id,
           created_by_name: profile?.full_name || user.email || "Anônimo",
           ended_at: new Date().toISOString(),
