@@ -2164,6 +2164,60 @@ export type Database = {
         }
         Relationships: []
       }
+      meetings: {
+        Row: {
+          created_at: string
+          created_by: string
+          created_by_name: string
+          description: string | null
+          end_time: string | null
+          ended_at: string | null
+          environment: string
+          id: string
+          participants: string[]
+          room_name: string
+          scheduled_date: string
+          start_time: string
+          status: string
+          title: string
+          updated_at: string
+        }
+        Insert: {
+          created_at?: string
+          created_by: string
+          created_by_name: string
+          description?: string | null
+          end_time?: string | null
+          ended_at?: string | null
+          environment?: string
+          id?: string
+          participants?: string[]
+          room_name: string
+          scheduled_date: string
+          start_time: string
+          status?: string
+          title: string
+          updated_at?: string
+        }
+        Update: {
+          created_at?: string
+          created_by?: string
+          created_by_name?: string
+          description?: string | null
+          end_time?: string | null
+          ended_at?: string | null
+          environment?: string
+          id?: string
+          participants?: string[]
+          room_name?: string
+          scheduled_date?: string
+          start_time?: string
+          status?: string
+          title?: string
+          updated_at?: string
+        }
+        Relationships: []
+      }
       monthly_game_champions: {
         Row: {
           avatar_url: string | null
