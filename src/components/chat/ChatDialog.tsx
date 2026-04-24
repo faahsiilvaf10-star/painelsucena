@@ -28,7 +28,6 @@ import { toast } from "sonner";
 import { VerifiedBadge } from "@/components/VerifiedBadge";
 import { ModeratorBadge } from "@/components/ModeratorBadge";
 import { formatCargoLabel } from "@/lib/cargoUtils";
-import { ProfilePhotoViewer } from "@/components/ProfilePhotoViewer";
 
 // Format last seen time in a user-friendly way
 const formatLastSeen = (lastSeen?: string): string => {
@@ -91,7 +90,6 @@ const TypingIndicator = () => <div className="flex justify-start mb-2">
       </div>
     </div>
   </div>;
-
 export const ChatDialog = ({
   open,
   onOpenChange,
@@ -109,8 +107,6 @@ export const ChatDialog = ({
   const inputRef = useRef<HTMLInputElement>(null);
   const typingTimeoutRef = useRef<NodeJS.Timeout | null>(null);
   const [clearDialogOpen, setClearDialogOpen] = useState(false);
-  const [profileViewerOpen, setProfileViewerOpen] = useState(false);
-  
   const {
     messages,
     isLoading,
@@ -280,16 +276,11 @@ export const ChatDialog = ({
                 neonColor={selectedUser.neon_color}
                 frameAnimation={selectedUser.frame_animation}
                 size="sm"
-                className="cursor-pointer"
-                onClick={() => selectedUser.avatar_url && setProfileViewerOpen(true)}
               />
             </div>
             
             <div className="flex-1 min-w-0">
-              <DialogTitle 
-                className="text-white text-base font-medium flex items-center gap-1 truncate cursor-pointer hover:underline"
-                onClick={() => selectedUser.avatar_url && setProfileViewerOpen(true)}
-              >
+              <DialogTitle className="text-white text-base font-medium flex items-center gap-1 truncate">
                 {selectedUser.full_name}
                 {selectedUser.isModerator ? <ModeratorBadge size="xs" /> : selectedUser.isAdmin && <VerifiedBadge size="xs" />}
               </DialogTitle>
@@ -402,14 +393,6 @@ export const ChatDialog = ({
           </Button>
         </div>
       </DialogContent>
-      
-      {/* Profile Photo Viewer */}
-      <ProfilePhotoViewer
-        src={selectedUser.avatar_url}
-        name={selectedUser.full_name}
-        open={profileViewerOpen}
-        onOpenChange={setProfileViewerOpen}
-      />
     </Dialog>
   </>;
 };

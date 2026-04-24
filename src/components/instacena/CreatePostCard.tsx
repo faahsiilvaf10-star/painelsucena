@@ -12,7 +12,6 @@ import { FormattingToolbar } from "./FormattingToolbar";
 import { RichTextInput, RichTextInputHandle } from "./RichTextInput";
 import { EmojiPicker } from "@/components/chat/EmojiPicker";
 import { AnimatedEmojiPicker } from "./AnimatedEmojiPicker";
-import { ProfilePhotoViewer } from "@/components/ProfilePhotoViewer";
 
 const getInitials = (name: string) => {
   const parts = name.split(" ");
@@ -29,7 +28,6 @@ export function CreatePostCard() {
   const [uploading, setUploading] = useState(false);
   const [mentionQuery, setMentionQuery] = useState("");
   const [showMention, setShowMention] = useState(false);
-  const [profileViewerOpen, setProfileViewerOpen] = useState(false);
   const fileRef = useRef<HTMLInputElement>(null);
   const videoRef = useRef<HTMLInputElement>(null);
   const editorRef = useRef<RichTextInputHandle>(null);
@@ -188,8 +186,6 @@ export function CreatePostCard() {
             neonColor={profile?.neon_color}
             frameAnimation={profile?.frame_animation}
             size="sm"
-            className="cursor-pointer"
-            onClick={() => profile?.avatar_url && setProfileViewerOpen(true)}
           />
           <div className="flex-1 relative">
             <RichTextInput
@@ -269,14 +265,6 @@ export function CreatePostCard() {
             Publicar
           </Button>
         </div>
-
-        {/* Profile photo viewer */}
-        <ProfilePhotoViewer
-          src={profile?.avatar_url}
-          name={profile?.full_name || "Usuário"}
-          open={profileViewerOpen}
-          onOpenChange={setProfileViewerOpen}
-        />
       </CardContent>
     </Card>
   );

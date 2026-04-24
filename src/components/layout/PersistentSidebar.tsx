@@ -50,14 +50,7 @@ export const PersistentSidebar = ({ children }: PersistentSidebarProps) => {
 
   // Wait for auth + profile + settings to load before rendering layout
   // Skip the loading gate entirely on the auth page to avoid flashing
-  const [forceReady, setForceReady] = useState(false);
-  
-  useEffect(() => {
-    const timer = setTimeout(() => setForceReady(true), 3000); // Reduced safety timeout to 3s
-    return () => clearTimeout(timer);
-  }, []);
-
-  const layoutReady = isAuthPage || forceReady || (!authLoading && (!user || (!profileLoading && !settingsLoading)));
+  const layoutReady = isAuthPage || (!authLoading && (!user || (!profileLoading && !settingsLoading)));
 
   useEffect(() => {
     const handler = () => {
@@ -74,9 +67,8 @@ export const PersistentSidebar = ({ children }: PersistentSidebarProps) => {
 
   if (!layoutReady) {
     return (
-      <div className="h-screen w-full flex flex-col items-center justify-center bg-background gap-4">
-        <Loader2 className="h-8 w-8 animate-spin text-primary" />
-        <p className="text-sm text-muted-foreground animate-pulse">Carregando sistema...</p>
+      <div className="h-screen w-full grid place-items-center bg-background">
+        <Loader2 className="h-6 w-6 animate-spin text-muted-foreground" />
       </div>
     );
   }
@@ -85,14 +77,15 @@ export const PersistentSidebar = ({ children }: PersistentSidebarProps) => {
     <SidebarProvider defaultOpen={isAvatarBlocked ? false : !isMobile}>
       <div className="h-screen flex flex-row w-full bg-background overflow-x-clip overflow-y-hidden">
         {user && !isDriver && !useDock && !isAuthPage && !isEnvSelectionPage && (
-          <div className="overflow-visible">
+          <div className={`overflow-visible ${justCompletedTransition ? "animate-fade-in" : ""}`}>
             <AppSidebar lockedCollapsed={!!isAvatarBlocked} />
           </div>
         )}
         <div
-          className="flex-1 flex flex-col min-w-0 h-full overflow-hidden"
+          className={`flex-1 flex flex-col min-w-0 h-full overflow-hidden ${
+            justCompletedTransition ? "animate-fade-in" : ""
+          }`}
         >
-
           {children}
         </div>
         {useDock && !isAuthPage && <DockNavigation />}

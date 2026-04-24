@@ -8,7 +8,6 @@ interface NeonAvatarProps {
   frameAnimation?: string | null;
   size?: "xs" | "sm" | "md" | "lg";
   className?: string;
-  onClick?: () => void;
 }
 
 const sizeConfig = {
@@ -110,7 +109,6 @@ export const NeonAvatar = ({
   frameAnimation,
   size = "sm",
   className = "",
-  onClick,
 }: NeonAvatarProps) => {
   const config = sizeConfig[size];
   const hasFrame = !!frameColor;
@@ -119,9 +117,8 @@ export const NeonAvatar = ({
   if (!hasFrame && !hasNeon) {
     return (
       <Avatar
-        className={`${className} ${onClick ? "cursor-pointer" : ""}`}
+        className={className}
         style={{ width: config.outer, height: config.outer }}
-        onClick={onClick}
       >
         <AvatarImage src={src || undefined} alt={name} className="object-cover" />
         <AvatarFallback className={`bg-primary text-primary-foreground font-bold ${config.text}`}>
@@ -144,12 +141,11 @@ export const NeonAvatar = ({
 
   return (
     <div
-      className={`relative flex items-center justify-center flex-shrink-0 ${className} ${onClick ? "cursor-pointer" : ""}`}
+      className={`relative flex items-center justify-center flex-shrink-0 ${className}`}
       style={{
         width: config.outer,
         height: config.outer,
       }}
-      onClick={onClick}
     >
       {/* Neon glow aura */}
       {hasNeon && (

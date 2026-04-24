@@ -42,7 +42,7 @@ export const PersistentFooter = () => {
   if (!isMounted || !user || isDriverPage || isEnvSelection) return null;
 
   return createPortal(
-    <div>
+    <div className={justCompletedTransition ? "animate-fade-in" : ""}>
       <OnlineUsersFooter onUserClick={handleUserClick} />
       <ChatPopupManager ref={popupManagerRef} />
       <RightUsersSidebar onUserClick={handleUserClick} />

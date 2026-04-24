@@ -15,32 +15,11 @@ const DRIVER_ROLES = ["motorista_pipa", "motorista_munk"];
 
 const SESSION_TAB_KEY = "session_tab_active";
 
-// Minimal loading fallback consistent with App.tsx
-const PageLoader = () => (
-  <div className="flex items-center justify-center min-h-screen bg-background">
-    <div className="flex gap-1.5">
-      {[0, 1, 2, 3, 4].map((i) => (
-        <div
-          key={i}
-          className="w-1.5 h-1.5 rounded-full bg-primary/60 animate-pulse"
-          style={{ animationDelay: `${i * 150}ms` }}
-        />
-      ))}
-    </div>
-  </div>
-);
-
 const ProtectedRoute = ({ children }: ProtectedRouteProps) => {
   const [session, setSession] = useState<Session | null>(null);
   const [loading, setLoading] = useState(true);
   const [userCargo, setUserCargo] = useState<string | null>(null);
   const [cargoChecked, setCargoChecked] = useState(false);
-  const [forceLoad, setForceLoad] = useState(false);
-
-  useEffect(() => {
-    const timer = setTimeout(() => setForceLoad(true), 10000); // 10s safety timeout
-    return () => clearTimeout(timer);
-  }, []);
   const [isAdmin, setIsAdmin] = useState(false);
   const [hasAvatar, setHasAvatar] = useState<boolean | null>(null);
   const location = useLocation();
@@ -50,36 +29,15 @@ const ProtectedRoute = ({ children }: ProtectedRouteProps) => {
   useOfflineDriverRedirect();
 
   useEffect(() => {
-    let mounted = true;
+    const authClient = supabase.auth as any;
 
-    const initAuth = async () => {
-      try {
-        const { data: { session: currentSession } } = await supabase.auth.getSession();
-        
-        if (!mounted) return;
-
-        if (currentSession) {
-          setSession(currentSession);
-          sessionStorage.setItem(SESSION_TAB_KEY, "1");
-          await fetchUserCargo(currentSession.user.id);
-        } else {
-          setLoading(false);
-          setCargoChecked(true);
-        }
-      } catch (err) {
-        console.error("Error initializing auth:", err);
-        if (mounted) {
-          setLoading(false);
-          setCargoChecked(true);
-        }
-      }
-    };
-
-    const { data: { subscription } } = supabase.auth.onAuthStateChange((event, currentSession) => {
-      if (!mounted) return;
-
+    const {
+      data: { subscription },
+    } = authClient.onAuthStateChange((event: string, currentSession: Session | null) => {
       setSession(currentSession);
-      
+      setLoading(false);
+
+      // Redirect to auth on sign out
       if (event === "SIGNED_OUT") {
         setUserCargo(null);
         setCargoChecked(false);
@@ -87,20 +45,64 @@ const ProtectedRoute = ({ children }: ProtectedRouteProps) => {
         navigate("/auth", { replace: true });
       }
 
+      // On fresh login, mark tab active and fetch cargo (no auto-logout check)
       if (event === "SIGNED_IN" && currentSession?.user) {
         sessionStorage.setItem(SESSION_TAB_KEY, "1");
-        fetchUserCargo(currentSession.user.id);
+        setTimeout(() => {
+          fetchUserCargo(currentSession.user.id);
+        }, 0);
       }
-      
-      setLoading(false);
     });
 
-    initAuth();
+    // Check for existing session on page load
+    const initSession = async () => {
+      const {
+        data: { session: existingSession },
+      } = await authClient.getSession();
 
-    return () => {
-      mounted = false;
-      subscription.unsubscribe();
+      if (existingSession) {
+        setSession(existingSession);
+        setLoading(false);
+
+        // Only check tab flag on initial page load (not after a fresh login)
+        const tabWasActive = sessionStorage.getItem(SESSION_TAB_KEY);
+        const { cargo } = await fetchUserCargo(existingSession.user.id);
+        const isDriverRole = cargo && DRIVER_ROLES.includes(cargo);
+
+        // Browser was closed & reopened with a stale session → auto-logout non-drivers
+        if (!tabWasActive && !isDriverRole) {
+          console.log("Browser was closed. Auto-logging out non-driver user.");
+          setSession(null);
+          try {
+            await authClient.signOut({ scope: "local" });
+          } catch {
+            /* ignore */
+          }
+          navigate("/auth", { replace: true });
+          return;
+        }
+
+        // Session is valid, mark tab as active
+        sessionStorage.setItem(SESSION_TAB_KEY, "1");
+      } else {
+        // Try to refresh the session if no active session found
+        const {
+          data: { session: refreshedSession },
+        } = await authClient.refreshSession();
+        setSession(refreshedSession);
+        setLoading(false);
+        if (refreshedSession?.user) {
+          await fetchUserCargo(refreshedSession.user.id);
+          sessionStorage.setItem(SESSION_TAB_KEY, "1");
+        } else {
+          setCargoChecked(true);
+        }
+      }
     };
+
+    initSession();
+
+    return () => subscription.unsubscribe();
   }, [navigate]);
 
   const fetchUserCargo = async (userId: string) => {
@@ -136,9 +138,9 @@ const ProtectedRoute = ({ children }: ProtectedRouteProps) => {
     }
   };
 
-  // Show loader while loading session or checking cargo instead of blank page
-  if ((loading || !cargoChecked) && !forceLoad) {
-    return <PageLoader />;
+  // Show nothing while loading session or checking cargo
+  if (loading || !cargoChecked) {
+    return null;
   }
 
   if (!session) {

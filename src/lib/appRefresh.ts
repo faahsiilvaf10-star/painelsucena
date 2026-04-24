@@ -204,17 +204,10 @@ export async function checkServerVersion(): Promise<string | null> {
     const url = new URL("/index.html", window.location.origin);
     url.searchParams.set("preview-version-probe", `${Date.now()}`);
 
-    const controller = new AbortController();
-    const timeoutId = setTimeout(() => controller.abort(), 5000); // 5s timeout
-
     const res = await fetch(url.toString(), {
       cache: "no-store",
       headers: { "Cache-Control": "no-cache, no-store, max-age=0", Pragma: "no-cache" },
-      signal: controller.signal,
     });
-    
-    clearTimeout(timeoutId);
-    
     if (!res.ok) return null;
 
     const html = await res.text();
@@ -236,8 +229,7 @@ export async function checkServerVersion(): Promise<string | null> {
     }
 
     return null;
-  } catch (error) {
-    console.warn("Falha ao verificar versão do servidor:", error);
+  } catch {
     return null;
   }
 }

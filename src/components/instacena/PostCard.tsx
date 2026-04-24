@@ -18,7 +18,6 @@ import { toast } from "sonner";
 import { MentionText } from "./MentionText";
 import { CommentSection } from "./CommentSection";
 import { PhotoViewer } from "@/components/orders/PhotoViewer";
-import { ProfilePhotoViewer } from "@/components/ProfilePhotoViewer";
 
 const REACTIONS = [
   { type: "like", emoji: "👍", label: "Curtir", icon: ThumbsUp },
@@ -48,7 +47,6 @@ export function PostCard({ post }: { post: InstaCenaPost }) {
   const [showReactionsDialog, setShowReactionsDialog] = useState(false);
   const [photoViewerOpen, setPhotoViewerOpen] = useState(false);
   const [photoViewerIndex, setPhotoViewerIndex] = useState(0);
-  const [profileViewerOpen, setProfileViewerOpen] = useState(false);
 
   const myReaction = reactions.find((r) => r.user_id === user?.id);
   const isOwner = post.user_id === user?.id;
@@ -63,6 +61,9 @@ export function PostCard({ post }: { post: InstaCenaPost }) {
     toggleReaction.mutate({ postId: post.id, reactionType: type });
     setReactionsOpen(false);
   };
+
+
+
 
   const handleDelete = () => {
     deletePost.mutate(post.id, {
@@ -91,12 +92,10 @@ export function PostCard({ post }: { post: InstaCenaPost }) {
               neonColor={post.neon_color}
               frameAnimation={post.frame_animation}
               size="sm"
-              className="cursor-pointer"
-              onClick={() => post.user_avatar_url && setProfileViewerOpen(true)}
             />
           )}
           <div className="flex-1 min-w-0">
-            <div className="font-semibold text-sm flex items-center gap-1.5">
+            <p className="font-semibold text-sm flex items-center gap-1.5">
               {post.is_system_post ? (
                 <>
                   <span className="text-primary">Sistema</span>
@@ -105,15 +104,12 @@ export function PostCard({ post }: { post: InstaCenaPost }) {
                   </Badge>
                 </>
               ) : (
-                <div 
-                  className="flex items-center gap-1.5 cursor-pointer hover:underline"
-                  onClick={() => post.user_avatar_url && setProfileViewerOpen(true)}
-                >
+                <>
                   {post.user_name}
                   {post.is_admin && <VerifiedBadge size="sm" />}
-                </div>
+                </>
               )}
-            </div>
+            </p>
             <p className="text-xs text-muted-foreground">
               {post.is_system_post
                 ? `por ${post.user_name} · ${formatDistanceToNow(new Date(post.created_at), { addSuffix: true, locale: ptBR })}`
@@ -172,14 +168,6 @@ export function PostCard({ post }: { post: InstaCenaPost }) {
             onOpenChange={setPhotoViewerOpen}
           />
         )}
-
-        {/* Profile photo viewer */}
-        <ProfilePhotoViewer
-          src={post.user_avatar_url}
-          name={post.user_name}
-          open={profileViewerOpen}
-          onOpenChange={setProfileViewerOpen}
-        />
 
         {/* Reaction summary - clickable */}
         {reactions.length > 0 && (

@@ -187,15 +187,14 @@ export const useSessionTimeout = () => {
       const now = new Date();
       const cutoff = new Date(now);
       cutoff.setHours(22, 0, 0, 0);
-
-      // If it's already past 22:00 today, schedule for 22:00 tomorrow.
-      // This avoids the immediate logout loop if they log in at night.
+      // If already past 22:00 today, schedule for now (immediate logout)
       if (now >= cutoff) {
-        cutoff.setDate(cutoff.getDate() + 1);
+        console.log("[SessionTimeout] Past 22:00 — logging out driver now");
+        handleAutoLogout();
+        return null;
       }
-
       const ms = cutoff.getTime() - now.getTime();
-      console.log(`[SessionTimeout] Driver logout scheduled in ${Math.round(ms / 60000)} min (at 22:00)`);
+      console.log(`[SessionTimeout] Driver logout scheduled in ${Math.round(ms / 60000)} min (22:00)`);
       return setTimeout(() => handleAutoLogout(), ms);
     };
 
