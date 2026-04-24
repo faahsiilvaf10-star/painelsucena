@@ -76,17 +76,30 @@ export function CommentSection({ postId }: { postId: string }) {
     <div className="mt-3 space-y-3">
       {comments.map((c) => (
         <div key={c.id} className="flex gap-2 group">
-          <NeonAvatar
-            src={c.user_avatar_url}
-            name={c.user_name}
-            frameColor={c.frame_color}
-            neonColor={c.neon_color}
-            frameAnimation={c.frame_animation}
-            size="xs"
-          />
+          <button
+            type="button"
+            onClick={() => setPreviewAvatar({ src: c.user_avatar_url, name: c.user_name })}
+            className="rounded-full focus:outline-none focus:ring-2 focus:ring-primary/50 transition-transform hover:scale-105 shrink-0"
+            aria-label={`Ver foto de ${c.user_name}`}
+          >
+            <NeonAvatar
+              src={c.user_avatar_url}
+              name={c.user_name}
+              frameColor={c.frame_color}
+              neonColor={c.neon_color}
+              frameAnimation={c.frame_animation}
+              size="xs"
+            />
+          </button>
           <div className="bg-muted/50 rounded-xl px-3 py-1.5 flex-1">
             <div className="flex items-center justify-between">
-              <p className="text-xs font-semibold">{c.user_name}</p>
+              <button
+                type="button"
+                onClick={() => setPreviewAvatar({ src: c.user_avatar_url, name: c.user_name })}
+                className="text-xs font-semibold hover:underline focus:outline-none focus:underline text-left"
+              >
+                {c.user_name}
+              </button>
               {(c.user_id === user?.id || isAdmin) && (
                 <button
                   onClick={() => handleDelete(c.id)}
@@ -106,6 +119,13 @@ export function CommentSection({ postId }: { postId: string }) {
           </div>
         </div>
       ))}
+
+      <AvatarPreviewDialog
+        open={previewAvatar !== null}
+        onOpenChange={(open) => !open && setPreviewAvatar(null)}
+        src={previewAvatar?.src}
+        name={previewAvatar?.name ?? ""}
+      />
 
       {/* Comment input with mention support */}
       <div className="flex gap-2 items-end relative">
