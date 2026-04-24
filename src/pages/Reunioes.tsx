@@ -53,6 +53,7 @@ function buildShareUrl(roomName: string) {
 function MeetingCard({
   meeting,
   canManage,
+  canJoin,
   onJoin,
   onCopy,
   onDelete,
@@ -60,6 +61,7 @@ function MeetingCard({
 }: {
   meeting: Meeting;
   canManage: boolean;
+  canJoin: boolean;
   onJoin: (m: Meeting) => void;
   onCopy: (m: Meeting) => void;
   onDelete: (m: Meeting) => void;
@@ -78,6 +80,11 @@ function MeetingCard({
             ) : (
               <Badge variant="outline" className="border-primary/30 text-primary">
                 {meeting.status === "agendada" ? "Agendada" : meeting.status}
+              </Badge>
+            )}
+            {!canJoin && !isFinished && (
+              <Badge variant="secondary" className="gap-1">
+                Apenas convidados
               </Badge>
             )}
           </div>
@@ -106,16 +113,18 @@ function MeetingCard({
           </div>
         </div>
         <div className="flex flex-wrap gap-2">
-          {!past && (
+          {!past && canJoin && (
             <Button size="sm" onClick={() => onJoin(meeting)}>
               <LogIn className="mr-1.5 h-4 w-4" />
               Entrar
             </Button>
           )}
-          <Button size="sm" variant="outline" onClick={() => onCopy(meeting)}>
-            <Copy className="mr-1.5 h-4 w-4" />
-            Link
-          </Button>
+          {canManage && (
+            <Button size="sm" variant="outline" onClick={() => onCopy(meeting)}>
+              <Copy className="mr-1.5 h-4 w-4" />
+              Link
+            </Button>
+          )}
           {canManage && (
             <Button
               size="sm"
@@ -163,12 +172,39 @@ export default function Reunioes() {
     if (!room || stage !== "list") return;
     const found = meetings.find((m) => m.room_name === room);
     if (found) {
+      if (!isAuthorizedFor(found)) {
+        toast.error("Acesso restrito", {
+          description:
+            "Apenas convidados pelo anfitrião podem entrar nesta reunião.",
+        });
+        setSearchParams({}, { replace: true });
+        return;
+      }
       setActiveMeeting(found);
       setStage("prejoin");
     }
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [searchParams, meetings, stage]);
 
+  const isAuthorizedFor = (m: Meeting | null) => {
+    if (!m) return false;
+    // Reuniões ad-hoc (entrada por link sem registro) ficam liberadas
+    if (m.id === "adhoc") return true;
+    if (!user?.id) return false;
+    // Anfitrião sempre pode entrar
+    if (m.created_by === user.id) return true;
+    // Apenas usuários convidados (presentes em participants) podem entrar
+    return Array.isArray(m.participants) && m.participants.includes(user.id);
+  };
+
   const handleJoin = (m: Meeting) => {
+    if (!isAuthorizedFor(m)) {
+      toast.error("Acesso restrito", {
+        description:
+          "Apenas convidados pelo anfitrião podem entrar nesta reunião.",
+      });
+      return;
+    }
     setActiveMeeting(m);
     setStage("prejoin");
     setSearchParams({ room: m.room_name }, { replace: true });
@@ -538,6 +574,7 @@ export default function Reunioes() {
                   key={m.id}
                   meeting={m}
                   canManage={m.created_by === user?.id}
+                  canJoin={isAuthorizedFor(m)}
                   onJoin={handleJoin}
                   onCopy={handleCopyLink}
                   onDelete={(meet) => setPendingDelete(meet)}
@@ -559,6 +596,7 @@ export default function Reunioes() {
                   key={m.id}
                   meeting={m}
                   canManage={m.created_by === user?.id}
+                  canJoin={false}
                   onJoin={handleJoin}
                   onCopy={handleCopyLink}
                   onDelete={(meet) => setPendingDelete(meet)}
