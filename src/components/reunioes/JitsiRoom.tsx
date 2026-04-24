@@ -8,9 +8,9 @@ declare global {
   }
 }
 
-// Servidor Jitsi público que NÃO exige autenticação de moderador.
-// meet.jit.si passou a exigir login para criar salas; meet.ffmuc.net é open/free.
-const JITSI_DOMAIN = "meet.ffmuc.net";
+// Servidor Jitsi público que permite embed por iframe sem bloquear o preview.
+// meet.jit.si passou a exigir autenticação em alguns fluxos e meet.ffmuc.net bloqueia frame externo.
+const JITSI_DOMAIN = "meet.systemli.org";
 const SCRIPT_SRC = `https://${JITSI_DOMAIN}/external_api.js`;
 
 let scriptPromise: Promise<void> | null = null;
