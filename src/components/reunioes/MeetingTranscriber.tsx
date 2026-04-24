@@ -272,17 +272,18 @@ export function MeetingTranscriber({
           <Button
             size="sm"
             variant="outline"
-            onClick={() =>
-              exportMeetingPdf(
+            onClick={() => {
+              void exportMeetingPdf(
                 {
                   meetingTitle,
                   roomName,
                   participants,
                   transcript: finalText,
+                  snapshots,
                 },
                 `transcricao-${(meetingTitle || roomName || "reuniao").replace(/[^a-z0-9]+/gi, "_")}.pdf`,
-              )
-            }
+              );
+            }}
             disabled={!finalText.trim()}
             title="Exportar transcrição em PDF"
           >
