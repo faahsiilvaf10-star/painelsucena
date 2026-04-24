@@ -23,6 +23,7 @@ interface InviteUserDialogProps {
   meetingTitle: string;
   meetingId: string;
   roomName: string;
+  meetingCreatedBy: string;
 }
 
 export function InviteUserDialog({
@@ -31,12 +32,15 @@ export function InviteUserDialog({
   meetingTitle,
   meetingId,
   roomName,
+  meetingCreatedBy,
 }: InviteUserDialogProps) {
   const { user } = useAuth();
   const { allUsers } = useAllUsers();
   const createNotification = useCreateNotification();
   const [search, setSearch] = useState("");
   const [sending, setSending] = useState<string | null>(null);
+
+  const isHost = Boolean(user?.id && meetingCreatedBy && user.id === meetingCreatedBy);
 
   const filtered = useMemo(() => {
     const q = search.trim().toLowerCase();
@@ -49,6 +53,10 @@ export function InviteUserDialog({
 
   const handleInvite = async (target: { user_id: string; full_name: string }) => {
     if (!user) return;
+    if (!isHost) {
+      toast.error("Apenas o anfitrião pode convidar usuários");
+      return;
+    }
     setSending(target.user_id);
     try {
       const link = `${window.location.origin}/reunioes?room=${encodeURIComponent(roomName)}`;

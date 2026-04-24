@@ -238,6 +238,17 @@ export default function Reunioes() {
 
   const handleEndForAll = async () => {
     if (!activeMeeting) return;
+    // Guard de segurança: apenas o anfitrião (created_by) pode encerrar
+    if (
+      !user?.id ||
+      activeMeeting.id === "adhoc" ||
+      !activeMeeting.created_by ||
+      activeMeeting.created_by !== user.id
+    ) {
+      toast.error("Apenas o anfitrião pode encerrar a reunião para todos");
+      setConfirmEndForAll(false);
+      return;
+    }
     try {
       // Broadcast para todos os participantes saírem
       const channel = supabase.channel(`meeting-control-${activeMeeting.room_name}`);
@@ -283,8 +294,12 @@ export default function Reunioes() {
 
   // ===== IN-CALL =====
   if (stage === "in-call" && activeMeeting) {
-    const isHost =
-      activeMeeting.id !== "adhoc" && activeMeeting.created_by === user?.id;
+    const isHost = Boolean(
+      user?.id &&
+        activeMeeting.id !== "adhoc" &&
+        activeMeeting.created_by &&
+        activeMeeting.created_by === user.id
+    );
     return (
       <Layout>
         <div className="fixed inset-0 z-50 flex flex-col bg-background">
@@ -393,6 +408,7 @@ export default function Reunioes() {
             meetingTitle={activeMeeting.title}
             meetingId={activeMeeting.id}
             roomName={activeMeeting.room_name}
+            meetingCreatedBy={activeMeeting.created_by}
           />
         )}
       </Layout>
