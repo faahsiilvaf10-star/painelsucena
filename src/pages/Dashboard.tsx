@@ -122,24 +122,42 @@ const Dashboard = () => {
 
   const totalEmployees = activeColaboradores.length;
   
+  // Áreas que tiveram a Lista de Presença salva no dia (independente de ter ausentes)
+  const savedAreasToday = useMemo(() => {
+    const set = new Set<string>();
+    (dailyMarks ?? []).forEach((m) => set.add(m.area));
+    return set;
+  }, [dailyMarks]);
+
+  // Conta apenas colaboradores cuja área teve a lista salva
+  const expectedToday = useMemo(() => {
+    if (!areaAssignments || savedAreasToday.size === 0) return 0;
+    const activeIds = new Set(activeColaboradores.map((c) => c.id));
+    return areaAssignments.filter(
+      (a) => activeIds.has(a.employee_id) && savedAreasToday.has(a.area)
+    ).length;
+  }, [areaAssignments, activeColaboradores, savedAreasToday]);
+
   const absentToday = useMemo(() => {
     if (!dailyMarks) return 0;
     const allAbsentIds = new Set<number>();
-    dailyMarks.forEach(m => {
-      (m.absent_employee_ids || []).forEach(id => allAbsentIds.add(Number(id)));
+    dailyMarks.forEach((m) => {
+      (m.absent_employee_ids || []).forEach((id) => allAbsentIds.add(Number(id)));
     });
-    
-    // Only count absents that are in our active list
-    const activeIds = new Set(activeColaboradores.map(c => c.id));
+    const activeIds = new Set(activeColaboradores.map((c) => c.id));
     let count = 0;
-    allAbsentIds.forEach(id => {
+    allAbsentIds.forEach((id) => {
       if (activeIds.has(id)) count++;
     });
     return count;
   }, [dailyMarks, activeColaboradores]);
 
-  const presentToday = totalEmployees - absentToday;
-  const presencePercent = totalEmployees > 0 ? Math.round(presentToday / totalEmployees * 100) : 0;
+  // Se nenhuma área salvou a lista hoje => 0 presentes / 0%
+  const presentToday = savedAreasToday.size === 0 ? 0 : Math.max(0, expectedToday - absentToday);
+  const presencePercent =
+    savedAreasToday.size === 0 || totalEmployees === 0
+      ? 0
+      : Math.round((presentToday / totalEmployees) * 100);
   
   const jardinagemTotal = jardinagemEquipment?.length || 0;
   const jardinagemIn = jardinagemEquipment?.filter(e => e.status === "entrou").length || 0;
