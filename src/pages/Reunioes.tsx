@@ -236,6 +236,51 @@ export default function Reunioes() {
     setSearchParams({}, { replace: true });
   };
 
+  const handleEndForAll = async () => {
+    if (!activeMeeting) return;
+    try {
+      // Broadcast para todos os participantes saírem
+      const channel = supabase.channel(`meeting-control-${activeMeeting.room_name}`);
+      await channel.subscribe();
+      await channel.send({
+        type: "broadcast",
+        event: "end_meeting",
+        payload: { endedBy: user?.id, at: new Date().toISOString() },
+      });
+      setTimeout(() => supabase.removeChannel(channel), 500);
+
+      if (activeMeeting.id !== "adhoc") {
+        finish.mutate(activeMeeting.id);
+      }
+      toast.success("Reunião encerrada para todos");
+    } catch (e: any) {
+      toast.error("Erro ao encerrar", { description: e?.message });
+    } finally {
+      setConfirmEndForAll(false);
+      setStage("list");
+      setActiveMeeting(null);
+      setSearchParams({}, { replace: true });
+    }
+  };
+
+  // Listener para receber sinal de "encerrar para todos" durante a chamada
+  useEffect(() => {
+    if (stage !== "in-call" || !activeMeeting) return;
+    const channel = supabase
+      .channel(`meeting-control-${activeMeeting.room_name}`)
+      .on("broadcast", { event: "end_meeting" }, ({ payload }) => {
+        if (payload?.endedBy === user?.id) return; // próprio host já tratado
+        toast.warning("O anfitrião encerrou a reunião");
+        setStage("list");
+        setActiveMeeting(null);
+        setSearchParams({}, { replace: true });
+      })
+      .subscribe();
+    return () => {
+      supabase.removeChannel(channel);
+    };
+  }, [stage, activeMeeting, user?.id, setSearchParams]);
+
   // ===== IN-CALL =====
   if (stage === "in-call" && activeMeeting) {
     return (
