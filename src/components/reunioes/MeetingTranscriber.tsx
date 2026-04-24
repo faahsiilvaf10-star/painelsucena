@@ -154,33 +154,8 @@ export function MeetingTranscriber({
 
     setSummarizing(true);
     try {
-      // 1) Salva a transcrição no banco
-      setSaving(true);
-      const { data: inserted, error: insertErr } = await supabase
-        .from("meeting_transcripts")
-        .insert({
-          room_name: roomName,
-          meeting_id: meetingId || null,
-          meeting_title: meetingTitle || null,
-          environment: environment || "barcarena",
-          transcript,
-          participants,
-          snapshots,
-          created_by: user.id,
-          created_by_name: profile?.full_name || user.email || "Anônimo",
-          ended_at: new Date().toISOString(),
-        })
-        .select("id")
-        .single();
-      setSaving(false);
-
-      if (insertErr || !inserted) {
-        console.error(insertErr);
-        toast.error("Erro ao salvar transcrição.");
-        return;
-      }
-
-      // 2) Chama IA para gerar resumo
+      // 1) Chama IA para gerar resumo PRIMEIRO (não depende do banco)
+      console.log("[summarize] invocando edge function", { length: transcript.length });
       const { data: aiData, error: aiError } = await supabase.functions.invoke(
         "summarize-meeting",
         {
@@ -188,34 +163,69 @@ export function MeetingTranscriber({
         },
       );
 
-      if (aiError || !aiData || aiData.error) {
-        console.error(aiError || aiData?.error);
+      console.log("[summarize] resposta", { aiError, aiData });
+
+      if (aiError) {
+        console.error("[summarize] erro invoke:", aiError);
+        toast.error(`Falha ao chamar IA: ${aiError.message || aiError}`);
+        return;
+      }
+      if (!aiData || aiData.error) {
+        console.error("[summarize] erro IA:", aiData?.error);
         toast.error(aiData?.error || "Falha ao gerar resumo da IA.");
         return;
       }
+      if (!aiData.summary && (!aiData.key_points || aiData.key_points.length === 0)) {
+        toast.error("IA retornou resposta vazia.");
+        return;
+      }
 
-      // 3) Atualiza registro com resumo
-      const { error: updErr } = await supabase
-        .from("meeting_transcripts")
-        .update({
-          summary: aiData.summary || null,
-          key_points: aiData.key_points || [],
-          action_items: aiData.action_items || [],
-        })
-        .eq("id", inserted.id);
+      const summaryPayload = {
+        summary: aiData.summary || "",
+        key_points: aiData.key_points || [],
+        action_items: aiData.action_items || [],
+      };
 
-      if (updErr) console.warn("update summary err", updErr);
+      // 2) Tenta salvar no banco (não bloqueia o resumo se falhar)
+      let savedId: string | null = null;
+      try {
+        setSaving(true);
+        const { data: inserted, error: insertErr } = await supabase
+          .from("meeting_transcripts")
+          .insert({
+            room_name: roomName,
+            meeting_id: meetingId || null,
+            meeting_title: meetingTitle || null,
+            environment: environment || "barcarena",
+            transcript,
+            participants,
+            snapshots,
+            created_by: user.id,
+            created_by_name: profile?.full_name || user.email || "Anônimo",
+            ended_at: new Date().toISOString(),
+            summary: summaryPayload.summary || null,
+            key_points: summaryPayload.key_points,
+            action_items: summaryPayload.action_items,
+          })
+          .select("id")
+          .single();
+        setSaving(false);
 
-      toast.success("Resumo gerado e salvo!");
-      onSummaryReady?.(
-        {
-          summary: aiData.summary || "",
-          key_points: aiData.key_points || [],
-          action_items: aiData.action_items || [],
-        },
-        inserted.id,
-        transcript,
-      );
+        if (insertErr) {
+          console.warn("[summarize] não conseguiu salvar transcrição:", insertErr);
+          toast.warning("Resumo gerado, mas não foi salvo no banco.");
+        } else {
+          savedId = inserted?.id || null;
+        }
+      } catch (e) {
+        console.warn("[summarize] exceção ao salvar:", e);
+      }
+
+      toast.success("Resumo gerado!");
+      onSummaryReady?.(summaryPayload, savedId || "", transcript);
+    } catch (e) {
+      console.error("[summarize] erro inesperado:", e);
+      toast.error(`Erro: ${e instanceof Error ? e.message : "desconhecido"}`);
     } finally {
       setSummarizing(false);
       setSaving(false);
