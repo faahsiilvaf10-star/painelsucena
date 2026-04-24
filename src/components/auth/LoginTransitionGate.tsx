@@ -73,10 +73,22 @@ export function LoginTransitionGate() {
 
   if (snapshot.stage !== "play") {
     return (
-      <div className="fixed inset-0 z-[100] grid place-items-center bg-background/95">
-        <div className="flex items-center gap-3 text-muted-foreground">
-          <Loader2 className="h-5 w-5 animate-spin" />
-          <span className="text-sm">Entrando…</span>
+      <div className="fixed inset-0 z-[100] grid place-items-center bg-white dark:bg-black">
+        <div className="flex flex-col items-center gap-4 text-muted-foreground">
+          <Loader2 className="h-8 w-8 animate-spin text-primary" />
+          <div className="text-center space-y-1">
+            <span className="text-sm font-medium">Entrando no sistema…</span>
+            <p className="text-[10px] opacity-60">Sincronizando dados de segurança</p>
+          </div>
+          <button 
+            onClick={() => {
+              clearTransitionStorage();
+              window.dispatchEvent(new Event(EVENT_NAME));
+            }}
+            className="mt-8 text-[10px] underline hover:text-primary transition-colors"
+          >
+            Se estiver travado, clique aqui para forçar o acesso
+          </button>
         </div>
       </div>
     );

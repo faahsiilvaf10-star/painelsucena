@@ -12,7 +12,7 @@ export function ThemeProvider({ children, ...props }: ThemeProviderProps) {
 
   // Prevent hydration mismatch by not rendering until mounted
   if (!mounted) {
-    return <>{children}</>;
+    return <div style={{ visibility: "hidden" }}>{children}</div>;
   }
 
   return <NextThemesProvider {...props}>{children}</NextThemesProvider>;

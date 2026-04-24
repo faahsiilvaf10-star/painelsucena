@@ -50,7 +50,14 @@ export const PersistentSidebar = ({ children }: PersistentSidebarProps) => {
 
   // Wait for auth + profile + settings to load before rendering layout
   // Skip the loading gate entirely on the auth page to avoid flashing
-  const layoutReady = isAuthPage || (!authLoading && (!user || (!profileLoading && !settingsLoading)));
+  const [forceReady, setForceReady] = useState(false);
+  
+  useEffect(() => {
+    const timer = setTimeout(() => setForceReady(true), 6000); // 6s safety timeout
+    return () => clearTimeout(timer);
+  }, []);
+
+  const layoutReady = isAuthPage || forceReady || (!authLoading && (!user || (!profileLoading && !settingsLoading)));
 
   useEffect(() => {
     const handler = () => {
