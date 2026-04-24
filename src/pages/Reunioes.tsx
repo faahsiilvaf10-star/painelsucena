@@ -13,6 +13,8 @@ import {
   Video,
   Check,
   X,
+  PhoneOff,
+  UserPlus,
 } from "lucide-react";
 import Layout from "@/components/layout/Layout";
 import { Button } from "@/components/ui/button";
@@ -37,6 +39,8 @@ import { useAuth } from "@/hooks/useAuth";
 import { CreateMeetingDialog } from "@/components/reunioes/CreateMeetingDialog";
 import { JitsiRoom } from "@/components/reunioes/JitsiRoom";
 import { PreJoinScreen } from "@/components/reunioes/PreJoinScreen";
+import { InviteUserDialog } from "@/components/reunioes/InviteUserDialog";
+import { supabase } from "@/integrations/supabase/client";
 
 type Stage = "list" | "prejoin" | "in-call";
 
@@ -140,6 +144,8 @@ export default function Reunioes() {
   const [createOpen, setCreateOpen] = useState(false);
   const [linkInput, setLinkInput] = useState("");
   const [confirmLeave, setConfirmLeave] = useState(false);
+  const [confirmEndForAll, setConfirmEndForAll] = useState(false);
+  const [inviteOpen, setInviteOpen] = useState(false);
   const [pendingDelete, setPendingDelete] = useState<Meeting | null>(null);
 
   const defaultName = useMemo(
@@ -230,8 +236,55 @@ export default function Reunioes() {
     setSearchParams({}, { replace: true });
   };
 
+  const handleEndForAll = async () => {
+    if (!activeMeeting) return;
+    try {
+      // Broadcast para todos os participantes saírem
+      const channel = supabase.channel(`meeting-control-${activeMeeting.room_name}`);
+      await channel.subscribe();
+      await channel.send({
+        type: "broadcast",
+        event: "end_meeting",
+        payload: { endedBy: user?.id, at: new Date().toISOString() },
+      });
+      setTimeout(() => supabase.removeChannel(channel), 500);
+
+      if (activeMeeting.id !== "adhoc") {
+        finish.mutate(activeMeeting.id);
+      }
+      toast.success("Reunião encerrada para todos");
+    } catch (e: any) {
+      toast.error("Erro ao encerrar", { description: e?.message });
+    } finally {
+      setConfirmEndForAll(false);
+      setStage("list");
+      setActiveMeeting(null);
+      setSearchParams({}, { replace: true });
+    }
+  };
+
+  // Listener para receber sinal de "encerrar para todos" durante a chamada
+  useEffect(() => {
+    if (stage !== "in-call" || !activeMeeting) return;
+    const channel = supabase
+      .channel(`meeting-control-${activeMeeting.room_name}`)
+      .on("broadcast", { event: "end_meeting" }, ({ payload }) => {
+        if (payload?.endedBy === user?.id) return; // próprio host já tratado
+        toast.warning("O anfitrião encerrou a reunião");
+        setStage("list");
+        setActiveMeeting(null);
+        setSearchParams({}, { replace: true });
+      })
+      .subscribe();
+    return () => {
+      supabase.removeChannel(channel);
+    };
+  }, [stage, activeMeeting, user?.id, setSearchParams]);
+
   // ===== IN-CALL =====
   if (stage === "in-call" && activeMeeting) {
+    const isHost =
+      activeMeeting.id !== "adhoc" && activeMeeting.created_by === user?.id;
     return (
       <Layout>
         <div className="fixed inset-0 z-50 flex flex-col bg-background">
@@ -239,6 +292,11 @@ export default function Reunioes() {
             <div className="flex items-center gap-2 text-sm">
               <Video className="h-4 w-4 text-primary" />
               <span className="font-semibold">{activeMeeting.title}</span>
+              {isHost && (
+                <Badge variant="outline" className="ml-2 border-primary/40 text-primary">
+                  Anfitrião
+                </Badge>
+              )}
             </div>
             <div className="flex items-center gap-2">
               <Button
@@ -248,7 +306,25 @@ export default function Reunioes() {
               >
                 <Copy className="mr-1.5 h-4 w-4" /> Copiar link
               </Button>
-              <Button size="sm" variant="destructive" onClick={() => setConfirmLeave(true)}>
+              {isHost && (
+                <>
+                  <Button
+                    size="sm"
+                    variant="outline"
+                    onClick={() => setInviteOpen(true)}
+                  >
+                    <UserPlus className="mr-1.5 h-4 w-4" /> Chamar usuário
+                  </Button>
+                  <Button
+                    size="sm"
+                    variant="destructive"
+                    onClick={() => setConfirmEndForAll(true)}
+                  >
+                    <PhoneOff className="mr-1.5 h-4 w-4" /> Encerrar para todos
+                  </Button>
+                </>
+              )}
+              <Button size="sm" variant="outline" onClick={() => setConfirmLeave(true)}>
                 <X className="mr-1.5 h-4 w-4" /> Sair
               </Button>
             </div>
@@ -262,8 +338,7 @@ export default function Reunioes() {
                 subject: activeMeeting.title,
                 startWithAudioMuted: audioMuted,
                 startWithVideoMuted: videoMuted,
-                isModerator:
-                  activeMeeting.id !== "adhoc" && activeMeeting.created_by === user?.id,
+                isModerator: isHost,
                 onParticipantJoined: (p: { displayName?: string; id?: string }) => {
                   if (p?.displayName) toast(`${p.displayName} entrou`, { duration: 2500 });
                 },
@@ -275,6 +350,7 @@ export default function Reunioes() {
             />
           </div>
         </div>
+
         <AlertDialog open={confirmLeave} onOpenChange={setConfirmLeave}>
           <AlertDialogContent>
             <AlertDialogHeader>
@@ -289,6 +365,36 @@ export default function Reunioes() {
             </AlertDialogFooter>
           </AlertDialogContent>
         </AlertDialog>
+
+        <AlertDialog open={confirmEndForAll} onOpenChange={setConfirmEndForAll}>
+          <AlertDialogContent>
+            <AlertDialogHeader>
+              <AlertDialogTitle>Encerrar reunião para todos?</AlertDialogTitle>
+              <AlertDialogDescription>
+                Todos os participantes serão desconectados imediatamente. Esta ação não pode ser desfeita.
+              </AlertDialogDescription>
+            </AlertDialogHeader>
+            <AlertDialogFooter>
+              <AlertDialogCancel>Cancelar</AlertDialogCancel>
+              <AlertDialogAction
+                onClick={handleEndForAll}
+                className="bg-destructive text-destructive-foreground hover:bg-destructive/90"
+              >
+                Encerrar para todos
+              </AlertDialogAction>
+            </AlertDialogFooter>
+          </AlertDialogContent>
+        </AlertDialog>
+
+        {isHost && (
+          <InviteUserDialog
+            open={inviteOpen}
+            onOpenChange={setInviteOpen}
+            meetingTitle={activeMeeting.title}
+            meetingId={activeMeeting.id}
+            roomName={activeMeeting.room_name}
+          />
+        )}
       </Layout>
     );
   }
