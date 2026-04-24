@@ -128,8 +128,8 @@ export const useReportLock = (date: string) => {
     mutationFn: async (area: AreaType) => {
       if (!user) throw new Error("User not authenticated");
 
-      // If admin, delete regardless of who locked it
-      if (isAdmin) {
+      // If admin or encarregado, delete regardless of who locked it
+      if (canManage) {
         const { error } = await supabase
           .from("attendance_report_locks")
           .delete()
