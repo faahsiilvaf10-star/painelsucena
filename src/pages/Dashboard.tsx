@@ -88,6 +88,7 @@ const Dashboard = () => {
   const today = selectedDateString;
   const { data: rhData } = useRHEfetivo();
   const { data: dailyMarks } = useAttendanceDailyMarks(selectedDateString);
+  const { data: areaAssignments } = useAttendanceAreaAssignments();
   const { data: equipment } = useEquipment();
   const { data: currentlyOutEquipment } = useEquipmentCurrentlyOut();
   const { data: allRegisteredCount } = useAllRegisteredEquipmentCount();
