@@ -253,5 +253,40 @@ export const JitsiRoom = forwardRef<JitsiRoomHandle, JitsiRoomProps>(function Ji
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [roomName, roomVariant, isModerator]);
 
+  useImperativeHandle(
+    ref,
+    () => ({
+      getParticipants: () => {
+        const api = apiRef.current;
+        if (!api?.getParticipantsInfo) return [];
+        try {
+          const list = api.getParticipantsInfo() || [];
+          return list.map((p: any) => ({
+            participantId: p.participantId || p.id,
+            displayName: p.displayName || p.formattedDisplayName,
+            avatarURL: p.avatarURL,
+          }));
+        } catch {
+          return [];
+        }
+      },
+      kickParticipant: (participantId: string) => {
+        try {
+          apiRef.current?.executeCommand?.("kickParticipant", participantId);
+        } catch (e) {
+          console.error("[JitsiRoom] kickParticipant failed", e);
+        }
+      },
+      getMyId: () => {
+        try {
+          return apiRef.current?.myUserId?.();
+        } catch {
+          return undefined;
+        }
+      },
+    }),
+    [],
+  );
+
   return <div ref={containerRef} className="h-full w-full" style={{ minHeight: 400 }} />;
-}
+});
