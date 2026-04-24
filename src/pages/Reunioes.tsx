@@ -574,6 +574,7 @@ export default function Reunioes() {
                   key={m.id}
                   meeting={m}
                   canManage={m.created_by === user?.id}
+                  canJoin={isAuthorizedFor(m)}
                   onJoin={handleJoin}
                   onCopy={handleCopyLink}
                   onDelete={(meet) => setPendingDelete(meet)}
