@@ -166,6 +166,7 @@ export default function Reunioes() {
   const [summaryOpen, setSummaryOpen] = useState(false);
   const [meetingSummary, setMeetingSummary] = useState<MeetingSummary | null>(null);
   const [meetingTranscript, setMeetingTranscript] = useState<string>("");
+  const [meetingSnapshots, setMeetingSnapshots] = useState<MeetingSnapshot[]>([]);
 
   const defaultName = useMemo(
     () => profile?.full_name || user?.email?.split("@")[0] || "Convidado",
