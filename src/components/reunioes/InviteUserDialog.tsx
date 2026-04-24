@@ -60,6 +60,26 @@ export function InviteUserDialog({
     }
     setSending(target.user_id);
     try {
+      // 1) Adiciona o convidado à lista de participantes da reunião
+      //    para liberar o acesso (RLS / verificação isAuthorizedFor).
+      const { data: current } = await supabase
+        .from("meetings")
+        .select("participants")
+        .eq("id", meetingId)
+        .maybeSingle();
+      const currentList: string[] = Array.isArray(current?.participants)
+        ? (current!.participants as string[])
+        : [];
+      if (!currentList.includes(target.user_id)) {
+        const updated = [...currentList, target.user_id];
+        const { error: updateError } = await supabase
+          .from("meetings")
+          .update({ participants: updated })
+          .eq("id", meetingId);
+        if (updateError) throw updateError;
+      }
+
+      // 2) Envia notificação com link direto para a sala
       const link = `${window.location.origin}/reunioes?room=${encodeURIComponent(roomName)}`;
       await createNotification.mutateAsync({
         user_id: target.user_id,
