@@ -276,8 +276,10 @@ export const JitsiRoom = forwardRef<JitsiRoomHandle, JitsiRoomProps>(function Ji
             // assim que a câmera estiver ativa.
             const applyDefaultBackground = async () => {
               try {
-                const bgUrl = `${window.location.origin}/meeting-background.jpg`;
+                const bgUrl = `${window.location.origin}/meeting-background.png`;
+                console.log("[JitsiRoom] fetching background", bgUrl);
                 const response = await fetch(bgUrl);
+                if (!response.ok) throw new Error(`bg fetch failed: ${response.status}`);
                 const blob = await response.blob();
                 const dataUrl: string = await new Promise((resolve, reject) => {
                   const reader = new FileReader();
@@ -285,18 +287,32 @@ export const JitsiRoom = forwardRef<JitsiRoomHandle, JitsiRoomProps>(function Ji
                   reader.onerror = () => reject(new Error("read-bg-failed"));
                   reader.readAsDataURL(blob);
                 });
+                console.log("[JitsiRoom] applying virtual background", { size: blob.size });
                 api.executeCommand("setVirtualBackground", {
                   enabled: true,
                   backgroundType: "image",
                   selectedThumbnail: "opshub-default",
                   url: dataUrl,
                 });
+                // Reaplica após pequeno delay para garantir
+                setTimeout(() => {
+                  try {
+                    api.executeCommand("setVirtualBackground", {
+                      enabled: true,
+                      backgroundType: "image",
+                      selectedThumbnail: "opshub-default",
+                      url: dataUrl,
+                    });
+                  } catch {
+                    /* ignore */
+                  }
+                }, 3000);
               } catch (err) {
                 console.warn("[JitsiRoom] failed to apply default background", err);
               }
             };
             // pequeno delay para garantir que o track de vídeo já esteja inicializado
-            setTimeout(applyDefaultBackground, 1500);
+            setTimeout(applyDefaultBackground, 2000);
           } catch {
             /* ignore */
           }
