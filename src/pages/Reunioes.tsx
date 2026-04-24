@@ -16,6 +16,10 @@ import {
   PhoneOff,
   UserPlus,
   UsersRound,
+  PanelRightOpen,
+  PanelRightClose,
+  Maximize2,
+  Minimize2,
 } from "lucide-react";
 import Layout from "@/components/layout/Layout";
 import { Button } from "@/components/ui/button";
@@ -167,6 +171,26 @@ export default function Reunioes() {
   const [meetingSummary, setMeetingSummary] = useState<MeetingSummary | null>(null);
   const [meetingTranscript, setMeetingTranscript] = useState<string>("");
   const [meetingSnapshots, setMeetingSnapshots] = useState<MeetingSnapshot[]>([]);
+  const [sidePanelOpen, setSidePanelOpen] = useState(false);
+  const [isFullscreen, setIsFullscreen] = useState(false);
+
+  useEffect(() => {
+    const handler = () => setIsFullscreen(Boolean(document.fullscreenElement));
+    document.addEventListener("fullscreenchange", handler);
+    return () => document.removeEventListener("fullscreenchange", handler);
+  }, []);
+
+  const toggleFullscreen = async () => {
+    try {
+      if (!document.fullscreenElement) {
+        await document.documentElement.requestFullscreen();
+      } else {
+        await document.exitFullscreen();
+      }
+    } catch (e) {
+      console.warn("fullscreen toggle failed", e);
+    }
+  };
 
   const defaultName = useMemo(
     () => profile?.full_name || user?.email?.split("@")[0] || "Convidado",
@@ -368,6 +392,32 @@ export default function Reunioes() {
               >
                 <Copy className="mr-1.5 h-4 w-4" /> Copiar link
               </Button>
+              <Button
+                size="sm"
+                variant="outline"
+                onClick={() => setSidePanelOpen((v) => !v)}
+                title={sidePanelOpen ? "Ocultar painel" : "Mostrar painel"}
+              >
+                {sidePanelOpen ? (
+                  <PanelRightClose className="mr-1.5 h-4 w-4" />
+                ) : (
+                  <PanelRightOpen className="mr-1.5 h-4 w-4" />
+                )}
+                {sidePanelOpen ? "Ocultar painel" : "Transcrição"}
+              </Button>
+              <Button
+                size="sm"
+                variant="outline"
+                onClick={toggleFullscreen}
+                title={isFullscreen ? "Sair de tela cheia" : "Tela cheia"}
+              >
+                {isFullscreen ? (
+                  <Minimize2 className="mr-1.5 h-4 w-4" />
+                ) : (
+                  <Maximize2 className="mr-1.5 h-4 w-4" />
+                )}
+                {isFullscreen ? "Sair tela cheia" : "Tela cheia"}
+              </Button>
               {isHost && (
                 <>
                   <Button
@@ -398,7 +448,11 @@ export default function Reunioes() {
               </Button>
             </div>
           </div>
-          <div className="flex-1 min-h-0 grid grid-cols-1 lg:grid-cols-[1fr_360px] gap-2 bg-black p-1">
+          <div
+            className={`flex-1 min-h-0 grid grid-cols-1 gap-2 bg-black p-1 ${
+              sidePanelOpen ? "lg:grid-cols-[1fr_360px]" : "lg:grid-cols-1"
+            }`}
+          >
             <div className="min-h-0 bg-black">
               <JitsiRoom
                 ref={jitsiRef}
@@ -420,7 +474,9 @@ export default function Reunioes() {
                 })}
               />
             </div>
-            <div className="hidden lg:flex flex-col gap-3 min-h-0">
+            <div
+              className={`${sidePanelOpen ? "hidden lg:flex" : "hidden"} flex-col gap-3 min-h-0`}
+            >
               <div className="flex-1 min-h-0 bg-background rounded-md overflow-hidden">
                 <MeetingTranscriber
                   roomName={activeMeeting.room_name}
