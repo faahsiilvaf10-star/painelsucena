@@ -145,6 +145,33 @@ async function createMainWindow() {
   await clearDesktopCaches(desktopSession);
   currentAssetPath = await fetchPublishedAssetPath().catch(() => null);
 
+  // Permite que getDisplayMedia (compartilhamento de tela do Jitsi)
+  // funcione no Electron retornando automaticamente a tela inteira.
+  // Sem isso, o seletor de tela do Chromium fica preso em "carregando".
+  desktopSession.setDisplayMediaRequestHandler(
+    (_request, callback) => {
+      desktopCapturer
+        .getSources({ types: ["screen", "window"] })
+        .then((sources) => {
+          if (sources.length === 0) {
+            callback({});
+            return;
+          }
+          // Seleciona a tela principal por padrão
+          const screenSource = sources.find((s) => s.id.startsWith("screen:")) || sources[0];
+          callback({ video: screenSource, audio: "loopback" });
+        })
+        .catch(() => callback({}));
+    },
+    { useSystemPicker: true },
+  );
+
+  // Concede permissões de mídia (camera/mic/display) sem prompt
+  desktopSession.setPermissionRequestHandler((_webContents, permission, callback) => {
+    const allowed = ["media", "display-capture", "camera", "microphone", "fullscreen"];
+    callback(allowed.includes(permission));
+  });
+
   mainWindow = new BrowserWindow({
     title: WINDOW_TITLE,
     width: 1440,
