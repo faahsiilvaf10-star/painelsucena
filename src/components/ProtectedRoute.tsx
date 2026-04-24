@@ -155,13 +155,16 @@ const ProtectedRoute = ({ children }: ProtectedRouteProps) => {
   // Check if driver has selected a vehicle
   const hasSelectedVehicle = localStorage.getItem("selectedVehicleId");
 
-  // Environment gate: non-drivers must pick an environment after login.
-  // Drivers go straight to their dedicated flow (vehicle selection / driver panel).
-  if (!isDriver) {
+  // Environment gate: ONLY admins/moderators escolhem ambiente.
+  // Demais usuários vão direto para Barcarena (default), sem ver a tela de seleção.
+  if (isAdmin && !isDriver) {
     const environment = getStoredEnvironment();
     if (!environment && location.pathname !== "/selecao-ambiente") {
       return <Navigate to="/selecao-ambiente" replace />;
     }
+  } else if (!isDriver && location.pathname === "/selecao-ambiente") {
+    // Usuários comuns não devem acessar a tela de seleção de ambiente
+    return <Navigate to="/" replace />;
   }
 
   // If user is a driver
