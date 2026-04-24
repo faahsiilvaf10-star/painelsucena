@@ -198,6 +198,9 @@ export const JitsiRoom = forwardRef<JitsiRoomHandle, JitsiRoomProps>(function Ji
             enableAutomaticUrlCopy: false,
             tokenAuthUrl: undefined,
             authenticationRequired: false,
+            // Não espelhar o vídeo local
+            disableLocalVideoFlip: true,
+            localFlipX: false,
           },
           interfaceConfigOverwrite: {
             MOBILE_APP_PROMO: false,
