@@ -1,0 +1,454 @@
+import { useEffect, useMemo, useState } from "react";
+import { useSearchParams } from "react-router-dom";
+import {
+  Calendar,
+  Clock,
+  Copy,
+  LinkIcon,
+  Loader2,
+  LogIn,
+  Plus,
+  Trash2,
+  Users,
+  Video,
+  Check,
+  X,
+} from "lucide-react";
+import Layout from "@/components/layout/Layout";
+import { Button } from "@/components/ui/button";
+import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
+import { Input } from "@/components/ui/input";
+import { Badge } from "@/components/ui/badge";
+import { Tabs, TabsList, TabsTrigger, TabsContent } from "@/components/ui/tabs";
+import {
+  AlertDialog,
+  AlertDialogAction,
+  AlertDialogCancel,
+  AlertDialogContent,
+  AlertDialogDescription,
+  AlertDialogFooter,
+  AlertDialogHeader,
+  AlertDialogTitle,
+} from "@/components/ui/alert-dialog";
+import { toast } from "sonner";
+import { useMeetings, type Meeting } from "@/hooks/useMeetings";
+import { useProfile } from "@/hooks/useProfile";
+import { useAuth } from "@/hooks/useAuth";
+import { CreateMeetingDialog } from "@/components/reunioes/CreateMeetingDialog";
+import { JitsiRoom } from "@/components/reunioes/JitsiRoom";
+import { PreJoinScreen } from "@/components/reunioes/PreJoinScreen";
+
+type Stage = "list" | "prejoin" | "in-call";
+
+function buildShareUrl(roomName: string) {
+  return `${window.location.origin}/reunioes?room=${encodeURIComponent(roomName)}`;
+}
+
+function MeetingCard({
+  meeting,
+  canManage,
+  onJoin,
+  onCopy,
+  onDelete,
+  past,
+}: {
+  meeting: Meeting;
+  canManage: boolean;
+  onJoin: (m: Meeting) => void;
+  onCopy: (m: Meeting) => void;
+  onDelete: (m: Meeting) => void;
+  past?: boolean;
+}) {
+  const isFinished = meeting.status === "finalizada";
+  return (
+    <Card className="group transition-all hover:shadow-md">
+      <CardContent className="flex flex-col gap-3 p-4 sm:flex-row sm:items-center sm:justify-between">
+        <div className="min-w-0 flex-1 space-y-1.5">
+          <div className="flex items-center gap-2">
+            <Video className="h-4 w-4 text-primary" />
+            <h3 className="truncate font-semibold">{meeting.title}</h3>
+            {isFinished ? (
+              <Badge variant="secondary">Finalizada</Badge>
+            ) : (
+              <Badge variant="outline" className="border-primary/30 text-primary">
+                {meeting.status === "agendada" ? "Agendada" : meeting.status}
+              </Badge>
+            )}
+          </div>
+          {meeting.description && (
+            <p className="line-clamp-1 text-sm text-muted-foreground">
+              {meeting.description}
+            </p>
+          )}
+          <div className="flex flex-wrap items-center gap-x-4 gap-y-1 text-xs text-muted-foreground">
+            <span className="flex items-center gap-1">
+              <Calendar className="h-3 w-3" />
+              {new Date(meeting.scheduled_date + "T00:00:00").toLocaleDateString(
+                "pt-BR"
+              )}
+            </span>
+            <span className="flex items-center gap-1">
+              <Clock className="h-3 w-3" />
+              {meeting.start_time.slice(0, 5)}
+              {meeting.end_time ? ` – ${meeting.end_time.slice(0, 5)}` : ""}
+            </span>
+            <span className="flex items-center gap-1">
+              <Users className="h-3 w-3" />
+              {meeting.participants.length} convidado(s)
+            </span>
+            <span className="text-muted-foreground/70">por {meeting.created_by_name}</span>
+          </div>
+        </div>
+        <div className="flex flex-wrap gap-2">
+          {!past && (
+            <Button size="sm" onClick={() => onJoin(meeting)}>
+              <LogIn className="mr-1.5 h-4 w-4" />
+              Entrar
+            </Button>
+          )}
+          <Button size="sm" variant="outline" onClick={() => onCopy(meeting)}>
+            <Copy className="mr-1.5 h-4 w-4" />
+            Link
+          </Button>
+          {canManage && (
+            <Button
+              size="sm"
+              variant="ghost"
+              className="text-destructive hover:bg-destructive/10 hover:text-destructive"
+              onClick={() => onDelete(meeting)}
+            >
+              <Trash2 className="h-4 w-4" />
+            </Button>
+          )}
+        </div>
+      </CardContent>
+    </Card>
+  );
+}
+
+export default function Reunioes() {
+  const [searchParams, setSearchParams] = useSearchParams();
+  const { user } = useAuth();
+  const { data: profile } = useProfile();
+  const { upcoming, past, isLoading, remove, finish, meetings } = useMeetings();
+
+  const [stage, setStage] = useState<Stage>("list");
+  const [activeMeeting, setActiveMeeting] = useState<Meeting | null>(null);
+  const [joinDisplayName, setJoinDisplayName] = useState("");
+  const [audioMuted, setAudioMuted] = useState(false);
+  const [videoMuted, setVideoMuted] = useState(false);
+  const [createOpen, setCreateOpen] = useState(false);
+  const [linkInput, setLinkInput] = useState("");
+  const [confirmLeave, setConfirmLeave] = useState(false);
+  const [pendingDelete, setPendingDelete] = useState<Meeting | null>(null);
+
+  const defaultName = useMemo(
+    () => profile?.full_name || user?.email?.split("@")[0] || "Convidado",
+    [profile, user]
+  );
+
+  // Open meeting from ?room=xxx
+  useEffect(() => {
+    const room = searchParams.get("room");
+    if (!room || stage !== "list") return;
+    const found = meetings.find((m) => m.room_name === room);
+    if (found) {
+      setActiveMeeting(found);
+      setStage("prejoin");
+    }
+  }, [searchParams, meetings, stage]);
+
+  const handleJoin = (m: Meeting) => {
+    setActiveMeeting(m);
+    setStage("prejoin");
+    setSearchParams({ room: m.room_name }, { replace: true });
+  };
+
+  const handleCopyLink = async (m: Meeting) => {
+    try {
+      await navigator.clipboard.writeText(buildShareUrl(m.room_name));
+      toast.success("Link copiado!");
+    } catch {
+      toast.error("Não foi possível copiar");
+    }
+  };
+
+  const handleDelete = async (m: Meeting) => {
+    try {
+      await remove.mutateAsync(m.id);
+      toast.success("Reunião removida");
+    } catch (e: any) {
+      toast.error(e?.message || "Erro ao remover");
+    } finally {
+      setPendingDelete(null);
+    }
+  };
+
+  const handleJoinByLink = () => {
+    const value = linkInput.trim();
+    if (!value) return;
+    let room = value;
+    try {
+      const url = new URL(value);
+      const param = url.searchParams.get("room");
+      if (param) room = param;
+    } catch {
+      /* not a url */
+    }
+    const found = meetings.find((m) => m.room_name === room);
+    if (found) {
+      handleJoin(found);
+    } else {
+      // ad-hoc room — entrar direto
+      const adhoc: Meeting = {
+        id: "adhoc",
+        title: "Reunião por convite",
+        description: null,
+        room_name: room,
+        scheduled_date: new Date().toISOString().slice(0, 10),
+        start_time: new Date().toTimeString().slice(0, 5),
+        end_time: null,
+        participants: [],
+        status: "agendada",
+        created_by: "",
+        created_by_name: "",
+        ended_at: null,
+        created_at: "",
+        updated_at: "",
+      };
+      setActiveMeeting(adhoc);
+      setStage("prejoin");
+    }
+  };
+
+  const handleLeaveCall = () => {
+    setStage("list");
+    if (activeMeeting && activeMeeting.id !== "adhoc" && activeMeeting.created_by === user?.id) {
+      finish.mutate(activeMeeting.id);
+    }
+    setActiveMeeting(null);
+    setSearchParams({}, { replace: true });
+  };
+
+  // ===== IN-CALL =====
+  if (stage === "in-call" && activeMeeting) {
+    return (
+      <Layout>
+        <div className="fixed inset-0 z-50 flex flex-col bg-background">
+          <div className="flex items-center justify-between border-b px-4 py-2">
+            <div className="flex items-center gap-2 text-sm">
+              <Video className="h-4 w-4 text-primary" />
+              <span className="font-semibold">{activeMeeting.title}</span>
+            </div>
+            <div className="flex items-center gap-2">
+              <Button
+                size="sm"
+                variant="outline"
+                onClick={() => handleCopyLink(activeMeeting)}
+              >
+                <Copy className="mr-1.5 h-4 w-4" /> Copiar link
+              </Button>
+              <Button size="sm" variant="destructive" onClick={() => setConfirmLeave(true)}>
+                <X className="mr-1.5 h-4 w-4" /> Sair
+              </Button>
+            </div>
+          </div>
+          <div className="flex-1">
+            <JitsiRoom
+              roomName={activeMeeting.room_name}
+              displayName={joinDisplayName || defaultName}
+              subject={activeMeeting.title}
+              startWithAudioMuted={audioMuted}
+              startWithVideoMuted={videoMuted}
+              onParticipantJoined={(p) =>
+                p?.displayName && toast(`${p.displayName} entrou`, { duration: 2500 })
+              }
+              onParticipantLeft={(p) =>
+                p?.displayName && toast(`${p.displayName} saiu`, { duration: 2500 })
+              }
+              onLeave={handleLeaveCall}
+            />
+          </div>
+        </div>
+        <AlertDialog open={confirmLeave} onOpenChange={setConfirmLeave}>
+          <AlertDialogContent>
+            <AlertDialogHeader>
+              <AlertDialogTitle>Sair da reunião?</AlertDialogTitle>
+              <AlertDialogDescription>
+                Você será desconectado. Pode entrar novamente a qualquer momento.
+              </AlertDialogDescription>
+            </AlertDialogHeader>
+            <AlertDialogFooter>
+              <AlertDialogCancel>Cancelar</AlertDialogCancel>
+              <AlertDialogAction onClick={handleLeaveCall}>Sair</AlertDialogAction>
+            </AlertDialogFooter>
+          </AlertDialogContent>
+        </AlertDialog>
+      </Layout>
+    );
+  }
+
+  // ===== PRE-JOIN =====
+  if (stage === "prejoin" && activeMeeting) {
+    return (
+      <Layout>
+        <div className="container max-w-5xl py-8">
+          <div className="mb-6 flex items-center justify-between">
+            <h1 className="text-2xl font-bold">Pronto para entrar</h1>
+            <Button variant="ghost" onClick={() => { setStage("list"); setActiveMeeting(null); setSearchParams({}, { replace: true }); }}>
+              Voltar
+            </Button>
+          </div>
+          <Card>
+            <CardContent className="p-6">
+              <PreJoinScreen
+                defaultName={defaultName}
+                meetingTitle={activeMeeting.title}
+                onCancel={() => {
+                  setStage("list");
+                  setActiveMeeting(null);
+                  setSearchParams({}, { replace: true });
+                }}
+                onJoin={({ displayName, audioMuted: a, videoMuted: v }) => {
+                  setJoinDisplayName(displayName);
+                  setAudioMuted(a);
+                  setVideoMuted(v);
+                  setStage("in-call");
+                }}
+              />
+            </CardContent>
+          </Card>
+        </div>
+      </Layout>
+    );
+  }
+
+  // ===== LIST =====
+  return (
+    <Layout>
+      <div className="container max-w-6xl space-y-6 py-6">
+        <div className="flex flex-col gap-4 sm:flex-row sm:items-end sm:justify-between">
+          <div>
+            <h1 className="text-3xl font-bold tracking-tight">Reuniões</h1>
+            <p className="text-sm text-muted-foreground">
+              Crie, agende e participe de reuniões por vídeo.
+            </p>
+          </div>
+          <div className="flex gap-2">
+            <Button onClick={() => setCreateOpen(true)} className="gap-2">
+              <Plus className="h-4 w-4" /> Nova reunião
+            </Button>
+          </div>
+        </div>
+
+        <Card>
+          <CardHeader className="pb-3">
+            <CardTitle className="flex items-center gap-2 text-base">
+              <LinkIcon className="h-4 w-4" /> Entrar com link
+            </CardTitle>
+          </CardHeader>
+          <CardContent>
+            <div className="flex flex-col gap-2 sm:flex-row">
+              <Input
+                value={linkInput}
+                onChange={(e) => setLinkInput(e.target.value)}
+                placeholder="Cole o link ou código da reunião"
+                onKeyDown={(e) => e.key === "Enter" && handleJoinByLink()}
+              />
+              <Button onClick={handleJoinByLink} disabled={!linkInput.trim()}>
+                <LogIn className="mr-1.5 h-4 w-4" /> Entrar
+              </Button>
+            </div>
+          </CardContent>
+        </Card>
+
+        <Tabs defaultValue="upcoming">
+          <TabsList>
+            <TabsTrigger value="upcoming">
+              Agendadas {upcoming.length > 0 && `(${upcoming.length})`}
+            </TabsTrigger>
+            <TabsTrigger value="past">
+              Histórico {past.length > 0 && `(${past.length})`}
+            </TabsTrigger>
+          </TabsList>
+
+          <TabsContent value="upcoming" className="mt-4 space-y-3">
+            {isLoading ? (
+              <div className="flex justify-center py-10 text-muted-foreground">
+                <Loader2 className="h-6 w-6 animate-spin" />
+              </div>
+            ) : upcoming.length === 0 ? (
+              <Card className="border-dashed">
+                <CardContent className="py-10 text-center text-muted-foreground">
+                  <Video className="mx-auto mb-2 h-8 w-8 opacity-40" />
+                  Nenhuma reunião agendada.
+                </CardContent>
+              </Card>
+            ) : (
+              upcoming.map((m) => (
+                <MeetingCard
+                  key={m.id}
+                  meeting={m}
+                  canManage={m.created_by === user?.id}
+                  onJoin={handleJoin}
+                  onCopy={handleCopyLink}
+                  onDelete={(meet) => setPendingDelete(meet)}
+                />
+              ))
+            )}
+          </TabsContent>
+
+          <TabsContent value="past" className="mt-4 space-y-3">
+            {past.length === 0 ? (
+              <Card className="border-dashed">
+                <CardContent className="py-10 text-center text-muted-foreground">
+                  Nenhuma reunião no histórico.
+                </CardContent>
+              </Card>
+            ) : (
+              past.map((m) => (
+                <MeetingCard
+                  key={m.id}
+                  meeting={m}
+                  canManage={m.created_by === user?.id}
+                  onJoin={handleJoin}
+                  onCopy={handleCopyLink}
+                  onDelete={(meet) => setPendingDelete(meet)}
+                  past
+                />
+              ))
+            )}
+          </TabsContent>
+        </Tabs>
+      </div>
+
+      <CreateMeetingDialog
+        open={createOpen}
+        onOpenChange={setCreateOpen}
+        onCreated={(m) => {
+          setActiveMeeting(m);
+        }}
+      />
+
+      <AlertDialog open={!!pendingDelete} onOpenChange={(o) => !o && setPendingDelete(null)}>
+        <AlertDialogContent>
+          <AlertDialogHeader>
+            <AlertDialogTitle>Cancelar reunião?</AlertDialogTitle>
+            <AlertDialogDescription>
+              Esta ação remove permanentemente a reunião "{pendingDelete?.title}".
+            </AlertDialogDescription>
+          </AlertDialogHeader>
+          <AlertDialogFooter>
+            <AlertDialogCancel>Voltar</AlertDialogCancel>
+            <AlertDialogAction
+              className="bg-destructive text-destructive-foreground hover:bg-destructive/90"
+              onClick={() => pendingDelete && handleDelete(pendingDelete)}
+            >
+              Cancelar reunião
+            </AlertDialogAction>
+          </AlertDialogFooter>
+        </AlertDialogContent>
+      </AlertDialog>
+    </Layout>
+  );
+}
