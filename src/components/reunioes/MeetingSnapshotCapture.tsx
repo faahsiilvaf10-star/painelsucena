@@ -242,13 +242,13 @@ export function MeetingSnapshotCapture({ roomName, snapshots, onChange }: Meetin
             )}
           </div>
           <div className="flex items-center gap-1">
-            <Button size="sm" variant="default" onClick={captureFrame} disabled={capturing}>
-              {capturing ? (
+            <Button size="sm" variant="default" onClick={captureFrame} disabled={capturing || sourceLoading}>
+              {capturing || sourceLoading ? (
                 <Loader2 className="mr-1.5 h-3.5 w-3.5 animate-spin" />
               ) : (
                 <Camera className="mr-1.5 h-3.5 w-3.5" />
               )}
-              Capturar
+              {sourceLoading ? "Carregando" : "Capturar"}
             </Button>
             {streamRef.current && (
               <Button size="sm" variant="outline" onClick={stopShare}>
@@ -349,6 +349,11 @@ export function MeetingSnapshotCapture({ roomName, snapshots, onChange }: Meetin
                 </div>
               </button>
             ))}
+            {desktopSources.length === 0 && (
+              <div className="col-span-full rounded-md border border-dashed border-border p-6 text-center text-sm text-muted-foreground">
+                Nenhuma tela disponível no momento.
+              </div>
+            )}
           </div>
         </DialogContent>
       </Dialog>
