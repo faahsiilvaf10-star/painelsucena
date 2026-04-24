@@ -182,6 +182,12 @@ export const JitsiRoom = forwardRef<JitsiRoomHandle, JitsiRoomProps>(function Ji
             desktopSharingSources: ["screen", "window", "tab"],
             hideDisplayName: false,
             hideDominantSpeakerBadge: false,
+            // Garante que ninguém precise se autenticar para entrar/criar sala
+            disableModeratorIndicator: false,
+            enableUserRolesBasedOnToken: false,
+            enableAutomaticUrlCopy: false,
+            tokenAuthUrl: undefined,
+            authenticationRequired: false,
           },
           interfaceConfigOverwrite: {
             MOBILE_APP_PROMO: false,
