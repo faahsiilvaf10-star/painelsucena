@@ -110,6 +110,27 @@ export function MeetingSummaryDialog({
                   </ul>
                 </section>
               )}
+              {snapshots.length > 0 && (
+                <section>
+                  <h4 className="flex items-center gap-2 text-sm font-semibold mb-2">
+                    <Badge variant="secondary" className="px-1.5">{snapshots.length}</Badge>
+                    Capturas da reunião
+                  </h4>
+                  <div className="grid grid-cols-3 gap-2">
+                    {snapshots.map((url, i) => (
+                      <a
+                        key={i}
+                        href={url}
+                        target="_blank"
+                        rel="noreferrer"
+                        className="aspect-video overflow-hidden rounded border block"
+                      >
+                        <img src={url} alt={`Captura ${i + 1}`} className="h-full w-full object-cover" />
+                      </a>
+                    ))}
+                  </div>
+                </section>
+              )}
             </div>
           )}
         </ScrollArea>
