@@ -14,7 +14,7 @@ import {
   Check,
   X,
 } from "lucide-react";
-import { Layout } from "@/components/layout/Layout";
+import Layout from "@/components/layout/Layout";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
@@ -129,7 +129,7 @@ function MeetingCard({
 export default function Reunioes() {
   const [searchParams, setSearchParams] = useSearchParams();
   const { user } = useAuth();
-  const { profile } = useProfile();
+  const { data: profile } = useProfile();
   const { upcoming, past, isLoading, remove, finish, meetings } = useMeetings();
 
   const [stage, setStage] = useState<Stage>("list");
