@@ -337,7 +337,7 @@ export function ExportEfetivoPdfButton({ colaboradores, filterFuncao }: ExportEf
       ) : (
         <FileDown className="h-4 w-4" />
       )}
-      Exportar PDF
+      Baixar PDF com NRs
     </Button>
   );
 }
