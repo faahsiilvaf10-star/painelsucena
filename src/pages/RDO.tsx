@@ -37,6 +37,7 @@ import { useJardinagemEquipment } from "@/hooks/useJardinagemEquipment";
 import { useRHEfetivo } from "@/hooks/useRHEfetivo";
 import { useAttendanceAreaAssignments } from "@/hooks/useAttendanceAreaAssignments";
 import { useAttendanceDailyMarks } from "@/hooks/useAttendanceDailyMarks";
+import { useCurrentTemperature } from "@/hooks/useCurrentTemperature";
 import { buildAreaPresenceText } from "@/lib/attendanceReport";
 import { getBrazilNorthDate, getBrazilNorthTodayString } from "@/lib/timezone";
 import { cn } from "@/lib/utils";
