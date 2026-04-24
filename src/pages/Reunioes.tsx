@@ -485,9 +485,18 @@ export default function Reunioes() {
             />
           </>
         )}
+
+        <MeetingSummaryDialog
+          open={summaryOpen}
+          onOpenChange={setSummaryOpen}
+          summary={meetingSummary}
+          meetingTitle={activeMeeting.title}
+        />
       </Layout>
     );
   }
+
+  // (closing duplicated below was removed) 
 
   // ===== PRE-JOIN =====
   if (stage === "prejoin" && activeMeeting) {
