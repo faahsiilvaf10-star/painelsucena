@@ -238,6 +238,17 @@ export default function Reunioes() {
 
   const handleEndForAll = async () => {
     if (!activeMeeting) return;
+    // Guard de segurança: apenas o anfitrião (created_by) pode encerrar
+    if (
+      !user?.id ||
+      activeMeeting.id === "adhoc" ||
+      !activeMeeting.created_by ||
+      activeMeeting.created_by !== user.id
+    ) {
+      toast.error("Apenas o anfitrião pode encerrar a reunião para todos");
+      setConfirmEndForAll(false);
+      return;
+    }
     try {
       // Broadcast para todos os participantes saírem
       const channel = supabase.channel(`meeting-control-${activeMeeting.room_name}`);
