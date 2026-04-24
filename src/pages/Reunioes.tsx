@@ -258,6 +258,7 @@ export default function Reunioes() {
               {...({
                 roomName: activeMeeting.room_name,
                 displayName: joinDisplayName || defaultName,
+                avatarUrl: profile?.avatar_url || undefined,
                 subject: activeMeeting.title,
                 startWithAudioMuted: audioMuted,
                 startWithVideoMuted: videoMuted,
