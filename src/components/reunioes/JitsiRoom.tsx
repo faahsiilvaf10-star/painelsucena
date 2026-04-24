@@ -1,5 +1,5 @@
 import { useEffect, useRef } from "react";
-
+import { useTrackMeetingPresence } from "@/hooks/useActiveMeetingPresence";
 declare global {
   interface Window {
     JitsiMeetExternalAPI?: any;
