@@ -28,6 +28,8 @@ interface PreJoinProps {
 export function PreJoinScreen({
   defaultName,
   meetingTitle,
+  createdByAvatar,
+  createdByName,
   onCancel,
   onJoin,
 }: PreJoinProps) {
