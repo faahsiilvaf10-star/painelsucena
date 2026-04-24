@@ -396,6 +396,23 @@ export default function Reunioes() {
                   Anfitrião
                 </Badge>
               )}
+              <div className="ml-4 flex items-center gap-2 border-l pl-4 text-xs">
+                {activeMeeting.created_by_avatar ? (
+                  <img 
+                    src={activeMeeting.created_by_avatar} 
+                    alt={activeMeeting.created_by_name}
+                    className="h-6 w-6 rounded-full border border-primary/20 object-cover shadow-sm"
+                  />
+                ) : (
+                  <div className="h-6 w-6 rounded-full bg-primary/10 flex items-center justify-center border border-primary/20">
+                    <span className="text-[10px] font-bold text-primary">{activeMeeting.created_by_name?.charAt(0)}</span>
+                  </div>
+                )}
+                <div className="flex flex-col leading-none">
+                  <span className="text-[10px] text-muted-foreground uppercase font-medium tracking-wider">Conduzindo</span>
+                  <span className="font-semibold text-foreground/90">{activeMeeting.created_by_name}</span>
+                </div>
+              </div>
             </div>
             <div className="flex items-center gap-2">
               <Button
