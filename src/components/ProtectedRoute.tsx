@@ -33,8 +33,13 @@ const PageLoader = () => (
 const ProtectedRoute = ({ children }: ProtectedRouteProps) => {
   const [session, setSession] = useState<Session | null>(null);
   const [loading, setLoading] = useState(true);
-  const [userCargo, setUserCargo] = useState<string | null>(null);
   const [cargoChecked, setCargoChecked] = useState(false);
+  const [forceLoad, setForceLoad] = useState(false);
+
+  useEffect(() => {
+    const timer = setTimeout(() => setForceLoad(true), 10000); // 10s safety timeout
+    return () => clearTimeout(timer);
+  }, []);
   const [isAdmin, setIsAdmin] = useState(false);
   const [hasAvatar, setHasAvatar] = useState<boolean | null>(null);
   const location = useLocation();
@@ -131,7 +136,7 @@ const ProtectedRoute = ({ children }: ProtectedRouteProps) => {
   };
 
   // Show loader while loading session or checking cargo instead of blank page
-  if (loading || !cargoChecked) {
+  if ((loading || !cargoChecked) && !forceLoad) {
     return <PageLoader />;
   }
 
