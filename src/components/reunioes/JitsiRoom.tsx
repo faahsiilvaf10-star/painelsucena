@@ -1,4 +1,5 @@
-import { useEffect, useRef } from "react";
+import { useEffect, useRef, useState } from "react";
+import { toast } from "sonner";
 import { useTrackMeetingPresence } from "@/hooks/useActiveMeetingPresence";
 
 declare global {
@@ -37,6 +38,22 @@ function loadJitsiScript(): Promise<void> {
   return scriptPromise;
 }
 
+function stableHash(input: string) {
+  let hash = 2166136261;
+  for (let i = 0; i < input.length; i += 1) {
+    hash ^= input.charCodeAt(i);
+    hash = Math.imul(hash, 16777619);
+  }
+  return Math.abs(hash >>> 0).toString(36);
+}
+
+function buildEmbeddedRoomName(roomName: string, variant: "primary" | "fallback") {
+  const sanitizedRoomName = roomName.replace(/[^a-zA-Z0-9]/g, "").toLowerCase();
+  const appScopedSeed = `${window.location.host}:${sanitizedRoomName}:${variant}`;
+  const hash = stableHash(appScopedSeed);
+  return `OpsHubRoom${hash}`;
+}
+
 export interface JitsiRoomProps {
   roomName: string;
   displayName: string;
@@ -68,13 +85,21 @@ export function JitsiRoom({
 }: JitsiRoomProps) {
   const containerRef = useRef<HTMLDivElement | null>(null);
   const apiRef = useRef<any>(null);
+  const retriedVisitorFallbackRef = useRef(false);
+  const [roomVariant, setRoomVariant] = useState<"primary" | "fallback">("primary");
   useTrackMeetingPresence(roomName);
 
   useEffect(() => {
+    retriedVisitorFallbackRef.current = false;
+    setRoomVariant("primary");
+  }, [roomName]);
+
+  useEffect(() => {
     let disposed = false;
+    const embeddedRoomName = buildEmbeddedRoomName(roomName, roomVariant);
 
     const init = async () => {
-      console.log("[JitsiRoom] init started", { roomName });
+      console.log("[JitsiRoom] init started", { roomName, embeddedRoomName, roomVariant });
       try {
         await loadJitsiScript();
         console.log("[JitsiRoom] script loaded");
@@ -114,16 +139,9 @@ export function JitsiRoom({
         "invite",
       ];
 
-      // Prefixa e estabiliza o nome da sala para reduzir colisões com salas públicas do meet.jit.si
-      // que podem já estar em modo host/visitor.
-      const sanitizedRoomName = roomName.replace(/[^a-zA-Z0-9]/g, "");
-      const uniqueRoomName = roomName.startsWith("OpsHubRoom")
-        ? roomName
-        : `OpsHubRoom${sanitizedRoomName}`;
-
       try {
         const api = new window.JitsiMeetExternalAPI(JITSI_DOMAIN, {
-          roomName: uniqueRoomName,
+          roomName: embeddedRoomName,
           parentNode: containerRef.current,
           width: "100%",
           height: "100%",
@@ -176,6 +194,23 @@ export function JitsiRoom({
 
         api.addListener("videoConferenceJoined", () => {
           console.log("[JitsiRoom] joined");
+
+          const joinedAsVisitor = typeof api.isVisitor === "function" ? Boolean(api.isVisitor()) : false;
+          if (joinedAsVisitor && !retriedVisitorFallbackRef.current) {
+            retriedVisitorFallbackRef.current = true;
+            toast.info("Ajustando entrada da sala automaticamente...");
+            try {
+              api.dispose?.();
+            } catch {
+              /* ignore */
+            }
+            apiRef.current = null;
+            if (!disposed) {
+              setRoomVariant("fallback");
+            }
+            return;
+          }
+
           onReady?.();
           try {
             api.executeCommand("setTileView", true);
@@ -207,7 +242,7 @@ export function JitsiRoom({
       apiRef.current = null;
     };
     // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [roomName, isModerator]);
+  }, [roomName, roomVariant, isModerator]);
 
   return <div ref={containerRef} className="h-full w-full" style={{ minHeight: 400 }} />;
 }
