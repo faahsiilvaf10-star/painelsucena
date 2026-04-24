@@ -53,7 +53,10 @@ export function useMeetings() {
     queryFn: async () => {
       const { data, error } = await supabase
         .from("meetings")
-        .select("*")
+        .select(`
+          *,
+          creator:profiles!meetings_created_by_fkey(avatar_url)
+        `)
         .order("scheduled_date", { ascending: false })
         .order("start_time", { ascending: false });
       if (error) throw error;
