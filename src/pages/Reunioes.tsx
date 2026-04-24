@@ -1,4 +1,4 @@
-import { useEffect, useMemo, useState } from "react";
+import { useEffect, useMemo, useRef, useState } from "react";
 import { useSearchParams } from "react-router-dom";
 import {
   Calendar,
@@ -15,6 +15,7 @@ import {
   X,
   PhoneOff,
   UserPlus,
+  UsersRound,
 } from "lucide-react";
 import Layout from "@/components/layout/Layout";
 import { Button } from "@/components/ui/button";
@@ -37,9 +38,10 @@ import { useMeetings, type Meeting } from "@/hooks/useMeetings";
 import { useProfile } from "@/hooks/useProfile";
 import { useAuth } from "@/hooks/useAuth";
 import { CreateMeetingDialog } from "@/components/reunioes/CreateMeetingDialog";
-import { JitsiRoom } from "@/components/reunioes/JitsiRoom";
+import { JitsiRoom, type JitsiRoomHandle } from "@/components/reunioes/JitsiRoom";
 import { PreJoinScreen } from "@/components/reunioes/PreJoinScreen";
 import { InviteUserDialog } from "@/components/reunioes/InviteUserDialog";
+import { ManageParticipantsDialog } from "@/components/reunioes/ManageParticipantsDialog";
 import { supabase } from "@/integrations/supabase/client";
 
 type Stage = "list" | "prejoin" | "in-call";
@@ -146,6 +148,8 @@ export default function Reunioes() {
   const [confirmLeave, setConfirmLeave] = useState(false);
   const [confirmEndForAll, setConfirmEndForAll] = useState(false);
   const [inviteOpen, setInviteOpen] = useState(false);
+  const [manageOpen, setManageOpen] = useState(false);
+  const jitsiRef = useRef<JitsiRoomHandle | null>(null);
   const [pendingDelete, setPendingDelete] = useState<Meeting | null>(null);
 
   const defaultName = useMemo(
