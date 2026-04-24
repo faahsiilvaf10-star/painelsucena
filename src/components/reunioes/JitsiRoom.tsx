@@ -63,6 +63,7 @@ export function JitsiRoom({
 }: JitsiRoomProps) {
   const containerRef = useRef<HTMLDivElement | null>(null);
   const apiRef = useRef<any>(null);
+  useTrackMeetingPresence(roomName);
 
   useEffect(() => {
     let disposed = false;
