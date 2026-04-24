@@ -42,6 +42,8 @@ import { JitsiRoom, type JitsiRoomHandle } from "@/components/reunioes/JitsiRoom
 import { PreJoinScreen } from "@/components/reunioes/PreJoinScreen";
 import { InviteUserDialog } from "@/components/reunioes/InviteUserDialog";
 import { ManageParticipantsDialog } from "@/components/reunioes/ManageParticipantsDialog";
+import { MeetingTranscriber } from "@/components/reunioes/MeetingTranscriber";
+import { MeetingSummaryDialog, type MeetingSummary } from "@/components/reunioes/MeetingSummaryDialog";
 import { supabase } from "@/integrations/supabase/client";
 
 type Stage = "list" | "prejoin" | "in-call";
@@ -160,6 +162,8 @@ export default function Reunioes() {
   const [manageOpen, setManageOpen] = useState(false);
   const jitsiRef = useRef<JitsiRoomHandle | null>(null);
   const [pendingDelete, setPendingDelete] = useState<Meeting | null>(null);
+  const [summaryOpen, setSummaryOpen] = useState(false);
+  const [meetingSummary, setMeetingSummary] = useState<MeetingSummary | null>(null);
 
   const defaultName = useMemo(
     () => profile?.full_name || user?.email?.split("@")[0] || "Convidado",
