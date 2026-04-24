@@ -140,128 +140,134 @@ export const ReminderHighlightBanner = () => {
 
   return (
     <div className="space-y-4 mb-6">
-      {/* TODAY'S REMINDERS - Fixed Alert Banner with Neon Effect */}
+      {/* TODAY'S REMINDERS - Soft Peach Style */}
       {todayReminders.length > 0 && (
         <div className="animate-in fade-in slide-in-from-top-4 duration-500">
-          <Alert className="border-2 border-green-500/60 snow-bg shadow-lg neon-glow-border rounded-xl">
-            <div className="flex items-start gap-4">
-              <div className="p-2 rounded-full bg-green-500/20 animate-pulse">
-                <AlertTriangle className="h-6 w-6 text-green-400" />
-              </div>
-              <div className="flex-1">
-                <AlertTitle className="text-lg font-bold text-green-400 flex items-center gap-2">
-                  <Bell className="h-5 w-5 animate-bounce text-green-400" />
-                  <span className="text-white">Lembretes de Hoje!</span>
-                  <Badge className="ml-2 animate-pulse bg-green-500 text-black font-bold border-0">
-                    {todayReminders.length} {todayReminders.length === 1 ? "lembrete" : "lembretes"}
-                  </Badge>
-                </AlertTitle>
-                <AlertDescription className="mt-3">
-                  <div className="space-y-3">
-                    {todayReminders.map((reminder) => {
-                      const MentionIcon = getMentionIcon(reminder.mention_type);
-                      const isCreator = user?.id === reminder.created_by;
-                      return (
-                        <div
-                          key={reminder.id}
-                          className="flex items-center justify-between p-3 rounded-lg bg-black/60 border border-green-500/30 cursor-pointer hover:bg-black/80 hover:border-green-400/50 transition-all"
-                          onClick={() => handleOpenDetail(reminder)}
-                        >
-                          <div className="flex items-center gap-3">
-                            <AlertCircle className="h-5 w-5 text-green-400 flex-shrink-0" />
-                            <div>
-                              <p className="font-semibold text-white">{reminder.title}</p>
-                              {reminder.description && (
-                                <p className="text-sm text-gray-300 line-clamp-1">
-                                  {reminder.description}
-                                </p>
-                              )}
-                              <div className="flex items-center gap-3 mt-1 flex-wrap">
-                                {reminder.event_time && (
-                                  <div className="flex items-center gap-1">
-                                    <Calendar className="h-3 w-3 text-green-400/70" />
-                                    <span className="text-xs text-gray-400">
-                                      às <span className="font-medium text-green-300">{reminder.event_time.slice(0, 5)}</span>
-                                    </span>
-                                  </div>
-                                )}
-                                {(reminder.mention_type === "all" || reminder.mention_type === "specific") && (
-                                  <div className="flex items-center gap-1">
-                                    <UserCircle className="h-3 w-3 text-green-400/70" />
-                                    <span className="text-xs text-gray-400">
-                                      Criado por: <span className="font-medium text-green-300">{reminder.creator_name}</span>
-                                    </span>
-                                  </div>
-                                )}
-                                <div className="flex items-center gap-1">
-                                  <MentionIcon className="h-3 w-3 text-green-400/70" />
-                                  <span className="text-xs text-gray-400">
-                                    {reminder.mention_type === "all"
-                                      ? "Todos"
-                                      : reminder.mention_type === "me"
-                                      ? "Pessoal"
-                                      : "Mencionado"}
-                                  </span>
-                                </div>
-                              </div>
+          <div
+            className="rounded-2xl overflow-hidden shadow-lg border border-orange-200/60 dark:border-orange-500/20"
+            style={{
+              background:
+                "linear-gradient(135deg, hsl(35 100% 96%) 0%, hsl(30 100% 92%) 50%, hsl(28 100% 88%) 100%)",
+            }}
+          >
+            {/* Header Bar */}
+            <div className="flex items-center gap-3 px-5 py-3 border-b border-orange-200/50 bg-white/40 backdrop-blur-sm">
+              <Bell className="h-5 w-5 text-orange-500" />
+              <h3 className="font-bold text-base text-orange-950">Lembretes de Hoje!</h3>
+              <span className="px-2.5 py-0.5 rounded-full bg-orange-200/70 text-orange-700 text-xs font-semibold">
+                {todayReminders.length} {todayReminders.length === 1 ? "lembrete" : "lembretes"}
+              </span>
+            </div>
+
+            {/* Reminder Cards */}
+            <div className="p-4 space-y-3">
+              {todayReminders.map((reminder) => {
+                const MentionIcon = getMentionIcon(reminder.mention_type);
+                const isCreator = user?.id === reminder.created_by;
+                return (
+                  <div
+                    key={reminder.id}
+                    className="flex items-center justify-between gap-4 p-4 rounded-xl bg-white shadow-sm hover:shadow-md transition-all cursor-pointer border border-orange-100/50"
+                    onClick={() => handleOpenDetail(reminder)}
+                  >
+                    <div className="flex items-start gap-3 flex-1 min-w-0">
+                      <div className="w-10 h-10 rounded-full bg-orange-100 flex items-center justify-center flex-shrink-0">
+                        <AlertCircle className="h-5 w-5 text-orange-500" />
+                      </div>
+                      <div className="flex-1 min-w-0">
+                        <p className="font-bold text-sm text-orange-950 uppercase tracking-wide">
+                          {reminder.title}
+                        </p>
+                        {reminder.description && (
+                          <p className="text-sm text-orange-900/70 mt-0.5 line-clamp-2">
+                            {reminder.description}
+                          </p>
+                        )}
+                        <div className="flex items-center gap-3 mt-2 flex-wrap">
+                          {reminder.event_time && (
+                            <div className="flex items-center gap-1.5">
+                              <Calendar className="h-3.5 w-3.5 text-orange-500" />
+                              <span className="text-xs text-orange-900/80">
+                                às <span className="font-semibold text-orange-700">{reminder.event_time.slice(0, 5)}</span>
+                              </span>
                             </div>
-                          </div>
-                          <div className="flex items-center gap-2 flex-shrink-0">
-                            <Popover open={snoozeOpenId === reminder.id} onOpenChange={(open) => setSnoozeOpenId(open ? reminder.id : null)}>
-                              <PopoverTrigger asChild>
-                                <Button
-                                  variant="outline"
-                                  size="sm"
-                                  className="h-8 gap-1 border-orange-500/50 text-orange-400 bg-orange-500/10 hover:bg-orange-500/20 hover:text-orange-300"
-                                  onClick={(e) => e.stopPropagation()}
-                                >
-                                  <Clock className="h-4 w-4" />
-                                  Adiar
-                                </Button>
-                              </PopoverTrigger>
-                              <PopoverContent className="w-auto p-0" align="end" onClick={(e) => e.stopPropagation()}>
-                                <CalendarComponent
-                                  mode="single"
-                                  selected={undefined}
-                                  onSelect={(date) => { if (date) handleSnooze(reminder.id, date); }}
-                                  disabled={(date) => date <= new Date()}
-                                  initialFocus
-                                  className={cn("p-3 pointer-events-auto")}
-                                  locale={ptBR}
-                                />
-                              </PopoverContent>
-                            </Popover>
-                            <Button
-                              variant="outline"
-                              size="sm"
-                              className="h-8 gap-1 border-green-500/50 text-green-400 bg-green-500/10 hover:bg-green-500/20 hover:text-green-300"
-                              onClick={(e) => { e.stopPropagation(); handleAcknowledge(reminder); }}
-                              disabled={acknowledgeReminder.isPending}
-                            >
-                              <Check className="h-4 w-4" />
-                              Visto
-                            </Button>
-                            {isCreator && (
-                              <Button
-                                variant="outline"
-                                size="sm"
-                                className="h-8 gap-1 border-red-500/50 text-red-400 bg-red-500/10 hover:bg-red-500/20 hover:text-red-300"
-                                onClick={(e) => { e.stopPropagation(); handleCancel(reminder); }}
-                                disabled={deleteReminder.isPending}
-                              >
-                                <X className="h-4 w-4" />
-                                Cancelar
-                              </Button>
-                            )}
+                          )}
+                          {reminder.event_time && <span className="text-orange-300">•</span>}
+                          {(reminder.mention_type === "all" || reminder.mention_type === "specific") && reminder.creator_name && (
+                            <>
+                              <div className="flex items-center gap-1.5">
+                                <UserCircle className="h-3.5 w-3.5 text-orange-500" />
+                                <span className="text-xs text-orange-900/80">
+                                  Criado por: <span className="font-semibold text-orange-700">{reminder.creator_name}</span>
+                                </span>
+                              </div>
+                              <span className="text-orange-300">•</span>
+                            </>
+                          )}
+                          <div className="flex items-center gap-1.5">
+                            <MentionIcon className="h-3.5 w-3.5 text-orange-500" />
+                            <span className="text-xs text-orange-900/80">
+                              {reminder.mention_type === "all"
+                                ? "Todos"
+                                : reminder.mention_type === "me"
+                                ? "Pessoal"
+                                : "Mencionado"}
+                            </span>
                           </div>
                         </div>
-                      );
-                    })}
+                      </div>
+                    </div>
+                    <div className="flex items-center gap-2 flex-shrink-0">
+                      <Popover open={snoozeOpenId === reminder.id} onOpenChange={(open) => setSnoozeOpenId(open ? reminder.id : null)}>
+                        <PopoverTrigger asChild>
+                          <Button
+                            size="sm"
+                            className="h-9 px-4 gap-1.5 rounded-full bg-white border border-orange-200 text-orange-900 hover:bg-orange-50 shadow-sm font-medium"
+                            onClick={(e) => e.stopPropagation()}
+                          >
+                            <Clock className="h-4 w-4" />
+                            Adiar
+                          </Button>
+                        </PopoverTrigger>
+                        <PopoverContent className="w-auto p-0" align="end" onClick={(e) => e.stopPropagation()}>
+                          <CalendarComponent
+                            mode="single"
+                            selected={undefined}
+                            onSelect={(date) => { if (date) handleSnooze(reminder.id, date); }}
+                            disabled={(date) => date <= new Date()}
+                            initialFocus
+                            className={cn("p-3 pointer-events-auto")}
+                            locale={ptBR}
+                          />
+                        </PopoverContent>
+                      </Popover>
+                      <Button
+                        size="sm"
+                        className="h-9 px-4 gap-1.5 rounded-full bg-orange-500 hover:bg-orange-600 text-white shadow-sm font-medium border-0"
+                        onClick={(e) => { e.stopPropagation(); handleAcknowledge(reminder); }}
+                        disabled={acknowledgeReminder.isPending}
+                      >
+                        <Check className="h-4 w-4" />
+                        Visto
+                      </Button>
+                      {isCreator && (
+                        <Button
+                          size="sm"
+                          variant="ghost"
+                          className="h-9 w-9 p-0 rounded-full text-orange-900/60 hover:text-red-500 hover:bg-red-50"
+                          onClick={(e) => { e.stopPropagation(); handleCancel(reminder); }}
+                          disabled={deleteReminder.isPending}
+                          title="Cancelar lembrete"
+                        >
+                          <X className="h-4 w-4" />
+                        </Button>
+                      )}
+                    </div>
                   </div>
-                </AlertDescription>
-              </div>
+                );
+              })}
             </div>
-          </Alert>
+          </div>
         </div>
       )}
 
