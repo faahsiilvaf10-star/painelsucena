@@ -3,6 +3,22 @@
 declare const __APP_BUILD_VERSION__: string;
 /// <reference types="vite-plugin-pwa/client" />
 
+interface DesktopCaptureSource {
+  id: string;
+  name: string;
+  display_id?: string;
+  appIcon?: string | null;
+  thumbnail?: string | null;
+}
+
+interface Window {
+  desktopApp?: {
+    isElectron?: boolean;
+    reloadToLatest?: () => Promise<boolean>;
+    listScreenSources?: () => Promise<DesktopCaptureSource[]>;
+  };
+}
+
 // Virtual module declarations for PWA
 declare module "virtual:pwa-register" {
   export interface RegisterSWOptions {
