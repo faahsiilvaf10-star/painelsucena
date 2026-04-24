@@ -614,6 +614,8 @@ export default function Reunioes() {
               <PreJoinScreen
                 defaultName={defaultName}
                 meetingTitle={activeMeeting.title}
+                createdByAvatar={activeMeeting.created_by_avatar}
+                createdByName={activeMeeting.created_by_name}
                 onCancel={() => {
                   setStage("list");
                   setActiveMeeting(null);
