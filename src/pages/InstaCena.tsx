@@ -446,7 +446,9 @@ const InstaCena = () => {
                 <Tabs value={filter} onValueChange={(v) => setFilter(v as typeof filter)}>
                   <TabsList className="h-8">
                     <TabsTrigger value="posts" className="text-xs px-3 h-6">Posts</TabsTrigger>
-                    <TabsTrigger value="logs" className="text-xs px-3 h-6">Logs</TabsTrigger>
+                    {canSeeLogs && (
+                      <TabsTrigger value="logs" className="text-xs px-3 h-6">Logs</TabsTrigger>
+                    )}
                   </TabsList>
                 </Tabs>
               </div>
