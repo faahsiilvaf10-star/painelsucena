@@ -125,6 +125,30 @@ const Configuracoes = () => {
     }
   };
 
+  // Update WhatsApp
+  const handleUpdateWhatsapp = async () => {
+    if (!user) return;
+    if (!isValidBR(whatsapp)) {
+      toast.error("Informe um WhatsApp válido com DDD (ex: (91) 98888-7777)");
+      return;
+    }
+    setIsUpdatingWhatsapp(true);
+    try {
+      const digits = whatsapp.replace(/\D/g, "");
+      const { error } = await supabase
+        .from("profiles")
+        .update({ whatsapp_number: digits })
+        .eq("user_id", user.id);
+      if (error) throw error;
+      toast.success("WhatsApp atualizado com sucesso!");
+      queryClient.invalidateQueries({ queryKey: ["profile", user.id] });
+    } catch (error: any) {
+      toast.error("Erro ao atualizar WhatsApp: " + error.message);
+    } finally {
+      setIsUpdatingWhatsapp(false);
+    }
+  };
+
   // Update email
   const handleUpdateEmail = async () => {
     const validation = emailSchema.safeParse(email);
