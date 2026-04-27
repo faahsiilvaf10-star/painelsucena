@@ -4,20 +4,12 @@ import { Badge } from "@/components/ui/badge";
 import { Card, CardContent } from "@/components/ui/card";
 import { ScrollArea, ScrollBar } from "@/components/ui/scroll-area";
 import { useRHEfetivo } from "@/hooks/useRHEfetivo";
+import { getEffectiveAsoExpiry, getEffectiveAsoExpiryStr } from "@/lib/asoValidity";
 
 interface ExpiringASO {
   colaboradorNome: string;
   validade: string;
   diasRestantes: number;
-}
-
-function parseDateBR(dateStr: string): Date | null {
-  const parts = dateStr.split("/");
-  if (parts.length !== 3) return null;
-  const [dd, mm, yyyy] = parts;
-  const d = new Date(Number(yyyy), Number(mm) - 1, Number(dd));
-  if (isNaN(d.getTime())) return null;
-  return d;
 }
 
 export function ASOExpiryBanner() {
@@ -31,9 +23,9 @@ export function ASOExpiryBanner() {
     const results: ExpiringASO[] = [];
 
     for (const colab of rhData.colaboradores) {
-      if (!colab.aso?.validade) continue;
-      const vencDate = parseDateBR(colab.aso.validade);
-      if (!vencDate) continue;
+      const vencDate = getEffectiveAsoExpiry(colab.aso, colab.admissao);
+      const vencStr = getEffectiveAsoExpiryStr(colab.aso, colab.admissao);
+      if (!vencDate || !vencStr) continue;
 
       const diffTime = vencDate.getTime() - today.getTime();
       const diffDays = Math.ceil(diffTime / (1000 * 60 * 60 * 24));
@@ -41,7 +33,7 @@ export function ASOExpiryBanner() {
       if (diffDays <= 10 && diffDays >= 0) {
         results.push({
           colaboradorNome: colab.nome,
-          validade: colab.aso.validade,
+          validade: vencStr,
           diasRestantes: diffDays,
         });
       }
