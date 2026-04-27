@@ -416,6 +416,45 @@ const Configuracoes = () => {
             </CardContent>
           </Card>
 
+          {/* WhatsApp */}
+          <Card>
+            <CardHeader>
+              <CardTitle className="flex items-center gap-2">
+                <MessageCircle className="w-5 h-5 text-green-600" />
+                WhatsApp
+              </CardTitle>
+              <CardDescription>
+                Mantenha seu número atualizado para receber comunicados e novas funcionalidades do sistema.
+              </CardDescription>
+            </CardHeader>
+            <CardContent className="space-y-4">
+              <div className="space-y-2">
+                <Label htmlFor="whatsapp">Número com DDD</Label>
+                <Input
+                  id="whatsapp"
+                  inputMode="tel"
+                  value={whatsapp}
+                  onChange={(e) => setWhatsapp(formatBR(e.target.value))}
+                  placeholder="(91) 98888-7777"
+                  maxLength={16}
+                />
+              </div>
+              <Button onClick={handleUpdateWhatsapp} disabled={isUpdatingWhatsapp}>
+                {isUpdatingWhatsapp ? (
+                  <>
+                    <div className="w-4 h-4 border-2 border-current border-t-transparent rounded-full animate-spin mr-2" />
+                    Salvando...
+                  </>
+                ) : (
+                  <>
+                    <Check className="w-4 h-4 mr-2" />
+                    Salvar WhatsApp
+                  </>
+                )}
+              </Button>
+            </CardContent>
+          </Card>
+
           {/* Email */}
           <Card>
             <CardHeader>
