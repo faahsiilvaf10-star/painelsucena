@@ -76,7 +76,7 @@ const Configuracoes = () => {
 
       const { data: profile } = await supabase
         .from("profiles")
-        .select("full_name, avatar_url, frame_color, neon_color, frame_animation, sidebar_color, sidebar_animation, sidebar_font, sidebar_font_color, sidebar_active_color, sidebar_active_font_color")
+        .select("full_name, avatar_url, frame_color, neon_color, frame_animation, sidebar_color, sidebar_animation, sidebar_font, sidebar_font_color, sidebar_active_color, sidebar_active_font_color, whatsapp_number")
         .eq("user_id", user.id)
         .maybeSingle();
 
