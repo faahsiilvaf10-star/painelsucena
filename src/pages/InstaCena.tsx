@@ -20,6 +20,8 @@ import { useSiteSettings } from "@/hooks/useSiteSettings";
 import { toast } from "sonner";
 import { useEditMode } from "@/contexts/EditModeContext";
 import { EditableImage } from "@/components/cms/EditableImage";
+import { useIsAdmin } from "@/hooks/useUserRole";
+import { useProfile } from "@/hooks/useProfile";
 
 const MONTHS = [
   "Janeiro", "Fevereiro", "Março", "Abril", "Maio", "Junho",
@@ -34,6 +36,9 @@ const InstaCena = () => {
   const [selectedDate, setSelectedDate] = useState<Date | undefined>();
   const [selectedMonth, setSelectedMonth] = useState<string>("all");
   const { isEditMode, canEdit } = useEditMode();
+  const { isAdmin } = useIsAdmin();
+  const { data: profile } = useProfile();
+  const canSeeLogs = isAdmin || profile?.cargo === "preposto";
   const { settings, updateSettings } = useSiteSettings();
   const mainRef = useRef<HTMLElement | null>(null);
 
@@ -55,6 +60,11 @@ const InstaCena = () => {
       }, 300);
     }
   }, [searchParams, isLoading, posts, setSearchParams]);
+
+  // Reset filter to "posts" if user loses access to logs
+  useEffect(() => {
+    if (!canSeeLogs && filter === "logs") setFilter("posts");
+  }, [canSeeLogs, filter]);
 
   const gifPos = settings.instacena_gif_position || { x: 16, y: 80 };
   const gifSize = settings.instacena_gif_size || 200;
@@ -441,7 +451,9 @@ const InstaCena = () => {
                 <Tabs value={filter} onValueChange={(v) => setFilter(v as typeof filter)}>
                   <TabsList className="h-8">
                     <TabsTrigger value="posts" className="text-xs px-3 h-6">Posts</TabsTrigger>
-                    <TabsTrigger value="logs" className="text-xs px-3 h-6">Logs</TabsTrigger>
+                    {canSeeLogs && (
+                      <TabsTrigger value="logs" className="text-xs px-3 h-6">Logs</TabsTrigger>
+                    )}
                   </TabsList>
                 </Tabs>
               </div>
