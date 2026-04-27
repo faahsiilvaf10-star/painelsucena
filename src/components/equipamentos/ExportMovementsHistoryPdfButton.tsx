@@ -397,6 +397,8 @@ export function ExportMovementsHistoryPdfButton() {
           .section { margin-bottom: 20px; }
           .section-title { font-size: 13px; font-weight: bold; margin-bottom: 10px; padding: 8px; background: #f5f5f5; border-left: 4px solid #333; }
           .section-title.jard { border-left-color: #22c55e; }
+          .section-title.inside { border-left-color: #16a34a; background: #f0fdf4; color: #166534; }
+          .section-title.outside { border-left-color: #ea580c; background: #fff7ed; color: #9a3412; }
           .date-section { margin-bottom: 15px; }
           .date-header { font-size: 12px; font-weight: bold; padding: 6px 10px; background: #eef2ff; border-left: 4px solid #6366f1; margin-bottom: 5px; display: flex; justify-content: space-between; align-items: center; }
           .date-stats { font-size: 10px; font-weight: normal; }
