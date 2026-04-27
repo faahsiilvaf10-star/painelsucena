@@ -276,6 +276,101 @@ export function ExportMovementsHistoryPdfButton() {
       const totalSaidas = (movements || []).filter((m: any) => m.movement_type === "saida").length;
       const uniqueEquipments = new Set((movements || []).map((m: any) => m.plate)).size;
 
+      // Helper para calcular tempo desde uma data/hora
+      const formatElapsed = (date: string, time: string | null) => {
+        try {
+          const dt = new Date(`${date}T${time || "00:00"}:00-04:00`);
+          const diffMs = Date.now() - dt.getTime();
+          if (diffMs < 0) return "-";
+          const days = Math.floor(diffMs / 86400000);
+          const hours = Math.floor((diffMs % 86400000) / 3600000);
+          if (days > 0) return `${days}d ${hours}h`;
+          const mins = Math.floor((diffMs % 3600000) / 60000);
+          return `${hours}h ${mins}m`;
+        } catch {
+          return "-";
+        }
+      };
+
+      // Status atual: DENTRO da obra
+      const insideTableRows = equipmentInside.length === 0
+        ? `<tr><td colspan="6" style="text-align:center; color:#666; padding:10px;">Nenhum equipamento dentro da obra no momento.</td></tr>`
+        : equipmentInside.map((eq: any, idx: number) => {
+            const last = lastMovementByPlate[eq.plate];
+            const lastDate = last ? `${format(new Date(last.movement_date + "T12:00:00"), "dd/MM/yyyy")} ${last.movement_time || ""}` : "Sem registro";
+            const elapsed = last ? formatElapsed(last.movement_date, last.movement_time) : "-";
+            return `
+              <tr>
+                <td>${idx + 1}</td>
+                <td><strong>${eq.name}</strong></td>
+                <td class="mono">${eq.plate}</td>
+                <td>${eq.driver || "-"}</td>
+                <td>${lastDate}</td>
+                <td>${elapsed}</td>
+              </tr>`;
+          }).join("");
+
+      const insideHtml = `
+        <div class="section">
+          <div class="section-title inside">🟢 Equipamentos DENTRO da obra agora (${equipmentInside.length})</div>
+          <table>
+            <thead>
+              <tr>
+                <th style="width: 30px;">#</th>
+                <th>Equipamento</th>
+                <th style="width: 90px;">Placa</th>
+                <th>Motorista</th>
+                <th style="width: 130px;">Última Entrada</th>
+                <th style="width: 90px;">Tempo dentro</th>
+              </tr>
+            </thead>
+            <tbody>${insideTableRows}</tbody>
+          </table>
+        </div>
+      `;
+
+      // Status atual: FORA da obra
+      const outsideTableRows = equipmentOutside.length === 0
+        ? `<tr><td colspan="8" style="text-align:center; color:#666; padding:10px;">Nenhum equipamento fora da obra no momento.</td></tr>`
+        : equipmentOutside.map((eq: any, idx: number) => {
+            const last = lastMovementByPlate[eq.plate];
+            const lastDate = `${format(new Date(last.movement_date + "T12:00:00"), "dd/MM/yyyy")} ${last.movement_time || ""}`;
+            const elapsed = formatElapsed(last.movement_date, last.movement_time);
+            const reasonLabel = last.exit_reason ? (EXIT_REASON_LABELS[last.exit_reason] || last.exit_reason) : "-";
+            return `
+              <tr>
+                <td>${idx + 1}</td>
+                <td><strong>${eq.name}</strong></td>
+                <td class="mono">${eq.plate}</td>
+                <td>${eq.driver || "-"}</td>
+                <td>${lastDate}</td>
+                <td>${elapsed}</td>
+                <td><span class="badge" style="background: #fef3c7; color: #92400e;">${reasonLabel}</span></td>
+                <td>${last.problem_description || last.observation || "-"}</td>
+              </tr>`;
+          }).join("");
+
+      const outsideHtml = `
+        <div class="section">
+          <div class="section-title outside">🔴 Equipamentos FORA da obra agora (${equipmentOutside.length})</div>
+          <table>
+            <thead>
+              <tr>
+                <th style="width: 30px;">#</th>
+                <th>Equipamento</th>
+                <th style="width: 90px;">Placa</th>
+                <th>Motorista</th>
+                <th style="width: 130px;">Saída</th>
+                <th style="width: 80px;">Tempo fora</th>
+                <th>Motivo</th>
+                <th>Problema / Obs.</th>
+              </tr>
+            </thead>
+            <tbody>${outsideTableRows}</tbody>
+          </table>
+        </div>
+      `;
+
       // Build hidden div for rendering
       const container = document.createElement("div");
       container.style.position = "absolute";
