@@ -1,7 +1,14 @@
-import { useEffect, useState } from "react";
 import { Dialog, DialogContent } from "@/components/ui/dialog";
-import { X, AlertTriangle } from "lucide-react";
+import { X, AlertTriangle, ChevronRight, User } from "lucide-react";
 import { useNavigate } from "react-router-dom";
+
+interface PendingCargo {
+  key: string;
+  label: string;
+  cargo: string;
+  done: number;
+  total: number;
+}
 
 interface MatrixReminderModalProps {
   isOpen: boolean;
@@ -10,90 +17,112 @@ interface MatrixReminderModalProps {
   progress: number;
   userName?: string;
   userAvatarUrl?: string;
+  daysUntilMonthEnd?: number;
+  currentMonthName?: string;
+  pendingCargos?: PendingCargo[];
 }
 
-export function MatrixReminderModal({ isOpen, onClose, cargoName, progress, userName, userAvatarUrl }: MatrixReminderModalProps) {
+export function MatrixReminderModal({
+  isOpen,
+  onClose,
+  daysUntilMonthEnd = 0,
+  currentMonthName = "",
+  pendingCargos = [],
+}: MatrixReminderModalProps) {
   const navigate = useNavigate();
-  const displayName = userName || "Colaborador";
+
+  const headline =
+    daysUntilMonthEnd === 0
+      ? `Hoje é o último dia de ${currentMonthName}`
+      : daysUntilMonthEnd === 1
+      ? `Falta 1 dia para fechar ${currentMonthName}`
+      : `Faltam ${daysUntilMonthEnd} dias para fechar ${currentMonthName}`;
+
+  const goToMatriz = () => {
+    onClose();
+    navigate("/matriz");
+  };
 
   return (
-    <Dialog open={isOpen} onOpenChange={() => {}}>
-      <DialogContent className="sm:max-w-md border-none bg-transparent shadow-none overflow-visible p-0 [&>button]:hidden">
-        <div className="relative w-full flex items-center justify-center" style={{ minHeight: 420 }}>
-          <div className="relative w-full rounded-3xl overflow-hidden bg-gradient-to-b from-red-50 via-white to-orange-50 dark:from-gray-800 dark:via-gray-900 dark:to-gray-800 shadow-2xl p-6 pt-8 flex flex-col items-center">
-            {/* Close button */}
+    <Dialog open={isOpen} onOpenChange={(o) => !o && onClose()}>
+      <DialogContent className="sm:max-w-3xl border-none bg-transparent shadow-none overflow-visible p-0 [&>button]:hidden">
+        {/* Card com borda gradiente teal */}
+        <div
+          className="relative w-full rounded-3xl p-[2px]"
+          style={{
+            background:
+              "linear-gradient(135deg, #14b8a6 0%, #5eead4 35%, #99f6e4 60%, #14b8a6 100%)",
+          }}
+        >
+          <div className="relative w-full rounded-[22px] bg-gradient-to-br from-white via-teal-50/40 to-emerald-50/30 dark:from-gray-900 dark:via-gray-900 dark:to-teal-950/40 p-6 md:p-7 shadow-2xl">
+            {/* Botão fechar */}
             <button
               onClick={onClose}
-              className="absolute top-3 right-3 z-20 w-8 h-8 rounded-full bg-red-500 hover:bg-red-600 text-white flex items-center justify-center shadow-lg transition-colors"
+              className="absolute top-3 right-3 z-20 w-8 h-8 rounded-full bg-white/80 hover:bg-white text-teal-600 flex items-center justify-center shadow-md transition-colors border border-teal-200/60"
+              aria-label="Fechar"
             >
-              <X className="w-5 h-5" />
+              <X className="w-4 h-4" />
             </button>
 
-            {/* Profile Photo */}
-            <div className="relative z-10 mb-3">
-              <div className="w-28 h-28 rounded-2xl overflow-hidden shadow-xl border-4 border-white dark:border-gray-700 bg-gray-200">
-                {userAvatarUrl ? (
-                  <img src={userAvatarUrl} alt={displayName} className="w-full h-full object-cover" />
-                ) : (
-                  <div className="w-full h-full flex items-center justify-center bg-gradient-to-br from-orange-400 to-red-500 text-white text-4xl font-bold">
-                    {displayName.charAt(0).toUpperCase()}
-                  </div>
-                )}
-              </div>
-              <div className="absolute -bottom-2 -right-2 w-10 h-10 rounded-full bg-amber-500 flex items-center justify-center shadow-md">
-                <AlertTriangle className="w-5 h-5 text-white" />
-              </div>
-            </div>
-
-            {/* Title */}
-            <h2 
-              className="text-3xl mb-1 z-10"
-              style={{
-                fontFamily: "'Dancing Script', 'Georgia', cursive",
-                color: "#D4520A",
-                fontWeight: 700,
-              }}
-            >
-              Atenção!
-            </h2>
-
-            <p className="text-base font-semibold text-foreground z-10 mb-1">
-              {displayName}
-            </p>
-            <p className="text-sm text-muted-foreground z-10 mb-3">
-              ✦ {cargoName}
-            </p>
-
-            {/* Message card */}
-            <div className="relative z-10 bg-white dark:bg-gray-800 rounded-xl p-4 shadow-lg w-full border border-orange-200 dark:border-gray-700">
-              <div className="flex items-center gap-2 mb-2">
-                <AlertTriangle className="w-5 h-5 text-amber-500" />
-                <span className="text-sm font-semibold text-foreground">Matriz Pendente</span>
-              </div>
-              <p className="text-sm text-muted-foreground mb-3">
-                Hoje é o último dia do mês e sua Matriz ainda não foi concluída. 
-                Complete suas atividades pendentes para manter o comprometimento em dia!
-              </p>
-
-              {/* Progress bar */}
-              <div className="w-full bg-gray-200 dark:bg-gray-700 rounded-full h-3 mb-2">
-                <div 
-                  className="h-3 rounded-full transition-all bg-gradient-to-r from-amber-400 to-orange-500"
-                  style={{ width: `${progress}%` }}
+            {/* Linha do título */}
+            <div className="flex items-center gap-4 pr-10">
+              {/* Ícone alerta triangular */}
+              <div className="shrink-0">
+                <AlertTriangle
+                  className="w-12 h-12 md:w-14 md:h-14 text-teal-500"
+                  strokeWidth={2}
                 />
               </div>
-              <div className="flex items-center justify-between">
-                <span className="text-xs text-muted-foreground">{cargoName}</span>
-                <span className="text-xs font-semibold text-amber-600 dark:text-amber-400">{progress}%</span>
-              </div>
 
-              {/* CTA button */}
+              {/* Divisor vertical */}
+              <div className="h-10 w-[2px] bg-gradient-to-b from-teal-300 to-teal-500/40 rounded-full" />
+
+              {/* Título */}
               <button
-                onClick={() => { onClose(); navigate("/matriz"); }}
-                className="mt-3 w-full py-2 rounded-lg bg-gradient-to-r from-amber-500 to-orange-500 text-white font-semibold text-sm shadow hover:from-amber-600 hover:to-orange-600 transition-colors"
+                onClick={goToMatriz}
+                className="flex-1 text-left flex items-center gap-3 group"
               >
-                Concluir Matriz Agora
+                <h2 className="text-2xl md:text-[28px] font-extrabold tracking-tight">
+                  <span className="text-slate-900 dark:text-white">Atenção! </span>
+                  <span className="text-teal-600 dark:text-teal-400 font-semibold">
+                    {headline}
+                  </span>
+                </h2>
+                <ChevronRight className="w-6 h-6 text-teal-500 opacity-70 group-hover:translate-x-1 transition-transform shrink-0" />
               </button>
+            </div>
+
+            {/* Subtítulo */}
+            <p className="mt-4 text-sm md:text-base text-slate-600 dark:text-slate-300">
+              Usuários que ainda não concluíram a matriz:
+            </p>
+
+            {/* Pílulas de cargos pendentes */}
+            <div className="mt-3 flex flex-wrap gap-2.5">
+              {pendingCargos.length === 0 ? (
+                <span className="text-sm text-slate-500 italic">
+                  Todas as matrizes estão concluídas 🎉
+                </span>
+              ) : (
+                pendingCargos.map((c) => (
+                  <button
+                    key={c.key}
+                    onClick={goToMatriz}
+                    className="group inline-flex items-center gap-2.5 pl-2 pr-4 py-1.5 rounded-full bg-gradient-to-r from-teal-50 to-emerald-50 dark:from-teal-950/60 dark:to-emerald-950/60 border border-teal-200/70 dark:border-teal-800/60 hover:from-teal-100 hover:to-emerald-100 dark:hover:from-teal-900/60 dark:hover:to-emerald-900/60 transition-colors shadow-sm"
+                  >
+                    <span className="w-7 h-7 rounded-full bg-white dark:bg-gray-800 border border-teal-200 dark:border-teal-800 flex items-center justify-center">
+                      <User className="w-4 h-4 text-teal-600 dark:text-teal-400" strokeWidth={2.2} />
+                    </span>
+                    <span className="text-sm font-bold text-slate-800 dark:text-slate-100">
+                      {c.label}
+                    </span>
+                    <span className="h-4 w-px bg-teal-300/70 dark:bg-teal-700/70" />
+                    <span className="text-xs font-medium text-slate-500 dark:text-slate-400">
+                      ({c.label}: {c.done}/{c.total})
+                    </span>
+                  </button>
+                ))
+              )}
             </div>
           </div>
         </div>
