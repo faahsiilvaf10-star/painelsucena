@@ -1920,6 +1920,83 @@ export type Database = {
           },
         ]
       }
+      instacena_stories: {
+        Row: {
+          caption: string | null
+          created_at: string
+          environment: string | null
+          expires_at: string
+          id: string
+          media_type: string
+          media_url: string
+          user_avatar: string | null
+          user_id: string
+          user_name: string
+          video_duration_ms: number | null
+        }
+        Insert: {
+          caption?: string | null
+          created_at?: string
+          environment?: string | null
+          expires_at?: string
+          id?: string
+          media_type: string
+          media_url: string
+          user_avatar?: string | null
+          user_id: string
+          user_name: string
+          video_duration_ms?: number | null
+        }
+        Update: {
+          caption?: string | null
+          created_at?: string
+          environment?: string | null
+          expires_at?: string
+          id?: string
+          media_type?: string
+          media_url?: string
+          user_avatar?: string | null
+          user_id?: string
+          user_name?: string
+          video_duration_ms?: number | null
+        }
+        Relationships: []
+      }
+      instacena_story_views: {
+        Row: {
+          id: string
+          story_id: string
+          viewed_at: string
+          viewer_avatar: string | null
+          viewer_id: string
+          viewer_name: string
+        }
+        Insert: {
+          id?: string
+          story_id: string
+          viewed_at?: string
+          viewer_avatar?: string | null
+          viewer_id: string
+          viewer_name: string
+        }
+        Update: {
+          id?: string
+          story_id?: string
+          viewed_at?: string
+          viewer_avatar?: string | null
+          viewer_id?: string
+          viewer_name?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "instacena_story_views_story_id_fkey"
+            columns: ["story_id"]
+            isOneToOne: false
+            referencedRelation: "instacena_stories"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       inventory_items: {
         Row: {
           ca_expiry: string | null
@@ -4033,6 +4110,7 @@ export type Database = {
     }
     Functions: {
       can_manage_employees: { Args: { _user_id: string }; Returns: boolean }
+      cleanup_expired_stories: { Args: never; Returns: undefined }
       current_environment: { Args: never; Returns: string }
       has_environment_access: {
         Args: { _environment: string; _user_id: string }
