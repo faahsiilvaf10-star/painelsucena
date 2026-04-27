@@ -14,14 +14,14 @@ import { useQueryClient } from "@tanstack/react-query";
  * Formats a Brazilian phone number as the user types: (DD) 9XXXX-XXXX.
  * Strips non-digits and caps at 11 digits.
  */
-function formatBR(raw: string): string {
+export function formatBR(raw: string): string {
   const digits = raw.replace(/\D/g, "").slice(0, 11);
   if (digits.length <= 2) return digits.length ? `(${digits}` : "";
   if (digits.length <= 7) return `(${digits.slice(0, 2)}) ${digits.slice(2)}`;
   return `(${digits.slice(0, 2)}) ${digits.slice(2, 7)}-${digits.slice(7)}`;
 }
 
-function isValidBR(raw: string): boolean {
+export function isValidBR(raw: string): boolean {
   const d = raw.replace(/\D/g, "");
   // 10 (fixo) ou 11 (celular com 9). Aceita ambos, mas força DDD válido.
   if (d.length !== 10 && d.length !== 11) return false;

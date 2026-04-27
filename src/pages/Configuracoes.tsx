@@ -12,7 +12,8 @@ import { useProfile } from "@/hooks/useProfile";
 import { useIsAdmin } from "@/hooks/useUserRole";
 import { supabase } from "@/integrations/supabase/client";
 import { toast } from "sonner";
-import { User, Mail, Lock, Camera, Upload, Eye, EyeOff, ArrowLeft, Check, AlertTriangle } from "lucide-react";
+import { User, Mail, Lock, Camera, Upload, Eye, EyeOff, ArrowLeft, Check, AlertTriangle, MessageCircle } from "lucide-react";
+import { formatBR, isValidBR } from "@/components/auth/WhatsAppGate";
 import { z } from "zod";
 import { AnnouncementHistory } from "@/components/settings/AnnouncementHistory";
 import { NeonFramePicker } from "@/components/settings/NeonFramePicker";
@@ -54,6 +55,8 @@ const Configuracoes = () => {
   const [sidebarFontColor, setSidebarFontColor] = useState<string | null>(null);
   const [sidebarActiveColor, setSidebarActiveColor] = useState<string | null>(null);
   const [sidebarActiveFontColor, setSidebarActiveFontColor] = useState<string | null>(null);
+  const [whatsapp, setWhatsapp] = useState("");
+  const [isUpdatingWhatsapp, setIsUpdatingWhatsapp] = useState(false);
 
   // UI states
   const [showCurrentPassword, setShowCurrentPassword] = useState(false);
@@ -73,7 +76,7 @@ const Configuracoes = () => {
 
       const { data: profile } = await supabase
         .from("profiles")
-        .select("full_name, avatar_url, frame_color, neon_color, frame_animation, sidebar_color, sidebar_animation, sidebar_font, sidebar_font_color, sidebar_active_color, sidebar_active_font_color")
+        .select("full_name, avatar_url, frame_color, neon_color, frame_animation, sidebar_color, sidebar_animation, sidebar_font, sidebar_font_color, sidebar_active_color, sidebar_active_font_color, whatsapp_number")
         .eq("user_id", user.id)
         .maybeSingle();
 
@@ -89,6 +92,7 @@ const Configuracoes = () => {
         setSidebarFontColor(profile.sidebar_font_color || null);
         setSidebarActiveColor(profile.sidebar_active_color || null);
         setSidebarActiveFontColor(profile.sidebar_active_font_color || null);
+        setWhatsapp(formatBR((profile as any).whatsapp_number || ""));
       }
     };
 
@@ -118,6 +122,30 @@ const Configuracoes = () => {
       toast.error("Erro ao atualizar nome: " + error.message);
     } finally {
       setIsUpdatingName(false);
+    }
+  };
+
+  // Update WhatsApp
+  const handleUpdateWhatsapp = async () => {
+    if (!user) return;
+    if (!isValidBR(whatsapp)) {
+      toast.error("Informe um WhatsApp válido com DDD (ex: (91) 98888-7777)");
+      return;
+    }
+    setIsUpdatingWhatsapp(true);
+    try {
+      const digits = whatsapp.replace(/\D/g, "");
+      const { error } = await supabase
+        .from("profiles")
+        .update({ whatsapp_number: digits })
+        .eq("user_id", user.id);
+      if (error) throw error;
+      toast.success("WhatsApp atualizado com sucesso!");
+      queryClient.invalidateQueries({ queryKey: ["profile", user.id] });
+    } catch (error: any) {
+      toast.error("Erro ao atualizar WhatsApp: " + error.message);
+    } finally {
+      setIsUpdatingWhatsapp(false);
     }
   };
 
@@ -382,6 +410,45 @@ const Configuracoes = () => {
                   <>
                     <Check className="w-4 h-4 mr-2" />
                     Salvar Nome
+                  </>
+                )}
+              </Button>
+            </CardContent>
+          </Card>
+
+          {/* WhatsApp */}
+          <Card>
+            <CardHeader>
+              <CardTitle className="flex items-center gap-2">
+                <MessageCircle className="w-5 h-5 text-green-600" />
+                WhatsApp
+              </CardTitle>
+              <CardDescription>
+                Mantenha seu número atualizado para receber comunicados e novas funcionalidades do sistema.
+              </CardDescription>
+            </CardHeader>
+            <CardContent className="space-y-4">
+              <div className="space-y-2">
+                <Label htmlFor="whatsapp">Número com DDD</Label>
+                <Input
+                  id="whatsapp"
+                  inputMode="tel"
+                  value={whatsapp}
+                  onChange={(e) => setWhatsapp(formatBR(e.target.value))}
+                  placeholder="(91) 98888-7777"
+                  maxLength={16}
+                />
+              </div>
+              <Button onClick={handleUpdateWhatsapp} disabled={isUpdatingWhatsapp}>
+                {isUpdatingWhatsapp ? (
+                  <>
+                    <div className="w-4 h-4 border-2 border-current border-t-transparent rounded-full animate-spin mr-2" />
+                    Salvando...
+                  </>
+                ) : (
+                  <>
+                    <Check className="w-4 h-4 mr-2" />
+                    Salvar WhatsApp
                   </>
                 )}
               </Button>
