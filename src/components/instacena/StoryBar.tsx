@@ -195,12 +195,10 @@ export function StoryBar() {
                     : "bg-muted"
                 }`}
               >
-                <Avatar className="h-14 w-14 border-2 border-card">
-                  <AvatarImage src={g.user_avatar || undefined} className="object-cover" />
-                  <AvatarFallback className="bg-primary/10 text-primary text-sm">
-                    {getInitials(g.user_name)}
-                  </AvatarFallback>
-                </Avatar>
+                <StoryThumb
+                  story={g.stories[g.stories.length - 1]}
+                  fallbackName={g.user_name}
+                />
               </div>
               <span className="text-[11px] text-foreground max-w-[64px] truncate">
                 {g.user_name.split(" ")[0]}
