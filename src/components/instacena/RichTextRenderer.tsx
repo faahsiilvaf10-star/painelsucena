@@ -297,6 +297,13 @@ function renderRich(content: string, keyPrefix = "r", depth = 0): React.ReactNod
 function sanitizeRichContent(input: string): string {
   let out = input;
 
+  // When a format is chosen before typing, some saved posts may contain an empty
+  // wrapper immediately before the text. Apply that wrapper to the following text.
+  out = out.replace(/\{color:(\w+)\}\s*\{\/color\}([^*_{\n][^*\n]*?)(?=(\*\*|__|_|\n|$))/g, "{color:$1}$2{/color}");
+  out = out.replace(/\{glow(?::(\w+))?\}\s*\{\/glow\}([^*_{\n][^*\n]*?)(?=(\*\*|__|_|\n|$))/g, (_m, color, text) => color ? `{glow:${color}}${text}{/glow}` : `{glow}${text}{/glow}`);
+  out = out.replace(/\{font:(\w+)\}\s*\{\/font\}([^*_{\n][^*\n]*?)(?=(\*\*|__|_|\n|$))/g, "{font:$1}$2{/font}");
+  out = out.replace(/\{fx:(\w+)\}\s*\{\/fx\}([^*_{\n][^*\n]*?)(?=(\*\*|__|_|\n|$))/g, "{fx:$1}$2{/fx}");
+
   // 1. Remove empty wrappers (no inner content)
   const emptyPatterns = [
     /\{color:\w+\}\s*\{\/color\}/g,
