@@ -61,6 +61,11 @@ const InstaCena = () => {
     }
   }, [searchParams, isLoading, posts, setSearchParams]);
 
+  // Reset filter to "posts" if user loses access to logs
+  useEffect(() => {
+    if (!canSeeLogs && filter === "logs") setFilter("posts");
+  }, [canSeeLogs, filter]);
+
   const gifPos = settings.instacena_gif_position || { x: 16, y: 80 };
   const gifSize = settings.instacena_gif_size || 200;
   const gifHeight = settings.instacena_gif_height;
