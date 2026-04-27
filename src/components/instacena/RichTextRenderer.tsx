@@ -297,29 +297,69 @@ function renderRich(content: string, keyPrefix = "r", depth = 0): React.ReactNod
 function sanitizeRichContent(input: string): string {
   let out = input;
 
-  // When a format is chosen before typing, some saved posts may contain an empty
-  // wrapper immediately before the text. Apply that wrapper to the following text.
-  out = out.replace(/\{color:(\w+)\}\s*\{\/color\}([^*_{\n][^*\n]*?)(?=(\*\*|__|_|\n|$))/g, "{color:$1}$2{/color}");
-  out = out.replace(/\{glow(?::(\w+))?\}\s*\{\/glow\}([^*_{\n][^*\n]*?)(?=(\*\*|__|_|\n|$))/g, (_m, color, text) => color ? `{glow:${color}}${text}{/glow}` : `{glow}${text}{/glow}`);
-  out = out.replace(/\{font:(\w+)\}\s*\{\/font\}([^*_{\n][^*\n]*?)(?=(\*\*|__|_|\n|$))/g, "{font:$1}$2{/font}");
-  out = out.replace(/\{fx:(\w+)\}\s*\{\/fx\}([^*_{\n][^*\n]*?)(?=(\*\*|__|_|\n|$))/g, "{fx:$1}$2{/fx}");
+  // STEP 1 (run BEFORE removing empty wrappers): repeatedly collapse nested/sequenced
+  // empty wrappers and apply pending formatting to the following text chunk.
+  // This handles cases like: "{font:normal}{font:mono}Sucena{/font}{/font}"
+  // or "{color:yellow}{/color}Sucena" produced when a user toggles a format
+  // before typing or applies multiple formats in a row.
+  //
+  // Strategy: walk through the string left-to-right, building a queue of
+  // pending wrappers (empty open+close pairs immediately followed by another
+  // tag or text). When we hit a real text run, apply all pending wrappers to it.
+  const TAG_RE = /\{(color|font|fx|glow):(\w+)\}|\{(glow)\}|\{\/(color|font|fx|glow)\}/g;
 
-  // 1. Remove empty wrappers (no inner content)
-  const emptyPatterns = [
-    /\{color:\w+\}\s*\{\/color\}/g,
-    /\{glow(?::\w+)?\}\s*\{\/glow\}/g,
-    /\{font:\w+\}\s*\{\/font\}/g,
-    /\{fx:\w+\}\s*\{\/fx\}/g,
-    /\*\*\s*\*\*/g,
-    /__\s*__/g,
-  ];
-  let prev = "";
-  while (prev !== out) {
-    prev = out;
-    for (const re of emptyPatterns) out = out.replace(re, "");
+  // Run multiple passes until stable, since wrapper rewriting may expose more cases
+  let pass = 0;
+  while (pass++ < 5) {
+    const before = out;
+
+    // a) Collapse "{tag:x}{/tag}" wrappers that are followed by text/tag — apply
+    //    the wrapper to the next non-empty text chunk (text up to the next { or end).
+    //    Repeated until no changes — handles chains of empty wrappers.
+    let prev = "";
+    while (prev !== out) {
+      prev = out;
+      out = out.replace(
+        /\{color:(\w+)\}\s*\{\/color\}([^{}\n]+)/g,
+        "{color:$1}$2{/color}",
+      );
+      out = out.replace(
+        /\{font:(\w+)\}\s*\{\/font\}([^{}\n]+)/g,
+        "{font:$1}$2{/font}",
+      );
+      out = out.replace(
+        /\{fx:(\w+)\}\s*\{\/fx\}([^{}\n]+)/g,
+        "{fx:$1}$2{/fx}",
+      );
+      out = out.replace(
+        /\{glow:(\w+)\}\s*\{\/glow\}([^{}\n]+)/g,
+        "{glow:$1}$2{/glow}",
+      );
+      out = out.replace(
+        /\{glow\}\s*\{\/glow\}([^{}\n]+)/g,
+        "{glow}$1{/glow}",
+      );
+    }
+
+    // b) Collapse adjacent empty wrappers that have NO following text (just remove them)
+    const emptyPatterns = [
+      /\{color:\w+\}\s*\{\/color\}/g,
+      /\{glow(?::\w+)?\}\s*\{\/glow\}/g,
+      /\{font:\w+\}\s*\{\/font\}/g,
+      /\{fx:\w+\}\s*\{\/fx\}/g,
+      /\*\*\s*\*\*/g,
+      /__\s*__/g,
+    ];
+    let prev2 = "";
+    while (prev2 !== out) {
+      prev2 = out;
+      for (const re of emptyPatterns) out = out.replace(re, "");
+    }
+
+    if (out === before) break;
   }
 
-  // 2. Strip orphan opening/closing tags that have no matching pair
+  // STEP 2: Strip orphan opening/closing tags that have no matching pair.
   const tagPairs: Array<[RegExp, RegExp]> = [
     [/\{color:\w+\}/g, /\{\/color\}/g],
     [/\{glow(?::\w+)?\}/g, /\{\/glow\}/g],
@@ -330,12 +370,37 @@ function sanitizeRichContent(input: string): string {
     const opens = out.match(openRe)?.length || 0;
     const closes = out.match(closeRe)?.length || 0;
     if (opens !== closes) {
-      // Mismatched — strip both kinds entirely so they don't show as literal markup
       out = out.replace(openRe, "").replace(closeRe, "");
     }
   }
 
-  // 3. Strip stray ** if odd count
+  // STEP 3: Final sweep — strip ANY remaining literal tag tokens that survived
+  // (e.g. nested duplicate tags like {font:mono} inside {font:normal}...{/font}{/font}
+  // where the parser would already consume the outer pair, leaving inner literals).
+  // We scan and remove the OUTER tag tokens that the renderer cannot match.
+  // Specifically: if a {tag:x}...{tag:y}...{/tag}{/tag} pattern exists, the inner
+  // open and the outer close cannot be paired, so remove the inner duplicate open
+  // and the orphan extra close.
+  const dupOpenClose: Array<[string, string, string]> = [
+    ["color", "{color:\\w+}", "{/color}"],
+    ["font", "{font:\\w+}", "{/font}"],
+    ["fx", "{fx:\\w+}", "{/fx}"],
+    ["glow", "{glow(?::\\w+)?}", "{/glow}"],
+  ];
+  for (const [, openSrc, closeSrc] of dupOpenClose) {
+    // match {tag}TEXT_NO_TAGS{tag}TEXT_NO_TAGS{/tag}{/tag} — fold into one {tag}TEXT{/tag}
+    const re = new RegExp(
+      `(${openSrc})([^{}\\n]*)${openSrc}([^{}\\n]+)${closeSrc}\\s*${closeSrc}`,
+      "g",
+    );
+    let prev = "";
+    while (prev !== out) {
+      prev = out;
+      out = out.replace(re, "$1$2$3{/" + (openSrc.match(/^\{(\w+)/)?.[1] || "") + "}");
+    }
+  }
+
+  // STEP 4: Strip stray ** if odd count.
   const starCount = (out.match(/\*\*/g) || []).length;
   if (starCount % 2 !== 0) out = out.replace(/\*\*/g, "");
 
