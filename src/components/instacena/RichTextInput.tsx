@@ -108,7 +108,14 @@ function htmlToCustomSyntax(container: HTMLElement): string {
         if (innerContent.trim().length > 0) {
           appendChunk(wrapCustomSyntax(formatType, formatValue, innerContent));
         } else {
-          pendingFormats.push({ type: formatType, value: formatValue });
+          // Replace any pending format of the same type so we don't end up with
+          // nested empty wrappers like {font:normal}{font:mono}...{/font}{/font}.
+          const existingIdx = pendingFormats.findIndex((p) => p.type === formatType);
+          if (existingIdx >= 0) {
+            pendingFormats[existingIdx] = { type: formatType, value: formatValue };
+          } else {
+            pendingFormats.push({ type: formatType, value: formatValue });
+          }
         }
       } else if (el.tagName === "BR") {
         result += "\n";
