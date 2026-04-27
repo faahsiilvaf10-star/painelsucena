@@ -20,6 +20,8 @@ import { useSiteSettings } from "@/hooks/useSiteSettings";
 import { toast } from "sonner";
 import { useEditMode } from "@/contexts/EditModeContext";
 import { EditableImage } from "@/components/cms/EditableImage";
+import { useIsAdmin } from "@/hooks/useUserRole";
+import { useProfile } from "@/hooks/useProfile";
 
 const MONTHS = [
   "Janeiro", "Fevereiro", "Março", "Abril", "Maio", "Junho",
