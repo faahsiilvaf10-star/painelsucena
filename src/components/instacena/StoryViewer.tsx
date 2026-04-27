@@ -14,7 +14,7 @@ import { ptBR } from "date-fns/locale";
 import { toast } from "sonner";
 import { Sheet, SheetContent, SheetHeader, SheetTitle } from "@/components/ui/sheet";
 
-const IMAGE_DURATION_MS = 5000;
+const IMAGE_DURATION_MS = 15_000;
 const MAX_VIDEO_DURATION_MS = 30_000;
 
 const getInitials = (name: string) => {
@@ -266,14 +266,20 @@ export function StoryViewer({ groups, startGroupIdx, onClose }: StoryViewerProps
         </button>
       </div>
 
-      {/* Bottom: caption + actions */}
-      <div className="absolute bottom-0 left-0 right-0 z-20 px-4 pb-4 pt-8 bg-gradient-to-t from-black/80 to-transparent">
-        {currentStory.caption && (
-          <p className="text-white text-sm mb-3 max-w-2xl mx-auto text-center leading-relaxed">
+      {/* Caption strip (WhatsApp-style: full-width band with description) */}
+      {currentStory.caption && (
+        <div className="absolute left-0 right-0 z-20 px-4 py-3 bg-black/55 backdrop-blur-sm pointer-events-none"
+          style={{ bottom: isOwner ? "64px" : "0" }}
+        >
+          <p className="text-white text-[15px] leading-snug max-w-2xl mx-auto text-center font-medium drop-shadow">
             {currentStory.caption}
           </p>
-        )}
-        {isOwner && (
+        </div>
+      )}
+
+      {/* Owner actions (kept separate, anchored to absolute bottom) */}
+      {isOwner && (
+        <div className="absolute bottom-0 left-0 right-0 z-20 px-4 pb-3 pt-3 bg-gradient-to-t from-black/85 to-transparent">
           <div className="flex items-center justify-center gap-3">
             <Button
               variant="ghost"
@@ -294,8 +300,8 @@ export function StoryViewer({ groups, startGroupIdx, onClose }: StoryViewerProps
               Excluir
             </Button>
           </div>
-        )}
-      </div>
+        </div>
+      )}
 
       {/* Viewers list (owner only) */}
       <Sheet open={viewersOpen} onOpenChange={setViewersOpen}>
