@@ -99,35 +99,27 @@ function htmlToCustomSyntax(container: HTMLElement): string {
         return;
       }
 
-      const innerText = el.innerText || "";
+      const innerContent = htmlToCustomSyntax(el);
+      const formatType = el.dataset.formatType;
+      const formatValue = el.dataset.formatValue;
 
       // Check data attributes for custom formatting
-      if (el.dataset.formatType === "bold") {
-        result += `**${innerText}**`;
-      } else if (el.dataset.formatType === "italic") {
-        result += `_${innerText}_`;
-      } else if (el.dataset.formatType === "underline") {
-        result += `__${innerText}__`;
-      } else if (el.dataset.formatType === "color") {
-        result += `{color:${el.dataset.formatValue}}${innerText}{/color}`;
-      } else if (el.dataset.formatType === "glow") {
-        const glowVal = el.dataset.formatValue;
-        result += glowVal ? `{glow:${glowVal}}${innerText}{/glow}` : `{glow}${innerText}{/glow}`;
-    } else if (el.dataset.formatType === "font") {
-        result += `{font:${el.dataset.formatValue}}${innerText}{/font}`;
-      } else if (el.dataset.formatType === "fx") {
-        result += `{fx:${el.dataset.formatValue}}${innerText}{/fx}`;
+      if (formatType) {
+        if (innerContent.trim().length > 0) {
+          appendChunk(wrapCustomSyntax(formatType, formatValue, innerContent));
+        } else {
+          pendingFormats.push({ type: formatType, value: formatValue });
+        }
       } else if (el.tagName === "BR") {
         result += "\n";
       } else if (el.tagName === "DIV" || el.tagName === "P") {
         // Block elements add newlines
-        const blockContent = htmlToCustomSyntax(el);
         if (result.length > 0 && !result.endsWith("\n")) {
           result += "\n";
         }
-        result += blockContent;
+        appendChunk(innerContent);
       } else {
-        result += innerText;
+        appendChunk(innerContent || el.innerText || "");
       }
     }
   });
