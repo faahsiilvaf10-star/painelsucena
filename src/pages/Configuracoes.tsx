@@ -92,6 +92,7 @@ const Configuracoes = () => {
         setSidebarFontColor(profile.sidebar_font_color || null);
         setSidebarActiveColor(profile.sidebar_active_color || null);
         setSidebarActiveFontColor(profile.sidebar_active_font_color || null);
+        setWhatsapp(formatBR((profile as any).whatsapp_number || ""));
       }
     };
 
