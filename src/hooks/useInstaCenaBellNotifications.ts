@@ -135,12 +135,13 @@ export const useInstaCenaBellNotifications = () => {
           if (post.user_id === user.id || post.is_system_post || !post.content) return;
 
           const mentionPattern = new RegExp(`@\\[[^\\]]+\\]\\(${user.id}\\)`);
-          if (!mentionPattern.test(post.content)) return;
+          const mentionsAll = /@\[[^\]]+\]\(ALL\)/.test(post.content);
+          if (!mentionPattern.test(post.content) && !mentionsAll) return;
 
           await supabase.from("notifications").insert({
             user_id: user.id,
             type: "instacena_mention",
-            title: `📢 ${post.user_name} mencionou você`,
+            title: mentionsAll ? `📣 ${post.user_name} mencionou todos` : `📢 ${post.user_name} mencionou você`,
             message: `Em uma publicação: "${post.content.length > 50 ? post.content.substring(0, 50) + "..." : post.content}"`,
             reference_id: post.id,
             reference_type: "instacena_post",
