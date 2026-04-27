@@ -55,6 +55,8 @@ const Configuracoes = () => {
   const [sidebarFontColor, setSidebarFontColor] = useState<string | null>(null);
   const [sidebarActiveColor, setSidebarActiveColor] = useState<string | null>(null);
   const [sidebarActiveFontColor, setSidebarActiveFontColor] = useState<string | null>(null);
+  const [whatsapp, setWhatsapp] = useState("");
+  const [isUpdatingWhatsapp, setIsUpdatingWhatsapp] = useState(false);
 
   // UI states
   const [showCurrentPassword, setShowCurrentPassword] = useState(false);
