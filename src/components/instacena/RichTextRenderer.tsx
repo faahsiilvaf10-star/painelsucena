@@ -199,82 +199,80 @@ function renderWithAnimatedEmojis(text: string): React.ReactNode[] {
   return nodes;
 }
 
-export function RichTextRenderer({ content }: { content: string }) {
-  // Check if content has any formatting markers or animated emojis
-  const hasFormatting = /(\*\*|_{1,2}|{color:|{glow|{font:|{fx:|:\w+:)/.test(content);
+function renderSegmentStyle(seg: RichSegment): { classes: string[]; styles: any } {
+  const classes: string[] = [];
+  const styles: any = {};
 
-  const hasLinks = /https?:\/\//.test(content);
-
-  if (!hasFormatting && !hasLinks) {
-    return <>{renderWithLinksAndEmojis(content)}</>;
+  if (seg.bold) classes.push("font-bold");
+  if (seg.italic) classes.push("italic");
+  if (seg.underline) classes.push("underline underline-offset-2");
+  if (seg.color && COLOR_BG[seg.color]) {
+    styles.backgroundColor = COLOR_BG[seg.color];
+    styles.padding = "0 2px";
+    styles.borderRadius = "3px";
   }
+  if (seg.font && FONT_INLINE[seg.font]) {
+    styles.fontFamily = FONT_INLINE[seg.font];
+    if (seg.font === "cursive") styles.fontStyle = "italic";
+  }
+  if (seg.glow) {
+    const glowDef = seg.glowColor ? GLOW_CSS[seg.glowColor] : null;
+    classes.push("animate-pulse");
+    styles.textShadow = glowDef?.shadow || "0 0 8px hsl(var(--primary) / 0.6), 0 0 16px hsl(var(--primary) / 0.3)";
+    styles.color = glowDef?.color || "hsl(var(--primary))";
+  }
+  if (seg.fx) {
+    switch (seg.fx) {
+      case "sparkle":
+        styles.color = "#fbbf24";
+        styles.animation = "sparkle-text 2s ease-in-out infinite";
+        break;
+      case "rainbow":
+        styles.animation = "rainbow-shift 3s linear infinite";
+        break;
+      case "neon":
+        styles.color = "#06b6d4";
+        styles.animation = "neon-flicker 3s ease-in-out infinite";
+        break;
+      case "gradient":
+        styles.background = "linear-gradient(90deg, #3b82f6, #a855f7, #ec4899)";
+        styles.WebkitBackgroundClip = "text";
+        styles.WebkitTextFillColor = "transparent";
+        (styles as any).backgroundClip = "text";
+        break;
+    }
+  }
+  return { classes, styles };
+}
 
-  // If only animated emojis, no rich text
+function renderRich(content: string, keyPrefix = "r"): React.ReactNode[] {
   const hasRichText = /(\*\*|_{1,2}|{color:|{glow|{font:|{fx:)/.test(content);
   if (!hasRichText) {
-    return <>{renderWithLinksAndEmojis(content)}</>;
+    return renderWithLinksAndEmojis(content);
   }
 
   const segments = parseRichText(content);
+  return segments.map((seg, i) => {
+    const { classes, styles } = renderSegmentStyle(seg);
+    // Recursively render the inner text so nested formatting works (e.g. **{color:yellow}x{/color}**)
+    const innerHasRich = /(\*\*|_{1,2}|{color:|{glow|{font:|{fx:)/.test(seg.text);
+    const renderedContent = innerHasRich
+      ? renderRich(seg.text, `${keyPrefix}-${i}`)
+      : renderWithLinksAndEmojis(seg.text);
 
-  return (
-    <>
-      {segments.map((seg, i) => {
-        const classes: string[] = [];
-        const styles: any = {};
+    if (classes.length === 0 && Object.keys(styles).length === 0) {
+      return <React.Fragment key={`${keyPrefix}-${i}`}>{renderedContent}</React.Fragment>;
+    }
 
-        if (seg.bold) classes.push("font-bold");
-        if (seg.italic) classes.push("italic");
-        if (seg.underline) classes.push("underline underline-offset-2");
-        if (seg.color && COLOR_BG[seg.color]) {
-          styles.backgroundColor = COLOR_BG[seg.color];
-          styles.padding = "0 2px";
-          styles.borderRadius = "3px";
-        }
-        if (seg.font && FONT_INLINE[seg.font]) {
-          styles.fontFamily = FONT_INLINE[seg.font];
-          if (seg.font === "cursive") styles.fontStyle = "italic";
-        }
-        if (seg.glow) {
-          const glowDef = seg.glowColor ? GLOW_CSS[seg.glowColor] : null;
-          classes.push("animate-pulse");
-          styles.textShadow = glowDef?.shadow || "0 0 8px hsl(var(--primary) / 0.6), 0 0 16px hsl(var(--primary) / 0.3)";
-          styles.color = glowDef?.color || "hsl(var(--primary))";
-        }
-        if (seg.fx) {
-          switch (seg.fx) {
-            case "sparkle":
-              styles.color = "#fbbf24";
-              styles.animation = "sparkle-text 2s ease-in-out infinite";
-              break;
-            case "rainbow":
-              styles.animation = "rainbow-shift 3s linear infinite";
-              break;
-            case "neon":
-              styles.color = "#06b6d4";
-              styles.animation = "neon-flicker 3s ease-in-out infinite";
-              break;
-            case "gradient":
-              styles.background = "linear-gradient(90deg, #3b82f6, #a855f7, #ec4899)";
-              styles.WebkitBackgroundClip = "text";
-              styles.WebkitTextFillColor = "transparent";
-              (styles as any).backgroundClip = "text";
-              break;
-          }
-        }
-
-        const renderedContent = renderWithLinksAndEmojis(seg.text);
-
-        if (classes.length === 0 && Object.keys(styles).length === 0) {
-          return <React.Fragment key={i}>{renderedContent}</React.Fragment>;
-        }
-
-        return (
-          <span key={i} className={classes.join(" ")} style={styles}>
-            {renderedContent}
-          </span>
-        );
-      })}
-    </>
-  );
+    return (
+      <span key={`${keyPrefix}-${i}`} className={classes.join(" ")} style={styles}>
+        {renderedContent}
+      </span>
+    );
+  });
 }
+
+export function RichTextRenderer({ content }: { content: string }) {
+  return <>{renderRich(content)}</>;
+}
+
