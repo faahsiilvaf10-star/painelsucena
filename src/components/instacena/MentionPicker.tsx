@@ -26,7 +26,7 @@ export function MentionPicker({ query, onSelect, visible }: MentionPickerProps) 
   const containerRef = useRef<HTMLDivElement>(null);
 
   useEffect(() => {
-    if (!visible || !query) {
+    if (!visible) {
       setProfiles([]);
       return;
     }
@@ -37,7 +37,20 @@ export function MentionPicker({ query, onSelect, visible }: MentionPickerProps) 
         .select("user_id, full_name, avatar_url")
         .ilike("full_name", `%${query}%`)
         .limit(6);
-      setProfiles(data || []);
+
+      const list: Profile[] = data || [];
+
+      // Always show "Todos" at the top when query matches "todos" prefix or is empty
+      const q = query.toLowerCase();
+      if (q === "" || "todos".startsWith(q)) {
+        list.unshift({
+          user_id: "ALL",
+          full_name: "Todos",
+          avatar_url: null,
+        });
+      }
+
+      setProfiles(list);
       setSelectedIndex(0);
     };
 
@@ -71,23 +84,28 @@ export function MentionPicker({ query, onSelect, visible }: MentionPickerProps) 
       ref={containerRef}
       className="absolute bottom-full left-0 mb-1 w-64 bg-popover border border-border rounded-lg shadow-lg z-50 overflow-hidden animate-scale-in"
     >
-      {profiles.map((p, i) => (
-        <button
-          key={p.user_id}
-          onClick={() => onSelect(p)}
-          className={`flex items-center gap-2 w-full px-3 py-2 text-sm hover:bg-accent transition-colors ${
-            i === selectedIndex ? "bg-accent" : ""
-          }`}
-        >
-          <Avatar className="h-6 w-6">
-            <AvatarImage src={p.avatar_url || undefined} className="object-cover" />
-            <AvatarFallback className="text-[10px] bg-primary/10 text-primary">
-              {getInitials(p.full_name)}
-            </AvatarFallback>
-          </Avatar>
-          <span className="truncate">{p.full_name}</span>
-        </button>
-      ))}
+      {profiles.map((p, i) => {
+        const isAll = p.user_id === "ALL";
+        return (
+          <button
+            key={p.user_id}
+            onClick={() => onSelect(p)}
+            className={`flex items-center gap-2 w-full px-3 py-2 text-sm hover:bg-accent transition-colors ${
+              i === selectedIndex ? "bg-accent" : ""
+            } ${isAll ? "border-b border-border" : ""}`}
+          >
+            <Avatar className="h-6 w-6">
+              <AvatarImage src={p.avatar_url || undefined} className="object-cover" />
+              <AvatarFallback className={`text-[10px] ${isAll ? "bg-primary text-primary-foreground" : "bg-primary/10 text-primary"}`}>
+                {isAll ? "@" : getInitials(p.full_name)}
+              </AvatarFallback>
+            </Avatar>
+            <span className={`truncate ${isAll ? "font-bold text-primary" : ""}`}>
+              {isAll ? "Todos (notificar todo o sistema)" : p.full_name}
+            </span>
+          </button>
+        );
+      })}
     </div>
   );
 }

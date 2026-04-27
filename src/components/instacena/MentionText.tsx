@@ -7,9 +7,9 @@ import { RichTextRenderer } from "./RichTextRenderer";
  * Non-mention text is passed through RichTextRenderer for formatting
  */
 export function MentionText({ content }: { content: string }) {
-  // Match @[Name](user_id)
-  const mentionRegex = /@\[([^\]]+)\]\([^)]+\)/g;
-  const parts: Array<{ type: "text" | "mention"; value: string }> = [];
+  // Match @[Name](user_id)  — capture both name and id so we can detect ALL
+  const mentionRegex = /@\[([^\]]+)\]\(([^)]+)\)/g;
+  const parts: Array<{ type: "text" | "mention" | "all"; value: string }> = [];
   let lastIndex = 0;
   let match: RegExpExecArray | null;
 
@@ -17,7 +17,8 @@ export function MentionText({ content }: { content: string }) {
     if (match.index > lastIndex) {
       parts.push({ type: "text", value: content.slice(lastIndex, match.index) });
     }
-    parts.push({ type: "mention", value: match[1] });
+    const isAll = match[2] === "ALL";
+    parts.push({ type: isAll ? "all" : "mention", value: match[1] });
     lastIndex = match.index + match[0].length;
   }
 
@@ -31,20 +32,34 @@ export function MentionText({ content }: { content: string }) {
 
   return (
     <span>
-      {parts.map((part, i) =>
-        part.type === "mention" ? (
-          <span
-            key={i}
-            className="mention-spark inline-flex items-center font-bold text-primary"
-          >
-            @{part.value}
-          </span>
-        ) : (
+      {parts.map((part, i) => {
+        if (part.type === "mention") {
+          return (
+            <span
+              key={i}
+              className="mention-spark inline-flex items-center font-bold text-primary"
+            >
+              @{part.value}
+            </span>
+          );
+        }
+        if (part.type === "all") {
+          return (
+            <span
+              key={i}
+              className="mention-spark inline-flex items-center font-bold px-1.5 py-0.5 rounded-md bg-primary/15 text-primary border border-primary/30"
+              title="Menção a todos os usuários"
+            >
+              @{part.value}
+            </span>
+          );
+        }
+        return (
           <Fragment key={i}>
             <RichTextRenderer content={part.value} />
           </Fragment>
-        )
-      )}
+        );
+      })}
     </span>
   );
 }

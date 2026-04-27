@@ -297,51 +297,27 @@ function renderRich(content: string, keyPrefix = "r", depth = 0): React.ReactNod
 function sanitizeRichContent(input: string): string {
   let out = input;
 
-  // STEP 1 (run BEFORE removing empty wrappers): repeatedly collapse nested/sequenced
-  // empty wrappers and apply pending formatting to the following text chunk.
-  // This handles cases like: "{font:normal}{font:mono}Sucena{/font}{/font}"
-  // or "{color:yellow}{/color}Sucena" produced when a user toggles a format
-  // before typing or applies multiple formats in a row.
-  //
-  // Strategy: walk through the string left-to-right, building a queue of
-  // pending wrappers (empty open+close pairs immediately followed by another
-  // tag or text). When we hit a real text run, apply all pending wrappers to it.
-  const TAG_RE = /\{(color|font|fx|glow):(\w+)\}|\{(glow)\}|\{\/(color|font|fx|glow)\}/g;
-
-  // Run multiple passes until stable, since wrapper rewriting may expose more cases
+  // STEP 1: Iteratively collapse empty wrappers and merge them with the next
+  // text chunk. Handles cross-line cases too (e.g. "{font:cursive}\n  Roçagem").
+  // Use [\s\S] in classes so we can match across newlines while still excluding
+  // brace tokens.
   let pass = 0;
-  while (pass++ < 5) {
+  while (pass++ < 6) {
     const before = out;
 
-    // a) Collapse "{tag:x}{/tag}" wrappers that are followed by text/tag — apply
-    //    the wrapper to the next non-empty text chunk (text up to the next { or end).
-    //    Repeated until no changes — handles chains of empty wrappers.
     let prev = "";
     while (prev !== out) {
       prev = out;
-      out = out.replace(
-        /\{color:(\w+)\}\s*\{\/color\}([^{}\n]+)/g,
-        "{color:$1}$2{/color}",
-      );
-      out = out.replace(
-        /\{font:(\w+)\}\s*\{\/font\}([^{}\n]+)/g,
-        "{font:$1}$2{/font}",
-      );
-      out = out.replace(
-        /\{fx:(\w+)\}\s*\{\/fx\}([^{}\n]+)/g,
-        "{fx:$1}$2{/fx}",
-      );
-      out = out.replace(
-        /\{glow:(\w+)\}\s*\{\/glow\}([^{}\n]+)/g,
-        "{glow:$1}$2{/glow}",
-      );
-      out = out.replace(
-        /\{glow\}\s*\{\/glow\}([^{}\n]+)/g,
-        "{glow}$1{/glow}",
-      );
+      // Empty wrapper followed by text (possibly across whitespace/newlines) — apply
+      // the wrapper to the next non-tag run.
+      out = out.replace(/\{color:(\w+)\}\s*\{\/color\}([^{}]+)/g, "{color:$1}$2{/color}");
+      out = out.replace(/\{font:(\w+)\}\s*\{\/font\}([^{}]+)/g, "{font:$1}$2{/font}");
+      out = out.replace(/\{fx:(\w+)\}\s*\{\/fx\}([^{}]+)/g, "{fx:$1}$2{/fx}");
+      out = out.replace(/\{glow:(\w+)\}\s*\{\/glow\}([^{}]+)/g, "{glow:$1}$2{/glow}");
+      out = out.replace(/\{glow\}\s*\{\/glow\}([^{}]+)/g, "{glow}$1{/glow}");
     }
 
-    // b) Collapse adjacent empty wrappers that have NO following text (just remove them)
+    // Remove fully-empty wrappers (no following text)
     const emptyPatterns = [
       /\{color:\w+\}\s*\{\/color\}/g,
       /\{glow(?::\w+)?\}\s*\{\/glow\}/g,
@@ -359,52 +335,44 @@ function sanitizeRichContent(input: string): string {
     if (out === before) break;
   }
 
-  // STEP 2: Strip orphan opening/closing tags that have no matching pair.
-  const tagPairs: Array<[RegExp, RegExp]> = [
-    [/\{color:\w+\}/g, /\{\/color\}/g],
-    [/\{glow(?::\w+)?\}/g, /\{\/glow\}/g],
-    [/\{font:\w+\}/g, /\{\/font\}/g],
-    [/\{fx:\w+\}/g, /\{\/fx\}/g],
-  ];
-  for (const [openRe, closeRe] of tagPairs) {
-    const opens = out.match(openRe)?.length || 0;
-    const closes = out.match(closeRe)?.length || 0;
-    if (opens !== closes) {
-      out = out.replace(openRe, "").replace(closeRe, "");
-    }
-  }
+  // STEP 2: Final defensive sweep — remove ANY tag token that the renderer
+  // cannot consume. This guarantees raw markup like "{font:cursive}", "{/font}"
+  // never leaks through to the published post, even if the formatting got
+  // corrupted somewhere upstream.
+  //
+  // We do this by simulating what the renderer's regex matches and stripping
+  // every leftover token afterwards.
+  const renderableMatcher =
+    /(\*\*(?:.+?)\*\*|__(?:.+?)__|_(?:.+?)_|\{color:\w+\}(?:.+?)\{\/color\}|\{glow:\w+\}(?:.+?)\{\/glow\}|\{glow\}(?:.+?)\{\/glow\}|\{fx:\w+\}(?:.+?)\{\/fx\}|\{font:\w+\}(?:.+?)\{\/font\})/gs;
 
-  // STEP 3: Final sweep — strip ANY remaining literal tag tokens that survived
-  // (e.g. nested duplicate tags like {font:mono} inside {font:normal}...{/font}{/font}
-  // where the parser would already consume the outer pair, leaving inner literals).
-  // We scan and remove the OUTER tag tokens that the renderer cannot match.
-  // Specifically: if a {tag:x}...{tag:y}...{/tag}{/tag} pattern exists, the inner
-  // open and the outer close cannot be paired, so remove the inner duplicate open
-  // and the orphan extra close.
-  const dupOpenClose: Array<[string, string, string]> = [
-    ["color", "{color:\\w+}", "{/color}"],
-    ["font", "{font:\\w+}", "{/font}"],
-    ["fx", "{fx:\\w+}", "{/fx}"],
-    ["glow", "{glow(?::\\w+)?}", "{/glow}"],
-  ];
-  for (const [, openSrc, closeSrc] of dupOpenClose) {
-    // match {tag}TEXT_NO_TAGS{tag}TEXT_NO_TAGS{/tag}{/tag} — fold into one {tag}TEXT{/tag}
-    const re = new RegExp(
-      `(${openSrc})([^{}\\n]*)${openSrc}([^{}\\n]+)${closeSrc}\\s*${closeSrc}`,
-      "g",
-    );
-    let prev = "";
-    while (prev !== out) {
-      prev = out;
-      out = out.replace(re, "$1$2$3{/" + (openSrc.match(/^\{(\w+)/)?.[1] || "") + "}");
+  // Carve out renderable spans, scrub stray tokens from the gaps, then re-stitch.
+  const pieces: string[] = [];
+  let lastIdx = 0;
+  let m: RegExpExecArray | null;
+  while ((m = renderableMatcher.exec(out)) !== null) {
+    if (m.index > lastIdx) {
+      pieces.push(scrubStrayTokens(out.slice(lastIdx, m.index)));
     }
+    pieces.push(m[0]);
+    lastIdx = m.index + m[0].length;
   }
-
-  // STEP 4: Strip stray ** if odd count.
-  const starCount = (out.match(/\*\*/g) || []).length;
-  if (starCount % 2 !== 0) out = out.replace(/\*\*/g, "");
+  if (lastIdx < out.length) {
+    pieces.push(scrubStrayTokens(out.slice(lastIdx)));
+  }
+  out = pieces.join("");
 
   return out;
+}
+
+/**
+ * Removes any leftover formatting tokens from a "gap" region (text outside
+ * renderable spans). These tokens would otherwise show as literal text.
+ */
+function scrubStrayTokens(s: string): string {
+  return s
+    .replace(/\{\/?(?:color|font|fx|glow)(?::\w+)?\}/g, "")
+    .replace(/\*\*/g, "")
+    .replace(/(?<!_)__(?!_)/g, "");
 }
 
 export function RichTextRenderer({ content }: { content: string }) {

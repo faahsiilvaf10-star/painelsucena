@@ -79,15 +79,16 @@ export const useInstaCenaBellNotifications = () => {
           // Don't notify yourself
           if (comment.user_id === user.id) return;
 
-          // Check if user is mentioned in the comment
+          // Check if user is mentioned in the comment (direct or via @todos)
           const mentionPattern = new RegExp(`@\\[[^\\]]+\\]\\(${user.id}\\)`);
-          const isMentioned = mentionPattern.test(comment.content);
+          const mentionsAll = /@\[[^\]]+\]\(ALL\)/.test(comment.content);
+          const isMentioned = mentionPattern.test(comment.content) || mentionsAll;
 
           if (isMentioned) {
             await supabase.from("notifications").insert({
               user_id: user.id,
               type: "instacena_mention",
-              title: `📢 ${comment.user_name} mencionou você`,
+              title: mentionsAll ? `📣 ${comment.user_name} mencionou todos` : `📢 ${comment.user_name} mencionou você`,
               message: `Em um comentário: "${comment.content.length > 50 ? comment.content.substring(0, 50) + "..." : comment.content}"`,
               reference_id: comment.post_id,
               reference_type: "instacena_post",
@@ -134,12 +135,13 @@ export const useInstaCenaBellNotifications = () => {
           if (post.user_id === user.id || post.is_system_post || !post.content) return;
 
           const mentionPattern = new RegExp(`@\\[[^\\]]+\\]\\(${user.id}\\)`);
-          if (!mentionPattern.test(post.content)) return;
+          const mentionsAll = /@\[[^\]]+\]\(ALL\)/.test(post.content);
+          if (!mentionPattern.test(post.content) && !mentionsAll) return;
 
           await supabase.from("notifications").insert({
             user_id: user.id,
             type: "instacena_mention",
-            title: `📢 ${post.user_name} mencionou você`,
+            title: mentionsAll ? `📣 ${post.user_name} mencionou todos` : `📢 ${post.user_name} mencionou você`,
             message: `Em uma publicação: "${post.content.length > 50 ? post.content.substring(0, 50) + "..." : post.content}"`,
             reference_id: post.id,
             reference_type: "instacena_post",
