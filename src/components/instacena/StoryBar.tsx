@@ -305,3 +305,44 @@ export function StoryBar() {
     </div>
   );
 }
+
+/** Renders a 14x14 round preview of the latest story (image or video frame). */
+function StoryThumb({
+  story,
+  fallbackName,
+}: {
+  story: { media_url: string; media_type: "image" | "video" };
+  fallbackName: string;
+}) {
+  return (
+    <div className="h-14 w-14 rounded-full border-2 border-card overflow-hidden bg-muted relative">
+      {story.media_type === "image" ? (
+        <img
+          src={story.media_url}
+          alt={fallbackName}
+          className="h-full w-full object-cover"
+          loading="lazy"
+        />
+      ) : (
+        <>
+          <video
+            src={story.media_url}
+            className="h-full w-full object-cover"
+            muted
+            playsInline
+            preload="metadata"
+            // jump 0.1s in so we get a real frame, not a black one
+            onLoadedMetadata={(e) => {
+              try {
+                (e.currentTarget as HTMLVideoElement).currentTime = 0.1;
+              } catch {}
+            }}
+          />
+          <div className="absolute bottom-0.5 right-0.5 bg-black/60 text-white rounded-full p-0.5">
+            <VideoIcon className="h-2.5 w-2.5" />
+          </div>
+        </>
+      )}
+    </div>
+  );
+}
