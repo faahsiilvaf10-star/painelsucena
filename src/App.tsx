@@ -15,6 +15,7 @@ import { InstallPrompt } from "@/components/pwa/InstallPrompt";
 import ErrorBoundary from "@/components/ErrorBoundary";
 import { VisualizadorProvider } from "@/contexts/VisualizadorContext";
 import { EditModeProvider } from "@/contexts/EditModeContext";
+import { WhatsAppGate } from "@/components/auth/WhatsAppGate";
 
 // Lazy-load ALL pages — only the current route's code is downloaded
 const Index = lazy(() => import("./pages/Index"));
@@ -131,6 +132,7 @@ const App = () => (
               <LoginTransitionGate />
               <LogoutTransitionGate />
               <EditModeProvider>
+              <WhatsAppGate />
               <PersistentSidebar>
                 <VisualizadorProvider>
                 <ErrorBoundary>
