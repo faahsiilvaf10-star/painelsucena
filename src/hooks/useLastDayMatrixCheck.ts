@@ -74,27 +74,30 @@ export const useLastDayMatrixCheck = () => {
     }).filter(c => c.done < c.total);
   }, [completedTasks]);
 
+  // Mostrar nos últimos 3 dias do mês (faltando 0, 1, 2 ou 3 dias)
+  const isReminderWindow = daysUntilMonthEnd <= 3;
+
   useEffect(() => {
-    if (matrixLoading || profileLoading || !isLastDayOfMonth || !cargoInfo) return;
+    if (matrixLoading || profileLoading || !isReminderWindow || !cargoInfo) return;
     if (isAdmin) return;
 
     const today = getBrazilNorthTodayString();
     const shownKey = localStorage.getItem(LAST_DAY_MATRIX_KEY);
 
-    if (progress === 100) {
-      // Show celebration only once per day
+    if (isLastDayOfMonth && progress === 100) {
+      // Celebração apenas no último dia se 100%
       if (shownKey !== `${today}_celebration`) {
         localStorage.setItem(LAST_DAY_MATRIX_KEY, `${today}_celebration`);
         setShowCelebration(true);
       }
-    } else if (progress >= 0) {
-      // Show reminder only once per day, and only if not already celebrated
+    } else if (pendingCargos.length > 0) {
+      // Lembrete uma vez por dia
       if (shownKey !== today && shownKey !== `${today}_celebration`) {
         localStorage.setItem(LAST_DAY_MATRIX_KEY, today);
         setShowReminder(true);
       }
     }
-  }, [matrixLoading, profileLoading, isLastDayOfMonth, cargoInfo, progress, isAdmin]);
+  }, [matrixLoading, profileLoading, isReminderWindow, isLastDayOfMonth, cargoInfo, progress, isAdmin, pendingCargos.length]);
 
   return {
     showCelebration,
@@ -105,5 +108,8 @@ export const useLastDayMatrixCheck = () => {
     progress,
     userName: profile?.full_name,
     userAvatarUrl: profile?.avatar_url,
+    daysUntilMonthEnd,
+    currentMonthName,
+    pendingCargos,
   };
 };
