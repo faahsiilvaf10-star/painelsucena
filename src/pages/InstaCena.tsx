@@ -483,6 +483,8 @@ const InstaCena = () => {
               )}
             </div>
 
+            <StoryBar />
+
             <CreatePostCard />
 
             {isLoading ? (
