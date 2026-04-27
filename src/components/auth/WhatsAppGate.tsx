@@ -21,7 +21,7 @@ export function formatBR(raw: string): string {
   return `(${digits.slice(0, 2)}) ${digits.slice(2, 7)}-${digits.slice(7)}`;
 }
 
-function isValidBR(raw: string): boolean {
+export function isValidBR(raw: string): boolean {
   const d = raw.replace(/\D/g, "");
   // 10 (fixo) ou 11 (celular com 9). Aceita ambos, mas força DDD válido.
   if (d.length !== 10 && d.length !== 11) return false;
