@@ -98,25 +98,31 @@ export function MatrixAlertBanner() {
 
   return (
     <div className="mb-6 animate-fade-in">
-      <Alert className="border-orange-500 bg-orange-500/10 relative overflow-hidden">
-        <div className="absolute top-0 left-0 w-1 h-full bg-orange-500" />
-        <div className="flex items-start gap-4">
-          <AlertTriangle className="h-6 w-6 text-orange-500 shrink-0 mt-0.5" />
+      <Alert className="border-teal-500/60 bg-gradient-to-r from-teal-500/10 via-cyan-500/10 to-emerald-500/10 relative overflow-hidden shadow-[0_0_25px_-5px_rgba(20,184,166,0.35)] transition-all duration-500 hover:shadow-[0_0_35px_-5px_rgba(20,184,166,0.55)]">
+        {/* Barra lateral pulsante */}
+        <div className="absolute top-0 left-0 w-1 h-full bg-gradient-to-b from-teal-400 via-cyan-500 to-emerald-500 animate-pulse" />
+
+        {/* Brilho deslizante sutil */}
+        <div className="pointer-events-none absolute inset-0 -translate-x-full bg-gradient-to-r from-transparent via-white/10 to-transparent animate-[shimmer_3.5s_ease-in-out_infinite]" />
+
+        <div className="flex items-start gap-4 relative">
+          <AlertTriangle className="h-6 w-6 text-teal-500 shrink-0 mt-0.5 animate-[wiggle_2.4s_ease-in-out_infinite]" />
           <div className="flex-1">
-            <AlertTitle className="text-orange-500 font-bold text-lg flex items-center gap-2">
+            <AlertTitle className="font-bold text-lg flex items-center gap-2 bg-gradient-to-r from-teal-600 via-cyan-600 to-emerald-600 dark:from-teal-300 dark:via-cyan-300 dark:to-emerald-300 bg-clip-text text-transparent">
               🚨 Atenção! {daysRemaining === 0 ? "Último dia" : `Faltam ${daysRemaining} dias`} para fechar {currentMonth}
             </AlertTitle>
-            <AlertDescription className="text-orange-400 mt-2">
+            <AlertDescription className="text-teal-700 dark:text-teal-200/90 mt-2">
               <p className="mb-2">Usuários que ainda não concluíram a matriz:</p>
               <div className="flex flex-wrap gap-2">
                 {incompleteUsers.map((user, index) => (
-                  <div 
+                  <div
                     key={index}
-                    className="inline-flex items-center gap-1.5 bg-orange-500/20 px-2 py-1 rounded-lg text-sm"
+                    className="inline-flex items-center gap-1.5 bg-teal-500/15 hover:bg-teal-500/25 border border-teal-400/30 px-2.5 py-1 rounded-full text-sm transition-all duration-300 hover:scale-105 hover:-translate-y-0.5"
+                    style={{ animation: `fadeInUp 0.4s ease-out ${index * 80}ms backwards` }}
                   >
-                    <User className="w-3.5 h-3.5 text-orange-300" />
-                    <span className="text-orange-200 font-medium">{user.name}</span>
-                    <span className="text-orange-400 text-xs">
+                    <User className="w-3.5 h-3.5 text-teal-500 dark:text-teal-300" />
+                    <span className="text-teal-800 dark:text-teal-100 font-semibold">{user.name}</span>
+                    <span className="text-teal-600 dark:text-teal-300/80 text-xs">
                       ({user.cargo}: {user.completedCount}/{user.totalTasks})
                     </span>
                   </div>
@@ -126,7 +132,7 @@ export function MatrixAlertBanner() {
           </div>
           <Link
             to="/matriz"
-            className="text-orange-400 hover:text-orange-300 transition-colors shrink-0"
+            className="text-teal-500 hover:text-teal-400 transition-all shrink-0 hover:translate-x-1"
           >
             <ChevronRight className="w-5 h-5" />
           </Link>
