@@ -36,6 +36,9 @@ const InstaCena = () => {
   const [selectedDate, setSelectedDate] = useState<Date | undefined>();
   const [selectedMonth, setSelectedMonth] = useState<string>("all");
   const { isEditMode, canEdit } = useEditMode();
+  const { isAdmin } = useIsAdmin();
+  const { data: profile } = useProfile();
+  const canSeeLogs = isAdmin || profile?.cargo === "preposto";
   const { settings, updateSettings } = useSiteSettings();
   const mainRef = useRef<HTMLElement | null>(null);
 
