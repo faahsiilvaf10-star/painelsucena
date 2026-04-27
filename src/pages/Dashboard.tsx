@@ -253,6 +253,9 @@ const Dashboard = () => {
         progress={lastDayMatrix.progress}
         userName={lastDayMatrix.userName}
         userAvatarUrl={lastDayMatrix.userAvatarUrl}
+        daysUntilMonthEnd={lastDayMatrix.daysUntilMonthEnd}
+        currentMonthName={lastDayMatrix.currentMonthName}
+        pendingCargos={lastDayMatrix.pendingCargos}
       />
       <div className="container mx-auto px-2 sm:px-4 py-2 sm:py-4">
         {/* Header */}
