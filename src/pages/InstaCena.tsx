@@ -8,6 +8,7 @@ import instaCenaEaster from "@/assets/instacena-easter.gif";
 import Layout from "@/components/layout/Layout";
 import { CreatePostCard } from "@/components/instacena/CreatePostCard";
 import { PostCard } from "@/components/instacena/PostCard";
+import { StoryBar } from "@/components/instacena/StoryBar";
 import { useInstaCenaPosts } from "@/hooks/useInstaCena";
 import { Tabs, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Button } from "@/components/ui/button";
@@ -481,6 +482,8 @@ const InstaCena = () => {
                 </Button>
               )}
             </div>
+
+            <StoryBar />
 
             <CreatePostCard />
 
