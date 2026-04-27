@@ -420,25 +420,37 @@ export function ExportMovementsHistoryPdfButton() {
 
         <div class="summary">
           <div class="summary-item">
+            <div class="number" style="color: #16a34a;">${equipmentInside.length}</div>
+            <div class="label">Dentro agora</div>
+          </div>
+          <div class="summary-item">
+            <div class="number" style="color: #ea580c;">${equipmentOutside.length}</div>
+            <div class="label">Fora agora</div>
+          </div>
+          <div class="summary-item">
             <div class="number" style="color: #166534;">${totalEntradas}</div>
-            <div class="label">Entradas</div>
+            <div class="label">Entradas (período)</div>
           </div>
           <div class="summary-item">
             <div class="number" style="color: #c2410c;">${totalSaidas}</div>
-            <div class="label">Saídas</div>
+            <div class="label">Saídas (período)</div>
           </div>
           <div class="summary-item">
             <div class="number" style="color: #6366f1;">${uniqueEquipments}</div>
-            <div class="label">Equipamentos</div>
+            <div class="label">Equip. movim.</div>
           </div>
           <div class="summary-item">
             <div class="number">${sortedDates.length}</div>
-            <div class="label">Dias com Movim.</div>
+            <div class="label">Dias c/ Movim.</div>
           </div>
         </div>
 
+        ${insideHtml}
+
+        ${outsideHtml}
+
         <div class="section">
-          <div class="section-title">🚛 Movimentações de Veículos</div>
+          <div class="section-title">🚛 Histórico de Movimentações no período</div>
           ${vehicleSectionsHtml}
         </div>
 
