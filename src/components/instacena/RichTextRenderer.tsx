@@ -287,7 +287,56 @@ function renderRich(content: string, keyPrefix = "r", depth = 0): React.ReactNod
   });
 }
 
+/**
+ * Cleans up malformed/empty rich-text tokens that would otherwise render as literal text.
+ * Examples:
+ *   - "{color:yellow}{/color}"  → "" (empty wrapper)
+ *   - "**{color:yellow}{/color}Sucena **" → "**Sucena **" then bold renders cleanly
+ *   - Orphan unmatched "**" / "{color:x}" without a closing pair → stripped
+ */
+function sanitizeRichContent(input: string): string {
+  let out = input;
+
+  // 1. Remove empty wrappers (no inner content)
+  const emptyPatterns = [
+    /\{color:\w+\}\s*\{\/color\}/g,
+    /\{glow(?::\w+)?\}\s*\{\/glow\}/g,
+    /\{font:\w+\}\s*\{\/font\}/g,
+    /\{fx:\w+\}\s*\{\/fx\}/g,
+    /\*\*\s*\*\*/g,
+    /__\s*__/g,
+  ];
+  let prev = "";
+  while (prev !== out) {
+    prev = out;
+    for (const re of emptyPatterns) out = out.replace(re, "");
+  }
+
+  // 2. Strip orphan opening/closing tags that have no matching pair
+  const tagPairs: Array<[RegExp, RegExp]> = [
+    [/\{color:\w+\}/g, /\{\/color\}/g],
+    [/\{glow(?::\w+)?\}/g, /\{\/glow\}/g],
+    [/\{font:\w+\}/g, /\{\/font\}/g],
+    [/\{fx:\w+\}/g, /\{\/fx\}/g],
+  ];
+  for (const [openRe, closeRe] of tagPairs) {
+    const opens = out.match(openRe)?.length || 0;
+    const closes = out.match(closeRe)?.length || 0;
+    if (opens !== closes) {
+      // Mismatched — strip both kinds entirely so they don't show as literal markup
+      out = out.replace(openRe, "").replace(closeRe, "");
+    }
+  }
+
+  // 3. Strip stray ** if odd count
+  const starCount = (out.match(/\*\*/g) || []).length;
+  if (starCount % 2 !== 0) out = out.replace(/\*\*/g, "");
+
+  return out;
+}
+
 export function RichTextRenderer({ content }: { content: string }) {
-  return <>{renderRich(content)}</>;
+  const cleaned = sanitizeRichContent(content);
+  return <>{renderRich(cleaned)}</>;
 }
 
