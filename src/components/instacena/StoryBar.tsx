@@ -142,12 +142,19 @@ export function StoryBar() {
                   : "bg-muted"
               }`}
             >
-              <Avatar className="h-14 w-14 border-2 border-card">
-                <AvatarImage src={profile?.avatar_url || undefined} className="object-cover" />
-                <AvatarFallback className="bg-primary/10 text-primary text-sm">
-                  {profile?.full_name ? getInitials(profile.full_name) : "EU"}
-                </AvatarFallback>
-              </Avatar>
+              {myGroup && myGroup.stories.length > 0 ? (
+                <StoryThumb
+                  story={myGroup.stories[myGroup.stories.length - 1]}
+                  fallbackName={profile?.full_name || "EU"}
+                />
+              ) : (
+                <Avatar className="h-14 w-14 border-2 border-card">
+                  <AvatarImage src={profile?.avatar_url || undefined} className="object-cover" />
+                  <AvatarFallback className="bg-primary/10 text-primary text-sm">
+                    {profile?.full_name ? getInitials(profile.full_name) : "EU"}
+                  </AvatarFallback>
+                </Avatar>
+              )}
             </div>
             <button
               onClick={(e) => {
@@ -188,12 +195,10 @@ export function StoryBar() {
                     : "bg-muted"
                 }`}
               >
-                <Avatar className="h-14 w-14 border-2 border-card">
-                  <AvatarImage src={g.user_avatar || undefined} className="object-cover" />
-                  <AvatarFallback className="bg-primary/10 text-primary text-sm">
-                    {getInitials(g.user_name)}
-                  </AvatarFallback>
-                </Avatar>
+                <StoryThumb
+                  story={g.stories[g.stories.length - 1]}
+                  fallbackName={g.user_name}
+                />
               </div>
               <span className="text-[11px] text-foreground max-w-[64px] truncate">
                 {g.user_name.split(" ")[0]}
@@ -296,6 +301,47 @@ export function StoryBar() {
           startGroupIdx={openGroupIdx}
           onClose={() => setOpenGroupIdx(null)}
         />
+      )}
+    </div>
+  );
+}
+
+/** Renders a 14x14 round preview of the latest story (image or video frame). */
+function StoryThumb({
+  story,
+  fallbackName,
+}: {
+  story: { media_url: string; media_type: "image" | "video" };
+  fallbackName: string;
+}) {
+  return (
+    <div className="h-14 w-14 rounded-full border-2 border-card overflow-hidden bg-muted relative">
+      {story.media_type === "image" ? (
+        <img
+          src={story.media_url}
+          alt={fallbackName}
+          className="h-full w-full object-cover"
+          loading="lazy"
+        />
+      ) : (
+        <>
+          <video
+            src={story.media_url}
+            className="h-full w-full object-cover"
+            muted
+            playsInline
+            preload="metadata"
+            // jump 0.1s in so we get a real frame, not a black one
+            onLoadedMetadata={(e) => {
+              try {
+                (e.currentTarget as HTMLVideoElement).currentTime = 0.1;
+              } catch {}
+            }}
+          />
+          <div className="absolute bottom-0.5 right-0.5 bg-black/60 text-white rounded-full p-0.5">
+            <VideoIcon className="h-2.5 w-2.5" />
+          </div>
+        </>
       )}
     </div>
   );
