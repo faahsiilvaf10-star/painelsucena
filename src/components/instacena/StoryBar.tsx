@@ -142,12 +142,19 @@ export function StoryBar() {
                   : "bg-muted"
               }`}
             >
-              <Avatar className="h-14 w-14 border-2 border-card">
-                <AvatarImage src={profile?.avatar_url || undefined} className="object-cover" />
-                <AvatarFallback className="bg-primary/10 text-primary text-sm">
-                  {profile?.full_name ? getInitials(profile.full_name) : "EU"}
-                </AvatarFallback>
-              </Avatar>
+              {myGroup && myGroup.stories.length > 0 ? (
+                <StoryThumb
+                  story={myGroup.stories[myGroup.stories.length - 1]}
+                  fallbackName={profile?.full_name || "EU"}
+                />
+              ) : (
+                <Avatar className="h-14 w-14 border-2 border-card">
+                  <AvatarImage src={profile?.avatar_url || undefined} className="object-cover" />
+                  <AvatarFallback className="bg-primary/10 text-primary text-sm">
+                    {profile?.full_name ? getInitials(profile.full_name) : "EU"}
+                  </AvatarFallback>
+                </Avatar>
+              )}
             </div>
             <button
               onClick={(e) => {
