@@ -245,19 +245,34 @@ function renderSegmentStyle(seg: RichSegment): { classes: string[]; styles: any 
   return { classes, styles };
 }
 
-function renderRich(content: string, keyPrefix = "r"): React.ReactNode[] {
+function renderRich(content: string, keyPrefix = "r", depth = 0): React.ReactNode[] {
   const hasRichText = /(\*\*|_{1,2}|{color:|{glow|{font:|{fx:)/.test(content);
   if (!hasRichText) {
     return renderWithLinksAndEmojis(content);
   }
 
   const segments = parseRichText(content);
+
+  // Safety: if parsing produced a single unstyled segment identical to input, stop recursing
+  // (prevents infinite loops on malformed markup like stray ** or { tokens)
+  const noProgress =
+    segments.length === 1 &&
+    segments[0].text === content &&
+    !segments[0].bold && !segments[0].italic && !segments[0].underline &&
+    !segments[0].color && !segments[0].glow && !segments[0].font && !segments[0].fx;
+
+  if (noProgress || depth > 8) {
+    return renderWithLinksAndEmojis(content);
+  }
+
   return segments.map((seg, i) => {
     const { classes, styles } = renderSegmentStyle(seg);
     // Recursively render the inner text so nested formatting works (e.g. **{color:yellow}x{/color}**)
+    // Only recurse if the inner text is shorter than the original (made progress) AND has markers
     const innerHasRich = /(\*\*|_{1,2}|{color:|{glow|{font:|{fx:)/.test(seg.text);
-    const renderedContent = innerHasRich
-      ? renderRich(seg.text, `${keyPrefix}-${i}`)
+    const madeProgress = seg.text.length < content.length;
+    const renderedContent = innerHasRich && madeProgress
+      ? renderRich(seg.text, `${keyPrefix}-${i}`, depth + 1)
       : renderWithLinksAndEmojis(seg.text);
 
     if (classes.length === 0 && Object.keys(styles).length === 0) {
