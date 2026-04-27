@@ -14,7 +14,7 @@ import { ptBR } from "date-fns/locale";
 import { toast } from "sonner";
 import { Sheet, SheetContent, SheetHeader, SheetTitle } from "@/components/ui/sheet";
 
-const IMAGE_DURATION_MS = 5000;
+const IMAGE_DURATION_MS = 15_000;
 const MAX_VIDEO_DURATION_MS = 30_000;
 
 const getInitials = (name: string) => {
