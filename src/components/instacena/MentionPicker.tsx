@@ -26,7 +26,7 @@ export function MentionPicker({ query, onSelect, visible }: MentionPickerProps) 
   const containerRef = useRef<HTMLDivElement>(null);
 
   useEffect(() => {
-    if (!visible || !query) {
+    if (!visible) {
       setProfiles([]);
       return;
     }
@@ -37,7 +37,20 @@ export function MentionPicker({ query, onSelect, visible }: MentionPickerProps) 
         .select("user_id, full_name, avatar_url")
         .ilike("full_name", `%${query}%`)
         .limit(6);
-      setProfiles(data || []);
+
+      const list: Profile[] = data || [];
+
+      // Always show "Todos" at the top when query matches "todos" prefix or is empty
+      const q = query.toLowerCase();
+      if (q === "" || "todos".startsWith(q)) {
+        list.unshift({
+          user_id: "ALL",
+          full_name: "Todos",
+          avatar_url: null,
+        });
+      }
+
+      setProfiles(list);
       setSelectedIndex(0);
     };
 
