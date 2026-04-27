@@ -51,6 +51,14 @@ export function StoryViewer({ groups, startGroupIdx, onClose }: StoryViewerProps
 
   const viewers = useStoryViewers(viewersOpen && isOwner ? currentStory?.id ?? null : null);
 
+  useEffect(() => {
+    const originalOverflow = document.body.style.overflow;
+    document.body.style.overflow = "hidden";
+    return () => {
+      document.body.style.overflow = originalOverflow;
+    };
+  }, []);
+
   const goNext = useCallback(() => {
     if (!currentGroup) return;
     if (storyIdx + 1 < currentGroup.stories.length) {
@@ -163,7 +171,7 @@ export function StoryViewer({ groups, startGroupIdx, onClose }: StoryViewerProps
   };
 
   return (
-    <div className="fixed inset-0 z-[100] bg-black flex items-center justify-center animate-in fade-in">
+    <div className="fixed inset-0 z-[2147483647] bg-black flex items-center justify-center animate-in fade-in isolation-isolate">
       {/* Top: progress bars + author header */}
       <div className="absolute top-0 left-0 right-0 z-20 px-3 pt-3 pb-2 bg-gradient-to-b from-black/80 to-transparent">
         <div className="flex gap-1 mb-2">
@@ -215,7 +223,7 @@ export function StoryViewer({ groups, startGroupIdx, onClose }: StoryViewerProps
 
       {/* Media */}
       <div
-        className="absolute inset-0 flex items-center justify-center"
+        className="absolute inset-0 flex items-center justify-center bg-black"
         onPointerDown={() => setPaused(true)}
         onPointerUp={() => setPaused(false)}
         onPointerLeave={() => setPaused(false)}
@@ -225,7 +233,7 @@ export function StoryViewer({ groups, startGroupIdx, onClose }: StoryViewerProps
           <img
             src={currentStory.media_url}
             alt=""
-            className="max-h-screen max-w-full object-contain select-none"
+            className="h-full w-full object-contain select-none"
             draggable={false}
           />
         ) : (
@@ -235,7 +243,7 @@ export function StoryViewer({ groups, startGroupIdx, onClose }: StoryViewerProps
             autoPlay
             playsInline
             controls={false}
-            className="max-h-screen max-w-full object-contain select-none"
+            className="h-full w-full object-contain select-none"
             onLoadedMetadata={(e) => {
               const v = e.currentTarget;
               v.play().catch(() => {});

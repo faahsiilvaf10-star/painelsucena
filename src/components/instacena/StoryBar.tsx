@@ -1,4 +1,5 @@
 import { useState, useRef } from "react";
+import { createPortal } from "react-dom";
 import { Plus, Loader2, X, Image as ImageIcon, Video as VideoIcon } from "lucide-react";
 import { supabase } from "@/integrations/supabase/client";
 import { toast } from "sonner";
@@ -295,13 +296,15 @@ export function StoryBar() {
       </Dialog>
 
       {/* Story viewer */}
-      {openGroupIdx !== null && groups && groups[openGroupIdx] && (
-        <StoryViewer
-          groups={groups}
-          startGroupIdx={openGroupIdx}
-          onClose={() => setOpenGroupIdx(null)}
-        />
-      )}
+      {openGroupIdx !== null && groups && groups[openGroupIdx] &&
+        createPortal(
+          <StoryViewer
+            groups={groups}
+            startGroupIdx={openGroupIdx}
+            onClose={() => setOpenGroupIdx(null)}
+          />,
+          document.body,
+        )}
     </div>
   );
 }
