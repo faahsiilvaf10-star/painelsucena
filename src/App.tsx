@@ -132,6 +132,7 @@ const App = () => (
               <LoginTransitionGate />
               <LogoutTransitionGate />
               <EditModeProvider>
+              <WhatsAppGate />
               <PersistentSidebar>
                 <VisualizadorProvider>
                 <ErrorBoundary>
