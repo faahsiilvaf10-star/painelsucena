@@ -20,7 +20,7 @@ const FONT_STYLES: Record<string, string> = {
 const ZERO_WIDTH_SPACE = "\u200B";
 
 function cleanEditorText(text: string): string {
-  return text.replaceAll(ZERO_WIDTH_SPACE, "");
+  return text.split(ZERO_WIDTH_SPACE).join("");
 }
 
 function wrapCustomSyntax(type: string, value: string | undefined, content: string): string {
