@@ -63,6 +63,38 @@ export function ExportMovementsHistoryPdfButton() {
 
       if (error) throw error;
 
+      // Fetch full equipment list (todos cadastrados)
+      const { data: allEquipment } = await supabase
+        .from("equipment")
+        .select("*")
+        .order("name", { ascending: true });
+
+      // Fetch ALL movements (sem filtro de período) para determinar status atual de cada equipamento
+      const { data: allMovements } = await supabase
+        .from("equipment_movements")
+        .select("*")
+        .order("movement_date", { ascending: true })
+        .order("movement_time", { ascending: true });
+
+      // Última movimentação por placa (em todo o histórico)
+      const lastMovementByPlate: Record<string, any> = {};
+      (allMovements || []).forEach((m: any) => {
+        lastMovementByPlate[m.plate] = m;
+      });
+
+      // Equipamentos DENTRO da obra: cadastrados cuja última movimentação NÃO é "saida"
+      // (inclui equipamentos sem nenhuma movimentação registrada — assume-se dentro)
+      const equipmentInside = (allEquipment || []).filter((eq: any) => {
+        const last = lastMovementByPlate[eq.plate];
+        return !last || last.movement_type === "entrada";
+      });
+
+      // Equipamentos FORA da obra: última movimentação foi "saida"
+      const equipmentOutside = (allEquipment || []).filter((eq: any) => {
+        const last = lastMovementByPlate[eq.plate];
+        return last && last.movement_type === "saida";
+      });
+
       // Fetch jardinagem announcements for the date range (jardinagem doesn't have a movement history table)
       // We'll query announcements that match jardinagem patterns
       const { data: jardinagemEquipment } = await supabase
