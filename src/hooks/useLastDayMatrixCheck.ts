@@ -41,6 +41,39 @@ export const useLastDayMatrixCheck = () => {
     return Math.round((completed / cargoInfo.tarefas.length) * 100);
   }, [cargoInfo, completedTasks]);
 
+  // Dias restantes até o fim do mês (inclusive o último dia)
+  const daysUntilMonthEnd = useMemo(() => {
+    const today = new Date();
+    const lastDay = new Date(today.getFullYear(), today.getMonth() + 1, 0).getDate();
+    return Math.max(0, lastDay - today.getDate());
+  }, []);
+
+  const currentMonthName = useMemo(() => {
+    return new Date().toLocaleString("pt-BR", { month: "long" });
+  }, []);
+
+  // Lista de cargos com matriz pendente (qualquer cargo cujas tarefas não estão 100% completas)
+  const pendingCargos = useMemo(() => {
+    const shortLabels: Record<string, string> = {
+      preposto: "Preposto",
+      encarregado_geral: "Enc. Geral",
+      encarregado_i: "Enc. I",
+      encarregado_ii: "Enc. II",
+      tecnico_seguranca_i: "Téc. Seg. I",
+      tecnico_seguranca_ii: "Téc. Seg. II",
+    };
+    return Object.entries(cargoTaskMap).map(([key, info]) => {
+      const done = info.tarefas.filter(t => completedTasks.includes(t.id)).length;
+      return {
+        key,
+        label: shortLabels[key] ?? info.cargo,
+        cargo: info.cargo,
+        done,
+        total: info.tarefas.length,
+      };
+    }).filter(c => c.done < c.total);
+  }, [completedTasks]);
+
   useEffect(() => {
     if (matrixLoading || profileLoading || !isLastDayOfMonth || !cargoInfo) return;
     if (isAdmin) return;
