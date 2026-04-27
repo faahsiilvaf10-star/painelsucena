@@ -63,6 +63,38 @@ export function ExportMovementsHistoryPdfButton() {
 
       if (error) throw error;
 
+      // Fetch full equipment list (todos cadastrados)
+      const { data: allEquipment } = await supabase
+        .from("equipment")
+        .select("*")
+        .order("name", { ascending: true });
+
+      // Fetch ALL movements (sem filtro de período) para determinar status atual de cada equipamento
+      const { data: allMovements } = await supabase
+        .from("equipment_movements")
+        .select("*")
+        .order("movement_date", { ascending: true })
+        .order("movement_time", { ascending: true });
+
+      // Última movimentação por placa (em todo o histórico)
+      const lastMovementByPlate: Record<string, any> = {};
+      (allMovements || []).forEach((m: any) => {
+        lastMovementByPlate[m.plate] = m;
+      });
+
+      // Equipamentos DENTRO da obra: cadastrados cuja última movimentação NÃO é "saida"
+      // (inclui equipamentos sem nenhuma movimentação registrada — assume-se dentro)
+      const equipmentInside = (allEquipment || []).filter((eq: any) => {
+        const last = lastMovementByPlate[eq.plate];
+        return !last || last.movement_type === "entrada";
+      });
+
+      // Equipamentos FORA da obra: última movimentação foi "saida"
+      const equipmentOutside = (allEquipment || []).filter((eq: any) => {
+        const last = lastMovementByPlate[eq.plate];
+        return last && last.movement_type === "saida";
+      });
+
       // Fetch jardinagem announcements for the date range (jardinagem doesn't have a movement history table)
       // We'll query announcements that match jardinagem patterns
       const { data: jardinagemEquipment } = await supabase
@@ -244,6 +276,101 @@ export function ExportMovementsHistoryPdfButton() {
       const totalSaidas = (movements || []).filter((m: any) => m.movement_type === "saida").length;
       const uniqueEquipments = new Set((movements || []).map((m: any) => m.plate)).size;
 
+      // Helper para calcular tempo desde uma data/hora
+      const formatElapsed = (date: string, time: string | null) => {
+        try {
+          const dt = new Date(`${date}T${time || "00:00"}:00-04:00`);
+          const diffMs = Date.now() - dt.getTime();
+          if (diffMs < 0) return "-";
+          const days = Math.floor(diffMs / 86400000);
+          const hours = Math.floor((diffMs % 86400000) / 3600000);
+          if (days > 0) return `${days}d ${hours}h`;
+          const mins = Math.floor((diffMs % 3600000) / 60000);
+          return `${hours}h ${mins}m`;
+        } catch {
+          return "-";
+        }
+      };
+
+      // Status atual: DENTRO da obra
+      const insideTableRows = equipmentInside.length === 0
+        ? `<tr><td colspan="6" style="text-align:center; color:#666; padding:10px;">Nenhum equipamento dentro da obra no momento.</td></tr>`
+        : equipmentInside.map((eq: any, idx: number) => {
+            const last = lastMovementByPlate[eq.plate];
+            const lastDate = last ? `${format(new Date(last.movement_date + "T12:00:00"), "dd/MM/yyyy")} ${last.movement_time || ""}` : "Sem registro";
+            const elapsed = last ? formatElapsed(last.movement_date, last.movement_time) : "-";
+            return `
+              <tr>
+                <td>${idx + 1}</td>
+                <td><strong>${eq.name}</strong></td>
+                <td class="mono">${eq.plate}</td>
+                <td>${eq.driver || "-"}</td>
+                <td>${lastDate}</td>
+                <td>${elapsed}</td>
+              </tr>`;
+          }).join("");
+
+      const insideHtml = `
+        <div class="section">
+          <div class="section-title inside">🟢 Equipamentos DENTRO da obra agora (${equipmentInside.length})</div>
+          <table>
+            <thead>
+              <tr>
+                <th style="width: 30px;">#</th>
+                <th>Equipamento</th>
+                <th style="width: 90px;">Placa</th>
+                <th>Motorista</th>
+                <th style="width: 130px;">Última Entrada</th>
+                <th style="width: 90px;">Tempo dentro</th>
+              </tr>
+            </thead>
+            <tbody>${insideTableRows}</tbody>
+          </table>
+        </div>
+      `;
+
+      // Status atual: FORA da obra
+      const outsideTableRows = equipmentOutside.length === 0
+        ? `<tr><td colspan="8" style="text-align:center; color:#666; padding:10px;">Nenhum equipamento fora da obra no momento.</td></tr>`
+        : equipmentOutside.map((eq: any, idx: number) => {
+            const last = lastMovementByPlate[eq.plate];
+            const lastDate = `${format(new Date(last.movement_date + "T12:00:00"), "dd/MM/yyyy")} ${last.movement_time || ""}`;
+            const elapsed = formatElapsed(last.movement_date, last.movement_time);
+            const reasonLabel = last.exit_reason ? (EXIT_REASON_LABELS[last.exit_reason] || last.exit_reason) : "-";
+            return `
+              <tr>
+                <td>${idx + 1}</td>
+                <td><strong>${eq.name}</strong></td>
+                <td class="mono">${eq.plate}</td>
+                <td>${eq.driver || "-"}</td>
+                <td>${lastDate}</td>
+                <td>${elapsed}</td>
+                <td><span class="badge" style="background: #fef3c7; color: #92400e;">${reasonLabel}</span></td>
+                <td>${last.problem_description || last.observation || "-"}</td>
+              </tr>`;
+          }).join("");
+
+      const outsideHtml = `
+        <div class="section">
+          <div class="section-title outside">🔴 Equipamentos FORA da obra agora (${equipmentOutside.length})</div>
+          <table>
+            <thead>
+              <tr>
+                <th style="width: 30px;">#</th>
+                <th>Equipamento</th>
+                <th style="width: 90px;">Placa</th>
+                <th>Motorista</th>
+                <th style="width: 130px;">Saída</th>
+                <th style="width: 80px;">Tempo fora</th>
+                <th>Motivo</th>
+                <th>Problema / Obs.</th>
+              </tr>
+            </thead>
+            <tbody>${outsideTableRows}</tbody>
+          </table>
+        </div>
+      `;
+
       // Build hidden div for rendering
       const container = document.createElement("div");
       container.style.position = "absolute";
@@ -270,6 +397,8 @@ export function ExportMovementsHistoryPdfButton() {
           .section { margin-bottom: 20px; }
           .section-title { font-size: 13px; font-weight: bold; margin-bottom: 10px; padding: 8px; background: #f5f5f5; border-left: 4px solid #333; }
           .section-title.jard { border-left-color: #22c55e; }
+          .section-title.inside { border-left-color: #16a34a; background: #f0fdf4; color: #166534; }
+          .section-title.outside { border-left-color: #ea580c; background: #fff7ed; color: #9a3412; }
           .date-section { margin-bottom: 15px; }
           .date-header { font-size: 12px; font-weight: bold; padding: 6px 10px; background: #eef2ff; border-left: 4px solid #6366f1; margin-bottom: 5px; display: flex; justify-content: space-between; align-items: center; }
           .date-stats { font-size: 10px; font-weight: normal; }
@@ -291,25 +420,37 @@ export function ExportMovementsHistoryPdfButton() {
 
         <div class="summary">
           <div class="summary-item">
+            <div class="number" style="color: #16a34a;">${equipmentInside.length}</div>
+            <div class="label">Dentro agora</div>
+          </div>
+          <div class="summary-item">
+            <div class="number" style="color: #ea580c;">${equipmentOutside.length}</div>
+            <div class="label">Fora agora</div>
+          </div>
+          <div class="summary-item">
             <div class="number" style="color: #166534;">${totalEntradas}</div>
-            <div class="label">Entradas</div>
+            <div class="label">Entradas (período)</div>
           </div>
           <div class="summary-item">
             <div class="number" style="color: #c2410c;">${totalSaidas}</div>
-            <div class="label">Saídas</div>
+            <div class="label">Saídas (período)</div>
           </div>
           <div class="summary-item">
             <div class="number" style="color: #6366f1;">${uniqueEquipments}</div>
-            <div class="label">Equipamentos</div>
+            <div class="label">Equip. movim.</div>
           </div>
           <div class="summary-item">
             <div class="number">${sortedDates.length}</div>
-            <div class="label">Dias com Movim.</div>
+            <div class="label">Dias c/ Movim.</div>
           </div>
         </div>
 
+        ${insideHtml}
+
+        ${outsideHtml}
+
         <div class="section">
-          <div class="section-title">🚛 Movimentações de Veículos</div>
+          <div class="section-title">🚛 Histórico de Movimentações no período</div>
           ${vehicleSectionsHtml}
         </div>
 
