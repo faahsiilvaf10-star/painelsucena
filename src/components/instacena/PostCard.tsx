@@ -176,9 +176,17 @@ export function PostCard({ post }: { post: InstaCenaPost }) {
           {post.image_urls.map((url, i) => {
               const isVideo = /\.(mp4|mov|webm|avi|mkv)(\?|$)/i.test(url);
               return isVideo ? (
-                <video key={i} src={url} controls playsInline preload="metadata" onContextMenu={(e) => e.preventDefault()} className="rounded-lg w-full max-h-[500px] object-contain bg-black/5" />
+                <video key={i} src={url} controls playsInline preload="metadata" onContextMenu={(e) => e.preventDefault()} className="rounded-lg w-full object-contain bg-black/5" />
               ) : (
-                <img key={i} src={url} alt="" onContextMenu={(e) => e.preventDefault()} onClick={() => { setPhotoViewerIndex(i); setPhotoViewerOpen(true); }} className="rounded-lg w-full object-cover max-h-80 select-none cursor-pointer hover:opacity-90 transition-opacity" draggable={false} />
+                <img
+                  key={i}
+                  src={url}
+                  alt=""
+                  onContextMenu={(e) => e.preventDefault()}
+                  onClick={() => { setPhotoViewerIndex(i); setPhotoViewerOpen(true); }}
+                  className={`rounded-lg w-full select-none cursor-pointer hover:opacity-90 transition-opacity bg-black/5 ${post.image_urls.length === 1 ? "object-contain" : "object-cover max-h-80"}`}
+                  draggable={false}
+                />
               );
             })}
           </div>
