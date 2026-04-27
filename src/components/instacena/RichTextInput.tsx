@@ -17,6 +17,33 @@ const FONT_STYLES: Record<string, string> = {
   normal: "",
 };
 
+const ZERO_WIDTH_SPACE = "\u200B";
+
+function cleanEditorText(text: string): string {
+  return text.replaceAll(ZERO_WIDTH_SPACE, "");
+}
+
+function wrapCustomSyntax(type: string, value: string | undefined, content: string): string {
+  switch (type) {
+    case "bold":
+      return `**${content}**`;
+    case "italic":
+      return `_${content}_`;
+    case "underline":
+      return `__${content}__`;
+    case "color":
+      return `{color:${value || "yellow"}}${content}{/color}`;
+    case "glow":
+      return value ? `{glow:${value}}${content}{/glow}` : `{glow}${content}{/glow}`;
+    case "font":
+      return `{font:${value || "normal"}}${content}{/font}`;
+    case "fx":
+      return `{fx:${value || "sparkle"}}${content}{/fx}`;
+    default:
+      return content;
+  }
+}
+
 export interface RichTextInputHandle {
   focus: () => void;
   insertMention: (name: string, userId: string) => void;
@@ -40,22 +67,35 @@ interface RichTextInputProps {
  */
 function htmlToCustomSyntax(container: HTMLElement): string {
   let result = "";
+  const pendingFormats: Array<{ type: string; value?: string }> = [];
+
+  const appendChunk = (chunk: string) => {
+    const cleaned = cleanEditorText(chunk);
+    if (cleaned.length === 0) return;
+
+    let formatted = cleaned;
+    for (let i = pendingFormats.length - 1; i >= 0; i--) {
+      formatted = wrapCustomSyntax(pendingFormats[i].type, pendingFormats[i].value, formatted);
+    }
+    pendingFormats.length = 0;
+    result += formatted;
+  };
 
   container.childNodes.forEach((node) => {
     if (node.nodeType === Node.TEXT_NODE) {
-      result += node.textContent || "";
+      appendChunk(node.textContent || "");
     } else if (node.nodeType === Node.ELEMENT_NODE) {
       const el = node as HTMLElement;
 
       // Mention
       if (el.dataset.mentionId) {
-        result += `@[${el.dataset.mentionName || el.textContent?.replace(/^@/, "")}](${el.dataset.mentionId})`;
+        appendChunk(`@[${el.dataset.mentionName || el.textContent?.replace(/^@/, "")}](${el.dataset.mentionId})`);
         return;
       }
 
       // Animated emoji
       if (el.dataset.emojiId) {
-        result += `:${el.dataset.emojiId}:`;
+        appendChunk(`:${el.dataset.emojiId}:`);
         return;
       }
 
