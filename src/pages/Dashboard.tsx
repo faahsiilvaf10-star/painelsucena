@@ -64,6 +64,7 @@ import { useJardinagemEquipment } from "@/hooks/useJardinagemEquipment";
 import { getBrazilNorthTodayString } from "@/lib/timezone";
 import { useDocumentExpiryNotifications } from "@/hooks/useDocumentExpiryNotifications";
 import { useVehicleExpiryNotifications } from "@/hooks/useVehicleExpiryNotifications";
+import { useASOExpiryNotifications } from "@/hooks/useASOExpiryNotifications";
 import { useDashboardOrder, DashboardItemId, DEFAULT_DASHBOARD_ORDER } from "@/hooks/useDashboardOrder";
 import { useHolidayNotification } from "@/hooks/useHolidayNotification";
 import { useFridayNotification } from "@/hooks/useFridayNotification";
@@ -113,6 +114,7 @@ const Dashboard = () => {
   useCampaignNotifications();
   useDocumentExpiryNotifications();
   useVehicleExpiryNotifications();
+  useASOExpiryNotifications();
 
   const activeColaboradores = useMemo(() => {
     if (!rhData?.colaboradores) return [];

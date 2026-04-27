@@ -30,7 +30,7 @@ export function ASOExpiryBanner() {
       const diffTime = vencDate.getTime() - today.getTime();
       const diffDays = Math.ceil(diffTime / (1000 * 60 * 60 * 24));
 
-      if (diffDays <= 10 && diffDays >= 0) {
+      if (diffDays <= 30 && diffDays >= 0) {
         results.push({
           colaboradorNome: colab.nome,
           validade: vencStr,
