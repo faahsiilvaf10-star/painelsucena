@@ -87,12 +87,11 @@ export function WhatsAppGate() {
     <Dialog open modal>
       {/* onOpenChange omitted on purpose — modal must NOT be dismissable */}
       <DialogContent
-        className="sm:max-w-md"
+        className="sm:max-w-md [&>button.absolute]:hidden"
         // Block all dismiss attempts
         onPointerDownOutside={(e) => e.preventDefault()}
         onEscapeKeyDown={(e) => e.preventDefault()}
         onInteractOutside={(e) => e.preventDefault()}
-        // Hide the default close (X) button via class targeting
       >
         <DialogHeader>
           <div className="mx-auto mb-2 flex h-12 w-12 items-center justify-center rounded-full bg-gradient-to-br from-primary to-accent text-primary-foreground shadow-lg">
