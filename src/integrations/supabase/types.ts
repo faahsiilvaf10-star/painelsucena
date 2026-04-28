@@ -4110,6 +4110,7 @@ export type Database = {
       wapi_config: {
         Row: {
           created_at: string
+          delay_seconds: number
           enabled: boolean
           id: string
           instance_id: string
@@ -4120,6 +4121,7 @@ export type Database = {
         }
         Insert: {
           created_at?: string
+          delay_seconds?: number
           enabled?: boolean
           id?: string
           instance_id?: string
@@ -4130,6 +4132,7 @@ export type Database = {
         }
         Update: {
           created_at?: string
+          delay_seconds?: number
           enabled?: boolean
           id?: string
           instance_id?: string

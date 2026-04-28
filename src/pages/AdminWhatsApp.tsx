@@ -35,6 +35,7 @@ const AdminWhatsApp = () => {
   const [instanceToken, setInstanceToken] = useState("");
   const [instanceId, setInstanceId] = useState("");
   const [enabled, setEnabled] = useState(false);
+  const [delaySeconds, setDelaySeconds] = useState<number>(5);
   const [message, setMessage] = useState("");
   const [search, setSearch] = useState("");
   const [selected, setSelected] = useState<Set<string>>(new Set());
@@ -51,7 +52,7 @@ const AdminWhatsApp = () => {
         .limit(1)
         .maybeSingle();
       if (error) throw error;
-      return data as { id: string; instance_url: string; instance_token: string; instance_id: string; enabled: boolean } | null;
+      return data as { id: string; instance_url: string; instance_token: string; instance_id: string; enabled: boolean; delay_seconds: number | null } | null;
     },
   });
 
@@ -61,6 +62,7 @@ const AdminWhatsApp = () => {
       setInstanceToken(cfg.instance_token || "");
       setInstanceId(cfg.instance_id || "");
       setEnabled(!!cfg.enabled);
+      setDelaySeconds(typeof cfg.delay_seconds === "number" ? cfg.delay_seconds : 5);
     }
   }, [cfg]);
 
@@ -121,6 +123,7 @@ const AdminWhatsApp = () => {
         instance_token: instanceToken.trim(),
         instance_id: instanceId.trim(),
         enabled,
+        delay_seconds: Math.max(0, Math.min(600, Math.floor(Number(delaySeconds) || 0))),
         updated_by: user?.id ?? null,
       };
       if (cfg?.id) {
@@ -215,6 +218,22 @@ const AdminWhatsApp = () => {
                 value={instanceToken}
                 onChange={(e) => setInstanceToken(e.target.value)}
               />
+            </div>
+            <div className="space-y-2">
+              <Label htmlFor="wapi-delay">Intervalo entre envios (segundos)</Label>
+              <Input
+                id="wapi-delay"
+                type="number"
+                min={0}
+                max={600}
+                step={1}
+                value={delaySeconds}
+                onChange={(e) => setDelaySeconds(Number(e.target.value))}
+                className="max-w-xs"
+              />
+              <p className="text-xs text-muted-foreground">
+                Aguarda esse tempo entre cada mensagem para evitar bloqueio/banimento do número no WhatsApp. Recomendado: 5–15s.
+              </p>
             </div>
             <div className="flex items-center justify-between pt-2">
               <div className="flex items-center gap-2">
