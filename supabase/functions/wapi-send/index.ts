@@ -29,6 +29,11 @@ const buildWapiEndpoint = (rawUrl: string, instanceId: string): string => {
 
   // W-API docs: POST https://api.w-api.app/v1/message/send-text?instanceId=...
   // Accept pasted panel/instance URLs too, but always target the official send-text route.
+  if (url.hostname === "painel.w-api.app" || url.pathname.startsWith("/app")) {
+    url.protocol = "https:";
+    url.hostname = "api.w-api.app";
+  }
+
   if (!normalizedPath.endsWith("/send-text")) {
     url.pathname = "/v1/message/send-text";
   }
