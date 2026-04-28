@@ -405,7 +405,37 @@ const AdminWhatsApp = () => {
 
         <Card>
           <CardHeader>
-            <CardTitle>Envio de Mensagem</CardTitle>
+            <CardTitle className="flex items-center gap-2">
+              <Send className="w-5 h-5 text-primary" />
+              Envio Automático de Requisições
+            </CardTitle>
+            <CardDescription>
+              Quando habilitado, ao finalizar uma requisição (EPI ou Material) o sistema envia automaticamente
+              para o <strong>grupo configurado</strong> uma mensagem com os detalhes dos itens e a <strong>imagem da requisição</strong>,
+              respeitando o intervalo de segurança configurado.
+            </CardDescription>
+          </CardHeader>
+          <CardContent>
+            <div className="flex items-center justify-between gap-3 rounded-md border p-3 bg-muted/30">
+              <div className="flex items-center gap-3">
+                <Switch
+                  id="auto-send-req"
+                  checked={autoSendReq}
+                  onCheckedChange={setAutoSendReq}
+                />
+                <Label htmlFor="auto-send-req" className="cursor-pointer">
+                  Ativar envio automático ao finalizar uma requisição
+                </Label>
+              </div>
+              <Badge variant={autoSendReq ? "default" : "secondary"}>
+                {autoSendReq ? "Ativo" : "Desativado"}
+              </Badge>
+            </div>
+            <p className="text-xs text-muted-foreground mt-3">
+              Requisitos: integração W-API habilitada e ID do grupo preenchido. Lembre-se de salvar a configuração após alterar este botão.
+            </p>
+          </CardContent>
+        </Card>
             <CardDescription>Selecione os usuários e escreva a mensagem. Apenas usuários com WhatsApp cadastrado aparecem.</CardDescription>
           </CardHeader>
           <CardContent className="space-y-4">
