@@ -36,10 +36,13 @@ const AdminWhatsApp = () => {
   const [instanceId, setInstanceId] = useState("");
   const [enabled, setEnabled] = useState(false);
   const [delaySeconds, setDelaySeconds] = useState<number>(5);
+  const [groupId, setGroupId] = useState("");
   const [message, setMessage] = useState("");
   const [search, setSearch] = useState("");
   const [selected, setSelected] = useState<Set<string>>(new Set());
   const [sending, setSending] = useState(false);
+  const [sendToGroup, setSendToGroup] = useState(false);
+  const [groupIdOverride, setGroupIdOverride] = useState("");
 
   const { data: cfg } = useQuery({
     queryKey: ["wapi-config"],
