@@ -123,6 +123,7 @@ const AdminWhatsApp = () => {
         instance_token: instanceToken.trim(),
         instance_id: instanceId.trim(),
         enabled,
+        delay_seconds: Math.max(0, Math.min(600, Math.floor(Number(delaySeconds) || 0))),
         updated_by: user?.id ?? null,
       };
       if (cfg?.id) {
