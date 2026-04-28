@@ -23,6 +23,20 @@ const sanitizePhone = (raw: string): string => {
   return digits;
 };
 
+const buildWapiEndpoint = (rawUrl: string, instanceId: string): string => {
+  const url = new URL(rawUrl.trim());
+  const normalizedPath = url.pathname.replace(/\/+$/, "");
+
+  // W-API docs: POST https://api.w-api.app/v1/message/send-text?instanceId=...
+  // Accept pasted panel/instance URLs too, but always target the official send-text route.
+  if (!normalizedPath.endsWith("/send-text")) {
+    url.pathname = "/v1/message/send-text";
+  }
+
+  url.searchParams.set("instanceId", instanceId);
+  return url.toString();
+};
+
 Deno.serve(async (req) => {
   if (req.method === "OPTIONS") return new Response("ok", { headers: corsHeaders });
 
@@ -84,9 +98,7 @@ Deno.serve(async (req) => {
       });
     }
 
-    // Build endpoint: W-API standard -> {host}/message/send-text?instanceId=...
-    const baseUrl = cfg.instance_url.replace(/\/+$/, "");
-    const endpoint = `${baseUrl}/message/send-text?instanceId=${encodeURIComponent(cfg.instance_id)}`;
+    const endpoint = buildWapiEndpoint(cfg.instance_url, cfg.instance_id);
 
     const results: Array<{ phone: string; ok: boolean; error?: string }> = [];
 
