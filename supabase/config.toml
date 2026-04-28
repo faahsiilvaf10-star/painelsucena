@@ -47,3 +47,6 @@ verify_jwt = false
 
 [functions.sync-post-to-opshub]
 verify_jwt = false
+
+[functions.wapi-send]
+verify_jwt = false
