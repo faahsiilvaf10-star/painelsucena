@@ -828,7 +828,40 @@ const AdminWhatsApp = () => {
 
         <Card>
           <CardHeader>
-            <CardTitle>Envio de Mensagem</CardTitle>
+            <CardTitle className="flex items-center gap-2">
+              <Bell className="w-5 h-5 text-primary" />
+              Alertas de Pedidos no WhatsApp
+            </CardTitle>
+            <CardDescription>
+              Quando habilitado, ao criar um pedido, o <strong>usuário encaminhado (mencionado)</strong> recebe no WhatsApp
+              cadastrado todos os detalhes do pedido (itens, quantidades, descrições, data esperada e solicitante).
+              A cada <strong>mudança de status</strong>, o <strong>solicitante</strong> também recebe automaticamente
+              uma mensagem com o status anterior, o novo status e quem alterou.
+            </CardDescription>
+          </CardHeader>
+          <CardContent>
+            <div className="flex items-center justify-between gap-3 rounded-md border p-3 bg-muted/30">
+              <div className="flex items-center gap-3">
+                <Switch
+                  id="auto-send-order-alerts"
+                  checked={autoSendOrderAlerts}
+                  onCheckedChange={setAutoSendOrderAlerts}
+                />
+                <Label htmlFor="auto-send-order-alerts" className="cursor-pointer">
+                  Ativar envio automático de alertas de pedidos no WhatsApp
+                </Label>
+              </div>
+              <Badge variant={autoSendOrderAlerts ? "default" : "secondary"}>
+                {autoSendOrderAlerts ? "Ativo" : "Desativado"}
+              </Badge>
+            </div>
+            <p className="text-xs text-muted-foreground mt-3">
+              Requisitos: integração W-API habilitada e usuários com WhatsApp cadastrado no perfil. As mensagens são
+              enviadas diretamente para o número pessoal de cada usuário (não para o grupo).
+            </p>
+          </CardContent>
+        </Card>
+
             <CardDescription>Selecione os usuários e escreva a mensagem. Apenas usuários com WhatsApp cadastrado aparecem.</CardDescription>
           </CardHeader>
           <CardContent className="space-y-4">
