@@ -4110,6 +4110,7 @@ export type Database = {
       wapi_config: {
         Row: {
           created_at: string
+          dds_auto_notify: boolean
           delay_seconds: number
           enabled: boolean
           group_id: string | null
@@ -4122,6 +4123,7 @@ export type Database = {
         }
         Insert: {
           created_at?: string
+          dds_auto_notify?: boolean
           delay_seconds?: number
           enabled?: boolean
           group_id?: string | null
@@ -4134,6 +4136,7 @@ export type Database = {
         }
         Update: {
           created_at?: string
+          dds_auto_notify?: boolean
           delay_seconds?: number
           enabled?: boolean
           group_id?: string | null

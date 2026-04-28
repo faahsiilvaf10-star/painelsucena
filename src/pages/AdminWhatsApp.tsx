@@ -16,7 +16,7 @@ import { useAuth } from "@/hooks/useAuth";
 import { supabase } from "@/integrations/supabase/client";
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import { toast } from "sonner";
-import { MessageCircle, Save, Send, Search, Users } from "lucide-react";
+import { MessageCircle, Save, Send, Search, Users, Bell, Play } from "lucide-react";
 
 const formatBR = (digits: string): string => {
   const d = (digits || "").replace(/\D/g, "").slice(0, 11);
@@ -43,6 +43,8 @@ const AdminWhatsApp = () => {
   const [sending, setSending] = useState(false);
   const [sendToGroup, setSendToGroup] = useState(false);
   const [groupIdOverride, setGroupIdOverride] = useState("");
+  const [ddsAutoNotify, setDdsAutoNotify] = useState(false);
+  const [testingDds, setTestingDds] = useState(false);
 
   const { data: cfg } = useQuery({
     queryKey: ["wapi-config"],
@@ -55,7 +57,7 @@ const AdminWhatsApp = () => {
         .limit(1)
         .maybeSingle();
       if (error) throw error;
-      return data as { id: string; instance_url: string; instance_token: string; instance_id: string; enabled: boolean; delay_seconds: number | null; group_id: string | null } | null;
+      return data as { id: string; instance_url: string; instance_token: string; instance_id: string; enabled: boolean; delay_seconds: number | null; group_id: string | null; dds_auto_notify: boolean | null } | null;
     },
   });
 
@@ -67,6 +69,7 @@ const AdminWhatsApp = () => {
       setEnabled(!!cfg.enabled);
       setDelaySeconds(typeof cfg.delay_seconds === "number" ? cfg.delay_seconds : 5);
       setGroupId(cfg.group_id || "");
+      setDdsAutoNotify(!!cfg.dds_auto_notify);
     }
   }, [cfg]);
 
@@ -129,6 +132,7 @@ const AdminWhatsApp = () => {
         group_id: groupId.trim() || null,
         enabled,
         delay_seconds: Math.max(0, Math.min(600, Math.floor(Number(delaySeconds) || 0))),
+        dds_auto_notify: ddsAutoNotify,
         updated_by: user?.id ?? null,
       };
       if (cfg?.id) {
@@ -231,6 +235,43 @@ const AdminWhatsApp = () => {
     }
   };
 
+  const handleTestDdsNotify = async () => {
+    setTestingDds(true);
+    try {
+      const url = `${import.meta.env.VITE_SUPABASE_URL}/functions/v1/wapi-dds-notify`;
+      const response = await fetch(url, {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({}),
+      });
+      const text = await response.text();
+      let data: any = null;
+      try { data = text ? JSON.parse(text) : null; } catch { /* keep raw */ }
+
+      if (!response.ok) {
+        toast.error(`Erro HTTP ${response.status}`, { description: text.slice(0, 500), duration: 15000 });
+        return;
+      }
+      if (data?.skipped) {
+        toast.info("Nada a enviar", { description: data.reason || "Sem DDS para hoje", duration: 8000 });
+      } else {
+        toast.success(`DDS: ${data?.sent ?? 0}/${data?.total ?? 0} enviadas`);
+        if (Array.isArray(data?.results)) {
+          const failed = data.results.filter((r: { ok: boolean }) => !r.ok);
+          if (failed.length) {
+            toast.error(`${failed.length} falha(s)`, { description: JSON.stringify(failed).slice(0, 500), duration: 15000 });
+          }
+        }
+      }
+      queryClient.invalidateQueries({ queryKey: ["wapi-logs"] });
+    } catch (e) {
+      const msg = e instanceof Error ? e.message : String(e);
+      toast.error("Falha ao executar teste", { description: msg, duration: 15000 });
+    } finally {
+      setTestingDds(false);
+    }
+  };
+
   if (authLoading || adminLoading) return <Layout><div className="p-8">Carregando...</div></Layout>;
   if (!user) return <Navigate to="/auth" replace />;
   if (!isAdmin) return <Navigate to="/" replace />;
@@ -314,6 +355,46 @@ const AdminWhatsApp = () => {
               </div>
               <Button onClick={() => saveConfig.mutate()} disabled={saveConfig.isPending}>
                 <Save className="w-4 h-4 mr-2" /> Salvar Configuração
+              </Button>
+            </div>
+          </CardContent>
+        </Card>
+
+        <Card>
+          <CardHeader>
+            <CardTitle className="flex items-center gap-2">
+              <Bell className="w-5 h-5 text-primary" />
+              Lembrete Automático do DDS
+            </CardTitle>
+            <CardDescription>
+              Quando habilitado, todos os dias às <strong>06:00h (horário do Pará)</strong> o sistema envia uma mensagem automática
+              para o WhatsApp do palestrante agendado para o DDS daquele dia, informando o tema da palestra.
+            </CardDescription>
+          </CardHeader>
+          <CardContent className="space-y-4">
+            <div className="flex items-center justify-between gap-3 rounded-md border p-3 bg-muted/30">
+              <div className="flex items-center gap-3">
+                <Switch
+                  id="dds-auto-notify"
+                  checked={ddsAutoNotify}
+                  onCheckedChange={setDdsAutoNotify}
+                />
+                <Label htmlFor="dds-auto-notify" className="cursor-pointer">
+                  Ativar envio automático às 06:00h para o palestrante do DDS do dia
+                </Label>
+              </div>
+              <Badge variant={ddsAutoNotify ? "default" : "secondary"}>
+                {ddsAutoNotify ? "Ativo" : "Desativado"}
+              </Badge>
+            </div>
+            <div className="flex flex-wrap items-center justify-between gap-3">
+              <p className="text-xs text-muted-foreground max-w-2xl">
+                Requisitos: integração W-API habilitada, palestrante com usuário interno cadastrado e número de WhatsApp preenchido no perfil.
+                Lembre-se de salvar a configuração após alterar este botão.
+              </p>
+              <Button variant="outline" size="sm" onClick={handleTestDdsNotify} disabled={testingDds}>
+                <Play className="w-4 h-4 mr-2" />
+                {testingDds ? "Testando..." : "Testar agora"}
               </Button>
             </div>
           </CardContent>
