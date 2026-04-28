@@ -294,12 +294,13 @@ const dispatchReminderWhatsApp = async (reminder: Reminder, creatorId: string) =
 
     if (reminder.mention_type === "all") {
       // Envia para o grupo
-      if (!(cfg as any).group_id) {
+      const groupId = (cfg as any).group_id;
+      if (!groupId) {
         console.warn("[reminders] auto-send: grupo não configurado");
         return;
       }
       await supabase.functions.invoke("wapi-send", {
-        body: { send_to_group: true, message },
+        body: { group_id: groupId, message },
       });
     } else {
       // Envio privado: criador + mencionados (deduplicados)
@@ -310,8 +311,28 @@ const dispatchReminderWhatsApp = async (reminder: Reminder, creatorId: string) =
       }
       const userIds = Array.from(targets);
       if (userIds.length === 0) return;
+
+      // Busca perfis com whatsapp para montar recipients
+      const { data: profs } = await supabase
+        .from("profiles")
+        .select("user_id, full_name, whatsapp_number")
+        .in("user_id", userIds);
+
+      const recipients = (profs || [])
+        .filter((p: any) => (p.whatsapp_number || "").replace(/\D/g, "").length >= 10)
+        .map((p: any) => ({
+          user_id: p.user_id,
+          name: p.full_name || "",
+          phone: p.whatsapp_number,
+        }));
+
+      if (recipients.length === 0) {
+        console.warn("[reminders] auto-send: nenhum destinatário com whatsapp");
+        return;
+      }
+
       await supabase.functions.invoke("wapi-send", {
-        body: { user_ids: userIds, message },
+        body: { recipients, message },
       });
     }
   } catch (e) {
