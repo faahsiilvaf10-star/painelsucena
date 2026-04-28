@@ -74,6 +74,14 @@ function configureDesktopSession(targetSession) {
   });
 
   targetSession.webRequest.onBeforeSendHeaders((details, callback) => {
+    const requestUrl = details.url.toLowerCase();
+    const isBackendApi = requestUrl.includes(".supabase.co/") || requestUrl.includes("/functions/v1/");
+
+    if (isBackendApi) {
+      callback({ requestHeaders: details.requestHeaders });
+      return;
+    }
+
     callback({
       requestHeaders: {
         ...details.requestHeaders,
