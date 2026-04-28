@@ -292,6 +292,58 @@ export default function Estoque() {
           open={!!editItem}
           onOpenChange={(open) => !open && setEditItem(null)}
         />
+
+        <Dialog open={!!statsDialog} onOpenChange={(o) => !o && setStatsDialog(null)}>
+          <DialogContent className="max-w-4xl max-h-[85vh] overflow-y-auto">
+            <DialogHeader>
+              <DialogTitle className="flex items-center gap-2">
+                {statsDialog === "total" && (<><Package className="h-5 w-5" /> Todos os Itens em Estoque</>)}
+                {statsDialog === "low" && (<><AlertTriangle className="h-5 w-5 text-yellow-500" /> Itens com Estoque Baixo</>)}
+                {statsDialog === "categories" && (<><Layers className="h-5 w-5" /> Categorias</>)}
+              </DialogTitle>
+              <DialogDescription>
+                {statsDialog === "total" && `${stats.total} item(ns) cadastrado(s) no estoque.`}
+                {statsDialog === "low" && `${stats.lowStock} item(ns) com quantidade igual ou abaixo do mínimo.`}
+                {statsDialog === "categories" && `${stats.categories} categoria(s) em uso.`}
+              </DialogDescription>
+            </DialogHeader>
+
+            {statsDialog === "total" && (
+              <InventoryTable items={items || []} onEdit={(it) => { setStatsDialog(null); setEditItem(it); }} />
+            )}
+
+            {statsDialog === "low" && (
+              lowStockItems.length === 0 ? (
+                <p className="py-8 text-center text-muted-foreground">Nenhum item com estoque baixo. 🎉</p>
+              ) : (
+                <InventoryTable items={lowStockItems} onEdit={(it) => { setStatsDialog(null); setEditItem(it); }} />
+              )
+            )}
+
+            {statsDialog === "categories" && (
+              <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
+                {categoryBreakdown.length === 0 ? (
+                  <p className="py-8 text-center text-muted-foreground col-span-full">Nenhuma categoria.</p>
+                ) : categoryBreakdown.map((c) => (
+                  <button
+                    key={c.key}
+                    onClick={() => {
+                      setCategoryFilter(c.key);
+                      setStatsDialog(null);
+                    }}
+                    className="flex items-center justify-between p-4 rounded-lg border bg-card hover:bg-muted hover:border-primary/40 transition-all text-left"
+                  >
+                    <div className="flex items-center gap-3">
+                      <Layers className="h-4 w-4 text-muted-foreground" />
+                      <span className="font-medium">{c.label}</span>
+                    </div>
+                    <Badge variant="secondary">{c.count} item(ns)</Badge>
+                  </button>
+                ))}
+              </div>
+            )}
+          </DialogContent>
+        </Dialog>
       </div>
     </Layout>
   );
