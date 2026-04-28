@@ -473,10 +473,12 @@ const AdminWhatsApp = () => {
               Envio Automático de Lembretes
             </CardTitle>
             <CardDescription>
-              Quando habilitado, ao criar um lembrete o sistema envia automaticamente todos os detalhes (título, descrição, data, hora, recorrência) via WhatsApp:
-              <br />• Se o lembrete <strong>mencionar todos</strong> → vai direto para o <strong>grupo configurado</strong>.
-              <br />• Se for <strong>"somente para mim"</strong> ou <strong>usuários específicos</strong> → vai no <strong>privado</strong> do criador e dos usuários mencionados.
-              <br />Respeita o intervalo de segurança configurado.
+              Quando habilitado, o sistema envia automaticamente os lembretes <strong>respeitando o agendamento</strong>:
+              <br />• Lembretes <strong>com horário definido</strong> são enviados no horário escolhido (Pará UTC-4).
+              <br />• Lembretes <strong>sem horário</strong> são enviados às <strong>06:00h</strong> da manhã.
+              <br />• Se houver <strong>aviso antecipado</strong> (ex: 1 dia antes), também é enviado às 06:00h naqueles dias.
+              <br />• Lembretes <strong>recorrentes</strong> (dias da semana) são enviados no horário configurado.
+              <br />• Se mencionar <strong>todos</strong> → vai para o <strong>grupo configurado</strong>; senão → vai no <strong>privado</strong> do criador e dos usuários mencionados.
             </CardDescription>
           </CardHeader>
           <CardContent>
