@@ -44,8 +44,10 @@ const AdminWhatsApp = () => {
   const [sendToGroup, setSendToGroup] = useState(false);
   const [groupIdOverride, setGroupIdOverride] = useState("");
   const [ddsAutoNotify, setDdsAutoNotify] = useState(false);
+  const [ddsNotifyDayBefore, setDdsNotifyDayBefore] = useState(false);
   const [autoSendReq, setAutoSendReq] = useState(false);
   const [testingDds, setTestingDds] = useState(false);
+  const [testingDdsTomorrow, setTestingDdsTomorrow] = useState(false);
 
   const { data: cfg } = useQuery({
     queryKey: ["wapi-config"],
@@ -58,7 +60,7 @@ const AdminWhatsApp = () => {
         .limit(1)
         .maybeSingle();
       if (error) throw error;
-      return data as { id: string; instance_url: string; instance_token: string; instance_id: string; enabled: boolean; delay_seconds: number | null; group_id: string | null; dds_auto_notify: boolean | null; auto_send_requisitions: boolean | null } | null;
+      return data as { id: string; instance_url: string; instance_token: string; instance_id: string; enabled: boolean; delay_seconds: number | null; group_id: string | null; dds_auto_notify: boolean | null; dds_notify_day_before: boolean | null; auto_send_requisitions: boolean | null } | null;
     },
   });
 
@@ -71,6 +73,7 @@ const AdminWhatsApp = () => {
       setDelaySeconds(typeof cfg.delay_seconds === "number" ? cfg.delay_seconds : 5);
       setGroupId(cfg.group_id || "");
       setDdsAutoNotify(!!cfg.dds_auto_notify);
+      setDdsNotifyDayBefore(!!cfg.dds_notify_day_before);
       setAutoSendReq(!!cfg.auto_send_requisitions);
     }
   }, [cfg]);
@@ -135,6 +138,7 @@ const AdminWhatsApp = () => {
         enabled,
         delay_seconds: Math.max(0, Math.min(600, Math.floor(Number(delaySeconds) || 0))),
         dds_auto_notify: ddsAutoNotify,
+        dds_notify_day_before: ddsNotifyDayBefore,
         auto_send_requisitions: autoSendReq,
         updated_by: user?.id ?? null,
       };
@@ -238,14 +242,14 @@ const AdminWhatsApp = () => {
     }
   };
 
-  const handleTestDdsNotify = async () => {
-    setTestingDds(true);
+  const handleTestDdsNotify = async (mode: "today" | "tomorrow" = "today") => {
+    if (mode === "tomorrow") setTestingDdsTomorrow(true); else setTestingDds(true);
     try {
       const url = `${import.meta.env.VITE_SUPABASE_URL}/functions/v1/wapi-dds-notify`;
       const response = await fetch(url, {
         method: "POST",
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({}),
+        body: JSON.stringify({ mode }),
       });
       const text = await response.text();
       let data: any = null;
@@ -256,9 +260,9 @@ const AdminWhatsApp = () => {
         return;
       }
       if (data?.skipped) {
-        toast.info("Nada a enviar", { description: data.reason || "Sem DDS para hoje", duration: 8000 });
+        toast.info("Nada a enviar", { description: data.reason || "Sem DDS encontrado", duration: 8000 });
       } else {
-        toast.success(`DDS: ${data?.sent ?? 0}/${data?.total ?? 0} enviadas`);
+        toast.success(`DDS (${mode === "tomorrow" ? "amanhã" : "hoje"}): ${data?.sent ?? 0}/${data?.total ?? 0} enviadas`);
         if (Array.isArray(data?.results)) {
           const failed = data.results.filter((r: { ok: boolean }) => !r.ok);
           if (failed.length) {
@@ -271,7 +275,7 @@ const AdminWhatsApp = () => {
       const msg = e instanceof Error ? e.message : String(e);
       toast.error("Falha ao executar teste", { description: msg, duration: 15000 });
     } finally {
-      setTestingDds(false);
+      if (mode === "tomorrow") setTestingDdsTomorrow(false); else setTestingDds(false);
     }
   };
 
@@ -370,8 +374,7 @@ const AdminWhatsApp = () => {
               Lembrete Automático do DDS
             </CardTitle>
             <CardDescription>
-              Quando habilitado, todos os dias às <strong>06:00h (horário do Pará)</strong> o sistema envia uma mensagem automática
-              para o WhatsApp do palestrante agendado para o DDS daquele dia, informando o tema da palestra.
+              Envia mensagens automáticas no WhatsApp do palestrante agendado, com base no horário do Pará.
             </CardDescription>
           </CardHeader>
           <CardContent className="space-y-4">
@@ -383,23 +386,46 @@ const AdminWhatsApp = () => {
                   onCheckedChange={setDdsAutoNotify}
                 />
                 <Label htmlFor="dds-auto-notify" className="cursor-pointer">
-                  Ativar envio automático às 06:00h para o palestrante do DDS do dia
+                  Lembrete às <strong>06:00h do dia do DDS</strong> (hoje é o seu dia)
                 </Label>
               </div>
-              <Badge variant={ddsAutoNotify ? "default" : "secondary"}>
-                {ddsAutoNotify ? "Ativo" : "Desativado"}
-              </Badge>
+              <div className="flex items-center gap-2">
+                <Badge variant={ddsAutoNotify ? "default" : "secondary"}>
+                  {ddsAutoNotify ? "Ativo" : "Desativado"}
+                </Badge>
+                <Button variant="outline" size="sm" onClick={() => handleTestDdsNotify("today")} disabled={testingDds}>
+                  <Play className="w-4 h-4 mr-1" />
+                  {testingDds ? "..." : "Testar"}
+                </Button>
+              </div>
             </div>
-            <div className="flex flex-wrap items-center justify-between gap-3">
-              <p className="text-xs text-muted-foreground max-w-2xl">
-                Requisitos: integração W-API habilitada, palestrante com usuário interno cadastrado e número de WhatsApp preenchido no perfil.
-                Lembre-se de salvar a configuração após alterar este botão.
-              </p>
-              <Button variant="outline" size="sm" onClick={handleTestDdsNotify} disabled={testingDds}>
-                <Play className="w-4 h-4 mr-2" />
-                {testingDds ? "Testando..." : "Testar agora"}
-              </Button>
+
+            <div className="flex items-center justify-between gap-3 rounded-md border p-3 bg-muted/30">
+              <div className="flex items-center gap-3">
+                <Switch
+                  id="dds-notify-day-before"
+                  checked={ddsNotifyDayBefore}
+                  onCheckedChange={setDdsNotifyDayBefore}
+                />
+                <Label htmlFor="dds-notify-day-before" className="cursor-pointer">
+                  Aviso <strong>1 dia antes às 16:00h</strong> (você palestra amanhã)
+                </Label>
+              </div>
+              <div className="flex items-center gap-2">
+                <Badge variant={ddsNotifyDayBefore ? "default" : "secondary"}>
+                  {ddsNotifyDayBefore ? "Ativo" : "Desativado"}
+                </Badge>
+                <Button variant="outline" size="sm" onClick={() => handleTestDdsNotify("tomorrow")} disabled={testingDdsTomorrow}>
+                  <Play className="w-4 h-4 mr-1" />
+                  {testingDdsTomorrow ? "..." : "Testar"}
+                </Button>
+              </div>
             </div>
+
+            <p className="text-xs text-muted-foreground">
+              Requisitos: integração W-API habilitada, palestrante com usuário interno cadastrado e número de WhatsApp preenchido no perfil.
+              Lembre-se de salvar a configuração após alterar estes botões.
+            </p>
           </CardContent>
         </Card>
 

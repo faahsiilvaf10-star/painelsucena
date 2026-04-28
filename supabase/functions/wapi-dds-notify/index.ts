@@ -26,10 +26,10 @@ const buildWapiEndpoint = (rawUrl: string, instanceId: string): string => {
   return url.toString();
 };
 
-// Retorna a data de hoje em Pará (UTC-4) no formato YYYY-MM-DD
-const getParaDateISO = (): string => {
+// Retorna a data alvo em Pará (UTC-4) no formato YYYY-MM-DD (offsetDays: 0 = hoje, 1 = amanhã)
+const getParaDateISO = (offsetDays = 0): string => {
   const now = new Date();
-  const para = new Date(now.getTime() - 4 * 60 * 60 * 1000);
+  const para = new Date(now.getTime() - 4 * 60 * 60 * 1000 + offsetDays * 24 * 60 * 60 * 1000);
   return para.toISOString().slice(0, 10);
 };
 
@@ -41,6 +41,14 @@ Deno.serve(async (req) => {
     const serviceKey = Deno.env.get("SUPABASE_SERVICE_ROLE_KEY")!;
     const admin = createClient(supabaseUrl, serviceKey);
 
+    let mode: "today" | "tomorrow" = "today";
+    try {
+      if (req.method === "POST") {
+        const body = await req.json().catch(() => ({}));
+        if (body?.mode === "tomorrow") mode = "tomorrow";
+      }
+    } catch { /* ignore */ }
+
     const { data: cfg } = await admin
       .from("wapi_config")
       .select("*")
@@ -48,22 +56,29 @@ Deno.serve(async (req) => {
       .limit(1)
       .maybeSingle();
 
-    if (!cfg || !cfg.enabled || !cfg.dds_auto_notify || !cfg.instance_url || !cfg.instance_token || !cfg.instance_id) {
-      return new Response(JSON.stringify({ skipped: true, reason: "DDS auto-notify desabilitado ou W-API não configurada" }), {
+    if (!cfg || !cfg.enabled || !cfg.instance_url || !cfg.instance_token || !cfg.instance_id) {
+      return new Response(JSON.stringify({ skipped: true, reason: "W-API não configurada" }), {
         status: 200, headers: { ...corsHeaders, "Content-Type": "application/json" },
       });
     }
 
-    const today = getParaDateISO();
+    const flagOk = mode === "tomorrow" ? cfg.dds_notify_day_before : cfg.dds_auto_notify;
+    if (!flagOk) {
+      return new Response(JSON.stringify({ skipped: true, reason: `Lembrete '${mode}' desabilitado` }), {
+        status: 200, headers: { ...corsHeaders, "Content-Type": "application/json" },
+      });
+    }
+
+    const targetDate = mode === "tomorrow" ? getParaDateISO(1) : getParaDateISO(0);
 
     const { data: schedules, error: scheduleErr } = await admin
       .from("dds_schedule")
       .select("id, theme, presenter_user_id, external_presenter_name, scheduled_date")
-      .eq("scheduled_date", today);
+      .eq("scheduled_date", targetDate);
 
     if (scheduleErr) throw scheduleErr;
     if (!schedules || schedules.length === 0) {
-      return new Response(JSON.stringify({ skipped: true, reason: "Nenhum DDS agendado para hoje", today }), {
+      return new Response(JSON.stringify({ skipped: true, reason: `Nenhum DDS agendado para ${mode === "tomorrow" ? "amanhã" : "hoje"}`, targetDate }), {
         status: 200, headers: { ...corsHeaders, "Content-Type": "application/json" },
       });
     }
@@ -94,14 +109,17 @@ Deno.serve(async (req) => {
           recipient_user_id: dds.presenter_user_id,
           recipient_name: presenterName,
           recipient_phone: phoneRaw || "(vazio)",
-          message: `[DDS automático] Tema: ${dds.theme}`,
+          message: `[DDS automático ${mode}] Tema: ${dds.theme}`,
           status: "failed",
           error_message: "WhatsApp não cadastrado",
         });
         continue;
       }
 
-      const message = `🎤 *Lembrete DDS - Hoje é o seu dia!*\n\nOlá, ${presenterName}!\n\nVocê é o palestrante do DDS de hoje (${today.split("-").reverse().join("/")}).\n\n📋 *Tema:* ${dds.theme}\n\nPrepare-se e bom DDS! 🌟\n\n_Mensagem automática - Sucena_`;
+      const dateBR = targetDate.split("-").reverse().join("/");
+      const message = mode === "tomorrow"
+        ? `🔔 *Lembrete DDS - Amanhã é o seu dia!*\n\nOlá, ${presenterName}!\n\nVocê é o palestrante do DDS de *amanhã* (${dateBR}).\n\n📋 *Tema:* ${dds.theme}\n\nPrepare-se com antecedência! 📚\n\n_Mensagem automática - Sucena_`
+        : `🎤 *Lembrete DDS - Hoje é o seu dia!*\n\nOlá, ${presenterName}!\n\nVocê é o palestrante do DDS de hoje (${dateBR}).\n\n📋 *Tema:* ${dds.theme}\n\nPrepare-se e bom DDS! 🌟\n\n_Mensagem automática - Sucena_`;
 
       try {
         const resp = await fetch(endpoint, {
@@ -144,7 +162,7 @@ Deno.serve(async (req) => {
     }
 
     const sent = results.filter((r) => r.ok).length;
-    return new Response(JSON.stringify({ success: true, today, sent, total: results.length, results }), {
+    return new Response(JSON.stringify({ success: true, mode, targetDate, sent, total: results.length, results }), {
       status: 200, headers: { ...corsHeaders, "Content-Type": "application/json" },
     });
   } catch (e) {
