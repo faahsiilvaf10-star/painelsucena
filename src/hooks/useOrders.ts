@@ -290,6 +290,11 @@ export const useCreateOrder = () => {
           target_users: [orderData.mentioned_user_id],
           published_at: new Date().toISOString(),
         });
+
+        // Auto WhatsApp para usuário encaminhado (fire-and-forget)
+        supabase.functions.invoke("wapi-order-notify", {
+          body: { orderId: data.id, eventType: "created" },
+        }).catch((e) => console.warn("[wapi-order-notify created] falhou:", e));
       }
 
       return data;
@@ -395,6 +400,17 @@ export const useUpdateOrderStatus = () => {
           target_users: [currentOrder.requester_id],
           published_at: new Date().toISOString(),
         });
+
+        // Auto WhatsApp para o solicitante (fire-and-forget)
+        supabase.functions.invoke("wapi-order-notify", {
+          body: {
+            orderId,
+            eventType: "status_changed",
+            oldStatus: safePreviousStatus,
+            newStatus: safeNewStatus,
+            changerName,
+          },
+        }).catch((e) => console.warn("[wapi-order-notify status] falhou:", e));
       }
 
       return data;

@@ -51,6 +51,7 @@ const AdminWhatsApp = () => {
   const [autoSendMatrixAlert, setAutoSendMatrixAlert] = useState(false);
   const [autoSendForbiddenColorAlert, setAutoSendForbiddenColorAlert] = useState(false);
   const [autoSendCampaignAlert, setAutoSendCampaignAlert] = useState(false);
+  const [autoSendOrderAlerts, setAutoSendOrderAlerts] = useState(false);
   const [testingDds, setTestingDds] = useState(false);
   const [testingDdsTomorrow, setTestingDdsTomorrow] = useState(false);
   const [testingAso, setTestingAso] = useState(false);
@@ -69,7 +70,7 @@ const AdminWhatsApp = () => {
         .limit(1)
         .maybeSingle();
       if (error) throw error;
-      return data as { id: string; instance_url: string; instance_token: string; instance_id: string; enabled: boolean; delay_seconds: number | null; group_id: string | null; dds_auto_notify: boolean | null; dds_notify_day_before: boolean | null; auto_send_requisitions: boolean | null; auto_send_reminders: boolean | null; auto_send_aso_alert: boolean | null; auto_send_matrix_alert: boolean | null; auto_send_forbidden_color_alert: boolean | null; auto_send_campaign_alert: boolean | null } | null;
+      return data as { id: string; instance_url: string; instance_token: string; instance_id: string; enabled: boolean; delay_seconds: number | null; group_id: string | null; dds_auto_notify: boolean | null; dds_notify_day_before: boolean | null; auto_send_requisitions: boolean | null; auto_send_reminders: boolean | null; auto_send_aso_alert: boolean | null; auto_send_matrix_alert: boolean | null; auto_send_forbidden_color_alert: boolean | null; auto_send_campaign_alert: boolean | null; auto_send_order_alerts: boolean | null } | null;
     },
   });
 
@@ -89,6 +90,7 @@ const AdminWhatsApp = () => {
       setAutoSendMatrixAlert(!!cfg.auto_send_matrix_alert);
       setAutoSendForbiddenColorAlert(!!cfg.auto_send_forbidden_color_alert);
       setAutoSendCampaignAlert(!!cfg.auto_send_campaign_alert);
+      setAutoSendOrderAlerts(!!cfg.auto_send_order_alerts);
     }
   }, [cfg]);
 
@@ -159,6 +161,7 @@ const AdminWhatsApp = () => {
         auto_send_matrix_alert: autoSendMatrixAlert,
         auto_send_forbidden_color_alert: autoSendForbiddenColorAlert,
         auto_send_campaign_alert: autoSendCampaignAlert,
+        auto_send_order_alerts: autoSendOrderAlerts,
         updated_by: user?.id ?? null,
       };
       if (cfg?.id) {
@@ -819,6 +822,42 @@ const AdminWhatsApp = () => {
               Requisitos: integração W-API habilitada, ID do grupo preenchido e banner do mês carregado em
               <code className="mx-1 px-1 rounded bg-muted">announcements/campaign-banners/campanha-{`{mês}`}.png</code>.
               Se a imagem não existir, será enviado apenas o texto.
+            </p>
+          </CardContent>
+        </Card>
+
+        <Card>
+          <CardHeader>
+            <CardTitle className="flex items-center gap-2">
+              <Bell className="w-5 h-5 text-primary" />
+              Alertas de Pedidos no WhatsApp
+            </CardTitle>
+            <CardDescription>
+              Quando habilitado, ao criar um pedido, o <strong>usuário encaminhado (mencionado)</strong> recebe no WhatsApp
+              cadastrado todos os detalhes do pedido (itens, quantidades, descrições, data esperada e solicitante).
+              A cada <strong>mudança de status</strong>, o <strong>solicitante</strong> também recebe automaticamente
+              uma mensagem com o status anterior, o novo status e quem alterou.
+            </CardDescription>
+          </CardHeader>
+          <CardContent>
+            <div className="flex items-center justify-between gap-3 rounded-md border p-3 bg-muted/30">
+              <div className="flex items-center gap-3">
+                <Switch
+                  id="auto-send-order-alerts"
+                  checked={autoSendOrderAlerts}
+                  onCheckedChange={setAutoSendOrderAlerts}
+                />
+                <Label htmlFor="auto-send-order-alerts" className="cursor-pointer">
+                  Ativar envio automático de alertas de pedidos no WhatsApp
+                </Label>
+              </div>
+              <Badge variant={autoSendOrderAlerts ? "default" : "secondary"}>
+                {autoSendOrderAlerts ? "Ativo" : "Desativado"}
+              </Badge>
+            </div>
+            <p className="text-xs text-muted-foreground mt-3">
+              Requisitos: integração W-API habilitada e usuários com WhatsApp cadastrado no perfil. As mensagens são
+              enviadas diretamente para o número pessoal de cada usuário (não para o grupo).
             </p>
           </CardContent>
         </Card>
