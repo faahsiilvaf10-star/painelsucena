@@ -44,6 +44,7 @@ const AdminWhatsApp = () => {
   const [sendToGroup, setSendToGroup] = useState(false);
   const [groupIdOverride, setGroupIdOverride] = useState("");
   const [ddsAutoNotify, setDdsAutoNotify] = useState(false);
+  const [autoSendReq, setAutoSendReq] = useState(false);
   const [testingDds, setTestingDds] = useState(false);
 
   const { data: cfg } = useQuery({
@@ -57,7 +58,7 @@ const AdminWhatsApp = () => {
         .limit(1)
         .maybeSingle();
       if (error) throw error;
-      return data as { id: string; instance_url: string; instance_token: string; instance_id: string; enabled: boolean; delay_seconds: number | null; group_id: string | null; dds_auto_notify: boolean | null } | null;
+      return data as { id: string; instance_url: string; instance_token: string; instance_id: string; enabled: boolean; delay_seconds: number | null; group_id: string | null; dds_auto_notify: boolean | null; auto_send_requisitions: boolean | null } | null;
     },
   });
 
@@ -70,6 +71,7 @@ const AdminWhatsApp = () => {
       setDelaySeconds(typeof cfg.delay_seconds === "number" ? cfg.delay_seconds : 5);
       setGroupId(cfg.group_id || "");
       setDdsAutoNotify(!!cfg.dds_auto_notify);
+      setAutoSendReq(!!cfg.auto_send_requisitions);
     }
   }, [cfg]);
 
@@ -133,6 +135,7 @@ const AdminWhatsApp = () => {
         enabled,
         delay_seconds: Math.max(0, Math.min(600, Math.floor(Number(delaySeconds) || 0))),
         dds_auto_notify: ddsAutoNotify,
+        auto_send_requisitions: autoSendReq,
         updated_by: user?.id ?? null,
       };
       if (cfg?.id) {
