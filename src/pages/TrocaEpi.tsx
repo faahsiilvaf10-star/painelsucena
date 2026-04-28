@@ -1163,7 +1163,7 @@ export default function TrocaEpi() {
       const html = buildMaterialPdfHtml(fakeReq, logoBase64);
       const itensTxt = currentItems.map((m) => `• ${m.name} (${m.qty})`).join("\n");
       const caption = `📦 Requisição de Material\nFuncionário: ${currentFuncNome}\nÁrea: ${matAreaDestino}\nMotivo: ${matMotivo}\n\nItens:\n${itensTxt}`;
-      void autoSendRequisitionToGroup("material", html, caption, currentFuncNome);
+      await autoSendRequisitionToGroup("material", html, caption, currentFuncNome);
     } catch (e) { console.warn("auto send Material prep failed", e); }
 
     setShowMaterialSignature(false);
