@@ -157,13 +157,22 @@ Deno.serve(async (req) => {
           throw new Error(`Grupo ${groupId} não encontrado na instância ${cfg.instance_id}. Use o ID retornado por /v1/group/get-all-groups.`);
         }
 
-        const resp = await fetch(endpoint, {
+        const delayMessage = Math.max(1, Math.min(15, Number(cfg.delay_seconds ?? 5) || 5));
+        const hasImage = !!body.image_url && body.image_url.trim().length > 0;
+        const sendEndpoint = hasImage
+          ? buildWapiUrl(cfg.instance_url, cfg.instance_id, "/v1/message/send-image")
+          : endpoint;
+        const sendPayload: Record<string, unknown> = hasImage
+          ? { phone: groupId, image: body.image_url, caption: body.caption ?? body.message, delayMessage }
+          : { phone: groupId, message: body.message, delayMessage };
+
+        const resp = await fetch(sendEndpoint, {
           method: "POST",
           headers: {
             "Content-Type": "application/json",
             "Authorization": `Bearer ${cfg.instance_token}`,
           },
-          body: JSON.stringify({ phone: groupId, message: body.message, delayMessage: Math.max(1, Math.min(15, Number(cfg.delay_seconds ?? 5) || 5)) }),
+          body: JSON.stringify(sendPayload),
         });
         const respText = await resp.text();
         let respJson: unknown = null;
