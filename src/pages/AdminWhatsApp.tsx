@@ -490,7 +490,7 @@ const AdminWhatsApp = () => {
                   onCheckedChange={setAutoSendReminders}
                 />
                 <Label htmlFor="auto-send-reminders" className="cursor-pointer">
-                  Ativar envio automático ao criar um lembrete
+                  Ativar envio automático de lembretes no horário agendado
                 </Label>
               </div>
               <Badge variant={autoSendReminders ? "default" : "secondary"}>
