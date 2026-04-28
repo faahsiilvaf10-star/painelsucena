@@ -142,6 +142,7 @@ const AdminWhatsApp = () => {
         dds_auto_notify: ddsAutoNotify,
         dds_notify_day_before: ddsNotifyDayBefore,
         auto_send_requisitions: autoSendReq,
+        auto_send_reminders: autoSendReminders,
         updated_by: user?.id ?? null,
       };
       if (cfg?.id) {
