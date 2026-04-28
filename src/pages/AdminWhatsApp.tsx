@@ -35,6 +35,7 @@ const AdminWhatsApp = () => {
   const [instanceToken, setInstanceToken] = useState("");
   const [instanceId, setInstanceId] = useState("");
   const [enabled, setEnabled] = useState(false);
+  const [delaySeconds, setDelaySeconds] = useState<number>(5);
   const [message, setMessage] = useState("");
   const [search, setSearch] = useState("");
   const [selected, setSelected] = useState<Set<string>>(new Set());
