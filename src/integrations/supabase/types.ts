@@ -4178,6 +4178,7 @@ export type Database = {
           auto_send_planning_alerts: boolean
           auto_send_reminders: boolean
           auto_send_requisitions: boolean
+          auto_send_vehicle_inspection_alert: boolean
           created_at: string
           dds_auto_notify: boolean
           dds_notify_day_before: boolean
@@ -4203,6 +4204,7 @@ export type Database = {
           auto_send_planning_alerts?: boolean
           auto_send_reminders?: boolean
           auto_send_requisitions?: boolean
+          auto_send_vehicle_inspection_alert?: boolean
           created_at?: string
           dds_auto_notify?: boolean
           dds_notify_day_before?: boolean
@@ -4228,6 +4230,7 @@ export type Database = {
           auto_send_planning_alerts?: boolean
           auto_send_reminders?: boolean
           auto_send_requisitions?: boolean
+          auto_send_vehicle_inspection_alert?: boolean
           created_at?: string
           dds_auto_notify?: boolean
           dds_notify_day_before?: boolean
@@ -4340,6 +4343,33 @@ export type Database = {
           status?: string
           target_type?: string
           updated_at?: string
+        }
+        Relationships: []
+      }
+      wapi_vehicle_alerts_sent: {
+        Row: {
+          alert_key: string
+          expiry_date: string
+          field_key: string
+          id: string
+          placa: string
+          sent_at: string
+        }
+        Insert: {
+          alert_key: string
+          expiry_date: string
+          field_key: string
+          id?: string
+          placa: string
+          sent_at?: string
+        }
+        Update: {
+          alert_key?: string
+          expiry_date?: string
+          field_key?: string
+          id?: string
+          placa?: string
+          sent_at?: string
         }
         Relationships: []
       }
