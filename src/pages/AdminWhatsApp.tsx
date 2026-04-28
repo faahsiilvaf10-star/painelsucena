@@ -148,20 +148,29 @@ const AdminWhatsApp = () => {
 
   const handleSend = async () => {
     if (!message.trim()) return toast.error("Escreva uma mensagem");
-    if (selected.size === 0) return toast.error("Selecione ao menos um destinatário");
 
-    const recipients = (profiles || [])
-      .filter((p: { user_id: string }) => selected.has(p.user_id))
-      .map((p: { user_id: string; full_name: string | null; whatsapp_number: string | null }) => ({
-        user_id: p.user_id,
-        name: p.full_name,
-        phone: p.whatsapp_number || "",
-      }));
+    const targetGroup = (groupIdOverride.trim() || groupId.trim());
+    if (sendToGroup && !targetGroup) return toast.error("Informe o ID do grupo");
+    if (!sendToGroup && selected.size === 0) return toast.error("Selecione ao menos um destinatário");
+
+    const recipients = sendToGroup
+      ? []
+      : (profiles || [])
+          .filter((p: { user_id: string }) => selected.has(p.user_id))
+          .map((p: { user_id: string; full_name: string | null; whatsapp_number: string | null }) => ({
+            user_id: p.user_id,
+            name: p.full_name,
+            phone: p.whatsapp_number || "",
+          }));
 
     setSending(true);
     try {
       const { data, error } = await supabase.functions.invoke("wapi-send", {
-        body: { message: message.trim(), recipients },
+        body: {
+          message: message.trim(),
+          recipients,
+          group_id: sendToGroup ? targetGroup : null,
+        },
       });
       if (error) throw error;
       const res = data as { sent: number; total: number };
