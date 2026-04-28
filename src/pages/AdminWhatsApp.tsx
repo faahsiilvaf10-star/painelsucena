@@ -56,6 +56,7 @@ const AdminWhatsApp = () => {
   const [testingAso, setTestingAso] = useState(false);
   const [testingMatrix, setTestingMatrix] = useState(false);
   const [testingForbiddenColor, setTestingForbiddenColor] = useState(false);
+  const [testingCampaign, setTestingCampaign] = useState(false);
 
   const { data: cfg } = useQuery({
     queryKey: ["wapi-config"],
