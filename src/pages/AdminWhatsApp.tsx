@@ -219,6 +219,22 @@ const AdminWhatsApp = () => {
                 onChange={(e) => setInstanceToken(e.target.value)}
               />
             </div>
+            <div className="space-y-2">
+              <Label htmlFor="wapi-delay">Intervalo entre envios (segundos)</Label>
+              <Input
+                id="wapi-delay"
+                type="number"
+                min={0}
+                max={600}
+                step={1}
+                value={delaySeconds}
+                onChange={(e) => setDelaySeconds(Number(e.target.value))}
+                className="max-w-xs"
+              />
+              <p className="text-xs text-muted-foreground">
+                Aguarda esse tempo entre cada mensagem para evitar bloqueio/banimento do número no WhatsApp. Recomendado: 5–15s.
+              </p>
+            </div>
             <div className="flex items-center justify-between pt-2">
               <div className="flex items-center gap-2">
                 <Switch checked={enabled} onCheckedChange={setEnabled} id="wapi-enabled" />
