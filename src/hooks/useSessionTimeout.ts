@@ -134,17 +134,16 @@ export const useSessionTimeout = () => {
 
   const isInWarningPeriod = useCallback((): boolean => {
     if (!session) return false;
-    
-    const sessionStartTime = localStorage.getItem(SESSION_START_KEY);
-    if (!sessionStartTime) return false;
+    if (isDriverUser) return false;
 
-    const startTime = parseInt(sessionStartTime, 10);
-    const elapsed = Date.now() - startTime;
-    const timeoutMs = getSessionTimeoutMs();
-    const remaining = timeoutMs - elapsed;
+    const now = new Date();
+    const cutoff = new Date(now);
+    cutoff.setHours(6, 0, 0, 0);
+    if (now >= cutoff) cutoff.setDate(cutoff.getDate() + 1);
 
+    const remaining = cutoff.getTime() - now.getTime();
     return remaining > 0 && remaining <= WARNING_THRESHOLD_MS;
-  }, [session]);
+  }, [session, isDriverUser]);
 
   const handleAutoLogout = async () => {
     // Store logout reason for the transition
