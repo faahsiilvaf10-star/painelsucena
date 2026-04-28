@@ -23,6 +23,25 @@ const sanitizePhone = (raw: string): string => {
   return digits;
 };
 
+const buildWapiEndpoint = (rawUrl: string, instanceId: string): string => {
+  const url = new URL(rawUrl.trim());
+  const normalizedPath = url.pathname.replace(/\/+$/, "");
+
+  // W-API docs: POST https://api.w-api.app/v1/message/send-text?instanceId=...
+  // Accept pasted panel/instance URLs too, but always target the official send-text route.
+  if (url.hostname === "painel.w-api.app" || url.pathname.startsWith("/app")) {
+    url.protocol = "https:";
+    url.hostname = "api.w-api.app";
+  }
+
+  if (!normalizedPath.endsWith("/send-text")) {
+    url.pathname = "/v1/message/send-text";
+  }
+
+  url.searchParams.set("instanceId", instanceId);
+  return url.toString();
+};
+
 Deno.serve(async (req) => {
   if (req.method === "OPTIONS") return new Response("ok", { headers: corsHeaders });
 
@@ -42,13 +61,13 @@ Deno.serve(async (req) => {
       global: { headers: { Authorization: authHeader } },
     });
     const token = authHeader.replace("Bearer ", "");
-    const { data: claimsData, error: claimsErr } = await userClient.auth.getClaims(token);
-    if (claimsErr || !claimsData?.claims) {
+    const { data: userData, error: userErr } = await userClient.auth.getUser(token);
+    if (userErr || !userData?.user?.id) {
       return new Response(JSON.stringify({ error: "Unauthorized" }), {
         status: 401, headers: { ...corsHeaders, "Content-Type": "application/json" },
       });
     }
-    const userId = claimsData.claims.sub as string;
+    const userId = userData.user.id;
 
     const admin = createClient(supabaseUrl, serviceKey);
 
@@ -84,9 +103,7 @@ Deno.serve(async (req) => {
       });
     }
 
-    // Build endpoint: W-API standard -> {host}/message/send-text?instanceId=...
-    const baseUrl = cfg.instance_url.replace(/\/+$/, "");
-    const endpoint = `${baseUrl}/message/send-text?instanceId=${encodeURIComponent(cfg.instance_id)}`;
+    const endpoint = buildWapiEndpoint(cfg.instance_url, cfg.instance_id);
 
     const results: Array<{ phone: string; ok: boolean; error?: string }> = [];
 
