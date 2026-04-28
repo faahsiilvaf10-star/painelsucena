@@ -48,9 +48,11 @@ const AdminWhatsApp = () => {
   const [autoSendReq, setAutoSendReq] = useState(false);
   const [autoSendReminders, setAutoSendReminders] = useState(false);
   const [autoSendAsoAlert, setAutoSendAsoAlert] = useState(false);
+  const [autoSendMatrixAlert, setAutoSendMatrixAlert] = useState(false);
   const [testingDds, setTestingDds] = useState(false);
   const [testingDdsTomorrow, setTestingDdsTomorrow] = useState(false);
   const [testingAso, setTestingAso] = useState(false);
+  const [testingMatrix, setTestingMatrix] = useState(false);
 
   const { data: cfg } = useQuery({
     queryKey: ["wapi-config"],
@@ -63,7 +65,7 @@ const AdminWhatsApp = () => {
         .limit(1)
         .maybeSingle();
       if (error) throw error;
-      return data as { id: string; instance_url: string; instance_token: string; instance_id: string; enabled: boolean; delay_seconds: number | null; group_id: string | null; dds_auto_notify: boolean | null; dds_notify_day_before: boolean | null; auto_send_requisitions: boolean | null; auto_send_reminders: boolean | null; auto_send_aso_alert: boolean | null } | null;
+      return data as { id: string; instance_url: string; instance_token: string; instance_id: string; enabled: boolean; delay_seconds: number | null; group_id: string | null; dds_auto_notify: boolean | null; dds_notify_day_before: boolean | null; auto_send_requisitions: boolean | null; auto_send_reminders: boolean | null; auto_send_aso_alert: boolean | null; auto_send_matrix_alert: boolean | null } | null;
     },
   });
 
@@ -80,6 +82,7 @@ const AdminWhatsApp = () => {
       setAutoSendReq(!!cfg.auto_send_requisitions);
       setAutoSendReminders(!!cfg.auto_send_reminders);
       setAutoSendAsoAlert(!!cfg.auto_send_aso_alert);
+      setAutoSendMatrixAlert(!!cfg.auto_send_matrix_alert);
     }
   }, [cfg]);
 
@@ -147,6 +150,7 @@ const AdminWhatsApp = () => {
         auto_send_requisitions: autoSendReq,
         auto_send_reminders: autoSendReminders,
         auto_send_aso_alert: autoSendAsoAlert,
+        auto_send_matrix_alert: autoSendMatrixAlert,
         updated_by: user?.id ?? null,
       };
       if (cfg?.id) {
