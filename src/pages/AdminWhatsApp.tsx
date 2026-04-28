@@ -48,9 +48,11 @@ const AdminWhatsApp = () => {
   const [autoSendReq, setAutoSendReq] = useState(false);
   const [autoSendReminders, setAutoSendReminders] = useState(false);
   const [autoSendAsoAlert, setAutoSendAsoAlert] = useState(false);
+  const [autoSendMatrixAlert, setAutoSendMatrixAlert] = useState(false);
   const [testingDds, setTestingDds] = useState(false);
   const [testingDdsTomorrow, setTestingDdsTomorrow] = useState(false);
   const [testingAso, setTestingAso] = useState(false);
+  const [testingMatrix, setTestingMatrix] = useState(false);
 
   const { data: cfg } = useQuery({
     queryKey: ["wapi-config"],
@@ -63,7 +65,7 @@ const AdminWhatsApp = () => {
         .limit(1)
         .maybeSingle();
       if (error) throw error;
-      return data as { id: string; instance_url: string; instance_token: string; instance_id: string; enabled: boolean; delay_seconds: number | null; group_id: string | null; dds_auto_notify: boolean | null; dds_notify_day_before: boolean | null; auto_send_requisitions: boolean | null; auto_send_reminders: boolean | null; auto_send_aso_alert: boolean | null } | null;
+      return data as { id: string; instance_url: string; instance_token: string; instance_id: string; enabled: boolean; delay_seconds: number | null; group_id: string | null; dds_auto_notify: boolean | null; dds_notify_day_before: boolean | null; auto_send_requisitions: boolean | null; auto_send_reminders: boolean | null; auto_send_aso_alert: boolean | null; auto_send_matrix_alert: boolean | null } | null;
     },
   });
 
@@ -80,6 +82,7 @@ const AdminWhatsApp = () => {
       setAutoSendReq(!!cfg.auto_send_requisitions);
       setAutoSendReminders(!!cfg.auto_send_reminders);
       setAutoSendAsoAlert(!!cfg.auto_send_aso_alert);
+      setAutoSendMatrixAlert(!!cfg.auto_send_matrix_alert);
     }
   }, [cfg]);
 
@@ -147,6 +150,7 @@ const AdminWhatsApp = () => {
         auto_send_requisitions: autoSendReq,
         auto_send_reminders: autoSendReminders,
         auto_send_aso_alert: autoSendAsoAlert,
+        auto_send_matrix_alert: autoSendMatrixAlert,
         updated_by: user?.id ?? null,
       };
       if (cfg?.id) {
@@ -316,6 +320,43 @@ const AdminWhatsApp = () => {
       toast.error("Falha ao executar teste", { description: msg, duration: 15000 });
     } finally {
       setTestingAso(false);
+    }
+  };
+
+  const handleTestMatrixNotify = async () => {
+    setTestingMatrix(true);
+    try {
+      const url = `${import.meta.env.VITE_SUPABASE_URL}/functions/v1/wapi-matrix-notify`;
+      const response = await fetch(url, {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ force: true }),
+      });
+      const text = await response.text();
+      let data: any = null;
+      try { data = text ? JSON.parse(text) : null; } catch { /* keep raw */ }
+
+      if (!response.ok) {
+        toast.error(`Erro HTTP ${response.status}`, { description: text.slice(0, 500), duration: 15000 });
+        return;
+      }
+      if (data?.skipped) {
+        toast.info("Nada enviado", { description: data.reason || "—", duration: 8000 });
+      } else if (data?.success) {
+        if (data.totalPending === 0) {
+          toast.success(`Matriz: todos preencheram! 🎉`);
+        } else {
+          toast.success(`Matriz enviada (${data.totalPending} pendente(s) de ${data.totalUsers})`);
+        }
+      } else {
+        toast.error("Falha no envio", { description: data?.error || "Erro desconhecido", duration: 15000 });
+      }
+      queryClient.invalidateQueries({ queryKey: ["wapi-logs"] });
+    } catch (e) {
+      const msg = e instanceof Error ? e.message : String(e);
+      toast.error("Falha ao executar teste", { description: msg, duration: 15000 });
+    } finally {
+      setTestingMatrix(false);
     }
   };
 
@@ -577,6 +618,48 @@ const AdminWhatsApp = () => {
             <p className="text-xs text-muted-foreground mt-3">
               Requisitos: integração W-API habilitada e ID do grupo preenchido. O botão "Testar" envia o alerta imediatamente,
               ignorando o filtro de duplicidade.
+            </p>
+          </CardContent>
+        </Card>
+
+        <Card>
+          <CardHeader>
+            <CardTitle className="flex items-center gap-2">
+              <Bell className="w-5 h-5 text-primary" />
+              Alerta Automático da Matriz (toda Quinta às 10:00h)
+            </CardTitle>
+            <CardDescription>
+              Quando habilitado, o sistema envia automaticamente para o <strong>grupo configurado</strong> uma mensagem
+              listando os colaboradores que <strong>ainda não preencheram</strong> a Matriz de Responsabilidades do mês,
+              com os detalhes de quais tarefas estão pendentes. Se <strong>todos</strong> tiverem preenchido, será enviada uma
+              mensagem de <strong>parabéns</strong> à equipe. Execução semanal: <strong>toda Quinta-feira às 10:00h</strong> (Pará UTC-4),
+              sempre atualizada conforme o sistema.
+            </CardDescription>
+          </CardHeader>
+          <CardContent>
+            <div className="flex items-center justify-between gap-3 rounded-md border p-3 bg-muted/30">
+              <div className="flex items-center gap-3">
+                <Switch
+                  id="auto-send-matrix"
+                  checked={autoSendMatrixAlert}
+                  onCheckedChange={setAutoSendMatrixAlert}
+                />
+                <Label htmlFor="auto-send-matrix" className="cursor-pointer">
+                  Ativar envio automático do alerta da Matriz no grupo
+                </Label>
+              </div>
+              <div className="flex items-center gap-2">
+                <Badge variant={autoSendMatrixAlert ? "default" : "secondary"}>
+                  {autoSendMatrixAlert ? "Ativo" : "Desativado"}
+                </Badge>
+                <Button variant="outline" size="sm" onClick={handleTestMatrixNotify} disabled={testingMatrix}>
+                  <Play className="w-4 h-4 mr-1" />
+                  {testingMatrix ? "..." : "Testar"}
+                </Button>
+              </div>
+            </div>
+            <p className="text-xs text-muted-foreground mt-3">
+              Requisitos: integração W-API habilitada e ID do grupo preenchido. O botão "Testar" envia a mensagem imediatamente.
             </p>
           </CardContent>
         </Card>
