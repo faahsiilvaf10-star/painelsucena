@@ -51,15 +51,13 @@ Deno.serve(async (req) => {
       });
     }
 
-    const hasImage = !!image_url && String(image_url).trim().length > 0;
-
     const { error: insErr } = await admin.from("wapi_outbox").insert({
-      kind: hasImage ? "image" : "text",
+      kind: "image",
       target_type: "group",
       phone: cfg.group_id,
-      message: hasImage ? null : caption,
-      caption: hasImage ? caption : null,
-      image_url: hasImage ? image_url : null,
+      message: null,
+      caption: caption,
+      image_url: image_url,
       origin: `requisition_${type}`,
     });
 
