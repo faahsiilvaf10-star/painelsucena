@@ -4178,6 +4178,7 @@ export type Database = {
           auto_send_planning_alerts: boolean
           auto_send_reminders: boolean
           auto_send_requisitions: boolean
+          auto_send_sling_inspection_alert: boolean
           auto_send_vehicle_inspection_alert: boolean
           created_at: string
           dds_auto_notify: boolean
@@ -4204,6 +4205,7 @@ export type Database = {
           auto_send_planning_alerts?: boolean
           auto_send_reminders?: boolean
           auto_send_requisitions?: boolean
+          auto_send_sling_inspection_alert?: boolean
           auto_send_vehicle_inspection_alert?: boolean
           created_at?: string
           dds_auto_notify?: boolean
@@ -4230,6 +4232,7 @@ export type Database = {
           auto_send_planning_alerts?: boolean
           auto_send_reminders?: boolean
           auto_send_requisitions?: boolean
+          auto_send_sling_inspection_alert?: boolean
           auto_send_vehicle_inspection_alert?: boolean
           created_at?: string
           dds_auto_notify?: boolean

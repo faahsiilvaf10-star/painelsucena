@@ -56,9 +56,11 @@ const AdminWhatsApp = () => {
   const [autoSendPlanningAlerts, setAutoSendPlanningAlerts] = useState(false);
   const [autoSendBillingAlert, setAutoSendBillingAlert] = useState(false);
   const [autoSendVehicleInspectionAlert, setAutoSendVehicleInspectionAlert] = useState(false);
+  const [autoSendSlingInspectionAlert, setAutoSendSlingInspectionAlert] = useState(false);
   const [testingPlanning, setTestingPlanning] = useState(false);
   const [testingBilling, setTestingBilling] = useState(false);
   const [testingVehicleInspection, setTestingVehicleInspection] = useState(false);
+  const [testingSlingInspection, setTestingSlingInspection] = useState(false);
   const [testingDds, setTestingDds] = useState(false);
   const [testingDdsTomorrow, setTestingDdsTomorrow] = useState(false);
   const [testingAso, setTestingAso] = useState(false);
@@ -77,7 +79,7 @@ const AdminWhatsApp = () => {
         .limit(1)
         .maybeSingle();
       if (error) throw error;
-      return data as { id: string; instance_url: string; instance_token: string; instance_id: string; enabled: boolean; delay_seconds: number | null; group_id: string | null; dds_auto_notify: boolean | null; dds_notify_day_before: boolean | null; auto_send_requisitions: boolean | null; auto_send_reminders: boolean | null; auto_send_aso_alert: boolean | null; auto_send_matrix_alert: boolean | null; auto_send_forbidden_color_alert: boolean | null; auto_send_campaign_alert: boolean | null; auto_send_order_alerts: boolean | null; auto_send_equipment_movements: boolean | null; auto_send_planning_alerts: boolean | null; auto_send_billing_alert: boolean | null; auto_send_vehicle_inspection_alert: boolean | null } | null;
+      return data as { id: string; instance_url: string; instance_token: string; instance_id: string; enabled: boolean; delay_seconds: number | null; group_id: string | null; dds_auto_notify: boolean | null; dds_notify_day_before: boolean | null; auto_send_requisitions: boolean | null; auto_send_reminders: boolean | null; auto_send_aso_alert: boolean | null; auto_send_matrix_alert: boolean | null; auto_send_forbidden_color_alert: boolean | null; auto_send_campaign_alert: boolean | null; auto_send_order_alerts: boolean | null; auto_send_equipment_movements: boolean | null; auto_send_planning_alerts: boolean | null; auto_send_billing_alert: boolean | null; auto_send_vehicle_inspection_alert: boolean | null; auto_send_sling_inspection_alert: boolean | null } | null;
     },
   });
 
@@ -102,6 +104,7 @@ const AdminWhatsApp = () => {
       setAutoSendPlanningAlerts(!!cfg.auto_send_planning_alerts);
       setAutoSendBillingAlert(!!cfg.auto_send_billing_alert);
       setAutoSendVehicleInspectionAlert(!!cfg.auto_send_vehicle_inspection_alert);
+      setAutoSendSlingInspectionAlert(!!cfg.auto_send_sling_inspection_alert);
     }
   }, [cfg]);
 
@@ -177,6 +180,7 @@ const AdminWhatsApp = () => {
         auto_send_planning_alerts: autoSendPlanningAlerts,
         auto_send_billing_alert: autoSendBillingAlert,
         auto_send_vehicle_inspection_alert: autoSendVehicleInspectionAlert,
+        auto_send_sling_inspection_alert: autoSendSlingInspectionAlert,
         updated_by: user?.id ?? null,
       };
       if (cfg?.id) {
@@ -548,6 +552,39 @@ const AdminWhatsApp = () => {
       toast.error("Falha ao executar teste", { description: msg, duration: 15000 });
     } finally {
       setTestingVehicleInspection(false);
+    }
+  };
+
+  const handleTestSlingInspectionNotify = async () => {
+    setTestingSlingInspection(true);
+    try {
+      const url = `${import.meta.env.VITE_SUPABASE_URL}/functions/v1/wapi-sling-inspection-notify`;
+      const response = await fetch(url, {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ force: true }),
+      });
+      const text = await response.text();
+      let data: any = null;
+      try { data = text ? JSON.parse(text) : null; } catch { /* keep raw */ }
+
+      if (!response.ok) {
+        toast.error(`Erro HTTP ${response.status}`, { description: text.slice(0, 500), duration: 15000 });
+        return;
+      }
+      if (data?.skipped) {
+        toast.info("Nada enviado", { description: data.reason || "—", duration: 8000 });
+      } else if (data?.success) {
+        toast.success(`Alerta de cintas enviado (${data.total} pendente(s))`);
+      } else {
+        toast.error("Falha no envio", { description: data?.error || "Erro desconhecido", duration: 15000 });
+      }
+      queryClient.invalidateQueries({ queryKey: ["wapi-logs"] });
+    } catch (e) {
+      const msg = e instanceof Error ? e.message : String(e);
+      toast.error("Falha ao executar teste", { description: msg, duration: 15000 });
+    } finally {
+      setTestingSlingInspection(false);
     }
   };
 
@@ -1140,6 +1177,48 @@ const AdminWhatsApp = () => {
               Requisitos: integração W-API habilitada e <strong>ID do grupo</strong> preenchido. O botão "Testar" envia
               imediatamente os alertas para itens vencendo em exatamente 10 dias, ignorando a duplicidade. Lembre-se de
               salvar após alterar este botão.
+            </p>
+          </CardContent>
+        </Card>
+
+        <Card>
+          <CardHeader>
+            <CardTitle className="flex items-center gap-2">
+              <Bell className="w-5 h-5 text-primary" />
+              Cintas Pendentes para Suspensão (dias 10 e 28 às 14h)
+            </CardTitle>
+            <CardDescription>
+              Quando habilitado, o sistema envia automaticamente para o <strong>grupo configurado</strong> a lista
+              das cintas que ainda não foram inspecionadas no mês corrente (cor do mês). A verificação roda
+              <strong> nos dias 10 e 28 de cada mês, às 14:00h (Pará UTC-4)</strong>.
+            </CardDescription>
+          </CardHeader>
+          <CardContent>
+            <div className="flex items-center justify-between gap-3 rounded-md border p-3 bg-muted/30">
+              <div className="flex items-center gap-3">
+                <Switch
+                  id="auto-send-sling-inspection"
+                  checked={autoSendSlingInspectionAlert}
+                  onCheckedChange={setAutoSendSlingInspectionAlert}
+                />
+                <Label htmlFor="auto-send-sling-inspection" className="cursor-pointer">
+                  Ativar alerta automático de cintas pendentes no grupo
+                </Label>
+              </div>
+              <div className="flex items-center gap-2">
+                <Badge variant={autoSendSlingInspectionAlert ? "default" : "secondary"}>
+                  {autoSendSlingInspectionAlert ? "Ativo" : "Desativado"}
+                </Badge>
+                <Button variant="outline" size="sm" onClick={handleTestSlingInspectionNotify} disabled={testingSlingInspection}>
+                  <Play className="w-4 h-4 mr-1" />
+                  {testingSlingInspection ? "..." : "Testar"}
+                </Button>
+              </div>
+            </div>
+            <p className="text-xs text-muted-foreground mt-3">
+              Requisitos: integração W-API habilitada e <strong>ID do grupo</strong> preenchido. O botão "Testar"
+              envia imediatamente a lista de cintas pendentes da cor do mês, ignorando a janela de dias/horário.
+              Lembre-se de salvar após alterar este botão.
             </p>
           </CardContent>
         </Card>
