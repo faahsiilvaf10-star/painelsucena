@@ -178,11 +178,11 @@ const AdminWhatsApp = () => {
           "apikey": import.meta.env.VITE_SUPABASE_PUBLISHABLE_KEY,
           "Authorization": `Bearer ${accessToken}`,
         },
-        body: {
+        body: JSON.stringify({
           message: message.trim(),
           recipients,
           group_id: sendToGroup ? targetGroup : null,
-        },
+        }),
       });
 
       const responseText = await response.text();
