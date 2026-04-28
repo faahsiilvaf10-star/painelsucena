@@ -128,6 +128,14 @@ Deno.serve(async (req) => {
         continue;
       }
 
+      // Se o lembrete foi adiado pelo criador exatamente para HOJE, envia como ocorrência "snoozed"
+      if (snoozedUntil && snoozedUntil === todayISO) {
+        if (timeAtLeast(currentHHMM, desiredTime)) {
+          eligible.push({ reminder: r, occurrenceType: `snoozed_${todayISO}`, occurrenceLabel: "Adiado para hoje" });
+        }
+        continue;
+      }
+
       if (r.is_recurring && Array.isArray(r.recurring_days) && r.recurring_days.length > 0) {
         // Hoje é dia da semana?
         const todayDow = (() => {
