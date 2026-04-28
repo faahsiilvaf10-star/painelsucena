@@ -44,6 +44,24 @@ const buildWapiEndpoint = (rawUrl: string, instanceId: string, isGroup: boolean)
   return url.toString();
 };
 
+const buildWapiUrl = (rawUrl: string, instanceId: string, pathname: string): string => {
+  const url = new URL(rawUrl.trim());
+  if (url.hostname === "painel.w-api.app" || url.pathname.startsWith("/app")) {
+    url.protocol = "https:";
+    url.hostname = "api.w-api.app";
+  }
+  url.pathname = pathname;
+  url.searchParams.set("instanceId", instanceId);
+  return url.toString();
+};
+
+const containsGroupId = (value: unknown, groupId: string): boolean => {
+  if (typeof value === "string") return value.trim() === groupId;
+  if (Array.isArray(value)) return value.some((item) => containsGroupId(item, groupId));
+  if (value && typeof value === "object") return Object.values(value as Record<string, unknown>).some((item) => containsGroupId(item, groupId));
+  return false;
+};
+
 Deno.serve(async (req) => {
   if (req.method === "OPTIONS") return new Response("ok", { headers: corsHeaders });
 
@@ -121,13 +139,29 @@ Deno.serve(async (req) => {
     if (isGroupSend) {
       const groupId = (body.group_id || "").trim();
       try {
+        const groupsUrl = buildWapiUrl(cfg.instance_url, cfg.instance_id, "/v1/group/get-all-groups");
+        const groupsResp = await fetch(groupsUrl, {
+          method: "GET",
+          headers: { "Authorization": `Bearer ${cfg.instance_token}` },
+        });
+        const groupsText = await groupsResp.text();
+        let groupsJson: unknown = null;
+        try { groupsJson = JSON.parse(groupsText); } catch { groupsJson = { raw: groupsText }; }
+
+        if (!groupsResp.ok) {
+          throw new Error(`Falha ao validar grupo na W-API (HTTP ${groupsResp.status}): ${groupsText.slice(0, 200)}`);
+        }
+        if (!containsGroupId(groupsJson, groupId)) {
+          throw new Error(`Grupo ${groupId} não encontrado na instância ${cfg.instance_id}. Use o ID retornado por /v1/group/get-all-groups.`);
+        }
+
         const resp = await fetch(endpoint, {
           method: "POST",
           headers: {
             "Content-Type": "application/json",
             "Authorization": `Bearer ${cfg.instance_token}`,
           },
-          body: JSON.stringify({ phone: groupId, message: body.message }),
+          body: JSON.stringify({ phone: groupId, message: body.message, delayMessage: Math.max(1, Math.min(15, Number(cfg.delay_seconds ?? 5) || 5)) }),
         });
         const respText = await resp.text();
         let respJson: unknown = null;
