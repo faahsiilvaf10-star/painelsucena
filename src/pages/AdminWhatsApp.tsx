@@ -1183,6 +1183,48 @@ const AdminWhatsApp = () => {
 
         <Card>
           <CardHeader>
+            <CardTitle className="flex items-center gap-2">
+              <Bell className="w-5 h-5 text-primary" />
+              Cintas Pendentes para Suspensão (dias 10 e 28 às 14h)
+            </CardTitle>
+            <CardDescription>
+              Quando habilitado, o sistema envia automaticamente para o <strong>grupo configurado</strong> a lista
+              das cintas que ainda não foram inspecionadas no mês corrente (cor do mês). A verificação roda
+              <strong> nos dias 10 e 28 de cada mês, às 14:00h (Pará UTC-4)</strong>.
+            </CardDescription>
+          </CardHeader>
+          <CardContent>
+            <div className="flex items-center justify-between gap-3 rounded-md border p-3 bg-muted/30">
+              <div className="flex items-center gap-3">
+                <Switch
+                  id="auto-send-sling-inspection"
+                  checked={autoSendSlingInspectionAlert}
+                  onCheckedChange={setAutoSendSlingInspectionAlert}
+                />
+                <Label htmlFor="auto-send-sling-inspection" className="cursor-pointer">
+                  Ativar alerta automático de cintas pendentes no grupo
+                </Label>
+              </div>
+              <div className="flex items-center gap-2">
+                <Badge variant={autoSendSlingInspectionAlert ? "default" : "secondary"}>
+                  {autoSendSlingInspectionAlert ? "Ativo" : "Desativado"}
+                </Badge>
+                <Button variant="outline" size="sm" onClick={handleTestSlingInspectionNotify} disabled={testingSlingInspection}>
+                  <Play className="w-4 h-4 mr-1" />
+                  {testingSlingInspection ? "..." : "Testar"}
+                </Button>
+              </div>
+            </div>
+            <p className="text-xs text-muted-foreground mt-3">
+              Requisitos: integração W-API habilitada e <strong>ID do grupo</strong> preenchido. O botão "Testar"
+              envia imediatamente a lista de cintas pendentes da cor do mês, ignorando a janela de dias/horário.
+              Lembre-se de salvar após alterar este botão.
+            </p>
+          </CardContent>
+        </Card>
+
+        <Card>
+          <CardHeader>
             <CardTitle>Envio de Mensagem</CardTitle>
             <CardDescription>Selecione os usuários e escreva a mensagem. Apenas usuários com WhatsApp cadastrado aparecem.</CardDescription>
           </CardHeader>
