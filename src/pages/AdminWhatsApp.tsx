@@ -235,6 +235,43 @@ const AdminWhatsApp = () => {
     }
   };
 
+  const handleTestDdsNotify = async () => {
+    setTestingDds(true);
+    try {
+      const url = `${import.meta.env.VITE_SUPABASE_URL}/functions/v1/wapi-dds-notify`;
+      const response = await fetch(url, {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({}),
+      });
+      const text = await response.text();
+      let data: any = null;
+      try { data = text ? JSON.parse(text) : null; } catch { /* keep raw */ }
+
+      if (!response.ok) {
+        toast.error(`Erro HTTP ${response.status}`, { description: text.slice(0, 500), duration: 15000 });
+        return;
+      }
+      if (data?.skipped) {
+        toast.info("Nada a enviar", { description: data.reason || "Sem DDS para hoje", duration: 8000 });
+      } else {
+        toast.success(`DDS: ${data?.sent ?? 0}/${data?.total ?? 0} enviadas`);
+        if (Array.isArray(data?.results)) {
+          const failed = data.results.filter((r: { ok: boolean }) => !r.ok);
+          if (failed.length) {
+            toast.error(`${failed.length} falha(s)`, { description: JSON.stringify(failed).slice(0, 500), duration: 15000 });
+          }
+        }
+      }
+      queryClient.invalidateQueries({ queryKey: ["wapi-logs"] });
+    } catch (e) {
+      const msg = e instanceof Error ? e.message : String(e);
+      toast.error("Falha ao executar teste", { description: msg, duration: 15000 });
+    } finally {
+      setTestingDds(false);
+    }
+  };
+
   if (authLoading || adminLoading) return <Layout><div className="p-8">Carregando...</div></Layout>;
   if (!user) return <Navigate to="/auth" replace />;
   if (!isAdmin) return <Navigate to="/" replace />;
