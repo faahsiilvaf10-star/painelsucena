@@ -79,6 +79,9 @@ Deno.serve(async (req) => {
     const year = para.getUTCFullYear();
     const currentColor = colorMonthMap[month];
     const monthYearPrefix = `${year}-${String(month).padStart(2, "0")}`;
+    // Último dia do mês corrente (calculado corretamente, evitando "-31" inválido)
+    const lastDay = new Date(Date.UTC(year, month, 0)).getUTCDate();
+    const lastDayISO = `${monthYearPrefix}-${String(lastDay).padStart(2, "0")}`;
 
     // Cintas da cor do mês
     const { data: slings, error: slErr } = await admin
@@ -86,7 +89,10 @@ Deno.serve(async (req) => {
       .select("id, tag, description, color")
       .eq("color", currentColor)
       .order("tag", { ascending: true });
-    if (slErr) throw slErr;
+    if (slErr) {
+      console.error("[sling-notify] sling_equipment error:", slErr);
+      throw slErr;
+    }
 
     // Inspeções do mês corrente
     const slingIds = (slings || []).map((s) => s.id);
@@ -97,8 +103,11 @@ Deno.serve(async (req) => {
         .select("sling_id, status, inspection_date")
         .in("sling_id", slingIds)
         .gte("inspection_date", `${monthYearPrefix}-01`)
-        .lte("inspection_date", `${monthYearPrefix}-31`);
-      if (iErr) throw iErr;
+        .lte("inspection_date", lastDayISO);
+      if (iErr) {
+        console.error("[sling-notify] sling_inspections error:", iErr);
+        throw iErr;
+      }
       inspections = insp || [];
     }
 
