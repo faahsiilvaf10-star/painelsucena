@@ -867,7 +867,39 @@ const AdminWhatsApp = () => {
 
         <Card>
           <CardHeader>
-            <CardTitle>Envio de Mensagem</CardTitle>
+            <CardTitle className="flex items-center gap-2">
+              <Bell className="w-5 h-5 text-primary" />
+              Movimentação de Equipamentos no Grupo
+            </CardTitle>
+            <CardDescription>
+              Quando habilitado, a cada <strong>entrada ou saída de equipamento</strong> registrada no sistema,
+              o <strong>grupo do WhatsApp configurado</strong> recebe automaticamente uma mensagem com
+              equipamento, placa, data, horário, motivo (no caso de saída), descrição do problema, observação e quem registrou.
+            </CardDescription>
+          </CardHeader>
+          <CardContent>
+            <div className="flex items-center justify-between gap-3 rounded-md border p-3 bg-muted/30">
+              <div className="flex items-center gap-3">
+                <Switch
+                  id="auto-send-equipment-movements"
+                  checked={autoSendEquipmentMovements}
+                  onCheckedChange={setAutoSendEquipmentMovements}
+                />
+                <Label htmlFor="auto-send-equipment-movements" className="cursor-pointer">
+                  Ativar envio automático de movimentações no grupo
+                </Label>
+              </div>
+              <Badge variant={autoSendEquipmentMovements ? "default" : "secondary"}>
+                {autoSendEquipmentMovements ? "Ativo" : "Desativado"}
+              </Badge>
+            </div>
+            <p className="text-xs text-muted-foreground mt-3">
+              Requisitos: integração W-API habilitada e <strong>ID do grupo</strong> preenchido. Cada movimentação registrada
+              dispara um envio imediato.
+            </p>
+          </CardContent>
+        </Card>
+
             <CardDescription>Selecione os usuários e escreva a mensagem. Apenas usuários com WhatsApp cadastrado aparecem.</CardDescription>
           </CardHeader>
           <CardContent className="space-y-4">
