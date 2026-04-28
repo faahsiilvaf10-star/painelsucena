@@ -501,6 +501,7 @@ const AdminWhatsApp = () => {
           </CardContent>
         </Card>
 
+        <Card>
           <CardHeader>
             <CardTitle>Envio de Mensagem</CardTitle>
             <CardDescription>Selecione os usuários e escreva a mensagem. Apenas usuários com WhatsApp cadastrado aparecem.</CardDescription>
