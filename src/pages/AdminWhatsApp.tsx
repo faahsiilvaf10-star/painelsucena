@@ -1100,6 +1100,49 @@ const AdminWhatsApp = () => {
           </CardContent>
         </Card>
 
+        <Card>
+          <CardHeader>
+            <CardTitle className="flex items-center gap-2">
+              <Bell className="w-5 h-5 text-primary" />
+              Vistoria de Equipamentos (10 dias antes do vencimento)
+            </CardTitle>
+            <CardDescription>
+              Quando habilitado, o sistema envia automaticamente para o <strong>grupo configurado</strong> uma mensagem
+              quando faltarem <strong>10 dias</strong> para o vencimento de qualquer data de vistoria de equipamentos
+              (Vistoria, Laudo Opacidade, Laudo Mecânico, Plano Manutenção e Cronógrafo). A verificação roda
+              <strong> diariamente às 06:00h (Pará UTC-4)</strong> e cada alerta é enviado apenas
+              <strong> uma vez por placa/campo/vencimento</strong>.
+            </CardDescription>
+          </CardHeader>
+          <CardContent>
+            <div className="flex items-center justify-between gap-3 rounded-md border p-3 bg-muted/30">
+              <div className="flex items-center gap-3">
+                <Switch
+                  id="auto-send-vehicle-inspection"
+                  checked={autoSendVehicleInspectionAlert}
+                  onCheckedChange={setAutoSendVehicleInspectionAlert}
+                />
+                <Label htmlFor="auto-send-vehicle-inspection" className="cursor-pointer">
+                  Ativar alerta automático de vistoria no grupo
+                </Label>
+              </div>
+              <div className="flex items-center gap-2">
+                <Badge variant={autoSendVehicleInspectionAlert ? "default" : "secondary"}>
+                  {autoSendVehicleInspectionAlert ? "Ativo" : "Desativado"}
+                </Badge>
+                <Button variant="outline" size="sm" onClick={handleTestVehicleInspectionNotify} disabled={testingVehicleInspection}>
+                  <Play className="w-4 h-4 mr-1" />
+                  {testingVehicleInspection ? "..." : "Testar"}
+                </Button>
+              </div>
+            </div>
+            <p className="text-xs text-muted-foreground mt-3">
+              Requisitos: integração W-API habilitada e <strong>ID do grupo</strong> preenchido. O botão "Testar" envia
+              imediatamente os alertas para itens vencendo em exatamente 10 dias, ignorando a duplicidade. Lembre-se de
+              salvar após alterar este botão.
+            </p>
+          </CardContent>
+        </Card>
 
         <Card>
           <CardHeader>
