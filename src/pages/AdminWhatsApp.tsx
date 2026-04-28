@@ -76,6 +76,7 @@ const AdminWhatsApp = () => {
       setDdsAutoNotify(!!cfg.dds_auto_notify);
       setDdsNotifyDayBefore(!!cfg.dds_notify_day_before);
       setAutoSendReq(!!cfg.auto_send_requisitions);
+      setAutoSendReminders(!!cfg.auto_send_reminders);
     }
   }, [cfg]);
 
