@@ -95,6 +95,7 @@ const AdminWhatsApp = () => {
       setAutoSendCampaignAlert(!!cfg.auto_send_campaign_alert);
       setAutoSendOrderAlerts(!!cfg.auto_send_order_alerts);
       setAutoSendEquipmentMovements(!!cfg.auto_send_equipment_movements);
+      setAutoSendPlanningAlerts(!!cfg.auto_send_planning_alerts);
     }
   }, [cfg]);
 
