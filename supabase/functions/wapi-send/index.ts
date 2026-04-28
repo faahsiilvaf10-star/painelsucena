@@ -104,10 +104,14 @@ Deno.serve(async (req) => {
     }
 
     const endpoint = buildWapiEndpoint(cfg.instance_url, cfg.instance_id);
+    const delayMs = Math.max(0, Number(cfg.delay_seconds ?? 5)) * 1000;
+    const sleep = (ms: number) => new Promise((res) => setTimeout(res, ms));
 
     const results: Array<{ phone: string; ok: boolean; error?: string }> = [];
 
-    for (const r of body.recipients) {
+    for (let i = 0; i < body.recipients.length; i++) {
+      const r = body.recipients[i];
+      if (i > 0 && delayMs > 0) await sleep(delayMs);
       const phone = sanitizePhone(r.phone);
       if (!phone) {
         results.push({ phone: r.phone, ok: false, error: "Telefone inválido" });
