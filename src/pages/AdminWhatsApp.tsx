@@ -164,6 +164,7 @@ const AdminWhatsApp = () => {
         auto_send_forbidden_color_alert: autoSendForbiddenColorAlert,
         auto_send_campaign_alert: autoSendCampaignAlert,
         auto_send_order_alerts: autoSendOrderAlerts,
+        auto_send_equipment_movements: autoSendEquipmentMovements,
         updated_by: user?.id ?? null,
       };
       if (cfg?.id) {
