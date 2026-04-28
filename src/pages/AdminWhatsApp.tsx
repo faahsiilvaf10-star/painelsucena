@@ -44,6 +44,7 @@ const AdminWhatsApp = () => {
   const [sendToGroup, setSendToGroup] = useState(false);
   const [groupIdOverride, setGroupIdOverride] = useState("");
   const [ddsAutoNotify, setDdsAutoNotify] = useState(false);
+  const [autoSendReq, setAutoSendReq] = useState(false);
   const [testingDds, setTestingDds] = useState(false);
 
   const { data: cfg } = useQuery({
@@ -57,7 +58,7 @@ const AdminWhatsApp = () => {
         .limit(1)
         .maybeSingle();
       if (error) throw error;
-      return data as { id: string; instance_url: string; instance_token: string; instance_id: string; enabled: boolean; delay_seconds: number | null; group_id: string | null; dds_auto_notify: boolean | null } | null;
+      return data as { id: string; instance_url: string; instance_token: string; instance_id: string; enabled: boolean; delay_seconds: number | null; group_id: string | null; dds_auto_notify: boolean | null; auto_send_requisitions: boolean | null } | null;
     },
   });
 
@@ -70,6 +71,7 @@ const AdminWhatsApp = () => {
       setDelaySeconds(typeof cfg.delay_seconds === "number" ? cfg.delay_seconds : 5);
       setGroupId(cfg.group_id || "");
       setDdsAutoNotify(!!cfg.dds_auto_notify);
+      setAutoSendReq(!!cfg.auto_send_requisitions);
     }
   }, [cfg]);
 
@@ -133,6 +135,7 @@ const AdminWhatsApp = () => {
         enabled,
         delay_seconds: Math.max(0, Math.min(600, Math.floor(Number(delaySeconds) || 0))),
         dds_auto_notify: ddsAutoNotify,
+        auto_send_requisitions: autoSendReq,
         updated_by: user?.id ?? null,
       };
       if (cfg?.id) {
@@ -397,6 +400,40 @@ const AdminWhatsApp = () => {
                 {testingDds ? "Testando..." : "Testar agora"}
               </Button>
             </div>
+          </CardContent>
+        </Card>
+
+        <Card>
+          <CardHeader>
+            <CardTitle className="flex items-center gap-2">
+              <Send className="w-5 h-5 text-primary" />
+              Envio Automático de Requisições
+            </CardTitle>
+            <CardDescription>
+              Quando habilitado, ao finalizar uma requisição (EPI ou Material) o sistema envia automaticamente
+              para o <strong>grupo configurado</strong> uma mensagem com os detalhes dos itens e a <strong>imagem da requisição</strong>,
+              respeitando o intervalo de segurança configurado.
+            </CardDescription>
+          </CardHeader>
+          <CardContent>
+            <div className="flex items-center justify-between gap-3 rounded-md border p-3 bg-muted/30">
+              <div className="flex items-center gap-3">
+                <Switch
+                  id="auto-send-req"
+                  checked={autoSendReq}
+                  onCheckedChange={setAutoSendReq}
+                />
+                <Label htmlFor="auto-send-req" className="cursor-pointer">
+                  Ativar envio automático ao finalizar uma requisição
+                </Label>
+              </div>
+              <Badge variant={autoSendReq ? "default" : "secondary"}>
+                {autoSendReq ? "Ativo" : "Desativado"}
+              </Badge>
+            </div>
+            <p className="text-xs text-muted-foreground mt-3">
+              Requisitos: integração W-API habilitada e ID do grupo preenchido. Lembre-se de salvar a configuração após alterar este botão.
+            </p>
           </CardContent>
         </Card>
 

@@ -884,6 +884,86 @@ export default function TrocaEpi() {
     }
   };
 
+  const autoSendRequisitionToGroup = useCallback(async (
+    type: "epi" | "material",
+    htmlContent: string,
+    caption: string,
+    fileBaseName: string,
+  ) => {
+    try {
+      // Verifica configuração W-API
+      const { data: cfg } = await supabase
+        .from("wapi_config" as never)
+        .select("enabled, group_id, auto_send_requisitions")
+        .order("updated_at", { ascending: false })
+        .limit(1)
+        .maybeSingle();
+      const c = cfg as { enabled: boolean | null; group_id: string | null; auto_send_requisitions: boolean | null } | null;
+      if (!c?.enabled || !c?.auto_send_requisitions || !c?.group_id) return;
+
+      // Renderiza HTML em canvas → PNG
+      const logoBase64 = await loadCachedLogoBase64();
+      const container = document.createElement("div");
+      container.style.position = "fixed";
+      container.style.left = "-9999px";
+      container.style.top = "0";
+      container.style.width = "800px";
+      container.style.background = "#fff";
+      container.innerHTML = htmlContent;
+      document.body.appendChild(container);
+      let publicUrl = "";
+      try {
+        const images = container.querySelectorAll("img");
+        await Promise.all(Array.from(images).map((img) => new Promise<void>((resolve) => {
+          if (img.complete) return resolve();
+          img.onload = () => resolve();
+          img.onerror = () => resolve();
+        })));
+        const html2canvas = await loadHtml2Canvas();
+        const canvas = await html2canvas(container, { scale: 2, useCORS: true, backgroundColor: "#ffffff" });
+        const blob: Blob = await new Promise((res, rej) => canvas.toBlob((b) => b ? res(b) : rej(new Error("blob falhou")), "image/png"));
+        const path = `wapi-requisicoes/${type}/${Date.now()}-${sanitizeShareFileName(fileBaseName)}.png`;
+        const { error: upErr } = await supabase.storage.from("desvios").upload(path, blob, { contentType: "image/png", upsert: true });
+        if (upErr) throw upErr;
+        const { data: urlData } = supabase.storage.from("desvios").getPublicUrl(path);
+        publicUrl = urlData?.publicUrl || "";
+      } finally {
+        if (container.parentNode) container.parentNode.removeChild(container);
+      }
+      if (!publicUrl) return;
+
+      // Dispara wapi-send (delay aplicado pela edge function)
+      const { data: sessionData } = await supabase.auth.getSession();
+      const accessToken = sessionData.session?.access_token;
+      if (!accessToken) return;
+
+      const url = `${import.meta.env.VITE_SUPABASE_URL}/functions/v1/wapi-send`;
+      const resp = await fetch(url, {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+          "apikey": import.meta.env.VITE_SUPABASE_PUBLISHABLE_KEY,
+          "Authorization": `Bearer ${accessToken}`,
+        },
+        body: JSON.stringify({
+          message: caption,
+          caption,
+          image_url: publicUrl,
+          recipients: [],
+          group_id: c.group_id,
+        }),
+      });
+      if (resp.ok) {
+        toast.success("Requisição enviada para o grupo do WhatsApp 📤");
+      } else {
+        const txt = await resp.text();
+        toast.error("Falha ao enviar para o grupo", { description: txt.slice(0, 200) });
+      }
+    } catch (err) {
+      console.error("[autoSendRequisitionToGroup]", err);
+    }
+  }, []);
+
   const handleSignatureConfirm = async (sigFuncionario: string, sigAutorizador: string) => {
     const currentSelectedEpis = [...selectedEpis];
     const currentFuncionarioNome = funcionarioNome;
@@ -1000,6 +1080,15 @@ export default function TrocaEpi() {
       toast.error("Erro ao atualizar estoque.");
     }
 
+    // Envio automático para grupo do WhatsApp (se ativado no painel admin)
+    try {
+      const logoBase64 = await loadCachedLogoBase64();
+      const fakeExchange = { ...exchangeData, id: "auto", created_at: new Date().toISOString(), created_by: user!.id } as unknown as EpiExchange;
+      const html = buildPdfHtml(fakeExchange, logoBase64);
+      const caption = buildExchangeShareDescription(fakeExchange);
+      void autoSendRequisitionToGroup("epi", html, caption, currentFuncionarioNome);
+    } catch (e) { console.warn("auto send EPI prep failed", e); }
+
     setShowSignature(false);
     resetForm();
     setShowForm(false);
@@ -1066,6 +1155,16 @@ export default function TrocaEpi() {
     } catch (err) {
       toast.error("Erro ao atualizar estoque.");
     }
+
+    // Envio automático para grupo do WhatsApp (se ativado no painel admin)
+    try {
+      const logoBase64 = await loadCachedLogoBase64();
+      const fakeReq = { ...reqData, id: "auto", created_at: new Date().toISOString(), created_by: user!.id } as unknown as MaterialRequisition;
+      const html = buildMaterialPdfHtml(fakeReq, logoBase64);
+      const itensTxt = currentItems.map((m) => `• ${m.name} (${m.qty})`).join("\n");
+      const caption = `📦 Requisição de Material\nFuncionário: ${currentFuncNome}\nÁrea: ${matAreaDestino}\nMotivo: ${matMotivo}\n\nItens:\n${itensTxt}`;
+      void autoSendRequisitionToGroup("material", html, caption, currentFuncNome);
+    } catch (e) { console.warn("auto send Material prep failed", e); }
 
     setShowMaterialSignature(false);
     resetMaterialForm();
