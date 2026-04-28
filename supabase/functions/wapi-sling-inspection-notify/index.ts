@@ -114,11 +114,11 @@ Deno.serve(async (req) => {
     }
 
     const lines: string[] = [];
-    lines.push(`🔗 *CINTAS PENDENTES PARA SUSPENSÃO*`);
+    lines.push(`⚠️ *VISTORIAS DE CINTAS PENDENTES*`);
     lines.push(`📅 Mês: *${String(month).padStart(2, "0")}/${year}*`);
-    lines.push(`🎨 Cor do mês: *${colorLabels[currentColor] || currentColor}*`);
+    lines.push(`🎨 As cintas da cor *${colorLabels[currentColor] || currentColor}* precisam ser inspecionadas este mês.`);
     lines.push("");
-    lines.push(`⚠️ *${pending.length} cinta(s)* ainda não foram inspecionadas:`);
+    lines.push(`🔗 *${pending.length} cinta(s) pendente(s):*`);
     lines.push("");
     for (const p of pending) {
       lines.push(`• 🏷️ *${p.tag}* — ${p.description || "(sem descrição)"}`);
