@@ -228,15 +228,16 @@ const filterActiveReminders = (
     }
 
     // Handle regular (non-recurring) reminders
-    // Highlights: show from creation up to and including the event day
-    // (alert_days_before continues to drive WhatsApp scheduling separately)
+    // Respect alert_days_before strictly: only show in highlights when within the alert window
     const daysUntilEvent = getDaysUntilEventBrazilNorth(reminder.event_date);
 
-    // Future event (not yet passed): always show in highlights
-    if (daysUntilEvent > 0) return true;
+    if (reminder.alert_days_before > 0 && daysUntilEvent <= reminder.alert_days_before && daysUntilEvent >= 0) {
+      return true;
+    }
 
-    // Event day itself: respect show_on_event_day flag
-    if (daysUntilEvent === 0) return reminder.show_on_event_day !== false;
+    if (reminder.show_on_event_day && daysUntilEvent === 0) {
+      return true;
+    }
 
     return false;
   });
