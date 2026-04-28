@@ -286,6 +286,12 @@ const Admin = () => {
           </p>
         </div>
 
+        <div className="mb-4">
+          <Button variant="outline" onClick={() => navigate("/admin/whatsapp")} className="gap-2">
+            <MessageCircle className="w-4 h-4" /> WhatsApp API (W-API)
+          </Button>
+        </div>
+
         <Tabs defaultValue="settings" className="space-y-4 sm:space-y-6">
           <TabsList className="flex w-full overflow-x-auto max-w-full">
             <TabsTrigger value="settings" className="text-xs sm:text-sm flex-shrink-0">Config.</TabsTrigger>
