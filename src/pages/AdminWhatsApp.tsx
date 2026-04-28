@@ -66,6 +66,7 @@ const AdminWhatsApp = () => {
       setInstanceId(cfg.instance_id || "");
       setEnabled(!!cfg.enabled);
       setDelaySeconds(typeof cfg.delay_seconds === "number" ? cfg.delay_seconds : 5);
+      setGroupId(cfg.group_id || "");
     }
   }, [cfg]);
 
