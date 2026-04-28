@@ -552,6 +552,9 @@ const AdminWhatsApp = () => {
               <p className="text-xs text-muted-foreground">
                 Aguarda esse tempo entre cada mensagem para evitar bloqueio/banimento do número no WhatsApp. Recomendado: 5–15s.
               </p>
+              <p className="text-xs text-primary">
+                ⏱️ Todas as mensagens automáticas (lembretes, ASO, matriz, pedidos, equipamentos, planejamento, cor proibida e campanha) entram em uma fila global e respeitam este intervalo — mesmo quando disparadas no mesmo horário.
+              </p>
             </div>
             <div className="flex items-center justify-between pt-2">
               <div className="flex items-center gap-2">

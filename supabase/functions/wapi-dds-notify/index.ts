@@ -122,30 +122,13 @@ Deno.serve(async (req) => {
         : `🎤 *Lembrete DDS - Hoje é o seu dia!*\n\nOlá, ${presenterName}!\n\nVocê é o palestrante do DDS de hoje (${dateBR}).\n\n📋 *Tema:* ${dds.theme}\n\nPrepare-se e bom DDS! 🌟\n\n_Mensagem automática - Sucena_`;
 
       try {
-        const resp = await fetch(endpoint, {
-          method: "POST",
-          headers: {
-            "Content-Type": "application/json",
-            "Authorization": `Bearer ${cfg.instance_token}`,
-          },
-          body: JSON.stringify({ phone, message, delayMessage: Math.max(1, Math.min(15, Number(cfg.delay_seconds ?? 5) || 5)) }),
+        const { error: qErr } = await admin.from("wapi_outbox").insert({
+          kind: "text", target_type: "contact", phone, message,
+          origin: "dds", recipient_user_id: dds.presenter_user_id, recipient_name: presenterName,
         });
-        const respText = await resp.text();
-        let respJson: unknown = null;
-        try { respJson = JSON.parse(respText); } catch { respJson = { raw: respText }; }
+        const ok = !qErr;
+        results.push({ presenter: presenterName, phone, ok, error: ok ? undefined : qErr?.message });
 
-        const ok = resp.ok;
-        await admin.from("wapi_message_logs").insert({
-          sent_by: null,
-          recipient_user_id: dds.presenter_user_id,
-          recipient_name: presenterName,
-          recipient_phone: phone,
-          message,
-          status: ok ? "sent" : "failed",
-          error_message: ok ? null : `HTTP ${resp.status}: ${respText.slice(0, 200)}`,
-          response: respJson as never,
-        });
-        results.push({ presenter: presenterName, phone, ok, error: ok ? undefined : `HTTP ${resp.status}` });
       } catch (e) {
         const msg = e instanceof Error ? e.message : "Erro desconhecido";
         await admin.from("wapi_message_logs").insert({

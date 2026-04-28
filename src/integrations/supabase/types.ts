@@ -4187,6 +4187,7 @@ export type Database = {
           instance_id: string
           instance_token: string
           instance_url: string
+          last_dispatched_at: string | null
           updated_at: string
           updated_by: string | null
         }
@@ -4210,6 +4211,7 @@ export type Database = {
           instance_id?: string
           instance_token?: string
           instance_url?: string
+          last_dispatched_at?: string | null
           updated_at?: string
           updated_by?: string | null
         }
@@ -4233,6 +4235,7 @@ export type Database = {
           instance_id?: string
           instance_token?: string
           instance_url?: string
+          last_dispatched_at?: string | null
           updated_at?: string
           updated_by?: string | null
         }
@@ -4274,6 +4277,66 @@ export type Database = {
           response?: Json | null
           sent_by?: string | null
           status?: string
+        }
+        Relationships: []
+      }
+      wapi_outbox: {
+        Row: {
+          attempts: number
+          caption: string | null
+          created_at: string
+          id: string
+          image_url: string | null
+          kind: string
+          last_error: string | null
+          message: string | null
+          origin: string | null
+          phone: string
+          recipient_name: string | null
+          recipient_user_id: string | null
+          scheduled_at: string
+          sent_at: string | null
+          status: string
+          target_type: string
+          updated_at: string
+        }
+        Insert: {
+          attempts?: number
+          caption?: string | null
+          created_at?: string
+          id?: string
+          image_url?: string | null
+          kind: string
+          last_error?: string | null
+          message?: string | null
+          origin?: string | null
+          phone: string
+          recipient_name?: string | null
+          recipient_user_id?: string | null
+          scheduled_at?: string
+          sent_at?: string | null
+          status?: string
+          target_type: string
+          updated_at?: string
+        }
+        Update: {
+          attempts?: number
+          caption?: string | null
+          created_at?: string
+          id?: string
+          image_url?: string | null
+          kind?: string
+          last_error?: string | null
+          message?: string | null
+          origin?: string | null
+          phone?: string
+          recipient_name?: string | null
+          recipient_user_id?: string | null
+          scheduled_at?: string
+          sent_at?: string | null
+          status?: string
+          target_type?: string
+          updated_at?: string
         }
         Relationships: []
       }

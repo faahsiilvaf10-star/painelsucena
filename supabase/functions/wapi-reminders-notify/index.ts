@@ -201,19 +201,22 @@ Deno.serve(async (req) => {
         recipientsCount = recipients.length;
       }
 
-      // Invoca wapi-send (mesmo projeto) com bypass interno
-      const sendUrl = `${SUPABASE_URL}/functions/v1/wapi-send`;
-      const resp = await fetch(sendUrl, {
-        method: "POST",
-        headers: {
-          "Content-Type": "application/json",
-          "Authorization": `Bearer ${SERVICE_ROLE}`,
-          "x-internal-token": SERVICE_ROLE,
-        },
-        body: JSON.stringify(invokeBody),
-      });
-      const ok = resp.ok;
-      const respText = await resp.text().catch(() => "");
+      // Enfileira no wapi_outbox (worker respeita delay global)
+      const rows: any[] = [];
+      if (channel === "group") {
+        rows.push({ kind: "text", target_type: "group", phone: invokeBody.group_id, message, origin: "reminder" });
+      } else {
+        for (const rec of invokeBody.recipients) {
+          const digits = String(rec.phone || "").replace(/\D/g, "");
+          const phone = digits.length === 10 || digits.length === 11 ? "55" + digits : digits;
+          if (!phone) continue;
+          rows.push({ kind: "text", target_type: "contact", phone, message, origin: "reminder", recipient_user_id: rec.user_id, recipient_name: rec.name });
+        }
+      }
+      const { error: qErr } = rows.length ? await admin.from("wapi_outbox").insert(rows) : { error: null };
+      const ok = !qErr;
+      const respText = qErr?.message ?? "";
+
 
       // Registra envio (independente de sucesso/falha por destinatário individual)
       if (ok) {

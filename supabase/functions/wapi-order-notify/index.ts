@@ -54,19 +54,15 @@ const buildWapiEndpoint = (rawUrl: string, instanceId: string): string => {
 };
 
 async function sendWapiText(cfg: any, phone: string, message: string) {
-  const endpoint = buildWapiEndpoint(cfg.instance_url, cfg.instance_id);
-  const res = await fetch(endpoint, {
-    method: "POST",
-    headers: {
-      "Content-Type": "application/json",
-      Authorization: `Bearer ${cfg.instance_token}`,
-    },
-    body: JSON.stringify({ phone, message, delayMessage: cfg.delay_seconds || 3 }),
+  const client = createClient(Deno.env.get("SUPABASE_URL")!, Deno.env.get("SUPABASE_SERVICE_ROLE_KEY")!);
+  const { error } = await client.from("wapi_outbox").insert({
+    kind: "text",
+    target_type: "contact",
+    phone,
+    message,
+    origin: "order",
   });
-  const text = await res.text();
-  let body: any = text;
-  try { body = JSON.parse(text); } catch {}
-  return { ok: res.ok, status: res.status, body };
+  return { ok: !error, status: error ? 500 : 202, body: error ? { error: error.message } : { queued: true } };
 }
 
 Deno.serve(async (req) => {
