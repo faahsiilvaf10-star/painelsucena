@@ -176,51 +176,17 @@ Deno.serve(async (req) => {
 
     const delayMessage = Math.max(1, Math.min(15, Number(cfg.delay_seconds ?? 5) || 5));
 
-    let endpoint: string;
-    let payload: Record<string, unknown>;
-    if (imageUrl) {
-      endpoint = buildWapiUrl(cfg.instance_url, cfg.instance_id, "/v1/message/send-image");
-      payload = { phone: groupId, image: imageUrl, caption, delayMessage };
-    } else {
-      endpoint = buildWapiUrl(cfg.instance_url, cfg.instance_id, "/v1/message/send-text");
-      payload = { phone: groupId, message: caption, delayMessage };
-    }
-
     let ok = false;
     let errorMsg: string | null = null;
     try {
-      const resp = await fetch(endpoint, {
-        method: "POST",
-        headers: {
-          "Content-Type": "application/json",
-          "Authorization": `Bearer ${cfg.instance_token}`,
-        },
-        body: JSON.stringify(payload),
-      });
-      const respText = await resp.text();
-      ok = resp.ok;
-      if (!ok) errorMsg = `HTTP ${resp.status}: ${respText.slice(0, 200)}`;
-
-      await admin.from("wapi_message_logs").insert({
-        sent_by: null,
-        recipient_user_id: null,
-        recipient_name: "Grupo - Campanha do Mês",
-        recipient_phone: groupId,
-        message: caption,
-        status: ok ? "sent" : "failed",
-        error_message: errorMsg,
-      });
+      const queueRow = imageUrl
+        ? { kind: "image", target_type: "group", phone: groupId, message: caption, caption, image_url: imageUrl, origin: "campaign", recipient_name: "Grupo - Campanha do Mês" }
+        : { kind: "text",  target_type: "group", phone: groupId, message: caption, origin: "campaign", recipient_name: "Grupo - Campanha do Mês" };
+      const { error: qErr } = await admin.from("wapi_outbox").insert(queueRow);
+      ok = !qErr;
+      if (qErr) errorMsg = qErr.message;
     } catch (e) {
       errorMsg = e instanceof Error ? e.message : "Erro desconhecido";
-      await admin.from("wapi_message_logs").insert({
-        sent_by: null,
-        recipient_user_id: null,
-        recipient_name: "Grupo - Campanha do Mês",
-        recipient_phone: groupId,
-        message: caption,
-        status: "failed",
-        error_message: errorMsg,
-      });
     }
 
     return new Response(JSON.stringify({
