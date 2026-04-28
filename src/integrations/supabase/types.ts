@@ -3381,6 +3381,44 @@ export type Database = {
         }
         Relationships: []
       }
+      reminder_notifications_sent: {
+        Row: {
+          channel: string
+          id: string
+          occurrence_type: string
+          recipients_count: number
+          reminder_id: string
+          scheduled_for_date: string
+          sent_at: string
+        }
+        Insert: {
+          channel: string
+          id?: string
+          occurrence_type: string
+          recipients_count?: number
+          reminder_id: string
+          scheduled_for_date: string
+          sent_at?: string
+        }
+        Update: {
+          channel?: string
+          id?: string
+          occurrence_type?: string
+          recipients_count?: number
+          reminder_id?: string
+          scheduled_for_date?: string
+          sent_at?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "reminder_notifications_sent_reminder_id_fkey"
+            columns: ["reminder_id"]
+            isOneToOne: false
+            referencedRelation: "reminders"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       reminder_snoozes: {
         Row: {
           created_at: string
