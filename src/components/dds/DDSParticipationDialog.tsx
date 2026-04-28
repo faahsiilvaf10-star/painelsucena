@@ -15,6 +15,7 @@ import { getLogoBase64, generatePdfHeader, PDF_HEADER_STYLES } from "@/lib/pdfLo
 import { downloadPdfFromHtml } from "@/lib/pdfDownload";
 import { supabase } from "@/integrations/supabase/client";
 import html2canvas from "html2canvas";
+import { useEnvironment, ENVIRONMENTS } from "@/hooks/useEnvironment";
 import {
   DropdownMenu,
   DropdownMenuContent,
