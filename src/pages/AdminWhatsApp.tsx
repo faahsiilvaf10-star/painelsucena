@@ -234,6 +234,18 @@ const AdminWhatsApp = () => {
               />
             </div>
             <div className="space-y-2">
+              <Label htmlFor="wapi-group">ID do Grupo (opcional)</Label>
+              <Input
+                id="wapi-group"
+                placeholder="120363XXXXXXXXXXXX@g.us"
+                value={groupId}
+                onChange={(e) => setGroupId(e.target.value)}
+              />
+              <p className="text-xs text-muted-foreground">
+                Informe o ID do grupo do WhatsApp (formato: 120363...@g.us). Será usado quando a opção "Enviar para grupo" estiver ativa.
+              </p>
+            </div>
+            <div className="space-y-2">
               <Label htmlFor="wapi-delay">Intervalo entre envios (segundos)</Label>
               <Input
                 id="wapi-delay"
