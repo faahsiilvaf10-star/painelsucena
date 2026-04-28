@@ -139,13 +139,29 @@ Deno.serve(async (req) => {
     if (isGroupSend) {
       const groupId = (body.group_id || "").trim();
       try {
+        const groupsUrl = buildWapiUrl(cfg.instance_url, cfg.instance_id, "/v1/group/get-all-groups");
+        const groupsResp = await fetch(groupsUrl, {
+          method: "GET",
+          headers: { "Authorization": `Bearer ${cfg.instance_token}` },
+        });
+        const groupsText = await groupsResp.text();
+        let groupsJson: unknown = null;
+        try { groupsJson = JSON.parse(groupsText); } catch { groupsJson = { raw: groupsText }; }
+
+        if (!groupsResp.ok) {
+          throw new Error(`Falha ao validar grupo na W-API (HTTP ${groupsResp.status}): ${groupsText.slice(0, 200)}`);
+        }
+        if (!containsGroupId(groupsJson, groupId)) {
+          throw new Error(`Grupo ${groupId} não encontrado na instância ${cfg.instance_id}. Use o ID retornado por /v1/group/get-all-groups.`);
+        }
+
         const resp = await fetch(endpoint, {
           method: "POST",
           headers: {
             "Content-Type": "application/json",
             "Authorization": `Bearer ${cfg.instance_token}`,
           },
-          body: JSON.stringify({ phone: groupId, message: body.message }),
+          body: JSON.stringify({ phone: groupId, message: body.message, delayMessage: Math.max(1, Math.min(15, Number(cfg.delay_seconds ?? 5) || 5)) }),
         });
         const respText = await resp.text();
         let respJson: unknown = null;
