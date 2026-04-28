@@ -44,6 +44,24 @@ const buildWapiEndpoint = (rawUrl: string, instanceId: string, isGroup: boolean)
   return url.toString();
 };
 
+const buildWapiUrl = (rawUrl: string, instanceId: string, pathname: string): string => {
+  const url = new URL(rawUrl.trim());
+  if (url.hostname === "painel.w-api.app" || url.pathname.startsWith("/app")) {
+    url.protocol = "https:";
+    url.hostname = "api.w-api.app";
+  }
+  url.pathname = pathname;
+  url.searchParams.set("instanceId", instanceId);
+  return url.toString();
+};
+
+const containsGroupId = (value: unknown, groupId: string): boolean => {
+  if (typeof value === "string") return value.trim() === groupId;
+  if (Array.isArray(value)) return value.some((item) => containsGroupId(item, groupId));
+  if (value && typeof value === "object") return Object.values(value as Record<string, unknown>).some((item) => containsGroupId(item, groupId));
+  return false;
+};
+
 Deno.serve(async (req) => {
   if (req.method === "OPTIONS") return new Response("ok", { headers: corsHeaders });
 
