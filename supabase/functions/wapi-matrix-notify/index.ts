@@ -181,46 +181,17 @@ Deno.serve(async (req) => {
     lines.push(`_Mensagem automática - Sucena_`);
     const message = lines.join("\n");
 
-    const endpoint = buildWapiEndpoint(cfg.instance_url, cfg.instance_id);
     let ok = false;
-    let errorMsg = null;
+    let errorMsg: string | null = null;
     try {
-      const resp = await fetch(endpoint, {
-        method: "POST",
-        headers: {
-          "Content-Type": "application/json",
-          "Authorization": `Bearer ${cfg.instance_token}`,
-        },
-        body: JSON.stringify({
-          phone: groupId,
-          message,
-          delayMessage: Math.max(1, Math.min(15, Number(cfg.delay_seconds ?? 5) || 5)),
-        }),
-      });
-      const respText = await resp.text();
-      ok = resp.ok;
-      if (!ok) errorMsg = `HTTP ${resp.status}: ${respText.slice(0, 200)}`;
-
-      await admin.from("wapi_message_logs").insert({
-        sent_by: null,
-        recipient_user_id: null,
+      const { error: qErr } = await admin.from("wapi_outbox").insert({
+        kind: "text", target_type: "group", phone: groupId, message, origin: "matrix",
         recipient_name: "Grupo - Matriz",
-        recipient_phone: groupId,
-        message,
-        status: ok ? "sent" : "failed",
-        error_message: errorMsg,
       });
+      ok = !qErr;
+      if (qErr) errorMsg = qErr.message;
     } catch (e) {
       errorMsg = e instanceof Error ? e.message : "Erro desconhecido";
-      await admin.from("wapi_message_logs").insert({
-        sent_by: null,
-        recipient_user_id: null,
-        recipient_name: "Grupo - Matriz",
-        recipient_phone: groupId,
-        message,
-        status: "failed",
-        error_message: errorMsg,
-      });
     }
 
     return new Response(JSON.stringify({
