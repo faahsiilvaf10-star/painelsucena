@@ -12,7 +12,7 @@ import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import { Reminder } from "@/hooks/useReminders";
 import { cn } from "@/lib/utils";
-import { getDaysUntilEventBrazilNorth } from "@/lib/timezone";
+import { getDaysUntilEventBrazilNorth, parseDateForBrazilNorth } from "@/lib/timezone";
 
 interface ReminderDetailDialogProps {
   reminder: Reminder | null;
@@ -163,7 +163,7 @@ export function ReminderDetailDialog({
                   <div className="flex items-center gap-2">
                     <Calendar className={cn("h-5 w-5", accentColor)} />
                     <span className="text-white">
-                      {format(new Date(reminder.event_date), "EEEE, dd 'de' MMMM 'de' yyyy", {
+                      {format(parseDateForBrazilNorth(reminder.event_date), "EEEE, dd 'de' MMMM 'de' yyyy", {
                         locale: ptBR,
                       })}
                     </span>

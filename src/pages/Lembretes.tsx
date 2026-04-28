@@ -37,7 +37,7 @@ import { useEnvironment } from "@/hooks/useEnvironment";
 import { useQuery } from "@tanstack/react-query";
 import { supabase } from "@/integrations/supabase/client";
 import { cn } from "@/lib/utils";
-import { getDaysUntilEventBrazilNorth } from "@/lib/timezone";
+import { getDaysUntilEventBrazilNorth, parseDateForBrazilNorth } from "@/lib/timezone";
 import { Check, X as XIcon, History } from "lucide-react";
 import { ToggleGroup, ToggleGroupItem } from "@/components/ui/toggle-group";
 import { EditReminderDialog } from "@/components/reminders/EditReminderDialog";
@@ -148,7 +148,7 @@ const Lembretes = () => {
 
       const displayInfo = isRecurring 
         ? `Toda ${recurringDays.map(d => WEEKDAYS.find(w => w.value === d)?.fullLabel).join(", ")}`
-        : format(new Date(eventDate), "dd/MM/yyyy", { locale: ptBR });
+        : format(parseDateForBrazilNorth(eventDate), "dd/MM/yyyy", { locale: ptBR });
 
       toast({
         title: "Lembrete criado!",
@@ -233,7 +233,7 @@ const Lembretes = () => {
                   <p className="text-xs sm:text-sm opacity-90 truncate">
                     "{showCreatedToast.title}" - {!!showCreatedToast.is_recurring 
                       ? `Toda ${(showCreatedToast.recurring_days || []).map(d => WEEKDAYS.find(w => w.value === d)?.fullLabel).join(", ")}`
-                      : format(new Date(showCreatedToast.event_date), "dd/MM/yyyy", { locale: ptBR })}
+                      : format(parseDateForBrazilNorth(showCreatedToast.event_date), "dd/MM/yyyy", { locale: ptBR })}
                   </p>
                 </div>
               </CardContent>
@@ -665,7 +665,7 @@ const Lembretes = () => {
                           <div className="flex items-center gap-2 text-sm">
                             <Calendar className="h-4 w-4 text-muted-foreground" />
                             <span>
-                              {format(new Date(reminder.event_date), "dd 'de' MMMM 'de' yyyy", {
+                              {format(parseDateForBrazilNorth(reminder.event_date), "dd 'de' MMMM 'de' yyyy", {
                                 locale: ptBR,
                               })}
                               {reminder.event_time && ` às ${reminder.event_time.slice(0, 5)}`}
@@ -758,7 +758,7 @@ const Lembretes = () => {
                         <div className="flex items-center gap-2 text-sm text-muted-foreground">
                           <Calendar className="h-4 w-4" />
                           <span>
-                            {format(new Date(reminder.event_date), "dd/MM/yyyy", {
+                            {format(parseDateForBrazilNorth(reminder.event_date), "dd/MM/yyyy", {
                               locale: ptBR,
                             })}
                           </span>
