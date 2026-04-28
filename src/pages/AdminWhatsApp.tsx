@@ -52,6 +52,7 @@ const AdminWhatsApp = () => {
   const [autoSendForbiddenColorAlert, setAutoSendForbiddenColorAlert] = useState(false);
   const [autoSendCampaignAlert, setAutoSendCampaignAlert] = useState(false);
   const [autoSendOrderAlerts, setAutoSendOrderAlerts] = useState(false);
+  const [autoSendEquipmentMovements, setAutoSendEquipmentMovements] = useState(false);
   const [testingDds, setTestingDds] = useState(false);
   const [testingDdsTomorrow, setTestingDdsTomorrow] = useState(false);
   const [testingAso, setTestingAso] = useState(false);
@@ -70,7 +71,7 @@ const AdminWhatsApp = () => {
         .limit(1)
         .maybeSingle();
       if (error) throw error;
-      return data as { id: string; instance_url: string; instance_token: string; instance_id: string; enabled: boolean; delay_seconds: number | null; group_id: string | null; dds_auto_notify: boolean | null; dds_notify_day_before: boolean | null; auto_send_requisitions: boolean | null; auto_send_reminders: boolean | null; auto_send_aso_alert: boolean | null; auto_send_matrix_alert: boolean | null; auto_send_forbidden_color_alert: boolean | null; auto_send_campaign_alert: boolean | null; auto_send_order_alerts: boolean | null } | null;
+      return data as { id: string; instance_url: string; instance_token: string; instance_id: string; enabled: boolean; delay_seconds: number | null; group_id: string | null; dds_auto_notify: boolean | null; dds_notify_day_before: boolean | null; auto_send_requisitions: boolean | null; auto_send_reminders: boolean | null; auto_send_aso_alert: boolean | null; auto_send_matrix_alert: boolean | null; auto_send_forbidden_color_alert: boolean | null; auto_send_campaign_alert: boolean | null; auto_send_order_alerts: boolean | null; auto_send_equipment_movements: boolean | null } | null;
     },
   });
 
@@ -91,6 +92,7 @@ const AdminWhatsApp = () => {
       setAutoSendForbiddenColorAlert(!!cfg.auto_send_forbidden_color_alert);
       setAutoSendCampaignAlert(!!cfg.auto_send_campaign_alert);
       setAutoSendOrderAlerts(!!cfg.auto_send_order_alerts);
+      setAutoSendEquipmentMovements(!!cfg.auto_send_equipment_movements);
     }
   }, [cfg]);
 
@@ -162,6 +164,7 @@ const AdminWhatsApp = () => {
         auto_send_forbidden_color_alert: autoSendForbiddenColorAlert,
         auto_send_campaign_alert: autoSendCampaignAlert,
         auto_send_order_alerts: autoSendOrderAlerts,
+        auto_send_equipment_movements: autoSendEquipmentMovements,
         updated_by: user?.id ?? null,
       };
       if (cfg?.id) {
@@ -858,6 +861,41 @@ const AdminWhatsApp = () => {
             <p className="text-xs text-muted-foreground mt-3">
               Requisitos: integração W-API habilitada e usuários com WhatsApp cadastrado no perfil. As mensagens são
               enviadas diretamente para o número pessoal de cada usuário (não para o grupo).
+            </p>
+          </CardContent>
+        </Card>
+
+        <Card>
+          <CardHeader>
+            <CardTitle className="flex items-center gap-2">
+              <Bell className="w-5 h-5 text-primary" />
+              Movimentação de Equipamentos no Grupo
+            </CardTitle>
+            <CardDescription>
+              Quando habilitado, a cada <strong>entrada ou saída de equipamento</strong> registrada no sistema,
+              o <strong>grupo do WhatsApp configurado</strong> recebe automaticamente uma mensagem com
+              equipamento, placa, data, horário, motivo (no caso de saída), descrição do problema, observação e quem registrou.
+            </CardDescription>
+          </CardHeader>
+          <CardContent>
+            <div className="flex items-center justify-between gap-3 rounded-md border p-3 bg-muted/30">
+              <div className="flex items-center gap-3">
+                <Switch
+                  id="auto-send-equipment-movements"
+                  checked={autoSendEquipmentMovements}
+                  onCheckedChange={setAutoSendEquipmentMovements}
+                />
+                <Label htmlFor="auto-send-equipment-movements" className="cursor-pointer">
+                  Ativar envio automático de movimentações no grupo
+                </Label>
+              </div>
+              <Badge variant={autoSendEquipmentMovements ? "default" : "secondary"}>
+                {autoSendEquipmentMovements ? "Ativo" : "Desativado"}
+              </Badge>
+            </div>
+            <p className="text-xs text-muted-foreground mt-3">
+              Requisitos: integração W-API habilitada e <strong>ID do grupo</strong> preenchido. Cada movimentação registrada
+              dispara um envio imediato.
             </p>
           </CardContent>
         </Card>

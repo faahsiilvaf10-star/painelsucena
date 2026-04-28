@@ -307,6 +307,13 @@ export function useCreateEquipmentMovement() {
           });
       }
 
+      // Auto WhatsApp para grupo configurado (fire-and-forget)
+      if (data?.id) {
+        supabase.functions.invoke("wapi-equipment-movement-notify", {
+          body: { movementId: data.id },
+        }).catch((e) => console.warn("[wapi-equipment-movement-notify] falhou:", e));
+      }
+
       return data;
     },
     onSuccess: () => {
