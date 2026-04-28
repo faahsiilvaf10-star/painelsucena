@@ -4145,8 +4145,30 @@ export type Database = {
         }
         Relationships: []
       }
+      wapi_aso_alerts_sent: {
+        Row: {
+          colaborador_key: string
+          expiry_date: string
+          id: string
+          sent_at: string
+        }
+        Insert: {
+          colaborador_key: string
+          expiry_date: string
+          id?: string
+          sent_at?: string
+        }
+        Update: {
+          colaborador_key?: string
+          expiry_date?: string
+          id?: string
+          sent_at?: string
+        }
+        Relationships: []
+      }
       wapi_config: {
         Row: {
+          auto_send_aso_alert: boolean
           auto_send_reminders: boolean
           auto_send_requisitions: boolean
           created_at: string
@@ -4163,6 +4185,7 @@ export type Database = {
           updated_by: string | null
         }
         Insert: {
+          auto_send_aso_alert?: boolean
           auto_send_reminders?: boolean
           auto_send_requisitions?: boolean
           created_at?: string
@@ -4179,6 +4202,7 @@ export type Database = {
           updated_by?: string | null
         }
         Update: {
+          auto_send_aso_alert?: boolean
           auto_send_reminders?: boolean
           auto_send_requisitions?: boolean
           created_at?: string
