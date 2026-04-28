@@ -920,17 +920,33 @@ export default function TrocaEpi() {
           img.onerror = () => resolve();
         })));
         const html2canvas = await loadHtml2Canvas();
-        const canvas = await html2canvas(container, { scale: 2, useCORS: true, backgroundColor: "#ffffff" });
-        const blob: Blob = await new Promise((res, rej) => canvas.toBlob((b) => b ? res(b) : rej(new Error("blob falhou")), "image/png"));
-        const path = `wapi-requisicoes/${type}/${Date.now()}-${sanitizeShareFileName(fileBaseName)}.png`;
-        const { error: upErr } = await supabase.storage.from("desvios").upload(path, blob, { contentType: "image/png", upsert: true });
-        if (upErr) throw upErr;
-        const { data: urlData } = supabase.storage.from("desvios").getPublicUrl(path);
-        publicUrl = urlData?.publicUrl || "";
+
+        // Retry: até 3 tentativas para garantir que o PNG do card (com assinaturas) seja gerado e enviado
+        let lastErr: unknown = null;
+        for (let attempt = 1; attempt <= 3; attempt++) {
+          try {
+            const canvas = await html2canvas(container, { scale: 2, useCORS: true, backgroundColor: "#ffffff" });
+            const blob: Blob = await new Promise((res, rej) => canvas.toBlob((b) => b ? res(b) : rej(new Error("blob falhou")), "image/png"));
+            const path = `wapi-requisicoes/${type}/${Date.now()}-att${attempt}-${sanitizeShareFileName(fileBaseName)}.png`;
+            const { error: upErr } = await supabase.storage.from("desvios").upload(path, blob, { contentType: "image/png", upsert: true });
+            if (upErr) throw upErr;
+            const { data: urlData } = supabase.storage.from("desvios").getPublicUrl(path);
+            publicUrl = urlData?.publicUrl || "";
+            if (publicUrl) break;
+          } catch (err) {
+            lastErr = err;
+            console.warn(`[autoSendRequisitionToGroup] tentativa ${attempt}/3 falhou`, err);
+            if (attempt < 3) await new Promise((r) => setTimeout(r, 800 * attempt));
+          }
+        }
+        if (!publicUrl && lastErr) throw lastErr;
       } finally {
         if (container.parentNode) container.parentNode.removeChild(container);
       }
-      if (!publicUrl) return;
+      if (!publicUrl) {
+        toast.error("Falha ao gerar imagem da requisição (assinaturas) — não enviado ao grupo");
+        return;
+      }
 
       // Enfileira na outbox via edge function dedicada (respeita delay global)
       const { data: invokeData, error: invokeErr } = await supabase.functions.invoke("wapi-requisition-notify", {
@@ -1070,7 +1086,7 @@ export default function TrocaEpi() {
       const fakeExchange = { ...exchangeData, id: "auto", created_at: new Date().toISOString(), created_by: user!.id } as unknown as EpiExchange;
       const html = buildPdfHtml(fakeExchange, logoBase64);
       const caption = buildExchangeShareDescription(fakeExchange);
-      void autoSendRequisitionToGroup("epi", html, caption, currentFuncionarioNome);
+      await autoSendRequisitionToGroup("epi", html, caption, currentFuncionarioNome);
     } catch (e) { console.warn("auto send EPI prep failed", e); }
 
     setShowSignature(false);
@@ -1147,7 +1163,7 @@ export default function TrocaEpi() {
       const html = buildMaterialPdfHtml(fakeReq, logoBase64);
       const itensTxt = currentItems.map((m) => `• ${m.name} (${m.qty})`).join("\n");
       const caption = `📦 Requisição de Material\nFuncionário: ${currentFuncNome}\nÁrea: ${matAreaDestino}\nMotivo: ${matMotivo}\n\nItens:\n${itensTxt}`;
-      void autoSendRequisitionToGroup("material", html, caption, currentFuncNome);
+      await autoSendRequisitionToGroup("material", html, caption, currentFuncNome);
     } catch (e) { console.warn("auto send Material prep failed", e); }
 
     setShowMaterialSignature(false);

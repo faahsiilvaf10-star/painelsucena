@@ -31,6 +31,12 @@ Deno.serve(async (req) => {
         status: 400, headers: { ...corsHeaders, "Content-Type": "application/json" },
       });
     }
+    // OBRIGATÓRIO: imagem PNG do card (com assinaturas) — não permite envio só de texto
+    if (!image_url || typeof image_url !== "string" || !image_url.trim()) {
+      return new Response(JSON.stringify({ error: "image_url obrigatório (PNG do card com assinaturas)" }), {
+        status: 400, headers: { ...corsHeaders, "Content-Type": "application/json" },
+      });
+    }
 
     const { data: cfg } = await admin
       .from("wapi_config")
@@ -45,15 +51,13 @@ Deno.serve(async (req) => {
       });
     }
 
-    const hasImage = !!image_url && String(image_url).trim().length > 0;
-
     const { error: insErr } = await admin.from("wapi_outbox").insert({
-      kind: hasImage ? "image" : "text",
+      kind: "image",
       target_type: "group",
       phone: cfg.group_id,
-      message: hasImage ? null : caption,
-      caption: hasImage ? caption : null,
-      image_url: hasImage ? image_url : null,
+      message: null,
+      caption: caption,
+      image_url: image_url,
       origin: `requisition_${type}`,
     });
 
