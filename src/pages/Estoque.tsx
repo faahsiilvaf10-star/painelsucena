@@ -129,7 +129,13 @@ export default function Estoque() {
         </div>
         {/* Stats Cards */}
         <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">
-          <Card>
+          <Card
+            role="button"
+            tabIndex={0}
+            onClick={() => setStatsDialog("total")}
+            onKeyDown={(e) => (e.key === "Enter" || e.key === " ") && setStatsDialog("total")}
+            className="cursor-pointer transition-all hover:shadow-md hover:border-primary/40 hover:-translate-y-0.5"
+          >
             <CardHeader className="pb-2">
               <CardTitle className="text-sm font-medium text-muted-foreground">
                 Total de Itens
@@ -139,7 +145,13 @@ export default function Estoque() {
               <p className="text-2xl font-bold">{stats.total}</p>
             </CardContent>
           </Card>
-          <Card>
+          <Card
+            role="button"
+            tabIndex={0}
+            onClick={() => setStatsDialog("low")}
+            onKeyDown={(e) => (e.key === "Enter" || e.key === " ") && setStatsDialog("low")}
+            className="cursor-pointer transition-all hover:shadow-md hover:border-primary/40 hover:-translate-y-0.5"
+          >
             <CardHeader className="pb-2">
               <CardTitle className="text-sm font-medium text-muted-foreground">
                 Estoque Baixo
@@ -154,7 +166,13 @@ export default function Estoque() {
               </p>
             </CardContent>
           </Card>
-          <Card>
+          <Card
+            role="button"
+            tabIndex={0}
+            onClick={() => setStatsDialog("categories")}
+            onKeyDown={(e) => (e.key === "Enter" || e.key === " ") && setStatsDialog("categories")}
+            className="cursor-pointer transition-all hover:shadow-md hover:border-primary/40 hover:-translate-y-0.5"
+          >
             <CardHeader className="pb-2">
               <CardTitle className="text-sm font-medium text-muted-foreground">
                 Categorias
