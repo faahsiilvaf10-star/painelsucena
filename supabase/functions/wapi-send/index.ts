@@ -15,6 +15,7 @@ interface Recipient {
 interface Body {
   message: string;
   recipients: Recipient[];
+  group_id?: string | null;
 }
 
 const sanitizePhone = (raw: string): string => {
@@ -24,19 +25,19 @@ const sanitizePhone = (raw: string): string => {
   return digits;
 };
 
-const buildWapiEndpoint = (rawUrl: string, instanceId: string): string => {
+const buildWapiEndpoint = (rawUrl: string, instanceId: string, isGroup: boolean): string => {
   const url = new URL(rawUrl.trim());
   const normalizedPath = url.pathname.replace(/\/+$/, "");
 
-  // W-API docs: POST https://api.w-api.app/v1/message/send-text?instanceId=...
-  // Accept pasted panel/instance URLs too, but always target the official send-text route.
+  // W-API: send-text para contato; send-message-group / send-text-group para grupos
   if (url.hostname === "painel.w-api.app" || url.pathname.startsWith("/app")) {
     url.protocol = "https:";
     url.hostname = "api.w-api.app";
   }
 
+  const targetPath = isGroup ? "/v1/message/send-text" : "/v1/message/send-text";
   if (!normalizedPath.endsWith("/send-text")) {
-    url.pathname = "/v1/message/send-text";
+    url.pathname = targetPath;
   }
 
   url.searchParams.set("instanceId", instanceId);
