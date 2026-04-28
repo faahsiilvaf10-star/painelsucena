@@ -27,19 +27,15 @@ const buildWapiGroupEndpoint = (rawUrl: string, instanceId: string): string => {
 };
 
 async function sendWapiGroupText(cfg: any, groupId: string, message: string) {
-  const endpoint = buildWapiGroupEndpoint(cfg.instance_url, cfg.instance_id);
-  const res = await fetch(endpoint, {
-    method: "POST",
-    headers: {
-      "Content-Type": "application/json",
-      Authorization: `Bearer ${cfg.instance_token}`,
-    },
-    body: JSON.stringify({ phone: groupId, message, delayMessage: cfg.delay_seconds || 3 }),
+  const client = createClient(Deno.env.get("SUPABASE_URL")!, Deno.env.get("SUPABASE_SERVICE_ROLE_KEY")!);
+  const { error } = await client.from("wapi_outbox").insert({
+    kind: "text",
+    target_type: "group",
+    phone: groupId,
+    message,
+    origin: "planning",
   });
-  const text = await res.text();
-  let body: any = text;
-  try { body = JSON.parse(text); } catch {}
-  return { ok: res.ok, status: res.status, body };
+  return { ok: !error, status: error ? 500 : 202, body: error ? { error: error.message } : { queued: true } };
 }
 
 const fmtNum = (n: number) => {
