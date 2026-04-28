@@ -242,14 +242,14 @@ const AdminWhatsApp = () => {
     }
   };
 
-  const handleTestDdsNotify = async () => {
-    setTestingDds(true);
+  const handleTestDdsNotify = async (mode: "today" | "tomorrow" = "today") => {
+    if (mode === "tomorrow") setTestingDdsTomorrow(true); else setTestingDds(true);
     try {
       const url = `${import.meta.env.VITE_SUPABASE_URL}/functions/v1/wapi-dds-notify`;
       const response = await fetch(url, {
         method: "POST",
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({}),
+        body: JSON.stringify({ mode }),
       });
       const text = await response.text();
       let data: any = null;
@@ -260,9 +260,9 @@ const AdminWhatsApp = () => {
         return;
       }
       if (data?.skipped) {
-        toast.info("Nada a enviar", { description: data.reason || "Sem DDS para hoje", duration: 8000 });
+        toast.info("Nada a enviar", { description: data.reason || "Sem DDS encontrado", duration: 8000 });
       } else {
-        toast.success(`DDS: ${data?.sent ?? 0}/${data?.total ?? 0} enviadas`);
+        toast.success(`DDS (${mode === "tomorrow" ? "amanhã" : "hoje"}): ${data?.sent ?? 0}/${data?.total ?? 0} enviadas`);
         if (Array.isArray(data?.results)) {
           const failed = data.results.filter((r: { ok: boolean }) => !r.ok);
           if (failed.length) {
@@ -275,7 +275,7 @@ const AdminWhatsApp = () => {
       const msg = e instanceof Error ? e.message : String(e);
       toast.error("Falha ao executar teste", { description: msg, duration: 15000 });
     } finally {
-      setTestingDds(false);
+      if (mode === "tomorrow") setTestingDdsTomorrow(false); else setTestingDds(false);
     }
   };
 
