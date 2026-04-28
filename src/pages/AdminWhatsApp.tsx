@@ -50,11 +50,13 @@ const AdminWhatsApp = () => {
   const [autoSendAsoAlert, setAutoSendAsoAlert] = useState(false);
   const [autoSendMatrixAlert, setAutoSendMatrixAlert] = useState(false);
   const [autoSendForbiddenColorAlert, setAutoSendForbiddenColorAlert] = useState(false);
+  const [autoSendCampaignAlert, setAutoSendCampaignAlert] = useState(false);
   const [testingDds, setTestingDds] = useState(false);
   const [testingDdsTomorrow, setTestingDdsTomorrow] = useState(false);
   const [testingAso, setTestingAso] = useState(false);
   const [testingMatrix, setTestingMatrix] = useState(false);
   const [testingForbiddenColor, setTestingForbiddenColor] = useState(false);
+  const [testingCampaign, setTestingCampaign] = useState(false);
 
   const { data: cfg } = useQuery({
     queryKey: ["wapi-config"],
@@ -67,7 +69,7 @@ const AdminWhatsApp = () => {
         .limit(1)
         .maybeSingle();
       if (error) throw error;
-      return data as { id: string; instance_url: string; instance_token: string; instance_id: string; enabled: boolean; delay_seconds: number | null; group_id: string | null; dds_auto_notify: boolean | null; dds_notify_day_before: boolean | null; auto_send_requisitions: boolean | null; auto_send_reminders: boolean | null; auto_send_aso_alert: boolean | null; auto_send_matrix_alert: boolean | null; auto_send_forbidden_color_alert: boolean | null } | null;
+      return data as { id: string; instance_url: string; instance_token: string; instance_id: string; enabled: boolean; delay_seconds: number | null; group_id: string | null; dds_auto_notify: boolean | null; dds_notify_day_before: boolean | null; auto_send_requisitions: boolean | null; auto_send_reminders: boolean | null; auto_send_aso_alert: boolean | null; auto_send_matrix_alert: boolean | null; auto_send_forbidden_color_alert: boolean | null; auto_send_campaign_alert: boolean | null } | null;
     },
   });
 
@@ -86,6 +88,7 @@ const AdminWhatsApp = () => {
       setAutoSendAsoAlert(!!cfg.auto_send_aso_alert);
       setAutoSendMatrixAlert(!!cfg.auto_send_matrix_alert);
       setAutoSendForbiddenColorAlert(!!cfg.auto_send_forbidden_color_alert);
+      setAutoSendCampaignAlert(!!cfg.auto_send_campaign_alert);
     }
   }, [cfg]);
 
@@ -155,6 +158,7 @@ const AdminWhatsApp = () => {
         auto_send_aso_alert: autoSendAsoAlert,
         auto_send_matrix_alert: autoSendMatrixAlert,
         auto_send_forbidden_color_alert: autoSendForbiddenColorAlert,
+        auto_send_campaign_alert: autoSendCampaignAlert,
         updated_by: user?.id ?? null,
       };
       if (cfg?.id) {
@@ -394,6 +398,39 @@ const AdminWhatsApp = () => {
       toast.error("Falha ao executar teste", { description: msg, duration: 15000 });
     } finally {
       setTestingForbiddenColor(false);
+    }
+  };
+
+  const handleTestCampaignNotify = async () => {
+    setTestingCampaign(true);
+    try {
+      const url = `${import.meta.env.VITE_SUPABASE_URL}/functions/v1/wapi-campaign-notify`;
+      const response = await fetch(url, {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ force: true }),
+      });
+      const text = await response.text();
+      let data: any = null;
+      try { data = text ? JSON.parse(text) : null; } catch { /* keep raw */ }
+
+      if (!response.ok) {
+        toast.error(`Erro HTTP ${response.status}`, { description: text.slice(0, 500), duration: 15000 });
+        return;
+      }
+      if (data?.skipped) {
+        toast.info("Nada enviado", { description: data.reason || "—", duration: 8000 });
+      } else if (data?.success) {
+        toast.success(`Campanha do mês enviada: ${data.month}${data.hasImage ? " (com imagem)" : " (sem imagem)"}`);
+      } else {
+        toast.error("Falha no envio", { description: data?.error || "Erro desconhecido", duration: 15000 });
+      }
+      queryClient.invalidateQueries({ queryKey: ["wapi-logs"] });
+    } catch (e) {
+      const msg = e instanceof Error ? e.message : String(e);
+      toast.error("Falha ao executar teste", { description: msg, duration: 15000 });
+    } finally {
+      setTestingCampaign(false);
     }
   };
 
@@ -739,6 +776,49 @@ const AdminWhatsApp = () => {
             <p className="text-xs text-muted-foreground mt-3">
               Requisitos: integração W-API habilitada e ID do grupo preenchido. O botão "Testar" envia a mensagem imediatamente,
               ignorando a regra de "somente no dia 1º".
+            </p>
+          </CardContent>
+        </Card>
+
+        <Card>
+          <CardHeader>
+            <CardTitle className="flex items-center gap-2">
+              <Bell className="w-5 h-5 text-primary" />
+              Campanha do Mês (todo dia 1º às 09:00h)
+            </CardTitle>
+            <CardDescription>
+              Quando habilitado, o sistema envia automaticamente para o <strong>grupo configurado</strong> a
+              <strong> campanha do mês vigente</strong> (Janeiro Branco, Outubro Rosa, etc.) com a
+              <strong> imagem da campanha</strong> em anexo, no <strong>dia 1º de cada mês às 09:00h (Pará UTC-4)</strong>.
+              A legenda inclui o nome de todas as campanhas do mês, suas cores e descrições.
+            </CardDescription>
+          </CardHeader>
+          <CardContent>
+            <div className="flex items-center justify-between gap-3 rounded-md border p-3 bg-muted/30">
+              <div className="flex items-center gap-3">
+                <Switch
+                  id="auto-send-campaign"
+                  checked={autoSendCampaignAlert}
+                  onCheckedChange={setAutoSendCampaignAlert}
+                />
+                <Label htmlFor="auto-send-campaign" className="cursor-pointer">
+                  Ativar envio automático da campanha do mês no grupo
+                </Label>
+              </div>
+              <div className="flex items-center gap-2">
+                <Badge variant={autoSendCampaignAlert ? "default" : "secondary"}>
+                  {autoSendCampaignAlert ? "Ativo" : "Desativado"}
+                </Badge>
+                <Button variant="outline" size="sm" onClick={handleTestCampaignNotify} disabled={testingCampaign}>
+                  <Play className="w-4 h-4 mr-1" />
+                  {testingCampaign ? "..." : "Testar"}
+                </Button>
+              </div>
+            </div>
+            <p className="text-xs text-muted-foreground mt-3">
+              Requisitos: integração W-API habilitada, ID do grupo preenchido e banner do mês carregado em
+              <code className="mx-1 px-1 rounded bg-muted">announcements/campaign-banners/campanha-{`{mês}`}.png</code>.
+              Se a imagem não existir, será enviado apenas o texto.
             </p>
           </CardContent>
         </Card>
