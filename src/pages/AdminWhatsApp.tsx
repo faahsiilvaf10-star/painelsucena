@@ -1185,11 +1185,12 @@ const AdminWhatsApp = () => {
           <CardHeader>
             <CardTitle className="flex items-center gap-2">
               <Bell className="w-5 h-5 text-primary" />
-              Cintas Pendentes para Suspensão (dias 10 e 28 às 14h)
+              Vistorias de Cintas Pendentes (dias 10 e 28 às 14h)
             </CardTitle>
             <CardDescription>
-              Quando habilitado, o sistema envia automaticamente para o <strong>grupo configurado</strong> a lista
-              das cintas que ainda não foram inspecionadas no mês corrente (cor do mês). A verificação roda
+              Quando habilitado, o sistema envia automaticamente para o <strong>grupo configurado</strong> exatamente
+              a mesma lista de cintas que aparece no destaque <strong>"Vistorias de Cintas Pendentes"</strong> do Admin
+              (cintas da cor do mês ainda não inspecionadas). A verificação roda
               <strong> nos dias 10 e 28 de cada mês, às 14:00h (Pará UTC-4)</strong>.
             </CardDescription>
           </CardHeader>
