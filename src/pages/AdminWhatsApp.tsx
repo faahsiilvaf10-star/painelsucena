@@ -542,6 +542,47 @@ const AdminWhatsApp = () => {
 
         <Card>
           <CardHeader>
+            <CardTitle className="flex items-center gap-2">
+              <Bell className="w-5 h-5 text-primary" />
+              Alerta Automático de ASO (10 dias antes)
+            </CardTitle>
+            <CardDescription>
+              Quando habilitado, o sistema envia automaticamente uma mensagem para o <strong>grupo configurado</strong> quando
+              faltarem <strong>10 dias</strong> para o vencimento do ASO de algum colaborador. A verificação roda <strong>diariamente às 06:00h</strong> (Pará UTC-4)
+              e cada alerta é enviado apenas <strong>uma vez por colaborador/vencimento</strong>.
+            </CardDescription>
+          </CardHeader>
+          <CardContent>
+            <div className="flex items-center justify-between gap-3 rounded-md border p-3 bg-muted/30">
+              <div className="flex items-center gap-3">
+                <Switch
+                  id="auto-send-aso"
+                  checked={autoSendAsoAlert}
+                  onCheckedChange={setAutoSendAsoAlert}
+                />
+                <Label htmlFor="auto-send-aso" className="cursor-pointer">
+                  Ativar alerta automático de ASO no grupo
+                </Label>
+              </div>
+              <div className="flex items-center gap-2">
+                <Badge variant={autoSendAsoAlert ? "default" : "secondary"}>
+                  {autoSendAsoAlert ? "Ativo" : "Desativado"}
+                </Badge>
+                <Button variant="outline" size="sm" onClick={handleTestAsoNotify} disabled={testingAso}>
+                  <Play className="w-4 h-4 mr-1" />
+                  {testingAso ? "..." : "Testar"}
+                </Button>
+              </div>
+            </div>
+            <p className="text-xs text-muted-foreground mt-3">
+              Requisitos: integração W-API habilitada e ID do grupo preenchido. O botão "Testar" envia o alerta imediatamente,
+              ignorando o filtro de duplicidade.
+            </p>
+          </CardContent>
+        </Card>
+
+        <Card>
+          <CardHeader>
             <CardTitle>Envio de Mensagem</CardTitle>
             <CardDescription>Selecione os usuários e escreva a mensagem. Apenas usuários com WhatsApp cadastrado aparecem.</CardDescription>
           </CardHeader>
