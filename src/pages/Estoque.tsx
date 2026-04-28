@@ -1,5 +1,5 @@
 import { useState, useMemo } from "react";
-import { Package, Search, Filter, MapPin, AlertTriangle } from "lucide-react";
+import { Package, Search, Filter, MapPin, AlertTriangle, Layers } from "lucide-react";
 import Layout from "@/components/layout/Layout";
 import { EditablePageTitle } from "@/components/cms/EditablePageTitle";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
@@ -12,6 +12,14 @@ import {
   SelectValue,
 } from "@/components/ui/select";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
+import {
+  Dialog,
+  DialogContent,
+  DialogHeader,
+  DialogTitle,
+  DialogDescription,
+} from "@/components/ui/dialog";
+import { Badge } from "@/components/ui/badge";
 import { AddItemDialog } from "@/components/inventory/AddItemDialog";
 import { InventoryTable } from "@/components/inventory/InventoryTable";
 import { EditItemDialog } from "@/components/inventory/EditItemDialog";
