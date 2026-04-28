@@ -44,6 +44,7 @@ export default function Estoque() {
   const [categoryFilter, setCategoryFilter] = useState("all");
   const [locationFilter, setLocationFilter] = useState("all");
   const [editItem, setEditItem] = useState<InventoryItem | null>(null);
+  const [statsDialog, setStatsDialog] = useState<null | "total" | "low" | "categories">(null);
   const { isVisualizador } = useVisualizadorContext();
 
   const filteredItems = useMemo(() => {
