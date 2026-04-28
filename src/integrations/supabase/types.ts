@@ -4169,6 +4169,7 @@ export type Database = {
       wapi_config: {
         Row: {
           auto_send_aso_alert: boolean
+          auto_send_billing_alert: boolean
           auto_send_campaign_alert: boolean
           auto_send_equipment_movements: boolean
           auto_send_forbidden_color_alert: boolean
@@ -4193,6 +4194,7 @@ export type Database = {
         }
         Insert: {
           auto_send_aso_alert?: boolean
+          auto_send_billing_alert?: boolean
           auto_send_campaign_alert?: boolean
           auto_send_equipment_movements?: boolean
           auto_send_forbidden_color_alert?: boolean
@@ -4217,6 +4219,7 @@ export type Database = {
         }
         Update: {
           auto_send_aso_alert?: boolean
+          auto_send_billing_alert?: boolean
           auto_send_campaign_alert?: boolean
           auto_send_equipment_movements?: boolean
           auto_send_forbidden_color_alert?: boolean

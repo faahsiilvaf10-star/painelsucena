@@ -54,7 +54,9 @@ const AdminWhatsApp = () => {
   const [autoSendOrderAlerts, setAutoSendOrderAlerts] = useState(false);
   const [autoSendEquipmentMovements, setAutoSendEquipmentMovements] = useState(false);
   const [autoSendPlanningAlerts, setAutoSendPlanningAlerts] = useState(false);
+  const [autoSendBillingAlert, setAutoSendBillingAlert] = useState(false);
   const [testingPlanning, setTestingPlanning] = useState(false);
+  const [testingBilling, setTestingBilling] = useState(false);
   const [testingDds, setTestingDds] = useState(false);
   const [testingDdsTomorrow, setTestingDdsTomorrow] = useState(false);
   const [testingAso, setTestingAso] = useState(false);
@@ -73,7 +75,7 @@ const AdminWhatsApp = () => {
         .limit(1)
         .maybeSingle();
       if (error) throw error;
-      return data as { id: string; instance_url: string; instance_token: string; instance_id: string; enabled: boolean; delay_seconds: number | null; group_id: string | null; dds_auto_notify: boolean | null; dds_notify_day_before: boolean | null; auto_send_requisitions: boolean | null; auto_send_reminders: boolean | null; auto_send_aso_alert: boolean | null; auto_send_matrix_alert: boolean | null; auto_send_forbidden_color_alert: boolean | null; auto_send_campaign_alert: boolean | null; auto_send_order_alerts: boolean | null; auto_send_equipment_movements: boolean | null; auto_send_planning_alerts: boolean | null } | null;
+      return data as { id: string; instance_url: string; instance_token: string; instance_id: string; enabled: boolean; delay_seconds: number | null; group_id: string | null; dds_auto_notify: boolean | null; dds_notify_day_before: boolean | null; auto_send_requisitions: boolean | null; auto_send_reminders: boolean | null; auto_send_aso_alert: boolean | null; auto_send_matrix_alert: boolean | null; auto_send_forbidden_color_alert: boolean | null; auto_send_campaign_alert: boolean | null; auto_send_order_alerts: boolean | null; auto_send_equipment_movements: boolean | null; auto_send_planning_alerts: boolean | null; auto_send_billing_alert: boolean | null } | null;
     },
   });
 
@@ -96,6 +98,7 @@ const AdminWhatsApp = () => {
       setAutoSendOrderAlerts(!!cfg.auto_send_order_alerts);
       setAutoSendEquipmentMovements(!!cfg.auto_send_equipment_movements);
       setAutoSendPlanningAlerts(!!cfg.auto_send_planning_alerts);
+      setAutoSendBillingAlert(!!cfg.auto_send_billing_alert);
     }
   }, [cfg]);
 
@@ -169,6 +172,7 @@ const AdminWhatsApp = () => {
         auto_send_order_alerts: autoSendOrderAlerts,
         auto_send_equipment_movements: autoSendEquipmentMovements,
         auto_send_planning_alerts: autoSendPlanningAlerts,
+        auto_send_billing_alert: autoSendBillingAlert,
         updated_by: user?.id ?? null,
       };
       if (cfg?.id) {
@@ -474,6 +478,39 @@ const AdminWhatsApp = () => {
       toast.error("Falha ao executar teste", { description: msg, duration: 15000 });
     } finally {
       setTestingPlanning(false);
+    }
+  };
+
+  const handleTestBillingNotify = async () => {
+    setTestingBilling(true);
+    try {
+      const url = `${import.meta.env.VITE_SUPABASE_URL}/functions/v1/wapi-billing-notify`;
+      const response = await fetch(url, {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ force: true }),
+      });
+      const text = await response.text();
+      let data: any = null;
+      try { data = text ? JSON.parse(text) : null; } catch { /* keep raw */ }
+
+      if (!response.ok) {
+        toast.error(`Erro HTTP ${response.status}`, { description: text.slice(0, 500), duration: 15000 });
+        return;
+      }
+      if (data?.skipped) {
+        toast.info("Nada enviado", { description: data.reason || "—", duration: 8000 });
+      } else if (data?.success) {
+        toast.success(`Cobrança enviada ao grupo (${data.month})`);
+      } else {
+        toast.error("Falha no envio", { description: data?.error || "Erro desconhecido", duration: 15000 });
+      }
+      queryClient.invalidateQueries({ queryKey: ["wapi-logs"] });
+    } catch (e) {
+      const msg = e instanceof Error ? e.message : String(e);
+      toast.error("Falha ao executar teste", { description: msg, duration: 15000 });
+    } finally {
+      setTestingBilling(false);
     }
   };
 
@@ -982,6 +1019,50 @@ const AdminWhatsApp = () => {
             </p>
           </CardContent>
         </Card>
+
+        <Card>
+          <CardHeader>
+            <CardTitle className="flex items-center gap-2">
+              <Bell className="w-5 h-5 text-primary" />
+              Cobrança Mensal — WhatsApp Automático (todo dia 25 às 09:00h)
+            </CardTitle>
+            <CardDescription>
+              Quando habilitado, o sistema envia automaticamente para o <strong>grupo configurado</strong> a
+              <strong> cobrança da mensalidade</strong> referente à implementação do WhatsApp de mensagens automáticas,
+              <strong> todo dia 25 de cada mês às 09:00h (Pará UTC-4)</strong>. A mensagem inclui os dados do PIX
+              (chave <code className="mx-1 px-1 rounded bg-muted">07027339382</code>, Banco Inter, Domingues Fabrício)
+              e o mês de referência.
+            </CardDescription>
+          </CardHeader>
+          <CardContent>
+            <div className="flex items-center justify-between gap-3 rounded-md border p-3 bg-muted/30">
+              <div className="flex items-center gap-3">
+                <Switch
+                  id="auto-send-billing"
+                  checked={autoSendBillingAlert}
+                  onCheckedChange={setAutoSendBillingAlert}
+                />
+                <Label htmlFor="auto-send-billing" className="cursor-pointer">
+                  Ativar envio automático da cobrança mensal no grupo
+                </Label>
+              </div>
+              <div className="flex items-center gap-2">
+                <Badge variant={autoSendBillingAlert ? "default" : "secondary"}>
+                  {autoSendBillingAlert ? "Ativo" : "Desativado"}
+                </Badge>
+                <Button variant="outline" size="sm" onClick={handleTestBillingNotify} disabled={testingBilling}>
+                  <Play className="w-4 h-4 mr-1" />
+                  {testingBilling ? "..." : "Testar"}
+                </Button>
+              </div>
+            </div>
+            <p className="text-xs text-muted-foreground mt-3">
+              Requisitos: integração W-API habilitada e <strong>ID do grupo</strong> preenchido. O botão "Testar" envia
+              a cobrança imediatamente, ignorando a regra do dia 25/09:00h. Lembre-se de salvar após alterar este botão.
+            </p>
+          </CardContent>
+        </Card>
+
 
         <Card>
           <CardHeader>
