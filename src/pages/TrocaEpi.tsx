@@ -932,32 +932,16 @@ export default function TrocaEpi() {
       }
       if (!publicUrl) return;
 
-      // Dispara wapi-send (delay aplicado pela edge function)
-      const { data: sessionData } = await supabase.auth.getSession();
-      const accessToken = sessionData.session?.access_token;
-      if (!accessToken) return;
-
-      const url = `${import.meta.env.VITE_SUPABASE_URL}/functions/v1/wapi-send`;
-      const resp = await fetch(url, {
-        method: "POST",
-        headers: {
-          "Content-Type": "application/json",
-          "apikey": import.meta.env.VITE_SUPABASE_PUBLISHABLE_KEY,
-          "Authorization": `Bearer ${accessToken}`,
-        },
-        body: JSON.stringify({
-          message: caption,
-          caption,
-          image_url: publicUrl,
-          recipients: [],
-          group_id: c.group_id,
-        }),
+      // Enfileira na outbox via edge function dedicada (respeita delay global)
+      const { data: invokeData, error: invokeErr } = await supabase.functions.invoke("wapi-requisition-notify", {
+        body: { type, caption, image_url: publicUrl },
       });
-      if (resp.ok) {
-        toast.success("Requisição enviada para o grupo do WhatsApp 📤");
+      if (invokeErr) {
+        toast.error("Falha ao enfileirar requisição para o grupo", { description: invokeErr.message });
+      } else if ((invokeData as any)?.skipped) {
+        // silencioso: integração desabilitada
       } else {
-        const txt = await resp.text();
-        toast.error("Falha ao enviar para o grupo", { description: txt.slice(0, 200) });
+        toast.success("Requisição enfileirada para o grupo do WhatsApp 📤");
       }
     } catch (err) {
       console.error("[autoSendRequisitionToGroup]", err);
