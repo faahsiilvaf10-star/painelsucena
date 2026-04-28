@@ -4112,6 +4112,7 @@ export type Database = {
           created_at: string
           delay_seconds: number
           enabled: boolean
+          group_id: string | null
           id: string
           instance_id: string
           instance_token: string
@@ -4123,6 +4124,7 @@ export type Database = {
           created_at?: string
           delay_seconds?: number
           enabled?: boolean
+          group_id?: string | null
           id?: string
           instance_id?: string
           instance_token?: string
@@ -4134,6 +4136,7 @@ export type Database = {
           created_at?: string
           delay_seconds?: number
           enabled?: boolean
+          group_id?: string | null
           id?: string
           instance_id?: string
           instance_token?: string

@@ -15,6 +15,7 @@ interface Recipient {
 interface Body {
   message: string;
   recipients: Recipient[];
+  group_id?: string | null;
 }
 
 const sanitizePhone = (raw: string): string => {
@@ -24,19 +25,19 @@ const sanitizePhone = (raw: string): string => {
   return digits;
 };
 
-const buildWapiEndpoint = (rawUrl: string, instanceId: string): string => {
+const buildWapiEndpoint = (rawUrl: string, instanceId: string, isGroup: boolean): string => {
   const url = new URL(rawUrl.trim());
   const normalizedPath = url.pathname.replace(/\/+$/, "");
 
-  // W-API docs: POST https://api.w-api.app/v1/message/send-text?instanceId=...
-  // Accept pasted panel/instance URLs too, but always target the official send-text route.
+  // W-API: send-text para contato; send-message-group / send-text-group para grupos
   if (url.hostname === "painel.w-api.app" || url.pathname.startsWith("/app")) {
     url.protocol = "https:";
     url.hostname = "api.w-api.app";
   }
 
+  const targetPath = isGroup ? "/v1/message/send-text" : "/v1/message/send-text";
   if (!normalizedPath.endsWith("/send-text")) {
-    url.pathname = "/v1/message/send-text";
+    url.pathname = targetPath;
   }
 
   url.searchParams.set("instanceId", instanceId);
@@ -80,8 +81,15 @@ Deno.serve(async (req) => {
     }
 
     const body: Body = await req.json();
-    if (!body?.message || !Array.isArray(body.recipients) || body.recipients.length === 0) {
-      return new Response(JSON.stringify({ error: "Mensagem e destinatários são obrigatórios" }), {
+    const isGroupSend = !!body?.group_id && body.group_id.trim().length > 0;
+
+    if (!body?.message) {
+      return new Response(JSON.stringify({ error: "Mensagem é obrigatória" }), {
+        status: 400, headers: { ...corsHeaders, "Content-Type": "application/json" },
+      });
+    }
+    if (!isGroupSend && (!Array.isArray(body.recipients) || body.recipients.length === 0)) {
+      return new Response(JSON.stringify({ error: "Destinatários ou ID do grupo são obrigatórios" }), {
         status: 400, headers: { ...corsHeaders, "Content-Type": "application/json" },
       });
     }
@@ -104,11 +112,58 @@ Deno.serve(async (req) => {
       });
     }
 
-    const endpoint = buildWapiEndpoint(cfg.instance_url, cfg.instance_id);
+    const endpoint = buildWapiEndpoint(cfg.instance_url, cfg.instance_id, isGroupSend);
     const delayMs = Math.max(0, Number(cfg.delay_seconds ?? 5)) * 1000;
     const sleep = (ms: number) => new Promise((res) => setTimeout(res, ms));
 
     const results: Array<{ phone: string; ok: boolean; error?: string }> = [];
+
+    if (isGroupSend) {
+      const groupId = (body.group_id || "").trim();
+      try {
+        const resp = await fetch(endpoint, {
+          method: "POST",
+          headers: {
+            "Content-Type": "application/json",
+            "Authorization": `Bearer ${cfg.instance_token}`,
+          },
+          body: JSON.stringify({ phone: groupId, message: body.message }),
+        });
+        const respText = await resp.text();
+        let respJson: unknown = null;
+        try { respJson = JSON.parse(respText); } catch { respJson = { raw: respText }; }
+
+        const ok = resp.ok;
+        await admin.from("wapi_message_logs").insert({
+          sent_by: userId,
+          recipient_user_id: null,
+          recipient_name: `Grupo ${groupId}`,
+          recipient_phone: groupId,
+          message: body.message,
+          status: ok ? "sent" : "failed",
+          error_message: ok ? null : `HTTP ${resp.status}: ${respText.slice(0, 200)}`,
+          response: respJson as never,
+        });
+        results.push({ phone: groupId, ok, error: ok ? undefined : `HTTP ${resp.status}` });
+      } catch (e) {
+        const msg = e instanceof Error ? e.message : "Erro desconhecido";
+        await admin.from("wapi_message_logs").insert({
+          sent_by: userId,
+          recipient_user_id: null,
+          recipient_name: `Grupo ${groupId}`,
+          recipient_phone: groupId,
+          message: body.message,
+          status: "failed",
+          error_message: msg,
+        });
+        results.push({ phone: groupId, ok: false, error: msg });
+      }
+
+      const sent = results.filter((r) => r.ok).length;
+      return new Response(JSON.stringify({ success: true, sent, total: results.length, results }), {
+        status: 200, headers: { ...corsHeaders, "Content-Type": "application/json" },
+      });
+    }
 
     for (let i = 0; i < body.recipients.length; i++) {
       const r = body.recipients[i];

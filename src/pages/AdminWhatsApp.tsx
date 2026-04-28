@@ -36,10 +36,13 @@ const AdminWhatsApp = () => {
   const [instanceId, setInstanceId] = useState("");
   const [enabled, setEnabled] = useState(false);
   const [delaySeconds, setDelaySeconds] = useState<number>(5);
+  const [groupId, setGroupId] = useState("");
   const [message, setMessage] = useState("");
   const [search, setSearch] = useState("");
   const [selected, setSelected] = useState<Set<string>>(new Set());
   const [sending, setSending] = useState(false);
+  const [sendToGroup, setSendToGroup] = useState(false);
+  const [groupIdOverride, setGroupIdOverride] = useState("");
 
   const { data: cfg } = useQuery({
     queryKey: ["wapi-config"],
@@ -52,7 +55,7 @@ const AdminWhatsApp = () => {
         .limit(1)
         .maybeSingle();
       if (error) throw error;
-      return data as { id: string; instance_url: string; instance_token: string; instance_id: string; enabled: boolean; delay_seconds: number | null } | null;
+      return data as { id: string; instance_url: string; instance_token: string; instance_id: string; enabled: boolean; delay_seconds: number | null; group_id: string | null } | null;
     },
   });
 
@@ -63,6 +66,7 @@ const AdminWhatsApp = () => {
       setInstanceId(cfg.instance_id || "");
       setEnabled(!!cfg.enabled);
       setDelaySeconds(typeof cfg.delay_seconds === "number" ? cfg.delay_seconds : 5);
+      setGroupId(cfg.group_id || "");
     }
   }, [cfg]);
 
@@ -122,6 +126,7 @@ const AdminWhatsApp = () => {
         instance_url: instanceUrl.trim(),
         instance_token: instanceToken.trim(),
         instance_id: instanceId.trim(),
+        group_id: groupId.trim() || null,
         enabled,
         delay_seconds: Math.max(0, Math.min(600, Math.floor(Number(delaySeconds) || 0))),
         updated_by: user?.id ?? null,
@@ -143,20 +148,29 @@ const AdminWhatsApp = () => {
 
   const handleSend = async () => {
     if (!message.trim()) return toast.error("Escreva uma mensagem");
-    if (selected.size === 0) return toast.error("Selecione ao menos um destinatário");
 
-    const recipients = (profiles || [])
-      .filter((p: { user_id: string }) => selected.has(p.user_id))
-      .map((p: { user_id: string; full_name: string | null; whatsapp_number: string | null }) => ({
-        user_id: p.user_id,
-        name: p.full_name,
-        phone: p.whatsapp_number || "",
-      }));
+    const targetGroup = (groupIdOverride.trim() || groupId.trim());
+    if (sendToGroup && !targetGroup) return toast.error("Informe o ID do grupo");
+    if (!sendToGroup && selected.size === 0) return toast.error("Selecione ao menos um destinatário");
+
+    const recipients = sendToGroup
+      ? []
+      : (profiles || [])
+          .filter((p: { user_id: string }) => selected.has(p.user_id))
+          .map((p: { user_id: string; full_name: string | null; whatsapp_number: string | null }) => ({
+            user_id: p.user_id,
+            name: p.full_name,
+            phone: p.whatsapp_number || "",
+          }));
 
     setSending(true);
     try {
       const { data, error } = await supabase.functions.invoke("wapi-send", {
-        body: { message: message.trim(), recipients },
+        body: {
+          message: message.trim(),
+          recipients,
+          group_id: sendToGroup ? targetGroup : null,
+        },
       });
       if (error) throw error;
       const res = data as { sent: number; total: number };
@@ -220,6 +234,18 @@ const AdminWhatsApp = () => {
               />
             </div>
             <div className="space-y-2">
+              <Label htmlFor="wapi-group">ID do Grupo (opcional)</Label>
+              <Input
+                id="wapi-group"
+                placeholder="120363XXXXXXXXXXXX@g.us"
+                value={groupId}
+                onChange={(e) => setGroupId(e.target.value)}
+              />
+              <p className="text-xs text-muted-foreground">
+                Informe o ID do grupo do WhatsApp (formato: 120363...@g.us). Será usado quando a opção "Enviar para grupo" estiver ativa.
+              </p>
+            </div>
+            <div className="space-y-2">
               <Label htmlFor="wapi-delay">Intervalo entre envios (segundos)</Label>
               <Input
                 id="wapi-delay"
@@ -264,61 +290,88 @@ const AdminWhatsApp = () => {
 
             <Separator />
 
-            <div className="flex items-center gap-2">
-              <Search className="w-4 h-4 text-muted-foreground" />
-              <Input
-                placeholder="Buscar por nome ou número..."
-                value={search}
-                onChange={(e) => setSearch(e.target.value)}
-                className="max-w-sm"
-              />
-              <Badge variant="secondary" className="ml-auto">
-                <Users className="w-3 h-3 mr-1" /> {selected.size} selecionado(s)
-              </Badge>
+            <div className="flex items-center gap-3 rounded-md border p-3 bg-muted/30">
+              <Switch id="send-to-group" checked={sendToGroup} onCheckedChange={setSendToGroup} />
+              <Label htmlFor="send-to-group" className="cursor-pointer">Enviar para grupo do WhatsApp</Label>
             </div>
 
-            <div className="border rounded-md max-h-80 overflow-auto">
-              <Table>
-                <TableHeader>
-                  <TableRow>
-                    <TableHead className="w-12">
-                      <Checkbox checked={allSelected} onCheckedChange={toggleAll} />
-                    </TableHead>
-                    <TableHead>Nome</TableHead>
-                    <TableHead>WhatsApp</TableHead>
-                  </TableRow>
-                </TableHeader>
-                <TableBody>
-                  {filtered.length === 0 && (
-                    <TableRow>
-                      <TableCell colSpan={3} className="text-center text-muted-foreground py-6">
-                        Nenhum usuário com WhatsApp cadastrado
-                      </TableCell>
-                    </TableRow>
-                  )}
-                  {filtered.map((p: { user_id: string; full_name: string | null; whatsapp_number: string | null }) => (
-                    <TableRow key={p.user_id}>
-                      <TableCell>
-                        <Checkbox
-                          checked={selected.has(p.user_id)}
-                          onCheckedChange={(v) => {
-                            const next = new Set(selected);
-                            if (v) next.add(p.user_id); else next.delete(p.user_id);
-                            setSelected(next);
-                          }}
-                        />
-                      </TableCell>
-                      <TableCell>{p.full_name || "—"}</TableCell>
-                      <TableCell className="font-mono text-sm">{formatBR(p.whatsapp_number || "")}</TableCell>
-                    </TableRow>
-                  ))}
-                </TableBody>
-              </Table>
-            </div>
+            {sendToGroup ? (
+              <div className="space-y-2">
+                <Label htmlFor="group-override">ID do Grupo</Label>
+                <Input
+                  id="group-override"
+                  placeholder={groupId || "120363XXXXXXXXXXXX@g.us"}
+                  value={groupIdOverride}
+                  onChange={(e) => setGroupIdOverride(e.target.value)}
+                />
+                <p className="text-xs text-muted-foreground">
+                  Deixe em branco para usar o grupo padrão configurado acima ({groupId || "nenhum"}).
+                </p>
+              </div>
+            ) : (
+              <>
+                <div className="flex items-center gap-2">
+                  <Search className="w-4 h-4 text-muted-foreground" />
+                  <Input
+                    placeholder="Buscar por nome ou número..."
+                    value={search}
+                    onChange={(e) => setSearch(e.target.value)}
+                    className="max-w-sm"
+                  />
+                  <Badge variant="secondary" className="ml-auto">
+                    <Users className="w-3 h-3 mr-1" /> {selected.size} selecionado(s)
+                  </Badge>
+                </div>
+
+                <div className="border rounded-md max-h-80 overflow-auto">
+                  <Table>
+                    <TableHeader>
+                      <TableRow>
+                        <TableHead className="w-12">
+                          <Checkbox checked={allSelected} onCheckedChange={toggleAll} />
+                        </TableHead>
+                        <TableHead>Nome</TableHead>
+                        <TableHead>WhatsApp</TableHead>
+                      </TableRow>
+                    </TableHeader>
+                    <TableBody>
+                      {filtered.length === 0 && (
+                        <TableRow>
+                          <TableCell colSpan={3} className="text-center text-muted-foreground py-6">
+                            Nenhum usuário com WhatsApp cadastrado
+                          </TableCell>
+                        </TableRow>
+                      )}
+                      {filtered.map((p: { user_id: string; full_name: string | null; whatsapp_number: string | null }) => (
+                        <TableRow key={p.user_id}>
+                          <TableCell>
+                            <Checkbox
+                              checked={selected.has(p.user_id)}
+                              onCheckedChange={(v) => {
+                                const next = new Set(selected);
+                                if (v) next.add(p.user_id); else next.delete(p.user_id);
+                                setSelected(next);
+                              }}
+                            />
+                          </TableCell>
+                          <TableCell>{p.full_name || "—"}</TableCell>
+                          <TableCell className="font-mono text-sm">{formatBR(p.whatsapp_number || "")}</TableCell>
+                        </TableRow>
+                      ))}
+                    </TableBody>
+                  </Table>
+                </div>
+              </>
+            )}
 
             <div className="flex justify-end">
               <Button onClick={handleSend} disabled={sending || !enabled}>
-                <Send className="w-4 h-4 mr-2" /> {sending ? "Enviando..." : `Enviar para ${selected.size}`}
+                <Send className="w-4 h-4 mr-2" />
+                {sending
+                  ? "Enviando..."
+                  : sendToGroup
+                  ? "Enviar para o grupo"
+                  : `Enviar para ${selected.size}`}
               </Button>
             </div>
             {!enabled && (
