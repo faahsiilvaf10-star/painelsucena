@@ -782,7 +782,47 @@ const AdminWhatsApp = () => {
 
         <Card>
           <CardHeader>
-            <CardTitle>Envio de Mensagem</CardTitle>
+            <CardTitle className="flex items-center gap-2">
+              <Bell className="w-5 h-5 text-primary" />
+              Campanha do Mês (todo dia 1º às 09:00h)
+            </CardTitle>
+            <CardDescription>
+              Quando habilitado, o sistema envia automaticamente para o <strong>grupo configurado</strong> a
+              <strong> campanha do mês vigente</strong> (Janeiro Branco, Outubro Rosa, etc.) com a
+              <strong> imagem da campanha</strong> em anexo, no <strong>dia 1º de cada mês às 09:00h (Pará UTC-4)</strong>.
+              A legenda inclui o nome de todas as campanhas do mês, suas cores e descrições.
+            </CardDescription>
+          </CardHeader>
+          <CardContent>
+            <div className="flex items-center justify-between gap-3 rounded-md border p-3 bg-muted/30">
+              <div className="flex items-center gap-3">
+                <Switch
+                  id="auto-send-campaign"
+                  checked={autoSendCampaignAlert}
+                  onCheckedChange={setAutoSendCampaignAlert}
+                />
+                <Label htmlFor="auto-send-campaign" className="cursor-pointer">
+                  Ativar envio automático da campanha do mês no grupo
+                </Label>
+              </div>
+              <div className="flex items-center gap-2">
+                <Badge variant={autoSendCampaignAlert ? "default" : "secondary"}>
+                  {autoSendCampaignAlert ? "Ativo" : "Desativado"}
+                </Badge>
+                <Button variant="outline" size="sm" onClick={handleTestCampaignNotify} disabled={testingCampaign}>
+                  <Play className="w-4 h-4 mr-1" />
+                  {testingCampaign ? "..." : "Testar"}
+                </Button>
+              </div>
+            </div>
+            <p className="text-xs text-muted-foreground mt-3">
+              Requisitos: integração W-API habilitada, ID do grupo preenchido e banner do mês carregado em
+              <code className="mx-1 px-1 rounded bg-muted">announcements/campaign-banners/campanha-{`{mês}`}.png</code>.
+              Se a imagem não existir, será enviado apenas o texto.
+            </p>
+          </CardContent>
+        </Card>
+
             <CardDescription>Selecione os usuários e escreva a mensagem. Apenas usuários com WhatsApp cadastrado aparecem.</CardDescription>
           </CardHeader>
           <CardContent className="space-y-4">
