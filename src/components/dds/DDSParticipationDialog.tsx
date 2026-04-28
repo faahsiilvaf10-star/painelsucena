@@ -80,6 +80,7 @@ export const DDSParticipationDialog = ({ open, onOpenChange, date }: Props) => {
   const saveMutation = useSaveDDSParticipation();
   const { data: profile } = useProfile();
   const { user } = useAuth();
+  const { info: envInfo } = useEnvironment();
   const { isAdmin } = useIsAdmin();
   const queryClient = useQueryClient();
   const { data: lockData, isLoading: lockLoading } = useDDSLock(date);
