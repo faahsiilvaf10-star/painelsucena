@@ -624,6 +624,48 @@ const AdminWhatsApp = () => {
 
         <Card>
           <CardHeader>
+            <CardTitle className="flex items-center gap-2">
+              <Bell className="w-5 h-5 text-primary" />
+              Alerta Automático da Matriz (toda Quinta às 10:00h)
+            </CardTitle>
+            <CardDescription>
+              Quando habilitado, o sistema envia automaticamente para o <strong>grupo configurado</strong> uma mensagem
+              listando os colaboradores que <strong>ainda não preencheram</strong> a Matriz de Responsabilidades do mês,
+              com os detalhes de quais tarefas estão pendentes. Se <strong>todos</strong> tiverem preenchido, será enviada uma
+              mensagem de <strong>parabéns</strong> à equipe. Execução semanal: <strong>toda Quinta-feira às 10:00h</strong> (Pará UTC-4),
+              sempre atualizada conforme o sistema.
+            </CardDescription>
+          </CardHeader>
+          <CardContent>
+            <div className="flex items-center justify-between gap-3 rounded-md border p-3 bg-muted/30">
+              <div className="flex items-center gap-3">
+                <Switch
+                  id="auto-send-matrix"
+                  checked={autoSendMatrixAlert}
+                  onCheckedChange={setAutoSendMatrixAlert}
+                />
+                <Label htmlFor="auto-send-matrix" className="cursor-pointer">
+                  Ativar envio automático do alerta da Matriz no grupo
+                </Label>
+              </div>
+              <div className="flex items-center gap-2">
+                <Badge variant={autoSendMatrixAlert ? "default" : "secondary"}>
+                  {autoSendMatrixAlert ? "Ativo" : "Desativado"}
+                </Badge>
+                <Button variant="outline" size="sm" onClick={handleTestMatrixNotify} disabled={testingMatrix}>
+                  <Play className="w-4 h-4 mr-1" />
+                  {testingMatrix ? "..." : "Testar"}
+                </Button>
+              </div>
+            </div>
+            <p className="text-xs text-muted-foreground mt-3">
+              Requisitos: integração W-API habilitada e ID do grupo preenchido. O botão "Testar" envia a mensagem imediatamente.
+            </p>
+          </CardContent>
+        </Card>
+
+        <Card>
+          <CardHeader>
             <CardTitle>Envio de Mensagem</CardTitle>
             <CardDescription>Selecione os usuários e escreva a mensagem. Apenas usuários com WhatsApp cadastrado aparecem.</CardDescription>
           </CardHeader>
