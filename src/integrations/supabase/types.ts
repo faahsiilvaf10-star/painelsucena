@@ -4169,6 +4169,7 @@ export type Database = {
       wapi_config: {
         Row: {
           auto_send_aso_alert: boolean
+          auto_send_matrix_alert: boolean
           auto_send_reminders: boolean
           auto_send_requisitions: boolean
           created_at: string
@@ -4186,6 +4187,7 @@ export type Database = {
         }
         Insert: {
           auto_send_aso_alert?: boolean
+          auto_send_matrix_alert?: boolean
           auto_send_reminders?: boolean
           auto_send_requisitions?: boolean
           created_at?: string
@@ -4203,6 +4205,7 @@ export type Database = {
         }
         Update: {
           auto_send_aso_alert?: boolean
+          auto_send_matrix_alert?: boolean
           auto_send_reminders?: boolean
           auto_send_requisitions?: boolean
           created_at?: string
