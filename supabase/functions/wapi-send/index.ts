@@ -16,6 +16,8 @@ interface Body {
   message: string;
   recipients: Recipient[];
   group_id?: string | null;
+  image_url?: string | null;
+  caption?: string | null;
 }
 
 const sanitizePhone = (raw: string): string => {
