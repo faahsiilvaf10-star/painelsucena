@@ -46,6 +46,7 @@ const AdminWhatsApp = () => {
   const [ddsAutoNotify, setDdsAutoNotify] = useState(false);
   const [ddsNotifyDayBefore, setDdsNotifyDayBefore] = useState(false);
   const [autoSendReq, setAutoSendReq] = useState(false);
+  const [autoSendReminders, setAutoSendReminders] = useState(false);
   const [testingDds, setTestingDds] = useState(false);
   const [testingDdsTomorrow, setTestingDdsTomorrow] = useState(false);
 
@@ -60,7 +61,7 @@ const AdminWhatsApp = () => {
         .limit(1)
         .maybeSingle();
       if (error) throw error;
-      return data as { id: string; instance_url: string; instance_token: string; instance_id: string; enabled: boolean; delay_seconds: number | null; group_id: string | null; dds_auto_notify: boolean | null; dds_notify_day_before: boolean | null; auto_send_requisitions: boolean | null } | null;
+      return data as { id: string; instance_url: string; instance_token: string; instance_id: string; enabled: boolean; delay_seconds: number | null; group_id: string | null; dds_auto_notify: boolean | null; dds_notify_day_before: boolean | null; auto_send_requisitions: boolean | null; auto_send_reminders: boolean | null } | null;
     },
   });
 
@@ -75,6 +76,7 @@ const AdminWhatsApp = () => {
       setDdsAutoNotify(!!cfg.dds_auto_notify);
       setDdsNotifyDayBefore(!!cfg.dds_notify_day_before);
       setAutoSendReq(!!cfg.auto_send_requisitions);
+      setAutoSendReminders(!!cfg.auto_send_reminders);
     }
   }, [cfg]);
 
@@ -140,6 +142,7 @@ const AdminWhatsApp = () => {
         dds_auto_notify: ddsAutoNotify,
         dds_notify_day_before: ddsNotifyDayBefore,
         auto_send_requisitions: autoSendReq,
+        auto_send_reminders: autoSendReminders,
         updated_by: user?.id ?? null,
       };
       if (cfg?.id) {
@@ -459,6 +462,41 @@ const AdminWhatsApp = () => {
             </div>
             <p className="text-xs text-muted-foreground mt-3">
               Requisitos: integração W-API habilitada e ID do grupo preenchido. Lembre-se de salvar a configuração após alterar este botão.
+            </p>
+          </CardContent>
+        </Card>
+
+        <Card>
+          <CardHeader>
+            <CardTitle className="flex items-center gap-2">
+              <Bell className="w-5 h-5 text-primary" />
+              Envio Automático de Lembretes
+            </CardTitle>
+            <CardDescription>
+              Quando habilitado, ao criar um lembrete o sistema envia automaticamente todos os detalhes (título, descrição, data, hora, recorrência) via WhatsApp:
+              <br />• Se o lembrete <strong>mencionar todos</strong> → vai direto para o <strong>grupo configurado</strong>.
+              <br />• Se for <strong>"somente para mim"</strong> ou <strong>usuários específicos</strong> → vai no <strong>privado</strong> do criador e dos usuários mencionados.
+              <br />Respeita o intervalo de segurança configurado.
+            </CardDescription>
+          </CardHeader>
+          <CardContent>
+            <div className="flex items-center justify-between gap-3 rounded-md border p-3 bg-muted/30">
+              <div className="flex items-center gap-3">
+                <Switch
+                  id="auto-send-reminders"
+                  checked={autoSendReminders}
+                  onCheckedChange={setAutoSendReminders}
+                />
+                <Label htmlFor="auto-send-reminders" className="cursor-pointer">
+                  Ativar envio automático ao criar um lembrete
+                </Label>
+              </div>
+              <Badge variant={autoSendReminders ? "default" : "secondary"}>
+                {autoSendReminders ? "Ativo" : "Desativado"}
+              </Badge>
+            </div>
+            <p className="text-xs text-muted-foreground mt-3">
+              Requisitos: integração W-API habilitada, ID do grupo preenchido (para lembretes de "todos") e usuários com WhatsApp cadastrado (para envios privados). Lembre-se de salvar a configuração após alterar este botão.
             </p>
           </CardContent>
         </Card>

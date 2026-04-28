@@ -242,6 +242,104 @@ const filterActiveReminders = (
   });
 };
 
+const WEEKDAY_LABELS = ["Domingo", "Segunda", "Terça", "Quarta", "Quinta", "Sexta", "Sábado"];
+
+const buildReminderMessage = (r: Reminder, creatorName: string): string => {
+  const lines: string[] = [];
+  lines.push(`🔔 *Novo Lembrete*`);
+  lines.push("");
+  lines.push(`📌 *Título:* ${r.title}`);
+  if (r.description && r.description.trim().length > 0) {
+    lines.push(`📝 *Descrição:* ${r.description}`);
+  }
+  if (r.is_recurring && (r.recurring_days?.length ?? 0) > 0) {
+    const days = (r.recurring_days || []).map((d) => WEEKDAY_LABELS[d]).join(", ");
+    lines.push(`🔁 *Recorrente:* ${days}`);
+  } else if (r.event_date) {
+    const [y, m, d] = r.event_date.split("-");
+    lines.push(`📅 *Data:* ${d}/${m}/${y}`);
+  }
+  if (r.event_time) {
+    lines.push(`⏰ *Hora:* ${r.event_time}`);
+  }
+  if (r.alert_days_before && r.alert_days_before > 0) {
+    lines.push(`⏳ *Aviso:* ${r.alert_days_before} dia(s) antes`);
+  }
+  lines.push("");
+  lines.push(`👤 _Criado por: ${creatorName}_`);
+  lines.push(`_Mensagem automática - Sucena_`);
+  return lines.join("\n");
+};
+
+const dispatchReminderWhatsApp = async (reminder: Reminder, creatorId: string) => {
+  try {
+    // Verifica config: só envia se enabled E auto_send_reminders ativos
+    const { data: cfg } = await supabase
+      .from("wapi_config" as any)
+      .select("enabled, auto_send_reminders, group_id")
+      .order("updated_at", { ascending: false })
+      .limit(1)
+      .maybeSingle();
+    if (!cfg || !(cfg as any).enabled || !(cfg as any).auto_send_reminders) return;
+
+    // Nome do criador
+    const { data: creatorProfile } = await supabase
+      .from("profiles")
+      .select("full_name")
+      .eq("user_id", creatorId)
+      .maybeSingle();
+    const creatorName = creatorProfile?.full_name || "Sistema";
+
+    const message = buildReminderMessage(reminder, creatorName);
+
+    if (reminder.mention_type === "all") {
+      // Envia para o grupo
+      const groupId = (cfg as any).group_id;
+      if (!groupId) {
+        console.warn("[reminders] auto-send: grupo não configurado");
+        return;
+      }
+      await supabase.functions.invoke("wapi-send", {
+        body: { group_id: groupId, message },
+      });
+    } else {
+      // Envio privado: criador + mencionados (deduplicados)
+      const targets = new Set<string>();
+      targets.add(creatorId);
+      if (reminder.mention_type === "specific") {
+        (reminder.mentioned_users || []).forEach((u) => targets.add(u));
+      }
+      const userIds = Array.from(targets);
+      if (userIds.length === 0) return;
+
+      // Busca perfis com whatsapp para montar recipients
+      const { data: profs } = await supabase
+        .from("profiles")
+        .select("user_id, full_name, whatsapp_number")
+        .in("user_id", userIds);
+
+      const recipients = (profs || [])
+        .filter((p: any) => (p.whatsapp_number || "").replace(/\D/g, "").length >= 10)
+        .map((p: any) => ({
+          user_id: p.user_id,
+          name: p.full_name || "",
+          phone: p.whatsapp_number,
+        }));
+
+      if (recipients.length === 0) {
+        console.warn("[reminders] auto-send: nenhum destinatário com whatsapp");
+        return;
+      }
+
+      await supabase.functions.invoke("wapi-send", {
+        body: { recipients, message },
+      });
+    }
+  } catch (e) {
+    console.error("[reminders] auto-send falhou", e);
+  }
+};
+
 export const useCreateReminder = () => {
   const queryClient = useQueryClient();
   const { user } = useAuth();
@@ -260,7 +358,12 @@ export const useCreateReminder = () => {
         .single();
 
       if (error) throw error;
-      return data as Reminder;
+      const created = data as Reminder;
+
+      // Dispara WhatsApp em background (não bloqueia retorno)
+      dispatchReminderWhatsApp(created, user.id);
+
+      return created;
     },
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ["reminders"] });
