@@ -92,6 +92,7 @@ const AdminWhatsApp = () => {
       setAutoSendForbiddenColorAlert(!!cfg.auto_send_forbidden_color_alert);
       setAutoSendCampaignAlert(!!cfg.auto_send_campaign_alert);
       setAutoSendOrderAlerts(!!cfg.auto_send_order_alerts);
+      setAutoSendEquipmentMovements(!!cfg.auto_send_equipment_movements);
     }
   }, [cfg]);
 
