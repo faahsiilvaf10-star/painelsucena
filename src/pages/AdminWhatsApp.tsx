@@ -52,6 +52,7 @@ const AdminWhatsApp = () => {
   const [autoSendForbiddenColorAlert, setAutoSendForbiddenColorAlert] = useState(false);
   const [autoSendCampaignAlert, setAutoSendCampaignAlert] = useState(false);
   const [autoSendOrderAlerts, setAutoSendOrderAlerts] = useState(false);
+  const [autoSendEquipmentMovements, setAutoSendEquipmentMovements] = useState(false);
   const [testingDds, setTestingDds] = useState(false);
   const [testingDdsTomorrow, setTestingDdsTomorrow] = useState(false);
   const [testingAso, setTestingAso] = useState(false);
