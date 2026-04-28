@@ -374,8 +374,7 @@ const AdminWhatsApp = () => {
               Lembrete Automático do DDS
             </CardTitle>
             <CardDescription>
-              Quando habilitado, todos os dias às <strong>06:00h (horário do Pará)</strong> o sistema envia uma mensagem automática
-              para o WhatsApp do palestrante agendado para o DDS daquele dia, informando o tema da palestra.
+              Envia mensagens automáticas no WhatsApp do palestrante agendado, com base no horário do Pará.
             </CardDescription>
           </CardHeader>
           <CardContent className="space-y-4">
@@ -387,23 +386,46 @@ const AdminWhatsApp = () => {
                   onCheckedChange={setDdsAutoNotify}
                 />
                 <Label htmlFor="dds-auto-notify" className="cursor-pointer">
-                  Ativar envio automático às 06:00h para o palestrante do DDS do dia
+                  Lembrete às <strong>06:00h do dia do DDS</strong> (hoje é o seu dia)
                 </Label>
               </div>
-              <Badge variant={ddsAutoNotify ? "default" : "secondary"}>
-                {ddsAutoNotify ? "Ativo" : "Desativado"}
-              </Badge>
+              <div className="flex items-center gap-2">
+                <Badge variant={ddsAutoNotify ? "default" : "secondary"}>
+                  {ddsAutoNotify ? "Ativo" : "Desativado"}
+                </Badge>
+                <Button variant="outline" size="sm" onClick={() => handleTestDdsNotify("today")} disabled={testingDds}>
+                  <Play className="w-4 h-4 mr-1" />
+                  {testingDds ? "..." : "Testar"}
+                </Button>
+              </div>
             </div>
-            <div className="flex flex-wrap items-center justify-between gap-3">
-              <p className="text-xs text-muted-foreground max-w-2xl">
-                Requisitos: integração W-API habilitada, palestrante com usuário interno cadastrado e número de WhatsApp preenchido no perfil.
-                Lembre-se de salvar a configuração após alterar este botão.
-              </p>
-              <Button variant="outline" size="sm" onClick={handleTestDdsNotify} disabled={testingDds}>
-                <Play className="w-4 h-4 mr-2" />
-                {testingDds ? "Testando..." : "Testar agora"}
-              </Button>
+
+            <div className="flex items-center justify-between gap-3 rounded-md border p-3 bg-muted/30">
+              <div className="flex items-center gap-3">
+                <Switch
+                  id="dds-notify-day-before"
+                  checked={ddsNotifyDayBefore}
+                  onCheckedChange={setDdsNotifyDayBefore}
+                />
+                <Label htmlFor="dds-notify-day-before" className="cursor-pointer">
+                  Aviso <strong>1 dia antes às 16:00h</strong> (você palestra amanhã)
+                </Label>
+              </div>
+              <div className="flex items-center gap-2">
+                <Badge variant={ddsNotifyDayBefore ? "default" : "secondary"}>
+                  {ddsNotifyDayBefore ? "Ativo" : "Desativado"}
+                </Badge>
+                <Button variant="outline" size="sm" onClick={() => handleTestDdsNotify("tomorrow")} disabled={testingDdsTomorrow}>
+                  <Play className="w-4 h-4 mr-1" />
+                  {testingDdsTomorrow ? "..." : "Testar"}
+                </Button>
+              </div>
             </div>
+
+            <p className="text-xs text-muted-foreground">
+              Requisitos: integração W-API habilitada, palestrante com usuário interno cadastrado e número de WhatsApp preenchido no perfil.
+              Lembre-se de salvar a configuração após alterar estes botões.
+            </p>
           </CardContent>
         </Card>
 
