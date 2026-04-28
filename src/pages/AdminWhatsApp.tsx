@@ -939,7 +939,46 @@ const AdminWhatsApp = () => {
 
         <Card>
           <CardHeader>
-            <CardTitle>Envio de Mensagem</CardTitle>
+            <CardTitle className="flex items-center gap-2">
+              <Bell className="w-5 h-5 text-primary" />
+              Planejamento — Metas e Resumo Mensal
+            </CardTitle>
+            <CardDescription>
+              Quando habilitado: ao <strong>concluir uma meta no Planejamento</strong> (realizado ≥ meta),
+              o grupo recebe imediatamente os detalhes (atividade, categoria, meta, realizado, atingimento).
+              Todo <strong>dia 15 às 09:00h (Pará UTC-4)</strong>, o grupo também recebe o
+              <strong> resumo mensal</strong> com o avanço geral, lista do que foi concluído e o que faltou.
+            </CardDescription>
+          </CardHeader>
+          <CardContent>
+            <div className="flex items-center justify-between gap-3 rounded-md border p-3 bg-muted/30">
+              <div className="flex items-center gap-3">
+                <Switch
+                  id="auto-send-planning"
+                  checked={autoSendPlanningAlerts}
+                  onCheckedChange={setAutoSendPlanningAlerts}
+                />
+                <Label htmlFor="auto-send-planning" className="cursor-pointer">
+                  Ativar alertas do Planejamento no grupo
+                </Label>
+              </div>
+              <div className="flex items-center gap-2">
+                <Badge variant={autoSendPlanningAlerts ? "default" : "secondary"}>
+                  {autoSendPlanningAlerts ? "Ativo" : "Desativado"}
+                </Badge>
+                <Button variant="outline" size="sm" onClick={handleTestPlanningNotify} disabled={testingPlanning}>
+                  <Play className="w-4 h-4 mr-1" />
+                  {testingPlanning ? "..." : "Testar Resumo"}
+                </Button>
+              </div>
+            </div>
+            <p className="text-xs text-muted-foreground mt-3">
+              Requisitos: integração W-API habilitada e <strong>ID do grupo</strong> preenchido. O botão "Testar Resumo"
+              envia o resumo mensal imediatamente, ignorando a regra do dia 15.
+            </p>
+          </CardContent>
+        </Card>
+
             <CardDescription>Selecione os usuários e escreva a mensagem. Apenas usuários com WhatsApp cadastrado aparecem.</CardDescription>
           </CardHeader>
           <CardContent className="space-y-4">
