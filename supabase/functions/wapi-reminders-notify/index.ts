@@ -96,11 +96,37 @@ Deno.serve(async (req) => {
     const creatorMap = new Map<string, string>();
     (creatorProfiles || []).forEach((p: any) => creatorMap.set(p.user_id, p.full_name || "Sistema"));
 
+    // 2.1 Snoozes ativos do CRIADOR (snoozed_until >= hoje suprime envio)
+    // Quando o criador adia o lembrete, o envio WhatsApp também adia para a data escolhida.
+    const reminderIdsAll = (reminders || []).map((r: any) => r.id);
+    const creatorByReminder = new Map<string, string>();
+    (reminders || []).forEach((r: any) => creatorByReminder.set(r.id, r.created_by));
+    const { data: creatorSnoozes } = reminderIdsAll.length
+      ? await admin
+          .from("reminder_snoozes")
+          .select("reminder_id, user_id, snoozed_until")
+          .in("reminder_id", reminderIdsAll)
+      : { data: [] as any[] };
+    // Map reminder_id -> snoozed_until (apenas snooze do criador)
+    const creatorSnoozeMap = new Map<string, string>();
+    (creatorSnoozes || []).forEach((s: any) => {
+      const creator = creatorByReminder.get(s.reminder_id);
+      if (creator && s.user_id === creator) {
+        creatorSnoozeMap.set(s.reminder_id, s.snoozed_until);
+      }
+    });
+
     // 3. Para cada lembrete, calcular ocorrência elegível "agora"
     const eligible: Array<{ reminder: any; occurrenceType: string; occurrenceLabel: string }> = [];
 
     for (const r of reminders || []) {
       const desiredTime = (r.event_time ? String(r.event_time).slice(0, 5) : "06:00");
+
+      // Se o criador adiou para uma data futura, não envia hoje.
+      const snoozedUntil = creatorSnoozeMap.get(r.id);
+      if (snoozedUntil && snoozedUntil > todayISO) {
+        continue;
+      }
 
       if (r.is_recurring && Array.isArray(r.recurring_days) && r.recurring_days.length > 0) {
         // Hoje é dia da semana?
