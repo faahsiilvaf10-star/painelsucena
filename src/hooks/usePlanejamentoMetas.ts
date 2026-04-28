@@ -33,11 +33,38 @@ export function useUpdatePlanejamentoMeta() {
   const qc = useQueryClient();
   return useMutation({
     mutationFn: async ({ id, meta, realizado }: { id: string; meta?: number; realizado?: number }) => {
+      // Read previous state to detect "completion" transition
+      const { data: prev } = await supabase
+        .from("planejamento_metas")
+        .select("meta, realizado")
+        .eq("id", id)
+        .maybeSingle();
+
       const patch: Record<string, number> = {};
       if (meta !== undefined) patch.meta = meta;
       if (realizado !== undefined) patch.realizado = realizado;
       const { error } = await supabase.from("planejamento_metas").update(patch).eq("id", id);
       if (error) throw error;
+
+      // Detect transition: from "not completed" to "completed"
+      if (prev) {
+        const prevMeta = Number(prev.meta) || 0;
+        const prevReal = Number(prev.realizado) || 0;
+        const newMeta = meta !== undefined ? Number(meta) : prevMeta;
+        const newReal = realizado !== undefined ? Number(realizado) : prevReal;
+
+        const wasCompleted = prevMeta > 0 && prevReal >= prevMeta;
+        const isCompleted = newMeta > 0 && newReal >= newMeta;
+
+        if (!wasCompleted && isCompleted) {
+          // Fire-and-forget WhatsApp notification
+          supabase.functions
+            .invoke("wapi-planning-notify", {
+              body: { eventType: "meta_completed", metaId: id },
+            })
+            .catch((e) => console.warn("[wapi-planning-notify meta_completed] falhou:", e));
+        }
+      }
     },
     onSuccess: () => {
       qc.invalidateQueries({ queryKey: ["planejamento-metas"] });

@@ -53,6 +53,8 @@ const AdminWhatsApp = () => {
   const [autoSendCampaignAlert, setAutoSendCampaignAlert] = useState(false);
   const [autoSendOrderAlerts, setAutoSendOrderAlerts] = useState(false);
   const [autoSendEquipmentMovements, setAutoSendEquipmentMovements] = useState(false);
+  const [autoSendPlanningAlerts, setAutoSendPlanningAlerts] = useState(false);
+  const [testingPlanning, setTestingPlanning] = useState(false);
   const [testingDds, setTestingDds] = useState(false);
   const [testingDdsTomorrow, setTestingDdsTomorrow] = useState(false);
   const [testingAso, setTestingAso] = useState(false);
@@ -71,7 +73,7 @@ const AdminWhatsApp = () => {
         .limit(1)
         .maybeSingle();
       if (error) throw error;
-      return data as { id: string; instance_url: string; instance_token: string; instance_id: string; enabled: boolean; delay_seconds: number | null; group_id: string | null; dds_auto_notify: boolean | null; dds_notify_day_before: boolean | null; auto_send_requisitions: boolean | null; auto_send_reminders: boolean | null; auto_send_aso_alert: boolean | null; auto_send_matrix_alert: boolean | null; auto_send_forbidden_color_alert: boolean | null; auto_send_campaign_alert: boolean | null; auto_send_order_alerts: boolean | null; auto_send_equipment_movements: boolean | null } | null;
+      return data as { id: string; instance_url: string; instance_token: string; instance_id: string; enabled: boolean; delay_seconds: number | null; group_id: string | null; dds_auto_notify: boolean | null; dds_notify_day_before: boolean | null; auto_send_requisitions: boolean | null; auto_send_reminders: boolean | null; auto_send_aso_alert: boolean | null; auto_send_matrix_alert: boolean | null; auto_send_forbidden_color_alert: boolean | null; auto_send_campaign_alert: boolean | null; auto_send_order_alerts: boolean | null; auto_send_equipment_movements: boolean | null; auto_send_planning_alerts: boolean | null } | null;
     },
   });
 
@@ -93,6 +95,7 @@ const AdminWhatsApp = () => {
       setAutoSendCampaignAlert(!!cfg.auto_send_campaign_alert);
       setAutoSendOrderAlerts(!!cfg.auto_send_order_alerts);
       setAutoSendEquipmentMovements(!!cfg.auto_send_equipment_movements);
+      setAutoSendPlanningAlerts(!!cfg.auto_send_planning_alerts);
     }
   }, [cfg]);
 
@@ -165,6 +168,7 @@ const AdminWhatsApp = () => {
         auto_send_campaign_alert: autoSendCampaignAlert,
         auto_send_order_alerts: autoSendOrderAlerts,
         auto_send_equipment_movements: autoSendEquipmentMovements,
+        auto_send_planning_alerts: autoSendPlanningAlerts,
         updated_by: user?.id ?? null,
       };
       if (cfg?.id) {
@@ -437,6 +441,39 @@ const AdminWhatsApp = () => {
       toast.error("Falha ao executar teste", { description: msg, duration: 15000 });
     } finally {
       setTestingCampaign(false);
+    }
+  };
+
+  const handleTestPlanningNotify = async () => {
+    setTestingPlanning(true);
+    try {
+      const url = `${import.meta.env.VITE_SUPABASE_URL}/functions/v1/wapi-planning-notify`;
+      const response = await fetch(url, {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ eventType: "monthly_summary", force: true }),
+      });
+      const text = await response.text();
+      let data: any = null;
+      try { data = text ? JSON.parse(text) : null; } catch { /* keep raw */ }
+
+      if (!response.ok) {
+        toast.error(`Erro HTTP ${response.status}`, { description: text.slice(0, 500), duration: 15000 });
+        return;
+      }
+      if (data?.skipped) {
+        toast.info("Nada enviado", { description: data.reason || "—", duration: 8000 });
+      } else if (data?.success) {
+        toast.success("Resumo do Planejamento enviado ao grupo");
+      } else {
+        toast.error("Falha no envio", { description: data?.error || "Erro desconhecido", duration: 15000 });
+      }
+      queryClient.invalidateQueries({ queryKey: ["wapi-logs"] });
+    } catch (e) {
+      const msg = e instanceof Error ? e.message : String(e);
+      toast.error("Falha ao executar teste", { description: msg, duration: 15000 });
+    } finally {
+      setTestingPlanning(false);
     }
   };
 
@@ -896,6 +933,48 @@ const AdminWhatsApp = () => {
             <p className="text-xs text-muted-foreground mt-3">
               Requisitos: integração W-API habilitada e <strong>ID do grupo</strong> preenchido. Cada movimentação registrada
               dispara um envio imediato.
+            </p>
+          </CardContent>
+        </Card>
+
+        <Card>
+          <CardHeader>
+            <CardTitle className="flex items-center gap-2">
+              <Bell className="w-5 h-5 text-primary" />
+              Planejamento — Metas e Resumo Mensal
+            </CardTitle>
+            <CardDescription>
+              Quando habilitado: ao <strong>concluir uma meta no Planejamento</strong> (realizado ≥ meta),
+              o grupo recebe imediatamente os detalhes (atividade, categoria, meta, realizado, atingimento).
+              Todo <strong>dia 15 às 09:00h (Pará UTC-4)</strong>, o grupo também recebe o
+              <strong> resumo mensal</strong> com o avanço geral, lista do que foi concluído e o que faltou.
+            </CardDescription>
+          </CardHeader>
+          <CardContent>
+            <div className="flex items-center justify-between gap-3 rounded-md border p-3 bg-muted/30">
+              <div className="flex items-center gap-3">
+                <Switch
+                  id="auto-send-planning"
+                  checked={autoSendPlanningAlerts}
+                  onCheckedChange={setAutoSendPlanningAlerts}
+                />
+                <Label htmlFor="auto-send-planning" className="cursor-pointer">
+                  Ativar alertas do Planejamento no grupo
+                </Label>
+              </div>
+              <div className="flex items-center gap-2">
+                <Badge variant={autoSendPlanningAlerts ? "default" : "secondary"}>
+                  {autoSendPlanningAlerts ? "Ativo" : "Desativado"}
+                </Badge>
+                <Button variant="outline" size="sm" onClick={handleTestPlanningNotify} disabled={testingPlanning}>
+                  <Play className="w-4 h-4 mr-1" />
+                  {testingPlanning ? "..." : "Testar Resumo"}
+                </Button>
+              </div>
+            </div>
+            <p className="text-xs text-muted-foreground mt-3">
+              Requisitos: integração W-API habilitada e <strong>ID do grupo</strong> preenchido. O botão "Testar Resumo"
+              envia o resumo mensal imediatamente, ignorando a regra do dia 15.
             </p>
           </CardContent>
         </Card>
