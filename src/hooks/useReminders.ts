@@ -435,17 +435,76 @@ export const useSnoozeReminder = () => {
     mutationFn: async ({ reminderId, snoozedUntil }: { reminderId: string; snoozedUntil: string }) => {
       if (!user?.id) throw new Error("User not authenticated");
 
+      // Busca o lembrete para saber quem é o criador e quem está mencionado
+      const { data: reminder, error: rErr } = await supabase
+        .from("reminders")
+        .select("*")
+        .eq("id", reminderId)
+        .maybeSingle();
+      if (rErr) throw rErr;
+      if (!reminder) throw new Error("Lembrete não encontrado");
+
+      const isCreator = reminder.created_by === user.id;
+
+      // Determina o conjunto de usuários afetados pelo snooze.
+      // Se quem está adiando NÃO for o criador → snooze apenas individual.
+      // Se for o criador → snooze coletivo (criador + mencionados + acknowledged_by).
+      let userIds: string[] = [user.id];
+      let mentionedIds: string[] = [];
+
+      if (isCreator) {
+        const ackd: string[] = Array.isArray(reminder.acknowledged_by) ? reminder.acknowledged_by : [];
+        if (reminder.mention_type === "all") {
+          // Aplica para todos os usuários conhecidos (profiles)
+          const { data: allProfs } = await supabase.from("profiles").select("user_id");
+          mentionedIds = (allProfs || []).map((p: any) => p.user_id).filter((id: string) => id && id !== user.id);
+        } else if (reminder.mention_type === "specific" && Array.isArray(reminder.mentioned_users)) {
+          mentionedIds = reminder.mentioned_users.filter((id: string) => id && id !== user.id);
+        }
+        userIds = Array.from(new Set([user.id, ...mentionedIds, ...ackd]));
+      }
+
+      // Upsert dos snoozes (um por usuário)
+      const rows = userIds.map((uid) => ({
+        reminder_id: reminderId,
+        user_id: uid,
+        snoozed_until: snoozedUntil,
+      }));
       const { error } = await supabase
         .from("reminder_snoozes" as any)
-        .upsert(
-          { reminder_id: reminderId, user_id: user.id, snoozed_until: snoozedUntil } as any,
-          { onConflict: "reminder_id,user_id" }
-        );
-
+        .upsert(rows as any, { onConflict: "reminder_id,user_id" });
       if (error) throw error;
+
+      // Limpa "envios já feitos hoje" para que, se o snooze for para hoje/amanhã,
+      // o cron possa reenviar com a nova data sem conflito de deduplicação.
+      try {
+        await supabase
+          .from("reminder_notifications_sent" as any)
+          .delete()
+          .eq("reminder_id", reminderId)
+          .gte("scheduled_for_date", new Date().toISOString().slice(0, 10));
+      } catch {}
+
+      // Se foi o CRIADOR quem adiou, dispara notificação WhatsApp
+      // informando o adiamento aos mencionados.
+      if (isCreator) {
+        try {
+          await supabase.functions.invoke("wapi-reminder-snooze-notify", {
+            body: {
+              reminder_id: reminderId,
+              snoozed_until: snoozedUntil,
+              snoozed_by: user.id,
+              recipient_user_ids: mentionedIds,
+            },
+          });
+        } catch (e) {
+          console.warn("[snooze] notify failed", e);
+        }
+      }
     },
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ["active-reminders"] });
+      queryClient.invalidateQueries({ queryKey: ["reminders"] });
     },
   });
 };
