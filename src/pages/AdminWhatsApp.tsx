@@ -49,10 +49,12 @@ const AdminWhatsApp = () => {
   const [autoSendReminders, setAutoSendReminders] = useState(false);
   const [autoSendAsoAlert, setAutoSendAsoAlert] = useState(false);
   const [autoSendMatrixAlert, setAutoSendMatrixAlert] = useState(false);
+  const [autoSendForbiddenColorAlert, setAutoSendForbiddenColorAlert] = useState(false);
   const [testingDds, setTestingDds] = useState(false);
   const [testingDdsTomorrow, setTestingDdsTomorrow] = useState(false);
   const [testingAso, setTestingAso] = useState(false);
   const [testingMatrix, setTestingMatrix] = useState(false);
+  const [testingForbiddenColor, setTestingForbiddenColor] = useState(false);
 
   const { data: cfg } = useQuery({
     queryKey: ["wapi-config"],
