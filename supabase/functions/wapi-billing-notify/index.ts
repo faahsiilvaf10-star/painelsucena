@@ -76,12 +76,19 @@ Deno.serve(async (req) => {
 
     const monthName = MONTH_NAMES[month];
 
+    const VALOR_POR_USUARIO = 2.50;
+    const fmtBRL = (n: number) =>
+      n.toLocaleString("pt-BR", { style: "currency", currency: "BRL" });
+
     const lines: string[] = [];
     lines.push(`💰 *COBRANÇA MENSAL - WHATSAPP AUTOMÁTICO*`);
     lines.push("");
     lines.push(`📅 Referência: *${monthName}/${year}*`);
     lines.push("");
     lines.push(`Olá! Segue a cobrança referente à mensalidade da implementação do sistema de mensagens automáticas no WhatsApp.`);
+    lines.push("");
+    lines.push(`💵 *Valor por usuário:* *${fmtBRL(VALOR_POR_USUARIO)}*`);
+    lines.push(`_(todos os usuários devem pagar este valor)_`);
     lines.push("");
     lines.push(`🏦 *Dados para pagamento via PIX:*`);
     lines.push(`• Chave PIX (Telefone): *07027339382*`);
