@@ -224,21 +224,8 @@ Deno.serve(async (req) => {
       });
       ok = !qErr;
       if (qErr) errorMsg = qErr.message;
-
-        status: ok ? "sent" : "failed",
-        error_message: errorMsg,
-      });
     } catch (e) {
       errorMsg = e instanceof Error ? e.message : "Erro desconhecido";
-      await admin.from("wapi_message_logs").insert({
-        sent_by: null,
-        recipient_user_id: null,
-        recipient_name: "Grupo - Alerta ASO",
-        recipient_phone: phoneField,
-        message,
-        status: "failed",
-        error_message: errorMsg,
-      });
     }
 
     if (ok && !force) {
