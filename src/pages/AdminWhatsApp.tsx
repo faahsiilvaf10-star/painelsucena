@@ -677,6 +677,7 @@ const AdminWhatsApp = () => {
               <br />• Se houver <strong>aviso antecipado</strong> (ex: 1 dia antes), também é enviado às 06:00h naqueles dias.
               <br />• Lembretes <strong>recorrentes</strong> (dias da semana) são enviados no horário configurado.
               <br />• Se mencionar <strong>todos</strong> → vai para o <strong>grupo configurado</strong>; senão → vai no <strong>privado</strong> do criador e dos usuários mencionados.
+              <br />• Se o <strong>criador adiar</strong> o lembrete para outro dia, o envio do WhatsApp também é <strong>adiado automaticamente</strong> para a nova data.
             </CardDescription>
           </CardHeader>
           <CardContent>
