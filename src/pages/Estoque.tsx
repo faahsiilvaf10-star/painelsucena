@@ -89,6 +89,25 @@ export default function Estoque() {
     return { total: items.length, lowStock, categories };
   }, [items]);
 
+  const lowStockItems = useMemo(
+    () => (items || []).filter((i) => i.quantity <= i.min_quantity),
+    [items]
+  );
+
+  const categoryBreakdown = useMemo(() => {
+    if (!items) return [];
+    const map = new Map<string, number>();
+    items.forEach((i) => map.set(i.category, (map.get(i.category) || 0) + 1));
+    return Array.from(map.entries())
+      .map(([key, count]) => ({
+        key,
+        label: CATEGORIES.find((c) => c.value === key)?.label || key,
+        count,
+      }))
+      .sort((a, b) => b.count - a.count);
+  }, [items]);
+
+
   return (
     <Layout>
       <div className="space-y-4 sm:space-y-6 px-4 sm:px-6 py-4 sm:py-6">
