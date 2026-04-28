@@ -250,22 +250,18 @@ export const useSessionTimeout = () => {
     };
   }, [session, isDriverUser]);
 
-  // Get remaining session time in minutes (null for drivers = infinite)
+  // Tempo restante (minutos) até o auto-logout das 06:00 do dia seguinte
   const getRemainingTime = useCallback((): number | null => {
-    // Drivers have infinite session
     if (isDriverUser) return null;
-    
     if (!session) return null;
-    
-    const sessionStartTime = localStorage.getItem(SESSION_START_KEY);
-    if (!sessionStartTime) return null;
 
-    const startTime = parseInt(sessionStartTime, 10);
-    const elapsed = Date.now() - startTime;
-    const timeoutMs = getSessionTimeoutMs();
-    const remaining = timeoutMs - elapsed;
+    const now = new Date();
+    const cutoff = new Date(now);
+    cutoff.setHours(6, 0, 0, 0);
+    if (now >= cutoff) cutoff.setDate(cutoff.getDate() + 1);
 
-    return Math.max(0, Math.floor(remaining / 60000)); // Convert to minutes
+    const remaining = cutoff.getTime() - now.getTime();
+    return Math.max(0, Math.floor(remaining / 60000));
   }, [session, isDriverUser]);
 
   return { getRemainingTime, renewSession, isInWarningPeriod, sessionDurationHours, isDriverUser };
