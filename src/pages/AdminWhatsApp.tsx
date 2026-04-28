@@ -165,14 +165,30 @@ const AdminWhatsApp = () => {
 
     setSending(true);
     try {
-      const { data, error } = await supabase.functions.invoke("wapi-send", {
+      const { data: sessionData, error: sessionError } = await supabase.auth.getSession();
+      if (sessionError) throw sessionError;
+
+      const accessToken = sessionData.session?.access_token;
+      if (!accessToken) throw new Error("Sessão expirada. Faça login novamente.");
+
+      const response = await fetch(`${import.meta.env.VITE_SUPABASE_URL}/functions/v1/wapi-send`, {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+          "apikey": import.meta.env.VITE_SUPABASE_PUBLISHABLE_KEY,
+          "Authorization": `Bearer ${accessToken}`,
+        },
         body: {
           message: message.trim(),
           recipients,
           group_id: sendToGroup ? targetGroup : null,
         },
       });
-      if (error) throw error;
+
+      const responseText = await response.text();
+      const data = responseText ? JSON.parse(responseText) : null;
+      if (!response.ok) throw new Error(data?.error || `Erro HTTP ${response.status}`);
+
       const res = data as { sent: number; total: number };
       toast.success(`${res.sent}/${res.total} enviadas`);
       setMessage("");
