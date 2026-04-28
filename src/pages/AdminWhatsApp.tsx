@@ -47,8 +47,10 @@ const AdminWhatsApp = () => {
   const [ddsNotifyDayBefore, setDdsNotifyDayBefore] = useState(false);
   const [autoSendReq, setAutoSendReq] = useState(false);
   const [autoSendReminders, setAutoSendReminders] = useState(false);
+  const [autoSendAsoAlert, setAutoSendAsoAlert] = useState(false);
   const [testingDds, setTestingDds] = useState(false);
   const [testingDdsTomorrow, setTestingDdsTomorrow] = useState(false);
+  const [testingAso, setTestingAso] = useState(false);
 
   const { data: cfg } = useQuery({
     queryKey: ["wapi-config"],
@@ -61,7 +63,7 @@ const AdminWhatsApp = () => {
         .limit(1)
         .maybeSingle();
       if (error) throw error;
-      return data as { id: string; instance_url: string; instance_token: string; instance_id: string; enabled: boolean; delay_seconds: number | null; group_id: string | null; dds_auto_notify: boolean | null; dds_notify_day_before: boolean | null; auto_send_requisitions: boolean | null; auto_send_reminders: boolean | null } | null;
+      return data as { id: string; instance_url: string; instance_token: string; instance_id: string; enabled: boolean; delay_seconds: number | null; group_id: string | null; dds_auto_notify: boolean | null; dds_notify_day_before: boolean | null; auto_send_requisitions: boolean | null; auto_send_reminders: boolean | null; auto_send_aso_alert: boolean | null } | null;
     },
   });
 
@@ -77,6 +79,7 @@ const AdminWhatsApp = () => {
       setDdsNotifyDayBefore(!!cfg.dds_notify_day_before);
       setAutoSendReq(!!cfg.auto_send_requisitions);
       setAutoSendReminders(!!cfg.auto_send_reminders);
+      setAutoSendAsoAlert(!!cfg.auto_send_aso_alert);
     }
   }, [cfg]);
 
@@ -143,6 +146,7 @@ const AdminWhatsApp = () => {
         dds_notify_day_before: ddsNotifyDayBefore,
         auto_send_requisitions: autoSendReq,
         auto_send_reminders: autoSendReminders,
+        auto_send_aso_alert: autoSendAsoAlert,
         updated_by: user?.id ?? null,
       };
       if (cfg?.id) {
@@ -279,6 +283,39 @@ const AdminWhatsApp = () => {
       toast.error("Falha ao executar teste", { description: msg, duration: 15000 });
     } finally {
       if (mode === "tomorrow") setTestingDdsTomorrow(false); else setTestingDds(false);
+    }
+  };
+
+  const handleTestAsoNotify = async () => {
+    setTestingAso(true);
+    try {
+      const url = `${import.meta.env.VITE_SUPABASE_URL}/functions/v1/wapi-aso-notify`;
+      const response = await fetch(url, {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ force: true }),
+      });
+      const text = await response.text();
+      let data: any = null;
+      try { data = text ? JSON.parse(text) : null; } catch { /* keep raw */ }
+
+      if (!response.ok) {
+        toast.error(`Erro HTTP ${response.status}`, { description: text.slice(0, 500), duration: 15000 });
+        return;
+      }
+      if (data?.skipped) {
+        toast.info("Nada a enviar", { description: data.reason || "Nenhum ASO no alvo", duration: 8000 });
+      } else if (data?.success) {
+        toast.success(`Alerta de ASO enviado (${data.total} colaborador(es))`);
+      } else {
+        toast.error("Falha no envio", { description: data?.error || "Erro desconhecido", duration: 15000 });
+      }
+      queryClient.invalidateQueries({ queryKey: ["wapi-logs"] });
+    } catch (e) {
+      const msg = e instanceof Error ? e.message : String(e);
+      toast.error("Falha ao executar teste", { description: msg, duration: 15000 });
+    } finally {
+      setTestingAso(false);
     }
   };
 
@@ -499,6 +536,47 @@ const AdminWhatsApp = () => {
             </div>
             <p className="text-xs text-muted-foreground mt-3">
               Requisitos: integração W-API habilitada, ID do grupo preenchido (para lembretes de "todos") e usuários com WhatsApp cadastrado (para envios privados). Lembre-se de salvar a configuração após alterar este botão.
+            </p>
+          </CardContent>
+        </Card>
+
+        <Card>
+          <CardHeader>
+            <CardTitle className="flex items-center gap-2">
+              <Bell className="w-5 h-5 text-primary" />
+              Alerta Automático de ASO (10 dias antes)
+            </CardTitle>
+            <CardDescription>
+              Quando habilitado, o sistema envia automaticamente uma mensagem para o <strong>grupo configurado</strong> quando
+              faltarem <strong>10 dias</strong> para o vencimento do ASO de algum colaborador. A verificação roda <strong>diariamente às 06:00h</strong> (Pará UTC-4)
+              e cada alerta é enviado apenas <strong>uma vez por colaborador/vencimento</strong>.
+            </CardDescription>
+          </CardHeader>
+          <CardContent>
+            <div className="flex items-center justify-between gap-3 rounded-md border p-3 bg-muted/30">
+              <div className="flex items-center gap-3">
+                <Switch
+                  id="auto-send-aso"
+                  checked={autoSendAsoAlert}
+                  onCheckedChange={setAutoSendAsoAlert}
+                />
+                <Label htmlFor="auto-send-aso" className="cursor-pointer">
+                  Ativar alerta automático de ASO no grupo
+                </Label>
+              </div>
+              <div className="flex items-center gap-2">
+                <Badge variant={autoSendAsoAlert ? "default" : "secondary"}>
+                  {autoSendAsoAlert ? "Ativo" : "Desativado"}
+                </Badge>
+                <Button variant="outline" size="sm" onClick={handleTestAsoNotify} disabled={testingAso}>
+                  <Play className="w-4 h-4 mr-1" />
+                  {testingAso ? "..." : "Testar"}
+                </Button>
+              </div>
+            </div>
+            <p className="text-xs text-muted-foreground mt-3">
+              Requisitos: integração W-API habilitada e ID do grupo preenchido. O botão "Testar" envia o alerta imediatamente,
+              ignorando o filtro de duplicidade.
             </p>
           </CardContent>
         </Card>
