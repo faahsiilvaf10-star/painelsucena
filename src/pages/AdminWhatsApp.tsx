@@ -1022,6 +1022,50 @@ const AdminWhatsApp = () => {
 
         <Card>
           <CardHeader>
+            <CardTitle className="flex items-center gap-2">
+              <Bell className="w-5 h-5 text-primary" />
+              Cobrança Mensal — WhatsApp Automático (todo dia 25 às 09:00h)
+            </CardTitle>
+            <CardDescription>
+              Quando habilitado, o sistema envia automaticamente para o <strong>grupo configurado</strong> a
+              <strong> cobrança da mensalidade</strong> referente à implementação do WhatsApp de mensagens automáticas,
+              <strong> todo dia 25 de cada mês às 09:00h (Pará UTC-4)</strong>. A mensagem inclui os dados do PIX
+              (chave <code className="mx-1 px-1 rounded bg-muted">07027339382</code>, Banco Inter, Domingues Fabrício)
+              e o mês de referência.
+            </CardDescription>
+          </CardHeader>
+          <CardContent>
+            <div className="flex items-center justify-between gap-3 rounded-md border p-3 bg-muted/30">
+              <div className="flex items-center gap-3">
+                <Switch
+                  id="auto-send-billing"
+                  checked={autoSendBillingAlert}
+                  onCheckedChange={setAutoSendBillingAlert}
+                />
+                <Label htmlFor="auto-send-billing" className="cursor-pointer">
+                  Ativar envio automático da cobrança mensal no grupo
+                </Label>
+              </div>
+              <div className="flex items-center gap-2">
+                <Badge variant={autoSendBillingAlert ? "default" : "secondary"}>
+                  {autoSendBillingAlert ? "Ativo" : "Desativado"}
+                </Badge>
+                <Button variant="outline" size="sm" onClick={handleTestBillingNotify} disabled={testingBilling}>
+                  <Play className="w-4 h-4 mr-1" />
+                  {testingBilling ? "..." : "Testar"}
+                </Button>
+              </div>
+            </div>
+            <p className="text-xs text-muted-foreground mt-3">
+              Requisitos: integração W-API habilitada e <strong>ID do grupo</strong> preenchido. O botão "Testar" envia
+              a cobrança imediatamente, ignorando a regra do dia 25/09:00h. Lembre-se de salvar após alterar este botão.
+            </p>
+          </CardContent>
+        </Card>
+
+
+        <Card>
+          <CardHeader>
             <CardTitle>Envio de Mensagem</CardTitle>
             <CardDescription>Selecione os usuários e escreva a mensagem. Apenas usuários com WhatsApp cadastrado aparecem.</CardDescription>
           </CardHeader>
