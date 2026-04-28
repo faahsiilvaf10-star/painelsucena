@@ -42,6 +42,7 @@ import { DDSThemesCard } from "@/components/dds/DDSThemesCard";
 import { formatCargoLabel } from "@/lib/cargoUtils";
 import { useDDSMidnightRefresh } from "@/hooks/useMidnightRefresh";
 import { useDDSParticipationMonth, useDDSParticipation, AbsenceReason } from "@/hooks/useDDSParticipation";
+import { ENVIRONMENTS, type EnvironmentId } from "@/hooks/useEnvironment";
 import { DDSParticipationDialog } from "@/components/dds/DDSParticipationDialog";
 import { getLogoBase64, generatePdfHeader, PDF_HEADER_STYLES } from "@/lib/pdfLogo";
 import { downloadPdfFromHtml } from "@/lib/pdfDownload";
@@ -182,11 +183,14 @@ export default function DDS() {
       // Post to InstaCena
       if (profile) {
         const presenterName = schedule.presenter?.full_name || schedule.external_presenter_name || "Palestrante";
+        const envId = schedule.environment as EnvironmentId | undefined;
+        const envLabel = envId && ENVIRONMENTS[envId] ? ENVIRONMENTS[envId].label : "";
+        const localLine = envLabel ? `📍 Local: ${envLabel}\n` : "";
         await supabase.from("instacena_posts").insert({
           user_id: user.id,
           user_name: profile.full_name,
           user_avatar_url: profile.avatar_url,
-          content: `📸 Registro do DDS!\n\n📋 Tema: ${schedule.theme}\n🎤 Palestrante: ${presenterName}`,
+          content: `📸 Registro do DDS!\n\n${localLine}📋 Tema: ${schedule.theme}\n🎤 Palestrante: ${presenterName}`,
           image_urls: [urlData.publicUrl],
           is_system_post: false,
         });
