@@ -4109,6 +4109,7 @@ export type Database = {
       }
       wapi_config: {
         Row: {
+          auto_send_requisitions: boolean
           created_at: string
           dds_auto_notify: boolean
           delay_seconds: number
@@ -4122,6 +4123,7 @@ export type Database = {
           updated_by: string | null
         }
         Insert: {
+          auto_send_requisitions?: boolean
           created_at?: string
           dds_auto_notify?: boolean
           delay_seconds?: number
@@ -4135,6 +4137,7 @@ export type Database = {
           updated_by?: string | null
         }
         Update: {
+          auto_send_requisitions?: boolean
           created_at?: string
           dds_auto_notify?: boolean
           delay_seconds?: number
