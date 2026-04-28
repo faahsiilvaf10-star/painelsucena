@@ -172,6 +172,7 @@ const AdminWhatsApp = () => {
         auto_send_order_alerts: autoSendOrderAlerts,
         auto_send_equipment_movements: autoSendEquipmentMovements,
         auto_send_planning_alerts: autoSendPlanningAlerts,
+        auto_send_billing_alert: autoSendBillingAlert,
         updated_by: user?.id ?? null,
       };
       if (cfg?.id) {
