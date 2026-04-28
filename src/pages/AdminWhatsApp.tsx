@@ -46,6 +46,7 @@ const AdminWhatsApp = () => {
   const [ddsAutoNotify, setDdsAutoNotify] = useState(false);
   const [ddsNotifyDayBefore, setDdsNotifyDayBefore] = useState(false);
   const [autoSendReq, setAutoSendReq] = useState(false);
+  const [autoSendReminders, setAutoSendReminders] = useState(false);
   const [testingDds, setTestingDds] = useState(false);
   const [testingDdsTomorrow, setTestingDdsTomorrow] = useState(false);
 
