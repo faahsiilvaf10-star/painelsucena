@@ -949,7 +949,7 @@ const AdminWhatsApp = () => {
             <CardDescription>
               Quando habilitado: ao <strong>concluir uma meta no Planejamento</strong> (realizado ≥ meta),
               o grupo recebe imediatamente os detalhes (atividade, categoria, meta, realizado, atingimento).
-              Todo <strong>dia 15 às 09:00h (Pará UTC-4)</strong>, o grupo também recebe o
+              Todo <strong>dia 16 às 09:00h (Pará UTC-4)</strong>, o grupo também recebe o
               <strong> resumo mensal</strong> com o avanço geral, lista do que foi concluído e o que faltou.
             </CardDescription>
           </CardHeader>
@@ -977,7 +977,7 @@ const AdminWhatsApp = () => {
             </div>
             <p className="text-xs text-muted-foreground mt-3">
               Requisitos: integração W-API habilitada e <strong>ID do grupo</strong> preenchido. O botão "Testar Resumo"
-              envia o resumo mensal imediatamente, ignorando a regra do dia 15.
+              envia o resumo mensal imediatamente, ignorando a regra do dia 16.
             </p>
           </CardContent>
         </Card>
