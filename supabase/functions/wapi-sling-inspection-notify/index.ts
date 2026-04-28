@@ -164,8 +164,10 @@ Deno.serve(async (req) => {
       status: 200, headers: { ...corsHeaders, "Content-Type": "application/json" },
     });
   } catch (e) {
-    const msg = e instanceof Error ? e.message : "Erro";
-    return new Response(JSON.stringify({ error: msg }), {
+    const msg = e instanceof Error ? e.message : String(e);
+    const stack = e instanceof Error ? e.stack : undefined;
+    console.error("[sling-notify] runtime error:", msg, stack);
+    return new Response(JSON.stringify({ error: msg, stack }), {
       status: 500, headers: { ...corsHeaders, "Content-Type": "application/json" },
     });
   }
