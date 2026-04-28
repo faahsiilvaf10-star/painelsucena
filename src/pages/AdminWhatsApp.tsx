@@ -171,31 +171,61 @@ const AdminWhatsApp = () => {
       const accessToken = sessionData.session?.access_token;
       if (!accessToken) throw new Error("Sessão expirada. Faça login novamente.");
 
-      const response = await fetch(`${import.meta.env.VITE_SUPABASE_URL}/functions/v1/wapi-send`, {
-        method: "POST",
-        headers: {
-          "Content-Type": "application/json",
-          "apikey": import.meta.env.VITE_SUPABASE_PUBLISHABLE_KEY,
-          "Authorization": `Bearer ${accessToken}`,
-        },
-        body: JSON.stringify({
-          message: message.trim(),
-          recipients,
-          group_id: sendToGroup ? targetGroup : null,
-        }),
-      });
+      const url = `${import.meta.env.VITE_SUPABASE_URL}/functions/v1/wapi-send`;
+      let response: Response;
+      try {
+        response = await fetch(url, {
+          method: "POST",
+          headers: {
+            "Content-Type": "application/json",
+            "apikey": import.meta.env.VITE_SUPABASE_PUBLISHABLE_KEY,
+            "Authorization": `Bearer ${accessToken}`,
+          },
+          body: JSON.stringify({
+            message: message.trim(),
+            recipients,
+            group_id: sendToGroup ? targetGroup : null,
+          }),
+        });
+      } catch (netErr) {
+        const detail = netErr instanceof Error ? `${netErr.name}: ${netErr.message}` : String(netErr);
+        toast.error(`Falha de rede ao chamar ${url}`, { description: detail, duration: 15000 });
+        console.error("[wapi-send] network error", netErr);
+        throw netErr;
+      }
 
       const responseText = await response.text();
-      const data = responseText ? JSON.parse(responseText) : null;
-      if (!response.ok) throw new Error(data?.error || `Erro HTTP ${response.status}`);
+      let data: any = null;
+      try { data = responseText ? JSON.parse(responseText) : null; } catch { /* keep raw */ }
 
-      const res = data as { sent: number; total: number };
+      if (!response.ok) {
+        const preview = (responseText || "(sem corpo)").slice(0, 500);
+        toast.error(`Erro HTTP ${response.status} ${response.statusText}`, {
+          description: preview,
+          duration: 15000,
+        });
+        console.error("[wapi-send] http error", response.status, responseText);
+        throw new Error(`HTTP ${response.status}: ${preview}`);
+      }
+
+      const res = data as { sent: number; total: number; errors?: any[] };
       toast.success(`${res.sent}/${res.total} enviadas`);
+      if (res.errors?.length) {
+        toast.error(`${res.errors.length} falha(s) no envio`, {
+          description: JSON.stringify(res.errors).slice(0, 500),
+          duration: 15000,
+        });
+      }
       setMessage("");
       queryClient.invalidateQueries({ queryKey: ["wapi-logs"] });
     } catch (e) {
-      const msg = e instanceof Error ? e.message : "Erro ao enviar";
-      toast.error(msg);
+      // Toast detalhado já foi emitido nos blocos acima; aqui só fallback
+      const msg = e instanceof Error ? `${e.name}: ${e.message}` : String(e);
+      console.error("[wapi-send] final catch", e);
+      // Evita toast duplicado se já tratado
+      if (!msg.startsWith("HTTP ") && !msg.includes("Falha de rede")) {
+        toast.error(msg, { duration: 15000 });
+      }
     } finally {
       setSending(false);
     }
