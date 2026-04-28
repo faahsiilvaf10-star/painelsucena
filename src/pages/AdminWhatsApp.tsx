@@ -85,6 +85,7 @@ const AdminWhatsApp = () => {
       setAutoSendReminders(!!cfg.auto_send_reminders);
       setAutoSendAsoAlert(!!cfg.auto_send_aso_alert);
       setAutoSendMatrixAlert(!!cfg.auto_send_matrix_alert);
+      setAutoSendForbiddenColorAlert(!!cfg.auto_send_forbidden_color_alert);
     }
   }, [cfg]);
 
