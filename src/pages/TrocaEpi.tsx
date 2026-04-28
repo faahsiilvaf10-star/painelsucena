@@ -1086,7 +1086,7 @@ export default function TrocaEpi() {
       const fakeExchange = { ...exchangeData, id: "auto", created_at: new Date().toISOString(), created_by: user!.id } as unknown as EpiExchange;
       const html = buildPdfHtml(fakeExchange, logoBase64);
       const caption = buildExchangeShareDescription(fakeExchange);
-      void autoSendRequisitionToGroup("epi", html, caption, currentFuncionarioNome);
+      await autoSendRequisitionToGroup("epi", html, caption, currentFuncionarioNome);
     } catch (e) { console.warn("auto send EPI prep failed", e); }
 
     setShowSignature(false);
