@@ -47,8 +47,10 @@ const AdminWhatsApp = () => {
   const [ddsNotifyDayBefore, setDdsNotifyDayBefore] = useState(false);
   const [autoSendReq, setAutoSendReq] = useState(false);
   const [autoSendReminders, setAutoSendReminders] = useState(false);
+  const [autoSendAsoAlert, setAutoSendAsoAlert] = useState(false);
   const [testingDds, setTestingDds] = useState(false);
   const [testingDdsTomorrow, setTestingDdsTomorrow] = useState(false);
+  const [testingAso, setTestingAso] = useState(false);
 
   const { data: cfg } = useQuery({
     queryKey: ["wapi-config"],
@@ -61,7 +63,7 @@ const AdminWhatsApp = () => {
         .limit(1)
         .maybeSingle();
       if (error) throw error;
-      return data as { id: string; instance_url: string; instance_token: string; instance_id: string; enabled: boolean; delay_seconds: number | null; group_id: string | null; dds_auto_notify: boolean | null; dds_notify_day_before: boolean | null; auto_send_requisitions: boolean | null; auto_send_reminders: boolean | null } | null;
+      return data as { id: string; instance_url: string; instance_token: string; instance_id: string; enabled: boolean; delay_seconds: number | null; group_id: string | null; dds_auto_notify: boolean | null; dds_notify_day_before: boolean | null; auto_send_requisitions: boolean | null; auto_send_reminders: boolean | null; auto_send_aso_alert: boolean | null } | null;
     },
   });
 
@@ -77,6 +79,7 @@ const AdminWhatsApp = () => {
       setDdsNotifyDayBefore(!!cfg.dds_notify_day_before);
       setAutoSendReq(!!cfg.auto_send_requisitions);
       setAutoSendReminders(!!cfg.auto_send_reminders);
+      setAutoSendAsoAlert(!!cfg.auto_send_aso_alert);
     }
   }, [cfg]);
 
@@ -143,6 +146,7 @@ const AdminWhatsApp = () => {
         dds_notify_day_before: ddsNotifyDayBefore,
         auto_send_requisitions: autoSendReq,
         auto_send_reminders: autoSendReminders,
+        auto_send_aso_alert: autoSendAsoAlert,
         updated_by: user?.id ?? null,
       };
       if (cfg?.id) {
