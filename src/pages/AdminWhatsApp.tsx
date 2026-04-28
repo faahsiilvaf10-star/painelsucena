@@ -362,6 +362,46 @@ const AdminWhatsApp = () => {
 
         <Card>
           <CardHeader>
+            <CardTitle className="flex items-center gap-2">
+              <Bell className="w-5 h-5 text-primary" />
+              Lembrete Automático do DDS
+            </CardTitle>
+            <CardDescription>
+              Quando habilitado, todos os dias às <strong>06:00h (horário do Pará)</strong> o sistema envia uma mensagem automática
+              para o WhatsApp do palestrante agendado para o DDS daquele dia, informando o tema da palestra.
+            </CardDescription>
+          </CardHeader>
+          <CardContent className="space-y-4">
+            <div className="flex items-center justify-between gap-3 rounded-md border p-3 bg-muted/30">
+              <div className="flex items-center gap-3">
+                <Switch
+                  id="dds-auto-notify"
+                  checked={ddsAutoNotify}
+                  onCheckedChange={setDdsAutoNotify}
+                />
+                <Label htmlFor="dds-auto-notify" className="cursor-pointer">
+                  Ativar envio automático às 06:00h para o palestrante do DDS do dia
+                </Label>
+              </div>
+              <Badge variant={ddsAutoNotify ? "default" : "secondary"}>
+                {ddsAutoNotify ? "Ativo" : "Desativado"}
+              </Badge>
+            </div>
+            <div className="flex flex-wrap items-center justify-between gap-3">
+              <p className="text-xs text-muted-foreground max-w-2xl">
+                Requisitos: integração W-API habilitada, palestrante com usuário interno cadastrado e número de WhatsApp preenchido no perfil.
+                Lembre-se de salvar a configuração após alterar este botão.
+              </p>
+              <Button variant="outline" size="sm" onClick={handleTestDdsNotify} disabled={testingDds}>
+                <Play className="w-4 h-4 mr-2" />
+                {testingDds ? "Testando..." : "Testar agora"}
+              </Button>
+            </div>
+          </CardContent>
+        </Card>
+
+        <Card>
+          <CardHeader>
             <CardTitle>Envio de Mensagem</CardTitle>
             <CardDescription>Selecione os usuários e escreva a mensagem. Apenas usuários com WhatsApp cadastrado aparecem.</CardDescription>
           </CardHeader>
