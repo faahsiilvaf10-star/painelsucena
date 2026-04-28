@@ -204,6 +204,7 @@ export const DDSParticipationDialog = ({ open, onOpenChange, date }: Props) => {
       const presentList = sortedEntries.filter(([, s]) => s.present);
       const absentList = sortedEntries.filter(([, s]) => !s.present);
       const forbiddenColor = getForbiddenColor(date);
+      const envLabel = envInfo?.label || "";
 
       const reasonLabel = (r: AbsenceReason | null) => {
         if (!r) return "Falta";
@@ -218,6 +219,7 @@ export const DDSParticipationDialog = ({ open, onOpenChange, date }: Props) => {
             <div style="padding:10px 16px;border-radius:8px;font-size:13px;font-weight:600;background:#fee2e2;color:#991b1b;">❌ Ausentes: ${absentList.length}</div>
             <div style="padding:10px 16px;border-radius:8px;font-size:13px;font-weight:600;background:#f3f4f6;color:#374151;">Total: ${sortedEntries.length}</div>
             <div style="padding:10px 16px;border-radius:8px;font-size:13px;font-weight:600;background:#1f2937;color:white;display:flex;align-items:center;gap:8px;">🚫 Cor Proibida: <span style="display:inline-block;width:18px;height:18px;border-radius:50%;background:${forbiddenColor.hex};border:2px solid white;"></span> ${forbiddenColor.name}</div>
+            ${envLabel ? `<div style="padding:10px 16px;border-radius:8px;font-size:13px;font-weight:600;background:#e0f2fe;color:#075985;">📍 Local: ${envLabel}</div>` : ""}
           </div>
           <div style="font-size:14px;font-weight:700;margin:20px 0 8px;padding-bottom:4px;border-bottom:2px solid #e5e7eb;">Presentes</div>
           <table style="width:100%;border-collapse:collapse;font-size:12px;">
@@ -261,7 +263,7 @@ export const DDSParticipationDialog = ({ open, onOpenChange, date }: Props) => {
         user_id: user.id,
         user_name: profile.full_name || "Sistema",
         user_avatar_url: profile.avatar_url,
-        content: `📋 Lista de Presença DDS - ${formattedDate}\n✅ ${presentList.length} presentes | ❌ ${absentList.length} ausentes | Total: ${sortedEntries.length}\n🚫 Cor Proibida do Mês: ${forbiddenColor.name}`,
+        content: `📋 Lista de Presença DDS - ${formattedDate}${envLabel ? `\n📍 Local: ${envLabel}` : ""}\n✅ ${presentList.length} presentes | ❌ ${absentList.length} ausentes | Total: ${sortedEntries.length}\n🚫 Cor Proibida do Mês: ${forbiddenColor.name}`,
         image_urls: [urlData.publicUrl],
         is_system_post: false,
       });
