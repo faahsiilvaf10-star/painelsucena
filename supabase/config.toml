@@ -1,52 +1,7 @@
 project_id = "fcaxyvptfwnwfctxkqre"
 
-[functions.notify-dds-presenter]
-verify_jwt = false
-
-[functions.auto-stop-equipment]
-verify_jwt = false
-
-[functions.notify-goal-achieved]
-verify_jwt = false
-
-[functions.auto-resume-equipment]
-verify_jwt = false
-
-[functions.generate-order-image]
-verify_jwt = false
-
-[functions.generate-product-images]
-verify_jwt = false
-
-[functions.calculate-overtime-summary]
-verify_jwt = false
-
-[functions.auto-end-shift]
-verify_jwt = false
-
-[functions.auto-start-waiting]
-verify_jwt = false
-
-[functions.admin-reset-password]
-verify_jwt = false
-
-[functions.generate-slides]
-verify_jwt = false
-
-[functions.generate-campaign-banner]
-verify_jwt = false
-
-[functions.improve-activity-text]
-verify_jwt = false
-
-[functions.weather-current]
-verify_jwt = false
-
-[functions.instacena-sync-receiver]
-verify_jwt = false
-
-[functions.sync-post-to-opshub]
-verify_jwt = false
-
 [functions.wapi-send]
+verify_jwt = true
+
+[functions.wapi-dds-notify]
 verify_jwt = false
