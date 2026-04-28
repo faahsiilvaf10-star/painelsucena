@@ -703,6 +703,48 @@ const AdminWhatsApp = () => {
 
         <Card>
           <CardHeader>
+            <CardTitle className="flex items-center gap-2">
+              <Bell className="w-5 h-5 text-primary" />
+              Alerta da Cor Proibida do Mês (todo dia 1º às 07:00h)
+            </CardTitle>
+            <CardDescription>
+              Quando habilitado, o sistema envia automaticamente para o <strong>grupo configurado</strong> uma mensagem
+              avisando qual é a <strong>cor proibida do novo mês</strong>, sempre no dia da virada (todo dia 1º) às
+              <strong> 07:00h (Pará UTC-4)</strong>. A mensagem inclui o mês de referência, a cor proibida e um alerta
+              de atenção para que ninguém utilize itens, vestimentas ou EPIs nessa cor durante o mês.
+            </CardDescription>
+          </CardHeader>
+          <CardContent>
+            <div className="flex items-center justify-between gap-3 rounded-md border p-3 bg-muted/30">
+              <div className="flex items-center gap-3">
+                <Switch
+                  id="auto-send-forbidden-color"
+                  checked={autoSendForbiddenColorAlert}
+                  onCheckedChange={setAutoSendForbiddenColorAlert}
+                />
+                <Label htmlFor="auto-send-forbidden-color" className="cursor-pointer">
+                  Ativar envio automático da cor proibida do mês no grupo
+                </Label>
+              </div>
+              <div className="flex items-center gap-2">
+                <Badge variant={autoSendForbiddenColorAlert ? "default" : "secondary"}>
+                  {autoSendForbiddenColorAlert ? "Ativo" : "Desativado"}
+                </Badge>
+                <Button variant="outline" size="sm" onClick={handleTestForbiddenColorNotify} disabled={testingForbiddenColor}>
+                  <Play className="w-4 h-4 mr-1" />
+                  {testingForbiddenColor ? "..." : "Testar"}
+                </Button>
+              </div>
+            </div>
+            <p className="text-xs text-muted-foreground mt-3">
+              Requisitos: integração W-API habilitada e ID do grupo preenchido. O botão "Testar" envia a mensagem imediatamente,
+              ignorando a regra de "somente no dia 1º".
+            </p>
+          </CardContent>
+        </Card>
+
+        <Card>
+          <CardHeader>
             <CardTitle>Envio de Mensagem</CardTitle>
             <CardDescription>Selecione os usuários e escreva a mensagem. Apenas usuários com WhatsApp cadastrado aparecem.</CardDescription>
           </CardHeader>
