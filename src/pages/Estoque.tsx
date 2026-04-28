@@ -1,5 +1,5 @@
 import { useState, useMemo } from "react";
-import { Package, Search, Filter, MapPin, AlertTriangle } from "lucide-react";
+import { Package, Search, Filter, MapPin, AlertTriangle, Layers } from "lucide-react";
 import Layout from "@/components/layout/Layout";
 import { EditablePageTitle } from "@/components/cms/EditablePageTitle";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
@@ -12,6 +12,14 @@ import {
   SelectValue,
 } from "@/components/ui/select";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
+import {
+  Dialog,
+  DialogContent,
+  DialogHeader,
+  DialogTitle,
+  DialogDescription,
+} from "@/components/ui/dialog";
+import { Badge } from "@/components/ui/badge";
 import { AddItemDialog } from "@/components/inventory/AddItemDialog";
 import { InventoryTable } from "@/components/inventory/InventoryTable";
 import { EditItemDialog } from "@/components/inventory/EditItemDialog";
@@ -36,6 +44,7 @@ export default function Estoque() {
   const [categoryFilter, setCategoryFilter] = useState("all");
   const [locationFilter, setLocationFilter] = useState("all");
   const [editItem, setEditItem] = useState<InventoryItem | null>(null);
+  const [statsDialog, setStatsDialog] = useState<null | "total" | "low" | "categories">(null);
   const { isVisualizador } = useVisualizadorContext();
 
   const filteredItems = useMemo(() => {
@@ -80,6 +89,25 @@ export default function Estoque() {
     return { total: items.length, lowStock, categories };
   }, [items]);
 
+  const lowStockItems = useMemo(
+    () => (items || []).filter((i) => i.quantity <= i.min_quantity),
+    [items]
+  );
+
+  const categoryBreakdown = useMemo(() => {
+    if (!items) return [];
+    const map = new Map<string, number>();
+    items.forEach((i) => map.set(i.category, (map.get(i.category) || 0) + 1));
+    return Array.from(map.entries())
+      .map(([key, count]) => ({
+        key,
+        label: CATEGORIES.find((c) => c.value === key)?.label || key,
+        count,
+      }))
+      .sort((a, b) => b.count - a.count);
+  }, [items]);
+
+
   return (
     <Layout>
       <div className="space-y-4 sm:space-y-6 px-4 sm:px-6 py-4 sm:py-6">
@@ -101,7 +129,13 @@ export default function Estoque() {
         </div>
         {/* Stats Cards */}
         <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">
-          <Card>
+          <Card
+            role="button"
+            tabIndex={0}
+            onClick={() => setStatsDialog("total")}
+            onKeyDown={(e) => (e.key === "Enter" || e.key === " ") && setStatsDialog("total")}
+            className="cursor-pointer transition-all hover:shadow-md hover:border-primary/40 hover:-translate-y-0.5"
+          >
             <CardHeader className="pb-2">
               <CardTitle className="text-sm font-medium text-muted-foreground">
                 Total de Itens
@@ -111,7 +145,13 @@ export default function Estoque() {
               <p className="text-2xl font-bold">{stats.total}</p>
             </CardContent>
           </Card>
-          <Card>
+          <Card
+            role="button"
+            tabIndex={0}
+            onClick={() => setStatsDialog("low")}
+            onKeyDown={(e) => (e.key === "Enter" || e.key === " ") && setStatsDialog("low")}
+            className="cursor-pointer transition-all hover:shadow-md hover:border-primary/40 hover:-translate-y-0.5"
+          >
             <CardHeader className="pb-2">
               <CardTitle className="text-sm font-medium text-muted-foreground">
                 Estoque Baixo
@@ -126,7 +166,13 @@ export default function Estoque() {
               </p>
             </CardContent>
           </Card>
-          <Card>
+          <Card
+            role="button"
+            tabIndex={0}
+            onClick={() => setStatsDialog("categories")}
+            onKeyDown={(e) => (e.key === "Enter" || e.key === " ") && setStatsDialog("categories")}
+            className="cursor-pointer transition-all hover:shadow-md hover:border-primary/40 hover:-translate-y-0.5"
+          >
             <CardHeader className="pb-2">
               <CardTitle className="text-sm font-medium text-muted-foreground">
                 Categorias
@@ -246,6 +292,58 @@ export default function Estoque() {
           open={!!editItem}
           onOpenChange={(open) => !open && setEditItem(null)}
         />
+
+        <Dialog open={!!statsDialog} onOpenChange={(o) => !o && setStatsDialog(null)}>
+          <DialogContent className="max-w-4xl max-h-[85vh] overflow-y-auto">
+            <DialogHeader>
+              <DialogTitle className="flex items-center gap-2">
+                {statsDialog === "total" && (<><Package className="h-5 w-5" /> Todos os Itens em Estoque</>)}
+                {statsDialog === "low" && (<><AlertTriangle className="h-5 w-5 text-yellow-500" /> Itens com Estoque Baixo</>)}
+                {statsDialog === "categories" && (<><Layers className="h-5 w-5" /> Categorias</>)}
+              </DialogTitle>
+              <DialogDescription>
+                {statsDialog === "total" && `${stats.total} item(ns) cadastrado(s) no estoque.`}
+                {statsDialog === "low" && `${stats.lowStock} item(ns) com quantidade igual ou abaixo do mínimo.`}
+                {statsDialog === "categories" && `${stats.categories} categoria(s) em uso.`}
+              </DialogDescription>
+            </DialogHeader>
+
+            {statsDialog === "total" && (
+              <InventoryTable items={items || []} onEdit={(it) => { setStatsDialog(null); setEditItem(it); }} />
+            )}
+
+            {statsDialog === "low" && (
+              lowStockItems.length === 0 ? (
+                <p className="py-8 text-center text-muted-foreground">Nenhum item com estoque baixo. 🎉</p>
+              ) : (
+                <InventoryTable items={lowStockItems} onEdit={(it) => { setStatsDialog(null); setEditItem(it); }} />
+              )
+            )}
+
+            {statsDialog === "categories" && (
+              <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
+                {categoryBreakdown.length === 0 ? (
+                  <p className="py-8 text-center text-muted-foreground col-span-full">Nenhuma categoria.</p>
+                ) : categoryBreakdown.map((c) => (
+                  <button
+                    key={c.key}
+                    onClick={() => {
+                      setCategoryFilter(c.key);
+                      setStatsDialog(null);
+                    }}
+                    className="flex items-center justify-between p-4 rounded-lg border bg-card hover:bg-muted hover:border-primary/40 transition-all text-left"
+                  >
+                    <div className="flex items-center gap-3">
+                      <Layers className="h-4 w-4 text-muted-foreground" />
+                      <span className="font-medium">{c.label}</span>
+                    </div>
+                    <Badge variant="secondary">{c.count} item(ns)</Badge>
+                  </button>
+                ))}
+              </div>
+            )}
+          </DialogContent>
+        </Dialog>
       </div>
     </Layout>
   );
