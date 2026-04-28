@@ -4107,6 +4107,78 @@ export type Database = {
         }
         Relationships: []
       }
+      wapi_config: {
+        Row: {
+          created_at: string
+          enabled: boolean
+          id: string
+          instance_id: string
+          instance_token: string
+          instance_url: string
+          updated_at: string
+          updated_by: string | null
+        }
+        Insert: {
+          created_at?: string
+          enabled?: boolean
+          id?: string
+          instance_id?: string
+          instance_token?: string
+          instance_url?: string
+          updated_at?: string
+          updated_by?: string | null
+        }
+        Update: {
+          created_at?: string
+          enabled?: boolean
+          id?: string
+          instance_id?: string
+          instance_token?: string
+          instance_url?: string
+          updated_at?: string
+          updated_by?: string | null
+        }
+        Relationships: []
+      }
+      wapi_message_logs: {
+        Row: {
+          created_at: string
+          error_message: string | null
+          id: string
+          message: string
+          recipient_name: string | null
+          recipient_phone: string
+          recipient_user_id: string | null
+          response: Json | null
+          sent_by: string | null
+          status: string
+        }
+        Insert: {
+          created_at?: string
+          error_message?: string | null
+          id?: string
+          message: string
+          recipient_name?: string | null
+          recipient_phone: string
+          recipient_user_id?: string | null
+          response?: Json | null
+          sent_by?: string | null
+          status?: string
+        }
+        Update: {
+          created_at?: string
+          error_message?: string | null
+          id?: string
+          message?: string
+          recipient_name?: string | null
+          recipient_phone?: string
+          recipient_user_id?: string | null
+          response?: Json | null
+          sent_by?: string | null
+          status?: string
+        }
+        Relationships: []
+      }
     }
     Views: {
       [_ in never]: never

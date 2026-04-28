@@ -27,6 +27,7 @@ const RelatorioPresenca = lazy(() => import("./pages/RelatorioPresenca"));
 const Matriz = lazy(() => import("./pages/Matriz"));
 const Emergencia = lazy(() => import("./pages/Emergencia"));
 const Admin = lazy(() => import("./pages/Admin"));
+const AdminWhatsApp = lazy(() => import("./pages/AdminWhatsApp"));
 const Configuracoes = lazy(() => import("./pages/Configuracoes"));
 const DDS = lazy(() => import("./pages/DDS"));
 const Lembretes = lazy(() => import("./pages/Lembretes"));
@@ -147,6 +148,7 @@ const App = () => (
                       <Route path="/matriz" element={<ProtectedRoute><Matriz /></ProtectedRoute>} />
                       <Route path="/emergencia" element={<ProtectedRoute><Emergencia /></ProtectedRoute>} />
                       <Route path="/admin" element={<ProtectedRoute><Admin /></ProtectedRoute>} />
+                      <Route path="/admin/whatsapp" element={<ProtectedRoute><AdminWhatsApp /></ProtectedRoute>} />
                       <Route path="/configuracoes" element={<ProtectedRoute><Configuracoes /></ProtectedRoute>} />
                       <Route path="/dds" element={<ProtectedRoute><DDS /></ProtectedRoute>} />
                       <Route path="/lembretes" element={<ProtectedRoute><Lembretes /></ProtectedRoute>} />
