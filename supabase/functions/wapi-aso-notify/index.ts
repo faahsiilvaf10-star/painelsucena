@@ -150,6 +150,12 @@ Deno.serve(async (req) => {
             key: `${env}:${c.id ?? c.nome}:${fmtDateISO(expMs)}`,
             nome: c.nome,
             funcao: c.funcao || c.cargo || "",
+            matricula: c.matricula || "",
+            matriculaHydro: c.matriculaHydro || "",
+            admissao: c.admissao || "",
+            localidade: c.localidade || "",
+            contato: c.contato || "",
+            aso: c.aso || null,
             environment: env,
             expiryMs: expMs,
           });
@@ -178,15 +184,30 @@ Deno.serve(async (req) => {
       });
     }
 
-    // Monta UMA mensagem única para o grupo
+    // Monta UMA mensagem única para o grupo com TODOS os detalhes
     const lines = [];
-    lines.push(`🩺 *Alerta de Vencimento de ASO*`);
+    lines.push(`🩺 *ALERTA DE VENCIMENTO DE ASO*`);
     lines.push(`_Faltam *${ALERT_DAYS} dias* para o vencimento do(s) ASO(s) abaixo:_`);
     lines.push("");
-    for (const e of toSend) {
-      lines.push(`• *${e.nome}*${e.funcao ? ` — ${e.funcao}` : ""}`);
-      lines.push(`   📅 Vence em: ${fmtDateBR(e.expiryMs)}`);
-    }
+    toSend.forEach((e, idx) => {
+      if (idx > 0) lines.push("━━━━━━━━━━━━━━━━━━━━");
+      lines.push(`👤 *${e.nome}*`);
+      if (e.funcao) lines.push(`💼 *Função:* ${e.funcao}`);
+      if (e.matricula) lines.push(`🔢 *Matrícula:* ${e.matricula}${e.matriculaHydro ? ` (Hydro: ${e.matriculaHydro})` : ""}`);
+      if (e.admissao) lines.push(`📆 *Admissão:* ${e.admissao}`);
+      if (e.localidade) lines.push(`📍 *Localidade:* ${e.localidade}`);
+      if (e.contato) lines.push(`📱 *Contato:* ${e.contato}`);
+      lines.push(`🏷️ *Ambiente:* ${String(e.environment || "").toUpperCase()}`);
+      lines.push("");
+      lines.push(`🩺 *Dados do ASO:*`);
+      if (e.aso?.admissional) lines.push(`   • Admissional: ${e.aso.admissional}`);
+      if (e.aso?.periodico) lines.push(`   • Periódico: ${e.aso.periodico}`);
+      if (e.aso?.retornoTrabalho) lines.push(`   • Retorno ao Trabalho: ${e.aso.retornoTrabalho}`);
+      if (e.aso?.mudancaRisco) lines.push(`   • Mudança de Risco: ${e.aso.mudancaRisco}`);
+      if (e.aso?.validade) lines.push(`   • Validade registrada: ${e.aso.validade}`);
+      lines.push(`📅 *Vence em:* ${fmtDateBR(e.expiryMs)} (em ${ALERT_DAYS} dias)`);
+      if (e.aso?.observacao) lines.push(`📝 *Observação:* ${e.aso.observacao}`);
+    });
     lines.push("");
     lines.push(`⚠️ Providencie a renovação com antecedência.`);
     lines.push(`_Mensagem automática - Sucena_`);
