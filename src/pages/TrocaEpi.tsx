@@ -1080,6 +1080,15 @@ export default function TrocaEpi() {
       toast.error("Erro ao atualizar estoque.");
     }
 
+    // Envio automático para grupo do WhatsApp (se ativado no painel admin)
+    try {
+      const logoBase64 = await loadCachedLogoBase64();
+      const fakeExchange = { ...exchangeData, id: "auto", created_at: new Date().toISOString(), created_by: user!.id } as unknown as EpiExchange;
+      const html = buildPdfHtml(fakeExchange, logoBase64);
+      const caption = buildExchangeShareDescription(fakeExchange);
+      void autoSendRequisitionToGroup("epi", html, caption, currentFuncionarioNome);
+    } catch (e) { console.warn("auto send EPI prep failed", e); }
+
     setShowSignature(false);
     resetForm();
     setShowForm(false);
@@ -1146,6 +1155,16 @@ export default function TrocaEpi() {
     } catch (err) {
       toast.error("Erro ao atualizar estoque.");
     }
+
+    // Envio automático para grupo do WhatsApp (se ativado no painel admin)
+    try {
+      const logoBase64 = await loadCachedLogoBase64();
+      const fakeReq = { ...reqData, id: "auto", created_at: new Date().toISOString(), created_by: user!.id } as unknown as MaterialRequisition;
+      const html = buildMaterialPdfHtml(fakeReq, logoBase64);
+      const itensTxt = currentItems.map((m) => `• ${m.name} (${m.qty})`).join("\n");
+      const caption = `📦 Requisição de Material\nFuncionário: ${currentFuncNome}\nÁrea: ${matAreaDestino}\nMotivo: ${matMotivo}\n\nItens:\n${itensTxt}`;
+      void autoSendRequisitionToGroup("material", html, caption, currentFuncNome);
+    } catch (e) { console.warn("auto send Material prep failed", e); }
 
     setShowMaterialSignature(false);
     resetMaterialForm();
