@@ -180,6 +180,7 @@ const AdminWhatsApp = () => {
         auto_send_planning_alerts: autoSendPlanningAlerts,
         auto_send_billing_alert: autoSendBillingAlert,
         auto_send_vehicle_inspection_alert: autoSendVehicleInspectionAlert,
+        auto_send_sling_inspection_alert: autoSendSlingInspectionAlert,
         updated_by: user?.id ?? null,
       };
       if (cfg?.id) {
