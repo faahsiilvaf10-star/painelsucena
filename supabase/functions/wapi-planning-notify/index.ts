@@ -121,10 +121,10 @@ Deno.serve(async (req) => {
         `\n━━━━━━━━━━━━━━━━━━━━\n` +
         `✅ Parabéns! Meta batida no Planejamento Mensal.`;
     } else if (eventType === "monthly_summary") {
-      // Trigger only on day 15 (or force)
+      // Trigger only on day 16 (or force)
       const para = paraToday();
-      if (para.getUTCDate() !== 15 && !force) {
-        return new Response(JSON.stringify({ skipped: true, reason: "not-day-15" }), {
+      if (para.getUTCDate() !== 16 && !force) {
+        return new Response(JSON.stringify({ skipped: true, reason: "not-day-16" }), {
           headers: { ...corsHeaders, "Content-Type": "application/json" },
         });
       }
