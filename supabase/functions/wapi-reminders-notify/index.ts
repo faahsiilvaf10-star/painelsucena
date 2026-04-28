@@ -201,13 +201,14 @@ Deno.serve(async (req) => {
         recipientsCount = recipients.length;
       }
 
-      // Invoca wapi-send (mesmo projeto)
+      // Invoca wapi-send (mesmo projeto) com bypass interno
       const sendUrl = `${SUPABASE_URL}/functions/v1/wapi-send`;
       const resp = await fetch(sendUrl, {
         method: "POST",
         headers: {
           "Content-Type": "application/json",
           "Authorization": `Bearer ${SERVICE_ROLE}`,
+          "x-internal-token": SERVICE_ROLE,
         },
         body: JSON.stringify(invokeBody),
       });
