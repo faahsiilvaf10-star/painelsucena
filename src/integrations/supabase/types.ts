@@ -4112,6 +4112,7 @@ export type Database = {
           auto_send_requisitions: boolean
           created_at: string
           dds_auto_notify: boolean
+          dds_notify_day_before: boolean
           delay_seconds: number
           enabled: boolean
           group_id: string | null
@@ -4126,6 +4127,7 @@ export type Database = {
           auto_send_requisitions?: boolean
           created_at?: string
           dds_auto_notify?: boolean
+          dds_notify_day_before?: boolean
           delay_seconds?: number
           enabled?: boolean
           group_id?: string | null
@@ -4140,6 +4142,7 @@ export type Database = {
           auto_send_requisitions?: boolean
           created_at?: string
           dds_auto_notify?: boolean
+          dds_notify_day_before?: boolean
           delay_seconds?: number
           enabled?: boolean
           group_id?: string | null
