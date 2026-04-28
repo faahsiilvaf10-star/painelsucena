@@ -134,17 +134,16 @@ export const useSessionTimeout = () => {
 
   const isInWarningPeriod = useCallback((): boolean => {
     if (!session) return false;
-    
-    const sessionStartTime = localStorage.getItem(SESSION_START_KEY);
-    if (!sessionStartTime) return false;
+    if (isDriverUser) return false;
 
-    const startTime = parseInt(sessionStartTime, 10);
-    const elapsed = Date.now() - startTime;
-    const timeoutMs = getSessionTimeoutMs();
-    const remaining = timeoutMs - elapsed;
+    const now = new Date();
+    const cutoff = new Date(now);
+    cutoff.setHours(6, 0, 0, 0);
+    if (now >= cutoff) cutoff.setDate(cutoff.getDate() + 1);
 
+    const remaining = cutoff.getTime() - now.getTime();
     return remaining > 0 && remaining <= WARNING_THRESHOLD_MS;
-  }, [session]);
+  }, [session, isDriverUser]);
 
   const handleAutoLogout = async () => {
     // Store logout reason for the transition
@@ -203,8 +202,10 @@ export const useSessionTimeout = () => {
     return () => { if (tid) clearTimeout(tid); };
   }, [isDriverUser, session]);
 
+  // Auto-logout às 06:00 da manhã seguinte (para usuários não-motoristas).
+  // Regra: ao logar, calcula o próximo 06:00. Se já passou 06:00 hoje, agenda para 06:00 de amanhã.
   useEffect(() => {
-    // Skip timeout logic for drivers - they use the nightly 22:00 logout above
+    // Motoristas usam o logout das 22:00 acima
     if (isDriverUser) {
       if (timeoutRef.current) {
         clearTimeout(timeoutRef.current);
@@ -222,26 +223,24 @@ export const useSessionTimeout = () => {
       return;
     }
 
-    let sessionStartTime = localStorage.getItem(SESSION_START_KEY);
-    
-    if (!sessionStartTime) {
-      sessionStartTime = Date.now().toString();
-      localStorage.setItem(SESSION_START_KEY, sessionStartTime);
-    }
+    const computeNext6am = () => {
+      const now = new Date();
+      const cutoff = new Date(now);
+      cutoff.setHours(6, 0, 0, 0);
+      // Se agora já é 06:00 ou depois, agenda para 06:00 de amanhã
+      if (now >= cutoff) {
+        cutoff.setDate(cutoff.getDate() + 1);
+      }
+      return cutoff.getTime() - now.getTime();
+    };
 
-    const startTime = parseInt(sessionStartTime, 10);
-    const elapsed = Date.now() - startTime;
-    const timeoutMs = getSessionTimeoutMs();
-    const remaining = timeoutMs - elapsed;
+    const ms = computeNext6am();
+    console.log(`[SessionTimeout] Auto-logout agendado em ${Math.round(ms / 60000)} min (06:00 do dia seguinte)`);
 
-    if (remaining <= 0) {
-      handleAutoLogout();
-      return;
-    }
-
+    if (timeoutRef.current) clearTimeout(timeoutRef.current);
     timeoutRef.current = setTimeout(() => {
       handleAutoLogout();
-    }, remaining);
+    }, ms);
 
     return () => {
       if (timeoutRef.current) {
@@ -250,22 +249,18 @@ export const useSessionTimeout = () => {
     };
   }, [session, isDriverUser]);
 
-  // Get remaining session time in minutes (null for drivers = infinite)
+  // Tempo restante (minutos) até o auto-logout das 06:00 do dia seguinte
   const getRemainingTime = useCallback((): number | null => {
-    // Drivers have infinite session
     if (isDriverUser) return null;
-    
     if (!session) return null;
-    
-    const sessionStartTime = localStorage.getItem(SESSION_START_KEY);
-    if (!sessionStartTime) return null;
 
-    const startTime = parseInt(sessionStartTime, 10);
-    const elapsed = Date.now() - startTime;
-    const timeoutMs = getSessionTimeoutMs();
-    const remaining = timeoutMs - elapsed;
+    const now = new Date();
+    const cutoff = new Date(now);
+    cutoff.setHours(6, 0, 0, 0);
+    if (now >= cutoff) cutoff.setDate(cutoff.getDate() + 1);
 
-    return Math.max(0, Math.floor(remaining / 60000)); // Convert to minutes
+    const remaining = cutoff.getTime() - now.getTime();
+    return Math.max(0, Math.floor(remaining / 60000));
   }, [session, isDriverUser]);
 
   return { getRemainingTime, renewSession, isInWarningPeriod, sessionDurationHours, isDriverUser };
