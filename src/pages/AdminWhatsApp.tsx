@@ -71,6 +71,8 @@ const AdminWhatsApp = () => {
   const [autoSendForbiddenColorAlert, setAutoSendForbiddenColorAlert] = useState(false);
   const [autoSendCampaignAlert, setAutoSendCampaignAlert] = useState(false);
   const [autoSendOrderAlerts, setAutoSendOrderAlerts] = useState(false);
+  const [autoSendOrdersToGroup, setAutoSendOrdersToGroup] = useState(false);
+  const [groupIdOrders, setGroupIdOrders] = useState("");
   const [autoSendEquipmentMovements, setAutoSendEquipmentMovements] = useState(false);
   const [autoSendPlanningAlerts, setAutoSendPlanningAlerts] = useState(false);
   const [autoSendBillingAlert, setAutoSendBillingAlert] = useState(false);
@@ -143,6 +145,8 @@ const AdminWhatsApp = () => {
       setAutoSendForbiddenColorAlert(!!cfg.auto_send_forbidden_color_alert);
       setAutoSendCampaignAlert(!!cfg.auto_send_campaign_alert);
       setAutoSendOrderAlerts(!!cfg.auto_send_order_alerts);
+      setAutoSendOrdersToGroup(!!(c.auto_send_orders_to_group as boolean | null));
+      setGroupIdOrders((c.group_id_orders as string | null) || "");
       setAutoSendEquipmentMovements(!!cfg.auto_send_equipment_movements);
       setAutoSendPlanningAlerts(!!cfg.auto_send_planning_alerts);
       setAutoSendBillingAlert(!!cfg.auto_send_billing_alert);
@@ -219,6 +223,8 @@ const AdminWhatsApp = () => {
         auto_send_forbidden_color_alert: autoSendForbiddenColorAlert,
         auto_send_campaign_alert: autoSendCampaignAlert,
         auto_send_order_alerts: autoSendOrderAlerts,
+        auto_send_orders_to_group: autoSendOrdersToGroup,
+        group_id_orders: groupIdOrders.trim() || null,
         auto_send_equipment_movements: autoSendEquipmentMovements,
         auto_send_planning_alerts: autoSendPlanningAlerts,
         auto_send_billing_alert: autoSendBillingAlert,
@@ -1070,9 +1076,27 @@ const AdminWhatsApp = () => {
                 {autoSendOrderAlerts ? "Ativo" : "Desativado"}
               </Badge>
             </div>
+
+            <div className="flex items-center justify-between gap-3 rounded-md border p-3 bg-muted/30 mt-3">
+              <div className="flex items-center gap-3">
+                <Switch
+                  id="auto-send-orders-to-group"
+                  checked={autoSendOrdersToGroup}
+                  onCheckedChange={setAutoSendOrdersToGroup}
+                />
+                <Label htmlFor="auto-send-orders-to-group" className="cursor-pointer">
+                  Enviar também para o <strong>grupo do WhatsApp</strong> (criação e mudança de status)
+                </Label>
+              </div>
+              <Badge variant={autoSendOrdersToGroup ? "default" : "secondary"}>
+                {autoSendOrdersToGroup ? "Ativo" : "Desativado"}
+              </Badge>
+            </div>
+
+            <GroupIdOverrideInput id="gid-orders" value={groupIdOrders} onChange={setGroupIdOrders} defaultGroupId={groupId} />
             <p className="text-xs text-muted-foreground mt-3">
-              Requisitos: integração W-API habilitada e usuários com WhatsApp cadastrado no perfil. As mensagens são
-              enviadas diretamente para o número pessoal de cada usuário (não para o grupo).
+              Requisitos: integração W-API habilitada e usuários com WhatsApp cadastrado no perfil. Quando "Enviar também para o grupo" está ativo,
+              as mensagens vão para os números pessoais mencionados/solicitante <strong>e</strong> para o grupo configurado abaixo.
             </p>
           </CardContent>
         </Card>

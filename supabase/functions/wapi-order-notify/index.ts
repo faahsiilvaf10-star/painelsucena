@@ -188,8 +188,27 @@ Deno.serve(async (req) => {
 
     const result = await sendWapiText(cfg, phone, message);
 
+    // Optionally send to group as well
+    let groupResult: any = null;
+    if (cfg.auto_send_orders_to_group) {
+      const targetGroupId = (cfg.group_id_orders || cfg.group_id || "").trim();
+      if (targetGroupId) {
+        const client = createClient(supabaseUrl, serviceKey);
+        const { error: gErr } = await client.from("wapi_outbox").insert({
+          kind: "text",
+          target_type: "group",
+          phone: targetGroupId,
+          message,
+          origin: "order_group",
+        });
+        groupResult = { ok: !gErr, error: gErr?.message ?? null, group_id: targetGroupId };
+      } else {
+        groupResult = { ok: false, skipped: "no-group-id" };
+      }
+    }
+
     return new Response(
-      JSON.stringify({ success: result.ok, target: targetProfile?.full_name, phone, eventType, wapi: result }),
+      JSON.stringify({ success: result.ok, target: targetProfile?.full_name, phone, eventType, wapi: result, group: groupResult }),
       { status: result.ok ? 200 : 500, headers: { ...corsHeaders, "Content-Type": "application/json" } },
     );
   } catch (err) {
