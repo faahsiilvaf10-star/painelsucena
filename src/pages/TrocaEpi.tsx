@@ -966,6 +966,7 @@ export default function TrocaEpi() {
       }
     } catch (err) {
       console.error("[autoSendRequisitionToGroup]", err);
+      toast.error("Falha no envio automático ao grupo", { description: String((err as Error)?.message || err) });
     }
   }, []);
 
