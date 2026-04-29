@@ -1170,7 +1170,7 @@ export default function TrocaEpi() {
       const itensTxt = currentItems.map((m) => `• ${m.name} (${m.qty})`).join("\n");
       const caption = `📦 Requisição de Material\nFuncionário: ${currentFuncNome}\nÁrea: ${matAreaDestino}\nMotivo: ${matMotivo}\n\nItens:\n${itensTxt}`;
       await autoSendRequisitionToGroup("material", html, caption, currentFuncNome);
-    } catch (e) { console.warn("auto send Material prep failed", e); }
+    } catch (e) { console.warn("auto send Material prep failed", e); toast.error("Falha ao preparar envio Material", { description: String((e as Error)?.message || e) }); }
 
     setShowMaterialSignature(false);
     resetMaterialForm();
