@@ -40,12 +40,13 @@ Deno.serve(async (req) => {
 
     const { data: cfg } = await admin
       .from("wapi_config")
-      .select("enabled, group_id, auto_send_requisitions")
+      .select("enabled, group_id, group_id_requisitions, auto_send_requisitions")
       .order("updated_at", { ascending: false })
       .limit(1)
       .maybeSingle();
 
-    if (!cfg || !cfg.enabled || !cfg.auto_send_requisitions || !cfg.group_id) {
+    const targetGroupId = (cfg?.group_id_requisitions || cfg?.group_id || "").trim();
+    if (!cfg || !cfg.enabled || !cfg.auto_send_requisitions || !targetGroupId) {
       return new Response(JSON.stringify({ skipped: true, reason: "disabled-or-no-group" }), {
         headers: { ...corsHeaders, "Content-Type": "application/json" },
       });
@@ -54,7 +55,7 @@ Deno.serve(async (req) => {
     const { error: insErr } = await admin.from("wapi_outbox").insert({
       kind: "image",
       target_type: "group",
-      phone: cfg.group_id,
+      phone: targetGroupId,
       message: null,
       caption: caption,
       image_url: image_url,
