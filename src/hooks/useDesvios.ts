@@ -231,6 +231,17 @@ export function useUpdateDesvioStatus() {
           published_at: new Date().toISOString(),
         });
       }
+
+      // Notificação WhatsApp da correção (best-effort)
+      if (status === "corrigido") {
+        try {
+          await supabase.functions.invoke("wapi-desvio-correction-notify", {
+            body: { desvioId, correctorName: profile?.full_name || "Usuário" },
+          });
+        } catch (e) {
+          console.warn("[wapi-desvio-correction-notify] falha:", e);
+        }
+      }
     },
     onSuccess: () => {
       qc.invalidateQueries({ queryKey: ["desvios"] });
