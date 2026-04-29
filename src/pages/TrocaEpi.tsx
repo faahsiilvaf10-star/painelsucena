@@ -1022,12 +1022,13 @@ export default function TrocaEpi() {
       photo_urls: photoUrls,
     };
 
+    let savedExchange: EpiExchange;
     try {
       if (currentEditingExchange) {
         await restoreInventoryForExchange(currentEditingExchange);
-        await updateExchange.mutateAsync({ id: currentEditingExchange.id, ...exchangeData });
+        savedExchange = await updateExchange.mutateAsync({ id: currentEditingExchange.id, ...exchangeData });
       } else {
-        await createExchange.mutateAsync(exchangeData);
+        savedExchange = await createExchange.mutateAsync(exchangeData);
       }
     } catch (err) {
       console.error("Erro ao salvar troca de EPI:", err);
@@ -1113,10 +1114,7 @@ export default function TrocaEpi() {
 
     // Envio automático para grupo do WhatsApp (se ativado no painel admin)
     try {
-      const logoBase64 = await loadCachedLogoBase64().catch(() => "");
-      const fakeExchange = { ...exchangeData, id: "auto", created_at: new Date().toISOString(), created_by: user!.id } as unknown as EpiExchange;
-      const html = buildPdfHtml(fakeExchange, logoBase64);
-      const caption = buildExchangeShareDescription(fakeExchange);
+      const payload = await buildExchangeSharePayload(savedExchange);
       await autoSendRequisitionToGroup("epi", html, caption, currentFuncionarioNome);
     } catch (e) {
       console.error("[TrocaEpi] auto send EPI prep failed", e);
