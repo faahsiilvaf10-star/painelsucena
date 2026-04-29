@@ -1137,23 +1137,15 @@ export default function TrocaEpi() {
       assinatura_autorizador: sigAutorizador || null,
     };
 
+    let savedRequisition: MaterialRequisition;
+
     try {
-      let savedRequisition: MaterialRequisition;
       if (currentEditing) {
         await restoreInventoryForMaterial(currentEditing);
         savedRequisition = await updateRequisition.mutateAsync({ id: currentEditing.id, ...reqData });
       } else {
         savedRequisition = await createRequisition.mutateAsync(reqData);
       }
-
-      // Envio automático para grupo do WhatsApp (se ativado no painel admin)
-      try {
-        const logoBase64 = await loadCachedLogoBase64();
-        const html = buildMaterialPdfHtml(savedRequisition, logoBase64);
-        const itensTxt = currentItems.map((m) => `• ${m.name} (${m.qty})`).join("\n");
-        const caption = `📦 Requisição de Material\nFuncionário: ${currentFuncNome}\nÁrea: ${matAreaDestino}\nMotivo: ${matMotivo}\n\nItens:\n${itensTxt}`;
-        await autoSendRequisitionToGroup("material", html, caption, currentFuncNome);
-      } catch (e) { console.warn("auto send Material prep failed", e); toast.error("Falha ao preparar envio Material", { description: String((e as Error)?.message || e) }); }
     } catch (err) {
       setShowMaterialSignature(false);
       return;
@@ -1188,6 +1180,15 @@ export default function TrocaEpi() {
     } catch (err) {
       toast.error("Erro ao atualizar estoque.");
     }
+
+    // Envio automático para grupo do WhatsApp (se ativado no painel admin)
+    try {
+      const logoBase64 = await loadCachedLogoBase64();
+      const html = buildMaterialPdfHtml(savedRequisition, logoBase64);
+      const itensTxt = currentItems.map((m) => `• ${m.name} (${m.qty})`).join("\n");
+      const caption = `📦 Requisição de Material\nFuncionário: ${currentFuncNome}\nÁrea: ${matAreaDestino}\nMotivo: ${matMotivo}\n\nItens:\n${itensTxt}`;
+      await autoSendRequisitionToGroup("material", html, caption, currentFuncNome);
+    } catch (e) { console.warn("auto send Material prep failed", e); toast.error("Falha ao preparar envio Material", { description: String((e as Error)?.message || e) }); }
 
     setShowMaterialSignature(false);
     resetMaterialForm();
