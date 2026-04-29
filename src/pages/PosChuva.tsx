@@ -112,6 +112,187 @@ export default function PosChuva() {
     toast.success(`Assinaturas da ${currentAval}ª avaliação coletadas!`);
   };
 
+  const sendPosChuvaToWhatsApp = async (payload: PosChuvaInspection) => {
+    try {
+      // Verifica se o envio automático está habilitado antes de gerar PNG (evita custo desnecessário)
+      const { data: cfg } = await supabase
+        .from("wapi_config" as never)
+        .select("enabled, group_id, group_id_pos_chuva, auto_send_pos_chuva")
+        .order("updated_at", { ascending: false })
+        .limit(1)
+        .maybeSingle();
+      const c = cfg as {
+        enabled: boolean | null;
+        group_id: string | null;
+        group_id_pos_chuva: string | null;
+        auto_send_pos_chuva: boolean | null;
+      } | null;
+      const targetGroup = (c?.group_id_pos_chuva || c?.group_id || "").trim();
+      if (!c?.enabled || !c?.auto_send_pos_chuva || !targetGroup) return;
+
+      // Monta HTML completo da inspeção (todos os detalhes em PNG)
+      const cl = payload.checklist || [];
+      const pa = payload.plano_acao || [];
+      const escapeHtml = (s: string) =>
+        String(s ?? "").replace(/&/g, "&amp;").replace(/</g, "&lt;").replace(/>/g, "&gt;");
+
+      const renderAval = (num: number, d: string | null, h: string | null, sigE: string | null, sigT: string | null) => {
+        if (!sigE) return "";
+        return `
+          <div style="margin-top:12px;border:1px solid #ddd;border-radius:6px;padding:10px;background:#fafafa;">
+            <div style="font-weight:bold;font-size:13px;margin-bottom:6px;">Assinaturas - ${num}ª Avaliação</div>
+            <div style="font-size:11px;color:#555;margin-bottom:8px;">Data: ${escapeHtml(d || "")} • Horário: ${escapeHtml(h || "")}</div>
+            <div style="display:flex;gap:16px;">
+              <div style="flex:1;text-align:center;">
+                ${sigE ? `<img src="${sigE}" style="height:60px;border:1px solid #ccc;background:#fff;" />` : ""}
+                <div style="font-size:10px;color:#555;margin-top:4px;border-top:1px solid #999;padding-top:2px;">Encarregado Resp. Liberação</div>
+              </div>
+              <div style="flex:1;text-align:center;">
+                ${sigT ? `<img src="${sigT}" style="height:60px;border:1px solid #ccc;background:#fff;" />` : ""}
+                <div style="font-size:10px;color:#555;margin-top:4px;border-top:1px solid #999;padding-top:2px;">Téc. Segurança Contratada</div>
+              </div>
+            </div>
+          </div>`;
+      };
+
+      const html = `
+        <div style="font-family: Arial, Helvetica, sans-serif; color:#222; padding:20px; background:#fff; width:760px;">
+          <div style="text-align:center;border-bottom:2px solid #0a7;padding-bottom:10px;margin-bottom:14px;">
+            <div style="font-size:18px;font-weight:bold;">Lista de Verificação - Pós Chuva / Ventos Fortes</div>
+            <div style="font-size:11px;color:#555;margin-top:4px;">Sucena Empreendimentos • Contrato 4600012690</div>
+          </div>
+          <table style="width:100%;border-collapse:collapse;font-size:12px;margin-bottom:12px;">
+            <tr><td style="padding:4px 6px;font-weight:bold;width:90px;">Empresa:</td><td style="padding:4px 6px;">${escapeHtml(payload.empresa || "")}</td>
+                <td style="padding:4px 6px;font-weight:bold;width:70px;">Data:</td><td style="padding:4px 6px;">${escapeHtml(payload.data || "")}</td></tr>
+            <tr><td style="padding:4px 6px;font-weight:bold;">Projeto:</td><td style="padding:4px 6px;">${escapeHtml(payload.projeto || "")}</td>
+                <td style="padding:4px 6px;font-weight:bold;">Local:</td><td style="padding:4px 6px;">${escapeHtml(payload.local_inspecao || "")}</td></tr>
+            <tr><td style="padding:4px 6px;font-weight:bold;">Responsável:</td><td style="padding:4px 6px;">${escapeHtml(payload.responsavel || "")}</td>
+                <td style="padding:4px 6px;font-weight:bold;">Atividade:</td><td style="padding:4px 6px;">${escapeHtml(payload.atividade || "")}</td></tr>
+          </table>
+
+          <div style="font-weight:bold;font-size:13px;margin:8px 0 4px;">Lista de Verificação</div>
+          <table style="width:100%;border-collapse:collapse;font-size:11px;border:1px solid #bbb;">
+            <thead><tr style="background:#eee;">
+              <th style="border:1px solid #bbb;padding:4px;width:24px;">Nº</th>
+              <th style="border:1px solid #bbb;padding:4px;text-align:left;">Pergunta</th>
+              <th style="border:1px solid #bbb;padding:4px;width:32px;">C</th>
+              <th style="border:1px solid #bbb;padding:4px;width:32px;">NC</th>
+              <th style="border:1px solid #bbb;padding:4px;width:32px;">NA</th>
+            </tr></thead>
+            <tbody>
+              ${cl.map((it) => `
+                <tr>
+                  <td style="border:1px solid #bbb;padding:4px;text-align:center;">${it.numero}</td>
+                  <td style="border:1px solid #bbb;padding:4px;">${escapeHtml(it.pergunta)}</td>
+                  <td style="border:1px solid #bbb;padding:4px;text-align:center;color:#080;font-weight:bold;">${it.resposta === "C" ? "✔" : ""}</td>
+                  <td style="border:1px solid #bbb;padding:4px;text-align:center;color:#c00;font-weight:bold;">${it.resposta === "NC" ? "✔" : ""}</td>
+                  <td style="border:1px solid #bbb;padding:4px;text-align:center;">${it.resposta === "NA" ? "✔" : ""}</td>
+                </tr>`).join("")}
+            </tbody>
+          </table>
+
+          ${pa.length > 0 ? `
+            <div style="font-weight:bold;font-size:13px;margin:14px 0 4px;">Plano de Ação</div>
+            <table style="width:100%;border-collapse:collapse;font-size:11px;border:1px solid #bbb;">
+              <thead><tr style="background:#eee;">
+                <th style="border:1px solid #bbb;padding:4px;">Item NC</th>
+                <th style="border:1px solid #bbb;padding:4px;">Ação</th>
+                <th style="border:1px solid #bbb;padding:4px;">Responsável</th>
+                <th style="border:1px solid #bbb;padding:4px;">Prazo</th>
+              </tr></thead>
+              <tbody>
+                ${pa.map((p) => `<tr>
+                  <td style="border:1px solid #bbb;padding:4px;">${escapeHtml(p.item_nc)}</td>
+                  <td style="border:1px solid #bbb;padding:4px;">${escapeHtml(p.acao)}</td>
+                  <td style="border:1px solid #bbb;padding:4px;">${escapeHtml(p.responsavel)}</td>
+                  <td style="border:1px solid #bbb;padding:4px;">${escapeHtml(p.prazo)}</td>
+                </tr>`).join("")}
+              </tbody>
+            </table>` : ""}
+
+          ${payload.observacoes ? `
+            <div style="margin-top:12px;font-size:12px;">
+              <div style="font-weight:bold;margin-bottom:4px;">Observações:</div>
+              <div style="white-space:pre-wrap;border:1px solid #ddd;padding:8px;background:#fafafa;border-radius:4px;">${escapeHtml(payload.observacoes)}</div>
+            </div>` : ""}
+
+          ${renderAval(1, payload.avaliacao_1_data, payload.avaliacao_1_horario, payload.avaliacao_1_sig_encarregado, payload.avaliacao_1_sig_tecnico)}
+          ${renderAval(2, payload.avaliacao_2_data, payload.avaliacao_2_horario, payload.avaliacao_2_sig_encarregado, payload.avaliacao_2_sig_tecnico)}
+          ${renderAval(3, payload.avaliacao_3_data, payload.avaliacao_3_horario, payload.avaliacao_3_sig_encarregado, payload.avaliacao_3_sig_tecnico)}
+        </div>`;
+
+      const container = document.createElement("div");
+      container.style.position = "fixed";
+      container.style.left = "-9999px";
+      container.style.top = "0";
+      container.style.background = "#fff";
+      container.innerHTML = html;
+      document.body.appendChild(container);
+
+      let publicUrl = "";
+      try {
+        const images = container.querySelectorAll("img");
+        await Promise.all(Array.from(images).map((img) => new Promise<void>((resolve) => {
+          if (img.complete) return resolve();
+          img.onload = () => resolve();
+          img.onerror = () => resolve();
+        })));
+        const html2canvas = (await import("html2canvas")).default;
+        for (let attempt = 1; attempt <= 3; attempt++) {
+          try {
+            const canvas = await html2canvas(container, { scale: 2, useCORS: true, backgroundColor: "#ffffff" });
+            const blob: Blob = await new Promise((res, rej) =>
+              canvas.toBlob((b) => (b ? res(b) : rej(new Error("blob falhou"))), "image/png")
+            );
+            const path = `wapi-pos-chuva/${Date.now()}-att${attempt}-${(payload.data || "").replace(/[^0-9-]/g, "")}.png`;
+            const { error: upErr } = await supabase.storage.from("desvios").upload(path, blob, { contentType: "image/png", upsert: true });
+            if (upErr) throw upErr;
+            const { data: urlData } = supabase.storage.from("desvios").getPublicUrl(path);
+            publicUrl = urlData?.publicUrl || "";
+            if (publicUrl) break;
+          } catch (err) {
+            console.warn(`[pos-chuva PNG] tentativa ${attempt}/3 falhou`, err);
+            if (attempt < 3) await new Promise((r) => setTimeout(r, 800 * attempt));
+          }
+        }
+      } finally {
+        if (container.parentNode) container.parentNode.removeChild(container);
+      }
+
+      if (!publicUrl) {
+        toast.error("Falha ao gerar imagem da inspeção Pós Chuva — não enviado ao grupo");
+        return;
+      }
+
+      const ncCount = cl.filter((c) => c.resposta === "NC").length;
+      const caption = [
+        "🌧️ *Inspeção Pós Chuva / Ventos Fortes*",
+        `📅 Data: ${payload.data || "-"}`,
+        `🏢 Empresa: ${payload.empresa || "-"}`,
+        `📋 Projeto: ${payload.projeto || "-"}`,
+        `📍 Local: ${payload.local_inspecao || "-"}`,
+        `🛠️ Atividade: ${payload.atividade || "-"}`,
+        `👤 Responsável: ${payload.responsavel || "-"}`,
+        `✅ Itens conformes: ${cl.filter((c) => c.resposta === "C").length}`,
+        `⚠️ Não conformes: ${ncCount}`,
+        `➖ Não aplicáveis: ${cl.filter((c) => c.resposta === "NA").length}`,
+        pa.length > 0 ? `🧰 Ações no Plano de Ação: ${pa.length}` : "",
+        payload.observacoes ? `📝 Obs.: ${payload.observacoes}` : "",
+      ].filter(Boolean).join("\n");
+
+      const { data: invokeData, error: invokeErr } = await supabase.functions.invoke("wapi-pos-chuva-notify", {
+        body: { caption, image_url: publicUrl },
+      });
+      if (invokeErr) {
+        toast.error("Falha ao enfileirar Pós Chuva no grupo", { description: invokeErr.message });
+      } else if (!(invokeData as any)?.skipped) {
+        toast.success("Inspeção Pós Chuva enfileirada para o grupo do WhatsApp 📤");
+      }
+    } catch (err) {
+      console.error("[sendPosChuvaToWhatsApp]", err);
+    }
+  };
+
   const handleSave = async () => {
     if (!checklist.some((c) => c.resposta)) {
       toast.error("Preencha pelo menos um item da checklist.");
@@ -122,31 +303,35 @@ export default function PosChuva() {
       return;
     }
 
+    const payload = {
+      empresa,
+      data,
+      projeto,
+      responsavel,
+      local_inspecao: localInspecao,
+      atividade,
+      checklist,
+      plano_acao: planoAcao.filter((p) => p.acao),
+      avaliacao_1_data: aval1.data,
+      avaliacao_1_horario: aval1.horario,
+      avaliacao_1_sig_encarregado: aval1.sigEnc,
+      avaliacao_1_sig_tecnico: aval1.sigTec,
+      avaliacao_2_data: aval2.data || null,
+      avaliacao_2_horario: aval2.horario || null,
+      avaliacao_2_sig_encarregado: aval2.sigEnc || null,
+      avaliacao_2_sig_tecnico: aval2.sigTec || null,
+      avaliacao_3_data: aval3.data || null,
+      avaliacao_3_horario: aval3.horario || null,
+      avaliacao_3_sig_encarregado: aval3.sigEnc || null,
+      avaliacao_3_sig_tecnico: aval3.sigTec || null,
+      observacoes: observacoes || null,
+    };
+
     try {
-      await createMutation.mutateAsync({
-        empresa,
-        data,
-        projeto,
-        responsavel,
-        local_inspecao: localInspecao,
-        atividade,
-        checklist,
-        plano_acao: planoAcao.filter((p) => p.acao),
-        avaliacao_1_data: aval1.data,
-        avaliacao_1_horario: aval1.horario,
-        avaliacao_1_sig_encarregado: aval1.sigEnc,
-        avaliacao_1_sig_tecnico: aval1.sigTec,
-        avaliacao_2_data: aval2.data || null,
-        avaliacao_2_horario: aval2.horario || null,
-        avaliacao_2_sig_encarregado: aval2.sigEnc || null,
-        avaliacao_2_sig_tecnico: aval2.sigTec || null,
-        avaliacao_3_data: aval3.data || null,
-        avaliacao_3_horario: aval3.horario || null,
-        avaliacao_3_sig_encarregado: aval3.sigEnc || null,
-        avaliacao_3_sig_tecnico: aval3.sigTec || null,
-        observacoes: observacoes || null,
-      });
+      await createMutation.mutateAsync(payload);
       toast.success("Inspeção Pós Chuva salva com sucesso!");
+      // Envio automático ao grupo do WhatsApp (PNG completo + detalhes)
+      void sendPosChuvaToWhatsApp(payload as unknown as PosChuvaInspection);
       resetForm();
     } catch {
       toast.error("Erro ao salvar inspeção.");
