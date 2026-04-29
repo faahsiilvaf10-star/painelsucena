@@ -78,6 +78,7 @@ Deno.serve(async (req) => {
     const authHeader = req.headers.get("Authorization") || "";
     const internalToken = req.headers.get("x-internal-token") || "";
     const isInternalCall = internalToken && internalToken === serviceKey;
+    let userId: string | null = null;
 
     if (!isInternalCall) {
       if (!authHeader.startsWith("Bearer ")) {
@@ -96,7 +97,7 @@ Deno.serve(async (req) => {
           status: 401, headers: { ...corsHeaders, "Content-Type": "application/json" },
         });
       }
-      const userId = userData.user.id;
+      userId = userData.user.id;
 
       const { data: isAdmin } = await admin.rpc("is_admin", { _user_id: userId });
       if (!isAdmin) {
