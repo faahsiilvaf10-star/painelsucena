@@ -1407,7 +1407,42 @@ const AdminWhatsApp = () => {
 
         <Card>
           <CardHeader>
-            <CardTitle>Envio de Mensagem</CardTitle>
+            <CardTitle className="flex items-center gap-2">
+              <Send className="w-5 h-5 text-primary" />
+              Envio Automático da Lista de Presença
+            </CardTitle>
+            <CardDescription>
+              Quando habilitado, ao <strong>salvar a Lista de Presença diária</strong> (Gabião, Jardinagem ou ADM)
+              o sistema envia automaticamente para o <strong>grupo configurado</strong> o
+              <strong> texto formatado</strong> com presentes, ausentes e total da área,
+              respeitando o intervalo de segurança configurado.
+            </CardDescription>
+          </CardHeader>
+          <CardContent>
+            <div className="flex items-center justify-between gap-3 rounded-md border p-3 bg-muted/30">
+              <div className="flex items-center gap-3">
+                <Switch
+                  id="auto-send-attendance"
+                  checked={autoSendAttendance}
+                  onCheckedChange={setAutoSendAttendance}
+                />
+                <Label htmlFor="auto-send-attendance" className="cursor-pointer">
+                  Ativar envio automático ao salvar a Lista de Presença
+                </Label>
+              </div>
+              <Badge variant={autoSendAttendance ? "default" : "secondary"}>
+                {autoSendAttendance ? "Ativo" : "Desativado"}
+              </Badge>
+            </div>
+            <GroupIdOverrideInput id="gid-attendance" value={groupIdAttendance} onChange={setGroupIdAttendance} defaultGroupId={groupId} />
+            <p className="text-xs text-muted-foreground mt-3">
+              Requisitos: integração W-API habilitada e <strong>ID do grupo</strong> preenchido (use o campo acima
+              para enviar para um grupo diferente do padrão). Lembre-se de salvar a configuração após alterar este botão.
+            </p>
+          </CardContent>
+        </Card>
+
+
             <CardDescription>Selecione os usuários e escreva a mensagem. Apenas usuários com WhatsApp cadastrado aparecem.</CardDescription>
           </CardHeader>
           <CardContent className="space-y-4">
