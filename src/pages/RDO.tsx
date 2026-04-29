@@ -462,7 +462,7 @@ ${jardinagemEquipmentText}
 Condições climáticas:
 • MANHÃ = ${weatherLabels[weatherMorning]}
 • TARDE = ${weatherLabels[weatherAfternoon]}${showTemperature && displayTemp ? `
-• 🌡️ TEMPERATURA${isBeforeCutoff ? " ATUAL" : " (16h)"} = ${displayTemp.temperature}°C (sensação ${displayTemp.apparentTemp}°C)` : ""}
+• 🌡️ TEMPERATURA${isLiveTemp ? " ATUAL" : " (16h)"} = ${displayTemp.temperature}°C (sensação ${displayTemp.apparentTemp}°C)` : ""}
 
 ${E.EMOJI_WARNING} DIFICULDADES/DESVIOS
 ${difficulties}`;
