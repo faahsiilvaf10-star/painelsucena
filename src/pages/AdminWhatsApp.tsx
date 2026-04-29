@@ -103,6 +103,18 @@ const AdminWhatsApp = () => {
       setEnabled(!!cfg.enabled);
       setDelaySeconds(typeof cfg.delay_seconds === "number" ? cfg.delay_seconds : 5);
       setGroupId(cfg.group_id || "");
+      const c = cfg as unknown as Record<string, unknown>;
+      setGroupIdRequisitions((c.group_id_requisitions as string | null) || "");
+      setGroupIdReminders((c.group_id_reminders as string | null) || "");
+      setGroupIdAso((c.group_id_aso as string | null) || "");
+      setGroupIdMatrix((c.group_id_matrix as string | null) || "");
+      setGroupIdForbiddenColor((c.group_id_forbidden_color as string | null) || "");
+      setGroupIdCampaign((c.group_id_campaign as string | null) || "");
+      setGroupIdEquipmentMovements((c.group_id_equipment_movements as string | null) || "");
+      setGroupIdPlanning((c.group_id_planning as string | null) || "");
+      setGroupIdBilling((c.group_id_billing as string | null) || "");
+      setGroupIdVehicleInspection((c.group_id_vehicle_inspection as string | null) || "");
+      setGroupIdSlingInspection((c.group_id_sling_inspection as string | null) || "");
       setDdsAutoNotify(!!cfg.dds_auto_notify);
       setDdsNotifyDayBefore(!!cfg.dds_notify_day_before);
       setAutoSendReq(!!cfg.auto_send_requisitions);
