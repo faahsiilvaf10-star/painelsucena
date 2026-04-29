@@ -162,6 +162,11 @@ Deno.serve(async (req) => {
       for (const s of sections) {
         lines.push(`━━━━━━━━━━━━━━━━━━━━`);
         lines.push(`${s.isComplete ? "✅" : "⚠️"} *${s.cargoLabel}* — *${s.done}/${s.total} salvos* (${s.progress}%)`);
+        if (s.responsaveis && s.responsaveis.length > 0) {
+          lines.push(`     👤 Responsável(is): ${s.responsaveis.join(", ")}`);
+        } else {
+          lines.push(`     👤 Responsável(is): _não cadastrado_`);
+        }
         if (!s.isComplete) {
           for (const n of s.missingNames) lines.push(`     ⛔ ${n}`);
         }
