@@ -1473,6 +1473,9 @@ export default function TrocaEpi() {
                               {ex.created_by === user?.id && <Button variant="ghost" size="icon" className="h-8 w-8" onClick={() => handleEditExchange(ex)}><Pencil className="h-4 w-4" /></Button>}
                               <Button variant="ghost" size="icon" className="h-8 w-8" onClick={() => handlePrint(ex)}><FileText className="h-4 w-4" /></Button>
                               <Button variant="ghost" size="icon" className="h-8 w-8" onTouchStart={() => primeExchangeSharePayload(ex)} onClick={() => handlePngWhatsApp(ex)}><MessageCircle className="h-4 w-4 text-[#25D366]" /></Button>
+                              <Button variant="ghost" size="icon" className="h-8 w-8" title="Reenviar EPI ao grupo" disabled={resendingId === ex.id} onClick={() => handleResendExchange(ex)}>
+                                {resendingId === ex.id ? <Loader2 className="h-4 w-4 animate-spin" /> : <Send className="h-4 w-4 text-primary" />}
+                              </Button>
                               {ex.created_by === user?.id && <Button variant="ghost" size="icon" className="h-8 w-8" onClick={() => handleDeleteWithRestore(ex)}><Trash2 className="h-4 w-4 text-destructive" /></Button>}
                             </div>
                           </CardContent>
