@@ -90,6 +90,8 @@ const AdminWhatsApp = () => {
   const [groupIdBilling, setGroupIdBilling] = useState("");
   const [groupIdVehicleInspection, setGroupIdVehicleInspection] = useState("");
   const [groupIdSlingInspection, setGroupIdSlingInspection] = useState("");
+  const [autoSendPosChuva, setAutoSendPosChuva] = useState(false);
+  const [groupIdPosChuva, setGroupIdPosChuva] = useState("");
   const [testingPlanning, setTestingPlanning] = useState(false);
   const [testingBilling, setTestingBilling] = useState(false);
   const [testingVehicleInspection, setTestingVehicleInspection] = useState(false);
@@ -152,6 +154,8 @@ const AdminWhatsApp = () => {
       setAutoSendBillingAlert(!!cfg.auto_send_billing_alert);
       setAutoSendVehicleInspectionAlert(!!cfg.auto_send_vehicle_inspection_alert);
       setAutoSendSlingInspectionAlert(!!cfg.auto_send_sling_inspection_alert);
+      setAutoSendPosChuva(!!(c.auto_send_pos_chuva as boolean | null));
+      setGroupIdPosChuva((c.group_id_pos_chuva as string | null) || "");
     }
   }, [cfg]);
 
@@ -241,6 +245,8 @@ const AdminWhatsApp = () => {
         group_id_billing: groupIdBilling.trim() || null,
         group_id_vehicle_inspection: groupIdVehicleInspection.trim() || null,
         group_id_sling_inspection: groupIdSlingInspection.trim() || null,
+        auto_send_pos_chuva: autoSendPosChuva,
+        group_id_pos_chuva: groupIdPosChuva.trim() || null,
         updated_by: user?.id ?? null,
       };
       if (cfg?.id) {
