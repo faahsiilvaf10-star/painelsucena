@@ -442,7 +442,7 @@ export default function TrocaEpi() {
     container.style.position = "fixed";
     container.style.left = "-9999px";
     container.style.top = "0";
-    container.style.width = "800px";
+    container.style.width = "980px";
     container.style.background = "#fff";
     container.innerHTML = html;
     document.body.appendChild(container);
@@ -916,7 +916,7 @@ export default function TrocaEpi() {
         container.style.position = "fixed";
         container.style.left = "-9999px";
         container.style.top = "0";
-        container.style.width = "800px";
+        container.style.width = "980px";
         container.style.background = "#fff";
         container.innerHTML = htmlContent;
         document.body.appendChild(container);
