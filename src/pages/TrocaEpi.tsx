@@ -891,23 +891,7 @@ export default function TrocaEpi() {
     fileBaseName: string,
   ) => {
     try {
-      // Verifica configuração W-API
-      const { data: cfg } = await supabase
-        .from("wapi_config" as never)
-        .select("enabled, group_id, group_id_requisitions, auto_send_requisitions")
-        .order("updated_at", { ascending: false })
-        .limit(1)
-        .maybeSingle();
-      const c = cfg as { enabled: boolean | null; group_id: string | null; group_id_requisitions: string | null; auto_send_requisitions: boolean | null } | null;
-      const targetGroup = (c?.group_id_requisitions || c?.group_id || "").trim();
-      console.log("[autoSendRequisitionToGroup] cfg check", { enabled: c?.enabled, auto: c?.auto_send_requisitions, targetGroup });
-      if (!c?.enabled || !c?.auto_send_requisitions || !targetGroup) {
-        console.log("[autoSendRequisitionToGroup] aborted: missing config");
-        return;
-      }
-
       // Renderiza HTML em canvas → PNG
-      const logoBase64 = await loadCachedLogoBase64();
       const container = document.createElement("div");
       container.style.position = "fixed";
       container.style.left = "-9999px";
@@ -964,7 +948,9 @@ export default function TrocaEpi() {
             if (attempt < 3) await new Promise((r) => setTimeout(r, 800 * attempt));
           }
         }
-        if (!publicUrl && lastErr) throw lastErr;
+        if (!publicUrl && lastErr) {
+          console.warn("[autoSendRequisitionToGroup] imagem não gerada; seguirá como texto", lastErr);
+        }
       } finally {
         if (container.parentNode) container.parentNode.removeChild(container);
       }
