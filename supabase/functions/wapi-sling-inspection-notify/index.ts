@@ -56,7 +56,7 @@ Deno.serve(async (req) => {
         status: 200, headers: { ...corsHeaders, "Content-Type": "application/json" },
       });
     }
-    const groupId = (cfg.group_id || "").trim();
+    const groupId = (cfg.group_id_sling_inspection || cfg.group_id || "").trim();
     if (!groupId) {
       return new Response(JSON.stringify({ skipped: true, reason: "ID do grupo não configurado" }), {
         status: 200, headers: { ...corsHeaders, "Content-Type": "application/json" },
