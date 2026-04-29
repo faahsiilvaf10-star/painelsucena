@@ -89,7 +89,7 @@ export const useMatrixProgress = () => {
     } catch (error) {
       console.error("Error toggling task:", error);
     }
-  }, [user, completedTasks, getCurrentMonthYear]);
+  }, [user, completedTasks, getCurrentMonthYear, isAdmin]);
 
   // Check if a task is completed
   const isCompleted = useCallback((taskId: string) => {
