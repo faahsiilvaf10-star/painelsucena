@@ -1,5 +1,6 @@
 // @ts-nocheck
 import { useState, useMemo, useRef, useEffect } from "react";
+import { supabase } from "@/integrations/supabase/client";
 import * as E from "@/lib/whatsappEmojis";
 import { copyAndShareWhatsApp, copyToClipboard } from "@/lib/copyAndShare";
 import { format, parseISO } from "date-fns";
