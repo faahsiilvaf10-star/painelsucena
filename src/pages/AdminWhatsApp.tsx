@@ -94,6 +94,8 @@ const AdminWhatsApp = () => {
   const [groupIdPosChuva, setGroupIdPosChuva] = useState("");
   const [autoSendDdsPhoto, setAutoSendDdsPhoto] = useState(false);
   const [groupIdDds, setGroupIdDds] = useState("");
+  const [autoSendAttendance, setAutoSendAttendance] = useState(false);
+  const [groupIdAttendance, setGroupIdAttendance] = useState("");
   const [testingPlanning, setTestingPlanning] = useState(false);
   const [testingBilling, setTestingBilling] = useState(false);
   const [testingVehicleInspection, setTestingVehicleInspection] = useState(false);
