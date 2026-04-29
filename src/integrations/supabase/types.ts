@@ -4177,6 +4177,7 @@ export type Database = {
           auto_send_order_alerts: boolean
           auto_send_orders_to_group: boolean
           auto_send_planning_alerts: boolean
+          auto_send_pos_chuva: boolean
           auto_send_reminders: boolean
           auto_send_requisitions: boolean
           auto_send_sling_inspection_alert: boolean
@@ -4196,6 +4197,7 @@ export type Database = {
           group_id_matrix: string | null
           group_id_orders: string | null
           group_id_planning: string | null
+          group_id_pos_chuva: string | null
           group_id_reminders: string | null
           group_id_requisitions: string | null
           group_id_sling_inspection: string | null
@@ -4218,6 +4220,7 @@ export type Database = {
           auto_send_order_alerts?: boolean
           auto_send_orders_to_group?: boolean
           auto_send_planning_alerts?: boolean
+          auto_send_pos_chuva?: boolean
           auto_send_reminders?: boolean
           auto_send_requisitions?: boolean
           auto_send_sling_inspection_alert?: boolean
@@ -4237,6 +4240,7 @@ export type Database = {
           group_id_matrix?: string | null
           group_id_orders?: string | null
           group_id_planning?: string | null
+          group_id_pos_chuva?: string | null
           group_id_reminders?: string | null
           group_id_requisitions?: string | null
           group_id_sling_inspection?: string | null
@@ -4259,6 +4263,7 @@ export type Database = {
           auto_send_order_alerts?: boolean
           auto_send_orders_to_group?: boolean
           auto_send_planning_alerts?: boolean
+          auto_send_pos_chuva?: boolean
           auto_send_reminders?: boolean
           auto_send_requisitions?: boolean
           auto_send_sling_inspection_alert?: boolean
@@ -4278,6 +4283,7 @@ export type Database = {
           group_id_matrix?: string | null
           group_id_orders?: string | null
           group_id_planning?: string | null
+          group_id_pos_chuva?: string | null
           group_id_reminders?: string | null
           group_id_requisitions?: string | null
           group_id_sling_inspection?: string | null

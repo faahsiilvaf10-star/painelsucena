@@ -90,6 +90,8 @@ const AdminWhatsApp = () => {
   const [groupIdBilling, setGroupIdBilling] = useState("");
   const [groupIdVehicleInspection, setGroupIdVehicleInspection] = useState("");
   const [groupIdSlingInspection, setGroupIdSlingInspection] = useState("");
+  const [autoSendPosChuva, setAutoSendPosChuva] = useState(false);
+  const [groupIdPosChuva, setGroupIdPosChuva] = useState("");
   const [testingPlanning, setTestingPlanning] = useState(false);
   const [testingBilling, setTestingBilling] = useState(false);
   const [testingVehicleInspection, setTestingVehicleInspection] = useState(false);
@@ -152,6 +154,8 @@ const AdminWhatsApp = () => {
       setAutoSendBillingAlert(!!cfg.auto_send_billing_alert);
       setAutoSendVehicleInspectionAlert(!!cfg.auto_send_vehicle_inspection_alert);
       setAutoSendSlingInspectionAlert(!!cfg.auto_send_sling_inspection_alert);
+      setAutoSendPosChuva(!!(c.auto_send_pos_chuva as boolean | null));
+      setGroupIdPosChuva((c.group_id_pos_chuva as string | null) || "");
     }
   }, [cfg]);
 
@@ -241,6 +245,8 @@ const AdminWhatsApp = () => {
         group_id_billing: groupIdBilling.trim() || null,
         group_id_vehicle_inspection: groupIdVehicleInspection.trim() || null,
         group_id_sling_inspection: groupIdSlingInspection.trim() || null,
+        auto_send_pos_chuva: autoSendPosChuva,
+        group_id_pos_chuva: groupIdPosChuva.trim() || null,
         updated_by: user?.id ?? null,
       };
       if (cfg?.id) {
@@ -1309,6 +1315,43 @@ const AdminWhatsApp = () => {
               Requisitos: integração W-API habilitada e <strong>ID do grupo</strong> preenchido. O botão "Testar"
               envia imediatamente a lista de cintas pendentes da cor do mês, ignorando a janela de dias/horário.
               Lembre-se de salvar após alterar este botão.
+            </p>
+          </CardContent>
+        </Card>
+
+        <Card>
+          <CardHeader>
+            <CardTitle className="flex items-center gap-2">
+              <Send className="w-5 h-5 text-primary" />
+              Envio Automático de Pós Chuva
+            </CardTitle>
+            <CardDescription>
+              Quando habilitado, ao <strong>salvar</strong> uma inspeção <strong>Pós Chuva</strong> o sistema gera
+              automaticamente uma <strong>imagem PNG completa</strong> do formulário (com todos os detalhes, checklist,
+              plano de ação, observações e assinaturas) e envia para o <strong>grupo configurado</strong>,
+              respeitando o intervalo de segurança configurado.
+            </CardDescription>
+          </CardHeader>
+          <CardContent>
+            <div className="flex items-center justify-between gap-3 rounded-md border p-3 bg-muted/30">
+              <div className="flex items-center gap-3">
+                <Switch
+                  id="auto-send-pos-chuva"
+                  checked={autoSendPosChuva}
+                  onCheckedChange={setAutoSendPosChuva}
+                />
+                <Label htmlFor="auto-send-pos-chuva" className="cursor-pointer">
+                  Ativar envio automático ao salvar uma inspeção Pós Chuva
+                </Label>
+              </div>
+              <Badge variant={autoSendPosChuva ? "default" : "secondary"}>
+                {autoSendPosChuva ? "Ativo" : "Desativado"}
+              </Badge>
+            </div>
+            <GroupIdOverrideInput id="gid-pos-chuva" value={groupIdPosChuva} onChange={setGroupIdPosChuva} defaultGroupId={groupId} />
+            <p className="text-xs text-muted-foreground mt-3">
+              Requisitos: integração W-API habilitada e <strong>ID do grupo</strong> preenchido (use o campo acima
+              para enviar para um grupo diferente do padrão). Lembre-se de salvar a configuração após alterar este botão.
             </p>
           </CardContent>
         </Card>
