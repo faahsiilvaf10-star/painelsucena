@@ -92,7 +92,8 @@ ctx.font = '24px sans-serif';
 ctx.textAlign = 'center';
 ctx.fillText(`Emitido em ${new Date().toLocaleString('pt-BR', { timeZone: 'America/Belem' })}`, W/2, H-90);
 
-const buf = c.encode('png');
+(async () => { const buf = await c.encode("png");
 const fs = require("fs");
 fs.writeFileSync('/tmp/epi_card.png', buf);
 console.log('OK', buf.length);
+})();
