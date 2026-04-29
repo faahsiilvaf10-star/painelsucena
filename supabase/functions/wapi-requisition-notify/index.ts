@@ -31,12 +31,8 @@ Deno.serve(async (req) => {
         status: 400, headers: { ...corsHeaders, "Content-Type": "application/json" },
       });
     }
-    // OBRIGATÓRIO: imagem PNG do card (com assinaturas) — não permite envio só de texto
-    if (!image_url || typeof image_url !== "string" || !image_url.trim()) {
-      return new Response(JSON.stringify({ error: "image_url obrigatório (PNG do card com assinaturas)" }), {
-        status: 400, headers: { ...corsHeaders, "Content-Type": "application/json" },
-      });
-    }
+    // image_url é preferencial; se ausente, envia somente texto (fallback) para não perder a notificação
+    const hasImage = !!(image_url && typeof image_url === "string" && image_url.trim());
 
     const { data: cfg } = await admin
       .from("wapi_config")
