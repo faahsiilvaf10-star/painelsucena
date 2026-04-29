@@ -949,13 +949,13 @@ export default function TrocaEpi() {
         if (container.parentNode) container.parentNode.removeChild(container);
       }
       if (!publicUrl) {
-        toast.error("Falha ao gerar imagem da requisição (assinaturas) — não enviado ao grupo");
-        return;
+        // Fallback: envia ao menos o texto ao grupo, para não perder a notificação
+        toast.warning("Não foi possível gerar a imagem — enviando texto ao grupo", { duration: 4000 });
       }
 
       // Enfileira na outbox via edge function dedicada (respeita delay global)
       const { data: invokeData, error: invokeErr } = await supabase.functions.invoke("wapi-requisition-notify", {
-        body: { type, caption, image_url: publicUrl },
+        body: { type, caption, image_url: publicUrl || undefined },
       });
       if (invokeErr) {
         toast.error("Falha ao enfileirar requisição para o grupo", { description: invokeErr.message });
