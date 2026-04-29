@@ -205,11 +205,12 @@ Deno.serve(async (req) => {
       let invokeBody: any = null;
 
       if (r.mention_type === "all") {
-        if (!cfg.group_id) {
+        const remindersGroupId = (cfg.group_id_reminders || cfg.group_id || "").trim();
+        if (!remindersGroupId) {
           results.push({ id: r.id, skipped: "no group_id" });
           continue;
         }
-        invokeBody = { group_id: cfg.group_id, message };
+        invokeBody = { group_id: remindersGroupId, message };
         channel = "group";
         recipientsCount = 1;
       } else {
