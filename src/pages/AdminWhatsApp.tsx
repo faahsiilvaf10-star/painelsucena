@@ -57,6 +57,18 @@ const AdminWhatsApp = () => {
   const [autoSendBillingAlert, setAutoSendBillingAlert] = useState(false);
   const [autoSendVehicleInspectionAlert, setAutoSendVehicleInspectionAlert] = useState(false);
   const [autoSendSlingInspectionAlert, setAutoSendSlingInspectionAlert] = useState(false);
+  // Group ID overrides per feature (when empty, falls back to default group_id)
+  const [groupIdRequisitions, setGroupIdRequisitions] = useState("");
+  const [groupIdReminders, setGroupIdReminders] = useState("");
+  const [groupIdAso, setGroupIdAso] = useState("");
+  const [groupIdMatrix, setGroupIdMatrix] = useState("");
+  const [groupIdForbiddenColor, setGroupIdForbiddenColor] = useState("");
+  const [groupIdCampaign, setGroupIdCampaign] = useState("");
+  const [groupIdEquipmentMovements, setGroupIdEquipmentMovements] = useState("");
+  const [groupIdPlanning, setGroupIdPlanning] = useState("");
+  const [groupIdBilling, setGroupIdBilling] = useState("");
+  const [groupIdVehicleInspection, setGroupIdVehicleInspection] = useState("");
+  const [groupIdSlingInspection, setGroupIdSlingInspection] = useState("");
   const [testingPlanning, setTestingPlanning] = useState(false);
   const [testingBilling, setTestingBilling] = useState(false);
   const [testingVehicleInspection, setTestingVehicleInspection] = useState(false);
