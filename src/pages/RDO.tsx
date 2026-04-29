@@ -1,5 +1,6 @@
 // @ts-nocheck
 import { useState, useMemo, useRef, useEffect } from "react";
+import { supabase } from "@/integrations/supabase/client";
 import * as E from "@/lib/whatsappEmojis";
 import { copyAndShareWhatsApp, copyToClipboard } from "@/lib/copyAndShare";
 import { format, parseISO } from "date-fns";
@@ -151,7 +152,7 @@ export default function RDO() {
   const [difficulties, setDifficulties] = useState("Não Houve.");
 
   // Temperatura: capturada em tempo real até as 16h e congelada após esse horário.
-  // Exibida apenas no RDO do dia atual e enquanto o relatório ainda não foi salvo.
+  // Persiste no banco (temperature/apparent_temp/humidity) para reaparecer no relatório do dia seguinte.
   const isToday = selectedDateStr === todayStr;
   const [isBeforeCutoff, setIsBeforeCutoff] = useState(() => new Date().getHours() < 16);
   useEffect(() => {
@@ -162,17 +163,57 @@ export default function RDO() {
     return () => clearInterval(interval);
   }, [isBeforeCutoff]);
 
-  // Mostra a temperatura sempre que for o RDO do dia atual (mesmo após salvar).
-  // Antes das 16h: ao vivo. Após 16h: congelada no último valor capturado (faz fetch único se ainda não houver).
-  const showTemperature = isToday;
+  // Mostra a temperatura sempre que existir (hoje em tempo real, dias anteriores via valor salvo).
   const [frozenTemp, setFrozenTemp] = useState<{ temperature: number; apparentTemp: number; humidity: number; fetchedAt: string } | null>(null);
-  // Faz fetch/auto-refresh sempre que for hoje. Após 16h, o último valor fica congelado em frozenTemp.
-  const { data: currentTemp } = useCurrentTemperature(showTemperature && (isBeforeCutoff || !frozenTemp));
+  // Faz fetch/auto-refresh apenas quando for hoje. Após 16h, congela no último valor capturado.
+  const { data: currentTemp } = useCurrentTemperature(isToday && (isBeforeCutoff || !frozenTemp));
   useEffect(() => {
     if (currentTemp && isBeforeCutoff) setFrozenTemp(currentTemp);
     else if (currentTemp && !frozenTemp) setFrozenTemp(currentTemp);
   }, [currentTemp, isBeforeCutoff, frozenTemp]);
-  const displayTemp = isBeforeCutoff ? (currentTemp ?? frozenTemp) : frozenTemp;
+
+  // Para dias anteriores: usa o valor salvo no banco (existingReport.temperature)
+  const savedTemp = existingReport && existingReport.temperature != null
+    ? {
+        temperature: Number(existingReport.temperature),
+        apparentTemp: Number(existingReport.apparent_temp ?? existingReport.temperature),
+        humidity: Number(existingReport.humidity ?? 0),
+        fetchedAt: existingReport.temperature_captured_at ?? existingReport.updated_at,
+      }
+    : null;
+
+  const displayTemp = isToday
+    ? (isBeforeCutoff ? (currentTemp ?? frozenTemp ?? savedTemp) : (frozenTemp ?? savedTemp))
+    : savedTemp;
+  const showTemperature = !!displayTemp;
+  const isLiveTemp = isToday && isBeforeCutoff && !!currentTemp;
+
+  // Auto-persiste a temperatura no banco quando estamos no dia atual e temos um valor capturado.
+  // Garante que o RDO do "dia anterior" sempre tenha a última temperatura registrada (ex: 16h).
+  const lastPersistedTempRef = useRef<number | null>(null);
+  useEffect(() => {
+    if (!isToday || !user?.id) return;
+    const tempToPersist = frozenTemp ?? currentTemp;
+    if (!tempToPersist) return;
+    if (lastPersistedTempRef.current === tempToPersist.temperature) return;
+    if (!existingReport) return; // só atualiza se já houver relatório criado para hoje
+    lastPersistedTempRef.current = tempToPersist.temperature;
+    (async () => {
+      try {
+        await supabase
+          .from("rdo_reports")
+          .update({
+            temperature: tempToPersist.temperature,
+            apparent_temp: tempToPersist.apparentTemp,
+            humidity: tempToPersist.humidity,
+            temperature_captured_at: tempToPersist.fetchedAt,
+          })
+          .eq("id", existingReport.id);
+      } catch (err) {
+        console.warn("auto-persist temperature falhou:", err);
+      }
+    })();
+  }, [isToday, user?.id, frozenTemp, currentTemp, existingReport, isBeforeCutoff]);
 
   // Update horario when date changes (Friday = 16:00, other days = 17:00)
   useEffect(() => {
@@ -449,7 +490,7 @@ ${jardinagemEquipmentText}
 Condições climáticas:
 • MANHÃ = ${weatherLabels[weatherMorning]}
 • TARDE = ${weatherLabels[weatherAfternoon]}${showTemperature && displayTemp ? `
-• 🌡️ TEMPERATURA${isBeforeCutoff ? " ATUAL" : " (16h)"} = ${displayTemp.temperature}°C (sensação ${displayTemp.apparentTemp}°C)` : ""}
+• 🌡️ TEMPERATURA${isLiveTemp ? " ATUAL" : " (16h)"} = ${displayTemp.temperature}°C (sensação ${displayTemp.apparentTemp}°C)` : ""}
 
 ${E.EMOJI_WARNING} DIFICULDADES/DESVIOS
 ${difficulties}`;
@@ -495,6 +536,9 @@ ${difficulties}`;
         ddsTextToSave = `${presenterName} - ${dateDDS.theme || "Tema a definir"}`;
       }
 
+      // Persiste a temperatura capturada (preferindo o valor atual/congelado de hoje, com fallback ao já salvo)
+      const tempToSave = isToday ? (frozenTemp ?? currentTemp ?? savedTemp) : savedTemp;
+
       await saveReport.mutateAsync({
         report_date: selectedDateStr,
         weather_morning: weatherMorning,
@@ -503,6 +547,10 @@ ${difficulties}`;
         photo_urls: photos,
         report_text: generateReport(),
         dds_text: ddsTextToSave,
+        temperature: tempToSave?.temperature ?? null,
+        apparent_temp: tempToSave?.apparentTemp ?? null,
+        humidity: tempToSave?.humidity ?? null,
+        temperature_captured_at: tempToSave?.fetchedAt ?? null,
       });
       
       // Lock the report after saving

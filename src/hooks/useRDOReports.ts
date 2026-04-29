@@ -18,6 +18,10 @@ export interface RDOReport {
   efetivo_gabiao_text: string | null;
   efetivo_jardinagem_text: string | null;
   dds_text: string | null;
+  temperature: number | null;
+  apparent_temp: number | null;
+  humidity: number | null;
+  temperature_captured_at: string | null;
   created_at: string;
   updated_at: string;
 }
@@ -36,6 +40,10 @@ export interface RDOReportInsert {
   efetivo_gabiao_text?: string;
   efetivo_jardinagem_text?: string;
   dds_text?: string;
+  temperature?: number | null;
+  apparent_temp?: number | null;
+  humidity?: number | null;
+  temperature_captured_at?: string | null;
 }
 
 const hasText = (value: string | null | undefined): value is string =>
