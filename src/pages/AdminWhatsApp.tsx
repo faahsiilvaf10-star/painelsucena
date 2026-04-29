@@ -251,6 +251,8 @@ const AdminWhatsApp = () => {
         group_id_sling_inspection: groupIdSlingInspection.trim() || null,
         auto_send_pos_chuva: autoSendPosChuva,
         group_id_pos_chuva: groupIdPosChuva.trim() || null,
+        auto_send_dds_photo: autoSendDdsPhoto,
+        group_id_dds: groupIdDds.trim() || null,
         updated_by: user?.id ?? null,
       };
       if (cfg?.id) {
