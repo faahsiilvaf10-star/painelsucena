@@ -3278,6 +3278,7 @@ export type Database = {
       }
       rdo_reports: {
         Row: {
+          apparent_temp: number | null
           created_at: string
           created_by: string
           dds_text: string | null
@@ -3287,17 +3288,21 @@ export type Database = {
           environment: string
           gabiao_activities: string | null
           gabiao_location: string | null
+          humidity: number | null
           id: string
           jardinagem_activities: string | null
           jardinagem_location: string | null
           photo_urls: string[] | null
           report_date: string
           report_text: string
+          temperature: number | null
+          temperature_captured_at: string | null
           updated_at: string
           weather_afternoon: string
           weather_morning: string
         }
         Insert: {
+          apparent_temp?: number | null
           created_at?: string
           created_by: string
           dds_text?: string | null
@@ -3307,17 +3312,21 @@ export type Database = {
           environment?: string
           gabiao_activities?: string | null
           gabiao_location?: string | null
+          humidity?: number | null
           id?: string
           jardinagem_activities?: string | null
           jardinagem_location?: string | null
           photo_urls?: string[] | null
           report_date: string
           report_text: string
+          temperature?: number | null
+          temperature_captured_at?: string | null
           updated_at?: string
           weather_afternoon?: string
           weather_morning?: string
         }
         Update: {
+          apparent_temp?: number | null
           created_at?: string
           created_by?: string
           dds_text?: string | null
@@ -3327,12 +3336,15 @@ export type Database = {
           environment?: string
           gabiao_activities?: string | null
           gabiao_location?: string | null
+          humidity?: number | null
           id?: string
           jardinagem_activities?: string | null
           jardinagem_location?: string | null
           photo_urls?: string[] | null
           report_date?: string
           report_text?: string
+          temperature?: number | null
+          temperature_captured_at?: string | null
           updated_at?: string
           weather_afternoon?: string
           weather_morning?: string
