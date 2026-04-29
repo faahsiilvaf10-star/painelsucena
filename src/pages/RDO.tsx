@@ -187,6 +187,33 @@ export default function RDO() {
   const showTemperature = !!displayTemp;
   const isLiveTemp = isToday && isBeforeCutoff && !!currentTemp;
 
+  // Auto-persiste a temperatura no banco quando estamos no dia atual e temos um valor capturado.
+  // Garante que o RDO do "dia anterior" sempre tenha a última temperatura registrada (ex: 16h).
+  const lastPersistedTempRef = useRef<number | null>(null);
+  useEffect(() => {
+    if (!isToday || !user?.id) return;
+    const tempToPersist = frozenTemp ?? currentTemp;
+    if (!tempToPersist) return;
+    if (lastPersistedTempRef.current === tempToPersist.temperature) return;
+    if (!existingReport) return; // só atualiza se já houver relatório criado para hoje
+    lastPersistedTempRef.current = tempToPersist.temperature;
+    (async () => {
+      try {
+        await supabase
+          .from("rdo_reports")
+          .update({
+            temperature: tempToPersist.temperature,
+            apparent_temp: tempToPersist.apparentTemp,
+            humidity: tempToPersist.humidity,
+            temperature_captured_at: tempToPersist.fetchedAt,
+          })
+          .eq("id", existingReport.id);
+      } catch (err) {
+        console.warn("auto-persist temperature falhou:", err);
+      }
+    })();
+  }, [isToday, user?.id, frozenTemp, currentTemp, existingReport, isBeforeCutoff]);
+
   // Update horario when date changes (Friday = 16:00, other days = 17:00)
   useEffect(() => {
     const newHorario = selectedDate.getDay() === 5 ? "07:00 as 16:00" : "07:00 as 17:00";
