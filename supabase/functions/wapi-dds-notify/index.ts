@@ -26,10 +26,10 @@ const buildWapiEndpoint = (rawUrl: string, instanceId: string): string => {
   return url.toString();
 };
 
-// Retorna a data alvo em Pará (UTC-4) no formato YYYY-MM-DD (offsetDays: 0 = hoje, 1 = amanhã)
+// Retorna a data alvo em Pará (UTC-3) no formato YYYY-MM-DD (offsetDays: 0 = hoje, 1 = amanhã)
 const getParaDateISO = (offsetDays = 0): string => {
   const now = new Date();
-  const para = new Date(now.getTime() - 4 * 60 * 60 * 1000 + offsetDays * 24 * 60 * 60 * 1000);
+  const para = new Date(now.getTime() - 3 * 60 * 60 * 1000 + offsetDays * 23 * 60 * 60 * 1000);
   return para.toISOString().slice(0, 10);
 };
 

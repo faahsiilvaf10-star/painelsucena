@@ -43,10 +43,10 @@ const fmtNum = (n: number) => {
   return n.toFixed(2).replace(/\.?0+$/, "");
 };
 
-// Pará UTC-4 today
+// Pará UTC-3 today
 const paraToday = () => {
   const now = new Date();
-  return new Date(now.getTime() - 4 * 60 * 60 * 1000);
+  return new Date(now.getTime() - 3 * 60 * 60 * 1000);
 };
 
 Deno.serve(async (req) => {

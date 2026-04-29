@@ -38,10 +38,10 @@ const buildWapiEndpoint = (rawUrl, instanceId) => {
   return url.toString();
 };
 
-// Pará UTC-4 month-year YYYY-MM
+// Pará UTC-3 month-year YYYY-MM
 const paraMonthYear = () => {
   const now = new Date();
-  const para = new Date(now.getTime() - 4 * 60 * 60 * 1000);
+  const para = new Date(now.getTime() - 3 * 60 * 60 * 1000);
   return `${para.getUTCFullYear()}-${String(para.getUTCMonth() + 1).padStart(2, "0")}`;
 };
 

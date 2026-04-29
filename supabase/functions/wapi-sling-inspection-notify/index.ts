@@ -8,8 +8,8 @@ const corsHeaders = {
     "authorization, x-client-info, apikey, content-type, x-environment, cache-control, pragma, expires, x-desktop-app, x-supabase-client-platform, x-supabase-client-platform-version, x-supabase-client-runtime, x-supabase-client-runtime-version",
 };
 
-// Pará UTC-4
-const paraDate = () => new Date(Date.now() - 4 * 60 * 60 * 1000);
+// Pará UTC-3
+const paraDate = () => new Date(Date.now() - 3 * 60 * 60 * 1000);
 
 const colorMonthMap: Record<number, string> = {
   1: "red", 2: "blue", 3: "yellow", 4: "green",

@@ -1,6 +1,6 @@
 // @ts-nocheck
 // Cobrança mensal automática da implementação do WhatsApp.
-// Enviada no grupo todo dia 25 às 09:00 (Pará UTC-4) quando habilitada.
+// Enviada no grupo todo dia 25 às 09:00 (Pará UTC-3) quando habilitada.
 import { createClient } from "https://esm.sh/@supabase/supabase-js@2.45.0";
 
 const corsHeaders = {
@@ -15,8 +15,8 @@ const MONTH_NAMES = [
   "Julho", "Agosto", "Setembro", "Outubro", "Novembro", "Dezembro",
 ];
 
-// Pará UTC-4
-const paraDate = () => new Date(Date.now() - 4 * 60 * 60 * 1000);
+// Pará UTC-3
+const paraDate = () => new Date(Date.now() - 3 * 60 * 60 * 1000);
 
 Deno.serve(async (req) => {
   if (req.method === "OPTIONS") return new Response("ok", { headers: corsHeaders });

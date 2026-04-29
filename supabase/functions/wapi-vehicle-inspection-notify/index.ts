@@ -1,7 +1,7 @@
 // @ts-nocheck
 // Alerta automático no grupo do WhatsApp 10 dias antes do vencimento de qualquer
 // data de vistoria de equipamentos (vistoria, laudo opacidade, laudo mecânico,
-// plano de manutenção, cronógrafo). Cron diário às 06:00h Pará (UTC-4).
+// plano de manutenção, cronógrafo). Cron diário às 06:00h Pará (UTC-3).
 import { createClient } from "https://esm.sh/@supabase/supabase-js@2.45.0";
 
 const corsHeaders = {
@@ -21,10 +21,10 @@ const FIELDS: { key: string; label: string }[] = [
   { key: "cronografo", label: "Cronógrafo" },
 ];
 
-// Pará UTC-4 today at midnight (em ms UTC)
+// Pará UTC-3 today at midnight (em ms UTC)
 const paraTodayUTC = () => {
   const now = new Date();
-  const para = new Date(now.getTime() - 4 * 60 * 60 * 1000);
+  const para = new Date(now.getTime() - 3 * 60 * 60 * 1000);
   return Date.UTC(para.getUTCFullYear(), para.getUTCMonth(), para.getUTCDate());
 };
 

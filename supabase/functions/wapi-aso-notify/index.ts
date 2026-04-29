@@ -30,10 +30,10 @@ const buildWapiEndpoint = (rawUrl: string, instanceId: string): string => {
   return url.toString();
 };
 
-// Pará UTC-4 today at midnight (in UTC ms)
+// Pará UTC-3 today at midnight (in UTC ms)
 const paraTodayUTC = () => {
   const now = new Date();
-  const para = new Date(now.getTime() - 4 * 60 * 60 * 1000);
+  const para = new Date(now.getTime() - 3 * 60 * 60 * 1000);
   return Date.UTC(para.getUTCFullYear(), para.getUTCMonth(), para.getUTCDate());
 };
 

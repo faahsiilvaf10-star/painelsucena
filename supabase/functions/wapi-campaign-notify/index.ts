@@ -83,10 +83,10 @@ const buildWapiUrl = (rawUrl: string, instanceId: string, path: string) => {
   return url.toString();
 };
 
-// Pará UTC-4
+// Pará UTC-3
 const paraDate = () => {
   const now = new Date();
-  return new Date(now.getTime() - 4 * 60 * 60 * 1000);
+  return new Date(now.getTime() - 3 * 60 * 60 * 1000);
 };
 
 Deno.serve(async (req) => {
