@@ -46,6 +46,7 @@ import {
 import { useAttendanceReportLocks } from "@/hooks/useAttendanceReportLock";
 import { useAttendanceDailyMarks } from "@/hooks/useAttendanceDailyMarks";
 import type { Colaborador } from "@/data/efetivoData";
+import { supabase } from "@/integrations/supabase/client";
 
 const toTitleCase = (name: string) =>
   name
