@@ -40,10 +40,13 @@ export function useMaterialRequisitions() {
 
   const createRequisition = useMutation({
     mutationFn: async (values: Omit<MaterialRequisition, "id" | "created_at" | "created_by">) => {
-      const { error } = await supabase
+      const { data, error } = await supabase
         .from("material_requisitions")
-        .insert({ ...values, created_by: user!.id } as any);
+        .insert({ ...values, created_by: user!.id } as any)
+        .select("*")
+        .single();
       if (error) throw error;
+      return data as unknown as MaterialRequisition;
     },
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ["material-requisitions"] });
@@ -54,11 +57,14 @@ export function useMaterialRequisitions() {
 
   const updateRequisition = useMutation({
     mutationFn: async ({ id, ...values }: Partial<MaterialRequisition> & { id: string }) => {
-      const { error } = await supabase
+      const { data, error } = await supabase
         .from("material_requisitions")
         .update(values as any)
-        .eq("id", id);
+        .eq("id", id)
+        .select("*")
+        .single();
       if (error) throw error;
+      return data as unknown as MaterialRequisition;
     },
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ["material-requisitions"] });
