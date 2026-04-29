@@ -94,87 +94,61 @@ Deno.serve(async (req) => {
     }
 
     const monthYear = paraMonthYear();
-    const allCargos = CARGO_FOLDERS.map((c) => c.cargoType);
 
-    // Busca todos os usuários relevantes (com cargo nos folders)
-    const { data: profiles, error: profErr } = await admin
-      .from("profiles")
-      .select("user_id, full_name, cargo")
-      .in("cargo", allCargos);
-    if (profErr) throw profErr;
-
-    // Busca todas as completions do mês
+    // Mesmo critério visual da tela: uma tarefa está concluída se existe
+    // qualquer marcação dela no mês atual. O card do cargo soma task_id único.
     const { data: completions, error: compErr } = await admin
       .from("matrix_task_completions")
-      .select("user_id, task_id")
+      .select("task_id")
       .eq("month_year", monthYear);
     if (compErr) throw compErr;
 
-    // Agrupa por user_id
-    const byUser = new Map();
-    for (const c of completions || []) {
-      if (!byUser.has(c.user_id)) byUser.set(c.user_id, new Set());
-      byUser.get(c.user_id).add(c.task_id);
-    }
+    const completedTaskIds = new Set((completions || []).map((item) => item.task_id));
+    const sections = CARGO_FOLDERS.map((folder) => {
+      const doneTaskIds = folder.taskIds.filter((taskId) => completedTaskIds.has(taskId));
+      const missingTaskIds = folder.taskIds.filter((taskId) => !completedTaskIds.has(taskId));
+      const done = doneTaskIds.length;
+      const total = folder.taskIds.length;
+      const progress = total > 0 ? Math.round((done / total) * 100) : 0;
 
-    // Para cada cargo, identifica quem está pendente
-    const sectionsPending = []; // { cargoLabel, pending: [{name, missingCount, totalCount}] }
-    const allUsersOfMatrix = [];
-    for (const folder of CARGO_FOLDERS) {
-      const usersOfCargo = (profiles || []).filter((p) => p.cargo === folder.cargoType);
-      if (usersOfCargo.length === 0) continue;
-      const pending = [];
-      for (const u of usersOfCargo) {
-        allUsersOfMatrix.push(u);
-        const done = byUser.get(u.user_id) || new Set();
-        const missing = folder.taskIds.filter((t) => !done.has(t));
-        if (missing.length > 0) {
-          const missingNames = missing.map((id) => {
-            // task names will be resolved by the human-readable map below
-            return TASK_NAME_MAP[id] || id;
-          });
-          pending.push({
-            name: u.full_name || "(sem nome)",
-            missingCount: missing.length,
-            totalCount: folder.taskIds.length,
-            missingNames,
-          });
-        }
-      }
-      sectionsPending.push({ cargoLabel: folder.cargoLabel, total: usersOfCargo.length, pending });
-    }
+      return {
+        cargoLabel: folder.cargoLabel,
+        done,
+        total,
+        progress,
+        isComplete: done === total,
+        missingNames: missingTaskIds.map((id) => TASK_NAME_MAP[id] || id),
+      };
+    });
 
-    const totalPending = sectionsPending.reduce((acc, s) => acc + s.pending.length, 0);
-    const totalUsers = allUsersOfMatrix.length;
+    const pendingSections = sections.filter((s) => !s.isComplete);
+    const totalPending = pendingSections.length;
+    const totalSections = sections.length;
 
     const lines = [];
     lines.push(`📊 *MATRIZ DE RESPONSABILIDADES*`);
     lines.push(`📅 Mês de referência: *${monthLabelPT(monthYear)}*`);
     lines.push("");
 
-    if (totalUsers === 0) {
-      lines.push(`ℹ️ Nenhum usuário com cargo da Matriz cadastrado.`);
+    if (totalSections === 0) {
+      lines.push(`ℹ️ Nenhum cargo da Matriz cadastrado.`);
     } else if (totalPending === 0) {
-      lines.push(`✅ *TODOS preencheram a Matriz deste mês!*`);
+      lines.push(`✅ *MATRIZ 100% CONCLUÍDA neste mês!*`);
       lines.push("");
       lines.push(`🎉 *PARABÉNS A TODA A EQUIPE!* 🎉`);
       lines.push(`Excelente engajamento e compromisso com a segurança! 👏👏👏`);
     } else {
-      lines.push(`⚠️ *${totalPending} colaborador(es) ainda não preencheram TODAS as tarefas:*`);
+      lines.push(`⚠️ *${totalPending} cargo(s) ainda não estão 100% concluídos:*`);
       lines.push("");
-      for (const s of sectionsPending) {
-        if (s.pending.length === 0) continue;
+      for (const s of sections) {
         lines.push(`━━━━━━━━━━━━━━━━━━━━`);
-        lines.push(`🏷️ *${s.cargoLabel}* (${s.pending.length}/${s.total} pendente)`);
-        for (const p of s.pending) {
-          lines.push(`• 👤 ${p.name} — *${p.missingCount}/${p.totalCount}* tarefa(s) pendente(s)`);
-          for (const n of p.missingNames) {
-            lines.push(`     ⛔ ${n}`);
-          }
+        lines.push(`${s.isComplete ? "✅" : "⚠️"} *${s.cargoLabel}* — *${s.done}/${s.total} salvos* (${s.progress}%)`);
+        if (!s.isComplete) {
+          for (const n of s.missingNames) lines.push(`     ⛔ ${n}`);
         }
       }
       lines.push("");
-      lines.push(`📌 Por favor, acessem o sistema e concluam suas tarefas o quanto antes!`);
+      lines.push(`📌 Status enviado conforme a Matriz aparece no sistema.`);
     }
 
     lines.push("");
@@ -197,7 +171,7 @@ Deno.serve(async (req) => {
     return new Response(JSON.stringify({
       success: ok,
       monthYear,
-      totalUsers,
+      totalSections,
       totalPending,
       error: errorMsg,
     }), {
