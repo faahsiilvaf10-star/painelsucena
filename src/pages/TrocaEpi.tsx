@@ -121,6 +121,35 @@ function dataUrlToFile(dataUrl: string, fileName: string) {
   return new File([bytes], fileName, { type: mime, lastModified: Date.now() });
 }
 
+const waitForPaint = () => new Promise<void>((resolve) => {
+  requestAnimationFrame(() => requestAnimationFrame(() => resolve()));
+});
+
+function isCanvasLikelyBlank(canvas: HTMLCanvasElement): boolean {
+  try {
+    const ctx = canvas.getContext("2d", { willReadFrequently: true });
+    if (!ctx) return false;
+
+    const width = canvas.width;
+    const height = canvas.height;
+    const stepX = Math.max(1, Math.floor(width / 80));
+    const stepY = Math.max(1, Math.floor(height / 80));
+    let nonWhitePixels = 0;
+
+    for (let y = 0; y < height; y += stepY) {
+      for (let x = 0; x < width; x += stepX) {
+        const [r, g, b, a] = ctx.getImageData(x, y, 1, 1).data;
+        if (a > 0 && (r < 245 || g < 245 || b < 245)) nonWhitePixels += 1;
+        if (nonWhitePixels > 25) return false;
+      }
+    }
+
+    return true;
+  } catch {
+    return false;
+  }
+}
+
 function buildExchangeShareDescription(exchange: EpiExchange) {
   const episList = (exchange.epis || [])
     .map((e: any) => {
@@ -894,10 +923,13 @@ export default function TrocaEpi() {
       // Renderiza HTML em canvas → PNG
       const container = document.createElement("div");
       container.style.position = "fixed";
-      container.style.left = "-9999px";
+      container.style.left = "0";
       container.style.top = "0";
       container.style.width = "800px";
       container.style.background = "#fff";
+      container.style.opacity = "0.01";
+      container.style.pointerEvents = "none";
+      container.style.zIndex = "-1";
       container.innerHTML = htmlContent;
       document.body.appendChild(container);
       let publicUrl = "";
@@ -928,6 +960,7 @@ export default function TrocaEpi() {
           img.onload = () => resolve();
           img.onerror = () => resolve();
         })));
+        await waitForPaint();
         const html2canvas = await loadHtml2Canvas();
 
         // Retry: até 3 tentativas para garantir que o PNG do card (com assinaturas) seja gerado e enviado
@@ -935,7 +968,9 @@ export default function TrocaEpi() {
         for (let attempt = 1; attempt <= 3; attempt++) {
           try {
             const canvas = await html2canvas(container, { scale: 2, useCORS: true, backgroundColor: "#ffffff" });
+            if (isCanvasLikelyBlank(canvas)) throw new Error("PNG gerado em branco; cancelando upload");
             const blob: Blob = await new Promise((res, rej) => canvas.toBlob((b) => b ? res(b) : rej(new Error("blob falhou")), "image/png"));
+            if (blob.size < 20_000) throw new Error(`PNG inválido ou pequeno demais (${blob.size} bytes)`);
             const path = `wapi-requisicoes/${type}/${Date.now()}-att${attempt}-${sanitizeShareFileName(fileBaseName)}.png`;
             const { error: upErr } = await supabase.storage.from("desvios").upload(path, blob, { contentType: "image/png", upsert: true });
             if (upErr) throw upErr;
