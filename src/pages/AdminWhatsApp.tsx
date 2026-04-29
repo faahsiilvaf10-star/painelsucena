@@ -94,6 +94,8 @@ const AdminWhatsApp = () => {
   const [groupIdPosChuva, setGroupIdPosChuva] = useState("");
   const [autoSendDdsPhoto, setAutoSendDdsPhoto] = useState(false);
   const [groupIdDds, setGroupIdDds] = useState("");
+  const [autoSendAttendance, setAutoSendAttendance] = useState(false);
+  const [groupIdAttendance, setGroupIdAttendance] = useState("");
   const [testingPlanning, setTestingPlanning] = useState(false);
   const [testingBilling, setTestingBilling] = useState(false);
   const [testingVehicleInspection, setTestingVehicleInspection] = useState(false);
@@ -160,6 +162,8 @@ const AdminWhatsApp = () => {
       setGroupIdPosChuva((c.group_id_pos_chuva as string | null) || "");
       setAutoSendDdsPhoto(!!(c.auto_send_dds_photo as boolean | null));
       setGroupIdDds((c.group_id_dds as string | null) || "");
+      setAutoSendAttendance(!!(c.auto_send_attendance as boolean | null));
+      setGroupIdAttendance((c.group_id_attendance as string | null) || "");
     }
   }, [cfg]);
 
@@ -253,6 +257,8 @@ const AdminWhatsApp = () => {
         group_id_pos_chuva: groupIdPosChuva.trim() || null,
         auto_send_dds_photo: autoSendDdsPhoto,
         group_id_dds: groupIdDds.trim() || null,
+        auto_send_attendance: autoSendAttendance,
+        group_id_attendance: groupIdAttendance.trim() || null,
         updated_by: user?.id ?? null,
       };
       if (cfg?.id) {
@@ -1392,6 +1398,43 @@ const AdminWhatsApp = () => {
               </Badge>
             </div>
             <GroupIdOverrideInput id="gid-dds" value={groupIdDds} onChange={setGroupIdDds} defaultGroupId={groupId} />
+            <p className="text-xs text-muted-foreground mt-3">
+              Requisitos: integração W-API habilitada e <strong>ID do grupo</strong> preenchido (use o campo acima
+              para enviar para um grupo diferente do padrão). Lembre-se de salvar a configuração após alterar este botão.
+            </p>
+          </CardContent>
+        </Card>
+
+        <Card>
+          <CardHeader>
+            <CardTitle className="flex items-center gap-2">
+              <Send className="w-5 h-5 text-primary" />
+              Envio Automático da Lista de Presença
+            </CardTitle>
+            <CardDescription>
+              Quando habilitado, ao <strong>salvar a Lista de Presença diária</strong> (Gabião, Jardinagem ou ADM)
+              o sistema envia automaticamente para o <strong>grupo configurado</strong> o
+              <strong> texto formatado</strong> com presentes, ausentes e total da área,
+              respeitando o intervalo de segurança configurado.
+            </CardDescription>
+          </CardHeader>
+          <CardContent>
+            <div className="flex items-center justify-between gap-3 rounded-md border p-3 bg-muted/30">
+              <div className="flex items-center gap-3">
+                <Switch
+                  id="auto-send-attendance"
+                  checked={autoSendAttendance}
+                  onCheckedChange={setAutoSendAttendance}
+                />
+                <Label htmlFor="auto-send-attendance" className="cursor-pointer">
+                  Ativar envio automático ao salvar a Lista de Presença
+                </Label>
+              </div>
+              <Badge variant={autoSendAttendance ? "default" : "secondary"}>
+                {autoSendAttendance ? "Ativo" : "Desativado"}
+              </Badge>
+            </div>
+            <GroupIdOverrideInput id="gid-attendance" value={groupIdAttendance} onChange={setGroupIdAttendance} defaultGroupId={groupId} />
             <p className="text-xs text-muted-foreground mt-3">
               Requisitos: integração W-API habilitada e <strong>ID do grupo</strong> preenchido (use o campo acima
               para enviar para um grupo diferente do padrão). Lembre-se de salvar a configuração após alterar este botão.
