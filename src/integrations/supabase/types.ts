@@ -4186,6 +4186,18 @@ export type Database = {
           delay_seconds: number
           enabled: boolean
           group_id: string | null
+          group_id_aso: string | null
+          group_id_billing: string | null
+          group_id_campaign: string | null
+          group_id_dds: string | null
+          group_id_equipment_movements: string | null
+          group_id_forbidden_color: string | null
+          group_id_matrix: string | null
+          group_id_planning: string | null
+          group_id_reminders: string | null
+          group_id_requisitions: string | null
+          group_id_sling_inspection: string | null
+          group_id_vehicle_inspection: string | null
           id: string
           instance_id: string
           instance_token: string
@@ -4213,6 +4225,18 @@ export type Database = {
           delay_seconds?: number
           enabled?: boolean
           group_id?: string | null
+          group_id_aso?: string | null
+          group_id_billing?: string | null
+          group_id_campaign?: string | null
+          group_id_dds?: string | null
+          group_id_equipment_movements?: string | null
+          group_id_forbidden_color?: string | null
+          group_id_matrix?: string | null
+          group_id_planning?: string | null
+          group_id_reminders?: string | null
+          group_id_requisitions?: string | null
+          group_id_sling_inspection?: string | null
+          group_id_vehicle_inspection?: string | null
           id?: string
           instance_id?: string
           instance_token?: string
@@ -4240,6 +4264,18 @@ export type Database = {
           delay_seconds?: number
           enabled?: boolean
           group_id?: string | null
+          group_id_aso?: string | null
+          group_id_billing?: string | null
+          group_id_campaign?: string | null
+          group_id_dds?: string | null
+          group_id_equipment_movements?: string | null
+          group_id_forbidden_color?: string | null
+          group_id_matrix?: string | null
+          group_id_planning?: string | null
+          group_id_reminders?: string | null
+          group_id_requisitions?: string | null
+          group_id_sling_inspection?: string | null
+          group_id_vehicle_inspection?: string | null
           id?: string
           instance_id?: string
           instance_token?: string
