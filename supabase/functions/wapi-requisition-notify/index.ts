@@ -49,12 +49,12 @@ Deno.serve(async (req) => {
     }
 
     const { error: insErr } = await admin.from("wapi_outbox").insert({
-      kind: "image",
+      kind: hasImage ? "image" : "text",
       target_type: "group",
       phone: targetGroupId,
-      message: null,
-      caption: caption,
-      image_url: image_url,
+      message: hasImage ? null : caption,
+      caption: hasImage ? caption : null,
+      image_url: hasImage ? image_url : null,
       origin: `requisition_${type}`,
     });
 
