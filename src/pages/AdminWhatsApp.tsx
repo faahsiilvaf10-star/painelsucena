@@ -1076,9 +1076,27 @@ const AdminWhatsApp = () => {
                 {autoSendOrderAlerts ? "Ativo" : "Desativado"}
               </Badge>
             </div>
+
+            <div className="flex items-center justify-between gap-3 rounded-md border p-3 bg-muted/30 mt-3">
+              <div className="flex items-center gap-3">
+                <Switch
+                  id="auto-send-orders-to-group"
+                  checked={autoSendOrdersToGroup}
+                  onCheckedChange={setAutoSendOrdersToGroup}
+                />
+                <Label htmlFor="auto-send-orders-to-group" className="cursor-pointer">
+                  Enviar também para o <strong>grupo do WhatsApp</strong> (criação e mudança de status)
+                </Label>
+              </div>
+              <Badge variant={autoSendOrdersToGroup ? "default" : "secondary"}>
+                {autoSendOrdersToGroup ? "Ativo" : "Desativado"}
+              </Badge>
+            </div>
+
+            <GroupIdOverrideInput id="gid-orders" value={groupIdOrders} onChange={setGroupIdOrders} defaultGroupId={groupId} />
             <p className="text-xs text-muted-foreground mt-3">
-              Requisitos: integração W-API habilitada e usuários com WhatsApp cadastrado no perfil. As mensagens são
-              enviadas diretamente para o número pessoal de cada usuário (não para o grupo).
+              Requisitos: integração W-API habilitada e usuários com WhatsApp cadastrado no perfil. Quando "Enviar também para o grupo" está ativo,
+              as mensagens vão para os números pessoais mencionados/solicitante <strong>e</strong> para o grupo configurado abaixo.
             </p>
           </CardContent>
         </Card>
