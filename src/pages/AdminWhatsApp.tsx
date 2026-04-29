@@ -26,6 +26,25 @@ const formatBR = (digits: string): string => {
   return `(${d.slice(0, 2)}) ${d.slice(2, 7)}-${d.slice(7)}`;
 };
 
+const GroupIdOverrideInput = ({
+  id, value, onChange, defaultGroupId,
+}: { id: string; value: string; onChange: (v: string) => void; defaultGroupId: string }) => (
+  <div className="rounded-md border p-3 bg-background space-y-1.5 mt-3">
+    <Label htmlFor={id} className="text-xs font-medium">
+      ID do grupo específico para este alerta (opcional)
+    </Label>
+    <Input
+      id={id}
+      value={value}
+      onChange={(e) => onChange(e.target.value)}
+      placeholder={defaultGroupId ? `Padrão: ${defaultGroupId}` : "Deixe em branco para usar o grupo padrão"}
+    />
+    <p className="text-[11px] text-muted-foreground">
+      Quando preenchido, este alerta será enviado para este grupo específico em vez do grupo padrão configurado acima.
+    </p>
+  </div>
+);
+
 const AdminWhatsApp = () => {
   const { user, loading: authLoading } = useAuth();
   const { isAdmin, isLoading: adminLoading } = useIsAdmin();
@@ -57,6 +76,18 @@ const AdminWhatsApp = () => {
   const [autoSendBillingAlert, setAutoSendBillingAlert] = useState(false);
   const [autoSendVehicleInspectionAlert, setAutoSendVehicleInspectionAlert] = useState(false);
   const [autoSendSlingInspectionAlert, setAutoSendSlingInspectionAlert] = useState(false);
+  // Group ID overrides per feature (when empty, falls back to default group_id)
+  const [groupIdRequisitions, setGroupIdRequisitions] = useState("");
+  const [groupIdReminders, setGroupIdReminders] = useState("");
+  const [groupIdAso, setGroupIdAso] = useState("");
+  const [groupIdMatrix, setGroupIdMatrix] = useState("");
+  const [groupIdForbiddenColor, setGroupIdForbiddenColor] = useState("");
+  const [groupIdCampaign, setGroupIdCampaign] = useState("");
+  const [groupIdEquipmentMovements, setGroupIdEquipmentMovements] = useState("");
+  const [groupIdPlanning, setGroupIdPlanning] = useState("");
+  const [groupIdBilling, setGroupIdBilling] = useState("");
+  const [groupIdVehicleInspection, setGroupIdVehicleInspection] = useState("");
+  const [groupIdSlingInspection, setGroupIdSlingInspection] = useState("");
   const [testingPlanning, setTestingPlanning] = useState(false);
   const [testingBilling, setTestingBilling] = useState(false);
   const [testingVehicleInspection, setTestingVehicleInspection] = useState(false);
@@ -91,6 +122,18 @@ const AdminWhatsApp = () => {
       setEnabled(!!cfg.enabled);
       setDelaySeconds(typeof cfg.delay_seconds === "number" ? cfg.delay_seconds : 5);
       setGroupId(cfg.group_id || "");
+      const c = cfg as unknown as Record<string, unknown>;
+      setGroupIdRequisitions((c.group_id_requisitions as string | null) || "");
+      setGroupIdReminders((c.group_id_reminders as string | null) || "");
+      setGroupIdAso((c.group_id_aso as string | null) || "");
+      setGroupIdMatrix((c.group_id_matrix as string | null) || "");
+      setGroupIdForbiddenColor((c.group_id_forbidden_color as string | null) || "");
+      setGroupIdCampaign((c.group_id_campaign as string | null) || "");
+      setGroupIdEquipmentMovements((c.group_id_equipment_movements as string | null) || "");
+      setGroupIdPlanning((c.group_id_planning as string | null) || "");
+      setGroupIdBilling((c.group_id_billing as string | null) || "");
+      setGroupIdVehicleInspection((c.group_id_vehicle_inspection as string | null) || "");
+      setGroupIdSlingInspection((c.group_id_sling_inspection as string | null) || "");
       setDdsAutoNotify(!!cfg.dds_auto_notify);
       setDdsNotifyDayBefore(!!cfg.dds_notify_day_before);
       setAutoSendReq(!!cfg.auto_send_requisitions);
@@ -181,6 +224,17 @@ const AdminWhatsApp = () => {
         auto_send_billing_alert: autoSendBillingAlert,
         auto_send_vehicle_inspection_alert: autoSendVehicleInspectionAlert,
         auto_send_sling_inspection_alert: autoSendSlingInspectionAlert,
+        group_id_requisitions: groupIdRequisitions.trim() || null,
+        group_id_reminders: groupIdReminders.trim() || null,
+        group_id_aso: groupIdAso.trim() || null,
+        group_id_matrix: groupIdMatrix.trim() || null,
+        group_id_forbidden_color: groupIdForbiddenColor.trim() || null,
+        group_id_campaign: groupIdCampaign.trim() || null,
+        group_id_equipment_movements: groupIdEquipmentMovements.trim() || null,
+        group_id_planning: groupIdPlanning.trim() || null,
+        group_id_billing: groupIdBilling.trim() || null,
+        group_id_vehicle_inspection: groupIdVehicleInspection.trim() || null,
+        group_id_sling_inspection: groupIdSlingInspection.trim() || null,
         updated_by: user?.id ?? null,
       };
       if (cfg?.id) {
@@ -769,6 +823,7 @@ const AdminWhatsApp = () => {
                 {autoSendReq ? "Ativo" : "Desativado"}
               </Badge>
             </div>
+            <GroupIdOverrideInput id="gid-requisitions" value={groupIdRequisitions} onChange={setGroupIdRequisitions} defaultGroupId={groupId} />
             <p className="text-xs text-muted-foreground mt-3">
               Requisitos: integração W-API habilitada e ID do grupo preenchido. Lembre-se de salvar a configuração após alterar este botão.
             </p>
@@ -807,6 +862,7 @@ const AdminWhatsApp = () => {
                 {autoSendReminders ? "Ativo" : "Desativado"}
               </Badge>
             </div>
+            <GroupIdOverrideInput id="gid-reminders" value={groupIdReminders} onChange={setGroupIdReminders} defaultGroupId={groupId} />
             <p className="text-xs text-muted-foreground mt-3">
               Requisitos: integração W-API habilitada, ID do grupo preenchido (para lembretes de "todos") e usuários com WhatsApp cadastrado (para envios privados). Lembre-se de salvar a configuração após alterar este botão.
             </p>
@@ -847,6 +903,7 @@ const AdminWhatsApp = () => {
                 </Button>
               </div>
             </div>
+            <GroupIdOverrideInput id="gid-aso" value={groupIdAso} onChange={setGroupIdAso} defaultGroupId={groupId} />
             <p className="text-xs text-muted-foreground mt-3">
               Requisitos: integração W-API habilitada e ID do grupo preenchido. O botão "Testar" envia o alerta imediatamente,
               ignorando o filtro de duplicidade.
@@ -890,6 +947,7 @@ const AdminWhatsApp = () => {
                 </Button>
               </div>
             </div>
+            <GroupIdOverrideInput id="gid-matrix" value={groupIdMatrix} onChange={setGroupIdMatrix} defaultGroupId={groupId} />
             <p className="text-xs text-muted-foreground mt-3">
               Requisitos: integração W-API habilitada e ID do grupo preenchido. O botão "Testar" envia a mensagem imediatamente.
             </p>
@@ -931,6 +989,7 @@ const AdminWhatsApp = () => {
                 </Button>
               </div>
             </div>
+            <GroupIdOverrideInput id="gid-forbidden" value={groupIdForbiddenColor} onChange={setGroupIdForbiddenColor} defaultGroupId={groupId} />
             <p className="text-xs text-muted-foreground mt-3">
               Requisitos: integração W-API habilitada e ID do grupo preenchido. O botão "Testar" envia a mensagem imediatamente,
               ignorando a regra de "somente no dia 1º".
@@ -973,6 +1032,7 @@ const AdminWhatsApp = () => {
                 </Button>
               </div>
             </div>
+            <GroupIdOverrideInput id="gid-campaign" value={groupIdCampaign} onChange={setGroupIdCampaign} defaultGroupId={groupId} />
             <p className="text-xs text-muted-foreground mt-3">
               Requisitos: integração W-API habilitada, ID do grupo preenchido e banner do mês carregado em
               <code className="mx-1 px-1 rounded bg-muted">announcements/campaign-banners/campanha-{`{mês}`}.png</code>.
@@ -1045,6 +1105,7 @@ const AdminWhatsApp = () => {
                 {autoSendEquipmentMovements ? "Ativo" : "Desativado"}
               </Badge>
             </div>
+            <GroupIdOverrideInput id="gid-equipment" value={groupIdEquipmentMovements} onChange={setGroupIdEquipmentMovements} defaultGroupId={groupId} />
             <p className="text-xs text-muted-foreground mt-3">
               Requisitos: integração W-API habilitada e <strong>ID do grupo</strong> preenchido. Cada movimentação registrada
               dispara um envio imediato.
@@ -1087,6 +1148,7 @@ const AdminWhatsApp = () => {
                 </Button>
               </div>
             </div>
+            <GroupIdOverrideInput id="gid-planning" value={groupIdPlanning} onChange={setGroupIdPlanning} defaultGroupId={groupId} />
             <p className="text-xs text-muted-foreground mt-3">
               Requisitos: integração W-API habilitada e <strong>ID do grupo</strong> preenchido. O botão "Testar Resumo"
               envia o resumo mensal imediatamente, ignorando a regra do dia 16.
@@ -1130,6 +1192,7 @@ const AdminWhatsApp = () => {
                 </Button>
               </div>
             </div>
+            <GroupIdOverrideInput id="gid-billing" value={groupIdBilling} onChange={setGroupIdBilling} defaultGroupId={groupId} />
             <p className="text-xs text-muted-foreground mt-3">
               Requisitos: integração W-API habilitada e <strong>ID do grupo</strong> preenchido. O botão "Testar" envia
               a cobrança imediatamente, ignorando a regra do dia 25/09:00h. Lembre-se de salvar após alterar este botão.
@@ -1173,6 +1236,7 @@ const AdminWhatsApp = () => {
                 </Button>
               </div>
             </div>
+            <GroupIdOverrideInput id="gid-vehicle" value={groupIdVehicleInspection} onChange={setGroupIdVehicleInspection} defaultGroupId={groupId} />
             <p className="text-xs text-muted-foreground mt-3">
               Requisitos: integração W-API habilitada e <strong>ID do grupo</strong> preenchido. O botão "Testar" envia
               imediatamente os alertas para itens vencendo em exatamente 10 dias, ignorando a duplicidade. Lembre-se de
@@ -1216,6 +1280,7 @@ const AdminWhatsApp = () => {
                 </Button>
               </div>
             </div>
+            <GroupIdOverrideInput id="gid-sling" value={groupIdSlingInspection} onChange={setGroupIdSlingInspection} defaultGroupId={groupId} />
             <p className="text-xs text-muted-foreground mt-3">
               Requisitos: integração W-API habilitada e <strong>ID do grupo</strong> preenchido. O botão "Testar"
               envia imediatamente a lista de cintas pendentes da cor do mês, ignorando a janela de dias/horário.
