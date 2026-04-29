@@ -2,10 +2,12 @@
 import { useState, useEffect, useCallback } from "react";
 import { supabase } from "@/integrations/supabase/client";
 import { useAuth } from "./useAuth";
+import { useIsAdmin } from "./useUserRole";
 import { getBrazilNorthMonthYear } from "@/lib/timezone";
 
 export const useMatrixProgress = () => {
   const { user } = useAuth();
+  const { isAdmin } = useIsAdmin();
   const [completedTasks, setCompletedTasks] = useState<string[]>([]);
   const [isLoading, setIsLoading] = useState(true);
 
@@ -53,13 +55,19 @@ export const useMatrixProgress = () => {
 
     try {
       if (isCompleted) {
-        // Remove completion
-        const { error } = await supabase
+        // Admin removes ALL completions for this task (global unmark);
+        // regular users only remove their own
+        let query = supabase
           .from("matrix_task_completions")
           .delete()
-          .eq("user_id", user.id)
           .eq("task_id", taskId)
           .eq("month_year", monthYear);
+
+        if (!isAdmin) {
+          query = query.eq("user_id", user.id);
+        }
+
+        const { error } = await query;
 
         if (error) throw error;
 
