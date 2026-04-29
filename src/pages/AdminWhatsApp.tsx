@@ -71,6 +71,8 @@ const AdminWhatsApp = () => {
   const [autoSendForbiddenColorAlert, setAutoSendForbiddenColorAlert] = useState(false);
   const [autoSendCampaignAlert, setAutoSendCampaignAlert] = useState(false);
   const [autoSendOrderAlerts, setAutoSendOrderAlerts] = useState(false);
+  const [autoSendOrdersToGroup, setAutoSendOrdersToGroup] = useState(false);
+  const [groupIdOrders, setGroupIdOrders] = useState("");
   const [autoSendEquipmentMovements, setAutoSendEquipmentMovements] = useState(false);
   const [autoSendPlanningAlerts, setAutoSendPlanningAlerts] = useState(false);
   const [autoSendBillingAlert, setAutoSendBillingAlert] = useState(false);
@@ -143,6 +145,8 @@ const AdminWhatsApp = () => {
       setAutoSendForbiddenColorAlert(!!cfg.auto_send_forbidden_color_alert);
       setAutoSendCampaignAlert(!!cfg.auto_send_campaign_alert);
       setAutoSendOrderAlerts(!!cfg.auto_send_order_alerts);
+      setAutoSendOrdersToGroup(!!(c.auto_send_orders_to_group as boolean | null));
+      setGroupIdOrders((c.group_id_orders as string | null) || "");
       setAutoSendEquipmentMovements(!!cfg.auto_send_equipment_movements);
       setAutoSendPlanningAlerts(!!cfg.auto_send_planning_alerts);
       setAutoSendBillingAlert(!!cfg.auto_send_billing_alert);
@@ -219,6 +223,8 @@ const AdminWhatsApp = () => {
         auto_send_forbidden_color_alert: autoSendForbiddenColorAlert,
         auto_send_campaign_alert: autoSendCampaignAlert,
         auto_send_order_alerts: autoSendOrderAlerts,
+        auto_send_orders_to_group: autoSendOrdersToGroup,
+        group_id_orders: groupIdOrders.trim() || null,
         auto_send_equipment_movements: autoSendEquipmentMovements,
         auto_send_planning_alerts: autoSendPlanningAlerts,
         auto_send_billing_alert: autoSendBillingAlert,
