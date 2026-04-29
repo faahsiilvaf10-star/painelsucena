@@ -151,7 +151,7 @@ export default function RDO() {
   const [difficulties, setDifficulties] = useState("Não Houve.");
 
   // Temperatura: capturada em tempo real até as 16h e congelada após esse horário.
-  // Exibida apenas no RDO do dia atual e enquanto o relatório ainda não foi salvo.
+  // Persiste no banco (temperature/apparent_temp/humidity) para reaparecer no relatório do dia seguinte.
   const isToday = selectedDateStr === todayStr;
   const [isBeforeCutoff, setIsBeforeCutoff] = useState(() => new Date().getHours() < 16);
   useEffect(() => {
@@ -162,17 +162,30 @@ export default function RDO() {
     return () => clearInterval(interval);
   }, [isBeforeCutoff]);
 
-  // Mostra a temperatura sempre que for o RDO do dia atual (mesmo após salvar).
-  // Antes das 16h: ao vivo. Após 16h: congelada no último valor capturado (faz fetch único se ainda não houver).
-  const showTemperature = isToday;
+  // Mostra a temperatura sempre que existir (hoje em tempo real, dias anteriores via valor salvo).
   const [frozenTemp, setFrozenTemp] = useState<{ temperature: number; apparentTemp: number; humidity: number; fetchedAt: string } | null>(null);
-  // Faz fetch/auto-refresh sempre que for hoje. Após 16h, o último valor fica congelado em frozenTemp.
-  const { data: currentTemp } = useCurrentTemperature(showTemperature && (isBeforeCutoff || !frozenTemp));
+  // Faz fetch/auto-refresh apenas quando for hoje. Após 16h, congela no último valor capturado.
+  const { data: currentTemp } = useCurrentTemperature(isToday && (isBeforeCutoff || !frozenTemp));
   useEffect(() => {
     if (currentTemp && isBeforeCutoff) setFrozenTemp(currentTemp);
     else if (currentTemp && !frozenTemp) setFrozenTemp(currentTemp);
   }, [currentTemp, isBeforeCutoff, frozenTemp]);
-  const displayTemp = isBeforeCutoff ? (currentTemp ?? frozenTemp) : frozenTemp;
+
+  // Para dias anteriores: usa o valor salvo no banco (existingReport.temperature)
+  const savedTemp = existingReport && existingReport.temperature != null
+    ? {
+        temperature: Number(existingReport.temperature),
+        apparentTemp: Number(existingReport.apparent_temp ?? existingReport.temperature),
+        humidity: Number(existingReport.humidity ?? 0),
+        fetchedAt: existingReport.temperature_captured_at ?? existingReport.updated_at,
+      }
+    : null;
+
+  const displayTemp = isToday
+    ? (isBeforeCutoff ? (currentTemp ?? frozenTemp ?? savedTemp) : (frozenTemp ?? savedTemp))
+    : savedTemp;
+  const showTemperature = !!displayTemp;
+  const isLiveTemp = isToday && isBeforeCutoff && !!currentTemp;
 
   // Update horario when date changes (Friday = 16:00, other days = 17:00)
   useEffect(() => {
