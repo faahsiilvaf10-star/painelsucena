@@ -4171,6 +4171,7 @@ export type Database = {
           auto_send_aso_alert: boolean
           auto_send_billing_alert: boolean
           auto_send_campaign_alert: boolean
+          auto_send_dds_photo: boolean
           auto_send_equipment_movements: boolean
           auto_send_forbidden_color_alert: boolean
           auto_send_matrix_alert: boolean
@@ -4214,6 +4215,7 @@ export type Database = {
           auto_send_aso_alert?: boolean
           auto_send_billing_alert?: boolean
           auto_send_campaign_alert?: boolean
+          auto_send_dds_photo?: boolean
           auto_send_equipment_movements?: boolean
           auto_send_forbidden_color_alert?: boolean
           auto_send_matrix_alert?: boolean
@@ -4257,6 +4259,7 @@ export type Database = {
           auto_send_aso_alert?: boolean
           auto_send_billing_alert?: boolean
           auto_send_campaign_alert?: boolean
+          auto_send_dds_photo?: boolean
           auto_send_equipment_movements?: boolean
           auto_send_forbidden_color_alert?: boolean
           auto_send_matrix_alert?: boolean
