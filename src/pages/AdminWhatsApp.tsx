@@ -26,6 +26,25 @@ const formatBR = (digits: string): string => {
   return `(${d.slice(0, 2)}) ${d.slice(2, 7)}-${d.slice(7)}`;
 };
 
+const GroupIdOverrideInput = ({
+  id, value, onChange, defaultGroupId,
+}: { id: string; value: string; onChange: (v: string) => void; defaultGroupId: string }) => (
+  <div className="rounded-md border p-3 bg-background space-y-1.5 mt-3">
+    <Label htmlFor={id} className="text-xs font-medium">
+      ID do grupo específico para este alerta (opcional)
+    </Label>
+    <Input
+      id={id}
+      value={value}
+      onChange={(e) => onChange(e.target.value)}
+      placeholder={defaultGroupId ? `Padrão: ${defaultGroupId}` : "Deixe em branco para usar o grupo padrão"}
+    />
+    <p className="text-[11px] text-muted-foreground">
+      Quando preenchido, este alerta será enviado para este grupo específico em vez do grupo padrão configurado acima.
+    </p>
+  </div>
+);
+
 const AdminWhatsApp = () => {
   const { user, loading: authLoading } = useAuth();
   const { isAdmin, isLoading: adminLoading } = useIsAdmin();
