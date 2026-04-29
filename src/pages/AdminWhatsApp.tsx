@@ -263,6 +263,8 @@ const AdminWhatsApp = () => {
         group_id_dds: groupIdDds.trim() || null,
         auto_send_attendance: autoSendAttendance,
         group_id_attendance: groupIdAttendance.trim() || null,
+        auto_send_desvios: autoSendDesvios,
+        group_id_desvios: groupIdDesvios.trim() || null,
         updated_by: user?.id ?? null,
       };
       if (cfg?.id) {
