@@ -104,12 +104,30 @@ Deno.serve(async (req) => {
     if (compErr) throw compErr;
 
     const completedTaskIds = new Set((completions || []).map((item) => item.task_id));
+
+    // Busca responsáveis (profiles) por cargo
+    const cargoTypes = CARGO_FOLDERS.map((f) => f.cargoType);
+    const { data: profilesByCargo } = await admin
+      .from("profiles")
+      .select("full_name, cargo")
+      .in("cargo", cargoTypes);
+
+    const responsaveisPorCargo: Record<string, string[]> = {};
+    for (const p of profilesByCargo || []) {
+      const c = (p as any).cargo as string;
+      const n = ((p as any).full_name as string)?.trim();
+      if (!c || !n) continue;
+      if (!responsaveisPorCargo[c]) responsaveisPorCargo[c] = [];
+      responsaveisPorCargo[c].push(n);
+    }
+
     const sections = CARGO_FOLDERS.map((folder) => {
       const doneTaskIds = folder.taskIds.filter((taskId) => completedTaskIds.has(taskId));
       const missingTaskIds = folder.taskIds.filter((taskId) => !completedTaskIds.has(taskId));
       const done = doneTaskIds.length;
       const total = folder.taskIds.length;
       const progress = total > 0 ? Math.round((done / total) * 100) : 0;
+      const responsaveis = (responsaveisPorCargo[folder.cargoType] || []).sort((a, b) => a.localeCompare(b, "pt-BR"));
 
       return {
         cargoLabel: folder.cargoLabel,
@@ -118,6 +136,7 @@ Deno.serve(async (req) => {
         progress,
         isComplete: done === total,
         missingNames: missingTaskIds.map((id) => TASK_NAME_MAP[id] || id),
+        responsaveis,
       };
     });
 
