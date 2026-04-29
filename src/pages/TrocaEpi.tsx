@@ -1088,12 +1088,15 @@ export default function TrocaEpi() {
 
     // Envio automático para grupo do WhatsApp (se ativado no painel admin)
     try {
-      const logoBase64 = await loadCachedLogoBase64();
+      const logoBase64 = await loadCachedLogoBase64().catch(() => "");
       const fakeExchange = { ...exchangeData, id: "auto", created_at: new Date().toISOString(), created_by: user!.id } as unknown as EpiExchange;
       const html = buildPdfHtml(fakeExchange, logoBase64);
       const caption = buildExchangeShareDescription(fakeExchange);
       await autoSendRequisitionToGroup("epi", html, caption, currentFuncionarioNome);
-    } catch (e) { console.warn("auto send EPI prep failed", e); }
+    } catch (e) {
+      console.error("[TrocaEpi] auto send EPI prep failed", e);
+      toast.error("Falha ao preparar envio ao grupo", { description: String((e as Error)?.message || e) });
+    }
 
     setShowSignature(false);
     resetForm();
