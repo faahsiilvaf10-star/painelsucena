@@ -121,6 +121,35 @@ function dataUrlToFile(dataUrl: string, fileName: string) {
   return new File([bytes], fileName, { type: mime, lastModified: Date.now() });
 }
 
+const waitForPaint = () => new Promise<void>((resolve) => {
+  requestAnimationFrame(() => requestAnimationFrame(() => resolve()));
+});
+
+function isCanvasLikelyBlank(canvas: HTMLCanvasElement): boolean {
+  try {
+    const ctx = canvas.getContext("2d", { willReadFrequently: true });
+    if (!ctx) return false;
+
+    const width = canvas.width;
+    const height = canvas.height;
+    const stepX = Math.max(1, Math.floor(width / 80));
+    const stepY = Math.max(1, Math.floor(height / 80));
+    let nonWhitePixels = 0;
+
+    for (let y = 0; y < height; y += stepY) {
+      for (let x = 0; x < width; x += stepX) {
+        const [r, g, b, a] = ctx.getImageData(x, y, 1, 1).data;
+        if (a > 0 && (r < 245 || g < 245 || b < 245)) nonWhitePixels += 1;
+        if (nonWhitePixels > 25) return false;
+      }
+    }
+
+    return true;
+  } catch {
+    return false;
+  }
+}
+
 function buildExchangeShareDescription(exchange: EpiExchange) {
   const episList = (exchange.epis || [])
     .map((e: any) => {
