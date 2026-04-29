@@ -73,7 +73,8 @@ Deno.serve(async (req) => {
         headers: { ...corsHeaders, "Content-Type": "application/json" },
       });
     }
-    if (!cfg.instance_url || !cfg.instance_token || !cfg.instance_id || !cfg.group_id) {
+    const targetGroupId = (cfg.group_id_planning || cfg.group_id || "").trim();
+    if (!cfg.instance_url || !cfg.instance_token || !cfg.instance_id || !targetGroupId) {
       return new Response(JSON.stringify({ skipped: true, reason: "missing-config-or-group" }), {
         headers: { ...corsHeaders, "Content-Type": "application/json" },
       });
@@ -197,7 +198,7 @@ Deno.serve(async (req) => {
       });
     }
 
-    const result = await sendWapiGroupText(cfg, cfg.group_id, message);
+    const result = await sendWapiGroupText(cfg, targetGroupId, message);
 
     return new Response(
       JSON.stringify({ success: result.ok, eventType, wapi: result }),
