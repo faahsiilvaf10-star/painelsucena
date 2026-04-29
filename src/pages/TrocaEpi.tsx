@@ -1239,7 +1239,22 @@ export default function TrocaEpi() {
       const logoBase64 = await loadCachedLogoBase64();
       const html = buildMaterialPdfHtml(savedRequisition, logoBase64);
       const itensTxt = currentItems.map((m) => `• ${m.name} (${m.qty})`).join("\n");
-      const caption = `📦 Requisição de Material\nFuncionário: ${currentFuncNome}\nÁrea: ${matAreaDestino}\nMotivo: ${matMotivo}\n\nItens:\n${itensTxt}`;
+      const dataFmt = (() => { try { return format(new Date(`${savedRequisition.data}T12:00:00`), "dd/MM/yyyy", { locale: ptBR }); } catch { return savedRequisition.data; } })();
+      const captionLines = [
+        `📦 *REQUISIÇÃO DE MATERIAL*`,
+        ``,
+        `📅 *Data:* ${dataFmt}`,
+        `👤 *Funcionário:* ${currentFuncNome}`,
+      ];
+      if (matFuncionarioFuncao) captionLines.push(`💼 *Função:* ${matFuncionarioFuncao}`);
+      if (matFuncionarioMatricula) captionLines.push(`🆔 *Matrícula:* ${matFuncionarioMatricula}`);
+      captionLines.push(`📍 *Área de destino:* ${matAreaDestino}`);
+      captionLines.push(`📝 *Motivo:* ${matMotivo}`);
+      captionLines.push(`✅ *Autorizado por:* ${matAutorizadoPor}${matMatriculaAutorizador ? ` (${matMatriculaAutorizador})` : ""}`);
+      captionLines.push(``);
+      captionLines.push(`*Itens:*`);
+      captionLines.push(itensTxt);
+      const caption = captionLines.join("\n");
       await autoSendRequisitionToGroup("material", html, caption, currentFuncNome);
     } catch (e) { console.warn("auto send Material prep failed", e); toast.error("Falha ao preparar envio Material", { description: String((e as Error)?.message || e) }); }
 
