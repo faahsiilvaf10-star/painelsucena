@@ -4175,6 +4175,7 @@ export type Database = {
           auto_send_forbidden_color_alert: boolean
           auto_send_matrix_alert: boolean
           auto_send_order_alerts: boolean
+          auto_send_orders_to_group: boolean
           auto_send_planning_alerts: boolean
           auto_send_reminders: boolean
           auto_send_requisitions: boolean
@@ -4193,6 +4194,7 @@ export type Database = {
           group_id_equipment_movements: string | null
           group_id_forbidden_color: string | null
           group_id_matrix: string | null
+          group_id_orders: string | null
           group_id_planning: string | null
           group_id_reminders: string | null
           group_id_requisitions: string | null
@@ -4214,6 +4216,7 @@ export type Database = {
           auto_send_forbidden_color_alert?: boolean
           auto_send_matrix_alert?: boolean
           auto_send_order_alerts?: boolean
+          auto_send_orders_to_group?: boolean
           auto_send_planning_alerts?: boolean
           auto_send_reminders?: boolean
           auto_send_requisitions?: boolean
@@ -4232,6 +4235,7 @@ export type Database = {
           group_id_equipment_movements?: string | null
           group_id_forbidden_color?: string | null
           group_id_matrix?: string | null
+          group_id_orders?: string | null
           group_id_planning?: string | null
           group_id_reminders?: string | null
           group_id_requisitions?: string | null
@@ -4253,6 +4257,7 @@ export type Database = {
           auto_send_forbidden_color_alert?: boolean
           auto_send_matrix_alert?: boolean
           auto_send_order_alerts?: boolean
+          auto_send_orders_to_group?: boolean
           auto_send_planning_alerts?: boolean
           auto_send_reminders?: boolean
           auto_send_requisitions?: boolean
@@ -4271,6 +4276,7 @@ export type Database = {
           group_id_equipment_movements?: string | null
           group_id_forbidden_color?: string | null
           group_id_matrix?: string | null
+          group_id_orders?: string | null
           group_id_planning?: string | null
           group_id_reminders?: string | null
           group_id_requisitions?: string | null
