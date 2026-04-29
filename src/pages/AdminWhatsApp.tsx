@@ -1364,6 +1364,40 @@ const AdminWhatsApp = () => {
 
         <Card>
           <CardHeader>
+            <CardTitle className="flex items-center gap-2">
+              <Send className="w-5 h-5 text-primary" />
+              Envio Automático de Foto do DDS
+            </CardTitle>
+            <CardDescription>
+              Quando habilitado, ao <strong>salvar a Lista de Presença do DDS</strong> o sistema envia
+              automaticamente para o <strong>grupo configurado</strong> a <strong>mesma foto e descrição completa</strong>
+              que é publicada no InstaCena (presentes, ausentes, total, cor proibida do mês e local),
+              respeitando o intervalo de segurança configurado.
+            </CardDescription>
+          </CardHeader>
+          <CardContent>
+            <div className="flex items-center justify-between gap-3 rounded-md border p-3 bg-muted/30">
+              <div className="flex items-center gap-3">
+                <Switch
+                  id="auto-send-dds-photo"
+                  checked={autoSendDdsPhoto}
+                  onCheckedChange={setAutoSendDdsPhoto}
+                />
+                <Label htmlFor="auto-send-dds-photo" className="cursor-pointer">
+                  Ativar envio automático da foto do DDS ao grupo
+                </Label>
+              </div>
+              <Badge variant={autoSendDdsPhoto ? "default" : "secondary"}>
+                {autoSendDdsPhoto ? "Ativo" : "Desativado"}
+              </Badge>
+            </div>
+            <GroupIdOverrideInput id="gid-dds" value={groupIdDds} onChange={setGroupIdDds} defaultGroupId={groupId} />
+            <p className="text-xs text-muted-foreground mt-3">
+              Requisitos: integração W-API habilitada e <strong>ID do grupo</strong> preenchido (use o campo acima
+              para enviar para um grupo diferente do padrão). Lembre-se de salvar a configuração após alterar este botão.
+            </p>
+          </CardContent>
+        </Card>
             <CardTitle>Envio de Mensagem</CardTitle>
             <CardDescription>Selecione os usuários e escreva a mensagem. Apenas usuários com WhatsApp cadastrado aparecem.</CardDescription>
           </CardHeader>
