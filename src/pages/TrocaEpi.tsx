@@ -993,6 +993,27 @@ export default function TrocaEpi() {
     }
   }, []);
 
+  const [resendingId, setResendingId] = useState<string | null>(null);
+  const handleResendExchange = useCallback(async (exchange: EpiExchange) => {
+    if (resendingId) return;
+    setResendingId(exchange.id);
+    const toastId = toast.loading("Reenviando EPI ao grupo...");
+    try {
+      // Invalida cache para regenerar a imagem com o layout atual
+      const shareKey = getExchangeShareKey(exchange);
+      sharePayloadCacheRef.current.delete(shareKey);
+      sharePayloadPromiseRef.current.delete(shareKey);
+      const payload = await buildExchangeSharePayload(exchange);
+      await autoSendRequisitionToGroup("epi", "", payload.description, exchange.funcionario_nome, payload.file);
+      toast.dismiss(toastId);
+    } catch (e) {
+      toast.dismiss(toastId);
+      toast.error("Falha ao reenviar EPI", { description: String((e as Error)?.message || e) });
+    } finally {
+      setResendingId(null);
+    }
+  }, [resendingId, buildExchangeSharePayload, autoSendRequisitionToGroup]);
+
   const handleSignatureConfirm = async (sigFuncionario: string, sigAutorizador: string) => {
     const currentSelectedEpis = [...selectedEpis];
     const currentFuncionarioNome = funcionarioNome;
