@@ -10,10 +10,10 @@ const corsHeaders = {
 
 const WEEKDAY_LABELS = ["Domingo", "Segunda", "Terça", "Quarta", "Quinta", "Sexta", "Sábado"];
 
-// Convert "now" to Pará timezone (UTC-4): no DST.
+// Convert "now" to Pará timezone (UTC-3): no DST.
 const paraNow = () => {
   const utc = new Date();
-  return new Date(utc.getTime() - 4 * 60 * 60 * 1000);
+  return new Date(utc.getTime() - 3 * 60 * 60 * 1000);
 };
 const fmtDateISO = (d: Date) => d.toISOString().split("T")[0];
 const fmtTimeHHMM = (d: Date) => `${String(d.getUTCHours()).padStart(2, "0")}:${String(d.getUTCMinutes()).padStart(2, "0")}`;
