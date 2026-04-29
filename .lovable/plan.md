@@ -1,33 +1,31 @@
-## Plano: Role Moderador + Edição em Tempo Real
+## Reenvio manual da última requisição EPI (TIAGO)
 
-### Fase 1 — Role de Moderador no Banco
-- Adicionar `'moderator'` ao enum `app_role`
-- Atualizar funções `is_admin` e `has_role` para incluir moderador
-- Criar função `is_admin_or_moderator()` para RLS
-- Atualizar políticas RLS existentes para permitir moderadores (mesmas permissões do admin, exceto exclusão de usuários e gerenciamento de roles)
+A última requisição registrada no banco é do funcionário **TIAGO AUGUSTO ROSA MACHADO** (matrícula 68991), criada em 29/04 às 12:04. Já existe um envio anterior marcado como `sent` no `wapi_outbox` (ID `f95b4b2f...`), mas o usuário relata que o card chegou em branco no grupo.
 
-### Fase 2 — Frontend: Reconhecer Moderador
-- Atualizar `useUserRole` e `useIsAdmin` para reconhecer moderador
-- Criar hook `useIsModerator`
-- Ícone diferente para moderador (ex: Shield vs ShieldCheck do admin)
-- Moderador acessa painel Admin (sem aba de gerenciar roles e sem botão de excluir usuários)
+### Plano
 
-### Fase 3 — Sistema de Edição Inline (CMS)
-- Criar tabela `page_customizations` para salvar edições (textos, imagens, cores)
-- Componente `EditableText` — clica no texto, abre input inline, salva no banco
-- Componente `EditableImage` — clica na imagem, abre upload, substitui
-- Componente `EditableBanner` — para banners de campanhas
-- Modo de edição ativado por toggle (visível só para moderadores/admins)
-- Barra de ferramentas flutuante com opções de cor
+1. **Gerar novo PNG server-side** usando `@napi-rs/canvas` (1080x1350) com:
+   - Logo Sucena no topo
+   - Cabeçalho "TROCA DE EPI"
+   - Dados: Funcionário, Função, Matrícula, Data, Motivo
+   - Lista de itens (LUVA TATIL x1)
+   - Autorizado por: ITAMAR DE SOUZA PEREIRA JUNIOR
+   - Rodapé com timestamp
+2. **Upload** para `site-assets/epi-cards/manual-tiago-{timestamp}.png` (novo nome, sem cache CDN antigo).
+3. **Inserir nova mensagem** em `wapi_outbox` com:
+   - `kind: image`
+   - `target_type: group`
+   - `phone: 120363406691114696@g.us` (grupo de requisições)
+   - `image_url`: nova URL pública
+   - `caption`: mesmo texto formatado da troca
+   - `origin: manual_resend`
+4. **Invocar** `wapi-queue-worker` imediatamente para entrega sem aguardar o cron.
+5. **Verificar** status final em `wapi_outbox` e `wapi_message_logs`.
 
-### Fase 4 — Aplicar Editáveis nas Páginas
-- Página de Campanhas: banners editáveis
-- Logo principal: clicável para trocar
-- Títulos de páginas: editáveis inline
-- Cores de layout: painel de customização
+### Detalhes técnicos
 
-### Restrições do Moderador
-- ❌ Não pode excluir usuários
-- ❌ Não pode gerenciar roles (promover/rebaixar)
-- ✅ Todas as demais funções do admin
-- ✅ Edição inline em tempo real
+- Arquivo de script temporário: `/tmp/render-tiago-card.mjs` usando `@napi-rs/canvas` já instalado no `package.json`.
+- Upload via `supabase.storage.from('site-assets').upload(...)` com service role key.
+- Cache-bust no nome do arquivo garante que o WhatsApp não puxe imagem antiga.
+
+Aprovando, executo o reenvio agora.
