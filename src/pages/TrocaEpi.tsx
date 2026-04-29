@@ -918,19 +918,27 @@ export default function TrocaEpi() {
     htmlContent: string,
     caption: string,
     fileBaseName: string,
+    prebuiltFile?: File,
   ) => {
     try {
-      // Usa o mesmo fluxo do botão manual "PNG WhatsApp": renderiza o HTML real em PNG
-      const container = document.createElement("div");
-      container.style.position = "fixed";
-      container.style.left = "-9999px";
-      container.style.top = "0";
-      container.style.width = "800px";
-      container.style.background = "#fff";
-      container.innerHTML = htmlContent;
-      document.body.appendChild(container);
       let publicUrl = "";
-      try {
+      if (prebuiltFile) {
+        const path = `wapi-requisicoes/${type}/${Date.now()}-${sanitizeShareFileName(fileBaseName)}.png`;
+        const { error: upErr } = await supabase.storage.from("desvios").upload(path, prebuiltFile, { contentType: "image/png", upsert: true });
+        if (upErr) throw upErr;
+        const { data: urlData } = supabase.storage.from("desvios").getPublicUrl(path);
+        publicUrl = urlData?.publicUrl || "";
+      } else {
+        // Usa o mesmo fluxo do botão manual "PNG WhatsApp": renderiza o HTML real em PNG
+        const container = document.createElement("div");
+        container.style.position = "fixed";
+        container.style.left = "-9999px";
+        container.style.top = "0";
+        container.style.width = "800px";
+        container.style.background = "#fff";
+        container.innerHTML = htmlContent;
+        document.body.appendChild(container);
+        try {
         const isMobileDevice = /Android|iPhone|iPad|iPod/i.test(navigator.userAgent);
         const images = container.querySelectorAll("img");
         await Promise.all(Array.from(images).map((img) => new Promise<void>((resolve) => {
@@ -970,8 +978,9 @@ export default function TrocaEpi() {
         if (!publicUrl && lastErr) {
           console.warn("[autoSendRequisitionToGroup] imagem não gerada; seguirá como texto", lastErr);
         }
-      } finally {
-        if (container.parentNode) container.parentNode.removeChild(container);
+        } finally {
+          if (container.parentNode) container.parentNode.removeChild(container);
+        }
       }
       if (!publicUrl) {
         // Fallback: envia ao menos o texto ao grupo, para não perder a notificação
