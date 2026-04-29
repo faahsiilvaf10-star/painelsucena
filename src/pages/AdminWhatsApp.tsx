@@ -166,6 +166,8 @@ const AdminWhatsApp = () => {
       setGroupIdDds((c.group_id_dds as string | null) || "");
       setAutoSendAttendance(!!(c.auto_send_attendance as boolean | null));
       setGroupIdAttendance((c.group_id_attendance as string | null) || "");
+      setAutoSendDesvios(!!(c.auto_send_desvios as boolean | null));
+      setGroupIdDesvios((c.group_id_desvios as string | null) || "");
     }
   }, [cfg]);
 
