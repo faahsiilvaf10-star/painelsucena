@@ -121,6 +121,93 @@ function dataUrlToFile(dataUrl: string, fileName: string) {
   return new File([bytes], fileName, { type: mime, lastModified: Date.now() });
 }
 
+function escapeHtml(value: unknown): string {
+  return String(value ?? "")
+    .replace(/&/g, "&amp;")
+    .replace(/</g, "&lt;")
+    .replace(/>/g, "&gt;")
+    .replace(/"/g, "&quot;")
+    .replace(/'/g, "&#039;");
+}
+
+function formatDocumentDate(value: string): string {
+  return format(new Date(`${value}T12:00:00`), "dd/MM/yyyy");
+}
+
+function renderSignatureBlock(signature: string | null | undefined, label: string): string {
+  return `
+    <div style="text-align:center;width:45%;">
+      ${signature ? `<img src="${signature}" style="display:block;margin:0 auto;max-height:60px;max-width:260px;object-fit:contain;" />` : '<div style="height:70px;"></div>'}
+      <div style="border-top:1px solid #333;padding-top:14px;font-size:12px;letter-spacing:0;text-transform:uppercase;">${label}</div>
+    </div>
+  `;
+}
+
+function buildFormalRequisitionHtml(params: {
+  title: string;
+  sectionTitle: string;
+  logoBase64: string;
+  date: string;
+  areaDestino?: string;
+  autorizadoPor: string;
+  matriculaAutorizador?: string | null;
+  motivo: string;
+  funcionarioNome: string;
+  funcionarioFuncao?: string | null;
+  funcionarioMatricula?: string | null;
+  items: Array<{ name: string; qty: number }>;
+  assinaturaFuncionario?: string | null;
+  assinaturaAutorizador?: string | null;
+}) {
+  const rows = params.items.map((item) => `
+    <tr>
+      <td style="border:1px solid #cfcfcf;padding:10px 12px;font-size:14px;line-height:1.25;text-transform:uppercase;">${escapeHtml(item.name)}</td>
+      <td style="border:1px solid #cfcfcf;padding:10px 12px;font-size:14px;text-align:center;width:140px;">${escapeHtml(item.qty || 1)}</td>
+    </tr>
+  `).join("");
+
+  return `
+    <div style="font-family:Arial,Helvetica,sans-serif;width:980px;min-height:640px;color:#242424;background:#fff;border:2px solid #333;padding:20px 20px 18px;box-sizing:border-box;">
+      <div style="display:flex;justify-content:space-between;align-items:center;border-bottom:2px solid #333;padding-bottom:18px;margin-bottom:28px;">
+        ${params.logoBase64 ? `<img src="${params.logoBase64}" style="height:76px;max-width:230px;object-fit:contain;" />` : '<div style="height:76px;width:230px;"></div>'}
+        <div style="font-size:14px;color:#666;letter-spacing:0;text-transform:uppercase;">CONTRATO: 4600012690</div>
+      </div>
+
+      <div style="text-align:center;font-size:22px;font-weight:700;letter-spacing:0;text-transform:uppercase;margin:0 0 24px;">${escapeHtml(params.title)}</div>
+
+      <div style="display:grid;grid-template-columns:1fr 1fr;column-gap:14px;row-gap:18px;font-size:16px;margin-bottom:18px;">
+        <div style="border-bottom:1px solid #999;padding:0 4px 3px;"><strong>DATA:</strong> ${escapeHtml(formatDocumentDate(params.date))}</div>
+        <div style="border-bottom:1px solid #999;padding:0 4px 3px;"><strong>ÁREA DESTINO:</strong> ${escapeHtml(params.areaDestino || "Almoxarifado")}</div>
+        <div style="border-bottom:1px solid #999;padding:0 4px 3px;"><strong>AUTORIZADO POR:</strong> ${escapeHtml(params.autorizadoPor)}</div>
+        <div style="border-bottom:1px solid #999;padding:0 4px 3px;"><strong>MATRÍCULA:</strong> ${escapeHtml(params.matriculaAutorizador || "")}</div>
+      </div>
+
+      <div style="border-bottom:1px solid #999;padding:0 4px 3px;font-size:16px;margin-bottom:18px;"><strong>MOTIVO:</strong> ${escapeHtml(params.motivo)}</div>
+      <div style="border-bottom:1px solid #999;padding:0 4px 3px;font-size:16px;margin-bottom:18px;"><strong>FUNCIONÁRIO(A):</strong> ${escapeHtml(params.funcionarioNome)}</div>
+      <div style="display:grid;grid-template-columns:1fr 1fr;column-gap:14px;font-size:16px;margin-bottom:14px;">
+        <div style="border-bottom:1px solid #999;padding:0 4px 3px;"><strong>FUNÇÃO:</strong> ${escapeHtml(params.funcionarioFuncao || "")}</div>
+        <div style="border-bottom:1px solid #999;padding:0 4px 3px;"><strong>MATRÍCULA:</strong> ${escapeHtml(params.funcionarioMatricula || "")}</div>
+      </div>
+
+      <div style="font-weight:700;font-size:18px;background:#e1e4e8;padding:11px 12px;margin:0 0 10px;text-transform:uppercase;">${escapeHtml(params.sectionTitle)}</div>
+      <table style="width:100%;border-collapse:collapse;margin-bottom:44px;table-layout:fixed;">
+        <thead>
+          <tr>
+            <th style="border:1px solid #cfcfcf;padding:10px 12px;font-size:14px;text-align:left;background:#f0f1f3;">${escapeHtml(params.sectionTitle === "MATERIAIS" ? "Material" : "EPI / Uniforme")}</th>
+            <th style="border:1px solid #cfcfcf;padding:10px 12px;font-size:14px;text-align:center;background:#f0f1f3;width:140px;">Qtd</th>
+          </tr>
+        </thead>
+        <tbody>${rows || '<tr><td style="border:1px solid #cfcfcf;padding:10px 12px;font-size:14px;">—</td><td style="border:1px solid #cfcfcf;padding:10px 12px;font-size:14px;text-align:center;width:140px;">0</td></tr>'}</tbody>
+      </table>
+
+      <div style="display:flex;justify-content:space-between;align-items:flex-end;margin-top:8px;">
+        ${renderSignatureBlock(params.assinaturaAutorizador, "ASSINATURA DO AUTORIZADOR")}
+        ${renderSignatureBlock(params.assinaturaFuncionario, "ASSINATURA DO FUNCIONÁRIO")}
+      </div>
+    </div>
+  `;
+}
+
 const waitForPaint = () => new Promise<void>((resolve) => {
   requestAnimationFrame(() => requestAnimationFrame(() => resolve()));
 });
