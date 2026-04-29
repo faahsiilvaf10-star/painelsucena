@@ -96,6 +96,8 @@ const AdminWhatsApp = () => {
   const [groupIdDds, setGroupIdDds] = useState("");
   const [autoSendAttendance, setAutoSendAttendance] = useState(false);
   const [groupIdAttendance, setGroupIdAttendance] = useState("");
+  const [autoSendDesvios, setAutoSendDesvios] = useState(false);
+  const [groupIdDesvios, setGroupIdDesvios] = useState("");
   const [testingPlanning, setTestingPlanning] = useState(false);
   const [testingBilling, setTestingBilling] = useState(false);
   const [testingVehicleInspection, setTestingVehicleInspection] = useState(false);
@@ -164,6 +166,8 @@ const AdminWhatsApp = () => {
       setGroupIdDds((c.group_id_dds as string | null) || "");
       setAutoSendAttendance(!!(c.auto_send_attendance as boolean | null));
       setGroupIdAttendance((c.group_id_attendance as string | null) || "");
+      setAutoSendDesvios(!!(c.auto_send_desvios as boolean | null));
+      setGroupIdDesvios((c.group_id_desvios as string | null) || "");
     }
   }, [cfg]);
 
@@ -259,6 +263,8 @@ const AdminWhatsApp = () => {
         group_id_dds: groupIdDds.trim() || null,
         auto_send_attendance: autoSendAttendance,
         group_id_attendance: groupIdAttendance.trim() || null,
+        auto_send_desvios: autoSendDesvios,
+        group_id_desvios: groupIdDesvios.trim() || null,
         updated_by: user?.id ?? null,
       };
       if (cfg?.id) {
@@ -1435,6 +1441,43 @@ const AdminWhatsApp = () => {
               </Badge>
             </div>
             <GroupIdOverrideInput id="gid-attendance" value={groupIdAttendance} onChange={setGroupIdAttendance} defaultGroupId={groupId} />
+            <p className="text-xs text-muted-foreground mt-3">
+              Requisitos: integração W-API habilitada e <strong>ID do grupo</strong> preenchido (use o campo acima
+              para enviar para um grupo diferente do padrão). Lembre-se de salvar a configuração após alterar este botão.
+            </p>
+          </CardContent>
+        </Card>
+
+        <Card>
+          <CardHeader>
+            <CardTitle className="flex items-center gap-2">
+              <Send className="w-5 h-5 text-primary" />
+              Envio Automático de Desvios
+            </CardTitle>
+            <CardDescription>
+              Quando habilitado, ao <strong>registrar um Desvio</strong> o sistema envia automaticamente
+              para o <strong>grupo configurado</strong> a <strong>foto anexada</strong> junto com a
+              <strong> descrição completa</strong> (responsáveis, prazo, itens e quem registrou),
+              respeitando o intervalo de segurança configurado.
+            </CardDescription>
+          </CardHeader>
+          <CardContent>
+            <div className="flex items-center justify-between gap-3 rounded-md border p-3 bg-muted/30">
+              <div className="flex items-center gap-3">
+                <Switch
+                  id="auto-send-desvios"
+                  checked={autoSendDesvios}
+                  onCheckedChange={setAutoSendDesvios}
+                />
+                <Label htmlFor="auto-send-desvios" className="cursor-pointer">
+                  Ativar envio automático ao registrar um Desvio
+                </Label>
+              </div>
+              <Badge variant={autoSendDesvios ? "default" : "secondary"}>
+                {autoSendDesvios ? "Ativo" : "Desativado"}
+              </Badge>
+            </div>
+            <GroupIdOverrideInput id="gid-desvios" value={groupIdDesvios} onChange={setGroupIdDesvios} defaultGroupId={groupId} />
             <p className="text-xs text-muted-foreground mt-3">
               Requisitos: integração W-API habilitada e <strong>ID do grupo</strong> preenchido (use o campo acima
               para enviar para um grupo diferente do padrão). Lembre-se de salvar a configuração após alterar este botão.

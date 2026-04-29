@@ -84,6 +84,16 @@ export function useCreateDesvio() {
         .select()
         .single();
       if (error) throw error;
+
+      // Dispara notificação WhatsApp (best-effort)
+      try {
+        await supabase.functions.invoke("wapi-desvio-notify", {
+          body: { desvioId: data.id },
+        });
+      } catch (e) {
+        console.warn("[wapi-desvio-notify] falha ao enfileirar:", e);
+      }
+
       return data;
     },
     onSuccess: () => {

@@ -4185,6 +4185,7 @@ export type Database = {
           auto_send_billing_alert: boolean
           auto_send_campaign_alert: boolean
           auto_send_dds_photo: boolean
+          auto_send_desvios: boolean
           auto_send_equipment_movements: boolean
           auto_send_forbidden_color_alert: boolean
           auto_send_matrix_alert: boolean
@@ -4207,6 +4208,7 @@ export type Database = {
           group_id_billing: string | null
           group_id_campaign: string | null
           group_id_dds: string | null
+          group_id_desvios: string | null
           group_id_equipment_movements: string | null
           group_id_forbidden_color: string | null
           group_id_matrix: string | null
@@ -4231,6 +4233,7 @@ export type Database = {
           auto_send_billing_alert?: boolean
           auto_send_campaign_alert?: boolean
           auto_send_dds_photo?: boolean
+          auto_send_desvios?: boolean
           auto_send_equipment_movements?: boolean
           auto_send_forbidden_color_alert?: boolean
           auto_send_matrix_alert?: boolean
@@ -4253,6 +4256,7 @@ export type Database = {
           group_id_billing?: string | null
           group_id_campaign?: string | null
           group_id_dds?: string | null
+          group_id_desvios?: string | null
           group_id_equipment_movements?: string | null
           group_id_forbidden_color?: string | null
           group_id_matrix?: string | null
@@ -4277,6 +4281,7 @@ export type Database = {
           auto_send_billing_alert?: boolean
           auto_send_campaign_alert?: boolean
           auto_send_dds_photo?: boolean
+          auto_send_desvios?: boolean
           auto_send_equipment_movements?: boolean
           auto_send_forbidden_color_alert?: boolean
           auto_send_matrix_alert?: boolean
@@ -4299,6 +4304,7 @@ export type Database = {
           group_id_billing?: string | null
           group_id_campaign?: string | null
           group_id_dds?: string | null
+          group_id_desvios?: string | null
           group_id_equipment_movements?: string | null
           group_id_forbidden_color?: string | null
           group_id_matrix?: string | null
