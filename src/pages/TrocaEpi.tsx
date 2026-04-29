@@ -167,7 +167,7 @@ function buildFormalRequisitionHtml(params: {
   `).join("");
 
   return `
-    <div style="font-family:Arial,Helvetica,sans-serif;width:980px;min-height:640px;color:#242424;background:#fff;border:2px solid #333;padding:20px 20px 18px;box-sizing:border-box;">
+    <div style="font-family:Arial,Helvetica,sans-serif;width:100%;min-height:640px;color:#242424;background:#fff;border:2px solid #333;padding:20px 20px 18px;box-sizing:border-box;">
       <div style="display:flex;justify-content:space-between;align-items:center;border-bottom:2px solid #333;padding-bottom:18px;margin-bottom:28px;">
         ${params.logoBase64 ? `<img src="${params.logoBase64}" style="height:76px;max-width:230px;object-fit:contain;" />` : '<div style="height:76px;width:230px;"></div>'}
         <div style="font-size:14px;color:#666;letter-spacing:0;text-transform:uppercase;">CONTRATO: 4600012690</div>
