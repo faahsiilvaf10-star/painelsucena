@@ -121,6 +121,93 @@ function dataUrlToFile(dataUrl: string, fileName: string) {
   return new File([bytes], fileName, { type: mime, lastModified: Date.now() });
 }
 
+function escapeHtml(value: unknown): string {
+  return String(value ?? "")
+    .replace(/&/g, "&amp;")
+    .replace(/</g, "&lt;")
+    .replace(/>/g, "&gt;")
+    .replace(/"/g, "&quot;")
+    .replace(/'/g, "&#039;");
+}
+
+function formatDocumentDate(value: string): string {
+  return format(new Date(`${value}T12:00:00`), "dd/MM/yyyy");
+}
+
+function renderSignatureBlock(signature: string | null | undefined, label: string): string {
+  return `
+    <div style="text-align:center;width:45%;">
+      ${signature ? `<img src="${signature}" style="display:block;margin:0 auto;max-height:60px;max-width:260px;object-fit:contain;" />` : '<div style="height:70px;"></div>'}
+      <div style="border-top:1px solid #333;padding-top:14px;font-size:12px;letter-spacing:0;text-transform:uppercase;">${label}</div>
+    </div>
+  `;
+}
+
+function buildFormalRequisitionHtml(params: {
+  title: string;
+  sectionTitle: string;
+  logoBase64: string;
+  date: string;
+  areaDestino?: string;
+  autorizadoPor: string;
+  matriculaAutorizador?: string | null;
+  motivo: string;
+  funcionarioNome: string;
+  funcionarioFuncao?: string | null;
+  funcionarioMatricula?: string | null;
+  items: Array<{ name: string; qty: number }>;
+  assinaturaFuncionario?: string | null;
+  assinaturaAutorizador?: string | null;
+}) {
+  const rows = params.items.map((item) => `
+    <tr>
+      <td style="border:1px solid #cfcfcf;padding:10px 12px;font-size:14px;line-height:1.25;text-transform:uppercase;">${escapeHtml(item.name)}</td>
+      <td style="border:1px solid #cfcfcf;padding:10px 12px;font-size:14px;text-align:center;width:140px;">${escapeHtml(item.qty || 1)}</td>
+    </tr>
+  `).join("");
+
+  return `
+    <div style="font-family:Arial,Helvetica,sans-serif;width:100%;min-height:640px;color:#242424;background:#fff;border:2px solid #333;padding:20px 20px 18px;box-sizing:border-box;">
+      <div style="display:flex;justify-content:space-between;align-items:center;border-bottom:2px solid #333;padding-bottom:18px;margin-bottom:28px;">
+        ${params.logoBase64 ? `<img src="${params.logoBase64}" style="height:76px;max-width:230px;object-fit:contain;" />` : '<div style="height:76px;width:230px;"></div>'}
+        <div style="font-size:14px;color:#666;letter-spacing:0;text-transform:uppercase;">CONTRATO: 4600012690</div>
+      </div>
+
+      <div style="text-align:center;font-size:22px;font-weight:700;letter-spacing:0;text-transform:uppercase;margin:0 0 24px;">${escapeHtml(params.title)}</div>
+
+      <div style="display:grid;grid-template-columns:1fr 1fr;column-gap:14px;row-gap:18px;font-size:16px;margin-bottom:18px;">
+        <div style="border-bottom:1px solid #999;padding:0 4px 3px;"><strong>DATA:</strong> ${escapeHtml(formatDocumentDate(params.date))}</div>
+        <div style="border-bottom:1px solid #999;padding:0 4px 3px;"><strong>ÁREA DESTINO:</strong> ${escapeHtml(params.areaDestino || "Almoxarifado")}</div>
+        <div style="border-bottom:1px solid #999;padding:0 4px 3px;"><strong>AUTORIZADO POR:</strong> ${escapeHtml(params.autorizadoPor)}</div>
+        <div style="border-bottom:1px solid #999;padding:0 4px 3px;"><strong>MATRÍCULA:</strong> ${escapeHtml(params.matriculaAutorizador || "")}</div>
+      </div>
+
+      <div style="border-bottom:1px solid #999;padding:0 4px 3px;font-size:16px;margin-bottom:18px;"><strong>MOTIVO:</strong> ${escapeHtml(params.motivo)}</div>
+      <div style="border-bottom:1px solid #999;padding:0 4px 3px;font-size:16px;margin-bottom:18px;"><strong>FUNCIONÁRIO(A):</strong> ${escapeHtml(params.funcionarioNome)}</div>
+      <div style="display:grid;grid-template-columns:1fr 1fr;column-gap:14px;font-size:16px;margin-bottom:14px;">
+        <div style="border-bottom:1px solid #999;padding:0 4px 3px;"><strong>FUNÇÃO:</strong> ${escapeHtml(params.funcionarioFuncao || "")}</div>
+        <div style="border-bottom:1px solid #999;padding:0 4px 3px;"><strong>MATRÍCULA:</strong> ${escapeHtml(params.funcionarioMatricula || "")}</div>
+      </div>
+
+      <div style="font-weight:700;font-size:18px;background:#e1e4e8;padding:11px 12px;margin:0 0 10px;text-transform:uppercase;">${escapeHtml(params.sectionTitle)}</div>
+      <table style="width:100%;border-collapse:collapse;margin-bottom:44px;table-layout:fixed;">
+        <thead>
+          <tr>
+            <th style="border:1px solid #cfcfcf;padding:10px 12px;font-size:14px;text-align:left;background:#f0f1f3;">${escapeHtml(params.sectionTitle === "MATERIAIS" ? "Material" : "EPI / Uniforme")}</th>
+            <th style="border:1px solid #cfcfcf;padding:10px 12px;font-size:14px;text-align:center;background:#f0f1f3;width:140px;">Qtd</th>
+          </tr>
+        </thead>
+        <tbody>${rows || '<tr><td style="border:1px solid #cfcfcf;padding:10px 12px;font-size:14px;">—</td><td style="border:1px solid #cfcfcf;padding:10px 12px;font-size:14px;text-align:center;width:140px;">0</td></tr>'}</tbody>
+      </table>
+
+      <div style="display:flex;justify-content:space-between;align-items:flex-end;margin-top:8px;">
+        ${renderSignatureBlock(params.assinaturaAutorizador, "ASSINATURA DO AUTORIZADOR")}
+        ${renderSignatureBlock(params.assinaturaFuncionario, "ASSINATURA DO FUNCIONÁRIO")}
+      </div>
+    </div>
+  `;
+}
+
 const waitForPaint = () => new Promise<void>((resolve) => {
   requestAnimationFrame(() => requestAnimationFrame(() => resolve()));
 });
@@ -187,17 +274,47 @@ function buildExchangeShareDescription(exchange: EpiExchange) {
   return description;
 }
 
+function getExchangeDocumentItems(exchange: EpiExchange): Array<{ name: string; qty: number }> {
+  const epiItems = (exchange.epis || []).map((e: any) => {
+    const epiId = typeof e === "string" ? e : e.id;
+    const epiQty = typeof e === "object" && e.qty ? Number(e.qty) : 1;
+    const epiValue = typeof e === "object" ? e.value : undefined;
+    const isOutros = epiId === "outros" || epiId.startsWith("outros_");
+    const epiItem = isOutros ? EPI_ITEMS.find((item) => item.id === "outros") : EPI_ITEMS.find((item) => item.id === epiId);
+    const baseName = isOutros && epiValue ? epiValue : (epiItem?.label || epiId);
+
+    return { name: baseName, qty: epiQty };
+  });
+
+  if (exchange.uniforme_blusa_quantidade && exchange.uniforme_blusa_quantidade > 0) {
+    epiItems.push({ name: `CAMISA OPERACIONAL${exchange.uniforme_blusa_tamanho ? ` - ${exchange.uniforme_blusa_tamanho}` : ""}`, qty: exchange.uniforme_blusa_quantidade });
+  }
+
+  if (exchange.uniforme_calca_quantidade && exchange.uniforme_calca_quantidade > 0) {
+    epiItems.push({ name: `CALÇA OPERACIONAL${exchange.uniforme_calca_tamanho ? ` - ${exchange.uniforme_calca_tamanho}` : ""}`, qty: exchange.uniforme_calca_quantidade });
+  }
+
+  return epiItems;
+}
+
 function getExchangeShareKey(exchange: EpiExchange) {
   return JSON.stringify({
     id: exchange.id,
     created_at: exchange.created_at,
     data: exchange.data,
+    autorizado_por: exchange.autorizado_por,
+    matricula_autorizador: exchange.matricula_autorizador,
+    motivo_troca: exchange.motivo_troca,
     funcionario_nome: exchange.funcionario_nome,
+    funcionario_funcao: exchange.funcionario_funcao,
+    funcionario_matricula: exchange.funcionario_matricula,
     epis: exchange.epis,
     uniforme_blusa_tamanho: exchange.uniforme_blusa_tamanho,
     uniforme_blusa_quantidade: exchange.uniforme_blusa_quantidade,
     uniforme_calca_tamanho: exchange.uniforme_calca_tamanho,
     uniforme_calca_quantidade: exchange.uniforme_calca_quantidade,
+    assinatura_funcionario: exchange.assinatura_funcionario,
+    assinatura_autorizador: exchange.assinatura_autorizador,
   });
 }
 
@@ -221,171 +338,43 @@ function findInventoryMatch(inventoryItems: any[], searchLabel: string): any | n
 }
 
 function buildPdfHtml(exchange: EpiExchange, logoBase64: string): string {
-  const sigFunc = exchange.assinatura_funcionario || '';
-  const sigAuth = exchange.assinatura_autorizador || '';
-  const selectedEpis = exchange.epis || [];
-  
-  const episCol1 = EPI_ITEMS.slice(0, 6);
-  const episCol2 = EPI_ITEMS.slice(6, 12);
-  const episCol3 = EPI_ITEMS.slice(12);
-
-  const renderEpiColumn = (items: typeof EPI_ITEMS) =>
-    items.map(item => {
-      const found = selectedEpis.find((e: any) => typeof e === 'string' ? e === item.id : (e as any).id === item.id);
-      const checked = !!found;
-      const extra = typeof found === 'object' && found !== null ? (found as any).value || '' : '';
-      const extrasHtml = item.id === "outros"
-        ? selectedEpis
-            .filter((e: any) => {
-              const id = typeof e === 'string' ? e : (e as any).id;
-              return id.startsWith("outros_");
-            })
-            .map((e: any) => {
-              const val = (e as any).value || '';
-              const qty = (e as any).qty || 1;
-              return `<div style="margin-bottom:3px;font-size:11px;margin-left:16px;">
-                <span style="font-weight:bold;">(X) Outros: ${val}${qty > 1 ? ' (Qtd: ' + qty + ')' : ''}</span>
-              </div>`;
-            }).join('')
-        : '';
-      return `<div style="margin-bottom:3px;font-size:11px;">
-        <span style="font-weight:${checked ? 'bold' : 'normal'};">(${checked ? 'X' : '&nbsp;&nbsp;'}) ${item.label}${extra ? ': ' + extra : ''}</span>
-      </div>${extrasHtml}`;
-    }).join('');
-
-  return `
-    <div style="font-family:Arial,sans-serif;font-size:12px;color:#1a1a1a;border:2px solid #333;padding:15px;background:#fff;">
-      <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:10px;border-bottom:2px solid #333;padding-bottom:10px;">
-        ${logoBase64 ? `<img src="${logoBase64}" style="max-height:55px;" />` : '<div></div>'}
-        <div style="text-align:right;font-size:10px;color:#666;">
-          <div>CONTRATO: 4600012690</div>
-          <div>Rev: 00 | Data: 05/05/2024</div>
-        </div>
-      </div>
-      <div style="text-align:center;font-size:16px;font-weight:bold;margin-bottom:12px;text-transform:uppercase;">Autorização de Troca de EPI's</div>
-
-      <div style="display:flex;gap:10px;margin-bottom:8px;">
-        <div style="flex:1;border-bottom:1px solid #999;padding:4px 2px;"><span style="font-weight:bold;">DATA:</span> ${format(new Date(exchange.data + 'T12:00:00'), "dd/MM/yyyy")}</div>
-        <div style="flex:1;border-bottom:1px solid #999;padding:4px 2px;"><span style="font-weight:bold;">CONTRATO:</span> 4600012690</div>
-      </div>
-      <div style="display:flex;gap:10px;margin-bottom:8px;">
-        <div style="flex:1;border-bottom:1px solid #999;padding:4px 2px;"><span style="font-weight:bold;">AUTORIZADO POR:</span> ${exchange.autorizado_por}</div>
-        <div style="flex:1;border-bottom:1px solid #999;padding:4px 2px;"><span style="font-weight:bold;">MATRÍCULA:</span> ${exchange.matricula_autorizador || ''}</div>
-      </div>
-      <div style="display:flex;gap:10px;margin-bottom:8px;">
-        <div style="flex:2;border-bottom:1px solid #999;padding:4px 2px;"><span style="font-weight:bold;">MOTIVO DA TROCA:</span> ${exchange.motivo_troca}</div>
-      </div>
-      <div style="display:flex;gap:10px;margin-bottom:8px;">
-        <div style="flex:1;border-bottom:1px solid #999;padding:4px 2px;"><span style="font-weight:bold;">AUTORIZO O FUNCIONÁRIO(A):</span> ${exchange.funcionario_nome}</div>
-      </div>
-      <div style="display:flex;gap:10px;margin-bottom:8px;">
-        <div style="flex:1;border-bottom:1px solid #999;padding:4px 2px;"><span style="font-weight:bold;">FUNÇÃO:</span> ${exchange.funcionario_funcao || ''}</div>
-        <div style="flex:1;border-bottom:1px solid #999;padding:4px 2px;"><span style="font-weight:bold;">MATRÍCULA:</span> ${exchange.funcionario_matricula || ''}</div>
-      </div>
-
-      <div style="font-weight:bold;font-size:13px;background:#e5e7eb;padding:4px 8px;margin:12px 0 8px;">EPI</div>
-      <div style="display:grid;grid-template-columns:1fr 1fr 1fr;gap:5px 15px;">
-        <div>${renderEpiColumn(episCol1)}</div>
-        <div>${renderEpiColumn(episCol2)}</div>
-        <div>${renderEpiColumn(episCol3)}</div>
-      </div>
-
-      <div style="font-weight:bold;font-size:13px;background:#e5e7eb;padding:4px 8px;margin:12px 0 8px;">UNIFORME</div>
-      <div style="display:flex;align-items:center;gap:8px;margin-bottom:6px;font-size:11px;">
-        <span>(${exchange.uniforme_blusa_tamanho ? 'X' : '&nbsp;&nbsp;'}) CAMISA OPERACIONAL</span>
-        <span style="margin-left:4px;">${exchange.uniforme_blusa_tamanho || '—'}</span>
-        <span>QTD: ${exchange.uniforme_blusa_quantidade || 0}</span>
-      </div>
-      <div style="display:flex;align-items:center;gap:8px;margin-bottom:6px;font-size:11px;">
-        <span>(${exchange.uniforme_calca_tamanho ? 'X' : '&nbsp;&nbsp;'}) CALÇA OPERACIONAL</span>
-        <span style="margin-left:4px;">${exchange.uniforme_calca_tamanho || '—'}</span>
-        <span>QTD: ${exchange.uniforme_calca_quantidade || 0}</span>
-      </div>
-
-      <div style="display:flex;justify-content:space-between;margin-top:30px;">
-        <div style="text-align:center;width:45%;">
-          ${sigAuth ? `<img src="${sigAuth}" style="display:block;margin:0 auto;max-height:60px;" />` : '<div style="min-height:55px;"></div>'}
-          <div style="border-top:1px solid #333;margin-top:0;padding-top:4px;font-size:11px;">ASSINATURA DO AUTORIZADOR</div>
-        </div>
-        <div style="text-align:center;width:45%;">
-          ${sigFunc ? `<img src="${sigFunc}" style="display:block;margin:0 auto;max-height:60px;" />` : '<div style="min-height:55px;"></div>'}
-          <div style="border-top:1px solid #333;margin-top:0;padding-top:4px;font-size:11px;">ASSINATURA DO FUNCIONÁRIO</div>
-        </div>
-      </div>
-
-      <div style="margin-top:15px;font-size:10px;color:#555;border-top:1px solid #ccc;padding-top:8px;">
-        <p>• SESMT REALIZAR A TROCA DO EPI APÓS AVALIAÇÃO TÉCNICA DO MESMO.</p>
-        <p>• ALMOXARIFADO SOMENTE TROCAR COM A DEVOLUÇÃO DO EPI DANIFICADO.</p>
-        <p>• EM CASO DE PERDA DO EPI, SOMENTE REALIZAR A SUBSTITUIÇÃO COM O AVAL DA LIDERANÇA IMEDIATA.</p>
-      </div>
-    </div>
-  `;
+  return buildFormalRequisitionHtml({
+    title: "Requisição de EPI",
+    sectionTitle: "EPI",
+    logoBase64,
+    date: exchange.data,
+    areaDestino: "Almoxarifado",
+    autorizadoPor: exchange.autorizado_por,
+    matriculaAutorizador: exchange.matricula_autorizador,
+    motivo: exchange.motivo_troca,
+    funcionarioNome: exchange.funcionario_nome,
+    funcionarioFuncao: exchange.funcionario_funcao,
+    funcionarioMatricula: exchange.funcionario_matricula,
+    items: getExchangeDocumentItems(exchange),
+    assinaturaFuncionario: exchange.assinatura_funcionario,
+    assinaturaAutorizador: exchange.assinatura_autorizador,
+  });
 }
 
 function buildMaterialPdfHtml(req: MaterialRequisition, logoBase64: string): string {
-  const sigFunc = req.assinatura_funcionario || '';
-  const sigAuth = req.assinatura_autorizador || '';
   const materiais = req.materiais || [];
 
-  const materiaisRows = materiais.map(m => 
-    `<tr>
-      <td style="border:1px solid #ccc;padding:4px 8px;font-size:11px;">${m.name}</td>
-      <td style="border:1px solid #ccc;padding:4px 8px;font-size:11px;text-align:center;">${m.qty}</td>
-    </tr>`
-  ).join('');
-
-  return `
-    <div style="font-family:Arial,sans-serif;font-size:12px;color:#1a1a1a;border:2px solid #333;padding:15px;background:#fff;">
-      <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:10px;border-bottom:2px solid #333;padding-bottom:10px;">
-        ${logoBase64 ? `<img src="${logoBase64}" style="max-height:55px;" />` : '<div></div>'}
-        <div style="text-align:right;font-size:10px;color:#666;">
-          <div>CONTRATO: 4600012690</div>
-        </div>
-      </div>
-      <div style="text-align:center;font-size:16px;font-weight:bold;margin-bottom:12px;text-transform:uppercase;">Requisição de Material</div>
-
-      <div style="display:flex;gap:10px;margin-bottom:8px;">
-        <div style="flex:1;border-bottom:1px solid #999;padding:4px 2px;"><span style="font-weight:bold;">DATA:</span> ${format(new Date(req.data + 'T12:00:00'), "dd/MM/yyyy")}</div>
-        <div style="flex:1;border-bottom:1px solid #999;padding:4px 2px;"><span style="font-weight:bold;">ÁREA DESTINO:</span> ${req.area_destino}</div>
-      </div>
-      <div style="display:flex;gap:10px;margin-bottom:8px;">
-        <div style="flex:1;border-bottom:1px solid #999;padding:4px 2px;"><span style="font-weight:bold;">AUTORIZADO POR:</span> ${req.autorizado_por}</div>
-        <div style="flex:1;border-bottom:1px solid #999;padding:4px 2px;"><span style="font-weight:bold;">MATRÍCULA:</span> ${req.matricula_autorizador || ''}</div>
-      </div>
-      <div style="display:flex;gap:10px;margin-bottom:8px;">
-        <div style="flex:2;border-bottom:1px solid #999;padding:4px 2px;"><span style="font-weight:bold;">MOTIVO:</span> ${req.motivo}</div>
-      </div>
-      <div style="display:flex;gap:10px;margin-bottom:8px;">
-        <div style="flex:1;border-bottom:1px solid #999;padding:4px 2px;"><span style="font-weight:bold;">FUNCIONÁRIO(A):</span> ${req.funcionario_nome}</div>
-      </div>
-      <div style="display:flex;gap:10px;margin-bottom:8px;">
-        <div style="flex:1;border-bottom:1px solid #999;padding:4px 2px;"><span style="font-weight:bold;">FUNÇÃO:</span> ${req.funcionario_funcao || ''}</div>
-        <div style="flex:1;border-bottom:1px solid #999;padding:4px 2px;"><span style="font-weight:bold;">MATRÍCULA:</span> ${req.funcionario_matricula || ''}</div>
-      </div>
-
-      <div style="font-weight:bold;font-size:13px;background:#e5e7eb;padding:4px 8px;margin:12px 0 8px;">MATERIAIS</div>
-      <table style="width:100%;border-collapse:collapse;margin-bottom:12px;">
-        <thead>
-          <tr>
-            <th style="border:1px solid #ccc;padding:4px 8px;font-size:11px;text-align:left;background:#f3f4f6;">Material</th>
-            <th style="border:1px solid #ccc;padding:4px 8px;font-size:11px;text-align:center;background:#f3f4f6;">Qtd</th>
-          </tr>
-        </thead>
-        <tbody>${materiaisRows}</tbody>
-      </table>
-
-      <div style="display:flex;justify-content:space-between;margin-top:30px;">
-        <div style="text-align:center;width:45%;">
-          ${sigAuth ? `<img src="${sigAuth}" style="display:block;margin:0 auto;max-height:60px;" />` : '<div style="min-height:55px;"></div>'}
-          <div style="border-top:1px solid #333;margin-top:0;padding-top:4px;font-size:11px;">ASSINATURA DO AUTORIZADOR</div>
-        </div>
-        <div style="text-align:center;width:45%;">
-          ${sigFunc ? `<img src="${sigFunc}" style="display:block;margin:0 auto;max-height:60px;" />` : '<div style="min-height:55px;"></div>'}
-          <div style="border-top:1px solid #333;margin-top:0;padding-top:4px;font-size:11px;">ASSINATURA DO FUNCIONÁRIO</div>
-        </div>
-      </div>
-    </div>
-  `;
+  return buildFormalRequisitionHtml({
+    title: "Requisição de Material",
+    sectionTitle: "MATERIAIS",
+    logoBase64,
+    date: req.data,
+    areaDestino: req.area_destino,
+    autorizadoPor: req.autorizado_por,
+    matriculaAutorizador: req.matricula_autorizador,
+    motivo: req.motivo,
+    funcionarioNome: req.funcionario_nome,
+    funcionarioFuncao: req.funcionario_funcao,
+    funcionarioMatricula: req.funcionario_matricula,
+    items: materiais.map((m) => ({ name: m.name, qty: m.qty })),
+    assinaturaFuncionario: req.assinatura_funcionario,
+    assinaturaAutorizador: req.assinatura_autorizador,
+  });
 }
 
 async function generatePdf(exchange: EpiExchange, logoBase64: string) {
@@ -460,7 +449,7 @@ export default function TrocaEpi() {
     container.style.position = "fixed";
     container.style.left = "-9999px";
     container.style.top = "0";
-    container.style.width = "800px";
+    container.style.width = "980px";
     container.style.background = "#fff";
     container.innerHTML = html;
     document.body.appendChild(container);
@@ -934,7 +923,7 @@ export default function TrocaEpi() {
         container.style.position = "fixed";
         container.style.left = "-9999px";
         container.style.top = "0";
-        container.style.width = "800px";
+        container.style.width = "980px";
         container.style.background = "#fff";
         container.innerHTML = htmlContent;
         document.body.appendChild(container);
@@ -1155,12 +1144,14 @@ export default function TrocaEpi() {
       assinatura_autorizador: sigAutorizador || null,
     };
 
+    let savedRequisition: MaterialRequisition;
+
     try {
       if (currentEditing) {
         await restoreInventoryForMaterial(currentEditing);
-        await updateRequisition.mutateAsync({ id: currentEditing.id, ...reqData });
+        savedRequisition = await updateRequisition.mutateAsync({ id: currentEditing.id, ...reqData });
       } else {
-        await createRequisition.mutateAsync(reqData);
+        savedRequisition = await createRequisition.mutateAsync(reqData);
       }
     } catch (err) {
       setShowMaterialSignature(false);
@@ -1200,8 +1191,7 @@ export default function TrocaEpi() {
     // Envio automático para grupo do WhatsApp (se ativado no painel admin)
     try {
       const logoBase64 = await loadCachedLogoBase64();
-      const fakeReq = { ...reqData, id: "auto", created_at: new Date().toISOString(), created_by: user!.id } as unknown as MaterialRequisition;
-      const html = buildMaterialPdfHtml(fakeReq, logoBase64);
+      const html = buildMaterialPdfHtml(savedRequisition, logoBase64);
       const itensTxt = currentItems.map((m) => `• ${m.name} (${m.qty})`).join("\n");
       const caption = `📦 Requisição de Material\nFuncionário: ${currentFuncNome}\nÁrea: ${matAreaDestino}\nMotivo: ${matMotivo}\n\nItens:\n${itensTxt}`;
       await autoSendRequisitionToGroup("material", html, caption, currentFuncNome);
