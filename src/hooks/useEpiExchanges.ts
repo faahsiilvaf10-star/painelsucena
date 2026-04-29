@@ -43,10 +43,13 @@ export function useEpiExchanges() {
 
   const createExchange = useMutation({
     mutationFn: async (values: Omit<EpiExchange, "id" | "created_at" | "created_by">) => {
-      const { error } = await supabase
+      const { data, error } = await supabase
         .from("epi_exchanges" as any)
-        .insert({ ...values, created_by: user!.id } as any);
+        .insert({ ...values, created_by: user!.id } as any)
+        .select("*")
+        .single();
       if (error) throw error;
+      return data as unknown as EpiExchange;
     },
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ["epi-exchanges"] });
@@ -57,11 +60,14 @@ export function useEpiExchanges() {
 
   const updateExchange = useMutation({
     mutationFn: async ({ id, ...values }: Partial<EpiExchange> & { id: string }) => {
-      const { error } = await supabase
+      const { data, error } = await supabase
         .from("epi_exchanges" as any)
         .update(values as any)
-        .eq("id", id);
+        .eq("id", id)
+        .select("*")
+        .single();
       if (error) throw error;
+      return data as unknown as EpiExchange;
     },
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ["epi-exchanges"] });

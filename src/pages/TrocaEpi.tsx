@@ -918,45 +918,35 @@ export default function TrocaEpi() {
     htmlContent: string,
     caption: string,
     fileBaseName: string,
+    prebuiltFile?: File,
   ) => {
     try {
-      // Renderiza HTML em canvas → PNG
-      const container = document.createElement("div");
-      container.style.position = "fixed";
-      container.style.left = "0";
-      container.style.top = "0";
-      container.style.width = "800px";
-      container.style.background = "#fff";
-      container.style.opacity = "0.01";
-      container.style.pointerEvents = "none";
-      container.style.zIndex = "-1";
-      container.innerHTML = htmlContent;
-      document.body.appendChild(container);
       let publicUrl = "";
-      try {
-        // Converte TODAS as <img> remotas para dataURL para evitar tainted canvas (sem depender de CORS)
-        const images = Array.from(container.querySelectorAll("img"));
-        await Promise.all(images.map(async (img) => {
-          const src = img.getAttribute("src") || "";
-          if (!src || src.startsWith("data:")) return;
-          try {
-            const res = await fetch(src, { mode: "cors", cache: "no-cache" });
-            const blob = await res.blob();
-            const dataUrl: string = await new Promise((resolve, reject) => {
-              const fr = new FileReader();
-              fr.onload = () => resolve(fr.result as string);
-              fr.onerror = reject;
-              fr.readAsDataURL(blob);
-            });
-            img.setAttribute("src", dataUrl);
-          } catch (err) {
-            console.warn("[autoSendRequisitionToGroup] falha ao inline imagem, removendo", src, err);
-            img.remove();
+      if (prebuiltFile) {
+        const path = `wapi-requisicoes/${type}/${Date.now()}-${sanitizeShareFileName(fileBaseName)}.png`;
+        const { error: upErr } = await supabase.storage.from("desvios").upload(path, prebuiltFile, { contentType: "image/png", upsert: true });
+        if (upErr) throw upErr;
+        const { data: urlData } = supabase.storage.from("desvios").getPublicUrl(path);
+        publicUrl = urlData?.publicUrl || "";
+      } else {
+        // Usa o mesmo fluxo do botão manual "PNG WhatsApp": renderiza o HTML real em PNG
+        const container = document.createElement("div");
+        container.style.position = "fixed";
+        container.style.left = "-9999px";
+        container.style.top = "0";
+        container.style.width = "800px";
+        container.style.background = "#fff";
+        container.innerHTML = htmlContent;
+        document.body.appendChild(container);
+        try {
+        const isMobileDevice = /Android|iPhone|iPad|iPod/i.test(navigator.userAgent);
+        const images = container.querySelectorAll("img");
+        await Promise.all(Array.from(images).map((img) => new Promise<void>((resolve) => {
+          if (img.complete) {
+            resolve();
+            return;
           }
-        }));
-        // Aguarda decode após troca de src
-        await Promise.all(Array.from(container.querySelectorAll("img")).map((img) => new Promise<void>((resolve) => {
-          if ((img as HTMLImageElement).complete) return resolve();
+
           img.onload = () => resolve();
           img.onerror = () => resolve();
         })));
@@ -967,12 +957,14 @@ export default function TrocaEpi() {
         let lastErr: unknown = null;
         for (let attempt = 1; attempt <= 3; attempt++) {
           try {
-            const canvas = await html2canvas(container, { scale: 2, useCORS: true, backgroundColor: "#ffffff" });
+            const canvas = await html2canvas(container, { scale: isMobileDevice ? 1.4 : 2, useCORS: true, backgroundColor: "#ffffff" });
             if (isCanvasLikelyBlank(canvas)) throw new Error("PNG gerado em branco; cancelando upload");
-            const blob: Blob = await new Promise((res, rej) => canvas.toBlob((b) => b ? res(b) : rej(new Error("blob falhou")), "image/png"));
-            if (blob.size < 20_000) throw new Error(`PNG inválido ou pequeno demais (${blob.size} bytes)`);
+            const dataUrl = canvas.toDataURL("image/png");
+            if (!dataUrl || dataUrl === "data:,") throw new Error("PNG vazio");
+            const file = dataUrlToFile(dataUrl, `${sanitizeShareFileName(fileBaseName)}.png`);
+            if (file.size < 20_000) throw new Error(`PNG inválido ou pequeno demais (${file.size} bytes)`);
             const path = `wapi-requisicoes/${type}/${Date.now()}-att${attempt}-${sanitizeShareFileName(fileBaseName)}.png`;
-            const { error: upErr } = await supabase.storage.from("desvios").upload(path, blob, { contentType: "image/png", upsert: true });
+            const { error: upErr } = await supabase.storage.from("desvios").upload(path, file, { contentType: "image/png", upsert: true });
             if (upErr) throw upErr;
             const { data: urlData } = supabase.storage.from("desvios").getPublicUrl(path);
             publicUrl = urlData?.publicUrl || "";
@@ -986,8 +978,9 @@ export default function TrocaEpi() {
         if (!publicUrl && lastErr) {
           console.warn("[autoSendRequisitionToGroup] imagem não gerada; seguirá como texto", lastErr);
         }
-      } finally {
-        if (container.parentNode) container.parentNode.removeChild(container);
+        } finally {
+          if (container.parentNode) container.parentNode.removeChild(container);
+        }
       }
       if (!publicUrl) {
         // Fallback: envia ao menos o texto ao grupo, para não perder a notificação
@@ -1038,12 +1031,13 @@ export default function TrocaEpi() {
       photo_urls: photoUrls,
     };
 
+    let savedExchange: EpiExchange;
     try {
       if (currentEditingExchange) {
         await restoreInventoryForExchange(currentEditingExchange);
-        await updateExchange.mutateAsync({ id: currentEditingExchange.id, ...exchangeData });
+        savedExchange = await updateExchange.mutateAsync({ id: currentEditingExchange.id, ...exchangeData });
       } else {
-        await createExchange.mutateAsync(exchangeData);
+        savedExchange = await createExchange.mutateAsync(exchangeData);
       }
     } catch (err) {
       console.error("Erro ao salvar troca de EPI:", err);
@@ -1129,11 +1123,8 @@ export default function TrocaEpi() {
 
     // Envio automático para grupo do WhatsApp (se ativado no painel admin)
     try {
-      const logoBase64 = await loadCachedLogoBase64().catch(() => "");
-      const fakeExchange = { ...exchangeData, id: "auto", created_at: new Date().toISOString(), created_by: user!.id } as unknown as EpiExchange;
-      const html = buildPdfHtml(fakeExchange, logoBase64);
-      const caption = buildExchangeShareDescription(fakeExchange);
-      await autoSendRequisitionToGroup("epi", html, caption, currentFuncionarioNome);
+      const payload = await buildExchangeSharePayload(savedExchange);
+      await autoSendRequisitionToGroup("epi", "", payload.description, currentFuncionarioNome, payload.file);
     } catch (e) {
       console.error("[TrocaEpi] auto send EPI prep failed", e);
       toast.error("Falha ao preparar envio ao grupo", { description: String((e as Error)?.message || e) });
