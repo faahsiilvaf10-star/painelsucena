@@ -823,6 +823,7 @@ const AdminWhatsApp = () => {
                 {autoSendReq ? "Ativo" : "Desativado"}
               </Badge>
             </div>
+            <GroupIdOverrideInput id="gid-requisitions" value={groupIdRequisitions} onChange={setGroupIdRequisitions} defaultGroupId={groupId} />
             <p className="text-xs text-muted-foreground mt-3">
               Requisitos: integração W-API habilitada e ID do grupo preenchido. Lembre-se de salvar a configuração após alterar este botão.
             </p>
@@ -861,6 +862,7 @@ const AdminWhatsApp = () => {
                 {autoSendReminders ? "Ativo" : "Desativado"}
               </Badge>
             </div>
+            <GroupIdOverrideInput id="gid-reminders" value={groupIdReminders} onChange={setGroupIdReminders} defaultGroupId={groupId} />
             <p className="text-xs text-muted-foreground mt-3">
               Requisitos: integração W-API habilitada, ID do grupo preenchido (para lembretes de "todos") e usuários com WhatsApp cadastrado (para envios privados). Lembre-se de salvar a configuração após alterar este botão.
             </p>
@@ -901,6 +903,7 @@ const AdminWhatsApp = () => {
                 </Button>
               </div>
             </div>
+            <GroupIdOverrideInput id="gid-aso" value={groupIdAso} onChange={setGroupIdAso} defaultGroupId={groupId} />
             <p className="text-xs text-muted-foreground mt-3">
               Requisitos: integração W-API habilitada e ID do grupo preenchido. O botão "Testar" envia o alerta imediatamente,
               ignorando o filtro de duplicidade.
@@ -944,6 +947,7 @@ const AdminWhatsApp = () => {
                 </Button>
               </div>
             </div>
+            <GroupIdOverrideInput id="gid-matrix" value={groupIdMatrix} onChange={setGroupIdMatrix} defaultGroupId={groupId} />
             <p className="text-xs text-muted-foreground mt-3">
               Requisitos: integração W-API habilitada e ID do grupo preenchido. O botão "Testar" envia a mensagem imediatamente.
             </p>
@@ -985,6 +989,7 @@ const AdminWhatsApp = () => {
                 </Button>
               </div>
             </div>
+            <GroupIdOverrideInput id="gid-forbidden" value={groupIdForbiddenColor} onChange={setGroupIdForbiddenColor} defaultGroupId={groupId} />
             <p className="text-xs text-muted-foreground mt-3">
               Requisitos: integração W-API habilitada e ID do grupo preenchido. O botão "Testar" envia a mensagem imediatamente,
               ignorando a regra de "somente no dia 1º".
@@ -1027,6 +1032,7 @@ const AdminWhatsApp = () => {
                 </Button>
               </div>
             </div>
+            <GroupIdOverrideInput id="gid-campaign" value={groupIdCampaign} onChange={setGroupIdCampaign} defaultGroupId={groupId} />
             <p className="text-xs text-muted-foreground mt-3">
               Requisitos: integração W-API habilitada, ID do grupo preenchido e banner do mês carregado em
               <code className="mx-1 px-1 rounded bg-muted">announcements/campaign-banners/campanha-{`{mês}`}.png</code>.
@@ -1099,6 +1105,7 @@ const AdminWhatsApp = () => {
                 {autoSendEquipmentMovements ? "Ativo" : "Desativado"}
               </Badge>
             </div>
+            <GroupIdOverrideInput id="gid-equipment" value={groupIdEquipmentMovements} onChange={setGroupIdEquipmentMovements} defaultGroupId={groupId} />
             <p className="text-xs text-muted-foreground mt-3">
               Requisitos: integração W-API habilitada e <strong>ID do grupo</strong> preenchido. Cada movimentação registrada
               dispara um envio imediato.
@@ -1141,6 +1148,7 @@ const AdminWhatsApp = () => {
                 </Button>
               </div>
             </div>
+            <GroupIdOverrideInput id="gid-planning" value={groupIdPlanning} onChange={setGroupIdPlanning} defaultGroupId={groupId} />
             <p className="text-xs text-muted-foreground mt-3">
               Requisitos: integração W-API habilitada e <strong>ID do grupo</strong> preenchido. O botão "Testar Resumo"
               envia o resumo mensal imediatamente, ignorando a regra do dia 16.
@@ -1184,6 +1192,7 @@ const AdminWhatsApp = () => {
                 </Button>
               </div>
             </div>
+            <GroupIdOverrideInput id="gid-billing" value={groupIdBilling} onChange={setGroupIdBilling} defaultGroupId={groupId} />
             <p className="text-xs text-muted-foreground mt-3">
               Requisitos: integração W-API habilitada e <strong>ID do grupo</strong> preenchido. O botão "Testar" envia
               a cobrança imediatamente, ignorando a regra do dia 25/09:00h. Lembre-se de salvar após alterar este botão.
@@ -1227,6 +1236,7 @@ const AdminWhatsApp = () => {
                 </Button>
               </div>
             </div>
+            <GroupIdOverrideInput id="gid-vehicle" value={groupIdVehicleInspection} onChange={setGroupIdVehicleInspection} defaultGroupId={groupId} />
             <p className="text-xs text-muted-foreground mt-3">
               Requisitos: integração W-API habilitada e <strong>ID do grupo</strong> preenchido. O botão "Testar" envia
               imediatamente os alertas para itens vencendo em exatamente 10 dias, ignorando a duplicidade. Lembre-se de
@@ -1270,6 +1280,7 @@ const AdminWhatsApp = () => {
                 </Button>
               </div>
             </div>
+            <GroupIdOverrideInput id="gid-sling" value={groupIdSlingInspection} onChange={setGroupIdSlingInspection} defaultGroupId={groupId} />
             <p className="text-xs text-muted-foreground mt-3">
               Requisitos: integração W-API habilitada e <strong>ID do grupo</strong> preenchido. O botão "Testar"
               envia imediatamente a lista de cintas pendentes da cor do mês, ignorando a janela de dias/horário.
