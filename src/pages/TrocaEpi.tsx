@@ -302,12 +302,19 @@ function getExchangeShareKey(exchange: EpiExchange) {
     id: exchange.id,
     created_at: exchange.created_at,
     data: exchange.data,
+    autorizado_por: exchange.autorizado_por,
+    matricula_autorizador: exchange.matricula_autorizador,
+    motivo_troca: exchange.motivo_troca,
     funcionario_nome: exchange.funcionario_nome,
+    funcionario_funcao: exchange.funcionario_funcao,
+    funcionario_matricula: exchange.funcionario_matricula,
     epis: exchange.epis,
     uniforme_blusa_tamanho: exchange.uniforme_blusa_tamanho,
     uniforme_blusa_quantidade: exchange.uniforme_blusa_quantidade,
     uniforme_calca_tamanho: exchange.uniforme_calca_tamanho,
     uniforme_calca_quantidade: exchange.uniforme_calca_quantidade,
+    assinatura_funcionario: exchange.assinatura_funcionario,
+    assinatura_autorizador: exchange.assinatura_autorizador,
   });
 }
 
