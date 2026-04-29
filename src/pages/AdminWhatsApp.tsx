@@ -158,6 +158,8 @@ const AdminWhatsApp = () => {
       setAutoSendSlingInspectionAlert(!!cfg.auto_send_sling_inspection_alert);
       setAutoSendPosChuva(!!(c.auto_send_pos_chuva as boolean | null));
       setGroupIdPosChuva((c.group_id_pos_chuva as string | null) || "");
+      setAutoSendDdsPhoto(!!(c.auto_send_dds_photo as boolean | null));
+      setGroupIdDds((c.group_id_dds as string | null) || "");
     }
   }, [cfg]);
 
