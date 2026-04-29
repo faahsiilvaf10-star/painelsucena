@@ -1450,6 +1450,43 @@ const AdminWhatsApp = () => {
 
         <Card>
           <CardHeader>
+            <CardTitle className="flex items-center gap-2">
+              <Send className="w-5 h-5 text-primary" />
+              Envio Automático de Desvios
+            </CardTitle>
+            <CardDescription>
+              Quando habilitado, ao <strong>registrar um Desvio</strong> o sistema envia automaticamente
+              para o <strong>grupo configurado</strong> a <strong>foto anexada</strong> junto com a
+              <strong> descrição completa</strong> (responsáveis, prazo, itens e quem registrou),
+              respeitando o intervalo de segurança configurado.
+            </CardDescription>
+          </CardHeader>
+          <CardContent>
+            <div className="flex items-center justify-between gap-3 rounded-md border p-3 bg-muted/30">
+              <div className="flex items-center gap-3">
+                <Switch
+                  id="auto-send-desvios"
+                  checked={autoSendDesvios}
+                  onCheckedChange={setAutoSendDesvios}
+                />
+                <Label htmlFor="auto-send-desvios" className="cursor-pointer">
+                  Ativar envio automático ao registrar um Desvio
+                </Label>
+              </div>
+              <Badge variant={autoSendDesvios ? "default" : "secondary"}>
+                {autoSendDesvios ? "Ativo" : "Desativado"}
+              </Badge>
+            </div>
+            <GroupIdOverrideInput id="gid-desvios" value={groupIdDesvios} onChange={setGroupIdDesvios} defaultGroupId={groupId} />
+            <p className="text-xs text-muted-foreground mt-3">
+              Requisitos: integração W-API habilitada e <strong>ID do grupo</strong> preenchido (use o campo acima
+              para enviar para um grupo diferente do padrão). Lembre-se de salvar a configuração após alterar este botão.
+            </p>
+          </CardContent>
+        </Card>
+
+        <Card>
+          <CardHeader>
             <CardTitle>Envio de Mensagem</CardTitle>
             <CardDescription>Selecione os usuários e escreva a mensagem. Apenas usuários com WhatsApp cadastrado aparecem.</CardDescription>
           </CardHeader>
