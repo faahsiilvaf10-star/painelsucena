@@ -508,6 +508,9 @@ ${difficulties}`;
         ddsTextToSave = `${presenterName} - ${dateDDS.theme || "Tema a definir"}`;
       }
 
+      // Persiste a temperatura capturada (preferindo o valor atual/congelado de hoje, com fallback ao já salvo)
+      const tempToSave = isToday ? (frozenTemp ?? currentTemp ?? savedTemp) : savedTemp;
+
       await saveReport.mutateAsync({
         report_date: selectedDateStr,
         weather_morning: weatherMorning,
@@ -516,6 +519,10 @@ ${difficulties}`;
         photo_urls: photos,
         report_text: generateReport(),
         dds_text: ddsTextToSave,
+        temperature: tempToSave?.temperature ?? null,
+        apparent_temp: tempToSave?.apparentTemp ?? null,
+        humidity: tempToSave?.humidity ?? null,
+        temperature_captured_at: tempToSave?.fetchedAt ?? null,
       });
       
       // Lock the report after saving
