@@ -257,6 +257,8 @@ const AdminWhatsApp = () => {
         group_id_pos_chuva: groupIdPosChuva.trim() || null,
         auto_send_dds_photo: autoSendDdsPhoto,
         group_id_dds: groupIdDds.trim() || null,
+        auto_send_attendance: autoSendAttendance,
+        group_id_attendance: groupIdAttendance.trim() || null,
         updated_by: user?.id ?? null,
       };
       if (cfg?.id) {
