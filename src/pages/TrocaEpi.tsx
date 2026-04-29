@@ -918,9 +918,29 @@ export default function TrocaEpi() {
       document.body.appendChild(container);
       let publicUrl = "";
       try {
-        const images = container.querySelectorAll("img");
-        await Promise.all(Array.from(images).map((img) => new Promise<void>((resolve) => {
-          if (img.complete) return resolve();
+        // Converte TODAS as <img> remotas para dataURL para evitar tainted canvas (sem depender de CORS)
+        const images = Array.from(container.querySelectorAll("img"));
+        await Promise.all(images.map(async (img) => {
+          const src = img.getAttribute("src") || "";
+          if (!src || src.startsWith("data:")) return;
+          try {
+            const res = await fetch(src, { mode: "cors", cache: "no-cache" });
+            const blob = await res.blob();
+            const dataUrl: string = await new Promise((resolve, reject) => {
+              const fr = new FileReader();
+              fr.onload = () => resolve(fr.result as string);
+              fr.onerror = reject;
+              fr.readAsDataURL(blob);
+            });
+            img.setAttribute("src", dataUrl);
+          } catch (err) {
+            console.warn("[autoSendRequisitionToGroup] falha ao inline imagem, removendo", src, err);
+            img.remove();
+          }
+        }));
+        // Aguarda decode após troca de src
+        await Promise.all(Array.from(container.querySelectorAll("img")).map((img) => new Promise<void>((resolve) => {
+          if ((img as HTMLImageElement).complete) return resolve();
           img.onload = () => resolve();
           img.onerror = () => resolve();
         })));
