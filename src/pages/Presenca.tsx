@@ -390,6 +390,14 @@ const Presenca = () => {
       });
       await lockMutation.mutateAsync(activeArea);
       toast.success("Lista salva e enviada para o RDO");
+      // Envio automático ao grupo W-API (se habilitado em /admin/whatsapp)
+      try {
+        await supabase.functions.invoke("wapi-attendance-notify", {
+          body: { caption: reportText, area: activeArea },
+        });
+      } catch (err) {
+        console.warn("[wapi-attendance-notify] falha no envio automático:", err);
+      }
     } catch {
       toast.error("Erro ao salvar");
     }
