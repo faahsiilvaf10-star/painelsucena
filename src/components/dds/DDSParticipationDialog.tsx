@@ -259,14 +259,25 @@ export const DDSParticipationDialog = ({ open, onOpenChange, date }: Props) => {
       if (uploadErr) throw uploadErr;
       const { data: urlData } = supabase.storage.from("site-assets").getPublicUrl(path);
 
+      const ddsCaption = `📋 Lista de Presença DDS - ${formattedDate}${envLabel ? `\n📍 Local: ${envLabel}` : ""}\n✅ ${presentList.length} presentes | ❌ ${absentList.length} ausentes | Total: ${sortedEntries.length}\n🚫 Cor Proibida do Mês: ${forbiddenColor.name}`;
+
       await supabase.from("instacena_posts").insert({
         user_id: user.id,
         user_name: profile.full_name || "Sistema",
         user_avatar_url: profile.avatar_url,
-        content: `📋 Lista de Presença DDS - ${formattedDate}${envLabel ? `\n📍 Local: ${envLabel}` : ""}\n✅ ${presentList.length} presentes | ❌ ${absentList.length} ausentes | Total: ${sortedEntries.length}\n🚫 Cor Proibida do Mês: ${forbiddenColor.name}`,
+        content: ddsCaption,
         image_urls: [urlData.publicUrl],
         is_system_post: false,
       });
+
+      // Envio automático ao grupo do WhatsApp (se ativado no painel admin)
+      try {
+        await supabase.functions.invoke("wapi-dds-photo-notify", {
+          body: { caption: ddsCaption, image_url: urlData.publicUrl },
+        });
+      } catch (waErr) {
+        console.warn("[DDS] envio WhatsApp falhou (silencioso)", waErr);
+      }
     } catch (err) {
       console.error("Erro ao postar no InstaCena:", err);
     }
