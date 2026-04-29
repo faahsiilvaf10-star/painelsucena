@@ -251,27 +251,52 @@ function buildExchangeShareDescription(exchange: EpiExchange) {
     })
     .join(", ");
 
-  let description = `Troca de EPI - ${exchange.funcionario_nome}`;
+  const dataFormatada = (() => {
+    try {
+      return format(new Date(`${exchange.data}T12:00:00`), "dd/MM/yyyy", { locale: ptBR });
+    } catch {
+      return exchange.data;
+    }
+  })();
+
+  const lines: string[] = [];
+  lines.push(`🦺 *TROCA DE EPI*`);
+  lines.push("");
+  lines.push(`📅 *Data:* ${dataFormatada}`);
+  lines.push(`👤 *Funcionário:* ${exchange.funcionario_nome}`);
+  if (exchange.funcionario_funcao) lines.push(`💼 *Função:* ${exchange.funcionario_funcao}`);
+  if (exchange.funcionario_matricula) lines.push(`🆔 *Matrícula:* ${exchange.funcionario_matricula}`);
+  if (exchange.motivo_troca) lines.push(`📝 *Motivo:* ${exchange.motivo_troca}`);
+  lines.push(`✅ *Autorizado por:* ${exchange.autorizado_por}${exchange.matricula_autorizador ? ` (${exchange.matricula_autorizador})` : ""}`);
 
   if (episList) {
-    description += `\nItens: ${episList}`;
+    lines.push("");
+    lines.push(`*Itens:*`);
+    (exchange.epis || []).forEach((e: any) => {
+      const epiId = typeof e === "string" ? e : e.id;
+      const epiQty = typeof e === "object" && e.qty ? Number(e.qty) : 1;
+      const epiValue = typeof e === "object" ? e.value : undefined;
+      const isOutros = epiId === "outros" || epiId.startsWith("outros_");
+      const epiItem = isOutros ? EPI_ITEMS.find((item) => item.id === "outros") : EPI_ITEMS.find((item) => item.id === epiId);
+      const name = isOutros && epiValue ? epiValue : (epiItem?.label || epiId);
+      lines.push(`• ${name} (${epiQty})`);
+    });
   }
 
   const uniformeParts: string[] = [];
-
   if (exchange.uniforme_blusa_quantidade && exchange.uniforme_blusa_quantidade > 0) {
-    uniformeParts.push(`Camisa: ${exchange.uniforme_blusa_tamanho || "N/I"} (${exchange.uniforme_blusa_quantidade})`);
+    uniformeParts.push(`Camisa ${exchange.uniforme_blusa_tamanho || "N/I"} (${exchange.uniforme_blusa_quantidade})`);
   }
-
   if (exchange.uniforme_calca_quantidade && exchange.uniforme_calca_quantidade > 0) {
-    uniformeParts.push(`Calça: ${exchange.uniforme_calca_tamanho || "N/I"} (${exchange.uniforme_calca_quantidade})`);
+    uniformeParts.push(`Calça ${exchange.uniforme_calca_tamanho || "N/I"} (${exchange.uniforme_calca_quantidade})`);
   }
-
   if (uniformeParts.length > 0) {
-    description += `\nUniforme: ${uniformeParts.join(", ")}`;
+    lines.push("");
+    lines.push(`*Uniforme:*`);
+    uniformeParts.forEach((u) => lines.push(`• ${u}`));
   }
 
-  return description;
+  return lines.join("\n");
 }
 
 function getExchangeDocumentItems(exchange: EpiExchange): Array<{ name: string; qty: number }> {
@@ -1214,7 +1239,22 @@ export default function TrocaEpi() {
       const logoBase64 = await loadCachedLogoBase64();
       const html = buildMaterialPdfHtml(savedRequisition, logoBase64);
       const itensTxt = currentItems.map((m) => `• ${m.name} (${m.qty})`).join("\n");
-      const caption = `📦 Requisição de Material\nFuncionário: ${currentFuncNome}\nÁrea: ${matAreaDestino}\nMotivo: ${matMotivo}\n\nItens:\n${itensTxt}`;
+      const dataFmt = (() => { try { return format(new Date(`${savedRequisition.data}T12:00:00`), "dd/MM/yyyy", { locale: ptBR }); } catch { return savedRequisition.data; } })();
+      const captionLines = [
+        `📦 *REQUISIÇÃO DE MATERIAL*`,
+        ``,
+        `📅 *Data:* ${dataFmt}`,
+        `👤 *Funcionário:* ${currentFuncNome}`,
+      ];
+      if (matFuncionarioFuncao) captionLines.push(`💼 *Função:* ${matFuncionarioFuncao}`);
+      if (matFuncionarioMatricula) captionLines.push(`🆔 *Matrícula:* ${matFuncionarioMatricula}`);
+      captionLines.push(`📍 *Área de destino:* ${matAreaDestino}`);
+      captionLines.push(`📝 *Motivo:* ${matMotivo}`);
+      captionLines.push(`✅ *Autorizado por:* ${matAutorizadoPor}${matMatriculaAutorizador ? ` (${matMatriculaAutorizador})` : ""}`);
+      captionLines.push(``);
+      captionLines.push(`*Itens:*`);
+      captionLines.push(itensTxt);
+      const caption = captionLines.join("\n");
       await autoSendRequisitionToGroup("material", html, caption, currentFuncNome);
     } catch (e) { console.warn("auto send Material prep failed", e); toast.error("Falha ao preparar envio Material", { description: String((e as Error)?.message || e) }); }
 
