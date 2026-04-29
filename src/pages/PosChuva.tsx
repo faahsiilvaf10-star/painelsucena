@@ -26,6 +26,7 @@ import {
 } from "@/hooks/usePosChuva";
 import { SignatureDialog as EpiSignatureDialog } from "@/components/epi/SignatureDialog";
 import { triggerBlobDownload } from "@/lib/pdfDownload";
+import { supabase } from "@/integrations/supabase/client";
 
 // Signature dialog for pos-chuva (encarregado + tecnico)
 function PosChuvaSignatureDialog({
