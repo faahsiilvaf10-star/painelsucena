@@ -205,6 +205,17 @@ const AdminWhatsApp = () => {
         auto_send_billing_alert: autoSendBillingAlert,
         auto_send_vehicle_inspection_alert: autoSendVehicleInspectionAlert,
         auto_send_sling_inspection_alert: autoSendSlingInspectionAlert,
+        group_id_requisitions: groupIdRequisitions.trim() || null,
+        group_id_reminders: groupIdReminders.trim() || null,
+        group_id_aso: groupIdAso.trim() || null,
+        group_id_matrix: groupIdMatrix.trim() || null,
+        group_id_forbidden_color: groupIdForbiddenColor.trim() || null,
+        group_id_campaign: groupIdCampaign.trim() || null,
+        group_id_equipment_movements: groupIdEquipmentMovements.trim() || null,
+        group_id_planning: groupIdPlanning.trim() || null,
+        group_id_billing: groupIdBilling.trim() || null,
+        group_id_vehicle_inspection: groupIdVehicleInspection.trim() || null,
+        group_id_sling_inspection: groupIdSlingInspection.trim() || null,
         updated_by: user?.id ?? null,
       };
       if (cfg?.id) {
