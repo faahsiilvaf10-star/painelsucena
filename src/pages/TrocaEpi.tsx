@@ -350,69 +350,24 @@ function buildPdfHtml(exchange: EpiExchange, logoBase64: string): string {
 }
 
 function buildMaterialPdfHtml(req: MaterialRequisition, logoBase64: string): string {
-  const sigFunc = req.assinatura_funcionario || '';
-  const sigAuth = req.assinatura_autorizador || '';
   const materiais = req.materiais || [];
 
-  const materiaisRows = materiais.map(m => 
-    `<tr>
-      <td style="border:1px solid #ccc;padding:4px 8px;font-size:11px;">${m.name}</td>
-      <td style="border:1px solid #ccc;padding:4px 8px;font-size:11px;text-align:center;">${m.qty}</td>
-    </tr>`
-  ).join('');
-
-  return `
-    <div style="font-family:Arial,sans-serif;font-size:12px;color:#1a1a1a;border:2px solid #333;padding:15px;background:#fff;">
-      <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:10px;border-bottom:2px solid #333;padding-bottom:10px;">
-        ${logoBase64 ? `<img src="${logoBase64}" style="max-height:55px;" />` : '<div></div>'}
-        <div style="text-align:right;font-size:10px;color:#666;">
-          <div>CONTRATO: 4600012690</div>
-        </div>
-      </div>
-      <div style="text-align:center;font-size:16px;font-weight:bold;margin-bottom:12px;text-transform:uppercase;">Requisição de Material</div>
-
-      <div style="display:flex;gap:10px;margin-bottom:8px;">
-        <div style="flex:1;border-bottom:1px solid #999;padding:4px 2px;"><span style="font-weight:bold;">DATA:</span> ${format(new Date(req.data + 'T12:00:00'), "dd/MM/yyyy")}</div>
-        <div style="flex:1;border-bottom:1px solid #999;padding:4px 2px;"><span style="font-weight:bold;">ÁREA DESTINO:</span> ${req.area_destino}</div>
-      </div>
-      <div style="display:flex;gap:10px;margin-bottom:8px;">
-        <div style="flex:1;border-bottom:1px solid #999;padding:4px 2px;"><span style="font-weight:bold;">AUTORIZADO POR:</span> ${req.autorizado_por}</div>
-        <div style="flex:1;border-bottom:1px solid #999;padding:4px 2px;"><span style="font-weight:bold;">MATRÍCULA:</span> ${req.matricula_autorizador || ''}</div>
-      </div>
-      <div style="display:flex;gap:10px;margin-bottom:8px;">
-        <div style="flex:2;border-bottom:1px solid #999;padding:4px 2px;"><span style="font-weight:bold;">MOTIVO:</span> ${req.motivo}</div>
-      </div>
-      <div style="display:flex;gap:10px;margin-bottom:8px;">
-        <div style="flex:1;border-bottom:1px solid #999;padding:4px 2px;"><span style="font-weight:bold;">FUNCIONÁRIO(A):</span> ${req.funcionario_nome}</div>
-      </div>
-      <div style="display:flex;gap:10px;margin-bottom:8px;">
-        <div style="flex:1;border-bottom:1px solid #999;padding:4px 2px;"><span style="font-weight:bold;">FUNÇÃO:</span> ${req.funcionario_funcao || ''}</div>
-        <div style="flex:1;border-bottom:1px solid #999;padding:4px 2px;"><span style="font-weight:bold;">MATRÍCULA:</span> ${req.funcionario_matricula || ''}</div>
-      </div>
-
-      <div style="font-weight:bold;font-size:13px;background:#e5e7eb;padding:4px 8px;margin:12px 0 8px;">MATERIAIS</div>
-      <table style="width:100%;border-collapse:collapse;margin-bottom:12px;">
-        <thead>
-          <tr>
-            <th style="border:1px solid #ccc;padding:4px 8px;font-size:11px;text-align:left;background:#f3f4f6;">Material</th>
-            <th style="border:1px solid #ccc;padding:4px 8px;font-size:11px;text-align:center;background:#f3f4f6;">Qtd</th>
-          </tr>
-        </thead>
-        <tbody>${materiaisRows}</tbody>
-      </table>
-
-      <div style="display:flex;justify-content:space-between;margin-top:30px;">
-        <div style="text-align:center;width:45%;">
-          ${sigAuth ? `<img src="${sigAuth}" style="display:block;margin:0 auto;max-height:60px;" />` : '<div style="min-height:55px;"></div>'}
-          <div style="border-top:1px solid #333;margin-top:0;padding-top:4px;font-size:11px;">ASSINATURA DO AUTORIZADOR</div>
-        </div>
-        <div style="text-align:center;width:45%;">
-          ${sigFunc ? `<img src="${sigFunc}" style="display:block;margin:0 auto;max-height:60px;" />` : '<div style="min-height:55px;"></div>'}
-          <div style="border-top:1px solid #333;margin-top:0;padding-top:4px;font-size:11px;">ASSINATURA DO FUNCIONÁRIO</div>
-        </div>
-      </div>
-    </div>
-  `;
+  return buildFormalRequisitionHtml({
+    title: "Requisição de Material",
+    sectionTitle: "MATERIAIS",
+    logoBase64,
+    date: req.data,
+    areaDestino: req.area_destino,
+    autorizadoPor: req.autorizado_por,
+    matriculaAutorizador: req.matricula_autorizador,
+    motivo: req.motivo,
+    funcionarioNome: req.funcionario_nome,
+    funcionarioFuncao: req.funcionario_funcao,
+    funcionarioMatricula: req.funcionario_matricula,
+    items: materiais.map((m) => ({ name: m.name, qty: m.qty })),
+    assinaturaFuncionario: req.assinatura_funcionario,
+    assinaturaAutorizador: req.assinatura_autorizador,
+  });
 }
 
 async function generatePdf(exchange: EpiExchange, logoBase64: string) {
