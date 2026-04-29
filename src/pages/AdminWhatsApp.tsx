@@ -162,6 +162,8 @@ const AdminWhatsApp = () => {
       setGroupIdPosChuva((c.group_id_pos_chuva as string | null) || "");
       setAutoSendDdsPhoto(!!(c.auto_send_dds_photo as boolean | null));
       setGroupIdDds((c.group_id_dds as string | null) || "");
+      setAutoSendAttendance(!!(c.auto_send_attendance as boolean | null));
+      setGroupIdAttendance((c.group_id_attendance as string | null) || "");
     }
   }, [cfg]);
 
