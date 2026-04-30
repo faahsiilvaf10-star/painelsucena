@@ -22,7 +22,9 @@ export const ScreensaverClock = () => {
       clearTimeout(timeoutRef.current);
       if (settings.screensaver_enabled) {
         if (settings.screensaver_timeout === 0) {
-          setIsActive(true);
+          // Quando definido como "Imediatamente" (0), após o usuário interagir para remover
+          // o protetor, ele só voltará a aparecer após 5 minutos de inatividade.
+          timeoutRef.current = setTimeout(() => setIsActive(true), 5 * 60 * 1000);
         } else {
           timeoutRef.current = setTimeout(() => setIsActive(true), timeoutMs);
         }
