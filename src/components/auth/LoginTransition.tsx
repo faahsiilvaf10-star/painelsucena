@@ -65,14 +65,14 @@ export function LoginTransition({ onComplete, userName, userAvatar, userCargo }:
 
   useEffect(() => {
     const t1 = setTimeout(() => setPhase("logo"), 300);
-    const t2 = setTimeout(() => setPhase("building"), 1500);
-    const t3 = setTimeout(() => setPhase("welcome"), 4500);
-    const t4 = setTimeout(() => setPhase("fade"), 7500);
+    const t2 = setTimeout(() => setPhase("building"), 3500); // Logo fica por 3.2 segundos (antes era 1.2s)
+    const t3 = setTimeout(() => setPhase("welcome"), 6500);
+    const t4 = setTimeout(() => setPhase("fade"), 9500);
     const t5 = setTimeout(() => {
       setPhase("done");
       visualDoneRef.current = true;
       tryFinish();
-    }, 8300);
+    }, 10300);
 
     return () => {
       clearTimeout(t1);
