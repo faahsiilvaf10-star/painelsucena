@@ -711,7 +711,7 @@ export default function PosChuva() {
                 <Card key={ins.id} className="cursor-pointer hover:shadow-md transition-shadow" onClick={() => { setSelectedInspection(ins); setDetailOpen(true); }}>
                   <CardContent className="p-3 flex items-center justify-between">
                     <div>
-                      <p className="font-medium text-sm">{format(new Date(ins.data), "dd/MM/yyyy")}</p>
+                      <p className="font-medium text-sm">{ins.data ? format(new Date(ins.data + "T12:00:00"), "dd/MM/yyyy") : "-"}</p>
                       <p className="text-xs text-muted-foreground">{ins.responsavel || "Sem responsável"} - {ins.local_inspecao || "Sem local"}</p>
                     </div>
                     <Button size="sm" variant="outline" className="gap-1" onClick={(e) => { e.stopPropagation(); generatePdf(ins); }}>
