@@ -3159,6 +3159,8 @@ export type Database = {
           avaliacao_3_sig_encarregado: string | null
           avaliacao_3_sig_tecnico: string | null
           checklist: Json
+          chuva_fim: string | null
+          chuva_inicio: string | null
           created_at: string
           created_by: string
           data: string
@@ -3187,6 +3189,8 @@ export type Database = {
           avaliacao_3_sig_encarregado?: string | null
           avaliacao_3_sig_tecnico?: string | null
           checklist?: Json
+          chuva_fim?: string | null
+          chuva_inicio?: string | null
           created_at?: string
           created_by: string
           data?: string
@@ -3215,6 +3219,8 @@ export type Database = {
           avaliacao_3_sig_encarregado?: string | null
           avaliacao_3_sig_tecnico?: string | null
           checklist?: Json
+          chuva_fim?: string | null
+          chuva_inicio?: string | null
           created_at?: string
           created_by?: string
           data?: string

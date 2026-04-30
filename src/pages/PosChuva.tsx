@@ -74,6 +74,8 @@ export default function PosChuva() {
   const [checklist, setChecklist] = useState<ChecklistItem[]>(initialChecklist());
   const [planoAcao, setPlanoAcao] = useState<PlanoAcaoItem[]>([emptyPlanoAcao()]);
   const [observacoes, setObservacoes] = useState("");
+  const [chuvaInicio, setChuvaInicio] = useState("");
+  const [chuvaFim, setChuvaFim] = useState("");
 
   // Signatures state
   const [sigDialogOpen, setSigDialogOpen] = useState(false);
@@ -186,6 +188,8 @@ export default function PosChuva() {
                 <td style="padding:4px 6px;font-weight:bold;">Local:</td><td style="padding:4px 6px;">${escapeHtml(payload.local_inspecao || "")}</td></tr>
             <tr><td style="padding:4px 6px;font-weight:bold;">Responsável:</td><td style="padding:4px 6px;">${escapeHtml(payload.responsavel || "")}</td>
                 <td style="padding:4px 6px;font-weight:bold;">Atividade:</td><td style="padding:4px 6px;">${escapeHtml(payload.atividade || "")}</td></tr>
+            <tr><td style="padding:4px 6px;font-weight:bold;">Início chuva:</td><td style="padding:4px 6px;">${escapeHtml(payload.chuva_inicio || "-")}</td>
+                <td style="padding:4px 6px;font-weight:bold;">Fim chuva:</td><td style="padding:4px 6px;">${escapeHtml(payload.chuva_fim || "-")}</td></tr>
           </table>
 
           <div style="font-weight:bold;font-size:13px;margin:8px 0 4px;">Lista de Verificação</div>
@@ -328,6 +332,7 @@ export default function PosChuva() {
         `📍 Local: ${payload.local_inspecao || "-"}`,
         `🛠️ Atividade: ${payload.atividade || "-"}`,
         `👤 Responsável: ${payload.responsavel || "-"}`,
+        (payload.chuva_inicio || payload.chuva_fim) ? `🌧️ Chuva: ${payload.chuva_inicio || "-"} às ${payload.chuva_fim || "-"}` : "",
         `✅ Itens conformes: ${cl.filter((c) => c.resposta === "C").length}`,
         `⚠️ Não conformes: ${ncCount}`,
         `➖ Não aplicáveis: ${cl.filter((c) => c.resposta === "NA").length}`,
@@ -383,6 +388,8 @@ export default function PosChuva() {
       avaliacao_3_sig_encarregado: aval3.sigEnc || null,
       avaliacao_3_sig_tecnico: aval3.sigTec || null,
       observacoes: observacoes || null,
+      chuva_inicio: chuvaInicio || null,
+      chuva_fim: chuvaFim || null,
     };
 
     try {
@@ -406,6 +413,8 @@ export default function PosChuva() {
     setChecklist(initialChecklist());
     setPlanoAcao([emptyPlanoAcao()]);
     setObservacoes("");
+    setChuvaInicio("");
+    setChuvaFim("");
     setAval1({ data: "", horario: "", sigEnc: "", sigTec: "" });
     setAval2({ data: "", horario: "", sigEnc: "", sigTec: "" });
     setAval3({ data: "", horario: "", sigEnc: "", sigTec: "" });
@@ -465,6 +474,7 @@ export default function PosChuva() {
         ["Projeto:", inspection.projeto || "", "Nº Contrato:", "4600012690"],
         ["Responsável:", inspection.responsavel || "", "Local:", inspection.local_inspecao || ""],
         ["Atividade:", inspection.atividade || "", "", ""],
+        ["Início chuva:", inspection.chuva_inicio || "-", "Fim chuva:", inspection.chuva_fim || "-"],
       ],
     });
     y = (pdf as any).lastAutoTable.finalY + 5;
@@ -598,6 +608,8 @@ export default function PosChuva() {
                   <div><Label>Responsável</Label><Input value={responsavel} onChange={(e) => setResponsavel(e.target.value)} /></div>
                   <div><Label>Local</Label><Input value={localInspecao} onChange={(e) => setLocalInspecao(e.target.value)} /></div>
                   <div className="sm:col-span-2"><Label>Atividade</Label><Input value={atividade} onChange={(e) => setAtividade(e.target.value)} /></div>
+                  <div><Label>Horário Início da Chuva</Label><Input type="time" value={chuvaInicio} onChange={(e) => setChuvaInicio(e.target.value)} /></div>
+                  <div><Label>Horário Fim da Chuva</Label><Input type="time" value={chuvaFim} onChange={(e) => setChuvaFim(e.target.value)} /></div>
                 </div>
               </CardContent>
             </Card>
