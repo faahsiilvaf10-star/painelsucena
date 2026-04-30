@@ -21,6 +21,7 @@ import {
   CHECKLIST_PERGUNTAS,
   usePosChuvaInspections,
   useCreatePosChuva,
+  useDeletePosChuva,
   type ChecklistItem,
   type PlanoAcaoItem,
   type PosChuvaInspection,
