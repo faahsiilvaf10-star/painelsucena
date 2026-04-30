@@ -1384,6 +1384,7 @@ html, body {
   height: var(--btn-opened-height);
   transform: rotateX(180deg);
   z-index: 50;
+}
 
 /* Screensaver Clock */
 #watch {
