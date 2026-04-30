@@ -10,7 +10,7 @@ import { RadioGroup, RadioGroupItem } from "@/components/ui/radio-group";
 import { Separator } from "@/components/ui/separator";
 import { Badge } from "@/components/ui/badge";
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/components/ui/dialog";
-import { Download, Save, History, Plus, Trash2, CloudRain, Check, FileText } from "lucide-react";
+import { Download, Save, History, Plus, Trash2, CloudRain, Check, FileText, Send, Loader2 } from "lucide-react";
 import { toast } from "sonner";
 import { format } from "date-fns";
 import { ptBR } from "date-fns/locale";
@@ -85,6 +85,18 @@ export default function PosChuva() {
   // History detail
   const [detailOpen, setDetailOpen] = useState(false);
   const [selectedInspection, setSelectedInspection] = useState<PosChuvaInspection | null>(null);
+  const [resendingId, setResendingId] = useState<string | null>(null);
+
+  const handleResendToGroup = async (ins: PosChuvaInspection) => {
+    if (resendingId) return;
+    setResendingId(ins.id);
+    try {
+      toast.info("Gerando imagem e enviando ao grupo...");
+      await sendPosChuvaToWhatsApp(ins);
+    } finally {
+      setResendingId(null);
+    }
+  };
 
   const handleChecklistChange = (index: number, value: "C" | "NC" | "NA") => {
     setChecklist((prev) => prev.map((item, i) => (i === index ? { ...item, resposta: value } : item)));
@@ -702,14 +714,29 @@ export default function PosChuva() {
               {!isLoading && inspections.length === 0 && <p className="text-sm text-muted-foreground">Nenhuma inspeção registrada.</p>}
               {inspections.map((ins) => (
                 <Card key={ins.id} className="cursor-pointer hover:shadow-md transition-shadow" onClick={() => { setSelectedInspection(ins); setDetailOpen(true); }}>
-                  <CardContent className="p-3 flex items-center justify-between">
-                    <div>
+                  <CardContent className="p-3 flex items-center justify-between gap-2">
+                    <div className="min-w-0 flex-1">
                       <p className="font-medium text-sm">{ins.data ? format(new Date(ins.data + "T12:00:00"), "dd/MM/yyyy") : "-"}</p>
-                      <p className="text-xs text-muted-foreground">{ins.responsavel || "Sem responsável"} - {ins.local_inspecao || "Sem local"}</p>
+                      <p className="text-xs text-muted-foreground truncate">{ins.responsavel || "Sem responsável"} - {ins.local_inspecao || "Sem local"}</p>
                     </div>
-                    <Button size="sm" variant="outline" className="gap-1" onClick={(e) => { e.stopPropagation(); generatePdf(ins); }}>
-                      <Download className="h-3 w-3" /> PDF
-                    </Button>
+                    <div className="flex items-center gap-2 shrink-0">
+                      <Button
+                        size="sm"
+                        variant="outline"
+                        className="gap-1"
+                        title="Reenviar ao grupo do WhatsApp com imagem"
+                        disabled={resendingId === ins.id}
+                        onClick={(e) => { e.stopPropagation(); handleResendToGroup(ins); }}
+                      >
+                        {resendingId === ins.id
+                          ? <Loader2 className="h-3 w-3 animate-spin" />
+                          : <Send className="h-3 w-3 text-primary" />}
+                        <span className="hidden sm:inline">WhatsApp</span>
+                      </Button>
+                      <Button size="sm" variant="outline" className="gap-1" onClick={(e) => { e.stopPropagation(); generatePdf(ins); }}>
+                        <Download className="h-3 w-3" /> PDF
+                      </Button>
+                    </div>
                   </CardContent>
                 </Card>
               ))}
