@@ -97,8 +97,8 @@ export function LoginTransition({ onComplete, userName, userAvatar, userCargo }:
 
       {/* Phase: Logo Initial */}
       {phase === "logo" && (
-        <div className="animate-in fade-in zoom-in duration-700 flex flex-col items-center">
-          <img src={logoUrl} alt="Logo" className="h-20 object-contain brightness-125 drop-shadow-[0_0_15px_rgba(255,255,255,0.3)]" />
+        <div className="animate-out fade-out zoom-out duration-1000 flex flex-col items-center">
+          <img src={logoUrl} alt="Logo" className="h-20 object-contain brightness-125 drop-shadow-[0_0_15px_rgba(255,255,255,0.3)] animate-in fade-in zoom-in duration-700" />
         </div>
       )}
 
