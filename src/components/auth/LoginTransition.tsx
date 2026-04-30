@@ -1,5 +1,5 @@
 import { useState, useEffect, useRef } from "react";
-import { User } from "lucide-react";
+import { User, Home, Hammer, Construction } from "lucide-react";
 import { useSiteSettings } from "@/hooks/useSiteSettings";
 import logoPrincipal from "@/assets/logo-principal.png";
 
@@ -11,7 +11,7 @@ interface LoginTransitionProps {
 }
 
 export function LoginTransition({ onComplete, userName, userAvatar, userCargo }: LoginTransitionProps) {
-  const [phase, setPhase] = useState<"blank" | "logo" | "welcome" | "fade" | "done">("blank");
+  const [phase, setPhase] = useState<"blank" | "logo" | "building" | "welcome" | "fade" | "done">("blank");
   const { settings } = useSiteSettings();
   const logoUrl = settings.logo_url || logoPrincipal;
   const audioRef = useRef<HTMLAudioElement | null>(null);
@@ -25,13 +25,10 @@ export function LoginTransition({ onComplete, userName, userAvatar, userCargo }:
     }
   };
 
-  // Play audio — only once per day, resets at 07:00 AM
   useEffect(() => {
-    // Compute current "audio day" key — a day starts at 07:00 local time
     const now = new Date();
     const audioDay = new Date(now);
     if (now.getHours() < 7) {
-      // Before 7 AM still belongs to the previous day's cycle
       audioDay.setDate(audioDay.getDate() - 1);
     }
     const dayKey = `${audioDay.getFullYear()}-${audioDay.getMonth() + 1}-${audioDay.getDate()}`;
@@ -39,14 +36,11 @@ export function LoginTransition({ onComplete, userName, userAvatar, userCargo }:
     const lastPlayedDay = localStorage.getItem(storageKey);
 
     if (lastPlayedDay === dayKey) {
-      // Already played today (within current 07h cycle) — skip audio
       audioEndedRef.current = true;
       tryFinish();
       return;
     }
 
-    // Mark as played for this cycle IMMEDIATELY to prevent double-trigger
-    // from rapid re-mounts or simultaneous login flows in the same day
     localStorage.setItem(storageKey, dayKey);
 
     const audio = new Audio("/sounds/login-welcome.wav");
@@ -58,7 +52,6 @@ export function LoginTransition({ onComplete, userName, userAvatar, userCargo }:
       tryFinish();
     });
 
-    // Fallback in case audio fails to load/play
     audio.addEventListener("error", () => {
       audioEndedRef.current = true;
       tryFinish();
@@ -68,193 +61,134 @@ export function LoginTransition({ onComplete, userName, userAvatar, userCargo }:
       audioEndedRef.current = true;
       tryFinish();
     });
-
-    return () => {
-      // Don't pause on unmount — let audio finish naturally
-    };
   }, []);
 
   useEffect(() => {
-    // Timeline visual phases
     const t1 = setTimeout(() => setPhase("logo"), 300);
-    const t2 = setTimeout(() => setPhase("welcome"), 2000);
-    const t3 = setTimeout(() => setPhase("fade"), 6000);
-    const t4 = setTimeout(() => {
+    const t2 = setTimeout(() => setPhase("building"), 1500);
+    const t3 = setTimeout(() => setPhase("welcome"), 4500);
+    const t4 = setTimeout(() => setPhase("fade"), 7500);
+    const t5 = setTimeout(() => {
       setPhase("done");
       visualDoneRef.current = true;
       tryFinish();
-    }, 6800);
+    }, 8300);
 
     return () => {
       clearTimeout(t1);
       clearTimeout(t2);
       clearTimeout(t3);
       clearTimeout(t4);
+      clearTimeout(t5);
     };
   }, [onComplete]);
 
   return (
-    <div className="fixed inset-0 z-50 pointer-events-none overflow-hidden">
-      {/* Solid dark background - Windows style */}
-      <div
-        className="absolute inset-0 transition-colors duration-1000"
-        style={{
-          backgroundColor: phase === "logo" ? "hsl(220, 15%, 8%)" : "hsl(220, 15%, 6%)",
-        }}
+    <div className="fixed inset-0 z-[9999] pointer-events-none overflow-hidden bg-slate-950 flex items-center justify-center perspective-1000">
+      {/* 3D Grid Background */}
+      <div className="absolute inset-0 opacity-20" 
+           style={{ 
+             backgroundImage: 'linear-gradient(to right, #1e293b 1px, transparent 1px), linear-gradient(to bottom, #1e293b 1px, transparent 1px)',
+             backgroundSize: '40px 40px',
+             transform: 'rotateX(60deg) translateY(-100px)',
+             transformOrigin: 'top'
+           }} 
       />
 
-      {/* Subtle gradient accent at top */}
-      <div
-        className="absolute top-0 left-0 right-0 h-[1px] transition-opacity duration-1000"
-        style={{
-          background: "linear-gradient(90deg, transparent 10%, hsl(210, 40%, 50%) 50%, transparent 90%)",
-          opacity: phase === "welcome" || phase === "logo" ? 0.5 : 0,
-        }}
-      />
-
-      {/* Logo phase - centered, minimal */}
-      <div
-        className="absolute inset-0 flex items-center justify-center transition-all duration-700 ease-out"
-        style={{
-          opacity: phase === "logo" ? 1 : 0,
-          transform: phase === "logo" ? "scale(1)" : phase === "blank" ? "scale(0.95)" : "scale(1.02)",
-        }}
-      >
-        <img
-          src={logoUrl}
-          alt="Logo"
-          className="h-16 max-w-[280px] object-contain"
-          style={{
-            filter: "brightness(1.1)",
-          }}
-        />
-      </div>
-
-      {/* Welcome phase - Windows 11 style */}
-      <div
-        className="absolute inset-0 flex flex-col items-center justify-center transition-all duration-700 ease-out"
-        style={{
-          opacity: phase === "welcome" ? 1 : phase === "fade" ? 0 : 0,
-          transform: phase === "welcome" ? "translateY(0)" : phase === "fade" ? "translateY(-8px)" : "translateY(12px)",
-        }}
-      >
-        {/* Avatar */}
-        <div
-          className="mb-8 transition-all duration-500 ease-out"
-          style={{
-            opacity: phase === "welcome" ? 1 : 0,
-            transform: phase === "welcome" ? "scale(1)" : "scale(0.9)",
-            transitionDelay: "0.1s",
-          }}
-        >
-          {userAvatar ? (
-            <img
-              src={userAvatar}
-              alt="Avatar"
-              className="w-28 h-28 rounded-full object-cover"
-              style={{
-                border: "3px solid hsla(210, 20%, 40%, 0.4)",
-              }}
-            />
-          ) : (
-            <div
-              className="w-28 h-28 rounded-full flex items-center justify-center"
-              style={{
-                backgroundColor: "hsl(210, 20%, 18%)",
-                border: "3px solid hsla(210, 20%, 40%, 0.4)",
-              }}
-            >
-              <User className="w-14 h-14" style={{ color: "hsl(210, 15%, 55%)" }} strokeWidth={1.2} />
-            </div>
-          )}
+      {/* Phase: Logo Initial */}
+      {phase === "logo" && (
+        <div className="animate-in fade-in zoom-in duration-700 flex flex-col items-center">
+          <img src={logoUrl} alt="Logo" className="h-20 object-contain brightness-125 drop-shadow-[0_0_15px_rgba(255,255,255,0.3)]" />
         </div>
+      )}
 
-        {/* Welcome text */}
-        <div
-          className="text-center transition-all duration-500 ease-out"
-          style={{
-            opacity: phase === "welcome" ? 1 : 0,
-            transform: phase === "welcome" ? "translateY(0)" : "translateY(8px)",
-            transitionDelay: "0.25s",
-          }}
-        >
-          <p
-            className="text-sm font-light tracking-[0.3em] uppercase mb-3"
-            style={{ color: "hsl(210, 15%, 55%)" }}
-          >
-            Bem-vindo
-          </p>
-          <h1
-            className="text-4xl md:text-5xl font-light tracking-wide"
-            style={{ color: "hsl(0, 0%, 92%)" }}
-          >
-            {displayName}
-          </h1>
-          {userCargo && (
-            <p
-              className="text-xs font-medium tracking-[0.25em] uppercase mt-4 transition-all duration-500 ease-out"
-              style={{
-                color: "hsl(210, 30%, 55%)",
-                opacity: phase === "welcome" ? 1 : 0,
-                transitionDelay: "0.5s",
-              }}
-            >
-              {userCargo}
-            </p>
-          )}
-        </div>
-
-        {/* Loading indicator - minimal dots */}
-        <div
-          className="flex flex-col items-center gap-4 mt-10 transition-all duration-500 ease-out"
-          style={{
-            opacity: phase === "welcome" ? 1 : 0,
-            transitionDelay: "0.6s",
-          }}
-        >
-          <div className="flex gap-1.5">
-            {[0, 1, 2, 3, 4].map((i) => (
-              <div
-                key={i}
-                className="w-1 h-1 rounded-full win-dot-pulse"
-                style={{
-                  backgroundColor: "hsl(210, 30%, 50%)",
-                  animationDelay: `${i * 0.15}s`,
-                }}
-              />
-            ))}
+      {/* Phase: Building Animation */}
+      {phase === "building" && (
+        <div className="relative w-64 h-64 flex items-center justify-center">
+          {/* Construction Elements */}
+          <div className="absolute animate-bounce-slow">
+             <Home className="w-32 h-32 text-blue-400 opacity-20" />
           </div>
-          <p
-            className="text-xs font-light tracking-wider"
-            style={{ color: "hsl(210, 15%, 50%)" }}
-          >
-            Nova atualização encontrada — atualizando sistema...
-          </p>
-        </div>
-      </div>
+          
+          {/* Wireframe Box Building */}
+          <div className="relative w-40 h-40 animate-spin-slow">
+            <div className="absolute inset-0 border-2 border-blue-500/40 rounded-sm translate-z-10 animate-pulse" />
+            <div className="absolute inset-0 border-2 border-blue-500/40 rounded-sm -translate-z-10" />
+            <div className="absolute inset-0 border-2 border-blue-500/20 rotate-45" />
+          </div>
 
-      {/* Final fade overlay */}
-      <div
-        className="absolute inset-0 transition-opacity duration-600 ease-out"
-        style={{
-          backgroundColor: "hsl(220, 15%, 6%)",
-          opacity: phase === "fade" ? 1 : 0,
-        }}
-      />
+          {/* Floating Icons */}
+          <Hammer className="absolute top-0 left-0 w-8 h-8 text-amber-400 animate-hammer-swing" />
+          <Construction className="absolute bottom-4 right-0 w-10 h-10 text-orange-500 animate-pulse" />
+          
+          {/* Text */}
+          <div className="absolute -bottom-12 w-full text-center">
+            <p className="text-blue-400 text-xs font-mono tracking-widest uppercase animate-pulse">
+              Construindo ambiente seguro...
+            </p>
+          </div>
+        </div>
+      )}
+
+      {/* Phase: Welcome (Final Result) */}
+      {(phase === "welcome" || phase === "fade") && (
+        <div className="flex flex-col items-center animate-in fade-in slide-in-from-bottom-8 duration-1000">
+          <div className="relative mb-8">
+             {userAvatar ? (
+               <img src={userAvatar} className="w-32 h-32 rounded-full object-cover border-4 border-blue-500/30 shadow-[0_0_30px_rgba(59,130,246,0.5)]" />
+             ) : (
+               <div className="w-32 h-32 rounded-full bg-slate-800 flex items-center justify-center border-4 border-blue-500/30">
+                 <User className="w-16 h-16 text-slate-400" />
+               </div>
+             )}
+             {/* 3D Success Ring */}
+             <div className="absolute -inset-2 border-2 border-blue-400/20 rounded-full animate-ping" />
+          </div>
+
+          <div className="text-center space-y-2">
+            <p className="text-blue-400 text-sm font-light tracking-[0.4em] uppercase opacity-70">
+              Acesso Autorizado
+            </p>
+            <h1 className="text-4xl md:text-5xl font-bold text-white tracking-tight">
+              {displayName}
+            </h1>
+            {userCargo && (
+              <p className="text-slate-400 text-xs font-medium tracking-[0.2em] uppercase pt-2">
+                {userCargo}
+              </p>
+            )}
+          </div>
+        </div>
+      )}
 
       <style>{`
-        @keyframes win-dot-pulse {
-          0%, 80%, 100% {
-            opacity: 0.2;
-            transform: scale(1);
-          }
-          40% {
-            opacity: 1;
-            transform: scale(1.8);
-          }
+        .perspective-1000 { perspective: 1000px; }
+        .translate-z-10 { transform: translateZ(20px); }
+        .-translate-z-10 { transform: translateZ(-20px); }
+        
+        @keyframes hammer-swing {
+          0%, 100% { transform: rotate(-15deg) translateY(0); }
+          50% { transform: rotate(25deg) translateY(-5px); }
         }
-        .win-dot-pulse {
-          animation: win-dot-pulse 1.4s ease-in-out infinite;
+        .animate-hammer-swing {
+          animation: hammer-swing 1.5s ease-in-out infinite;
+        }
+        
+        @keyframes spin-slow {
+          from { transform: rotateY(0deg) rotateX(15deg); }
+          to { transform: rotateY(360deg) rotateX(15deg); }
+        }
+        .animate-spin-slow {
+          animation: spin-slow 8s linear infinite;
+          transform-style: preserve-3d;
+        }
+
+        @keyframes bounce-slow {
+          0%, 100% { transform: translateY(0); }
+          50% { transform: translateY(-15px); }
+        }
+        .animate-bounce-slow {
+          animation: bounce-slow 3s ease-in-out infinite;
         }
       `}</style>
     </div>
