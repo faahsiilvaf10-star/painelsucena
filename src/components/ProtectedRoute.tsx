@@ -119,6 +119,18 @@ const ProtectedRoute = ({ children }: ProtectedRouteProps) => {
   }, [navigate]);
 
   const fetchUserCargo = async (userId: string) => {
+    // Cache de perfil simples para evitar requisições repetidas na mesma sessão
+    const cacheKey = `user_profile_${userId}`;
+    const cached = sessionStorage.getItem(cacheKey);
+    if (cached) {
+      const data = JSON.parse(cached);
+      setUserCargo(data.cargo);
+      setIsAdmin(data.admin);
+      setHasAvatar(data.hasAvatar);
+      setCargoChecked(true);
+      return data;
+    }
+
     try {
       const [profileResult, roleResult] = await Promise.all([
         supabase
@@ -137,15 +149,18 @@ const ProtectedRoute = ({ children }: ProtectedRouteProps) => {
       const cargo = profileResult.data?.cargo || null;
       const admin = !!roleResult.data;
       const avatarUrl = profileResult.data?.avatar_url;
+      const hasAvatarVal = !!avatarUrl && avatarUrl.trim().length > 0;
 
       setUserCargo(cargo);
       setIsAdmin(admin);
-      setHasAvatar(!!avatarUrl && avatarUrl.trim().length > 0);
+      setHasAvatar(hasAvatarVal);
 
-      return { cargo, admin };
+      const result = { cargo, admin, hasAvatar: hasAvatarVal };
+      sessionStorage.setItem(cacheKey, JSON.stringify(result));
+      return result;
     } catch (err) {
       console.error("Error fetching user cargo:", err);
-      return { cargo: null, admin: false };
+      return { cargo: null, admin: false, hasAvatar: null };
     } finally {
       setCargoChecked(true);
     }
