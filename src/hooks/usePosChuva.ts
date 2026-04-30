@@ -1,5 +1,6 @@
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import { supabase } from "@/integrations/supabase/client";
+import { toast } from "sonner";
 import { useAuth } from "./useAuth";
 
 export interface ChecklistItem {
@@ -104,11 +105,21 @@ export const useDeletePosChuva = () => {
 
   return useMutation({
     mutationFn: async (id: string) => {
+      console.log("Excluindo inspeção:", id);
       const { error } = await supabase.from("pos_chuva_inspections").delete().eq("id", id);
-      if (error) throw error;
+      if (error) {
+        console.error("Erro ao excluir no Supabase:", error);
+        throw error;
+      }
     },
     onSuccess: () => {
+      console.log("Exclusão bem sucedida!");
+      toast.success("Inspeção excluída com sucesso!");
       queryClient.invalidateQueries({ queryKey: ["pos-chuva-inspections"] });
     },
+    onError: (error) => {
+      console.error("Erro na mutação de exclusão:", error);
+      toast.error("Erro ao excluir inspeção.");
+    }
   });
 };
