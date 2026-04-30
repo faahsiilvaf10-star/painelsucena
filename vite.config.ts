@@ -182,14 +182,17 @@ export default defineConfig(({ mode }) => ({
     cssMinify: true,
     cssCodeSplit: true,
     reportCompressedSize: false,
-    chunkSizeWarningLimit: 1000,
+    chunkSizeWarningLimit: 1200,
     rollupOptions: {
       output: {
-        // Let Rollup handle chunking automatically.
-        // Manual chunks were causing "Cannot read properties of undefined (reading 'createContext'/'forwardRef')"
-        // because React was being separated from libraries that depend on it at module init time
-        // (Radix UI, react-query, react-router, react-hook-form, next-themes, sonner, etc.)
+        manualChunks: {
+          'vendor-react': ['react', 'react-dom', 'react-router-dom'],
+          'vendor-ui': ['lucide-react', '@radix-ui/react-icons', 'framer-motion', 'clsx', 'tailwind-merge'],
+          'vendor-utils': ['@tanstack/react-query', 'date-fns', 'zod', 'lucide-react'],
+        },
       },
     },
+    sourcemap: false,
+    assetsInlineLimit: 4096,
   },
 }));

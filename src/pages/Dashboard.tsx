@@ -52,6 +52,12 @@ const DDSPresenterAlert = lazy(() => import("@/components/dds/DDSPresenterAlert"
 const RecentActivitiesCard = lazy(() => import("@/components/dashboard/RecentActivitiesCard").then(m => ({ default: m.RecentActivitiesCard })));
 const PlanejamentoProgressCard = lazy(() => import("@/components/dashboard/PlanejamentoProgressCard").then(m => ({ default: m.PlanejamentoProgressCard })));
 const AtaContratoProgressCard = lazy(() => import("@/components/dashboard/AtaContratoProgressCard").then(m => ({ default: m.AtaContratoProgressCard })));
+const MatrixAlertBannerPreload = () => {
+  useEffect(() => {
+    import("@/components/dashboard/MatrixAlertBanner");
+  }, []);
+  return null;
+};
 import { useCampaignNotifications } from "@/hooks/useCampaignNotifications";
 import { useLastDayMatrixCheck } from "@/hooks/useLastDayMatrixCheck";
 import { CelebrationModal } from "@/components/matriz/CelebrationModal";
