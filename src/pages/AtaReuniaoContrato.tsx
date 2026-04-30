@@ -234,6 +234,14 @@ export default function AtaReuniaoContrato() {
           {importing ? <Loader2 className="w-4 h-4 mr-2 animate-spin" /> : <Upload className="w-4 h-4 mr-2" />}
           {importing ? "Importando..." : "Importar PDF da Ata"}
         </Button>
+        <Button
+          onClick={handleSendToGroup}
+          disabled={sending || !currentId}
+          variant="secondary"
+        >
+          {sending ? <Loader2 className="w-4 h-4 mr-2 animate-spin" /> : <Send className="w-4 h-4 mr-2" />}
+          {sending ? "Enviando..." : "Salvar e Enviar ao Grupo"}
+        </Button>
       </div>
 
       {/* Selector + summary */}
