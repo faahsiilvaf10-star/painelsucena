@@ -1095,6 +1095,51 @@ const AdminWhatsApp = () => {
           <CardHeader>
             <CardTitle className="flex items-center gap-2">
               <Bell className="w-5 h-5 text-primary" />
+              Auto-envio Ata de Reunião de Contrato
+            </CardTitle>
+            <CardDescription>
+              Quando habilitado, sempre que um <strong>item da ata</strong> for marcado como
+              <strong> concluído</strong>, ou quando um <strong>novo PDF</strong> da ata for
+              importado, o sistema envia automaticamente para o <strong>grupo configurado</strong>
+              uma mensagem detalhada com <strong>todos os itens concluídos</strong> e os que
+              ainda <strong>faltam</strong>, organizados por seção. Itens já concluídos em atas
+              anteriores são <strong>reaproveitados</strong> automaticamente na nova importação.
+            </CardDescription>
+          </CardHeader>
+          <CardContent>
+            <div className="flex items-center justify-between gap-3 rounded-md border p-3 bg-muted/30">
+              <div className="flex items-center gap-3">
+                <Switch
+                  id="auto-send-ata-contrato"
+                  checked={autoSendAtaContrato}
+                  onCheckedChange={setAutoSendAtaContrato}
+                />
+                <Label htmlFor="auto-send-ata-contrato" className="cursor-pointer">
+                  Ativar envio automático no grupo
+                </Label>
+              </div>
+              <div className="flex items-center gap-2">
+                <Badge variant={autoSendAtaContrato ? "default" : "secondary"}>
+                  {autoSendAtaContrato ? "Ativo" : "Desativado"}
+                </Badge>
+                <Button variant="outline" size="sm" onClick={handleTestAtaContrato} disabled={testingAtaContrato}>
+                  <Play className="w-4 h-4 mr-1" />
+                  {testingAtaContrato ? "..." : "Testar"}
+                </Button>
+              </div>
+            </div>
+            <GroupIdOverrideInput id="gid-ata-contrato" value={groupIdAtaContrato} onChange={setGroupIdAtaContrato} defaultGroupId={groupId} />
+            <p className="text-xs text-muted-foreground mt-3">
+              O botão "Testar" envia o resumo completo da última ata importada para o grupo configurado.
+              Salve a configuração após alterar o botão ou o ID do grupo.
+            </p>
+          </CardContent>
+        </Card>
+
+        <Card>
+          <CardHeader>
+            <CardTitle className="flex items-center gap-2">
+              <Bell className="w-5 h-5 text-primary" />
               Alerta Automático da Matriz (toda Quinta às 10:00h)
             </CardTitle>
             <CardDescription>
