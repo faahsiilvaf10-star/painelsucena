@@ -18,6 +18,7 @@ const securityPages = [
   { label: "Inspeção\nExtintores", icon: FlameKindling, path: "/inspecao-extintores" },
   { label: "Campanhas", icon: Heart, path: "/campanhas" },
   { label: "Matriz\nResponsabilidade", icon: Grid3X3, path: "/matriz" },
+  { label: "Controle de\nTreinamento", icon: GraduationCap, path: "/controle-treinamento" },
 ];
 
 const Seguranca = () => {
