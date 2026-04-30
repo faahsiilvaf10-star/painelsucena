@@ -65,6 +65,7 @@ export default function PosChuva() {
   const { data: profile } = useProfile();
   const { data: inspections = [], isLoading } = usePosChuvaInspections();
   const createMutation = useCreatePosChuva();
+  const deleteMutation = useDeletePosChuva();
 
   // Form state
   const [empresa, setEmpresa] = useState("Sucena Empreendimentos");
