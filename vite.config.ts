@@ -187,8 +187,8 @@ export default defineConfig(({ mode }) => ({
       output: {
         manualChunks: {
           'vendor-react': ['react', 'react-dom', 'react-router-dom'],
-          'vendor-ui': ['lucide-react', '@radix-ui/react-icons', 'framer-motion', 'clsx', 'tailwind-merge'],
-          'vendor-utils': ['@tanstack/react-query', 'date-fns', 'zod', 'lucide-react'],
+          'vendor-ui': ['lucide-react', 'framer-motion', 'clsx', 'tailwind-merge'],
+          'vendor-utils': ['@tanstack/react-query', 'date-fns', 'zod'],
         },
       },
     },
