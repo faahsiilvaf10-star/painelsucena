@@ -1,4 +1,5 @@
 import { useState, useEffect } from "react";
+import { DeleteConfirmation } from "@/components/ui/DeleteConfirmation";
 import { format, formatDistanceToNow } from "date-fns";
 import { ptBR } from "date-fns/locale";
 import { Bell, Plus, Trash2, Users, User, Globe, Calendar, Clock, AlertCircle, Repeat, Filter, Pencil } from "lucide-react";
