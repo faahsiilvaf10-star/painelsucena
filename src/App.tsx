@@ -66,6 +66,7 @@ const InspecaoExtintores = lazy(() => import("./pages/InspecaoExtintores"));
 const MeioAmbiente = lazy(() => import("./pages/MeioAmbiente"));
 const PosChuva = lazy(() => import("./pages/PosChuva"));
 const Seguranca = lazy(() => import("./pages/Seguranca"));
+const ControleTreinamento = lazy(() => import("./pages/ControleTreinamento"));
 const RecursosHumanos = lazy(() => import("./pages/RecursosHumanos"));
 const RelatorioDiarioObra = lazy(() => import("./pages/RelatorioDiarioObra"));
 const Almoxarifado = lazy(() => import("./pages/Almoxarifado"));
