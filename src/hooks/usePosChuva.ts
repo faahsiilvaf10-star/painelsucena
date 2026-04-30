@@ -98,3 +98,17 @@ export const useCreatePosChuva = () => {
     },
   });
 };
+
+export const useDeletePosChuva = () => {
+  const queryClient = useQueryClient();
+
+  return useMutation({
+    mutationFn: async (id: string) => {
+      const { error } = await supabase.from("pos_chuva_inspections").delete().eq("id", id);
+      if (error) throw error;
+    },
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ["pos-chuva-inspections"] });
+    },
+  });
+};

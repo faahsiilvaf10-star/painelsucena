@@ -1,4 +1,5 @@
 import { useState } from "react";
+import { DeleteConfirmation } from "@/components/ui/DeleteConfirmation";
 import Layout from "@/components/layout/Layout";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
@@ -20,6 +21,7 @@ import {
   CHECKLIST_PERGUNTAS,
   usePosChuvaInspections,
   useCreatePosChuva,
+  useDeletePosChuva,
   type ChecklistItem,
   type PlanoAcaoItem,
   type PosChuvaInspection,
@@ -63,6 +65,7 @@ export default function PosChuva() {
   const { data: profile } = useProfile();
   const { data: inspections = [], isLoading } = usePosChuvaInspections();
   const createMutation = useCreatePosChuva();
+  const deleteMutation = useDeletePosChuva();
 
   // Form state
   const [empresa, setEmpresa] = useState("Sucena Empreendimentos");
@@ -748,6 +751,9 @@ export default function PosChuva() {
                       <Button size="sm" variant="outline" className="gap-1" onClick={(e) => { e.stopPropagation(); generatePdf(ins); }}>
                         <Download className="h-3 w-3" /> PDF
                       </Button>
+                      <DeleteConfirmation
+                        onConfirm={() => deleteMutation.mutate(ins.id)}
+                      />
                     </div>
                   </CardContent>
                 </Card>
