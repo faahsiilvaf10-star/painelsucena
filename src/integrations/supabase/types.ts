@@ -2249,6 +2249,7 @@ export type Database = {
           completed_by: string | null
           created_at: string
           deadline: string | null
+          dedupe_key: string | null
           description: string
           id: string
           item_number: string
@@ -2265,6 +2266,7 @@ export type Database = {
           completed_by?: string | null
           created_at?: string
           deadline?: string | null
+          dedupe_key?: string | null
           description: string
           id?: string
           item_number: string
@@ -2281,6 +2283,7 @@ export type Database = {
           completed_by?: string | null
           created_at?: string
           deadline?: string | null
+          dedupe_key?: string | null
           description?: string
           id?: string
           item_number?: string
@@ -4315,6 +4318,7 @@ export type Database = {
       wapi_config: {
         Row: {
           auto_send_aso_alert: boolean
+          auto_send_ata_contrato: boolean
           auto_send_attendance: boolean
           auto_send_billing_alert: boolean
           auto_send_campaign_alert: boolean
@@ -4340,6 +4344,7 @@ export type Database = {
           enabled: boolean
           group_id: string | null
           group_id_aso: string | null
+          group_id_ata_contrato: string | null
           group_id_attendance: string | null
           group_id_billing: string | null
           group_id_campaign: string | null
@@ -4367,6 +4372,7 @@ export type Database = {
         }
         Insert: {
           auto_send_aso_alert?: boolean
+          auto_send_ata_contrato?: boolean
           auto_send_attendance?: boolean
           auto_send_billing_alert?: boolean
           auto_send_campaign_alert?: boolean
@@ -4392,6 +4398,7 @@ export type Database = {
           enabled?: boolean
           group_id?: string | null
           group_id_aso?: string | null
+          group_id_ata_contrato?: string | null
           group_id_attendance?: string | null
           group_id_billing?: string | null
           group_id_campaign?: string | null
@@ -4419,6 +4426,7 @@ export type Database = {
         }
         Update: {
           auto_send_aso_alert?: boolean
+          auto_send_ata_contrato?: boolean
           auto_send_attendance?: boolean
           auto_send_billing_alert?: boolean
           auto_send_campaign_alert?: boolean
@@ -4444,6 +4452,7 @@ export type Database = {
           enabled?: boolean
           group_id?: string | null
           group_id_aso?: string | null
+          group_id_ata_contrato?: string | null
           group_id_attendance?: string | null
           group_id_billing?: string | null
           group_id_campaign?: string | null
