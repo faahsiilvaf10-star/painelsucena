@@ -39,6 +39,8 @@ export interface PosChuvaInspection {
   avaliacao_3_sig_encarregado: string | null;
   avaliacao_3_sig_tecnico: string | null;
   observacoes: string | null;
+  chuva_inicio: string | null;
+  chuva_fim: string | null;
   created_at: string;
   updated_at: string;
 }
@@ -56,7 +58,6 @@ export const CHECKLIST_PERGUNTAS = [
   "A área de trabalho em geral está segura para retorno ao trabalho?",
   "As ferramentas, máquinas e equipamentos estão seguros para retorno ao trabalho?",
   "A área de trabalho está segura contra riscos elétricos?",
-  "A área de trabalho está segura para retorno quanto ao risco de queimadura química (risco operacional)?",
   "A área de trabalho está segura para retorno quanto ao risco de queimadura química (risco operacional)?",
   "Os colaboradores estão cientes do ponto de encontro?",
 ];
