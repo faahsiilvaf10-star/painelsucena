@@ -1722,7 +1722,46 @@ const AdminWhatsApp = () => {
           <CardHeader>
             <CardTitle className="flex items-center gap-2">
               <Send className="w-5 h-5 text-primary" />
-              Envio Automático de Estoque Baixo / Zerado
+              Alerta de Prazo de Desvios (3 dias antes e no dia)
+            </CardTitle>
+            <CardDescription>
+              Quando habilitado, todos os dias às <strong>06:00h (horário do Pará)</strong> o sistema verifica
+              os <strong>desvios em aberto</strong> e envia um alerta no <strong>grupo configurado</strong>:
+              <br />• <strong>3 dias antes</strong> da previsão de término
+              <br />• <strong>No dia</strong> da previsão de término
+            </CardDescription>
+          </CardHeader>
+          <CardContent>
+            <div className="flex items-center justify-between gap-3 rounded-md border p-3 bg-muted/30">
+              <div className="flex items-center gap-3">
+                <Switch
+                  id="auto-send-desvio-due"
+                  checked={autoSendDesvioDue}
+                  onCheckedChange={setAutoSendDesvioDue}
+                />
+                <Label htmlFor="auto-send-desvio-due" className="cursor-pointer">
+                  Ativar alerta automático de prazo de desvios
+                </Label>
+              </div>
+              <div className="flex items-center gap-2">
+                <Button variant="outline" size="sm" onClick={handleTestDesvioDue} disabled={testingDesvioDue}>
+                  <Send className="w-4 h-4 mr-1" />
+                  {testingDesvioDue ? "..." : "Testar"}
+                </Button>
+                <Badge variant={autoSendDesvioDue ? "default" : "secondary"}>
+                  {autoSendDesvioDue ? "Ativo" : "Desativado"}
+                </Badge>
+              </div>
+            </div>
+            <GroupIdOverrideInput id="gid-desvio-due" value={groupIdDesvioDue} onChange={setGroupIdDesvioDue} defaultGroupId={groupIdDesvios || groupId} />
+            <p className="text-xs text-muted-foreground mt-3">
+              Requisitos: integração W-API habilitada, desvio com <strong>data de previsão</strong> preenchida e
+              status diferente de "corrigido". Use o botão "Testar" para forçar um envio imediato com os desvios atuais.
+            </p>
+          </CardContent>
+        </Card>
+
+
             </CardTitle>
             <CardDescription>
               Quando habilitado, sempre que um item do <strong>Almoxarifado</strong> ficar com
