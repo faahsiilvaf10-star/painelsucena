@@ -2241,6 +2241,98 @@ export type Database = {
         }
         Relationships: []
       }
+      meeting_minute_items: {
+        Row: {
+          action_by: string | null
+          completed: boolean
+          completed_at: string | null
+          completed_by: string | null
+          created_at: string
+          deadline: string | null
+          description: string
+          id: string
+          item_number: string
+          minute_id: string
+          original_status: string | null
+          section: string | null
+          sort_order: number
+          updated_at: string
+        }
+        Insert: {
+          action_by?: string | null
+          completed?: boolean
+          completed_at?: string | null
+          completed_by?: string | null
+          created_at?: string
+          deadline?: string | null
+          description: string
+          id?: string
+          item_number: string
+          minute_id: string
+          original_status?: string | null
+          section?: string | null
+          sort_order?: number
+          updated_at?: string
+        }
+        Update: {
+          action_by?: string | null
+          completed?: boolean
+          completed_at?: string | null
+          completed_by?: string | null
+          created_at?: string
+          deadline?: string | null
+          description?: string
+          id?: string
+          item_number?: string
+          minute_id?: string
+          original_status?: string | null
+          section?: string | null
+          sort_order?: number
+          updated_at?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "meeting_minute_items_minute_id_fkey"
+            columns: ["minute_id"]
+            isOneToOne: false
+            referencedRelation: "meeting_minutes"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      meeting_minutes: {
+        Row: {
+          created_at: string
+          created_by: string | null
+          file_url: string | null
+          id: string
+          meeting_date: string | null
+          raw_text: string | null
+          title: string
+          updated_at: string
+        }
+        Insert: {
+          created_at?: string
+          created_by?: string | null
+          file_url?: string | null
+          id?: string
+          meeting_date?: string | null
+          raw_text?: string | null
+          title: string
+          updated_at?: string
+        }
+        Update: {
+          created_at?: string
+          created_by?: string | null
+          file_url?: string | null
+          id?: string
+          meeting_date?: string | null
+          raw_text?: string | null
+          title?: string
+          updated_at?: string
+        }
+        Relationships: []
+      }
       meeting_transcripts: {
         Row: {
           action_items: Json | null
