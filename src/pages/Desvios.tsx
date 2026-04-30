@@ -1,4 +1,5 @@
 import { useState, useRef, useEffect } from "react";
+import { DeleteConfirmation } from "@/components/ui/DeleteConfirmation";
 import { useSearchParams } from "react-router-dom";
 import Layout from "@/components/layout/Layout";
 import { EditablePageTitle } from "@/components/cms/EditablePageTitle";
