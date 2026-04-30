@@ -107,6 +107,9 @@ const AdminWhatsApp = () => {
   const [testingDds, setTestingDds] = useState(false);
   const [testingDdsTomorrow, setTestingDdsTomorrow] = useState(false);
   const [testingAso, setTestingAso] = useState(false);
+  const [autoSendTrainingAlert, setAutoSendTrainingAlert] = useState(false);
+  const [groupIdTraining, setGroupIdTraining] = useState("");
+  const [testingTraining, setTestingTraining] = useState(false);
   const [testingMatrix, setTestingMatrix] = useState(false);
   const [testingForbiddenColor, setTestingForbiddenColor] = useState(false);
   const [testingCampaign, setTestingCampaign] = useState(false);
