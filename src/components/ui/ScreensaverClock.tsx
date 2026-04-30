@@ -48,7 +48,7 @@ export const ScreensaverClock = () => {
     return () => clearInterval(interval);
   }, [isActive]);
 
-  if (!isActive) return null;
+  if (!isActive || !user) return null;
 
   return (
     <div className="fixed inset-0 z-[9999] bg-black flex items-center justify-center">
