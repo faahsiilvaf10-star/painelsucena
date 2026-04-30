@@ -1,8 +1,10 @@
 import React, { useEffect, useState, useRef } from "react";
 import { useAuth } from "@/hooks/useAuth";
+import { useSiteSettings } from "@/hooks/useSiteSettings";
 
 export const ScreensaverClock = () => {
   const { user } = useAuth();
+  const { settings } = useSiteSettings();
   const [isActive, setIsActive] = useState(false);
   const timeoutRef = useRef<NodeJS.Timeout>();
 
