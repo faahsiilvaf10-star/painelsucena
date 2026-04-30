@@ -1,6 +1,6 @@
 import { useMemo, useRef, useState } from "react";
 import { Link } from "react-router-dom";
-import { ArrowLeft, FileText, Upload, Trash2, CheckCircle2, Search, Calendar, Loader2 } from "lucide-react";
+import { ArrowLeft, FileText, Upload, Trash2, CheckCircle2, Search, Calendar, Loader2, Send } from "lucide-react";
 import { toast } from "sonner";
 import { supabase } from "@/integrations/supabase/client";
 import { Button } from "@/components/ui/button";
