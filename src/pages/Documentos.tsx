@@ -1,4 +1,5 @@
 import { useState } from "react";
+import { DeleteConfirmation } from "@/components/ui/DeleteConfirmation";
 import { EditablePageTitle } from "@/components/cms/EditablePageTitle";
 import Layout from "@/components/layout/Layout";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
