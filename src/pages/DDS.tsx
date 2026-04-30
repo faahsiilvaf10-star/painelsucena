@@ -38,6 +38,7 @@ import { useCreateNotification } from "@/hooks/useNotifications";
 import { getBrazilNorthTodayString } from "@/lib/timezone";
 import { EditablePageTitle } from "@/components/cms/EditablePageTitle";
 import { EditableIcon } from "@/components/cms/EditableIcon";
+import { AnimatedDownloadButton } from "@/components/ui/AnimatedDownloadButton";
 import { DDSThemesCard } from "@/components/dds/DDSThemesCard";
 import { formatCargoLabel } from "@/lib/cargoUtils";
 import { useDDSMidnightRefresh } from "@/hooks/useMidnightRefresh";
