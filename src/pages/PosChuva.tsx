@@ -188,6 +188,8 @@ export default function PosChuva() {
                 <td style="padding:4px 6px;font-weight:bold;">Local:</td><td style="padding:4px 6px;">${escapeHtml(payload.local_inspecao || "")}</td></tr>
             <tr><td style="padding:4px 6px;font-weight:bold;">Responsável:</td><td style="padding:4px 6px;">${escapeHtml(payload.responsavel || "")}</td>
                 <td style="padding:4px 6px;font-weight:bold;">Atividade:</td><td style="padding:4px 6px;">${escapeHtml(payload.atividade || "")}</td></tr>
+            <tr><td style="padding:4px 6px;font-weight:bold;">Início chuva:</td><td style="padding:4px 6px;">${escapeHtml(payload.chuva_inicio || "-")}</td>
+                <td style="padding:4px 6px;font-weight:bold;">Fim chuva:</td><td style="padding:4px 6px;">${escapeHtml(payload.chuva_fim || "-")}</td></tr>
           </table>
 
           <div style="font-weight:bold;font-size:13px;margin:8px 0 4px;">Lista de Verificação</div>
