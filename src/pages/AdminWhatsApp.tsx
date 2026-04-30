@@ -1761,7 +1761,11 @@ const AdminWhatsApp = () => {
           </CardContent>
         </Card>
 
-
+        <Card>
+          <CardHeader>
+            <CardTitle className="flex items-center gap-2">
+              <Send className="w-5 h-5 text-primary" />
+              Envio Automático de Estoque Baixo / Zerado
             </CardTitle>
             <CardDescription>
               Quando habilitado, sempre que um item do <strong>Almoxarifado</strong> ficar com
