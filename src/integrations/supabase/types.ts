@@ -4188,6 +4188,7 @@ export type Database = {
           auto_send_desvios: boolean
           auto_send_equipment_movements: boolean
           auto_send_forbidden_color_alert: boolean
+          auto_send_low_stock_alert: boolean
           auto_send_matrix_alert: boolean
           auto_send_order_alerts: boolean
           auto_send_orders_to_group: boolean
@@ -4211,6 +4212,7 @@ export type Database = {
           group_id_desvios: string | null
           group_id_equipment_movements: string | null
           group_id_forbidden_color: string | null
+          group_id_low_stock: string | null
           group_id_matrix: string | null
           group_id_orders: string | null
           group_id_planning: string | null
@@ -4236,6 +4238,7 @@ export type Database = {
           auto_send_desvios?: boolean
           auto_send_equipment_movements?: boolean
           auto_send_forbidden_color_alert?: boolean
+          auto_send_low_stock_alert?: boolean
           auto_send_matrix_alert?: boolean
           auto_send_order_alerts?: boolean
           auto_send_orders_to_group?: boolean
@@ -4259,6 +4262,7 @@ export type Database = {
           group_id_desvios?: string | null
           group_id_equipment_movements?: string | null
           group_id_forbidden_color?: string | null
+          group_id_low_stock?: string | null
           group_id_matrix?: string | null
           group_id_orders?: string | null
           group_id_planning?: string | null
@@ -4284,6 +4288,7 @@ export type Database = {
           auto_send_desvios?: boolean
           auto_send_equipment_movements?: boolean
           auto_send_forbidden_color_alert?: boolean
+          auto_send_low_stock_alert?: boolean
           auto_send_matrix_alert?: boolean
           auto_send_order_alerts?: boolean
           auto_send_orders_to_group?: boolean
@@ -4307,6 +4312,7 @@ export type Database = {
           group_id_desvios?: string | null
           group_id_equipment_movements?: string | null
           group_id_forbidden_color?: string | null
+          group_id_low_stock?: string | null
           group_id_matrix?: string | null
           group_id_orders?: string | null
           group_id_planning?: string | null
