@@ -651,14 +651,10 @@ export default function Desvios() {
                       )}
 
                       {isCreator && (
-                        <Button
-                          variant="ghost"
-                          size="sm"
-                          className="gap-1 text-xs text-destructive hover:bg-destructive/10 ml-auto"
-                          onClick={() => deleteDesvio.mutate(desvio.id)}
-                        >
-                          <Trash2 className="w-3 h-3" />
-                        </Button>
+                        <DeleteConfirmation
+                          onConfirm={() => deleteDesvio.mutate(desvio.id)}
+                          className="ml-auto"
+                        />
                       )}
                     </div>
                     {/* Comments */}
