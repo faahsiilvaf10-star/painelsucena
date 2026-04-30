@@ -98,6 +98,9 @@ const AdminWhatsApp = () => {
   const [groupIdAttendance, setGroupIdAttendance] = useState("");
   const [autoSendDesvios, setAutoSendDesvios] = useState(false);
   const [groupIdDesvios, setGroupIdDesvios] = useState("");
+  const [autoSendDesvioDue, setAutoSendDesvioDue] = useState(false);
+  const [groupIdDesvioDue, setGroupIdDesvioDue] = useState("");
+  const [testingDesvioDue, setTestingDesvioDue] = useState(false);
   const [autoSendLowStock, setAutoSendLowStock] = useState(false);
   const [groupIdLowStock, setGroupIdLowStock] = useState("");
   const [testingPlanning, setTestingPlanning] = useState(false);
@@ -176,6 +179,8 @@ const AdminWhatsApp = () => {
       setGroupIdAttendance((c.group_id_attendance as string | null) || "");
       setAutoSendDesvios(!!(c.auto_send_desvios as boolean | null));
       setGroupIdDesvios((c.group_id_desvios as string | null) || "");
+      setAutoSendDesvioDue(!!(c.auto_send_desvio_due_alert as boolean | null));
+      setGroupIdDesvioDue((c.group_id_desvio_due as string | null) || "");
       setAutoSendLowStock(!!(c.auto_send_low_stock_alert as boolean | null));
       setGroupIdLowStock((c.group_id_low_stock as string | null) || "");
       setAutoSendTrainingAlert(!!(c.auto_send_training_alert as boolean | null));
@@ -279,6 +284,8 @@ const AdminWhatsApp = () => {
         group_id_attendance: groupIdAttendance.trim() || null,
         auto_send_desvios: autoSendDesvios,
         group_id_desvios: groupIdDesvios.trim() || null,
+        auto_send_desvio_due_alert: autoSendDesvioDue,
+        group_id_desvio_due: groupIdDesvioDue.trim() || null,
         auto_send_low_stock_alert: autoSendLowStock,
         group_id_low_stock: groupIdLowStock.trim() || null,
         auto_send_training_alert: autoSendTrainingAlert,
@@ -529,6 +536,38 @@ const AdminWhatsApp = () => {
       toast.error("Falha ao executar teste", { description: msg, duration: 15000 });
     } finally {
       setTestingAtaContrato(false);
+    }
+  };
+
+  const handleTestDesvioDue = async () => {
+    setTestingDesvioDue(true);
+    try {
+      const url = `${import.meta.env.VITE_SUPABASE_URL}/functions/v1/wapi-desvio-due-notify`;
+      const response = await fetch(url, {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ force: true }),
+      });
+      const text = await response.text();
+      let data: any = null;
+      try { data = text ? JSON.parse(text) : null; } catch {}
+      if (!response.ok) {
+        toast.error(`Erro HTTP ${response.status}`, { description: text.slice(0, 500), duration: 15000 });
+        return;
+      }
+      if (data?.skipped) {
+        toast.info("Nada a enviar", { description: data.reason || "Ignorado", duration: 8000 });
+      } else if (data?.success) {
+        toast.success(`Alerta enviado: ${data.due_today || 0} vencendo hoje, ${data.due_3d || 0} em 3 dias`);
+      } else {
+        toast.error("Falha no envio", { description: data?.error || "Erro desconhecido", duration: 15000 });
+      }
+      queryClient.invalidateQueries({ queryKey: ["wapi-logs"] });
+    } catch (e) {
+      const msg = e instanceof Error ? e.message : String(e);
+      toast.error("Falha ao executar teste", { description: msg, duration: 15000 });
+    } finally {
+      setTestingDesvioDue(false);
     }
   };
 
@@ -1675,6 +1714,49 @@ const AdminWhatsApp = () => {
             <p className="text-xs text-muted-foreground mt-3">
               Requisitos: integração W-API habilitada e <strong>ID do grupo</strong> preenchido (use o campo acima
               para enviar para um grupo diferente do padrão). Lembre-se de salvar a configuração após alterar este botão.
+            </p>
+          </CardContent>
+        </Card>
+
+        <Card>
+          <CardHeader>
+            <CardTitle className="flex items-center gap-2">
+              <Send className="w-5 h-5 text-primary" />
+              Alerta de Prazo de Desvios (3 dias antes e no dia)
+            </CardTitle>
+            <CardDescription>
+              Quando habilitado, todos os dias às <strong>06:00h (horário do Pará)</strong> o sistema verifica
+              os <strong>desvios em aberto</strong> e envia um alerta no <strong>grupo configurado</strong>:
+              <br />• <strong>3 dias antes</strong> da previsão de término
+              <br />• <strong>No dia</strong> da previsão de término
+            </CardDescription>
+          </CardHeader>
+          <CardContent>
+            <div className="flex items-center justify-between gap-3 rounded-md border p-3 bg-muted/30">
+              <div className="flex items-center gap-3">
+                <Switch
+                  id="auto-send-desvio-due"
+                  checked={autoSendDesvioDue}
+                  onCheckedChange={setAutoSendDesvioDue}
+                />
+                <Label htmlFor="auto-send-desvio-due" className="cursor-pointer">
+                  Ativar alerta automático de prazo de desvios
+                </Label>
+              </div>
+              <div className="flex items-center gap-2">
+                <Button variant="outline" size="sm" onClick={handleTestDesvioDue} disabled={testingDesvioDue}>
+                  <Send className="w-4 h-4 mr-1" />
+                  {testingDesvioDue ? "..." : "Testar"}
+                </Button>
+                <Badge variant={autoSendDesvioDue ? "default" : "secondary"}>
+                  {autoSendDesvioDue ? "Ativo" : "Desativado"}
+                </Badge>
+              </div>
+            </div>
+            <GroupIdOverrideInput id="gid-desvio-due" value={groupIdDesvioDue} onChange={setGroupIdDesvioDue} defaultGroupId={groupIdDesvios || groupId} />
+            <p className="text-xs text-muted-foreground mt-3">
+              Requisitos: integração W-API habilitada, desvio com <strong>data de previsão</strong> preenchida e
+              status diferente de "corrigido". Use o botão "Testar" para forçar um envio imediato com os desvios atuais.
             </p>
           </CardContent>
         </Card>
