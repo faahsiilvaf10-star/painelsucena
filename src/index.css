@@ -1160,6 +1160,11 @@ html, body {
 .download-button-label:hover .download-button-inner span.t {
   transform: translateX(10px);
 }
+.download-button-inner.w-7 {
+  width: 28px !important;
+  height: 28px !important;
+  border-width: 1px;
+}
 
 .download-button-label:hover .download-button-inner i.l {
   opacity: 1;
