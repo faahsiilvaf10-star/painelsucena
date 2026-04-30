@@ -714,14 +714,29 @@ export default function PosChuva() {
               {!isLoading && inspections.length === 0 && <p className="text-sm text-muted-foreground">Nenhuma inspeção registrada.</p>}
               {inspections.map((ins) => (
                 <Card key={ins.id} className="cursor-pointer hover:shadow-md transition-shadow" onClick={() => { setSelectedInspection(ins); setDetailOpen(true); }}>
-                  <CardContent className="p-3 flex items-center justify-between">
-                    <div>
+                  <CardContent className="p-3 flex items-center justify-between gap-2">
+                    <div className="min-w-0 flex-1">
                       <p className="font-medium text-sm">{ins.data ? format(new Date(ins.data + "T12:00:00"), "dd/MM/yyyy") : "-"}</p>
-                      <p className="text-xs text-muted-foreground">{ins.responsavel || "Sem responsável"} - {ins.local_inspecao || "Sem local"}</p>
+                      <p className="text-xs text-muted-foreground truncate">{ins.responsavel || "Sem responsável"} - {ins.local_inspecao || "Sem local"}</p>
                     </div>
-                    <Button size="sm" variant="outline" className="gap-1" onClick={(e) => { e.stopPropagation(); generatePdf(ins); }}>
-                      <Download className="h-3 w-3" /> PDF
-                    </Button>
+                    <div className="flex items-center gap-2 shrink-0">
+                      <Button
+                        size="sm"
+                        variant="outline"
+                        className="gap-1"
+                        title="Reenviar ao grupo do WhatsApp com imagem"
+                        disabled={resendingId === ins.id}
+                        onClick={(e) => { e.stopPropagation(); handleResendToGroup(ins); }}
+                      >
+                        {resendingId === ins.id
+                          ? <Loader2 className="h-3 w-3 animate-spin" />
+                          : <Send className="h-3 w-3 text-primary" />}
+                        <span className="hidden sm:inline">WhatsApp</span>
+                      </Button>
+                      <Button size="sm" variant="outline" className="gap-1" onClick={(e) => { e.stopPropagation(); generatePdf(ins); }}>
+                        <Download className="h-3 w-3" /> PDF
+                      </Button>
+                    </div>
                   </CardContent>
                 </Card>
               ))}
