@@ -179,6 +179,8 @@ const AdminWhatsApp = () => {
       setGroupIdAttendance((c.group_id_attendance as string | null) || "");
       setAutoSendDesvios(!!(c.auto_send_desvios as boolean | null));
       setGroupIdDesvios((c.group_id_desvios as string | null) || "");
+      setAutoSendDesvioDue(!!(c.auto_send_desvio_due_alert as boolean | null));
+      setGroupIdDesvioDue((c.group_id_desvio_due as string | null) || "");
       setAutoSendLowStock(!!(c.auto_send_low_stock_alert as boolean | null));
       setGroupIdLowStock((c.group_id_low_stock as string | null) || "");
       setAutoSendTrainingAlert(!!(c.auto_send_training_alert as boolean | null));
