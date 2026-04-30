@@ -450,6 +450,38 @@ const AdminWhatsApp = () => {
     }
   };
 
+  const handleTestTrainingNotify = async () => {
+    setTestingTraining(true);
+    try {
+      const url = `${import.meta.env.VITE_SUPABASE_URL}/functions/v1/wapi-training-notify`;
+      const response = await fetch(url, {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ force: true }),
+      });
+      const text = await response.text();
+      let data: any = null;
+      try { data = text ? JSON.parse(text) : null; } catch {}
+      if (!response.ok) {
+        toast.error(`Erro HTTP ${response.status}`, { description: text.slice(0, 500), duration: 15000 });
+        return;
+      }
+      if (data?.skipped) {
+        toast.info("Nada a enviar", { description: data.reason || "Nenhum treinamento no alvo", duration: 8000 });
+      } else if (data?.success) {
+        toast.success(`Alerta de treinamento enviado (${data.total} item(ns))`);
+      } else {
+        toast.error("Falha no envio", { description: data?.error || "Erro desconhecido", duration: 15000 });
+      }
+      queryClient.invalidateQueries({ queryKey: ["wapi-logs"] });
+    } catch (e) {
+      const msg = e instanceof Error ? e.message : String(e);
+      toast.error("Falha ao executar teste", { description: msg, duration: 15000 });
+    } finally {
+      setTestingTraining(false);
+    }
+  };
+
   const handleTestMatrixNotify = async () => {
     setTestingMatrix(true);
     try {
