@@ -34,7 +34,13 @@ export const ScreensaverClock = () => {
     window.addEventListener("click", handleActivity);
     window.addEventListener("touchstart", handleActivity);
     
-    timeoutRef.current = setTimeout(() => setIsActive(true), timeoutMs);
+    if (settings.screensaver_enabled) {
+      if (settings.screensaver_timeout === 0) {
+        setIsActive(true);
+      } else {
+        timeoutRef.current = setTimeout(() => setIsActive(true), timeoutMs);
+      }
+    }
 
     return () => {
       clearTimeout(timeoutRef.current);
