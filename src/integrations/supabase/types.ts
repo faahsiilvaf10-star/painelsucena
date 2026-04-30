@@ -4239,6 +4239,7 @@ export type Database = {
           auto_send_reminders: boolean
           auto_send_requisitions: boolean
           auto_send_sling_inspection_alert: boolean
+          auto_send_training_alert: boolean | null
           auto_send_vehicle_inspection_alert: boolean
           created_at: string
           dds_auto_notify: boolean
@@ -4262,6 +4263,7 @@ export type Database = {
           group_id_reminders: string | null
           group_id_requisitions: string | null
           group_id_sling_inspection: string | null
+          group_id_training: string | null
           group_id_vehicle_inspection: string | null
           id: string
           instance_id: string
@@ -4289,6 +4291,7 @@ export type Database = {
           auto_send_reminders?: boolean
           auto_send_requisitions?: boolean
           auto_send_sling_inspection_alert?: boolean
+          auto_send_training_alert?: boolean | null
           auto_send_vehicle_inspection_alert?: boolean
           created_at?: string
           dds_auto_notify?: boolean
@@ -4312,6 +4315,7 @@ export type Database = {
           group_id_reminders?: string | null
           group_id_requisitions?: string | null
           group_id_sling_inspection?: string | null
+          group_id_training?: string | null
           group_id_vehicle_inspection?: string | null
           id?: string
           instance_id?: string
@@ -4339,6 +4343,7 @@ export type Database = {
           auto_send_reminders?: boolean
           auto_send_requisitions?: boolean
           auto_send_sling_inspection_alert?: boolean
+          auto_send_training_alert?: boolean | null
           auto_send_vehicle_inspection_alert?: boolean
           created_at?: string
           dds_auto_notify?: boolean
@@ -4362,6 +4367,7 @@ export type Database = {
           group_id_reminders?: string | null
           group_id_requisitions?: string | null
           group_id_sling_inspection?: string | null
+          group_id_training?: string | null
           group_id_vehicle_inspection?: string | null
           id?: string
           instance_id?: string
@@ -4469,6 +4475,33 @@ export type Database = {
           status?: string
           target_type?: string
           updated_at?: string
+        }
+        Relationships: []
+      }
+      wapi_training_alerts_sent: {
+        Row: {
+          alert_key: string
+          alert_type: string | null
+          expiry_date: string | null
+          id: string
+          sent_at: string
+          training_id: string | null
+        }
+        Insert: {
+          alert_key: string
+          alert_type?: string | null
+          expiry_date?: string | null
+          id?: string
+          sent_at?: string
+          training_id?: string | null
+        }
+        Update: {
+          alert_key?: string
+          alert_type?: string | null
+          expiry_date?: string | null
+          id?: string
+          sent_at?: string
+          training_id?: string | null
         }
         Relationships: []
       }

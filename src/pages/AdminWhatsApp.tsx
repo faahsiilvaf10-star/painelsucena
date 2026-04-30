@@ -107,6 +107,9 @@ const AdminWhatsApp = () => {
   const [testingDds, setTestingDds] = useState(false);
   const [testingDdsTomorrow, setTestingDdsTomorrow] = useState(false);
   const [testingAso, setTestingAso] = useState(false);
+  const [autoSendTrainingAlert, setAutoSendTrainingAlert] = useState(false);
+  const [groupIdTraining, setGroupIdTraining] = useState("");
+  const [testingTraining, setTestingTraining] = useState(false);
   const [testingMatrix, setTestingMatrix] = useState(false);
   const [testingForbiddenColor, setTestingForbiddenColor] = useState(false);
   const [testingCampaign, setTestingCampaign] = useState(false);
@@ -172,6 +175,8 @@ const AdminWhatsApp = () => {
       setGroupIdDesvios((c.group_id_desvios as string | null) || "");
       setAutoSendLowStock(!!(c.auto_send_low_stock_alert as boolean | null));
       setGroupIdLowStock((c.group_id_low_stock as string | null) || "");
+      setAutoSendTrainingAlert(!!(c.auto_send_training_alert as boolean | null));
+      setGroupIdTraining((c.group_id_training as string | null) || "");
     }
   }, [cfg]);
 
@@ -271,6 +276,8 @@ const AdminWhatsApp = () => {
         group_id_desvios: groupIdDesvios.trim() || null,
         auto_send_low_stock_alert: autoSendLowStock,
         group_id_low_stock: groupIdLowStock.trim() || null,
+        auto_send_training_alert: autoSendTrainingAlert,
+        group_id_training: groupIdTraining.trim() || null,
         updated_by: user?.id ?? null,
       };
       if (cfg?.id) {
@@ -440,6 +447,38 @@ const AdminWhatsApp = () => {
       toast.error("Falha ao executar teste", { description: msg, duration: 15000 });
     } finally {
       setTestingAso(false);
+    }
+  };
+
+  const handleTestTrainingNotify = async () => {
+    setTestingTraining(true);
+    try {
+      const url = `${import.meta.env.VITE_SUPABASE_URL}/functions/v1/wapi-training-notify`;
+      const response = await fetch(url, {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ force: true }),
+      });
+      const text = await response.text();
+      let data: any = null;
+      try { data = text ? JSON.parse(text) : null; } catch {}
+      if (!response.ok) {
+        toast.error(`Erro HTTP ${response.status}`, { description: text.slice(0, 500), duration: 15000 });
+        return;
+      }
+      if (data?.skipped) {
+        toast.info("Nada a enviar", { description: data.reason || "Nenhum treinamento no alvo", duration: 8000 });
+      } else if (data?.success) {
+        toast.success(`Alerta de treinamento enviado (${data.total} item(ns))`);
+      } else {
+        toast.error("Falha no envio", { description: data?.error || "Erro desconhecido", duration: 15000 });
+      }
+      queryClient.invalidateQueries({ queryKey: ["wapi-logs"] });
+    } catch (e) {
+      const msg = e instanceof Error ? e.message : String(e);
+      toast.error("Falha ao executar teste", { description: msg, duration: 15000 });
+    } finally {
+      setTestingTraining(false);
     }
   };
 
@@ -955,6 +994,49 @@ const AdminWhatsApp = () => {
             <p className="text-xs text-muted-foreground mt-3">
               Requisitos: integração W-API habilitada e ID do grupo preenchido. O botão "Testar" envia o alerta imediatamente,
               ignorando o filtro de duplicidade.
+            </p>
+          </CardContent>
+        </Card>
+
+        <Card>
+          <CardHeader>
+            <CardTitle className="flex items-center gap-2">
+              <Bell className="w-5 h-5 text-primary" />
+              Alerta Automático de Treinamento NR (10 dias antes e no dia)
+            </CardTitle>
+            <CardDescription>
+              Quando habilitado, envia automaticamente para o <strong>grupo configurado</strong> os colaboradores cujos
+              treinamentos <strong>NR 20</strong> ou <strong>NR 35</strong> vencem em <strong>10 dias</strong> ou
+              <strong> no próprio dia do vencimento</strong>. Verificação <strong>diária às 06:00h</strong> (Pará UTC-3),
+              cada alerta enviado <strong>uma única vez por colaborador/treinamento</strong>.
+            </CardDescription>
+          </CardHeader>
+          <CardContent>
+            <div className="flex items-center justify-between gap-3 rounded-md border p-3 bg-muted/30">
+              <div className="flex items-center gap-3">
+                <Switch
+                  id="auto-send-training"
+                  checked={autoSendTrainingAlert}
+                  onCheckedChange={setAutoSendTrainingAlert}
+                />
+                <Label htmlFor="auto-send-training" className="cursor-pointer">
+                  Ativar alerta automático de Treinamento NR no grupo
+                </Label>
+              </div>
+              <div className="flex items-center gap-2">
+                <Badge variant={autoSendTrainingAlert ? "default" : "secondary"}>
+                  {autoSendTrainingAlert ? "Ativo" : "Desativado"}
+                </Badge>
+                <Button variant="outline" size="sm" onClick={handleTestTrainingNotify} disabled={testingTraining}>
+                  <Play className="w-4 h-4 mr-1" />
+                  {testingTraining ? "..." : "Testar"}
+                </Button>
+              </div>
+            </div>
+            <GroupIdOverrideInput id="gid-training" value={groupIdTraining} onChange={setGroupIdTraining} defaultGroupId={groupId} />
+            <p className="text-xs text-muted-foreground mt-3">
+              O botão "Testar" envia o alerta imediatamente, ignorando o controle de duplicidade.
+              Salve a configuração após alterar o botão ou o ID do grupo.
             </p>
           </CardContent>
         </Card>
