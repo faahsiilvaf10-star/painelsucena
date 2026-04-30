@@ -324,7 +324,7 @@ export default function PosChuva() {
       ].filter(Boolean).join("\n");
 
       const { data: invokeData, error: invokeErr } = await supabase.functions.invoke("wapi-pos-chuva-notify", {
-        body: { caption, image_url: publicUrl },
+        body: { caption, image_url: publicUrl || null },
       });
       if (invokeErr) {
         toast.error("Falha ao enfileirar Pós Chuva no grupo", { description: invokeErr.message });
