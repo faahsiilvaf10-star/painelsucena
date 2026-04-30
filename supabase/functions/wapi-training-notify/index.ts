@@ -9,6 +9,7 @@ const corsHeaders = {
 };
 
 const ALERT_DAYS = 10;
+const FN_VERSION = "v1.0.1";
 
 const paraTodayUTC = () => {
   const now = new Date();
