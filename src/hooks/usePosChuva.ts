@@ -116,6 +116,8 @@ export const useDeletePosChuva = () => {
       console.log("Exclusão bem sucedida!");
       toast.success("Inspeção excluída com sucesso!");
       queryClient.invalidateQueries({ queryKey: ["pos-chuva-inspections"] });
+      // Forçar refetch imediato
+      queryClient.refetchQueries({ queryKey: ["pos-chuva-inspections"] });
     },
     onError: (error) => {
       console.error("Erro na mutação de exclusão:", error);
