@@ -276,6 +276,8 @@ const AdminWhatsApp = () => {
         group_id_desvios: groupIdDesvios.trim() || null,
         auto_send_low_stock_alert: autoSendLowStock,
         group_id_low_stock: groupIdLowStock.trim() || null,
+        auto_send_training_alert: autoSendTrainingAlert,
+        group_id_training: groupIdTraining.trim() || null,
         updated_by: user?.id ?? null,
       };
       if (cfg?.id) {
