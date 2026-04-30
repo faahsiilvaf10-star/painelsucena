@@ -1084,3 +1084,172 @@ html, body {
   object-fit: cover !important;
   object-position: center center !important;
 }
+
+/* Download Button Animation Styling */
+.download-animation-container {
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  height: 100px;
+  width: 100%;
+}
+
+.download-button-wrapper {
+  position: relative;
+  height: 50px;
+  width: 200px;
+}
+
+.download-button-input {
+  display: none;
+}
+
+.download-button-label {
+  display: block;
+  width: 100%;
+  height: 100%;
+  cursor: pointer;
+}
+
+.download-button-inner {
+  border-radius: 2px;
+  position: absolute;
+  width: 200px;
+  height: 50px;
+  left: 0;
+  right: 0;
+  top: 50%;
+  transform: translateY(-50%);
+  margin: auto;
+  box-shadow: 0px 0px 0px 0px rgba(0, 0, 0, 0.04);
+  font-weight: 500;
+  font-size: 14px;
+  border: 2px solid hsl(var(--primary));
+  color: hsl(var(--primary));
+  background: transparent;
+  text-align: center;
+  transition: all .3s, box-shadow .2s, transform .2s .2s;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  overflow: visible;
+}
+
+.download-button-inner span.t {
+  position: relative;
+  transition: all .4s .1s;
+}
+
+.download-button-inner i.l {
+  position: relative;
+  left: -10px;
+  color: hsl(var(--primary));
+  font-size: 20px;
+  opacity: 0;
+  transition: all .3s 0s;
+}
+
+.download-button-label:hover .download-button-inner {
+  color: hsl(var(--primary-foreground));
+  background: hsl(var(--primary));
+  box-shadow: 0px 10px 15px -10px hsl(var(--primary) / 0.5);
+}
+
+.download-button-label:hover .download-button-inner span.t {
+  transform: translateX(10px);
+}
+
+.download-button-label:hover .download-button-inner i.l {
+  opacity: 1;
+  transform: translateX(5px);
+}
+
+.download-button-spots {
+  position: absolute;
+  border-radius: 100px;
+  background: hsl(var(--primary));
+  opacity: 0;
+}
+
+.download-button-label:hover .download-button-spots {
+  opacity: 1;
+}
+
+/* Spots animation generator */
+@keyframes spot-anim {
+  0% { opacity: 0; transform: translate(0, 0); }
+  20% { opacity: 0.8; }
+  100% { opacity: 0; transform: translate(var(--tw-translate-x), var(--tw-translate-y)); }
+}
+
+/* Specific spots positions and animations */
+.download-button-spots:nth-of-type(1) { left: 10%; top: -10%; width: 4px; height: 4px; --tw-translate-x: -20px; --tw-translate-y: -30px; }
+.download-button-spots:nth-of-type(2) { left: 30%; top: -20%; width: 6px; height: 6px; --tw-translate-x: 10px; --tw-translate-y: -40px; }
+.download-button-spots:nth-of-type(3) { left: 50%; top: -15%; width: 3px; height: 3px; --tw-translate-x: 30px; --tw-translate-y: -25px; }
+.download-button-spots:nth-of-type(4) { left: 70%; top: -25%; width: 5px; height: 5px; --tw-translate-x: -5px; --tw-translate-y: -35px; }
+.download-button-spots:nth-of-type(5) { left: 90%; top: -10%; width: 4px; height: 4px; --tw-translate-x: 25px; --tw-translate-y: -30px; }
+.download-button-spots:nth-of-type(6) { left: 15%; bottom: -15%; width: 5px; height: 5px; --tw-translate-x: -15px; --tw-translate-y: 25px; }
+.download-button-spots:nth-of-type(7) { left: 45%; bottom: -20%; width: 4px; height: 4px; --tw-translate-x: 5px; --tw-translate-y: 35px; }
+.download-button-spots:nth-of-type(8) { left: 75%; bottom: -10%; width: 6px; height: 6px; --tw-translate-x: 20px; --tw-translate-y: 30px; }
+
+.download-button-label:hover .download-button-spots {
+  animation: spot-anim 0.8s linear infinite;
+}
+
+/* Active/Checked state animations */
+.download-button-input:checked + .download-button-label .download-button-inner {
+  background: transparent;
+  transform: translateY(-50%) rotate(90deg);
+  width: 50px;
+  border-radius: 100px;
+  animation: finalbox .4s 4.42s cubic-bezier(0.39, 2.01, 0.27, 0.75) forwards;
+}
+
+.download-button-input:checked + .download-button-label .download-button-inner span.t {
+  opacity: 0;
+}
+
+.download-button-input:checked + .download-button-label .download-button-inner i.l {
+  left: 0;
+  opacity: 1;
+  animation: dl-down 1s .25s infinite, final-hide .2s 4s forwards;
+}
+
+.download-button-tick {
+  position: absolute;
+  left: 0;
+  right: 0;
+  top: 50%;
+  transform: translateY(-50%) scale(0) rotate(-90deg);
+  color: #22c55e;
+  margin: auto;
+  font-size: 24px;
+  text-align: center;
+  opacity: 0;
+}
+
+.download-button-input:checked + .download-button-label .download-button-tick {
+  animation: tick-appear .3s 4.7s forwards;
+  opacity: 1;
+}
+
+@keyframes dl-down {
+  0% { transform: translateY(-10px); opacity: 0; }
+  50% { opacity: 1; }
+  100% { transform: translateY(15px); opacity: 0; }
+}
+
+@keyframes final-hide {
+  from { opacity: 1; }
+  to { opacity: 0; }
+}
+
+@keyframes finalbox {
+  from { width: 200px; }
+  to { width: 50px; }
+}
+
+@keyframes tick-appear {
+  from { transform: translateY(-50%) scale(0) rotate(-90deg); }
+  to { transform: translateY(-50%) scale(1) rotate(0deg); }
+}
