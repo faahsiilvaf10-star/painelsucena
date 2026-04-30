@@ -98,6 +98,8 @@ const AdminWhatsApp = () => {
   const [groupIdAttendance, setGroupIdAttendance] = useState("");
   const [autoSendDesvios, setAutoSendDesvios] = useState(false);
   const [groupIdDesvios, setGroupIdDesvios] = useState("");
+  const [autoSendLowStock, setAutoSendLowStock] = useState(false);
+  const [groupIdLowStock, setGroupIdLowStock] = useState("");
   const [testingPlanning, setTestingPlanning] = useState(false);
   const [testingBilling, setTestingBilling] = useState(false);
   const [testingVehicleInspection, setTestingVehicleInspection] = useState(false);
@@ -168,6 +170,8 @@ const AdminWhatsApp = () => {
       setGroupIdAttendance((c.group_id_attendance as string | null) || "");
       setAutoSendDesvios(!!(c.auto_send_desvios as boolean | null));
       setGroupIdDesvios((c.group_id_desvios as string | null) || "");
+      setAutoSendLowStock(!!(c.auto_send_low_stock_alert as boolean | null));
+      setGroupIdLowStock((c.group_id_low_stock as string | null) || "");
     }
   }, [cfg]);
 
@@ -265,6 +269,8 @@ const AdminWhatsApp = () => {
         group_id_attendance: groupIdAttendance.trim() || null,
         auto_send_desvios: autoSendDesvios,
         group_id_desvios: groupIdDesvios.trim() || null,
+        auto_send_low_stock_alert: autoSendLowStock,
+        group_id_low_stock: groupIdLowStock.trim() || null,
         updated_by: user?.id ?? null,
       };
       if (cfg?.id) {
@@ -1489,6 +1495,43 @@ const AdminWhatsApp = () => {
               </Badge>
             </div>
             <GroupIdOverrideInput id="gid-desvios" value={groupIdDesvios} onChange={setGroupIdDesvios} defaultGroupId={groupId} />
+            <p className="text-xs text-muted-foreground mt-3">
+              Requisitos: integração W-API habilitada e <strong>ID do grupo</strong> preenchido (use o campo acima
+              para enviar para um grupo diferente do padrão). Lembre-se de salvar a configuração após alterar este botão.
+            </p>
+          </CardContent>
+        </Card>
+
+        <Card>
+          <CardHeader>
+            <CardTitle className="flex items-center gap-2">
+              <Send className="w-5 h-5 text-primary" />
+              Envio Automático de Estoque Baixo / Zerado
+            </CardTitle>
+            <CardDescription>
+              Quando habilitado, sempre que um item do <strong>Almoxarifado</strong> ficar com
+              quantidade <strong>abaixo do mínimo</strong> ou <strong>zerar</strong>, o sistema envia
+              automaticamente para o <strong>grupo configurado</strong> os <strong>detalhes completos</strong>
+              do item (categoria, quantidade atual, mínimo, local, CA, observações e quem registrou a movimentação).
+            </CardDescription>
+          </CardHeader>
+          <CardContent>
+            <div className="flex items-center justify-between gap-3 rounded-md border p-3 bg-muted/30">
+              <div className="flex items-center gap-3">
+                <Switch
+                  id="auto-send-low-stock"
+                  checked={autoSendLowStock}
+                  onCheckedChange={setAutoSendLowStock}
+                />
+                <Label htmlFor="auto-send-low-stock" className="cursor-pointer">
+                  Ativar alerta automático de estoque baixo / zerado
+                </Label>
+              </div>
+              <Badge variant={autoSendLowStock ? "default" : "secondary"}>
+                {autoSendLowStock ? "Ativo" : "Desativado"}
+              </Badge>
+            </div>
+            <GroupIdOverrideInput id="gid-low-stock" value={groupIdLowStock} onChange={setGroupIdLowStock} defaultGroupId={groupId} />
             <p className="text-xs text-muted-foreground mt-3">
               Requisitos: integração W-API habilitada e <strong>ID do grupo</strong> preenchido (use o campo acima
               para enviar para um grupo diferente do padrão). Lembre-se de salvar a configuração após alterar este botão.
