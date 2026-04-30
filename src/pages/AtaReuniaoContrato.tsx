@@ -1,6 +1,6 @@
 import { useMemo, useRef, useState } from "react";
 import { Link } from "react-router-dom";
-import { ArrowLeft, FileText, Upload, Trash2, CheckCircle2, Search, Calendar, Loader2 } from "lucide-react";
+import { ArrowLeft, FileText, Upload, Trash2, CheckCircle2, Search, Calendar, Loader2, Send } from "lucide-react";
 import { toast } from "sonner";
 import { supabase } from "@/integrations/supabase/client";
 import { Button } from "@/components/ui/button";
@@ -40,6 +40,7 @@ import { cn } from "@/lib/utils";
 export default function AtaReuniaoContrato() {
   const fileRef = useRef<HTMLInputElement>(null);
   const [importing, setImporting] = useState(false);
+  const [sending, setSending] = useState(false);
   const [search, setSearch] = useState("");
   const [selectedId, setSelectedId] = useState<string | null>(null);
 
@@ -180,6 +181,30 @@ export default function AtaReuniaoContrato() {
     }
   }
 
+  async function handleSendToGroup() {
+    if (!currentId) {
+      toast.error("Selecione uma ata primeiro");
+      return;
+    }
+    setSending(true);
+    try {
+      const { data, error } = await supabase.functions.invoke("wapi-ata-contrato-notify", {
+        body: { minute_id: currentId, reason: "imported", force: true },
+      });
+      if (error) throw error;
+      if ((data as any)?.skipped) {
+        toast.warning(`Não enviado: ${(data as any).reason}`);
+      } else {
+        toast.success("Resumo enviado ao grupo do WhatsApp!");
+      }
+    } catch (e: any) {
+      console.error(e);
+      toast.error("Falha ao enviar: " + (e?.message ?? "erro"));
+    } finally {
+      setSending(false);
+    }
+  }
+
   return (
     <div className="container mx-auto p-4 sm:p-6 space-y-6">
       <div className="flex items-center gap-3 flex-wrap">
@@ -208,6 +233,14 @@ export default function AtaReuniaoContrato() {
         <Button onClick={() => fileRef.current?.click()} disabled={importing}>
           {importing ? <Loader2 className="w-4 h-4 mr-2 animate-spin" /> : <Upload className="w-4 h-4 mr-2" />}
           {importing ? "Importando..." : "Importar PDF da Ata"}
+        </Button>
+        <Button
+          onClick={handleSendToGroup}
+          disabled={sending || !currentId}
+          variant="secondary"
+        >
+          {sending ? <Loader2 className="w-4 h-4 mr-2 animate-spin" /> : <Send className="w-4 h-4 mr-2" />}
+          {sending ? "Enviando..." : "Salvar e Enviar ao Grupo"}
         </Button>
       </div>
 
