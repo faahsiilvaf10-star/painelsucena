@@ -181,6 +181,30 @@ export default function AtaReuniaoContrato() {
     }
   }
 
+  async function handleSendToGroup() {
+    if (!currentId) {
+      toast.error("Selecione uma ata primeiro");
+      return;
+    }
+    setSending(true);
+    try {
+      const { data, error } = await supabase.functions.invoke("wapi-ata-contrato-notify", {
+        body: { minute_id: currentId, reason: "imported", force: true },
+      });
+      if (error) throw error;
+      if ((data as any)?.skipped) {
+        toast.warning(`Não enviado: ${(data as any).reason}`);
+      } else {
+        toast.success("Resumo enviado ao grupo do WhatsApp!");
+      }
+    } catch (e: any) {
+      console.error(e);
+      toast.error("Falha ao enviar: " + (e?.message ?? "erro"));
+    } finally {
+      setSending(false);
+    }
+  }
+
   return (
     <div className="container mx-auto p-4 sm:p-6 space-y-6">
       <div className="flex items-center gap-3 flex-wrap">
