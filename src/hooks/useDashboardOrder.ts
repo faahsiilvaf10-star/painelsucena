@@ -18,12 +18,12 @@ export type DashboardItemId =
 
 export const DEFAULT_DASHBOARD_ORDER: DashboardItemId[] = [
   "birthday",
+  "dds",
   "reminder",
   "matrix_alert",
   "order",
   "vehicle_expiry",
   "document_expiry",
-  "dds",
   "sling_inspection",
   "campaign",
   "equipment",
