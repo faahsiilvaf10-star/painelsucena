@@ -448,13 +448,6 @@ const Dashboard = () => {
           </Suspense>
         </div>
 
-        {/* Recent activities row (mix real do sistema) */}
-        <div className="mb-4 animate-slide-up" style={{ animationDelay: "0.05s" }}>
-          <Suspense fallback={<DashboardItemSkeleton />}>
-            <RecentActivitiesCard />
-          </Suspense>
-        </div>
-
         {/* Fixed banners */}
         <Suspense fallback={null}>
           <InspectionScheduleBanner />
@@ -485,6 +478,13 @@ const Dashboard = () => {
             </SortableContext>
           </DndContext>
         )}
+
+        {/* Recent activities row (mix real do sistema) */}
+        <div className="mt-6 mb-4 animate-slide-up" style={{ animationDelay: "0.05s" }}>
+          <Suspense fallback={<DashboardItemSkeleton />}>
+            <RecentActivitiesCard />
+          </Suspense>
+        </div>
 
         {/* Charts Row */}
         <div className="grid grid-cols-1 lg:grid-cols-3 gap-4 mt-6">
