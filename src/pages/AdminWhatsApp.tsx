@@ -1415,10 +1415,9 @@ const AdminWhatsApp = () => {
                 {autoSendDdsPhoto ? "Ativo" : "Desativado"}
               </Badge>
             </div>
-            <GroupIdOverrideInput id="gid-dds" value={groupIdDds} onChange={setGroupIdDds} defaultGroupId={groupId} />
             <p className="text-xs text-muted-foreground mt-3">
-              Requisitos: integração W-API habilitada e <strong>ID do grupo</strong> preenchido (use o campo acima
-              para enviar para um grupo diferente do padrão). Lembre-se de salvar a configuração após alterar este botão.
+              Requisitos: integração W-API habilitada e <strong>ID do grupo do DDS</strong> preenchido na seção
+              <em> "Lembrete Automático do DDS"</em> acima (esse mesmo grupo recebe a foto). Lembre-se de salvar a configuração após alterar este botão.
             </p>
           </CardContent>
         </Card>
