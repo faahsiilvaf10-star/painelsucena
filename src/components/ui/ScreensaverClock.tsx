@@ -75,8 +75,16 @@ export const ScreensaverClock = () => {
 
   return (
     <div 
-      className="fixed inset-0 z-[9999] bg-black flex items-center justify-center cursor-pointer"
-      onClick={() => setIsActive(false)}
+      className="fixed inset-0 z-[9999] bg-black flex items-center justify-center cursor-pointer overflow-hidden"
+      onClick={(e) => {
+        e.stopPropagation();
+        setIsActive(false);
+      }}
+      onMouseMove={(e) => {
+        if (isActive) {
+          setIsActive(false);
+        }
+      }}
     >
       <div id="watch">
         {[...Array(12)].map((_, i) => (
