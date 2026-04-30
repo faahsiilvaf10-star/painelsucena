@@ -1,6 +1,7 @@
 import { memo } from "react";
 import { Calendar, Clock, Stethoscope, Pencil, Trash2 } from "lucide-react";
 import { Button } from "@/components/ui/button";
+import { DeleteConfirmation } from "@/components/ui/DeleteConfirmation";
 import { Badge } from "@/components/ui/badge";
 import { format, differenceInMonths, addMonths } from "date-fns";
 import { ptBR } from "date-fns/locale";
