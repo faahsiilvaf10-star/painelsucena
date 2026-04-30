@@ -94,6 +94,8 @@ export function useSiteSettings() {
         instacena_gif_right_height: d.instacena_gif_right_height || null,
         instacena_gif_opacity: d.instacena_gif_opacity ?? 1,
         instacena_gif_right_opacity: d.instacena_gif_right_opacity ?? 1,
+        screensaver_enabled: d.screensaver_enabled ?? true,
+        screensaver_timeout: d.screensaver_timeout ?? 5,
       };
     },
     staleTime: 1000 * 60 * 5,
