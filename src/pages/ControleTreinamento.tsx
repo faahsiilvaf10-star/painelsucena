@@ -179,16 +179,94 @@ const ControleTreinamento = () => {
   const s20 = stats(nr20);
   const s35 = stats(nr35);
 
+  const [downloading, setDownloading] = useState(false);
+
+  const handleDownloadExcel = async () => {
+    try {
+      setDownloading(true);
+      const res = await fetch("/templates/Controle_de_Treinamentos_Hydro_Alunorte.xlsx");
+      if (!res.ok) throw new Error("Template não encontrado");
+      const buf = await res.arrayBuffer();
+      const wb = new ExcelJS.Workbook();
+      await wb.xlsx.load(buf);
+
+      const fillSheet = (sheetName: string, items: NrTraining[]) => {
+        const ws = wb.getWorksheet(sheetName);
+        if (!ws) return;
+        // Limpa linhas a partir da 3 (mantém cabeçalho linhas 1-2)
+        const lastRow = ws.actualRowCount;
+        for (let r = lastRow; r >= 3; r--) {
+          ws.spliceRows(r, 1);
+        }
+        items.forEach((t, idx) => {
+          const rowIdx = idx + 3;
+          const row = ws.getRow(rowIdx);
+          row.getCell(1).value = t.matricula ? (isNaN(Number(t.matricula)) ? t.matricula : Number(t.matricula)) : null;
+          row.getCell(2).value = t.status || "Ativo";
+          row.getCell(3).value = t.collaborator_name;
+          row.getCell(4).value = t.role ?? "";
+          row.getCell(5).value = t.area ?? "";
+          row.getCell(6).value = t.training === "NR20" ? "NR 20" : "NR 35";
+          if (t.training_date) {
+            const d = new Date(t.training_date + "T00:00:00");
+            row.getCell(7).value = d;
+            row.getCell(7).numFmt = "dd/mm/yyyy";
+          }
+          row.getCell(8).value = t.validity_days ?? 730;
+          // Fórmulas dinâmicas para Próx. Reciclagem (I) e Dias Restantes (J)
+          if (t.training_date) {
+            row.getCell(9).value = { formula: `G${rowIdx}+H${rowIdx}` } as any;
+            row.getCell(9).numFmt = "dd/mm/yyyy";
+            row.getCell(10).value = { formula: `I${rowIdx}-$L$2` } as any;
+          } else {
+            row.getCell(9).value = "NA";
+            row.getCell(10).value = "NA";
+          }
+          row.commit();
+        });
+      };
+
+      fillSheet("NR 20 (2)", nr20);
+      fillSheet("NR 35", nr35);
+
+      const out = await wb.xlsx.writeBuffer();
+      const blob = new Blob([out], {
+        type: "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet",
+      });
+      const url = URL.createObjectURL(blob);
+      const a = document.createElement("a");
+      a.href = url;
+      a.download = `Controle_de_Treinamentos_Hydro_Alunorte_${format(new Date(), "yyyy-MM-dd")}.xlsx`;
+      document.body.appendChild(a);
+      a.click();
+      a.remove();
+      URL.revokeObjectURL(url);
+      toast({ title: "Excel gerado", description: "Download iniciado." });
+    } catch (e: any) {
+      toast({ title: "Erro ao gerar Excel", description: e.message, variant: "destructive" });
+    } finally {
+      setDownloading(false);
+    }
+  };
+
   return (
     <Layout>
       <div className="min-h-[calc(100vh-4rem)] p-4 md:p-8 max-w-7xl mx-auto">
-        <div className="flex items-center gap-3 mb-6">
+        <div className="flex items-center gap-3 mb-6 flex-wrap">
           <div className="p-2 rounded-xl bg-gradient-to-br from-[#c9a84c] to-[#f0d78c] text-[#1a1a1a]">
             <GraduationCap className="h-7 w-7" />
           </div>
           <h1 className="text-2xl md:text-3xl font-bold text-[#c9a84c]">
             Controle de Treinamento
           </h1>
+          <Button
+            onClick={handleDownloadExcel}
+            disabled={downloading || isLoading}
+            className="ml-auto bg-green-600 hover:bg-green-700"
+          >
+            <Download className="h-4 w-4 mr-2" />
+            {downloading ? "Gerando..." : "Baixar Excel"}
+          </Button>
         </div>
 
         <div className="relative mb-4 max-w-md">
