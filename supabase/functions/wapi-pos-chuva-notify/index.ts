@@ -26,11 +26,7 @@ Deno.serve(async (req) => {
         status: 400, headers: { ...corsHeaders, "Content-Type": "application/json" },
       });
     }
-    if (!image_url || typeof image_url !== "string" || !image_url.trim()) {
-      return new Response(JSON.stringify({ error: "image_url obrigatório (PNG completo do formulário)" }), {
-        status: 400, headers: { ...corsHeaders, "Content-Type": "application/json" },
-      });
-    }
+    const hasImage = typeof image_url === "string" && !!image_url.trim();
 
     const { data: cfg } = await admin
       .from("wapi_config")
@@ -46,15 +42,27 @@ Deno.serve(async (req) => {
       });
     }
 
-    const { error: insErr } = await admin.from("wapi_outbox").insert({
-      kind: "image",
-      target_type: "group",
-      phone: targetGroupId,
-      message: null,
-      caption: caption,
-      image_url: image_url,
-      origin: "pos_chuva",
-    });
+    const row = hasImage
+      ? {
+          kind: "image",
+          target_type: "group",
+          phone: targetGroupId,
+          message: null,
+          caption: caption,
+          image_url: image_url,
+          origin: "pos_chuva",
+          recipient_name: "Grupo - Pós Chuva",
+        }
+      : {
+          kind: "text",
+          target_type: "group",
+          phone: targetGroupId,
+          message: caption,
+          origin: "pos_chuva",
+          recipient_name: "Grupo - Pós Chuva",
+        };
+
+    const { error: insErr } = await admin.from("wapi_outbox").insert(row);
 
     if (insErr) {
       return new Response(JSON.stringify({ error: insErr.message }), {

@@ -259,11 +259,6 @@ export default function PosChuva() {
         if (container.parentNode) container.parentNode.removeChild(container);
       }
 
-      if (!publicUrl) {
-        toast.error("Falha ao gerar imagem da inspeção Pós Chuva — não enviado ao grupo");
-        return;
-      }
-
       const ncCount = cl.filter((c) => c.resposta === "NC").length;
       const caption = [
         "🌧️ *Inspeção Pós Chuva / Ventos Fortes*",
@@ -280,13 +275,21 @@ export default function PosChuva() {
         payload.observacoes ? `📝 Obs.: ${payload.observacoes}` : "",
       ].filter(Boolean).join("\n");
 
+      if (!publicUrl) {
+        console.warn("[pos-chuva] PNG falhou — enviando apenas texto ao grupo");
+      }
+
       const { data: invokeData, error: invokeErr } = await supabase.functions.invoke("wapi-pos-chuva-notify", {
-        body: { caption, image_url: publicUrl },
+        body: { caption, image_url: publicUrl || null },
       });
       if (invokeErr) {
         toast.error("Falha ao enfileirar Pós Chuva no grupo", { description: invokeErr.message });
       } else if (!(invokeData as any)?.skipped) {
-        toast.success("Inspeção Pós Chuva enfileirada para o grupo do WhatsApp 📤");
+        toast.success(
+          publicUrl
+            ? "Inspeção Pós Chuva enfileirada para o grupo do WhatsApp 📤"
+            : "Pós Chuva enviada ao grupo (apenas texto — PNG não pôde ser gerado) 📤"
+        );
       }
     } catch (err) {
       console.error("[sendPosChuvaToWhatsApp]", err);
