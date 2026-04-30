@@ -410,6 +410,8 @@ export default function PosChuva() {
     setChecklist(initialChecklist());
     setPlanoAcao([emptyPlanoAcao()]);
     setObservacoes("");
+    setChuvaInicio("");
+    setChuvaFim("");
     setAval1({ data: "", horario: "", sigEnc: "", sigTec: "" });
     setAval2({ data: "", horario: "", sigEnc: "", sigTec: "" });
     setAval3({ data: "", horario: "", sigEnc: "", sigTec: "" });
