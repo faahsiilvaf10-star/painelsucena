@@ -244,8 +244,12 @@ function buildExchangeShareDescription(exchange: EpiExchange) {
       const epiQty = typeof e === "object" && e.qty ? Number(e.qty) : 1;
       const epiValue = typeof e === "object" ? e.value : undefined;
       const isOutros = epiId === "outros" || epiId.startsWith("outros_");
+      const hasDropdown = isOutros || !!INVENTORY_DROPDOWN_EPIS[epiId];
       const epiItem = isOutros ? EPI_ITEMS.find((item) => item.id === "outros") : EPI_ITEMS.find((item) => item.id === epiId);
-      const name = isOutros && epiValue ? epiValue : (epiItem?.label || epiId);
+      const baseLabel = epiItem?.label || epiId;
+      const name = epiValue
+        ? (hasDropdown ? epiValue : `${baseLabel} ${epiItem?.inputLabel || ""} ${epiValue}`.replace(/\s+/g, " ").trim())
+        : baseLabel;
 
       return `${name} (${epiQty})`;
     })
@@ -277,8 +281,12 @@ function buildExchangeShareDescription(exchange: EpiExchange) {
       const epiQty = typeof e === "object" && e.qty ? Number(e.qty) : 1;
       const epiValue = typeof e === "object" ? e.value : undefined;
       const isOutros = epiId === "outros" || epiId.startsWith("outros_");
+      const hasDropdown = isOutros || !!INVENTORY_DROPDOWN_EPIS[epiId];
       const epiItem = isOutros ? EPI_ITEMS.find((item) => item.id === "outros") : EPI_ITEMS.find((item) => item.id === epiId);
-      const name = isOutros && epiValue ? epiValue : (epiItem?.label || epiId);
+      const baseLabel = epiItem?.label || epiId;
+      const name = epiValue
+        ? (hasDropdown ? epiValue : `${baseLabel} ${epiItem?.inputLabel || ""} ${epiValue}`.replace(/\s+/g, " ").trim())
+        : baseLabel;
       lines.push(`• ${name} (${epiQty})`);
     });
   }
@@ -305,8 +313,12 @@ function getExchangeDocumentItems(exchange: EpiExchange): Array<{ name: string; 
     const epiQty = typeof e === "object" && e.qty ? Number(e.qty) : 1;
     const epiValue = typeof e === "object" ? e.value : undefined;
     const isOutros = epiId === "outros" || epiId.startsWith("outros_");
+    const hasDropdown = isOutros || !!INVENTORY_DROPDOWN_EPIS[epiId];
     const epiItem = isOutros ? EPI_ITEMS.find((item) => item.id === "outros") : EPI_ITEMS.find((item) => item.id === epiId);
-    const baseName = isOutros && epiValue ? epiValue : (epiItem?.label || epiId);
+    const baseLabel = epiItem?.label || epiId;
+    const baseName = epiValue
+      ? (hasDropdown ? epiValue : `${baseLabel} ${epiItem?.inputLabel || ""} ${epiValue}`.replace(/\s+/g, " ").trim())
+      : baseLabel;
 
     return { name: baseName, qty: epiQty };
   });
