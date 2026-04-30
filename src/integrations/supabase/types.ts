@@ -2621,6 +2621,48 @@ export type Database = {
         }
         Relationships: []
       }
+      nr_trainings: {
+        Row: {
+          area: string | null
+          collaborator_name: string
+          created_at: string
+          id: string
+          matricula: string | null
+          role: string | null
+          status: string
+          training: string
+          training_date: string | null
+          updated_at: string
+          validity_days: number | null
+        }
+        Insert: {
+          area?: string | null
+          collaborator_name: string
+          created_at?: string
+          id?: string
+          matricula?: string | null
+          role?: string | null
+          status?: string
+          training: string
+          training_date?: string | null
+          updated_at?: string
+          validity_days?: number | null
+        }
+        Update: {
+          area?: string | null
+          collaborator_name?: string
+          created_at?: string
+          id?: string
+          matricula?: string | null
+          role?: string | null
+          status?: string
+          training?: string
+          training_date?: string | null
+          updated_at?: string
+          validity_days?: number | null
+        }
+        Relationships: []
+      }
       order_history: {
         Row: {
           change_type: string | null
