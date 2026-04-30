@@ -284,6 +284,8 @@ const AdminWhatsApp = () => {
         group_id_attendance: groupIdAttendance.trim() || null,
         auto_send_desvios: autoSendDesvios,
         group_id_desvios: groupIdDesvios.trim() || null,
+        auto_send_desvio_due_alert: autoSendDesvioDue,
+        group_id_desvio_due: groupIdDesvioDue.trim() || null,
         auto_send_low_stock_alert: autoSendLowStock,
         group_id_low_stock: groupIdLowStock.trim() || null,
         auto_send_training_alert: autoSendTrainingAlert,
