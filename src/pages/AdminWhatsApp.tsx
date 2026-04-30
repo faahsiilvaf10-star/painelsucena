@@ -818,6 +818,18 @@ const AdminWhatsApp = () => {
               </div>
             </div>
 
+            <div className="rounded-md border p-3 bg-primary/5 space-y-2">
+              <Label htmlFor="gid-dds-unified" className="text-sm font-semibold">
+                📢 ID do grupo para mensagens do DDS
+              </Label>
+              <p className="text-xs text-muted-foreground">
+                Este grupo receberá <strong>todas as mensagens automáticas relacionadas ao DDS</strong>:
+                lembretes do palestrante, aviso 1 dia antes <strong>e a foto da Lista de Presença</strong> postada no dia.
+                Se deixar em branco, será usado o grupo padrão configurado acima.
+              </p>
+              <GroupIdOverrideInput id="gid-dds-unified" value={groupIdDds} onChange={setGroupIdDds} defaultGroupId={groupId} />
+            </div>
+
             <p className="text-xs text-muted-foreground">
               Requisitos: integração W-API habilitada, palestrante com usuário interno cadastrado e número de WhatsApp preenchido no perfil.
               Lembre-se de salvar a configuração após alterar estes botões.
