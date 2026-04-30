@@ -284,7 +284,7 @@ export default function AtaReuniaoContrato() {
           </CardContent>
         </Card>
       ) : (
-        <div className="space-y-4">
+        <div className="h-[calc(100vh-26rem)] min-h-[400px] overflow-y-auto pr-2 space-y-4 rounded-lg scroll-smooth">
           {grouped.map(([section, sItems]) => (
             <Card key={section}>
               <CardHeader className="pb-3">
