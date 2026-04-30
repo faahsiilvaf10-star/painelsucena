@@ -38,6 +38,7 @@ import { useCreateNotification } from "@/hooks/useNotifications";
 import { getBrazilNorthTodayString } from "@/lib/timezone";
 import { EditablePageTitle } from "@/components/cms/EditablePageTitle";
 import { EditableIcon } from "@/components/cms/EditableIcon";
+import { AnimatedDownloadButton } from "@/components/ui/AnimatedDownloadButton";
 import { DDSThemesCard } from "@/components/dds/DDSThemesCard";
 import { formatCargoLabel } from "@/lib/cargoUtils";
 import { useDDSMidnightRefresh } from "@/hooks/useMidnightRefresh";
@@ -662,9 +663,11 @@ export default function DDS() {
                                   <Button variant="ghost" size="icon" className="h-7 w-7 shrink-0" onClick={() => setParticipationDialogDate(dateStr)} title="Ver lista de presença">
                                     <Eye className="h-4 w-4 text-green-600" />
                                   </Button>
-                                  <Button variant="ghost" size="icon" className="h-7 w-7 shrink-0" onClick={() => generateParticipationPdf(dateStr)} title="Baixar PDF da presença">
-                                    <FileText className="h-4 w-4 text-red-500" />
-                                  </Button>
+                                  <AnimatedDownloadButton 
+                                    onDownload={() => generateParticipationPdf(dateStr)}
+                                    className="h-7 w-7"
+                                    label=""
+                                  />
                                 </>
                               )}
                             </div>
