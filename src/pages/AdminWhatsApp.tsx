@@ -489,6 +489,49 @@ const AdminWhatsApp = () => {
     }
   };
 
+  const handleTestAtaContrato = async () => {
+    setTestingAtaContrato(true);
+    try {
+      const { data: latest, error: lErr } = await supabase
+        .from("meeting_minutes")
+        .select("id, title")
+        .order("created_at", { ascending: false })
+        .limit(1)
+        .maybeSingle();
+      if (lErr) throw lErr;
+      if (!latest) {
+        toast.info("Nenhuma ata importada", { description: "Importe um PDF em Planejamento › Ata Reunião de Contrato primeiro.", duration: 8000 });
+        return;
+      }
+      const url = `${import.meta.env.VITE_SUPABASE_URL}/functions/v1/wapi-ata-contrato-notify`;
+      const response = await fetch(url, {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ minute_id: latest.id, reason: "imported", force: true }),
+      });
+      const text = await response.text();
+      let data: any = null;
+      try { data = text ? JSON.parse(text) : null; } catch {}
+      if (!response.ok) {
+        toast.error(`Erro HTTP ${response.status}`, { description: text.slice(0, 500), duration: 15000 });
+        return;
+      }
+      if (data?.skipped) {
+        toast.info("Nada a enviar", { description: data.reason || "Ignorado", duration: 8000 });
+      } else if (data?.success) {
+        toast.success(`Resumo da ata "${latest.title}" enviado (${data.done}/${data.total} concluídos)`);
+      } else {
+        toast.error("Falha no envio", { description: data?.error || "Erro desconhecido", duration: 15000 });
+      }
+      queryClient.invalidateQueries({ queryKey: ["wapi-logs"] });
+    } catch (e) {
+      const msg = e instanceof Error ? e.message : String(e);
+      toast.error("Falha ao executar teste", { description: msg, duration: 15000 });
+    } finally {
+      setTestingAtaContrato(false);
+    }
+  };
+
   const handleTestMatrixNotify = async () => {
     setTestingMatrix(true);
     try {
