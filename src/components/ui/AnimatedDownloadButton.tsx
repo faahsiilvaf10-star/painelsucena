@@ -43,13 +43,14 @@ export const AnimatedDownloadButton: React.FC<AnimatedDownloadButtonProps> = ({
         htmlFor={id} 
         className="download-button-label"
         onClick={(e) => {
+          e.stopPropagation(); // Previne que o click suba para elementos pai
           e.preventDefault();
           handleAction();
         }}
       >
-        <div className="download-button-inner">
-          <i className="l"><Download size={20} /></i>
-          <span className="t">{label}</span>
+        <div className={cn("download-button-inner", label === "" && "w-7")}>
+          <i className={cn("l", label === "" && "left-0 opacity-100")}><Download size={label === "" ? 16 : 20} /></i>
+          {label !== "" && <span className="t">{label}</span>}
           
           {/* Decorative spots */}
           {[...Array(8)].map((_, i) => (
@@ -57,7 +58,7 @@ export const AnimatedDownloadButton: React.FC<AnimatedDownloadButtonProps> = ({
           ))}
         </div>
         <div className="download-button-tick">
-          <Check size={24} strokeWidth={3} />
+          <Check size={label === "" ? 18 : 24} strokeWidth={3} />
         </div>
       </label>
     </div>
