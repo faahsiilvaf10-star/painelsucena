@@ -85,6 +85,18 @@ export default function PosChuva() {
   // History detail
   const [detailOpen, setDetailOpen] = useState(false);
   const [selectedInspection, setSelectedInspection] = useState<PosChuvaInspection | null>(null);
+  const [resendingId, setResendingId] = useState<string | null>(null);
+
+  const handleResendToGroup = async (ins: PosChuvaInspection) => {
+    if (resendingId) return;
+    setResendingId(ins.id);
+    try {
+      toast.info("Gerando imagem e enviando ao grupo...");
+      await sendPosChuvaToWhatsApp(ins);
+    } finally {
+      setResendingId(null);
+    }
+  };
 
   const handleChecklistChange = (index: number, value: "C" | "NC" | "NA") => {
     setChecklist((prev) => prev.map((item, i) => (i === index ? { ...item, resposta: value } : item)));
