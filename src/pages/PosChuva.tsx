@@ -301,17 +301,10 @@ export default function PosChuva() {
           }
         }
         if (!publicUrl && lastErr) {
-          toast.error("Falha ao gerar PNG da Pós Chuva", {
-            description: String(lastErr?.message || lastErr).slice(0, 200),
-          });
+          console.warn("[pos-chuva] PNG falhou após 3 tentativas — enviando como texto:", lastErr);
         }
       } finally {
         if (container.parentNode) container.parentNode.removeChild(container);
-      }
-
-      if (!publicUrl) {
-        console.error("[pos-chuva] PNG não foi gerado — envio ao grupo abortado");
-        return;
       }
 
       const ncCount = cl.filter((c) => c.resposta === "NC").length;
@@ -331,7 +324,7 @@ export default function PosChuva() {
       ].filter(Boolean).join("\n");
 
       const { data: invokeData, error: invokeErr } = await supabase.functions.invoke("wapi-pos-chuva-notify", {
-        body: { caption, image_url: publicUrl },
+        body: { caption, image_url: publicUrl || null },
       });
       if (invokeErr) {
         toast.error("Falha ao enfileirar Pós Chuva no grupo", { description: invokeErr.message });
