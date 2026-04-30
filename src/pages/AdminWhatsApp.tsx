@@ -110,6 +110,9 @@ const AdminWhatsApp = () => {
   const [autoSendTrainingAlert, setAutoSendTrainingAlert] = useState(false);
   const [groupIdTraining, setGroupIdTraining] = useState("");
   const [testingTraining, setTestingTraining] = useState(false);
+  const [autoSendAtaContrato, setAutoSendAtaContrato] = useState(false);
+  const [groupIdAtaContrato, setGroupIdAtaContrato] = useState("");
+  const [testingAtaContrato, setTestingAtaContrato] = useState(false);
   const [testingMatrix, setTestingMatrix] = useState(false);
   const [testingForbiddenColor, setTestingForbiddenColor] = useState(false);
   const [testingCampaign, setTestingCampaign] = useState(false);
@@ -177,6 +180,8 @@ const AdminWhatsApp = () => {
       setGroupIdLowStock((c.group_id_low_stock as string | null) || "");
       setAutoSendTrainingAlert(!!(c.auto_send_training_alert as boolean | null));
       setGroupIdTraining((c.group_id_training as string | null) || "");
+      setAutoSendAtaContrato(!!(c.auto_send_ata_contrato as boolean | null));
+      setGroupIdAtaContrato((c.group_id_ata_contrato as string | null) || "");
     }
   }, [cfg]);
 
@@ -278,6 +283,8 @@ const AdminWhatsApp = () => {
         group_id_low_stock: groupIdLowStock.trim() || null,
         auto_send_training_alert: autoSendTrainingAlert,
         group_id_training: groupIdTraining.trim() || null,
+        auto_send_ata_contrato: autoSendAtaContrato,
+        group_id_ata_contrato: groupIdAtaContrato.trim() || null,
         updated_by: user?.id ?? null,
       };
       if (cfg?.id) {
