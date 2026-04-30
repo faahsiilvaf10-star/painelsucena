@@ -759,7 +759,8 @@ export default function PosChuva() {
                       </div>
                     </div>
                   </CardContent>
-                </Card>
+                  </Card>
+                </div>
               ))}
             </div>
           </TabsContent>
