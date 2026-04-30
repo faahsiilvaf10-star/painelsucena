@@ -1,4 +1,5 @@
 import { useState, useMemo, useRef } from "react";
+import { DeleteConfirmation } from "@/components/ui/DeleteConfirmation";
 import { format, parse, isWeekend, getDay } from "date-fns";
 import { ptBR } from "date-fns/locale";
 import { Shuffle, Calendar, Save, Trash2, Edit2, Sun, Shield, ChevronLeft, ChevronRight, Loader2, AtSign, Plus, User, UserPlus, BookOpen, Camera, Image, X, ZoomIn, Eye, FileText } from "lucide-react";
@@ -701,14 +702,9 @@ export default function DDS() {
                                   >
                                     <Edit2 className="h-4 w-4" />
                                   </Button>
-                                  <Button
-                                    variant="ghost"
-                                    size="icon"
-                                    className="h-8 w-8 text-destructive hover:text-destructive"
-                                    onClick={() => handleDelete(schedule.id)}
-                                  >
-                                    <Trash2 className="h-4 w-4" />
-                                  </Button>
+                                  <DeleteConfirmation
+                                    onConfirm={() => handleDelete(schedule.id)}
+                                  />
                                 </div>
                               ) : (
                                 <Button

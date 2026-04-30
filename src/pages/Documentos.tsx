@@ -1,4 +1,5 @@
 import { useState } from "react";
+import { DeleteConfirmation } from "@/components/ui/DeleteConfirmation";
 import { EditablePageTitle } from "@/components/cms/EditablePageTitle";
 import Layout from "@/components/layout/Layout";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
@@ -346,36 +347,9 @@ const Documentos = () => {
                                 <DocumentHistoryDialog documentId={doc.id} documentTitle={doc.title} />
                                 {!isVisualizador && <EditDocumentDialog document={doc} />}
                                 {!isVisualizador && doc.created_by === user?.id && (
-                                  <AlertDialog>
-                                    <AlertDialogTrigger asChild>
-                                      <Button
-                                        size="sm"
-                                        variant="ghost"
-                                        className="text-red-600 hover:text-red-700"
-                                        title="Excluir"
-                                      >
-                                        <Trash2 className="h-4 w-4" />
-                                      </Button>
-                                    </AlertDialogTrigger>
-                                    <AlertDialogContent>
-                                      <AlertDialogHeader>
-                                        <AlertDialogTitle>Excluir documento?</AlertDialogTitle>
-                                        <AlertDialogDescription>
-                                          Esta ação não pode ser desfeita. O documento "{doc.title}" será
-                                          permanentemente excluído.
-                                        </AlertDialogDescription>
-                                      </AlertDialogHeader>
-                                      <AlertDialogFooter>
-                                        <AlertDialogCancel>Cancelar</AlertDialogCancel>
-                                        <AlertDialogAction
-                                          onClick={() => handleDelete(doc)}
-                                          className="bg-red-600 hover:bg-red-700"
-                                        >
-                                          Excluir
-                                        </AlertDialogAction>
-                                      </AlertDialogFooter>
-                                    </AlertDialogContent>
-                                  </AlertDialog>
+                                  <DeleteConfirmation
+                                    onConfirm={() => handleDelete(doc)}
+                                  />
                                 )}
                               </div>
                             </TableCell>

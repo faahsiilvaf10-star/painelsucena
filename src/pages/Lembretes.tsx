@@ -1,4 +1,5 @@
 import { useState, useEffect } from "react";
+import { DeleteConfirmation } from "@/components/ui/DeleteConfirmation";
 import { format, formatDistanceToNow } from "date-fns";
 import { ptBR } from "date-fns/locale";
 import { Bell, Plus, Trash2, Users, User, Globe, Calendar, Clock, AlertCircle, Repeat, Filter, Pencil } from "lucide-react";
@@ -641,14 +642,9 @@ const Lembretes = () => {
                           {reminder.created_by === user?.id && (
                             <div className="flex items-center gap-1">
                               <EditReminderDialog reminder={reminder} />
-                              <Button
-                                variant="ghost"
-                                size="icon"
-                                className="h-8 w-8 text-muted-foreground hover:text-destructive"
-                                onClick={() => handleDelete(reminder)}
-                              >
-                                <Trash2 className="h-4 w-4" />
-                              </Button>
+                               <DeleteConfirmation
+                                 onConfirm={() => handleDelete(reminder)}
+                               />
                             </div>
                           )}
                         </div>
@@ -742,14 +738,9 @@ const Lembretes = () => {
                           {reminder.created_by === user?.id && (
                             <div className="flex items-center gap-1">
                               <EditReminderDialog reminder={reminder} />
-                              <Button
-                                variant="ghost"
-                                size="icon"
-                                className="h-8 w-8 text-muted-foreground hover:text-destructive"
-                                onClick={() => handleDelete(reminder)}
-                              >
-                                <Trash2 className="h-4 w-4" />
-                              </Button>
+                               <DeleteConfirmation
+                                 onConfirm={() => handleDelete(reminder)}
+                               />
                             </div>
                           )}
                         </div>
