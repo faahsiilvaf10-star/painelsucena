@@ -406,15 +406,10 @@ export default function ArquivosSeguranca() {
                         </p>
                         <div className="mt-3 flex gap-2">
                           {!isVisualizador && (
-                            <Button
-                              variant="outline"
-                              size="sm"
-                              className="flex-1 gap-1"
-                              onClick={() => handleDownload(file)}
-                            >
-                              <Download className="h-3 w-3" />
-                              Baixar
-                            </Button>
+                            <AnimatedDownloadButton 
+                              onDownload={() => handleDownload(file)}
+                              className="flex-1"
+                            />
                           )}
                           {!isVisualizador &&
                             (user?.id === file.uploaded_by ||
