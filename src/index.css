@@ -1425,12 +1425,26 @@ html, body {
 .digit:nth-child(11) { transform: rotate(330deg); } .digit:nth-child(11) span { transform: rotate(-330deg); }
 .digit:nth-child(12) { transform: rotate(360deg); } .digit:nth-child(12) span { transform: rotate(-360deg); }
 
-#mickey, #hours, #minutes {
+#hours, #minutes, #minutes:after {
+  position: absolute;
   width: 100%;
   height: 100%;
-  position: absolute;
-  background: no-repeat center center;
-  background-size: contain;
+  background: no-repeat top center;
+  background-size: 90px;
+  background-position: center 5%;
+  transition: transform 1s;
+}
+
+#minutes:after {
+    content: '';
+    display: block;
+    animation: seconds infinite 1s;
+}
+
+@keyframes seconds {
+  0% { transform: scale(1); }
+  50% { transform: scale(.95); }
+  100% { transform: scale(1); }
 }
 
 #mickey {
