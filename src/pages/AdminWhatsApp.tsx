@@ -110,6 +110,9 @@ const AdminWhatsApp = () => {
   const [autoSendTrainingAlert, setAutoSendTrainingAlert] = useState(false);
   const [groupIdTraining, setGroupIdTraining] = useState("");
   const [testingTraining, setTestingTraining] = useState(false);
+  const [autoSendAtaContrato, setAutoSendAtaContrato] = useState(false);
+  const [groupIdAtaContrato, setGroupIdAtaContrato] = useState("");
+  const [testingAtaContrato, setTestingAtaContrato] = useState(false);
   const [testingMatrix, setTestingMatrix] = useState(false);
   const [testingForbiddenColor, setTestingForbiddenColor] = useState(false);
   const [testingCampaign, setTestingCampaign] = useState(false);
@@ -177,6 +180,8 @@ const AdminWhatsApp = () => {
       setGroupIdLowStock((c.group_id_low_stock as string | null) || "");
       setAutoSendTrainingAlert(!!(c.auto_send_training_alert as boolean | null));
       setGroupIdTraining((c.group_id_training as string | null) || "");
+      setAutoSendAtaContrato(!!(c.auto_send_ata_contrato as boolean | null));
+      setGroupIdAtaContrato((c.group_id_ata_contrato as string | null) || "");
     }
   }, [cfg]);
 
@@ -278,6 +283,8 @@ const AdminWhatsApp = () => {
         group_id_low_stock: groupIdLowStock.trim() || null,
         auto_send_training_alert: autoSendTrainingAlert,
         group_id_training: groupIdTraining.trim() || null,
+        auto_send_ata_contrato: autoSendAtaContrato,
+        group_id_ata_contrato: groupIdAtaContrato.trim() || null,
         updated_by: user?.id ?? null,
       };
       if (cfg?.id) {
@@ -479,6 +486,49 @@ const AdminWhatsApp = () => {
       toast.error("Falha ao executar teste", { description: msg, duration: 15000 });
     } finally {
       setTestingTraining(false);
+    }
+  };
+
+  const handleTestAtaContrato = async () => {
+    setTestingAtaContrato(true);
+    try {
+      const { data: latest, error: lErr } = await supabase
+        .from("meeting_minutes")
+        .select("id, title")
+        .order("created_at", { ascending: false })
+        .limit(1)
+        .maybeSingle();
+      if (lErr) throw lErr;
+      if (!latest) {
+        toast.info("Nenhuma ata importada", { description: "Importe um PDF em Planejamento › Ata Reunião de Contrato primeiro.", duration: 8000 });
+        return;
+      }
+      const url = `${import.meta.env.VITE_SUPABASE_URL}/functions/v1/wapi-ata-contrato-notify`;
+      const response = await fetch(url, {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ minute_id: latest.id, reason: "imported", force: true }),
+      });
+      const text = await response.text();
+      let data: any = null;
+      try { data = text ? JSON.parse(text) : null; } catch {}
+      if (!response.ok) {
+        toast.error(`Erro HTTP ${response.status}`, { description: text.slice(0, 500), duration: 15000 });
+        return;
+      }
+      if (data?.skipped) {
+        toast.info("Nada a enviar", { description: data.reason || "Ignorado", duration: 8000 });
+      } else if (data?.success) {
+        toast.success(`Resumo da ata "${latest.title}" enviado (${data.done}/${data.total} concluídos)`);
+      } else {
+        toast.error("Falha no envio", { description: data?.error || "Erro desconhecido", duration: 15000 });
+      }
+      queryClient.invalidateQueries({ queryKey: ["wapi-logs"] });
+    } catch (e) {
+      const msg = e instanceof Error ? e.message : String(e);
+      toast.error("Falha ao executar teste", { description: msg, duration: 15000 });
+    } finally {
+      setTestingAtaContrato(false);
     }
   };
 
@@ -1036,6 +1086,51 @@ const AdminWhatsApp = () => {
             <GroupIdOverrideInput id="gid-training" value={groupIdTraining} onChange={setGroupIdTraining} defaultGroupId={groupId} />
             <p className="text-xs text-muted-foreground mt-3">
               O botão "Testar" envia o alerta imediatamente, ignorando o controle de duplicidade.
+              Salve a configuração após alterar o botão ou o ID do grupo.
+            </p>
+          </CardContent>
+        </Card>
+
+        <Card>
+          <CardHeader>
+            <CardTitle className="flex items-center gap-2">
+              <Bell className="w-5 h-5 text-primary" />
+              Auto-envio Ata de Reunião de Contrato
+            </CardTitle>
+            <CardDescription>
+              Quando habilitado, sempre que um <strong>item da ata</strong> for marcado como
+              <strong> concluído</strong>, ou quando um <strong>novo PDF</strong> da ata for
+              importado, o sistema envia automaticamente para o <strong>grupo configurado</strong>
+              uma mensagem detalhada com <strong>todos os itens concluídos</strong> e os que
+              ainda <strong>faltam</strong>, organizados por seção. Itens já concluídos em atas
+              anteriores são <strong>reaproveitados</strong> automaticamente na nova importação.
+            </CardDescription>
+          </CardHeader>
+          <CardContent>
+            <div className="flex items-center justify-between gap-3 rounded-md border p-3 bg-muted/30">
+              <div className="flex items-center gap-3">
+                <Switch
+                  id="auto-send-ata-contrato"
+                  checked={autoSendAtaContrato}
+                  onCheckedChange={setAutoSendAtaContrato}
+                />
+                <Label htmlFor="auto-send-ata-contrato" className="cursor-pointer">
+                  Ativar envio automático no grupo
+                </Label>
+              </div>
+              <div className="flex items-center gap-2">
+                <Badge variant={autoSendAtaContrato ? "default" : "secondary"}>
+                  {autoSendAtaContrato ? "Ativo" : "Desativado"}
+                </Badge>
+                <Button variant="outline" size="sm" onClick={handleTestAtaContrato} disabled={testingAtaContrato}>
+                  <Play className="w-4 h-4 mr-1" />
+                  {testingAtaContrato ? "..." : "Testar"}
+                </Button>
+              </div>
+            </div>
+            <GroupIdOverrideInput id="gid-ata-contrato" value={groupIdAtaContrato} onChange={setGroupIdAtaContrato} defaultGroupId={groupId} />
+            <p className="text-xs text-muted-foreground mt-3">
+              O botão "Testar" envia o resumo completo da última ata importada para o grupo configurado.
               Salve a configuração após alterar o botão ou o ID do grupo.
             </p>
           </CardContent>

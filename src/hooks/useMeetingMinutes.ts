@@ -93,15 +93,26 @@ export function useToggleMinuteItem() {
   return useMutation({
     mutationFn: async ({ id, completed }: { id: string; completed: boolean }) => {
       const { data: u } = await supabase.auth.getUser();
-      const { error } = await supabase
+      const { data: row, error } = await supabase
         .from("meeting_minute_items")
         .update({
           completed,
           completed_at: completed ? new Date().toISOString() : null,
           completed_by: completed ? (u.user?.id ?? null) : null,
         })
-        .eq("id", id);
+        .eq("id", id)
+        .select("id, minute_id, completed")
+        .single();
       if (error) throw error;
+
+      // Dispara notificação WhatsApp quando marcado como concluído
+      if (completed && row?.minute_id) {
+        supabase.functions
+          .invoke("wapi-ata-contrato-notify", {
+            body: { minute_id: row.minute_id, item_id: id, reason: "item_completed" },
+          })
+          .catch((e) => console.warn("[ata-notify] falha:", e));
+      }
     },
     onSuccess: () => {
       qc.invalidateQueries({ queryKey: ["meeting-minute-items"] });

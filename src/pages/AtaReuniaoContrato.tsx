@@ -111,22 +111,66 @@ export default function AtaReuniaoContrato() {
         .single();
       if (mErr) throw mErr;
 
-      const rows = parsed.items.map((i) => ({
-        minute_id: minute.id,
-        item_number: i.item_number,
-        section: i.section,
-        description: i.description,
-        action_by: i.action_by,
-        deadline: i.deadline,
-        original_status: i.original_status,
-        sort_order: i.sort_order,
-        completed: false,
-      }));
+      // dedupe_key: número + primeiros 80 chars normalizados da descrição
+      const makeKey = (item_number: string, description: string) => {
+        const norm = (description || "")
+          .toLowerCase()
+          .normalize("NFD").replace(/[\u0300-\u036f]/g, "")
+          .replace(/[^a-z0-9 ]+/g, " ")
+          .replace(/\s+/g, " ")
+          .trim()
+          .slice(0, 80);
+        return `${item_number}|${norm}`;
+      };
+
+      // Carrega itens já concluídos de TODAS as atas anteriores para reaproveitar status
+      const { data: prevDone } = await supabase
+        .from("meeting_minute_items")
+        .select("dedupe_key, completed_at, completed_by")
+        .eq("completed", true)
+        .not("dedupe_key", "is", null);
+      const doneMap = new Map<string, { completed_at: string | null; completed_by: string | null }>();
+      for (const r of prevDone ?? []) {
+        if (r.dedupe_key && !doneMap.has(r.dedupe_key)) {
+          doneMap.set(r.dedupe_key, { completed_at: r.completed_at, completed_by: r.completed_by });
+        }
+      }
+
+      const rows = parsed.items.map((i) => {
+        const key = makeKey(i.item_number, i.description);
+        const prior = doneMap.get(key);
+        return {
+          minute_id: minute.id,
+          item_number: i.item_number,
+          section: i.section,
+          description: i.description,
+          action_by: i.action_by,
+          deadline: i.deadline,
+          original_status: i.original_status,
+          sort_order: i.sort_order,
+          dedupe_key: key,
+          completed: !!prior,
+          completed_at: prior?.completed_at ?? null,
+          completed_by: prior?.completed_by ?? null,
+        };
+      });
       const { error: iErr } = await supabase.from("meeting_minute_items").insert(rows);
       if (iErr) throw iErr;
 
+      const carriedOver = rows.filter((r) => r.completed).length;
+
       setSelectedId(minute.id);
-      toast.success(`Ata importada: ${parsed.items.length} itens`);
+      toast.success(
+        `Ata importada: ${parsed.items.length} itens` +
+        (carriedOver > 0 ? ` (${carriedOver} já marcados como concluídos)` : "")
+      );
+
+      // Notifica grupo WhatsApp sobre a nova ata importada
+      supabase.functions
+        .invoke("wapi-ata-contrato-notify", {
+          body: { minute_id: minute.id, reason: "imported" },
+        })
+        .catch((e) => console.warn("[ata-notify import]", e));
     } catch (e: any) {
       console.error(e);
       toast.error("Falha ao importar PDF: " + (e?.message ?? "erro desconhecido"));
