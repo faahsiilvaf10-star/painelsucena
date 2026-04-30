@@ -21,7 +21,11 @@ export const ScreensaverClock = () => {
       setIsActive(false);
       clearTimeout(timeoutRef.current);
       if (settings.screensaver_enabled) {
-        timeoutRef.current = setTimeout(() => setIsActive(true), timeoutMs);
+        if (settings.screensaver_timeout === 0) {
+          setIsActive(true);
+        } else {
+          timeoutRef.current = setTimeout(() => setIsActive(true), timeoutMs);
+        }
       }
     };
 
