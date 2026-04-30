@@ -728,7 +728,7 @@ export default function PosChuva() {
               {isLoading && <p className="text-sm text-muted-foreground">Carregando...</p>}
               {!isLoading && inspections.length === 0 && <p className="text-sm text-muted-foreground">Nenhuma inspeção registrada.</p>}
               {inspections.map((ins) => (
-                <Card key={ins.id} className="cursor-pointer hover:shadow-md transition-shadow" onClick={() => { setSelectedInspection(ins); setDetailOpen(true); }}>
+                <Card key={ins.id} className="cursor-pointer hover:shadow-md transition-shadow relative z-10" onClick={() => { setSelectedInspection(ins); setDetailOpen(true); }}>
                   <CardContent className="p-3 flex items-center justify-between gap-2">
                     <div className="min-w-0 flex-1">
                       <p className="font-medium text-sm">{ins.data ? format(new Date(ins.data + "T12:00:00"), "dd/MM/yyyy") : "-"}</p>
