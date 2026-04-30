@@ -1412,18 +1412,18 @@ html, body {
   display: block;
 }
 
-.digit:nth-child(1) { transform: rotate(30deg); span { transform: rotate(-30deg); } }
-.digit:nth-child(2) { transform: rotate(60deg); span { transform: rotate(-60deg); } }
-.digit:nth-child(3) { transform: rotate(90deg); span { transform: rotate(-90deg); } }
-.digit:nth-child(4) { transform: rotate(120deg); span { transform: rotate(-120deg); } }
-.digit:nth-child(5) { transform: rotate(150deg); span { transform: rotate(-150deg); } }
-.digit:nth-child(6) { transform: rotate(180deg); span { transform: rotate(-180deg); } }
-.digit:nth-child(7) { transform: rotate(210deg); span { transform: rotate(-210deg); } }
-.digit:nth-child(8) { transform: rotate(240deg); span { transform: rotate(-240deg); } }
-.digit:nth-child(9) { transform: rotate(270deg); span { transform: rotate(-270deg); } }
-.digit:nth-child(10) { transform: rotate(300deg); span { transform: rotate(-300deg); } }
-.digit:nth-child(11) { transform: rotate(330deg); span { transform: rotate(-330deg); } }
-.digit:nth-child(12) { transform: rotate(360deg); span { transform: rotate(-360deg); } }
+.digit:nth-child(1) { transform: rotate(30deg); } .digit:nth-child(1) span { transform: rotate(-30deg); }
+.digit:nth-child(2) { transform: rotate(60deg); } .digit:nth-child(2) span { transform: rotate(-60deg); }
+.digit:nth-child(3) { transform: rotate(90deg); } .digit:nth-child(3) span { transform: rotate(-90deg); }
+.digit:nth-child(4) { transform: rotate(120deg); } .digit:nth-child(4) span { transform: rotate(-120deg); }
+.digit:nth-child(5) { transform: rotate(150deg); } .digit:nth-child(5) span { transform: rotate(-150deg); }
+.digit:nth-child(6) { transform: rotate(180deg); } .digit:nth-child(6) span { transform: rotate(-180deg); }
+.digit:nth-child(7) { transform: rotate(210deg); } .digit:nth-child(7) span { transform: rotate(-210deg); }
+.digit:nth-child(8) { transform: rotate(240deg); } .digit:nth-child(8) span { transform: rotate(-240deg); }
+.digit:nth-child(9) { transform: rotate(270deg); } .digit:nth-child(9) span { transform: rotate(-270deg); }
+.digit:nth-child(10) { transform: rotate(300deg); } .digit:nth-child(10) span { transform: rotate(-300deg); }
+.digit:nth-child(11) { transform: rotate(330deg); } .digit:nth-child(11) span { transform: rotate(-330deg); }
+.digit:nth-child(12) { transform: rotate(360deg); } .digit:nth-child(12) span { transform: rotate(-360deg); }
 
 #mickey, #hours, #minutes {
   width: 100%;
