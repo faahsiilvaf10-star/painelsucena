@@ -287,6 +287,33 @@ export function useRecordMovement() {
         .single();
 
       if (movementError) throw movementError;
+
+      // Dispara alerta de estoque baixo / zerado se cruzar o limite
+      try {
+        const { data: itemAfter } = await supabase
+          .from("inventory_items")
+          .select("quantity, min_quantity")
+          .eq("id", data.item_id)
+          .maybeSingle();
+        const qty = Number(itemAfter?.quantity ?? newQuantity);
+        const min = Number(itemAfter?.min_quantity ?? 0);
+        const wasOk = previousQuantity > min;
+        const isNowLowOrZero = qty <= 0 || qty <= min;
+        if (wasOk && isNowLowOrZero) {
+          await supabase.functions.invoke("wapi-low-stock-notify", {
+            body: {
+              item_id: data.item_id,
+              movement_type: data.movement_type,
+              moved_by_name: profile?.full_name || "Usuário",
+              reason: data.reason || null,
+              destination_name: data.destination_name || null,
+            },
+          });
+        }
+      } catch (e) {
+        console.warn("[low-stock-notify] falha ao enfileirar alerta:", e);
+      }
+
       return movement;
     },
     onSuccess: () => {
