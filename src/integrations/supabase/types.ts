@@ -4478,6 +4478,33 @@ export type Database = {
         }
         Relationships: []
       }
+      wapi_training_alerts_sent: {
+        Row: {
+          alert_key: string
+          alert_type: string | null
+          expiry_date: string | null
+          id: string
+          sent_at: string
+          training_id: string | null
+        }
+        Insert: {
+          alert_key: string
+          alert_type?: string | null
+          expiry_date?: string | null
+          id?: string
+          sent_at?: string
+          training_id?: string | null
+        }
+        Update: {
+          alert_key?: string
+          alert_type?: string | null
+          expiry_date?: string | null
+          id?: string
+          sent_at?: string
+          training_id?: string | null
+        }
+        Relationships: []
+      }
       wapi_vehicle_alerts_sent: {
         Row: {
           alert_key: string
