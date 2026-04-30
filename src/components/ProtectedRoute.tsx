@@ -31,31 +31,66 @@ const ProtectedRoute = ({ children }: ProtectedRouteProps) => {
   useEffect(() => {
     const authClient = supabase.auth as any;
 
+    const checkDailyLogout = async () => {
+      const lastLoginDate = localStorage.getItem("last_login_date");
+      const today = new Date();
+      const todayStr = today.toISOString().split("T")[0];
+      
+      const sixAM = new Date();
+      sixAM.setHours(6, 0, 0, 0);
+
+      // Se for antes das 06:00, consideramos a "data de login válida" como o dia anterior
+      // (pois o logout só ocorre às 06:00 do dia atual)
+      const effectiveTodayStr = today < sixAM 
+        ? new Date(today.getTime() - 24 * 60 * 60 * 1000).toISOString().split("T")[0]
+        : todayStr;
+
+      if (lastLoginDate && lastLoginDate !== effectiveTodayStr) {
+        console.log("Daily reset at 06:00 AM. Logging out.");
+        localStorage.removeItem("last_login_date");
+        await authClient.signOut({ scope: "local" });
+        setSession(null);
+        navigate("/auth", { replace: true });
+        return true;
+      }
+      return false;
+    };
+
     const {
       data: { subscription },
     } = authClient.onAuthStateChange((event: string, currentSession: Session | null) => {
       setSession(currentSession);
       setLoading(false);
 
-      // Redirect to auth on sign out
       if (event === "SIGNED_OUT") {
         setUserCargo(null);
         setCargoChecked(false);
-        sessionStorage.removeItem(SESSION_TAB_KEY);
+        localStorage.removeItem("last_login_date");
         navigate("/auth", { replace: true });
       }
 
-      // On fresh login, mark tab active and fetch cargo (no auto-logout check)
       if (event === "SIGNED_IN" && currentSession?.user) {
-        sessionStorage.setItem(SESSION_TAB_KEY, "1");
+        const today = new Date();
+        const sixAM = new Date();
+        sixAM.setHours(6, 0, 0, 0);
+        
+        // Salva a data efetiva do login considerando o corte das 06:00
+        const loginDateStr = today < sixAM 
+          ? new Date(today.getTime() - 24 * 60 * 60 * 1000).toISOString().split("T")[0]
+          : today.toISOString().split("T")[0];
+
+        localStorage.setItem("last_login_date", loginDateStr);
+        
         setTimeout(() => {
           fetchUserCargo(currentSession.user.id);
         }, 0);
       }
     });
 
-    // Check for existing session on page load
     const initSession = async () => {
+      const loggedOut = await checkDailyLogout();
+      if (loggedOut) return;
+
       const {
         data: { session: existingSession },
       } = await authClient.getSession();
@@ -63,29 +98,8 @@ const ProtectedRoute = ({ children }: ProtectedRouteProps) => {
       if (existingSession) {
         setSession(existingSession);
         setLoading(false);
-
-        // Only check tab flag on initial page load (not after a fresh login)
-        const tabWasActive = sessionStorage.getItem(SESSION_TAB_KEY);
-        const { cargo } = await fetchUserCargo(existingSession.user.id);
-        const isDriverRole = cargo && DRIVER_ROLES.includes(cargo);
-
-        // Browser was closed & reopened with a stale session → auto-logout non-drivers
-        if (!tabWasActive && !isDriverRole) {
-          console.log("Browser was closed. Auto-logging out non-driver user.");
-          setSession(null);
-          try {
-            await authClient.signOut({ scope: "local" });
-          } catch {
-            /* ignore */
-          }
-          navigate("/auth", { replace: true });
-          return;
-        }
-
-        // Session is valid, mark tab as active
-        sessionStorage.setItem(SESSION_TAB_KEY, "1");
+        await fetchUserCargo(existingSession.user.id);
       } else {
-        // Try to refresh the session if no active session found
         const {
           data: { session: refreshedSession },
         } = await authClient.refreshSession();
@@ -93,7 +107,6 @@ const ProtectedRoute = ({ children }: ProtectedRouteProps) => {
         setLoading(false);
         if (refreshedSession?.user) {
           await fetchUserCargo(refreshedSession.user.id);
-          sessionStorage.setItem(SESSION_TAB_KEY, "1");
         } else {
           setCargoChecked(true);
         }
