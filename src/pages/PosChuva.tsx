@@ -604,6 +604,8 @@ export default function PosChuva() {
                   <div><Label>Responsável</Label><Input value={responsavel} onChange={(e) => setResponsavel(e.target.value)} /></div>
                   <div><Label>Local</Label><Input value={localInspecao} onChange={(e) => setLocalInspecao(e.target.value)} /></div>
                   <div className="sm:col-span-2"><Label>Atividade</Label><Input value={atividade} onChange={(e) => setAtividade(e.target.value)} /></div>
+                  <div><Label>Horário Início da Chuva</Label><Input type="time" value={chuvaInicio} onChange={(e) => setChuvaInicio(e.target.value)} /></div>
+                  <div><Label>Horário Fim da Chuva</Label><Input type="time" value={chuvaFim} onChange={(e) => setChuvaFim(e.target.value)} /></div>
                 </div>
               </CardContent>
             </Card>
