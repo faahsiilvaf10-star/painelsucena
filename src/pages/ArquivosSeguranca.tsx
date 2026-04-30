@@ -29,6 +29,7 @@ import {
   FileSpreadsheet,
   File,
 } from "lucide-react";
+import { AnimatedDownloadButton } from "@/components/ui/AnimatedDownloadButton";
 import { useSecurityFiles, SecurityFile, SECURITY_FILE_CATEGORIES, ADMIN_ONLY_CATEGORIES } from "@/hooks/useSecurityFiles";
 import { useAuth } from "@/hooks/useAuth";
 import { useProfile } from "@/hooks/useProfile";
