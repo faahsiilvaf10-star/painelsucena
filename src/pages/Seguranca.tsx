@@ -2,7 +2,7 @@ import { useNavigate } from "react-router-dom";
 import Layout from "@/components/layout/Layout";
 import {
   Sun, FolderOpen, ClipboardCheck, BadgeCheck, Link2,
-  HardHat, Droplets, TriangleAlert, ShieldCheck, FlameKindling, Shield, Heart, Grid3X3
+  HardHat, Droplets, TriangleAlert, ShieldCheck, FlameKindling, Shield, Heart, Grid3X3, GraduationCap
 } from "lucide-react";
 
 const securityPages = [
