@@ -136,6 +136,12 @@ export default function PosChuva() {
       const escapeHtml = (s: string) =>
         String(s ?? "").replace(/&/g, "&amp;").replace(/</g, "&lt;").replace(/>/g, "&gt;");
 
+      // Renderiza assinatura como SVG inline (não usa <img>, evita canvas tainted)
+      const renderSig = (dataUrl: string | null) => {
+        if (!dataUrl) return "";
+        return `<div data-sig="${dataUrl}" style="height:60px;border:1px solid #ccc;background:#fff;display:flex;align-items:center;justify-content:center;overflow:hidden;"></div>`;
+      };
+
       const renderAval = (num: number, d: string | null, h: string | null, sigE: string | null, sigT: string | null) => {
         if (!sigE) return "";
         return `
@@ -144,11 +150,11 @@ export default function PosChuva() {
             <div style="font-size:11px;color:#555;margin-bottom:8px;">Data: ${escapeHtml(d || "")} • Horário: ${escapeHtml(h || "")}</div>
             <div style="display:flex;gap:16px;">
               <div style="flex:1;text-align:center;">
-                ${sigE ? `<img src="${sigE}" style="height:60px;border:1px solid #ccc;background:#fff;" />` : ""}
+                ${renderSig(sigE)}
                 <div style="font-size:10px;color:#555;margin-top:4px;border-top:1px solid #999;padding-top:2px;">Encarregado Resp. Liberação</div>
               </div>
               <div style="flex:1;text-align:center;">
-                ${sigT ? `<img src="${sigT}" style="height:60px;border:1px solid #ccc;background:#fff;" />` : ""}
+                ${renderSig(sigT)}
                 <div style="font-size:10px;color:#555;margin-top:4px;border-top:1px solid #999;padding-top:2px;">Téc. Segurança Contratada</div>
               </div>
             </div>
@@ -229,20 +235,58 @@ export default function PosChuva() {
       container.innerHTML = html;
       document.body.appendChild(container);
 
+      // Converte cada assinatura base64 em <canvas> desenhado dentro do container
+      // (canvas com drawImage de Image carregada de data:URL NÃO causa taint)
+      const sigSlots = Array.from(container.querySelectorAll<HTMLDivElement>("[data-sig]"));
+      await Promise.all(sigSlots.map((slot) => new Promise<void>((resolve) => {
+        const dataUrl = slot.getAttribute("data-sig") || "";
+        if (!dataUrl) return resolve();
+        const img = new Image();
+        img.onload = () => {
+          try {
+            const cnv = document.createElement("canvas");
+            const targetH = 60;
+            const ratio = img.width / Math.max(1, img.height);
+            cnv.height = targetH;
+            cnv.width = Math.round(targetH * ratio);
+            const ctx = cnv.getContext("2d");
+            if (ctx) {
+              ctx.fillStyle = "#fff";
+              ctx.fillRect(0, 0, cnv.width, cnv.height);
+              ctx.drawImage(img, 0, 0, cnv.width, cnv.height);
+            }
+            cnv.style.maxWidth = "100%";
+            cnv.style.height = `${targetH}px`;
+            slot.appendChild(cnv);
+          } catch (e) {
+            console.warn("[pos-chuva sig render]", e);
+          }
+          resolve();
+        };
+        img.onerror = () => resolve();
+        img.src = dataUrl;
+      })));
+
+      // Garante que fontes carregaram antes de capturar
+      try { await (document as any).fonts?.ready; } catch {}
+      await new Promise((r) => setTimeout(r, 150));
+
       let publicUrl = "";
       try {
-        const images = container.querySelectorAll("img");
-        await Promise.all(Array.from(images).map((img) => new Promise<void>((resolve) => {
-          if (img.complete) return resolve();
-          img.onload = () => resolve();
-          img.onerror = () => resolve();
-        })));
         const html2canvas = (await import("html2canvas")).default;
+        let lastErr: any = null;
         for (let attempt = 1; attempt <= 3; attempt++) {
           try {
-            const canvas = await html2canvas(container, { scale: 2, useCORS: true, backgroundColor: "#ffffff" });
+            const canvas = await html2canvas(container, {
+              scale: 2,
+              backgroundColor: "#ffffff",
+              logging: false,
+              allowTaint: false,
+              useCORS: false,
+              foreignObjectRendering: false,
+            });
             const blob: Blob = await new Promise((res, rej) =>
-              canvas.toBlob((b) => (b ? res(b) : rej(new Error("blob falhou"))), "image/png")
+              canvas.toBlob((b) => (b ? res(b) : rej(new Error("toBlob retornou null"))), "image/png")
             );
             const path = `wapi-pos-chuva/${Date.now()}-att${attempt}-${(payload.data || "").replace(/[^0-9-]/g, "")}.png`;
             const { error: upErr } = await supabase.storage.from("desvios").upload(path, blob, { contentType: "image/png", upsert: true });
@@ -251,12 +295,23 @@ export default function PosChuva() {
             publicUrl = urlData?.publicUrl || "";
             if (publicUrl) break;
           } catch (err) {
-            console.warn(`[pos-chuva PNG] tentativa ${attempt}/3 falhou`, err);
-            if (attempt < 3) await new Promise((r) => setTimeout(r, 800 * attempt));
+            lastErr = err;
+            console.warn(`[pos-chuva PNG] tentativa ${attempt}/3 falhou:`, err);
+            if (attempt < 3) await new Promise((r) => setTimeout(r, 600 * attempt));
           }
+        }
+        if (!publicUrl && lastErr) {
+          toast.error("Falha ao gerar PNG da Pós Chuva", {
+            description: String(lastErr?.message || lastErr).slice(0, 200),
+          });
         }
       } finally {
         if (container.parentNode) container.parentNode.removeChild(container);
+      }
+
+      if (!publicUrl) {
+        console.error("[pos-chuva] PNG não foi gerado — envio ao grupo abortado");
+        return;
       }
 
       const ncCount = cl.filter((c) => c.resposta === "NC").length;
@@ -275,24 +330,19 @@ export default function PosChuva() {
         payload.observacoes ? `📝 Obs.: ${payload.observacoes}` : "",
       ].filter(Boolean).join("\n");
 
-      if (!publicUrl) {
-        console.warn("[pos-chuva] PNG falhou — enviando apenas texto ao grupo");
-      }
-
       const { data: invokeData, error: invokeErr } = await supabase.functions.invoke("wapi-pos-chuva-notify", {
-        body: { caption, image_url: publicUrl || null },
+        body: { caption, image_url: publicUrl },
       });
       if (invokeErr) {
         toast.error("Falha ao enfileirar Pós Chuva no grupo", { description: invokeErr.message });
       } else if (!(invokeData as any)?.skipped) {
-        toast.success(
-          publicUrl
-            ? "Inspeção Pós Chuva enfileirada para o grupo do WhatsApp 📤"
-            : "Pós Chuva enviada ao grupo (apenas texto — PNG não pôde ser gerado) 📤"
-        );
+        toast.success("Inspeção Pós Chuva enfileirada para o grupo do WhatsApp 📤");
       }
     } catch (err) {
       console.error("[sendPosChuvaToWhatsApp]", err);
+      toast.error("Erro ao enviar Pós Chuva ao grupo", {
+        description: String((err as any)?.message || err).slice(0, 200),
+      });
     }
   };
 
