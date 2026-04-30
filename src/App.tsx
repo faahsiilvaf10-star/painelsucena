@@ -90,7 +90,7 @@ const PageLoader = () => (
   </div>
 );
 
-// QueryClient with robust error handling
+// QueryClient with robust error handling and performance optimization
 export const queryClient = new QueryClient({
   defaultOptions: {
     queries: {
@@ -99,13 +99,13 @@ export const queryClient = new QueryClient({
           const status = (error as { status: number }).status;
           if (status >= 400 && status < 500) return false;
         }
-        return failureCount < 3;
+        return failureCount < 2;
       },
       retryDelay: (attemptIndex) => Math.min(1000 * 2 ** attemptIndex, 30000),
-      staleTime: 1000 * 60 * 2,
-      gcTime: 1000 * 60 * 10,
+      staleTime: 1000 * 60 * 5, // Aumentado para 5 minutos para reduzir requisições
+      gcTime: 1000 * 60 * 30,  // Aumentado para 30 minutos
       refetchOnWindowFocus: false,
-      refetchOnReconnect: true,
+      refetchOnReconnect: "always", // Garante consistência sem sobrecarregar
     },
     mutations: {
       retry: 1,
