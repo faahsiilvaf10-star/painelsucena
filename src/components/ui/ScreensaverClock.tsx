@@ -9,25 +9,37 @@ export const ScreensaverClock = () => {
   const timeoutRef = useRef<NodeJS.Timeout>();
 
   useEffect(() => {
+    if (!settings.screensaver_enabled) {
+      setIsActive(false);
+      clearTimeout(timeoutRef.current);
+      return;
+    }
+
+    const timeoutMs = settings.screensaver_timeout * 60 * 1000;
+
     const handleActivity = () => {
       setIsActive(false);
       clearTimeout(timeoutRef.current);
-      timeoutRef.current = setTimeout(() => setIsActive(true), 5 * 60 * 1000); // 5 minutes
+      if (settings.screensaver_enabled) {
+        timeoutRef.current = setTimeout(() => setIsActive(true), timeoutMs);
+      }
     };
 
     window.addEventListener("mousemove", handleActivity);
     window.addEventListener("keydown", handleActivity);
     window.addEventListener("click", handleActivity);
+    window.addEventListener("touchstart", handleActivity);
     
-    timeoutRef.current = setTimeout(() => setIsActive(true), 5 * 60 * 1000);
+    timeoutRef.current = setTimeout(() => setIsActive(true), timeoutMs);
 
     return () => {
       clearTimeout(timeoutRef.current);
       window.removeEventListener("mousemove", handleActivity);
       window.removeEventListener("keydown", handleActivity);
       window.removeEventListener("click", handleActivity);
+      window.removeEventListener("touchstart", handleActivity);
     };
-  }, []);
+  }, [settings.screensaver_enabled, settings.screensaver_timeout]);
 
   useEffect(() => {
     if (!isActive) return;
