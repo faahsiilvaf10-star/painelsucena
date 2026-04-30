@@ -64,7 +64,10 @@ export const ScreensaverClock = () => {
   if (!isActive || !user) return null;
 
   return (
-    <div className="fixed inset-0 z-[9999] bg-black flex items-center justify-center">
+    <div 
+      className="fixed inset-0 z-[9999] bg-black flex items-center justify-center cursor-pointer"
+      onClick={() => setIsActive(false)}
+    >
       <div id="watch">
         {[...Array(12)].map((_, i) => (
           <div key={i} className="digit">
