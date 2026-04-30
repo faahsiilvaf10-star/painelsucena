@@ -74,6 +74,8 @@ export default function PosChuva() {
   const [checklist, setChecklist] = useState<ChecklistItem[]>(initialChecklist());
   const [planoAcao, setPlanoAcao] = useState<PlanoAcaoItem[]>([emptyPlanoAcao()]);
   const [observacoes, setObservacoes] = useState("");
+  const [chuvaInicio, setChuvaInicio] = useState("");
+  const [chuvaFim, setChuvaFim] = useState("");
 
   // Signatures state
   const [sigDialogOpen, setSigDialogOpen] = useState(false);
