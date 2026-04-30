@@ -751,9 +751,11 @@ export default function PosChuva() {
                       <Button size="sm" variant="outline" className="gap-1" onClick={(e) => { e.stopPropagation(); generatePdf(ins); }}>
                         <Download className="h-3 w-3" /> PDF
                       </Button>
-                      <DeleteConfirmation
-                        onConfirm={() => deleteMutation.mutate(ins.id)}
-                      />
+                      <div onClick={(e) => e.stopPropagation()}>
+                        <DeleteConfirmation
+                          onConfirm={() => deleteMutation.mutate(ins.id)}
+                        />
+                      </div>
                     </div>
                   </CardContent>
                 </Card>
