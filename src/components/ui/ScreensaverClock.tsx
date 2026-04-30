@@ -36,9 +36,8 @@ export const ScreensaverClock = () => {
       const min = now.getMinutes();
       const hr = now.getHours();
 
-      const secEl = document.getElementById("minutes");
-      const minEl = document.getElementById("minutes");
       const hrEl = document.getElementById("hours");
+      const minEl = document.getElementById("minutes");
 
       if (hrEl) hrEl.style.transform = `rotate(${(hr % 12) * 30 + min / 2}deg)`;
       if (minEl) minEl.style.transform = `rotate(${min * 6}deg)`;
