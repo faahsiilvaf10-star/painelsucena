@@ -385,6 +385,8 @@ export default function PosChuva() {
       avaliacao_3_sig_encarregado: aval3.sigEnc || null,
       avaliacao_3_sig_tecnico: aval3.sigTec || null,
       observacoes: observacoes || null,
+      chuva_inicio: chuvaInicio || null,
+      chuva_fim: chuvaFim || null,
     };
 
     try {
