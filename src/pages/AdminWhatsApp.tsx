@@ -175,6 +175,8 @@ const AdminWhatsApp = () => {
       setGroupIdDesvios((c.group_id_desvios as string | null) || "");
       setAutoSendLowStock(!!(c.auto_send_low_stock_alert as boolean | null));
       setGroupIdLowStock((c.group_id_low_stock as string | null) || "");
+      setAutoSendTrainingAlert(!!(c.auto_send_training_alert as boolean | null));
+      setGroupIdTraining((c.group_id_training as string | null) || "");
     }
   }, [cfg]);
 
