@@ -332,6 +332,7 @@ export default function PosChuva() {
         `📍 Local: ${payload.local_inspecao || "-"}`,
         `🛠️ Atividade: ${payload.atividade || "-"}`,
         `👤 Responsável: ${payload.responsavel || "-"}`,
+        (payload.chuva_inicio || payload.chuva_fim) ? `🌧️ Chuva: ${payload.chuva_inicio || "-"} às ${payload.chuva_fim || "-"}` : "",
         `✅ Itens conformes: ${cl.filter((c) => c.resposta === "C").length}`,
         `⚠️ Não conformes: ${ncCount}`,
         `➖ Não aplicáveis: ${cl.filter((c) => c.resposta === "NA").length}`,
