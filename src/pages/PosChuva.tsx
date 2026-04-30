@@ -474,6 +474,7 @@ export default function PosChuva() {
         ["Projeto:", inspection.projeto || "", "Nº Contrato:", "4600012690"],
         ["Responsável:", inspection.responsavel || "", "Local:", inspection.local_inspecao || ""],
         ["Atividade:", inspection.atividade || "", "", ""],
+        ["Início chuva:", inspection.chuva_inicio || "-", "Fim chuva:", inspection.chuva_fim || "-"],
       ],
     });
     y = (pdf as any).lastAutoTable.finalY + 5;
