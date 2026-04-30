@@ -1,4 +1,5 @@
 import { useState, useRef } from "react";
+import { cn } from "@/lib/utils";
 import Layout from "@/components/layout/Layout";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
@@ -12,7 +13,7 @@ import { useSiteSettings } from "@/hooks/useSiteSettings";
 import { supabase } from "@/integrations/supabase/client";
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import { toast } from "sonner";
-import { Shield, ShieldCheck, Trash2, UserPlus, Users, Image, Upload, UserCog, Megaphone, Pencil, LayoutList, Truck, RotateCcw, Key, Ribbon, Coins, UserCheck, Film, Eye, Globe, MessageCircle } from "lucide-react";
+import { Shield, ShieldCheck, Trash2, UserPlus, Users, Image, Upload, UserCog, Megaphone, Pencil, LayoutList, Truck, RotateCcw, Key, Ribbon, Coins, UserCheck, Film, Eye, Globe, MessageCircle, MonitorOff } from "lucide-react";
 import { ModeratorBadge } from "@/components/ModeratorBadge";
 import { Switch } from "@/components/ui/switch";
 import { Label } from "@/components/ui/label";
@@ -747,6 +748,75 @@ const Admin = () => {
               </CardContent>
             </Card>
 
+            {/* Screensaver Settings */}
+            <Card>
+              <CardHeader>
+                <CardTitle className="flex items-center gap-2">
+                  <MonitorOff className="w-5 h-5" />
+                  Protetor de Tela (Relógio)
+                </CardTitle>
+                <CardDescription>
+                  Configure se e quando o relógio animado deve aparecer após inatividade.
+                </CardDescription>
+              </CardHeader>
+              <CardContent className="space-y-6">
+                <div className="flex items-center justify-between border-b pb-4">
+                  <div className="space-y-0.5">
+                    <Label htmlFor="screensaver-toggle" className="text-base cursor-pointer">Ativar Protetor de Tela</Label>
+                    <p className="text-sm text-muted-foreground italic">
+                      {settings.screensaver_enabled ? "O protetor aparecerá após o tempo selecionado" : "Protetor de tela desativado"}
+                    </p>
+                  </div>
+                  <Switch
+                    id="screensaver-toggle"
+                    checked={settings.screensaver_enabled}
+                    onCheckedChange={(checked) => {
+                      updateSettings.mutate(
+                        { screensaver_enabled: checked },
+                        {
+                          onSuccess: () => toast.success(checked ? "Protetor de tela ativado" : "Protetor de tela desativado"),
+                          onError: () => toast.error("Erro ao atualizar configuração"),
+                        }
+                      );
+                    }}
+                    disabled={updateSettings.isPending}
+                  />
+                </div>
+
+                <div className={cn("space-y-3 transition-opacity duration-300", !settings.screensaver_enabled && "opacity-50 pointer-events-none")}>
+                  <Label>Tempo para ativação (inatividade)</Label>
+                  <div className="grid grid-cols-2 sm:grid-cols-4 gap-2">
+                    {[
+                      { label: "Imediatamente", value: 0 },
+                      { label: "5 minutos", value: 5 },
+                      { label: "10 minutos", value: 10 },
+                      { label: "20 minutos", value: 20 },
+                    ].map((opt) => (
+                      <Button
+                        key={opt.value}
+                        variant={settings.screensaver_timeout === opt.value ? "default" : "outline"}
+                        className="w-full text-xs"
+                        onClick={() => {
+                          updateSettings.mutate(
+                            { screensaver_timeout: opt.value },
+                            {
+                              onSuccess: () => toast.success(`Tempo ajustado para ${opt.label}`),
+                              onError: () => toast.error("Erro ao atualizar tempo"),
+                            }
+                          );
+                        }}
+                        disabled={updateSettings.isPending || !settings.screensaver_enabled}
+                      >
+                        {opt.label}
+                      </Button>
+                    ))}
+                  </div>
+                  <p className="text-[10px] text-muted-foreground mt-2">
+                    * O protetor só é ativado quando o usuário está logado e não há interação.
+                  </p>
+                </div>
+              </CardContent>
+            </Card>
           </TabsContent>
           <TabsContent value="users" className="space-y-6">
             {/* Stats Cards */}

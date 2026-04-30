@@ -3897,6 +3897,8 @@ export type Database = {
           logo_url: string | null
           nav_order: Json | null
           primary_color: string | null
+          screensaver_enabled: boolean | null
+          screensaver_timeout: number | null
           show_signup_button: boolean
           sidebar_active_color: string | null
           sidebar_active_font_color: string | null
@@ -3923,6 +3925,8 @@ export type Database = {
           logo_url?: string | null
           nav_order?: Json | null
           primary_color?: string | null
+          screensaver_enabled?: boolean | null
+          screensaver_timeout?: number | null
           show_signup_button?: boolean
           sidebar_active_color?: string | null
           sidebar_active_font_color?: string | null
@@ -3949,6 +3953,8 @@ export type Database = {
           logo_url?: string | null
           nav_order?: Json | null
           primary_color?: string | null
+          screensaver_enabled?: boolean | null
+          screensaver_timeout?: number | null
           show_signup_button?: boolean
           sidebar_active_color?: string | null
           sidebar_active_font_color?: string | null

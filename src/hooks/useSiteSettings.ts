@@ -19,6 +19,8 @@ export interface SiteSettings {
   instacena_gif_right_height: number | null;
   instacena_gif_opacity: number;
   instacena_gif_right_opacity: number;
+  screensaver_enabled: boolean;
+  screensaver_timeout: number;
   updated_at: string;
   updated_by: string | null;
 }
@@ -47,6 +49,8 @@ const DEFAULT_SETTINGS: Omit<SiteSettings, "id" | "updated_at" | "updated_by"> &
   instacena_gif_right_height: null,
   instacena_gif_opacity: 1,
   instacena_gif_right_opacity: 1,
+  screensaver_enabled: true,
+  screensaver_timeout: 5,
   updated_at: new Date().toISOString(),
   updated_by: null,
 };
@@ -90,6 +94,8 @@ export function useSiteSettings() {
         instacena_gif_right_height: d.instacena_gif_right_height || null,
         instacena_gif_opacity: d.instacena_gif_opacity ?? 1,
         instacena_gif_right_opacity: d.instacena_gif_right_opacity ?? 1,
+        screensaver_enabled: d.screensaver_enabled ?? true,
+        screensaver_timeout: d.screensaver_timeout ?? 5,
       };
     },
     staleTime: 1000 * 60 * 5,
