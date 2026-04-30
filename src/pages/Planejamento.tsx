@@ -1,5 +1,6 @@
 import { useEffect, useMemo, useRef, useState } from "react";
-import { Target, TrendingUp, CheckCircle2, AlertCircle, Pencil, Save, X, RefreshCw } from "lucide-react";
+import { Target, TrendingUp, CheckCircle2, AlertCircle, Pencil, Save, X, RefreshCw, FileText } from "lucide-react";
+import { Link } from "react-router-dom";
 import { supabase } from "@/integrations/supabase/client";
 import { useQueryClient } from "@tanstack/react-query";
 import { toast } from "sonner";
@@ -195,6 +196,12 @@ export default function Planejamento() {
             Avanço Mensal — Meta DRS. Cada linha representa uma meta a bater.
           </p>
         </div>
+        <Button asChild variant="outline" size="sm">
+          <Link to="/ata-reuniao-contrato">
+            <FileText className="w-4 h-4 mr-2" />
+            Ata Reunião de Contrato
+          </Link>
+        </Button>
         <Button onClick={handleSync} disabled={syncing} variant="outline" size="sm">
           <RefreshCw className={cn("w-4 h-4 mr-2", syncing && "animate-spin")} />
           {syncing ? "Sincronizando..." : "Sincronizar agora"}

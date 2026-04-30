@@ -72,6 +72,7 @@ const RelatorioDiarioObra = lazy(() => import("./pages/RelatorioDiarioObra"));
 const Almoxarifado = lazy(() => import("./pages/Almoxarifado"));
 const Equipamentos = lazy(() => import("./pages/Equipamentos"));
 const Planejamento = lazy(() => import("./pages/Planejamento"));
+const AtaReuniaoContrato = lazy(() => import("./pages/AtaReuniaoContrato"));
 const NotFound = lazy(() => import("./pages/NotFound"));
 
 // Minimal loading fallback
@@ -193,6 +194,7 @@ const App = () => (
                       <Route path="/almoxarifado" element={<ProtectedRoute><Almoxarifado /></ProtectedRoute>} />
                       <Route path="/equipamentos" element={<ProtectedRoute><Equipamentos /></ProtectedRoute>} />
                       <Route path="/planejamento" element={<ProtectedRoute><Planejamento /></ProtectedRoute>} />
+                      <Route path="/ata-reuniao-contrato" element={<ProtectedRoute><AtaReuniaoContrato /></ProtectedRoute>} />
                       <Route path="/status-geral-equipamentos" element={<ProtectedRoute><StatusGeralEquipamentos /></ProtectedRoute>} />
                       {/* ADD ALL CUSTOM ROUTES ABOVE THE CATCH-ALL "*" ROUTE */}
                       <Route path="*" element={<NotFound />} />

@@ -51,6 +51,7 @@ const BirthdayBanner = lazy(() => import("@/components/dashboard/BirthdayBanner"
 const DDSPresenterAlert = lazy(() => import("@/components/dds/DDSPresenterAlert"));
 const RecentActivitiesCard = lazy(() => import("@/components/dashboard/RecentActivitiesCard").then(m => ({ default: m.RecentActivitiesCard })));
 const PlanejamentoProgressCard = lazy(() => import("@/components/dashboard/PlanejamentoProgressCard").then(m => ({ default: m.PlanejamentoProgressCard })));
+const AtaContratoProgressCard = lazy(() => import("@/components/dashboard/AtaContratoProgressCard").then(m => ({ default: m.AtaContratoProgressCard })));
 import { useCampaignNotifications } from "@/hooks/useCampaignNotifications";
 import { useLastDayMatrixCheck } from "@/hooks/useLastDayMatrixCheck";
 import { CelebrationModal } from "@/components/matriz/CelebrationModal";
@@ -489,9 +490,14 @@ const Dashboard = () => {
           </div>
         </div>
 
-        {/* Matriz do mês (gráfico lateral) */}
+        {/* Matriz do mês (gráfico lateral) + Ata de Contrato */}
         <div className="grid grid-cols-1 lg:grid-cols-3 gap-4 mt-4">
-          <div className="lg:col-start-3 animate-slide-up" style={{ animationDelay: "0.2s" }}>
+          <div className="lg:col-span-2 animate-slide-up" style={{ animationDelay: "0.18s" }}>
+            <Suspense fallback={<DashboardItemSkeleton />}>
+              <AtaContratoProgressCard />
+            </Suspense>
+          </div>
+          <div className="animate-slide-up" style={{ animationDelay: "0.2s" }}>
             <MatrixSideChart />
           </div>
         </div>
