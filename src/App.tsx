@@ -9,6 +9,7 @@ import { ThemeProvider } from "@/components/ThemeProvider";
 import { PersistentFooter } from "@/components/layout/PersistentFooter";
 import { PersistentSidebar } from "@/components/layout/PersistentSidebar";
 import ProtectedRoute from "@/components/ProtectedRoute";
+import { ScreensaverClock } from "@/components/ui/ScreensaverClock";
 import { LoginTransitionGate } from "@/components/auth/LoginTransitionGate";
 import { LogoutTransitionGate } from "@/components/auth/LogoutTransitionGate";
 import { InstallPrompt } from "@/components/pwa/InstallPrompt";
