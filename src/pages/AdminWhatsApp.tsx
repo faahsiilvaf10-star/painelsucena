@@ -1002,6 +1002,49 @@ const AdminWhatsApp = () => {
           <CardHeader>
             <CardTitle className="flex items-center gap-2">
               <Bell className="w-5 h-5 text-primary" />
+              Alerta Automático de Treinamento NR (10 dias antes e no dia)
+            </CardTitle>
+            <CardDescription>
+              Quando habilitado, envia automaticamente para o <strong>grupo configurado</strong> os colaboradores cujos
+              treinamentos <strong>NR 20</strong> ou <strong>NR 35</strong> vencem em <strong>10 dias</strong> ou
+              <strong> no próprio dia do vencimento</strong>. Verificação <strong>diária às 06:00h</strong> (Pará UTC-3),
+              cada alerta enviado <strong>uma única vez por colaborador/treinamento</strong>.
+            </CardDescription>
+          </CardHeader>
+          <CardContent>
+            <div className="flex items-center justify-between gap-3 rounded-md border p-3 bg-muted/30">
+              <div className="flex items-center gap-3">
+                <Switch
+                  id="auto-send-training"
+                  checked={autoSendTrainingAlert}
+                  onCheckedChange={setAutoSendTrainingAlert}
+                />
+                <Label htmlFor="auto-send-training" className="cursor-pointer">
+                  Ativar alerta automático de Treinamento NR no grupo
+                </Label>
+              </div>
+              <div className="flex items-center gap-2">
+                <Badge variant={autoSendTrainingAlert ? "default" : "secondary"}>
+                  {autoSendTrainingAlert ? "Ativo" : "Desativado"}
+                </Badge>
+                <Button variant="outline" size="sm" onClick={handleTestTrainingNotify} disabled={testingTraining}>
+                  <Play className="w-4 h-4 mr-1" />
+                  {testingTraining ? "..." : "Testar"}
+                </Button>
+              </div>
+            </div>
+            <GroupIdOverrideInput id="gid-training" value={groupIdTraining} onChange={setGroupIdTraining} defaultGroupId={groupId} />
+            <p className="text-xs text-muted-foreground mt-3">
+              O botão "Testar" envia o alerta imediatamente, ignorando o controle de duplicidade.
+              Salve a configuração após alterar o botão ou o ID do grupo.
+            </p>
+          </CardContent>
+        </Card>
+
+        <Card>
+          <CardHeader>
+            <CardTitle className="flex items-center gap-2">
+              <Bell className="w-5 h-5 text-primary" />
               Alerta Automático da Matriz (toda Quinta às 10:00h)
             </CardTitle>
             <CardDescription>
