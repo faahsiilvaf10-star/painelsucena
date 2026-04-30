@@ -16,7 +16,7 @@ import ErrorBoundary from "@/components/ErrorBoundary";
 import { VisualizadorProvider } from "@/contexts/VisualizadorContext";
 import { EditModeProvider } from "@/contexts/EditModeContext";
 import { WhatsAppGate } from "@/components/auth/WhatsAppGate";
-import { useSiteSettings } from "@/hooks/useSiteSettings";
+import loadingLogo from "@/assets/loading-logo.ico";
 
 // Lazy-load ALL pages — only the current route's code is downloaded
 const Index = lazy(() => import("./pages/Index"));
@@ -76,33 +76,34 @@ const Planejamento = lazy(() => import("./pages/Planejamento"));
 const AtaReuniaoContrato = lazy(() => import("./pages/AtaReuniaoContrato"));
 const NotFound = lazy(() => import("./pages/NotFound"));
 
-// Minimal loading fallback with logo transition
-const PageLoader = () => {
-  const { settings } = useSiteSettings();
-  const logoUrl = settings?.logo_url || "/logo-principal.png";
-
-  return (
-    <div className="flex flex-col items-center justify-center min-h-[60vh] animate-in fade-in duration-700">
-      <div className="relative mb-6">
-        <img 
-          src={logoUrl} 
-          alt="Loading..." 
-          className="h-16 w-auto object-contain animate-pulse brightness-110 drop-shadow-sm transition-all duration-1000"
-        />
-        <div className="absolute -inset-4 border-2 border-primary/10 rounded-full animate-[ping_3s_linear_infinite]" />
-      </div>
-      <div className="flex gap-1.5">
-        {[0, 1, 2, 3, 4].map((i) => (
-          <div
-            key={i}
-            className="w-1.5 h-1.5 rounded-full bg-primary/40 animate-bounce"
-            style={{ animationDelay: `${i * 150}ms` }}
-          />
-        ))}
-      </div>
+// Loading fallback with fading logo transition
+const PageLoader = () => (
+  <div className="flex flex-col items-center justify-center min-h-[60vh]">
+    <div className="relative mb-4">
+      <img
+        src={loadingLogo}
+        alt="Carregando..."
+        className="h-20 w-20 object-contain animate-[fadePulse_1.8s_ease-in-out_infinite] drop-shadow-md"
+      />
+      <div className="absolute -inset-3 border-2 border-primary/20 rounded-full animate-[ping_2.5s_linear_infinite]" />
     </div>
-  );
-};
+    <div className="flex gap-1.5">
+      {[0, 1, 2, 3, 4].map((i) => (
+        <div
+          key={i}
+          className="w-1.5 h-1.5 rounded-full bg-primary/50 animate-bounce"
+          style={{ animationDelay: `${i * 150}ms` }}
+        />
+      ))}
+    </div>
+    <style>{`
+      @keyframes fadePulse {
+        0%, 100% { opacity: 0.35; transform: scale(0.95); }
+        50% { opacity: 1; transform: scale(1.05); }
+      }
+    `}</style>
+  </div>
+);
 
 // QueryClient with robust error handling and performance optimization
 export const queryClient = new QueryClient({
