@@ -1259,6 +1259,7 @@ html, body {
 @keyframes tick-appear {
   from { transform: translateY(-50%) scale(0) rotate(-90deg); }
   to { transform: translateY(-50%) scale(1) rotate(0deg); }
+}
 
 /* 3D Delete Confirmation Button Styles */
 :root {
