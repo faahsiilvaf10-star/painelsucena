@@ -1424,6 +1424,13 @@ html, body {
 .digit:nth-child(10) { transform: rotate(300deg); } .digit:nth-child(10) span { transform: rotate(-300deg); }
 .digit:nth-child(11) { transform: rotate(330deg); } .digit:nth-child(11) span { transform: rotate(-330deg); }
 .digit:nth-child(12) { transform: rotate(360deg); } .digit:nth-child(12) span { transform: rotate(-360deg); }
+#mickey, #hours, #minutes {
+  width: 100%;
+  height: 100%;
+  position: absolute;
+  background: no-repeat center center;
+  background-size: contain;
+}
 
 #hours, #minutes, #minutes:after {
   position: absolute;
