@@ -53,13 +53,13 @@ export const ScreensaverClock = () => {
     <div className="fixed inset-0 z-[9999] bg-black flex items-center justify-center">
       <div id="watch">
         {[...Array(12)].map((_, i) => (
-          <div key={i} className="digit" style={{ transform: `rotate(${(i + 1) * 30}deg)` }}>
-            <span style={{ transform: `rotate(-${(i + 1) * 30}deg)` }}>{i + 1}</span>
+          <div key={i} className="digit">
+            <span>{i + 1}</span>
           </div>
         ))}
         <div id="mickey" />
-        <div id="hours" />
-        <div id="minutes" />
+        <div id="hours" className="right" />
+        <div id="minutes" className="right" />
       </div>
     </div>
   );
