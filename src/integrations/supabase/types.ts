@@ -4323,6 +4323,7 @@ export type Database = {
           auto_send_billing_alert: boolean
           auto_send_campaign_alert: boolean
           auto_send_dds_photo: boolean
+          auto_send_desvio_due_alert: boolean
           auto_send_desvios: boolean
           auto_send_equipment_movements: boolean
           auto_send_forbidden_color_alert: boolean
@@ -4349,6 +4350,7 @@ export type Database = {
           group_id_billing: string | null
           group_id_campaign: string | null
           group_id_dds: string | null
+          group_id_desvio_due: string | null
           group_id_desvios: string | null
           group_id_equipment_movements: string | null
           group_id_forbidden_color: string | null
@@ -4377,6 +4379,7 @@ export type Database = {
           auto_send_billing_alert?: boolean
           auto_send_campaign_alert?: boolean
           auto_send_dds_photo?: boolean
+          auto_send_desvio_due_alert?: boolean
           auto_send_desvios?: boolean
           auto_send_equipment_movements?: boolean
           auto_send_forbidden_color_alert?: boolean
@@ -4403,6 +4406,7 @@ export type Database = {
           group_id_billing?: string | null
           group_id_campaign?: string | null
           group_id_dds?: string | null
+          group_id_desvio_due?: string | null
           group_id_desvios?: string | null
           group_id_equipment_movements?: string | null
           group_id_forbidden_color?: string | null
@@ -4431,6 +4435,7 @@ export type Database = {
           auto_send_billing_alert?: boolean
           auto_send_campaign_alert?: boolean
           auto_send_dds_photo?: boolean
+          auto_send_desvio_due_alert?: boolean
           auto_send_desvios?: boolean
           auto_send_equipment_movements?: boolean
           auto_send_forbidden_color_alert?: boolean
@@ -4457,6 +4462,7 @@ export type Database = {
           group_id_billing?: string | null
           group_id_campaign?: string | null
           group_id_dds?: string | null
+          group_id_desvio_due?: string | null
           group_id_desvios?: string | null
           group_id_equipment_movements?: string | null
           group_id_forbidden_color?: string | null
@@ -4477,6 +4483,30 @@ export type Database = {
           last_dispatched_at?: string | null
           updated_at?: string
           updated_by?: string | null
+        }
+        Relationships: []
+      }
+      wapi_desvio_due_alerts_sent: {
+        Row: {
+          alert_type: string
+          desvio_key: string
+          due_date: string
+          id: string
+          sent_at: string
+        }
+        Insert: {
+          alert_type: string
+          desvio_key: string
+          due_date: string
+          id?: string
+          sent_at?: string
+        }
+        Update: {
+          alert_type?: string
+          desvio_key?: string
+          due_date?: string
+          id?: string
+          sent_at?: string
         }
         Relationships: []
       }
