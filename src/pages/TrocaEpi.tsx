@@ -836,11 +836,17 @@ export default function TrocaEpi() {
 
   const deleteWhatsAppMessages = async (kind: "epi_exchange" | "material_requisition", id: string) => {
     try {
-      await supabase.functions.invoke("wapi-delete-message", {
+      const { data, error } = await supabase.functions.invoke("wapi-delete-message", {
         body: { external_kind: kind, external_id: id },
       });
+      if (error) throw error;
+      const failed = Array.isArray(data?.results) ? data.results.filter((r: any) => !r.ok) : [];
+      if (failed.length > 0) {
+        toast.warning("Requisição excluída, mas a W-API negou apagar a mensagem no WhatsApp.");
+      }
     } catch (e) {
       console.warn("[deleteWhatsAppMessages] falha", e);
+      toast.warning("Requisição excluída, mas não foi possível apagar a mensagem no WhatsApp.");
     }
   };
 
