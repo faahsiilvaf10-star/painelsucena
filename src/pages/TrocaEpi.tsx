@@ -945,6 +945,7 @@ export default function TrocaEpi() {
     caption: string,
     fileBaseName: string,
     prebuiltFile?: File,
+    externalId?: string,
   ) => {
     try {
       let publicUrl = "";
