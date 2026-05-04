@@ -108,12 +108,20 @@ Deno.serve(async (req) => {
         errMsg = e instanceof Error ? e.message : "Erro desconhecido";
       }
 
+      // Tenta extrair messageId do retorno da W-API
+      let wapiMsgId: string | null = null;
+      try {
+        const r: any = respJson;
+        wapiMsgId = r?.messageId || r?.id || r?.message?.id || null;
+      } catch { /* noop */ }
+
       await admin
         .from("wapi_outbox")
         .update({
           status: ok ? "sent" : "failed",
           sent_at: ok ? new Date().toISOString() : null,
           last_error: errMsg,
+          wapi_message_id: wapiMsgId,
         })
         .eq("id", pending.id);
 
