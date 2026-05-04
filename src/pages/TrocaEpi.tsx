@@ -1016,7 +1016,7 @@ export default function TrocaEpi() {
 
       // Enfileira na outbox via edge function dedicada (respeita delay global)
       const { data: invokeData, error: invokeErr } = await supabase.functions.invoke("wapi-requisition-notify", {
-        body: { type, caption, image_url: publicUrl || undefined },
+        body: { type, caption, image_url: publicUrl || undefined, external_id: externalId },
       });
       if (invokeErr) {
         toast.error("Falha ao enfileirar requisição para o grupo", { description: invokeErr.message });
