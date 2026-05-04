@@ -4566,6 +4566,8 @@ export type Database = {
           attempts: number
           caption: string | null
           created_at: string
+          external_id: string | null
+          external_kind: string | null
           id: string
           image_url: string | null
           kind: string
@@ -4580,11 +4582,14 @@ export type Database = {
           status: string
           target_type: string
           updated_at: string
+          wapi_message_id: string | null
         }
         Insert: {
           attempts?: number
           caption?: string | null
           created_at?: string
+          external_id?: string | null
+          external_kind?: string | null
           id?: string
           image_url?: string | null
           kind: string
@@ -4599,11 +4604,14 @@ export type Database = {
           status?: string
           target_type: string
           updated_at?: string
+          wapi_message_id?: string | null
         }
         Update: {
           attempts?: number
           caption?: string | null
           created_at?: string
+          external_id?: string | null
+          external_kind?: string | null
           id?: string
           image_url?: string | null
           kind?: string
@@ -4618,6 +4626,7 @@ export type Database = {
           status?: string
           target_type?: string
           updated_at?: string
+          wapi_message_id?: string | null
         }
         Relationships: []
       }

@@ -19,7 +19,8 @@ Deno.serve(async (req) => {
     const admin = createClient(supabaseUrl, serviceKey);
 
     const body = await req.json().catch(() => ({}));
-    const { type, caption, image_url } = body || {};
+    const { type, caption, image_url, external_id } = body || {};
+    const externalKind = type === "epi" ? "epi_exchange" : "material_requisition";
 
     if (!type || (type !== "epi" && type !== "material")) {
       return new Response(JSON.stringify({ error: "type inválido (epi|material)" }), {
@@ -56,6 +57,8 @@ Deno.serve(async (req) => {
       caption: hasImage ? caption : null,
       image_url: hasImage ? image_url : null,
       origin: `requisition_${type}`,
+      external_kind: externalKind,
+      external_id: external_id || null,
     });
 
     if (insErr) {

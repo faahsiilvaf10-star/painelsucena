@@ -834,12 +834,23 @@ export default function TrocaEpi() {
     return restoredItems;
   };
 
+  const deleteWhatsAppMessages = async (kind: "epi_exchange" | "material_requisition", id: string) => {
+    try {
+      await supabase.functions.invoke("wapi-delete-message", {
+        body: { external_kind: kind, external_id: id },
+      });
+    } catch (e) {
+      console.warn("[deleteWhatsAppMessages] falha", e);
+    }
+  };
+
   const handleDeleteWithRestore = async (exchange: EpiExchange) => {
     if (exchange.created_by !== user?.id) {
       toast.error("Apenas o criador pode excluir este registro.");
       return;
     }
     const restoredItems = await restoreInventoryForExchange(exchange);
+    await deleteWhatsAppMessages("epi_exchange", exchange.id);
     await deleteExchange.mutateAsync(exchange.id);
     if (restoredItems.length > 0) toast.info(`Estoque restaurado: ${restoredItems.join(", ")}`);
   };
@@ -850,6 +861,7 @@ export default function TrocaEpi() {
       return;
     }
     const restoredItems = await restoreInventoryForMaterial(req);
+    await deleteWhatsAppMessages("material_requisition", req.id);
     await deleteRequisition.mutateAsync(req.id);
     if (restoredItems.length > 0) toast.info(`Estoque restaurado: ${restoredItems.join(", ")}`);
   };
@@ -945,6 +957,7 @@ export default function TrocaEpi() {
     caption: string,
     fileBaseName: string,
     prebuiltFile?: File,
+    externalId?: string,
   ) => {
     try {
       let publicUrl = "";
@@ -1015,7 +1028,7 @@ export default function TrocaEpi() {
 
       // Enfileira na outbox via edge function dedicada (respeita delay global)
       const { data: invokeData, error: invokeErr } = await supabase.functions.invoke("wapi-requisition-notify", {
-        body: { type, caption, image_url: publicUrl || undefined },
+        body: { type, caption, image_url: publicUrl || undefined, external_id: externalId },
       });
       if (invokeErr) {
         toast.error("Falha ao enfileirar requisição para o grupo", { description: invokeErr.message });
@@ -1041,7 +1054,7 @@ export default function TrocaEpi() {
       sharePayloadCacheRef.current.delete(shareKey);
       sharePayloadPromiseRef.current.delete(shareKey);
       const payload = await buildExchangeSharePayload(exchange);
-      await autoSendRequisitionToGroup("epi", "", payload.description, exchange.funcionario_nome, payload.file);
+      await autoSendRequisitionToGroup("epi", "", payload.description, exchange.funcionario_nome, payload.file, exchange.id);
       toast.dismiss(toastId);
     } catch (e) {
       toast.dismiss(toastId);
@@ -1171,7 +1184,7 @@ export default function TrocaEpi() {
     // Envio automático para grupo do WhatsApp (se ativado no painel admin)
     try {
       const payload = await buildExchangeSharePayload(savedExchange);
-      await autoSendRequisitionToGroup("epi", "", payload.description, currentFuncionarioNome, payload.file);
+      await autoSendRequisitionToGroup("epi", "", payload.description, currentFuncionarioNome, payload.file, savedExchange.id);
     } catch (e) {
       console.error("[TrocaEpi] auto send EPI prep failed", e);
       toast.error("Falha ao preparar envio ao grupo", { description: String((e as Error)?.message || e) });
@@ -1267,7 +1280,7 @@ export default function TrocaEpi() {
       captionLines.push(`*Itens:*`);
       captionLines.push(itensTxt);
       const caption = captionLines.join("\n");
-      await autoSendRequisitionToGroup("material", html, caption, currentFuncNome);
+      await autoSendRequisitionToGroup("material", html, caption, currentFuncNome, undefined, savedRequisition.id);
     } catch (e) { console.warn("auto send Material prep failed", e); toast.error("Falha ao preparar envio Material", { description: String((e as Error)?.message || e) }); }
 
     setShowMaterialSignature(false);
