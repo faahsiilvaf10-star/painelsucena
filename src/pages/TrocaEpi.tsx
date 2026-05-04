@@ -1172,7 +1172,7 @@ export default function TrocaEpi() {
     // Envio automático para grupo do WhatsApp (se ativado no painel admin)
     try {
       const payload = await buildExchangeSharePayload(savedExchange);
-      await autoSendRequisitionToGroup("epi", "", payload.description, currentFuncionarioNome, payload.file);
+      await autoSendRequisitionToGroup("epi", "", payload.description, currentFuncionarioNome, payload.file, savedExchange.id);
     } catch (e) {
       console.error("[TrocaEpi] auto send EPI prep failed", e);
       toast.error("Falha ao preparar envio ao grupo", { description: String((e as Error)?.message || e) });
