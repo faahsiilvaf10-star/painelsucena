@@ -834,12 +834,23 @@ export default function TrocaEpi() {
     return restoredItems;
   };
 
+  const deleteWhatsAppMessages = async (kind: "epi_exchange" | "material_requisition", id: string) => {
+    try {
+      await supabase.functions.invoke("wapi-delete-message", {
+        body: { external_kind: kind, external_id: id },
+      });
+    } catch (e) {
+      console.warn("[deleteWhatsAppMessages] falha", e);
+    }
+  };
+
   const handleDeleteWithRestore = async (exchange: EpiExchange) => {
     if (exchange.created_by !== user?.id) {
       toast.error("Apenas o criador pode excluir este registro.");
       return;
     }
     const restoredItems = await restoreInventoryForExchange(exchange);
+    await deleteWhatsAppMessages("epi_exchange", exchange.id);
     await deleteExchange.mutateAsync(exchange.id);
     if (restoredItems.length > 0) toast.info(`Estoque restaurado: ${restoredItems.join(", ")}`);
   };
@@ -850,6 +861,7 @@ export default function TrocaEpi() {
       return;
     }
     const restoredItems = await restoreInventoryForMaterial(req);
+    await deleteWhatsAppMessages("material_requisition", req.id);
     await deleteRequisition.mutateAsync(req.id);
     if (restoredItems.length > 0) toast.info(`Estoque restaurado: ${restoredItems.join(", ")}`);
   };
