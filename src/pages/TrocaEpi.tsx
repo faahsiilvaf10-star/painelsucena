@@ -1268,7 +1268,7 @@ export default function TrocaEpi() {
       captionLines.push(`*Itens:*`);
       captionLines.push(itensTxt);
       const caption = captionLines.join("\n");
-      await autoSendRequisitionToGroup("material", html, caption, currentFuncNome);
+      await autoSendRequisitionToGroup("material", html, caption, currentFuncNome, undefined, savedRequisition.id);
     } catch (e) { console.warn("auto send Material prep failed", e); toast.error("Falha ao preparar envio Material", { description: String((e as Error)?.message || e) }); }
 
     setShowMaterialSignature(false);
