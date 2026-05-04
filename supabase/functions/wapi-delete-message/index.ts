@@ -70,15 +70,18 @@ Deno.serve(async (req) => {
 
     const results: any[] = [];
     for (const m of sent) {
-      const endpoint = new URL(buildWapiUrl(cfg.instance_url, cfg.instance_id, "/v1/message/delete-message"));
-      endpoint.searchParams.set("phone", m.phone);
-      endpoint.searchParams.set("messageId", m.wapi_message_id);
+      const endpoint = buildWapiUrl(cfg.instance_url, cfg.instance_id, "/v1/message/delete-message");
       try {
-        const resp = await fetch(endpoint.toString(), {
-          method: "DELETE",
+        const resp = await fetch(endpoint, {
+          method: "POST",
           headers: {
+            "Content-Type": "application/json",
             "Authorization": `Bearer ${cfg.instance_token}`,
           },
+          body: JSON.stringify({
+            phone: m.phone,
+            messageId: m.wapi_message_id,
+          }),
         });
         const text = await resp.text();
         results.push({ id: m.id, ok: resp.ok, status: resp.status, body: text.slice(0, 200) });
