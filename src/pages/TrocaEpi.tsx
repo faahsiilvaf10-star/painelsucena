@@ -1042,7 +1042,7 @@ export default function TrocaEpi() {
       sharePayloadCacheRef.current.delete(shareKey);
       sharePayloadPromiseRef.current.delete(shareKey);
       const payload = await buildExchangeSharePayload(exchange);
-      await autoSendRequisitionToGroup("epi", "", payload.description, exchange.funcionario_nome, payload.file);
+      await autoSendRequisitionToGroup("epi", "", payload.description, exchange.funcionario_nome, payload.file, exchange.id);
       toast.dismiss(toastId);
     } catch (e) {
       toast.dismiss(toastId);
