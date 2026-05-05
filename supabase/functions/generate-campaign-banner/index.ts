@@ -40,7 +40,11 @@ serve(async (req) => {
   }
 
   try {
-    const { monthData, userId } = await req.json() as { monthData: MonthCampaign; userId: string };
+    const { monthData, userId, environment } = await req.json() as { 
+      monthData: MonthCampaign; 
+      userId: string;
+      environment?: string;
+    };
 
     if (!monthData || !userId) {
       return new Response(JSON.stringify({ error: "Missing monthData or userId" }), {
