@@ -473,6 +473,35 @@ export type Database = {
         }
         Relationships: []
       }
+      chat_notification_logs: {
+        Row: {
+          id: string
+          message_id: string | null
+          receiver_id: string | null
+          sent_at: string | null
+        }
+        Insert: {
+          id?: string
+          message_id?: string | null
+          receiver_id?: string | null
+          sent_at?: string | null
+        }
+        Update: {
+          id?: string
+          message_id?: string | null
+          receiver_id?: string | null
+          sent_at?: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "chat_notification_logs_message_id_fkey"
+            columns: ["message_id"]
+            isOneToOne: true
+            referencedRelation: "chat_messages"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       checkers_games: {
         Row: {
           board: Json
@@ -4720,6 +4749,7 @@ export type Database = {
     }
     Functions: {
       can_manage_employees: { Args: { _user_id: string }; Returns: boolean }
+      check_unread_chat_messages: { Args: never; Returns: undefined }
       cleanup_expired_stories: { Args: never; Returns: undefined }
       cleanup_old_auth_attempts: { Args: never; Returns: undefined }
       current_environment: { Args: never; Returns: string }
