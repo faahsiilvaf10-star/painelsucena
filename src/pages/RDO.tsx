@@ -503,10 +503,11 @@ ${operatingEquipmentText}
 ${E.EMOJI_CHECK} Equipamentos Jardinagem na Obra (${jardinagemEquipmentSummary.total})
 ${jardinagemEquipmentText}
 
-Condições climáticas:
+    Condições climáticas:
 • MANHÃ = ${weatherLabels[weatherMorning]}
 • TARDE = ${weatherLabels[weatherAfternoon]}${showTemperature && displayTemp ? `
-• 🌡️ TEMPERATURA${isLiveTemp ? " ATUAL" : " (16h)"} = ${displayTemp.temperature}°C (sensação ${displayTemp.apparentTemp}°C)` : ""}
+• 🌡️ TEMPERATURA${isLiveTemp ? " ATUAL" : " (16h)"} = ${displayTemp.temperature}°C (sensação ${displayTemp.apparentTemp}°C)` : ""}${prevDayTemp ? `
+• 🌡️ TEMPERATURA DIA ANTERIOR (16h) = ${prevDayTemp.temperature}°C (sensação ${prevDayTemp.apparentTemp}°C)` : ""}
 
 ${E.EMOJI_WARNING} DIFICULDADES/DESVIOS
 ${difficulties}`;
