@@ -264,21 +264,22 @@ const Admin = () => {
       }
 
       // Trigger WhatsApp campaign notification
-      try {
-        await supabase.functions.invoke("wapi-campaign-notify", {
-          body: { force: true },
-        });
-      } catch (wapiErr) {
-        console.warn("Failed to trigger WhatsApp campaign notification:", wapiErr);
-        // We don't throw here to not block the success message for the internal announcement
+      const { data: wapiData, error: wapiError } = await supabase.functions.invoke("wapi-campaign-notify", {
+        body: { force: true },
+      });
+
+      if (wapiError || (wapiData && wapiData.error)) {
+        console.error("WhatsApp Function error:", wapiError || wapiData?.error);
+        toast.error(`Aviso: O comunicado interno foi criado, mas houve erro no WhatsApp: ${wapiError?.message || wapiData?.error || 'Erro desconhecido'}`);
+      } else {
+        toast.success(`Comunicado de ${monthData.monthName} reenviado para o sistema e WhatsApp!`);
       }
 
       queryClient.invalidateQueries({ queryKey: ["announcements", currentEnv] });
       queryClient.invalidateQueries({ queryKey: ["unread-announcements", user?.id, currentEnv] });
-      toast.success(`Comunicado de ${monthData.monthName} reenviado para todos!`);
-    } catch (err) {
+    } catch (err: any) {
       console.error("Error resending campaign:", err);
-      toast.error("Erro ao reenviar comunicado da campanha.");
+      toast.error(`Erro ao reenviar comunicado da campanha: ${err.message || "Erro desconhecido"}`);
     } finally {
       setIsResendingCampaign(false);
     }
