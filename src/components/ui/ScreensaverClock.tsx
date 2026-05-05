@@ -343,7 +343,16 @@ export const ScreensaverClock = () => {
   return (
     <div 
       className="fixed inset-0 z-[99999] bg-black flex items-center justify-center cursor-pointer overflow-hidden"
-      onClick={() => setIsActive(false)}
+      onClick={() => {
+        setIsActive(false);
+        // Reset timeout when dismissing
+        clearTimeout(timeoutRef.current);
+        const timeoutMs = settings.screensaver_timeout * 60 * 1000;
+        const reactivationMs = settings.screensaver_timeout === 0 ? 5 * 60 * 1000 : timeoutMs;
+        if (settings.screensaver_enabled) {
+          timeoutRef.current = setTimeout(() => setIsActive(true), reactivationMs);
+        }
+      }}
     >
       <AnimatePresence mode="wait">
         <motion.div
