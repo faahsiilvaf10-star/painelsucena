@@ -225,12 +225,17 @@ const Admin = () => {
       // Delete existing campaign announcements for this month to reset reads
       const currentYear = new Date().getFullYear();
       const currentMonth = new Date().getMonth() + 1;
-      const { data: existing } = await supabase
+      const { data: existing, error: fetchError } = await supabase
         .from("announcements")
         .select("id")
         .eq("environment", currentEnv)
         .ilike("title", `%Campanhas de ${monthData.monthName}%`)
         .gte("created_at", `${currentYear}-${String(currentMonth).padStart(2, "0")}-01`);
+
+      if (fetchError) {
+        console.error("Error fetching existing announcements:", fetchError);
+        throw fetchError;
+      }
 
       if (existing && existing.length > 0) {
         const existingIds = existing.map(ann => ann.id);
@@ -253,16 +258,21 @@ const Admin = () => {
           
         if (deleteError) {
           console.error("Error deleting old announcements:", deleteError);
-          // Continue anyway, it might be a partial failure
+          // If delete fails, we might still want to try creating a new one, 
+          // but usually it's better to stop here to avoid duplicates
+          throw deleteError;
         }
       }
 
       // Generate new announcement with AI banner
-      const { error } = await supabase.functions.invoke("generate-campaign-banner", {
+      const { data, error } = await supabase.functions.invoke("generate-campaign-banner", {
         body: { monthData, userId: user!.id, environment: currentEnv },
       });
 
-      if (error) throw error;
+      if (error || (data && data.error)) {
+        console.error("Function error:", error || data?.error);
+        throw error || new Error(data?.error || "Falha ao gerar banner da campanha");
+      }
 
       queryClient.invalidateQueries({ queryKey: ["announcements", currentEnv] });
       queryClient.invalidateQueries({ queryKey: ["unread-announcements", user?.id, currentEnv] });
