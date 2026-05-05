@@ -128,12 +128,20 @@ export default function SelecaoAmbiente() {
   useEffect(() => {
     if (accessLoading) return;
     if (!isAdmin) {
-      const target = allowedEnvs[0] ?? "barcarena";
-      setEnvironment(target as EnvironmentId);
-      window.location.replace("/");
-      return;
-    }
-    if (allowedEnvs.length === 1) {
+      // Se tiver apenas 1 acesso, redireciona direto
+      if (allowedEnvs.length === 1) {
+        setEnvironment(allowedEnvs[0]);
+        window.location.replace("/");
+      }
+      // Se não tiver acesso nenhum, manda para o primeiro por padrão (Barcarena) ou redireciona para auth
+      else if (allowedEnvs.length === 0) {
+        navigate("/auth", { replace: true });
+      }
+      // Se tiver mais de um, deixa o usuário escolher nesta tela
+    } else if (allowedEnvs.length === 1) {
+      // Admin com apenas 1 ambiente também pode ser redirecionado direto se desejado, 
+      // mas admins geralmente podem ver todos. 
+      // O hook useMyEnvironmentAccess retorna todos os ambientes para admin.
       setEnvironment(allowedEnvs[0]);
       window.location.replace("/");
     }
