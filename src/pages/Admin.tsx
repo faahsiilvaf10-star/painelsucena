@@ -274,6 +274,16 @@ const Admin = () => {
         throw error || new Error(data?.error || "Falha ao gerar banner da campanha");
       }
 
+      // Trigger WhatsApp campaign notification
+      try {
+        await supabase.functions.invoke("wapi-campaign-notify", {
+          body: { force: true },
+        });
+      } catch (wapiErr) {
+        console.warn("Failed to trigger WhatsApp campaign notification:", wapiErr);
+        // We don't throw here to not block the success message for the internal announcement
+      }
+
       queryClient.invalidateQueries({ queryKey: ["announcements", currentEnv] });
       queryClient.invalidateQueries({ queryKey: ["unread-announcements", user?.id, currentEnv] });
       toast.success(`Comunicado de ${monthData.monthName} reenviado para todos!`);
