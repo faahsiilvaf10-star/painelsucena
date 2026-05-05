@@ -18,7 +18,7 @@ import { Shield, ShieldCheck, Trash2, UserPlus, Users, Image, Upload, UserCog, M
 import { ModeratorBadge } from "@/components/ModeratorBadge";
 import { Switch } from "@/components/ui/switch";
 import { Label } from "@/components/ui/label";
-import { DoubleBalanceManager } from "@/components/admin/DoubleBalanceManager";
+// import { DoubleBalanceManager } from "@/components/admin/DoubleBalanceManager";
 import { ClearEquipmentDialog } from "@/components/driver/ClearEquipmentDialog";
 import { BulkEmployeeEditor } from "@/components/admin/BulkEmployeeEditor";
 import { AnnouncementManager } from "@/components/admin/AnnouncementManager";
