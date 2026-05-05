@@ -27,8 +27,8 @@ export function useMyEnvironmentAccess() {
         .eq("user_id", userId!);
       if (error) throw error;
       const envs = (data ?? []).map((r) => r.environment as EnvironmentId);
-      // Garantia: todo usuário sempre tem ao menos Barcarena
-      if (!envs.includes("barcarena")) envs.push("barcarena");
+      // Removida a garantia de Barcarena para respeitar a independência das unidades
+      return Array.from(new Set(envs)) as EnvironmentId[];
       return Array.from(new Set(envs)) as EnvironmentId[];
     },
   });
