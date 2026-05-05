@@ -337,11 +337,8 @@ export const ScreensaverClock = () => {
 
   return (
     <div 
-      className="fixed inset-0 z-[9999] bg-black flex items-center justify-center cursor-pointer overflow-hidden"
-      onClick={(e) => {
-        e.stopPropagation();
-        setIsActive(false);
-      }}
+      className="fixed inset-0 z-[99999] bg-black flex items-center justify-center cursor-pointer overflow-hidden"
+      onClick={() => setIsActive(false)}
     >
       <AnimatePresence mode="wait">
         <motion.div
