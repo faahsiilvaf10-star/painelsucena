@@ -60,12 +60,17 @@ export const useEmployee = (id: string) => {
 
 export const useCreateEmployee = () => {
   const queryClient = useQueryClient();
+  const { environment } = useEnvironment();
+  const currentEnv = environment || "barcarena";
   
   return useMutation({
     mutationFn: async (employee: EmployeeInsert) => {
       const { data, error } = await supabase
         .from("employees")
-        .insert(employee)
+        .insert({
+          ...employee,
+          environment: currentEnv,
+        })
         .select()
         .single();
       
@@ -73,7 +78,7 @@ export const useCreateEmployee = () => {
       return data;
     },
     onSuccess: () => {
-      queryClient.invalidateQueries({ queryKey: ["employees"] });
+      queryClient.invalidateQueries({ queryKey: ["employees", currentEnv] });
     },
   });
 };
