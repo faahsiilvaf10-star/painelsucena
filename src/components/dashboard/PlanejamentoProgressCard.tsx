@@ -48,7 +48,8 @@ export function PlanejamentoProgressCard() {
       const meta = Number(m.meta) || 0;
       const real = Number(m.realizado) || 0;
       somaMeta += meta;
-      somaReal += real;
+      // Cap contribution at 100% of the target to align with Planejamento page
+      somaReal += Math.min(real, meta);
       if (meta > 0 && real >= meta) concluidas++;
       else faltam++;
     }

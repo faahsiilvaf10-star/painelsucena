@@ -136,9 +136,9 @@ export const ScreensaverClock = () => {
     if (metas && metas.length > 0) {
       const activeMetas = metas.filter(m => !m.is_section_header && m.meta > 0);
       if (activeMetas.length > 0) {
-        const avgProgress = Math.round(
-          (activeMetas.reduce((acc, m) => acc + (m.realizado / m.meta), 0) / activeMetas.length) * 100
-        );
+        const totalMeta = activeMetas.reduce((acc, m) => acc + m.meta, 0);
+        const totalReal = activeMetas.reduce((acc, m) => acc + Math.min(m.realizado, m.meta), 0);
+        const avgProgress = totalMeta > 0 ? Math.round((totalReal / totalMeta) * 100) : 0;
         list.push({
           id: "monthly-advance",
           title: "Avanço Mensal",
