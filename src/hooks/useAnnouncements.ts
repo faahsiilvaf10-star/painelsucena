@@ -30,13 +30,17 @@ export function useAnnouncements() {
   const { user } = useAuth();
   const queryClient = useQueryClient();
 
-  // Fetch all announcements (admin view)
+  const { environment } = useEnvironment();
+  const currentEnv = environment || "barcarena";
+
+  // Fetch all announcements (admin view) for current environment
   const { data: announcements = [], isLoading } = useQuery({
-    queryKey: ["announcements"],
+    queryKey: ["announcements", currentEnv],
     queryFn: async () => {
       const { data, error } = await supabase
         .from("announcements")
         .select("*")
+        .eq("environment", currentEnv)
         .order("created_at", { ascending: false });
 
       if (error) throw error;
