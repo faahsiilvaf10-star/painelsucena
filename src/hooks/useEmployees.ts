@@ -85,6 +85,8 @@ export const useCreateEmployee = () => {
 
 export const useUpdateEmployee = () => {
   const queryClient = useQueryClient();
+  const { environment } = useEnvironment();
+  const currentEnv = environment || "barcarena";
   
   return useMutation({
     mutationFn: async ({ id, ...updates }: EmployeeUpdate & { id: string }) => {
@@ -99,13 +101,15 @@ export const useUpdateEmployee = () => {
       return data;
     },
     onSuccess: () => {
-      queryClient.invalidateQueries({ queryKey: ["employees"] });
+      queryClient.invalidateQueries({ queryKey: ["employees", currentEnv] });
     },
   });
 };
 
 export const useDeleteEmployee = () => {
   const queryClient = useQueryClient();
+  const { environment } = useEnvironment();
+  const currentEnv = environment || "barcarena";
   
   return useMutation({
     mutationFn: async (id: string) => {
@@ -117,7 +121,7 @@ export const useDeleteEmployee = () => {
       if (error) throw error;
     },
     onSuccess: () => {
-      queryClient.invalidateQueries({ queryKey: ["employees"] });
+      queryClient.invalidateQueries({ queryKey: ["employees", currentEnv] });
     },
   });
 };
