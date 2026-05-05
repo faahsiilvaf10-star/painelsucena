@@ -283,6 +283,7 @@ export const ScreensaverClock = () => {
     id: "default", 
     title: "Mantenha o foco", 
     description: "Sua produtividade é a nossa força.",
+    photo_url: "https://images.unsplash.com/photo-1497366216548-37526070297c?auto=format&fit=crop&q=80",
     type: "dds"
   };
 
