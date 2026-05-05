@@ -8,8 +8,11 @@ export type EmployeeInsert = TablesInsert<"employees">;
 export type EmployeeUpdate = TablesUpdate<"employees">;
 
 export const useEmployees = () => {
+  const { environment } = useEnvironment();
+  const currentEnv = environment || "barcarena";
+
   return useQuery({
-    queryKey: ["employees"],
+    queryKey: ["employees", currentEnv],
     queryFn: async () => {
       const batchSize = 1000;
       let from = 0;
@@ -20,6 +23,7 @@ export const useEmployees = () => {
         const { data, error } = await supabase
           .from("employees")
           .select("*")
+          .eq("environment", currentEnv)
           .order("name")
           .range(from, from + batchSize - 1);
 
