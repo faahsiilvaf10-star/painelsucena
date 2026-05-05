@@ -284,7 +284,9 @@ export const ScreensaverClock = () => {
     const timeoutMs = settings.screensaver_timeout * 60 * 1000;
 
     const handleActivity = () => {
-      setIsActive(false);
+      // Do nothing on activity if already inactive, we only want to dismiss it via click
+      if (isActive) return;
+      
       clearTimeout(timeoutRef.current);
       if (settings.screensaver_enabled) {
         if (settings.screensaver_timeout === 0) {
@@ -297,8 +299,6 @@ export const ScreensaverClock = () => {
 
     window.addEventListener("mousemove", handleActivity);
     window.addEventListener("keydown", handleActivity);
-    window.addEventListener("click", handleActivity);
-    window.addEventListener("touchstart", handleActivity);
     
     if (settings.screensaver_enabled) {
       if (settings.screensaver_timeout === 0) {
@@ -312,10 +312,8 @@ export const ScreensaverClock = () => {
       clearTimeout(timeoutRef.current);
       window.removeEventListener("mousemove", handleActivity);
       window.removeEventListener("keydown", handleActivity);
-      window.removeEventListener("click", handleActivity);
-      window.removeEventListener("touchstart", handleActivity);
     };
-  }, [settings.screensaver_enabled, settings.screensaver_timeout]);
+  }, [settings.screensaver_enabled, settings.screensaver_timeout, isActive]);
 
   useEffect(() => {
     if (!isActive || highlights.length <= 1) return;
