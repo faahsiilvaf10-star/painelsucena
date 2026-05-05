@@ -6,6 +6,14 @@ import { getCurrentMonthCampaigns } from "@/data/campaignData";
 import { useActiveReminders } from "@/hooks/useReminders";
 import { useOrderHighlights } from "@/hooks/useOrderHighlights";
 import { usePageCustomizations } from "@/hooks/usePageCustomizations";
+import { usePlanejamentoMetas } from "@/hooks/usePlanejamentoMetas";
+import { useRHEfetivo } from "@/hooks/useRHEfetivo";
+import { useAttendanceDailyMarks } from "@/hooks/useAttendanceDailyMarks";
+import { useEquipment } from "@/hooks/useEquipment";
+import { useCurrentTemperature } from "@/hooks/useCurrentTemperature";
+import { useSlingEquipment } from "@/hooks/useSlingEquipment";
+import { useMeetingMinutes } from "@/hooks/useMeetingMinutes";
+import { getEffectiveAsoExpiry } from "@/lib/asoValidity";
 import { AnimatePresence, motion } from "framer-motion";
 
 interface ScreensaverHighlight {
@@ -13,7 +21,7 @@ interface ScreensaverHighlight {
   title: string;
   description: string;
   photo_url?: string;
-  type: "dds" | "campaign" | "reminder" | "order";
+  type: "dds" | "campaign" | "reminder" | "order" | "meta" | "attendance" | "equipment" | "weather" | "aso" | "sling" | "minute";
 }
 
 export const ScreensaverClock = () => {
@@ -26,8 +34,18 @@ export const ScreensaverClock = () => {
   const { data: todayDDS } = useTodayDDS();
   const { data: activeReminders } = useActiveReminders();
   const { data: orderHighlights } = useOrderHighlights();
+  const { data: metas } = usePlanejamentoMetas();
+  const { data: rhData } = useRHEfetivo();
+  const today = new Date().toISOString().split('T')[0];
+  const { data: attendanceMarks } = useAttendanceDailyMarks(today);
+  const { data: equipments } = useEquipment();
+  const { data: weatherData } = useCurrentTemperature();
+  const { data: slingsData } = useSlingEquipment();
+  const currentMonthColor = new Date().getMonth() + 1; // Simplificado para o screensaver
+  const pendingInspectionsCount = slingsData?.filter(s => s.color === (["red", "blue", "yellow", "green"][(currentMonthColor - 1) % 4])).length || 0;
+  const { data: minutes } = useMeetingMinutes();
+  
   const monthCampaigns = getCurrentMonthCampaigns();
-
   const { customizations } = usePageCustomizations("campanhas");
 
   const highlights = React.useMemo(() => {
@@ -101,8 +119,111 @@ export const ScreensaverClock = () => {
       });
     }
 
+    // Avanço Mensal Atual (Metas)
+    if (metas && metas.length > 0) {
+      const activeMetas = metas.filter(m => !m.is_section_header && m.meta > 0);
+      if (activeMetas.length > 0) {
+        const avgProgress = Math.round(
+          (activeMetas.reduce((acc, m) => acc + (m.realizado / m.meta), 0) / activeMetas.length) * 100
+        );
+        list.push({
+          id: "monthly-advance",
+          title: "Avanço Mensal",
+          description: `Progresso médio das metas: ${avgProgress}% concluído.`,
+          photo_url: "https://images.unsplash.com/photo-1460925895917-afdab827c52f?auto=format&fit=crop&q=80",
+          type: "meta"
+        });
+      }
+    }
+
+    // Presentes e Ausentes Hoje
+    if (rhData?.colaboradores && attendanceMarks) {
+      const totalColabs = rhData.colaboradores.length;
+      const absentIds = new Set(attendanceMarks.flatMap(m => m.absent_employee_ids));
+      const absentCount = absentIds.size;
+      const presentCount = totalColabs - absentCount;
+      
+      list.push({
+        id: "attendance-summary",
+        title: "Efetivo de Hoje",
+        description: `${presentCount} Presentes • ${absentCount} Ausentes`,
+        photo_url: "https://images.unsplash.com/photo-1521737711867-e3b97375f902?auto=format&fit=crop&q=80",
+        type: "attendance"
+      });
+    }
+
+    // Equipamentos Ativos
+    if (equipments && equipments.length > 0) {
+      const activeEquip = equipments.filter(e => e.stop_reason === "none").length;
+      list.push({
+        id: "active-equipment",
+        title: "Equipamentos Ativos",
+        description: `${activeEquip} de ${equipments.length} equipamentos em operação agora.`,
+        photo_url: "https://images.unsplash.com/photo-1581092160562-40aa08e78837?auto=format&fit=crop&q=80",
+        type: "equipment"
+      });
+    }
+
+    // Temperatura Atual
+    if (weatherData) {
+      list.push({
+        id: "current-weather",
+        title: `Temperatura: ${weatherData.temperature}°C`,
+        description: `Sensação térmica de ${weatherData.apparentTemp}°C • Humidade: ${weatherData.humidity}%`,
+        photo_url: weatherData.temperature > 30 
+          ? "https://images.unsplash.com/photo-1504370805625-d32c54b16100?auto=format&fit=crop&q=80"
+          : "https://images.unsplash.com/photo-1516912481808-34061f8bc6a4?auto=format&fit=crop&q=80",
+        type: "weather"
+      });
+    }
+
+    // Vencimento de ASOs
+    if (rhData?.colaboradores) {
+      const now = new Date();
+      now.setHours(0, 0, 0, 0);
+      const expiringSoon = rhData.colaboradores.filter(c => {
+        const expiry = getEffectiveAsoExpiry(c.aso, c.admissao);
+        if (!expiry) return false;
+        const diffDays = Math.ceil((expiry.getTime() - now.getTime()) / (1000 * 60 * 60 * 24));
+        return diffDays >= 0 && diffDays <= 30;
+      });
+
+      if (expiringSoon.length > 0) {
+        list.push({
+          id: "aso-expiry",
+          title: "Vencimento de ASOs",
+          description: `${expiringSoon.length} colaboradores com ASO vencendo nos próximos 30 dias.`,
+          photo_url: "https://images.unsplash.com/photo-1505751172107-5962250d73b9?auto=format&fit=crop&q=80",
+          type: "aso"
+        });
+      }
+    }
+
+    // Vistoria de Cintas
+    if (pendingInspectionsCount > 0) {
+      list.push({
+        id: "sling-inspections",
+        title: "Vistoria de Cintas",
+        description: `Existem ${pendingInspectionsCount} cintas que requerem atenção este mês.`,
+        photo_url: "https://images.unsplash.com/photo-1586528116311-ad8dd3c8310d?auto=format&fit=crop&q=80",
+        type: "sling"
+      });
+    }
+
+    // Atas de Contrato (Última ata)
+    if (minutes && minutes.length > 0) {
+      const latestMinute = minutes[0];
+      list.push({
+        id: `minute-${latestMinute.id}`,
+        title: "Última Ata de Reunião",
+        description: `${latestMinute.title} - ${latestMinute.meeting_date ? new Date(latestMinute.meeting_date).toLocaleDateString('pt-BR') : 'Data não informada'}`,
+        photo_url: "https://images.unsplash.com/photo-1517048676732-d65bc937f952?auto=format&fit=crop&q=80",
+        type: "minute"
+      });
+    }
+
     return list;
-  }, [todayDDS, activeReminders, orderHighlights, monthCampaigns, customizations]);
+  }, [todayDDS, activeReminders, orderHighlights, monthCampaigns, customizations, metas, rhData, attendanceMarks, equipments, weatherData, pendingInspectionsCount, minutes]);
 
   useEffect(() => {
     if (!settings.screensaver_enabled) {
@@ -221,7 +342,7 @@ export const ScreensaverClock = () => {
                 <div 
                   key={idx}
                   className={`h-1.5 rounded-full transition-all duration-500 ${
-                    idx === currentIndex ? "w-8 bg-primary" : "w-2 bg-white/20"
+                    idx === currentIndex ? "w-12 bg-primary shadow-[0_0_10px_rgba(var(--primary),0.5)]" : "w-2 bg-white/20"
                   }`}
                 />
               ))}
