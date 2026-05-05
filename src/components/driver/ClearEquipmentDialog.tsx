@@ -13,6 +13,7 @@ import {
 } from "@/components/ui/alert-dialog";
 import { RotateCcw, Loader2 } from "lucide-react";
 import { supabase } from "@/integrations/supabase/client";
+import { useEnvironment } from "@/hooks/useEnvironment";
 import { toast } from "sonner";
 import { useNavigate } from "react-router-dom";
 
