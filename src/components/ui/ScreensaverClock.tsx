@@ -292,22 +292,15 @@ export const ScreensaverClock = () => {
       }
     };
 
-    const handleScreensaverDismiss = () => {
-      setIsActive(false);
-      clearTimeout(timeoutRef.current);
-      // Se estiver em "Imediato" (0), agendamos para 5 minutos após o clique para não reativar na hora
-      const reativationMs = settings.screensaver_timeout === 0 ? 5 * 60 * 1000 : timeoutMs;
-      if (settings.screensaver_enabled) {
-        timeoutRef.current = setTimeout(() => setIsActive(true), reativationMs);
-      }
-    };
-
+    // Use separate event listeners for activity and dismiss
     window.addEventListener("mousemove", handleActivity);
     window.addEventListener("keydown", handleActivity);
     
+    // Explicitly handle "Immediate" (0) mode
     if (settings.screensaver_enabled && !isActive) {
       if (settings.screensaver_timeout === 0) {
-        setIsActive(true);
+        // If we just clicked to dismiss and timeout is 0, we don't want it to pop up again immediately
+        // The onClick handler handles the 5-min delay for the next activation
       } else {
         timeoutRef.current = setTimeout(() => setIsActive(true), timeoutMs);
       }
