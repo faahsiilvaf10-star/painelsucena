@@ -128,7 +128,7 @@ export const ScreensaverClock = () => {
 
     const interval = setInterval(() => {
       setCurrentIndex((prev) => (prev + 1) % highlights.length);
-    }, 8000);
+    }, 5000);
 
     return () => clearInterval(interval);
   }, [isActive, highlights.length]);
