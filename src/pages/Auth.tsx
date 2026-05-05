@@ -543,29 +543,27 @@ const Auth = () => {
           </Button>
 
           {/* Environment Selector (Unidade) - matching user screenshot */}
-          {isLogin && (
-            <div className="pt-2 space-y-1">
-              <label className="text-[11px] text-white/70 font-medium ml-1">Unidade</label>
-              <div className="relative">
-                <Building2 className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-blue-500 z-10" />
-                <Select
-                  value={environment || "barcarena"}
-                  onValueChange={(val) => setEnvironment(val as EnvironmentId)}
-                >
-                  <SelectTrigger className="pl-10 h-9 bg-white/95 border-0 text-gray-700 text-sm rounded shadow-sm focus:ring-2 focus:ring-blue-400">
-                    <SelectValue placeholder="Selecione a unidade" />
-                  </SelectTrigger>
-                  <SelectContent className="bg-white border-gray-200">
-                    {(Object.keys(ENVIRONMENTS) as EnvironmentId[]).map((id) => (
-                      <SelectItem key={id} value={id}>
-                        {ENVIRONMENTS[id].label}
-                      </SelectItem>
-                    ))}
-                  </SelectContent>
-                </Select>
-              </div>
+          <div className="pt-2 space-y-1">
+            <label className="text-[11px] text-white/70 font-medium ml-1">Unidade</label>
+            <div className="relative">
+              <Building2 className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-blue-500 z-10" />
+              <Select
+                value={environment || "barcarena"}
+                onValueChange={(val) => setEnvironment(val as EnvironmentId)}
+              >
+                <SelectTrigger className="pl-10 h-9 bg-white/95 border-0 text-gray-700 text-sm rounded shadow-sm focus:ring-2 focus:ring-blue-400">
+                  <SelectValue placeholder="Selecione a unidade" />
+                </SelectTrigger>
+                <SelectContent className="bg-white border-gray-200">
+                  {(Object.keys(ENVIRONMENTS) as EnvironmentId[]).map((id) => (
+                    <SelectItem key={id} value={id}>
+                      {ENVIRONMENTS[id].label}
+                    </SelectItem>
+                  ))}
+                </SelectContent>
+              </Select>
             </div>
-          )}
+          </div>
         </form>
 
         {/* Toggle signup / login */}
