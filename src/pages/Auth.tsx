@@ -1,4 +1,4 @@
-import { useState, useEffect } from "react";
+import { useState, useEffect, useMemo } from "react";
 import { useNavigate } from "react-router-dom";
 import { supabase } from "@/integrations/supabase/client";
 import { Button } from "@/components/ui/button";
@@ -10,6 +10,7 @@ import { Eye, EyeOff, Loader2, User, Lock, UserCircle } from "lucide-react";
 import { z } from "zod";
 import { AuthBackground } from "@/components/auth/AuthBackground";
 import { useSiteSettings } from "@/hooks/useSiteSettings";
+import { useQuery } from "@tanstack/react-query";
 
 const cargoOptions = [
   { value: "moderador", label: "Moderador" },
@@ -70,7 +71,24 @@ const Auth = () => {
 
   const navigate = useNavigate();
   const { toast } = useToast();
-  const { settings } = useSiteSettings();
+  const { settings: envSettings } = useSiteSettings();
+
+  // Fetch all site settings to check if signup is enabled in ANY environment
+  // (since user hasn't selected an environment yet on login screen)
+  const { data: allSettings } = useQuery({
+    queryKey: ["all-site-settings"],
+    queryFn: async () => {
+      const { data } = await supabase.from("site_settings").select("show_signup_button");
+      return data || [];
+    }
+  });
+
+  const showSignup = useMemo(() => {
+    // If enabled in current (fallback) env
+    if (envSettings.show_signup_button) return true;
+    // Or if enabled in any other environment record
+    return allSettings?.some(s => s.show_signup_button) || false;
+  }, [envSettings.show_signup_button, allSettings]);
 
   // Fetch occupied cargos on mount
   useEffect(() => {
@@ -520,7 +538,7 @@ const Auth = () => {
         </form>
 
         {/* Toggle signup / login */}
-        {(settings.show_signup_button || !isLogin) && (
+        {(showSignup || !isLogin) && (
           <div className="mt-4 text-center">
             <button
               type="button"

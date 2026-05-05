@@ -59,15 +59,19 @@ const DEFAULT_SETTINGS: Omit<SiteSettings, "id" | "updated_at" | "updated_by"> &
 export function useSiteSettings() {
   const queryClient = useQueryClient();
   const { environment } = useEnvironment();
+  // Se não houver ambiente selecionado, tentamos buscar uma configuração global ou de Barcarena por padrão
   const currentEnv = environment || "barcarena";
 
   const { data: settings, isLoading, error } = useQuery({
     queryKey: ["site-settings", currentEnv],
     queryFn: async (): Promise<SiteSettings> => {
+      // Se não temos ambiente ainda, fazemos um fallback para Barcarena para carregar configs básicas como o botão de cadastro
+      const envToFetch = currentEnv;
+
       const { data, error } = await supabase
         .from("site_settings")
         .select("*")
-        .eq("environment", currentEnv)
+        .eq("environment", envToFetch)
         .maybeSingle();
 
       if (error) {
@@ -76,9 +80,7 @@ export function useSiteSettings() {
       }
 
       if (!data) {
-        // Se não houver configurações para este ambiente, retornamos as padrão
-        // mas marcamos o ambiente atual para que o mutation saiba onde criar
-        return { ...DEFAULT_SETTINGS, environment: currentEnv } as any;
+        return { ...DEFAULT_SETTINGS, environment: envToFetch } as any;
       }
 
       const navOrder = Array.isArray(data.nav_order) 
