@@ -15,13 +15,16 @@ import { useSlingEquipment } from "@/hooks/useSlingEquipment";
 import { useMeetingMinutes } from "@/hooks/useMeetingMinutes";
 import { getEffectiveAsoExpiry } from "@/lib/asoValidity";
 import { AnimatePresence, motion } from "framer-motion";
+import { AreaChart, Area, XAxis, YAxis, CartesianGrid, ResponsiveContainer } from "recharts";
+import { useMatrixProgress } from "@/hooks/useMatrixProgress";
 
 interface ScreensaverHighlight {
   id: string;
   title: string;
   description: string;
   photo_url?: string;
-  type: "dds" | "campaign" | "reminder" | "order" | "meta" | "attendance" | "equipment" | "weather" | "aso" | "sling" | "minute";
+  type: "dds" | "campaign" | "reminder" | "order" | "meta" | "attendance" | "equipment" | "weather" | "aso" | "sling" | "minute" | "matrix";
+  matrixData?: any;
 }
 
 export const ScreensaverClock = () => {
@@ -45,11 +48,22 @@ export const ScreensaverClock = () => {
   const pendingInspectionsCount = slingsData?.filter(s => s.color === (["red", "blue", "yellow", "green"][(currentMonthColor - 1) % 4])).length || 0;
   const { data: minutes } = useMeetingMinutes();
   
+  const { completedTasks } = useMatrixProgress();
+  
   const monthCampaigns = getCurrentMonthCampaigns();
   const { customizations } = usePageCustomizations("campanhas");
 
   const highlights = React.useMemo(() => {
     const list: ScreensaverHighlight[] = [];
+
+    const cargoDefinitions = [
+      { id: "preposto", cargo: "Preposto", tarefas: ["p1", "p2", "p3", "p4", "p5"] },
+      { id: "encarregado-geral", cargo: "Enc. Geral", tarefas: ["eg1", "eg2", "eg3"] },
+      { id: "encarregado-i", cargo: "Enc. I", tarefas: ["e1-1", "e1-2", "e1-3"] },
+      { id: "encarregado-ii", cargo: "Enc. II", tarefas: ["e2-1", "e2-2", "e2-3"] },
+      { id: "tecnico-seguranca-i", cargo: "Téc. Seg. I", tarefas: ["ts1-1", "ts1-2", "ts1-3", "ts1-4", "ts1-5", "ts1-6"] },
+      { id: "tecnico-seguranca-ii", cargo: "Téc. Seg. II", tarefas: ["ts2-1", "ts2-2", "ts2-3", "ts2-4", "ts2-5", "ts2-6"] },
+    ];
 
     // DDS
     if (todayDDS) {
@@ -230,8 +244,35 @@ export const ScreensaverClock = () => {
       });
     }
 
+    // Matriz de Competências/Tarefas
+    if (completedTasks && completedTasks.length > 0) {
+      const completedIds = new Set(completedTasks);
+      const totalTasks = cargoDefinitions.reduce((s, c) => s + c.tarefas.length, 0);
+      const completedCount = cargoDefinitions.reduce(
+        (s, c) => s + c.tarefas.filter((t) => completedIds.has(t)).length,
+        0
+      );
+      const overallProgress = Math.round((completedCount / totalTasks) * 100);
+
+      const chartData = cargoDefinitions.map((c) => ({
+        name: c.cargo,
+        value: Math.round(
+          (c.tarefas.filter((t) => completedIds.has(t)).length / c.tarefas.length) * 100
+        ),
+      }));
+
+      list.push({
+        id: "matrix-status",
+        title: "Matriz de Competências",
+        description: `Progresso Geral: ${overallProgress}% das tarefas concluídas este mês.`,
+        photo_url: "https://images.unsplash.com/photo-1454165833762-02651d58d92c?auto=format&fit=crop&w=1200&q=80",
+        type: "matrix",
+        matrixData: chartData
+      });
+    }
+
     return list;
-  }, [todayDDS, activeReminders, orderHighlights, monthCampaigns, customizations, metas, rhData, attendanceMarks, equipments, weatherData, pendingInspectionsCount, minutes]);
+  }, [todayDDS, activeReminders, orderHighlights, monthCampaigns, customizations, metas, rhData, attendanceMarks, equipments, weatherData, pendingInspectionsCount, minutes, completedTasks]);
 
   useEffect(() => {
     if (!settings.screensaver_enabled) {
@@ -344,6 +385,40 @@ export const ScreensaverClock = () => {
                 {currentHighlight.description}
               </p>
             </motion.div>
+
+            {currentHighlight.type === "matrix" && currentHighlight.matrixData && (
+              <motion.div 
+                initial={{ opacity: 0, scale: 0.9 }}
+                animate={{ opacity: 1, scale: 1 }}
+                transition={{ delay: 0.8, duration: 0.5 }}
+                className="h-[250px] w-full max-w-2xl mx-auto bg-black/40 backdrop-blur-md rounded-2xl p-6 border border-white/10"
+              >
+                <ResponsiveContainer width="100%" height="100%">
+                  <AreaChart data={currentHighlight.matrixData} margin={{ top: 10, right: 10, left: -20, bottom: 0 }}>
+                    <CartesianGrid strokeDasharray="3 3" stroke="rgba(255,255,255,0.1)" />
+                    <XAxis 
+                      dataKey="name" 
+                      stroke="rgba(255,255,255,0.6)" 
+                      tick={{ fontSize: 10 }}
+                    />
+                    <YAxis 
+                      domain={[0, 100]} 
+                      stroke="rgba(255,255,255,0.6)" 
+                      tick={{ fontSize: 10 }}
+                      tickFormatter={(v) => `${v}%`}
+                    />
+                    <Area
+                      type="monotone"
+                      dataKey="value"
+                      stroke="#3B82F6"
+                      fill="#3B82F6"
+                      fillOpacity={0.3}
+                      strokeWidth={3}
+                    />
+                  </AreaChart>
+                </ResponsiveContainer>
+              </motion.div>
+            )}
 
             {/* Visual Indicator */}
             <div className="flex justify-center gap-2 mt-12">
