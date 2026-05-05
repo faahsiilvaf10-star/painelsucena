@@ -298,7 +298,7 @@ const Admin = () => {
 
         <div className="mb-4">
           <Button variant="outline" onClick={() => navigate("/admin/whatsapp")} className="gap-2">
-            <MessageCircle className="w-4 h-4" /> WhatsApp API (W-API)
+            <img src="/whatsapp-api-icon.png" className="w-4 h-4 object-contain" alt="WhatsApp API" /> WhatsApp API (W-API)
           </Button>
         </div>
 

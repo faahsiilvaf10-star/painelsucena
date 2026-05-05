@@ -814,7 +814,7 @@ const AdminWhatsApp = () => {
     <Layout>
       <div className="container mx-auto p-4 md:p-6 space-y-6 max-w-6xl">
         <div className="flex items-center gap-3">
-          <MessageCircle className="w-7 h-7 text-primary" />
+          <img src="/whatsapp-api-icon.png" className="w-7 h-7 object-contain" alt="WhatsApp API" />
           <div>
             <h1 className="text-2xl md:text-3xl font-bold">WhatsApp API (W-API)</h1>
             <p className="text-sm text-muted-foreground">Configure a instância e envie mensagens automáticas</p>
