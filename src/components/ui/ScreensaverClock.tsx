@@ -28,6 +28,8 @@ export const ScreensaverClock = () => {
   const { data: orderHighlights } = useOrderHighlights();
   const monthCampaigns = getCurrentMonthCampaigns();
 
+  const { customizations } = usePageCustomizations("campanhas");
+
   const highlights = React.useMemo(() => {
     const list: ScreensaverHighlight[] = [];
 
@@ -45,10 +47,31 @@ export const ScreensaverClock = () => {
     // Campanhas
     if (monthCampaigns) {
       monthCampaigns.campaigns.forEach((c, idx) => {
+        // Buscar foto customizada do banner da campanha para este mês
+        const bannerKey = `banner-month-${monthCampaigns.month}`;
+        const customPhoto = customizations?.find(cust => cust.element_key === bannerKey)?.image_url;
+        
+        // Se houver fotos estáticas mapeadas em Campanhas.tsx, poderíamos usar aqui também,
+        // mas o usuário especificou "se houver foto", o que sugere as fotos enviadas/definidas por ele.
+        const staticBanners: Record<number, string> = {
+          2: "/campaigns/campanha-2.png",
+          3: "/campaigns/campanha-3.png",
+          4: "/campaigns/campanha-4.png",
+          5: "/campaigns/campanha-5.png",
+          6: "/campaigns/campanha-6.png",
+          7: "/campaigns/campanha-7.png",
+          8: "/campaigns/campanha-8.png",
+          9: "/campaigns/campanha-9.png",
+          10: "/campaigns/campanha-10.png",
+          11: "/campaigns/campanha-11.png",
+          12: "/campaigns/campanha-12.png",
+        };
+
         list.push({
           id: `campaign-${idx}`,
           title: `Campanha ${c.colorName}`,
           description: c.name + ": " + c.description,
+          photo_url: customPhoto || staticBanners[monthCampaigns.month],
           type: "campaign"
         });
       });
@@ -79,7 +102,7 @@ export const ScreensaverClock = () => {
     }
 
     return list;
-  }, [todayDDS, activeReminders, orderHighlights, monthCampaigns]);
+  }, [todayDDS, activeReminders, orderHighlights, monthCampaigns, customizations]);
 
   useEffect(() => {
     if (!settings.screensaver_enabled) {
