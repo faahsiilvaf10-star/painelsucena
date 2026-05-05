@@ -41,14 +41,18 @@ serve(async (req) => {
   }
 
   try {
-    const { monthData, userId, environment } = await req.json() as { 
+    const body = await req.json();
+    console.log("Received body:", JSON.stringify(body));
+    
+    const { monthData, userId, environment } = body as { 
       monthData: MonthCampaign; 
       userId: string;
       environment?: string;
     };
 
     if (!monthData || !userId) {
-      return new Response(JSON.stringify({ error: "Missing monthData or userId" }), {
+      console.error("Missing monthData or userId:", { monthData: !!monthData, userId: !!userId });
+      return new Response(JSON.stringify({ error: "Dados incompletos (monthData ou userId)" }), {
         status: 400,
         headers: { ...corsHeaders, "Content-Type": "application/json" },
       });
