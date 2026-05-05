@@ -225,6 +225,7 @@ const Admin = () => {
       // Delete existing campaign announcements for this month to reset reads
       const currentYear = new Date().getFullYear();
       const currentMonth = new Date().getMonth() + 1;
+      
       const { data: existing, error: fetchError } = await supabase
         .from("announcements")
         .select("id")
@@ -234,34 +235,22 @@ const Admin = () => {
 
       if (fetchError) {
         console.error("Error fetching existing announcements:", fetchError);
-        throw fetchError;
       }
 
       if (existing && existing.length > 0) {
         const existingIds = existing.map(ann => ann.id);
         
         // Delete reads first (foreign key constraint)
-        const { error: readsError } = await supabase
+        await supabase
           .from("announcement_reads")
           .delete()
           .in("announcement_id", existingIds);
           
-        if (readsError) {
-          console.warn("Could not delete some announcement reads:", readsError);
-        }
-
         // Delete announcements
-        const { error: deleteError } = await supabase
+        await supabase
           .from("announcements")
           .delete()
           .in("id", existingIds);
-          
-        if (deleteError) {
-          console.error("Error deleting old announcements:", deleteError);
-          // If delete fails, we might still want to try creating a new one, 
-          // but usually it's better to stop here to avoid duplicates
-          throw deleteError;
-        }
       }
 
       // Generate new announcement with AI banner
