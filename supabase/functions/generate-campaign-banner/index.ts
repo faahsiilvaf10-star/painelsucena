@@ -63,18 +63,17 @@ serve(async (req) => {
 
     const currentEnv = environment || 'barcarena';
     const currentYear = new Date().getFullYear();
-    const currentMonth = new Date().getMonth() + 1;
 
     console.log(`Starting campaign update for ${monthData.monthName} in ${currentEnv}...`);
 
-    // 1. Cleanup old announcements
+    // 1. Cleanup old announcements for this month/year/env
     try {
       const { data: existing } = await supabase
         .from("announcements")
         .select("id")
         .eq("environment", currentEnv)
         .ilike("title", `%Campanhas de ${monthData.monthName}%`)
-        .gte("created_at", `${currentYear}-${String(currentMonth).padStart(2, "0")}-01`);
+        .gte("created_at", `${currentYear}-${String(monthData.month).padStart(2, "0")}-01`);
 
       if (existing && existing.length > 0) {
         const ids = existing.map(a => a.id);
@@ -119,14 +118,47 @@ serve(async (req) => {
 
     if (annError) throw annError;
 
-    // 4. Trigger WhatsApp (Internal call)
-    console.log("Triggering WhatsApp notification...");
+    // 4. Trigger WhatsApp (Direct insert into wapi_outbox)
+    console.log("Processing WhatsApp notification...");
     try {
-      await supabase.functions.invoke("wapi-campaign-notify", {
-        body: { force: true },
-      });
+      const { data: cfg } = await supabase
+        .from("wapi_config")
+        .select("*")
+        .order("updated_at", { ascending: false })
+        .limit(1)
+        .maybeSingle();
+
+      if (cfg && cfg.enabled) {
+        const groupId = (cfg.group_id_campaign || cfg.group_id || "").trim();
+        if (groupId) {
+          // Monta caption para WhatsApp
+          const lines: string[] = [];
+          lines.push(`🎗️ *CAMPANHA DO MÊS — ${monthData.monthName.toUpperCase()}/${currentYear}*`);
+          lines.push("");
+          for (const c of monthData.campaigns) {
+            lines.push(`✨ *${c.name}* (${c.colorName})`);
+            lines.push(`${c.description}`);
+            lines.push("");
+          }
+          lines.push(`📣 *Vamos abraçar a causa deste mês!*`);
+          lines.push(`Compartilhe, conscientize e apoie. Juntos somos mais fortes. 💪`);
+          lines.push("");
+          lines.push(`_Mensagem automática - Sucena_`);
+          const caption = lines.join("\n");
+
+          // Use imageUrl with cache-bust if available
+          const wapiImageUrl = imageUrl ? `${imageUrl}?v=${Date.now()}` : null;
+
+          const queueRow = wapiImageUrl
+            ? { kind: "image", target_type: "group", phone: groupId, message: caption, caption, image_url: wapiImageUrl, origin: "campaign", recipient_name: "Grupo - Campanha do Mês" }
+            : { kind: "text",  target_type: "group", phone: groupId, message: caption, origin: "campaign", recipient_name: "Grupo - Campanha do Mês" };
+          
+          await supabase.from("wapi_outbox").insert(queueRow);
+          console.log("WhatsApp message queued.");
+        }
+      }
     } catch (wapiErr) {
-      console.error("Internal WAPI trigger error:", wapiErr);
+      console.error("WhatsApp queue error (ignoring):", wapiErr);
     }
 
     return new Response(JSON.stringify({ success: true, announcementId: announcement.id, imageUrl }), {
