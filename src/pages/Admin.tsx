@@ -14,7 +14,7 @@ import { useEnvironment, ENVIRONMENTS } from "@/hooks/useEnvironment";
 import { supabase } from "@/integrations/supabase/client";
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import { toast } from "sonner";
-import { Shield, ShieldCheck, Trash2, UserPlus, Users, Image, Upload, UserCog, Megaphone, Pencil, LayoutList, Truck, RotateCcw, Key, Ribbon, Coins, UserCheck, Eye, Globe, MessageCircle, MonitorOff } from "lucide-react";
+import { Shield, ShieldCheck, Trash2, UserPlus, Users, Image, Upload, UserCog, Megaphone, Pencil, LayoutList, Truck, RotateCcw, Key, Ribbon, Coins, UserCheck, Eye, Globe, MonitorOff } from "lucide-react";
 import { ModeratorBadge } from "@/components/ModeratorBadge";
 import { Switch } from "@/components/ui/switch";
 import { Label } from "@/components/ui/label";
@@ -298,7 +298,7 @@ const Admin = () => {
 
         <div className="mb-4">
           <Button variant="outline" onClick={() => navigate("/admin/whatsapp")} className="gap-2">
-            <MessageCircle className="w-4 h-4" /> WhatsApp API (W-API)
+            <img src="/whatsapp-api-icon.png" className="w-4 h-4 object-contain" alt="WhatsApp API" /> WhatsApp API (W-API)
           </Button>
         </div>
 
