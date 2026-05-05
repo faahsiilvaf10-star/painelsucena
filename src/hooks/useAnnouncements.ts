@@ -142,19 +142,23 @@ export function useUnreadAnnouncements() {
   const { user } = useAuth();
   const queryClient = useQueryClient();
   const previousCountRef = useRef<number>(0);
-  // Fetch unread announcements for current user
+  const { environment } = useEnvironment();
+  const currentEnv = environment || "barcarena";
+
+  // Fetch unread announcements for current user in current environment
   const { data: unreadAnnouncements = [], isLoading } = useQuery({
-    queryKey: ["unread-announcements", user?.id],
+    queryKey: ["unread-announcements", user?.id, currentEnv],
     queryFn: async () => {
       if (!user) return [];
 
       const now = new Date().toISOString();
       const userCreatedAt = user.created_at || now;
 
-      // Get announcements published after the user signed up
+      // Get announcements for current environment
       const { data: announcements, error: annError } = await supabase
         .from("announcements")
         .select("*")
+        .eq("environment", currentEnv)
         .lte("published_at", now)
         .gte("published_at", userCreatedAt);
 
@@ -180,7 +184,7 @@ export function useUnreadAnnouncements() {
       return unread as Announcement[];
     },
     enabled: !!user,
-    refetchInterval: 30000, // Check every 30 seconds
+    refetchInterval: 30000,
   });
 
   // Play sound when new announcements arrive
