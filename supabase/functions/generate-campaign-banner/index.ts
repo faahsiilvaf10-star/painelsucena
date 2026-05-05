@@ -19,7 +19,6 @@ interface MonthCampaign {
   campaigns: Campaign[];
 }
 
-// Pre-uploaded Canva banners mapped by month number
 const CAMPAIGN_BANNER_MAP: Record<number, string> = {
   1: "campaign-banners/campanha-1.png",
   2: "campaign-banners/campanha-2.png",
@@ -41,14 +40,18 @@ serve(async (req) => {
   }
 
   try {
-    const { monthData, userId, environment } = await req.json() as { 
+    const body = await req.json();
+    console.log("Received body:", JSON.stringify(body));
+    
+    const { monthData, userId, environment } = body as { 
       monthData: MonthCampaign; 
       userId: string;
       environment?: string;
     };
 
     if (!monthData || !userId) {
-      return new Response(JSON.stringify({ error: "Missing monthData or userId" }), {
+      console.error("Missing monthData or userId:", { monthData: !!monthData, userId: !!userId });
+      return new Response(JSON.stringify({ error: "Dados incompletos (monthData ou userId)" }), {
         status: 400,
         headers: { ...corsHeaders, "Content-Type": "application/json" },
       });
@@ -58,9 +61,31 @@ serve(async (req) => {
     const supabaseServiceKey = Deno.env.get("SUPABASE_SERVICE_ROLE_KEY")!;
     const supabase = createClient(supabaseUrl, supabaseServiceKey);
 
-    console.log(`Getting pre-uploaded banner for ${monthData.monthName} (month ${monthData.month})...`);
+    const currentEnv = environment || 'barcarena';
+    const currentYear = new Date().getFullYear();
 
-    // Get the pre-uploaded Canva banner URL for this month
+    console.log(`Starting campaign update for ${monthData.monthName} in ${currentEnv}...`);
+
+    // 1. Cleanup old announcements for this month/year/env
+    try {
+      const { data: existing } = await supabase
+        .from("announcements")
+        .select("id")
+        .eq("environment", currentEnv)
+        .ilike("title", `%Campanhas de ${monthData.monthName}%`)
+        .gte("created_at", `${currentYear}-${String(monthData.month).padStart(2, "0")}-01`);
+
+      if (existing && existing.length > 0) {
+        const ids = existing.map(a => a.id);
+        console.log(`Deleting ${ids.length} old announcements...`);
+        await supabase.from("announcement_reads").delete().in("announcement_id", ids);
+        await supabase.from("announcements").delete().in("id", ids);
+      }
+    } catch (err) {
+      console.error("Cleanup error (ignoring):", err);
+    }
+
+    // 2. Get banner URL
     let imageUrl: string | null = null;
     const bannerPath = CAMPAIGN_BANNER_MAP[monthData.month];
     
@@ -69,18 +94,14 @@ serve(async (req) => {
         .from("announcements")
         .getPublicUrl(bannerPath);
       imageUrl = publicData.publicUrl;
-      console.log("Using Canva banner:", imageUrl);
-    } else {
-      console.log(`No banner available for month ${monthData.month}`);
     }
 
-    // Build announcement content
+    // 3. Create new announcement
     const contentLines = monthData.campaigns.map((c: Campaign) =>
       `🎗️ ${c.name} (${c.colorName})\n${c.description}`
     );
     const content = `Neste mês de ${monthData.monthName}, celebramos importantes campanhas de conscientização:\n\n${contentLines.join("\n\n")}\n\nVamos juntos apoiar essas causas! 💪`;
 
-    // Create announcement
     const { data: announcement, error: annError } = await supabase
       .from("announcements")
       .insert({
@@ -89,18 +110,56 @@ serve(async (req) => {
         image_url: imageUrl,
         target_type: "all",
         created_by: userId,
-        environment: environment || 'barcarena',
+        environment: currentEnv,
         published_at: new Date().toISOString(),
       })
       .select()
       .single();
 
-    if (annError) {
-      console.error("Error creating announcement:", annError);
-      throw annError;
-    }
+    if (annError) throw annError;
 
-    console.log("Campaign announcement created:", announcement.id);
+    // 4. Trigger WhatsApp (Direct insert into wapi_outbox)
+    console.log("Processing WhatsApp notification...");
+    try {
+      const { data: cfg } = await supabase
+        .from("wapi_config")
+        .select("*")
+        .order("updated_at", { ascending: false })
+        .limit(1)
+        .maybeSingle();
+
+      if (cfg && cfg.enabled) {
+        const groupId = (cfg.group_id_campaign || cfg.group_id || "").trim();
+        if (groupId) {
+          // Monta caption para WhatsApp
+          const lines: string[] = [];
+          lines.push(`🎗️ *CAMPANHA DO MÊS — ${monthData.monthName.toUpperCase()}/${currentYear}*`);
+          lines.push("");
+          for (const c of monthData.campaigns) {
+            lines.push(`✨ *${c.name}* (${c.colorName})`);
+            lines.push(`${c.description}`);
+            lines.push("");
+          }
+          lines.push(`📣 *Vamos abraçar a causa deste mês!*`);
+          lines.push(`Compartilhe, conscientize e apoie. Juntos somos mais fortes. 💪`);
+          lines.push("");
+          lines.push(`_Mensagem automática - Sucena_`);
+          const caption = lines.join("\n");
+
+          // Use imageUrl with cache-bust if available
+          const wapiImageUrl = imageUrl ? `${imageUrl}?v=${Date.now()}` : null;
+
+          const queueRow = wapiImageUrl
+            ? { kind: "image", target_type: "group", phone: groupId, message: caption, caption, image_url: wapiImageUrl, origin: "campaign", recipient_name: "Grupo - Campanha do Mês" }
+            : { kind: "text",  target_type: "group", phone: groupId, message: caption, origin: "campaign", recipient_name: "Grupo - Campanha do Mês" };
+          
+          await supabase.from("wapi_outbox").insert(queueRow);
+          console.log("WhatsApp message queued.");
+        }
+      }
+    } catch (wapiErr) {
+      console.error("WhatsApp queue error (ignoring):", wapiErr);
+    }
 
     return new Response(JSON.stringify({ success: true, announcementId: announcement.id, imageUrl }), {
       status: 200,
