@@ -11,7 +11,7 @@ import { useRHEfetivo } from "@/hooks/useRHEfetivo";
 import { useAttendanceDailyMarks } from "@/hooks/useAttendanceDailyMarks";
 import { useEquipment } from "@/hooks/useEquipment";
 import { useCurrentTemperature } from "@/hooks/useCurrentTemperature";
-import { useSlingWithInspections } from "@/hooks/useSlingWithInspections";
+import { useSlingEquipment } from "@/hooks/useSlingEquipment";
 import { useMeetingMinutes } from "@/hooks/useMeetingMinutes";
 import { getEffectiveAsoExpiry } from "@/lib/asoValidity";
 import { AnimatePresence, motion } from "framer-motion";
@@ -40,7 +40,9 @@ export const ScreensaverClock = () => {
   const { data: attendanceMarks } = useAttendanceDailyMarks(today);
   const { data: equipments } = useEquipment();
   const { data: weatherData } = useCurrentTemperature();
-  const { slings, pendingInspections } = useSlingWithInspections();
+  const { data: slingsData } = useSlingEquipment();
+  const currentMonthColor = new Date().getMonth() + 1; // Simplificado para o screensaver
+  const pendingInspectionsCount = slingsData?.filter(s => s.color === (["red", "blue", "yellow", "green"][(currentMonthColor - 1) % 4])).length || 0;
   const { data: minutes } = useMeetingMinutes();
   
   const monthCampaigns = getCurrentMonthCampaigns();
@@ -198,11 +200,11 @@ export const ScreensaverClock = () => {
     }
 
     // Vistoria de Cintas
-    if (pendingInspections && pendingInspections.length > 0) {
+    if (pendingInspectionsCount > 0) {
       list.push({
         id: "sling-inspections",
         title: "Vistoria de Cintas",
-        description: `Existem ${pendingInspections.length} cintas pendentes de vistoria este mês.`,
+        description: `Existem ${pendingInspectionsCount} cintas que requerem atenção este mês.`,
         photo_url: "https://images.unsplash.com/photo-1586528116311-ad8dd3c8310d?auto=format&fit=crop&q=80",
         type: "sling"
       });
@@ -221,7 +223,7 @@ export const ScreensaverClock = () => {
     }
 
     return list;
-  }, [todayDDS, activeReminders, orderHighlights, monthCampaigns, customizations, metas, rhData, attendanceMarks, equipments, weatherData, pendingInspections, minutes]);
+  }, [todayDDS, activeReminders, orderHighlights, monthCampaigns, customizations, metas, rhData, attendanceMarks, equipments, weatherData, pendingInspectionsCount, minutes]);
 
   useEffect(() => {
     if (!settings.screensaver_enabled) {
