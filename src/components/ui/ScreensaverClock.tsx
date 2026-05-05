@@ -165,13 +165,22 @@ export const ScreensaverClock = () => {
 
     // Temperatura Atual
     if (weatherData) {
+      const constructionImages = [
+        "https://images.unsplash.com/photo-1503387762-592deb58ef4e?auto=format&fit=crop&w=1200&q=80",
+        "https://images.unsplash.com/photo-1541888946425-d81bb19240f5?auto=format&fit=crop&w=1200&q=80",
+        "https://images.unsplash.com/photo-1504307651254-35680f356dfd?auto=format&fit=crop&w=1200&q=80",
+        "https://images.unsplash.com/photo-1519452575417-564c1401ecc0?auto=format&fit=crop&w=1200&q=80",
+        "https://images.unsplash.com/photo-1590725140246-20acdee442be?auto=format&fit=crop&w=1200&q=80",
+        "https://images.unsplash.com/photo-1517089596392-fb9a9033e05b?auto=format&fit=crop&w=1200&q=80",
+        "https://images.unsplash.com/photo-1581094794329-c8112a89af12?auto=format&fit=crop&w=1200&q=80",
+      ];
+      const todayImage = constructionImages[new Date().getDay()];
+
       list.push({
         id: "current-weather",
         title: `Temperatura: ${weatherData.temperature}°C`,
         description: `Sensação térmica de ${weatherData.apparentTemp}°C • Humidade: ${weatherData.humidity}%`,
-        photo_url: weatherData.temperature > 30 
-          ? "https://images.unsplash.com/photo-1504370805625-d32c54b16100?auto=format&fit=crop&q=80"
-          : "https://images.unsplash.com/photo-1516912481808-34061f8bc6a4?auto=format&fit=crop&q=80",
+        photo_url: todayImage,
         type: "weather"
       });
     }
