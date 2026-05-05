@@ -538,7 +538,7 @@ const Auth = () => {
         </form>
 
         {/* Toggle signup / login */}
-        {(settings.show_signup_button || !isLogin) && (
+        {(showSignup || !isLogin) && (
           <div className="mt-4 text-center">
             <button
               type="button"
