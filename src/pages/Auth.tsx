@@ -322,6 +322,7 @@ const Auth = () => {
             user_id: data.user.id,
             full_name: fullName,
             cargo: cargo as CargoType,
+            environment: environment || "barcarena",
           });
 
           if (profileError) {
