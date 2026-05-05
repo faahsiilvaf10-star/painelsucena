@@ -3942,6 +3942,7 @@ export type Database = {
       }
       site_settings: {
         Row: {
+          environment: string | null
           id: string
           instacena_gif_height: number | null
           instacena_gif_opacity: number | null
@@ -3970,6 +3971,7 @@ export type Database = {
           updated_by: string | null
         }
         Insert: {
+          environment?: string | null
           id?: string
           instacena_gif_height?: number | null
           instacena_gif_opacity?: number | null
@@ -3998,6 +4000,7 @@ export type Database = {
           updated_by?: string | null
         }
         Update: {
+          environment?: string | null
           id?: string
           instacena_gif_height?: number | null
           instacena_gif_opacity?: number | null
