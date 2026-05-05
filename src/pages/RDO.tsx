@@ -203,6 +203,8 @@ export default function RDO() {
   const displayTemp = isToday
     ? (isBeforeCutoff ? (currentTemp ?? frozenTemp ?? savedTemp) : (frozenTemp ?? savedTemp))
     : (savedTemp ?? prevDayTemp);
+  const showTemperature = !!displayTemp;
+  const isLiveTemp = isToday && isBeforeCutoff && !!currentTemp;
 
   // Auto-persiste a temperatura no banco quando estamos no dia atual e temos um valor capturado.
   // Garante que o RDO do "dia anterior" sempre tenha a última temperatura registrada (ex: 16h).
