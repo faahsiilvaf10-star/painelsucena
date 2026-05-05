@@ -237,6 +237,7 @@ const Admin = () => {
       const { data: existing } = await supabase
         .from("announcements")
         .select("id")
+        .eq("environment", currentEnv)
         .ilike("title", `%Campanhas de ${monthData.monthName}%`)
         .gte("created_at", `${currentYear}-${String(currentMonth).padStart(2, "0")}-01`);
 
