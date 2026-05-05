@@ -57,7 +57,7 @@ export const ScreensaverClock = () => {
         id: `dds-${todayDDS.id}`,
         title: "DDS de Hoje",
         description: todayDDS.theme,
-        photo_url: todayDDS.photo_url || (todayDDS as any).event_photo_url,
+        photo_url: todayDDS.photo_url || (todayDDS as any).event_photo_url || "https://images.unsplash.com/photo-1521791136064-7986c2959210?auto=format&fit=crop&q=80",
         type: "dds"
       });
     }
@@ -65,12 +65,9 @@ export const ScreensaverClock = () => {
     // Campanhas
     if (monthCampaigns) {
       monthCampaigns.campaigns.forEach((c, idx) => {
-        // Buscar foto customizada do banner da campanha para este mês
         const bannerKey = `banner-month-${monthCampaigns.month}`;
         const customPhoto = customizations?.find(cust => cust.element_key === bannerKey)?.image_url;
         
-        // Se houver fotos estáticas mapeadas em Campanhas.tsx, poderíamos usar aqui também,
-        // mas o usuário especificou "se houver foto", o que sugere as fotos enviadas/definidas por ele.
         const staticBanners: Record<number, string> = {
           2: "/campaigns/campanha-2.png",
           3: "/campaigns/campanha-3.png",
@@ -89,7 +86,7 @@ export const ScreensaverClock = () => {
           id: `campaign-${idx}`,
           title: `Campanha ${c.colorName}`,
           description: c.name + ": " + c.description,
-          photo_url: customPhoto || staticBanners[monthCampaigns.month],
+          photo_url: customPhoto || staticBanners[monthCampaigns.month] || "https://images.unsplash.com/photo-1557804506-669a67965ba0?auto=format&fit=crop&q=80",
           type: "campaign"
         });
       });
@@ -102,6 +99,7 @@ export const ScreensaverClock = () => {
           id: `reminder-${r.id}`,
           title: "Lembrete: " + r.title,
           description: r.description || "",
+          photo_url: "https://images.unsplash.com/photo-1484480974693-6ca0a78fb36b?auto=format&fit=crop&q=80",
           type: "reminder"
         });
       });
@@ -114,6 +112,7 @@ export const ScreensaverClock = () => {
           id: `order-${o.id}`,
           title: "Pedido: " + o.product_name,
           description: `Previsão: ${o.expected_date}`,
+          photo_url: "https://images.unsplash.com/photo-1586528116311-ad8dd3c8310d?auto=format&fit=crop&q=80",
           type: "order"
         });
       });
@@ -273,7 +272,7 @@ export const ScreensaverClock = () => {
 
     const interval = setInterval(() => {
       setCurrentIndex((prev) => (prev + 1) % highlights.length);
-    }, 5000);
+    }, 10000);
 
     return () => clearInterval(interval);
   }, [isActive, highlights.length]);
@@ -284,6 +283,7 @@ export const ScreensaverClock = () => {
     id: "default", 
     title: "Mantenha o foco", 
     description: "Sua produtividade é a nossa força.",
+    photo_url: "https://images.unsplash.com/photo-1497366216548-37526070297c?auto=format&fit=crop&q=80",
     type: "dds"
   };
 
