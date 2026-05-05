@@ -912,7 +912,7 @@ const Admin = () => {
                         <SelectValue placeholder="Selecione uma role" />
                       </SelectTrigger>
                       <SelectContent>
-                        <SelectItem value="user">Usuário</SelectItem>
+                        <SelectItem value="user">Membro Normal</SelectItem>
                         <SelectItem value="moderator">Moderador</SelectItem>
                         <SelectItem value="admin">Administrador</SelectItem>
                         <SelectItem value="visualizador">Visualizador</SelectItem>
@@ -971,57 +971,71 @@ const Admin = () => {
                             )}
                           </TableCell>
                           <TableCell>
-                            {u.role ? (
-                              canManageRoles ? (
-                                <Select
-                                  value={u.role}
-                                  onValueChange={(newRole) => {
-                                    if (u.role_id) {
-                                      updateRoleMutation.mutate({
-                                        roleId: u.role_id,
-                                        newRole: newRole as AppRole,
-                                      });
-                                    }
-                                  }}
-                                  disabled={u.user_id === user?.id}
-                                >
-                                  <SelectTrigger className="w-[160px]">
-                                    <SelectValue />
-                                  </SelectTrigger>
-                                  <SelectContent>
-                                    <SelectItem value="user">
+                            {canManageRoles ? (
+                              <Select
+                                value={u.role || "none"}
+                                onValueChange={(newRole) => {
+                                  if (newRole === "none") return;
+                                  if (u.role_id) {
+                                    updateRoleMutation.mutate({
+                                      roleId: u.role_id,
+                                      newRole: newRole as AppRole,
+                                    });
+                                  } else {
+                                    addRoleMutation.mutate({
+                                      userId: u.user_id,
+                                      role: newRole as AppRole,
+                                    });
+                                  }
+                                }}
+                                disabled={u.user_id === user?.id}
+                              >
+                                <SelectTrigger className="w-[160px]">
+                                  <SelectValue />
+                                </SelectTrigger>
+                                <SelectContent>
+                                  {!u.role && (
+                                    <SelectItem value="none">
                                       <div className="flex items-center gap-2">
-                                        <Shield className="w-4 h-4" />
-                                        Usuário
+                                        <Shield className="w-4 h-4 text-muted-foreground" />
+                                        Sem role
                                       </div>
                                     </SelectItem>
-                                    <SelectItem value="moderator">
-                                      <div className="flex items-center gap-2">
-                                        <ModeratorBadge size="sm" />
-                                        Moderador
-                                      </div>
-                                    </SelectItem>
-                                    <SelectItem value="admin">
-                                      <div className="flex items-center gap-2">
-                                        <ShieldCheck className="w-4 h-4" />
-                                        Administrador
-                                      </div>
-                                    </SelectItem>
-                                    <SelectItem value="visualizador">
-                                      <div className="flex items-center gap-2">
-                                        <Eye className="w-4 h-4" />
-                                        Visualizador
-                                      </div>
-                                    </SelectItem>
-                                  </SelectContent>
-                                </Select>
-                              ) : (
-                                <Badge variant={u.role === "admin" ? "default" : u.role === "moderator" ? "secondary" : u.role === "visualizador" ? "outline" : "outline"}>
-                                  {u.role === "admin" ? "Admin" : u.role === "moderator" ? "Moderador" : u.role === "visualizador" ? "Visualizador" : "Usuário"}
-                                </Badge>
-                              )
+                                  )}
+                                  <SelectItem value="user">
+                                    <div className="flex items-center gap-2">
+                                      <Shield className="w-4 h-4" />
+                                      Membro Normal
+                                    </div>
+                                  </SelectItem>
+                                  <SelectItem value="moderator">
+                                    <div className="flex items-center gap-2">
+                                      <ModeratorBadge size="sm" />
+                                      Moderador
+                                    </div>
+                                  </SelectItem>
+                                  <SelectItem value="admin">
+                                    <div className="flex items-center gap-2">
+                                      <ShieldCheck className="w-4 h-4" />
+                                      Administrador
+                                    </div>
+                                  </SelectItem>
+                                  <SelectItem value="visualizador">
+                                    <div className="flex items-center gap-2">
+                                      <Eye className="w-4 h-4" />
+                                      Visualizador
+                                    </div>
+                                  </SelectItem>
+                                </SelectContent>
+                              </Select>
                             ) : (
-                              <Badge variant="secondary">Sem role</Badge>
+                              u.role ? (
+                                <Badge variant={u.role === "admin" ? "default" : u.role === "moderator" ? "secondary" : u.role === "visualizador" ? "outline" : "outline"}>
+                                  {u.role === "admin" ? "Admin" : u.role === "moderator" ? "Moderador" : u.role === "visualizador" ? "Visualizador" : "Membro Normal"}
+                                </Badge>
+                              ) : (
+                                <Badge variant="secondary">Sem role</Badge>
+                              )
                             )}
                           </TableCell>
                           <TableCell className="text-right">
