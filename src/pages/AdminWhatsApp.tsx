@@ -16,7 +16,7 @@ import { useAuth } from "@/hooks/useAuth";
 import { supabase } from "@/integrations/supabase/client";
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import { toast } from "sonner";
-import { MessageCircle, Save, Send, Search, Users, Bell, Play } from "lucide-react";
+import { Save, Send, Search, Users, Bell, Play } from "lucide-react";
 
 const formatBR = (digits: string): string => {
   const d = (digits || "").replace(/\D/g, "").slice(0, 11);
