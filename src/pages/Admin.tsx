@@ -250,7 +250,7 @@ const Admin = () => {
 
       // Generate new announcement with AI banner
       const { error } = await supabase.functions.invoke("generate-campaign-banner", {
-        body: { monthData, userId: user!.id },
+        body: { monthData, userId: user!.id, environment: currentEnv },
       });
 
       if (error) throw error;
