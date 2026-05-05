@@ -306,6 +306,36 @@ export type Database = {
         }
         Relationships: []
       }
+      auth_attempts: {
+        Row: {
+          created_at: string
+          email: string | null
+          failure_reason: string | null
+          id: string
+          ip_address: string | null
+          success: boolean
+          user_agent: string | null
+        }
+        Insert: {
+          created_at?: string
+          email?: string | null
+          failure_reason?: string | null
+          id?: string
+          ip_address?: string | null
+          success?: boolean
+          user_agent?: string | null
+        }
+        Update: {
+          created_at?: string
+          email?: string | null
+          failure_reason?: string | null
+          id?: string
+          ip_address?: string | null
+          success?: boolean
+          user_agent?: string | null
+        }
+        Relationships: []
+      }
       aviator_balances: {
         Row: {
           balance: number
@@ -4691,6 +4721,7 @@ export type Database = {
     Functions: {
       can_manage_employees: { Args: { _user_id: string }; Returns: boolean }
       cleanup_expired_stories: { Args: never; Returns: undefined }
+      cleanup_old_auth_attempts: { Args: never; Returns: undefined }
       current_environment: { Args: never; Returns: string }
       has_environment_access: {
         Args: { _environment: string; _user_id: string }
