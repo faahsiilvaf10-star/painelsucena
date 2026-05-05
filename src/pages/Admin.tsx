@@ -222,40 +222,8 @@ const Admin = () => {
 
     setIsResendingCampaign(true);
     try {
-      // Delete existing campaign announcements for this month to reset reads
-      const currentYear = new Date().getFullYear();
-      const currentMonth = new Date().getMonth() + 1;
-      
-      const { data: existing, error: fetchError } = await supabase
-        .from("announcements")
-        .select("id")
-        .eq("environment", currentEnv)
-        .ilike("title", `%Campanhas de ${monthData.monthName}%`)
-        .gte("created_at", `${currentYear}-${String(currentMonth).padStart(2, "0")}-01`);
-
-      if (fetchError) {
-        console.error("Error fetching existing announcements:", fetchError);
-      }
-
-      if (existing && existing.length > 0) {
-        const existingIds = existing.map(ann => ann.id);
-        
-        // Delete reads first (foreign key constraint)
-        await supabase
-          .from("announcement_reads")
-          .delete()
-          .in("announcement_id", existingIds);
-          
-        // Delete announcements
-        await supabase
-          .from("announcements")
-          .delete()
-          .in("id", existingIds);
-      }
-
-      // Generate new announcement with AI banner
-      console.log("Generating campaign banner with:", { monthData, userId: user?.id, currentEnv });
-      const { data: genData, error: genError } = await supabase.functions.invoke("generate-campaign-banner", {
+      // Toda a lógica (limpeza, criação e envio WhatsApp) foi movida para o backend para maior confiabilidade
+      const { data, error } = await supabase.functions.invoke("generate-campaign-banner", {
         body: { 
           monthData, 
           userId: user?.id, 
@@ -263,26 +231,14 @@ const Admin = () => {
         },
       });
 
-      if (genError || (genData && genData.error)) {
-        console.error("Generate Banner Error:", genError || genData?.error);
-        throw new Error(genData?.error || genError?.message || "Erro ao gerar comunicado no sistema");
-      }
-
-      // Trigger WhatsApp campaign notification
-      console.log("Triggering WhatsApp campaign notification...");
-      const { data: wapiData, error: wapiError } = await supabase.functions.invoke("wapi-campaign-notify", {
-        body: { force: true },
-      });
-
-      if (wapiError || (wapiData && wapiData.error)) {
-        console.error("WhatsApp Notification Error:", wapiError || wapiData?.error);
-        toast.warning(`Comunicado interno criado, mas houve falha no WhatsApp: ${wapiError?.message || wapiData?.error || 'Erro desconhecido'}`);
-      } else {
-        toast.success(`Campanha de ${monthData.monthName} reenviada com sucesso para o sistema e WhatsApp!`);
+      if (error || (data && data.error)) {
+        console.error("Resend Error:", error || data?.error);
+        throw new Error(data?.error || error?.message || "Erro na execução da função");
       }
 
       queryClient.invalidateQueries({ queryKey: ["announcements", currentEnv] });
       queryClient.invalidateQueries({ queryKey: ["unread-announcements", user?.id, currentEnv] });
+      toast.success(`Campanha de ${monthData.monthName} reenviada com sucesso para o sistema e WhatsApp!`);
     } catch (err: any) {
       console.error("Resend campaign error:", err);
       toast.error(`Erro ao reenviar campanha: ${err.message || "Erro desconhecido"}`);
