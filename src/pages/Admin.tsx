@@ -255,8 +255,8 @@ const Admin = () => {
 
       if (error) throw error;
 
-      queryClient.invalidateQueries({ queryKey: ["announcements"] });
-      queryClient.invalidateQueries({ queryKey: ["unread-announcements"] });
+      queryClient.invalidateQueries({ queryKey: ["announcements", currentEnv] });
+      queryClient.invalidateQueries({ queryKey: ["unread-announcements", user?.id, currentEnv] });
       toast.success(`Comunicado de ${monthData.monthName} reenviado para todos!`);
     } catch (err) {
       console.error("Error resending campaign:", err);
