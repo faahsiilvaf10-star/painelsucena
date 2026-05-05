@@ -88,6 +88,7 @@ serve(async (req) => {
         image_url: imageUrl,
         target_type: "all",
         created_by: userId,
+        environment: environment || 'barcarena',
         published_at: new Date().toISOString(),
       })
       .select()
