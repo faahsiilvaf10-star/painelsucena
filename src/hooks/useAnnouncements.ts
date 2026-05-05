@@ -102,7 +102,7 @@ export function useAnnouncements() {
       return inserted[0];
     },
     onSuccess: () => {
-      queryClient.invalidateQueries({ queryKey: ["announcements"] });
+      queryClient.invalidateQueries({ queryKey: ["announcements", currentEnv] });
       toast.success("Comunicado criado com sucesso!");
     },
     onError: (error: Error) => {
