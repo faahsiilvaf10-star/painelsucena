@@ -6,11 +6,12 @@ import { Input } from "@/components/ui/input";
 import { Checkbox } from "@/components/ui/checkbox";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { useToast } from "@/hooks/use-toast";
-import { Eye, EyeOff, Loader2, User, Lock, UserCircle } from "lucide-react";
+import { Eye, EyeOff, Loader2, User, Lock, UserCircle, Building2 } from "lucide-react";
 import { z } from "zod";
 import { AuthBackground } from "@/components/auth/AuthBackground";
 import { useSiteSettings } from "@/hooks/useSiteSettings";
 import { useQuery } from "@tanstack/react-query";
+import { useEnvironment, ENVIRONMENTS, type EnvironmentId } from "@/hooks/useEnvironment";
 
 const cargoOptions = [
   { value: "moderador", label: "Moderador" },
@@ -71,11 +72,12 @@ const Auth = () => {
 
   const navigate = useNavigate();
   const { toast } = useToast();
-  const { settings: envSettings } = useSiteSettings();
+  const { settings: envSettings, isLoading: settingsLoading } = useSiteSettings();
+  const { environment, setEnvironment } = useEnvironment();
 
   // Fetch all site settings to check if signup is enabled in ANY environment
   // (since user hasn't selected an environment yet on login screen)
-  const { data: allSettings } = useQuery({
+  const { data: allSettings, isLoading: allSettingsLoading } = useQuery({
     queryKey: ["all-site-settings"],
     queryFn: async () => {
       const { data } = await supabase.from("site_settings").select("show_signup_button");
@@ -84,10 +86,13 @@ const Auth = () => {
   });
 
   const showSignup = useMemo(() => {
-    // If enabled in current (fallback) env
+    // If enabled in current environment
     if (envSettings.show_signup_button) return true;
     // Or if enabled in any other environment record
-    return allSettings?.some(s => s.show_signup_button) || false;
+    if (allSettings && allSettings.length > 0) {
+      return allSettings.some(s => s.show_signup_button);
+    }
+    return false;
   }, [envSettings.show_signup_button, allSettings]);
 
   // Fetch occupied cargos on mount
@@ -530,11 +535,35 @@ const Auth = () => {
             {isLoading ? (
               <Loader2 className="w-4 h-4 animate-spin" />
             ) : isLogin ? (
-              "LOGIN"
+              "ENTRAR"
             ) : (
               "CADASTRAR"
             )}
           </Button>
+
+          {/* Environment Selector (Unidade) - matching user screenshot */}
+          {isLogin && (
+            <div className="pt-2 space-y-1">
+              <div className="relative">
+                <Building2 className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-blue-500 z-10" />
+                <Select
+                  value={environment || "barcarena"}
+                  onValueChange={(val) => setEnvironment(val as EnvironmentId)}
+                >
+                  <SelectTrigger className="pl-10 h-9 bg-white/95 border-0 text-gray-700 text-sm rounded shadow-sm focus:ring-2 focus:ring-blue-400">
+                    <SelectValue placeholder="Selecione a unidade" />
+                  </SelectTrigger>
+                  <SelectContent className="bg-white border-gray-200">
+                    {(Object.keys(ENVIRONMENTS) as EnvironmentId[]).map((id) => (
+                      <SelectItem key={id} value={id}>
+                        {ENVIRONMENTS[id].label}
+                      </SelectItem>
+                    ))}
+                  </SelectContent>
+                </Select>
+              </div>
+            </div>
+          )}
         </form>
 
         {/* Toggle signup / login */}
