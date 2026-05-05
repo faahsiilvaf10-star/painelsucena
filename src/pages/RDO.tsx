@@ -188,6 +188,22 @@ export default function RDO() {
   const showTemperature = !!displayTemp;
   const isLiveTemp = isToday && isBeforeCutoff && !!currentTemp;
 
+  // Busca a temperatura do dia anterior para exibir no relatório
+  const prevDayTemp = useMemo(() => {
+    const prevDate = new Date(selectedDate);
+    prevDate.setDate(prevDate.getDate() - 1);
+    const prevDateStr = format(prevDate, "yyyy-MM-dd");
+    
+    const prevReport = allReports?.find(r => r.report_date === prevDateStr);
+    if (prevReport && prevReport.temperature != null) {
+      return {
+        temperature: Number(prevReport.temperature),
+        apparentTemp: Number(prevReport.apparent_temp ?? prevReport.temperature),
+      };
+    }
+    return null;
+  }, [allReports, selectedDate]);
+
   // Auto-persiste a temperatura no banco quando estamos no dia atual e temos um valor capturado.
   // Garante que o RDO do "dia anterior" sempre tenha a última temperatura registrada (ex: 16h).
   const lastPersistedTempRef = useRef<number | null>(null);
@@ -487,10 +503,11 @@ ${operatingEquipmentText}
 ${E.EMOJI_CHECK} Equipamentos Jardinagem na Obra (${jardinagemEquipmentSummary.total})
 ${jardinagemEquipmentText}
 
-Condições climáticas:
+    Condições climáticas:
 • MANHÃ = ${weatherLabels[weatherMorning]}
 • TARDE = ${weatherLabels[weatherAfternoon]}${showTemperature && displayTemp ? `
-• 🌡️ TEMPERATURA${isLiveTemp ? " ATUAL" : " (16h)"} = ${displayTemp.temperature}°C (sensação ${displayTemp.apparentTemp}°C)` : ""}
+• 🌡️ TEMPERATURA${isLiveTemp ? " ATUAL" : " (16h)"} = ${displayTemp.temperature}°C (sensação ${displayTemp.apparentTemp}°C)` : ""}${prevDayTemp ? `
+• 🌡️ TEMPERATURA DIA ANTERIOR (16h) = ${prevDayTemp.temperature}°C (sensação ${prevDayTemp.apparentTemp}°C)` : ""}
 
 ${E.EMOJI_WARNING} DIFICULDADES/DESVIOS
 ${difficulties}`;
@@ -659,6 +676,21 @@ ${difficulties}`;
             </div>
           </div>
           
+          {(showTemperature && displayTemp) && (
+            <div className="flex flex-wrap gap-2">
+              <Badge variant="outline" className="text-xs bg-blue-500/10 text-blue-600 border-blue-500/20 gap-1.5 py-1">
+                <Sun className="h-3 w-3" />
+                {isLiveTemp ? "Temperatura Atual" : "Temperatura (16h)"}: {displayTemp.temperature}°C (sensação {displayTemp.apparentTemp}°C)
+              </Badge>
+              {prevDayTemp && (
+                <Badge variant="outline" className="text-xs bg-indigo-500/10 text-indigo-600 border-indigo-500/20 gap-1.5 py-1">
+                  <Sun className="h-3 w-3" />
+                  Ontem (16h): {prevDayTemp.temperature}°C (sensação {prevDayTemp.apparentTemp}°C)
+                </Badge>
+              )}
+            </div>
+          )}
+
           <div className="flex flex-wrap items-center gap-2">
             {/* Date Picker */}
             <Popover>
