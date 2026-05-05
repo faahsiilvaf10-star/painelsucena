@@ -312,10 +312,8 @@ export const ScreensaverClock = () => {
       clearTimeout(timeoutRef.current);
       window.removeEventListener("mousemove", handleActivity);
       window.removeEventListener("keydown", handleActivity);
-      window.removeEventListener("click", handleActivity);
-      window.removeEventListener("touchstart", handleActivity);
     };
-  }, [settings.screensaver_enabled, settings.screensaver_timeout]);
+  }, [settings.screensaver_enabled, settings.screensaver_timeout, isActive]);
 
   useEffect(() => {
     if (!isActive || highlights.length <= 1) return;
