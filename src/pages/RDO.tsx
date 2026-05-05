@@ -182,12 +182,6 @@ export default function RDO() {
       }
     : null;
 
-  const displayTemp = isToday
-    ? (isBeforeCutoff ? (currentTemp ?? frozenTemp ?? savedTemp) : (frozenTemp ?? savedTemp))
-    : savedTemp;
-  const showTemperature = !!displayTemp;
-  const isLiveTemp = isToday && isBeforeCutoff && !!currentTemp;
-
   // Busca a temperatura do dia anterior para exibir no relatório
   const prevDayTemp = useMemo(() => {
     const prevDate = new Date(selectedDate);
@@ -199,10 +193,18 @@ export default function RDO() {
       return {
         temperature: Number(prevReport.temperature),
         apparentTemp: Number(prevReport.apparent_temp ?? prevReport.temperature),
+        humidity: Number(prevReport.humidity ?? 0),
+        fetchedAt: prevReport.temperature_captured_at ?? prevReport.updated_at,
       };
     }
     return null;
   }, [allReports, selectedDate]);
+
+  const displayTemp = isToday
+    ? (isBeforeCutoff ? (currentTemp ?? frozenTemp ?? savedTemp) : (frozenTemp ?? savedTemp))
+    : (savedTemp ?? prevDayTemp);
+  const showTemperature = !!displayTemp;
+  const isLiveTemp = isToday && isBeforeCutoff && !!currentTemp;
 
   // Auto-persiste a temperatura no banco quando estamos no dia atual e temos um valor capturado.
   // Garante que o RDO do "dia anterior" sempre tenha a última temperatura registrada (ex: 16h).
@@ -506,8 +508,7 @@ ${jardinagemEquipmentText}
     Condições climáticas:
 • MANHÃ = ${weatherLabels[weatherMorning]}
 • TARDE = ${weatherLabels[weatherAfternoon]}${showTemperature && displayTemp ? `
-• 🌡️ TEMPERATURA${isLiveTemp ? " ATUAL" : " (16h)"} = ${displayTemp.temperature}°C (sensação ${displayTemp.apparentTemp}°C)` : ""}${prevDayTemp ? `
-• 🌡️ TEMPERATURA DIA ANTERIOR (16h) = ${prevDayTemp.temperature}°C (sensação ${prevDayTemp.apparentTemp}°C)` : ""}
+• 🌡️ TEMPERATURA${(isToday && isBeforeCutoff && !!currentTemp) ? " ATUAL" : " (16h)"} = ${displayTemp.temperature}°C (sensação ${displayTemp.apparentTemp}°C)` : ""}
 
 ${E.EMOJI_WARNING} DIFICULDADES/DESVIOS
 ${difficulties}`;
@@ -682,7 +683,7 @@ ${difficulties}`;
                 <Sun className="h-3 w-3" />
                 {isLiveTemp ? "Temperatura Atual" : "Temperatura (16h)"}: {displayTemp.temperature}°C (sensação {displayTemp.apparentTemp}°C)
               </Badge>
-              {prevDayTemp && (
+              {prevDayTemp && displayTemp !== prevDayTemp && (
                 <Badge variant="outline" className="text-xs bg-indigo-500/10 text-indigo-600 border-indigo-500/20 gap-1.5 py-1">
                   <Sun className="h-3 w-3" />
                   Ontem (16h): {prevDayTemp.temperature}°C (sensação {prevDayTemp.apparentTemp}°C)
