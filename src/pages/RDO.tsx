@@ -182,12 +182,6 @@ export default function RDO() {
       }
     : null;
 
-  const displayTemp = isToday
-    ? (isBeforeCutoff ? (currentTemp ?? frozenTemp ?? savedTemp) : (frozenTemp ?? savedTemp))
-    : savedTemp;
-  const showTemperature = !!displayTemp;
-  const isLiveTemp = isToday && isBeforeCutoff && !!currentTemp;
-
   // Busca a temperatura do dia anterior para exibir no relatório
   const prevDayTemp = useMemo(() => {
     const prevDate = new Date(selectedDate);
@@ -199,10 +193,16 @@ export default function RDO() {
       return {
         temperature: Number(prevReport.temperature),
         apparentTemp: Number(prevReport.apparent_temp ?? prevReport.temperature),
+        humidity: Number(prevReport.humidity ?? 0),
+        fetchedAt: prevReport.temperature_captured_at ?? prevReport.updated_at,
       };
     }
     return null;
   }, [allReports, selectedDate]);
+
+  const displayTemp = isToday
+    ? (isBeforeCutoff ? (currentTemp ?? frozenTemp ?? savedTemp) : (frozenTemp ?? savedTemp))
+    : (savedTemp ?? prevDayTemp);
 
   // Auto-persiste a temperatura no banco quando estamos no dia atual e temos um valor capturado.
   // Garante que o RDO do "dia anterior" sempre tenha a última temperatura registrada (ex: 16h).
