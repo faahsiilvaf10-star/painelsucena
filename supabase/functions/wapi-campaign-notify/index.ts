@@ -94,6 +94,7 @@ Deno.serve(async (req) => {
   if (req.method === "OPTIONS") return new Response("ok", { headers: corsHeaders });
 
   try {
+    console.log("Starting wapi-campaign-notify...");
     const supabaseUrl = Deno.env.get("SUPABASE_URL")!;
     const serviceKey = Deno.env.get("SUPABASE_SERVICE_ROLE_KEY")!;
     const admin = createClient(supabaseUrl, serviceKey);
@@ -102,24 +103,34 @@ Deno.serve(async (req) => {
     try {
       if (req.method === "POST") {
         const body = await req.json().catch(() => ({}));
+        console.log("Request body:", JSON.stringify(body));
         force = !!body?.force;
       }
-    } catch { /* ignore */ }
+    } catch (e) {
+      console.error("Error parsing request body:", e);
+    }
 
-    const { data: cfg } = await admin
+    const { data: cfg, error: cfgError } = await admin
       .from("wapi_config")
       .select("*")
       .order("updated_at", { ascending: false })
       .limit(1)
       .maybeSingle();
 
+    if (cfgError) {
+      console.error("Error fetching wapi_config:", cfgError);
+      throw cfgError;
+    }
+
     if (!cfg || !cfg.enabled || !cfg.instance_url || !cfg.instance_token || !cfg.instance_id) {
+      console.log("W-API not configured or disabled");
       return new Response(JSON.stringify({ skipped: true, reason: "W-API não configurada" }), {
         status: 200, headers: { ...corsHeaders, "Content-Type": "application/json" },
       });
     }
 
     if (!cfg.auto_send_campaign_alert && !force) {
+      console.log("Campaign alert disabled and not forced");
       return new Response(JSON.stringify({ skipped: true, reason: "Alerta de Campanha do Mês desabilitado" }), {
         status: 200, headers: { ...corsHeaders, "Content-Type": "application/json" },
       });
