@@ -1,5 +1,6 @@
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import { supabase } from "@/integrations/supabase/client";
+import { useEnvironment } from "./useEnvironment";
 
 export interface NavVisibilityRule {
   id: string;
@@ -12,13 +13,16 @@ export interface NavVisibilityRule {
 
 export function useNavVisibilityRules() {
   const queryClient = useQueryClient();
+  const { environment } = useEnvironment();
+  const currentEnv = environment || "barcarena";
 
   const { data: rules = [], isLoading, error } = useQuery({
-    queryKey: ["nav-visibility-rules"],
+    queryKey: ["nav-visibility-rules", currentEnv],
     queryFn: async (): Promise<NavVisibilityRule[]> => {
       const { data, error } = await supabase
         .from("nav_visibility_rules")
-        .select("*");
+        .select("*")
+        .eq("environment", currentEnv);
 
       if (error) {
         console.error("Error fetching nav visibility rules:", error);
@@ -27,31 +31,28 @@ export function useNavVisibilityRules() {
 
       return (data || []) as NavVisibilityRule[];
     },
-    staleTime: 1000 * 60 * 5, // Cache for 5 minutes
+    staleTime: 1000 * 60 * 5,
   });
 
   const upsertRule = useMutation({
     mutationFn: async ({ nav_item_id, cargo, is_hidden }: { nav_item_id: string; cargo: string; is_hidden: boolean }) => {
-      // Try to find existing rule
       const existingRule = rules.find(r => r.nav_item_id === nav_item_id && r.cargo === cargo);
       
       if (existingRule) {
-        // Update existing
         const { error } = await supabase
           .from("nav_visibility_rules")
           .update({ is_hidden, updated_at: new Date().toISOString() })
           .eq("id", existingRule.id);
         if (error) throw error;
       } else {
-        // Insert new
         const { error } = await supabase
           .from("nav_visibility_rules")
-          .insert({ nav_item_id, cargo, is_hidden });
+          .insert({ nav_item_id, cargo, is_hidden, environment: currentEnv });
         if (error) throw error;
       }
     },
     onSuccess: () => {
-      queryClient.invalidateQueries({ queryKey: ["nav-visibility-rules"] });
+      queryClient.invalidateQueries({ queryKey: ["nav-visibility-rules", currentEnv] });
     },
   });
 
@@ -64,7 +65,7 @@ export function useNavVisibilityRules() {
       if (error) throw error;
     },
     onSuccess: () => {
-      queryClient.invalidateQueries({ queryKey: ["nav-visibility-rules"] });
+      queryClient.invalidateQueries({ queryKey: ["nav-visibility-rules", currentEnv] });
     },
   });
 

@@ -10,6 +10,7 @@ import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { useIsAdmin } from "@/hooks/useUserRole";
 import { useAuth } from "@/hooks/useAuth";
 import { useSiteSettings } from "@/hooks/useSiteSettings";
+import { useEnvironment, ENVIRONMENTS } from "@/hooks/useEnvironment";
 import { supabase } from "@/integrations/supabase/client";
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import { toast } from "sonner";
@@ -46,6 +47,8 @@ const Admin = () => {
   const { user, loading: authLoading } = useAuth();
   const { isAdmin, isStrictAdmin, isModerator, isLoading: adminLoading } = useIsAdmin();
   const { settings, updateSettings, uploadLogo, isLoading: settingsLoading } = useSiteSettings();
+  const { environment } = useEnvironment();
+  const currentEnv = environment || "barcarena";
   const navigate = useNavigate();
   const queryClient = useQueryClient();
   const [selectedUser, setSelectedUser] = useState<string | undefined>(undefined);
@@ -70,12 +73,20 @@ const Admin = () => {
   const gifInputRef = useRef<HTMLInputElement>(null);
   const gifRightInputRef = useRef<HTMLInputElement>(null);
 
-  // Fetch all users with their profiles and roles
+  // Fetch all users with their profiles and roles, filtered by environment access
   const { data: usersData, isLoading: usersLoading } = useQuery({
-    // NOTE: keep this key unique. Other hooks may also fetch admin-related data
-    // with different shapes (e.g. a Set of IDs), which would break this page.
-    queryKey: ["admin-users-with-roles"],
+    queryKey: ["admin-users-with-roles", currentEnv],
     queryFn: async () => {
+      // Get users who have access to the current environment
+      const { data: envAccess, error: envError } = await supabase
+        .from("user_environment_access")
+        .select("user_id")
+        .eq("environment", currentEnv);
+
+      if (envError) throw envError;
+      
+      const authorizedUserIds = envAccess?.map(a => a.user_id) || [];
+
       const { data: profiles, error: profilesError } = await supabase
         .from("profiles")
         .select("user_id, full_name");
@@ -91,13 +102,19 @@ const Admin = () => {
       const usersMap = new Map<string, UserWithRole>();
 
       profiles?.forEach((profile) => {
-        usersMap.set(profile.user_id, {
-          user_id: profile.user_id,
-          email: "",
-          full_name: profile.full_name,
-          role: null,
-          role_id: null,
-        });
+        const userRole = roles?.find(r => r.user_id === profile.user_id)?.role;
+        const isGlobalUser = userRole === 'admin' || userRole === 'moderator';
+        const hasAccessToEnv = authorizedUserIds.includes(profile.user_id);
+
+        if (isGlobalUser || hasAccessToEnv || currentEnv === 'barcarena') {
+          usersMap.set(profile.user_id, {
+            user_id: profile.user_id,
+            email: "",
+            full_name: profile.full_name,
+            role: null,
+            role_id: null,
+          });
+        }
       });
 
       roles?.forEach((role) => {
@@ -105,7 +122,7 @@ const Admin = () => {
         if (existing) {
           existing.role = role.role;
           existing.role_id = role.id;
-        } else {
+        } else if (role.role === 'admin' || role.role === 'moderator' || authorizedUserIds.includes(role.user_id) || currentEnv === 'barcarena') {
           usersMap.set(role.user_id, {
             user_id: role.user_id,
             email: "",
@@ -220,6 +237,7 @@ const Admin = () => {
       const { data: existing } = await supabase
         .from("announcements")
         .select("id")
+        .eq("environment", currentEnv)
         .ilike("title", `%Campanhas de ${monthData.monthName}%`)
         .gte("created_at", `${currentYear}-${String(currentMonth).padStart(2, "0")}-01`);
 
@@ -232,13 +250,13 @@ const Admin = () => {
 
       // Generate new announcement with AI banner
       const { error } = await supabase.functions.invoke("generate-campaign-banner", {
-        body: { monthData, userId: user!.id },
+        body: { monthData, userId: user!.id, environment: currentEnv },
       });
 
       if (error) throw error;
 
-      queryClient.invalidateQueries({ queryKey: ["announcements"] });
-      queryClient.invalidateQueries({ queryKey: ["unread-announcements"] });
+      queryClient.invalidateQueries({ queryKey: ["announcements", currentEnv] });
+      queryClient.invalidateQueries({ queryKey: ["unread-announcements", user?.id, currentEnv] });
       toast.success(`Comunicado de ${monthData.monthName} reenviado para todos!`);
     } catch (err) {
       console.error("Error resending campaign:", err);

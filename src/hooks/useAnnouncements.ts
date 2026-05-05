@@ -2,6 +2,7 @@ import { useState, useEffect, useRef } from "react";
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import { supabase } from "@/integrations/supabase/client";
 import { useAuth } from "@/hooks/useAuth";
+import { useEnvironment } from "./useEnvironment";
 import { toast } from "sonner";
 import { playIOSNotificationSound } from "@/lib/sounds";
 export interface Announcement {
@@ -29,13 +30,17 @@ export function useAnnouncements() {
   const { user } = useAuth();
   const queryClient = useQueryClient();
 
-  // Fetch all announcements (admin view)
+  const { environment } = useEnvironment();
+  const currentEnv = environment || "barcarena";
+
+  // Fetch all announcements (admin view) for current environment
   const { data: announcements = [], isLoading } = useQuery({
-    queryKey: ["announcements"],
+    queryKey: ["announcements", currentEnv],
     queryFn: async () => {
       const { data, error } = await supabase
         .from("announcements")
         .select("*")
+        .eq("environment", currentEnv)
         .order("created_at", { ascending: false });
 
       if (error) throw error;
@@ -97,7 +102,7 @@ export function useAnnouncements() {
       return inserted[0];
     },
     onSuccess: () => {
-      queryClient.invalidateQueries({ queryKey: ["announcements"] });
+      queryClient.invalidateQueries({ queryKey: ["announcements", currentEnv] });
       toast.success("Comunicado criado com sucesso!");
     },
     onError: (error: Error) => {
@@ -116,7 +121,7 @@ export function useAnnouncements() {
       if (error) throw error;
     },
     onSuccess: () => {
-      queryClient.invalidateQueries({ queryKey: ["announcements"] });
+      queryClient.invalidateQueries({ queryKey: ["announcements", currentEnv] });
       toast.success("Comunicado excluído com sucesso!");
     },
     onError: (error: Error) => {
@@ -137,19 +142,23 @@ export function useUnreadAnnouncements() {
   const { user } = useAuth();
   const queryClient = useQueryClient();
   const previousCountRef = useRef<number>(0);
-  // Fetch unread announcements for current user
+  const { environment } = useEnvironment();
+  const currentEnv = environment || "barcarena";
+
+  // Fetch unread announcements for current user in current environment
   const { data: unreadAnnouncements = [], isLoading } = useQuery({
-    queryKey: ["unread-announcements", user?.id],
+    queryKey: ["unread-announcements", user?.id, currentEnv],
     queryFn: async () => {
       if (!user) return [];
 
       const now = new Date().toISOString();
       const userCreatedAt = user.created_at || now;
 
-      // Get announcements published after the user signed up
+      // Get announcements for current environment
       const { data: announcements, error: annError } = await supabase
         .from("announcements")
         .select("*")
+        .eq("environment", currentEnv)
         .lte("published_at", now)
         .gte("published_at", userCreatedAt);
 
@@ -175,7 +184,7 @@ export function useUnreadAnnouncements() {
       return unread as Announcement[];
     },
     enabled: !!user,
-    refetchInterval: 30000, // Check every 30 seconds
+    refetchInterval: 30000,
   });
 
   // Play sound when new announcements arrive

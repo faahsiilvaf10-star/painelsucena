@@ -1,5 +1,6 @@
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import { supabase } from "@/integrations/supabase/client";
+import { useEnvironment } from "./useEnvironment";
 import type { Tables, TablesInsert, TablesUpdate } from "@/integrations/supabase/types";
 
 export type Employee = Tables<"employees">;
@@ -7,8 +8,11 @@ export type EmployeeInsert = TablesInsert<"employees">;
 export type EmployeeUpdate = TablesUpdate<"employees">;
 
 export const useEmployees = () => {
+  const { environment } = useEnvironment();
+  const currentEnv = environment || "barcarena";
+
   return useQuery({
-    queryKey: ["employees"],
+    queryKey: ["employees", currentEnv],
     queryFn: async () => {
       const batchSize = 1000;
       let from = 0;
@@ -19,6 +23,7 @@ export const useEmployees = () => {
         const { data, error } = await supabase
           .from("employees")
           .select("*")
+          .eq("environment", currentEnv)
           .order("name")
           .range(from, from + batchSize - 1);
 
@@ -55,12 +60,17 @@ export const useEmployee = (id: string) => {
 
 export const useCreateEmployee = () => {
   const queryClient = useQueryClient();
+  const { environment } = useEnvironment();
+  const currentEnv = environment || "barcarena";
   
   return useMutation({
     mutationFn: async (employee: EmployeeInsert) => {
       const { data, error } = await supabase
         .from("employees")
-        .insert(employee)
+        .insert({
+          ...employee,
+          environment: currentEnv,
+        })
         .select()
         .single();
       
@@ -68,13 +78,15 @@ export const useCreateEmployee = () => {
       return data;
     },
     onSuccess: () => {
-      queryClient.invalidateQueries({ queryKey: ["employees"] });
+      queryClient.invalidateQueries({ queryKey: ["employees", currentEnv] });
     },
   });
 };
 
 export const useUpdateEmployee = () => {
   const queryClient = useQueryClient();
+  const { environment } = useEnvironment();
+  const currentEnv = environment || "barcarena";
   
   return useMutation({
     mutationFn: async ({ id, ...updates }: EmployeeUpdate & { id: string }) => {
@@ -89,13 +101,15 @@ export const useUpdateEmployee = () => {
       return data;
     },
     onSuccess: () => {
-      queryClient.invalidateQueries({ queryKey: ["employees"] });
+      queryClient.invalidateQueries({ queryKey: ["employees", currentEnv] });
     },
   });
 };
 
 export const useDeleteEmployee = () => {
   const queryClient = useQueryClient();
+  const { environment } = useEnvironment();
+  const currentEnv = environment || "barcarena";
   
   return useMutation({
     mutationFn: async (id: string) => {
@@ -107,7 +121,7 @@ export const useDeleteEmployee = () => {
       if (error) throw error;
     },
     onSuccess: () => {
-      queryClient.invalidateQueries({ queryKey: ["employees"] });
+      queryClient.invalidateQueries({ queryKey: ["employees", currentEnv] });
     },
   });
 };

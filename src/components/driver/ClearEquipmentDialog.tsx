@@ -13,6 +13,7 @@ import {
 } from "@/components/ui/alert-dialog";
 import { RotateCcw, Loader2 } from "lucide-react";
 import { supabase } from "@/integrations/supabase/client";
+import { useEnvironment } from "@/hooks/useEnvironment";
 import { toast } from "sonner";
 import { useNavigate } from "react-router-dom";
 
@@ -20,15 +21,17 @@ export const ClearEquipmentDialog = () => {
   const [isClearing, setIsClearing] = useState(false);
   const [open, setOpen] = useState(false);
   const navigate = useNavigate();
+  const { environment } = useEnvironment();
+  const currentEnv = environment || "barcarena";
 
   const handleClearEquipment = async () => {
     setIsClearing(true);
     try {
-      // Clear all equipment drivers
+      // Clear equipment drivers for current environment
       const { error } = await supabase
         .from("equipment")
         .update({ driver: "", stop_reason: "none", stop_start_time: null })
-        .neq("id", "00000000-0000-0000-0000-000000000000"); // Update all records
+        .eq("environment", currentEnv);
 
       if (error) throw error;
 

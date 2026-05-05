@@ -6,6 +6,7 @@ import { Label } from "@/components/ui/label";
 import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover";
 import { Command, CommandInput, CommandList, CommandEmpty, CommandItem } from "@/components/ui/command";
 import { supabase } from "@/integrations/supabase/client";
+import { useEnvironment } from "@/hooks/useEnvironment";
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import { toast } from "sonner";
 import { Coins, Plus, Minus } from "lucide-react";
@@ -17,16 +18,28 @@ interface UserProfile {
 
 export function DoubleBalanceManager() {
   const queryClient = useQueryClient();
+  const { environment } = useEnvironment();
+  const currentEnv = environment || "barcarena";
   const [selectedUser, setSelectedUser] = useState<UserProfile | null>(null);
   const [amount, setAmount] = useState("");
   const [popoverOpen, setPopoverOpen] = useState(false);
 
   const { data: profiles = [] } = useQuery({
-    queryKey: ["admin-profiles-for-double"],
+    queryKey: ["admin-profiles-for-double", currentEnv],
     queryFn: async () => {
+      // Filter profiles by those who have access to the current environment
+      const { data: access, error: accessError } = await supabase
+        .from("user_environment_access")
+        .select("user_id")
+        .eq("environment", currentEnv);
+
+      if (accessError) throw accessError;
+      const userIds = access.map(a => a.user_id);
+
       const { data, error } = await supabase
         .from("profiles")
         .select("user_id, full_name")
+        .in("user_id", userIds)
         .order("full_name");
       if (error) throw error;
       return data as UserProfile[];
@@ -34,13 +47,14 @@ export function DoubleBalanceManager() {
   });
 
   const { data: currentBalance } = useQuery({
-    queryKey: ["double-balance-admin", selectedUser?.user_id],
+    queryKey: ["double-balance-admin", selectedUser?.user_id, currentEnv],
     queryFn: async () => {
       if (!selectedUser) return null;
       const { data, error } = await supabase
         .from("double_balances")
         .select("balance")
         .eq("user_id", selectedUser.user_id)
+        .eq("environment", currentEnv)
         .maybeSingle();
       if (error) throw error;
       return data?.balance ?? 0;
@@ -54,23 +68,24 @@ export function DoubleBalanceManager() {
         .from("double_balances")
         .select("id")
         .eq("user_id", userId)
+        .eq("environment", currentEnv)
         .maybeSingle();
 
       if (existing) {
         const { error } = await supabase
           .from("double_balances")
           .update({ balance: newBalance })
-          .eq("user_id", userId);
+          .eq("id", existing.id);
         if (error) throw error;
       } else {
         const { error } = await supabase
           .from("double_balances")
-          .insert({ user_id: userId, balance: newBalance });
+          .insert({ user_id: userId, balance: newBalance, environment: currentEnv });
         if (error) throw error;
       }
     },
     onSuccess: () => {
-      queryClient.invalidateQueries({ queryKey: ["double-balance-admin"] });
+      queryClient.invalidateQueries({ queryKey: ["double-balance-admin", selectedUser?.user_id, currentEnv] });
       queryClient.invalidateQueries({ queryKey: ["double-balance"] });
       toast.success("Saldo atualizado com sucesso!");
       setAmount("");
