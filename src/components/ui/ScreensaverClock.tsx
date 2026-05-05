@@ -284,23 +284,28 @@ export const ScreensaverClock = () => {
     const timeoutMs = settings.screensaver_timeout * 60 * 1000;
 
     const handleActivity = () => {
-      // Do nothing on activity if already inactive, we only want to dismiss it via click
       if (isActive) return;
       
       clearTimeout(timeoutRef.current);
+      if (settings.screensaver_enabled && settings.screensaver_timeout > 0) {
+        timeoutRef.current = setTimeout(() => setIsActive(true), timeoutMs);
+      }
+    };
+
+    const handleScreensaverDismiss = () => {
+      setIsActive(false);
+      clearTimeout(timeoutRef.current);
+      // Se estiver em "Imediato" (0), agendamos para 5 minutos após o clique para não reativar na hora
+      const reativationMs = settings.screensaver_timeout === 0 ? 5 * 60 * 1000 : timeoutMs;
       if (settings.screensaver_enabled) {
-        if (settings.screensaver_timeout === 0) {
-          timeoutRef.current = setTimeout(() => setIsActive(true), 5 * 60 * 1000);
-        } else {
-          timeoutRef.current = setTimeout(() => setIsActive(true), timeoutMs);
-        }
+        timeoutRef.current = setTimeout(() => setIsActive(true), reativationMs);
       }
     };
 
     window.addEventListener("mousemove", handleActivity);
     window.addEventListener("keydown", handleActivity);
     
-    if (settings.screensaver_enabled) {
+    if (settings.screensaver_enabled && !isActive) {
       if (settings.screensaver_timeout === 0) {
         setIsActive(true);
       } else {
@@ -338,7 +343,16 @@ export const ScreensaverClock = () => {
   return (
     <div 
       className="fixed inset-0 z-[99999] bg-black flex items-center justify-center cursor-pointer overflow-hidden"
-      onClick={() => setIsActive(false)}
+      onClick={() => {
+        setIsActive(false);
+        // Reset timeout when dismissing
+        clearTimeout(timeoutRef.current);
+        const timeoutMs = settings.screensaver_timeout * 60 * 1000;
+        const reactivationMs = settings.screensaver_timeout === 0 ? 5 * 60 * 1000 : timeoutMs;
+        if (settings.screensaver_enabled) {
+          timeoutRef.current = setTimeout(() => setIsActive(true), reactivationMs);
+        }
+      }}
     >
       <AnimatePresence mode="wait">
         <motion.div
