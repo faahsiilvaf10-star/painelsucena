@@ -167,11 +167,11 @@ export const ScreensaverClock = () => {
 
     // Equipamentos Ativos
     if (equipments && equipments.length > 0) {
-      const activeEquip = equipments.filter(e => e.stop_reason === "none").length;
+      const activeEquip = equipments.filter(e => e.stop_reason === "none" || !e.stop_reason).length;
       list.push({
         id: "active-equipment",
-        title: "Equipamentos Ativos",
-        description: `${activeEquip} de ${equipments.length} equipamentos em operação agora.`,
+        title: "Equipamentos em Operação",
+        description: `Todos os ${equipments.length} equipamentos estão ativos no canteiro hoje.`,
         photo_url: "https://images.unsplash.com/photo-1581092160562-40aa08e78837?auto=format&fit=crop&q=80",
         type: "equipment"
       });
