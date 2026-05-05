@@ -169,6 +169,10 @@ const Auth = () => {
         if (error) {
           clearTransitionStorage();
           dispatchTransitionEvent();
+          // Log failed attempt (fire-and-forget)
+          import("@/lib/security/authLog").then((m) =>
+            m.logAuthAttempt({ email, success: false, failureReason: error.message })
+          );
           if (error.message.includes("Invalid login credentials")) {
             toast({
               title: "Erro no login",
@@ -185,6 +189,11 @@ const Auth = () => {
           setIsLoading(false);
           return;
         }
+
+        // Log successful attempt
+        import("@/lib/security/authLog").then((m) =>
+          m.logAuthAttempt({ email, success: true })
+        );
 
         // Fetch profile data
         let nextUserName = "";
