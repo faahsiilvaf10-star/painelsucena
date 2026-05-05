@@ -3363,6 +3363,7 @@ export type Database = {
           avatar_url: string | null
           cargo: Database["public"]["Enums"]["cargo_type"]
           created_at: string
+          environment: string | null
           frame_animation: string | null
           frame_color: string | null
           full_name: string
@@ -3383,6 +3384,7 @@ export type Database = {
           avatar_url?: string | null
           cargo: Database["public"]["Enums"]["cargo_type"]
           created_at?: string
+          environment?: string | null
           frame_animation?: string | null
           frame_color?: string | null
           full_name: string
@@ -3403,6 +3405,7 @@ export type Database = {
           avatar_url?: string | null
           cargo?: Database["public"]["Enums"]["cargo_type"]
           created_at?: string
+          environment?: string | null
           frame_animation?: string | null
           frame_color?: string | null
           full_name?: string
