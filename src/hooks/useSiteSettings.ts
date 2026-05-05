@@ -58,14 +58,16 @@ const DEFAULT_SETTINGS: Omit<SiteSettings, "id" | "updated_at" | "updated_by"> &
 
 export function useSiteSettings() {
   const queryClient = useQueryClient();
+  const { environment } = useEnvironment();
+  const currentEnv = environment || "barcarena";
 
   const { data: settings, isLoading, error } = useQuery({
-    queryKey: ["site-settings"],
+    queryKey: ["site-settings", currentEnv],
     queryFn: async (): Promise<SiteSettings> => {
       const { data, error } = await supabase
         .from("site_settings")
         .select("*")
-        .limit(1)
+        .eq("environment", currentEnv)
         .maybeSingle();
 
       if (error) {
@@ -73,7 +75,11 @@ export function useSiteSettings() {
         throw error;
       }
 
-      if (!data) return { ...DEFAULT_SETTINGS };
+      if (!data) {
+        // Se não houver configurações para este ambiente, retornamos as padrão
+        // mas marcamos o ambiente atual para que o mutation saiba onde criar
+        return { ...DEFAULT_SETTINGS, environment: currentEnv } as any;
+      }
 
       const navOrder = Array.isArray(data.nav_order) 
         ? (data.nav_order as unknown as string[]) 
@@ -107,20 +113,31 @@ export function useSiteSettings() {
     mutationFn: async (updates: Partial<Omit<SiteSettings, "id" | "updated_at" | "updated_by">>) => {
       const { data: { user } } = await supabase.auth.getUser();
       
-      if (!settings?.id) {
-        throw new Error("Settings not loaded yet");
-      }
-      
-      const { error } = await supabase
-        .from("site_settings")
-        .update({
-          ...updates,
-          updated_at: new Date().toISOString(),
-          updated_by: user?.id,
-        })
-        .eq("id", settings.id);
+      if (settings?.id) {
+        const { error } = await supabase
+          .from("site_settings")
+          .update({
+            ...updates,
+            updated_at: new Date().toISOString(),
+            updated_by: user?.id,
+          })
+          .eq("id", settings.id);
 
-      if (error) throw error;
+        if (error) throw error;
+      } else {
+        // Criar novas configurações para este ambiente se não existirem
+        const { error } = await supabase
+          .from("site_settings")
+          .insert({
+            ...DEFAULT_SETTINGS,
+            ...updates,
+            environment: currentEnv,
+            updated_at: new Date().toISOString(),
+            updated_by: user?.id,
+          });
+
+        if (error) throw error;
+      }
     },
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ["site-settings"] });
