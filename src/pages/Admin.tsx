@@ -254,32 +254,38 @@ const Admin = () => {
       }
 
       // Generate new announcement with AI banner
-      const { data, error } = await supabase.functions.invoke("generate-campaign-banner", {
-        body: { monthData, userId: user!.id, environment: currentEnv },
+      console.log("Generating campaign banner with:", { monthData, userId: user?.id, currentEnv });
+      const { data: genData, error: genError } = await supabase.functions.invoke("generate-campaign-banner", {
+        body: { 
+          monthData, 
+          userId: user?.id, 
+          environment: currentEnv 
+        },
       });
 
-      if (error || (data && data.error)) {
-        console.error("Function error:", error || data?.error);
-        throw error || new Error(data?.error || "Falha ao gerar banner da campanha");
+      if (genError || (genData && genData.error)) {
+        console.error("Generate Banner Error:", genError || genData?.error);
+        throw new Error(genData?.error || genError?.message || "Erro ao gerar comunicado no sistema");
       }
 
       // Trigger WhatsApp campaign notification
+      console.log("Triggering WhatsApp campaign notification...");
       const { data: wapiData, error: wapiError } = await supabase.functions.invoke("wapi-campaign-notify", {
         body: { force: true },
       });
 
       if (wapiError || (wapiData && wapiData.error)) {
-        console.error("WhatsApp Function error:", wapiError || wapiData?.error);
-        toast.error(`Aviso: O comunicado interno foi criado, mas houve erro no WhatsApp: ${wapiError?.message || wapiData?.error || 'Erro desconhecido'}`);
+        console.error("WhatsApp Notification Error:", wapiError || wapiData?.error);
+        toast.warning(`Comunicado interno criado, mas houve falha no WhatsApp: ${wapiError?.message || wapiData?.error || 'Erro desconhecido'}`);
       } else {
-        toast.success(`Comunicado de ${monthData.monthName} reenviado para o sistema e WhatsApp!`);
+        toast.success(`Campanha de ${monthData.monthName} reenviada com sucesso para o sistema e WhatsApp!`);
       }
 
       queryClient.invalidateQueries({ queryKey: ["announcements", currentEnv] });
       queryClient.invalidateQueries({ queryKey: ["unread-announcements", user?.id, currentEnv] });
     } catch (err: any) {
-      console.error("Error resending campaign:", err);
-      toast.error(`Erro ao reenviar comunicado da campanha: ${err.message || "Erro desconhecido"}`);
+      console.error("Resend campaign error:", err);
+      toast.error(`Erro ao reenviar campanha: ${err.message || "Erro desconhecido"}`);
     } finally {
       setIsResendingCampaign(false);
     }
