@@ -63,15 +63,7 @@ const Admin = () => {
   // Site settings state
   const [isUploadingLogo, setIsUploadingLogo] = useState(false);
   const [isResendingCampaign, setIsResendingCampaign] = useState(false);
-  const [isUploadingGif, setIsUploadingGif] = useState(false);
-  const [isUploadingGifRight, setIsUploadingGifRight] = useState(false);
-  const [localGifWidth, setLocalGifWidth] = useState<number | null>(null);
-  const [localGifHeight, setLocalGifHeight] = useState<number | null>(null);
-  const [localGifRightWidth, setLocalGifRightWidth] = useState<number | null>(null);
-  const [localGifRightHeight, setLocalGifRightHeight] = useState<number | null>(null);
   const fileInputRef = useRef<HTMLInputElement>(null);
-  const gifInputRef = useRef<HTMLInputElement>(null);
-  const gifRightInputRef = useRef<HTMLInputElement>(null);
 
   // Fetch all users with their profiles and roles, filtered by environment access
   const { data: usersData, isLoading: usersLoading } = useQuery({
