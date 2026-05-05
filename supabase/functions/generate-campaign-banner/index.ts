@@ -21,6 +21,7 @@ interface MonthCampaign {
 
 // Pre-uploaded Canva banners mapped by month number
 const CAMPAIGN_BANNER_MAP: Record<number, string> = {
+  1: "campaign-banners/campanha-1.png",
   2: "campaign-banners/campanha-2.png",
   3: "campaign-banners/campanha-3.png",
   4: "campaign-banners/campanha-4.png",

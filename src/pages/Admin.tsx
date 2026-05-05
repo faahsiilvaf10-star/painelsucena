@@ -233,9 +233,27 @@ const Admin = () => {
         .gte("created_at", `${currentYear}-${String(currentMonth).padStart(2, "0")}-01`);
 
       if (existing && existing.length > 0) {
-        for (const ann of existing) {
-          await supabase.from("announcement_reads").delete().eq("announcement_id", ann.id);
-          await supabase.from("announcements").delete().eq("id", ann.id);
+        const existingIds = existing.map(ann => ann.id);
+        
+        // Delete reads first (foreign key constraint)
+        const { error: readsError } = await supabase
+          .from("announcement_reads")
+          .delete()
+          .in("announcement_id", existingIds);
+          
+        if (readsError) {
+          console.warn("Could not delete some announcement reads:", readsError);
+        }
+
+        // Delete announcements
+        const { error: deleteError } = await supabase
+          .from("announcements")
+          .delete()
+          .in("id", existingIds);
+          
+        if (deleteError) {
+          console.error("Error deleting old announcements:", deleteError);
+          // Continue anyway, it might be a partial failure
         }
       }
 
