@@ -5,6 +5,7 @@ import { useTodayDDS } from "@/hooks/useDDSSchedule";
 import { getCurrentMonthCampaigns } from "@/data/campaignData";
 import { useActiveReminders } from "@/hooks/useReminders";
 import { useOrderHighlights } from "@/hooks/useOrderHighlights";
+import { usePageCustomizations } from "@/hooks/usePageCustomizations";
 import { AnimatePresence, motion } from "framer-motion";
 
 interface ScreensaverHighlight {
