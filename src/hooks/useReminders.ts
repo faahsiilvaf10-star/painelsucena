@@ -431,6 +431,7 @@ export const useReminderHistory = () => {
 export const useSnoozeReminder = () => {
   const queryClient = useQueryClient();
   const { user } = useAuth();
+  const { environment } = useEnvironment();
 
   return useMutation({
     mutationFn: async ({ reminderId, snoozedUntil }: { reminderId: string; snoozedUntil: string }) => {
@@ -470,6 +471,7 @@ export const useSnoozeReminder = () => {
         reminder_id: reminderId,
         user_id: uid,
         snoozed_until: snoozedUntil,
+        environment: environment,
       }));
       const { error } = await supabase
         .from("reminder_snoozes" as any)
