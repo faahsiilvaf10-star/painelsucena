@@ -20,6 +20,7 @@ import { Button } from "@/components/ui/button";
 import { getLogoBase64 } from "@/lib/pdfLogo";
 import { triggerBlobDownload } from "@/lib/pdfDownload";
 import rocoIcon from "@/assets/roco-icon.png";
+import reparoMudasIcon from "@/assets/reparo-mudas-icon.png";
 
 interface AtividadeDef {
   key: string;
