@@ -25,6 +25,7 @@ import iconReparoMudas from "@/assets/cron-reparo_mudas.png";
 import iconAdubacao from "@/assets/cron-adubacao.png";
 import iconLavagemPipa from "@/assets/cron-lavagem_pipa.png";
 import iconLimpezaSoprador from "@/assets/cron-limpeza_soprador.png";
+import assinaturaResponsavel from "@/assets/assinatura-responsavel.png";
 
 const iconImg = (src: string, alt: string) => (
   <img src={src} alt={alt} className="object-contain mx-auto" style={{ width: 90, height: 90 }} />
@@ -312,7 +313,14 @@ export default function CronogramaLimpezaMiranteTab() {
         <div className="assinatura-area">
           <div className="flex-1 flex items-end gap-3">
             <span>RESPONSÁVEL:</span>
-            <div className="linha-assinatura" />
+            <div className="linha-assinatura relative">
+              <img
+                src={assinaturaResponsavel}
+                alt="Assinatura"
+                className="absolute left-1/2 -translate-x-1/2 bottom-0 pointer-events-none select-none"
+                style={{ height: 60, width: "auto", objectFit: "contain" }}
+              />
+            </div>
           </div>
           <div className="flex items-end gap-3">
             <span>DATA:</span>
