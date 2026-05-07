@@ -44,7 +44,7 @@ const DEFAULT_DATAS: DataItem[] = [
 
 const ATIVIDADES: AtividadeDef[] = [
   { key: "limpeza_mirante", icon: <Trash2 className="w-full h-full" strokeWidth={1.5} />, nome: "Limpeza no Mirante", descricao: "Limpeza geral do mirante, incluindo piso, corrimãos, bancos, lixeiras e áreas de circulação." },
-  { key: "roco", icon: <img src={rocoIcon} alt="Roço" className="w-full h-full object-contain" />, nome: "Roço", descricao: "Roçagem da vegetação ao redor do mirante, trilhas e áreas adjacentes." },
+  { key: "roco", icon: <img src={rocoIcon} alt="Roço" className="object-contain" style={{ width: "150%", height: "150%", margin: "-25%" }} />, nome: "Roço", descricao: "Roçagem da vegetação ao redor do mirante, trilhas e áreas adjacentes." },
   { key: "reparo_mudas", icon: <Sprout className="w-full h-full" strokeWidth={1.5} />, nome: "Reparo de Mudas", descricao: "Verificação e reparo de mudas, troca de tutores, reposição de amarras e cuidados necessários." },
   { key: "adubacao", icon: <Leaf className="w-full h-full" strokeWidth={1.5} />, nome: "Adubação", descricao: "Adubação das mudas e áreas verdes conforme necessidade." },
   { key: "lavagem_pipa", icon: <Droplets className="w-full h-full" strokeWidth={1.5} />, nome: "Lavagem com Pipa", descricao: "Lavagem de pisos, corrimãos, bancos e áreas externas com caminhão pipa." },
