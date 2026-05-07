@@ -45,6 +45,7 @@ import { AIImproveButton } from "@/components/atividades/AIImproveButton";
 
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import MudasParaPlantarTab from "@/components/atividades/MudasParaPlantarTab";
+import CronogramaLimpezaMiranteTab from "@/components/atividades/CronogramaLimpezaMiranteTab";
 import { JardinagemMetasSummary } from "@/components/atividades/JardinagemMetasSummary";
 import { useMudasParaPlantar, useUpdateMudaParaPlantar, useAddMudaParaPlantar } from "@/hooks/useMudasParaPlantar";
 import { TreePine } from "lucide-react";
