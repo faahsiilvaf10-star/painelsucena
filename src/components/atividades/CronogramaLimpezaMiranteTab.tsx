@@ -281,6 +281,18 @@ export default function CronogramaLimpezaMiranteTab() {
             span.style.cssText = "width:100%;text-align:center;font-size:13px;font-weight:700;color:#102b18;font-family:Arial,sans-serif;line-height:1.2;padding:2px;";
             inp.replaceWith(span);
           });
+          doc.querySelectorAll<HTMLElement>(".cronograma-card").forEach((c) => {
+            c.style.paddingBottom = "120px";
+          });
+          doc.querySelectorAll<HTMLImageElement>(".linha-assinatura img").forEach((img) => {
+            img.style.bottom = "-10px";
+            img.style.height = "80px";
+          });
+          doc.querySelectorAll<HTMLElement>(".assinatura-area .border-b-2").forEach((d) => {
+            d.style.alignItems = "center";
+            d.style.lineHeight = "1";
+            d.style.paddingBottom = "2px";
+          });
         },
       });
       const blob: Blob | null = await new Promise((res) => canvas.toBlob((b) => res(b), "image/png"));
