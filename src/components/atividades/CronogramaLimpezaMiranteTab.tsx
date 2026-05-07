@@ -89,6 +89,7 @@ export default function CronogramaLimpezaMiranteTab() {
   const [loading, setLoading] = useState(true);
   const [exporting, setExporting] = useState(false);
   const [logo, setLogo] = useState<string>("");
+  const [exportDate, setExportDate] = useState<{ d: string; m: string; y: string } | null>(null);
   const cardRef = useRef<HTMLDivElement>(null);
   const today = useMemo(() => paraToday(), []);
 
@@ -169,11 +170,18 @@ export default function CronogramaLimpezaMiranteTab() {
   const exportToPdf = async () => {
     if (!cardRef.current) return;
     setExporting(true);
+    const now = paraToday();
+    setExportDate({
+      d: String(now.getUTCDate()).padStart(2, "0"),
+      m: String(now.getUTCMonth() + 1).padStart(2, "0"),
+      y: String(now.getUTCFullYear()),
+    });
     try {
       const [{ default: html2canvas }, { jsPDF }] = await Promise.all([
         import("html2canvas"),
         import("jspdf"),
       ]);
+      await new Promise((r) => requestAnimationFrame(() => requestAnimationFrame(r)));
       const canvas = await html2canvas(cardRef.current, {
         scale: 2,
         useCORS: true,
@@ -205,6 +213,7 @@ export default function CronogramaLimpezaMiranteTab() {
       toast({ title: "Erro ao exportar", description: e?.message || "Falha", variant: "destructive" });
     } finally {
       setExporting(false);
+      setExportDate(null);
     }
   };
 
@@ -324,11 +333,17 @@ export default function CronogramaLimpezaMiranteTab() {
           </div>
           <div className="flex items-end gap-3">
             <span>DATA:</span>
-            <div className="w-12 border-b-2 border-black h-7" />
+            <div className="w-12 border-b-2 border-black h-7 flex items-end justify-center font-bold">
+              {exportDate?.d || ""}
+            </div>
             <span>/</span>
-            <div className="w-12 border-b-2 border-black h-7" />
+            <div className="w-12 border-b-2 border-black h-7 flex items-end justify-center font-bold">
+              {exportDate?.m || ""}
+            </div>
             <span>/</span>
-            <div className="w-16 border-b-2 border-black h-7" />
+            <div className="w-16 border-b-2 border-black h-7 flex items-end justify-center font-bold">
+              {exportDate?.y || ""}
+            </div>
           </div>
         </div>
       </div>
