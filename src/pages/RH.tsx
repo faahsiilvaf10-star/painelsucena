@@ -63,9 +63,16 @@ const RH = () => {
   const [dbRowId, setDbRowId] = useState<string | null>(null);
   const [initialized, setInitialized] = useState(false);
 
-  // Sync state from DB when data loads
+  // Sync state from DB whenever data changes (initial load + realtime updates).
+  // We only skip syncing while the user is actively editing the ASO of a row,
+  // to avoid wiping the form they are typing in.
   useEffect(() => {
-    if (rhData && !initialized) {
+    if (rhData && editingAso === null) {
+      setColaboradores(rhData.colaboradores);
+      setDeletedIds(rhData.deletedIds);
+      setDbRowId(rhData.rowId);
+      setInitialized(true);
+    } else if (rhData && !initialized) {
       setColaboradores(rhData.colaboradores);
       setDeletedIds(rhData.deletedIds);
       setDbRowId(rhData.rowId);
