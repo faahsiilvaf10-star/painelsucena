@@ -230,11 +230,19 @@ export default function CronogramaLimpezaMiranteTab() {
     try {
       const { default: html2canvas } = await import("html2canvas");
       await new Promise((r) => requestAnimationFrame(() => requestAnimationFrame(r)));
-      const canvas = await html2canvas(cardRef.current, {
+      const el = cardRef.current;
+      const fullW = el.scrollWidth;
+      const fullH = el.scrollHeight;
+      const canvas = await html2canvas(el, {
         scale: 2,
         useCORS: true,
         backgroundColor: "#ffffff",
-        windowWidth: cardRef.current.scrollWidth,
+        width: fullW,
+        height: fullH,
+        windowWidth: fullW,
+        windowHeight: fullH,
+        scrollX: 0,
+        scrollY: 0,
       });
       const blob: Blob | null = await new Promise((res) => canvas.toBlob((b) => res(b), "image/png"));
       if (!blob) throw new Error("Falha ao gerar imagem");
