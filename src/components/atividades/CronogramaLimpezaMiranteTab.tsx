@@ -25,6 +25,7 @@ import iconReparoMudas from "@/assets/cron-reparo_mudas.png";
 import iconAdubacao from "@/assets/cron-adubacao.png";
 import iconLavagemPipa from "@/assets/cron-lavagem_pipa.png";
 import iconLimpezaSoprador from "@/assets/cron-limpeza_soprador.png";
+import assinaturaResponsavel from "@/assets/assinatura-responsavel.png";
 
 const iconImg = (src: string, alt: string) => (
   <img src={src} alt={alt} className="object-contain mx-auto" style={{ width: 90, height: 90 }} />
