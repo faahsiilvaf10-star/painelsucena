@@ -213,6 +213,7 @@ export default function CronogramaLimpezaMiranteTab() {
       toast({ title: "Erro ao exportar", description: e?.message || "Falha", variant: "destructive" });
     } finally {
       setExporting(false);
+      setExportDate(null);
     }
   };
 
