@@ -348,7 +348,7 @@ export default function CronogramaLimpezaMiranteTab() {
                               title={item.done ? "Marcar como não feito" : "Marcar como feito"}
                               onClick={() => toggleDone(a.key, i)}
                             >
-                              {item.done ? <Check className="w-3.5 h-3.5" /> : <X className="w-3.5 h-3.5 opacity-50" />}
+                              {item.done ? <Check className="w-4 h-4" /> : <span className="w-4 h-4 block" />}
                             </button>
                           </div>
                           {rem && (
