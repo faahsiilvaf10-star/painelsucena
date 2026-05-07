@@ -196,6 +196,14 @@ export default function CronogramaLimpezaMiranteTab() {
         windowHeight: fullH,
         scrollX: 0,
         scrollY: 0,
+        onclone: (doc) => {
+          doc.querySelectorAll<HTMLInputElement>("input.data-input").forEach((inp) => {
+            const span = doc.createElement("div");
+            span.textContent = inp.value || "";
+            span.style.cssText = "width:100%;text-align:center;font-size:13px;font-weight:700;color:#102b18;font-family:Arial,sans-serif;line-height:1.2;padding:2px;";
+            inp.replaceWith(span);
+          });
+        },
       });
       const pdf = new jsPDF("l", "mm", "a4");
       const pageWidth = 297;
@@ -251,6 +259,14 @@ export default function CronogramaLimpezaMiranteTab() {
         windowHeight: fullH,
         scrollX: 0,
         scrollY: 0,
+        onclone: (doc) => {
+          doc.querySelectorAll<HTMLInputElement>("input.data-input").forEach((inp) => {
+            const span = doc.createElement("div");
+            span.textContent = inp.value || "";
+            span.style.cssText = "width:100%;text-align:center;font-size:13px;font-weight:700;color:#102b18;font-family:Arial,sans-serif;line-height:1.2;padding:2px;";
+            inp.replaceWith(span);
+          });
+        },
       });
       const blob: Blob | null = await new Promise((res) => canvas.toBlob((b) => res(b), "image/png"));
       if (!blob) throw new Error("Falha ao gerar imagem");
