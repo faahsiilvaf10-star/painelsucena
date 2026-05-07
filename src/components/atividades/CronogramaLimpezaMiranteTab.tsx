@@ -203,6 +203,21 @@ export default function CronogramaLimpezaMiranteTab() {
             span.style.cssText = "width:100%;text-align:center;font-size:13px;font-weight:700;color:#102b18;font-family:Arial,sans-serif;line-height:1.2;padding:2px;";
             inp.replaceWith(span);
           });
+          // Garante espaço extra na base para não cortar assinatura/data
+          doc.querySelectorAll<HTMLElement>(".cronograma-card").forEach((c) => {
+            c.style.paddingBottom = "120px";
+          });
+          // Reposiciona assinatura para dentro do card
+          doc.querySelectorAll<HTMLImageElement>(".linha-assinatura img").forEach((img) => {
+            img.style.bottom = "-10px";
+            img.style.height = "80px";
+          });
+          // Centraliza números da data (evita corte do items-end)
+          doc.querySelectorAll<HTMLElement>(".assinatura-area .border-b-2").forEach((d) => {
+            d.style.alignItems = "center";
+            d.style.lineHeight = "1";
+            d.style.paddingBottom = "2px";
+          });
         },
       });
       const pdf = new jsPDF("l", "mm", "a4");
