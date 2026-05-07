@@ -1471,3 +1471,169 @@ html, body {
 }
 
 
+
+/* ============= Cronograma Limpeza Mirante ============= */
+.cronograma-page {
+  width: 100%;
+  background: #f7f8f2;
+  padding: 32px;
+  font-family: Arial, sans-serif;
+  color: #102b18;
+}
+.cronograma-card {
+  max-width: 1200px;
+  margin: auto;
+  background: linear-gradient(180deg, #ffffff 0%, #f4f7ee 100%);
+  border: 2px solid #8fa77d;
+  padding: 28px;
+  box-shadow: 0 12px 35px rgba(0,0,0,.12);
+}
+.cronograma-header {
+  display: flex;
+  align-items: center;
+  gap: 28px;
+  margin-bottom: 25px;
+}
+.logo-mirante {
+  width: 150px;
+  height: 150px;
+  border-radius: 50%;
+  background: #e7efe1;
+  border: 3px solid #1e572c;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  overflow: hidden;
+  flex-shrink: 0;
+}
+.titulo-area {
+  flex: 1;
+  text-align: center;
+}
+.titulo-area h1 {
+  margin: 0;
+  font-size: 54px;
+  letter-spacing: 3px;
+  color: #123f22;
+  font-weight: 900;
+  text-transform: uppercase;
+  line-height: 1.05;
+}
+.titulo-area h2 {
+  margin: 8px 0 0;
+  font-size: 34px;
+  letter-spacing: 8px;
+  color: #1f5730;
+  font-weight: 500;
+}
+.info-box {
+  border: 1px solid #b8c6ad;
+  background: #f7f9f2;
+  border-radius: 8px;
+  padding: 14px 24px;
+  margin: 0 auto 25px;
+  max-width: 850px;
+  display: flex;
+  align-items: center;
+  gap: 20px;
+  font-weight: 700;
+}
+.info-icon {
+  width: 54px;
+  height: 54px;
+  border-radius: 8px;
+  background: #dfe9d8;
+  color: #174b26;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  flex-shrink: 0;
+}
+.cronograma-table {
+  width: 100%;
+  border-collapse: collapse;
+  table-layout: fixed;
+  background: #fff;
+  border: 1px solid #9aaa8d;
+}
+.cronograma-table th {
+  background: linear-gradient(180deg, #1e5b30, #113b21);
+  color: #fff;
+  padding: 16px 10px;
+  text-transform: uppercase;
+  font-size: 17px;
+  border: 1px solid #9aaa8d;
+}
+.cronograma-table td {
+  border: 1px solid #b7c3ad;
+  padding: 16px;
+  vertical-align: middle;
+  font-size: 16px;
+  background: #fbfcf8;
+  color: #102b18;
+}
+.col-atividade {
+  width: 220px;
+  text-align: center;
+  background: #edf3e7 !important;
+}
+.atividade-icon {
+  width: 95px;
+  height: 95px;
+  margin: 0 auto 12px;
+  color: #1d5a2e;
+}
+.atividade-nome {
+  font-size: 18px;
+  font-weight: 900;
+  text-transform: uppercase;
+  color: #102b18;
+  line-height: 1.15;
+}
+.col-descricao { width: 260px; line-height: 1.55; }
+.col-frequencia {
+  width: 140px;
+  text-align: center;
+  font-weight: 900;
+  color: #123f22;
+}
+.frequencia-icon {
+  width: 44px;
+  height: 44px;
+  color: #1d5a2e;
+  margin: 0 auto 8px;
+}
+.data-cell {
+  text-align: center;
+  font-size: 18px;
+  color: #111;
+  height: 86px;
+  background: #ffffff !important;
+}
+.observacoes {
+  margin-top: 18px;
+  border: 1px solid #b8c6ad;
+  border-radius: 8px;
+  padding: 16px 22px;
+  background: #f8faf4;
+  display: flex;
+  gap: 18px;
+  font-size: 16px;
+  color: #102b18;
+}
+.observacoes strong { color: #174b26; text-transform: uppercase; }
+.assinatura-area {
+  margin-top: 28px;
+  display: flex;
+  justify-content: space-between;
+  gap: 40px;
+  font-weight: 700;
+  color: #102b18;
+  flex-wrap: wrap;
+}
+.linha-assinatura {
+  flex: 1;
+  border-bottom: 2px solid #222;
+  height: 28px;
+  min-width: 200px;
+}

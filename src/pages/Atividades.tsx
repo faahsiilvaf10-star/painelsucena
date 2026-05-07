@@ -45,6 +45,7 @@ import { AIImproveButton } from "@/components/atividades/AIImproveButton";
 
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import MudasParaPlantarTab from "@/components/atividades/MudasParaPlantarTab";
+import CronogramaLimpezaMiranteTab from "@/components/atividades/CronogramaLimpezaMiranteTab";
 import { JardinagemMetasSummary } from "@/components/atividades/JardinagemMetasSummary";
 import { useMudasParaPlantar, useUpdateMudaParaPlantar, useAddMudaParaPlantar } from "@/hooks/useMudasParaPlantar";
 import { TreePine } from "lucide-react";
@@ -756,10 +757,18 @@ export default function Atividades() {
               <TreePine className="h-4 w-4" />
               Mudas para Plantar
             </TabsTrigger>
+            <TabsTrigger value="cronograma-mirante" className="gap-2">
+              <Calendar className="h-4 w-4" />
+              Cronograma Limpeza do Mirante
+            </TabsTrigger>
           </TabsList>
 
           <TabsContent value="mudas-plantar" className="mt-4">
             <MudasParaPlantarTab canEdit={canEdit} />
+          </TabsContent>
+
+          <TabsContent value="cronograma-mirante" className="mt-4">
+            <CronogramaLimpezaMiranteTab />
           </TabsContent>
 
           <TabsContent value="jardinagem" className="mt-4 space-y-4 sm:space-y-6">
