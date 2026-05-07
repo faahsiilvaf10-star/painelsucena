@@ -1,4 +1,4 @@
-import { useEffect, useMemo, useState } from "react";
+import { useEffect, useMemo, useRef, useState } from "react";
 import {
   Calendar,
   RotateCw,
@@ -11,9 +11,14 @@ import {
   Check,
   X,
   Bell,
+  FileDown,
+  Loader2,
 } from "lucide-react";
 import { supabase } from "@/integrations/supabase/client";
 import { toast } from "@/hooks/use-toast";
+import { Button } from "@/components/ui/button";
+import { getLogoBase64 } from "@/lib/pdfLogo";
+import { triggerBlobDownload } from "@/lib/pdfDownload";
 
 interface AtividadeDef {
   key: string;
@@ -71,7 +76,14 @@ function diffDays(target: Date, base: Date): number {
 export default function CronogramaLimpezaMiranteTab() {
   const [data, setData] = useState<Record<string, DataItem[]>>({});
   const [loading, setLoading] = useState(true);
+  const [exporting, setExporting] = useState(false);
+  const [logo, setLogo] = useState<string>("");
+  const cardRef = useRef<HTMLDivElement>(null);
   const today = useMemo(() => paraToday(), []);
+
+  useEffect(() => {
+    getLogoBase64().then(setLogo);
+  }, []);
 
   // Load
   useEffect(() => {
@@ -143,16 +155,65 @@ export default function CronogramaLimpezaMiranteTab() {
     return null;
   };
 
+  const exportToPdf = async () => {
+    if (!cardRef.current) return;
+    setExporting(true);
+    try {
+      const [{ default: html2canvas }, { jsPDF }] = await Promise.all([
+        import("html2canvas"),
+        import("jspdf"),
+      ]);
+      const canvas = await html2canvas(cardRef.current, {
+        scale: 2,
+        useCORS: true,
+        backgroundColor: "#ffffff",
+      });
+      const imgWidth = 297;
+      const pageHeight = 210;
+      const imgHeight = (canvas.height * imgWidth) / canvas.width;
+      const pdf = new jsPDF("l", "mm", "a4");
+      const imgData = canvas.toDataURL("image/jpeg", 0.95);
+      let heightLeft = imgHeight;
+      let position = 0;
+      pdf.addImage(imgData, "JPEG", 0, position, imgWidth, imgHeight);
+      heightLeft -= pageHeight;
+      while (heightLeft > 0) {
+        position = heightLeft - imgHeight;
+        pdf.addPage();
+        pdf.addImage(imgData, "JPEG", 0, position, imgWidth, imgHeight);
+        heightLeft -= pageHeight;
+      }
+      const blob = pdf.output("blob");
+      const stamp = new Date().toISOString().slice(0, 10);
+      triggerBlobDownload(blob, `cronograma-mirante-${stamp}.pdf`);
+      toast({ title: "PDF gerado", description: "Cronograma exportado com sucesso." });
+    } catch (e: any) {
+      toast({ title: "Erro ao exportar", description: e?.message || "Falha", variant: "destructive" });
+    } finally {
+      setExporting(false);
+    }
+  };
+
   if (loading) {
     return <div className="cronograma-page"><div className="cronograma-card">Carregando...</div></div>;
   }
 
   return (
     <div className="cronograma-page">
-      <div className="cronograma-card">
+      <div className="flex justify-end mb-3 max-w-[980px] mx-auto">
+        <Button onClick={exportToPdf} disabled={exporting} variant="outline" className="gap-2">
+          {exporting ? <Loader2 className="h-4 w-4 animate-spin" /> : <FileDown className="h-4 w-4" />}
+          Exportar PDF
+        </Button>
+      </div>
+      <div className="cronograma-card" ref={cardRef}>
         <div className="cronograma-header">
           <div className="logo-mirante">
-            <Sprout className="w-12 h-12 text-[#1e572c]" strokeWidth={1.5} />
+            {logo ? (
+              <img src={logo} alt="Sucena" crossOrigin="anonymous" className="w-full h-full object-contain" />
+            ) : (
+              <Sprout className="w-12 h-12 text-[#1e572c]" strokeWidth={1.5} />
+            )}
           </div>
           <div className="titulo-area">
             <h1>Cronograma de Manutenção</h1>
