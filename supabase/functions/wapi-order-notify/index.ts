@@ -130,13 +130,12 @@ Deno.serve(async (req) => {
     let message = "";
 
     if (eventType === "created") {
-      // Send to mentioned user
-      if (!order.mentioned_user_id) {
-        return new Response(JSON.stringify({ skipped: true, reason: "no-mentioned-user" }), {
-          headers: { ...corsHeaders, "Content-Type": "application/json" },
-        });
-      }
-      targetUserId = order.mentioned_user_id;
+      // Send to mentioned user (if any). Group send happens below.
+      targetUserId = order.mentioned_user_id || null;
+
+      const recipientLine = targetUserId
+        ? `\n🔔 Você foi encaminhado(a) para analisar este pedido. Acesse o sistema para dar continuidade.`
+        : `\n🔔 Novo pedido aberto no sistema.`;
 
       message =
         `📦 *NOVO PEDIDO RECEBIDO*\n` +
@@ -147,8 +146,8 @@ Deno.serve(async (req) => {
         `\n*Itens:*\n${itemsList || "—"}\n` +
         (order.description ? `\n*Descrição:* ${order.description}\n` : "") +
         (order.notes ? `\n*Observações:* ${order.notes}\n` : "") +
-        `\n━━━━━━━━━━━━━━━━━━━━\n` +
-        `🔔 Você foi encaminhado(a) para analisar este pedido. Acesse o sistema para dar continuidade.`;
+        `\n━━━━━━━━━━━━━━━━━━━━` +
+        recipientLine;
     } else if (eventType === "status_changed") {
       // Send to requester
       targetUserId = order.requester_id;
