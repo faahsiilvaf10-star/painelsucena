@@ -171,21 +171,25 @@ Deno.serve(async (req) => {
       });
     }
 
-    // Get target user phone
-    const { data: targetProfile } = await admin
-      .from("profiles")
-      .select("full_name, whatsapp_number")
-      .eq("user_id", targetUserId)
-      .single();
+    // Get target user phone (only if there's a target user)
+    let targetProfile: any = null;
+    let phone = "";
+    let result: any = { ok: true, skipped: "no-target-user" };
 
-    const phone = sanitizePhone(targetProfile?.whatsapp_number || "");
-    if (!phone) {
-      return new Response(JSON.stringify({ skipped: true, reason: "no-phone" }), {
-        headers: { ...corsHeaders, "Content-Type": "application/json" },
-      });
+    if (targetUserId) {
+      const { data: tp } = await admin
+        .from("profiles")
+        .select("full_name, whatsapp_number")
+        .eq("user_id", targetUserId)
+        .single();
+      targetProfile = tp;
+      phone = sanitizePhone(tp?.whatsapp_number || "");
+      if (phone) {
+        result = await sendWapiText(cfg, phone, message);
+      } else {
+        result = { ok: true, skipped: "no-phone" };
+      }
     }
-
-    const result = await sendWapiText(cfg, phone, message);
 
     // Optionally send to group as well
     let groupResult: any = null;
@@ -207,8 +211,8 @@ Deno.serve(async (req) => {
     }
 
     return new Response(
-      JSON.stringify({ success: result.ok, target: targetProfile?.full_name, phone, eventType, wapi: result, group: groupResult }),
-      { status: result.ok ? 200 : 500, headers: { ...corsHeaders, "Content-Type": "application/json" } },
+      JSON.stringify({ success: true, target: targetProfile?.full_name, phone, eventType, wapi: result, group: groupResult }),
+      { status: 200, headers: { ...corsHeaders, "Content-Type": "application/json" } },
     );
   } catch (err) {
     console.error("[wapi-order-notify] error:", err);
