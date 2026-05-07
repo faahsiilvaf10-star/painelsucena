@@ -76,7 +76,14 @@ function diffDays(target: Date, base: Date): number {
 export default function CronogramaLimpezaMiranteTab() {
   const [data, setData] = useState<Record<string, DataItem[]>>({});
   const [loading, setLoading] = useState(true);
+  const [exporting, setExporting] = useState(false);
+  const [logo, setLogo] = useState<string>("");
+  const cardRef = useRef<HTMLDivElement>(null);
   const today = useMemo(() => paraToday(), []);
+
+  useEffect(() => {
+    getLogoBase64().then(setLogo);
+  }, []);
 
   // Load
   useEffect(() => {
