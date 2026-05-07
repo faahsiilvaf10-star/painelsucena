@@ -1573,11 +1573,12 @@ html, body {
   background: #fbfcf8;
   color: #102b18;
 }
-.col-atividade {
+.cronograma-table td.col-atividade {
   width: 140px;
   text-align: center;
   background: #edf3e7 !important;
 }
+.col-atividade { width: 140px; text-align: center; }
 .atividade-icon {
   width: 90px;
   height: 90px;
