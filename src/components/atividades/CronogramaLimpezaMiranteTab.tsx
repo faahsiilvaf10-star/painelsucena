@@ -218,13 +218,48 @@ export default function CronogramaLimpezaMiranteTab() {
     }
   };
 
+  const exportToPng = async () => {
+    if (!cardRef.current) return;
+    setExporting(true);
+    const now = paraToday();
+    setExportDate({
+      d: String(now.getUTCDate()).padStart(2, "0"),
+      m: String(now.getUTCMonth() + 1).padStart(2, "0"),
+      y: String(now.getUTCFullYear()),
+    });
+    try {
+      const { default: html2canvas } = await import("html2canvas");
+      await new Promise((r) => requestAnimationFrame(() => requestAnimationFrame(r)));
+      const canvas = await html2canvas(cardRef.current, {
+        scale: 2,
+        useCORS: true,
+        backgroundColor: "#ffffff",
+        windowWidth: cardRef.current.scrollWidth,
+      });
+      const blob: Blob | null = await new Promise((res) => canvas.toBlob((b) => res(b), "image/png"));
+      if (!blob) throw new Error("Falha ao gerar imagem");
+      const stamp = new Date().toISOString().slice(0, 10);
+      triggerBlobDownload(blob, `cronograma-mirante-${stamp}.png`);
+      toast({ title: "PNG gerado", description: "Cronograma exportado como imagem." });
+    } catch (e: any) {
+      toast({ title: "Erro ao exportar", description: e?.message || "Falha", variant: "destructive" });
+    } finally {
+      setExporting(false);
+      setExportDate(null);
+    }
+  };
+
   if (loading) {
     return <div className="cronograma-page"><div className="cronograma-card">Carregando...</div></div>;
   }
 
   return (
     <div className="cronograma-page">
-      <div className="flex justify-end mb-3 max-w-[980px] mx-auto">
+      <div className="flex justify-end gap-2 mb-3 max-w-[980px] mx-auto">
+        <Button onClick={exportToPng} disabled={exporting} variant="outline" className="gap-2">
+          {exporting ? <Loader2 className="h-4 w-4 animate-spin" /> : <ImageDown className="h-4 w-4" />}
+          Exportar PNG
+        </Button>
         <Button onClick={exportToPdf} disabled={exporting} variant="outline" className="gap-2">
           {exporting ? <Loader2 className="h-4 w-4 animate-spin" /> : <FileDown className="h-4 w-4" />}
           Exportar PDF
