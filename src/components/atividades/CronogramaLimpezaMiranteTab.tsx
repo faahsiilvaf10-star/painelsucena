@@ -27,7 +27,7 @@ import iconLavagemPipa from "@/assets/cron-lavagem_pipa.png";
 import iconLimpezaSoprador from "@/assets/cron-limpeza_soprador.png";
 
 const iconImg = (src: string, alt: string) => (
-  <img src={src} alt={alt} className="object-contain mx-auto" style={{ width: 60, height: 60 }} />
+  <img src={src} alt={alt} className="object-contain mx-auto" style={{ width: 90, height: 90 }} />
 );
 
 interface AtividadeDef {
