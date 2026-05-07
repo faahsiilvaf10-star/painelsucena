@@ -85,6 +85,61 @@ function diffDays(target: Date, base: Date): number {
   return Math.round((target.getTime() - base.getTime()) / 86400000);
 }
 
+const EXPORT_EXTRA_BOTTOM = 92;
+
+function getCronogramaExportSize(el: HTMLElement) {
+  const rect = el.getBoundingClientRect();
+  return {
+    width: Math.ceil(rect.width),
+    height: Math.ceil(Math.max(rect.height, el.scrollHeight) + EXPORT_EXTRA_BOTTOM),
+  };
+}
+
+function prepareCronogramaClone(doc: Document, width: number, height: number) {
+  const card = doc.querySelector<HTMLElement>(".cronograma-card");
+  if (card) {
+    card.style.width = `${width}px`;
+    card.style.maxWidth = "none";
+    card.style.minHeight = `${height}px`;
+    card.style.margin = "0";
+    card.style.boxSizing = "border-box";
+    card.style.overflow = "visible";
+    card.style.paddingBottom = "96px";
+  }
+
+  card?.querySelectorAll<HTMLElement>(".overflow-x-auto").forEach((wrap) => {
+    wrap.style.overflow = "visible";
+    wrap.style.width = "100%";
+  });
+
+  doc.querySelectorAll<HTMLInputElement>("input.data-input").forEach((inp) => {
+    const span = doc.createElement("div");
+    span.textContent = inp.value || "";
+    span.style.cssText = "width:100%;min-height:20px;display:flex;align-items:center;justify-content:center;text-align:center;font-size:13px;font-weight:700;color:#102b18;font-family:Arial,sans-serif;line-height:1;padding:0;box-sizing:border-box;overflow:visible;";
+    inp.replaceWith(span);
+  });
+
+  doc.querySelectorAll<HTMLImageElement>(".linha-assinatura img").forEach((img) => {
+    img.style.bottom = "-2px";
+    img.style.height = "84px";
+    img.style.maxHeight = "84px";
+  });
+
+  doc.querySelectorAll<HTMLElement>(".assinatura-area").forEach((area) => {
+    area.style.alignItems = "flex-end";
+    area.style.overflow = "visible";
+    area.style.paddingBottom = "10px";
+  });
+
+  doc.querySelectorAll<HTMLElement>(".assinatura-area .border-b-2").forEach((d) => {
+    d.style.height = "34px";
+    d.style.alignItems = "center";
+    d.style.lineHeight = "1";
+    d.style.paddingBottom = "0";
+    d.style.overflow = "visible";
+  });
+}
+
 export default function CronogramaLimpezaMiranteTab() {
   const [data, setData] = useState<Record<string, DataItem[]>>({});
   const [loading, setLoading] = useState(true);
@@ -184,8 +239,7 @@ export default function CronogramaLimpezaMiranteTab() {
       ]);
       await new Promise((r) => requestAnimationFrame(() => requestAnimationFrame(r)));
       const el = cardRef.current;
-      const fullW = el.scrollWidth;
-      const fullH = el.scrollHeight;
+      const { width: fullW, height: fullH } = getCronogramaExportSize(el);
       const canvas = await html2canvas(el, {
         scale: 2,
         useCORS: true,
@@ -196,29 +250,7 @@ export default function CronogramaLimpezaMiranteTab() {
         windowHeight: fullH,
         scrollX: 0,
         scrollY: 0,
-        onclone: (doc) => {
-          doc.querySelectorAll<HTMLInputElement>("input.data-input").forEach((inp) => {
-            const span = doc.createElement("div");
-            span.textContent = inp.value || "";
-            span.style.cssText = "width:100%;text-align:center;font-size:13px;font-weight:700;color:#102b18;font-family:Arial,sans-serif;line-height:1.2;padding:2px;";
-            inp.replaceWith(span);
-          });
-          // Garante espaço extra na base para não cortar assinatura/data
-          doc.querySelectorAll<HTMLElement>(".cronograma-card").forEach((c) => {
-            c.style.paddingBottom = "120px";
-          });
-          // Reposiciona assinatura para dentro do card
-          doc.querySelectorAll<HTMLImageElement>(".linha-assinatura img").forEach((img) => {
-            img.style.bottom = "-10px";
-            img.style.height = "80px";
-          });
-          // Centraliza números da data (evita corte do items-end)
-          doc.querySelectorAll<HTMLElement>(".assinatura-area .border-b-2").forEach((d) => {
-            d.style.alignItems = "center";
-            d.style.lineHeight = "1";
-            d.style.paddingBottom = "2px";
-          });
-        },
+        onclone: (doc) => prepareCronogramaClone(doc, fullW, fullH),
       });
       const pdf = new jsPDF("l", "mm", "a4");
       const pageWidth = 297;
@@ -262,8 +294,7 @@ export default function CronogramaLimpezaMiranteTab() {
       const { default: html2canvas } = await import("html2canvas");
       await new Promise((r) => requestAnimationFrame(() => requestAnimationFrame(r)));
       const el = cardRef.current;
-      const fullW = el.scrollWidth;
-      const fullH = el.scrollHeight;
+      const { width: fullW, height: fullH } = getCronogramaExportSize(el);
       const canvas = await html2canvas(el, {
         scale: 2,
         useCORS: true,
@@ -274,26 +305,7 @@ export default function CronogramaLimpezaMiranteTab() {
         windowHeight: fullH,
         scrollX: 0,
         scrollY: 0,
-        onclone: (doc) => {
-          doc.querySelectorAll<HTMLInputElement>("input.data-input").forEach((inp) => {
-            const span = doc.createElement("div");
-            span.textContent = inp.value || "";
-            span.style.cssText = "width:100%;text-align:center;font-size:13px;font-weight:700;color:#102b18;font-family:Arial,sans-serif;line-height:1.2;padding:2px;";
-            inp.replaceWith(span);
-          });
-          doc.querySelectorAll<HTMLElement>(".cronograma-card").forEach((c) => {
-            c.style.paddingBottom = "120px";
-          });
-          doc.querySelectorAll<HTMLImageElement>(".linha-assinatura img").forEach((img) => {
-            img.style.bottom = "-10px";
-            img.style.height = "80px";
-          });
-          doc.querySelectorAll<HTMLElement>(".assinatura-area .border-b-2").forEach((d) => {
-            d.style.alignItems = "center";
-            d.style.lineHeight = "1";
-            d.style.paddingBottom = "2px";
-          });
-        },
+        onclone: (doc) => prepareCronogramaClone(doc, fullW, fullH),
       });
       const blob: Blob | null = await new Promise((res) => canvas.toBlob((b) => res(b), "image/png"));
       if (!blob) throw new Error("Falha ao gerar imagem");
