@@ -1130,6 +1130,48 @@ const AdminWhatsApp = () => {
           <CardHeader>
             <CardTitle className="flex items-center gap-2">
               <Bell className="w-5 h-5 text-primary" />
+              Alerta Automático Cronograma do Mirante (2 dias antes e no dia)
+            </CardTitle>
+            <CardDescription>
+              Quando habilitado, o sistema envia automaticamente uma mensagem para o <strong>grupo configurado</strong> avisando
+              sobre as atividades do <strong>Cronograma de Manutenção do Mirante</strong>: <strong>2 dias antes</strong> e <strong>no dia</strong> da execução.
+              A verificação roda <strong>diariamente às 07:00h</strong> (Pará UTC-3) e cada alerta é enviado apenas <strong>uma vez por atividade/data</strong>.
+            </CardDescription>
+          </CardHeader>
+          <CardContent>
+            <div className="flex items-center justify-between gap-3 rounded-md border p-3 bg-muted/30">
+              <div className="flex items-center gap-3">
+                <Switch
+                  id="auto-send-cronograma-mirante"
+                  checked={autoSendCronogramaMirante}
+                  onCheckedChange={setAutoSendCronogramaMirante}
+                />
+                <Label htmlFor="auto-send-cronograma-mirante" className="cursor-pointer">
+                  Ativar alerta automático do Cronograma do Mirante
+                </Label>
+              </div>
+              <div className="flex items-center gap-2">
+                <Badge variant={autoSendCronogramaMirante ? "default" : "secondary"}>
+                  {autoSendCronogramaMirante ? "Ativo" : "Desativado"}
+                </Badge>
+                <Button variant="outline" size="sm" onClick={handleTestCronogramaMirante} disabled={testingCronogramaMirante}>
+                  <Play className="w-4 h-4 mr-1" />
+                  {testingCronogramaMirante ? "..." : "Testar"}
+                </Button>
+              </div>
+            </div>
+            <GroupIdOverrideInput id="gid-cronograma-mirante" value={groupIdCronogramaMirante} onChange={setGroupIdCronogramaMirante} defaultGroupId={groupId} />
+            <p className="text-xs text-muted-foreground mt-3">
+              Requisitos: integração W-API habilitada e ID do grupo preenchido. O botão "Testar" envia o alerta imediatamente,
+              ignorando o filtro de duplicidade. Lembre-se de salvar a configuração após alterar.
+            </p>
+          </CardContent>
+        </Card>
+
+        <Card>
+          <CardHeader>
+            <CardTitle className="flex items-center gap-2">
+              <Bell className="w-5 h-5 text-primary" />
               Alerta Automático de Treinamento NR (10 dias antes e no dia)
             </CardTitle>
             <CardDescription>
