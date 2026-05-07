@@ -1,4 +1,4 @@
-import { useEffect, useMemo, useState } from "react";
+import { useEffect, useMemo, useRef, useState } from "react";
 import {
   Calendar,
   RotateCw,
@@ -11,9 +11,14 @@ import {
   Check,
   X,
   Bell,
+  FileDown,
+  Loader2,
 } from "lucide-react";
 import { supabase } from "@/integrations/supabase/client";
 import { toast } from "@/hooks/use-toast";
+import { Button } from "@/components/ui/button";
+import { getLogoBase64 } from "@/lib/pdfLogo";
+import { triggerBlobDownload } from "@/lib/pdfDownload";
 
 interface AtividadeDef {
   key: string;
