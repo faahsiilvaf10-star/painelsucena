@@ -607,6 +607,33 @@ export type Database = {
         }
         Relationships: []
       }
+      cronograma_mirante: {
+        Row: {
+          atividade_key: string
+          created_at: string
+          datas: Json
+          environment: string
+          id: string
+          updated_at: string
+        }
+        Insert: {
+          atividade_key: string
+          created_at?: string
+          datas?: Json
+          environment?: string
+          id?: string
+          updated_at?: string
+        }
+        Update: {
+          atividade_key?: string
+          created_at?: string
+          datas?: Json
+          environment?: string
+          id?: string
+          updated_at?: string
+        }
+        Relationships: []
+      }
       daily_gabiao_reports: {
         Row: {
           created_at: string
