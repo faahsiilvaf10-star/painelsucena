@@ -12,6 +12,7 @@ import {
   X,
   Bell,
   FileDown,
+  ImageDown,
   Loader2,
 } from "lucide-react";
 import { supabase } from "@/integrations/supabase/client";
