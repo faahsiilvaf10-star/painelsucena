@@ -1476,27 +1476,27 @@ html, body {
 .cronograma-page {
   width: 100%;
   background: #f7f8f2;
-  padding: 32px;
+  padding: 16px;
   font-family: Arial, sans-serif;
   color: #102b18;
 }
 .cronograma-card {
-  max-width: 1200px;
+  max-width: 980px;
   margin: auto;
   background: linear-gradient(180deg, #ffffff 0%, #f4f7ee 100%);
   border: 2px solid #8fa77d;
-  padding: 28px;
-  box-shadow: 0 12px 35px rgba(0,0,0,.12);
+  padding: 16px;
+  box-shadow: 0 8px 25px rgba(0,0,0,.10);
 }
 .cronograma-header {
   display: flex;
   align-items: center;
-  gap: 28px;
-  margin-bottom: 25px;
+  gap: 16px;
+  margin-bottom: 14px;
 }
 .logo-mirante {
-  width: 150px;
-  height: 150px;
+  width: 80px;
+  height: 80px;
   border-radius: 50%;
   background: #e7efe1;
   border: 3px solid #1e572c;
