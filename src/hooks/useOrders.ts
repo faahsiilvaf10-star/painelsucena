@@ -291,11 +291,12 @@ export const useCreateOrder = () => {
           published_at: new Date().toISOString(),
         });
 
-        // Auto WhatsApp para usuário encaminhado (fire-and-forget)
-        supabase.functions.invoke("wapi-order-notify", {
-          body: { orderId: data.id, eventType: "created" },
-        }).catch((e) => console.warn("[wapi-order-notify created] falhou:", e));
       }
+
+      // Auto WhatsApp ao criar pedido — sempre dispara (envia ao grupo; ao encaminhado se houver)
+      supabase.functions.invoke("wapi-order-notify", {
+        body: { orderId: data.id, eventType: "created" },
+      }).catch((e) => console.warn("[wapi-order-notify created] falhou:", e));
 
       return data;
     },
