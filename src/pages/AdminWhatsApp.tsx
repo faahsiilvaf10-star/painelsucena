@@ -190,6 +190,8 @@ const AdminWhatsApp = () => {
       setGroupIdTraining((c.group_id_training as string | null) || "");
       setAutoSendAtaContrato(!!(c.auto_send_ata_contrato as boolean | null));
       setGroupIdAtaContrato((c.group_id_ata_contrato as string | null) || "");
+      setAutoSendCronogramaMirante(!!(c.auto_send_cronograma_mirante as boolean | null));
+      setGroupIdCronogramaMirante((c.group_id_cronograma_mirante as string | null) || "");
     }
   }, [cfg]);
 
