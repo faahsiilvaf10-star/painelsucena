@@ -19,6 +19,7 @@ import { toast } from "@/hooks/use-toast";
 import { Button } from "@/components/ui/button";
 import { getLogoBase64 } from "@/lib/pdfLogo";
 import { triggerBlobDownload } from "@/lib/pdfDownload";
+import rocoIcon from "@/assets/roco-icon.png";
 
 interface AtividadeDef {
   key: string;
