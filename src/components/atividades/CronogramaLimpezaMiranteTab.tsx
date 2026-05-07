@@ -317,8 +317,8 @@ export default function CronogramaLimpezaMiranteTab() {
               <img
                 src={assinaturaResponsavel}
                 alt="Assinatura"
-                className="absolute left-1/2 -translate-x-1/2 bottom-0 pointer-events-none select-none"
-                style={{ height: 60, width: "auto", objectFit: "contain" }}
+                className="absolute left-1/2 -translate-x-1/2 pointer-events-none select-none"
+                style={{ height: 110, width: "auto", objectFit: "contain", bottom: -25 }}
               />
             </div>
           </div>
