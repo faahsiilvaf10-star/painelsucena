@@ -297,6 +297,8 @@ const AdminWhatsApp = () => {
         group_id_training: groupIdTraining.trim() || null,
         auto_send_ata_contrato: autoSendAtaContrato,
         group_id_ata_contrato: groupIdAtaContrato.trim() || null,
+        auto_send_cronograma_mirante: autoSendCronogramaMirante,
+        group_id_cronograma_mirante: groupIdCronogramaMirante.trim() || null,
         updated_by: user?.id ?? null,
       };
       if (cfg?.id) {
