@@ -89,6 +89,7 @@ export default function CronogramaLimpezaMiranteTab() {
   const [loading, setLoading] = useState(true);
   const [exporting, setExporting] = useState(false);
   const [logo, setLogo] = useState<string>("");
+  const [exportDate, setExportDate] = useState<{ d: string; m: string; y: string } | null>(null);
   const cardRef = useRef<HTMLDivElement>(null);
   const today = useMemo(() => paraToday(), []);
 
