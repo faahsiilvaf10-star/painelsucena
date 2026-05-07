@@ -757,10 +757,18 @@ export default function Atividades() {
               <TreePine className="h-4 w-4" />
               Mudas para Plantar
             </TabsTrigger>
+            <TabsTrigger value="cronograma-mirante" className="gap-2">
+              <Calendar className="h-4 w-4" />
+              Cronograma Limpeza do Mirante
+            </TabsTrigger>
           </TabsList>
 
           <TabsContent value="mudas-plantar" className="mt-4">
             <MudasParaPlantarTab canEdit={canEdit} />
+          </TabsContent>
+
+          <TabsContent value="cronograma-mirante" className="mt-4">
+            <CronogramaLimpezaMiranteTab />
           </TabsContent>
 
           <TabsContent value="jardinagem" className="mt-4 space-y-4 sm:space-y-6">
