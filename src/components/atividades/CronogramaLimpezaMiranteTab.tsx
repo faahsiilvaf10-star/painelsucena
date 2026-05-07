@@ -170,11 +170,18 @@ export default function CronogramaLimpezaMiranteTab() {
   const exportToPdf = async () => {
     if (!cardRef.current) return;
     setExporting(true);
+    const now = paraToday();
+    setExportDate({
+      d: String(now.getUTCDate()).padStart(2, "0"),
+      m: String(now.getUTCMonth() + 1).padStart(2, "0"),
+      y: String(now.getUTCFullYear()),
+    });
     try {
       const [{ default: html2canvas }, { jsPDF }] = await Promise.all([
         import("html2canvas"),
         import("jspdf"),
       ]);
+      await new Promise((r) => requestAnimationFrame(() => requestAnimationFrame(r)));
       const canvas = await html2canvas(cardRef.current, {
         scale: 2,
         useCORS: true,
