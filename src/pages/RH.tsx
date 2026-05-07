@@ -62,16 +62,23 @@ const RH = () => {
   const [deletedIds, setDeletedIds] = useState<number[]>([]);
   const [dbRowId, setDbRowId] = useState<string | null>(null);
   const [initialized, setInitialized] = useState(false);
+  const [editingAso, setEditingAso] = useState<number | null>(null);
+  const [editingColaborador, setEditingColaborador] = useState<Colaborador | null>(null);
+  const [asoForm, setAsoForm] = useState<Record<string, string>>({});
 
-  // Sync state from DB when data loads
+  // Sync state from DB whenever data changes (initial load + realtime updates).
+  // We only skip syncing while the user is actively editing the ASO of a row
+  // or has the colaborador edit dialog open, to avoid wiping their form.
   useEffect(() => {
-    if (rhData && !initialized) {
+    if (!rhData) return;
+    const isEditing = editingAso !== null || editingColaborador !== null;
+    if (!initialized || !isEditing) {
       setColaboradores(rhData.colaboradores);
       setDeletedIds(rhData.deletedIds);
       setDbRowId(rhData.rowId);
       setInitialized(true);
     }
-  }, [rhData, initialized]);
+  }, [rhData, initialized, editingAso, editingColaborador]);
 
   // Persist to database whenever colaboradores change (after initialization)
   const persistToDb = useCallback((newColaboradores: Colaborador[], newDeletedIds: number[]) => {
@@ -81,10 +88,6 @@ const RH = () => {
       existingRowId: dbRowId,
     });
   }, [saveMutation, dbRowId]);
-
-  const [editingAso, setEditingAso] = useState<number | null>(null);
-  const [editingColaborador, setEditingColaborador] = useState<Colaborador | null>(null);
-  const [asoForm, setAsoForm] = useState<Record<string, string>>({});
 
   const { canEditRH, isLoading: permissionsLoading } = useRHPermissions();
   const { isAdmin } = useIsAdmin();
