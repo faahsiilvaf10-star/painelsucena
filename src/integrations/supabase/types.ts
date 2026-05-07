@@ -4426,6 +4426,7 @@ export type Database = {
           auto_send_attendance: boolean
           auto_send_billing_alert: boolean
           auto_send_campaign_alert: boolean
+          auto_send_cronograma_mirante: boolean | null
           auto_send_dds_photo: boolean
           auto_send_desvio_due_alert: boolean
           auto_send_desvios: boolean
@@ -4453,6 +4454,7 @@ export type Database = {
           group_id_attendance: string | null
           group_id_billing: string | null
           group_id_campaign: string | null
+          group_id_cronograma_mirante: string | null
           group_id_dds: string | null
           group_id_desvio_due: string | null
           group_id_desvios: string | null
@@ -4482,6 +4484,7 @@ export type Database = {
           auto_send_attendance?: boolean
           auto_send_billing_alert?: boolean
           auto_send_campaign_alert?: boolean
+          auto_send_cronograma_mirante?: boolean | null
           auto_send_dds_photo?: boolean
           auto_send_desvio_due_alert?: boolean
           auto_send_desvios?: boolean
@@ -4509,6 +4512,7 @@ export type Database = {
           group_id_attendance?: string | null
           group_id_billing?: string | null
           group_id_campaign?: string | null
+          group_id_cronograma_mirante?: string | null
           group_id_dds?: string | null
           group_id_desvio_due?: string | null
           group_id_desvios?: string | null
@@ -4538,6 +4542,7 @@ export type Database = {
           auto_send_attendance?: boolean
           auto_send_billing_alert?: boolean
           auto_send_campaign_alert?: boolean
+          auto_send_cronograma_mirante?: boolean | null
           auto_send_dds_photo?: boolean
           auto_send_desvio_due_alert?: boolean
           auto_send_desvios?: boolean
@@ -4565,6 +4570,7 @@ export type Database = {
           group_id_attendance?: string | null
           group_id_billing?: string | null
           group_id_campaign?: string | null
+          group_id_cronograma_mirante?: string | null
           group_id_dds?: string | null
           group_id_desvio_due?: string | null
           group_id_desvios?: string | null
@@ -4587,6 +4593,33 @@ export type Database = {
           last_dispatched_at?: string | null
           updated_at?: string
           updated_by?: string | null
+        }
+        Relationships: []
+      }
+      wapi_cronograma_mirante_alerts_sent: {
+        Row: {
+          alert_key: string
+          alert_type: string
+          atividade_key: string
+          id: string
+          scheduled_date: string
+          sent_at: string
+        }
+        Insert: {
+          alert_key: string
+          alert_type: string
+          atividade_key: string
+          id?: string
+          scheduled_date: string
+          sent_at?: string
+        }
+        Update: {
+          alert_key?: string
+          alert_type?: string
+          atividade_key?: string
+          id?: string
+          scheduled_date?: string
+          sent_at?: string
         }
         Relationships: []
       }

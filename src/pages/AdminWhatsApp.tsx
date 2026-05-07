@@ -119,6 +119,9 @@ const AdminWhatsApp = () => {
   const [testingMatrix, setTestingMatrix] = useState(false);
   const [testingForbiddenColor, setTestingForbiddenColor] = useState(false);
   const [testingCampaign, setTestingCampaign] = useState(false);
+  const [autoSendCronogramaMirante, setAutoSendCronogramaMirante] = useState(false);
+  const [groupIdCronogramaMirante, setGroupIdCronogramaMirante] = useState("");
+  const [testingCronogramaMirante, setTestingCronogramaMirante] = useState(false);
 
   const { data: cfg } = useQuery({
     queryKey: ["wapi-config"],
@@ -187,6 +190,8 @@ const AdminWhatsApp = () => {
       setGroupIdTraining((c.group_id_training as string | null) || "");
       setAutoSendAtaContrato(!!(c.auto_send_ata_contrato as boolean | null));
       setGroupIdAtaContrato((c.group_id_ata_contrato as string | null) || "");
+      setAutoSendCronogramaMirante(!!(c.auto_send_cronograma_mirante as boolean | null));
+      setGroupIdCronogramaMirante((c.group_id_cronograma_mirante as string | null) || "");
     }
   }, [cfg]);
 
@@ -292,6 +297,8 @@ const AdminWhatsApp = () => {
         group_id_training: groupIdTraining.trim() || null,
         auto_send_ata_contrato: autoSendAtaContrato,
         group_id_ata_contrato: groupIdAtaContrato.trim() || null,
+        auto_send_cronograma_mirante: autoSendCronogramaMirante,
+        group_id_cronograma_mirante: groupIdCronogramaMirante.trim() || null,
         updated_by: user?.id ?? null,
       };
       if (cfg?.id) {
@@ -428,6 +435,38 @@ const AdminWhatsApp = () => {
       toast.error("Falha ao executar teste", { description: msg, duration: 15000 });
     } finally {
       if (mode === "tomorrow") setTestingDdsTomorrow(false); else setTestingDds(false);
+    }
+  };
+
+  const handleTestCronogramaMirante = async () => {
+    setTestingCronogramaMirante(true);
+    try {
+      const url = `${import.meta.env.VITE_SUPABASE_URL}/functions/v1/wapi-cronograma-mirante-notify`;
+      const response = await fetch(url, {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ force: true }),
+      });
+      const text = await response.text();
+      let data: any = null;
+      try { data = text ? JSON.parse(text) : null; } catch { /* keep raw */ }
+      if (!response.ok) {
+        toast.error(`Erro HTTP ${response.status}`, { description: text.slice(0, 500), duration: 15000 });
+        return;
+      }
+      if (data?.skipped) {
+        toast.info("Nada a enviar", { description: data.reason || "Sem alertas", duration: 8000 });
+      } else if (data?.success) {
+        toast.success(`Alerta do Cronograma do Mirante enviado (${data.total} item(ns))`);
+      } else {
+        toast.error("Falha no envio", { description: data?.error || "Erro desconhecido", duration: 15000 });
+      }
+      queryClient.invalidateQueries({ queryKey: ["wapi-logs"] });
+    } catch (e) {
+      const msg = e instanceof Error ? e.message : String(e);
+      toast.error("Falha ao executar teste", { description: msg, duration: 15000 });
+    } finally {
+      setTestingCronogramaMirante(false);
     }
   };
 
@@ -1083,6 +1122,48 @@ const AdminWhatsApp = () => {
             <p className="text-xs text-muted-foreground mt-3">
               Requisitos: integração W-API habilitada e ID do grupo preenchido. O botão "Testar" envia o alerta imediatamente,
               ignorando o filtro de duplicidade.
+            </p>
+          </CardContent>
+        </Card>
+
+        <Card>
+          <CardHeader>
+            <CardTitle className="flex items-center gap-2">
+              <Bell className="w-5 h-5 text-primary" />
+              Alerta Automático Cronograma do Mirante (2 dias antes e no dia)
+            </CardTitle>
+            <CardDescription>
+              Quando habilitado, o sistema envia automaticamente uma mensagem para o <strong>grupo configurado</strong> avisando
+              sobre as atividades do <strong>Cronograma de Manutenção do Mirante</strong>: <strong>2 dias antes</strong> e <strong>no dia</strong> da execução.
+              A verificação roda <strong>diariamente às 07:00h</strong> (Pará UTC-3) e cada alerta é enviado apenas <strong>uma vez por atividade/data</strong>.
+            </CardDescription>
+          </CardHeader>
+          <CardContent>
+            <div className="flex items-center justify-between gap-3 rounded-md border p-3 bg-muted/30">
+              <div className="flex items-center gap-3">
+                <Switch
+                  id="auto-send-cronograma-mirante"
+                  checked={autoSendCronogramaMirante}
+                  onCheckedChange={setAutoSendCronogramaMirante}
+                />
+                <Label htmlFor="auto-send-cronograma-mirante" className="cursor-pointer">
+                  Ativar alerta automático do Cronograma do Mirante
+                </Label>
+              </div>
+              <div className="flex items-center gap-2">
+                <Badge variant={autoSendCronogramaMirante ? "default" : "secondary"}>
+                  {autoSendCronogramaMirante ? "Ativo" : "Desativado"}
+                </Badge>
+                <Button variant="outline" size="sm" onClick={handleTestCronogramaMirante} disabled={testingCronogramaMirante}>
+                  <Play className="w-4 h-4 mr-1" />
+                  {testingCronogramaMirante ? "..." : "Testar"}
+                </Button>
+              </div>
+            </div>
+            <GroupIdOverrideInput id="gid-cronograma-mirante" value={groupIdCronogramaMirante} onChange={setGroupIdCronogramaMirante} defaultGroupId={groupId} />
+            <p className="text-xs text-muted-foreground mt-3">
+              Requisitos: integração W-API habilitada e ID do grupo preenchido. O botão "Testar" envia o alerta imediatamente,
+              ignorando o filtro de duplicidade. Lembre-se de salvar a configuração após alterar.
             </p>
           </CardContent>
         </Card>
