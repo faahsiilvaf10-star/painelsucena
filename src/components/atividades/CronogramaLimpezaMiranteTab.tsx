@@ -333,11 +333,17 @@ export default function CronogramaLimpezaMiranteTab() {
           </div>
           <div className="flex items-end gap-3">
             <span>DATA:</span>
-            <div className="w-12 border-b-2 border-black h-7" />
+            <div className="w-12 border-b-2 border-black h-7 flex items-end justify-center font-bold">
+              {exportDate?.d || ""}
+            </div>
             <span>/</span>
-            <div className="w-12 border-b-2 border-black h-7" />
+            <div className="w-12 border-b-2 border-black h-7 flex items-end justify-center font-bold">
+              {exportDate?.m || ""}
+            </div>
             <span>/</span>
-            <div className="w-16 border-b-2 border-black h-7" />
+            <div className="w-16 border-b-2 border-black h-7 flex items-end justify-center font-bold">
+              {exportDate?.y || ""}
+            </div>
           </div>
         </div>
       </div>
