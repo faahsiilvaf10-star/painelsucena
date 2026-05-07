@@ -19,8 +19,16 @@ import { toast } from "@/hooks/use-toast";
 import { Button } from "@/components/ui/button";
 import { getLogoBase64 } from "@/lib/pdfLogo";
 import { triggerBlobDownload } from "@/lib/pdfDownload";
-import rocoIcon from "@/assets/roco-icon.png";
-import reparoMudasIcon from "@/assets/reparo-mudas-icon.png";
+import iconLimpezaMirante from "@/assets/cron-limpeza_mirante.png";
+import iconRoco from "@/assets/cron-roco.png";
+import iconReparoMudas from "@/assets/cron-reparo_mudas.png";
+import iconAdubacao from "@/assets/cron-adubacao.png";
+import iconLavagemPipa from "@/assets/cron-lavagem_pipa.png";
+import iconLimpezaSoprador from "@/assets/cron-limpeza_soprador.png";
+
+const iconImg = (src: string, alt: string) => (
+  <img src={src} alt={alt} className="object-contain mx-auto" style={{ width: 60, height: 60 }} />
+);
 
 interface AtividadeDef {
   key: string;
@@ -44,12 +52,12 @@ const DEFAULT_DATAS: DataItem[] = [
 ];
 
 const ATIVIDADES: AtividadeDef[] = [
-  { key: "limpeza_mirante", icon: <Trash2 className="w-full h-full" strokeWidth={1.5} />, nome: "Limpeza no Mirante", descricao: "Limpeza geral do mirante, incluindo piso, corrimãos, bancos, lixeiras e áreas de circulação." },
-  { key: "roco", icon: <img src={rocoIcon} alt="Roço" className="object-contain mx-auto" style={{ width: 60, height: 60 }} />, nome: "Roço", descricao: "Roçagem da vegetação ao redor do mirante, trilhas e áreas adjacentes." },
-  { key: "reparo_mudas", icon: <img src={reparoMudasIcon} alt="Reparo de Mudas" className="object-contain mx-auto" style={{ width: 60, height: 60 }} />, nome: "Reparo de Mudas", descricao: "Verificação e reparo de mudas, troca de tutores, reposição de amarras e cuidados necessários." },
-  { key: "adubacao", icon: <Leaf className="w-full h-full" strokeWidth={1.5} />, nome: "Adubação", descricao: "Adubação das mudas e áreas verdes conforme necessidade." },
-  { key: "lavagem_pipa", icon: <Droplets className="w-full h-full" strokeWidth={1.5} />, nome: "Lavagem com Pipa", descricao: "Lavagem de pisos, corrimãos, bancos e áreas externas com caminhão pipa." },
-  { key: "limpeza_soprador", icon: <Wind className="w-full h-full" strokeWidth={1.5} />, nome: "Limpeza com Soprador", descricao: "Limpeza de folhas, resíduos e detritos com soprador em toda a área do mirante e acessos." },
+  { key: "limpeza_mirante", icon: iconImg(iconLimpezaMirante, "Limpeza no Mirante"), nome: "Limpeza no Mirante", descricao: "Limpeza geral do mirante, incluindo piso, corrimãos, bancos, lixeiras e áreas de circulação." },
+  { key: "roco", icon: iconImg(iconRoco, "Roço"), nome: "Roço", descricao: "Roçagem da vegetação ao redor do mirante, trilhas e áreas adjacentes." },
+  { key: "reparo_mudas", icon: iconImg(iconReparoMudas, "Reparo de Mudas"), nome: "Reparo de Mudas", descricao: "Verificação e reparo de mudas, troca de tutores, reposição de amarras e cuidados necessários." },
+  { key: "adubacao", icon: iconImg(iconAdubacao, "Adubação"), nome: "Adubação", descricao: "Adubação das mudas e áreas verdes conforme necessidade." },
+  { key: "lavagem_pipa", icon: iconImg(iconLavagemPipa, "Lavagem com Pipa"), nome: "Lavagem com Pipa", descricao: "Lavagem de pisos, corrimãos, bancos e áreas externas com caminhão pipa." },
+  { key: "limpeza_soprador", icon: iconImg(iconLimpezaSoprador, "Limpeza com Soprador"), nome: "Limpeza com Soprador", descricao: "Limpeza de folhas, resíduos e detritos com soprador em toda a área do mirante e acessos." },
 ];
 
 // Pará UTC-3 today (no time)
