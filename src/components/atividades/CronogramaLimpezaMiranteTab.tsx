@@ -177,22 +177,25 @@ export default function CronogramaLimpezaMiranteTab() {
         scale: 2,
         useCORS: true,
         backgroundColor: "#ffffff",
+        windowWidth: cardRef.current.scrollWidth,
       });
-      const imgWidth = 297;
-      const pageHeight = 210;
-      const imgHeight = (canvas.height * imgWidth) / canvas.width;
       const pdf = new jsPDF("l", "mm", "a4");
-      const imgData = canvas.toDataURL("image/jpeg", 0.95);
-      let heightLeft = imgHeight;
-      let position = 0;
-      pdf.addImage(imgData, "JPEG", 0, position, imgWidth, imgHeight);
-      heightLeft -= pageHeight;
-      while (heightLeft > 0) {
-        position = heightLeft - imgHeight;
-        pdf.addPage();
-        pdf.addImage(imgData, "JPEG", 0, position, imgWidth, imgHeight);
-        heightLeft -= pageHeight;
+      const pageWidth = 297;
+      const pageHeight = 210;
+      const margin = 6;
+      const maxW = pageWidth - margin * 2;
+      const maxH = pageHeight - margin * 2;
+      const ratio = canvas.width / canvas.height;
+      let imgWidth = maxW;
+      let imgHeight = imgWidth / ratio;
+      if (imgHeight > maxH) {
+        imgHeight = maxH;
+        imgWidth = imgHeight * ratio;
       }
+      const x = (pageWidth - imgWidth) / 2;
+      const y = (pageHeight - imgHeight) / 2;
+      const imgData = canvas.toDataURL("image/jpeg", 0.95);
+      pdf.addImage(imgData, "JPEG", x, y, imgWidth, imgHeight);
       const blob = pdf.output("blob");
       const stamp = new Date().toISOString().slice(0, 10);
       triggerBlobDownload(blob, `cronograma-mirante-${stamp}.pdf`);
