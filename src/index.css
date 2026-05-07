@@ -1635,8 +1635,9 @@ html, body {
 .data-cell .data-actions {
   display: flex;
   justify-content: center;
+  align-items: center;
   gap: 4px;
-  margin-top: 2px;
+  margin-top: 6px;
 }
 .data-cell .data-toggle {
   cursor: pointer;
