@@ -119,6 +119,9 @@ const AdminWhatsApp = () => {
   const [testingMatrix, setTestingMatrix] = useState(false);
   const [testingForbiddenColor, setTestingForbiddenColor] = useState(false);
   const [testingCampaign, setTestingCampaign] = useState(false);
+  const [autoSendCronogramaMirante, setAutoSendCronogramaMirante] = useState(false);
+  const [groupIdCronogramaMirante, setGroupIdCronogramaMirante] = useState("");
+  const [testingCronogramaMirante, setTestingCronogramaMirante] = useState(false);
 
   const { data: cfg } = useQuery({
     queryKey: ["wapi-config"],
