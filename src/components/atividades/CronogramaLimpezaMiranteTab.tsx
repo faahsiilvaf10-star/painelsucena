@@ -19,8 +19,16 @@ import { toast } from "@/hooks/use-toast";
 import { Button } from "@/components/ui/button";
 import { getLogoBase64 } from "@/lib/pdfLogo";
 import { triggerBlobDownload } from "@/lib/pdfDownload";
-import rocoIcon from "@/assets/roco-icon.png";
-import reparoMudasIcon from "@/assets/reparo-mudas-icon.png";
+import iconLimpezaMirante from "@/assets/cron-limpeza_mirante.png";
+import iconRoco from "@/assets/cron-roco.png";
+import iconReparoMudas from "@/assets/cron-reparo_mudas.png";
+import iconAdubacao from "@/assets/cron-adubacao.png";
+import iconLavagemPipa from "@/assets/cron-lavagem_pipa.png";
+import iconLimpezaSoprador from "@/assets/cron-limpeza_soprador.png";
+
+const iconImg = (src: string, alt: string) => (
+  <img src={src} alt={alt} className="object-contain mx-auto" style={{ width: 60, height: 60 }} />
+);
 
 interface AtividadeDef {
   key: string;
