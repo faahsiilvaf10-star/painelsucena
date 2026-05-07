@@ -86,11 +86,56 @@ export const useRHEfetivo = () => {
       existingRowId: string | null;
     }) => {
       if (existingRowId) {
+        // CRITICAL: Refetch latest row from DB before saving to avoid losing
+        // concurrent edits (e.g. another user editing a different colaborador).
+        // We merge by colaborador.id, applying only what changed locally.
+        const { data: latest, error: fetchErr } = await supabase
+          .from("rh_efetivo")
+          .select("colaboradores, deleted_ids")
+          .eq("id", existingRowId)
+          .maybeSingle();
+        if (fetchErr) throw fetchErr;
+
+        let merged: Colaborador[] = colaboradores;
+        let mergedDeleted: number[] = deletedIds;
+
+        if (latest) {
+          const dbColabs = ((latest.colaboradores as unknown) as Colaborador[]) || [];
+          const dbDeleted = ((latest.deleted_ids as unknown) as number[]) || [];
+
+          // Build map from local list (source of truth for items present locally)
+          const localById = new Map<number, Colaborador>(
+            colaboradores.map((c) => [c.id, c])
+          );
+          const localIds = new Set(colaboradores.map((c) => c.id));
+
+          // Start from DB version, override with local edits, keep DB-only items
+          // that didn't exist locally (added by another user concurrently).
+          const result: Colaborador[] = [];
+          const seen = new Set<number>();
+          for (const dbC of dbColabs) {
+            if (localById.has(dbC.id)) {
+              result.push(localById.get(dbC.id)!);
+            } else if (!deletedIds.includes(dbC.id)) {
+              // Item added by another user - keep it
+              result.push(dbC);
+            }
+            seen.add(dbC.id);
+          }
+          // Append any new local items not in DB
+          for (const localC of colaboradores) {
+            if (!seen.has(localC.id)) result.push(localC);
+          }
+          merged = result;
+          mergedDeleted = Array.from(new Set([...dbDeleted, ...deletedIds]))
+            .filter((id) => !localIds.has(id));
+        }
+
         const { error } = await supabase
           .from("rh_efetivo")
           .update({
-            colaboradores: colaboradores as any,
-            deleted_ids: deletedIds as any,
+            colaboradores: merged as any,
+            deleted_ids: mergedDeleted as any,
             imported_at: new Date().toISOString(),
           })
           .eq("id", existingRowId);
