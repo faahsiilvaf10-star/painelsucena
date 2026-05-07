@@ -86,11 +86,13 @@ function diffDays(target: Date, base: Date): number {
 }
 
 const EXPORT_EXTRA_BOTTOM = 92;
+const EXPORT_WIDTH = 980;
 
 function getCronogramaExportSize(el: HTMLElement) {
   const rect = el.getBoundingClientRect();
+  const width = Math.ceil(Math.max(EXPORT_WIDTH, rect.width, el.scrollWidth));
   return {
-    width: Math.ceil(rect.width),
+    width,
     height: Math.ceil(Math.max(rect.height, el.scrollHeight) + EXPORT_EXTRA_BOTTOM),
   };
 }
@@ -110,6 +112,11 @@ function prepareCronogramaClone(doc: Document, width: number, height: number) {
   card?.querySelectorAll<HTMLElement>(".overflow-x-auto").forEach((wrap) => {
     wrap.style.overflow = "visible";
     wrap.style.width = "100%";
+  });
+
+  card?.querySelectorAll<HTMLElement>(".cronograma-table").forEach((table) => {
+    table.style.width = "100%";
+    table.style.minWidth = "0";
   });
 
   doc.querySelectorAll<HTMLInputElement>("input.data-input").forEach((inp) => {
