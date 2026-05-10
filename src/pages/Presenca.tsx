@@ -119,9 +119,15 @@ const ROLE_LABELS: Record<string, string> = {
   "AUXILIAR DE ALMOXARIFE": "AUXILIAR DE ALMOXARIFE",
 };
 
+import { useProfile } from "@/hooks/useProfile";
+import { useIsAdmin } from "@/hooks/useUserRole";
+
 const Presenca = () => {
+  const { data: profile } = useProfile();
+  const { isAdmin } = useIsAdmin();
   const queryClient = useQueryClient();
   const { data: rhData, isLoading } = useRHEfetivo();
+
   const {
     data: assignments,
     assignMutation,
@@ -135,7 +141,19 @@ const Presenca = () => {
     useAttendanceReportLocks(date);
   const { data: dailyMarks, getAbsentIds, saveMutation: marksSaveMutation } =
     useAttendanceDailyMarks(date);
-  const [activeArea, setActiveArea] = useState<AttendanceArea>("gabiao");
+  const initialArea = useMemo(() => {
+    if (profile?.cargo === "encarregado_ii") return "jardinagem";
+    return "gabiao";
+  }, [profile?.cargo]);
+
+  const [activeArea, setActiveArea] = useState<AttendanceArea>(initialArea);
+  
+  useEffect(() => {
+    if (profile?.cargo === "encarregado_ii") {
+      setActiveArea("jardinagem");
+    }
+  }, [profile?.cargo]);
+
   const [absentByArea, setAbsentByArea] = useState<
     Record<AttendanceArea, Set<number>>
   >({
@@ -143,6 +161,7 @@ const Presenca = () => {
     jardinagem: new Set(),
     adm: new Set(),
   });
+
 
   // Sincroniza ausências salvas (banco) com o estado local
   useEffect(() => {
@@ -454,6 +473,12 @@ const Presenca = () => {
               const count = allColaboradores.filter(
                 (c) => employeeAreaMap.get(c.id) === a.id
               ).length;
+              
+              // Se for Encarregado II, ele só vê jardinagem
+              if (profile?.cargo === "encarregado_ii" && a.id !== "jardinagem") {
+                return null;
+              }
+              
               return (
                 <TabsTrigger key={a.id} value={a.id}>
                   {a.label}
@@ -462,6 +487,7 @@ const Presenca = () => {
               );
             })}
           </TabsList>
+
 
           {AREAS.map((a) => (
             <TabsContent key={a.id} value={a.id} className="space-y-4 mt-4">
