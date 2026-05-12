@@ -142,16 +142,16 @@ const Presenca = () => {
   const { data: dailyMarks, getAbsentIds, saveMutation: marksSaveMutation } =
     useAttendanceDailyMarks(date);
   const initialArea = useMemo(() => {
-    if (profile?.cargo === "encarregado_ii") return "jardinagem";
     return "gabiao";
-  }, [profile?.cargo]);
+  }, []);
 
   const [activeArea, setActiveArea] = useState<AttendanceArea>(initialArea);
   
   useEffect(() => {
-    if (profile?.cargo === "encarregado_ii") {
-      setActiveArea("jardinagem");
-    }
+    // Se for Encarregado II, ele já tem acesso a todas as áreas, então não precisamos forçar jardinagem
+    // mas se o usuário quiser que ele comece em jardinagem, podemos manter.
+    // O pedido original era "O Encarregado II terá acesso a lista de presença da Jardinagem tambem" (implica que ele já via outras?)
+    // Mas agora "Coloque para todos as listas de presentes exibir para os dois encarregados I e II"
   }, [profile?.cargo]);
 
   const [absentByArea, setAbsentByArea] = useState<
@@ -473,11 +473,6 @@ const Presenca = () => {
               const count = allColaboradores.filter(
                 (c) => employeeAreaMap.get(c.id) === a.id
               ).length;
-              
-              // Se for Encarregado II, ele só vê jardinagem
-              if (profile?.cargo === "encarregado_ii" && a.id !== "jardinagem") {
-                return null;
-              }
               
               return (
                 <TabsTrigger key={a.id} value={a.id}>

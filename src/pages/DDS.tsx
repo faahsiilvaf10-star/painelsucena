@@ -226,7 +226,8 @@ export default function DDS() {
   const today = new Date();
   const isWeekday = !isWeekend(today);
   const isTecnicoSeguranca = profile?.cargo === "tecnico_seguranca_i" || profile?.cargo === "tecnico_seguranca_ii";
-  const canEdit = isAdmin || (isTecnicoSeguranca && isWeekday);
+  const isEncarregado = profile?.cargo === "encarregado_i" || profile?.cargo === "encarregado_ii";
+  const canEdit = isAdmin || (isTecnicoSeguranca && isWeekday) || isEncarregado;
 
   // Schedule map for quick lookup
   const scheduleMap = useMemo(() => {
