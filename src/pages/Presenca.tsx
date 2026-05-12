@@ -148,10 +148,7 @@ const Presenca = () => {
   const [activeArea, setActiveArea] = useState<AttendanceArea>(initialArea);
   
   useEffect(() => {
-    // Se for Encarregado II, ele já tem acesso a todas as áreas, então não precisamos forçar jardinagem
-    // mas se o usuário quiser que ele comece em jardinagem, podemos manter.
-    // O pedido original era "O Encarregado II terá acesso a lista de presença da Jardinagem tambem" (implica que ele já via outras?)
-    // Mas agora "Coloque para todos as listas de presentes exibir para os dois encarregados I e II"
+    // Todos os encarregados I e II veem todas as áreas e podem salvar
   }, [profile?.cargo]);
 
   const [absentByArea, setAbsentByArea] = useState<
