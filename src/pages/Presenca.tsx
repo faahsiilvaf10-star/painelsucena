@@ -141,7 +141,7 @@ const Presenca = () => {
     useAttendanceReportLocks(date);
   const { data: dailyMarks, getAbsentIds, saveMutation: marksSaveMutation } =
     useAttendanceDailyMarks(date);
-  const initialArea = useMemo(() => {
+  const initialArea = useMemo<AttendanceArea>(() => {
     return "gabiao";
   }, []);
 
