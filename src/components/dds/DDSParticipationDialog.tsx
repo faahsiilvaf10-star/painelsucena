@@ -56,6 +56,8 @@ const UNLOCK_CARGOS = [
   "tecnico_seguranca_i",
   "tecnico_seguranca_ii",
   "tecnico_meio_ambiente",
+  "encarregado_i",
+  "encarregado_ii",
 ];
 
 const useDDSLock = (date: string) => {
