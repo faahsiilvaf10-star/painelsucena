@@ -199,10 +199,13 @@ export default function RDO() {
     return null;
   }, [allReports, selectedDate]);
 
-  // Prioriza SEMPRE a temperatura atual em tempo real na prévia, independente do dia selecionado.
-  const displayTemp = currentTemp ?? frozenTemp ?? savedTemp ?? prevDayTemp;
+  // Para HOJE: mostra a temperatura ATUAL em tempo real (atualiza durante o dia).
+  // Para dias anteriores: mostra a ÚLTIMA temperatura salva daquele dia.
+  const displayTemp = isToday
+    ? (currentTemp ?? frozenTemp ?? savedTemp)
+    : (savedTemp ?? prevDayTemp);
   const showTemperature = !!displayTemp;
-  const isLiveTemp = !!(currentTemp ?? frozenTemp);
+  const isLiveTemp = isToday && !!(currentTemp ?? frozenTemp);
 
   // Auto-persiste a temperatura no banco quando estamos no dia atual e temos um valor capturado.
   // Garante que o RDO do "dia anterior" sempre tenha a última temperatura registrada (ex: 16h).
@@ -506,7 +509,7 @@ ${jardinagemEquipmentText}
     Condições climáticas:
 • MANHÃ = ${weatherLabels[weatherMorning]}
 • TARDE = ${weatherLabels[weatherAfternoon]}${showTemperature && displayTemp ? `
-• 🌡️ TEMPERATURA${isLiveTemp ? " ATUAL" : " (16h)"} = ${displayTemp.temperature}°C (sensação ${displayTemp.apparentTemp}°C)` : ""}
+• 🌡️ TEMPERATURA${isLiveTemp ? " ATUAL" : ""} = ${displayTemp.temperature}°C (sensação ${displayTemp.apparentTemp}°C)` : ""}
 
 ${E.EMOJI_WARNING} DIFICULDADES/DESVIOS
 ${difficulties}`;
@@ -679,12 +682,12 @@ ${difficulties}`;
             <div className="flex flex-wrap gap-2">
               <Badge variant="outline" className="text-xs bg-blue-500/10 text-blue-600 border-blue-500/20 gap-1.5 py-1">
                 <Sun className="h-3 w-3" />
-                {isLiveTemp ? "Temperatura Atual" : "Temperatura (16h)"}: {displayTemp.temperature}°C (sensação {displayTemp.apparentTemp}°C)
+                {isLiveTemp ? "Temperatura Atual" : "Temperatura"}: {displayTemp.temperature}°C (sensação {displayTemp.apparentTemp}°C)
               </Badge>
               {prevDayTemp && displayTemp !== prevDayTemp && (
                 <Badge variant="outline" className="text-xs bg-indigo-500/10 text-indigo-600 border-indigo-500/20 gap-1.5 py-1">
                   <Sun className="h-3 w-3" />
-                  Ontem (16h): {prevDayTemp.temperature}°C (sensação {prevDayTemp.apparentTemp}°C)
+                  Ontem: {prevDayTemp.temperature}°C (sensação {prevDayTemp.apparentTemp}°C)
                 </Badge>
               )}
             </div>
