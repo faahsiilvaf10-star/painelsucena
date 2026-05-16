@@ -319,7 +319,7 @@ const NotasFiscais = () => {
             <DialogTitle>Visualizar Arquivo</DialogTitle>
           </DialogHeader>
           {previewUrl && (
-            previewUrl.endsWith(".pdf") ? (
+            /\.pdf(\?|$)/i.test(previewUrl) ? (
               <iframe src={previewUrl} className="w-full h-[70vh] rounded-md" />
             ) : (
               <img src={previewUrl} alt="Nota Fiscal" className="w-full max-h-[70vh] object-contain rounded-md" />
