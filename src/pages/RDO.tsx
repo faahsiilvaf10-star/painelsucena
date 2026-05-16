@@ -682,7 +682,7 @@ ${difficulties}`;
             <div className="flex flex-wrap gap-2">
               <Badge variant="outline" className="text-xs bg-blue-500/10 text-blue-600 border-blue-500/20 gap-1.5 py-1">
                 <Sun className="h-3 w-3" />
-                {isLiveTemp ? "Temperatura Atual" : "Temperatura (16h)"}: {displayTemp.temperature}°C (sensação {displayTemp.apparentTemp}°C)
+                {isLiveTemp ? "Temperatura Atual" : "Temperatura"}: {displayTemp.temperature}°C (sensação {displayTemp.apparentTemp}°C)
               </Badge>
               {prevDayTemp && displayTemp !== prevDayTemp && (
                 <Badge variant="outline" className="text-xs bg-indigo-500/10 text-indigo-600 border-indigo-500/20 gap-1.5 py-1">
