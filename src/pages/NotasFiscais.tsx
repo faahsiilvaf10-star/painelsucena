@@ -34,6 +34,46 @@ const NotasFiscais = () => {
 
   const canEdit = isAdmin || profile?.cargo === "aux_administrativo" || profile?.cargo === "preposto";
 
+  // Extrai o path interno do bucket a partir do file_url salvo.
+  // Suporta tanto URLs públicas legadas (/storage/v1/object/public/notas-fiscais/<path>)
+  // quanto paths já normalizados (uploads novos).
+  const extractPath = (fileUrl: string): string => {
+    const marker = "/notas-fiscais/";
+    const idx = fileUrl.indexOf(marker);
+    if (idx >= 0) return fileUrl.substring(idx + marker.length).split("?")[0];
+    return fileUrl;
+  };
+
+  const getSignedUrl = async (fileUrl: string): Promise<string | null> => {
+    const path = extractPath(fileUrl);
+    const { data, error } = await supabase.storage
+      .from("notas-fiscais")
+      .createSignedUrl(path, 300); // 5 min
+    if (error || !data) {
+      toast.error("Não foi possível abrir o arquivo");
+      return null;
+    }
+    return data.signedUrl;
+  };
+
+  const handlePreview = async (fileUrl: string) => {
+    const url = await getSignedUrl(fileUrl);
+    if (url) setPreviewUrl(url);
+  };
+
+  const handleDownload = async (fileUrl: string, fileName?: string | null) => {
+    const url = await getSignedUrl(fileUrl);
+    if (!url) return;
+    const a = document.createElement("a");
+    a.href = url;
+    a.target = "_blank";
+    a.rel = "noopener noreferrer";
+    if (fileName) a.download = fileName;
+    document.body.appendChild(a);
+    a.click();
+    document.body.removeChild(a);
+  };
+
   const { data: notas, isLoading } = useQuery({
     queryKey: ["notas-fiscais"],
     queryFn: async () => {
