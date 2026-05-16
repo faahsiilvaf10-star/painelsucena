@@ -163,14 +163,13 @@ export default function RDO() {
     return () => clearInterval(interval);
   }, [isBeforeCutoff]);
 
-  // Mostra a temperatura sempre que existir (hoje em tempo real, dias anteriores via valor salvo).
+  // Mostra a temperatura ATUAL sempre na prévia, independente do dia selecionado.
   const [frozenTemp, setFrozenTemp] = useState<{ temperature: number; apparentTemp: number; humidity: number; fetchedAt: string } | null>(null);
-  // Faz fetch/auto-refresh apenas quando for hoje. Após 16h, congela no último valor capturado.
-  const { data: currentTemp } = useCurrentTemperature(isToday && (isBeforeCutoff || !frozenTemp));
+  // Sempre busca a temperatura atual (em tempo real) para exibir na prévia, mesmo ao editar RDO de dias anteriores.
+  const { data: currentTemp } = useCurrentTemperature(true);
   useEffect(() => {
-    if (currentTemp && isBeforeCutoff) setFrozenTemp(currentTemp);
-    else if (currentTemp && !frozenTemp) setFrozenTemp(currentTemp);
-  }, [currentTemp, isBeforeCutoff, frozenTemp]);
+    if (currentTemp) setFrozenTemp(currentTemp);
+  }, [currentTemp]);
 
   // Para dias anteriores: usa o valor salvo no banco (existingReport.temperature)
   const savedTemp = existingReport && existingReport.temperature != null
