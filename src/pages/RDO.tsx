@@ -199,10 +199,13 @@ export default function RDO() {
     return null;
   }, [allReports, selectedDate]);
 
-  // Prioriza SEMPRE a temperatura atual em tempo real na prévia, independente do dia selecionado.
-  const displayTemp = currentTemp ?? frozenTemp ?? savedTemp ?? prevDayTemp;
+  // Para HOJE: mostra a temperatura ATUAL em tempo real (atualiza durante o dia).
+  // Para dias anteriores: mostra a ÚLTIMA temperatura salva daquele dia.
+  const displayTemp = isToday
+    ? (currentTemp ?? frozenTemp ?? savedTemp)
+    : (savedTemp ?? prevDayTemp);
   const showTemperature = !!displayTemp;
-  const isLiveTemp = !!(currentTemp ?? frozenTemp);
+  const isLiveTemp = isToday && !!(currentTemp ?? frozenTemp);
 
   // Auto-persiste a temperatura no banco quando estamos no dia atual e temos um valor capturado.
   // Garante que o RDO do "dia anterior" sempre tenha a última temperatura registrada (ex: 16h).
