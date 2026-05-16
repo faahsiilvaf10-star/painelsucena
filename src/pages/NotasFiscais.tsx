@@ -104,7 +104,10 @@ const NotasFiscais = () => {
         const { data: urlData } = supabase.storage
           .from("notas-fiscais")
           .getPublicUrl(path);
-        fileUrl = urlData.publicUrl;
+        // Bucket é privado: guardamos apenas o path. URLs assinadas são geradas sob demanda.
+        // Mantemos getPublicUrl apenas para compatibilidade da extração (não funciona como URL).
+        fileUrl = path;
+        void urlData;
         fileName = file.name;
       }
 
