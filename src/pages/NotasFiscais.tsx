@@ -34,6 +34,46 @@ const NotasFiscais = () => {
 
   const canEdit = isAdmin || profile?.cargo === "aux_administrativo" || profile?.cargo === "preposto";
 
+  // Extrai o path interno do bucket a partir do file_url salvo.
+  // Suporta tanto URLs públicas legadas (/storage/v1/object/public/notas-fiscais/<path>)
+  // quanto paths já normalizados (uploads novos).
+  const extractPath = (fileUrl: string): string => {
+    const marker = "/notas-fiscais/";
+    const idx = fileUrl.indexOf(marker);
+    if (idx >= 0) return fileUrl.substring(idx + marker.length).split("?")[0];
+    return fileUrl;
+  };
+
+  const getSignedUrl = async (fileUrl: string): Promise<string | null> => {
+    const path = extractPath(fileUrl);
+    const { data, error } = await supabase.storage
+      .from("notas-fiscais")
+      .createSignedUrl(path, 300); // 5 min
+    if (error || !data) {
+      toast.error("Não foi possível abrir o arquivo");
+      return null;
+    }
+    return data.signedUrl;
+  };
+
+  const handlePreview = async (fileUrl: string) => {
+    const url = await getSignedUrl(fileUrl);
+    if (url) setPreviewUrl(url);
+  };
+
+  const handleDownload = async (fileUrl: string, fileName?: string | null) => {
+    const url = await getSignedUrl(fileUrl);
+    if (!url) return;
+    const a = document.createElement("a");
+    a.href = url;
+    a.target = "_blank";
+    a.rel = "noopener noreferrer";
+    if (fileName) a.download = fileName;
+    document.body.appendChild(a);
+    a.click();
+    document.body.removeChild(a);
+  };
+
   const { data: notas, isLoading } = useQuery({
     queryKey: ["notas-fiscais"],
     queryFn: async () => {
@@ -64,7 +104,10 @@ const NotasFiscais = () => {
         const { data: urlData } = supabase.storage
           .from("notas-fiscais")
           .getPublicUrl(path);
-        fileUrl = urlData.publicUrl;
+        // Bucket é privado: guardamos apenas o path. URLs assinadas são geradas sob demanda.
+        // Mantemos getPublicUrl apenas para compatibilidade da extração (não funciona como URL).
+        fileUrl = path;
+        void urlData;
         fileName = file.name;
       }
 
@@ -189,15 +232,18 @@ const NotasFiscais = () => {
                               size="sm"
                               variant="ghost"
                               className="h-8 w-8 p-0"
-                              onClick={() => setPreviewUrl(nota.file_url)}
+                              onClick={() => handlePreview(nota.file_url!)}
                             >
                               <Eye className="h-4 w-4" />
                             </Button>
-                            <a href={nota.file_url} target="_blank" rel="noopener noreferrer">
-                              <Button size="sm" variant="ghost" className="h-8 w-8 p-0">
-                                <Download className="h-4 w-4" />
-                              </Button>
-                            </a>
+                            <Button
+                              size="sm"
+                              variant="ghost"
+                              className="h-8 w-8 p-0"
+                              onClick={() => handleDownload(nota.file_url!, nota.file_name)}
+                            >
+                              <Download className="h-4 w-4" />
+                            </Button>
                           </div>
                         ) : (
                           <span className="text-muted-foreground text-xs">-</span>
@@ -273,7 +319,7 @@ const NotasFiscais = () => {
             <DialogTitle>Visualizar Arquivo</DialogTitle>
           </DialogHeader>
           {previewUrl && (
-            previewUrl.endsWith(".pdf") ? (
+            /\.pdf(\?|$)/i.test(previewUrl) ? (
               <iframe src={previewUrl} className="w-full h-[70vh] rounded-md" />
             ) : (
               <img src={previewUrl} alt="Nota Fiscal" className="w-full max-h-[70vh] object-contain rounded-md" />
