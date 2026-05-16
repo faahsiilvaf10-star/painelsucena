@@ -169,71 +169,21 @@ export function useCreateEquipmentMovement() {
 
       if (error) throw error;
 
-      // Sync equipment status based on movement type — only for today's movements
-      // Past-date movements are historical records only and should not change live equipment status
-      const isToday = movementDate === today;
+      // Sync equipment status based on the CHRONOLOGICALLY LATEST movement
+      // for this plate (regardless of when it was registered). This way, registering
+      // a movement with a past date will only affect live status if it is still the
+      // most recent movement; otherwise the status keeps reflecting the latest record.
+      const { data: allPlateMovements } = await supabase
+        .from("equipment_movements")
+        .select("*")
+        .eq("plate", movement.plate)
+        .order("movement_date", { ascending: false })
+        .order("movement_time", { ascending: false })
+        .limit(1);
 
-      if (isToday && movement.movement_type === "saida" && movement.exit_reason) {
-        const statusMap: Record<string, string> = {
-          manutencao_corretiva: "manutencao_corretiva",
-          manutencao_preventiva: "manutencao_preventiva",
-          vistoria: "vistoria",
-          fim_turno: "end_of_shift",
-        };
-        const newStopReason = statusMap[movement.exit_reason];
-        if (newStopReason) {
-          const { data: eqData } = await supabase
-            .from("equipment")
-            .select("id")
-            .eq("plate", movement.plate)
-            .single();
+      const latestMovement = (allPlateMovements?.[0] as EquipmentMovement | undefined);
 
-          if (eqData) {
-            // Use movement date/time instead of now() so history aligns with the requested date
-            const movementIso = new Date(`${movementDate}T${movementTime}:00`).toISOString();
-
-            await supabase
-              .from("equipment")
-              .update({
-                stop_reason: newStopReason,
-                stop_start_time: movementIso,
-              })
-              .eq("id", eqData.id);
-
-            const { data: openStop } = await supabase
-              .from("equipment_stop_history")
-              .select("id, started_at")
-              .eq("equipment_id", eqData.id)
-              .is("ended_at", null)
-              .order("started_at", { ascending: false })
-              .limit(1)
-              .maybeSingle();
-
-            if (openStop) {
-              const durationMinutes = Math.round(
-                (new Date(movementIso).getTime() - new Date(openStop.started_at).getTime()) / 60000
-              );
-              await supabase
-                .from("equipment_stop_history")
-                .update({ ended_at: movementIso, duration_minutes: durationMinutes })
-                .eq("id", openStop.id);
-            }
-
-            await supabase
-              .from("equipment_stop_history")
-              .insert({
-                equipment_id: eqData.id,
-                stop_reason: newStopReason,
-                started_at: movementIso,
-                defect_description: movement.problem_description || null,
-                changed_by_driver: user.id,
-              });
-          }
-        }
-      }
-
-      // When equipment returns (entrada), reset status to operating — only for today
-      if (isToday && movement.movement_type === "entrada") {
+      if (latestMovement) {
         const { data: eqData } = await supabase
           .from("equipment")
           .select("id")
@@ -241,34 +191,87 @@ export function useCreateEquipmentMovement() {
           .single();
 
         if (eqData) {
-          const movementIso = new Date(`${movementDate}T${movementTime}:00`).toISOString();
+          const latestIso = new Date(`${latestMovement.movement_date}T${latestMovement.movement_time}:00`).toISOString();
 
-          await supabase
-            .from("equipment")
-            .update({
-              stop_reason: "none",
-              stop_start_time: null,
-            })
-            .eq("id", eqData.id);
+          if (latestMovement.movement_type === "saida") {
+            const statusMap: Record<string, string> = {
+              manutencao_corretiva: "manutencao_corretiva",
+              manutencao_preventiva: "manutencao_preventiva",
+              vistoria: "vistoria",
+              fim_turno: "end_of_shift",
+            };
+            const newStopReason = latestMovement.exit_reason
+              ? statusMap[latestMovement.exit_reason] || "end_of_shift"
+              : "end_of_shift";
 
-          // Close any open stop history entry
-          const { data: openStop } = await supabase
-            .from("equipment_stop_history")
-            .select("id, started_at")
-            .eq("equipment_id", eqData.id)
-            .is("ended_at", null)
-            .order("started_at", { ascending: false })
-            .limit(1)
-            .maybeSingle();
-
-          if (openStop) {
-            const durationMinutes = Math.round(
-              (new Date(movementIso).getTime() - new Date(openStop.started_at).getTime()) / 60000
-            );
             await supabase
-              .from("equipment_stop_history")
-              .update({ ended_at: movementIso, duration_minutes: durationMinutes })
-              .eq("id", openStop.id);
+              .from("equipment")
+              .update({
+                stop_reason: newStopReason,
+                stop_start_time: latestIso,
+              })
+              .eq("id", eqData.id);
+
+            // Only manage stop_history when the inserted movement is the latest one
+            if (latestMovement.id === data.id) {
+              const { data: openStop } = await supabase
+                .from("equipment_stop_history")
+                .select("id, started_at")
+                .eq("equipment_id", eqData.id)
+                .is("ended_at", null)
+                .order("started_at", { ascending: false })
+                .limit(1)
+                .maybeSingle();
+
+              if (openStop) {
+                const durationMinutes = Math.round(
+                  (new Date(latestIso).getTime() - new Date(openStop.started_at).getTime()) / 60000
+                );
+                await supabase
+                  .from("equipment_stop_history")
+                  .update({ ended_at: latestIso, duration_minutes: durationMinutes })
+                  .eq("id", openStop.id);
+              }
+
+              await supabase
+                .from("equipment_stop_history")
+                .insert({
+                  equipment_id: eqData.id,
+                  stop_reason: newStopReason,
+                  started_at: latestIso,
+                  defect_description: latestMovement.problem_description || null,
+                  changed_by_driver: user.id,
+                });
+            }
+          } else if (latestMovement.movement_type === "entrada") {
+            await supabase
+              .from("equipment")
+              .update({
+                stop_reason: "none",
+                stop_start_time: null,
+              })
+              .eq("id", eqData.id);
+
+            if (latestMovement.id === data.id) {
+              const { data: openStop } = await supabase
+                .from("equipment_stop_history")
+                .select("id, started_at")
+                .eq("equipment_id", eqData.id)
+                .is("ended_at", null)
+                .order("started_at", { ascending: false })
+                .limit(1)
+                .maybeSingle();
+
+              if (openStop) {
+                const durationMinutes = Math.round(
+                  (new Date(latestIso).getTime() - new Date(openStop.started_at).getTime()) / 60000
+                );
+                await supabase
+                  .from("equipment_stop_history")
+                  .update({ ended_at: latestIso, duration_minutes: durationMinutes })
+                  .eq("id", openStop.id);
+              }
+            }
           }
         }
       }
