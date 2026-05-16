@@ -232,15 +232,18 @@ const NotasFiscais = () => {
                               size="sm"
                               variant="ghost"
                               className="h-8 w-8 p-0"
-                              onClick={() => setPreviewUrl(nota.file_url)}
+                              onClick={() => handlePreview(nota.file_url!)}
                             >
                               <Eye className="h-4 w-4" />
                             </Button>
-                            <a href={nota.file_url} target="_blank" rel="noopener noreferrer">
-                              <Button size="sm" variant="ghost" className="h-8 w-8 p-0">
-                                <Download className="h-4 w-4" />
-                              </Button>
-                            </a>
+                            <Button
+                              size="sm"
+                              variant="ghost"
+                              className="h-8 w-8 p-0"
+                              onClick={() => handleDownload(nota.file_url!, nota.file_name)}
+                            >
+                              <Download className="h-4 w-4" />
+                            </Button>
                           </div>
                         ) : (
                           <span className="text-muted-foreground text-xs">-</span>
