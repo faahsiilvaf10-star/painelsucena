@@ -46,6 +46,8 @@ export default function RegistroMovimentoMotorista() {
   const { data: equipmentCurrentlyOut = [] } = useEquipmentCurrentlyOut();
   const createMovement = useCreateEquipmentMovement();
   const updateShiftRecord = useUpdateShiftRecord();
+  const { addPendingAction, isOnline } = useOfflineSyncV2();
+  const { user } = useAuth();
 
   const [movementType, setMovementType] = useState<MovementType | null>(null);
   const [selectedEquipment, setSelectedEquipment] = useState<string>("");
