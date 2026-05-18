@@ -32,6 +32,11 @@ const ProtectedRoute = ({ children }: ProtectedRouteProps) => {
     const authClient = supabase.auth as any;
 
     const checkDailyLogout = async () => {
+      // Motoristas permanecem logados indefinidamente — sem logout diário.
+      if (localStorage.getItem("is_driver_session") === "true") {
+        return false;
+      }
+
       const lastLoginDate = localStorage.getItem("last_login_date");
       const today = new Date();
       const todayStr = today.toISOString().split("T")[0];
@@ -39,8 +44,6 @@ const ProtectedRoute = ({ children }: ProtectedRouteProps) => {
       const sixAM = new Date();
       sixAM.setHours(6, 0, 0, 0);
 
-      // Se for antes das 06:00, consideramos a "data de login válida" como o dia anterior
-      // (pois o logout só ocorre às 06:00 do dia atual)
       const effectiveTodayStr = today < sixAM 
         ? new Date(today.getTime() - 24 * 60 * 60 * 1000).toISOString().split("T")[0]
         : todayStr;
