@@ -29,6 +29,7 @@ export default function SelecaoVeiculo() {
   const { data: equipment = [], isLoading } = useEquipment();
   
   const queryClient = useQueryClient();
+  const { addPendingAction, isOnline } = useOfflineSyncV2();
   const [selectedVehicle, setSelectedVehicle] = useState<string | null>(null);
   const [helperName, setHelperName] = useState("");
   const [isConfirming, setIsConfirming] = useState(false);
