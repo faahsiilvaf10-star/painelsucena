@@ -53,16 +53,47 @@ const buildWapiEndpoint = (rawUrl: string, instanceId: string): string => {
   return url.toString();
 };
 
-async function sendWapiText(cfg: any, phone: string, message: string) {
+async function enqueueWapi(
+  targetType: "contact" | "group",
+  phone: string,
+  message: string,
+  origin: string,
+  photoUrls: string[] = [],
+) {
   const client = createClient(Deno.env.get("SUPABASE_URL")!, Deno.env.get("SUPABASE_SERVICE_ROLE_KEY")!);
-  const { error } = await client.from("wapi_outbox").insert({
-    kind: "text",
-    target_type: "contact",
-    phone,
-    message,
-    origin: "order",
-  });
-  return { ok: !error, status: error ? 500 : 202, body: error ? { error: error.message } : { queued: true } };
+  const rows: any[] = [];
+  if (photoUrls && photoUrls.length > 0) {
+    // First photo carries the full caption
+    rows.push({
+      kind: "image",
+      target_type: targetType,
+      phone,
+      image_url: photoUrls[0],
+      caption: message,
+      origin,
+    });
+    // Additional photos (if any) without caption
+    for (let i = 1; i < photoUrls.length; i++) {
+      rows.push({
+        kind: "image",
+        target_type: targetType,
+        phone,
+        image_url: photoUrls[i],
+        caption: "",
+        origin,
+      });
+    }
+  } else {
+    rows.push({
+      kind: "text",
+      target_type: targetType,
+      phone,
+      message,
+      origin,
+    });
+  }
+  const { error } = await client.from("wapi_outbox").insert(rows);
+  return { ok: !error, status: error ? 500 : 202, body: error ? { error: error.message } : { queued: rows.length } };
 }
 
 Deno.serve(async (req) => {
