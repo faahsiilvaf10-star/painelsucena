@@ -123,19 +123,30 @@ export const queryClient = new QueryClient({
       gcTime: 1000 * 60 * 30,  // Aumentado para 30 minutos
       refetchOnWindowFocus: false,
       refetchOnReconnect: "always", // Garante consistência sem sobrecarregar
+      networkMode: "offlineFirst", // Usa cache mesmo sem internet
     },
     mutations: {
       retry: 1,
       retryDelay: 1000,
+      networkMode: "offlineFirst",
     },
   },
 });
 
-// Limpa todo o cache de queries quando o ambiente é trocado para evitar
-// que dados do ambiente anterior fiquem visíveis.
+// Hidrata o cache do React Query a partir do localStorage para garantir
+// que o Painel do Motorista funcione offline (leituras) imediatamente
+// após reload, e inicia a persistência contínua das queries críticas.
 if (typeof window !== "undefined") {
+  import("@/lib/queryCachePersister").then(({ hydrateQueryCache, startQueryCachePersistence }) => {
+    hydrateQueryCache(queryClient);
+    startQueryCachePersistence(queryClient);
+  }).catch((e) => console.warn("[queryCachePersister] init failed", e));
+
+  // Limpa todo o cache de queries quando o ambiente é trocado para evitar
+  // que dados do ambiente anterior fiquem visíveis.
   window.addEventListener("environment-changed", () => {
     queryClient.clear();
+    try { localStorage.removeItem("driver_query_cache_v1"); } catch {}
   });
 }
 
