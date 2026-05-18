@@ -282,7 +282,7 @@ const RH = () => {
   const filteredColaboradores = useMemo(() => {
     const searchLower = searchTerm.toLowerCase();
     
-    let result = colaboradores.filter((colaborador) => {
+    const result = colaboradores.filter((colaborador) => {
       const matchesSearch =
         colaborador.nome.toLowerCase().includes(searchLower) ||
         colaborador.funcao.toLowerCase().includes(searchLower) ||
@@ -308,7 +308,7 @@ const RH = () => {
         case "funcao":
           comparison = a.funcao.localeCompare(b.funcao);
           break;
-        case "admissao":
+        case "admissao": {
           // Parse date in DD/MM/YYYY format
           const parseDate = (dateStr: string) => {
             const [day, month, year] = dateStr.split('/').map(Number);
@@ -316,6 +316,7 @@ const RH = () => {
           };
           comparison = parseDate(a.admissao) - parseDate(b.admissao);
           break;
+        }
         case "matricula":
           comparison = parseInt(a.matricula) - parseInt(b.matricula);
           break;
@@ -735,6 +736,7 @@ const RH = () => {
                               today.setHours(0, 0, 0, 0);
                               const validade = getEffectiveAsoExpiry(aso, colaborador.admissao);
                               const validadeStr = getEffectiveAsoExpiryStr(aso, colaborador.admissao);
+                              const displayedValidade = validadeStr || aso?.validade || "-";
                               const diffDays = validade ? Math.ceil((validade.getTime() - today.getTime()) / (1000 * 60 * 60 * 24)) : null;
                               
                               let farolColor = "text-muted-foreground";
@@ -817,8 +819,8 @@ const RH = () => {
                                       </div>
                                       <div>
                                         <p className="text-xs text-muted-foreground">Validade</p>
-                                        <p className={`text-sm font-medium ${farolColor}`}>{aso?.validade || validadeStr || "-"}</p>
-                                        {!aso?.validade && validadeStr && (
+                                        <p className={`text-sm font-medium ${farolColor}`}>{displayedValidade}</p>
+                                        {validadeStr && aso?.validade !== validadeStr && (
                                           <p className="text-[10px] text-muted-foreground mt-0.5">(calculada)</p>
                                         )}
                                       </div>
