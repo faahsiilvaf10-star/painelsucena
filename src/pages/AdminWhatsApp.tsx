@@ -195,8 +195,11 @@ const AdminWhatsApp = () => {
       setGroupIdAtaContrato((c.group_id_ata_contrato as string | null) || "");
       setAutoSendCronogramaMirante(!!(c.auto_send_cronograma_mirante as boolean | null));
       setGroupIdCronogramaMirante((c.group_id_cronograma_mirante as string | null) || "");
+      setAutoSendDriverStatus(!!(c.auto_send_driver_status as boolean | null));
+      setGroupIdDriverStatus((c.group_id_driver_status as string | null) || "");
     }
   }, [cfg]);
+
 
   const { data: profiles } = useQuery({
     queryKey: ["wapi-profiles"],
