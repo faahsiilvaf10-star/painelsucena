@@ -129,7 +129,7 @@ Deno.serve(async (req) => {
     // Fetch order
     const { data: order, error: orderErr } = await admin
       .from("orders")
-      .select("id, order_number, product_name, description, requester_id, requester_name, mentioned_user_id, expected_date, notes, created_at")
+      .select("id, order_number, product_name, description, requester_id, requester_name, mentioned_user_id, expected_date, notes, created_at, photo_urls")
       .eq("id", orderId)
       .single();
 
