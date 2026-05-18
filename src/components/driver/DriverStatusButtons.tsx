@@ -38,6 +38,7 @@ import { FuelLevelGauge, type FuelLevel } from "./FuelLevelGauge";
 import { useOfflineSyncV2 } from "@/hooks/useOfflineSyncV2";
 import { useCreateShiftRecord, useUpdateShiftRecord, useAddStatusToHistory } from "@/hooks/useDailyShiftRecords";
 import { useCreateEquipmentMovement } from "@/hooks/useEquipmentMovements";
+import { generateAndUploadParteDiariaPng } from "@/lib/parteDiariaShare";
 
 type DriverStopReason = StopReason;
 
