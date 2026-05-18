@@ -53,16 +53,47 @@ const buildWapiEndpoint = (rawUrl: string, instanceId: string): string => {
   return url.toString();
 };
 
-async function sendWapiText(cfg: any, phone: string, message: string) {
+async function enqueueWapi(
+  targetType: "contact" | "group",
+  phone: string,
+  message: string,
+  origin: string,
+  photoUrls: string[] = [],
+) {
   const client = createClient(Deno.env.get("SUPABASE_URL")!, Deno.env.get("SUPABASE_SERVICE_ROLE_KEY")!);
-  const { error } = await client.from("wapi_outbox").insert({
-    kind: "text",
-    target_type: "contact",
-    phone,
-    message,
-    origin: "order",
-  });
-  return { ok: !error, status: error ? 500 : 202, body: error ? { error: error.message } : { queued: true } };
+  const rows: any[] = [];
+  if (photoUrls && photoUrls.length > 0) {
+    // First photo carries the full caption
+    rows.push({
+      kind: "image",
+      target_type: targetType,
+      phone,
+      image_url: photoUrls[0],
+      caption: message,
+      origin,
+    });
+    // Additional photos (if any) without caption
+    for (let i = 1; i < photoUrls.length; i++) {
+      rows.push({
+        kind: "image",
+        target_type: targetType,
+        phone,
+        image_url: photoUrls[i],
+        caption: "",
+        origin,
+      });
+    }
+  } else {
+    rows.push({
+      kind: "text",
+      target_type: targetType,
+      phone,
+      message,
+      origin,
+    });
+  }
+  const { error } = await client.from("wapi_outbox").insert(rows);
+  return { ok: !error, status: error ? 500 : 202, body: error ? { error: error.message } : { queued: rows.length } };
 }
 
 Deno.serve(async (req) => {
@@ -98,7 +129,7 @@ Deno.serve(async (req) => {
     // Fetch order
     const { data: order, error: orderErr } = await admin
       .from("orders")
-      .select("id, order_number, product_name, description, requester_id, requester_name, mentioned_user_id, expected_date, notes, created_at")
+      .select("id, order_number, product_name, description, requester_id, requester_name, mentioned_user_id, expected_date, notes, created_at, photo_urls")
       .eq("id", orderId)
       .single();
 
@@ -171,6 +202,10 @@ Deno.serve(async (req) => {
       });
     }
 
+    const photoUrls: string[] = Array.isArray((order as any).photo_urls)
+      ? ((order as any).photo_urls as string[]).filter((u) => typeof u === "string" && u.length > 0)
+      : [];
+
     // Get target user phone (only if there's a target user)
     let targetProfile: any = null;
     let phone = "";
@@ -185,7 +220,7 @@ Deno.serve(async (req) => {
       targetProfile = tp;
       phone = sanitizePhone(tp?.whatsapp_number || "");
       if (phone) {
-        result = await sendWapiText(cfg, phone, message);
+        result = await enqueueWapi("contact", phone, message, "order", photoUrls);
       } else {
         result = { ok: true, skipped: "no-phone" };
       }
@@ -196,15 +231,8 @@ Deno.serve(async (req) => {
     if (cfg.auto_send_orders_to_group) {
       const targetGroupId = (cfg.group_id_orders || cfg.group_id || "").trim();
       if (targetGroupId) {
-        const client = createClient(supabaseUrl, serviceKey);
-        const { error: gErr } = await client.from("wapi_outbox").insert({
-          kind: "text",
-          target_type: "group",
-          phone: targetGroupId,
-          message,
-          origin: "order_group",
-        });
-        groupResult = { ok: !gErr, error: gErr?.message ?? null, group_id: targetGroupId };
+        const r = await enqueueWapi("group", targetGroupId, message, "order_group", photoUrls);
+        groupResult = { ok: r.ok, error: r.ok ? null : (r.body as any)?.error, group_id: targetGroupId };
       } else {
         groupResult = { ok: false, skipped: "no-group-id" };
       }
