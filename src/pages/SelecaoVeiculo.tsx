@@ -8,6 +8,7 @@ import { Label } from "@/components/ui/label";
 import { useAuth } from "@/hooks/useAuth";
 import { useProfile } from "@/hooks/useProfile";
 import { useEquipment } from "@/hooks/useEquipment";
+import { useOfflineSyncV2 } from "@/hooks/useOfflineSyncV2";
 
 import { VehicleIcon } from "@/components/equipamentos/VehicleIcons";
 import { supabase } from "@/integrations/supabase/client";
