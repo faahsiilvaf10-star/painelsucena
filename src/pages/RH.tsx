@@ -735,6 +735,7 @@ const RH = () => {
                               today.setHours(0, 0, 0, 0);
                               const validade = getEffectiveAsoExpiry(aso, colaborador.admissao);
                               const validadeStr = getEffectiveAsoExpiryStr(aso, colaborador.admissao);
+                              const displayedValidade = validadeStr || aso?.validade || "-";
                               const diffDays = validade ? Math.ceil((validade.getTime() - today.getTime()) / (1000 * 60 * 60 * 24)) : null;
                               
                               let farolColor = "text-muted-foreground";
@@ -817,8 +818,8 @@ const RH = () => {
                                       </div>
                                       <div>
                                         <p className="text-xs text-muted-foreground">Validade</p>
-                                        <p className={`text-sm font-medium ${farolColor}`}>{aso?.validade || validadeStr || "-"}</p>
-                                        {!aso?.validade && validadeStr && (
+                                        <p className={`text-sm font-medium ${farolColor}`}>{displayedValidade}</p>
+                                        {validadeStr && aso?.validade !== validadeStr && (
                                           <p className="text-[10px] text-muted-foreground mt-0.5">(calculada)</p>
                                         )}
                                       </div>
