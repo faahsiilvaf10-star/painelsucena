@@ -198,6 +198,15 @@ const ProtectedRoute = ({ children }: ProtectedRouteProps) => {
 
   // If user is a driver
   if (isDriver && !isAdmin) {
+    // Drivers always operate in 'barcarena' — ensure header is set even if a
+    // previous admin session left 'paragominas' in sessionStorage.
+    if (getStoredEnvironment() !== "barcarena") {
+      try {
+        sessionStorage.setItem("selected_environment", "barcarena");
+        window.dispatchEvent(new Event("environment-changed"));
+      } catch { /* ignore */ }
+    }
+
     // If no vehicle selected and not already on vehicle selection page, redirect to vehicle selection
     if (!hasSelectedVehicle && location.pathname !== '/selecao-veiculo') {
       return <Navigate to="/selecao-veiculo" replace />;
