@@ -37,6 +37,8 @@ Deno.serve(async (req) => {
       driverName,
       waterPoint,
       extraInfo,
+      imageUrl,
+      imageCaption,
     } = payload || {};
 
     if (!newStatus) {
