@@ -69,6 +69,7 @@ const ProtectedRoute = ({ children }: ProtectedRouteProps) => {
         setUserCargo(null);
         setCargoChecked(false);
         localStorage.removeItem("last_login_date");
+        localStorage.removeItem("is_driver_session");
         clearStoredEnvironment();
         navigate("/auth", { replace: true });
       }
