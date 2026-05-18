@@ -282,7 +282,7 @@ const RH = () => {
   const filteredColaboradores = useMemo(() => {
     const searchLower = searchTerm.toLowerCase();
     
-    let result = colaboradores.filter((colaborador) => {
+    const result = colaboradores.filter((colaborador) => {
       const matchesSearch =
         colaborador.nome.toLowerCase().includes(searchLower) ||
         colaborador.funcao.toLowerCase().includes(searchLower) ||
@@ -308,7 +308,7 @@ const RH = () => {
         case "funcao":
           comparison = a.funcao.localeCompare(b.funcao);
           break;
-        case "admissao":
+        case "admissao": {
           // Parse date in DD/MM/YYYY format
           const parseDate = (dateStr: string) => {
             const [day, month, year] = dateStr.split('/').map(Number);
@@ -316,6 +316,7 @@ const RH = () => {
           };
           comparison = parseDate(a.admissao) - parseDate(b.admissao);
           break;
+        }
         case "matricula":
           comparison = parseInt(a.matricula) - parseInt(b.matricula);
           break;
