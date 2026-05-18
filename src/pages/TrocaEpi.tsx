@@ -56,6 +56,7 @@ const INVENTORY_DROPDOWN_EPIS: Record<string, { keyword: string; placeholder: st
   bota_couro: { keyword: "bota de segur", placeholder: "Selecione a bota..." },
   lente_protetor_facial: { keyword: "lente", placeholder: "Selecione a lente..." },
   lente_escura: { keyword: "lente escura", placeholder: "Selecione a lente escura..." },
+  capacete: { keyword: "capacete", placeholder: "Selecione o capacete do estoque..." },
 };
 
 const TAMANHOS = ["P", "M", "G", "GG", "XG"];
