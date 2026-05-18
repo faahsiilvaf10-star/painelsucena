@@ -122,6 +122,19 @@ Deno.serve(async (req) => {
       });
     }
 
+    // Optional: also enqueue an image (e.g. Parte Diária PNG) to the same group.
+    if (imageUrl && typeof imageUrl === "string") {
+      const { error: imgErr } = await admin.from("wapi_outbox").insert({
+        kind: "image",
+        target_type: "group",
+        phone: targetGroupId,
+        image_url: imageUrl,
+        caption: imageCaption || `📄 Parte Diária — ${eqName} (${eqPlate})`,
+        origin: "driver-status",
+      });
+      if (imgErr) console.warn("[wapi-driver-status-notify] image enqueue error", imgErr);
+    }
+
     return new Response(JSON.stringify({ success: true, queued: true }), {
       headers: { ...corsHeaders, "Content-Type": "application/json" },
     });
