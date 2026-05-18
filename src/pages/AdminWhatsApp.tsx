@@ -305,7 +305,10 @@ const AdminWhatsApp = () => {
         group_id_ata_contrato: groupIdAtaContrato.trim() || null,
         auto_send_cronograma_mirante: autoSendCronogramaMirante,
         group_id_cronograma_mirante: groupIdCronogramaMirante.trim() || null,
+        auto_send_driver_status: autoSendDriverStatus,
+        group_id_driver_status: groupIdDriverStatus.trim() || null,
         updated_by: user?.id ?? null,
+
       };
       if (cfg?.id) {
         const { error } = await supabase.from("wapi_config" as never).update(payload).eq("id", cfg.id);
