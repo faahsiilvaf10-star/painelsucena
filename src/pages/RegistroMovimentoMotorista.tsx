@@ -12,6 +12,8 @@ import { Alert, AlertDescription } from "@/components/ui/alert";
 import { useEquipment } from "@/hooks/useEquipment";
 import { useCreateEquipmentMovement, useEquipmentCurrentlyOut, ExitReason } from "@/hooks/useEquipmentMovements";
 import { useUpdateShiftRecord } from "@/hooks/useDailyShiftRecords";
+import { useOfflineSyncV2 } from "@/hooks/useOfflineSyncV2";
+import { useAuth } from "@/hooks/useAuth";
 import { supabase } from "@/integrations/supabase/client";
 import { toast } from "sonner";
 
