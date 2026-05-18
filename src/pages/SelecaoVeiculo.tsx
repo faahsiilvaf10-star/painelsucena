@@ -8,6 +8,7 @@ import { Label } from "@/components/ui/label";
 import { useAuth } from "@/hooks/useAuth";
 import { useProfile } from "@/hooks/useProfile";
 import { useEquipment } from "@/hooks/useEquipment";
+import { useOfflineSyncV2 } from "@/hooks/useOfflineSyncV2";
 
 import { VehicleIcon } from "@/components/equipamentos/VehicleIcons";
 import { supabase } from "@/integrations/supabase/client";
@@ -28,6 +29,7 @@ export default function SelecaoVeiculo() {
   const { data: equipment = [], isLoading } = useEquipment();
   
   const queryClient = useQueryClient();
+  const { addPendingAction, isOnline } = useOfflineSyncV2();
   const [selectedVehicle, setSelectedVehicle] = useState<string | null>(null);
   const [helperName, setHelperName] = useState("");
   const [isConfirming, setIsConfirming] = useState(false);
@@ -76,30 +78,43 @@ export default function SelecaoVeiculo() {
       const selectedEquipmentData = equipment.find(eq => eq.id === vehicleId);
       if (!selectedEquipmentData) return;
 
-      // Update the equipment with the driver's name and helper
-      // Set status to "waiting" until driver starts shift with Operar button
-      const { error: updateError } = await supabase
-        .from("equipment")
-        .update({
+      const nowIso = new Date().toISOString();
+
+      if (isOnline) {
+        // Update the equipment with the driver's name and helper
+        // Set status to "waiting" until driver starts shift with Operar button
+        const { error: updateError } = await supabase
+          .from("equipment")
+          .update({
+            driver: profile.full_name,
+            helper: helperName.trim(),
+            stop_reason: "waiting",
+            stop_start_time: nowIso,
+          })
+          .eq("id", vehicleId);
+
+        if (updateError) throw updateError;
+      } else {
+        // Offline: enfileira a atualização para quando voltar a conexão
+        await addPendingAction("equipment_status", {
+          id: vehicleId,
+          stop_reason: "waiting",
+          stop_start_time: nowIso,
           driver: profile.full_name,
           helper: helperName.trim(),
-          stop_reason: "waiting", // Not operating yet - waiting for driver to click "Operar"
-          stop_start_time: new Date().toISOString(),
-        })
-        .eq("id", vehicleId);
-
-      if (updateError) throw updateError;
+        }, 2);
+        toast.info("Sem internet. Seleção salva offline e será sincronizada.");
+      }
 
       // Invalidate equipment query to reflect changes
       queryClient.invalidateQueries({ queryKey: ["equipment"] });
 
-      // Entry movements are no longer registered automatically
-      // Only exit movements (saída) are tracked in the movements system
-
       // Store selected vehicle in localStorage
       localStorage.setItem("selectedVehicleId", vehicleId);
-      
-      toast.success("Veículo selecionado! Clique em 'Operar' para iniciar o turno.");
+
+      if (isOnline) {
+        toast.success("Veículo selecionado! Clique em 'Operar' para iniciar o turno.");
+      }
       navigate("/painel-motorista");
     } catch (error) {
       console.error("Error confirming vehicle:", error);

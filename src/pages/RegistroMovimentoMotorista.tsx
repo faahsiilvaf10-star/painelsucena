@@ -12,6 +12,8 @@ import { Alert, AlertDescription } from "@/components/ui/alert";
 import { useEquipment } from "@/hooks/useEquipment";
 import { useCreateEquipmentMovement, useEquipmentCurrentlyOut, ExitReason } from "@/hooks/useEquipmentMovements";
 import { useUpdateShiftRecord } from "@/hooks/useDailyShiftRecords";
+import { useOfflineSyncV2 } from "@/hooks/useOfflineSyncV2";
+import { useAuth } from "@/hooks/useAuth";
 import { supabase } from "@/integrations/supabase/client";
 import { toast } from "sonner";
 
@@ -44,6 +46,8 @@ export default function RegistroMovimentoMotorista() {
   const { data: equipmentCurrentlyOut = [] } = useEquipmentCurrentlyOut();
   const createMovement = useCreateEquipmentMovement();
   const updateShiftRecord = useUpdateShiftRecord();
+  const { addPendingAction, isOnline } = useOfflineSyncV2();
+  const { user } = useAuth();
 
   const [movementType, setMovementType] = useState<MovementType | null>(null);
   const [selectedEquipment, setSelectedEquipment] = useState<string>("");
@@ -127,36 +131,74 @@ export default function RegistroMovimentoMotorista() {
     }
 
     try {
-      await createMovement.mutateAsync({
-        equipment_name: selectedEquipmentData.name,
-        plate: selectedEquipmentData.plate,
-        movement_type: movementType,
-        exit_reason: movementType === "saida" ? exitReason : null,
-        problem_description: exitReason === "manutencao_corretiva" ? problemDescription : null,
-        observation: observation.trim() || null,
-      });
+      if (isOnline) {
+        // Caminho online: comportamento original
+        await createMovement.mutateAsync({
+          equipment_name: selectedEquipmentData.name,
+          plate: selectedEquipmentData.plate,
+          movement_type: movementType,
+          exit_reason: movementType === "saida" ? exitReason : null,
+          problem_description: exitReason === "manutencao_corretiva" ? problemDescription : null,
+          observation: observation.trim() || null,
+        });
 
-      // If saída: save telemetry and set exit pending flag
-      if (movementType === "saida" && savedVehicleId) {
-        const today = new Date().toISOString().split("T")[0];
-        
-        // Update daily shift record with final horimeter/km
-        try {
-          await updateShiftRecord.mutateAsync({
+        if (movementType === "saida" && savedVehicleId) {
+          const today = new Date().toISOString().split("T")[0];
+          try {
+            await updateShiftRecord.mutateAsync({
+              equipment_id: savedVehicleId,
+              shift_date: today,
+              final_horimeter: parseFloat(exitHorimeter),
+              final_km: parseFloat(exitKm),
+            });
+          } catch (e) {
+            console.error("Error updating shift record telemetry:", e);
+          }
+        }
+      } else {
+        // Caminho offline: enfileira para sincronizar quando voltar a internet
+        if (!user?.id) {
+          toast.error("Usuário não autenticado. Não é possível registrar offline.");
+          return;
+        }
+
+        await addPendingAction("equipment_movement", {
+          equipment_name: selectedEquipmentData.name,
+          plate: selectedEquipmentData.plate,
+          movement_type: movementType,
+          exit_reason: movementType === "saida" ? exitReason : null,
+          problem_description: exitReason === "manutencao_corretiva" ? problemDescription : null,
+          observation: observation.trim() || null,
+          created_by: user.id,
+        }, 2);
+
+        if (movementType === "saida" && savedVehicleId) {
+          const today = new Date().toISOString().split("T")[0];
+          await addPendingAction("shift_record", {
             equipment_id: savedVehicleId,
+            equipment_name: selectedEquipmentData.name,
+            plate: selectedEquipmentData.plate,
+            driver_name: selectedEquipmentData.driver || "",
             shift_date: today,
             final_horimeter: parseFloat(exitHorimeter),
             final_km: parseFloat(exitKm),
-          });
-        } catch (e) {
-          console.error("Error updating shift record telemetry:", e);
+            update_existing: true,
+          }, 1);
         }
 
-        // Set the exit pending flag - panel will be locked
+        toast.success(
+          movementType === "saida"
+            ? "Saída salva offline. Será sincronizada ao reconectar."
+            : "Entrada salva offline. Será sincronizada ao reconectar.",
+        );
+      }
+
+      // Telemetria local (saída) — sempre salva
+      if (movementType === "saida" && savedVehicleId) {
         localStorage.setItem("equipmentExitPending", "true");
       }
 
-      // If entrada: clear exit pending flag
+      // Entrada limpa flag
       if (movementType === "entrada") {
         localStorage.removeItem("equipmentExitPending");
       }
@@ -168,16 +210,15 @@ export default function RegistroMovimentoMotorista() {
       // Navigate after animation
       setTimeout(() => {
         if (movementType === "saida") {
-          // After saída, stay on this page in entry-only mode
           navigate("/registro-movimento-motorista", { replace: true });
           window.location.reload();
         } else {
-          // After entrada, unlock full panel
           navigate("/painel-motorista", { replace: true });
         }
       }, 1800);
     } catch (error) {
       console.error("Error creating movement:", error);
+      toast.error("Erro ao registrar movimento. Tente novamente.");
     }
   };
 
