@@ -145,11 +145,11 @@ export function buildParteDiariaFormHtml(params: BuildParteDiariaParams): string
         .horario { width: 60px; text-align: center; font-family: monospace; }
         .as { width: 35px; text-align: center; font-size: 10px; }
         .desc { width: auto; }
-        .signatures { display: flex; justify-content: space-between; align-items: flex-end; gap: 14px; padding: 26px 20px 16px; border-top: 1px solid #000; }
+        .signatures { display: flex; justify-content: space-between; align-items: flex-end; gap: 14px; padding: 34px 20px 14px; }
         .sig { text-align: center; width: 30%; min-width: 0; }
-        .sig-name { display: flex; align-items: flex-end; justify-content: center; font-weight: bold; font-size: 10px; margin: 0; padding: 0 2px 5px; line-height: 1.35; min-height: 24px; white-space: normal; overflow: visible; word-break: keep-word; }
+        .sig-name { font-weight: bold; font-size: 11px; margin: 0 0 4px; padding: 0 4px; line-height: 1.3; min-height: 16px; white-space: normal; overflow: visible; word-break: keep-all; }
         .sig .line { border-top: 1px solid #000; margin: 0 0 5px; }
-        .sig .lbl { font-size: 9px; line-height: 1.2; }
+        .sig .lbl { font-size: 9px; line-height: 1.2; color: #333; }
         .instructions { border-top: 1px solid #000; padding: 8px 10px; font-size: 8px; line-height: 1.4; }
         .instructions strong { font-weight: 700; }
       </style>
