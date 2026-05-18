@@ -127,6 +127,12 @@ const AdminWhatsApp = () => {
   const [testingCronogramaMirante, setTestingCronogramaMirante] = useState(false);
   const [autoSendDriverStatus, setAutoSendDriverStatus] = useState(false);
   const [groupIdDriverStatus, setGroupIdDriverStatus] = useState("");
+  const [parteDiariaOpen, setParteDiariaOpen] = useState(false);
+  const [parteDiariaLoading, setParteDiariaLoading] = useState(false);
+  const [parteDiariaRecords, setParteDiariaRecords] = useState<any[]>([]);
+  const [sendingParteId, setSendingParteId] = useState<string | null>(null);
+
+
 
 
   const { data: cfg } = useQuery({
