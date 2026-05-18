@@ -2,7 +2,7 @@ import { useEffect, useState } from "react";
 import { Navigate, useLocation, useNavigate } from "react-router-dom";
 import { supabase } from "@/integrations/supabase/client";
 import { useOfflineDriverRedirect } from "@/hooks/useOfflineDriverRedirect";
-import { getStoredEnvironment } from "@/hooks/useEnvironment";
+import { getStoredEnvironment, clearStoredEnvironment } from "@/hooks/useEnvironment";
 
 interface ProtectedRouteProps {
   children: React.ReactNode;
@@ -66,6 +66,7 @@ const ProtectedRoute = ({ children }: ProtectedRouteProps) => {
         setUserCargo(null);
         setCargoChecked(false);
         localStorage.removeItem("last_login_date");
+        clearStoredEnvironment();
         navigate("/auth", { replace: true });
       }
 
@@ -197,6 +198,15 @@ const ProtectedRoute = ({ children }: ProtectedRouteProps) => {
 
   // If user is a driver
   if (isDriver && !isAdmin) {
+    // Drivers always operate in 'barcarena' — ensure header is set even if a
+    // previous admin session left 'paragominas' in sessionStorage.
+    if (getStoredEnvironment() !== "barcarena") {
+      try {
+        sessionStorage.setItem("selected_environment", "barcarena");
+        window.dispatchEvent(new Event("environment-changed"));
+      } catch { /* ignore */ }
+    }
+
     // If no vehicle selected and not already on vehicle selection page, redirect to vehicle selection
     if (!hasSelectedVehicle && location.pathname !== '/selecao-veiculo') {
       return <Navigate to="/selecao-veiculo" replace />;
