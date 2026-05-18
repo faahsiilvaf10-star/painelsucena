@@ -145,11 +145,11 @@ export function buildParteDiariaFormHtml(params: BuildParteDiariaParams): string
         .horario { width: 60px; text-align: center; font-family: monospace; }
         .as { width: 35px; text-align: center; font-size: 10px; }
         .desc { width: auto; }
-        .signatures { display: flex; justify-content: space-between; padding: 20px 20px 15px; border-top: 1px solid #000; }
-        .sig { text-align: center; width: 30%; }
-        .sig-name { font-weight: bold; font-size: 10px; margin: 0; padding: 0; line-height: 1; min-height: 12px; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
-        .sig .line { border-top: 1px solid #000; margin-top: 2px; margin-bottom: 5px; }
-        .sig .lbl { font-size: 9px; }
+        .signatures { display: flex; justify-content: space-between; align-items: flex-end; gap: 14px; padding: 26px 20px 16px; border-top: 1px solid #000; }
+        .sig { text-align: center; width: 30%; min-width: 0; }
+        .sig-name { display: flex; align-items: flex-end; justify-content: center; font-weight: bold; font-size: 10px; margin: 0; padding: 0 2px 5px; line-height: 1.35; min-height: 24px; white-space: normal; overflow: visible; word-break: keep-word; }
+        .sig .line { border-top: 1px solid #000; margin: 0 0 5px; }
+        .sig .lbl { font-size: 9px; line-height: 1.2; }
         .instructions { border-top: 1px solid #000; padding: 8px 10px; font-size: 8px; line-height: 1.4; }
         .instructions strong { font-weight: 700; }
       </style>
