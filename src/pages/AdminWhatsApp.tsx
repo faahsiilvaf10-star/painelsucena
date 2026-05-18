@@ -1586,8 +1586,91 @@ const AdminWhatsApp = () => {
               Requisitos: integração W-API habilitada e <strong>ID do grupo</strong> preenchido.
               Cada mudança de status do motorista dispara um envio imediato.
             </p>
+
+            <div className="mt-4 rounded-md border bg-background p-3 flex items-center justify-between gap-3">
+              <div>
+                <p className="text-sm font-medium">Reenviar Parte Diária ao grupo</p>
+                <p className="text-xs text-muted-foreground">
+                  Gera novamente o PNG da Parte Diária de um equipamento do dia atual e envia ao grupo configurado.
+                </p>
+              </div>
+              <Button variant="outline" size="sm" onClick={openParteDiariaDialog}>
+                <FileImage className="w-4 h-4 mr-1" />
+                Reenviar
+              </Button>
+            </div>
           </CardContent>
         </Card>
+
+        <Dialog open={parteDiariaOpen} onOpenChange={setParteDiariaOpen}>
+          <DialogContent className="max-w-2xl">
+            <DialogHeader>
+              <DialogTitle>Reenviar Parte Diária ao Grupo</DialogTitle>
+              <DialogDescription>
+                Turnos registrados hoje. Ao clicar em "Enviar", a Parte Diária do equipamento é gerada e enviada ao grupo configurado.
+              </DialogDescription>
+            </DialogHeader>
+
+            {parteDiariaLoading ? (
+              <div className="flex items-center justify-center py-8 text-muted-foreground">
+                <Loader2 className="w-5 h-5 animate-spin mr-2" /> Carregando...
+              </div>
+            ) : parteDiariaRecords.length === 0 ? (
+              <div className="py-6 text-center text-sm text-muted-foreground">
+                Nenhum turno registrado hoje.
+              </div>
+            ) : (
+              <div className="max-h-[60vh] overflow-y-auto">
+                <Table>
+                  <TableHeader>
+                    <TableRow>
+                      <TableHead>Equipamento</TableHead>
+                      <TableHead>Motorista</TableHead>
+                      <TableHead>Fim Turno</TableHead>
+                      <TableHead className="text-right">Ação</TableHead>
+                    </TableRow>
+                  </TableHeader>
+                  <TableBody>
+                    {parteDiariaRecords.map((r) => (
+                      <TableRow key={r.id}>
+                        <TableCell className="font-medium">
+                          {r.equipment_name}
+                          <div className="text-xs text-muted-foreground">{r.plate}</div>
+                        </TableCell>
+                        <TableCell>{r.driver_name || "—"}</TableCell>
+                        <TableCell className="text-xs">
+                          {r.shift_end_time ? format(new Date(r.shift_end_time), "HH:mm") : "em andamento"}
+                        </TableCell>
+                        <TableCell className="text-right">
+                          <Button
+                            size="sm"
+                            onClick={() => handleSendParteDiaria(r)}
+                            disabled={sendingParteId === r.id}
+                          >
+                            {sendingParteId === r.id ? (
+                              <Loader2 className="w-4 h-4 animate-spin" />
+                            ) : (
+                              <>
+                                <Send className="w-4 h-4 mr-1" />
+                                Enviar
+                              </>
+                            )}
+                          </Button>
+                        </TableCell>
+                      </TableRow>
+                    ))}
+                  </TableBody>
+                </Table>
+              </div>
+            )}
+
+            <DialogFooter>
+              <Button variant="outline" onClick={() => setParteDiariaOpen(false)}>Fechar</Button>
+            </DialogFooter>
+          </DialogContent>
+        </Dialog>
+
+
 
 
         <Card>
