@@ -122,6 +122,9 @@ const AdminWhatsApp = () => {
   const [autoSendCronogramaMirante, setAutoSendCronogramaMirante] = useState(false);
   const [groupIdCronogramaMirante, setGroupIdCronogramaMirante] = useState("");
   const [testingCronogramaMirante, setTestingCronogramaMirante] = useState(false);
+  const [autoSendDriverStatus, setAutoSendDriverStatus] = useState(false);
+  const [groupIdDriverStatus, setGroupIdDriverStatus] = useState("");
+
 
   const { data: cfg } = useQuery({
     queryKey: ["wapi-config"],
