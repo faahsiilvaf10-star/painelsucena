@@ -231,25 +231,31 @@ const RH = () => {
         }
       };
 
-      // Recalcula validade quando Periódico, Retorno ao Trabalho ou Mudança de Risco mudam.
-      // Usa o mais recente entre eles como base (data mais nova define o novo vencimento).
-      const triggers: Array<{ field: string; oldVal: string }> = [
+      // Recalcula validade quando Periódico, Retorno ao Trabalho, Mudança de Risco
+      // ou Observação são preenchidos/alterados. Sempre busca a data MAIS RECENTE
+      // entre os quatro campos e define o vencimento como essa data + 1 ano.
+      const triggerFields: Array<{ field: string; oldVal: string }> = [
         { field: asoForm.periodico, oldVal: c.aso?.periodico || "" },
         { field: asoForm.retornoTrabalho, oldVal: c.aso?.retornoTrabalho || "" },
         { field: asoForm.mudancaRisco, oldVal: c.aso?.mudancaRisco || "" },
+        { field: asoForm.observacao, oldVal: c.aso?.observacao || "" },
       ];
-      const changed = triggers.filter(t => t.field && t.field !== t.oldVal);
-      if (changed.length > 0) {
-        // Pega a data mais recente entre as alteradas
+      const anyChanged = triggerFields.some(t => t.field && t.field !== t.oldVal);
+      if (anyChanged) {
+        // Considera TODOS os valores atuais dos 4 campos (não só os alterados),
+        // para pegar sempre o último atualizado.
         let latest: Date | null = null;
         let latestStr = "";
-        for (const t of changed) {
-          const parts = t.field.split("/");
+        for (const t of triggerFields) {
+          const v = t.field;
+          if (!v) continue;
+          const parts = v.split("/");
           if (parts.length !== 3) continue;
           const d = new Date(parseInt(parts[2]), parseInt(parts[1]) - 1, parseInt(parts[0]));
+          if (isNaN(d.getTime())) continue;
           if (!latest || d > latest) {
             latest = d;
-            latestStr = t.field;
+            latestStr = v;
           }
         }
         if (latestStr) {
