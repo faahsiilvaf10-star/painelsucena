@@ -1,9 +1,9 @@
 // Helpers para calcular a validade efetiva do ASO de um colaborador.
 // Regra:
-//  - Se houver pelo menos uma data definida em { validade, periodico, retornoTrabalho, mudancaRisco },
+//  - Se houver pelo menos uma data definida em { periodico, retornoTrabalho, mudancaRisco, observacao },
 //    a base é a MAIS RECENTE entre elas e o vencimento efetivo é base + 1 ano.
-//    Exceção: se a "mais recente" for a própria validade, ela já representa o vencimento — usamos como está.
-//  - Se nenhuma das quatro estiver definida, a base é a data de admissão e o vencimento é admissão + 1 ano.
+//  - Se nenhuma das quatro estiver definida, usa a validade salva; se não houver,
+//    a base é a data de admissão e o vencimento é admissão + 1 ano.
 //  - Se nem admissão existir, retorna null.
 
 export interface AsoLike {
@@ -12,6 +12,7 @@ export interface AsoLike {
   periodico?: string;
   retornoTrabalho?: string;
   mudancaRisco?: string;
+  observacao?: string;
 }
 
 const parseBR = (d?: string | null): Date | null => {
@@ -47,22 +48,21 @@ export function getEffectiveAsoExpiry(
   aso: AsoLike | undefined | null,
   admissao?: string | null
 ): Date | null {
-  const candidates: Array<{ key: "validade" | "periodico" | "retornoTrabalho" | "mudancaRisco"; date: Date }> = [];
+  const triggerDates: Date[] = [];
   if (aso) {
-    (["validade", "periodico", "retornoTrabalho", "mudancaRisco"] as const).forEach((k) => {
+    (["periodico", "retornoTrabalho", "mudancaRisco", "observacao"] as const).forEach((k) => {
       const dt = parseBR(aso[k]);
-      if (dt) candidates.push({ key: k, date: dt });
+      if (dt) triggerDates.push(dt);
     });
   }
 
-  if (candidates.length > 0) {
-    // Mais recente
-    candidates.sort((a, b) => b.date.getTime() - a.date.getTime());
-    const latest = candidates[0];
-    // Se a mais recente já é a "validade", ela é o vencimento — não somar de novo.
-    if (latest.key === "validade") return latest.date;
-    return addOneYear(latest.date);
+  if (triggerDates.length > 0) {
+    triggerDates.sort((a, b) => b.getTime() - a.getTime());
+    return addOneYear(triggerDates[0]);
   }
+
+  const savedValidity = parseBR(aso?.validade);
+  if (savedValidity) return savedValidity;
 
   const adm = parseBR(admissao);
   if (adm) return addOneYear(adm);
