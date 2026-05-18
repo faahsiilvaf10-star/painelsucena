@@ -118,10 +118,23 @@ export default function ParteDiaria() {
     }
   };
 
+  // Check if a vehicle has already started its shift today (initial_horimeter set)
+  const hasStartedShiftToday = (vehicleId?: string) => {
+    if (!vehicleId) return false;
+    const today = format(new Date(), "yyyy-MM-dd");
+    return shiftRecords.some(
+      (r) =>
+        r.equipment_id === vehicleId &&
+        r.shift_date === today &&
+        r.initial_horimeter != null
+    );
+  };
+
   const getStatusBadge = (stopReason: string | null, vehicleId?: string, driverName?: string) => {
     // Check if there's actually a driver (non-empty string after trimming)
     const hasDriver = driverName && driverName.trim().length > 0;
-    
+    const shiftStarted = hasStartedShiftToday(vehicleId);
+
     // Only show "Operando" if there's a driver AND the status is none/operando
     if (!stopReason || stopReason === "none" || stopReason === "operando") {
       if (hasDriver) {
@@ -139,7 +152,12 @@ export default function ParteDiaria() {
       case "vistoria":
         return <Badge className="bg-purple-500 text-white">Vistoria</Badge>;
       case "waiting":
-        // Vehicle selected but driver hasn't clicked "Operar" yet
+        // If the driver has already started the shift today, "waiting" means
+        // they pressed the "Aguardando" button mid-shift (Aguardando Frente),
+        // and the vehicle is effectively operating. Otherwise it's pre-start.
+        if (shiftStarted && hasDriver) {
+          return <Badge className="bg-green-500 text-white">Operando</Badge>;
+        }
         return <Badge className="bg-yellow-500 text-black">Aguardando Início</Badge>;
       case "waiting_front":
         return <Badge className="bg-yellow-500 text-black">Aguardando Frente</Badge>;
