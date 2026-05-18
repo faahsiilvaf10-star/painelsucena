@@ -221,9 +221,9 @@ export function buildParteDiariaFormHtml(params: BuildParteDiariaParams): string
           </div>
         </div>
         <div class="signatures">
-          <div class="sig"><div class="sig-name">${params.driverName || ""}</div><div class="line"></div><div class="lbl">Ass. Motorista/Op</div></div>
-          <div class="sig"><div class="sig-name">Creriane Navegantes</div><div class="line"></div><div class="lbl">Ass. Encarreg./Apontador</div></div>
-          <div class="sig"><div class="sig-name">Luís Carlos</div><div class="line"></div><div class="lbl">Ass. Gerência</div></div>
+          <div class="sig"><div class="sig-name">${params.driverName || ""}</div><div class="line"></div><div class="lbl">Motorista/Operador</div></div>
+          <div class="sig"><div class="sig-name">Creriane Navegantes</div><div class="line"></div><div class="lbl">Encarregada/Apontadora</div></div>
+          <div class="sig"><div class="sig-name">Luís Carlos</div><div class="line"></div><div class="lbl">Gerência</div></div>
         </div>
         <div class="instructions"><strong>INSTRUÇÃO:</strong> ${instructionText}</div>
       </div>
