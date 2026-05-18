@@ -2,7 +2,7 @@ import { useEffect, useState } from "react";
 import { Navigate, useLocation, useNavigate } from "react-router-dom";
 import { supabase } from "@/integrations/supabase/client";
 import { useOfflineDriverRedirect } from "@/hooks/useOfflineDriverRedirect";
-import { getStoredEnvironment } from "@/hooks/useEnvironment";
+import { getStoredEnvironment, clearStoredEnvironment } from "@/hooks/useEnvironment";
 
 interface ProtectedRouteProps {
   children: React.ReactNode;
