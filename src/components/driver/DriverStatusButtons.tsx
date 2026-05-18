@@ -38,6 +38,7 @@ import { FuelLevelGauge, type FuelLevel } from "./FuelLevelGauge";
 import { useOfflineSyncV2 } from "@/hooks/useOfflineSyncV2";
 import { useCreateShiftRecord, useUpdateShiftRecord, useAddStatusToHistory } from "@/hooks/useDailyShiftRecords";
 import { useCreateEquipmentMovement } from "@/hooks/useEquipmentMovements";
+import { generateAndUploadParteDiariaPng } from "@/lib/parteDiariaShare";
 
 type DriverStopReason = StopReason;
 
@@ -273,18 +274,30 @@ export function DriverStatusButtons() {
         shift_end_time: now,
       });
 
-      // Fire-and-forget WhatsApp group notification
-      supabase.functions.invoke("wapi-driver-status-notify", {
-        body: {
-          equipmentId: selectedVehicleId,
-          equipmentName: selectedVehicle.name,
-          plate: selectedVehicle.plate,
-          newStatus: "end_of_shift",
-          previousStatus: currentStatus,
-          driverName: profile?.full_name || null,
-          extraInfo: `*Combustível final:* ${getFuelLevelLabel(endShiftFuelLevel)}${endShiftHorimeter ? `\n*Horímetro:* ${endShiftHorimeter}` : ""}${endShiftKm ? `\n*KM:* ${endShiftKm}` : ""}`,
-        },
-      }).catch((e) => console.warn("driver-status-notify failed", e));
+      // Fire-and-forget WhatsApp group notification — includes Parte Diária PNG when possible
+      (async () => {
+        let parteDiariaUrl: string | null = null;
+        try {
+          parteDiariaUrl = await generateAndUploadParteDiariaPng(selectedVehicle);
+        } catch (e) {
+          console.warn("parte diária png failed", e);
+        }
+        supabase.functions.invoke("wapi-driver-status-notify", {
+          body: {
+            equipmentId: selectedVehicleId,
+            equipmentName: selectedVehicle.name,
+            plate: selectedVehicle.plate,
+            newStatus: "end_of_shift",
+            previousStatus: currentStatus,
+            driverName: profile?.full_name || null,
+            extraInfo: `*Combustível final:* ${getFuelLevelLabel(endShiftFuelLevel)}${endShiftHorimeter ? `\n*Horímetro:* ${endShiftHorimeter}` : ""}${endShiftKm ? `\n*KM:* ${endShiftKm}` : ""}`,
+            imageUrl: parteDiariaUrl,
+            imageCaption: parteDiariaUrl
+              ? `📄 *PARTE DIÁRIA*\n${selectedVehicle.name} — ${selectedVehicle.plate}\nMotorista: ${profile?.full_name || "—"}`
+              : null,
+          },
+        }).catch((e) => console.warn("driver-status-notify failed", e));
+      })();
 
 
       // Fim de Turno does NOT register as equipment exit (saída)
