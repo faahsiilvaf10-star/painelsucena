@@ -480,6 +480,18 @@ export function DriverStatusButtons() {
         changedBy: profile?.full_name || null,
       });
 
+      // Fire-and-forget WhatsApp group notification
+      supabase.functions.invoke("wapi-driver-status-notify", {
+        body: {
+          equipmentId: selectedVehicleId,
+          equipmentName: selectedVehicle.name,
+          plate: selectedVehicle.plate,
+          newStatus,
+          previousStatus: currentStatus,
+          driverName: profile?.full_name || null,
+        },
+      }).catch((e) => console.warn("driver-status-notify failed", e));
+
       toast.success(`Status alterado para: ${statusLabels[newStatus] || newStatus}`);
     } catch (error) {
       console.error("Error updating status:", error);
@@ -496,6 +508,7 @@ export function DriverStatusButtons() {
       setIsUpdating(false);
     }
   };
+
 
   if (isLoading) {
     return (
