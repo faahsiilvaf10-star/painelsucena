@@ -202,6 +202,11 @@ const ProtectedRoute = ({ children }: ProtectedRouteProps) => {
 
   // If user is a driver
   if (isDriver && !isAdmin) {
+    // Marca sessão como motorista para manter login persistente (sem logout diário).
+    if (localStorage.getItem("is_driver_session") !== "true") {
+      try { localStorage.setItem("is_driver_session", "true"); } catch { /* ignore */ }
+    }
+
     // Drivers always operate in 'barcarena' — ensure header is set even if a
     // previous admin session left 'paragominas' in sessionStorage.
     if (getStoredEnvironment() !== "barcarena") {
