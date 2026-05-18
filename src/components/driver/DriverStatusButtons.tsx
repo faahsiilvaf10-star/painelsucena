@@ -273,6 +273,20 @@ export function DriverStatusButtons() {
         shift_end_time: now,
       });
 
+      // Fire-and-forget WhatsApp group notification
+      supabase.functions.invoke("wapi-driver-status-notify", {
+        body: {
+          equipmentId: selectedVehicleId,
+          equipmentName: selectedVehicle.name,
+          plate: selectedVehicle.plate,
+          newStatus: "end_of_shift",
+          previousStatus: currentStatus,
+          driverName: profile?.full_name || null,
+          extraInfo: `*Combustível final:* ${getFuelLevelLabel(endShiftFuelLevel)}${endShiftHorimeter ? `\n*Horímetro:* ${endShiftHorimeter}` : ""}${endShiftKm ? `\n*KM:* ${endShiftKm}` : ""}`,
+        },
+      }).catch((e) => console.warn("driver-status-notify failed", e));
+
+
       // Fim de Turno does NOT register as equipment exit (saída)
       // The equipment remains on site, only the shift ends
 
