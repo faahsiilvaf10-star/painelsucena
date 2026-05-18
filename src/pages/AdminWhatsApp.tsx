@@ -731,7 +731,65 @@ const AdminWhatsApp = () => {
     }
   };
 
+  const openParteDiariaDialog = async () => {
+    setParteDiariaOpen(true);
+    setParteDiariaLoading(true);
+    try {
+      const today = format(new Date(), "yyyy-MM-dd");
+      const { data, error } = await supabase
+        .from("daily_shift_records")
+        .select("id, equipment_id, equipment_name, plate, driver_name, shift_end_time, shift_start_time, created_at")
+        .eq("shift_date", today)
+        .order("created_at", { ascending: false });
+      if (error) throw error;
+      setParteDiariaRecords(data || []);
+    } catch (e: any) {
+      toast.error("Erro ao carregar turnos: " + (e?.message || e));
+    } finally {
+      setParteDiariaLoading(false);
+    }
+  };
+
+  const handleSendParteDiaria = async (rec: any) => {
+    setSendingParteId(rec.id);
+    try {
+      const { data: eq, error: eqErr } = await supabase
+        .from("equipment")
+        .select("*")
+        .eq("id", rec.equipment_id)
+        .maybeSingle();
+      if (eqErr || !eq) throw eqErr || new Error("Equipamento não encontrado");
+
+      toast.info("Gerando Parte Diária em PNG...");
+      const imageUrl = await generateAndUploadParteDiariaPng(eq as any);
+      if (!imageUrl) throw new Error("Falha ao gerar/enviar a imagem ao storage");
+
+      const url = `${import.meta.env.VITE_SUPABASE_URL}/functions/v1/wapi-driver-status-notify`;
+      const resp = await fetch(url, {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+          equipmentId: rec.equipment_id,
+          equipmentName: rec.equipment_name,
+          plate: rec.plate,
+          newStatus: "end_of_shift",
+          driverName: rec.driver_name,
+          imageUrl,
+          imageCaption: `📄 Parte Diária — ${rec.equipment_name} (${rec.plate})\n👤 Motorista: ${rec.driver_name || "—"}`,
+          extraInfo: "♻️ Reenvio manual da Parte Diária pelo painel admin.",
+        }),
+      });
+      if (!resp.ok) throw new Error(`HTTP ${resp.status}`);
+      toast.success("Parte Diária enfileirada para o grupo!");
+    } catch (e: any) {
+      toast.error("Erro: " + (e?.message || e));
+    } finally {
+      setSendingParteId(null);
+    }
+  };
+
   const handleTestPlanningNotify = async () => {
+
     setTestingPlanning(true);
     try {
       const url = `${import.meta.env.VITE_SUPABASE_URL}/functions/v1/wapi-planning-notify`;
