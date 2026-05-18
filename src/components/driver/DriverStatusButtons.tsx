@@ -369,8 +369,22 @@ export function DriverStatusButtons() {
         changed_by_driver: profile?.full_name || null,
       });
 
+      // Fire-and-forget WhatsApp group notification
+      supabase.functions.invoke("wapi-driver-status-notify", {
+        body: {
+          equipmentId: selectedVehicleId,
+          equipmentName: selectedVehicle.name,
+          plate: selectedVehicle.plate,
+          newStatus: "none",
+          previousStatus: currentStatus,
+          driverName: profile?.full_name || null,
+          extraInfo: `*Início de Turno*\n*Combustível:* ${getFuelLevelLabel(fuelLevel)}\n*Horímetro:* ${startShiftHorimeter}\n*KM:* ${startShiftKm}`,
+        },
+      }).catch((e) => console.warn("driver-status-notify failed", e));
+
       setShowStartShiftDialog(false);
       toast.success(`Turno iniciado! Horímetro: ${startShiftHorimeter} | KM: ${startShiftKm}`);
+
     } catch (error) {
       console.error("Error starting shift:", error);
       toast.error("Erro ao iniciar turno");
