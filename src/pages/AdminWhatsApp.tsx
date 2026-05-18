@@ -16,7 +16,10 @@ import { useAuth } from "@/hooks/useAuth";
 import { supabase } from "@/integrations/supabase/client";
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import { toast } from "sonner";
-import { Save, Send, Search, Users, Bell, Play } from "lucide-react";
+import { Save, Send, Search, Users, Bell, Play, FileImage, Loader2 } from "lucide-react";
+import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogDescription, DialogFooter } from "@/components/ui/dialog";
+import { generateAndUploadParteDiariaPng } from "@/lib/parteDiariaShare";
+import { format } from "date-fns";
 
 const formatBR = (digits: string): string => {
   const d = (digits || "").replace(/\D/g, "").slice(0, 11);
