@@ -231,38 +231,34 @@ const RH = () => {
         }
       };
 
-      // Recalcula validade quando Periódico, Retorno ao Trabalho, Mudança de Risco
-      // ou Observação são preenchidos/alterados. Sempre busca a data MAIS RECENTE
-      // entre os quatro campos e define o vencimento como essa data + 1 ano.
-      const triggerFields: Array<{ field: string; oldVal: string }> = [
-        { field: asoForm.periodico, oldVal: c.aso?.periodico || "" },
-        { field: asoForm.retornoTrabalho, oldVal: c.aso?.retornoTrabalho || "" },
-        { field: asoForm.mudancaRisco, oldVal: c.aso?.mudancaRisco || "" },
-        { field: asoForm.observacao, oldVal: c.aso?.observacao || "" },
+      // Recalcula validade sempre que houver QUALQUER data preenchida entre
+      // Periódico, Retorno ao Trabalho, Mudança de Risco ou Observação.
+      // Pega a data MAIS RECENTE entre as 4 e define vencimento = data + 1 ano.
+      // Isso garante que registros antigos também sejam corrigidos ao re-salvar.
+      const triggerValues: string[] = [
+        asoForm.periodico,
+        asoForm.retornoTrabalho,
+        asoForm.mudancaRisco,
+        asoForm.observacao,
       ];
-      const anyChanged = triggerFields.some(t => t.field && t.field !== t.oldVal);
-      if (anyChanged) {
-        // Considera TODOS os valores atuais dos 4 campos (não só os alterados),
-        // para pegar sempre o último atualizado.
-        let latest: Date | null = null;
-        let latestStr = "";
-        for (const t of triggerFields) {
-          const v = t.field;
-          if (!v) continue;
-          const parts = v.split("/");
-          if (parts.length !== 3) continue;
-          const d = new Date(parseInt(parts[2]), parseInt(parts[1]) - 1, parseInt(parts[0]));
-          if (isNaN(d.getTime())) continue;
-          if (!latest || d > latest) {
-            latest = d;
-            latestStr = v;
-          }
-        }
-        if (latestStr) {
-          const next = addOneYear(latestStr);
-          if (next) newValidade = next;
+      let latest: Date | null = null;
+      let latestStr = "";
+      for (const v of triggerValues) {
+        if (!v) continue;
+        const parts = v.split("/");
+        if (parts.length !== 3) continue;
+        const d = new Date(parseInt(parts[2]), parseInt(parts[1]) - 1, parseInt(parts[0]));
+        if (isNaN(d.getTime())) continue;
+        if (!latest || d > latest) {
+          latest = d;
+          latestStr = v;
         }
       }
+      if (latestStr) {
+        const next = addOneYear(latestStr);
+        if (next) newValidade = next;
+      }
+
 
       return {
         ...c,
