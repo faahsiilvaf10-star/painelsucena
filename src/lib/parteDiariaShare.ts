@@ -374,60 +374,69 @@ export async function buildParteDiariaHtmlForEquipment(
 export async function renderParteDiariaHtmlToPngBlob(htmlContent: string): Promise<Blob> {
   const { default: html2canvas } = await import("html2canvas");
 
-  const container = document.createElement("div");
-  container.style.position = "fixed";
-  container.style.left = "-9999px";
-  container.style.top = "0";
-  container.style.width = "794px";
-  container.style.background = "white";
-  container.style.zIndex = "-1";
-
-  const shadow = container.attachShadow({ mode: "open" });
+  // Extrai <style> e <body> sem usar shadow DOM (html2canvas não enxerga shadow DOM)
   const parser = new DOMParser();
   const doc = parser.parseFromString(htmlContent, "text/html");
-  const styles = doc.querySelectorAll("style");
+  const styleTags = Array.from(doc.querySelectorAll("style"))
+    .map((s) => s.textContent || "")
+    .join("\n");
   const bodyContent = doc.body?.innerHTML || htmlContent;
 
-  const styleEl = document.createElement("style");
-  let combinedStyles = "";
-  styles.forEach((s) => {
-    combinedStyles += s.textContent || "";
-  });
-  combinedStyles += `
-    * { -webkit-print-color-adjust: exact !important; print-color-adjust: exact !important; }
-    body, div { margin: 0; padding: 0; }
+  // Wrapper único que vamos inserir e remover do DOM real
+  const wrapper = document.createElement("div");
+  wrapper.setAttribute("data-parte-diaria-render", "true");
+  wrapper.style.position = "fixed";
+  wrapper.style.left = "-10000px";
+  wrapper.style.top = "0";
+  wrapper.style.width = "794px";
+  wrapper.style.background = "#ffffff";
+  wrapper.style.zIndex = "-1";
+  wrapper.style.pointerEvents = "none";
+  wrapper.style.opacity = "1";
+
+  // Escopa os estilos via prefixo para não vazar para o app
+  const scopedCss = `
+    [data-parte-diaria-render] { all: initial; }
+    [data-parte-diaria-render], [data-parte-diaria-render] * {
+      box-sizing: border-box;
+      font-family: Arial, Helvetica, sans-serif;
+      color: #333;
+      -webkit-print-color-adjust: exact !important;
+      print-color-adjust: exact !important;
+    }
+    [data-parte-diaria-render] { display: block; padding: 20px; background: #fff; font-size: 12px; }
+    ${styleTags}
   `;
-  styleEl.textContent = combinedStyles;
 
-  const contentDiv = document.createElement("div");
-  contentDiv.style.padding = "20px";
-  contentDiv.style.background = "white";
-  contentDiv.style.color = "#333";
-  contentDiv.style.fontFamily = "Arial, Helvetica, sans-serif";
-  contentDiv.style.fontSize = "12px";
-  contentDiv.innerHTML = bodyContent;
+  const styleEl = document.createElement("style");
+  styleEl.setAttribute("data-parte-diaria-style", "true");
+  styleEl.textContent = scopedCss;
+  document.head.appendChild(styleEl);
 
-  shadow.appendChild(styleEl);
-  shadow.appendChild(contentDiv);
-  document.body.appendChild(container);
+  wrapper.innerHTML = bodyContent;
+  document.body.appendChild(wrapper);
 
   try {
-    const images = contentDiv.querySelectorAll("img");
+    // Espera imagens carregarem (com timeout de segurança de 6s por imagem)
+    const images = Array.from(wrapper.querySelectorAll("img")) as HTMLImageElement[];
     await Promise.all(
-      Array.from(images).map(
+      images.map(
         (img) =>
           new Promise<void>((resolve) => {
-            if ((img as HTMLImageElement).complete) return resolve();
-            img.onload = () => resolve();
-            img.onerror = () => resolve();
+            if (img.complete && img.naturalWidth > 0) return resolve();
+            const done = () => resolve();
+            img.addEventListener("load", done, { once: true });
+            img.addEventListener("error", done, { once: true });
+            setTimeout(done, 6000);
           })
       )
     );
-    await new Promise((r) => setTimeout(r, 200));
+    await new Promise((r) => setTimeout(r, 150));
 
-    const canvas = await html2canvas(contentDiv, {
+    const canvas = await html2canvas(wrapper, {
       scale: 2,
       useCORS: true,
+      allowTaint: false,
       logging: false,
       backgroundColor: "#ffffff",
       width: 794,
@@ -442,7 +451,8 @@ export async function renderParteDiariaHtmlToPngBlob(htmlContent: string): Promi
       );
     });
   } finally {
-    document.body.removeChild(container);
+    wrapper.remove();
+    styleEl.remove();
   }
 }
 
