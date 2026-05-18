@@ -273,6 +273,20 @@ export function DriverStatusButtons() {
         shift_end_time: now,
       });
 
+      // Fire-and-forget WhatsApp group notification
+      supabase.functions.invoke("wapi-driver-status-notify", {
+        body: {
+          equipmentId: selectedVehicleId,
+          equipmentName: selectedVehicle.name,
+          plate: selectedVehicle.plate,
+          newStatus: "end_of_shift",
+          previousStatus: currentStatus,
+          driverName: profile?.full_name || null,
+          extraInfo: `*Combustível final:* ${getFuelLevelLabel(endShiftFuelLevel)}${endShiftHorimeter ? `\n*Horímetro:* ${endShiftHorimeter}` : ""}${endShiftKm ? `\n*KM:* ${endShiftKm}` : ""}`,
+        },
+      }).catch((e) => console.warn("driver-status-notify failed", e));
+
+
       // Fim de Turno does NOT register as equipment exit (saída)
       // The equipment remains on site, only the shift ends
 
@@ -355,8 +369,22 @@ export function DriverStatusButtons() {
         changed_by_driver: profile?.full_name || null,
       });
 
+      // Fire-and-forget WhatsApp group notification
+      supabase.functions.invoke("wapi-driver-status-notify", {
+        body: {
+          equipmentId: selectedVehicleId,
+          equipmentName: selectedVehicle.name,
+          plate: selectedVehicle.plate,
+          newStatus: "none",
+          previousStatus: currentStatus,
+          driverName: profile?.full_name || null,
+          extraInfo: `*Início de Turno*\n*Combustível:* ${getFuelLevelLabel(fuelLevel)}\n*Horímetro:* ${startShiftHorimeter}\n*KM:* ${startShiftKm}`,
+        },
+      }).catch((e) => console.warn("driver-status-notify failed", e));
+
       setShowStartShiftDialog(false);
       toast.success(`Turno iniciado! Horímetro: ${startShiftHorimeter} | KM: ${startShiftKm}`);
+
     } catch (error) {
       console.error("Error starting shift:", error);
       toast.error("Erro ao iniciar turno");
@@ -480,6 +508,18 @@ export function DriverStatusButtons() {
         changedBy: profile?.full_name || null,
       });
 
+      // Fire-and-forget WhatsApp group notification
+      supabase.functions.invoke("wapi-driver-status-notify", {
+        body: {
+          equipmentId: selectedVehicleId,
+          equipmentName: selectedVehicle.name,
+          plate: selectedVehicle.plate,
+          newStatus,
+          previousStatus: currentStatus,
+          driverName: profile?.full_name || null,
+        },
+      }).catch((e) => console.warn("driver-status-notify failed", e));
+
       toast.success(`Status alterado para: ${statusLabels[newStatus] || newStatus}`);
     } catch (error) {
       console.error("Error updating status:", error);
@@ -496,6 +536,7 @@ export function DriverStatusButtons() {
       setIsUpdating(false);
     }
   };
+
 
   if (isLoading) {
     return (

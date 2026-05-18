@@ -122,6 +122,9 @@ const AdminWhatsApp = () => {
   const [autoSendCronogramaMirante, setAutoSendCronogramaMirante] = useState(false);
   const [groupIdCronogramaMirante, setGroupIdCronogramaMirante] = useState("");
   const [testingCronogramaMirante, setTestingCronogramaMirante] = useState(false);
+  const [autoSendDriverStatus, setAutoSendDriverStatus] = useState(false);
+  const [groupIdDriverStatus, setGroupIdDriverStatus] = useState("");
+
 
   const { data: cfg } = useQuery({
     queryKey: ["wapi-config"],
@@ -192,8 +195,11 @@ const AdminWhatsApp = () => {
       setGroupIdAtaContrato((c.group_id_ata_contrato as string | null) || "");
       setAutoSendCronogramaMirante(!!(c.auto_send_cronograma_mirante as boolean | null));
       setGroupIdCronogramaMirante((c.group_id_cronograma_mirante as string | null) || "");
+      setAutoSendDriverStatus(!!(c.auto_send_driver_status as boolean | null));
+      setGroupIdDriverStatus((c.group_id_driver_status as string | null) || "");
     }
   }, [cfg]);
+
 
   const { data: profiles } = useQuery({
     queryKey: ["wapi-profiles"],
@@ -299,7 +305,10 @@ const AdminWhatsApp = () => {
         group_id_ata_contrato: groupIdAtaContrato.trim() || null,
         auto_send_cronograma_mirante: autoSendCronogramaMirante,
         group_id_cronograma_mirante: groupIdCronogramaMirante.trim() || null,
+        auto_send_driver_status: autoSendDriverStatus,
+        group_id_driver_status: groupIdDriverStatus.trim() || null,
         updated_by: user?.id ?? null,
+
       };
       if (cfg?.id) {
         const { error } = await supabase.from("wapi_config" as never).update(payload).eq("id", cfg.id);
@@ -1475,6 +1484,44 @@ const AdminWhatsApp = () => {
             </p>
           </CardContent>
         </Card>
+
+        <Card>
+          <CardHeader>
+            <CardTitle className="flex items-center gap-2">
+              <Bell className="w-5 h-5 text-primary" />
+              Status do Motorista no Grupo
+            </CardTitle>
+            <CardDescription>
+              Quando habilitado, toda alteração de status feita pelo motorista no Painel
+              (<strong>Operar, Aguardando, Chuva, Abastecendo, Fim de Turno</strong>) e também
+              <strong> Pontos de Água</strong> é enviada automaticamente para o grupo do WhatsApp
+              configurado, com equipamento, placa, motorista, horário e detalhes.
+            </CardDescription>
+          </CardHeader>
+          <CardContent>
+            <div className="flex items-center justify-between gap-3 rounded-md border p-3 bg-muted/30">
+              <div className="flex items-center gap-3">
+                <Switch
+                  id="auto-send-driver-status"
+                  checked={autoSendDriverStatus}
+                  onCheckedChange={setAutoSendDriverStatus}
+                />
+                <Label htmlFor="auto-send-driver-status" className="cursor-pointer">
+                  Ativar envio automático de status do motorista no grupo
+                </Label>
+              </div>
+              <Badge variant={autoSendDriverStatus ? "default" : "secondary"}>
+                {autoSendDriverStatus ? "Ativo" : "Desativado"}
+              </Badge>
+            </div>
+            <GroupIdOverrideInput id="gid-driver-status" value={groupIdDriverStatus} onChange={setGroupIdDriverStatus} defaultGroupId={groupId} />
+            <p className="text-xs text-muted-foreground mt-3">
+              Requisitos: integração W-API habilitada e <strong>ID do grupo</strong> preenchido.
+              Cada mudança de status do motorista dispara um envio imediato.
+            </p>
+          </CardContent>
+        </Card>
+
 
         <Card>
           <CardHeader>

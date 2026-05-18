@@ -130,8 +130,22 @@ export default function PontosAbastecimento() {
     setCurrentPoint(point);
     setRefuelingStartTime(now);
     await refetch();
-    
+
+    // Fire-and-forget WhatsApp group notification
+    supabase.functions.invoke("wapi-driver-status-notify", {
+      body: {
+        equipmentId: selectedVehicleId,
+        equipmentName: selectedVehicle?.name,
+        plate: selectedVehicle?.plate,
+        newStatus: "abastecimento",
+        previousStatus: selectedVehicle?.stop_reason || null,
+        driverName: selectedVehicle?.driver || null,
+        waterPoint: point,
+      },
+    }).catch((e) => console.warn("driver-status-notify failed", e));
+
     toast.success(`Abastecimento iniciado no ponto ${point}`);
+
   };
 
   const endRefueling = async (point: string) => {
@@ -193,8 +207,22 @@ export default function PontosAbastecimento() {
     setCurrentPoint(null);
     setRefuelingStartTime(null);
     await refetch();
-    
+
+    // Fire-and-forget WhatsApp group notification
+    supabase.functions.invoke("wapi-driver-status-notify", {
+      body: {
+        equipmentId: selectedVehicleId,
+        equipmentName: selectedVehicle?.name,
+        plate: selectedVehicle?.plate,
+        newStatus: "none",
+        previousStatus: "abastecimento",
+        driverName: selectedVehicle?.driver || null,
+        extraInfo: `*Retorno do Ponto ${point}*\n*Duração:* ${durationMinutes} min`,
+      },
+    }).catch((e) => console.warn("driver-status-notify failed", e));
+
     toast.success(`Abastecimento finalizado (${durationMinutes} min)`);
+
   };
 
   return (
