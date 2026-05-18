@@ -16,7 +16,10 @@ import { useAuth } from "@/hooks/useAuth";
 import { supabase } from "@/integrations/supabase/client";
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import { toast } from "sonner";
-import { Save, Send, Search, Users, Bell, Play } from "lucide-react";
+import { Save, Send, Search, Users, Bell, Play, FileImage, Loader2 } from "lucide-react";
+import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogDescription, DialogFooter } from "@/components/ui/dialog";
+import { generateAndUploadParteDiariaPng } from "@/lib/parteDiariaShare";
+import { format } from "date-fns";
 
 const formatBR = (digits: string): string => {
   const d = (digits || "").replace(/\D/g, "").slice(0, 11);
@@ -124,6 +127,12 @@ const AdminWhatsApp = () => {
   const [testingCronogramaMirante, setTestingCronogramaMirante] = useState(false);
   const [autoSendDriverStatus, setAutoSendDriverStatus] = useState(false);
   const [groupIdDriverStatus, setGroupIdDriverStatus] = useState("");
+  const [parteDiariaOpen, setParteDiariaOpen] = useState(false);
+  const [parteDiariaLoading, setParteDiariaLoading] = useState(false);
+  const [parteDiariaRecords, setParteDiariaRecords] = useState<any[]>([]);
+  const [sendingParteId, setSendingParteId] = useState<string | null>(null);
+
+
 
 
   const { data: cfg } = useQuery({
@@ -722,7 +731,65 @@ const AdminWhatsApp = () => {
     }
   };
 
+  const openParteDiariaDialog = async () => {
+    setParteDiariaOpen(true);
+    setParteDiariaLoading(true);
+    try {
+      const today = format(new Date(), "yyyy-MM-dd");
+      const { data, error } = await supabase
+        .from("daily_shift_records")
+        .select("id, equipment_id, equipment_name, plate, driver_name, shift_end_time, shift_start_time, created_at")
+        .eq("shift_date", today)
+        .order("created_at", { ascending: false });
+      if (error) throw error;
+      setParteDiariaRecords(data || []);
+    } catch (e: any) {
+      toast.error("Erro ao carregar turnos: " + (e?.message || e));
+    } finally {
+      setParteDiariaLoading(false);
+    }
+  };
+
+  const handleSendParteDiaria = async (rec: any) => {
+    setSendingParteId(rec.id);
+    try {
+      const { data: eq, error: eqErr } = await supabase
+        .from("equipment")
+        .select("*")
+        .eq("id", rec.equipment_id)
+        .maybeSingle();
+      if (eqErr || !eq) throw eqErr || new Error("Equipamento não encontrado");
+
+      toast.info("Gerando Parte Diária em PNG...");
+      const imageUrl = await generateAndUploadParteDiariaPng(eq as any);
+      if (!imageUrl) throw new Error("Falha ao gerar/enviar a imagem ao storage");
+
+      const url = `${import.meta.env.VITE_SUPABASE_URL}/functions/v1/wapi-driver-status-notify`;
+      const resp = await fetch(url, {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+          equipmentId: rec.equipment_id,
+          equipmentName: rec.equipment_name,
+          plate: rec.plate,
+          newStatus: "end_of_shift",
+          driverName: rec.driver_name,
+          imageUrl,
+          imageCaption: `📄 Parte Diária — ${rec.equipment_name} (${rec.plate})\n👤 Motorista: ${rec.driver_name || "—"}`,
+          extraInfo: "♻️ Reenvio manual da Parte Diária pelo painel admin.",
+        }),
+      });
+      if (!resp.ok) throw new Error(`HTTP ${resp.status}`);
+      toast.success("Parte Diária enfileirada para o grupo!");
+    } catch (e: any) {
+      toast.error("Erro: " + (e?.message || e));
+    } finally {
+      setSendingParteId(null);
+    }
+  };
+
   const handleTestPlanningNotify = async () => {
+
     setTestingPlanning(true);
     try {
       const url = `${import.meta.env.VITE_SUPABASE_URL}/functions/v1/wapi-planning-notify`;
@@ -1519,8 +1586,91 @@ const AdminWhatsApp = () => {
               Requisitos: integração W-API habilitada e <strong>ID do grupo</strong> preenchido.
               Cada mudança de status do motorista dispara um envio imediato.
             </p>
+
+            <div className="mt-4 rounded-md border bg-background p-3 flex items-center justify-between gap-3">
+              <div>
+                <p className="text-sm font-medium">Reenviar Parte Diária ao grupo</p>
+                <p className="text-xs text-muted-foreground">
+                  Gera novamente o PNG da Parte Diária de um equipamento do dia atual e envia ao grupo configurado.
+                </p>
+              </div>
+              <Button variant="outline" size="sm" onClick={openParteDiariaDialog}>
+                <FileImage className="w-4 h-4 mr-1" />
+                Reenviar
+              </Button>
+            </div>
           </CardContent>
         </Card>
+
+        <Dialog open={parteDiariaOpen} onOpenChange={setParteDiariaOpen}>
+          <DialogContent className="max-w-2xl">
+            <DialogHeader>
+              <DialogTitle>Reenviar Parte Diária ao Grupo</DialogTitle>
+              <DialogDescription>
+                Turnos registrados hoje. Ao clicar em "Enviar", a Parte Diária do equipamento é gerada e enviada ao grupo configurado.
+              </DialogDescription>
+            </DialogHeader>
+
+            {parteDiariaLoading ? (
+              <div className="flex items-center justify-center py-8 text-muted-foreground">
+                <Loader2 className="w-5 h-5 animate-spin mr-2" /> Carregando...
+              </div>
+            ) : parteDiariaRecords.length === 0 ? (
+              <div className="py-6 text-center text-sm text-muted-foreground">
+                Nenhum turno registrado hoje.
+              </div>
+            ) : (
+              <div className="max-h-[60vh] overflow-y-auto">
+                <Table>
+                  <TableHeader>
+                    <TableRow>
+                      <TableHead>Equipamento</TableHead>
+                      <TableHead>Motorista</TableHead>
+                      <TableHead>Fim Turno</TableHead>
+                      <TableHead className="text-right">Ação</TableHead>
+                    </TableRow>
+                  </TableHeader>
+                  <TableBody>
+                    {parteDiariaRecords.map((r) => (
+                      <TableRow key={r.id}>
+                        <TableCell className="font-medium">
+                          {r.equipment_name}
+                          <div className="text-xs text-muted-foreground">{r.plate}</div>
+                        </TableCell>
+                        <TableCell>{r.driver_name || "—"}</TableCell>
+                        <TableCell className="text-xs">
+                          {r.shift_end_time ? format(new Date(r.shift_end_time), "HH:mm") : "em andamento"}
+                        </TableCell>
+                        <TableCell className="text-right">
+                          <Button
+                            size="sm"
+                            onClick={() => handleSendParteDiaria(r)}
+                            disabled={sendingParteId === r.id}
+                          >
+                            {sendingParteId === r.id ? (
+                              <Loader2 className="w-4 h-4 animate-spin" />
+                            ) : (
+                              <>
+                                <Send className="w-4 h-4 mr-1" />
+                                Enviar
+                              </>
+                            )}
+                          </Button>
+                        </TableCell>
+                      </TableRow>
+                    ))}
+                  </TableBody>
+                </Table>
+              </div>
+            )}
+
+            <DialogFooter>
+              <Button variant="outline" onClick={() => setParteDiariaOpen(false)}>Fechar</Button>
+            </DialogFooter>
+          </DialogContent>
+        </Dialog>
+
+
 
 
         <Card>
