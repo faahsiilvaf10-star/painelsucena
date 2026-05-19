@@ -1594,6 +1594,67 @@ const AdminWhatsApp = () => {
               Cada mudança de status do motorista dispara um envio imediato.
             </p>
 
+            <div className="mt-4 rounded-md border p-3 bg-muted/30 space-y-3">
+              <div className="flex items-center justify-between gap-3">
+                <div className="flex items-center gap-3">
+                  <Switch
+                    id="auto-send-driver-app-reminder"
+                    checked={autoSendDriverAppReminder}
+                    onCheckedChange={setAutoSendDriverAppReminder}
+                  />
+                  <Label htmlFor="auto-send-driver-app-reminder" className="cursor-pointer">
+                    Lembrete diário às 07:30 para motoristas usarem o app
+                  </Label>
+                </div>
+                <Badge variant={autoSendDriverAppReminder ? "default" : "secondary"}>
+                  {autoSendDriverAppReminder ? "Ativo" : "Desativado"}
+                </Badge>
+              </div>
+              <p className="text-xs text-muted-foreground">
+                Envia diariamente às <strong>07:30 (horário do Pará)</strong> uma mensagem no grupo
+                lembrando todos os motoristas e operadores de utilizarem o aplicativo, preenchendo
+                <strong> KM, Horímetro</strong> e o <strong>nome do ajudante</strong>.
+              </p>
+              <GroupIdOverrideInput
+                id="gid-driver-app-reminder"
+                value={groupIdDriverAppReminder}
+                onChange={setGroupIdDriverAppReminder}
+                defaultGroupId={groupIdDriverStatus || groupId}
+              />
+              <Button
+                variant="outline"
+                size="sm"
+                disabled={testingDriverAppReminder}
+                onClick={async () => {
+                  setTestingDriverAppReminder(true);
+                  try {
+                    const { data: sessionData } = await supabase.auth.getSession();
+                    const token = sessionData.session?.access_token;
+                    const url = `${import.meta.env.VITE_SUPABASE_URL}/functions/v1/wapi-driver-app-reminder`;
+                    const res = await fetch(url, {
+                      method: "POST",
+                      headers: {
+                        "Content-Type": "application/json",
+                        Authorization: `Bearer ${token}`,
+                      },
+                      body: JSON.stringify({}),
+                    });
+                    const json = await res.json().catch(() => ({}));
+                    if (!res.ok) throw new Error(json?.error || "Falha no envio");
+                    if (json?.skipped) toast.warning(`Pulado: ${json.reason}`);
+                    else toast.success("Lembrete enviado ao grupo");
+                  } catch (e: unknown) {
+                    toast.error(e instanceof Error ? e.message : "Erro");
+                  } finally {
+                    setTestingDriverAppReminder(false);
+                  }
+                }}
+              >
+                {testingDriverAppReminder ? <Loader2 className="w-4 h-4 mr-1 animate-spin" /> : <Send className="w-4 h-4 mr-1" />}
+                Enviar agora (teste)
+              </Button>
+            </div>
+
             <div className="mt-4 rounded-md border bg-background p-3 flex items-center justify-between gap-3">
               <div>
                 <p className="text-sm font-medium">Reenviar Parte Diária ao grupo</p>
