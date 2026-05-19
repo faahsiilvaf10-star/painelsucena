@@ -4430,6 +4430,7 @@ export type Database = {
           auto_send_dds_photo: boolean
           auto_send_desvio_due_alert: boolean
           auto_send_desvios: boolean
+          auto_send_driver_app_reminder: boolean
           auto_send_driver_status: boolean
           auto_send_equipment_movements: boolean
           auto_send_forbidden_color_alert: boolean
@@ -4459,6 +4460,7 @@ export type Database = {
           group_id_dds: string | null
           group_id_desvio_due: string | null
           group_id_desvios: string | null
+          group_id_driver_app_reminder: string | null
           group_id_driver_status: string | null
           group_id_equipment_movements: string | null
           group_id_forbidden_color: string | null
@@ -4490,6 +4492,7 @@ export type Database = {
           auto_send_dds_photo?: boolean
           auto_send_desvio_due_alert?: boolean
           auto_send_desvios?: boolean
+          auto_send_driver_app_reminder?: boolean
           auto_send_driver_status?: boolean
           auto_send_equipment_movements?: boolean
           auto_send_forbidden_color_alert?: boolean
@@ -4519,6 +4522,7 @@ export type Database = {
           group_id_dds?: string | null
           group_id_desvio_due?: string | null
           group_id_desvios?: string | null
+          group_id_driver_app_reminder?: string | null
           group_id_driver_status?: string | null
           group_id_equipment_movements?: string | null
           group_id_forbidden_color?: string | null
@@ -4550,6 +4554,7 @@ export type Database = {
           auto_send_dds_photo?: boolean
           auto_send_desvio_due_alert?: boolean
           auto_send_desvios?: boolean
+          auto_send_driver_app_reminder?: boolean
           auto_send_driver_status?: boolean
           auto_send_equipment_movements?: boolean
           auto_send_forbidden_color_alert?: boolean
@@ -4579,6 +4584,7 @@ export type Database = {
           group_id_dds?: string | null
           group_id_desvio_due?: string | null
           group_id_desvios?: string | null
+          group_id_driver_app_reminder?: string | null
           group_id_driver_status?: string | null
           group_id_equipment_movements?: string | null
           group_id_forbidden_color?: string | null
