@@ -275,18 +275,23 @@ export function DriverStatusButtons() {
       });
 
       // Gera e envia a Parte Diária PNG de forma BLOQUEANTE para garantir que chegue
-      // no grupo antes de o motorista sair da tela (antes era fire-and-forget e
-      // morria quando a página era desmontada).
+      // no grupo antes de o motorista sair da tela.
       toast.info("Gerando Parte Diária para envio...");
       let parteDiariaUrl: string | null = null;
       try {
         parteDiariaUrl = await generateAndUploadParteDiariaPng(selectedVehicle);
-      } catch (e) {
-        console.warn("parte diária png failed", e);
+      } catch (e: any) {
+        console.error("parte diária png failed", e);
+        toast.error(`Falha ao gerar PNG da Parte Diária: ${e?.message || e}. Enviando somente texto.`, { duration: 8000 });
       }
+
       try {
-        await supabase.functions.invoke("wapi-driver-status-notify", {
-          body: {
+        const notifyUrl = `${import.meta.env.VITE_SUPABASE_URL}/functions/v1/wapi-driver-status-notify`;
+        const resp = await fetch(notifyUrl, {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          keepalive: true,
+          body: JSON.stringify({
             equipmentId: selectedVehicleId,
             equipmentName: selectedVehicle.name,
             plate: selectedVehicle.plate,
@@ -298,10 +303,15 @@ export function DriverStatusButtons() {
             imageCaption: parteDiariaUrl
               ? `📄 *PARTE DIÁRIA*\n${selectedVehicle.name} — ${selectedVehicle.plate}\nMotorista: ${profile?.full_name || "—"}`
               : null,
-          },
+          }),
         });
-      } catch (e) {
+        if (!resp.ok) {
+          const txt = await resp.text().catch(() => "");
+          console.warn("driver-status-notify HTTP", resp.status, txt);
+        }
+      } catch (e: any) {
         console.warn("driver-status-notify failed", e);
+        toast.error(`Falha ao enviar status ao grupo: ${e?.message || e}`, { duration: 6000 });
       }
 
 

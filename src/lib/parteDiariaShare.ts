@@ -463,23 +463,26 @@ export async function renderParteDiariaHtmlToPngBlob(htmlContent: string): Promi
 export async function generateAndUploadParteDiariaPng(
   equipment: Equipment
 ): Promise<string | null> {
-  try {
-    const html = await buildParteDiariaHtmlForEquipment(equipment);
-    const blob = await renderParteDiariaHtmlToPngBlob(html);
-    const today = format(new Date(), "yyyy-MM-dd");
-    const safeName = (equipment.name || "equip").replace(/[^a-zA-Z0-9-_]/g, "_");
-    const path = `parte-diaria/${today}/${safeName}-${equipment.id}-${Date.now()}.png`;
+  const html = await buildParteDiariaHtmlForEquipment(equipment);
+  const blob = await renderParteDiariaHtmlToPngBlob(html);
+  const today = format(new Date(), "yyyy-MM-dd");
+  const safeName = (equipment.name || "equip").replace(/[^a-zA-Z0-9-_]/g, "_");
+  const path = `parte-diaria/${today}/${safeName}-${equipment.id}-${Date.now()}.png`;
+
+  let lastError: any = null;
+  for (let attempt = 1; attempt <= 3; attempt++) {
     const { error } = await supabase.storage
       .from("site-assets")
       .upload(path, blob, { contentType: "image/png", upsert: true });
-    if (error) {
-      console.warn("[parteDiariaShare] upload error", error);
-      return null;
+    if (!error) {
+      const { data } = supabase.storage.from("site-assets").getPublicUrl(path);
+      return data?.publicUrl ?? null;
     }
-    const { data } = supabase.storage.from("site-assets").getPublicUrl(path);
-    return data?.publicUrl ?? null;
-  } catch (e) {
-    console.warn("[parteDiariaShare] generate failed", e);
-    return null;
+    lastError = error;
+    console.warn(`[parteDiariaShare] upload attempt ${attempt} failed`, error);
+    await new Promise((r) => setTimeout(r, 800 * attempt));
   }
+  throw new Error(
+    `Falha ao enviar PNG ao storage após 3 tentativas: ${lastError?.message || lastError}`
+  );
 }
