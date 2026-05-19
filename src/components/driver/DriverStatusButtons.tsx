@@ -274,15 +274,18 @@ export function DriverStatusButtons() {
         shift_end_time: now,
       });
 
-      // Fire-and-forget WhatsApp group notification — includes Parte Diária PNG when possible
-      (async () => {
-        let parteDiariaUrl: string | null = null;
-        try {
-          parteDiariaUrl = await generateAndUploadParteDiariaPng(selectedVehicle);
-        } catch (e) {
-          console.warn("parte diária png failed", e);
-        }
-        supabase.functions.invoke("wapi-driver-status-notify", {
+      // Gera e envia a Parte Diária PNG de forma BLOQUEANTE para garantir que chegue
+      // no grupo antes de o motorista sair da tela (antes era fire-and-forget e
+      // morria quando a página era desmontada).
+      toast.info("Gerando Parte Diária para envio...");
+      let parteDiariaUrl: string | null = null;
+      try {
+        parteDiariaUrl = await generateAndUploadParteDiariaPng(selectedVehicle);
+      } catch (e) {
+        console.warn("parte diária png failed", e);
+      }
+      try {
+        await supabase.functions.invoke("wapi-driver-status-notify", {
           body: {
             equipmentId: selectedVehicleId,
             equipmentName: selectedVehicle.name,
@@ -296,8 +299,10 @@ export function DriverStatusButtons() {
               ? `📄 *PARTE DIÁRIA*\n${selectedVehicle.name} — ${selectedVehicle.plate}\nMotorista: ${profile?.full_name || "—"}`
               : null,
           },
-        }).catch((e) => console.warn("driver-status-notify failed", e));
-      })();
+        });
+      } catch (e) {
+        console.warn("driver-status-notify failed", e);
+      }
 
 
       // Fim de Turno does NOT register as equipment exit (saída)
