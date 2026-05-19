@@ -6,6 +6,7 @@ import { Button } from "@/components/ui/button";
 import { Card, CardContent } from "@/components/ui/card";
 import { useEquipment } from "@/hooks/useEquipment";
 import { useAddStatusToHistory } from "@/hooks/useDailyShiftRecords";
+import { useProfile } from "@/hooks/useProfile";
 import { supabase } from "@/integrations/supabase/client";
 import { toast } from "sonner";
 import { format } from "date-fns";
@@ -21,6 +22,7 @@ export default function PontosAbastecimento() {
   
   const selectedVehicleId = localStorage.getItem("selectedVehicleId");
   const { data: equipment = [], refetch } = useEquipment();
+  const { data: profile } = useProfile();
   const addStatusToHistory = useAddStatusToHistory();
   
   const selectedVehicle = equipment.find(eq => eq.id === selectedVehicleId);
@@ -113,6 +115,7 @@ export default function PontosAbastecimento() {
         stop_reason: "abastecimento",
         started_at: now,
         defect_description: `Ponto: ${point}`,
+        changed_by_driver: profile?.full_name || selectedVehicle?.driver || null,
       });
 
     if (historyError) throw historyError;
@@ -122,7 +125,7 @@ export default function PontosAbastecimento() {
       await addStatusToHistory.mutateAsync({
         equipmentId: selectedVehicleId,
         status: "abastecimento",
-        changedBy: selectedVehicle?.driver || null,
+        changedBy: profile?.full_name || selectedVehicle?.driver || null,
         description: `Abastecendo - Ponto: ${point}`,
       });
     }
@@ -139,7 +142,7 @@ export default function PontosAbastecimento() {
         plate: selectedVehicle?.plate,
         newStatus: "abastecimento",
         previousStatus: selectedVehicle?.stop_reason || null,
-        driverName: selectedVehicle?.driver || null,
+        driverName: profile?.full_name || selectedVehicle?.driver || null,
         waterPoint: point,
       },
     }).catch((e) => console.warn("driver-status-notify failed", e));
@@ -191,7 +194,7 @@ export default function PontosAbastecimento() {
         stop_reason: "operando",
         started_at: nowIso,
         defect_description: `Retorno do Ponto ${point}`,
-        changed_by_driver: selectedVehicle?.driver || null,
+        changed_by_driver: profile?.full_name || selectedVehicle?.driver || null,
       });
 
     // Also add to daily shift record status history
@@ -199,7 +202,7 @@ export default function PontosAbastecimento() {
       await addStatusToHistory.mutateAsync({
         equipmentId: selectedVehicleId,
         status: "operando",
-        changedBy: selectedVehicle?.driver || null,
+        changedBy: profile?.full_name || selectedVehicle?.driver || null,
         description: `Operando - Retorno do Ponto ${point}`,
       });
     }
@@ -216,7 +219,7 @@ export default function PontosAbastecimento() {
         plate: selectedVehicle?.plate,
         newStatus: "none",
         previousStatus: "abastecimento",
-        driverName: selectedVehicle?.driver || null,
+        driverName: profile?.full_name || selectedVehicle?.driver || null,
         extraInfo: `*Retorno do Ponto ${point}*\n*Duração:* ${durationMinutes} min`,
       },
     }).catch((e) => console.warn("driver-status-notify failed", e));

@@ -4831,6 +4831,17 @@ export type Database = {
       cleanup_expired_stories: { Args: never; Returns: undefined }
       cleanup_old_auth_attempts: { Args: never; Returns: undefined }
       current_environment: { Args: never; Returns: string }
+      enqueue_driver_status_notification: {
+        Args: {
+          _driver_name?: string
+          _equipment_id: string
+          _extra_info?: string
+          _new_status: string
+          _previous_status?: string
+          _water_point?: string
+        }
+        Returns: undefined
+      }
       has_environment_access: {
         Args: { _environment: string; _user_id: string }
         Returns: boolean
