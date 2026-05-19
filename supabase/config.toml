@@ -5,3 +5,10 @@ verify_jwt = true
 
 [functions.wapi-dds-notify]
 verify_jwt = false
+
+[functions.wapi-driver-status-notify]
+verify_jwt = false
+
+[functions.wapi-driver-app-reminder]
+verify_jwt = false
+
