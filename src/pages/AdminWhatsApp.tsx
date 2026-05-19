@@ -321,6 +321,8 @@ const AdminWhatsApp = () => {
         group_id_cronograma_mirante: groupIdCronogramaMirante.trim() || null,
         auto_send_driver_status: autoSendDriverStatus,
         group_id_driver_status: groupIdDriverStatus.trim() || null,
+        auto_send_driver_app_reminder: autoSendDriverAppReminder,
+        group_id_driver_app_reminder: groupIdDriverAppReminder.trim() || null,
         updated_by: user?.id ?? null,
 
       };
