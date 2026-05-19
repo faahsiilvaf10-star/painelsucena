@@ -108,18 +108,53 @@ Deno.serve(async (req) => {
       `\n*Motorista:* ${driverName || "—"}\n` +
       `━━━━━━━━━━━━━━━━━━━━`;
 
-    const { error } = await admin.from("wapi_outbox").insert({
-      kind: "text",
-      target_type: "group",
-      phone: targetGroupId,
-      message,
-      origin: "driver-status",
-    });
+    let recentOutbox = null;
+    if (equipmentId) {
+      const { data: recent } = await admin
+        .from("wapi_outbox")
+        .select("id, status")
+        .eq("origin", "driver-status")
+        .eq("external_kind", "equipment-status")
+        .eq("external_id", equipmentId)
+        .gte("created_at", new Date(Date.now() - 30_000).toISOString())
+        .order("created_at", { ascending: false })
+        .limit(1)
+        .maybeSingle();
+      recentOutbox = recent;
+    }
 
-    if (error) {
-      return new Response(JSON.stringify({ error: error.message }), {
-        status: 500, headers: { ...corsHeaders, "Content-Type": "application/json" },
+    if (recentOutbox?.id && recentOutbox.status === "pending") {
+      const { error: updateError } = await admin
+        .from("wapi_outbox")
+        .update({
+          kind: "text",
+          target_type: "group",
+          phone: targetGroupId,
+          message,
+        })
+        .eq("id", recentOutbox.id);
+
+      if (updateError) {
+        return new Response(JSON.stringify({ error: updateError.message }), {
+          status: 500, headers: { ...corsHeaders, "Content-Type": "application/json" },
+        });
+      }
+    } else if (!recentOutbox?.id) {
+      const { error } = await admin.from("wapi_outbox").insert({
+        kind: "text",
+        target_type: "group",
+        phone: targetGroupId,
+        message,
+        origin: "driver-status",
+        external_kind: equipmentId ? "equipment-status" : null,
+        external_id: equipmentId || null,
       });
+
+      if (error) {
+        return new Response(JSON.stringify({ error: error.message }), {
+          status: 500, headers: { ...corsHeaders, "Content-Type": "application/json" },
+        });
+      }
     }
 
     // Optional: also enqueue an image (e.g. Parte Diária PNG) to the same group.
