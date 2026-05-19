@@ -209,6 +209,8 @@ const AdminWhatsApp = () => {
       setGroupIdCronogramaMirante((c.group_id_cronograma_mirante as string | null) || "");
       setAutoSendDriverStatus(!!(c.auto_send_driver_status as boolean | null));
       setGroupIdDriverStatus((c.group_id_driver_status as string | null) || "");
+      setAutoSendDriverAppReminder(!!(c.auto_send_driver_app_reminder as boolean | null));
+      setGroupIdDriverAppReminder((c.group_id_driver_app_reminder as string | null) || "");
     }
   }, [cfg]);
 
