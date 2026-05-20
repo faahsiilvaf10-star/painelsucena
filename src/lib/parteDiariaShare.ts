@@ -374,7 +374,6 @@ export async function buildParteDiariaHtmlForEquipment(
 export async function renderParteDiariaHtmlToPngBlob(htmlContent: string): Promise<Blob> {
   const { default: html2canvas } = await import("html2canvas");
 
-  // Extrai <style> e <body> sem usar shadow DOM (html2canvas não enxerga shadow DOM)
   const parser = new DOMParser();
   const doc = parser.parseFromString(htmlContent, "text/html");
   const styleTags = Array.from(doc.querySelectorAll("style"))
@@ -382,19 +381,22 @@ export async function renderParteDiariaHtmlToPngBlob(htmlContent: string): Promi
     .join("\n");
   const bodyContent = doc.body?.innerHTML || htmlContent;
 
-  // Wrapper único que vamos inserir e remover do DOM real
+  // IMPORTANTE: em Chrome mobile/WebView (PWA do motorista) elementos com
+  // left negativo (off-screen) muitas vezes não são pintados, fazendo
+  // html2canvas gerar um PNG em branco ou falhar. Mantemos o wrapper
+  // posicionado dentro do viewport com opacidade quase zero.
   const wrapper = document.createElement("div");
   wrapper.setAttribute("data-parte-diaria-render", "true");
   wrapper.style.position = "fixed";
-  wrapper.style.left = "-10000px";
+  wrapper.style.left = "0";
   wrapper.style.top = "0";
   wrapper.style.width = "794px";
   wrapper.style.background = "#ffffff";
-  wrapper.style.zIndex = "-1";
+  wrapper.style.zIndex = "-9999";
   wrapper.style.pointerEvents = "none";
-  wrapper.style.opacity = "1";
+  wrapper.style.opacity = "0.01";
+  wrapper.style.transform = "translateZ(0)";
 
-  // Escopa os estilos via prefixo para não vazar para o app
   const scopedCss = `
     [data-parte-diaria-render] { all: initial; }
     [data-parte-diaria-render], [data-parte-diaria-render] * {
@@ -416,8 +418,12 @@ export async function renderParteDiariaHtmlToPngBlob(htmlContent: string): Promi
   wrapper.innerHTML = bodyContent;
   document.body.appendChild(wrapper);
 
-  try {
-    // Espera imagens carregarem (com timeout de segurança de 6s por imagem)
+  const captureOnce = async (scale: number): Promise<Blob> => {
+    try {
+      // @ts-ignore
+      if (document.fonts && document.fonts.ready) await document.fonts.ready;
+    } catch { /* noop */ }
+
     const images = Array.from(wrapper.querySelectorAll("img")) as HTMLImageElement[];
     await Promise.all(
       images.map(
@@ -427,20 +433,21 @@ export async function renderParteDiariaHtmlToPngBlob(htmlContent: string): Promi
             const done = () => resolve();
             img.addEventListener("load", done, { once: true });
             img.addEventListener("error", done, { once: true });
-            setTimeout(done, 6000);
+            setTimeout(done, 4000);
           })
       )
     );
-    await new Promise((r) => setTimeout(r, 150));
+    await new Promise((r) => setTimeout(r, 250));
 
     const canvas = await html2canvas(wrapper, {
-      scale: 2,
+      scale,
       useCORS: true,
-      allowTaint: false,
+      allowTaint: true,
       logging: false,
       backgroundColor: "#ffffff",
       width: 794,
       windowWidth: 794,
+      foreignObjectRendering: false,
     });
 
     return await new Promise<Blob>((resolve, reject) => {
@@ -450,6 +457,16 @@ export async function renderParteDiariaHtmlToPngBlob(htmlContent: string): Promi
         0.95
       );
     });
+  };
+
+  try {
+    try {
+      return await captureOnce(2);
+    } catch (firstErr) {
+      console.warn("[parteDiariaShare] scale=2 falhou, tentando scale=1", firstErr);
+      await new Promise((r) => setTimeout(r, 300));
+      return await captureOnce(1);
+    }
   } finally {
     wrapper.remove();
     styleEl.remove();
