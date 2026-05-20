@@ -63,17 +63,33 @@ Deno.serve(async (req) => {
     // Lookup equipment if not provided
     let eqName = equipmentName || "—";
     let eqPlate = plate || "—";
+    let eqDriver = "";
     if (equipmentId && (!equipmentName || !plate)) {
       const { data: eq } = await admin
         .from("equipment")
-        .select("name, plate")
+        .select("name, plate, driver")
         .eq("id", equipmentId)
         .maybeSingle();
       if (eq) {
         eqName = eq.name || eqName;
         eqPlate = eq.plate || eqPlate;
+        eqDriver = eq.driver || "";
       }
     }
+
+    if (equipmentId && !eqDriver) {
+      const { data: eq } = await admin
+        .from("equipment")
+        .select("driver")
+        .eq("id", equipmentId)
+        .maybeSingle();
+      eqDriver = eq?.driver || "";
+    }
+
+    const resolvedDriverName =
+      driverName && typeof driverName === "string" && !driverName.trim().toLowerCase().startsWith("sistema")
+        ? driverName.trim()
+        : eqDriver?.trim() || "—";
 
     const newLabel = STATUS_LABELS[newStatus] || newStatus;
     const prevLabel = previousStatus ? (STATUS_LABELS[previousStatus] || previousStatus) : null;
@@ -105,7 +121,7 @@ Deno.serve(async (req) => {
     }
 
     message +=
-      `\n*Motorista:* ${driverName || "—"}\n` +
+      `\n*Motorista:* ${resolvedDriverName}\n` +
       `━━━━━━━━━━━━━━━━━━━━`;
 
     let recentOutbox = null;
