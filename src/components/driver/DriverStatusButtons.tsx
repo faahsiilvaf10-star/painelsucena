@@ -275,15 +275,25 @@ export function DriverStatusButtons() {
       });
 
       // Gera e envia a Parte Diária PNG de forma BLOQUEANTE para garantir que chegue
-      // no grupo antes de o motorista sair da tela.
+      // no grupo antes de o motorista sair da tela. Tentamos até 2 vezes pois em
+      // celulares mais fracos o html2canvas pode falhar na primeira tentativa.
       toast.info("Gerando Parte Diária para envio...");
       let parteDiariaUrl: string | null = null;
-      try {
-        parteDiariaUrl = await generateAndUploadParteDiariaPng(selectedVehicle);
-      } catch (e: any) {
-        console.error("parte diária png failed", e);
-        toast.error(`Falha ao gerar PNG da Parte Diária: ${e?.message || e}. Enviando somente texto.`, { duration: 8000 });
+      let lastErr: any = null;
+      for (let attempt = 1; attempt <= 2; attempt++) {
+        try {
+          parteDiariaUrl = await generateAndUploadParteDiariaPng(selectedVehicle);
+          if (parteDiariaUrl) break;
+        } catch (e: any) {
+          lastErr = e;
+          console.error(`parte diária png tentativa ${attempt} falhou`, e);
+          await new Promise((r) => setTimeout(r, 500));
+        }
       }
+      if (!parteDiariaUrl) {
+        toast.error(`Falha ao gerar PNG da Parte Diária: ${lastErr?.message || lastErr || "erro desconhecido"}. Enviando somente texto.`, { duration: 8000 });
+      }
+
 
       try {
         const notifyUrl = `${import.meta.env.VITE_SUPABASE_URL}/functions/v1/wapi-driver-status-notify`;
