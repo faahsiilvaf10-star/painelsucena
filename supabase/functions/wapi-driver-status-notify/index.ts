@@ -14,7 +14,7 @@ const STATUS_LABELS: Record<string, string> = {
   waiting: "⏸️ Aguardando Frente",
   rain: "🌧️ Parado (Chuva)",
   end_of_day: "⛽ Abastecendo",
-  abastecimento: "⛽ Abastecendo",
+  abastecimento: "💧 Abastecendo Água",
   end_of_shift: "🌙 Fim de Turno",
   maintenance: "🔧 Manutenção",
 };
