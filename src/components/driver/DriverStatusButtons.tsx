@@ -274,24 +274,27 @@ export function DriverStatusButtons() {
         shift_end_time: now,
       });
 
-      // Gera e envia a Parte Diária PNG de forma BLOQUEANTE para garantir que chegue
-      // no grupo antes de o motorista sair da tela. Tentamos até 2 vezes pois em
-      // celulares mais fracos o html2canvas pode falhar na primeira tentativa.
-      toast.info("Gerando Parte Diária para envio...");
+      // Gera PNG da Parte Diária somente para PIPA e MUNK. Demais equipamentos
+      // enviam apenas o texto resumo do fim de turno.
+      const eqType = (selectedVehicle as any).equipment_type as string | undefined;
+      const shouldGeneratePng = eqType === "pipa" || eqType === "munk";
       let parteDiariaUrl: string | null = null;
-      let lastErr: any = null;
-      for (let attempt = 1; attempt <= 2; attempt++) {
-        try {
-          parteDiariaUrl = await generateAndUploadParteDiariaPng(selectedVehicle);
-          if (parteDiariaUrl) break;
-        } catch (e: any) {
-          lastErr = e;
-          console.error(`parte diária png tentativa ${attempt} falhou`, e);
-          await new Promise((r) => setTimeout(r, 500));
+      if (shouldGeneratePng) {
+        toast.info("Gerando Parte Diária para envio...");
+        let lastErr: any = null;
+        for (let attempt = 1; attempt <= 2; attempt++) {
+          try {
+            parteDiariaUrl = await generateAndUploadParteDiariaPng(selectedVehicle);
+            if (parteDiariaUrl) break;
+          } catch (e: any) {
+            lastErr = e;
+            console.error(`parte diária png tentativa ${attempt} falhou`, e);
+            await new Promise((r) => setTimeout(r, 500));
+          }
         }
-      }
-      if (!parteDiariaUrl) {
-        toast.error(`Falha ao gerar PNG da Parte Diária: ${lastErr?.message || lastErr || "erro desconhecido"}. Enviando somente texto.`, { duration: 8000 });
+        if (!parteDiariaUrl) {
+          toast.error(`Falha ao gerar PNG da Parte Diária: ${lastErr?.message || lastErr || "erro desconhecido"}. Enviando somente texto.`, { duration: 8000 });
+        }
       }
 
 
