@@ -264,32 +264,62 @@ export function DriverStatusButtons() {
         changed_by_driver: profile?.full_name || null,
       });
 
-      // Update the daily shift record with final values
-      await updateShiftRecord.mutateAsync({
-        equipment_id: selectedVehicleId,
-        shift_date: today,
-        final_horimeter: endShiftHorimeter ? parseFloat(endShiftHorimeter) : undefined,
-        final_km: endShiftKm ? parseFloat(endShiftKm) : undefined,
-        final_fuel_level: endShiftFuelLevel,
-        shift_end_time: now,
-      });
+      // Upsert daily_shift_record com valores finais. Se o registro não existir
+      // (ex.: motorista não clicou em iniciar turno), cria agora a partir dos
+      // valores de localStorage para que o trigger notify_daily_shift_finalized
+      // dispare a mensagem ao grupo e a Parte Diária possa ser gerada.
+      const initialHorimeterLs = localStorage.getItem(`shift_horimeter_${selectedVehicleId}`) || null;
+      const initialKmLs = localStorage.getItem(`shift_km_${selectedVehicleId}`) || null;
+      const shiftStartLs = localStorage.getItem(`shift_start_time_${selectedVehicleId}`);
+      const shiftStartIso = shiftStartLs ? new Date(parseInt(shiftStartLs, 10)).toISOString() : now;
 
-      // Gera PNG da Parte Diária somente para PIPA e MUNK. Demais equipamentos
-      // enviam apenas o texto resumo do fim de turno.
-      const eqType = (selectedVehicle as any).equipment_type as string | undefined;
+      const { error: upsertErr } = await (supabase as any)
+        .from("daily_shift_records")
+        .upsert(
+          {
+            equipment_id: selectedVehicleId,
+            equipment_name: selectedVehicle.name,
+            plate: selectedVehicle.plate,
+            shift_date: today,
+            driver_name: profile?.full_name || selectedVehicle.driver || "—",
+            initial_horimeter: initialHorimeterLs ? parseFloat(initialHorimeterLs) : null,
+            initial_km: initialKmLs ? parseFloat(initialKmLs) : null,
+            shift_start_time: shiftStartIso,
+            final_horimeter: endShiftHorimeter ? parseFloat(endShiftHorimeter) : null,
+            final_km: endShiftKm ? parseFloat(endShiftKm) : null,
+            final_fuel_level: endShiftFuelLevel,
+            shift_end_time: now,
+          },
+          { onConflict: "equipment_id,shift_date", ignoreDuplicates: false }
+        );
+      if (upsertErr) {
+        console.error("Falha ao upsert daily_shift_records:", upsertErr);
+        toast.error(`Erro ao salvar parte diária: ${upsertErr.message}`);
+      }
+
+      // Garante equipment_type vindo do banco para decidir PNG.
+      let eqType = (selectedVehicle as any).equipment_type as string | undefined;
+      if (!eqType && selectedVehicleId) {
+        const { data: eqRow } = await supabase
+          .from("equipment")
+          .select("equipment_type")
+          .eq("id", selectedVehicleId)
+          .maybeSingle();
+        eqType = (eqRow as any)?.equipment_type;
+      }
       const shouldGeneratePng = eqType === "pipa" || eqType === "munk";
       let parteDiariaUrl: string | null = null;
       if (shouldGeneratePng) {
         toast.info("Gerando Parte Diária para envio...");
         let lastErr: any = null;
-        for (let attempt = 1; attempt <= 2; attempt++) {
+        for (let attempt = 1; attempt <= 3; attempt++) {
           try {
             parteDiariaUrl = await generateAndUploadParteDiariaPng(selectedVehicle);
             if (parteDiariaUrl) break;
           } catch (e: any) {
             lastErr = e;
             console.error(`parte diária png tentativa ${attempt} falhou`, e);
-            await new Promise((r) => setTimeout(r, 500));
+            await new Promise((r) => setTimeout(r, 700));
           }
         }
         if (!parteDiariaUrl) {
