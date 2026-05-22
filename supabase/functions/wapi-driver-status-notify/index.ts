@@ -176,19 +176,21 @@ Deno.serve(async (req) => {
 
     // Optional: also enqueue an image (e.g. Parte Diária PNG) to the same group.
     if (imageUrl && typeof imageUrl === "string") {
-      const { data: existingImage } = await admin
-        .from("wapi_outbox")
-        .select("id")
-        .eq("origin", "driver-status")
-        .eq("external_kind", "daily-shift-png")
-        .eq("external_id", shiftRecordId || null)
-        .in("status", ["pending", "processing", "sent"])
-        .maybeSingle();
+      if (shiftRecordId) {
+        const { data: existingImage } = await admin
+          .from("wapi_outbox")
+          .select("id")
+          .eq("origin", "driver-status")
+          .eq("external_kind", "daily-shift-png")
+          .eq("external_id", shiftRecordId)
+          .in("status", ["pending", "processing", "sent"])
+          .maybeSingle();
 
-      if (existingImage?.id) {
-        return new Response(JSON.stringify({ success: true, queued: true, imageSkipped: "duplicate" }), {
-          headers: { ...corsHeaders, "Content-Type": "application/json" },
-        });
+        if (existingImage?.id) {
+          return new Response(JSON.stringify({ success: true, queued: true, imageSkipped: "duplicate" }), {
+            headers: { ...corsHeaders, "Content-Type": "application/json" },
+          });
+        }
       }
 
       const { error: imgErr } = await admin.from("wapi_outbox").insert({
