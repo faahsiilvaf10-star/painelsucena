@@ -66,14 +66,14 @@ export function LoginTransition({ onComplete, userName, userAvatar, userCargo }:
 
   useEffect(() => {
     const t1 = setTimeout(() => setPhase("logo"), 300);
-    const t2 = setTimeout(() => setPhase("building"), 3500);
-    const t3 = setTimeout(() => setPhase("welcome"), 6500);
-    const t4 = setTimeout(() => setPhase("fade"), 9500);
+    const t2 = setTimeout(() => setPhase("building"), 2200);
+    const t3 = setTimeout(() => setPhase("welcome"), 8200);
+    const t4 = setTimeout(() => setPhase("fade"), 11200);
     const t5 = setTimeout(() => {
       setPhase("done");
       visualDoneRef.current = true;
       tryFinish();
-    }, 10300);
+    }, 12000);
 
     return () => {
       clearTimeout(t1);
@@ -94,10 +94,13 @@ export function LoginTransition({ onComplete, userName, userAvatar, userCargo }:
           </div>
         )}
 
-        {/* Phase: Building Animation — uses reference image as background */}
+        {/* Phase: Building Animation — uses reference image with progress bar overlay */}
         {phase === "building" && (
           <div className="loading-screen-img">
             <img src={loadingBuilding} alt="Construindo Ambiente Seguro" className="loading-bg-img" />
+            <div className="loading-progress-overlay">
+              <span></span>
+            </div>
           </div>
         )}
 
@@ -161,18 +164,59 @@ export function LoginTransition({ onComplete, userName, userAvatar, userCargo }:
           position: fixed;
           inset: 0;
           z-index: 99999;
-          background: #020713;
+          background:
+            radial-gradient(circle at 50% 35%, rgba(0, 120, 255, .22), transparent 35%),
+            linear-gradient(180deg, #020713 0%, #050b1c 45%, #02040c 100%);
           display: flex;
           align-items: center;
           justify-content: center;
           overflow: hidden;
-          animation: ltFadeIn 0.5s ease-out;
+          animation: ltFadeIn 0.7s ease-out;
         }
         .loading-bg-img {
-          width: 100%;
+          max-width: 92%;
+          max-height: 92%;
+          width: auto;
+          height: auto;
+          object-fit: contain;
+          filter: drop-shadow(0 0 60px rgba(0, 130, 255, 0.45));
+          animation: ltImgEntrance 1.1s cubic-bezier(0.16, 1, 0.3, 1) both, ltFloat 4.5s ease-in-out 1.1s infinite;
+        }
+        .loading-progress-overlay {
+          position: absolute;
+          left: 50%;
+          bottom: 6%;
+          transform: translateX(-50%);
+          width: min(420px, 60vw);
+          height: 14px;
+          padding: 3px;
+          border-radius: 999px;
+          background: linear-gradient(180deg, #071227, #020611);
+          box-shadow:
+            inset 0 2px 6px rgba(0,0,0,.9),
+            0 0 20px rgba(0, 140, 255, .4);
+          overflow: hidden;
+          z-index: 2;
+        }
+        .loading-progress-overlay span {
+          display: block;
           height: 100%;
-          object-fit: cover;
-          object-position: center;
+          width: 0%;
+          border-radius: inherit;
+          background: linear-gradient(90deg, #00b7ff, #2bd8ff, #008cff);
+          box-shadow:
+            inset 0 1px 4px rgba(255,255,255,.55),
+            0 0 14px rgba(0, 208, 255, .9);
+          animation: loadingFill 5.5s ease-in-out forwards, shine 1.2s linear infinite;
+        }
+
+        @keyframes ltImgEntrance {
+          0% { opacity: 0; transform: scale(0.85); filter: drop-shadow(0 0 0 rgba(0,130,255,0)) blur(8px); }
+          100% { opacity: 1; transform: scale(1); filter: drop-shadow(0 0 60px rgba(0, 130, 255, 0.45)) blur(0); }
+        }
+        @keyframes ltFloat {
+          0%, 100% { transform: translateY(0) scale(1); }
+          50% { transform: translateY(-12px) scale(1.015); }
         }
 
         /* ===== LOADING 3D 4K - SISTEMA DE GESTÃO ===== */
