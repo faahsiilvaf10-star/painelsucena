@@ -13,5 +13,3 @@ verify_jwt = false
 verify_jwt = false
 
 
-[functions.upload-parte-diaria-png]
-verify_jwt = false
