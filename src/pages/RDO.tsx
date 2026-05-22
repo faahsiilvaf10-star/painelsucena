@@ -288,15 +288,29 @@ export default function RDO() {
       shiftRecords.map(sr => [sr.plate, sr])
     );
     
-    // Apply the same logic as "Entrada e Saída de Equipamentos" page:
-    // Equipment is only "out" if exit_reason is maintenance or vistoria
-    // (fim_turno, operando, aguardando_frente_servico means still on site)
-    const reallyOut = equipmentOut.filter(m => 
-      m.exit_reason && 
-      m.exit_reason !== "fim_turno" && 
-      m.exit_reason !== "operando" &&
-      m.exit_reason !== "aguardando_frente_servico"
-    );
+    // Regra de horário da saída para o RDO:
+    // - Saída antes das 10:00h: equipamento NÃO entra no RDO (fica fora)
+    // - Saída a partir das 12:00h: equipamento ENTRA no RDO (trabalhou o dia)
+    // - Entre 10:00h e 12:00h: mantém a lógica anterior por motivo
+    const parseHour = (t?: string | null) => {
+      if (!t) return null;
+      const [h, m] = t.split(":").map(Number);
+      if (Number.isNaN(h)) return null;
+      return h + (Number.isNaN(m) ? 0 : m / 60);
+    };
+    const reallyOut = equipmentOut.filter(m => {
+      if (!m.exit_reason) return false;
+      const hour = parseHour(m.movement_time);
+      if (hour !== null) {
+        if (hour >= 12) return false; // saída tarde → conta como presente no RDO
+        if (hour < 10) return true;   // saída cedo → fica fora do RDO
+      }
+      return (
+        m.exit_reason !== "fim_turno" &&
+        m.exit_reason !== "operando" &&
+        m.exit_reason !== "aguardando_frente_servico"
+      );
+    });
     
     // Get plates of equipment actually out (maintenance, vistoria)
     const platesOut = new Set(reallyOut.map(m => m.plate));
