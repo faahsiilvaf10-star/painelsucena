@@ -590,11 +590,14 @@ const RH = () => {
                   </TableRow>
                 </TableHeader>
                 <TableBody>
-                  {filteredColaboradores.map((colaborador, index) => (
+                  {filteredColaboradores.map((colaborador, index) => {
+                    const asoExpiry = getEffectiveAsoExpiry(colaborador.aso, colaborador.admissao);
+                    const asoVencido = asoExpiry ? asoExpiry.getTime() < new Date(new Date().toDateString()).getTime() : false;
+                    return (
                     <>
                       <TableRow 
                         key={colaborador.id}
-                        className="cursor-pointer hover:bg-accent/50"
+                        className={`cursor-pointer ${asoVencido ? "bg-red-100 hover:bg-red-200 dark:bg-red-950/40 dark:hover:bg-red-900/50" : "hover:bg-accent/50"}`}
                         onClick={() => setExpandedRow(expandedRow === colaborador.id ? null : colaborador.id)}
                       >
                         <TableCell className="font-medium text-muted-foreground">
