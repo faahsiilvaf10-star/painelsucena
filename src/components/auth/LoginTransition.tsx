@@ -157,6 +157,24 @@ export function LoginTransition({ onComplete, userName, userAvatar, userCargo }:
           filter: brightness(1.25) drop-shadow(0 0 15px rgba(255,255,255,0.3));
         }
 
+        .loading-screen-img {
+          position: fixed;
+          inset: 0;
+          z-index: 99999;
+          background: #020713;
+          display: flex;
+          align-items: center;
+          justify-content: center;
+          overflow: hidden;
+          animation: ltFadeIn 0.5s ease-out;
+        }
+        .loading-bg-img {
+          width: 100%;
+          height: 100%;
+          object-fit: cover;
+          object-position: center;
+        }
+
         /* ===== LOADING 3D 4K - SISTEMA DE GESTÃO ===== */
         .loading-screen {
           position: fixed;
