@@ -854,7 +854,6 @@ const RH = () => {
                         </TableRow>
                       )}
                     </>
-                    </>
                   );})}
                 </TableBody>
               </Table>
