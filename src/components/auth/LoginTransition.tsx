@@ -2,6 +2,7 @@ import { useState, useEffect, useRef } from "react";
 import { User } from "lucide-react";
 import { useSiteSettings } from "@/hooks/useSiteSettings";
 import logoPrincipal from "@/assets/logo-principal.png";
+import loadingBuilding from "@/assets/loading-construindo.png";
 
 interface LoginTransitionProps {
   onComplete: () => void;
@@ -93,25 +94,10 @@ export function LoginTransition({ onComplete, userName, userAvatar, userCargo }:
           </div>
         )}
 
-        {/* Phase: Building Animation (custom 3D loading per spec) */}
+        {/* Phase: Building Animation — uses reference image as background */}
         {phase === "building" && (
-          <div className="loading-screen">
-            <div className="loading-box">
-              <div className="loading-3d-icon">
-                <div className="loading-card"></div>
-                <div className="loading-card-2"></div>
-                <div className="loading-card-3"></div>
-                <div className="house-3d"></div>
-                <div className="tool-hammer"></div>
-                <div className="tool-barrier"></div>
-              </div>
-              <div className="loading-title">Construindo Ambiente Seguro...</div>
-              <div className="loading-subtitle">Sistema de Gestão Inicializando</div>
-              <div className="progress-3d">
-                <span></span>
-              </div>
-              <div className="loading-percent"></div>
-            </div>
+          <div className="loading-screen-img">
+            <img src={loadingBuilding} alt="Construindo Ambiente Seguro" className="loading-bg-img" />
           </div>
         )}
 
@@ -169,6 +155,24 @@ export function LoginTransition({ onComplete, userName, userAvatar, userCargo }:
           height: 5rem;
           object-fit: contain;
           filter: brightness(1.25) drop-shadow(0 0 15px rgba(255,255,255,0.3));
+        }
+
+        .loading-screen-img {
+          position: fixed;
+          inset: 0;
+          z-index: 99999;
+          background: #020713;
+          display: flex;
+          align-items: center;
+          justify-content: center;
+          overflow: hidden;
+          animation: ltFadeIn 0.5s ease-out;
+        }
+        .loading-bg-img {
+          width: 100%;
+          height: 100%;
+          object-fit: cover;
+          object-position: center;
         }
 
         /* ===== LOADING 3D 4K - SISTEMA DE GESTÃO ===== */
