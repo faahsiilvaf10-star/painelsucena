@@ -273,7 +273,7 @@ export function DriverStatusButtons() {
       const shiftStartLs = localStorage.getItem(`shift_start_time_${selectedVehicleId}`);
       const shiftStartIso = shiftStartLs ? new Date(parseInt(shiftStartLs, 10)).toISOString() : now;
 
-      const { error: upsertErr } = await (supabase as any)
+      const { data: savedShiftRecord, error: upsertErr } = await (supabase as any)
         .from("daily_shift_records")
         .upsert(
           {
@@ -291,30 +291,31 @@ export function DriverStatusButtons() {
             shift_end_time: now,
           },
           { onConflict: "equipment_id,shift_date", ignoreDuplicates: false }
-        );
+        )
+        .select("id")
+        .maybeSingle();
       if (upsertErr) {
         console.error("Falha ao upsert daily_shift_records:", upsertErr);
-        toast.error(`Erro ao salvar parte diária: ${upsertErr.message}`);
+        throw new Error(`Erro ao salvar parte diária: ${upsertErr.message}`);
       }
 
-      // Garante equipment_type vindo do banco para decidir PNG.
-      let eqType = (selectedVehicle as any).equipment_type as string | undefined;
-      if (!eqType && selectedVehicleId) {
-        const { data: eqRow } = await supabase
-          .from("equipment")
-          .select("equipment_type")
-          .eq("id", selectedVehicleId)
-          .maybeSingle();
-        eqType = (eqRow as any)?.equipment_type;
-      }
-      const shouldGeneratePng = eqType === "pipa" || eqType === "munk";
+      // Garante dados frescos do equipamento para decidir/gerar PNG.
+      const { data: freshEquipment } = await supabase
+        .from("equipment")
+        .select("*")
+        .eq("id", selectedVehicleId)
+        .maybeSingle();
+      const equipmentForPng = (freshEquipment as any) || selectedVehicle;
+      const eqType = String((equipmentForPng as any).equipment_type || "").toLowerCase();
+      const eqName = String((equipmentForPng as any).name || selectedVehicle.name || "").toLowerCase();
+      const shouldGeneratePng = eqType === "pipa" || eqType === "munk" || eqName.includes("pipa") || eqName.includes("munk") || eqName.includes("munck");
       let parteDiariaUrl: string | null = null;
       if (shouldGeneratePng) {
         toast.info("Gerando Parte Diária para envio...");
         let lastErr: any = null;
         for (let attempt = 1; attempt <= 3; attempt++) {
           try {
-            parteDiariaUrl = await generateAndUploadParteDiariaPng(selectedVehicle);
+            parteDiariaUrl = await generateAndUploadParteDiariaPng(equipmentForPng as any);
             if (parteDiariaUrl) break;
           } catch (e: any) {
             lastErr = e;
@@ -342,6 +343,7 @@ export function DriverStatusButtons() {
             previousStatus: currentStatus,
             driverName: profile?.full_name || null,
             extraInfo: `*Combustível final:* ${getFuelLevelLabel(endShiftFuelLevel)}${endShiftHorimeter ? `\n*Horímetro:* ${endShiftHorimeter}` : ""}${endShiftKm ? `\n*KM:* ${endShiftKm}` : ""}`,
+            shiftRecordId: savedShiftRecord?.id || null,
             imageUrl: parteDiariaUrl,
             imageCaption: parteDiariaUrl
               ? `📄 *PARTE DIÁRIA*\n${selectedVehicle.name} — ${selectedVehicle.plate}\nMotorista: ${profile?.full_name || "—"}`

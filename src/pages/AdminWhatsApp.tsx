@@ -781,6 +781,7 @@ const AdminWhatsApp = () => {
           plate: rec.plate,
           newStatus: "end_of_shift",
           driverName: rec.driver_name,
+          shiftRecordId: rec.id,
           imageUrl,
           imageCaption: `📄 Parte Diária — ${rec.equipment_name} (${rec.plate})\n👤 Motorista: ${rec.driver_name || "—"}`,
           extraInfo: "♻️ Reenvio manual da Parte Diária pelo painel admin.",

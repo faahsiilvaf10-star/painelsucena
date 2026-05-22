@@ -37,6 +37,7 @@ Deno.serve(async (req) => {
       driverName,
       waterPoint,
       extraInfo,
+      shiftRecordId,
       imageUrl,
       imageCaption,
     } = payload || {};
@@ -175,6 +176,23 @@ Deno.serve(async (req) => {
 
     // Optional: also enqueue an image (e.g. Parte Diária PNG) to the same group.
     if (imageUrl && typeof imageUrl === "string") {
+      if (shiftRecordId) {
+        const { data: existingImage } = await admin
+          .from("wapi_outbox")
+          .select("id")
+          .eq("origin", "driver-status")
+          .eq("external_kind", "daily-shift-png")
+          .eq("external_id", shiftRecordId)
+          .in("status", ["pending", "processing", "sent"])
+          .maybeSingle();
+
+        if (existingImage?.id) {
+          return new Response(JSON.stringify({ success: true, queued: true, imageSkipped: "duplicate" }), {
+            headers: { ...corsHeaders, "Content-Type": "application/json" },
+          });
+        }
+      }
+
       const { error: imgErr } = await admin.from("wapi_outbox").insert({
         kind: "image",
         target_type: "group",
@@ -182,6 +200,8 @@ Deno.serve(async (req) => {
         image_url: imageUrl,
         caption: imageCaption || `📄 Parte Diária — ${eqName} (${eqPlate})`,
         origin: "driver-status",
+        external_kind: shiftRecordId ? "daily-shift-png" : null,
+        external_id: shiftRecordId || null,
       });
       if (imgErr) console.warn("[wapi-driver-status-notify] image enqueue error", imgErr);
     }
