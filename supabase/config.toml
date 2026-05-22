@@ -12,3 +12,6 @@ verify_jwt = false
 [functions.wapi-driver-app-reminder]
 verify_jwt = false
 
+
+[functions.upload-parte-diaria-png]
+verify_jwt = false
