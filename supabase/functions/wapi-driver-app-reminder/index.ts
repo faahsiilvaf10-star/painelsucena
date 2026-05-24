@@ -31,6 +31,12 @@ Deno.serve(async (req) => {
 
     const now = new Date();
     const paraTime = new Date(now.getTime() - 3 * 60 * 60 * 1000);
+    const dayOfWeek = paraTime.getDay(); // 1=Monday ... 5=Friday, 6=Saturday, 0=Sunday
+    if (dayOfWeek === 0 || dayOfWeek === 6) {
+      return new Response(JSON.stringify({ skipped: true, reason: "weekend" }), {
+        headers: { ...corsHeaders, "Content-Type": "application/json" },
+      });
+    }
     const dateBR = paraTime.toISOString().slice(0, 10).split("-").reverse().join("/");
 
     const message =
