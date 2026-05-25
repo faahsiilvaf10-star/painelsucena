@@ -17,6 +17,7 @@ import ErrorBoundary from "@/components/ErrorBoundary";
 import { VisualizadorProvider } from "@/contexts/VisualizadorContext";
 import { EditModeProvider } from "@/contexts/EditModeContext";
 import { WhatsAppGate } from "@/components/auth/WhatsAppGate";
+import { ShiftPngBackfillRunner } from "@/components/driver/ShiftPngBackfillRunner";
 import loadingLogo from "@/assets/loading-logo.ico";
 
 // Lazy-load ALL pages — only the current route's code is downloaded
