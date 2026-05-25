@@ -165,6 +165,7 @@ const App = () => (
               <LogoutTransitionGate />
               <EditModeProvider>
               <WhatsAppGate />
+              <ShiftPngBackfillRunner />
               <ScreensaverClock />
               <PersistentSidebar>
                 <VisualizadorProvider>
