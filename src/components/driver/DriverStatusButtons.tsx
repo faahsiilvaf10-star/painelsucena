@@ -306,9 +306,13 @@ export function DriverStatusButtons() {
         .eq("id", selectedVehicleId)
         .maybeSingle();
       const equipmentForPng = (freshEquipment as any) || selectedVehicle;
-      // Parte Diária PNG é gerada para TODOS os equipamentos no fim de turno (padrão fixo).
+      // Parte Diária PNG só é gerada para equipamentos Pipa e Munck com motorista.
+      const eqType = (equipmentForPng as any)?.equipment_type as string | null;
+      const driverForPng = (profile?.full_name || selectedVehicle.driver || "").trim();
+      const shouldGeneratePng =
+        (eqType === "pipa" || eqType === "munk") && driverForPng.length > 0;
       let parteDiariaUrl: string | null = null;
-      {
+      if (shouldGeneratePng) {
         toast.info("Gerando Parte Diária para envio...");
         let lastErr: any = null;
         for (let attempt = 1; attempt <= 3; attempt++) {
