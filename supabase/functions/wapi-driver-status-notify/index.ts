@@ -200,6 +200,7 @@ Deno.serve(async (req) => {
 
     // Optional: also enqueue an image (e.g. Parte Diária PNG) to the same group.
     if (imageUrl && typeof imageUrl === "string") {
+      // 1) Dedup por shiftRecordId
       if (shiftRecordId) {
         const { data: existingImage } = await admin
           .from("wapi_outbox")
@@ -211,15 +212,16 @@ Deno.serve(async (req) => {
           .maybeSingle();
 
         if (existingImage?.id) {
-          return new Response(JSON.stringify({ success: true, queued: true, imageSkipped: "duplicate" }), {
+          return new Response(JSON.stringify({ success: true, queued: true, imageSkipped: "duplicate-shift" }), {
             headers: { ...corsHeaders, "Content-Type": "application/json" },
           });
         }
       }
 
-      if (isEndOfShift && !shiftRecordId && equipmentId) {
+      // 2) Dedup por equipamento + dia (sempre, mesmo com shiftRecordId)
+      if (equipmentId) {
         const paraDate = new Date(Date.now() - 3 * 60 * 60 * 1000).toISOString().slice(0, 10);
-        const { data: existingEndShiftImage } = await admin
+        const { data: existingDayImage } = await admin
           .from("wapi_outbox")
           .select("id")
           .eq("origin", "driver-status")
@@ -230,7 +232,7 @@ Deno.serve(async (req) => {
           .limit(1)
           .maybeSingle();
 
-        if (existingEndShiftImage?.id) {
+        if (existingDayImage?.id) {
           return new Response(JSON.stringify({ success: true, queued: true, imageSkipped: "duplicate-equipment-day" }), {
             headers: { ...corsHeaders, "Content-Type": "application/json" },
           });
@@ -244,8 +246,8 @@ Deno.serve(async (req) => {
         image_url: imageUrl,
         caption: imageCaption || `📄 Parte Diária — ${eqName} (${eqPlate})`,
         origin: "driver-status",
-        external_kind: shiftRecordId ? "daily-shift-png" : null,
-        external_id: shiftRecordId || null,
+        external_kind: "daily-shift-png",
+        external_id: shiftRecordId || equipmentId || null,
       });
       if (imgErr) console.warn("[wapi-driver-status-notify] image enqueue error", imgErr);
     }
