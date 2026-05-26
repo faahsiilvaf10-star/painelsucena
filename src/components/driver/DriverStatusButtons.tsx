@@ -437,8 +437,8 @@ export function DriverStatusButtons() {
 
       await updateStatus.mutateAsync({
         id: selectedVehicleId,
-        stop_reason: "none" as any,
-        stop_start_time: null,
+        stop_reason: "waiting" as any,
+        stop_start_time: now,
         previousStopReason: currentStatus as any,
         previousStopStartTime: selectedVehicle.stop_start_time,
         changed_by_driver: profile?.full_name || null,
