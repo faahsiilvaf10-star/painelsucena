@@ -36,8 +36,8 @@ import { useEquipment } from "@/hooks/useEquipment";
 
 const formSchema = z.object({
   movement_type: z.enum(["entrada", "saida", "ajuste"]),
-  quantity: z.coerce.number().min(1, "Quantidade deve ser maior que 0"),
-  reason: z.string().optional(),
+  quantity: z.coerce.number().min(0, "Quantidade inválida"),
+  reason: z.string().trim().min(3, "Informe o motivo da alteração (mín. 3 caracteres)"),
   destination_type: z.string().optional(),
   destination_id: z.string().optional(),
 });
@@ -345,10 +345,10 @@ export function MovementDialog({ item, open, onOpenChange }: MovementDialogProps
               name="reason"
               render={({ field }) => (
                 <FormItem>
-                  <FormLabel>Motivo / Observação</FormLabel>
+                  <FormLabel>Motivo da alteração *</FormLabel>
                   <FormControl>
                     <Textarea
-                      placeholder="Descreva o motivo da movimentação..."
+                      placeholder="Descreva o motivo da alteração de estoque (será enviado no grupo do WhatsApp)..."
                       {...field}
                     />
                   </FormControl>

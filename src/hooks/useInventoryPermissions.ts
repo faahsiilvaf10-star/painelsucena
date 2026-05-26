@@ -9,8 +9,8 @@ export const useInventoryPermissions = () => {
 
   const isVisualizador = profile?.cargo === "visualizador";
 
-  // Aux administrativo and Admin can edit Estoque, but never visualizador
-  const canEditInventory = !isVisualizador && (isAdmin || profile?.cargo === "aux_administrativo");
+  // Aux administrativo, Aux almoxarifado and Admin can edit Estoque, but never visualizador
+  const canEditInventory = !isVisualizador && (isAdmin || profile?.cargo === "aux_administrativo" || profile?.cargo === "aux_almoxarifado");
 
   return {
     canEditInventory,
