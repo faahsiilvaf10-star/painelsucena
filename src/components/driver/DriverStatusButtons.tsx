@@ -699,8 +699,26 @@ export function DriverStatusButtons() {
             </Alert>
           )}
 
+          {/* Start Shift Button - only when shift not started */}
+          {!shiftStarted && (
+            <Button
+              variant="outline"
+              className="w-full h-auto min-h-[60px] py-3 flex items-center justify-center gap-2 touch-manipulation transition-transform active:scale-95 bg-emerald-600 hover:bg-emerald-700 active:bg-emerald-800 text-white border-emerald-600"
+              onClick={openStartShiftDialog}
+              disabled={isUpdating}
+            >
+              {isUpdating ? (
+                <Loader2 className="h-5 w-5 animate-spin" />
+              ) : (
+                <Play className="h-5 w-5" />
+              )}
+              <span className="text-sm font-semibold">Iniciar Turno</span>
+            </Button>
+          )}
+
           {/* Status Control Buttons - Larger touch targets */}
           <div className="grid grid-cols-2 gap-3 pt-3 border-t border-border">
+
             {statusButtons.map((button) => {
               // If in maintenance, only "Operar" (none) button is enabled
               const isDisabledByMaintenance = isInMaintenance && button.action !== "none";
