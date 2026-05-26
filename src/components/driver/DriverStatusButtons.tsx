@@ -495,36 +495,9 @@ export function DriverStatusButtons() {
       return;
     }
 
-    // Handle starting shift (going to "none" status) - show dialog if shift not started
-    if (newStatus === "none" && !shiftStarted) {
-      // Fetch previous day's final horimeter/km to pre-fill
-      setStartShiftHorimeter("");
-      setStartShiftKm("");
-      
-      if (selectedVehicleId) {
-        try {
-          const today = new Date().toISOString().split("T")[0];
-          const { data: prevShift } = await supabase
-            .from("daily_shift_records")
-            .select("final_horimeter, final_km, initial_horimeter, initial_km")
-            .eq("equipment_id", selectedVehicleId)
-            .lt("shift_date", today)
-            .order("shift_date", { ascending: false })
-            .limit(1)
-            .maybeSingle();
-          
-          if (prevShift) {
-            const horimeter = prevShift.final_horimeter ?? prevShift.initial_horimeter;
-            const km = prevShift.final_km ?? prevShift.initial_km;
-            if (horimeter) setStartShiftHorimeter(String(horimeter));
-            if (km) setStartShiftKm(String(km));
-          }
-        } catch (err) {
-          console.error("Error fetching previous shift data:", err);
-        }
-      }
-      
-      setShowStartShiftDialog(true);
+    // Block any status change if shift has not been started
+    if (!shiftStarted) {
+      toast.error("Inicie o turno antes de alterar o status");
       return;
     }
 
