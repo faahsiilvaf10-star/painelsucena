@@ -432,6 +432,24 @@ export function DriverStatusButtons() {
       // Entry movements are no longer registered automatically at shift start
       // Only exit movements (saída) are tracked in the movements system
 
+      // Fire WhatsApp notification FIRST so its message is queued before the DB trigger
+      // (which would otherwise emit a plain "Aguardando Frente" and trigger dedup against ours).
+      try {
+        await supabase.functions.invoke("wapi-driver-status-notify", {
+          body: {
+            equipmentId: selectedVehicleId,
+            equipmentName: selectedVehicle.name,
+            plate: selectedVehicle.plate,
+            newStatus: "waiting",
+            previousStatus: "shift_start",
+            driverName: profile?.full_name || null,
+            extraInfo: `*Combustível:* ${getFuelLevelLabel(fuelLevel)}\n*Horímetro:* ${startShiftHorimeter}\n*KM:* ${startShiftKm}`,
+          },
+        });
+      } catch (e) {
+        console.warn("driver-status-notify failed", e);
+      }
+
       await updateStatus.mutateAsync({
         id: selectedVehicleId,
         stop_reason: "waiting" as any,
@@ -440,19 +458,6 @@ export function DriverStatusButtons() {
         previousStopStartTime: selectedVehicle.stop_start_time,
         changed_by_driver: profile?.full_name || null,
       });
-
-      // Fire-and-forget WhatsApp group notification
-      supabase.functions.invoke("wapi-driver-status-notify", {
-        body: {
-          equipmentId: selectedVehicleId,
-          equipmentName: selectedVehicle.name,
-          plate: selectedVehicle.plate,
-          newStatus: "waiting",
-          previousStatus: currentStatus,
-          driverName: profile?.full_name || null,
-          extraInfo: `*Início de Turno*\n*Combustível:* ${getFuelLevelLabel(fuelLevel)}\n*Horímetro:* ${startShiftHorimeter}\n*KM:* ${startShiftKm}`,
-        },
-      }).catch((e) => console.warn("driver-status-notify failed", e));
 
       setShowStartShiftDialog(false);
       toast.success(`Turno iniciado! Horímetro: ${startShiftHorimeter} | KM: ${startShiftKm}`);
