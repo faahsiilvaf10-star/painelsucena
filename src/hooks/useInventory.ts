@@ -288,6 +288,25 @@ export function useRecordMovement() {
 
       if (movementError) throw movementError;
 
+      // Envia ao grupo do WhatsApp toda alteração de quantidade com o motivo.
+      try {
+        await supabase.functions.invoke("wapi-inventory-change-notify", {
+          body: {
+            item_id: data.item_id,
+            movement_id: movement?.id,
+            movement_type: data.movement_type,
+            quantity: data.quantity,
+            previous_quantity: previousQuantity,
+            new_quantity: newQuantity,
+            reason: data.reason || null,
+            moved_by_name: profile?.full_name || "Usuário",
+            destination_name: data.destination_name || null,
+          },
+        });
+      } catch (e) {
+        console.warn("[inventory-change-notify] falha ao enfileirar:", e);
+      }
+
       // Dispara alerta de estoque baixo / zerado se cruzar o limite
       try {
         const { data: itemAfter } = await supabase
