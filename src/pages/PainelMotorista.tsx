@@ -32,7 +32,9 @@ interface QuickAccessItem {
   color: string;
   iconColor: string;
   hideForMunk?: boolean;
+  requiresShift?: boolean;
 }
+
 
 const PainelMotorista = () => {
   const { setTheme, theme } = useTheme();
