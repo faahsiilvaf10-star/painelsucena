@@ -197,9 +197,16 @@ const RH = () => {
 
   const handleStartEditAso = (colaborador: Colaborador) => {
     setEditingAso(colaborador.id);
+    // Pré-preenche a validade com o valor efetivo (calculado a partir de
+    // admissão ou da data-base mais recente) quando não há validade salva,
+    // para refletir o que está sendo exibido no card.
+    const effectiveValidade =
+      colaborador.aso?.validade ||
+      getEffectiveAsoExpiryStr(colaborador.aso, colaborador.admissao) ||
+      "";
     setAsoForm({
       admissional: colaborador.aso?.admissional || "",
-      validade: colaborador.aso?.validade || "",
+      validade: effectiveValidade,
       periodico: colaborador.aso?.periodico || "",
       retornoTrabalho: colaborador.aso?.retornoTrabalho || "",
       mudancaRisco: colaborador.aso?.mudancaRisco || "",
