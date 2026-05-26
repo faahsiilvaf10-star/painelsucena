@@ -66,9 +66,7 @@ export function useShiftPngBackfill(enabled: boolean = true) {
               .maybeSingle();
             if (!eq) continue;
 
-            // Restrição: só Pipa e Munck, e somente com motorista registrado
-            const type = (eq as any).equipment_type as string | null;
-            if (type !== "pipa" && type !== "munk") continue;
+            // Padrão: gera Parte Diária para TODOS os equipamentos no fim de turno.
             const driver = (shift.driver_name || "").trim();
             if (!driver || driver === "—") continue;
 
