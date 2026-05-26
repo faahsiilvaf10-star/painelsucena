@@ -50,7 +50,7 @@ export function getEffectiveAsoExpiry(
 ): Date | null {
   const triggerDates: Date[] = [];
   if (aso) {
-    (["periodico", "retornoTrabalho", "mudancaRisco", "observacao"] as const).forEach((k) => {
+    (["admissional", "periodico", "retornoTrabalho", "mudancaRisco", "observacao"] as const).forEach((k) => {
       const dt = parseBR(aso[k]);
       if (dt) triggerDates.push(dt);
     });
