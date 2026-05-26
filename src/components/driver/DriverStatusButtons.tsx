@@ -479,6 +479,34 @@ export function DriverStatusButtons() {
     return labels[level];
   };
 
+  const openStartShiftDialog = async () => {
+    if (!selectedVehicleId) {
+      toast.error("Nenhum veículo selecionado");
+      return;
+    }
+    setStartShiftHorimeter("");
+    setStartShiftKm("");
+    try {
+      const today = new Date().toISOString().split("T")[0];
+      const { data: prevShift } = await supabase
+        .from("daily_shift_records")
+        .select("final_horimeter, final_km, initial_horimeter, initial_km")
+        .eq("equipment_id", selectedVehicleId)
+        .lt("shift_date", today)
+        .order("shift_date", { ascending: false })
+        .limit(1)
+        .maybeSingle();
+      if (prevShift) {
+        const horimeter = prevShift.final_horimeter ?? prevShift.initial_horimeter;
+        const km = prevShift.final_km ?? prevShift.initial_km;
+        if (horimeter) setStartShiftHorimeter(String(horimeter));
+        if (km) setStartShiftKm(String(km));
+      }
+    } catch (err) {
+      console.error("Error fetching previous shift data:", err);
+    }
+    setShowStartShiftDialog(true);
+
   const handleStatusChange = async (newStatus: DriverStopReason) => {
     if (!selectedVehicleId || !selectedVehicle) {
       toast.error("Nenhum veículo selecionado");
