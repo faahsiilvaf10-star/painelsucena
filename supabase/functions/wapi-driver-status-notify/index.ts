@@ -94,6 +94,15 @@ Deno.serve(async (req) => {
 
     const newLabel = STATUS_LABELS[newStatus] || newStatus;
     const prevLabel = previousStatus ? (STATUS_LABELS[previousStatus] || previousStatus) : null;
+    const isEndOfShift = newStatus === "end_of_shift" || newStatus === "fim_turno";
+
+    // Fim de Turno já tem o texto oficial enviado pelo trigger da Parte Diária.
+    // Aqui mantemos apenas o envio opcional do PNG, evitando o texto genérico duplicado.
+    if (isEndOfShift && !imageUrl) {
+      return new Response(JSON.stringify({ success: true, skipped: true, reason: "end-of-shift-text-disabled" }), {
+        headers: { ...corsHeaders, "Content-Type": "application/json" },
+      });
+    }
 
     const now = new Date();
     const paraTime = new Date(now.getTime() - 3 * 60 * 60 * 1000);
@@ -126,7 +135,7 @@ Deno.serve(async (req) => {
       `━━━━━━━━━━━━━━━━━━━━`;
 
     let recentOutbox = null;
-    if (equipmentId) {
+    if (equipmentId && !isEndOfShift) {
       const { data: recent } = await admin
         .from("wapi_outbox")
         .select("id, status")
@@ -140,7 +149,7 @@ Deno.serve(async (req) => {
       recentOutbox = recent;
     }
 
-    if (recentOutbox?.id && recentOutbox.status === "pending") {
+    if (!isEndOfShift && recentOutbox?.id && recentOutbox.status === "pending") {
       const { error: updateError } = await admin
         .from("wapi_outbox")
         .update({
@@ -156,7 +165,7 @@ Deno.serve(async (req) => {
           status: 500, headers: { ...corsHeaders, "Content-Type": "application/json" },
         });
       }
-    } else if (!recentOutbox?.id) {
+    } else if (!isEndOfShift && !recentOutbox?.id) {
       const { error } = await admin.from("wapi_outbox").insert({
         kind: "text",
         target_type: "group",
@@ -188,6 +197,26 @@ Deno.serve(async (req) => {
 
         if (existingImage?.id) {
           return new Response(JSON.stringify({ success: true, queued: true, imageSkipped: "duplicate" }), {
+            headers: { ...corsHeaders, "Content-Type": "application/json" },
+          });
+        }
+      }
+
+      if (isEndOfShift && !shiftRecordId && equipmentId) {
+        const paraDate = new Date(Date.now() - 3 * 60 * 60 * 1000).toISOString().slice(0, 10);
+        const { data: existingEndShiftImage } = await admin
+          .from("wapi_outbox")
+          .select("id")
+          .eq("origin", "driver-status")
+          .eq("external_kind", "daily-shift-png")
+          .ilike("caption", `%${eqName}%`)
+          .gte("created_at", `${paraDate}T03:00:00.000Z`)
+          .in("status", ["pending", "processing", "sent"])
+          .limit(1)
+          .maybeSingle();
+
+        if (existingEndShiftImage?.id) {
+          return new Response(JSON.stringify({ success: true, queued: true, imageSkipped: "duplicate-equipment-day" }), {
             headers: { ...corsHeaders, "Content-Type": "application/json" },
           });
         }

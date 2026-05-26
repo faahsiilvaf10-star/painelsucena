@@ -331,34 +331,34 @@ export function DriverStatusButtons() {
       }
 
 
-      try {
-        const notifyUrl = `${import.meta.env.VITE_SUPABASE_URL}/functions/v1/wapi-driver-status-notify`;
-        const resp = await fetch(notifyUrl, {
-          method: "POST",
-          headers: { "Content-Type": "application/json" },
-          keepalive: true,
-          body: JSON.stringify({
-            equipmentId: selectedVehicleId,
-            equipmentName: selectedVehicle.name,
-            plate: selectedVehicle.plate,
-            newStatus: "end_of_shift",
-            previousStatus: currentStatus,
-            driverName: profile?.full_name || null,
-            extraInfo: `*Combustível final:* ${getFuelLevelLabel(endShiftFuelLevel)}${endShiftHorimeter ? `\n*Horímetro:* ${endShiftHorimeter}` : ""}${endShiftKm ? `\n*KM:* ${endShiftKm}` : ""}`,
-            shiftRecordId: savedShiftRecord?.id || null,
-            imageUrl: parteDiariaUrl,
-            imageCaption: parteDiariaUrl
-              ? `📄 *PARTE DIÁRIA*\n${selectedVehicle.name} — ${selectedVehicle.plate}\nMotorista: ${profile?.full_name || "—"}`
-              : null,
-          }),
-        });
-        if (!resp.ok) {
-          const txt = await resp.text().catch(() => "");
-          console.warn("driver-status-notify HTTP", resp.status, txt);
+      if (parteDiariaUrl) {
+        try {
+          const notifyUrl = `${import.meta.env.VITE_SUPABASE_URL}/functions/v1/wapi-driver-status-notify`;
+          const resp = await fetch(notifyUrl, {
+            method: "POST",
+            headers: { "Content-Type": "application/json" },
+            keepalive: true,
+            body: JSON.stringify({
+              equipmentId: selectedVehicleId,
+              equipmentName: selectedVehicle.name,
+              plate: selectedVehicle.plate,
+              newStatus: "end_of_shift",
+              previousStatus: currentStatus,
+              driverName: profile?.full_name || null,
+              extraInfo: `*Combustível final:* ${getFuelLevelLabel(endShiftFuelLevel)}${endShiftHorimeter ? `\n*Horímetro:* ${endShiftHorimeter}` : ""}${endShiftKm ? `\n*KM:* ${endShiftKm}` : ""}`,
+              shiftRecordId: savedShiftRecord?.id || null,
+              imageUrl: parteDiariaUrl,
+              imageCaption: `📄 *PARTE DIÁRIA*\n${selectedVehicle.name} — ${selectedVehicle.plate}\nMotorista: ${profile?.full_name || "—"}`,
+            }),
+          });
+          if (!resp.ok) {
+            const txt = await resp.text().catch(() => "");
+            console.warn("driver-status-notify HTTP", resp.status, txt);
+          }
+        } catch (e: any) {
+          console.warn("driver-status-notify failed", e);
+          toast.error(`Falha ao enviar status ao grupo: ${e?.message || e}`, { duration: 6000 });
         }
-      } catch (e: any) {
-        console.warn("driver-status-notify failed", e);
-        toast.error(`Falha ao enviar status ao grupo: ${e?.message || e}`, { duration: 6000 });
       }
 
 
