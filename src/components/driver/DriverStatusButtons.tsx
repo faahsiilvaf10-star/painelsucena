@@ -506,6 +506,9 @@ export function DriverStatusButtons() {
       console.error("Error fetching previous shift data:", err);
     }
     setShowStartShiftDialog(true);
+  };
+
+
 
   const handleStatusChange = async (newStatus: DriverStopReason) => {
     if (!selectedVehicleId || !selectedVehicle) {
