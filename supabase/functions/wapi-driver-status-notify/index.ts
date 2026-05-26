@@ -17,6 +17,7 @@ const STATUS_LABELS: Record<string, string> = {
   abastecimento: "💧 Abastecendo Água",
   end_of_shift: "🌙 Fim de Turno",
   maintenance: "🔧 Manutenção",
+  shift_start: "🟢 Início de Turno",
 };
 
 Deno.serve(async (req) => {
