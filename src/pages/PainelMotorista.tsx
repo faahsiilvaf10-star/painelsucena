@@ -264,23 +264,38 @@ const PainelMotorista = () => {
         <div className="grid grid-cols-2 gap-3">
           {quickAccessItems
             .filter((item) => !(item.hideForMunk && isMunk))
-            .map((item) => (
-            <button
-              key={item.title}
-              type="button"
-              className={`${item.color} cursor-pointer transition-all duration-150 hover:scale-[1.02] active:scale-[0.97] border-none shadow-md touch-manipulation rounded-xl w-full focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-primary`}
-              onClick={() => navigate(item.href)}
-            >
-              <div className="p-4 flex flex-col items-center justify-center text-center min-h-[110px] pointer-events-none">
-                <div className={`${item.iconColor} mb-2 pointer-events-none`}>
-                  {item.icon}
-                </div>
-                <h3 className={`font-bold ${item.iconColor} text-xs uppercase tracking-wide pointer-events-none`}>
-                  {item.title}
-                </h3>
-              </div>
-            </button>
-          ))}
+            .map((item) => {
+              const blocked = item.requiresShift && !shiftStarted;
+              return (
+                <button
+                  key={item.title}
+                  type="button"
+                  disabled={blocked}
+                  className={`${item.color} transition-all duration-150 border-none shadow-md touch-manipulation rounded-xl w-full focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-primary ${
+                    blocked
+                      ? "opacity-50 cursor-not-allowed"
+                      : "cursor-pointer hover:scale-[1.02] active:scale-[0.97]"
+                  }`}
+                  onClick={() => {
+                    if (blocked) {
+                      toast.error("Inicie o turno antes de acessar essa função");
+                      return;
+                    }
+                    navigate(item.href);
+                  }}
+                >
+                  <div className="p-4 flex flex-col items-center justify-center text-center min-h-[110px] pointer-events-none">
+                    <div className={`${item.iconColor} mb-2 pointer-events-none`}>
+                      {item.icon}
+                    </div>
+                    <h3 className={`font-bold ${item.iconColor} text-xs uppercase tracking-wide pointer-events-none`}>
+                      {item.title}
+                    </h3>
+                  </div>
+                </button>
+              );
+            })}
+
         </div>
         </div>
       </main>
