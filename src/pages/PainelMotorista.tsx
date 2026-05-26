@@ -68,6 +68,25 @@ const PainelMotorista = () => {
   const selectedVehicle = equipment.find(eq => eq.id === selectedVehicleId);
   const isMunk = selectedVehicle?.equipment_type === "munk";
 
+  // Check if shift has been started (mirrors DriverStatusButtons logic)
+  const [shiftStarted, setShiftStarted] = useState(false);
+  useEffect(() => {
+    const check = () => {
+      if (!selectedVehicleId) return setShiftStarted(false);
+      const h = localStorage.getItem(`shift_horimeter_${selectedVehicleId}`);
+      const k = localStorage.getItem(`shift_km_${selectedVehicleId}`);
+      setShiftStarted(h !== null && k !== null);
+    };
+    check();
+    window.addEventListener("storage", check);
+    const interval = setInterval(check, 1000);
+    return () => {
+      window.removeEventListener("storage", check);
+      clearInterval(interval);
+    };
+  }, [selectedVehicleId]);
+
+
   // Geolocation tracking
   const { permissionStatus, requestPermission } = useDriverGeolocation(selectedVehicleId);
 
