@@ -134,22 +134,37 @@ Deno.serve(async (req) => {
       `\n*Motorista:* ${resolvedDriverName}\n` +
       `━━━━━━━━━━━━━━━━━━━━`;
 
+    // Dedup robusto: se já existe QUALQUER mensagem com o mesmo status
+    // (newLabel) para este equipamento nos últimos 10 minutos, ignora.
     let recentOutbox = null;
     if (equipmentId && !isEndOfShift) {
-      const { data: recent } = await admin
+      const { data: sameStatusRecent } = await admin
         .from("wapi_outbox")
-        .select("id, status")
+        .select("id, status, message")
         .eq("origin", "driver-status")
         .eq("external_kind", "equipment-status")
         .eq("external_id", equipmentId)
-        .gte("created_at", new Date(Date.now() - 30_000).toISOString())
+        .gte("created_at", new Date(Date.now() - 10 * 60_000).toISOString())
         .order("created_at", { ascending: false })
-        .limit(1)
-        .maybeSingle();
-      recentOutbox = recent;
+        .limit(5);
+
+      const dup = (sameStatusRecent || []).find((r) =>
+        typeof r.message === "string" && r.message.includes(newLabel)
+        && (!waterPoint || r.message.includes(String(waterPoint).trim()))
+      );
+      if (dup) {
+        return new Response(JSON.stringify({ success: true, skipped: true, reason: "duplicate-status" }), {
+          headers: { ...corsHeaders, "Content-Type": "application/json" },
+        });
+      }
+
+      // Edição da última pending nos últimos 30s (mesmo equipamento, status diferente)
+      recentOutbox = (sameStatusRecent || []).find(
+        (r) => r.status === "pending"
+      ) || null;
     }
 
-    if (!isEndOfShift && recentOutbox?.id && recentOutbox.status === "pending") {
+    if (!isEndOfShift && recentOutbox?.id) {
       const { error: updateError } = await admin
         .from("wapi_outbox")
         .update({
@@ -165,7 +180,7 @@ Deno.serve(async (req) => {
           status: 500, headers: { ...corsHeaders, "Content-Type": "application/json" },
         });
       }
-    } else if (!isEndOfShift && !recentOutbox?.id) {
+    } else if (!isEndOfShift) {
       const { error } = await admin.from("wapi_outbox").insert({
         kind: "text",
         target_type: "group",
