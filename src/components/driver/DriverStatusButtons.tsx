@@ -450,7 +450,7 @@ export function DriverStatusButtons() {
           equipmentId: selectedVehicleId,
           equipmentName: selectedVehicle.name,
           plate: selectedVehicle.plate,
-          newStatus: "none",
+          newStatus: "waiting",
           previousStatus: currentStatus,
           driverName: profile?.full_name || null,
           extraInfo: `*Início de Turno*\n*Combustível:* ${getFuelLevelLabel(fuelLevel)}\n*Horímetro:* ${startShiftHorimeter}\n*KM:* ${startShiftKm}`,
