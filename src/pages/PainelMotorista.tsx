@@ -153,6 +153,7 @@ const PainelMotorista = () => {
       color: "bg-blue-500 hover:bg-blue-600 active:bg-blue-700",
       iconColor: "text-white",
       hideForMunk: true,
+      requiresShift: true,
     },
     {
       title: "Entrada/Saída",
@@ -160,7 +161,9 @@ const PainelMotorista = () => {
       href: "/registro-movimento-motorista",
       color: "bg-zinc-600 hover:bg-zinc-700 active:bg-zinc-800",
       iconColor: "text-white",
+      requiresShift: true,
     },
+
   ];
 
   return (
