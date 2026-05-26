@@ -134,22 +134,37 @@ Deno.serve(async (req) => {
       `\n*Motorista:* ${resolvedDriverName}\n` +
       `━━━━━━━━━━━━━━━━━━━━`;
 
+    // Dedup robusto: se já existe QUALQUER mensagem com o mesmo status
+    // (newLabel) para este equipamento nos últimos 10 minutos, ignora.
     let recentOutbox = null;
     if (equipmentId && !isEndOfShift) {
-      const { data: recent } = await admin
+      const { data: sameStatusRecent } = await admin
         .from("wapi_outbox")
-        .select("id, status")
+        .select("id, status, message")
         .eq("origin", "driver-status")
         .eq("external_kind", "equipment-status")
         .eq("external_id", equipmentId)
-        .gte("created_at", new Date(Date.now() - 30_000).toISOString())
+        .gte("created_at", new Date(Date.now() - 10 * 60_000).toISOString())
         .order("created_at", { ascending: false })
-        .limit(1)
-        .maybeSingle();
-      recentOutbox = recent;
+        .limit(5);
+
+      const dup = (sameStatusRecent || []).find((r) =>
+        typeof r.message === "string" && r.message.includes(newLabel)
+        && (!waterPoint || r.message.includes(String(waterPoint).trim()))
+      );
+      if (dup) {
+        return new Response(JSON.stringify({ success: true, skipped: true, reason: "duplicate-status" }), {
+          headers: { ...corsHeaders, "Content-Type": "application/json" },
+        });
+      }
+
+      // Edição da última pending nos últimos 30s (mesmo equipamento, status diferente)
+      recentOutbox = (sameStatusRecent || []).find(
+        (r) => r.status === "pending"
+      ) || null;
     }
 
-    if (!isEndOfShift && recentOutbox?.id && recentOutbox.status === "pending") {
+    if (!isEndOfShift && recentOutbox?.id) {
       const { error: updateError } = await admin
         .from("wapi_outbox")
         .update({
@@ -165,7 +180,7 @@ Deno.serve(async (req) => {
           status: 500, headers: { ...corsHeaders, "Content-Type": "application/json" },
         });
       }
-    } else if (!isEndOfShift && !recentOutbox?.id) {
+    } else if (!isEndOfShift) {
       const { error } = await admin.from("wapi_outbox").insert({
         kind: "text",
         target_type: "group",
@@ -185,6 +200,7 @@ Deno.serve(async (req) => {
 
     // Optional: also enqueue an image (e.g. Parte Diária PNG) to the same group.
     if (imageUrl && typeof imageUrl === "string") {
+      // 1) Dedup por shiftRecordId
       if (shiftRecordId) {
         const { data: existingImage } = await admin
           .from("wapi_outbox")
@@ -196,15 +212,16 @@ Deno.serve(async (req) => {
           .maybeSingle();
 
         if (existingImage?.id) {
-          return new Response(JSON.stringify({ success: true, queued: true, imageSkipped: "duplicate" }), {
+          return new Response(JSON.stringify({ success: true, queued: true, imageSkipped: "duplicate-shift" }), {
             headers: { ...corsHeaders, "Content-Type": "application/json" },
           });
         }
       }
 
-      if (isEndOfShift && !shiftRecordId && equipmentId) {
+      // 2) Dedup por equipamento + dia (sempre, mesmo com shiftRecordId)
+      if (equipmentId) {
         const paraDate = new Date(Date.now() - 3 * 60 * 60 * 1000).toISOString().slice(0, 10);
-        const { data: existingEndShiftImage } = await admin
+        const { data: existingDayImage } = await admin
           .from("wapi_outbox")
           .select("id")
           .eq("origin", "driver-status")
@@ -215,7 +232,7 @@ Deno.serve(async (req) => {
           .limit(1)
           .maybeSingle();
 
-        if (existingEndShiftImage?.id) {
+        if (existingDayImage?.id) {
           return new Response(JSON.stringify({ success: true, queued: true, imageSkipped: "duplicate-equipment-day" }), {
             headers: { ...corsHeaders, "Content-Type": "application/json" },
           });
@@ -229,8 +246,8 @@ Deno.serve(async (req) => {
         image_url: imageUrl,
         caption: imageCaption || `📄 Parte Diária — ${eqName} (${eqPlate})`,
         origin: "driver-status",
-        external_kind: shiftRecordId ? "daily-shift-png" : null,
-        external_id: shiftRecordId || null,
+        external_kind: "daily-shift-png",
+        external_id: shiftRecordId || equipmentId || null,
       });
       if (imgErr) console.warn("[wapi-driver-status-notify] image enqueue error", imgErr);
     }
