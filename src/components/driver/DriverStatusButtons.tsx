@@ -331,7 +331,7 @@ export function DriverStatusButtons() {
       }
 
 
-      try {
+      if (parteDiariaUrl) try {
         const notifyUrl = `${import.meta.env.VITE_SUPABASE_URL}/functions/v1/wapi-driver-status-notify`;
         const resp = await fetch(notifyUrl, {
           method: "POST",
