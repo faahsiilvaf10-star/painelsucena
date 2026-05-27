@@ -285,7 +285,8 @@ const PainelMotorista = () => {
           </div>
         )}
 
-        {/* Change equipment without ending the shift */}
+        {/* Change equipment without ending the shift - only available before starting shift */}
+        {!shiftStarted && (
         <AlertDialog>
           <AlertDialogTrigger asChild>
             <Button
