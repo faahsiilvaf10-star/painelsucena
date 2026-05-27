@@ -22,6 +22,7 @@ import { DriverStatusButtons } from "@/components/driver/DriverStatusButtons";
 import { SyncIndicatorV2 } from "@/components/driver/SyncIndicatorV2";
 import { OfflineBanner } from "@/components/driver/OfflineFeedback";
 import { useEquipment } from "@/hooks/useEquipment";
+import { useEquipmentCurrentlyOut } from "@/hooks/useEquipmentMovements";
 import { useOfflineSyncV2 } from "@/hooks/useOfflineSyncV2";
 import { useDriverGeolocation } from "@/hooks/useDriverGeolocation";
 
@@ -60,6 +61,7 @@ const PainelMotorista = () => {
   const navigate = useNavigate();
   const { data: profile } = useProfile();
   const { data: equipment = [] } = useEquipment();
+  const { data: equipmentCurrentlyOut = [] } = useEquipmentCurrentlyOut();
   const { isOnline, isSyncing, pendingCount, lastSyncTime, syncError, isInitialized, triggerSync } = useOfflineSyncV2();
   
   // Get selected vehicle type
@@ -67,14 +69,19 @@ const PainelMotorista = () => {
   const selectedVehicle = equipment.find(eq => eq.id === selectedVehicleId);
   const isMunk = selectedVehicle?.equipment_type === "munk";
 
+  // Equipment is "out" if DB says so OR localStorage flag is set (offline fallback)
+  const isEquipmentOutDb = selectedVehicle
+    ? equipmentCurrentlyOut.some((m: any) => m.plate === selectedVehicle.plate)
+    : false;
+
   // Check if shift has been started (mirrors DriverStatusButtons logic)
   const [shiftStarted, setShiftStarted] = useState(false);
-  const [exitPending, setExitPending] = useState(
+  const [exitPendingLocal, setExitPendingLocal] = useState(
     () => localStorage.getItem("equipmentExitPending") === "true",
   );
   useEffect(() => {
     const check = () => {
-      setExitPending(localStorage.getItem("equipmentExitPending") === "true");
+      setExitPendingLocal(localStorage.getItem("equipmentExitPending") === "true");
       if (!selectedVehicleId) return setShiftStarted(false);
       const h = localStorage.getItem(`shift_horimeter_${selectedVehicleId}`);
       const k = localStorage.getItem(`shift_km_${selectedVehicleId}`);
@@ -88,6 +95,16 @@ const PainelMotorista = () => {
       clearInterval(interval);
     };
   }, [selectedVehicleId]);
+
+  const exitPending = exitPendingLocal || isEquipmentOutDb;
+
+  // Keep localStorage in sync with DB so other components see the flag
+  useEffect(() => {
+    if (isEquipmentOutDb && localStorage.getItem("equipmentExitPending") !== "true") {
+      localStorage.setItem("equipmentExitPending", "true");
+      setExitPendingLocal(true);
+    }
+  }, [isEquipmentOutDb]);
 
 
   // Geolocation tracking
