@@ -34,26 +34,21 @@ export default function SelecaoVeiculo() {
   const [helperName, setHelperName] = useState("");
   const [isConfirming, setIsConfirming] = useState(false);
 
-  // Check if user has a fixed vehicle assignment
-  const fixedVehicleId = user?.id ? FIXED_VEHICLE_ASSIGNMENTS[user.id] : null;
-  const hasFixedVehicle = !!fixedVehicleId;
-  const fixedVehicle = hasFixedVehicle ? equipment.find(eq => eq.id === fixedVehicleId) : null;
+  // Fixed vehicle assignments disabled: every driver may pick any Pipa/Munk
+  // that is not currently held by another driver.
+  const hasFixedVehicle = false;
+  const fixedVehicleId: string | null = null;
+  const fixedVehicle = null as any;
 
   // Check if user already has a vehicle selected
   useEffect(() => {
     const savedVehicle = localStorage.getItem("selectedVehicleId");
     if (savedVehicle) {
-      // Always go to the painel — driver can manage the shift even when the
-      // equipment is currently registered as saída (exit pending).
       navigate("/painel-motorista", { replace: true });
       return;
     }
 
     // No localStorage selection — try to recover from the DB.
-    // If there's an equipment still assigned to this driver (Fim de Turno
-    // clears the driver field, so any row still pointing to them means the
-    // shift wasn't ended, including a saída corretiva that's still pending),
-    // restore the selection automatically and go straight to the painel.
     if (!profile?.full_name) return;
     (async () => {
       try {
@@ -74,16 +69,14 @@ export default function SelecaoVeiculo() {
     })();
   }, [navigate, profile?.full_name]);
 
-  // Auto-select fixed vehicle when data is loaded
-  useEffect(() => {
-    if (hasFixedVehicle && fixedVehicleId && !selectedVehicle) {
-      setSelectedVehicle(fixedVehicleId);
-    }
-  }, [hasFixedVehicle, fixedVehicleId, selectedVehicle]);
-
-  // Show all Pipa and Munk vehicles for selection
+  // Show all Pipa and Munk vehicles that are free OR already held by this driver
   const availableVehicles = equipment.filter((eq) => {
-    return eq.equipment_type === "pipa" || eq.equipment_type === "munk";
+    const isPipaOrMunk = eq.equipment_type === "pipa" || eq.equipment_type === "munk";
+    if (!isPipaOrMunk) return false;
+    const driverField = (eq.driver || "").trim();
+    const isFree = driverField === "";
+    const isMine = !!profile?.full_name && driverField === profile.full_name;
+    return isFree || isMine;
   });
 
   const handleSelectVehicle = (vehicleId: string) => {
