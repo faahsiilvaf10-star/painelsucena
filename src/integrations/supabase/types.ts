@@ -1447,6 +1447,42 @@ export type Database = {
         }
         Relationships: []
       }
+      driver_vehicle_checklists: {
+        Row: {
+          created_at: string
+          created_by: string | null
+          driver_name: string | null
+          environment: string
+          equipment_id: string
+          equipment_name: string
+          id: string
+          plate: string
+          problem_description: string
+        }
+        Insert: {
+          created_at?: string
+          created_by?: string | null
+          driver_name?: string | null
+          environment?: string
+          equipment_id: string
+          equipment_name: string
+          id?: string
+          plate: string
+          problem_description: string
+        }
+        Update: {
+          created_at?: string
+          created_by?: string | null
+          driver_name?: string | null
+          environment?: string
+          equipment_id?: string
+          equipment_name?: string
+          id?: string
+          plate?: string
+          problem_description?: string
+        }
+        Relationships: []
+      }
       employee_nrs: {
         Row: {
           completion_date: string | null

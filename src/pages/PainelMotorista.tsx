@@ -11,7 +11,8 @@ import {
   User,
   Droplets,
   UserCheck,
-  RefreshCw
+  RefreshCw,
+  ClipboardCheck
 } from "lucide-react";
 import {
   AlertDialog,
@@ -190,6 +191,13 @@ const PainelMotorista = () => {
       color: "bg-zinc-600 hover:bg-zinc-700 active:bg-zinc-800",
       iconColor: "text-white",
       requiresShift: true,
+    },
+    {
+      title: "Check List",
+      icon: <ClipboardCheck className="w-8 h-8" />,
+      href: "/checklist-motorista",
+      color: "bg-orange-500 hover:bg-orange-600 active:bg-orange-700",
+      iconColor: "text-white",
     },
 
   ];

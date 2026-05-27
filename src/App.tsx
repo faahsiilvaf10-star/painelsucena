@@ -50,6 +50,7 @@ const EntradaSaidaEquipamentos = lazy(() => import("./pages/EntradaSaidaEquipame
 const ArquivosSeguranca = lazy(() => import("./pages/ArquivosSeguranca"));
 const PainelMotorista = lazy(() => import("./pages/PainelMotorista"));
 const RegistroMovimentoMotorista = lazy(() => import("./pages/RegistroMovimentoMotorista"));
+const ChecklistMotorista = lazy(() => import("./pages/ChecklistMotorista"));
 const SelecaoVeiculo = lazy(() => import("./pages/SelecaoVeiculo"));
 const EquipamentosMotorista = lazy(() => import("./pages/EquipamentosMotorista"));
 const RelatoriosMotorista = lazy(() => import("./pages/RelatoriosMotorista"));
@@ -203,6 +204,7 @@ const App = () => (
                       <Route path="/selecao-veiculo" element={<ProtectedRoute><SelecaoVeiculo /></ProtectedRoute>} />
                       <Route path="/painel-motorista" element={<ProtectedRoute><PainelMotorista /></ProtectedRoute>} />
                       <Route path="/registro-movimento-motorista" element={<ProtectedRoute><RegistroMovimentoMotorista /></ProtectedRoute>} />
+                      <Route path="/checklist-motorista" element={<ProtectedRoute><ChecklistMotorista /></ProtectedRoute>} />
                       <Route path="/equipamentos-motorista" element={<ProtectedRoute><EquipamentosMotorista /></ProtectedRoute>} />
                       <Route path="/relatorios-motorista" element={<ProtectedRoute><RelatoriosMotorista /></ProtectedRoute>} />
                       <Route path="/pontos-abastecimento" element={<ProtectedRoute><PontosAbastecimento /></ProtectedRoute>} />
