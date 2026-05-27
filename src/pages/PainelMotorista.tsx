@@ -146,6 +146,7 @@ const PainelMotorista = () => {
       color: "bg-blue-500 hover:bg-blue-600 active:bg-blue-700",
       iconColor: "text-white",
       hideForMunk: true,
+      hideWhenExitPending: true,
       requiresShift: true,
     },
     {
