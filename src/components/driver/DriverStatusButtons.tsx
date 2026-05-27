@@ -140,6 +140,40 @@ export function DriverStatusButtons() {
       const storedKm = localStorage.getItem(`shift_km_${vehicleId}`);
       setInitialHorimeter(storedHorimeter);
       setInitialKm(storedKm);
+
+      // Rehydrate from DB: if there's an open daily_shift_record for today
+      // (no shift_end_time), the shift is already active even if localStorage
+      // was wiped (e.g. cleared cache, different device). This prevents
+      // registering "Iniciar Turno" twice — only Fim de Turno can re-enable it.
+      (async () => {
+        try {
+          const today = new Date().toISOString().split("T")[0];
+          const { data, error } = await (supabase as any)
+            .from("daily_shift_records")
+            .select("initial_horimeter, initial_km, shift_start_time, shift_end_time")
+            .eq("equipment_id", vehicleId)
+            .eq("shift_date", today)
+            .is("shift_end_time", null)
+            .maybeSingle();
+          if (error || !data) return;
+          if (data.initial_horimeter != null) {
+            const h = String(data.initial_horimeter);
+            localStorage.setItem(`shift_horimeter_${vehicleId}`, h);
+            setInitialHorimeter(h);
+          }
+          if (data.initial_km != null) {
+            const k = String(data.initial_km);
+            localStorage.setItem(`shift_km_${vehicleId}`, k);
+            setInitialKm(k);
+          }
+          if (data.shift_start_time) {
+            const ts = new Date(data.shift_start_time).getTime();
+            localStorage.setItem(`shift_start_time_${vehicleId}`, ts.toString());
+          }
+        } catch (e) {
+          console.warn("rehydrate shift from DB failed", e);
+        }
+      })();
     }
   }, []);
 
@@ -408,6 +442,28 @@ export function DriverStatusButtons() {
 
     setIsUpdating(true);
     try {
+      // Defensive guard: block double "Iniciar Turno" — if there is already an
+      // open daily_shift_record for today (no shift_end_time), the driver must
+      // register Fim de Turno first.
+      try {
+        const today = new Date().toISOString().split("T")[0];
+        const { data: openShift } = await (supabase as any)
+          .from("daily_shift_records")
+          .select("id")
+          .eq("equipment_id", selectedVehicleId)
+          .eq("shift_date", today)
+          .is("shift_end_time", null)
+          .maybeSingle();
+        if (openShift?.id) {
+          toast.error("Turno já iniciado hoje. Registre Fim de Turno antes de iniciar novamente.");
+          setShowStartShiftDialog(false);
+          setIsUpdating(false);
+          return;
+        }
+      } catch (e) {
+        console.warn("open-shift guard check failed", e);
+      }
+
       const now = new Date().toISOString();
 
       // Save initial values to localStorage
