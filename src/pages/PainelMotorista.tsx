@@ -32,6 +32,7 @@ import { toast } from "sonner";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { NeonAvatar } from "@/components/ui/NeonAvatar";
 import { DriverStatusButtons } from "@/components/driver/DriverStatusButtons";
+import { VehicleChecklistDialog } from "@/components/driver/VehicleChecklistDialog";
 import { SyncIndicatorV2 } from "@/components/driver/SyncIndicatorV2";
 import { OfflineBanner } from "@/components/driver/OfflineFeedback";
 import { useEquipment } from "@/hooks/useEquipment";
@@ -192,14 +193,6 @@ const PainelMotorista = () => {
       iconColor: "text-white",
       requiresShift: true,
     },
-    {
-      title: "Check List",
-      icon: <ClipboardCheck className="w-8 h-8" />,
-      href: "/checklist-motorista",
-      color: "bg-orange-500 hover:bg-orange-600 active:bg-orange-700",
-      iconColor: "text-white",
-    },
-
   ];
 
   return (
@@ -380,6 +373,28 @@ const PainelMotorista = () => {
                 </button>
               );
             })}
+
+          {/* Check List - opens modal dialog */}
+          <VehicleChecklistDialog
+            equipmentId={selectedVehicleId}
+            equipmentName={selectedVehicle?.name}
+            plate={selectedVehicle?.plate}
+            trigger={
+              <button
+                type="button"
+                className="bg-orange-500 hover:bg-orange-600 active:bg-orange-700 transition-all duration-150 border-none shadow-md touch-manipulation rounded-xl w-full focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-primary cursor-pointer hover:scale-[1.02] active:scale-[0.97]"
+              >
+                <div className="p-4 flex flex-col items-center justify-center text-center min-h-[110px] pointer-events-none">
+                  <div className="text-white mb-2 pointer-events-none">
+                    <ClipboardCheck className="w-8 h-8" />
+                  </div>
+                  <h3 className="font-bold text-white text-xs uppercase tracking-wide pointer-events-none">
+                    Check List
+                  </h3>
+                </div>
+              </button>
+            }
+          />
 
         </div>
         </div>
