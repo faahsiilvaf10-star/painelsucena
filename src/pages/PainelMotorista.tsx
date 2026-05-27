@@ -11,7 +11,8 @@ import {
   User,
   Droplets,
   UserCheck,
-  RefreshCw
+  RefreshCw,
+  ClipboardCheck
 } from "lucide-react";
 import {
   AlertDialog,
