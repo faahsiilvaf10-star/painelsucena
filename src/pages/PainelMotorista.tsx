@@ -22,6 +22,7 @@ import { DriverStatusButtons } from "@/components/driver/DriverStatusButtons";
 import { SyncIndicatorV2 } from "@/components/driver/SyncIndicatorV2";
 import { OfflineBanner } from "@/components/driver/OfflineFeedback";
 import { useEquipment } from "@/hooks/useEquipment";
+import { useEquipmentCurrentlyOut } from "@/hooks/useEquipmentMovements";
 import { useOfflineSyncV2 } from "@/hooks/useOfflineSyncV2";
 import { useDriverGeolocation } from "@/hooks/useDriverGeolocation";
 
