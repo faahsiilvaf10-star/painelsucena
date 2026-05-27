@@ -440,7 +440,7 @@ export default function RegistroMovimentoMotorista() {
         )}
 
         {/* Exit Reason Selection (only for saida) */}
-        {movementType === "saida" && !exitPending && (
+        {movementType === "saida" && (
           <Card>
             <CardHeader className="pb-3">
               <CardTitle className="text-base">Motivo da Saída</CardTitle>
@@ -480,7 +480,7 @@ export default function RegistroMovimentoMotorista() {
         )}
 
         {/* Horímetro / KM Final (only for saída) */}
-        {movementType === "saida" && !exitPending && (
+        {movementType === "saida" && (
           <Card>
             <CardHeader className="pb-3">
               <CardTitle className="text-base">Telemetria Final *</CardTitle>
