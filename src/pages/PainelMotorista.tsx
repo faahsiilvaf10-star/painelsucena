@@ -192,6 +192,13 @@ const PainelMotorista = () => {
       iconColor: "text-white",
       requiresShift: true,
     },
+    {
+      title: "Check List",
+      icon: <ClipboardCheck className="w-8 h-8" />,
+      href: "/checklist-motorista",
+      color: "bg-orange-500 hover:bg-orange-600 active:bg-orange-700",
+      iconColor: "text-white",
+    },
 
   ];
 
