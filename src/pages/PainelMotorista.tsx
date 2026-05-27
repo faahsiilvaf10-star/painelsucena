@@ -32,6 +32,7 @@ import { toast } from "sonner";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { NeonAvatar } from "@/components/ui/NeonAvatar";
 import { DriverStatusButtons } from "@/components/driver/DriverStatusButtons";
+import { VehicleChecklistDialog } from "@/components/driver/VehicleChecklistDialog";
 import { SyncIndicatorV2 } from "@/components/driver/SyncIndicatorV2";
 import { OfflineBanner } from "@/components/driver/OfflineFeedback";
 import { useEquipment } from "@/hooks/useEquipment";
