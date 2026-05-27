@@ -322,7 +322,8 @@ export async function buildParteDiariaHtmlForEquipment(
     );
   });
 
-  const activities: Array<{ start: string; end: string; description: string }> = [];
+  type Activity = { start: string; end: string; description: string; sortKey: number };
+  const activities: Activity[] = [];
   for (let i = 0; i < filtered.length; i++) {
     const stop = filtered[i];
     if (isReturnAfterRefuelingStop(stop)) continue;
@@ -347,8 +348,54 @@ export async function buildParteDiariaHtmlForEquipment(
       description: `${getStatusLabel(stop.stop_reason)}${
         stop.defect_description ? ` - ${stop.defect_description}` : ""
       }`,
+      sortKey: new Date(stop.started_at).getTime(),
     });
   }
+
+  // Include today's equipment movements (Entrada / Saída) with their reason
+  const exitReasonLabels: Record<string, string> = {
+    manutencao_corretiva: "Manutenção Corretiva",
+    manutencao_preventiva: "Manutenção Preventiva",
+    vistoria: "Vistoria",
+    operando: "Operando",
+    aguardando_frente_servico: "Aguardando Frente de Serviço",
+    fim_turno: "Fim de Turno",
+  };
+
+  let movementsToday = (movements || []).filter(
+    (m) => m.plate === equipment.plate && m.movement_date === today,
+  );
+  // Fallback: fetch directly if none were passed in (e.g. backfill / WhatsApp PNG)
+  if (movementsToday.length === 0) {
+    const { data: freshMovements } = await supabase
+      .from("equipment_movements")
+      .select("*")
+      .eq("plate", equipment.plate)
+      .eq("movement_date", today)
+      .order("movement_time", { ascending: true });
+    movementsToday = (freshMovements || []) as EquipmentMovement[];
+  }
+
+  for (const mov of movementsToday) {
+    const time = (mov.movement_time || "").slice(0, 5);
+    const sortDate = new Date(`${mov.movement_date}T${time || "00:00"}:00`);
+    const isEntrada = mov.movement_type === "entrada";
+    const label = isEntrada ? "ENTRADA" : "SAÍDA";
+    const reasonLabel = mov.exit_reason ? exitReasonLabels[mov.exit_reason] : null;
+    let description = label;
+    if (!isEntrada && reasonLabel) description += ` - ${reasonLabel}`;
+    if (mov.problem_description) description += ` (${mov.problem_description})`;
+    else if (mov.observation) description += ` (${mov.observation})`;
+    activities.push({
+      start: time,
+      end: "",
+      description,
+      sortKey: sortDate.getTime() || 0,
+    });
+  }
+
+  activities.sort((a, b) => a.sortKey - b.sortKey);
+  const activitiesOut = activities.map(({ start, end, description }) => ({ start, end, description }));
 
   return buildParteDiariaFormHtml({
     logoBase64,
@@ -358,7 +405,7 @@ export async function buildParteDiariaHtmlForEquipment(
     driverName,
     helperName,
     helperLabel: equipment.equipment_type === "munk" ? "SINALEIRO" : "AJUDANTE",
-    activities,
+    activities: activitiesOut,
     initialFuelLevel: shiftRecord?.initial_fuel_level ?? fallbackInitialFuel,
     finalFuelLevel: shiftRecord?.final_fuel_level ?? null,
     initialKm: shiftRecord?.initial_km ?? fallbackInitialKm,
