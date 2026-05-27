@@ -97,19 +97,14 @@ const PainelMotorista = () => {
 
   const handleLogout = async () => {
     try {
-      // Get the selected vehicle ID before clearing
-      const selectedVehicleId = localStorage.getItem("selectedVehicleId");
-      
-      // If there was a selected vehicle, clear the driver and helper fields
-      if (selectedVehicleId) {
-        await supabase
-          .from("equipment")
-          .update({ driver: "", helper: "" })
-          .eq("id", selectedVehicleId);
-      }
-      
-      // Clear selected vehicle on logout
-      localStorage.removeItem("selectedVehicleId");
+      // IMPORTANT: do NOT clear selectedVehicleId / driver / helper on logout.
+      // The vehicle selection (and ajudante) must persist across logins until
+      // the driver explicitly registers Fim de Turno. Fim de Turno is the only
+      // place that clears localStorage and the driver/helper fields on the
+      // equipment. This way, if the equipment is currently registered as saída
+      // (e.g. manutenção corretiva), the driver returns straight to the painel
+      // with the shift control options instead of having to re-select the
+      // equipment and re-enter the helper name.
       await supabase.auth.signOut();
       toast.success("Logout realizado com sucesso");
       navigate("/auth", { replace: true });
