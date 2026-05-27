@@ -52,12 +52,10 @@ const PainelMotorista = () => {
     };
   }, []);
 
-  // Check if equipment exit is pending - redirect to entry page
-  useEffect(() => {
-    if (localStorage.getItem("equipmentExitPending") === "true") {
-      navigate("/registro-movimento-motorista", { replace: true });
-    }
-  }, []);
+  // Note: when equipment exit is pending we no longer force redirect to entry page.
+  // The driver can keep managing the shift (Início de Turno, Operar, Abastecendo,
+  // Fim de Turno) from the painel even with the equipment registered as saída.
+  // The SAÍDA button on the entry/exit screen is blocked while the equipment is out.
   const navigate = useNavigate();
   const { data: profile } = useProfile();
   const { data: equipment = [] } = useEquipment();

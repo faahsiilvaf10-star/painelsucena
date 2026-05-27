@@ -43,12 +43,9 @@ export default function SelecaoVeiculo() {
   useEffect(() => {
     const savedVehicle = localStorage.getItem("selectedVehicleId");
     if (savedVehicle) {
-      // If exit is pending, redirect to entry page instead
-      if (localStorage.getItem("equipmentExitPending") === "true") {
-        navigate("/registro-movimento-motorista", { replace: true });
-      } else {
-        navigate("/painel-motorista", { replace: true });
-      }
+      // Always go to the painel — driver can manage the shift even when the
+      // equipment is currently registered as saída (exit pending).
+      navigate("/painel-motorista", { replace: true });
     }
   }, [navigate]);
 
