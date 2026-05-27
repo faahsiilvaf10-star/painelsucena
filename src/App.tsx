@@ -50,6 +50,7 @@ const EntradaSaidaEquipamentos = lazy(() => import("./pages/EntradaSaidaEquipame
 const ArquivosSeguranca = lazy(() => import("./pages/ArquivosSeguranca"));
 const PainelMotorista = lazy(() => import("./pages/PainelMotorista"));
 const RegistroMovimentoMotorista = lazy(() => import("./pages/RegistroMovimentoMotorista"));
+const ChecklistMotorista = lazy(() => import("./pages/ChecklistMotorista"));
 const SelecaoVeiculo = lazy(() => import("./pages/SelecaoVeiculo"));
 const EquipamentosMotorista = lazy(() => import("./pages/EquipamentosMotorista"));
 const RelatoriosMotorista = lazy(() => import("./pages/RelatoriosMotorista"));
