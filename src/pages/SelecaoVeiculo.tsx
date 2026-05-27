@@ -96,23 +96,27 @@ export default function SelecaoVeiculo() {
       const nowIso = new Date().toISOString();
 
       if (isOnline) {
-        // Update equipment apenas com motorista/ajudante.
-        // Não altera o status — só muda quando o motorista iniciar o turno.
+        // Update equipment com motorista/ajudante e LIMPA o status.
+        // Não vai para nenhum status — só muda quando o motorista iniciar o turno.
         const { error: updateError } = await supabase
           .from("equipment")
           .update({
             driver: profile.full_name,
             helper: helperName.trim(),
+            stop_reason: null,
+            stop_start_time: null,
           })
           .eq("id", vehicleId);
 
         if (updateError) throw updateError;
       } else {
-        // Offline: enfileira a atualização sem alterar status
+        // Offline: enfileira a atualização limpando o status
         await addPendingAction("equipment_status", {
           id: vehicleId,
           driver: profile.full_name,
           helper: helperName.trim(),
+          stop_reason: null,
+          stop_start_time: null,
         }, 2);
         toast.info("Sem internet. Seleção salva offline e será sincronizada.");
       }
