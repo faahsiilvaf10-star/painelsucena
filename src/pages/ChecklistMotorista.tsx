@@ -2,19 +2,11 @@ import { useEffect, useState } from "react";
 import { useNavigate } from "react-router-dom";
 import { useTheme } from "next-themes";
 import { useQuery, useQueryClient } from "@tanstack/react-query";
-import { ArrowLeft, ClipboardCheck, AlertTriangle, Plus, Clock } from "lucide-react";
+import { ArrowLeft, ClipboardCheck, AlertTriangle, Send, Clock } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent } from "@/components/ui/card";
 import { Textarea } from "@/components/ui/textarea";
-import {
-  Dialog,
-  DialogContent,
-  DialogDescription,
-  DialogFooter,
-  DialogHeader,
-  DialogTitle,
-  DialogTrigger,
-} from "@/components/ui/dialog";
+import { Label } from "@/components/ui/label";
 import { supabase } from "@/integrations/supabase/client";
 import { useProfile } from "@/hooks/useProfile";
 import { useEquipment } from "@/hooks/useEquipment";
@@ -46,8 +38,8 @@ const ChecklistMotorista = () => {
   const selectedVehicleId = localStorage.getItem("selectedVehicleId");
   const selectedVehicle = equipment.find((eq) => eq.id === selectedVehicleId);
 
-  const [open, setOpen] = useState(false);
   const [problem, setProblem] = useState("");
+  const [observation, setObservation] = useState("");
   const [saving, setSaving] = useState(false);
 
   // Force light theme
@@ -89,18 +81,21 @@ const ChecklistMotorista = () => {
       const {
         data: { user },
       } = await supabase.auth.getUser();
+      const fullDescription = observation.trim()
+        ? `${problem.trim()}\n\n*Observação:* ${observation.trim()}`
+        : problem.trim();
       const { error } = await supabase.from("driver_vehicle_checklists").insert({
         equipment_id: selectedVehicle.id,
         equipment_name: selectedVehicle.name,
         plate: selectedVehicle.plate,
         driver_name: profile?.full_name || null,
-        problem_description: problem.trim(),
+        problem_description: fullDescription,
         created_by: user?.id || null,
       });
       if (error) throw error;
       toast.success("Problema registrado e enviado ao grupo");
       setProblem("");
-      setOpen(false);
+      setObservation("");
       queryClient.invalidateQueries({ queryKey: ["driver-checklists", selectedVehicleId] });
     } catch (e: any) {
       console.error(e);
@@ -132,40 +127,55 @@ const ChecklistMotorista = () => {
           </Card>
         )}
 
-        <Dialog open={open} onOpenChange={setOpen}>
-          <DialogTrigger asChild>
-            <Button className="w-full h-12 bg-amber-500 hover:bg-amber-600 text-white">
-              <Plus className="w-5 h-5 mr-2" />
-              Registrar Problema no Veículo
+        <Card className="border-amber-200">
+          <CardContent className="p-4 space-y-4">
+            <div className="flex items-center gap-2">
+              <AlertTriangle className="w-5 h-5 text-amber-600" />
+              <h2 className="font-semibold text-amber-900">Registrar Problema no Veículo</h2>
+            </div>
+            <p className="text-xs text-muted-foreground -mt-2">
+              Preencha os campos abaixo. A mensagem será enviada automaticamente ao grupo do WhatsApp ao registrar.
+            </p>
+
+            <div className="space-y-2">
+              <Label htmlFor="problem" className="text-sm font-medium">
+                Problema <span className="text-red-500">*</span>
+              </Label>
+              <Textarea
+                id="problem"
+                value={problem}
+                onChange={(e) => setProblem(e.target.value)}
+                placeholder="Ex: Pneu dianteiro direito com pressão baixa..."
+                rows={4}
+                className="resize-none"
+              />
+            </div>
+
+            <div className="space-y-2">
+              <Label htmlFor="observation" className="text-sm font-medium">
+                Observação
+              </Label>
+              <Textarea
+                id="observation"
+                value={observation}
+                onChange={(e) => setObservation(e.target.value)}
+                placeholder="Detalhes adicionais, local, condições, etc. (opcional)"
+                rows={3}
+                className="resize-none"
+              />
+            </div>
+
+            <Button
+              onClick={handleSubmit}
+              disabled={saving}
+              className="w-full h-11 bg-amber-500 hover:bg-amber-600 text-white"
+            >
+              <Send className="w-4 h-4 mr-2" />
+              {saving ? "Registrando..." : "Registrar e Enviar ao Grupo"}
             </Button>
-          </DialogTrigger>
-          <DialogContent>
-            <DialogHeader>
-              <DialogTitle className="flex items-center gap-2">
-                <AlertTriangle className="w-5 h-5 text-amber-600" />
-                Novo Problema
-              </DialogTitle>
-              <DialogDescription>
-                Descreva o problema observado. A mensagem será enviada automaticamente ao grupo do WhatsApp.
-              </DialogDescription>
-            </DialogHeader>
-            <Textarea
-              value={problem}
-              onChange={(e) => setProblem(e.target.value)}
-              placeholder="Ex: Pneu dianteiro direito com pressão baixa..."
-              rows={5}
-              className="resize-none"
-            />
-            <DialogFooter>
-              <Button variant="outline" onClick={() => setOpen(false)} disabled={saving}>
-                Cancelar
-              </Button>
-              <Button onClick={handleSubmit} disabled={saving} className="bg-amber-500 hover:bg-amber-600 text-white">
-                {saving ? "Registrando..." : "Registrar e Enviar"}
-              </Button>
-            </DialogFooter>
-          </DialogContent>
-        </Dialog>
+          </CardContent>
+        </Card>
+
 
         <div className="space-y-2">
           <h2 className="text-sm font-semibold text-muted-foreground px-1">
