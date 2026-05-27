@@ -96,25 +96,21 @@ export default function SelecaoVeiculo() {
       const nowIso = new Date().toISOString();
 
       if (isOnline) {
-        // Update the equipment with the driver's name and helper
-        // Set status to "waiting" until driver starts shift with Operar button
+        // Update equipment apenas com motorista/ajudante.
+        // Não altera o status — só muda quando o motorista iniciar o turno.
         const { error: updateError } = await supabase
           .from("equipment")
           .update({
             driver: profile.full_name,
             helper: helperName.trim(),
-            stop_reason: "waiting",
-            stop_start_time: nowIso,
           })
           .eq("id", vehicleId);
 
         if (updateError) throw updateError;
       } else {
-        // Offline: enfileira a atualização para quando voltar a conexão
+        // Offline: enfileira a atualização sem alterar status
         await addPendingAction("equipment_status", {
           id: vehicleId,
-          stop_reason: "waiting",
-          stop_start_time: nowIso,
           driver: profile.full_name,
           helper: helperName.trim(),
         }, 2);
