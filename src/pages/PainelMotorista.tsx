@@ -330,6 +330,8 @@ const PainelMotorista = () => {
             </AlertDialogFooter>
           </AlertDialogContent>
         </AlertDialog>
+        )}
+
 
         {/* Driver Status Buttons - Controle de Turno */}
         <DriverStatusButtons />
