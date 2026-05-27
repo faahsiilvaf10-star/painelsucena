@@ -442,6 +442,28 @@ export function DriverStatusButtons() {
 
     setIsUpdating(true);
     try {
+      // Defensive guard: block double "Iniciar Turno" — if there is already an
+      // open daily_shift_record for today (no shift_end_time), the driver must
+      // register Fim de Turno first.
+      try {
+        const today = new Date().toISOString().split("T")[0];
+        const { data: openShift } = await (supabase as any)
+          .from("daily_shift_records")
+          .select("id")
+          .eq("equipment_id", selectedVehicleId)
+          .eq("shift_date", today)
+          .is("shift_end_time", null)
+          .maybeSingle();
+        if (openShift?.id) {
+          toast.error("Turno já iniciado hoje. Registre Fim de Turno antes de iniciar novamente.");
+          setShowStartShiftDialog(false);
+          setIsUpdating(false);
+          return;
+        }
+      } catch (e) {
+        console.warn("open-shift guard check failed", e);
+      }
+
       const now = new Date().toISOString();
 
       // Save initial values to localStorage
