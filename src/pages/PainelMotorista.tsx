@@ -32,6 +32,7 @@ interface QuickAccessItem {
   color: string;
   iconColor: string;
   hideForMunk?: boolean;
+  hideWhenExitPending?: boolean;
   requiresShift?: boolean;
 }
 
@@ -68,8 +69,12 @@ const PainelMotorista = () => {
 
   // Check if shift has been started (mirrors DriverStatusButtons logic)
   const [shiftStarted, setShiftStarted] = useState(false);
+  const [exitPending, setExitPending] = useState(
+    () => localStorage.getItem("equipmentExitPending") === "true",
+  );
   useEffect(() => {
     const check = () => {
+      setExitPending(localStorage.getItem("equipmentExitPending") === "true");
       if (!selectedVehicleId) return setShiftStarted(false);
       const h = localStorage.getItem(`shift_horimeter_${selectedVehicleId}`);
       const k = localStorage.getItem(`shift_km_${selectedVehicleId}`);
@@ -146,6 +151,7 @@ const PainelMotorista = () => {
       color: "bg-blue-500 hover:bg-blue-600 active:bg-blue-700",
       iconColor: "text-white",
       hideForMunk: true,
+      hideWhenExitPending: true,
       requiresShift: true,
     },
     {
@@ -257,6 +263,7 @@ const PainelMotorista = () => {
         <div className="grid grid-cols-2 gap-3">
           {quickAccessItems
             .filter((item) => !(item.hideForMunk && isMunk))
+            .filter((item) => !(item.hideWhenExitPending && exitPending))
             .map((item) => {
               const blocked = item.requiresShift && !shiftStarted;
               return (
