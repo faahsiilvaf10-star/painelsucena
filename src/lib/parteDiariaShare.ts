@@ -405,7 +405,7 @@ export async function buildParteDiariaHtmlForEquipment(
     driverName,
     helperName,
     helperLabel: equipment.equipment_type === "munk" ? "SINALEIRO" : "AJUDANTE",
-    activities,
+    activities: activitiesOut,
     initialFuelLevel: shiftRecord?.initial_fuel_level ?? fallbackInitialFuel,
     finalFuelLevel: shiftRecord?.final_fuel_level ?? null,
     initialKm: shiftRecord?.initial_km ?? fallbackInitialKm,
