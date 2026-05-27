@@ -10,8 +10,20 @@ import {
   LogOut,
   User,
   Droplets,
-  UserCheck
+  UserCheck,
+  RefreshCw
 } from "lucide-react";
+import {
+  AlertDialog,
+  AlertDialogAction,
+  AlertDialogCancel,
+  AlertDialogContent,
+  AlertDialogDescription,
+  AlertDialogFooter,
+  AlertDialogHeader,
+  AlertDialogTitle,
+  AlertDialogTrigger,
+} from "@/components/ui/alert-dialog";
 import { useProfile } from "@/hooks/useProfile";
 import { formatCargoLabel } from "@/lib/cargoUtils";
 import { supabase } from "@/integrations/supabase/client";
