@@ -46,8 +46,33 @@ export default function SelecaoVeiculo() {
       // Always go to the painel — driver can manage the shift even when the
       // equipment is currently registered as saída (exit pending).
       navigate("/painel-motorista", { replace: true });
+      return;
     }
-  }, [navigate]);
+
+    // No localStorage selection — try to recover from the DB.
+    // If there's an equipment still assigned to this driver (Fim de Turno
+    // clears the driver field, so any row still pointing to them means the
+    // shift wasn't ended, including a saída corretiva that's still pending),
+    // restore the selection automatically and go straight to the painel.
+    if (!profile?.full_name) return;
+    (async () => {
+      try {
+        const { data, error } = await supabase
+          .from("equipment")
+          .select("id")
+          .eq("driver", profile.full_name)
+          .in("equipment_type", ["pipa", "munk"])
+          .order("updated_at", { ascending: false })
+          .limit(1)
+          .maybeSingle();
+        if (error || !data?.id) return;
+        localStorage.setItem("selectedVehicleId", data.id);
+        navigate("/painel-motorista", { replace: true });
+      } catch (e) {
+        console.warn("auto-restore selected vehicle from DB failed", e);
+      }
+    })();
+  }, [navigate, profile?.full_name]);
 
   // Auto-select fixed vehicle when data is loaded
   useEffect(() => {
