@@ -374,6 +374,28 @@ const PainelMotorista = () => {
               );
             })}
 
+          {/* Check List - opens modal dialog */}
+          <VehicleChecklistDialog
+            equipmentId={selectedVehicleId}
+            equipmentName={selectedVehicle?.name}
+            plate={selectedVehicle?.plate}
+            trigger={
+              <button
+                type="button"
+                className="bg-orange-500 hover:bg-orange-600 active:bg-orange-700 transition-all duration-150 border-none shadow-md touch-manipulation rounded-xl w-full focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-primary cursor-pointer hover:scale-[1.02] active:scale-[0.97]"
+              >
+                <div className="p-4 flex flex-col items-center justify-center text-center min-h-[110px] pointer-events-none">
+                  <div className="text-white mb-2 pointer-events-none">
+                    <ClipboardCheck className="w-8 h-8" />
+                  </div>
+                  <h3 className="font-bold text-white text-xs uppercase tracking-wide pointer-events-none">
+                    Check List
+                  </h3>
+                </div>
+              </button>
+            }
+          />
+
         </div>
         </div>
       </main>
