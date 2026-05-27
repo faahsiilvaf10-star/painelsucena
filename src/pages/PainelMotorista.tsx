@@ -69,8 +69,12 @@ const PainelMotorista = () => {
 
   // Check if shift has been started (mirrors DriverStatusButtons logic)
   const [shiftStarted, setShiftStarted] = useState(false);
+  const [exitPending, setExitPending] = useState(
+    () => localStorage.getItem("equipmentExitPending") === "true",
+  );
   useEffect(() => {
     const check = () => {
+      setExitPending(localStorage.getItem("equipmentExitPending") === "true");
       if (!selectedVehicleId) return setShiftStarted(false);
       const h = localStorage.getItem(`shift_horimeter_${selectedVehicleId}`);
       const k = localStorage.getItem(`shift_km_${selectedVehicleId}`);
