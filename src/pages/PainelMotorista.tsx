@@ -263,6 +263,7 @@ const PainelMotorista = () => {
         <div className="grid grid-cols-2 gap-3">
           {quickAccessItems
             .filter((item) => !(item.hideForMunk && isMunk))
+            .filter((item) => !(item.hideWhenExitPending && exitPending))
             .map((item) => {
               const blocked = item.requiresShift && !shiftStarted;
               return (
