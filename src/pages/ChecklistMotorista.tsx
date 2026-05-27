@@ -38,8 +38,8 @@ const ChecklistMotorista = () => {
   const selectedVehicleId = localStorage.getItem("selectedVehicleId");
   const selectedVehicle = equipment.find((eq) => eq.id === selectedVehicleId);
 
-  const [open, setOpen] = useState(false);
   const [problem, setProblem] = useState("");
+  const [observation, setObservation] = useState("");
   const [saving, setSaving] = useState(false);
 
   // Force light theme
