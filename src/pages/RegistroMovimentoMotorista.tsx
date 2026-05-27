@@ -77,9 +77,10 @@ export default function RegistroMovimentoMotorista() {
     }
   }, [savedVehicleId, linkedVehicle.length]);
 
-  // If exit is pending, auto-select entrada
+  // If exit is pending, default selection to "entrada" but keep the selector
+  // visible so the driver can see SAÍDA blocked instead of hidden.
   useEffect(() => {
-    if (exitPending) {
+    if (exitPending && !movementType) {
       setMovementType("entrada");
     }
   }, [exitPending]);
