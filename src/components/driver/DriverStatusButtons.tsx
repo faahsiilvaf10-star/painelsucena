@@ -576,6 +576,11 @@ export function DriverStatusButtons() {
 
     // Handle end_of_shift - show dialog instead of immediate action
     if (newStatus === "end_of_shift") {
+      // Bloqueia Fim de Turno se o motorista ainda não iniciou o turno
+      if (!shiftStarted) {
+        toast.error("Você precisa iniciar o turno antes de registrar Fim de Turno");
+        return;
+      }
       setEndShiftFuelLevel("half"); // Reset to default
       setEndShiftHorimeter(initialHorimeter || ""); // Pre-fill with initial value
       setEndShiftKm(initialKm || ""); // Pre-fill with initial value
