@@ -285,6 +285,51 @@ const PainelMotorista = () => {
           </div>
         )}
 
+        {/* Change equipment without ending the shift */}
+        <AlertDialog>
+          <AlertDialogTrigger asChild>
+            <Button
+              variant="outline"
+              className="w-full h-10 text-sm border-amber-400 text-amber-700 hover:bg-amber-50 hover:text-amber-800"
+            >
+              <RefreshCw className="w-4 h-4 mr-2" />
+              Trocar Equipamento
+            </Button>
+          </AlertDialogTrigger>
+          <AlertDialogContent>
+            <AlertDialogHeader>
+              <AlertDialogTitle>Trocar de equipamento?</AlertDialogTitle>
+              <AlertDialogDescription>
+                Você voltará para a tela de seleção de equipamento sem precisar registrar Fim de Turno.
+                O ajudante atual será desvinculado para que você selecione outro equipamento.
+                Tem certeza que deseja continuar?
+              </AlertDialogDescription>
+            </AlertDialogHeader>
+            <AlertDialogFooter>
+              <AlertDialogCancel>Cancelar</AlertDialogCancel>
+              <AlertDialogAction
+                onClick={async () => {
+                  try {
+                    if (selectedVehicleId) {
+                      await supabase
+                        .from("equipment")
+                        .update({ driver: "", helper: "" })
+                        .eq("id", selectedVehicleId);
+                    }
+                  } catch (e) {
+                    console.warn("Falha ao limpar motorista/ajudante:", e);
+                  }
+                  localStorage.removeItem("selectedVehicleId");
+                  toast.success("Selecione um novo equipamento");
+                  navigate("/selecao-veiculo", { replace: true });
+                }}
+              >
+                Sim, trocar
+              </AlertDialogAction>
+            </AlertDialogFooter>
+          </AlertDialogContent>
+        </AlertDialog>
+
         {/* Driver Status Buttons - Controle de Turno */}
         <DriverStatusButtons />
 
