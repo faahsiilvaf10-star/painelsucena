@@ -369,8 +369,8 @@ export default function RegistroMovimentoMotorista() {
           </CardContent>
         </Card>
 
-        {/* Movement Type Selection - hidden in exit pending mode */}
-        {selectedEquipment && !exitPending && (
+        {/* Movement Type Selection */}
+        {selectedEquipment && (
           <Card>
             <CardHeader className="pb-3">
               <CardTitle className="text-base">Tipo de Movimento</CardTitle>
@@ -400,10 +400,13 @@ export default function RegistroMovimentoMotorista() {
                 <Button
                   variant={movementType === "saida" ? "default" : "outline"}
                   className={`h-20 flex-col gap-2 text-base ${
-                    movementType === "saida" 
-                      ? "bg-red-600 hover:bg-red-700 text-white" 
-                      : "border-red-500 text-red-600 hover:bg-red-50 dark:hover:bg-red-950"
+                    movementType === "saida"
+                      ? "bg-red-600 hover:bg-red-700 text-white"
+                      : isEquipmentOut
+                        ? "border-muted text-muted-foreground opacity-50 cursor-not-allowed"
+                        : "border-red-500 text-red-600 hover:bg-red-50 dark:hover:bg-red-950"
                   }`}
+                  disabled={isEquipmentOut}
                   onClick={() => {
                     setMovementType("saida");
                   }}
@@ -419,6 +422,16 @@ export default function RegistroMovimentoMotorista() {
                   <AlertTriangle className="h-4 w-4 text-amber-500" />
                   <AlertDescription className="text-xs text-amber-700 dark:text-amber-300">
                     Entrada só pode ser registrada se o equipamento tiver uma saída registrada anteriormente.
+                  </AlertDescription>
+                </Alert>
+              )}
+
+              {/* Warning when exit is blocked because equipment is already out */}
+              {isEquipmentOut && (
+                <Alert className="bg-red-500/10 border-red-500/30">
+                  <AlertTriangle className="h-4 w-4 text-red-500" />
+                  <AlertDescription className="text-xs text-red-700 dark:text-red-300">
+                    Equipamento já está registrado como SAÍDA. Registre a entrada antes de registrar uma nova saída.
                   </AlertDescription>
                 </Alert>
               )}
