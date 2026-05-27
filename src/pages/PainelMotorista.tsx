@@ -32,6 +32,7 @@ interface QuickAccessItem {
   color: string;
   iconColor: string;
   hideForMunk?: boolean;
+  hideWhenExitPending?: boolean;
   requiresShift?: boolean;
 }
 
