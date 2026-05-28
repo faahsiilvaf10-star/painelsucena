@@ -395,9 +395,12 @@ export default function AtividadesII() {
     if (atividadesManuais.trim()) {
       lines.push("");
       lines.push("[ATIVIDADES_MANUAIS]");
-      lines.push(atividadesManuais.trim());
+      atividadesManuais.split("\n").forEach((l) => {
+        const t = l.trim().replace(/^\*\s*/, "");
+        if (t) lines.push(`* ${t}`);
+      });
     }
-    
+
     if (observacoes.trim()) {
       lines.push("");
       lines.push("[OBSERVACOES]");
@@ -552,10 +555,9 @@ export default function AtividadesII() {
     addWithExtras(transporteMateriais, "Transporte de Materiais", transporteMateriaisQuantidade, "m³", "transporte");
     
     if (atividadesManuais.trim()) {
-      atividadesManuais.trim().split("\n").forEach(line => {
-        if (line.trim()) {
-          lines.push(`* ${line.trim()}`);
-        }
+      atividadesManuais.split("\n").forEach(line => {
+        const t = line.trim().replace(/^\*\s*/, "");
+        if (t) lines.push(`* ${t}`);
       });
     }
     
