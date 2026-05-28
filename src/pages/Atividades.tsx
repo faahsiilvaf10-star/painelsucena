@@ -906,6 +906,9 @@ export default function Atividades() {
                 if (report.podagem_unidade && parseInt(report.podagem_unidade) > 0) {
                   lines.push(`* Podagem - ${report.podagem_unidade} unidade(s)${formatBerma(report.podagem_berma)}${formatFaixa(report.podagem_faixa)}`);
                 }
+                if (report.cova_unidade && parseInt(report.cova_unidade) > 0) {
+                  lines.push(`* Cova - ${report.cova_unidade} unidade(s)${formatBerma(report.cova_berma)}${formatFaixa(report.cova_faixa)}`);
+                }
                 if (report.coroamento_unidade && parseInt(report.coroamento_unidade) > 0) {
                   lines.push(`* Coroamento - ${report.coroamento_unidade} unidade(s)${formatBerma(report.coroamento_berma)}${formatFaixa(report.coroamento_faixa)}`);
                 }
