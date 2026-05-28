@@ -83,7 +83,8 @@ const Layout = ({ children }: LayoutProps) => {
   const location = useLocation();
   const showBackButton = location.pathname !== "/dashboard" && location.pathname !== "/";
   
-  const isAvatarBlocked = profile && (!profile.avatar_url || profile.avatar_url.trim().length === 0);
+  const isDriver = profile?.cargo && (profile.cargo === "motorista_pipa" || profile.cargo === "motorista_munk");
+  const isAvatarBlocked = profile && (!profile.avatar_url || profile.avatar_url.trim().length === 0) && !isDriver;
   const uiTheme = (profile as any)?.ui_theme || "classic";
   const isDockTheme = uiTheme === "macos-dock";
   
