@@ -722,6 +722,7 @@ export default function Atividades() {
       // Reset all form state after deletion
       setRocagem(""); setRocagemBerma(""); setRocagemFaixa("");
       setPodagem(""); setPodagemBerma(""); setPodagemFaixa("");
+      setCova(""); setCovaBerma(""); setCovaFaixa("");
       setCoroamento(""); setCoroamentoBerma(""); setCoroamentoFaixa("");
       setAdubagem(""); setAdubagemBerma(""); setAdubagemFaixa("");
       setPlantio(""); setPlantioBerma(""); setPlantioFaixa("");
