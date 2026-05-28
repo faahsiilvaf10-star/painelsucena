@@ -606,6 +606,10 @@ export function DriverStatusButtons() {
     }
 
     setIsUpdating(true);
+    // Marca que o motorista ativou um status manualmente — habilita o badge "Operando"
+    if (selectedVehicleId) {
+      localStorage.setItem(`operating_activated_${selectedVehicleId}`, "1");
+    }
     const now = new Date().toISOString();
     const statusLabels: Record<string, string> = {
       none: "Operando",
