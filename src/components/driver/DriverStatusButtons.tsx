@@ -292,6 +292,10 @@ export function DriverStatusButtons() {
     }
 
     setIsUpdating(true);
+    // Limpa flag de "Operando" — próximo turno começa com badge em branco
+    if (selectedVehicleId) {
+      localStorage.removeItem(`operating_activated_${selectedVehicleId}`);
+    }
     try {
       const now = new Date().toISOString();
       const today = now.split("T")[0];
