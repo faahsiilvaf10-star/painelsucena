@@ -589,7 +589,12 @@ export default function Atividades() {
     }
     appendExtras("plantioGrama", "Plantio de Grama", "m²");
 
-    if (atividadesManuais && atividadesManuais.trim()) lines.push(`* ${atividadesManuais}`);
+    if (atividadesManuais && atividadesManuais.trim()) {
+      atividadesManuais.split("\n").forEach((l) => {
+        const t = l.trim();
+        if (t) lines.push(`* ${t}`);
+      });
+    }
     if (irrigacaoPipas) lines.push(`* Irrigação com Pipas nas Faixas 3 e 4 e Mirante`);
     if (irrigacaoCarretel && irrigacaoCarretelBermas.length > 0) {
       const bermasText = irrigacaoCarretelBermas.sort((a, b) => a - b).join(", ");
