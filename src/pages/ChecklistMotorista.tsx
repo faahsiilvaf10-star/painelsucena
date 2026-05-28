@@ -82,22 +82,41 @@ const ChecklistMotorista = () => {
     }
     setSaving(true);
     try {
-      const {
-        data: { user },
-      } = await supabase.auth.getUser();
+      // Lê userId da sessão em cache (funciona offline)
+      const { data: sessionData } = await supabase.auth.getSession();
+      const userId = sessionData?.session?.user?.id ?? null;
+
       const fullDescription = observation.trim()
         ? `${problem.trim()}\n\n*Observação:* ${observation.trim()}`
         : problem.trim();
-      const { error } = await supabase.from("driver_vehicle_checklists").insert({
+
+      const payload = {
         equipment_id: selectedVehicle.id,
         equipment_name: selectedVehicle.name,
         plate: selectedVehicle.plate,
         driver_name: profile?.full_name || null,
         problem_description: fullDescription,
-        created_by: user?.id || null,
-      });
-      if (error) throw error;
-      toast.success("Problema registrado e enviado ao grupo");
+        created_by: userId,
+      };
+
+      if (isOnline) {
+        try {
+          const { error } = await supabase
+            .from("driver_vehicle_checklists")
+            .insert(payload);
+          if (error) throw error;
+          toast.success("Problema registrado e enviado ao grupo");
+        } catch (onlineErr) {
+          // Se falhou online (ex: rede caiu no meio), cai pra fila
+          console.warn("Falha online no checklist, salvando offline:", onlineErr);
+          await addPendingAction("driver_checklist", payload, 2);
+          toast.warning("Conexão instável. Registro salvo para sincronizar.");
+        }
+      } else {
+        await addPendingAction("driver_checklist", payload, 2);
+        toast.success("Registro salvo offline. Será enviado ao reconectar.");
+      }
+
       setProblem("");
       setObservation("");
       queryClient.invalidateQueries({ queryKey: ["driver-checklists", selectedVehicleId] });
@@ -108,6 +127,7 @@ const ChecklistMotorista = () => {
       setSaving(false);
     }
   };
+
 
   return (
     <div className="min-h-screen bg-gradient-to-b from-background to-muted/30">
