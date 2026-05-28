@@ -336,7 +336,10 @@ export const formatJardinagemForRDO = (report: JardinagemReport | null): string 
   appendExtraLines(lines, extras, "plantioGrama", "Plantio de Grama", "m²");
   
   if (report.atividades_manuais) {
-    lines.push(`* ${report.atividades_manuais}`);
+    report.atividades_manuais.split("\n").forEach((l) => {
+      const t = l.trim();
+      if (t) lines.push(`* ${t}`);
+    });
   }
   
   if (report.manutencao_canteiro) {
