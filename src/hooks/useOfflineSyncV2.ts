@@ -183,8 +183,6 @@ export function useOfflineSyncV2() {
 
           if (error) throw error;
           break;
-        }
-
         case "stop_history": {
           const {
             equipment_id,
@@ -226,9 +224,11 @@ export function useOfflineSyncV2() {
                 started_at,
                 changed_by_driver,
                 defect_description,
-              });
+                client_op_id: action.payload.client_op_id as string | undefined,
+              } as never);
 
-            if (error) throw error;
+            // 23505 = unique_violation → idempotent retry, treat as success
+            if (error && (error as { code?: string }).code !== "23505") throw error;
           }
           break;
         }
@@ -249,6 +249,7 @@ export function useOfflineSyncV2() {
             problem_description?: string | null;
             observation?: string | null;
             created_by: string;
+            client_op_id?: string;
           };
 
           const { error } = await supabase.from("equipment_movements").insert({
@@ -259,9 +260,10 @@ export function useOfflineSyncV2() {
             problem_description: movementPayload.problem_description || null,
             observation: movementPayload.observation || null,
             created_by: movementPayload.created_by,
-          });
+            client_op_id: movementPayload.client_op_id,
+          } as never);
 
-          if (error) throw error;
+          if (error && (error as { code?: string }).code !== "23505") throw error;
           break;
         }
 
@@ -284,6 +286,7 @@ export function useOfflineSyncV2() {
             status_history?: unknown[];
             refueling_points?: unknown[];
             update_existing?: boolean;
+            client_op_id?: string;
           };
 
           if (shiftPayload.update_existing) {
@@ -304,8 +307,6 @@ export function useOfflineSyncV2() {
 
             if (error) throw error;
           } else {
-            // Insert new record - cast to any to avoid strict type checking
-            // since we're building this dynamically from offline payload
             const { error } = await supabase
               .from("daily_shift_records")
               .insert({
@@ -321,11 +322,26 @@ export function useOfflineSyncV2() {
                 initial_horimeter: shiftPayload.initial_horimeter || null,
                 status_history: (shiftPayload.status_history || []) as unknown as never,
                 refueling_points: (shiftPayload.refueling_points || []) as unknown as never,
-              });
+                client_op_id: shiftPayload.client_op_id,
+              } as never);
 
-            if (error) throw error;
+            if (error && (error as { code?: string }).code !== "23505") throw error;
           }
           break;
+        }
+
+        default:
+          console.warn("Unknown action type:", action.type);
+          return true; // Remove unknown actions
+      }
+
+      return true;
+    } catch (error) {
+      console.error("Error processing action:", error);
+      return false;
+    }
+  };
+
         }
 
         default:
