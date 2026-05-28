@@ -333,6 +333,32 @@ export function useOfflineSyncV2() {
           break;
         }
 
+        case "driver_checklist": {
+          const checklistPayload = action.payload as {
+            equipment_id: string;
+            equipment_name: string;
+            plate: string;
+            driver_name?: string | null;
+            problem_description: string;
+            created_by?: string | null;
+            client_op_id?: string;
+          };
+
+          const { error } = await supabase.from("driver_vehicle_checklists").insert({
+            equipment_id: checklistPayload.equipment_id,
+            equipment_name: checklistPayload.equipment_name,
+            plate: checklistPayload.plate,
+            driver_name: checklistPayload.driver_name || null,
+            problem_description: checklistPayload.problem_description,
+            created_by: checklistPayload.created_by || null,
+            client_op_id: checklistPayload.client_op_id,
+          } as never);
+
+          if (error && (error as { code?: string }).code !== "23505") throw error;
+          break;
+        }
+
+
         default:
           console.warn("Unknown action type:", action.type);
           return true; // Remove unknown actions
