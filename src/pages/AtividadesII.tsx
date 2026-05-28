@@ -1243,14 +1243,13 @@ export default function AtividadesII() {
                     text={atividadesManuais}
                     onImproved={setAtividadesManuais}
                     disabled={!canEdit}
-                  />
+                </div>
                 <DebouncedTextarea
                   value={atividadesManuais}
                   onChange={setAtividadesManuais}
                   placeholder="Escreva outras atividades realizadas (uma por linha)..."
                   rows={5}
                   className="resize-none"
-                />
                 />
                 <p className="text-xs text-muted-foreground">
                   Cada linha será formatada como um item de atividade no relatório.
