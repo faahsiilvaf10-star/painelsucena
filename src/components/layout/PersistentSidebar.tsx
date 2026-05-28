@@ -26,7 +26,7 @@ export const PersistentSidebar = ({ children }: PersistentSidebarProps) => {
   const isAuthPage = location.pathname === "/auth";
   const isEnvSelectionPage = location.pathname === "/selecao-ambiente";
   const isDriver = profile?.cargo && DRIVER_ROLES.includes(profile.cargo);
-  const isAvatarBlocked = user && profile && (!profile.avatar_url || profile.avatar_url.trim().length === 0);
+  const isAvatarBlocked = user && profile && (!profile.avatar_url || profile.avatar_url.trim().length === 0) && !isDriver;
   
   // Use global theme from site_settings
   const uiTheme = settings?.ui_theme || "classic";
