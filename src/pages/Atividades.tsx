@@ -550,6 +550,12 @@ export default function Atividades() {
     }
     appendExtras("podagem", "Podagem", "unidade(s)");
 
+    if (cova && parseInt(cova) > 0) {
+      lines.push(`* Cova - ${cova} unidade(s)${formatBerma(covaBerma)}${formatFaixa(covaFaixa)}`);
+    }
+    appendExtras("cova", "Cova", "unidade(s)");
+
+
     if (coroamento && parseInt(coroamento) > 0) {
       lines.push(`* Coroamento - ${coroamento} unidade(s)${formatBerma(coroamentoBerma)}${formatFaixa(coroamentoFaixa)}`);
     }
