@@ -1243,6 +1243,7 @@ export default function AtividadesII() {
                     text={atividadesManuais}
                     onImproved={setAtividadesManuais}
                     disabled={!canEdit}
+                  />
                 </div>
                 <DebouncedTextarea
                   value={atividadesManuais}
