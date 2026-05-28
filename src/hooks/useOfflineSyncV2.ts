@@ -116,9 +116,20 @@ export function useOfflineSyncV2() {
       payload: Record<string, unknown>,
       priority: number = 1
     ): Promise<string> => {
+      // Idempotency: inject a stable client_op_id so retries from offline queue
+      // are deduped at the database level (UNIQUE index on client_op_id).
+      const payloadWithOpId: Record<string, unknown> = {
+        ...payload,
+        client_op_id:
+          (payload.client_op_id as string | undefined) ??
+          (typeof crypto !== "undefined" && "randomUUID" in crypto
+            ? crypto.randomUUID()
+            : `${Date.now()}-${Math.random().toString(36).slice(2)}`),
+      };
+
       const id = await addToSyncQueue({
         type,
-        payload,
+        payload: payloadWithOpId,
         timestamp: new Date().toISOString(),
         priority,
       });
@@ -126,7 +137,7 @@ export function useOfflineSyncV2() {
       const count = await getSyncQueueCount();
       setSyncState((prev) => ({ ...prev, pendingCount: count }));
 
-      console.log("Added pending action:", { id, type, priority });
+      console.log("Added pending action:", { id, type, priority, client_op_id: payloadWithOpId.client_op_id });
 
       // If online, trigger debounced sync
       if (navigator.onLine) {
@@ -142,6 +153,7 @@ export function useOfflineSyncV2() {
     },
     []
   );
+
 
   // Process a single action
   const processAction = async (action: SyncQueueItem): Promise<boolean> => {
