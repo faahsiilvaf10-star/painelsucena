@@ -1311,9 +1311,9 @@ export default function Atividades() {
                     disabled={!canEdit}
                   />
                 </div>
-                <Textarea
+                <DebouncedTextarea
                   value={atividadesManuais}
-                  onChange={(e) => setAtividadesManuais(e.target.value)}
+                  onChange={setAtividadesManuais}
                   placeholder="Descreva outras atividades realizadas que não estão listadas acima..."
                   rows={3}
                 />
