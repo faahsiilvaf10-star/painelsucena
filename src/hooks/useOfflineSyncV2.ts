@@ -345,19 +345,7 @@ export function useOfflineSyncV2() {
     }
   };
 
-        }
 
-        default:
-          console.warn("Unknown action type:", action.type);
-          return true; // Remove unknown actions
-      }
-
-      return true;
-    } catch (error) {
-      console.error("Error processing action:", error);
-      return false;
-    }
-  };
 
   // Sync all pending actions
   const syncPendingActions = useCallback(async () => {
