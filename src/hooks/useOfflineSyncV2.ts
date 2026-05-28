@@ -116,9 +116,20 @@ export function useOfflineSyncV2() {
       payload: Record<string, unknown>,
       priority: number = 1
     ): Promise<string> => {
+      // Idempotency: inject a stable client_op_id so retries from offline queue
+      // are deduped at the database level (UNIQUE index on client_op_id).
+      const payloadWithOpId: Record<string, unknown> = {
+        ...payload,
+        client_op_id:
+          (payload.client_op_id as string | undefined) ??
+          (typeof crypto !== "undefined" && "randomUUID" in crypto
+            ? crypto.randomUUID()
+            : `${Date.now()}-${Math.random().toString(36).slice(2)}`),
+      };
+
       const id = await addToSyncQueue({
         type,
-        payload,
+        payload: payloadWithOpId,
         timestamp: new Date().toISOString(),
         priority,
       });
@@ -126,7 +137,7 @@ export function useOfflineSyncV2() {
       const count = await getSyncQueueCount();
       setSyncState((prev) => ({ ...prev, pendingCount: count }));
 
-      console.log("Added pending action:", { id, type, priority });
+      console.log("Added pending action:", { id, type, priority, client_op_id: payloadWithOpId.client_op_id });
 
       // If online, trigger debounced sync
       if (navigator.onLine) {
@@ -142,6 +153,7 @@ export function useOfflineSyncV2() {
     },
     []
   );
+
 
   // Process a single action
   const processAction = async (action: SyncQueueItem): Promise<boolean> => {
@@ -174,6 +186,7 @@ export function useOfflineSyncV2() {
         }
 
         case "stop_history": {
+
           const {
             equipment_id,
             stop_reason,
@@ -214,9 +227,11 @@ export function useOfflineSyncV2() {
                 started_at,
                 changed_by_driver,
                 defect_description,
-              });
+                client_op_id: action.payload.client_op_id as string | undefined,
+              } as never);
 
-            if (error) throw error;
+            // 23505 = unique_violation → idempotent retry, treat as success
+            if (error && (error as { code?: string }).code !== "23505") throw error;
           }
           break;
         }
@@ -237,6 +252,7 @@ export function useOfflineSyncV2() {
             problem_description?: string | null;
             observation?: string | null;
             created_by: string;
+            client_op_id?: string;
           };
 
           const { error } = await supabase.from("equipment_movements").insert({
@@ -247,9 +263,10 @@ export function useOfflineSyncV2() {
             problem_description: movementPayload.problem_description || null,
             observation: movementPayload.observation || null,
             created_by: movementPayload.created_by,
-          });
+            client_op_id: movementPayload.client_op_id,
+          } as never);
 
-          if (error) throw error;
+          if (error && (error as { code?: string }).code !== "23505") throw error;
           break;
         }
 
@@ -272,6 +289,7 @@ export function useOfflineSyncV2() {
             status_history?: unknown[];
             refueling_points?: unknown[];
             update_existing?: boolean;
+            client_op_id?: string;
           };
 
           if (shiftPayload.update_existing) {
@@ -292,8 +310,6 @@ export function useOfflineSyncV2() {
 
             if (error) throw error;
           } else {
-            // Insert new record - cast to any to avoid strict type checking
-            // since we're building this dynamically from offline payload
             const { error } = await supabase
               .from("daily_shift_records")
               .insert({
@@ -309,9 +325,10 @@ export function useOfflineSyncV2() {
                 initial_horimeter: shiftPayload.initial_horimeter || null,
                 status_history: (shiftPayload.status_history || []) as unknown as never,
                 refueling_points: (shiftPayload.refueling_points || []) as unknown as never,
-              });
+                client_op_id: shiftPayload.client_op_id,
+              } as never);
 
-            if (error) throw error;
+            if (error && (error as { code?: string }).code !== "23505") throw error;
           }
           break;
         }
@@ -327,6 +344,8 @@ export function useOfflineSyncV2() {
       return false;
     }
   };
+
+
 
   // Sync all pending actions
   const syncPendingActions = useCallback(async () => {
