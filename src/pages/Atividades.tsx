@@ -65,6 +65,7 @@ const FAIXA_OPTIONS = [
 // Invasoras options
 const INVASORAS_OPTIONS = [
   { value: "Acácia", label: "Acácia" },
+  { value: "Erva Daninha", label: "Erva Daninha" },
   { value: "Erva-de-passarinho", label: "Erva-de-passarinho" },
   { value: "Juqueri", label: "Juqueri" },
   { value: "Leucena", label: "Leucena" },
