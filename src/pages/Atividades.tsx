@@ -138,6 +138,9 @@ export default function Atividades() {
   const [podagem, setPodagem] = useState("");
   const [podagemBerma, setPodagemBerma] = useState("");
   const [podagemFaixa, setPodagemFaixa] = useState("");
+  const [cova, setCova] = useState("");
+  const [covaBerma, setCovaBerma] = useState("");
+  const [covaFaixa, setCovaFaixa] = useState("");
   const [coroamento, setCoroamento] = useState("");
   const [coroamentoBerma, setCoroamentoBerma] = useState("");
   const [coroamentoFaixa, setCoroamentoFaixa] = useState("");
