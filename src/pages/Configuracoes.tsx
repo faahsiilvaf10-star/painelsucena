@@ -37,7 +37,8 @@ const Configuracoes = () => {
   const fileInputRef = useRef<HTMLInputElement>(null);
   const queryClient = useQueryClient();
 
-  const isAvatarBlocked = profile && (!profile.avatar_url || profile.avatar_url.trim().length === 0);
+  const isDriver = profile?.cargo && (profile.cargo === "motorista_pipa" || profile.cargo === "motorista_munk");
+  const isAvatarBlocked = profile && (!profile.avatar_url || profile.avatar_url.trim().length === 0) && !isDriver;
 
   // Form states
   const [fullName, setFullName] = useState("");
