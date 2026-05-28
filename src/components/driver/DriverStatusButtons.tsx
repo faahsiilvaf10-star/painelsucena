@@ -718,7 +718,7 @@ export function DriverStatusButtons() {
             <span>•</span>
             <span className="font-mono text-xs bg-muted px-1.5 py-0.5 rounded">{selectedVehicle.plate}</span>
           </div>
-          {activeStop && (
+          {shiftStarted && activeStop && (
             <p className="text-xs text-muted-foreground mt-1.5">
               Desde: {format(new Date(activeStop.started_at), "HH:mm", { locale: ptBR })}
             </p>
