@@ -395,7 +395,10 @@ export default function AtividadesII() {
     if (atividadesManuais.trim()) {
       lines.push("");
       lines.push("[ATIVIDADES_MANUAIS]");
-      lines.push(atividadesManuais.trim());
+      atividadesManuais.split("\n").forEach((l) => {
+        const t = l.trim();
+        if (t) lines.push(`* ${t}`);
+      });
     }
     
     if (observacoes.trim()) {
