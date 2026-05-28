@@ -1467,9 +1467,10 @@ export default function Atividades() {
                   {(extraEntries["plantioGrama"] || []).map((e, i) => parseFloat(e.value) > 0 && (
                     <p key={`plantioGrama-${i}`}>* Plantio de Grama - {e.value} m²{e.berma && ` (Berma ${e.berma})`}{e.faixa && ` - ${e.faixa}`}</p>
                   ))}
-                  {atividadesManuais && (
-                    <p>* {atividadesManuais}</p>
-                  )}
+                  {atividadesManuais && atividadesManuais.split("\n").map((l, i) => {
+                    const t = l.trim();
+                    return t ? <p key={`atvman-${i}`}>* {t}</p> : null;
+                  })}
                   {manutencaoCanteiro && (
                     <p>* Manutenção de Canteiro: {manutencaoCanteiro}</p>
                   )}
