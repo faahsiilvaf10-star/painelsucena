@@ -849,7 +849,8 @@ export function DriverStatusButtons() {
 
       {/* Start Shift Dialog with Horimeter and KM */}
       <Dialog open={showStartShiftDialog} onOpenChange={setShowStartShiftDialog}>
-        <DialogContent className="sm:max-w-md">
+        <DialogContent className="sm:max-w-md max-h-[90vh] overflow-y-auto">
+
           <DialogHeader>
             <DialogTitle className="flex items-center gap-2">
               <Play className="h-5 w-5 text-emerald-500" />
@@ -888,13 +889,17 @@ export function DriverStatusButtons() {
                 <Input
                   id="start-horimeter"
                   type="number"
+                  inputMode="decimal"
+                  pattern="[0-9]*"
                   placeholder="Ex: 1234"
                   value={startShiftHorimeter}
-                  onChange={(e) => setStartShiftHorimeter(e.target.value)}
+                  onChange={(e) => setStartShiftHorimeter(e.target.value.replace(/[^\d.,]/g, ""))}
+                  onFocus={(e) => setTimeout(() => e.currentTarget?.scrollIntoView({ block: "center", behavior: "smooth" }), 300)}
                   disabled={isUpdating}
                   className={`h-9 ${!startShiftHorimeter ? 'border-destructive/50 focus-visible:ring-destructive' : ''}`}
                   required
                 />
+
                 {!startShiftHorimeter && (
                   <p className="text-[10px] text-destructive">Campo obrigatório</p>
                 )}
@@ -907,13 +912,17 @@ export function DriverStatusButtons() {
                 <Input
                   id="start-km"
                   type="number"
+                  inputMode="numeric"
+                  pattern="[0-9]*"
                   placeholder="Ex: 45678"
                   value={startShiftKm}
-                  onChange={(e) => setStartShiftKm(e.target.value)}
+                  onChange={(e) => setStartShiftKm(e.target.value.replace(/\D/g, ""))}
+                  onFocus={(e) => setTimeout(() => e.currentTarget?.scrollIntoView({ block: "center", behavior: "smooth" }), 300)}
                   disabled={isUpdating}
                   className={`h-9 ${!startShiftKm ? 'border-destructive/50 focus-visible:ring-destructive' : ''}`}
                   required
                 />
+
                 {!startShiftKm && (
                   <p className="text-[10px] text-destructive">Campo obrigatório</p>
                 )}
@@ -1003,16 +1012,20 @@ export function DriverStatusButtons() {
                 <Input
                   id="horimeter"
                   type="number"
+                  inputMode="decimal"
+                  pattern="[0-9]*"
                   placeholder={initialHorimeter ? `Mín: ${initialHorimeter}` : "Ex: 1234"}
                   value={endShiftHorimeter}
                   onChange={(e) => {
-                    setEndShiftHorimeter(e.target.value);
+                    setEndShiftHorimeter(e.target.value.replace(/[^\d.,]/g, ""));
                     setEndShiftError(null);
                   }}
+                  onFocus={(e) => setTimeout(() => e.currentTarget?.scrollIntoView({ block: "center", behavior: "smooth" }), 300)}
                   disabled={isUpdating}
                   className={`h-9 ${!endShiftHorimeter ? 'border-destructive/50 focus-visible:ring-destructive' : ''}`}
                   required
                 />
+
                 {!endShiftHorimeter && (
                   <p className="text-[10px] text-destructive">Campo obrigatório</p>
                 )}
@@ -1025,16 +1038,20 @@ export function DriverStatusButtons() {
                 <Input
                   id="km"
                   type="number"
+                  inputMode="numeric"
+                  pattern="[0-9]*"
                   placeholder={initialKm ? `Mín: ${initialKm}` : "Ex: 45678"}
                   value={endShiftKm}
                   onChange={(e) => {
-                    setEndShiftKm(e.target.value);
+                    setEndShiftKm(e.target.value.replace(/\D/g, ""));
                     setEndShiftError(null);
                   }}
+                  onFocus={(e) => setTimeout(() => e.currentTarget?.scrollIntoView({ block: "center", behavior: "smooth" }), 300)}
                   disabled={isUpdating}
                   className={`h-9 ${!endShiftKm ? 'border-destructive/50 focus-visible:ring-destructive' : ''}`}
                   required
                 />
+
                 {!endShiftKm && (
                   <p className="text-[10px] text-destructive">Campo obrigatório</p>
                 )}
