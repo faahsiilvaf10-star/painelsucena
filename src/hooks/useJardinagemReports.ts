@@ -278,6 +278,13 @@ export const formatJardinagemForRDO = (report: JardinagemReport | null): string 
   }
   appendExtraLines(lines, extras, "podagem", "Podagem", "unidade(s)");
 
+  if (report.cova_unidade && report.cova_unidade > 0) {
+    const faixaText = report.cova_faixa ? ` - ${report.cova_faixa}` : "";
+    lines.push(`* Cova - ${report.cova_unidade} unidade(s)${formatBerma(report.cova_berma)}${faixaText}`);
+  }
+  appendExtraLines(lines, extras, "cova", "Cova", "unidade(s)");
+
+
   if (report.coroamento_unidade && report.coroamento_unidade > 0) {
     const faixaText = report.coroamento_faixa ? ` - ${report.coroamento_faixa}` : "";
     lines.push(`* Coroamento - ${report.coroamento_unidade} unidade(s)${formatBerma(report.coroamento_berma)}${faixaText}`);
