@@ -15,13 +15,19 @@ export const STORES = {
 
 export interface SyncQueueItem {
   id: string;
-  type: "equipment_status" | "equipment_movement" | "stop_history" | "shift_record";
+  type:
+    | "equipment_status"
+    | "equipment_movement"
+    | "stop_history"
+    | "shift_record"
+    | "driver_checklist";
   payload: Record<string, unknown>;
   timestamp: string;
   retries: number;
   version: number;
   priority: number; // Higher = more important
 }
+
 
 export interface CachedDataItem {
   key: string;
