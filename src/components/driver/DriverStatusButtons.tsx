@@ -188,6 +188,14 @@ export function DriverStatusButtons() {
   // Check if shift has been started (has initial values)
   const shiftStarted = initialHorimeter !== null && initialKm !== null;
 
+  // Status "Operando" só aparece após o motorista clicar em "Operar".
+  // Antes disso (logo após Iniciar Turno) o badge fica em branco.
+  const operatingActivated = selectedVehicleId
+    ? localStorage.getItem(`operating_activated_${selectedVehicleId}`) === "1"
+    : false;
+  const showStatusBadge =
+    shiftStarted && (currentStatus !== "none" || operatingActivated);
+
   // Get the current active stop from history (ended_at is null)
   const activeStop = stopHistory.find((h) => h.ended_at === null);
 
