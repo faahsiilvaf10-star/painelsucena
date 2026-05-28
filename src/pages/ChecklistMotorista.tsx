@@ -33,8 +33,9 @@ const formatDateTime = (iso: string) => {
 const ChecklistMotorista = () => {
   const navigate = useNavigate();
   const { setTheme, theme } = useTheme();
-  const { data: profile } = useProfile();
-  const { data: equipment = [] } = useEquipment();
+  const queryClient = useQueryClient();
+  const { isOnline, addPendingAction } = useOfflineSyncV2();
+
   const queryClient = useQueryClient();
 
   const selectedVehicleId = localStorage.getItem("selectedVehicleId");
