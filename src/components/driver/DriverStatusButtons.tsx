@@ -188,6 +188,14 @@ export function DriverStatusButtons() {
   // Check if shift has been started (has initial values)
   const shiftStarted = initialHorimeter !== null && initialKm !== null;
 
+  // Status "Operando" só aparece após o motorista clicar em "Operar".
+  // Antes disso (logo após Iniciar Turno) o badge fica em branco.
+  const operatingActivated = selectedVehicleId
+    ? localStorage.getItem(`operating_activated_${selectedVehicleId}`) === "1"
+    : false;
+  const showStatusBadge =
+    shiftStarted && (currentStatus !== "none" || operatingActivated);
+
   // Get the current active stop from history (ended_at is null)
   const activeStop = stopHistory.find((h) => h.ended_at === null);
 
@@ -284,6 +292,10 @@ export function DriverStatusButtons() {
     }
 
     setIsUpdating(true);
+    // Limpa flag de "Operando" — próximo turno começa com badge em branco
+    if (selectedVehicleId) {
+      localStorage.removeItem(`operating_activated_${selectedVehicleId}`);
+    }
     try {
       const now = new Date().toISOString();
       const today = now.split("T")[0];
@@ -488,15 +500,15 @@ export function DriverStatusButtons() {
       // Entry movements are no longer registered automatically at shift start
       // Only exit movements (saída) are tracked in the movements system
 
-      // Fire WhatsApp notification FIRST so its message is queued before the DB trigger
-      // (which would otherwise emit a plain "Aguardando Frente" and trigger dedup against ours).
+      // Notifica o grupo sobre o INÍCIO de TURNO (sem definir status Operando).
+      // O status só vai para "Operando" quando o motorista clicar em "Operar".
       try {
         await supabase.functions.invoke("wapi-driver-status-notify", {
           body: {
             equipmentId: selectedVehicleId,
             equipmentName: selectedVehicle.name,
             plate: selectedVehicle.plate,
-            newStatus: "waiting",
+            newStatus: "shift_start",
             previousStatus: "shift_start",
             driverName: profile?.full_name || null,
             extraInfo: `*Combustível:* ${getFuelLevelLabel(fuelLevel)}\n*Horímetro:* ${startShiftHorimeter}\n*KM:* ${startShiftKm}`,
@@ -506,10 +518,12 @@ export function DriverStatusButtons() {
         console.warn("driver-status-notify failed", e);
       }
 
+      // Limpa qualquer status anterior — fica em branco até motorista clicar em "Operar"
+      localStorage.removeItem(`operating_activated_${selectedVehicleId}`);
       await updateStatus.mutateAsync({
         id: selectedVehicleId,
-        stop_reason: "waiting" as any,
-        stop_start_time: now,
+        stop_reason: null as any,
+        stop_start_time: null,
         previousStopReason: currentStatus as any,
         previousStopStartTime: selectedVehicle.stop_start_time,
         changed_by_driver: profile?.full_name || null,
@@ -596,6 +610,10 @@ export function DriverStatusButtons() {
     }
 
     setIsUpdating(true);
+    // Marca que o motorista ativou um status manualmente — habilita o badge "Operando"
+    if (selectedVehicleId) {
+      localStorage.setItem(`operating_activated_${selectedVehicleId}`, "1");
+    }
     const now = new Date().toISOString();
     const statusLabels: Record<string, string> = {
       none: "Operando",
@@ -707,7 +725,7 @@ export function DriverStatusButtons() {
         <CardHeader className="pb-3 px-4 pt-4">
           <div className="flex items-center justify-between gap-2">
             <CardTitle className="text-base font-semibold">Controle de Turno</CardTitle>
-            {shiftStarted && (
+            {showStatusBadge && (
               <Badge className={`${statusInfo.color} text-white text-xs px-2.5 py-0.5`}>
                 {statusInfo.label}
               </Badge>
