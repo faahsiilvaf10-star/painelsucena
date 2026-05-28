@@ -290,6 +290,9 @@ export default function Atividades() {
       setPodagem(existingReport.podagem_unidade?.toString() || "");
       setPodagemBerma(existingReport.podagem_berma?.toString() || "");
       setPodagemFaixa(existingReport.podagem_faixa || "");
+      setCova(existingReport.cova_unidade?.toString() || "");
+      setCovaBerma(existingReport.cova_berma?.toString() || "");
+      setCovaFaixa(existingReport.cova_faixa || "");
       setCoroamento(existingReport.coroamento_unidade?.toString() || "");
       setCoroamentoBerma(existingReport.coroamento_berma?.toString() || "");
       setCoroamentoFaixa(existingReport.coroamento_faixa || "");
