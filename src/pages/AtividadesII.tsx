@@ -12,6 +12,7 @@ import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Textarea } from "@/components/ui/textarea";
+import { DebouncedTextarea } from "@/components/atividades/DebouncedTextarea";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { ScrollArea } from "@/components/ui/scroll-area";
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger } from "@/components/ui/dialog";
@@ -1244,9 +1245,9 @@ export default function AtividadesII() {
                     disabled={!canEdit}
                   />
                 </div>
-                <Textarea
+                <DebouncedTextarea
                   value={atividadesManuais}
-                  onChange={(e) => setAtividadesManuais(e.target.value)}
+                  onChange={setAtividadesManuais}
                   placeholder="Escreva outras atividades realizadas (uma por linha)..."
                   rows={5}
                   className="resize-none"
