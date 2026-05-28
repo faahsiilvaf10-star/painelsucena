@@ -840,6 +840,7 @@ export type Database = {
       }
       daily_shift_records: {
         Row: {
+          client_op_id: string | null
           created_at: string
           driver_name: string
           environment: string
@@ -862,6 +863,7 @@ export type Database = {
           updated_at: string
         }
         Insert: {
+          client_op_id?: string | null
           created_at?: string
           driver_name: string
           environment?: string
@@ -884,6 +886,7 @@ export type Database = {
           updated_at?: string
         }
         Update: {
+          client_op_id?: string | null
           created_at?: string
           driver_name?: string
           environment?: string
@@ -1093,6 +1096,7 @@ export type Database = {
       }
       desvios: {
         Row: {
+          client_op_id: string | null
           correction_photo_urls: string[] | null
           created_at: string
           created_by: string
@@ -1111,6 +1115,7 @@ export type Database = {
           updated_at: string
         }
         Insert: {
+          client_op_id?: string | null
           correction_photo_urls?: string[] | null
           created_at?: string
           created_by: string
@@ -1129,6 +1134,7 @@ export type Database = {
           updated_at?: string
         }
         Update: {
+          client_op_id?: string | null
           correction_photo_urls?: string[] | null
           created_at?: string
           created_by?: string
@@ -1449,6 +1455,7 @@ export type Database = {
       }
       driver_vehicle_checklists: {
         Row: {
+          client_op_id: string | null
           created_at: string
           created_by: string | null
           driver_name: string | null
@@ -1460,6 +1467,7 @@ export type Database = {
           problem_description: string
         }
         Insert: {
+          client_op_id?: string | null
           created_at?: string
           created_by?: string | null
           driver_name?: string | null
@@ -1471,6 +1479,7 @@ export type Database = {
           problem_description: string
         }
         Update: {
+          client_op_id?: string | null
           created_at?: string
           created_by?: string | null
           driver_name?: string | null
@@ -1759,6 +1768,7 @@ export type Database = {
       }
       equipment_movements: {
         Row: {
+          client_op_id: string | null
           created_at: string
           created_by: string
           environment: string
@@ -1776,6 +1786,7 @@ export type Database = {
           updated_at: string
         }
         Insert: {
+          client_op_id?: string | null
           created_at?: string
           created_by: string
           environment?: string
@@ -1793,6 +1804,7 @@ export type Database = {
           updated_at?: string
         }
         Update: {
+          client_op_id?: string | null
           created_at?: string
           created_by?: string
           environment?: string
@@ -1814,6 +1826,7 @@ export type Database = {
       equipment_stop_history: {
         Row: {
           changed_by_driver: string | null
+          client_op_id: string | null
           created_at: string
           defect_description: string | null
           duration_minutes: number | null
@@ -1826,6 +1839,7 @@ export type Database = {
         }
         Insert: {
           changed_by_driver?: string | null
+          client_op_id?: string | null
           created_at?: string
           defect_description?: string | null
           duration_minutes?: number | null
@@ -1838,6 +1852,7 @@ export type Database = {
         }
         Update: {
           changed_by_driver?: string | null
+          client_op_id?: string | null
           created_at?: string
           defect_description?: string | null
           duration_minutes?: number | null
@@ -2279,6 +2294,7 @@ export type Database = {
           assinatura_autorizador: string | null
           assinatura_funcionario: string | null
           autorizado_por: string
+          client_op_id: string | null
           created_at: string
           created_by: string
           data: string
@@ -2298,6 +2314,7 @@ export type Database = {
           assinatura_autorizador?: string | null
           assinatura_funcionario?: string | null
           autorizado_por: string
+          client_op_id?: string | null
           created_at?: string
           created_by: string
           data?: string
@@ -2317,6 +2334,7 @@ export type Database = {
           assinatura_autorizador?: string | null
           assinatura_funcionario?: string | null
           autorizado_por?: string
+          client_op_id?: string | null
           created_at?: string
           created_by?: string
           data?: string
