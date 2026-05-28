@@ -1095,6 +1095,20 @@ export default function Atividades() {
                   <ExtraActivityEntries activityKey="podagem" entries={extraEntries.podagem || []} onAdd={addExtraEntry} onUpdate={updateExtraEntry} onRemove={removeExtraEntry} faixaOptions={FAIXA_OPTIONS} bermaOptions={BERMA_OPTIONS} />
                 </div>
 
+                {/* Cova */}
+                <div className="p-3 rounded-lg bg-muted/30 space-y-2">
+                  <div className="flex items-center justify-between">
+                    <Label>COVA (Unidade)</Label>
+                    <AddMoreButton activityKey="cova" onAdd={addExtraEntry} />
+                  </div>
+                  <div className="grid grid-cols-1 md:grid-cols-[1fr_140px_140px] gap-3">
+                    <Input type="number" min="0" value={cova} onChange={(e) => setCova(e.target.value)} placeholder="0" />
+                    <Select value={covaFaixa} onValueChange={setCovaFaixa}><SelectTrigger><SelectValue placeholder="Faixa" /></SelectTrigger><SelectContent>{FAIXA_OPTIONS.map((opt) => (<SelectItem key={opt.value} value={opt.value}>{opt.label}</SelectItem>))}</SelectContent></Select>
+                    <Select value={covaBerma} onValueChange={setCovaBerma}><SelectTrigger><SelectValue placeholder="Berma" /></SelectTrigger><SelectContent>{BERMA_OPTIONS.map((opt) => (<SelectItem key={opt.value} value={opt.value}>{opt.label}</SelectItem>))}</SelectContent></Select>
+                  </div>
+                  <ExtraActivityEntries activityKey="cova" entries={extraEntries.cova || []} onAdd={addExtraEntry} onUpdate={updateExtraEntry} onRemove={removeExtraEntry} faixaOptions={FAIXA_OPTIONS} bermaOptions={BERMA_OPTIONS} />
+                </div>
+
                 {/* Coroamento */}
                 <div className="p-3 rounded-lg bg-muted/30 space-y-2">
                   <div className="flex items-center justify-between">
