@@ -183,7 +183,10 @@ export function useOfflineSyncV2() {
 
           if (error) throw error;
           break;
+        }
+
         case "stop_history": {
+
           const {
             equipment_id,
             stop_reason,
