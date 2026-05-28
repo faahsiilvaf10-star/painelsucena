@@ -555,10 +555,9 @@ export default function AtividadesII() {
     addWithExtras(transporteMateriais, "Transporte de Materiais", transporteMateriaisQuantidade, "m³", "transporte");
     
     if (atividadesManuais.trim()) {
-      atividadesManuais.trim().split("\n").forEach(line => {
-        if (line.trim()) {
-          lines.push(`* ${line.trim()}`);
-        }
+      atividadesManuais.split("\n").forEach(line => {
+        const t = line.trim().replace(/^\*\s*/, "");
+        if (t) lines.push(`* ${t}`);
       });
     }
     
