@@ -1456,6 +1456,12 @@ export default function Atividades() {
                   {(extraEntries["podagem"] || []).map((e, i) => parseFloat(e.value) > 0 && (
                     <p key={`podagem-${i}`}>* Podagem - {e.value} unidade(s){e.berma && ` (Berma ${e.berma})`}{e.faixa && ` - ${e.faixa}`}</p>
                   ))}
+                  {cova && parseInt(cova) > 0 && (
+                    <p>* Cova - {cova} unidade(s){covaBerma && ` (Berma ${covaBerma})`}{covaFaixa && ` - ${covaFaixa}`}</p>
+                  )}
+                  {(extraEntries["cova"] || []).map((e, i) => parseFloat(e.value) > 0 && (
+                    <p key={`cova-${i}`}>* Cova - {e.value} unidade(s){e.berma && ` (Berma ${e.berma})`}{e.faixa && ` - ${e.faixa}`}</p>
+                  ))}
                   {coroamento && parseInt(coroamento) > 0 && (
                     <p>* Coroamento - {coroamento} unidade(s){coroamentoBerma && ` (Berma ${coroamentoBerma})`}{coroamentoFaixa && ` - ${coroamentoFaixa}`}</p>
                   )}
