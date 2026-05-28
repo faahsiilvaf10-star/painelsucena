@@ -15,6 +15,9 @@ export interface JardinagemReport {
   podagem_unidade: number | null;
   podagem_berma: number | null;
   podagem_faixa: string | null;
+  cova_unidade: number | null;
+  cova_berma: number | null;
+  cova_faixa: string | null;
   coroamento_unidade: number | null;
   coroamento_berma: number | null;
   coroamento_faixa: string | null;
@@ -58,6 +61,9 @@ export interface JardinagemReportInsert {
   podagem_unidade?: number | null;
   podagem_berma?: number | null;
   podagem_faixa?: string | null;
+  cova_unidade?: number | null;
+  cova_berma?: number | null;
+  cova_faixa?: string | null;
   coroamento_unidade?: number | null;
   coroamento_berma?: number | null;
   coroamento_faixa?: string | null;
@@ -271,6 +277,13 @@ export const formatJardinagemForRDO = (report: JardinagemReport | null): string 
     lines.push(`* Podagem - ${report.podagem_unidade} unidade(s)${formatBerma(report.podagem_berma)}${faixaText}`);
   }
   appendExtraLines(lines, extras, "podagem", "Podagem", "unidade(s)");
+
+  if (report.cova_unidade && report.cova_unidade > 0) {
+    const faixaText = report.cova_faixa ? ` - ${report.cova_faixa}` : "";
+    lines.push(`* Cova - ${report.cova_unidade} unidade(s)${formatBerma(report.cova_berma)}${faixaText}`);
+  }
+  appendExtraLines(lines, extras, "cova", "Cova", "unidade(s)");
+
 
   if (report.coroamento_unidade && report.coroamento_unidade > 0) {
     const faixaText = report.coroamento_faixa ? ` - ${report.coroamento_faixa}` : "";

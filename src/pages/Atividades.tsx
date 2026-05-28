@@ -138,6 +138,9 @@ export default function Atividades() {
   const [podagem, setPodagem] = useState("");
   const [podagemBerma, setPodagemBerma] = useState("");
   const [podagemFaixa, setPodagemFaixa] = useState("");
+  const [cova, setCova] = useState("");
+  const [covaBerma, setCovaBerma] = useState("");
+  const [covaFaixa, setCovaFaixa] = useState("");
   const [coroamento, setCoroamento] = useState("");
   const [coroamentoBerma, setCoroamentoBerma] = useState("");
   const [coroamentoFaixa, setCoroamentoFaixa] = useState("");
@@ -287,6 +290,9 @@ export default function Atividades() {
       setPodagem(existingReport.podagem_unidade?.toString() || "");
       setPodagemBerma(existingReport.podagem_berma?.toString() || "");
       setPodagemFaixa(existingReport.podagem_faixa || "");
+      setCova(existingReport.cova_unidade?.toString() || "");
+      setCovaBerma(existingReport.cova_berma?.toString() || "");
+      setCovaFaixa(existingReport.cova_faixa || "");
       setCoroamento(existingReport.coroamento_unidade?.toString() || "");
       setCoroamentoBerma(existingReport.coroamento_berma?.toString() || "");
       setCoroamentoFaixa(existingReport.coroamento_faixa || "");
@@ -415,6 +421,9 @@ export default function Atividades() {
         podagem_unidade: podagem ? parseInt(podagem) : null,
         podagem_berma: podagemBerma ? parseInt(podagemBerma) : null,
         podagem_faixa: podagemFaixa || null,
+        cova_unidade: cova ? parseInt(cova) : null,
+        cova_berma: covaBerma ? parseInt(covaBerma) : null,
+        cova_faixa: covaFaixa || null,
         coroamento_unidade: coroamento ? parseInt(coroamento) : null,
         coroamento_berma: coroamentoBerma ? parseInt(coroamentoBerma) : null,
         coroamento_faixa: coroamentoFaixa || null,
@@ -540,6 +549,12 @@ export default function Atividades() {
       lines.push(`* Podagem - ${podagem} unidade(s)${formatBerma(podagemBerma)}${formatFaixa(podagemFaixa)}`);
     }
     appendExtras("podagem", "Podagem", "unidade(s)");
+
+    if (cova && parseInt(cova) > 0) {
+      lines.push(`* Cova - ${cova} unidade(s)${formatBerma(covaBerma)}${formatFaixa(covaFaixa)}`);
+    }
+    appendExtras("cova", "Cova", "unidade(s)");
+
 
     if (coroamento && parseInt(coroamento) > 0) {
       lines.push(`* Coroamento - ${coroamento} unidade(s)${formatBerma(coroamentoBerma)}${formatFaixa(coroamentoFaixa)}`);
@@ -707,6 +722,7 @@ export default function Atividades() {
       // Reset all form state after deletion
       setRocagem(""); setRocagemBerma(""); setRocagemFaixa("");
       setPodagem(""); setPodagemBerma(""); setPodagemFaixa("");
+      setCova(""); setCovaBerma(""); setCovaFaixa("");
       setCoroamento(""); setCoroamentoBerma(""); setCoroamentoFaixa("");
       setAdubagem(""); setAdubagemBerma(""); setAdubagemFaixa("");
       setPlantio(""); setPlantioBerma(""); setPlantioFaixa("");
@@ -889,6 +905,9 @@ export default function Atividades() {
                 }
                 if (report.podagem_unidade && parseInt(report.podagem_unidade) > 0) {
                   lines.push(`* Podagem - ${report.podagem_unidade} unidade(s)${formatBerma(report.podagem_berma)}${formatFaixa(report.podagem_faixa)}`);
+                }
+                if (report.cova_unidade && parseInt(report.cova_unidade) > 0) {
+                  lines.push(`* Cova - ${report.cova_unidade} unidade(s)${formatBerma(report.cova_berma)}${formatFaixa(report.cova_faixa)}`);
                 }
                 if (report.coroamento_unidade && parseInt(report.coroamento_unidade) > 0) {
                   lines.push(`* Coroamento - ${report.coroamento_unidade} unidade(s)${formatBerma(report.coroamento_berma)}${formatFaixa(report.coroamento_faixa)}`);
@@ -1074,6 +1093,20 @@ export default function Atividades() {
                     <Select value={podagemBerma} onValueChange={setPodagemBerma}><SelectTrigger><SelectValue placeholder="Berma" /></SelectTrigger><SelectContent>{BERMA_OPTIONS.map((opt) => (<SelectItem key={opt.value} value={opt.value}>{opt.label}</SelectItem>))}</SelectContent></Select>
                   </div>
                   <ExtraActivityEntries activityKey="podagem" entries={extraEntries.podagem || []} onAdd={addExtraEntry} onUpdate={updateExtraEntry} onRemove={removeExtraEntry} faixaOptions={FAIXA_OPTIONS} bermaOptions={BERMA_OPTIONS} />
+                </div>
+
+                {/* Cova */}
+                <div className="p-3 rounded-lg bg-muted/30 space-y-2">
+                  <div className="flex items-center justify-between">
+                    <Label>COVA (Unidade)</Label>
+                    <AddMoreButton activityKey="cova" onAdd={addExtraEntry} />
+                  </div>
+                  <div className="grid grid-cols-1 md:grid-cols-[1fr_140px_140px] gap-3">
+                    <Input type="number" min="0" value={cova} onChange={(e) => setCova(e.target.value)} placeholder="0" />
+                    <Select value={covaFaixa} onValueChange={setCovaFaixa}><SelectTrigger><SelectValue placeholder="Faixa" /></SelectTrigger><SelectContent>{FAIXA_OPTIONS.map((opt) => (<SelectItem key={opt.value} value={opt.value}>{opt.label}</SelectItem>))}</SelectContent></Select>
+                    <Select value={covaBerma} onValueChange={setCovaBerma}><SelectTrigger><SelectValue placeholder="Berma" /></SelectTrigger><SelectContent>{BERMA_OPTIONS.map((opt) => (<SelectItem key={opt.value} value={opt.value}>{opt.label}</SelectItem>))}</SelectContent></Select>
+                  </div>
+                  <ExtraActivityEntries activityKey="cova" entries={extraEntries.cova || []} onAdd={addExtraEntry} onUpdate={updateExtraEntry} onRemove={removeExtraEntry} faixaOptions={FAIXA_OPTIONS} bermaOptions={BERMA_OPTIONS} />
                 </div>
 
                 {/* Coroamento */}
@@ -1423,6 +1456,12 @@ export default function Atividades() {
                   {(extraEntries["podagem"] || []).map((e, i) => parseFloat(e.value) > 0 && (
                     <p key={`podagem-${i}`}>* Podagem - {e.value} unidade(s){e.berma && ` (Berma ${e.berma})`}{e.faixa && ` - ${e.faixa}`}</p>
                   ))}
+                  {cova && parseInt(cova) > 0 && (
+                    <p>* Cova - {cova} unidade(s){covaBerma && ` (Berma ${covaBerma})`}{covaFaixa && ` - ${covaFaixa}`}</p>
+                  )}
+                  {(extraEntries["cova"] || []).map((e, i) => parseFloat(e.value) > 0 && (
+                    <p key={`cova-${i}`}>* Cova - {e.value} unidade(s){e.berma && ` (Berma ${e.berma})`}{e.faixa && ` - ${e.faixa}`}</p>
+                  ))}
                   {coroamento && parseInt(coroamento) > 0 && (
                     <p>* Coroamento - {coroamento} unidade(s){coroamentoBerma && ` (Berma ${coroamentoBerma})`}{coroamentoFaixa && ` - ${coroamentoFaixa}`}</p>
                   )}
@@ -1488,7 +1527,7 @@ export default function Atividades() {
                       return <p key={`muda-${idx}`}>* Mudas Plantadas: {m.especie} - {m.quantidade} unidade(s){local}</p>;
                     })
                   )}
-                  {!rocagem && !podagem && !coroamento && !adubagem && !plantio && !limpezaManual && !limpezaAssoprador && !invasoras.some(i => i.unidade && parseInt(i.unidade) > 0) && !retiradaMudasUnidade && !manutencaoCanteiro && !irrigacaoPipas && !irrigacaoCarretel && !plantioGrama && !atividadesManuais && Object.keys(extraEntries).length === 0 && (!mudasPlantadasDoDia || mudasPlantadasDoDia.length === 0) && (
+                  {!rocagem && !podagem && !cova && !coroamento && !adubagem && !plantio && !limpezaManual && !limpezaAssoprador && !invasoras.some(i => i.unidade && parseInt(i.unidade) > 0) && !retiradaMudasUnidade && !manutencaoCanteiro && !irrigacaoPipas && !irrigacaoCarretel && !plantioGrama && !atividadesManuais && Object.keys(extraEntries).length === 0 && (!mudasPlantadasDoDia || mudasPlantadasDoDia.length === 0) && (
                     <p className="text-muted-foreground italic">Nenhuma atividade preenchida</p>
                   )}
                 </div>

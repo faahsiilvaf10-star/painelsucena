@@ -712,6 +712,9 @@ export type Database = {
           coroamento_berma: number | null
           coroamento_faixa: string | null
           coroamento_unidade: number | null
+          cova_berma: number | null
+          cova_faixa: string | null
+          cova_unidade: number | null
           created_at: string
           created_by: string
           environment: string
@@ -757,6 +760,9 @@ export type Database = {
           coroamento_berma?: number | null
           coroamento_faixa?: string | null
           coroamento_unidade?: number | null
+          cova_berma?: number | null
+          cova_faixa?: string | null
+          cova_unidade?: number | null
           created_at?: string
           created_by: string
           environment?: string
@@ -802,6 +808,9 @@ export type Database = {
           coroamento_berma?: number | null
           coroamento_faixa?: string | null
           coroamento_unidade?: number | null
+          cova_berma?: number | null
+          cova_faixa?: string | null
+          cova_unidade?: number | null
           created_at?: string
           created_by?: string
           environment?: string
