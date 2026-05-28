@@ -707,9 +707,11 @@ export function DriverStatusButtons() {
         <CardHeader className="pb-3 px-4 pt-4">
           <div className="flex items-center justify-between gap-2">
             <CardTitle className="text-base font-semibold">Controle de Turno</CardTitle>
-            <Badge className={`${statusInfo.color} text-white text-xs px-2.5 py-0.5`}>
-              {statusInfo.label}
-            </Badge>
+            {shiftStarted && (
+              <Badge className={`${statusInfo.color} text-white text-xs px-2.5 py-0.5`}>
+                {statusInfo.label}
+              </Badge>
+            )}
           </div>
           <div className="flex items-center gap-2 text-sm text-muted-foreground mt-1">
             <span className="font-medium truncate">{selectedVehicle.name}</span>
