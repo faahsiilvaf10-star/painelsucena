@@ -15,6 +15,9 @@ export interface JardinagemReport {
   podagem_unidade: number | null;
   podagem_berma: number | null;
   podagem_faixa: string | null;
+  cova_unidade: number | null;
+  cova_berma: number | null;
+  cova_faixa: string | null;
   coroamento_unidade: number | null;
   coroamento_berma: number | null;
   coroamento_faixa: string | null;
