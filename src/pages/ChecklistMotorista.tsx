@@ -10,7 +10,9 @@ import { Label } from "@/components/ui/label";
 import { supabase } from "@/integrations/supabase/client";
 import { useProfile } from "@/hooks/useProfile";
 import { useEquipment } from "@/hooks/useEquipment";
+import { useOfflineSyncV2 } from "@/hooks/useOfflineSyncV2";
 import { toast } from "sonner";
+
 
 const formatDateTime = (iso: string) => {
   try {
