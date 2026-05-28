@@ -488,15 +488,15 @@ export function DriverStatusButtons() {
       // Entry movements are no longer registered automatically at shift start
       // Only exit movements (saída) are tracked in the movements system
 
-      // Fire WhatsApp notification FIRST so its message is queued before the DB trigger
-      // (which would otherwise emit a plain "Aguardando Frente" and trigger dedup against ours).
+      // Notifica o grupo sobre o INÍCIO de TURNO (sem definir status Operando).
+      // O status só vai para "Operando" quando o motorista clicar em "Operar".
       try {
         await supabase.functions.invoke("wapi-driver-status-notify", {
           body: {
             equipmentId: selectedVehicleId,
             equipmentName: selectedVehicle.name,
             plate: selectedVehicle.plate,
-            newStatus: "waiting",
+            newStatus: "shift_start",
             previousStatus: "shift_start",
             driverName: profile?.full_name || null,
             extraInfo: `*Combustível:* ${getFuelLevelLabel(fuelLevel)}\n*Horímetro:* ${startShiftHorimeter}\n*KM:* ${startShiftKm}`,
@@ -506,10 +506,12 @@ export function DriverStatusButtons() {
         console.warn("driver-status-notify failed", e);
       }
 
+      // Limpa qualquer status anterior — fica em branco até motorista clicar em "Operar"
+      localStorage.removeItem(`operating_activated_${selectedVehicleId}`);
       await updateStatus.mutateAsync({
         id: selectedVehicleId,
-        stop_reason: "waiting" as any,
-        stop_start_time: now,
+        stop_reason: null as any,
+        stop_start_time: null,
         previousStopReason: currentStatus as any,
         previousStopStartTime: selectedVehicle.stop_start_time,
         changed_by_driver: profile?.full_name || null,
