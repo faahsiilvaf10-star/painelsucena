@@ -392,14 +392,6 @@ export default function AtividadesII() {
     addWithExtras(recomposicaoSilte, "Recomposição de silte", recomposicaoSilteQuantidade, "m²", "recomposicaoSilte");
     addWithExtras(transporteMateriais, "Transporte de Materiais", transporteMateriaisQuantidade, "m³", "transporte");
     
-    if (atividadesManuais.trim()) {
-      lines.push("");
-      lines.push("[ATIVIDADES_MANUAIS]");
-      atividadesManuais.split("\n").forEach((l) => {
-        const t = l.trim();
-        if (t) lines.push(`* ${t}`);
-      });
-    }
     
     if (observacoes.trim()) {
       lines.push("");
