@@ -1527,7 +1527,7 @@ export default function Atividades() {
                       return <p key={`muda-${idx}`}>* Mudas Plantadas: {m.especie} - {m.quantidade} unidade(s){local}</p>;
                     })
                   )}
-                  {!rocagem && !podagem && !coroamento && !adubagem && !plantio && !limpezaManual && !limpezaAssoprador && !invasoras.some(i => i.unidade && parseInt(i.unidade) > 0) && !retiradaMudasUnidade && !manutencaoCanteiro && !irrigacaoPipas && !irrigacaoCarretel && !plantioGrama && !atividadesManuais && Object.keys(extraEntries).length === 0 && (!mudasPlantadasDoDia || mudasPlantadasDoDia.length === 0) && (
+                  {!rocagem && !podagem && !cova && !coroamento && !adubagem && !plantio && !limpezaManual && !limpezaAssoprador && !invasoras.some(i => i.unidade && parseInt(i.unidade) > 0) && !retiradaMudasUnidade && !manutencaoCanteiro && !irrigacaoPipas && !irrigacaoCarretel && !plantioGrama && !atividadesManuais && Object.keys(extraEntries).length === 0 && (!mudasPlantadasDoDia || mudasPlantadasDoDia.length === 0) && (
                     <p className="text-muted-foreground italic">Nenhuma atividade preenchida</p>
                   )}
                 </div>
