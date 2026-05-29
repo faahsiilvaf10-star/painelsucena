@@ -29,13 +29,13 @@ import {
   TableHeader,
   TableRow,
 } from "@/components/ui/table";
-import { Truck, Plus, Loader2, Trash2, User, Clock, AlertCircle, Droplets, MapPin } from "lucide-react";
+import { Truck, Plus, Loader2, Trash2, User, Clock, AlertCircle, Droplets, MapPin, Pencil } from "lucide-react";
 import { AdminStatusEditor } from "@/components/partediaria/AdminStatusEditor";
 import { AdminCountersEditor } from "@/components/partediaria/AdminCountersEditor";
 import { ExportEquipmentPdfButton } from "@/components/equipamentos/ExportEquipmentPdfButton";
 import { ExportMovementsByDateButton } from "@/components/equipamentos/ExportMovementsByDateButton";
 import { MovementHistoryDialog } from "@/components/equipamentos/MovementHistoryDialog";
-import { useEquipment, useCreateEquipment, useDeleteEquipment, useEquipmentStopHistory } from "@/hooks/useEquipment";
+import { useEquipment, useCreateEquipment, useDeleteEquipment, useUpdateEquipment, useEquipmentStopHistory } from "@/hooks/useEquipment";
 import { useEquipmentMovements } from "@/hooks/useEquipmentMovements";
 import { useDailyShiftRecords } from "@/hooks/useDailyShiftRecords";
 import { useIsAdmin } from "@/hooks/useUserRole";
@@ -62,6 +62,7 @@ export default function ParteDiaria() {
   const { data: stopHistory = [] } = useEquipmentStopHistory();
   const { data: shiftRecords = [], isLoading: isLoadingRecords } = useDailyShiftRecords();
   const createEquipment = useCreateEquipment();
+  const updateEquipment = useUpdateEquipment();
   const deleteEquipment = useDeleteEquipment();
   const { isAdmin } = useIsAdmin();
   const { data: profile } = useProfile();
