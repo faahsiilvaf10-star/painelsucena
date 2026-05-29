@@ -111,6 +111,34 @@ export default function ParteDiaria() {
     }
   };
 
+  const handleUpdateEquipment = async () => {
+    if (!editingEquipment.name || !editingEquipment.plate) {
+      toast.error("Preencha todos os campos");
+      return;
+    }
+
+    try {
+      await updateEquipment.mutateAsync({
+        id: editingEquipment.id,
+        name: editingEquipment.name,
+        plate: editingEquipment.plate.toUpperCase(),
+        equipment_type: editingEquipment.equipment_type,
+      });
+
+      toast.success("Equipamento atualizado com sucesso!");
+      setIsEditDialogOpen(false);
+      setEditingEquipment(null);
+    } catch (error) {
+      console.error("Error updating equipment:", error);
+      toast.error("Erro ao atualizar equipamento");
+    }
+  };
+
+  const handleOpenEdit = (equipment: any) => {
+    setEditingEquipment(equipment);
+    setIsEditDialogOpen(true);
+  };
+
   const handleDeleteEquipment = async (id: string) => {
     try {
       await deleteEquipment.mutateAsync(id);
