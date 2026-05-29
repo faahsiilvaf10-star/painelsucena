@@ -132,6 +132,14 @@ export default function RegistroMovimentoMotorista() {
     }
 
     try {
+      const { data: profile } = await supabase
+        .from("profiles")
+        .select("environment")
+        .eq("user_id", user?.id)
+        .single();
+      
+      const currentEnv = profile?.environment || "barcarena";
+
       if (isOnline) {
         // Caminho online: comportamento original
         await createMovement.mutateAsync({
@@ -141,12 +149,14 @@ export default function RegistroMovimentoMotorista() {
           exit_reason: movementType === "saida" ? exitReason : null,
           problem_description: exitReason === "manutencao_corretiva" ? problemDescription : null,
           observation: observation.trim() || null,
+          environment: currentEnv,
         });
 
         if (movementType === "saida" && savedVehicleId) {
           const today = new Date().toISOString().split("T")[0];
           try {
             await updateShiftRecord.mutateAsync({
+              id: undefined, // ensure it uses equipment_id + shift_date path
               equipment_id: savedVehicleId,
               shift_date: today,
               final_horimeter: parseFloat(exitHorimeter),
