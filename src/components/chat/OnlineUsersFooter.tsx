@@ -5,6 +5,7 @@ import { cn } from "@/lib/utils";
 import { useSidebar } from "@/components/ui/sidebar";
 import { getBrazilNorthMonth } from "@/lib/timezone";
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/components/ui/dialog";
+import { useAllUsers } from "@/hooks/useAllUsers";
 
 const FORBIDDEN_COLORS: Record<number, { name: string; bgClass: string }> = {
   0: { name: "Vermelha", bgClass: "bg-red-500" },
@@ -36,6 +37,9 @@ export const OnlineUsersFooter = ({ onUserClick, onToggleSidebar, isSidebarOpen 
   const [isMinimized, setIsMinimized] = useState(false);
   const [colorDialogOpen, setColorDialogOpen] = useState(false);
   const { state } = useSidebar();
+  const { allUsers } = useAllUsers();
+  
+  const onlineCount = allUsers.filter(u => u.isOnline && !u.cargo?.startsWith("motorista_")).length;
 
   const currentMonth = getBrazilNorthMonth();
   const isCollapsedSidebar = state === "collapsed";
@@ -101,6 +105,12 @@ export const OnlineUsersFooter = ({ onUserClick, onToggleSidebar, isSidebarOpen 
                 )} 
                 alt="WhatsApp"
               />
+              <span className={cn(
+                "absolute -top-1 -right-1 flex h-4 w-4 items-center justify-center rounded-full text-[9px] font-bold text-white shadow-sm",
+                onlineCount > 0 ? "bg-green-500" : "bg-gray-400"
+              )}>
+                {onlineCount}
+              </span>
             </button>
             <button
               type="button"
