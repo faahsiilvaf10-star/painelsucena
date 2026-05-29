@@ -200,6 +200,19 @@ export function useUpdateShiftRecord() {
           .update(updateData)
           .eq("id", id);
       } else if (equipment_id && shift_date) {
+        // When updating by equipment_id and shift_date, we also update equipment_name and plate
+        // to ensure the shift record reflects current equipment info (useful for WhatsApp/PDF)
+        const { data: eq } = await supabase
+          .from("equipment")
+          .select("name, plate")
+          .eq("id", equipment_id)
+          .single();
+        
+        if (eq) {
+          updateData.equipment_name = eq.name;
+          updateData.plate = eq.plate;
+        }
+
         query = supabase
           .from("daily_shift_records")
           .update(updateData)

@@ -118,12 +118,24 @@ export default function ParteDiaria() {
     }
 
     try {
+      const updatedPlate = editingEquipment.plate.toUpperCase();
       await updateEquipment.mutateAsync({
         id: editingEquipment.id,
         name: editingEquipment.name,
-        plate: editingEquipment.plate.toUpperCase(),
+        plate: updatedPlate,
         equipment_type: editingEquipment.equipment_type,
       });
+
+      // Synchronize with today's shift record
+      const today = format(new Date(), "yyyy-MM-dd");
+      await supabase
+        .from("daily_shift_records")
+        .update({
+          equipment_name: editingEquipment.name,
+          plate: updatedPlate,
+        })
+        .eq("equipment_id", editingEquipment.id)
+        .eq("shift_date", today);
 
       toast.success("Equipamento atualizado com sucesso!");
       setIsEditDialogOpen(false);
