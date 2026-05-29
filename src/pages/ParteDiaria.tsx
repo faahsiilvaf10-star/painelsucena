@@ -29,13 +29,13 @@ import {
   TableHeader,
   TableRow,
 } from "@/components/ui/table";
-import { Truck, Plus, Loader2, Trash2, User, Clock, AlertCircle, Droplets, MapPin } from "lucide-react";
+import { Truck, Plus, Loader2, Trash2, User, Clock, AlertCircle, Droplets, MapPin, Pencil } from "lucide-react";
 import { AdminStatusEditor } from "@/components/partediaria/AdminStatusEditor";
 import { AdminCountersEditor } from "@/components/partediaria/AdminCountersEditor";
 import { ExportEquipmentPdfButton } from "@/components/equipamentos/ExportEquipmentPdfButton";
 import { ExportMovementsByDateButton } from "@/components/equipamentos/ExportMovementsByDateButton";
 import { MovementHistoryDialog } from "@/components/equipamentos/MovementHistoryDialog";
-import { useEquipment, useCreateEquipment, useDeleteEquipment, useEquipmentStopHistory } from "@/hooks/useEquipment";
+import { useEquipment, useCreateEquipment, useDeleteEquipment, useUpdateEquipment, useEquipmentStopHistory } from "@/hooks/useEquipment";
 import { useEquipmentMovements } from "@/hooks/useEquipmentMovements";
 import { useDailyShiftRecords } from "@/hooks/useDailyShiftRecords";
 import { useIsAdmin } from "@/hooks/useUserRole";
@@ -62,6 +62,7 @@ export default function ParteDiaria() {
   const { data: stopHistory = [] } = useEquipmentStopHistory();
   const { data: shiftRecords = [], isLoading: isLoadingRecords } = useDailyShiftRecords();
   const createEquipment = useCreateEquipment();
+  const updateEquipment = useUpdateEquipment();
   const deleteEquipment = useDeleteEquipment();
   const { isAdmin } = useIsAdmin();
   const { data: profile } = useProfile();
@@ -71,11 +72,13 @@ export default function ParteDiaria() {
   const canEdit = isAdmin || profile?.cargo === "aux_administrativo";
 
   const [isDialogOpen, setIsDialogOpen] = useState(false);
+  const [isEditDialogOpen, setIsEditDialogOpen] = useState(false);
   const [newEquipment, setNewEquipment] = useState({
     name: "",
     plate: "",
     equipment_type: "pipa" as "pipa" | "munk",
   });
+  const [editingEquipment, setEditingEquipment] = useState<any>(null);
 
   // Filter only Pipa and Munk vehicles (driver vehicles)
   const driverVehicles = equipment.filter(
@@ -106,6 +109,34 @@ export default function ParteDiaria() {
       console.error("Error creating equipment:", error);
       toast.error("Erro ao cadastrar equipamento");
     }
+  };
+
+  const handleUpdateEquipment = async () => {
+    if (!editingEquipment.name || !editingEquipment.plate) {
+      toast.error("Preencha todos os campos");
+      return;
+    }
+
+    try {
+      await updateEquipment.mutateAsync({
+        id: editingEquipment.id,
+        name: editingEquipment.name,
+        plate: editingEquipment.plate.toUpperCase(),
+        equipment_type: editingEquipment.equipment_type,
+      });
+
+      toast.success("Equipamento atualizado com sucesso!");
+      setIsEditDialogOpen(false);
+      setEditingEquipment(null);
+    } catch (error) {
+      console.error("Error updating equipment:", error);
+      toast.error("Erro ao atualizar equipamento");
+    }
+  };
+
+  const handleOpenEdit = (equipment: any) => {
+    setEditingEquipment(equipment);
+    setIsEditDialogOpen(true);
   };
 
   const handleDeleteEquipment = async (id: string) => {
@@ -625,37 +656,48 @@ export default function ParteDiaria() {
                           </TableCell>
                           <TableCell>{getStatusBadge(vehicle.stop_reason, vehicle.id, vehicle.driver || "")}</TableCell>
                           <TableCell className="text-right">
-                            <AlertDialog>
-                              <AlertDialogTrigger asChild>
-                                <Button
-                                  variant="ghost"
-                                  size="icon"
-                                  className="text-destructive hover:text-destructive"
-                                  disabled={!!vehicle.driver}
-                                >
-                                  <Trash2 className="h-4 w-4" />
-                                </Button>
-                              </AlertDialogTrigger>
-                              <AlertDialogContent>
-                                <AlertDialogHeader>
-                                  <AlertDialogTitle>Remover Equipamento</AlertDialogTitle>
-                                  <AlertDialogDescription>
-                                    Tem certeza que deseja remover o equipamento{" "}
-                                    <strong>{vehicle.name}</strong>? Esta ação não pode
-                                    ser desfeita.
-                                  </AlertDialogDescription>
-                                </AlertDialogHeader>
-                                <AlertDialogFooter>
-                                  <AlertDialogCancel>Cancelar</AlertDialogCancel>
-                                  <AlertDialogAction
-                                    onClick={() => handleDeleteEquipment(vehicle.id)}
-                                    className="bg-destructive text-destructive-foreground hover:bg-destructive/90"
+                            <div className="flex justify-end gap-2">
+                              <Button
+                                variant="ghost"
+                                size="icon"
+                                className="text-blue-500 hover:text-blue-600"
+                                onClick={() => handleOpenEdit(vehicle)}
+                              >
+                                <Pencil className="h-4 w-4" />
+                              </Button>
+
+                              <AlertDialog>
+                                <AlertDialogTrigger asChild>
+                                  <Button
+                                    variant="ghost"
+                                    size="icon"
+                                    className="text-destructive hover:text-destructive"
+                                    disabled={!!vehicle.driver}
                                   >
-                                    Remover
-                                  </AlertDialogAction>
-                                </AlertDialogFooter>
-                              </AlertDialogContent>
-                            </AlertDialog>
+                                    <Trash2 className="h-4 w-4" />
+                                  </Button>
+                                </AlertDialogTrigger>
+                                <AlertDialogContent>
+                                  <AlertDialogHeader>
+                                    <AlertDialogTitle>Remover Equipamento</AlertDialogTitle>
+                                    <AlertDialogDescription>
+                                      Tem certeza que deseja remover o equipamento{" "}
+                                      <strong>{vehicle.name}</strong>? Esta action não pode
+                                      ser desfeita.
+                                    </AlertDialogDescription>
+                                  </AlertDialogHeader>
+                                  <AlertDialogFooter>
+                                    <AlertDialogCancel>Cancelar</AlertDialogCancel>
+                                    <AlertDialogAction
+                                      onClick={() => handleDeleteEquipment(vehicle.id)}
+                                      className="bg-destructive text-destructive-foreground hover:bg-destructive/90"
+                                    >
+                                      Remover
+                                    </AlertDialogAction>
+                                  </AlertDialogFooter>
+                                </AlertDialogContent>
+                              </AlertDialog>
+                            </div>
                           </TableCell>
                         </TableRow>
                       ))}
@@ -664,6 +706,71 @@ export default function ParteDiaria() {
                 )}
               </CardContent>
             </Card>
+
+            <Dialog open={isEditDialogOpen} onOpenChange={setIsEditDialogOpen}>
+              <DialogContent>
+                <DialogHeader>
+                  <DialogTitle>Editar Equipamento</DialogTitle>
+                </DialogHeader>
+                {editingEquipment && (
+                  <div className="space-y-4">
+                    <div className="space-y-2">
+                      <Label htmlFor="edit-name">Nome do Equipamento</Label>
+                      <Input
+                        id="edit-name"
+                        value={editingEquipment.name}
+                        onChange={(e) =>
+                          setEditingEquipment({ ...editingEquipment, name: e.target.value })
+                        }
+                      />
+                    </div>
+                    <div className="space-y-2">
+                      <Label htmlFor="edit-plate">Placa</Label>
+                      <Input
+                        id="edit-plate"
+                        value={editingEquipment.plate}
+                        onChange={(e) =>
+                          setEditingEquipment({
+                            ...editingEquipment,
+                            plate: e.target.value.toUpperCase(),
+                          })
+                        }
+                        maxLength={7}
+                      />
+                    </div>
+                    <div className="space-y-2">
+                      <Label htmlFor="edit-type">Tipo</Label>
+                      <Select
+                        value={editingEquipment.equipment_type}
+                        onValueChange={(value: "pipa" | "munk") =>
+                          setEditingEquipment({ ...editingEquipment, equipment_type: value })
+                        }
+                      >
+                        <SelectTrigger>
+                          <SelectValue />
+                        </SelectTrigger>
+                        <SelectContent>
+                          <SelectItem value="pipa">Pipa</SelectItem>
+                          <SelectItem value="munk">Munk</SelectItem>
+                        </SelectContent>
+                      </Select>
+                    </div>
+                    <Button
+                      className="w-full"
+                      onClick={handleUpdateEquipment}
+                      disabled={updateEquipment.isPending}
+                    >
+                      {updateEquipment.isPending ? (
+                        <Loader2 className="h-4 w-4 mr-2 animate-spin" />
+                      ) : (
+                        <Pencil className="h-4 w-4 mr-2" />
+                      )}
+                      Salvar Alterações
+                    </Button>
+                  </div>
+                )}
+              </DialogContent>
+            </Dialog>
           </TabsContent>
           )}
         </Tabs>
