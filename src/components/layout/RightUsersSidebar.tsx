@@ -29,10 +29,9 @@ const formatLastSeen = (lastSeen?: string) => {
   }
 };
 
-export const RightUsersSidebar = ({ onUserClick }: RightUsersSidebarProps) => {
+export const RightUsersSidebar = ({ onUserClick, isOpen, setIsOpen }: RightUsersSidebarProps) => {
   const { allUsers } = useAllUsers();
   const { isUserTyping } = useGlobalTypingIndicator();
-  const [isOpen, setIsOpen] = useState(false);
 
   const currentUser = allUsers.find(u => u.isCurrentUser);
   const isDriver = currentUser?.cargo?.startsWith("motorista_");
