@@ -13,6 +13,7 @@ export const PersistentFooter = () => {
   const popupManagerRef = useRef<ChatPopupManagerHandle>(null);
   const [justCompletedTransition, setJustCompletedTransition] = useState(false);
   const [isMounted, setIsMounted] = useState(false);
+  const [isSidebarOpen, setIsSidebarOpen] = useState(false);
 
   const isDriverPage = ["/painel-motorista", "/registro-movimento-motorista", "/selecao-veiculo", "/equipamentos-motorista", "/relatorios-motorista", "/pontos-abastecimento"].includes(location.pathname);
   const isEnvSelection = location.pathname === "/selecao-ambiente";
