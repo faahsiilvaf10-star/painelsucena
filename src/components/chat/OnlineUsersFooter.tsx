@@ -44,7 +44,8 @@ export const OnlineUsersFooter = ({ onUserClick }: OnlineUsersFooterProps) => {
       "fixed bottom-0 right-0 z-40 overflow-hidden transition-[left] duration-200 ease-linear",
       isMinimized ? "bg-transparent border-t-0" : "bg-card border-t border-border",
       isCollapsedSidebar ? "left-[48px]" : "left-[256px]",
-      "max-md:left-0"
+      "max-md:left-0",
+      "flex items-center"
     )}>
 
       {/* Mobile minimize toggle */}
@@ -81,22 +82,31 @@ export const OnlineUsersFooter = ({ onUserClick }: OnlineUsersFooterProps) => {
           <div className="flex-1 min-w-0 overflow-hidden">
             <NewsTicker />
           </div>
-          <button
-            type="button"
-            onClick={() => setColorDialogOpen(true)}
-            className="flex shrink-0 items-center gap-1.5 px-2 py-1 rounded-full bg-muted/50 hover:bg-muted transition-colors cursor-pointer"
-            title={`Cor proibida do mês: ${forbiddenColor.name} — clique para ver todas`}
-          >
-            <span className={cn("w-3.5 h-3.5 rounded-full shadow-sm", forbiddenColor.bgClass)} />
-            <span
-              className={cn(
-                "text-[11px] font-medium whitespace-nowrap text-muted-foreground hidden md:inline",
-                isCollapsedSidebar && "md:hidden"
-              )}
+          <div className="flex shrink-0 items-center gap-2">
+            <img 
+              src="/whatsapp-api-icon.png" 
+              className="w-6 h-6 object-contain animate-bounce cursor-pointer hover:scale-110 transition-transform" 
+              alt="WhatsApp"
+              title="WhatsApp"
+              onClick={() => window.open('https://web.whatsapp.com', '_blank')}
+            />
+            <button
+              type="button"
+              onClick={() => setColorDialogOpen(true)}
+              className="flex shrink-0 items-center gap-1.5 px-2 py-1 rounded-full bg-muted/50 hover:bg-muted transition-colors cursor-pointer"
+              title={`Cor proibida do mês: ${forbiddenColor.name} — clique para ver todas`}
             >
-              Cor proibida: {forbiddenColor.name}
-            </span>
-          </button>
+              <span className={cn("w-3.5 h-3.5 rounded-full shadow-sm", forbiddenColor.bgClass)} />
+              <span
+                className={cn(
+                  "text-[11px] font-medium whitespace-nowrap text-muted-foreground hidden md:inline",
+                  isCollapsedSidebar && "md:hidden"
+                )}
+              >
+                Cor proibida: {forbiddenColor.name}
+              </span>
+            </button>
+          </div>
         </div>
       )}
 
