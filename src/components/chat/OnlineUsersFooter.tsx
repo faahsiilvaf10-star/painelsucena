@@ -28,9 +28,11 @@ const MONTH_NAMES = [
 
 interface OnlineUsersFooterProps {
   onUserClick: (user: any) => void;
+  onToggleSidebar: () => void;
+  isSidebarOpen: boolean;
 }
 
-export const OnlineUsersFooter = ({ onUserClick }: OnlineUsersFooterProps) => {
+export const OnlineUsersFooter = ({ onUserClick, onToggleSidebar, isSidebarOpen }: OnlineUsersFooterProps) => {
   const [isMinimized, setIsMinimized] = useState(false);
   const [colorDialogOpen, setColorDialogOpen] = useState(false);
   const { state } = useSidebar();
