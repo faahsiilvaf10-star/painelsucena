@@ -16,6 +16,8 @@ import { useGlobalTypingIndicator } from "@/hooks/useGlobalTypingIndicator";
 
 interface RightUsersSidebarProps {
   onUserClick: (user: UserWithStatus) => void;
+  isOpen: boolean;
+  setIsOpen: (open: boolean) => void;
 }
 
 const formatLastSeen = (lastSeen?: string) => {
