@@ -72,11 +72,13 @@ export default function ParteDiaria() {
   const canEdit = isAdmin || profile?.cargo === "aux_administrativo";
 
   const [isDialogOpen, setIsDialogOpen] = useState(false);
+  const [isEditDialogOpen, setIsEditDialogOpen] = useState(false);
   const [newEquipment, setNewEquipment] = useState({
     name: "",
     plate: "",
     equipment_type: "pipa" as "pipa" | "munk",
   });
+  const [editingEquipment, setEditingEquipment] = useState<any>(null);
 
   // Filter only Pipa and Munk vehicles (driver vehicles)
   const driverVehicles = equipment.filter(
