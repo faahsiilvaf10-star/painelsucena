@@ -105,6 +105,12 @@ export const OnlineUsersFooter = ({ onUserClick, onToggleSidebar, isSidebarOpen 
                 )} 
                 alt="WhatsApp"
               />
+              <span className={cn(
+                "absolute -top-1 -right-1 flex h-4 w-4 items-center justify-center rounded-full text-[9px] font-bold text-white shadow-sm",
+                onlineCount > 0 ? "bg-green-500" : "bg-gray-400"
+              )}>
+                {onlineCount}
+              </span>
             </button>
             <button
               type="button"
