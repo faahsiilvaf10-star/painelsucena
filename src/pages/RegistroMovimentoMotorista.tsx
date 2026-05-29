@@ -181,6 +181,7 @@ export default function RegistroMovimentoMotorista() {
           problem_description: exitReason === "manutencao_corretiva" ? problemDescription : null,
           observation: observation.trim() || null,
           created_by: user.id,
+          environment: currentEnv,
         }, 2);
 
         if (movementType === "saida" && savedVehicleId) {
