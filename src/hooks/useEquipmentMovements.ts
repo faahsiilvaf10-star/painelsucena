@@ -32,6 +32,7 @@ export interface EquipmentMovementInsert {
   exit_reason?: ExitReason | null;
   problem_description?: string | null;
   observation?: string | null;
+  environment?: string;
 }
 
 export function useEquipmentMovements(date?: string) {
@@ -307,6 +308,7 @@ export function useCreateEquipmentMovement() {
             created_by: user.id,
             target_type: "all",
             published_at: new Date().toISOString(),
+            environment: movement.environment || "barcarena",
           });
       }
 
