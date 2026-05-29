@@ -153,6 +153,16 @@ export function useCreateEquipmentMovement() {
     mutationFn: async (movement: EquipmentMovementInsert) => {
       if (!user?.id) throw new Error("User not authenticated");
 
+      // Get user profile to check for environment
+      const { data: profileData } = await supabase
+        .from("profiles")
+        .select("unidade")
+        .eq("user_id", user.id)
+        .maybeSingle();
+
+      const userEnvironment = profileData?.unidade || "barcarena";
+      const movementEnvironment = movement.environment || userEnvironment;
+
       const today = getBrazilNorthTodayString();
       const movementDate = movement.movement_date || today;
       const movementTime = movement.movement_time || getBrazilNorthTimeString();
@@ -163,6 +173,7 @@ export function useCreateEquipmentMovement() {
           ...movement,
           movement_date: movementDate,
           movement_time: movementTime,
+          environment: movementEnvironment,
           created_by: user.id,
         })
         .select()
@@ -308,7 +319,7 @@ export function useCreateEquipmentMovement() {
             created_by: user.id,
             target_type: "all",
             published_at: new Date().toISOString(),
-            environment: movement.environment || "barcarena",
+            environment: movementEnvironment,
           });
       }
 
