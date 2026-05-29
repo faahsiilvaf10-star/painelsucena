@@ -44,9 +44,17 @@ export const PersistentFooter = () => {
 
   return createPortal(
     <div className={justCompletedTransition ? "animate-fade-in" : ""}>
-      <OnlineUsersFooter onUserClick={handleUserClick} />
+      <OnlineUsersFooter 
+        onUserClick={handleUserClick} 
+        onToggleSidebar={() => setIsSidebarOpen(!isSidebarOpen)}
+        isSidebarOpen={isSidebarOpen}
+      />
       <ChatPopupManager ref={popupManagerRef} />
-      <RightUsersSidebar onUserClick={handleUserClick} />
+      <RightUsersSidebar 
+        onUserClick={handleUserClick} 
+        isOpen={isSidebarOpen}
+        setIsOpen={setIsSidebarOpen}
+      />
     </div>,
     document.body
   );
