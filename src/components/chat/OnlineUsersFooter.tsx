@@ -44,7 +44,8 @@ export const OnlineUsersFooter = ({ onUserClick }: OnlineUsersFooterProps) => {
       "fixed bottom-0 right-0 z-40 overflow-hidden transition-[left] duration-200 ease-linear",
       isMinimized ? "bg-transparent border-t-0" : "bg-card border-t border-border",
       isCollapsedSidebar ? "left-[48px]" : "left-[256px]",
-      "max-md:left-0"
+      "max-md:left-0",
+      "flex items-center"
     )}>
 
       {/* Mobile minimize toggle */}
