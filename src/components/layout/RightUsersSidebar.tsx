@@ -46,32 +46,6 @@ export const RightUsersSidebar = ({ onUserClick, isOpen, setIsOpen }: RightUsers
 
   return (
     <>
-      {/* Toggle button - always visible */}
-      <button
-        onClick={() => setIsOpen(!isOpen)}
-        className={cn(
-          "fixed z-40 flex items-center justify-center transition-all",
-          isOpen
-            ? "top-1/2 -translate-y-1/2 h-10 w-5 rounded-l-md bg-primary/90 text-primary-foreground shadow-md hover:bg-primary right-[220px] md:right-[240px]"
-            : "bottom-16 right-3 h-14 w-14 rounded-full shadow-lg hover:scale-110"
-        )}
-        aria-label="Abrir chat"
-      >
-        {isOpen ? (
-          <ChevronRight className="h-3 w-3" />
-        ) : (
-          <>
-            <img src={chatBubbleIcon} alt="InstaCena Chat" className="h-14 w-14 object-contain drop-shadow-lg dark:invert" />
-            <span className={cn(
-              "absolute -top-1 -right-1 flex h-5 w-5 items-center justify-center rounded-full text-[10px] font-bold text-white shadow-sm",
-              onlineCount > 0 ? "bg-green-500" : "bg-gray-400"
-            )}>
-              {onlineCount}
-            </span>
-          </>
-        )}
-      </button>
-
       {/* Sidebar panel */}
       <div
         className={cn(
