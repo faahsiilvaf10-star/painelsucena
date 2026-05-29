@@ -37,6 +37,9 @@ export const OnlineUsersFooter = ({ onUserClick, onToggleSidebar, isSidebarOpen 
   const [isMinimized, setIsMinimized] = useState(false);
   const [colorDialogOpen, setColorDialogOpen] = useState(false);
   const { state } = useSidebar();
+  const { allUsers } = useAllUsers();
+  
+  const onlineCount = allUsers.filter(u => u.isOnline && !u.cargo?.startsWith("motorista_")).length;
 
   const currentMonth = getBrazilNorthMonth();
   const isCollapsedSidebar = state === "collapsed";
