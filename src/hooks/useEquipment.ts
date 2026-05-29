@@ -196,6 +196,7 @@ export function useUpdateEquipment() {
       driver?: string;
       helper?: string;
       name?: string;
+      equipment_type?: EquipmentType;
     }) => {
       const { data, error } = await supabase
         .from("equipment")
