@@ -308,6 +308,7 @@ export function useCreateEquipmentMovement() {
             created_by: user.id,
             target_type: "all",
             published_at: new Date().toISOString(),
+            environment: movement.environment || "barcarena",
           });
       }
 
