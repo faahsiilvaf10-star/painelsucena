@@ -32,6 +32,7 @@ export interface EquipmentMovementInsert {
   exit_reason?: ExitReason | null;
   problem_description?: string | null;
   observation?: string | null;
+  environment?: string;
 }
 
 export function useEquipmentMovements(date?: string) {
