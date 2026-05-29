@@ -28,9 +28,11 @@ const MONTH_NAMES = [
 
 interface OnlineUsersFooterProps {
   onUserClick: (user: any) => void;
+  onToggleSidebar: () => void;
+  isSidebarOpen: boolean;
 }
 
-export const OnlineUsersFooter = ({ onUserClick }: OnlineUsersFooterProps) => {
+export const OnlineUsersFooter = ({ onUserClick, onToggleSidebar, isSidebarOpen }: OnlineUsersFooterProps) => {
   const [isMinimized, setIsMinimized] = useState(false);
   const [colorDialogOpen, setColorDialogOpen] = useState(false);
   const { state } = useSidebar();
@@ -83,13 +85,23 @@ export const OnlineUsersFooter = ({ onUserClick }: OnlineUsersFooterProps) => {
             <NewsTicker />
           </div>
           <div className="flex shrink-0 items-center gap-2">
-            <img 
-              src="/whatsapp-api-icon.png" 
-              className="w-6 h-6 object-contain animate-bounce cursor-pointer hover:scale-110 transition-transform" 
-              alt="WhatsApp"
-              title="WhatsApp"
-              onClick={() => window.open('https://web.whatsapp.com', '_blank')}
-            />
+            <button
+              onClick={(e) => {
+                e.stopPropagation();
+                onToggleSidebar();
+              }}
+              className="relative p-1 hover:bg-muted/50 rounded-full transition-all group"
+              title={isSidebarOpen ? "Fechar conversas" : "Abrir conversas"}
+            >
+              <img 
+                src="/whatsapp-api-icon.png" 
+                className={cn(
+                  "w-6 h-6 object-contain animate-bounce cursor-pointer group-hover:scale-110 transition-transform",
+                  isSidebarOpen && "animate-none scale-110"
+                )} 
+                alt="WhatsApp"
+              />
+            </button>
             <button
               type="button"
               onClick={() => setColorDialogOpen(true)}

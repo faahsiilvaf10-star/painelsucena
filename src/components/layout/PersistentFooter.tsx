@@ -13,6 +13,7 @@ export const PersistentFooter = () => {
   const popupManagerRef = useRef<ChatPopupManagerHandle>(null);
   const [justCompletedTransition, setJustCompletedTransition] = useState(false);
   const [isMounted, setIsMounted] = useState(false);
+  const [isSidebarOpen, setIsSidebarOpen] = useState(false);
 
   const isDriverPage = ["/painel-motorista", "/registro-movimento-motorista", "/selecao-veiculo", "/equipamentos-motorista", "/relatorios-motorista", "/pontos-abastecimento"].includes(location.pathname);
   const isEnvSelection = location.pathname === "/selecao-ambiente";
@@ -43,9 +44,17 @@ export const PersistentFooter = () => {
 
   return createPortal(
     <div className={justCompletedTransition ? "animate-fade-in" : ""}>
-      <OnlineUsersFooter onUserClick={handleUserClick} />
+      <OnlineUsersFooter 
+        onUserClick={handleUserClick} 
+        onToggleSidebar={() => setIsSidebarOpen(!isSidebarOpen)}
+        isSidebarOpen={isSidebarOpen}
+      />
       <ChatPopupManager ref={popupManagerRef} />
-      <RightUsersSidebar onUserClick={handleUserClick} />
+      <RightUsersSidebar 
+        onUserClick={handleUserClick} 
+        isOpen={isSidebarOpen}
+        setIsOpen={setIsSidebarOpen}
+      />
     </div>,
     document.body
   );
