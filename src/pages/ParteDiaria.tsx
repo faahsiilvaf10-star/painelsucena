@@ -30,6 +30,7 @@ import {
   TableRow,
 } from "@/components/ui/table";
 import { Truck, Plus, Loader2, Trash2, User, Clock, AlertCircle, Droplets, MapPin, Pencil } from "lucide-react";
+import { supabase } from "@/integrations/supabase/client";
 import { AdminStatusEditor } from "@/components/partediaria/AdminStatusEditor";
 import { AdminCountersEditor } from "@/components/partediaria/AdminCountersEditor";
 import { ExportEquipmentPdfButton } from "@/components/equipamentos/ExportEquipmentPdfButton";
