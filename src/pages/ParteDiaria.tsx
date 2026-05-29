@@ -69,8 +69,8 @@ export default function ParteDiaria() {
   const { data: profile } = useProfile();
   
 
-  // Check if user can edit (admin or aux_administrativo)
-  const canEdit = isAdmin || profile?.cargo === "aux_administrativo";
+  // Check if user can edit (only admin)
+  const canEdit = isAdmin;
 
   const [isDialogOpen, setIsDialogOpen] = useState(false);
   const [isEditDialogOpen, setIsEditDialogOpen] = useState(false);
