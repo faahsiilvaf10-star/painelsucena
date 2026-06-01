@@ -1365,13 +1365,23 @@ export default function Atividades() {
 
               {/* Atividades Manuais */}
               <div className="space-y-2 p-3 rounded-lg bg-amber-500/10 border border-amber-500/20">
-                <div className="flex items-center justify-between">
-                  <Label className="text-amber-600 dark:text-amber-400">✏️ OUTRAS ATIVIDADES (Preenchimento Manual)</Label>
-                  <AIImproveButton
-                    text={atividadesManuais}
-                    onImproved={setAtividadesManuais}
-                    disabled={!canEdit}
-                  />
+                <div className="flex flex-col md:flex-row md:items-center justify-between gap-3 mb-2">
+                  <Label className="text-amber-600 dark:text-amber-400 font-semibold">✏️ OUTRAS ATIVIDADES (Preenchimento Manual)</Label>
+                  <div className="flex flex-wrap items-center gap-2">
+                    <Select value={atividadesManuaisFaixa} onValueChange={setAtividadesManuaisFaixa}>
+                      <SelectTrigger className="w-[120px] h-8 text-xs"><SelectValue placeholder="Faixa" /></SelectTrigger>
+                      <SelectContent>{FAIXA_OPTIONS.map((opt) => (<SelectItem key={opt.value} value={opt.value} className="text-xs">{opt.label}</SelectItem>))}</SelectContent>
+                    </Select>
+                    <Select value={atividadesManuaisBerma} onValueChange={setAtividadesManuaisBerma}>
+                      <SelectTrigger className="w-[120px] h-8 text-xs"><SelectValue placeholder="Berma" /></SelectTrigger>
+                      <SelectContent>{BERMA_OPTIONS.map((opt) => (<SelectItem key={opt.value} value={opt.value} className="text-xs">{opt.label}</SelectItem>))}</SelectContent>
+                    </Select>
+                    <AIImproveButton
+                      text={atividadesManuais}
+                      onImproved={setAtividadesManuais}
+                      disabled={!canEdit}
+                    />
+                  </div>
                 </div>
                 <DebouncedTextarea
                   value={atividadesManuais}
@@ -1384,14 +1394,24 @@ export default function Atividades() {
                 </p>
               </div>
 
-              <div className="space-y-2">
-                <div className="flex items-center justify-between">
-                  <Label>MANUTENÇÃO DE CANTEIRO</Label>
-                  <AIImproveButton
-                    text={manutencaoCanteiro}
-                    onImproved={setManutencaoCanteiro}
-                    disabled={!canEdit}
-                  />
+              <div className="space-y-2 p-3 rounded-lg bg-muted/30">
+                <div className="flex flex-col md:flex-row md:items-center justify-between gap-3 mb-2">
+                  <Label className="font-semibold">MANUTENÇÃO DE CANTEIRO</Label>
+                  <div className="flex flex-wrap items-center gap-2">
+                    <Select value={manutencaoCanteiroFaixa} onValueChange={setManutencaoCanteiroFaixa}>
+                      <SelectTrigger className="w-[120px] h-8 text-xs"><SelectValue placeholder="Faixa" /></SelectTrigger>
+                      <SelectContent>{FAIXA_OPTIONS.map((opt) => (<SelectItem key={opt.value} value={opt.value} className="text-xs">{opt.label}</SelectItem>))}</SelectContent>
+                    </Select>
+                    <Select value={manutencaoCanteiroBerma} onValueChange={setManutencaoCanteiroBerma}>
+                      <SelectTrigger className="w-[120px] h-8 text-xs"><SelectValue placeholder="Berma" /></SelectTrigger>
+                      <SelectContent>{BERMA_OPTIONS.map((opt) => (<SelectItem key={opt.value} value={opt.value} className="text-xs">{opt.label}</SelectItem>))}</SelectContent>
+                    </Select>
+                    <AIImproveButton
+                      text={manutencaoCanteiro}
+                      onImproved={setManutencaoCanteiro}
+                      disabled={!canEdit}
+                    />
+                  </div>
                 </div>
                 <Textarea
                   value={manutencaoCanteiro}
