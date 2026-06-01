@@ -345,7 +345,7 @@ export default function Desvios() {
                     className="min-h-[200px]"
                     value={formState.description}
                     onChange={(e) => setFormState({ ...formState, description: e.target.value })}
-                    disabled={!isCreator && isResponsible && !isAdmin}
+                    disabled={(!isCreator && isResponsible && !isAdmin) || (isCancelled && !isAdmin)}
                   />
                 </div>
                 <div className="space-y-2">
