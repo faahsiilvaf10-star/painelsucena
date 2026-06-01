@@ -112,6 +112,13 @@ export default function RDO() {
   // Date selection state
   const [selectedDate, setSelectedDate] = useState<Date>(today);
   const [activeTab, setActiveTab] = useState(searchParams.get("tab") || "report");
+
+  useEffect(() => {
+    const tab = searchParams.get("tab");
+    if (tab) {
+      setActiveTab(tab);
+    }
+  }, [searchParams]);
   const selectedDateStr = format(selectedDate, "yyyy-MM-dd");
   
   const { data: attendanceRecords } = useAttendanceRecords(selectedDateStr);
