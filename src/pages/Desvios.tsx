@@ -1,6 +1,4 @@
-import { useState, useRef, useEffect } from "react";
-import { DeleteConfirmation } from "@/components/ui/DeleteConfirmation";
-import { useSearchParams } from "react-router-dom";
+import { useState, useMemo, useRef } from "react";
 import Layout from "@/components/layout/Layout";
 import { EditablePageTitle } from "@/components/cms/EditablePageTitle";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
@@ -8,224 +6,548 @@ import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Textarea } from "@/components/ui/textarea";
 import { Badge } from "@/components/ui/badge";
-import { Avatar, AvatarImage, AvatarFallback } from "@/components/ui/avatar";
-import { Dialog, DialogContent } from "@/components/ui/dialog";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
+import { parseISO } from "date-fns";
 import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover";
 import { Calendar } from "@/components/ui/calendar";
+import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
 import { cn } from "@/lib/utils";
-import { format } from "date-fns";
+import { format, isPast, isToday } from "date-fns";
 import { ptBR } from "date-fns/locale";
 import {
   AlertTriangle,
   Plus,
-  Camera,
   CalendarIcon,
   CheckCircle2,
   Clock,
-  Trash2,
-  ImageIcon,
-  Upload,
+  Search,
+  Tag,
   User,
+  Image as ImageIcon,
+  FileText,
+  Video,
   X,
+  Save,
+  Send,
+  Check,
+  Ban,
+  Archive,
+  Printer,
+  Mail,
+  Share2,
+  Download,
+  History,
+  AlertCircle,
+  FileIcon,
 } from "lucide-react";
 import {
   useDesvios,
   useCreateDesvio,
+  useUpdateDesvio,
   useUploadDesvioPhoto,
-  useUpdateDesvioItems,
-  useUpdateDesvioStatus,
-  useDeleteDesvio,
-  type DesvioItem,
+  type Desvio,
+  type DesvioAttachment,
 } from "@/hooks/useDesvios";
-import { useAuth } from "@/hooks/useAuth";
-import { useAllUsers } from "@/hooks/useAllUsers";
-import { DesvioCommentSection } from "@/components/desvios/DesvioCommentSection";
+import { useEmployees } from "@/hooks/useEmployees";
 import { toast } from "sonner";
+import {
+  Command,
+  CommandEmpty,
+  CommandGroup,
+  CommandInput,
+  CommandItem,
+  CommandList,
+} from "@/components/ui/command";
 
-interface FormItem {
-  id: string;
-  description: string;
-  photo_url: string | null;
-}
+const STATUS_OPTIONS = [
+  { id: "Aberto", label: "Aberto", color: "bg-blue-500" },
+  { id: "Em Tratamento", label: "Em Tratamento", color: "bg-amber-500" },
+  { id: "Aguardando Validação", label: "Aguardando Validação", color: "bg-purple-500" },
+  { id: "Concluído", label: "Concluído", color: "bg-green-500" },
+  { id: "Cancelado", label: "Cancelado", color: "bg-gray-500" },
+];
 
-interface CorrectionDialogState {
-  desvioId: string;
-  itemId: string;
-  photoUrl: string | null;
-  observation: string;
-}
+const PRIORITY_OPTIONS = [
+  { id: "Baixo", label: "Baixo", color: "bg-green-500" },
+  { id: "Médio", label: "Médio", color: "bg-amber-500" },
+  { id: "Alto", label: "Alto", color: "bg-orange-500" },
+  { id: "Crítico", label: "Crítico", color: "bg-red-500" },
+];
+
+const TAG_OPTIONS = ["Engenharia", "Segurança", "Meio Ambiente", "Qualidade", "Operação", "RH"];
 
 export default function Desvios() {
-  const { user } = useAuth();
-  const [searchParams, setSearchParams] = useSearchParams();
-  const highlightId = searchParams.get("highlight");
-  const { data: desvios, isLoading } = useDesvios();
-  const { allUsers } = useAllUsers();
+  const { data: desvios, isLoading: loadingDesvios } = useDesvios();
+  const { data: employees } = useEmployees();
   const createDesvio = useCreateDesvio();
-  const uploadPhoto = useUploadDesvioPhoto();
-  const updateItems = useUpdateDesvioItems();
-  const updateStatus = useUpdateDesvioStatus();
-  const deleteDesvio = useDeleteDesvio();
+  const updateDesvio = useUpdateDesvio();
+  const uploadFile = useUploadDesvioPhoto();
 
-
+  const [selectedDesvio, setSelectedDesvio] = useState<Desvio | null>(null);
+  const [isEditing, setIsEditing] = useState(false);
   const [showForm, setShowForm] = useState(false);
-  const [selectedUserIds, setSelectedUserIds] = useState<string[]>([]);
-  const [dueDate, setDueDate] = useState<Date | undefined>();
-  const [formItems, setFormItems] = useState<FormItem[]>([
-    { id: crypto.randomUUID(), description: "", photo_url: null },
-  ]);
-  const [uploading, setUploading] = useState(false);
-  const [viewingImage, setViewingImage] = useState<string | null>(null);
-  const [filter, setFilter] = useState<"todos" | "aberto" | "corrigido">("todos");
+  const [searchQuery, setSearchQuery] = useState("");
   const fileInputRef = useRef<HTMLInputElement>(null);
-  const [activeItemId, setActiveItemId] = useState<string | null>(null);
-  const [correctionTarget, setCorrectionTarget] = useState<{ desvioId: string; itemId: string } | null>(null);
-  const correctionInputRef = useRef<HTMLInputElement>(null);
-  const [correctionDialog, setCorrectionDialog] = useState<CorrectionDialogState | null>(null);
-  const correctionDialogInputRef = useRef<HTMLInputElement>(null);
 
-  // Auto-scroll to highlighted desvio from announcement link
-  useEffect(() => {
-    if (highlightId && desvios && desvios.length > 0) {
-      // Set filter to "todos" so the highlighted desvio is visible
-      setFilter("todos");
-      setTimeout(() => {
-        const el = document.getElementById(`desvio-${highlightId}`);
-        if (el) {
-          el.scrollIntoView({ behavior: "smooth", block: "center" });
-          el.classList.add("ring-2", "ring-green-500", "ring-offset-2", "ring-offset-background");
-          setTimeout(() => {
-            el.classList.remove("ring-2", "ring-green-500", "ring-offset-2", "ring-offset-background");
-            setSearchParams({}, { replace: true });
-          }, 4000);
-        }
-      }, 300);
-    }
-  }, [highlightId, desvios]);
+  // Form State
+  const [formState, setFormState] = useState<Partial<Desvio>>({
+    description: "",
+    instruction: "",
+    tags: [],
+    priority: "Baixo",
+    responsible_name: "",
+    responsible_company: "",
+    responsible_sector: "",
+    due_date: null,
+    comments: "",
+    status: "Aberto",
+    attachments: [],
+  });
 
-  const addFormItem = () => {
-    setFormItems((prev) => [...prev, { id: crypto.randomUUID(), description: "", photo_url: null }]);
-  };
+  const dashboardStats = useMemo(() => {
+    if (!desvios) return { total: 0, open: 0, inTreatment: 0, done: 0, delayed: 0 };
+    return {
+      total: desvios.length,
+      open: desvios.filter((d) => d.status === "Aberto").length,
+      inTreatment: desvios.filter((d) => d.status === "Em Tratamento").length,
+      done: desvios.filter((d) => d.status === "Concluído").length,
+      delayed: desvios.filter((d) => d.status !== "Concluído" && d.due_date && isPast(parseISO(d.due_date)) && !isToday(parseISO(d.due_date))).length,
+    };
+  }, [desvios]);
 
-  const removeFormItem = (id: string) => {
-    if (formItems.length <= 1) return;
-    setFormItems((prev) => prev.filter((item) => item.id !== id));
-  };
-
-  const updateFormItem = (id: string, field: keyof FormItem, value: string | null) => {
-    setFormItems((prev) => prev.map((item) => (item.id === id ? { ...item, [field]: value } : item)));
-  };
-
-  const handleItemPhotoUpload = async (e: React.ChangeEvent<HTMLInputElement>) => {
-    const file = e.target.files?.[0];
-    if (!file || !activeItemId) return;
-    setUploading(true);
-    try {
-      const url = await uploadPhoto.mutateAsync(file);
-      updateFormItem(activeItemId, "photo_url", url);
-    } catch {
-      toast.error("Erro ao fazer upload da foto");
-    }
-    setUploading(false);
-    setActiveItemId(null);
-    if (fileInputRef.current) fileInputRef.current.value = "";
-  };
-
-  const handleCorrectionUpload = async (e: React.ChangeEvent<HTMLInputElement>) => {
-    const file = e.target.files?.[0];
-    if (!file || !correctionTarget) return;
-    setUploading(true);
-    try {
-      const url = await uploadPhoto.mutateAsync(file);
-      const desvio = desvios?.find((d) => d.id === correctionTarget.desvioId);
-      if (desvio) {
-        const updatedItems = desvio.items.map((item) =>
-          item.id === correctionTarget.itemId ? { ...item, correction_photo_url: url } : item
-        );
-        await updateItems.mutateAsync({ desvioId: correctionTarget.desvioId, items: updatedItems });
-        toast.success("Foto de correção adicionada!");
-      }
-    } catch {
-      toast.error("Erro ao adicionar foto de correção");
-    }
-    setUploading(false);
-    setCorrectionTarget(null);
-    if (correctionInputRef.current) correctionInputRef.current.value = "";
-  };
-
-  const handleCorrectionDialogPhotoUpload = async (e: React.ChangeEvent<HTMLInputElement>) => {
-    const file = e.target.files?.[0];
-    if (!file || !correctionDialog) return;
-    setUploading(true);
-    try {
-      const url = await uploadPhoto.mutateAsync(file);
-      setCorrectionDialog((prev) => prev ? { ...prev, photoUrl: url } : null);
-    } catch {
-      toast.error("Erro ao fazer upload da foto");
-    }
-    setUploading(false);
-    if (correctionDialogInputRef.current) correctionDialogInputRef.current.value = "";
-  };
-
-  const handleSaveCorrection = async () => {
-    if (!correctionDialog) return;
-    if (!correctionDialog.photoUrl) {
-      toast.error("Adicione uma foto de correção");
-      return;
-    }
-    const desvio = desvios?.find((d) => d.id === correctionDialog.desvioId);
-    if (!desvio) return;
-    const updatedItems = desvio.items.map((item) =>
-      item.id === correctionDialog.itemId
-        ? { ...item, correction_photo_url: correctionDialog.photoUrl, correction_observation: correctionDialog.observation.trim() || null }
-        : item
+  const filteredDesvios = useMemo(() => {
+    if (!desvios) return [];
+    return desvios.filter((d) => 
+      d.description.toLowerCase().includes(searchQuery.toLowerCase()) ||
+      d.responsible_name?.toLowerCase().includes(searchQuery.toLowerCase())
     );
-    await updateItems.mutateAsync({ desvioId: correctionDialog.desvioId, items: updatedItems });
-    toast.success("Correção registrada!");
-    setCorrectionDialog(null);
+  }, [desvios, searchQuery]);
+
+  const handleFileUpload = async (e: React.ChangeEvent<HTMLInputElement>) => {
+    const files = e.target.files;
+    if (!files) return;
+
+    for (const file of Array.from(files)) {
+      try {
+        const url = await uploadFile.mutateAsync(file);
+        const attachment: DesvioAttachment = {
+          name: file.name,
+          url,
+          type: file.type,
+        };
+        setFormState((prev) => ({
+          ...prev,
+          attachments: [...(prev.attachments || []), attachment],
+        }));
+      } catch (error) {
+        toast.error(`Erro ao fazer upload de ${file.name}`);
+      }
+    }
   };
 
-  const handleSubmit = async () => {
-    const validItems = formItems.filter((item) => item.description.trim());
-    if (validItems.length === 0) {
-      toast.error("Adicione pelo menos um item com descrição");
-      return;
-    }
-    const selectedUsers = allUsers.filter((u) => selectedUserIds.includes(u.user_id));
-    const items: DesvioItem[] = validItems.map((item) => ({
-      id: item.id,
-      description: item.description.trim(),
-      photo_url: item.photo_url,
-      correction_photo_url: null,
-      correction_observation: null,
-    }));
-    await createDesvio.mutateAsync({
-      description: items.map((i) => i.description).join(" | "),
-      photo_urls: items.filter((i) => i.photo_url).map((i) => i.photo_url!),
-      items,
-      mentioned_user_ids: selectedUserIds,
-      mentioned_user_names: selectedUsers.map((u) => u.full_name),
-      due_date: dueDate ? format(dueDate, "yyyy-MM-dd") : null,
+  const resetForm = () => {
+    setFormState({
+      description: "",
+      instruction: "",
+      tags: [],
+      priority: "Baixo",
+      responsible_name: "",
+      responsible_company: "",
+      responsible_sector: "",
+      due_date: null,
+      comments: "",
+      status: "Aberto",
+      attachments: [],
     });
-    setFormItems([{ id: crypto.randomUUID(), description: "", photo_url: null }]);
-    setSelectedUserIds([]);
-    setDueDate(undefined);
+    setSelectedDesvio(null);
+    setIsEditing(false);
     setShowForm(false);
   };
 
-  const filtered = desvios?.filter((d) => {
-    if (filter === "todos") return true;
-    return d.status === filter;
-  });
+  const handleSave = async (send = false) => {
+    if (!formState.description) {
+      toast.error("A descrição do desvio é obrigatória.");
+      return;
+    }
 
-  const openCount = desvios?.filter((d) => d.status === "aberto").length || 0;
-  const fixedCount = desvios?.filter((d) => d.status === "corrigido").length || 0;
+    try {
+      if (selectedDesvio) {
+        await updateDesvio.mutateAsync({
+          id: selectedDesvio.id,
+          updates: formState,
+          action: "Edição",
+          comment: send ? "Desvio salvo e enviado" : "Desvio atualizado",
+        });
+      } else {
+        await createDesvio.mutateAsync(formState);
+      }
+      resetForm();
+    } catch (error) {
+      console.error(error);
+    }
+  };
+
+  const handleStatusChange = async (status: string) => {
+    if (!selectedDesvio) return;
+    try {
+      await updateDesvio.mutateAsync({
+        id: selectedDesvio.id,
+        updates: { status },
+        action: "Mudança de Status",
+        comment: `Status alterado para ${status}`,
+      });
+      setFormState(prev => ({ ...prev, status }));
+    } catch (error) {
+      console.error(error);
+    }
+  };
+
+  const generatePDF = () => {
+    window.print();
+  };
+
+  const sendWhatsApp = () => {
+    if (!selectedDesvio) return;
+    const text = `*Desvio de Segurança*\n\n*Descrição:* ${selectedDesvio.description}\n*Prioridade:* ${selectedDesvio.priority}\n*Responsável:* ${selectedDesvio.responsible_name}\n*Prazo:* ${selectedDesvio.due_date ? format(parseISO(selectedDesvio.due_date), "dd/MM/yyyy") : "Não definido"}\n*Status:* ${selectedDesvio.status}`;
+    window.open(`https://wa.me/?text=${encodeURIComponent(text)}`, "_blank");
+  };
+
+  const sendEmail = () => {
+    if (!selectedDesvio) return;
+    const subject = `Desvio de Segurança - ${selectedDesvio.id.slice(0, 8)}`;
+    const body = `Descrição: ${selectedDesvio.description}\nPrioridade: ${selectedDesvio.priority}\nResponsável: ${selectedDesvio.responsible_name}\nPrazo: ${selectedDesvio.due_date ? format(parseISO(selectedDesvio.due_date), "dd/MM/yyyy") : "Não definido"}\nStatus: ${selectedDesvio.status}`;
+    window.location.href = `mailto:?subject=${encodeURIComponent(subject)}&body=${encodeURIComponent(body)}`;
+  };
+
+  if (showForm || isEditing) {
+    return (
+      <Layout>
+        <div className="p-4 md:p-6 space-y-6 max-w-7xl mx-auto print:p-0">
+          <div className="flex items-center justify-between print:hidden">
+            <div className="flex items-center gap-3">
+              <Button variant="ghost" size="icon" onClick={resetForm}>
+                <X className="w-5 h-5" />
+              </Button>
+              <h1 className="text-2xl font-bold">{isEditing ? "Editar Desvio" : "Novo Desvio"}</h1>
+            </div>
+            <div className="flex items-center gap-2">
+              {STATUS_OPTIONS.map((opt) => (
+                <Badge
+                  key={opt.id}
+                  variant="outline"
+                  className={cn(
+                    "cursor-pointer hover:opacity-80 transition-opacity",
+                    formState.status === opt.id ? `${opt.color} text-white border-transparent` : "text-muted-foreground"
+                  )}
+                  onClick={() => handleStatusChange(opt.id)}
+                >
+                  {opt.label}
+                </Badge>
+              ))}
+            </div>
+          </div>
+
+          <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
+            {/* Coluna 1: Problema / Assunto */}
+            <Card>
+              <CardHeader>
+                <CardTitle className="flex items-center gap-2">
+                  <AlertCircle className="w-5 h-5 text-red-500" />
+                  Problema / Assunto
+                </CardTitle>
+              </CardHeader>
+              <CardContent className="space-y-4">
+                <div className="space-y-2">
+                  <label className="text-sm font-medium">Descrição do Desvio</label>
+                  <Textarea
+                    placeholder="Descreva o desvio detalhadamente..."
+                    className="min-h-[200px]"
+                    value={formState.description}
+                    onChange={(e) => setFormState({ ...formState, description: e.target.value })}
+                  />
+                </div>
+                <div className="space-y-2">
+                  <label className="text-sm font-medium">Anexos</label>
+                  <div className="grid grid-cols-2 gap-2 mb-2">
+                    {formState.attachments?.map((att, i) => (
+                      <div key={i} className="relative group border rounded-lg p-2 flex items-center gap-2 bg-muted/30">
+                        {att.type.startsWith("image/") ? (
+                          <ImageIcon className="w-4 h-4 text-blue-500" />
+                        ) : att.type.includes("pdf") ? (
+                          <FileText className="w-4 h-4 text-red-500" />
+                        ) : (
+                          <Video className="w-4 h-4 text-purple-500" />
+                        )}
+                        <span className="text-xs truncate max-w-[80px]">{att.name}</span>
+                        <button
+                          className="absolute -top-1 -right-1 bg-destructive text-white rounded-full p-0.5 opacity-0 group-hover:opacity-100 transition-opacity"
+                          onClick={() => setFormState({ ...formState, attachments: formState.attachments?.filter((_, idx) => idx !== i) })}
+                        >
+                          <X className="w-3 h-3" />
+                        </button>
+                      </div>
+                    ))}
+                  </div>
+                  <input
+                    type="file"
+                    multiple
+                    className="hidden"
+                    ref={fileInputRef}
+                    onChange={handleFileUpload}
+                  />
+                  <Button
+                    variant="outline"
+                    className="w-full gap-2 border-dashed"
+                    onClick={() => fileInputRef.current?.click()}
+                  >
+                    <Plus className="w-4 h-4" /> Adicionar Anexo
+                  </Button>
+                </div>
+              </CardContent>
+            </Card>
+
+            {/* Coluna 2: Ação Corretiva */}
+            <Card>
+              <CardHeader>
+                <CardTitle className="flex items-center gap-2">
+                  <CheckCircle2 className="w-5 h-5 text-green-500" />
+                  Ação Corretiva
+                </CardTitle>
+              </CardHeader>
+              <CardContent className="space-y-4">
+                <div className="space-y-2">
+                  <label className="text-sm font-medium">Instrução / Tratativa</label>
+                  <Textarea
+                    placeholder="Instruções para correção..."
+                    className="min-h-[200px]"
+                    value={formState.instruction || ""}
+                    onChange={(e) => setFormState({ ...formState, instruction: e.target.value })}
+                  />
+                </div>
+                <div className="space-y-2">
+                  <label className="text-sm font-medium">Etiquetas de Ação</label>
+                  <div className="flex flex-wrap gap-1 mb-2">
+                    {formState.tags?.map((tag) => (
+                      <Badge key={tag} variant="secondary" className="gap-1">
+                        {tag}
+                        <X
+                          className="w-3 h-3 cursor-pointer hover:text-destructive"
+                          onClick={() => setFormState({ ...formState, tags: formState.tags?.filter((t) => t !== tag) })}
+                        />
+                      </Badge>
+                    ))}
+                  </div>
+                  <Select
+                    onValueChange={(val) => {
+                      if (!formState.tags?.includes(val)) {
+                        setFormState({ ...formState, tags: [...(formState.tags || []), val] });
+                      }
+                    }}
+                  >
+                    <SelectTrigger>
+                      <SelectValue placeholder="Selecionar etiquetas..." />
+                    </SelectTrigger>
+                    <SelectContent>
+                      {TAG_OPTIONS.map((tag) => (
+                        <SelectItem key={tag} value={tag}>
+                          {tag}
+                        </SelectItem>
+                      ))}
+                    </SelectContent>
+                  </Select>
+                </div>
+              </CardContent>
+            </Card>
+
+            {/* Coluna 3: Responsável / Prazo */}
+            <Card>
+              <CardHeader>
+                <CardTitle className="flex items-center gap-2">
+                  <User className="w-5 h-5 text-blue-500" />
+                  Responsável / Prazo
+                </CardTitle>
+              </CardHeader>
+              <CardContent className="space-y-4">
+                <div className="space-y-2">
+                  <label className="text-sm font-medium">Pessoa Responsável</label>
+                  <Popover>
+                    <PopoverTrigger asChild>
+                      <Button variant="outline" className="w-full justify-between font-normal">
+                        {formState.responsible_name || "Selecionar colaborador..."}
+                        <Search className="w-4 h-4 opacity-50" />
+                      </Button>
+                    </PopoverTrigger>
+                    <PopoverContent className="w-[300px] p-0" align="start">
+                      <Command>
+                        <CommandInput placeholder="Buscar colaborador..." />
+                        <CommandList>
+                          <CommandEmpty>Nenhum colaborador encontrado.</CommandEmpty>
+                          <CommandGroup>
+                            {employees?.map((emp) => (
+                              <CommandItem
+                                key={emp.id}
+                                value={emp.name}
+                                onSelect={() => {
+                                  setFormState({
+                                    ...formState,
+                                    responsible_name: emp.name,
+                                    responsible_company: emp.company || "N/A",
+                                    responsible_sector: emp.department || "N/A",
+                                  });
+                                }}
+                              >
+                                <div className="flex flex-col">
+                                  <span>{emp.name}</span>
+                                  <span className="text-[10px] text-muted-foreground">
+                                    {emp.company || "N/A"} • {emp.department || "N/A"}
+                                  </span>
+                                </div>
+                              </CommandItem>
+                            ))}
+                          </CommandGroup>
+                        </CommandList>
+                      </Command>
+                    </PopoverContent>
+                  </Popover>
+                  {formState.responsible_name && (
+                    <div className="p-2 border rounded bg-muted/20 text-[10px] space-y-0.5">
+                      <div><strong>Empresa:</strong> {formState.responsible_company}</div>
+                      <div><strong>Setor:</strong> {formState.responsible_sector}</div>
+                    </div>
+                  )}
+                </div>
+
+                <div className="space-y-2">
+                  <label className="text-sm font-medium">Prioridade</label>
+                  <div className="grid grid-cols-2 gap-2">
+                    {PRIORITY_OPTIONS.map((opt) => (
+                      <Button
+                        key={opt.id}
+                        type="button"
+                        variant={formState.priority === opt.id ? "default" : "outline"}
+                        className={cn(
+                          "w-full text-xs h-8",
+                          formState.priority === opt.id && opt.color
+                        )}
+                        onClick={() => setFormState({ ...formState, priority: opt.id })}
+                      >
+                        {opt.label}
+                      </Button>
+                    ))}
+                  </div>
+                </div>
+
+                <div className="space-y-2">
+                  <label className="text-sm font-medium">Data Limite</label>
+                  <Popover>
+                    <PopoverTrigger asChild>
+                      <Button variant="outline" className="w-full justify-start text-left font-normal">
+                        <CalendarIcon className="mr-2 h-4 w-4" />
+                        {formState.due_date ? format(new Date(formState.due_date), "dd/MM/yyyy") : "Selecionar data"}
+                      </Button>
+                    </PopoverTrigger>
+                    <PopoverContent className="w-auto p-0" align="start">
+                      <Calendar
+                        mode="single"
+                        selected={formState.due_date ? new Date(formState.due_date) : undefined}
+                        onSelect={(date) => setFormState({ ...formState, due_date: date ? format(date, "yyyy-MM-dd") : null })}
+                        locale={ptBR}
+                      />
+                    </PopoverContent>
+                  </Popover>
+                </div>
+
+                <div className="space-y-2">
+                  <label className="text-sm font-medium">Comentários</label>
+                  <Textarea
+                    placeholder="Observações adicionais..."
+                    value={formState.comments || ""}
+                    onChange={(e) => setFormState({ ...formState, comments: e.target.value })}
+                  />
+                </div>
+              </CardContent>
+            </Card>
+          </div>
+
+          {/* Histórico */}
+          <Card className="print:hidden">
+            <CardHeader>
+              <CardTitle className="flex items-center gap-2">
+                <History className="w-5 h-5" />
+                Histórico
+              </CardTitle>
+            </CardHeader>
+            <CardContent>
+              <Table>
+                <TableHeader>
+                  <TableRow>
+                    <TableHead>Data</TableHead>
+                    <TableHead>Usuário</TableHead>
+                    <TableHead>Ação realizada</TableHead>
+                    <TableHead>Comentário</TableHead>
+                  </TableRow>
+                </TableHeader>
+                <TableBody>
+                  {formState.history?.length ? (
+                    formState.history.slice().reverse().map((ev, i) => (
+                      <TableRow key={i}>
+                        <TableCell className="text-xs">{format(new Date(ev.date), "dd/MM/yyyy HH:mm")}</TableCell>
+                        <TableCell className="text-xs font-medium">{ev.user}</TableCell>
+                        <TableCell className="text-xs">
+                          <Badge variant="outline">{ev.action}</Badge>
+                        </TableCell>
+                        <TableCell className="text-xs text-muted-foreground">{ev.comment}</TableCell>
+                      </TableRow>
+                    ))
+                  ) : (
+                    <TableRow>
+                      <TableCell colSpan={4} className="text-center py-4 text-muted-foreground">Nenhum registro encontrado</TableCell>
+                    </TableRow>
+                  )}
+                </TableBody>
+              </Table>
+            </CardContent>
+          </Card>
+
+          {/* Rodapé: Botões de Ação */}
+          <div className="flex flex-wrap items-center justify-between gap-4 pt-4 border-t print:hidden">
+            <div className="flex flex-wrap gap-2">
+              <Button variant="outline" size="sm" className="gap-2" onClick={generatePDF}>
+                <Printer className="w-4 h-4" /> Impressão
+              </Button>
+              <Button variant="outline" size="sm" className="gap-2" onClick={sendWhatsApp}>
+                <Share2 className="w-4 h-4" /> WhatsApp
+              </Button>
+              <Button variant="outline" size="sm" className="gap-2" onClick={sendEmail}>
+                <Mail className="w-4 h-4" /> E-mail
+              </Button>
+            </div>
+            <div className="flex flex-wrap gap-2">
+              <Button variant="secondary" size="sm" className="gap-2" onClick={() => handleSave(false)}>
+                <Save className="w-4 h-4" /> Salvar
+              </Button>
+              <Button size="sm" className="gap-2" onClick={() => handleSave(true)}>
+                <Send className="w-4 h-4" /> Salvar e Enviar
+              </Button>
+              <Button size="sm" className="gap-2 bg-green-600 hover:bg-green-700 text-white" onClick={() => handleStatusChange("Aguardando Validação")}>
+                <Check className="w-4 h-4" /> Aprovar
+              </Button>
+              <Button variant="destructive" size="sm" className="gap-2" onClick={() => handleStatusChange("Cancelado")}>
+                <Ban className="w-4 h-4" /> Reprovar
+              </Button>
+              <Button variant="outline" size="sm" className="gap-2" onClick={() => handleStatusChange("Concluído")}>
+                <Archive className="w-4 h-4" /> Encerrar Desvio
+              </Button>
+            </div>
+          </div>
+        </div>
+      </Layout>
+    );
+  }
 
   return (
     <Layout>
-      <div className="p-4 md:p-6 max-w-3xl mx-auto space-y-4">
-        {/* Header */}
+      <div className="p-4 md:p-6 space-y-6 max-w-7xl mx-auto">
         <div className="flex items-center justify-between">
           <div className="flex items-center gap-3">
             <div className="p-2 rounded-xl bg-destructive/10">
@@ -233,515 +555,110 @@ export default function Desvios() {
             </div>
             <div>
               <EditablePageTitle pageKey="desvios" defaultValue="Desvios" className="text-xl md:text-2xl font-bold text-foreground" />
-              <p className="text-sm text-muted-foreground">Desvios de segurança</p>
+              <p className="text-sm text-muted-foreground">Gestão de desvios e ocorrências</p>
             </div>
           </div>
-          <Button onClick={() => setShowForm(!showForm)} size="sm" className="gap-1">
-            <Plus className="w-4 h-4" /> Novo
+          <Button onClick={() => setShowForm(true)} className="gap-2">
+            <Plus className="w-4 h-4" /> Novo Desvio
           </Button>
         </div>
 
-        {/* Stats */}
-        <div className="grid grid-cols-2 gap-3">
-          <Card className="border-amber-500/30 bg-amber-500/5">
-            <CardContent className="p-3 flex items-center gap-2">
-              <Clock className="w-5 h-5 text-amber-500" />
-              <div>
-                <div className="text-lg font-bold text-foreground">{openCount}</div>
-                <div className="text-xs text-muted-foreground">Em aberto</div>
-              </div>
+        {/* Dashboard Resumido */}
+        <div className="grid grid-cols-2 md:grid-cols-5 gap-4">
+          <Card className="bg-primary/5 border-primary/20">
+            <CardContent className="p-4">
+              <div className="text-2xl font-bold">{dashboardStats.total}</div>
+              <div className="text-xs text-muted-foreground">Total de Desvios</div>
             </CardContent>
           </Card>
-          <Card className="border-green-500/30 bg-green-500/5">
-            <CardContent className="p-3 flex items-center gap-2">
-              <CheckCircle2 className="w-5 h-5 text-green-500" />
-              <div>
-                <div className="text-lg font-bold text-foreground">{fixedCount}</div>
-                <div className="text-xs text-muted-foreground">Corrigidos</div>
-              </div>
+          <Card className="bg-blue-500/5 border-blue-500/20">
+            <CardContent className="p-4">
+              <div className="text-2xl font-bold text-blue-600">{dashboardStats.open}</div>
+              <div className="text-xs text-muted-foreground">Abertos</div>
+            </CardContent>
+          </Card>
+          <Card className="bg-amber-500/5 border-amber-500/20">
+            <CardContent className="p-4">
+              <div className="text-2xl font-bold text-amber-600">{dashboardStats.inTreatment}</div>
+              <div className="text-xs text-muted-foreground">Em Tratamento</div>
+            </CardContent>
+          </Card>
+          <Card className="bg-green-500/5 border-green-500/20">
+            <CardContent className="p-4">
+              <div className="text-2xl font-bold text-green-600">{dashboardStats.done}</div>
+              <div className="text-xs text-muted-foreground">Concluídos</div>
+            </CardContent>
+          </Card>
+          <Card className="bg-red-500/5 border-red-500/20">
+            <CardContent className="p-4">
+              <div className="text-2xl font-bold text-red-600">{dashboardStats.delayed}</div>
+              <div className="text-xs text-muted-foreground">Atrasados</div>
             </CardContent>
           </Card>
         </div>
 
-        {/* Form */}
-        {showForm && (
-          <Card className="border-2 border-primary/30">
-            <CardHeader className="pb-2">
-              <CardTitle className="text-base">Registrar Desvio</CardTitle>
-            </CardHeader>
-            <CardContent className="space-y-3">
-              {/* Mention users */}
-              <div>
-                <label className="text-sm font-medium text-foreground mb-1 block">
-                  <User className="w-3.5 h-3.5 inline mr-1" />
-                  Mencionar Responsáveis
-                </label>
-                {/* Selected users chips */}
-                {selectedUserIds.length > 0 && (
-                  <div className="flex flex-wrap gap-1 mb-2">
-                    {selectedUserIds.map((uid) => {
-                      const u = allUsers.find((x) => x.user_id === uid);
-                      if (!u) return null;
-                      return (
-                        <Badge key={uid} variant="secondary" className="gap-1 pr-1">
-                          <Avatar className="w-4 h-4">
-                            <AvatarImage src={u.avatar_url || undefined} />
-                            <AvatarFallback className="text-[8px]">{u.full_name.charAt(0)}</AvatarFallback>
-                          </Avatar>
-                          <span className="text-xs">{u.full_name}</span>
-                          <button onClick={() => setSelectedUserIds((prev) => prev.filter((id) => id !== uid))} className="ml-0.5 hover:text-destructive">
-                            <X className="w-3 h-3" />
-                          </button>
-                        </Badge>
-                      );
-                    })}
-                  </div>
-                )}
-                <Select
-                  value=""
-                  onValueChange={(val) => {
-                    if (!selectedUserIds.includes(val)) {
-                      setSelectedUserIds((prev) => [...prev, val]);
-                    }
-                  }}
-                >
-                  <SelectTrigger>
-                    <SelectValue placeholder="Adicionar pessoa..." />
-                  </SelectTrigger>
-                  <SelectContent>
-                    {allUsers
-                      .filter((u) => !selectedUserIds.includes(u.user_id))
-                      .map((u) => (
-                        <SelectItem key={u.user_id} value={u.user_id}>
-                          <div className="flex items-center gap-2">
-                            <Avatar className="w-5 h-5">
-                              <AvatarImage src={u.avatar_url || undefined} />
-                              <AvatarFallback className="text-[10px]">{u.full_name.charAt(0)}</AvatarFallback>
-                            </Avatar>
-                            {u.full_name}
-                          </div>
-                        </SelectItem>
-                      ))}
-                  </SelectContent>
-                </Select>
-              </div>
+        {/* Busca e Lista */}
+        <div className="flex items-center gap-4">
+          <div className="relative flex-1">
+            <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-muted-foreground" />
+            <Input
+              placeholder="Buscar desvios..."
+              className="pl-10"
+              value={searchQuery}
+              onChange={(e) => setSearchQuery(e.target.value)}
+            />
+          </div>
+        </div>
 
-              {/* Due date */}
-              <div>
-                <label className="text-sm font-medium text-foreground mb-1 block">
-                  <CalendarIcon className="w-3.5 h-3.5 inline mr-1" />
-                  Previsão de Entrega
-                </label>
-                <Popover>
-                  <PopoverTrigger asChild>
-                    <Button
-                      variant="outline"
-                      className={cn("w-full justify-start text-left font-normal", !dueDate && "text-muted-foreground")}
-                    >
-                      <CalendarIcon className="mr-2 h-4 w-4" />
-                      {dueDate ? format(dueDate, "dd/MM/yyyy") : "Selecionar data"}
-                    </Button>
-                  </PopoverTrigger>
-                  <PopoverContent className="w-auto p-0" align="start">
-                    <Calendar
-                      mode="single"
-                      selected={dueDate}
-                      onSelect={setDueDate}
-                      locale={ptBR}
-                      className={cn("p-3 pointer-events-auto")}
-                    />
-                  </PopoverContent>
-                </Popover>
-              </div>
-
-              {/* Items */}
-              <div>
-                <label className="text-sm font-medium text-foreground mb-2 block">
-                  <AlertTriangle className="w-3.5 h-3.5 inline mr-1" />
-                  Itens para Correção
-                </label>
-                <div className="space-y-3">
-                  {formItems.map((item, index) => (
-                    <div key={item.id} className="border rounded-lg p-3 space-y-2 bg-muted/30">
-                      <div className="flex items-center justify-between">
-                        <span className="text-xs font-medium text-muted-foreground">Item {index + 1}</span>
-                        {formItems.length > 1 && (
-                          <button onClick={() => removeFormItem(item.id)} className="text-destructive hover:text-destructive/80">
-                            <X className="w-4 h-4" />
-                          </button>
-                        )}
-                      </div>
-                      <Input
-                        placeholder="Descreva o desvio..."
-                        value={item.description}
-                        onChange={(e) => updateFormItem(item.id, "description", e.target.value)}
-                      />
-                      <div className="flex items-center gap-2">
-                        {item.photo_url ? (
-                          <div className="relative w-14 h-14 rounded-lg overflow-hidden border cursor-pointer" onClick={() => setViewingImage(item.photo_url)}>
-                            <img src={item.photo_url} alt="" className="w-full h-full object-cover" />
-                            <button
-                              onClick={(e) => { e.stopPropagation(); updateFormItem(item.id, "photo_url", null); }}
-                              className="absolute top-0 right-0 bg-destructive text-destructive-foreground rounded-bl p-0.5"
-                            >
-                              <X className="w-3 h-3" />
-                            </button>
-                          </div>
-                        ) : (
-                          <button
-                            onClick={() => {
-                              setActiveItemId(item.id);
-                              fileInputRef.current?.click();
-                            }}
-                            disabled={uploading}
-                            className="w-14 h-14 rounded-lg border-2 border-dashed border-muted-foreground/30 flex items-center justify-center hover:border-primary/50 transition-colors"
-                          >
-                            {uploading && activeItemId === item.id ? (
-                              <div className="w-4 h-4 border-2 border-primary border-t-transparent rounded-full animate-spin" />
-                            ) : (
-                              <Camera className="w-4 h-4 text-muted-foreground" />
-                            )}
-                          </button>
-                        )}
-                        <span className="text-xs text-muted-foreground">Foto do desvio</span>
-                      </div>
-                    </div>
+        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
+          {filteredDesvios.map((desvio) => (
+            <Card
+              key={desvio.id}
+              className="cursor-pointer hover:border-primary/50 transition-colors"
+              onClick={() => {
+                setSelectedDesvio(desvio);
+                setFormState(desvio);
+                setIsEditing(true);
+              }}
+            >
+              <CardHeader className="pb-2">
+                <div className="flex items-center justify-between mb-2">
+                  <Badge className={cn("text-[10px]", STATUS_OPTIONS.find(s => s.id === desvio.status)?.color)}>
+                    {desvio.status}
+                  </Badge>
+                  <Badge variant="outline" className={cn("text-[10px]", PRIORITY_OPTIONS.find(p => p.id === desvio.priority)?.color, "text-white border-transparent")}>
+                    {desvio.priority}
+                  </Badge>
+                </div>
+                <CardTitle className="text-sm line-clamp-2 leading-relaxed">
+                  {desvio.description}
+                </CardTitle>
+              </CardHeader>
+              <CardContent className="space-y-3">
+                <div className="flex items-center gap-2 text-xs text-muted-foreground">
+                  <User className="w-3 h-3" />
+                  <span className="truncate">{desvio.responsible_name || "Sem responsável"}</span>
+                </div>
+                <div className="flex items-center gap-2 text-xs text-muted-foreground">
+                  <CalendarIcon className="w-3 h-3" />
+                  <span>{desvio.due_date ? format(parseISO(desvio.due_date), "dd/MM/yyyy") : "Sem prazo"}</span>
+                </div>
+                <div className="flex flex-wrap gap-1 mt-2">
+                  {desvio.tags?.map((tag) => (
+                    <Badge key={tag} variant="secondary" className="text-[9px] px-1 py-0">
+                      {tag}
+                    </Badge>
                   ))}
                 </div>
-                <Button variant="outline" size="sm" className="mt-2 gap-1 text-xs w-full" onClick={addFormItem}>
-                  <Plus className="w-3 h-3" /> Adicionar Item
-                </Button>
-              </div>
-
-              <div className="flex gap-2 pt-2">
-                <Button onClick={handleSubmit} disabled={createDesvio.isPending} className="flex-1">
-                  {createDesvio.isPending ? "Salvando..." : "Registrar Desvio"}
-                </Button>
-                <Button variant="outline" onClick={() => { setShowForm(false); setFormItems([{ id: crypto.randomUUID(), description: "", photo_url: null }]); }}>
-                  Cancelar
-                </Button>
-              </div>
-            </CardContent>
-          </Card>
-        )}
-
-        {/* Filter */}
-        <div className="flex gap-2">
-          {(["todos", "aberto", "corrigido"] as const).map((f) => (
-            <Button key={f} variant={filter === f ? "default" : "outline"} size="sm" onClick={() => setFilter(f)} className="text-xs capitalize">
-              {f}
-            </Button>
+              </CardContent>
+            </Card>
           ))}
-        </div>
-
-        {/* Desvios List */}
-        {isLoading ? (
-          <div className="text-center text-muted-foreground py-8">Carregando...</div>
-        ) : !filtered?.length ? (
-          <div className="text-center text-muted-foreground py-8">
-            <AlertTriangle className="w-10 h-10 mx-auto mb-2 opacity-30" />
-            <p>Nenhum desvio encontrado</p>
-          </div>
-        ) : (
-          <div className="space-y-3">
-            {filtered.map((desvio) => {
-              const isOverdue = desvio.due_date && desvio.status === "aberto" && new Date(desvio.due_date) < new Date();
-              const isMentioned = desvio.mentioned_user_id === user?.id || (desvio.mentioned_user_ids || []).includes(user?.id || "");
-              const isCreator = desvio.created_by === user?.id;
-              const hasItems = desvio.items && desvio.items.length > 0;
-
-              return (
-                <Card
-                  key={desvio.id}
-                  id={`desvio-${desvio.id}`}
-                  className={cn(
-                    "border transition-all duration-500",
-                    desvio.status === "corrigido" && "border-green-500/30 bg-green-500/5",
-                    isOverdue && "border-red-500/30 bg-red-500/5"
-                  )}
-                >
-                  <CardContent className="p-4 space-y-3">
-                    {/* Header */}
-                    <div className="flex items-start justify-between gap-2">
-                      <div className="flex-1">
-                        <p className="text-xs text-muted-foreground">
-                          Por {desvio.created_by_name} • {format(new Date(desvio.created_at), "dd/MM/yyyy HH:mm")}
-                        </p>
-                      </div>
-                      <Badge
-                        variant={desvio.status === "corrigido" ? "default" : "secondary"}
-                        className={cn(
-                          "text-xs",
-                          desvio.status === "corrigido" && "bg-green-500 hover:bg-green-600",
-                          isOverdue && "bg-red-500 hover:bg-red-600"
-                        )}
-                      >
-                        {desvio.status === "corrigido" ? "Corrigido" : isOverdue ? "Atrasado" : "Aberto"}
-                      </Badge>
-                    </div>
-
-                    {/* Mentioned users */}
-                    {(() => {
-                      const names = (desvio.mentioned_user_names && desvio.mentioned_user_names.length > 0)
-                        ? desvio.mentioned_user_names
-                        : desvio.mentioned_user_name ? [desvio.mentioned_user_name] : [];
-                      if (names.length === 0) return null;
-                      return (
-                        <div className="flex items-center gap-2 text-sm flex-wrap">
-                          <User className="w-3.5 h-3.5 text-muted-foreground" />
-                          <span className="text-muted-foreground">Responsáveis:</span>
-                          {names.map((name, i) => (
-                            <Badge key={i} variant="secondary" className="text-xs">{name}</Badge>
-                          ))}
-                        </div>
-                      );
-                    })()}
-
-                    {/* Due date */}
-                    {desvio.due_date && (
-                      <div className="flex items-center gap-2 text-sm">
-                        <CalendarIcon className="w-3.5 h-3.5 text-muted-foreground" />
-                        <span className="text-muted-foreground">Previsão:</span>
-                        <span className={cn("font-medium", isOverdue ? "text-red-500" : "text-foreground")}>
-                          {format(new Date(desvio.due_date), "dd/MM/yyyy")}
-                        </span>
-                      </div>
-                    )}
-
-                    {/* Items list */}
-                    {hasItems && (
-                      <div className="space-y-2">
-                        <p className="text-xs font-medium text-muted-foreground">Itens ({desvio.items.length})</p>
-                        {desvio.items.map((item, idx) => (
-                          <div key={item.id} className="border rounded-lg p-3 bg-muted/20 space-y-2">
-                            <div className="flex items-start gap-2">
-                              <span className="text-xs font-bold text-muted-foreground mt-0.5">{idx + 1}.</span>
-                              <p className="text-sm text-foreground flex-1">{item.description}</p>
-                            </div>
-                            <div className="flex flex-wrap gap-3">
-                              {/* Desvio photo */}
-                              {item.photo_url && (
-                                <div>
-                                  <p className="text-[10px] text-muted-foreground mb-1">
-                                    <ImageIcon className="w-2.5 h-2.5 inline mr-0.5" />Desvio
-                                  </p>
-                                  <div
-                                    className="w-14 h-14 rounded-lg overflow-hidden border cursor-pointer hover:ring-2 hover:ring-primary transition-all"
-                                    onClick={() => setViewingImage(item.photo_url)}
-                                  >
-                                    <img src={item.photo_url!} alt="" className="w-full h-full object-cover" />
-                                  </div>
-                                </div>
-                              )}
-                              {/* Correction photo */}
-                              {item.correction_photo_url ? (
-                                <div className="space-y-1">
-                                  <p className="text-[10px] text-green-600 dark:text-green-400 mb-1">
-                                    <CheckCircle2 className="w-2.5 h-2.5 inline mr-0.5" />Correção
-                                  </p>
-                                  <div className="relative group">
-                                    <div
-                                      className="w-14 h-14 rounded-lg overflow-hidden border border-green-500/30 cursor-pointer hover:ring-2 hover:ring-green-500 transition-all"
-                                      onClick={() => setViewingImage(item.correction_photo_url)}
-                                    >
-                                      <img src={item.correction_photo_url!} alt="" className="w-full h-full object-cover" />
-                                    </div>
-                                    {isMentioned && desvio.status === "aberto" && (
-                                      <div className="absolute -top-1 -right-1 flex gap-0.5 opacity-0 group-hover:opacity-100 transition-opacity">
-                                        <button
-                                          onClick={(e) => {
-                                            e.stopPropagation();
-                                            setCorrectionDialog({
-                                              desvioId: desvio.id,
-                                              itemId: item.id,
-                                              photoUrl: item.correction_photo_url,
-                                              observation: item.correction_observation || "",
-                                            });
-                                          }}
-                                          className="p-0.5 rounded-full bg-primary text-primary-foreground"
-                                          title="Alterar correção"
-                                        >
-                                          <Camera className="w-2.5 h-2.5" />
-                                        </button>
-                                        <button
-                                          onClick={async (e) => {
-                                            e.stopPropagation();
-                                            const updatedItems = desvio.items.map((it) =>
-                                              it.id === item.id ? { ...it, correction_photo_url: null, correction_observation: null } : it
-                                            );
-                                            await updateItems.mutateAsync({ desvioId: desvio.id, items: updatedItems });
-                                            toast.success("Correção removida");
-                                          }}
-                                          className="p-0.5 rounded-full bg-destructive text-destructive-foreground"
-                                          title="Remover correção"
-                                        >
-                                          <X className="w-2.5 h-2.5" />
-                                        </button>
-                                      </div>
-                                    )}
-                                  </div>
-                                  {item.correction_observation && (
-                                    <p className="text-xs text-muted-foreground italic max-w-[200px]">
-                                      <span className="font-medium text-foreground">Obs:</span> {item.correction_observation}
-                                    </p>
-                                  )}
-                                </div>
-                              ) : (
-                                isMentioned && desvio.status === "aberto" && (
-                                  <div>
-                                    <p className="text-[10px] text-muted-foreground mb-1">Correção</p>
-                                    <button
-                                      onClick={() => {
-                                        setCorrectionDialog({ desvioId: desvio.id, itemId: item.id, photoUrl: null, observation: "" });
-                                      }}
-                                      disabled={uploading}
-                                      className="w-14 h-14 rounded-lg border-2 border-dashed border-green-500/30 flex items-center justify-center hover:border-green-500/50 transition-colors"
-                                    >
-                                      <Upload className="w-4 h-4 text-green-500/60" />
-                                    </button>
-                                  </div>
-                                )
-                              )}
-                            </div>
-                          </div>
-                        ))}
-                      </div>
-                    )}
-
-                    {/* Legacy: show old photo_urls if no items */}
-                    {!hasItems && desvio.photo_urls && desvio.photo_urls.length > 0 && (
-                      <div>
-                        <p className="text-sm text-foreground mb-2">{desvio.description}</p>
-                        <div className="flex flex-wrap gap-2">
-                          {desvio.photo_urls.map((url, i) => (
-                            <div key={i} className="w-14 h-14 rounded-lg overflow-hidden border cursor-pointer hover:ring-2 hover:ring-primary transition-all" onClick={() => setViewingImage(url)}>
-                              <img src={url} alt="" className="w-full h-full object-cover" />
-                            </div>
-                          ))}
-                        </div>
-                      </div>
-                    )}
-
-                    {!hasItems && (!desvio.photo_urls || desvio.photo_urls.length === 0) && (
-                      <p className="text-sm text-foreground">{desvio.description}</p>
-                    )}
-
-                    {/* Actions */}
-                    <div className="flex flex-wrap gap-2 pt-1">
-                      {(isMentioned || isCreator) && desvio.status === "aberto" && (
-                        <Button
-                          variant="outline"
-                          size="sm"
-                          className="gap-1 text-xs border-green-500/30 text-green-600 hover:bg-green-500/10"
-                          onClick={() => updateStatus.mutate({ desvioId: desvio.id, status: "corrigido" })}
-                        >
-                          <CheckCircle2 className="w-3 h-3" /> Marcar Corrigido
-                        </Button>
-                      )}
-
-                      {isCreator && desvio.status === "corrigido" && (
-                        <Button
-                          variant="outline"
-                          size="sm"
-                          className="gap-1 text-xs"
-                          onClick={() => updateStatus.mutate({ desvioId: desvio.id, status: "aberto" })}
-                        >
-                          <Clock className="w-3 h-3" /> Reabrir
-                        </Button>
-                      )}
-
-                      {isCreator && (
-                        <DeleteConfirmation
-                          onConfirm={() => deleteDesvio.mutate(desvio.id)}
-                          className="ml-auto"
-                        />
-                      )}
-                    </div>
-                    {/* Comments */}
-                    <DesvioCommentSection desvioId={desvio.id} />
-                  </CardContent>
-                </Card>
-              );
-            })}
-          </div>
-        )}
-
-        {/* Hidden file inputs */}
-        <input ref={fileInputRef} type="file" accept="image/*" className="hidden" onChange={handleItemPhotoUpload} />
-        <input ref={correctionInputRef} type="file" accept="image/*" className="hidden" onChange={handleCorrectionUpload} />
-
-        {/* Image viewer dialog */}
-        <Dialog open={!!viewingImage} onOpenChange={() => setViewingImage(null)}>
-          <DialogContent className="max-w-3xl p-2">
-            {viewingImage && (
-              <img src={viewingImage} alt="Foto" className="w-full h-auto rounded-lg max-h-[80vh] object-contain" />
-            )}
-          </DialogContent>
-        </Dialog>
-
-        {/* Correction dialog */}
-        <Dialog open={!!correctionDialog} onOpenChange={() => setCorrectionDialog(null)}>
-          <DialogContent className="max-w-sm">
-            <div className="space-y-4">
-              <h3 className="text-base font-semibold text-foreground">Registrar Correção</h3>
-
-              {/* Photo upload */}
-              <div>
-                <label className="text-sm font-medium text-foreground mb-1 block">
-                  <Camera className="w-3.5 h-3.5 inline mr-1" />
-                  Foto da Correção *
-                </label>
-                <input ref={correctionDialogInputRef} type="file" accept="image/*" className="hidden" onChange={handleCorrectionDialogPhotoUpload} />
-                {correctionDialog?.photoUrl ? (
-                  <div className="relative w-24 h-24 rounded-lg overflow-hidden border border-green-500/30">
-                    <img src={correctionDialog.photoUrl} alt="" className="w-full h-full object-cover" />
-                    <button
-                      onClick={() => setCorrectionDialog((prev) => prev ? { ...prev, photoUrl: null } : null)}
-                      className="absolute top-1 right-1 p-0.5 rounded-full bg-destructive text-destructive-foreground"
-                    >
-                      <X className="w-3 h-3" />
-                    </button>
-                  </div>
-                ) : (
-                  <button
-                    onClick={() => correctionDialogInputRef.current?.click()}
-                    disabled={uploading}
-                    className="w-24 h-24 rounded-lg border-2 border-dashed border-green-500/30 flex flex-col items-center justify-center gap-1 hover:border-green-500/50 transition-colors"
-                  >
-                    {uploading ? (
-                      <div className="w-5 h-5 border-2 border-green-500 border-t-transparent rounded-full animate-spin" />
-                    ) : (
-                      <>
-                        <Upload className="w-5 h-5 text-green-500/60" />
-                        <span className="text-[10px] text-muted-foreground">Adicionar</span>
-                      </>
-                    )}
-                  </button>
-                )}
-              </div>
-
-              {/* Observation */}
-              <div>
-                <label className="text-sm font-medium text-foreground mb-1 block">
-                  Observação da Correção
-                </label>
-                <Textarea
-                  placeholder="Descreva como foi corrigido..."
-                  value={correctionDialog?.observation || ""}
-                  onChange={(e) => setCorrectionDialog((prev) => prev ? { ...prev, observation: e.target.value } : null)}
-                  rows={3}
-                />
-              </div>
-
-              <div className="flex gap-2">
-                <Button onClick={handleSaveCorrection} disabled={!correctionDialog?.photoUrl || uploading} className="flex-1 gap-1">
-                  <CheckCircle2 className="w-4 h-4" /> Salvar Correção
-                </Button>
-                <Button variant="outline" onClick={() => setCorrectionDialog(null)}>Cancelar</Button>
-              </div>
+          {!loadingDesvios && filteredDesvios.length === 0 && (
+            <div className="col-span-full py-12 text-center text-muted-foreground">
+              Nenhum desvio encontrado.
             </div>
-          </DialogContent>
-        </Dialog>
+          )}
+        </div>
       </div>
     </Layout>
   );
