@@ -11,6 +11,7 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@
 import { CreateOrderDialog } from "@/components/orders/CreateOrderDialog";
 import { OrderCard } from "@/components/orders/OrderCard";
 import { OrderDetailsDialog } from "@/components/orders/OrderDetailsDialog";
+import { OrderTutorial } from "@/components/orders/OrderTutorial";
 import { useOrders, useMyOrders, usePendingOrders, Order } from "@/hooks/useOrders";
 import { useProfile } from "@/hooks/useProfile";
 import { useVisualizadorContext } from "@/contexts/VisualizadorContext";
