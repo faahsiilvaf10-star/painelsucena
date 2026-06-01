@@ -706,7 +706,10 @@ export type Database = {
           adubagem_faixa: string | null
           adubagem_unidade: number | null
           atividades_manuais: string | null
+          atividades_manuais_berma: number | null
+          atividades_manuais_faixa: string | null
           controle_invasoras_berma: number | null
+          controle_invasoras_faixa: string | null
           controle_invasoras_nome: string | null
           controle_invasoras_unidade: number | null
           coroamento_berma: number | null
@@ -731,6 +734,8 @@ export type Database = {
           limpeza_manual_m2: number | null
           local_faixa: string
           manutencao_canteiro: string | null
+          manutencao_canteiro_berma: number | null
+          manutencao_canteiro_faixa: string | null
           photo_urls: string[] | null
           plantio_berma: number | null
           plantio_especie: string | null
@@ -743,6 +748,8 @@ export type Database = {
           podagem_faixa: string | null
           podagem_unidade: number | null
           report_date: string
+          retirada_mudas_berma: number | null
+          retirada_mudas_faixa: string | null
           retirada_mudas_unidade: number | null
           rocagem_berma: number | null
           rocagem_faixa: string | null
@@ -754,7 +761,10 @@ export type Database = {
           adubagem_faixa?: string | null
           adubagem_unidade?: number | null
           atividades_manuais?: string | null
+          atividades_manuais_berma?: number | null
+          atividades_manuais_faixa?: string | null
           controle_invasoras_berma?: number | null
+          controle_invasoras_faixa?: string | null
           controle_invasoras_nome?: string | null
           controle_invasoras_unidade?: number | null
           coroamento_berma?: number | null
@@ -779,6 +789,8 @@ export type Database = {
           limpeza_manual_m2?: number | null
           local_faixa: string
           manutencao_canteiro?: string | null
+          manutencao_canteiro_berma?: number | null
+          manutencao_canteiro_faixa?: string | null
           photo_urls?: string[] | null
           plantio_berma?: number | null
           plantio_especie?: string | null
@@ -791,6 +803,8 @@ export type Database = {
           podagem_faixa?: string | null
           podagem_unidade?: number | null
           report_date?: string
+          retirada_mudas_berma?: number | null
+          retirada_mudas_faixa?: string | null
           retirada_mudas_unidade?: number | null
           rocagem_berma?: number | null
           rocagem_faixa?: string | null
@@ -802,7 +816,10 @@ export type Database = {
           adubagem_faixa?: string | null
           adubagem_unidade?: number | null
           atividades_manuais?: string | null
+          atividades_manuais_berma?: number | null
+          atividades_manuais_faixa?: string | null
           controle_invasoras_berma?: number | null
+          controle_invasoras_faixa?: string | null
           controle_invasoras_nome?: string | null
           controle_invasoras_unidade?: number | null
           coroamento_berma?: number | null
@@ -827,6 +844,8 @@ export type Database = {
           limpeza_manual_m2?: number | null
           local_faixa?: string
           manutencao_canteiro?: string | null
+          manutencao_canteiro_berma?: number | null
+          manutencao_canteiro_faixa?: string | null
           photo_urls?: string[] | null
           plantio_berma?: number | null
           plantio_especie?: string | null
@@ -839,6 +858,8 @@ export type Database = {
           podagem_faixa?: string | null
           podagem_unidade?: number | null
           report_date?: string
+          retirada_mudas_berma?: number | null
+          retirada_mudas_faixa?: string | null
           retirada_mudas_unidade?: number | null
           rocagem_berma?: number | null
           rocagem_faixa?: string | null
