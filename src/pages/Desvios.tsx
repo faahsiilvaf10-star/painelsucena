@@ -207,7 +207,7 @@ export default function Desvios() {
     try {
       const isNewCorrection = 
         selectedDesvio && 
-        isResponsible && 
+        canEditCorrection && 
         formState.correction && 
         formState.correction !== selectedDesvio.correction;
 
