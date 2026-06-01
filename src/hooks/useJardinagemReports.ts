@@ -38,7 +38,12 @@ export interface JardinagemReport {
   controle_invasoras_unidade: number | null;
   controle_invasoras_nome: string | null;
   controle_invasoras_berma: number | null;
+  controle_invasoras_faixa: string | null;
   retirada_mudas_unidade: number | null;
+  retirada_mudas_berma: number | null;
+  retirada_mudas_faixa: string | null;
+  manutencao_canteiro_berma: number | null;
+  manutencao_canteiro_faixa: string | null;
   irrigacao_pipas: boolean | null;
   irrigacao_carretel: boolean | null;
   irrigacao_carretel_bermas: number[] | null;
