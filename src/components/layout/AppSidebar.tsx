@@ -78,7 +78,7 @@ const allNavItems: NavItem[] = [
   { id: "rh-hub", icon: Users, label: "RH", path: "/recursos-humanos" },
   
   { id: "rdo-hub", icon: FileText, label: "Relatório Diário Obra", path: "/relatorio-diario-obra" },
-  { id: "atividade-prevista", icon: Clock, label: "Atividade Prevista", path: "/atividade-prevista", hiddenFrom: ["admin", "encarregado_geral", "encarregado", "visitante", "diretoria", "gerencia", "tecnico_seguranca", "administrativo", "estagiario"] }, // Hidden from sidebar as requested, only accessible via RDO page
+  // Atividade Prevista is hidden from sidebar as requested, only accessible via RDO page
   
   { id: "arquivos-seguranca", icon: FolderLock, label: "Documentos Salvos", path: "/arquivos-seguranca" },
   
