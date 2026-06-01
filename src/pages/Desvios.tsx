@@ -416,8 +416,8 @@ export default function Desvios() {
                                   setFormState({
                                     ...formState,
                                     responsible_name: p.full_name || "Usuário",
-                                    responsible_company: p.company_name || "N/A",
-                                    responsible_sector: p.department_name || "N/A",
+                                    responsible_company: "N/A",
+                                    responsible_sector: p.cargo || "N/A",
                                     mentioned_user_id: p.user_id,
                                   });
                                 }}
@@ -425,7 +425,7 @@ export default function Desvios() {
                                 <div className="flex flex-col">
                                   <span>{p.full_name}</span>
                                   <span className="text-[10px] text-muted-foreground">
-                                    {p.company_name || "N/A"} • {p.department_name || "N/A"}
+                                    {p.cargo || "N/A"}
                                   </span>
                                 </div>
                               </CommandItem>
