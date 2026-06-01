@@ -105,11 +105,16 @@ export function useCreateDesvio() {
 
       // Dispara notificação WhatsApp (best-effort)
       try {
-        await supabase.functions.invoke("wapi-desvio-notify", {
-          body: { desvioId: data.id },
+        await supabase.functions.invoke("wapi-desvio-status-notify", {
+          body: { 
+            desvioId: data.id,
+            updatedBy: userName,
+            statusChanged: true,
+            newStatus: params.status || "Aberto"
+          },
         });
       } catch (e) {
-        console.warn("[wapi-desvio-notify] falha ao enfileirar:", e);
+        console.warn("[wapi-desvio-status-notify] falha ao enfileirar:", e);
       }
 
       return data;
