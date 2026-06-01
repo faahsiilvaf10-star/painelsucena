@@ -164,11 +164,24 @@ export default function Desvios() {
 
   const filteredDesvios = useMemo(() => {
     if (!desvios) return [];
-    return desvios.filter((d) => 
-      d.description.toLowerCase().includes(searchQuery.toLowerCase()) ||
-      d.responsible_name?.toLowerCase().includes(searchQuery.toLowerCase())
-    );
-  }, [desvios, searchQuery]);
+    return desvios.filter((d) => {
+      const matchesSearch = 
+        d.description.toLowerCase().includes(searchQuery.toLowerCase()) ||
+        d.responsible_name?.toLowerCase().includes(searchQuery.toLowerCase());
+      
+      if (!matchesSearch) return false;
+
+      if (!activeFilter) return true;
+      if (activeFilter === "total") return true;
+      if (activeFilter === "open") return d.status === "Aberto";
+      if (activeFilter === "inTreatment") return d.status === "Em Tratamento";
+      if (activeFilter === "done") return d.status === "Concluído";
+      if (activeFilter === "delayed") {
+        return d.status !== "Concluído" && d.due_date && isPast(parseISO(d.due_date)) && !isToday(parseISO(d.due_date));
+      }
+      return true;
+    });
+  }, [desvios, searchQuery, activeFilter]);
 
   const handleFileUpload = async (e: React.ChangeEvent<HTMLInputElement>) => {
     const files = e.target.files;
