@@ -454,7 +454,7 @@ export default function Desvios() {
                     className="min-h-[200px]"
                     value={formState.correction || ""}
                     onChange={(e) => setFormState({ ...formState, correction: e.target.value })}
-                    disabled={!canEditCorrection}
+                    disabled={!canEditCorrection && !isAdmin}
                   />
                   {!canEditCorrection && (
                     <p className="text-[10px] text-muted-foreground italic">
