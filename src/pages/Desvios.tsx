@@ -129,6 +129,10 @@ export default function Desvios() {
     return selectedDesvio.created_by === user.id;
   }, [selectedDesvio, user]);
 
+  const isCancelled = useMemo(() => {
+    return selectedDesvio?.status === "Cancelado";
+  }, [selectedDesvio]);
+
   const isResponsible = useMemo(() => {
     if (!selectedDesvio || !user) return false;
     return selectedDesvio.mentioned_user_id === user.id;
@@ -341,7 +345,7 @@ export default function Desvios() {
                     className="min-h-[200px]"
                     value={formState.description}
                     onChange={(e) => setFormState({ ...formState, description: e.target.value })}
-                    disabled={!isCreator && isResponsible && !isAdmin}
+                    disabled={(!isCreator && isResponsible && !isAdmin) || (isCancelled && !isAdmin)}
                   />
                 </div>
                 <div className="space-y-2">
@@ -400,7 +404,7 @@ export default function Desvios() {
                     className="min-h-[200px]"
                     value={formState.instruction || ""}
                     onChange={(e) => setFormState({ ...formState, instruction: e.target.value })}
-                    disabled={!isCreator && !isResponsible && !isAdmin}
+                    disabled={(!isCreator && !isResponsible && !isAdmin) || (isCancelled && !isAdmin)}
                   />
                 </div>
                 <div className="space-y-2">
@@ -417,7 +421,7 @@ export default function Desvios() {
                     ))}
                   </div>
                   <Select
-                    disabled={!isCreator && isResponsible && !isAdmin}
+                    disabled={(!isCreator && isResponsible && !isAdmin) || (isCancelled && !isAdmin)}
                     onValueChange={(val) => {
                       if (!formState.tags?.includes(val)) {
                         setFormState({ ...formState, tags: [...(formState.tags || []), val] });
@@ -455,7 +459,7 @@ export default function Desvios() {
                     className="min-h-[200px]"
                     value={formState.correction || ""}
                     onChange={(e) => setFormState({ ...formState, correction: e.target.value })}
-                    disabled={!isAdmin && !isResponsible}
+                    disabled={(!isAdmin && !isResponsible) || (isCancelled && !isAdmin)}
                   />
                   {!canEditCorrection && (
                     <p className="text-[10px] text-muted-foreground italic">
@@ -479,7 +483,7 @@ export default function Desvios() {
                   <label className="text-sm font-medium">Pessoa Responsável</label>
                   <Popover>
                     <PopoverTrigger asChild>
-                      <Button variant="outline" className="w-full justify-between font-normal" disabled={!isCreator && isResponsible && !isAdmin}>
+                      <Button variant="outline" className="w-full justify-between font-normal" disabled={(!isCreator && isResponsible && !isAdmin) || (isCancelled && !isAdmin)}>
                         {formState.responsible_name || "Selecionar usuário..."}
                         <Search className="w-4 h-4 opacity-50" />
                       </Button>
@@ -533,7 +537,7 @@ export default function Desvios() {
                         key={opt.id}
                         type="button"
                         variant={formState.priority === opt.id ? "default" : "outline"}
-                        disabled={!isCreator && isResponsible && !isAdmin}
+                        disabled={(!isCreator && isResponsible && !isAdmin) || (isCancelled && !isAdmin)}
                         className={cn(
                           "w-full text-xs h-8",
                           formState.priority === opt.id && opt.color
@@ -550,7 +554,7 @@ export default function Desvios() {
                   <label className="text-sm font-medium">Data Limite</label>
                   <Popover>
                     <PopoverTrigger asChild>
-                      <Button variant="outline" className="w-full justify-start text-left font-normal" disabled={!isCreator && isResponsible && !isAdmin}>
+                      <Button variant="outline" className="w-full justify-start text-left font-normal" disabled={(!isCreator && isResponsible && !isAdmin) || (isCancelled && !isAdmin)}>
                         <CalendarIcon className="mr-2 h-4 w-4" />
                         {formState.due_date ? format(new Date(formState.due_date), "dd/MM/yyyy") : "Selecionar data"}
                       </Button>
@@ -572,7 +576,7 @@ export default function Desvios() {
                     placeholder="Observações adicionais..."
                     value={formState.comments || ""}
                     onChange={(e) => setFormState({ ...formState, comments: e.target.value })}
-                    disabled={!isCreator && !isAdmin}
+                    disabled={(!isCreator && !isAdmin) || (isCancelled && !isAdmin)}
                   />
                 </div>
               </CardContent>
@@ -684,7 +688,7 @@ export default function Desvios() {
                       className="gap-2 bg-blue-600 hover:bg-blue-700 text-white" 
                       onClick={() => handleStatusChange("Aberto")}
                     >
-                      <History className="w-4 h-4" /> Reativar Desvio
+                      <History className="w-4 h-4" /> Reabrir Desvio
                     </Button>
                   ) : (
                     <>
