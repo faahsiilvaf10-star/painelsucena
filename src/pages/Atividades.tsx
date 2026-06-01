@@ -643,9 +643,11 @@ export default function Atividades() {
     appendExtras("plantioGrama", "Plantio de Grama", "m²");
 
     if (atividadesManuais && atividadesManuais.trim()) {
+      const faixaText = atividadesManuaisFaixa ? ` - ${atividadesManuaisFaixa}` : "";
+      const bermaText = atividadesManuaisBerma ? ` (Berma ${atividadesManuaisBerma})` : "";
       atividadesManuais.split("\n").forEach((l) => {
         const t = l.trim();
-        if (t) lines.push(`* ${t}`);
+        if (t) lines.push(`* ${t}${bermaText}${faixaText}`);
       });
     }
     if (irrigacaoPipas) lines.push(`* Irrigação com Pipas nas Faixas 3 e 4 e Mirante`);
