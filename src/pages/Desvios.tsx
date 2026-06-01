@@ -501,7 +501,7 @@ export default function Desvios() {
                                 key={p.user_id}
                                 value={p.full_name || ""}
                                 onSelect={() => {
-                                  setFormState({
+                                  setFormState((prev) => ({
                                     ...prev,
                                     responsible_name: p.full_name || "Usuário",
                                     responsible_company: "N/A",
