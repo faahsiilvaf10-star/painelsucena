@@ -39,6 +39,7 @@ import {
   History,
   AlertCircle,
   FileIcon,
+  Trash2,
 } from "lucide-react";
 import {
   useDesvios,
