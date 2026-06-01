@@ -53,8 +53,8 @@ export const useAllUsers = () => {
   const channelRef = useRef<RealtimeChannel | null>(null);
   const heartbeatRef = useRef<number | null>(null);
   const justOnlineTimeoutRef = useRef<number | null>(null);
-  const ONLINE_GRACE_MS = 125_000; // Increased to 125s to handle background tab throttling
-  const GRACE_CLEANUP_INTERVAL_MS = 10_000;
+  const ONLINE_GRACE_MS = 1800_000; // Increased to 30 minutes to ensure users stay online even if minimized or closed
+  const GRACE_CLEANUP_INTERVAL_MS = 30_000;
 
   const lastSeenTimestampRef = useRef<Map<string, number>>(new Map());
   const graceCleanupRef = useRef<number | null>(null);
@@ -394,7 +394,7 @@ export const useAllUsers = () => {
       // Don't set online_at to null immediately on pagehide to avoid flickering during refreshes
       // The grace period will naturally mark them as offline if they don't come back
       void persistPresence({
-        online_at: new Date().toISOString(), // Keep it as current time
+        online_at: new Date().toISOString(), 
         last_seen_at: new Date().toISOString(),
       });
     };
@@ -445,9 +445,12 @@ export const useAllUsers = () => {
   const allUsers: UserWithStatus[] = profiles
     .map((profile) => {
       const isCurrentUser = profile.user_id === user?.id;
-      const isOnline = isCurrentUser || onlineUserIds.has(profile.user_id);
       const inMemoryLastSeen = lastSeenMap.get(profile.user_id);
       const liveLastSeenTs = lastSeenTimestampRef.current.get(profile.user_id);
+      
+      const isRecentInDb = inMemoryLastSeen && (Date.now() - new Date(inMemoryLastSeen).getTime() < ONLINE_GRACE_MS);
+      const isOnline = isCurrentUser || onlineUserIds.has(profile.user_id) || isRecentInDb;
+      
       const fallbackLastSeen = inMemoryLastSeen ?? (liveLastSeenTs ? new Date(liveLastSeenTs).toISOString() : undefined);
 
       return {
