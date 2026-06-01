@@ -30,7 +30,7 @@ export default function AtividadePrevista() {
   const today = getBrazilNorthDate();
   
   // Check edit permission
-  const canEdit = isAdmin || profile?.cargo === "encarregado_geral";
+  const canEdit = isAdmin || profile?.cargo === "encarregado_geral" || profile?.cargo === "encarregado";
   
   // Date selection state
   const [selectedDate, setSelectedDate] = useState<Date>(today);
