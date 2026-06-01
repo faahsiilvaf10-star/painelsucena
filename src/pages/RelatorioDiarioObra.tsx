@@ -6,7 +6,7 @@ const rdoPages = [
   { label: "RDO", icon: FileText, path: "/rdo" },
   { label: "Atividade\nJardinagem", icon: Leaf, path: "/atividades" },
   { label: "Atividade\nGabião", icon: Hammer, path: "/atividades-ii" },
-  { label: "Atividade\nPrevista", icon: Clock, path: "/rdo?tab=planned" },
+  { label: "Atividade\nPrevista", icon: Clock, path: "/atividade-prevista" },
 ];
 
 const RelatorioDiarioObra = () => {
