@@ -622,7 +622,8 @@ export default function Atividades() {
     const filteredInvasoras = invasoras.filter(i => i.unidade && parseInt(i.unidade) > 0);
     filteredInvasoras.forEach(inv => {
       const nomeText = inv.nome ? ` (${inv.nome})` : "";
-      lines.push(`* Controle de Invasoras${nomeText} - ${inv.unidade} unidade(s)${formatBerma(invasorasBerma)}`);
+      const faixaText = invasorasFaixa ? ` - ${invasorasFaixa}` : "";
+      lines.push(`* Controle de Invasoras${nomeText} - ${inv.unidade} unidade(s)${formatBerma(invasorasBerma)}${faixaText}`);
     });
     
     if (retiradaMudasUnidade && parseInt(retiradaMudasUnidade) > 0) {
