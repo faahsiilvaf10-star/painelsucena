@@ -156,14 +156,16 @@ function SortableNavItem({
               item.isEmergency ? "text-red-500 animate-pulse" : ""
             }`}
           />
-          <EditableText
-            pageKey="sidebar"
-            elementKey={`nav-${item.id}`}
-            defaultValue={item.label}
-            className={`font-medium text-sm md:text-base truncate ${item.isEmergency ? "text-red-500" : ""}`}
-            as="span"
-            canEdit={!!editMode}
-          />
+          <span className="flex-1 min-w-0">
+            <EditableText
+              pageKey="sidebar"
+              elementKey={`nav-${item.id}`}
+              defaultValue={item.label}
+              className={`font-medium text-sm md:text-base truncate block ${item.isEmergency ? "text-red-500" : ""}`}
+              as="span"
+              canEdit={!!editMode}
+            />
+          </span>
           {showMeetingPulse && (
             <TooltipProvider delayDuration={150}>
               <Tooltip>
