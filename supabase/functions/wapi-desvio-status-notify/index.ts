@@ -106,7 +106,6 @@ Deno.serve(async (req) => {
     
     lines.push(
       "",
-      `👤 *Usuário que abriu:* ${desvio.created_by_name || "—"}`,
       `👨‍💼 *Atualizado por:* ${updatedBy || "—"}`,
       `🕒 *Em:* ${updatedAtStr}`,
       "━━━━━━━━━━━━━━━━━━━━",
