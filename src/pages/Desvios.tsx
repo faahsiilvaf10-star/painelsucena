@@ -554,7 +554,7 @@ export default function Desvios() {
                   <label className="text-sm font-medium">Data Limite</label>
                   <Popover>
                     <PopoverTrigger asChild>
-                      <Button variant="outline" className="w-full justify-start text-left font-normal" disabled={!isCreator && isResponsible && !isAdmin}>
+                      <Button variant="outline" className="w-full justify-start text-left font-normal" disabled={(!isCreator && isResponsible && !isAdmin) || (isCancelled && !isAdmin)}>
                         <CalendarIcon className="mr-2 h-4 w-4" />
                         {formState.due_date ? format(new Date(formState.due_date), "dd/MM/yyyy") : "Selecionar data"}
                       </Button>
