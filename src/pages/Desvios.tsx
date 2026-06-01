@@ -537,7 +537,7 @@ export default function Desvios() {
                         key={opt.id}
                         type="button"
                         variant={formState.priority === opt.id ? "default" : "outline"}
-                        disabled={!isCreator && isResponsible && !isAdmin}
+                        disabled={(!isCreator && isResponsible && !isAdmin) || (isCancelled && !isAdmin)}
                         className={cn(
                           "w-full text-xs h-8",
                           formState.priority === opt.id && opt.color
