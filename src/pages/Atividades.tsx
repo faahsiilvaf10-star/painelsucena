@@ -769,11 +769,11 @@ export default function Atividades() {
       setPlantio(""); setPlantioBerma(""); setPlantioFaixa("");
       setLimpezaManual(""); setLimpezaManualBerma(""); setLimpezaManualFaixa("");
       setLimpezaAssoprador(""); setLimpezaAssopradorBerma(""); setLimpezaAssopradorFaixa("");
-      setManutencaoCanteiro("");
-      setInvasoras([{ nome: "", unidade: "" }]); setInvasorasBerma("");
-      setRetiradaMudasUnidade("");
+      setManutencaoCanteiro(""); setManutencaoCanteiroFaixa(""); setManutencaoCanteiroBerma("");
+      setInvasoras([{ nome: "", unidade: "" }]); setInvasorasBerma(""); setInvasorasFaixa("");
+      setRetiradaMudasUnidade(""); setRetiradaMudasFaixa(""); setRetiradaMudasBerma("");
       setPlantioGrama(""); setPlantioGramaFaixa(""); setPlantioGramaBerma("");
-      setAtividadesManuais("");
+      setAtividadesManuais(""); setAtividadesManuaisFaixa(""); setAtividadesManuaisBerma("");
       setIrrigacaoPipas(false);
       setIrrigacaoCarretel(false);
       setIrrigacaoCarretelBermas([]);
