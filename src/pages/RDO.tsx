@@ -15,6 +15,7 @@ import { Textarea } from "@/components/ui/textarea";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
+import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 
 import { ScrollArea } from "@/components/ui/scroll-area";
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger } from "@/components/ui/dialog";
@@ -44,6 +45,7 @@ import { getBrazilNorthDate, getBrazilNorthTodayString } from "@/lib/timezone";
 import { cn } from "@/lib/utils";
 import { AlertDialog, AlertDialogAction, AlertDialogCancel, AlertDialogContent, AlertDialogDescription, AlertDialogFooter, AlertDialogHeader, AlertDialogTitle, AlertDialogTrigger } from "@/components/ui/alert-dialog";
 import { ReadOnlyBanner } from "@/components/ReadOnlyBanner";
+import { PlannedActivitiesTab } from "@/components/rdo/PlannedActivitiesTab";
 
 // Role mappings for areas
 const roleToArea: Record<string, "gabiao" | "jardinagem"> = {
@@ -255,6 +257,64 @@ export default function RDO() {
       setPhotos([]);
     }
   }, [existingReport, selectedDateStr]);
+
+  // Extract base activities for planned tab
+  const baseGabiaoActivities = useMemo(() => [
+    "Escavação manual",
+    "Reposição de manta asfáltica",
+    "Reposição de silte",
+    "Limpeza e organização",
+    "Retirada de tela",
+    "Retirada de cascalho",
+    "Lavagem de vertedouro",
+    "Lavagem de bacias do vertedouro",
+    "Reposição de Geotêxtil",
+    "Retirada de Geotêxtil",
+    "Retirada de Geomembrana",
+    "Reposição de Geomembrana",
+    "Recomposição de tela",
+    "Recomposição de cascalho",
+    "Recomposição de silte",
+    "Transporte de Materiais",
+    "Limpeza de Canaleta",
+    "Recomposição de Gabião",
+    "Manutenção de Drenagem",
+    "Limpeza de Bueiro",
+    "Reparo de Cerca",
+  ], []);
+
+  const baseJardinagemActivities = useMemo(() => [
+    "Roçagem",
+    "Podagem",
+    "Cova",
+    "Coroamento",
+    "Adubagem",
+    "Plantio",
+    "Limpeza Manual",
+    "Limpeza com Soprador",
+    "Controle de Invasoras",
+    "Retirada de Mudas (Árvores)",
+    "Plantio de Grama",
+    "Manutenção de Canteiro",
+    "Irrigação com Pipas",
+    "Irrigação com Carretel",
+  ], []);
+
+  const handleSavePlanned = async (planned: { gabiao: string[]; jardinagem: string[] }) => {
+    if (!user) return;
+    try {
+      await saveReport.mutateAsync({
+        report_date: selectedDateStr,
+        weather_morning: weatherMorning,
+        weather_afternoon: weatherAfternoon,
+        report_text: existingReport?.report_text || "",
+        planned_activities: planned,
+      });
+      toast.success("Atividades previstas salvas!");
+    } catch (err: any) {
+      toast.error("Erro ao salvar atividades previstas: " + err.message);
+    }
+  };
 
   // Calculate workforce by role and area
   const workforceByArea = useMemo(() => {
@@ -864,226 +924,253 @@ ${difficulties}`;
           </div>
         )}
 
-        <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
-          {/* Left Column - Form */}
-          <div className="space-y-4">
-            {/* Header Info */}
-            <Card>
-              <CardHeader>
-                <CardTitle className="text-lg">Informações Gerais</CardTitle>
-              </CardHeader>
-              <CardContent className="space-y-4">
-                <div className="grid grid-cols-2 gap-4">
-                  <div className="space-y-2">
-                    <Label>Empresa</Label>
-                    <Input
-                      value={headerInfo.empresa}
-                      onChange={(e) => setHeaderInfo({ ...headerInfo, empresa: e.target.value })}
-                    />
-                  </div>
-                  <div className="space-y-2">
-                    <Label>Contrato</Label>
-                    <Input
-                      value={headerInfo.contrato}
-                      onChange={(e) => setHeaderInfo({ ...headerInfo, contrato: e.target.value })}
-                    />
-                  </div>
-                  <div className="space-y-2">
-                    <Label>Gerência</Label>
-                    <Input
-                      value={headerInfo.gerencia}
-                      onChange={(e) => setHeaderInfo({ ...headerInfo, gerencia: e.target.value })}
-                    />
-                  </div>
-                  <div className="space-y-2">
-                    <Label>Liderança</Label>
-                    <Input
-                      value={headerInfo.lideranca}
-                      onChange={(e) => setHeaderInfo({ ...headerInfo, lideranca: e.target.value })}
-                    />
-                  </div>
-                  <div className="space-y-2">
-                    <Label>TST</Label>
-                    <Input
-                      value={headerInfo.tst}
-                      onChange={(e) => setHeaderInfo({ ...headerInfo, tst: e.target.value })}
-                    />
-                  </div>
-                  <div className="space-y-2">
-                    <Label>Local</Label>
-                    <Input
-                      value={headerInfo.local}
-                      onChange={(e) => setHeaderInfo({ ...headerInfo, local: e.target.value })}
-                    />
-                  </div>
-                  <div className="col-span-2 space-y-2">
-                    <Label>Horário</Label>
-                    <Input
-                      value={headerInfo.horario}
-                      onChange={(e) => setHeaderInfo({ ...headerInfo, horario: e.target.value })}
-                    />
-                  </div>
-                </div>
-              </CardContent>
-            </Card>
+        <Tabs defaultValue="report" className="w-full">
+          <TabsList className="grid w-full grid-cols-2 max-w-md mx-auto mb-6">
+            <TabsTrigger value="report" className="gap-2">
+              <FileText className="h-4 w-4" />
+              Relatório Diário
+            </TabsTrigger>
+            <TabsTrigger value="planned" className="gap-2">
+              <Clock className="h-4 w-4" />
+              Atividade Prevista
+            </TabsTrigger>
+          </TabsList>
 
-
-            {/* Weather & Difficulties */}
-            <Card>
-              <CardHeader>
-                <CardTitle className="text-lg">Condições e Observações</CardTitle>
-              </CardHeader>
-              <CardContent className="space-y-4">
-                <div className="grid grid-cols-2 gap-4">
-                  <div className="space-y-2">
-                    <Label>☀️ Manhã</Label>
-                    <Select value={weatherMorning} onValueChange={setWeatherMorning}>
-                      <SelectTrigger>
-                        <SelectValue />
-                      </SelectTrigger>
-                      <SelectContent>
-                        {weatherOptions.map((opt) => (
-                          <SelectItem key={opt.value} value={opt.value}>
-                            <div className="flex items-center gap-2">
-                              <opt.icon className="h-4 w-4" />
-                              {opt.label}
-                            </div>
-                          </SelectItem>
-                        ))}
-                      </SelectContent>
-                    </Select>
-                  </div>
-                  <div className="space-y-2">
-                    <Label>🌙 Tarde</Label>
-                    <Select value={weatherAfternoon} onValueChange={setWeatherAfternoon}>
-                      <SelectTrigger>
-                        <SelectValue />
-                      </SelectTrigger>
-                      <SelectContent>
-                        {weatherOptions.map((opt) => (
-                          <SelectItem key={opt.value} value={opt.value}>
-                            <div className="flex items-center gap-2">
-                              <opt.icon className="h-4 w-4" />
-                              {opt.label}
-                            </div>
-                          </SelectItem>
-                        ))}
-                      </SelectContent>
-                    </Select>
-                  </div>
-                </div>
-                <div className="space-y-2">
-                  <Label>⚠ Dificuldades/Desvios</Label>
-                  <Textarea
-                    value={difficulties}
-                    onChange={(e) => setDifficulties(e.target.value)}
-                    placeholder="Não Houve."
-                    rows={3}
-                  />
-                </div>
-              </CardContent>
-            </Card>
-
-            {/* Photos */}
-            <Card>
-              <CardHeader>
-                <CardTitle className="text-lg flex items-center gap-2">
-                  <Image className="h-5 w-5" />
-                  Fotos do Relatório
-                </CardTitle>
-              </CardHeader>
-              <CardContent className="space-y-4">
-                <input
-                  type="file"
-                  ref={fileInputRef}
-                  className="hidden"
-                  accept="image/*"
-                  multiple
-                  onChange={handleFileSelect}
-                />
-                <Button
-                  variant="outline"
-                  className="w-full"
-                  onClick={() => fileInputRef.current?.click()}
-                  disabled={isUploadingPhotos}
-                >
-                  {isUploadingPhotos ? (
-                    <>
-                      <Loader2 className="h-4 w-4 mr-2 animate-spin" />
-                      Enviando...
-                    </>
-                  ) : (
-                    <>
-                      <Image className="h-4 w-4 mr-2" />
-                      Adicionar Fotos (máx. 5MB cada)
-                    </>
-                  )}
-                </Button>
-
-                {photos.length > 0 && (
-                  <div className="grid grid-cols-3 gap-2">
-                    {photos.map((url, index) => (
-                      <div key={index} className="relative group">
-                        <img
-                          src={url}
-                          alt={`Foto ${index + 1}`}
-                          className="w-full h-24 object-cover rounded-lg"
+          <TabsContent value="report">
+            <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
+              {/* Left Column - Form */}
+              <div className="space-y-4">
+                {/* Header Info */}
+                <Card>
+                  <CardHeader>
+                    <CardTitle className="text-lg">Informações Gerais</CardTitle>
+                  </CardHeader>
+                  <CardContent className="space-y-4">
+                    <div className="grid grid-cols-2 gap-4">
+                      <div className="space-y-2">
+                        <Label>Empresa</Label>
+                        <Input
+                          value={headerInfo.empresa}
+                          onChange={(e) => setHeaderInfo({ ...headerInfo, empresa: e.target.value })}
                         />
-                        <button
-                          onClick={() => removePhoto(index)}
-                          className="absolute top-1 right-1 h-6 w-6 rounded-full bg-destructive text-destructive-foreground flex items-center justify-center opacity-0 group-hover:opacity-100 transition-opacity"
-                        >
-                          <X className="h-4 w-4" />
-                        </button>
                       </div>
-                    ))}
-                  </div>
-                )}
-
-                {photos.length > 0 && (
-                  <p className="text-sm text-muted-foreground">
-                    {photos.length} foto(s) adicionada(s)
-                  </p>
-                )}
-              </CardContent>
-            </Card>
-          </div>
-
-          {/* Right Column - Preview */}
-          <Card className="h-fit lg:sticky lg:top-4">
-            <CardHeader>
-              <CardTitle className="text-lg flex items-center gap-2">
-                📋 Prévia do Relatório
-                {existingReport && (
-                  <Badge variant="secondary">Salvo</Badge>
-                )}
-              </CardTitle>
-            </CardHeader>
-            <CardContent>
-              <ScrollArea className="h-[600px]">
-                <pre className="whitespace-pre-wrap text-sm font-mono bg-muted p-4 rounded-lg">
-                  {generateReport()}
-                </pre>
-                
-                {photos.length > 0 && (
-                  <div className="mt-4 space-y-2">
-                    <p className="text-sm font-medium">📷 Fotos anexadas:</p>
-                    <div className="grid grid-cols-2 gap-2">
-                      {photos.map((url, index) => (
-                        <img
-                          key={index}
-                          src={url}
-                          alt={`Foto ${index + 1}`}
-                          className="w-full h-32 object-cover rounded-lg"
+                      <div className="space-y-2">
+                        <Label>Contrato</Label>
+                        <Input
+                          value={headerInfo.contrato}
+                          onChange={(e) => setHeaderInfo({ ...headerInfo, contrato: e.target.value })}
                         />
-                      ))}
+                      </div>
+                      <div className="space-y-2">
+                        <Label>Gerência</Label>
+                        <Input
+                          value={headerInfo.gerencia}
+                          onChange={(e) => setHeaderInfo({ ...headerInfo, gerencia: e.target.value })}
+                        />
+                      </div>
+                      <div className="space-y-2">
+                        <Label>Liderança</Label>
+                        <Input
+                          value={headerInfo.lideranca}
+                          onChange={(e) => setHeaderInfo({ ...headerInfo, lideranca: e.target.value })}
+                        />
+                      </div>
+                      <div className="space-y-2">
+                        <Label>TST</Label>
+                        <Input
+                          value={headerInfo.tst}
+                          onChange={(e) => setHeaderInfo({ ...headerInfo, tst: e.target.value })}
+                        />
+                      </div>
+                      <div className="space-y-2">
+                        <Label>Local</Label>
+                        <Input
+                          value={headerInfo.local}
+                          onChange={(e) => setHeaderInfo({ ...headerInfo, local: e.target.value })}
+                        />
+                      </div>
+                      <div className="col-span-2 space-y-2">
+                        <Label>Horário</Label>
+                        <Input
+                          value={headerInfo.horario}
+                          onChange={(e) => setHeaderInfo({ ...headerInfo, horario: e.target.value })}
+                        />
+                      </div>
                     </div>
-                  </div>
-                )}
-              </ScrollArea>
-            </CardContent>
-          </Card>
-        </div>
+                  </CardContent>
+                </Card>
+
+
+                {/* Weather & Difficulties */}
+                <Card>
+                  <CardHeader>
+                    <CardTitle className="text-lg">Condições e Observações</CardTitle>
+                  </CardHeader>
+                  <CardContent className="space-y-4">
+                    <div className="grid grid-cols-2 gap-4">
+                      <div className="space-y-2">
+                        <Label>☀️ Manhã</Label>
+                        <Select value={weatherMorning} onValueChange={setWeatherMorning}>
+                          <SelectTrigger>
+                            <SelectValue />
+                          </SelectTrigger>
+                          <SelectContent>
+                            {weatherOptions.map((opt) => (
+                              <SelectItem key={opt.value} value={opt.value}>
+                                <div className="flex items-center gap-2">
+                                  <opt.icon className="h-4 w-4" />
+                                  {opt.label}
+                                </div>
+                              </SelectItem>
+                            ))}
+                          </SelectContent>
+                        </Select>
+                      </div>
+                      <div className="space-y-2">
+                        <Label>🌙 Tarde</Label>
+                        <Select value={weatherAfternoon} onValueChange={setWeatherAfternoon}>
+                          <SelectTrigger>
+                            <SelectValue />
+                          </SelectTrigger>
+                          <SelectContent>
+                            {weatherOptions.map((opt) => (
+                              <SelectItem key={opt.value} value={opt.value}>
+                                <div className="flex items-center gap-2">
+                                  <opt.icon className="h-4 w-4" />
+                                  {opt.label}
+                                </div>
+                              </SelectItem>
+                            ))}
+                          </SelectContent>
+                        </Select>
+                      </div>
+                    </div>
+                    <div className="space-y-2">
+                      <Label>⚠ Dificuldades/Desvios</Label>
+                      <Textarea
+                        value={difficulties}
+                        onChange={(e) => setDifficulties(e.target.value)}
+                        placeholder="Não Houve."
+                        rows={3}
+                      />
+                    </div>
+                  </CardContent>
+                </Card>
+
+                {/* Photos */}
+                <Card>
+                  <CardHeader>
+                    <CardTitle className="text-lg flex items-center gap-2">
+                      <Image className="h-5 w-5" />
+                      Fotos do Relatório
+                    </CardTitle>
+                  </CardHeader>
+                  <CardContent className="space-y-4">
+                    <input
+                      type="file"
+                      ref={fileInputRef}
+                      className="hidden"
+                      accept="image/*"
+                      multiple
+                      onChange={handleFileSelect}
+                    />
+                    <Button
+                      variant="outline"
+                      className="w-full"
+                      onClick={() => fileInputRef.current?.click()}
+                      disabled={isUploadingPhotos}
+                    >
+                      {isUploadingPhotos ? (
+                        <>
+                          <Loader2 className="h-4 w-4 mr-2 animate-spin" />
+                          Enviando...
+                        </>
+                      ) : (
+                        <>
+                          <Image className="h-4 w-4 mr-2" />
+                          Adicionar Fotos (máx. 5MB cada)
+                        </>
+                      )}
+                    </Button>
+
+                    {photos.length > 0 && (
+                      <div className="grid grid-cols-3 gap-2">
+                        {photos.map((url, index) => (
+                          <div key={index} className="relative group">
+                            <img
+                              src={url}
+                              alt={`Foto ${index + 1}`}
+                              className="w-full h-24 object-cover rounded-lg"
+                            />
+                            <button
+                              onClick={() => removePhoto(index)}
+                              className="absolute top-1 right-1 h-6 w-6 rounded-full bg-destructive text-destructive-foreground flex items-center justify-center opacity-0 group-hover:opacity-100 transition-opacity"
+                            >
+                              <X className="h-4 w-4" />
+                            </button>
+                          </div>
+                        ))}
+                      </div>
+                    )}
+
+                    {photos.length > 0 && (
+                      <p className="text-sm text-muted-foreground">
+                        {photos.length} foto(s) adicionada(s)
+                      </p>
+                    )}
+                  </CardContent>
+                </Card>
+              </div>
+
+              {/* Right Column - Preview */}
+              <Card className="h-fit lg:sticky lg:top-4">
+                <CardHeader>
+                  <CardTitle className="text-lg flex items-center gap-2">
+                    📋 Prévia do Relatório
+                    {existingReport && (
+                      <Badge variant="secondary">Salvo</Badge>
+                    )}
+                  </CardTitle>
+                </CardHeader>
+                <CardContent>
+                  <ScrollArea className="h-[600px]">
+                    <pre className="whitespace-pre-wrap text-sm font-mono bg-muted p-4 rounded-lg">
+                      {generateReport()}
+                    </pre>
+                    
+                    {photos.length > 0 && (
+                      <div className="mt-4 space-y-2">
+                        <p className="text-sm font-medium">📷 Fotos anexadas:</p>
+                        <div className="grid grid-cols-2 gap-2">
+                          {photos.map((url, index) => (
+                            <img
+                              key={index}
+                              src={url}
+                              alt={`Foto ${index + 1}`}
+                              className="w-full h-32 object-cover rounded-lg"
+                            />
+                          ))}
+                        </div>
+                      </div>
+                    )}
+                  </ScrollArea>
+                </CardContent>
+              </Card>
+            </div>
+          </TabsContent>
+
+          <TabsContent value="planned">
+            <PlannedActivitiesTab
+              selectedDate={selectedDate}
+              gabiaoActivities={baseGabiaoActivities}
+              jardinagemActivities={baseJardinagemActivities}
+              initialPlanned={existingReport?.planned_activities}
+              onSave={handleSavePlanned}
+              isSaving={saveReport.isPending}
+              canEdit={canEdit && !isLocked}
+            />
+          </TabsContent>
+        </Tabs>
       </div>
     </Layout>
   );
