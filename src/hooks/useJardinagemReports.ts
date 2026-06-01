@@ -346,11 +346,13 @@ export const formatJardinagemForRDO = (report: JardinagemReport | null): string 
     }
   } else if (report.controle_invasoras_unidade && report.controle_invasoras_unidade > 0) {
     const nomeInvasora = report.controle_invasoras_nome ? ` (${report.controle_invasoras_nome})` : "";
-    lines.push(`* Controle de Invasoras${nomeInvasora} - ${report.controle_invasoras_unidade} unidade(s)${formatBerma(report.controle_invasoras_berma)}`);
+    const faixaText = report.controle_invasoras_faixa ? ` - ${report.controle_invasoras_faixa}` : "";
+    lines.push(`* Controle de Invasoras${nomeInvasora} - ${report.controle_invasoras_unidade} unidade(s)${formatBerma(report.controle_invasoras_berma)}${faixaText}`);
   }
   
   if (report.retirada_mudas_unidade && report.retirada_mudas_unidade > 0) {
-    lines.push(`* Retirada de Mudas (Árvores) - ${report.retirada_mudas_unidade} unidade(s)`);
+    const faixaText = report.retirada_mudas_faixa ? ` - ${report.retirada_mudas_faixa}` : "";
+    lines.push(`* Retirada de Mudas (Árvores) - ${report.retirada_mudas_unidade} unidade(s)${formatBerma(report.retirada_mudas_berma)}${faixaText}`);
   }
   
   if (report.plantio_grama_m2 && report.plantio_grama_m2 > 0) {
@@ -361,14 +363,18 @@ export const formatJardinagemForRDO = (report: JardinagemReport | null): string 
   appendExtraLines(lines, extras, "plantioGrama", "Plantio de Grama", "m²");
   
   if (report.atividades_manuais) {
+    const faixaText = report.atividades_manuais_faixa ? ` - ${report.atividades_manuais_faixa}` : "";
+    const location = `${formatBerma(report.atividades_manuais_berma)}${faixaText}`;
     report.atividades_manuais.split("\n").forEach((l) => {
       const t = l.trim();
-      if (t) lines.push(`* ${t}`);
+      if (t) lines.push(`* ${t}${location}`);
     });
   }
   
   if (report.manutencao_canteiro) {
-    lines.push(`* Manutenção de Canteiro: ${report.manutencao_canteiro}`);
+    const faixaText = report.manutencao_canteiro_faixa ? ` - ${report.manutencao_canteiro_faixa}` : "";
+    const location = `${formatBerma(report.manutencao_canteiro_berma)}${faixaText}`;
+    lines.push(`* Manutenção de Canteiro: ${report.manutencao_canteiro}${location}`);
   }
   
   if (report.irrigacao_pipas) {
