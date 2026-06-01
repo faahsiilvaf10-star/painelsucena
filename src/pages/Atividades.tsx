@@ -966,13 +966,16 @@ export default function Atividades() {
                   lines.push(`* Limpeza com Soprador - ${report.limpeza_assoprador_m2} m²${formatBerma(report.limpeza_assoprador_berma)}${formatFaixa(report.limpeza_assoprador_faixa)}`);
                 }
                 if (report.controle_invasoras_unidade && parseInt(report.controle_invasoras_unidade) > 0) {
-                  lines.push(`* Controle de Invasoras${report.controle_invasoras_nome ? ` (${report.controle_invasoras_nome})` : ""} - ${report.controle_invasoras_unidade} unidade(s)`);
+                  const faixaText = report.controle_invasoras_faixa ? ` - ${report.controle_invasoras_faixa}` : "";
+                  lines.push(`* Controle de Invasoras${report.controle_invasoras_nome ? ` (${report.controle_invasoras_nome})` : ""} - ${report.controle_invasoras_unidade} unidade(s)${formatBerma(report.controle_invasoras_berma)}${faixaText}`);
                 }
                 if (report.retirada_mudas_unidade && parseInt(report.retirada_mudas_unidade) > 0) {
-                  lines.push(`* Retirada de Mudas - ${report.retirada_mudas_unidade} unidade(s)`);
+                  const faixaText = report.retirada_mudas_faixa ? ` - ${report.retirada_mudas_faixa}` : "";
+                  lines.push(`* Retirada de Mudas - ${report.retirada_mudas_unidade} unidade(s)${formatBerma(report.retirada_mudas_berma)}${faixaText}`);
                 }
                 if (report.manutencao_canteiro) {
-                  lines.push(`* Manutenção de Canteiro: ${report.manutencao_canteiro}`);
+                  const faixaText = report.manutencao_canteiro_faixa ? ` - ${report.manutencao_canteiro_faixa}` : "";
+                  lines.push(`* Manutenção de Canteiro: ${report.manutencao_canteiro}${formatBerma(report.manutencao_canteiro_berma)}${faixaText}`);
                 }
                 return lines.length > 0 ? lines.join("\n") : "Nenhuma atividade registrada";
               }}
