@@ -423,11 +423,11 @@ export default function Desvios() {
                     className="min-h-[200px]"
                     value={formState.correction || ""}
                     onChange={(e) => setFormState({ ...formState, correction: e.target.value })}
-                    disabled={!isResponsible}
+                    disabled={!canEditCorrection}
                   />
-                  {!isResponsible && (
+                  {!canEditCorrection && (
                     <p className="text-[10px] text-muted-foreground italic">
-                      Somente o usuário responsável pode preencher este campo.
+                      Somente o usuário responsável ou administradores podem preencher este campo.
                     </p>
                   )}
                 </div>
