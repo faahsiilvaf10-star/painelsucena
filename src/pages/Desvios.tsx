@@ -576,7 +576,7 @@ export default function Desvios() {
                     placeholder="Observações adicionais..."
                     value={formState.comments || ""}
                     onChange={(e) => setFormState({ ...formState, comments: e.target.value })}
-                    disabled={!isCreator && !isAdmin}
+                    disabled={(!isCreator && !isAdmin) || (isCancelled && !isAdmin)}
                   />
                 </div>
               </CardContent>
