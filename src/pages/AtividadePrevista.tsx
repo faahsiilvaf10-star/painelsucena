@@ -81,7 +81,7 @@ export default function AtividadePrevista() {
     "Irrigação com Carretel",
   ], []);
 
-  const handleSavePlanned = async (planned: { gabiao: string[]; jardinagem: string[] }) => {
+  const handleSavePlanned = async (planned: { gabiao: string[]; jardinagem: string[] }, locks?: { gabiao?: boolean; jardinagem?: boolean }) => {
     if (!user) return;
     try {
       await saveReport.mutateAsync({
@@ -90,6 +90,8 @@ export default function AtividadePrevista() {
         weather_afternoon: existingReport?.weather_afternoon || "sol",
         report_text: existingReport?.report_text || "",
         planned_activities: planned,
+        planned_gabiao_locked: locks?.gabiao ?? existingReport?.planned_gabiao_locked,
+        planned_jardinagem_locked: locks?.jardinagem ?? existingReport?.planned_jardinagem_locked,
       });
 
       // Notify via WhatsApp
@@ -213,6 +215,10 @@ export default function AtividadePrevista() {
           gabiaoActivities={baseGabiaoActivities}
           jardinagemActivities={baseJardinagemActivities}
           initialPlanned={existingReport?.planned_activities}
+          initialLocks={{
+            gabiao: existingReport?.planned_gabiao_locked || false,
+            jardinagem: existingReport?.planned_jardinagem_locked || false
+          }}
           onSave={handleSavePlanned}
           isSaving={saveReport.isPending}
           canEdit={canEdit}

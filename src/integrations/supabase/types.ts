@@ -3622,6 +3622,8 @@ export type Database = {
           jardinagem_location: string | null
           photo_urls: string[] | null
           planned_activities: Json | null
+          planned_gabiao_locked: boolean | null
+          planned_jardinagem_locked: boolean | null
           report_date: string
           report_text: string
           temperature: number | null
@@ -3647,6 +3649,8 @@ export type Database = {
           jardinagem_location?: string | null
           photo_urls?: string[] | null
           planned_activities?: Json | null
+          planned_gabiao_locked?: boolean | null
+          planned_jardinagem_locked?: boolean | null
           report_date: string
           report_text: string
           temperature?: number | null
@@ -3672,6 +3676,8 @@ export type Database = {
           jardinagem_location?: string | null
           photo_urls?: string[] | null
           planned_activities?: Json | null
+          planned_gabiao_locked?: boolean | null
+          planned_jardinagem_locked?: boolean | null
           report_date?: string
           report_text?: string
           temperature?: number | null

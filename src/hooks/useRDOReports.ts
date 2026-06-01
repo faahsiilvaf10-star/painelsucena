@@ -23,6 +23,8 @@ export interface RDOReport {
   humidity: number | null;
   temperature_captured_at: string | null;
   planned_activities: { gabiao: string[]; jardinagem: string[] } | null;
+  planned_gabiao_locked: boolean;
+  planned_jardinagem_locked: boolean;
   created_at: string;
   updated_at: string;
 }
@@ -46,6 +48,8 @@ export interface RDOReportInsert {
   humidity?: number | null;
   temperature_captured_at?: string | null;
   planned_activities?: { gabiao: string[]; jardinagem: string[] } | null;
+  planned_gabiao_locked?: boolean;
+  planned_jardinagem_locked?: boolean;
 }
 
 const hasText = (value: string | null | undefined): value is string =>
@@ -107,6 +111,8 @@ const mergeRDOReports = (reports: RDOReport[]): RDOReport | null => {
     ),
     dds_text: firstText(sorted.map((report) => report.dds_text), latest.dds_text),
     planned_activities: sorted.find((r) => r.planned_activities !== null)?.planned_activities ?? latest.planned_activities ?? null,
+    planned_gabiao_locked: sorted.some((r) => r.planned_gabiao_locked) || latest.planned_gabiao_locked || false,
+    planned_jardinagem_locked: sorted.some((r) => r.planned_jardinagem_locked) || latest.planned_jardinagem_locked || false,
     created_at: sorted[sorted.length - 1]?.created_at ?? latest.created_at,
   };
 };
