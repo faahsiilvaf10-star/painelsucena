@@ -489,16 +489,38 @@ export function DriverStatusButtons() {
       setInitialKm(startShiftKm);
 
       // Create daily shift record in the database
-      await createShiftRecord.mutateAsync({
-        equipment_id: selectedVehicleId,
-        equipment_name: selectedVehicle.name,
-        plate: selectedVehicle.plate,
-        driver_name: profile?.full_name || "Motorista",
-        helper_name: selectedVehicle.helper || undefined,
-        initial_horimeter: parseFloat(startShiftHorimeter),
-        initial_km: parseFloat(startShiftKm),
-        initial_fuel_level: fuelLevel,
-      });
+      if (isOnline) {
+        await createShiftRecord.mutateAsync({
+          equipment_id: selectedVehicleId,
+          equipment_name: selectedVehicle.name,
+          plate: selectedVehicle.plate,
+          driver_name: profile?.full_name || "Motorista",
+          helper_name: selectedVehicle.helper || undefined,
+          initial_horimeter: parseFloat(startShiftHorimeter),
+          initial_km: parseFloat(startShiftKm),
+          initial_fuel_level: fuelLevel,
+        });
+      } else {
+        await addPendingAction("shift_record", {
+          equipment_id: selectedVehicleId,
+          equipment_name: selectedVehicle.name,
+          plate: selectedVehicle.plate,
+          driver_name: profile?.full_name || "Motorista",
+          helper_name: selectedVehicle.helper || null,
+          shift_date: new Date().toISOString().split("T")[0],
+          shift_start_time: new Date().toISOString(),
+          initial_horimeter: parseFloat(startShiftHorimeter),
+          initial_km: parseFloat(startShiftKm),
+          initial_fuel_level: fuelLevel,
+          status_history: [
+            {
+              status: "operando",
+              timestamp: new Date().toISOString(),
+              changed_by: profile?.full_name || "Motorista",
+            },
+          ],
+        });
+      }
 
       // Entry movements are no longer registered automatically at shift start
       // Only exit movements (saída) are tracked in the movements system
