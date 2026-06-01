@@ -421,7 +421,7 @@ export default function Desvios() {
                     ))}
                   </div>
                   <Select
-                    disabled={!isCreator && isResponsible && !isAdmin}
+                    disabled={(!isCreator && isResponsible && !isAdmin) || (isCancelled && !isAdmin)}
                     onValueChange={(val) => {
                       if (!formState.tags?.includes(val)) {
                         setFormState({ ...formState, tags: [...(formState.tags || []), val] });
