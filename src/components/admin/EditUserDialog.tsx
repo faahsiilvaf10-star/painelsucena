@@ -1,4 +1,4 @@
-import { useState, useEffect } from "react";
+import { useState, useEffect, useRef } from "react";
 import {
   Dialog,
   DialogContent,
@@ -19,7 +19,9 @@ import {
 } from "@/components/ui/select";
 import { supabase } from "@/integrations/supabase/client";
 import { toast } from "sonner";
-import { Loader2 } from "lucide-react";
+import { Loader2, Camera, Upload } from "lucide-react";
+import { ImageEditor } from "@/components/settings/ImageEditor";
+import { NeonAvatar } from "@/components/ui/NeonAvatar";
 import type { Database } from "@/integrations/supabase/types";
 
 type CargoType = Database["public"]["Enums"]["cargo_type"];
@@ -67,8 +69,13 @@ export const EditUserDialog = ({
 }: EditUserDialogProps) => {
   const [fullName, setFullName] = useState("");
   const [cargo, setCargo] = useState<CargoType | "">("");
+  const [avatarUrl, setAvatarUrl] = useState<string | null>(null);
   const [isLoading, setIsLoading] = useState(false);
   const [isFetching, setIsFetching] = useState(false);
+  const [isUploadingAvatar, setIsUploadingAvatar] = useState(false);
+  const [editingImage, setEditingImage] = useState<string | null>(null);
+  const [isEditorOpen, setIsEditorOpen] = useState(false);
+  const fileInputRef = useRef<HTMLInputElement>(null);
 
   useEffect(() => {
     if (open && user) {
@@ -83,6 +90,7 @@ export const EditUserDialog = ({
           if (!error && data) {
             setFullName(data.full_name || "");
             setCargo(data.cargo || "");
+            setAvatarUrl(data.avatar_url || null);
           } else {
             setFullName(user.full_name || "");
           }
@@ -90,6 +98,58 @@ export const EditUserDialog = ({
         });
     }
   }, [open, user]);
+
+  const handleAvatarUpload = async (event: React.ChangeEvent<HTMLInputElement>) => {
+    const file = event.target.files?.[0];
+    if (!file || !user) return;
+
+    if (!file.type.startsWith("image/")) {
+      toast.error("Por favor, selecione uma imagem válida.");
+      return;
+    }
+
+    const reader = new FileReader();
+    reader.onload = () => {
+      setEditingImage(reader.result as string);
+      setIsEditorOpen(true);
+    };
+    reader.readAsDataURL(file);
+    if (event.target) event.target.value = "";
+  };
+
+  const handleSaveEditedImage = async (blob: Blob) => {
+    if (!user) return;
+    
+    setIsUploadingAvatar(true);
+    try {
+      const fileName = `${user.user_id}/avatar.jpg`;
+      const { error: uploadError } = await supabase.storage
+        .from("site-assets")
+        .upload(fileName, blob, { upsert: true });
+
+      if (uploadError) throw uploadError;
+
+      const { data: urlData } = supabase.storage
+        .from("site-assets")
+        .getPublicUrl(fileName);
+
+      const newAvatarUrl = urlData.publicUrl + "?t=" + Date.now();
+      const { error: updateError } = await supabase
+        .from("profiles")
+        .update({ avatar_url: newAvatarUrl })
+        .eq("user_id", user.user_id);
+
+      if (updateError) throw updateError;
+
+      setAvatarUrl(newAvatarUrl);
+      toast.success("Foto de perfil atualizada!");
+    } catch (error: any) {
+      toast.error("Erro ao atualizar foto: " + error.message);
+    } finally {
+      setIsUploadingAvatar(false);
+      setIsEditorOpen(false);
+    }
+  };
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -134,6 +194,45 @@ export const EditUserDialog = ({
           </div>
         ) : (
           <form onSubmit={handleSubmit} className="space-y-4">
+            <div className="flex flex-col items-center gap-4 py-2">
+              <div className="relative">
+                <NeonAvatar
+                  src={avatarUrl}
+                  name={fullName || "U"}
+                  size="lg"
+                />
+                <button
+                  type="button"
+                  onClick={() => fileInputRef.current?.click()}
+                  disabled={isUploadingAvatar}
+                  className="absolute bottom-0 right-0 w-8 h-8 bg-primary text-primary-foreground rounded-full flex items-center justify-center hover:bg-primary/90 transition-colors z-20"
+                >
+                  {isUploadingAvatar ? (
+                    <Loader2 className="w-4 h-4 animate-spin" />
+                  ) : (
+                    <Camera className="w-4 h-4" />
+                  )}
+                </button>
+              </div>
+              <input
+                ref={fileInputRef}
+                type="file"
+                accept="image/*"
+                onChange={handleAvatarUpload}
+                className="hidden"
+              />
+              <Button
+                type="button"
+                variant="outline"
+                size="sm"
+                onClick={() => fileInputRef.current?.click()}
+                disabled={isUploadingAvatar}
+              >
+                <Upload className="w-4 h-4 mr-2" />
+                {isUploadingAvatar ? "Enviando..." : "Alterar Foto"}
+              </Button>
+            </div>
+
             <div className="space-y-2">
               <Label htmlFor="fullName">Nome Completo</Label>
               <Input
@@ -184,6 +283,14 @@ export const EditUserDialog = ({
               </Button>
             </DialogFooter>
           </form>
+        )}
+        {editingImage && (
+          <ImageEditor
+            image={editingImage}
+            open={isEditorOpen}
+            onOpenChange={setIsEditorOpen}
+            onSave={handleSaveEditedImage}
+          />
         )}
       </DialogContent>
     </Dialog>

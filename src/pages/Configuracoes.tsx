@@ -18,6 +18,7 @@ import { z } from "zod";
 import { AnnouncementHistory } from "@/components/settings/AnnouncementHistory";
 import { NeonFramePicker } from "@/components/settings/NeonFramePicker";
 import { GifAvatarCreator } from "@/components/settings/GifAvatarCreator";
+import { ImageEditor } from "@/components/settings/ImageEditor";
 // SidebarCustomizer removido — sidebar é global e padrão
 import { NeonAvatar } from "@/components/ui/NeonAvatar";
 import { SessionDurationSetting } from "@/components/settings/SessionDurationSetting";
@@ -67,6 +68,8 @@ const Configuracoes = () => {
   const [isUpdatingEmail, setIsUpdatingEmail] = useState(false);
   const [isUpdatingPassword, setIsUpdatingPassword] = useState(false);
   const [isUploadingAvatar, setIsUploadingAvatar] = useState(false);
+  const [editingImage, setEditingImage] = useState<string | null>(null);
+  const [isEditorOpen, setIsEditorOpen] = useState(false);
 
   // Load profile data
   useEffect(() => {
@@ -220,15 +223,30 @@ const Configuracoes = () => {
       return;
     }
 
+    const reader = new FileReader();
+    reader.onload = () => {
+      setEditingImage(reader.result as string);
+      setIsEditorOpen(true);
+    };
+    reader.readAsDataURL(file);
+    
+    // Clear input so same file can be selected again
+    if (event.target) {
+      event.target.value = "";
+    }
+  };
+
+  const handleSaveEditedImage = async (blob: Blob) => {
+    if (!user) return;
+    
     setIsUploadingAvatar(true);
     try {
-      const fileExt = file.name.split(".").pop();
-      const fileName = `${user.id}/avatar.${fileExt}`;
+      const fileName = `${user.id}/avatar.jpg`;
 
       // Upload to storage
       const { error: uploadError } = await supabase.storage
         .from("site-assets")
-        .upload(fileName, file, { upsert: true });
+        .upload(fileName, blob, { upsert: true });
 
       if (uploadError) throw uploadError;
 
@@ -249,12 +267,12 @@ const Configuracoes = () => {
 
       setAvatarUrl(newAvatarUrl);
       toast.success("Foto de perfil atualizada com sucesso!");
-      // Invalidate profile to unblock user if they had no avatar
       queryClient.invalidateQueries({ queryKey: ["profile", user.id] });
     } catch (error: any) {
       toast.error("Erro ao atualizar foto: " + error.message);
     } finally {
       setIsUploadingAvatar(false);
+      setIsEditorOpen(false);
     }
   };
 
@@ -377,6 +395,16 @@ const Configuracoes = () => {
             <GifAvatarCreator
               userId={user.id}
               onAvatarCreated={(url) => setAvatarUrl(url)}
+            />
+          )}
+
+          {/* Image Editor Dialog */}
+          {editingImage && (
+            <ImageEditor
+              image={editingImage}
+              open={isEditorOpen}
+              onOpenChange={setIsEditorOpen}
+              onSave={handleSaveEditedImage}
             />
           )}
 
