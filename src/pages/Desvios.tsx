@@ -195,15 +195,26 @@ export default function Desvios() {
     }
 
     try {
+      const isNewCorrection = 
+        selectedDesvio && 
+        isResponsible && 
+        formState.correction && 
+        formState.correction !== selectedDesvio.correction;
+
+      const finalUpdates = {
+        ...formState,
+        status: isNewCorrection ? "Aguardando Validação" : formState.status
+      };
+
       if (selectedDesvio) {
         await updateDesvio.mutateAsync({
           id: selectedDesvio.id,
-          updates: formState,
-          action: "Edição",
-          comment: send ? "Desvio salvo e enviado" : "Desvio atualizado",
+          updates: finalUpdates,
+          action: isNewCorrection ? "Correção" : "Edição",
+          comment: isNewCorrection ? "Correção realizada pelo responsável" : (send ? "Desvio salvo e enviado" : "Desvio atualizado"),
         });
       } else {
-        await createDesvio.mutateAsync(formState);
+        await createDesvio.mutateAsync(finalUpdates);
       }
       resetForm();
     } catch (error) {
