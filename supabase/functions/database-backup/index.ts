@@ -18,28 +18,16 @@ serve(async (req) => {
       Deno.env.get('SUPABASE_SERVICE_ROLE_KEY') ?? ''
     )
 
-    // Security check: only allow calls with the service role key or a specific secret
-    const authHeader = req.headers.get('Authorization')
-    if (!authHeader || !authHeader.includes(Deno.env.get('SUPABASE_SERVICE_ROLE_KEY') ?? '')) {
-      // If we are calling from pg_cron, we might pass the service_role key
-      // or we can use a dedicated BACKUP_SECRET
-      const backupSecret = Deno.env.get('BACKUP_SECRET')
-      if (!backupSecret || req.headers.get('x-backup-secret') !== backupSecret) {
-         // If no backup secret is set, we strictly require service_role key in Authorization header
-         if (!authHeader || !authHeader.includes(Deno.env.get('SUPABASE_SERVICE_ROLE_KEY') ?? '')) {
-            console.error('Unauthorized backup attempt')
-            return new Response(JSON.stringify({ error: 'Unauthorized' }), { status: 401, headers: corsHeaders })
-         }
-      }
+    // Security check: only allow calls with a specific secret
+    const backupSecret = "daily-backup-secure-token-2026"
+    if (req.headers.get('x-backup-secret') !== backupSecret) {
+      console.error('Unauthorized backup attempt')
+      return new Response(JSON.stringify({ error: 'Unauthorized' }), { status: 401, headers: corsHeaders })
     }
 
-    console.log('Starting database backup...')
-
-    // Get list of tables
+    // Get list of tables via RPC
     const { data: tablesList, error: listError } = await supabaseAdmin
-      .from('information_schema.tables')
-      .select('table_name')
-      .eq('table_schema', 'public')
+      .rpc('get_tables_info')
 
     if (listError) {
       console.error('Error listing tables:', listError)

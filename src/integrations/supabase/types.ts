@@ -4974,6 +4974,12 @@ export type Database = {
         }
         Returns: undefined
       }
+      get_tables_info: {
+        Args: never
+        Returns: {
+          table_name: string
+        }[]
+      }
       has_environment_access: {
         Args: { _environment: string; _user_id: string }
         Returns: boolean
