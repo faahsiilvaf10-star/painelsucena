@@ -27,7 +27,7 @@ interface PlannedActivitiesTabProps {
   jardinagemActivities: string[];
   initialPlanned?: { gabiao: string[]; jardinagem: string[] } | null;
   initialLocks?: { gabiao: boolean; jardinagem: boolean };
-  onSave: (planned: { gabiao: string[]; jardinagem: string[] }, locks?: { gabiao?: boolean; jardinagem?: boolean }) => Promise<void>;
+  onSave: (planned: { gabiao: string[]; jardinagem: string[] }, locks?: { gabiao?: boolean; jardinagem?: boolean }, area?: "gabiao" | "jardinagem") => Promise<void>;
   isSaving?: boolean;
   canEdit?: boolean;
   isAdmin?: boolean;
