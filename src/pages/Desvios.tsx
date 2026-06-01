@@ -282,7 +282,7 @@ export default function Desvios() {
             </div>
           </div>
 
-          <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
+          <div className="grid grid-cols-1 md:grid-cols-4 gap-6">
             {/* Coluna 1: Problema / Assunto */}
             <Card>
               <CardHeader>
