@@ -319,9 +319,14 @@ export default function Atividades() {
       setLimpezaAssopradorBerma(existingReport.limpeza_assoprador_berma?.toString() || "");
       setLimpezaAssopradorFaixa(existingReport.limpeza_assoprador_faixa || "");
       setManutencaoCanteiro(existingReport.manutencao_canteiro || "");
+      setManutencaoCanteiroFaixa(existingReport.manutencao_canteiro_faixa || "");
+      setManutencaoCanteiroBerma(existingReport.manutencao_canteiro_berma?.toString() || "");
       setInvasoras(parseInvasorasFromStorage(existingReport.controle_invasoras_nome, existingReport.controle_invasoras_unidade));
       setInvasorasBerma(existingReport.controle_invasoras_berma?.toString() || "");
+      setInvasorasFaixa(existingReport.controle_invasoras_faixa || "");
       setRetiradaMudasUnidade(existingReport.retirada_mudas_unidade?.toString() || "");
+      setRetiradaMudasFaixa(existingReport.retirada_mudas_faixa || "");
+      setRetiradaMudasBerma(existingReport.retirada_mudas_berma?.toString() || "");
       // Irrigation fields
       setIrrigacaoPipas(existingReport.irrigacao_pipas || false);
       setIrrigacaoCarretel(existingReport.irrigacao_carretel || false);
