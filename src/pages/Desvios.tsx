@@ -171,6 +171,7 @@ export default function Desvios() {
     setFormState({
       description: "",
       instruction: "",
+      correction: "",
       tags: [],
       priority: "Baixo",
       responsible_name: "",
