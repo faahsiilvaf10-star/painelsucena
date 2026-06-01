@@ -81,7 +81,7 @@ export default function AtividadePrevista() {
     "Irrigação com Carretel",
   ], []);
 
-  const handleSavePlanned = async (planned: { gabiao: string[]; jardinagem: string[] }, locks?: { gabiao?: boolean; jardinagem?: boolean }) => {
+  const handleSavePlanned = async (planned: { gabiao: string[]; jardinagem: string[] }, locks?: { gabiao?: boolean; jardinagem?: boolean }, area?: "gabiao" | "jardinagem") => {
     if (!user) return;
     try {
       await saveReport.mutateAsync({
@@ -97,7 +97,7 @@ export default function AtividadePrevista() {
       // Notify via WhatsApp
       try {
         const { data, error: invokeError } = await supabase.functions.invoke("wapi-planned-activities-notify", {
-          body: { planned, date: selectedDateStr },
+          body: { planned, date: selectedDateStr, area },
         });
         
         if (invokeError) throw invokeError;

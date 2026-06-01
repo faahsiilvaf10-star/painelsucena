@@ -27,7 +27,7 @@ interface PlannedActivitiesTabProps {
   jardinagemActivities: string[];
   initialPlanned?: { gabiao: string[]; jardinagem: string[] } | null;
   initialLocks?: { gabiao: boolean; jardinagem: boolean };
-  onSave: (planned: { gabiao: string[]; jardinagem: string[] }, locks?: { gabiao?: boolean; jardinagem?: boolean }) => Promise<void>;
+  onSave: (planned: { gabiao: string[]; jardinagem: string[] }, locks?: { gabiao?: boolean; jardinagem?: boolean }, area?: "gabiao" | "jardinagem") => Promise<void>;
   isSaving?: boolean;
   canEdit?: boolean;
   isAdmin?: boolean;
@@ -106,12 +106,12 @@ export function PlannedActivitiesTab({
   };
 
   const handleConfirmSaveGabiao = async () => {
-    await onSave({ gabiao: plannedGabiao, jardinagem: plannedJardinagem }, { gabiao: true });
+    await onSave({ gabiao: plannedGabiao, jardinagem: plannedJardinagem }, { gabiao: true }, "gabiao");
     setShowConfirmGabiao(false);
   };
 
   const handleConfirmSaveJardinagem = async () => {
-    await onSave({ gabiao: plannedGabiao, jardinagem: plannedJardinagem }, { jardinagem: true });
+    await onSave({ gabiao: plannedGabiao, jardinagem: plannedJardinagem }, { jardinagem: true }, "jardinagem");
     setShowConfirmJardinagem(false);
   };
 
