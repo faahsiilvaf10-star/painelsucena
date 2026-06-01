@@ -483,7 +483,7 @@ export default function Desvios() {
                   <label className="text-sm font-medium">Pessoa Responsável</label>
                   <Popover>
                     <PopoverTrigger asChild>
-                      <Button variant="outline" className="w-full justify-between font-normal" disabled={!isCreator && isResponsible && !isAdmin}>
+                      <Button variant="outline" className="w-full justify-between font-normal" disabled={(!isCreator && isResponsible && !isAdmin) || (isCancelled && !isAdmin)}>
                         {formState.responsible_name || "Selecionar usuário..."}
                         <Search className="w-4 h-4 opacity-50" />
                       </Button>
