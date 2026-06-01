@@ -459,14 +459,17 @@ export function DriverStatusButtons() {
       // register Fim de Turno first.
       try {
         const today = new Date().toISOString().split("T")[0];
-        const { data: openShift } = await (supabase as any)
+        const { data: openShift, error: shiftError } = await (supabase as any)
           .from("daily_shift_records")
           .select("id")
           .eq("equipment_id", selectedVehicleId)
           .eq("shift_date", today)
           .is("shift_end_time", null)
           .maybeSingle();
-        if (openShift?.id) {
+        
+        if (shiftError) {
+          console.warn("Error checking for open shift:", shiftError);
+        } else if (openShift?.id) {
           toast.error("Turno já iniciado hoje. Registre Fim de Turno antes de iniciar novamente.");
           setShowStartShiftDialog(false);
           setIsUpdating(false);
