@@ -51,6 +51,8 @@ export interface JardinagemReport {
   plantio_grama_faixa: string | null;
   plantio_grama_berma: number | null;
   atividades_manuais: string | null;
+  atividades_manuais_berma: number | null;
+  atividades_manuais_faixa: string | null;
   photo_urls: string[] | null;
   extra_entries: Record<string, { value: string; faixa: string; berma: string }[]> | null;
   created_at: string;
