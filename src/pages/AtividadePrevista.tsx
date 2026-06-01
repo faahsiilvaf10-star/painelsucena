@@ -94,11 +94,20 @@ export default function AtividadePrevista() {
 
       // Notify via WhatsApp
       try {
-        await supabase.functions.invoke("wapi-planned-activities-notify", {
+        const { data, error: invokeError } = await supabase.functions.invoke("wapi-planned-activities-notify", {
           body: { planned, date: selectedDateStr },
         });
+        
+        if (invokeError) throw invokeError;
+        
+        if (data?.skipped) {
+          console.log("WhatsApp skipped:", data.reason);
+        } else {
+          toast.success("Notificação enviada para o WhatsApp!");
+        }
       } catch (notifyErr) {
         console.error("Erro ao enviar notificação WhatsApp:", notifyErr);
+        toast.error("Atividades salvas, mas houve um erro no envio do WhatsApp.");
       }
 
       toast.success("Atividades previstas salvas!");

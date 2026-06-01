@@ -13,3 +13,6 @@ verify_jwt = false
 verify_jwt = false
 
 
+[functions.wapi-planned-activities-notify]
+verify_jwt = false
+
