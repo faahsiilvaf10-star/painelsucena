@@ -22,6 +22,7 @@ import { PlannedActivitiesTab } from "@/components/rdo/PlannedActivitiesTab";
 import { ReadOnlyBanner } from "@/components/ReadOnlyBanner";
 import { cn } from "@/lib/utils";
 import { parseISO } from "date-fns";
+import { supabase } from "@/integrations/supabase/client";
 
 export default function AtividadePrevista() {
   const { user } = useAuth();
