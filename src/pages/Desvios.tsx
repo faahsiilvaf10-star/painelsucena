@@ -145,7 +145,7 @@ export default function Desvios() {
   const availableStatuses = useMemo(() => {
     if (isCreator || isAdmin) return STATUS_OPTIONS;
     if (isResponsible) {
-      return STATUS_OPTIONS.filter(opt => ["Em Tratamento", "Aguardando Validação"].includes(opt.id));
+      return STATUS_OPTIONS.filter(opt => ["Em Tratamento", "Concluído"].includes(opt.id));
     }
     return [];
   }, [isCreator, isResponsible]);
