@@ -525,14 +525,23 @@ export function DriverStatusButtons() {
 
       // Limpa qualquer status anterior — fica em branco até motorista clicar em "Operar"
       localStorage.removeItem(`operating_activated_${selectedVehicleId}`);
-      await updateStatus.mutateAsync({
-        id: selectedVehicleId,
-        stop_reason: null as any,
-        stop_start_time: null,
-        previousStopReason: currentStatus as any,
-        previousStopStartTime: selectedVehicle.stop_start_time,
-        changed_by_driver: profile?.full_name || null,
-      });
+      
+      if (isOnline) {
+        await updateStatus.mutateAsync({
+          id: selectedVehicleId,
+          stop_reason: null as any,
+          stop_start_time: null,
+          previousStopReason: currentStatus as any,
+          previousStopStartTime: selectedVehicle.stop_start_time,
+          changed_by_driver: profile?.full_name || null,
+        });
+      } else {
+        await addPendingAction("equipment_status", {
+          id: selectedVehicleId,
+          stop_reason: null,
+          stop_start_time: null,
+        });
+      }
 
       setShowStartShiftDialog(false);
       toast.success(`Turno iniciado! Horímetro: ${startShiftHorimeter} | KM: ${startShiftKm}`);
