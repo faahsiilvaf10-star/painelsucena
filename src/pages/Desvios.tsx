@@ -340,7 +340,7 @@ export default function Desvios() {
                     className="min-h-[200px]"
                     value={formState.description}
                     onChange={(e) => setFormState({ ...formState, description: e.target.value })}
-                    disabled={!isCreator && isResponsible}
+                    disabled={!isCreator && isResponsible && !isAdmin}
                   />
                 </div>
                 <div className="space-y-2">
@@ -399,7 +399,7 @@ export default function Desvios() {
                     className="min-h-[200px]"
                     value={formState.instruction || ""}
                     onChange={(e) => setFormState({ ...formState, instruction: e.target.value })}
-                    disabled={!isCreator && !isResponsible}
+                    disabled={!isCreator && !isResponsible && !isAdmin}
                   />
                 </div>
                 <div className="space-y-2">
@@ -416,7 +416,7 @@ export default function Desvios() {
                     ))}
                   </div>
                   <Select
-                    disabled={!isCreator && isResponsible}
+                    disabled={!isCreator && isResponsible && !isAdmin}
                     onValueChange={(val) => {
                       if (!formState.tags?.includes(val)) {
                         setFormState({ ...formState, tags: [...(formState.tags || []), val] });
@@ -532,7 +532,7 @@ export default function Desvios() {
                         key={opt.id}
                         type="button"
                         variant={formState.priority === opt.id ? "default" : "outline"}
-                        disabled={!isCreator && isResponsible}
+                        disabled={!isCreator && isResponsible && !isAdmin}
                         className={cn(
                           "w-full text-xs h-8",
                           formState.priority === opt.id && opt.color
@@ -549,7 +549,7 @@ export default function Desvios() {
                   <label className="text-sm font-medium">Data Limite</label>
                   <Popover>
                     <PopoverTrigger asChild>
-                      <Button variant="outline" className="w-full justify-start text-left font-normal" disabled={!isCreator && isResponsible}>
+                      <Button variant="outline" className="w-full justify-start text-left font-normal" disabled={!isCreator && isResponsible && !isAdmin}>
                         <CalendarIcon className="mr-2 h-4 w-4" />
                         {formState.due_date ? format(new Date(formState.due_date), "dd/MM/yyyy") : "Selecionar data"}
                       </Button>
