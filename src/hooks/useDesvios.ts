@@ -12,6 +12,19 @@ export interface DesvioItem {
   correction_observation: string | null;
 }
 
+export interface DesvioAttachment {
+  name: string;
+  url: string;
+  type: string;
+}
+
+export interface DesvioHistoryEvent {
+  date: string;
+  user: string;
+  action: string;
+  comment: string;
+}
+
 export interface Desvio {
   id: string;
   description: string;
@@ -28,6 +41,15 @@ export interface Desvio {
   created_by_name: string;
   created_at: string;
   updated_at: string;
+  instruction: string | null;
+  tags: string[];
+  priority: string | null;
+  responsible_name: string | null;
+  responsible_company: string | null;
+  responsible_sector: string | null;
+  comments: string | null;
+  history: DesvioHistoryEvent[];
+  attachments: DesvioAttachment[];
 }
 
 export function useDesvios() {
