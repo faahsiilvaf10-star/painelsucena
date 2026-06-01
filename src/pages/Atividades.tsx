@@ -1577,11 +1577,11 @@ export default function Atividades() {
                   ))}
                   {invasoras.some(i => i.unidade && parseInt(i.unidade) > 0) && (
                     invasoras.filter(i => i.unidade && parseInt(i.unidade) > 0).map((inv, idx) => (
-                      <p key={idx}>* Controle de Invasoras{inv.nome ? ` (${inv.nome})` : ""} - {inv.unidade} unidade(s){invasorasBerma && ` (Berma ${invasorasBerma})`}</p>
+                      <p key={idx}>* Controle de Invasoras{inv.nome ? ` (${inv.nome})` : ""} - {inv.unidade} unidade(s){invasorasBerma && ` (Berma ${invasorasBerma})`}{invasorasFaixa && ` - ${invasorasFaixa}`}</p>
                     ))
                   )}
                   {retiradaMudasUnidade && parseInt(retiradaMudasUnidade) > 0 && (
-                    <p>* Retirada de Mudas (Árvores) - {retiradaMudasUnidade} unidade(s)</p>
+                    <p>* Retirada de Mudas (Árvores) - {retiradaMudasUnidade} unidade(s){retiradaMudasBerma && ` (Berma ${retiradaMudasBerma})`}{retiradaMudasFaixa && ` - ${retiradaMudasFaixa}`}</p>
                   )}
                   {plantioGrama && parseFloat(plantioGrama) > 0 && (
                     <p>* Plantio de Grama - {plantioGrama} m²{plantioGramaBerma && ` (Berma ${plantioGramaBerma})`}{plantioGramaFaixa && ` - ${plantioGramaFaixa}`}</p>
@@ -1591,10 +1591,11 @@ export default function Atividades() {
                   ))}
                   {atividadesManuais && atividadesManuais.split("\n").map((l, i) => {
                     const t = l.trim();
-                    return t ? <p key={`atvman-${i}`}>* {t}</p> : null;
+                    const location = (atividadesManuaisBerma || atividadesManuaisFaixa) ? ` (${atividadesManuaisBerma ? `Berma ${atividadesManuaisBerma}` : ""}${atividadesManuaisFaixa ? ` - ${atividadesManuaisFaixa}` : ""})` : "";
+                    return t ? <p key={`atvman-${i}`}>* {t}{location}</p> : null;
                   })}
                   {manutencaoCanteiro && (
-                    <p>* Manutenção de Canteiro: {manutencaoCanteiro}</p>
+                    <p>* Manutenção de Canteiro: {manutencaoCanteiro}{(manutencaoCanteiroBerma || manutencaoCanteiroFaixa) ? ` (${manutencaoCanteiroBerma ? `Berma ${manutencaoCanteiroBerma}` : ""}${manutencaoCanteiroFaixa ? ` - ${manutencaoCanteiroFaixa}` : ""})` : ""}</p>
                   )}
                   {irrigacaoPipas && (
                     <p>* Irrigação com Pipas nas Faixas 3 e 4 e Mirante</p>
