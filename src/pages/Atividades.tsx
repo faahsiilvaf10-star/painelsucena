@@ -162,7 +162,14 @@ export default function Atividades() {
   const [manutencaoCanteiro, setManutencaoCanteiro] = useState("");
   const [invasoras, setInvasoras] = useState<InvasoraEntry[]>([{ nome: "", unidade: "" }]);
   const [invasorasBerma, setInvasorasBerma] = useState("");
+  const [invasorasFaixa, setInvasorasFaixa] = useState("");
   const [retiradaMudasUnidade, setRetiradaMudasUnidade] = useState("");
+  const [retiradaMudasFaixa, setRetiradaMudasFaixa] = useState("");
+  const [retiradaMudasBerma, setRetiradaMudasBerma] = useState("");
+  const [manutencaoCanteiroFaixa, setManutencaoCanteiroFaixa] = useState("");
+  const [manutencaoCanteiroBerma, setManutencaoCanteiroBerma] = useState("");
+  const [atividadesManuaisFaixa, setAtividadesManuaisFaixa] = useState("");
+  const [atividadesManuaisBerma, setAtividadesManuaisBerma] = useState("");
   
   // Plantio de Grama state
   const [plantioGrama, setPlantioGrama] = useState("");
@@ -312,9 +319,14 @@ export default function Atividades() {
       setLimpezaAssopradorBerma(existingReport.limpeza_assoprador_berma?.toString() || "");
       setLimpezaAssopradorFaixa(existingReport.limpeza_assoprador_faixa || "");
       setManutencaoCanteiro(existingReport.manutencao_canteiro || "");
+      setManutencaoCanteiroFaixa(existingReport.manutencao_canteiro_faixa || "");
+      setManutencaoCanteiroBerma(existingReport.manutencao_canteiro_berma?.toString() || "");
       setInvasoras(parseInvasorasFromStorage(existingReport.controle_invasoras_nome, existingReport.controle_invasoras_unidade));
       setInvasorasBerma(existingReport.controle_invasoras_berma?.toString() || "");
+      setInvasorasFaixa(existingReport.controle_invasoras_faixa || "");
       setRetiradaMudasUnidade(existingReport.retirada_mudas_unidade?.toString() || "");
+      setRetiradaMudasFaixa(existingReport.retirada_mudas_faixa || "");
+      setRetiradaMudasBerma(existingReport.retirada_mudas_berma?.toString() || "");
       // Irrigation fields
       setIrrigacaoPipas(existingReport.irrigacao_pipas || false);
       setIrrigacaoCarretel(existingReport.irrigacao_carretel || false);
@@ -324,6 +336,8 @@ export default function Atividades() {
       setPlantioGramaFaixa(existingReport.plantio_grama_faixa || "");
       setPlantioGramaBerma(existingReport.plantio_grama_berma?.toString() || "");
       setAtividadesManuais(existingReport.atividades_manuais || "");
+      setAtividadesManuaisFaixa(existingReport.atividades_manuais_faixa || "");
+      setAtividadesManuaisBerma(existingReport.atividades_manuais_berma?.toString() || "");
       setPhotos(existingReport.photo_urls || []);
       setExtraEntries(
         (existingReport.extra_entries as Record<string, ActivityEntry[]>) || {}
@@ -354,9 +368,14 @@ export default function Atividades() {
       setLimpezaAssopradorBerma("");
       setLimpezaAssopradorFaixa("");
       setManutencaoCanteiro("");
+      setManutencaoCanteiroFaixa("");
+      setManutencaoCanteiroBerma("");
       setInvasoras([{ nome: "", unidade: "" }]);
       setInvasorasBerma("");
+      setInvasorasFaixa("");
       setRetiradaMudasUnidade("");
+      setRetiradaMudasFaixa("");
+      setRetiradaMudasBerma("");
       // Reset irrigation fields
       setIrrigacaoPipas(false);
       setIrrigacaoCarretel(false);
@@ -366,6 +385,8 @@ export default function Atividades() {
       setPlantioGramaFaixa("");
       setPlantioGramaBerma("");
       setAtividadesManuais("");
+      setAtividadesManuaisFaixa("");
+      setAtividadesManuaisBerma("");
       setPhotos([]);
       setExtraEntries({});
     }
@@ -443,10 +464,15 @@ export default function Atividades() {
         limpeza_assoprador_berma: limpezaAssopradorBerma ? parseInt(limpezaAssopradorBerma) : null,
         limpeza_assoprador_faixa: limpezaAssopradorFaixa || null,
         manutencao_canteiro: manutencaoCanteiro || null,
+        manutencao_canteiro_faixa: manutencaoCanteiroFaixa || null,
+        manutencao_canteiro_berma: manutencaoCanteiroBerma ? parseInt(manutencaoCanteiroBerma) : null,
         controle_invasoras_unidade: invasorasData.unidade,
         controle_invasoras_nome: invasorasData.nome,
         controle_invasoras_berma: invasorasBerma ? parseInt(invasorasBerma) : null,
+        controle_invasoras_faixa: invasorasFaixa || null,
         retirada_mudas_unidade: retiradaMudasUnidade ? parseInt(retiradaMudasUnidade) : null,
+        retirada_mudas_faixa: retiradaMudasFaixa || null,
+        retirada_mudas_berma: retiradaMudasBerma ? parseInt(retiradaMudasBerma) : null,
         irrigacao_pipas: irrigacaoPipas,
         irrigacao_carretel: irrigacaoCarretel,
         irrigacao_carretel_bermas: irrigacaoCarretel && irrigacaoCarretelBermas.length > 0 ? irrigacaoCarretelBermas : null,
@@ -454,6 +480,8 @@ export default function Atividades() {
         plantio_grama_faixa: plantioGramaFaixa || null,
         plantio_grama_berma: plantioGramaBerma ? parseInt(plantioGramaBerma) : null,
         atividades_manuais: atividadesManuais || null,
+        atividades_manuais_faixa: atividadesManuaisFaixa || null,
+        atividades_manuais_berma: atividadesManuaisBerma ? parseInt(atividadesManuaisBerma) : null,
         photo_urls: photos.length > 0 ? photos : null,
         extra_entries: Object.keys(extraEntries).length > 0 ? extraEntries : null,
       });
@@ -594,11 +622,20 @@ export default function Atividades() {
     const filteredInvasoras = invasoras.filter(i => i.unidade && parseInt(i.unidade) > 0);
     filteredInvasoras.forEach(inv => {
       const nomeText = inv.nome ? ` (${inv.nome})` : "";
-      lines.push(`* Controle de Invasoras${nomeText} - ${inv.unidade} unidade(s)${formatBerma(invasorasBerma)}`);
+      const faixaText = invasorasFaixa ? ` - ${invasorasFaixa}` : "";
+      lines.push(`* Controle de Invasoras${nomeText} - ${inv.unidade} unidade(s)${formatBerma(invasorasBerma)}${faixaText}`);
     });
     
-    if (retiradaMudasUnidade && parseInt(retiradaMudasUnidade) > 0) lines.push(`* Retirada de Mudas (Árvores) - ${retiradaMudasUnidade} unidade(s)`);
-    if (manutencaoCanteiro && manutencaoCanteiro.trim()) lines.push(`* Manutenção de Canteiro: ${manutencaoCanteiro}`);
+    if (retiradaMudasUnidade && parseInt(retiradaMudasUnidade) > 0) {
+      const faixaText = retiradaMudasFaixa ? ` - ${retiradaMudasFaixa}` : "";
+      const bermaText = retiradaMudasBerma ? ` (Berma ${retiradaMudasBerma})` : "";
+      lines.push(`* Retirada de Mudas (Árvores) - ${retiradaMudasUnidade} unidade(s)${bermaText}${faixaText}`);
+    }
+    if (manutencaoCanteiro && manutencaoCanteiro.trim()) {
+      const faixaText = manutencaoCanteiroFaixa ? ` - ${manutencaoCanteiroFaixa}` : "";
+      const bermaText = manutencaoCanteiroBerma ? ` (Berma ${manutencaoCanteiroBerma})` : "";
+      lines.push(`* Manutenção de Canteiro: ${manutencaoCanteiro}${bermaText}${faixaText}`);
+    }
     if (plantioGrama && parseFloat(plantioGrama) > 0) {
       const faixaText = plantioGramaFaixa ? ` - ${plantioGramaFaixa}` : "";
       const bermaText = plantioGramaBerma ? ` (Berma ${plantioGramaBerma})` : "";
@@ -607,9 +644,11 @@ export default function Atividades() {
     appendExtras("plantioGrama", "Plantio de Grama", "m²");
 
     if (atividadesManuais && atividadesManuais.trim()) {
+      const faixaText = atividadesManuaisFaixa ? ` - ${atividadesManuaisFaixa}` : "";
+      const bermaText = atividadesManuaisBerma ? ` (Berma ${atividadesManuaisBerma})` : "";
       atividadesManuais.split("\n").forEach((l) => {
         const t = l.trim();
-        if (t) lines.push(`* ${t}`);
+        if (t) lines.push(`* ${t}${bermaText}${faixaText}`);
       });
     }
     if (irrigacaoPipas) lines.push(`* Irrigação com Pipas nas Faixas 3 e 4 e Mirante`);
@@ -730,11 +769,11 @@ export default function Atividades() {
       setPlantio(""); setPlantioBerma(""); setPlantioFaixa("");
       setLimpezaManual(""); setLimpezaManualBerma(""); setLimpezaManualFaixa("");
       setLimpezaAssoprador(""); setLimpezaAssopradorBerma(""); setLimpezaAssopradorFaixa("");
-      setManutencaoCanteiro("");
-      setInvasoras([{ nome: "", unidade: "" }]); setInvasorasBerma("");
-      setRetiradaMudasUnidade("");
+      setManutencaoCanteiro(""); setManutencaoCanteiroFaixa(""); setManutencaoCanteiroBerma("");
+      setInvasoras([{ nome: "", unidade: "" }]); setInvasorasBerma(""); setInvasorasFaixa("");
+      setRetiradaMudasUnidade(""); setRetiradaMudasFaixa(""); setRetiradaMudasBerma("");
       setPlantioGrama(""); setPlantioGramaFaixa(""); setPlantioGramaBerma("");
-      setAtividadesManuais("");
+      setAtividadesManuais(""); setAtividadesManuaisFaixa(""); setAtividadesManuaisBerma("");
       setIrrigacaoPipas(false);
       setIrrigacaoCarretel(false);
       setIrrigacaoCarretelBermas([]);
@@ -927,13 +966,16 @@ export default function Atividades() {
                   lines.push(`* Limpeza com Soprador - ${report.limpeza_assoprador_m2} m²${formatBerma(report.limpeza_assoprador_berma)}${formatFaixa(report.limpeza_assoprador_faixa)}`);
                 }
                 if (report.controle_invasoras_unidade && parseInt(report.controle_invasoras_unidade) > 0) {
-                  lines.push(`* Controle de Invasoras${report.controle_invasoras_nome ? ` (${report.controle_invasoras_nome})` : ""} - ${report.controle_invasoras_unidade} unidade(s)`);
+                  const faixaText = report.controle_invasoras_faixa ? ` - ${report.controle_invasoras_faixa}` : "";
+                  lines.push(`* Controle de Invasoras${report.controle_invasoras_nome ? ` (${report.controle_invasoras_nome})` : ""} - ${report.controle_invasoras_unidade} unidade(s)${formatBerma(report.controle_invasoras_berma)}${faixaText}`);
                 }
                 if (report.retirada_mudas_unidade && parseInt(report.retirada_mudas_unidade) > 0) {
-                  lines.push(`* Retirada de Mudas - ${report.retirada_mudas_unidade} unidade(s)`);
+                  const faixaText = report.retirada_mudas_faixa ? ` - ${report.retirada_mudas_faixa}` : "";
+                  lines.push(`* Retirada de Mudas - ${report.retirada_mudas_unidade} unidade(s)${formatBerma(report.retirada_mudas_berma)}${faixaText}`);
                 }
                 if (report.manutencao_canteiro) {
-                  lines.push(`* Manutenção de Canteiro: ${report.manutencao_canteiro}`);
+                  const faixaText = report.manutencao_canteiro_faixa ? ` - ${report.manutencao_canteiro_faixa}` : "";
+                  lines.push(`* Manutenção de Canteiro: ${report.manutencao_canteiro}${formatBerma(report.manutencao_canteiro_berma)}${faixaText}`);
                 }
                 return lines.length > 0 ? lines.join("\n") : "Nenhuma atividade registrada";
               }}
@@ -1200,18 +1242,29 @@ export default function Atividades() {
               <div className="space-y-3 p-3 rounded-lg bg-muted/30">
                 <div className="flex flex-col md:flex-row md:items-center justify-between gap-3">
                   <Label className="text-base font-semibold">🌿 CONTROLE DE INVASORAS</Label>
-                  <div className="flex items-center gap-3">
+                  <div className="flex flex-wrap items-center gap-3">
+                    <div className="flex items-center gap-2">
+                      <Label className="text-sm text-muted-foreground">Faixa:</Label>
+                      <Select value={invasorasFaixa} onValueChange={setInvasorasFaixa}>
+                        <SelectTrigger className="w-[120px]">
+                          <SelectValue placeholder="Faixa" />
+                        </SelectTrigger>
+                        <SelectContent>
+                          {FAIXA_OPTIONS.map((opt) => (
+                            <SelectItem key={opt.value} value={opt.value}>{opt.label}</SelectItem>
+                          ))}
+                        </SelectContent>
+                      </Select>
+                    </div>
                     <div className="flex items-center gap-2">
                       <Label className="text-sm text-muted-foreground">Berma:</Label>
                       <Select value={invasorasBerma} onValueChange={setInvasorasBerma}>
-                        <SelectTrigger className="w-[140px]">
-                          <SelectValue placeholder="Selecione" />
+                        <SelectTrigger className="w-[120px]">
+                          <SelectValue placeholder="Berma" />
                         </SelectTrigger>
                         <SelectContent>
                           {BERMA_OPTIONS.map((opt) => (
-                            <SelectItem key={opt.value} value={opt.value}>
-                              {opt.label}
-                            </SelectItem>
+                            <SelectItem key={opt.value} value={opt.value}>{opt.label}</SelectItem>
                           ))}
                         </SelectContent>
                       </Select>
@@ -1277,15 +1330,26 @@ export default function Atividades() {
                 ))}
               </div>
 
-              <div className="space-y-2">
-                <Label>RETIRADA DE MUDAS - ÁRVORES (Unidade)</Label>
-                <Input
-                  type="number"
-                  min="0"
-                  value={retiradaMudasUnidade}
-                  onChange={(e) => setRetiradaMudasUnidade(e.target.value)}
-                  placeholder="0"
-                />
+              {/* Retirada de Mudas */}
+              <div className="p-3 rounded-lg bg-muted/30 space-y-2">
+                <Label className="font-semibold">🌳 RETIRADA DE MUDAS - ÁRVORES (Unidade)</Label>
+                <div className="grid grid-cols-1 md:grid-cols-[1fr_140px_140px] gap-3">
+                  <Input
+                    type="number"
+                    min="0"
+                    value={retiradaMudasUnidade}
+                    onChange={(e) => setRetiradaMudasUnidade(e.target.value)}
+                    placeholder="0"
+                  />
+                  <Select value={retiradaMudasFaixa} onValueChange={setRetiradaMudasFaixa}>
+                    <SelectTrigger><SelectValue placeholder="Faixa" /></SelectTrigger>
+                    <SelectContent>{FAIXA_OPTIONS.map((opt) => (<SelectItem key={opt.value} value={opt.value}>{opt.label}</SelectItem>))}</SelectContent>
+                  </Select>
+                  <Select value={retiradaMudasBerma} onValueChange={setRetiradaMudasBerma}>
+                    <SelectTrigger><SelectValue placeholder="Berma" /></SelectTrigger>
+                    <SelectContent>{BERMA_OPTIONS.map((opt) => (<SelectItem key={opt.value} value={opt.value}>{opt.label}</SelectItem>))}</SelectContent>
+                  </Select>
+                </div>
               </div>
 
               {/* Plantio de Grama */}
@@ -1304,13 +1368,23 @@ export default function Atividades() {
 
               {/* Atividades Manuais */}
               <div className="space-y-2 p-3 rounded-lg bg-amber-500/10 border border-amber-500/20">
-                <div className="flex items-center justify-between">
-                  <Label className="text-amber-600 dark:text-amber-400">✏️ OUTRAS ATIVIDADES (Preenchimento Manual)</Label>
-                  <AIImproveButton
-                    text={atividadesManuais}
-                    onImproved={setAtividadesManuais}
-                    disabled={!canEdit}
-                  />
+                <div className="flex flex-col md:flex-row md:items-center justify-between gap-3 mb-2">
+                  <Label className="text-amber-600 dark:text-amber-400 font-semibold">✏️ OUTRAS ATIVIDADES (Preenchimento Manual)</Label>
+                  <div className="flex flex-wrap items-center gap-2">
+                    <Select value={atividadesManuaisFaixa} onValueChange={setAtividadesManuaisFaixa}>
+                      <SelectTrigger className="w-[120px] h-8 text-xs"><SelectValue placeholder="Faixa" /></SelectTrigger>
+                      <SelectContent>{FAIXA_OPTIONS.map((opt) => (<SelectItem key={opt.value} value={opt.value} className="text-xs">{opt.label}</SelectItem>))}</SelectContent>
+                    </Select>
+                    <Select value={atividadesManuaisBerma} onValueChange={setAtividadesManuaisBerma}>
+                      <SelectTrigger className="w-[120px] h-8 text-xs"><SelectValue placeholder="Berma" /></SelectTrigger>
+                      <SelectContent>{BERMA_OPTIONS.map((opt) => (<SelectItem key={opt.value} value={opt.value} className="text-xs">{opt.label}</SelectItem>))}</SelectContent>
+                    </Select>
+                    <AIImproveButton
+                      text={atividadesManuais}
+                      onImproved={setAtividadesManuais}
+                      disabled={!canEdit}
+                    />
+                  </div>
                 </div>
                 <DebouncedTextarea
                   value={atividadesManuais}
@@ -1323,14 +1397,24 @@ export default function Atividades() {
                 </p>
               </div>
 
-              <div className="space-y-2">
-                <div className="flex items-center justify-between">
-                  <Label>MANUTENÇÃO DE CANTEIRO</Label>
-                  <AIImproveButton
-                    text={manutencaoCanteiro}
-                    onImproved={setManutencaoCanteiro}
-                    disabled={!canEdit}
-                  />
+              <div className="space-y-2 p-3 rounded-lg bg-muted/30">
+                <div className="flex flex-col md:flex-row md:items-center justify-between gap-3 mb-2">
+                  <Label className="font-semibold">MANUTENÇÃO DE CANTEIRO</Label>
+                  <div className="flex flex-wrap items-center gap-2">
+                    <Select value={manutencaoCanteiroFaixa} onValueChange={setManutencaoCanteiroFaixa}>
+                      <SelectTrigger className="w-[120px] h-8 text-xs"><SelectValue placeholder="Faixa" /></SelectTrigger>
+                      <SelectContent>{FAIXA_OPTIONS.map((opt) => (<SelectItem key={opt.value} value={opt.value} className="text-xs">{opt.label}</SelectItem>))}</SelectContent>
+                    </Select>
+                    <Select value={manutencaoCanteiroBerma} onValueChange={setManutencaoCanteiroBerma}>
+                      <SelectTrigger className="w-[120px] h-8 text-xs"><SelectValue placeholder="Berma" /></SelectTrigger>
+                      <SelectContent>{BERMA_OPTIONS.map((opt) => (<SelectItem key={opt.value} value={opt.value} className="text-xs">{opt.label}</SelectItem>))}</SelectContent>
+                    </Select>
+                    <AIImproveButton
+                      text={manutencaoCanteiro}
+                      onImproved={setManutencaoCanteiro}
+                      disabled={!canEdit}
+                    />
+                  </div>
                 </div>
                 <Textarea
                   value={manutencaoCanteiro}
@@ -1496,11 +1580,11 @@ export default function Atividades() {
                   ))}
                   {invasoras.some(i => i.unidade && parseInt(i.unidade) > 0) && (
                     invasoras.filter(i => i.unidade && parseInt(i.unidade) > 0).map((inv, idx) => (
-                      <p key={idx}>* Controle de Invasoras{inv.nome ? ` (${inv.nome})` : ""} - {inv.unidade} unidade(s){invasorasBerma && ` (Berma ${invasorasBerma})`}</p>
+                      <p key={idx}>* Controle de Invasoras{inv.nome ? ` (${inv.nome})` : ""} - {inv.unidade} unidade(s){invasorasBerma && ` (Berma ${invasorasBerma})`}{invasorasFaixa && ` - ${invasorasFaixa}`}</p>
                     ))
                   )}
                   {retiradaMudasUnidade && parseInt(retiradaMudasUnidade) > 0 && (
-                    <p>* Retirada de Mudas (Árvores) - {retiradaMudasUnidade} unidade(s)</p>
+                    <p>* Retirada de Mudas (Árvores) - {retiradaMudasUnidade} unidade(s){retiradaMudasBerma && ` (Berma ${retiradaMudasBerma})`}{retiradaMudasFaixa && ` - ${retiradaMudasFaixa}`}</p>
                   )}
                   {plantioGrama && parseFloat(plantioGrama) > 0 && (
                     <p>* Plantio de Grama - {plantioGrama} m²{plantioGramaBerma && ` (Berma ${plantioGramaBerma})`}{plantioGramaFaixa && ` - ${plantioGramaFaixa}`}</p>
@@ -1510,10 +1594,11 @@ export default function Atividades() {
                   ))}
                   {atividadesManuais && atividadesManuais.split("\n").map((l, i) => {
                     const t = l.trim();
-                    return t ? <p key={`atvman-${i}`}>* {t}</p> : null;
+                    const location = (atividadesManuaisBerma || atividadesManuaisFaixa) ? ` (${atividadesManuaisBerma ? `Berma ${atividadesManuaisBerma}` : ""}${atividadesManuaisFaixa ? ` - ${atividadesManuaisFaixa}` : ""})` : "";
+                    return t ? <p key={`atvman-${i}`}>* {t}{location}</p> : null;
                   })}
                   {manutencaoCanteiro && (
-                    <p>* Manutenção de Canteiro: {manutencaoCanteiro}</p>
+                    <p>* Manutenção de Canteiro: {manutencaoCanteiro}{(manutencaoCanteiroBerma || manutencaoCanteiroFaixa) ? ` (${manutencaoCanteiroBerma ? `Berma ${manutencaoCanteiroBerma}` : ""}${manutencaoCanteiroFaixa ? ` - ${manutencaoCanteiroFaixa}` : ""})` : ""}</p>
                   )}
                   {irrigacaoPipas && (
                     <p>* Irrigação com Pipas nas Faixas 3 e 4 e Mirante</p>
