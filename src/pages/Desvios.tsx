@@ -148,7 +148,7 @@ export default function Desvios() {
       return STATUS_OPTIONS.filter(opt => ["Em Tratamento", "Concluído"].includes(opt.id));
     }
     return [];
-  }, [isCreator, isResponsible]);
+  }, [isCreator, isResponsible, isAdmin]);
 
   const dashboardStats = useMemo(() => {
     if (!desvios) return { total: 0, open: 0, inTreatment: 0, done: 0, delayed: 0 };
