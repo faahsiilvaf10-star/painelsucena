@@ -506,17 +506,19 @@ export function DriverStatusButtons() {
       // Notifica o grupo sobre o INÍCIO de TURNO (sem definir status Operando).
       // O status só vai para "Operando" quando o motorista clicar em "Operar".
       try {
-        await supabase.functions.invoke("wapi-driver-status-notify", {
-          body: {
-            equipmentId: selectedVehicleId,
-            equipmentName: selectedVehicle.name,
-            plate: selectedVehicle.plate,
-            newStatus: "shift_start",
-            previousStatus: "shift_start",
-            driverName: profile?.full_name || null,
-            extraInfo: `*Combustível:* ${getFuelLevelLabel(fuelLevel)}\n*Horímetro:* ${startShiftHorimeter}\n*KM:* ${startShiftKm}`,
-          },
-        });
+        if (isOnline) {
+          await supabase.functions.invoke("wapi-driver-status-notify", {
+            body: {
+              equipmentId: selectedVehicleId,
+              equipmentName: selectedVehicle.name,
+              plate: selectedVehicle.plate,
+              newStatus: "shift_start",
+              previousStatus: "shift_start",
+              driverName: profile?.full_name || null,
+              extraInfo: `*Combustível:* ${getFuelLevelLabel(fuelLevel)}\n*Horímetro:* ${startShiftHorimeter}\n*KM:* ${startShiftKm}`,
+            },
+          });
+        }
       } catch (e) {
         console.warn("driver-status-notify failed", e);
       }
