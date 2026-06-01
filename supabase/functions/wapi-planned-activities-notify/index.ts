@@ -32,7 +32,7 @@ Deno.serve(async (req) => {
     const admin = createClient(supabaseUrl, serviceKey);
 
     const payload = await req.json().catch(() => ({}));
-    const { planned, date, force } = payload || {};
+    const { planned, date, force, area } = payload || {};
 
     // Get config
     const { data: cfg } = await admin.from("wapi_config").select("*").limit(1).single();
