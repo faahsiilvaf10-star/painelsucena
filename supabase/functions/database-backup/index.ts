@@ -25,13 +25,9 @@ serve(async (req) => {
       return new Response(JSON.stringify({ error: 'Unauthorized' }), { status: 401, headers: corsHeaders })
     }
 
-    console.log('Starting database backup...')
-
-    // Get list of tables
+    // Get list of tables via RPC
     const { data: tablesList, error: listError } = await supabaseAdmin
-      .from('information_schema.tables')
-      .select('table_name')
-      .eq('table_schema', 'public')
+      .rpc('get_tables_info')
 
     if (listError) {
       console.error('Error listing tables:', listError)
