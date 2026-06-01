@@ -675,31 +675,61 @@ export default function Desvios() {
 
         {/* Dashboard Resumido */}
         <div className="grid grid-cols-2 md:grid-cols-5 gap-4">
-          <Card className="bg-primary/5 border-primary/20">
+          <Card 
+            className={cn(
+              "cursor-pointer transition-all hover:scale-105",
+              activeFilter === "total" ? "bg-primary/10 border-primary" : "bg-primary/5 border-primary/20"
+            )}
+            onClick={() => setActiveFilter(activeFilter === "total" ? null : "total")}
+          >
             <CardContent className="p-4">
               <div className="text-2xl font-bold">{dashboardStats.total}</div>
               <div className="text-xs text-muted-foreground">Total de Desvios</div>
             </CardContent>
           </Card>
-          <Card className="bg-blue-500/5 border-blue-500/20">
+          <Card 
+            className={cn(
+              "cursor-pointer transition-all hover:scale-105",
+              activeFilter === "open" ? "bg-blue-500/10 border-blue-500" : "bg-blue-500/5 border-blue-500/20"
+            )}
+            onClick={() => setActiveFilter(activeFilter === "open" ? null : "open")}
+          >
             <CardContent className="p-4">
               <div className="text-2xl font-bold text-blue-600">{dashboardStats.open}</div>
               <div className="text-xs text-muted-foreground">Abertos</div>
             </CardContent>
           </Card>
-          <Card className="bg-amber-500/5 border-amber-500/20">
+          <Card 
+            className={cn(
+              "cursor-pointer transition-all hover:scale-105",
+              activeFilter === "inTreatment" ? "bg-amber-500/10 border-amber-500" : "bg-amber-500/5 border-amber-500/20"
+            )}
+            onClick={() => setActiveFilter(activeFilter === "inTreatment" ? null : "inTreatment")}
+          >
             <CardContent className="p-4">
               <div className="text-2xl font-bold text-amber-600">{dashboardStats.inTreatment}</div>
               <div className="text-xs text-muted-foreground">Em Tratamento</div>
             </CardContent>
           </Card>
-          <Card className="bg-green-500/5 border-green-500/20">
+          <Card 
+            className={cn(
+              "cursor-pointer transition-all hover:scale-105",
+              activeFilter === "done" ? "bg-green-500/10 border-green-500" : "bg-green-500/5 border-green-500/20"
+            )}
+            onClick={() => setActiveFilter(activeFilter === "done" ? null : "done")}
+          >
             <CardContent className="p-4">
               <div className="text-2xl font-bold text-green-600">{dashboardStats.done}</div>
               <div className="text-xs text-muted-foreground">Concluídos</div>
             </CardContent>
           </Card>
-          <Card className="bg-red-500/5 border-red-500/20">
+          <Card 
+            className={cn(
+              "cursor-pointer transition-all hover:scale-105",
+              activeFilter === "delayed" ? "bg-red-500/10 border-red-500" : "bg-red-500/5 border-red-500/20"
+            )}
+            onClick={() => setActiveFilter(activeFilter === "delayed" ? null : "delayed")}
+          >
             <CardContent className="p-4">
               <div className="text-2xl font-bold text-red-600">{dashboardStats.delayed}</div>
               <div className="text-xs text-muted-foreground">Atrasados</div>
