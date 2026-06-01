@@ -1324,18 +1324,6 @@ const AdminWhatsApp = () => {
             <GroupIdOverrideInput id="gid-planned-activities" value={groupIdPlannedActivities} onChange={setGroupIdPlannedActivities} defaultGroupId={groupId} />
           </CardContent>
         </Card>
-                  <Play className="w-4 h-4 mr-1" />
-                  {testingCronogramaMirante ? "..." : "Testar"}
-                </Button>
-              </div>
-            </div>
-            <GroupIdOverrideInput id="gid-cronograma-mirante" value={groupIdCronogramaMirante} onChange={setGroupIdCronogramaMirante} defaultGroupId={groupId} />
-            <p className="text-xs text-muted-foreground mt-3">
-              Requisitos: integração W-API habilitada e ID do grupo preenchido. O botão "Testar" envia o alerta imediatamente,
-              ignorando o filtro de duplicidade. Lembre-se de salvar a configuração após alterar.
-            </p>
-          </CardContent>
-        </Card>
 
         <Card>
           <CardHeader>
