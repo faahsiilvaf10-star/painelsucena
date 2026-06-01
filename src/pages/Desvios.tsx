@@ -40,6 +40,7 @@ import {
   AlertCircle,
   FileIcon,
   Trash2,
+  HelpCircle,
 } from "lucide-react";
 import {
   useDesvios,
@@ -74,6 +75,8 @@ import {
   CommandItem,
   CommandList,
 } from "@/components/ui/command";
+
+import { DesviosTutorial } from "@/components/desvios/DesviosTutorial";
 
 const STATUS_OPTIONS = [
   { id: "Aberto", label: "Aberto", color: "bg-blue-500" },
@@ -730,9 +733,12 @@ export default function Desvios() {
               <p className="text-sm text-muted-foreground">Gestão de desvios e ocorrências</p>
             </div>
           </div>
-          <Button onClick={() => setShowForm(true)} className="gap-2">
-            <Plus className="w-4 h-4" /> Novo Desvio
-          </Button>
+          <div className="flex items-center gap-2">
+            <DesviosTutorial />
+            <Button onClick={() => setShowForm(true)} className="gap-2">
+              <Plus className="w-4 h-4" /> Novo Desvio
+            </Button>
+          </div>
         </div>
 
         {/* Dashboard Resumido */}
