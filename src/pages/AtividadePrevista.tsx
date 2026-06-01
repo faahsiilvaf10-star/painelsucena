@@ -197,6 +197,7 @@ export default function AtividadePrevista() {
           onSave={handleSavePlanned}
           isSaving={saveReport.isPending}
           canEdit={canEdit}
+          isAdmin={isAdmin}
         />
       </div>
     </Layout>
