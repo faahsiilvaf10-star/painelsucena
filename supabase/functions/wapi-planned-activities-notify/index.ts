@@ -60,27 +60,31 @@ Deno.serve(async (req) => {
     let message = `📋 *ATIVIDADES PREVISTAS - ${formattedDate}*\n`;
     message += `━━━━━━━━━━━━━━━━━━━━\n\n`;
 
-    if (planned?.gabiao && planned.gabiao.length > 0) {
+    let hasContent = false;
+
+    if ((!area || area === "gabiao") && planned?.gabiao && planned.gabiao.length > 0) {
       message += `*🧱 GABIÃO:*\n`;
       planned.gabiao.forEach(act => {
         message += `• ${act}\n`;
       });
       message += `\n`;
+      hasContent = true;
     }
 
-    if (planned?.jardinagem && planned.jardinagem.length > 0) {
+    if ((!area || area === "jardinagem") && planned?.jardinagem && planned.jardinagem.length > 0) {
       message += `*🌿 JARDINAGEM:*\n`;
       planned.jardinagem.forEach(act => {
         message += `• ${act}\n`;
       });
       message += `\n`;
+      hasContent = true;
     }
 
-    if (!planned?.gabiao?.length && !planned?.jardinagem?.length) {
+    if (!hasContent) {
       if (force) {
-        message += `_Nenhuma atividade prevista registrada para hoje._\n`;
+        message += `_Nenhuma atividade prevista registrada para esta área._\n`;
       } else {
-        return new Response(JSON.stringify({ skipped: true, reason: "no-activities" }), {
+        return new Response(JSON.stringify({ skipped: true, reason: "no-activities-for-area" }), {
           headers: { ...corsHeaders, "Content-Type": "application/json" },
         });
       }
