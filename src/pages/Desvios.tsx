@@ -77,7 +77,6 @@ import {
 const STATUS_OPTIONS = [
   { id: "Aberto", label: "Aberto", color: "bg-blue-500" },
   { id: "Em Tratamento", label: "Em Tratamento", color: "bg-amber-500" },
-  { id: "Aguardando Validação", label: "Aguardando Validação", color: "bg-purple-500" },
   { id: "Concluído", label: "Concluído", color: "bg-green-500" },
   { id: "Cancelado", label: "Cancelado", color: "bg-gray-500" },
 ];
@@ -146,7 +145,7 @@ export default function Desvios() {
   const availableStatuses = useMemo(() => {
     if (isCreator || isAdmin) return STATUS_OPTIONS;
     if (isResponsible) {
-      return STATUS_OPTIONS.filter(opt => ["Em Tratamento", "Aguardando Validação"].includes(opt.id));
+      return STATUS_OPTIONS.filter(opt => ["Em Tratamento", "Concluído"].includes(opt.id));
     }
     return [];
   }, [isCreator, isResponsible]);
