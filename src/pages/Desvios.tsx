@@ -39,12 +39,14 @@ import {
   History,
   AlertCircle,
   FileIcon,
+  Trash2,
 } from "lucide-react";
 import {
   useDesvios,
   useCreateDesvio,
   useUpdateDesvio,
   useUploadDesvioPhoto,
+  useDeleteDesvio,
   type Desvio,
   type DesvioAttachment,
 } from "@/hooks/useDesvios";
@@ -52,6 +54,17 @@ import { useProfiles } from "@/hooks/useProfiles";
 import { useProfile } from "@/hooks/useProfile";
 import { useAuth } from "@/hooks/useAuth";
 import { toast } from "sonner";
+import {
+  AlertDialog,
+  AlertDialogAction,
+  AlertDialogCancel,
+  AlertDialogContent,
+  AlertDialogDescription,
+  AlertDialogFooter,
+  AlertDialogHeader,
+  AlertDialogTitle,
+  AlertDialogTrigger,
+} from "@/components/ui/alert-dialog";
 import {
   Command,
   CommandEmpty,
@@ -85,6 +98,7 @@ export default function Desvios() {
   const { data: profile } = useProfile();
   const createDesvio = useCreateDesvio();
   const updateDesvio = useUpdateDesvio();
+  const deleteDesvio = useDeleteDesvio();
   const uploadFile = useUploadDesvioPhoto();
 
   const [selectedDesvio, setSelectedDesvio] = useState<Desvio | null>(null);
@@ -705,12 +719,53 @@ export default function Desvios() {
             >
               <CardHeader className="pb-2">
                 <div className="flex items-center justify-between mb-2">
-                  <Badge className={cn("text-[10px]", STATUS_OPTIONS.find(s => s.id === desvio.status)?.color)}>
-                    {desvio.status}
-                  </Badge>
-                  <Badge variant="outline" className={cn("text-[10px]", PRIORITY_OPTIONS.find(p => p.id === desvio.priority)?.color, "text-white border-transparent")}>
-                    {desvio.priority}
-                  </Badge>
+                  <div className="flex gap-1">
+                    <Badge className={cn("text-[10px]", STATUS_OPTIONS.find(s => s.id === desvio.status)?.color)}>
+                      {desvio.status}
+                    </Badge>
+                    <Badge variant="outline" className={cn("text-[10px]", PRIORITY_OPTIONS.find(p => p.id === desvio.priority)?.color, "text-white border-transparent")}>
+                      {desvio.priority}
+                    </Badge>
+                  </div>
+                  
+                  {isAdmin && (
+                    <AlertDialog>
+                      <AlertDialogTrigger asChild>
+                        <Button 
+                          variant="ghost" 
+                          size="icon" 
+                          className="h-7 w-7 text-muted-foreground hover:text-destructive"
+                          onClick={(e) => e.stopPropagation()}
+                        >
+                          <Trash2 className="h-4 w-4" />
+                        </Button>
+                      </AlertDialogTrigger>
+                      <AlertDialogContent onClick={(e) => e.stopPropagation()}>
+                        <AlertDialogHeader>
+                          <AlertDialogTitle>Excluir Desvio</AlertDialogTitle>
+                          <AlertDialogDescription>
+                            Tem certeza que deseja excluir este desvio? Esta ação não pode ser desfeita.
+                          </AlertDialogDescription>
+                        </AlertDialogHeader>
+                        <AlertDialogFooter>
+                          <AlertDialogCancel>Cancelar</AlertDialogCancel>
+                          <AlertDialogAction 
+                            className="bg-destructive text-destructive-foreground hover:bg-destructive/90"
+                            onClick={async (e) => {
+                              e.stopPropagation();
+                              try {
+                                await deleteDesvio.mutateAsync(desvio.id);
+                              } catch (error) {
+                                console.error(error);
+                              }
+                            }}
+                          >
+                            Excluir
+                          </AlertDialogAction>
+                        </AlertDialogFooter>
+                      </AlertDialogContent>
+                    </AlertDialog>
+                  )}
                 </div>
                 <CardTitle className="text-sm line-clamp-2 leading-relaxed">
                   {desvio.description}
