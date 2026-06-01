@@ -91,6 +91,16 @@ export default function AtividadePrevista() {
         report_text: existingReport?.report_text || "",
         planned_activities: planned,
       });
+
+      // Notify via WhatsApp
+      try {
+        await supabase.functions.invoke("wapi-planned-activities-notify", {
+          body: { planned, date: selectedDateStr },
+        });
+      } catch (notifyErr) {
+        console.error("Erro ao enviar notificação WhatsApp:", notifyErr);
+      }
+
       toast.success("Atividades previstas salvas!");
     } catch (err: any) {
       toast.error("Erro ao salvar atividades previstas: " + err.message);
