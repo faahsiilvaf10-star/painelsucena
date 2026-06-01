@@ -142,8 +142,8 @@ export default function Desvios() {
 
   const isAdmin = useMemo(() => {
     const role = profile?.role?.toLowerCase();
-    return role === "admin" || role === "master";
-  }, [profile]);
+    return role === "admin" || role === "master" || isAdminFromRole;
+  }, [profile, isAdminFromRole]);
 
   const canEditCorrection = useMemo(() => {
     return isResponsible || isAdmin;
