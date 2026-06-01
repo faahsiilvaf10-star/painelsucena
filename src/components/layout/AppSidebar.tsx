@@ -78,6 +78,7 @@ const allNavItems: NavItem[] = [
   { id: "rh-hub", icon: Users, label: "RH", path: "/recursos-humanos" },
   
   { id: "rdo-hub", icon: FileText, label: "Relatório Diário Obra", path: "/relatorio-diario-obra" },
+  { id: "atividade-prevista", icon: Clock, label: "Atividade Prevista", path: "/atividade-prevista" },
   
   { id: "arquivos-seguranca", icon: FolderLock, label: "Documentos Salvos", path: "/arquivos-seguranca" },
   
