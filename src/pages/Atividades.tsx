@@ -625,8 +625,16 @@ export default function Atividades() {
       lines.push(`* Controle de Invasoras${nomeText} - ${inv.unidade} unidade(s)${formatBerma(invasorasBerma)}`);
     });
     
-    if (retiradaMudasUnidade && parseInt(retiradaMudasUnidade) > 0) lines.push(`* Retirada de Mudas (Árvores) - ${retiradaMudasUnidade} unidade(s)`);
-    if (manutencaoCanteiro && manutencaoCanteiro.trim()) lines.push(`* Manutenção de Canteiro: ${manutencaoCanteiro}`);
+    if (retiradaMudasUnidade && parseInt(retiradaMudasUnidade) > 0) {
+      const faixaText = retiradaMudasFaixa ? ` - ${retiradaMudasFaixa}` : "";
+      const bermaText = retiradaMudasBerma ? ` (Berma ${retiradaMudasBerma})` : "";
+      lines.push(`* Retirada de Mudas (Árvores) - ${retiradaMudasUnidade} unidade(s)${bermaText}${faixaText}`);
+    }
+    if (manutencaoCanteiro && manutencaoCanteiro.trim()) {
+      const faixaText = manutencaoCanteiroFaixa ? ` - ${manutencaoCanteiroFaixa}` : "";
+      const bermaText = manutencaoCanteiroBerma ? ` (Berma ${manutencaoCanteiroBerma})` : "";
+      lines.push(`* Manutenção de Canteiro: ${manutencaoCanteiro}${bermaText}${faixaText}`);
+    }
     if (plantioGrama && parseFloat(plantioGrama) > 0) {
       const faixaText = plantioGramaFaixa ? ` - ${plantioGramaFaixa}` : "";
       const bermaText = plantioGramaBerma ? ` (Berma ${plantioGramaBerma})` : "";
