@@ -1105,7 +1105,9 @@ export type Database = {
       }
       desvios: {
         Row: {
+          attachments: Json | null
           client_op_id: string | null
+          comments: string | null
           correction_photo_urls: string[] | null
           created_at: string
           created_by: string
@@ -1113,18 +1115,27 @@ export type Database = {
           description: string
           due_date: string | null
           environment: string
+          history: Json | null
           id: string
+          instruction: string | null
           items: Json | null
           mentioned_user_id: string | null
           mentioned_user_ids: string[] | null
           mentioned_user_name: string | null
           mentioned_user_names: string[] | null
           photo_urls: string[] | null
+          priority: string | null
+          responsible_company: string | null
+          responsible_name: string | null
+          responsible_sector: string | null
           status: string
+          tags: string[] | null
           updated_at: string
         }
         Insert: {
+          attachments?: Json | null
           client_op_id?: string | null
+          comments?: string | null
           correction_photo_urls?: string[] | null
           created_at?: string
           created_by: string
@@ -1132,18 +1143,27 @@ export type Database = {
           description: string
           due_date?: string | null
           environment?: string
+          history?: Json | null
           id?: string
+          instruction?: string | null
           items?: Json | null
           mentioned_user_id?: string | null
           mentioned_user_ids?: string[] | null
           mentioned_user_name?: string | null
           mentioned_user_names?: string[] | null
           photo_urls?: string[] | null
+          priority?: string | null
+          responsible_company?: string | null
+          responsible_name?: string | null
+          responsible_sector?: string | null
           status?: string
+          tags?: string[] | null
           updated_at?: string
         }
         Update: {
+          attachments?: Json | null
           client_op_id?: string | null
+          comments?: string | null
           correction_photo_urls?: string[] | null
           created_at?: string
           created_by?: string
@@ -1151,14 +1171,21 @@ export type Database = {
           description?: string
           due_date?: string | null
           environment?: string
+          history?: Json | null
           id?: string
+          instruction?: string | null
           items?: Json | null
           mentioned_user_id?: string | null
           mentioned_user_ids?: string[] | null
           mentioned_user_name?: string | null
           mentioned_user_names?: string[] | null
           photo_urls?: string[] | null
+          priority?: string | null
+          responsible_company?: string | null
+          responsible_name?: string | null
+          responsible_sector?: string | null
           status?: string
+          tags?: string[] | null
           updated_at?: string
         }
         Relationships: []
@@ -1546,6 +1573,7 @@ export type Database = {
         Row: {
           area: string | null
           avatar: string
+          company: string | null
           created_at: string
           department: string
           email: string | null
@@ -1564,6 +1592,7 @@ export type Database = {
         Insert: {
           area?: string | null
           avatar: string
+          company?: string | null
           created_at?: string
           department: string
           email?: string | null
@@ -1582,6 +1611,7 @@ export type Database = {
         Update: {
           area?: string | null
           avatar?: string
+          company?: string | null
           created_at?: string
           department?: string
           email?: string | null
