@@ -368,9 +368,14 @@ export default function Atividades() {
       setLimpezaAssopradorBerma("");
       setLimpezaAssopradorFaixa("");
       setManutencaoCanteiro("");
+      setManutencaoCanteiroFaixa("");
+      setManutencaoCanteiroBerma("");
       setInvasoras([{ nome: "", unidade: "" }]);
       setInvasorasBerma("");
+      setInvasorasFaixa("");
       setRetiradaMudasUnidade("");
+      setRetiradaMudasFaixa("");
+      setRetiradaMudasBerma("");
       // Reset irrigation fields
       setIrrigacaoPipas(false);
       setIrrigacaoCarretel(false);
