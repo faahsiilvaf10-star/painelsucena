@@ -106,12 +106,12 @@ export function PlannedActivitiesTab({
   };
 
   const handleConfirmSaveGabiao = async () => {
-    await onSave({ gabiao: plannedGabiao, jardinagem: plannedJardinagem }, { gabiao: true });
+    await onSave({ gabiao: plannedGabiao, jardinagem: plannedJardinagem }, { gabiao: true }, "gabiao");
     setShowConfirmGabiao(false);
   };
 
   const handleConfirmSaveJardinagem = async () => {
-    await onSave({ gabiao: plannedGabiao, jardinagem: plannedJardinagem }, { jardinagem: true });
+    await onSave({ gabiao: plannedGabiao, jardinagem: plannedJardinagem }, { jardinagem: true }, "jardinagem");
     setShowConfirmJardinagem(false);
   };
 
