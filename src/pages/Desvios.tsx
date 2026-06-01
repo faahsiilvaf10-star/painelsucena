@@ -135,7 +135,8 @@ export default function Desvios() {
   }, [selectedDesvio, user]);
 
   const isAdmin = useMemo(() => {
-    return profile?.role === "admin" || profile?.role === "master";
+    const role = profile?.role?.toLowerCase();
+    return role === "admin" || role === "master";
   }, [profile]);
 
   const canEditCorrection = useMemo(() => {
