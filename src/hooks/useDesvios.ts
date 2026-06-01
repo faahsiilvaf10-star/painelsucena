@@ -105,11 +105,16 @@ export function useCreateDesvio() {
 
       // Dispara notificação WhatsApp (best-effort)
       try {
-        await supabase.functions.invoke("wapi-desvio-notify", {
-          body: { desvioId: data.id },
+        await supabase.functions.invoke("wapi-desvio-status-notify", {
+          body: { 
+            desvioId: data.id,
+            updatedBy: userName,
+            statusChanged: true,
+            newStatus: params.status || "Aberto"
+          },
         });
       } catch (e) {
-        console.warn("[wapi-desvio-notify] falha ao enfileirar:", e);
+        console.warn("[wapi-desvio-status-notify] falha ao enfileirar:", e);
       }
 
       return data;
@@ -133,9 +138,11 @@ export function useUpdateDesvio() {
     mutationFn: async ({ id, updates, action, comment }: { id: string; updates: Partial<Desvio>; action?: string; comment?: string }) => {
       if (!user) throw new Error("Não autenticado");
 
-      const { data: current } = await supabase.from("desvios").select("history").eq("id", id).single();
+      const { data: current } = await supabase.from("desvios").select("history, status").eq("id", id).single();
       const history = Array.isArray(current?.history) ? current.history : [];
       
+      const isStatusChange = updates.status && updates.status !== current?.status;
+
       if (action) {
         history.push({
           date: new Date().toISOString(),
@@ -153,6 +160,22 @@ export function useUpdateDesvio() {
         })
         .eq("id", id);
       if (error) throw error;
+
+      // Notify on status change or relevant update
+      if (isStatusChange || action === "Edição") {
+        try {
+          await supabase.functions.invoke("wapi-desvio-status-notify", {
+            body: { 
+              desvioId: id, 
+              updatedBy: profile?.full_name || "Usuário",
+              statusChanged: isStatusChange,
+              newStatus: updates.status || current?.status
+            },
+          });
+        } catch (e) {
+          console.warn("[wapi-desvio-status-notify] falha:", e);
+        }
+      }
     },
     onSuccess: () => {
       qc.invalidateQueries({ queryKey: ["desvios"] });
