@@ -26,7 +26,8 @@ interface PlannedActivitiesTabProps {
   gabiaoActivities: string[];
   jardinagemActivities: string[];
   initialPlanned?: { gabiao: string[]; jardinagem: string[] } | null;
-  onSave: (planned: { gabiao: string[]; jardinagem: string[] }) => Promise<void>;
+  initialLocks?: { gabiao: boolean; jardinagem: boolean };
+  onSave: (planned: { gabiao: string[]; jardinagem: string[] }, locks?: { gabiao?: boolean; jardinagem?: boolean }) => Promise<void>;
   isSaving?: boolean;
   canEdit?: boolean;
   isAdmin?: boolean;
@@ -37,6 +38,7 @@ export function PlannedActivitiesTab({
   gabiaoActivities,
   jardinagemActivities,
   initialPlanned,
+  initialLocks,
   onSave,
   isSaving = false,
   canEdit = true,
@@ -44,17 +46,17 @@ export function PlannedActivitiesTab({
 }: PlannedActivitiesTabProps) {
   const [plannedGabiao, setPlannedGabiao] = useState<string[]>(initialPlanned?.gabiao || []);
   const [plannedJardinagem, setPlannedJardinagem] = useState<string[]>(initialPlanned?.jardinagem || []);
-  const [isGabiaoLocked, setIsGabiaoLocked] = useState(false);
-  const [isJardinagemLocked, setIsJardinagemLocked] = useState(false);
+  const [isGabiaoLocked, setIsGabiaoLocked] = useState(initialLocks?.gabiao || false);
+  const [isJardinagemLocked, setIsJardinagemLocked] = useState(initialLocks?.jardinagem || false);
   const [showConfirmGabiao, setShowConfirmGabiao] = useState(false);
   const [showConfirmJardinagem, setShowConfirmJardinagem] = useState(false);
 
   useEffect(() => {
     setPlannedGabiao(initialPlanned?.gabiao || []);
     setPlannedJardinagem(initialPlanned?.jardinagem || []);
-    // Simple logic: if there are saved activities, we could consider it locked or let user lock it
-    // But the request says "when saving it will be blocked", so we'll handle it via state
-  }, [initialPlanned]);
+    setIsGabiaoLocked(initialLocks?.gabiao || false);
+    setIsJardinagemLocked(initialLocks?.jardinagem || false);
+  }, [initialPlanned, initialLocks]);
 
   const toggleGabiao = (activity: string) => {
     if (!canEdit || isGabiaoLocked) return;
@@ -104,15 +106,25 @@ export function PlannedActivitiesTab({
   };
 
   const handleConfirmSaveGabiao = async () => {
-    await onSave({ gabiao: plannedGabiao, jardinagem: plannedJardinagem });
-    setIsGabiaoLocked(true);
+    await onSave({ gabiao: plannedGabiao, jardinagem: plannedJardinagem }, { gabiao: true });
     setShowConfirmGabiao(false);
   };
 
   const handleConfirmSaveJardinagem = async () => {
-    await onSave({ gabiao: plannedGabiao, jardinagem: plannedJardinagem });
-    setIsJardinagemLocked(true);
+    await onSave({ gabiao: plannedGabiao, jardinagem: plannedJardinagem }, { jardinagem: true });
     setShowConfirmJardinagem(false);
+  };
+
+  const handleUnlockGabiao = async () => {
+    if (!isAdmin) return;
+    await onSave({ gabiao: plannedGabiao, jardinagem: plannedJardinagem }, { gabiao: false });
+    toast.info("Atividades de Gabião desbloqueadas");
+  };
+
+  const handleUnlockJardinagem = async () => {
+    if (!isAdmin) return;
+    await onSave({ gabiao: plannedGabiao, jardinagem: plannedJardinagem }, { jardinagem: false });
+    toast.info("Atividades de Jardinagem desbloqueadas");
   };
 
   const handleSaveInternal = async () => {
@@ -132,15 +144,11 @@ export function PlannedActivitiesTab({
               </div>
               {canEdit && (
                 <div className="flex gap-2">
-                  {isAdmin && (isJardinagemLocked || isGabiaoLocked) && (
+                  {isAdmin && isJardinagemLocked && (
                     <Button
                       size="sm"
                       variant="outline"
-                      onClick={() => {
-                        setIsJardinagemLocked(false);
-                        setIsGabiaoLocked(false);
-                        toast.info("Atividades desbloqueadas para edição");
-                      }}
+                      onClick={handleUnlockJardinagem}
                       className="h-8 gap-1 border-yellow-500 text-yellow-600 hover:bg-yellow-50"
                     >
                       <Unlock className="h-3.5 w-3.5" />
@@ -204,15 +212,11 @@ export function PlannedActivitiesTab({
               </div>
               {canEdit && (
                 <div className="flex gap-2">
-                  {isAdmin && (isGabiaoLocked || isJardinagemLocked) && (
+                  {isAdmin && isGabiaoLocked && (
                     <Button
                       size="sm"
                       variant="outline"
-                      onClick={() => {
-                        setIsGabiaoLocked(false);
-                        setIsJardinagemLocked(false);
-                        toast.info("Atividades desbloqueadas para edição");
-                      }}
+                      onClick={handleUnlockGabiao}
                       className="h-8 gap-1 border-yellow-500 text-yellow-600 hover:bg-yellow-50"
                     >
                       <Unlock className="h-3.5 w-3.5" />
