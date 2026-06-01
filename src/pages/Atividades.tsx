@@ -385,6 +385,8 @@ export default function Atividades() {
       setPlantioGramaFaixa("");
       setPlantioGramaBerma("");
       setAtividadesManuais("");
+      setAtividadesManuaisFaixa("");
+      setAtividadesManuaisBerma("");
       setPhotos([]);
       setExtraEntries({});
     }
