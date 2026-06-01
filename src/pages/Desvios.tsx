@@ -597,12 +597,12 @@ export default function Desvios() {
                 <Send className="w-4 h-4" /> Salvar e Enviar
               </Button>
               
-              {isCreator && (
+              {isCreator && selectedDesvio && (
                 <>
-                  <Button size="sm" className="gap-2 bg-green-600 hover:bg-green-700 text-white" onClick={() => handleStatusChange("Aguardando Validação")}>
+                  <Button size="sm" className="gap-2 bg-green-600 hover:bg-green-700 text-white" onClick={() => handleStatusChange("Concluído")}>
                     <Check className="w-4 h-4" /> Aprovar
                   </Button>
-                  <Button variant="destructive" size="sm" className="gap-2" onClick={() => handleStatusChange("Cancelado")}>
+                  <Button variant="destructive" size="sm" className="gap-2" onClick={() => handleStatusChange("Em Tratamento")}>
                     <Ban className="w-4 h-4" /> Reprovar
                   </Button>
                   <Button variant="outline" size="sm" className="gap-2" onClick={() => handleStatusChange("Concluído")}>
