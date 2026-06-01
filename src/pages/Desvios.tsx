@@ -49,6 +49,7 @@ import {
   type DesvioAttachment,
 } from "@/hooks/useDesvios";
 import { useProfiles } from "@/hooks/useProfiles";
+import { useProfile } from "@/hooks/useProfile";
 import { useAuth } from "@/hooks/useAuth";
 import { toast } from "sonner";
 import {
@@ -81,6 +82,7 @@ export default function Desvios() {
   const { data: desvios, isLoading: loadingDesvios } = useDesvios();
   const { data: profiles } = useProfiles();
   const { user } = useAuth();
+  const { data: profile } = useProfile();
   const createDesvio = useCreateDesvio();
   const updateDesvio = useUpdateDesvio();
   const uploadFile = useUploadDesvioPhoto();
@@ -118,8 +120,16 @@ export default function Desvios() {
     return selectedDesvio.mentioned_user_id === user.id;
   }, [selectedDesvio, user]);
 
+  const isAdmin = useMemo(() => {
+    return profile?.role === "admin" || profile?.role === "master";
+  }, [profile]);
+
+  const canEditCorrection = useMemo(() => {
+    return isResponsible || isAdmin;
+  }, [isResponsible, isAdmin]);
+
   const availableStatuses = useMemo(() => {
-    if (isCreator) return STATUS_OPTIONS;
+    if (isCreator || isAdmin) return STATUS_OPTIONS;
     if (isResponsible) {
       return STATUS_OPTIONS.filter(opt => ["Em Tratamento", "Aguardando Validação"].includes(opt.id));
     }
@@ -197,7 +207,7 @@ export default function Desvios() {
     try {
       const isNewCorrection = 
         selectedDesvio && 
-        isResponsible && 
+        canEditCorrection && 
         formState.correction && 
         formState.correction !== selectedDesvio.correction;
 
@@ -413,11 +423,11 @@ export default function Desvios() {
                     className="min-h-[200px]"
                     value={formState.correction || ""}
                     onChange={(e) => setFormState({ ...formState, correction: e.target.value })}
-                    disabled={!isResponsible}
+                    disabled={!canEditCorrection}
                   />
-                  {!isResponsible && (
+                  {!canEditCorrection && (
                     <p className="text-[10px] text-muted-foreground italic">
-                      Somente o usuário responsável pode preencher este campo.
+                      Somente o usuário responsável ou administradores podem preencher este campo.
                     </p>
                   )}
                 </div>
@@ -597,7 +607,7 @@ export default function Desvios() {
                 <Send className="w-4 h-4" /> Salvar e Enviar
               </Button>
               
-              {isCreator && selectedDesvio && (
+              {(isCreator || isAdmin) && selectedDesvio && (
                 <>
                   <Button size="sm" className="gap-2 bg-green-600 hover:bg-green-700 text-white" onClick={() => handleStatusChange("Concluído")}>
                     <Check className="w-4 h-4" /> Aprovar
