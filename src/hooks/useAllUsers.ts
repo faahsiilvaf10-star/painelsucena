@@ -53,8 +53,9 @@ export const useAllUsers = () => {
   const channelRef = useRef<RealtimeChannel | null>(null);
   const heartbeatRef = useRef<number | null>(null);
   const justOnlineTimeoutRef = useRef<number | null>(null);
-  const ONLINE_GRACE_MS = 45_000;
-  const GRACE_CLEANUP_INTERVAL_MS = 5_000;
+  const ONLINE_GRACE_MS = 125_000; // Increased to 125s to handle background tab throttling
+  const GRACE_CLEANUP_INTERVAL_MS = 10_000;
+
   const lastSeenTimestampRef = useRef<Map<string, number>>(new Map());
   const graceCleanupRef = useRef<number | null>(null);
   const cachedProfileRef = useRef<ProfileData | null>(null);
@@ -390,8 +391,10 @@ export const useAllUsers = () => {
     };
 
     const handlePageHide = () => {
+      // Don't set online_at to null immediately on pagehide to avoid flickering during refreshes
+      // The grace period will naturally mark them as offline if they don't come back
       void persistPresence({
-        online_at: null,
+        online_at: new Date().toISOString(), // Keep it as current time
         last_seen_at: new Date().toISOString(),
       });
     };
@@ -401,6 +404,7 @@ export const useAllUsers = () => {
     window.addEventListener("focus", handleFocus);
     window.addEventListener("pagehide", handlePageHide);
 
+
     return () => {
       document.removeEventListener("visibilitychange", handleVisibilityChange);
       window.removeEventListener("online", handleOnline);
@@ -408,9 +412,10 @@ export const useAllUsers = () => {
       window.removeEventListener("pagehide", handlePageHide);
 
       void persistPresence({
-        online_at: null,
+        online_at: new Date().toISOString(),
         last_seen_at: new Date().toISOString(),
       });
+
 
       if (heartbeatRef.current) {
         window.clearInterval(heartbeatRef.current);

@@ -4,6 +4,24 @@ import App from "./App.tsx";
 import "./index.css";
 import { installEnvironmentHeader } from "@/lib/environmentHeader";
 
+// Supress ResizeObserver loop error
+if (typeof window !== "undefined") {
+  const originalError = console.error;
+  console.error = (...args) => {
+    if (args[0]?.includes?.("ResizeObserver loop completed with undelivered notifications")) {
+      return;
+    }
+    originalError.apply(console, args);
+  };
+  
+  window.addEventListener("error", (e) => {
+    if (e.message?.includes?.("ResizeObserver loop completed with undelivered notifications")) {
+      e.stopImmediatePropagation();
+    }
+  });
+}
+
+
 // Injeta o header x-environment em toda chamada ao Supabase para
 // que as RLS policies filtrem os dados do ambiente selecionado.
 installEnvironmentHeader();
