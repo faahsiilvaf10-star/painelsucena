@@ -115,13 +115,16 @@ export default function Desvios() {
     return selectedDesvio.created_by === user.id;
   }, [selectedDesvio, user]);
 
-  const isResponsible = useMemo(() => {
-    if (!selectedDesvio || !user) return false;
-    return selectedDesvio.mentioned_user_id === user.id;
-  }, [selectedDesvio, user]);
+  const isAdmin = useMemo(() => {
+    return profile?.role === "admin" || profile?.role === "master";
+  }, [profile]);
+
+  const canEditCorrection = useMemo(() => {
+    return isResponsible || isAdmin;
+  }, [isResponsible, isAdmin]);
 
   const availableStatuses = useMemo(() => {
-    if (isCreator) return STATUS_OPTIONS;
+    if (isCreator || isAdmin) return STATUS_OPTIONS;
     if (isResponsible) {
       return STATUS_OPTIONS.filter(opt => ["Em Tratamento", "Aguardando Validação"].includes(opt.id));
     }
