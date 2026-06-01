@@ -336,6 +336,8 @@ export default function Atividades() {
       setPlantioGramaFaixa(existingReport.plantio_grama_faixa || "");
       setPlantioGramaBerma(existingReport.plantio_grama_berma?.toString() || "");
       setAtividadesManuais(existingReport.atividades_manuais || "");
+      setAtividadesManuaisFaixa(existingReport.atividades_manuais_faixa || "");
+      setAtividadesManuaisBerma(existingReport.atividades_manuais_berma?.toString() || "");
       setPhotos(existingReport.photo_urls || []);
       setExtraEntries(
         (existingReport.extra_entries as Record<string, ActivityEntry[]>) || {}
