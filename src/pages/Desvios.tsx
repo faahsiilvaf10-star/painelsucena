@@ -48,7 +48,8 @@ import {
   type Desvio,
   type DesvioAttachment,
 } from "@/hooks/useDesvios";
-import { useEmployees } from "@/hooks/useEmployees";
+import { useProfiles } from "@/hooks/useProfiles";
+import { useAuth } from "@/hooks/useAuth";
 import { toast } from "sonner";
 import {
   Command,
@@ -78,7 +79,8 @@ const TAG_OPTIONS = ["Engenharia", "Segurança", "Meio Ambiente", "Qualidade", "
 
 export default function Desvios() {
   const { data: desvios, isLoading: loadingDesvios } = useDesvios();
-  const { data: employees } = useEmployees();
+  const { data: profiles } = useProfiles();
+  const { user } = useAuth();
   const createDesvio = useCreateDesvio();
   const updateDesvio = useUpdateDesvio();
   const uploadFile = useUploadDesvioPhoto();
@@ -98,11 +100,30 @@ export default function Desvios() {
     responsible_name: "",
     responsible_company: "",
     responsible_sector: "",
+    mentioned_user_id: null,
     due_date: null,
     comments: "",
     status: "Aberto",
     attachments: [],
   });
+
+  const isCreator = useMemo(() => {
+    if (!selectedDesvio || !user) return true; // Se for novo desvio, o usuário atual é o criador
+    return selectedDesvio.created_by === user.id;
+  }, [selectedDesvio, user]);
+
+  const isResponsible = useMemo(() => {
+    if (!selectedDesvio || !user) return false;
+    return selectedDesvio.mentioned_user_id === user.id;
+  }, [selectedDesvio, user]);
+
+  const availableStatuses = useMemo(() => {
+    if (isCreator) return STATUS_OPTIONS;
+    if (isResponsible) {
+      return STATUS_OPTIONS.filter(opt => ["Em Tratamento", "Aguardando Validação"].includes(opt.id));
+    }
+    return [];
+  }, [isCreator, isResponsible]);
 
   const dashboardStats = useMemo(() => {
     if (!desvios) return { total: 0, open: 0, inTreatment: 0, done: 0, delayed: 0 };
@@ -154,6 +175,7 @@ export default function Desvios() {
       responsible_name: "",
       responsible_company: "",
       responsible_sector: "",
+      mentioned_user_id: null,
       due_date: null,
       comments: "",
       status: "Aberto",
@@ -231,7 +253,7 @@ export default function Desvios() {
               <h1 className="text-2xl font-bold">{isEditing ? "Editar Desvio" : "Novo Desvio"}</h1>
             </div>
             <div className="flex items-center gap-2">
-              {STATUS_OPTIONS.map((opt) => (
+              {availableStatuses.map((opt) => (
                 <Badge
                   key={opt.id}
                   variant="outline"
@@ -264,6 +286,7 @@ export default function Desvios() {
                     className="min-h-[200px]"
                     value={formState.description}
                     onChange={(e) => setFormState({ ...formState, description: e.target.value })}
+                    disabled={!isCreator && isResponsible}
                   />
                 </div>
                 <div className="space-y-2">
@@ -322,6 +345,7 @@ export default function Desvios() {
                     className="min-h-[200px]"
                     value={formState.instruction || ""}
                     onChange={(e) => setFormState({ ...formState, instruction: e.target.value })}
+                    disabled={!isCreator && !isResponsible}
                   />
                 </div>
                 <div className="space-y-2">
@@ -338,6 +362,7 @@ export default function Desvios() {
                     ))}
                   </div>
                   <Select
+                    disabled={!isCreator && isResponsible}
                     onValueChange={(val) => {
                       if (!formState.tags?.includes(val)) {
                         setFormState({ ...formState, tags: [...(formState.tags || []), val] });
@@ -372,34 +397,35 @@ export default function Desvios() {
                   <label className="text-sm font-medium">Pessoa Responsável</label>
                   <Popover>
                     <PopoverTrigger asChild>
-                      <Button variant="outline" className="w-full justify-between font-normal">
-                        {formState.responsible_name || "Selecionar colaborador..."}
+                      <Button variant="outline" className="w-full justify-between font-normal" disabled={!isCreator && isResponsible}>
+                        {formState.responsible_name || "Selecionar usuário..."}
                         <Search className="w-4 h-4 opacity-50" />
                       </Button>
                     </PopoverTrigger>
                     <PopoverContent className="w-[300px] p-0" align="start">
                       <Command>
-                        <CommandInput placeholder="Buscar colaborador..." />
+                        <CommandInput placeholder="Buscar usuário..." />
                         <CommandList>
-                          <CommandEmpty>Nenhum colaborador encontrado.</CommandEmpty>
+                          <CommandEmpty>Nenhum usuário encontrado.</CommandEmpty>
                           <CommandGroup>
-                            {employees?.map((emp) => (
+                            {profiles?.map((p) => (
                               <CommandItem
-                                key={emp.id}
-                                value={emp.name}
+                                key={p.user_id}
+                                value={p.full_name || ""}
                                 onSelect={() => {
                                   setFormState({
                                     ...formState,
-                                    responsible_name: emp.name,
-                                    responsible_company: emp.company || "N/A",
-                                    responsible_sector: emp.department || "N/A",
+                                    responsible_name: p.full_name || "Usuário",
+                                    responsible_company: p.company_name || "N/A",
+                                    responsible_sector: p.department_name || "N/A",
+                                    mentioned_user_id: p.user_id,
                                   });
                                 }}
                               >
                                 <div className="flex flex-col">
-                                  <span>{emp.name}</span>
+                                  <span>{p.full_name}</span>
                                   <span className="text-[10px] text-muted-foreground">
-                                    {emp.company || "N/A"} • {emp.department || "N/A"}
+                                    {p.company_name || "N/A"} • {p.department_name || "N/A"}
                                   </span>
                                 </div>
                               </CommandItem>
@@ -425,6 +451,7 @@ export default function Desvios() {
                         key={opt.id}
                         type="button"
                         variant={formState.priority === opt.id ? "default" : "outline"}
+                        disabled={!isCreator && isResponsible}
                         className={cn(
                           "w-full text-xs h-8",
                           formState.priority === opt.id && opt.color
@@ -441,7 +468,7 @@ export default function Desvios() {
                   <label className="text-sm font-medium">Data Limite</label>
                   <Popover>
                     <PopoverTrigger asChild>
-                      <Button variant="outline" className="w-full justify-start text-left font-normal">
+                      <Button variant="outline" className="w-full justify-start text-left font-normal" disabled={!isCreator && isResponsible}>
                         <CalendarIcon className="mr-2 h-4 w-4" />
                         {formState.due_date ? format(new Date(formState.due_date), "dd/MM/yyyy") : "Selecionar data"}
                       </Button>
@@ -529,15 +556,20 @@ export default function Desvios() {
               <Button size="sm" className="gap-2" onClick={() => handleSave(true)}>
                 <Send className="w-4 h-4" /> Salvar e Enviar
               </Button>
-              <Button size="sm" className="gap-2 bg-green-600 hover:bg-green-700 text-white" onClick={() => handleStatusChange("Aguardando Validação")}>
-                <Check className="w-4 h-4" /> Aprovar
-              </Button>
-              <Button variant="destructive" size="sm" className="gap-2" onClick={() => handleStatusChange("Cancelado")}>
-                <Ban className="w-4 h-4" /> Reprovar
-              </Button>
-              <Button variant="outline" size="sm" className="gap-2" onClick={() => handleStatusChange("Concluído")}>
-                <Archive className="w-4 h-4" /> Encerrar Desvio
-              </Button>
+              
+              {isCreator && (
+                <>
+                  <Button size="sm" className="gap-2 bg-green-600 hover:bg-green-700 text-white" onClick={() => handleStatusChange("Aguardando Validação")}>
+                    <Check className="w-4 h-4" /> Aprovar
+                  </Button>
+                  <Button variant="destructive" size="sm" className="gap-2" onClick={() => handleStatusChange("Cancelado")}>
+                    <Ban className="w-4 h-4" /> Reprovar
+                  </Button>
+                  <Button variant="outline" size="sm" className="gap-2" onClick={() => handleStatusChange("Concluído")}>
+                    <Archive className="w-4 h-4" /> Encerrar Desvio
+                  </Button>
+                </>
+              )}
             </div>
           </div>
         </div>
