@@ -81,6 +81,7 @@ export default function Desvios() {
   const { data: desvios, isLoading: loadingDesvios } = useDesvios();
   const { data: profiles } = useProfiles();
   const { user } = useAuth();
+  const { data: profile } = useProfile();
   const createDesvio = useCreateDesvio();
   const updateDesvio = useUpdateDesvio();
   const uploadFile = useUploadDesvioPhoto();
