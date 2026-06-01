@@ -80,28 +80,24 @@ export function useCreateDesvio() {
   const { data: profile } = useProfile();
 
   return useMutation({
-    mutationFn: async (params: {
-      description: string;
-      photo_urls: string[];
-      items: DesvioItem[];
-      mentioned_user_ids: string[];
-      mentioned_user_names: string[];
-      due_date: string | null;
-    }) => {
+    mutationFn: async (params: Partial<Desvio>) => {
       if (!user) throw new Error("Não autenticado");
+      
+      const userName = profile?.full_name || "Usuário";
+      const initialHistory: DesvioHistoryEvent[] = [{
+        date: new Date().toISOString(),
+        user: userName,
+        action: "Criação",
+        comment: "Desvio registrado no sistema"
+      }];
+
       const { data, error } = await supabase
         .from("desvios")
         .insert({
-          description: params.description,
-          photo_urls: params.photo_urls,
-          items: params.items as any,
-          mentioned_user_ids: params.mentioned_user_ids,
-          mentioned_user_names: params.mentioned_user_names,
-          mentioned_user_id: params.mentioned_user_ids[0] || null,
-          mentioned_user_name: params.mentioned_user_names[0] || null,
-          due_date: params.due_date,
+          ...params,
+          history: initialHistory as any,
           created_by: user.id,
-          created_by_name: profile?.full_name || "Usuário",
+          created_by_name: userName,
         })
         .select()
         .single();
@@ -124,6 +120,46 @@ export function useCreateDesvio() {
     },
     onError: () => {
       toast.error("Erro ao registrar desvio");
+    },
+  });
+}
+
+export function useUpdateDesvio() {
+  const qc = useQueryClient();
+  const { user } = useAuth();
+  const { data: profile } = useProfile();
+
+  return useMutation({
+    mutationFn: async ({ id, updates, action, comment }: { id: string; updates: Partial<Desvio>; action?: string; comment?: string }) => {
+      if (!user) throw new Error("Não autenticado");
+
+      const { data: current } = await supabase.from("desvios").select("history").eq("id", id).single();
+      const history = Array.isArray(current?.history) ? current.history : [];
+      
+      if (action) {
+        history.push({
+          date: new Date().toISOString(),
+          user: profile?.full_name || "Usuário",
+          action: action,
+          comment: comment || "Alteração realizada"
+        });
+      }
+
+      const { error } = await supabase
+        .from("desvios")
+        .update({
+          ...updates,
+          history: history as any
+        })
+        .eq("id", id);
+      if (error) throw error;
+    },
+    onSuccess: () => {
+      qc.invalidateQueries({ queryKey: ["desvios"] });
+      toast.success("Desvio atualizado com sucesso!");
+    },
+    onError: () => {
+      toast.error("Erro ao atualizar desvio");
     },
   });
 }
