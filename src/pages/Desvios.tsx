@@ -245,7 +245,7 @@ export default function Desvios() {
 
       const finalUpdates = {
         ...formState,
-        status: isNewCorrection ? "Aguardando Validação" : formState.status
+        status: isNewCorrection ? "Concluído" : formState.status
       };
 
       if (selectedDesvio) {
