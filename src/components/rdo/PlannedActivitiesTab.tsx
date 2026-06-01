@@ -1,15 +1,25 @@
 
-import { useState, useMemo } from "react";
+import { useState, useMemo, useEffect } from "react";
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from "@/components/ui/card";
 import { Checkbox } from "@/components/ui/checkbox";
 import { Label } from "@/components/ui/label";
 import { Button } from "@/components/ui/button";
 import { ScrollArea } from "@/components/ui/scroll-area";
-import { MessageCircle, Copy, Loader2, CheckCircle2, Leaf, Hammer } from "lucide-react";
+import { MessageCircle, Copy, Loader2, CheckCircle2, Leaf, Hammer, Lock, Save } from "lucide-react";
 import { toast } from "sonner";
 import { copyAndShareWhatsApp, copyToClipboard } from "@/lib/copyAndShare";
 import { format } from "date-fns";
 import { ptBR } from "date-fns/locale";
+import {
+  AlertDialog,
+  AlertDialogAction,
+  AlertDialogCancel,
+  AlertDialogContent,
+  AlertDialogDescription,
+  AlertDialogFooter,
+  AlertDialogHeader,
+  AlertDialogTitle,
+} from "@/components/ui/alert-dialog";
 
 interface PlannedActivitiesTabProps {
   selectedDate: Date;
@@ -32,16 +42,27 @@ export function PlannedActivitiesTab({
 }: PlannedActivitiesTabProps) {
   const [plannedGabiao, setPlannedGabiao] = useState<string[]>(initialPlanned?.gabiao || []);
   const [plannedJardinagem, setPlannedJardinagem] = useState<string[]>(initialPlanned?.jardinagem || []);
+  const [isGabiaoLocked, setIsGabiaoLocked] = useState(false);
+  const [isJardinagemLocked, setIsJardinagemLocked] = useState(false);
+  const [showConfirmGabiao, setShowConfirmGabiao] = useState(false);
+  const [showConfirmJardinagem, setShowConfirmJardinagem] = useState(false);
+
+  useEffect(() => {
+    setPlannedGabiao(initialPlanned?.gabiao || []);
+    setPlannedJardinagem(initialPlanned?.jardinagem || []);
+    // Simple logic: if there are saved activities, we could consider it locked or let user lock it
+    // But the request says "when saving it will be blocked", so we'll handle it via state
+  }, [initialPlanned]);
 
   const toggleGabiao = (activity: string) => {
-    if (!canEdit) return;
+    if (!canEdit || isGabiaoLocked) return;
     setPlannedGabiao(prev => 
       prev.includes(activity) ? prev.filter(a => a !== activity) : [...prev, activity]
     );
   };
 
   const toggleJardinagem = (activity: string) => {
-    if (!canEdit) return;
+    if (!canEdit || isJardinagemLocked) return;
     setPlannedJardinagem(prev => 
       prev.includes(activity) ? prev.filter(a => a !== activity) : [...prev, activity]
     );
@@ -80,6 +101,18 @@ export function PlannedActivitiesTab({
     else toast.error("Erro ao copiar");
   };
 
+  const handleConfirmSaveGabiao = async () => {
+    await onSave({ gabiao: plannedGabiao, jardinagem: plannedJardinagem });
+    setIsGabiaoLocked(true);
+    setShowConfirmGabiao(false);
+  };
+
+  const handleConfirmSaveJardinagem = async () => {
+    await onSave({ gabiao: plannedGabiao, jardinagem: plannedJardinagem });
+    setIsJardinagemLocked(true);
+    setShowConfirmJardinagem(false);
+  };
+
   const handleSaveInternal = async () => {
     await onSave({ gabiao: plannedGabiao, jardinagem: plannedJardinagem });
   };
@@ -90,31 +123,48 @@ export function PlannedActivitiesTab({
         {/* Jardinagem Section */}
         <Card>
           <CardHeader className="pb-3">
-            <CardTitle className="text-lg flex items-center gap-2">
-              <Leaf className="h-5 w-5 text-green-500" />
-              Jardinagem
+            <CardTitle className="text-lg flex items-center justify-between">
+              <div className="flex items-center gap-2">
+                <Leaf className="h-5 w-5 text-green-500" />
+                Jardinagem
+              </div>
+              {canEdit && (
+                <Button 
+                  size="sm" 
+                  variant={isJardinagemLocked ? "secondary" : "default"}
+                  disabled={isJardinagemLocked || isSaving}
+                  onClick={() => setShowConfirmJardinagem(true)}
+                  className="h-8 gap-1"
+                >
+                  {isJardinagemLocked ? <Lock className="h-3.5 w-3.5" /> : <Save className="h-3.5 w-3.5" />}
+                  {isJardinagemLocked ? "Bloqueado" : "Salvar"}
+                </Button>
+              )}
             </CardTitle>
             <CardDescription>Selecione as atividades previstas para jardinagem</CardDescription>
           </CardHeader>
           <CardContent>
             <ScrollArea className="h-[300px] pr-4">
-              <div className="space-y-2">
+              <div className={cn("space-y-2", isJardinagemLocked && "opacity-60 pointer-events-none")}>
                 {jardinagemActivities.length === 0 ? (
                   <p className="text-sm text-muted-foreground italic py-4 text-center">Nenhuma atividade base encontrada.</p>
                 ) : (
                   jardinagemActivities.map((activity, i) => (
                     <div 
                       key={i} 
-                      className="flex items-center space-x-3 p-2 rounded-md hover:bg-muted/50 transition-colors cursor-pointer"
-                      onClick={() => toggleJardinagem(activity)}
+                      className={cn(
+                        "flex items-center space-x-3 p-2 rounded-md transition-colors",
+                        !isJardinagemLocked && "hover:bg-muted/50 cursor-pointer"
+                      )}
+                      onClick={() => !isJardinagemLocked && toggleJardinagem(activity)}
                     >
                       <Checkbox 
                         id={`jard-${i}`} 
                         checked={plannedJardinagem.includes(activity)}
-                        onCheckedChange={() => toggleJardinagem(activity)}
-                        disabled={!canEdit}
+                        onCheckedChange={() => !isJardinagemLocked && toggleJardinagem(activity)}
+                        disabled={!canEdit || isJardinagemLocked}
                       />
-                      <Label htmlFor={`jard-${i}`} className="text-sm cursor-pointer flex-1 leading-tight">
+                      <Label htmlFor={`jard-${i}`} className={cn("text-sm flex-1 leading-tight", !isJardinagemLocked && "cursor-pointer")}>
                         {activity}
                       </Label>
                     </div>
@@ -128,31 +178,48 @@ export function PlannedActivitiesTab({
         {/* Gabião Section */}
         <Card>
           <CardHeader className="pb-3">
-            <CardTitle className="text-lg flex items-center gap-2">
-              <Hammer className="h-5 w-5 text-orange-500" />
-              Gabião
+            <CardTitle className="text-lg flex items-center justify-between">
+              <div className="flex items-center gap-2">
+                <Hammer className="h-5 w-5 text-orange-500" />
+                Gabião
+              </div>
+              {canEdit && (
+                <Button 
+                  size="sm" 
+                  variant={isGabiaoLocked ? "secondary" : "default"}
+                  disabled={isGabiaoLocked || isSaving}
+                  onClick={() => setShowConfirmGabiao(true)}
+                  className="h-8 gap-1"
+                >
+                  {isGabiaoLocked ? <Lock className="h-3.5 w-3.5" /> : <Save className="h-3.5 w-3.5" />}
+                  {isGabiaoLocked ? "Bloqueado" : "Salvar"}
+                </Button>
+              )}
             </CardTitle>
             <CardDescription>Selecione as atividades previstas para gabião</CardDescription>
           </CardHeader>
           <CardContent>
             <ScrollArea className="h-[300px] pr-4">
-              <div className="space-y-2">
+              <div className={cn("space-y-2", isGabiaoLocked && "opacity-60 pointer-events-none")}>
                 {gabiaoActivities.length === 0 ? (
                   <p className="text-sm text-muted-foreground italic py-4 text-center">Nenhuma atividade base encontrada.</p>
                 ) : (
                   gabiaoActivities.map((activity, i) => (
                     <div 
                       key={i} 
-                      className="flex items-center space-x-3 p-2 rounded-md hover:bg-muted/50 transition-colors cursor-pointer"
-                      onClick={() => toggleGabiao(activity)}
+                      className={cn(
+                        "flex items-center space-x-3 p-2 rounded-md transition-colors",
+                        !isGabiaoLocked && "hover:bg-muted/50 cursor-pointer"
+                      )}
+                      onClick={() => !isGabiaoLocked && toggleGabiao(activity)}
                     >
                       <Checkbox 
                         id={`gab-${i}`} 
                         checked={plannedGabiao.includes(activity)}
-                        onCheckedChange={() => toggleGabiao(activity)}
-                        disabled={!canEdit}
+                        onCheckedChange={() => !isGabiaoLocked && toggleGabiao(activity)}
+                        disabled={!canEdit || isGabiaoLocked}
                       />
-                      <Label htmlFor={`gab-${i}`} className="text-sm cursor-pointer flex-1 leading-tight">
+                      <Label htmlFor={`gab-${i}`} className={cn("text-sm flex-1 leading-tight", !isGabiaoLocked && "cursor-pointer")}>
                         {activity}
                       </Label>
                     </div>
@@ -164,12 +231,68 @@ export function PlannedActivitiesTab({
         </Card>
 
         {canEdit && (
-          <Button onClick={handleSaveInternal} disabled={isSaving} className="w-full">
+          <Button 
+            onClick={handleSaveInternal} 
+            disabled={isSaving || (isGabiaoLocked && isJardinagemLocked)} 
+            className="w-full"
+            variant="outline"
+          >
             {isSaving ? <Loader2 className="h-4 w-4 mr-2 animate-spin" /> : <CheckCircle2 className="h-4 w-4 mr-2" />}
-            Salvar Planejamento
+            Salvar Tudo
           </Button>
         )}
       </div>
+
+      {/* Confirmation Dialogs */}
+      <AlertDialog open={showConfirmGabiao} onOpenChange={setShowConfirmGabiao}>
+        <AlertDialogContent>
+          <AlertDialogHeader>
+            <AlertDialogTitle>Confirmar bloqueio de Gabião?</AlertDialogTitle>
+            <AlertDialogDescription>
+              Ao salvar e bloquear, as atividades de Gabião não poderão mais ser alteradas.
+              <div className="mt-4 p-3 bg-muted rounded-md border text-foreground text-sm">
+                <p className="font-semibold mb-2">Atividades selecionadas:</p>
+                {plannedGabiao.length > 0 ? (
+                  <ul className="list-disc pl-5 space-y-1">
+                    {plannedGabiao.map((a, i) => <li key={i}>{a}</li>)}
+                  </ul>
+                ) : (
+                  <p className="italic text-muted-foreground">Nenhuma atividade selecionada.</p>
+                )}
+              </div>
+            </AlertDialogDescription>
+          </AlertDialogHeader>
+          <AlertDialogFooter>
+            <AlertDialogCancel>Não</AlertDialogCancel>
+            <AlertDialogAction onClick={handleConfirmSaveGabiao}>Sim, Bloquear</AlertDialogAction>
+          </AlertDialogFooter>
+        </AlertDialogContent>
+      </AlertDialog>
+
+      <AlertDialog open={showConfirmJardinagem} onOpenChange={setShowConfirmJardinagem}>
+        <AlertDialogContent>
+          <AlertDialogHeader>
+            <AlertDialogTitle>Confirmar bloqueio de Jardinagem?</AlertDialogTitle>
+            <AlertDialogDescription>
+              Ao salvar e bloquear, as atividades de Jardinagem não poderão mais ser alteradas.
+              <div className="mt-4 p-3 bg-muted rounded-md border text-foreground text-sm">
+                <p className="font-semibold mb-2">Atividades selecionadas:</p>
+                {plannedJardinagem.length > 0 ? (
+                  <ul className="list-disc pl-5 space-y-1">
+                    {plannedJardinagem.map((a, i) => <li key={i}>{a}</li>)}
+                  </ul>
+                ) : (
+                  <p className="italic text-muted-foreground">Nenhuma atividade selecionada.</p>
+                )}
+              </div>
+            </AlertDialogDescription>
+          </AlertDialogHeader>
+          <AlertDialogFooter>
+            <AlertDialogCancel>Não</AlertDialogCancel>
+            <AlertDialogAction onClick={handleConfirmSaveJardinagem}>Sim, Bloquear</AlertDialogAction>
+          </AlertDialogFooter>
+        </AlertDialogContent>
+      </AlertDialog>
 
       {/* Preview Column */}
       <div className="space-y-4">
