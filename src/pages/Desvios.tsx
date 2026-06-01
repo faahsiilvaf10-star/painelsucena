@@ -98,6 +98,7 @@ export default function Desvios() {
   const { data: profile } = useProfile();
   const createDesvio = useCreateDesvio();
   const updateDesvio = useUpdateDesvio();
+  const deleteDesvio = useDeleteDesvio();
   const uploadFile = useUploadDesvioPhoto();
 
   const [selectedDesvio, setSelectedDesvio] = useState<Desvio | null>(null);
