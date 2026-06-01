@@ -5,7 +5,7 @@ import { Checkbox } from "@/components/ui/checkbox";
 import { Label } from "@/components/ui/label";
 import { Button } from "@/components/ui/button";
 import { ScrollArea } from "@/components/ui/scroll-area";
-import { MessageCircle, Copy, Loader2, CheckCircle2, Leaf, Hammer, Lock, Save } from "lucide-react";
+import { MessageCircle, Copy, Loader2, CheckCircle2, Leaf, Hammer, Lock, Save, Unlock } from "lucide-react";
 import { toast } from "sonner";
 import { copyAndShareWhatsApp, copyToClipboard } from "@/lib/copyAndShare";
 import { format } from "date-fns";
@@ -29,6 +29,7 @@ interface PlannedActivitiesTabProps {
   onSave: (planned: { gabiao: string[]; jardinagem: string[] }) => Promise<void>;
   isSaving?: boolean;
   canEdit?: boolean;
+  isAdmin?: boolean;
 }
 
 export function PlannedActivitiesTab({
@@ -39,6 +40,7 @@ export function PlannedActivitiesTab({
   onSave,
   isSaving = false,
   canEdit = true,
+  isAdmin = false,
 }: PlannedActivitiesTabProps) {
   const [plannedGabiao, setPlannedGabiao] = useState<string[]>(initialPlanned?.gabiao || []);
   const [plannedJardinagem, setPlannedJardinagem] = useState<string[]>(initialPlanned?.jardinagem || []);
@@ -129,16 +131,33 @@ export function PlannedActivitiesTab({
                 Jardinagem
               </div>
               {canEdit && (
-                <Button 
-                  size="sm" 
-                  variant={isJardinagemLocked ? "secondary" : "default"}
-                  disabled={isJardinagemLocked || isSaving}
-                  onClick={() => setShowConfirmJardinagem(true)}
-                  className="h-8 gap-1"
-                >
-                  {isJardinagemLocked ? <Lock className="h-3.5 w-3.5" /> : <Save className="h-3.5 w-3.5" />}
-                  {isJardinagemLocked ? "Bloqueado" : "Salvar"}
-                </Button>
+                <div className="flex gap-2">
+                  {isAdmin && (isJardinagemLocked || isGabiaoLocked) && (
+                    <Button
+                      size="sm"
+                      variant="outline"
+                      onClick={() => {
+                        setIsJardinagemLocked(false);
+                        setIsGabiaoLocked(false);
+                        toast.info("Atividades desbloqueadas para edição");
+                      }}
+                      className="h-8 gap-1 border-yellow-500 text-yellow-600 hover:bg-yellow-50"
+                    >
+                      <Unlock className="h-3.5 w-3.5" />
+                      Desbloquear
+                    </Button>
+                  )}
+                  <Button 
+                    size="sm" 
+                    variant={isJardinagemLocked ? "secondary" : "default"}
+                    disabled={isJardinagemLocked || isSaving}
+                    onClick={() => setShowConfirmJardinagem(true)}
+                    className="h-8 gap-1"
+                  >
+                    {isJardinagemLocked ? <Lock className="h-3.5 w-3.5" /> : <Save className="h-3.5 w-3.5" />}
+                    {isJardinagemLocked ? "Bloqueado" : "Salvar"}
+                  </Button>
+                </div>
               )}
             </CardTitle>
             <CardDescription>Selecione as atividades previstas para jardinagem</CardDescription>
@@ -184,16 +203,33 @@ export function PlannedActivitiesTab({
                 Gabião
               </div>
               {canEdit && (
-                <Button 
-                  size="sm" 
-                  variant={isGabiaoLocked ? "secondary" : "default"}
-                  disabled={isGabiaoLocked || isSaving}
-                  onClick={() => setShowConfirmGabiao(true)}
-                  className="h-8 gap-1"
-                >
-                  {isGabiaoLocked ? <Lock className="h-3.5 w-3.5" /> : <Save className="h-3.5 w-3.5" />}
-                  {isGabiaoLocked ? "Bloqueado" : "Salvar"}
-                </Button>
+                <div className="flex gap-2">
+                  {isAdmin && (isGabiaoLocked || isJardinagemLocked) && (
+                    <Button
+                      size="sm"
+                      variant="outline"
+                      onClick={() => {
+                        setIsGabiaoLocked(false);
+                        setIsJardinagemLocked(false);
+                        toast.info("Atividades desbloqueadas para edição");
+                      }}
+                      className="h-8 gap-1 border-yellow-500 text-yellow-600 hover:bg-yellow-50"
+                    >
+                      <Unlock className="h-3.5 w-3.5" />
+                      Desbloquear
+                    </Button>
+                  )}
+                  <Button 
+                    size="sm" 
+                    variant={isGabiaoLocked ? "secondary" : "default"}
+                    disabled={isGabiaoLocked || isSaving}
+                    onClick={() => setShowConfirmGabiao(true)}
+                    className="h-8 gap-1"
+                  >
+                    {isGabiaoLocked ? <Lock className="h-3.5 w-3.5" /> : <Save className="h-3.5 w-3.5" />}
+                    {isGabiaoLocked ? "Bloqueado" : "Salvar"}
+                  </Button>
+                </div>
               )}
             </CardTitle>
             <CardDescription>Selecione as atividades previstas para gabião</CardDescription>
