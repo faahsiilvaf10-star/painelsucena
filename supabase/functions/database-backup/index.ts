@@ -18,38 +18,50 @@ serve(async (req) => {
       Deno.env.get('SUPABASE_SERVICE_ROLE_KEY') ?? ''
     )
 
+    // Security check: only allow calls with the service role key or a specific secret
+    const authHeader = req.headers.get('Authorization')
+    if (!authHeader || !authHeader.includes(Deno.env.get('SUPABASE_SERVICE_ROLE_KEY') ?? '')) {
+      // If we are calling from pg_cron, we might pass the service_role key
+      // or we can use a dedicated BACKUP_SECRET
+      const backupSecret = Deno.env.get('BACKUP_SECRET')
+      if (!backupSecret || req.headers.get('x-backup-secret') !== backupSecret) {
+         // If no backup secret is set, we strictly require service_role key in Authorization header
+         if (!authHeader || !authHeader.includes(Deno.env.get('SUPABASE_SERVICE_ROLE_KEY') ?? '')) {
+            console.error('Unauthorized backup attempt')
+            return new Response(JSON.stringify({ error: 'Unauthorized' }), { status: 401, headers: corsHeaders })
+         }
+      }
+    }
+
     console.log('Starting database backup...')
 
-    // 1. Get all public tables
-    const { data: tables, error: tablesError } = await supabaseAdmin
-      .rpc('get_tables_info') // We might need a helper function or raw SQL
-
-    // If RPC doesn't exist, we can try to query information_schema directly if permissions allow
-    // but usually it's better to have an RPC or just a list of tables.
-    // Let's use a simpler approach: query the list of tables via SQL
-    
+    // Get list of tables
     const { data: tablesList, error: listError } = await supabaseAdmin
       .from('information_schema.tables')
       .select('table_name')
       .eq('table_schema', 'public')
 
     if (listError) {
-      // If we can't query information_schema directly (permission issue), 
-      // we might need a stored procedure.
       console.error('Error listing tables:', listError)
       throw listError
     }
 
     const backupData: Record<string, any> = {}
-    const timestamp = new Date().toISOString().replace(/[:.]/g, '-')
-    const folderName = `backup-${timestamp}`
+    const now = new Date()
+    const timestamp = now.toISOString().replace(/[:.]/g, '-')
+    const dateFolder = now.toISOString().split('T')[0] // YYYY-MM-DD
+    const fileName = `backups/${dateFolder}/full_backup_${timestamp}.json`
 
     console.log(`Found ${tablesList.length} tables to backup.`)
 
     for (const table of tablesList) {
       const tableName = table.table_name
-      console.log(`Backing up table: ${tableName}`)
-      
+      // Skip some tables that might be too large or unnecessary for a general backup
+      if (tableName === 'wapi_message_logs' || tableName === 'chat_notification_logs') {
+        console.log(`Skipping large log table: ${tableName}`)
+        continue
+      }
+
       const { data, error } = await supabaseAdmin
         .from(tableName)
         .select('*')
@@ -62,9 +74,7 @@ serve(async (req) => {
       }
     }
 
-    // 2. Upload the full backup as a single JSON file
-    const fileName = `${folderName}/full_backup.json`
-    const fileContent = JSON.stringify(backupData, null, 2)
+    const fileContent = JSON.stringify(backupData)
     
     const { error: uploadError } = await supabaseAdmin.storage
       .from('database-backups')
@@ -80,11 +90,14 @@ serve(async (req) => {
 
     console.log(`Backup completed successfully: ${fileName}`)
 
+    // Optional: Send a WhatsApp notification if wapi-send is available
+    // (Skipping for now to keep it robust)
+
     return new Response(
       JSON.stringify({ 
         message: 'Backup completed successfully', 
         file: fileName,
-        tablesCount: tablesList.length
+        tablesCount: Object.keys(backupData).length
       }),
       { 
         headers: { ...corsHeaders, 'Content-Type': 'application/json' },
