@@ -459,14 +459,17 @@ export function DriverStatusButtons() {
       // register Fim de Turno first.
       try {
         const today = new Date().toISOString().split("T")[0];
-        const { data: openShift } = await (supabase as any)
+        const { data: openShift, error: shiftError } = await (supabase as any)
           .from("daily_shift_records")
           .select("id")
           .eq("equipment_id", selectedVehicleId)
           .eq("shift_date", today)
           .is("shift_end_time", null)
           .maybeSingle();
-        if (openShift?.id) {
+        
+        if (shiftError) {
+          console.warn("Error checking for open shift:", shiftError);
+        } else if (openShift?.id) {
           toast.error("Turno já iniciado hoje. Registre Fim de Turno antes de iniciar novamente.");
           setShowStartShiftDialog(false);
           setIsUpdating(false);
@@ -486,16 +489,38 @@ export function DriverStatusButtons() {
       setInitialKm(startShiftKm);
 
       // Create daily shift record in the database
-      await createShiftRecord.mutateAsync({
-        equipment_id: selectedVehicleId,
-        equipment_name: selectedVehicle.name,
-        plate: selectedVehicle.plate,
-        driver_name: profile?.full_name || "Motorista",
-        helper_name: selectedVehicle.helper || undefined,
-        initial_horimeter: parseFloat(startShiftHorimeter),
-        initial_km: parseFloat(startShiftKm),
-        initial_fuel_level: fuelLevel,
-      });
+      if (isOnline) {
+        await createShiftRecord.mutateAsync({
+          equipment_id: selectedVehicleId,
+          equipment_name: selectedVehicle.name,
+          plate: selectedVehicle.plate,
+          driver_name: profile?.full_name || "Motorista",
+          helper_name: selectedVehicle.helper || undefined,
+          initial_horimeter: parseFloat(startShiftHorimeter),
+          initial_km: parseFloat(startShiftKm),
+          initial_fuel_level: fuelLevel,
+        });
+      } else {
+        await addPendingAction("shift_record", {
+          equipment_id: selectedVehicleId,
+          equipment_name: selectedVehicle.name,
+          plate: selectedVehicle.plate,
+          driver_name: profile?.full_name || "Motorista",
+          helper_name: selectedVehicle.helper || null,
+          shift_date: new Date().toISOString().split("T")[0],
+          shift_start_time: new Date().toISOString(),
+          initial_horimeter: parseFloat(startShiftHorimeter),
+          initial_km: parseFloat(startShiftKm),
+          initial_fuel_level: fuelLevel,
+          status_history: [
+            {
+              status: "operando",
+              timestamp: new Date().toISOString(),
+              changed_by: profile?.full_name || "Motorista",
+            },
+          ],
+        });
+      }
 
       // Entry movements are no longer registered automatically at shift start
       // Only exit movements (saída) are tracked in the movements system
@@ -503,31 +528,42 @@ export function DriverStatusButtons() {
       // Notifica o grupo sobre o INÍCIO de TURNO (sem definir status Operando).
       // O status só vai para "Operando" quando o motorista clicar em "Operar".
       try {
-        await supabase.functions.invoke("wapi-driver-status-notify", {
-          body: {
-            equipmentId: selectedVehicleId,
-            equipmentName: selectedVehicle.name,
-            plate: selectedVehicle.plate,
-            newStatus: "shift_start",
-            previousStatus: "shift_start",
-            driverName: profile?.full_name || null,
-            extraInfo: `*Combustível:* ${getFuelLevelLabel(fuelLevel)}\n*Horímetro:* ${startShiftHorimeter}\n*KM:* ${startShiftKm}`,
-          },
-        });
+        if (isOnline) {
+          await supabase.functions.invoke("wapi-driver-status-notify", {
+            body: {
+              equipmentId: selectedVehicleId,
+              equipmentName: selectedVehicle.name,
+              plate: selectedVehicle.plate,
+              newStatus: "shift_start",
+              previousStatus: "shift_start",
+              driverName: profile?.full_name || null,
+              extraInfo: `*Combustível:* ${getFuelLevelLabel(fuelLevel)}\n*Horímetro:* ${startShiftHorimeter}\n*KM:* ${startShiftKm}`,
+            },
+          });
+        }
       } catch (e) {
         console.warn("driver-status-notify failed", e);
       }
 
       // Limpa qualquer status anterior — fica em branco até motorista clicar em "Operar"
       localStorage.removeItem(`operating_activated_${selectedVehicleId}`);
-      await updateStatus.mutateAsync({
-        id: selectedVehicleId,
-        stop_reason: null as any,
-        stop_start_time: null,
-        previousStopReason: currentStatus as any,
-        previousStopStartTime: selectedVehicle.stop_start_time,
-        changed_by_driver: profile?.full_name || null,
-      });
+      
+      if (isOnline) {
+        await updateStatus.mutateAsync({
+          id: selectedVehicleId,
+          stop_reason: null as any,
+          stop_start_time: null,
+          previousStopReason: currentStatus as any,
+          previousStopStartTime: selectedVehicle.stop_start_time,
+          changed_by_driver: profile?.full_name || null,
+        });
+      } else {
+        await addPendingAction("equipment_status", {
+          id: selectedVehicleId,
+          stop_reason: null,
+          stop_start_time: null,
+        });
+      }
 
       setShowStartShiftDialog(false);
       toast.success(`Turno iniciado! Horímetro: ${startShiftHorimeter} | KM: ${startShiftKm}`);
