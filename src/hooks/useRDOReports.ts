@@ -22,6 +22,7 @@ export interface RDOReport {
   apparent_temp: number | null;
   humidity: number | null;
   temperature_captured_at: string | null;
+  planned_activities: { gabiao: string[]; jardinagem: string[] } | null;
   created_at: string;
   updated_at: string;
 }
@@ -44,6 +45,7 @@ export interface RDOReportInsert {
   apparent_temp?: number | null;
   humidity?: number | null;
   temperature_captured_at?: string | null;
+  planned_activities?: { gabiao: string[]; jardinagem: string[] } | null;
 }
 
 const hasText = (value: string | null | undefined): value is string =>
@@ -104,6 +106,7 @@ const mergeRDOReports = (reports: RDOReport[]): RDOReport | null => {
       latest.efetivo_jardinagem_text
     ),
     dds_text: firstText(sorted.map((report) => report.dds_text), latest.dds_text),
+    planned_activities: sorted.find((r) => r.planned_activities !== null)?.planned_activities ?? latest.planned_activities ?? null,
     created_at: sorted[sorted.length - 1]?.created_at ?? latest.created_at,
   };
 };
