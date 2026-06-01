@@ -1239,18 +1239,29 @@ export default function Atividades() {
               <div className="space-y-3 p-3 rounded-lg bg-muted/30">
                 <div className="flex flex-col md:flex-row md:items-center justify-between gap-3">
                   <Label className="text-base font-semibold">🌿 CONTROLE DE INVASORAS</Label>
-                  <div className="flex items-center gap-3">
+                  <div className="flex flex-wrap items-center gap-3">
+                    <div className="flex items-center gap-2">
+                      <Label className="text-sm text-muted-foreground">Faixa:</Label>
+                      <Select value={invasorasFaixa} onValueChange={setInvasorasFaixa}>
+                        <SelectTrigger className="w-[120px]">
+                          <SelectValue placeholder="Faixa" />
+                        </SelectTrigger>
+                        <SelectContent>
+                          {FAIXA_OPTIONS.map((opt) => (
+                            <SelectItem key={opt.value} value={opt.value}>{opt.label}</SelectItem>
+                          ))}
+                        </SelectContent>
+                      </Select>
+                    </div>
                     <div className="flex items-center gap-2">
                       <Label className="text-sm text-muted-foreground">Berma:</Label>
                       <Select value={invasorasBerma} onValueChange={setInvasorasBerma}>
-                        <SelectTrigger className="w-[140px]">
-                          <SelectValue placeholder="Selecione" />
+                        <SelectTrigger className="w-[120px]">
+                          <SelectValue placeholder="Berma" />
                         </SelectTrigger>
                         <SelectContent>
                           {BERMA_OPTIONS.map((opt) => (
-                            <SelectItem key={opt.value} value={opt.value}>
-                              {opt.label}
-                            </SelectItem>
+                            <SelectItem key={opt.value} value={opt.value}>{opt.label}</SelectItem>
                           ))}
                         </SelectContent>
                       </Select>
@@ -1316,15 +1327,26 @@ export default function Atividades() {
                 ))}
               </div>
 
-              <div className="space-y-2">
-                <Label>RETIRADA DE MUDAS - ÁRVORES (Unidade)</Label>
-                <Input
-                  type="number"
-                  min="0"
-                  value={retiradaMudasUnidade}
-                  onChange={(e) => setRetiradaMudasUnidade(e.target.value)}
-                  placeholder="0"
-                />
+              {/* Retirada de Mudas */}
+              <div className="p-3 rounded-lg bg-muted/30 space-y-2">
+                <Label className="font-semibold">🌳 RETIRADA DE MUDAS - ÁRVORES (Unidade)</Label>
+                <div className="grid grid-cols-1 md:grid-cols-[1fr_140px_140px] gap-3">
+                  <Input
+                    type="number"
+                    min="0"
+                    value={retiradaMudasUnidade}
+                    onChange={(e) => setRetiradaMudasUnidade(e.target.value)}
+                    placeholder="0"
+                  />
+                  <Select value={retiradaMudasFaixa} onValueChange={setRetiradaMudasFaixa}>
+                    <SelectTrigger><SelectValue placeholder="Faixa" /></SelectTrigger>
+                    <SelectContent>{FAIXA_OPTIONS.map((opt) => (<SelectItem key={opt.value} value={opt.value}>{opt.label}</SelectItem>))}</SelectContent>
+                  </Select>
+                  <Select value={retiradaMudasBerma} onValueChange={setRetiradaMudasBerma}>
+                    <SelectTrigger><SelectValue placeholder="Berma" /></SelectTrigger>
+                    <SelectContent>{BERMA_OPTIONS.map((opt) => (<SelectItem key={opt.value} value={opt.value}>{opt.label}</SelectItem>))}</SelectContent>
+                  </Select>
+                </div>
               </div>
 
               {/* Plantio de Grama */}
