@@ -641,7 +641,7 @@ export default function Desvios() {
                 </div>
                 <div className="flex items-center gap-2 text-xs text-muted-foreground">
                   <CalendarIcon className="w-3 h-3" />
-                  <span>{desvio.due_date ? format(new Date(desvio.due_date), "dd/MM/yyyy") : "Sem prazo"}</span>
+                  <span>{desvio.due_date ? format(parseISO(desvio.due_date), "dd/MM/yyyy") : "Sem prazo"}</span>
                 </div>
                 <div className="flex flex-wrap gap-1 mt-2">
                   {desvio.tags?.map((tag) => (
