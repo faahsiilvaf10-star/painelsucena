@@ -156,12 +156,12 @@ function SortableNavItem({
               item.isEmergency ? "text-red-500 animate-pulse" : ""
             }`}
           />
-          <span className="flex-1 min-w-0">
+          <span className="flex-1 min-w-0 flex items-center">
             <EditableText
               pageKey="sidebar"
               elementKey={`nav-${item.id}`}
               defaultValue={item.label}
-              className={`font-medium text-sm md:text-base truncate block ${item.isEmergency ? "text-red-500" : ""}`}
+              className={`font-medium text-sm md:text-base truncate block w-full ${item.isEmergency ? "text-red-500" : ""}`}
               as="span"
               canEdit={!!editMode}
             />
