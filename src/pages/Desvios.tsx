@@ -208,14 +208,14 @@ export default function Desvios() {
 
   const sendWhatsApp = () => {
     if (!selectedDesvio) return;
-    const text = `*Desvio de Segurança*\n\n*Descrição:* ${selectedDesvio.description}\n*Prioridade:* ${selectedDesvio.priority}\n*Responsável:* ${selectedDesvio.responsible_name}\n*Prazo:* ${selectedDesvio.due_date ? format(new Date(selectedDesvio.due_date), "dd/MM/yyyy") : "Não definido"}\n*Status:* ${selectedDesvio.status}`;
+    const text = `*Desvio de Segurança*\n\n*Descrição:* ${selectedDesvio.description}\n*Prioridade:* ${selectedDesvio.priority}\n*Responsável:* ${selectedDesvio.responsible_name}\n*Prazo:* ${selectedDesvio.due_date ? format(parseISO(selectedDesvio.due_date), "dd/MM/yyyy") : "Não definido"}\n*Status:* ${selectedDesvio.status}`;
     window.open(`https://wa.me/?text=${encodeURIComponent(text)}`, "_blank");
   };
 
   const sendEmail = () => {
     if (!selectedDesvio) return;
     const subject = `Desvio de Segurança - ${selectedDesvio.id.slice(0, 8)}`;
-    const body = `Descrição: ${selectedDesvio.description}\nPrioridade: ${selectedDesvio.priority}\nResponsável: ${selectedDesvio.responsible_name}\nPrazo: ${selectedDesvio.due_date ? format(new Date(selectedDesvio.due_date), "dd/MM/yyyy") : "Não definido"}\nStatus: ${selectedDesvio.status}`;
+    const body = `Descrição: ${selectedDesvio.description}\nPrioridade: ${selectedDesvio.priority}\nResponsável: ${selectedDesvio.responsible_name}\nPrazo: ${selectedDesvio.due_date ? format(parseISO(selectedDesvio.due_date), "dd/MM/yyyy") : "Não definido"}\nStatus: ${selectedDesvio.status}`;
     window.location.href = `mailto:?subject=${encodeURIComponent(subject)}&body=${encodeURIComponent(body)}`;
   };
 
