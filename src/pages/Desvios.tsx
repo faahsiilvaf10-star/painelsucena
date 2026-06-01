@@ -501,13 +501,13 @@ export default function Desvios() {
                                 key={p.user_id}
                                 value={p.full_name || ""}
                                 onSelect={() => {
-                                  setFormState({
-                                    ...formState,
+                                  setFormState((prev) => ({
+                                    ...prev,
                                     responsible_name: p.full_name || "Usuário",
                                     responsible_company: "N/A",
                                     responsible_sector: p.cargo || "N/A",
                                     mentioned_user_id: p.user_id,
-                                  });
+                                  }));
                                 }}
                               >
                                 <div className="flex flex-col">
