@@ -129,6 +129,10 @@ export default function Desvios() {
     return selectedDesvio.created_by === user.id;
   }, [selectedDesvio, user]);
 
+  const isCancelled = useMemo(() => {
+    return selectedDesvio?.status === "Cancelado";
+  }, [selectedDesvio]);
+
   const isResponsible = useMemo(() => {
     if (!selectedDesvio || !user) return false;
     return selectedDesvio.mentioned_user_id === user.id;
