@@ -148,7 +148,7 @@ export default function Desvios() {
       return STATUS_OPTIONS.filter(opt => ["Em Tratamento", "Concluído"].includes(opt.id));
     }
     return [];
-  }, [isCreator, isResponsible]);
+  }, [isCreator, isResponsible, isAdmin]);
 
   const dashboardStats = useMemo(() => {
     if (!desvios) return { total: 0, open: 0, inTreatment: 0, done: 0, delayed: 0 };
@@ -640,15 +640,30 @@ export default function Desvios() {
               
               {(isCreator || isAdmin) && selectedDesvio && (
                 <>
-                  <Button size="sm" className="gap-2 bg-green-600 hover:bg-green-700 text-white" onClick={() => handleStatusChange("Concluído")}>
-                    <Check className="w-4 h-4" /> Aprovar
-                  </Button>
-                  <Button variant="destructive" size="sm" className="gap-2" onClick={() => handleStatusChange("Em Tratamento")}>
-                    <Ban className="w-4 h-4" /> Reprovar
-                  </Button>
-                  <Button variant="outline" size="sm" className="gap-2" onClick={() => handleStatusChange("Concluído")}>
-                    <Archive className="w-4 h-4" /> Encerrar Desvio
-                  </Button>
+                  {formState.status === "Cancelado" ? (
+                    <Button 
+                      size="sm" 
+                      className="gap-2 bg-blue-600 hover:bg-blue-700 text-white" 
+                      onClick={() => handleStatusChange("Aberto")}
+                    >
+                      <History className="w-4 h-4" /> Reativar Desvio
+                    </Button>
+                  ) : (
+                    <>
+                      <Button size="sm" className="gap-2 bg-green-600 hover:bg-green-700 text-white" onClick={() => handleStatusChange("Concluído")}>
+                        <Check className="w-4 h-4" /> Aprovar
+                      </Button>
+                      <Button variant="destructive" size="sm" className="gap-2" onClick={() => handleStatusChange("Em Tratamento")}>
+                        <Ban className="w-4 h-4" /> Reprovar
+                      </Button>
+                      <Button variant="outline" size="sm" className="gap-2" onClick={() => handleStatusChange("Concluído")}>
+                        <Archive className="w-4 h-4" /> Encerrar Desvio
+                      </Button>
+                      <Button variant="ghost" size="sm" className="gap-2 text-destructive hover:text-destructive hover:bg-destructive/10" onClick={() => handleStatusChange("Cancelado")}>
+                        <X className="w-4 h-4" /> Cancelar
+                      </Button>
+                    </>
+                  )}
                 </>
               )}
             </div>
