@@ -97,7 +97,7 @@ export default function AtividadePrevista() {
       // Notify via WhatsApp
       try {
         const { data, error: invokeError } = await supabase.functions.invoke("wapi-planned-activities-notify", {
-          body: { planned, date: selectedDateStr },
+          body: { planned, date: selectedDateStr, area },
         });
         
         if (invokeError) throw invokeError;
