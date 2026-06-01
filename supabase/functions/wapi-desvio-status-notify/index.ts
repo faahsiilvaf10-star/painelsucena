@@ -85,14 +85,17 @@ Deno.serve(async (req) => {
       statusChanged ? `🔔 *STATUS ALTERADO: ${desvio.status}*` : `📝 *DESVIO ATUALIZADO*`,
       "━━━━━━━━━━━━━━━━━━━━",
       "",
-      `📋 *Descrição:*\n${desvio.description || "—"}`,
+      `🔖 *Etiquetas:* ${Array.isArray(desvio.tags) ? desvio.tags.join(", ") : "—"}`,
+      `🏷️ *Prioridade:* ${desvio.priority || "—"}`,
+      "",
+      `📋 *Problema / Assunto:*\n${desvio.description || "—"}`,
     ];
 
     if (desvio.responsible_name) {
       lines.push("", `👤 *Responsável:* ${desvio.responsible_name}`);
     }
     if (dueDateStr) {
-      lines.push(`📅 *Prazo:* ${dueDateStr}`);
+      lines.push(`📅 *Data Limite:* ${dueDateStr}`);
     }
     if (desvio.instruction) {
       lines.push("", `🛠️ *Tratativa:*\n${desvio.instruction}`);
@@ -100,6 +103,7 @@ Deno.serve(async (req) => {
     
     lines.push(
       "",
+      `👤 *Usuário que abriu:* ${desvio.created_by_name || "—"}`,
       `👨‍💼 *Atualizado por:* ${updatedBy || "—"}`,
       `🕒 *Em:* ${updatedAtStr}`,
       "━━━━━━━━━━━━━━━━━━━━",
