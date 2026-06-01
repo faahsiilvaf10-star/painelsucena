@@ -158,7 +158,10 @@ export default function Desvios() {
       open: desvios.filter((d) => d.status === "Aberto").length,
       inTreatment: desvios.filter((d) => d.status === "Em Tratamento").length,
       done: desvios.filter((d) => d.status === "Concluído").length,
-      delayed: desvios.filter((d) => d.status !== "Concluído" && d.due_date && isPast(parseISO(d.due_date)) && !isToday(parseISO(d.due_date))).length,
+      delayed: desvios.filter((d) => 
+        !["Concluído", "Cancelado"].includes(d.status) && 
+        d.due_date && isPast(parseISO(d.due_date)) && !isToday(parseISO(d.due_date))
+      ).length,
     };
   }, [desvios]);
 
@@ -177,7 +180,8 @@ export default function Desvios() {
       if (activeFilter === "inTreatment") return d.status === "Em Tratamento";
       if (activeFilter === "done") return d.status === "Concluído";
       if (activeFilter === "delayed") {
-        return d.status !== "Concluído" && d.due_date && isPast(parseISO(d.due_date)) && !isToday(parseISO(d.due_date));
+        return !["Concluído", "Cancelado"].includes(d.status) && 
+               d.due_date && isPast(parseISO(d.due_date)) && !isToday(parseISO(d.due_date));
       }
       return true;
     });
