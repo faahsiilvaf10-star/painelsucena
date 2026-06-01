@@ -46,6 +46,7 @@ import {
   useCreateDesvio,
   useUpdateDesvio,
   useUploadDesvioPhoto,
+  useDeleteDesvio,
   type Desvio,
   type DesvioAttachment,
 } from "@/hooks/useDesvios";
@@ -53,6 +54,17 @@ import { useProfiles } from "@/hooks/useProfiles";
 import { useProfile } from "@/hooks/useProfile";
 import { useAuth } from "@/hooks/useAuth";
 import { toast } from "sonner";
+import {
+  AlertDialog,
+  AlertDialogAction,
+  AlertDialogCancel,
+  AlertDialogContent,
+  AlertDialogDescription,
+  AlertDialogFooter,
+  AlertDialogHeader,
+  AlertDialogTitle,
+  AlertDialogTrigger,
+} from "@/components/ui/alert-dialog";
 import {
   Command,
   CommandEmpty,
