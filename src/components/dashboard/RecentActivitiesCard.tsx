@@ -63,15 +63,20 @@ export function RecentActivitiesCard() {
       });
     });
 
-    (desvios || []).slice(0, 5).forEach((d: any) => {
-      list.push({
-        id: `dv-${d.id}`,
-        kind: "desvio",
-        title: d.description?.slice(0, 60) || "Novo desvio registrado",
-        subtitle: `por ${d.created_by_name}`,
-        date: new Date(d.created_at),
-        link: "/desvios",
-      });
+    (desvios || []).forEach((d: any) => {
+      const createdAt = new Date(d.created_at);
+      const isWithin24h = Date.now() - createdAt.getTime() <= 24 * 60 * 60 * 1000;
+      
+      if (isWithin24h) {
+        list.push({
+          id: `dv-${d.id}`,
+          kind: "desvio",
+          title: d.description?.slice(0, 60) || "Novo desvio registrado",
+          subtitle: `por ${d.created_by_name}`,
+          date: createdAt,
+          link: "/desvios",
+        });
+      }
     });
 
     (posts || []).slice(0, 5).forEach((p: any) => {
