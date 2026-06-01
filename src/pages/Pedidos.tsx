@@ -11,6 +11,7 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@
 import { CreateOrderDialog } from "@/components/orders/CreateOrderDialog";
 import { OrderCard } from "@/components/orders/OrderCard";
 import { OrderDetailsDialog } from "@/components/orders/OrderDetailsDialog";
+import { OrderTutorial } from "@/components/orders/OrderTutorial";
 import { useOrders, useMyOrders, usePendingOrders, Order } from "@/hooks/useOrders";
 import { useProfile } from "@/hooks/useProfile";
 import { useVisualizadorContext } from "@/contexts/VisualizadorContext";
@@ -109,7 +110,7 @@ export default function Pedidos() {
     <Layout>
       <div className="container mx-auto py-4 sm:py-6 px-4 max-w-4xl">
         <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3 sm:gap-0 mb-4 sm:mb-6">
-          <div>
+          <div className="flex flex-col">
             <h1 className="text-xl sm:text-2xl font-bold flex items-center gap-2">
               <Package className="w-6 h-6 sm:w-7 sm:h-7 text-primary" />
               <EditablePageTitle pageKey="pedidos" defaultValue="Pedidos" className="inline" as="h1" />
@@ -118,12 +119,15 @@ export default function Pedidos() {
               Gerencie suas solicitações de materiais
             </p>
           </div>
-          {!isVisualizador && (
-            <Button onClick={() => setCreateDialogOpen(true)} className="w-full sm:w-auto">
-              <Plus className="w-4 h-4 mr-2" />
-              Novo Pedido
-            </Button>
-          )}
+          <div className="flex items-center gap-2">
+            <OrderTutorial />
+            {!isVisualizador && (
+              <Button onClick={() => setCreateDialogOpen(true)} className="w-full sm:w-auto">
+                <Plus className="w-4 h-4 mr-2" />
+                Novo Pedido
+              </Button>
+            )}
+          </div>
         </div>
 
         {/* Search and Filter Bar */}
