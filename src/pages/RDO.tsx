@@ -109,6 +109,7 @@ export default function RDO() {
   
   // Date selection state
   const [selectedDate, setSelectedDate] = useState<Date>(today);
+  const [activeTab, setActiveTab] = useState("report");
   const selectedDateStr = format(selectedDate, "yyyy-MM-dd");
   
   const { data: attendanceRecords } = useAttendanceRecords(selectedDateStr);
@@ -924,7 +925,7 @@ ${difficulties}`;
           </div>
         )}
 
-        <Tabs defaultValue="report" className="w-full">
+        <Tabs value={activeTab} onValueChange={setActiveTab} className="w-full">
           <TabsList className="grid w-full grid-cols-2 max-w-md mx-auto mb-6">
             <TabsTrigger value="report" className="gap-2">
               <FileText className="h-4 w-4" />
