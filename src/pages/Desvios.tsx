@@ -95,6 +95,7 @@ export default function Desvios() {
   const [formState, setFormState] = useState<Partial<Desvio>>({
     description: "",
     instruction: "",
+    correction: "",
     tags: [],
     priority: "Baixo",
     responsible_name: "",
@@ -170,6 +171,7 @@ export default function Desvios() {
     setFormState({
       description: "",
       instruction: "",
+      correction: "",
       tags: [],
       priority: "Baixo",
       responsible_name: "",
@@ -193,15 +195,26 @@ export default function Desvios() {
     }
 
     try {
+      const isNewCorrection = 
+        selectedDesvio && 
+        isResponsible && 
+        formState.correction && 
+        formState.correction !== selectedDesvio.correction;
+
+      const finalUpdates = {
+        ...formState,
+        status: isNewCorrection ? "Aguardando Validação" : formState.status
+      };
+
       if (selectedDesvio) {
         await updateDesvio.mutateAsync({
           id: selectedDesvio.id,
-          updates: formState,
-          action: "Edição",
-          comment: send ? "Desvio salvo e enviado" : "Desvio atualizado",
+          updates: finalUpdates,
+          action: isNewCorrection ? "Correção" : "Edição",
+          comment: isNewCorrection ? "Correção realizada pelo responsável" : (send ? "Desvio salvo e enviado" : "Desvio atualizado"),
         });
       } else {
-        await createDesvio.mutateAsync(formState);
+        await createDesvio.mutateAsync(finalUpdates);
       }
       resetForm();
     } catch (error) {
@@ -269,7 +282,7 @@ export default function Desvios() {
             </div>
           </div>
 
-          <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
+          <div className="grid grid-cols-1 md:grid-cols-4 gap-6">
             {/* Coluna 1: Problema / Assunto */}
             <Card>
               <CardHeader>
@@ -384,7 +397,34 @@ export default function Desvios() {
               </CardContent>
             </Card>
 
-            {/* Coluna 3: Responsável / Prazo */}
+            {/* Coluna 3: Correção */}
+            <Card>
+              <CardHeader>
+                <CardTitle className="flex items-center gap-2">
+                  <Check className="w-5 h-5 text-blue-600" />
+                  Correção
+                </CardTitle>
+              </CardHeader>
+              <CardContent className="space-y-4">
+                <div className="space-y-2">
+                  <label className="text-sm font-medium">Correção Realizada</label>
+                  <Textarea
+                    placeholder="Descreva a correção efetuada..."
+                    className="min-h-[200px]"
+                    value={formState.correction || ""}
+                    onChange={(e) => setFormState({ ...formState, correction: e.target.value })}
+                    disabled={!isResponsible}
+                  />
+                  {!isResponsible && (
+                    <p className="text-[10px] text-muted-foreground italic">
+                      Somente o usuário responsável pode preencher este campo.
+                    </p>
+                  )}
+                </div>
+              </CardContent>
+            </Card>
+
+            {/* Coluna 4: Responsável / Prazo */}
             <Card>
               <CardHeader>
                 <CardTitle className="flex items-center gap-2">
@@ -557,12 +597,12 @@ export default function Desvios() {
                 <Send className="w-4 h-4" /> Salvar e Enviar
               </Button>
               
-              {isCreator && (
+              {isCreator && selectedDesvio && (
                 <>
-                  <Button size="sm" className="gap-2 bg-green-600 hover:bg-green-700 text-white" onClick={() => handleStatusChange("Aguardando Validação")}>
+                  <Button size="sm" className="gap-2 bg-green-600 hover:bg-green-700 text-white" onClick={() => handleStatusChange("Concluído")}>
                     <Check className="w-4 h-4" /> Aprovar
                   </Button>
-                  <Button variant="destructive" size="sm" className="gap-2" onClick={() => handleStatusChange("Cancelado")}>
+                  <Button variant="destructive" size="sm" className="gap-2" onClick={() => handleStatusChange("Em Tratamento")}>
                     <Ban className="w-4 h-4" /> Reprovar
                   </Button>
                   <Button variant="outline" size="sm" className="gap-2" onClick={() => handleStatusChange("Concluído")}>

@@ -98,7 +98,10 @@ Deno.serve(async (req) => {
       lines.push(`📅 *Data Limite:* ${dueDateStr}`);
     }
     if (desvio.instruction) {
-      lines.push("", `🛠️ *Tratativa:*\n${desvio.instruction}`);
+      lines.push("", `🛠️ *Tratativa (Instrução):*\n${desvio.instruction}`);
+    }
+    if (desvio.correction) {
+      lines.push("", `✅ *Correção realizada:*\n${desvio.correction}`);
     }
     
     lines.push(

@@ -42,6 +42,7 @@ export interface Desvio {
   created_at: string;
   updated_at: string;
   instruction: string | null;
+  correction: string | null;
   tags: string[];
   priority: string | null;
   responsible_name: string | null;

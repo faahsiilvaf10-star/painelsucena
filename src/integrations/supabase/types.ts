@@ -1108,6 +1108,7 @@ export type Database = {
           attachments: Json | null
           client_op_id: string | null
           comments: string | null
+          correction: string | null
           correction_photo_urls: string[] | null
           created_at: string
           created_by: string
@@ -1136,6 +1137,7 @@ export type Database = {
           attachments?: Json | null
           client_op_id?: string | null
           comments?: string | null
+          correction?: string | null
           correction_photo_urls?: string[] | null
           created_at?: string
           created_by: string
@@ -1164,6 +1166,7 @@ export type Database = {
           attachments?: Json | null
           client_op_id?: string | null
           comments?: string | null
+          correction?: string | null
           correction_photo_urls?: string[] | null
           created_at?: string
           created_by?: string
