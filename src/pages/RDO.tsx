@@ -1,4 +1,5 @@
 // @ts-nocheck
+import { useSearchParams } from "react-router-dom";
 import { useState, useMemo, useRef, useEffect } from "react";
 import { supabase } from "@/integrations/supabase/client";
 import * as E from "@/lib/whatsappEmojis";
@@ -101,6 +102,7 @@ export default function RDO() {
   const { user } = useAuth();
   const { data: profile } = useProfile();
   const { isAdmin } = useIsAdmin();
+  const [searchParams] = useSearchParams();
   const todayStr = getBrazilNorthTodayString();
   const today = getBrazilNorthDate();
   
@@ -109,7 +111,7 @@ export default function RDO() {
   
   // Date selection state
   const [selectedDate, setSelectedDate] = useState<Date>(today);
-  const [activeTab, setActiveTab] = useState("report");
+  const [activeTab, setActiveTab] = useState(searchParams.get("tab") || "report");
   const selectedDateStr = format(selectedDate, "yyyy-MM-dd");
   
   const { data: attendanceRecords } = useAttendanceRecords(selectedDateStr);

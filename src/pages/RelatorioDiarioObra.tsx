@@ -1,11 +1,12 @@
 import { useNavigate } from "react-router-dom";
 import Layout from "@/components/layout/Layout";
-import { FileText, Leaf, Hammer } from "lucide-react";
+import { FileText, Leaf, Hammer, Clock } from "lucide-react";
 
 const rdoPages = [
   { label: "RDO", icon: FileText, path: "/rdo" },
   { label: "Atividade\nJardinagem", icon: Leaf, path: "/atividades" },
   { label: "Atividade\nGabião", icon: Hammer, path: "/atividades-ii" },
+  { label: "Atividade\nPrevista", icon: Clock, path: "/rdo?tab=planned" },
 ];
 
 const RelatorioDiarioObra = () => {
