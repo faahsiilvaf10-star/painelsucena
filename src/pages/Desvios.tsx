@@ -397,7 +397,34 @@ export default function Desvios() {
               </CardContent>
             </Card>
 
-            {/* Coluna 3: Responsável / Prazo */}
+            {/* Coluna 3: Correção */}
+            <Card>
+              <CardHeader>
+                <CardTitle className="flex items-center gap-2">
+                  <Check className="w-5 h-5 text-blue-600" />
+                  Correção
+                </CardTitle>
+              </CardHeader>
+              <CardContent className="space-y-4">
+                <div className="space-y-2">
+                  <label className="text-sm font-medium">Correção Realizada</label>
+                  <Textarea
+                    placeholder="Descreva a correção efetuada..."
+                    className="min-h-[200px]"
+                    value={formState.correction || ""}
+                    onChange={(e) => setFormState({ ...formState, correction: e.target.value })}
+                    disabled={!isResponsible}
+                  />
+                  {!isResponsible && (
+                    <p className="text-[10px] text-muted-foreground italic">
+                      Somente o usuário responsável pode preencher este campo.
+                    </p>
+                  )}
+                </div>
+              </CardContent>
+            </Card>
+
+            {/* Coluna 4: Responsável / Prazo */}
             <Card>
               <CardHeader>
                 <CardTitle className="flex items-center gap-2">
