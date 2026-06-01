@@ -4537,6 +4537,7 @@ export type Database = {
           auto_send_matrix_alert: boolean
           auto_send_order_alerts: boolean
           auto_send_orders_to_group: boolean
+          auto_send_planned_activities: boolean
           auto_send_planning_alerts: boolean
           auto_send_pos_chuva: boolean
           auto_send_reminders: boolean
@@ -4566,6 +4567,7 @@ export type Database = {
           group_id_low_stock: string | null
           group_id_matrix: string | null
           group_id_orders: string | null
+          group_id_planned_activities: string | null
           group_id_planning: string | null
           group_id_pos_chuva: string | null
           group_id_reminders: string | null
@@ -4599,6 +4601,7 @@ export type Database = {
           auto_send_matrix_alert?: boolean
           auto_send_order_alerts?: boolean
           auto_send_orders_to_group?: boolean
+          auto_send_planned_activities?: boolean
           auto_send_planning_alerts?: boolean
           auto_send_pos_chuva?: boolean
           auto_send_reminders?: boolean
@@ -4628,6 +4631,7 @@ export type Database = {
           group_id_low_stock?: string | null
           group_id_matrix?: string | null
           group_id_orders?: string | null
+          group_id_planned_activities?: string | null
           group_id_planning?: string | null
           group_id_pos_chuva?: string | null
           group_id_reminders?: string | null
@@ -4661,6 +4665,7 @@ export type Database = {
           auto_send_matrix_alert?: boolean
           auto_send_order_alerts?: boolean
           auto_send_orders_to_group?: boolean
+          auto_send_planned_activities?: boolean
           auto_send_planning_alerts?: boolean
           auto_send_pos_chuva?: boolean
           auto_send_reminders?: boolean
@@ -4690,6 +4695,7 @@ export type Database = {
           group_id_low_stock?: string | null
           group_id_matrix?: string | null
           group_id_orders?: string | null
+          group_id_planned_activities?: string | null
           group_id_planning?: string | null
           group_id_pos_chuva?: string | null
           group_id_reminders?: string | null
