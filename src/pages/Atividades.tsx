@@ -162,7 +162,14 @@ export default function Atividades() {
   const [manutencaoCanteiro, setManutencaoCanteiro] = useState("");
   const [invasoras, setInvasoras] = useState<InvasoraEntry[]>([{ nome: "", unidade: "" }]);
   const [invasorasBerma, setInvasorasBerma] = useState("");
+  const [invasorasFaixa, setInvasorasFaixa] = useState("");
   const [retiradaMudasUnidade, setRetiradaMudasUnidade] = useState("");
+  const [retiradaMudasFaixa, setRetiradaMudasFaixa] = useState("");
+  const [retiradaMudasBerma, setRetiradaMudasBerma] = useState("");
+  const [manutencaoCanteiroFaixa, setManutencaoCanteiroFaixa] = useState("");
+  const [manutencaoCanteiroBerma, setManutencaoCanteiroBerma] = useState("");
+  const [atividadesManuaisFaixa, setAtividadesManuaisFaixa] = useState("");
+  const [atividadesManuaisBerma, setAtividadesManuaisBerma] = useState("");
   
   // Plantio de Grama state
   const [plantioGrama, setPlantioGrama] = useState("");
