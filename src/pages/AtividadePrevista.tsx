@@ -81,7 +81,7 @@ export default function AtividadePrevista() {
     "Irrigação com Carretel",
   ], []);
 
-  const handleSavePlanned = async (planned: { gabiao: string[]; jardinagem: string[] }, locks?: { gabiao?: boolean; jardinagem?: boolean }) => {
+  const handleSavePlanned = async (planned: { gabiao: string[]; jardinagem: string[] }, locks?: { gabiao?: boolean; jardinagem?: boolean }, area?: "gabiao" | "jardinagem") => {
     if (!user) return;
     try {
       await saveReport.mutateAsync({
