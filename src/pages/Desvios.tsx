@@ -100,6 +100,7 @@ export default function Desvios() {
   const updateDesvio = useUpdateDesvio();
   const deleteDesvio = useDeleteDesvio();
   const uploadFile = useUploadDesvioPhoto();
+  const { isAdmin: isAdminFromRole } = useIsAdmin();
 
   const [selectedDesvio, setSelectedDesvio] = useState<Desvio | null>(null);
   const [isEditing, setIsEditing] = useState(false);
