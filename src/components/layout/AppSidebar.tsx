@@ -78,6 +78,7 @@ const allNavItems: NavItem[] = [
   { id: "rh-hub", icon: Users, label: "RH", path: "/recursos-humanos" },
   
   { id: "rdo-hub", icon: FileText, label: "Relatório Diário Obra", path: "/relatorio-diario-obra" },
+  { id: "atividade-prevista", icon: Clock, label: "Atividade Prevista", path: "/atividade-prevista" },
   
   { id: "arquivos-seguranca", icon: FolderLock, label: "Documentos Salvos", path: "/arquivos-seguranca" },
   
@@ -155,14 +156,16 @@ function SortableNavItem({
               item.isEmergency ? "text-red-500 animate-pulse" : ""
             }`}
           />
-          <EditableText
-            pageKey="sidebar"
-            elementKey={`nav-${item.id}`}
-            defaultValue={item.label}
-            className={`font-medium text-sm md:text-base truncate ${item.isEmergency ? "text-red-500" : ""}`}
-            as="span"
-            canEdit={!!editMode}
-          />
+          <span className="flex-1 min-w-0 flex items-center">
+            <EditableText
+              pageKey="sidebar"
+              elementKey={`nav-${item.id}`}
+              defaultValue={item.label}
+              className={`font-medium text-sm md:text-base truncate block w-full ${item.isEmergency ? "text-red-500" : ""}`}
+              as="span"
+              canEdit={!!editMode}
+            />
+          </span>
           {showMeetingPulse && (
             <TooltipProvider delayDuration={150}>
               <Tooltip>

@@ -4,8 +4,9 @@ import { CheckCircle2, Wrench, Image as ImageIcon, AlertTriangle, ArrowRight, Cl
 import { useDesvios } from "@/hooks/useDesvios";
 import { useAllEquipmentMovements } from "@/hooks/useEquipmentMovements";
 import { useInstaCenaPosts } from "@/hooks/useInstaCena";
+import { useRDOReports } from "@/hooks/useRDOReports";
 
-type ActivityKind = "equipment" | "desvio" | "post";
+type ActivityKind = "equipment" | "desvio" | "post" | "planned";
 
 interface ActivityItem {
   id: string;
@@ -36,6 +37,8 @@ const iconFor = (kind: ActivityKind) => {
       return { Icon: AlertTriangle, color: "text-orange-600 dark:text-orange-400", bg: "bg-orange-500/10" };
     case "post":
       return { Icon: ImageIcon, color: "text-sky-600 dark:text-sky-400", bg: "bg-sky-500/10" };
+    case "planned":
+      return { Icon: Clock, color: "text-amber-600 dark:text-amber-400", bg: "bg-amber-500/10" };
   }
 };
 
@@ -43,6 +46,7 @@ export function RecentActivitiesCard() {
   const { data: desvios } = useDesvios();
   const { data: movements } = useAllEquipmentMovements();
   const { data: posts } = useInstaCenaPosts();
+  const { data: rdos } = useRDOReports();
 
   const items = useMemo<ActivityItem[]>(() => {
     const list: ActivityItem[] = [];
@@ -81,8 +85,19 @@ export function RecentActivitiesCard() {
       });
     });
 
+    (rdos || []).filter(r => r.planned_activities).slice(0, 3).forEach((r) => {
+      list.push({
+        id: `pl-${r.id}`,
+        kind: "planned",
+        title: "Planejamento cadastrado",
+        subtitle: `Para o dia ${new Date(r.report_date + "T12:00:00").toLocaleDateString("pt-BR")}`,
+        date: new Date(r.updated_at),
+        link: "/atividade-prevista",
+      });
+    });
+
     return list.sort((a, b) => b.date.getTime() - a.date.getTime()).slice(0, 4);
-  }, [desvios, movements, posts]);
+  }, [desvios, movements, posts, rdos]);
 
   return (
     <div className="rounded-2xl p-5 bg-card border border-border shadow-sm">
