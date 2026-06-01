@@ -329,17 +329,17 @@ export default function Desvios() {
               </CardContent>
             </Card>
 
-            {/* Coluna 2: Ação Corretiva */}
+            {/* Coluna 2: Tratativa */}
             <Card>
               <CardHeader>
                 <CardTitle className="flex items-center gap-2">
                   <CheckCircle2 className="w-5 h-5 text-green-500" />
-                  Ação Corretiva
+                  Tratativa
                 </CardTitle>
               </CardHeader>
               <CardContent className="space-y-4">
                 <div className="space-y-2">
-                  <label className="text-sm font-medium">Instrução / Tratativa</label>
+                  <label className="text-sm font-medium">Instrução</label>
                   <Textarea
                     placeholder="Instruções para correção..."
                     className="min-h-[200px]"
