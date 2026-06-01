@@ -135,7 +135,8 @@ export default function Desvios() {
   }, [selectedDesvio, user]);
 
   const isAdmin = useMemo(() => {
-    return profile?.role === "admin" || profile?.role === "master";
+    const role = profile?.role?.toLowerCase();
+    return role === "admin" || role === "master";
   }, [profile]);
 
   const canEditCorrection = useMemo(() => {
@@ -454,7 +455,7 @@ export default function Desvios() {
                     className="min-h-[200px]"
                     value={formState.correction || ""}
                     onChange={(e) => setFormState({ ...formState, correction: e.target.value })}
-                    disabled={!canEditCorrection && !isAdmin}
+                    disabled={!isAdmin && !isResponsible}
                   />
                   {!canEditCorrection && (
                     <p className="text-[10px] text-muted-foreground italic">
