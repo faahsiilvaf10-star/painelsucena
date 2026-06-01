@@ -586,34 +586,36 @@ export default function Desvios() {
               </CardTitle>
             </CardHeader>
             <CardContent>
-              <Table>
-                <TableHeader>
-                  <TableRow>
-                    <TableHead>Data</TableHead>
-                    <TableHead>Usuário</TableHead>
-                    <TableHead>Ação realizada</TableHead>
-                    <TableHead>Comentário</TableHead>
-                  </TableRow>
-                </TableHeader>
-                <TableBody>
-                  {formState.history?.length ? (
-                    formState.history.slice().reverse().map((ev, i) => (
-                      <TableRow key={i}>
-                        <TableCell className="text-xs">{format(new Date(ev.date), "dd/MM/yyyy HH:mm")}</TableCell>
-                        <TableCell className="text-xs font-medium">{ev.user}</TableCell>
-                        <TableCell className="text-xs">
-                          <Badge variant="outline">{ev.action}</Badge>
-                        </TableCell>
-                        <TableCell className="text-xs text-muted-foreground">{ev.comment}</TableCell>
-                      </TableRow>
-                    ))
-                  ) : (
+              <div className="max-h-[300px] overflow-y-auto">
+                <Table>
+                  <TableHeader className="sticky top-0 bg-background z-10 shadow-sm">
                     <TableRow>
-                      <TableCell colSpan={4} className="text-center py-4 text-muted-foreground">Nenhum registro encontrado</TableCell>
+                      <TableHead>Data</TableHead>
+                      <TableHead>Usuário</TableHead>
+                      <TableHead>Ação realizada</TableHead>
+                      <TableHead>Comentário</TableHead>
                     </TableRow>
-                  )}
-                </TableBody>
-              </Table>
+                  </TableHeader>
+                  <TableBody>
+                    {formState.history?.length ? (
+                      formState.history.slice().reverse().map((ev, i) => (
+                        <TableRow key={i}>
+                          <TableCell className="text-xs whitespace-nowrap">{format(new Date(ev.date), "dd/MM/yyyy HH:mm")}</TableCell>
+                          <TableCell className="text-xs font-medium">{ev.user}</TableCell>
+                          <TableCell className="text-xs">
+                            <Badge variant="outline">{ev.action}</Badge>
+                          </TableCell>
+                          <TableCell className="text-xs text-muted-foreground">{ev.comment}</TableCell>
+                        </TableRow>
+                      ))
+                    ) : (
+                      <TableRow>
+                        <TableCell colSpan={4} className="text-center py-4 text-muted-foreground">Nenhum registro encontrado</TableCell>
+                      </TableRow>
+                    )}
+                  </TableBody>
+                </Table>
+              </div>
             </CardContent>
           </Card>
 
