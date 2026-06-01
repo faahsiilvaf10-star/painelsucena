@@ -95,6 +95,7 @@ export default function Desvios() {
   const [formState, setFormState] = useState<Partial<Desvio>>({
     description: "",
     instruction: "",
+    correction: "",
     tags: [],
     priority: "Baixo",
     responsible_name: "",
