@@ -52,6 +52,7 @@ import {
 } from "@/hooks/useDesvios";
 import { useProfiles } from "@/hooks/useProfiles";
 import { useProfile } from "@/hooks/useProfile";
+import { useIsAdmin } from "@/hooks/useUserRole";
 import { useAuth } from "@/hooks/useAuth";
 import { toast } from "sonner";
 import {
@@ -99,6 +100,7 @@ export default function Desvios() {
   const updateDesvio = useUpdateDesvio();
   const deleteDesvio = useDeleteDesvio();
   const uploadFile = useUploadDesvioPhoto();
+  const { isAdmin: isAdminFromRole } = useIsAdmin();
 
   const [selectedDesvio, setSelectedDesvio] = useState<Desvio | null>(null);
   const [isEditing, setIsEditing] = useState(false);
@@ -140,8 +142,8 @@ export default function Desvios() {
 
   const isAdmin = useMemo(() => {
     const role = profile?.role?.toLowerCase();
-    return role === "admin" || role === "master";
-  }, [profile]);
+    return role === "admin" || role === "master" || isAdminFromRole;
+  }, [profile, isAdminFromRole]);
 
   const canEditCorrection = useMemo(() => {
     return isResponsible || isAdmin;
