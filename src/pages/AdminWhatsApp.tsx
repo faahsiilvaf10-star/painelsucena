@@ -130,6 +130,9 @@ const AdminWhatsApp = () => {
   const [autoSendDriverAppReminder, setAutoSendDriverAppReminder] = useState(false);
   const [groupIdDriverAppReminder, setGroupIdDriverAppReminder] = useState("");
   const [testingDriverAppReminder, setTestingDriverAppReminder] = useState(false);
+  const [autoSendPlannedActivities, setAutoSendPlannedActivities] = useState(false);
+  const [groupIdPlannedActivities, setGroupIdPlannedActivities] = useState("");
+  const [testingPlannedActivities, setTestingPlannedActivities] = useState(false);
   const [parteDiariaOpen, setParteDiariaOpen] = useState(false);
   const [parteDiariaLoading, setParteDiariaLoading] = useState(false);
   const [parteDiariaRecords, setParteDiariaRecords] = useState<any[]>([]);
@@ -211,6 +214,8 @@ const AdminWhatsApp = () => {
       setGroupIdDriverStatus((c.group_id_driver_status as string | null) || "");
       setAutoSendDriverAppReminder(!!(c.auto_send_driver_app_reminder as boolean | null));
       setGroupIdDriverAppReminder((c.group_id_driver_app_reminder as string | null) || "");
+      setAutoSendPlannedActivities(!!(c.auto_send_planned_activities as boolean | null));
+      setGroupIdPlannedActivities((c.group_id_planned_activities as string | null) || "");
     }
   }, [cfg]);
 
@@ -323,6 +328,8 @@ const AdminWhatsApp = () => {
         group_id_driver_status: groupIdDriverStatus.trim() || null,
         auto_send_driver_app_reminder: autoSendDriverAppReminder,
         group_id_driver_app_reminder: groupIdDriverAppReminder.trim() || null,
+        auto_send_planned_activities: autoSendPlannedActivities,
+        group_id_planned_activities: groupIdPlannedActivities.trim() || null,
         updated_by: user?.id ?? null,
 
       };
@@ -896,6 +903,39 @@ const AdminWhatsApp = () => {
     }
   };
 
+  const handleTestPlannedActivitiesNotify = async () => {
+    setTestingPlannedActivities(true);
+    try {
+      const url = `${import.meta.env.VITE_SUPABASE_URL}/functions/v1/wapi-planned-activities-notify`;
+      const response = await fetch(url, {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ force: true }),
+      });
+      const text = await response.text();
+      let data: any = null;
+      try { data = text ? JSON.parse(text) : null; } catch { /* keep raw */ }
+
+      if (!response.ok) {
+        toast.error(`Erro HTTP ${response.status}`, { description: text.slice(0, 500), duration: 15000 });
+        return;
+      }
+      if (data?.skipped) {
+        toast.info("Nada enviado", { description: data.reason || "—", duration: 8000 });
+      } else if (data?.success) {
+        toast.success("Alerta de Atividades Previstas enviado ao grupo");
+      } else {
+        toast.error("Falha no envio", { description: data?.error || "Erro desconhecido", duration: 15000 });
+      }
+      queryClient.invalidateQueries({ queryKey: ["wapi-logs"] });
+    } catch (e) {
+      const msg = e instanceof Error ? e.message : String(e);
+      toast.error("Falha ao executar teste", { description: msg, duration: 15000 });
+    } finally {
+      setTestingPlannedActivities(false);
+    }
+  };
+
   const handleTestSlingInspectionNotify = async () => {
     setTestingSlingInspection(true);
     try {
@@ -1244,11 +1284,44 @@ const AdminWhatsApp = () => {
                 </Button>
               </div>
             </div>
-            <GroupIdOverrideInput id="gid-cronograma-mirante" value={groupIdCronogramaMirante} onChange={setGroupIdCronogramaMirante} defaultGroupId={groupId} />
-            <p className="text-xs text-muted-foreground mt-3">
-              Requisitos: integração W-API habilitada e ID do grupo preenchido. O botão "Testar" envia o alerta imediatamente,
-              ignorando o filtro de duplicidade. Lembre-se de salvar a configuração após alterar.
-            </p>
+            <GroupIdOverrideInput id="gid-cronograma" value={groupIdCronogramaMirante} onChange={setGroupIdCronogramaMirante} defaultGroupId={groupId} />
+          </CardContent>
+        </Card>
+
+        <Card>
+          <CardHeader>
+            <CardTitle className="flex items-center gap-2">
+              <Bell className="w-5 h-5 text-primary" />
+              Alerta Automático Atividades Previstas
+            </CardTitle>
+            <CardDescription>
+              Quando habilitado, o sistema envia automaticamente uma mensagem para o <strong>grupo configurado</strong> sempre que as
+              <strong> Atividades Previstas</strong> (Gabião e Jardinagem) forem salvas na página correspondente.
+            </CardDescription>
+          </CardHeader>
+          <CardContent>
+            <div className="flex items-center justify-between gap-3 rounded-md border p-3 bg-muted/30">
+              <div className="flex items-center gap-3">
+                <Switch
+                  id="auto-send-planned-activities"
+                  checked={autoSendPlannedActivities}
+                  onCheckedChange={setAutoSendPlannedActivities}
+                />
+                <Label htmlFor="auto-send-planned-activities" className="cursor-pointer">
+                  Ativar alerta automático de Atividades Previstas
+                </Label>
+              </div>
+              <div className="flex items-center gap-2">
+                <Badge variant={autoSendPlannedActivities ? "default" : "secondary"}>
+                  {autoSendPlannedActivities ? "Ativo" : "Desativado"}
+                </Badge>
+                <Button variant="outline" size="sm" onClick={handleTestPlannedActivitiesNotify} disabled={testingPlannedActivities}>
+                  <Play className="w-4 h-4 mr-1" />
+                  {testingPlannedActivities ? "..." : "Testar"}
+                </Button>
+              </div>
+            </div>
+            <GroupIdOverrideInput id="gid-planned-activities" value={groupIdPlannedActivities} onChange={setGroupIdPlannedActivities} defaultGroupId={groupId} />
           </CardContent>
         </Card>
 
