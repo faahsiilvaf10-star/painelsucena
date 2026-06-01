@@ -3588,6 +3588,7 @@ export type Database = {
           jardinagem_activities: string | null
           jardinagem_location: string | null
           photo_urls: string[] | null
+          planned_activities: Json | null
           report_date: string
           report_text: string
           temperature: number | null
@@ -3612,6 +3613,7 @@ export type Database = {
           jardinagem_activities?: string | null
           jardinagem_location?: string | null
           photo_urls?: string[] | null
+          planned_activities?: Json | null
           report_date: string
           report_text: string
           temperature?: number | null
@@ -3636,6 +3638,7 @@ export type Database = {
           jardinagem_activities?: string | null
           jardinagem_location?: string | null
           photo_urls?: string[] | null
+          planned_activities?: Json | null
           report_date?: string
           report_text?: string
           temperature?: number | null
