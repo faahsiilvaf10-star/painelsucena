@@ -638,6 +638,40 @@ export default function Desvios() {
                 <Send className="w-4 h-4" /> Salvar e Enviar
               </Button>
               
+              {isAdmin && selectedDesvio && (
+                <AlertDialog>
+                  <AlertDialogTrigger asChild>
+                    <Button variant="outline" size="sm" className="gap-2 text-destructive hover:text-destructive hover:bg-destructive/10">
+                      <Trash2 className="w-4 h-4" /> Excluir
+                    </Button>
+                  </AlertDialogTrigger>
+                  <AlertDialogContent>
+                    <AlertDialogHeader>
+                      <AlertDialogTitle>Excluir Desvio</AlertDialogTitle>
+                      <AlertDialogDescription>
+                        Tem certeza que deseja excluir este desvio? Esta ação não pode ser desfeita.
+                      </AlertDialogDescription>
+                    </AlertDialogHeader>
+                    <AlertDialogFooter>
+                      <AlertDialogCancel>Cancelar</AlertDialogCancel>
+                      <AlertDialogAction 
+                        className="bg-destructive text-destructive-foreground hover:bg-destructive/90"
+                        onClick={async () => {
+                          try {
+                            await deleteDesvio.mutateAsync(selectedDesvio.id);
+                            resetForm();
+                          } catch (error) {
+                            console.error(error);
+                          }
+                        }}
+                      >
+                        Excluir
+                      </AlertDialogAction>
+                    </AlertDialogFooter>
+                  </AlertDialogContent>
+                </AlertDialog>
+              )}
+
               {(isCreator || isAdmin) && selectedDesvio && (
                 <>
                   {formState.status === "Cancelado" ? (
