@@ -112,6 +112,10 @@ Deno.serve(async (req) => {
     if (desvio.correction) {
       lines.push("", `✅ *Correção realizada:*\n${desvio.correction}`);
     }
+
+    if (comment && comment !== "Alteração realizada") {
+      lines.push("", `💬 *Motivo/Comentário:*\n${comment}`);
+    }
     
     lines.push(
       "",
