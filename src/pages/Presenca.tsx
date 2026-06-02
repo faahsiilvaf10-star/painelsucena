@@ -139,7 +139,7 @@ const Presenca = () => {
   );
   const { isLocked, lockMutation, unlockMutation } =
     useAttendanceReportLocks(date);
-  const { data: dailyMarks, getAbsentIds, saveMutation: marksSaveMutation } =
+  const { data: dailyMarks, getAbsentIds, getExternalWorkIds, saveMutation: marksSaveMutation } =
     useAttendanceDailyMarks(date);
   const initialArea = useMemo<AttendanceArea>(() => {
     return "gabiao";
