@@ -1,5 +1,5 @@
 import { useEffect, useMemo, useRef, useState } from "react";
-import { Target, TrendingUp, CheckCircle2, AlertCircle, Pencil, Save, X, RefreshCw, FileText } from "lucide-react";
+import { Target, TrendingUp, CheckCircle2, AlertCircle, Pencil, Save, X, RefreshCw, FileText, Upload } from "lucide-react";
 import { Link } from "react-router-dom";
 import { supabase } from "@/integrations/supabase/client";
 import { useQueryClient } from "@tanstack/react-query";
@@ -14,6 +14,7 @@ import { usePlanejamentoMetas, useUpdatePlanejamentoMeta, type PlanejamentoMeta 
 import { useIsAdmin } from "@/hooks/useUserRole";
 import { useProfile } from "@/hooks/useProfile";
 import { cn } from "@/lib/utils";
+import ExcelJS from "exceljs";
 
 function pct(realizado: number, meta: number) {
   if (!meta || meta <= 0) return 0;
@@ -119,8 +120,88 @@ export default function Planejamento() {
   const { data: profile } = useProfile();
   const canEdit = isStrictAdmin || profile?.cargo === "planejador";
   const qc = useQueryClient();
+  const [uploading, setUploading] = useState(false);
+  const fileInputRef = useRef<HTMLInputElement>(null);
 
-  // Excel sync logic removed as requested by user
+  const handleFileUpload = async (event: React.ChangeEvent<HTMLInputElement>) => {
+    const file = event.target.files?.[0];
+    if (!file) return;
+
+    setUploading(true);
+    const loadingToast = toast.loading("Processando planilha e atualizando metas...");
+
+    try {
+      const workbook = new ExcelJS.Workbook();
+      const arrayBuffer = await file.arrayBuffer();
+      await workbook.xlsx.load(arrayBuffer);
+      
+      const worksheet = workbook.getWorksheet(1) || workbook.worksheets[0];
+      if (!worksheet) throw new Error("Não foi possível encontrar uma aba na planilha.");
+
+      const updates: { id: string; meta: number; realizado: number }[] = [];
+      const COL_LINHA = 1; // Coluna A
+      const COL_META = 3;  // Coluna C
+      const COL_REAL = 4;  // Coluna D
+
+      worksheet.eachRow((row, rowNumber) => {
+        // Pular cabeçalho ou linhas vazias
+        if (rowNumber === 1) return;
+
+        const linhaVal = row.getCell(COL_LINHA).value;
+        const metaVal = row.getCell(COL_META).value;
+        const realVal = row.getCell(COL_REAL).value;
+
+        // Converter para número, lidando com possíveis fórmulas ou objetos de célula
+        const num = (v: any) => {
+          if (v && typeof v === 'object' && 'result' in v) return Number(v.result) || 0;
+          return Number(v) || 0;
+        };
+
+        const linha = Number(linhaVal);
+        if (!isNaN(linha)) {
+          const meta = metas.find(m => m.linha === linha && !m.is_section_header);
+          if (meta) {
+            updates.push({
+              id: meta.id,
+              meta: num(metaVal),
+              realizado: num(realVal)
+            });
+          }
+        }
+      });
+
+      if (updates.length === 0) {
+        throw new Error("Nenhuma meta correspondente encontrada. Verifique se a Coluna A contém os números das linhas.");
+      }
+
+      // Executar atualizações no banco
+      const { error: updateError } = await supabase
+        .from("planejamento_metas")
+        .upsert(updates.map(u => ({
+          id: u.id,
+          meta: u.meta,
+          realizado: u.realizado
+        })));
+
+      if (updateError) throw updateError;
+
+      // Enviar notificação para o WhatsApp (Resumo Mensal)
+      const { error: notifyError } = await supabase.functions.invoke("wapi-planning-notify", {
+        body: { eventType: "monthly_summary", force: true },
+      });
+
+      if (notifyError) console.warn("Falha ao enviar notificação WhatsApp:", notifyError);
+
+      toast.success(`${updates.length} metas atualizadas e resumo enviado ao grupo!`, { id: loadingToast });
+      qc.invalidateQueries({ queryKey: ["planejamento-metas"] });
+    } catch (error: any) {
+      console.error("Erro no upload:", error);
+      toast.error(error.message || "Erro ao processar planilha", { id: loadingToast });
+    } finally {
+      setUploading(false);
+      if (fileInputRef.current) fileInputRef.current.value = "";
+    }
+  };
 
 
   const grouped = useMemo(() => {
@@ -159,12 +240,35 @@ export default function Planejamento() {
             Avanço Mensal — Meta DRS. Cada linha representa uma meta a bater.
           </p>
         </div>
-        <Button asChild variant="outline" size="sm">
-          <Link to="/ata-reuniao-contrato">
-            <FileText className="w-4 h-4 mr-2" />
-            Ata Reunião de Contrato
-          </Link>
-        </Button>
+        <div className="flex items-center gap-2">
+          {canEdit && (
+            <>
+              <input
+                type="file"
+                ref={fileInputRef}
+                onChange={handleFileUpload}
+                accept=".xlsx, .xls"
+                className="hidden"
+              />
+              <Button 
+                variant="outline" 
+                size="sm" 
+                onClick={() => fileInputRef.current?.click()}
+                disabled={uploading}
+                className="bg-emerald-50 border-emerald-200 hover:bg-emerald-100 text-emerald-700"
+              >
+                <Upload className="w-4 h-4 mr-2" />
+                {uploading ? "Enviando..." : "Enviar Planilha"}
+              </Button>
+            </>
+          )}
+          <Button asChild variant="outline" size="sm">
+            <Link to="/ata-reuniao-contrato">
+              <FileText className="w-4 h-4 mr-2" />
+              Ata Reunião de Contrato
+            </Link>
+          </Button>
+        </div>
       </div>
 
       {/* Summary cards */}
