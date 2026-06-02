@@ -750,7 +750,7 @@ export default function Desvios() {
                     </Button>
                   ) : (
                     <>
-                      <Button size="sm" className="gap-2 bg-green-600 hover:bg-green-700 text-white" onClick={() => handleStatusChange("Concluído")}>
+                      <Button size="sm" className="gap-2 bg-green-600 hover:bg-green-700 text-white" onClick={() => handleStatusChange("corrigido")}>
                         <Check className="w-4 h-4" /> Aprovar
                       </Button>
                       <Button variant="destructive" size="sm" className="gap-2" onClick={() => handleStatusChange("Em Tratamento")}>
