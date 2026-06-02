@@ -886,7 +886,7 @@ export default function Desvios() {
                 <div className="flex items-center justify-between mb-2">
                   <div className="flex gap-1">
                     <Badge className={cn("text-[10px]", STATUS_OPTIONS.find(s => s.id === desvio.status)?.color)}>
-                      {desvio.status}
+                      {STATUS_OPTIONS.find(s => s.id === desvio.status)?.label || desvio.status}
                     </Badge>
                     <Badge variant="outline" className={cn("text-[10px]", PRIORITY_OPTIONS.find(p => p.id === desvio.priority)?.color, "text-white border-transparent")}>
                       {desvio.priority}
