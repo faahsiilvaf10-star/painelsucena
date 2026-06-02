@@ -756,7 +756,7 @@ export default function Desvios() {
                       <Button variant="destructive" size="sm" className="gap-2" onClick={() => handleStatusChange("Em Tratamento")}>
                         <Ban className="w-4 h-4" /> Reprovar
                       </Button>
-                      <Button variant="outline" size="sm" className="gap-2" onClick={() => handleStatusChange("Concluído")}>
+                      <Button variant="outline" size="sm" className="gap-2" onClick={() => handleStatusChange("corrigido")}>
                         <Archive className="w-4 h-4" /> Encerrar Desvio
                       </Button>
                       <Button variant="ghost" size="sm" className="gap-2 text-destructive hover:text-destructive hover:bg-destructive/10" onClick={() => handleStatusChange("Cancelado")}>
