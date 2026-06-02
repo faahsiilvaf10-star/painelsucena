@@ -517,13 +517,20 @@ export default function Desvios() {
               </CardHeader>
               <CardContent className="space-y-4">
                 <div className="space-y-2">
-                  <label className="text-sm font-medium">Correção Realizada</label>
+                  <div className="flex items-center justify-between">
+                    <label className="text-sm font-medium">Correção Realizada</label>
+                    {selectedDesvio?.status === "Em Análise" && (isCreator || isAdmin) && (
+                      <Badge variant="outline" className="bg-purple-100 text-purple-700 border-purple-200 animate-pulse">
+                        Aguardando Aprovação
+                      </Badge>
+                    )}
+                  </div>
                   <Textarea
                     placeholder="Descreva a correção efetuada..."
                     className="min-h-[200px]"
                     value={formState.correction || ""}
                     onChange={(e) => setFormState({ ...formState, correction: e.target.value })}
-                    disabled={(!isAdmin && !isResponsible) || (isCancelled && !isAdmin)}
+                    disabled={!canEditCorrection || (isCancelled && !isAdmin)}
                   />
                   {!canEditCorrection && (
                     <p className="text-[10px] text-muted-foreground italic">
@@ -559,13 +566,47 @@ export default function Desvios() {
                     variant="outline"
                     className="w-full gap-2 border-dashed"
                     onClick={() => correctionFileInputRef.current?.click()}
-                    disabled={(!isAdmin && !isResponsible) || (isCancelled && !isAdmin)}
+                    disabled={!canEditCorrection || (isCancelled && !isAdmin)}
                   >
                     <ImageIcon className="w-4 h-4" /> Anexar Fotos da Correção
                   </Button>
                 </div>
               </CardContent>
             </Card>
+
+            {/* Coluna 4: Aprovação (Só visível se estiver em análise) */}
+            {selectedDesvio?.status === "Em Análise" && (
+              <Card className="border-purple-200 bg-purple-50/30">
+                <CardHeader>
+                  <CardTitle className="flex items-center gap-2 text-purple-700">
+                    <CheckCircle2 className="w-5 h-5" />
+                    Aprovação
+                  </CardTitle>
+                </CardHeader>
+                <CardContent className="space-y-4">
+                  <p className="text-sm text-purple-600">
+                    A correção foi enviada e está aguardando sua aprovação para ser finalizada.
+                  </p>
+                  <div className="flex flex-col gap-2">
+                    <Button 
+                      className="w-full gap-2 bg-green-600 hover:bg-green-700"
+                      onClick={() => handleStatusChange("corrigido")}
+                      disabled={!canApprove}
+                    >
+                      <Check className="w-4 h-4" /> Aprovar Correção
+                    </Button>
+                    <Button 
+                      variant="outline" 
+                      className="w-full gap-2 border-red-200 text-red-600 hover:bg-red-50"
+                      onClick={() => handleStatusChange("Em Tratamento")}
+                      disabled={!canApprove}
+                    >
+                      <Ban className="w-4 h-4" /> Recusar / Solicitar Ajuste
+                    </Button>
+                  </div>
+                </CardContent>
+              </Card>
+            )}
 
             {/* Coluna 4: Responsável / Prazo */}
             <Card>
