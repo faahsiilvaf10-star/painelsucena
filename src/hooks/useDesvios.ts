@@ -136,7 +136,7 @@ export function useUpdateDesvio() {
   const { data: profile } = useProfile();
 
   return useMutation({
-    mutationFn: async ({ id, updates, action, comment }: { id: string; updates: Partial<Desvio>; action?: string; comment?: string }) => {
+    mutationFn: async ({ id, updates, action, comment, forceNotify }: { id: string; updates: Partial<Desvio>; action?: string; comment?: string; forceNotify?: boolean }) => {
       if (!user) throw new Error("Não autenticado");
 
       const { data: current } = await supabase.from("desvios").select("history, status").eq("id", id).single();
@@ -178,8 +178,8 @@ export function useUpdateDesvio() {
         }
       }
 
-      // Se for correção (mudança para status corrigido), dispara notificação de correção
-      if (updates.status === "corrigido") {
+      // Se for correção ou se for solicitado o envio manual
+      if (updates.status === "corrigido" || forceNotify) {
         try {
           await supabase.functions.invoke("wapi-desvio-correction-notify", {
             body: { desvioId: id, correctorName: profile?.full_name || "Usuário" },
