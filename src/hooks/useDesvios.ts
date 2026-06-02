@@ -170,7 +170,8 @@ export function useUpdateDesvio() {
               desvioId: id, 
               updatedBy: profile?.full_name || "Usuário",
               statusChanged: isStatusChange,
-              newStatus: updates.status || current?.status
+              newStatus: updates.status || current?.status,
+              comment: comment // Pass the comment to the notification
             },
           });
         } catch (e) {
