@@ -119,46 +119,9 @@ export default function Planejamento() {
   const { data: profile } = useProfile();
   const canEdit = isStrictAdmin || profile?.cargo === "planejador";
   const qc = useQueryClient();
-  const [syncing, setSyncing] = useState(false);
-  const autoSyncRef = useRef(false);
 
-  const runSync = async (silent: boolean) => {
-    if (autoSyncRef.current) return;
-    autoSyncRef.current = true;
-    if (!silent) setSyncing(true);
-    try {
-      const { data, error } = await supabase.functions.invoke("sync-planejamento-excel");
-      if (error) throw error;
-      const d = data as { ok: boolean; updated?: number; error?: string };
-      if (!d.ok) throw new Error(d.error || "Falha na sincronização");
-      if (!silent) {
-        toast.success(`Sincronizado: ${d.updated ?? 0} meta(s) atualizada(s)`);
-      }
-      qc.invalidateQueries({ queryKey: ["planejamento-metas"] });
-    } catch (e) {
-      if (!silent) {
-        toast.error(e instanceof Error ? e.message : "Erro ao sincronizar");
-      } else {
-        console.warn("[Planejamento] Auto-sync falhou:", e);
-      }
-    } finally {
-      if (!silent) setSyncing(false);
-      autoSyncRef.current = false;
-    }
-  };
+  // Excel sync logic removed as requested by user
 
-  const handleSync = () => runSync(false);
-
-  // Sincronização automática a cada 5 minutos (silenciosa)
-  useEffect(() => {
-    // dispara a primeira sincronização logo ao montar
-    runSync(true);
-    const interval = setInterval(() => {
-      runSync(true);
-    }, 5 * 60 * 1000);
-    return () => clearInterval(interval);
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, []);
 
   const grouped = useMemo(() => {
     const groups: { categoria: string; items: PlanejamentoMeta[] }[] = [];
@@ -201,10 +164,6 @@ export default function Planejamento() {
             <FileText className="w-4 h-4 mr-2" />
             Ata Reunião de Contrato
           </Link>
-        </Button>
-        <Button onClick={handleSync} disabled={syncing} variant="outline" size="sm">
-          <RefreshCw className={cn("w-4 h-4 mr-2", syncing && "animate-spin")} />
-          {syncing ? "Sincronizando..." : "Sincronizar agora"}
         </Button>
       </div>
 
