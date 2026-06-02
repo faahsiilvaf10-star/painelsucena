@@ -262,13 +262,17 @@ const Presenca = () => {
     });
   };
 
-  const markAllPresent = () =>
+  const markAllPresent = () => {
     setAbsentByArea((prev) => ({ ...prev, [activeArea]: new Set() }));
-  const markAllAbsent = () =>
+    setExternalWorkByArea((prev) => ({ ...prev, [activeArea]: new Set() }));
+  };
+  const markAllAbsent = () => {
     setAbsentByArea((prev) => ({
       ...prev,
       [activeArea]: new Set(areaEmployees.map((c) => c.id)),
     }));
+    setExternalWorkByArea((prev) => ({ ...prev, [activeArea]: new Set() }));
+  };
 
   const absentSet = absentByArea[activeArea];
   const presentCount = areaEmployees.length - absentSet.size;
