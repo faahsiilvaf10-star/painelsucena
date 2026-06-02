@@ -168,9 +168,9 @@ export default function Desvios() {
       total: desvios.length,
       open: desvios.filter((d) => d.status === "Aberto").length,
       inTreatment: desvios.filter((d) => d.status === "Em Tratamento").length,
-      done: desvios.filter((d) => d.status === "Concluído").length,
+      done: desvios.filter((d) => d.status === "corrigido").length,
       delayed: desvios.filter((d) => 
-        !["Concluído", "Cancelado"].includes(d.status) && 
+        !["corrigido", "Cancelado"].includes(d.status) && 
         d.due_date && isPast(parseISO(d.due_date)) && !isToday(parseISO(d.due_date))
       ).length,
     };
