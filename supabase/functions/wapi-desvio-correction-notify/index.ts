@@ -85,6 +85,8 @@ Deno.serve(async (req) => {
       "━━━━━━━━━━━━━━━━━━━━",
       "",
       `📋 *Descrição original:*\n${desvio.description || "—"}`,
+      "",
+      `🛠️ *Correção realizada:*\n${desvio.correction || "—"}`,
     ];
 
     if (mentionedNames.length > 0) {
