@@ -80,8 +80,11 @@ Deno.serve(async (req) => {
         .join("\n");
     }
 
+    const statusLabel = desvio.status === "Em Análise" ? "Aguardando Aprovação" : "CORRIGIDO";
+    const statusEmoji = desvio.status === "Em Análise" ? "⏳" : "✅";
+
     const lines = [
-      "✅ *DESVIO CORRIGIDO*",
+      `${statusEmoji} *DESVIO ${statusLabel}*`,
       "━━━━━━━━━━━━━━━━━━━━",
       "",
       `📋 *Descrição original:*\n${desvio.description || "—"}`,

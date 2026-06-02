@@ -81,8 +81,9 @@ Deno.serve(async (req) => {
       : null;
     const updatedAtStr = new Date().toLocaleString("pt-BR", { timeZone: "America/Belem" });
 
+    const statusLabel = desvio.status === "Em Análise" ? "Em Análise" : desvio.status;
     const lines = [
-      statusChanged ? `🔔 *STATUS ALTERADO: ${desvio.status}*` : `📝 *DESVIO ATUALIZADO*`,
+      statusChanged ? `🔔 *STATUS ALTERADO: ${statusLabel}*` : `📝 *DESVIO ATUALIZADO*`,
       "━━━━━━━━━━━━━━━━━━━━",
       "",
       `🔖 *Etiquetas:* ${Array.isArray(desvio.tags) ? desvio.tags.join(", ") : "—"}`,
