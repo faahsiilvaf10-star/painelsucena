@@ -110,6 +110,7 @@ export default function Desvios() {
   const [showForm, setShowForm] = useState(false);
   const [searchQuery, setSearchQuery] = useState("");
   const fileInputRef = useRef<HTMLInputElement>(null);
+  const correctionFileInputRef = useRef<HTMLInputElement>(null);
   const [activeFilter, setActiveFilter] = useState<string | null>(null);
 
   // Form State
