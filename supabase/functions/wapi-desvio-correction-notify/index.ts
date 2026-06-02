@@ -104,6 +104,7 @@ Deno.serve(async (req) => {
       lines.push(
         `🛠️ *Correção realizada:*\n${desvio.correction || "—"}`,
         "",
+        `👤 *Corrigido por:* ${userName || "—"}`,
         `⏳ *Aguardando análise de:* ${desvio.created_by_name || "—"}`,
       );
     }
