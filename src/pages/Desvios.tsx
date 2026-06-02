@@ -269,8 +269,8 @@ export default function Desvios() {
       const isNewCorrection = 
         selectedDesvio && 
         canEditCorrection && 
-        formState.correction && 
-        formState.correction !== selectedDesvio.correction;
+        ((formState.correction && formState.correction !== selectedDesvio.correction) || 
+         (formState.correction_photo_urls && JSON.stringify(formState.correction_photo_urls) !== JSON.stringify(selectedDesvio.correction_photo_urls)));
 
       const finalUpdates = {
         ...formState,
