@@ -332,16 +332,19 @@ export default function Desvios() {
     }
   };
 
-  const handleStatusChange = async (status: string) => {
+  const handleStatusChange = async (status: string, customComment?: string) => {
     if (!selectedDesvio) return;
     try {
       await updateDesvio.mutateAsync({
         id: selectedDesvio.id,
         updates: { status },
         action: "Mudança de Status",
-        comment: `Status alterado para ${status}`,
+        comment: customComment || `Status alterado para ${status}`,
       });
       setFormState(prev => ({ ...prev, status }));
+      if (status === "Em Tratamento") {
+        resetForm();
+      }
     } catch (error) {
       console.error(error);
     }
