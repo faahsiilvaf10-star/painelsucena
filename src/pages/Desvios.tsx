@@ -332,16 +332,35 @@ export default function Desvios() {
     }
   };
 
-  const handleStatusChange = async (status: string) => {
+  const handleStatusChange = async (status: string, customComment?: string) => {
     if (!selectedDesvio) return;
     try {
+      const isReopening = selectedDesvio.status === "Em Análise" && status === "Em Tratamento";
+      
+      const updates: any = { status };
+      
+      // Se for reabertura por recusa, limpamos os campos de correção para nova tentativa
+      if (isReopening) {
+        updates.correction = null;
+        updates.correction_photo_urls = [];
+      }
+
       await updateDesvio.mutateAsync({
         id: selectedDesvio.id,
-        updates: { status },
-        action: "Mudança de Status",
-        comment: `Status alterado para ${status}`,
+        updates,
+        action: isReopening ? "Solicitação de Reajuste" : "Mudança de Status",
+        comment: customComment || (isReopening ? "Correção recusada, solicitado reajuste." : `Status alterado para ${status}`),
       });
-      setFormState(prev => ({ ...prev, status }));
+      
+      setFormState(prev => ({ 
+        ...prev, 
+        status,
+        ...(isReopening ? { correction: "", correction_photo_urls: [] } : {})
+      }));
+
+      if (status === "Em Tratamento" || status === "corrigido") {
+        resetForm();
+      }
     } catch (error) {
       console.error(error);
     }
@@ -598,10 +617,10 @@ export default function Desvios() {
                     <Button 
                       variant="outline" 
                       className="w-full gap-2 border-red-200 text-red-600 hover:bg-red-50"
-                      onClick={() => handleStatusChange("Em Tratamento")}
+                      onClick={() => handleStatusChange("Em Tratamento", formState.comments)}
                       disabled={!canApprove}
                     >
-                      <Ban className="w-4 h-4" /> Recusar / Solicitar Ajuste
+                      <Ban className="w-4 h-4" /> Recusar / Solicitar Reajuste
                     </Button>
                   </div>
                 </CardContent>
