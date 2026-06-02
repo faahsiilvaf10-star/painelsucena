@@ -14,7 +14,8 @@ export type AbsenceReason =
   | "INSS"
   | "Folga de Campo"
   | "Licença Casamento"
-  | "Licença Morte";
+  | "Licença Morte"
+  | "Trabalho Externo";
 
 export const ABSENCE_REASONS: AbsenceReason[] = [
   "Falta",
@@ -28,6 +29,7 @@ export const ABSENCE_REASONS: AbsenceReason[] = [
   "Folga de Campo",
   "Licença Casamento",
   "Licença Morte",
+  "Trabalho Externo",
 ];
 
 export const REASON_COLORS: Record<AbsenceReason, string> = {
@@ -42,6 +44,7 @@ export const REASON_COLORS: Record<AbsenceReason, string> = {
   "Folga de Campo": "bg-teal-500/20 text-teal-700 dark:text-teal-300 border-teal-500/40",
   "Licença Casamento": "bg-rose-500/20 text-rose-700 dark:text-rose-300 border-rose-500/40",
   "Licença Morte": "bg-slate-500/20 text-slate-700 dark:text-slate-300 border-slate-500/40",
+  "Trabalho Externo": "bg-blue-600/20 text-blue-700 dark:text-blue-300 border-blue-600/40",
 };
 
 export type AbsenceRow = Tables<"attendance_absence_reasons">;

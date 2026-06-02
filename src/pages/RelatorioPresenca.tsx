@@ -64,6 +64,7 @@ const reasonShort = (r: string) => {
     "Folga de Campo": "FC",
     "Licença Casamento": "LC",
     "Licença Morte": "LO",
+    "Trabalho Externo": "TE",
   };
   return map[r] || r.slice(0, 2).toUpperCase();
 };
