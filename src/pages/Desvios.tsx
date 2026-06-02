@@ -841,7 +841,7 @@ export default function Desvios() {
           >
             <CardContent className="p-4">
               <div className="text-2xl font-bold text-green-600">{dashboardStats.done}</div>
-              <div className="text-xs text-muted-foreground">Concluídos</div>
+              <div className="text-xs text-muted-foreground">Corrigidos</div>
             </CardContent>
           </Card>
           <Card 
