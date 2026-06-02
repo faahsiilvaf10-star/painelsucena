@@ -128,6 +128,7 @@ export default function Desvios() {
     comments: "",
     status: "Aberto",
     attachments: [],
+    correction_photo_urls: [],
   });
 
   const isCreator = useMemo(() => {
