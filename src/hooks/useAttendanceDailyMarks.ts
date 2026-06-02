@@ -65,6 +65,7 @@ export const useAttendanceDailyMarks = (date: string) => {
             date,
             area: params.area,
             absent_employee_ids: params.absentIds,
+            external_work_employee_ids: params.externalWorkIds ?? [],
             created_by: user?.id ?? null,
           },
           { onConflict: "date,area,environment" }
