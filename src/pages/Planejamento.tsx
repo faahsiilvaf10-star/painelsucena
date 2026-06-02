@@ -116,9 +116,9 @@ function MetaRow({ meta, canEdit }: { meta: PlanejamentoMeta; canEdit: boolean }
 
 export default function Planejamento() {
   const { data: metas = [], isLoading } = usePlanejamentoMetas();
-  const { isStrictAdmin } = useIsAdmin();
+  const { isAdmin } = useIsAdmin();
   const { data: profile } = useProfile();
-  const canEdit = isStrictAdmin || profile?.cargo === "planejador";
+  const canEdit = isAdmin || profile?.cargo === "planejador" || profile?.cargo === "engenheiro_planejamento";
   const qc = useQueryClient();
   const [uploading, setUploading] = useState(false);
   const fileInputRef = useRef<HTMLInputElement>(null);
