@@ -240,12 +240,35 @@ export default function Planejamento() {
             Avanço Mensal — Meta DRS. Cada linha representa uma meta a bater.
           </p>
         </div>
-        <Button asChild variant="outline" size="sm">
-          <Link to="/ata-reuniao-contrato">
-            <FileText className="w-4 h-4 mr-2" />
-            Ata Reunião de Contrato
-          </Link>
-        </Button>
+        <div className="flex items-center gap-2">
+          {canEdit && (
+            <>
+              <input
+                type="file"
+                ref={fileInputRef}
+                onChange={handleFileUpload}
+                accept=".xlsx, .xls"
+                className="hidden"
+              />
+              <Button 
+                variant="outline" 
+                size="sm" 
+                onClick={() => fileInputRef.current?.click()}
+                disabled={uploading}
+                className="bg-emerald-50 border-emerald-200 hover:bg-emerald-100 text-emerald-700"
+              >
+                <Upload className="w-4 h-4 mr-2" />
+                {uploading ? "Enviando..." : "Enviar Planilha"}
+              </Button>
+            </>
+          )}
+          <Button asChild variant="outline" size="sm">
+            <Link to="/ata-reuniao-contrato">
+              <FileText className="w-4 h-4 mr-2" />
+              Ata Reunião de Contrato
+            </Link>
+          </Button>
+        </div>
       </div>
 
       {/* Summary cards */}
