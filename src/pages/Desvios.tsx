@@ -219,6 +219,23 @@ export default function Desvios() {
       }
     }
   };
+  
+  const handleCorrectionFileUpload = async (e: React.ChangeEvent<HTMLInputElement>) => {
+    const files = e.target.files;
+    if (!files) return;
+
+    for (const file of Array.from(files)) {
+      try {
+        const url = await uploadFile.mutateAsync(file);
+        setFormState((prev) => ({
+          ...prev,
+          correction_photo_urls: [...(prev.correction_photo_urls || []), url],
+        }));
+      } catch (error) {
+        toast.error(`Erro ao fazer upload de ${file.name}`);
+      }
+    }
+  };
 
   const resetForm = () => {
     setFormState({
