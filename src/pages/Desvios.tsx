@@ -492,6 +492,39 @@ export default function Desvios() {
                     </p>
                   )}
                 </div>
+
+                <div className="space-y-2">
+                  <label className="text-sm font-medium">Fotos da Correção</label>
+                  <div className="grid grid-cols-2 gap-2 mb-2">
+                    {formState.correction_photo_urls?.map((url, i) => (
+                      <div key={i} className="relative group border rounded-lg overflow-hidden h-24 bg-muted/30">
+                        <img src={url} alt={`Correção ${i}`} className="w-full h-full object-cover" />
+                        <button
+                          className="absolute top-1 right-1 bg-destructive text-white rounded-full p-0.5 opacity-0 group-hover:opacity-100 transition-opacity"
+                          onClick={() => setFormState({ ...formState, correction_photo_urls: formState.correction_photo_urls?.filter((_, idx) => idx !== i) })}
+                        >
+                          <X className="w-3 h-3" />
+                        </button>
+                      </div>
+                    ))}
+                  </div>
+                  <input
+                    type="file"
+                    multiple
+                    accept="image/*"
+                    className="hidden"
+                    ref={correctionFileInputRef}
+                    onChange={handleCorrectionFileUpload}
+                  />
+                  <Button
+                    variant="outline"
+                    className="w-full gap-2 border-dashed"
+                    onClick={() => correctionFileInputRef.current?.click()}
+                    disabled={(!isAdmin && !isResponsible) || (isCancelled && !isAdmin)}
+                  >
+                    <ImageIcon className="w-4 h-4" /> Anexar Fotos da Correção
+                  </Button>
+                </div>
               </CardContent>
             </Card>
 
