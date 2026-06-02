@@ -229,8 +229,35 @@ const Presenca = () => {
   const toggleAbsent = (id: number) => {
     setAbsentByArea((prev) => {
       const next = { ...prev, [activeArea]: new Set(prev[activeArea]) };
-      if (next[activeArea].has(id)) next[activeArea].delete(id);
-      else next[activeArea].add(id);
+      if (next[activeArea].has(id)) {
+        next[activeArea].delete(id);
+      } else {
+        next[activeArea].add(id);
+        // Se está ausente, não pode estar em trabalho externo simultaneamente no relatório
+        setExternalWorkByArea((prevExt) => {
+          const nextExt = { ...prevExt, [activeArea]: new Set(prevExt[activeArea]) };
+          nextExt[activeArea].delete(id);
+          return nextExt;
+        });
+      }
+      return next;
+    });
+  };
+
+  const toggleExternalWork = (id: number) => {
+    setExternalWorkByArea((prev) => {
+      const next = { ...prev, [activeArea]: new Set(prev[activeArea]) };
+      if (next[activeArea].has(id)) {
+        next[activeArea].delete(id);
+      } else {
+        next[activeArea].add(id);
+        // Se está em trabalho externo, não pode estar ausente simultaneamente no relatório
+        setAbsentByArea((prevAbs) => {
+          const nextAbs = { ...prevAbs, [activeArea]: new Set(prevAbs[activeArea]) };
+          nextAbs[activeArea].delete(id);
+          return nextAbs;
+        });
+      }
       return next;
     });
   };
