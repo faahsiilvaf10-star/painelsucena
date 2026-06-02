@@ -257,7 +257,7 @@ export default function Desvios() {
 
       const finalUpdates = {
         ...formState,
-        status: isNewCorrection ? "Concluído" : formState.status
+        status: isNewCorrection ? "corrigido" : formState.status
       };
 
       if (selectedDesvio) {
