@@ -10,6 +10,7 @@ export interface AttendanceDailyMark {
   date: string;
   area: AttendanceArea;
   absent_employee_ids: number[];
+  external_work_employee_ids: number[];
   environment: string;
 }
 
