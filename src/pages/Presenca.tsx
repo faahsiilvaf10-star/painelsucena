@@ -159,6 +159,14 @@ const Presenca = () => {
     adm: new Set(),
   });
 
+  const [externalWorkByArea, setExternalWorkByArea] = useState<
+    Record<AttendanceArea, Set<number>>
+  >({
+    gabiao: new Set(),
+    jardinagem: new Set(),
+    adm: new Set(),
+  });
+
 
   // Sincroniza ausências salvas (banco) com o estado local
   useEffect(() => {
