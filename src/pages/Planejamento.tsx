@@ -1,5 +1,5 @@
 import { useEffect, useMemo, useRef, useState } from "react";
-import { Target, TrendingUp, CheckCircle2, AlertCircle, Pencil, Save, X, RefreshCw, FileText } from "lucide-react";
+import { Target, TrendingUp, CheckCircle2, AlertCircle, Pencil, Save, X, RefreshCw, FileText, Upload } from "lucide-react";
 import { Link } from "react-router-dom";
 import { supabase } from "@/integrations/supabase/client";
 import { useQueryClient } from "@tanstack/react-query";
@@ -14,6 +14,7 @@ import { usePlanejamentoMetas, useUpdatePlanejamentoMeta, type PlanejamentoMeta 
 import { useIsAdmin } from "@/hooks/useUserRole";
 import { useProfile } from "@/hooks/useProfile";
 import { cn } from "@/lib/utils";
+import ExcelJS from "exceljs";
 
 function pct(realizado: number, meta: number) {
   if (!meta || meta <= 0) return 0;
