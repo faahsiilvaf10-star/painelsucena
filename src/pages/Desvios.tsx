@@ -81,6 +81,7 @@ import { DesviosTutorial } from "@/components/desvios/DesviosTutorial";
 const STATUS_OPTIONS = [
   { id: "Aberto", label: "Aberto", color: "bg-blue-500" },
   { id: "Em Tratamento", label: "Em Tratamento", color: "bg-amber-500" },
+  { id: "Em Análise", label: "Em Análise", color: "bg-purple-500" },
   { id: "corrigido", label: "Corrigido", color: "bg-green-500" },
   { id: "Cancelado", label: "Cancelado", color: "bg-gray-500" },
 ];
@@ -151,16 +152,53 @@ export default function Desvios() {
   }, [profile, isAdminFromRole]);
 
   const canEditCorrection = useMemo(() => {
+    // Only responsible or admin can edit correction, but not if it's already in analysis or done
+    if (selectedDesvio?.status === "Em Análise" || selectedDesvio?.status === "corrigido") return false;
     return isResponsible || isAdmin;
-  }, [isResponsible, isAdmin]);
+  }, [isResponsible, isAdmin, selectedDesvio]);
+
+  const canApprove = useMemo(() => {
+    // Only creator or admin can approve
+    return isCreator || isAdmin;
+  }, [isCreator, isAdmin]);
 
   const availableStatuses = useMemo(() => {
-    if (isCreator || isAdmin) return STATUS_OPTIONS;
-    if (isResponsible) {
-      return STATUS_OPTIONS.filter(opt => ["Em Tratamento", "corrigido"].includes(opt.id));
+    if (!selectedDesvio) return STATUS_OPTIONS;
+    
+    if (isAdmin) return STATUS_OPTIONS;
+
+    const options = [];
+    
+    // Creator can always cancel or move to treatment
+    if (isCreator) {
+      options.push(STATUS_OPTIONS.find(s => s.id === "Aberto")!);
+      options.push(STATUS_OPTIONS.find(s => s.id === "Em Tratamento")!);
+      options.push(STATUS_OPTIONS.find(s => s.id === "Cancelado")!);
+      
+      // Creator can approve if it's in analysis
+      if (selectedDesvio.status === "Em Análise") {
+        options.push(STATUS_OPTIONS.find(s => s.id === "corrigido")!);
+      }
     }
-    return [];
-  }, [isCreator, isResponsible, isAdmin]);
+
+    // Responsible can move to treatment or analysis
+    if (isResponsible) {
+      if (!options.some(o => o.id === "Em Tratamento")) {
+        options.push(STATUS_OPTIONS.find(s => s.id === "Em Tratamento")!);
+      }
+      options.push(STATUS_OPTIONS.find(s => s.id === "Em Análise")!);
+    }
+
+    // If it's already corrected, just show corrected
+    if (selectedDesvio.status === "corrigido") {
+      if (!options.some(o => o.id === "corrigido")) {
+        options.push(STATUS_OPTIONS.find(s => s.id === "corrigido")!);
+      }
+    }
+
+    // Deduplicate and filter out nulls
+    return Array.from(new Set(options)).filter(Boolean);
+  }, [isCreator, isResponsible, isAdmin, selectedDesvio]);
 
   const dashboardStats = useMemo(() => {
     if (!desvios) return { total: 0, open: 0, inTreatment: 0, done: 0, delayed: 0 };
@@ -274,15 +312,15 @@ export default function Desvios() {
 
       const finalUpdates = {
         ...formState,
-        status: isNewCorrection ? "corrigido" : formState.status
+        status: isNewCorrection ? "Em Análise" : formState.status
       };
 
       if (selectedDesvio) {
         await updateDesvio.mutateAsync({
           id: selectedDesvio.id,
           updates: finalUpdates,
-          action: isNewCorrection ? "Correção" : "Edição",
-          comment: isNewCorrection ? "Correção realizada pelo responsável" : (send ? "Desvio salvo e enviado" : "Desvio atualizado"),
+          action: isNewCorrection ? "Enviado para Análise" : "Edição",
+          comment: isNewCorrection ? "Correção realizada e enviada para aprovação" : (send ? "Desvio salvo e enviado" : "Desvio atualizado"),
           forceNotify: send,
         });
       } else {
@@ -479,13 +517,20 @@ export default function Desvios() {
               </CardHeader>
               <CardContent className="space-y-4">
                 <div className="space-y-2">
-                  <label className="text-sm font-medium">Correção Realizada</label>
+                  <div className="flex items-center justify-between">
+                    <label className="text-sm font-medium">Correção Realizada</label>
+                    {selectedDesvio?.status === "Em Análise" && (isCreator || isAdmin) && (
+                      <Badge variant="outline" className="bg-purple-100 text-purple-700 border-purple-200 animate-pulse">
+                        Aguardando Aprovação
+                      </Badge>
+                    )}
+                  </div>
                   <Textarea
                     placeholder="Descreva a correção efetuada..."
                     className="min-h-[200px]"
                     value={formState.correction || ""}
                     onChange={(e) => setFormState({ ...formState, correction: e.target.value })}
-                    disabled={(!isAdmin && !isResponsible) || (isCancelled && !isAdmin)}
+                    disabled={!canEditCorrection || (isCancelled && !isAdmin)}
                   />
                   {!canEditCorrection && (
                     <p className="text-[10px] text-muted-foreground italic">
@@ -521,13 +566,47 @@ export default function Desvios() {
                     variant="outline"
                     className="w-full gap-2 border-dashed"
                     onClick={() => correctionFileInputRef.current?.click()}
-                    disabled={(!isAdmin && !isResponsible) || (isCancelled && !isAdmin)}
+                    disabled={!canEditCorrection || (isCancelled && !isAdmin)}
                   >
                     <ImageIcon className="w-4 h-4" /> Anexar Fotos da Correção
                   </Button>
                 </div>
               </CardContent>
             </Card>
+
+            {/* Coluna 4: Aprovação (Só visível se estiver em análise) */}
+            {selectedDesvio?.status === "Em Análise" && (
+              <Card className="border-purple-200 bg-purple-50/30">
+                <CardHeader>
+                  <CardTitle className="flex items-center gap-2 text-purple-700">
+                    <CheckCircle2 className="w-5 h-5" />
+                    Aprovação
+                  </CardTitle>
+                </CardHeader>
+                <CardContent className="space-y-4">
+                  <p className="text-sm text-purple-600">
+                    A correção foi enviada e está aguardando sua aprovação para ser finalizada.
+                  </p>
+                  <div className="flex flex-col gap-2">
+                    <Button 
+                      className="w-full gap-2 bg-green-600 hover:bg-green-700"
+                      onClick={() => handleStatusChange("corrigido")}
+                      disabled={!canApprove}
+                    >
+                      <Check className="w-4 h-4" /> Aprovar Correção
+                    </Button>
+                    <Button 
+                      variant="outline" 
+                      className="w-full gap-2 border-red-200 text-red-600 hover:bg-red-50"
+                      onClick={() => handleStatusChange("Em Tratamento")}
+                      disabled={!canApprove}
+                    >
+                      <Ban className="w-4 h-4" /> Recusar / Solicitar Ajuste
+                    </Button>
+                  </div>
+                </CardContent>
+              </Card>
+            )}
 
             {/* Coluna 4: Responsável / Prazo */}
             <Card>
