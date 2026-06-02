@@ -120,8 +120,88 @@ export default function Planejamento() {
   const { data: profile } = useProfile();
   const canEdit = isStrictAdmin || profile?.cargo === "planejador";
   const qc = useQueryClient();
+  const [uploading, setUploading] = useState(false);
+  const fileInputRef = useRef<HTMLInputElement>(null);
 
-  // Excel sync logic removed as requested by user
+  const handleFileUpload = async (event: React.ChangeEvent<HTMLInputElement>) => {
+    const file = event.target.files?.[0];
+    if (!file) return;
+
+    setUploading(true);
+    const loadingToast = toast.loading("Processando planilha e atualizando metas...");
+
+    try {
+      const workbook = new ExcelJS.Workbook();
+      const arrayBuffer = await file.arrayBuffer();
+      await workbook.xlsx.load(arrayBuffer);
+      
+      const worksheet = workbook.getWorksheet(1) || workbook.worksheets[0];
+      if (!worksheet) throw new Error("Não foi possível encontrar uma aba na planilha.");
+
+      const updates: { id: string; meta: number; realizado: number }[] = [];
+      const COL_LINHA = 1; // Coluna A
+      const COL_META = 3;  // Coluna C
+      const COL_REAL = 4;  // Coluna D
+
+      worksheet.eachRow((row, rowNumber) => {
+        // Pular cabeçalho ou linhas vazias
+        if (rowNumber === 1) return;
+
+        const linhaVal = row.getCell(COL_LINHA).value;
+        const metaVal = row.getCell(COL_META).value;
+        const realVal = row.getCell(COL_REAL).value;
+
+        // Converter para número, lidando com possíveis fórmulas ou objetos de célula
+        const num = (v: any) => {
+          if (v && typeof v === 'object' && 'result' in v) return Number(v.result) || 0;
+          return Number(v) || 0;
+        };
+
+        const linha = Number(linhaVal);
+        if (!isNaN(linha)) {
+          const meta = metas.find(m => m.linha === linha && !m.is_section_header);
+          if (meta) {
+            updates.push({
+              id: meta.id,
+              meta: num(metaVal),
+              realizado: num(realVal)
+            });
+          }
+        }
+      });
+
+      if (updates.length === 0) {
+        throw new Error("Nenhuma meta correspondente encontrada. Verifique se a Coluna A contém os números das linhas.");
+      }
+
+      // Executar atualizações no banco
+      const { error: updateError } = await supabase
+        .from("planejamento_metas")
+        .upsert(updates.map(u => ({
+          id: u.id,
+          meta: u.meta,
+          realizado: u.realizado
+        })));
+
+      if (updateError) throw updateError;
+
+      // Enviar notificação para o WhatsApp (Resumo Mensal)
+      const { error: notifyError } = await supabase.functions.invoke("wapi-planning-notify", {
+        body: { eventType: "monthly_summary", force: true },
+      });
+
+      if (notifyError) console.warn("Falha ao enviar notificação WhatsApp:", notifyError);
+
+      toast.success(`${updates.length} metas atualizadas e resumo enviado ao grupo!`, { id: loadingToast });
+      qc.invalidateQueries({ queryKey: ["planejamento-metas"] });
+    } catch (error: any) {
+      console.error("Erro no upload:", error);
+      toast.error(error.message || "Erro ao processar planilha", { id: loadingToast });
+    } finally {
+      setUploading(false);
+      if (fileInputRef.current) fileInputRef.current.value = "";
+    }
+  };
 
 
   const grouped = useMemo(() => {
