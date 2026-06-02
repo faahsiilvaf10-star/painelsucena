@@ -17,7 +17,7 @@ Deno.serve(async (req) => {
     const admin = createClient(supabaseUrl, serviceKey);
 
     const body = await req.json().catch(() => ({}));
-    const { desvioId, updatedBy, statusChanged, newStatus } = body || {};
+    const { desvioId, updatedBy, statusChanged, newStatus, comment } = body || {};
 
     if (!desvioId) {
       return new Response(JSON.stringify({ error: "desvioId obrigatório" }), {
