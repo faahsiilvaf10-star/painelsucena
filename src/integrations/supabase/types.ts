@@ -4962,6 +4962,7 @@ export type Database = {
     }
     Functions: {
       can_manage_employees: { Args: { _user_id: string }; Returns: boolean }
+      can_manage_planning: { Args: { _user_id: string }; Returns: boolean }
       check_unread_chat_messages: { Args: never; Returns: undefined }
       cleanup_expired_stories: { Args: never; Returns: undefined }
       cleanup_old_auth_attempts: { Args: never; Returns: undefined }
