@@ -58,7 +58,7 @@ Deno.serve(async (req) => {
     const admin = createClient(supabaseUrl, serviceKey);
 
     const payload = await req.json().catch(() => ({}));
-    const { eventType, metaId, force } = payload || {};
+    const { eventType, metaId, force, userName } = payload || {};
 
     if (!eventType) {
       return new Response(JSON.stringify({ error: "eventType é obrigatório" }), {
@@ -121,7 +121,7 @@ Deno.serve(async (req) => {
         `*Atingimento:* ${percentDone.toFixed(2)}%${overshoot ? " 🚀" : ""}\n` +
         `\n━━━━━━━━━━━━━━━━━━━━\n` +
         `✅ Parabéns! Meta batida no Planejamento Mensal.`;
-    } else if (eventType === "monthly_summary") {
+    } else if (eventType === "monthly_summary" || eventType === "spreadsheet_uploaded") {
       // Trigger only on day 16 (or force)
       const para = paraToday();
       if (para.getUTCDate() !== 16 && !force) {
@@ -177,8 +177,13 @@ Deno.serve(async (req) => {
             .join("\n") + (pending.length > 40 ? `\n... e mais ${pending.length - 40}` : "")
         : "_Todas as metas foram batidas! 🎉_";
 
+      const title = eventType === "spreadsheet_uploaded" 
+        ? `📤 *PLANILHA DE PLANEJAMENTO ATUALIZADA*` 
+        : `📊 *RESUMO MENSAL DO PLANEJAMENTO*`;
+
       message =
-        `📊 *RESUMO MENSAL DO PLANEJAMENTO*\n` +
+        `${title}\n` +
+        (userName ? `*Por:* ${userName}\n` : "") +
         `*Referência:* ${monthLabel}\n` +
         `━━━━━━━━━━━━━━━━━━━━\n\n` +
         `*Avanço Geral:* ${overall.toFixed(2)}%\n` +

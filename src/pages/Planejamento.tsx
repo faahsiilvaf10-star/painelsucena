@@ -189,7 +189,11 @@ export default function Planejamento() {
 
       // Enviar notificação para o WhatsApp (Resumo Mensal)
       const { error: notifyError } = await supabase.functions.invoke("wapi-planning-notify", {
-        body: { eventType: "monthly_summary", force: true },
+        body: { 
+          eventType: "spreadsheet_uploaded", 
+          force: true,
+          userName: profile?.full_name || "Usuário"
+        },
       });
 
       if (notifyError) console.warn("Falha ao enviar notificação WhatsApp:", notifyError);
