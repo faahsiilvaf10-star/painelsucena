@@ -207,6 +207,7 @@ export type Database = {
           created_by: string | null
           date: string
           environment: string
+          external_work_employee_ids: number[] | null
           id: string
           updated_at: string
         }
@@ -217,6 +218,7 @@ export type Database = {
           created_by?: string | null
           date: string
           environment?: string
+          external_work_employee_ids?: number[] | null
           id?: string
           updated_at?: string
         }
@@ -227,6 +229,7 @@ export type Database = {
           created_by?: string | null
           date?: string
           environment?: string
+          external_work_employee_ids?: number[] | null
           id?: string
           updated_at?: string
         }

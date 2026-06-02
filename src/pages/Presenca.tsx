@@ -139,7 +139,7 @@ const Presenca = () => {
   );
   const { isLocked, lockMutation, unlockMutation } =
     useAttendanceReportLocks(date);
-  const { data: dailyMarks, getAbsentIds, saveMutation: marksSaveMutation } =
+  const { data: dailyMarks, getAbsentIds, getExternalWorkIds, saveMutation: marksSaveMutation } =
     useAttendanceDailyMarks(date);
   const initialArea = useMemo<AttendanceArea>(() => {
     return "gabiao";
@@ -159,6 +159,14 @@ const Presenca = () => {
     adm: new Set(),
   });
 
+  const [externalWorkByArea, setExternalWorkByArea] = useState<
+    Record<AttendanceArea, Set<number>>
+  >({
+    gabiao: new Set(),
+    jardinagem: new Set(),
+    adm: new Set(),
+  });
+
 
   // Sincroniza ausências salvas (banco) com o estado local
   useEffect(() => {
@@ -167,6 +175,11 @@ const Presenca = () => {
       gabiao: getAbsentIds("gabiao"),
       jardinagem: getAbsentIds("jardinagem"),
       adm: getAbsentIds("adm"),
+    });
+    setExternalWorkByArea({
+      gabiao: getExternalWorkIds("gabiao"),
+      jardinagem: getExternalWorkIds("jardinagem"),
+      adm: getExternalWorkIds("adm"),
     });
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [dailyMarks]);
@@ -216,19 +229,50 @@ const Presenca = () => {
   const toggleAbsent = (id: number) => {
     setAbsentByArea((prev) => {
       const next = { ...prev, [activeArea]: new Set(prev[activeArea]) };
-      if (next[activeArea].has(id)) next[activeArea].delete(id);
-      else next[activeArea].add(id);
+      if (next[activeArea].has(id)) {
+        next[activeArea].delete(id);
+      } else {
+        next[activeArea].add(id);
+        // Se está ausente, não pode estar em trabalho externo simultaneamente no relatório
+        setExternalWorkByArea((prevExt) => {
+          const nextExt = { ...prevExt, [activeArea]: new Set(prevExt[activeArea]) };
+          nextExt[activeArea].delete(id);
+          return nextExt;
+        });
+      }
       return next;
     });
   };
 
-  const markAllPresent = () =>
+  const toggleExternalWork = (id: number) => {
+    setExternalWorkByArea((prev) => {
+      const next = { ...prev, [activeArea]: new Set(prev[activeArea]) };
+      if (next[activeArea].has(id)) {
+        next[activeArea].delete(id);
+      } else {
+        next[activeArea].add(id);
+        // Se está em trabalho externo, não pode estar ausente simultaneamente no relatório
+        setAbsentByArea((prevAbs) => {
+          const nextAbs = { ...prevAbs, [activeArea]: new Set(prevAbs[activeArea]) };
+          nextAbs[activeArea].delete(id);
+          return nextAbs;
+        });
+      }
+      return next;
+    });
+  };
+
+  const markAllPresent = () => {
     setAbsentByArea((prev) => ({ ...prev, [activeArea]: new Set() }));
-  const markAllAbsent = () =>
+    setExternalWorkByArea((prev) => ({ ...prev, [activeArea]: new Set() }));
+  };
+  const markAllAbsent = () => {
     setAbsentByArea((prev) => ({
       ...prev,
       [activeArea]: new Set(areaEmployees.map((c) => c.id)),
     }));
+    setExternalWorkByArea((prev) => ({ ...prev, [activeArea]: new Set() }));
+  };
 
   const absentSet = absentByArea[activeArea];
   const presentCount = areaEmployees.length - absentSet.size;
@@ -283,7 +327,9 @@ const Presenca = () => {
       (c) => employeeAreaMap.get(c.id) === area
     );
     const absents = absentByArea[area];
-    const isPresent = (c: Colaborador) => !absents.has(c.id);
+    const externalWorks = externalWorkByArea[area];
+    const isPresent = (c: Colaborador) => !absents.has(c.id) && !externalWorks.has(c.id);
+    const isExternal = (c: Colaborador) => externalWorks.has(c.id);
     const header = AREAS.find((a) => a.id === area)!.header;
 
     const lines: string[] = [];
@@ -351,18 +397,19 @@ const Presenca = () => {
         lines.push(`👷 ${label}:`);
         lines.push("");
         items.forEach((c) => {
-          const mark = isPresent(c) ? "✅" : "❌";
+          const mark = isExternal(c) ? "🛠️ (Externo)" : isPresent(c) ? "✅" : "❌";
           lines.push(`${toTitleCase(c.nome)} ${mark}`);
           lines.push("");
         });
       });
     }
 
-    const ausentes = list.filter((c) => !isPresent(c));
-    const presentes = list.length - ausentes.length;
+    const ausentes = list.filter((c) => !isPresent(c) && !isExternal(c));
+    const externos = list.filter(isExternal);
+    const presentes = list.length - ausentes.length - externos.length;
     lines.push("───────────────────────────");
     lines.push(
-      `✅ Presentes: ${presentes}  |  ❌ Ausentes: ${ausentes.length}  |  👥 Total: ${list.length}`
+      `✅ Presentes: ${presentes}  |  ❌ Ausentes: ${ausentes.length}  |  🛠️ Externo: ${externos.length}  |  👥 Total: ${list.length}`
     );
     return lines.join("\n").trim();
   };
@@ -400,10 +447,11 @@ const Presenca = () => {
 
   const handleSaveLock = async () => {
     try {
-      // Persiste as ausências para a área (vai para o RDO)
+      // Persiste as ausências e trabalho externo para a área (vai para o RDO)
       await marksSaveMutation.mutateAsync({
         area: activeArea,
         absentIds: Array.from(absentByArea[activeArea]),
+        externalWorkIds: Array.from(externalWorkByArea[activeArea]),
       });
       await lockMutation.mutateAsync(activeArea);
       toast.success("Lista salva e enviada para o RDO");
@@ -828,23 +876,40 @@ const Presenca = () => {
                     <div className="divide-y">
                       {filtered.map((c) => {
                         const absent = absentSet.has(c.id);
+                        const external = externalWorkByArea[activeArea].has(c.id);
                         return (
                           <div
                             key={c.id}
                             className="flex items-center gap-3 py-3 hover:bg-muted/40 px-2 rounded transition"
                           >
-                            <Checkbox
-                              checked={absent}
-                              onCheckedChange={() => toggleAbsent(c.id)}
-                              aria-label="Marcar como ausente"
-                              disabled={locked}
-                            />
+                            <div className="flex flex-col gap-1 pr-2 border-r">
+                              <div className="flex items-center gap-2">
+                                <Checkbox
+                                  checked={absent}
+                                  onCheckedChange={() => toggleAbsent(c.id)}
+                                  aria-label="Marcar como ausente"
+                                  disabled={locked}
+                                />
+                                <span className="text-[10px] uppercase font-bold text-muted-foreground">Ausente</span>
+                              </div>
+                              <div className="flex items-center gap-2">
+                                <Checkbox
+                                  checked={external}
+                                  onCheckedChange={() => toggleExternalWork(c.id)}
+                                  aria-label="Marcar como trabalho externo"
+                                  disabled={locked}
+                                />
+                                <span className="text-[10px] uppercase font-bold text-muted-foreground">Externo</span>
+                              </div>
+                            </div>
                             <div className="flex-1 min-w-0">
                               <div
                                 className={`font-medium truncate ${
                                   absent
                                     ? "line-through text-muted-foreground"
-                                    : ""
+                                    : external
+                                      ? "text-blue-600"
+                                      : ""
                                 }`}
                               >
                                 {toTitleCase(c.nome)}
@@ -854,7 +919,7 @@ const Presenca = () => {
                               </div>
                             </div>
                             <span className="text-lg" aria-hidden>
-                              {absent ? "❌" : "✅"}
+                              {absent ? "❌" : external ? "🛠️" : "✅"}
                             </span>
                             <Button
                               variant="ghost"

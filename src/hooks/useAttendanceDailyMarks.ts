@@ -10,6 +10,7 @@ export interface AttendanceDailyMark {
   date: string;
   area: AttendanceArea;
   absent_employee_ids: number[];
+  external_work_employee_ids: number[];
   environment: string;
 }
 
@@ -55,6 +56,7 @@ export const useAttendanceDailyMarks = (date: string) => {
     mutationFn: async (params: {
       area: AttendanceArea;
       absentIds: number[];
+      externalWorkIds?: number[];
     }) => {
       const { error } = await supabase
         .from("attendance_daily_marks")
@@ -63,6 +65,7 @@ export const useAttendanceDailyMarks = (date: string) => {
             date,
             area: params.area,
             absent_employee_ids: params.absentIds,
+            external_work_employee_ids: params.externalWorkIds ?? [],
             created_by: user?.id ?? null,
           },
           { onConflict: "date,area,environment" }
@@ -81,5 +84,10 @@ export const useAttendanceDailyMarks = (date: string) => {
     return new Set(row?.absent_employee_ids ?? []);
   };
 
-  return { ...query, getAbsentIds, saveMutation };
+  const getExternalWorkIds = (area: AttendanceArea): Set<number> => {
+    const row = (query.data ?? []).find((m) => m.area === area);
+    return new Set(row?.external_work_employee_ids ?? []);
+  };
+
+  return { ...query, getAbsentIds, getExternalWorkIds, saveMutation };
 };
