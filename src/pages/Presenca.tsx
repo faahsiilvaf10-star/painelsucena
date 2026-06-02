@@ -176,6 +176,11 @@ const Presenca = () => {
       jardinagem: getAbsentIds("jardinagem"),
       adm: getAbsentIds("adm"),
     });
+    setExternalWorkByArea({
+      gabiao: getExternalWorkIds("gabiao"),
+      jardinagem: getExternalWorkIds("jardinagem"),
+      adm: getExternalWorkIds("adm"),
+    });
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [dailyMarks]);
   const [previewOpen, setPreviewOpen] = useState(false);
