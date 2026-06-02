@@ -189,9 +189,9 @@ export default function Desvios() {
       if (activeFilter === "total") return true;
       if (activeFilter === "open") return d.status === "Aberto";
       if (activeFilter === "inTreatment") return d.status === "Em Tratamento";
-      if (activeFilter === "done") return d.status === "Concluído";
+      if (activeFilter === "done") return d.status === "corrigido";
       if (activeFilter === "delayed") {
-        return !["Concluído", "Cancelado"].includes(d.status) && 
+        return !["corrigido", "Cancelado"].includes(d.status) && 
                d.due_date && isPast(parseISO(d.due_date)) && !isToday(parseISO(d.due_date));
       }
       return true;
