@@ -447,10 +447,11 @@ const Presenca = () => {
 
   const handleSaveLock = async () => {
     try {
-      // Persiste as ausências para a área (vai para o RDO)
+      // Persiste as ausências e trabalho externo para a área (vai para o RDO)
       await marksSaveMutation.mutateAsync({
         area: activeArea,
         absentIds: Array.from(absentByArea[activeArea]),
+        externalWorkIds: Array.from(externalWorkByArea[activeArea]),
       });
       await lockMutation.mutateAsync(activeArea);
       toast.success("Lista salva e enviada para o RDO");
